@@ -15,8 +15,15 @@ namespace CobolNet.CodeGen.Emit;
 /// travels by parameter into every public entry, never mutable context state) for ÷. The receiver's store
 /// (truncation / capacity) is applied later by <c>CobolNum.Store</c>.
 /// </summary>
-internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>
+internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>
 {
+    /// <summary>THE checked-kernel decision (kb/Work PB91): a render under an ON SIZE ERROR / EC-SIZE-checked
+    /// ARITHMETIC statement (<c>_rcv.InSizeError</c>, threaded by ArithmeticEmitter) — and, since PB91, any
+    /// RECEIVER-LESS render (a condition, an argument, a subscript, …) inside a statement that has EC-SIZE-*
+    /// checking enabled (<see cref="EcState.SizeChecking"/>): §14.7.5 no-phrase rule 3 makes such an
+    /// intermediate overflow EC-SIZE-OVERFLOW, and §14.6.13.1.3 its disposition fatal.</summary>
+    private bool Checked => _rcv.InSizeError || (_rcv.Receiverless && ecState.SizeChecking);
+
     /// <summary>The intrinsic-function render dispatch (ISO §15; IntrinsicRenderer.cs) — created lazily because
     /// the two renderers are mutually recursive (an intrinsic renders its numeric arguments through THIS).</summary>
     internal IntrinsicRenderer Intrinsics => _intrinsics ??= new IntrinsicRenderer(ctx, this);
@@ -362,7 +369,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // Multiplication: scales add (exact). Under an ON SIZE ERROR phrase the product is overflow-checked at the
         // Int128 ESCAPE boundary (~38 digits, design D1) → OverflowException maps to the size error condition
         // (§14.7.5 case 5); without the phrase it is unchecked wide multiplication.
-        "*" => new NumX(_rcv.InSizeError ? $"CobolNum.MulChecked({a.Expr}, {b.Expr})" : $"((Int128)({a.Expr}) * ({b.Expr}))", a.Scale + b.Scale),
+        "*" => new NumX(Checked ? $"CobolNum.MulChecked({a.Expr}, {b.Expr})" : $"((Int128)({a.Expr}) * ({b.Expr}))", a.Scale + b.Scale),
         "/" => Divide(a, b),
         _ => a,
     };
@@ -408,7 +415,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         }
         // Under an ON SIZE ERROR phrase, a zero divisor must raise the size error (ISO §14.7.5 case 2): the checked
         // DivideOrThrow signals it (caught by the statement's try); otherwise Divide returns 0 unchanged.
-        string fn = _rcv.InSizeError ? "DivideOrThrow" : "Divide";
+        string fn = Checked ? "DivideOrThrow" : "Divide";
         return new NumX($"CobolNum.{fn}({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {ds}, CobolRounding.{mode})", ds);
     }
 
@@ -420,7 +427,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // MulChecked contract. Reachable: HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is Int128.MaxValue itself
         // (kb/Work R10), where an unchecked `+ 1` wraps to the container's far end and stores with no error.
         // Without the phrase it stays the bare unchecked operator, like every other engine op.
-        if (_rcv.InSizeError)
+        if (Checked)
             return new NumX($"CobolNum.{(op == "+" ? "AddChecked" : "SubChecked")}({Align(a, s)}, {Align(b, s)})", s);
         return new NumX($"((Int128)({Align(a, s)}) {op} ({Align(b, s)}))", s);
     }
@@ -637,7 +644,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// SATURATING one (the receiver's capacity check raises, PB13); a MOVE sender or a no-phrase store — the default —
     /// takes the low-order digits. ONE spelling for the float family's <c>FromDouble</c>, native <c>**</c>, and the
     /// NUMVAL family (<c>IntrinsicRenderer</c> reads it through <c>ReceiverContext.InSizeError</c>).</summary>
-    internal string CheckedFlag => _rcv.InSizeError ? ", checkedLanding: true" : "";
+    internal string CheckedFlag => Checked ? ", checkedLanding: true" : "";
 
     // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
     // Internal (not private): the intrinsic renderer converts float-family arguments to double through THIS

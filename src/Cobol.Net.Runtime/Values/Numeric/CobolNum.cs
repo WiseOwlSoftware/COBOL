@@ -428,23 +428,41 @@ public static partial class CobolNum
 
     /// <summary>Multiply two unscaled operands with overflow checking against the long engine's range: raises
     /// <see cref="OverflowException"/> (mapped to the size error condition, ISO §14.7.5 case 5) when the product
-    /// exceeds <see cref="long"/>. Emitted only inside a statement that carries an ON SIZE ERROR phrase — so a
-    /// no-phrase multiply stays a bare unchecked <c>*</c>. Being a method call (not a constant expression), a
+    /// exceeds <see cref="long"/>. Emitted inside a statement that carries an ON SIZE ERROR phrase and — kb/Work
+    /// PB91 — in every receiver-less render (a condition, an argument, a subscript) of a statement under EC-SIZE
+    /// checking; elsewhere a multiply stays a bare unchecked <c>*</c>. Being a method call (not a constant expression), a
     /// constant product is checked at run time, never folded to a compile-time error. (Products beyond the long
     /// range need the Int128 carrier; deferred — see the numeric design.)</summary>
-    public static Int128 MulChecked(Int128 a, Int128 b) => checked(a * b);
+    public static Int128 MulChecked(Int128 a, Int128 b)
+    {
+        // kb/Work PB91: the overflow is the size error CONDITION (§14.7.5 case 5) wherever the checked kernel runs —
+        // inside an arithmetic statement its try catches CobolSizeError (and reads EcName), and in a NON-arithmetic
+        // context under EC-SIZE checking (a condition, an argument, a subscript) the statement's ambient EC guard
+        // dispatches it as the fatal EC-SIZE-OVERFLOW; a bare OverflowException escaped that guard as a crash.
+        try { return checked(a * b); }
+        catch (OverflowException) { throw new CobolSizeError("intermediate product exceeds the Int128 carrier"); }
+    }
 
     /// <summary>The additive siblings of <see cref="MulChecked"/> (the same §14.7.5 case-5 mapping, kb/Work
     /// R10): a sum/difference at the very top of a 16-byte BinaryCapacity container can exceed the Int128
     /// engine itself (HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is exactly <see cref="Int128.MaxValue"/>, so
     /// <c>ADD 1</c> overflows the CARRIER, not merely the receiver), and an unchecked <c>+</c> would wrap to
-    /// the far end of the container and store "in range" with NO size error. Emitted only inside a statement
-    /// that carries an ON SIZE ERROR phrase — a no-phrase add stays a bare unchecked <c>+</c>, exactly like
-    /// the multiply.</summary>
-    public static Int128 AddChecked(Int128 a, Int128 b) => checked(a + b);
+    /// the far end of the container and store "in range" with NO size error. Emitted inside a statement that
+    /// carries an ON SIZE ERROR phrase and (kb/Work PB91) in the receiver-less renders of an EC-SIZE-checked
+    /// statement — elsewhere an add stays a bare unchecked <c>+</c>, exactly like the multiply. Raises
+    /// <see cref="CobolSizeError"/> (the size error condition), never a bare OverflowException.</summary>
+    public static Int128 AddChecked(Int128 a, Int128 b)
+    {
+        try { return checked(a + b); }
+        catch (OverflowException) { throw new CobolSizeError("intermediate sum exceeds the Int128 carrier"); }
+    }
 
     /// <inheritdoc cref="AddChecked"/>
-    public static Int128 SubChecked(Int128 a, Int128 b) => checked(a - b);
+    public static Int128 SubChecked(Int128 a, Int128 b)
+    {
+        try { return checked(a - b); }
+        catch (OverflowException) { throw new CobolSizeError("intermediate difference exceeds the Int128 carrier"); }
+    }
 
     /// <summary>
     /// Divide (see <see cref="Divide"/>) but raise <see cref="CobolSizeError"/> on a zero divisor (ISO §14.7.5 case

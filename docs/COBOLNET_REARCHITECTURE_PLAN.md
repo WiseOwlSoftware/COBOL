@@ -241,9 +241,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   inside a double redefinition of an OCCURS table is tiled by exactly its two views), so a view in the range no
   longer counts twice (`A THRU C` over A / B REDEFINES A / C is 6 characters, not 8), a redefining operand maps to
   the area it overlays, and a boundary inside a cell is a ref-mod partial part. CONFORMANCE.md §4 determination
-  for the shorter-redefinition-as-data-name-3 reading. Two verdicts → CONFORMS, GAP 3956. Battery #17 owed for the
-  PB96 batch with the next landing.
-  **NEXT, in order (`work.py next`):** ① PB91 (PB64/PB66 are features)
+  for the shorter-redefinition-as-data-name-3 reading. Two verdicts → CONFORMS, GAP 3956.
+  **✅ PB91 CLOSED (DEVLOG 1321, 2026-08-18)** — the checked numeric kernels follow the STATEMENT's checking state:
+  `NumericRenderer.Checked = InSizeError || (Receiverless && EcState.SizeChecking)`, and `MulChecked / AddChecked /
+  SubChecked` raise `CobolSizeError` (never a bare OverflowException) — a native Int128 overflow or a zero divisor in
+  a condition / argument / subscript under EC-SIZE checking is the size error condition, dispatched like the decimal
+  carrier's (PB75). Two verdicts (§14.7.5 cases 2 and 5) → CONFORMS, GAP 3954. **THE DEFECT BACKLOG IS EMPTY** —
+  `work.py next` lists only the two features (PB64 locale, PB66 data-division). Battery #17 owed for the PB96 + PB91
+  batch.
+  **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) · PB66 (feature/data-division) — the features; the
+  standing order (2026-08-09) after the backlog reaches zero: fix-before-explore holds, so a NEW defect found on the
+  way outranks both.
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

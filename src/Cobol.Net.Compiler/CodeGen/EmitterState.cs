@@ -137,6 +137,14 @@ internal sealed class EcState
     /// around each <c>BoundEcChecked</c> body.</summary>
     public EcStatementInfo? Info { get; set; }
 
+    /// <summary>True while the statement being emitted has any EC-SIZE-* condition enabled (kb/Work PB91): the
+    /// receiver-less numeric renders inside it — a relation operand, a function argument, a subscript, a SET
+    /// amount — take the CHECKED kernels (MulChecked / AddChecked / SubChecked / DivideOrThrow, the checked NUMVAL
+    /// landing), so an intermediate that overflows the Int128 carrier or a zero divisor raises CobolSizeError for
+    /// the ambient EC-SIZE guard to dispatch (§14.7.5 no-phrase rule 3 + §14.6.13.1.3) instead of wrapping.</summary>
+    public bool SizeChecking =>
+        Info?.Enabled.Any(p => p.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)) == true;
+
     /// <summary>The current <c>__sizeErr</c> flag while emitting a checked arithmetic body (else null) —
     /// statement-scoped scratch set/cleared by the ON SIZE ERROR two-phase wrapper and read by the checked
     /// arithmetic stores (the EC↔arithmetic interlock).</summary>

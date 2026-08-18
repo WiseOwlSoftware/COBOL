@@ -28553,12 +28553,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Common phrases and features for statements",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#DivideOrThrow; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#Checked",
+  "test-ref": "conformance:2023/pb91_native_overflow_outside_arithmetic; conformance:2023/pb75_sdidi_overflow_outside_arithmetic",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB91 + PB75). A zero divisor 'in a divide operation or in a DIVIDE statement' is the size error condition wherever checking is enabled: the arithmetic statement's phrase / EC checking (DivideOrThrow under _rcv.InSizeError) and — PB91 — every receiver-less divide of an EC-SIZE-checked statement (a condition, an argument, a subscript: NumericRenderer.Checked). CobolSizeError(EC-SIZE-ZERO-DIVIDE) is taken by the phrase or dispatched as the fatal EC (14.6.13.1.3). Checking off: the documented 0 quotient (item 70 / 179).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.5-3",
@@ -28592,12 +28592,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "Common phrases and features for statements",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#MulChecked; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#Checked",
+  "test-ref": "conformance:2023/pb91_native_overflow_outside_arithmetic; conformance:2023/highest_algebraic_comp5_unsigned",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB91; item 179 (1)). Native arithmetic: COBOL.NET DEFINES that the Int128 intermediate's range is checked whenever size-error checking is enabled for the statement (an ON SIZE ERROR phrase, or EC-SIZE checking by TURN / an exception-checking PERFORM) — MulChecked / AddChecked / SubChecked raise CobolSizeError(EC-SIZE-OVERFLOW) in the arithmetic statement's operands AND, since PB91, in every receiver-less arithmetic expression the statement evaluates; with checking not enabled the intermediate wraps (the implementor's determination the case conditions on).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.5-6",

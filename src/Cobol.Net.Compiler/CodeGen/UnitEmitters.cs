@@ -48,7 +48,7 @@ internal sealed class UnitEmitters
     {
         Refs = refs;
         Ctx = new EmitContext(w, data, names);
-        Num = new NumericRenderer(Ctx);
+        Num = new NumericRenderer(Ctx, ecState);
         Cond = new ConditionRenderer(Num, Ctx);
 
         // Acyclic construction order (each ctor takes only already-built collaborators); the cycles close
