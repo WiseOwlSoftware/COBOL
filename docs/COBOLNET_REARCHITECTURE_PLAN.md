@@ -143,7 +143,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   STATUS group, CALL copy-in/out; no Place-based emitter spells `.FromImage(` any more — RL210A broke the first gate), LENGTH
   r4a's maximum for an unassociated based entry through `RuntimeApi.PtrIsNull` (the null pointer is a singleton).
   PB89: `SET ADDRESS OF … TO NULL` (SR19) parses, binds and disassociates. Four verdicts → CONFORMS, GAP 4015.
-  **Battery owed for the PB88 + PB80/PB89 batch — running now.**
+  **✅ Battery (PB88 + PB80/PB89 batch, tree `3793750a`, DEVLOG 1309):** Conformance **4675/4675** · Unit
+  **4196/4196** · Characterization 33/33 · legacy guard 352 MATCH + `SQ201M` lost-then-re-observed MATCH (= 353/0)
+  · differential 1323 cases, TWO flips both PB88's and both WE_ACCEPT_THEY_REJECT → AGREE_REJECT (baseline rows
+  flipped, attributed). `guard-fast.sh` now re-observes a program whose group VANISHED, not only one that said
+  NO-VERDICT. No gate is owed.
   **NEXT, in order:** ① PB77 → PB73 → PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.

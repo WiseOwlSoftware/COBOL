@@ -163,7 +163,12 @@ fi
 # measurement discards no result — it is not re-rolling a failed assertion. The retry runs the program's WHOLE
 # GROUP (a chain member alone would lose its producers) with no other work in flight, which is the quietest
 # machine this run can offer. Anything still unobserved after that stays a NO-VERDICT and the audit fails on it.
-LOST=$(grep -E "NO-VERDICT" "$RESULTS" | sed 's/:.*//' | sort -u | tr '\n' ' ')
+# ⛔ A PROGRAM WITH NO LINE AT ALL IS LOST TOO (battery-8, 2026-08-18): SQ201M's single-program group emitted
+# neither a verdict nor a byte of stderr, the audit reported missing=1 — and this step never re-observed it,
+# because it re-ran only the programs that had SAID "NO-VERDICT". The population minus the observed programs is
+# the other half of "lost", and it is re-taken by the same serial mechanism (a clean serial re-run is what a
+# lost result needs; the audit still fails on anything unobserved after that).
+LOST=$( { grep -E "NO-VERDICT" "$RESULTS" | sed 's/:.*//'; comm -23 "$POP" <(sed 's/:.*//' "$RESULTS" | sort -u); } | sort -u | tr '\n' ' ')
 if [ -n "${LOST// /}" ]; then
     el "=== NIST: re-observing $(echo "$LOST" | wc -w) lost result(s) SERIALLY: $LOST ==="
     RETRY_SPEC="$TMP/gf_retry.txt"; : > "$RETRY_SPEC"
