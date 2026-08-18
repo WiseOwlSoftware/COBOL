@@ -107,7 +107,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         void EmitCase(int i)
         {
             dispatchState.CurrentPc = i;
-            using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
+            string paraName = bound.Paragraphs[i].CobolName;   // "" for the paragraph-name-OMITTED paragraph (§14.4.3)
+            using (w.Block($"case {i}:   // {(paraName.Length == 0 ? "(sentences without a paragraph-name)" : paraName)}"))
             {
                 // An appended Format-3 handler pc-range (imp-2/3/4): mark the region so an EXIT PERFORM in
                 // its body throws ExitPerformSignal to the owning PERFORM boundary (§14.9.14.4 GR4), not a

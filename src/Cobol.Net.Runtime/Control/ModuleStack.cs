@@ -96,8 +96,13 @@ public sealed class ModuleStack
                 sb.Append("; ");                             // final entry = a single space (the operating environment)
                 return sb.ToString();
             }
-            case 4:   // TOP-LEVEL — the run-unit main (r10)
-                return s[0].Name;
+            case 4:   // TOP-LEVEL — "the runtime element that was activated by the operating environment to
+                      // initiate the run unit" (r10). Frame 0 is that element only when it was pushed as the MAIN
+                      // (ProgramTable.RunMain → PushMain); a host that drives a COBOL element WITHOUT RunMain
+                      // (RunUnit.Run / ProgramTable.CallProgram from .NET) leaves frame 0 an ordinary CALLed frame —
+                      // then the element the environment activated is the non-COBOL host, and r3's documented
+                      // value applies (a single space, docs/CONFORMANCE.md A.1 item 134; kb/Work PB63 / RV-15.65.4-10).
+                return s[0].IsMain ? s[0].Name : " ";
             default:
                 return " ";
         }

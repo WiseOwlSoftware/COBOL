@@ -220,7 +220,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
             // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
-            var scope = new OoMethodScope { Data = m.DataScope };
+            var scope = new OoMethodScope { Data = m.DataScope, MethodName = m.Name };
             scopeToMethod[scope] = m;         // §9.10 — handler pc-ranges map back to this method via its scope
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
             m.Binding!.EntryPc = table.Paragraphs.Count;

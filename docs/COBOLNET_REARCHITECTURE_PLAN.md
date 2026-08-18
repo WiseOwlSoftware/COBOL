@@ -73,9 +73,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   drift-pinned to the formats' ellipsis; COBOLNET1645), the arity gate counts source arguments, and the summing
   family evaluates on the SDIDI carrier under a standard mode; 12 of 12 rows CONFORMS, GAP 4067. REGISTERED: PB81
   (SUBSTITUTE with a table(ALL) — the from/to pairing over a runtime count; a bind-time COBOLNET0899 stage).
-  **⏳ Battery owed for the PB62 batch** (the variadic argument pipeline is a shared seam) — run it with the next
-  landing.
-  **NEXT, in order:** ① PB63 → PB68 → PB69 → PB70 → PB71 → PB79 → PB80 → PB81
+  **✅ PB63 CLOSED (DEVLOG 1299, 2026-08-18)** — the exception surface: the FD screen on EXCEPTION-FILE's argument,
+  the SELECT-spelled connector name (`FileModel.SelectName` → `FileConnector.SelectName`; the two `"::"` strips
+  deleted), the ONE access-recording path (the `Status` setter), EXCEPTION-LOCATION's r2b three shapes and the
+  METHOD-ID element, TOP-LEVEL's IsMain arm, `ModuleStackInvariantTests`, A.1 rows 133/134/136/137 and the r2b3
+  determination; 19 of 19 rows CONFORMS, GAP 4048. REGISTERED: **PB82** (bind-time diagnostics carry no source
+  position; post-COPY line numbers are resultant-text ordinals — a MAJOR usability item).
+  **⏳ Battery owed for the PB62+PB63 batch** (the variadic argument pipeline, the file registration and status
+  path, the paragraph table) — run it before the next landing builds on it.
+  **NEXT, in order:** ① PB68 → PB69 → PB70 → PB71 → PB79 → PB80 → PB81 → PB82
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

@@ -709,7 +709,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var grp in fc.fileControlClauseGroup())
         {
             if (grp.fileName()?.GetText() is not { } name) continue;
-            var file = new FileModel { CobolName = name, AssignTarget = name, Optional = grp.OPTIONAL() is not null };
+            var file = new FileModel { CobolName = name, SelectName = name, AssignTarget = name, Optional = grp.OPTIONAL() is not null };
             foreach (var clauses in grp.fileControlClauses())
             {
                 if (clauses.assignClause()?.assignTarget() is { } tgt)
@@ -898,7 +898,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (!FilesByName.TryGetValue(name, out var file))
             {
                 // An FD with no matching SELECT — keep a model so its records still resolve (it is never opened).
-                file = new FileModel { CobolName = name };
+                file = new FileModel { CobolName = name, SelectName = name };
                 _files.Add(file);
                 FilesByName[name] = file;
             }
@@ -940,7 +940,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             var sdRecords = BindEntries(sd.dataDescriptionEntry(), rootNames, EntrySection.File);
             if (!FilesByName.TryGetValue(sdName, out var sdFile))
             {
-                sdFile = new FileModel { CobolName = sdName };
+                sdFile = new FileModel { CobolName = sdName, SelectName = sdName };
                 _files.Add(sdFile);
                 FilesByName[sdName] = sdFile;
             }

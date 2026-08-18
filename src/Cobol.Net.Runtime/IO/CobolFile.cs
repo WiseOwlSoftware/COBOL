@@ -32,21 +32,25 @@ public static class CobolFile
     /// <summary>Register a SELECTed sequential file (emitted at program start, one per SELECT); the host path is
     /// resolved from the ASSIGN target by <see cref="ResolveHostPath"/>. See <see cref="FileRegistry.Register"/>.</summary>
     public static void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
-        bool optional, int varyMin = -1, int varyMax = -1)
-        => _reg.Register(cobolName, assignTarget, recordWidth, lineSequential, optional, varyMin, varyMax);
+        bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null)
+        => _reg.Register(cobolName, assignTarget, recordWidth, lineSequential, optional, varyMin, varyMax, selectName);
 
     /// <summary>Register a SELECTed RELATIVE file (emitted at program start).</summary>
     public static void RegisterRelative(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int relativeKeyDigits, int varyMin = -1, int varyMax = -1)
+        int accessMode, int relativeKeyDigits, int varyMin = -1, int varyMax = -1, string? selectName = null)
         => _reg.RegisterRelative(cobolName, assignTarget, recordWidth, optional, accessMode, relativeKeyDigits,
-            varyMin, varyMax);
+            varyMin, varyMax, selectName);
 
     /// <summary>Register a SELECTed INDEXED file (emitted at program start).</summary>
     public static void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
         int accessMode, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1,
-        ushort[]? primeWeights = null)
+        ushort[]? primeWeights = null, string? selectName = null)
         => _reg.RegisterIndexed(cobolName, assignTarget, recordWidth, optional, accessMode, primeOffset,
-            primeLength, varyMin, varyMax, primeWeights);
+            primeLength, varyMin, varyMax, primeWeights, selectName);
+
+    /// <summary>The SELECT-spelled name of a registered connector (ISO §15.28.4 r1c/r2b; kb/Work PB63) — the
+    /// no-argument FUNCTION EXCEPTION-FILE's display of the last-exception connector.</summary>
+    public static string SelectNameOf(string cobolName) => _reg.SelectNameOf(cobolName);
 
     /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order, with its optional
     /// §12.4.5.7 collating-weight table (null = native ordinal) and §12.4.5.6.4 GR6 SUPPRESS WHEN value.</summary>

@@ -72,7 +72,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                     int width = Math.Max(1, ctx.Data.Reports
                         .Where(r => ReferenceEquals(r.File, file))
                         .Select(r => r.LineWidth).DefaultIfEmpty(1).Max());
-                    w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{width}", "false", file.Optional ? "true" : "false")};");
+                    w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{width}", "false", file.Optional ? "true" : "false", selectName: CsLiteral(file.SelectName))};");
                 }
                 continue;
             }
@@ -80,7 +80,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) — the connector
             // length-frames its records and enforces the GR14 '44' boundary checks.
             string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
-            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", vary)};");
+            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", vary, CsLiteral(file.SelectName))};");
             // A LINAGE file registers its logical-page evaluator (ISO §13.18.34 GR6): ONE closure for both the
             // literal (GR6a — a constant lambda) and data-name (GR6b — the connector re-reads at OPEN OUTPUT /
             // ADVANCING PAGE / page overflow) forms. The lambda READS the program fields at call time — it is

@@ -472,14 +472,18 @@ internal static class RuntimeApi
 
     /// <summary>Register a RELATIVE connector — <c>CobolFile.RegisterRelative</c>. <paramref name="varyArgs"/> is
     /// the optional trailing ", min, max" record-bounds fragment (§13.18.43 GR9/GR10), possibly empty.</summary>
-    public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs})";
+    public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs, string? selectName = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs}{SelectNameArg(selectName)})";
+
+    /// <summary>The SELECT-spelled file-name (ISO §15.28.4 r1c/r2b — kb/Work PB63) as the registration's trailing
+    /// named argument; empty when the caller has none.</summary>
+    private static string SelectNameArg(string? selectName) => selectName is null ? "" : $", selectName: {selectName}";
 
     /// <summary>Register an INDEXED connector — <c>CobolFile.RegisterIndexed</c> (prime-key window per §12.4.5.12,
     /// plus the optional §12.4.5.7 prime-key collating weights; <paramref name="weights"/> is "null" for native,
     /// emitted as a named argument so a no-clause file's registration is byte-identical to the pre-clause engine).</summary>
-    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs, string weights = "null") =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeWeights: {weights}")})";
+    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs, string weights = "null", string? selectName = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeWeights: {weights}")}{SelectNameArg(selectName)})";
 
     /// <summary>Register one ALTERNATE RECORD KEY window (§12.4.5.6) — <c>CobolFile.AddAlternateKey</c>, with its
     /// optional §12.4.5.7 collating weights and §12.4.5.6.4 GR6 SUPPRESS WHEN value ("null" = absent, each emitted
@@ -584,8 +588,8 @@ internal static class RuntimeApi
 
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment.</summary>
-    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, string varyArgs = "") =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs})";
+    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, string varyArgs = "", string? selectName = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs}{SelectNameArg(selectName)})";
 
     /// <summary>Register a LINAGE file's logical-page evaluator closure (§13.18.34 GR6) — <c>CobolFile.SetLinage</c>.</summary>
     public static string FileSetLinage(string name, string closure) =>

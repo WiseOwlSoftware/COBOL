@@ -47,9 +47,10 @@ public static class EcFunctions
         string? name = ExceptionState.LastName;
         if (name is null || !ExceptionCatalog.IsIoName(name)) return "00";          // r1a
         if (ExceptionState.LastFile is not { } file) return "  ";                   // r1b — RAISE-originated
-        int sep = file.LastIndexOf("::", StringComparison.Ordinal);
-        string display = sep >= 0 ? file[(sep + 2)..] : file;
-        return (ExceptionState.LastIoStatus ?? "  ") + display;                     // r1c
+        // r1c — "the file-name exactly as specified in the SELECT clause": the connector's registered SelectName
+        // (kb/Work PB63 — a "::" strip of the registry KEY used to upper-case an EXTERNAL name and keep an OBJECT
+        // file's per-instance "#N" suffix).
+        return (ExceptionState.LastIoStatus ?? "  ") + IO.CobolFile.SelectNameOf(file);   // r1c
     }
 
     /// <summary>FUNCTION EXCEPTION-FILE-N with no argument (§15.29.4 r1) — the national twin of

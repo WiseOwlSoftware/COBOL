@@ -70,7 +70,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
         _paraLine.Add(sentences[0].Start.Line);
-        _paras.Add(("(sentences without a paragraph-name)", method, sentences));
+        // The paragraph-name-OMITTED paragraph (§14.4.3) has NO name — the empty string, never a display
+        // placeholder (kb/Work PB63 / RV-15.30.3-2: EXCEPTION-LOCATION's r2b2 field printed the placeholder where
+        // the standard defines an empty procedure field or the bare section-name).
+        _paras.Add(("", method, sentences));
     }
 
     // ── Exception-checking (Format-3) PERFORM handler pc-ranges (ISO §14.9.28.4 GR17) ───────────────────────

@@ -33,16 +33,34 @@ public abstract class FileConnector
     /// <summary>True when the FD declares RECORD IS VARYING (the store then length-frames records).</summary>
     protected bool IsVarying => VaryMin >= 0;
 
-    /// <summary>The latest I-O status (ISO §9.1.13). "00" until the first operation.</summary>
-    public string Status { get; protected set; } = FileStatusCode.Success;
+    /// <summary>The latest I-O status (ISO §9.1.13). "00" until the first operation. ⛔ THE SETTER IS THE ONE
+    /// I-O-STATUS ASSIGNMENT PATH, and it records that the connector was accessed (kb/Work PB63 / RV-15.28.4-2):
+    /// §9.1.13.1 names CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK and WRITE as the statements that set the
+    /// I-O status, and §15.28.4 r2a's "never been opened, attempted to be opened, or otherwise attempted to be
+    /// accessed" is exactly "no statement has set it" — so a CLOSE or READ on a never-opened connector (status 42 /
+    /// 47) IS an attempted access. <see cref="EverAccessed"/> used to be a flag written at two hand-picked sites
+    /// (OPEN and DELETE FILE), which made every other verb wrong by default.</summary>
+    public string Status
+    {
+        get => _status;
+        protected set { _status = value; EverAccessed = true; }
+    }
+    private string _status = FileStatusCode.Success;
 
-    /// <summary>Set the I-O status directly (facade-level conditions: a locked-file OPEN, a REEL/UNIT CLOSE).</summary>
+    /// <summary>Set the I-O status directly (facade-level conditions: a locked-file OPEN, a REEL/UNIT CLOSE) — an
+    /// attempted access like any other status assignment.</summary>
     public void SetStatus(string status) => Status = status;
 
-    /// <summary>The connector has been opened, attempted to be opened, or otherwise accessed (ISO §15.28.4 r2a) —
-    /// FUNCTION EXCEPTION-FILE(connector) returns two spaces until this is true. Set by <see cref="Open"/> and
-    /// <c>FileRegistry.DeleteFile</c>; a never-touched SELECTed connector stays false.</summary>
-    public bool EverAccessed { get; set; }
+    /// <summary>The connector has been opened, attempted to be opened, or otherwise attempted to be accessed (ISO
+    /// §15.28.4 r2a / §15.29.4 r2a) — FUNCTION EXCEPTION-FILE(connector) returns two spaces until this is true.
+    /// Set by the <see cref="Status"/> setter, i.e. by EVERY statement that assigns an I-O status; a never-touched
+    /// SELECTed connector stays false.</summary>
+    public bool EverAccessed { get; private set; }
+
+    /// <summary>The file-name exactly as spelled in the SELECT clause (ISO §15.28.4 r1c/r2b, §15.29.4 r1c/r2b —
+    /// "the file-name exactly as specified in the SELECT clause"), carried from the compiler's FileModel at
+    /// registration (kb/Work PB63); the registry KEY is an emit-side namespace and is never displayed.</summary>
+    public string SelectName { get; set; } = "";
 
     /// <summary>True for a SELECT OPTIONAL file (ISO §14.9.27 GR13/GR17).</summary>
     public bool IsOptional { get; set; }
@@ -118,7 +136,6 @@ public abstract class FileConnector
     /// Sets and returns the status.</summary>
     public string Open(FileOpenMode mode)
     {
-        EverAccessed = true;   // an OPEN (successful or attempted) counts for FUNCTION EXCEPTION-FILE r2a (§15.28.4)
         if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen;
         Mode = mode;
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")

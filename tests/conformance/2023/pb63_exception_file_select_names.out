@@ -1,0 +1,11 @@
+FS=[10]
+ARG=[10MixedExtF]
+ARGN=[10MixedExtF] 011
+FS1=[42] FS2=[47]
+EFC=[42Closed]
+EFR=[47Readf]
+EFU=[  ]
+NFC=[42Closed]
+NFU=[  ]
+NOARG=[10MixedExtF]
+NOARGN=[10MixedExtF]

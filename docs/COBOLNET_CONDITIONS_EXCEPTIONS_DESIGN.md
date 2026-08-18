@@ -178,10 +178,28 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   facts: the GR2/GR3 EC-I-O-WARNING exclusion, file-scoped events, last-event-wins, strict GR5 lines, Table 13
   fatalities, the §9.1.13.1 status map). The legacy oracle has NO EC model — every expected value derives from the
   cited §.
+- **The location string's three parts (§15.30.3 r2b — kb/Work PB63):** part 1 is the ELEMENT name "as specified in
+  the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the … element containing the statement" — a statement inside
+  a method names the METHOD-ID (`OoMethodScope.MethodName`; `ctx.EcState.ProgramName` is the program/class fallback);
+  part 2 is the procedure field — (a) no paragraph-name and no section-name: EMPTY (`"; ; "` — the
+  paragraph-name-OMITTED paragraph of §14.4.3 carries the empty name in `ProcedureTableBuilder`, never a display
+  placeholder), (b) `paragraph[ OF section]`, (c) a section with no paragraph: the section-name alone; part 3 the
+  implementor-defined line identifier — the resultant-text line (§7.2; CONFORMANCE.md ⚖ determination; kb/Work PB82
+  for the source-line map). One builder, `EcBinder.EcLocation`.
+- **EXCEPTION-FILE / EXCEPTION-FILE-N (§15.28.4 / §15.29.4 — kb/Work PB63):** the file-name is "exactly as
+  specified in the SELECT clause" — `FileModel.SelectName` (never qualified, never case-folded) is registered on the
+  connector (`FileConnector.SelectName`, the trailing `selectName:` argument of every `CobolFile.Register*`) and
+  both the no-argument form (`EcFunctions.File` → `CobolFile.SelectNameOf(key)`) and the connector-argument form
+  (`FileRegistry.ExceptionFile`) read it; the registry KEY (`PROG::`, `::EXT::` + the uppercased external name,
+  `Class::INST::` + `#N`) is an emit-side namespace and is never displayed. r2a's "never been opened, attempted to be
+  opened, or otherwise attempted to be accessed" is recorded on the ONE I-O-status assignment path — the
+  `FileConnector.Status` setter (§9.1.13.1's CLOSE/DELETE/OPEN/READ/REWRITE/START/UNLOCK/WRITE all set it), so a
+  CLOSE or READ on a never-opened connector (42/47) is an access. Argument-1 shall be "specified in an FD statement"
+  (§15.28.3 r1 / §15.29.3 r1): `BindExceptionFileArg` requires `HasFd && !IsSortMerge` and cites the function's own
+  clause (COBOLNET1574). Pinned by `pb63_exception_file_select_names` and the `pb63-exception-file-*` negatives.
 
 **Still later waves:** the exception-checking PERFORM WHEN + `>>PROPAGATE` (2023 — VCR row 79/§4808),
 RAISE/RAISING identifier (exception OBJECTS — the OO wave; the `ExceptionState.ExceptionObject` slot exists),
-EXCEPTION-FILE/EXCEPTION-FILE-N's 2023 file-connector argument (loud by name — VCR rows 68/69, PHASE-13 Step 9),
 GLOBAL-walkable F3 declaratives, VALIDATE/EC-VALIDATE (§18.17). *(The national `-N` twins are LIVE — P10 Step 11:
 `EcFunctions.FileN`/`LocationN` (§15.29/§15.31) = the base renderings through the ONE `CobolIntrinsics.NationalOf`
 repertoire translator, result category National; golden `exception_file_n`, matrix row `exception-file-n-2002`,

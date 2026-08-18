@@ -50,7 +50,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         if (file.Organization == FileOrganization.Relative)
         {
             int digits = file.RelativeKeyItem?.Pic?.Digits ?? 0;
-            w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary)};");
+            w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary, CsLiteral(file.SelectName))};");
             return;
         }
         if (file.RecordKeyItem is not { } pk || Binding.Model.RecordLayout.OffsetOf(pk) is not { } pkOff)
@@ -59,7 +59,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 + "image (ISO §12.4.5.12)"));
             return;
         }
-        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ImageWidth, vary, WeightsLit(file.PrimeKeyWeights))};");
+        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ImageWidth, vary, WeightsLit(file.PrimeKeyWeights), CsLiteral(file.SelectName))};");
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var (alt, dups, suppress) = file.AlternateKeys[i];

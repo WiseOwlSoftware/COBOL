@@ -493,14 +493,23 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The §15.30.3 r2 location string for a statement on <paramref name="line"/>:
     /// "element-name; paragraph[ OF section]|section; line-id" (the line-id is the final preprocessed-text line
     /// number — the implementor-defined identifier of the source line).</summary>
+    /// <summary>The §15.30.3 r2b location string (kb/Work PB63): part 1 the element name — "as specified in the
+    /// FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function, method, or program containing the
+    /// statement", so a statement inside a METHOD names the method, not its class; part 2 the procedure field —
+    /// (a) no paragraph-name and no section-name: empty ("; ; "), (b) a paragraph-name, plus " OF section" when
+    /// the paragraph is within a section, (c) a section-name and no paragraph-name: the section-name alone
+    /// (the paragraph-name-OMITTED paragraph carries the empty name, never a placeholder — ProcedureTableBuilder);
+    /// part 3 the implementor-defined line identifier — the compilation unit's resultant-text line
+    /// (docs/CONFORMANCE.md; kb/Work PB82 for the source-line map).</summary>
     private string EcLocation(int line)
     {
         string para = ctx.BindCursor >= 0 && ctx.BindCursor < ctx.Table.Paragraphs.Count ? ctx.Table.Paragraphs[ctx.BindCursor].Cobol : "";
         string? sec = ctx.BindCursor >= 0 && ctx.BindCursor < ctx.Table.ParaSections.Count ? ctx.Table.ParaSections[ctx.BindCursor]?.Name : null;
-        string proc = sec is not null && para.Equals(sec, StringComparison.OrdinalIgnoreCase)
-            ? sec
-            : para + (sec is not null ? " OF " + sec : "");
-        return $"{ctx.EcState.ProgramName}; {proc}; {line}";
+        string proc = para.Length == 0
+            ? sec ?? ""                                          // (c) the section alone, or (a) nothing at all
+            : para + (sec is not null ? " OF " + sec : "");      // (b) paragraph [OF section]
+        string element = ctx.CurrentMethodScope?.MethodName ?? ctx.EcState.ProgramName;
+        return $"{element}; {proc}; {line}";
     }
 
     /// <summary>Does a bound statement (or a statement nested inside it) contain an intrinsic-function call — the

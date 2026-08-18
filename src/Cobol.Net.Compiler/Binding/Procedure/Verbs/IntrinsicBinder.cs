@@ -746,11 +746,24 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             sig.Name == "EXCEPTION-FILE" ? Constructs.ExceptionFileArgument2023 : Constructs.ExceptionFileNArgument2023,
             $"FUNCTION {sig.Name}(file-connector-name)");
         string name = argCtx.GetText().Trim();
-        var file = ctx.Data.Files.FirstOrDefault(f => f.CobolName.Equals(name, StringComparison.OrdinalIgnoreCase));
+        // §15.28.3 r1 / §15.29.3 r1 (word for word): "Argument-1 is optional and when specified shall be the name of
+        // a file connector that is specified in an FD statement." BOTH halves (kb/Work PB63): the name must be a
+        // file-name, and that file must be FD-described — an SD (a sort-merge file description) or a SELECT with no
+        // description entry at all fails the second half; the resolver used to match on the bare name only, so
+        // both compiled clean and answered r2a's two spaces. The clause cited is the function's OWN.
+        string clause = sig.Name == "EXCEPTION-FILE" ? "§15.28.3 rule 1" : "§15.29.3 rule 1";
+        var file = ctx.Data.Files.FirstOrDefault(f => f.SelectName.Equals(name, StringComparison.OrdinalIgnoreCase));
         if (file is null)
         {
-            ctx.Edition.Error("COBOLNET1574", $"FUNCTION {sig.Name} argument '{name}' is not the name of a file "
-                + "connector specified in an FD statement (ISO §15.28.3 rule 1)");
+            ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
+                + $"is not the name of a file connector specified in an FD statement (ISO {clause})");
+            return new BoundExprError($"FUNCTION {sig.Name} argument");
+        }
+        if (file.IsSortMerge || !file.HasFd)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
+                + (file.IsSortMerge ? "names a sort-merge file (an SD entry)" : "names a SELECTed file that has no FD entry")
+                + $" — argument-1 shall be the name of a file connector specified in an FD statement (ISO {clause})");
             return new BoundExprError($"FUNCTION {sig.Name} argument");
         }
         host.Ec.EcNoteFunction();
@@ -1611,6 +1624,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the runtime channel.
         BoundFigurative => new BoundNumLiteral("1"),                                     // §8.3.3.6.4 GR3b
         BoundAllLiteral a => new BoundNumLiteral(a.Literal.Length.ToString()),           // §8.3.3.6.4 GR3c
+        // An argument that already failed to bind (a nested call the binder rejected) is already loud — no
+        // second, misattributed report ("is a numeric literal") on top of it (kb/Work PB63).
+        BoundOperandError e => new BoundExprError(e.Feature),
         // A NUMERIC literal is still not a valid LENGTH argument — §15.50.3 r1 admits only "an alphanumeric,
         // national, or boolean literal" (a numeric *data item* is allowed as "a data item of any class or
         // category", handled by the BoundFieldOperand arm above). That half of the old arm was always correct.
@@ -1871,6 +1887,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundFieldOperand { Place.Item.IsAnyLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
         BoundFieldOperand { Place.Item.IsDynamicLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
         BoundFieldOperand f => new BoundNumLiteral(f.Place.Item.ByteWidth.ToString()),
+        BoundOperandError e => new BoundExprError(e.Feature),   // already loud (kb/Work PB63)
         // ⛔ THE FIGURATIVE HALF OF THE ARM BELOW WAS FALSE, AND IT IS PB25's OWN DEFECT IN THE ADJACENT METHOD
         // (fix-queue PB48 sweep). PB25 gave BindLengthFold its §8.3.3.6.4 GR3 arms and cited the reasoning in
         // full; BYTE-LENGTH — the neighbouring fold, with the same rule shape — kept a default arm that named

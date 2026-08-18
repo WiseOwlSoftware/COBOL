@@ -33,7 +33,7 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
         if (!__filesRegistered)
         {
             __filesRegistered = true;
-            CobolFile.Register("CHAR-SEQ-FILE::OUT-FILE", "char-seq.dat", 10, false, false);
+            CobolFile.Register("CHAR-SEQ-FILE::OUT-FILE", "char-seq.dat", 10, false, false, selectName: "OUT-FILE");
         }
         try { __Dispatch(0, -1); } catch (ProgramReturn) { }   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)
     }

@@ -87,33 +87,49 @@ public sealed class FileRegistry
     /// <c>"::EXT::"</c> key band) is ONE per run unit shared by every describing program (ISO §13.18.22.4 GR4a) —
     /// a later describer keeps the existing live connector (IC227A).</summary>
     public void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
-        bool optional, int varyMin, int varyMax)
+        bool optional, int varyMin, int varyMax, string? selectName = null)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a)
         _files[cobolName] = new SequentialConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
-            lineSequential, varyMin, varyMax) { IsOptional = optional };
+            lineSequential, varyMin, varyMax) { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName) };
+    }
+
+    /// <summary>The SELECT-spelled name of a registered connector (ISO §15.28.4 r1c/r2b — kb/Work PB63); for a key
+    /// that names no connector (an SD, or a not-yet-registered name) the key's own tail, so the display never
+    /// shows an emit-side band.</summary>
+    public string SelectNameOf(string cobolName) =>
+        _files.TryGetValue(cobolName, out var c) ? c.SelectName : KeyTail(cobolName);
+
+    /// <summary>The part of a registry key after its emit-side bands — the fallback display name only.</summary>
+    private static string KeyTail(string key)
+    {
+        int sep = key.LastIndexOf("::", StringComparison.Ordinal);
+        string tail = sep >= 0 ? key[(sep + 2)..] : key;
+        int hash = tail.IndexOf('#');
+        return hash > 0 ? tail[..hash] : tail;
     }
 
     /// <summary>Register a SELECTed RELATIVE file (§12.4.5.13; <paramref name="relativeKeyDigits"/> drives the
     /// '14'/'24' RRN-digit statuses, 0 = no RELATIVE KEY clause).</summary>
     public void RegisterRelative(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int relativeKeyDigits, int varyMin, int varyMax)
+        int accessMode, int relativeKeyDigits, int varyMin, int varyMax, string? selectName = null)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
         _files[cobolName] = new RelativeConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
-            (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax) { IsOptional = optional };
+            (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax) { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName) };
     }
 
     /// <summary>Register a SELECTed INDEXED file with its PRIME key's (offset, length) range (§12.4.5.12).</summary>
     public void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int primeOffset, int primeLength, int varyMin, int varyMax, ushort[]? primeWeights = null)
+        int accessMode, int primeOffset, int primeLength, int varyMin, int varyMax, ushort[]? primeWeights = null,
+        string? selectName = null)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
         _files[cobolName] = new IndexedConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
-            (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeWeights) { IsOptional = optional };
+            (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeWeights) { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName) };
     }
 
     /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order, with its optional
@@ -224,14 +240,15 @@ public sealed class FileRegistry
     public string Status(string name) => _files.TryGetValue(name, out var c) ? c.Status : FileStatusCode.Success;
 
     /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §15.28.4 r2): two alphanumeric spaces when the
-    /// named connector was never opened, attempted to be opened, or otherwise accessed (r2a — or is unknown); else
-    /// its two-character I-O status followed by the SELECT-spelled file-name (r2b — the stored key's part after the
-    /// last "::", the same emit-namespace strip as the no-argument <c>EcFunctions.File()</c>).</summary>
+    /// named connector was never opened, attempted to be opened, or otherwise attempted to be accessed (r2a — or is
+    /// unknown); else its two-character I-O status followed by the file-name "exactly as specified in the SELECT
+    /// clause" (r2b — the connector's <see cref="FileConnector.SelectName"/>, carried from the compiler at
+    /// registration; kb/Work PB63 — it used to be recovered from the registry KEY by a "::" strip, which
+    /// upper-cased an EXTERNAL name and left an OBJECT file's per-instance "#N" suffix in place).</summary>
     public string ExceptionFile(string name)
     {
         if (!_files.TryGetValue(name, out var c) || !c.EverAccessed) return "  ";
-        int sep = name.LastIndexOf("::", StringComparison.Ordinal);
-        return c.Status + (sep >= 0 ? name[(sep + 2)..] : name);
+        return c.Status + c.SelectName;
     }
 
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15).</summary>
@@ -350,7 +367,8 @@ public sealed class FileRegistry
     public string DeleteFile(string name, FileRetryKind retryKind, int retryAmount)
     {
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
-        c.EverAccessed = true;   // a DELETE FILE accesses the connector — FUNCTION EXCEPTION-FILE r2a (§15.28.4)
+        // (a DELETE FILE accesses the connector — FUNCTION EXCEPTION-FILE r2a, §15.28.4 — recorded by the status
+        // assignment below, the ONE access-recording path)
         string status;
         string sharing = RetryLoop(() => OpenByAnotherConnector(name, c.HostPath)
             ? FileStatusCode.DeleteFileSharing : FileStatusCode.Success, retryKind, retryAmount);
