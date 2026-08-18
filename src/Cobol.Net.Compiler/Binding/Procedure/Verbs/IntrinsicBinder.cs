@@ -278,7 +278,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase)
             || (catalogued && (ctx.Data.RepositoryAllIntrinsic || ctx.Data.RepositoryIntrinsics.Contains(name)));
         if (!declaredFn && !catalogued) return null;
-        if (ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _)) return null;   // a declared data item wins — never a mis-routed subscript
+        // A catalogued name the REPOSITORY does NOT identify may be a user-defined word (§8.3.2.1 rule 5 — a
+        // table named MOD or SQRT is legal): the declared item wins, never a mis-routed subscript. A name the
+        // REPOSITORY DOES identify cannot be a user-defined word in this unit (rule 5's second exception — screened
+        // at every declaration, DataBinder.ScreenRepositoryIntrinsicName), so the reference IS the function
+        // (§8.4.3.2.3 SR2; kb/Work PB65 FMT-15.43.2 / FMT-15.58.2 — the former unconditional "data item wins"
+        // let a shadowing table answer where §15.43.4 requires +999). A user-function-prototype name keeps the
+        // data-item precedence (its declaration is not screened by rule 5).
+        bool repositoryIntrinsic = catalogued && (ctx.Data.RepositoryAllIntrinsic || ctx.Data.RepositoryIntrinsics.Contains(name));
+        if (!repositoryIntrinsic && ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _)) return null;
         if (!declaredFn)
         {
             // The OTHER arm of the §8.4.3.2.3 SR2 discrimination (kb/Work R22): the name is a catalogued
@@ -1634,6 +1642,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A NUMERIC literal is still not a valid LENGTH argument — §15.50.3 r1 admits only "an alphanumeric,
         // national, or boolean literal" (a numeric *data item* is allowed as "a data item of any class or
         // category", handled by the BoundFieldOperand arm above). That half of the old arm was always correct.
+        // A boolean EXPRESSION (a B-operator argument, kb/Work PB65) is neither an identifier nor a literal —
+        // §15.50.3 r1 admits an item, a literal, a based entry or a type-name; name what was written, never
+        // "a numeric literal" (the misattributed default that once covered a group ref-mod too, kb/Work PB70).
+        BoundBoolOperand => InadmissibleArgument(sig,
+            "is a boolean expression, which §15.50.3 r1 does not admit — it takes an alphanumeric, national or "
+            + "boolean LITERAL, a based entry, a type-name, or a DATA ITEM of any class (write the expression's "
+            + "result to a boolean item and take its LENGTH)", "§15.50.3 r1"),
         _ => InadmissibleArgument(sig,
             "is a numeric literal, which §15.50.3 r1 does not admit — it takes an alphanumeric, national or "
             + "boolean literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
@@ -1908,6 +1923,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundAllLiteral a => new BoundNumLiteral(a.Literal.Length.ToString()),              // §8.3.3.6.4 GR3c
         // A NUMERIC literal remains invalid — §15.14.3 r1 admits only "an alphanumeric or national literal"
         // (a numeric DATA ITEM is "a data item of any class or category" and folds on the arm above).
+        BoundBoolOperand => InadmissibleArgument(sig,
+            "is a boolean expression, which §15.14.3 r1 does not admit — it takes an alphanumeric or national "
+            + "LITERAL, a based entry, a type-name, or a DATA ITEM of any class", "§15.14.3 r1"),   // kb/Work PB65
         _ => InadmissibleArgument(sig,
             "is a numeric literal, which §15.14.3 r1 does not admit — it takes an alphanumeric or national "
             + "literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
@@ -2167,6 +2185,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return new BoundOperandError($"intrinsic argument '{kw.GetText()}'");
         }
         if (a.nonNumericLiteral() is { } nn) return NonNumericOperand(nn);
+        // §8.4.3.2.3 SR8 — "a boolean expression" as an argument (kb/Work PB65, FMT-15.45.2): bound through the ONE
+        // boolean-expression binder; the class-boolean operand every §15.3 item-3 rule (INTEGER-OF-BOOLEAN,
+        // BOOLEAN-OF-INTEGER's siblings) admits and the renderer images as its '0'/'1' string.
+        if (a.booleanExpression() is { } be) return new BoundBoolOperand(host.Cond.BindBoolExpr(be));
         // ⛔ A CONSTANT-NAME SUBSTITUTES ITS LITERAL, OF ITS OWN CLASS — HERE, BEFORE THE NUMERIC PATH BELOW
         // (fix-queue R01). §13.10.4 GR1: "the effect of specifying constant-name-1 in other than this entry is as
         // if literal-1 … were written where constant-name-1 is written", and §13.10.3 SR2 admits it "anywhere

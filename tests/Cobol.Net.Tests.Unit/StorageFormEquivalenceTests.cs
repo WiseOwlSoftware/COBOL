@@ -51,7 +51,7 @@ public sealed class StorageFormEquivalenceTests
 
         var emitter = new CSharpEmitter();
         var edition = new EditionContext(dialect, permissive: false);
-        var bound = emitter.Bind(tree, edition, frontend.TurnEvents);   // runs MarkStoreAsImage + OO harmonize + StorageFormPass.Compute
+        var bound = emitter.Bind(tree, edition, frontend.Directives);   // runs MarkStoreAsImage + OO harmonize + StorageFormPass.Compute
 
         var binders = bound.Units.Select(u => u.Data)
             .Concat(bound.ClassUnits.SelectMany(c => new[] { c.Data, c.FactoryData }));

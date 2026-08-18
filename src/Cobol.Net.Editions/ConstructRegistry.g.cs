@@ -29,6 +29,7 @@ public static partial class ConstructRegistry
         new("word-length-63-2023", "COBOL word up to 63 characters", 2023, null, null, "COBOLNET1567", "ISO §8.3.2.1; Annex E.3.3 item 11 (the 63-character relaxation)"),
         new("continue-after-2023", "CONTINUE AFTER n SECONDS", 2023, null, null, "COBOLNET0900", "ISO §14.9.9.2 / §14.9.9.4 GR1; Annex E.3.3 item 14"),
         new("perform-until-exit-2023", "PERFORM UNTIL EXIT", 2023, null, null, "COBOLNET0900", "ISO §14.9.28.2 until-phrase / §14.9.28.4 GR11; Annex E.3.3 item 37"),
+        new("leap-second-directive-2002", ">>LEAP-SECOND directive", 2002, null, null, "COBOLNET0900", "ISO §7.3.17; §15.3.3.3; §15.79.4"),
         new("ref-mod-zero-length-2023", ">>REF-MOD-ZERO-LENGTH directive", 2023, null, null, "COBOLNET0900", "ISO §7.3.23; §8.4.3.3.4 item 5c; Annex E.3.3 item 23"),
         new("flag-14-directive-2023", ">>FLAG-14 directive", 2023, null, null, "COBOLNET0900", "ISO §7.3.15; Annex E.2 item 5 (compiler-directive words added in 2023)"),
         new("flag-02-directive-2014", ">>FLAG-02 directive", 2014, null, 2023, "COBOLNET0900", "ISO §7.3.14; §7.3.14.1 NOTE (obsolete in 2023); §4.2.13 (obsolete elements shall be supported + warned)"),

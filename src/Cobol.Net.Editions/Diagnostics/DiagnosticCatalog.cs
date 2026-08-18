@@ -828,6 +828,27 @@ public static class DiagnosticCatalog
         "The literal-1 of the figurative constant ALL literal-1 is a zero-length literal. ISO §8.3.3.6.3 SR2: "
         + "\"Literal-1 shall be an alphanumeric, boolean, or national literal … The literal shall be neither a "
         + "figurative constant nor a zero-length literal.\" Write at least one character.", "ISO §8.3.3.6.3 SR2");
+    // §8.3.2.1 rule 5 — an intrinsic-function-name "identified in a function-specifier in the REPOSITORY paragraph"
+    // shall not be used as a user-defined word (kb/Work PB65 FMT-15.43.2 / FMT-15.58.2): under `REPOSITORY. FUNCTION
+    // HIGHEST-ALGEBRAIC INTRINSIC.` a table named HIGHEST-ALGEBRAIC compiled clean and `HIGHEST-ALGEBRAIC(A1)`
+    // silently read the table element where §15.43.4 requires +999.
+    public static readonly DiagnosticDescriptor RepositoryIntrinsicNameAsUserWord = new(
+        "COBOLNET1649", "repository-intrinsic-name-as-user-word", EditionSeverity.Error,
+        "A user-defined word (a data-name, condition-name, index-name, file-name, paragraph or section name) spells "
+        + "an intrinsic-function-name that the REPOSITORY paragraph identifies in a function-specifier — FUNCTION "
+        + "name INTRINSIC, or FUNCTION ALL INTRINSIC. ISO §8.3.2.1 rule 5: intrinsic-function-names may be used as "
+        + "user-defined words except for LENGTH, RANDOM, SIGN, SUM and \"intrinsic function names identified in a "
+        + "function-specifier in the REPOSITORY paragraph\" — that identification is what lets a reference omit the "
+        + "word FUNCTION (§8.4.3.2.3 SR2), so the same word cannot also name a data item. Rename the item, or take "
+        + "the function out of the REPOSITORY and write FUNCTION name(…) at each reference.", "ISO §8.3.2.1 rule 5");
+    // §7.3.17 — the LEAP-SECOND directive's syntax (kb/Work PB65): SR1 "shall not be specified within a
+    // compilation unit"; the operand is ON (optional word) or OFF.
+    public static readonly DiagnosticDescriptor LeapSecondDirectiveSyntax = new(
+        "COBOLNET1650", "leap-second-directive-syntax", EditionSeverity.Error,
+        "The >>LEAP-SECOND directive is malformed or misplaced: its operand is ON (an optional word — a bare "
+        + ">>LEAP-SECOND selects ON) or OFF (ISO §7.3.17.2), and the directive shall not be specified within a "
+        + "compilation unit (§7.3.17.3 SR1) — it precedes the first IDENTIFICATION DIVISION of the compilation group "
+        + "and governs the whole group.", "ISO §7.3.17");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

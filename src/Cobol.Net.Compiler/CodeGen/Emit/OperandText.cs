@@ -63,6 +63,11 @@ internal static class OperandText
         // AsStringVisitor has no access to the renderer's collating context; cat=null ⇒ the alphanumeric PCS applies.
         : op is BoundFigurative fig
             ? $"new string({FigurativeConstants.Fill(fig.Kind, num.Collating, null, num.NationalCollating)}, 1)"
+        // A boolean EXPRESSION operand's string is its '0'/'1' image through the ONE boolean renderer (kb/Work PB65
+        // — a legal intrinsic argument, §8.4.3.2.3 SR8, and any other string position a boolean expression reaches);
+        // intercepted at the ENTRY because the renderer needs the per-unit NumericRenderer (shift counts).
+        : op is BoundBoolOperand bo
+            ? BooleanRenderer.Render(bo.Expr, num)
             : op.Accept(Visitor(deSign, floatCheck));
 
     /// <summary>The text image of a NUMERIC-result intrinsic (DA2), across all three shapes a numeric
@@ -274,7 +279,8 @@ internal static class OperandText
         public string Visit(BoundComputedOperand n) =>
             EmitText.LoudValue("string", "computed expression in a string context");
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
-        // A class-boolean operand has no alphanumeric image (the former loud `_ =>` default; byte-identical value).
+        // A boolean EXPRESSION operand is intercepted at AsString's ENTRY (it needs the per-unit renderer); this
+        // cached visitor arm is the unreachable backstop.
         public string Visit(BoundBoolOperand n) => EmitText.LoudValue("string", $"bound operand '{nameof(BoundBoolOperand)}'");
     }
 

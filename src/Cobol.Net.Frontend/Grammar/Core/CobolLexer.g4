@@ -748,7 +748,7 @@ fragment HEX_BODY  : [x] '"' HEXDIGITS '"' | [x] '\'' HEXDIGITS '\'' ;
 fragment NAT_BODY  : 'N' STR_BODY                                                    // NATLIT / SUB_NATLIT F1
                    | 'NX' '"' HEXDIGITS '"'                                          // §8.3.3.5.2 Format 2
                    | 'NX' '\'' HEXDIGITS '\'' ;
-fragment BOOL_BODY : 'B' '"' [01]+ '"' | 'B' '\'' [01]+ '\''                         // BOOLLIT / SUB_BOOLLIT F1
+fragment BOOL_BODY : 'B' '"' [01]* '"' | 'B' '\'' [01]* '\''                         // BOOLLIT / SUB_BOOLLIT F1 — ZERO length is legal (§8.3.3.4.4 GR4; kb/Work PB65)
                    | 'BX' '"' HEXDIGITS '"'                                          // §8.3.3.4.2 Format 2
                    | 'BX' '\'' HEXDIGITS '\'' ;
 fragment INT_BODY  : [0-9]+ ;                                                        // INTEGERLIT / SUB_INTEGERLIT

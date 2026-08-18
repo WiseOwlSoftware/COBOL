@@ -36,12 +36,15 @@ internal sealed class BinderDriver
     /// directive events (ISO §7.3.25) — they build the group's compile-time TurnState (EC deep-dive D10);
     /// null/empty means the GR1 default, EC-ALL CHECKING OFF.</summary>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
-        IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents,
-        IReadOnlyList<Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null,
-        IReadOnlyList<Frontend.Preprocessor.FlagEvent>? flagEvents = null,
-        CobolNet.Editions.CobolWordsMap? cobolWordsMap = null)
+        Frontend.Preprocessor.DirectiveResults? directives = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
+        // The frontend's directive outputs travel as ONE record (kb/Work PB65); absent ⇒ every directive's default.
+        directives ??= Frontend.Preprocessor.DirectiveResults.None;
+        var turnEvents = directives.TurnEvents;
+        var refModZlEvents = directives.RefModZeroLengthEvents;
+        var flagEvents = directives.FlagEvents;
+        var cobolWordsMap = directives.CobolWordsMap;
 
         // The group's compile-time TurnState (ISO §7.3.25; deep-dive D10) — built BEFORE binding so every unit's
         // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
@@ -56,6 +59,7 @@ internal sealed class BinderDriver
         {
             Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl,
             CobolWords = cobolWordsMap ?? CobolNet.Editions.CobolWordsMap.Empty,
+            LeapSecond = directives.LeapSecondOn,
         };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
@@ -381,6 +385,7 @@ internal sealed class BinderDriver
             OoClasses = session.OoClasses,
             RefModZeroLength = session.RefModZeroLength,
             CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§7.3.10)
+            LeapSecond = session.LeapSecond,   // >>LEAP-SECOND ON — the §15.3 seconds-subfield / time-form bound (§7.3.17)
             // The ANY LENGTH placement facts (ISO §13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,

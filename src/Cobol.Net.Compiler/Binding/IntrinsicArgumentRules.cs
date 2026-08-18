@@ -338,6 +338,7 @@ internal static class IntrinsicArgumentRules
         // compute the occurrence number silently.
         BoundComputedOperand { Expr: BoundIndexRef } => CobolClass.Index,
         BoundComputedOperand => CobolClass.Numeric,
+        BoundBoolOperand => CobolClass.Boolean,   // a boolean EXPRESSION argument (§8.4.3.2.3 SR8; kb/Work PB65)
         _ => null,
     };
 

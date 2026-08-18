@@ -46,7 +46,7 @@ public sealed class NationalStorageFormTests
             Assert.NotNull(tree);
             var emitter = new CSharpEmitter();
             var edition = new EditionContext(2002, permissive: false);
-            var bound = emitter.Bind(tree!, edition, frontend.TurnEvents);
+            var bound = emitter.Bind(tree!, edition, frontend.Directives);
             return bound.Units.Single().Data;
         }
         finally { try { File.Delete(path); } catch { /* best-effort */ } }

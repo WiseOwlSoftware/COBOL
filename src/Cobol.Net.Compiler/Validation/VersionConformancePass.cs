@@ -1580,6 +1580,15 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>An intrinsic-function ARGUMENT that is a boolean expression (§8.4.3.2.3 SR8; kb/Work PB65 —
+        /// `INTEGER-OF-BOOLEAN(BIT-A B-AND BIT-B)`): the same boolean-operator introduction gates as every other
+        /// boolean-expression site (the 2002 data / the 2023 shift operators).</summary>
+        public override object? VisitFunctionArgument(CobolParserCore.FunctionArgumentContext ctx)
+        {
+            GateBooleanOperators(ctx.booleanExpression());
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>National (<c>N"…"</c>) and boolean (<c>B"…"</c>) literals as a PROCEDURE-DIVISION statement
         /// operand — COBOL-2002 introductions (ISO §8.3.3.5 / §8.3.3.4). Scoped to a StatementContext ancestor so a
         /// DATA-division VALUE literal is left to the data/PIC gate (Step 14g) — firing here too would double the

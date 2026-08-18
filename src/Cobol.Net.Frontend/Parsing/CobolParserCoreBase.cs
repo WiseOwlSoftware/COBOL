@@ -206,6 +206,49 @@ public abstract class CobolParserCoreBase : Parser
         return false;
     }
 
+    /// <summary>The ARGUMENT-scoped twin of <see cref="boolExprAhead"/> (kb/Work PB65, FMT-15.45.2): does a boolean
+    /// operator belong to THIS intrinsic-function argument? §8.4.3.2.3 SR8 admits "a boolean expression" as
+    /// argument-1 and §15.3 item 3 names it for a Boolean argument (INTEGER-OF-BOOLEAN(BIT-A B-AND BIT-B)). The
+    /// scan stops where the ARGUMENT ends — a depth-0 comma or the argument list's ')' — rather than at a condition
+    /// boundary, so `COMPUTE BR = FUNCTION BOOLEAN-OF-INTEGER(5, 8) B-AND BB` does not mistake its numeric
+    /// argument for a boolean one because a B-AND follows the call. Parentheses (a nested call, a grouped
+    /// sub-expression) are tracked by depth so an operator inside them still counts as this argument's.</summary>
+    protected bool boolArgAhead()
+    {
+        int prev = 0, depth = 0;
+        for (int i = 1; i <= 96; i++)
+        {
+            int t = TokenStream.LA(i);
+            switch (t)
+            {
+                case CobolLexer.LPAREN: case CobolLexer.FNARG_LPAREN: depth++; break;
+                case CobolLexer.RPAREN: case CobolLexer.FNARG_RPAREN:
+                    if (depth == 0) return false;   // the argument list's ')' — this argument is over
+                    depth--; break;
+                case CobolLexer.COMMA:
+                    if (depth == 0) return false;   // the next argument
+                    break;
+                case CobolLexer.B_AND:
+                case CobolLexer.B_OR:
+                case CobolLexer.B_XOR:
+                case CobolLexer.B_SHIFT_L:
+                case CobolLexer.B_SHIFT_R:
+                case CobolLexer.B_SHIFT_LC:
+                case CobolLexer.B_SHIFT_RC:
+                    if (IsBoolOperandTerm(prev)) return true;
+                    break;
+                case CobolLexer.B_NOT:
+                    if (IsBoolOperandStart(TokenStream.LA(i + 1))) return true;
+                    break;
+                case CobolLexer.DOT:
+                case TokenConstants.EOF:
+                    return false;
+            }
+            prev = t;
+        }
+        return false;
+    }
+
     /// <summary>An operand-ENDING token — an operand can end with an identifier, a right paren, or a literal. Used by
     /// <see cref="boolExprAhead"/> to confirm a binary B-operator has a genuine LEFT operand (so a §8.9 user data-name
     /// spelled B-AND/B-OR/B-XOR heading a comparison below 2002 is not mistaken for the operator).</summary>

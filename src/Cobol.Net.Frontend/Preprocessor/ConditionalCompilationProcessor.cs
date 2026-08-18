@@ -50,16 +50,14 @@ public static class ConditionalCompilationProcessor
     };
 
     /// <param name="text">The free-form-normalized source text.</param>
-    /// <param name="leaveTurnDirectives">When true, an emitting-branch <c>&gt;&gt;TURN</c> line is LEFT IN the
-    /// text for the downstream <see cref="TurnDirectiveProcessor"/> (the COBOL.NET EC model, ISO §7.3.25); an
-    /// omitted-branch one still drops with its branch. The default (false) is the exact legacy behavior —
-    /// TURN consumed here, the legacy caller untouched.</param>
-    public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false,
-        bool leaveRefModZeroLengthDirectives = false, bool leaveFlagDirectives = false,
-        bool leaveCobolWordsDirectives = false,
+    /// <param name="leaveDirectives">The ISO §7.3 directive keywords whose emitting-branch lines are LEFT IN the
+    /// text for a downstream dedicated stage (the COBOL.NET pipeline: TURN, PROPAGATE, REF-MOD-ZERO-LENGTH,
+    /// FLAG-02/FLAG-14, COBOL-WORDS, LEAP-SECOND — <c>Frontend.LeftDirectives</c>); an omitted-branch line still
+    /// drops with its branch. Null/empty (the legacy caller) consumes every recognized directive here. ONE set,
+    /// not one bool per directive (kb/Work PB65 — the sixth flag was the shape's own reproach).</param>
+    public static string Process(string text, IReadOnlySet<string>? leaveDirectives = null,
         DiagnosticBag? diagnostics = null, string? sourcePath = null, int dialectLevel = 2023)
-        => new Run(leaveTurnDirectives, leavePropagateDirectives, leaveRefModZeroLengthDirectives,
-                leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copy: null, sourceDir: null,
+        => new Run(leaveDirectives, diagnostics, sourcePath, copy: null, sourceDir: null,
                 dialectLevel)
             .Render(text);
 
@@ -73,13 +71,10 @@ public static class ConditionalCompilationProcessor
     /// byte-identical. Design SSOT: <c>docs/rearchitecture/DESIGN-cc-in-copy.md</c>.
     /// </summary>
     public static string ProcessWithCopy(string text, string sourceDir, CopyProcessor copyProcessor,
-        bool leaveTurnDirectives, bool leavePropagateDirectives, bool leaveRefModZeroLengthDirectives,
-        bool leaveFlagDirectives, bool leaveCobolWordsDirectives,
-        DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel)
+        IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel)
     {
         copyProcessor.RegisterSourceDir(sourceDir);
-        string expanded = new Run(leaveTurnDirectives, leavePropagateDirectives, leaveRefModZeroLengthDirectives,
-            leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
+        string expanded = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
             dialectLevel).Render(text);
         return CopyProcessor.ApplyReplaceStatements(expanded, diagnostics, sourcePath ?? "<source>");   // Step 3 — REPLACE over the expanded compilation group
     }
@@ -94,7 +89,7 @@ public static class ConditionalCompilationProcessor
     /// </summary>
     private sealed class Run
     {
-        private readonly bool _leaveTurn, _leavePropagate, _leaveRefMod, _leaveFlag, _leaveCobolWords;
+        private readonly IReadOnlySet<string> _leave;
         private readonly Dictionary<string, CtValue> _defines = new(StringComparer.OrdinalIgnoreCase);
         private readonly FlagScanState _flagScan = new();
         private readonly DirectiveDiag _diag;
@@ -110,12 +105,11 @@ public static class ConditionalCompilationProcessor
         // tree-walk funnel, so this stage enforces the rule itself (CobolWordRule — kb/Work R05's sweep).
         private readonly int _dialectLevel;
 
-        public Run(bool leaveTurn, bool leavePropagate, bool leaveRefMod, bool leaveFlag, bool leaveCobolWords,
+        public Run(IReadOnlySet<string>? leaveDirectives,
             DiagnosticBag? diagnostics, string? sourcePath, CopyProcessor? copy, string? sourceDir,
             int dialectLevel)
         {
-            _leaveTurn = leaveTurn; _leavePropagate = leavePropagate; _leaveRefMod = leaveRefMod;
-            _leaveFlag = leaveFlag; _leaveCobolWords = leaveCobolWords;
+            _leave = leaveDirectives ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             _dialectLevel = dialectLevel;
             _diag = new DirectiveDiag(diagnostics, sourcePath, _flagScan);
             // The ONE shared compile-time expression evaluator (ledger C2). Name resolution reads the CURRENT
@@ -246,19 +240,19 @@ public static class ConditionalCompilationProcessor
                         // branch is dropped regardless. An UNRECOGNIZED >> word is left in place when emitting so it
                         // surfaces downstream (catching typos like >>IFF) rather than being silently swallowed.
                         if (!emitting) emit = "";
-                        else if (_leaveTurn && keyword == "TURN") emit = line;
-                        else if (_leavePropagate && keyword == "PROPAGATE") emit = line;
-                        else if (_leaveRefMod && keyword == "REF-MOD-ZERO-LENGTH") emit = line;
-                        else if (_leaveFlag && (keyword == "FLAG-02" || keyword == "FLAG-14"))
+                        else if (_leave.Contains(keyword))
                         {
-                            // Track the running FLAG state for the frontend-inline options (reached only when emitting).
-                            // The line still SURVIVES for the post-COPY FlagDirectiveProcessor (the bound-option FlagState).
-                            var which = keyword == "FLAG-02" ? FlagDirective.Flag02 : FlagDirective.Flag14;
-                            if (FlagDirectiveLine.TryParse(which, rest, out var flagOpts, out bool flagOn, out _))
-                                _flagScan.Apply(which, flagOpts, flagOn);
+                            // A directive a downstream dedicated stage owns: the line SURVIVES for it. FLAG-02/FLAG-14
+                            // additionally feed the running FLAG state for the frontend-inline options here (the
+                            // post-COPY FlagDirectiveProcessor builds the bound-option FlagState from the same line).
+                            if (keyword is "FLAG-02" or "FLAG-14")
+                            {
+                                var which = keyword == "FLAG-02" ? FlagDirective.Flag02 : FlagDirective.Flag14;
+                                if (FlagDirectiveLine.TryParse(which, rest, out var flagOpts, out bool flagOn, out _))
+                                    _flagScan.Apply(which, flagOpts, flagOn);
+                            }
                             emit = line;
                         }
-                        else if (_leaveCobolWords && keyword == "COBOL-WORDS") emit = line;
                         else emit = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                         break;
                 }

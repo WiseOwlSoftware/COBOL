@@ -111,8 +111,7 @@ public static class CompilerDriver
         // group's compile-time TurnState (deep-dive D10).
         var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive);
         var emitter = new CSharpEmitter();
-        var bound = emitter.Bind(tree, edition, frontend.TurnEvents, frontend.RefModZeroLengthEvents,
-            frontend.FlagEvents, frontend.CobolWordsMap);   // Phase 2a — BIND (terminal = conformance pass)
+        var bound = emitter.Bind(tree, edition, frontend.Directives);   // Phase 2a — BIND (terminal = conformance pass)
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
 

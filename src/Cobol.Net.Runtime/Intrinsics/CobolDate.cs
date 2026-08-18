@@ -206,8 +206,10 @@ public static class CobolDate
     /// example carries 12 fraction digits). Returns the day's tick count = the UNSCALED value at SCALE 7 (the
     /// renderer's documented contract): the COBOL.NET documented precision (§15.80.3 r3, implementor item 171)
     /// is 100 ns — 7 fraction digits, the .NET <see cref="DateTime"/> resolution. Range [0, 86 400) —
-    /// LEAP-SECOND is not supported (the §7.3.17 default OFF is the only mode; §15.5.5), so a returned value
-    /// ≥ 86 400 is unreachable (§15.80.3 r4 answered "no"). Reads the injectable <see cref="RunUnit.Clock"/>
+    /// The REPORTED side of §7.3.17 is the implementor's and answered "never" (A.1 item 112 — the .NET clock has no
+    /// leap seconds), so a returned value ≥ 86 400 is unreachable under ON and OFF alike (§15.80.3 r4 answered
+    /// "no"); the ARGUMENT side of the directive (a 60 in a seconds subfield, a time form up to 86,400.99) is
+    /// honoured by the format engine below (kb/Work PB65). Reads the injectable <see cref="RunUnit.Clock"/>
     /// (COBOLNET_CLOCK-deterministic — the one seam every now-function shares).</summary>
     public static long SecondsPastMidnight() => RunUnit.Current.Clock.Now().TimeOfDay.Ticks;
 
@@ -298,7 +300,7 @@ public static class CobolDate
     /// optional UTC offset in minutes (§15.38–15.41). A date-only / time-only format ignores the components it
     /// does not reference. An ill-formed format sets EC-ARGUMENT-FUNCTION and yields the §15.3 default "".</summary>
     private static string EmitFormatted(string format, long integerDate, Int128 secUnscaled, int secScale,
-                                        long offsetMinutes, bool hasOffset)
+                                        long offsetMinutes, bool hasOffset, bool leapSecond = false)
     {
         var segs = Tokenize(format);
         if (segs is null)
@@ -351,6 +353,10 @@ public static class CobolDate
         }
         long tot = (long)Math.Floor(secs);
         int hh = (int)(tot / 3600), mi = (int)(tot % 3600 / 60), ss = (int)(tot % 60);
+        // >>LEAP-SECOND ON (§7.3.17.4 GR4): a standard numeric time form value in [86 400, 86 401) is the day's leap
+        // second, presented as 23:59:60 (§15.3.3.3 — the seconds subfield may be 60); OFF never admits it (the
+        // bound above). A UTC-offset roll has already normalized the value into the day, so this reads the plain case.
+        if (leapSecond && tot >= 86400) { hh = 23; mi = 59; ss = 60 + (int)(tot - 86400); }
         decimal frac = secs - tot;
         long offMag = Math.Abs(offsetMinutes);
         int oh = (int)(offMag / 60), om = (int)(offMag % 60);
@@ -393,30 +399,33 @@ public static class CobolDate
     /// <summary>FORMATTED-TIME (§15.41): seconds past midnight (a2, unscaled/scale) per the time format a1; a UTC
     /// format displays a2 adjusted by the offset a3 (r2), an offset format shows a2 direct + a3 in the offset field
     /// (r3). a3 omitted with a UTC/offset format is treated as 0 (r7).</summary>
-    public static string FormattedTime(string format, Int128 secUnscaled, int secScale, long offsetMinutes, bool hasOffset)
-        => SecondsOutOfStandardForm("FORMATTED-TIME", "argument-2", secUnscaled, secScale)
+    public static string FormattedTime(string format, Int128 secUnscaled, int secScale, long offsetMinutes, bool hasOffset,
+                                       bool leapSecond = false)
+        => SecondsOutOfStandardForm("FORMATTED-TIME", "argument-2", secUnscaled, secScale, leapSecond)
            || OffsetOutOfRange("FORMATTED-TIME", "argument-3", offsetMinutes, hasOffset, "§15.41.3 r4")
             ? ""
-            : EmitFormatted(format, 1, secUnscaled, secScale, offsetMinutes, hasOffset);
+            : EmitFormatted(format, 1, secUnscaled, secScale, offsetMinutes, hasOffset, leapSecond);
 
     /// <summary>§15.41.3 r3 / §15.40.3 r4: the seconds argument "shall be a value in STANDARD NUMERIC TIME FORM".
-    /// The §7.3.17 LEAP-SECOND directive defines that range and this compiler supports only its default OFF
-    /// (documented at <see cref="Tokenize"/>; §7.3.17 r5 — "When OFF is specified or implied, a standard numeric
-    /// time form value shall be greater than or equal to zero and less than 86,400"). ⚠ Under ON the bound would
-    /// be 86,401, so the constant is tied to the directive rather than to the number of seconds in a day —
-    /// which is why it is cited here rather than written as a bare 86400.
+    /// The §7.3.17 LEAP-SECOND directive defines that range — GR5 (OFF, the implied default): "greater than or
+    /// equal to zero and less than 86,400"; GR4 (ON): "less than 86,401" — the compilation group's directive state
+    /// arrives as <paramref name="leapSecond"/> (kb/Work PB65; before it OFF was the only mode this compiler
+    /// supported). The bound is tied to the directive rather than to the number of seconds in a day, which is why
+    /// it is cited here rather than written as a bare 86400.
     /// <para>Unenforced before this: a seconds argument of, say, 100000 produced <c>hh = 27</c> — a fabricated
     /// time with no exception condition, the same failure mode as the offset bound below.</para>
     /// <para>The comparison is exact and stays in <see cref="Int128"/>: the argument arrives as an unscaled
     /// value plus its scale, so scaling the BOUND up is exact where scaling the value down would truncate and
     /// silently admit a fractional overshoot.</para></summary>
-    private static bool SecondsOutOfStandardForm(string fn, string argName, Int128 secUnscaled, int secScale)
+    private static bool SecondsOutOfStandardForm(string fn, string argName, Int128 secUnscaled, int secScale, bool leapSecond)
     {
-        Int128 limit = (Int128)86400 * Pow10.AsWide(secScale);
+        // §7.3.17.4 GR5 (OFF): [0, 86 400); GR4 (ON): [0, 86 401) — the leap second at the end of the day (kb/Work PB65).
+        int bound = leapSecond ? 86401 : 86400;
+        Int128 limit = (Int128)bound * Pow10.AsWide(secScale);
         if (secUnscaled >= 0 && secUnscaled < limit) return false;
         Exceptions.ExceptionState.ArgumentError(
-            $"{fn} {argName} is not in standard numeric time form: the value shall be >= 0 and < 86,400 "
-            + $"(ISO §7.3.17 r5, LEAP-SECOND OFF — the only mode this compiler supports)");
+            $"{fn} {argName} is not in standard numeric time form: the value shall be >= 0 and < {bound:N0} "
+            + $"(ISO §7.3.17.4 {(leapSecond ? "GR4, LEAP-SECOND ON" : "GR5, LEAP-SECOND OFF")})");
         return true;
     }
 
@@ -439,25 +448,27 @@ public static class CobolDate
     /// <summary>FORMATTED-DATETIME (§15.40): integer date a2 + seconds a3 per the combined format a1; UTC ⇒ adjust
     /// by a4; offset ⇒ a3 direct in time and a4 direct in the offset field.</summary>
     public static string FormattedDatetime(string format, long integerDate, Int128 secUnscaled, int secScale,
-                                           long offsetMinutes, bool hasOffset)
+                                           long offsetMinutes, bool hasOffset, bool leapSecond = false)
     {
         if (integerDate is < 1 or > 3067671)
         { Exceptions.ExceptionState.ArgumentError($"FORMATTED-DATETIME argument {integerDate} outside 1..3,067,671 (§15.5.2)"); return ""; }
-        if (SecondsOutOfStandardForm("FORMATTED-DATETIME", "argument-3", secUnscaled, secScale)) return "";
+        if (SecondsOutOfStandardForm("FORMATTED-DATETIME", "argument-3", secUnscaled, secScale, leapSecond)) return "";
         if (OffsetOutOfRange("FORMATTED-DATETIME", "argument-4", offsetMinutes, hasOffset, "§15.40.3 r5")) return "";
-        return EmitFormatted(format, integerDate, secUnscaled, secScale, offsetMinutes, hasOffset);
+        return EmitFormatted(format, integerDate, secUnscaled, secScale, offsetMinutes, hasOffset, leapSecond);
     }
 
     /// <summary>FORMATTED-CURRENT-DATE (§15.38): the current system date/time formatted per the combined format a1
     /// (§15.38.4 r1 — "the current date and time provided by the system on which the function is evaluated"),
     /// read through the run unit's injectable clock — the same seam CURRENT-DATE and SECONDS-PAST-MIDNIGHT read.
-    /// Time accuracy is to the tick the runtime clock provides (§15.38.4 r2 — implementor-defined).</summary>
+    /// Time accuracy (§15.38.4 r2 — implementor-defined, A.1 item 87 — docs/CONFORMANCE.md §7): the clock's TICK,
+    /// 100 ns = 7 fraction digits, exactly SECONDS-PAST-MIDNIGHT's precision (item 171); the value is carried at 9
+    /// fraction digits (ticks × 100 — integer arithmetic, no binary64 on the way; kb/Work PB65), so a format's
+    /// fraction field beyond the 7th digit renders zeros (§15.3.3.2 admits up to 18).</summary>
     public static string FormattedCurrentDate(string format)
     {
         DateTimeOffset now = RunUnit.Current.Clock.Now();
         long id = (now.Date - Epoch).Days + 1;
-        decimal sod = (decimal)now.TimeOfDay.TotalSeconds;            // seconds past local midnight, sub-second retained
-        long unscaled = (long)(sod * 1_000_000_000m);                 // 9 fraction digits (ample; §15.3.3.2)
+        long unscaled = now.TimeOfDay.Ticks * 100;                    // seconds past local midnight at 9 fraction digits (tick = 100 ns)
         long offMin = (long)now.Offset.TotalMinutes;
         return EmitFormatted(format, id, unscaled, 9, offMin, true);
     }
@@ -473,7 +484,7 @@ public static class CobolDate
     /// detected", and no CHARACTER of "9999W526" is in error; the identical '6' in "2009W526" is valid) and
     /// SECONDS-FROM-FORMATTED-TIME still returns its seconds.</param>
     private static int Analyze(string format, string data, out long integerDate, out long secondsScaled,
-                               out int fracDigits, out bool dateRepresentable)
+                               out int fracDigits, out bool dateRepresentable, bool leapSecond = false)
     {
         integerDate = 0; secondsScaled = 0; fracDigits = 0; dateRepresentable = true;
         var segs = Tokenize(format);
@@ -508,7 +519,7 @@ public static class CobolDate
                 Fld.WeekDay    => (1, 7),
                 Fld.Hour       => (0, 23),
                 Fld.Minute or Fld.OffMinute => (0, 59),
-                Fld.Second     => (0, 59),                            // LEAP-SECOND OFF (§15.3.3.3); ON would lift to 60
+                Fld.Second     => (0, leapSecond ? 60 : 59),          // §15.3.3.3 — "less than 61 when the LEAP-SECOND directive with the ON phrase is in effect" (kb/Work PB65)
                 Fld.OffHour    => (0, 23),
                 _              => (0, int.MaxValue),                  // Fraction — digits only
             };
@@ -583,9 +594,9 @@ public static class CobolDate
 
     /// <summary>INTEGER-OF-FORMATTED-DATE (§15.48): a2 analyzed per a1 → integer date form (a combined format's
     /// time is validated but does not affect the result, r1 NOTE). Invalid content → the §15.3 default 0.</summary>
-    public static long IntegerOfFormattedDate(string format, string data)
+    public static long IntegerOfFormattedDate(string format, string data, bool leapSecond = false)
     {
-        int e = Analyze(format, data, out long id, out _, out _, out bool representable);
+        int e = Analyze(format, data, out long id, out _, out _, out bool representable, leapSecond);
         if (e != 0)
             return Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-FORMATTED-DATE: '{data}' is not valid per '{format}' (§15.48.3)");
         // §15.48.4 r1 makes the returned value "the integer date form equivalent" — and past §15.5.2's 3,067,671
@@ -600,12 +611,12 @@ public static class CobolDate
 
     /// <summary>SECONDS-FROM-FORMATTED-TIME (§15.79): the hh/mm/ss subfields of a2 as (H*3600+M*60+S), scaled to
     /// the format's fractional-second count (the renderer supplies the matching result scale). Invalid → default 0.</summary>
-    public static long SecondsFromFormattedTime(string format, string data, int scale)
+    public static long SecondsFromFormattedTime(string format, string data, int scale, bool leapSecond = false)
     {
         // `dateRepresentable` is deliberately ignored: the seconds come from the TIME subfields, which §15.79.4
         // computes without reference to the date, so a combined format whose DATE lands past 9999-12-31 still has
         // a well-defined result here (PB23).
-        int e = Analyze(format, data, out _, out long secs, out int f, out _);
+        int e = Analyze(format, data, out _, out long secs, out int f, out _, leapSecond);
         if (e != 0)
             return Exceptions.ExceptionState.ArgumentError($"SECONDS-FROM-FORMATTED-TIME: '{data}' invalid per '{format}' (§15.79.3)");
         return scale == f ? secs : scale > f ? secs * (long)Pow10.AsWide(scale - f) : secs / (long)Pow10.AsWide(f - scale);
@@ -617,17 +628,18 @@ public static class CobolDate
     /// format", §15.3.1.7's subfield rules are all satisfied by e.g. "9999W526", and §15.92.4 requires any non-zero
     /// answer to be "the ordinal character position at which the first error … was detected" — no CHARACTER of that
     /// value is in error, so there is no position to report and the answer is 0 (PB23).</para>
-    public static long TestFormattedDatetime(string format, string data) => Analyze(format, data, out _, out _, out _, out _);
+    public static long TestFormattedDatetime(string format, string data, bool leapSecond = false)
+        => Analyze(format, data, out _, out _, out _, out _, leapSecond);
 
     /// <summary>COMBINED-DATETIME (§15.17.4): a1 + a2/100000 as an exact scaled value at scale (a2.scale + 5).
     /// ⛔ THE GUARD PROLOGUE MIRRORS FormattedDatetime's (fix-queue PB65 — the one-of-two-callers shape):
     /// §15.17.3 r1 bounds argument-1 to the §15.5.2 integer-date range, r2 requires argument-2 in standard
     /// numeric time form — both are VALUE rules, EC-ARGUMENT-FUNCTION on violation, documented default 0.</summary>
-    public static Int128 CombinedDatetime(long integerDate, Int128 secUnscaled, int secScale)
+    public static Int128 CombinedDatetime(long integerDate, Int128 secUnscaled, int secScale, bool leapSecond = false)
     {
         if (integerDate is < 1 or > 3067671)
         { Exceptions.ExceptionState.ArgumentError($"COMBINED-DATETIME argument-1 {integerDate} outside 1..3,067,671 (§15.17.3 r1 / §15.5.2)"); return 0; }
-        if (SecondsOutOfStandardForm("COMBINED-DATETIME", "argument-2", secUnscaled, secScale)) return 0;
+        if (SecondsOutOfStandardForm("COMBINED-DATETIME", "argument-2", secUnscaled, secScale, leapSecond)) return 0;
         return (Int128)integerDate * Pow10.AsWide(secScale + 5) + secUnscaled;
     }
 }

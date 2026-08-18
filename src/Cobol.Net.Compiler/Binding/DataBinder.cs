@@ -52,6 +52,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// Defaults to <see cref="Editions.CobolWordsMap.Empty"/> (no directive) for direct test construction.</summary>
     public Editions.CobolWordsMap CobolWords { get; init; } = Editions.CobolWordsMap.Empty;
 
+    /// <summary>The group's <c>&gt;&gt;LEAP-SECOND</c> state (ISO §7.3.17; kb/Work PB65) — the intrinsic renderer
+    /// passes it to every §15.3 date/time runtime function that reads a seconds subfield or a standard numeric
+    /// time form (SECONDS-FROM-FORMATTED-TIME, TEST-FORMATTED-DATETIME, INTEGER-OF-FORMATTED-DATE, FORMATTED-TIME,
+    /// FORMATTED-DATETIME, COMBINED-DATETIME).</summary>
+    public bool LeapSecond { get; init; }
+
     /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order. (READ-ONLY view — P6 Step 5:
     /// the emitter consumes the bound model without a write channel; the binder populates the private backing.)</summary>
     public IReadOnlyList<DataItem> Roots => _roots;
@@ -751,6 +757,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET1512", $"file '{name}': SHARING WITH ALL OTHER requires the file to have a "
                     + "LOCK MODE clause (ISO §14.9.27 SR8)");
             _files.Add(file);
+            ScreenRepositoryIntrinsicName(name, "file-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
             FilesByName[name] = file;
         }
     }
@@ -1247,8 +1254,33 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private void RegisterName(DataItem item)
     {
         if (item.CobolName is not { } name) return;
+        ScreenRepositoryIntrinsicName(name, "data-name");
         if (!ByName.TryGetValue(name, out var list)) ByName[name] = list = [];
         list.Add(item);
+    }
+
+    private readonly HashSet<string> _repositoryNameReported = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>ISO §8.3.2.1 rule 5 — THE ONE screen for a user-defined word that spells an intrinsic-function-name
+    /// "identified in a function-specifier in the REPOSITORY paragraph" (<c>FUNCTION name INTRINSIC</c>, or every
+    /// catalogued name under <c>FUNCTION ALL INTRINSIC</c>): asked by every declaration funnel — a data-name
+    /// (<see cref="RegisterName"/>), a condition-name, an index-name, a file-name, a paragraph or section name
+    /// (<c>ProcedureTableBuilder</c>). Reported once per name (a TYPE expansion re-registers a clone). Returns true
+    /// when the name is reserved. kb/Work PB65 (FMT-15.43.2 / FMT-15.58.2): the REPOSITORY sets were filled and
+    /// consulted by NOTHING at declaration time, so a table named HIGHEST-ALGEBRAIC compiled and the keyword-omitted
+    /// reference `HIGHEST-ALGEBRAIC(A1)` silently read the table — the standard's prohibition is exactly what makes
+    /// §8.4.3.2.3 SR2's FUNCTION-less reference unambiguous, and the binder no longer substitutes a hand-written
+    /// "the data item wins" precedence for it.</summary>
+    internal bool ScreenRepositoryIntrinsicName(string name, string what)
+    {
+        bool reserved = RepositoryAllIntrinsic ? IntrinsicCatalog.TryGet(name, out _) : RepositoryIntrinsics.Contains(name);
+        if (!reserved) return false;
+        if (_repositoryNameReported.Add(name))
+            Edition.Error(DiagnosticCatalog.RepositoryIntrinsicNameAsUserWord,
+                $"{what} '{name}': the intrinsic-function-name is identified in a function-specifier of the REPOSITORY "
+                + $"paragraph (FUNCTION {(RepositoryAllIntrinsic ? "ALL" : name)} INTRINSIC), so it shall not be used "
+                + "as a user-defined word in this source unit (ISO §8.3.2.1 rule 5)");
+        return true;
     }
 
     // ── TYPEDEF / the TYPE clause (ISO §13.18.58 / §13.18.57; data-model D17) ──────────────────────────────────
@@ -1827,6 +1859,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         parent.Own88s.Add(cond);   // the item owns its 88s (source of truth; lets CloneItem carry a TYPEDEF's 88s)
         if (registerGlobal)
         {
+            ScreenRepositoryIntrinsicName(name, "condition-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
             if (!Conditions.TryGetValue(name, out var list)) Conditions[name] = list = [];
             list.Add(cond);
         }
@@ -2402,6 +2435,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // path keeps the de-dup dict.
         foreach (var idxName in indexNames)
         {
+            ScreenRepositoryIntrinsicName(idxName, "index-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
             item.IndexNames.Add(idxName);
             if (_bindingMethodScope is { } ms)
                 ms.IndexFields[idxName] = "_MIX_" + _ixSeq++;

@@ -359,9 +359,14 @@ functionArgList
 // through dataReference inside arithmeticExpression and are classified by name in the binder. OMITTED is the
 // §8.4.3.2.2 format's argument alternative (SR7 bars it for intrinsics — a bind-time diagnostic, not a parse
 // error). A superset rule: which words a given function admits is the binder's §15 job.
+// §8.4.3.2.3 SR8: "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic
+// expression." The boolean arm sits behind the ARGUMENT-scoped boolArgAhead() predicate (kb/Work PB65,
+// FMT-15.45.2): it fires only when a B-operator belongs to THIS argument, so a bare boolean literal / item still
+// takes its literal / expression arm and a following B-AND outside the argument list is not this argument's.
 functionArgument
     : fnArgPhraseWord
     | OMITTED
+    | {boolArgAhead()}? booleanExpression
     | nonNumericLiteral
     | arithmeticExpression
     ;

@@ -27,6 +27,11 @@ internal sealed class BindSession
     /// function-name synonyms through it. Defaults to <see cref="CobolWordsMap.Empty"/> (no directive).</summary>
     public Editions.CobolWordsMap CobolWords { get; init; } = Editions.CobolWordsMap.Empty;
 
+    /// <summary>The group's <c>&gt;&gt;LEAP-SECOND</c> state (ISO §7.3.17; kb/Work PB65): true when ON — a
+    /// formatted-time argument's seconds subfield may be 60 (§15.3.3.3) and standard numeric time form is bounded at
+    /// 86,401 (GR4). Every unit's <see cref="DataBinder.LeapSecond"/> carries it to the intrinsic renderer.</summary>
+    public bool LeapSecond { get; init; }
+
     private int _uidBand;
 
     /// <summary>Take the next disjoint 100k uid band (one per DataBinder, so nested-class struct/profile names

@@ -397,6 +397,62 @@ RV-15.60.4-1: the native arms aligned every argument to the list's maximum scale
 `pb62_all_subscript_runtime_ranges` (every range and shape, values derived in its header),
 `pb62_standard_decimal_summing_family`, and the `pb62-all-subscript-*` negatives.
 
+### A SELECTION function delivers the selected argument's CONTENT from its own carrier (PB65, RV-15.59.4-1 D2).
+
+MAX / MIN / ORD-MAX / ORD-MIN — and MEDIAN over an odd count (§15.61.4 r1's equivalent expression is
+`(argument-a)`, the middle argument itself) — return "the content of the argument" compared "according to the rules
+for simple conditions" (§15.59.4 r1 / §15.63.4 r1 / §15.61.4 r3); no equivalent ARITHMETIC expression is involved,
+so §15.4.1's native latitude over the representation of the returned value never reaches the VALUE. A MIXED
+argument list — a float beside a fixed-point item, conforming under §8.5.2.1 Table 2 (both class numeric) — used to
+route the WHOLE call through binary64 (`AnyRealArgument` → `RenderFloat` → `MaxReal(params double[])` →
+`FromDouble`): `MAX(F1 N1)` with N1 = 999999999999999999 returned **13** (1e18 → FromDouble at scale 9 → the
+modular store), `MAX(D9 F1)` corrupted the last digit of a 9(9)V9(9), `MEDIAN(F1 N1 N2)` returned 0. **The rule
+now:** a mixed selection list evaluates on the SDIDI carrier under NATIVE arithmetic too (`RenderNum` routes it to
+the `RenderDec` bodies `MaxDec` / `MinDec` / `OrdMaxDec` / `OrdMinDec` / `MedianDec`) — a 38-digit fixed argument
+is carried exactly, a float through the §8.8.1.5.1 conversion, the compare is exact, and the result lands ONCE at
+the receiver. An ALL-float list keeps the float lane (each argument's content IS its double); an all-fixed list
+keeps the exact Int128 selection (`MaxAt` / `MinAt`, PB65's D1). The arithmetic statistical family (SUM / MEAN /
+RANGE / MIDRANGE — genuine equivalent arithmetic expressions) keeps the D16 native float lane a float operand
+selects. Golden `pb65_selection_mixed_carriers`.
+
+### An intrinsic-function-name the REPOSITORY identifies is not a user-defined word (PB65, §8.3.2.1 rule 5).
+
+§8.3.2.1 rule 5: intrinsic-function-names may be user-defined words "except for … intrinsic function names
+identified in a function-specifier in the REPOSITORY paragraph" — the prohibition that makes §8.4.3.2.3 SR2's
+FUNCTION-less reference unambiguous. The REPOSITORY sets (`RepositoryIntrinsics` / `RepositoryAllIntrinsic`) were
+filled and consulted by NOTHING at declaration time; `KeywordOmittedFunction` substituted a hand-written "a declared
+data item wins" precedence, so under `FUNCTION HIGHEST-ALGEBRAIC INTRINSIC` a table named HIGHEST-ALGEBRAIC compiled
+clean and `HIGHEST-ALGEBRAIC(A1)` silently read the table element where §15.43.4 requires +999. **The rule now:**
+`DataBinder.ScreenRepositoryIntrinsicName` is THE screen — asked by every declaration funnel (a data-name, a
+condition-name, an index-name, a file-name, a paragraph or section name) — **COBOLNET1649** at the declaration; a
+catalogued name the REPOSITORY does NOT identify stays a legal user-defined word (SQRT as a table, MOD as an item),
+and only for those does the data item win the FUNCTION-less spelling. Golden `pb65_repository_r5_intrinsic_names`,
+negatives `pb65-repository-*`.
+
+### A boolean EXPRESSION is an intrinsic argument (PB65, FMT-15.45.2 / §8.4.3.2.3 SR8).
+
+`functionArgument` gained its `booleanExpression` alternative behind the ARGUMENT-scoped `boolArgAhead()` predicate
+(the condition-scoped `boolExprAhead()` would have read a B-AND FOLLOWING the call —
+`COMPUTE BR = FUNCTION BOOLEAN-OF-INTEGER(5, 8) B-AND BB` — as belonging to the numeric argument 5; the argument
+scan stops at a depth-0 comma or the argument list's `)`). The operand is a `BoundBoolOperand` of class boolean
+(`IntrinsicArgumentRules.ClassOf1`), imaged as its '0'/'1' string through the ONE `BooleanRenderer` (intercepted at
+`OperandText.AsString`'s entry, which has the per-unit renderer). The lexer's boolean literal admits ZERO length
+(`[01]*` — §8.3.3.4.4 GR4: B"" is a boolean literal; INTEGER-OF-BOOLEAN of it is 0). A BIT GROUP argument waits on
+GROUP-USAGE (kb/Work PB79). Golden `pb65_boolean_expression_argument`.
+
+### The §7.3.17 LEAP-SECOND directive reaches the date/time family (PB65, AR-15.79.3-4).
+
+`>>LEAP-SECOND ON` was consumed and discarded. Now `LeapSecondDirectiveProcessor` (a line-count-preserving stage
+like TURN / REF-MOD-ZERO-LENGTH) resolves the group's state → `Frontend.LeapSecondOn` → the ONE `DirectiveResults`
+record `Bind` takes → `BindSession` / `DataBinder.LeapSecond` → the renderer's trailing `leapSecond: true` argument
+(`LeapSecondFlag` — emitted only when ON, so every OFF emission is byte-identical) to SECONDS-FROM-FORMATTED-TIME,
+TEST-FORMATTED-DATETIME, INTEGER-OF-FORMATTED-DATE, FORMATTED-TIME, FORMATTED-DATETIME and COMBINED-DATETIME. Under
+ON: a seconds subfield may be 60 (§15.3.3.3 — `Analyze`'s field range), standard numeric time form is bounded at
+86,401 (§7.3.17.4 GR4 — `SecondsOutOfStandardForm`), and 86,400.x is presented as 23:59:60.x. The REPORTED side
+(GR2/GR4's "may a 60 / a value ≥ 86,400 be returned") stays the implementor's "never" (A.1 item 112 — the .NET clock
+has no leap seconds). SR1 (not within a compilation unit) and the operand syntax are COBOLNET1650; below 2002 the
+directive is the introduction gate (construct `leap-second-directive-2002`). Goldens `pb65_leap_second_on` / `_off`.
+
 ## Edge cases
 
 - FUNCTION LENGTH / BYTE-LENGTH of a reference-modified operand x(s:l) is a RUNTIME value over the view (§8.4.3.3.4 GR6 — the substring's own length; x(s:) ends where the item does); only fixed operands fold.

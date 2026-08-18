@@ -42,6 +42,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// registers in the method's own map, never the program-global fallback.</summary>
     public void AddParagraph(string name, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
     {
+        ctx.Data.ScreenRepositoryIntrinsicName(name, "paragraph-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
         string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
         string method = baseName;
         for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
@@ -141,6 +142,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
                 // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
                 // statement of its first paragraph through last statement of its last (ISO §14.9.28).
+                ctx.Data.ScreenRepositoryIntrinsicName(section.sectionName().GetText(), "section-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
                 var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
                 // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
                 // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
@@ -215,6 +217,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private void DeclCollectSection(Core.DeclarativeSectionContext sec, HashSet<string> used)
     {
         string name = sec.sectionName().GetText();
+        ctx.Data.ScreenRepositoryIntrinsicName(name, "section-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
         var info = new SectionInfo(name, _paras.Count);
 
         // SR1: the first sentence consists of exactly one USE statement.

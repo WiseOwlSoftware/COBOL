@@ -115,6 +115,22 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // satisfy the pattern would have meant returning a double and silently losing exactness past 2^53 — a
         // function answering differently because of how its ARGUMENT was stored, which is the shape-dependence
         // defect PB13 closed. IntrinsicRealArgDriftTests carries the matching exemption with this reason.
+        // MAX / MIN / ORD-MAX / ORD-MIN — and MEDIAN over an odd count — are pure SELECTION: §15.59.4 r1 /
+        // §15.63.4 r1 "the returned value is the CONTENT of the argument-1 having the greatest [least] value",
+        // §15.61.4 r1 "the content of the argument-1 that is the middle value", each compared "according to the
+        // rules for simple conditions"; no equivalent arithmetic expression, so §15.4.1's native latitude over the
+        // representation never reaches the VALUE. A MIXED list (a float beside a fixed-point item) must deliver
+        // the selected argument from ITS OWN carrier, never re-rendered through binary64 (kb/Work PB65
+        // RV-15.59.4-1 D2: MAX(F1 N1) with N1 = 999999999999999999 returned 13 — the 18-digit content went
+        // double → FromDouble at scale 9 → modular store; MEDIAN(F1 N1 N2) returned 0). The SDIDI carrier holds
+        // a 38-digit fixed exactly and the float through the §8.8.1.5.1 conversion, and its compare is exact — so
+        // a mixed selection list evaluates on the SDIDI under NATIVE too, and lands once at the receiver. An
+        // all-float list stays in the float lane below (its content IS the double), and the arithmetic
+        // statistical family (SUM / MEAN / RANGE / MIDRANGE — equivalent arithmetic expressions) keeps the D16
+        // native float lane a float operand selects.
+        if (sig.RuntimeMethod is "MaxScaled" or "MinScaled" or "OrdMax" or "OrdMin" or "MedianScaled"
+            && AnyRealArgument(ic) && !AllRealArguments(ic) && RenderDec(ic) is { } decSelection)
+            return decSelection;
         if (AnyRealArgument(ic) && sig.RuntimeMethod != "Factorial")
             return RenderFloat(ic, RealMethod(sig.RuntimeMethod));
 
@@ -293,20 +309,20 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "CombinedDatetime":                                            // §15.17 — a1 + a2/100000
             {
                 NumX t = Arg(ic, 1);
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{IntArg(ic, 0)}, {t.Expr}, {t.Scale}"), t.Scale + 5);
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{IntArg(ic, 0)}, {t.Expr}, {t.Scale}{LeapSecondFlag}"), t.Scale + 5);
             }
             case "IntegerOfFormattedDate":                                       // §15.48 — analyze a2 per format a1 → integer date
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}"), 0);
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{LeapSecondFlag}"), 0);
             case "SecondsFromFormattedTime":                                    // §15.79 — result scale = the format's fractional-second count
             {
                 if (ic.Args[0] is not BoundStringLiteral fmt)
                     return new NumX(EmitText.LoudValue("long",
                         "FUNCTION SECONDS-FROM-FORMATTED-TIME requires a literal time format (§15.79.3 r1)"), 0);
                 int fsc = RuntimeApi.DateFormatFractionDigits(fmt.Value);       // compile-time — the ONE format analyzer
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {fsc}"), fsc);
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {fsc}{LeapSecondFlag}"), fsc);
             }
             case "TestFormattedDatetime":                                       // §15.92 — 0 (valid) or the 1-based error position
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}"), 0);
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{LeapSecondFlag}"), 0);
             // §15.69 NUMVAL-F — the ws floor follows the float-family precedent, and so does its CAP: this is a
             // THIRD instance of the PB13 quantizer defect, and the one PB5 itself missed. The runtime still
             // clamped at long.MaxValue (PB5's original 9.2×10¹⁸ clamp, never swept to this sibling), so
@@ -666,6 +682,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private bool AnyRealArgument(BoundIntrinsicCall ic) =>
         ic.Args.Any(a => Landed(num.AsNum(a, num.Receiver)).Real);
 
+    /// <summary>Does EVERY argument render as floating? (An all-float selection list stays in the float lane —
+    /// each argument's content is its double; a mixed list rides the SDIDI, kb/Work PB65 RV-15.59.4-1 D2.)</summary>
+    private bool AllRealArguments(BoundIntrinsicCall ic) =>
+        ic.Args.All(a => Landed(num.AsNum(a, num.Receiver)).Real);
+
     /// <summary>A numeric argument as a C# double (the float family's §15.4.1 carrier). ⛔ Converts the RAW
     /// operand (fix-queue PB56): routing through the <see cref="Landed"/> unscaled truncation first turned a
     /// sub-working-scale Dec operand to ZERO before the double conversion — SQRT(4e-18) probed as 0 where the
@@ -883,7 +904,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         var (secExpr, secScale) = SecondsArg(ArgNum(ic.Args[1]));
         bool hasOff = ic.Args.Count > 2;
         return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, {secExpr}, {secScale}, "
-             + $"{(hasOff ? ArgInt(ic.Args[2]) : "0")}, {(hasOff ? "true" : "false")}");
+             + $"{(hasOff ? ArgInt(ic.Args[2]) : "0")}, {(hasOff ? "true" : "false")}{LeapSecondFlag}");
     }
 
     /// <summary>FORMATTED-DATETIME (§15.40): integer date a2 + seconds a3 (via <see cref="SecondsArg"/>) + the
@@ -893,8 +914,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         var (secExpr, secScale) = SecondsArg(ArgNum(ic.Args[2]));
         bool hasOff = ic.Args.Count > 3;
         return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}, "
-             + $"{secExpr}, {secScale}, {(hasOff ? ArgInt(ic.Args[3]) : "0")}, {(hasOff ? "true" : "false")}");
+             + $"{secExpr}, {secScale}, {(hasOff ? ArgInt(ic.Args[3]) : "0")}, {(hasOff ? "true" : "false")}{LeapSecondFlag}");
     }
+
+    /// <summary>The <c>&gt;&gt;LEAP-SECOND ON</c> argument every §15.3 date/time function that reads a seconds subfield or
+    /// a standard numeric time form takes (ISO §7.3.17 / §15.3.3.3 — kb/Work PB65): the compilation group's ONE
+    /// directive fact (<c>DataBinder.LeapSecond</c>), passed as a trailing named argument only when ON, so every
+    /// OFF emission is byte-identical to before (the CommaFlag discipline).</summary>
+    private string LeapSecondFlag => ctx.Data.LeapSecond ? ", leapSecond: true" : "";
 
     /// <summary>The SECONDS argument of the formatted time family as an (unscaled, scale) pair, TOTAL over the
     /// four value carriers (kb/Work R24 — ledger F44/F46/F57; §15.41.4 r1 / §15.40.4 make the returned value a
@@ -1032,6 +1059,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // already makes.
         public string Visit(BoundFigurative n) => OperandText.AsString(n, owner.Num);
         public string Visit(BoundAllLiteral n) => OperandText.AsString(n, owner.Num);
-        public string Visit(BoundBoolOperand n) => Loud(n);
+        // A boolean EXPRESSION argument (§8.4.3.2.3 SR8; kb/Work PB65): its '0'/'1' image through the ONE boolean
+        // renderer — INTEGER-OF-BOOLEAN(BIT-A B-AND BIT-B) reads the combined bit string.
+        public string Visit(BoundBoolOperand n) => BooleanRenderer.Render(n.Expr, owner.Num);
     }
 }

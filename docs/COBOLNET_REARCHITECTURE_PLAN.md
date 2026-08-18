@@ -119,8 +119,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   (`ALL allLiteral` — plain / hex / national / boolean, and a concatenated literal-1 per §8.3.3.6.3 SR2), ONE
   literal-class classifier (`CobolLiteral.ClassOf`), ONE constructor (`BoundAllLiteral.Of`); the VALUE validator
   and the version pass ask the same; COBOLNET1648 (zero-length literal-1). SR-8.3.3.6.3-2 + FMT-8.3.3.6.2 →
-  CONFORMS, GAP 4040. Battery owed for the PB71 batch with the next landing.
-  **NEXT, in order:** ① PB65 (open members) → PB88 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
+  CONFORMS, GAP 4040.
+  **✅ PB65 CLOSED (DEVLOG 1306, 2026-08-18)** — the last five members: a MIXED selection list (MAX/MIN/ORD-MAX/
+  ORD-MIN/MEDIAN with a float beside a fixed item) delivers the CONTENT via the SDIDI (`MAX(F1 N1)` was 13);
+  §8.3.2.1 rule 5 written once (`DataBinder.ScreenRepositoryIntrinsicName`, COBOLNET1649 — a REPOSITORY-named
+  intrinsic can no longer be shadowed by a data item); a boolean EXPRESSION is an intrinsic argument (the
+  argument-scoped `boolArgAhead()`; B"" lexes); `>>LEAP-SECOND ON` reaches the date/time family (a directive
+  processor, ONE `DirectiveResults` record into Bind, ONE leave-set in the CC processor; COBOLNET1650; construct
+  `leap-second-directive-2002`); A.1 items 87 and 145 written from measurement. 11 verdicts → CONFORMS, all 34
+  PB65 rows OK, GAP 4029.
+  **⏳ Battery owed for the PB71+PB65 batch** (grammar + lexer changed: the ALL figurative arm, functionArgument's
+  boolean arm, the zero-length boolean literal; the directive pipeline; the intrinsic renderer's selection route)
+  — run it before the next landing builds on it.
+  **NEXT, in order:** ① PB88 → PB80 → PB77 → PB73 → PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

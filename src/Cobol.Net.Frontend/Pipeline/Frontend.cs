@@ -74,6 +74,15 @@ public sealed class Frontend
     /// consult. <see cref="CobolWordsMap.Empty"/> when the source has no COBOL-WORDS directive.</summary>
     public CobolWordsMap CobolWordsMap { get; private set; } = CobolWordsMap.Empty;
 
+    /// <summary>The frontend's <c>&gt;&gt;LEAP-SECOND</c> state (ISO §7.3.17) — true when ON is in effect for the
+    /// compilation group (kb/Work PB65): a formatted-time argument may carry a 60 in its seconds subfield
+    /// (§15.3.3.3) and standard numeric time form is bounded at 86,401 (§7.3.17.4 GR4).</summary>
+    public bool LeapSecondOn { get; private set; }
+
+    /// <summary>EVERY directive-derived fact the binder consumes, as ONE record (kb/Work PB65 — the fifth
+    /// positional parameter on <c>Bind</c> was the growing-list shape). Reflects the LAST parsed source.</summary>
+    public DirectiveResults Directives => new(TurnEvents, RefModZeroLengthEvents, FlagEvents, CobolWordsMap, LeapSecondOn);
+
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
     /// syntax error was reported (collected into <paramref name="diagnostics"/>).
@@ -106,10 +115,8 @@ public sealed class Frontend
         // COPY runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
             dialectLevel: DialectLevel, permissive: Permissive);
-        text = ConditionalCompilationProcessor.ProcessWithCopy(text, sourceDir, copy,
-            leaveTurnDirectives: true, leavePropagateDirectives: true, leaveRefModZeroLengthDirectives: true,
-            leaveFlagDirectives: true, leaveCobolWordsDirectives: true, diagnostics: diagnostics,
-            sourcePath: sourcePath, dialectLevel: DialectLevel);
+        text = ConditionalCompilationProcessor.ProcessWithCopy(text, sourceDir, copy, LeftDirectives,
+            diagnostics: diagnostics, sourcePath: sourcePath, dialectLevel: DialectLevel);
 
         if (NistTestName is { } nist)
             text = NistPreprocessor.Process(text, nist);
@@ -155,8 +162,23 @@ public sealed class Frontend
             throw new InvalidOperationException(
                 "CobolWordsDirectiveProcessor changed the line count (hazard H3)");
 
+        // >>LEAP-SECOND (ISO §7.3.17): the ONE compilation-group ON/OFF fact the §15.3 date/time consumers read
+        // (kb/Work PB65 — it used to be consumed and discarded). Line-count preserving like the stages above.
+        (text, LeapSecondOn) = LeapSecondDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "LeapSecondDirectiveProcessor changed the line count (hazard H3)");
+
         return text;
     }
+
+    /// <summary>The ISO §7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
+    /// dedicated stages above — ONE list, in the order those stages run (TURN, PROPAGATE, REF-MOD-ZERO-LENGTH,
+    /// FLAG-02 / FLAG-14, COBOL-WORDS, LEAP-SECOND). A new directive with behavior is one entry here plus its stage.</summary>
+    public static readonly IReadOnlySet<string> LeftDirectives = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "TURN", "PROPAGATE", "REF-MOD-ZERO-LENGTH", "FLAG-02", "FLAG-14", "COBOL-WORDS", "LEAP-SECOND",
+    };
 
     private static int CountLines(string s) => s.Count(c => c == '\n');
 

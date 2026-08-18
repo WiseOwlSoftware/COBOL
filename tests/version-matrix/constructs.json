@@ -220,6 +220,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PUE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM UNTIL EXIT\n        ADD 1 TO N\n        IF N = 2 EXIT PERFORM END-IF\n    END-PERFORM.\n    STOP RUN.\n"
     },
     {
+      "id": "leap-second-directive-2002",
+      "description": "The >>LEAP-SECOND [ON|OFF] compiler directive (ISO §7.3.17) — a COBOL-2002 compiler-directive introduction (§7.3): with ON in effect a formatted-time argument's seconds subfield may be 60 (§15.3.3.3) and a standard numeric time form value is bounded at 86,401 (§7.3.17.4 GR4) instead of 86,400 (GR5); the reported side (a 60 in the seconds position of the clock functions, SECONDS-PAST-MIDNIGHT >= 86,400) is implementor-defined and answered never (A.1 item 112). A text-manipulation-stage directive consumed by LeapSecondDirectiveProcessor; the introduction gate rejects the directive below 2002 (kb/Work PB65).",
+      "display": ">>LEAP-SECOND directive",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §7.3.17; §15.3.3.3; §15.79.4",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "compiler directives (§7.3) — 2002 introduction",
+      "source": "        >>LEAP-SECOND ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. LEAPS.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 R PIC 9(6).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE 86400 TO R.\n           DISPLAY R.\n           STOP RUN.\n"
+    },
+    {
       "id": "ref-mod-zero-length-2023",
       "description": "The >>REF-MOD-ZERO-LENGTH {ON|OFF} compiler directive (ISO §7.3.23) — a COBOL-2023 addition (Annex E.3.3 item 23): when ON, a reference modification MAY have a zero-length result (§8.4.3.3.4 item 5c); when OFF/omitted (the default) a zero-length ref-mod raises EC-BOUND-REF-MOD (§7.3.23.3 GR1). A text-manipulation-stage directive consumed by RefModZeroLengthDirectiveProcessor and folded per source line; the introduction gate rejects the directive below 2023.",
       "display": ">>REF-MOD-ZERO-LENGTH directive",
