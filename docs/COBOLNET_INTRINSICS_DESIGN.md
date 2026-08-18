@@ -247,9 +247,9 @@ FUNCTION arguments parse through the grammar (`functionArgList` — the lexer su
 sign-adjacent-after-separator literals as `SIGNED_*` per §8.7.1/§8.3.3.3.2, so `MAX(A -4)` is two arguments and
 `MAX(A - 4)` one). Each argument binds via `BindArgOperand` — non-numeric literals stay categorized literal
 operands, a sole data reference stays a `BoundFieldOperand`, anything arithmetic goes through the ONE
-`ExpressionBinder.BindExpr` and wraps as `BoundComputedOperand` — with `TryExpandAll` expanding a table(ALL)
-argument (its subscript capture is still SUBSCRIPT-mode tokens — the D10/PHASE-15 deferral) to per-occurrence
-operands, driven by the catalog's arity model (Fixed/OptionalTrailing/Variadic). The five phrase-keyword functions
+`ExpressionBinder.BindExpr` and wraps as `BoundComputedOperand` — with a `table(… ALL …)` argument bound by
+`TryBindAllArgument` as ONE enumerating operand (below), driven by the catalog's arity model
+(Fixed/OptionalTrailing/Variadic). The five phrase-keyword functions
 (TRIM/FIND-STRING/SUBSTITUTE/CONVERT/MODULE-NAME) classify bare-word arguments by name (`KeywordWordOf`) and each
 walks its §15.x.2 general format BY POSITION, never as an order-free keyword harvest — CONVERT's slot 0 is ALWAYS
 argument-1 and binds as an operand, so a data item named one of the §8.10 context-sensitive words (NAT/ANUM/HEX/
@@ -339,6 +339,45 @@ the data path and died "not defined"). `ResultRefMod` no longer carries an SR6 a
 FOLLOWS an argument list or sits on a zero-argument function (`CURRENT-DATE (1:8)`, the standard's own D.14.3.6
 shape), and it applies §8.4.3.3.3 SR2 (class) only. `FunctionRefModSr6SweepTests` sweeps the CATALOG: every
 argument-permitting row in both forms draws 1543 (never 1504/1639), every zero-argument row does not.
+
+### The ALL subscript in an argument (§15.3): ONE enumerating operand, three ranges, admissible only where the format repeats an argument (PB62).
+
+§15.3: "When the definition of a function permits an argument to be repeated a variable number of times, a table
+may be referenced by … subscripting where one or more of the subscripts is the word ALL … the effect is as if
+each table element associated with that subscript position were specified", left to right, the rightmost ALL
+varying fastest — and the range of an ALL is a fixed OCCURS count, "the object of the OCCURS DEPENDING ON clause",
+or "from 1 to the current capacity of the table" for a dynamic-capacity table. Two of the three ranges are RUNTIME
+values, so the former bind-time expansion (N `BoundFieldOperand`s by the OCCURS count; an ODO table staged loud, a
+dynamic table not even a level) was the wrong model. **`IntrinsicBinder.TryBindAllArgument` binds the argument as
+one `BoundFieldOperand` whose place is a `TableAllPlace(Element, IndexVar, Counts)`** — a `PlaceDecorator` over
+the ELEMENT place (its ALL subscripts written as `__allN[k]`, its fixed subscripts rendered) carrying one
+`AllCount` per ALL level (`Fixed(occurs)` / `Odo(depending, min, max)` / `Capacity(register)` — a nested dynamic
+table's register path carries the outer index variables, so each outer occurrence's own capacity is read). Being a
+decorator, every static classifier (class, category, usage, width, the §15.3 screen, MAX/MIN's type resolution)
+sees the element as it would a single subscripted reference; only the intrinsic ARGUMENT-LIST renderers expand it
+— `IntrinsicRenderer.ArgArray` turns any list holding an ALL into ONE `T[]` expression (runs of written operands as
+array literals, each ALL a `CobolTable.AllArgs<T>(counts, __allN => element)` enumeration, joined by
+`CobolTable.ArgConcat`), which every `params T[]` body binds to; `AlignedArgsEx`/`RawArgPairs`/`DecArgList`/
+`StrArgList` and `RenderFloat`'s list ride it, PRESENT-VALUE's leading rate goes through `LeadThenTail`, and MEAN's
+divisor becomes the enumerated list's `.Length` under a `CobolTable.With` binding when a range is a runtime value.
+A single-value read of a `TableAllPlace` (`PlaceRenderer.Read`) is an internal error by construction. **The
+capacity register is minted for every dynamic table** (named only under `CAPACITY IN`) so an unnamed table's
+range is readable (PB61 first needed this for LENGTH r7c). **Admissibility is decided FIRST, from the
+DEFINITION:** `IntrinsicSig.RepeatsAnArgument` (`MaxArgs` unbounded — `IntrinsicRepeatedArgumentDriftTests` pins
+it to the ellipsis in every §15.x.2 general format, both ways; CONVERT/FIND-STRING are Variadic through phrase
+words and repeat nothing) — on any other function the ALL is COBOLNET1645 at any cardinality (`MOD(E(ALL) B)`
+bound over a one-occurrence table before), and the arity gate counts the arguments as WRITTEN, an ALL as its
+elements when its ranges are fixed and as the one argument §15.3 guarantees otherwise. "The evaluation of an ALL
+subscript shall result in at least one argument, otherwise the result … is undefined" — COBOL.NET defines the
+undefined case as EC-ARGUMENT-FUNCTION (set when checking is on) and terminates the reference with that name
+either way (`CobolTable.AllArgs`), never handing an empty list to a body. TRIM's repeated argument-2 and
+SUBSTITUTE's repeated pairs bind through their own per-function binders (not `BindIntrinsicArgs`), so an ALL there
+is today the ordinary subscript path's verdict — recorded, not hidden. Under a STANDARD arithmetic mode the summing
+family (SUM/RANGE/MEAN/MEDIAN/MIDRANGE) now always evaluates on the SDIDI carrier (`RenderDec`'s `alwaysDec` —
+RV-15.60.4-1: the native arms aligned every argument to the list's maximum scale on Int128 first, so
+`MEAN(10³⁰, 2.0)` raised a size error where the SDIDI holds 500000000000000000000000000001 exactly). Pinned by
+`pb62_all_subscript_runtime_ranges` (every range and shape, values derived in its header),
+`pb62_standard_decimal_summing_family`, and the `pb62-all-subscript-*` negatives.
 
 ## Edge cases
 

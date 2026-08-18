@@ -127,6 +127,8 @@
   "pb60_numval_one_scan",
   "pb60_numval_standard_decimal",
   "pb61_length_byte_length_rule_branches",
+  "pb62_all_subscript_runtime_ranges",
+  "pb62_standard_decimal_summing_family",
   "pb60_currency_sign_bare_implied_dollar",
   "pb60_currency_sign_set",
   "pb60_nested_configuration_inheritance",

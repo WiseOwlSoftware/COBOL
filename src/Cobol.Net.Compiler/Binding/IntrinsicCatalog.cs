@@ -60,6 +60,14 @@ public readonly record struct IntrinsicSig(
     public char ArgKind(int i) =>
         ArgKinds.Length == 0 ? 'n' : ArgKinds[Math.Min(i, ArgKinds.Length - 1)];
 
+    /// <summary>Does the function's DEFINITION "permit an argument to be repeated a variable number of times"
+    /// (ISO §15.3 — the precondition for the ALL subscript in an argument; kb/Work PB62)? True exactly when the
+    /// §15.x.2 general format carries an ellipsis (<c>{ argument-1 } …</c>, <c>argument-2 …</c>, <c>[ argument-2 ] …</c>),
+    /// which is the same fact the row's UNBOUNDED <see cref="MaxArgs"/> records — the equivalence is pinned against
+    /// the spec's formats by <c>IntrinsicRepeatedArgumentDriftTests</c>, so this is a derivation, not a second column.
+    /// (CONVERT and FIND-STRING are Variadic through their PHRASE words and repeat nothing: MaxArgs 4 and 3.)</summary>
+    public bool RepeatsAnArgument => MaxArgs == int.MaxValue;
+
     /// <summary>The data category of the function result (§15.2 → §8.4.2) — what MOVE/comparison/DISPLAY consult.
     /// <para>
     /// ⚠ For a row whose <see cref="Result"/> rule is not <see cref="IntrinsicResultRule.Fixed"/> this is the

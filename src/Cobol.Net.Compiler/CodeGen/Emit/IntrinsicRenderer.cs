@@ -175,25 +175,24 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             }
             case "MeanScaled":                                                  // §15.60 — Σ/n with the ÷ discipline of §8.8.1
             {
-                var (argList, s, anyReal) = AlignedArgsEx(ic);
-                // STANDARD / STANDARD-DECIMAL (§15.4.1 r1 + §8.8.1.5.1 — MEAN's returned value shall EQUAL its
-                // §15.60.4 equivalent arithmetic expression evaluated in SDIDI form, so the spec's own NOTE-2
-                // relation `FUNCTION MEAN(a b c) = (a + b + c) / 3` holds): the exact Int128 sum (identical to
-                // the SDIDI addition chain — ≤32-digit sums are exact in both engines) divides ONCE in SDIDI
-                // form under the INTERMEDIATE ROUNDING mode. Fixed-point arguments only — a float argument
-                // falls to the native rendering below exactly as before (its Align shape is the pre-existing
-                // native-path behavior for float statistics arguments).
-                if (num.StandardDecimal && !anyReal)
-                    return new NumX(RuntimeApi.DecDivLifted(RuntimeApi.Intrinsic("SumScaled", argList),
-                        s.ToString(), ic.Args.Count.ToString(), num.IntermediateMode), 0, Dec: true);
+                // (Under a STANDARD mode MEAN never reaches here — RenderDec's alwaysDec family evaluates the
+                // §15.60.4 equivalent arithmetic expression on the SDIDI carrier, kb/Work PB62 / RV-15.60.4-1.)
+                var (argList, s, _) = AlignedArgsEx(ic);
                 // Quotient quantized at ws = max(Receiver.Scale, s+1, 6): the receiver's scale when known, never
                 // below the sum's own resolution + 1, with a fraction floor for receiver-less (scale-0) contexts.
                 int ws = Math.Max(Math.Max(num.Receiver.Scale, s + 1), 6);
                 // Same mode rule as NumericRenderer.Divide: AT the receiver scale the one exact RoundDiv applies
                 // the receiver's mode; above it, truncate and let the receiver store round once (§14.7.4).
                 CobolRounding mode = ws == num.Receiver.Scale ? num.Receiver.Rounding : CobolRounding.Truncation;
-                return new NumX(RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", argList),
-                    s.ToString(), ic.Args.Count.ToString(), "0", ws.ToString(), mode), ws);
+                // The divisor is the number of ARGUMENTS — a compile-time count unless a table(ALL) argument
+                // ranges over a runtime count (ISO §15.3; kb/Work PB62), in which case the enumerated list is
+                // bound ONCE (CobolTable.With) and both the sum and the count read it.
+                if (StaticArgCount(ic) is { } n)
+                    return new NumX(RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", argList),
+                        s.ToString(), n.ToString(), "0", ws.ToString(), mode), ws);
+                string xs = NextWithVar();
+                return new NumX(RuntimeApi.With(argList, xs,
+                    RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", xs), s.ToString(), $"{xs}.Length", "0", ws.ToString(), mode)), ws);
             }
             case "OrdMax" or "OrdMin":                                          // §15.71/72 — 1-based ordinal, tie = first
             {
@@ -361,8 +360,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // RANDOM (§15.75.3): the no-argument form continues the current sequence; the seeded form restarts it.
             "Random" when ic.Args.Count == 0 => RuntimeApi.Intrinsic(method, ""),
             "Random" => RuntimeApi.Intrinsic(method, IntArg(ic, 0)),
-            _ => RuntimeApi.Intrinsic(method,
-                string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Dbl(ic, i)))),
+            // PRESENT-VALUE (§15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
+            "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf),
+            // A table(ALL) argument enumerates at run time (ISO §15.3; kb/Work PB62) — the list becomes ONE array.
+            _ => RuntimeApi.Intrinsic(method, ArgArray(ic, 0, "double", DblOf)
+                ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Dbl(ic, i)))),
         };
         // A float RECEIVER keeps the transcendental result in the binary64 pipeline (full precision — SQRT(2) into a
         // COMP-2 is 1.4142135623730951, not the scale-9 1.414213562); a fixed receiver quantizes through FromDouble
@@ -482,7 +484,89 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string DecArg(BoundIntrinsicCall ic, int i) => num.DecOperand(RawArg(ic, i));
 
     private string DecArgList(BoundIntrinsicCall ic) =>
-        string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => DecArg(ic, i)));
+        ArgArray(ic, 0, "CobolDec", DecOf) ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => DecArg(ic, i)));
+
+    /// <summary>One operand lifted to a <c>CobolDec</c> from its RAW carrier — the per-operand form of <see cref="DecArg"/>
+    /// (a table(ALL) element renders here inside its enumeration lambda).</summary>
+    private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, num.Receiver));
+
+    /// <summary>One operand as a C# double from its RAW carrier — the per-operand form of <see cref="Dbl"/>.</summary>
+    private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, num.Receiver));
+
+    // ── table(ALL) arguments — the enumeration seam (ISO §15.3; kb/Work PB62) ─────────────────────────────
+
+    /// <summary>The C# expression enumerating a table(ALL) argument's elements as a <c>T[]</c>:
+    /// <c>CobolTable.AllArgs</c> over the place's ranges — each a lambda over the index vector, so a nested
+    /// dynamic-capacity table's capacity reads the OUTER occurrence's — with the element rendered by
+    /// <paramref name="element"/> from the element operand (its subscripts are the index variable's slots).</summary>
+    private static string AllArgsExpr(TableAllPlace all, string csType, Func<BoundOperand, string> element)
+    {
+        string v = all.IndexVar;
+        var counts = all.Counts.Select(c => $"{v} => (long)({AllCountExpr(c)})");
+        return RuntimeApi.TableAllArgs(csType, counts, $"{v} => {element(new BoundFieldOperand(all.Element))}");
+    }
+
+    /// <summary>One ALL level's range as a C# <c>long</c>-valued expression: the OCCURS count; data-name-1's value
+    /// clamped to [integer-1, integer-2] with EC-BOUND-ODO outside (§13.18.38.4 GR7 — <c>CobolTable.OdoExtent</c>
+    /// with a unit element, the same clamp the sending image applies); the dynamic table's current capacity.</summary>
+    private static string AllCountExpr(AllCount c) => c switch
+    {
+        AllCount.Fixed f => f.Occurs.ToString(),
+        AllCount.Odo o => RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(PlaceRenderer.Read(o.Depending)), o.MinOccurs, o.MaxOccurs, 0, 1),
+        AllCount.Capacity cap => PlaceRenderer.Read(cap.Register),
+        _ => throw new InvalidOperationException($"unknown ALL range {c.GetType().Name}"),
+    };
+
+    /// <summary>The argument list from position <paramref name="from"/> on as ONE <c>T[]</c> expression when a
+    /// table(ALL) argument is among them (else null — the caller keeps its comma-list form, byte-identical to
+    /// before): runs of written operands become array literals, each ALL an <see cref="AllArgsExpr"/>, joined
+    /// in source order by <c>CobolTable.ArgConcat</c> — the ONE array a <c>params T[]</c> body binds to.</summary>
+    private string? ArgArray(BoundIntrinsicCall ic, int from, string csType, Func<BoundOperand, string> render)
+    {
+        if (!ic.Args.Skip(from).Any(a => a is BoundFieldOperand { Place: TableAllPlace })) return null;
+        var parts = new List<string>();
+        var run = new List<string>();
+        void Flush() { if (run.Count > 0) { parts.Add($"new {csType}[] {{ {string.Join(", ", run)} }}"); run.Clear(); } }
+        foreach (var a in ic.Args.Skip(from))
+        {
+            if (a is BoundFieldOperand { Place: TableAllPlace all }) { Flush(); parts.Add(AllArgsExpr(all, csType, render)); }
+            else run.Add(render(a));
+        }
+        Flush();
+        return parts.Count == 1 ? parts[0] : RuntimeApi.TableArgConcat(csType, parts);
+    }
+
+    /// <summary>A body with a LEADING positional argument and a <c>params</c> tail (PRESENT-VALUE's rate, then the
+    /// amounts): the tail may enumerate; a table(ALL) in the LEADING position itself is legal too (§15.3 puts no
+    /// position on the ALL — "as if each table element … were specified"), so then the flat list is bound once
+    /// and split at run time.</summary>
+    private string LeadThenTail(BoundIntrinsicCall ic, string method, string prefix, string csType, Func<BoundOperand, string> render, string mid = "")
+    {
+        if (ic.Args[0] is BoundFieldOperand { Place: TableAllPlace })
+        {
+            string xs = NextWithVar();
+            return RuntimeApi.With(ArgArray(ic, 0, csType, render)!, xs, RuntimeApi.Intrinsic(method, $"{prefix}{xs}[0], {mid}{xs}[1..]"));
+        }
+        string tail = ArgArray(ic, 1, csType, render) ?? string.Join(", ", ic.Args.Skip(1).Select(render));
+        return RuntimeApi.Intrinsic(method, $"{prefix}{render(ic.Args[0])}, {mid}{tail}");
+    }
+
+    /// <summary>The number of arguments a call's list stands for when it is a compile-time fact — every table(ALL)
+    /// argument with fixed ranges counted as its elements; null when an ALL ranges over a runtime count.</summary>
+    private static long? StaticArgCount(BoundIntrinsicCall ic)
+    {
+        long n = 0;
+        foreach (var a in ic.Args)
+        {
+            if (a is BoundFieldOperand { Place: TableAllPlace all }) { if (all.StaticCount is not { } k) return null; n += k; }
+            else n++;
+        }
+        return n;
+    }
+
+    /// <summary>A fresh name for a <c>CobolTable.With</c> binding — nested bindings must not shadow.</summary>
+    private string NextWithVar() => $"__xs{_withSerial++}";
+    private int _withSerial;
 
     /// <summary>Does any argument arrive as a Dec (SDIDI) or float carrier, before any landing?</summary>
     private bool AnyDecOrRealRaw(BoundIntrinsicCall ic) =>
@@ -516,8 +600,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // NATIVE arithmetic the approximation and STANDARD-DECIMAL none), and §15.4.1 places it in an SDIDI. Their
         // argument is a string, so the carrier question never arises; before this arm the standard-mode value
         // rode the native Int128 projection at the item-92 working scale (fix-queue PB60, RV-15.67.4-1a).
+        // … and the SUMMING statistical family (kb/Work PB62 / RV-15.60.4-1): under a standard mode §15.4.1 r1
+        // makes MEAN/SUM/RANGE/MEDIAN/MIDRANGE equal their §15.60.4 / §15.88.4 / … equivalent arithmetic
+        // expressions evaluated in SDIDI form, and each argument converts to the SDIDI INDIVIDUALLY (§8.8.1.5.2 r1).
+        // The native arms first ALIGN every argument to the list's maximum scale on the Int128 carrier, so a
+        // 31-digit integer beside a scale-18 item needed 49 digits and RescaleEscape raised a size error where the
+        // SDIDI holds the 30-digit answer exactly (MEAN(10³⁰, 2.0) = 500000000000000000000000000001).
         bool alwaysDec = m is "Annuity" or "PresentValue" or "Variance" or "StandardDeviation"
-                           or "Numval" or "NumvalC" or "NumvalF";
+                           or "Numval" or "NumvalC" or "NumvalF"
+                           or "SumScaled" or "RangeScaled" or "MeanScaled" or "MedianScaled" or "MidrangeScaled";
         if (!alwaysDec && !AnyDecOrRealRaw(ic)) return null;
 
         string mode = num.IntermediateMode;
@@ -550,7 +641,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "Variance" => Dec(RuntimeApi.Intrinsic("VarianceDec", $"{mode}, {DecArgList(ic)}")),
             "StandardDeviation" => Dec(RuntimeApi.Intrinsic("StdDevDec", $"{mode}, {DecArgList(ic)}")),
             "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
-            "PresentValue" => Dec(RuntimeApi.Intrinsic("PresentValueDec", $"{mode}, {DecArgList(ic)}")),
+            "PresentValue" => Dec(LeadThenTail(ic, "PresentValueDec", $"{mode}, ", "CobolDec", DecOf)),
             _ => null,
         };
 
@@ -620,9 +711,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// native rendering).</summary>
     private (string ArgList, int Scale, bool AnyReal) AlignedArgsEx(BoundIntrinsicCall ic)
     {
+        // A table(ALL) operand renders as its ELEMENT here (the index variable inside) — right for the scale and
+        // the Real flag; the list itself enumerates through ArgArray (kb/Work PB62).
         var xs = ic.Args.Select(a => num.AsNum(a, num.Receiver)).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
-        return (string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s))), s, xs.Any(x => x.Real));
+        string list = ArgArray(ic, 0, "Int128", a => NumericRenderer.Align(num.AsNum(a, num.Receiver), s))
+                      ?? string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s)));
+        return (list, s, xs.Any(x => x.Real));
     }
 
     /// <summary>The variadic arguments UNALIGNED — parallel value/scale arrays for the selection family
@@ -633,8 +728,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     {
         var xs = ic.Args.Select(a => num.AsNum(a, num.Receiver)).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
-        return ($"new Int128[] {{ {string.Join(", ", xs.Select(x => NumericRenderer.Align(x, x.Scale)))} }}",
-                $"new int[] {{ {string.Join(", ", xs.Select(x => x.Scale))} }}", s);
+        // A table(ALL) argument enumerates (kb/Work PB62): its elements share one scale, so the scales array
+        // enumerates the same ranges with a constant selector.
+        string vals = ArgArray(ic, 0, "Int128", a => { var x = num.AsNum(a, num.Receiver); return NumericRenderer.Align(x, x.Scale); })
+                      ?? $"new Int128[] {{ {string.Join(", ", xs.Select(x => NumericRenderer.Align(x, x.Scale)))} }}";
+        string scales = ArgArray(ic, 0, "int", a => num.AsNum(a, num.Receiver).Scale.ToString())
+                        ?? $"new int[] {{ {string.Join(", ", xs.Select(x => x.Scale))} }}";
+        return (vals, scales, s);
     }
 
     /// <summary>The variadic string-argument list. <paramref name="admitNumeric"/> defaults FALSE and is passed
@@ -642,7 +742,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// §15.x.3 argument rules share this helper, so the admission is a parameter, never a global flip
     /// (§15.26.3 r1 / §15.66.3 r1 exclude class numeric outright — PB59).</summary>
     private string StrArgList(BoundIntrinsicCall ic, bool admitNumeric = false) =>
-        string.Join(", ", ic.Args.Select(a => admitNumeric ? StrNum(a) : Str(a)));
+        ArgArray(ic, 0, "string", a => admitNumeric ? StrNum(a) : Str(a))   // a table(ALL) enumerates (kb/Work PB62)
+        ?? string.Join(", ", ic.Args.Select(a => admitNumeric ? StrNum(a) : Str(a)));
 
     private string CommaFlag => ctx.Data.DecimalPointIsComma ? ", commaMode: true" : "";
 
@@ -732,8 +833,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   r1 admits an unsigned integer LITERAL argument-1 below
                     $"{StrNum(ic.Args[0])}, {ArgInt(ic.Args[1])}, {ArgInt(ic.Args[2])}"),   // base 11 (PB59); args 2/3 stay integers
             "Trim" =>                                                          // §15.96 — delete leading/trailing/both of the char set (default: space)
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ic.TrimMode}"
-                    + string.Concat(ic.Args.Skip(1).Select(a => $", {Str(a)}"))),
+                ic.Args.Any(a => a is BoundFieldOperand { Place: TableAllPlace })   //   a table(ALL) argument-2 list enumerates (kb/Work PB62)
+                    ? LeadThenTail(ic, sig.RuntimeMethod, "", "string", Str, mid: $"{ic.TrimMode}, ")
+                    : RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ic.TrimMode}"
+                        + string.Concat(ic.Args.Skip(1).Select(a => $", {Str(a)}"))),
             "Substitute" => RenderSubstitute(ic),                              // §15.87 — replace argument-2 pairs (2023)
             "Convert" =>                                                       // §15.19 — repertoire / hex / byte conversion (2023);
                 RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   an ANY source takes the RAW STORAGE image (r7, PB59 5b)

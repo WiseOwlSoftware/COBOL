@@ -49,6 +49,11 @@ internal static class PlaceRenderer
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
         // The X3.23-1985 DEBUG-ITEM register / member (VCR 7.17): a read-only view over the program's __dbgItem.
         DebugRegisterPlace d => DebugRead(d.Member),
+        // A table(ALL) intrinsic argument (ISO §15.3; kb/Work PB62) is an ENUMERATION, never a single value — the
+        // intrinsic argument-list renderers expand it (IntrinsicRenderer.ArgArray); reaching a read here is a
+        // renderer that forgot to, and it must fail at compile time rather than emit an unbound index variable.
+        TableAllPlace a => throw new System.InvalidOperationException(
+            $"a table(ALL) argument over '{a.Element.Item.CobolName ?? a.Element.Item.CsName}' reached a single-value read — the argument-list renderer must enumerate it"),
         _ => throw Unhandled(p),
     };
 

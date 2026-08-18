@@ -259,6 +259,14 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
 > "the length of argument-1 in number of bytes")** — accepted since 2026-08-18 (kb/Work PB61, FMT-15.14.2) and equal
 > to the rule-6 sum, pinned by `2023/pb61_length_byte_length_rule_branches`.
 
+> ⚖ **DETERMINATION — a table(ALL) intrinsic argument that ranges over NO occurrence (§15.3)** (2026-08-18; kb/Work
+> PB62). §15.3: "The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of
+> the reference to the function-identifier is undefined." COBOL.NET defines the undefined case: the enumeration
+> (`CobolTable.AllArgs`) raises EC-ARGUMENT-FUNCTION (set when checking is on, so a USE procedure can take it) and
+> terminates the reference by that name either way — an empty list is never handed to a body whose result over
+> nothing is itself undefined. An OCCURS DEPENDING range whose data-name-1 is 0, or a dynamic-capacity table at
+> capacity 0, is how a program reaches it.
+
 ## 5. Annex A.4 optional-element disposition (§4.2.7)
 
 One row per A.4 optional module. **Claimed** = support is claimed (§4.2.7/A.4.1); **Partial** = the supported /

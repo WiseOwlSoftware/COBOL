@@ -452,6 +452,22 @@ internal static class RuntimeApi
     public static string TableOdoExtent(string occ, int minOccurs, int maxOccurs, int fixedChars, int elemChars) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtent)}({occ}, {minOccurs}, {maxOccurs}, {fixedChars}, {elemChars})";
 
+    /// <summary>A table(ALL) intrinsic argument's enumeration (ISO §15.3; kb/Work PB62) — <c>CobolTable.AllArgs&lt;T&gt;</c>
+    /// over one range lambda per ALL level (each <c>Func&lt;long[], long&gt;</c>, the index vector in) and the element
+    /// lambda; yields the <c>T[]</c> a <c>params T[]</c> body binds to.</summary>
+    public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda})";
+
+    /// <summary>The intrinsic argument list assembled from written operands and enumerations, in source order —
+    /// <c>CobolTable.ArgConcat&lt;T&gt;</c>.</summary>
+    public static string TableArgConcat(string csType, IEnumerable<string> parts) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.ArgConcat)}<{csType}>({string.Join(", ", parts)})";
+
+    /// <summary>Bind an evaluated value to a name inside an expression — <c>CobolTable.With(value, name => body)</c>
+    /// (an enumerated argument list read twice: MEAN's sum and count, a leading positional argument and its tail).</summary>
+    public static string With(string value, string name, string body) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.With)}({value}, {name} => {body})";
+
     // ── Keyed file I/O (CobolFile; ISO §14.9.10/.30/.35/.41/.51) ──
 
     /// <summary>Register a RELATIVE connector — <c>CobolFile.RegisterRelative</c>. <paramref name="varyArgs"/> is

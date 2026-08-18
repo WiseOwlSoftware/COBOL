@@ -67,7 +67,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   argument-2 to INTEGER-OF-FORMATTED-DATE, §15.48.3 r3 "shall be a data item"; `run_misc:3305` TRIM over a PIC 99
   item, §15.96.3 r1) — `--permissive` accepts both with a warning; baseline rows flipped to WE_REJECT_THEY_ACCEPT.
   No gate is owed.
-  **NEXT, in order:** ① PB62 → PB63 → PB68 → PB69 → PB70 → PB71 → PB79 → PB80
+  **✅ PB62 CLOSED (DEVLOG 1298, 2026-08-18)** — the ALL subscript is ONE enumerating operand (`TableAllPlace` +
+  `AllCount` Fixed/Odo/Capacity, `CobolTable.AllArgs` at run time — the standard's three ranges, nested dynamic
+  capacities included), admissible only where the definition repeats an argument (`RepeatsAnArgument`,
+  drift-pinned to the formats' ellipsis; COBOLNET1645), the arity gate counts source arguments, and the summing
+  family evaluates on the SDIDI carrier under a standard mode; 12 of 12 rows CONFORMS, GAP 4067. REGISTERED: PB81
+  (SUBSTITUTE with a table(ALL) — the from/to pairing over a runtime count; a bind-time COBOLNET0899 stage).
+  **⏳ Battery owed for the PB62 batch** (the variadic argument pipeline is a shared seam) — run it with the next
+  landing.
+  **NEXT, in order:** ① PB63 → PB68 → PB69 → PB70 → PB71 → PB79 → PB80 → PB81
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

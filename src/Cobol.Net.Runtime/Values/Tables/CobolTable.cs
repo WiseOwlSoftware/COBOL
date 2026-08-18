@@ -99,4 +99,57 @@ public static class CobolTable
         long c = count < 0 ? 0 : count > max ? max : count;
         return fixedChars + (int)c * elemChars;
     }
+
+    // ── The table(ALL) intrinsic-argument enumeration (ISO §15.3; kb/Work PB62) ─────────────────────────────
+
+    /// <summary>
+    /// The argument list a <c>table(… ALL …)</c> intrinsic argument stands for (ISO §15.3 — "When ALL is specified
+    /// as a subscript, the effect is as if each table element associated with that subscript position were
+    /// specified. The order … is from left to right, with the first … specification being the identifier with
+    /// each subscript specified by the word ALL replaced by one, the next … the rightmost subscript specified by
+    /// the word ALL incremented by one …"): a row-major enumeration over the ALL levels' RANGES, outermost first.
+    /// Each level's range is read when the level is ENTERED, as a function of the outer indices — a fixed OCCURS
+    /// count, an OCCURS DEPENDING table's current count, or a dynamic-capacity table's current capacity ("from 1 to
+    /// the current capacity of the table"), which for a table nested inside another depends on the outer occurrence.
+    /// <para>"The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of the
+    /// reference to the function-identifier is undefined." COBOL.NET defines the undefined case as
+    /// EC-ARGUMENT-FUNCTION (set when checking is on) and terminates the reference with that name either way — a
+    /// zero-argument list is never handed to a body whose result over nothing is itself undefined.</para>
+    /// </summary>
+    public static T[] AllArgs<T>(Func<long[], long>[] counts, Func<long[], T> element)
+    {
+        var idx = new long[counts.Length];
+        var list = new List<T>();
+        void Walk(int level)
+        {
+            if (level == counts.Length) { list.Add(element(idx)); return; }
+            long n = counts[level](idx);
+            for (long i = 1; i <= n; i++) { idx[level] = i; Walk(level + 1); }
+        }
+        Walk(0);
+        if (list.Count == 0)
+        {
+            const string why = "a table(ALL) intrinsic argument ranged over no occurrences — the ALL subscript shall result in at least one argument (ISO §15.3)";
+            ExceptionState.ArgumentError(why);                          // EC-ARGUMENT-FUNCTION when checking is on (fatal, USE-dispatchable)
+            throw new CobolFatalException("EC-ARGUMENT-FUNCTION", why);  // the undefined case is defined LOUD, checking or not
+        }
+        return list.ToArray();
+    }
+
+    /// <summary>The intrinsic argument list assembled from written operands and <see cref="AllArgs{T}"/> enumerations,
+    /// in source order — the ONE array a <c>params T[]</c> body receives.</summary>
+    public static T[] ArgConcat<T>(params T[][] parts)
+    {
+        int n = 0;
+        foreach (var p in parts) n += p.Length;
+        var all = new T[n];
+        int at = 0;
+        foreach (var p in parts) { Array.Copy(p, 0, all, at, p.Length); at += p.Length; }
+        return all;
+    }
+
+    /// <summary>Bind an evaluated argument list to a name inside an EXPRESSION (the C# analogue of <c>let</c>): the
+    /// intrinsic renderers use it when a body needs the SAME enumerated list twice — MEAN's sum and its count, a
+    /// leading positional argument and the tail — so a runtime table(ALL) enumeration is evaluated exactly once.</summary>
+    public static R With<T, R>(T value, Func<T, R> body) => body(value);
 }

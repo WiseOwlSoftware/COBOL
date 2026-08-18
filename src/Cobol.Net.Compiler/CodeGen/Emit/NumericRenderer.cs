@@ -174,6 +174,9 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// every other branch lives in the context-free <see cref="FieldNumCore"/> so the static string-channel
     /// intrinsic renderer reads fields through the SAME single implementation (singular-pattern rule).</summary>
     public NumX FieldNum(Place p) =>
+        // A table(ALL) intrinsic argument (ISO §15.3; kb/Work PB62) renders as its ELEMENT — the index variable's
+        // slot in the subscript — which is what its enumeration lambda wraps; the list is never a single value.
+        p is TableAllPlace all ? FieldNum(all.Element) :
         p is not RefModPlace && !p.Item.StoreAsImage
             // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
             // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
@@ -187,7 +190,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// <paramref name="floatCheck"/> (default on) wraps a float sending read in the checked
     /// <see cref="CobolNet.Runtime.CobolFloat.Sending(double)"/>; the exempt callers (sign condition, same-usage MOVE)
     /// pass <c>false</c>. The static string-channel intrinsic-arg reuse keeps the default (a non-exempt reference).</summary>
-    internal static NumX FieldNumCore(Place p, bool floatCheck = true) => p is RefModPlace
+    internal static NumX FieldNumCore(Place p, bool floatCheck = true) => p is TableAllPlace all ? FieldNumCore(all.Element, floatCheck) : p is RefModPlace
         // A reference-modified result is ALPHANUMERIC (ISO §8.4.3.3.4 GR6) — in a numeric context it decodes as an
         // unsigned integer exactly like an alphanumeric field (§14.9.25.3 Table 16).
         ? new NumX($"CobolNum.FromAlphanumeric({PlaceRenderer.Read(p)})", 0)

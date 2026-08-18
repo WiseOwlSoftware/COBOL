@@ -544,12 +544,19 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (sig.Name is "EXCEPTION-FILE" or "EXCEPTION-FILE-N" && argCtxs.Count == 1)
             return BindExceptionFileArg(sig, argCtxs[0]);
 
-        var args = BindIntrinsicArgs(argCtxs);
-        if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
+        var args = BindIntrinsicArgs(sig, argCtxs);
+        // Arity over the arguments as WRITTEN, with a table(ALL) argument counted as the elements it stands for
+        // when its ranges are fixed and as the ONE argument §15.3 guarantees ("shall result in at least one
+        // argument") when a range is a runtime value (kb/Work PB62 — the pre-expansion count used to make
+        // `FUNCTION MOD(E(ALL) B)` read "takes 2 argument(s); 4 given" for a 3-element table, an incidental
+        // rejection about a count the user never wrote; the §15.3 admissibility screen in TryBindAllArgument now
+        // fires first, so an ALL only reaches here on a function whose MaxArgs is unbounded).
+        long given = args.Sum(a => a is BoundFieldOperand { Place: TableAllPlace all } ? all.StaticCount ?? 1 : 1);
+        if (given < sig.MinArgs || given > sig.MaxArgs)
         {
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes "
                 + (sig.MinArgs == sig.MaxArgs ? $"{sig.MinArgs}" : sig.MaxArgs == int.MaxValue ? $"at least {sig.MinArgs}" : $"{sig.MinArgs}..{sig.MaxArgs}")
-                + $" argument(s); {args.Count} given (ISO §15.3)");
+                + $" argument(s); {given} given (ISO §15.3)");
             return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
 
@@ -767,6 +774,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 case "LEADING": mode = 1; continue;
                 case "TRAILING": mode = 2; continue;
             }
+            // §15.96.2's `[ argument-2 ] …` repeats argument-2, so a table(ALL) is admissible here (§15.3) — one
+            // enumerating operand, exactly as on the generic path (kb/Work PB62); it used to fall to the plain
+            // subscript path and throw at run time.
+            if (TryBindAllArgument(sig, a, operands)) continue;
             operands.Add(BindArgOperand(a));
         }
         if (operands.Count == 0)
@@ -888,6 +899,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 case "ANYCASE": pending |= 4; continue;
                 case "FIRST": pending |= 1; continue;
                 case "LAST": pending |= 2; continue;
+            }
+            // A table(ALL) argument (§15.3 — admissible, SUBSTITUTE's `{ argument-2 argument-3 } …` repeats):
+            // its elements would form the PAIRS at run time — a from/to interleave over a runtime count that this
+            // bind-time pairing (and the per-pair mode list) cannot express. Staged LOUD at bind (kb/Work PB81),
+            // where it used to compile clean and throw at run time on the plain subscript path.
+            if (TryBindAllArgument(sig, a, operands))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.SubstituteAllSubscript,
+                    "FUNCTION SUBSTITUTE with a table(ALL) argument (ISO §15.3 over the `{ argument-2 argument-3 } …` "
+                    + "repetition) is recognized but not yet implemented — the argument-2/argument-3 pairs would be "
+                    + "formed at run time from the enumerated elements; write the pairs.");
+                return new BoundExprError("FUNCTION SUBSTITUTE table(ALL) argument");
             }
             var op = BindArgOperand(a);
             if (!haveSource) { operands.Add(op); haveSource = true; continue; }
@@ -2083,14 +2106,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     // ── Argument-list binding: split → ALL expansion → per-segment parse ───────────────────────────────────
 
-    /// <summary>The generic (non-phrase-keyword) argument bind: table(ALL) expansion first (§15.3), then one
-    /// typed operand per argument through <see cref="BindArgOperand"/>.</summary>
-    private List<BoundOperand> BindIntrinsicArgs(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    /// <summary>The generic (non-phrase-keyword) argument bind: a table(ALL) argument becomes ONE enumerating operand
+    /// (§15.3 — admissible only for a function whose definition repeats an argument, kb/Work PB62), every other
+    /// argument one typed operand through <see cref="BindArgOperand"/>.</summary>
+    private List<BoundOperand> BindIntrinsicArgs(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         var args = new List<BoundOperand>();
         foreach (var a in argCtxs)
         {
-            if (TryExpandAll(a, args)) continue;
+            if (TryBindAllArgument(sig, a, args)) continue;
             args.Add(BindArgOperand(a));
         }
         return args;
@@ -2183,16 +2207,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>
-    /// <c>table(… ALL …)</c> argument expansion (ISO §15.3): when a variadic function references a table with the
-    /// ALL subscript, the effect is as if each table element were specified — left to right, the RIGHTMOST ALL
-    /// subscript varying fastest, each through 1..its OCCURS count. Detected from an argument that is a sole data
+    /// A <c>table(… ALL …)</c> argument (ISO §15.3; kb/Work PB62): detected from an argument that is a sole data
     /// reference whose one subscript capture (SUBSCRIPT-mode tokens — the D10/PHASE-15 deferral) holds a depth-0
-    /// ALL. Returns true when the argument IS such a reference (consuming it — including loud error operands for
-    /// unresolvable shapes); false hands the argument to the ordinary operand bind. An ALL subscript over an
-    /// OCCURS DEPENDING table takes the CURRENT count (§15.3) — a runtime quantity this bind-time expansion
-    /// cannot produce; staged loud by name (§1.4).
+    /// ALL, and bound as ONE <see cref="TableAllPlace"/> operand the backend ENUMERATES — never a bind-time
+    /// expansion into N operands. Returns true when the argument IS such a reference (consuming it — including a
+    /// loud error operand for an unresolvable shape); false hands the argument to the ordinary operand bind.
+    /// <para><b>§15.3 admissibility, decided FIRST and from the DEFINITION:</b> "When the definition of a function
+    /// permits an argument to be repeated a variable number of times, a table may be referenced by … ALL" — so on a
+    /// function whose format repeats no argument (MOD, ANNUITY, LOG, INTEGER-OF-DAY …) the ALL is rejected as such
+    /// (COBOLNET1645), at ANY table cardinality; the former bind-time expansion accepted `MOD(E(ALL) B)` over a
+    /// one-occurrence table outright and rejected the three-occurrence twin only through the arity count. The
+    /// property is <see cref="IntrinsicSig.RepeatsAnArgument"/>, pinned to the §15.x.2 formats by drift test.</para>
+    /// <para><b>The ranges are the standard's three</b>, one <see cref="AllCount"/> per ALL level, outermost first:
+    /// a fixed OCCURS count; an OCCURS DEPENDING table's data-name-1 value ("the range of values is determined by
+    /// the object of the OCCURS DEPENDING ON clause" — the runtime quantity the bind-time expansion staged loud, the
+    /// FMT-15.60.2 family); a dynamic-capacity table's current capacity ("from 1 to the current capacity of the
+    /// table" — a level the old walk never built, because a dynamic table has no <c>Occurs</c>). A nested dynamic
+    /// table's capacity path carries the OUTER index variables, so each occurrence's own capacity is read.</para>
     /// </summary>
-    private bool TryExpandAll(Core.FunctionArgumentContext a, List<BoundOperand> args)
+    private bool TryBindAllArgument(IntrinsicSig sig, Core.FunctionArgumentContext a, List<BoundOperand> args)
     {
         if (SoleDataReference(a) is not { } dref || dref.cobolWord() is not { } cw) return false;
         string name = cw.GetText();
@@ -2217,15 +2250,26 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         var innerSegs = ReferenceResolver.SplitSubscriptTokens(inner);
         if (!innerSegs.Any(IsAllSegment)) return false;
 
+        if (!sig.RepeatsAnArgument)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.AllSubscriptNotRepeatable,
+                $"FUNCTION {sig.Name} argument '{name}(… ALL …)': the ALL subscript is permitted only when the "
+                + "function's definition permits an argument to be repeated a variable number of times (ISO §15.3), and "
+                + $"FUNCTION {sig.Name}'s general format repeats none — write the occurrence you mean, or use a function "
+                + "whose format is `{ argument } …` (MAX, MIN, SUM, MEAN, …).");
+            args.Add(new BoundOperandError($"FUNCTION {sig.Name} table(ALL) argument"));
+            return true;
+        }
         if (ctx.Refs.FindItem(name, quals) is not { } item)
         {
             args.Add(new BoundOperandError($"table(ALL) reference '{name}'"));
             return true;
         }
-        // The OCCURS levels on the item's ancestor chain, outermost first — the AccessPath subscript order.
+        // The table levels on the item's ancestor chain, outermost first — the AccessPath subscript order. A
+        // dynamic-capacity table IS a level (IsTable), which the former `Occurs is not null` walk missed.
         var levels = new List<DataItem>();
         for (DataItem? n = item; n is not null; n = n.Parent)
-            if (n.Occurs is not null) levels.Add(n);
+            if (n.IsTable) levels.Add(n);
         levels.Reverse();
         if (levels.Count != innerSegs.Count)
         {
@@ -2233,43 +2277,59 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return true;
         }
 
-        var fixedExprs = new string?[innerSegs.Count];
-        var counts = new long[innerSegs.Count];
+        string indexVar = $"__all{_allSerial++}";
+        var exprs = new string[innerSegs.Count];
+        var counts = new List<AllCount>();
+        var outerExprs = new List<string>();   // the rendered index of every level ABOVE the current one
         for (int i = 0; i < innerSegs.Count; i++)
         {
+            DataItem level = levels[i];
             if (IsAllSegment(innerSegs[i]))
             {
-                if (levels[i].OccursSpec?.Depending is not null)
+                exprs[i] = $"{indexVar}[{counts.Count}]";
+                if (level.OccursSpec is { Depending: { } dep } odoSpec)
                 {
-                    args.Add(new BoundOperandError($"table(ALL) over OCCURS DEPENDING table '{name}' (current-count expansion, §15.3)"));
-                    return true;
+                    if (ctx.Refs.ResolveItem(dep) is not { } depPlace)
+                    {
+                        args.Add(new BoundOperandError($"table(ALL) over OCCURS DEPENDING table '{name}': data-name-1 '{dep.CobolName}' could not be addressed"));
+                        return true;
+                    }
+                    counts.Add(new AllCount.Odo(depPlace, odoSpec.Min, level.Occurs ?? 1));
                 }
-                counts[i] = levels[i].Occurs!.Value;
+                else if (level.IsDynamicTable)
+                {
+                    if (level.OccursSpec?.CapacityRegister is not { } reg
+                        || ReferenceResolver.BuildTablePath(level, outerExprs) is not { } tablePath)
+                    {
+                        args.Add(new BoundOperandError($"table(ALL) over dynamic-capacity table '{name}': the table could not be addressed"));
+                        return true;
+                    }
+                    counts.Add(new AllCount.Capacity(new CapacityRegisterPlace(tablePath, reg)));
+                }
+                else counts.Add(new AllCount.Fixed(level.Occurs!.Value));
             }
             else if (ctx.Refs.RenderIndexSegment(innerSegs[i]) is { } rendered)
-                fixedExprs[i] = rendered;
+                exprs[i] = rendered;
             else
             {
                 args.Add(new BoundOperandError($"table(ALL) subscript of '{name}'"));
                 return true;
             }
+            outerExprs.Add(exprs[i]);
         }
-
-        long total = 1;
-        foreach (long c in counts) if (c > 0) total *= c;
-        for (long k = 0; k < total; k++)
+        if (ctx.Refs.ResolveByName(name, quals, exprs) is not { } element)
         {
-            var exprs = new string[innerSegs.Count];
-            long rem = k;
-            for (int i = innerSegs.Count - 1; i >= 0; i--)   // rightmost ALL varies fastest (§15.3)
-                if (fixedExprs[i] is { } fx) exprs[i] = fx;
-                else { exprs[i] = (rem % counts[i] + 1).ToString(); rem /= counts[i]; }
-            args.Add(ctx.Refs.ResolveByName(name, quals, exprs) is { } place
-                ? new BoundFieldOperand(place)
-                : new BoundOperandError($"table(ALL) occurrence of '{name}'"));
+            args.Add(new BoundOperandError($"table(ALL) occurrence of '{name}'"));
+            return true;
         }
+        args.Add(new BoundFieldOperand(new TableAllPlace(element, indexVar, counts)));
         return true;
     }
+
+    /// <summary>One index variable per table(ALL) operand in the unit (<c>__all0</c>, <c>__all1</c>, …): a nested
+    /// function inside a fixed subscript of an ALL argument renders its own enumeration lambda INSIDE the outer
+    /// one, and C# forbids a lambda parameter that shadows an enclosing one.</summary>
+    private int _allSerial;
 
     private static bool IsAllSegment(List<IToken> seg) =>
         seg.Count(t => t.Type != Core.SUB_WS) == 1 && seg.Any(t => t.Type == Core.SUB_ALL);

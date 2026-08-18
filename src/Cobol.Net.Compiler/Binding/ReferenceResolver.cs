@@ -707,16 +707,33 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <summary>The STRUCTURAL whole-table path (no subscript wraps) — the <see cref="CapacityRegisterPlace"/> twin of
     /// the string <see cref="TablePath"/> (also the base of a whole-dynamic-table INITIALIZE element path). Null when
     /// an ancestor is itself a table (an ambiguous whole-table reference).</summary>
-    internal static AccessPath? BuildTablePath(DataItem table)
+    internal static AccessPath? BuildTablePath(DataItem table) => BuildTablePath(table, []);
+
+    /// <summary>The STRUCTURAL whole-table path to a table that may itself lie under OTHER tables — one index
+    /// expression per enclosing table level, outermost first (the D10 transitional string carrier): the
+    /// <see cref="CapacityRegisterPlace"/> of a NESTED dynamic-capacity table for a table(ALL) enumeration (ISO §15.3
+    /// — each outer occurrence has its own capacity; kb/Work PB62). Null when fewer indices are supplied than there
+    /// are enclosing tables — the zero-index form is exactly the whole-table ambiguity the one-argument overload
+    /// reports.</summary>
+    internal static AccessPath? BuildTablePath(DataItem table, IReadOnlyList<string> outerIndexExprs)
     {
         var chain = new List<DataItem>();
         for (DataItem? n = table; n is not null; n = n.Parent) chain.Add(n);
         chain.Reverse();
-        for (int i = 0; i < chain.Count - 1; i++)
-            if (chain[i].IsTable) return null;
         var segs = new List<AccessSegment>();
         bool first = true;
-        foreach (var n in chain) { segs.Add(first ? new RootFieldSegment(n.CsName) : new MemberSegment(n.CsName)); first = false; }
+        int oi = 0;
+        foreach (var n in chain)
+        {
+            segs.Add(first ? new RootFieldSegment(n.CsName) : new MemberSegment(n.CsName));
+            first = false;
+            if (ReferenceEquals(n, table)) break;
+            if (!n.IsTable) continue;
+            if (oi >= outerIndexExprs.Count) return null;   // an enclosing table with no index — ambiguous
+            segs.Add(n.Occurs is not null
+                ? new FixedTableSegment(outerIndexExprs[oi++])
+                : new DynTableSegment(outerIndexExprs[oi++]));
+        }
         return new AccessPath(segs);
     }
 

@@ -802,6 +802,28 @@ public static class DiagnosticCatalog
     // §15.68.3 r3 — NUMVAL-C / TEST-NUMVAL-C without argument-2 in a unit whose SPECIAL-NAMES paragraph specifies
     // two or more distinct currency strings (kb/Work PB60 / AR-15.68.3-3: the former single-symbol model
     // injected whichever clause bound last, silently).
+    // §15.3 over SUBSTITUTE's `{ argument-2 argument-3 } …` (kb/Work PB81): the elements of a table(ALL) would form
+    // the from/to PAIRS at run time — staged loud at bind rather than thrown at run time.
+    public static readonly DiagnosticDescriptor SubstituteAllSubscript = new(
+        NotImplemented, "substitute-all-subscript-argument", EditionSeverity.Error,
+        "FUNCTION SUBSTITUTE with a table(ALL) argument is recognized but not yet implemented: ISO §15.3 makes the ALL "
+        + "stand for every occurrence, so the argument-2/argument-3 pairs of §15.87.2 would be formed at run time from "
+        + "the enumerated elements (with the FIRST/LAST/ANYCASE modes attaching to the pair each element starts) — the "
+        + "bind-time pairing cannot express a runtime count. Write the pairs.", "ISO §15.3 / §15.87.2",
+        RecognizedNotImplemented);
+    // §15.3 — the ALL subscript in an intrinsic argument (kb/Work PB62): admissible only "when the definition of a
+    // function permits an argument to be repeated a variable number of times"; the former bind-time expansion ran
+    // for every function and let `FUNCTION MOD(E(ALL) B)` bind over a one-occurrence table.
+    public static readonly DiagnosticDescriptor AllSubscriptNotRepeatable = new(
+        "COBOLNET1645", "all-subscript-not-repeatable-argument", EditionSeverity.Error,
+        "A table(ALL) argument is written to an intrinsic function whose general format does not repeat an argument. "
+        + "ISO §15.3: \"When the definition of a function permits an argument to be repeated a variable number of "
+        + "times, a table may be referenced by specifying the data-name and any qualifiers that identify the table, "
+        + "followed immediately by subscripting where one or more of the subscripts is the word ALL.\" The ALL "
+        + "subscript stands for every occurrence, so it belongs only where the format is `{ argument } …` (MAX, MIN, "
+        + "SUM, MEAN, MEDIAN, MIDRANGE, RANGE, ORD-MAX, ORD-MIN, VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE, CONCAT, "
+        + "SUBSTITUTE, TRIM's argument-2). Write the occurrence you mean.",
+        "ISO §15.3 (the ALL subscript)");
     public static readonly DiagnosticDescriptor NumvalCAmbiguousCurrency = new(
         "COBOLNET1644", "numval-c-ambiguous-currency", EditionSeverity.Error,
         "FUNCTION NUMVAL-C or TEST-NUMVAL-C is written without argument-2 (and without LOCALE) in a compilation "

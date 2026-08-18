@@ -137,6 +137,61 @@ public sealed record OdoGroupPlace(
     : PlaceDecorator(Inner);
 
 /// <summary>
+/// A <c>table(… ALL …)</c> intrinsic-function argument (ISO §15.3 — "When the definition of a function permits an
+/// argument to be repeated a variable number of times, a table may be referenced by specifying the data-name … followed
+/// immediately by subscripting where one or more of the subscripts is the word ALL"; kb/Work PB62): ONE operand that
+/// stands for EVERY element the ALL subscripts range over — "the effect is as if each table element associated with
+/// that subscript position were specified", left to right, the rightmost ALL varying fastest.
+/// <para>The <see cref="Element"/> is the element's own place with each ALL level's subscript written as the index
+/// variable <c>{IndexVar}[k]</c> (k = the ALL level's ordinal, outermost first) and every fixed subscript already
+/// rendered; <see cref="Counts"/> gives each ALL level's RANGE, outermost first — a fixed OCCURS count, an OCCURS
+/// DEPENDING table's data-name-1 value ("the range of values is determined by the object of the OCCURS DEPENDING ON
+/// clause") or a dynamic-capacity table's current capacity ("from 1 to the current capacity of the table"). The two
+/// runtime ranges are why this is a PLACE the backend ENUMERATES (<c>CobolTable.AllArgs</c>) rather than a
+/// bind-time expansion into N operands: the count is a runtime value, and a nested dynamic table's capacity even
+/// depends on the outer index (its <see cref="AllCount.Capacity"/> place carries the outer index variable).</para>
+/// <para>A decorator over the element so every STATIC classifier (class, category, usage, width, the §15.3 argument
+/// screen, MAX/MIN's type resolution) sees the element's item exactly as it would a single subscripted reference;
+/// only the intrinsic argument-list renderers expand it, and a single-value read (<c>PlaceRenderer.Read</c>) is an
+/// internal error by construction — a table(ALL) is never a value.</para>
+/// </summary>
+public sealed record TableAllPlace(Place Element, string IndexVar, IReadOnlyList<AllCount> Counts) : PlaceDecorator(Element)
+{
+    /// <summary>The number of elements when EVERY ALL level has a fixed range — the product of the OCCURS counts;
+    /// null when any level's range is a runtime value (an OCCURS DEPENDING or dynamic-capacity table).</summary>
+    public long? StaticCount
+    {
+        get
+        {
+            long n = 1;
+            foreach (var c in Counts)
+            {
+                if (c is not AllCount.Fixed f) return null;
+                n *= f.Occurs;
+            }
+            return n;
+        }
+    }
+}
+
+/// <summary>The RANGE of one ALL subscript level of a <see cref="TableAllPlace"/> (ISO §15.3) — structural, so the
+/// backend renders it: a fixed OCCURS count, an OCCURS DEPENDING table's current count, or a dynamic-capacity table's
+/// current capacity.</summary>
+public abstract record AllCount
+{
+    /// <summary>A fixed table: <c>OCCURS integer-2</c> occurrences.</summary>
+    public sealed record Fixed(int Occurs) : AllCount;
+
+    /// <summary>An OCCURS DEPENDING table: data-name-1's current value, which §13.18.38.4 GR7 requires to lie in
+    /// [integer-1, integer-2] (EC-BOUND-ODO outside — the same clamp the sending image applies).</summary>
+    public sealed record Odo(Place Depending, int MinOccurs, int MaxOccurs) : AllCount;
+
+    /// <summary>A dynamic-capacity table: its current capacity — the register view over the table (a nested table's
+    /// path carries the OUTER index variables, so the capacity is the right occurrence's).</summary>
+    public sealed record Capacity(CapacityRegisterPlace Register) : AllCount;
+}
+
+/// <summary>
 /// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.3.3.4 GR6 — the unique
 /// result is an elementary alphanumeric item over the operand's standard data format): reading formats the stored
 /// value's display image; writing decodes the spliced image back into the typed field (sign-aware both ways via
