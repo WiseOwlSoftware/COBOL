@@ -396,7 +396,7 @@ public sealed class ReferenceResolver(DataBinder data)
 
     /// <summary>§8.5.1.12 — a variable-length group has a dynamic-length elementary item or a dynamic-capacity table
     /// as a subordinate (at any depth).</summary>
-    private static bool HasVariableLengthSubordinate(DataItem group)
+    internal static bool HasVariableLengthSubordinate(DataItem group)
     {
         foreach (var c in group.Children)
             if (c.IsDynamicLength || c.IsDynamicTable || (c.IsGroup && HasVariableLengthSubordinate(c))) return true;

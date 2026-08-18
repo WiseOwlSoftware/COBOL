@@ -40760,12 +40760,12 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "STRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-string-into-refmod",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-3 shall not be reference-modified.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.43.3-5",
@@ -40773,12 +40773,12 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "STRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-string-into-edited",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-3 shall not reference an edited data item and shall not be described with the JUSTIFIED clause — both halves (the JUSTIFIED half was unchecked before).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.43.3-6",
@@ -40786,12 +40786,12 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "STRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-string-into-strong-group",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-3 shall not reference a strongly-typed group item (StrongTypeModel.IsStrongGroup) — the negative declares a TYPEDEF STRONG receiver.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.43.3-7",
@@ -40799,12 +40799,12 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "STRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-string-pointer-not-integer",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-4 shall be an elementary numeric integer data item without the symbol P (StrUnstrIsInteger).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.43.3-8",
@@ -40851,12 +40851,12 @@
   "kind": "SR",
   "ordinal": 11,
   "subject": "STRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-string-into-variable-length-group",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper. Identifier-1/2/3 shall not specify a variable-length group — ReferenceResolver.HasVariableLengthSubordinate, the ONE 8.5.1.12 predicate (shared with the ref-mod SR1 screen); the negative declares a group with a DYNAMIC LENGTH leaf as the INTO receiver.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.43.4-1",
@@ -41397,12 +41397,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "UNSTRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-unstring-sender-numeric",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-1 (and -2/-3/-5) shall reference data items of category alphanumeric or national — a numeric sender, usage DISPLAY included, is rejected.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.48.3-3",
@@ -41436,12 +41436,12 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "UNSTRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-unstring-count-without-delimited",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-6 (COUNT IN) and identifier-8 (TALLYING) shall reference integer data items without P — Reject at each site.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.48.3-6",
@@ -41449,12 +41449,12 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "UNSTRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-unstring-pointer-not-integer",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-7 (the UNSTRING POINTER) shall be an elementary numeric integer data item without P (StrUnstrIsInteger) — the negative writes a PIC 9V9 pointer.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.48.3-7",
@@ -41462,12 +41462,12 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "UNSTRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-unstring-count-without-delimited",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. The DELIMITER IN and COUNT IN phrases may be specified only if the DELIMITED BY phrase is specified.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.48.3-8",
@@ -41501,12 +41501,12 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "UNSTRING statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+  "test-ref": "conformance:negative/pb88-string-into-variable-length-group; conformance:negative/pb88-unstring-sender-numeric",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOLNET1651) through the ONE Reject helper. Identifier-1..5 shall not reference a variable-length group — HasVariableLengthSubordinate on the sender and each INTO receiver (the STRING twin negative pins the predicate on a group with a DYNAMIC LENGTH leaf).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.48.4-1",

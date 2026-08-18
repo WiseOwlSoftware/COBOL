@@ -849,6 +849,21 @@ public static class DiagnosticCatalog
         + ">>LEAP-SECOND selects ON) or OFF (ISO §7.3.17.2), and the directive shall not be specified within a "
         + "compilation unit (§7.3.17.3 SR1) — it precedes the first IDENTIFICATION DIVISION of the compilation group "
         + "and governs the whole group.", "ISO §7.3.17");
+    // §14.9.43.3 / §14.9.48.3 — the STRING and UNSTRING operand rules that are not about USAGE (those are
+    // COBOLNET1626): a reference-modified, edited, JUSTIFIED or strongly-typed STRING receiver (SR4/SR5/SR6), a
+    // POINTER / COUNT IN / TALLYING item that is not an integer without P (STRING SR7, UNSTRING SR5/SR6), an
+    // UNSTRING sender that is not category alphanumeric or national (SR2), DELIMITER IN / COUNT IN without
+    // DELIMITED BY (UNSTRING SR7), a variable-length group operand (STRING SR11 / UNSTRING SR10). kb/Work PB88:
+    // each was a `BoundUnsupported` — the program compiled clean and died at the statement.
+    public static readonly DiagnosticDescriptor StringUnstringOperandRule = new(
+        "COBOLNET1651", "string-unstring-operand-rule", EditionSeverity.Error,
+        "A STRING or UNSTRING operand violates one of the statement's syntax rules: STRING's INTO receiver shall not "
+        + "be reference-modified (§14.9.43.3 SR4), edited or JUSTIFIED (SR5), a strongly-typed group (SR6) or a "
+        + "variable-length group (SR11), and its POINTER shall be an elementary integer without P (SR7); UNSTRING's "
+        + "sender shall be category alphanumeric or national (§14.9.48.3 SR2), DELIMITER IN / COUNT IN need a "
+        + "DELIMITED BY phrase (SR7), COUNT IN / TALLYING IN / POINTER items are integers without P (SR5/SR6), and no "
+        + "operand may be a variable-length group (SR10). Rejected at bind — the statement is not run.",
+        "ISO §14.9.43.3 / §14.9.48.3");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

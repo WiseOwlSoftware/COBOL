@@ -60,11 +60,20 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
 
         if (ctx.Refs.Resolve(st.stringIntoPhrase().dataReference()) is not { } into)
             return new BoundUnsupported($"STRING INTO '{st.stringIntoPhrase().dataReference().GetText()}'");
+        string intoText = st.stringIntoPhrase().dataReference().GetText();
+        // §14.9.43.3 SR4–SR6, SR11 — bind-time rejections (kb/Work PB88: each was a run-time loud stage on ILLEGAL
+        // source, the wrong-stage family; the statement compiled clean and died when control reached it).
         if (into is RefModPlace)
-            return new BoundUnsupported("STRING INTO a reference-modified receiver (ISO §14.9.43.3 SR4)");
+            return Reject($"STRING INTO '{intoText}': identifier-3 shall not be reference-modified (ISO §14.9.43.3 SR4)");
         if (into.Item.Pic is { Category: PicCategory.NumericEdited }
             or { Category: PicCategory.Alphanumeric, EditMask: not null })
-            return new BoundUnsupported("STRING INTO an edited receiver (ISO §14.9.43.3 SR5)");
+            return Reject($"STRING INTO '{intoText}': identifier-3 shall not reference an edited data item (ISO §14.9.43.3 SR5)");
+        if (into.Item.Justified)
+            return Reject($"STRING INTO '{intoText}': identifier-3 shall not be described with the JUSTIFIED clause (ISO §14.9.43.3 SR5)");
+        if (StrongTypeModel.IsStrongGroup(into.Item))
+            return Reject($"STRING INTO '{intoText}': identifier-3 shall not reference a strongly-typed group item (ISO §14.9.43.3 SR6)");
+        if (into.Item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(into.Item))
+            return Reject($"STRING INTO '{intoText}': identifier-3 shall not specify a variable-length group (ISO §14.9.43.3 SR11; §8.5.1.12)");
         // ⛔ DA7 — SR1 at BIND time. This check previously existed ONLY in StringEmitter as a run-time loud stage,
         // so `STRING … INTO <a COMP item>` compiled clean and crashed at the statement. SR1: "all identifiers,
         // except identifier-4, shall be described implicitly or explicitly as usage display or national" —
@@ -86,9 +95,11 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         Place? pointer = null;
         if (st.stringWithPointer()?.dataReference() is { } pd)
         {
-            if (ctx.Refs.Resolve(pd) is not { } pp || !StrUnstrIsInteger(pp))
-                return new BoundUnsupported(
-                    $"STRING WITH POINTER '{pd.GetText()}' (an elementary numeric integer item without P, ISO §14.9.43.3 SR7)");
+            if (ctx.Refs.Resolve(pd) is not { } pp)
+                return new BoundUnsupported($"STRING WITH POINTER '{pd.GetText()}'");   // undefined — the resolver reported it
+            if (!StrUnstrIsInteger(pp))
+                return Reject($"STRING WITH POINTER '{pd.GetText()}': identifier-4 shall be an elementary numeric integer "
+                    + "data item without the symbol P (ISO §14.9.43.3 SR7)");
             pointer = pp;
         }
 
@@ -116,9 +127,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // boolean item is not a permitted sender. The screen reads the CATEGORY off whichever shape arrived: a
         // field's PICTURE, or an intrinsic's §15.2 result category.
         if (UnstringSenderCategory(source) is { } badCat)
-            return new BoundUnsupported(
-                $"UNSTRING sender '{senderText}' is category {badCat} " +
-                "(category alphanumeric or national required, ISO §14.9.48.3 SR2)");
+            return Reject($"UNSTRING sender '{senderText}' is category {badCat} "
+                + "(identifier-1 shall reference a data item of category alphanumeric or national, ISO §14.9.48.3 SR2)");
+        if (source is BoundFieldOperand { Place.Item: { IsGroup: true } sg } && ReferenceResolver.HasVariableLengthSubordinate(sg))
+            return Reject($"UNSTRING sender '{senderText}' shall not reference a variable-length group (ISO §14.9.48.3 SR10; §8.5.1.12)");
 
         var delims = new List<BoundUnstringDelimiter>();
         if (un.unstringDelimiterPhrase() is { } dp)
@@ -158,7 +170,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 }
                 bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
                 if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
-                    return new BoundUnsupported("UNSTRING DELIMITER IN / COUNT IN without DELIMITED BY (ISO §14.9.48.3 SR7)");
+                    return Reject("UNSTRING DELIMITER IN / COUNT IN: the DELIMITED BY phrase shall be specified when either "
+                        + "is written (ISO §14.9.48.3 SR7)");
+                if (target.Item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(target.Item))
+                    return Reject($"UNSTRING INTO '{drefs[0].GetText()}' shall not reference a variable-length group (ISO §14.9.48.3 SR10; §8.5.1.12)");
                 int next = 1;
                 Place? delimIn = null, countIn = null;
                 if (hasDelim)
@@ -170,9 +185,11 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 }
                 if (hasCount)
                 {
-                    if (ctx.Refs.Resolve(drefs[next]) is not { } c6 || !StrUnstrIsInteger(c6))
-                        return new BoundUnsupported(
-                            $"UNSTRING COUNT IN '{drefs[next].GetText()}' (an integer item without P, ISO §14.9.48.3 SR5)");
+                    if (ctx.Refs.Resolve(drefs[next]) is not { } c6)
+                        return new BoundUnsupported($"UNSTRING COUNT IN '{drefs[next].GetText()}'");   // undefined — reported by the resolver
+                    if (!StrUnstrIsInteger(c6))
+                        return Reject($"UNSTRING COUNT IN '{drefs[next].GetText()}': identifier-6 shall reference an integer "
+                            + "data item without the symbol P (ISO §14.9.48.3 SR5)");
                     countIn = c6;
                 }
                 receivers.Add(new BoundUnstringReceiver(target, delimIn, countIn, StrUnstrReceiveSize(target)));
@@ -184,17 +201,21 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         Place? pointer = null;
         if (un.unstringWithPointer()?.dataReference() is { } pd)
         {
-            if (ctx.Refs.Resolve(pd) is not { } pp || !StrUnstrIsInteger(pp))
-                return new BoundUnsupported(
-                    $"UNSTRING WITH POINTER '{pd.GetText()}' (an elementary numeric integer item without P, ISO §14.9.48.3 SR6)");
+            if (ctx.Refs.Resolve(pd) is not { } pp)
+                return new BoundUnsupported($"UNSTRING WITH POINTER '{pd.GetText()}'");   // undefined — reported by the resolver
+            if (!StrUnstrIsInteger(pp))
+                return Reject($"UNSTRING WITH POINTER '{pd.GetText()}': identifier-7 shall be an elementary numeric integer "
+                    + "data item without the symbol P (ISO §14.9.48.3 SR6)");
             pointer = pp;
         }
         Place? tallying = null;
         if (un.unstringTallying()?.dataReference() is { } td)
         {
-            if (ctx.Refs.Resolve(td) is not { } tp || !StrUnstrIsInteger(tp))
-                return new BoundUnsupported(
-                    $"UNSTRING TALLYING IN '{td.GetText()}' (an integer item without P, ISO §14.9.48.3 SR5)");
+            if (ctx.Refs.Resolve(td) is not { } tp)
+                return new BoundUnsupported($"UNSTRING TALLYING IN '{td.GetText()}'");   // undefined — reported by the resolver
+            if (!StrUnstrIsInteger(tp))
+                return Reject($"UNSTRING TALLYING IN '{td.GetText()}': identifier-8 shall reference an integer data item "
+                    + "without the symbol P (ISO §14.9.48.3 SR5)");
             tallying = tp;
         }
 
@@ -265,6 +286,15 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// <summary>True for an elementary fixed-point INTEGER item with no P scaling — the shape STRING SR7 /
     /// UNSTRING SR5–SR6 require of the POINTER / COUNT IN / TALLYING items (a V or P picture yields a non-zero
     /// scale; P is the signed-scale encoding, §13.18.40).</summary>
+    /// <summary>A STRING / UNSTRING syntax-rule violation: reported at BIND (COBOLNET1651 — the compile fails) and
+    /// staged loud as the backstop the caller returns (kb/Work PB88: the stage alone let illegal source compile
+    /// clean and die at run time). ONE helper, so no rule site can forget the diagnostic half again.</summary>
+    private BoundStatement Reject(string message)
+    {
+        ctx.Edition.Error(DiagnosticCatalog.StringUnstringOperandRule, message);
+        return new BoundUnsupported(message);
+    }
+
     private static bool StrUnstrIsInteger(Place p) =>
         p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: 0 };
 
