@@ -1869,6 +1869,15 @@ internal sealed class VersionConformancePass
             // about SYSTEM-DEFAULT being "used as a user-defined word" is exactly the PB27 shape.
             if (ctx.Parent is CobolParserCore.CharacterClassificationClauseContext or CobolParserCore.ClassificationForPhraseContext)
                 return base.VisitChildren(ctx);
+            // SET LOCALE … / SET … TO LOCALE … (§14.9.39 Formats 11/12; kb/Work PB92): the two cobolWords are the
+            // format's own keywords (LOCALE and a locale category / LC_ALL / USER-DEFAULT) — uses OF reserved words;
+            // the statement itself is COBOLNET1518 (A.4.9 item 9 documented non-support). Its TO operand is a
+            // dataReference whose word may itself be one of the format's keywords (USER-DEFAULT / SYSTEM-DEFAULT) —
+            // an IDENTIFIER token is checked position-blind, so the whole statement's subtree is exempt (an ancestor
+            // walk, the EXCEPTION-OBJECT shape).
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.SetLocaleStatementContext)
+                    return base.VisitChildren(ctx);
             // EXCEPTION-OBJECT inside an objectReference operand (SET sender, RAISE operand) is a reference to
             // the PREDEFINED register (§8.4.3.6 — the EC-OO wave), not a user-defined word: the reservation
             // (§8.9, 2002+) is exactly what makes the reference unambiguous. Any other position (declarations,

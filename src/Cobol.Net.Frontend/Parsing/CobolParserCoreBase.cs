@@ -61,6 +61,38 @@ public abstract class CobolParserCoreBase : Parser
     protected bool classificationAhead() =>
         string.Equals(TokenStream.LT(1)?.Text, "CLASSIFICATION", StringComparison.OrdinalIgnoreCase);
 
+    private static readonly string[] LocaleCategories =
+        ["LC_ALL", "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME", "USER-DEFAULT"];
+
+    private static bool Word(IToken? t, string text) => t is not null && string.Equals(t.Text, text, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>SET LOCALE {LC_… | USER-DEFAULT} TO … (ISO §14.9.39 Format 11; kb/Work PB92) — a LEFT-EDGE predicate
+    /// (LT(1) is the SET token itself): true when LT(2)/LT(3) spell LOCALE and a locale category and LT(4) is TO — the
+    /// format's own keywords, plain words reserved 2002+ (§8.9); below 2002 they are user words and a SET of a data
+    /// item named LOCALE keeps its '85 reading.</summary>
+    protected bool setLocaleAhead() =>
+        Edition.Has(2002)
+        && Word(TokenStream.LT(2), "LOCALE")
+        && TokenStream.LT(3) is { } cat && Array.Exists(LocaleCategories, c => string.Equals(cat.Text, c, StringComparison.OrdinalIgnoreCase))
+        && Word(TokenStream.LT(4), "TO");
+
+    /// <summary>SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT} (ISO §14.9.39 Format 12; kb/Work PB92) — a
+    /// LEFT-EDGE predicate: scans past identifier-11 (a bounded token walk to the first TO before the statement's
+    /// period) and answers true when the two words after TO spell LOCALE and LC_ALL / USER-DEFAULT.</summary>
+    protected bool saveLocaleAhead()
+    {
+        if (!Edition.Has(2002)) return false;
+        for (int i = 2; i <= 40; i++)
+        {
+            var t = TokenStream.LT(i);
+            if (t is null || t.Type == TokenConstants.EOF || t.Type == CobolLexer.DOT) return false;
+            if (Word(t, "TO"))
+                return Word(TokenStream.LT(i + 1), "LOCALE")
+                    && (Word(TokenStream.LT(i + 2), "LC_ALL") || Word(TokenStream.LT(i + 2), "USER-DEFAULT"));
+        }
+        return false;
+    }
+
     protected bool localeClauseAhead()
     {
         if (!Edition.Has(2002)) return false;

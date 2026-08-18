@@ -255,8 +255,10 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    processor-dependent elements — is the conforming disposition for this unclaimed optional module). The
    SPECIAL-NAMES `LOCALE` clause (kb/Work PB25) and the OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause (A.4.9
    item 7 — kb/Work PB78, 2026-08-18; it used to be swallowed silently after a computer-name) are recognized and
-   rejected with the same COBOLNET1518. The `SET LOCALE` formats 11/12 (A.4.9 item 9) are still mis-diagnosed
-   (COBOLNET1639/0901 noise or a parse error) — kb/Work PB92.
+   rejected with the same COBOLNET1518, and so are the `SET LOCALE` formats 11/12 (A.4.9 item 9 — kb/Work PB92,
+   2026-08-18; F11 used to bind as a SET of a data item named LOCALE, F12 was a parse error). **Every locale entry
+   point the module names is now recognized and rejected by name** (the ORDER TABLE / STANDARD-COMPARE items ride
+   §2 row 25).
 
    > ⚖ **DETERMINATION — `NUMVAL-C`'s `LOCALE` phrase, which A.4.9 does not itself list** (owner decision
    > 2026-08-03; fix-queue PB37). A.4.9 enumerates thirteen optional locale elements and names the `LOCALE`

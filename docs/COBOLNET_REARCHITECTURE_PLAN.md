@@ -180,8 +180,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   (§12.3.6.2; the name-less clause form gated `computer-name-optional-2002` below 2002), the clauses a list (any
   order, a duplicate COBOLNET1652), the '85 attribute sink kept behind the name; CHARACTER CLASSIFICATION parsed and
   rejected as A.4.9 documented non-support (COBOLNET1518, one diagnostic). Fourteen verdicts, GAP 3989. **PB92
-  REGISTERED** (SET LOCALE formats 11/12 mis-diagnosed). Battery owed for the PB78 batch with the next landing.
-  **NEXT, in order:** ① PB92 → PB81 → PB82 → PB79 → PB91 (PB64/PB66 are features)
+  REGISTERED** (SET LOCALE formats 11/12 mis-diagnosed).
+  **✅ Battery #12 (PB78 batch, tree `7d8a33a8`):** Conformance **4707/4707** · Unit **4221/4221** · Characterization
+  33/33 · NIST 353/0 audit-clean · differential 1323 cases, ONE flip attributed to PB78 (`configuration:885`,
+  GnuCOBOL's name-less `OBJECT-COMPUTER. PROGRAM COLLATING SEQUENCE …`, WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT; baseline
+  row flipped). Green.
+  **✅ PB92 CLOSED (DEVLOG 1314, 2026-08-18)** — SET LOCALE formats 11/12 recognized (predicated, 2002+) and rejected
+  as A.4.9 item 9 documented non-support (ONE COBOLNET1518); every locale entry point is now named. Nine verdicts →
+  DOCUMENTED-NON-SUPPORT, GAP 3980. Battery owed for the PB92 batch with the next landing.
+  **NEXT, in order:** ① PB81 → PB82 → PB79 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

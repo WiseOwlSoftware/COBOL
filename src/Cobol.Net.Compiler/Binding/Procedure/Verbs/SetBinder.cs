@@ -22,6 +22,20 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// 2002 FALSE phrase) fail loud by NAME until their subsystem lands.</summary>
     public BoundStatement BindSet(Core.SetStatementContext set)
     {
+        // F11 set-locale / F12 save-locale (§14.9.39) — Annex A.4.9 item 9 of the optional locale module, which
+        // COBOL.NET does not provide: documented non-support is conformant per §4.2.7 / §A.4.1 only because it is
+        // DIAGNOSED, so this carries the same cited COBOLNET1518 the SPECIAL-NAMES LOCALE clause, the OBJECT-COMPUTER
+        // CHARACTER CLASSIFICATION clause and the LOCALE phrases of LOWER-CASE / UPPER-CASE / NUMVAL-C carry
+        // (kb/Work PB92 — it used to be "'LOCALE' is not defined" plus false 0901s, or a parse error).
+        if (set.setLocaleStatement() is { } sl)
+        {
+            bool save = sl.cobolWord(0).Start.TokenIndex > sl.dataReference().Start.TokenIndex;   // F12: the words follow the identifier
+            ctx.Edition.Error("COBOLNET1518", $"SET {(save ? "identifier TO LOCALE (save-locale, §14.9.39 Format 12)" : "LOCALE (set-locale, §14.9.39 Format 11)")} "
+                + "is in the optional locale module (ISO/IEC 1989:2023 Annex A §A.4.9 item 9), which COBOL.NET does not support — "
+                + "documented non-support, conformant per ISO §4.2.7 / §A.4.1. There is no locale to set or save; the runtime's "
+                + "cultural conventions are the coded character set's.");
+            return new BoundNop();
+        }
         if (set.setLastExceptionStatement() is not null) return host.Ec.BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
         if (set.setEntryStatement() is { } se) return BindSetEntry(se);   // F9 + §8.4.3.13 ENTRY sender (P10 Step 7)
         if (set.setSizeStatement() is { } ss)
