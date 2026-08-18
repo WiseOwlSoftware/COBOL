@@ -369,14 +369,25 @@ public sealed class IntrinsicFunctionDifferentialTests
         // The §1.4 loud-failure doctrine — an unimplemented RESIDUE of a catalogued-and-otherwise-implemented
         // function compiles and fails LOUD at run time naming the feature, never a silent wrong value. (P11
         // drove the whole IntrinsicBind.Deferred backlog to zero, so there is no longer a fully-deferred
-        // function; the doctrine is now proven on a staged residue.) BYTE-LENGTH (§15.14) folds for a fixed
-        // data item, but a REFERENCE-MODIFIED argument has a runtime length (§15.14.4 r5, the LENGTH
-        // discipline) and is staged loud by name.
-        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+        // function; the doctrine is proven on a staged residue.)
+        // ⛔ THE RESIDUE THIS TEST PINNED USED TO BE `BYTE-LENGTH(WS-X(1:2))` — a REFERENCE-MODIFIED argument —
+        // and pinning it GREEN held a gap open (feedback_green_test_can_hold_a_gap_open): §15.14.3 r1 admits
+        // "a data item of any class or category" and §8.4.3.3.4 GR6 makes a ref-mod a data item, so that shape
+        // is a conforming reference with the answer 2 (kb/Work PB61, AR-15.14.3-1). It is now the POSITIVE
+        // twin below. The one NAMED residue left in the LENGTH family is a runtime-length item INSIDE a table
+        // element (a per-occurrence sum — VariableLengthGroupSum's documented loud stage): that is the shape
+        // that proves the doctrine now, and it stays loud with the shape in its message until it is summed.
+        var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(
             Program("01 WS-X PIC X(5) VALUE \"ABCDE\".\n01 T PIC 9(4).",
                 "    MOVE FUNCTION BYTE-LENGTH(WS-X(1:2)) TO T.\n    DISPLAY T."));
+        Assert.True(ok, detail);
+        Assert.Contains("0002", output);
+        (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            Program("01 G.\n   05 TB OCCURS 2.\n      10 D PIC X DYNAMIC LENGTH.\n01 T PIC 9(4).",
+                "    MOVE FUNCTION LENGTH(G) TO T.\n    DISPLAY T."));
         Assert.False(ok);
-        Assert.Contains("BYTE-LENGTH", detail);
+        Assert.Contains("LENGTH", detail);
+        Assert.Contains("runtime-length element", detail);
     }
 
     [Fact]

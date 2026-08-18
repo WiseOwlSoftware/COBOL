@@ -183,7 +183,7 @@ public static class IntrinsicCatalog
         // representation), 2 bytes/position for NATIONAL (UTF-16, D-N1), the binary/packed StorageWidth,
         // 4/8 for the float trio, 8 for index/pointer/object-reference carriers. Runtime-length shapes
         // (ref-mod / ODO / ANY LENGTH) stay loud by name (§15.14.4 r2/r5, the LENGTH discipline).
-        Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Fold, false, 2002));     // §15.14 (byte size ≠ FUNCTION LENGTH, D7)
+        Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "ByteLength", IntrinsicBind.Fold, false, 2002));   // §15.14 (byte size ≠ FUNCTION LENGTH, D7); the runtime body serves the runtime-length shapes (PB61)
         // CHAR-NATIONAL (§15.16) — the national twin of CHAR: the character at the 1-based ordinal position of
         // the NATIONAL program collating sequence (native UTF-16 order; a non-native ALPHABET … FOR NATIONAL
         // sequence rides the CollateNat/__COLLATE_NAT channel, P10 Step 4). Result class national (§15.16.1).

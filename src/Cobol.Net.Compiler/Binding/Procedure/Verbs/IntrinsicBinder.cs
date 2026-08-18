@@ -69,15 +69,61 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // FUNCTION-keyword form, so `RANDOM (1:4)` is rejected as an argument list on both routes.
             var sp = fc.subscriptPart();
             if (sp?.subscriptOrRefMod() is { } grp && ReferenceResolver.HasDepth0Colon(grp))
-                return ResultRefMod(BindIntrinsicCore(fn, []), ctx.Refs.ReadRefMod(grp),
-                    argListWritten: false, fn);
+                return DefinitionPermitsArguments(fn)
+                    ? Sr6ArgumentListError(fn)
+                    : ResultRefMod(BindIntrinsicCore(fn, []), ctx.Refs.ReadRefMod(grp), fn);
             var args = sp is null ? [] : ReparseArgs(sp);
             return args is null
                 ? new BoundExprError($"FUNCTION {fn} arguments")
                 : FinishIntrinsic(fc, BindIntrinsicCore(fn, args), fn);
         }
         string name = fc.functionName().GetText();
-        return FinishIntrinsic(fc, BindIntrinsicCore(name, ArgsOf(fc.functionArgList())), $"FUNCTION {name}");
+        string display = $"FUNCTION {name}";
+        // §8.4.3.2.3 SR6 is decided HERE, from the function's DEFINITION and BEFORE the arguments bind — never
+        // after. `FUNCTION UPPER-CASE (1:4)` parses as a name plus a refModPart (the FNARG_LPAREN is the
+        // ref-mod's, not a direct child), so the argument list is EMPTY; binding first would report the §15.3
+        // arity error ("takes 1 argument(s); 0 given" — the PB61 SR-8.4.3.2.3-6 misroute) about an argument
+        // list the user never wrote, and the SR6 arm inside the ref-mod applier would then never see the call.
+        if (fc.FNARG_LPAREN() is null && fc.refModPart().Length != 0 && DefinitionPermitsArguments(name))
+            return Sr6ArgumentListError(display);
+        return FinishIntrinsic(fc, BindIntrinsicCore(name, ArgsOf(fc.functionArgList())), display);
+    }
+
+    /// <summary>ISO §8.4.3.2.3 SR6 — "If a function's definition permits arguments and a left parenthesis
+    /// immediately follows function-prototype-name-1 or intrinsic-function-name-1, the left parenthesis is
+    /// always treated as the left parenthesis of that function's arguments." The ONE answer to "does this
+    /// function's DEFINITION permit arguments", read from the definition the reference names: the
+    /// REPOSITORY-declared user function's prototype (its USING formals — SR6 names function-prototype-name-1
+    /// too, and §12.3.8.2 GR12 gives the user function precedence over a same-named intrinsic) or the catalog
+    /// signature (a >>COBOL-WORDS synonym resolves to its canonical first). Asked BEFORE any argument binds, by
+    /// every route a `NAME (start:length)` can arrive on — the FUNCTION-keyword form, the reserved-name
+    /// keyword-omitted form and <see cref="KeywordOmittedFunction"/> — because once the group has been read as
+    /// a ref-mod the bind reports an ARITY error about an empty argument list, and no later check can undo a
+    /// diagnostic already issued. False for a name that is neither: the ordinary paths report it.</summary>
+    private bool DefinitionPermitsArguments(string name)
+    {
+        if (!ctx.CobolWords.IsEmpty && ctx.CobolWords.Synonyms.TryGetValue(name, out var canonical)) name = canonical;
+        if (ctx.Data.UserFunctionNames.Contains(name)
+            || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase))
+            return host.UserFunctions is { } fns && fns.TryGetValue(name, out var fn) && fn.Formals.Count > 0;
+        return IntrinsicCatalog.TryGet(name, out var sig) && sig.MaxArgs > 0;
+    }
+
+    /// <summary>The SR6/SR8 verdict for a `(start:length)` group written directly after the NAME of a function
+    /// whose definition permits arguments (<see cref="DefinitionPermitsArguments"/>): that '(' opened an
+    /// ARGUMENT LIST, and <c>start:length</c> is not one of the §8.4.3.2.3 SR8 argument shapes — so it is
+    /// reported as the argument-list error it is, never as an arity error, a class error about a ref-mod that
+    /// was never written, or (keyword-omitted) an undefined data-name. <c>FUNCTION RANDOM (1:4)</c> is the
+    /// standard's own cautionary shape (the SR6 NOTE, where the empty list <c>FUNCTION RANDOM ()</c> is how a
+    /// function with only optional arguments is written argument-less); the legal way to reference-modify a
+    /// result is to write the argument list first — <c>FUNCTION UPPER-CASE(x) (1:2)</c>.</summary>
+    private BoundExprError Sr6ArgumentListError(string display)
+    {
+        ctx.Edition.Error("COBOLNET1543", $"'{display} (…)' — the '(' after the name of a function that "
+            + "takes arguments is ALWAYS its argument list (ISO §8.4.3.2 SR6), so this is an argument list "
+            + "and 'start:length' is not a valid argument (SR8). Reference-modify the RESULT by writing the "
+            + $"argument list first: {display}(<arguments>) (start:length).");
+        return new BoundExprError($"{display} arguments");
     }
 
     /// <summary>The tail both <c>functionCall</c> alternatives share: the §8.4.3.3.3 ref-mod on the RESULT
@@ -97,21 +143,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + "be reference-modified twice (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier.");
             return new BoundExprError($"reference modification of {display}");
         }
-        // FNARG_LPAREN, not LPAREN: the argument-list paren now carries its own token type (PB48), which is the
-        // §8.4.3.2.3 SR6 question this argument is asking, answered by the lexer instead of inferred here.
-        return ResultRefMod(call, ctx.Refs.ReadRefMod(refMods[0]), fc.FNARG_LPAREN() is not null, display);
+        // §8.4.3.2.3 SR6 was already decided by the caller, from the definition, before the call bound — the
+        // only ref-mod that reaches here is one that FOLLOWS the argument list (or a zero-argument function).
+        return ResultRefMod(call, ctx.Refs.ReadRefMod(refMods[0]), display);
     }
 
     /// <summary>
     /// Apply a reference modification to a FUNCTION RESULT (fix-queue PB8) — the ONE applier, shared by the
-    /// FUNCTION-keyword form and both keyword-omitted shapes, so the two syntax rules below are enforced once.
-    /// <para><b>ISO §8.4.3.2.3 SR6</b> — "If a function's definition permits arguments and a left parenthesis
-    /// immediately follows … the left parenthesis is ALWAYS treated as the left parenthesis of that function's
-    /// arguments." So a ref-mod written directly after the NAME of a function that takes arguments is not a
-    /// ref-mod at all: that <c>(</c> opened an argument list, and <c>1:4</c> is not an argument (§8.4.3.2.3 SR8).
-    /// <c>FUNCTION RANDOM (1:4)</c> is the standard's own cautionary shape (the SR6 NOTE) and is REJECTED —
-    /// reported as the argument-list error it is, not as a class error about a ref-mod that was never written.
-    /// <paramref name="argListWritten"/> is what distinguishes it from the legal <c>FUNCTION UPPER-CASE(x) (1:2)</c>.</para>
+    /// FUNCTION-keyword form and both keyword-omitted shapes, so §8.4.3.3.3 SR2 is enforced once.
+    /// <para><b>ISO §8.4.3.2.3 SR6</b> is NOT decided here, and deliberately so (kb/Work PB61, SR-8.4.3.2.3-6):
+    /// it used to be, keyed on an <c>argListWritten</c> flag and the bound call's signature — but a
+    /// <c>(1:4)</c> misread as a ref-mod leaves the argument list EMPTY, so for every function that REQUIRES an
+    /// argument the bind had already reported an arity error and returned a <see cref="BoundExprError"/> before
+    /// this applier could look, which is how <c>FUNCTION UPPER-CASE (1:4)</c> drew "takes 1 argument(s); 0
+    /// given" while <c>FUNCTION RANDOM (1:4)</c> (MinArgs 0) drew the SR6 message. Every caller now asks
+    /// <see cref="DefinitionPermitsArguments"/> BEFORE binding and returns <see cref="Sr6ArgumentListError"/>;
+    /// what reaches here is a ref-mod that follows an argument list, or one on a zero-argument function.</para>
     /// <para><b>ISO §8.4.3.3.3 SR2</b> — "If identifier-1 is a function-identifier, it shall reference an
     /// alphanumeric, boolean, or national function." A numeric/integer function has no character positions for
     /// §8.4.3.3.4 GR4 to number, so it is rejected with <c>COBOLNET1629</c>.</para>
@@ -119,17 +166,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// temp cloned from the RETURNING item), so it reference-modifies through the SAME
     /// <see cref="RefModPlace"/> a data item does — no second slicer, and the temp's own category answers SR2.</para>
     /// </summary>
-    private BoundExpr ResultRefMod(BoundExpr call, RefModSpec? spec, bool argListWritten, string display)
+    private BoundExpr ResultRefMod(BoundExpr call, RefModSpec? spec, string display)
     {
         if (call is BoundExprError) return call;                    // already loud — do not stack a second report
-        if (call is BoundIntrinsicCall ic && !argListWritten && ic.Sig.MaxArgs > 0)
-        {
-            ctx.Edition.Error("COBOLNET1543", $"'{display} (…)' — the '(' after the name of a function that "
-                + "takes arguments is ALWAYS its argument list (ISO §8.4.3.2 SR6), so this is an argument list "
-                + "and 'start:length' is not a valid argument (SR8). Reference-modify the RESULT by writing the "
-                + $"argument list first: {display}(<arguments>) (start:length).");
-            return new BoundExprError($"{display} arguments");
-        }
         PicCategory? category = call switch
         {
             BoundIntrinsicCall c => c.ResultCategory,
@@ -261,6 +300,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         if (sp is null)
         {
+            // `NAME (start:length)` on a DECLARED name whose definition permits arguments is §8.4.3.2.3 SR6's
+            // case in the keyword-omitted form (kb/Work PB61, SR-8.4.3.2.3-6): the REPOSITORY declared the name
+            // a function and no data item shadows it, so nothing else can resolve it — and the '(' after it is
+            // ALWAYS its argument list, of which `1:4` is not a member (SR8). Until now this fell through the
+            // MinArgs guard below to the data path and died as "'UPPER-CASE(1:4)' is not defined", while the
+            // reserved-word RANDOM drew the SR6 message through the grammar's own arm — one rule, two verdicts.
+            // Decided from the DEFINITION and before any bind, exactly as the FUNCTION-keyword form does.
+            if (capturedRefMod is not null && DefinitionPermitsArguments(name)) return Sr6ArgumentListError(name);
             // A REPOSITORY-DECLARED USER function referenced bare is §8.4.3.2.3 SR2's own case too (kb/Work
             // R35 — the two-arm-dispatch shape a SIXTH time: PB7 fixed the intrinsic arm of the bare-name
             // form and never asked the UDF arm, so `MOVE WITHOUTPAR TO X` over a declared zero-argument
@@ -274,7 +321,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 var udfBare = host.Udf.UdfBindCall(name, []);
                 return capturedRefMod is null
                     ? udfBare
-                    : ResultRefMod(udfBare, ctx.Refs.ReadRefMod(capturedRefMod), argListWritten: false, name);
+                    : ResultRefMod(udfBare, ctx.Refs.ReadRefMod(capturedRefMod), name);
             }
             // A bare CATALOGUED name only becomes a function reference when the function genuinely admits
             // ZERO arguments (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form,
@@ -284,19 +331,19 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (!catalogued || sig.MinArgs != 0) return null;
             var bare = BindIntrinsicCore(name, []);
             // `CURRENT-DATE (1:8)` — the captured group carries a depth-0 colon, so it is a reference
-            // modification of the RESULT, not an argument list. ResultRefMod still applies §8.4.3.2.3 SR6 with
-            // argListWritten: false, which is what rejects the same shape on RANDOM (MinArgs 0 but MaxArgs 1) —
-            // exactly as the FUNCTION-keyword form does, so the two reference forms cannot drift apart.
+            // modification of the RESULT, not an argument list: SR6 was answered above (a zero-argument
+            // definition permits none), so the group is applied to the result exactly as the FUNCTION-keyword
+            // form applies it, and the two reference forms cannot drift apart.
             return capturedRefMod is null
                 ? bare
-                : ResultRefMod(bare, ctx.Refs.ReadRefMod(capturedRefMod), argListWritten: false, name);
+                : ResultRefMod(bare, ctx.Refs.ReadRefMod(capturedRefMod), name);
         }
         var call = ReparseArgs(sp) is { } args
             ? BindIntrinsicCore(name, args)
             : new BoundExprError($"FUNCTION {name} arguments");
         return tailRefMod is null
             ? call
-            : ResultRefMod(call, ctx.Refs.ReadRefMod(tailRefMod), argListWritten: true, name);
+            : ResultRefMod(call, ctx.Refs.ReadRefMod(tailRefMod), name);
     }
 
 
@@ -483,7 +530,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // reason ANYCASE is: it is a KEYWORD, not an operand, and the generic path counts it as one — which is
         // exactly what it did, rejecting the conforming `FUNCTION LENGTH(WS-G PHYSICAL)` with
         // "COBOLNET1504: takes 1 argument(s); 2 given" (fix-queue PB24).
-        if (sig.Name == "LENGTH") return BindLengthFamily(sig, argCtxs);
+        if (sig.Name is "LENGTH" or "BYTE-LENGTH") return BindLengthFamily(sig, argCtxs);   // §15.50.2 / §15.14.2 — argument-1 [PHYSICAL]
 
         // NUMVAL-C / TEST-NUMVAL-C (§15.68.2 / §15.94.2) — the optional ANYCASE keyword (orthogonal to the
         // argument-2 currency; §15.94.3 r1 imports every §15.68.3 argument rule) + the §15.68.3 r3
@@ -1017,8 +1064,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundFieldOperand { Place.Item: { IsAnyLength: true } or { IsDynamicLength: true } } => null,
         // A group's width is static exactly when nothing beneath it varies at run time — the §15.50.4 r7
         // dynamic guards plus an ODO subordinate's varying current length (§8.5.1.8 GR7/GR8).
-        BoundFieldOperand { Place.Item: { IsGroup: true } g } =>
-            HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g) || HasOdoBeneath(g) ? null : g.ImageWidth,
+        BoundFieldOperand { Place.Item: { IsGroup: true } g } => HasRuntimeLength(g) ? null : g.ImageWidth,
         BoundFieldOperand { Place.Item: { } item } => item.ImageWidth,
         BoundAllLiteral a => a.Literal.Length,   // §8.3.3.6.4 GR3c — a length-unspecified context takes the literal once
         BoundFigurative => 1,                    // §8.3.3.6.4 GR3b — a bare figurative is ONE character
@@ -1459,7 +1505,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// rules 4/7) — staged loud by name until a consumer exists (none in the NIST corpus; loud-failure §1.4).</summary>
     private BoundExpr BindLengthFold(IntrinsicSig sig, List<BoundOperand> args) => args[0] switch
     {
-        BoundStringLiteral s => new BoundNumLiteral(Math.Max(1, s.Value.Length).ToString()),
+        // A zero-length literal has length ZERO (§8.5.4 — "a data item or a literal whose … length at runtime is
+        // zero"; §15.50.4 r2/r3 count its positions): the former Math.Max(1, …) clamp answered 1 for `""` and
+        // `N""` (kb/Work PB61 / RV-15.50.4-2).
+        BoundStringLiteral s => new BoundNumLiteral(s.Value.Length.ToString()),
         // ⛔ A REFERENCE-MODIFIED ARGUMENT IS LEGAL AND ITS LENGTH IS THE RUNTIME CHANNEL'S ANSWER (fix-queue
         // PB24). §15.50.3 r1 admits "a data item of any class or category", and §8.4.3.3.3 SR5 makes a
         // reference-modified item a data item — so `FUNCTION LENGTH(WS-NAME(1:5))` is conforming source. It used
@@ -1471,9 +1520,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // alike, and the omitted-length `(I:)` form comes out right because the substring already ends where the
         // item does.
         BoundFieldOperand { Place: RefModPlace } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
-        BoundFieldOperand f when f.Place.Item.IsGroup
-                && OdoModel.TableUnder(f.Place.Item) is { OccursSpec.Depending: not null } =>
-            new BoundExprError("FUNCTION LENGTH of a variable-length (OCCURS DEPENDING) group (runtime length, §15.50.4 r7)"),
+        // ⛔ A GROUP WHOSE LENGTH IS A RUNTIME VALUE — an OCCURS DEPENDING table beneath it (§15.50.4 r4b),
+        // dynamic-length elementary items or dynamic-capacity tables beneath it (r7, the §8.5.1.12.1
+        // variable-length group), in any combination — is ONE arm and ONE builder (kb/Work PB61: RV-15.50.4-4 /
+        // RV-15.14.4-6 / RV-15.14.4-2). It used to be four arms: the ODO arm staged loud while its file-mates
+        // were rewritten (RV-15.50.4-4), the r7c dynamic-capacity arm staged loud outright, and the ODO arm that
+        // then landed ignored a dynamic-length leaf sitting BESIDE the table — an under-count with no
+        // diagnostic. The builder derives every subordinate's place from the group's own path, so a subscripted
+        // group works too, and names the ONE shape it will not sum (a runtime-length item INSIDE a table
+        // element — a per-occurrence loop) instead of miscounting it.
+        BoundFieldOperand g when g.Place.Item.IsGroup && HasRuntimeLength(g.Place.Item) =>
+            VariableLengthGroupSum(sig, g, bytes: false),
         // An ANY LENGTH item's length exists only at RUNTIME (ISO §13.18.2 GR1 — n = the length of the
         // corresponding argument): never the compile-time fold, always the runtime .Length over the carrier
         // (the same BoundIntrinsicCall channel a nested string-function argument uses).
@@ -1485,32 +1542,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // channel). A PIC N (national) item is 2 bytes per position (D-N1) — the byte count is 2 × positions,
         // and the plain .Length is the character count (half): staged loud by name until the doubling is wired
         // (no national dynamic-length consumer in the corpus; §1.4).
+        // §15.50.4 r6 — a DYNAMIC LENGTH item's length is its current length in BYTES: a national item's is
+        // 2 × its positions (D-N1), read from the storage channel (kb/Work PB61 / RV-15.50.4-6 — it staged loud
+        // where the alphanumeric sibling one line below already rode the runtime channel).
         BoundFieldOperand { Place.Item: { IsDynamicLength: true, Pic.Category: PicCategory.National } } =>
-            new BoundExprError("FUNCTION LENGTH of a NATIONAL DYNAMIC LENGTH item (current length in bytes = 2× character positions, ISO §15.50.4 rule 6)"),
+            new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { LengthInBytes = true },
         BoundFieldOperand { Place.Item.IsDynamicLength: true } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
-        // ⛔ A VARIABLE-LENGTH GROUP IS §15.50.4 r7's SUM, NOT A FIXED WIDTH (fix-queue PB24). This arm did not
-        // exist, so such a group fell through to the fixed fold below — and `DataItem.ImageWidth` contributes
-        // ZERO for a dynamic-length child (its width is a runtime fact, §8.5.1.10). MEASURED: a group of
-        // `PIC X(4)` plus a `PIC X DYNAMIC LENGTH` child holding "XYZ" returned **4** where r7 requires **7**,
-        // with no diagnostic. A missing arm in a dispatch, which is this compiler's most reproducible defect
-        // shape — and the silent kind, which is the worst.
-        // ⚠ THE CHEAP FIX DOES NOT WORK AND WAS TRIED: routing the group through the runtime string channel
-        // fails, because the whole-group IMAGE of a group with a dynamic child is itself staged loud (the Tier-C
-        // byte island). So r7 is built from the structure, which is known at COMPILE time:
-        //   r7(a) the fixed subordinates — exactly what `ImageWidth` already returns, since it zeroes the
-        //         dynamic ones; and
-        //   r7(b) the CURRENT length of each dynamic-length subordinate — one runtime LENGTH per leaf, summed.
-        BoundFieldOperand g when g.Place.Item.IsGroup && HasDynamicLengthLeaf(g.Place.Item)
-                                 && !HasDynamicCapacityTable(g.Place.Item)
-            => VariableLengthGroupSum(sig, g.Place.Item),
-        // ⚠ r7(c) — a subordinate DYNAMIC-CAPACITY table — is NOT implemented, and is staged LOUD rather than
-        // summed wrong. `ImageWidth` counts such a table as ONE occurrence (`c.Occurs ?? 1`), so folding it would
-        // return a plausible number that is wrong by (capacity − 1) elements. A loud stage is a worse experience
-        // and a better answer than a silent miscount (§1.4).
-        BoundFieldOperand g when g.Place.Item.IsGroup && HasDynamicCapacityTable(g.Place.Item) =>
-            new BoundExprError("FUNCTION LENGTH of a group with a subordinate DYNAMIC-CAPACITY table "
-                               + "(current capacity is a runtime value, ISO §15.50.4 rule 7c)"),
         // ⛔ §15.50.4 r1 — AN ELEMENTARY BOOLEAN ITEM'S LENGTH IS IN BOOLEAN POSITIONS, NOT IN THE CHARACTER
         // POSITIONS IT OCCUPIES: "If argument-1 is a bit group item, an elementary boolean data item, a boolean
         // literal, or a type declaration for a boolean item, the returned value is an integer equal to the length
@@ -1524,8 +1562,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // Both usages come here: a DISPLAY-form boolean item (§13.18.60.3 SR13(b)) is equally "an elementary
         // boolean data item", and for it the answer is unchanged because occupancy IS the boolean-position count.
         BoundFieldOperand { Place.Item: { IsElementary: true, Pic.Category: PicCategory.Boolean } b } =>
-            new BoundNumLiteral(Math.Max(1, b.Pic!.Length).ToString()),
-        BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ImageWidth).ToString()),
+            new BoundNumLiteral(b.Pic!.Length.ToString()),
+        // The fixed fold — LengthPositions (kb/Work PB61 / RV-15.50.4-3): §15.50.4 r2 gives an elementary
+        // usage-national item its NATIONAL positions; r3 gives everything else — an alphanumeric group, a
+        // DISPLAY leaf, a COMP/PACKED leaf, an INDEX/POINTER/COMP-1/COMP-2 carrier — its length "in alphanumeric
+        // character positions", which under the 1-byte-per-position model IS its byte width. The former
+        // Math.Max(1, ImageWidth) answered 1 for every carrier (a POINTER is 8) and undercounted a group holding a
+        // national or carrier child (X(3)+N(2) is 7, not 5).
+        BoundFieldOperand f => new BoundNumLiteral(LengthPositions(f.Place.Item).ToString()),
         // A nested string-result intrinsic (alphanumeric OR national — one UTF-16 char per national position,
         // D-N1, so .Length IS the §15.50.4 character-position count for both) keeps a runtime .Length.
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } } =>
@@ -1543,7 +1587,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // Both are compile-time constants, so they fold exactly like the literal arm above rather than reaching
         // the runtime channel.
         BoundFigurative => new BoundNumLiteral("1"),                                     // §8.3.3.6.4 GR3b
-        BoundAllLiteral a => new BoundNumLiteral(Math.Max(1, a.Literal.Length).ToString()),  // §8.3.3.6.4 GR3c
+        BoundAllLiteral a => new BoundNumLiteral(a.Literal.Length.ToString()),           // §8.3.3.6.4 GR3c
         // A NUMERIC literal is still not a valid LENGTH argument — §15.50.3 r1 admits only "an alphanumeric,
         // national, or boolean literal" (a numeric *data item* is allowed as "a data item of any class or
         // category", handled by the BoundFieldOperand arm above). That half of the old arm was always correct.
@@ -1552,6 +1596,31 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             + "boolean literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
             "§15.50.3 r1"),
     };
+
+    /// <summary>§15.50.4 r1/r2/r3 for a FIXED item (kb/Work PB61): an elementary boolean item's BOOLEAN positions
+    /// (r1), an elementary usage-national item's NATIONAL positions (r2), and for everything else — an
+    /// alphanumeric group, a DISPLAY leaf, a COMP/PACKED leaf, an INDEX/POINTER/PROGRAM-POINTER/COMP-1/COMP-2
+    /// carrier — the length "in alphanumeric character positions" (r3), which is the byte width under COBOL.NET's
+    /// 1-byte-per-alphanumeric-position model (D-N1: national = 2 bytes = 2 positions inside an alphanumeric group).
+    /// A bit group / national group (GROUP-USAGE, §13.18.29) is not modelled — kb/Work PB79 — so a group is
+    /// always r3's alphanumeric group here.</summary>
+    internal static int LengthPositions(DataItem item)
+    {
+        if (item.IsElementary && item.Pic is { } pic)
+        {
+            if (pic.Category is PicCategory.Boolean) return pic.Length;                     // r1 — boolean positions
+            if (pic.Usage is Usage.National || pic.Category is PicCategory.National) return pic.Length;   // r2 — national positions
+        }
+        return item.ByteWidth;                                                              // r3 — alphanumeric positions ≡ bytes
+    }
+
+    /// <summary>A bare-word argument that names a TYPE (§15.50.3 r1 / §15.14.3 r1: "… a based entry, a type-name,
+    /// or a data item of any class or category") — a level-1 TYPEDEF lives in <c>DataBinder.TypeDecls</c>, off the
+    /// data-name namespace, so <c>BindArgOperand</c> would report it undefined (kb/Work PB61 / AR-15.50.3-1 /
+    /// AR-15.14.3-1). Returns the type's template item, or null when the word is not a type-name (a data-name
+    /// of the same spelling cannot exist beside it — one user-word namespace).</summary>
+    private DataItem? TypeNameArgument(Core.FunctionArgumentContext a) =>
+        KeywordWordOf(a) is { } w && a.fnArgPhraseWord() is null && ctx.Data.TypeDecls.TryGetValue(w, out var t) ? t : null;
 
     /// <summary>
     /// FUNCTION LENGTH (§15.50.2) — argument-1 plus the optional PHYSICAL keyword.
@@ -1575,27 +1644,34 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// </remarks>
     private BoundExpr BindLengthFamily(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        bool physical = false;
+        bool physical = false, isByte = sig.Name == "BYTE-LENGTH";
         var operands = new List<BoundOperand>();
+        DataItem? typeArg = null;
         foreach (var a in argCtxs)
         {
             if (KeywordWordOf(a) == "PHYSICAL") { physical = true; continue; }
+            // A type-name argument (§15.50.3 r1 / §15.14.3 r1 — kb/Work PB61): the length of the type
+            // declaration — for a subordinate OCCURS DEPENDING, "the rules of the OCCURS clause for a receiving
+            // data item" (§15.50.4 r4a / §15.14.4 r2a), i.e. the maximum, which is what the template's widths hold.
+            if (TypeNameArgument(a) is { } t) { typeArg = t; operands.Add(new BoundNumericLiteral("0")); continue; }   // a placeholder for the arity count
             operands.Add(BindArgOperand(a));
         }
         if (operands.Count != 1)
         {
             ctx.Edition.Error("COBOLNET1504",
-                $"FUNCTION LENGTH takes argument-1 [PHYSICAL] (ISO §15.50.2); {operands.Count} operand argument(s) given");
-            return new BoundExprError("FUNCTION LENGTH arity");
+                $"FUNCTION {sig.Name} takes argument-1 [PHYSICAL] (ISO {(isByte ? "§15.14.2" : "§15.50.2")}); {operands.Count} operand argument(s) given");
+            return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
+        if (typeArg is not null)
+            return new BoundNumLiteral((isByte ? typeArg.ByteWidth : LengthPositions(typeArg)).ToString());
         // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
         // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
         // claimed it ran "before every per-function arm" — FALSE for the eight bespoke binders that
         // `return` above it, so no Verified row could ever screen them. Screened here, after this
         // binder's own arity check, exactly as the generic path orders it.
         CheckArgumentClasses(sig, operands);
-        _ = physical;   // §15.50.4 r8 — see the remarks: transparent under this implementation's determination.
-        return BindLengthFold(sig, operands);
+        _ = physical;   // §15.50.4 r8 / §15.14.4 r7 — see the remarks: transparent under this implementation's determination.
+        return isByte ? BindByteLengthFold(sig, operands) : BindLengthFold(sig, operands);
     }
 
     /// <summary>Does this group have a DYNAMIC LENGTH elementary item somewhere beneath it? (§15.50.4 r7b.)
@@ -1604,49 +1680,113 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         g.Children.Any(c => c.RedefinesTargetName is null
                             && (c.IsDynamicLength || (c.IsGroup && HasDynamicLengthLeaf(c))));
 
-    /// <summary>Does this group have a DYNAMIC-CAPACITY table beneath it? (§15.50.4 r7c — not implemented, staged
-    /// loud rather than miscounted; see the arm that uses this.)</summary>
+    /// <summary>Does this group have a DYNAMIC-CAPACITY table beneath it? (§15.50.4 r7c / §15.14.4 r6c.)</summary>
     private static bool HasDynamicCapacityTable(DataItem g) =>
         g.Children.Any(c => c.RedefinesTargetName is null
                             && (c.IsDynamicTable || (c.IsGroup && HasDynamicCapacityTable(c))));
 
+    /// <summary>Is this group's length a RUNTIME value — an OCCURS DEPENDING table (§15.50.4 r4b / §15.14.4 r2b),
+    /// or a dynamic-length elementary item or dynamic-capacity table (r7 / r6 — the §8.5.1.12.1 variable-length
+    /// group) anywhere beneath it? The ONE predicate behind the folds' group arm and <see cref="KnownWidth"/>.</summary>
+    private static bool HasRuntimeLength(DataItem g) =>
+        HasOdoBeneath(g) || HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);
+
     /// <summary>
-    /// §15.50.4 r7 as an expression: the fixed subordinates (r7a) plus the CURRENT length of every dynamic-length
-    /// subordinate (r7b).
+    /// The length of a group whose length is a RUNTIME value, as ONE expression — §15.50.4 r4b + r7 (LENGTH) /
+    /// §15.14.4 r2b + r6 (BYTE-LENGTH), kb/Work PB61: the fixed subordinates, plus the CURRENT extent of an OCCURS
+    /// DEPENDING table (r4b — "the rules of the OCCURS clause for a sending data item", §13.18.38 GR8), plus the
+    /// CURRENT length of every dynamic-length elementary item (r7b), plus every dynamic-capacity table's current
+    /// capacity × its element width (r7c). Every unit is BYTES: an alphanumeric group's r3 "alphanumeric character
+    /// positions" ARE its bytes (<see cref="LengthPositions"/>), and r6 makes a dynamic-length item's length a
+    /// byte count.
     /// </summary>
     /// <remarks>
-    /// <para>r7a is <see cref="DataItem.ImageWidth"/> unchanged — it already sums the fixed subordinates and
-    /// contributes zero for each dynamic-length one, which is precisely the split r7 asks for. That is why this
-    /// adds to it rather than recomputing it: two independent width walks would be two things to keep in
-    /// agreement, and the fixed-layout math elsewhere already depends on this one.</para>
-    /// <para>Each dynamic leaf contributes one runtime <c>FUNCTION LENGTH</c> over the leaf itself — the same
-    /// single-item path measured correct before this change (a `DYNAMIC LENGTH` item holding "ABCDEFG" returns 7).
-    /// A leaf whose place cannot be resolved is not silently dropped: the whole fold degrades to the loud stage,
-    /// because an under-counted length is a wrong answer and a missing one is a visible failure.</para>
+    /// <para>The fixed part is <see cref="DataItem.ByteWidth"/> — one width walk, the one every layout depends on —
+    /// CORRECTED for what that walk cannot know: it counts an ODO table at its MAXIMUM (integer-2), a
+    /// dynamic-capacity table as ONE occurrence and a dynamic-length leaf as zero, so the builder subtracts the
+    /// first two and adds the runtime term for each. Two independent width walks would be two things to keep in
+    /// agreement.</para>
+    /// <para>Every subordinate's place is DERIVED from the group's own access path (a member segment per level),
+    /// so a group that is itself a table element or a nested member sums correctly — nothing is re-resolved by
+    /// name from the root. The ODO term reads data-name-1 through the <see cref="OdoGroupPlace"/> the resolver
+    /// already wrapped the operand in.</para>
+    /// <para>⚠ THE ONE SHAPE NOT SUMMED, NAMED: a runtime-length item INSIDE a table element (a dynamic-length
+    /// leaf or a dynamic-capacity table under a fixed, ODO or dynamic OCCURS) — its total is a per-occurrence
+    /// loop over the table, and the standard's own phrase for r7c ("based on their current capacity") defines only
+    /// the fixed-element case. Reported as a named loud stage (§1.4), never as an under-count. A bit-bearing group
+    /// (its ByteWidth is the §8.5.1.6.3 layout extent, not a sum) is likewise staged rather than corrected by
+    /// subtraction.</para>
     /// </remarks>
-    private BoundExpr VariableLengthGroupSum(IntrinsicSig sig, DataItem group)
+    private BoundExpr VariableLengthGroupSum(IntrinsicSig sig, BoundFieldOperand op, bool bytes)
     {
-        var leaves = new List<DataItem>();
-        void Walk(DataItem g)
+        string rules = bytes ? "§15.14.4 r2b/r6" : "§15.50.4 r4b/r7";
+        OdoGroupPlace? odo = op.Place as OdoGroupPlace;
+        Place inner = odo?.Inner ?? op.Place;
+        DataItem group = inner.Item;
+        AccessPath? basePath = inner switch { MemberPlace m => m.Path, DynTablePlace d => d.Path, _ => null };
+        BoundExprError Stage(string what) => new($"FUNCTION {sig.Name} of '{group.CobolName ?? group.CsName}': {what} (ISO {rules})");
+
+        if (group.HasBitDescendant)
+            return Stage("a group holding USAGE BIT items and a runtime-length subordinate — its fixed extent is a "
+                         + "§8.5.1.6.3 layout, not a sum");
+        long fixedPart = group.ByteWidth;
+        BoundExpr? runtime = null;
+        void Add(BoundExpr e) => runtime = runtime is null ? e : new BoundBinary(runtime, '+', e);
+        BoundExprError? failure = null;
+
+        void Walk(DataItem g, AccessPath? path)
         {
             foreach (var c in g.Children.Where(x => x.RedefinesTargetName is null))
             {
-                if (c.IsDynamicLength) leaves.Add(c);
-                else if (c.IsGroup) Walk(c);
+                if (failure is not null) return;
+                var cPath = path?.Add(new MemberSegment(c.CsName));
+                if (c.IsDynamicTable)
+                {
+                    // r7c / r6c — the current capacity × the element width. ByteWidth counted ONE occurrence.
+                    if (HasRuntimeLength(c) || (c.IsElementary && c.IsDynamicLength))
+                    { failure = Stage($"the dynamic-capacity table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                    if (cPath is null || c.OccursSpec?.CapacityRegister is not { } reg)
+                    { failure = Stage($"the dynamic-capacity table '{c.CobolName ?? c.CsName}' could not be addressed"); return; }
+                    fixedPart -= c.ByteWidth;
+                    Add(new BoundBinary(new BoundNumRef(new CapacityRegisterPlace(cPath, reg)), '*',
+                                        new BoundNumLiteral(c.ByteWidth.ToString())));
+                }
+                else if (c.OccursSpec is { DependingName: not null } spec)
+                {
+                    // r4b / r2b — the ODO table's CURRENT extent: data-name-1's clamped count × the element
+                    // width (EC-BOUND-ODO outside integer-1..integer-2, §13.18.38.4 GR7). ByteWidth counted the
+                    // MAXIMUM. data-name-1's place is the one the resolver wrapped the operand with (SR22 makes
+                    // the table the record's trailing part, so the operand IS the OdoGroupPlace).
+                    if (HasRuntimeLength(c))
+                    { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                    if (odo is null)   // a BASED entry / REDEFINES-class record: the resolver never wraps it (kb/Work PB80)
+                    { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' lies inside a BASED entry or a REDEFINES-class record, whose data-name-1 extent is not yet applied"); return; }
+                    int elem = c.ByteWidth, max = c.Occurs ?? 1;
+                    fixedPart -= (long)elem * max;
+                    Add(new BoundOdoExtent(odo.Depending, spec.Min, max, 0, elem));
+                }
+                else if (c.Occurs is not null)
+                {
+                    // A fixed table: wholly inside ByteWidth — unless an occurrence carries a runtime length.
+                    if (HasRuntimeLength(c) || c.IsDynamicLength)
+                    { failure = Stage($"the table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                }
+                else if (c.IsDynamicLength)
+                {
+                    // r7b / r6b — the CURRENT length of the leaf, in bytes: LENGTH reads a national leaf's storage
+                    // channel (LengthInBytes — r6's byte count); BYTE-LENGTH is the storage image already.
+                    if (cPath is null) { failure = Stage($"the dynamic-length subordinate '{c.CobolName ?? c.CsName}' could not be addressed"); return; }
+                    Add(new BoundIntrinsicCall(sig, [new BoundFieldOperand(new MemberPlace(cPath, c))], PicCategory.Numeric)
+                            { LengthInBytes = !bytes && c.Pic is { Category: PicCategory.National } });
+                }
+                else if (c.IsGroup) Walk(c, cPath);
             }
         }
-        Walk(group);
-
-        BoundExpr sum = new BoundNumLiteral(group.ImageWidth.ToString());          // r7a
-        foreach (DataItem leaf in leaves)
-        {
-            if (ctx.Refs.ResolveItem(leaf) is not { } place)
-                return new BoundExprError($"FUNCTION LENGTH of a variable-length group: the dynamic-length "
-                                          + $"subordinate '{leaf.CobolName ?? "(unnamed)"}' could not be addressed (ISO §15.50.4 rule 7b)");
-            sum = new BoundBinary(sum, '+',
-                new BoundIntrinsicCall(sig, [new BoundFieldOperand(place)], PicCategory.Numeric));   // r7b
-        }
-        return sum;
+        Walk(group, basePath);
+        if (failure is not null) return failure;
+        if (fixedPart < 0) return Stage("its fixed extent is negative (an internal width disagreement)");
+        BoundExpr sum = new BoundNumLiteral(fixedPart.ToString());
+        return runtime is null ? sum : new BoundBinary(sum, '+', runtime);
     }
 
     /// <summary>FUNCTION BYTE-LENGTH (§15.14.4 r1): the argument's length in BYTES — the compile-time twin of the
@@ -1683,8 +1823,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     private BoundExpr BindByteLengthFold(IntrinsicSig sig, List<BoundOperand> args) => args[0] switch
     {
-        BoundStringLiteral { Category: PicCategory.National } s => new BoundNumLiteral((2 * Math.Max(1, s.Value.Length)).ToString()),
-        BoundStringLiteral { Category: PicCategory.Alphanumeric } s => new BoundNumLiteral(Math.Max(1, s.Value.Length).ToString()),
+        // A zero-length literal is ZERO bytes (§8.5.4; §15.14.4 r1) — the Max(1, …) clamp is gone (kb/Work PB61 / RV-15.14.4-1).
+        BoundStringLiteral { Category: PicCategory.National } s => new BoundNumLiteral((2 * s.Value.Length).ToString()),
+        BoundStringLiteral { Category: PicCategory.Alphanumeric } s => new BoundNumLiteral(s.Value.Length.ToString()),
         // A literal of any OTHER class — in practice a BOOLEAN literal, since the alphanumeric and national
         // arms matched above. §15.14.3 r1 admits "an alphanumeric or national literal" and stops there.
         // ⚠ THE SIBLING CLAUSE DIFFERS AND THE TWO MUST NOT BE UNIFIED: §15.50.3 r1 admits "an alphanumeric,
@@ -1692,19 +1833,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundStringLiteral => InadmissibleArgument(sig,
             "is a literal of a class §15.14.3 r1 does not admit — it takes an alphanumeric or national literal "
             + "(a boolean literal is admissible to FUNCTION LENGTH, §15.50.3 r1, but not here)", "§15.14.3 r1"),
-        BoundFieldOperand { Place: RefModPlace } =>
-            new BoundExprError("FUNCTION BYTE-LENGTH of a reference-modified argument (runtime length, §15.14.4)"),
-        BoundFieldOperand f when f.Place.Item.IsGroup
-                && OdoModel.TableUnder(f.Place.Item) is { OccursSpec.Depending: not null } =>
-            new BoundExprError("FUNCTION BYTE-LENGTH of a variable-length (OCCURS DEPENDING) group (runtime length, §15.14.4 r6)"),
-        BoundFieldOperand { Place.Item.IsAnyLength: true } =>
-            new BoundExprError("FUNCTION BYTE-LENGTH of an ANY LENGTH item (runtime length, ISO §13.18.2)"),
-        // A DYNAMIC LENGTH item's BYTE-LENGTH is its CURRENT byte length at RUNTIME (ISO §15.14.4 rule 5), not the
-        // compile-time ByteWidth (0 for a variable-length item) — staged loud by name until a runtime BYTE-LENGTH
-        // body exists (the ANY LENGTH discipline; §1.4).
-        BoundFieldOperand { Place.Item.IsDynamicLength: true } =>
-            new BoundExprError("FUNCTION BYTE-LENGTH of a DYNAMIC LENGTH item (current length in bytes at runtime, ISO §15.14.4 rule 5)"),
-        BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ByteWidth).ToString()),
+        // ⛔ THE RUNTIME SHAPES ROUTE TO THE RUNTIME BODY, EXACTLY AS LENGTH's DO (kb/Work PB61 — every one of
+        // these was a BoundExprError that COMPILED CLEAN and threw NotImplementedCobolFeatureException at run time,
+        // the wrong-stage family, while the LENGTH twin one method up had been given its runtime channel). The
+        // body is the STORAGE image's length: a reference-modified view (§8.4.3.3.4 GR6 — a national slice keeps
+        // category national and its bytes are UTF-16BE), an ANY LENGTH or DYNAMIC LENGTH item's current bytes
+        // (§15.14.4 r5); an OCCURS DEPENDING group's current extent in bytes (§15.14.4 r2b) is the group arm
+        // below — VariableLengthGroupSum builds it from data-name-1's clamped value and the byte widths.
+        BoundFieldOperand { Place: RefModPlace } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+        // §15.14.4 r2b + r6 — a group whose length is a runtime value (an OCCURS DEPENDING table, dynamic-length
+        // items, dynamic-capacity tables beneath it): the ONE builder LENGTH uses, in bytes (kb/Work PB61).
+        BoundFieldOperand g when g.Place.Item.IsGroup && HasRuntimeLength(g.Place.Item) =>
+            VariableLengthGroupSum(sig, g, bytes: true),
+        BoundFieldOperand { Place.Item.IsAnyLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+        BoundFieldOperand { Place.Item.IsDynamicLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+        BoundFieldOperand f => new BoundNumLiteral(f.Place.Item.ByteWidth.ToString()),
         // ⛔ THE FIGURATIVE HALF OF THE ARM BELOW WAS FALSE, AND IT IS PB25's OWN DEFECT IN THE ADJACENT METHOD
         // (fix-queue PB48 sweep). PB25 gave BindLengthFold its §8.3.3.6.4 GR3 arms and cited the reasoning in
         // full; BYTE-LENGTH — the neighbouring fold, with the same rule shape — kept a default arm that named
@@ -1718,7 +1861,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // The byte count follows §8.3.3.6.4 GR3: (b) one character for a figurative other than ALL literal-1,
         // (c) the length of literal-1 otherwise; both are alphanumeric here, so one byte per character (D-N1).
         BoundFigurative => new BoundNumLiteral("1"),                                        // §8.3.3.6.4 GR3b
-        BoundAllLiteral a => new BoundNumLiteral(Math.Max(1, a.Literal.Length).ToString()), // §8.3.3.6.4 GR3c
+        BoundAllLiteral a => new BoundNumLiteral(a.Literal.Length.ToString()),              // §8.3.3.6.4 GR3c
         // A NUMERIC literal remains invalid — §15.14.3 r1 admits only "an alphanumeric or national literal"
         // (a numeric DATA ITEM is "a data item of any class or category" and folds on the arm above).
         _ => InadmissibleArgument(sig,

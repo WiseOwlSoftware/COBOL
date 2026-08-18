@@ -255,7 +255,9 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
 > addressable out-of-line pointer for a program to observe, and a group presents as a contiguous character image
 > at its defined position; the alternative reading would require inventing a user-visible pointer width that
 > nothing here exposes. Pinned by `2023/pb24_length_physical_keyword`, which asserts each PHYSICAL form equals
-> its plain form.
+> its plain form. **The same determination governs `FUNCTION BYTE-LENGTH`'s `PHYSICAL` argument (§15.14.4 rule 7,
+> "the length of argument-1 in number of bytes")** — accepted since 2026-08-18 (kb/Work PB61, FMT-15.14.2) and equal
+> to the rule-6 sum, pinned by `2023/pb61_length_byte_length_rule_branches`.
 
 ## 5. Annex A.4 optional-element disposition (§4.2.7)
 

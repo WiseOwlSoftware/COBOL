@@ -81,7 +81,11 @@
            DISPLAY "12=[" BB "]".
       *> 13-14 - zero length, which all three formats admit in a NOTE
       *> (8.3.3.2.3 NOTE 2, 8.3.3.5.3 NOTE 2, 8.3.3.4.3 NOTE). X"" used to be
-      *> refused by the lexer's `+` and split like the others.
+      *> refused by the lexer's `+` and split like the others. LENGTH of a
+      *> zero-length literal is ZERO (8.5.4 item 8 - "a literal whose ...
+      *> length at runtime is zero"; 15.50.4 r2/r3 count its positions): the
+      *> value 1 this golden first pinned was the fold's Math.Max(1, ...)
+      *> clamp, observed rather than derived - corrected with PB61.
            MOVE FUNCTION LENGTH(X"") TO L.
            DISPLAY "13=" L.
            MOVE FUNCTION LENGTH(NX"") TO L.

@@ -136,6 +136,13 @@ public static partial class CobolIntrinsics
     /// never reach here.</summary>
     public static long Length(string s) => s.Length;
 
+    /// <summary>FUNCTION BYTE-LENGTH's runtime body (§15.14.4 — kb/Work PB61): the length of the argument's
+    /// STORAGE image, which the emitter renders through the ONE byte channel (<c>OperandText.AsStorageImage</c> —
+    /// char==byte; a national view is its UTF-16BE bytes) for the shapes the compile-time fold cannot size: a
+    /// reference-modified view, an ANY LENGTH or DYNAMIC LENGTH item, an OCCURS DEPENDING group's current extent.
+    /// FUNCTION LENGTH's §15.50.4 r6 (a dynamic-length item's current length in BYTES) rides the same body.</summary>
+    public static long ByteLength(string storage) => storage.Length;
+
     /// <summary>CONCAT (§15.18.4, 2023): the characters of all arguments in order — argument-1 followed by each
     /// argument-2 (rules 1 &amp; 4). Each argument arrives as its fixed-width display IMAGE (trailing padding
     /// included — §15.18.4 rule 1 "all of the characters"), so the result length is the sum of the argument

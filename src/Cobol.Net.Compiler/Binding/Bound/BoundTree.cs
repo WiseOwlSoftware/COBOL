@@ -167,6 +167,15 @@ public sealed record BoundReportSumRef(ReportModel Report, string Id, int Scale)
 /// referable only within its entry, §13.18.64.3 SR2).</summary>
 public sealed record BoundReportVaryingRef(string CsName) : BoundExpr;
 
+/// <summary>An OCCURS DEPENDING table's CURRENT extent (ISO §13.18.38 GR8 — "the rules of the OCCURS clause for a
+/// sending data item", which §15.50.4 r4b / §15.14.4 r2b invoke; kb/Work PB61): <paramref name="FixedWidth"/> plus
+/// data-name-1's value × <paramref name="ElemWidth"/>, the value clamped to [<paramref name="MinOccurs"/>,
+/// <paramref name="MaxOccurs"/>] with EC-BOUND-ODO set outside them (§13.18.38.4 GR7). A scale-0 integer,
+/// runtime-sourced from <paramref name="Depending"/> (data-name-1's place). Produced only by the LENGTH /
+/// BYTE-LENGTH variable-length-group builder; the backend renders <c>CobolTable.OdoExtent</c> — the SAME helper
+/// the group's sending image slices with, so the two extents cannot disagree.</summary>
+public sealed record BoundOdoExtent(Place Depending, int MinOccurs, int MaxOccurs, int FixedWidth, int ElemWidth) : BoundExpr;
+
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundExprError(string Feature) : BoundExpr;
 
@@ -230,6 +239,12 @@ public sealed record BoundIntrinsicCall(
     /// bit 1 = LAST (rule 3.b), bit 2 = ANYCASE (rule 5); 0 = replace ALL occurrences. <see cref="Args"/> holds
     /// [argument-1, from₁, to₁, from₂, to₂, …]; this list has one entry per pair. Null for every other function.</summary>
     public IReadOnlyList<int>? SubstituteModes { get; init; }
+
+    /// <summary>FUNCTION LENGTH measured in BYTES over the argument's storage image (kb/Work PB61): §15.50.4 r6
+    /// gives a DYNAMIC LENGTH elementary item its "current length … in bytes" — for a national item 2 × its
+    /// character positions — where every other LENGTH runtime shape is a character-position count over the string
+    /// image. The renderer's Length arm reads the storage channel when this is set.</summary>
+    public bool LengthInBytes { get; init; }
 
     /// <summary>CONCAT (§15.18.4 r3): the returned value is ALPHABETIC — argument-1 is usage display and every
     /// argument is class alphabetic (a PIC A item, or a nested CONCAT carrying this same rider). The RESULT

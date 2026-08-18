@@ -50,6 +50,12 @@ internal static class OperandText
         // into a numeric literal, which is why FUNCTION LENGTH printed and FUNCTION ORD threw.
         : op is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } nic }
             ? NumericIntrinsicText(num, nic, deSign)
+        // A function-identifier the binder FOLDED into an arithmetic sum — FUNCTION LENGTH / BYTE-LENGTH of a
+        // variable-length group is §15.50.4 r7's fixed-plus-dynamic-leaves sum (kb/Work PB61): still a numeric
+        // function's returned value in a string position, rendered in the same item-92 literal form. No general
+        // format admits a bare arithmetic expression here, so nothing else can reach this arm.
+        : op is BoundComputedOperand { Expr: BoundBinary } sum
+            ? NumericExprText(num, sum.Expr, deSign)
         // A bare figurative (HIGH-VALUE/LOW-VALUE/SPACE/…) in a DISPLAY/STRING/STOP value position is an
         // alphanumeric value (§8.3.3.6.4 GR1) of one character (GR3b). Materialize it through the declared collating
         // tables so HIGH-/LOW-VALUE is the runtime-collating extreme (§8.3.3.6.4 GR6/GR7), matching the MOVE and
@@ -76,9 +82,14 @@ internal static class OperandText
     /// relation (§8.8.4.2.5 routes it through the MOVE rules), INSPECT — gets the MAGNITUDE, exactly as a signed
     /// FIELD operand does via <see cref="FieldAsString"/>. Without this, a signed item and a function returning
     /// the same value rendered differently in identical statements.</para></summary>
-    private static string NumericIntrinsicText(NumericRenderer num, BoundIntrinsicCall ic, bool deSign)
+    private static string NumericIntrinsicText(NumericRenderer num, BoundIntrinsicCall ic, bool deSign) =>
+        NumericExprText(num, ic, deSign);
+
+    /// <summary>The item-92 text form of a numeric function-identifier's value, whatever bound shape the binder
+    /// left it in — the intrinsic call itself, or a fold's arithmetic sum (<see cref="AsString"/>).</summary>
+    private static string NumericExprText(NumericRenderer num, BoundExpr expr, bool deSign)
     {
-        NumX x = num.Render(ic, ReceiverContext.None);
+        NumX x = num.Render(expr, ReceiverContext.None);
         return x.Real ? RuntimeApi.FloatDisplay(x.Expr)
              : x.Dec ? RuntimeApi.DecFunctionText(x.Expr, deSign)
              : RuntimeApi.NumFormatFunctionText(x.Expr, x.Scale, deSign);

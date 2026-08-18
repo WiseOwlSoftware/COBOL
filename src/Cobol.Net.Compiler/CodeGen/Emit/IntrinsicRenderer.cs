@@ -246,7 +246,19 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                     + $"{(ic.Args.Count > 2 ? IntArg(ic, 2) : "0")}, {(ic.Anycase ? "true" : "false")}"), 0);
             case "Ord":                                                         // §15.70 — PCS-relative ordinal (H5: weights only when flagged)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{Collate(ic)}"), 0);
-            case "Length":                                                      // §15.50 runtime residue (nested string-fn argument)
+            case "Length":                                                      // §15.50 runtime shapes (kb/Work PB61)
+                // (A group with a runtime length — an OCCURS DEPENDING table, dynamic-length items or
+                // dynamic-capacity tables beneath it — never arrives here: the binder's VariableLengthGroupSum
+                // builds the §15.50.4 r4b/r7 expression, whose ODO part is a BoundOdoExtent.)
+                // r6 — a national DYNAMIC LENGTH item's CURRENT length in bytes (the storage image); every other
+                // runtime shape (a ref-mod view, an ANY LENGTH / dynamic-length alphanumeric item, a nested
+                // string-function result) is the character-position count over the string image.
+                if (ic.LengthInBytes && ic.Args[0] is BoundFieldOperand { Place: { } lp })
+                    return new NumX(RuntimeApi.Intrinsic("ByteLength", OperandText.AsStorageImage(lp)), 0);
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);
+            case "ByteLength":                                                  // §15.14 runtime shapes (kb/Work PB61)
+                if (ic.Args[0] is BoundFieldOperand { Place: { } bp })
+                    return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, OperandText.AsStorageImage(bp)), 0);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);
 
             // Date/time conversions (§15.22/24/46/47; integer date form §15.5.2).

@@ -255,6 +255,26 @@ public sealed partial class DataBinder
                     + "dynamic entry or a superordinate entry derives the initial capacity (ISO §13.18.63 GR16) — "
                     + "that derivation is not yet implemented");
 
+            // The register: an unsigned-integer VIEW over the table's Capacity (SR31) — a native-binary PicInfo so
+            // the numeric pipeline reads {tablePath}.Capacity (a long) as a scale-0 integer; no stored field. The
+            // implementor digit count is 10 (unsigned BinaryLong): the CobolDynTable implementor maximum,
+            // 0x3FFF_FFFF ≈ 1.07e9, fits in 10 digits (§8.5.1.9.1 — "a number of digits sufficient to hold the
+            // maximum"). Kept off ByName/Roots — reachable ONLY through CapacityRegisters (the resolver hook).
+            // ⛔ MINTED FOR EVERY DYNAMIC TABLE, NAMED ONLY WHEN `CAPACITY IN data-name-3` IS WRITTEN (kb/Work
+            // PB61): the view over the table's current capacity is what FUNCTION LENGTH / BYTE-LENGTH read for a
+            // variable-length group (§15.50.4 r7c / §15.14.4 r6c — "based on their current capacity"), whether or
+            // not the program gave the register a name. An unnamed register has no CobolName and no
+            // CapacityRegisters entry, so no COBOL reference can reach it.
+            var reg = new DataItem
+            {
+                Level = 49,
+                CsName = "__cap_" + item.CsName,
+                CobolName = spec.CapacityName,
+                Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
+                Uid = _uidCounter++,
+            };
+            spec.CapacityRegister = reg;
+
             if (spec.CapacityName is not { } capName) continue;
 
             // SR30 — data-name-3 is implicitly defined at the OCCURS entry, so it must not also be an explicit
@@ -266,21 +286,6 @@ public sealed partial class DataBinder
                     + "register (ISO §13.18.38 SR30)");
                 continue;
             }
-
-            // The register: an unsigned-integer VIEW over the table's Capacity (SR31) — a native-binary PicInfo so
-            // the numeric pipeline reads {tablePath}.Capacity (a long) as a scale-0 integer; no stored field. The
-            // implementor digit count is 10 (unsigned BinaryLong): the CobolDynTable implementor maximum,
-            // 0x3FFF_FFFF ≈ 1.07e9, fits in 10 digits (§8.5.1.9.1 — "a number of digits sufficient to hold the
-            // maximum"). Kept off ByName/Roots — reachable ONLY through CapacityRegisters (the resolver hook).
-            var reg = new DataItem
-            {
-                Level = 49,
-                CsName = "__cap_" + item.CsName,
-                CobolName = capName,
-                Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
-                Uid = _uidCounter++,
-            };
-            spec.CapacityRegister = reg;
             _capacityRegisters[capName] = item;
         }
     }

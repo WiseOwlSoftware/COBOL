@@ -52,7 +52,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **✅ PB58 CLOSED (DEVLOG 1295)** — the argument screen's predicate list (`ArgPredicate`: MinWidth/ExactWidth/
   DataItemOrLiteralOnly/NotStrongGroup), CONCAT's usage arm, the absent rows, the every-function-has-a-row drift
   guard; all 40 rows CONFORMS; GAP 4089.
-  **NEXT, in order:** ① PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
+  **✅ PB61 CLOSED (DEVLOG 1296, 2026-08-18)** — the LENGTH/BYTE-LENGTH folds enumerated from the §15.50.4 /
+  §15.14.4 rule branches (`LengthPositions`, the type-name argument, PHYSICAL on both routes), ONE
+  `VariableLengthGroupSum` for any runtime-length group (ODO extent as `BoundOdoExtent` + dynamic leaves +
+  `Capacity × element` — the capacity register now minted for every dynamic table), and §8.4.3.2.3 SR6 decided
+  from the definition BEFORE binding (`DefinitionPermitsArguments`; the catalog-driven
+  `FunctionRefModSr6SweepTests`); 10 CONFORMS + 4 PARTIAL (each naming its owner), GAP 4079. Two green tests that
+  held gaps open corrected (`StagedLoudResidue`, `r03` rows 13/14/17 → 0). REGISTERED: **PB79** (the GROUP-USAGE
+  clause does not parse — owns the bit/national-group legs) and **PB80** (a BASED ODO group is never wrapped as an
+  ODO operand — GR8 slicing and LENGTH r4a missing; measured wrong MOVE).
+  **⏳ Battery owed:** the PB58+PB61 batch touched shared seams (the argument screen, the LENGTH/BYTE-LENGTH
+  folds, `DataBinder.DynamicResolve`, `NumericRenderer`'s new node) — run `scripts/battery.sh` before the next
+  landing builds on it.
+  **NEXT, in order:** ① PB62 → PB63 → PB68 → PB69 → PB70 → PB71 → PB79 → PB80
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

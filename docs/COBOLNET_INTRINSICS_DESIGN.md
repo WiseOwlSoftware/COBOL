@@ -285,10 +285,65 @@ function can no longer be silently unscreened; the screen is fail-open by constr
 never rejected) and its leniency is `--permissive`'s. Pinned by `pb58_argument_predicates_legal` (the shapes that
 must NOT be rejected) and the `pb58-*` negatives (one per rule instance).
 
+### FUNCTION LENGTH (§15.50) and BYTE-LENGTH (§15.14): one fold per function, its arms enumerated from the RULE BRANCHES, and ONE builder for a group whose length is a runtime value (PB24 → PB43 → PB61).
+
+`IntrinsicBinder.BindLengthFamily` serves BOTH functions (`argument-1 [PHYSICAL]` — §15.50.2 / §15.14.2 — the
+keyword consumed by name; a bare word that names a level-1 TYPEDEF is a type-name argument, §15.50.3 r1 /
+§15.14.3 r1, resolved from `DataBinder.TypeDecls` because a typedef lives off the data-name namespace) and hands the
+operand to `BindLengthFold` / `BindByteLengthFold`, whose arms are the returned-value rules in order, never a list of
+shapes that happened to be met: a LITERAL folds to its own length (a zero-length literal is ZERO — §8.5.4 — no
+`Math.Max(1, …)`; national is 2 bytes/position under BYTE-LENGTH; the literal-class rules DIFFER — §15.50.3 r1
+admits a boolean literal, §15.14.3 r1 does not); a REF-MOD view rides the runtime string/storage channel (§8.4.3.3.4
+GR6 makes it a data item); a group whose length is a RUNTIME value — `HasRuntimeLength`: an OCCURS DEPENDING table
+(§15.50.4 r4b / §15.14.4 r2b), a dynamic-length elementary item or dynamic-capacity table (r7 / r6, the §8.5.1.12.1
+variable-length group) anywhere beneath it, in ANY combination — goes to the ONE `VariableLengthGroupSum`; an ANY
+LENGTH or DYNAMIC LENGTH elementary item is its current length (r6 makes it a BYTE count, so a national
+dynamic-length item reads the storage channel — `BoundIntrinsicCall.LengthInBytes`); an elementary BOOLEAN item is
+its boolean positions (r1 — a USAGE BIT item OCCUPIES ceil(n/8) bytes, D19); and every FIXED item is
+`LengthPositions` (r2 national positions for an elementary usage-national item; r3 "alphanumeric character
+positions" for everything else — an alphanumeric group, a DISPLAY/COMP/PACKED leaf, an INDEX/POINTER/COMP-1/COMP-2
+carrier — which under the 1-byte-per-position model IS `DataItem.ByteWidth`, the BYTE-LENGTH authority; the pinned
+per-usage widths are on `ByteWidth`'s doc and CONFORMANCE.md). A type-name argument with an ODO subordinate takes
+"the rules of the OCCURS clause for a receiving data item" (r4a → §13.18.38.4 GR8b, the MAXIMUM — the width the
+template already holds); a bit group / national group (GROUP-USAGE, §13.18.29) is not yet modelled — kb/Work PB79 —
+so every group is r3's alphanumeric group here.
+
+**`VariableLengthGroupSum` is one expression, in BYTES, from ONE width walk corrected for what it cannot know:**
+`ByteWidth` counts an ODO table at its MAXIMUM, a dynamic-capacity table as ONE occurrence and a dynamic-length leaf
+as zero, so the builder subtracts the first two and adds the runtime term for each — the ODO table's current extent
+as a `BoundOdoExtent` (data-name-1's value clamped to [integer-1, integer-2] with EC-BOUND-ODO outside, §13.18.38.4
+GR7 — the SAME `CobolTable.OdoExtent` the group's sending image slices with, so the two extents cannot disagree),
+each dynamic-length leaf's current byte length, and each dynamic-capacity table's `Capacity × element bytes` read
+through a `CapacityRegisterPlace` (the register is now minted for EVERY dynamic table and NAMED only under
+`CAPACITY IN` — `DataBinder.DynamicResolve`). Every subordinate's place is DERIVED from the group's own access path
+(a `MemberSegment` per level), so a subscripted or nested group sums correctly. The one shape it will not sum is
+NAMED, never miscounted: a runtime-length item INSIDE a table element (a per-occurrence loop; §15.50.4 r7c's "based
+on their current capacity" defines only the fixed-element case), and a bit-bearing group (its `ByteWidth` is the
+§8.5.1.6.3 layout, not a sum) — both a loud stage with the shape in the message. An ODO group inside a BASED entry
+or a REDEFINES-class record is never wrapped as an `OdoGroupPlace` by the resolver, so its r4 extent (and its GR8
+sending slice) is not applied — kb/Work PB80. PHYSICAL (§15.50.4 r8 / §15.14.4 r7) is accepted on both functions
+and transparent under COBOL.NET's determination that a group is physically located where it is defined
+(CONFORMANCE.md). Pinned by `pb61_length_byte_length_rule_branches` (one probe per rule branch, values derived in
+its header), `pb24_length_*`, `v59_length_agrees`, and the `pb61-*` negatives.
+
+**§8.4.3.2.3 SR6 is decided ONCE, from the function's DEFINITION, and BEFORE any argument binds** (`IntrinsicBinder.
+DefinitionPermitsArguments` / `Sr6ArgumentListError`, PB61 row SR-8.4.3.2.3-6): "if a function's definition permits
+arguments and a left parenthesis immediately follows … the left parenthesis is always treated as the left
+parenthesis of that function's arguments" — so `NAME (start:length)` on an argument-permitting intrinsic OR a
+REPOSITORY user function with USING formals (SR6 names function-prototype-name-1 too; §12.3.8.2 GR12 gives the user
+function precedence) is an ARGUMENT LIST holding a non-argument (SR8), reported COBOLNET1543 on every route: the
+FUNCTION-keyword form (`FUNCTION UPPER-CASE (1:4)` — the FNARG_LPAREN belongs to the refModPart, so the argument list
+is EMPTY and binding first reported the §15.3 arity error), the reserved-name keyword-omitted form (RANDOM/SIGN/SUM),
+and `KeywordOmittedFunction` (`UPPER-CASE (1:4)` under FUNCTION ALL INTRINSIC — it fell through the MinArgs guard to
+the data path and died "not defined"). `ResultRefMod` no longer carries an SR6 arm — a ref-mod that reaches it
+FOLLOWS an argument list or sits on a zero-argument function (`CURRENT-DATE (1:8)`, the standard's own D.14.3.6
+shape), and it applies §8.4.3.3.3 SR2 (class) only. `FunctionRefModSr6SweepTests` sweeps the CATALOG: every
+argument-permitting row in both forms draws 1543 (never 1504/1639), every zero-argument row does not.
+
 ## Edge cases
 
-- FUNCTION LENGTH of a reference-modified operand x(s:l) is runtime (= l), not a compile-time constant — fold only fixed operands; emit a runtime expression for x(s:l) and x(s:) (defined-size − s + 1).
-- FUNCTION LENGTH of a variable-length group (OCCURS DEPENDING ON) uses the current depending value (§15.50.4) — runtime, not the max.
+- FUNCTION LENGTH / BYTE-LENGTH of a reference-modified operand x(s:l) is a RUNTIME value over the view (§8.4.3.3.4 GR6 — the substring's own length; x(s:) ends where the item does); only fixed operands fold.
+- FUNCTION LENGTH / BYTE-LENGTH of a group with an OCCURS DEPENDING table, dynamic-length items or dynamic-capacity tables beneath it is `VariableLengthGroupSum` (above) — the CURRENT extent/lengths/capacities, never the maximum; a type-name with an ODO subordinate IS the maximum (§15.50.4 r4a).
 - MOVE ZERO to a numeric receiver = 0L; MOVE ZERO to an alphanumeric receiver = a '0'-filled string of the receiver width — same token, different materialization (must branch on receiver category).
 - ALL literal repeat-to-width-then-truncate (§8.3.3.6): ALL "AB" into a PIC X(5) = "ABABA" (repeat until ≥ width, truncate from the right), applied before any JUSTIFIED.
 - NUMVAL (§15.67), NUMVAL-C (§15.68), NUMVAL-F (§15.69) parse the spec-defined argument-1 content grammars. NUMVAL admits an optional leading sign (`+`/`-`) OR a trailing sign / `CR` / `DB`, a run of digits with an optional decimal separator; leading and trailing spaces are ignored, and embedded spaces are ignored only where they precede the first digit; a `CR`, `DB`, or minus sign makes the result negative (§15.67.3/§15.67.4). NUMVAL-C additionally admits a currency string and comma grouping separators — the currency string is argument-2 when supplied, else the SPECIAL-NAMES CURRENCY SIGN or the default currency sign (§15.68.3 r3) — and the returned value ignores the currency string and any grouping separators preceding the decimal separator (§15.68.4 r2). NUMVAL-F additionally admits an `E±n` exponent (one-to-four-digit exponent, §15.69.3). The period is the decimal separator; under DECIMAL-POINT IS COMMA the comma is the decimal separator (and, for NUMVAL-C, the period becomes the grouping separator). Under native arithmetic the total number of digits shall not exceed 31 (§15.67.3 r3 / §15.68.3 r6 / §15.69.3 r2). Each family's TEST- validator and value function are projections of ONE positional scan (`NvScan` / `NvfScan`, PB60) — the value path never pre-normalizes. Under the STANDARD modes the value is the scan lifted EXACTLY to the SDIDI at the parsed scale (`NumvalDec/NumvalCDec/NumvalFDec`, §15.4.1 + §15.67.4 r1 / §15.68.4 r1 / §15.69.4 r3); under NATIVE arithmetic NUMVAL/NUMVAL-C carry the item-92 working scale, and NUMVAL-F — whose native value §15.69.4 r2 makes an approximation — follows the float family: binary64 (`NumvalFDouble`) in a receiver-less or float-receiver context, the exact Int128 parse for a fixed arithmetic receiver or a MOVE sender (`ReceiverContext.MoveSender`). CONFORMANCE.md item 92 records the determination.

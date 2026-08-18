@@ -114,6 +114,10 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     public NumX Visit(BoundReportSumRef n) => new($"__RPT_{n.Report.CsIndex}.SumValue({EmitText.CsLiteral(n.Id)})", n.Scale);
     // A report VARYING counter read (ISO §13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.
     public NumX Visit(BoundReportVaryingRef n) => new(n.CsName, 0);
+    // An OCCURS DEPENDING table's current extent (ISO §13.18.38 GR8; the §15.50.4 r4b / §15.14.4 r2b channel,
+    // kb/Work PB61): CobolTable.OdoExtent over data-name-1's current count — scale 0, EC-BOUND-ODO inside.
+    public NumX Visit(BoundOdoExtent n) => new(RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(PlaceRenderer.Read(n.Depending)),
+        n.MinOccurs, n.MaxOccurs, n.FixedWidth, n.ElemWidth), 0);
     public NumX Visit(BoundBinary n)
     {
         // A binary node's CHILDREN are never the final transfer (a sub-expression operand), so they render with
