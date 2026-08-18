@@ -418,10 +418,19 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return (q, rem);
     }
 
+    /// <summary>Divide by 10^<paramref name="n"/> keeping the true remainder for the rounding decision. Past the
+    /// Int128 carrier (<paramref name="n"/> &gt; 38) the quotient is 0 and the value is a NONZERO remainder that is
+    /// strictly BELOW HALF a unit — the marker is <c>(0, ±1, 4)</c>, i.e. rem/den = ¼ carrying the value's sign.
+    /// ⛔ It was <c>(0, 1, 2)</c> — EXACTLY HALF — so <see cref="RoundFromRemainder"/>'s NEAREST arms treated a
+    /// value 10⁻⁴⁴ units below the target scale as a tie and lifted it to one unit: under STANDARD-DECIMAL
+    /// <c>COMPUTE R9 ROUNDED = 10 ** -20</c> stored 0.000000001 into <c>V9(9)</c> (§14.7.4.3 r4 — "the nearest value
+    /// that can be represented"; a tie is "two such values equally near", which this is not), and the unsigned
+    /// marker turned AWAY-FROM-ZERO / TOWARD-GREATER of a NEGATIVE value toward +∞. The 34-digit significand
+    /// makes the shape common (1/10²⁰ is 10³³×10⁻⁵³, 44 places below scale 9); kb/Work PB76.</summary>
     private static (Int128 Q, Int128 Rem, Int128 Den) DivRemPow10(Int128 v, int n)
     {
         Int128 den = Pow10.AsWide(Math.Min(n, 38));
-        if (n > 38) return (0, v == 0 ? 0 : 1, 2);   // far below precision: quotient 0, inexact marker
+        if (n > 38) return (0, v == 0 ? 0 : v < 0 ? -1 : 1, 4);   // far below precision: below-half inexact marker
         return (v / den, v % den, den);
     }
 
