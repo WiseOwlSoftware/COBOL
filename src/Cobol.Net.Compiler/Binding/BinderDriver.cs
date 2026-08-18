@@ -400,6 +400,16 @@ internal sealed class BinderDriver
                     if (anc.Data.IndexFields.TryGetValue(idxName, out string? field))
                         data.SeedInheritedGlobalIndex(idxName, field);
 
+        // Configuration-section + OPTIONS inheritance (ISO §12.3.4 GR1 / §11.9.4 GR1; §12.3.3 SR1 — a contained
+        // program cannot have its own configuration section): the WHOLE configuration-derived state of the
+        // container — SPECIAL-NAMES (DECIMAL-POINT, CURRENCY, classes, alphabets, switches), the PROGRAM
+        // COLLATING SEQUENCE, DEBUGGING MODE, the REPOSITORY specifiers — and the OPTIONS baseline, copied in
+        // BEFORE this unit binds so its first literal and PICTURE already see them (kb/Work PB60 /
+        // AR-15.67.3-5: only the REPOSITORY sets were inherited, after Bind, and a contained program under
+        // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0). One level suffices: the container inherited
+        // from ITS container before it bound (units bind container-first).
+        if (unit.Parent is not null) data.InheritConfiguration(unit.Parent.Data);
+
         data.Bind(unit.Ctx);
         unit.Data = data;
 
@@ -432,18 +442,6 @@ internal sealed class BinderDriver
             foreach (var f in anc.Data.Files)
                 if (f.IsGlobal)
                     data.FilesByName.TryAdd(f.CobolName, f);
-
-        // Configuration-section inheritance (ISO §12.3.4 GR1: "the entries explicitly or implicitly
-        // specified in the configuration section of a source unit that contains other source units apply to
-        // each directly or indirectly contained source unit"; §12.3.3 SR1 — a contained program cannot have
-        // its own): the containers' REPOSITORY user-function specifiers apply here, so a contained program's
-        // FUNCTION reference resolves (the M2-UDF-1 review finding).
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            data.UserFunctionNames.UnionWith(anc.Data.UserFunctionNames);
-            data.RepositoryIntrinsics.UnionWith(anc.Data.RepositoryIntrinsics);   // §12.3.4 GR1 — the intrinsic keyword-omission specifiers inherit too (M2-UDF-4)
-            if (anc.Data.RepositoryAllIntrinsic) data.RepositoryAllIntrinsic = true;
-        }
 
         int depth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)

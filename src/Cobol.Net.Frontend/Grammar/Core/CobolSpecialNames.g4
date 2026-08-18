@@ -79,8 +79,13 @@ classDefinitionClause
     : CLASS cobolWord IS? classValueSet (FOR (ALPHANUMERIC | NATIONAL))? (IN cobolWord)?
     ;
 
+// { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (ISO §12.3.7.2's diagram carries its own ellipsis
+// on the group; the comma is the optional separator it is everywhere). `(COMMA x)*` REQUIRED a comma between
+// groups and rejected `CLASS HEXDIG IS "0" THRU "9" "A" THRU "F"` — legal COBOL at every edition (kb/Work PB60's
+// configuration-inheritance golden surfaced it, 2026-08-17; the OO in-line invocation's argumentList had the
+// same shape and was swept in the same change).
 classValueSet
-    : classValueItem (COMMA classValueItem)*
+    : classValueItem (COMMA? classValueItem)*
     ;
 
 classValueItem

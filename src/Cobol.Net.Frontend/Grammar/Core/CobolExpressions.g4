@@ -453,8 +453,10 @@ functionName
     | SUM
     ;
 
+// The in-line method invocation's arguments (CobolOO.g4) — juxtaposed like every COBOL argument list; the comma
+// is the optional separator (the same `SEPARATOR?` shape functionArgList uses). Swept with classValueSet.
 argumentList
-    : argument (COMMA argument)*
+    : argument (COMMA? argument)*
     ;
 
 argument

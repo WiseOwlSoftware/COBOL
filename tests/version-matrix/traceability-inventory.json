@@ -11120,12 +11120,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "OPTIONS paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#Bind; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration",
+  "test-ref": "conformance:2023/pb60_nested_configuration_inheritance",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.67.3-5). The OPTIONS clauses of a source element apply to all contained source elements unless overridden by a clause in a contained element's own OPTIONS paragraph: OptionsBinder.Bind now takes the container's model as the BASELINE (InheritConfiguration hands it over) and applies the containee's clauses on top, clause by clause. Golden legs: ARITH (the inner program without OPTIONS inherits ARITHMETIC IS STANDARD-DECIMAL — 2/7*7 = 2,000000 in SDIDI arithmetic where native gives 1,999999) and ARITH2 (a second inner program's own OPTIONS. ARITHMETIC IS NATIVE. overrides — 1,999999). Below 2002 the paragraph is inert (the pass's introduction gate), so a contained program's baseline is simply its container's defaults there.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.5.2-1",
@@ -11692,12 +11692,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "Configuration section",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindDeclarations; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ConfigurationSectionInContainedProgram",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.67.3-5). A CONFIGURATION SECTION in a program contained within another program is diagnosed — COBOLNET1643 (catalogued descriptor), at every edition (X3.23-1985 carried the same restriction; no Annex E change) — after which the section is still walked so a second diagnostic never masks this one; the container's configuration applies (GR-12.3.4-1). Before this the containee's own section was silently bound locally. Negative fixture tests/conformance/negative/config-section-in-contained-program (reject-at 85 2002 2014 2023).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.3-2",
@@ -11731,12 +11731,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Configuration section",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration; src/Cobol.Net.Compiler/Binding/BinderDriver.cs#BindUnitData; src/Cobol.Net.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of",
+  "test-ref": "conformance:2023/pb60_nested_configuration_inheritance; conformance:85/nested_special_names_inheritance",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.67.3-5). The container's configuration section applies to each directly or indirectly contained program: DataBinder.InheritConfiguration copies the whole configuration-derived state (SPECIAL-NAMES — DECIMAL-POINT IS COMMA, CURRENCY SIGN, CLASS names, ALPHABETs, switch mnemonics and status condition-names; OBJECT-COMPUTER's PROGRAM COLLATING SEQUENCE; SOURCE-COMPUTER's DEBUGGING MODE; the REPOSITORY function/intrinsic/property specifiers) into every containee before it binds; the device-name mnemonics (Format 4, DISPLAY UPON / ACCEPT FROM) were already inherited by MnemonicRegistry's enclosing-unit walk — a second, tree-walking mechanism for the same rule, correct today and noted for folding into InheritConfiguration when the environment division gets a bound model. Implicit entries (the implied CURRENCY SIGN '$', the native alphabet) inherit as the defaults. Goldens: the 2023 one (six SPECIAL-NAMES/OBJECT-COMPUTER legs through a contained program, plus OPTIONS) and the 85 one (the edition-invariant five).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.5.3-1",
@@ -46805,12 +46805,12 @@
   "kind": "AR",
   "ordinal": 5,
   "subject": "NUMVAL function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#CommaFlag; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#DecimalPointIsComma; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Numval",
-  "test-ref": "",
-  "editions": "",
-  "notes": "REFUTED: CONFORMS -> DIVERGES. The adjudication probed exactly one shape -- a single outermost program carrying its own SPECIAL-NAMES -- and declared the rule closed. It fails in every CONTAINED program. §12.3.4 GR1: 'The entries explicitly or implicitly specified in the configuration section of a source unit that contains other source units apply to each directly or indirectly contained source unit', and §12.3.3 SR1 forbids a contained program from having a configuration section of its own, so a contained program CANNOT restate DECIMAL-POINT IS COMMA and is entitled to inherit it. COBOL.NET does not propagate it: DataBinder.Switches.cs#DecimalPointIsComma is a per-source-unit property set only where the clause is textually bound, IntrinsicRenderer.CommaFlag reads `ctx.Data.DecimalPointIsComma` for the unit being emitted, and a contained program's DataBinder never sees the containing unit's clause. The result is precisely the leniency the adjudication argued the outer program does NOT have: inside a contained program, NUMVAL rejects the comma and ACCEPTS the period -- the substitution required by r5 is reversed. The mechanism is not NUMVAL-specific (the same run shows a contained program rejecting the numeric literal `123,45` with COBOLNET0895), so the ROOT CAUSE is a §12.3.4 GR1 configuration-section scoping defect outside §15.67; but the observable §15.67.3 r5 behaviour is non-conforming and this row cannot read CONFORMS while it is. The outermost-program behaviour the adjudication verified is correct and is retained. The row is also UNTESTED: no spec-derived test exercises NUMVAL under DECIMAL-POINT IS COMMA (DecimalPointDifferentialTests.cs carries no NUMVAL case; TestNumvalScannerTests covers §15.93, not §15.67). EDITIONS EMPTY: see AR-15.67.3-3's note. EVIDENCE: Probe E:/Temp/rfnv/rfnv06.cob (RFNVW06 with `SPECIAL-NAMES. DECIMAL-POINT IS COMMA.` containing RFNVW06I, --std 2023), receivers PIC S9(9)V9(6): OUTER-COMMA `NUMVAL(\"123,45\")` = 00000012345000{ (=+123.450000) in the containing program; in the CONTAINED program INNER-COMMA `NUMVAL(\"123,45\")` = 00000000000000{ (=0, rejected) and INNER-PERIOD `NUMVAL(\"123.45\")` = 00000012345000{ (=+123.450000, accepted) -- the exact inversion of r5. Probe rfnv09.cob (RFNVW09/RFNVW09I) shows the same root cause outside NUMVAL: `MOVE 123,45 TO R` compiles in the containing program, while the identical statement in the contained program fails with `error COBOLNET0895: numeric literal '123,45': a comma decimal separator requires DECIMAL-POINT IS COMMA`. RETAINED: pbnv05.cob (outermost program) COMMA -> +123.450000, PERIOD -> 0; pbnv01.cob (no clause) \"123.45\" -> +123.450000. Citations checked: `cite.py --check 15.67.3 \"When the DECIMAL-POINT IS COMMA clause is specified, the character comma shall be used in argument-1 instead of the character period\"` -> OK §15.67.3 5); `cite.py --check 12.3.4 \"The entries explicitly or implicitly specified in the configuration section of a source unit that contains other source units apply to each directly or indirectly contained source unit.\"` -> OK §12.3.4 1).",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration; src/Cobol.Net.Compiler/Binding/BinderDriver.cs#BindUnitData; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindDecimalPoint; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#CommaFlag",
+  "test-ref": "conformance:2023/pb60_nested_configuration_inheritance; conformance:85/nested_special_names_inheritance",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (PB60 — the containment-scoping row). §15.67.3 r5 (comma as NUMVAL's decimal separator under DECIMAL-POINT IS COMMA) held in the outermost program and INVERTED in every contained one, because DataBinder.Switches#DecimalPointIsComma was per-source-unit and only the REPOSITORY sets were inherited. §12.3.4 GR1 makes the containing unit's configuration section apply to each contained unit and §12.3.3 SR1 forbids the containee its own, so the fix is the WHOLE configuration-derived state inherited through ONE DataBinder.InheritConfiguration(container) — DECIMAL-POINT, CURRENCY SIGN, CLASS names, ALPHABETs, switch mnemonics/conditions, the PROGRAM COLLATING SEQUENCE, DEBUGGING MODE, the REPOSITORY specifiers — called by BinderDriver.BindUnitData BEFORE the containee binds (its first literal/PICTURE already see the switches; units bind container-first, so one level carries the ancestry), plus §11.9.4 GR1's OPTIONS baseline (OptionsBinder.Bind(program, edition, baseline) — clause-by-clause override). Measured after (the sweep's p02b shape): inside the contained program NUMVAL(\"123,45\") = 123.45 and NUMVAL(\"123.45\") = 0 (golden legs NV/NVP), the comma numeric literal and comma-decimal PICTURE, the '#' currency, the CLASS, the reversed PCS and the switch all inherited (2023 + 85 goldens), ARITHMETIC IS STANDARD-DECIMAL inherited (2/7*7 = 2,000000) and overridden by an inner OPTIONS (1,999999). §12.3.3 SR1 is now diagnosed (COBOLNET1643, negative config-section-in-contained-program, all four editions). Version-invariant.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.67.4-1",

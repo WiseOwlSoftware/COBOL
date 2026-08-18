@@ -795,6 +795,18 @@ public static class DiagnosticCatalog
     // §7.2.4.2 general format admits pseudo-text/partial-word operands only, and §7.2.4.3 SR7 bars literals
     // as partial-words explicitly. Emitted by CopyProcessor.ApplyReplaceStatements via the same
     // NoteNonPseudoText hook the COPY gate rides — one detector, two rules, each cited at its own site.
+    // §12.3.3 SR1 — a contained program has NO configuration section of its own: the container's applies to it
+    // (§12.3.4 GR1), which is why DataBinder.InheritConfiguration copies the whole configuration-derived state
+    // into every containee before it binds (kb/Work PB60 / AR-15.67.3-5 — a contained program under
+    // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0 and NUMVAL("123.45") as 123.45).
+    public static readonly DiagnosticDescriptor ConfigurationSectionInContainedProgram = new(
+        "COBOLNET1643", "configuration-section-in-contained-program", EditionSeverity.Error,
+        "A CONFIGURATION SECTION is specified in a program that is contained within another program. ISO "
+        + "§12.3.3 SR1: \"The configuration section shall not be specified in a program that is contained within "
+        + "another program\" — the containing program's configuration section (SPECIAL-NAMES, OBJECT-COMPUTER, "
+        + "SOURCE-COMPUTER, REPOSITORY) applies to every directly or indirectly contained program (§12.3.4 GR1). "
+        + "Move the entries to the outermost program.",
+        "ISO §12.3.3 SR1 / §12.3.4 GR1");
     public static readonly DiagnosticDescriptor ReplaceOperandNotPseudoText = new(
         "COBOLNET1641", "replace-operand-not-pseudo-text", EditionSeverity.Error,
         "A REPLACE statement operand is not pseudo-text. REPLACE's general format (§7.2.4.2) admits "

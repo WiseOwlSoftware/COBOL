@@ -22,20 +22,24 @@ internal static class OptionsBinder
     /// apply. The 2014-only clauses (DEFAULT ROUNDED, INTERMEDIATE ROUNDING, ENTRY-CONVENTION, FLOAT-BINARY/
     /// -DECIMAL, INITIALIZE; the STANDARD-BINARY/-DECIMAL keywords) carry per-clause 2014 rows in the pass
     /// (P10 Step 12) — a strict 2002 compile fails on those diagnostics before the bound model matters.</summary>
-    public static OptionsModel Bind(Core.ProgramUnitContext program, EditionContext? edition = null)
+    /// <param name="baseline">The model the unit's clauses override — a contained program's CONTAINER model
+    /// (ISO §11.9.4 GR1: the container's clauses apply "unless overridden by a clause in an OPTIONS paragraph in
+    /// a contained source element"), null for an outermost unit (the all-defaults model).</param>
+    public static OptionsModel Bind(Core.ProgramUnitContext program, EditionContext? edition = null, OptionsModel? baseline = null)
     {
+        var start = baseline ?? OptionsModel.Default;
         var paragraphs = program.identificationDivision()?.identificationBody()?.identificationParagraph();
-        if (paragraphs is null) return OptionsModel.Default;
+        if (paragraphs is null) return start;
 
         var options = paragraphs.Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null);
-        if (options is null) return OptionsModel.Default;
+        if (options is null) return start;
 
         // options-paragraph-2002: the pass owns the edition gate (Exec Step E); below 2002 the paragraph is
-        // routed INERT (Default) — the strict compile fails on the pass's diagnostic before the model matters.
+        // routed INERT (the baseline) — the strict compile fails on the pass's diagnostic before the model matters.
         if (edition is { DialectLevel: < 2002 })
-            return OptionsModel.Default;
+            return start;
 
-        var model = OptionsModel.Default;
+        var model = start;
         foreach (var clause in options.optionsClause())
             model = Apply(model, clause, edition);
         return model;

@@ -122,6 +122,54 @@ public sealed partial class DataBinder
         return anyDigit ? NormalizeNumericLiteral(text) : text;
     }
 
+    /// <summary>The OPTIONS baseline a contained program starts from — its container's model (ISO §11.9.4 GR1:
+    /// "The clauses in the OPTIONS paragraph apply to the source element in which they are specified and to all
+    /// source elements contained in that source element unless overridden by a clause in an OPTIONS paragraph in
+    /// a contained source element"). Null for an outermost unit (the all-defaults model).</summary>
+    private OptionsModel? _inheritedOptions;
+
+    /// <summary>
+    /// ⛔ ISO §12.3.4 GR1 — "The entries explicitly or implicitly specified in the configuration section of a
+    /// source unit that contains other source units apply to each directly or indirectly contained source unit"
+    /// — and §12.3.3 SR1 forbids the containee a configuration section of its own, so a contained program CANNOT
+    /// restate DECIMAL-POINT IS COMMA, CURRENCY SIGN, a CLASS, an ALPHABET, the PROGRAM COLLATING SEQUENCE or a
+    /// switch and is entitled to inherit every one of them. Called by <c>BinderDriver.BindUnitData</c> for every
+    /// contained unit BEFORE <see cref="Bind"/> (the SPECIAL-NAMES state must be in place before the containee's
+    /// first literal or PICTURE binds); the container itself inherited from ITS container first (units bind
+    /// container-first), so one level carries the whole ancestry. ONE method, the WHOLE configuration-derived
+    /// state (feedback_model_the_rule_shape_not_one_case): before this landed only the REPOSITORY sets were
+    /// inherited, and inside a contained program of a DECIMAL-POINT IS COMMA unit NUMVAL("123,45") valued 0
+    /// while NUMVAL("123.45") valued 123.45 — the exact inversion of §15.67.3 r5, with no diagnostic
+    /// (kb/Work PB60 / AR-15.67.3-5). §11.9.4 GR1's OPTIONS inheritance rides the same call.
+    /// <para>⚠ One sibling still lives elsewhere: the Format-4 device-name mnemonics (DISPLAY UPON / ACCEPT FROM)
+    /// inherit through <c>MnemonicRegistry.Of</c>'s enclosing-unit PARSE-TREE walk — correct, but a second
+    /// mechanism for the same rule; fold it in here when the environment division gets a bound model.</para>
+    /// </summary>
+    internal void InheritConfiguration(DataBinder container)
+    {
+        // SPECIAL-NAMES (§12.3.7)
+        DecimalPointIsComma = container.DecimalPointIsComma;
+        CurrencyPicSymbol = container.CurrencyPicSymbol;
+        CurrencyString = container.CurrencyString;
+        foreach (var (k, v) in container.SwitchMnemonics) SwitchMnemonics.TryAdd(k, v);
+        foreach (var (k, v) in container.SwitchConditions) SwitchConditions.TryAdd(k, v);
+        foreach (var (k, v) in container.UserClasses) UserClasses.TryAdd(k, v);
+        foreach (var (k, v) in container.Alphabets) Alphabets.TryAdd(k, v);
+        foreach (var (k, v) in container.NationalAlphabets) NationalAlphabets.TryAdd(k, v);
+        // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§12.3.6 GR9–GR11)
+        Collating = container.Collating;
+        NationalCollating = container.NationalCollating;
+        // SOURCE-COMPUTER … WITH DEBUGGING MODE (the '85 compile-time switch)
+        DebuggingModeDeclared = container.DebuggingModeDeclared;
+        // REPOSITORY (§12.3.8) — the M2-UDF-1/-4 inheritance, now here with its siblings
+        UserFunctionNames.UnionWith(container.UserFunctionNames);
+        RepositoryIntrinsics.UnionWith(container.RepositoryIntrinsics);
+        if (container.RepositoryAllIntrinsic) RepositoryAllIntrinsic = true;
+        OoRepositoryProperties.UnionWith(container.OoRepositoryProperties);
+        // OPTIONS (§11.9.4 GR1) — the containee's own OPTIONS paragraph overrides clause by clause at Bind.
+        _inheritedOptions = container.Options;
+    }
+
     /// <summary>Bind <c>DECIMAL-POINT IS COMMA</c> (ISO §12.3.7 — the only word the format admits after IS is
     /// COMMA; the grammar carries it as a generic IDENTIFIER).</summary>
     private void SwitchBindDecimalPoint(Core.DecimalPointClauseContext dp)

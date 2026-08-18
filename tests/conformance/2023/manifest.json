@@ -125,6 +125,7 @@
   "pb5_float_quantize_range",
   "pb60_numval_one_scan",
   "pb60_numval_standard_decimal",
+  "pb60_nested_configuration_inheritance",
   "pb60_numvalf_native_channels",
   "pb65_boolean_wide",
   "pb65_codomain_clamp",

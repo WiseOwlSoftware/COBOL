@@ -25,9 +25,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 ### Where we are
 
 - **▶ SESSION HANDOFF (2026-08-17 — the live resume point):**
-  **Battery:** the last comprehensive battery is the 08-09 one on `0c9c4ce9` (ALL GREEN, §9); this session's
-  landings ride WAVE-LOCAL gates so far — a battery is owed once the accumulated batch (PB60 SDIDI branch +
-  PB76 + PB74) is in, before the next shared-seam move.
+  **✅ Battery:** the four-landing batch (DEVLOG 1289–1292) measured `=== BATTERY: ALL GREEN ===` on
+  `f58c7547` (Conformance 4372/4372 · Unit 4164/4164 · NIST 353/0 audit-clean · differential 0 flips) — the §9
+  reference. No gate is owed; the next landings ride wave-local until the next shared-seam batch.
   **LANDED THIS SESSION (DEVLOG 1289–):** PB60 at **11 of 13** — the SDIDI Dec branch (RV-15.67.4-1(a) and
   the reassigned NUMVAL-F twin RV-15.69.4-3 → CONFORMS; GAP 4145 → 4143): the NUMVAL family's standard-mode
   value is the one scan lifted exactly to `CobolDec` (`NumvalDec/NumvalCDec/NumvalFDec`, `RenderDec`'s
@@ -42,9 +42,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **✅ PB60's RV-15.69.4-2 LANDED (DEVLOG 1292)** — native NUMVAL-F joins the float family (binary64 where no
   scale governs; the exact parse for a fixed receiver or a MOVE sender — new `ReceiverContext.MoveSender`);
   PB60 at 13 of 15 listed rows; PB77 registered (the MOVE sentinel leak, float family too).
-  **NEXT, in order:** ① the battery for the batch (PB60 SDIDI + PB76 + PB74 + PB60 native NUMVAL-F — shared
-  runtime seams: CobolDec's transfer, the NUMVAL scans, ReceiverContext) → ② PB60's last two rows (the CURRENCY SIGN SET
-  model; DECIMAL-POINT IS COMMA containment scoping) → ③ PB58 → PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
+  **✅ PB60's AR-15.67.3-5 LANDED (DEVLOG 1293)** — `DataBinder.InheritConfiguration` (the whole configuration
+  + OPTIONS baseline into every containee, §12.3.4 GR1 / §11.9.4 GR1; COBOLNET1643 for §12.3.3 SR1); PB60 at
+  14 of 15; GAP 4138. PB78 registered (OBJECT-COMPUTER's optional computer-name — an edition question).
+  **NEXT, in order:** ① PB60's last row (the CURRENCY SIGN SET model, AR-15.68.3-3 — the apply plan's §2)
+  → ② PB58 → PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
@@ -1343,7 +1345,16 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB60-batch tree `0c9c4ce9` (2026-08-09 21:34).**
+- **⛔ BATTERY REFERENCE — CURRENT, the 2026-08-17 four-landing tree `f58c7547` (2026-08-17 22:12).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
+  `scratchpad/battery-1` of session 29c20a89): FULL greenfield Conformance **4372 / 4372, zero skipped**
+  (10 m 54 s) · greenfield Unit **4164 / 4164** · characterization **33 / 33** · `guard-fast`
+  **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential
+  **`0 PER-CASE FLIP(S)`** (1323 cases: 580/466/197/80). Covers the four landings of DEVLOG 1289–1292 —
+  the shared runtime seams they moved: `CobolDec`'s final transfer (`ToUnscaledChecked`, the remainder
+  marker, `FromParsed`), the NUMVAL scans' new projections, `RenderDec`'s NUMVAL arm, `ReceiverContext`'s
+  `MoveSender` discriminator, and the three PROHIBITED EC names.
+- **⛔ PRIOR BATTERY REFERENCE — the PB60-batch tree `0c9c4ce9` (2026-08-09 21:34).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-20260809-211701`): FULL greenfield Conformance **4367 / 4367, zero skipped**
   (12 m 39 s) · greenfield Unit **4124 / 4124** · characterization **33 / 33** · `guard-fast`

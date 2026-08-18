@@ -284,7 +284,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// like program data).</summary>
     internal void BindDeclarations(Core.ProgramUnitContext program)
     {
-        Options = OptionsBinder.Bind(program, Edition);   // captured even when there is no WORKING-STORAGE
+        // §11.9.4 GR1: a contained program's OPTIONS start from its container's model and override clause by
+        // clause (InheritConfiguration set the baseline); an outermost unit starts from the all-defaults model.
+        Options = OptionsBinder.Bind(program, Edition, _inheritedOptions);   // captured even when there is no WORKING-STORAGE
+
+        // §12.3.3 SR1: "The configuration section shall not be specified in a program that is contained within
+        // another program" — the container's applies (§12.3.4 GR1, InheritConfiguration). Diagnosed, then the
+        // section is still walked below so a second diagnostic never masks this one.
+        if (UnitIsContained && EnvDivisions(program).Any(env => env.configurationSection() is not null))
+            Edition.Error(DiagnosticCatalog.ConfigurationSectionInContainedProgram,
+                "a CONFIGURATION SECTION is specified in a program contained within another program; the "
+                + "containing program's configuration section applies to it (ISO §12.3.3 SR1 / §12.3.4 GR1)");
 
         // ARITHMETIC mode validity (§11.9.5 / §8.8.1): NATIVE, STANDARD-DECIMAL, and plain STANDARD are
         // implemented. STANDARD arithmetic (the 2002 mode; obsolete 2014, removed 2023 — Annex E.2 item 21)
