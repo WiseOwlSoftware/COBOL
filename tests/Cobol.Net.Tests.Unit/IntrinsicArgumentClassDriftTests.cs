@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using CobolNet.Binding;
 using CobolNet.Tests.Shared;
 using Xunit;
 
@@ -277,5 +278,23 @@ public sealed class IntrinsicArgumentClassDriftTests
                 + "then record the decision here.");
         // The usage-keyed arm itself exists (the source-form half, same style as the rest of this suite).
         Assert.Matches(new Regex(@"Usage:\s*Usage\.Index\s*\}\s*\)\s*return\s+CobolClass\.Index"), RulesSource());
+    }
+
+    /// <summary>kb/Work PB58 — the "absent row" class of gap dies structurally: EVERY catalogued function has a
+    /// row in <c>Verified</c> (a screened schema) or in <c>DeliberatelyUnscreened</c> (a read rule with the reason
+    /// it is not a class screen). Before this, six functions (the date family, NUMVAL, NUMVAL-F) had neither, and
+    /// <c>CheckArgumentClasses</c> returned at its <c>TryGetValue</c> guard for them — no rule enforced, and
+    /// nothing to say so.</summary>
+    [Fact]
+    public void EveryCataloguedFunction_HasARow()
+    {
+        var catalog = CatalogRows().Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var missing = catalog
+            .Where(n => !IntrinsicArgumentRules.Verified.ContainsKey(n) && !IntrinsicArgumentRules.DeliberatelyUnscreened.ContainsKey(n))
+            .Order()
+            .ToList();
+        Assert.True(missing.Count == 0,
+            $"catalogued function(s) with NO argument-rule row and NO DeliberatelyUnscreened reason: [{string.Join(", ", missing)}] — "
+            + "read the function's §15.x.3 argument rule, cite it, and add its row (or its reason).");
     }
 }

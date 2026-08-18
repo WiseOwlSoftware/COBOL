@@ -32,6 +32,9 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 W-N  PIC 9(7) VALUE 0.
+       01 W-WD PIC X(8).
+       01 W-WD10 PIC X(10).
+       01 W-WD23 PIC X(22).
        01 W-T  PIC 9(2) VALUE 0.
        01 W-S  PIC 9(5) VALUE 0.
        01 W-F  PIC 9(5).99 VALUE 0.
@@ -48,21 +51,25 @@
       *> The LAST representable week date: 9999-W52-5 = 9999-12-31 = 3,067,671,
       *> which is 15.5.2's stated maximum exactly. No EC.
            DISPLAY "1-W52-5-LAST-REPRESENTABLE".
-           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYWwwD" "9999W525")
+           MOVE "9999W525" TO W-WD.
+           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYWwwD" W-WD)
                TO W-N.
            DISPLAY "  " W-N.
       *> The two days past it. Each raises; RESUME leaves W-N untouched, so the
       *> printed value is still the previous one - CAUGHT is the assertion.
            DISPLAY "2-W52-6-NO-INTEGER-DATE-FORM".
-           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYWwwD" "9999W526")
+           MOVE "9999W526" TO W-WD.
+           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYWwwD" W-WD)
                TO W-N.
            DISPLAY "3-W52-7-NO-INTEGER-DATE-FORM".
-           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYWwwD" "9999W527")
+           MOVE "9999W527" TO W-WD.
+           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYWwwD" W-WD)
                TO W-N.
       *> The extended week format reaches the same arithmetic - a second format,
       *> not a second defect, and it crashed identically before the fix.
            DISPLAY "4-EXTENDED-FORMAT-SAME".
-           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYY-Www-D" "9999-W52-7")
+           MOVE "9999-W52-7" TO W-WD10.
+           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYY-Www-D" W-WD10)
                TO W-N.
       *> TEST-FORMATTED-DATETIME says VALID for the very value that has no integer
       *> date form. A CAUGHT here would mean the wrong-stage reading won.
@@ -83,11 +90,13 @@
       *> INTEGER-OF-FORMATTED-DATE still raises for genuinely INVALID data - the
       *> other arm of the same function, so the new arm did not displace it.
            DISPLAY "8-INVALID-WEEK-STILL-RAISES".
-           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYWwwD" "9999W531")
+           MOVE "9999W531" TO W-WD.
+           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYWwwD" W-WD)
                TO W-N.
       *> The calendar path's own maximum, as the control: same 3,067,671, no EC.
            DISPLAY "9-CALENDAR-MAX-CONTROL".
-           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYMMDD" "99991231")
+           MOVE "99991231" TO W-WD.
+           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYMMDD" W-WD)
                TO W-N.
            DISPLAY "  " W-N.
       *> THE STANDARD'S OWN WORKED EXAMPLES (Annex D.31.5.8 / D.31.5.9), which no
@@ -99,12 +108,14 @@
       *> it is exactly the leg that faulted, since a purely TIME-side question was
       *> computing a date.
            DISPLAY "10-D31.5.8-DATE-ONLY".
-           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYMMDD" "19950215")
+           MOVE "19950215" TO W-WD.
+           MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYMMDD" W-WD)
                TO W-N.
            DISPLAY "  " W-N.
            DISPLAY "11-D31.5.8-COMBINED-SAME".
+           MOVE "19950215T05142781+0500" TO W-WD23.
            MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYYMMDDThhmmss.ss+hhmm"
-               "19950215T05142781+0500") TO W-N.
+               W-WD23) TO W-N.
            DISPLAY "  " W-N.
            DISPLAY "12-D31.5.9-TIME-ONLY".
            MOVE FUNCTION SECONDS-FROM-FORMATTED-TIME("hhmmss.ss+hhmm"

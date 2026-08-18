@@ -80,7 +80,48 @@ internal enum CobolClass
 /// argument-1 is one ordinal of two; STANDARD-COMPARE names two ordinals and not its third.
 /// </para>
 /// </param>
-internal readonly record struct ArgRule(char Kind, string Clause, string? NoZeroLengthClause = null);
+internal readonly record struct ArgRule(char Kind, string Clause, string? NoZeroLengthClause = null)
+{
+    /// <summary>The position's predicates BEYOND its class kind (kb/Work PB58): each is a rule of a different
+    /// SHAPE than "shall be of class X" that the §15.x.3 argument rules state and a class column structurally
+    /// could not carry — a minimum or exact WIDTH in character positions, an operand-SHAPE restriction, the
+    /// strongly-typed-group exclusion — each with the clause it was read from. Empty for the ordinary row.
+    /// <see cref="NoZeroLengthClause"/> predates the list (PB35) and stays as it is; a second boolean-with-clause
+    /// would have been the second copy of the same idea, so the list is the general form and the older field
+    /// the one instance that was already written down.</summary>
+    public ArgPredicate[] Predicates { get; init; } = [];
+}
+
+/// <summary>The KINDS of per-position predicate a §15.x.3 argument rule states beyond the operand's class
+/// (kb/Work PB58 — the sweep measured five predicate kinds the class column could not carry; four are
+/// per-position and live here, the fifth is <see cref="CrossArgRule"/>).</summary>
+internal enum ArgPredicateKind
+{
+    /// <summary>"shall be at least N character positions in length" (§15.57.3 r1 / §15.97.3 r1 / §15.78.3 r1's
+    /// second half). Decided only where the operand's width is STATIC (a literal, a fixed item, a literal-length
+    /// reference modification); a runtime-width operand fails open.</summary>
+    MinWidth,
+    /// <summary>"shall be [exactly] N character position(s) in length" (§15.70.3 r1's "one character position",
+    /// §15.96.3 r2's "a single character"). Same static-width discipline as <see cref="MinWidth"/>.</summary>
+    ExactWidth,
+    /// <summary>"shall be an integer data item or integer literal" (§15.37.3 r3) — NARROWER than §15.3 type 6:
+    /// an arithmetic expression or a nested function is barred outright, whatever it evaluates to.</summary>
+    DataItemOrLiteralOnly,
+    /// <summary>"nor shall it be a strongly-typed group item" (§15.59.3 r1 / §15.63.3 r1 / §15.71.3 r1 /
+    /// §15.72.3 r1) — a group whose TYPE is STRONG (<c>StrongTypeModel.IsStrongGroup</c>); §15.3 item 2 treats
+    /// every OTHER strongly-typed group as an alphanumeric argument, which is why this cannot be a class.</summary>
+    NotStrongGroup,
+}
+
+/// <summary>One per-position predicate: its <see cref="Kind"/>, the clause it was read from, and the width
+/// operand for the width kinds.</summary>
+internal readonly record struct ArgPredicate(ArgPredicateKind Kind, string Clause, int N = 0)
+{
+    public static ArgPredicate MinWidth(int n, string clause) => new(ArgPredicateKind.MinWidth, clause, n);
+    public static ArgPredicate ExactWidth(int n, string clause) => new(ArgPredicateKind.ExactWidth, clause, n);
+    public static ArgPredicate DataItemOrLiteralOnly(string clause) => new(ArgPredicateKind.DataItemOrLiteralOnly, clause);
+    public static ArgPredicate NotStrongGroup(string clause) => new(ArgPredicateKind.NotStrongGroup, clause);
+}
 
 /// <summary>A §15.x.3 rule about the argument list AS A WHOLE, which no per-position code can express.</summary>
 /// <remarks>
@@ -140,6 +181,27 @@ internal sealed record ArgSchema(ArgRule[] Positions, ArgRule? Tail, CrossArgRul
         char first = Positions[0].Kind;
         for (int i = 0; i < Positions.Length; i++)
             if (Positions[i].Kind == first) yield return i;
+    }
+
+    /// <summary>This schema with <paramref name="p"/> added to position <paramref name="position"/> (0-based) —
+    /// the per-position predicate attach (kb/Work PB58). A position the schema does not declare cannot carry a
+    /// predicate: that is a table error, and it throws at static-initialization so the drift tests see it.</summary>
+    public ArgSchema WithPredicate(int position, ArgPredicate p)
+    {
+        if (position >= Positions.Length)
+            throw new InvalidOperationException($"IntrinsicArgumentRules: predicate {p.Kind} attached to undeclared position {position + 1}");
+        var copy = (ArgRule[])Positions.Clone();
+        copy[position] = copy[position] with { Predicates = [.. copy[position].Predicates, p] };
+        return this with { Positions = copy };
+    }
+
+    /// <summary>This schema with <paramref name="p"/> added to the variadic TAIL (every position past the
+    /// declared ones — for a Uniform row, every argument).</summary>
+    public ArgSchema WithTailPredicate(ArgPredicate p)
+    {
+        if (Tail is not { } t)
+            throw new InvalidOperationException($"IntrinsicArgumentRules: tail predicate {p.Kind} on a schema with no tail");
+        return this with { Tail = t with { Predicates = [.. t.Predicates, p] } };
     }
 }
 
@@ -397,18 +459,28 @@ internal static class IntrinsicArgumentRules
         new Dictionary<string, ArgSchema>(StringComparer.OrdinalIgnoreCase)
         {
             ["ABS"] = Uniform('n', "§15.7.3 r1"),                            // shall be of class numeric
-            ["ORD"] = Uniform('s', "§15.70.3 r1"),                           // category alphabetic/alphanumeric/national
-            ["ORD-MAX"] = Uniform('p', "§15.71.3 r1", noZeroLen: "§15.71.3 r2"),                       // NOT boolean/message-tag/object/pointer
-            ["ORD-MIN"] = Uniform('p', "§15.72.3 r1", noZeroLen: "§15.72.3 r2"),                       // NOT boolean/message-tag/object/pointer
+            // §15.70.3 r1 is ONE sentence with TWO halves — "shall be ONE CHARACTER POSITION IN LENGTH and shall
+            // be of category alphabetic, alphanumeric, or national" (PB58 — the width half was unscreened).
+            ["ORD"] = Uniform('s', "§15.70.3 r1").WithTailPredicate(ArgPredicate.ExactWidth(1, "§15.70.3 r1")),
+            // r1's negative class list ('p') + "nor shall it be a strongly-typed group item" (the predicate);
+            // r2 no zero-length literal; r3 all-same-class (PB58 — ORD-MAX/ORD-MIN never had the cross rule MAX
+            // and MIN had: the two-arm-dispatch scar, one arm fixed).
+            ["ORD-MAX"] = Uniform('p', "§15.71.3 r1", CrossArgRule.AllSameClass, "§15.71.3 r3", "§15.71.3 r2")
+                .WithTailPredicate(ArgPredicate.NotStrongGroup("§15.71.3 r1")),
+            ["ORD-MIN"] = Uniform('p', "§15.72.3 r1", CrossArgRule.AllSameClass, "§15.72.3 r3", "§15.72.3 r2")
+                .WithTailPredicate(ArgPredicate.NotStrongGroup("§15.72.3 r1")),
             ["PRESENT-VALUE"] = Uniform('n', "§15.74.3 r1"),                 // argument-1 and argument-2 class numeric
             ["RANDOM"] = Uniform('n', "§15.75.3 r1"),                        // shall be of class numeric
             ["RANGE"] = Uniform('n', "§15.76.3 r1"),                         // shall be of class numeric
             ["REM"] = Uniform('n', "§15.77.3 r1"),                           // argument-1 and argument-2 class numeric
-            ["REVERSE"] = Uniform('s', "§15.78.3 r1"),                       // class alphabetic/alphanumeric/national
+            // §15.78.3 r1 — class alphabetic/alphanumeric/national AND "at least one character position in
+            // length" (the width half, PB58).
+            ["REVERSE"] = Uniform('s', "§15.78.3 r1").WithTailPredicate(ArgPredicate.MinWidth(1, "§15.78.3 r1")),
             // §15.79.3 r1/r3 — argument-1 is a national or alphanumeric LITERAL (its literal-ness is enforced by
-            // the existing COBOLNET1517 arm); argument-2 "shall have the same type as argument-1", so both sit in
-            // the string family for the purposes of a class screen.
-            ["SECONDS-FROM-FORMATTED-TIME"] = Uniform('s', "§15.79.3 r1/r3"),
+            // the existing COBOLNET1517 arm); argument-2 "shall have the same type as argument-1" — the class
+            // reading of "type", the cross-argument agreement (PB58; MatchArgument1 was already the shape).
+            ["SECONDS-FROM-FORMATTED-TIME"] = Schema("§15.79.3 r1/r3", ['s', 's'],
+                cross: CrossArgRule.MatchArgument1, crossClause: "§15.79.3 r3"),
             // PI takes no arguments (§15.73.2) — present so the drift test can hold this table and the Phase-B
             // batch's function list in agreement rather than silently tolerating a gap.
             ["PI"] = Uniform(' ', "§15.73.2 — no arguments"),
@@ -432,8 +504,9 @@ internal static class IntrinsicArgumentRules
             ["TAN"] = Uniform('n', "§15.89.3 r1"),                           // shall be of class numeric
             ["SQRT"] = Uniform('n', "§15.84.3 r1"),                          // shall be of class numeric
             ["SIGN"] = Uniform('n', "§15.81.3 r1"),                          // shall be of class numeric
-            ["ANNUITY"] = Uniform('n', "§15.9.3 r1"),                        // argument-1 class numeric; r3 makes
-                                                                      // argument-2 an integer, also class numeric
+            // §15.9.3 r1 — argument-1 class numeric; r3 — "Argument-2 shall be a positive integer": a per-position
+            // schema (PB58 — the Uniform 'n' row let ANNUITY(0.05, 12.50) through, a non-integer period count).
+            ["ANNUITY"] = Schema("§15.9.3 r1/r3", ['n', 'i']),
             ["CHAR"] = Uniform('i', "§15.15.3 r1"),                          // shall be an integer
             ["CHAR-NATIONAL"] = Uniform('i', "§15.16.3 r1"),                 // shall be an integer
             ["BOOLEAN-OF-INTEGER"] = Uniform('i', "§15.13.3 r1/r2"),         // both arguments positive integers
@@ -481,8 +554,9 @@ internal static class IntrinsicArgumentRules
             // ⚠ PARTIAL, exactly like REVERSE (`AR-15.78.3-1`): §15.57.3 r1 / §15.97.3 r1 are ONE sentence with
             // TWO halves — "of class alphabetic, alphanumeric, or national" AND "at least one character position
             // in length". This screens the class half only. Half a rule enforced is PARTIAL, never CONFORMS.
-            ["LOWER-CASE"] = Uniform('s', "§15.57.3 r1"),                    // class alphabetic/alphanumeric/national
-            ["UPPER-CASE"] = Uniform('s', "§15.97.3 r1"),                    // the SAME sentence, verbatim
+            // …and now the width half too (PB58): "shall be at least one character position in length".
+            ["LOWER-CASE"] = Uniform('s', "§15.57.3 r1").WithTailPredicate(ArgPredicate.MinWidth(1, "§15.57.3 r1")),
+            ["UPPER-CASE"] = Uniform('s', "§15.97.3 r1").WithTailPredicate(ArgPredicate.MinWidth(1, "§15.97.3 r1")),
             // §15.48.3 r1 makes argument-1 a national or alphanumeric LITERAL (its literal-ness is the existing
             // COBOLNET1517 arm, its CONTENT the COBOLNET1631 format screen); r3 makes argument-2 "a data item of
             // the same type as argument-1". Both positions are therefore in the string family, so one kind serves
@@ -490,7 +564,12 @@ internal static class IntrinsicArgumentRules
             // ⚠ RESIDUE: r3 is a CROSS-ARGUMENT rule ("the SAME type as argument-1"), which a per-position screen
             // cannot express — the sibling of `AR-15.79.3-3`. This closes the class half, which is the half that
             // was silently accepting a class-numeric argument-2; the cross-argument half stays PARTIAL.
-            ["INTEGER-OF-FORMATTED-DATE"] = Uniform('s', "§15.48.3 r1/r3"),
+            // …r3's cross-argument half now rides MatchArgument1 (the class reading of "the same type as
+            // argument-1"), and its "shall be a DATA ITEM" half the DataItemOrLiteralOnly predicate's data-item
+            // arm cannot express (it admits literals) — argument-2 as a literal is screened in BindIntrinsicCore's
+            // format arm (PB58).
+            ["INTEGER-OF-FORMATTED-DATE"] = Schema("§15.48.3 r1/r3", ['s', 's'],
+                cross: CrossArgRule.MatchArgument1, crossClause: "§15.48.3 r3"),
             // ⛔ THE ONE THAT NEEDED PB20 FIRST. §15.45.3 r1 is "Argument-1 shall be of class BOOLEAN" — the only
             // rule in the catalogue that names that class, and `Admissible` had no arm able to say it. It is
             // listed last because it was BLOCKED, not forgotten: until PB20, every reference-modified operand was
@@ -516,8 +595,12 @@ internal static class IntrinsicArgumentRules
             // ⚠ RESIDUE, recorded rather than silently dropped: r1's "nor shall it be a strongly-typed group
             // item" and r3's "argument-1 shall not be a zero-length literal" are not class constraints, so this
             // row does not enforce them. Half a rule enforced is PARTIAL, never CONFORMS.
-            ["MAX"] = Uniform('p', "§15.59.3 r1", CrossArgRule.AllSameClass, "§15.59.3 r2", "§15.59.3 r3"),
-            ["MIN"] = Uniform('p', "§15.63.3 r1", CrossArgRule.AllSameClass, "§15.63.3 r2", "§15.63.3 r3"),
+            // …and r1's strongly-typed-group leg is now the NotStrongGroup predicate (PB58); the zero-length
+            // literal leg was already NoZeroLengthClause. Both halves of both sentences fire.
+            ["MAX"] = Uniform('p', "§15.59.3 r1", CrossArgRule.AllSameClass, "§15.59.3 r2", "§15.59.3 r3")
+                .WithTailPredicate(ArgPredicate.NotStrongGroup("§15.59.3 r1")),
+            ["MIN"] = Uniform('p', "§15.63.3 r1", CrossArgRule.AllSameClass, "§15.63.3 r2", "§15.63.3 r3")
+                .WithTailPredicate(ArgPredicate.NotStrongGroup("§15.63.3 r1")),
 
             // ── fix-queue PB12 · the MIXED-CLASS functions, which are why the schema exists ──────────────────
             // §15.68.3 r1 makes argument-1 "of category alphanumeric or national"; r2 makes argument-2 "of the
@@ -531,8 +614,12 @@ internal static class IntrinsicArgumentRules
             // SAME family as argument-1; r3: "argument-3 shall be an integer data item or integer literal".
             // ⛔ THIS ROW IS THE WHOLE ARGUMENT FOR THE SCHEMA. Under one-kind-per-function it would have
             // screened argument-3 as a string and REJECTED the legal `FUNCTION FIND-STRING(a b 2)`.
+            // …r3 is NARROWER than §15.3 type 6 — "an integer DATA ITEM or integer LITERAL" — so argument-3 also
+            // carries the operand-shape predicate: an arithmetic expression or a nested function is barred
+            // outright (PB58).
             ["FIND-STRING"] = Schema("§15.37.3 r1/r2/r3", ['s', 's', 'i'],
-                cross: CrossArgRule.MatchArgument1, crossClause: "§15.37.3 r2"),
+                cross: CrossArgRule.MatchArgument1, crossClause: "§15.37.3 r2")
+                .WithPredicate(2, ArgPredicate.DataItemOrLiteralOnly("§15.37.3 r3")),
             // The FORMATTED-* family (§15.38–15.41): argument-1 is "a national or alphanumeric literal" (its
             // LITERAL-ness is the existing COBOLNET1517 arm, its CONTENT the format screen); the remaining
             // positions are date/time VALUES — integer date form (§15.39.3 r3, §15.40.3 r3), standard numeric
@@ -543,6 +630,59 @@ internal static class IntrinsicArgumentRules
             ["FORMATTED-DATE"] = Schema("§15.39.3 r1/r3", ['s', 'i']),
             ["FORMATTED-DATETIME"] = Schema("§15.40.3 r1/r3/r4/r5", ['s', 'i', 'n', 'i']),
             ["FORMATTED-TIME"] = Schema("§15.41.3 r1/r3/r4", ['s', 'n', 'i']),
+
+            // ── kb/Work PB58 · the ABSENT rows. Every catalogued function now has a row here or a reason in
+            //    DeliberatelyUnscreened, and IntrinsicArgumentClassDriftTests.EveryCataloguedFunction_HasARow
+            //    holds it — the "no row, so CheckArgumentClasses returns at the TryGetValue guard" class of gap
+            //    dies structurally. Each clause read at its own section and `cite.py --check`ed.
+            // The date family — §15.6 Table 21 types every argument Int (§15.3 type 6):
+            ["DATE-OF-INTEGER"] = Uniform('i', "§15.22.3 r1"),               // a value in integer date form
+            ["DAY-OF-INTEGER"] = Uniform('i', "§15.24.3 r1"),                // a value in integer date form
+            ["DATE-TO-YYYYMMDD"] = Schema("§15.23.3 r1/r2/r4", ['i', 'i', 'i']),   // positive integer < 1000000; integer; integer 1600<x<10000
+            ["DAY-TO-YYYYDDD"] = Schema("§15.25.3 r1/r2/r4", ['i', 'i', 'i']),     // positive integer < 100000; integer; integer 1600<x<10000
+            ["YEAR-TO-YYYY"] = Schema("§15.100.3 r1/r2/r4", ['i', 'i', 'i']),      // nonnegative integer < 100; integer; integer 1600<x<10000
+            ["TEST-DATE-YYYYMMDD"] = Uniform('i', "§15.90.3 r1"),            // shall be an integer
+            ["TEST-DAY-YYYYDDD"] = Uniform('i', "§15.91.3 r1"),              // shall be an integer
+            // The NUMVAL family — argument-1 "an alphanumeric or national literal or … data item":
+            ["NUMVAL"] = Uniform('s', "§15.67.3 r1"),
+            ["NUMVAL-F"] = Uniform('s', "§15.69.3 r1"),
+            ["TEST-NUMVAL"] = Uniform('s', "§15.93.3 r1"),
+            ["TEST-NUMVAL-F"] = Uniform('s', "§15.95.3 r1"),
+            // §15.94.3 r1 imports §15.68's argument rules whole — the NUMVAL-C row's shape, verbatim.
+            ["TEST-NUMVAL-C"] = Schema("§15.94.3 r1 → §15.68.3 r1/r2", ['s', 's'], cross: CrossArgRule.MatchArgument1,
+                crossClause: "§15.68.3 r2 (via §15.94.3 r1)"),
+            // The statistical trio — "Argument-1 shall be of class numeric" (variadic tail form):
+            ["STANDARD-DEVIATION"] = Uniform('n', "§15.86.3 r1"),
+            ["SUM"] = Uniform('n', "§15.88.3 r1"),
+            ["VARIANCE"] = Uniform('n', "§15.98.3 r1"),
+            // §15.96.3 r1 — argument-1 a data item of class alphabetic/alphanumeric/national; r2 — argument-2 "a
+            // single character" of the SAME family as argument-1 (the width predicate + the cross rule).
+            ["TRIM"] = Schema("§15.96.3 r1/r2", ['s', 's'], cross: CrossArgRule.MatchArgument1, crossClause: "§15.96.3 r2")
+                .WithPredicate(1, ArgPredicate.ExactWidth(1, "§15.96.3 r2")),
+            // §15.87.3 r1 — argument-1 class alphabetic/alphanumeric/national or a string literal; r2 — every
+            // argument-2/argument-3 pair in argument-1's family (the variadic pairs are the tail); r3 — neither
+            // argument-1 nor argument-2 of zero LENGTH: argument-1's half is the MinWidth predicate here, and
+            // EVERY pair's argument-2 (the odd tail positions, which one tail kind cannot single out) is
+            // BindSubstitute's own walk.
+            ["SUBSTITUTE"] = Schema("§15.87.3 r1/r2", ['s', 's', 's'], tail: 's',
+                cross: CrossArgRule.MatchArgument1, crossClause: "§15.87.3 r2")
+                .WithPredicate(0, ArgPredicate.MinWidth(1, "§15.87.3 r3")),
+            // §15.92.3 r1/r2 — a format LITERAL (the COBOLNET1517 arm) and argument-2 "of the same type as
+            // argument-1" (the class reading, MatchArgument1).
+            ["TEST-FORMATTED-DATETIME"] = Schema("§15.92.3 r1/r2", ['s', 's'], cross: CrossArgRule.MatchArgument1,
+                crossClause: "§15.92.3 r2"),
+            // §15.18.3 r1 — CONCAT admits "class alphabetic, alphanumeric, boolean, numeric or national" (the
+            // 'c' kind: everything but index/object/pointer); r2's usage agreement and r3's usage-display +
+            // unsigned-integer conditions are the StaticUsageOf-axis screen in IntrinsicBinder.CheckConcatArgs.
+            ["CONCAT"] = Uniform('c', "§15.18.3 r1"),
+            // Zero-argument functions — present so the drift test can hold this table and the catalog in
+            // agreement (the general format admits no argument; any argument is an arity error first).
+            ["CURRENT-DATE"] = Uniform(' ', "§15.21.2 — no arguments"),
+            ["E"] = Uniform(' ', "§15.27.2 — no arguments"),
+            ["EXCEPTION-LOCATION"] = Uniform(' ', "§15.30.2 — no arguments"),
+            ["EXCEPTION-LOCATION-N"] = Uniform(' ', "§15.31.2 — no arguments"),
+            ["SECONDS-PAST-MIDNIGHT"] = Uniform(' ', "§15.80.2 — no arguments"),
+            ["WHEN-COMPILED"] = Uniform(' ', "§15.99.2 — no arguments"),
         };
 
     /// <summary>
@@ -596,6 +736,19 @@ internal static class IntrinsicArgumentRules
             // validate_the_premise_not_only_the_rule.
             ["HIGHEST-ALGEBRAIC"] = "§15.43.3 r1 is enforced IN FULL by BindAlgebraicFold, including its data-item half",
             ["LOWEST-ALGEBRAIC"] = "§15.58.3 r1 is enforced IN FULL by BindAlgebraicFold, including its data-item half",
+            ["SMALLEST-ALGEBRAIC"] = "§15.83.3 r1 is enforced IN FULL by BindAlgebraicFold (the same arm as HIGHEST/LOWEST), including its data-item half",
+            // kb/Work PB58 — the remaining catalogued functions, each owned by a bespoke arm or a documented posture:
+            ["LENGTH"] = "§15.50.3 r1 admits an alphanumeric/national/boolean literal, a data item of ANY class or category, a based entry, or a type-name — nothing a class screen could reject; BindLengthFamily owns it",
+            ["DISPLAY-OF"] = "§15.26.3 r1/r2 (national argument-1; a one-character alphabetic/alphanumeric argument-2) are enforced IN FULL by CheckRepertoireArgs, width included",
+            ["NATIONAL-OF"] = "§15.66.3 r1/r2/r3 (alphabetic/alphanumeric argument-1; a one-character national argument-2; no zero-length literal) are enforced IN FULL by CheckRepertoireArgs, width included",
+            ["MODULE-NAME"] = "§15.65.3 takes ONE phrase keyword (ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL), never an operand — BindModuleName owns it, incl. r1's NESTED-in-a-nested-program rule",
+            ["EXCEPTION-FILE"] = "§15.28.3 r1 — the optional argument is a FILE-CONNECTOR NAME (a word, not an operand); BindExceptionFile resolves it against the FDs",
+            ["EXCEPTION-FILE-N"] = "§15.29.3 r1 — the optional argument is a FILE-CONNECTOR NAME (a word, not an operand); BindExceptionFile resolves it against the FDs",
+            ["LOCALE-COMPARE"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
+            ["LOCALE-DATE"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
+            ["LOCALE-TIME"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
+            ["LOCALE-TIME-FROM-SECONDS"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
+            ["STANDARD-COMPARE"] = "§A.3 item 25 / the A.4.9 ORDER TABLE machinery — documented non-support (COBOLNET1518); the reference is rejected BY NAME before any argument is screened",
         };
 
     /// <summary>The classes a verified class code admits, or <see langword="null"/> for "no general screen" —
@@ -647,6 +800,11 @@ internal static class IntrinsicArgumentRules
         // Table 2 makes numeric-edited class ALPHANUMERIC, so the string family admits it as such — the
         // distinct member above changes what §15.3's integer type accepts, never what a class rule means.
         's' => [CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing, CobolClass.National],
+        // 'c' — CONCAT (§15.18.3 r1): "class alphabetic, alphanumeric, boolean, numeric or national" — everything
+        // Table 2 names but index, object and pointer (kb/Work PB58; the r2/r3 USAGE halves are
+        // IntrinsicBinder.CheckConcatArgs' — a class kind cannot carry them).
+        'c' => [CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing, CobolClass.National, CobolClass.Numeric,
+                CobolClass.Boolean],
         // 'p' — MAX/MIN/ORD-MAX/ORD-MIN, whose rule (§15.71.3 r1 and siblings) is a NEGATIVE list. An
         // admissible-set cannot express it without also excluding classes the rule permits.
         _ => null,
@@ -667,8 +825,9 @@ internal static class IntrinsicArgumentRules
     /// For every operand with a fixed class the set is a singleton and the intersection IS the old equality, so
     /// no previously-screened shape changes verdict.
     /// </remarks>
-    public static string? Violation(char kind, BoundOperand op)
+    public static string? Violation(ArgRule rule, BoundOperand op)
     {
+        char kind = rule.Kind;
         // §15.3 TYPE 6 IS "INTEGER", AND INTEGER IS NOT A CLASS (fix-queue PB40) — so the class test below
         // cannot express it and never could. Both an integer function and a numeric function are class NUMERIC
         // (§15.2 items 5 and 6, "these are of the class and category numeric"), so `'i'` admitted both and
@@ -683,8 +842,9 @@ internal static class IntrinsicArgumentRules
             // §15.59.3 r1 and siblings are a NEGATIVE list, so the operand is rejected only when EVERY class it
             // could present is excluded. A figurative that can be alphanumeric is therefore fine here, which is
             // right: `FUNCTION MAX(SPACE "A")` is two alphanumeric arguments (§15.59.3 r2 — the same class).
+            // The clause is the ROW's (PB58 — the message used to say "§15.71.3" for MAX's §15.59.3 r1).
             return candidates.All(PolymorphicExcluded.Contains)
-                ? $"is of class {Describe(candidates)}, which ISO §15.71.3 excludes from a MAX/MIN-family argument list"
+                ? $"is of class {Describe(candidates)}, which ISO {rule.Clause} excludes from a MAX/MIN-family argument list"
                 : null;
         }
 
@@ -695,6 +855,28 @@ internal static class IntrinsicArgumentRules
             : string.Join(", ", ok[..^1].Select(Name)) + " or " + Name(ok[^1]);
         return $"is of class {Describe(candidates)}; ISO §15.3 requires class {wanted}";
     }
+
+    /// <summary>Why this operand violates a per-position <see cref="ArgPredicate"/>, or <see langword="null"/>
+    /// (kb/Work PB58). <paramref name="knownWidth"/> is the operand's STATIC width in character positions when
+    /// the caller can determine one (<c>IntrinsicBinder.KnownWidth</c>), else null — the width kinds fail OPEN on
+    /// a runtime width, like every arm here.</summary>
+    public static string? PredicateViolation(ArgPredicate p, BoundOperand op, int? knownWidth) => p.Kind switch
+    {
+        ArgPredicateKind.MinWidth when knownWidth is { } w && w < p.N =>
+            $"is {w} character position(s) in length; ISO {p.Clause} requires at least {p.N}",
+        ArgPredicateKind.ExactWidth when knownWidth is { } w && w != p.N =>
+            $"is {w} character position(s) in length; ISO {p.Clause} requires exactly {p.N}",
+        // "an integer data item or integer literal" — a computed operand is neither, whatever it evaluates to
+        // (a parenthesised bare reference is still written as an expression and §15.37.3 r3 does not admit one).
+        ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
+            $"is FUNCTION {ic.Sig.Name}, not an integer data item or integer literal, which ISO {p.Clause} requires",
+        ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand =>
+            $"is an arithmetic expression, not an integer data item or integer literal, which ISO {p.Clause} requires",
+        ArgPredicateKind.NotStrongGroup when op is BoundFieldOperand { Place: not RefModPlace, Place.Item: { } it }
+                                             && StrongTypeModel.IsStrongGroup(it) =>
+            $"is a strongly-typed group item, which ISO {p.Clause} does not admit",
+        _ => null,
+    };
 
     /// <summary>
     /// Why this operand cannot satisfy a §15.3 <b>type 6 (Integer)</b> position, or <see langword="null"/>.
@@ -735,8 +917,23 @@ internal static class IntrinsicArgumentRules
             when item.Pic is { Category: PicCategory.Numeric, Scale: > 0, Usage: not Usage.Index } =>
             "is a numeric data item with digits to the right of the decimal point, which ISO §15.3 type 6 does "
             + "not admit — it requires an integer data item or an always-integral arithmetic expression",
+        // A numeric LITERAL with a NONZERO fraction digit (kb/Work PB58): neither an integer literal (§8.3.3.3
+        // — no digits right of the decimal point) nor an arithmetic expression that always results in an integer
+        // value. "1.0" is left alone — its VALUE is integral and type 6's expression alternative admits it.
+        BoundNumericLiteral lit when HasNonZeroFraction(lit.Text) =>
+            $"is the numeric literal {lit.Text}, whose fraction is nonzero — ISO §15.3 type 6 requires an integer "
+            + "data item, an integer literal, or an always-integral arithmetic expression",
         _ => null,
     };
+
+    /// <summary>Does this numeric literal's text carry a nonzero digit right of its decimal separator ('.' or the
+    /// DECIMAL-POINT IS COMMA ',')? An E-form (floating-point) literal is left to the runtime.</summary>
+    private static bool HasNonZeroFraction(string text)
+    {
+        if (text.Contains('E') || text.Contains('e')) return false;
+        int dp = text.IndexOfAny(['.', ',']);
+        return dp >= 0 && text.AsSpan(dp + 1).ToString().Any(c => c is >= '1' and <= '9');
+    }
 
     /// <summary>The operand's class for a diagnostic — the one it has, or the choice it offers.</summary>
     private static string Describe(CobolClass[] candidates) => candidates.Length == 1

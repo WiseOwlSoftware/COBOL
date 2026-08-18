@@ -516,12 +516,23 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // §15.38–15.41 / §15.48 / §15.79 / §15.92 rule 1: the date/time FORMAT (argument-1) shall be a LITERAL —
         // the format is analyzed/derived at compile time (SECONDS-FROM-FORMATTED-TIME needs the fraction scale).
-        if (args.Count > 0 && args[0] is not BoundStringLiteral
-            && sig.Name is "FORMATTED-CURRENT-DATE" or "FORMATTED-DATE" or "FORMATTED-DATETIME" or "FORMATTED-TIME"
-                or "INTEGER-OF-FORMATTED-DATE" or "SECONDS-FROM-FORMATTED-TIME" or "TEST-FORMATTED-DATETIME")
+        // §8.3.3.6.3 SR1 — "A figurative constant may be used whenever 'literal' appears in a format or when a
+        // rule allows it": ALL "hh:mm:ss" IS a literal here (kb/Work PB58 / AR-15.79.3-1 — it was COBOLNET1517),
+        // and in a length-unspecified context it takes the literal once (§8.3.3.6.4 GR3c), so it re-binds as
+        // that string literal for every downstream format reader.
+        bool formatFn = sig.Name is "FORMATTED-CURRENT-DATE" or "FORMATTED-DATE" or "FORMATTED-DATETIME" or "FORMATTED-TIME"
+                or "INTEGER-OF-FORMATTED-DATE" or "SECONDS-FROM-FORMATTED-TIME" or "TEST-FORMATTED-DATETIME";
+        if (formatFn && args.Count > 0 && args[0] is BoundAllLiteral allFmt)
+            args[0] = new BoundStringLiteral(allFmt.Literal) { Category = OperandCategory(allFmt) ?? PicCategory.Alphanumeric };
+        if (args.Count > 0 && args[0] is not BoundStringLiteral && formatFn)
             ctx.Edition.Error("COBOLNET1517", $"FUNCTION {sig.Name} argument-1 shall be a literal date/time format "
                 + "(ISO §15 — the FORMATTED-*/INTEGER-OF-FORMATTED-DATE/SECONDS-FROM-FORMATTED-TIME/"
                 + "TEST-FORMATTED-DATETIME format is a literal)");
+        // §15.48.3 r3 — INTEGER-OF-FORMATTED-DATE's argument-2 "shall be a DATA ITEM of the same type as
+        // argument-1": the class half is the schema's MatchArgument1; the data-item half is here (kb/Work PB58).
+        if (sig.Name == "INTEGER-OF-FORMATTED-DATE" && args.Count > 1 && args[1] is not BoundFieldOperand)
+            ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, "FUNCTION INTEGER-OF-FORMATTED-DATE argument-2 "
+                + "shall be a DATA ITEM of the same type as argument-1 (ISO §15.48.3 r3) — a literal or an expression is not admitted");
 
         // §15.38.3/§15.39.3/§15.40.3/§15.41.3/§15.48.3/§15.79.3/§15.92.3 rule 2 — the format's CONTENT
         // (fix-queue PB11). The literal screen above established only that argument-1 IS a literal; this asks
@@ -853,6 +864,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // `return` above it, so no Verified row could ever screen them. Screened here, after this
         // binder's own arity check, exactly as the generic path orders it.
         CheckArgumentClasses(sig, operands);
+        // §15.87.3 r3 — "Neither argument-1 nor argument-2 shall be of zero length": argument-1 is the schema's
+        // MinWidth predicate; EVERY pair's argument-2 (odd operand positions 1, 3, 5, …) is checked here, since one
+        // variadic tail kind cannot single out the pairs' first members (kb/Work PB58). Static widths only.
+        for (int i = 1; i < operands.Count; i += 2)
+            if (KnownWidth(operands[i]) is 0)
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION SUBSTITUTE argument-2 of pair "
+                    + $"{(i + 1) / 2} is of zero length, which ISO §15.87.3 r3 does not admit");
         return new BoundIntrinsicCall(
             sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
             { SubstituteModes = modes };
@@ -1330,13 +1348,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (rule.NoZeroLengthClause is { } zlClause && args[i] is BoundStringLiteral { Value.Length: 0 })
                 Report($"FUNCTION {sig.Name} argument-{i + 1} is a zero-length literal, which {zlClause} "
                     + "does not admit");
-            if (IntrinsicArgumentRules.Violation(rule.Kind, args[i]) is not { } why) continue;
+            // The position's OTHER predicates (kb/Work PB58) — width, operand shape, the strong-type exclusion —
+            // each its own rule with its own clause; the class kind below is the last of them, not the only one.
+            foreach (var p in rule.Predicates)
+                if (IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
+                    Report($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}");
+            if (IntrinsicArgumentRules.Violation(rule, args[i]) is not { } why) continue;
             Report($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})");
         }
 
         // CROSS-ARGUMENT (fix-queue PB31) — §15.59.3 r2 and its siblings, which no per-position check can see.
         if (IntrinsicArgumentRules.CrossViolation(schema, args) is { } cross)
             Report($"FUNCTION {sig.Name} {cross}");
+
+        // CONCAT's USAGE halves (kb/Work PB58): §15.18.3 r2 "If any argument is usage national, all arguments
+        // shall be usage national, otherwise all arguments shall be usage display", and r3 "If argument-1 or
+        // argument-2 is numeric, it shall be usage display or national and shall be an unsigned integer" — the
+        // StaticUsageOf axis (the same shared reader the BASECONVERT/CONVERT screens ride), which a class kind
+        // structurally cannot carry. Static shapes only; a runtime-shaped operand (a group, a figurative) fails open.
+        if (sig.Name == "CONCAT") CheckConcatArgs(args, Report);
 
         void Report(string where)
         {
@@ -1346,6 +1376,46 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             else
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
                     $"{where}. --permissive accepts it as a coercion extension");
+        }
+    }
+
+    /// <summary>§15.18.3 r2/r3 for CONCAT (kb/Work PB58) — see the call site in <see cref="CheckArgumentClasses"/>.
+    /// r2: one usage family for the whole list (national, else display) — a COMP/PACKED/BINARY argument is neither,
+    /// and a display+national mixture is the disagreement. r3: a NUMERIC argument (class numeric — a numeric item
+    /// or numeric literal) shall be usage display or national AND an unsigned integer: a signed or scaled numeric
+    /// item, and a signed or fractional numeric literal, are rejected.</summary>
+    private void CheckConcatArgs(IReadOnlyList<BoundOperand> args, Action<string> report)
+    {
+        bool anyNational = args.Any(a => IntrinsicArgumentRules.StaticUsageOf(a) is Usage.National);
+        for (int i = 0; i < args.Count; i++)
+        {
+            var a = args[i];
+            // r3 first: a numeric argument's own usage/sign/scale conditions.
+            if (a is BoundFieldOperand { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } })
+            {
+                if (np.Usage is not (Usage.Display or Usage.National))
+                    report($"FUNCTION CONCAT argument-{i + 1} is a numeric item of usage {np.Usage}; ISO §15.18.3 r3 "
+                        + "requires a numeric argument to be usage display or national");
+                else if (np.Signed || np.Scale != 0)
+                    report($"FUNCTION CONCAT argument-{i + 1} is a {(np.Signed ? "signed" : "non-integer")} numeric item; "
+                        + "ISO §15.18.3 r3 requires a numeric argument to be an unsigned integer");
+                continue;   // a numeric DISPLAY item is display-usage for r2 below by construction
+            }
+            if (a is BoundNumericLiteral nl)
+            {
+                if (nl.Text.StartsWith('-') || nl.Text.StartsWith('+') || nl.Text.IndexOfAny(['.', ',']) >= 0)
+                    report($"FUNCTION CONCAT argument-{i + 1} is the numeric literal {nl.Text}; ISO §15.18.3 r3 "
+                        + "requires a numeric argument to be an unsigned integer");
+                continue;
+            }
+            // r2: the usage family.
+            if (IntrinsicArgumentRules.StaticUsageOf(a) is not { } u) continue;   // fail open
+            if (u is not (Usage.Display or Usage.National))
+                report($"FUNCTION CONCAT argument-{i + 1} is of usage {u}; ISO §15.18.3 r2 requires every argument "
+                    + "to be usage national or every argument to be usage display");
+            else if (anyNational && u is Usage.Display)
+                report($"FUNCTION CONCAT argument-{i + 1} is usage display while another argument is usage national; "
+                    + "ISO §15.18.3 r2 — if any argument is usage national, all arguments shall be usage national");
         }
     }
 

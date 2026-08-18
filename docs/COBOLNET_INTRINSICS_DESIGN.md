@@ -261,6 +261,30 @@ SAME `functionArgList` rule (`Frontend.Parsing.FunctionArgFragment`, lexer prime
 `UdfBinder.UdfBindCall` binds its arguments through the same `BindArgOperand` — ONE argument pipeline; the former
 hand-rolled per-segment recursive-descent parser is deleted.
 
+**The §15.3 argument-rule SCREEN (`IntrinsicArgumentRules`, driven from `IntrinsicBinder.CheckArgumentClasses` after
+arity and before every per-function arm) is a per-position SCHEMA, not a class column** (PB1 → PB12 → PB31 →
+PB35 → PB58): each catalogued function has an `ArgSchema` — per-position `ArgRule`s plus a variadic tail — whose
+class KIND (`'n'` numeric, `'i'` §15.3 type-6 integer, `'s'` the string family, `'b'` boolean, `'c'` CONCAT's
+all-but-index/object/pointer, `'p'` the MAX/MIN-family negative list, `' '` no arguments) is one predicate among
+several: the position may also carry `ArgPredicate`s — `MinWidth`/`ExactWidth` in character positions (§15.57.3 /
+§15.97.3 / §15.78.3 r1's "at least one character position", §15.70.3 r1's and §15.96.3 r2's "one character",
+decided only on a STATIC width), `DataItemOrLiteralOnly` (§15.37.3 r3's "an integer data item or integer literal",
+narrower than type 6 — an expression or nested function is barred outright), `NotStrongGroup` (§15.59.3 /
+§15.63.3 / §15.71.3 / §15.72.3 r1's "nor shall it be a strongly-typed group item"), and the zero-length-LITERAL
+clause — and the schema a `CrossArgRule` (`AllSameClass` for MAX/MIN/ORD-MAX/ORD-MIN r2/r3, `MatchArgument1` for
+FIND-STRING, NUMVAL-C/TEST-NUMVAL-C, INTEGER-OF-FORMATTED-DATE, SECONDS-FROM-FORMATTED-TIME, TEST-FORMATTED-DATETIME,
+TRIM, SUBSTITUTE). `IntegerViolation` decides §15.3 type 6 for a data item (declared scale), a nested numeric function
+(§8.4.3.2.3 SR11) and a numeric literal with a nonzero fraction; an arithmetic expression fails open ("always
+results in an integer value" is not syntactically distinguishable — §4.2.2 discretion). Rules a class kind cannot
+carry at all live beside the schema on the same axis (`StaticUsageOf` — CONCAT's §15.18.3 r2/r3 usage halves in
+`CheckConcatArgs`, BASECONVERT's and CONVERT's usage screens) or in the function's own binder (SUBSTITUTE's per-pair
+§15.87.3 r3 widths, INTEGER-OF-FORMATTED-DATE's "shall be a DATA ITEM" half of §15.48.3 r3, the date/time FORMAT
+literal arm — which admits `ALL "…"` per §8.3.3.6.3 SR1). Every catalogued function has a row in `Verified` or a
+cited reason in `DeliberatelyUnscreened` (`IntrinsicArgumentClassDriftTests.EveryCataloguedFunction_HasARow`), so a
+function can no longer be silently unscreened; the screen is fail-open by construction (an undecidable operand is
+never rejected) and its leniency is `--permissive`'s. Pinned by `pb58_argument_predicates_legal` (the shapes that
+must NOT be rejected) and the `pb58-*` negatives (one per rule instance).
+
 ## Edge cases
 
 - FUNCTION LENGTH of a reference-modified operand x(s:l) is runtime (= l), not a compile-time constant — fold only fixed operands; emit a runtime expression for x(s:l) and x(s:) (defined-size − s + 1).

@@ -969,8 +969,10 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void IntegerOfFormattedDate_Ordinal_2014()
-        => AssertSpec(Program("01 N PIC +9(9).",
-            "    MOVE FUNCTION INTEGER-OF-FORMATTED-DATE(\"YYYYDDD\", \"2021167\") TO N.\n    DISPLAY N.", "IOF"), "+000153569", 2014);
+        // §15.48.3 r3 — argument-2 "shall be a DATA ITEM of the same type as argument-1"; a literal is not
+        // admitted (kb/Work PB58), so the date travels through an item.
+        => AssertSpec(Program("01 N PIC +9(9).\n01 D7 PIC X(7) VALUE \"2021167\".",
+            "    MOVE FUNCTION INTEGER-OF-FORMATTED-DATE(\"YYYYDDD\", D7) TO N.\n    DISPLAY N.", "IOF"), "+000153569", 2014);
 
     [Fact]
     public void SecondsFromFormattedTime_Fractional_2014()

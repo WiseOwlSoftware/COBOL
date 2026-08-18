@@ -9,6 +9,7 @@
        01 WS-CDT    PIC Z(6)9.9(5).
        01 WS-R      PIC X(30).
        01 WS-N      PIC +9(9).
+       01 WS-IOFD PIC X(10).
        01 WS-F      PIC +9(5).9(4).
        PROCEDURE DIVISION.
        MAIN.
@@ -31,8 +32,9 @@
            DISPLAY "DT=" WS-R.
            MOVE FUNCTION COMBINED-DATETIME(WS-ID, WS-SEC) TO WS-CDT.
            DISPLAY "CDT=" WS-CDT.
+           MOVE "2021-06-16" TO WS-IOFD.
            MOVE FUNCTION INTEGER-OF-FORMATTED-DATE("YYYY-MM-DD",
-               "2021-06-16") TO WS-N.
+               WS-IOFD) TO WS-N.
            DISPLAY "IOF=" WS-N.
            MOVE FUNCTION SECONDS-FROM-FORMATTED-TIME("hh:mm:ss",
                "12:34:56") TO WS-N.

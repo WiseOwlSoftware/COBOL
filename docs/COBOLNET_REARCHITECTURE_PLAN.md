@@ -49,7 +49,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **✅ PB60 CLOSED (DEVLOG 1294)** — the CURRENCY SIGN SET + multi-character currency string landed
   (`DataBinder.CurrencySigns`, `PicInfo.CurrencyString`, `CobolEdit`'s expand/collapse, COBOLNET1644 for
   §15.68.3 r3); 15 of 15 rows CONFORMS; nine inventory rows flipped (GAP 4129).
-  **NEXT, in order:** ① PB58 (the argument-screen table's missing predicate kinds + the absent rows) → ② PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
+  **✅ PB58 CLOSED (DEVLOG 1295)** — the argument screen's predicate list (`ArgPredicate`: MinWidth/ExactWidth/
+  DataItemOrLiteralOnly/NotStrongGroup), CONCAT's usage arm, the absent rows, the every-function-has-a-row drift
+  guard; all 40 rows CONFORMS; GAP 4089.
+  **NEXT, in order:** ① PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
