@@ -162,14 +162,14 @@ internal static class PlaceRenderer
     private static string WriteRenames(RenamesPlace n, string rhs)
     {
         if (n.Leaves.Count == 1) return Write(n.Leaves[0], rhs);
-        int width = n.Leaves.Sum(l => l.Item.ImageWidth);
+        int width = n.Widths.Sum();   // each part's width — a partial part's is its slice, not the item's (kb/Work PB96)
         var sb = new System.Text.StringBuilder();
         sb.Append($"{{ string __ren = {RuntimeApi.StrStore(rhs, width.ToString())};");
         int off = 0;
-        foreach (var l in n.Leaves)
+        for (int i = 0; i < n.Leaves.Count; i++)
         {
-            int w = l.Item.ImageWidth;
-            sb.Append(' ').Append(Write(l, $"__ren.Substring({off}, {w})"));
+            int w = n.Widths[i];
+            sb.Append(' ').Append(Write(n.Leaves[i], $"__ren.Substring({off}, {w})"));
             off += w;
         }
         return sb.Append(" }").ToString();

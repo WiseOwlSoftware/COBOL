@@ -2,6 +2,21 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace CobolNet.Binding.Model;
 
+/// <summary>One storage part of a RENAMES THRU span (kb/Work PB96): a leaf of the record (a REDEFINES view is as
+/// good a reader of the storage it overlays as the entry it redefines — NC252A's RDF8-5 THRU RDF8-6 lives inside a
+/// double redefinition of an OCCURS 36 table), <paramref name="Occurrence"/> = null for the WHOLE leaf (every
+/// occurrence of a table leaf, in order) or the 1-based occurrence the part lies in, and <paramref name="Start"/>
+/// (1-based) / <paramref name="Length"/> the character range of that occurrence the alias covers — the whole cell
+/// (the ordinary case) or a partial slice when a span boundary lands inside it.</summary>
+public sealed record RenamesSpanPart(DataItem Leaf, int? Occurrence, int Start, int Length)
+{
+    /// <summary>The whole leaf — every occurrence, every character (the composed accessor's fast path).</summary>
+    public bool IsWhole => Occurrence is null;
+
+    /// <summary>A part that covers only some characters of its occurrence (renders as the cell's ref-mod view).</summary>
+    public bool IsPartial => Occurrence is not null && (Start != 1 || Length != Leaf.ImageWidth);
+}
+
 /// <summary>
 /// A level-66 RENAMES descriptor (ISO/IEC 1989:2023 §13.18.45): a re-grouping alias over a contiguous run of sibling
 /// items, <c>RENAMES data-name-2 [THRU data-name-3]</c>. RENAMES adds no storage — it is a COMPOSED view over the
@@ -22,8 +37,14 @@ public sealed class RenamesInfo
     /// <summary>The resolved THRU item (set post-build; <see langword="null"/> for the no-THRU form).</summary>
     public DataItem? Thru { get; set; }
 
-    /// <summary>The leaves the rename spans, in record source order — the composed accessor distributes over these.</summary>
-    public List<DataItem> SpanLeaves { get; } = [];
+    /// <summary>The STORAGE parts the THRU span covers, in record storage order (kb/Work PB96): each part is one
+    /// NON-redefining leaf of the record and the 1-based character range of it inside the window (a whole leaf is
+    /// (1, its width); a boundary that falls inside a leaf — a FROM / THRU that is a partial redefinition of it —
+    /// makes a partial part). A REDEFINES view is never a part: it overlays storage the parts already cover.</summary>
+    public List<RenamesSpanPart> Span { get; } = [];
+
+    /// <summary>The leaves the rename spans (the parts' leaves) — the strong-type check's view.</summary>
+    public IEnumerable<DataItem> SpanLeaves => Span.Select(p => p.Leaf);
 
     /// <summary>True for a single no-THRU alias (Tier A forward, GR1); false for a THRU span (a Tier-B composition, GR2).</summary>
     public bool IsAlias => ThruName is null;

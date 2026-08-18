@@ -288,10 +288,32 @@ public sealed class ReferenceResolver(DataBinder data)
             // — forward to its place outright (numeric stays numeric: NC252A's ADD 3500 TO RENAME-12 over a
             // PIC 9(4); a group forwards as the group). Only the THRU form composes an alphanumeric span (GR2).
             if (ren.Thru is null) return ren.From is { } fwd ? PlaceForItem(fwd, []) : null;
-            if (ren.SpanLeaves.Count == 0) return null;
-            var leafPlaces = new List<Place>(ren.SpanLeaves.Count);
-            foreach (var leaf in ren.SpanLeaves)
+            if (ren.Span.Count == 0) return null;
+            var leafPlaces = new List<Place>(ren.Span.Count);
+            var widths = new List<int>(ren.Span.Count);
+            foreach (var part in ren.Span)
             {
+                var leaf = part.Leaf;
+                if (part.Occurrence is { } occIdx)
+                {
+                    // ONE occurrence (or the one-and-only cell) of the leaf, possibly a partial slice of it (kb/Work
+                    // PB96): the cell's place, then its ref-mod view when the part does not cover the whole cell.
+                    if (PlaceForItem(leaf, leaf.Occurs is null ? [] : [occIdx.ToString()]) is not { } cellRaw) return null;
+                    Place cell = cellRaw;
+                    bool cellString = data.IsImageBackedEarly(leaf) || cell is RedefViewPlace
+                        || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                            or PicCategory.National or PicCategory.Boolean;
+                    if (!cellString)
+                    {
+                        if (leaf.Pic is not { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false })
+                            return null;
+                        cell = new NumericImagePlace(cell);
+                    }
+                    if (part.IsPartial) cell = new RefModPlace(cell, part.Start.ToString(), part.Length.ToString());
+                    leafPlaces.Add(cell);
+                    widths.Add(part.Length);
+                    continue;
+                }
                 // An OCCURS leaf inside the span contributes EVERY occurrence in order (§13.18.45 — the alias
                 // covers the whole fixed-size area; NC252A's RENAME-7 over TABLE-ITEM-2 OCCURS 5).
                 int occ = leaf.Occurs ?? 1;
@@ -310,10 +332,11 @@ public sealed class ReferenceResolver(DataBinder data)
                             return null;
                         lp = new NumericImagePlace(lp);
                     }
+                    widths.Add(leaf.ImageWidth);   // a whole part: every occurrence, at the leaf's width (kb/Work PB96)
                     leafPlaces.Add(lp);
                 }
             }
-            return new RenamesPlace(leafPlaces, item);
+            return new RenamesPlace(leafPlaces, item, widths);
         }
 
         if (PlaceForItem(item, indexExprs) is not { } inner) return null;

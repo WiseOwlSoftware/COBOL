@@ -101,7 +101,7 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
 /// right — so a write through the alias is visible through every renamed item and vice versa (no second storage,
 /// SR/GR — RENAMES adds no data item). Rendered by <c>CodeGen.PlaceRenderer</c>.
 /// </summary>
-public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasItem) : Place
+public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasItem, IReadOnlyList<int> Widths) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => AliasItem.Pic;

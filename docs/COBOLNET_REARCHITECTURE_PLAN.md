@@ -236,7 +236,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   123` — §13.18.63.3 SR4 makes a numeric VALUE literal on an alphanumeric item illegal; GnuCOBOL's default dialect
   accepts it, COBOL.NET accepts it under `--permissive` with COBOLNET1657 — the DEFAULT_DIALECT tier's expected
   ISO-stricter divergence). Green.
-  **NEXT, in order (`work.py next`):** ① PB96 → PB91 (PB64/PB66 are features)
+  **✅ PB96 CLOSED (DEVLOG 1320, 2026-08-18)** — a level-66 RENAMES THRU alias is the record's STORAGE WINDOW, tiled
+  greedily by the record's leaves (REDEFINES views included — they read the storage they overlay; NC252A's span
+  inside a double redefinition of an OCCURS table is tiled by exactly its two views), so a view in the range no
+  longer counts twice (`A THRU C` over A / B REDEFINES A / C is 6 characters, not 8), a redefining operand maps to
+  the area it overlays, and a boundary inside a cell is a ref-mod partial part. CONFORMANCE.md §4 determination
+  for the shorter-redefinition-as-data-name-3 reading. Two verdicts → CONFORMS, GAP 3956. Battery #17 owed for the
+  PB96 batch with the next landing.
+  **NEXT, in order (`work.py next`):** ① PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

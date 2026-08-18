@@ -306,6 +306,17 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
 > `2023/pb82_exception_location_source_line` (a COPY, a REPLACE and a continuation before each RAISE; a RAISE
 > inside a procedure copybook).
 
+> ⚖ **DETERMINATION — a level-66 RENAMES THRU alias whose data-name-2 / data-name-3 is (or lies under) a
+> REDEFINES entry (§13.18.45.4 GR2)** (2026-08-18; kb/Work PB96). GR2 says the alias "defines an alphanumeric group
+> item that includes all elementary items starting with data-name-2 … and concluding with data-name-3"; a
+> redefinition adds no storage (§13.18.44), so the elementary items named can overlap. COBOL.NET's alias is the
+> record's STORAGE WINDOW from the leftmost character position of data-name-2 to the rightmost character position
+> of data-name-3 — a REDEFINES view inside the range contributes nothing beyond the storage it overlays, a
+> data-name-2 / data-name-3 that is itself a redefinition maps to the area it overlays, and when data-name-3 is a
+> SHORTER redefinition of an earlier item the alias ends at data-name-3's last character (a partial view of the
+> underlying item), which is the offset arithmetic GnuCOBOL and IBM apply. Pinned by
+> `2023/pb96_renames_span_over_redefines`.
+
 ## 5. Annex A.4 optional-element disposition (§4.2.7)
 
 One row per A.4 optional module. **Claimed** = support is claimed (§4.2.7/A.4.1); **Partial** = the supported /

@@ -3042,27 +3042,100 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // forwards to the FROM item's place; no span, no synthetic alphanumeric picture.
                 if (info.Thru is null) { ren.Pic = info.From.Pic; continue; }
 
-                // The alias spans the record's contiguous leaf run FROM..THRU (§13.18.45 GR1/GR2); the alias item
-                // itself reads/writes as one elementary ALPHANUMERIC item of the span's width (its category per
-                // GR — a re-grouping, always treated as an alphanumeric data item when referenced as a whole).
-                var leaves = new List<DataItem>();
-                void Walk(DataItem n) { if (n.IsElementary) leaves.Add(n); else foreach (var c in n.Children) Walk(c); }
+                // The alias is the record's STORAGE WINDOW from data-name-2's first character to data-name-3's last
+                // (§13.18.45.4 GR1/GR2 — a re-grouping of the record's characters; the alias reads/writes as one
+                // elementary ALPHANUMERIC item of the window's width). kb/Work PB96: the former leaf-run walk listed
+                // every leaf between FROM and THRU — a REDEFINES view included, as if it occupied its own characters —
+                // so `RENAMES A THRU C` over A / B REDEFINES A / C was 6 characters, not 4. Offsets now come from the
+                // ONE recursive storage function (a redefiner sits at its target's offset, §13.18.44), the parts are
+                // the record's NON-redefining leaves that intersect the window, and a boundary inside a leaf (a FROM /
+                // THRU that partially redefines it) is a partial part.
+                int Width(DataItem d) => d.ImageWidth * (d.Occurs ?? 1);
+                int Offset(DataItem d)
+                {
+                    if (d.RedefinesTarget is { } tgt) return Offset(tgt);          // an overlay starts where its target does
+                    if (d.Parent is not { } par) return 0;                           // the record itself
+                    int off = Offset(par);
+                    foreach (var sib in par.Children)
+                    {
+                        if (ReferenceEquals(sib, d)) break;
+                        if (sib.RedefinesTargetName is null) off += Width(sib);       // a redefining sibling adds no storage
+                    }
+                    return off;
+                }
+                int startOff = Offset(info.From);
+                int endOff = Offset(info.Thru) + Width(info.Thru) - 1;
+                if (endOff < startOff)
+                {
+                    using var __o = Edition.At(ren);
+                    Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
+                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName} THRU {info.ThruName}: data-name-3 ends before "
+                        + "data-name-2 begins — the THRU item shall follow the FROM item in the record (ISO §13.18.45.4 GR2)");
+                    continue;
+                }
+                // Every leaf of the record with its storage extent — REDEFINES views INCLUDED: a view reads the
+                // storage it overlays exactly as the redefined entry does (NC252A's `RDF8-5 THRU RDF8-6` lies inside a
+                // double redefinition of an OCCURS 36 table, and only those two views tile that window). Views are
+                // never counted twice because the tiling below advances by what it covered.
+                var leaves = new List<(DataItem Leaf, int Off, int W, int Occ)>();
+                void Walk(DataItem n)
+                {
+                    if (n.IsElementary) { if (Width(n) > 0) leaves.Add((n, Offset(n), n.ImageWidth, n.Occurs ?? 1)); return; }
+                    foreach (var c in n.Children) Walk(c);
+                }
                 Walk(root);
-                int start = leaves.FindIndex(l => ReferenceEquals(l, info.From) || IsUnder(l, info.From));
-                DataItem last = info.Thru ?? info.From;
-                int end = leaves.FindLastIndex(l => ReferenceEquals(l, last) || IsUnder(l, last));
-                if (start < 0 || end < start) continue;
-                info.SpanLeaves.AddRange(leaves[start..(end + 1)]);
+                // GREEDY TILING of [startOff, endOff]: at each position take the LONGEST whole leaf (or whole table
+                // cell) that starts exactly there and fits inside the window; else the most specific (narrowest) leaf
+                // cell containing the position, as a partial slice up to the window's end or the cell's end.
+                int pos = startOff;
+                bool stuck = false;
+                while (pos <= endOff)
+                {
+                    (DataItem Leaf, int? Occ, int Start, int Len, int Cover)? best = null;
+                    foreach (var (leaf, off, w, occ) in leaves)
+                    {
+                        int total = w * occ;
+                        if (pos < off || pos > off + total - 1) continue;          // the leaf does not contain pos
+                        // the whole leaf (every occurrence) starting exactly here and fitting the window
+                        if (off == pos && off + total - 1 <= endOff)
+                            Consider((leaf, null, 1, total, total));
+                        int k = (pos - off) / w + 1;                                // the occurrence containing pos
+                        int cellLo = off + (k - 1) * w, cellHi = cellLo + w - 1;
+                        if (cellLo == pos && cellHi <= endOff)
+                            Consider((leaf, occ == 1 ? null : k, 1, w, w));       // a whole cell (or the whole 1-occurrence leaf)
+                        else
+                        {
+                            int to = Math.Min(endOff, cellHi);                     // a partial slice of the containing cell
+                            Consider((leaf, k, pos - cellLo + 1, to - pos + 1, to - pos + 1));
+                        }
+                    }
+                    void Consider((DataItem Leaf, int? Occ, int Start, int Len, int Cover) c)
+                    {
+                        // prefer: whole (non-partial) over partial; then the longest cover; then the narrowest leaf
+                        bool cPartial = c.Occ is not null && (c.Start != 1 || c.Len != c.Leaf.ImageWidth);
+                        bool bPartial = best is { } b0 && b0.Occ is not null && (b0.Start != 1 || b0.Len != b0.Leaf.ImageWidth);
+                        if (best is null
+                            || (bPartial && !cPartial)
+                            || (bPartial == cPartial && c.Cover > best.Value.Cover)
+                            || (bPartial == cPartial && c.Cover == best.Value.Cover && c.Leaf.ImageWidth < best.Value.Leaf.ImageWidth))
+                            best = c;
+                    }
+                    if (best is not { } chosen || chosen.Cover <= 0) { stuck = true; break; }
+                    info.Span.Add(new RenamesSpanPart(chosen.Leaf, chosen.Occ, chosen.Start, chosen.Len));
+                    pos += chosen.Cover;
+                }
+                if (stuck || info.Span.Count == 0)
+                {
+                    using var __u = Edition.At(ren);
+                    Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
+                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName} THRU {info.ThruName}: the record's leaves do "
+                        + "not tile the alias's storage window (kb/Work PB96)");
+                    info.Span.Clear();
+                    continue;
+                }
                 ren.Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display,
-                    Length: info.SpanLeaves.Sum(l => l.ImageWidth * (l.Occurs ?? 1)), Digits: 0, Scale: 0, Signed: false);
+                    Length: endOff - startOff + 1, Digits: 0, Scale: 0, Signed: false);
             }
-
-        static bool IsUnder(DataItem leaf, DataItem ancestor)
-        {
-            for (DataItem? n = leaf; n is not null; n = n.Parent)
-                if (ReferenceEquals(n, ancestor)) return true;
-            return false;
-        }
     }
 
     /// <summary>Group every redefining entry with the non-redefining anchor it ultimately overlays (SR7/SR11) into a

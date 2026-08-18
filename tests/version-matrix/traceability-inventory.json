@@ -23184,12 +23184,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "RENAMES clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#PlaceForItem",
+  "test-ref": "conformance:2023/pb96_renames_span_over_redefines; conformance-test:RedefinesTargetTests.LegalRedefinesAndRenames_StillBind",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB96). The no-THRU alias inherits data-name-2's description and storage: ren.Pic = From.Pic and the resolver forwards to the FROM item's place outright (numeric stays numeric — NC252A's ADD 3500 TO RENAME-12).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.45.4-2",
@@ -23197,12 +23197,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "RENAMES clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs#RenamesSpanPart; src/Cobol.Net.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteRenames",
+  "test-ref": "conformance:2023/pb96_renames_span_over_redefines",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB96). The THRU alias is an alphanumeric group item over the record's STORAGE WINDOW from data-name-2's first character to data-name-3's last: the span parts are the record's NON-redefining leaves that intersect the window (a REDEFINES view adds no storage; a redefining FROM / THRU maps to the area it overlays; a boundary inside a leaf is a partial part rendered as the leaf's ref-mod view). Before: every leaf between FROM and THRU was listed, views included (A / B REDEFINES A / C was 6 characters, not 4). The shorter-redefinition-as-data-name-3 case is the CONFORMANCE.md §4 determination (the leftmost-to-rightmost reading).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.46.3-1",
