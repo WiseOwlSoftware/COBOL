@@ -142,7 +142,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // Below 2023 it falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior).
         if (pic.Category is PicCategory.NumericEdited && ctx.Data.Edition.DialectLevel >= 2023 && FigurativeKind(raw) == 'Z')
             return EmitText.CsLiteral(RuntimeApi.EditCompose(Int128.Zero, pic.Scale, pic.EditMask!, item.BlankWhenZero,
-                ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma, pic.EditingRules));
+                pic.CurrencyString, ctx.Data.DecimalPointIsComma, pic.EditingRules));
 
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
         if (FigurativeInitializer(raw, pic) is { } fig) return fig;
@@ -158,7 +158,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             // literal stores verbatim — NOTE 3: the programmer supplies the edited form.)
             PicCategory.NumericEdited when !raw.StartsWith('"') && TryParseNumeric(raw, out var uv, out int sc) =>
                 EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!, item.BlankWhenZero,
-                    ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma, pic.EditingRules)),
+                    pic.CurrencyString, ctx.Data.DecimalPointIsComma, pic.EditingRules)),
             // National VALUE stores like alphanumeric on the char substrate (§13.18.63 SR5 — the N"…" literal,
             // already prefix-stripped by DecodeCobolString); boolean VALUE zero-pads (SR10; §14.6.8.6).
             PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>

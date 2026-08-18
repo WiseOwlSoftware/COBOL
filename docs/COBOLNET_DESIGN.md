@@ -881,7 +881,8 @@ result does not feed it — decision 20.
 - **ACCEPT/DISPLAY system sources** = a `CobolSystem` runtime with an INJECTABLE clock (DATE/DAY/TIME/DAY-OF-WEEK/
   YYYYMMDD/YYYYDDD; DAY-OF-WEEK remap `((int)DayOfWeek + 6) % 7 + 1` = 1=Mon..7=Sun) + console UPON SYSOUT/SYSERR.
 - **ALPHABET/CLASS/CURRENCY/DECIMAL-POINT IS COMMA** = a SPECIAL-NAMES config object threaded into emit (mostly
-  compile-time).
+  compile-time); CURRENCY SIGN is a SET (symbol → string, r25's implied '$' included) whose per-picture string
+  travels on `PicInfo.CurrencyString` — `COBOLNET_NUMERIC_DESIGN.md` D4's edge-case list carries the model.
 - **SCREEN SECTION, JSON/XML GENERATE/PARSE** are scope-flagged big subsystems — designed only to the
   seam (reserve their register names, one-paragraph deferral each). Their scope is an owner question (§15).
   **REPORT WRITER is IMPLEMENTED**: the deep-dive

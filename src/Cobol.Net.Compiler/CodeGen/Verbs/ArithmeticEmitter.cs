@@ -192,8 +192,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// carries BLANK WHEN ZERO (ISO §13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
     public static string BwzFlag(DataItem item) => item.BlankWhenZero ? ", blankWhenZero: true" : "";
 
-    /// <summary>The program's SPECIAL-NAMES editing-config arguments (<see cref="EmitContext.EditCfgArgs"/>).</summary>
-    private string EditCfg() => ctx.EditCfgArgs;
+    /// <summary>The receiver's editing-config arguments (<see cref="EmitContext.EditCfg"/> — the mask's currency
+    /// string + the unit's DECIMAL-POINT IS COMMA).</summary>
+    private string EditCfg(PicInfo? pic) => ctx.EditCfg(pic);
 
     /// <summary>Materialize a rendered sender/initial-evaluation into a local temp (ISO §14.7.7 GR4 + NOTE 3 —
     /// ONE initial evaluation; results independent of sender/receiver storage overlap). Inlining the expression
@@ -277,7 +278,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // fraction scale with the receiver's mode (§14.7.4), then formatted.
         if (target.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } mask })
         {
-            int ms = RuntimeApi.MaskScale(mask, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma);
+            int ms = RuntimeApi.MaskScale(mask, '$', ctx.Data.DecimalPointIsComma);
             // The narrowing rescale: under ON SIZE ERROR / EC-SIZE, a PROHIBITED-inexact transfer to an edited
             // receiver is a size error (ISO §14.7.4.3 r7 — the receiver stays UNCHANGED). The Dec path's
             // .ToUnscaled and the numeric path's TryStore already throw/flag on that; the Int128 edited path used
@@ -303,11 +304,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
                 // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
                 string onFail = ecState.SizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
-                w.Line($"if (!{RuntimeApi.EditTryFormat(Aligned(true), $"{ms}", CsLiteral(mask), img, BwzFlag(target.Item) + EditCfg() + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))}) {onFail}");
+                w.Line($"if (!{RuntimeApi.EditTryFormat(Aligned(true), $"{ms}", CsLiteral(mask), img, BwzFlag(target.Item) + EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))}) {onFail}");
                 w.Line($"else {PlaceRenderer.Write(target, img)}");
                 return;
             }
-            w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(Aligned(false), $"{ms}", CsLiteral(mask), BwzFlag(target.Item) + EditCfg() + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
+            w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(Aligned(false), $"{ms}", CsLiteral(mask), BwzFlag(target.Item) + EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
             return;
         }
         // A float RECEIVER (COMP-1/2/FLOAT-*, D16) takes the algebraic value as a native cast — no PICTURE, no
@@ -380,7 +381,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
 
     private int ScaleOf(Place p) =>
         p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
-            ? RuntimeApi.MaskScale(m, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)
+            ? RuntimeApi.MaskScale(m, '$', ctx.Data.DecimalPointIsComma)
         : p.Item.Pic?.Scale ?? 0;
 
     /// <summary>The receiver's INTEGER digit positions — <see cref="ReceiverContext.IntegerDigits"/>, which caps

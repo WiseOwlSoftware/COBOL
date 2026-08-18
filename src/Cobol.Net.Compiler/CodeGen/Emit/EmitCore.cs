@@ -40,14 +40,17 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// characters through <c>&amp; 0xFF</c>).</summary>
     public string NatCollateArg => Data.NationalCollating is null ? "" : ", __COLLATE_NAT";
 
-    /// <summary>The SPECIAL-NAMES editing-config suffix for generated <c>CobolEdit</c> calls (named arguments,
-    /// composing after any <c>blankWhenZero:</c>): the program's currency PICTURE SYMBOL when not <c>$</c> and
-    /// DECIMAL-POINT IS COMMA when set (ISO §12.3.7 GR13/GR14). Empty under the default config, so the
-    /// generated code of an ordinary program is unchanged. The ONE producer of these arguments — used by the
-    /// orchestrator's MOVE/arithmetic edited stores and the renderer's DeEdit.</summary>
-    public string EditCfgArgs =>
-        (Data.CurrencyPicSymbol != '$'
-            ? $", currency: {SymbolDisplay.FormatLiteral(Data.CurrencyPicSymbol, quote: true)}" : "")
+    /// <summary>The editing-config suffix for a generated <c>CobolEdit</c> call over <paramref name="pic"/>'s
+    /// mask (named arguments, composing after any <c>blankWhenZero:</c>): the mask's currency STRING when it is
+    /// not the single character <c>$</c> (ISO §12.3.7.4 GR13 — the mask itself is canonical, its symbol already
+    /// <c>$</c>; <c>PictureAnalyzer</c> recorded the string on <see cref="PicInfo.CurrencyString"/>, so a unit with
+    /// SEVERAL currency signs edits each item with ITS string — kb/Work PB60 / AR-15.68.3-3) and DECIMAL-POINT IS
+    /// COMMA when set (GR14). Empty under the default config, so the generated code of an ordinary program is
+    /// unchanged. The ONE producer of these arguments — used by the orchestrator's MOVE/arithmetic edited stores,
+    /// ACCEPT/STRING's edited receivers and the renderer's DeEdit.</summary>
+    public string EditCfg(PicInfo? pic) =>
+        (pic?.CurrencyString is { } cur
+            ? $", currencyString: {SymbolDisplay.FormatLiteral(cur, quote: true)}" : "")
         + (Data.DecimalPointIsComma ? ", commaMode: true" : "");
 
     // FigFill lives in FigurativeConstants since P7 Step 4 (the ONE figurative service).

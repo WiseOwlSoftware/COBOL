@@ -11,8 +11,15 @@ namespace CobolNet.Runtime;
 /// corpus, re-hosted on the typed-native substrate (unscaled <see cref="long"/> + scale; no byte areas, no
 /// <c>decimal</c>).
 ///
-/// SPECIAL-NAMES threading (ISO §12.3.7): <c>currency</c> is the program's currency PICTURE SYMBOL (GR13;
-/// default <c>$</c> per SR25); <c>commaMode</c> is DECIMAL-POINT IS COMMA (GR14 — the decimal and grouping
+/// SPECIAL-NAMES threading (ISO §12.3.7): <c>currency</c> is the mask's currency PICTURE SYMBOL (GR13; the
+/// compiler CANONICALIZES every mask's currency symbol to <c>$</c> at bind — <c>PictureAnalyzer</c> — so
+/// generated code always passes the default) and <c>currencyString</c> is the currency STRING that symbol expands
+/// to when it is not the single character <c>$</c> (§12.3.7.3 r23: "Literal-7 may have any length"; §13.18.40.4
+/// GR14: "The first occurrence of the currency symbol adds the number of characters in the currency string to the
+/// size of the item. Each subsequent occurrence of the currency symbol adds one" — kb/Work PB60 / AR-15.68.3-3).
+/// The core edits on the LOGICAL one-character-per-symbol image and <see cref="ExpandCurrency"/> /
+/// <see cref="CollapseCurrency"/> map that image to and from the physical one, so the multi-character string
+/// touches no editing rule; <c>commaMode</c> is DECIMAL-POINT IS COMMA (GR14 — the decimal and grouping
 /// separators EXCHANGE functionality; §13.18.40.2 SR13: "the rules for the symbol period apply to the symbol
 /// comma, and the rules for the symbol comma apply to the symbol period", and §13.18.40.6: "the precedence rules
 /// … are interchanged"). The public entries CANONICALIZE: under comma-mode the mask's <c>.</c>/<c>,</c> are
@@ -47,8 +54,14 @@ public static class CobolEdit
     /// into <paramref name="picture"/> — the EXPANDED edited picture (repeats unrolled, uppercased, the implied
     /// decimal point <c>V</c> retained; <c>V</c> occupies no output position).</summary>
     public static string Format(Int128 value, int valueScale, string picture, bool blankWhenZero = false,
-        char currency = '$', bool commaMode = false, EditRule[]? edits = null)
+        char currency = '$', bool commaMode = false, EditRule[]? edits = null, string? currencyString = null)
     {
+        // A currency STRING other than the symbol itself (§12.3.7.4 GR13 — a one-character '#' for the '$'
+        // canonical symbol, or a multi-character "USD"; §13.18.40.4 GR14): edit the LOGICAL image (one position
+        // per symbol), then expand the one currency position into the string — a multi-character string makes
+        // the physical item len(string) − 1 wider.
+        if (currencyString is not null && currencyString != currency.ToString())
+            return ExpandCurrency(Format(value, valueScale, picture, blankWhenZero, currency, commaMode, edits), currency, currencyString);
         if (commaMode)
         {
             // Canonicalize the mask (dot = decimal), render, swap the rendered separators back (GR14b).
@@ -247,8 +260,12 @@ public static class CobolEdit
     /// (<see cref="MaskScale"/>); the value is negative when the image carries the mask's negative sign
     /// (<c>-</c> anywhere a sign can land, or a non-blank CR/DB).</summary>
     public static Int128 DeEdit(string image, string picture, char currency = '$', bool commaMode = false,
-        EditRule[]? edits = null)
+        EditRule[]? edits = null, string? currencyString = null)
     {
+        // A currency string other than the symbol itself: collapse the physical image to the logical one first
+        // (§12.3.7.4 GR13 — the string is "de-edited from the data item when it is used as a sending item").
+        if (currencyString is not null && currencyString != currency.ToString())
+            image = CollapseCurrency(image, picture, currency, currencyString);
         if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13) — digit POSITIONS are unchanged
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
         char currencyChar = char.ToUpperInvariant(currency);
@@ -296,13 +313,63 @@ public static class CobolEdit
     /// store). MOVE keeps the unchecked <see cref="Format"/> — high-order truncation IS the defined MOVE behavior
     /// (§14.9.25).</summary>
     public static bool TryFormat(Int128 value, int valueScale, string picture, out string image,
-        bool blankWhenZero = false, char currency = '$', bool commaMode = false, EditRule[]? edits = null)
+        bool blankWhenZero = false, char currency = '$', bool commaMode = false, EditRule[]? edits = null,
+        string? currencyString = null)
     {
         var (capacity, fracDigits) = MaskCapacity(picture, currency, commaMode);
         Int128 scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
         if (Int128.Abs(scaled) >= CobolNum.Pow10Wide(capacity)) { image = string.Empty; return false; }
-        image = Format(value, valueScale, picture, blankWhenZero, currency, commaMode, edits);
+        image = Format(value, valueScale, picture, blankWhenZero, currency, commaMode, edits, currencyString);
         return true;
+    }
+
+    // ── The multi-character currency string (§13.18.40.4 GR14; kb/Work PB60 / AR-15.68.3-3) ────────────────────
+    // The editing rules are written for a currency SYMBOL that occupies one logical position; the currency STRING
+    // it stands for may have any length (§12.3.7.3 r23). GR14 sizes the item so that the FIRST occurrence of the
+    // symbol contributes the whole string and every other occurrence one character — which is exactly "edit the
+    // logical image, then let the ONE rendered currency position expand". Fixed insertion: the string sits where
+    // the symbol sits (§13.18.40.5 r5). Floating insertion (r6a): the single rendered occurrence sits immediately
+    // before the first nonzero digit / the first non-floating position / the decimal point, so it expands there;
+    // a zero value under r6b renders NO currency at all ("all character positions will contain the space
+    // character"), so the physical image is all spaces at the physical width. The collapse is the inverse.
+
+    /// <summary>Logical → physical: the ONE rendered currency character (there is at most one — fixed insertion
+    /// renders the symbol once, floating insertion lands it once) becomes the whole string; an image with no
+    /// currency character (a floating zero, or BLANK WHEN ZERO) is padded to the physical width with leading
+    /// spaces — every position is a space either way.</summary>
+    private static string ExpandCurrency(string logical, char currency, string currencyString)
+    {
+        int idx = logical.IndexOf(char.ToUpperInvariant(currency));
+        if (idx < 0) idx = logical.IndexOf(char.ToLowerInvariant(currency));
+        if (idx < 0) return new string(' ', currencyString.Length - 1) + logical;
+        return string.Concat(logical.AsSpan(0, idx), currencyString, logical.AsSpan(idx + 1));
+    }
+
+    /// <summary>Physical → logical, for de-editing (the inverse of <see cref="ExpandCurrency"/>): a FIXED currency
+    /// symbol's string sits at the symbol's own mask position; a FLOATING string is wherever it landed — the first
+    /// occurrence of the string in the image (§12.3.7.3 r23 keeps digits, the sign characters and the separators
+    /// out of a currency string, and the mask's insertion characters cannot spell it inside its own zone); an image
+    /// holding no string (a floating zero) simply drops the extra leading spaces.</summary>
+    private static string CollapseCurrency(string image, string picture, char currency, string currencyString)
+    {
+        char currencyChar = char.ToUpperInvariant(currency);
+        string pattern = picture.Replace("V", "").Replace("P", "");
+        int occurrences = 0, fixedPos = -1;
+        for (int i = 0; i < pattern.Length; i++)
+            if (char.ToUpperInvariant(pattern[i]) == currencyChar) { occurrences++; fixedPos = i; }
+        if (occurrences == 0) return image;
+        int extra = currencyString.Length - 1;
+        int idx = occurrences == 1 && fixedPos + currencyString.Length <= image.Length
+                  && string.CompareOrdinal(image, fixedPos, currencyString, 0, currencyString.Length) == 0
+            ? fixedPos
+            : image.IndexOf(currencyString, StringComparison.Ordinal);
+        if (idx < 0)
+        {
+            // No string rendered (a floating zero under r6b, or a BLANK WHEN ZERO image): drop the extra spaces.
+            int drop = Math.Min(extra, image.Length);
+            return image[drop..];
+        }
+        return string.Concat(image.AsSpan(0, idx), currencyChar.ToString(), image.AsSpan(idx + currencyString.Length));
     }
 
     /// <summary>The mask's total digit-position capacity (9/Z/* plus floating-string members, less the ONE

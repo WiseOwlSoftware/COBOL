@@ -174,8 +174,8 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
             // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
             // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
             && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }
-        ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfgArgs}{RuntimeApi.EditsArg(p.Item.Pic!.EditingRules)})",
-            CobolNet.Runtime.CobolEdit.MaskScale(dem, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma))
+        ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfg(p.Item.Pic)}{RuntimeApi.EditsArg(p.Item.Pic!.EditingRules)})",
+            CobolNet.Runtime.CobolEdit.MaskScale(dem, '$', ctx.Data.DecimalPointIsComma))
         : FieldNumCore(p, floatCheck: !_floatSendingExempt);
 
     /// <summary>The context-free numeric read of a place (every branch of <see cref="FieldNum"/> except the

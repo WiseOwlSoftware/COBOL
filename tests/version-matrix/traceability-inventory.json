@@ -12563,12 +12563,12 @@
   "kind": "SR",
   "ordinal": 21,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Two clauses binding equivalent symbols (uppercase-keyed, r20) to different strings → COBOLNET0891 (negative currency-sign-r21-symbol-rebound: 'USD'/U then 'UAH'/U); the same string twice is admitted.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-22",
@@ -12576,12 +12576,12 @@
   "kind": "SR",
   "ordinal": 22,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ValidateCurrencyChar",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb60_currency_sign_bare_implied_dollar",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Without PICTURE SYMBOL literal-7 is both string and symbol and shall be ONE character outside the a/b/c forbidden set: a multi-character bare literal → COBOLNET0890 (negative currency-sign-r22-bare-multichar), a forbidden character → COBOLNET0891 (ValidateCurrencyChar); the legal bare '#' edits and parses (golden pb60_currency_sign_bare_implied_dollar).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-23",
@@ -12589,12 +12589,12 @@
   "kind": "SR",
   "ordinal": 23,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency",
+  "test-ref": "conformance:2023/pb60_currency_sign_set; conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). With PICTURE SYMBOL literal-7 is the currency string and 'may have any length': 'USD' and 'GBP' bind and edit (golden pb60_currency_sign_set); r23a (at least one non-space character) and r23b (none of 0-9 + - , . *) → COBOLNET0890 (negative currency-sign-r23-string-digit). The former COBOLNET0896 'multi-character currency string is not yet supported' deferral is gone.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-24",
@@ -12615,12 +12615,12 @@
   "kind": "SR",
   "ordinal": 25,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#FinalizeCurrencySigns; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+  "test-ref": "conformance:2023/pb60_currency_sign_bare_implied_dollar; conformance:2023/pb60_currency_sign_set",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). 'If a source unit does not contain a CURRENCY SIGN clause that specifies '$' as the currency symbol (either as literal-7 or literal-8), the clause CURRENCY SIGN '$' PICTURE SYMBOL '$' is implied for that source unit.' FinalizeCurrencySigns adds '$' → '$' after the SPECIAL-NAMES walk unless a clause named '$' as literal-7 or literal-8, and PictureAnalyzer's SR2 whitelist admits '$' iff it is a set member — so PIC $$,$$9.99 is legal beside CURRENCY SIGN '#' (the FDL legs; it was COBOLNET0808 under the single-symbol model — a legal-source rejection).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-26",
@@ -12628,12 +12628,12 @@
   "kind": "SR",
   "ordinal": 26,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency",
+  "test-ref": "conformance:2023/pb60_currency_sign_set",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Literal-8 shall be a single character (COBOLNET0892 otherwise — the pre-existing check, kept); the golden's 'U' and 'G' symbols bind and edit their strings.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-27",
@@ -12641,12 +12641,12 @@
   "kind": "SR",
   "ordinal": 27,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ValidateCurrencyChar",
+  "test-ref": "conformance:2023/pb60_currency_sign_set",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Literal-8's forbidden set (digits; A B C D E N P R S V X Z / space; + - , . * / ; ( ) \" =) → COBOLNET0891 through the shared ValidateCurrencyChar (the same set as r22); the golden's 'U'/'G' are legal symbols.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-28",
@@ -12966,12 +12966,12 @@
   "kind": "GR",
   "ordinal": 13,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#ExpandCurrency; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#CollapseCurrency; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#CanonicalCurrencyMask",
+  "test-ref": "conformance:2023/pb60_currency_sign_set; unit:CobolEditCurrencyStringTests.DeEdit_CollapsesTheCurrencyString",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). The currency STRING is placed into a numeric-edited receiver where its symbol's PICTURE positions are (fixed and floating insertion, both goldens' FU/FLU/FDL/FG legs) and de-edited from a numeric-edited sender (the DEEDIT legs: 5.25 → 525 in 9V99, the zero image → 000, USD123 → 300 by MOVE truncation); the symbol that stands for it in a PICTURE is any member of the unit's CURRENCY SIGN SET (r25's implied '$' included). The single-character '$' path is the byte-identical legacy formatter (NIST NC104A/NC107A).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-14",
@@ -21910,12 +21910,12 @@
   "kind": "GR",
   "ordinal": 14,
   "subject": "PICTURE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#ExpandCurrency",
+  "test-ref": "conformance:2023/pb60_currency_sign_set; unit:CobolEditCurrencyStringTests.Format_ExpandsTheCurrencyString",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). 'The first occurrence of the currency symbol adds the number of characters in the currency string to the size of the item. Each subsequent occurrence of the currency symbol adds one to the size of the item.' PictureAnalyzer adds the string's extra length to PicInfo.Length once (PIC U9.99 with 'USD' is 7; PIC UUU9 is 6; PIC UUUU is 6), and CobolEdit renders the physical width in every editing case (fixed, floating with the string before the first nonzero digit, the all-floating zero as spaces, BLANK WHEN ZERO). A group image carries the physical width (golden GRP leg: USD5.25X in an X(8)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.40.4-15",
@@ -46870,12 +46870,12 @@
   "kind": "AR",
   "ordinal": 3,
   "subject": "NUMVAL-C function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency",
-  "test-ref": "",
-  "editions": "",
-  "notes": "REFUTED: PARTIAL -> DIVERGES. The prior record's 'the USE half conforms' was established by ONE probe with a single-character CURRENCY SIGN. Reading §12.3.7.3 and the currency binder shows the compiler's model of 'the currency string for the compilation unit' is not the standard's, and that it REJECTS LEGAL SOURCE in r3's own named channel. (1) §12.3.7.3 23) says 'If the PICTURE SYMBOL phrase is specified, literal-7 is the currency string and literal-8 is the associated currency symbol. Literal-7 MAY HAVE ANY LENGTH' — a multi-character currency string is legal COBOL, and it is precisely the case NUMVAL-C's currency-string feature exists for. SwitchBindCurrency rejects every one of them (COBOLNET0896), and its own comment concedes this is a deferral, not a rule: 'the M2-deferred surface; reject loudly rather than mis-size'. Documented non-support is an owner decision (D13), never the compiler author's, so it is recorded here as the divergence it is: r3's alternative 'a currency string specified in the SPECIAL-NAMES paragraph' is unreachable for everything but the single-character subset. (2) §12.3.7.3 25) says 'If a source unit does not contain a CURRENCY SIGN clause that specifies (dollar) as the currency symbol (either as literal-7 or literal-8), the clause CURRENCY SIGN (dollar) PICTURE SYMBOL (dollar) is implied for that source unit.' So the scalar OVERWRITE does not merely fail to COUNT the unit's currency strings — it DESTROYS the implied dollar binding: after CURRENCY SIGN IS '#', the legal picture PIC $$,$$9.99 is rejected COBOLNET0808 as an invalid picture symbol. It also means the prior record's own 'single-currency' probe unit (one CURRENCY SIGN IS '#' clause) in fact carries TWO currency strings, '#' and the implied dollar — so the very program used to certify the USE half is one that VIOLATES r3 and drew no diagnostic. There is no clean half left. (3) Citation hygiene in the code this row points at, mechanically checked: COBOLNET0890 / 0891 / 0892 / 0896 all cite '§12.3.7 SR2x' where the rules live in §12.3.7.3 — the one-level-short shape. Everything the prior record said about the missing SET-shaped picture-symbol -> currency-string binding map still stands and is the fix; r3 then becomes a count over that map, and the multi-character surface has to come with it. EVIDENCE: Probe E:/Temp/refnvc/multicur.cob — SPECIAL-NAMES `CURRENCY SIGN IS \"USD\" WITH PICTURE SYMBOL \"U\"`, --std 2023 -> `error COBOLNET0896: CURRENCY SIGN \"USD\": a multi-character currency string is not yet supported (single-character strings only; ISO §12.3.7 SR23)`, exit 70 — legal source per §12.3.7.3 23). Probe E:/Temp/refnvc/impdollar.cob — `CURRENCY SIGN IS \"#\"` plus `01 WS-P PIC $$,$$9.99` -> `error COBOLNET0808: invalid PICTURE symbol '$' in PICTURE $$,$$9.99 — data item 'WS-P' (ISO §13.18.40.3 SR2: not an allowable picture symbol)`, exit 70 — legal source per §12.3.7.3 25)'s implied clause. Read DataBinder.Switches.SwitchBindCurrency: the COBOLNET0896 early `return` on `literal7.Length != 1` inside the PICTURE SYMBOL arm, and the unconditional tail `CurrencyPicSymbol = symbol; CurrencyString = currencyString;` — one scalar pair per compilation unit, last clause wins, no set, nothing to count. Carried forward from the prior record and re-read: BindNumvalCFamily injects `new BoundStringLiteral(ctx.Data.CurrencyString)` when operands.Count == 1; probe E:/Temp/pbnvc/curr.cob (two CURRENCY SIGN clauses) compiled exit 0 with NO diagnostic and one of the two NUMVAL-C calls silently returned the §15.3 default 0. cite.py: --check 12.3.7.3 \"If the PICTURE SYMBOL phrase is specified, literal-7 is the currency string and literal-8 is the associated currency symbol. Literal-7 may have any length\" -> OK §12.3.7.3 23); --check 12.3.7.3 \"the clause CURRENCY SIGN '$' PICTURE SYMBOL '$' is implied for that source unit\" -> OK §12.3.7.3 25); --check 12.3.7 \"Literal-7 may have any length\" -> FAIL (the clause number the code's own diagnostic prints), and the same FAIL for the SR21 / SR22 / SR26 texts the other three diagnostics cite; --check 15.68.3 \"there shall be only one currency string for the compilation unit\" -> OK §15.68.3 3).",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SoleCurrencyString; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#ExpandCurrency",
+  "test-ref": "conformance:2023/pb60_currency_sign_set; conformance:2023/pb60_currency_sign_bare_implied_dollar; conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; unit:CobolEditCurrencyStringTests.Format_ExpandsTheCurrencyString",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-17 (PB60 — the last row). §15.68.3 r3: with neither argument-2 nor LOCALE 'there shall be only one currency string for the compilation unit, either the default currency sign or a currency string specified in the SPECIAL-NAMES paragraph'. The scalar CurrencyPicSymbol/CurrencyString pair is REPLACED by DataBinder.CurrencySigns — the CURRENCY SIGN SET (symbol → string; §12.3.7.3 r21 equivalence check, r22 bare single-character, r23 any-length string with the r23a/b content bans, r26/r27 symbol checks, r19 hex-literal form, r25's implied '$' unless a clause names '$'); a multi-character literal-7 is now ACCEPTED (the COBOLNET0896 'not yet supported' deferral is gone): PictureAnalyzer canonicalizes each mask's symbol to '$' and records the string on PicInfo.CurrencyString with the §13.18.40.4 GR14 width, and CobolEdit expands/collapses the string around the logical image (fixed: PIC U9.99 → USD5.25; floating: PIC UUU9 → ' USD12' / 'USD123' / '  USD0'; all-floating zero → all spaces; BLANK WHEN ZERO at the physical width; de-editing removes the string). The refuter's three reproductions: (1) the multi-character string compiles and edits (golden pb60_currency_sign_set); (2) the implied '$' survives a declared '#' — PIC $$,$$9.99 beside CURRENCY SIGN '#' edits with '$' (golden pb60_currency_sign_bare_implied_dollar FDL leg; it was COBOLNET0808); (3) r3 is COUNTED: NUMVAL-C/TEST-NUMVAL-C without argument-2 take SoleCurrencyString — '$' with no clause, the ONE explicitly specified string, and COBOLNET1644 when two or more distinct strings are specified (negative numval-c-ambiguous-currency; the former model injected whichever clause bound last and NUMVAL-C(\"#1,234.56\") silently returned 0). Reading recorded: r25's implied '$' is the picture-symbol default, not a competing r3 string — otherwise r3's 'a currency string specified in the SPECIAL-NAMES paragraph' alternative could never be the only one. Negatives currency-sign-r21-symbol-rebound / -r22-bare-multichar / -r23-string-digit pin the clause's own rules. Version-invariant for the bare form (85); the PICTURE SYMBOL form is 2002+.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.68.3-4",

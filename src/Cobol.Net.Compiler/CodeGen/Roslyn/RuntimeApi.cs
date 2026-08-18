@@ -141,14 +141,14 @@ internal static class RuntimeApi
     // ── Editing (CobolEdit) ──
 
     /// <summary>Edit a numeric value into a PICTURE mask — <c>CobolEdit.Format</c>. <paramref name="cfgArgs"/> is
-    /// the SPECIAL-NAMES suffix (<see cref="Emit.EmitContext.EditCfgArgs"/>), possibly empty.</summary>
+    /// the per-item editing-config suffix (<see cref="Emit.EmitContext.EditCfg"/>), possibly empty.</summary>
     public static string EditFormat(string value, string scale, string maskLiteral, string cfgArgs) =>
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.Format)}({value}, {scale}, {maskLiteral}{cfgArgs})";
 
     /// <summary>The trailing <c>edits:</c> named argument for a numeric-edited store carrying PICTURE EDITING
     /// phrases (ISO §13.18.40.2 Format 1) — the resolved single-character render rules serialized as a
     /// <c>CobolEdit.EditRule[]</c>. Empty for every non-editing item, so the generated code of an ordinary program
-    /// is byte-identical. Appended AFTER <c>BwzFlag</c>/<c>EditCfgArgs</c> (all named args) at each edited store.</summary>
+    /// is byte-identical. Appended AFTER <c>BwzFlag</c>/<c>EditCfg</c> (all named args) at each edited store.</summary>
     public static string EditsArg(IReadOnlyList<CobolEdit.EditRule>? rules)
     {
         if (rules is null || rules.Count == 0) return "";
@@ -835,7 +835,7 @@ internal static class RuntimeApi
     /// <summary>The COMPILE-TIME edited-image composition (a typed passthrough): a numeric literal VALUE on a
     /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63 GR6) with the SAME runtime
     /// editor the generated code calls.</summary>
-    public static string EditCompose(Int128 value, int valueScale, string picture, bool blankWhenZero, char currency,
+    public static string EditCompose(Int128 value, int valueScale, string picture, bool blankWhenZero, string? currencyString,
         bool commaMode, IReadOnlyList<CobolEdit.EditRule>? edits = null) =>
-        CobolEdit.Format(value, valueScale, picture, blankWhenZero, currency, commaMode, edits?.ToArray());
+        CobolEdit.Format(value, valueScale, picture, blankWhenZero, '$', commaMode, edits?.ToArray(), currencyString);
 }

@@ -1266,7 +1266,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "the letter pair CR/DB in any case (ISO §15.68.3 rule 2)");
         }
         if (operands.Count == 1)
-            operands.Add(new BoundStringLiteral(ctx.Data.CurrencyString));   // §15.68.3 r3
+        {
+            // §15.68.3 r3: "If neither argument-2 nor the LOCALE keyword is specified, there shall be only one
+            // currency string for the compilation unit, either the default currency sign or a currency string
+            // specified in the SPECIAL-NAMES paragraph" — the unit's SoleCurrencyString ("$" with no clause, the
+            // one explicitly specified string, NULL past that). Two or more distinct strings make the reference
+            // illegal (kb/Work PB60 / AR-15.68.3-3 — the former scalar injected whichever clause bound last, so
+            // NUMVAL-C("#1,234.56") silently returned 0 in a '#'-then-'@' unit).
+            if (ctx.Data.SoleCurrencyString is { } sole)
+                operands.Add(new BoundStringLiteral(sole));
+            else
+                ctx.Edition.Error(DiagnosticCatalog.NumvalCAmbiguousCurrency, $"FUNCTION {sig.Name} without "
+                    + $"argument-2: the compilation unit specifies {ctx.Data.ExplicitCurrencyStringCount} distinct "
+                    + "currency strings in its SPECIAL-NAMES paragraph; when neither argument-2 nor LOCALE is "
+                    + "specified there shall be only one currency string for the compilation unit (ISO §15.68.3 "
+                    + "rule 3) — name the currency string as argument-2");
+        }
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { Anycase = anycase };
     }
 
@@ -1743,7 +1758,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         int scale; System.Numerics.BigInteger unscaled; bool signable;
         if (edited)
         {
-            var (cap, frac) = CobolNet.Runtime.CobolEdit.MaskCapacity(pic.EditMask!, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma);
+            var (cap, frac) = CobolNet.Runtime.CobolEdit.MaskCapacity(pic.EditMask!, '$', ctx.Data.DecimalPointIsComma);
             scale = frac;
             unscaled = Pow10(cap) - 1;   // all-nines over the mask's digit positions (§13.18.40.4)
             signable = pic.EditMask!.IndexOf('+') >= 0 || pic.EditMask!.IndexOf('-') >= 0

@@ -799,6 +799,17 @@ public static class DiagnosticCatalog
     // (§12.3.4 GR1), which is why DataBinder.InheritConfiguration copies the whole configuration-derived state
     // into every containee before it binds (kb/Work PB60 / AR-15.67.3-5 — a contained program under
     // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0 and NUMVAL("123.45") as 123.45).
+    // §15.68.3 r3 — NUMVAL-C / TEST-NUMVAL-C without argument-2 in a unit whose SPECIAL-NAMES paragraph specifies
+    // two or more distinct currency strings (kb/Work PB60 / AR-15.68.3-3: the former single-symbol model
+    // injected whichever clause bound last, silently).
+    public static readonly DiagnosticDescriptor NumvalCAmbiguousCurrency = new(
+        "COBOLNET1644", "numval-c-ambiguous-currency", EditionSeverity.Error,
+        "FUNCTION NUMVAL-C or TEST-NUMVAL-C is written without argument-2 (and without LOCALE) in a compilation "
+        + "unit whose SPECIAL-NAMES paragraph specifies two or more distinct currency strings. ISO §15.68.3 rule 3: "
+        + "\"If neither argument-2 nor the LOCALE keyword is specified, there shall be only one currency string for "
+        + "the compilation unit, either the default currency sign or a currency string specified in the "
+        + "SPECIAL-NAMES paragraph.\" Name the intended currency string as argument-2.",
+        "ISO §15.68.3 rule 3 (via §15.94.3 rule 1 for TEST-NUMVAL-C)");
     public static readonly DiagnosticDescriptor ConfigurationSectionInContainedProgram = new(
         "COBOLNET1643", "configuration-section-in-contained-program", EditionSeverity.Error,
         "A CONFIGURATION SECTION is specified in a program that is contained within another program. ISO "

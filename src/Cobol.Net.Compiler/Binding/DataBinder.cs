@@ -2107,8 +2107,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
 
         var pic = pictureText is not null
-            ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol,
-                blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs)
+            ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, currencies: CurrencySigns,
+                blankWhenZero: blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)

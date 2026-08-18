@@ -320,7 +320,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // scale (MOVE truncates toward zero, §14.6.8.2) — the edit Format takes a scaled Int128, not a double
                 // (D16 review: the numeric-edited path was missed by the Real integration → CS1503). NB the mask scale
                 // is the runtime's MaskScale, NOT pic.Scale (a numeric-edited item's Scale is 0 — the point is in the mask).
-                int ems = RuntimeApi.MaskScale(pic.EditMask!, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma);
+                int ems = RuntimeApi.MaskScale(pic.EditMask!, '$', ctx.Data.DecimalPointIsComma);
                 // A STANDARD-DECIMAL intermediate lands at the MASK's scale (the §14.7 final transfer — the same
                 // form ArithmeticEmitter's edited path uses; fix-queue PB65: MOVE FUNCTION E under the mode handed
                 // the CobolDec to the Int128 edit path, CS1503 on conforming source).
@@ -328,13 +328,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     : e.Dec ? RuntimeApi.DecToUnscaled(e.Expr, $"{ems}", CobolRounding.Truncation)
                     : e.Expr;
                 int editScale = e.Real || e.Dec ? ems : e.Scale;
-                return RuntimeApi.EditFormat(editVal, $"{editScale}", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfgArgs + RuntimeApi.EditsArg(pic.EditingRules));
+                return RuntimeApi.EditFormat(editVal, $"{editScale}", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
             // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
             // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
             // (A GROUP sender never reaches here — GR4 makes that a group move, no editing: EmitGroupToElementaryMove.)
             case PicCategory.NumericEdited:
-                return RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, num, deSign: true)), "0", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfgArgs + RuntimeApi.EditsArg(pic.EditingRules));
+                return RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, num, deSign: true)), "0", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
@@ -429,7 +429,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     {
         if (target.Pic is not { } pic) return ReceiverContext.None;
         int scale = pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
-            ? RuntimeApi.MaskScale(m, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)
+            ? RuntimeApi.MaskScale(m, '$', ctx.Data.DecimalPointIsComma)
             : pic.Scale;
         return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale), MoveSender = true };
     }

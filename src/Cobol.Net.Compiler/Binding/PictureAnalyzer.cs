@@ -24,10 +24,17 @@ public static class PictureAnalyzer
     /// <summary>
     /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and the
     /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
-    /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3). <paramref name="currency"/> is the
-    /// program's currency PICTURE SYMBOL (ISO §12.3.7 GR13; <c>$</c> per SR25) — a non-default symbol (e.g.
-    /// NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c>: its mask positions are
-    /// fixed/floating currency insertion, making the item NUMERIC-EDITED (§13.18.40.4). <paramref name="edition"/>
+    /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3). <paramref name="currencies"/> is the
+    /// unit's CURRENCY SIGN SET (ISO §12.3.7 — symbol → currency string; <c>DataBinder.CurrencySigns</c>, the
+    /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§13.18.40.3 r24/r28):
+    /// a non-default symbol (e.g. NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c> — its
+    /// mask positions are fixed/floating currency insertion, making the item NUMERIC-EDITED (§13.18.40.4) — and
+    /// the emitted <see cref="PicInfo.EditMask"/> carries it CANONICALIZED to <c>$</c> with the string it stands
+    /// for on <see cref="PicInfo.CurrencyString"/>; a multi-character string widens the item by its extra length
+    /// (§13.18.40.4 GR14 — "the first occurrence of the currency symbol adds the number of characters in the
+    /// currency string to the size of the item"; kb/Work PB60 / AR-15.68.3-3). <paramref name="currency"/> is the
+    /// legacy single-symbol form (tests / report items) — ignored when <paramref name="currencies"/> is given.
+    /// <paramref name="edition"/>
     /// + <paramref name="where"/> carry the W2 loud-guard diagnostics: the symbol whitelist (§13.18.40.3 SR2) —
     /// a symbol outside the legal set is a COBOLNET0808 error, and the legal-but-unimplemented 2002+ symbols
     /// <c>N</c>/<c>1</c>/<c>E</c> route their introduction gates + a not-implemented error (never the historical
@@ -37,7 +44,7 @@ public static class PictureAnalyzer
     /// </summary>
     public static PicInfo Analyze(string picture, Usage usage, EditionContext edition, string where,
         SignSpec? sign = null, char currency = '$', bool blankWhenZero = false, bool explicitUsage = false,
-        IReadOnlyList<EditingPhraseSpec>? editing = null)
+        IReadOnlyList<EditingPhraseSpec>? editing = null, IReadOnlyDictionary<char, string>? currencies = null)
     {
         // A TRAILING ';' is the clause SEPARATOR (ISO §8.3.5 rule 2 — a semicolon immediately followed by a
         // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
@@ -56,7 +63,29 @@ public static class PictureAnalyzer
 
         // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99".
         string expanded = ExpandRepeats(picture);
-        char cs = char.ToUpperInvariant(currency);
+
+        // The picture's currency symbol — the ONE member of the unit's CURRENCY SIGN SET it uses (§13.18.40.3
+        // r24 fixed / r28 floating: a picture carries one currency symbol kind), or the legacy single symbol.
+        // Two DIFFERENT set members in one picture are an invalid PICTURE (0808). The mask is canonicalized to
+        // '$' below and the symbol's STRING travels on PicInfo.CurrencyString.
+        IReadOnlyDictionary<char, string> currencySet = currencies
+            ?? new Dictionary<char, string> { [char.ToUpperInvariant(currency)] = currency.ToString() };
+        char cs = '\0';
+        foreach (char raw in expanded)
+        {
+            char up = char.ToUpperInvariant(raw);
+            if (!currencySet.ContainsKey(up)) continue;
+            if (cs == '\0') { cs = up; continue; }
+            if (cs == up) continue;
+            edition.Error("COBOLNET0808", $"invalid PICTURE character-string {picture} — {where}: it uses two "
+                + $"different currency symbols ('{cs}' and '{up}'); a PICTURE character-string may contain one "
+                + "currency symbol kind (ISO §13.18.40.3 r24 / r28)");
+            return PicInfo.Recovery();
+        }
+        string currencyString = cs == '\0' ? "$" : currencySet[cs];
+        if (cs == '\0') cs = '$';   // no currency symbol in this picture: the whitelist/editing checks see the default
+        // GR14: the first occurrence contributes the whole string; the mask below is canonical ('$').
+        int currencyExtra = expanded.Any(c => char.ToUpperInvariant(c) == cs) ? currencyString.Length - 1 : 0;
 
         // ── PICTURE EDITING phrases (ISO §13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
         // single-character render rules. char1Set lets the SR2 whitelist admit the declared editing characters
@@ -79,13 +108,12 @@ public static class PictureAnalyzer
             if (char1Set.Contains(c)) continue;   // a declared PICTURE EDITING character-1 (ISO §13.18.40.3 SR8) — not an invalid symbol
             switch (c)
             {
-                // '$' is the currency picture symbol ONLY when no CURRENCY SIGN clause redefines it
-                // (§12.3.7 SR25 default / §13.18.40.3 SR2) — under a custom symbol a stray '$' is not an
-                // allowable picture symbol and previously slipped through as an ungated always-on leniency
-                // (PIC $$$9 under CURRENCY "W" silently produced a wrong-shaped mask; adversarial-review fix,
-                // DEVLOG 595). The corpus's custom-currency programs (NC107A 'W', NC108M '<') use no '$'
-                // pictures, so the gate is corpus-safe.
-                case '$' when cs == '$':
+                // '$' is a currency picture symbol iff it is a member of the unit's CURRENCY SIGN SET —
+                // §12.3.7.3 r25 IMPLIES `CURRENCY SIGN '$' PICTURE SYMBOL '$'` unless a clause names '$' as
+                // literal-7 or literal-8, so `PIC $$,$$9.99` stays legal beside a declared '#' (kb/Work PB60 /
+                // AR-15.68.3-3 measured it as COBOLNET0808 under the former single-symbol model — a legal-source
+                // rejection); only a clause that TAKES '$' for another string retires it as a symbol.
+                case '$' when currencySet.ContainsKey('$'):
                     break;
                 case 'A' or 'B' or 'P' or 'S' or 'V' or 'X' or 'Z'
                     or '0' or '9' or '/' or ',' or '.' or '+' or '-' or '*':
@@ -297,13 +325,26 @@ public static class PictureAnalyzer
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
-                Length: expanded.Count(c => c is not ('V' or 'S' or 'P')), Digits: digits, Scale: scale, Signed: signed)
-            { SignKind = signKind, EditMask = expanded, EditingRules = editRules, DigitPositions = digitPos };
+                Length: expanded.Count(c => c is not ('V' or 'S' or 'P')) + currencyExtra, Digits: digits, Scale: scale, Signed: signed)
+            { SignKind = signKind, EditMask = CanonicalCurrencyMask(expanded, cs), EditingRules = editRules, DigitPositions = digitPos,
+              CurrencyString = currencyString == "$" ? null : currencyString };
 
         // Pure numeric. The stored-digit count (Digits) and DISPLAY width (Length) are the '9' count — P holds no
         // storage; the implied decimal position lives entirely in the signed Scale.
         return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: scale, Signed: signed)
         { SignKind = signKind, DigitPositions = digitPos };
+    }
+
+    /// <summary>The runtime mask: the picture's currency symbol <paramref name="cs"/> canonicalized to <c>$</c>
+    /// (position-preserving, so <see cref="PicInfo.EditingRules"/>'s indexes still hold), so <c>CobolEdit</c>
+    /// sees ONE currency symbol and the string rides beside it (<see cref="PicInfo.CurrencyString"/>).</summary>
+    private static string CanonicalCurrencyMask(string expanded, char cs)
+    {
+        if (cs == '$') return expanded;
+        var a = expanded.ToCharArray();
+        for (int i = 0; i < a.Length; i++)
+            if (char.ToUpperInvariant(a[i]) == cs) a[i] = '$';
+        return new string(a);
     }
 
     /// <summary>Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased).</summary>

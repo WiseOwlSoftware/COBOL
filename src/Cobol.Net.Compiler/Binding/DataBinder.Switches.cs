@@ -70,16 +70,57 @@ public sealed partial class DataBinder
     /// SPECIAL-NAMES is walked at the top of <see cref="Bind"/>.</summary>
     public bool DecimalPointIsComma { get; private set; }
 
-    /// <summary>The currency PICTURE SYMBOL (ISO §12.3.7 GR13; <c>$</c> per the SR25 implied clause). A bare
-    /// <c>CURRENCY SIGN IS literal-7</c> makes literal-7 both string and symbol (SR22); the 2002+ <c>WITH PICTURE
-    /// SYMBOL literal-8</c> form names the symbol separately (SR23/SR26).</summary>
-    public char CurrencyPicSymbol { get; private set; } = '$';
+    /// <summary>
+    /// The unit's CURRENCY SIGN SET (ISO §12.3.7): every currency PICTURE SYMBOL (uppercase-keyed — §12.3.7.3
+    /// r20 / §8.1.3 GR3 make the letter cases equivalent) → the currency STRING it stands for (GR13). A bare
+    /// <c>CURRENCY SIGN IS literal-7</c> makes literal-7 both string and symbol (r22, one character); the 2002+
+    /// <c>WITH PICTURE SYMBOL literal-8</c> form names the one-character symbol (r26/r27) for a string "of any
+    /// length" (r23). r25 IMPLIES <c>CURRENCY SIGN '$' PICTURE SYMBOL '$'</c> unless a clause specifies '$' as
+    /// literal-7 or literal-8 — so <c>PIC $$9</c> stays legal beside a declared '#', and the set is never empty.
+    /// r21: two clauses may not bind equivalent symbols to different strings. Completed by
+    /// <see cref="FinalizeCurrencySigns"/> at the end of the SPECIAL-NAMES walk; a contained program inherits the
+    /// container's set whole (<see cref="InheritConfiguration"/>, §12.3.4 GR1).
+    /// ⛔ THIS REPLACED A SCALAR PAIR (kb/Work PB60 / AR-15.68.3-3): <c>CurrencyPicSymbol</c>/<c>CurrencyString</c>
+    /// held ONE symbol and ONE string per unit — a second clause silently overwrote the first, the implied '$'
+    /// died the moment any clause bound another symbol (a legal <c>PIC $$,$$9.99</c> under <c>CURRENCY SIGN "#"</c>
+    /// was COBOLNET0808), and a multi-character string was refused outright (COBOLNET0896, "not yet supported" —
+    /// deferral debt). Every PICTURE consumer now asks this set which symbol a mask uses (<c>PictureAnalyzer</c>
+    /// records it on <c>PicInfo.CurrencyString</c> after canonicalizing the mask's symbol to '$'), and NUMVAL-C's
+    /// §15.68.3 r3 default is <see cref="SoleCurrencyString"/>.
+    /// </summary>
+    public IReadOnlyDictionary<char, string> CurrencySigns => _currencySigns;
 
-    /// <summary>The currency STRING inserted where the symbol lands (ISO §12.3.7 GR13). Today always one
-    /// character (== <see cref="CurrencyPicSymbol"/> for the bare form): a multi-character literal-7 under
-    /// PICTURE SYMBOL is rejected with COBOLNET0896 — the M2-deferred multi-char-currency surface (it changes
-    /// the edited item's SIZE per §13.18.40.4, which PicInfo/CobolEdit don't model yet).</summary>
-    public string CurrencyString { get; private set; } = "$";
+    private readonly Dictionary<char, string> _currencySigns = new();
+
+    /// <summary>The DISTINCT currency strings the unit's EXPLICIT CURRENCY SIGN clauses specify (r3 of §15.68.3
+    /// counts these: "there shall be only one currency string for the compilation unit, either the default
+    /// currency sign or a currency string specified in the SPECIAL-NAMES paragraph" — the implied '$' clause of
+    /// r25 is the picture-symbol default, not a competing string).</summary>
+    private readonly HashSet<string> _explicitCurrencyStrings = new(StringComparer.Ordinal);
+
+    /// <summary>True once a clause named '$' as literal-7 or literal-8 (r25 — the implied clause is then NOT added).</summary>
+    private bool _dollarSpecified;
+
+    /// <summary>The ONE currency string NUMVAL-C / TEST-NUMVAL-C use when argument-2 (and LOCALE) is absent
+    /// (§15.68.3 r3): the single explicitly specified string, or the default "$" when the unit has no CURRENCY
+    /// SIGN clause; NULL when the unit specifies two or more distinct strings — r3's "there shall be only one" is
+    /// then violated and the reference is diagnosed at bind (COBOLNET1644).</summary>
+    public string? SoleCurrencyString => _explicitCurrencyStrings.Count switch
+    {
+        0 => "$",
+        1 => _explicitCurrencyStrings.First(),
+        _ => null,
+    };
+
+    /// <summary>The number of distinct explicitly specified currency strings (for the r3 diagnostic's text).</summary>
+    public int ExplicitCurrencyStringCount => _explicitCurrencyStrings.Count;
+
+    /// <summary>r25's implied clause: after the SPECIAL-NAMES walk, '$' → "$" joins the set unless a clause
+    /// specified '$' as literal-7 or literal-8. Idempotent (a re-walk cannot double it).</summary>
+    private void FinalizeCurrencySigns()
+    {
+        if (!_dollarSpecified) _currencySigns.TryAdd('$', "$");
+    }
 
     /// <summary>Normalize a NUMERIC literal's source text to the canonical dot-decimal form the whole emit-side
     /// decode pipeline consumes (ISO §12.3.7 GR14a: under DECIMAL-POINT IS COMMA "the character written in
@@ -149,8 +190,9 @@ public sealed partial class DataBinder
     {
         // SPECIAL-NAMES (§12.3.7)
         DecimalPointIsComma = container.DecimalPointIsComma;
-        CurrencyPicSymbol = container.CurrencyPicSymbol;
-        CurrencyString = container.CurrencyString;
+        foreach (var (k, v) in container._currencySigns) _currencySigns.TryAdd(k, v);
+        _explicitCurrencyStrings.UnionWith(container._explicitCurrencyStrings);
+        _dollarSpecified = container._dollarSpecified;
         foreach (var (k, v) in container.SwitchMnemonics) SwitchMnemonics.TryAdd(k, v);
         foreach (var (k, v) in container.SwitchConditions) SwitchConditions.TryAdd(k, v);
         foreach (var (k, v) in container.UserClasses) UserClasses.TryAdd(k, v);
@@ -181,16 +223,23 @@ public sealed partial class DataBinder
                 + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
     }
 
-    /// <summary>Bind <c>CURRENCY [SIGN] [IS] literal-7 [WITH PICTURE SYMBOL literal-8]</c> (ISO §12.3.7).
-    /// Bare form: literal-7 is both currency string and symbol — a single character outside the SR22 forbidden
-    /// set. PICTURE SYMBOL form (2002+ — the 85 standard had only the single-character form): literal-7 is the
-    /// currency string (SR23), literal-8 the symbol (SR26/SR27). SR21: two clauses may not give one symbol two
-    /// different strings.</summary>
+    /// <summary>Bind <c>CURRENCY [SIGN] [IS] literal-7 [WITH PICTURE SYMBOL literal-8]</c> (ISO §12.3.7.3
+    /// r18–r27) into the currency SET. Bare form: literal-7 is both currency string and symbol — a single
+    /// character outside the r22 forbidden set. PICTURE SYMBOL form (2002+ — the 85 standard had only the
+    /// single-character form): literal-7 is the currency string ("may have any length", r23 — at least one
+    /// non-space character, none of <c>0-9 + - , . *</c>), literal-8 the one-character symbol (r26/r27; a
+    /// hexadecimal literal-7 requires this form, r19). r21: two clauses may not give equivalent symbols
+    /// different strings. r25's implied '$' is added by <see cref="FinalizeCurrencySigns"/>.</summary>
     private void SwitchBindCurrency(Core.CurrencySignClauseContext cur)
     {
         var lits = cur.literal();
         if (lits.Length == 0) return;
         string literal7 = LiteralChars(lits[0]);
+        // r19: a hexadecimal literal-7 (X"…" / NX"…") requires the PICTURE SYMBOL phrase — detected on the token
+        // text (the literal's decoded characters cannot tell the forms apart).
+        string raw7 = lits[0].GetText();
+        bool literal7Hex = raw7.Length > 2 && (raw7.Contains('"') || raw7.Contains('\''))
+            && (raw7.StartsWith("X", StringComparison.OrdinalIgnoreCase) || raw7.StartsWith("NX", StringComparison.OrdinalIgnoreCase));
 
         char symbol;
         string currencyString;
@@ -205,31 +254,36 @@ public sealed partial class DataBinder
             if (literal8.Length != 1)
             {
                 Edition.Error("COBOLNET0892", "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
-                    + "character (ISO §12.3.7 SR26)");
+                    + "character (ISO §12.3.7.3 r26)");
                 return;
             }
+            // r23a/b — the currency STRING's content (its length is free).
             if (literal7.Trim().Length == 0)
-                Edition.Error("COBOLNET0890", "CURRENCY SIGN: the currency string shall contain at least one "
-                    + "non-space character (ISO §12.3.7 SR23a)");
-            if (literal7.Length != 1)
             {
-                // The multi-character currency STRING changes the edited item's size (§13.18.40.4) — the
-                // M2-deferred surface; reject loudly rather than mis-size (docs/MULTIVERSION_ROADMAP M2 catalog).
-                Edition.Error("COBOLNET0896", $"CURRENCY SIGN \"{literal7}\": a multi-character currency string "
-                    + "is not yet supported (single-character strings only; ISO §12.3.7 SR23)");
+                Edition.Error("COBOLNET0890", "CURRENCY SIGN: the currency string shall contain at least one "
+                    + "non-space character (ISO §12.3.7.3 r23a)");
+                return;
+            }
+            if (literal7.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
+            {
+                Edition.Error("COBOLNET0890", $"CURRENCY SIGN \"{literal7}\": a currency string may not contain the "
+                    + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO §12.3.7.3 r23b)");
                 return;
             }
             symbol = literal8[0];
             currencyString = literal7;
-            ValidateCurrencyChar(symbol, "PICTURE SYMBOL literal");   // SR27 — same forbidden set as SR22
+            ValidateCurrencyChar(symbol, "PICTURE SYMBOL literal");   // r27 — same forbidden set as r22
         }
         else
         {
-            // Bare form (the COBOL-85 surface): SR22 — one character, both string and symbol.
+            // Bare form (the COBOL-85 surface): r22 — one character, both string and symbol.
+            if (literal7Hex)
+                Edition.Error("COBOLNET0890", "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
+                    + "SYMBOL phrase (ISO §12.3.7.3 r19)");
             if (literal7.Length != 1)
             {
                 Edition.Error("COBOLNET0890", $"CURRENCY SIGN \"{literal7}\": without PICTURE SYMBOL the literal "
-                    + "shall consist of a single character (ISO §12.3.7 SR22)");
+                    + "shall consist of a single character (ISO §12.3.7.3 r22)");
                 return;
             }
             symbol = literal7[0];
@@ -237,13 +291,17 @@ public sealed partial class DataBinder
             ValidateCurrencyChar(symbol, "CURRENCY SIGN literal");
         }
 
-        // SR21: no two clauses may bind equivalent symbols to different strings (single-clause programs trivially pass).
-        if (CurrencyPicSymbol != '$' && char.ToUpperInvariant(CurrencyPicSymbol) == char.ToUpperInvariant(symbol)
-            && CurrencyString != currencyString)
+        char key = char.ToUpperInvariant(symbol);
+        // r21: no two clauses may bind equivalent symbols to different strings.
+        if (_currencySigns.TryGetValue(key, out string? bound) && bound != currencyString)
+        {
             Edition.Error("COBOLNET0891", $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
-                + $"\"{CurrencyString}\" (ISO §12.3.7 SR21)");
-        CurrencyPicSymbol = symbol;
-        CurrencyString = currencyString;
+                + $"\"{bound}\" (ISO §12.3.7.3 r21)");
+            return;
+        }
+        _currencySigns[key] = currencyString;
+        _explicitCurrencyStrings.Add(currencyString);
+        if (currencyString == "$" || key == '$') _dollarSpecified = true;   // r25 — no implied clause
     }
 
     /// <summary>The ISO §12.3.7 SR22/SR27 forbidden currency-symbol set: digits; A B C D E N P R S V X Z (either
@@ -320,6 +378,7 @@ public sealed partial class DataBinder
         // the NAMED alphabets become the program sequences — other defined alphabets have no effect (NC219A's
         // unreferenced COLLATING-SEQ-2). A native-order alphabet leaves the sequence null (the fast path).
         if (pcsClause is not null) ResolveProgramCollating(pcsClause);
+        FinalizeCurrencySigns();   // §12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
     }
 
     /// <summary>Resolve the PROGRAM COLLATING SEQUENCE clause (ISO §12.3.6): the IS form's alphabet-name-1

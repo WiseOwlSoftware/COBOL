@@ -45,8 +45,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **✅ PB60's AR-15.67.3-5 LANDED (DEVLOG 1293)** — `DataBinder.InheritConfiguration` (the whole configuration
   + OPTIONS baseline into every containee, §12.3.4 GR1 / §11.9.4 GR1; COBOLNET1643 for §12.3.3 SR1); PB60 at
   14 of 15; GAP 4138. PB78 registered (OBJECT-COMPUTER's optional computer-name — an edition question).
-  **NEXT, in order:** ① PB60's last row (the CURRENCY SIGN SET model, AR-15.68.3-3 — the apply plan's §2)
-  → ② PB58 → PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
+  **✅ PB60 CLOSED (DEVLOG 1294)** — the CURRENCY SIGN SET + multi-character currency string landed
+  (`DataBinder.CurrencySigns`, `PicInfo.CurrencyString`, `CobolEdit`'s expand/collapse, COBOLNET1644 for
+  §15.68.3 r3); 15 of 15 rows CONFORMS; nine inventory rows flipped (GAP 4129).
+  **NEXT, in order:** ① the battery for the batch (the edit runtime is a shared seam — NIST NC104A/NC107A cross
+  it) → ② PB58 → PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
@@ -69,10 +72,8 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   note (PB58 · PB61 · PB62 · PB63 · PB65 · PB68–PB71) carries its sweep block. The refuters BROKE 14
   of the probers' FIXED claims — trust the sweep's LIVE list, and treat its fixed-upheld rows as
   test-needed, never as done.
-  **NEXT, in order:** ① **PB60's last three rows** — apply plan FROZEN at
-  `docs/rearchitecture/pb60-remaining-apply-plan-2026-08-09.md` (the SDIDI Dec branch is small and
-  fully specified; the CURRENCY SIGN SET model and the DECIMAL-POINT IS COMMA containment scoping are
-  each measured-blast-radius items). ② **PB58** (38 of 40 live — the argument-screen table's remaining
+  **NEXT (as it stood on 08-09; ① landed 08-17 — PB60 is CLOSED, its apply plan applied and deleted):**
+  ① PB60's last three rows. ② **PB58** (38 of 40 live — the argument-screen table's remaining
   predicate kinds; the sweep names the exact gaps: ORD-MAX/MIN cross-arg, strong-type exclusion,
   minimum-width ×4, literal/expression integrality, six functions with NO row). ③ PB61 → PB62 → PB63
   → PB68 → PB69 → PB70 → PB71 per the sweep blocks. ④ PB64/PB66 have COMPLETE UNREVIEWED design

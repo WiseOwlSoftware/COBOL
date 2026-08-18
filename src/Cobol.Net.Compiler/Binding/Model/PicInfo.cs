@@ -190,9 +190,19 @@ public sealed record PicInfo(
 
 
     /// <summary>For a <see cref="PicCategory.NumericEdited"/> item: the EXPANDED edited picture (repeats unrolled,
-    /// uppercased, the implied point <c>V</c> retained) — the mask <c>CobolEdit.Format</c> renders into. Null for
-    /// every other category.</summary>
+    /// uppercased, the implied point <c>V</c> retained, and the mask's currency symbol CANONICALIZED to <c>$</c> —
+    /// see <see cref="CurrencyString"/>) — the mask <c>CobolEdit.Format</c> renders into. Null for every other
+    /// category.</summary>
     public string? EditMask { get; init; }
+
+    /// <summary>For a numeric-edited item whose PICTURE uses a currency symbol: the currency STRING that symbol
+    /// stands for (ISO §12.3.7.4 GR13 — the unit's CURRENCY SIGN SET, <c>DataBinder.CurrencySigns</c>), when it is
+    /// not the single character <c>$</c>. <c>PictureAnalyzer</c> canonicalizes the mask's symbol to <c>$</c> and
+    /// records the string here, so every edit/de-edit call site passes ONE per-item argument
+    /// (<c>currencyString:</c>) and <c>CobolEdit</c> expands the rendered currency position into it — a
+    /// multi-character string widens the item by its extra length (§13.18.40.4 GR14, already in
+    /// <see cref="Length"/>). Null when the picture has no currency symbol, or its string is <c>$</c>.</summary>
+    public string? CurrencyString { get; init; }
 
     /// <summary>For a numeric-edited (or alphanumeric-edited) item carrying one or more PICTURE EDITING phrases
     /// (ISO §13.18.40.2 Format 1, COBOL-2023): the resolved single-character render rules keyed on character-1's
