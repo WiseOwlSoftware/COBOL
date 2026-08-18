@@ -61,9 +61,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   held gaps open corrected (`StagedLoudResidue`, `r03` rows 13/14/17 → 0). REGISTERED: **PB79** (the GROUP-USAGE
   clause does not parse — owns the bit/national-group legs) and **PB80** (a BASED ODO group is never wrapped as an
   ODO operand — GR8 slicing and LENGTH r4a missing; measured wrong MOVE).
-  **⏳ Battery owed:** the PB58+PB61 batch touched shared seams (the argument screen, the LENGTH/BYTE-LENGTH
-  folds, `DataBinder.DynamicResolve`, `NumericRenderer`'s new node) — run `scripts/battery.sh` before the next
-  landing builds on it.
+  **✅ Battery (PB58+PB61 batch, tree `9ece51ea`, DEVLOG 1297):** Conformance **4616/4616** · Unit
+  **4183/4183** · Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases with TWO attributed
+  flips, both PB58's §15.3 screen rejecting source GnuCOBOL accepts leniently (`run_functions:1725` a LITERAL
+  argument-2 to INTEGER-OF-FORMATTED-DATE, §15.48.3 r3 "shall be a data item"; `run_misc:3305` TRIM over a PIC 99
+  item, §15.96.3 r1) — `--permissive` accepts both with a warning; baseline rows flipped to WE_REJECT_THEY_ACCEPT.
+  No gate is owed.
   **NEXT, in order:** ① PB62 → PB63 → PB68 → PB69 → PB70 → PB71 → PB79 → PB80
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
