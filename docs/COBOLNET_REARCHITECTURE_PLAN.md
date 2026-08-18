@@ -280,11 +280,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   FROM / BY, function argument) and every literal under STANDARD-DECIMAL is now its EXACT value on the Dec lane
   (`NumericRenderer.LiteralOperandNum` / `RenderOperandLike` / `LiteralNum`; D16's binary64 latitude stays inside
   native arithmetic expressions / statements only, and D16's paragraph says so). Five verdicts → CONFORMS, **GAP
-  3935**. THE DEFECT BACKLOG IS EMPTY AGAIN — `work.py next` lists only PB64.
-  **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) — owner-reserved (its Q1–Q4 are the owner's; ask
-  the bare question when the session reaches it) · then Phase-B adjudication (the standing order after zero
-  backlog: fix-before-explore holds, so a NEW defect found on the way outranks). Battery **#19** (PB99) is owed at
-  the next checkpoint.
+  3935**.
+  **✅ Battery #19 (PB99, tree `a6034ca8`):** Conformance **4793/4793** · Unit **4239/4239** · Characterization
+  33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
+  **PB100 OPEN (found 2026-08-18 re-reading the PB64 draft's posture-repair half after PB99):** three A.4.9 locale
+  entry points still not refused BY NAME — the ALPHABET clause's LOCALE phrase (a false 0901), PICTURE format 2 (a
+  raw parse error), the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names (ACCEPTED in USE / RAISING / TURN) — while
+  CONFORMANCE.md §4 item 5 claims every entry point is; owed under EITHER answer to PB64's owner-reserved Q1.
+  **NEXT, in order (`work.py next`):** ① PB100 (feature/locale — the posture repair) · ② PB64 (feature/locale) —
+  owner-reserved (its Q1–Q4 are the owner's; ask the bare question when the session reaches it) · then Phase-B
+  adjudication (the standing order after zero backlog: fix-before-explore holds, so a NEW defect found on the way
+  outranks).
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
