@@ -265,11 +265,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `ValueInitializer.EditedImageOfNumericValue` now serves the initializer AND `ConditionRenderer`) and **PB98**
   (`1,5E+3` under DECIMAL-POINT IS COMMA was a parse error / a silent 1 — `FLOAT_COMMA_BODY` and its twin set).
   14 verdicts → CONFORMS (RV-15.43.4-1 / RV-15.58.4-1 among them), **GAP 3940**. Registry row
-  `pic-external-float-2002` → active; codes 1658–1660 claimed (next free 1661).
-  **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) — owner-reserved (its Q1–Q4 are the owner's; ask
-  the bare question when the session reaches it) · then Phase-B adjudication (the standing order after zero
-  backlog: fix-before-explore holds, so a NEW defect found on the way outranks). Battery **#18** (this batch) is
-  owed at the next checkpoint.
+  `pic-external-float-2002` → active; codes 1658–1660 claimed.
+  **✅ Battery #18 (PB66 + PB97 + PB98 batch, tree `684ec6f3`):** Conformance **4788/4788** · Unit 4238/4239 — the
+  one red was `ConstructRegistryDriftTests` catching that `ConstructRegistry.g.cs` still carried the row's OLD
+  citation after the post-generation `§13.18.40.3 SR13 b)` → `§13.18.40.4 GR13 b)` correction (regenerated, green;
+  the drift test did its job) · Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases,
+  **1 flip, attributed**: `run_fundamental:72` (GnuCOBOL's "DISPLAY literals, DECIMAL-POINT is COMMA" — `DISPLAY
+  1,23E0`) WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT, the PB98 comma-decimal floating literal — baselined. GREEN.
+  **PB99 OPEN (found 2026-08-18 probing PB66's literal legs):** a floating-point literal beyond binary64 or with a
+  five-digit exponent crashes the backend (CS0594) — §8.3.3.3.3 SR2/SR3/SR4 unchecked, the implementor-defined
+  exponent range undocumented; the crash class ranks it first.
+  **NEXT, in order (`work.py next`):** ① PB99 (frontend/literals — a crash) · ② PB64 (feature/locale) —
+  owner-reserved (its Q1–Q4 are the owner's; ask the bare question when the session reaches it) · then Phase-B
+  adjudication (the standing order after zero backlog: fix-before-explore holds, so a NEW defect found on the way
+  outranks).
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
