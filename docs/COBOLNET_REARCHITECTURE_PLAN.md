@@ -227,7 +227,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   alphanumeric subjects) are enforced: COBOLNET1657, error strict at every edition, the representable vendor
   leniency (a digits-only literal is the number, a numeric literal on PIC X its characters, a character figurative
   on a numeric item ZERO) a warning under --permissive; `PIC 9 VALUE "abc"` no longer reaches the C# backend. Two
-  verdicts → CONFORMS, GAP 3958. Battery #16 owed for the PB93 + PB94 batch with the next landing.
+  verdicts → CONFORMS, GAP 3958.
+  **✅ Battery #16 (PB93 + PB94 batch, tree `17622d58`):** Conformance **4768/4768** · Unit **4232/4232** ·
+  Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, **10 flips, all attributed and
+  baselined**: 8 × WE_ACCEPT_THEY_REJECT → AGREE_REJECT (`syn_redefines` 53/74/146/196/254/280 and
+  `syn_definition:2129` — PB93's REDEFINES / RENAMES operand checks; `syn_value:271` — PB94's SR2), 2 ×
+  AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT (`syn_value:299` `PIC XXX VALUE 123`, `syn_value:425` `PIC BXX VALUE
+  123` — §13.18.63.3 SR4 makes a numeric VALUE literal on an alphanumeric item illegal; GnuCOBOL's default dialect
+  accepts it, COBOL.NET accepts it under `--permissive` with COBOLNET1657 — the DEFAULT_DIALECT tier's expected
+  ISO-stricter divergence). Green.
   **NEXT, in order (`work.py next`):** ① PB96 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
