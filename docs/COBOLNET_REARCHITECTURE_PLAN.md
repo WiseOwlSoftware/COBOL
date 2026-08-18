@@ -203,7 +203,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   EXCEPTION-LOCATION determination revised to the physical source line (`copybook(line)` for copied text). Zero
   new inventory rows (usability), GAP 3974. **PB93** (REDEFINES of an undefined data-name accepted silently) and
   **PB94** (VALUE literal class vs subject category unenforced — an alphanumeric VALUE on a numeric item reaches
-  Roslyn) REGISTERED. Battery #14 owed for this landing.
+  Roslyn) REGISTERED.
+  **✅ Battery #14 (PB82 landing, tree `8fa1ace7`):** Conformance **4727/4727** · Unit **4232/4232** · Characterization
+  33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
   **NEXT, in order (`work.py next`):** ① PB79 → PB93 → PB94 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
