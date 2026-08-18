@@ -4,9 +4,10 @@
       *>     item's alphabetic/edited row), so an edited item's slice moves to a BOOLEAN receiver - the
       *>     alphanumeric-to-boolean "Yes" cell. Before the fix the inner item's flags rode the view and this
       *>     legal MOVE was refused 0819.
-      *> RA: the same erasure on an ALPHABETIC item's slice - alphanumeric-to-boolean "Yes". The receiver
-      *>     stores the view's characters verbatim on the D-B1 '0'/'1' substrate; content validity of a
-      *>     boolean receiver is not Table 16's question and is not adjudicated here.
+      *> (RA - an ALPHABETIC item's slice into a boolean receiver - was pinned here as admitted from 2026-08-09 to
+      *>     2026-08-18; kb/Work PB73 re-adjudicated it: 8.4.3.3.4 GR6's exception list is exhaustive and does
+      *>     not name alphabetic, so the view stays ALPHABETIC and Alphabetic -> Boolean is Table 16's "No" - now
+      *>     the negative pb73-move-alphabetic-view-to-boolean; --permissive keeps the erasure with a warning.)
       *> XB: FUNCTION CONCAT over plain PIC X arguments is 15.18.4 r3's "otherwise" arm - ALPHANUMERIC -
       *>     and moves to a boolean receiver (the discriminating twin of the rejected all-PIC-A form,
       *>     negative pb59-concat-alphabetic-to-boolean).
@@ -25,8 +26,6 @@
        PROCEDURE DIVISION.
            MOVE WS-AE(1:2) TO WS-B
            DISPLAY "RB=" WS-B
-           MOVE WS-A(1:2) TO WS-B
-           DISPLAY "RA=" WS-B
            MOVE FUNCTION CONCAT(WS-X1 WS-X1) TO WS-B4
            DISPLAY "XB=" WS-B4
            MOVE FUNCTION CONCAT(WS-A1 WS-X1) TO WS-B4

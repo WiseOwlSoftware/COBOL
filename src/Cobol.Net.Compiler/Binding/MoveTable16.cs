@@ -24,20 +24,33 @@ public readonly record struct Table16Operand(
                 p.Category is PicCategory.Numeric && (p.IsFloat || p.Scale > 0));
 
     /// <summary>The Table-16 position of a PLACE — the entry every MOVE/INVOKE crossing must use, because a
-    /// REFERENCE-MODIFIED view does not carry the inner item's finer flags (fix-queue PB72): §8.4.3.3.4 GR2
-    /// redefines every usage-DISPLAY non-alphanumeric item as CLASS AND CATEGORY ALPHANUMERIC for reference
-    /// modification, and GR6's lettered rewrites plus GR1/SR5's closed class lists (boolean, alphanumeric,
-    /// national — no alphabetic anywhere in the scheme) mean the unique data item is NEVER alphabetic, NEVER
-    /// edited and NEVER numeric. Reading the INNER item's flags through a view refused legal source both ways:
-    /// <c>MOVE A-ITEM(1:2) TO a-boolean</c> is Table 16's plain alphanumeric→boolean "Yes" (measured refused),
-    /// and the edited twin the same. The CATEGORY itself routes through the ONE GR6 reader
-    /// (<see cref="RefModPlace.CategoryOf"/>); a ref-mod view over a GROUP is an ELEMENTARY alphanumeric item
-    /// (GR6's lead sentence), never Group-exempt.</summary>
+    /// REFERENCE-MODIFIED view carries only PART of the inner item's finer flags (kb/Work PB72 → PB73): §8.4.3.3.4
+    /// GR6 gives the unique data item "the same class, category, and usage as that defined for identifier-1"
+    /// EXCEPT the exhaustive lettered rewrites — alphanumeric-edited → alphanumeric, national-edited → national,
+    /// numeric / numeric-edited → alphanumeric or national — so a view is NEVER edited and NEVER numeric (PB72:
+    /// <c>MOVE AE-ITEM(1:2) TO a-boolean</c> is alphanumeric → boolean "Yes", measured refused before), but it IS
+    /// still ALPHABETIC over a PIC A item and BOOLEAN over a boolean one (PB73, adjudicated 2026-08-18: GR2's
+    /// "as if redefined … alphanumeric" governs the ref-mod OPERATION, not the result — the 85 lineage kept the
+    /// two rules apart — so <c>MOVE A-ITEM(1:2) TO a-boolean</c> and <c>MOVE B4(1:1) TO PIC 9</c> are the "No"
+    /// cells their unsliced twins are). The CATEGORY routes through the ONE GR6 reader
+    /// (<see cref="RefModPlace.CategoryOf"/>) and the alphabetic rider reads the inner PICTURE; a ref-mod view
+    /// over a GROUP is an ELEMENTARY alphanumeric item (GR6's lead sentence), never Group-exempt.</summary>
     public static Table16Operand Of(Place p) => p switch
     {
-        RefModPlace rm => new Table16Operand(rm.Category),
+        RefModPlace rm => new Table16Operand(rm.Category, IsAlphabetic: rm.Inner.Item.Pic is { IsAlphabetic: true }),
         _ => Of(p.Item),
     };
+
+    /// <summary>The <c>--permissive</c> reading of a position (kb/Work PB73): the leniencies GnuCOBOL and this
+    /// compiler's earlier releases extended — a NUMERIC-typed function treated as the Integer row (its literal
+    /// text moves to a character receiver) and a reference-modified view read as plain alphanumeric (an alphabetic
+    /// slice loses its row). Never the strict axis; the caller warns when only this reading admits the move.</summary>
+    public static Table16Operand Lenient(Table16Operand op, bool isFunction, bool isRefModView) =>
+        op with
+        {
+            IsNonInteger = op.IsNonInteger && !isFunction,
+            IsAlphabetic = op.IsAlphabetic && !isRefModView,
+        };
 }
 
 /// <summary>

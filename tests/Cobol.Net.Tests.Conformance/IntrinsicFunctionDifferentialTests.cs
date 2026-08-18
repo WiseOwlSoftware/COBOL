@@ -391,21 +391,25 @@ public sealed class IntrinsicFunctionDifferentialTests
     }
 
     [Fact]
-    public void NumericIntrinsicInStringContext_RendersItsValue()
+    public void NumericIntrinsicInStringContext_IsTable16sNonintegerSender()
     {
-        // ⛔ THIS FACT WAS INVERTED (DA2, DEVLOG 1104). It previously asserted that a NUMERIC-result intrinsic
-        // moved to an alphanumeric receiver FAILS LOUD — hazard H3, a named staged-out channel. That staging was
-        // never conforming: §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, so it is admissible in
-        // every "identifier-N" position no syntax rule excludes, and §14.9.25.4 GR6 defines the numeric→
-        // alphanumeric move. Rejecting it was rejecting legal source, and this test is what made that look
-        // deliberate — which is exactly how a gap survives: a red test would have been a defect, a green one
-        // pinning the gap read as a decision.
-        // The value: NUMVAL returns a scaled numeric; its text image is the literal form (§15.4.1 /
-        // §14.9.11.4 GR1 implementor-defined, documented in docs/CONFORMANCE.md), left-justified and
-        // space-filled into the alphanumeric receiver — here exactly filling PIC X(8).
-        var (ok, output, detail) = CobolNet.CompileAndRun(
+        // ⛔ THIS FACT HAS BEEN INVERTED TWICE. DA2 (DEVLOG 1104) turned "a NUMERIC-result intrinsic moved to an
+        // alphanumeric receiver FAILS LOUD" (hazard H3, a staged-out channel) into "renders its value", arguing that
+        // a function-identifier is an identifier and §14.9.25.4 GR6 defines the numeric→alphanumeric move. It did
+        // not weigh §14.9.25.3 SR10 / Table 16, whose numeric ROW splits on Integer vs Noninteger, nor §15.2 items 4
+        // and 5 (an INTEGER function has "no digits to the right of the decimal point"; a NUMERIC function is not so
+        // described) nor §8.4.3.2.3 SR11 ("a numeric function shall not be specified where an integer operand is
+        // required, even though a particular reference … might yield an integer value"). kb/Work PB73 (adjudicated
+        // 2026-08-18): a NUMERIC function is the Noninteger sender — refused into an alphanumeric receiver on the
+        // strict axis (COBOLNET0819) — and the DA2 admission (the CONFORMANCE.md item-92 text form) is exactly what
+        // --permissive keeps, with a warning. An INTEGER function (LENGTH, ORD, …) was and is legal there.
+        var (ok, _, detail) = CobolNet.CompileAndRun(
             Program("01 T PIC X(8).", "    MOVE FUNCTION NUMVAL(\"1\") TO T.\n    DISPLAY T."));
-        Assert.True(ok, detail);
+        Assert.False(ok, "a NUMERIC-typed function is Table 16's Noninteger sender (ISO §14.9.25.3 SR10, §15.2 item 4)");
+        Assert.Contains("COBOLNET0819", detail);
+        var (okP, output, detailP) = EditionHarness.CompileAndRun(
+            Program("01 T PIC X(8).", "    MOVE FUNCTION NUMVAL(\"1\") TO T.\n    DISPLAY T."), 2023, permissive: true);
+        Assert.True(okP, detailP);
         Assert.Equal("1.000000", output.Trim());
     }
 

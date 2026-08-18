@@ -106,6 +106,10 @@ Concrete kinds:
   • MemberPlace(path)        Read=`path`            Write=`path = rhs;`           (qualified+nested+array indices folded into one access string)
   • RefModPlace(inner,s,l)   Read=`CobolString.RefMod(inner.Read(),s,l)`  Write=`{var t=inner.Read(); inner.Write(CobolString.SpliceInto(t,s,l,rhs));}`
     — its `Category` is THE ONE reader of the unique item's category (§8.4.3.3.4 GR6 via `CategoryOf` over a PICTURE; ALPHANUMERIC over a group).
+    GR6's exception list is EXHAUSTIVE (edited → un-edited, numeric → alphanumeric/national) and GR2's "as if redefined as alphanumeric" governs the
+    OPERATION's positions, not the result (kb/Work PB73, adjudicated 2026-08-18, reversing PB72's 2026-08-09 erasure): a BOOLEAN slice — bit-form or
+    display-form — stays boolean, an ALPHABETIC slice stays alphabetic (`Table16Operand.Of(Place)` carries the rider); `--permissive` keeps GnuCOBOL's
+    any-slice-is-alphanumeric reading as a warning.
   • NumericImagePlace(inner) — a numeric USAGE DISPLAY item viewed as its zoned character image (§8.4.3.3.4 GR2/GR6): Read=`FormatImage(inner)`, Write=decode back.
   • OdoGroupPlace(inner,…)  — wraps ANY group place whose subtree holds an occurs-depending table (§13.18.38 GR8): a record-struct member OR a Tier-B / BASED class-tier window
     (kb/Work PB80, 2026-08-18 — a BASED ODO record sent its maximum image; `ReferenceResolver.WrapIfOdoGroup` is the ONE wrap rule, `PlaceRenderer.GroupImage` the ONE image reader

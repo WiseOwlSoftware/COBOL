@@ -154,9 +154,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   the low-order digits — `Rescaled(…, checkedLanding)`, `CobolFloat.ToScaledUnchecked` + `LowOrderDigits` (the
   exact binary64 expansion), `FromDouble(…, checkedLanding)`; `RuntimeApi.FloatToScaled` names the landing with no
   default. Four verdicts → CONFORMS, GAP 4011. **PB90 REGISTERED** (analysis: the in-carrier float→fixed manner —
-  exact expansion vs shortest round-trip vs today's rounded product; GnuCOBOL survey first). Battery owed for the
-  PB77 batch with the next landing.
-  **NEXT, in order:** ① PB73 → PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
+  exact expansion vs shortest round-trip vs today's rounded product; GnuCOBOL survey first).
+  **✅ Battery #9 (PB77 batch, tree `ac71c27a`):** Conformance **4676/4676** · Unit **4218/4218** · Characterization
+  33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
+  **✅ PB73 CLOSED (DEVLOG 1311, 2026-08-18)** — both PB72 derivations adjudicated: a NUMERIC-typed function is
+  Table 16's Noninteger sender (COBOLNET0819 into a character receiver; `--permissive` keeps the item-92 text
+  admission with a warning) and an INTEGER function the Integer row; a ref-mod view KEEPS its boolean (either form)
+  or alphabetic category — §8.4.3.3.4 GR6's exception list is exhaustive, GR2 governs the operation — so PB72's
+  2026-08-09 alphabetic erasure is REVERSED (`MOVE A-ITEM(1:2) TO a-boolean` is a "No" cell again; GnuCOBOL's
+  any-slice-is-alphanumeric reading is the permissive leniency, `Table16Operand.Lenient`). Four verdicts →
+  CONFORMS, GAP 4008. Battery owed for the PB73 batch with the next landing.
+  **NEXT, in order:** ① PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

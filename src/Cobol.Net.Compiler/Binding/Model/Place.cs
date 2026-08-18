@@ -322,17 +322,22 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
     /// </para>
     /// <para>
     /// NOTE this compiler's <see cref="PicCategory.Alphanumeric"/> covers ISO's alphanumeric AND alphabetic
-    /// categories (the alphabetic-ness rides on <c>PicInfo.IsAlphabetic</c>) — and ⛔ ALPHABETIC-NESS DOES NOT
-    /// SURVIVE REFERENCE MODIFICATION (corrected 2026-08-09, fix-queue PB72): GR2 operates on a usage-DISPLAY
-    /// non-alphanumeric item "as if it were redefined as a data item of class and category alphanumeric", and
-    /// GR1/SR5's closed class lists (boolean, alphanumeric, national) leave no alphabetic result anywhere in
-    /// the ref-mod scheme — an earlier revision of this NOTE claimed the base case "preserves both", and
-    /// reading the INNER item's IsAlphabetic through a view refused legal Table-16 moves. Consumers that need
-    /// the finer Table-16 row build through <c>Table16Operand.Of(Place)</c>, which erases it. No ref-mod result
-    /// is ever category NUMERIC — GR6c rewrites numeric away — which is why the §8.8.1.1 arithmetic-operand
-    /// bar on a ref-modified operand is correct as it stands. (Whether GR2 likewise makes a DISPLAY-FORM
-    /// boolean view alphanumeric — this method keeps it boolean per GR6's base case — is an OPEN adjudication
-    /// registered on kb/Work PB72; the usage-BIT view is boolean under every reading, GR5a.)
+    /// categories (the alphabetic-ness rides on <c>PicInfo.IsAlphabetic</c>) — and ⛔ ALPHABETIC-NESS DOES SURVIVE
+    /// REFERENCE MODIFICATION (re-corrected 2026-08-18, kb/Work PB73, reversing PB72's 2026-08-09 erasure): GR2's
+    /// "operated upon for purposes of reference modification as if it were redefined as … alphanumeric" governs the
+    /// OPERATION — the positions — while GR6 gives the RESULT "the same class, category, and usage as that DEFINED
+    /// for identifier-1" with an EXHAUSTIVE exception list (alphanumeric-edited → alphanumeric, national-edited →
+    /// national, numeric / numeric-edited → alphanumeric or national) that names neither alphabetic nor boolean;
+    /// the COBOL-85 lineage of the two rules (85 listed "numeric, numeric edited, alphanumeric edited or alphabetic"
+    /// in the operated-as-alphanumeric rule and only the first three in the class/category rule) shows they were
+    /// always separate. So an alphabetic slice is Table 16's ALPHABETIC row/column and a display-form boolean slice
+    /// is BOOLEAN (GR1 gives a boolean item boolean positions in either form; GR5a makes them character positions
+    /// unless the usage is bit) — `MOVE A-ITEM(1:2) TO a-boolean` and `MOVE B4(1:1) TO PIC 9` are Table 16 "No"
+    /// cells, exactly as their unsliced twins are. Consumers that need the finer Table-16 row build through
+    /// <c>Table16Operand.Of(Place)</c>, whose alphabetic rider reads the inner PICTURE. No ref-mod result is ever
+    /// category NUMERIC — GR6c rewrites numeric away — which is why the §8.8.1.1 arithmetic-operand bar on a
+    /// ref-modified operand is correct as it stands. GnuCOBOL's "any slice is alphanumeric" is a leniency
+    /// `--permissive` keeps (a warning) — never the strict axis.
     /// </para></summary>
     /// <remarks>
     /// ⚠ <b>GR6 a AND b HAVE NO ARM HERE, AND THAT IS A PROPERTY OF THE MODEL, NOT OF THE RULE.</b>
@@ -358,7 +363,11 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
         PicCategory.Numeric or PicCategory.NumericEdited =>
             inner.Usage == Usage.National ? PicCategory.National : PicCategory.Alphanumeric,
         // GR6 base — the category is PRESERVED. This is the arm the three old copies did not have: it is what
-        // keeps a ref-modified BOOLEAN boolean and a ref-modified NATIONAL national.
+        // keeps a ref-modified BOOLEAN boolean (bit-form AND display-form — kb/Work PB73, adjudicated 2026-08-18:
+        // GR6's exception list is exhaustive and names neither boolean nor alphabetic; GR2's alphanumeric
+        // redefinition governs the OPERATION, GR1 gives a boolean item boolean positions in either form) and a
+        // ref-modified NATIONAL national. Alphabetic-ness likewise survives — it rides Table16Operand.Of(Place)'s
+        // rider, since PicCategory has no Alphabetic member.
         _ => inner.Category,
     };
 }

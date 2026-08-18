@@ -5426,12 +5426,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Reference-modification",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/Place.cs#CategoryOf; src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#Characters",
+  "test-ref": "conformance:2023/pb73_table16_function_type_and_boolean_view; conformance:negative/pb73-move-bit-boolean-view-to-numeric; conformance:negative/pb73-move-display-boolean-view-to-numeric",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB73 (adjudicated 2026-08-18): leftmost-position is a boolean position for a boolean item — in EITHER form (GR5a makes the positions bits under USAGE BIT and characters otherwise): a BIT-form slice moves bits 2-3 into a boolean receiver (01) and INTEGER-OF-BOOLEAN(BB4(1:3)) = 5; a DISPLAY-form slice is the same class-boolean unique item over character positions (INTEGER-OF-BOOLEAN(B4(2:3)) = 2). An alphanumeric position for an alphanumeric item; a national position for a national one.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.3.3.4-2",
@@ -5440,10 +5440,10 @@
   "ordinal": 2,
   "subject": "Reference-modification",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ResolveImpl; src/Cobol.Net.Compiler/Binding/Model/Place.cs#NumericImagePlace",
-  "test-ref": "conformance:2023/pb70_group_reference_modification",
-  "editions": "85,2002,2014,2023",
-  "notes": "A usage-DISPLAY item of a category other than alphanumeric is operated on through its character image: a numeric DISPLAY item via NumericImagePlace (its zoned image), a group via GroupImagePlace (its leaves' images in order) - the golden's T3/T4/T8 read and write a numeric leaf's positions through the group.",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/Place.cs#CategoryOf; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#RefModExclusion",
+  "test-ref": "conformance:2023/pb70_group_reference_modification; conformance:2023/pb73_table16_function_type_and_boolean_view; conformance:2023/pb72_table16_admitted_cells; conformance:negative/pb73-move-alphabetic-view-to-boolean",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB70 + PB73 (2026-08-18): a usage-DISPLAY item of a category other than alphanumeric is OPERATED UPON for reference modification as if redefined class-and-category alphanumeric of the same size — the rule governs the OPERATION (positions are the character positions of that redefinition: a numeric-DISPLAY item's digit/sign characters, an edited item's characters, an alphabetic or display-form boolean item's characters), while GR6 gives the RESULT its class and category (PB73 re-adjudicated PB72's reading, which had made every such view alphanumeric — the display-form boolean slice stays boolean and the alphabetic slice alphabetic). RefModPlace.CategoryOf is the ONE reader.",
   "state": "OK"
  },
  {
@@ -5492,10 +5492,10 @@
   "ordinal": 6,
   "subject": "Reference-modification",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Model/Place.cs#Category; src/Cobol.Net.Compiler/Binding/Model/Place.cs#CategoryOf",
-  "test-ref": "conformance:2023/pb70_group_reference_modification; conformance:negative/pb70-refmod-group-noninteger-numeric-sender",
-  "editions": "85,2002,2014,2023",
-  "notes": "The unique data item is elementary: RefModPlace.Category is the ONE reader every consumer asks (kb/Work PB70 folded six spellings) - CategoryOf applies GR6 a-c over a PICTURE, and a ref-modified GROUP is category alphanumeric, so 14.9.25.3 Table 16 governs a MOVE into it (a noninteger numeric sender is rejected COBOLNET0819 where a whole-group receiver would take a GR4 copy). GR6b (national-edited) cannot be exercised: the category is a recognized-not-implemented PICTURE skeleton.",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/Place.cs#CategoryOf; src/Cobol.Net.Compiler/Binding/Model/Place.cs#Category; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Of",
+  "test-ref": "conformance:2023/pb70_group_reference_modification; conformance:2023/pb73_table16_function_type_and_boolean_view; conformance:2023/pb72_table16_admitted_cells; conformance:negative/pb73-move-alphabetic-view-to-boolean; conformance:negative/pb73-move-display-boolean-view-to-numeric",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB70 + PB73 (2026-08-18): the unique data item is elementary, without JUSTIFIED, and has the same class, category, and usage as that DEFINED for identifier-1 except the EXHAUSTIVE list — (a) alphanumeric-edited → alphanumeric (the RB leg: an edited slice moves to a boolean receiver), (b) national-edited → national (a staged skeleton), (c) numeric / numeric-edited → national under a national usage, alphanumeric otherwise (RefModPlace.CategoryOf's one rewrite arm) — so a boolean slice (bit- or display-form) stays boolean and an alphabetic slice stays alphabetic (Table16Operand.Of(Place)'s rider); PB72's 2026-08-09 reading (every display-form view alphanumeric) is reversed by PB73. RefModPlace.Category is the ONE reader every consumer asks.",
   "state": "OK"
  },
  {
@@ -34599,10 +34599,10 @@
   "ordinal": 10,
   "subject": "MOVE statement",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Refusal; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Of; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoContentMismatch",
-  "test-ref": "conformance:2023/pb72_table16_admitted_cells; conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
+  "code-location": "src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Refusal; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Of; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoContentMismatch; src/Cobol.Net.Compiler/Binding/Model/Place.cs#CategoryOf; src/Cobol.Net.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Lenient",
+  "test-ref": "conformance:2023/pb72_table16_admitted_cells; conformance:2023/pb73_table16_function_type_and_boolean_view; conformance:negative/pb73-move-numeric-function-to-alphanumeric; conformance:negative/pb73-move-numval-function-to-national; conformance:negative/pb73-move-bit-boolean-view-to-numeric; conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance-test:MoveTable16FunctionTypeTests.NumericFunction_ToAlphanumeric_IsAdmittedPermissive_AsLiteralText; conformance:negative/pb73-move-display-boolean-view-to-numeric; conformance:negative/pb73-move-alphabetic-view-to-boolean; conformance:negative/pb73-move-alphabetic-view-to-numeric",
   "editions": "85,2002,2014,2023",
-  "notes": "ADJUDICATED + LANDED 2026-08-09 (PB72, with PB59 family 7): Table 16 is enforced IN FULL over the modeled categories from the ONE MoveTable16.Refusal - the boolean/national arms (PB53) plus the previously ABSENT alphabetic column (numeric/numeric-edited senders - MOVE 5 TO a PIC A item was silently accepted), alphabetic row (numeric receivers - a PIC A sender stored zeros), alphanumeric-edited row's numeric leg, and the noninteger row's alphanumeric leg (MOVE 5.5 TO PIC X printed 5.5); all four cells were CLI-probed accepted before and reject 0819 after (negatives pb72-move-*). Both operand positions build through Table16Operand.Of(Place), which erases the finer alphabetic/edited/noninteger flags for a ref-mod view per 8.4.3.3.4 GR2/GR6 (GR1+SR5's closed class lists admit no alphabetic result) - the previously-refused legal crossings MOVE A-ITEM(1:2)/AE-ITEM(1:2) TO a boolean item are admitted (the corpus golden's RA/RB legs). The INVOKE BY CONTENT crossing (14.8.2.3.3 r2d) asks the same table through the same Of(Place). RESIDUES (kb/Work PB72): whether a NONINTEGER-scaled intrinsic result as sender falls in the noninteger row (15.4 temporary-item derivation, deliberately unchanged); Type-name rows/columns and national-edited await their staged features; the GR2 display-form-boolean view question is an open adjudication on the note.",
+  "notes": "ADJUDICATED + LANDED 2026-08-09 (PB72, with PB59 family 7): Table 16 is enforced IN FULL over the modeled categories from the ONE MoveTable16.Refusal - the boolean/national arms (PB53) plus the previously ABSENT alphabetic column (numeric/numeric-edited senders - MOVE 5 TO a PIC A item was silently accepted), alphabetic row (numeric receivers - a PIC A sender stored zeros), alphanumeric-edited row's numeric leg, and the noninteger row's alphanumeric leg (MOVE 5.5 TO PIC X printed 5.5); all four cells were CLI-probed accepted before and reject 0819 after (negatives pb72-move-*). Both operand positions build through Table16Operand.Of(Place), which erases the EDITED and NUMERIC flags for a ref-mod view per 8.4.3.3.4 GR6's exception list - the previously-refused legal crossing MOVE AE-ITEM(1:2) TO a boolean item is admitted (the corpus golden's RB leg). [PB72 also erased the ALPHABETIC row for a view and admitted MOVE A-ITEM(1:2) TO a boolean item (RA); PB73 reversed that on 2026-08-18 - GR6's list is exhaustive and names neither alphabetic nor boolean, so the view keeps its row and Alphabetic -> Boolean is No; RA is now the negative pb73-move-alphabetic-view-to-boolean.] The INVOKE BY CONTENT crossing (14.8.2.3.3 r2d) asks the same table through the same Of(Place). RESIDUES: Type-name rows/columns and national-edited await their staged features. EXTENDED 2026-08-18 (PB73 — the two PB72 derivations closed): a function sender's row is its 15.2 TYPE (a NUMERIC function is the Noninteger row, an INTEGER function the Integer row, resolved per call by IntrinsicResultType.IsIntegerOperand; --permissive keeps the earlier admission with a warning as the item-92 literal text), and a ref-mod view KEEPS its boolean (either form) or alphabetic category (8.4.3.3.4 GR6's exhaustive exception list; GR2 governs the operation, not the result), so its Table-16 row is its unsliced twin's; --permissive keeps GnuCOBOL's any-slice-is-alphanumeric reading with a warning (Table16Operand.Lenient).",
   "state": "OK"
  },
  {
@@ -42905,12 +42905,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Intrinsic functions",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Table16Operand",
+  "test-ref": "conformance:2023/pb73_table16_function_type_and_boolean_view; conformance:negative/pb73-move-numeric-function-to-alphanumeric; conformance:negative/pb73-move-numval-function-to-national; conformance-test:MoveTable16FunctionTypeTests.NumericFunction_ToAlphanumeric_IsRefusedStrict",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB73 (adjudicated 2026-08-18): a NUMERIC function is class and category numeric with an operational sign and 'may be used anywhere a sending data item of that class and category may be specified' — as a MOVE sender it is Table 16's NONINTEGER numeric row (item 4 says nothing about digits right of the decimal point; §8.4.3.2.3 SR11 states the principle), so it moves only to a numeric / numeric-edited receiver: COBOLNET0819 into alphanumeric / national / boolean / alphabetic, a warning + the item-92 literal text under --permissive. Before this every function carried IsNonInteger: false (an under-rejection).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-15.2-5",
@@ -42918,12 +42918,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "Intrinsic functions",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/Cobol.Net.Compiler/Binding/IntrinsicResultType.cs#Resolve; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality",
+  "test-ref": "conformance:2023/pb73_table16_function_type_and_boolean_view; conformance-test:MoveTable16FunctionTypeTests.IntegerFunction_ToAlphanumeric_IsLegalStrict; conformance:2023/pb86_perform_times_function_count",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB73 (adjudicated 2026-08-18): an INTEGER function ('an operational sign and no digits to the right of the decimal point') is Table 16's Integer row — ORD, LENGTH, INTEGER-PART, ABS/MAX over integers (the type resolved per call by the ONE IntrinsicResultType reader) move to an alphanumeric receiver in the item-92 text form (MOVE FUNCTION ORD(\"A\") TO PIC X(10) → 66); the same classifier admits an integer function where an integer operand is required (PERFORM … TIMES, PB86).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-15.2-6",

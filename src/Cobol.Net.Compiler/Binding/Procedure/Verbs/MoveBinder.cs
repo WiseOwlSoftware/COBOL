@@ -171,13 +171,15 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 new Table16Operand(PicCategory.Group),   // GR4 — group moves copy without conversion
             BoundFieldOperand f => Table16Operand.Of(f.Place),
             BoundNumericLiteral nl => new Table16Operand(PicCategory.Numeric, IsNonInteger: nl.Text.Contains('.')),
-            // A computed expression is numeric unless it is an intrinsic call with a string result category;
-            // a noninteger-valued intrinsic result deliberately stays IsNonInteger: false here — whether §15.4's
-            // temporary item puts a function result in Table 16's noninteger row is an OPEN derivation
-            // (kb/Work PB72 residue), and silently flipping it would reject function-as-text programs the
-            // item-92 determination documents.
+            // An INTRINSIC sender's Table-16 row is its §15.2 TYPE (kb/Work PB73, adjudicated 2026-08-18): an
+            // INTEGER function ("no digits to the right of the decimal point", §15.2 item 5 — resolved per call by
+            // the ONE IntrinsicResultType reader, so MAX over integers is integer) is the Integer row; a NUMERIC
+            // function (item 4) is the NONINTEGER row whatever a particular reference's value — §8.4.3.2.3 SR11's
+            // principle for the integer-operand positions applies to the table's split too. The former admission
+            // (IsNonInteger: false for every function) survives under --permissive as a warning, below.
             BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
-                new Table16Operand(ic.ResultCategory, ic.ResultIsAlphabetic),
+                new Table16Operand(ic.ResultCategory, ic.ResultIsAlphabetic,
+                    IsNonInteger: ic.ResultCategory is PicCategory.Numeric && !IntrinsicResultType.IsIntegerOperand(source)),
             BoundComputedOperand => new Table16Operand(PicCategory.Numeric),
             _ => new Table16Operand(PicCategory.Group),   // figuratives (SR7 below) / errors — category-exempt
         };
@@ -218,7 +220,26 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             // The RECEIVER position likewise builds through Table16Operand.Of(Place) (PB72): a ref-mod receiver is
             // plain alphanumeric (GR2/GR6), never the inner item's alphabetic/edited row.
             else if (MoveTable16.Refusal(senderPos, Table16Operand.Of(t)) is { } refusal)
-                ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE is invalid — {refusal}");
+            {
+                // The two leniencies (kb/Work PB73): a NUMERIC-typed function into a character receiver (Table 16's
+                // Noninteger row; every earlier release admitted it as the CONFORMANCE.md item-92 text form) and a
+                // reference-modified ALPHABETIC view read as plain alphanumeric (GnuCOBOL's reading; PB72's
+                // 2026-08-09 erasure) — accepted under --permissive with a warning when the lenient reading admits
+                // the move; every other refusal is an error on both axes.
+                bool senderIsFunction = source is BoundComputedOperand { Expr: BoundIntrinsicCall };
+                bool senderIsView = source is BoundFieldOperand { Place: RefModPlace };
+                if (ctx.Edition.Permissive
+                    && MoveTable16.Refusal(Table16Operand.Lenient(senderPos, senderIsFunction, senderIsView),
+                                           Table16Operand.Lenient(Table16Operand.Of(t), false, t is RefModPlace)) is null)
+                    ctx.Edition.Warning("COBOLNET0819", $"{where}: {refusal}; accepted under --permissive "
+                        + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §15.2 item 4)"
+                                            : "reading the reference-modified view as plain alphanumeric (ISO §8.4.3.3.4 GR6 keeps it alphabetic)"));
+                else
+                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE is invalid — {refusal}"
+                        + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }
+                            ? " (a NUMERIC-typed function is the Noninteger sender, §15.2 item 4 / §8.4.3.2.3 SR11; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
+                            : ""));
+            }
         }
     }
 

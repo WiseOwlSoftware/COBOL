@@ -64,8 +64,9 @@
            MOVE R9 TO E9.
            DISPLAY "SUM=" E9.
            DISPLAY "SUB=" EL(FUNCTION NUMVAL("3")).
-           MOVE FUNCTION NUMVAL("-1.2345678") TO A20.
-           DISPLAY "MVX=[" A20 "]".
+      *> (a MOVE of the NUMERIC function into A20 stood here until 2026-08-18: Table 16 makes a numeric function
+      *> the Noninteger sender, kb/Work PB73 - the exact SDIDI value's text form shows through DISPLAY instead)
+           DISPLAY "MVX=[" FUNCTION NUMVAL("-1.2345678") "]".
            MOVE FUNCTION NUMVAL-C("$1,234.567", "$") TO ED.
            DISPLAY "MVED=" ED.
            EVALUATE FUNCTION NUMVAL("0.5")
