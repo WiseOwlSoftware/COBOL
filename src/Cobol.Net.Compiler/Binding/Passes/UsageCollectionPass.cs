@@ -229,6 +229,8 @@ internal static class UsageCollectionPass
         public bool Visit(BoundRaiseObject n) => false;
         public bool Visit(BoundResume n) => false;
         public bool Visit(BoundSetLastException n) => false;
+        public bool Visit(BoundSetLocale n) => false;
+        public bool Visit(BoundSaveLocale n) => false;
         public bool Visit(BoundSetObjectRef n) => false;
         public bool Visit(BoundSetPointer n) => false;
         public bool Visit(BoundSetProgramPointer n) => false;   // program-pointer carriers never join a character image (P10 Step 7)

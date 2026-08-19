@@ -36,7 +36,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(so.File);
-        w.Line($"{RuntimeApi.SortInit(sd)};   // SORT {so.File.CobolName} (ISO §14.9.40)");
+        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40; the sequence snapshotted — §14.6.6 r5)");
 
         // Phase a — release (GR9a). USING/GIVING files must not be open when their phase starts (GR9a/GR9c —
         // EC-SORT-MERGE-FILE-OPEN; EC checking OFF by default, COBOLNET_DESIGN §18.16 — seam in CobolSort).
@@ -68,7 +68,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(mg.File);
-        w.Line($"{RuntimeApi.SortInit(sd)};   // MERGE {mg.File.CobolName} (ISO §14.9.24)");
+        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24; the sequence snapshotted — §14.6.6 r5)");
         foreach (var input in mg.Using)
         {
             w.Line($"{RuntimeApi.SortNextInput(sd)};   // a new pre-sorted USING stream (GR4 — file order breaks ties)");

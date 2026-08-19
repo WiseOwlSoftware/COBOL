@@ -45,26 +45,46 @@ public sealed class LocaleCollation : CobolCollation
     /// <summary>The <c>IS LOCALE</c> phrase without a locale-name: the run unit's current LC_COLLATE locale at each use.</summary>
     public static LocaleCollation Current { get; } = new(null);
 
-    /// <summary>A sequence bound to one locale (a SPECIAL-NAMES locale-name's external identification, or an ORDER
-    /// TABLE locale tag); null = the current locale at each use.</summary>
+    /// <summary>A sequence bound to one locale (a SPECIAL-NAMES locale-name's L1-normalized tag — "" IS the root,
+    /// a locale like any other, e.g. <c>LOCALE INV IS "INVARIANT"</c> — or an ORDER TABLE locale tag); NULL = the
+    /// current locale at each use. ⚠ "" and null differ: a sequence bound to the root stays the root after a SET
+    /// LOCALE; the current-locale form follows it.</summary>
     public LocaleCollation(string? localeTag)
     {
-        _localeTag = string.IsNullOrWhiteSpace(localeTag) ? null : localeTag;
+        _localeTag = localeTag?.Trim();
     }
 
     /// <summary>The bound locale tag, or null for "the current locale at each use".</summary>
     public string? LocaleTag => _localeTag;
 
-    /// <summary>The collator this sequence uses right now (re-resolved per use for the current-locale form).</summary>
-    public Collator Resolve() =>
-        CollationEngine.ForLocale(_localeTag ?? RunUnit.Current.Locale.Current(LocaleCategory.Collate));
+    /// <summary>The collator this sequence uses right now (re-resolved per use for the current-locale form). A NAMED
+    /// locale that is not available in this operating environment is EC-LOCALE-MISSING at the point of use (§8.2.1;
+    /// DESIGN-locale-facility L1 item 4 — availability is a run-time property, the compiler never resolved it);
+    /// with checking off the sequence answers the locale's nearest available order (the CLDR parent chain / root).</summary>
+    public Collator Resolve()
+    {
+        if (_localeTag is { } tag)
+        {
+            if (!LocaleIdentification.IsAvailable(tag))
+                ExceptionState.LocaleMissingError($"the locale '{tag}' of the IS LOCALE collating sequence is not available in this operating environment (ISO §8.2.1 / §12.3.7.4 GR5)");
+            return CollationEngine.ForLocale(tag);
+        }
+        return CollationEngine.ForLocale(RunUnit.Current.Locale.Current(LocaleCategory.Collate));
+    }
+
+    /// <summary>§14.6.6 r5 — "A locale switch during execution of a SORT or MERGE statement has no effect on the
+    /// processing of that SORT or MERGE statement": the current-locale form frozen to the locale current NOW (the
+    /// statement's start; a SET LOCALE in the input procedure must not move the sort's sequence); a named form is
+    /// already fixed and returns itself.</summary>
+    public override CobolCollation Snapshot() =>
+        _localeTag is null ? new LocaleCollation(RunUnit.Current.Locale.Current(LocaleCategory.Collate)) : this;
 
     /// <inheritdoc/>
     public override int Compare(string? left, string? right)
     {
         ReadOnlySpan<char> a = TrimForLocale(left.AsSpan()), b = TrimForLocale(right.AsSpan());
         if (!Collator.IsWellFormed(a) || !Collator.IsWellFormed(b))
-            ExceptionState.Set("EC-LOCALE-INCOMPATIBLE", fatal: true);   // L6 — the operand is not orderable
+            ExceptionState.LocaleIncompatibleError("a locale-based comparison over an operand the locale's collating sequence does not order — an ill-formed UTF-16 operand (ISO §8.8.4.2.11)");   // L6
         return Resolve().Compare(a, b);
     }
 
@@ -78,7 +98,7 @@ public sealed class LocaleCollation : CobolCollation
     {
         string trimmed = TrimForLocale(value);
         if (!Collator.IsWellFormed(trimmed))
-            ExceptionState.Set("EC-LOCALE-INCOMPATIBLE", fatal: true);   // L6 — the operand is not orderable
+            ExceptionState.LocaleIncompatibleError("a locale-based key over an operand the locale's collating sequence does not order — an ill-formed UTF-16 operand (ISO §8.8.4.2.11)");   // L6
         return CollationKeyCache.For(Resolve()).GetKey(trimmed);
     }
 

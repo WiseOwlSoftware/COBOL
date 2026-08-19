@@ -980,6 +980,40 @@ public static class DiagnosticCatalog
         + "and argument-4 shall be a positive nonzero integer (r6). The §15.85.2 general format admits at most one "
         + "of each, so a second ordering-name or a second level violates the format.",
         "ISO §15.85.3 r5 / r6 / §15.85.2");
+    // kb/Work PB64 T1 (DESIGN-locale-facility §7 rules a–e): the syntax rules of the locale facility that become
+    // reachable once the SPECIAL-NAMES LOCALE clause and SET formats 11/12 are ACCEPTED rather than refused by name.
+    public static readonly DiagnosticDescriptor LocaleNameUndeclared = new(
+        "COBOLNET1664", "locale-name-undeclared", EditionSeverity.Error,
+        "A locale-name is referenced that no SPECIAL-NAMES LOCALE clause in scope declares — the ONE diagnostic for every "
+        + "locale-name reference site, which names the rule it cites: the ALPHABET clause's IS LOCALE locale-name-2 "
+        + "(ISO §12.3.7.3 SR24), SET LOCALE's locale-name-1 (§14.9.39.3 SR26), and the later increments' LOCALE phrases "
+        + "(PICTURE §13.18.40.3 SR37; LOCALE-COMPARE / -DATE / -TIME / UPPER-CASE / LOWER-CASE; CHARACTER CLASSIFICATION "
+        + "§12.3.6.3 SR3). Declare it: LOCALE locale-name IS external-locale-name | literal.",
+        "ISO §12.3.7.3 SR24 / §14.9.39.3 SR26 / §12.3.7.4 GR1");
+    public static readonly DiagnosticDescriptor LocaleNameDuplicate = new(
+        "COBOLNET1665", "locale-name-duplicate", EditionSeverity.Error,
+        "The same locale-name is declared by more than one SPECIAL-NAMES LOCALE clause of one paragraph. A user-defined "
+        + "word of one type is unique within its scope (ISO §8.3.1.1.1); the LOCALE clause is repeatable (§12.3.7.2) so "
+        + "several LOCALES may be declared, each under its own name.", "ISO §8.3.1.1.1 / §12.3.7.2");
+    public static readonly DiagnosticDescriptor SetLocaleCategories = new(
+        "COBOLNET1666", "set-locale-categories", EditionSeverity.Error,
+        "The first operand of SET LOCALE (ISO §14.9.39.2 format 11) is malformed: a category is specified more than "
+        + "once (the category brace carries choice indicators — §5.2.6.4: one or more of LC_ALL, LC_COLLATE, LC_CTYPE, "
+        + "LC_MESSAGES, LC_MONETARY, LC_NUMERIC, LC_TIME, each at most once, in any order), a word that is not a locale "
+        + "category appears in the list, or USER-DEFAULT is combined with a category (the outer brace is a plain "
+        + "alternation — categories OR USER-DEFAULT).", "ISO §14.9.39.2 format 11 / §5.2.6.4");
+    public static readonly DiagnosticDescriptor SetLocaleUserDefaultSource = new(
+        "COBOLNET1667", "set-locale-user-default-source", EditionSeverity.Error,
+        "SET LOCALE USER-DEFAULT TO USER-DEFAULT / SYSTEM-DEFAULT: if USER-DEFAULT is specified as the first operand, "
+        + "identifier-10 or locale-name-1 shall be specified in the TO phrase (ISO §14.9.39.3 SR25) — the user default "
+        + "is set FROM a named or saved locale (§14.9.39.4 GR22), never from itself or the system default.",
+        "ISO §14.9.39.3 SR25 / §14.9.39.4 GR22");
+    public static readonly DiagnosticDescriptor SetLocalePointerCategory = new(
+        "COBOLNET1668", "set-locale-pointer-category", EditionSeverity.Error,
+        "The identifier of SET LOCALE … TO identifier-10 (ISO §14.9.39.3 SR27) or of SET identifier-11 TO LOCALE (SR28) "
+        + "shall reference an elementary data item of category data-pointer (USAGE POINTER) — the saved-locale handle "
+        + "of §14.9.39.4 GR26/GR27 is a pointer value, stored and read only through such an item.",
+        "ISO §14.9.39.3 SR27 / SR28");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

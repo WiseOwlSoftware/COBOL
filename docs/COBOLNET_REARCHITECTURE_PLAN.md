@@ -327,12 +327,18 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `COBOL_<SWITCH-NAME>` family; no new knobs, no loading; ✅ landed, DEVLOG 1330), `scripts/build-local.{sh,ps1}` (fresh solution build,
   then the FILTERED wave-local gate; filter required; ✅ landed, DEVLOG 1331 — **PB108 CLOSED**) — the two external "hard implementation mode" prompts they
   came from were otherwise rejected (a shared opcode IR, invented syntax, appsettings, .NET 8: DEVLOG 1329) ·
-  ① PB64 T1 (`LocaleSymbol` + `LocaleRef` +
-  `LocaleFacts` + `LocaleState` on `RunUnit`; the SPECIAL-NAMES LOCALE clause declares — its external identification
-  now names any CLDR locale (PB105); `SET` formats 11/12; the NAMED `IS LOCALE locale-name` form;
-  revert PB100's `EcNameResolution` refusal of the EC-LOCALE names; four constructs.json rows; goldens) → T4 …
-  T6 per the design's §12, a battery per increment · then Phase-B adjudication (a NEW defect found on the way
-  outranks). Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN (the reference below).
+  ① ✅ **PB64 T1 LANDED (2026-08-19, DEVLOG 1332)** — the SPECIAL-NAMES LOCALE clause declares (`LocaleSymbol` /
+  `LocaleRef`; L1 normalization; SR10/SR11 via the ONE text-literal rule; COBOLNET1665), `SET` formats 11/12 over
+  the ONE `LocaleState` (`LocaleValue` per category, the category SET, `SavedLocalePointer` handles — L4;
+  GR21–GR27; COBOLNET1664/1666/1667/1668), the NAMED `IS LOCALE locale-name-2` alphabet, the EC-LOCALE ambient
+  gates (MISSING / INVALID-PTR / INCOMPATIBLE raised and OBSERVED; PB100's name refusal reverted), the SORT/MERGE
+  snapshot (§14.6.6 r5), three construct rows, six goldens + eight negatives, the harness pinning
+  `COBOL_USER_LOCALE`/`COBOL_SYSTEM_LOCALE` to the root (T-F); 19 inventory rows CONFORMS — **GAP 3908**.
+  ② **PB64 T4 NEXT** — `LOCALE-COMPARE`, `LOCALE-DATE`, `LOCALE-TIME`, `LOCALE-TIME-FROM-SECONDS` + `LocaleFacts`
+  (design §4.7/§4.8; `IntrinsicResultRule.RuntimeDetermined`) → T5 (CHARACTER CLASSIFICATION / LC_CTYPE / the
+  UPPER-CASE·LOWER-CASE LOCALE phrase) → T6 (PICTURE format 2 / NUMVAL-C LOCALE) per the design's §12, a battery
+  per increment · then Phase-B adjudication (a NEW defect found on the way outranks). Battery #20 ran on the PB101
+  tree `a585cd6f` — ALL GREEN; #22 on the PB104–106 tree; **#23 on the T1 tree (the reference below).**
   **✅ THREE MORE SUBSYSTEMS AND THE REPOSITORY-WIDE INTEGRATION LANDED — kb/Work PB104 / PB105 / PB106 (2026-08-19,
   DEVLOG 1328).** The owner's second guidance ("hard implementation mode": grapheme segmentation, a FULL CLDR locale
   loader, a collation key caching layer, then integrate everything): **PB104** `Runtime/Unicode/Segmentation/` —
@@ -1653,7 +1659,15 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB104/PB105/PB106 tree (2026-08-18 22:34 PDT, battery #22).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB64 T1 tree (2026-08-19 11:33 PDT, battery #23).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
+  `/tmp/battery-pb64t1`; the log in the session scratchpad): FULL greenfield Conformance **4851 / 4851, zero
+  skipped** (12 m 36 s) · greenfield Unit **4452 / 4452** · characterization **33 / 33** · `guard-fast` **ALL
+  GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **`0 PER-CASE FLIP(S)`**
+  (1323 cases: 581/465/207/70). Covers DEVLOG 1332 whole (the LOCALE clause, SET formats 11/12, the named IS LOCALE
+  alphabet, the EC-LOCALE ambient gates, the SORT snapshot, the harness's pinned default locales) and the PB108
+  tooling batch (DEVLOG 1329–1331) — the population grew by 36 Conformance and 27 Unit tests.
+- **⛔ PRIOR BATTERY REFERENCE — the PB104/PB105/PB106 tree (2026-08-18 22:34 PDT, battery #22).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-20260818-223437`; the log in the session scratchpad): FULL greenfield Conformance **4815 / 4815,
   zero skipped** (11 m 21 s) · greenfield Unit **4425 / 4425** · characterization **33 / 33** · `guard-fast`

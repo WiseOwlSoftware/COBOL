@@ -951,6 +951,34 @@ public sealed record BoundResume(int TargetPc) : BoundStatement;
 /// status (§14.6.13.1.1).</summary>
 public sealed record BoundSetLastException : BoundStatement;
 
+/// <summary>What a <c>SET LOCALE … TO</c> operand names (ISO §14.9.39.2 format 11's TO brace).</summary>
+public enum LocaleSetSource
+{
+    /// <summary><c>locale-name-1</c> — a SPECIAL-NAMES LOCALE clause's name (§14.9.39.3 SR26; GR23a / GR22).</summary>
+    LocaleName,
+    /// <summary><c>identifier-10</c> — a data-pointer holding a saved locale (SR27; GR21 / GR23a / GR22).</summary>
+    SavedPointer,
+    /// <summary><c>USER-DEFAULT</c> (GR23b).</summary>
+    UserDefault,
+    /// <summary><c>SYSTEM-DEFAULT</c> (GR23c).</summary>
+    SystemDefault,
+}
+
+/// <summary><c>SET LOCALE {category… | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}</c>
+/// (ISO §14.9.39 Format 11, set-locale; kb/Work PB64 T1): <paramref name="SetsUserDefault"/> for the USER-DEFAULT-first
+/// form (§14.9.39.4 GR22 — the user default is set; SR25 — then the source is a locale-name or a pointer), else the
+/// categories to switch (<paramref name="Categories"/> — a SET, per the format's choice indicators; GR23 — taken from the
+/// source, GR25 — until another SET names them). Exactly one of <paramref name="Locale"/> (LocaleName) /
+/// <paramref name="SavedPointer"/> (SavedPointer) is set; the defaults carry neither. GR24 (EC-LOCALE-MISSING) and GR21
+/// (EC-LOCALE-INVALID-PTR) are runtime outcomes of <c>LocaleState</c>.</summary>
+public sealed record BoundSetLocale(LocaleCategorySet Categories, bool SetsUserDefault, LocaleSetSource Source,
+    LocaleSymbol? Locale, Place? SavedPointer) : BoundStatement;
+
+/// <summary><c>SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}</c> (ISO §14.9.39 Format 12, save-locale; kb/Work PB64
+/// T1): the current locale (GR26) or the user default (GR27, <paramref name="UserDefault"/>) is saved and a reference to
+/// it — a <c>SavedLocalePointer</c> handle (DETERMINATION L4) — is placed into the data-pointer (SR28).</summary>
+public sealed record BoundSaveLocale(Place Target, bool UserDefault) : BoundStatement;
+
 /// <summary>The bound RAISING phrase of GOBACK / EXIT PROGRAM (ISO §14.9.18.2 / §14.9.14.2 Format 2): either a
 /// level-3 <paramref name="EcName"/> (with its catalog <paramref name="Fatal"/>ity and the bind-time TURN
 /// <paramref name="Enabled"/> decision at the statement's line) or <paramref name="IsLast"/> (RAISING LAST

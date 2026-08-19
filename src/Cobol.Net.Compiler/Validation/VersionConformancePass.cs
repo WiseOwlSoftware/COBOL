@@ -1105,6 +1105,27 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The SPECIAL-NAMES LOCALE clause (ISO §12.3.7.2 — the locale facility's declaration, Annex A.4.9 item
+        /// 10; kb/Work PB64 T1): a 2002 introduction, gated on recognition. The grammar recognizes the clause by SHAPE at
+        /// every edition (the '85 switch shapes are excluded by its predicate), so below 2002 the answer is this
+        /// explanatory introduction diagnostic rather than a parse error at the clause's own literal.</summary>
+        public override object? VisitLocaleClause(CobolParserCore.LocaleClauseContext ctx)
+        {
+            _p.Check(Constructs.SpecialNamesLocale2002, "the SPECIAL-NAMES LOCALE clause");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>SET LOCALE … (ISO §14.9.39 Format 11) / SET … TO LOCALE … (Format 12) — the locale facility's statements
+        /// (Annex A.4.9 item 9; kb/Work PB64 T1), 2002 introductions gated on recognition. The two formats share one parse
+        /// rule; the words' POSITION tells them apart (format 12's LOCALE follows the identifier and TO).</summary>
+        public override object? VisitSetLocaleStatement(CobolParserCore.SetLocaleStatementContext ctx)
+        {
+            bool save = ctx.cobolWord(0).Start.TokenIndex > ctx.dataReference().Start.TokenIndex;
+            _p.Check(save ? Constructs.SetSaveLocale2002 : Constructs.SetLocale2002,
+                save ? "SET … TO LOCALE (save-locale, §14.9.39 Format 12)" : "SET LOCALE (set-locale, §14.9.39 Format 11)");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>PROGRAM COLLATING SEQUENCE's national surface (ISO §12.3.6.2) — alphabet-name-2 of the
         /// two-name IS form and the FOR ALPHANUMERIC/FOR NATIONAL forms are 2002 introductions (the 85 format is
         /// the single-name IS form); one gate per clause on recognition.</summary>
@@ -1929,12 +1950,12 @@ internal sealed class VersionConformancePass
             // about SYSTEM-DEFAULT being "used as a user-defined word" is exactly the PB27 shape.
             if (ctx.Parent is CobolParserCore.CharacterClassificationClauseContext or CobolParserCore.ClassificationForPhraseContext)
                 return base.VisitChildren(ctx);
-            // SET LOCALE … / SET … TO LOCALE … (§14.9.39 Formats 11/12; kb/Work PB92): the two cobolWords are the
-            // format's own keywords (LOCALE and a locale category / LC_ALL / USER-DEFAULT) — uses OF reserved words;
-            // the statement itself is COBOLNET1518 (A.4.9 item 9 documented non-support). Its TO operand is a
-            // dataReference whose word may itself be one of the format's keywords (USER-DEFAULT / SYSTEM-DEFAULT) —
-            // an IDENTIFIER token is checked position-blind, so the whole statement's subtree is exempt (an ancestor
-            // walk, the EXCEPTION-OBJECT shape).
+            // SET LOCALE … / SET … TO LOCALE … (§14.9.39 Formats 11/12; kb/Work PB92, implemented PB64 T1): the cobolWords
+            // are the format's own keywords (LOCALE, the locale categories, LC_ALL, USER-DEFAULT) — uses OF reserved
+            // words (§8.9 context-sensitive: the LC_ words are NOT reserved, they are recognized by text in this
+            // statement only). Its TO operand is a dataReference whose word may itself be one of the format's keywords
+            // (USER-DEFAULT / SYSTEM-DEFAULT) — an IDENTIFIER token is checked position-blind, so the whole statement's
+            // subtree is exempt (an ancestor walk, the EXCEPTION-OBJECT shape).
             for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
                 if (a is CobolParserCore.SetLocaleStatementContext)
                     return base.VisitChildren(ctx);

@@ -76,6 +76,14 @@ internal static class CutRunner
         string? stdinFile = null, IReadOnlyDictionary<string, string>? env = null)
     {
         var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"") { WorkingDirectory = workDir };
+        // ⚖ DETERMINISM (DESIGN-locale-facility §10 T-F): the run unit's USER and SYSTEM default locales are the
+        // environment's (owner decision Q2 — COBOL_USER_LOCALE / COBOL_SYSTEM_LOCALE, else the host culture), so a
+        // golden that collates under the default locale would pass on one author's machine and fail on a runner
+        // with another regional setting. The harness pins BOTH to the root ("INVARIANT") for every program it
+        // runs; a golden that needs a locale SETs it (SET LOCALE … TO locale-name) or names it (IS LOCALE name),
+        // and a test that wants another default passes it in `env` (which overrides the pin).
+        psi.Environment[CobolNet.Runtime.LocaleState.UserDefaultVariable] = "INVARIANT";
+        psi.Environment[CobolNet.Runtime.LocaleState.SystemDefaultVariable] = "INVARIANT";
         if (env is not null)
             foreach (var (k, v) in env) psi.Environment[k] = v;
         // ACCEPT device input (ISO §14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard.sh parity.

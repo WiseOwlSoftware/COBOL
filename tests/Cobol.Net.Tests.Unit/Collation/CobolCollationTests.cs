@@ -58,16 +58,28 @@ public sealed class CobolCollationTests
     [Fact]
     public void LocaleArm_UnpairedSurrogate_SetsEcLocaleIncompatible()
     {
+        // Since kb/Work PB64 T1 the raise is CHECKING-GATED like every EC-LOCALE condition (§14.6.13.1.1: "if checking
+        // for an exception that occurs is not enabled, no exception condition is raised"): nothing is recorded with
+        // checking off and the comparison still answers a deterministic order; with checking on the statement guard's
+        // flag makes it a fatal CobolFatalException the USE declarative can observe (LocaleStateTests pins the flag path).
         RunUnit.Run(_ =>
         {
             ExceptionState.Clear();
             int c = Loc.Compare("a\uD800", "a");
-            Assert.Equal("EC-LOCALE-INCOMPATIBLE", ExceptionState.LastName);
-            Assert.True(ExceptionState.LastFatal);
-            Assert.Equal(c, Loc.Compare("a\uD800", "a"));
-            ExceptionState.Clear();
-            Loc.Compare("a\U0001F600", "a");                    // a well-formed supplementary character: no condition
-            Assert.Null(ExceptionState.LastName);
+            Assert.Null(ExceptionState.LastName);                 // checking off: no condition (§14.6.13.1.1)
+            Assert.Equal(c, Loc.Compare("a\uD800", "a"));        // deterministic
+            ExceptionState.LocaleIncompatibleChecking = true;
+            try
+            {
+                var ex = Assert.Throws<CobolFatalException>(() => Loc.Compare("a\uD800", "a"));
+                Assert.Equal("EC-LOCALE-INCOMPATIBLE", ex.EcName);
+                Assert.Equal("EC-LOCALE-INCOMPATIBLE", ExceptionState.LastName);
+                Assert.True(ExceptionState.LastFatal);
+                ExceptionState.Clear();
+                Loc.Compare("a\U0001F600", "a");                // a well-formed supplementary character: no condition
+                Assert.Null(ExceptionState.LastName);
+            }
+            finally { ExceptionState.LocaleIncompatibleChecking = false; }
         });
     }
 
@@ -111,7 +123,7 @@ public sealed class CobolCollationTests
             Assert.True(LocaleCollation.Current.Compare("ñu", "nz") > 0);
             Assert.Equal("es-ES", LocaleCollation.Current.Resolve().Table.Name);
             ru.Locale.Set(LocaleCategory.Collate, null);
-            Assert.Equal(ru.Locale.UserDefault, ru.Locale.Current(LocaleCategory.Collate));
+            Assert.Equal(ru.Locale.UserDefault.Collate, ru.Locale.Current(LocaleCategory.Collate));
         });
     }
 

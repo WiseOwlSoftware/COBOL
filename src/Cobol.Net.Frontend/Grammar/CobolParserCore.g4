@@ -1172,10 +1172,13 @@ setStatement
 // SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME | USER-DEFAULT} TO
 // {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT} (ISO §14.9.39 Format 11, set-locale) and
 // SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT} (Format 12, save-locale).
-// ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED — Annex A.4.9 item 9 of the optional locale module, which
-// COBOL.NET does not provide; the binder emits COBOLNET1518 (the LOCALE clause / CHARACTER CLASSIFICATION disposition —
-// kb/Work PB92: F11 used to bind as a generic SET of a data item named LOCALE, "'LOCALE' is not defined" plus false
-// 0901s about the format's own keywords; F12 was `unexpected '.'`). LOCALE / LC_* / USER-DEFAULT / SYSTEM-DEFAULT are
+// IMPLEMENTED since kb/Work PB64 T1 (the binder's SetBinder.BindSetLocale / BindSaveLocale; it used to be parsed only to
+// draw COBOLNET1518 — kb/Work PB92: F11 used to bind as a generic SET of a data item named LOCALE, "'LOCALE' is not
+// defined" plus false 0901s about the format's own keywords; F12 was `unexpected '.'`). ⚠ THE CATEGORY OPERAND IS A
+// SET: the printed format's inner LC_ brace carries CHOICE INDICATORS (§5.2.6.4 — one or more, each at most once, any
+// order), hence `cobolWord+` after LOCALE; the binder enforces "each at most once" (the grammar cannot) and the
+// USER-DEFAULT-first shape. The TO operand is ONE dataReference split at bind: a locale-name (§14.9.39.3 SR26), a
+// data-pointer identifier-10 (SR27), USER-DEFAULT or SYSTEM-DEFAULT. LOCALE / LC_* / USER-DEFAULT / SYSTEM-DEFAULT are
 // plain words (reserved 2002+, §8.9 — the predicates are edition-gated like localeClauseAhead), so the arms are
 // predicated on the word texts; every word inside is exempt from the §8.9 funnel, as the LOCALE clause's are.
 // ⛔ THE PREDICATES ARE LEFT-EDGE. A predicate after SET is not hoisted into prediction — it is asserted only when
@@ -1184,8 +1187,8 @@ setStatement
 // setLocaleStatement failed predicate". Left-edge, a false predicate makes the alternative non-viable and the
 // ordinary SET forms are chosen as before.
 setLocaleStatement
-    : {setLocaleAhead()}? SET cobolWord cobolWord TO dataReference
-    | {saveLocaleAhead()}? SET dataReference TO cobolWord cobolWord
+    : {setLocaleAhead()}? SET cobolWord cobolWord+ TO dataReference      // F11: LOCALE {category+ | USER-DEFAULT} TO …
+    | {saveLocaleAhead()}? SET dataReference TO cobolWord cobolWord      // F12: identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}
     ;
 
 // SET program-pointer+ TO ENTRY {literal | identifier} (ISO §14.9.39 Format 9 with the §8.4.3.13

@@ -120,6 +120,8 @@ Every row below is a run of the prebuilt `E:/CobolSharp/src/Cobol.Net.Cli/bin/De
 **What this measurement changes versus the PB64 triage record.** Rows 3 (now a named 1518) and 4/5 (now loud,
 not "silently accepted and silently wrong") have moved since triage; the triage text for those rows is stale
 and the notes must be re-verdicted on landing. Rows 6–11 are unchanged and are the live harm.
+**T1 (2026-08-19) re-verdict:** rows 3, 4/5 (named form) and 9/10 are IMPLEMENTED — the clause declares, the
+named alphabet collates, the SET formats act on the run unit's locale state; rows 6–8 and 11 remain T5/T6.
 
 **Reading of rows 6–11 against the standard.** A.4.1 — "*An implementation shall accept the syntax and provide
 the functionality for an optional element only when support for that language element is claimed by the
@@ -146,7 +148,7 @@ A.4.9 is thirteen items (all `--check`ed). This table is the design's work break
 
 | A.4.9 | Element | Clause | Design § | State |
 |---|---|---|---|---|
-| 1 | `EC-LOCALE` / `EC-ORDER-NOT-SUPPORTED` in RAISING / USE / PERFORM WHEN / RAISE / `>>TURN` | §14.6.13 | §4.10 | ✅ done (row 12/13) |
+| 1 | `EC-LOCALE` / `EC-ORDER-NOT-SUPPORTED` in RAISING / USE / PERFORM WHEN / RAISE / `>>TURN` | §14.6.13 | §4.10 | ✅ done (row 12/13); the names legal again since T1 (PB100's refusal reverted), MISSING / INVALID-PTR / INCOMPATIBLE raised and observed |
 | 2 | `LOCALE-COMPARE` | §15.51 | §4.8 | ✗ |
 | 3 | `LOCALE-DATE` | §15.52 | §4.7 | ✗ |
 | 4 | `LOCALE-TIME` | §15.53 | §4.7 | ✗ |
@@ -154,9 +156,9 @@ A.4.9 is thirteen items (all `--check`ed). This table is the design's work break
 | 6 | `LOWER-CASE` LOCALE keyword | §15.57 | §4.5 | ✗ |
 | 7 | OBJECT-COMPUTER `CHARACTER CLASSIFICATION` | §12.3.6 | §4.5 | ⛔ silent |
 | 8 | `PICTURE` format 2 (locale) | §13.18.40 | §4.6 | ⛔ parse error |
-| 9 | `SET` formats 11 (set-locale) / 12 (save-locale) | §14.9.39 | §4.3 | ⛔ parse error |
-| 10 | SPECIAL-NAMES `LOCALE` clause + `LOCALE` phrases of `ALPHABET` | §12.3.7 | §4.1 / §4.4 | partial (clause named; ALPHABET mis-diagnosed) |
-| 11 | `STANDARD-COMPARE` | §15.85 | §4.9 | ✗ (also A.3 item 25) |
+| 9 | `SET` formats 11 (set-locale) / 12 (save-locale) | §14.9.39 | §4.3 | ✅ **T1 (2026-08-19)** |
+| 10 | SPECIAL-NAMES `LOCALE` clause + `LOCALE` phrases of `ALPHABET` | §12.3.7 | §4.1 / §4.4 | ✅ **T1 (clause; named alphabet) + PB101 (bare alphabet)** |
+| 11 | `STANDARD-COMPARE` | §15.85 | §4.9 | ✅ PB101 T7 (also A.3 item 25) |
 | 12 | `TEST-NUMVAL-C` LOCALE keyword + locale-name-1 | §15.94 | §4.6 | ✗ |
 | 13 | `UPPER-CASE` LOCALE keyword | §15.97 | §4.5 | ✗ |
 
@@ -314,16 +316,26 @@ field (`--check` OK), so it routes identically. `NUMVAL-C`/`TEST-NUMVAL-C` take 
   feature pays nothing; `LocaleState` is lazily materialized.
 
 ```csharp
-// Runtime/Control/LocaleState.cs   (a RunUnit-owned property, beside Exceptions/External/Switches/Files/Clock)
+// Runtime/Control/LocaleState.cs   (a RunUnit-owned property, beside Exceptions/External/Switches/Files/Clock) — AS BUILT (T1)
+public sealed record LocaleValue(string Collate, string Ctype, string Messages, string Monetary, string Numeric, string Time);
+[Flags] public enum LocaleCategorySet { None, Collate = 1, Ctype = 2, Messages = 4, Monetary = 8, Numeric = 16, Time = 32, All = 63 }
 public sealed class LocaleState
 {
-    public string?  Collate, Ctype, Messages, Monetary, Numeric;  // per-category current culture key
-    public string   UserDefault { get; set; }                     // §8.2.1 — implementor-specified
-    public string   SystemDefault { get; }                        // §8.2.1 — read-only from COBOL
-    // §14.9.39.4 GR26/27 — a saved locale is an opaque run-unit handle, NOT an address
-    private readonly Dictionary<long, SavedLocale> _saved;
+    public LocaleValue UserDefault { get; private set; }   // §8.2.1 — set only by SET LOCALE USER-DEFAULT TO … (GR22)
+    public LocaleValue SystemDefault { get; }              // §8.2.1 — read-only from COBOL
+    public LocaleValue CurrentLocale { get; }              // per category; a COPY of the user default at activation (r1)
+    public void SetFromLocale(LocaleCategorySet cats, string external);   // GR23a / GR24 EC-LOCALE-MISSING
+    public void SetFromSaved(LocaleCategorySet cats, ManagedPointer? p);  // GR23a / GR21 EC-LOCALE-INVALID-PTR
+    public void SetFromUserDefault(LocaleCategorySet cats);  public void SetFromSystemDefault(LocaleCategorySet cats);
+    public void SetUserDefaultFromLocale(string external);   public void SetUserDefaultFromSaved(ManagedPointer? p);
+    public SavedLocalePointer Save(bool userDefault);      // GR26 / GR27 — a typed ManagedPointer, owned by THIS state
 }
 ```
+A locale is a value PER CATEGORY (`LocaleValue`): a tag-identified locale has the same tag in every slot; a SAVED
+locale is the snapshot of a state whose categories may differ, and restoring LC_TIME from it takes its LC_TIME slot.
+The saved-locale handle is a typed `ManagedPointer` subclass carrying its owner and snapshot — no table is needed
+for validity (type + owner decide; handles are numbered monotonically and never reused), which keeps L4's guarantees
+with less state.
 
 **⚖ DETERMINATION L2 — the two defaults.** §8.2.1 requires: "*The implementor shall specify the manner in which
 the user default locale is defined and shall provide at least one user default locale…*" and the same sentence
@@ -870,8 +882,14 @@ The whole facility is **COBOL-2002+**. Evidence, and its limits, stated honestly
 
 - `LOCALE`, `USER-DEFAULT`, `SYSTEM-DEFAULT` are reserved from 2002 in `reserved-words.json`
   (`r85:false, r2002:true, …`, provenance "added 2002"), so at `--std 85` the clause words are ordinary user
-  words and `SPECIAL-NAMES. LOCALE IS FOO.` must keep parsing as an implementor-switch entry — the existing
-  `localeClauseAhead()` predicate already encodes exactly this and is the model for the new gates.
+  words and `SPECIAL-NAMES. LOCALE IS FOO.` must keep parsing as an implementor-switch entry. **Correction at
+  T1 (the ORDER TABLE precedent):** that '85 reading is excluded by the predicate's SHAPE test (the token after
+  LOCALE must be a word — not IS / ON / OFF), and `LOCALE FR IS "fr_FR"` has NO '85 reading at all, so
+  `localeClauseAhead()` is no longer edition-gated: the clause is recognized at every edition and the ONE
+  construct gate (`special-names-locale-2002`, `VisitLocaleClause`) answers below 2002 with the explanatory
+  introduction diagnostic instead of a parse error at the clause's literal. Likewise `SET LOCALE LC_… TO x` (the
+  LC_ words carry an underscore, not an '85 word character) and `SET p TO LOCALE …` are recognized everywhere;
+  only `SET LOCALE USER-DEFAULT TO x` — a legal '85 Format-1 SET of two receivers — keeps its edition gate.
 - The catalog currently windows `LOCALE-COMPARE`/`-DATE`/`-TIME` at 2002 and `LOCALE-TIME-FROM-SECONDS` at
   2014 (the latter per `kb/Work R28`, from WG4 CD 1.2 Annex D.2). ⚠ Those windows are **provisional** under
   ratified decision #1 (no further standards acquisition): the 2023 text proves only presence-in-2014 (Annex E
@@ -913,11 +931,12 @@ renumbering:
 
 | Rule | Reachable from |
 |---|---|
-| (a) locale-name not declared in a SPECIAL-NAMES LOCALE clause (§12.3.6.3 SR3 / §12.3.7.3 SR24 / §13.18.40.3 SR37 / §14.9.39.3 SR26 / §15.51.3 r4 …) — **one code, every site**, with the citing site named in the message | T1 |
-| (b) duplicate locale-name in SPECIAL-NAMES | T1 |
-| (c) `SET LOCALE` names a category more than once (§5.2.6.4 "each at most once") | T1 |
-| (d) `SET LOCALE USER-DEFAULT TO SYSTEM-DEFAULT`/`USER-DEFAULT` — SR25 requires identifier-10 or locale-name-1 | T1 |
-| (e) identifier-10/-11 is not category data-pointer (§14.9.39.3 SR27/SR28) | T1 |
+| (a) locale-name not declared in a SPECIAL-NAMES LOCALE clause (§12.3.6.3 SR3 / §12.3.7.3 SR24 / §13.18.40.3 SR37 / §14.9.39.3 SR26 / §15.51.3 r4 …) — **one code, every site**, with the citing site named in the message | ✅ T1 — **COBOLNET1664** `locale-name-undeclared` (`DataBinder.ResolveLocaleName`) |
+| (b) duplicate locale-name in SPECIAL-NAMES | ✅ T1 — **COBOLNET1665** `locale-name-duplicate` |
+| (c) `SET LOCALE` names a category more than once (§5.2.6.4 "each at most once"), a non-category word, or USER-DEFAULT beside a category | ✅ T1 — **COBOLNET1666** `set-locale-categories` |
+| (d) `SET LOCALE USER-DEFAULT TO SYSTEM-DEFAULT`/`USER-DEFAULT` — SR25 requires identifier-10 or locale-name-1 | ✅ T1 — **COBOLNET1667** `set-locale-user-default-source` |
+| (e) identifier-10/-11 is not category data-pointer (§14.9.39.3 SR27/SR28) | ✅ T1 — **COBOLNET1668** `set-locale-pointer-category` |
+| — the LOCALE clause's literal-4 violating SR10/SR11 | ✅ T1 — the ONE SPECIAL-NAMES text-literal rule (COBOLNET0898), shared with ORDER TABLE's literal-9 |
 | (f) format-2 PICTURE violates SR32–SR36 (one code, sub-rule named) | T6 |
 | (g) `SIGN` clause with a LOCALE PICTURE phrase (§13.16.3 SR19 / §13.17.3 SR9) | T6 |
 | (h) an alphabet defined `IS LOCALE` used where a **coded character set** is required (§12.3.7.3 SR16g/SR17d, Table 6) | T3 |
@@ -1010,7 +1029,7 @@ flip attributed by name (§10).
 catch.
 
 **T-A · Spec-derived goldens (`tests/conformance/`, manifest-registered, one per rule).**
-- `locale_special_names_declare` — a LOCALE clause with both branches (`external-locale-name` and `literal-4`)
+- ✅ `pb64t1_locale_declare` (was `locale_special_names_declare`) — a LOCALE clause with both branches (`external-locale-name` and `literal-4`)
   and a program that uses each; catches the DETERMINATION L1 normalization (`fr_FR` ≡ `"fr_FR.UTF-8"` ≡
   `fr-FR`).
 - `locale_compare_ordering` — `FUNCTION LOCALE-COMPARE` over a pair whose order **differs** between the
@@ -1022,9 +1041,9 @@ catch.
   truth flips versus native; catches a PCS that silently stays native.
 - `locale_pcs_current` — the same with `ALPHABET a IS LOCALE` (no locale-name) and a `SET LOCALE LC_COLLATE`
   **between two comparisons**; catches a one-time resolution where §12.3.7.4 GR7e requires per-use.
-- `locale_set_categories` — `SET LOCALE LC_NUMERIC LC_TIME TO fr` (the multi-category, order-free form) and a
+- ✅ `pb64t1_set_locale_categories` (+ negative `pb64t1-set-locale-duplicate-category`) — `SET LOCALE LC_NUMERIC LC_TIME TO fr` (the multi-category, order-free form) and a
   duplicate-category negative; catches a scalar-category model.
-- `locale_save_restore` — format 12 then format 11 through the pointer, plus an `EC-LOCALE-INVALID-PTR`
+- ✅ `pb64t1_save_restore_locale` (+ `pb64t1_ec_locale_missing`, `pb64t1_sort_locale_snapshot`) — format 12 then format 11 through the pointer, plus an `EC-LOCALE-INVALID-PTR`
   negative on a NULL and on an `ADDRESS OF` pointer.
 - `locale_picture_edit_size` — the §13.18.40.5 GR14 three cases (larger, exact, smaller-with-EC-LOCALE-SIZE)
   under two locales; plus `BLANK WHEN ZERO` precedence (GR10) and a `SIGN`-clause negative (SR19/SR9).
@@ -1069,7 +1088,8 @@ baseline is regenerated and each flip attributed by name in the DEVLOG. ⚠ GnuC
 tests assert only non-blankness, so agreement there is weak evidence — the *format* must be pinned by T-A, not
 by the differential.
 
-**T-F · Determinism.** The whole conformance harness exports `COBOL_USER_LOCALE=INVARIANT` and
+**T-F · Determinism — ✅ T1:** `CompilerUnderTest.RunExit` (the ONE process launcher) pins both variables to `INVARIANT`
+for every program it runs; a test that wants another default passes it in `env`. The whole conformance harness exports `COBOL_USER_LOCALE=INVARIANT` and
 `COBOL_SYSTEM_LOCALE=INVARIANT` by default, and each locale golden sets its own. Without this the goldens pass
 on the author's machine and fail in CI — a failure mode this repo has already paid for once with a BOM.
 
@@ -1124,9 +1144,9 @@ Then, if Q1 is answered "implement":
 
 | # | Increment | Closes |
 |---|---|---|
-| T1 | `LocaleSymbol` + `LocaleRef` + `LocaleFacts` + `LocaleState` on `RunUnit`; SPECIAL-NAMES LOCALE declares; `SET` formats 11/12 | item 9, 10 (clause half) |
+| T1 | ✅ **LANDED 2026-08-19 (PB64 T1)** — `LocaleSymbol` + `LocaleRef` (`Binding/Model/LocaleSymbol.cs`; `LocaleCollatingSpec(LocaleRef)`); `LocaleState` on `RunUnit` in its full form (`LocaleValue` per category, `LocaleCategorySet`, the saved-locale `SavedLocalePointer` handle, `SetFrom*` / `SetUserDefaultFrom*` / `Save`); `LocaleIdentification.Normalize` (L1); the SPECIAL-NAMES LOCALE clause declares (`DataBinder.LocaleBind`, SR10/SR11 through the ONE text-literal rule shared with ORDER TABLE, COBOLNET1665 duplicates, §12.3.7.4 GR1 inheritance); `SET` formats 11/12 (`SetBinder.BindSetLocale` / `BindSaveLocale` → `BoundSetLocale` / `BoundSaveLocale` → `SetEmitter`); the NAMED `IS LOCALE locale-name-2` alphabet (T3's remainder); the EC-LOCALE ambient gates (MISSING / INVALID-PTR / INCOMPATIBLE — `CheckingFlags`, `ExceptionState.Locale*Error`, `EcBinder`, `EcEmitter.FatalAmbientGates`; the EC-LOCALE names legal again); the SORT/MERGE snapshot (§14.6.6 r5 — `CobolCollation.Snapshot`, `CobolSort.Init(name, collation)`); COBOLNET1664–1668; construct rows `special-names-locale-2002` / `set-locale-2002` / `set-save-locale-2002`; goldens `tests/conformance/2002/pb64t1_*` + eight negatives; the harness pins `COBOL_USER_LOCALE` / `COBOL_SYSTEM_LOCALE` to the root (T-F). `LocaleFacts` (S5) is NOT part of T1 — it is the LC_CTYPE / LC_MONETARY / LC_TIME snapshot the T4–T6 consumers need and lands with T4. | item 9, 10 (clause half) |
 | T2 | ✅ **LANDED 2026-08-18 (PB101)** — `CobolCollation` collapse; corpus/unit batteries green, ordinary programs' generated text unchanged | (enables T3) |
-| T3 | ◐ **LANDED for the CURRENT-locale form (PB101)** — `LocaleCollation` + `ALPHABET … IS LOCALE` (no locale-name) + PCS + SORT/MERGE + indexed keys + MAX/MIN + HIGH/LOW-VALUE + ORD/CHAR; the NAMED form (`IS LOCALE locale-name-2`, §12.3.7.3 SR24) waits for T1's LOCALE clause and stays refused by name; the SORT snapshot rule (§14.6.6 r5) is owed with T1's SET LOCALE | items 10 (alphabet half), §8.8.4.2.11 |
+| T3 | ✅ **LANDED (PB101 the current-locale form; PB64 T1 the NAMED form and the SORT snapshot)** — `LocaleCollation` + `ALPHABET … IS LOCALE [locale-name-2]` + PCS + SORT/MERGE + indexed keys + MAX/MIN + HIGH/LOW-VALUE + ORD/CHAR; the named form is the sequence of THAT locale (its L1-normalized tag in the carrier; EC-LOCALE-MISSING at use when unavailable); the SORT/MERGE sequence is snapshotted at statement start (§14.6.6 r5) | items 10 (alphabet half), §8.8.4.2.11 |
 | T4 | `LOCALE-COMPARE`, then `LOCALE-DATE`/`-TIME`/`-TIME-FROM-SECONDS` with `RuntimeDetermined` results | items 2–5 |
 | T5 | `CHARACTER CLASSIFICATION` semantics + LC_CTYPE + the `LOWER-CASE`/`UPPER-CASE` LOCALE phrase + class tests | items 6, 7, 13 |
 | T6 | `PICTURE` format 2 + the NUMVAL-C/TEST-NUMVAL-C LOCALE arms (one shared LC_MONETARY model) | items 8, 12 |

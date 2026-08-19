@@ -29,6 +29,8 @@ public static class CobolSort
         public readonly List<int> StreamStarts = [];   // MERGE: index where each USING file's records begin
         public int Cursor;
         public int LastReturnedLength;
+        /// <summary>The collating sequence snapshotted at statement start (ISO §14.6.6 r5) — see <see cref="Init(string, CobolCollation?)"/>.</summary>
+        public CobolCollation? Collation;
         // The EC-FLOW-RELEASE / EC-FLOW-RETURN / EC-SORT-MERGE-ACTIVE phase tracking (§14.9.32 GR1 / §14.9.34 GR1 /
         // §14.9.40 GR10+GR13) attaches here when the EC model lands — checking is OFF by default (SSOT §18.16).
     }
@@ -43,13 +45,21 @@ public static class CobolSort
 
     /// <summary>Begin a SORT/MERGE statement on <paramref name="name"/>: a fresh, empty store (ISO §14.9.40 GR9a —
     /// the release phase starts). Re-executing a SORT on the same SD reuses the connector with a clean buffer.</summary>
-    public static void Init(string name)
+    public static void Init(string name) => Init(name, null);
+
+    /// <summary>Begin a SORT/MERGE statement with its COLLATING SEQUENCE (or the program collating sequence):
+    /// the sequence is SNAPSHOTTED here, at statement start (ISO §14.6.6 r5 — "A locale switch during execution of a
+    /// SORT or MERGE statement has no effect on the processing of that SORT or MERGE statement" — a SET LOCALE in an
+    /// INPUT PROCEDURE must not move the sequence the sort phase uses), and <see cref="Sort"/> / <see cref="Merge"/>
+    /// use it.</summary>
+    public static void Init(string name, CobolCollation? collation)
     {
         var f = Get(name);
         f.Records.Clear();
         f.StreamStarts.Clear();
         f.Cursor = 0;
         f.LastReturnedLength = 0;
+        f.Collation = collation?.Snapshot();
     }
 
     /// <summary>Mark the start of the next USING stream (MERGE only): records released after this call belong to
@@ -77,7 +87,7 @@ public static class CobolSort
         int n = f.Records.Count;
         var idx = new int[n];
         for (int i = 0; i < n; i++) idx[i] = i;
-        var columns = KeyColumns.Build(f.Records, keys, collation);
+        var columns = KeyColumns.Build(f.Records, keys, f.Collation ?? collation?.Snapshot());
         Array.Sort(idx, (x, y) =>
         {
             int c = columns.Compare(x, y);
@@ -107,7 +117,7 @@ public static class CobolSort
             end[s] = s + 1 < streams ? f.StreamStarts[s + 1] : f.Records.Count;
         }
         var merged = new List<string>(f.Records.Count);
-        var columns = KeyColumns.Build(f.Records, keys, collation);
+        var columns = KeyColumns.Build(f.Records, keys, f.Collation ?? collation?.Snapshot());
         while (true)
         {
             int best = -1;

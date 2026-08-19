@@ -711,8 +711,9 @@ internal static class RuntimeApi
 
     // ── SORT / MERGE (CobolSort; ISO §14.9.40 / §14.9.24) ──
 
-    /// <summary>Initialize the per-SD image store — <c>CobolSort.Init</c>.</summary>
-    public static string SortInit(string sd) => $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd})";
+    /// <summary>Initialize the per-SD image store — <c>CobolSort.Init</c> — with the statement's collating sequence,
+    /// snapshotted at statement start (ISO §14.6.6 r5: a locale switch during the SORT/MERGE has no effect on it).</summary>
+    public static string SortInit(string sd, string weights) => $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {weights})";
 
     /// <summary>RELEASE one record image — <c>CobolSort.Release</c>.</summary>
     public static string SortRelease(string sd, string image) =>

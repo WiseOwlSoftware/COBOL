@@ -114,6 +114,9 @@ public static class Constructs
     public const string SpecialNamesForNational2002 = "special-names-for-national-2002";
     public const string AlphabetNational2002 = "alphabet-national-2002";
     public const string AlphabetLocale2002 = "alphabet-locale-2002";
+    public const string SpecialNamesLocale2002 = "special-names-locale-2002";
+    public const string SetLocale2002 = "set-locale-2002";
+    public const string SetSaveLocale2002 = "set-save-locale-2002";
     public const string OrderTable2002 = "order-table-2002";
     public const string StandardCompare2002 = "standard-compare-2002";
     public const string ProgramCollatingNational2002 = "program-collating-national-2002";

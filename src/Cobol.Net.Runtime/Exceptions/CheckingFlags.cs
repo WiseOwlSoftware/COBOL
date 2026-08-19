@@ -80,4 +80,16 @@ public struct CheckingFlags
     /// <summary>EC-ORDER-NOT-SUPPORTED — FUNCTION STANDARD-COMPARE naming a cultural ordering table this
     /// processor does not provide, or an ordering level the table does not define (§15.85.4 r2).</summary>
     public bool OrderNotSupported;
+
+    /// <summary>EC-LOCALE-MISSING — a locale that is not available in this operating environment: SET LOCALE's
+    /// locale-name-1 (§14.9.39.4 GR24), a named IS LOCALE collating sequence at use (§8.2.1; DESIGN-locale-facility L1).</summary>
+    public bool LocaleMissing;
+
+    /// <summary>EC-LOCALE-INVALID-PTR — SET LOCALE through a pointer that does not reference saved locale
+    /// information (§14.9.39.4 GR21).</summary>
+    public bool LocaleInvalidPtr;
+
+    /// <summary>EC-LOCALE-INCOMPATIBLE — a locale comparison over an operand the locale's collating sequence does
+    /// not order (§8.8.4.2.11; DETERMINATION L6 — an ill-formed UTF-16 operand).</summary>
+    public bool LocaleIncompatible;
 }

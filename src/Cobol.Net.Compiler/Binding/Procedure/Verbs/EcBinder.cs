@@ -417,6 +417,18 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // a STANDARD-COMPARE-free statement — no other site sets it.
             if (ctx.EcState.Turn.Enabled("EC-ORDER-NOT-SUPPORTED", null, line) && ContainsIntrinsic(node))
                 enabled.Add(("EC-ORDER-NOT-SUPPORTED", null));
+            // The EC-LOCALE family (kb/Work PB64 T1; DESIGN-locale-facility §4.10) rides ambient per-statement gates:
+            // EC-LOCALE-MISSING and EC-LOCALE-INVALID-PTR are PRECISE — only SET LOCALE (§14.9.39.4 GR24 / GR21) and a
+            // NAMED IS LOCALE collating sequence at use (§8.2.1 — inline in a relation, a SORT key, a MAX/MIN …) can
+            // raise them, and the named sequence is not one node kind, so MISSING rides any statement while INVALID-PTR
+            // rides the SET; EC-LOCALE-INCOMPATIBLE (§8.8.4.2.11, L6) is an inline comparison outcome — any statement.
+            // Each raise fires only at its site, so a guard around an unrelated statement never catches anything.
+            if (ctx.EcState.Turn.Enabled("EC-LOCALE-MISSING", null, line))
+                enabled.Add(("EC-LOCALE-MISSING", null));
+            if (node is BoundSetLocale && ctx.EcState.Turn.Enabled("EC-LOCALE-INVALID-PTR", null, line))
+                enabled.Add(("EC-LOCALE-INVALID-PTR", null));
+            if (ctx.EcState.Turn.Enabled("EC-LOCALE-INCOMPATIBLE", null, line))
+                enabled.Add(("EC-LOCALE-INCOMPATIBLE", null));
             // EC-DATA-CONVERSION (nonfatal, §15.19.4 r1/r3) rides any intrinsic-bearing statement too — FUNCTION
             // CONVERT sets it when an untranslatable character forces the substitution character; the ambient
             // gate records it while checking is enabled (harmless around a non-CONVERT intrinsic — no site sets it).

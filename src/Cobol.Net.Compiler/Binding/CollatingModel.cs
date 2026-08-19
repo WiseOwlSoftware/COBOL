@@ -38,9 +38,15 @@ public sealed record CollatingTable(ushort[] Positions, ushort[] RepByPos, int N
 /// <paramref name="LocaleName"/> is null, for the locale CURRENT at each use (§12.3.7.4 GR7e: "*otherwise by the
 /// locale that is current at the time the collating sequence is used at runtime*").
 /// </summary>
-/// <param name="LocaleName">The SPECIAL-NAMES locale-name (§12.3.7.3 SR24) whose external identification binds the
-/// sequence, or null for the phrase without a locale-name. (Named locales arrive with the LOCALE clause — T1.)</param>
-public sealed record LocaleCollatingSpec(string? LocaleName);
+/// <param name="Locale">The ONE "which locale" operand (<see cref="LocaleRef"/>): <see cref="LocaleRef.Current"/> for the
+/// phrase without a locale-name; the SPECIAL-NAMES locale-name (§12.3.7.3 SR24) whose external identification binds
+/// the sequence for <c>IS LOCALE locale-name-2</c> — its normalized tag is what the emitted carrier holds, and its
+/// availability is decided at use (EC-LOCALE-MISSING; L1 item 4).</param>
+public sealed record LocaleCollatingSpec(LocaleRef Locale)
+{
+    /// <summary>The phrase without a locale-name — the locale current at each use.</summary>
+    public static LocaleCollatingSpec CurrentLocale { get; } = new(LocaleRef.Current);
+}
 
 /// <summary>
 /// One SPECIAL-NAMES ALPHANUMERIC alphabet (an <c>ALPHABET</c> clause without FOR NATIONAL, ISO §12.3.7): what the

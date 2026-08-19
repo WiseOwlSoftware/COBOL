@@ -1,0 +1,52 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime;
+
+namespace CobolNet.Binding.Model;
+
+/// <summary>
+/// One SPECIAL-NAMES <c>LOCALE locale-name-1 IS {external-locale-name-1 | literal-4}</c> clause (ISO/IEC 1989:2023
+/// §12.3.7.2; DESIGN-locale-facility seam S1, increment T1): the locale-name (a user-defined word, §8.3.2.2) and the
+/// EXTERNAL IDENTIFICATION it references — and nothing more. §8.1.5: "When a locale is specified, the associated
+/// ordering is determined at runtime", and §12.3.7.4 GR5 leaves the allowable external-locale-names and literal
+/// content to the implementor (DETERMINATION L1: a locale tag, POSIX spellings normalized by
+/// <see cref="LocaleIdentification.Normalize"/>) — so the compiler never resolves the locale: the symbol carries the
+/// normalized <see cref="Tag"/> the generated code hands the runtime, and availability (EC-LOCALE-MISSING) is decided
+/// at the point of use. Scope is the declaring source unit and every directly or indirectly contained one
+/// (§12.3.7.4 GR1), through the SPECIAL-NAMES configuration inheritance.
+/// </summary>
+/// <param name="Name">The locale-name as declared (case-insensitive; stored as written).</param>
+/// <param name="External">The external identification as written — the external-locale-name word or the DECODED literal-4.</param>
+/// <param name="FromLiteral">True when the identification came from literal-4 (the <c>"fr_FR.UTF-8"</c> branch), false for an external-locale-name word.</param>
+public sealed record LocaleSymbol(string Name, string External, bool FromLiteral)
+{
+    /// <summary>The L1-normalized locale tag (<c>fr_FR.UTF-8</c> → <c>fr-FR</c>; <c>de@phonebook</c> → <c>de-u-co-phonebook</c>;
+    /// <c>INVARIANT</c> → "") — what the generated code carries and the runtime resolves at use.</summary>
+    public string Tag { get; } = LocaleIdentification.Normalize(External);
+
+    /// <summary>Do two symbols identify the same locale (§8.5.3.1 rule 2 — "the same external identification")?</summary>
+    public bool SameLocaleAs(LocaleSymbol other) => LocaleIdentification.SameLocale(External, other.External);
+
+    public override string ToString() => $"LOCALE {Name} IS {(FromLiteral ? $"\"{External}\"" : External)} → {(Tag.Length == 0 ? "root" : Tag)}";
+}
+
+/// <summary>
+/// The ONE "which locale" operand of every locale consumer (DESIGN-locale-facility seam S2 / §4.2): a NAMED locale
+/// (a <see cref="LocaleSymbol"/> — the <c>IS LOCALE locale-name-2</c> alphabet, the LOCALE phrase of an intrinsic or
+/// PICTURE) or the locale CURRENT at use (<see cref="Current"/> — the phrase without a name: §12.3.7.4 GR7e "otherwise
+/// by the locale that is current at the time the collating sequence is used at runtime", and §14.6.6 r4–r8's
+/// "if a locale-name is specified … otherwise the current locale", stated once).
+/// </summary>
+public readonly record struct LocaleRef(LocaleSymbol? Named)
+{
+    /// <summary>The locale current at each use.</summary>
+    public static LocaleRef Current { get; } = new((LocaleSymbol?)null);
+
+    /// <summary>True for the current-locale form.</summary>
+    public bool IsCurrent => Named is null;
+
+    /// <summary>The normalized tag of a named reference, or null for the current form.</summary>
+    public string? Tag => Named?.Tag;
+
+    public override string ToString() => Named is null ? "LOCALE (current)" : $"LOCALE {Named.Name} ({Named.Tag})";
+}

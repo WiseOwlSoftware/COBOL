@@ -50,6 +50,35 @@ public static class CldrLocaleLoader
     /// <summary>The locale names the embedded pack holds (file names without extension, CLDR spelling: "de_AT").</summary>
     public static IReadOnlyList<string> PackLocales => s_pack.Value.Locales;
 
+    private static readonly Lazy<HashSet<string>> s_collationTypes = new(ReadCollationTypes, LazyThreadSafetyMode.ExecutionAndPublication);
+
+    /// <summary>The collation TYPES the BCP 47 <c>co</c> key admits (CLDR <c>bcp47/collation.xml</c> in the embedded pack —
+    /// every <c>&lt;type name=…&gt;</c> and its <c>alias</c>: standard, phonebk/phonebook, trad/traditional, pinyin, stroke,
+    /// zhuyin, unihan, dict/dictionary, search, eor, emoji, …), lower-case. Used by <c>LocaleIdentification.Normalize</c>
+    /// (DESIGN-locale-facility L1) to decide whether a POSIX <c>@modifier</c> is a collation type.</summary>
+    public static bool IsCollationType(string type) => type is not null && s_collationTypes.Value.Contains(type.ToLowerInvariant());
+
+    private static HashSet<string> ReadCollationTypes()
+    {
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        var bytes = ReadPackEntry("bcp47/collation.xml");
+        if (bytes is null) return set;
+        var settings = new System.Xml.XmlReaderSettings { DtdProcessing = System.Xml.DtdProcessing.Ignore, XmlResolver = null };
+        using var reader = System.Xml.XmlReader.Create(new MemoryStream(bytes), settings);
+        var doc = System.Xml.Linq.XDocument.Load(reader);
+        foreach (var key in doc.Descendants("key"))
+        {
+            if (key.Attribute("name")?.Value != "co") continue;
+            foreach (var type in key.Elements("type"))
+            {
+                if (type.Attribute("name")?.Value is { } n) set.Add(n.ToLowerInvariant());
+                if (type.Attribute("alias")?.Value is { } a)
+                    foreach (var alias in a.Split(' ', StringSplitOptions.RemoveEmptyEntries)) set.Add(alias.ToLowerInvariant());
+            }
+        }
+        return set;
+    }
+
     /// <summary>Load the collation data of exactly <paramref name="localeName"/> or, when no file exists for it, of
     /// the nearest parent in its chain (README §"Fallback chain"). "root" / "" / "und" load the root file.</summary>
     /// <exception cref="CldrLocaleNotFoundException">No file exists for the locale or any parent (the root file is

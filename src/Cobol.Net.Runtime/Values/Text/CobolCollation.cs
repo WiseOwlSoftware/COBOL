@@ -58,6 +58,11 @@ public abstract class CobolCollation
     /// null when <see cref="SupportsKeys"/> is false. Keys of one sequence order exactly as <see cref="Compare"/>.</summary>
     public virtual Collation.CollationKey? KeyOf(string? value) => null;
 
+    /// <summary>This sequence frozen for one statement (ISO §14.6.6 r5 — a SORT/MERGE keeps the collating sequence in
+    /// effect when it began; a locale switch during its execution has no effect on it): a table sequence is already
+    /// immutable and returns itself; the current-locale LOCALE sequence returns itself bound to the locale current NOW.</summary>
+    public virtual CobolCollation Snapshot() => this;
+
     /// <summary>Membership of <paramref name="read"/> in the THROUGH range [<paramref name="lo"/>, <paramref name="hi"/>]
     /// under this sequence (ISO §14.7.8; a level-88 VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/>
     /// collates AFTER <paramref name="hi"/> (rule 2) the nonfatal EC-RANGE-INVALID is set and the range is treated as

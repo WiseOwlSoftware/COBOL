@@ -125,7 +125,7 @@ public sealed class LocaleManagerTests
         RunUnit.Run(ru =>
         {
             string initial = LocaleManager.CurrentLocale.Name;
-            Assert.Equal(ru.Locale.UserDefault, initial);
+            Assert.Equal(ru.Locale.UserDefault.Collate, initial);
             LocaleManager.SetLocale("es-ES");
             Assert.Equal("es-ES", LocaleManager.CurrentLocale.Name);
             Assert.Equal("es-ES", ru.Locale.Current(LocaleCategory.Collate));
@@ -147,7 +147,7 @@ public sealed class LocaleManagerTests
     {
         Assert.Equal(LocaleState.Determine(LocaleState.UserDefaultVariable, () => CultureInfo.CurrentCulture), LocaleConfig.DefaultLocale);
         Assert.Equal(LocaleState.UserDefaultVariable, LocaleConfig.DefaultLocaleVariable);
-        RunUnit.Run(ru => Assert.Equal(ru.Locale.UserDefault, LocaleConfig.DefaultLocale));
+        RunUnit.Run(ru => Assert.Equal(ru.Locale.UserDefault.Collate, LocaleConfig.DefaultLocale));
     }
 
     /// <summary>A site tailoring in a searched directory (Collation/Locales/ beside the application, or

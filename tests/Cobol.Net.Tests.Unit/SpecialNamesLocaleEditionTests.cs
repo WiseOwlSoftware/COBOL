@@ -38,8 +38,8 @@ public sealed class SpecialNamesLocaleEditionTests
         finally { try { File.Delete(path); } catch { /* best-effort */ } }
     }
 
-    /// <summary>At 2002+ the clause PARSES — the binder is what rejects it, with the cited code. A parse error
-    /// here would mean the diagnostic never gets the chance to name §A.4.9.</summary>
+    /// <summary>At 2002+ the clause PARSES (and since kb/Work PB64 T1 the binder DECLARES the locale-name; before, it
+    /// drew the cited COBOLNET1518). A parse error here would mean no diagnostic ever got the chance to speak.</summary>
     [Theory]
     [InlineData(2002)]
     [InlineData(2014)]
@@ -113,9 +113,10 @@ public sealed class SpecialNamesLocaleEditionTests
     [Fact]
     public void TheLocaleKeyword_IsNotFunneledAsAUserDefinedWord()
     {
+        // Since kb/Work PB64 T1 the clause DECLARES the locale-name (no COBOLNET1518 any more): the program compiles
+        // clean — and still nothing is said about the clause's own keyword.
         var errors = CompileErrors("           LOCALE FR IS \"fr_FR\".\n");
-        Assert.Contains(errors, e => e.Contains("COBOLNET1518"));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET0901"));
+        Assert.Empty(errors);
     }
 
     /// <summary>⛔ THE FAILING DIRECTION, which is what makes the exemption position-EXACT rather than a blanket
@@ -127,7 +128,7 @@ public sealed class SpecialNamesLocaleEditionTests
     public void ButLocaleNameItself_IsStillFunneled()
     {
         var errors = CompileErrors("           LOCALE LOCALE IS \"fr_FR\".\n");
-        Assert.Contains(errors, e => e.Contains("COBOLNET1518"));
         Assert.Contains(errors, e => e.Contains("COBOLNET0901") && e.Contains("LOCALE"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));   // the clause itself is implemented (PB64 T1)
     }
 }

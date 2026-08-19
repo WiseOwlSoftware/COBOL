@@ -70,18 +70,32 @@ public abstract class CobolParserCoreBase : Parser
     /// (LT(1) is the SET token itself): true when LT(2)/LT(3) spell LOCALE and a locale category and LT(4) is TO — the
     /// format's own keywords, plain words reserved 2002+ (§8.9); below 2002 they are user words and a SET of a data
     /// item named LOCALE keeps its '85 reading.</summary>
-    protected bool setLocaleAhead() =>
-        Edition.Has(2002)
-        && Word(TokenStream.LT(2), "LOCALE")
-        && TokenStream.LT(3) is { } cat && Array.Exists(LocaleCategories, c => string.Equals(cat.Text, c, StringComparison.OrdinalIgnoreCase))
-        && Word(TokenStream.LT(4), "TO");
+    protected bool setLocaleAhead()
+    {
+        if (!Word(TokenStream.LT(2), "LOCALE")) return false;
+        if (TokenStream.LT(3) is not { } cat || !Array.Exists(LocaleCategories, c => string.Equals(cat.Text, c, StringComparison.OrdinalIgnoreCase))) return false;
+        // The category operand is a SET (choice indicators): LT(3), LT(4), … are categories until the TO (bounded —
+        // seven categories exist, so eight words is already malformed and the ordinary SET forms get it).
+        int i = 4;
+        while (i <= 10 && TokenStream.LT(i) is { } w && Array.Exists(LocaleCategories, c => string.Equals(w.Text, c, StringComparison.OrdinalIgnoreCase))) i++;
+        if (!Word(TokenStream.LT(i), "TO")) return false;
+        // ⚠ EDITION-GATED ONLY FOR THE USER-DEFAULT-FIRST SHAPE (kb/Work PB64 T1). `SET LOCALE LC_… TO x` has NO
+        // COBOL-85 reading — LC_ALL … LC_TIME carry an underscore, which is not an '85 word character (§8.3.2.1;
+        // Constructs.UserWordUnderscore2002) — so the shape is recognized at every edition and the ONE construct gate
+        // (set-locale-2002, VisitSetLocaleStatement) answers below 2002 with the explanatory introduction diagnostic
+        // instead of "'LOCALE' is not defined". `SET LOCALE USER-DEFAULT TO x` IS a legal '85 Format-1 statement (two
+        // receivers named LOCALE and USER-DEFAULT), so that shape keeps its '85 reading below 2002.
+        return cat.Text.StartsWith("LC_", StringComparison.OrdinalIgnoreCase) || Edition.Has(2002);
+    }
 
     /// <summary>SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT} (ISO §14.9.39 Format 12; kb/Work PB92) — a
     /// LEFT-EDGE predicate: scans past identifier-11 (a bounded token walk to the first TO before the statement's
     /// period) and answers true when the two words after TO spell LOCALE and LC_ALL / USER-DEFAULT.</summary>
     protected bool saveLocaleAhead()
     {
-        if (!Edition.Has(2002)) return false;
+        // NOT edition-gated (kb/Work PB64 T1): `SET p TO LOCALE LC_ALL` has no '85 reading (LC_ALL's underscore) and
+        // `SET p TO LOCALE USER-DEFAULT` would be a Format-1 SET followed by a stray word — a parse error either way;
+        // recognizing the shape everywhere lets the set-save-locale-2002 gate answer below 2002.
         for (int i = 2; i <= 40; i++)
         {
             var t = TokenStream.LT(i);
@@ -117,11 +131,18 @@ public abstract class CobolParserCoreBase : Parser
 
     protected bool localeClauseAhead()
     {
-        if (!Edition.Has(2002)) return false;
         if (!string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase)) return false;
-        // LOCALE <locale-name> [IS] <external-locale-name | literal> — the second word is the locale-name, so a
-        // bare `LOCALE IS x` (the 85 switch shape) is excluded.
-        return TokenStream.LT(2) is { } second && !string.Equals(second.Text, "IS", StringComparison.OrdinalIgnoreCase);
+        // LOCALE <locale-name> [IS] <external-locale-name | literal> — the second token is the locale-name, a WORD,
+        // so the '85 implementor-switch shapes `LOCALE IS x` / `LOCALE ON|OFF STATUS …` (IS/ON/OFF are tokens) are
+        // excluded. ⚠ NOT edition-gated since kb/Work PB64 T1 (it was, because "SPECIAL-NAMES. LOCALE IS FOO." is a
+        // legal '85 switch entry — but that shape is excluded HERE by the word test, and `LOCALE FR IS "fr_FR"` has
+        // no '85 reading at all): recognizing the clause at every edition is what lets the ONE construct gate
+        // (special-names-locale-2002, VisitLocaleClause) answer below 2002 with the explanatory introduction
+        // diagnostic instead of a parse error at the clause's own literal — the ORDER TABLE precedent.
+        return TokenStream.LT(2) is { } second
+            && second.Type != CobolLexer.IS && second.Type != CobolLexer.ON && second.Type != CobolLexer.OFF
+            && second.Type != CobolLexer.DOT && second.Type != TokenConstants.EOF
+            && !string.Equals(second.Text, "IS", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

@@ -260,6 +260,8 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
 
     // ── Pointers: SET / ALLOCATE / FREE (ISO §14.9.39/§14.9.3/§14.9.15; Phase-4b) ────────────────────────────
     public bool Visit(BoundSetPointer n) { _set.EmitSetPointer(n); return false; }               // SET pointer F4
+    public bool Visit(BoundSetLocale n) { _set.EmitSetLocale(n); return false; }                 // SET LOCALE F11 (T1)
+    public bool Visit(BoundSaveLocale n) { _set.EmitSaveLocale(n); return false; }               // SET … TO LOCALE F12 (T1)
     public bool Visit(BoundSetProgramPointer n) { _set.EmitSetProgramPointer(n); return false; } // SET program-pointer F9 (P10 Step 7)
     public bool Visit(BoundSetEntry n) { _ptr.EmitSetEntry(n); return false; }                   // SET … TO ENTRY (§8.4.3.13)
     public bool Visit(BoundSetAddressOfBased n) { _ptr.EmitSetAddressOfBased(n); return false; }   // SET F7

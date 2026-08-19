@@ -12602,11 +12602,11 @@
   "kind": "SR",
   "ordinal": 24,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetBind; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#IsAlphabetLocalePhrase",
-  "test-ref": "conformance:negative/pb100-alphabet-locale-phrase",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetBind; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveLocaleName",
+  "test-ref": "conformance:2002/pb64t1_locale_declare; conformance:negative/pb64t1-alphabet-locale-name-undeclared",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB100 (2026-08-18): locale-name-2 belongs to the ALPHABET clause's `IS LOCALE [locale-name-2]` phrase — Annex A.4.9 item 10 ('LOCALE phrases in the ALPHABET clause') of the optional locale module, which COBOL.NET does not provide (CONFORMANCE.md §4 item 5); the phrase is now recognized in either branch and rejected with COBOLNET1518 (it used to draw a false 'reserved word used as a user-defined word' from the §8.9 funnel), so this SR never applies — conformant per §4.2.7 / A.4.1 because it is diagnosed.",
+  "notes": "kb/Work PB64 T1 (2026-08-19): the NAMED IS LOCALE locale-name-2 form is implemented — the name resolves in the SPECIAL-NAMES locale table (LocaleSymbol) and the carrier holds its L1-normalized tag; an undeclared name is COBOLNET1664 (the ONE undeclared-locale-name diagnostic, citing SR24). Was DOCUMENTED-NON-SUPPORT (PB100).",
   "state": "OK"
  },
  {
@@ -12719,12 +12719,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration",
+  "test-ref": "conformance:2002/pb64t1_locale_scope_and_return",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB64 T1 (2026-08-19): the SPECIAL-NAMES configuration — mnemonics, alphabets, classes, currency, ORDER TABLE, and now locale-names — is copied into every directly or indirectly contained source unit (InheritConfiguration); the golden's contained program references the container's locale-name and collates under the container's PCS.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-2",
@@ -12771,11 +12771,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
-  "test-ref": "conformance:negative/pb25-special-names-locale-a49; conformance:negative/pb100-alphabet-locale-phrase; conformance:negative/pb100-picture-locale-format-2",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#LocaleBind; src/Cobol.Net.Compiler/Binding/Model/LocaleSymbol.cs#LocaleSymbol; src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleIdentification",
+  "test-ref": "conformance:2002/pb64t1_locale_declare; conformance:negative/pb64t1-locale-literal-sr10; unit:LocaleStateTests.ExternalIdentification_IsNormalized_PerDeterminationL1; unit:LocaleStateTests.Availability_IsTheOneKnownLocaleRule",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB25 (the SPECIAL-NAMES LOCALE clause is recognized and rejected with COBOLNET1518, A.4.9 item 10) / PB100 (2026-08-18 — every entry point that would REFERENCE locale-name-1 is now refused by name too: the ALPHABET LOCALE phrase, PICTURE format 2, the EC-LOCALE names): the locale a locale-name-1 references never comes into existence in this processor — documented non-support of the optional locale module (CONFORMANCE.md §4 item 5), conformant per §4.2.7 / A.4.1 because every element is diagnosed.",
+  "notes": "kb/Work PB64 T1 (2026-08-19): the LOCALE clause declares locale-name-1 with its external identification (either branch). The implementor half (DETERMINATION L1, CONFORMANCE.md §4 item 5): the identification is a locale TAG — any CLDR locale (BCP-47) or the root spelled INVARIANT — with POSIX spellings normalized (fr_FR.UTF-8 ≡ fr_FR ≡ fr-FR; a CLDR collation-type @modifier becomes -u-co-type, any other makes the locale unavailable); availability is decided at run time (EC-LOCALE-MISSING), never at compile time (§8.1.5). Was DOCUMENTED-NON-SUPPORT (PB25).",
   "state": "OK"
  },
  {
@@ -27695,12 +27695,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Execution",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleState",
+  "test-ref": "conformance:2002/pb64t1_set_locale_categories; unit:LocaleStateTests.Activation_CopiesTheUserDefault_IntoEveryCategory_AndALaterUserDefaultChangeDoesNotMoveThem; unit:CobolCollationTests.LocaleState_DeterminesTheDefaultsFromTheEnvironment",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T1 (2026-08-19): at run-unit activation the user default (DETERMINATION L2 — COBOL_USER_LOCALE, else the process culture, else the root) becomes the current locale for every category. The implementor half (L3): a locale set by a non-COBOL module is NOT observed (the state is read from CultureInfo ONCE, at activation); a SET … TO USER-DEFAULT is how a program takes the user default.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.6-2",
@@ -27721,12 +27721,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "Execution",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleValue",
+  "test-ref": "conformance:2002/pb64t1_set_locale_categories; unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T1 (2026-08-19): LocaleValue.With copies only the switched categories; the others are unchanged (the OTHERS line of the golden).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.6-4",
@@ -27734,12 +27734,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Execution",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Text/LocaleCollation.cs#Resolve; src/Cobol.Net.Compiler/CodeGen/Roslyn/CollationEmit.cs#Locale",
+  "test-ref": "conformance:2002/pb101_alphabet_locale_pcs; conformance:2002/pb64t1_locale_declare; conformance:2002/pb64t1_ec_locale_missing",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T3 (the current-locale form) + PB64 T1 (the named form): a PROGRAM COLLATING SEQUENCE alphabet associated with a locale collates by that locale's LC_COLLATE (the named locale's; for the bare phrase, the locale current at each use, §12.3.7.4 GR7e) through the ONE LocaleCollation carrier.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.6-5",
@@ -27747,12 +27747,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "Execution",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/CobolSort.cs#Init; src/Cobol.Net.Runtime/Values/Text/LocaleCollation.cs#Snapshot; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort",
+  "test-ref": "conformance:2002/pb64t1_sort_locale_snapshot; conformance:2002/pb64t1_locale_declare; unit:LocaleStateTests.Snapshot_FreezesTheCurrentLocaleForm_AndLeavesBoundFormsAlone",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T1 (2026-08-19): a SORT/MERGE COLLATING SEQUENCE alphabet associated with a locale uses that locale's LC_COLLATE, SNAPSHOTTED when the statement begins (CobolSort.Init takes the sequence; LocaleCollation.Snapshot binds the current-locale form to the locale current then) — a SET LOCALE in the INPUT PROCEDURE has no effect on the sort phase.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.6-6",
@@ -27799,12 +27799,12 @@
   "kind": "GR",
   "ordinal": 9,
   "subject": "Execution",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/RunUnit.cs#Locale",
+  "test-ref": "conformance:2002/pb64t1_locale_scope_and_return",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T1 (2026-08-19): the locale state hangs off the RUN UNIT, not the activation stack, so a callee's SET LOCALE stands after it returns (the OUTER-2 line of the golden); restoring is the callee's responsibility (the §14.6.6 NOTE), for which SET format 12 exists.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.8.2-1",
@@ -38940,11 +38940,11 @@
   "kind": "SR",
   "ordinal": 25,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#setLocaleStatement; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-11; conformance-test:SetLocaleDispositionTests.SetLocale_IsExactlyOneDocumentedNonSupportDiagnostic",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetLocale",
+  "test-ref": "conformance:negative/pb64t1-set-locale-user-default-source; conformance-test:SetLocaleDispositionTests.SetLocale_IllegalShapes_DrawExactlyOneNamedRule",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): the SET set-locale format (§14.9.39 Format 11) is Annex A.4.9 item 9 of the optional locale module COBOL.NET does not provide; the statement is recognized (predicated grammar arm — LOCALE / LC_* / USER-DEFAULT are words reserved 2002+) and rejected with the single COBOLNET1518, conformant per §4.2.7 / §A.4.1. Its syntax rules (SR25 USER-DEFAULT needs identifier-10 / locale-name-1; SR26 locale-name-1 from the LOCALE clause) never apply. Before: bound as a generic SET of a data item named LOCALE — 'LOCALE is not defined' plus false 0901s.",
+  "notes": "kb/Work PB64 T1 (2026-08-19): SET LOCALE USER-DEFAULT TO USER-DEFAULT / SYSTEM-DEFAULT is COBOLNET1667. Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {
@@ -38953,11 +38953,11 @@
   "kind": "SR",
   "ordinal": 26,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#setLocaleStatement; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-11",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetLocale; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveLocaleName",
+  "test-ref": "conformance:negative/pb64t1-locale-name-undeclared; conformance-test:SetLocaleDispositionTests.SetLocale_IllegalShapes_DrawExactlyOneNamedRule",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): A.4.9 item 9 documented non-support (COBOLNET1518) — see SR-14.9.39.3-25; the SPECIAL-NAMES LOCALE clause it refers to is itself documented non-support (A.4.9 item 10, kb/Work PB25).",
+  "notes": "kb/Work PB64 T1 (2026-08-19): a TO operand that is neither a declared locale-name nor a data item is COBOLNET1664 (citing SR26 and SR27). Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {
@@ -38966,12 +38966,12 @@
   "kind": "SR",
   "ordinal": 27,
   "subject": "SET statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetLocale",
+  "test-ref": "conformance:negative/pb64t1-set-locale-pointer-sr27; conformance-test:SetLocaleDispositionTests.SetLocale_IllegalShapes_DrawExactlyOneNamedRule",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T1 (2026-08-19): identifier-10 that is not category data-pointer is COBOLNET1668.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.39.3-28",
@@ -38979,12 +38979,12 @@
   "kind": "SR",
   "ordinal": 28,
   "subject": "SET statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSaveLocale",
+  "test-ref": "conformance:negative/pb64t1-set-locale-pointer-sr28; conformance-test:SetLocaleDispositionTests.SetLocale_IllegalShapes_DrawExactlyOneNamedRule",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T1 (2026-08-19): identifier-11 that is not category data-pointer is COBOLNET1668.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.39.3-29",
@@ -39382,11 +39382,11 @@
   "kind": "GR",
   "ordinal": 21,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-11",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#TryResolveSaved; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#LocaleInvalidPtrError",
+  "test-ref": "conformance:2002/pb64t1_save_restore_locale; unit:LocaleStateTests.InvalidPointer_RaisesOnlyWithCheckingOn_AndLeavesTheStateUnchanged",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): the set-locale general rules (a saved-locale pointer, EC-LOCALE-INVALID-PTR) — A.4.9 item 9 documented non-support, COBOLNET1518 at bind; no locale is ever set.",
+  "notes": "kb/Work PB64 T1 (2026-08-19): a pointer that is not a live saved-locale handle of this run unit (NULL, an ADDRESS OF pointer, another run unit's handle) sets EC-LOCALE-INVALID-PTR (fatal, checking-gated per §14.6.13.1.1) and the SET is unsuccessful — the state is unchanged. DETERMINATION L4: the saved locale is a managed handle (SavedLocalePointer), never an address. Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {
@@ -39395,11 +39395,11 @@
   "kind": "GR",
   "ordinal": 22,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-11; conformance-test:SetLocaleDispositionTests.SetLocale_IsExactlyOneDocumentedNonSupportDiagnostic",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#SetUserDefaultFromLocale; src/Cobol.Net.Runtime/Control/LocaleState.cs#SetUserDefaultFromSaved; src/Cobol.Net.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetLocale",
+  "test-ref": "conformance:2002/pb64t1_set_locale_categories; conformance:2002/pb64t1_save_restore_locale; unit:LocaleStateTests.Activation_CopiesTheUserDefault_IntoEveryCategory_AndALaterUserDefaultChangeDoesNotMoveThem",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): SET LOCALE USER-DEFAULT TO … — A.4.9 item 9 documented non-support (COBOLNET1518).",
+  "notes": "kb/Work PB64 T1 (2026-08-19): SET LOCALE USER-DEFAULT TO {locale-name | identifier-10} sets the USER DEFAULT (a locale or a saved snapshot); categories already current do not move (§14.6.6 r1 made them a copy) until a SET … TO USER-DEFAULT takes them from it. Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {
@@ -39408,11 +39408,11 @@
   "kind": "GR",
   "ordinal": 23,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-11; conformance-test:SetLocaleDispositionTests.SetLocale_IsExactlyOneDocumentedNonSupportDiagnostic",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#SetFromLocale; src/Cobol.Net.Runtime/Control/LocaleState.cs#SetFromSaved; src/Cobol.Net.Runtime/Control/LocaleState.cs#SetFromUserDefault; src/Cobol.Net.Runtime/Control/LocaleState.cs#SetFromSystemDefault",
+  "test-ref": "conformance:2002/pb64t1_set_locale_categories; conformance:2002/pb64t1_save_restore_locale; unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist; unit:LocaleStateTests.SaveAndRestore_IsAPerCategorySnapshot_ThroughAManagedHandle",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): SET LOCALE <category> TO {locale-name | identifier | USER-DEFAULT | SYSTEM-DEFAULT} — A.4.9 item 9 documented non-support (COBOLNET1518); the runtime's cultural conventions are the coded character set's (CONFORMANCE.md §4 item 5).",
+  "notes": "kb/Work PB64 T1 (2026-08-19): a) locale-name-1 / identifier-10 — the named locale's / the saved snapshot's value for each named category; b) USER-DEFAULT — the user default's; c) SYSTEM-DEFAULT — the system default's. The category operand is a SET (the format's choice indicators; LocaleCategorySet), switched per §14.6.6 r3 with the others unchanged. Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {
@@ -39421,11 +39421,11 @@
   "kind": "GR",
   "ordinal": 24,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-11",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#SetFromLocale; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#LocaleMissingError; src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleIdentification",
+  "test-ref": "conformance:2002/pb64t1_ec_locale_missing; unit:LocaleStateTests.UnavailableLocale_RaisesMissingOnlyWithCheckingOn_AndLeavesTheStateUnchanged",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): EC-LOCALE-MISSING for an unavailable locale — A.4.9 item 9 (and item 1's EC-LOCALE family) documented non-support; the statement is rejected at bind.",
+  "notes": "kb/Work PB64 T1 (2026-08-19): an unavailable locale (the ONE known-locale rule — CollationEngine.IsKnownLocale: the root, a CLDR locale of its own, a site .tailor, a culture .NET recognizes) sets EC-LOCALE-MISSING (fatal, checking-gated) and the SET is unsuccessful; the same condition fires at USE for a named IS LOCALE sequence whose locale is unavailable (§8.2.1). Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {
@@ -39434,11 +39434,11 @@
   "kind": "GR",
   "ordinal": 25,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-11",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleState",
+  "test-ref": "conformance:2002/pb64t1_set_locale_categories; unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): the duration of a set locale category — A.4.9 item 9 documented non-support (no locale is ever set).",
+  "notes": "kb/Work PB64 T1 (2026-08-19): the state is run-unit-scoped (RunUnit.Locale, never per activation — §14.6.6 r9); a category stays until another SET names it (the GR25 line of the golden). Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {
@@ -39447,11 +39447,11 @@
   "kind": "GR",
   "ordinal": 26,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#setLocaleStatement; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-12; conformance-test:SetLocaleDispositionTests.SetLocale_IsExactlyOneDocumentedNonSupportDiagnostic",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#Save; src/Cobol.Net.Runtime/Control/LocaleState.cs#SavedLocalePointer; src/Cobol.Net.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSaveLocale",
+  "test-ref": "conformance:2002/pb64t1_save_restore_locale; unit:LocaleStateTests.SaveAndRestore_IsAPerCategorySnapshot_ThroughAManagedHandle",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): the save-locale format (§14.9.39 Format 12, SET identifier-11 TO LOCALE LC_ALL) — A.4.9 item 9 documented non-support, COBOLNET1518; before this it was a bare parse error (`unexpected '.'`).",
+  "notes": "kb/Work PB64 T1 (2026-08-19): SET identifier-11 TO LOCALE LC_ALL saves the CURRENT locale (every category, as a snapshot) and places a saved-locale handle into the data-pointer (L4). Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {
@@ -39460,11 +39460,11 @@
   "kind": "GR",
   "ordinal": 27,
   "subject": "SET statement",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#setLocaleStatement; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet",
-  "test-ref": "conformance:negative/pb92-set-locale-format-12; conformance-test:SetLocaleDispositionTests.SetLocale_IsExactlyOneDocumentedNonSupportDiagnostic",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/LocaleState.cs#Save",
+  "test-ref": "conformance:2002/pb64t1_save_restore_locale; unit:LocaleStateTests.SaveAndRestore_IsAPerCategorySnapshot_ThroughAManagedHandle",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB92 (2026-08-18): SET identifier-11 TO LOCALE USER-DEFAULT (save the user default locale) — A.4.9 item 9 documented non-support, COBOLNET1518.",
+  "notes": "kb/Work PB64 T1 (2026-08-19): SET identifier-11 TO LOCALE USER-DEFAULT saves the USER DEFAULT locale into a handle. Was DOCUMENTED-NON-SUPPORT (PB92).",
   "state": "OK"
  },
  {

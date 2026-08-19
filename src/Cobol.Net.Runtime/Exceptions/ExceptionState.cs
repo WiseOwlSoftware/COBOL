@@ -522,6 +522,72 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ── The EC-LOCALE ambient statement gates (kb/Work PB64 T1; DESIGN-locale-facility §4.10) ─────────────────
+    //
+    // Ambient like EC-ORDER-NOT-SUPPORTED: a locale comparison renders INLINE in a relation condition, and SET
+    // LOCALE's outcomes are runtime facts (availability, a pointer's content), so the guard wraps the STATEMENT and
+    // the raise sites consult the flag. Checking-OFF is lenient and the standard names each outcome: GR21/GR24 —
+    // the SET is unsuccessful (the state is unchanged); §8.8.4.2.11 — the comparison still answers a
+    // deterministic order (L6). §14.6.13.1.1: nothing is recorded when checking is off.
+
+    /// <summary>True while the currently-executing statement has EC-LOCALE-MISSING checking enabled (fatal).</summary>
+    public bool LocaleMissingChecking
+    {
+        get => _checking.LocaleMissing;
+        set => _checking.LocaleMissing = value;
+    }
+
+    /// <summary>Raise EC-LOCALE-MISSING (§14.9.39.4 GR24: "If the locale specified by locale-name-1 is not available, the
+    /// EC-LOCALE-MISSING exception condition is set to exist"; §8.2.1; Table 13 Fatal) when checking is enabled;
+    /// otherwise return and the caller leaves the state unchanged / answers the root order.</summary>
+    public void LocaleMissingError(string detail)
+    {
+        if (LocaleMissingChecking)
+        {
+            Set("EC-LOCALE-MISSING", fatal: true);
+            throw new CobolFatalException("EC-LOCALE-MISSING", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-LOCALE-INVALID-PTR checking enabled (fatal).</summary>
+    public bool LocaleInvalidPtrChecking
+    {
+        get => _checking.LocaleInvalidPtr;
+        set => _checking.LocaleInvalidPtr = value;
+    }
+
+    /// <summary>Raise EC-LOCALE-INVALID-PTR (§14.9.39.4 GR21: "The content of the pointer data item referenced by
+    /// identifier-10 shall reference saved locale information; otherwise, the EC-LOCALE-INVALID-PTR exception
+    /// condition is set to exist and the SET statement is unsuccessful"; Table 13 Fatal) when checking is enabled;
+    /// otherwise return and the caller leaves the state unchanged.</summary>
+    public void LocaleInvalidPtrError(string detail)
+    {
+        if (LocaleInvalidPtrChecking)
+        {
+            Set("EC-LOCALE-INVALID-PTR", fatal: true);
+            throw new CobolFatalException("EC-LOCALE-INVALID-PTR", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-LOCALE-INCOMPATIBLE checking enabled (fatal).</summary>
+    public bool LocaleIncompatibleChecking
+    {
+        get => _checking.LocaleIncompatible;
+        set => _checking.LocaleIncompatible = value;
+    }
+
+    /// <summary>Raise EC-LOCALE-INCOMPATIBLE (§8.8.4.2.11 — the locale "does not define a collating sequence for all
+    /// characters of the operands"; DETERMINATION L6: an ill-formed UTF-16 operand; Table 13 Fatal) when checking is
+    /// enabled; otherwise return and the comparison answers its deterministic order.</summary>
+    public void LocaleIncompatibleError(string detail)
+    {
+        if (LocaleIncompatibleChecking)
+        {
+            Set("EC-LOCALE-INCOMPATIBLE", fatal: true);
+            throw new CobolFatalException("EC-LOCALE-INCOMPATIBLE", detail);
+        }
+    }
+
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
@@ -866,6 +932,36 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.OrderNotSupportedError"/>
     public static void OrderNotSupportedError(string detail) => E.OrderNotSupportedError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleMissingChecking"/>
+    public static bool LocaleMissingChecking
+    {
+        get => E.LocaleMissingChecking;
+        set => E.LocaleMissingChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleMissingError"/>
+    public static void LocaleMissingError(string detail) => E.LocaleMissingError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleInvalidPtrChecking"/>
+    public static bool LocaleInvalidPtrChecking
+    {
+        get => E.LocaleInvalidPtrChecking;
+        set => E.LocaleInvalidPtrChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleInvalidPtrError"/>
+    public static void LocaleInvalidPtrError(string detail) => E.LocaleInvalidPtrError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleIncompatibleChecking"/>
+    public static bool LocaleIncompatibleChecking
+    {
+        get => E.LocaleIncompatibleChecking;
+        set => E.LocaleIncompatibleChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleIncompatibleError"/>
+    public static void LocaleIncompatibleError(string detail) => E.LocaleIncompatibleError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();

@@ -272,17 +272,36 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    plus the `LOCALE` phrases of `LOWER-CASE`/`UPPER-CASE`/`NUMVAL-C`/`TEST-NUMVAL-C` — each rejected
    at bind time with the **COBOLNET1518 error** (per Annex A.4.1 a processor accepts optional-element syntax only
    when support is claimed, so an ERROR — not the §4.2.6 COBOLNET1560 warning band, which applies to
-   processor-dependent elements — is the conforming disposition for this unclaimed optional module). The
-   SPECIAL-NAMES `LOCALE` clause (kb/Work PB25) and the OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause (A.4.9
-   item 7 — kb/Work PB78, 2026-08-18; it used to be swallowed silently after a computer-name) are recognized and
-   rejected with the same COBOLNET1518, and so are the `SET LOCALE` formats 11/12 (A.4.9 item 9 — kb/Work PB92,
-   2026-08-18; F11 used to bind as a SET of a data item named LOCALE, F12 was a parse error), the ALPHABET clause's
-   NAMED `IS LOCALE locale-name-2` phrase (§12.3.7.3 SR24 — a locale-name of the LOCALE clause; kb/Work PB100 fixed
-   the false "reserved word used as a user-defined word" it used to draw), the PICTURE clause's Format 2 `LOCALE [IS
-   locale-name-1] SIZE IS integer-1` (item 8 — PB100; it was a raw parse error at SIZE), and the EC-LOCALE family
-   of exception-names wherever a program names one — USE, RAISE / RAISING, the exception-checking
-   PERFORM's WHEN, >>TURN (item 1 — PB100; they used to be accepted, and could never occur). **Every locale entry
-   point the module names is either implemented or recognized and rejected by name.**
+   processor-dependent elements — is the conforming disposition for the still-unclaimed elements of this optional
+   module). The OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause (A.4.9 item 7 — kb/Work PB78, 2026-08-18; it
+   used to be swallowed silently after a computer-name) is recognized and rejected with the same COBOLNET1518, and
+   so is the PICTURE clause's Format 2 `LOCALE [IS locale-name-1] SIZE IS integer-1` (item 8 — PB100; it was a raw
+   parse error at SIZE). **Every locale entry point the module names is either implemented or recognized and
+   rejected by name.**
+
+   > ⚖ **A.4.9 item 9 (`SET LOCALE`, formats 11/12) and item 10's CLAUSE half (the SPECIAL-NAMES `LOCALE` clause) ARE
+   > IMPLEMENTED, and so is the ALPHABET clause's NAMED `IS LOCALE locale-name-2` form** (owner decision Q1; kb/Work
+   > PB64, increment T1 of `docs/rearchitecture/DESIGN-locale-facility.md`, 2026-08-19; they were refused by name
+   > with COBOLNET1518 — PB25 / PB92 / PB100 — until T1). `LOCALE locale-name-1 IS {external-locale-name-1 |
+   > literal-4}` declares a locale-name (§12.3.7.2; SR10/SR11 checked; repeatable; inherited by contained units per
+   > §12.3.7.4 GR1); `SET LOCALE {category… | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT |
+   > SYSTEM-DEFAULT}` (§14.9.39.4 GR22–GR25 — the category operand is a SET, per the format's choice indicators;
+   > SR25–SR27 diagnosed) and `SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}` (GR26/GR27; SR28) act on the run
+   > unit's ONE locale state (§8.2.1 / §14.6.6 r1/r3/r9; §14.9.39.4 GR25). **Determinations (documented per §4.2.7):**
+   > the external identification is a locale TAG — any CLDR locale (BCP-47) or the root spelled `INVARIANT` — with
+   > POSIX spellings normalized (`fr_FR.UTF-8` ≡ `fr_FR` ≡ `fr-FR`; an `@modifier` that is a CLDR collation type
+   > becomes `-u-co-type`, any other makes the locale unavailable), and availability is a RUN-TIME property — the
+   > compiler never resolves it (§8.1.5; L1); a saved locale is a MANAGED HANDLE held by the data-pointer, never an
+   > address (L4), and a locale is a value PER CATEGORY (a saved snapshot may name different locales per category);
+   > the system default cannot be set from COBOL (§8.2.1); a callee's SET is not unwound (§14.6.6 r9); a SORT/MERGE
+   > takes its collating sequence when the statement begins (§14.6.6 r5 — a SET LOCALE in an INPUT PROCEDURE has no
+   > effect on it). **The EC-LOCALE family of exception-names is LEGAL at every naming site** (item 1 — the PB100
+   > refusal is reverted) and three of the conditions are RAISED: `EC-LOCALE-MISSING` (GR24, and a named `IS
+   > LOCALE` sequence whose locale is unavailable, at use), `EC-LOCALE-INVALID-PTR` (GR21) and
+   > `EC-LOCALE-INCOMPATIBLE` (§8.8.4.2.11, L6) — each checking-gated per §14.6.13.1.1, fatal per §14.6.13.1.6's
+   > table, observed by the goldens `tests/conformance/2002/pb64t1_*`. `EC-LOCALE-INVALID` / `-SIZE` await the
+   > increments whose operations can raise them (T5/T6); `EC-LOCALE-IMP` is reserved. The construct rows
+   > `special-names-locale-2002`, `set-locale-2002`, `set-save-locale-2002` gate the three at the 2002 edition.
 
    > ⚖ **A.4.9 item 10's ALPHABET half IS IMPLEMENTED for the bare form — `ALPHABET name [FOR ALPHANUMERIC|NATIONAL]
    > IS LOCALE`** (owner decision Q1; kb/Work PB101, increment T3 of the locale design). Without a locale-name it is
@@ -298,8 +317,9 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    > verbatim conformance statement as item 11; `EC-LOCALE-INCOMPATIBLE` is set for an operand that is not
    > well-formed UTF-16 (an unpaired surrogate) — every well-formed code point is ordered (L6); ORD/CHAR positions
    > are the materialized rank of each native code unit under the locale's collation, equal-collating units sharing
-   > a position (L7); HIGH-VALUE is U+FFFF and LOW-VALUE U+0000 under a locale sequence. The NAMED form waits for
-   > the LOCALE clause (T1). See `src/Cobol.Net.Runtime/Collation/README.md` and the design's §4.4.
+   > a position (L7); HIGH-VALUE is U+FFFF and LOW-VALUE U+0000 under a locale sequence. The NAMED form (`IS LOCALE
+   > locale-name-2`) landed with the LOCALE clause (T1, above): the sequence of THAT locale, resolved — and
+   > EC-LOCALE-MISSING if unavailable — at use. See `src/Cobol.Net.Runtime/Collation/README.md` and the design's §4.4.
 
    > ⚖ **A.4.9 item 11 IS IMPLEMENTED — `STANDARD-COMPARE` and the `ORDER TABLE` clause** (owner decision Q4,
    > 2026-08-18; kb/Work PB101, increment T7 of `docs/rearchitecture/DESIGN-locale-facility.md` §4.9). The

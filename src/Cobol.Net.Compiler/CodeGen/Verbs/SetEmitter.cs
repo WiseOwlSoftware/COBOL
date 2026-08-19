@@ -41,6 +41,34 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET pointer (ISO §14.9.39 Format 4/7)");
     }
 
+    /// <summary><c>SET LOCALE … TO …</c> (ISO §14.9.39 Format 11; kb/Work PB64 T1): one call on the run unit's ONE
+    /// <c>LocaleState</c> per (first operand, source) pair — GR22 (the user default), GR23a/b/c (the categories from a
+    /// locale-name / a saved locale / the defaults); GR24 / GR21 are the runtime's EC-LOCALE-MISSING / -INVALID-PTR.</summary>
+    public void EmitSetLocale(BoundSetLocale s)
+    {
+        string state = "RunUnit.Current.Locale";
+        string cats = s.Categories == LocaleCategorySet.All ? "LocaleCategorySet.All"
+            : string.Join(" | ", Enum.GetValues<LocaleCategorySet>().Where(c => c is not (LocaleCategorySet.None or LocaleCategorySet.All) && s.Categories.HasFlag(c)).Select(c => $"LocaleCategorySet.{c}"));
+        string call = (s.SetsUserDefault, s.Source) switch
+        {
+            (true, LocaleSetSource.LocaleName) => $"{state}.SetUserDefaultFromLocale({CsLiteral(s.Locale!.External)})",
+            (true, _) => $"{state}.SetUserDefaultFromSaved({PlaceRenderer.Read(s.SavedPointer!)})",
+            (false, LocaleSetSource.LocaleName) => $"{state}.SetFromLocale({cats}, {CsLiteral(s.Locale!.External)})",
+            (false, LocaleSetSource.SavedPointer) => $"{state}.SetFromSaved({cats}, {PlaceRenderer.Read(s.SavedPointer!)})",
+            (false, LocaleSetSource.UserDefault) => $"{state}.SetFromUserDefault({cats})",
+            _ => $"{state}.SetFromSystemDefault({cats})",
+        };
+        ctx.Writer.Line($"{call};   // SET LOCALE (ISO §14.9.39 Format 11{(s.SetsUserDefault ? ", GR22" : ", GR23")})");
+    }
+
+    /// <summary><c>SET identifier TO LOCALE {LC_ALL | USER-DEFAULT}</c> (ISO §14.9.39 Format 12; GR26/GR27): a saved-locale
+    /// handle into the data-pointer.</summary>
+    public void EmitSaveLocale(BoundSaveLocale s) =>
+        ctx.Writer.Line(PlaceRenderer.Write(s.Target, $"RunUnit.Current.Locale.Save(userDefault: {(s.UserDefault ? "true" : "false")})")
+            + $"   // SET … TO LOCALE {(s.UserDefault ? "USER-DEFAULT" : "LC_ALL")} (ISO §14.9.39 Format 12)");
+
+    private static string CsLiteral(string s) => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(s, quote: true);
+
     /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; P10 Step 7):
     /// a straight carrier copy — the Format-4 data-pointer twin over <c>ProgramPointer</c>.</summary>
     public void EmitSetProgramPointer(BoundSetProgramPointer s)

@@ -45,7 +45,7 @@ internal static class CollationEmit
     /// <summary>The LOCALE arm: the shared current-locale instance (§12.3.7.4 GR7e — resolved at each use) or a
     /// carrier bound to one named locale.</summary>
     private static string Locale(LocaleCollatingSpec l) =>
-        l.LocaleName is null
+        l.Locale.Tag is not { } tag
             ? $"{nameof(LocaleCollation)}.{nameof(LocaleCollation.Current)}"
-            : $"new {nameof(LocaleCollation)}({SymbolDisplay.FormatLiteral(l.LocaleName, quote: true)})";
+            : $"new {nameof(LocaleCollation)}({SymbolDisplay.FormatLiteral(tag, quote: true)})";   // the locale-name's L1-normalized tag; resolved (and EC-LOCALE-MISSING) at use
 }

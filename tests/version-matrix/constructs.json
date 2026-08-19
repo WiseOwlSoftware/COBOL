@@ -1293,6 +1293,42 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB101AL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. X PROGRAM COLLATING SEQUENCE IS LOC.\nSPECIAL-NAMES.\n    ALPHABET LOC IS LOCALE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
     {
+      "id": "special-names-locale-2002",
+      "description": "The SPECIAL-NAMES LOCALE clause (LOCALE locale-name-1 IS {external-locale-name-1 | literal-4}), ISO 12.3.7.2 - introduced 2002 with the locale facility (Annex A.4.9 item 10, the clause half; kb/Work PB64 T1). The locale-name is a user-defined word (8.3.2.2) referenced by ALPHABET ... IS LOCALE locale-name-2 (12.3.7.3 SR24) and SET LOCALE (14.9.39.3 SR26); it holds the external identification only (8.1.5 - the locale is determined at runtime). Parse-arm gated on recognition (VisitLocaleClause): the clause is recognized by SHAPE at every edition (the '85 switch shapes LOCALE IS x / LOCALE ON STATUS are excluded by the predicate), so below 2002 the answer is this introduction diagnostic instead of a parse error at the clause's literal.",
+      "display": "the SPECIAL-NAMES LOCALE clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.3.7.2 (the LOCALE clause of the SPECIAL-NAMES general format); §12.3.7.3 SR10/SR11; §12.3.7.4 GR1/GR5; parse-arm gate (VisitLocaleClause)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the locale facility; kb/Work PB64 T1 - the LOCALE clause declares a locale-name)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64LC.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE FR IS \"fr-FR\".\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "set-locale-2002",
+      "description": "SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME}... | USER-DEFAULT TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}, ISO 14.9.39.2 Format 11 (set-locale) - introduced 2002 with the locale facility (Annex A.4.9 item 9; kb/Work PB64 T1). The category brace carries choice indicators (one or more, each at most once, any order - 5.2.6.4). Parse-arm gated on recognition (VisitSetLocaleStatement): the LC_ shape has no COBOL-85 reading (the underscore is not an '85 word character), so it is recognized at every edition; the USER-DEFAULT-first shape keeps its '85 Format-1 reading below 2002.",
+      "display": "SET LOCALE (set-locale, Format 11)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §14.9.39.2 Format 11; §14.9.39.3 SR25-SR27; §14.9.39.4 GR21-GR25; parse-arm gate (VisitSetLocaleStatement)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the locale facility; kb/Work PB64 T1 - SET LOCALE over the run unit's LocaleState)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64SL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE FR IS \"fr-FR\".\nPROCEDURE DIVISION.\nMAIN.\n    SET LOCALE LC_COLLATE TO FR.\n    STOP RUN.\n"
+    },
+    {
+      "id": "set-save-locale-2002",
+      "description": "SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}, ISO 14.9.39.2 Format 12 (save-locale) - introduced 2002 with the locale facility (Annex A.4.9 item 9; kb/Work PB64 T1): the current locale (GR26) or the user default (GR27) is saved and a reference to it - a managed saved-locale handle (DESIGN-locale-facility L4) - is placed into the data-pointer (SR28). Parse-arm gated on recognition (VisitSetLocaleStatement; the shape has no '85 reading).",
+      "display": "SET ... TO LOCALE (save-locale, Format 12)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §14.9.39.2 Format 12; §14.9.39.3 SR28; §14.9.39.4 GR26/GR27; parse-arm gate (VisitSetLocaleStatement)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the locale facility; kb/Work PB64 T1 - the saved-locale handle)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64SV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01  SAVED-LOC USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET SAVED-LOC TO LOCALE LC_ALL.\n    STOP RUN.\n"
+    },
+    {
       "id": "order-table-2002",
       "description": "The SPECIAL-NAMES ORDER TABLE ordering-name-1 IS literal-9 clause, ISO 12.3.7.2 (the last item of the paragraph's general format) - introduced 2002 with the cultural-ordering facility. Literal-9 identifies a cultural ordering table constructed per ISO/IEC 14651:2020 Annex A and the implementor specifies its allowable content (12.3.7.4 GR17); ordering-name-1 may be specified only in the STANDARD-COMPARE intrinsic function (12.3.7.3 SR9). Parse-arm gated on recognition (VisitOrderTableClause). The grammar predicate is NOT edition-gated, unlike the LOCALE clause's: TABLE is reserved at every edition (reserved-words.json r85 true), so the pair ORDER + TABLE has no competing COBOL-85 reading, and recognizing it everywhere is what makes the sub-2002 answer this explanatory COBOLNET0900 instead of a parse error at TABLE.",
       "display": "the ORDER TABLE clause",

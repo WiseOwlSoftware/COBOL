@@ -4,6 +4,7 @@ using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Common;
 using CobolNet.Frontend.Generated;
+using CobolNet.Runtime;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -22,19 +23,12 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// 2002 FALSE phrase) fail loud by NAME until their subsystem lands.</summary>
     public BoundStatement BindSet(Core.SetStatementContext set)
     {
-        // F11 set-locale / F12 save-locale (§14.9.39) — Annex A.4.9 item 9 of the optional locale module, which
-        // COBOL.NET does not provide: documented non-support is conformant per §4.2.7 / §A.4.1 only because it is
-        // DIAGNOSED, so this carries the same cited COBOLNET1518 the SPECIAL-NAMES LOCALE clause, the OBJECT-COMPUTER
-        // CHARACTER CLASSIFICATION clause and the LOCALE phrases of LOWER-CASE / UPPER-CASE / NUMVAL-C carry
-        // (kb/Work PB92 — it used to be "'LOCALE' is not defined" plus false 0901s, or a parse error).
+        // F11 set-locale / F12 save-locale (§14.9.39; Annex A.4.9 item 9) — IMPLEMENTED since kb/Work PB64 T1 (it
+        // used to be refused by name with COBOLNET1518 — kb/Work PB92 before that: "'LOCALE' is not defined").
         if (set.setLocaleStatement() is { } sl)
         {
             bool save = sl.cobolWord(0).Start.TokenIndex > sl.dataReference().Start.TokenIndex;   // F12: the words follow the identifier
-            ctx.Edition.Error("COBOLNET1518", $"SET {(save ? "identifier TO LOCALE (save-locale, §14.9.39 Format 12)" : "LOCALE (set-locale, §14.9.39 Format 11)")} "
-                + "is in the optional locale module (ISO/IEC 1989:2023 Annex A §A.4.9 item 9), which COBOL.NET does not support — "
-                + "documented non-support, conformant per ISO §4.2.7 / §A.4.1. There is no locale to set or save; the runtime's "
-                + "cultural conventions are the coded character set's.");
-            return new BoundNop();
+            return save ? BindSaveLocale(sl) : BindSetLocale(sl);
         }
         if (set.setLastExceptionStatement() is not null) return host.Ec.BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
         if (set.setEntryStatement() is { } se) return BindSetEntry(se);   // F9 + §8.4.3.13 ENTRY sender (P10 Step 7)
@@ -68,6 +62,120 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 senderSuper: sor.objectReference().SUPER() is not null);
         }
         return new BoundUnsupported($"SET form '{set.GetText()}'");
+    }
+
+    /// <summary><c>SET LOCALE {category… | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}</c>
+    /// (ISO §14.9.39 Format 11; DESIGN-locale-facility §4.3; kb/Work PB64 T1). The first operand is USER-DEFAULT (GR22 —
+    /// the user default is set) or a SET of categories (the printed brace carries choice indicators — §5.2.6.4: one or
+    /// more, each at most once, any order; a duplicate is COBOLNET1666). The TO operand is one dataReference split here:
+    /// USER-DEFAULT / SYSTEM-DEFAULT (GR23b/c; SR25 — not with a USER-DEFAULT first operand → COBOLNET1667), a
+    /// locale-name of the SPECIAL-NAMES LOCALE clause (SR26 — undeclared → COBOLNET1664), else identifier-10, which
+    /// shall be an elementary data item of category data-pointer (SR27 → COBOLNET1668).</summary>
+    private BoundStatement BindSetLocale(Core.SetLocaleStatementContext sl)
+    {
+        var words = sl.cobolWord();                 // [0] = LOCALE, [1..] = categories | USER-DEFAULT
+        bool setsUserDefault = false;
+        var categories = LocaleCategorySet.None;
+        if (words[1].GetText().Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase))
+        {
+            setsUserDefault = true;
+            if (words.Length > 2)
+            {
+                ctx.Edition.Error("COBOLNET1666", $"SET LOCALE USER-DEFAULT {words[2].GetText()}: USER-DEFAULT as the first operand stands alone — "
+                    + "the general format's outer brace is a plain alternation of the category list OR USER-DEFAULT (ISO §14.9.39.2 format 11)");
+                return new BoundNop();
+            }
+        }
+        else
+        {
+            for (int i = 1; i < words.Length; i++)
+            {
+                string w = words[i].GetText().ToUpperInvariant();
+                LocaleCategorySet cat = w switch
+                {
+                    "LC_ALL" => LocaleCategorySet.All,
+                    "LC_COLLATE" => LocaleCategorySet.Collate,
+                    "LC_CTYPE" => LocaleCategorySet.Ctype,
+                    "LC_MESSAGES" => LocaleCategorySet.Messages,
+                    "LC_MONETARY" => LocaleCategorySet.Monetary,
+                    "LC_NUMERIC" => LocaleCategorySet.Numeric,
+                    "LC_TIME" => LocaleCategorySet.Time,
+                    _ => LocaleCategorySet.None,
+                };
+                if (cat == LocaleCategorySet.None)
+                {
+                    ctx.Edition.Error("COBOLNET1666", $"SET LOCALE {words[i].GetText()}: '{words[i].GetText()}' is not a locale category — "
+                        + "the first operand is one or more of LC_ALL, LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, LC_TIME, "
+                        + "or USER-DEFAULT (ISO §14.9.39.2 format 11)");
+                    return new BoundNop();
+                }
+                // §5.2.6.4 — "any single alternative shall be specified only once": the SAME word twice is the violation
+                // (LC_ALL beside LC_TIME is two different alternatives — redundant, legal).
+                bool duplicate = false;
+                for (int j = 1; j < i; j++) if (words[j].GetText().Equals(w, StringComparison.OrdinalIgnoreCase)) duplicate = true;
+                if (duplicate)
+                {
+                    ctx.Edition.Error("COBOLNET1666", $"SET LOCALE … {w}: the category {w} is specified more than once — each alternative "
+                        + "of the category brace shall be specified at most once (ISO §14.9.39.2 format 11 / §5.2.6.4)");
+                    return new BoundNop();
+                }
+                categories |= cat;
+            }
+        }
+        // The TO operand: USER-DEFAULT / SYSTEM-DEFAULT / locale-name-1 / identifier-10.
+        var to = sl.dataReference();
+        string toText = to.GetText();
+        string first = setsUserDefault ? "SET LOCALE USER-DEFAULT" : $"SET LOCALE {string.Join(' ', words.Skip(1).Select(x => x.GetText()))}";
+        if (toText.Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase) || toText.Equals("SYSTEM-DEFAULT", StringComparison.OrdinalIgnoreCase))
+        {
+            bool user = toText.Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase);
+            if (setsUserDefault)
+            {
+                ctx.Edition.Error("COBOLNET1667", $"{first} TO {toText.ToUpperInvariant()}: if USER-DEFAULT is specified as the first operand, "
+                    + "identifier-10 or locale-name-1 shall be specified in the TO phrase (ISO §14.9.39.3 SR25)");
+                return new BoundNop();
+            }
+            return new BoundSetLocale(categories, false, user ? LocaleSetSource.UserDefault : LocaleSetSource.SystemDefault, null, null);
+        }
+        // A bare word that is a declared locale-name (SR26) — before any data item of the same spelling: the
+        // locale-name is the format's FIRST listed meaning for a user word here, and §8.3.2.2 keeps the two name
+        // types apart by context.
+        if (to.ChildCount == 1 && ctx.Data.Locales.TryGetValue(toText, out var symbol))
+            return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.LocaleName, symbol, null);
+        // identifier-10: an elementary data item of category data-pointer (SR27).
+        if (ctx.Refs.Probe(to) is { } probe)
+        {
+            if (probe.Item.Pic?.Category is not PicCategory.Pointer)
+            {
+                ctx.Edition.Error("COBOLNET1668", $"{first} TO {toText}: identifier-10 shall reference an elementary data item of category "
+                    + $"data-pointer (ISO §14.9.39.3 SR27) — '{toText}' is {probe.Item.Pic?.Category.ToString() ?? "a group"}");
+                return new BoundNop();
+            }
+            var place = ctx.Refs.Resolve(to);
+            if (place is null) return new BoundNop();
+            return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.SavedPointer, null, place);
+        }
+        // Neither: the ONE undeclared-locale-name diagnostic, with this site named (SR26).
+        ctx.Data.ResolveLocaleName(toText, $"{first} TO {toText}",
+            "ISO §14.9.39.3 SR26 — locale-name-1 shall be specified in the LOCALE clause of the SPECIAL-NAMES paragraph; "
+            + "or SR27 — identifier-10 shall reference an elementary data item of category data-pointer, and no such item is declared");
+        return new BoundNop();
+    }
+
+    /// <summary><c>SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}</c> (ISO §14.9.39 Format 12; kb/Work PB64 T1):
+    /// identifier-11 shall be an elementary data item of category data-pointer (SR28 → COBOLNET1668); the words after TO
+    /// are LOCALE and LC_ALL (GR26) or USER-DEFAULT (GR27) — the predicate admitted exactly those.</summary>
+    private BoundStatement BindSaveLocale(Core.SetLocaleStatementContext sl)
+    {
+        bool userDefault = sl.cobolWord(1).GetText().Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase);
+        var target = sl.dataReference();
+        if (ctx.Refs.Resolve(target) is not { } place || place.Item.Pic?.Category is not PicCategory.Pointer)
+        {
+            ctx.Edition.Error("COBOLNET1668", $"SET {target.GetText()} TO LOCALE {(userDefault ? "USER-DEFAULT" : "LC_ALL")}: identifier-11 shall "
+                + "reference an elementary data item of category data-pointer (ISO §14.9.39.3 SR28)");
+            return new BoundNop();
+        }
+        return new BoundSaveLocale(place, userDefault);
     }
 
     /// <summary><c>SET receivers… TO value</c> (ISO §14.9.39 Format 1). Receivers may mix index-names and data
