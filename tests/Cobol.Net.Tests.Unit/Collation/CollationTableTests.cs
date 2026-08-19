@@ -217,7 +217,7 @@ public sealed class CollationTableTests
         AssertImplicit(0x9FFF, 0xFB41, 0x9FFF & 0x7FFF | 0x8000);   // core Han, CP >> 15 = 1
         AssertImplicit(0x3400, 0xFB80, 0x3400 | 0x8000);            // Extension A: other Han
         AssertImplicit(0x20000, 0xFB84, 0x8000);                    // Extension B: 0xFB80 + (0x20000 >> 15)
-        AssertImplicit(0x17000, 0xFB00, 0x8000);                    // Tangut: (CP \U00002212 17000) | 8000
+        AssertImplicit(0x17000, 0xFB00, 0x8000);                    // Tangut: (CP − 17000) | 8000
         AssertImplicit(0x18800, 0xFB01, 0x8000);                    // Tangut Components (17.0 base)
         AssertImplicit(0x1B170, 0xFB02, 0x8000);                    // Nushu
         AssertImplicit(0x18B00, 0xFB03, 0x8000);                    // Khitan Small Script

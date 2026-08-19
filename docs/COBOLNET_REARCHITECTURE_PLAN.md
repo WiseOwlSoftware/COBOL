@@ -325,7 +325,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `LocaleFacts` + `LocaleState` on `RunUnit`; the SPECIAL-NAMES LOCALE clause declares; `SET` formats 11/12;
   revert PB100's `EcNameResolution` refusal of the EC-LOCALE names; four constructs.json rows; goldens) → T2 …
   T7 per the design's §12, a battery per increment · then Phase-B adjudication (a NEW defect found on the way
-  outranks). Battery #20 rides with the next landing.
+  outranks). Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN (the reference below).
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
@@ -1622,7 +1622,16 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB60-closing tree `080733bf` (2026-08-17 23:12).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB101 tree `a585cd6f` (2026-08-18 19:43, battery #20).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
+  `/tmp/battery-20260818-194335`; the log in the session scratchpad): FULL greenfield Conformance **4815 / 4815,
+  zero skipped** (11 m 32 s) · greenfield Unit **4359 / 4359** · characterization **33 / 33** · `guard-fast`
+  **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **`0 PER-CASE FLIP(S)`**
+  (1323 cases: 581/465/207/70). Covers the collation landing whole (DEVLOG 1326 + 1327): the derived engine, the
+  `CobolCollation` carrier collapse (every relation / SORT / indexed-key / MAX-MIN / ORD-CHAR emission path), the
+  LOCALE arm, ORDER TABLE + STANDARD-COMPARE, the identical-prefix skip, and the four subsystems — the population
+  grew by 22 Conformance and 76 Unit tests.
+- **⛔ PRIOR BATTERY REFERENCE — the PB60-closing tree `080733bf` (2026-08-17 23:12).**
   ✅ **ALL INTERNAL LEGS GREEN + ONE ATTRIBUTED FIX FLIP, one `bash scripts/battery.sh` run** (artifacts
   `scratchpad/battery-2` of session 29c20a89): FULL greenfield Conformance **4381 / 4381, zero skipped**
   (10 m 46 s) · greenfield Unit **4182 / 4182** · characterization **33 / 33** · `guard-fast` **ALL GREEN**

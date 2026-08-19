@@ -256,12 +256,6 @@ public class CollationBenchmarks
     }
 
     /// <summary>
-    /// <see cref="Collator.Compare(ReadOnlySpan{char},ReadOnlySpan{char})"/> — the span overload the string one
-    /// forwards to. Measured separately because the COBOL layer will call it with slices of a record buffer
-    /// (trailing-space truncation happens by re-slicing, not by allocating a substring): if the span path ever
-    /// costs measurably more than the string path, that cheap truncation stopped being cheap.
-    /// </summary>
-    /// <summary>
     /// The same corpus through the COBOL layer's LOCALE-based collating sequence
     /// (<see cref="CobolNet.Runtime.LocaleCollation.Current"/> → the current locale's collator): what a relation
     /// condition, a SORT key or an indexed-file key costs under <c>ALPHABET … IS LOCALE</c>. The difference to
@@ -279,6 +273,12 @@ public class CollationBenchmarks
         return acc;
     }
 
+    /// <summary>
+    /// <see cref="Collator.Compare(ReadOnlySpan{char},ReadOnlySpan{char})"/> — the span overload the string one
+    /// forwards to. Measured separately because the COBOL layer will call it with slices of a record buffer
+    /// (trailing-space truncation happens by re-slicing, not by allocating a substring): if the span path ever
+    /// costs measurably more than the string path, that cheap truncation stopped being cheap.
+    /// </summary>
     [Benchmark(OperationsPerInvoke = ShortPairCount), BenchmarkCategory(CompareShort)]
     public int Compare_ShortStrings_Span()
     {
