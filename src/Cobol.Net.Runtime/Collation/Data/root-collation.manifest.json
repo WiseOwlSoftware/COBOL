@@ -1,0 +1,196 @@
+{
+  "format": 1,
+  "primaryShift": 4,
+  "ucaVersion": "17.0.0",
+  "sourceTag": "CLDR allkeys_CLDR.txt (UCA 17.0.0) + UCD 17.0.0",
+  "generator": "scripts/collation/generate-collation-table.py",
+  "inputs": {
+    "allkeys_CLDR.txt": "f6f8961f6c51373bdc00b09fb61cc8c07bec4122bc4b8bcb50ff71c4b0901ab5",
+    "allkeys.txt": "2503d09367c2639a4fb8fd55e81aaacb0d9fb4ea26600333329bd12456b99ecd",
+    "UnicodeData.txt": "2e1efc1dcb59c575eedf5ccae60f95229f706ee6d031835247d843c11d96470c",
+    "PropList.txt": "130dcddcaadaf071008bdfce1e7743e04fdfbc910886f017d9f9ac931d8c64dd",
+    "Blocks.txt": "c0edefaf1a19771e830a82735472716af6bf3c3975f6c2a23ffbe2580fbbcb15"
+  },
+  "outputSha256": "6d96e7f24d083285c30827518989a14b313e456b28e138f958b3280a4d80c288",
+  "stats": {
+    "entries": 39761,
+    "singleMappings": 38787,
+    "contractions": 974,
+    "maxContractionLength": 3,
+    "elementPool": 41724,
+    "maxElementsPerMapping": 18,
+    "variableElements": 1249,
+    "maxPrimary": "0xFFFE",
+    "maxSecondary": "0x0127",
+    "maxTertiary": "0x1E",
+    "nonStarters": 968,
+    "implicitRanges": 23,
+    "canonicalDecompositions": 2081,
+    "maxDecompositionLength": 4,
+    "rawBytes": 642581,
+    "compressedBytes": 228462
+  },
+  "implicitRanges": [
+    {
+      "first": "U+3400",
+      "last": "U+4DBF",
+      "base": "0xFB80",
+      "subtract": "0x0000",
+      "kind": "han-other"
+    },
+    {
+      "first": "U+4E00",
+      "last": "U+9FFF",
+      "base": "0xFB40",
+      "subtract": "0x0000",
+      "kind": "han-core"
+    },
+    {
+      "first": "U+FA0E",
+      "last": "U+FA0F",
+      "base": "0xFB40",
+      "subtract": "0x0000",
+      "kind": "han-core"
+    },
+    {
+      "first": "U+FA11",
+      "last": "U+FA11",
+      "base": "0xFB40",
+      "subtract": "0x0000",
+      "kind": "han-core"
+    },
+    {
+      "first": "U+FA13",
+      "last": "U+FA14",
+      "base": "0xFB40",
+      "subtract": "0x0000",
+      "kind": "han-core"
+    },
+    {
+      "first": "U+FA1F",
+      "last": "U+FA1F",
+      "base": "0xFB40",
+      "subtract": "0x0000",
+      "kind": "han-core"
+    },
+    {
+      "first": "U+FA21",
+      "last": "U+FA21",
+      "base": "0xFB40",
+      "subtract": "0x0000",
+      "kind": "han-core"
+    },
+    {
+      "first": "U+FA23",
+      "last": "U+FA24",
+      "base": "0xFB40",
+      "subtract": "0x0000",
+      "kind": "han-core"
+    },
+    {
+      "first": "U+FA27",
+      "last": "U+FA29",
+      "base": "0xFB40",
+      "subtract": "0x0000",
+      "kind": "han-core"
+    },
+    {
+      "first": "U+17000",
+      "last": "U+187FF",
+      "base": "0xFB00",
+      "subtract": "0x17000",
+      "kind": "siniform"
+    },
+    {
+      "first": "U+18800",
+      "last": "U+18AFF",
+      "base": "0xFB01",
+      "subtract": "0x18800",
+      "kind": "siniform"
+    },
+    {
+      "first": "U+18B00",
+      "last": "U+18CD5",
+      "base": "0xFB03",
+      "subtract": "0x18B00",
+      "kind": "siniform"
+    },
+    {
+      "first": "U+18CFF",
+      "last": "U+18CFF",
+      "base": "0xFB03",
+      "subtract": "0x18B00",
+      "kind": "siniform"
+    },
+    {
+      "first": "U+18D00",
+      "last": "U+18D1E",
+      "base": "0xFB00",
+      "subtract": "0x17000",
+      "kind": "siniform"
+    },
+    {
+      "first": "U+18D80",
+      "last": "U+18DF2",
+      "base": "0xFB01",
+      "subtract": "0x18800",
+      "kind": "siniform"
+    },
+    {
+      "first": "U+1B170",
+      "last": "U+1B2FB",
+      "base": "0xFB02",
+      "subtract": "0x1B170",
+      "kind": "siniform"
+    },
+    {
+      "first": "U+20000",
+      "last": "U+2A6DF",
+      "base": "0xFB80",
+      "subtract": "0x0000",
+      "kind": "han-other"
+    },
+    {
+      "first": "U+2A700",
+      "last": "U+2B81D",
+      "base": "0xFB80",
+      "subtract": "0x0000",
+      "kind": "han-other"
+    },
+    {
+      "first": "U+2B820",
+      "last": "U+2CEAD",
+      "base": "0xFB80",
+      "subtract": "0x0000",
+      "kind": "han-other"
+    },
+    {
+      "first": "U+2CEB0",
+      "last": "U+2EBE0",
+      "base": "0xFB80",
+      "subtract": "0x0000",
+      "kind": "han-other"
+    },
+    {
+      "first": "U+2EBF0",
+      "last": "U+2EE5D",
+      "base": "0xFB80",
+      "subtract": "0x0000",
+      "kind": "han-other"
+    },
+    {
+      "first": "U+30000",
+      "last": "U+3134A",
+      "base": "0xFB80",
+      "subtract": "0x0000",
+      "kind": "han-other"
+    },
+    {
+      "first": "U+31350",
+      "last": "U+33479",
+      "base": "0xFB80",
+      "subtract": "0x0000",
+      "kind": "han-other"
+    }
+  ]
+}

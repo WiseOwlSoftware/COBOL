@@ -1,0 +1,11 @@
+# en-US — English (United States) collation tailoring for COBOL.NET's derived collation table.
+#
+# Unicode CLDR common/collation/en.xml (data/unicode/cldr-collation-en.xml): "The root collation order is valid for
+# this language." — English has NO tailoring; every English locale collates by the root table. This file exists so
+# the locale resolves to an explicit, versioned answer rather than to an absent one, and as the template for a
+# site-specific override (drop an edited copy into the directory named by COBOL_COLLATION_DIR).
+#
+# Format: one mapping per line —  U+code-point  primary secondary tertiary [variable]  — all hexadecimal, weights in the
+# derived scale CollationTable.Lookup reports; see Collation/README.md.
+@version 17.0.0
+@locale en-US

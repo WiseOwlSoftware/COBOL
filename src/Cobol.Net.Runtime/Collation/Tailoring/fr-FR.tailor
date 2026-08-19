@@ -1,0 +1,11 @@
+# fr-FR — French (France) collation tailoring for COBOL.NET's derived collation table.
+#
+# Unicode CLDR common/collation/fr.xml (data/unicode/cldr-collation-fr.xml): "The root collation order is valid for
+# this language." — French (France) has NO tailoring; it collates by the root table, in which accents distinguish at
+# the secondary level only and are compared left to right (cote < coté < côte < côté). The Canadian-French BACKWARD
+# secondary ordering (fr-CA) is a separate CLDR tailoring and is not this file.
+#
+# Format: one mapping per line —  U+code-point  primary secondary tertiary [variable]  — all hexadecimal, weights in the
+# derived scale CollationTable.Lookup reports; see Collation/README.md.
+@version 17.0.0
+@locale fr-FR

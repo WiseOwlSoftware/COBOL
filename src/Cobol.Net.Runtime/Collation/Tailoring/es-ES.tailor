@@ -1,0 +1,18 @@
+# es-ES — Spanish (Spain) collation tailoring for COBOL.NET's derived collation table.
+#
+# CLDR has no region-specific Spanish tailoring: es-ES is the language-level es collation.
+# Derived from Unicode CLDR common/collation/es.xml, <collation type="standard">:  &N<ñ<<<Ñ
+# (data/unicode/cldr-collation-es.xml, Unicode License — data/unicode/LICENSE-UNICODE.txt).
+# The rule says: ñ is a NEW PRIMARY immediately after n (before every character the root table places after n),
+# and Ñ differs from ñ at the tertiary level only. Nothing else in Spanish differs from the root order.
+#
+# Weights are hexadecimal, in the DERIVED scale the table reports (root primaries are the CLDR values shifted left
+# by 4 bits): n's primary is 25710, the next root primary is 25750 (LATIN LETTER SMALL CAPITAL N), so ñ takes 25718.
+# The decomposed spellings n + U+0303 / N + U+0303 are covered automatically (canonical closure on apply).
+#
+# The "traditional" Spanish variant (ch and ll as separate letters, CLDR type="traditional") is NOT this file.
+@version 17.0.0
+@locale es-ES
+
+U+00F1  25718 0020 0002    # LATIN SMALL LETTER N WITH TILDE   — after n, primary
+U+00D1  25718 0020 0008    # LATIN CAPITAL LETTER N WITH TILDE — same primary, uppercase tertiary (as A vs a in root)

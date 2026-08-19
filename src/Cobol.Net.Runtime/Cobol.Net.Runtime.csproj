@@ -17,4 +17,19 @@
     <RootNamespace>CobolNet.Runtime</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cobol.Net.Tests.Unit" />
+  </ItemGroup>
+
+  <!--
+    The collation subsystem's data (Collation/README.md): the DERIVED root collation table generated from Unicode
+    CLDR/UCA data by scripts/collation/generate-collation-table.py, and the shipped locale tailorings. Embedded with
+    STABLE logical names (the runtime opens them by these strings; the RootNamespace-derived default would change
+    with the G8 namespace flip).
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="Collation/Data/root-collation.bin" LogicalName="Collation/Data/root-collation.bin" />
+    <EmbeddedResource Include="Collation/Tailoring/*.tailor" LogicalName="Collation/Tailoring/%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>
