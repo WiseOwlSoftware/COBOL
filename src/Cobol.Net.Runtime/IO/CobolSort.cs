@@ -70,7 +70,7 @@ public static class CobolSort
     /// ORDER (equal keys keep USING-file / RELEASE order — the buffer holds them in exactly that order); without
     /// the phrase the relative order is undefined (GR4), so the stable result is conformant there too —
     /// <paramref name="duplicatesInOrder"/> is accepted for the call-site's traceability.</summary>
-    public static void Sort(string name, Key[] keys, ushort[]? weights, bool duplicatesInOrder)
+    public static void Sort(string name, Key[] keys, CobolCollation? collation, bool duplicatesInOrder)
     {
         _ = duplicatesInOrder;   // stability is unconditional — GR3 satisfied, GR4 (undefined) safely refined
         var f = Get(name);
@@ -79,7 +79,7 @@ public static class CobolSort
         for (int i = 0; i < n; i++) idx[i] = i;
         Array.Sort(idx, (x, y) =>
         {
-            int c = CompareKeys(f.Records[x], f.Records[y], keys, weights);
+            int c = CompareKeys(f.Records[x], f.Records[y], keys, collation);
             return c != 0 ? c : x - y;   // tie → original (release) order: the stable sort
         });
         var sorted = new List<string>(n);
@@ -94,7 +94,7 @@ public static class CobolSort
     /// exactly GR4a/GR4b. Seam: input NOT ordered per the KEY phrases is EC-SORT-MERGE-SEQUENCE (GR6 — Fatal,
     /// files closed, result undefined); checking is OFF by default (COBOLNET_DESIGN §18.16), and the k-way merge
     /// then yields a deterministic stream-merge order, conformant within "undefined".</summary>
-    public static void Merge(string name, Key[] keys, ushort[]? weights)
+    public static void Merge(string name, Key[] keys, CobolCollation? collation)
     {
         var f = Get(name);
         int streams = f.StreamStarts.Count;
@@ -113,7 +113,7 @@ public static class CobolSort
             {
                 if (pos[s] >= end[s]) continue;
                 // STRICT less-than: an equal head never displaces an earlier stream's record (GR4a).
-                if (best < 0 || CompareKeys(f.Records[pos[s]], f.Records[pos[best]], keys, weights) < 0)
+                if (best < 0 || CompareKeys(f.Records[pos[s]], f.Records[pos[best]], keys, collation) < 0)
                     best = s;
             }
             if (best < 0) break;
@@ -160,18 +160,19 @@ public static class CobolSort
     /// <summary>Compare two record images on <paramref name="keys"/>, most significant first (ISO §14.9.40 GR8 —
     /// the relation-condition comparison rules per key): a NUMERIC key compares algebraically by its decoded value
     /// (GR8 / §8.8.4.2.4 — a collating sequence NEVER applies to a numeric comparison); an alphanumeric key
-    /// compares character-wise under <paramref name="weights"/> when present (GR5 / §8.8.4.2.7) else the native
-    /// order; DESCENDING inverts the per-key result (GR8b). 0 ⇔ all keys equal (GR8c — the caller's stability or
+    /// compares under <paramref name="collation"/> — the statement's GR5-resolved <see cref="CobolCollation"/>
+    /// carrier (an ALPHABET table or a LOCALE sequence, §8.8.4.2.7/.11) — when present, else the native order;
+    /// DESCENDING inverts the per-key result (GR8b). 0 ⇔ all keys equal (GR8c — the caller's stability or
     /// stream order then decides, GR3/GR4).</summary>
-    private static int CompareKeys(string a, string b, Key[] keys, ushort[]? weights)
+    private static int CompareKeys(string a, string b, Key[] keys, CobolCollation? collation)
     {
         foreach (var k in keys)
         {
             int c = k.Numeric
                 ? NumericKey(a, k).CompareTo(NumericKey(b, k))
-                : weights is null
+                : collation is null
                     ? CobolString.Compare(Slice(a, k), Slice(b, k))
-                    : CobolString.Compare(Slice(a, k), Slice(b, k), weights);
+                    : collation.Compare(Slice(a, k), Slice(b, k));
             if (c != 0) return k.Descending ? -c : c;
         }
         return 0;

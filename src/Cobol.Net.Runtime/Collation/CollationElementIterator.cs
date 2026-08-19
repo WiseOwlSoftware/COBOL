@@ -41,7 +41,7 @@ internal ref struct CollationElementIterator
         {
             if (_poolIndex < _poolCount)
             {
-                element = _table.Slice(_poolOffset + _poolIndex, 1)[0];
+                element = _table.ElementAt(_poolOffset + _poolIndex);
                 _poolIndex++;
                 return true;
             }

@@ -1281,6 +1281,42 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15AN.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET UNI FOR NATIONAL IS UCS-4.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
     {
+      "id": "alphabet-locale-2002",
+      "description": "The LOCALE phrase of the SPECIAL-NAMES ALPHABET clause (ALPHABET name [FOR ALPHANUMERIC|NATIONAL] IS LOCALE [locale-name-2]), ISO 12.3.7.2 - introduced 2002 with the locale facility (Annex A.4.9 item 10). The named form is the collating sequence of a SPECIAL-NAMES locale-name; the bare form is the locale current at each use (12.3.7.4 GR7e). Parse-arm gated on recognition (VisitAlphabetClause; LOCALE is a plain word below 2002 - a code-name there).",
+      "display": "the ALPHABET LOCALE phrase",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO \u00a712.3.7.2 alphabet-name-clause (the LOCALE phrase, either branch); \u00a712.3.7.4 GR7e; parse-arm gate (VisitAlphabetClause)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the locale facility; kb/Work PB101 - the collation engine and the ALPHABET LOCALE phrase)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB101AL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. X PROGRAM COLLATING SEQUENCE IS LOC.\nSPECIAL-NAMES.\n    ALPHABET LOC IS LOCALE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "order-table-2002",
+      "description": "The SPECIAL-NAMES ORDER TABLE ordering-name-1 IS literal-9 clause, ISO 12.3.7.2 (the last item of the paragraph's general format) - introduced 2002 with the cultural-ordering facility. Literal-9 identifies a cultural ordering table constructed per ISO/IEC 14651:2020 Annex A and the implementor specifies its allowable content (12.3.7.4 GR17); ordering-name-1 may be specified only in the STANDARD-COMPARE intrinsic function (12.3.7.3 SR9). Parse-arm gated on recognition (VisitOrderTableClause). The grammar predicate is NOT edition-gated, unlike the LOCALE clause's: TABLE is reserved at every edition (reserved-words.json r85 true), so the pair ORDER + TABLE has no competing COBOL-85 reading, and recognizing it everywhere is what makes the sub-2002 answer this explanatory COBOLNET0900 instead of a parse error at TABLE.",
+      "display": "the ORDER TABLE clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO \u00a712.3.7.2 (the ORDER TABLE clause of the SPECIAL-NAMES general format); \u00a712.3.7.3 SR9/SR10/SR11; \u00a712.3.7.4 GR17; parse-arm gate (VisitOrderTableClause)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the cultural-ordering facility; kb/Work PB101 - ORDER TABLE + STANDARD-COMPARE over the derived CLDR/UCA collation engine). Annex E covers 2014-2023 only, so the 2002 edge is derived from the ORDER reserved-word row (reserved-words.json r85 false / r2002 true), not from an E-list entry.",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB101OT.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ORDER TABLE OT1 IS \"ISO 14651_2020_TABLE1\".\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "standard-compare-2002",
+      "description": "FUNCTION STANDARD-COMPARE (ISO 15.85) - the cultural-ordering comparison returning the single character \"<\", \"=\" or \">\" (15.85.4 r6/r7) over the ordering table an ORDER TABLE ordering-name identifies or, absent one, the default table 'ISO 14651_2020_TABLE1' (15.85.3 r5). LIVE (kb/Work PB101 T7): CobolIntrinsics.StandardCompare over the derived CLDR/UCA collation engine, argument-4's four ordering levels (15.85.4 r1/r2) and the 15.85.4 r4 trailing-space rule. Below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502) - the window is now enforced rather than suppressed, because the row's Bind is no longer Unsupported.",
+      "display": "FUNCTION STANDARD-COMPARE (cultural ordering)",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO \u00a715.85 STANDARD-COMPARE; \u00a712.3.7.2 ORDER TABLE; \u00a7A.3 item 25 (dependent on an ISO/IEC 14651:2020 implementation - support IS now claimed); D8 window 1502 below 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "2002 introduction (the cultural-ordering facility, with the ORDER TABLE clause it depends on; Annex E covers 2014-2023 only and lists no STANDARD-COMPARE delta, so the edge is derived from the ORDER reserved-word row - see VERSION_CHANGE_REFERENCE 'cultural ordering')",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB101SC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 R PIC X.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION STANDARD-COMPARE(\"a\" \"b\") TO R.\n    STOP RUN.\n"
+    },
+    {
       "id": "program-collating-national-2002",
       "description": "The national surface of the OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE clause, ISO 12.3.6.2 - alphabet-name-2 of the two-name IS form and the FOR ALPHANUMERIC / FOR NATIONAL forms, all introduced 2002 with the national class (the 85 format is the single-name IS form). Parse-arm gated on recognition (VisitProgramCollatingSequenceClause).",
       "display": "the PROGRAM COLLATING SEQUENCE national surface (alphabet-name-2 / FOR forms)",

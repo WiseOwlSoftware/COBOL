@@ -18,6 +18,14 @@
 >   **"Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data."**
 >   (CONFORMANCE.md §2 A.3 item 25 and §7 carry that sentence.)
 >
+> **⚙ 2026-08-18, the owner's COLLATION guidance (kb/Work PB101):** the collation realization is COBOL.NET's OWN
+> DERIVED CLDR/UCA engine (`src/Cobol.Net.Runtime/Collation/`, README there) — a table generated from the pinned
+> CLDR release-48-2 root collation + UCD 17.0.0 data, embedded in the runtime, with its own NFD — and NOT .NET's
+> ICU `CompareInfo`, which this design first drafted as the realization. Measured reason: the host's bundled ICU
+> lags Unicode (the development host's predates 16.0), so an INDEXED file's key order or a SORT's output would
+> depend on the host; a versioned table gives one order everywhere. §4.4/§4.9 below are re-based on it (the
+> `CobolCollation` carrier of T2 is LANDED, the LOCALE arm of T3 for the CURRENT-locale phrase is LANDED, T7 lands
+> in the same batch); the ICU `CompareInfo` remains a cross-check oracle in the tests only.
 > **T0 (posture repair) LANDED before adoption:** rows 6–8 and 14 of §1 as kb/Work PB78 (2026-08-18), rows 9–10
 > as PB92, rows 4–5 and 11 plus A.4.9 item 1's exception-names as PB100 — every entry point is refused by name
 > today. Under the implement decision those refusals are removed increment by increment (§12), and the PB100
@@ -418,31 +426,42 @@ locale based; otherwise, standard comparison is used*"; §8.8.4.2.9 is the natio
 Sentence 1 alone breaks the current API: `CobolString.Compare(l, r, ushort[] weights)` pads the shorter
 operand and weighs the pad. Sentence 2 breaks it structurally: there are no per-character weights to hand out.
 
-**The change.** Introduce `CobolCollation` as the single carrier; the four kinds are its implementations.
+**The change — ✅ LANDED (PB101, 2026-08-18).** `CobolCollation` (`Runtime/Values/Text/CobolCollation.cs`) is the
+single carrier; the arms are its implementations. As landed, the NATIVE sequence has NO carrier object — it is the
+two-argument `CobolString.Compare(l, r, pad)` and a `null` in every optional collation slot, so an ordinary program's
+generated text is byte-identical to before; `AlphanumericCollation` and `NationalCollation` BECAME the two table arms
+(their `Weight`/`CharAt`/`PositionCount` logic verbatim, plus the `Compare` that used to live as `CobolString`
+overloads, plus binder-computed HIGH-/LOW-VALUE); `LocaleCollation` is the new arm. `CobolString.Compare` collapsed to
+{`char pad`, `CobolCollation`} and `ThruMember` to ONE implementation on the base class; `CobolSort`, the indexed-file
+registration (`CobolFile`/`FileRegistry`/`IndexedConnector`), `MaxString`/`MinString`/`OrdMax`/`OrdMin`, `Char`/
+`CharNational`/`Ord` all take the carrier. The emitters render every carrier through ONE method,
+`CodeGen/Roslyn/CollationEmit.cs` (`__COLLATE`/`__COLLATE_NAT` for the PCS, an inline instance for a statement or
+file alphabet that is not the PCS). The drift test `CobolCollationTests.Drift_TheCarrierIsTheOnlyCollatingParameterType`
+asserts the overload set stays collapsed and no public runtime surface takes a raw `ushort[]` or a concrete arm.
 
 ```csharp
-// Runtime/Values/Text/CobolCollation.cs
+// Runtime/Values/Text/CobolCollation.cs — as landed
 public abstract class CobolCollation
 {
-    public abstract int Compare(string? left, string? right);
-    public abstract bool ThruMember(string? read, string? lo, string? hi);   // §14.7.8, one implementation
-    public abstract int  Weight(char c);        // ORD/CHAR support; see §4.4.5 for the locale arm
+    public abstract int  Compare(string? left, string? right);   // each arm applies ITS operand rule (pad / trim)
+    public bool ThruMember(string? read, string? lo, string? hi); // §14.7.8, ONE implementation, on the base
+    public abstract int  Weight(char c);        // ORD; the locale arm materializes (§4.4.5)
     public abstract int  PositionCount { get; }
     public abstract int  CharAt(long position);
-    public abstract char HighValue { get; }     // §8.3.3.6.4 GR6 — a PROPERTY, so a locale arm can compute it
+    public abstract char HighValue { get; }     // §8.3.3.6.4 GR6
     public abstract char LowValue  { get; }     // §8.3.3.6.4 GR7
 }
-sealed class NativeCollation      : CobolCollation { … }   // today's `char pad` overload
-sealed class TableCollation       : CobolCollation { … }   // today's AlphanumericCollation
-sealed class NationalTableCollation: CobolCollation { … }  // today's NationalCollation
-sealed class LocaleCollation      : CobolCollation { … }   // NEW — LocaleRef + category LC_COLLATE
+sealed class AlphanumericCollation : CobolCollation { … }   // the ALPHABET literal-phrase table (256-entry + GR7 1.3 tail)
+sealed class NationalCollation     : CobolCollation { … }   // its FOR NATIONAL twin (sparse)
+sealed class LocaleCollation       : CobolCollation { … }   // LOCALE / ordering table — the derived engine
+// the NATIVE sequence: no object — CobolString.Compare(l, r, pad) and null in every optional slot
 ```
 
-The existing `AlphanumericCollation` / `NationalCollation` become the *state* of the two table arms; their
-`Weight`/`CharAt`/`PositionCount` logic is preserved verbatim (PB59's landed §12.3.7.4 GR7 1.3 arithmetic is
-not re-derived). `CobolString.Compare`'s three overloads collapse into one `CobolCollation`-taking entry, and
-the `ThruMember` triplicate collapses with them — three copies of the same EC-RANGE-INVALID guard become one.
-**A drift test asserts the overload set stays collapsed** so the next comparison kind cannot re-fork it.
+Compile side, the twin: `Binding/CollatingModel.cs` — `AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale,
+string Phrase)` (the alphanumeric alphabet map's value type and the type of the PCS `DataBinder.Collating`, `BoundSort*.Collating`,
+`FileModel.PrimeKeyCollation`/`AlternateKeyCollations`), `NationalAlphabetDef` gaining a `Locale` slot, and
+`LocaleCollatingSpec(string? LocaleName)` (null = the current locale at each use). Both defs expose `HighValue`/`LowValue`
+so the figurative constants and `ConcatFolder` still fold at compile time (§4.4.4).
 
 ⚠ The `: c` weight tail proof recorded in `CobolString.Weight`'s doc comment (order-equivalence of the raw
 table tail with the exact GR7 1.3 arithmetic) must be **carried over verbatim** into `TableCollation`, not
@@ -492,39 +511,51 @@ the design branches on it.
 #### 4.4.3 The comparison itself
 
 ```csharp
-sealed class LocaleCollation(LocaleRef r) : CobolCollation
+// Runtime/Values/Text/LocaleCollation.cs — as landed (PB101)
+sealed class LocaleCollation(string? localeTag) : CobolCollation     // null = the current locale at each use (GR7e)
 {
+    public static LocaleCollation Current { get; }                    // the `IS LOCALE` phrase without a locale-name
+    public Collator Resolve() =>
+        CollationEngine.ForLocale(localeTag ?? RunUnit.Current.Locale.Current(LocaleCategory.Collate));
     public override int Compare(string? l, string? r2)
     {
-        // §8.8.4.2.11 sentence 1 — truncate trailing spaces; all-spaces ⇒ ONE space. No padding.
-        string a = TrimForLocale(l), b = TrimForLocale(r2);
-        LocaleFacts f = LocaleState.Resolve(r, LocaleCategory.Collate);   // EC-LOCALE-MISSING if absent
-        if (!f.Collate.CoversAll(a, b)) ExceptionState.Set("EC-LOCALE-INCOMPATIBLE", fatal: true);
-        return f.Collate.Compare(a, b, CompareOptions.None);              // sentence 2
+        string a = TrimForLocale(l), b = TrimForLocale(r2);            // §8.8.4.2.11 sentence 1 — no padding
+        if (!Collator.IsWellFormed(a) || !Collator.IsWellFormed(b))
+            ExceptionState.Set("EC-LOCALE-INCOMPATIBLE", fatal: true);   // L6, re-derived below
+        return Resolve().Compare(a, b);                                   // sentence 2 — the derived CLDR/UCA engine
     }
 }
-static string TrimForLocale(string? s) =>
-    (s ??= "").AsSpan().TrimEnd(' ').IsEmpty && s.Length > 0 ? " " : s.TrimEnd(' ');
 ```
+
+`RunUnit.Locale` is a `LocaleState` (`Runtime/Control/LocaleState.cs`) — the T1 seam in its smallest form: the two
+L2 defaults read once at activation and the current locale per category (`Set` is where SET LOCALE lands).
 
 - "*Two zero-length operands are equal*" (§8.8.4.2.11 sentence 2's tail) falls out: both trim to `""`.
 - ⚠ Note the **all-spaces ⇒ one space** clause is not the same as `TrimEnd`: `"    "` becomes `" "`, not `""`.
   A test pins the three cases (`""`, `"   "`, `"a  "`) because this is the sentence most likely to be
   "simplified" into a plain trim.
-- **⚖ DETERMINATION L6 — `EC-LOCALE-INCOMPATIBLE` (§8.8.4.2.11 sentence 3).** ICU's root collation assigns an
-  implicit weight to every unassigned code point, so *no* locale ever literally "fails to define a collating
-  sequence" for a character; a naive reading makes the condition dead. COBOL.NET raises it when an operand
-  contains an **unpaired UTF-16 surrogate** or a **noncharacter** (U+FFFE/U+FFFF, U+FDD0–U+FDEF) — the code
-  units for which the collation's ordering is not defined by the culture data. This is a determination, not a
-  derivation, and it must be **documented under §4.2.7** and pinned by a test that actually fires the
-  condition — a dead EC is a dead lookup, and a dead lookup is an unverified one.
+- **⚖ DETERMINATION L6 — `EC-LOCALE-INCOMPATIBLE` (§8.8.4.2.11 sentence 3) — RE-DERIVED over the derived table
+  (PB101).** The table assigns an explicit or UTS #10 Table 16 implicit weight to EVERY well-formed code point —
+  assigned, unassigned and noncharacter alike (U+FFFE/U+FFFF carry CLDR's explicit minimum/maximum) — so the one
+  operand "the locale does not define a collating sequence for" is ill-formed UTF-16: an **unpaired surrogate**.
+  That sets the fatal EC-LOCALE-INCOMPATIBLE; the comparison still returns a deterministic order (the lone unit is
+  walked as its own code point). Documented under §4.2.7 and pinned by
+  `CobolCollationTests.LocaleArm_UnpairedSurrogate_SetsEcLocaleIncompatible`, which fires it.
+- **⚖ DETERMINATION L11 — the algorithm "associated with LC_COLLATE" (§8.8.4.2.11 sentence 2).** The locale's
+  CLDR collation at its CLDR defaults: the locale's tailoring over the root table at TERTIARY strength with
+  NON-IGNORABLE variables (case and accents distinguish; punctuation weighs at level 1) — what ICU/CLDR give a
+  locale's default `strcoll`-style comparison. The four-level ISO/IEC 14651 default ordering (variables shifted to
+  level 4) is what STANDARD-COMPARE provides (§4.9). Documented under §4.2.7; pinned by the `pb101_alphabet_locale_pcs`
+  golden and `CobolCollationTests`.
 
 #### 4.4.4 HIGH-VALUE / LOW-VALUE under a locale-based sequence
 
-§8.3.3.6.4 GR6/GR7 (both `--check` OK) make these **run-time** values under a locale-based PCS, where today
-`CollatingTable` computes them at compile time. `LocaleCollation.HighValue`/`LowValue` therefore compute, per
-resolved culture and **cached in `LocaleFacts`**, the max/min of the 65,536 native code units under the
-culture's `CompareInfo`.
+§8.3.3.6.4 GR6/GR7 (both `--check` OK) make these **run-time** values under a locale-based PCS. As landed,
+`LocaleCollation.HighValue`/`LowValue` are read from the materialized order vector of §4.4.5 (the highest-coded
+member of the last rank, the lowest-coded of the first) — and under EVERY CLDR/UCA table they are U+FFFF (CLDR gives
+it the maximum primary) and U+0000 (completely ignorable), which is why the compile-time twin `AlphabetDef.HighValue`
+/`LowValue` can still fold the figurative constants for a locale PCS (`FigurativeConstants`, `ConcatFolder`) without a
+run-time call. A tailoring cannot outrank U+FFFF (a tailored primary is bounded by the engine's weight domain).
 
 ⚠ Two honest limits, both documented:
 - The rules say "*the character, or multiple-character combination*". A multiple-character combination cannot
@@ -541,20 +572,23 @@ culture's `CompareInfo`.
 `--check` OK), and §15.15.3 r2 bounds CHAR's argument by "*the number of positions*" in it (`--check` OK).
 A locale collation is an algorithm, not a position table — so the positions must be *materialized*.
 
-**⚖ DETERMINATION L7.** `LocaleFacts.Collate` lazily builds, once per culture, a 65,536-entry order vector by
-sorting the native code units with the culture's `CompareInfo` (ties by code unit, per §4.4.4). `ORD` returns
-that index + 1; `CHAR` inverts it; `PositionCount` is the number of **distinct** ranks — characters the
-culture collates equally share a position, which is precisely the case §15.15.4 r2 anticipates, and the
-"first character defined" tie rule resolves to the lowest-coded member of the equal-weight group (the only
-"definition order" a locale has). The build is ~65 k comparisons, executed at most once per culture per run
-unit, and only for a program that actually references ORD/CHAR under a locale PCS.
+**⚖ DETERMINATION L7 — as landed.** `LocaleCollation` lazily builds, once per resolved `Collator` (process-wide
+cache), a 65,536-entry order vector: every native code unit's `CollationKey` under the collator, sorted (ties by
+code unit, per §4.4.4). `ORD` returns the rank + 1; `CHAR` inverts it; `PositionCount` is the number of **distinct**
+ranks — characters the locale collates equally share a position, which is precisely the case §15.15.4 r2
+anticipates, and the "first character defined" tie rule resolves to the lowest-coded member of the equal-weight
+group (the only "definition order" a locale has). ~65 k key builds + one sort, executed at most once per collator,
+and only for a program that references ORD/CHAR (or HIGH-/LOW-VALUE at run time) under a locale PCS.
 
 #### 4.4.6 The other collation consumers
 
 - **SORT / MERGE `COLLATING SEQUENCE`** naming a locale alphabet: §14.6.6 r5 (`--check` OK) — LC_COLLATE of the
   associated locale, and "*A locale switch during execution of a SORT or MERGE statement has no effect on the
-  processing of that SORT or MERGE statement*", so the sort **snapshots** the resolved `LocaleFacts` at
-  statement start. `BoundSort` carries the `CobolCollation` it was given; nothing else changes.
+  processing of that SORT or MERGE statement*". As landed, `BoundSort`/`BoundMerge`/`BoundTableSort.Collating` carry
+  the `AlphabetDef` and the emitter passes the carrier (`__COLLATE`, or an inline `LocaleCollation`/table for a
+  statement alphabet); the current-locale form re-resolves per comparison, so a SET LOCALE (T1) issued from an
+  INPUT/OUTPUT PROCEDURE would be visible mid-sort — the snapshot the rule requires lands with T1's SET LOCALE
+  (the sort resolves once at statement start; recorded here so T1 does not forget it).
 - **Indexed-file keys.** §A.3 item 41 (`--check` OK) makes a locale-defined collating sequence for indexed
   primary/alternate keys **processor-dependent**: "*The capability of specifying a collating sequence for
   primary and alternate keys of an indexed file where the alphabet specified in the COLLATING SEQUENCE clause
@@ -769,16 +803,24 @@ design is small and complete:
   intrinsic function*" (§12.3.7.3 SR9).
 - argument-4 is the ordering **level**; absent ⇒ "*the highest level defined in the ordering table*"
   (§15.85.4 r1).
-- **⚖ OWNER DECISION (Q4, 2026-08-18): (b) — Unicode CLDR + UCA as the base implementation.** The default
-  ordering table `ISO 14651_2020_TABLE1` is realized as the UCA/CLDR root collation .NET's ICU `CompareInfo`
-  exposes (ISO/IEC 14651's Common Template Table is synchronized with the Unicode DUCET / CLDR root data), with
-  the ordering levels (argument-4: 1 primary, 2 secondary, 3 tertiary, 4 the full strength) mapped onto
-  `CompareOptions` (`IgnoreNonSpace|IgnoreCase|IgnoreWidth` ⇢ level 1, `IgnoreCase|IgnoreWidth` ⇢ 2,
-  `IgnoreWidth` ⇢ 3, `None` ⇢ 4) and any DERIVED table (a materialized order vector, as §4.4.5's ORD/CHAR
-  vector) built from that data at run time — never a hand-vendored ISO file. `ORDER TABLE ordering-name-1 IS
-  literal-9` accepts `"ISO 14651_2020_TABLE1"` (case-insensitively, the underscore/space spelling of §15.85.3 r5)
-  and, as an implementor extension, a CLDR locale tag naming a tailored collation; any other literal-9 is
-  `EC-ORDER-NOT-SUPPORTED` at the reference (§15.85.4 r2). The conformance statement COBOL.NET makes, VERBATIM:
+- **⚖ OWNER DECISION (Q4, 2026-08-18) — Unicode CLDR + UCA as the base implementation, realized (PB101, the
+  owner's collation guidance) by COBOL.NET's OWN derived engine.** The default ordering table `ISO 14651_2020_TABLE1`
+  is `CollationEngine.Standard`: the derived root table (generated from the CLDR release-48-2 root collation, UCA
+  17.0.0 — ISO/IEC 14651's Common Template Table is kept synchronized with the same Unicode data) under the
+  ISO/IEC 14651 DEFAULT treatment — four levels, variable characters (space, punctuation, symbols) ignored through
+  level 3 and weighted at level 4 (UTS #10 "shifted"). The ordering LEVEL (argument-4: 1 primary, 2 secondary, 3
+  tertiary, 4 the full four-level ordering) is `CollationEngine.StandardAtLevel(n)` — a `Collator` at that
+  strength; absent, level 4 (§15.85.4 r1: "the highest level defined in the ordering table"); 0 or > 4 is
+  `EC-ORDER-NOT-SUPPORTED` (r2). `ORDER TABLE ordering-name-1 IS literal-9` (§12.3.7.2 — ONE clause, the last of the
+  paragraph; §12.3.7.4 GR17: "*The implementor specifies the allowable content of literal-9*") is resolved by
+  `CollationEngine.TryGetOrderingTable`: `"ISO 14651_2020_TABLE1"` in either spelling (§15.85.3 r5 writes a space,
+  §12.3.7.4 NOTE 5 an underscore — case-insensitive, the two interchangeable) → the default; as an implementor
+  extension a CLDR locale tag → that locale's tailoring over the root table (a locale .NET recognizes but no
+  tailoring file → the root order); anything else → `EC-ORDER-NOT-SUPPORTED` at the reference (§15.85.4 r2), the
+  binder warning at compile time that the literal will never resolve. Trailing spaces truncate per r4 (the same
+  `TrimForLocale` as §4.4.3); the national conversion of r3 is the identity on the D-N1 substrate; the result is
+  `"<"`, `"="`, `">"` (r6/r7). Every derived table stays a Unicode-licensed derivation — never a hand-vendored ISO
+  file. The conformance statement COBOL.NET makes, VERBATIM:
   **"Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data."**
 
 ### 4.10 Exceptions
@@ -1052,8 +1094,10 @@ on the author's machine and fail in CI — a failure mode this repo has already 
 | `Compiler/Validation/VersionConformancePass.cs` | typed OBJECT-COMPUTER visit; the seven new construct gates |
 | `Compiler/CodeGen/Emit/**` | emit `CobolCollation` instead of the three carriers; locale intrinsic arms; locale-edited store/fetch |
 | `Runtime/Control/RunUnit.cs` | `LocaleState` property |
-| `Runtime/Control/LocaleState.cs`, `Runtime/Values/Text/CobolCollation.cs`, `Runtime/Intrinsics/CobolLocale.cs`, `Runtime/Values/Numeric/CobolLocaleEdit.cs`, `Runtime/Globalization/LocaleFacts.cs` | NEW |
-| `Runtime/Values/Text/CobolString.cs` | three `Compare` + three `ThruMember` overloads → one each |
+| `Runtime/Collation/*` (PB101 ✅) | NEW — the derived CLDR/UCA engine: `CollationTable` (+ `Data/root-collation.bin`, generated by `scripts/collation/generate-collation-table.py` over `data/unicode/`), `CollationElementIterator`, `Normalizer`, `Collator`, `CollationKey`, `CollationEngine`, `TailoringRules` (+ `Tailoring/*.tailor`) |
+| `Runtime/Control/LocaleState.cs` (PB101 ✅, minimal), `Runtime/Values/Text/CobolCollation.cs` (✅), `Runtime/Values/Text/LocaleCollation.cs` (✅), `Runtime/Intrinsics/CobolLocale.cs`, `Runtime/Values/Numeric/CobolLocaleEdit.cs`, `Runtime/Globalization/LocaleFacts.cs` | NEW (the last three with T4–T6) |
+| `Runtime/Values/Text/CobolString.cs` (✅) | three `Compare` + three `ThruMember` overloads → the `char pad` native form + ONE `CobolCollation` form |
+| `CodeGen/Roslyn/CollationEmit.cs` (✅) | NEW — the ONE renderer of a carrier from an `AlphabetDef` / `NationalAlphabetDef` |
 | `Editions/Diagnostics/DiagnosticCatalog.cs` | 1642–1650; delete 1518 (implement) or extend it (non-support) |
 | `tests/version-matrix/constructs.json` | seven rows |
 | `docs/CONFORMANCE.md` | §4 item 5 rewritten; the §8 determination table added; the stale "parse error" claim corrected **regardless of the decision** |
@@ -1077,12 +1121,12 @@ Then, if Q1 is answered "implement":
 | # | Increment | Closes |
 |---|---|---|
 | T1 | `LocaleSymbol` + `LocaleRef` + `LocaleFacts` + `LocaleState` on `RunUnit`; SPECIAL-NAMES LOCALE declares; `SET` formats 11/12 | item 9, 10 (clause half) |
-| T2 | `CobolCollation` collapse — pure refactor, **no locale arm yet**; battery must be byte-identical | (enables T3) |
-| T3 | `LocaleCollation` + ALPHABET `IS LOCALE` + PCS + SORT/MERGE + HIGH/LOW-VALUE + ORD/CHAR | items 10 (alphabet half), §8.8.4.2.11 |
+| T2 | ✅ **LANDED 2026-08-18 (PB101)** — `CobolCollation` collapse; corpus/unit batteries green, ordinary programs' generated text unchanged | (enables T3) |
+| T3 | ◐ **LANDED for the CURRENT-locale form (PB101)** — `LocaleCollation` + `ALPHABET … IS LOCALE` (no locale-name) + PCS + SORT/MERGE + indexed keys + MAX/MIN + HIGH/LOW-VALUE + ORD/CHAR; the NAMED form (`IS LOCALE locale-name-2`, §12.3.7.3 SR24) waits for T1's LOCALE clause and stays refused by name; the SORT snapshot rule (§14.6.6 r5) is owed with T1's SET LOCALE | items 10 (alphabet half), §8.8.4.2.11 |
 | T4 | `LOCALE-COMPARE`, then `LOCALE-DATE`/`-TIME`/`-TIME-FROM-SECONDS` with `RuntimeDetermined` results | items 2–5 |
 | T5 | `CHARACTER CLASSIFICATION` semantics + LC_CTYPE + the `LOWER-CASE`/`UPPER-CASE` LOCALE phrase + class tests | items 6, 7, 13 |
 | T6 | `PICTURE` format 2 + the NUMVAL-C/TEST-NUMVAL-C LOCALE arms (one shared LC_MONETARY model) | items 8, 12 |
-| T7 | `ORDER TABLE` + `STANDARD-COMPARE` — **gated on Q4** | item 11 |
+| T7 | ✅ **LANDED 2026-08-18 (PB101)** — `ORDER TABLE ordering-name IS literal-9` (§12.3.7.2, one clause; SR10/SR11; GR17 — a literal the engine cannot resolve warns COBOLNET1662 and sets EC-ORDER-NOT-SUPPORTED at every reference) + `STANDARD-COMPARE` (§15.85: `BindStandardCompare`, ArgKinds `ssoi` with `'o'` = §15.3 item 12, COBOLNET1663 for r5/r6 violations; runtime `CobolIntrinsics.StandardCompare` over `CollationEngine.Standard` / `StandardAtLevel`, r4 trim, r6/r7 result; EC-ORDER-NOT-SUPPORTED through the ambient-gate machinery, `"="` when checking is off) | item 11 |
 
 T2 is deliberately a **behaviour-free** commit: a refactor that changes results is indistinguishable from a
 feature that breaks them.

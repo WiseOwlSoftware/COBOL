@@ -1,0 +1,12 @@
+apple < Zebra
+zebra < Zebra
+apple < Apple
+resume < resumE
+trailing spaces ignored
+SORT1=apple
+SORT2=Apple
+SORT3=zebra
+SORT4=Zebra
+MAX=Zebra
+ORD a < A < b
+CHAR round-trip OK

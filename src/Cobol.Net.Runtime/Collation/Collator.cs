@@ -59,19 +59,70 @@ public sealed class Collator
         if (Normalizer.NeedsNfd(a, Table, forIdentical)) a = Normalizer.ToNfd(a, Table);
         if (Normalizer.NeedsNfd(b, Table, forIdentical)) b = Normalizer.ToNfd(b, Table);
 
-        int c = CompareLevel(a, b, 1);
+        // Identical-prefix skip: an identical prefix yields identical elements at every level, so the walks may
+        // start at its end — provided the boundary is CONTEXT-SAFE (see SafeBoundary). Under Shifted the level-4
+        // "following a variable" state depends on the prefix, so the skip is taken only for the state-free
+        // non-ignorable collators (every locale sequence; STANDARD-COMPARE's arguments are short anyway).
+        int skip = Alternate == AlternateHandling.NonIgnorable ? SafeBoundary(a, b, a.CommonPrefixLength(b)) : 0;
+        ReadOnlySpan<char> ta = a[skip..], tb = b[skip..];
+
+        int c = CompareLevel(ta, tb, 1);
         if (c != 0 || Strength == CollationStrength.Primary) return c;
-        c = CompareLevel(a, b, 2);
+        c = CompareLevel(ta, tb, 2);
         if (c != 0 || Strength == CollationStrength.Secondary) return c;
-        c = CompareLevel(a, b, 3);
+        c = CompareLevel(ta, tb, 3);
         if (c != 0 || Strength == CollationStrength.Tertiary) return c;
         if (Alternate == AlternateHandling.Shifted)
         {
-            c = CompareLevel(a, b, 4);
+            c = CompareLevel(ta, tb, 4);
             if (c != 0) return c;
         }
         if (Strength == CollationStrength.Quaternary) return 0;
-        return CompareCodePoints(a, b);   // Identical: the canonically decomposed code point sequences
+        return CompareCodePoints(ta, tb);   // Identical: the canonically decomposed code point sequences
+    }
+
+    /// <summary>Back the common-prefix length <paramref name="p"/> of two (normalized) texts up to a boundary at
+    /// which the element sequences on either side cannot depend on each other: not inside a surrogate pair, between
+    /// two STARTERS (a combining-mark run is never split — a discontiguous contraction may reach across marks), and
+    /// with no contraction START within <see cref="CollationTable.MaxContractionLength"/> code points before it (a
+    /// contraction, contiguous or discontiguous, extends forward from its first code point only). Returns 0 when no
+    /// safe boundary exists in the prefix.</summary>
+    private int SafeBoundary(ReadOnlySpan<char> a, ReadOnlySpan<char> b, int p)
+    {
+        if (p == 0) return 0;
+        var t = Table;
+        while (p > 0)
+        {
+            // Never split a surrogate pair.
+            if (char.IsHighSurrogate(a[p - 1]) && p < a.Length) { p--; continue; }
+            // Between two starters: the char before p and the (first differing) chars at p in BOTH texts.
+            if (t.IsNonStarter(CodePointBefore(a, p)) || (p < a.Length && t.IsNonStarter(CodePointAt(a, p))) || (p < b.Length && t.IsNonStarter(CodePointAt(b, p))))
+            { p--; continue; }
+            // No contraction may start within reach of the boundary.
+            bool clear = true;
+            int i = p, remaining = t.MaxContractionLength - 1;
+            while (remaining-- > 0 && i > 0)
+            {
+                int cp = CodePointBefore(a, i);
+                if (t.StartsContraction(cp)) { clear = false; break; }
+                i -= cp > 0xFFFF ? 2 : 1;
+            }
+            if (clear) return p;
+            p--;
+        }
+        return 0;
+    }
+
+    private static int CodePointBefore(ReadOnlySpan<char> s, int end)
+    {
+        char c = s[end - 1];
+        return end >= 2 && char.IsLowSurrogate(c) && char.IsHighSurrogate(s[end - 2]) ? char.ConvertToUtf32(s[end - 2], c) : c;
+    }
+
+    private static int CodePointAt(ReadOnlySpan<char> s, int index)
+    {
+        char c = s[index];
+        return char.IsHighSurrogate(c) && index + 1 < s.Length && char.IsLowSurrogate(s[index + 1]) ? char.ConvertToUtf32(c, s[index + 1]) : c;
     }
 
     /// <summary>Ordinal comparison by CODE POINT (not UTF-16 code unit — a supplementary character must sort after

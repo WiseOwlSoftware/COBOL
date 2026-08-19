@@ -4,7 +4,7 @@ using System.Globalization;
 using CobolNet.Runtime.Collation;
 using Xunit;
 
-namespace CobolNet.Tests.Unit;
+namespace CobolNet.Tests.Unit.Collation;
 
 /// <summary>
 /// The collation ENGINE (Runtime/Collation/Collator.cs, CollationKey.cs, CollationEngine.cs): the multi-level order
@@ -34,6 +34,56 @@ public sealed class CollationEngineTests
     private static string Show(string s) => string.Join(" ", s.EnumerateRunes().Select(r => $"U+{r.Value:X4}"));
 
     // ---- the root order (CLDR default: tertiary, non-ignorable) --------------------------------------------------
+
+    /// <summary>The owner's requested cases (2026-08-18), each with the design's answer stated: ASCII order; the
+    /// case question ("Z" vs "a" — letters outrank case, so "a" &lt; "Z"; the native code-unit order would say the
+    /// opposite); case at tertiary; accents at secondary ("a" vs "á", "e" vs "é"); multi-character strings; equality,
+    /// less-than, greater-than through <see cref="CollationEngine.Compare(string?,string?)"/>.</summary>
+    [Fact]
+    public void Requested_BasicOrdering_Equality_LessThan_GreaterThan()
+    {
+        Assert.True(CollationEngine.Compare("A", "B") < 0);
+        Assert.True(CollationEngine.Compare("a", "b") < 0);
+        Assert.True(CollationEngine.Compare("a", "Z") < 0);      // letters before case: a < Z (code-unit order says Z < a)
+        Assert.True(CollationEngine.Compare("Z", "a") > 0);
+        Assert.True(CollationEngine.Compare("a", "A") < 0);      // case is TERTIARY: lowercase first
+        Assert.True(CollationEngine.Compare("A", "a") > 0);
+        Assert.True(CollationEngine.Compare("a", "\U000000E1") < 0);   // accent is SECONDARY: a < á
+        Assert.True(CollationEngine.Compare("e", "\U000000E9") < 0);   // e < é
+        Assert.True(CollationEngine.Compare("\U000000E9", "e") > 0);
+        Assert.True(CollationEngine.Compare("abc", "abd") < 0);
+        Assert.True(CollationEngine.Compare("abd", "abc") > 0);
+        Assert.True(CollationEngine.Compare("\U000000E1b", "aa") > 0);   // primaries decide first: (a,b) > (a,a), the accent never counts
+        Assert.True(CollationEngine.Compare("aa", "\U000000E1b") < 0);
+        Assert.Equal(0, CollationEngine.Compare("abc", "abc"));
+        Assert.Equal(0, CollationEngine.Compare("", ""));
+        Assert.True(CollationEngine.Compare("abc", "abd") < 0);
+        Assert.True(CollationEngine.Compare("abd", "abc") > 0);
+    }
+
+    /// <summary>Locale tailoring: the shipped Spanish tailoring (ñ a letter after n) and a synthetic tailoring
+    /// placing ä after z (the Swedish/Finnish treatment) applied through <see cref="TailoringRules"/>.</summary>
+    [Fact]
+    public void Requested_LocaleTailoring_ChangesTheOrder()
+    {
+        var es = CollationEngine.ForLocale("es-ES");
+        Assert.True(es.Compare("\U000000F1", "n") > 0);              // ñ after n
+        Assert.True(es.Compare("\U000000F1", "o") < 0);              // …and before o
+        Assert.True(es.Compare("\U000000F1u", "nz") > 0);            // a LETTER, not n + tilde
+        Assert.True(Root.Compare("\U000000F1u", "nz") < 0);          // the root order: n + tilde
+        // ä after z: a synthetic tailoring in the .tailor format — ä (and Ä) take a primary between z and the next root primary.
+        var t = CollationTable.Root;
+        int afterZ = t.Lookup('z').Primary + 1;
+        var rules = TailoringRules.Parse(new StringReader(
+            $"@locale xx-SV\nU+00E4 {afterZ:X} 0020 0002\nU+00C4 {afterZ:X} 0020 0008\n"), "xx-SV.tailor");
+        var sv = new Collator(rules.Apply(t));
+        Assert.True(sv.Compare("\U000000E4", "z") > 0);              // ä after z
+        Assert.True(sv.Compare("\U000000E4", "a") > 0);
+        Assert.True(sv.Compare("z\U000000E4", "zz") > 0);
+        Assert.True(Root.Compare("\U000000E4", "b") < 0);            // the root order: a + diaeresis, before b
+        Assert.True(sv.Compare("\U000000E4", "\U000000C4") < 0);     // ä < Ä at the tertiary level
+        Assert.True(sv.Compare("a", "b") < 0);                       // untouched letters keep the root order
+    }
 
     [Fact]
     public void Root_BasicLatinOrder()

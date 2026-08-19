@@ -489,7 +489,7 @@ internal static class RuntimeApi
         + $"{(pad is null ? "" : $", pad: {pad}")}{(allowZeroLength ? ", allowZeroLength: true" : "")})";
 
     /// <summary>The three-way alphanumeric comparison — <c>CobolString.Compare</c>. <paramref name="weightsArg"/>
-    /// is the trailing collated-weights argument (", __COLLATE" / an inline table), possibly empty.</summary>
+    /// is the trailing collation argument (", __COLLATE" — the program's CobolCollation carrier), possibly empty.</summary>
     public static string StrCompare(string a, string b, string weightsArg) =>
         $"{nameof(CobolString)}.{nameof(CobolString.Compare)}({a}, {b}{weightsArg})";
 
@@ -534,16 +534,17 @@ internal static class RuntimeApi
     private static string SelectNameArg(string? selectName) => selectName is null ? "" : $", selectName: {selectName}";
 
     /// <summary>Register an INDEXED connector — <c>CobolFile.RegisterIndexed</c> (prime-key window per §12.4.5.12,
-    /// plus the optional §12.4.5.7 prime-key collating weights; <paramref name="weights"/> is "null" for native,
-    /// emitted as a named argument so a no-clause file's registration is byte-identical to the pre-clause engine).</summary>
+    /// plus the optional §12.4.5.7 prime-key collating sequence — a CobolCollation expression; <paramref name="weights"/>
+    /// is "null" for native, emitted as a named argument so a no-clause file's registration is byte-identical to the
+    /// pre-clause engine).</summary>
     public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs, string weights = "null", string? selectName = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeWeights: {weights}")}{SelectNameArg(selectName)})";
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeCollation: {weights}")}{SelectNameArg(selectName)})";
 
     /// <summary>Register one ALTERNATE RECORD KEY window (§12.4.5.6) — <c>CobolFile.AddAlternateKey</c>, with its
     /// optional §12.4.5.7 collating weights and §12.4.5.6.4 GR6 SUPPRESS WHEN value ("null" = absent, each emitted
     /// as a named argument so a plain alternate key's registration is unchanged).</summary>
     public static string FileAddAlternateKey(string name, string offset, int width, string dups, string weights = "null", string suppress = "null") =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.AddAlternateKey)}({name}, {offset}, {width}, {dups}{(weights == "null" ? "" : $", weights: {weights}")}{(suppress == "null" ? "" : $", suppress: {suppress}")})";
+        $"{nameof(CobolFile)}.{nameof(CobolFile.AddAlternateKey)}({name}, {offset}, {width}, {dups}{(weights == "null" ? "" : $", collation: {weights}")}{(suppress == "null" ? "" : $", suppress: {suppress}")})";
 
     /// <summary>Position a relative connector to the RELATIVE KEY item's RRN — <c>CobolFile.SetRelativeKey</c>.</summary>
     public static string FileSetRelativeKey(string name, string rrn) =>

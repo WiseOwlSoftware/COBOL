@@ -59,7 +59,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 + "image (ISO §12.4.5.12)"));
             return;
         }
-        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ImageWidth, vary, WeightsLit(file.PrimeKeyWeights), CsLiteral(file.SelectName))};");
+        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ImageWidth, vary, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var (alt, dups, suppress) = file.AlternateKeys[i];
@@ -69,16 +69,17 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                     + "locatable in the record image (ISO §12.4.5.6)"));
                 continue;
             }
-            var altWeights = i < file.AlternateKeyWeights.Count ? file.AlternateKeyWeights[i] : null;
+            var altCollation = i < file.AlternateKeyCollations.Count ? file.AlternateKeyCollations[i] : null;
             string sup = suppress is null ? "null" : CsLiteral(suppress);
-            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ImageWidth, dups ? "true" : "false", WeightsLit(altWeights), sup)};");
+            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ImageWidth, dups ? "true" : "false", CollationLit(altCollation), sup)};");
         }
     }
 
-    /// <summary>The §12.4.5.7 collating-weight table as a C# <c>ushort[]</c> literal, or "null" for native order
-    /// (a no-clause key emits "null" so its registration is unchanged from the pre-clause engine).</summary>
-    private static string WeightsLit(ushort[]? weights) =>
-        weights is null ? "null" : $"new ushort[] {{ {string.Join(", ", weights)} }}";
+    /// <summary>The §12.4.5.7 key collating sequence as a runtime <c>CobolCollation</c> expression — the program's
+    /// <c>__COLLATE</c> when the key's alphabet IS the program collating sequence, else an inline carrier — or "null"
+    /// for native order (a no-clause key emits "null" so its registration is unchanged from the pre-clause engine).</summary>
+    private string CollationLit(AlphabetDef? def) =>
+        def is null ? "null" : ReferenceEquals(def, ctx.Data.Collating) ? "__COLLATE" : CollationEmit.New(def);
 
     // ── READ (ISO §14.9.30) ────────────────────────────────────────────────────────────────────────────────────
 

@@ -55,6 +55,11 @@ public sealed class RunUnit
     /// <summary>The run unit's clock (ISO §14.9.1.4 GR7; injectable — a test may set a fixed clock).</summary>
     public IClock Clock { get; set; } = SystemClock.Instance;
 
+    /// <summary>The run unit's LOCALE state (ISO §8.2.1 / §14.6.6; DESIGN-locale-facility §4.3): the two implementor
+    /// defaults (determination L2) and the locale current per category — what a LOCALE-based collating sequence
+    /// resolves at each use (<see cref="LocaleCollation"/>).</summary>
+    public LocaleState Locale { get; } = new();
+
     /// <summary>The X3.23-1985 OBJECT-TIME (run-time) debug switch (the '85 debug module — deleted 2002, absent 2023;
     /// COBOL.NET models the facility only at <c>--std 85</c>, VCR Table 7 row 7.17). It is implementor-defined; for a
     /// CCVS run it is ON. Default ON so a program compiled WITH DEBUGGING MODE runs its debugging declaratives (the

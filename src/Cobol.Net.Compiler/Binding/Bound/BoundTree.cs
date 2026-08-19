@@ -233,6 +233,16 @@ public sealed record BoundIntrinsicCall(
     /// (rule 2) — the LEADING/TRAILING phrase keyword, extracted at bind time. Zero for every other function.</summary>
     public int TrimMode { get; init; }
 
+    /// <summary>STANDARD-COMPARE (§15.85.2's optional <c>ordering-name-1</c>): the DECODED literal-9 of the
+    /// SPECIAL-NAMES ORDER TABLE clause the name resolves to (§12.3.7.4 GR17 — literal-9 identifies the cultural
+    /// ordering table), captured at bind time from <c>DataBinder.OrderTables</c>. <see langword="null"/> when no
+    /// ordering-name was written, which §15.85.3 r5 defines as "the default ordering table 'ISO
+    /// 14651_2020_TABLE1' … shall be used", and for every other function.
+    /// <para>⚠ The NAME is not carried: §12.3.7.3 SR9 confines an ordering-name to this one function, so it
+    /// identifies nothing outside the SPECIAL-NAMES paragraph, and a bound node carries complete semantics
+    /// (the backend never asks the configuration model anything).</para></summary>
+    public string? OrderingTable { get; init; }
+
     /// <summary>FIND-STRING (§15.37.2): the <c>LAST</c> phrase keyword — seek the LAST occurrence of argument-2
     /// (rule 1) rather than the first. False for every other function.</summary>
     public bool FindLast { get; init; }

@@ -168,6 +168,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-OO-UNIVERSAL", "OoUniversalChecking"),             // §14.9.23.4 GR7c — universal-INVOKE conformance
         ("EC-FLOW-SEARCH", "FlowSearchChecking"),               // §14.9.39.4 GR31 — capacity SET during a SEARCH
         ("EC-BOUND-TABLE-LIMIT", "BoundTableLimitChecking"),    // §14.9.39.4 GR30 — growth past the implementor max
+        ("EC-ORDER-NOT-SUPPORTED", "OrderNotSupportedChecking"),// §15.85.4 r2 — STANDARD-COMPARE's ordering table / level unavailable
         // ⛔ THE EC-SIZE FAMILY FOR NON-ARITHMETIC STATEMENTS (kb/Work PB75). §14.7.5: the size error condition "may
         // occur as a result of … the evaluation of an arithmetic expression" — a condition, a function argument, a
         // subscript, an INVOKE argument — and without a SIZE ERROR phrase the level-3 EC-SIZE-* "is set to exist,

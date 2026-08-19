@@ -46,6 +46,7 @@ for `ORD`/`CHAR`/`HIGH-VALUE`. `CompareInfo` remains a *cross-check oracle* in t
 | `CollationKey.cs` | The materialized sort key: per-level weight lists (`Primary`, `Secondary`, `Tertiary`, `Quaternary`), `CompareTo`, `ToByteArray()` (a byte image whose ordinal order equals `CompareTo`). |
 | `CollationEngine.cs` | The static façade: `Compare(a, b)` (root default), `Root`, `Standard` (the ISO/IEC 14651-style four-level ordering STANDARD-COMPARE's default table `"ISO 14651_2020_TABLE1"` names), `StandardAtLevel(n)`, `ForLocale(tag)`, `TableForLocale(tag)`, `TryGetOrderingTable(name)`. All results are cached and thread-safe. |
 | `TailoringRules.cs` | The `.tailor` file format, loading (disk directories, then embedded resources), locale resolution with language fallback, and `Apply(table)`. |
+| `../Unicode/README.md` | The sibling **normalization** subsystem (`UnicodeNormalizer`): the public NFD/NFC surface — NFD IS this engine's table-driven `Normalizer` (one NFD), NFC wraps the host. |
 | `Tailoring/*.tailor` | The shipped tailorings: `en-US`, `fr-FR` (root order, header-only), `es-ES` and `es` (Spanish ñ). |
 | `Data/root-collation.bin` | The generated table (deflate; ~228 KB). `Data/root-collation.manifest.json` records the UCA version, the SHA-256 of every input and of the output, statistics, and the Table 16 ranges. |
 | `../../../scripts/collation/generate-collation-table.py` | The generator. `../../../data/unicode/` holds its pinned inputs and `SOURCES.md` their provenance. |
@@ -162,8 +163,10 @@ comparison consumer (`CobolString.Compare`, `CobolSort`, the indexed-file key co
 `HIGH-VALUE`/`LOW-VALUE`) takes that carrier. Which arm a program gets is decided at bind time from the ALPHABET /
 PROGRAM COLLATING SEQUENCE / ORDER TABLE clauses; the locale arm resolves the run-unit's current locale (or the
 named one) at each use, as §12.3.7.4 GR7e requires. `docs/rearchitecture/DESIGN-locale-facility.md` §4.4/§4.9 is
-the design of that carrier and of its consumers; this README stops at the engine. (Landing state: see the design's
-§12 increment table — the carrier is T2, the LOCALE arm and its consumers T3, STANDARD-COMPARE / ORDER TABLE T7.)
+the design of that carrier and of its consumers; this README stops at the engine. (Landing state: the carrier (T2)
+and the LOCALE arm for the CURRENT-locale `IS LOCALE` phrase with its consumers (T3) landed 2026-08-18 — kb/Work
+PB101; the named `IS LOCALE locale-name` form waits for the LOCALE clause (T1); STANDARD-COMPARE / ORDER TABLE (T7)
+per the design's §12 table and kb/Work/PB101.md.)
 
 ## 7. Verification
 

@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Collation;
+
 namespace CobolNet.Runtime;
 
 /// <summary>
@@ -42,7 +44,7 @@ public static partial class CobolIntrinsics
     /// domain by the 256-entry block (255 refused, 65,536 admitted — inverted on both ends).
     /// <see cref="AlphanumericCollation.CharAt"/> and <see cref="AlphanumericCollation.Weight"/> are exact
     /// inverses by construction, which is what makes ORD∘CHAR the identity the golden asserts.</remarks>
-    public static string Char(long n, AlphanumericCollation collation)
+    public static string Char(long n, CobolCollation collation)
     {
         int c = collation.CharAt(n - 1);
         if (c < 0)
@@ -76,7 +78,7 @@ public static partial class CobolIntrinsics
     /// <summary>CHAR-NATIONAL under a NON-native national program collating sequence (§15.16.4; the emitted
     /// <c>__COLLATE_NAT</c> table): the character at position n−1 — a shared (ALSO) position returns the FIRST
     /// character defined for it (rule 2, deterministic per implementor item 22).</summary>
-    public static string CharNational(long n, NationalCollation national)
+    public static string CharNational(long n, CobolCollation national)
     {
         int c = national.CharAt(n - 1);
         if (c < 0)
@@ -98,20 +100,13 @@ public static partial class CobolIntrinsics
         ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
         : s[0] + 1;
 
-    /// <summary>ORD over a NATIONAL argument under a NON-native national program collating sequence
-    /// (§15.70.4 r2; the emitted <c>__COLLATE_NAT</c> table): the character's collating position + 1.</summary>
-    public static long Ord(string s, NationalCollation national) => s.Length == 0
-        ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
-        : national.Weight(s[0]) + 1L;
-
-    /// <summary>ORD under a non-identity alphanumeric PCS: the character's collating position + 1 (§15.70.4 r1;
-    /// ALSO members share one position, a character past the positioned block continues the sequence per
-    /// §12.3.7.4 GR7 1.3 — the PB3 arithmetic, which now lives in the ONE
-    /// <see cref="AlphanumericCollation.Weight"/> reader beside its exact inverse
-    /// <see cref="AlphanumericCollation.CharAt"/> (fix-queue PB59: three implementations of GR7 1.3 grew in
-    /// this tree — ORD's correct one, CHAR's pre-PB3 fallback, and CobolString.Weight's order-equivalent
-    /// comparison tail — and the position-number-exposing pair now share this single home).</summary>
-    public static long Ord(string s, AlphanumericCollation collation) => s.Length == 0
+    /// <summary>ORD under a NON-identity collating sequence — the ONE <see cref="CobolCollation"/> carrier
+    /// (§15.70.4 r1 for the alphanumeric program collating sequence, r2 for the national one; a LOCALE sequence
+    /// answers through its materialized positions, DESIGN-locale-facility L7): the character's collating position
+    /// + 1. ALSO members share one position; a character past a table's positioned block continues the sequence per
+    /// §12.3.7.4 GR7 1.3 (the PB3 arithmetic, living in the ONE <see cref="AlphanumericCollation.Weight"/> reader
+    /// beside its exact inverse <see cref="AlphanumericCollation.CharAt"/> — fix-queue PB59).</summary>
+    public static long Ord(string s, CobolCollation collation) => s.Length == 0
         ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
         : collation.Weight(s[0]) + 1L;
 
@@ -535,6 +530,77 @@ public static partial class CobolIntrinsics
             2 => s.TrimEnd(set),     // TRAILING (rule 2)
             _ => s.Trim(set),        // both (rule 3)
         };
+    }
+
+    // ── FUNCTION STANDARD-COMPARE (§15.85) — the cultural-ordering comparison ────────────────────────────────
+
+    /// <summary>The per-(table, level) collators STANDARD-COMPARE has already configured. The engine caches its
+    /// own root-table collators, but a TAILORED ordering table (a locale-tagged literal-9) is a distinct
+    /// <c>CollationTable</c> instance per name, so the (table, level) pair is what this function repeats.</summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(CollationTable Table, int Level), Collator>
+        s_orderingCollators = new();
+
+    /// <summary>
+    /// STANDARD-COMPARE (ISO §15.85.4): compare <paramref name="a"/> and <paramref name="b"/> "in accordance with
+    /// the ordering table and ordering level being used" (r5) and return <c>"&lt;"</c>, <c>"="</c> or <c>"&gt;"</c>
+    /// (r6), one character long (r7).
+    /// </summary>
+    /// <param name="orderingTable">The DECODED literal-9 of the ORDER TABLE clause the call's ordering-name-1
+    /// resolves to, or <see langword="null"/> for §15.85.3 r5's default table 'ISO 14651_2020_TABLE1'.</param>
+    /// <param name="level">Argument-4, the ordering level; <c>0</c> means it was not specified, which §15.85.4 r1
+    /// resolves to "the highest level defined in the ordering table" — four here (the ISO/IEC 14651-style
+    /// four-level ordering: primary, secondary, tertiary, and the shifted variable weights).</param>
+    /// <remarks>
+    /// <para><b>r2 — the unavailable table or level.</b> "If the cultural ordering table is not available on the
+    /// processor, or the specified ordering level is not available, or the level number specified by argument-4
+    /// is not defined in the ordering table, the EC-ORDER-NOT-SUPPORTED exception condition is set to exist."
+    /// Both legs route through the ONE raise site (<c>ExceptionState.OrderNotSupportedError</c>): fatal when
+    /// checking is enabled, and otherwise the §14.6.13.1.3 #8 implementor choice — this implementation continues
+    /// and answers <c>"="</c>, a defined deterministic value rather than an undefined one.</para>
+    /// <para><b>r3 — the national conversion.</b> "If the arguments are of different classes, and one is
+    /// national, the other argument is converted to class national for purposes of comparison." On the D-N1
+    /// substrate an alphanumeric position and a national position are both ONE UTF-16 code unit and the two
+    /// repertoires are the same 65,536 code units, so that conversion is the IDENTITY and both operands arrive
+    /// here as <see cref="string"/> already in it. Nothing to do — recorded so its absence is not mistaken for
+    /// an omission.</para>
+    /// <para><b>r4 — the operands.</b> "For purposes of comparison, trailing spaces are truncated from the
+    /// operands except that an operand consisting of all spaces is truncated to a single space" — the SAME rule
+    /// §8.8.4.2.11 states for locale-based comparison, so it is the same one implementation
+    /// (<c>LocaleCollation.TrimForLocale</c>), never a second copy. Note it is not a plain trim: <c>"    "</c>
+    /// becomes <c>" "</c>, not <c>""</c>.</para>
+    /// <para><b>The alternate handling is SHIFTED</b>, at every level: that is the ISO/IEC 14651 default the
+    /// default ordering table names — variable elements (space, punctuation, symbols) ignored through level 3
+    /// and weighted at level 4 — so <c>"a-b"</c> and <c>"ab"</c> compare equal at levels 1–3 and differ at 4.</para>
+    /// </remarks>
+    public static string StandardCompare(string? a, string? b, string? orderingTable, long level)
+    {
+        // r1: an unspecified argument-4 is the highest level the ordering table defines. The derived table's
+        // levels are UCA's four, so that is 4 — Quaternary under Shifted, which IS CollationEngine.Standard.
+        long lvl = level == 0 ? 4 : level;
+        CollationTable table;
+        if (orderingTable is null)
+            table = CollationTable.Root;                       // r5's default table 'ISO 14651_2020_TABLE1'
+        else if (!CollationEngine.TryGetOrderingTable(orderingTable, out table))
+            return OrderNotSupported($"the cultural ordering table '{orderingTable}' is not available on this "
+                + "processor (ISO §15.85.4 r2; §12.3.7.4 GR17 leaves literal-9's allowable content to the "
+                + "implementor)");
+        if (lvl is < 1 or > 4)
+            return OrderNotSupported($"ordering level {lvl} is not defined in the ordering table "
+                + $"'{orderingTable ?? CollationEngine.DefaultOrderingTableName}', which defines levels 1..4 "
+                + "(ISO §15.85.4 r2)");
+
+        var collator = ReferenceEquals(table, CollationTable.Root)
+            ? CollationEngine.StandardAtLevel((int)lvl)        // the engine already caches the root-table lane
+            : s_orderingCollators.GetOrAdd((table, (int)lvl),
+                static k => new Collator(k.Table, (CollationStrength)k.Level, AlternateHandling.Shifted));
+        int c = collator.Compare(LocaleCollation.TrimForLocale(a), LocaleCollation.TrimForLocale(b));
+        return c < 0 ? "<" : c > 0 ? ">" : "=";                // r6, one character (r7)
+
+        static string OrderNotSupported(string detail)
+        {
+            Exceptions.ExceptionState.OrderNotSupportedError("FUNCTION STANDARD-COMPARE: " + detail);
+            return "=";   // checking off — the §14.6.13.1.3 #8 implementor choice, documented in CONFORMANCE.md
+        }
     }
 
     // ── FUNCTION BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN (§15.13 / §15.45) — boolean conversions ─────────────

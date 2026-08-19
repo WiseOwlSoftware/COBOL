@@ -63,7 +63,7 @@ of an unsupported facility.
 | 22 | FLOAT-SHORT / -LONG / -EXTENDED | 13.18.60.4 | **Claimed** | Map to `float`/`double` (= COMP-1/COMP-2) |
 | 23 | USAGE PACKED-DECIMAL | 13.18.60.4 | **Claimed** | Native scaled decimal; incl. WITH NO SIGN (2023, §13.18.60.4 GR11) |
 | 24 | DISPLAY positioning ignored when N/A | 14.9.11 | **Claimed** | Console device; positioning is a no-op where inapplicable |
-| 25 | STANDARD-COMPARE / EC-ORDER-NOT-SUPPORTED / ORDER TABLE (ISO/IEC 14651) | SPECIAL-NAMES | **Not claimed** | Cultural-ordering locale module not provided (P11, COBOLNET1518) |
+| 25 | STANDARD-COMPARE / EC-ORDER-NOT-SUPPORTED / ORDER TABLE (ISO/IEC 14651) | SPECIAL-NAMES | **Claimed** | All three are provided (kb/Work PB101). **Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data.** The SPECIAL-NAMES `ORDER TABLE ordering-name-1 IS literal-9` clause (§12.3.7.2) is accepted; §12.3.7.4 GR17 leaves literal-9's allowable content to the implementor, and COBOL.NET accepts the default table `ISO 14651_2020_TABLE1` (case-insensitive, space and underscore interchangeable) and, as an implementor extension, a CLDR locale tag naming a tailored collation — any other spelling is legal source that draws the COBOLNET1662 **warning** and sets EC-ORDER-NOT-SUPPORTED at every reference (§15.85.4 r2). `FUNCTION STANDARD-COMPARE` (§15.85) compares at ordering levels 1–4 (argument-4 omitted = 4, the highest the table defines — §15.85.4 r1), variable characters shifted to level 4 as the 14651 default table specifies. EC-ORDER-NOT-SUPPORTED is raised from that one site; with checking off the §14.6.13.1.3 #8 implementor choice is to continue and return `"="` |
 | 26 | STANDARD-1 phrase of RECORD DELIMITER | 13.x | Not claimed | Reel-device delimiter; mass-storage model only |
 | 27 | CODE-SET clause | 13.x | Partial | Native code set; alternate device code sets not provided |
 | 28–30 | CLOSE REEL/UNIT, FOR REMOVAL, WITH NO REWIND | 14.9.7 | Partial | REEL/UNIT accepted (mass-storage no-op); tape positioning inert |
@@ -76,7 +76,7 @@ of an unsupported facility.
 | 38 | Extended letters / national literals display | 8.x | **Claimed** | National (UTF-16) repertoire supported |
 | 39 | READ PREVIOUS / START LESS, NOT GREATER, LESS OR EQUAL | 14.9.30/41 | **Claimed** | Keyed reverse read + START positioning (P10) |
 | 40 | SOURCE phrase of RECORD KEY / ALTERNATE RECORD KEY | 13.x | Not claimed | The `record-key-name SOURCE IS` key form is not provided |
-| 41–42 | Cultural collating for keys / multiple alt keys with differing collating | 12.4.5.7 | **Partial** | The file-control COLLATING SEQUENCE clause (§12.4.5.7, Format 1 + Format 2 per-key) is supported for **alphanumeric** keys under a declared SPECIAL-NAMES alphabet — per-key weighted ordering/START/uniqueness on the greenfield IndexedConnector (COBOLNET1582/1583). **NATIONAL-key collating** (COBOLNET1584) and **LOCALE-based cultural collating** (ISO/IEC 14651 locale module, item 25) are NOT claimed — the national leg is a documented P14 GAP |
+| 41–42 | Cultural collating for keys / multiple alt keys with differing collating | 12.4.5.7 | **Partial** | The file-control COLLATING SEQUENCE clause (§12.4.5.7, Format 1 + Format 2 per-key) is supported for **alphanumeric** keys under a declared SPECIAL-NAMES alphabet — per-key weighted ordering/START/uniqueness on the greenfield IndexedConnector (COBOLNET1582/1583), and — owner decision Q3 (2026-08-18; kb/Work PB101, determination L8) — for a key whose alphabet is declared `ALPHABET … IS LOCALE`: **LOCALE-based cultural collating IS provided** (§A.3 item 41's own latitude): the key orders by the derived CLDR/UCA collation of the locale current when the connector is registered, and a file written under one locale and read under another is not guaranteed to be in key order (documented). **NATIONAL-key collating** (COBOLNET1584) is NOT claimed — a documented P14 GAP |
 | 43 | Zero-length record for relative/sequential files | 9.x | Not claimed | Minimum record length is 1 |
 | 44 | Abnormal termination indication | 14.6.12 | **Claimed** | Nonzero process exit on an unresumed fatal exception condition |
 | 45 | Parametric-polymorphism method resolution | 11.x | **Claimed** | Single-dispatch OO method resolution over the class table |
@@ -268,8 +268,8 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
 4. **Screen handling** (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the
    EC-SCREEN family. Not provided.
 5. **Locale facility** (Annex A.4.9 optional module): the intrinsic functions `LOCALE-COMPARE`, `LOCALE-DATE`,
-   `LOCALE-TIME`, `LOCALE-TIME-FROM-SECONDS`, and `STANDARD-COMPARE` (the last also disposed under A.3 item 25,
-   §2 row 25), plus the `LOCALE` phrases of `LOWER-CASE`/`UPPER-CASE`/`NUMVAL-C`/`TEST-NUMVAL-C` — each rejected
+   `LOCALE-TIME`, and `LOCALE-TIME-FROM-SECONDS`,
+   plus the `LOCALE` phrases of `LOWER-CASE`/`UPPER-CASE`/`NUMVAL-C`/`TEST-NUMVAL-C` — each rejected
    at bind time with the **COBOLNET1518 error** (per Annex A.4.1 a processor accepts optional-element syntax only
    when support is claimed, so an ERROR — not the §4.2.6 COBOLNET1560 warning band, which applies to
    processor-dependent elements — is the conforming disposition for this unclaimed optional module). The
@@ -277,13 +277,47 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    item 7 — kb/Work PB78, 2026-08-18; it used to be swallowed silently after a computer-name) are recognized and
    rejected with the same COBOLNET1518, and so are the `SET LOCALE` formats 11/12 (A.4.9 item 9 — kb/Work PB92,
    2026-08-18; F11 used to bind as a SET of a data item named LOCALE, F12 was a parse error), the ALPHABET clause's
-   `IS LOCALE [locale-name-2]` phrase in either branch (A.4.9 item 10's second half — kb/Work PB100, 2026-08-18; it
-   used to draw a false "reserved word used as a user-defined word"), the PICTURE clause's Format 2 `LOCALE [IS
-   locale-name-1] SIZE IS integer-1` (item 8 — PB100; it was a raw parse error at SIZE), and the EC-LOCALE family /
-   EC-ORDER-NOT-SUPPORTED exception-names wherever a program names one — USE, RAISE / RAISING, the exception-checking
+   NAMED `IS LOCALE locale-name-2` phrase (§12.3.7.3 SR24 — a locale-name of the LOCALE clause; kb/Work PB100 fixed
+   the false "reserved word used as a user-defined word" it used to draw), the PICTURE clause's Format 2 `LOCALE [IS
+   locale-name-1] SIZE IS integer-1` (item 8 — PB100; it was a raw parse error at SIZE), and the EC-LOCALE family
+   of exception-names wherever a program names one — USE, RAISE / RAISING, the exception-checking
    PERFORM's WHEN, >>TURN (item 1 — PB100; they used to be accepted, and could never occur). **Every locale entry
-   point the module names is now recognized and rejected by name** (the ORDER TABLE / STANDARD-COMPARE items ride
-   §2 row 25).
+   point the module names is either implemented or recognized and rejected by name.**
+
+   > ⚖ **A.4.9 item 10's ALPHABET half IS IMPLEMENTED for the bare form — `ALPHABET name [FOR ALPHANUMERIC|NATIONAL]
+   > IS LOCALE`** (owner decision Q1; kb/Work PB101, increment T3 of the locale design). Without a locale-name it is
+   > the collating sequence of the locale CURRENT at each use (§12.3.7.4 GR7e); as the PROGRAM COLLATING SEQUENCE, a
+   > SORT/MERGE or a file COLLATING SEQUENCE it makes the comparisons LOCALE-BASED per §8.8.4.2.11 (trailing spaces
+   > truncated, an all-space operand one space, no padding; then the LC_COLLATE algorithm), and MAX/MIN, ORD/CHAR,
+   > HIGH-/LOW-VALUE follow through the one `CobolCollation` carrier. **Determinations (documented per §4.2.7):**
+   > the current locale is the run unit's LC_COLLATE locale — the user default from `COBOL_USER_LOCALE` (else the
+   > process culture, else the root) until a SET LOCALE (the T1 increment) changes it (L2); the LC_COLLATE algorithm
+   > is the locale's CLDR collation at its CLDR defaults — its tailoring over the root table at tertiary strength
+   > with non-ignorable punctuation (L11); the collation is COBOL.NET's own derived table generated from Unicode
+   > CLDR release-48-2 / UCA 17.0.0 data (never the host's ICU), so the order is identical on every host — the same
+   > verbatim conformance statement as item 11; `EC-LOCALE-INCOMPATIBLE` is set for an operand that is not
+   > well-formed UTF-16 (an unpaired surrogate) — every well-formed code point is ordered (L6); ORD/CHAR positions
+   > are the materialized rank of each native code unit under the locale's collation, equal-collating units sharing
+   > a position (L7); HIGH-VALUE is U+FFFF and LOW-VALUE U+0000 under a locale sequence. The NAMED form waits for
+   > the LOCALE clause (T1). See `src/Cobol.Net.Runtime/Collation/README.md` and the design's §4.4.
+
+   > ⚖ **A.4.9 item 11 IS IMPLEMENTED — `STANDARD-COMPARE` and the `ORDER TABLE` clause** (owner decision Q4,
+   > 2026-08-18; kb/Work PB101, increment T7 of `docs/rearchitecture/DESIGN-locale-facility.md` §4.9). The
+   > conformance statement COBOL.NET makes, verbatim: **"Implements collation behavior consistent with ISO/IEC
+   > 14651 through derived tables and CLDR/UCA data."** §2 row 25 (A.3 item 25) carries the same claim and the
+   > details; `src/Cobol.Net.Runtime/Collation/README.md` is the engine's design and legal posture. Three
+   > consequences for this list: the function is no longer COBOLNET1518, the SPECIAL-NAMES `ORDER TABLE
+   > ordering-name-1 IS literal-9` clause parses and binds (§12.3.7.2; §12.3.7.3 SR9/SR10/SR11; §12.3.7.4 GR17),
+   > and **`EC-ORDER-NOT-SUPPORTED` is a legal exception-name again** at every naming site — it is an A.3 item 25
+   > name, not an A.4.9 locale one, and §15.85.4 r2's raise site is live, so refusing it would make a condition
+   > this compiler actually raises unobservable.
+   >
+   > ⚖ **DETERMINATION — the value of `STANDARD-COMPARE` when EC-ORDER-NOT-SUPPORTED checking is OFF.**
+   > §14.6.13.1.1 does not raise an unchecked condition and §14.6.13.1.3 #8 leaves to the implementor "whether or
+   > not execution will continue, how it will continue, and how any receiving operands are affected". COBOL.NET
+   > continues and returns `"="` — a value §15.85.4 r6 defines, one character long per r7, the same for every
+   > invocation. An unresolvable `literal-9` is diagnosed at compile time (COBOLNET1662, a warning) so this
+   > outcome is never a surprise.
 
    > ⚖ **DETERMINATION — `NUMVAL-C`'s `LOCALE` phrase, which A.4.9 does not itself list** (owner decision
    > 2026-08-03; fix-queue PB37). A.4.9 enumerates thirteen optional locale elements and names the `LOCALE`
@@ -359,7 +393,7 @@ summary claims only what is Claimed/Partial here.
 | A.4.6 | Extended letters | **Claimed** | National (UTF-16) repertoire (§2 row 38) |
 | A.4.7 | File sharing and record locking | **Claimed** | SHARING/LOCK MODE/RETRY on every organization (P10 FILE-LOCK) |
 | A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed | No surface — a parse error today; a named diagnostic is a tracked P14 disposition row |
-| A.4.9 | Locale support and related functions | Not claimed | §4 item 5 (COBOLNET1518 error) |
+| A.4.9 | Locale support and related functions | Partial | **Item 10's ALPHABET half (the bare `IS LOCALE` phrase — the current locale's collating sequence, kb/Work PB101 T3) and item 11 (`STANDARD-COMPARE` + the SPECIAL-NAMES `ORDER TABLE` clause) are CLAIMED** — "Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data" (kb/Work PB101; §2 row 25 carries the details, and A.3 item 25 is the route that makes it independent of the locale machinery). The remaining items are not claimed: every entry point is recognized and rejected by name with the COBOLNET1518 error (§4 item 5) |
 | A.4.10 | Object orientation optional items | Not claimed | The three OPTIONAL items only: multiple inheritance (×2 — multi-base INHERITS rejects COBOLNET0849) and parametric-polymorphism method resolution (rejected/deferred; §2 row 45 covers the supported single-dispatch resolution). The OO CORE is mandatory surface, claimed separately |
 | A.4.11 | Report Writer | Partial | Implemented: the RW nucleus incl. PRESENT WHEN + VARYING (P10 RW-2002) and the SUPPRESS statement (§14.9.45 — inhibits the current instance's printing/page-advance/NEXT GROUP/LINE-COUNTER but not sum accumulation or the end-of-group reset; SR1/GR1 resolve the enclosing USE BEFORE REPORTING group at bind, COBOLNET1581 rejects a misplaced SUPPRESS). Staged LOUD (COBOLNET0899 band): cross-program CODE, LINE NEXT PAGE / multiple LINE, report-group OCCURS, several counter/SOURCE/SUM legs. NO grammar surface yet (tracked, the P13 grammar batch + ledger): COLUMN LEFT/CENTER/RIGHT, PAGE COLS, LAST CONTROL HEADING. The full itemization: `docs/COBOLNET_REPORT_WRITER_DESIGN.md` §5 |
 | A.4.12 | RESUME statement | **Claimed** | §14.9.33 (the EC declarative RESUME) |

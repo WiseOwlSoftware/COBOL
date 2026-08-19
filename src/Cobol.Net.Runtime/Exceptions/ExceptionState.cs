@@ -493,6 +493,35 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ── EC-ORDER-NOT-SUPPORTED ambient statement gate (FUNCTION STANDARD-COMPARE, §15.85.4 r2) ────────────────
+    //
+    // Ambient for the reason EC-ARGUMENT-FUNCTION is: an intrinsic renders INLINE inside an arbitrary expression,
+    // so the guard wraps the STATEMENT and the raise site consults the flag. Checking-OFF is LENIENT, and here
+    // the implementor supplies the outcome §14.6.13.1.3 #8 asks for: the comparison answers "=", the value
+    // §15.85.4 r6 gives for equal arguments — a defined, deterministic result rather than an undefined one.
+
+    /// <summary>True while the currently-executing statement has EC-ORDER-NOT-SUPPORTED checking enabled (fatal).</summary>
+    public bool OrderNotSupportedChecking
+    {
+        get => _checking.OrderNotSupported;
+        set => _checking.OrderNotSupported = value;
+    }
+
+    /// <summary>Raise EC-ORDER-NOT-SUPPORTED (§15.85.4 r2: "If the cultural ordering table is not available on
+    /// the processor, or the specified ordering level is not available, or the level number specified by
+    /// argument-4 is not defined in the ordering table, the EC-ORDER-NOT-SUPPORTED exception condition is set to
+    /// exist"; Table 13 Fatal) when checking is enabled; otherwise return, and the caller's documented "="
+    /// result stands (§14.6.13.1.3 #8). ⚠ Nothing is recorded when checking is off — §14.6.13.1.1: "if checking
+    /// for an exception that occurs is not enabled, no exception condition is raised".</summary>
+    public void OrderNotSupportedError(string detail)
+    {
+        if (OrderNotSupportedChecking)
+        {
+            Set("EC-ORDER-NOT-SUPPORTED", fatal: true);
+            throw new CobolFatalException("EC-ORDER-NOT-SUPPORTED", detail);
+        }
+    }
+
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
@@ -827,6 +856,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.BoundTableLimitError"/>
     public static void BoundTableLimitError(string detail) => E.BoundTableLimitError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.OrderNotSupportedChecking"/>
+    public static bool OrderNotSupportedChecking
+    {
+        get => E.OrderNotSupportedChecking;
+        set => E.OrderNotSupportedChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.OrderNotSupportedError"/>
+    public static void OrderNotSupportedError(string detail) => E.OrderNotSupportedError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();

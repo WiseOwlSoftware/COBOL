@@ -104,7 +104,7 @@ internal static class ConcatFolder
     /// Always returns a best-effort value so the caller's plumbing continues — on any reported error the
     /// compile has already failed (the driver halts before emit).</summary>
     public static Folded Fold(Core.ConcatenationExpressionContext ctx, EditionContext edition,
-        CollatingTable? collate, NationalCollatingTable? natCollate = null)
+        AlphabetDef? collate, NationalAlphabetDef? natCollate = null)
     {
         var cat = ClassOf(ctx);
         var sb = new System.Text.StringBuilder();

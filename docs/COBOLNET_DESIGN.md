@@ -52,6 +52,7 @@ C# mapping with worked examples + hard problems + edge cases + ISO citations):
 | §12 | Intrinsics, registers & misc | `docs/COBOLNET_INTRINSICS_DESIGN.md` |
 | §14 | Report Writer (RWCS) | `docs/COBOLNET_REPORT_WRITER_DESIGN.md` |
 | §12/§7 | The LOCALE facility (Annex A.4.9 — locale state, collation, classification, monetary editing, the locale intrinsics, STANDARD-COMPARE) | `docs/rearchitecture/DESIGN-locale-facility.md` (adopted 2026-08-18; owner decisions Q1–Q4 in its header) |
+| §7/§12 | The collation ENGINE (the derived CLDR/UCA table, keys, streaming compare, tailoring — the substrate the locale facility's `CobolCollation` carrier and STANDARD-COMPARE run on; kb/Work PB101) | `src/Cobol.Net.Runtime/Collation/README.md` (2026-08-18; generator `scripts/collation/`, data provenance `data/unicode/SOURCES.md`) |
 | §17 | Project organization & rename | `docs/COBOLNET_PROJECT_ORG_DESIGN.md` |
 
 This SSOT stays authoritative for the **locked invariants (§1)**, the **cross-cutting consistency (§14)**, the

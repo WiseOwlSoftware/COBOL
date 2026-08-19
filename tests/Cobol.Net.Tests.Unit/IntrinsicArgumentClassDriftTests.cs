@@ -192,6 +192,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     [InlineData("BindConvert")]
     [InlineData("BindNumvalCFamily")]
     [InlineData("BindLengthFamily")]
+    [InlineData("BindStandardCompare")]
     public void EveryBespokeBinder_CallsTheArgumentClassScreenItself(string method)
     {
         string src = BinderSource();
@@ -278,6 +279,63 @@ public sealed class IntrinsicArgumentClassDriftTests
                 + "then record the decision here.");
         // The usage-keyed arm itself exists (the source-form half, same style as the rest of this suite).
         Assert.Matches(new Regex(@"Usage:\s*Usage\.Index\s*\}\s*\)\s*return\s+CobolClass\.Index"), RulesSource());
+    }
+
+    /// <summary>
+    /// ⛔ EVERY <c>ArgKinds</c> CODE THE CATALOG USES HAS A DISPOSITION — an <c>Admissible</c> arm (an OPERAND
+    /// kind, screened) or a row in <c>IntrinsicArgumentRules.NonOperandArgumentKinds</c> (a §15.3 NAME/keyword
+    /// type, resolved by the function's own binder). Without this, a new code is a declaration nothing reads and
+    /// nothing can contradict — the PB1 dead-column defect in its general form, and the exact trap the
+    /// ordering-name code <c>'o'</c> (§15.3 argument type 12, kb/Work PB101) would have walked into.
+    /// </summary>
+    /// <remarks>
+    /// ⚠ It is the CATALOG's vocabulary that is checked, not <c>Verified</c>'s: the sibling fact above already
+    /// holds every screened SCHEMA to a handled code, and that is precisely the half that cannot see a code
+    /// introduced on a catalog row whose function binds through a bespoke arm. §15.3 has fourteen argument
+    /// types and four of them (Keyword, Locale-name, Ordering-name, Type declaration) are not operands at all,
+    /// so more such codes are expected — the locale increments add a locale-name code across five functions —
+    /// and each one costs a row rather than a rediscovery.
+    /// </remarks>
+    [Fact]
+    public void EveryArgumentKindCodeInTheCatalog_HasADisposition()
+    {
+        // The same `'x' =>` arm scan the sibling fact uses, so the two cannot disagree about what is handled.
+        var screened = new HashSet<char>(Regex.Matches(RulesSource(), @"'(?<c>[a-z])' =>")
+            .Select(m => m.Groups["c"].Value[0])) { 'p', ' ' };
+        Assert.True(screened.Count >= 6,
+            $"only {screened.Count} Admissible arm(s) parsed — the switch shape changed and this guard has gone "
+            + "blind; fix the regex, do not lower the floor.");
+
+        var rows = CatalogRows();
+        Assert.True(rows.Count >= 79, $"only {rows.Count} catalog rows parsed — this guard has gone blind");
+
+        var undispositioned = rows
+            .SelectMany(r => r.Kinds.Select(k => (r.Name, Code: k)))
+            .Where(x => !screened.Contains(x.Code)
+                        && !IntrinsicArgumentRules.NonOperandArgumentKinds.ContainsKey(x.Code))
+            .Select(x => $"FUNCTION {x.Name} declares ArgKinds code '{x.Code}'")
+            .Distinct()
+            .Order()
+            .ToList();
+        Assert.True(undispositioned.Count == 0,
+            $"ArgKinds code(s) with neither an Admissible arm nor a NonOperandArgumentKinds row: "
+            + $"[{string.Join("; ", undispositioned)}]. A code nothing reads is a dead column — give it an "
+            + "Admissible arm if it is an operand class, or a NonOperandArgumentKinds row naming the §15.3 "
+            + "argument type and the binder that resolves it.");
+
+        // A non-operand kind's disposition NAMES its resolver, and that resolver exists. A row saying "the
+        // binder owns it" while no such binder exists is the same dead lookup one level up.
+        string binder = BinderSource();
+        foreach (var (code, why) in IntrinsicArgumentRules.NonOperandArgumentKinds)
+        {
+            Assert.Contains("§15.3", why, StringComparison.Ordinal);
+            var named = Regex.Matches(why, @"IntrinsicBinder\.(?<m>\w+)").Select(m => m.Groups["m"].Value).ToList();
+            Assert.True(named.Count > 0,
+                $"NonOperandArgumentKinds['{code}'] does not name the IntrinsicBinder method that resolves it");
+            foreach (string m in named)
+                Assert.True(binder.Contains($" {m}(", StringComparison.Ordinal),
+                    $"NonOperandArgumentKinds['{code}'] names IntrinsicBinder.{m}, which does not exist");
+        }
     }
 
     /// <summary>kb/Work PB58 — the "absent row" class of gap dies structurally: EVERY catalogued function has a

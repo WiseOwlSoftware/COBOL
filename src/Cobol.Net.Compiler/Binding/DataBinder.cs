@@ -831,9 +831,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         + "in more than one COLLATING SEQUENCE clause (ISO §12.4.5.7.3 SR8)");
             }
 
-        file.PrimeKeyWeights = ResolveKeyCollating(file, file.RecordKeyName);
+        file.PrimeKeyCollation = ResolveKeyCollating(file, file.RecordKeyName);
         for (int i = 0; i < file.AlternateKeys.Count; i++)
-            file.AlternateKeyWeights.Add(ResolveKeyCollating(file, AltName(file, i)));
+            file.AlternateKeyCollations.Add(ResolveKeyCollating(file, AltName(file, i)));
     }
 
     /// <summary>The declared name of the i-th resolved alternate key (index-aligned when all names resolve — the
@@ -841,11 +841,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static string? AltName(FileModel file, int i) =>
         i < file.AlternateKeyNames.Count ? file.AlternateKeyNames[i].Name : null;
 
-    /// <summary>Resolve one key's collating weights (§12.4.5.7.4): a Format-2 alphabet naming the key wins (GR6),
+    /// <summary>Resolve one key's collating sequence (§12.4.5.7.4): a Format-2 alphabet naming the key wins (GR6),
     /// else the file-level alphanumeric default (GR2), else native ordinal (null). An alphanumeric alphabet
-    /// resolves to its weight table; a NATIONAL alphabet is the recognized-not-implemented P14 GAP; an undeclared
-    /// name errors.</summary>
-    private ushort[]? ResolveKeyCollating(FileModel file, string? keyName)
+    /// resolves to its <see cref="AlphabetDef"/> — a literal-phrase table or, per owner decision Q3 (determination
+    /// L8), a LOCALE sequence (the key locale is captured when the connector is registered; a file written under one
+    /// locale and read under another is not guaranteed to be in key order — documented); a NATIONAL alphabet is the
+    /// recognized-not-implemented P14 GAP; an undeclared name errors.</summary>
+    private AlphabetDef? ResolveKeyCollating(FileModel file, string? keyName)
     {
         string? alphabet = null;
         if (keyName is not null)
@@ -854,8 +856,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         alphabet ??= file.FileLevelCollating?.Alnum;   // GR2 file-level alphanumeric default
         if (alphabet is null) return null;             // GR4/GR5 — native ordinal
 
-        if (Alphabets.TryGetValue(alphabet, out var table) && table is not null)
-            return table.Positions;   // SR1 — alphanumeric collating
+        if (Alphabets.TryGetValue(alphabet, out var def))
+            return def.IsIdentity ? null : def;   // SR1 — alphanumeric collating (an identity alphabet ⇒ native)
         if (NationalAlphabets.ContainsKey(alphabet))
         {
             Edition.Error(DiagnosticCatalog.FileCollatingNationalUnsupported, $"file '{file.CobolName}': COLLATING "

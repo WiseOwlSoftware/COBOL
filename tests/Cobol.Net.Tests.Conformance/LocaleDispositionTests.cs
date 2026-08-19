@@ -5,14 +5,16 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// The ISO Annex A §A.4.9 locale-module DOCUMENTED-NON-SUPPORT disposition (P11 Step 8; ratified decision 3 —
-/// conformant per ISO §4.2.7 + Annex A §A.4.1: an implementation accepts an optional element's syntax only when
-/// support is claimed). Two surfaces reject with <c>COBOLNET1518</c> at bind time BY NAME: the five locale
-/// FUNCTIONS (LOCALE-COMPARE §15.51 / LOCALE-DATE §15.52 / LOCALE-TIME §15.53 / LOCALE-TIME-FROM-SECONDS §15.54 /
-/// STANDARD-COMPARE §15.85 — the last also citing §A.3 item 25, being ISO/IEC 14651:2020-ordering-dependent, not
-/// locale-dependent), and the LOCALE keyword PHRASE of the otherwise-supported LOWER-CASE §15.57 / UPPER-CASE
-/// §15.97 / NUMVAL-C §15.68 / TEST-NUMVAL-C §15.94. The same functions WITHOUT a LOCALE phrase stay fully
-/// supported (the zero-regression proof). Diagnostic values hand-derived in PHASE-11-scout-notes.md (spec:locale).
+/// The ISO Annex A §A.4.9 locale-module DOCUMENTED-NON-SUPPORT disposition (conformant per ISO §4.2.7 + Annex A
+/// §A.4.1: an implementation accepts an optional element's syntax only when support is claimed). Two surfaces
+/// reject with <c>COBOLNET1518</c> at bind time BY NAME: the FOUR locale FUNCTIONS (LOCALE-COMPARE §15.51 /
+/// LOCALE-DATE §15.52 / LOCALE-TIME §15.53 / LOCALE-TIME-FROM-SECONDS §15.54), and the LOCALE keyword PHRASE of
+/// the otherwise-supported LOWER-CASE §15.57 / UPPER-CASE §15.97 / NUMVAL-C §15.68 / TEST-NUMVAL-C §15.94. The
+/// same functions WITHOUT a LOCALE phrase stay fully supported (the zero-regression proof). Diagnostic values
+/// hand-derived in PHASE-11-scout-notes.md (spec:locale).
+/// <para>⚠ STANDARD-COMPARE §15.85 was the fifth, and is not any more — see the fact below: it is A.4.9 item 11
+/// but travels on §A.3 item 25 (an ISO/IEC 14651:2020 dependency), and that support is now claimed (kb/Work
+/// PB101 T7). Each remaining arm is deleted as its increment lands (owner decision Q1, 2026-08-18).</para>
 /// </summary>
 public sealed class LocaleDispositionTests
 {
@@ -43,17 +45,44 @@ public sealed class LocaleDispositionTests
     [Fact] public void LocaleTime_A49() => AssertA49(Move("FUNCTION LOCALE-TIME(120000)", "01 WS-R PIC X(10).", "WS-R"));
     [Fact] public void LocaleTimeFromSeconds_A49() => AssertA49(Move("FUNCTION LOCALE-TIME-FROM-SECONDS(3600)", "01 WS-R PIC 9(6).", "WS-R"));
 
+    /// <summary>
+    /// ⛔ STANDARD-COMPARE IS THE ONE A.4.9-LISTED FUNCTION THAT IS **SUPPORTED** (kb/Work PB101 T7, owner
+    /// decision Q4). It is A.4.9 item 11 but ordering-table-dependent, not locale-dependent, and its route is
+    /// §A.3 item 25 — "The implementor need not accept the syntax … when support for ISO/IEC 14651:2020 is not
+    /// provided" — which COBOL.NET now DOES provide, over the derived CLDR/UCA collation engine. This test used
+    /// to assert the COBOLNET1518 rejection and its §A.3 citation; it asserts the claim instead, in both the
+    /// default-table form and the ORDER TABLE form, because a suite that only ever pinned the refusal would go
+    /// green on a compiler that silently stopped binding the function at all.
+    /// </summary>
     [Fact]
-    public void StandardCompare_A49_AlsoCitesA3()
+    public void StandardCompare_IsSupported_NotA49NonSupport()
     {
-        // §15.85 STANDARD-COMPARE is A.4.9 item 11 but is ordering-table-dependent (SPECIAL-NAMES ORDER TABLE,
-        // §12.3.7), not locale-dependent — its independent non-support route is §A.3 item 25 (no ISO/IEC
-        // 14651:2020 implementation). The diagnostic cites BOTH.
-        var (ok, errors, _) = EditionHarness.CompileFull(Move("FUNCTION STANDARD-COMPARE(\"A\" \"B\")"), 2023);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1518");
-        EditionHarness.AssertHasDiagnostic(errors, "A.4.9");
-        EditionHarness.AssertHasDiagnostic(errors, "A.3 item 25");
+        foreach (string program in new[]
+        {
+            Move("FUNCTION STANDARD-COMPARE(\"A\" \"B\")"),                       // §15.85.3 r5's default table
+            Move("FUNCTION STANDARD-COMPARE(\"A\" \"B\" 2)"),                     // argument-4, no ordering-name
+            """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LOCDISPOT.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                ORDER TABLE OT1 IS "ISO 14651_2020_TABLE1".
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-R PIC X.
+            PROCEDURE DIVISION.
+            MAIN.
+                MOVE FUNCTION STANDARD-COMPARE("A" "B" OT1 3) TO WS-R.
+                STOP RUN.
+            """,
+        })
+        {
+            var (ok, errors, _) = EditionHarness.CompileFull(program, 2023);
+            Assert.True(ok, $"FUNCTION STANDARD-COMPARE must compile (A.3 item 25 support IS claimed): "
+                + string.Join("; ", errors));
+            Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+        }
     }
 
     // ── The LOCALE keyword phrase of the otherwise-supported functions (§15.57/97/68/94) → COBOLNET1518 ─────

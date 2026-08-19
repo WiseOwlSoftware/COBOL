@@ -158,21 +158,16 @@ internal sealed class ProgramEmitter
             if (data.Files.Count > 0)
                 w.Line("private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)");
             if (data.Collating is { } collate)
-                // The NON-native alphanumeric program collating sequence (ISO §12.3.6; fix-queue PB59) — the
-                // object carries the positions + the §15.15.4 r2 representative array + NextFree, mirroring
-                // __COLLATE_NAT below; comparison consumers read .Positions (order-equivalent tail — the
-                // proof note at CobolString.Weight), CHAR/ORD read the exact GR7 1.3 arithmetic.
-                w.Line("private static readonly AlphanumericCollation __COLLATE = new("
-                    + $"new ushort[] {{ {string.Join(", ", collate.Positions)} }}, "
-                    + $"new ushort[] {{ {string.Join(", ", collate.RepByPos)} }}, {collate.NextFree});");
+                // The NON-native alphanumeric program collating sequence (ISO §12.3.6) as the program's ONE
+                // CobolCollation carrier (kb/Work PB101): an AlphanumericCollation for a literal phrase (positions +
+                // the §15.15.4 r2 representative array + NextFree + the GR8/GR9 extremes — PB59) or a LocaleCollation
+                // for the LOCALE phrase; every comparison consumer, MAX/MIN, CHAR/ORD take the object.
+                w.Line($"private static readonly CobolCollation __COLLATE = {CollationEmit.New(collate)};");
             if (data.NationalCollating is { } nat)
-                // The NON-native NATIONAL program collating sequence (ISO §12.3.6 GR9/GR11; an ALPHABET … FOR
-                // NATIONAL literal phrase) — SPARSE: the specified code units + positions; the runtime computes
-                // every unspecified character's §12.3.7.4 GR7 1.3 position arithmetically (NationalCollation.Weight).
-                w.Line("private static readonly NationalCollation __COLLATE_NAT = new("
-                    + $"new ushort[] {{ {string.Join(", ", nat.Codes)} }}, "
-                    + $"new ushort[] {{ {string.Join(", ", nat.Positions)} }}, "
-                    + $"new ushort[] {{ {string.Join(", ", nat.RepByPos)} }}, {nat.NextFree});");
+                // The NON-native NATIONAL program collating sequence (ISO §12.3.6 GR9/GR11): a SPARSE
+                // NationalCollation for an ALPHABET … FOR NATIONAL literal phrase (the runtime computes every
+                // unspecified character's §12.3.7.4 GR7 1.3 position arithmetically) or a LocaleCollation.
+                w.Line($"private static readonly CobolCollation __COLLATE_NAT = {CollationEmit.New(nat)};");
 
             foreach (var b in unit.Bridges)
             {

@@ -92,6 +92,15 @@ public sealed class CollationTable
     /// <summary>The number of contractions (multi-code-point mappings).</summary>
     public int ContractionCount { get; private init; }
 
+    /// <summary>The longest contraction in code points (1 when there are none) — the reach of context: a code point's
+    /// element sequence can depend on at most this many code points after it. <see cref="Collator"/>'s
+    /// identical-prefix skip backs its boundary up by this much.</summary>
+    public int MaxContractionLength { get; private init; } = 1;
+
+    /// <summary>True when some contraction starts with <paramref name="codePoint"/> — its element sequence then
+    /// depends on what follows it.</summary>
+    public bool StartsContraction(int codePoint) => _contractions.Count != 0 && _contractions.ContainsKey(codePoint);
+
     /// <summary>The primary weight the highest possible explicit or implicit primary cannot exceed — the level-4
     /// "no variable here" filler of UTS #10 Table 12 (0xFFFF in source scale, shifted like every primary).</summary>
     public int MaxPrimary => 0xFFFF << _primaryShift;
@@ -175,6 +184,9 @@ public sealed class CollationTable
 
     /// <summary>A slice of the element pool.</summary>
     internal ReadOnlySpan<CollationElement> Slice(int offset, int count) => _elements.AsSpan(offset, count);
+
+    /// <summary>One element of the pool.</summary>
+    internal CollationElement ElementAt(int index) => _elements[index];
 
     internal static bool IsHangulSyllable(int codePoint) => (uint)(codePoint - Hangul_SBase) < Hangul_SCount;
 
@@ -261,8 +273,11 @@ public sealed class CollationTable
                 && nfd.Length > 1 && !rules.Defines(nfd.ToArray()))
                 AddMapping(singles, contractions, nfd.ToArray(), offset, entry.Elements.Length, ref extra);
         }
+        int longest = MaxContractionLength;
+        foreach (var list in contractions.Values)
+            foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
         return new CollationTable(rules.Name, UcaVersion, SourceTag, _primaryShift, pool.ToArray(), singles, contractions,
-            _ccc, _implicit, _nfd, rules) { ContractionCount = ContractionCount + extra };
+            _ccc, _implicit, _nfd, rules) { ContractionCount = ContractionCount + extra, MaxContractionLength = longest };
     }
 
     private static void AddMapping(Dictionary<int, int> singles, Dictionary<int, Contraction[]> contractions,
@@ -378,8 +393,11 @@ public sealed class CollationTable
             nfd.Add(cp, seq);
         }
         if (!r.AtEnd) throw new InvalidDataException("collation table: trailing bytes");
+        int longest = 1;
+        foreach (var list in contractions.Values)
+            foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
         return new CollationTable(name, version, sourceTag, shift, elements, singles, contractions, ccc, ranges, nfd, tailoring: null)
-            { ContractionCount = contractionCount };
+            { ContractionCount = contractionCount, MaxContractionLength = longest };
     }
 
     private ref struct Reader(byte[] data)

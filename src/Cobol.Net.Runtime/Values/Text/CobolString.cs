@@ -164,57 +164,13 @@ public static class CobolString
     }
 
     /// <summary>
-    /// Compare two alphanumeric values under the PROGRAM COLLATING SEQUENCE (ISO §8.8.4.2.7 — "with respect to
-    /// the collating sequence of characters specified for the current alphanumeric program collating sequence"):
-    /// the shorter operand space-extends on the right (the pad SPACE itself weighs through the sequence), and the
-    /// first position whose WEIGHTS differ decides. <paramref name="weights"/> is the compiled native-code → position
-    /// table over the alphabet's Latin-1 domain; a code unit beyond it keeps its native Unicode position (see
-    /// <see cref="Weight"/>) — the COBOLNET_DESIGN §14.9 seam.
+    /// Compare two character values under a NON-native collating sequence — the ONE <see cref="CobolCollation"/>
+    /// carrier (kb/Work PB101): an <c>ALPHABET</c> literal-phrase table (alphanumeric or national) or a LOCALE-based
+    /// sequence, each applying its own operand rule (the table arms space-extend, the locale arm truncates trailing
+    /// spaces — §8.8.4.2.7/.9/.11). The compiler emits <c>__COLLATE</c> / <c>__COLLATE_NAT</c> here; the native
+    /// sequence is the two-argument overload above. Returns &lt;0, 0, or &gt;0.
     /// </summary>
-    public static int Compare(string? left, string? right, ushort[] weights)
-    {
-        left ??= ""; right ??= "";
-        int n = Math.Max(left.Length, right.Length);
-        for (int i = 0; i < n; i++)
-        {
-            int a = Weight(i < left.Length ? left[i] : ' ', weights);
-            int b = Weight(i < right.Length ? right[i] : ' ', weights);
-            if (a != b) return a < b ? -1 : 1;
-        }
-        return 0;
-    }
-
-    /// <summary>The COMPARISON weight of a code unit under a non-native alphanumeric PROGRAM COLLATING
-    /// SEQUENCE: a positioned code unit takes its assigned position; one beyond the block keeps its raw code.
-    /// <para>⛔ THE <c>: c</c> TAIL IS DELIBERATELY NOT THE EXACT §12.3.7.4 GR7 1.3 ARITHMETIC, AND THAT IS
-    /// PROVEN SAFE, NOT ASSUMED (fix-queue PB59): the exact position of an above-block unit is
-    /// <c>NextFree + (c − 256)</c> (<see cref="AlphanumericCollation.Weight"/> — what ORD/CHAR expose), but for
-    /// COMPARISON only the ORDER matters, and the two rules are order-equivalent — every tabulated position is
-    /// &lt; NextFree ≤ 256 ≤ both rules' above-block minimum, and both are strictly increasing in code above the
-    /// block, so no pair of characters ever reorders. Keeping the raw table here spares the sort/key/relation
-    /// pipeline the object plumbing for zero behavioral gain; a reader tempted to "unify" this arm should
-    /// re-derive that proof first.</para></summary>
-    private static int Weight(char c, ushort[] weights) => c < weights.Length ? weights[c] : c;
-
-    /// <summary>
-    /// Compare two NATIONAL values under a non-native NATIONAL program collating sequence (ISO §8.8.4.2.9 /
-    /// §12.3.6 GR11 — an <c>ALPHABET … FOR NATIONAL</c> literal phrase; the identity sequences NATIVE/UCS-4
-    /// never reach here — they ARE the two-argument ordinal compare, D-N3): position by position over the
-    /// <see cref="NationalCollation"/> weights, the shorter operand extended on the right with the national
-    /// space (§8.8.4.2.1 — the pad itself weighs through the sequence, matching the alphanumeric twin above).
-    /// </summary>
-    public static int Compare(string? left, string? right, NationalCollation national)
-    {
-        left ??= ""; right ??= "";
-        int n = Math.Max(left.Length, right.Length);
-        for (int i = 0; i < n; i++)
-        {
-            int a = national.Weight(i < left.Length ? left[i] : ' ');
-            int b = national.Weight(i < right.Length ? right[i] : ' ');
-            if (a != b) return a < b ? -1 : 1;
-        }
-        return 0;
-    }
+    public static int Compare(string? left, string? right, CobolCollation collation) => collation.Compare(left, right);
 
     /// <summary>Membership of <paramref name="read"/> in the alphanumeric/national THROUGH range
     /// [<paramref name="lo"/>, <paramref name="hi"/>] under the effective collating sequence (ISO §14.7.8; a level-88
@@ -228,16 +184,6 @@ public static class CobolString
     }
 
     /// <inheritdoc cref="ThruMember(string?,string?,string?,char)"/>
-    public static bool ThruMember(string? read, string? lo, string? hi, ushort[] weights)
-    {
-        if (Compare(lo, hi, weights) > 0) { ExceptionState.Set("EC-RANGE-INVALID", fatal: false); return false; }
-        return Compare(read, lo, weights) >= 0 && Compare(read, hi, weights) <= 0;
-    }
-
-    /// <inheritdoc cref="ThruMember(string?,string?,string?,char)"/>
-    public static bool ThruMember(string? read, string? lo, string? hi, NationalCollation national)
-    {
-        if (Compare(lo, hi, national) > 0) { ExceptionState.Set("EC-RANGE-INVALID", fatal: false); return false; }
-        return Compare(read, lo, national) >= 0 && Compare(read, hi, national) <= 0;
-    }
+    public static bool ThruMember(string? read, string? lo, string? hi, CobolCollation collation) =>
+        collation.ThruMember(read, lo, hi);
 }

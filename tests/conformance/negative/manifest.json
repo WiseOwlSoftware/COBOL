@@ -324,6 +324,7 @@
   "sharing-all-no-lockmode",
   "sharing_below_2002",
   "smallest_algebraic_below_2023",
+  "standard-compare-unknown-ordering-name",
   "stop-literal",
   "strong-group-heterogeneous-compare",
   "sync_group_below_2023",

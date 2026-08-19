@@ -1085,6 +1085,23 @@ internal sealed class VersionConformancePass
                 && entry.GetChild(0) is CobolParserCore.CobolWordContext w
                 && w.GetText().ToUpperInvariant() is "UCS-4" or "UTF-8" or "UTF-16")
                 _p.Check(Constructs.AlphabetNational2002, $"the ALPHABET {w.GetText().ToUpperInvariant()} phrase");
+            // `IS LOCALE [locale-name-2]` (§12.3.7.2, either branch) — the locale facility's collating sequence, a 2002
+            // introduction (Annex A.4.9 item 10; kb/Work PB101). LOCALE is a plain word below 2002 (a code-name there),
+            // so the phrase is recognized by SHAPE, the same test the binder applies (DataBinder.IsAlphabetLocalePhrase).
+            if (ctx.alphabetDefinition() is { } ldef && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(ldef))
+                _p.Check(Constructs.AlphabetLocale2002, "the ALPHABET LOCALE phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The SPECIAL-NAMES ORDER TABLE clause (ISO §12.3.7.2 — the cultural ordering table
+        /// STANDARD-COMPARE names, §12.3.7.4 GR17): a 2002 introduction, gated on recognition (kb/Work PB101).
+        /// <para>⚠ The grammar recognizes the clause at EVERY edition (unlike the LOCALE clause's edition-gated
+        /// predicate — TABLE is reserved at all four, so ORDER + TABLE has no competing '85 reading), which is
+        /// precisely what makes this gate reachable below 2002: the answer there is this explanatory
+        /// introduction diagnostic rather than a parse error at the word TABLE.</para></summary>
+        public override object? VisitOrderTableClause(CobolParserCore.OrderTableClauseContext ctx)
+        {
+            _p.Check(Constructs.OrderTable2002, "the ORDER TABLE clause");
             return base.VisitChildren(ctx);
         }
 
@@ -1879,6 +1896,19 @@ internal sealed class VersionConformancePass
             if (ctx.Parent is CobolParserCore.LocaleClauseContext locale
                 && locale.cobolWord() is { Length: > 1 } localeWords
                 && !ReferenceEquals(ctx, localeWords[1]))
+                return base.VisitChildren(ctx);
+            // The SPECIAL-NAMES ORDER TABLE clause (§12.3.7.2 general format:
+            // `ORDER TABLE ordering-name-1 IS literal-9`; kb/Work PB101). The PB27 shape again — ORDER is not a
+            // lexer token, so the clause's OWN KEYWORD is grammar-matched as a cobolWord and the funnel would
+            // report `'ORDER' is a reserved word … and cannot be used as a user-defined word` about a program
+            // that uses it as nothing of the sort (ORDER is reserved from 2002, reserved-words.json r2002).
+            // ⚠ POSITION-EXACT, because the two cobolWord slots are two different KINDS of word:
+            //   [0] the keyword ORDER   — a use OF the reserved word          → exempt
+            //   [1] ordering-name-1     — a genuine USER-DEFINED word (§12.3.7.3 SR9 lets it be referenced only
+            //       in STANDARD-COMPARE, but it is DECLARED here)             → stays funneled
+            if (ctx.Parent is CobolParserCore.OrderTableClauseContext order
+                && order.cobolWord() is { Length: > 0 } orderWords
+                && ReferenceEquals(ctx, orderWords[0]))
                 return base.VisitChildren(ctx);
             // The ALPHABET clause's `IS LOCALE [locale-name-2]` phrase (§12.3.7.2; kb/Work PB100): LOCALE is the phrase's
             // own keyword (not a lexer token — it arrives as the first definition entry's cobolWord) and locale-name-2 is a

@@ -79,6 +79,15 @@ command = (data.get("tool_input") or {}).get("command") or ""
 if not command or not is_build_command(command):
     bail()
 
+# An agent building INSIDE ITS OWN git worktree (`.claude/worktrees/<agent>/`, the Agent tool's `isolation:
+# "worktree"`) has private bin/obj and its own checkout: nothing it builds is the binary another agent probes, and
+# nothing else builds what it probes. The guard's harm model does not apply there — and applied literally it is a
+# SELF-BLOCK (the agent's own transcript is one of the "live" ones, so the window never clears; found 2026-08-18 by
+# the normalization-subsystem agent, kb/Work PB101). Recognized by the tool's cwd or a `cd` in the command itself.
+cwd = (data.get("cwd") or "").replace("\\", "/")
+if "/.claude/worktrees/" in cwd + "/" or "/.claude/worktrees/" in command.replace("\\", "/"):
+    bail()
+
 session_id = data.get("session_id") or ""
 if not session_id:
     bail()
@@ -87,6 +96,13 @@ try:
     live = live_agent_transcripts(session_id)
 except Exception:  # noqa: BLE001
     bail()
+
+# The CALLER's own transcript is always fresh at PreToolUse (it is being written by this very tool call), so a
+# subagent counting itself could never build (kb/Work PB103, the second self-block mode: a main-tree agent, found
+# 2026-08-18 by the T7 agent). The hook payload names the caller's transcript; it is not evidence of a fleet.
+own = (data.get("transcript_path") or "").replace("\\", "/").lower()
+if own:
+    live = [p for p in live if str(p).replace("\\", "/").lower() != own]
 
 if not live:
     bail()

@@ -411,6 +411,12 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // intrinsic renders inline inside expressions, so the guard wraps the STATEMENT).
             if (ctx.EcState.Turn.Enabled("EC-ARGUMENT-FUNCTION", null, line) && ContainsIntrinsic(node))
                 enabled.Add(("EC-ARGUMENT-FUNCTION", null));
+            // EC-ORDER-NOT-SUPPORTED (fatal, §15.85.4 r2) rides the SAME ambient gate, for the same reason:
+            // FUNCTION STANDARD-COMPARE renders inline inside an arbitrary expression, so the guard wraps the
+            // statement and CobolIntrinsics.StandardCompare consults the flag (kb/Work PB101 T7). Harmless around
+            // a STANDARD-COMPARE-free statement — no other site sets it.
+            if (ctx.EcState.Turn.Enabled("EC-ORDER-NOT-SUPPORTED", null, line) && ContainsIntrinsic(node))
+                enabled.Add(("EC-ORDER-NOT-SUPPORTED", null));
             // EC-DATA-CONVERSION (nonfatal, §15.19.4 r1/r3) rides any intrinsic-bearing statement too — FUNCTION
             // CONVERT sets it when an untranslatable character forces the substitution character; the ambient
             // gate records it while checking is enabled (harmless around a non-CONVERT intrinsic — no site sets it).

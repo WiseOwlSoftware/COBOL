@@ -195,6 +195,23 @@ internal sealed record ArgSchema(ArgRule[] Positions, ArgRule? Tail, CrossArgRul
         return this with { Positions = copy };
     }
 
+    /// <summary>This schema with the "argument-N shall not be a zero-length literal" rule attached to the given
+    /// 0-based POSITIONS, citing <paramref name="clause"/> — the per-position twin of <see cref="Uniform"/>'s
+    /// <c>noZeroLen</c> tail argument (kb/Work PB101). §15.85.3 r4 names TWO ordinals of four and not the rest,
+    /// which a tail cannot express and a constructor argument would have expressed only for position 0.</summary>
+    public ArgSchema WithNoZeroLength(string clause, params int[] positions)
+    {
+        var copy = (ArgRule[])Positions.Clone();
+        foreach (int position in positions)
+        {
+            if (position >= copy.Length)
+                throw new InvalidOperationException(
+                    $"IntrinsicArgumentRules: zero-length rule {clause} attached to undeclared position {position + 1}");
+            copy[position] = copy[position] with { NoZeroLengthClause = clause };
+        }
+        return this with { Positions = copy };
+    }
+
     /// <summary>This schema with <paramref name="p"/> added to the variadic TAIL (every position past the
     /// declared ones — for a Uniform row, every argument).</summary>
     public ArgSchema WithTailPredicate(ArgPredicate p)
@@ -619,6 +636,17 @@ internal static class IntrinsicArgumentRules
             ["FIND-STRING"] = Schema("§15.37.3 r1/r2/r3", ['s', 's', 'i'],
                 cross: CrossArgRule.MatchArgument1, crossClause: "§15.37.3 r2")
                 .WithPredicate(2, ArgPredicate.DataItemOrLiteralOnly("§15.37.3 r3")),
+            // §15.85.3 — STANDARD-COMPARE (kb/Work PB101 T7). r1/r2: argument-1 and argument-2 "shall be of class
+            // alphabetic, alphanumeric, or national"; r3 says they "may be of different classes", so there is
+            // deliberately NO cross-argument rule here — adding MatchArgument1 by analogy with TRIM would reject
+            // the exact case r3 permits. r4 prohibits a zero-length LITERAL on both, and r6 makes the ordering
+            // LEVEL a positive nonzero integer — the value half is BindStandardCompare's (a class kind cannot say
+            // "positive nonzero"), the class half is position 2's 'i'.
+            // ⚠ THE POSITIONS ARE OPERAND POSITIONS, NOT WRITTEN ONES — the same convention FIND-STRING's row
+            // uses. §15.85.2's ordering-name-1 sits between argument-2 and argument-4 as WRITTEN, but it is a NAME
+            // (§15.3 argument type 12); BindStandardCompare consumes it and screens the operand list that remains.
+            ["STANDARD-COMPARE"] = Schema("§15.85.3 r1/r2/r6", ['s', 's', 'i'])
+                .WithNoZeroLength("§15.85.3 r4", 0, 1),
             // The FORMATTED-* family (§15.38–15.41): argument-1 is "a national or alphanumeric literal" (its
             // LITERAL-ness is the existing COBOLNET1517 arm, its CONTENT the format screen); the remaining
             // positions are date/time VALUES — integer date form (§15.39.3 r3, §15.40.3 r3), standard numeric
@@ -747,7 +775,37 @@ internal static class IntrinsicArgumentRules
             ["LOCALE-DATE"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
             ["LOCALE-TIME"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
             ["LOCALE-TIME-FROM-SECONDS"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
-            ["STANDARD-COMPARE"] = "§A.3 item 25 / the A.4.9 ORDER TABLE machinery — documented non-support (COBOLNET1518); the reference is rejected BY NAME before any argument is screened",
+            // ⛔ STANDARD-COMPARE LEFT THIS TABLE WHEN ITS SUPPORT WAS CLAIMED (kb/Work PB101 T7). Its entry read
+            // "documented non-support … rejected BY NAME before any argument is screened", which stopped being
+            // true the moment its Bind became Runtime — and a stale UNSCREENED reason is worse than none, because
+            // EveryCataloguedFunction_HasARow is satisfied by it and the §15.85.3 rules would have gone
+            // unenforced with a sentence explaining why that was fine. It now carries a Verified schema above.
+        };
+
+    /// <summary>
+    /// The <c>IntrinsicCatalog</c> <c>ArgKinds</c> codes that are NOT operand kinds at all — a §15.3 argument
+    /// TYPE that is a NAME or a KEYWORD, consumed by the function's own bespoke binder and never present in the
+    /// operand list <c>CheckArgumentClasses</c> screens — each with the type it models and the binder that
+    /// resolves it.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ THIS EXISTS SO A NEW CODE CANNOT BE A DEAD COLUMN (kb/Work PB101; the PB1 trap in its general form).
+    /// §15.3 enumerates fourteen argument types and four of them — Keyword (7), Locale-name (8), Ordering-name
+    /// (12), Type declaration (14) — are not operands, so <see cref="Admissible"/> can never have an arm for
+    /// them: it answers "which CLASSES", and a name has none. Without a disposition table, adding such a code to
+    /// <c>ArgKinds</c> would be a declaration nothing reads and nothing can contradict — exactly the state PB1
+    /// found on all 79 rows. <c>IntrinsicArgumentClassDriftTests</c> requires every code used in the catalog to
+    /// have either an <see cref="Admissible"/> arm or an entry HERE, and requires the named binder to exist.
+    /// <para>⚠ It is keyed on the CODE, not on the function: the locale increments (DESIGN-locale-facility §12
+    /// T1/T4) add a locale-name code across five functions, and one row here covers all of them.</para>
+    /// </remarks>
+    public static readonly IReadOnlyDictionary<char, string> NonOperandArgumentKinds =
+        new Dictionary<char, string>
+        {
+            ['o'] = "§15.3 argument type 12 (Ordering-name) — \"An ordering-name defined in the SPECIAL-NAMES "
+                + "paragraph shall be specified\": a NAME, resolved by IntrinsicBinder.BindStandardCompare "
+                + "against DataBinder.OrderTables (§15.85.3 r5; §12.3.7.3 SR9 makes STANDARD-COMPARE its only "
+                + "legal reference site). It never reaches the operand list, so no class screen applies to it",
         };
 
     /// <summary>The classes a verified class code admits, or <see langword="null"/> for "no general screen" —

@@ -76,4 +76,8 @@ public struct CheckingFlags
 
     /// <summary>EC-FLOW-SEARCH — a capacity SET during a SEARCH of that same table (§14.9.39.4 GR31).</summary>
     public bool FlowSearch;
+
+    /// <summary>EC-ORDER-NOT-SUPPORTED — FUNCTION STANDARD-COMPARE naming a cultural ordering table this
+    /// processor does not provide, or an ordering level the table does not define (§15.85.4 r2).</summary>
+    public bool OrderNotSupported;
 }

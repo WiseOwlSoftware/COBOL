@@ -35,10 +35,12 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
             + "single ArgKind code expresses ('s' spans national). Moving only the zero-length half into the "
             + "schema would split ONE function's argument rules across two mechanisms to unify one rule across "
             + "six — a worse trade. Verified enforced by SpecZeroLengthArguments below.",
-        ["STANDARD-COMPARE"] =
-            "§15.85 is A.4.9 item 11 + A.3 item 25 — documented non-support, Bind = Unsupported, so COBOLNET1518 "
-            + "fires before any argument screen and the row would be a dead lookup "
-            + "(feedback_a_dead_lookup_is_also_unverified). It has no Verified schema at all for the same reason.",
+        // ⛔ STANDARD-COMPARE WAS ADJUDICATED OUT HERE AND IS NOT ANY MORE (kb/Work PB101 T7). Its reason read
+        // "documented non-support, Bind = Unsupported, so COBOLNET1518 fires before any argument screen and the
+        // row would be a dead lookup" — TRUE while support was declined under A.3 item 25, and FALSE the moment
+        // it was claimed. An adjudication is a fact about the compiler, not a permanent exemption: leaving it
+        // would have kept this guard green while `FUNCTION STANDARD-COMPARE("" "AB")` — which §15.85.3 r4
+        // forbids — compiled clean. The schema now declares the rule on positions 1 and 2.
     };
 
     /// <summary>Every §15 function whose ARGUMENT rules prohibit a zero-length literal, read off the spec.</summary>

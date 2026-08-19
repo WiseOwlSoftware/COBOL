@@ -957,6 +957,29 @@ public static class DiagnosticCatalog
         + "FLOAT-BINARY-64 item, the binary32 range for FLOAT-SHORT / FLOAT-BINARY-32; a floating-point numeric-edited "
         + "VALUE keeps the exact value.",
         "ISO §8.3.3.3.3 SR2/SR3/SR4/r3");
+    // kb/Work PB101 (DESIGN-locale-facility §4.9, increment T7): the SPECIAL-NAMES ORDER TABLE clause and
+    // FUNCTION STANDARD-COMPARE. §12.3.7.4 GR17 leaves the allowable content of literal-9 to the implementor, so a
+    // literal this implementation's collation engine cannot resolve is NOT a syntax error — the program is legal
+    // and §15.85.4 r2 defines its runtime outcome (EC-ORDER-NOT-SUPPORTED at every reference). A WARNING is
+    // therefore the only conforming severity, and saying nothing would leave a program whose every
+    // STANDARD-COMPARE is inoperative looking clean at compile time.
+    public static readonly DiagnosticDescriptor OrderTableUnresolved = new(
+        "COBOLNET1662", "order-table-unresolved", EditionSeverity.Warning,
+        "The SPECIAL-NAMES ORDER TABLE clause's literal-9 does not name a cultural ordering table this "
+        + "implementation provides. ISO §12.3.7.4 GR17 leaves the allowable content of literal-9 to the "
+        + "implementor; COBOL.NET accepts the default table 'ISO 14651_2020_TABLE1' (case-insensitive, the space "
+        + "and the underscore interchangeable) and, as an implementor extension, a CLDR locale tag naming a "
+        + "tailored collation. Every FUNCTION STANDARD-COMPARE reference to this ordering-name sets "
+        + "EC-ORDER-NOT-SUPPORTED at run time (§15.85.4 r2). The clause itself stays legal.",
+        "ISO §12.3.7.4 GR17 / §15.85.4 r2");
+    public static readonly DiagnosticDescriptor StandardCompareArgument = new(
+        "COBOLNET1663", "standard-compare-argument", EditionSeverity.Error,
+        "A FUNCTION STANDARD-COMPARE argument violates ISO §15.85.3: ordering-name-1 shall be a name associated "
+        + "with a cultural ordering table in the ORDER TABLE clause of the SPECIAL-NAMES paragraph (r5; §15.3 "
+        + "argument type 12, and §12.3.7.3 SR9 makes this function the only place such a name may be specified), "
+        + "and argument-4 shall be a positive nonzero integer (r6). The §15.85.2 general format admits at most one "
+        + "of each, so a second ordering-name or a second level violates the format.",
+        "ISO §15.85.3 r5 / r6 / §15.85.2");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

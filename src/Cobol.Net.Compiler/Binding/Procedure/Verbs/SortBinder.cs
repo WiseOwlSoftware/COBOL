@@ -335,7 +335,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     /// (D-N2 refuses national leaves in FD/SD records; the table-sort national key stages loud in this binder),
     /// so no reachable program observes the sequence — the staged key legs are the fence, and the carried slot
     /// lands with them (RESIDUE-11).</summary>
-    private (CollatingTable? Table, BoundStatement? Error) SortBindCollating(Core.SortCollatingPhraseContext? c)
+    private (AlphabetDef? Collation, BoundStatement? Error) SortBindCollating(Core.SortCollatingPhraseContext? c)
     {
         if (c is null) return (ctx.Data.Collating, null);   // GR5b — the program collating sequence (null ⇒ native)
 
@@ -379,7 +379,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         // Alphabet-name-1 (alphanumeric/alphabetic keys, GR5a); a FOR NATIONAL-only phrase leaves the
         // alphanumeric keys on the program collating sequence (GR5b per class).
         if (alnumName is null) return (ctx.Data.Collating, null);
-        if (!ctx.Data.Alphabets.TryGetValue(alnumName, out var table))
+        if (!ctx.Data.Alphabets.TryGetValue(alnumName, out var alnumDef))
         {
             if (ctx.Data.NationalAlphabets.ContainsKey(alnumName))
             {
@@ -391,7 +391,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
             return (null, new BoundUnsupported($"SORT/MERGE COLLATING SEQUENCE '{alnumName}' is not an alphabet-name "
                 + "declared in SPECIAL-NAMES (ISO §14.9.40.3 SR1 / §12.3.7)"));
         }
-        return (table, null);   // GR5a — the statement's own sequence (a native alphabet stored null ⇒ native)
+        return (alnumDef.IsIdentity ? null : alnumDef, null);   // GR5a — the statement's own sequence (an identity alphabet ⇒ native)
     }
 
     /// <summary>Map a USING/GIVING file list to <see cref="FileModel"/>s. Each shall be an FD file — never an SD

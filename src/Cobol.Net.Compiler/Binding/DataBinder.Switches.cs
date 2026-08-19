@@ -4,6 +4,7 @@ using CobolNet.Common;
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
+using CobolNet.Runtime.Collation;
 
 using CobolNet.Binding.Model;
 
@@ -38,11 +39,12 @@ public sealed partial class DataBinder
     /// (§8.8.4.1.4 — true when the operand consists entirely of members).</summary>
     public Dictionary<string, string> UserClasses { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>ALPHANUMERIC alphabet names (case-insensitive) → the built collating table (ISO §12.3.7 GR7), or
-    /// null for a NATIVE/STANDARD-1/STANDARD-2 alphabet (ISO/IEC 646 order IS the Latin-1 native order — identity,
-    /// no table). An <c>ALPHABET … FOR NATIONAL</c> clause registers in <see cref="NationalAlphabets"/> instead —
-    /// the two classes are disjoint reference domains (§12.3.6 SR1/SR2, §14.9.40 GR5).</summary>
-    public Dictionary<string, CollatingTable?> Alphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>ALPHANUMERIC alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7): the
+    /// built collating table of a literal phrase, the LOCALE arm of an <c>IS LOCALE</c> phrase, or the identity
+    /// (<see cref="AlphabetDef.Native"/>) for NATIVE/STANDARD-1/STANDARD-2 (ISO/IEC 646 order IS the Latin-1 native
+    /// order — no table). An <c>ALPHABET … FOR NATIONAL</c> clause registers in <see cref="NationalAlphabets"/>
+    /// instead — the two classes are disjoint reference domains (§12.3.6 SR1/SR2, §14.9.40 GR5).</summary>
+    public Dictionary<string, AlphabetDef> Alphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>NATIONAL alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7 b/d2/f/g/h/k
     /// + Table 6): a null-table identity for NATIVE and the coded-set names (UCS-4 collates in ISO 10646 order,
@@ -51,10 +53,23 @@ public sealed partial class DataBinder
     /// or the sparse <see cref="NationalCollatingTable"/> of a literal phrase.</summary>
     public Dictionary<string, NationalAlphabetDef> NationalAlphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>The resolved ALPHANUMERIC PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9–GR11), or null when none is
-    /// specified / the named alphabet is the native order. Drives relation, condition-name, and (later) SORT/MERGE-key
-    /// comparisons (GR11/GR13) and the runtime HIGH-/LOW-VALUE characters (§8.3.3.6 GR6/GR7).</summary>
-    public CollatingTable? Collating { get; private set; }
+    /// <summary>SPECIAL-NAMES <c>ORDER TABLE</c> ordering-names (case-insensitive) → the DECODED literal-9 that
+    /// identifies the cultural ordering table (ISO §12.3.7.2's last clause; §12.3.7.4 GR17 — "When ORDER TABLE is
+    /// specified, ordering-name-1 shall reference a cultural ordering table that is identified by literal-9 and
+    /// constructed in accordance with ISO/IEC 14651:2020, Annex A. The implementor specifies the allowable content
+    /// of literal-9"). Read by exactly one consumer, §12.3.7.3 SR9's only legal reference site —
+    /// <c>IntrinsicBinder.BindStandardCompare</c> (§15.85.3 r5 / §15.3 argument type 12), which copies the literal
+    /// onto the bound call so the backend never has to ask the SPECIAL-NAMES model anything.
+    /// <para>⚠ The literal is stored DECODED, not as source text: §12.3.7.3 SR10 admits a national literal
+    /// (<c>N"…"</c>) as well as an alphanumeric one, and the runtime resolver matches ordering-table NAMES, not
+    /// COBOL literal spellings.</para></summary>
+    public Dictionary<string, string> OrderTables { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The resolved ALPHANUMERIC PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9–GR11) — a literal-phrase table
+    /// or a LOCALE sequence — or null when none is specified / the named alphabet is the native order. Drives
+    /// relation, condition-name and SORT/MERGE-key comparisons (GR11/GR13), MAX/MIN, ORD/CHAR, and the HIGH-/LOW-VALUE
+    /// characters (§8.3.3.6 GR6/GR7). The emitter renders it ONCE as the program's <c>__COLLATE</c> carrier.</summary>
+    public AlphabetDef? Collating { get; private set; }
 
     /// <summary>The resolved NATIONAL PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9 — alphabet-name-2 / the FOR
     /// NATIONAL form), or null when none is specified / the named alphabet is an identity sequence (NATIVE, UCS-4 —
@@ -63,7 +78,7 @@ public sealed partial class DataBinder
     /// characters (§12.3.7 GR8/GR9). National SORT/MERGE keys (GR13 / §14.9.40 GR5b) cannot yet EXIST — D-N2
     /// refuses national leaves in FD/SD records and the table-sort national key is staged loud — so no key
     /// consumer reads this yet.</summary>
-    public NationalCollatingTable? NationalCollating { get; private set; }
+    public NationalAlphabetDef? NationalCollating { get; private set; }
 
     /// <summary>DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14 — the decimal and grouping separator characters EXCHANGE
     /// functionality in numeric literals [GR14a] and PICTURE character-strings / edited insertion [GR14b]).
@@ -211,6 +226,7 @@ public sealed partial class DataBinder
         foreach (var (k, v) in container.UserClasses) UserClasses.TryAdd(k, v);
         foreach (var (k, v) in container.Alphabets) Alphabets.TryAdd(k, v);
         foreach (var (k, v) in container.NationalAlphabets) NationalAlphabets.TryAdd(k, v);
+        foreach (var (k, v) in container.OrderTables) OrderTables.TryAdd(k, v);
         // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§12.3.6 GR9–GR11)
         Collating = container.Collating;
         NationalCollating = container.NationalCollating;
@@ -386,6 +402,7 @@ public sealed partial class DataBinder
                         + "alternative (e.g. STANDARD-1/STANDARD-2 collating, or FORMATTED-DATE/-TIME).");
                     continue;
                 }
+                if (entry.orderTableClause() is { } ot) { OrderTableBind(ot); continue; }
                 if (entry.alphabetClause() is { } alpha) { AlphabetBind(alpha); continue; }
                 if (entry.classDefinitionClause() is { } cd) { SwitchBindClass(cd); continue; }
                 if (entry.symbolicCharactersClause() is { } sc)
@@ -453,7 +470,7 @@ public sealed partial class DataBinder
 
         if (alnumName is not null)
         {
-            if (Alphabets.TryGetValue(alnumName, out var table)) Collating = table;
+            if (Alphabets.TryGetValue(alnumName, out var def)) Collating = def.IsIdentity ? null : def;
             else if (NationalAlphabets.ContainsKey(alnumName))
                 Edition.Error("COBOLNET0898", $"PROGRAM COLLATING SEQUENCE '{alnumName}': alphabet-name-1 "
                     + "shall reference an alphabet that defines an ALPHANUMERIC collating sequence — this "
@@ -473,8 +490,108 @@ public sealed partial class DataBinder
                     + "(ISO §12.3.7 GR7 Table 6) — only NATIVE, UCS-4, and literal-phrase national alphabets "
                     + "may collate (ISO §12.3.6 SR2)");
             else
-                NationalCollating = def.Table;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
+                NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
         }
+    }
+
+    /// <summary>
+    /// Bind the SPECIAL-NAMES <c>ORDER TABLE ordering-name-1 IS literal-9</c> clause (ISO §12.3.7.2 — the last item
+    /// of the paragraph's general format; kb/Work PB101 / DESIGN-locale-facility §4.9). §12.3.7.4 GR17: "When ORDER
+    /// TABLE is specified, ordering-name-1 shall reference a cultural ordering table that is identified by
+    /// literal-9 and constructed in accordance with ISO/IEC 14651:2020, Annex A. The implementor specifies the
+    /// allowable content of literal-9."
+    /// <list type="bullet">
+    ///   <item>SR10 — "Literal-4 and literal-9 shall be alphanumeric or national literals": a numeric, boolean or
+    ///   figurative operand is COBOLNET0898.</item>
+    ///   <item>SR11 — literal-9 "shall specify neither a symbolic-character figurative constant nor a zero-length
+    ///   literal".</item>
+    ///   <item>The clause is BRACKETED and unrepeated in the general format (unlike LOCALE / CURRENCY / CLASS,
+    ///   which carry a printed ellipsis), so a second ORDER TABLE clause — or a repeated ordering-name — is a form
+    ///   violation.</item>
+    /// </list>
+    /// <para>⚖ The ADVISORY (COBOLNET1662, a warning): GR17 leaves literal-9's allowable content to the
+    /// implementor, so a spelling this implementation cannot resolve is legal source with a defined RUNTIME
+    /// outcome — §15.85.4 r2 sets EC-ORDER-NOT-SUPPORTED at every reference. Rejecting it would refuse a
+    /// conforming program; saying nothing would let a program whose every STANDARD-COMPARE is inoperative compile
+    /// clean. The resolver consulted here is the SAME one the runtime uses
+    /// (<c>CollationEngine.TryGetOrderingTable</c>), so bind-time advice and run-time behaviour cannot drift.</para>
+    /// </summary>
+    private void OrderTableBind(Core.OrderTableClauseContext ot)
+    {
+        var words = ot.cobolWord();                       // [0] = the keyword ORDER, [1] = ordering-name-1
+        if (words.Length < 2 || ot.literal() is not { } lit) return;   // a malformed shape already drew a parse error
+        string name = words[1].GetText();
+        string raw = lit.GetText();
+        var nn = lit.nonNumericLiteral();
+
+        // SR11's FIRST half, reported before SR10 so a figurative constant draws the rule that names it: "shall
+        // specify neither a symbolic-character figurative constant nor a zero-length literal".
+        if (nn?.figurativeConstant() is not null)
+        {
+            Edition.Error("COBOLNET0898", $"ORDER TABLE {name} IS {raw}: literal-9 shall specify neither a "
+                + "symbolic-character figurative constant nor a zero-length literal (ISO §12.3.7.3 SR11)");
+            return;
+        }
+        // §8.8.3.3 GR3 makes a concatenation expression "equivalent to a literal of the same class and value,
+        // [usable] anywhere a literal of that class may be used", so `IS "ISO " & "14651_2020_TABLE1"` is legal
+        // here and folds to the one literal SR10 then classes. Refusing it would reject conforming source.
+        string text;
+        if (nn?.concatenationExpression() is { } cat)
+        {
+            // The collating arguments are NULL deliberately: a figurative HIGH-/LOW-VALUE written INSIDE
+            // SPECIAL-NAMES takes the NATIVE extremes (the ALPHABET binder's GR10 note), and the PCS is not
+            // resolved until after this walk anyway.
+            var folded = ConcatFolder.Fold(cat, Edition, collate: null);
+            if (folded.Category is not (PicCategory.Alphanumeric or PicCategory.National))
+            {
+                Edition.Error("COBOLNET0898", $"ORDER TABLE {name} IS {raw}: literal-9 shall be an alphanumeric "
+                    + "or national literal (ISO §12.3.7.3 SR10); this concatenation expression is class "
+                    + $"{folded.Category} (§8.8.3.3 GR1/GR3)");
+                return;
+            }
+            text = folded.Value;
+        }
+        else
+        {
+            // SR10 — alphanumeric or national. CobolLiteral.ClassOf answers from the PREFIX, so it admits both
+            // quoting forms and both hexadecimal spellings (X"…" is one FORM of an alphanumeric literal,
+            // §8.3.3.2) and refuses a boolean one; a NUMERIC literal is not a quoted literal and lands here too.
+            if (CobolLiteral.ClassOf(raw) is not (LiteralClass.Alphanumeric or LiteralClass.National))
+            {
+                Edition.Error("COBOLNET0898", $"ORDER TABLE {name} IS {raw}: literal-9 shall be an alphanumeric or "
+                    + "national literal (ISO §12.3.7.3 SR10)");
+                return;
+            }
+            text = CobolLiteral.Decode(raw);
+        }
+        // SR11's SECOND half.
+        if (text.Length == 0)
+        {
+            Edition.Error("COBOLNET0898", $"ORDER TABLE {name}: literal-9 shall specify neither a "
+                + "symbolic-character figurative constant nor a zero-length literal (ISO §12.3.7.3 SR11)");
+            return;
+        }
+        // ⚠ ONE CLAUSE PER PARAGRAPH, measured off the PRINTED general format rather than inferred from GR17's
+        // singular wording: §12.3.7.2 brackets `ORDER TABLE ordering-name-1 IS literal-9` with NO trailing
+        // ellipsis, where the repeatable clauses beside it (CLASS, CURRENCY, LOCALE, the switch entry, SYMBOLIC
+        // CHARACTERS) each print one. A second clause is therefore a form violation, and so — as a consequence
+        // rather than as a second rule — is a second ordering-name.
+        if (OrderTables.Count > 0)
+        {
+            Edition.Error("COBOLNET0898", $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
+                + "in a SPECIAL-NAMES paragraph — its general format brackets it without an ellipsis, unlike the "
+                + $"repeatable clauses (ISO §12.3.7.2); '{OrderTables.Keys.First()}' is already declared");
+            return;
+        }
+        OrderTables[name] = text;
+        // GR17's implementor half, checked against the ONE resolver the runtime uses (§15.85.4 r2 owns the outcome).
+        if (!CollationEngine.TryGetOrderingTable(text, out _))
+            Edition.Warning(DiagnosticCatalog.OrderTableUnresolved, $"ORDER TABLE {name} IS {raw}: "
+                + $"'{text}' does not name a cultural ordering table this implementation provides (ISO §12.3.7.4 "
+                + "GR17 leaves literal-9's allowable content to the implementor: the default table "
+                + $"'{CollationEngine.DefaultOrderingTableName}' — case-insensitive, space and underscore "
+                + "interchangeable — or a CLDR locale tag naming a tailored collation). Every FUNCTION "
+                + $"STANDARD-COMPARE reference to {name} will set EC-ORDER-NOT-SUPPORTED at run time (§15.85.4 r2)");
     }
 
     /// <summary>Build one <c>ALPHABET name IS …</c> clause (ISO §12.3.7 GR7): NATIVE / STANDARD-1 / STANDARD-2 are
@@ -499,18 +616,33 @@ public sealed partial class DataBinder
                 + "alphabet-name and IS (ISO §12.3.7.2 general format)");
         bool national = fors.Any(f => f.NATIONAL() is not null);
         // `IS LOCALE [locale-name-2]` — either branch (§12.3.7.2): Annex A.4.9 item 10 ("LOCALE phrases in the
-        // ALPHABET clause"), an optional locale-module element COBOL.NET documents as NON-SUPPORT (CONFORMANCE.md §4
-        // item 5) — refused BY NAME with the module's one diagnostic (kb/Work PB100; the definition used to read
-        // LOCALE as a code-name and the §8.9 funnel then reported the keyword as a user-defined word). The alphabet
-        // registers as an identity so a PROGRAM COLLATING SEQUENCE / MERGE reference still binds; the compile has
-        // failed. LOCALE is a plain word below 2002 (a code-name-1 there), so the phrase is 2002+ only.
+        // ALPHABET clause"). LOCALE is not a lexer token, so the phrase arrives as one or two code-name-shaped entries
+        // (kb/Work PB100 fixed the false "reserved word used as a user-defined word" it used to draw); it is a plain
+        // word below 2002 (a code-name-1 there), so the phrase is 2002+ only. Since kb/Work PB101 the bare form is
+        // IMPLEMENTED and the named form is refused by name until the LOCALE clause lands (design §12 T1).
         if (Edition.DialectLevel >= 2002 && IsAlphabetLocalePhrase(def))
         {
-            Edition.Error("COBOLNET1518", $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} IS LOCALE: the LOCALE phrase "
-                + "of the ALPHABET clause (ISO §12.3.7.2) is in the optional locale module (Annex A.4.9 item 10), which "
-                + "COBOL.NET documents as not supported (CONFORMANCE.md §4 item 5)");
-            if (national) NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
-            else Alphabets.TryAdd(name, null);
+            // `IS LOCALE` (no locale-name-2) — the LOCALE-based collating sequence of the locale CURRENT at each use
+            // (§12.3.7.4 GR7e; §12.3.6.4 GR11/GR12): the runtime LocaleCollation over the derived CLDR/UCA engine (kb/Work
+            // PB101 — the T3 arm; determination L5 makes one locale sequence serve both classes). Table 6 row LOCALE: a
+            // collating sequence, NOT a coded character set — CODE-SET / SYMBOLIC … IN / CLASS … IN may not name it
+            // (§12.3.7.3 SR16g/SR17d); those three alphabet references are inert in this compiler today (no binder
+            // resolves them), so there is no name check to extend yet — recorded here so the check lands with them.
+            // `IS LOCALE locale-name-2` (§12.3.7.3 SR24: a locale-name of the LOCALE clause) waits for the LOCALE clause
+            // itself (design §12 T1) and stays refused BY NAME until then — the honest state, not a silent identity.
+            if (def.alphabetEntry().Length == 2)
+            {
+                Edition.Error("COBOLNET1518", $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} IS LOCALE {def.alphabetEntry()[1].GetText()}: "
+                    + "a locale-name-2 shall be a locale-name defined by the SPECIAL-NAMES LOCALE clause (ISO §12.3.7.3 SR24), "
+                    + "and the LOCALE clause is the next increment of the optional locale module (Annex A.4.9 item 10; "
+                    + "CONFORMANCE.md §4 item 5) — write IS LOCALE without a name for the current locale's sequence");
+                if (national) NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
+                else Alphabets.TryAdd(name, AlphabetDef.Native);
+                return;
+            }
+            var locale = new LocaleCollatingSpec(LocaleName: null);
+            if (national) NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, locale, HasCollatingSequence: true, "LOCALE"));
+            else Alphabets.TryAdd(name, new AlphabetDef(null, locale, "LOCALE"));
             return;
         }
         if (national)
@@ -531,7 +663,7 @@ public sealed partial class DataBinder
         }
         if (def.NATIVE() is not null || def.STANDARD_1() is not null || def.STANDARD_2() is not null)
         {
-            Alphabets.TryAdd(name, null);
+            Alphabets.TryAdd(name, AlphabetDef.Native);
             return;
         }
 
@@ -593,7 +725,7 @@ public sealed partial class DataBinder
         for (int code = 0; code < 256; code++) if (pos[code] == minPos) { low = (char)code; break; }
         foreach (char c in specOrder) if (pos[c & 0xFF] == minPos) { low = c; break; }        // tie → FIRST specified
 
-        Alphabets.TryAdd(name, new CollatingTable(pos, repByPos.ToArray(), next, high, low));
+        Alphabets.TryAdd(name, new AlphabetDef(new CollatingTable(pos, repByPos.ToArray(), next, high, low), null, "literal-phrase"));
     }
 
     /// <summary>The national coded-character-set name a definition consists of ("UCS-4" / "UTF-8" / "UTF-16"),

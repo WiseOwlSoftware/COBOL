@@ -123,3 +123,8 @@ kb/Conformance/
 # NIST CCVS print files (XXXXX0nn placeholders) a CLI probe run from the repo root would drop here (2026-08-18)
 /xxxxx0[0-9][0-9].txt
 /XXXXX0[0-9][0-9].txt
+
+# BenchmarkDotNet output (tests/Cobol.Net.Benchmarks). The harness writes its Markdown/HTML/CSV reports and
+# the per-benchmark projects it generates and builds under this folder; it is a build output, and the numbers
+# worth keeping live in tests/Cobol.Net.Benchmarks/README.md instead.
+BenchmarkDotNet.Artifacts/

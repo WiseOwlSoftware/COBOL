@@ -306,17 +306,22 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `PB64: adopt the locale design`): the owner is diverting to the COLLATION task next and will provide guidance
   for it (T2/T3 of the design — the `CobolCollation` collapse and the locale collation — are the natural home;
   read the guidance first, then the design's §4.4). Nothing of T1 is coded; no tree is dirty.
-  **▶ THE COLLATION TASK IS IN PROGRESS — kb/Work PB101 (2026-08-18 17:25 PDT, DEVLOG 1326).** The owner's
-  guidance arrived (build the ISO/IEC-14651-consistent subsystem LEGALLY from CLDR/UCA data as a generated derived
-  table + key builder + engine + tailoring + compiler hook + runtime + docs). **Half 1 LANDED:** the engine —
-  `src/Cobol.Net.Runtime/Collation/` (README there), the generator `scripts/collation/generate-collation-table.py`
-  over the pinned `data/unicode/` (CLDR release-48-2 / UCA 17.0.0), the embedded derived table, `CollationTable` /
-  `Collator` / `CollationKey` / `CollationEngine` / `TailoringRules` + en-US / fr-FR / es-ES / es tailorings; 48 unit
-  tests; the FULL CLDR conformance test 206,298 + 227,809 lines / 0 violations; the ICU cross-check agrees. NFD is
-  the table's OWN (the host ICU was measured to lag Unicode 16). **Half 2 OPEN (next):** the `CobolCollation`
-  carrier collapse (T2), the LOCALE arm + `ALPHABET IS LOCALE` + consumers (T3), `ORDER TABLE` + `STANDARD-COMPARE`
-  (T7), the design §4.4/§4.9 re-based on the derived table, CONFORMANCE.md flips, goldens, constructs rows.
-  **NEXT, in order:** ① PB101 half 2 (above) · ② PB64 T1 (`LocaleSymbol` + `LocaleRef` +
+  **✅ THE COLLATION TASK LANDED — kb/Work PB101 (2026-08-18, DEVLOG 1326 + 1327).** The owner's guidance
+  (build the ISO/IEC-14651-consistent subsystem LEGALLY from CLDR/UCA data as a generated derived table + key builder
+  + engine + tailoring + compiler hook + runtime + docs, then a test suite, a benchmark harness, a Unicode
+  normalization subsystem and a locale-selection system) is landed in two commits: **the engine**
+  (`src/Cobol.Net.Runtime/Collation/`, README there; the generator over the pinned `data/unicode/` — CLDR
+  release-48-2 / UCA 17.0.0; its OWN NFD; the full CLDR conformance test 206,298 + 227,809 lines / 0 violations) and
+  **the integration**: the ONE `CobolCollation` carrier (T2), `ALPHABET … IS LOCALE` for the CURRENT locale through the
+  new minimal `LocaleState` on `RunUnit` (T3 — the NAMED form and the SORT snapshot ride T1), `ORDER TABLE` +
+  `STANDARD-COMPARE` (T7, by an Opus 5 agent, gated by the main line), the identical-prefix skip the benchmark harness
+  forced, and the four subsystems (`tests/Cobol.Net.Tests.Unit/Collation/`, `tests/Cobol.Net.Benchmarks/`,
+  `src/Cobol.Net.Runtime/Unicode/`, `src/Cobol.Net.Runtime/Collation/Locale/`). CONFORMANCE.md: A.3 item 25 CLAIMED,
+  A.4.9 items 10 (ALPHABET half, bare form) and 11 CLAIMED, the rest refused by name. Two process defects fixed on the
+  way (PB102 `.gitattributes -text` for the pinned data; PB103 the fleet build guard's self-block). The 18 §15.85 /
+  ORDER TABLE inventory rows are adjudicated (17 CONFORMS, SR11 PARTIAL) — **GAP 3916**. Diagnostic band: 1662/1663
+  used; next free per session-probe.
+  **NEXT, in order:** ① PB64 T1 (`LocaleSymbol` + `LocaleRef` +
   `LocaleFacts` + `LocaleState` on `RunUnit`; the SPECIAL-NAMES LOCALE clause declares; `SET` formats 11/12;
   revert PB100's `EcNameResolution` refusal of the EC-LOCALE names; four constructs.json rows; goldens) → T2 …
   T7 per the design's §12, a battery per increment · then Phase-B adjudication (a NEW defect found on the way

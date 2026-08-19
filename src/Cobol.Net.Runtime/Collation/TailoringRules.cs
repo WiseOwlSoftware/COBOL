@@ -15,7 +15,7 @@ namespace CobolNet.Runtime.Collation;
 /// <code>
 /// @version 17.0.0                 # optional — refused when it differs from the base table's UCA version
 /// @locale es-ES                   # optional — names the tailoring
-/// # code point   primary secondary tertiary [variable]      one element (the owner's minimal form)
+/// # code point   primary secondary tertiary [variable]      one element (the owner's minimal form; U+ or 0x prefix)
 /// U+00F1         25718 0020 0002                            # ñ — right after n at level 1
 /// # several code points (a CONTRACTION) — every code point then needs its U+ prefix
 /// U+006E U+0303  25718 0020 0002
@@ -23,10 +23,11 @@ namespace CobolNet.Runtime.Collation;
 /// U+00E6         [23EC0 0020 0004] [0000 011F 0004] [24530 0020 0004]
 /// </code>
 /// <para><b>Locale lookup</b> (<see cref="ForLocale"/>): <c>&lt;tag&gt;.tailor</c> is searched in the directory named by
-/// the <c>COBOL_COLLATION_DIR</c> environment variable, then in <c>Collation/</c> beside the running application, then
-/// among the tailorings embedded in this assembly (<c>Collation/Tailoring/*.tailor</c>: en-US, fr-FR, es-ES, es); an
-/// exact tag first, then the language alone. A locale with no file collates by the root order — which is the CLDR
-/// order for English, French, German and most European languages.</para>
+/// the <c>COBOL_COLLATION_DIR</c> environment variable, then in <c>Collation/</c> and <c>Collation/Locales/</c> beside
+/// the running application (<see cref="SearchDirectories"/>), then among the tailorings embedded in this assembly
+/// (<c>Collation/Tailoring/*.tailor</c>: en-US, fr-FR, es-ES, es); an exact tag first, then the language alone. A
+/// locale with no file collates by the root order — which is the CLDR order for English, French, German and most
+/// European languages.</para>
 /// </summary>
 public sealed class TailoringRules
 {
@@ -91,11 +92,38 @@ public sealed class TailoringRules
         if (string.IsNullOrWhiteSpace(localeTag)) return null;
         foreach (string candidate in Candidates(localeTag))
         {
-            if (FromDirectory(Environment.GetEnvironmentVariable(EnvDirectory), candidate) is { } fromEnv) return fromEnv;
-            if (FromDirectory(Path.Combine(AppContext.BaseDirectory, "Collation"), candidate) is { } fromApp) return fromApp;
+            foreach (string dir in SearchDirectories())
+                if (FromDirectory(dir, candidate) is { } fromDisk) return fromDisk;
             if (FromResource(candidate) is { } embedded) return embedded;
         }
         return null;
+    }
+
+    /// <summary>The disk directories a tailoring is looked for in, in precedence order, existing ones only: the
+    /// <c>COBOL_COLLATION_DIR</c> directory, then <c>Collation/</c> and <c>Collation/Locales/</c> beside the running
+    /// application. The embedded tailorings come after all of them.</summary>
+    public static IEnumerable<string> SearchDirectories()
+    {
+        string? env = Environment.GetEnvironmentVariable(EnvDirectory);
+        if (!string.IsNullOrWhiteSpace(env) && Directory.Exists(env)) yield return env;
+        string app = Path.Combine(AppContext.BaseDirectory, "Collation");
+        if (Directory.Exists(app)) yield return app;
+        string locales = Path.Combine(app, "Locales");
+        if (Directory.Exists(locales)) yield return locales;
+    }
+
+    /// <summary>The tailoring names (file names without the <c>.tailor</c> extension) a directory holds.</summary>
+    public static IEnumerable<string> TailoringsIn(string directory) =>
+        Directory.Exists(directory)
+            ? Directory.EnumerateFiles(directory, "*" + FileExtension).Select(f => Path.GetFileNameWithoutExtension(f) ?? "").Where(n => n.Length > 0)
+            : [];
+
+    /// <summary>A one-line description of where <see cref="ForLocale"/> looked for a tag — for diagnostics.</summary>
+    public static string DescribeSearch(string localeTag)
+    {
+        var dirs = SearchDirectories().ToList();
+        string where = dirs.Count == 0 ? "no tailoring directory exists" : "searched " + string.Join(", ", dirs);
+        return $"{string.Join(" / ", Candidates(localeTag).Select(c => c + FileExtension))}: {where}, then the embedded tailorings ({string.Join(", ", EmbeddedNames())})";
     }
 
     /// <summary>The embedded tailorings' names (the shipped locale set), for diagnostics and tests.</summary>
@@ -201,16 +229,14 @@ public sealed class TailoringRules
         }
         if (tokens.Count == 0) throw Error(source, lineNo, "empty mapping");
 
-        // Code points: every leading U+ token; else the first token.
-        var cps = new List<int>();
-        int t = 0;
+        // Code points: the first token always (U+, 0x or bare hex), then every FURTHER token that carries the U+
+        // prefix (a contraction) — 0x is admitted on the first code point only, so a 0x-prefixed WEIGHT after it
+        // still reads as a weight.
+        if (groups.Count > 0 && groups[0].Start == 0) throw Error(source, lineNo, "a mapping starts with its code point, not an element");
+        var cps = new List<int> { ParseCodePoint(tokens[0], source, lineNo) };
+        int t = 1;
         while (t < tokens.Count && tokens[t].StartsWith("U+", StringComparison.OrdinalIgnoreCase))
             cps.Add(ParseCodePoint(tokens[t++], source, lineNo));
-        if (cps.Count == 0)
-        {
-            if (groups.Count > 0 && groups[0].Start == 0) throw Error(source, lineNo, "a mapping starts with its code point, not an element");
-            cps.Add(ParseCodePoint(tokens[t++], source, lineNo));
-        }
         if (cps.Count > 1 && !tokens[0].StartsWith("U+", StringComparison.OrdinalIgnoreCase))
             throw Error(source, lineNo, "the code points of a contraction must each carry the U+ prefix");
 
@@ -253,7 +279,8 @@ public sealed class TailoringRules
 
     private static int ParseCodePoint(string token, string source, int lineNo)
     {
-        string hex = token.StartsWith("U+", StringComparison.OrdinalIgnoreCase) ? token[2..] : token;
+        string hex = token.StartsWith("U+", StringComparison.OrdinalIgnoreCase) || token.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? token[2..] : token;
         if (!int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int cp) || cp < 0 || cp > 0x10FFFF)
             throw Error(source, lineNo, $"'{token}' is not a code point (U+0000..U+10FFFF, hexadecimal)");
         return cp;

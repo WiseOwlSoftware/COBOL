@@ -33,17 +33,25 @@ public enum IntrinsicCodomain { None, UnitOpen, HalfPi, Pi }
 /// language module is DOCUMENTED NON-SUPPORT — a permanent, conformance-legal disposition, distinct from
 /// <see cref="Deferred"/>'s "will be implemented": ISO §4.2.7 + A.4.1 (an implementation accepts an optional
 /// element's syntax ONLY when support is claimed; non-support is conforming when documented), here the A.4.9
-/// locale module (ratified decision 3) — STANDARD-COMPARE additionally rides A.3 item 25 (the implementor need
-/// not accept the syntax absent an ISO/IEC 14651:2020 implementation). The binder rejects such a reference at
-/// BIND time with COBOLNET1518 (the P11 Step-8 arm); the renderer's empty-<c>RuntimeMethod</c> loud fallback is
-/// the never-reached backstop.</summary>
+/// locale module — non-support PER ELEMENT, each arm deleted as its increment lands (owner decision Q1,
+/// 2026-08-18: the module IS being implemented; DESIGN-locale-facility §12). The binder rejects such a reference
+/// at BIND time with COBOLNET1518 (the P11 Step-8 arm); the renderer's empty-<c>RuntimeMethod</c> loud fallback
+/// is the never-reached backstop.
+/// <para>⚠ STANDARD-COMPARE (§15.85) is NO LONGER one of them (kb/Work PB101 T7). It rode A.3 item 25 — "The
+/// implementor need not accept the syntax … when support for ISO/IEC 14651:2020 is not provided" — and support
+/// IS now provided, over the derived CLDR/UCA collation engine, so its row binds <see cref="Runtime"/>.</para></summary>
 public enum IntrinsicBind { Runtime, Fold, Deferred, Unsupported }
 
 /// <summary>
 /// One catalog row (deep-dive D2 — the SINGLE source of result-category truth). <paramref name="ArgKinds"/> is the
-/// per-position argument-category code per §15.3 — <c>'n'</c> numeric, <c>'i'</c> integer, <c>'s'</c>
-/// alphanumeric/string, <c>'p'</c> category-polymorphic (MAX/MIN families resolve by the bound arguments) — with
-/// the LAST character repeating for arguments past the string's length (the variadic tail).
+/// per-position argument-TYPE code per §15.3 — <c>'n'</c> numeric (type 10), <c>'i'</c> integer (type 6),
+/// <c>'s'</c> alphanumeric/string (types 1/2/9), <c>'c'</c> the CONCAT set, <c>'b'</c> boolean (type 3),
+/// <c>'p'</c> category-polymorphic (MAX/MIN families resolve by the bound arguments), <c>'o'</c> ordering-name
+/// (type 12 — a NAME the function's own binder resolves, never an operand) — with the LAST character repeating
+/// for arguments past the string's length (the variadic tail). A code that is not an OPERAND kind carries its
+/// disposition in <c>IntrinsicArgumentRules.NonOperandArgumentKinds</c>, and
+/// <c>IntrinsicArgumentClassDriftTests</c> fails on a code with neither an <c>Admissible</c> arm nor an entry
+/// there — the PB1 dead-column trap, closed for every future name/keyword kind.
 /// <paramref name="Float"/> marks the §15.4.1 floating-math family (computes in double; the emitter quantizes via
 /// the one <c>FromDouble</c>). <paramref name="IntroducedIn"/>/<paramref name="RemovedIn"/> are the D8 edition
 /// window (85 = the 1989 Intrinsic Function Module amendment, part of the CCVS-85 corpus), enforced by the binder
@@ -223,12 +231,13 @@ public static class IntrinsicCatalog
         Add(new("HIGHEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002, Result: IntrinsicResultRule.IntegerFollowsArgument1)); // §15.43.1 (compile-time PICTURE fold)
         Add(new("LOWEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002, Result: IntrinsicResultRule.IntegerFollowsArgument1));  // §15.58.1 (compile-time PICTURE fold)
         Add(new("INTEGER-OF-BOOLEAN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "IntegerOfBoolean", IntrinsicBind.Runtime, false, 2002)); // §15.45 — the unsigned MSB-first value of the bit configuration (r1)
-        // The A.4.9 locale module (optional; ratified decision 3 = documented non-support, conforming per
-        // §4.2.7 + A.4.1): the four locale functions take a bare POSITIONAL [locale-name-1] (no LOCALE
+        // The A.4.9 locale module (optional): the FOUR locale functions are documented non-support until their
+        // increment lands (owner decision Q1, 2026-08-18 — the module IS being implemented, §12 of
+        // DESIGN-locale-facility sequences it), and they take a bare POSITIONAL [locale-name-1] (no LOCALE
         // keyword, §15.51.2/.52.2/.53.2/.54.2). STANDARD-COMPARE (§15.85) is A.4.9 item 11 but NOT
         // locale-dependent — it consumes an ISO/IEC 14651:2020 cultural ordering table (SPECIAL-NAMES ORDER
-        // TABLE, §12.3.7 GR17); its independent non-support route is A.3 item 25 (the implementor need not
-        // accept the syntax absent a 14651 implementation) — cite BOTH. Bind = Unsupported → COBOLNET1518.
+        // TABLE, §12.3.7.4 GR17) — and it is IMPLEMENTED (kb/Work PB101 T7, owner decision Q4): support IS
+        // claimed under A.3 item 25 over the derived CLDR/UCA collation engine, so its row binds Runtime.
         // ⛔ LOCALE-DATE AND LOCALE-TIME BOTH READ `"is"` — ARGUMENT-1 AS AN INTEGER — AND BOTH WERE WRONG
         // (fix-queue PB27). §15.52.3 r1 and §15.53.3 r1 each say "Argument-1 shall be of class ALPHANUMERIC OR
         // NATIONAL and shall be 8 [resp. 6] CHARACTER POSITIONS in length", and the normative Table 21 agrees
@@ -249,7 +258,19 @@ public static class IntrinsicCatalog
         // (the draft of ISO 1989:2014). They were previously windowed 2002, over-accepting at --std 2002.
         Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Unsupported, false, 2014)); // §15.54 (A.4.9 item 5)
         Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2014)); // §15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
-        Add(new("STANDARD-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 4, "ssis", "", IntrinsicBind.Unsupported, false, 2002)); // §15.85 (A.4.9 item 11 + A.3 item 25)
+        // STANDARD-COMPARE (§15.85.2: `FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ]
+        // [ argument-4 ] )`) — LIVE since kb/Work PB101 T7 (BindStandardCompare + CobolIntrinsics.StandardCompare).
+        // ⛔ THE ARGKINDS COLUMN WAS `"ssis"`, WHICH IS THE FORMAT READ BACKWARDS: position 3 is the
+        // ORDERING-NAME (§15.3 argument type 12 — a NAME, never an operand) and position 4 is the integer
+        // ordering level (§15.85.3 r6). It never contradicted anything because Bind = Unsupported made the column
+        // a dead lookup (feedback_a_dead_lookup_is_also_unverified) — the exact PB1 shape, and the reason the row
+        // was re-derived from §15.85.2 rather than trusted. `'o'` is the ordering-name kind; it never reaches an
+        // operand list (the bespoke binder consumes the word), so IntrinsicArgumentRules.NonOperandArgumentKinds
+        // carries its disposition and the drift test holds catalog vocabulary and screen vocabulary in agreement.
+        // The IntroducedIn 2002 is now ENFORCED rather than suppressed (Bind is no longer Unsupported): ORDER and
+        // its clause are 2002 reservations (reserved-words.json ORDER r85 false / r2002 true), and Annex E lists
+        // no STANDARD-COMPARE delta — VERSION_CHANGE_REFERENCE records the derivation and its limits.
+        Add(new("STANDARD-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 4, "ssoi", "StandardCompare", IntrinsicBind.Runtime, false, 2002)); // §15.85 (A.4.9 item 11 + A.3 item 25 — support claimed)
         // The TEST validators (§15.90/§15.91/§15.93/§15.94) — verdict chains beside their value parsers:
         // the date pair is year-before-month-before-day (D.31.3.8/9 confirm codes 0/1/2[/3]); the NUMVAL
         // pair is 0 / first-error position (the "0 1"→3 embedded-space sub-note; arithmetic-mode digit caps)

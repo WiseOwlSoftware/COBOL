@@ -256,22 +256,22 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
             $"new({k.Offset}, {k.Length}, {(k.Descending ? "true" : "false")}, {(k.Numeric ? "true" : "false")}, "
             + $"{(k.Item is { } ki ? ki.ProfileName : "default")})"));
 
-    /// <summary>The weights argument for the statement's GR5-resolved collating sequence: <c>null</c> for the
-    /// native order, the compiled <c>__COLLATE</c> field when the resolved sequence IS the program collating
-    /// sequence, else the statement alphabet's own inline table (a non-PCS statement alphabet has no emitted
+    /// <summary>The collation argument for the statement's GR5-resolved collating sequence: <c>null</c> for the
+    /// native order, the compiled <c>__COLLATE</c> carrier when the resolved sequence IS the program collating
+    /// sequence, else the statement alphabet's own inline carrier (a non-PCS statement alphabet has no emitted
     /// field — ST108A/ST137A shape).</summary>
-    private string WeightsExpr(CollatingTable? table) =>
-        table is null ? "null"
-        : ReferenceEquals(table, ctx.Data.Collating) ? "__COLLATE.Positions"   // the object's raw table (PB59) — sort compares, never numbers positions
-        : $"new ushort[] {{ {string.Join(", ", table.Positions)} }}";
+    private string WeightsExpr(AlphabetDef? def) =>
+        def is null ? "null"
+        : ReferenceEquals(def, ctx.Data.Collating) ? "__COLLATE"
+        : CollationEmit.New(def);
 
-    /// <summary>The trailing comparison weights argument for a TABLE sort (emitting a local <c>__sw</c> table for
-    /// a non-PCS statement alphabet), or empty for the native order.</summary>
-    private string TableWeightsArg(CollatingTable? table, int id)
+    /// <summary>The trailing collation argument for a TABLE sort (emitting a local <c>__sw</c> carrier for a
+    /// non-PCS statement alphabet), or empty for the native order.</summary>
+    private string TableWeightsArg(AlphabetDef? def, int id)
     {
-        if (table is null) return "";
-        if (ReferenceEquals(table, ctx.Data.Collating)) return ", __COLLATE.Positions";
-        ctx.Writer.Line($"ushort[] __sw{id} = {{ {string.Join(", ", table.Positions)} }};   // statement COLLATING SEQUENCE (GR5a)");
+        if (def is null) return "";
+        if (ReferenceEquals(def, ctx.Data.Collating)) return ", __COLLATE";
+        ctx.Writer.Line($"CobolCollation __sw{id} = {CollationEmit.New(def)};   // statement COLLATING SEQUENCE (GR5a)");
         return $", __sw{id}";
     }
 }

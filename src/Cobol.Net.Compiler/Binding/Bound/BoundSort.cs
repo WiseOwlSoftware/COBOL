@@ -35,7 +35,7 @@ public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);
 /// <paramref name="RecordWidth"/> is the SD record area's physical character-image width.</summary>
 public sealed record BoundSort(
     FileModel File, int RecordWidth,
-    IReadOnlyList<BoundSortMergeKey> Keys, bool DuplicatesInOrder, CollatingTable? Collating,
+    IReadOnlyList<BoundSortMergeKey> Keys, bool DuplicatesInOrder, AlphabetDef? Collating,
     IReadOnlyList<FileModel> Using, (int Start, int End)? InputProcedure,
     IReadOnlyList<FileModel> Giving, (int Start, int End)? OutputProcedure,
     SortVaryingInfo? Varying) : BoundStatement;
@@ -48,7 +48,7 @@ public sealed record BoundSort(
 /// POST-bind whole-group analysis (StoreAsImage) — the emitter reads <c>Table.ElementType</c> then.</summary>
 public sealed record BoundTableSort(
     string ArrayPath, DataItem Table,
-    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, CollatingTable? Collating) : BoundStatement;
+    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, AlphabetDef? Collating) : BoundStatement;
 
 /// <summary>One Format-2 table-sort key: the C# member path RELATIVE to an element variable (empty = the element
 /// itself, ISO §14.9.40 GR23) and the key's <see cref="DataItem"/> (category/profile drive the typed compare).</summary>
@@ -60,7 +60,7 @@ public sealed record BoundTableSortKey(bool Descending, string MemberPath, DataI
 /// RETURN in the <paramref name="OutputProcedure"/> (GR8/GR9). Collating per GR5 (identical to SORT GR5).</summary>
 public sealed record BoundMerge(
     FileModel File, int RecordWidth,
-    IReadOnlyList<BoundSortMergeKey> Keys, CollatingTable? Collating,
+    IReadOnlyList<BoundSortMergeKey> Keys, AlphabetDef? Collating,
     IReadOnlyList<FileModel> Using,
     IReadOnlyList<FileModel> Giving, (int Start, int End)? OutputProcedure,
     SortVaryingInfo? Varying) : BoundStatement;

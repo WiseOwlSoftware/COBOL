@@ -245,23 +245,19 @@ public static partial class CobolIntrinsics
 
     /// <summary>MAX (§15.59) — the greatest argument per the effective collating sequence; the value IS the selected string.</summary>
     public static string MaxString(params string[] xs) => xs[ExtremeIndex(xs, true, static (a, b) => CobolString.Compare(a, b))];
-    public static string MaxString(ushort[] w, params string[] xs) => xs[ExtremeIndex(xs, true, (a, b) => CobolString.Compare(a, b, w))];
-    public static string MaxString(NationalCollation nat, params string[] xs) => xs[ExtremeIndex(xs, true, (a, b) => CobolString.Compare(a, b, nat))];
+    public static string MaxString(CobolCollation collation, params string[] xs) => xs[ExtremeIndex(xs, true, collation.Compare)];
 
     /// <summary>MIN (§15.63) — the least argument per the effective collating sequence.</summary>
     public static string MinString(params string[] xs) => xs[ExtremeIndex(xs, false, static (a, b) => CobolString.Compare(a, b))];
-    public static string MinString(ushort[] w, params string[] xs) => xs[ExtremeIndex(xs, false, (a, b) => CobolString.Compare(a, b, w))];
-    public static string MinString(NationalCollation nat, params string[] xs) => xs[ExtremeIndex(xs, false, (a, b) => CobolString.Compare(a, b, nat))];
+    public static string MinString(CobolCollation collation, params string[] xs) => xs[ExtremeIndex(xs, false, collation.Compare)];
 
     /// <summary>ORD-MAX (§15.71) — 1-based position of the greatest; tie = first.</summary>
     public static long OrdMaxString(params string[] xs) => ExtremeIndex(xs, true, static (a, b) => CobolString.Compare(a, b)) + 1;
-    public static long OrdMaxString(ushort[] w, params string[] xs) => ExtremeIndex(xs, true, (a, b) => CobolString.Compare(a, b, w)) + 1;
-    public static long OrdMaxString(NationalCollation nat, params string[] xs) => ExtremeIndex(xs, true, (a, b) => CobolString.Compare(a, b, nat)) + 1;
+    public static long OrdMaxString(CobolCollation collation, params string[] xs) => ExtremeIndex(xs, true, collation.Compare) + 1;
 
     /// <summary>ORD-MIN (§15.72) — 1-based position of the least; tie = first.</summary>
     public static long OrdMinString(params string[] xs) => ExtremeIndex(xs, false, static (a, b) => CobolString.Compare(a, b)) + 1;
-    public static long OrdMinString(ushort[] w, params string[] xs) => ExtremeIndex(xs, false, (a, b) => CobolString.Compare(a, b, w)) + 1;
-    public static long OrdMinString(NationalCollation nat, params string[] xs) => ExtremeIndex(xs, false, (a, b) => CobolString.Compare(a, b, nat)) + 1;
+    public static long OrdMinString(CobolCollation collation, params string[] xs) => ExtremeIndex(xs, false, collation.Compare) + 1;
 
     // ── NUMVAL / NUMVAL-C (ISO §15.67 / §15.68) ───────────────────────────────────────────────────────────────
 

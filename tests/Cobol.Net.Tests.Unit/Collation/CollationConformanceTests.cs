@@ -6,7 +6,7 @@ using CobolNet.Tests.Shared;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CobolNet.Tests.Unit;
+namespace CobolNet.Tests.Unit.Collation;
 
 /// <summary>
 /// The Unicode CLDR root-collation CONFORMANCE tests (cldr/common/uca/CollationTest_CLDR_*_SHORT.txt, release-48-2,
@@ -68,7 +68,7 @@ public sealed class CollationConformanceTests(ITestOutputHelper output)
         Assert.True(violations == 0, $"{violations} ordering violation(s) in {Path.GetFileName(path)} (first 25):\n{report}");
     }
 
-    /// <summary>"0061 0301 …" \U00002192 the string. False when the sequence contains a high surrogate code point immediately
+    /// <summary>"0061 0301 …" → the string. False when the sequence contains a high surrogate code point immediately
     /// followed by a low one (UTF-16 cannot keep them apart).</summary>
     private static bool TryDecode(string line, out string s)
     {

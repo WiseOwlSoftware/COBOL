@@ -35,12 +35,18 @@ internal static class EcNameResolution
                 + "ISO/IEC 1989 §14.6.13.1 (and not a valid EC-USER-/EC-IMP- name)");
             return false;
         }
-        // Annex A.4.9 item 1: the EC-LOCALE family and EC-ORDER-NOT-SUPPORTED "in the RAISING phrase of the EXIT and
-        // GOBACK statements, the RAISING phrase of the procedure division header, the USE statement, the WHEN phrase …"
-        // are elements of the optional locale module, which COBOL.NET documents as NON-SUPPORT (CONFORMANCE.md §4 item
-        // 5); A.4.1 admits the syntax only when support is claimed, so the names are refused BY NAME here — the ONE
-        // funnel every naming site passes through (kb/Work PB100; they used to be accepted, and could never occur).
-        if (info.Name.StartsWith("EC-LOCALE", StringComparison.Ordinal) || info.Name == "EC-ORDER-NOT-SUPPORTED")
+        // Annex A.4.9 item 1: the EC-LOCALE family "in the RAISING phrase of the EXIT and GOBACK statements, the
+        // RAISING phrase of the procedure division header, the USE statement, the WHEN phrase …" are elements of the
+        // optional locale module, which COBOL.NET documents as NON-SUPPORT until each increment lands
+        // (CONFORMANCE.md §4 item 5); A.4.1 admits the syntax only when support is claimed, so the names are refused
+        // BY NAME here — the ONE funnel every naming site passes through (kb/Work PB100; they used to be accepted,
+        // and could never occur).
+        // ⚠ EC-ORDER-NOT-SUPPORTED WAS REFUSED HERE TOO AND NO LONGER IS (kb/Work PB101 T7). It is not an
+        // EC-LOCALE name and not part of A.4.9's locale machinery: §A.3 item 25 groups it with STANDARD-COMPARE and
+        // the ORDER TABLE clause as ISO/IEC 14651:2020-dependent, and its raise site (§15.85.4 r2) is LIVE, so the
+        // name is legal again and a program can >>TURN it on, name it in a USE declarative, or match it in a WHEN
+        // phrase. Refusing a name whose condition this compiler now raises would make the condition unobservable.
+        if (info.Name.StartsWith("EC-LOCALE", StringComparison.Ordinal))
         {
             edition.Error("COBOLNET1518", $"{where}: exception-name {info.Name} belongs to the optional locale module "
                 + "(ISO Annex A.4.9 item 1), which COBOL.NET documents as not supported (CONFORMANCE.md §4 item 5)");

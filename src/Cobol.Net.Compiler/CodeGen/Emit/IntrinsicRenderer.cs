@@ -800,10 +800,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// FIRST (a <c>params string[]</c> can take no trailing param), selecting the <c>MaxString(ushort[]|NationalCollation,
     /// params string[])</c> overload. The mirror of <see cref="Collate"/>'s trailing form for the single-arg CHAR/ORD.</summary>
     private static string CollatePrefix(BoundIntrinsicCall ic) =>
-        // The alphanumeric MAX/MIN family compares — it never exposes a position number — so it reads the raw
-        // .Positions table (order-equivalent tail; the proof note at CobolString.Weight). CHAR/ORD take the
-        // OBJECT via Collate() above (PB59).
-        ic.Collate ? "__COLLATE.Positions, " : ic.CollateNat ? "__COLLATE_NAT, " : "";
+        // The MAX/MIN family takes the program's CobolCollation carrier, exactly as CHAR/ORD do (PB101 — the
+        // ushort[] raw-table overload is gone; the carrier's Compare is the order-equivalent tail, PB59).
+        ic.Collate ? "__COLLATE, " : ic.CollateNat ? "__COLLATE_NAT, " : "";
 
     // ── The STRING channel (instance — reached through OperandText.AsString with the per-unit renderer) ─────
 
@@ -870,6 +869,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                     ? LeadThenTail(ic, sig.RuntimeMethod, "", "string", Str, mid: $"{ic.TrimMode}, ")
                     : RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ic.TrimMode}"
                         + string.Concat(ic.Args.Skip(1).Select(a => $", {Str(a)}"))),
+            // STANDARD-COMPARE (§15.85) — the cultural-ordering comparison over the derived CLDR/UCA engine
+            // (kb/Work PB101 T7). The ordering TABLE travels as the bind-time-resolved literal-9 (null ⇒ §15.85.3
+            // r5's default table); the ordering LEVEL travels as 0 when argument-4 is omitted, which §15.85.4 r1
+            // defines as "the highest level defined in the ordering table". Both are complete on the bound node,
+            // so the backend never consults the SPECIAL-NAMES model.
+            "StandardCompare" =>
+                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, "
+                    + $"{(ic.OrderingTable is { } ot ? EmitText.CsLiteral(ot) : "null")}, "
+                    + $"{(ic.Args.Count > 2 ? ArgInt(ic.Args[2]) : "0")}"),
             "Substitute" => RenderSubstitute(ic),                              // §15.87 — replace argument-2 pairs (2023)
             "Convert" =>                                                       // §15.19 — repertoire / hex / byte conversion (2023);
                 RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   an ANY source takes the RAW STORAGE image (r7, PB59 5b)

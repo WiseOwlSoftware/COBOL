@@ -28,10 +28,11 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// context of one generated module, so minted temporaries never collide across units.</summary>
     public NameAllocator Names { get; } = names;
 
-    /// <summary>The trailing weights argument for collated comparison renders — <c>", __COLLATE"</c> when a
-    /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else
-    /// empty (the native two-argument <c>CobolString.Compare</c> overload).</summary>
-    public string CollateArg => Data.Collating is null ? "" : ", __COLLATE.Positions";   // comparisons read the raw table (PB59 — order-equivalent tail; CHAR/ORD take the object)
+    /// <summary>The trailing collation argument for collated comparison renders — <c>", __COLLATE"</c> (the program's
+    /// ONE <c>CobolCollation</c> carrier — a literal-phrase table or a LOCALE sequence, kb/Work PB101) when a
+    /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else empty
+    /// (the native two-argument <c>CobolString.Compare</c> overload).</summary>
+    public string CollateArg => Data.Collating is null ? "" : ", __COLLATE";
 
     /// <summary>The NATIONAL twin of <see cref="CollateArg"/> — <c>", __COLLATE_NAT"</c> when a NON-native
     /// NATIONAL program collating sequence is active (ISO §12.3.6 GR11 / §8.8.4.2.9 — an <c>ALPHABET … FOR

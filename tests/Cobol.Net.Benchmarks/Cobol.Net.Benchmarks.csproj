@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Cobol.Net.Benchmarks — the BenchmarkDotNet harness for the COBOL.NET runtime's performance-sensitive
+    subsystems (kb/Work PB101: the collation engine, src/Cobol.Net.Runtime/Collation/). NOT a test project:
+    nothing in CI runs it, and it asserts nothing.
+
+    HOW TO RUN IT: see README.md beside this file. The command lines cannot be written here, because every one
+    of them contains a double hyphen and XML forbids a double hyphen inside a comment.
+
+    BenchmarkDotNet insists on Release. A Debug build still compiles and still runs, but it measures a Debug JIT
+    and the harness prints a validation warning saying so, which is not the number anyone wants. The project is
+    a member of CobolSharp.sln, so a solution build keeps it compiling in BOTH configurations; only the measured
+    run is Release-only.
+
+    Results land in ./BenchmarkDotNet.Artifacts/results/ (GitHub-flavoured Markdown, HTML and CSV, per
+    Collation/BenchmarkConfig.cs). That directory is a build output and is not committed.
+
+    TFM / LangVersion / Nullable / ImplicitUsings / TreatWarningsAsErrors all come from the repository-root
+    Directory.Build.props (imported by tests/Directory.Build.props); nothing here re-declares them.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <!--
+      Measure the runtime a released build would use: tiered PGO on (the default, stated for the record), and a
+      workstation non-concurrent GC so MemoryDiagnoser's Gen0 counts are attributable to the benchmark rather
+      than to a background collection racing it.
+    -->
+    <TieredPGO>true</TieredPGO>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Cobol.Net.Runtime\Cobol.Net.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      tests/Directory.Build.props links tests/_shared/*.cs into every project under tests/. Those helpers exist
+      for the xUnit projects (child-process observation, repo-root location) and are dead weight here, so the
+      link is dropped rather than carried: a benchmark assembly should hold benchmarks and nothing else, and an
+      unused linked file is one more thing that can fail to compile for reasons unrelated to benchmarking.
+    -->
+    <Compile Remove="$(MSBuildThisFileDirectory)../_shared/*.cs" />
+  </ItemGroup>
+
+</Project>

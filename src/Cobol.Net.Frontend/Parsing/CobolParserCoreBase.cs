@@ -99,6 +99,22 @@ public abstract class CobolParserCoreBase : Parser
     protected bool pictureLocaleAhead() =>
         Edition.Has(2002) && string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>The SPECIAL-NAMES <c>ORDER TABLE ordering-name-1 IS literal-9</c> clause (ISO §12.3.7.2 — the last
+    /// item of the paragraph's general format; kb/Work PB101). ORDER is not a lexer token (the same choice the
+    /// LOCALE clause's keyword rests on — §8.9 reserves it from 2002 and the funnel models the reservation), so the
+    /// clause is recognized here by the word pair; TABLE is a token.
+    /// <para>⛔ NOT EDITION-GATED, AND THE LOCALE PRECEDENT DELIBERATELY DOES NOT APPLY. <see cref="localeClauseAhead"/>
+    /// is gated because <c>SPECIAL-NAMES. LOCALE IS FOO.</c> is a legal COBOL-85 implementor-switch entry that must
+    /// keep its '85 reading. There is no such reading here: <b>TABLE is reserved at EVERY edition</b>
+    /// (<c>reserved-words.json</c> r85 true), so it can be neither a mnemonic-name after <c>ORDER</c> nor the first
+    /// word of a following entry — the pair ORDER + TABLE cannot begin anything else in a '85 SPECIAL-NAMES
+    /// paragraph. Recognizing it at every edition is what lets the ONE construct gate answer with the explanatory
+    /// <c>order-table-2002</c> introduction diagnostic below 2002 instead of a raw parse error at TABLE
+    /// (superset-parse / bind-narrow, and the two-obligation rule's diagnostic half).</para></summary>
+    protected bool orderTableAhead() =>
+        string.Equals(TokenStream.LT(1)?.Text, "ORDER", StringComparison.OrdinalIgnoreCase)
+        && TokenStream.LT(2)?.Type == CobolLexer.TABLE;
+
     protected bool localeClauseAhead()
     {
         if (!Edition.Has(2002)) return false;

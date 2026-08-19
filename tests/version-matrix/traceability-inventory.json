@@ -12121,12 +12121,12 @@
   "kind": "SR",
   "ordinal": 9,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+  "test-ref": "unit:StandardCompareTests.TheClauseAndEveryReferenceShape_Compile; conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: an ordering-name lives in its own SPECIAL-NAMES registry (OrderTables) that only BindStandardCompare consults; no other reference form resolves it, so a use elsewhere is an undefined word.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-10",
@@ -12134,12 +12134,12 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind",
+  "test-ref": "unit:StandardCompareTests.Literal9_ObeysSr10AndSr11",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: literal-9 shall be an alphanumeric or national literal — a numeric or boolean literal is COBOLNET0898 citing SR10 (literal-4 is the LOCALE clause's, T1).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-11",
@@ -12147,11 +12147,11 @@
   "kind": "SR",
   "ordinal": 11,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind",
+  "test-ref": "unit:StandardCompareTests.Literal9_ObeysSr10AndSr11",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: literal-9's half — a symbolic-character figurative constant or a zero-length literal is refused (COBOLNET0898 citing SR11). Literal-1..6 (the ALPHABET / CLASS / SYMBOLIC operands) are the pre-existing binders' half of the same rule and are not re-verdicted here; PARTIAL records that this landing owns only literal-9.",
   "state": "GAP"
  },
  {
@@ -13018,12 +13018,12 @@
   "kind": "GR",
   "ordinal": 17,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind; src/Cobol.Net.Runtime/Collation/CollationEngine.cs#TryGetOrderingTable",
+  "test-ref": "conformance:2002/pb101_standard_compare; conformance:2002/pb101_ec_order_not_supported; unit:StandardCompareTests.AnUnresolvableLiteral9_IsAWarning_NotAnError; unit:StandardCompareTests.TheDefaultTable_IsNamedInEverySpelling",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7 — the implementor's allowable content of literal-9 (documented in CONFORMANCE.md §4 item 5): 'ISO 14651_2020_TABLE1' in either spelling (the derived CLDR/UCA root table, four levels, shifted) or a CLDR locale tag (that locale's tailoring over the root table); anything else is a legal clause that warns COBOLNET1662 and sets EC-ORDER-NOT-SUPPORTED at every reference (§15.85.4 r2). Every table is a Unicode-licensed derivation; no ISO/IEC 14651 file is vendored.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-18",
@@ -47975,12 +47975,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+  "test-ref": "unit:StandardCompareTests.Argument1And2_ObeyTheClassAndZeroLengthRules; conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: the class screen (alphabetic / alphanumeric / national) runs on both operands through the shared CheckArgumentClasses; a numeric operand is refused.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.85.3-2",
@@ -47988,12 +47988,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+  "test-ref": "unit:StandardCompareTests.Argument1And2_ObeyTheClassAndZeroLengthRules; conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: same screen as argument-1.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.85.3-3",
@@ -48001,12 +48001,12 @@
   "kind": "AR",
   "ordinal": 3,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+  "test-ref": "conformance:2002/pb101_standard_compare; unit:StandardCompareTests.Argument1And2_ObeyTheClassAndZeroLengthRules",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: no cross-class check exists; the golden compares an alphanumeric literal with a PIC X item and the runtime body takes both operands as strings (r3's national conversion is the identity on the D-N1 substrate).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.85.3-4",
@@ -48014,12 +48014,12 @@
   "kind": "AR",
   "ordinal": 4,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+  "test-ref": "unit:StandardCompareTests.Argument1And2_ObeyTheClassAndZeroLengthRules",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: a zero-length literal operand is refused (COBOLNET1663 cites r4).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.85.3-5",
@@ -48027,12 +48027,12 @@
   "kind": "AR",
   "ordinal": 5,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind; src/Cobol.Net.Runtime/Collation/CollationEngine.cs#TryGetOrderingTable",
+  "test-ref": "conformance:2002/pb101_standard_compare; conformance:negative/standard-compare-unknown-ordering-name; unit:StandardCompareTests.BadOrderingNameOrLevel_IsCobolnet1663; unit:StandardCompareTests.TheDefaultTable_IsNamedInEverySpelling",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: a bare word that is not an ORDER TABLE ordering-name is COBOLNET1663; an omitted ordering-name is the default table 'ISO 14651_2020_TABLE1' — realized as the derived CLDR/UCA root table under the ISO/IEC 14651 four-level shifted ordering (CollationEngine.Standard); the name is matched in either spelling the standard uses (§15.85.3 r5 space, §12.3.7.4 NOTE 5 underscore).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.85.3-6",
@@ -48040,12 +48040,12 @@
   "kind": "AR",
   "ordinal": 6,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+  "test-ref": "unit:StandardCompareTests.BadOrderingNameOrLevel_IsCobolnet1663; conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: a literal level that is not a positive nonzero integer is COBOLNET1663 (r6); a level whose value exceeds the table's levels is r2's run-time condition.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.85.4-1",
@@ -48053,12 +48053,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+  "test-ref": "unit:StandardCompareTests.OmittedLevel_IsTheHighestLevelTheTableDefines; conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: level 0 (unspecified) is 4 — the highest level the derived table defines (UCA's four: primary, secondary, tertiary, the shifted variable weights); the golden's OMHY line equals its L4HY line and differs from L3HY.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.85.4-2",
@@ -48066,12 +48066,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#OrderNotSupportedError",
+  "test-ref": "conformance:2002/pb101_ec_order_not_supported; unit:StandardCompareTests.UnavailableTableOrLevel_RaisesEcOrderNotSupported; unit:StandardCompareTests.UnavailableTable_WithCheckingOff_ReturnsEqual_AndRecordsNothing",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: an unresolvable ordering table (a literal-9 that is neither the default name nor a locale tag) or a level outside 1..4 sets EC-ORDER-NOT-SUPPORTED at the reference through the ambient-gate machinery (a USE declarative observes it — the golden); with checking off the function answers \"=\" (the §14.6.13.1.3 #8 implementor choice, CONFORMANCE.md §4 item 5). The binder warns COBOLNET1662 at compile time for a literal-9 that can never resolve.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.85.4-3",
@@ -48079,12 +48079,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+  "test-ref": "conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: on the D-N1 substrate an alphanumeric and a national position are both one UTF-16 code unit over the same repertoire, so the conversion to class national is the identity — both operands arrive as strings already in it (documented in the runtime body).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.85.4-4",
@@ -48092,12 +48092,12 @@
   "kind": "RV",
   "ordinal": 4,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare; src/Cobol.Net.Runtime/Values/Text/LocaleCollation.cs#TrimForLocale",
+  "test-ref": "unit:StandardCompareTests.TrailingSpaces_AreTruncated_AllSpacesToOne; conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: the ONE TrimForLocale (also §8.8.4.2.11's rule for locale-based comparison) — trailing spaces off, an all-space operand ONE space (not empty).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.85.4-5",
@@ -48105,12 +48105,12 @@
   "kind": "RV",
   "ordinal": 5,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare; src/Cobol.Net.Runtime/Collation/CollationEngine.cs#StandardAtLevel",
+  "test-ref": "conformance:2002/pb101_standard_compare; unit:StandardCompareTests.Level1_ComparesBaseLettersOnly; unit:StandardCompareTests.Level2_AddsAccents_NotCase; unit:StandardCompareTests.Level3_AddsCase; unit:StandardCompareTests.Level4_WeighsPunctuation_WhichLevels1To3Ignore; unit:StandardCompareTests.ALocaleTag_NamesItsTailoredOrderingTable",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: the comparison is the derived CLDR/UCA engine (Runtime/Collation/) at the ordering level: primary / secondary / tertiary / the shifted fourth level where variable characters weigh — the ISO/IEC 14651 default treatment; a locale-tag literal-9 selects that locale's tailored table. Conformance statement (owner, verbatim): \"Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data.\"",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.85.4-6",
@@ -48118,12 +48118,12 @@
   "kind": "RV",
   "ordinal": 6,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+  "test-ref": "unit:StandardCompareTests.ReturnedValue_IsOneOfThreeCharacters_LengthOne; conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: \"<\", \"=\", \">\".",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.85.4-7",
@@ -48131,12 +48131,12 @@
   "kind": "RV",
   "ordinal": 7,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+  "test-ref": "unit:StandardCompareTests.ReturnedValue_IsOneOfThreeCharacters_LengthOne; conformance:2002/pb101_standard_compare",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7: length 1 (the golden's LEN line through FUNCTION LENGTH).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.86.3-1",
@@ -52954,12 +52954,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "STANDARD-COMPARE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+  "test-ref": "conformance:2002/pb101_standard_compare; unit:StandardCompareTests.TheClauseAndEveryReferenceShape_Compile",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB101 T7 (2026-08-18): FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] ) — the bespoke binder takes the two operands, then a bare ordering-name and/or an integer level in either order the format admits; ArgKinds ssoi ('o' = §15.3 argument type 12). Below 2002 the function is COBOLNET1502 (standard-compare-2002).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.86.2",

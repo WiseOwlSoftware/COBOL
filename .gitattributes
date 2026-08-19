@@ -9,3 +9,13 @@
 # single diff. Declaring it here makes the exception intentional and immune to `git add --renormalize`.
 # This matches what Git already does, so it introduces no diff.
 DEVLOG.md -text
+
+# The PINNED Unicode data under data/unicode/ is CONTENT-ADDRESSED: root-collation.manifest.json records the
+# SHA-256 of each input file's BYTES, and CollationTableTests.Manifest_InputsAndOutput_MatchTheCommittedFiles
+# re-hashes them to prove the committed table IS the generator's output over the committed sources. Under
+# core.autocrlf=true a fresh Windows clone (or an agent worktree — observed 2026-08-18) checks them out CRLF,
+# every input hash changes, and that drift test fails on a tree nobody edited; regenerating there would then
+# commit CRLF hashes and break every LF checkout. Declared byte-exact so every checkout hashes what the
+# generator read. The .txt glob also covers LICENSE-UNICODE.txt, which must stay byte-exact for the same reason.
+data/unicode/*.txt -text
+data/unicode/*.xml -text

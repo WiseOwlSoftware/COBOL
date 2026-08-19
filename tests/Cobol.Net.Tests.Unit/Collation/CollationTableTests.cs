@@ -6,12 +6,12 @@ using CobolNet.Runtime.Collation;
 using CobolNet.Tests.Shared;
 using Xunit;
 
-namespace CobolNet.Tests.Unit;
+namespace CobolNet.Tests.Unit.Collation;
 
 /// <summary>
 /// The derived collation TABLE (Runtime/Collation/CollationTable.cs; docs: src/Cobol.Net.Runtime/Collation/README.md):
 /// the embedded root table loads, carries the versions its manifest records, covers ASCII and Latin-1 explicitly,
-/// computes Hangul and UTS #10 Table 16 implicit weights, and knows its non-starters. The manifest \U000021C4 data drift test
+/// computes Hangul and UTS #10 Table 16 implicit weights, and knows its non-starters. The manifest ⇄ data drift test
 /// keeps the committed table, the committed source data and the generator's record of them in agreement.
 /// </summary>
 public sealed class CollationTableTests
@@ -74,6 +74,52 @@ public sealed class CollationTableTests
         Assert.Contains(rows, r => r.First == "U+18800" && r.Base == "0xFB01" && r.Kind == "siniform");
         Assert.Contains(rows, r => r.First == "U+1B170" && r.Base == "0xFB02" && r.Kind == "siniform");
         Assert.Contains(rows, r => r.First == "U+18B00" && r.Base == "0xFB03" && r.Kind == "siniform");
+    }
+
+    /// <summary>The owner's requested lookups (2026-08-18): the key ASCII points, 'A'/'a' equal at primary and
+    /// distinct at tertiary, and an accented letter sharing 'a''s primary while differing at secondary — the accent
+    /// being the SECOND element of á's expansion (a real UCA table expands a precomposed letter to base + mark), so the
+    /// secondary difference is read from <see cref="CollationTable.GetElements"/> and confirmed through the keys.</summary>
+    [Fact]
+    public void Requested_Lookup_KeyAsciiPoints_CaseAndAccent()
+    {
+        var t = CollationTable.Root;
+        var upperA = t.Lookup('A');
+        var lowerA = t.Lookup('a');
+        var zero = t.Lookup('0');
+        var nine = t.Lookup('9');
+        var space = t.Lookup(' ');
+        var period = t.Lookup('.');
+        var comma = t.Lookup(',');
+        var bang = t.Lookup('!');
+        // Every one is a real, non-ignorable, explicit mapping.
+        foreach (var e in new[] { upperA, lowerA, zero, nine, space, period, comma, bang })
+            Assert.True(e.Primary > 0);
+        // Digits: '0' < '9', both before letters; space and punctuation are VARIABLE and precede digits.
+        Assert.True(zero.Primary < nine.Primary);
+        Assert.True(nine.Primary < lowerA.Primary);
+        Assert.True(space.IsVariable && period.IsVariable && comma.IsVariable && bang.IsVariable);
+        Assert.False(lowerA.IsVariable);
+        Assert.False(zero.IsVariable);
+        Assert.True(space.Primary < period.Primary && period.Primary < zero.Primary);
+        Assert.True(comma.Primary < period.Primary);                 // CLDR root: , before .
+        // 'A' and 'a': the SAME primary and secondary, a different tertiary (uppercase 0008 vs lowercase 0002).
+        Assert.Equal(lowerA.Primary, upperA.Primary);
+        Assert.Equal(lowerA.Secondary, upperA.Secondary);
+        Assert.NotEqual(lowerA.Tertiary, upperA.Tertiary);
+        Assert.True(lowerA.Tertiary < upperA.Tertiary);
+        // 'á' shares 'a''s primary; its accent is a secondary-only element that follows.
+        var aAcute = t.GetElements(0x00E1).ToArray();
+        Assert.Equal(2, aAcute.Length);
+        Assert.Equal(lowerA.Primary, aAcute[0].Primary);
+        Assert.Equal(lowerA.Secondary, aAcute[0].Secondary);
+        Assert.Equal(0, aAcute[1].Primary);
+        Assert.True(aAcute[1].Secondary > lowerA.Secondary);        // the accent's secondary (0024) > common (0020)
+        Assert.Equal(lowerA.Primary, t.Lookup(0x00E1).Primary);      // Lookup = the first element
+        var plainKey = CollationKey.Build("a");
+        var acuteKey = CollationKey.Build("\U000000E1");
+        Assert.Equal(plainKey.Primary, acuteKey.Primary);
+        Assert.NotEqual(plainKey.Secondary, acuteKey.Secondary);
     }
 
     /// <summary>ASCII + Latin-1 are fully and EXPLICITLY tabulated (no code point below U+0100 falls to an implicit weight).</summary>

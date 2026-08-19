@@ -42,8 +42,8 @@ internal static class FigurativeConstants
     /// non-native NATIONAL program collating sequence (<paramref name="natCollate"/> — an <c>ALPHABET … FOR
     /// NATIONAL</c> literal phrase, §12.3.7 GR8/GR9) takes THAT sequence's extremes; otherwise the D-N3
     /// pins (U+00FF/U+0000 — the flagged native-pin divergence stays byte-stable).</summary>
-    public static char FillChar(char kind, CollatingTable? collate, PicCategory? cat = null,
-        NationalCollatingTable? natCollate = null)
+    public static char FillChar(char kind, AlphabetDef? collate, PicCategory? cat = null,
+        NationalAlphabetDef? natCollate = null)
     {
         bool pinned = cat is PicCategory.National or PicCategory.Boolean;
         bool nat = cat is PicCategory.National && natCollate is not null;
@@ -68,8 +68,8 @@ internal static class FigurativeConstants
     /// <c>EmitText.FigurativeFill</c>. A NATIONAL anchor under an explicit non-native NATIONAL PCS
     /// (<paramref name="natCollate"/>) renders THAT sequence's extremes (§12.3.7 GR8/GR9 — a new surface,
     /// no byte-identity constraint).</summary>
-    public static string Fill(char kind, CollatingTable? collate, PicCategory? cat = null,
-        NationalCollatingTable? natCollate = null)
+    public static string Fill(char kind, AlphabetDef? collate, PicCategory? cat = null,
+        NationalAlphabetDef? natCollate = null)
     {
         bool pinned = cat is PicCategory.National or PicCategory.Boolean;
         bool nat = cat is PicCategory.National && natCollate is not null;

@@ -32,6 +32,43 @@ public sealed record CollatingTable(ushort[] Positions, ushort[] RepByPos, int N
     char HighValue, char LowValue);
 
 /// <summary>
+/// A LOCALE-based collating sequence (ISO §12.3.7.2 <c>ALPHABET … IS LOCALE [locale-name-2]</c>; §8.8.4.2.11;
+/// DESIGN-locale-facility §4.4.2 / kb/Work PB101): the runtime <c>LocaleCollation</c> arm of the ONE
+/// <c>CobolCollation</c> carrier — the derived CLDR/UCA engine for the locale NAMED here or, when
+/// <paramref name="LocaleName"/> is null, for the locale CURRENT at each use (§12.3.7.4 GR7e: "*otherwise by the
+/// locale that is current at the time the collating sequence is used at runtime*").
+/// </summary>
+/// <param name="LocaleName">The SPECIAL-NAMES locale-name (§12.3.7.3 SR24) whose external identification binds the
+/// sequence, or null for the phrase without a locale-name. (Named locales arrive with the LOCALE clause — T1.)</param>
+public sealed record LocaleCollatingSpec(string? LocaleName);
+
+/// <summary>
+/// One SPECIAL-NAMES ALPHANUMERIC alphabet (an <c>ALPHABET</c> clause without FOR NATIONAL, ISO §12.3.7): what the
+/// name references — the compile-time twin of the runtime's ONE <c>CobolCollation</c> carrier. Exactly one of the
+/// arms is set for a NON-identity sequence: <paramref name="Table"/> for a literal phrase, <paramref name="Locale"/>
+/// for the LOCALE phrase; both null for the identity sequences NATIVE / STANDARD-1 / STANDARD-2 (ISO/IEC 646
+/// order IS the native order here — no carrier is emitted and the native fast path costs nothing).
+/// <see cref="HighValue"/>/<see cref="LowValue"/> are the sequence's §12.3.7.4 GR8/GR9 extremes: a table's are
+/// computed by the binder; a LOCALE sequence's are U+FFFF / U+0000 under EVERY CLDR/UCA table (U+FFFF carries the
+/// maximum primary, U+0000 is completely ignorable — the runtime's <c>LocaleCollation</c> materializes the same
+/// answer, DESIGN-locale-facility L7), so the figurative constants can still fold at compile time.
+/// </summary>
+public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, string Phrase)
+{
+    /// <summary>The identity (native-order) alphabet: NATIVE, STANDARD-1, STANDARD-2.</summary>
+    public static AlphabetDef Native { get; } = new(null, null, "NATIVE");
+
+    /// <summary>True when the alphabet IS the native order — no runtime carrier is emitted for it.</summary>
+    public bool IsIdentity => Table is null && Locale is null;
+
+    /// <summary>The sequence's HIGH-VALUE character (§12.3.7.4 GR8 / §8.3.3.6.4 GR6).</summary>
+    public char HighValue => Table?.HighValue ?? (Locale is not null ? (char)0xFFFF : (char)0xFF);
+
+    /// <summary>The sequence's LOW-VALUE character (§12.3.7.4 GR9 / §8.3.3.6.4 GR7).</summary>
+    public char LowValue => Table?.LowValue ?? (char)0;
+}
+
+/// <summary>
 /// A NATIONAL collating sequence built from an <c>ALPHABET … FOR NATIONAL</c> literal phrase (ISO §12.3.7 GR7 k,
 /// applied over the native NATIONAL character set — the 65,536 UTF-16 code units, one per national position,
 /// D-N1). SPARSE by design: only the SPECIFIED characters are tabulated; every unspecified code unit takes a
@@ -76,12 +113,32 @@ public sealed record NationalCollatingTable(ushort[] Codes, ushort[] Positions, 
 /// the CODE-SET clause has no compiler surface, so declaring it is well-formed but inert).</item>
 /// <item>literal-phrase — a user collating sequence AND coded character set (Table 6 last row): the sparse
 /// <see cref="NationalCollatingTable"/>.</item>
+/// <item><c>LOCALE [locale-name-2]</c> — a locale-based national collating sequence (Table 6 row LOCALE: a
+/// collating sequence, NOT a coded character set — §12.3.7.3 SR16g/SR17d forbid it in CODE-SET / SYMBOLIC / CLASS):
+/// the <see cref="LocaleCollatingSpec"/> arm; DETERMINATION L5 — one locale sequence serves both classes on the
+/// D-N1 substrate, so the same runtime <c>LocaleCollation</c> is emitted.</item>
 /// </list>
 /// </summary>
-/// <param name="Table">The non-identity collating table (literal phrase), or null (NATIVE/UCS-4/UTF-16/UTF-8 —
-/// identity or not-a-collating-sequence).</param>
+/// <param name="Table">The non-identity collating table (literal phrase), or null (NATIVE/UCS-4/UTF-16/UTF-8/LOCALE
+/// — identity, not-a-collating-sequence, or the locale arm).</param>
+/// <param name="Locale">The LOCALE phrase's arm, or null.</param>
 /// <param name="HasCollatingSequence">Table 6's collating-sequence column: false for UTF-8/UTF-16 (coded
 /// character set only) — referencing such an alphabet as a collating sequence is the SR violation.</param>
 /// <param name="Phrase">The defining phrase, for diagnostics ("NATIVE", "UCS-4", "UTF-8", "UTF-16",
-/// "literal-phrase").</param>
-public sealed record NationalAlphabetDef(NationalCollatingTable? Table, bool HasCollatingSequence, string Phrase);
+/// "literal-phrase", "LOCALE").</param>
+public sealed record NationalAlphabetDef(NationalCollatingTable? Table, LocaleCollatingSpec? Locale, bool HasCollatingSequence, string Phrase)
+{
+    /// <summary>A national alphabet without a locale arm (the pre-PB101 constructor shape).</summary>
+    public NationalAlphabetDef(NationalCollatingTable? Table, bool HasCollatingSequence, string Phrase)
+        : this(Table, null, HasCollatingSequence, Phrase) { }
+
+    /// <summary>True when the alphabet is an identity sequence or no sequence at all — no runtime carrier.</summary>
+    public bool IsIdentity => Table is null && Locale is null;
+
+    /// <summary>The national HIGH-VALUE character (§12.3.7.4 GR8): the table's, else U+FFFF (a LOCALE sequence's
+    /// maximum and the native national pin alike).</summary>
+    public char HighValue => Table?.HighValue ?? (char)0xFFFF;
+
+    /// <summary>The national LOW-VALUE character (§12.3.7.4 GR9): the table's, else U+0000.</summary>
+    public char LowValue => Table?.LowValue ?? (char)0;
+}

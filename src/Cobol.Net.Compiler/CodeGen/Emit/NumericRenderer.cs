@@ -33,8 +33,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// context materializes the runtime-collating extreme (§8.3.3.6.4 GR6/GR7), not the native pin. Null when no
     /// non-native sequence is declared, in which case <c>FigurativeConstants.Fill</c> returns the native pin
     /// (the byte-stable common case). The MOVE and relation paths already thread the same tables.</summary>
-    internal CollatingTable? Collating => ctx.Data.Collating;
-    internal NationalCollatingTable? NationalCollating => ctx.Data.NationalCollating;
+    internal AlphabetDef? Collating => ctx.Data.Collating;
+    internal NationalAlphabetDef? NationalCollating => ctx.Data.NationalCollating;
 
     // Render/AsNum dispatch through the generated exhaustive visitors (PHASE-07 Step 6d): every BoundExpr / BoundOperand
     // leaf has a Visit below, so a new leaf is a COMPILE error here — the former loud `_ =>` defaults are gone.

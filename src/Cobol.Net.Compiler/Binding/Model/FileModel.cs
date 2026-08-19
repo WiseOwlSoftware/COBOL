@@ -98,13 +98,14 @@ public sealed class FileModel
     /// ALTERNATE RECORD KEY items and their alphabet-name-3 (§12.4.5.7.2 Format 2).</summary>
     public List<(IReadOnlyList<string> KeyNames, string Alphabet)> KeyLevelCollating { get; } = [];
 
-    /// <summary>The resolved PRIME key collating-weight table (native char code → 0-based position); null = native
-    /// ordinal (no applicable COLLATING SEQUENCE clause, §12.4.5.3 GR6). Emitted into the runtime registration.</summary>
-    public ushort[]? PrimeKeyWeights { get; set; }
+    /// <summary>The resolved PRIME key collating sequence (a literal-phrase table or a LOCALE sequence — the
+    /// <see cref="AlphabetDef"/> the emitter renders as a runtime <c>CobolCollation</c>); null = native ordinal (no
+    /// applicable COLLATING SEQUENCE clause, §12.4.5.3 GR6). Emitted into the runtime registration.</summary>
+    public AlphabetDef? PrimeKeyCollation { get; set; }
 
-    /// <summary>The resolved per-alternate-key collating-weight tables, index-aligned with <see cref="AlternateKeys"/>;
+    /// <summary>The resolved per-alternate-key collating sequences, index-aligned with <see cref="AlternateKeys"/>;
     /// each null = native ordinal.</summary>
-    public List<ushort[]?> AlternateKeyWeights { get; } = [];
+    public List<AlphabetDef?> AlternateKeyCollations { get; } = [];
 
     /// <summary>The RELATIVE KEY data-name as written (ISO §12.4.5.13), resolved post-build; the item lives OUTSIDE
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>

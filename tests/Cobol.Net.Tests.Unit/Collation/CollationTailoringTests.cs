@@ -3,7 +3,7 @@
 using CobolNet.Runtime.Collation;
 using Xunit;
 
-namespace CobolNet.Tests.Unit;
+namespace CobolNet.Tests.Unit.Collation;
 
 /// <summary>
 /// Locale TAILORING (Runtime/Collation/TailoringRules.cs + CollationTable.WithTailoring): the .tailor format, the
@@ -32,7 +32,7 @@ public sealed class CollationTailoringTests
         Assert.Equal("es", TailoringRules.ForLocale("es")!.Locale);
         Assert.Empty(TailoringRules.ForLocale("en-US")!.Entries);              // English: the root order, explicitly
         Assert.Empty(TailoringRules.ForLocale("fr-FR")!.Entries);
-        Assert.Null(TailoringRules.ForLocale("de"));                            // no file \U00002192 the root order
+        Assert.Null(TailoringRules.ForLocale("de"));                            // no file → the root order
         Assert.Null(TailoringRules.ForLocale("xx-YY"));
         Assert.Null(TailoringRules.ForLocale(null));
         Assert.Equal(["es-MX", "es"], TailoringRules.Candidates("es_MX"));

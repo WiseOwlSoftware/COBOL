@@ -30,6 +30,11 @@ specialNameEntry
     // COBOL0308 "a data-name is expected here, not a literal" — a parse error pointing at the wrong token, for a
     // clause the standard defines (fix-queue PB25).
     | localeClause DOT?
+    // MUST precede implementorSwitchEntry, for the LOCALE clause's reason: ORDER is not a lexer token, so
+    // `ORDER TABLE OT1 IS "…"` otherwise matches `cobolWord (IS cobolWord)?` as far as the bare word ORDER, and
+    // the entry loop re-enters on TABLE — a keyword token no cobolWord admits — dying on a token the user never
+    // wrote a clause around (kb/Work PB101).
+    | orderTableClause DOT?
     | implementorSwitchEntry DOT?
     | genericClause DOT?
     ;
@@ -46,6 +51,21 @@ specialNameEntry
 // below 2002 localeClauseAhead() is false and this alternative is unreachable.
 localeClause
     : {localeClauseAhead()}? cobolWord cobolWord IS? (cobolWord | literal)
+    ;
+
+// ORDER TABLE ordering-name-1 IS literal-9 (ISO §12.3.7.2 — the LAST item of the SPECIAL-NAMES general format,
+// bracketed and therefore at most once). ORDER is NOT a lexer token: it is reserved from 2002 through the §8.9
+// funnel and arrives as an ordinary cobolWord, exactly as the LOCALE clause's own keyword does — so the clause is
+// recognized by a left-edge predicate on the word pair (ORDER, TABLE). TABLE *is* a token.
+// literal-9 names the cultural ordering table (§12.3.7.4 GR17 — "The implementor specifies the allowable content
+// of literal-9"); ordering-name-1 "may be specified only in the STANDARD-COMPARE intrinsic function"
+// (§12.3.7.3 SR9). The binder (DataBinder.OrderTableBind) enforces SR10/SR11 and registers the name.
+// ⚠ NOT edition-gated, unlike localeClause: TABLE is reserved at EVERY edition, so the pair ORDER + TABLE has no
+// competing COBOL-85 reading (nothing else in a SPECIAL-NAMES paragraph can be followed by, or begin with, TABLE).
+// Recognizing the clause at every --std is what lets the version pass answer below 2002 with the explanatory
+// `order-table-2002` introduction gate rather than a parse error — see orderTableAhead()'s comment.
+orderTableClause
+    : {orderTableAhead()}? cobolWord TABLE cobolWord IS? literal
     ;
 
 implementorSwitchEntry

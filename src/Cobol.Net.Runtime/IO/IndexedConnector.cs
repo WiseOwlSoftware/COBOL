@@ -25,8 +25,8 @@ public sealed class IndexedConnector : FileConnector
 
     private readonly KeyedAccess _access;
     private readonly int _primeOff, _primeLen;
-    private readonly ushort[]? _primeWeights;   // §12.4.5.7 prime-key collating weights (native→position); null = native ordinal
-    private readonly List<(int Off, int Len, bool Dups, ushort[]? Weights, string? Suppress)> _alts = [];
+    private readonly CobolCollation? _primeCollation;   // §12.4.5.7 prime-key collating sequence (the CobolCollation carrier); null = native ordinal
+    private readonly List<(int Off, int Len, bool Dups, CobolCollation? Collation, string? Suppress)> _alts = [];
     private readonly List<KeyedRec> _recs = [];   // arrival order — the persisted order
     private long _nextArrival = 1;
 
@@ -67,20 +67,20 @@ public sealed class IndexedConnector : FileConnector
     // (GR15). Out-of-bounds WRITE/REWRITE is the GR14/§14.9.35 GR20 '44'.
 
     public IndexedConnector(string hostPath, int recordWidth, KeyedAccess access, int primeOffset, int primeLength,
-        int varyMin = -1, int varyMax = -1, ushort[]? primeWeights = null)
+        int varyMin = -1, int varyMax = -1, CobolCollation? primeCollation = null)
         : base(hostPath, recordWidth, varyMin, varyMax)
     {
         _access = access;
         _primeOff = primeOffset;
         _primeLen = primeLength;
-        _primeWeights = primeWeights;
+        _primeCollation = primeCollation;
     }
 
     /// <summary>Register one ALTERNATE RECORD KEY's (offset, length, WITH DUPLICATES) geometry (§12.4.5.6), with
     /// its optional §12.4.5.7 collating-weight table (null = native ordinal) and §12.4.5.6.4 GR6 SUPPRESS WHEN
     /// value (null = no suppression).</summary>
-    public void AddAlternateKey(int offset, int length, bool duplicates, ushort[]? weights = null, string? suppress = null) =>
-        _alts.Add((offset, length, duplicates, weights, suppress));
+    public void AddAlternateKey(int offset, int length, bool duplicates, CobolCollation? collation = null, string? suppress = null) =>
+        _alts.Add((offset, length, duplicates, collation, suppress));
 
     /// <summary>True when this record's <paramref name="keyIndex"/> alternate key equals that key's SUPPRESS WHEN
     /// value (ISO §12.4.5.6.4 GR6): the alternate access path to the record is NOT provided under this key, and
@@ -101,8 +101,8 @@ public sealed class IndexedConnector : FileConnector
     /// differs. A declared alphabet routes through the §8.8.4.2.7 weighted relation-condition compare.</summary>
     private int KeyCompare(string a, string b, int keyIndex)
     {
-        var w = keyIndex < 0 ? _primeWeights : _alts[keyIndex].Weights;
-        return w is null ? string.CompareOrdinal(a, b) : CobolString.Compare(a, b, w);
+        var c = keyIndex < 0 ? _primeCollation : _alts[keyIndex].Collation;
+        return c is null ? string.CompareOrdinal(a, b) : c.Compare(a, b);
     }
 
     /// <summary>Key equality under the key of reference's collating sequence: two keys that differ in bytes but
@@ -371,7 +371,7 @@ public sealed class IndexedConnector : FileConnector
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43' GR5
             // '21' §14.9.35 GR22 — the prime key of the replaced record must EQUAL that of the last record read;
-            // equality is collating-sequence-based per §12.4.5.12.4 GR1 (KeyEq honors _primeWeights), not ordinal.
+            // equality is collating-sequence-based per §12.4.5.12.4 GR1 (KeyEq honors _primeCollation), not ordinal.
             if (_lastReadPrime is not { } lastPrime || !KeyEq(prime, lastPrime, -1))
                 return Status = FileStatusCode.SequenceError;
         }

@@ -483,6 +483,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // information — no `--std` makes the program compile — while asserting something we cannot substantiate.
         // ⚠ IT SELF-LIFTS: the suppression keys on Bind, so implementing the locale module restores the gate —
         // at which point IntroducedIn would have to be verified anyway, which is the right forcing function.
+        // ⚙ AND IT HAS NOW LIFTED ONCE, exactly as designed: STANDARD-COMPARE's Bind became Runtime at kb/Work
+        // PB101 T7, so its 2002 window is enforced again (`standard-compare-2002` in constructs.json asserts the
+        // 1502 at 85). The year was re-derived rather than inherited — ORDER is a 2002 reservation
+        // (reserved-words.json r85 false / r2002 true) and the clause the function depends on cannot be written
+        // below it; VERSION_CHANGE_REFERENCE records the derivation AND that Annex E cannot confirm it.
         if (sig.Bind is IntrinsicBind.Unsupported) { /* §A.4.9 non-support says it all; see above */ }
         else if (sig.IntroducedIn > ctx.Edition.DialectLevel)
             ctx.Edition.Error("COBOLNET1502", $"FUNCTION {sig.Name} was introduced by ISO/IEC 1989:{sig.IntroducedIn} "
@@ -497,13 +502,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // IntrinsicRenderer.RenderDec), so a standard-arithmetic program gets the standard-decimal values the
         // rule requires — the "until CobolDec evaluations land" condition the stage recorded is satisfied.
 
-        // A.4.9 LOCALE MODULE — DOCUMENTED NON-SUPPORT (ratified decision 3; conformant per ISO §4.2.7 +
-        // Annex A §A.4.1: an implementation accepts an optional element's syntax ONLY when support is claimed).
-        // The five locale FUNCTIONS bind Unsupported → a bind-time reject BY NAME (never the renderer's loud
-        // backstop). STANDARD-COMPARE additionally rides §A.3 item 25 (the implementor need not accept the
-        // syntax absent an ISO/IEC 14651:2020 implementation) — it is ordering-table-, not locale-, dependent.
+        // A.4.9 LOCALE MODULE — DOCUMENTED NON-SUPPORT PER ELEMENT (conformant per ISO §4.2.7 + Annex A §A.4.1:
+        // an implementation accepts an optional element's syntax ONLY when support is claimed). The FOUR locale
+        // FUNCTIONS still bind Unsupported → a bind-time reject BY NAME (never the renderer's loud backstop);
+        // each arm is deleted as its increment lands (owner decision Q1, 2026-08-18; DESIGN-locale-facility §12).
+        // ⚠ STANDARD-COMPARE LEFT THIS SET at increment T7 (kb/Work PB101): it is ordering-table-, not
+        // locale-, dependent, its non-support route was §A.3 item 25 ("The implementor need not accept the
+        // syntax … when support for ISO/IEC 14651:2020 is not provided"), and support is now claimed — so its
+        // catalog row binds Runtime and it reaches BindStandardCompare below.
         if (sig.Bind == IntrinsicBind.Unsupported)
-            return LocaleUnsupported($"FUNCTION {sig.Name}", alsoA3: sig.Name == "STANDARD-COMPARE");
+            return LocaleUnsupported($"FUNCTION {sig.Name}");
 
         // The LOCALE keyword variant of the otherwise-supported case/numeric functions — LOWER-CASE (§15.57),
         // UPPER-CASE (§15.97), NUMVAL-C (§15.68), TEST-NUMVAL-C (§15.94): the LOCALE phrase itself is A.4.9
@@ -512,6 +520,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // LOCALE machinery). The function WITHOUT a LOCALE phrase binds exactly as before (zero regression).
         if (sig.Name is "LOWER-CASE" or "UPPER-CASE" or "NUMVAL-C" or "TEST-NUMVAL-C" && HasLocalePhrase(argCtxs))
             return LocaleUnsupported($"the LOCALE phrase of FUNCTION {sig.Name}");
+
+        // STANDARD-COMPARE (§15.85) — argument-1 argument-2 [ordering-name-1] [argument-4]: the third position
+        // is a §15.3 type-12 NAME (an ORDER TABLE ordering-name), not an operand, so the argument list is walked
+        // positionally rather than bound as three operands (kb/Work PB101 T7).
+        if (sig.Name == "STANDARD-COMPARE") return BindStandardCompare(sig, argCtxs);
 
         // TRIM (§15.96) — the one §15 function whose argument list carries a phrase keyword (LEADING/TRAILING);
         // its bespoke shape is bound apart from the generic comma/space-split argument path.
@@ -776,6 +789,88 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         host.Ec.EcNoteFunction();
         return new BoundIntrinsicCall(sig, [], sig.ResultCategory) { FileArg = file };
+    }
+
+    /// <summary>
+    /// STANDARD-COMPARE (§15.85.2) — <c>FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ]
+    /// [ argument-4 ] )</c>: two string operands, then a NAME and an integer, bound apart from the generic
+    /// argument path because ordering-name-1 is a §15.3 argument type 12 — "An ordering-name defined in the
+    /// SPECIAL-NAMES paragraph shall be specified" — not an operand at all. The resolved literal-9 rides
+    /// <see cref="BoundIntrinsicCall.OrderingTable"/>; a call with no ordering-name leaves it null, which
+    /// §15.85.3 r5 defines as the default table 'ISO 14651_2020_TABLE1'.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ THE WALK IS POSITIONAL, AND THE THREE-ARGUMENT FORM IS THE ONLY AMBIGUOUS ONE. §15.85.2 prints two
+    /// bracketed optionals in a fixed order with no choice indicators, so §5.2.6 makes them positional: with FOUR
+    /// arguments written, position 3 IS ordering-name-1 and position 4 IS argument-4, and a position-3 operand
+    /// that is not a declared ordering-name is a form violation (COBOLNET1663). With THREE, position 3 is either
+    /// one, and only §15.85.3 can decide — r5's "shall be associated with a cultural ordering table in the ORDER
+    /// TABLE clause" versus r6's "positive nonzero integer" — so a bare word that names a declared ordering-name
+    /// is that name and anything else is argument-4.
+    /// <para>⚠ A BARE WORD IS NOT AUTOMATICALLY A NAME. §15.3 type 6 admits "an integer data item", so
+    /// <c>FUNCTION STANDARD-COMPARE(A B WS-LEVEL)</c> is legal COBOL with WS-LEVEL a data-name; keying the
+    /// ordering-name arm on "is a bare word" rather than on "is a DECLARED ordering-name" would reject it.</para>
+    /// </remarks>
+    private BoundExpr BindStandardCompare(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    {
+        BoundExpr Malformed(string why)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.StandardCompareArgument, $"FUNCTION STANDARD-COMPARE {why}");
+            return new BoundExprError("FUNCTION STANDARD-COMPARE");
+        }
+
+        if (argCtxs.Count is < 2 or > 4)
+        {
+            ctx.Edition.Error("COBOLNET1504", $"FUNCTION STANDARD-COMPARE takes 2..4 argument(s); "
+                + $"{argCtxs.Count} given (ISO §15.85.2)");
+            return new BoundExprError("FUNCTION STANDARD-COMPARE arity");
+        }
+
+        string? orderingTable = null;
+        var operands = new List<BoundOperand>();
+        for (int at = 0; at < argCtxs.Count; at++)
+        {
+            var a = argCtxs[at];
+            if (at < 2) { operands.Add(BindArgOperand(a)); continue; }   // argument-1 / argument-2 (r1/r2)
+            // The ordering-name slot: position 3 always when four arguments are written, position 3 in the
+            // three-argument form only when the word actually names an ORDER TABLE clause's ordering-name.
+            bool mustBeName = at == 2 && argCtxs.Count == 4;
+            if (at == 2 && KeywordWordOf(a) is { } word && ctx.Data.OrderTables.TryGetValue(word, out string? literal9))
+            {
+                orderingTable = literal9;
+                continue;
+            }
+            if (mustBeName)
+                return Malformed($"argument-3 '{argCtxs[2].GetText().Trim()}' is not an ordering-name declared in an "
+                    + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
+                    + "§15.85.2 general format's third position IS ordering-name-1 (ISO §15.85.3 r5; §15.3 "
+                    + "argument type 12)"
+                    + (ctx.Data.OrderTables.Count == 0
+                        ? "; this compilation unit declares no ORDER TABLE clause"
+                        : $"; declared: {string.Join(", ", ctx.Data.OrderTables.Keys)}"));
+            // A SECOND ordering-name where argument-4 belongs. Reachable, and worth its own message: the operand
+            // path would otherwise report it as an unresolved data-name, which is true and useless.
+            if (KeywordWordOf(a) is { } second && ctx.Data.OrderTables.ContainsKey(second))
+                return Malformed($"is given the ordering-name '{second}' in the argument-4 position — the "
+                    + "§15.85.2 general format admits ONE [ ordering-name-1 ], and the fourth position is "
+                    + "argument-4, the ordering level (ISO §15.85.3 r6)");
+            var level = BindArgOperand(a);
+            // §15.85.3 r6 — "Argument-4, if specified, shall be a positive nonzero integer." Decidable here only
+            // for a LITERAL; a data item's value is a run-time fact, and §15.85.4 r2 owns the outcome of a level
+            // the ordering table does not define (EC-ORDER-NOT-SUPPORTED).
+            if (level is BoundNumericLiteral { Text: { } text }
+                && (!long.TryParse(text, out long n) || n <= 0))
+                return Malformed($"argument-4 is {text}, which is not a positive nonzero integer "
+                    + "(ISO §15.85.3 r6) — the ordering level is 1 (primary) through the highest level the "
+                    + "ordering table defines");
+            operands.Add(level);
+        }
+        // The §15.3 screen — see the PB12 note on the FIND-STRING arm: this binder returns before the generic
+        // path reaches CheckArgumentClasses, so it screens its own operand list (§15.85.3 r1/r2/r4/r6).
+        CheckArgumentClasses(sig, operands);
+        // §15.85.1: "The function type is alphanumeric" — a FIXED result rule, so the row's category is the
+        // answer and there is no §15.x.1 table to resolve (the PB15 hazard does not arise here).
+        return new BoundIntrinsicCall(sig, operands, sig.ResultCategory) { OrderingTable = orderingTable };
     }
 
     /// <summary>TRIM (§15.96) — a phrase keyword in the argument list (<c>[LEADING|TRAILING]</c>, §15.96.2),
@@ -1285,17 +1380,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { ModuleNameKind = kind };
     }
 
-    /// <summary>The ONE A.4.9 locale-module documented-non-support diagnostic (ratified decision 3; conformant
-    /// per ISO §4.2.7 + Annex A §A.4.1 — an implementation accepts an optional element's syntax only when
-    /// support is claimed). Shared by the five locale FUNCTIONS (<c>Bind == Unsupported</c>) and by the LOCALE
-    /// phrase of the otherwise-supported LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C. <paramref name="element"/>
-    /// names the specific element; <paramref name="alsoA3"/> adds the §A.3 item 25 citation (STANDARD-COMPARE,
-    /// which is ISO/IEC 14651:2020-ordering-dependent, not locale-dependent).</summary>
-    private BoundExpr LocaleUnsupported(string element, bool alsoA3 = false)
+    /// <summary>The ONE A.4.9 locale-module documented-non-support diagnostic (conformant per ISO §4.2.7 +
+    /// Annex A §A.4.1 — an implementation accepts an optional element's syntax only when support is claimed).
+    /// Shared by the FOUR locale FUNCTIONS still awaiting their increment (<c>Bind == Unsupported</c>) and by the
+    /// LOCALE phrase of the otherwise-supported LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C.
+    /// <paramref name="element"/> names the specific element.
+    /// <para>⚠ THE <c>alsoA3</c> PARAMETER IS GONE (kb/Work PB101 T7). It existed for exactly one caller —
+    /// STANDARD-COMPARE, whose §A.3 item 25 route is now CLAIMED rather than declined — and a parameter with no
+    /// remaining true call site is a lookup nobody reads, which this repository has paid for before
+    /// (feedback_a_dead_lookup_is_also_unverified). If a second A.3-routed element ever needs it, it comes back
+    /// with its caller.</para></summary>
+    private BoundExpr LocaleUnsupported(string element)
     {
-        string extra = alsoA3 ? " and §A.3 item 25 (dependent on an ISO/IEC 14651:2020 implementation)" : "";
         ctx.Edition.Error("COBOLNET1518", $"{element} is in the optional locale module (ISO/IEC 1989:2023 "
-            + $"Annex A §A.4.9{extra}), which COBOL.NET does not support — documented non-support, conformant "
+            + "Annex A §A.4.9), which COBOL.NET does not support — documented non-support, conformant "
             + "per ISO §4.2.7 / §A.4.1. Use a supported alternative (e.g. STANDARD-1/STANDARD-2 collating, "
             + "FORMATTED-DATE/-TIME, or NUMVAL-C without the LOCALE phrase).");
         return new BoundExprError($"{element} (A.4.9 locale, not supported)");
