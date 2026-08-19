@@ -325,7 +325,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   CI TRX + shard-log artifacts on every direct `dotnet test` step (✅ landed), `Control/RuntimeConfig.cs` — a
   drift-guarded REGISTRY of every environment knob the runtime reads (nine names + the dynamic
   `COBOL_<SWITCH-NAME>` family; no new knobs, no loading; ✅ landed, DEVLOG 1330), `scripts/build-local.{sh,ps1}` (fresh solution build,
-  then the FILTERED wave-local gate; filter required) — the two external "hard implementation mode" prompts they
+  then the FILTERED wave-local gate; filter required; ✅ landed, DEVLOG 1331 — **PB108 CLOSED**) — the two external "hard implementation mode" prompts they
   came from were otherwise rejected (a shared opcode IR, invented syntax, appsettings, .NET 8: DEVLOG 1329) ·
   ① PB64 T1 (`LocaleSymbol` + `LocaleRef` +
   `LocaleFacts` + `LocaleState` on `RunUnit`; the SPECIAL-NAMES LOCALE clause declares — its external identification
@@ -1599,7 +1599,12 @@ result. Run the long legs ONE AT A TIME.
   on `~Corpus` (440/440 green) because that is where its goldens sat; the change was to MODULE-NAME semantics,
   whose tests are named for it, and a green test pinning the OLD behaviour sailed through to the comprehensive
   gate. `~Corpus|~ModuleName` gives 447/447 in the same ~20 s. Filters are cheap and OR-able — name the SUBJECT
-  (`~Arithmetic|~Inspect|~Intrinsic`), not just the corpus.
+  (`~Arithmetic|~Inspect|~Intrinsic`), not just the corpus. **The one-command form is
+  `bash scripts/build-local.sh "~Area|~Other"` / `pwsh scripts/build-local.ps1 -Filter "~Area|~Other"`** (PB108):
+  it builds the SOLUTION first (never a `--no-build` leg on an unbuilt tree), runs Conformance on the filter +
+  full Unit + Characterization, expands the `~X|~Y` shorthand to `FullyQualifiedName~X|FullyQualifiedName~Y`
+  (⛔ a raw `dotnet test --filter "~X|~Y"` silently matches NOTHING and exits 0), and is RED when a leg has no
+  verdict line. It is NOT the comprehensive gate.
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
   the GnuCOBOL differential, plus `scripts/guard-fast.sh` (~3.3 min parallel) when a legacy-shared seam is touched
   — never the ~20 min serial `guard.sh`.
@@ -2403,6 +2408,9 @@ already-derivable coverage; none change the pipeline.
 ## §9 Verification commands + corpus mechanics (operational reference)
 
 - CLI probe (from a scratchpad dir): `cobol.exe <src.cob> --std 85|2002|2014|2023 -o out.dll --run`.
+- Wave-local gate, one command: `bash scripts/build-local.sh "<filter>"` / `pwsh scripts/build-local.ps1 -Filter
+  "<filter>"` (solution build → Conformance on the filter → full Unit → Characterization; filter REQUIRED).
+  Comprehensive: `bash scripts/battery.sh [outdir]` (§0 Gates).
 - Greenfield conformance: `dotnet test tests/Cobol.Net.Tests.Conformance` · unit: `tests/Cobol.Net.Tests.Unit` ·
   characterization: `tests/Cobol.Net.Tests.Characterization` · legacy suite:
   `dotnet test tests/CobolSharp.Tests.Integration --filter FullyQualifiedName~ConformanceTests` ·
