@@ -417,6 +417,11 @@ public static class CobolDate
     /// <para>The comparison is exact and stays in <see cref="Int128"/>: the argument arrives as an unscaled
     /// value plus its scale, so scaling the BOUND up is exact where scaling the value down would truncate and
     /// silently admit a fractional overshoot.</para></summary>
+    /// <summary>The same screen for another function's argument-1 (LOCALE-TIME-FROM-SECONDS, §15.54.3 r1 — "a numeric
+    /// value in standard numeric time form"): ONE rule, one place.</summary>
+    internal static bool SecondsOutOfStandardFormFor(string fn, Int128 secUnscaled, int secScale, bool leapSecond)
+        => SecondsOutOfStandardForm(fn, "argument-1", secUnscaled, secScale, leapSecond);
+
     private static bool SecondsOutOfStandardForm(string fn, string argName, Int128 secUnscaled, int secScale, bool leapSecond)
     {
         // §7.3.17.4 GR5 (OFF): [0, 86 400); GR4 (ON): [0, 86 401) — the leap second at the end of the day (kb/Work PB65).

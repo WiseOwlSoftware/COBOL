@@ -588,6 +588,26 @@ public sealed class ExceptionEngine
         }
     }
 
+    /// <summary>True while the currently-executing statement has EC-LOCALE-INVALID checking enabled (fatal).</summary>
+    public bool LocaleInvalidChecking
+    {
+        get => _checking.LocaleInvalid;
+        set => _checking.LocaleInvalid = value;
+    }
+
+    /// <summary>Raise EC-LOCALE-INVALID (§8.2.1: "If the locale content is invalid or incomplete during an operation
+    /// using a locale, the EC-LOCALE-INVALID exception condition is set to exist and the operation is unsuccessful";
+    /// Table 13 Fatal) when checking is enabled; otherwise return and the caller's documented stand-in (the
+    /// invariant culture's content) answers.</summary>
+    public void LocaleInvalidError(string detail)
+    {
+        if (LocaleInvalidChecking)
+        {
+            Set("EC-LOCALE-INVALID", fatal: true);
+            throw new CobolFatalException("EC-LOCALE-INVALID", detail);
+        }
+    }
+
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
@@ -962,6 +982,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.LocaleIncompatibleError"/>
     public static void LocaleIncompatibleError(string detail) => E.LocaleIncompatibleError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleInvalidChecking"/>
+    public static bool LocaleInvalidChecking
+    {
+        get => E.LocaleInvalidChecking;
+        set => E.LocaleInvalidChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleInvalidError"/>
+    public static void LocaleInvalidError(string detail) => E.LocaleInvalidError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();

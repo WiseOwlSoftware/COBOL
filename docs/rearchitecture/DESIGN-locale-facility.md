@@ -122,6 +122,8 @@ not "silently accepted and silently wrong") have moved since triage; the triage 
 and the notes must be re-verdicted on landing. Rows 6–11 are unchanged and are the live harm.
 **T1 (2026-08-19) re-verdict:** rows 3, 4/5 (named form) and 9/10 are IMPLEMENTED — the clause declares, the
 named alphabet collates, the SET formats act on the run unit's locale state; rows 6–8 and 11 remain T5/T6.
+**T4 (2026-08-19) re-verdict:** row 1's four LOCALE functions are IMPLEMENTED (STANDARD-COMPARE was at T7); row 2
+(the UPPER-CASE LOCALE phrase) remains T5.
 
 **Reading of rows 6–11 against the standard.** A.4.1 — "*An implementation shall accept the syntax and provide
 the functionality for an optional element only when support for that language element is claimed by the
@@ -149,10 +151,10 @@ A.4.9 is thirteen items (all `--check`ed). This table is the design's work break
 | A.4.9 | Element | Clause | Design § | State |
 |---|---|---|---|---|
 | 1 | `EC-LOCALE` / `EC-ORDER-NOT-SUPPORTED` in RAISING / USE / PERFORM WHEN / RAISE / `>>TURN` | §14.6.13 | §4.10 | ✅ done (row 12/13); the names legal again since T1 (PB100's refusal reverted), MISSING / INVALID-PTR / INCOMPATIBLE raised and observed |
-| 2 | `LOCALE-COMPARE` | §15.51 | §4.8 | ✗ |
-| 3 | `LOCALE-DATE` | §15.52 | §4.7 | ✗ |
-| 4 | `LOCALE-TIME` | §15.53 | §4.7 | ✗ |
-| 5 | `LOCALE-TIME-FROM-SECONDS` | §15.54 | §4.7 | ✗ |
+| 2 | `LOCALE-COMPARE` | §15.51 | §4.8 | ✅ **T4 (2026-08-19)** |
+| 3 | `LOCALE-DATE` | §15.52 | §4.7 | ✅ **T4** |
+| 4 | `LOCALE-TIME` | §15.53 | §4.7 | ✅ **T4** |
+| 5 | `LOCALE-TIME-FROM-SECONDS` | §15.54 | §4.7 | ✅ **T4** |
 | 6 | `LOWER-CASE` LOCALE keyword | §15.57 | §4.5 | ✗ |
 | 7 | OBJECT-COMPUTER `CHARACTER CLASSIFICATION` | §12.3.6 | §4.5 | ⛔ silent |
 | 8 | `PICTURE` format 2 (locale) | §13.18.40 | §4.6 | ⛔ parse error |
@@ -966,7 +968,7 @@ lands in `docs/CONFORMANCE.md`.
 | … `int_frac_digits` | international form | **no .NET carrier** | COBOL.NET uses `CurrencyDecimalDigits` for both; a documented limit |
 | … `positive_sign` / `negative_sign` | sign strings | `PositiveSign` / `NegativeSign` | — |
 | … `p_cs_precedes`, `n_cs_precedes`, `p_sign_posn`, `n_sign_posn` | placement | derived from `CurrencyPositivePattern` (4 values) and `CurrencyNegativePattern` (16 values) | A **generated** pattern→triple table, never hand-maintained (see below) |
-| LC_TIME `d_fmt` / `t_fmt` | LOCALE-DATE / -TIME | `ShortDatePattern` / `LongTimePattern` | DETERMINATION L10 |
+| LC_TIME `d_fmt` / `t_fmt` | LOCALE-DATE / -TIME | `ShortDatePattern` / `LongTimePattern` | DETERMINATION L10 — ✅ T4 (`LocaleFacts.DateFormat` / `TimeFormat`; `CobolLocale.FormatTime` renders `t_fmt` over its tokens, since hour 24 / seconds 99 / a fraction exceed a `DateTime`) |
 | LC_MESSAGES, LC_NUMERIC | settable and queryable only | stored slots | §8.2.1: "*not used directly by COBOL; however, the ability to set and query these locale categories is provided*" (`--check` OK) |
 
 **The pattern→placement table is generated, not written.** `CurrencyPositivePattern` 0–3 and
@@ -981,9 +983,13 @@ pattern fails the test instead of silently mis-editing.
 **Three globalization-mode limits, all detected rather than assumed:**
 
 1. **Invariant globalization mode** (`InvariantGlobalization=true`, or the equivalent runtime switch) collapses
-   every culture to the invariant one and makes `CompareInfo` ordinal. A locale-based comparison would then be
-   silently wrong. `LocaleFacts` probes for it once and, if set, treats every locale other than `INVARIANT` as
-   **unavailable** ⇒ `EC-LOCALE-MISSING`, which is the honest answer and the one §8.2.1 provides for.
+   every culture to the invariant one. LC_COLLATE is unaffected — it is COBOL.NET's own engine (PB101), never
+   `CompareInfo` — but LC_CTYPE / LC_MONETARY / LC_TIME are .NET culture data: `LocaleFacts` probes for the mode
+   once (`LocaleFacts.InvariantMode`) and, if set, every non-root locale's culture data is INCOMPLETE
+   (`HasCultureData` false) ⇒ **`EC-LOCALE-INVALID`** at an operation that needs it (§8.2.1 "invalid or
+   incomplete"), the invariant content standing when checking is off — the honest answer §8.2.1 provides for.
+   (As built at T4; the draft said EC-LOCALE-MISSING — availability is the ONE known-locale rule, content is
+   the culture data, and §8.2.1 names a condition for each.)
 2. **NLS vs ICU on Windows** (`System.Globalization.UseNls`) changes collation results. Detected and reported
    in the compiler's `--version` banner and in `CONFORMANCE.md`; results are guaranteed reproducible only
    within one mode.
@@ -1147,7 +1153,7 @@ Then, if Q1 is answered "implement":
 | T1 | ✅ **LANDED 2026-08-19 (PB64 T1)** — `LocaleSymbol` + `LocaleRef` (`Binding/Model/LocaleSymbol.cs`; `LocaleCollatingSpec(LocaleRef)`); `LocaleState` on `RunUnit` in its full form (`LocaleValue` per category, `LocaleCategorySet`, the saved-locale `SavedLocalePointer` handle, `SetFrom*` / `SetUserDefaultFrom*` / `Save`); `LocaleIdentification.Normalize` (L1); the SPECIAL-NAMES LOCALE clause declares (`DataBinder.LocaleBind`, SR10/SR11 through the ONE text-literal rule shared with ORDER TABLE, COBOLNET1665 duplicates, §12.3.7.4 GR1 inheritance); `SET` formats 11/12 (`SetBinder.BindSetLocale` / `BindSaveLocale` → `BoundSetLocale` / `BoundSaveLocale` → `SetEmitter`); the NAMED `IS LOCALE locale-name-2` alphabet (T3's remainder); the EC-LOCALE ambient gates (MISSING / INVALID-PTR / INCOMPATIBLE — `CheckingFlags`, `ExceptionState.Locale*Error`, `EcBinder`, `EcEmitter.FatalAmbientGates`; the EC-LOCALE names legal again); the SORT/MERGE snapshot (§14.6.6 r5 — `CobolCollation.Snapshot`, `CobolSort.Init(name, collation)`); COBOLNET1664–1668; construct rows `special-names-locale-2002` / `set-locale-2002` / `set-save-locale-2002`; goldens `tests/conformance/2002/pb64t1_*` + eight negatives; the harness pins `COBOL_USER_LOCALE` / `COBOL_SYSTEM_LOCALE` to the root (T-F). `LocaleFacts` (S5) is NOT part of T1 — it is the LC_CTYPE / LC_MONETARY / LC_TIME snapshot the T4–T6 consumers need and lands with T4. | item 9, 10 (clause half) |
 | T2 | ✅ **LANDED 2026-08-18 (PB101)** — `CobolCollation` collapse; corpus/unit batteries green, ordinary programs' generated text unchanged | (enables T3) |
 | T3 | ✅ **LANDED (PB101 the current-locale form; PB64 T1 the NAMED form and the SORT snapshot)** — `LocaleCollation` + `ALPHABET … IS LOCALE [locale-name-2]` + PCS + SORT/MERGE + indexed keys + MAX/MIN + HIGH/LOW-VALUE + ORD/CHAR; the named form is the sequence of THAT locale (its L1-normalized tag in the carrier; EC-LOCALE-MISSING at use when unavailable); the SORT/MERGE sequence is snapshotted at statement start (§14.6.6 r5) | items 10 (alphabet half), §8.8.4.2.11 |
-| T4 | `LOCALE-COMPARE`, then `LOCALE-DATE`/`-TIME`/`-TIME-FROM-SECONDS` with `RuntimeDetermined` results | items 2–5 |
+| T4 | ✅ **LANDED 2026-08-19 (PB64 T4)** — `Runtime/Intrinsics/CobolLocale.cs` (`Compare` over the ONE `LocaleCollation` carrier + the sign map; `Date` / `Time` / `TimeFromSeconds` over `LocaleFacts` — `Runtime/Globalization/LocaleFacts.cs`, the ONE place a `CultureInfo` is read, L10: `d_fmt` = ShortDatePattern, `t_fmt` = LongTimePattern, rendered over the pattern's tokens so §15.53.3 r3's hour 24 / seconds 99 and a scaled argument's fraction render); the catalog rows bind Runtime with the `'l'` locale-name kind (`IntrinsicArgumentRules.NonOperandArgumentKinds['l']`, `IntrinsicBinder.BindLocaleFunction`, `BoundIntrinsicCall.Locale` — the ONE `LocaleRef`), the Verified schemas screen the operands (the 8/6-position widths); EC-LOCALE-MISSING at use, **EC-LOCALE-INVALID** (§8.2.1 — no culture data; a new ambient gate) ; `RuntimeDetermined` needed no enum member: the dynamic-length string every §15 string function already returns IS the run-time-determined length | items 2–5 |
 | T5 | `CHARACTER CLASSIFICATION` semantics + LC_CTYPE + the `LOWER-CASE`/`UPPER-CASE` LOCALE phrase + class tests | items 6, 7, 13 |
 | T6 | `PICTURE` format 2 + the NUMVAL-C/TEST-NUMVAL-C LOCALE arms (one shared LC_MONETARY model) | items 8, 12 |
 | T7 | ✅ **LANDED 2026-08-18 (PB101)** — `ORDER TABLE ordering-name IS literal-9` (§12.3.7.2, one clause; SR10/SR11; GR17 — a literal the engine cannot resolve warns COBOLNET1662 and sets EC-ORDER-NOT-SUPPORTED at every reference) + `STANDARD-COMPARE` (§15.85: `BindStandardCompare`, ArgKinds `ssoi` with `'o'` = §15.3 item 12, COBOLNET1663 for r5/r6 violations; runtime `CobolIntrinsics.StandardCompare` over `CollationEngine.Standard` / `StandardAtLevel`, r4 trim, r6/r7 result; EC-ORDER-NOT-SUPPORTED through the ambient-gate machinery, `"="` when checking is off) | item 11 |

@@ -488,8 +488,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // 1502 at 85). The year was re-derived rather than inherited — ORDER is a 2002 reservation
         // (reserved-words.json r85 false / r2002 true) and the clause the function depends on cannot be written
         // below it; VERSION_CHANGE_REFERENCE records the derivation AND that Annex E cannot confirm it.
-        if (sig.Bind is IntrinsicBind.Unsupported) { /* §A.4.9 non-support says it all; see above */ }
-        else if (sig.IntroducedIn > ctx.Edition.DialectLevel)
+        // ⚙ AND LIFTED AGAIN AT kb/Work PB64 T4: the four LOCALE functions bind Runtime, so no catalog row is
+        // Unsupported any more — the window below is enforced for every function.
+        if (sig.IntroducedIn > ctx.Edition.DialectLevel)
             ctx.Edition.Error("COBOLNET1502", $"FUNCTION {sig.Name} was introduced by ISO/IEC 1989:{sig.IntroducedIn} "
                 + $"(§15) — it requires --std {sig.IntroducedIn} or later (targeting COBOL-{ctx.Edition.DialectLevel})");
         else if (sig.RemovedIn is { } gone && ctx.Edition.DialectLevel >= gone)
@@ -502,22 +503,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // IntrinsicRenderer.RenderDec), so a standard-arithmetic program gets the standard-decimal values the
         // rule requires — the "until CobolDec evaluations land" condition the stage recorded is satisfied.
 
-        // A.4.9 LOCALE MODULE — DOCUMENTED NON-SUPPORT PER ELEMENT (conformant per ISO §4.2.7 + Annex A §A.4.1:
-        // an implementation accepts an optional element's syntax ONLY when support is claimed). The FOUR locale
-        // FUNCTIONS still bind Unsupported → a bind-time reject BY NAME (never the renderer's loud backstop);
-        // each arm is deleted as its increment lands (owner decision Q1, 2026-08-18; DESIGN-locale-facility §12).
-        // ⚠ STANDARD-COMPARE LEFT THIS SET at increment T7 (kb/Work PB101): it is ordering-table-, not
-        // locale-, dependent, its non-support route was §A.3 item 25 ("The implementor need not accept the
-        // syntax … when support for ISO/IEC 14651:2020 is not provided"), and support is now claimed — so its
-        // catalog row binds Runtime and it reaches BindStandardCompare below.
-        if (sig.Bind == IntrinsicBind.Unsupported)
-            return LocaleUnsupported($"FUNCTION {sig.Name}");
-
-        // The LOCALE keyword variant of the otherwise-supported case/numeric functions — LOWER-CASE (§15.57),
-        // UPPER-CASE (§15.97), NUMVAL-C (§15.68), TEST-NUMVAL-C (§15.94): the LOCALE phrase itself is A.4.9
+        // A.4.9 LOCALE MODULE — implemented increment by increment (owner decision Q1, 2026-08-18;
+        // DESIGN-locale-facility §12): the four LOCALE functions are LIVE since T4 (BindLocaleFunction below);
+        // STANDARD-COMPARE since T7 (PB101). What still binds as documented non-support — conformant per ISO
+        // §4.2.7 + Annex A §A.4.1 only because it is DIAGNOSED — is the LOCALE keyword variant of the
+        // case/numeric functions: LOWER-CASE (§15.57), UPPER-CASE (§15.97), NUMVAL-C (§15.68), TEST-NUMVAL-C (§15.94)
         // (items 6/13/12; NUMVAL-C's LOCALE keyword is a spec Annex-A LIST OMISSION, disposed identically —
-        // §15.94.3 r1 imports every §15.68.3 rule, and the phrase is inoperable without the A.4.9 SPECIAL-NAMES
-        // LOCALE machinery). The function WITHOUT a LOCALE phrase binds exactly as before (zero regression).
+        // §15.94.3 r1 imports every §15.68.3 rule); each arm is deleted as its increment (T5/T6) lands. The
+        // function WITHOUT a LOCALE phrase binds exactly as before (zero regression).
         if (sig.Name is "LOWER-CASE" or "UPPER-CASE" or "NUMVAL-C" or "TEST-NUMVAL-C" && HasLocalePhrase(argCtxs))
             return LocaleUnsupported($"the LOCALE phrase of FUNCTION {sig.Name}");
 
@@ -525,6 +518,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // is a §15.3 type-12 NAME (an ORDER TABLE ordering-name), not an operand, so the argument list is walked
         // positionally rather than bound as three operands (kb/Work PB101 T7).
         if (sig.Name == "STANDARD-COMPARE") return BindStandardCompare(sig, argCtxs);
+
+        // LOCALE-COMPARE / LOCALE-DATE / LOCALE-TIME / LOCALE-TIME-FROM-SECONDS (§15.51–§15.54) — the optional
+        // trailing position is a §15.3 type-8 LOCALE-NAME, not an operand (kb/Work PB64 T4).
+        if (sig.ArgKinds.EndsWith('l')) return BindLocaleFunction(sig, argCtxs);
 
         // TRIM (§15.96) — the one §15 function whose argument list carries a phrase keyword (LEADING/TRAILING);
         // its bespoke shape is bound apart from the generic comma/space-split argument path.
@@ -872,6 +869,69 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // answer and there is no §15.x.1 table to resolve (the PB15 hazard does not arise here).
         return new BoundIntrinsicCall(sig, operands, sig.ResultCategory) { OrderingTable = orderingTable };
     }
+
+    /// <summary>The LOCALE functions (§15.51 LOCALE-COMPARE, §15.52 LOCALE-DATE, §15.53 LOCALE-TIME, §15.54
+    /// LOCALE-TIME-FROM-SECONDS; DESIGN-locale-facility §4.7/§4.8, kb/Work PB64 T4): <c>( argument… [ locale-name-1 ] )</c>
+    /// — the leading positions bind as operands (their §15.x.3 class/width rules screened by the row's Verified
+    /// schema), and the optional LAST position is a LOCALE-NAME (§15.3 argument type 8; §15.51.3 r4 / §15.52.3 r3 /
+    /// §15.53.3 r4 / §15.54.3 r2 — "shall be associated with a locale in the SPECIAL-NAMES paragraph"), resolved in
+    /// the SPECIAL-NAMES locale table to the ONE <see cref="LocaleRef"/>. A word in that position that is not a
+    /// declared locale-name is COBOLNET1664 (the one undeclared-locale-name diagnostic, citing the rule); a
+    /// non-word there is a form violation (the position admits only a name). Absent, the locale current at use
+    /// applies (§14.6.6 r7/r8).</summary>
+    private BoundExpr BindLocaleFunction(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    {
+        int operandCount = sig.ArgKinds.Length - 1;   // the positions before the trailing 'l'
+        if (argCtxs.Count < operandCount || argCtxs.Count > operandCount + 1)
+        {
+            ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes {operandCount}..{operandCount + 1} argument(s); "
+                + $"{argCtxs.Count} given (ISO §{LocaleFunctionClause(sig.Name)}.2)");
+            return new BoundExprError($"FUNCTION {sig.Name} arity");
+        }
+        var operands = new List<BoundOperand>(operandCount);
+        for (int at = 0; at < operandCount; at++) operands.Add(BindArgOperand(argCtxs[at]));
+        var locale = LocaleRef.Current;
+        if (argCtxs.Count > operandCount)
+        {
+            var a = argCtxs[operandCount];
+            string rule = sig.Name switch
+            {
+                "LOCALE-COMPARE" => "ISO §15.51.3 r4 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                "LOCALE-DATE" => "ISO §15.52.3 r3 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                "LOCALE-TIME" => "ISO §15.53.3 r4 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+                _ => "ISO §15.54.3 r2 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
+            };
+            string site = $"FUNCTION {sig.Name}'s locale-name-1 '{a.GetText().Trim()}'";
+            if (KeywordWordOf(a) is { } word)
+            {
+                var sym = ctx.Data.ResolveLocaleName(word, site, rule);
+                if (sym is null) return new BoundExprError($"FUNCTION {sig.Name}");
+                locale = new LocaleRef(sym);
+            }
+            else
+            {
+                ctx.Edition.Error("COBOLNET1664", $"{site}: the position after the operand(s) admits only a locale-name declared by a "
+                    + $"SPECIAL-NAMES LOCALE clause ({rule}; the general format is §{LocaleFunctionClause(sig.Name)}.2)");
+                return new BoundExprError($"FUNCTION {sig.Name}");
+            }
+        }
+        // The §15.3 screen — this binder returns before the generic path reaches CheckArgumentClasses, so it
+        // screens its own operand list (the row's Verified schema: classes, the 8/6-position widths).
+        CheckArgumentClasses(sig, operands);
+        // §15.51.1–§15.54.1: "The function type is alphanumeric" — a FIXED result rule. The LENGTH of the
+        // date/time results is run-time-determined (§15.52.4 r3 / §15.53.4 r3 / §15.54.4 r3) — the returned
+        // CobolString carries its own length, and the receiving context (a MOVE, a reference modification) bounds
+        // it at run time, exactly as every dynamic-length result already does.
+        return new BoundIntrinsicCall(sig, operands, sig.ResultCategory) { Locale = locale };
+    }
+
+    private static string LocaleFunctionClause(string name) => name switch
+    {
+        "LOCALE-COMPARE" => "15.51",
+        "LOCALE-DATE" => "15.52",
+        "LOCALE-TIME" => "15.53",
+        _ => "15.54",
+    };
 
     /// <summary>TRIM (§15.96) — a phrase keyword in the argument list (<c>[LEADING|TRAILING]</c>, §15.96.2),
     /// extracted here (the <see cref="KeywordWordOf"/> bare-word view) so the remaining arguments bind as

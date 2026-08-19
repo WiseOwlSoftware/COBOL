@@ -27773,12 +27773,12 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "Execution",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Compare",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.Compare_IsTheLocaleBasedRelation_WithTheSignMap",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4 (2026-08-19): LOCALE-COMPARE with a locale argument uses that locale's LC_COLLATE; without one, the current LC_COLLATE (the CMP-ES vs CMP-SET lines).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.6-8",
@@ -27786,12 +27786,12 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "Execution",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Facts",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.Date_RendersPerTheLocalesShortDatePattern_AndRejectsAnInvalidDate",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4 (2026-08-19): LOCALE-DATE / LOCALE-TIME (and LOCALE-TIME-FROM-SECONDS, §15.54.4 r1) with a locale argument use that locale's LC_TIME; without one, the current LC_TIME (RunUnit.Locale.Current(Time)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.6-9",
@@ -45622,12 +45622,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "LOUD REJECT, not a screen — verdict SUSTAINED on re-read. The catalog row carries Bind=IntrinsicBind.Unsupported (IntrinsicCatalog.cs:193) and BindIntrinsicCore returns LocaleUnsupported(...) -> an unconditional Edition.Error COBOLNET1518, so argument-1's class is never inspected. REFUTER CORRECTION (a), ORDER: the Unsupported arm is NOT first. The D8 edition-window arm (COBOLNET1502/1503) and the standard-arithmetic staging arm both run AHEAD of it; it precedes only argument BINDING, the arity check (COBOLNET1504) and the PB1 class screen. So at --std 85 a LOCALE-COMPARE reference draws TWO diagnostics, 1502 then 1518, and 1502's text names the edition taken from the catalog row (see the editions note). REFUTER CORRECTION (b), PROVENANCE: the owner decision is real but was misattributed. It is decision #3 of docs/COMPLETION_ROADMAP_COUNCIL.md section 5, 'RATIFIED 2026-07-03', which docs/COBOLNET_REARCHITECTURE_PLAN.md only REFERENCES (plan lines 1211/1559). The §4.2.7 documentation leg is genuinely present: docs/CONFORMANCE.md section 4 item 5 (the locale facility, COBOLNET1518 error) and the section 5 table row 'A.4.9 | Locale support and related functions | Not claimed'. Citations re-run mechanically: A.4.9 item 2 'LOCALE-COMPARE function (15.51)' OK; §4.2.7 'An implementor shall identify in user documentation the optional language elements for which that implementor claims support' OK; §A.4.1 'An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor' OK. Therefore NOT-IMPLEMENTED (recording an existing owner decision), not NEEDS-OWNER-DECISION. EDITIONS CORRECTED 2002,2014,2023 -> 2014,2023: the 2002 came from IntrinsicCatalog's own IntroducedIn field, the one source instruction 4 forbids, and COMPLETION_ROADMAP_COUNCIL.md line 71 marks exactly this 2002 intrinsic set PROVISIONAL. Annex E covers 'the substantive changes between the previous COBOL standard and this Working Draft' (2014 -> 2023) and contains zero LOCALE-COMPARE entries, so the standard evidences presence in 2014, unchanged in 2023, and nothing earlier; docs/VERSION_CHANGE_REFERENCE.md has no locale row at all. This narrowing is evidentiary, not a claim that COBOL-2002 lacked the function.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+  "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive; conformance:2014/pb64t4_locale_functions",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: the Verified schema screens argument-1 as class alphabetic/alphanumeric/national ('s'); a numeric argument is COBOLNET1627.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.51.3-2",
@@ -45635,12 +45635,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Error",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "Same mechanism as AR-15.51.3-1: argument-2's class is never inspected because the whole function reference is refused at bind. The adjudicator's 'no --permissive downgrade' claim was UNVERIFIED but is now VERIFIED by reading EditionContext.cs: Error(code,message) appends 'error {code}: …' to Diagnostics unconditionally (line 73) and HasErrors is Diagnostics.Count > 0 (line 65); the Permissive-aware channel is a DIFFERENT method (Removed(), line 106, 'if (Permissive) Warning(...)') and LocaleUnsupported does not use it. So --permissive cannot turn this into a warning. Editions narrowed per AR-15.51.3-1 (2002 was inherited from the catalog row).",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+  "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: argument-2 screened as 's' by the same schema.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.51.3-3",
@@ -45648,12 +45648,12 @@
   "kind": "AR",
   "ordinal": 3,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "The permissive half of the argument rules ('Arguments may be of different classes', i.e. NO cross-argument class-agreement constraint) is equally unreachable: the reference is refused before any argument is bound. REFUTER CORRECTION — the adjudicator's REASON was wrong on the mechanism and would have propagated as a design claim. (1) The PB1 screen is not driven from sig.ArgKinds at all: IntrinsicArgumentRules' own header states 'THE SCREEN IS DRIVEN FROM HERE, NOT FROM ArgKinds', and CheckArgumentClasses consults IntrinsicArgumentRules.Verified. (2) Verified carries ONE kind for the WHOLE FUNCTION (a single char + clause per name) — it is Verified, not ArgKinds 'sss', that cannot vary by position; ArgKinds is per-position by construction. (3) The 's' kind is the UNION of the §15.3 string family (alphabetic + alphanumeric + national), so a single ('s') Verified row would express AR1 and AR2 exactly AND would satisfy AR3 rather than contradict it — the adjudicator's 'cannot express arguments may differ in class' is false. The REAL latent hazard, which survives, is position 3: any string-family screen would treat locale-name-1 as a data OPERAND, and it is a SPECIAL-NAMES user-defined word (see AR-15.51.3-4). LOCALE-COMPARE is correctly ABSENT from Verified today. Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+  "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: no cross-argument class rule is applied — the two may differ (the schema carries CrossArgRule.None).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.51.3-4",
@@ -45661,12 +45661,12 @@
   "kind": "AR",
   "ordinal": 4,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Frontend/Grammar/Core/CobolSpecialNames.g4#specialNameEntry",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "Doubly absent, and both legs re-verified. (a) The reference is refused at bind with COBOLNET1518 before locale-name-1 is looked at. (b) There is NO SPECIAL-NAMES LOCALE clause: grep for 'LOCALE' across src/Cobol.Net.Frontend (grammar + lexer) returns ZERO hits, and specialNameEntry (CobolSpecialNames.g4:18, file and rule confirmed to exist) offers no LOCALE alternative — so a locale-name can never be declared and the association this rule requires cannot exist. docs/CONFORMANCE.md section 4 item 5 admits this leg is an unnamed PARSE error rather than a named diagnostic (review-ledger F3). SHARPER HALF THE ADJUDICATOR SKIPPED, from the same sentence: CONFORMANCE.md also records that OBJECT-COMPUTER CHARACTER CLASSIFICATION — A.4.9 item 7 — is 'silently accepted', i.e. one entry point of an unclaimed optional module is accepted with NO diagnostic at all, which is the A.4.1 posture failing rather than merely being unnamed. That construct is §12.3.6, outside this subject's clause set, so it is logged here rather than scored. LATENT DEFECT if support is ever claimed: the catalog types position 3 as 's' in ArgKinds 'sss', but locale-name-1 is a user-defined word, not a data operand; same shape in the LOCALE-DATE/-TIME ('is') and LOCALE-TIME-FROM-SECONDS ('ns') rows. Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveLocaleName",
+  "test-ref": "conformance:negative/pb64t4-locale-function-name-undeclared; conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: locale-name-1 resolves in the SPECIAL-NAMES locale table; an undeclared name is COBOLNET1664 citing this rule.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.51.4-1",
@@ -45674,12 +45674,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "No mixed-class-to-national promotion exists for LOCALE-COMPARE anywhere in src/Cobol.Net.*: the catalog row's RuntimeMethod is the empty string and a repo-wide grep for LocaleCompare finds a body only in src/CobolSharp.Runtime (the LEGACY oracle), never in src/Cobol.Net.Runtime. Only the loud COBOLNET1518 reject exists. Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Compare",
+  "test-ref": "unit:CobolLocaleTests.Compare_IsTheLocaleBasedRelation_WithTheSignMap",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: both arguments are UTF-16 text in this implementation (the alphanumeric and national repertoires are one — D-N1), so the conversion to class national is the identity; the comparison is over the same code points either way.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.51.4-2",
@@ -45687,12 +45687,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "The trailing-space truncation rule and its all-spaces-to-one-space special case (§15.51.4 r2 --check OK) have no implementation — no LOCALE-COMPARE body exists in src/Cobol.Net.Runtime. Loud reject only. (The legacy oracle's body does not implement it either: it compares the raw strings — see RV-15.51.4-5.) Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Text/LocaleCollation.cs#TrimForLocale; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Compare",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.Compare_IsTheLocaleBasedRelation_WithTheSignMap",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: LOCALE-COMPARE IS the ONE LocaleCollation carrier — §8.8.4.2.11 sentence 1's truncation (trailing spaces off; an all-space operand one space) applies verbatim (the CMP-EQ line).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.51.4-3",
@@ -45700,12 +45700,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "Neither half is implemented: there is no locale selection (no SPECIAL-NAMES LOCALE clause in the grammar, no current-locale notion in the runtime) and no EC-LOCALE-MISSING raise. Re-verified: EC-LOCALE-MISSING appears once, as a level-3 Fatal declaration (ExceptionCatalog.cs:128); zero other occurrences of EC-LOCALE-MISSING or EcLocaleMissing under src/. REFUTER CORRECTION — WRONG CITATION FOR THE 'IT IS STILL CONFORMING' CLAIM. The adjudicator justified non-raising with 'A.4.9 item 1 + A.4.1'; A.4.9 item 1 is about the EC-LOCALE names appearing in RAISING/USE/PERFORM WHEN/RAISE/TURN syntax positions, which is a different proposition. The grant that actually applies is §14.6.13.1.1: 'The implementor is not required to raise any exception conditions for level-3 exception-names that are associated with optional language elements or processor-dependent language elements that the implementor has not implemented unless the description of that language element in A.3 … or A.4 … requires that an exception condition be raised.' Mechanically checked: --check 14.6.13.1.1 OK; --check 14.6.13.1 FAILED — the exact ONE-LEVEL-SHORT shape the brief warns about, so the corrected clause is 14.6.13.1.1. A.4.9 item 2 imposes no raise requirement, so the non-raise is conforming on that clause. Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Compare; src/Cobol.Net.Runtime/Values/Text/LocaleCollation.cs#Resolve",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.NamedUnavailableLocale_IsMissing_AndTheRootAnswers",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: the named locale's sequence, else the current LC_COLLATE (§14.6.6 r7); an unavailable named locale is EC-LOCALE-MISSING at use (checking-gated; the root order answers when checking is off).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.51.4-4",
@@ -45713,12 +45713,12 @@
   "kind": "RV",
   "ordinal": 4,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "No cultural-ordering comparison exists in the typed-native compiler or runtime; loud COBOLNET1518 only. The diagnostic text names supported alternatives (STANDARD-1/STANDARD-2 collating, FORMATTED-DATE/-TIME, NUMVAL-C without the LOCALE phrase), so the non-support is actionable. Note for a future claim of support: §12.3.6 GR7 (spec line 21157) additionally binds this function to locale category LC_COLLATE of the specified, else current, locale — a rule outside the §15.51 clause set that any implementation must honour. Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Compare",
+  "test-ref": "conformance:2014/pb64t4_locale_functions",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: the cultural ordering is the locale's CLDR collation over the derived engine (the CMP-ES / CMP-CUR lines — Spanish vs root on n-tilde).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.51.4-5",
@@ -45726,12 +45726,12 @@
   "kind": "RV",
   "ordinal": 5,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "No '='/'<'/'>' result is produced by src/Cobol.Net.* — loud COBOLNET1518 reject. OUT-OF-SCOPE BUT VERIFIED BY READING THE BODY: the LEGACY oracle implements this rule and implements it WRONG — src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs#LocaleCompare returns decimal 1m/-1m/0m from String.Compare(..., CurrentCulture) instead of the one-character '>'/'<'/'=' §15.51.4 r5 mandates, IGNORES locale-name-1 entirely (the dispatch at line 877 forwards only strArgs[0] and strArgs[1] however many arguments were written), never truncates trailing spaces (r2), and carries a wrong clause citation: its doc comment says '§15.55', which is the LOG function (§15.55 confirmed = LOG in specs/ISO_COBOL.md:32016); LOCALE-COMPARE is §15.51. Four green xUnit tests pin that ISO-contradicting contract — tests/CobolSharp.Tests.Unit/Runtime/IntrinsicFunctionTests.cs LocaleCompare_LessThan/_GreaterThan/_Equal/_ViaDispatch (lines 951-971). REFUTER CORRECTION: the adjudicator's closing reassurance that 'the greenfield refuses the function so the legacy differential can never compare it' is DROPPED as unverified — the differential harness's behaviour when the greenfield fails at bind was not read, and an unread reassurance is exactly the confidence this pass removes. Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Compare",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.Compare_IsTheLocaleBasedRelation_WithTheSignMap",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: '=' / '<' / '>' from the comparison's sign.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.51.4-6",
@@ -45739,12 +45739,12 @@
   "kind": "RV",
   "ordinal": 6,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
-  "editions": "2014,2023",
-  "notes": "The returned-value length of 1 is not modelled: the catalog row records only IntrinsicType.Alphanumeric — which does match §15.51.1 'The function type is alphanumeric.' (--check OK) and maps to PicCategory.Alphanumeric via IntrinsicSig.ResultCategory — but no LENGTH is carried anywhere for any intrinsic result, and no result is ever produced because the reference is refused with COBOLNET1518. The legacy oracle's body returns a decimal, which has no character length at all (see RV-15.51.4-5). Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Compare",
+  "test-ref": "unit:CobolLocaleTests.Compare_IsTheLocaleBasedRelation_WithTheSignMap",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4: a one-character string; the catalog row's type is alphanumeric (§15.51.1).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.52.3-1",
@@ -45752,12 +45752,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "LOCALE-DATE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+  "test-ref": "conformance:negative/pb64t4-locale-date-width; conformance-test:LocaleDispositionTests.LocaleDateTime_IntegerArgument_IsAClassViolation",
   "editions": "2002,2014,2023",
-  "notes": "NEITHER half of the rule exists: no class screen (alphanumeric or national) and no 8-character-position LENGTH check anywhere for LOCALE-DATE. Verified mechanically, not sampled: IntrinsicArgumentRules.cs contains ZERO occurrences of the string LOCALE, so LOCALE-DATE is in neither Verified nor DeliberatelyUnscreened -- genuinely unscreened per the review's own rule 8 -- but unreachably so, because the COBOLNET1518 A.4.9 reject returns from BindIntrinsicCore ahead of CheckArgumentClasses. LATENT METADATA DEFECT, re-verified against the spec rather than against the catalog: the row is Add(new(\"LOCALE-DATE\", ..., \"is\", ...)), typing argument-1 as 'i' (INTEGER), which contradicts BOTH 15.52.3 r1 ('shall be of class alphanumeric or national', --check verified) and the 15.6 summary row '| LOCALE-DATE | Anum1 or Nat1, Loc2 | Anum |'. It is inert while Bind is Unsupported (the early return precedes every ArgKinds consumer), but it is wrong metadata that would mis-screen argument-1 the day the disposition is revisited, and the sibling LOCALE-TIME row repeats it. Even were ArgKinds corrected to 's', the class screen alone would still not satisfy this rule: the '8 character positions' half has no expression anywhere in the catalog schema (ArgKinds encodes class, never length), so implementing this rule needs a per-function length predicate that does not yet exist. No test-ref: nothing exercises either half, and the two existing locale tests only prove the by-name reject.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: class alphanumeric/national ('s') AND exactly 8 positions (ArgPredicate.ExactWidth(8)) — a 7-position item or an integer literal is COBOLNET1627.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.52.3-2",
@@ -45765,12 +45765,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "LOCALE-DATE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Date",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.Date_RendersPerTheLocalesShortDatePattern_AndRejectsAnInvalidDate",
   "editions": "2002,2014,2023",
-  "notes": "Nothing validates that argument-1 holds a YYYYMMDD value in CURRENT-DATE character positions 1-8 form and valid per that function's returned-value definition. Absent: any value rule for LOCALE-DATE, and any EC-ARGUMENT-FUNCTION raise site for it. The compiler owns the machinery -- CURRENT-DATE is 15.21, TEST-DATE-YYYYMMDD is 15.90, INTEGER-OF-DATE is 15.46 (all three clause numbers re-verified against the spec headings, since a wrong-by-one-level clause number is the standing failure mode here) -- but none of it is wired to LOCALE-DATE and none of it can be reached: the reference dies by name at bind with COBOLNET1518 under the ratified A.4.9 documented-non-support disposition. Note that the rule is a two-part obligation (same format as CURRENT-DATE positions 1-8, AND valid as a returned value of that function); both parts are equally absent, so there is no partially-implemented half to credit.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: YYYYMMDD validated per CURRENT-DATE's definition (a Gregorian date, year 1601–9999); an invalid value is EC-ARGUMENT-FUNCTION at run time (the §15.3 default — the empty string — when checking is off; the ARG line).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.52.3-3",
@@ -45778,12 +45778,12 @@
   "kind": "AR",
   "ordinal": 3,
   "subject": "LOCALE-DATE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolSpecialNames.g4#specialNameEntry; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames; src/Cobol.Net.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+  "test-ref": "conformance:negative/pb64t4-locale-function-name-undeclared",
   "editions": "2002,2014,2023",
-  "notes": "The rule itself is unimplemented: there is no locale-name concept anywhere, so 'associated with a locale in the SPECIAL-NAMES paragraph' can never be declared, let alone checked; the function reference is rejected first, by name, with COBOLNET1518. *** THE FIRST PASS'S SUPPORTING EVIDENCE IS OVERTURNED, AND THE TRUTH IS WORSE. *** It recorded that writing a SPECIAL-NAMES LOCALE clause 'yields a bare ANTLR syntax error'. It does not, for the primary branch of the 12.3.7 format 'LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 }': (a) LOCALE is not a lexer token -- zero hits for LOCALE across all of src/Cobol.Net.Frontend/Grammar/, and the LOCALE phrase of LOWER-CASE etc. is matched on TEXT by IntrinsicBinder#HasLocalePhrase -- so it lexes as IDENTIFIER; (b) specialNameEntry ends in two catch-all alternatives, implementorSwitchEntry ( cobolWord (IS cobolWord)? ... ) and genericClause ( IDENTIFIER (IDENTIFIER|literal)* ), and cobolWord admits IDENTIFIER; so 'LOCALE FR-LOC IS EXT-NAME' decomposes into entries that both catch-alls accept; (c) the ONLY two consumers of specialNameEntry in the whole compiler are DataBinder.Switches#SwitchBindSpecialNames and MnemonicRegistry#Of, and BOTH silently 'continue' past everything they do not recognise -- there is no unknown-entry diagnostic. Net effect: the clause is SILENTLY ACCEPTED and MnemonicRegistry registers EXT-NAME as a device mnemonic bound to FR-LOC, usable afterwards in e.g. DISPLAY ... UPON EXT-NAME. Only the literal-4 branch ('IS \"fr_FR\"') is a parse error, because IS followed by a literal starts no entry. This (i) violates A.4.1 ('An implementation shall accept the syntax ... for an optional element only when support ... is claimed'), (ii) contradicts the owner's own decision-3 requirement of UNIFORM not-supported diagnostics, and (iii) contradicts docs/CONFORMANCE.md section 4 item 5, which tells the user this entry point is a parse error. It is a compile-clean, run-time-invisible acceptance -- the PB7 shape -- and it is NOT covered by PB1-PB11/PB13. SIBLING SWEEP (same A.4.9 item 10, same silent shape): 'ALPHABET a1 IS LOCALE [locale-name-2]' takes the alphanumeric branch, where AlphabetOperands maps an unrecognised bare word through '_ => t' and feeds the letters L,O,C,A,L,E into the collating table -- silently accepted AND a silently WRONG alphabet; the FOR NATIONAL branch does reject it, but as COBOLNET0898 'not a supported code-name (12.3.7.3 SR15)', never citing A.4.9. The in-code claim at DataBinder.Switches.cs (the AlphabetBindNational doc comment, 'the LOCALE phrase ... fails loud at parse') is therefore wrong on both counts.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: COBOLNET1664 for an undeclared locale-name-1, citing this rule.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.52.4-1",
@@ -45791,12 +45791,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "LOCALE-DATE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#Build",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Facts",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.NamedUnavailableLocale_IsMissing_AndTheRootAnswers",
   "editions": "2002,2014,2023",
-  "notes": "Both halves absent. (a) Locale selection: no current-locale model and no locale-name binding exist, so neither the locale-name-1 branch nor the current-locale branch is written. (b) EC-LOCALE-MISSING: the name IS registered -- L3(\"EC-LOCALE-MISSING\", EcFatality.Fatal) -- so >>TURN and USE can name it, and the Fatal fatality was checked against the standard's own exception-condition table ('| EC-LOCALE-MISSING | Fatal | The specified locale is not available |'), which the first pass asserted without verifying; it matches. But a repo-wide grep for EC-LOCALE in src/ returns ONLY the six ExceptionCatalog registration lines: there is not one raise site, so the condition can never be set to exist for this or any other locale operation. Nothing is silently wrong at run time because the function reference never binds -- COBOLNET1518 under the ratified A.4.9 disposition.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: the named locale, else the current LC_TIME (§14.6.6 r8); EC-LOCALE-MISSING for an unavailable named locale (the HANDLED/MISSING lines — the statement interrupted, the root's format standing when checking is off).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.52.4-2",
@@ -45804,12 +45804,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "LOCALE-DATE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Date; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#DateFormat",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.Date_RendersPerTheLocalesShortDatePattern_AndRejectsAnInvalidDate",
   "editions": "2002,2014,2023",
-  "notes": "No d_fmt formatting exists in the typed-native pipeline: the catalog row carries an EMPTY RuntimeMethod, src/Cobol.Net.Compiler/CodeGen contains no LOCALE arm at all (zero hits, IntrinsicRenderer included), and there is no LocaleDate body anywhere under src/Cobol.Net.Runtime. The only LocaleDate in the tree is the legacy oracle, src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs#LocaleDate, and reading it (not sampling it) confirms it is non-conforming twice over: it treats argument-1 as an INTEGER DATE -- new DateTime(1601,1,1).AddDays((double)integerDate - 1) -- where 15.52.3 r2 defines it as CURRENT-DATE-form YYYYMMDD, and it formats with CultureInfo.CurrentCulture 'd' rather than the locale's d_fmt; its doc comment also mis-cites the clause as 15.56, which is a different function. That path is opt-in differential only (COBOLSHARP_LEGACY_DIFFERENTIAL=1) and is deleted at P15, so it is not a defect of the subject compiler -- but it does mean a legacy differential on this function compares reject-vs-wrong-value and can never be evidence here.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4 — DETERMINATION L10 (CONFORMANCE.md §4 item 5): d_fmt is the culture's short date pattern (LocaleFacts over CultureInfo.DateTimeFormat.ShortDatePattern); the DATE-ROOT / DATE-FR / DATE-JA lines. EC-LOCALE-INVALID (§8.2.1) when the locale has no culture data for LC_TIME.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.52.4-3",
@@ -45817,12 +45817,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "LOCALE-DATE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Date",
+  "test-ref": "conformance:2014/pb64t4_locale_functions",
   "editions": "2002,2014,2023",
-  "notes": "No returned value is ever produced, so its locale-dependent length is not modelled. The catalog row does type the result IntrinsicType.Alphanumeric, matching 15.52.1 'The function type is alphanumeric' (--check verified) and the 15.6 'Anum' column, but the call never reaches result construction: COBOLNET1518 replaces it with a BoundExprError under the ratified A.4.9 disposition. The first pass closed this note with a forward-looking citation to 'the compiler's LENGTH discipline (15.14.4 r2/r5)'; THAT CITATION IS DELETED HERE -- 15.14 is the BYTE-LENGTH function and its rules 2 and 5 govern OCCURS DEPENDING and dynamic-length items, saying nothing about how a locale-dependent result length would be staged (LENGTH is 15.50). Stated without a citation instead: a result whose length is known only at run time has no representation in the catalog's fixed result-category schema, so implementing this rule is a schema change, not a row edit.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: the result is a dynamic-length string whose length the locale's pattern decides (the LEN line; a MOVE / reference modification bounds it at run time) — the RuntimeDetermined shape the design named, realized by the dynamic result every §15 string function already returns.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.53.3-1",
@@ -45830,12 +45830,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "LOCALE-TIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+  "test-ref": "conformance-test:LocaleDispositionTests.LocaleDateTime_IntegerArgument_IsAClassViolation",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED at the floor; evidence corrected and extended. A LOUD REJECT, not a screen. RULE re-validated: cite.py --check 15.53.3 \"Argument-1 shall be of class alphanumeric or national and shall be 6 character positions in length.\" -> OK §15.53.3 1). LOCALE-TIME is catalogued Bind=Unsupported (IntrinsicCatalog.cs#Build, the row: Add(new(\"LOCALE-TIME\", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, \"is\", \"\", IntrinsicBind.Unsupported, false, 2002))). BindIntrinsicCore returns LocaleUnsupported (COBOLNET1518) at the `if (sig.Bind == IntrinsicBind.Unsupported)` arm, which precedes both BindIntrinsicArgs and CheckArgumentClasses, so no class or length check for argument-1 exists or is reachable. LOCALE-TIME is absent from BOTH IntrinsicArgumentRules.Verified and IntrinsicArgumentRules.DeliberatelyUnscreened (both dictionaries read in full; zero LOCALE hits in the file). ** DISPOSITION IS OWNER-RATIFIED, NOT MINE: ** docs/COMPLETION_ROADMAP_COUNCIL.md decision 3, marked '✅ RATIFIED 2026-07-03', dispositions A.4.9 locale to documented non-support, and the A.4.1 user-documentation obligation the adjudicator never checked IS discharged -- docs/CONFORMANCE.md §4 item 5 and its A.4 table row 'A.4.9 | Locale support and related functions | Not claimed' name the module and the COBOLNET1518 code. §4.2.7 re-validated: cite.py --check 4.2.7 \"Language elements that an implementor may, but need not, implement are listed in A.4, Optional language element list. An implementor shall identify in user documentation the optional language elements for which that implementor claims support.\" -> OK. ** LATENT DEFECT (SUSTAINED, re-verified line by line): ** the catalog row declares ArgKinds \"is\" -- position 1 = 'i', and IntrinsicArgumentRules.Admissible('i') => [CobolClass.Numeric] (read at the source, not inferred). §15.53.3 r1 requires class ALPHANUMERIC OR NATIONAL, 6 character positions, and the normative Table 21 row agrees: cite.py --check 15.6 \"| LOCALE-TIME | Anum1 or Nat1, Loc2 | Anum | ...\" -> OK §15.6 4). The 'i' matches only the INFORMATIVE §D.31.4.4 ('an integer time in HHMMSS form'), which the normative text overrides. Position 2 is declared 's' where locale-name-1 is a NAME (Table 21 'Loc2'), not a data operand of any class -- no code in Admissible fits it; it needs a DeliberatelyUnscreened row or its own arm. Doubly dead today (Bind=Unsupported short-circuits, AND CheckArgumentClasses is driven from Verified, never from ArgKinds), but it is the PB1 trap: IntrinsicArgumentClassDriftTests was READ IN FULL and it does NOT compare ArgKinds against Verified -- its five facts are the catalog-row floor (>=79), that CheckArgumentClasses/IntrinsicArgumentRules.Verified are still referenced, that Verified rows cite a § and name a real function with a handled code, and the PB1 fixture registration. Nothing catches a wrong ArgKinds code. The identical error sits on LOCALE-DATE (declared \"is\"; cite.py --check 15.52.3 \"Argument-1 shall be of class alphanumeric or national and shall be 8 character positions in length.\" -> OK). ** ADDED BY THE REFUTATION: the wrong 'i' hint has already propagated into the test corpus ** -- tests/Cobol.Net.Tests.Conformance/LocaleDispositionTests.cs writes `FUNCTION LOCALE-TIME(120000)` and `FUNCTION LOCALE-DATE(20240229)`, integer literals of exactly the class §15.53.3 r1 / §15.52.3 r1 forbid. Harmless while the reject precedes argument binding, but it means the corpus would have to be rewritten, not merely extended, the day the module is claimed. EDITIONS derived from the standard, not from the catalog row: LOCALE-TIME has ZERO occurrences in Annex E (42835-50350) so it is not a 2023 addition; docs/VERSION_CHANGE_REFERENCE.md has no LOCALE row at all; the A.4.9 locale module is a COBOL-2002 introduction, which is the 'provisional 2002 set' the ratified council ruling covers. Run-confirmed: at --std 85 the reference draws COBOLNET1502 naming 2002.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: class alphanumeric/national AND exactly 6 positions (ArgPredicate.ExactWidth(6)).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.53.3-2",
@@ -45843,12 +45843,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "LOCALE-TIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Render",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Time",
+  "test-ref": "unit:CobolLocaleTests.Time_RendersPerTheLocalesLongTimePattern_WithItsOwnRanges",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED, with one factual claim of the prior report NARROWED. No compile-time or run-time check exists that argument-1 holds hhmmss in the format of CURRENT-DATE character positions 9 through 14. In the GREENFIELD compiler there is no LOCALE-TIME body: src/Cobol.Net.Runtime/Intrinsics/ holds only CobolDate.cs and the five CobolIntrinsics.*.cs files (directory listed -- no locale member), the catalog row's RuntimeMethod is the empty string, and IntrinsicRenderer.cs's `if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)` loud fallback is the never-reached backstop behind the bind-time COBOLNET1518. ** THE PRIOR NOTE'S SCOPE WAS WRONG: ** it is NOT true that no LOCALE-TIME body exists in src/. src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs#LocaleTime is a live LEGACY body -- `public static string LocaleTime(decimal time)`, which splits HHMMSS out of a DECIMAL (the class §15.53.3 r1 forbids), builds a TimeSpan and returns `new DateTime(1,1,1).Add(ts).ToString(\"T\", CultureInfo.CurrentCulture)` -- .NET current-culture long-time, not the locale's t_fmt; its doc-comment cites '§15.57', which in the 2023 numbering is LOWER-CASE. It is dispatched from IntrinsicFunctions.cs's `\"LOCALE-TIME\" => LocaleTime(numArgs[0])` name switch. Consequence that matters for this review: the legacy differential can NEVER adjudicate this function -- the legacy side is itself non-conforming on the argument class, the format source and the citation -- so no row here may ever be closed on it. Not a greenfield defect (CobolSharp.* is the opt-in oracle, deleted at P15), but the prior 'no body anywhere' statement would have hidden it.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: HHMMSS digits; a non-digit / wrong-length value is EC-ARGUMENT-FUNCTION.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.53.3-3",
@@ -45856,12 +45856,12 @@
   "kind": "AR",
   "ordinal": 3,
   "subject": "LOCALE-TIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Time",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.Time_RendersPerTheLocalesLongTimePattern_WithItsOwnRanges",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED. Nothing. The two widened ranges this rule grants over CURRENT-DATE -- hours 00 through 24 (a) and seconds 00 through 99 (b, the leap-second allowance) -- have no representation anywhere in src/Cobol.Net.*: no validator, no EC-ARGUMENT-FUNCTION arm, no constant. The reference never reaches argument evaluation; COBOLNET1518 rejects the function by name. Two additions the prior note lacked. (i) The rule's own NOTE is informative and its LEAP-SECOND premise is NOT a 2023 delta -- LEAP-SECOND has 16 spec occurrences and ZERO inside Annex E, so the widened ranges are stable across the 2002/2014/2023 window rather than a late addition, which is why the edition string is the full post-2002 window. (ii) The widening is genuinely BIDIRECTIONAL and both directions are unrepresented: r3(b)'s 00-99 is WIDER than the CURRENT-DATE table row it overrides (§15.21 positions 13-14 admit 00-59 with LEAP-SECOND OFF, 00-nn with ON), and r3(a)'s 00-24 admits the 24:00:00 end-of-day value that the CURRENT-DATE hours field does not. A future implementation cannot reuse a CURRENT-DATE validator here; it needs this clause's own range pair. Recorded because the shape of the missing check, not merely its absence, is what the eventual fix has to get right.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: THIS rule's own ranges — hours 00–24 (a), seconds 00–99 (b), minutes 00–59 — enforced by CobolLocale.Time itself (not CURRENT-DATE's narrower validator); the TIME-24 / TIME-99 lines render 24:00:00 and 23:59:99, which a DateTime could not hold.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.53.3-4",
@@ -45869,12 +45869,12 @@
   "kind": "AR",
   "ordinal": 4,
   "subject": "LOCALE-TIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Frontend/Grammar/Core/CobolSpecialNames.g4#specialNamesParagraph",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+  "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive; conformance:negative/pb64t4-locale-function-name-undeclared",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED as a verdict, but ** THE PRIOR NOTE'S CENTRAL CLAIM IS REFUTED BY EXECUTION. ** It said 'the SPECIAL-NAMES LOCALE clause has NO compiler surface at all', reasoning from a grep that finds zero LOCALE tokens in CobolSpecialNames.g4 / CobolLexer.g4 / CobolWords.g4 (that grep result is correct). Grepping the grammar is not the same as running the construct. Run against the prebuilt src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe (2026-08-02 14:27 build; no rebuild performed), --std 2023, verbatim output: (1) `SPECIAL-NAMES. LOCALE LOC1 IS \"fr_FR\".` -> `error COBOL0308: unexpected '\"fr_FR\"'. A data-name is expected here, not a literal.` -- an ordinary parse error that actively MISDIRECTS, telling the user a data-name would be accepted; (2) `SPECIAL-NAMES. LOCALE LOC1 IS FR-FR.` -> `error COBOLNET0901: 'LOCALE' is a reserved word in COBOL-2023 and cannot be used as a user-defined word (ISO 8.9)` -- also wrong on its face, since LOCALE there is the CLAUSE KEYWORD, not a user-defined word; the word IS in the reserved-word tables, so 'no surface at all' is false twice over. Neither is the uniform COBOLNET1518 that ratified decision 3 attaches to this disposition ('Documented non-support (with the §4.2 conformance doc + uniform not-supported diagnostics)'). This is a KNOWN gap, not a new one -- docs/CONFORMANCE.md §4 item 5 already records 'The remaining locale entry points (SET LC_* formats 11/12, the SPECIAL-NAMES LOCALE clause, OBJECT-COMPUTER CHARACTER CLASSIFICATION) currently have no named diagnostic ... naming them is a tracked review-ledger fix (F3)' -- but the doc understates it: the defect is not an unnamed diagnostic, it is a MISLEADING one that names a nonexistent remedy. So the rule has nothing to check against AND the surface it governs rejects for the wrong reason. The prior note's one positive finding IS confirmed by run: `MOVE FUNCTION LOCALE-TIME(WS-T LOC1) TO WS-R.` yields the A.4.9 COBOLNET1518, not an unresolved-name error on LOC1, because the Unsupported arm precedes BindIntrinsicArgs. Untested: LocaleDispositionTests exercises only the one-argument form.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: COBOLNET1664 for an undeclared locale-name-1.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.53.4-1",
@@ -45882,12 +45882,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "LOCALE-TIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#Build",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Facts",
+  "test-ref": "unit:CobolLocaleTests.NamedUnavailableLocale_IsMissing_AndTheRootAnswers",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED; code-location corrected and the spec consequence supplied. The prior code-location read 'ExceptionCatalog.cs#L3', which is schema-illegal-looking (it reads as a line number) and anchors on a LOCAL FUNCTION -- `void L3(string name, EcFatality f, int introduced = 2002)` nested inside `private static Dictionary<string, EcInfo> Build()`. The addressable symbol is #Build. Substance: neither half of the rule exists. There is no current-locale model (§14.6.6 r1's run-unit current locale is unmodelled) and no locale-name-to-locale association, so the 'locale-name-1 else the current locale' selection has nothing to select. EC-LOCALE-MISSING IS catalogued -- `L3(\"EC-LOCALE-MISSING\", EcFatality.Fatal);` -- and is raised from nowhere: grep over src/ finds exactly one occurrence, the catalog row itself (re-run and confirmed). ** ADDED: not raising it is CONFORMING, not a second defect, ** and the prior note did not establish that. cite.py --check 14.6.13.1.1 \"The implementor is not required to raise any exception conditions for level-3 exception-names that are associated with optional language elements or processor-dependent language elements that the implementor has not implemented unless the description of that language element in A.3, Processor-dependent language element list or A.4, Optional language element list, requires that an exception condition be raised.\" -> OK; A.4.9 item 1 lists the EC-LOCALE family only as RAISING-phrase surface and imposes no raise obligation. The whole path is unreachable behind the COBOLNET1518 reject.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: as RV-15.52.4-1 — the named locale else the current LC_TIME; EC-LOCALE-MISSING when unavailable.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.53.4-2",
@@ -45895,12 +45895,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "LOCALE-TIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Render",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#FormatTime; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#TimeFormat",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.FormatTime_HandlesTheTokenVocabulary",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED, but ** THE PRIOR NOTE CARRIED A WRONG CLAUSE NUMBER -- the exact failure mode this review exists to catch. ** It attributed the LC_TIME selection to 'Sec.12.3.6 rule 8'. cite.py --check 12.3.6 \"For a LOCALE-DATE or LOCALE-TIME intrinsic function specifying a locale as an argument, category LC_TIME from the specified locale is used ...\" -> FAIL. --find puts the text in §14.6.6 'Locale identification'; cite.py --check 14.6.6 <same text> -> OK §14.6.6 8). §12.3.6 is the OBJECT-COMPUTER paragraph (A.4.9 item 7 -- the CHARACTER CLASSIFICATION clause, a DIFFERENT optional element that selects LC_CTYPE, not LC_TIME); the two were conflated. The governing citation for this rule's locale-category selection is §14.6.6 rule 8. Rule text itself re-validated: cite.py --check 15.53.4 \"The returned value is a character-string containing hours, minutes, and seconds of the time specified by argument-1 in the culturally-appropriate format indicated in the locale by locale field t_fmt.\" -> OK §15.53.4 2). Substance: no returned value is ever produced by the greenfield -- the catalog row carries an empty RuntimeMethod, there is no LOCALE-TIME arm in IntrinsicRenderer (zero LOCALE hits under src/Cobol.Net.Compiler/CodeGen/), and no t_fmt / LC_TIME model exists in src/Cobol.Net.*. ** SCOPE CORRECTED: ** the prior 'nowhere in src/' is false -- the legacy src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs#LocaleTime substitutes CultureInfo.CurrentCulture's \"T\" pattern for t_fmt, which is an approximation of the wrong field from the wrong source and must not be mistaken for an implementation (see AR-15.53.3-2).",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4 — DETERMINATION L10: t_fmt is the culture's LONG time pattern (hours, minutes AND seconds — the short pattern omits seconds), rendered over its tokens (H/h/m/s/t, the time separator, quoted literals; the TIME-ROOT / TIME-DE / TIME-US lines).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.53.4-3",
@@ -45908,12 +45908,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "LOCALE-TIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Render",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Time",
+  "test-ref": "conformance:2014/pb64t4_locale_functions",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED, with the design constraint tightened and evidenced. Nothing: there is no returned value and hence no length. The only trace of a result is the catalog row's IntrinsicType.Alphanumeric, and it is never reached -- the emitter's own guard, IntrinsicRenderer.cs `if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)`, is the loud backstop behind the bind-time COBOLNET1518, so the empty RuntimeMethod cannot silently render. Note for whoever revisits decision 3: a locale-dependent RESULT LENGTH is a real architectural constraint, not a runtime detail. IntrinsicType.Alphanumeric feeds IntrinsicSig.ResultCategory, and every other alphanumeric intrinsic in this compiler has a length the binder computes statically (that is what MOVE/reference-modification/receiver sizing consult); this one is knowable only at run time, from the locale's t_fmt. So claiming A.4.9 later is not 'add a runtime body' -- it needs a receiver-context decision for a dynamically-sized alphanumeric function result, and the same constraint binds LOCALE-DATE (§15.52.4 r3) and LOCALE-TIME-FROM-SECONDS (§15.54.4 r3) identically.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: a dynamic-length result (\"13:05:09\" vs \"1:05:09 PM\").",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.54.3-1",
@@ -45921,12 +45921,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "LOCALE-TIME-FROM-SECONDS function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "conformance-test:LocaleDispositionTests.LocaleTimeFromSeconds_A49",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#SecondsOutOfStandardFormFor",
+  "test-ref": "conformance:negative/pb64t4-time-from-seconds-class; unit:CobolLocaleTests.TimeFromSeconds_CarriesTheFraction_AndScreensTheStandardForm",
   "editions": "2014,2023",
-  "notes": "REFUTER RE-VERIFIED. No argument rule is evaluated for this function. Read the bind order rather than sampling: BindIntrinsicCore does catalog lookup -> the D8 edition gate -> the standard-arithmetic stage -> `if (sig.Bind == IntrinsicBind.Unsupported) return LocaleUnsupported(...)`; BindIntrinsicArgs, the COBOLNET1504 arity check and CheckArgumentClasses all sit BELOW that return, so neither the ArgKinds 'ns' class screen nor any value screen is reachable. Absence from IntrinsicArgumentRules.Verified is therefore inert here, and IntrinsicArgumentClassDriftTests only asserts that every VERIFIED rule names a real function - it never requires a catalog row to be verified. The disposition is the ratified A.4.9 documented non-support (COMPLETION_ROADMAP_COUNCIL.md header + section 5: 'RATIFIED 2026-07-03, owner ... decisions #2-#11 ADOPTED as written', decision 3; user-documentation leg per ISO 4.2.7 satisfied by CONFORMANCE.md section 4 item 5 and the section 5 'A.4.9 | Not claimed' row), so NOT-IMPLEMENTED - not NEEDS-OWNER-DECISION.\n** OVERTURNED EVIDENCE (adjudicator's claim was false). ** The first pass wrote: 'the LEAP-SECOND directive, which has NO implementation at all - grep -r LEAP-SECOND src/ returns nothing'. That grep does NOT return nothing. LEAP-SECOND is in the recognized directive list at src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs, and the 15.5.5 standard-numeric-time-form VALUE screen is implemented and live at src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#SecondsOutOfStandardForm - an exact Int128 comparison against 86,400 scaled by the argument scale, raising ExceptionState.ArgumentError citing 7.3.17 r5 ('When OFF is specified or implied, a standard numeric time form value shall be greater than or equal to zero and less than 86,400' - --check OK at 7.3.17.4 r5), wired into FORMATTED-TIME/FORMATTED-DATETIME/COMBINED-DATETIME. So the rule's value half EXISTS as shared machinery and is merely never reached from this function; the accurate statement is 'unreachable', not 'absent'. (Residual, outside this subject: that screen hardcodes the LEAP-SECOND OFF bound and the ON/86,401 leg of 7.3.17 r4 is unimplemented.) 'Standard numeric time form' is defined at 15.5.5 - --check OK, 'A value in standard numeric time form is a numeric value representing seconds past midnight.'\nTest-ref kept: LocaleTimeFromSeconds_A49 is a per-function xUnit case that writes argument-1 and pins that the reject - not the rule - is the whole behaviour. It closes nothing about standard numeric time form.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: class numeric at bind ('n' — a fractional value is legal); the §7.3.17 standard-numeric-time-form RANGE is the ONE exact Int128 screen FORMATTED-TIME uses (EC-ARGUMENT-FUNCTION; LEAP-SECOND ON admits 86400).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.54.3-2",
@@ -45934,12 +45934,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "LOCALE-TIME-FROM-SECONDS function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Frontend/Grammar/Core/CobolSpecialNames.g4",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+  "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
   "editions": "2014,2023",
-  "notes": "REFUTER RE-VERIFIED, TEST-REF CLEARED. The rule's premise has no surface: a case-insensitive grep for 'locale' across the whole of src/Cobol.Net.Frontend/Grammar/ returns ZERO hits (re-run this pass), so the SPECIAL-NAMES LOCALE clause (A.4.9 item 10, 12.3.7) cannot be written and locale-name-1 can never be declared; and the COBOLNET1518 return precedes argument binding, so a written locale-name-1 never reaches name resolution either. CONFORMANCE.md section 4 item 5 records the residue honestly: the SPECIAL-NAMES LOCALE clause is a RAW PARSE ERROR with no named diagnostic (tracked review-ledger F3), so the recognize-and-name posture is met for the FUNCTION but not for the clause this argument rule depends on.\n** OVERTURN: the first pass attached conformance:LocaleDispositionTests#LocaleTimeFromSeconds_A49 to this row while its own notes conceded 'no test exercises it; every existing case uses the one-argument form'. A test that never writes locale-name-1 cannot be evidence for a rule ABOUT locale-name-1. ** test-ref is now empty - the correct outcome, per 'leave test-ref EMPTY rather than reaching'. (The two-argument shape does parse - LOWER-CASE(WS-X LOCALE LOC1) with LOC1 undeclared already parses to space-separated arguments and reaches the same reject - but nothing exercises it for this function.)",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: COBOLNET1664 for an undeclared locale-name-1.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.54.4-1",
@@ -45947,12 +45947,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "LOCALE-TIME-FROM-SECONDS function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#Build",
-  "test-ref": "conformance-test:LocaleDispositionTests.LocaleTimeFromSeconds_A49",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#Facts",
+  "test-ref": "unit:CobolLocaleTests.NamedUnavailableLocale_IsMissing_AndTheRootAnswers",
   "editions": "2014,2023",
-  "notes": "BOTH halves absent, confirmed by reading the code and not by sampling. (a) Locale selection (locale-name-1 vs the current locale) has no seam anywhere: a case-insensitive grep of src/Cobol.Net.Runtime/ for 'locale' returns only the ExceptionCatalog names and one unrelated LOWER-CASE doc-comment in CobolIntrinsics.Text.cs - there is no LocaleTimeFromSeconds body in the typed-native runtime at all. (b) EC-LOCALE-MISSING is NAME-KNOWN ONLY: ExceptionCatalog.cs registers it L3(\"EC-LOCALE-MISSING\", EcFatality.Fatal) beside EC-LOCALE-IMP/-INCOMPATIBLE/-INVALID/-INVALID-PTR/-SIZE, and a repo-wide grep finds no site that sets or raises any EC-LOCALE condition. Refuter addition the first pass did not check: the registered FATALITY is right - the spec's own table row reads '| EC-LOCALE-MISSING | Fatal | The specified locale is not available |' (--check OK at 14.6.13.1.6) - so the one implemented fact about this rule is correct; it simply has zero fan-out. Coherent with the ratified A.4.9 non-support, but the row closes nothing: no test raises or observes the exception.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: as RV-15.52.4-1.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.54.4-2",
@@ -45960,12 +45960,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "LOCALE-TIME-FROM-SECONDS function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "conformance-test:LocaleDispositionTests.LocaleTimeFromSeconds_A49",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#TimeFromSeconds",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; unit:CobolLocaleTests.TimeFromSeconds_CarriesTheFraction_AndScreensTheStandardForm",
   "editions": "2014,2023",
-  "notes": "No returned value is produced on the typed-native path: the catalog row's RuntimeMethod is the empty string, IntrinsicRenderer is never reached (the Unsupported bind returns BoundExprError first), and there is no t_fmt machinery anywhere in src/Cobol.Net.*. The only body in the tree is the LEGACY oracle src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs#LocaleTimeFromSeconds - TimeSpan.FromSeconds(...) formatted with ToString(\"T\", CultureInfo.CurrentCulture) - which is out of scope as product code (the greenfield compiler never compiles a program containing the function, so the opt-in legacy differential can never run it) and would fail this rule anyway: it ignores locale-name-1, keys off the .NET current culture rather than a SPECIAL-NAMES locale's t_fmt, and loses sub-second precision that D.31.4.5's NOTE explicitly requires ('the LOCALE-TIME-FROM-SECONDS function recognizes and processes argument values representing precision to the nanosecond'). Refuter VERIFIED the stale-citation claim against the spec instead of against the catalog: 15.55 is LOG and 15.58 is LOWEST-ALGEBRAIC, so the legacy doc comment '(15.58)' and tests/CobolSharp.Tests.Unit/Runtime/IntrinsicFunctionTests.cs's repetition of it are both wrong for this function (15.54) - repair at the P15 legacy cut. Those legacy unit tests are characterization of the legacy body and close nothing.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: hours/minutes/seconds from the seconds past midnight, per t_fmt; a scaled argument's fraction follows the seconds with the locale's decimal separator (Annex D.31.4.5's nanosecond note — a determination; the SEC-FRAC / SEC-FR lines).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.54.4-3",
@@ -45973,12 +45973,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "LOCALE-TIME-FROM-SECONDS function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "conformance-test:LocaleDispositionTests.LocaleTimeFromSeconds_A49",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#TimeFromSeconds",
+  "test-ref": "conformance:2014/pb64t4_locale_functions",
   "editions": "2014,2023",
-  "notes": "Follows RV-15.54.4-2: with no returned value there is no length. The catalog row types the function IntrinsicType.Alphanumeric, whose ResultCategory is PicCategory.Alphanumeric - the correct 15.54.1 type ('The function type is alphanumeric') - but that row is only ever read on the way to the COBOLNET1518 return: no length is computed, and a locale-dependent (run-time-variable) result length has no representation in the typed-native result model today. Under the owner-ratified A.4.9 non-support this is the intended state, not a gap to fill; the row is recorded NOT-IMPLEMENTED rather than closed, and no test observes a length.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: a dynamic-length result.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.55.3-1",
@@ -52512,12 +52512,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "LOCALE-COMPARE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "conformance-test:LocaleDispositionTests.LocaleCompare_A49; conformance:negative/locale_functions_a49",
-  "editions": "2014,2023",
-  "notes": "The format is CATALOGUED but never ACCEPTED. The row models it (IntrinsicArity.OptionalTrailing 2..3 = two required arguments plus the bracketed locale-name-1; IntrinsicType.Alphanumeric matches §15.51.1 'The function type is alphanumeric.' --check OK), which is why a reference draws the named COBOLNET1518 rather than COBOLNET1501; the Unsupported arm returns before the arity check, so the 2..3 bounds are dead and a mis-arity call also reports 1518. TEST-REF SUSTAINED BUT ITS DESCRIPTION CORRECTED: both artefacts exist and are read — LocaleDispositionTests.cs:41 compiles MOVE FUNCTION LOCALE-COMPARE(\"A\" \"B\") TO WS-R at edition 2023 and asserts !ok plus the diagnostic substrings 'COBOLNET1518' and 'A.4.9'; it does NOT assert the §4.2.7/§A.4.1 text the adjudicator credited it with, and the negative-corpus .err carries the bare string 'COBOLNET1518'. Neither is nist:, characterization: or a legacy differential. They pin the DISPOSITION, not format acceptance. REACHABILITY RE-VERIFIED on all three reference forms (the PB7/PB8 failure shapes): FUNCTION-keyword (BindIntrinsic:79), keyword-omitted via KeywordOmittedFunction -> ReparseArgs -> BindIntrinsicCore (:256, gated on REPOSITORY ALL/named INTRINSIC and on the name not resolving to a data item), and ref-mod of the result (FinishIntrinsic -> ResultRefMod returns the existing BoundExprError at :121, so no second diagnostic stacks). ALSO FOUND, outside this clause set (§12.3.8): 'REPOSITORY. FUNCTION LOCALE-COMPARE INTRINSIC.' is ACCEPTED SILENTLY — DataBinder.cs:336 adds any functionName to RepositoryIntrinsics with no IntrinsicBind.Unsupported test — so the A.4.1 'accept the syntax only when support is claimed' posture is enforced at the reference site ONLY. Editions narrowed per AR-15.51.3-1.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T4 (2026-08-19): FUNCTION LOCALE-COMPARE ( argument-1 argument-2 [ locale-name-1 ] ) — the optional trailing position is a locale-name (§15.3 type 8, ArgKinds 'l'), bound by BindLocaleFunction. Was NOT-IMPLEMENTED (documented non-support, COBOLNET1518).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.52.2",
@@ -52525,12 +52525,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "LOCALE-DATE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
   "editions": "2002,2014,2023",
-  "notes": "The general format FUNCTION LOCALE-DATE ( argument-1 [ locale-name-1 ] ) is NEVER ACCEPTED. The catalog row (Alphanumeric, OptionalTrailing, MinArgs 1 / MaxArgs 2) carries Bind == IntrinsicBind.Unsupported, so BindIntrinsicCore returns LocaleUnsupported() -- a LOUD bind-time COBOLNET1518 BY NAME -- before arity or argument screening. REFUTER RE-DERIVED THE DISPOSITION RATHER THAN INHERITING IT: A.4.9 item 3 is literally 'LOCALE-DATE function (15.52)'; A.4.1 reads 'An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor'; 4.2.7 additionally requires the implementor to identify the non-support in user documentation, and docs/CONFORMANCE.md section 4 item 5 plus the A.4.9 row of section 5 do so. The decision is the OWNER'S, not this review's: docs/COMPLETION_ROADMAP_COUNCIL.md line 1 'Status: RATIFIED (2026-07-03, owner)' + decision-table row 3 + plan line 1559. Verdict is NOT-IMPLEMENTED (no code implements the ACCEPT path; only the reject exists), not NEEDS-OWNER-DECISION, because the decision already exists. TWO PROPERTIES THE FIRST PASS NEVER CHECKED, both verified here and both holding: (1) the reject is ctx.Edition.Error, NOT ctx.Edition.Removed, so --permissive cannot downgrade it into a warning that would leave a BoundExprError to reach codegen (EditionContext.cs Error vs Removed); (2) there is no PB7-shaped keyword-omitted hole -- the FUNCTION-keyword entry AND the keyword-omitted re-parse both funnel through the same BindIntrinsicCore, so 'LOCALE-DATE(x)' under REPOSITORY ... FUNCTION ALL INTRINSIC rejects identically. Ordering note: the Unsupported arm sits AFTER the D8 window check, so at --std 85 a program collects COBOLNET1502 and COBOLNET1518 together. TEST-REF DELETED by this pass (it claimed conformance:LocaleDispositionTests#LocaleDate_A49 and conformance:tests/conformance/negative/locale_functions_a49.cob; both exist, the latter is manifest-registered): they assert the REJECT -- the negation of this format rule -- not the rule, so they cannot close it; neither one ever writes the [ locale-name-1 ] branch, so even the reject is covered only for the one-argument shape; and their sample FUNCTION LOCALE-DATE(20240229) is not a conforming argument-1 under 15.52.3 r1 at all. EDITIONS re-derived from the standard, NOT from the catalog row: LOCALE-DATE is not among the 42 functions of the 1989 intrinsic-function amendment and is absent from Annex E (the 2014->2023 delta), and the locale module is a 2002 addition; docs/VERSION_CHANGE_REFERENCE.md carries NO locale row at all, so the 2002 edge is a ratified decision-#1 provisional edge.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: FUNCTION LOCALE-DATE ( argument-1 [ locale-name-1 ] ). Was NOT-IMPLEMENTED.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.53.2",
@@ -52538,12 +52538,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "LOCALE-TIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
-  "test-ref": "conformance-test:LocaleDispositionTests.LocaleTime_A49",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED. A LOUD REJECT; no form of the general format is accepted. The format PARSES -- functionCall/functionArgList in CobolExpressions.g4 is `functionArgument (FNARG_SEPARATOR? functionArgument)*` with functionArgument reaching arithmeticExpression, so `FUNCTION LOCALE-TIME ( arg [ loc ] )` admits the space-separated optional second operand -- and the catalog shape matches the format's underlined-required argument-1 plus bracketed optional locale-name-1 (IntrinsicArity.OptionalTrailing, MinArgs 1, MaxArgs 2). Bind=Unsupported makes every reference COBOLNET1518, the conforming disposition for an unclaimed optional module under §4.2.7 + A.4.1 given ratified decision 3 -- and the A.4.1 documentation duty is discharged in docs/CONFORMANCE.md (A.4.9 'Not claimed'), which the prior report did not verify. TEST-REF KEPT after audit: LocaleDispositionTests is in tests/Cobol.Net.Tests.Conformance, asserts the diagnostic derived from Annex A, and is neither a nist:, a characterization: nor a *MatchesLegacy* differential -- but its reach is NARROWER than the prior note admitted: it pins one form only, `FUNCTION LOCALE-TIME(120000)`, whose argument is an integer literal of a class §15.53.3 r1 forbids, so it exercises no part of the format that is actually interesting. ** COVERAGE GAPS CLOSED BY RUN, NOT BY TEST ** (prebuilt cobol.exe, --std 2023): the TWO-ARGUMENT form `FUNCTION LOCALE-TIME(WS-T LOC1)` -> COBOLNET1518; the §8.4.3.2.3 SR2 KEYWORD-OMITTED form (`REPOSITORY. FUNCTION ALL INTRINSIC.` + `MOVE LOCALE-TIME(WS-T) TO WS-R`) -> COBOLNET1518, so the PB7-shaped hole does not exist here (KeywordOmittedFunction routes through the same BindIntrinsicCore); `--permissive` -> still COBOLNET1518, confirming EditionContext.Error is unconditional and the 1518 site does not route through the Removed() severity seam; `--std 85` -> COBOLNET1502 *and* COBOLNET1518 (a double diagnostic; both statements are true, but the 1518 text hard-codes 'ISO/IEC 1989:2023 Annex A A.4.9' even when targeting 2002 -- a small edition-fidelity wart in the message). NONE of these four behaviours is pinned by any test. See AR-15.53.3-1 for the ArgKinds category defect in the same catalog row.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: FUNCTION LOCALE-TIME ( argument-1 [ locale-name-1 ] ). Was NOT-IMPLEMENTED.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.54.2",
@@ -52551,12 +52551,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "LOCALE-TIME-FROM-SECONDS function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "conformance-test:LocaleDispositionTests.LocaleTimeFromSeconds_A49",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+  "test-ref": "conformance:2014/pb64t4_locale_functions; conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
   "editions": "2014,2023",
-  "notes": "The general format is deliberately NOT accepted - the A.4.1 posture for an unclaimed optional element ('An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor' - --check OK at A.4.1; 4.2.7 --check OK). Verified beyond the adjudicator: COBOLNET1518 is raised through EditionContext.Error, which is NOT demotable (only Removed() consults Permissive), so the reject holds under --permissive too; and the keyword-omitted reference form (REPOSITORY ... INTRINSIC / ALL INTRINSIC) re-enters the SAME BindIntrinsicCore, so there is no PB7-shaped run-time hole. The row's shape (OptionalTrailing, 1..2, ArgKinds 'ns', IntrinsicType.Alphanumeric = the 15.54.1 'function type is alphanumeric') matches the format, but none of it is enforced - COBOLNET1504 is below the Unsupported return.\n** OVERTURN 1 - the claimed EDITION DEFECT is withdrawn to UNRESOLVED. ** The first pass declared '** DEFECT: the catalog row's edition window is one edition too wide **' (2002 -> should be 2014). That is not derivable from the authority. (a) The 2023 spec attributes NO edition to 15.54: D.31.4 (Locale date and time intrinsic functions - LOCALE-DATE/-DAY/-TIME/-TIME-FROM-SECONDS) carries no edition sentence at all, and the ONLY in-spec function attribution anywhere is D.31.3.1's 'Two additional functions were added by ISO/IEC 1989:2002' (the TEST-DATE/TEST-DAY pair). D.31.5.1 likewise carries no edition sentence. (b) docs/VERSION_CHANGE_REFERENCE.md has no row for it and states outright that the 2002->2014 delta is 'under-documented in the 2023 spec; confirm against the ISO/IEC 1989:2014 (and 1989:2002) standard before gating'. (c) The adjudicator's load-bearing inference - 'the D.31.5 International date and time format handling group the catalog itself dates 2014' - is derived from IntrinsicCatalog's own rows, which is exactly the forbidden move, AND is self-refuting: SECONDS-PAST-MIDNIGHT is D.31.5.4 and the catalog dates it 2002 in the same block. (d) Ratified decision #1 is NO further standards acquisition, with provisional markers retained wherever the 2023 text cannot adjudicate - so the 2002 window is a sanctioned PROVISIONAL marker, not a proven error. Correct status: 2002-vs-2014 is UNRESOLVED and needs the 1989:2002 text; the editions field carries 2014,2023 only because those are the two the standard PROVES (Annex E does not list 15.54 among the 2014->2023 additions), not as an assertion that 2002 lacks the function.\n** OVERTURN 2 - test-ref narrowed. ** conformance-test:tests/conformance/negative/locale_functions_a49.cob is dropped: that .cob exercises FIVE locale functions in one program and its .err is the bare string 'COBOLNET1518', which CorpusRunnerTests asserts via a substring match over ALL diagnostics - so LOCALE-COMPARE alone keeps it green and it would stay green if the LOCALE-TIME-FROM-SECONDS row were deleted outright. It is a non-discriminating gate for this subject. The per-function xUnit case survives. Neither test writes the optional [locale-name-1] branch of the format.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T4: FUNCTION LOCALE-TIME-FROM-SECONDS ( argument-1 [ locale-name-1 ] ); 2014 per the catalog's provisional window (kb/Work R28). Was NOT-IMPLEMENTED.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.55.2",

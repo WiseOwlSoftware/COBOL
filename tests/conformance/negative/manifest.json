@@ -86,7 +86,6 @@
   "label-records-fd",
   "level88-alnum-value-boolean",
   "level88-boolean-value-alnum",
-  "locale_functions_a49",
   "locale_keyword_a49",
   "lock-mode-multiple-sequential",
   "max_national_result_to_an",
@@ -347,7 +346,10 @@
   "pb64t1-locale-name-duplicate",
   "pb64t1-set-locale-duplicate-category",
   "pb64t1-set-locale-user-default-source",
-  "pb64t1-locale-literal-sr10"
+  "pb64t1-locale-literal-sr10",
+  "pb64t4-locale-date-width",
+  "pb64t4-locale-function-name-undeclared",
+  "pb64t4-time-from-seconds-class"
  ],
  "pending": []
 }

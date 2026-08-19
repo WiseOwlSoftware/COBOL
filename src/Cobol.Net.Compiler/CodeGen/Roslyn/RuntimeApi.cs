@@ -867,6 +867,10 @@ internal static class RuntimeApi
     public static string Intrinsic(string method, string args) =>
         $"{nameof(CobolIntrinsics)}.{method}({args})";
 
+    /// <summary>A <c>CobolLocale</c> call (the §15.51–§15.54 LOCALE functions; kb/Work PB64 T4 — same catalog-name discipline).</summary>
+    public static string LocaleFn(string method, string args) =>
+        $"{nameof(CobolLocale)}.{method}({args})";
+
     /// <summary>A <c>CobolDate</c> call (the §15 date/time family — same catalog-name discipline).</summary>
     public static string DateFn(string method, string args) =>
         $"{nameof(CobolDate)}.{method}({args})";

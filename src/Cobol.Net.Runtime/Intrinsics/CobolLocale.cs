@@ -1,0 +1,188 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
+using System.Text;
+using CobolNet.Runtime.Collation;
+using CobolNet.Runtime.Exceptions;
+using CobolNet.Runtime.Globalization;
+
+namespace CobolNet.Runtime;
+
+/// <summary>
+/// The LOCALE intrinsic functions of ISO/IEC 1989:2023 Annex A.4.9 items 2–5 (DESIGN-locale-facility §4.7/§4.8;
+/// kb/Work PB64 T4): <see cref="Compare"/> (§15.51 LOCALE-COMPARE), <see cref="Date"/> (§15.52 LOCALE-DATE),
+/// <see cref="Time"/> (§15.53 LOCALE-TIME), <see cref="TimeFromSeconds"/> (§15.54 LOCALE-TIME-FROM-SECONDS). Each
+/// takes the bound <c>localeTag</c> of an optional locale-name-1 (null = the locale CURRENT for the category —
+/// §14.6.6 r7 LC_COLLATE for the comparison, r8 LC_TIME for the three time functions) and resolves it at USE:
+/// an unavailable named locale is EC-LOCALE-MISSING (§15.51.4 r3 / §15.52.4 r1 / §15.53.4 r1 / §15.54.4 r1;
+/// checking-gated per §14.6.13.1.1, the root locale's answer standing when checking is off); an available locale
+/// whose LC_TIME content this environment lacks (no .NET culture data — <see cref="LocaleFacts.HasCultureData"/>)
+/// is EC-LOCALE-INVALID (§8.2.1 "invalid or incomplete", the invariant format standing).
+/// <para>LOCALE-COMPARE IS the locale-based relation comparison (<see cref="LocaleCollation"/> — §15.51.4 r2's
+/// trailing-space truncation is §8.8.4.2.11 sentence 1 verbatim; r4 the cultural ordering) plus the sign→character
+/// map of r5; it is deliberately NOT a second comparison implementation.</para>
+/// </summary>
+public static class CobolLocale
+{
+    /// <summary>LOCALE-COMPARE (§15.51): '&lt;' / '=' / '&gt;' (r5; length 1, r6) for argument-1 against argument-2
+    /// under the named (else current LC_COLLATE) locale's cultural ordering (r3/r4). Both arguments are UTF-16 text
+    /// — r1's national conversion is the repertoire identity here.</summary>
+    public static string Compare(string? a, string? b, string? localeTag)
+    {
+        var sequence = localeTag is null ? LocaleCollation.Current : Sequence(localeTag, "LOCALE-COMPARE");
+        int c = sequence.Compare(a, b);   // §8.8.4.2.11 trimming + EC-LOCALE-INCOMPATIBLE live in the ONE carrier
+        return c < 0 ? "<" : c > 0 ? ">" : "=";
+    }
+
+    /// <summary>LOCALE-DATE (§15.52): argument-1 — a date in CURRENT-DATE positions 1–8 form (YYYYMMDD, r1/r2; valid
+    /// per §15.21's definition: a Gregorian date of year 1601 through 9999) — formatted per the locale's
+    /// <c>d_fmt</c> (r2; L10: the culture's short date pattern). An invalid argument is EC-ARGUMENT-FUNCTION (the
+    /// §15.3 default — the empty string — when checking is off). The length depends on the locale (r3).</summary>
+    public static string Date(string? argument, string? localeTag)
+    {
+        string s = (argument ?? "").TrimEnd(' ');
+        if (s.Length != 8 || !IsDigits(s)
+            || !TryDate(int.Parse(s.AsSpan(0, 4), CultureInfo.InvariantCulture), int.Parse(s.AsSpan(4, 2), CultureInfo.InvariantCulture),
+                int.Parse(s.AsSpan(6, 2), CultureInfo.InvariantCulture), out var date))
+        {
+            ExceptionState.ArgumentError($"LOCALE-DATE argument-1 '{argument}' is not a valid date in CURRENT-DATE positions 1-8 form, YYYYMMDD (ISO §15.52.3 r1/r2)");
+            return "";
+        }
+        var facts = Facts(localeTag, LocaleCategory.Time, "LOCALE-DATE");
+        return date.ToString(facts.DateFormat, facts.DateTimeFormat);
+    }
+
+    /// <summary>LOCALE-TIME (§15.53): argument-1 — a time in CURRENT-DATE positions 9–14 form (HHMMSS, r1/r2) with
+    /// THIS clause's own ranges (r3: hours 00–24, seconds 00–99 — wider than CURRENT-DATE's, so not its validator)
+    /// — formatted per the locale's <c>t_fmt</c> (r2; L10: the culture's long time pattern, hours + minutes +
+    /// seconds). An invalid argument is EC-ARGUMENT-FUNCTION.</summary>
+    public static string Time(string? argument, string? localeTag)
+    {
+        string s = (argument ?? "").TrimEnd(' ');
+        if (s.Length != 6 || !IsDigits(s))
+        {
+            ExceptionState.ArgumentError($"LOCALE-TIME argument-1 '{argument}' is not a time in CURRENT-DATE positions 9-14 form, HHMMSS (ISO §15.53.3 r1/r2)");
+            return "";
+        }
+        int hh = int.Parse(s.AsSpan(0, 2), CultureInfo.InvariantCulture), mm = int.Parse(s.AsSpan(2, 2), CultureInfo.InvariantCulture), ss = int.Parse(s.AsSpan(4, 2), CultureInfo.InvariantCulture);
+        if (hh > 24 || mm > 59 || ss > 99)
+        {
+            ExceptionState.ArgumentError($"LOCALE-TIME argument-1 '{argument}': hours shall be 00 through 24, minutes 00 through 59, seconds 00 through 99 (ISO §15.53.3 r3)");
+            return "";
+        }
+        var facts = Facts(localeTag, LocaleCategory.Time, "LOCALE-TIME");
+        return FormatTime(facts, hh, mm, ss, fraction: null);
+    }
+
+    /// <summary>LOCALE-TIME-FROM-SECONDS (§15.54): argument-1 — seconds past midnight in standard numeric time form
+    /// (r1; §7.3.17's range, the same exact Int128 screen FORMATTED-TIME uses), as an unscaled value and scale —
+    /// formatted per the locale's <c>t_fmt</c>. A nonzero scale carries its fraction into the seconds (Annex D.31.4.5's
+    /// nanosecond note — a determination, D being informative), trimmed to the argument's scale.</summary>
+    public static string TimeFromSeconds(Int128 secUnscaled, int secScale, string? localeTag, bool leapSecond = false)
+    {
+        if (CobolDate.SecondsOutOfStandardFormFor("LOCALE-TIME-FROM-SECONDS", secUnscaled, secScale, leapSecond)) return "";
+        Int128 pow = Pow10.AsWide(secScale);
+        long whole = (long)(secUnscaled / pow);
+        Int128 frac = secUnscaled % pow;
+        int hh = (int)(whole / 3600), mm = (int)(whole % 3600 / 60), ss = (int)(whole % 60);
+        string? fraction = secScale > 0 ? frac.ToString().PadLeft(secScale, '0') : null;
+        var facts = Facts(localeTag, LocaleCategory.Time, "LOCALE-TIME-FROM-SECONDS");
+        return FormatTime(facts, hh, mm, ss, fraction);
+    }
+
+    // ── resolution ─────────────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>The named locale's collating sequence (§15.51.4 r3): EC-LOCALE-MISSING when unavailable — raised by
+    /// the sequence itself at use (<see cref="LocaleCollation.Resolve"/>).</summary>
+    private static LocaleCollation Sequence(string localeTag, string fn) => new(localeTag);
+
+    /// <summary>The facts of the named (else current) locale for <paramref name="category"/>: EC-LOCALE-MISSING for an
+    /// unavailable named locale (the root's facts stand when checking is off); EC-LOCALE-INVALID when the locale has
+    /// no culture data for the category (the invariant facts stand).</summary>
+    private static LocaleFacts Facts(string? localeTag, LocaleCategory category, string fn)
+    {
+        string tag = localeTag ?? RunUnit.Current.Locale.Current(category);
+        if (localeTag is not null && !LocaleIdentification.IsAvailable(tag))
+        {
+            ExceptionState.LocaleMissingError($"FUNCTION {fn}: the locale '{localeTag}' of locale-name-1 is not available in this operating environment (ISO §15.5{(fn == "LOCALE-DATE" ? "2" : fn == "LOCALE-TIME" ? "3" : "4")}.4 r1)");
+            return LocaleFacts.Root;
+        }
+        var facts = LocaleFacts.For(tag);
+        if (!facts.HasCultureData && facts.Collate.Length > 0)
+            ExceptionState.LocaleInvalidError($"FUNCTION {fn}: the locale '{tag}' has no {category switch { LocaleCategory.Time => "LC_TIME", LocaleCategory.Ctype => "LC_CTYPE", LocaleCategory.Monetary => "LC_MONETARY", _ => "category" }} content in this environment — its locale content is incomplete (ISO §8.2.1)");
+        return facts;
+    }
+
+    // ── t_fmt rendering ────────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Render hours/minutes/seconds per the culture's <c>t_fmt</c> (the long time pattern). Done over the
+    /// pattern's tokens rather than through <see cref="DateTime"/> because the standard's values are WIDER than a
+    /// DateTime can hold (§15.53.3 r3: hour 24, seconds up to 99 — a leap-second or end-of-day value renders as
+    /// the number it is). Tokens: <c>H</c>/<c>HH</c> 0–24 hour, <c>h</c>/<c>hh</c> 12-hour clock (12 for 0 and 12;
+    /// hour 24 → 12 with the AM designator of the day's end), <c>m</c>/<c>mm</c>, <c>s</c>/<c>ss</c> (the fraction,
+    /// when any, follows the seconds with the culture's decimal separator), <c>t</c>/<c>tt</c> the AM/PM designator,
+    /// <c>:</c> the culture's time separator, quoted and escaped literals verbatim.</summary>
+    internal static string FormatTime(LocaleFacts facts, int hh, int mm, int ss, string? fraction)
+    {
+        var dtf = facts.DateTimeFormat;
+        string pattern = facts.TimeFormat;
+        var sb = new StringBuilder(pattern.Length + 8);
+        bool pm = hh >= 12 && hh < 24;
+        int h12 = hh % 12 == 0 ? 12 : hh % 12;
+        for (int i = 0; i < pattern.Length;)
+        {
+            char c = pattern[i];
+            int run = 1;
+            while (i + run < pattern.Length && pattern[i + run] == c) run++;
+            switch (c)
+            {
+                case 'H': sb.Append(run >= 2 ? hh.ToString("00", CultureInfo.InvariantCulture) : hh.ToString(CultureInfo.InvariantCulture)); break;
+                case 'h': sb.Append(run >= 2 ? h12.ToString("00", CultureInfo.InvariantCulture) : h12.ToString(CultureInfo.InvariantCulture)); break;
+                case 'm': sb.Append(run >= 2 ? mm.ToString("00", CultureInfo.InvariantCulture) : mm.ToString(CultureInfo.InvariantCulture)); break;
+                case 's':
+                    sb.Append(run >= 2 ? ss.ToString("00", CultureInfo.InvariantCulture) : ss.ToString(CultureInfo.InvariantCulture));
+                    if (fraction is not null) sb.Append(facts.NumberFormat.NumberDecimalSeparator).Append(fraction);
+                    break;
+                case 't':
+                {
+                    string des = pm ? dtf.PMDesignator : dtf.AMDesignator;
+                    sb.Append(run >= 2 ? des : des.Length > 0 ? des[..1] : "");
+                    break;
+                }
+                case ':': sb.Append(dtf.TimeSeparator); run = 1; break;
+                case '\'':
+                case '"':
+                {
+                    int close = pattern.IndexOf(c, i + 1);
+                    if (close < 0) close = pattern.Length;
+                    sb.Append(pattern, i + 1, close - i - 1);
+                    i = close + 1;
+                    continue;
+                }
+                case '\\':
+                    if (i + 1 < pattern.Length) sb.Append(pattern[i + 1]);
+                    i += 2;
+                    continue;
+                default:
+                    sb.Append(c, run);
+                    break;
+            }
+            i += run;
+        }
+        return sb.ToString();
+    }
+
+    private static bool IsDigits(string s)
+    {
+        foreach (char c in s) if (c is < '0' or > '9') return false;
+        return true;
+    }
+
+    private static bool TryDate(int year, int month, int day, out DateTime date)
+    {
+        date = default;
+        if (year is < 1601 or > 9999 || month is < 1 or > 12 || day < 1 || day > DateTime.DaysInMonth(year, month)) return false;
+        date = new DateTime(year, month, day);
+        return true;
+    }
+}

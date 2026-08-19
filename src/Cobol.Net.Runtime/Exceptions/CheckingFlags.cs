@@ -92,4 +92,9 @@ public struct CheckingFlags
     /// <summary>EC-LOCALE-INCOMPATIBLE — a locale comparison over an operand the locale's collating sequence does
     /// not order (§8.8.4.2.11; DETERMINATION L6 — an ill-formed UTF-16 operand).</summary>
     public bool LocaleIncompatible;
+
+    /// <summary>EC-LOCALE-INVALID — an operation using a locale whose content is invalid or incomplete in this
+    /// environment (§8.2.1): a LOCALE-DATE / -TIME over a locale with no LC_TIME culture data (T4; T5/T6 add LC_CTYPE /
+    /// LC_MONETARY).</summary>
+    public bool LocaleInvalid;
 }

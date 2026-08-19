@@ -334,11 +334,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   gates (MISSING / INVALID-PTR / INCOMPATIBLE raised and OBSERVED; PB100's name refusal reverted), the SORT/MERGE
   snapshot (§14.6.6 r5), three construct rows, six goldens + eight negatives, the harness pinning
   `COBOL_USER_LOCALE`/`COBOL_SYSTEM_LOCALE` to the root (T-F); 19 inventory rows CONFORMS — **GAP 3908**.
-  ② **PB64 T4 NEXT** — `LOCALE-COMPARE`, `LOCALE-DATE`, `LOCALE-TIME`, `LOCALE-TIME-FROM-SECONDS` + `LocaleFacts`
-  (design §4.7/§4.8; `IntrinsicResultRule.RuntimeDetermined`) → T5 (CHARACTER CLASSIFICATION / LC_CTYPE / the
-  UPPER-CASE·LOWER-CASE LOCALE phrase) → T6 (PICTURE format 2 / NUMVAL-C LOCALE) per the design's §12, a battery
-  per increment · then Phase-B adjudication (a NEW defect found on the way outranks). Battery #20 ran on the PB101
-  tree `a585cd6f` — ALL GREEN; #22 on the PB104–106 tree; **#23 on the T1 tree (the reference below).**
+  ② ✅ **PB64 T4 LANDED (2026-08-19, DEVLOG 1333)** — `LOCALE-COMPARE` / `LOCALE-DATE` / `LOCALE-TIME` /
+  `LOCALE-TIME-FROM-SECONDS` (`CobolLocale` over the ONE `LocaleCollation` carrier and `LocaleFacts` — L10 d_fmt /
+  t_fmt; the `'l'` locale-name kind, `BindLocaleFunction`; EC-LOCALE-INVALID live; two construct rows; the 2014
+  golden + three negatives); 34 inventory rows CONFORMS — **GAP 3874**.
+  ③ **PB64 T5 NEXT** — CHARACTER CLASSIFICATION (OBJECT-COMPUTER, §12.3.6; the G3 grammar work) + LC_CTYPE class
+  tests + the UPPER-CASE·LOWER-CASE LOCALE phrase (design §4.5; `LocaleFacts.TextInfo`, L9) → T6 (PICTURE format 2 /
+  NUMVAL-C LOCALE, design §4.6) per the design's §12, a battery per increment · then Phase-B adjudication (a NEW
+  defect found on the way outranks). Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN; #22 on the
+  PB104–106 tree; #23 on the T1 tree; **#24 on the T4 tree (the reference below).**
   **✅ THREE MORE SUBSYSTEMS AND THE REPOSITORY-WIDE INTEGRATION LANDED — kb/Work PB104 / PB105 / PB106 (2026-08-19,
   DEVLOG 1328).** The owner's second guidance ("hard implementation mode": grapheme segmentation, a FULL CLDR locale
   loader, a collation key caching layer, then integrate everything): **PB104** `Runtime/Unicode/Segmentation/` —
@@ -1659,7 +1663,17 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB64 T1 tree (2026-08-19 11:33 PDT, battery #23).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB64 T4 tree (2026-08-19 13:05 PDT, battery #24b).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
+  `/tmp/battery-pb64t4b`; the log in the session scratchpad): FULL greenfield Conformance **4871 / 4871, zero
+  skipped** (11 m 45 s) · greenfield Unit **4463 / 4463** · characterization **33 / 33** · `guard-fast` **ALL
+  GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **`0 PER-CASE FLIP(S)`**
+  against the REWRITTEN baseline (1323 cases: 577/469/207/70 — four attributed FIX flips, `run_functions:1883 /
+  :1913 / :1939 / :1965`, the GnuCOBOL LOCALE-COMPARE / -DATE / -TIME / -TIME-FROM-SECONDS programs now compile
+  and agree). Covers DEVLOG 1333 whole (the four LOCALE intrinsics, `LocaleFacts`, EC-LOCALE-INVALID). Battery #24's
+  FIRST run was NOT GREEN for two attributed reasons, both fixed before the commit: two tests racing on the
+  process-global `COBOL_COLLATION_DIR` (now one xUnit collection) and those four expected flips (re-baselined).
+- **⛔ PRIOR BATTERY REFERENCE — the PB64 T1 tree (2026-08-19 11:33 PDT, battery #23).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-pb64t1`; the log in the session scratchpad): FULL greenfield Conformance **4851 / 4851, zero
   skipped** (12 m 36 s) · greenfield Unit **4452 / 4452** · characterization **33 / 33** · `guard-fast` **ALL

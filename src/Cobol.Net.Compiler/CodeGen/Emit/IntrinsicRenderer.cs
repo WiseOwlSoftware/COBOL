@@ -878,6 +878,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, "
                     + $"{(ic.OrderingTable is { } ot ? EmitText.CsLiteral(ot) : "null")}, "
                     + $"{(ic.Args.Count > 2 ? ArgInt(ic.Args[2]) : "0")}"),
+            // The LOCALE functions (§15.51–§15.54; kb/Work PB64 T4): the bound LocaleRef travels as the named locale's
+            // L1-normalized tag (null ⇒ the locale current for the category at use — §14.6.6 r7/r8); the runtime
+            // resolves availability (EC-LOCALE-MISSING) and content (EC-LOCALE-INVALID) at use.
+            "Compare" when sig.Name == "LOCALE-COMPARE" =>
+                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {LocaleTagArg(ic)}"),
+            "Date" when sig.Name == "LOCALE-DATE" =>
+                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}"),
+            "Time" when sig.Name == "LOCALE-TIME" =>
+                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}"),
+            "TimeFromSeconds" => RenderLocaleTimeFromSeconds(ic),               // §15.54 — standard numeric time form per t_fmt
             "Substitute" => RenderSubstitute(ic),                              // §15.87 — replace argument-2 pairs (2023)
             "Convert" =>                                                       // §15.19 — repertoire / hex / byte conversion (2023);
                 RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   an ANY source takes the RAW STORAGE image (r7, PB59 5b)
@@ -919,6 +929,19 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         bool hasOff = ic.Args.Count > 2;
         return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, {secExpr}, {secScale}, "
              + $"{(hasOff ? ArgInt(ic.Args[2]) : "0")}, {(hasOff ? "true" : "false")}{LeapSecondFlag}");
+    }
+
+    /// <summary>The bound <see cref="BoundIntrinsicCall.Locale"/> as the runtime's <c>localeTag</c> argument: the named
+    /// locale's L1-normalized tag literal, or <c>null</c> for the current-locale form.</summary>
+    private static string LocaleTagArg(BoundIntrinsicCall ic) =>
+        ic.Locale.Tag is { } tag ? EmitText.CsLiteral(tag) : "null";
+
+    /// <summary>LOCALE-TIME-FROM-SECONDS (§15.54): the seconds argument through the ONE <see cref="SecondsArg"/> pair
+    /// (fraction-preserving — the nanosecond note of Annex D.31.4.5), the locale tag, the LEAP-SECOND flag.</summary>
+    private string RenderLocaleTimeFromSeconds(BoundIntrinsicCall ic)
+    {
+        var (secExpr, secScale) = SecondsArg(ArgNum(ic.Args[0]));
+        return RuntimeApi.LocaleFn(ic.Sig.RuntimeMethod, $"{secExpr}, {secScale}, {LocaleTagArg(ic)}{LeapSecondFlag}");
     }
 
     /// <summary>FORMATTED-DATETIME (§15.40): integer date a2 + seconds a3 (via <see cref="SecondsArg"/>) + the

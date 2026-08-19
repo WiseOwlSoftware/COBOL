@@ -11,9 +11,12 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// The §A.4.9 locale-module functions are documented non-support (owner-ratified 2026-07-03), rejected by
-/// COBOLNET1518 at every edition. This pins the SECOND half of that disposition: such a function must NOT also
-/// assert an INTRODUCTION EDITION (fix-queue PB27 §③).
+/// The §A.4.9 locale-module disposition's SECOND half (fix-queue PB27 §③): a function that is documented
+/// non-support (rejected by COBOLNET1518 at every edition) must NOT also assert an INTRODUCTION EDITION — and,
+/// since kb/Work PB64 T4 made the four locale FUNCTIONS live, the converse: their D8 edition window IS enforced
+/// again (COBOLNET1502 below it, the function binding at and after it). What still carries the non-support
+/// disposition is the LOCALE keyword PHRASE of LOWER-CASE / UPPER-CASE / NUMVAL-C / TEST-NUMVAL-C (T5/T6), and
+/// that phrase draws 1518 at every edition with no 1502 beside it.
 /// <para>
 /// ⛔ COBOLNET1502 STATES A FACT ABOUT THE STANDARD — "was introduced by ISO/IEC 1989:{year}" — AND FOR THIS
 /// FAMILY THAT YEAR IS UNVERIFIABLE. The 2023 standard carries no introduction record: §8.11 lists the intrinsic
@@ -50,17 +53,35 @@ public sealed class LocaleModuleNonSupportTests
         finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
     }
 
-    /// <summary>At EVERY edition the non-support diagnostic is the whole story — and never an edition claim.</summary>
+    /// <summary>At EVERY edition the non-support diagnostic is the whole story for a still-unclaimed element — the
+    /// LOCALE phrase of LOWER-CASE (T5) — and never an edition claim beside it.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
-    public void ALocaleFunction_ReportsNonSupportOnly_AtEveryEdition(int edition)
+    public void ALocalePhrase_ReportsNonSupportOnly_AtEveryEdition(int edition)
     {
-        var errors = CompileErrors("           MOVE FUNCTION LOCALE-TIME-FROM-SECONDS(S) TO R.\n", edition);
+        var errors = CompileErrors("           MOVE FUNCTION LOWER-CASE(R LOCALE FR) TO R.\n", edition);
         Assert.Contains(errors, e => e.Contains("COBOLNET1518"));
         Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1502"));
+    }
+
+    /// <summary>⚙ THE SUPPRESSION LIFTED (kb/Work PB64 T4 — the forcing function the class summary promised): the four
+    /// locale functions bind Runtime, so their D8 window is enforced again — LOCALE-TIME-FROM-SECONDS (2014, kb/Work
+    /// R28's provisional edge) is COBOLNET1502 below 2014 and binds at 2014/2023; LOCALE-DATE (2002) likewise below
+    /// 2002. Never 1518 any more.</summary>
+    [Theory]
+    [InlineData(85, true)]
+    [InlineData(2002, true)]
+    [InlineData(2014, false)]
+    [InlineData(2023, false)]
+    public void ALocaleFunction_KeepsItsEditionWindow_NowThatItIsLive(int edition, bool rejected)
+    {
+        var errors = CompileErrors("           MOVE FUNCTION LOCALE-TIME-FROM-SECONDS(S) TO R.\n", edition);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+        if (rejected) Assert.Contains(errors, e => e.Contains("COBOLNET1502") && e.Contains("LOCALE-TIME-FROM-SECONDS"));
+        else Assert.DoesNotContain(errors, e => e.Contains("LOCALE-TIME-FROM-SECONDS"));
     }
 
     /// <summary>⛔ THE FAILING DIRECTION, which is what keeps the suppression scoped to non-support rather than

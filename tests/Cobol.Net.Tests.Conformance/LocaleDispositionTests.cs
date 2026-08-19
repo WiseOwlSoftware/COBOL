@@ -5,13 +5,14 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// The ISO Annex A §A.4.9 locale-module DOCUMENTED-NON-SUPPORT disposition (conformant per ISO §4.2.7 + Annex A
-/// §A.4.1: an implementation accepts an optional element's syntax only when support is claimed). Two surfaces
-/// reject with <c>COBOLNET1518</c> at bind time BY NAME: the FOUR locale FUNCTIONS (LOCALE-COMPARE §15.51 /
-/// LOCALE-DATE §15.52 / LOCALE-TIME §15.53 / LOCALE-TIME-FROM-SECONDS §15.54), and the LOCALE keyword PHRASE of
-/// the otherwise-supported LOWER-CASE §15.57 / UPPER-CASE §15.97 / NUMVAL-C §15.68 / TEST-NUMVAL-C §15.94. The
-/// same functions WITHOUT a LOCALE phrase stay fully supported (the zero-regression proof). Diagnostic values
-/// hand-derived in PHASE-11-scout-notes.md (spec:locale).
+/// The ISO Annex A §A.4.9 locale-module disposition, increment by increment (owner decision Q1, 2026-08-18;
+/// DESIGN-locale-facility §12). LIVE: the FOUR locale FUNCTIONS (LOCALE-COMPARE §15.51 / LOCALE-DATE §15.52 /
+/// LOCALE-TIME §15.53 / LOCALE-TIME-FROM-SECONDS §15.54 — kb/Work PB64 T4; the facts below assert they COMPILE and
+/// bind their locale-name) and STANDARD-COMPARE (PB101 T7). Still DOCUMENTED NON-SUPPORT (conformant per ISO §4.2.7 +
+/// Annex A §A.4.1: an implementation accepts an optional element's syntax only when support is claimed), rejected
+/// with <c>COBOLNET1518</c> at bind time BY NAME: the LOCALE keyword PHRASE of the otherwise-supported LOWER-CASE
+/// §15.57 / UPPER-CASE §15.97 / NUMVAL-C §15.68 / TEST-NUMVAL-C §15.94 (T5/T6). The same functions WITHOUT a LOCALE
+/// phrase stay fully supported (the zero-regression proof).
 /// <para>⚠ STANDARD-COMPARE §15.85 was the fifth, and is not any more — see the fact below: it is A.4.9 item 11
 /// but travels on §A.3 item 25 (an ISO/IEC 14651:2020 dependency), and that support is now claimed (kb/Work
 /// PB101 T7). Each remaining arm is deleted as its increment lands (owner decision Q1, 2026-08-18).</para>
@@ -38,12 +39,53 @@ public sealed class LocaleDispositionTests
         EditionHarness.AssertHasDiagnostic(errors, "A.4.9");
     }
 
-    // ── The five locale functions (§15.51/52/53/54/85) → COBOLNET1518 ──────────────────────────────────────
+    // ── The four locale functions (§15.51/52/53/54) are LIVE since kb/Work PB64 T4: each COMPILES CLEAN at 2023, with
+    //    and without its locale-name-1 (a SPECIAL-NAMES LOCALE clause's name). ⚠ The former probes wrote INTEGER
+    //    literals for LOCALE-DATE/-TIME (`LOCALE-TIME(120000)`), which §15.52.3 r1 / §15.53.3 r1 forbid (class
+    //    alphanumeric or national, 8 / 6 positions) — they were refused by name before any argument was screened,
+    //    so the mistake never showed; they are STRING arguments now, and the integer form is a class error.
+    [Theory]
+    [InlineData("FUNCTION LOCALE-COMPARE(\"A\" \"B\")", "01 WS-R PIC X.")]
+    [InlineData("FUNCTION LOCALE-COMPARE(\"A\" \"B\" FR)", "01 WS-R PIC X.")]
+    [InlineData("FUNCTION LOCALE-DATE(\"20240229\")", "01 WS-R PIC X(10).")]
+    [InlineData("FUNCTION LOCALE-DATE(\"20240229\" FR)", "01 WS-R PIC X(10).")]
+    [InlineData("FUNCTION LOCALE-TIME(\"120000\")", "01 WS-R PIC X(10).")]
+    [InlineData("FUNCTION LOCALE-TIME(\"120000\" FR)", "01 WS-R PIC X(10).")]
+    [InlineData("FUNCTION LOCALE-TIME-FROM-SECONDS(3600)", "01 WS-R PIC X(10).")]
+    [InlineData("FUNCTION LOCALE-TIME-FROM-SECONDS(3600.5 FR)", "01 WS-R PIC X(10).")]
+    public void LocaleFunctions_AreLive(string funcCall, string receiver)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LOCLIVE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                LOCALE FR IS "fr-FR".
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            {receiver}
+            PROCEDURE DIVISION.
+            MAIN.
+                MOVE {funcCall} TO WS-R.
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
+        Assert.True(ok, string.Join("\n", errors));
+    }
 
-    [Fact] public void LocaleCompare_A49() => AssertA49(Move("FUNCTION LOCALE-COMPARE(\"A\" \"B\")"));
-    [Fact] public void LocaleDate_A49() => AssertA49(Move("FUNCTION LOCALE-DATE(20240229)", "01 WS-R PIC X(10).", "WS-R"));
-    [Fact] public void LocaleTime_A49() => AssertA49(Move("FUNCTION LOCALE-TIME(120000)", "01 WS-R PIC X(10).", "WS-R"));
-    [Fact] public void LocaleTimeFromSeconds_A49() => AssertA49(Move("FUNCTION LOCALE-TIME-FROM-SECONDS(3600)", "01 WS-R PIC 9(6).", "WS-R"));
+    /// <summary>The integer-literal shape the pre-T4 probes used is a §15.52.3 r1 / §15.53.3 r1 CLASS violation now that
+    /// the functions bind — the §15.3 screen names it (COBOLNET1627), never a by-name refusal.</summary>
+    [Theory]
+    [InlineData("FUNCTION LOCALE-DATE(20240229)")]
+    [InlineData("FUNCTION LOCALE-TIME(120000)")]
+    public void LocaleDateTime_IntegerArgument_IsAClassViolation(string funcCall)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Move(funcCall, "01 WS-R PIC X(10).", "WS-R"), 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+    }
 
     /// <summary>
     /// ⛔ STANDARD-COMPARE IS THE ONE A.4.9-LISTED FUNCTION THAT IS **SUPPORTED** (kb/Work PB101 T7, owner

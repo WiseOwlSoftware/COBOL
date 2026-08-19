@@ -647,6 +647,16 @@ internal static class IntrinsicArgumentRules
             // (§15.3 argument type 12); BindStandardCompare consumes it and screens the operand list that remains.
             ["STANDARD-COMPARE"] = Schema("§15.85.3 r1/r2/r6", ['s', 's', 'i'])
                 .WithNoZeroLength("§15.85.3 r4", 0, 1),
+            // The LOCALE functions (kb/Work PB64 T4): the trailing locale-name-1 is a NAME ('l' — NonOperandArgumentKinds)
+            // that IntrinsicBinder.BindLocaleFunction consumes; the schemas screen the operands that remain.
+            // §15.51.3 r1/r2 (class alphabetic/alphanumeric/national, r3 the two may differ — no cross rule);
+            // §15.52.3 r1 "class alphanumeric or national and shall be 8 character positions in length";
+            // §15.53.3 r1 "… 6 character positions in length"; §15.54.3 r1 "a numeric value in standard numeric time
+            // form" — 'n', not 'i' (a fractional seconds value is legal; its RANGE is the runtime's screen).
+            ["LOCALE-COMPARE"] = Schema("§15.51.3 r1/r2", ['s', 's']),
+            ["LOCALE-DATE"] = Schema("§15.52.3 r1", ['s']).WithPredicate(0, ArgPredicate.ExactWidth(8, "§15.52.3 r1")),
+            ["LOCALE-TIME"] = Schema("§15.53.3 r1", ['s']).WithPredicate(0, ArgPredicate.ExactWidth(6, "§15.53.3 r1")),
+            ["LOCALE-TIME-FROM-SECONDS"] = Schema("§15.54.3 r1", ['n']),
             // The FORMATTED-* family (§15.38–15.41): argument-1 is "a national or alphanumeric literal" (its
             // LITERAL-ness is the existing COBOLNET1517 arm, its CONTENT the format screen); the remaining
             // positions are date/time VALUES — integer date form (§15.39.3 r3, §15.40.3 r3), standard numeric
@@ -771,10 +781,9 @@ internal static class IntrinsicArgumentRules
             ["MODULE-NAME"] = "§15.65.3 takes ONE phrase keyword (ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL), never an operand — BindModuleName owns it, incl. r1's NESTED-in-a-nested-program rule",
             ["EXCEPTION-FILE"] = "§15.28.3 r1 — the optional argument is a FILE-CONNECTOR NAME (a word, not an operand); BindExceptionFile resolves it against the FDs",
             ["EXCEPTION-FILE-N"] = "§15.29.3 r1 — the optional argument is a FILE-CONNECTOR NAME (a word, not an operand); BindExceptionFile resolves it against the FDs",
-            ["LOCALE-COMPARE"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
-            ["LOCALE-DATE"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
-            ["LOCALE-TIME"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
-            ["LOCALE-TIME-FROM-SECONDS"] = "the A.4.9 LOCALE module is documented non-support (COBOLNET1518) — the reference is rejected BY NAME before any argument is screened",
+            // ⛔ THE FOUR LOCALE FUNCTIONS LEFT THIS TABLE at kb/Work PB64 T4, the way STANDARD-COMPARE did at T7: their
+            // entries read "rejected BY NAME before any argument is screened", which stopped being true the moment their
+            // Bind became Runtime. They now carry Verified schemas above.
             // ⛔ STANDARD-COMPARE LEFT THIS TABLE WHEN ITS SUPPORT WAS CLAIMED (kb/Work PB101 T7). Its entry read
             // "documented non-support … rejected BY NAME before any argument is screened", which stopped being
             // true the moment its Bind became Runtime — and a stale UNSCREENED reason is worse than none, because
@@ -806,6 +815,12 @@ internal static class IntrinsicArgumentRules
                 + "paragraph shall be specified\": a NAME, resolved by IntrinsicBinder.BindStandardCompare "
                 + "against DataBinder.OrderTables (§15.85.3 r5; §12.3.7.3 SR9 makes STANDARD-COMPARE its only "
                 + "legal reference site). It never reaches the operand list, so no class screen applies to it",
+            ['l'] = "§15.3 argument type 8 (Locale-name) — \"A locale-name defined in the SPECIAL-NAMES paragraph shall "
+                + "be specified\": a NAME, resolved by IntrinsicBinder.BindLocaleFunction against DataBinder.Locales "
+                + "(through DataBinder.ResolveLocaleName — the ONE undeclared-locale-name diagnostic, COBOLNET1664) "
+                + "for LOCALE-COMPARE (§15.51.3 r4), LOCALE-DATE (§15.52.3 r3), LOCALE-TIME (§15.53.3 r4) and "
+                + "LOCALE-TIME-FROM-SECONDS (§15.54.3 r2); the T5/T6 LOCALE phrases join it. It never reaches the "
+                + "operand list, so no class screen applies to it",
         };
 
     /// <summary>The classes a verified class code admits, or <see langword="null"/> for "no general screen" —

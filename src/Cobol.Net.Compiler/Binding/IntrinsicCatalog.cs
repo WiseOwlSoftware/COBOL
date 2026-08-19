@@ -250,13 +250,16 @@ public static class IntrinsicCatalog
         // at every --std), which is exactly why it was never contradicted — a dead lookup is also an unverified
         // one (feedback_a_dead_lookup_is_also_unverified). PB1 is the standing proof of the cost: an ArgKinds
         // column enforced as written, without re-derivation, rejected 12 legal corpus programs.
-        Add(new("LOCALE-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "sss", "", IntrinsicBind.Unsupported, false, 2002)); // §15.51 (A.4.9 item 2) — Table 21 `Alph1/Anum1/Nat1, Alph2/Anum2/Nat2, Loc3`
-        Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Unsupported, false, 2002));     // §15.52 (A.4.9 item 3) — §15.52.3 r1: alphanumeric/national, 8 character positions
-        Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Unsupported, false, 2002));     // §15.53 (A.4.9 item 4) — §15.53.3 r1: alphanumeric/national, 6 character positions
+        // LIVE since kb/Work PB64 T4 (DESIGN-locale-facility §4.7/§4.8): the trailing 'l' is §15.3 argument type 8, a
+        // LOCALE-NAME — a word resolved in the SPECIAL-NAMES locale table by IntrinsicBinder.BindLocaleFunction, never an
+        // operand (IntrinsicArgumentRules.NonOperandArgumentKinds['l']). The runtime methods are CobolLocale.*.
+        Add(new("LOCALE-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "ssl", "Compare", IntrinsicBind.Runtime, false, 2002)); // §15.51 (A.4.9 item 2) — Table 21 `Alph1/Anum1/Nat1, Alph2/Anum2/Nat2, Loc3`
+        Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "sl", "Date", IntrinsicBind.Runtime, false, 2002));     // §15.52 (A.4.9 item 3) — §15.52.3 r1: alphanumeric/national, 8 character positions
+        Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "sl", "Time", IntrinsicBind.Runtime, false, 2002));     // §15.53 (A.4.9 item 4) — §15.53.3 r1: alphanumeric/national, 6 character positions
         // ⛔ 2014, not 2002 (kb/Work R28, decided 2026-08-08): the WG4 CD 1.2 (2009) Annex D.2 item 4 lists
         // BOTH among "the intrinsic functions ... introduced in this committee draft International Standard"
         // (the draft of ISO 1989:2014). They were previously windowed 2002, over-accepting at --std 2002.
-        Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Unsupported, false, 2014)); // §15.54 (A.4.9 item 5)
+        Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "nl", "TimeFromSeconds", IntrinsicBind.Runtime, false, 2014)); // §15.54 (A.4.9 item 5) — LIVE (PB64 T4)
         Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2014)); // §15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
         // STANDARD-COMPARE (§15.85.2: `FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ]
         // [ argument-4 ] )`) — LIVE since kb/Work PB101 T7 (BindStandardCompare + CobolIntrinsics.StandardCompare).

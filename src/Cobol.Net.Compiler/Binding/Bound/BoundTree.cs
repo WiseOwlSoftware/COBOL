@@ -243,6 +243,13 @@ public sealed record BoundIntrinsicCall(
     /// (the backend never asks the configuration model anything).</para></summary>
     public string? OrderingTable { get; init; }
 
+    /// <summary>The LOCALE functions (§15.51–§15.54; kb/Work PB64 T4): the optional <c>locale-name-1</c> resolved at
+    /// bind to the ONE <see cref="LocaleRef"/> — <see cref="LocaleRef.Current"/> when no name was written (§14.6.6 r7/r8:
+    /// the locale current for LC_COLLATE / LC_TIME at use), the named symbol otherwise (its L1-normalized tag travels
+    /// to the runtime; availability is decided at use — EC-LOCALE-MISSING). <see cref="LocaleRef.Current"/> for every
+    /// other function.</summary>
+    public LocaleRef Locale { get; init; } = LocaleRef.Current;
+
     /// <summary>FIND-STRING (§15.37.2): the <c>LAST</c> phrase keyword — seek the LAST occurrence of argument-2
     /// (rule 1) rather than the first. False for every other function.</summary>
     public bool FindLast { get; init; }

@@ -1341,6 +1341,30 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB101OT.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ORDER TABLE OT1 IS \"ISO 14651_2020_TABLE1\".\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
     {
+      "id": "locale-functions-2002",
+      "description": "FUNCTION LOCALE-COMPARE (ISO 15.51), LOCALE-DATE (15.52) and LOCALE-TIME (15.53) - the locale-based comparison returning '<' / '=' / '>' (15.51.4 r5/r6) over the named locale's (else the current LC_COLLATE's) cultural ordering, and the culturally formatted date and time per the locale's d_fmt / t_fmt (15.52.4 r2, 15.53.4 r2; DETERMINATION L10: the culture's short date / long time patterns). LIVE (kb/Work PB64 T4): CobolLocale.Compare / Date / Time over the ONE LocaleCollation carrier and LocaleFacts; the optional locale-name-1 is a SPECIAL-NAMES LOCALE clause's name (COBOLNET1664 otherwise). Below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502) - the window is enforced now that the rows' Bind is Runtime (it was suppressed while they were Unsupported). The 2002 edge is the provisional window the catalog inherited (Annex E covers 2014-2023 only; kb/Work R28).",
+      "display": "FUNCTION LOCALE-COMPARE / LOCALE-DATE / LOCALE-TIME",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO §15.51 LOCALE-COMPARE; §15.52 LOCALE-DATE; §15.53 LOCALE-TIME; Annex A.4.9 items 2-4 (support IS now claimed); D8 window 1502 below 2002 (provisional edge)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "2002 introduction (the locale facility's functions; the edge is the provisional catalog window — the 2023 text proves only presence in 2014, Annex E lists no locale delta)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T4F.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE FR IS \"fr-FR\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 R PIC X.\n01 S PIC X(20).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION LOCALE-COMPARE(\"a\" \"b\" FR) TO R.\n    MOVE FUNCTION LOCALE-DATE(\"20260819\") TO S.\n    MOVE FUNCTION LOCALE-TIME(\"130509\" FR) TO S.\n    STOP RUN.\n"
+    },
+    {
+      "id": "locale-time-from-seconds-2014",
+      "description": "FUNCTION LOCALE-TIME-FROM-SECONDS (ISO 15.54) - seconds past midnight in standard numeric time form (15.54.3 r1; the 7.3.17 range) formatted per the named locale's (else the current LC_TIME's) t_fmt (15.54.4 r2), a scaled argument carrying its fraction (Annex D.31.4.5's nanosecond note). LIVE (kb/Work PB64 T4): CobolLocale.TimeFromSeconds. Introduced 2014 per the catalog's provisional window (kb/Work R28 - WG4 CD 1.2 Annex D.2); below 2014 the D8 window rejects by name+edition (COBOLNET1502).",
+      "display": "FUNCTION LOCALE-TIME-FROM-SECONDS",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO §15.54 LOCALE-TIME-FROM-SECONDS; Annex A.4.9 item 5; D8 window 1502 below 2014 (provisional edge, kb/Work R28)",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "2014 introduction (kb/Work R28 - WG4 CD 1.2 Annex D.2; provisional under ratified decision #1)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T4TS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(20).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION LOCALE-TIME-FROM-SECONDS(47109) TO S.\n    STOP RUN.\n"
+    },
+    {
       "id": "standard-compare-2002",
       "description": "FUNCTION STANDARD-COMPARE (ISO 15.85) - the cultural-ordering comparison returning the single character \"<\", \"=\" or \">\" (15.85.4 r6/r7) over the ordering table an ORDER TABLE ordering-name identifies or, absent one, the default table 'ISO 14651_2020_TABLE1' (15.85.3 r5). LIVE (kb/Work PB101 T7): CobolIntrinsics.StandardCompare over the derived CLDR/UCA collation engine, argument-4's four ordering levels (15.85.4 r1/r2) and the 15.85.4 r4 trailing-space rule. Below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502) - the window is now enforced rather than suppressed, because the row's Bind is no longer Unsupported.",
       "display": "FUNCTION STANDARD-COMPARE (cultural ordering)",

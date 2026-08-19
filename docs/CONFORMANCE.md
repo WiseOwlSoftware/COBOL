@@ -267,9 +267,8 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    element (§4.2.13).
 4. **Screen handling** (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the
    EC-SCREEN family. Not provided.
-5. **Locale facility** (Annex A.4.9 optional module): the intrinsic functions `LOCALE-COMPARE`, `LOCALE-DATE`,
-   `LOCALE-TIME`, and `LOCALE-TIME-FROM-SECONDS`,
-   plus the `LOCALE` phrases of `LOWER-CASE`/`UPPER-CASE`/`NUMVAL-C`/`TEST-NUMVAL-C` — each rejected
+5. **Locale facility** (Annex A.4.9 optional module): the `LOCALE` phrases of
+   `LOWER-CASE`/`UPPER-CASE`/`NUMVAL-C`/`TEST-NUMVAL-C` — each rejected
    at bind time with the **COBOLNET1518 error** (per Annex A.4.1 a processor accepts optional-element syntax only
    when support is claimed, so an ERROR — not the §4.2.6 COBOLNET1560 warning band, which applies to
    processor-dependent elements — is the conforming disposition for the still-unclaimed elements of this optional
@@ -278,6 +277,27 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    so is the PICTURE clause's Format 2 `LOCALE [IS locale-name-1] SIZE IS integer-1` (item 8 — PB100; it was a raw
    parse error at SIZE). **Every locale entry point the module names is either implemented or recognized and
    rejected by name.**
+
+   > ⚖ **A.4.9 items 2–5 — `LOCALE-COMPARE` (§15.51), `LOCALE-DATE` (§15.52), `LOCALE-TIME` (§15.53),
+   > `LOCALE-TIME-FROM-SECONDS` (§15.54) — ARE IMPLEMENTED** (owner decision Q1; kb/Work PB64, increment T4 of
+   > `docs/rearchitecture/DESIGN-locale-facility.md` §4.7/§4.8, 2026-08-19; refused by name with COBOLNET1518 until
+   > then). `LOCALE-COMPARE` IS the locale-based relation comparison (§8.8.4.2.11 through the ONE `LocaleCollation`
+   > carrier — r2's trailing-space truncation, r4 the cultural ordering, r5/r6 the one-character result); the three
+   > time functions format per the locale's `d_fmt` / `t_fmt` (§15.52.4 r2 / §15.53.4 r2 / §15.54.4 r2) with
+   > §15.53.3 r3's own ranges (hours 00–24, seconds 00–99) and the §7.3.17 standard-numeric-time-form screen; the
+   > optional `locale-name-1` is a SPECIAL-NAMES LOCALE clause's name (§15.3 argument type 8 — COBOLNET1664
+   > otherwise), else the locale CURRENT for LC_COLLATE / LC_TIME (§14.6.6 r7/r8). **Determinations (documented per
+   > §4.2.7; DETERMINATION L10):** `d_fmt` is the .NET culture's SHORT DATE pattern and `t_fmt` its LONG TIME pattern
+   > (the one carrying seconds), read once per locale by `LocaleFacts` — the ONE place a `CultureInfo` is read — from
+   > the locale tag's nearest predefined .NET culture (the tag, then its ancestors); a scaled
+   > `LOCALE-TIME-FROM-SECONDS` argument carries its fraction into the seconds (Annex D.31.4.5's nanosecond note);
+   > the result length is run-time-determined (§15.52.4 r3 / §15.53.4 r3 / §15.54.4 r3 — a dynamic-length string).
+   > **`EC-LOCALE-INVALID` is raised** (§8.2.1 "invalid or incomplete") when an available locale has no culture data
+   > for the category an operation needs — no predefined .NET culture backs the tag, or the process runs in .NET
+   > invariant globalization mode (detected once) — the invariant culture's content standing when checking is off;
+   > `EC-LOCALE-MISSING` for an unavailable named locale (the root's answer standing). The construct rows
+   > `locale-functions-2002` / `locale-time-from-seconds-2014` gate the four (the 2014 edge is the catalog's
+   > provisional window, kb/Work R28).
 
    > ⚖ **A.4.9 item 9 (`SET LOCALE`, formats 11/12) and item 10's CLAUSE half (the SPECIAL-NAMES `LOCALE` clause) ARE
    > IMPLEMENTED, and so is the ALPHABET clause's NAMED `IS LOCALE locale-name-2` form** (owner decision Q1; kb/Work
@@ -296,11 +316,12 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    > the system default cannot be set from COBOL (§8.2.1); a callee's SET is not unwound (§14.6.6 r9); a SORT/MERGE
    > takes its collating sequence when the statement begins (§14.6.6 r5 — a SET LOCALE in an INPUT PROCEDURE has no
    > effect on it). **The EC-LOCALE family of exception-names is LEGAL at every naming site** (item 1 — the PB100
-   > refusal is reverted) and three of the conditions are RAISED: `EC-LOCALE-MISSING` (GR24, and a named `IS
-   > LOCALE` sequence whose locale is unavailable, at use), `EC-LOCALE-INVALID-PTR` (GR21) and
-   > `EC-LOCALE-INCOMPATIBLE` (§8.8.4.2.11, L6) — each checking-gated per §14.6.13.1.1, fatal per §14.6.13.1.6's
-   > table, observed by the goldens `tests/conformance/2002/pb64t1_*`. `EC-LOCALE-INVALID` / `-SIZE` await the
-   > increments whose operations can raise them (T5/T6); `EC-LOCALE-IMP` is reserved. The construct rows
+   > refusal is reverted) and four of the conditions are RAISED: `EC-LOCALE-MISSING` (GR24, a named `IS LOCALE`
+   > sequence whose locale is unavailable, and the LOCALE functions' locale-name-1), `EC-LOCALE-INVALID-PTR`
+   > (GR21), `EC-LOCALE-INCOMPATIBLE` (§8.8.4.2.11, L6) and `EC-LOCALE-INVALID` (§8.2.1, the LOCALE functions — T4)
+   > — each checking-gated per §14.6.13.1.1, fatal per §14.6.13.1.6's table, observed by the goldens
+   > `tests/conformance/2002/pb64t1_*` / `2014/pb64t4_*`. `EC-LOCALE-SIZE` awaits PICTURE format 2 (T6);
+   > `EC-LOCALE-IMP` is reserved. The construct rows
    > `special-names-locale-2002`, `set-locale-2002`, `set-save-locale-2002` gate the three at the 2002 edition.
 
    > ⚖ **A.4.9 item 10's ALPHABET half IS IMPLEMENTED for the bare form — `ALPHABET name [FOR ALPHANUMERIC|NATIONAL]

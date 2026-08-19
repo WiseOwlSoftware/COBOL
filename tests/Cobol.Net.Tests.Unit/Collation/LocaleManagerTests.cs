@@ -16,6 +16,7 @@ namespace CobolNet.Tests.Unit.Collation;
 /// run unit's L2 user default; unknown tags are refused; and CollationRuntime's initialization / warm-up report what
 /// they did.
 /// </summary>
+[Collection("site-tailoring-directory")]
 public sealed class LocaleManagerTests
 {
     [Fact]
