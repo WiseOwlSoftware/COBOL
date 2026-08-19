@@ -57,12 +57,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         using (w.Block("public void __Activate()"))
         {
             if (ctx.Data.Classification is { } cls)
-            {
                 // ISO §12.3.6.4 GR8 / §14.6.6 r2 — the classification is established at the module's activation.
-                static string Kind(CobolNet.Binding.Model.LocalePhrase? p) => p is null ? "LocalePhraseKind.None" : $"LocalePhraseKind.{p.Kind}";
-                static string Tag(CobolNet.Binding.Model.LocalePhrase? p) => p?.Tag is { } t ? EmitText.CsLiteral(t) : "null";
-                w.Line($"__CLASSIFY = CharacterClassification.Resolve({Kind(cls.Alphanumeric)}, {Tag(cls.Alphanumeric)}, {Kind(cls.National)}, {Tag(cls.National)});   // CHARACTER CLASSIFICATION (ISO §12.3.6.4 GR5; §14.6.6 r2)");
-            }
+                w.Line(ObjectComputerEmit.ClassificationPrologue(cls));
             // Register this program's SELECTed files at FIRST ACTIVATION of this instance (the IC114A lesson:
             // connectors belong to the program's entry, not the run-unit Main; a fresh instance after CANCEL /
             // an INITIAL activation re-registers — ISO §14.6.2.3.2). Run-unit CloseAll lives in the runtime RunMain boundary.

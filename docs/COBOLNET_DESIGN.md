@@ -1597,7 +1597,9 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
       position in the collating sequence that is greater than that of the highest character specified in this
       literal phrase. The relative order within the set of these unspecified characters is unchanged from the
       native collating sequence."), built in `DataBinder.Switches` (`Alphabets`/`Collating`), rendered as
-      the generated `__COLLATE` field, consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
+      the generated `__COLLATE` field (declared by `ObjectComputerEmit.EmitMembers` for EVERY runtime-module
+      type — a program class and a CLASS-ID's instance/factory classes alike, kb/Work PB111, beside the
+      `__COLLATE_NAT` and `__CLASSIFY` members), consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
       relation/condition-name comparison site (§12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
       figurative fills.
     - **National** (P10 Step 4): `NationalCollatingTable` — a SPARSE table over the 65,536 UTF-16 code units

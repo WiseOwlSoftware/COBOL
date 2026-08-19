@@ -347,7 +347,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   use — the LOCALE functions moved onto it); §8.8.4.4.3 SR2 → COBOLNET1669; two construct rows; three goldens +
   four negatives; 24 inventory rows — **GAP 3857**. Found on the way and REGISTERED: **PB110** (the CLASS /
   SYMBOLIC CHARACTERS `IN` phrases and CODE-SET bind NOTHING — a silent wrong answer; it now ranks FIRST in
-  `work.py next`) and **PB109** (the GR3 a coded-character-set class condition is a loud staged value).
+  `work.py next`) and **PB109** (the GR3 a coded-character-set class condition is a loud staged value) — and, found by
+  flipping the axis the goldens held fixed, **PB111 ✅ LANDED (DEVLOG 1335, the next commit)**: a CLASS-ID's
+  OBJECT-COMPUTER clauses (PCS, CHARACTER CLASSIFICATION) were a CS0103 on the emitted class — `ObjectComputerEmit` is
+  the ONE renderer of a type's OBJECT-COMPUTER members (program, instance, factory); a method's classification is an
+  activation LOCAL. Wave-local gated; battery #26 owes it.
   ④ **NEXT — `work.py next`: PB110 → PB64 T6 → PB109.** T6 = PICTURE format 2 + the NUMVAL-C / TEST-NUMVAL-C LOCALE
   arms over ONE LC_MONETARY model (design §4.6), the LAST locale increment — after it the A.4.9 row in
   CONFORMANCE.md §5 reads "Claimed" and the COBOLNET1518 descriptor goes · then Phase-B adjudication (a NEW

@@ -210,6 +210,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line(line);
             var fields = new DataEmitter(Ctx);
             fields.Emit();   // WS → INSTANCE fields (D3/D11); method WS → statics; VALUE inits = field initializers (D4)
+            // The class's OBJECT-COMPUTER members (ISO §12.3.6 — §11.3: a CLASS-ID's ENVIRONMENT DIVISION applies to its
+            // methods): __COLLATE / __COLLATE_NAT as per-type constants, from the ONE helper the program emitter uses
+            // (kb/Work PB111 — they were never declared here, a CS0103 on the first method that compared or cased). The
+            // classification is NOT a field of a class: a method is re-entered on the same object, so each method body
+            // resolves its own activation LOCAL (EmitMethod).
+            ObjectComputerEmit.EmitMembers(data, w, classificationField: false);
             EmitExternalBackings(data, w);       // M2-OO-1i inc 5: a class EXTERNAL FD record → the shared run-unit cell
             U.ReportWriter.EmitReportMembers(w);              // M2-OO-1i review: a class REPORT SECTION's engine fields + compose methods (Report Writer is complete)
             EmitFileMembers(csName, data, bound, w);   // M2-OO-1i: object/factory file connectors + report construction register in an emitted ctor
@@ -470,6 +476,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false);   // §15.65.4 r5 — INVOKE is an activation");
             w.Line("try");
             w.Line("{");
+            if (Ctx.Data.Classification is { } cls)
+                // The class's CHARACTER CLASSIFICATION, resolved at THIS method's activation (ISO §12.3.6.4 GR8; §14.6.6 r2 —
+                // a method is a runtime element) into a local the method's dispatch local function captures (kb/Work PB111).
+                w.Line(ObjectComputerEmit.ClassificationLocal(cls));
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes
             // the BY REFERENCE write-through at the method boundary); the RETURNING item and unattached
             // entries start at their initial state (§14.2.3 GR6 — callee-allocated).

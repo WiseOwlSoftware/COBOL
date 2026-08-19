@@ -74,9 +74,10 @@ internal sealed class ProgramEmitter
             // CobolFatalException (EC-OO-UNIVERSAL, GR7c). A class-less EC-free program keeps the
             // zero-scaffolding invariant byte-exact (SSOT §18.16 — the test greps the namespace).
             w.Line("using CobolNet.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §14.6.13) + the D10 GR7c raises");
-        if (UnitsOf(comp).Any(u => u.Data.Classification is not null))
-            // A CHARACTER CLASSIFICATION clause anywhere in the compilation group: the per-module __CLASSIFY field and
-            // its activation-time resolution name the Globalization types (kb/Work PB64 T5). Zero-scaffolding otherwise.
+        if (UnitsOf(comp).Any(u => u.Data.Classification is not null)
+            || classes.Any(c => c.Data.Classification is not null || c.FactoryData.Classification is not null))
+            // A CHARACTER CLASSIFICATION clause anywhere in the compilation group — a program, or a CLASS-ID whose methods
+            // carry it as an activation local: the Globalization types (kb/Work PB64 T5 / PB111). Zero-scaffolding otherwise.
             w.Line("using CobolNet.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");
         w.Line();
 
@@ -161,23 +162,9 @@ internal sealed class ProgramEmitter
             w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14 GR2)");
             if (data.Files.Count > 0)
                 w.Line("private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)");
-            if (data.Collating is { } collate)
-                // The NON-native alphanumeric program collating sequence (ISO §12.3.6) as the program's ONE
-                // CobolCollation carrier (kb/Work PB101): an AlphanumericCollation for a literal phrase (positions +
-                // the §15.15.4 r2 representative array + NextFree + the GR8/GR9 extremes — PB59) or a LocaleCollation
-                // for the LOCALE phrase; every comparison consumer, MAX/MIN, CHAR/ORD take the object.
-                w.Line($"private static readonly CobolCollation __COLLATE = {CollationEmit.New(collate)};");
-            if (data.Classification is not null)
-                // The OBJECT-COMPUTER CHARACTER CLASSIFICATION in effect for this runtime module (ISO §12.3.6.4 GR5–GR8;
-                // kb/Work PB64 T5): resolved at EVERY activation (GR8 — "effective with the initial state of the runtime
-                // modules"; §14.6.6 r2), in __Activate's prologue, so the word LOCALE binds the locale current when the
-                // program is entered. Read by UPPER-CASE / LOWER-CASE without a LOCALE phrase and by the ALPHABETIC class tests.
-                w.Line("private CharacterClassification __CLASSIFY = CharacterClassification.None;   // CHARACTER CLASSIFICATION (ISO §12.3.6) — resolved at activation");
-            if (data.NationalCollating is { } nat)
-                // The NON-native NATIONAL program collating sequence (ISO §12.3.6 GR9/GR11): a SPARSE
-                // NationalCollation for an ALPHABET … FOR NATIONAL literal phrase (the runtime computes every
-                // unspecified character's §12.3.7.4 GR7 1.3 position arithmetically) or a LocaleCollation.
-                w.Line($"private static readonly CobolCollation __COLLATE_NAT = {CollationEmit.New(nat)};");
+            // The OBJECT-COMPUTER members — __COLLATE / __COLLATE_NAT / the __CLASSIFY field — from the ONE helper the OO
+            // emitter shares (kb/Work PB111: a CLASS-ID with either clause used to be a CS0103 on its emitted methods).
+            ObjectComputerEmit.EmitMembers(data, w, classificationField: true);
 
             foreach (var b in unit.Bridges)
             {

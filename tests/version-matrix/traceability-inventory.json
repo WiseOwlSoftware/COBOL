@@ -11940,10 +11940,10 @@
   "ordinal": 8,
   "subject": "OBJECT-COMPUTER paragraph",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#Resolve; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#For",
-  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#Resolve; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#For; src/Cobol.Net.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ObjectComputerEmit",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests; conformance:2023/pb111_class_object_computer",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB64 T5 (2026-08-19): the classification is established with the module's INITIAL state — resolved in the activation prologue and held in the module's __CLASSIFY field — so a later SET LOCALE LC_CTYPE does not move it (golden: OUTER-2 = 74 after the SET; the unit test's de-DE classification stays after SET … fr-FR); a named locale's classification IS that locale's LC_CTYPE (LocaleFacts.For(tag).TextInfo). Rule --check verified at 12.3.6.4 8).",
+  "notes": "kb/Work PB64 T5 (2026-08-19): the classification is established with the module's INITIAL state — resolved in the activation prologue and held in the module's __CLASSIFY field — so a later SET LOCALE LC_CTYPE does not move it (golden: OUTER-2 = 74 after the SET; the unit test's de-DE classification stays after SET … fr-FR); a named locale's classification IS that locale's LC_CTYPE (LocaleFacts.For(tag).TextInfo). Rule --check verified at 12.3.6.4 8). kb/Work PB111 (2026-08-19): a CLASS-ID's classification applies to its METHODS — each method activation resolves it (an activation local; the golden's CLS-UP = 305 under the class's Turkish classification); the class used to be a CS0103 on its emitted methods.",
   "state": "OK"
  },
  {
@@ -11979,10 +11979,10 @@
   "ordinal": 11,
   "subject": "OBJECT-COMPUTER paragraph",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder",
-  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:2023/pb60_nested_configuration_inheritance; conformance:2023/pb3_ord_collating_tail",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder; src/Cobol.Net.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ObjectComputerEmit",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:2023/pb60_nested_configuration_inheritance; conformance:2023/pb3_ord_collating_tail; conformance:2023/pb111_class_object_computer",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB78 (2026-08-18): the program collating sequences determine the truth value of alphanumeric / national comparisons — `IF X > \"B\"` under REV (\"B\" before \"A\") is TRUE for X = \"A\" (the golden's observable), also across the contained-program inheritance golden.",
+  "notes": "kb/Work PB78 (2026-08-18): the program collating sequences determine the truth value of alphanumeric / national comparisons — `IF X > \"B\"` under REV (\"B\" before \"A\") is TRUE for X = \"A\" (the golden's observable), also across the contained-program inheritance golden. kb/Work PB111 (2026-08-19): a CLASS-ID's PROGRAM COLLATING SEQUENCE governs its methods' comparisons (CLS-REL = GT under the class's reversed sequence while the invoking program's PRG-REL = LT) — the class used to be a CS0103 '__COLLATE' on its emitted methods.",
   "state": "OK"
  },
  {
@@ -27709,10 +27709,10 @@
   "ordinal": 2,
   "subject": "Execution",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#Resolve; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#Require",
-  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_classification_unavailable; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#Resolve; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#Require; src/Cobol.Net.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ObjectComputerEmit",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_classification_unavailable; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests; conformance:2023/pb111_class_object_computer",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB64 T5 (2026-08-19): on activation of a runtime element with the clause, LC_CTYPE of the specified locale is what the class test and UPPER-CASE / LOWER-CASE use (the CALLed contained program resolves ITS classification at ITS activation — INNER = 305 under the Turkish current locale). A DECLARED but UNAVAILABLE locale (L1: availability is a run-time property) raises EC-LOCALE-MISSING at the operation that requires it — the class test, the case function — through the ONE §8.2.1 gate (LocaleFacts.Require), the coded character set's behavior standing when checking is off (golden 3). Rule --check verified at 14.6.6 2).",
+  "notes": "kb/Work PB64 T5 (2026-08-19): on activation of a runtime element with the clause, LC_CTYPE of the specified locale is what the class test and UPPER-CASE / LOWER-CASE use (the CALLed contained program resolves ITS classification at ITS activation — INNER = 305 under the Turkish current locale). A DECLARED but UNAVAILABLE locale (L1: availability is a run-time property) raises EC-LOCALE-MISSING at the operation that requires it — the class test, the case function — through the ONE §8.2.1 gate (LocaleFacts.Require), the coded character set's behavior standing when checking is off (golden 3). Rule --check verified at 14.6.6 2). kb/Work PB111 (2026-08-19): a METHOD is a runtime element — a CLASS-ID's CHARACTER CLASSIFICATION is resolved at each method activation (CLS-UP = 305).",
   "state": "OK"
  },
  {

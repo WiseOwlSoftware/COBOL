@@ -451,7 +451,11 @@ overloads, plus binder-computed HIGH-/LOW-VALUE); `LocaleCollation` is the new a
 registration (`CobolFile`/`FileRegistry`/`IndexedConnector`), `MaxString`/`MinString`/`OrdMax`/`OrdMin`, `Char`/
 `CharNational`/`Ord` all take the carrier. The emitters render every carrier through ONE method,
 `CodeGen/Roslyn/CollationEmit.cs` (`__COLLATE`/`__COLLATE_NAT` for the PCS, an inline instance for a statement or
-file alphabet that is not the PCS). The drift test `CobolCollationTests.Drift_TheCarrierIsTheOnlyCollatingParameterType`
+file alphabet that is not the PCS) — and the PCS members themselves are DECLARED by ONE helper for every
+runtime-module type, `CodeGen/Roslyn/ObjectComputerEmit.cs` (the program class, and a CLASS-ID's instance and
+factory classes — kb/Work PB111: a class with a PCS or a CHARACTER CLASSIFICATION was a CS0103 on its emitted
+methods until 2026-08-19; a method's classification is an activation LOCAL, a program's a field assigned in
+`__Activate`). The drift test `CobolCollationTests.Drift_TheCarrierIsTheOnlyCollatingParameterType`
 asserts the overload set stays collapsed and no public runtime surface takes a raw `ushort[]` or a concrete arm.
 
 ```csharp
