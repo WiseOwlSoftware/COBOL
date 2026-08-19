@@ -16,13 +16,29 @@ namespace CobolNet.Runtime.Collation;
 /// <param name="Primary">The level-1 weight (script/base letter identity); 0 = primary-ignorable (accents, most format characters).</param>
 /// <param name="Secondary">The level-2 weight (diacritic/accent identity); 0 = secondary-ignorable.</param>
 /// <param name="Tertiary">The level-3 weight (case/width/variant identity); 0 = tertiary-ignorable.</param>
-/// <param name="IsVariable">True for a VARIABLE element (whitespace, punctuation, symbols) — under
+/// <param name="IsVariable">True for a VARIABLE element (whitespace and punctuation — the CLDR default
+/// <c>maxVariable=punct</c> set, the elements the derived table's source marks with <c>*</c>) — under
 /// <see cref="AlternateHandling.Shifted"/> its first three levels are ignored and its primary moves to level 4, which is
-/// the ISO/IEC 14651 default treatment (the template table's IGNORE;IGNORE;IGNORE;&lt;position&gt; entries).</param>
-public readonly record struct CollationElement(int Primary, int Secondary, int Tertiary, bool IsVariable = false)
+/// the ISO/IEC 14651 default treatment (the template table's IGNORE;IGNORE;IGNORE;&lt;position&gt; entries).
+/// <see cref="MaxVariable"/> widens or narrows the set by reordering group.</param>
+/// <param name="Case">The CASE BITS (UTS #35 "case bits"): <see cref="ElementCase.Upper"/> for an uppercase variant —
+/// in the derived table, an element whose tertiary weight is one of the DUCET uppercase tertiaries
+/// (<see cref="IsUpperTertiary"/>); for a CLDR-tailored element, the case of the tailored string, which may be
+/// <see cref="ElementCase.Mixed"/> ("Aa"). Read only by <see cref="CaseFirst"/>; without it the tertiary weight alone
+/// orders lowercase before uppercase.</param>
+public readonly record struct CollationElement(int Primary, int Secondary, int Tertiary, bool IsVariable = false, ElementCase Case = ElementCase.Lower)
 {
+    /// <summary>Convenience: the case bits say uppercase.</summary>
+    public bool IsUpper => Case == ElementCase.Upper;
+
     /// <summary>The element every level ignores — controls, most format characters, U+0000.</summary>
     public static readonly CollationElement Ignorable = new(0, 0, 0);
+
+    /// <summary>The DUCET tertiary weights of the UPPERCASE variants — 0008 (upper), 0009 (wide upper), 000A (compat
+    /// upper), 000B (font upper), 000C (circled upper). The generator (<c>generate-collation-table.py</c>,
+    /// <c>UPPER_TERTIARIES</c>) sets the case bit of every root element by this rule; a numeric <c>.tailor</c> element
+    /// gets it by the same rule unless the file says otherwise (<see cref="TailoringRules"/>).</summary>
+    public static bool IsUpperTertiary(int tertiary) => tertiary is >= 0x08 and <= 0x0C;
 
     /// <summary>True when every level is zero: the element contributes nothing at any level.</summary>
     public bool IsCompletelyIgnorable => Primary == 0 && Secondary == 0 && Tertiary == 0;
@@ -31,7 +47,20 @@ public readonly record struct CollationElement(int Primary, int Secondary, int T
     public bool IsPrimaryIgnorable => Primary == 0;
 
     public override string ToString() =>
-        $"[{(IsVariable ? '*' : '.')}{Primary:X4}.{Secondary:X4}.{Tertiary:X4}]";
+        $"[{(IsVariable ? '*' : '.')}{Primary:X4}.{Secondary:X4}.{Tertiary:X4}{Case switch { ElementCase.Upper => "^", ElementCase.Mixed => "~", _ => "" }}]";
+}
+
+/// <summary>The case bits of an element (UTS #35 / ICU "case bits"): what <see cref="CaseFirst"/> orders by, before the
+/// tertiary weight — <see cref="CaseFirst.Upper"/> puts Upper before Mixed before Lower, <see cref="CaseFirst.Lower"/>
+/// the reverse; <see cref="CaseFirst.Off"/> ignores them.</summary>
+public enum ElementCase
+{
+    /// <summary>Lowercase or uncased (digits, symbols, ideographs).</summary>
+    Lower = 0,
+    /// <summary>A tailored string mixing upper- and lowercase letters ("Aa", a titlecase digraph).</summary>
+    Mixed = 1,
+    /// <summary>Uppercase.</summary>
+    Upper = 2,
 }
 
 /// <summary>
@@ -67,4 +96,27 @@ public enum AlternateHandling
     /// with the ignorable elements that follow them — the ISO/IEC 14651 default: "a-b" = "ab" through level 3 and
     /// differs from it only at level 4.</summary>
     Shifted = 1,
+}
+
+/// <summary>Whether case decides BEFORE the other tertiary distinctions (UTS #35 <c>caseFirst</c>; the BCP 47 key
+/// <c>kf</c>): with <see cref="Off"/> the tertiary weights alone order the variants (lowercase before uppercase, then
+/// width/compat/font/circled); <see cref="Upper"/> puts every uppercase variant before every non-uppercase one of the
+/// same letter (Danish); <see cref="Lower"/> the reverse — the case bit is read as a leading tertiary distinction.</summary>
+public enum CaseFirst
+{
+    Off = 0,
+    Upper = 1,
+    Lower = 2,
+}
+
+/// <summary>The LAST reordering group whose elements are VARIABLE under <see cref="AlternateHandling.Shifted"/> (UTS #35
+/// <c>maxVariable</c>; the BCP 47 key <c>kv</c>): <see cref="Punct"/> — spaces and punctuation, the CLDR default and the
+/// derived table's own variable marking; <see cref="Space"/> narrows it to whitespace; <see cref="Symbol"/> adds the
+/// (non-currency) symbols; <see cref="Currency"/> adds the currency signs too (the UCA/DUCET default set).</summary>
+public enum MaxVariable
+{
+    Space = 0,
+    Punct = 1,
+    Symbol = 2,
+    Currency = 3,
 }

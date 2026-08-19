@@ -19,3 +19,5 @@ DEVLOG.md -text
 # generator read. The .txt glob also covers LICENSE-UNICODE.txt, which must stay byte-exact for the same reason.
 data/unicode/*.txt -text
 data/unicode/*.xml -text
+data/unicode/cldr/** -text
+tests/Cobol.Net.Tests.Unit/TestData/segmentation/*.txt -text

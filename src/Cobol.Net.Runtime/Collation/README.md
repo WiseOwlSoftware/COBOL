@@ -38,16 +38,20 @@ for `ORD`/`CHAR`/`HIGH-VALUE`. `CompareInfo` remains a *cross-check oracle* in t
 
 | File | Role |
 |---|---|
-| `CollationElement.cs` | `CollationElement(Primary, Secondary, Tertiary, IsVariable)` — one weight triple; the enums `CollationStrength` (Primary=1 … Quaternary=4, Identical=5) and `AlternateHandling` (NonIgnorable, Shifted). |
-| `CollationTable.cs` | The DERIVED table: code point / contraction → element sequence, non-starters (combining classes), canonical decompositions, UTS #10 Table 16 implicit weights (Han, Tangut, Nushu, Khitan, unassigned), Hangul syllable decomposition. `CollationTable.Root` loads the embedded `Data/root-collation.bin` once per process. `Lookup(cp)` (first element), `GetElements(cp)` (whole sequence), `WithTailoring(rules)` (a NEW table; the base is immutable). |
+| `CollationElement.cs` | `CollationElement(Primary, Secondary, Tertiary, IsVariable, Case)` — one weight triple with its variable flag and CASE BITS (`ElementCase` Lower / Mixed / Upper — what `caseFirst` orders by); the enums `CollationStrength` (Primary=1 … Quaternary=4, Identical=5), `AlternateHandling` (NonIgnorable, Shifted), `CaseFirst` (Off, Upper, Lower), `MaxVariable` (Space, Punct, Symbol, Currency). |
+| `CollationTable.cs` | The DERIVED table: code point / contraction → element sequence, non-starters (combining classes), canonical decompositions, UTS #10 Table 16 implicit weights (Han, Tangut, Nushu, Khitan, unassigned), Hangul syllable decomposition, and the CLDR **reordering groups** (`ReorderGroups`: space, punct, symbol, currency, digit, then one contiguous primary range per script — what `[reorder]` permutes and `MaxVariable` reads). `CollationTable.Root` loads the embedded `Data/root-collation.bin` once per process. `Lookup(cp)` (first element), `GetElements(cp)` (whole sequence), `WithTailoring(rules)` (a NEW table; the base is immutable), the root → table `PrimaryMap`/`SecondaryMap`/`TertiaryMap` a renumbered tailored table records (`WeightMap`), and the ONE construction step every tailoring goes through (`Rebuild(TailoringPlan)`). |
 | `CollationElementIterator.cs` | The streaming UTS #10 S2 walk: code point decoding, longest-match contractions incl. discontiguous matching (S2.1.1–S2.1.3), expansions, Hangul, implicit weights. Allocation-free on the common path. |
 | `Normalizer.cs` | NFD from the table's own data (canonical decomposition + canonical reordering) — applied only when a text holds a combining mark, or (at Identical strength) any decomposable character. |
-| `Collator.cs` | A configured comparison: table × strength × alternate handling. `Compare` streams level by level (level 1 for both strings; only on a tie level 2; …); `GetKey` materializes a `CollationKey`. `Collator.Root` = root table, tertiary, non-ignorable (the CLDR/ICU default). |
+| `Collator.cs` | `CollationOptions` (strength, alternate, maxVariable, caseFirst, backwards secondaries — the UTS #35 settings the engine implements) and the `Collator`: a configured comparison over one table. `Compare` streams level by level (level 1 for both strings; only on a tie level 2; …; level 2 from the END under backwards secondaries); `GetKey` materializes a `CollationKey`, `GetKeyCached` through the key cache. `Collator.Root` = root table, tertiary, non-ignorable (the CLDR/ICU default). |
 | `CollationKey.cs` | The materialized sort key: per-level weight lists (`Primary`, `Secondary`, `Tertiary`, `Quaternary`), `CompareTo`, `ToByteArray()` (a byte image whose ordinal order equals `CompareTo`). |
-| `CollationEngine.cs` | The static façade: `Compare(a, b)` (root default), `Root`, `Standard` (the ISO/IEC 14651-style four-level ordering STANDARD-COMPARE's default table `"ISO 14651_2020_TABLE1"` names), `StandardAtLevel(n)`, `ForLocale(tag)`, `TableForLocale(tag)`, `TryGetOrderingTable(name)`. All results are cached and thread-safe. |
-| `TailoringRules.cs` | The `.tailor` file format, loading (disk directories, then embedded resources), locale resolution with language fallback, and `Apply(table)`. |
-| `../Unicode/README.md` | The sibling **normalization** subsystem (`UnicodeNormalizer`): the public NFD/NFC surface — NFD IS this engine's table-driven `Normalizer` (one NFD), NFC wraps the host. |
-| `Tailoring/*.tailor` | The shipped tailorings: `en-US`, `fr-FR` (root order, header-only), `es-ES` and `es` (Spanish ñ). |
+| `CollationEngine.cs` | The static façade: `Compare(a, b)` (root default), `Root`, `Standard` (the ISO/IEC 14651-style four-level ordering STANDARD-COMPARE's default table `"ISO 14651_2020_TABLE1"` names), `StandardAtLevel(n)`, `For(table, options)`, `ForLocale(tag)`, `ResolveLocale(tag)` (→ `ResolvedLocaleCollation`: the CLDR collation of the tag, then the `.tailor` layer, the settings, what is unsupported), `TableForLocale(tag)`, `GetKey(text, tag)` (cached), `TryGetOrderingTable(name)`. All results are cached and thread-safe. |
+| `TailoringRules.cs` | The `.tailor` file format (numeric weights, root scale, the SITE-OVERRIDE layer), loading (disk directories, then embedded resources), locale resolution with language fallback, and `Apply(table)`. |
+| `CLDR/` (`README.md`) | **The CLDR locale loader** (kb/Work PB105): every CLDR release file (135 locales, embedded), the LDML/JSON parser, the rule-syntax parser, `CldrLocaleLoader.Load` / `ResolveCollation` (parent chain, `-u-` keys) and `CldrTailoringBuilder` — CLDR rules → a tailored table + settings. The primary source of every locale's order. |
+| `Cache/` (`README.md`) | **The collation key cache** (kb/Work PB106): a thread-safe per-collator `CollationKeyCache` (LRU / size-based eviction, `CacheConfig`), what SORT/MERGE and the indexed-file key comparison key their values through. |
+| `Locale/` | **Locale selection** (`LocaleManager` / `LocaleInfo` / `LocaleConfig`): select a locale for the run unit; reports the CLDR collation, the `.tailor` layer, the settings, what is unsupported. |
+| `CollationRuntime.cs` | Initialization: `Initialize()` (cheap, every run unit — the cache configuration from the environment), `Warmup(tag)` (eager: tables, CLDR, the default locale), `Status`. |
+| `../Unicode/README.md` | The sibling **normalization** subsystem (`UnicodeNormalizer`): the public NFD/NFC surface — NFD IS this engine's table-driven `Normalizer` (one NFD), NFC wraps the host. `../Unicode/Segmentation/README.md`: grapheme cluster segmentation (UAX #29) — and why keys are per text, not per cluster. |
+| `Tailoring/*.tailor` | The shipped tailorings: `en-US`, `fr-FR` (root order, header-only), `es-ES` and `es` (Spanish ñ — a site override that a drift test keeps in agreement with the CLDR derivation). |
 | `Data/root-collation.bin` | The generated table (deflate; ~228 KB). `Data/root-collation.manifest.json` records the UCA version, the SHA-256 of every input and of the output, statistics, and the Table 16 ranges. |
 | `../../../scripts/collation/generate-collation-table.py` | The generator. `../../../data/unicode/` holds its pinned inputs and `SOURCES.md` their provenance. |
 
@@ -99,14 +103,23 @@ expanded and canonically ordered). Everything little-endian. `CollationTable.Dec
    unequal-at-primary case is one pass and no allocation.
 
 **Alternate handling** (UTS #10 Table 12): under `NonIgnorable` (the CLDR/ICU default) variable elements —
-space, punctuation, symbols — keep their primaries; under `Shifted` (the ISO/IEC 14651 default) they are 0 at
-levels 1–3 and contribute their primary at level 4, a primary-ignorable element that follows one is dropped
-everywhere, and every other element takes the maximum weight at level 4. So `"a-b"` and `"ab"` are equal through
-level 3 and differ at level 4 under `CollationEngine.Standard`, while `"a-b" < "ab"` at level 1 under `Root`.
+spaces and punctuation, the CLDR `maxVariable=punct` set the source marks with `*` — keep their primaries; under
+`Shifted` (the ISO/IEC 14651 default) they are 0 at levels 1–3 and contribute their primary at level 4, a
+primary-ignorable element that follows one is dropped everywhere, and every other element takes the maximum weight
+at level 4. So `"a-b"` and `"ab"` are equal through level 3 and differ at level 4 under `CollationEngine.Standard`,
+while `"a-b" < "ab"` at level 1 under `Root`. **`MaxVariable`** widens or narrows the variable set by reordering
+group (`Space`, `Punct` (default), `Symbol`, `Currency`).
 
 **Strength** truncates the levels considered; `Quaternary` under `NonIgnorable` behaves as `Tertiary` (there is no
 fourth level to weigh); `Identical` adds the NFD tie-break, giving a total order over canonically inequivalent
 texts (what an INDEXED file needs to keep distinct keys distinct).
+
+**`CaseFirst`** (Danish `[caseFirst upper]`): the element's case bits — Upper / Mixed / Lower, from the DUCET
+uppercase tertiaries (0008–000C) for root elements, from the tailored string's letters for CLDR-tailored ones —
+are compared BEFORE the tertiary weight (upper-first: Upper < Mixed < Lower; lower-first the reverse), so
+`A < a` and `AA < Aa < aa` under Danish. **Backwards secondaries** (Canadian French `[backwards 2]`): the level-2
+weights are compared from the END of the texts (`cote < côte < coté < côté`); the identical-prefix skip is not
+taken for such collators.
 
 **Keys.** `Collator.GetKey(text)` materializes the same weights into a `CollationKey`; `CompareTo` orders keys as
 `Compare` orders texts (a drift test asserts the agreement over a mixed corpus under four collators);
@@ -114,9 +127,22 @@ texts (what an INDEXED file needs to keep distinct keys distinct).
 
 ## 5. Tailoring
 
-A **tailoring** is a set of overrides layered on the root table — never a mutation of it. `TailoringRules.Parse`
-reads the `.tailor` format; `rules.Apply(table)` / `table.WithTailoring(rules)` returns a NEW table sharing
-nothing mutable with its base. `CollationEngine.ForLocale("es-ES")` resolves the tailoring and caches the result.
+A locale's order is built in TWO layers over the root table — never a mutation of it (`CollationEngine.ResolveLocale`):
+
+1. **The CLDR collation of the tag** (`CLDR/README.md`): the locale's rules from the pinned CLDR release, found along
+   the CLDR parent chain (its file, its parents', root), for the requested type (`de-u-co-phonebk`) or the file's
+   default — turned into weights by `CldrTailoringBuilder` (insertions between root weights, renumbering where a gap
+   overflows, script reordering, canonical closure, case bits) together with the settings the rules declare
+   (`CollationOptions`). This is the primary source: Spanish ñ, Danish æ ø å + caseFirst, Czech ch, Vietnamese tone
+   marks, Russian Cyrillic-first, Chinese pinyin … 135 locale files, cross-checked against the host's ICU.
+2. **A `.tailor` file** for the tag or its language (`TailoringRules`, format below) — the SITE-OVERRIDE layer:
+   numeric weights in the root scale, applied on top through `table.WithTailoring(rules)` (translated through the
+   CLDR-tailored table's `WeightMap`s when it renumbered). The shipped `es-ES` / `es` files reproduce the CLDR
+   derivation (a drift test keeps them in agreement); `en-US` / `fr-FR` are header-only ("the root order is
+   valid"). A site drops an edited copy into `COBOL_COLLATION_DIR` (or `Collation/` / `Collation/Locales/` beside
+   the application) to override a weight without touching CLDR data.
+
+Both go through ONE table construction (`CollationTable.Rebuild(TailoringPlan)`); the result is cached per tag.
 
 **Format** — one mapping per line, `#` comments, blank lines ignored, every number HEXADECIMAL, every weight in
 the derived scale the table reports (`Lookup`):
@@ -166,7 +192,12 @@ named one) at each use, as §12.3.7.4 GR7e requires. `docs/rearchitecture/DESIGN
 the design of that carrier and of its consumers; this README stops at the engine. (Landing state: the carrier (T2)
 and the LOCALE arm for the CURRENT-locale `IS LOCALE` phrase with its consumers (T3) landed 2026-08-18 — kb/Work
 PB101; the named `IS LOCALE locale-name` form waits for the LOCALE clause (T1); STANDARD-COMPARE / ORDER TABLE (T7)
-per the design's §12 table and kb/Work/PB101.md.)
+per the design's §12 table and kb/Work/PB101.md.) The consumers that compare the SAME values many times — SORT/MERGE
+key columns and the indexed-file key comparison — key their values once through the **key cache**
+(`Cache/README.md`; `CobolCollation.SupportsKeys` / `KeyOf`); a relation condition streams (`Collator.Compare`),
+which is cheaper for one comparison. Nothing is initialized eagerly (`CollationRuntime`): the derived tables decode
+on first use, and `COBOL_COLLATION_WARMUP` or `CollationRuntime.Warmup()` loads them up front for a
+latency-sensitive host.
 
 ## 7. Verification
 
@@ -183,6 +214,15 @@ per the design's §12 table and kb/Work/PB101.md.)
   `CollationTest_CLDR_SHIFTED_SHORT.txt`, release-48-2): every consecutive pair non-decreasing at Identical
   strength. The committed 1-in-25 samples run always; the full files run when `COBOLNET_UCA_CONFORMANCE_DIR`
   names their directory. **Full run, 2026-08-18: 206,298 + 227,809 lines, 0 violations.**
+- `CldrLocaleLoaderTests` — every pack file parses (0 unsupported constructs), the rule syntax, the JSON mirror,
+  the `-u-` keys and the parent chain, and the locale orders (Spanish, German phonebook, Danish, Swedish, Canadian
+  French, Russian / Croatian / Arabic / Hebrew reordering, Czech, Hungarian, Vietnamese, Thai, POSIX, Chinese,
+  Japanese, Korean), keys ⇄ compare agreement per locale, the `.tailor` ⇄ CLDR agreement for Spanish, ordering-table
+  names. `CldrIcuCrossCheckTests` — 29 locales pair-by-pair against the host's ICU (a documented release
+  difference allowed).
+- `CollationKeyCacheTests` — the cache (§ `Cache/README.md`); `LocaleManagerTests` — selection, CLDR reporting,
+  `CollationRuntime` initialization and warm-up; `GraphemeBreakerTests` — segmentation, the full
+  `GraphemeBreakTest.txt`, and the interplay with normalization and collation.
 
 ## 8. Regenerating
 
@@ -191,7 +231,29 @@ python scripts/collation/generate-collation-table.py        # reads data/unicode
 dotnet test tests/Cobol.Net.Tests.Unit --filter FullyQualifiedName~Collation
 ```
 
+```
+python scripts/collation/pack-cldr-collation.py             # reads data/unicode/cldr/, writes CLDR/Data/cldr-collation.zip + manifest
+python scripts/unicode/generate-grapheme-table.py           # reads data/unicode/, writes ../Unicode/Segmentation/Data/grapheme-break.bin + manifest
+```
+
 Bump the pinned inputs by replacing the files under `data/unicode/` (record the new URLs/versions in
-`data/unicode/SOURCES.md`), regenerate, re-run the tests — including the full conformance files of the SAME
-CLDR tag — and commit data, table, manifest and any tailoring whose `@version` changes, together. A `.tailor`
-file's numeric weights are relative to the table version its `@version` names; the version guard refuses a stale one.
+`data/unicode/SOURCES.md`), regenerate all three artifacts, re-run the tests — including the full conformance files
+of the SAME CLDR tag and the ICU cross-check — and commit data, tables, pack, manifests and any tailoring whose
+`@version` changes, together. A `.tailor` file's numeric weights are relative to the table version its `@version`
+names; the version guard refuses a stale one. The table format is 2 (reordering groups + case bits); the runtime
+still decodes format 1.
+
+## 9. The pipeline at a glance
+
+```
+text ──► (combining mark? → NFD, the table's own) ──► collation elements (contractions, expansions, Hangul, implicit)
+     ──► level 1 … level 4 weights per CollationOptions (strength · alternate/maxVariable · caseFirst · backwards)
+     ──► Compare (streamed) │ GetKey (materialized) ──► CollationKeyCache (SORT/MERGE, INDEXED keys, GetKey API)
+
+locale tag ──► CldrLocaleLoader.ResolveCollation (file chain, -u-co- type, -u- keys)
+           ──► CldrTailoringBuilder (rules → table + options)  ──► .tailor layer (site override)
+           ──► ResolvedLocaleCollation (cached per tag) ──► LocaleManager / LocaleCollation / ORDER TABLE
+```
+
+`../../README.md` (the runtime's text-processing overview) puts the collation, normalization, segmentation, locale,
+CLDR and cache pipelines side by side.

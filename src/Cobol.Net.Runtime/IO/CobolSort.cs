@@ -77,9 +77,10 @@ public static class CobolSort
         int n = f.Records.Count;
         var idx = new int[n];
         for (int i = 0; i < n; i++) idx[i] = i;
+        var columns = KeyColumns.Build(f.Records, keys, collation);
         Array.Sort(idx, (x, y) =>
         {
-            int c = CompareKeys(f.Records[x], f.Records[y], keys, collation);
+            int c = columns.Compare(x, y);
             return c != 0 ? c : x - y;   // tie → original (release) order: the stable sort
         });
         var sorted = new List<string>(n);
@@ -106,6 +107,7 @@ public static class CobolSort
             end[s] = s + 1 < streams ? f.StreamStarts[s + 1] : f.Records.Count;
         }
         var merged = new List<string>(f.Records.Count);
+        var columns = KeyColumns.Build(f.Records, keys, collation);
         while (true)
         {
             int best = -1;
@@ -113,7 +115,7 @@ public static class CobolSort
             {
                 if (pos[s] >= end[s]) continue;
                 // STRICT less-than: an equal head never displaces an earlier stream's record (GR4a).
-                if (best < 0 || CompareKeys(f.Records[pos[s]], f.Records[pos[best]], keys, collation) < 0)
+                if (best < 0 || columns.Compare(pos[s], pos[best]) < 0)
                     best = s;
             }
             if (best < 0) break;
@@ -157,25 +159,83 @@ public static class CobolSort
 
     // ── Key comparison (ISO §14.9.40 GR8 / §14.9.24 GR3 — ONE policy for SORT and MERGE) ─────────────────────
 
-    /// <summary>Compare two record images on <paramref name="keys"/>, most significant first (ISO §14.9.40 GR8 —
-    /// the relation-condition comparison rules per key): a NUMERIC key compares algebraically by its decoded value
-    /// (GR8 / §8.8.4.2.4 — a collating sequence NEVER applies to a numeric comparison); an alphanumeric key
-    /// compares under <paramref name="collation"/> — the statement's GR5-resolved <see cref="CobolCollation"/>
-    /// carrier (an ALPHABET table or a LOCALE sequence, §8.8.4.2.7/.11) — when present, else the native order;
-    /// DESCENDING inverts the per-key result (GR8b). 0 ⇔ all keys equal (GR8c — the caller's stability or
-    /// stream order then decides, GR3/GR4).</summary>
-    private static int CompareKeys(string a, string b, Key[] keys, CobolCollation? collation)
+    /// <summary>The key columns of a record buffer, DECODED ONCE per record before the sort or merge compares
+    /// anything (ISO §14.9.40 GR8 — the relation-condition comparison rules per key): a NUMERIC key column holds the
+    /// records' algebraic values (GR8 / §8.8.4.2.4 — a collating sequence NEVER applies to a numeric comparison); an
+    /// alphanumeric key column under a sequence that supports keys (<see cref="CobolCollation.SupportsKeys"/> — the
+    /// LOCALE arm) holds the records' materialized <see cref="Collation.CollationKey"/>s (built through the collator's
+    /// <see cref="Collation.Cache.CollationKeyCache"/>, so records sharing a value share one key); any other
+    /// alphanumeric key column holds the records' key windows, sliced once, compared under the sequence (an ALPHABET
+    /// table) or the native order. <see cref="Compare"/> then compares two records most significant key first;
+    /// DESCENDING inverts the per-key result (GR8b); 0 ⇔ all keys equal (GR8c — the caller's stability or stream
+    /// order then decides, GR3/GR4). Compared to re-slicing and re-walking every key at every comparison, an
+    /// n-record sort does n key decodes instead of 2·n·log n.</summary>
+    private sealed class KeyColumns
     {
-        foreach (var k in keys)
+        private readonly Key[] _keys;
+        private readonly Int128[]?[] _numeric;
+        private readonly Collation.CollationKey[]?[] _collationKeys;
+        private readonly string[]?[] _slices;
+        private readonly CobolCollation? _collation;
+
+        private KeyColumns(Key[] keys, Int128[]?[] numeric, Collation.CollationKey[]?[] collationKeys, string[]?[] slices, CobolCollation? collation)
         {
-            int c = k.Numeric
-                ? NumericKey(a, k).CompareTo(NumericKey(b, k))
-                : collation is null
-                    ? CobolString.Compare(Slice(a, k), Slice(b, k))
-                    : collation.Compare(Slice(a, k), Slice(b, k));
-            if (c != 0) return k.Descending ? -c : c;
+            _keys = keys;
+            _numeric = numeric;
+            _collationKeys = collationKeys;
+            _slices = slices;
+            _collation = collation;
         }
-        return 0;
+
+        public static KeyColumns Build(List<string> records, Key[] keys, CobolCollation? collation)
+        {
+            int n = records.Count;
+            var numeric = new Int128[]?[keys.Length];
+            var collationKeys = new Collation.CollationKey[]?[keys.Length];
+            var slices = new string[]?[keys.Length];
+            bool useKeys = collation is { SupportsKeys: true };
+            for (int k = 0; k < keys.Length; k++)
+            {
+                var key = keys[k];
+                if (key.Numeric)
+                {
+                    var col = new Int128[n];
+                    for (int i = 0; i < n; i++) col[i] = NumericKey(records[i], key);
+                    numeric[k] = col;
+                }
+                else if (useKeys)
+                {
+                    var col = new Collation.CollationKey[n];
+                    for (int i = 0; i < n; i++) col[i] = collation!.KeyOf(Slice(records[i], key))!;
+                    collationKeys[k] = col;
+                }
+                else
+                {
+                    var col = new string[n];
+                    for (int i = 0; i < n; i++) col[i] = Slice(records[i], key);
+                    slices[k] = col;
+                }
+            }
+            return new KeyColumns(keys, numeric, collationKeys, slices, collation);
+        }
+
+        /// <summary>Compare records <paramref name="x"/> and <paramref name="y"/> on every key, most significant first.</summary>
+        public int Compare(int x, int y)
+        {
+            for (int k = 0; k < _keys.Length; k++)
+            {
+                int c;
+                if (_numeric[k] is { } nums) c = nums[x].CompareTo(nums[y]);
+                else if (_collationKeys[k] is { } ck) c = ck[x].CompareTo(ck[y]);
+                else
+                {
+                    var s = _slices[k]!;
+                    c = _collation is null ? CobolString.Compare(s[x], s[y]) : _collation.Compare(s[x], s[y]);
+                }
+                if (c != 0) return _keys[k].Descending ? -c : c;
+            }
+            return 0;
+        }
     }
 
     /// <summary>The key's character window of a record image. A record shorter than the window (a varying record

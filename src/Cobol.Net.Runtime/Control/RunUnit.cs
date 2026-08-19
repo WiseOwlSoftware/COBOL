@@ -32,6 +32,9 @@ public sealed class RunUnit
     public RunUnit()
     {
         Programs = new ProgramTable(this);
+        // The text-processing subsystems' cheap, idempotent initialization (Collation/CollationRuntime.cs): the key
+        // cache configuration from the environment; the derived tables stay lazy unless COBOL_COLLATION_WARMUP asks.
+        Collation.CollationRuntime.Initialize();
     }
 
     /// <summary>The run-unit program registry (name resolution, §14.6.2.3 state model, CANCEL).</summary>

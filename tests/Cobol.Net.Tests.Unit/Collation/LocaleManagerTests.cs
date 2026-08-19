@@ -10,12 +10,64 @@ namespace CobolNet.Tests.Unit.Collation;
 
 /// <summary>
 /// The locale-selection system (Runtime/Collation/Locale/: LocaleManager, LocaleInfo, LocaleConfig — kb/Work PB101
-/// section D): selecting a locale validates the tag, loads and applies its tailoring through the engine's cached
-/// tables, and records it on the run unit's ONE locale state — so the LOCALE-based collating sequence a COBOL program
-/// runs under sees the selection; the default is the run unit's L2 user default; unknown tags are refused.
+/// section D, PB105): selecting a locale validates the tag, loads and applies its collation (the CLDR collation of
+/// the tag, then its .tailor layer) through the engine's cached tables, and records it on the run unit's ONE locale
+/// state — so the LOCALE-based collating sequence a COBOL program runs under sees the selection; the default is the
+/// run unit's L2 user default; unknown tags are refused; and CollationRuntime's initialization / warm-up report what
+/// they did.
 /// </summary>
 public sealed class LocaleManagerTests
 {
+    [Fact]
+    public void GetLocale_ReportsTheCldrCollation_ItsSettings_AndWhatIsUnsupported()
+    {
+        var da = LocaleManager.GetLocale("da");
+        Assert.True(da.HasCldrRules);
+        Assert.Equal("da", da.Cldr.Found!.Tag);
+        Assert.Equal("standard", da.Cldr.Type);
+        Assert.Equal(CaseFirst.Upper, da.Options.CaseFirst);
+        Assert.True(da.IsTailored);
+        Assert.False(da.HasTailoringFile);
+        Assert.Empty(da.Unsupported);
+        Assert.Contains("CLDR da/standard", da.ToString());
+        var nb = LocaleManager.GetLocale("nb-NO");                        // parentLocales: nb → no
+        Assert.Equal("no", nb.Cldr.Found!.Tag);
+        Assert.True(nb.Collator.Compare("z", "æ") < 0);
+        var phone = LocaleManager.GetLocale("de-DE-u-co-phonebk");
+        Assert.Equal("phonebook", phone.Cldr.Type);
+        Assert.Equal("de-DE-u-co-phonebk", phone.Name);
+        var kn = LocaleManager.GetLocale("en-u-kn-true");                 // a key the engine does not implement
+        Assert.Contains(kn.Unsupported, u => u.Contains("numeric"));
+        Assert.False(kn.IsTailored);
+        Assert.Contains("da", LocaleConfig.CldrLocales);
+        Assert.Contains("zh-Hant", LocaleConfig.CldrLocales);
+        Assert.Contains("da", LocaleConfig.SupportedLocales);
+        Assert.True(LocaleConfig.IsSupported("es-419"));                  // a culture .NET recognizes; collates by es.xml
+        Assert.False(LocaleConfig.IsSupported("no-Such-TABLE"));          // the CLDR parent chain alone never makes a tag known
+        Assert.True(LocaleConfig.IsSupported("nb-NO"));
+        Assert.True(LocaleConfig.IsSupported("de-u-co-phonebk"));
+    }
+
+    [Fact]
+    public void CollationRuntime_Initializes_AndWarmsUp()
+    {
+        Assert.True(CollationRuntime.IsInitialized || RunUnit.Current is not null);
+        Assert.True(CollationRuntime.IsInitialized);                    // RunUnit's constructor initialized it
+        var status = CollationRuntime.Warmup("es-ES");
+        Assert.True(status.Warmed);
+        Assert.True(status.DefaultLocaleResolved);
+        Assert.Null(status.Warning);
+        Assert.Equal("17.0.0", status.UcaVersion);
+        Assert.Equal("17.0.0", status.UnicodeVersion);
+        Assert.Equal("release-48-2", status.CldrRelease);
+        Assert.True(status.CldrFiles >= 130);
+        Assert.NotNull(status.WarmupTime);
+        Assert.Same(status, CollationRuntime.Status);
+        var bad = CollationRuntime.Warmup("qq-XX-nonsense");             // an unselectable locale is a warning, not an exception
+        Assert.False(bad.DefaultLocaleResolved);
+        Assert.NotNull(bad.Warning);
+    }
+
     [Fact]
     public void SupportedLocales_AreTheRootAndTheTailoredOnes_AndKnownCulturesAreSelectable()
     {

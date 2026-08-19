@@ -15,13 +15,18 @@ namespace CobolNet.Runtime.Collation;
 /// <code>
 /// @version 17.0.0                 # optional — refused when it differs from the base table's UCA version
 /// @locale es-ES                   # optional — names the tailoring
-/// # code point   primary secondary tertiary [variable]      one element (the owner's minimal form; U+ or 0x prefix)
+/// # code point   primary secondary tertiary [variable] [upper]   one element (the owner's minimal form; U+ or 0x prefix)
 /// U+00F1         25718 0020 0002                            # ñ — right after n at level 1
+/// U+00D1         25718 0020 0008                            # Ñ — its tertiary 0008 is an uppercase weight (case bit set)
 /// # several code points (a CONTRACTION) — every code point then needs its U+ prefix
 /// U+006E U+0303  25718 0020 0002
 /// # several elements (an EXPANSION) — bracket each element
 /// U+00E6         [23EC0 0020 0004] [0000 011F 0004] [24530 0020 0004]
 /// </code>
+/// <para>Weights are in the ROOT scale even when the file is layered over a CLDR-derived table that renumbered
+/// (<see cref="CollationTable.WithTailoring"/> maps them). The case bit (<see cref="CaseFirst"/>) of an element is
+/// the DUCET tertiary rule (<see cref="CollationElement.IsUpperTertiary"/>) unless the element ends in <c>upper</c>,
+/// <c>mixed</c> or <c>lower</c>.</para>
 /// <para><b>Locale lookup</b> (<see cref="ForLocale"/>): <c>&lt;tag&gt;.tailor</c> is searched in the directory named by
 /// the <c>COBOL_COLLATION_DIR</c> environment variable, then in <c>Collation/</c> and <c>Collation/Locales/</c> beside
 /// the running application (<see cref="SearchDirectories"/>), then among the tailorings embedded in this assembly
@@ -265,16 +270,24 @@ public sealed class TailoringRules
     {
         int n = end - start;
         bool variable = false;
-        if (n == 4)
+        ElementCase? elementCase = null;
+        // Trailing markers, in any order: 'variable' / '*' and 'upper' / '^' / 'mixed' / 'lower'.
+        while (n > 3)
         {
-            string last = tokens[end - 1];
-            if (last is "*" || last.Equals("variable", StringComparison.OrdinalIgnoreCase)) { variable = true; n = 3; }
+            string last = tokens[start + n - 1];
+            if (last is "*" || last.Equals("variable", StringComparison.OrdinalIgnoreCase)) variable = true;
+            else if (last is "^" || last.Equals("upper", StringComparison.OrdinalIgnoreCase)) elementCase = ElementCase.Upper;
+            else if (last.Equals("mixed", StringComparison.OrdinalIgnoreCase)) elementCase = ElementCase.Mixed;
+            else if (last.Equals("lower", StringComparison.OrdinalIgnoreCase)) elementCase = ElementCase.Lower;
+            else break;
+            n--;
         }
-        if (n != 3) throw Error(source, lineNo, "an element is 'primary secondary tertiary [variable]' (hexadecimal)");
+        if (n != 3) throw Error(source, lineNo, "an element is 'primary secondary tertiary [variable] [upper|mixed|lower]' (hexadecimal)");
         int p = ParseWeight(tokens[start], "primary", 0xFFFFF, source, lineNo);
         int s = ParseWeight(tokens[start + 1], "secondary", 0xFFFF, source, lineNo);
         int tt = ParseWeight(tokens[start + 2], "tertiary", 0xFFFF, source, lineNo);
-        return new CollationElement(p, s, tt, variable);
+        // The case bits: stated, else the DUCET tertiary rule the generator applies to every root element.
+        return new CollationElement(p, s, tt, variable, elementCase ?? (CollationElement.IsUpperTertiary(tt) ? ElementCase.Upper : ElementCase.Lower));
     }
 
     private static int ParseCodePoint(string token, string source, int lineNo)

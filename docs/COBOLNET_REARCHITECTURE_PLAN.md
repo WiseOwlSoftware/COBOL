@@ -322,10 +322,30 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   ORDER TABLE inventory rows are adjudicated (17 CONFORMS, SR11 PARTIAL) — **GAP 3916**. Diagnostic band: 1662/1663
   used; next free per session-probe.
   **NEXT, in order:** ① PB64 T1 (`LocaleSymbol` + `LocaleRef` +
-  `LocaleFacts` + `LocaleState` on `RunUnit`; the SPECIAL-NAMES LOCALE clause declares; `SET` formats 11/12;
-  revert PB100's `EcNameResolution` refusal of the EC-LOCALE names; four constructs.json rows; goldens) → T2 …
-  T7 per the design's §12, a battery per increment · then Phase-B adjudication (a NEW defect found on the way
+  `LocaleFacts` + `LocaleState` on `RunUnit`; the SPECIAL-NAMES LOCALE clause declares — its external identification
+  now names any CLDR locale (PB105); `SET` formats 11/12; the NAMED `IS LOCALE locale-name` form;
+  revert PB100's `EcNameResolution` refusal of the EC-LOCALE names; four constructs.json rows; goldens) → T4 …
+  T6 per the design's §12, a battery per increment · then Phase-B adjudication (a NEW defect found on the way
   outranks). Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN (the reference below).
+  **✅ THREE MORE SUBSYSTEMS AND THE REPOSITORY-WIDE INTEGRATION LANDED — kb/Work PB104 / PB105 / PB106 (2026-08-19,
+  DEVLOG 1328).** The owner's second guidance ("hard implementation mode": grapheme segmentation, a FULL CLDR locale
+  loader, a collation key caching layer, then integrate everything): **PB104** `Runtime/Unicode/Segmentation/` —
+  UAX #29 clusters from a derived table, every line of `GraphemeBreakTest.txt` green, 3.5× faster than the host's
+  `StringInfo`; **PB105** `Runtime/Collation/CLDR/` — all 135 CLDR release-48-2 collation files embedded, the
+  complete rule-syntax parser (0 unsupported constructs), the CLDR parent chain, `-u-` keys, and the BUILDER that
+  turns a locale's rules into its table + settings (insertions, renumbering, script reordering, canonical closure,
+  case bits) — the derivation `es-ES.tailor` was made by hand for, now mechanical for every locale, plus the
+  table's format 2 (reordering groups, case bits) and the engine's `CollationOptions` (maxVariable, caseFirst,
+  backwards secondaries): **29 locales cross-checked pair-by-pair against the host's ICU, zero disagreements**
+  (one documented CLDR-release difference); **PB106** `Runtime/Collation/Cache/` — the per-collator key cache
+  (LRU / FIFO), wired where values recur (SORT/MERGE key columns decoded once per record; INDEXED LOCALE keys)
+  and measured NOT to belong on `Collator.Compare` (streaming wins for one comparison; keys win 16.6× on
+  record-shaped case-different texts). Integration: `CollationEngine.ResolveLocale` (CLDR first, `.tailor` on top),
+  `LocaleManager` over it, `CollationRuntime.Initialize` from every `RunUnit` (cheap; `Warmup` eager),
+  `src/Cobol.Net.Runtime/README.md` (the pipelines overview), the benchmark harness's three new classes. The
+  brief's "NFC + per-cluster keys before building keys" was NOT done — it is not how UCA works (contractions
+  cross cluster boundaries; keys are level-major) — and a test pins why (PB104). Residue registered as PB107
+  (caseLevel / numericOrdering / hiraganaQ / `<<<<`; the ~6 ms per-locale rebuild; the NFD allocation).
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
@@ -1622,7 +1642,16 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB101 tree `a585cd6f` (2026-08-18 19:43, battery #20).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB104/PB105/PB106 tree (2026-08-18 22:34 PDT, battery #22).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
+  `/tmp/battery-20260818-223437`; the log in the session scratchpad): FULL greenfield Conformance **4815 / 4815,
+  zero skipped** (11 m 21 s) · greenfield Unit **4425 / 4425** · characterization **33 / 33** · `guard-fast`
+  **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **`0 PER-CASE FLIP(S)`**
+  (1323 cases: 581/465/207/70). Covers DEVLOG 1328 whole: grapheme segmentation, the CLDR locale loader/builder
+  (table format 2, `CollationOptions`, `ResolveLocale`), the key cache (SORT/MERGE key columns, indexed LOCALE keys),
+  `CollationRuntime.Initialize` from every run unit, and the `IsKnownLocale` guard (battery #21, 20 minutes
+  earlier on the same tree minus that guard, was also ALL GREEN) — the population grew by 66 Unit tests.
+- **⛔ PRIOR BATTERY REFERENCE — the PB101 tree `a585cd6f` (2026-08-18 19:43, battery #20).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-20260818-194335`; the log in the session scratchpad): FULL greenfield Conformance **4815 / 4815,
   zero skipped** (11 m 32 s) · greenfield Unit **4359 / 4359** · characterization **33 / 33** · `guard-fast`

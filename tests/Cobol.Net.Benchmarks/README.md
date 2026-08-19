@@ -1,7 +1,10 @@
 # `tests/Cobol.Net.Benchmarks/` — the BenchmarkDotNet harness
 
-The measured performance profile of COBOL.NET's performance-sensitive runtime subsystems. Today that is exactly
-one: the **collation engine** (`src/Cobol.Net.Runtime/Collation/`, kb/Work **PB101**).
+The measured performance profile of COBOL.NET's performance-sensitive runtime subsystems: the **collation
+engine** (`src/Cobol.Net.Runtime/Collation/`, kb/Work **PB101** — `Collation/CollationBenchmarks.cs`), the **key
+cache** (**PB106** — `Collation/CacheBenchmarks.cs`), the **CLDR loader and builder** (**PB105** —
+`Collation/CldrBenchmarks.cs`), and the **Unicode normalization and grapheme segmentation** subsystems
+(**PB104** — `Unicode/UnicodeBenchmarks.cs`).
 
 This is **not a test project**. Nothing in CI runs it, it asserts nothing, and a red number here is a finding, not
 a failure. It exists because the collation engine is on the hot path of ordinary COBOL — every relation condition
@@ -37,8 +40,9 @@ dotnet run -c Release --project tests/Cobol.Net.Benchmarks -- --job short      #
 dotnet run -c Release --project tests/Cobol.Net.Benchmarks -- --filter *BuildKey*
 ```
 
-The whole class takes **about two minutes**. Everything after `--` goes to BenchmarkDotNet, so its full command
-line is available (`--help` lists it).
+The whole class takes **about two minutes** (`CacheBenchmarks`, `CldrBenchmarks`, `UnicodeBenchmarks`: about two
+minutes each; `--filter '*'` runs all four). Everything after `--` goes to BenchmarkDotNet, so its full command line is
+available (`--help` lists it).
 
 > **Quoting.** `*Collation*` must be quoted in a POSIX shell (`--filter '*Collation*'`) or the shell expands it
 > against the working directory and BenchmarkDotNet reports `You must have made a typo in 'Collation'`.
@@ -293,6 +297,46 @@ next measurement.
 
 ---
 
+## The other classes — cache, CLDR, Unicode (run 3, 2026-08-19)
+
+Same host and configuration; `--filter '*CacheBenchmarks*' '*CldrBenchmarks*' '*UnicodeBenchmarks*'` (about six
+minutes). Each category has the host's implementation of the same job as its baseline where one exists.
+
+### `CacheBenchmarks` — the collation key cache (`Collation/Cache/README.md`)
+
+| Category | Benchmark | Mean | Alloc | Reading |
+|---|---|---|---|---|
+| Cache-Hit | `Hit_ShortStrings` vs `Build_ShortStrings_NoCache` (baseline) | **23.6 ns** vs 214 ns (541 B) | 0 B | a hit is a dictionary lookup + interlocked stamp: **9× faster than building**, no allocation |
+| Cache-Hit | `Hit_LongStrings` (400-char texts) | 82.7 ns | 0 B | the lookup hashes the text; still 2.6× the build |
+| Cache-Miss | `Miss_ShortStrings` (a full 1,024-entry cache fed only new texts — every lookup misses, an eviction batch every 256 inserts) vs the disabled pass-through | 508 ns vs 355 ns | 770 B vs 664 B | steady-state churn costs **≈1.4× the bare build** — the eviction batch (a lock-free enumeration + sort by stamp) is amortized to ~150 ns per miss (a first version read `ConcurrentDictionary.Count` on every insert and `ToArray()`-snapshotted per batch — every bucket lock, both — and cost 27×; replaced by an interlocked count and the enumeration) |
+| Cache-Compare-Short | `Compare_ShortStrings_ViaCache` vs the streaming `Collator.Compare` (baseline) | 48.0 ns vs **26.9 ns** | 0 B | **the streaming comparison wins for short operands** — two lookups cost more than deciding at the first differing primary; hence relation conditions never go through the cache |
+| Cache-Compare-Long | 400-char texts sharing a 390-char stem, via cache vs streaming | 322 ns vs **246 ns** | 0 B | with an identical prefix to skip, streaming still wins |
+| Cache-Compare-CaseDifferent | 120-char texts differing only in case throughout (equal through level 2, decided at level 3 — the record-comparison shape of a SORT), via cache vs streaming | **196 ns** vs 3,245 ns | 0 B | **16.6× faster through keys**: no prefix to skip, three full walks otherwise. This is the case SORT/MERGE and INDEXED keys are in, and why they key once and compare keys |
+
+### `CldrBenchmarks` — the CLDR loader and tailoring builder (`Collation/CLDR/README.md`)
+
+| Category | Benchmark | Mean | Alloc | Reading |
+|---|---|---|---|---|
+| CLDR-Parse | `Parse_Es` / `Parse_Da` / `Parse_Zh` | 5.7 µs / 5.0 µs / **18.7 ms** | 21 KB / 21 KB / 36 MB | LDML XML + the rule syntax; zh.xml is 1.1 MB (pinyin, stroke, zhuyin, unihan) |
+| CLDR-Build | `Build_Es` / `Build_Da` / `Build_Vi` / `Build_Zh` | **6.1 ms / 6.5 ms / 7.7 ms / 50.5 ms** | 10.8 / 10.9 / 13.0 / 75.6 MB | rules → a tailored table + settings; the fixed ~6 ms is the table REBUILD (copying the 41,724-element pool and 38,787 mappings and renumbering the tertiary line, which almost every `<<<` forces); Vietnamese adds the closure over ~900 composites, Chinese the ~40,000 relations and a script reorder. **Paid once per process per locale** — see the next row |
+| CLDR-Resolve | `Resolve_Cached_Es` / `Resolve_Cached_Zh` | **19.8 ns / 19.6 ns** | 40 B | what a program pays after the first use: the engine's per-tag cache lookup — identical for the lightest and the heaviest locale |
+
+### `UnicodeBenchmarks` — normalization and segmentation (`Unicode/README.md`, `Unicode/Segmentation/README.md`)
+
+| Category | Benchmark | Mean | Alloc | Reading |
+|---|---|---|---|---|
+| NFD-ASCII | `Nfd_Ascii` vs the host's `string.Normalize(FormD)` | 7.1 ns vs 1.1 ns | 0 B | our "needs NFD?" scan of a 32-char text vs the host's ASCII short-circuit; both return the input by reference |
+| NFD-Accented | `Nfd_Accented` (accented / composed / Hangul corpus) vs the host | 50.3 ns vs 39.4 ns | **394 B** vs 32 B | the table-driven decomposition is in the host's class in time and behind it in allocation — the `List<int>` + string build in `Normalizer.ToNfd`; the next engine follow-up (also the 93 B on the mixed-script comparison path) |
+| NFC | `Nfc_Accented` (the subsystem) vs the host directly | 32.9 ns vs 32.0 ns | 2 B | the subsystem's NFC IS the host's composer behind the invariant-mode fallback: 1 ns of dispatch |
+| Segment-ASCII | `Segment_Ascii` (`GraphemeBreaker.Count`, 32-char texts) vs the host's `StringInfo.LengthInTextElements` | **129 ns vs 450 ns** | 0 B vs 192 B | **3.5× faster than the host, no allocation** — one property lookup per code point |
+| Segment-Mixed | marks, emoji sequences, flags, Hangul jamo, Indic conjuncts | **11.3 ns vs 39.2 ns** | 0 B vs 66 B | 3.5× |
+| Segment-Long | enumerating a ~2 KB mixed text vs `StringInfo.GetTextElementEnumerator` | **7.5 µs vs 24.9 µs** | 0 B vs 37 KB | 3.3× |
+
+The raw BenchmarkDotNet tables of run 3 are in the session's `BenchmarkDotNet.Artifacts/results/` (not committed);
+the numbers above are copied from them.
+
+---
+
 ## Not measured here
 
 **The COBOL layer beyond the carrier.** `Compare_ShortStrings_LocaleCollation` (run 2) measures the
@@ -301,4 +345,4 @@ to end, and indexed-file key ordering are not benchmarked yet.
 
 **Everything else in the runtime.** Numeric conversion, `MOVE`, file I/O and the generated-code paths have no
 benchmarks yet. Add them as sibling folders (`tests/Cobol.Net.Benchmarks/<Subsystem>/`) reusing
-`Collation/BenchmarkConfig.cs`, which is deliberately subsystem-neutral.
+`Collation/BenchmarkConfig.cs`, which is deliberately subsystem-neutral (`Unicode/UnicodeBenchmarks.cs` already does).

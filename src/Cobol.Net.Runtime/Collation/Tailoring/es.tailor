@@ -1,7 +1,7 @@
 # es — Spanish (modern) collation tailoring for COBOL.NET's derived collation table.
 #
 # Derived from Unicode CLDR common/collation/es.xml, <collation type="standard">:  &N<ñ<<<Ñ
-# (data/unicode/cldr-collation-es.xml, Unicode License — data/unicode/LICENSE-UNICODE.txt).
+# (data/unicode/cldr/collation/es.xml, Unicode License — data/unicode/LICENSE-UNICODE.txt).
 # The rule says: ñ is a NEW PRIMARY immediately after n (before every character the root table places after n),
 # and Ñ differs from ñ at the tertiary level only. Nothing else in Spanish differs from the root order.
 #

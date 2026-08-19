@@ -102,7 +102,11 @@ public sealed class IndexedConnector : FileConnector
     private int KeyCompare(string a, string b, int keyIndex)
     {
         var c = keyIndex < 0 ? _primeCollation : _alts[keyIndex].Collation;
-        return c is null ? string.CompareOrdinal(a, b) : c.Compare(a, b);
+        if (c is null) return string.CompareOrdinal(a, b);
+        // A LOCALE key sequence: compare materialized keys — the file's stored key values are compared on every
+        // lookup and insert, and the collator's key cache builds each distinct value's key once (kb/Work PB106).
+        if (c.SupportsKeys) return c.KeyOf(a)!.CompareTo(c.KeyOf(b));
+        return c.Compare(a, b);
     }
 
     /// <summary>Key equality under the key of reference's collating sequence: two keys that differ in bytes but

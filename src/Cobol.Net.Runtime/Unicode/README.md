@@ -122,3 +122,11 @@ canonically equivalent and inequivalent pairs, in both forms; and the **cross-ch
 for every code point the table calls decomposable (0–0x10FFFF, 2,081 of them), tolerating a difference only where
 the host does not know the character decomposes at all — those are counted and reported. The NFC tests are inert,
 by design, on a host where `IsNfcAvailable` is false.
+
+## 7. The sibling: grapheme cluster segmentation
+
+`Segmentation/` (README there; kb/Work PB104) is the third text subsystem — UAX #29 extended grapheme clusters from
+COBOL.NET's own derived property table. Normalization never moves a cluster boundary (NFC and NFD of a text have the
+same clusters, canonically equivalent one for one — `GraphemeBreakerTests.Segmentation_IsStableUnderNormalization`),
+so a text may be counted or cut by cluster before or after normalizing with the same result; and a cluster-safe cut
+keeps a collation prefix where a code-unit cut can lose an accent. `../README.md` puts the three pipelines side by side.

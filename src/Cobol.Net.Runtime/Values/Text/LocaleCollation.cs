@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Concurrent;
 using CobolNet.Runtime.Collation;
+using CobolNet.Runtime.Collation.Cache;
 using CobolNet.Runtime.Exceptions;
 
 namespace CobolNet.Runtime;
@@ -65,6 +66,20 @@ public sealed class LocaleCollation : CobolCollation
         if (!Collator.IsWellFormed(a) || !Collator.IsWellFormed(b))
             ExceptionState.Set("EC-LOCALE-INCOMPATIBLE", fatal: true);   // L6 — the operand is not orderable
         return Resolve().Compare(a, b);
+    }
+
+    /// <inheritdoc/>
+    public override bool SupportsKeys => true;
+
+    /// <summary>The engine's key of the operand (§8.8.4.2.11-trimmed) through the <see cref="CollationKeyCache"/> of the
+    /// collator in effect — what SORT/MERGE and the indexed-file connector compare instead of walking the elements
+    /// again for every comparison. An ill-formed operand sets EC-LOCALE-INCOMPATIBLE like <see cref="Compare"/> does.</summary>
+    public override CollationKey KeyOf(string? value)
+    {
+        string trimmed = TrimForLocale(value);
+        if (!Collator.IsWellFormed(trimmed))
+            ExceptionState.Set("EC-LOCALE-INCOMPATIBLE", fatal: true);   // L6 — the operand is not orderable
+        return CollationKeyCache.For(Resolve()).GetKey(trimmed);
     }
 
     /// <summary>§8.8.4.2.11 sentence 1: trailing spaces off; an all-space operand becomes ONE space; "" stays "".

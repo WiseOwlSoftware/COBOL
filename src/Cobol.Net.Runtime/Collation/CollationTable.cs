@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Buffers.Binary;
 using System.IO.Compression;
-using System.Reflection;
 
 namespace CobolNet.Runtime.Collation;
 
@@ -18,10 +17,16 @@ namespace CobolNet.Runtime.Collation;
 /// their conjoining jamo, and the UTS #10 Table 16 IMPLICIT weights of Han/Tangut/Nushu/Khitan ideographs and of
 /// unassigned code points), the contractions that begin with a code point (Thai/Lao prevowel + consonant, tailored
 /// digraphs …), and whether a code point is a NON-STARTER (canonical combining class ≠ 0 — the trigger for canonical
-/// reordering and discontiguous contraction matching).</para>
-/// <para>Tables are IMMUTABLE. A tailoring (<see cref="TailoringRules"/>) does not mutate a table; it produces a
-/// new one through <see cref="WithTailoring"/> that shares nothing mutable with its base, so a run unit can hold
-/// the root table and any number of locale-tailored tables side by side.</para>
+/// reordering and discontiguous contraction matching). It also carries the CLDR root's REORDERING GROUPS
+/// (<see cref="ReorderGroups"/>: space, punct, symbol, currency, digit, then one group per script, each a contiguous
+/// primary range) — what a CLDR <c>[reorder …]</c> permutes and <see cref="MaxVariable"/> reads.</para>
+/// <para>Tables are IMMUTABLE. A tailoring does not mutate a table; it produces a NEW table — <see cref="WithTailoring"/>
+/// for a numeric <see cref="TailoringRules"/> file, <see cref="Rebuild"/> for the CLDR rule builder — that shares
+/// nothing mutable with its base, so a run unit can hold the root table and any number of locale-tailored tables side
+/// by side. A tailored table's weights may be RENUMBERED relative to the root's (a CLDR relation that needs room
+/// between two adjacent root weights widens that gap; a <c>[reorder]</c> moves whole groups); the table's
+/// <see cref="PrimaryMap"/> / <see cref="SecondaryMap"/> / <see cref="TertiaryMap"/> record the root → this-table
+/// mapping so a root-scale weight (a <c>.tailor</c> file's) can still be layered on top correctly.</para>
 /// <para>⚖ No ISO/IEC 14651 text or table is embedded here or read by the generator; the data is Unicode's
 /// (data/unicode/LICENSE-UNICODE.txt). COBOL.NET's conformance statement, verbatim: "Implements collation behavior
 /// consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data."</para>
@@ -52,10 +57,12 @@ public sealed class CollationTable
     private readonly ImplicitRange[] _implicit;                   // UTS #10 Table 16 rows, sorted by First
     private readonly Dictionary<int, int[]> _nfd;                 // code point → its FULL canonical decomposition (expanded, reordered)
     private readonly int _primaryShift;
+    private readonly ReorderGroup[] _groups;                      // in this table's primary order
 
     private CollationTable(string name, string ucaVersion, string sourceTag, int primaryShift, CollationElement[] elements,
         Dictionary<int, int> singles, Dictionary<int, Contraction[]> contractions, Dictionary<int, byte> ccc,
-        ImplicitRange[] implicitRanges, Dictionary<int, int[]> nfd, TailoringRules? tailoring)
+        ImplicitRange[] implicitRanges, Dictionary<int, int[]> nfd, ReorderGroup[] groups, TailoringRules? tailoring,
+        string? description, WeightMap? primaryMap, WeightMap? secondaryMap, WeightMap? tertiaryMap)
     {
         Name = name;
         UcaVersion = ucaVersion;
@@ -67,11 +74,20 @@ public sealed class CollationTable
         _ccc = ccc;
         _implicit = implicitRanges;
         _nfd = nfd;
+        _groups = groups;
         Tailoring = tailoring;
+        Description = description ?? name;
+        PrimaryMap = primaryMap;
+        SecondaryMap = secondaryMap;
+        TertiaryMap = tertiaryMap;
     }
 
-    /// <summary>"root", or the tailoring's name (its <c>@locale</c>, else its source name).</summary>
+    /// <summary>"root", or the tailoring's name (its <c>@locale</c>, else its source name; a CLDR collation's
+    /// locale tag such as "es" or "de-u-co-phonebk").</summary>
     public string Name { get; }
+
+    /// <summary>A one-line description of what this table is built from — for diagnostics.</summary>
+    public string Description { get; }
 
     /// <summary>The UCA / CLDR data version the table derives from (e.g. "17.0.0").</summary>
     public string UcaVersion { get; }
@@ -79,7 +95,8 @@ public sealed class CollationTable
     /// <summary>The generator's description of the source data.</summary>
     public string SourceTag { get; }
 
-    /// <summary>The tailoring this table was built with, or null for the root table.</summary>
+    /// <summary>The numeric <c>.tailor</c> rules this table was built with, or null (the root, or a CLDR-derived table
+    /// with no <c>.tailor</c> layer).</summary>
     public TailoringRules? Tailoring { get; }
 
     /// <summary>The number of low-order bits every root primary is shifted left by (tailoring room): a root primary
@@ -96,6 +113,46 @@ public sealed class CollationTable
     /// element sequence can depend on at most this many code points after it. <see cref="Collator"/>'s
     /// identical-prefix skip backs its boundary up by this much.</summary>
     public int MaxContractionLength { get; private init; } = 1;
+
+    /// <summary>The number of elements in the pool (diagnostics).</summary>
+    public int ElementCount => _elements.Length;
+
+    /// <summary>The root → this-table mapping of PRIMARY weights, or null when this table keeps the root's primaries
+    /// (the root itself, and every tailoring that only inserted into free room). A tailored table whose CLDR rules
+    /// needed a wider gap, or that reordered groups, renumbers — this map is how a root-scale weight (a
+    /// <c>.tailor</c> entry) is translated when layered on top (<see cref="WithTailoring"/>).</summary>
+    public WeightMap? PrimaryMap { get; }
+
+    /// <summary>The root → this-table mapping of SECONDARY weights, or null (identity).</summary>
+    public WeightMap? SecondaryMap { get; }
+
+    /// <summary>The root → this-table mapping of TERTIARY weights, or null (identity).</summary>
+    public WeightMap? TertiaryMap { get; }
+
+    /// <summary>True when some weight of this table differs from the root's for the same source element — a
+    /// <c>.tailor</c> weight written against the root scale must be mapped before it is applied here.</summary>
+    public bool IsRenumbered => PrimaryMap is not null || SecondaryMap is not null || TertiaryMap is not null;
+
+    /// <summary>The CLDR root's REORDERING GROUPS (UTS #35 Part 5, "Collation Reordering") in THIS table's primary
+    /// order, each a contiguous primary range in this table's scale: the five special groups (<c>space</c>,
+    /// <c>punct</c>, <c>symbol</c>, <c>currency</c>, <c>digit</c>) followed by one group per script, named by its
+    /// ISO 15924 code (<c>Latn</c>, <c>Grek</c>, … <c>Hani</c>); a group that holds several scripts (Hiragana +
+    /// Katakana → "Hira Kana") lists every code. What a CLDR <c>[reorder …]</c> permutes; the primaries below the
+    /// first group (U+FFFE's) and above the last (unassigned implicit weights, the trailing U+FFFD..U+FFFF) belong to
+    /// no group and never move.</summary>
+    public IReadOnlyList<ReorderGroup> ReorderGroups => _groups;
+
+    /// <summary>The group named by a CLDR reorder code — a script code (case-insensitive; <c>Hrkt</c> = the Kana group,
+    /// <c>Zyyy</c>/<c>Zinh</c> name no group) or one of the special codes — or false.</summary>
+    public bool TryGetReorderGroup(string code, out ReorderGroup group)
+    {
+        if (string.Equals(code, "Hrkt", StringComparison.OrdinalIgnoreCase)) code = "Kana";
+        foreach (var g in _groups)
+            foreach (string c in g.Codes)
+                if (string.Equals(c, code, StringComparison.OrdinalIgnoreCase)) { group = g; return true; }
+        group = default;
+        return false;
+    }
 
     /// <summary>True when some contraction starts with <paramref name="codePoint"/> — its element sequence then
     /// depends on what follows it.</summary>
@@ -141,9 +198,37 @@ public sealed class CollationTable
         return new[] { first, second };
     }
 
+    /// <summary>The element sequence of a code point SEQUENCE — one contraction when the table has it, else the
+    /// concatenated per-code-point sequences (Hangul and implicit weights included). What a rule builder needs to
+    /// read the current position of a reset string.</summary>
+    public CollationElement[] GetElements(ReadOnlySpan<int> codePoints)
+    {
+        if (codePoints.Length == 1) return GetElements(codePoints[0]).ToArray();
+        if (codePoints.Length > 1 && _contractions.TryGetValue(codePoints[0], out var candidates))
+        {
+            var rest = codePoints[1..];
+            foreach (var c in candidates)
+                if (c.Rest.AsSpan().SequenceEqual(rest))
+                    return _elements.AsSpan(c.Offset, c.Count).ToArray();
+        }
+        var list = new List<CollationElement>(codePoints.Length * 2);
+        foreach (int cp in codePoints) list.AddRange(GetElements(cp).ToArray());
+        return list.ToArray();
+    }
+
     /// <summary>True when the table carries an explicit mapping for <paramref name="codePoint"/> (as opposed to a
     /// computed Hangul or implicit weight).</summary>
     public bool HasExplicitMapping(int codePoint) => _singles.ContainsKey(codePoint);
+
+    /// <summary>True when the table maps exactly this code point sequence as a contraction.</summary>
+    public bool HasContraction(ReadOnlySpan<int> codePoints)
+    {
+        if (codePoints.Length < 2 || !_contractions.TryGetValue(codePoints[0], out var candidates)) return false;
+        var rest = codePoints[1..];
+        foreach (var c in candidates)
+            if (c.Rest.AsSpan().SequenceEqual(rest)) return true;
+        return false;
+    }
 
     /// <summary>True when the code point is a NON-STARTER — canonical combining class ≠ 0 (combining marks): the
     /// presence of one is what makes canonical reordering (NFD) and discontiguous contraction matching necessary.</summary>
@@ -164,6 +249,10 @@ public sealed class CollationTable
 
     /// <summary>The number of code points with a canonical decomposition mapping (Hangul syllables excluded).</summary>
     public int CanonicalDecompositionCount => _nfd.Count;
+
+    /// <summary>Every code point with a canonical decomposition and its full NFD sequence — what a rule builder
+    /// closes over (a tailored letter or mark changes every precomposed character that contains it).</summary>
+    internal IEnumerable<KeyValuePair<int, int[]>> CanonicalDecompositions() => _nfd;
 
     /// <summary>The contractions that begin with <paramref name="codePoint"/>, LONGEST FIRST, or null.</summary>
     internal Contraction[]? ContractionsStartingWith(int codePoint) =>
@@ -188,6 +277,28 @@ public sealed class CollationTable
     /// <summary>One element of the pool.</summary>
     internal CollationElement ElementAt(int index) => _elements[index];
 
+    /// <summary>The whole element pool (read-only) — what a rule builder scans for the weights in use.</summary>
+    internal ReadOnlySpan<CollationElement> Pool => _elements;
+
+    /// <summary>Every explicit single mapping (code point → pool slice) — for builders and diagnostics.</summary>
+    internal IEnumerable<(int CodePoint, int Offset, int Count)> Singles()
+    {
+        foreach (var (cp, packed) in _singles) yield return (cp, packed >> 8, packed & 0xFF);
+    }
+
+    /// <summary>Every contraction (full code point sequence → pool slice) — for builders and diagnostics.</summary>
+    internal IEnumerable<(int[] CodePoints, int Offset, int Count)> Contractions()
+    {
+        foreach (var (first, list) in _contractions)
+            foreach (var c in list)
+            {
+                var cps = new int[c.Rest.Length + 1];
+                cps[0] = first;
+                c.Rest.CopyTo(cps, 1);
+                yield return (cps, c.Offset, c.Count);
+            }
+    }
+
     internal static bool IsHangulSyllable(int codePoint) => (uint)(codePoint - Hangul_SBase) < Hangul_SCount;
 
     /// <summary>Algorithmic Hangul syllable → conjoining jamo (L V [T]) decomposition (The Unicode Standard §3.12) —
@@ -208,7 +319,9 @@ public sealed class CollationTable
     /// [.AAAA.0020.0002][.BBBB.0000.0000] where the (AAAA, BBBB) pair is computed from the code point's script family
     /// (siniform scripts by block, core Han, other Han, everything else — including unassigned code points and, for
     /// robustness over ill-formed input, an unpaired surrogate code unit). Sorts after every explicit primary and
-    /// before the U+FFFF maximum.</summary>
+    /// before the U+FFFF maximum. In a table whose primaries were renumbered (<see cref="PrimaryMap"/>) the AAAA
+    /// primary is mapped like every other primary, so a reordered Han group stays reordered for implicit weights too;
+    /// BBBB (compared only against another BBBB) is never mapped.</summary>
     internal void GetImplicit(int codePoint, out CollationElement first, out CollationElement second)
     {
         int aaaa, bbbb;
@@ -240,12 +353,18 @@ public sealed class CollationTable
             aaaa = 0xFBC0 + (codePoint >> 15);
             bbbb = (codePoint & 0x7FFF) | 0x8000;
         }
-        first = new CollationElement(aaaa << _primaryShift, 0x0020, 0x0002);
+        int p = aaaa << _primaryShift;
+        if (PrimaryMap is not null) p = PrimaryMap.Map(p);
+        first = new CollationElement(p, 0x0020, 0x0002);
         second = new CollationElement(bbbb << _primaryShift, 0, 0);
     }
 
+    // ---- derived tables --------------------------------------------------------------------------------------
+
     /// <summary>A NEW table: this table's mappings with <paramref name="rules"/>' entries layered over them (an entry
-    /// REPLACES the whole element sequence of its code point / contraction). Canonical closure is automatic: a
+    /// REPLACES the whole element sequence of its code point / contraction). The rules' weights are written against
+    /// the ROOT scale; when this table renumbered (<see cref="IsRenumbered"/>) they are translated through its maps
+    /// first, so a site's <c>.tailor</c> composes with a CLDR-derived table. Canonical closure is automatic: a
     /// tailored single code point whose canonical decomposition is a different sequence gets that decomposed
     /// sequence registered as a contraction with the same elements, so the precomposed and decomposed spellings
     /// keep collating identically after the tailoring (a duty the CLDR rule syntax discharges for its authors and a
@@ -258,30 +377,82 @@ public sealed class CollationTable
                 $"tailoring '{rules.Name}' was written for UCA {v} but the base table is UCA {UcaVersion} — its numeric weights are not comparable");
         if (rules.Entries.Count == 0) return this;   // a header-only tailoring (en-US, fr-FR: "the root order is valid") IS this table
 
+        var entries = new List<(int[] CodePoints, CollationElement[] Elements)>(rules.Entries.Count);
+        foreach (var e in rules.Entries)
+        {
+            var mapped = e.Elements;
+            if (IsRenumbered)
+            {
+                mapped = new CollationElement[e.Elements.Length];
+                for (int i = 0; i < mapped.Length; i++)
+                {
+                    var ce = e.Elements[i];
+                    mapped[i] = ce with
+                    {
+                        Primary = ce.Primary != 0 && PrimaryMap is not null ? PrimaryMap.Map(ce.Primary) : ce.Primary,
+                        Secondary = ce.Secondary != 0 && SecondaryMap is not null ? SecondaryMap.Map(ce.Secondary) : ce.Secondary,
+                        Tertiary = ce.Tertiary != 0 && TertiaryMap is not null ? TertiaryMap.Map(ce.Tertiary) : ce.Tertiary,
+                    };
+                }
+            }
+            entries.Add((e.CodePoints, mapped));
+        }
+        return Rebuild(new TailoringPlan
+        {
+            Name = rules.Name,
+            Description = $"{Description} + {rules.Source}",
+            Tailoring = rules,
+            Entries = entries,
+            PrimaryMap = PrimaryMap,
+            SecondaryMap = SecondaryMap,
+            TertiaryMap = TertiaryMap,
+        });
+    }
+
+    /// <summary>The ONE derivation step every tailoring goes through: a NEW table from this one and a
+    /// <see cref="TailoringPlan"/> — the base pool re-weighted through the plan's remapping (renumbering, reordering;
+    /// identity when null), the plan's entries added or replacing existing mappings (canonical closure applied to
+    /// tailored single code points), contractions starting with the plan's suppressed code points removed, and the
+    /// plan's group ranges and root-scale maps recorded on the new table.</summary>
+    internal CollationTable Rebuild(TailoringPlan plan)
+    {
         var singles = new Dictionary<int, int>(_singles);
         var contractions = new Dictionary<int, Contraction[]>(_contractions);
-        var pool = new List<CollationElement>(_elements.Length + rules.Entries.Count * 2);
-        pool.AddRange(_elements);
-        int extra = 0;
-        foreach (var entry in rules.Entries)
+        int contractionCount = ContractionCount;
+        if (plan.SuppressContractionsStartingWith is { Count: > 0 } suppress)
+        {
+            foreach (int cp in suppress)
+            {
+                if (contractions.Remove(cp, out var removed)) contractionCount -= removed.Length;
+            }
+        }
+        var pool = new List<CollationElement>(_elements.Length + plan.Entries.Count * 2);
+        if (plan.Remap is { } remap)
+            foreach (var e in _elements) pool.Add(remap(e));
+        else
+            pool.AddRange(_elements);
+
+        foreach (var (codePoints, elements) in plan.Entries)
         {
             int offset = pool.Count;
-            pool.AddRange(entry.Elements);
-            AddMapping(singles, contractions, entry.CodePoints, offset, entry.Elements.Length, ref extra);
+            pool.AddRange(elements);
+            AddMapping(singles, contractions, codePoints, offset, elements.Length, ref contractionCount);
             // Canonical closure of a single tailored code point (Hangul syllables are algorithmic; skipped).
-            if (entry.CodePoints.Length == 1 && TryGetCanonicalDecomposition(entry.CodePoints[0], out var nfd)
-                && nfd.Length > 1 && !rules.Defines(nfd.ToArray()))
-                AddMapping(singles, contractions, nfd.ToArray(), offset, entry.Elements.Length, ref extra);
+            if (codePoints.Length == 1 && TryGetCanonicalDecomposition(codePoints[0], out var nfd)
+                && nfd.Length > 1 && !plan.Defines(nfd))
+                AddMapping(singles, contractions, nfd.ToArray(), offset, elements.Length, ref contractionCount);
         }
-        int longest = MaxContractionLength;
+        int longest = 1;
         foreach (var list in contractions.Values)
             foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
-        return new CollationTable(rules.Name, UcaVersion, SourceTag, _primaryShift, pool.ToArray(), singles, contractions,
-            _ccc, _implicit, _nfd, rules) { ContractionCount = ContractionCount + extra, MaxContractionLength = longest };
+        var groups = plan.Groups ?? _groups;
+        return new CollationTable(plan.Name, UcaVersion, SourceTag, _primaryShift, pool.ToArray(), singles, contractions,
+            _ccc, _implicit, _nfd, groups, plan.Tailoring, plan.Description, plan.PrimaryMap, plan.SecondaryMap, plan.TertiaryMap)
+        { ContractionCount = contractionCount, MaxContractionLength = longest };
     }
 
     private static void AddMapping(Dictionary<int, int> singles, Dictionary<int, Contraction[]> contractions,
-        int[] codePoints, int offset, int count, ref int newContractions)
+        int[] codePoints, int offset, int count, ref int contractionCount)
     {
         if (codePoints.Length == 1)
         {
@@ -303,7 +474,7 @@ public sealed class CollationTable
             existing.CopyTo(updated, 0);
             updated[^1] = new Contraction(rest, offset, count);
             Array.Sort(updated, (a, b) => b.Rest.Length.CompareTo(a.Rest.Length));   // longest first
-            newContractions++;
+            contractionCount++;
         }
         contractions[codePoints[0]] = updated;
     }
@@ -319,8 +490,9 @@ public sealed class CollationTable
         return Decode(ms.ToArray(), "root");
     }
 
-    /// <summary>Decode a table blob written by <c>generate-collation-table.py</c> (format 1: "CNCT", u32 raw length,
-    /// raw-deflate payload). Public so a test can round-trip a regenerated file without touching the resource.</summary>
+    /// <summary>Decode a table blob written by <c>generate-collation-table.py</c> ("CNCT", u32 raw length, raw-deflate
+    /// payload; format 1, or format 2 = format 1 + the reordering groups and the element case bits). Public so a
+    /// test can round-trip a regenerated file without touching the resource.</summary>
     public static CollationTable Decode(ReadOnlySpan<byte> blob, string name)
     {
         if (blob.Length < 8 || blob[0] != (byte)'C' || blob[1] != (byte)'N' || blob[2] != (byte)'C' || blob[3] != (byte)'T')
@@ -332,7 +504,7 @@ public sealed class CollationTable
 
         var r = new Reader(raw);
         int format = r.U16();
-        if (format != 1) throw new InvalidDataException($"collation table: unsupported format {format}");
+        if (format is not (1 or 2)) throw new InvalidDataException($"collation table: unsupported format {format}");
         int shift = r.U8();
         string version = r.Str();
         string sourceTag = r.Str();
@@ -342,7 +514,10 @@ public sealed class CollationTable
         for (int i = 0; i < elementCount; i++)
         {
             int p = r.U16(), s = r.U16(), t = r.U8(), flags = r.U8();
-            elements[i] = new CollationElement(p << shift, s, t, (flags & 1) != 0);
+            var elementCase = format >= 2
+                ? ((flags & 4) != 0 ? ElementCase.Mixed : (flags & 2) != 0 ? ElementCase.Upper : ElementCase.Lower)
+                : (CollationElement.IsUpperTertiary(t) ? ElementCase.Upper : ElementCase.Lower);
+            elements[i] = new CollationElement(p << shift, s, t, (flags & 1) != 0, elementCase);
         }
         int singleCount = r.I32();
         var singles = new Dictionary<int, int>(singleCount);
@@ -392,11 +567,24 @@ public sealed class CollationTable
             for (int k = 0; k < n; k++) seq[k] = r.I32();
             nfd.Add(cp, seq);
         }
+        var groups = Array.Empty<ReorderGroup>();
+        if (format >= 2)
+        {
+            int groupCount = r.U16();
+            groups = new ReorderGroup[groupCount];
+            for (int i = 0; i < groupCount; i++)
+            {
+                string codes = r.Str();
+                int lo = r.U16(), hi = r.U16();
+                groups[i] = new ReorderGroup(codes.Split(' ', StringSplitOptions.RemoveEmptyEntries), lo << shift, hi << shift);
+            }
+        }
         if (!r.AtEnd) throw new InvalidDataException("collation table: trailing bytes");
         int longest = 1;
         foreach (var list in contractions.Values)
             foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
-        return new CollationTable(name, version, sourceTag, shift, elements, singles, contractions, ccc, ranges, nfd, tailoring: null)
+        return new CollationTable(name, version, sourceTag, shift, elements, singles, contractions, ccc, ranges, nfd, groups,
+            tailoring: null, description: $"{name} ({sourceTag})", primaryMap: null, secondaryMap: null, tertiaryMap: null)
             { ContractionCount = contractionCount, MaxContractionLength = longest };
     }
 
@@ -409,5 +597,110 @@ public sealed class CollationTable
         public int U16() { int v = BinaryPrimitives.ReadUInt16LittleEndian(_d.AsSpan(_pos)); _pos += 2; return v; }
         public int I32() { int v = BinaryPrimitives.ReadInt32LittleEndian(_d.AsSpan(_pos)); _pos += 4; return v; }
         public string Str() { int n = U8(); string s = System.Text.Encoding.UTF8.GetString(_d, _pos, n); _pos += n; return s; }
+    }
+}
+
+/// <summary>One CLDR reordering group of a <see cref="CollationTable"/>: its reorder code(s) and the contiguous
+/// primary range (that table's scale) its members occupy.</summary>
+/// <param name="Codes">The CLDR reorder codes naming the group — one script code (<c>Latn</c>), several for a group
+/// that holds several scripts (<c>Hira Kana</c>), or a special code (<c>space</c>, <c>punct</c>, <c>symbol</c>,
+/// <c>currency</c>, <c>digit</c>).</param>
+/// <param name="FirstPrimary">The lowest primary weight of a member.</param>
+/// <param name="LastPrimary">The highest primary weight of a member.</param>
+public readonly record struct ReorderGroup(string[] Codes, int FirstPrimary, int LastPrimary)
+{
+    /// <summary>The group's first (canonical) reorder code.</summary>
+    public string Code => Codes[0];
+
+    /// <summary>True for one of the five special (non-script) groups.</summary>
+    public bool IsSpecial => Code is "space" or "punct" or "symbol" or "currency" or "digit";
+
+    public override string ToString() => $"{string.Join('/', Codes)} [{FirstPrimary:X}..{LastPrimary:X}]";
+}
+
+/// <summary>
+/// A mapping of ONE weight level from the root table's scale to a tailored table's — how a tailored table records
+/// that it renumbered (a CLDR relation that needed more room than the free values between two adjacent root weights
+/// widens the gap and shifts every higher weight) or reordered (a <c>[reorder]</c> moves whole groups of primaries).
+/// Defined at every distinct root weight of the level by an explicit pair. A value strictly between two root weights
+/// maps by integer interpolation between its neighbours' images when those are in order (distinct inputs stay
+/// distinct because a gap is only ever widened), else right after the lower neighbour's image — so a root-scale
+/// weight that is not itself a root weight (a <c>.tailor</c> file's inserted primary) keeps its place relative to its
+/// neighbours.
+/// </summary>
+public sealed class WeightMap
+{
+    private readonly int[] _from, _to;
+
+    /// <summary>Build from parallel arrays: <paramref name="from"/> strictly increasing root-scale weights,
+    /// <paramref name="to"/> their images.</summary>
+    public WeightMap(int[] from, int[] to)
+    {
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentNullException.ThrowIfNull(to);
+        if (from.Length != to.Length || from.Length == 0) throw new ArgumentException("a weight map needs parallel, non-empty arrays");
+        for (int i = 1; i < from.Length; i++)
+            if (from[i] <= from[i - 1]) throw new ArgumentException($"weight map sources are not increasing at {i}");
+        _from = from;
+        _to = to;
+    }
+
+    /// <summary>The number of defined root weights.</summary>
+    public int Count => _from.Length;
+
+    /// <summary>True when every root weight maps to itself.</summary>
+    public bool IsIdentity
+    {
+        get
+        {
+            for (int i = 0; i < _from.Length; i++) if (_from[i] != _to[i]) return false;
+            return true;
+        }
+    }
+
+    /// <summary>The image of a root-scale weight.</summary>
+    public int Map(int weight)
+    {
+        int i = Array.BinarySearch(_from, weight);
+        if (i >= 0) return _to[i];
+        i = ~i;   // first index with _from[i] > weight
+        if (i == 0) return weight + (_to[0] - _from[0]);
+        if (i == _from.Length) return weight + (_to[^1] - _from[^1]);
+        int a = _from[i - 1], b = _from[i], na = _to[i - 1], nb = _to[i];
+        if (nb > na && nb - na >= b - a) return na + (int)((long)(weight - a) * (nb - na) / (b - a));
+        return na + (weight - a);   // across a reordering seam: stay right after the lower neighbour
+    }
+}
+
+/// <summary>
+/// The specification a derived <see cref="CollationTable"/> is built from (<see cref="CollationTable.Rebuild"/>) — the
+/// one shape both tailoring front-ends produce: a numeric <c>.tailor</c> file (entries in root scale, no remapping)
+/// and the CLDR rule builder (entries in the new scale, plus the remapping of every base element and the resulting
+/// group ranges and root-scale maps).
+/// </summary>
+internal sealed class TailoringPlan
+{
+    public required string Name { get; init; }
+    public string? Description { get; init; }
+    public TailoringRules? Tailoring { get; init; }
+    /// <summary>The re-weighting of every element of the base pool (renumbering + reordering), or null for identity.</summary>
+    public Func<CollationElement, CollationElement>? Remap { get; init; }
+    /// <summary>The mappings to add or replace, elements in the NEW table's scale.</summary>
+    public required List<(int[] CodePoints, CollationElement[] Elements)> Entries { get; init; }
+    /// <summary>First code points whose contractions are removed (CLDR <c>[suppressContractions]</c>).</summary>
+    public HashSet<int>? SuppressContractionsStartingWith { get; init; }
+    /// <summary>The reordering groups of the new table (its scale), or null to keep the base's.</summary>
+    public ReorderGroup[]? Groups { get; init; }
+    public WeightMap? PrimaryMap { get; init; }
+    public WeightMap? SecondaryMap { get; init; }
+    public WeightMap? TertiaryMap { get; init; }
+
+    private HashSet<string>? _keys;
+
+    /// <summary>True when the plan itself defines this code point sequence (canonical closure must not override it).</summary>
+    public bool Defines(ReadOnlySpan<int> codePoints)
+    {
+        _keys ??= new HashSet<string>(Entries.Select(e => string.Join(",", e.CodePoints)), StringComparer.Ordinal);
+        return _keys.Contains(string.Join(",", codePoints.ToArray()));
     }
 }

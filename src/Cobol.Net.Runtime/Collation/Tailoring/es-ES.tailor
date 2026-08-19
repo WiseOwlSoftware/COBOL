@@ -2,7 +2,7 @@
 #
 # CLDR has no region-specific Spanish tailoring: es-ES is the language-level es collation.
 # Derived from Unicode CLDR common/collation/es.xml, <collation type="standard">:  &N<ñ<<<Ñ
-# (data/unicode/cldr-collation-es.xml, Unicode License — data/unicode/LICENSE-UNICODE.txt).
+# (data/unicode/cldr/collation/es.xml, Unicode License — data/unicode/LICENSE-UNICODE.txt).
 # The rule says: ñ is a NEW PRIMARY immediately after n (before every character the root table places after n),
 # and Ñ differs from ñ at the tertiary level only. Nothing else in Spanish differs from the root order.
 #
@@ -11,6 +11,9 @@
 # The decomposed spellings n + U+0303 / N + U+0303 are covered automatically (canonical closure on apply).
 #
 # The "traditional" Spanish variant (ch and ll as separate letters, CLDR type="traditional") is NOT this file.
+#
+# Since the CLDR locale loader (Collation/CLDR/) derives this very order from es.xml mechanically, this file is a
+# SITE-OVERRIDE example layered on top of that derivation; CldrLocaleLoaderTests keeps the two in agreement.
 @version 17.0.0
 @locale es-ES
 

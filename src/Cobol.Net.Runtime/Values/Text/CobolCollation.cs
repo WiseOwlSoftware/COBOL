@@ -47,6 +47,17 @@ public abstract class CobolCollation
     /// <summary>The LOW-VALUE character of the sequence (§8.3.3.6.4 GR7 — the lowest ordinal position).</summary>
     public abstract char LowValue { get; }
 
+    /// <summary>True when the sequence can hand out a materialized, cacheable sort key (<see cref="KeyOf"/>) whose
+    /// order equals <see cref="Compare"/> — the locale arm (the derived engine's <see cref="Collation.CollationKey"/>,
+    /// through the <see cref="Collation.Cache.CollationKeyCache"/>). A consumer that compares the same values many
+    /// times (SORT/MERGE, an INDEXED file) keys each value once and compares keys; the table arms answer false — their
+    /// comparison is a table lookup per character, cheaper than any key.</summary>
+    public virtual bool SupportsKeys => false;
+
+    /// <summary>The materialized key of <paramref name="value"/> under this sequence (its operand rule applied), or
+    /// null when <see cref="SupportsKeys"/> is false. Keys of one sequence order exactly as <see cref="Compare"/>.</summary>
+    public virtual Collation.CollationKey? KeyOf(string? value) => null;
+
     /// <summary>Membership of <paramref name="read"/> in the THROUGH range [<paramref name="lo"/>, <paramref name="hi"/>]
     /// under this sequence (ISO §14.7.8; a level-88 VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/>
     /// collates AFTER <paramref name="hi"/> (rule 2) the nonfatal EC-RANGE-INVALID is set and the range is treated as

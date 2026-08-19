@@ -1,0 +1,65 @@
+{
+  "format": 1,
+  "unicodeVersion": "17.0.0",
+  "generator": "scripts/unicode/generate-grapheme-table.py",
+  "inputs": {
+    "GraphemeBreakProperty.txt": "d6b51d1d2ae5c33b451b7ed994b48f1f4dc62b2272a5831e7fd418514a6bae89",
+    "emoji-data.txt": "2cb2bb9455cda83e8481541ecf5b6dfda66a3bb89efa3fa7c5297eccf607b72b",
+    "DerivedCoreProperties.txt": "24c7fed1195c482faaefd5c1e7eb821c5ee1fb6de07ecdbaa64b56a99da22c08"
+  },
+  "outputSha256": "ca1652c49a7a672d1e934c13150125788993670a70a110b1dc5bd14c2a4a4b98",
+  "encoding": {
+    "graphemeClusterBreak": {
+      "Other": 0,
+      "CR": 1,
+      "LF": 2,
+      "Control": 3,
+      "Extend": 4,
+      "ZWJ": 5,
+      "Regional_Indicator": 6,
+      "Prepend": 7,
+      "SpacingMark": 8,
+      "L": 9,
+      "V": 10,
+      "T": 11,
+      "LV": 12,
+      "LVT": 13
+    },
+    "extendedPictographicBit": 4,
+    "indicConjunctBreak": {
+      "None": 0,
+      "Consonant": 1,
+      "Extend": 2,
+      "Linker": 3
+    },
+    "indicConjunctBreakShift": 5
+  },
+  "stats": {
+    "ranges": 1631,
+    "graphemeClusterBreak": {
+      "Other": 0,
+      "CR": 1,
+      "LF": 1,
+      "Control": 3893,
+      "Extend": 2237,
+      "ZWJ": 1,
+      "Regional_Indicator": 26,
+      "Prepend": 27,
+      "SpacingMark": 381,
+      "L": 125,
+      "V": 100,
+      "T": 137,
+      "LV": 399,
+      "LVT": 10773
+    },
+    "extendedPictographic": 2848,
+    "indicConjunctBreak": {
+      "None": 0,
+      "Consonant": 911,
+      "Extend": 2217,
+      "Linker": 20
+    },
+    "rawBytes": 14806,
+    "compressedBytes": 6131
+  }
+}

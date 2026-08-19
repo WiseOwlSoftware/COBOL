@@ -5,11 +5,12 @@ using System.Globalization;
 namespace CobolNet.Runtime.Collation.Locale;
 
 /// <summary>
-/// The static configuration of the locale-selection system (kb/Work PB101, section D): which locales are selectable,
-/// which one is the default, and where tailoring files are looked for. Nothing here is a hand-kept list — the
-/// supported set is DERIVED from what exists (the tailorings embedded in this assembly, the <c>.tailor</c> files in
-/// the searched directories, and every culture .NET recognizes), and the default is the run unit's L2 user default
-/// (owner decision Q2: <c>COBOL_USER_LOCALE</c>, else the process culture, else the root).
+/// The static configuration of the locale-selection system (kb/Work PB101 section D, PB105): which locales are
+/// selectable, which one is the default, and where CLDR and tailoring files are looked for. Nothing here is a
+/// hand-kept list — the supported set is DERIVED from what exists (the CLDR collation pack embedded in this assembly
+/// and any site CLDR directory, the tailorings embedded here and the <c>.tailor</c> files in the searched directories,
+/// and every culture .NET recognizes), and the default is the run unit's L2 user default (owner decision Q2:
+/// <c>COBOL_USER_LOCALE</c>, else the process culture, else the root).
 /// </summary>
 public static class LocaleConfig
 {
@@ -18,6 +19,9 @@ public static class LocaleConfig
 
     /// <summary>The environment variable naming a directory of site tailoring files (<see cref="TailoringRules"/>).</summary>
     public const string TailoringDirectoryVariable = "COBOL_COLLATION_DIR";
+
+    /// <summary>The environment variable naming a directory of site CLDR collation files (<see cref="Cldr.CldrLocaleLoader"/>).</summary>
+    public const string CldrDirectoryVariable = Cldr.CldrLocaleLoader.EnvDirectory;
 
     /// <summary>The root locale's tag — the untailored CLDR root order.</summary>
     public const string Root = "";
@@ -40,22 +44,30 @@ public static class LocaleConfig
             .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-    /// <summary>The locales <see cref="LocaleManager.SetLocale"/> accepts: the root, every tailored locale, and every
-    /// culture .NET recognizes (which collates by the root order unless a tailoring exists for it or its language).
-    /// The recognized-culture set is large; this lists the root and the tailored locales explicitly and describes the
-    /// rest through <see cref="IsSupported"/>.</summary>
-    public static IReadOnlyList<string> SupportedLocales => new[] { Root }.Concat(TailoredLocales).ToArray();
+    /// <summary>The locales with CLDR collation data of their own — every file in the embedded CLDR pack (BCP-47 form:
+    /// "de-AT", "sr-Latn", "zh-Hant") plus every <c>.xml</c>/<c>.json</c> in a site CLDR directory
+    /// (<c>COBOL_CLDR_DIR</c>, <c>Collation/CLDR/</c> beside the application). Sorted, distinct.</summary>
+    public static IReadOnlyList<string> CldrLocales =>
+        Cldr.CldrLocaleLoader.AvailableLocales()
+            .Where(n => !n.Equals("root", StringComparison.OrdinalIgnoreCase))
+            .Select(n => n.Replace('_', '-'))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
-    /// <summary>Is <paramref name="localeName"/> selectable? — the root, a tailored locale (exact tag or its language),
-    /// or a culture .NET recognizes ("de-DE", "ja", …). Case-insensitive; "_" and "-" interchangeable.</summary>
-    public static bool IsSupported(string? localeName)
-    {
-        if (localeName is null) return false;
-        string tag = localeName.Trim().Replace('_', '-');
-        if (tag.Length == 0 || tag.Equals("root", StringComparison.OrdinalIgnoreCase)) return true;
-        if (TailoringRules.ForLocale(tag) is not null) return true;
-        return IsKnownCulture(tag);
-    }
+    /// <summary>The locales <see cref="LocaleManager.SetLocale"/> accepts BY NAME: the root, every CLDR locale, every
+    /// tailored locale — plus every culture .NET recognizes (which collates by the root order unless CLDR data or a
+    /// tailoring exists for it or a parent). The recognized-culture set is large; this lists the first three
+    /// explicitly and describes the rest through <see cref="IsSupported"/>.</summary>
+    public static IReadOnlyList<string> SupportedLocales =>
+        new[] { Root }.Concat(CldrLocales).Concat(TailoredLocales).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+    /// <summary>Is <paramref name="localeName"/> selectable? — the root, a locale with a CLDR collation file of its
+    /// own, a tailored locale (exact tag or its language), or a culture .NET recognizes ("de-DE", "ja", "es-419" …) —
+    /// the ONE rule of <see cref="CollationEngine.IsKnownLocale"/> (a selectable locale then collates by its CLDR
+    /// parent chain: "es-419" by es.xml, "nb" by no.xml). Case-insensitive; "_" and "-" interchangeable; a <c>-u-</c>
+    /// extension is allowed.</summary>
+    public static bool IsSupported(string? localeName) => localeName is not null && CollationEngine.IsKnownLocale(localeName);
 
     /// <summary>True when .NET's culture data knows the tag (predefined cultures only — never a synthesized one).</summary>
     public static bool IsKnownCulture(string tag)

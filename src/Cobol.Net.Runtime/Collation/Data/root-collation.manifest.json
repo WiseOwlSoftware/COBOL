@@ -1,5 +1,5 @@
 {
-  "format": 1,
+  "format": 2,
   "primaryShift": 4,
   "ucaVersion": "17.0.0",
   "sourceTag": "CLDR allkeys_CLDR.txt (UCA 17.0.0) + UCD 17.0.0",
@@ -9,9 +9,11 @@
     "allkeys.txt": "2503d09367c2639a4fb8fd55e81aaacb0d9fb4ea26600333329bd12456b99ecd",
     "UnicodeData.txt": "2e1efc1dcb59c575eedf5ccae60f95229f706ee6d031835247d843c11d96470c",
     "PropList.txt": "130dcddcaadaf071008bdfce1e7743e04fdfbc910886f017d9f9ac931d8c64dd",
-    "Blocks.txt": "c0edefaf1a19771e830a82735472716af6bf3c3975f6c2a23ffbe2580fbbcb15"
+    "Blocks.txt": "c0edefaf1a19771e830a82735472716af6bf3c3975f6c2a23ffbe2580fbbcb15",
+    "FractionalUCA.txt": "591153cea3a1c33d69cf6ebefd3a7cd667bfb86a59ad2b5597b88c666bd6d521",
+    "PropertyValueAliases.txt": "64e9a5f76f7a1e8b5a47d6a1f9a26522a251208f5276bdfa1559dac7cf2e827a"
   },
-  "outputSha256": "6d96e7f24d083285c30827518989a14b313e456b28e138f958b3280a4d80c288",
+  "outputSha256": "030fcd304ea938d5ab5d69f5cd03653f8b80b3bb4175c80033495f03e4e0fd15",
   "stats": {
     "entries": 39761,
     "singleMappings": 38787,
@@ -25,10 +27,12 @@
     "maxTertiary": "0x1E",
     "nonStarters": 968,
     "implicitRanges": 23,
+    "reorderGroups": 173,
+    "upperElements": 1606,
     "canonicalDecompositions": 2081,
     "maxDecompositionLength": 4,
-    "rawBytes": 642581,
-    "compressedBytes": 228462
+    "rawBytes": 644159,
+    "compressedBytes": 230196
   },
   "implicitRanges": [
     {
@@ -191,6 +195,873 @@
       "base": "0xFB80",
       "subtract": "0x0000",
       "kind": "han-other"
+    }
+  ],
+  "reorderGroups": [
+    {
+      "codes": "space",
+      "firstPrimary": "0x0201",
+      "lastPrimary": "0x0209"
+    },
+    {
+      "codes": "punct",
+      "firstPrimary": "0x020A",
+      "lastPrimary": "0x04E0"
+    },
+    {
+      "codes": "symbol",
+      "firstPrimary": "0x04E1",
+      "lastPrimary": "0x21AE"
+    },
+    {
+      "codes": "currency",
+      "firstPrimary": "0x21AF",
+      "lastPrimary": "0x21E5"
+    },
+    {
+      "codes": "digit",
+      "firstPrimary": "0x21E6",
+      "lastPrimary": "0x23EB"
+    },
+    {
+      "codes": "Latn",
+      "firstPrimary": "0x23EC",
+      "lastPrimary": "0x2789"
+    },
+    {
+      "codes": "Grek",
+      "firstPrimary": "0x278D",
+      "lastPrimary": "0x27B9"
+    },
+    {
+      "codes": "Copt",
+      "firstPrimary": "0x27BA",
+      "lastPrimary": "0x27F5"
+    },
+    {
+      "codes": "Cyrl",
+      "firstPrimary": "0x27F6",
+      "lastPrimary": "0x29B6"
+    },
+    {
+      "codes": "Glag",
+      "firstPrimary": "0x29BA",
+      "lastPrimary": "0x29E9"
+    },
+    {
+      "codes": "Perm",
+      "firstPrimary": "0x29EA",
+      "lastPrimary": "0x2A0F"
+    },
+    {
+      "codes": "Geor",
+      "firstPrimary": "0x2A10",
+      "lastPrimary": "0x2A65"
+    },
+    {
+      "codes": "Armn",
+      "firstPrimary": "0x2A66",
+      "lastPrimary": "0x2A8E"
+    },
+    {
+      "codes": "Hebr",
+      "firstPrimary": "0x2A8F",
+      "lastPrimary": "0x2AA4"
+    },
+    {
+      "codes": "Phnx",
+      "firstPrimary": "0x2AA5",
+      "lastPrimary": "0x2ABA"
+    },
+    {
+      "codes": "Samr",
+      "firstPrimary": "0x2ABB",
+      "lastPrimary": "0x2AD4"
+    },
+    {
+      "codes": "Arab",
+      "firstPrimary": "0x2AD5",
+      "lastPrimary": "0x2BC5"
+    },
+    {
+      "codes": "Syrc",
+      "firstPrimary": "0x2BC6",
+      "lastPrimary": "0x2BEB"
+    },
+    {
+      "codes": "Mand",
+      "firstPrimary": "0x2BEC",
+      "lastPrimary": "0x2C04"
+    },
+    {
+      "codes": "Thaa",
+      "firstPrimary": "0x2C05",
+      "lastPrimary": "0x2C36"
+    },
+    {
+      "codes": "Nkoo",
+      "firstPrimary": "0x2C37",
+      "lastPrimary": "0x2C56"
+    },
+    {
+      "codes": "Tfng",
+      "firstPrimary": "0x2C57",
+      "lastPrimary": "0x2C8F"
+    },
+    {
+      "codes": "Ethi",
+      "firstPrimary": "0x2C90",
+      "lastPrimary": "0x2E70"
+    },
+    {
+      "codes": "Deva",
+      "firstPrimary": "0x2E71",
+      "lastPrimary": "0x2ED6"
+    },
+    {
+      "codes": "Beng",
+      "firstPrimary": "0x2ED7",
+      "lastPrimary": "0x2F18"
+    },
+    {
+      "codes": "Guru",
+      "firstPrimary": "0x2F19",
+      "lastPrimary": "0x2F51"
+    },
+    {
+      "codes": "Gujr",
+      "firstPrimary": "0x2F52",
+      "lastPrimary": "0x2F96"
+    },
+    {
+      "codes": "Orya",
+      "firstPrimary": "0x2F97",
+      "lastPrimary": "0x2FD9"
+    },
+    {
+      "codes": "Taml",
+      "firstPrimary": "0x2FDA",
+      "lastPrimary": "0x300B"
+    },
+    {
+      "codes": "Telu",
+      "firstPrimary": "0x300C",
+      "lastPrimary": "0x3055"
+    },
+    {
+      "codes": "Knda",
+      "firstPrimary": "0x3056",
+      "lastPrimary": "0x309F"
+    },
+    {
+      "codes": "Mlym",
+      "firstPrimary": "0x30A0",
+      "lastPrimary": "0x30E9"
+    },
+    {
+      "codes": "Sinh",
+      "firstPrimary": "0x30EA",
+      "lastPrimary": "0x3136"
+    },
+    {
+      "codes": "Mtei",
+      "firstPrimary": "0x3137",
+      "lastPrimary": "0x3175"
+    },
+    {
+      "codes": "Sylo",
+      "firstPrimary": "0x3176",
+      "lastPrimary": "0x319D"
+    },
+    {
+      "codes": "Saur",
+      "firstPrimary": "0x319E",
+      "lastPrimary": "0x31E0"
+    },
+    {
+      "codes": "Kthi",
+      "firstPrimary": "0x31E1",
+      "lastPrimary": "0x3215"
+    },
+    {
+      "codes": "Mahj",
+      "firstPrimary": "0x3216",
+      "lastPrimary": "0x3239"
+    },
+    {
+      "codes": "Shrd",
+      "firstPrimary": "0x323A",
+      "lastPrimary": "0x3286"
+    },
+    {
+      "codes": "Khoj",
+      "firstPrimary": "0x3287",
+      "lastPrimary": "0x32BD"
+    },
+    {
+      "codes": "Sind",
+      "firstPrimary": "0x32BE",
+      "lastPrimary": "0x32F6"
+    },
+    {
+      "codes": "Mult",
+      "firstPrimary": "0x32F7",
+      "lastPrimary": "0x331B"
+    },
+    {
+      "codes": "Gran",
+      "firstPrimary": "0x331C",
+      "lastPrimary": "0x335F"
+    },
+    {
+      "codes": "Tutg",
+      "firstPrimary": "0x3360",
+      "lastPrimary": "0x33A4"
+    },
+    {
+      "codes": "Newa",
+      "firstPrimary": "0x33A5",
+      "lastPrimary": "0x33EE"
+    },
+    {
+      "codes": "Tirh",
+      "firstPrimary": "0x33EF",
+      "lastPrimary": "0x3431"
+    },
+    {
+      "codes": "Sidd",
+      "firstPrimary": "0x3432",
+      "lastPrimary": "0x346C"
+    },
+    {
+      "codes": "Modi",
+      "firstPrimary": "0x346D",
+      "lastPrimary": "0x34AB"
+    },
+    {
+      "codes": "Takr",
+      "firstPrimary": "0x34AC",
+      "lastPrimary": "0x34E1"
+    },
+    {
+      "codes": "Diak",
+      "firstPrimary": "0x34E2",
+      "lastPrimary": "0x3519"
+    },
+    {
+      "codes": "Nand",
+      "firstPrimary": "0x351A",
+      "lastPrimary": "0x3557"
+    },
+    {
+      "codes": "Dogr",
+      "firstPrimary": "0x3558",
+      "lastPrimary": "0x358F"
+    },
+    {
+      "codes": "Ahom",
+      "firstPrimary": "0x3590",
+      "lastPrimary": "0x35BD"
+    },
+    {
+      "codes": "Gonm",
+      "firstPrimary": "0x35BE",
+      "lastPrimary": "0x35F8"
+    },
+    {
+      "codes": "Gong",
+      "firstPrimary": "0x35F9",
+      "lastPrimary": "0x362B"
+    },
+    {
+      "codes": "Tols",
+      "firstPrimary": "0x362C",
+      "lastPrimary": "0x3657"
+    },
+    {
+      "codes": "Sund",
+      "firstPrimary": "0x3658",
+      "lastPrimary": "0x3687"
+    },
+    {
+      "codes": "Brah",
+      "firstPrimary": "0x3688",
+      "lastPrimary": "0x36D2"
+    },
+    {
+      "codes": "Khar",
+      "firstPrimary": "0x36D3",
+      "lastPrimary": "0x36FE"
+    },
+    {
+      "codes": "Bhks",
+      "firstPrimary": "0x36FF",
+      "lastPrimary": "0x373A"
+    },
+    {
+      "codes": "Thai",
+      "firstPrimary": "0x373B",
+      "lastPrimary": "0x377A"
+    },
+    {
+      "codes": "Laoo",
+      "firstPrimary": "0x377B",
+      "lastPrimary": "0x37B9"
+    },
+    {
+      "codes": "Tavt",
+      "firstPrimary": "0x37BA",
+      "lastPrimary": "0x37FC"
+    },
+    {
+      "codes": "Tibt",
+      "firstPrimary": "0x37FD",
+      "lastPrimary": "0x385C"
+    },
+    {
+      "codes": "Zanb",
+      "firstPrimary": "0x385D",
+      "lastPrimary": "0x3891"
+    },
+    {
+      "codes": "Soyo",
+      "firstPrimary": "0x3892",
+      "lastPrimary": "0x38C9"
+    },
+    {
+      "codes": "Marc",
+      "firstPrimary": "0x38CA",
+      "lastPrimary": "0x3909"
+    },
+    {
+      "codes": "Lepc",
+      "firstPrimary": "0x390A",
+      "lastPrimary": "0x3943"
+    },
+    {
+      "codes": "Phag",
+      "firstPrimary": "0x3944",
+      "lastPrimary": "0x3977"
+    },
+    {
+      "codes": "Limb",
+      "firstPrimary": "0x3978",
+      "lastPrimary": "0x39A9"
+    },
+    {
+      "codes": "Tglg",
+      "firstPrimary": "0x39AA",
+      "lastPrimary": "0x39C0"
+    },
+    {
+      "codes": "Hano",
+      "firstPrimary": "0x39C1",
+      "lastPrimary": "0x39D5"
+    },
+    {
+      "codes": "Buhd",
+      "firstPrimary": "0x39D6",
+      "lastPrimary": "0x39E9"
+    },
+    {
+      "codes": "Tagb",
+      "firstPrimary": "0x39EA",
+      "lastPrimary": "0x39FB"
+    },
+    {
+      "codes": "Bugi",
+      "firstPrimary": "0x39FC",
+      "lastPrimary": "0x3A17"
+    },
+    {
+      "codes": "Maka",
+      "firstPrimary": "0x3A18",
+      "lastPrimary": "0x3A2E"
+    },
+    {
+      "codes": "Batk",
+      "firstPrimary": "0x3A2F",
+      "lastPrimary": "0x3A4D"
+    },
+    {
+      "codes": "Rjng",
+      "firstPrimary": "0x3A4E",
+      "lastPrimary": "0x3A71"
+    },
+    {
+      "codes": "Kali",
+      "firstPrimary": "0x3A72",
+      "lastPrimary": "0x3A92"
+    },
+    {
+      "codes": "Mymr",
+      "firstPrimary": "0x3A93",
+      "lastPrimary": "0x3B41"
+    },
+    {
+      "codes": "Rohg",
+      "firstPrimary": "0x3B42",
+      "lastPrimary": "0x3B65"
+    },
+    {
+      "codes": "Cakm",
+      "firstPrimary": "0x3B66",
+      "lastPrimary": "0x3B9B"
+    },
+    {
+      "codes": "Khmr",
+      "firstPrimary": "0x3B9C",
+      "lastPrimary": "0x3BE1"
+    },
+    {
+      "codes": "Tale",
+      "firstPrimary": "0x3BE2",
+      "lastPrimary": "0x3C04"
+    },
+    {
+      "codes": "Talu",
+      "firstPrimary": "0x3C05",
+      "lastPrimary": "0x3C4A"
+    },
+    {
+      "codes": "Lana",
+      "firstPrimary": "0x3C4B",
+      "lastPrimary": "0x3C97"
+    },
+    {
+      "codes": "Tayo",
+      "firstPrimary": "0x3C98",
+      "lastPrimary": "0x3CCD"
+    },
+    {
+      "codes": "Cham",
+      "firstPrimary": "0x3CCE",
+      "lastPrimary": "0x3D12"
+    },
+    {
+      "codes": "Bali",
+      "firstPrimary": "0x3D13",
+      "lastPrimary": "0x3D58"
+    },
+    {
+      "codes": "Java",
+      "firstPrimary": "0x3D59",
+      "lastPrimary": "0x3D92"
+    },
+    {
+      "codes": "Kawi",
+      "firstPrimary": "0x3D93",
+      "lastPrimary": "0x3DCE"
+    },
+    {
+      "codes": "Mong",
+      "firstPrimary": "0x3DCF",
+      "lastPrimary": "0x3E52"
+    },
+    {
+      "codes": "Olck",
+      "firstPrimary": "0x3E53",
+      "lastPrimary": "0x3E76"
+    },
+    {
+      "codes": "Onao",
+      "firstPrimary": "0x3E77",
+      "lastPrimary": "0x3E95"
+    },
+    {
+      "codes": "Cher",
+      "firstPrimary": "0x3E96",
+      "lastPrimary": "0x3EEB"
+    },
+    {
+      "codes": "Osge",
+      "firstPrimary": "0x3EEC",
+      "lastPrimary": "0x3F0F"
+    },
+    {
+      "codes": "Cans",
+      "firstPrimary": "0x3F10",
+      "lastPrimary": "0x41E2"
+    },
+    {
+      "codes": "Ogam",
+      "firstPrimary": "0x41E3",
+      "lastPrimary": "0x41FC"
+    },
+    {
+      "codes": "Runr",
+      "firstPrimary": "0x41FD",
+      "lastPrimary": "0x422A"
+    },
+    {
+      "codes": "Hung",
+      "firstPrimary": "0x422B",
+      "lastPrimary": "0x4253"
+    },
+    {
+      "codes": "Orkh",
+      "firstPrimary": "0x4254",
+      "lastPrimary": "0x4280"
+    },
+    {
+      "codes": "Vaii",
+      "firstPrimary": "0x4281",
+      "lastPrimary": "0x438D"
+    },
+    {
+      "codes": "Bamu",
+      "firstPrimary": "0x438E",
+      "lastPrimary": "0x4616"
+    },
+    {
+      "codes": "Bass",
+      "firstPrimary": "0x4617",
+      "lastPrimary": "0x4634"
+    },
+    {
+      "codes": "Mend",
+      "firstPrimary": "0x4635",
+      "lastPrimary": "0x46F9"
+    },
+    {
+      "codes": "Medf",
+      "firstPrimary": "0x46FA",
+      "lastPrimary": "0x4719"
+    },
+    {
+      "codes": "Berf",
+      "firstPrimary": "0x471A",
+      "lastPrimary": "0x4732"
+    },
+    {
+      "codes": "Gara",
+      "firstPrimary": "0x4733",
+      "lastPrimary": "0x474D"
+    },
+    {
+      "codes": "Adlm",
+      "firstPrimary": "0x474E",
+      "lastPrimary": "0x4770"
+    },
+    {
+      "codes": "Hang",
+      "firstPrimary": "0x4771",
+      "lastPrimary": "0x48D5"
+    },
+    {
+      "codes": "Hira Kana",
+      "firstPrimary": "0x48D6",
+      "lastPrimary": "0x4A27"
+    },
+    {
+      "codes": "Bopo",
+      "firstPrimary": "0x4A28",
+      "lastPrimary": "0x4A5F"
+    },
+    {
+      "codes": "Yiii",
+      "firstPrimary": "0x4A60",
+      "lastPrimary": "0x4EEC"
+    },
+    {
+      "codes": "Lisu",
+      "firstPrimary": "0x4EED",
+      "lastPrimary": "0x4F1B"
+    },
+    {
+      "codes": "Plrd",
+      "firstPrimary": "0x4F1C",
+      "lastPrimary": "0x4FAC"
+    },
+    {
+      "codes": "Wara",
+      "firstPrimary": "0x4FAD",
+      "lastPrimary": "0x4FCD"
+    },
+    {
+      "codes": "Pauc",
+      "firstPrimary": "0x4FCE",
+      "lastPrimary": "0x5006"
+    },
+    {
+      "codes": "Hmng",
+      "firstPrimary": "0x5007",
+      "lastPrimary": "0x5060"
+    },
+    {
+      "codes": "Hmnp",
+      "firstPrimary": "0x5061",
+      "lastPrimary": "0x5093"
+    },
+    {
+      "codes": "Toto",
+      "firstPrimary": "0x5094",
+      "lastPrimary": "0x50B1"
+    },
+    {
+      "codes": "Wcho",
+      "firstPrimary": "0x50B2",
+      "lastPrimary": "0x50DD"
+    },
+    {
+      "codes": "Nagm",
+      "firstPrimary": "0x50DE",
+      "lastPrimary": "0x50F9"
+    },
+    {
+      "codes": "Lyci",
+      "firstPrimary": "0x50FA",
+      "lastPrimary": "0x5116"
+    },
+    {
+      "codes": "Cari",
+      "firstPrimary": "0x5117",
+      "lastPrimary": "0x5147"
+    },
+    {
+      "codes": "Lydi",
+      "firstPrimary": "0x5148",
+      "lastPrimary": "0x5161"
+    },
+    {
+      "codes": "Sidt",
+      "firstPrimary": "0x5162",
+      "lastPrimary": "0x517B"
+    },
+    {
+      "codes": "Ital",
+      "firstPrimary": "0x517C",
+      "lastPrimary": "0x519E"
+    },
+    {
+      "codes": "Goth",
+      "firstPrimary": "0x519F",
+      "lastPrimary": "0x51B9"
+    },
+    {
+      "codes": "Dsrt",
+      "firstPrimary": "0x51BA",
+      "lastPrimary": "0x51E1"
+    },
+    {
+      "codes": "Shaw",
+      "firstPrimary": "0x51E2",
+      "lastPrimary": "0x5211"
+    },
+    {
+      "codes": "Dupl",
+      "firstPrimary": "0x5212",
+      "lastPrimary": "0x529C"
+    },
+    {
+      "codes": "Osma",
+      "firstPrimary": "0x529D",
+      "lastPrimary": "0x52BA"
+    },
+    {
+      "codes": "Elba",
+      "firstPrimary": "0x52BB",
+      "lastPrimary": "0x52E2"
+    },
+    {
+      "codes": "Aghb",
+      "firstPrimary": "0x52E3",
+      "lastPrimary": "0x5316"
+    },
+    {
+      "codes": "Vith",
+      "firstPrimary": "0x5317",
+      "lastPrimary": "0x5339"
+    },
+    {
+      "codes": "Todr",
+      "firstPrimary": "0x533A",
+      "lastPrimary": "0x536D"
+    },
+    {
+      "codes": "Sora",
+      "firstPrimary": "0x536E",
+      "lastPrimary": "0x5386"
+    },
+    {
+      "codes": "Mroo",
+      "firstPrimary": "0x5387",
+      "lastPrimary": "0x53A5"
+    },
+    {
+      "codes": "Tnsa",
+      "firstPrimary": "0x53A6",
+      "lastPrimary": "0x53F4"
+    },
+    {
+      "codes": "Sunu",
+      "firstPrimary": "0x53F5",
+      "lastPrimary": "0x5415"
+    },
+    {
+      "codes": "Gukh",
+      "firstPrimary": "0x5416",
+      "lastPrimary": "0x5444"
+    },
+    {
+      "codes": "Krai",
+      "firstPrimary": "0x5445",
+      "lastPrimary": "0x5471"
+    },
+    {
+      "codes": "Linb",
+      "firstPrimary": "0x5472",
+      "lastPrimary": "0x5544"
+    },
+    {
+      "codes": "Lina",
+      "firstPrimary": "0x5545",
+      "lastPrimary": "0x5699"
+    },
+    {
+      "codes": "Cprt",
+      "firstPrimary": "0x569A",
+      "lastPrimary": "0x56D0"
+    },
+    {
+      "codes": "Cpmn",
+      "firstPrimary": "0x56D1",
+      "lastPrimary": "0x5731"
+    },
+    {
+      "codes": "Sarb",
+      "firstPrimary": "0x5732",
+      "lastPrimary": "0x574E"
+    },
+    {
+      "codes": "Narb",
+      "firstPrimary": "0x574F",
+      "lastPrimary": "0x576B"
+    },
+    {
+      "codes": "Avst",
+      "firstPrimary": "0x576C",
+      "lastPrimary": "0x57A0"
+    },
+    {
+      "codes": "Palm",
+      "firstPrimary": "0x57A1",
+      "lastPrimary": "0x57B6"
+    },
+    {
+      "codes": "Nbat",
+      "firstPrimary": "0x57B7",
+      "lastPrimary": "0x57CC"
+    },
+    {
+      "codes": "Hatr",
+      "firstPrimary": "0x57CD",
+      "lastPrimary": "0x57E1"
+    },
+    {
+      "codes": "Armi",
+      "firstPrimary": "0x57E2",
+      "lastPrimary": "0x57F7"
+    },
+    {
+      "codes": "Prti",
+      "firstPrimary": "0x57F8",
+      "lastPrimary": "0x580D"
+    },
+    {
+      "codes": "Phli",
+      "firstPrimary": "0x580E",
+      "lastPrimary": "0x5820"
+    },
+    {
+      "codes": "Phlp",
+      "firstPrimary": "0x5821",
+      "lastPrimary": "0x5832"
+    },
+    {
+      "codes": "Elym",
+      "firstPrimary": "0x5833",
+      "lastPrimary": "0x5848"
+    },
+    {
+      "codes": "Mani",
+      "firstPrimary": "0x5849",
+      "lastPrimary": "0x586C"
+    },
+    {
+      "codes": "Sogo",
+      "firstPrimary": "0x586D",
+      "lastPrimary": "0x587F"
+    },
+    {
+      "codes": "Sogd",
+      "firstPrimary": "0x5880",
+      "lastPrimary": "0x5894"
+    },
+    {
+      "codes": "Ougr",
+      "firstPrimary": "0x5895",
+      "lastPrimary": "0x58A6"
+    },
+    {
+      "codes": "Yezi",
+      "firstPrimary": "0x58A7",
+      "lastPrimary": "0x58D2"
+    },
+    {
+      "codes": "Chrs",
+      "firstPrimary": "0x58D3",
+      "lastPrimary": "0x58E7"
+    },
+    {
+      "codes": "Ugar",
+      "firstPrimary": "0x58E8",
+      "lastPrimary": "0x5905"
+    },
+    {
+      "codes": "Xpeo",
+      "firstPrimary": "0x5906",
+      "lastPrimary": "0x5931"
+    },
+    {
+      "codes": "Xsux",
+      "firstPrimary": "0x5932",
+      "lastPrimary": "0x5D8F"
+    },
+    {
+      "codes": "Egyp",
+      "firstPrimary": "0x5D90",
+      "lastPrimary": "0x7160"
+    },
+    {
+      "codes": "Merc Mero",
+      "firstPrimary": "0x7161",
+      "lastPrimary": "0x717B"
+    },
+    {
+      "codes": "Hluw",
+      "firstPrimary": "0x717C",
+      "lastPrimary": "0x73C2"
+    },
+    {
+      "codes": "Tang",
+      "firstPrimary": "0xFB00",
+      "lastPrimary": "0xFB01"
+    },
+    {
+      "codes": "Nshu",
+      "firstPrimary": "0xFB02",
+      "lastPrimary": "0xFB02"
+    },
+    {
+      "codes": "Kits",
+      "firstPrimary": "0xFB03",
+      "lastPrimary": "0xFB03"
+    },
+    {
+      "codes": "Hani",
+      "firstPrimary": "0xFB40",
+      "lastPrimary": "0xFBBF"
     }
   ]
 }

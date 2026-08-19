@@ -2,8 +2,26 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Concurrent;
 using System.Globalization;
+using CobolNet.Runtime.Collation.Cldr;
 
 namespace CobolNet.Runtime.Collation;
+
+/// <summary>
+/// Everything the engine resolved for one locale tag: the tailored table, the settings, and where each came from —
+/// the CLDR collation (<see cref="Cldr"/>: which file, which type, the <c>-u-</c> keys) that
+/// <see cref="CldrTailoringBuilder"/> applied FIRST, then the site's numeric <c>.tailor</c> layer
+/// (<see cref="Tailoring"/>) on top. <see cref="Unsupported"/> lists what the tag or its CLDR collation asked for
+/// that the engine does not honor (empty for the vast majority of locales).
+/// </summary>
+public sealed record ResolvedLocaleCollation(string Tag, CollationTable Table, CollationOptions Options,
+    CldrCollationSelection Cldr, TailoringRules? Tailoring, IReadOnlyList<string> Unsupported, IReadOnlyList<string> Notes)
+{
+    /// <summary>The cached collator for the resolution's own settings.</summary>
+    public Collator Collator => CollationEngine.For(Table, Options);
+
+    /// <summary>True when the table differs from the root's (a CLDR tailoring or a <c>.tailor</c> changed something).</summary>
+    public bool IsTailored => !ReferenceEquals(Table, CollationTable.Root);
+}
 
 /// <summary>
 /// The static entry point of COBOL.NET's collation subsystem — the configurations a COBOL program reaches, each a
@@ -15,8 +33,10 @@ namespace CobolNet.Runtime.Collation;
 /// "ISO 14651_2020_TABLE1" names: variable characters ignored through level 3 and weighted at level 4
 /// (<see cref="AlternateHandling.Shifted"/>, <see cref="CollationStrength.Quaternary"/>); <see cref="Standard"/>
 /// with an explicit level for its ordering-level argument.</item>
-/// <item><see cref="ForLocale"/> — a locale's collation: the root table with that locale's
-/// <see cref="TailoringRules"/> layered on (none for locales whose CLDR order IS the root order).</item>
+/// <item><see cref="ForLocale"/> / <see cref="ResolveLocale"/> — a locale's collation: the CLDR collation of the
+/// tag (its file along the parent chain, its <c>-u-co-</c> type and <c>-u-</c> settings — <see cref="CldrLocaleLoader"/>,
+/// <see cref="CldrTailoringBuilder"/>) over the root table, then the site's numeric <see cref="TailoringRules"/>
+/// (<c>.tailor</c>) layered on top; the root order itself for a locale whose CLDR order IS the root order.</item>
 /// <item><see cref="TryGetOrderingTable"/> — the resolution of an <c>ORDER TABLE … IS literal</c> name.</item>
 /// </list>
 /// ⚖ Conformance statement, verbatim (owner decision Q4, 2026-08-18): "Implements collation behavior consistent
@@ -31,8 +51,8 @@ public static class CollationEngine
     private static readonly Lazy<Collator> s_standard = new(
         () => new Collator(CollationTable.Root, CollationStrength.Quaternary, AlternateHandling.Shifted),
         LazyThreadSafetyMode.ExecutionAndPublication);
-    private static readonly ConcurrentDictionary<string, CollationTable> s_localeTables = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly ConcurrentDictionary<(CollationTable Table, CollationStrength Strength, AlternateHandling Alternate), Collator> s_collators = new();
+    private static readonly ConcurrentDictionary<string, ResolvedLocaleCollation> s_locales = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<(CollationTable Table, CollationOptions Options), Collator> s_collators = new();
 
     /// <summary>The CLDR root default — root table, tertiary strength, non-ignorable variables.</summary>
     public static Collator Root => Collator.Root;
@@ -55,27 +75,67 @@ public static class CollationEngine
         return Cached(CollationTable.Root, (CollationStrength)level, AlternateHandling.Shifted);
     }
 
-    /// <summary>The collator of a locale ("es-ES", "fr_FR", "en", …): the root table plus the locale's tailoring
-    /// (see <see cref="TailoringRules.ForLocale"/>) at the given strength/alternate handling. Null/empty/"root" is the
-    /// root order. Cached per (locale, strength, alternate).</summary>
-    public static Collator ForLocale(string? localeTag, CollationStrength strength = CollationStrength.Tertiary,
-        AlternateHandling alternate = AlternateHandling.NonIgnorable) =>
-        Cached(TableForLocale(localeTag), strength, alternate);
+    /// <summary>The materialized key of <paramref name="text"/> under a locale's collation (null/empty/"root" = the
+    /// root order), through that collator's <see cref="Cache.CollationKeyCache"/> — build once, compare many times.</summary>
+    public static CollationKey GetKey(string? text, string? localeTag = null) =>
+        Cache.CollationKeyCache.For(ForLocale(localeTag)).GetKey(text);
+
+    /// <summary>The cached collator for a table and full settings.</summary>
+    public static Collator For(CollationTable table, CollationOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(table);
+        ArgumentNullException.ThrowIfNull(options);
+        return options.IsPlain ? Cached(table, options.Strength, options.Alternate)
+            : s_collators.GetOrAdd((table, options), static k => new Collator(k.Table, k.Options));
+    }
+
+    /// <summary>The collator of a locale ("es-ES", "fr_FR", "en", "de-u-co-phonebk", …): the locale's CLDR collation
+    /// plus its <c>.tailor</c> layer (<see cref="ResolveLocale"/>) at the locale's own settings, or at the given
+    /// strength / alternate handling where stated. Null/empty/"root" is the root order. Cached.</summary>
+    public static Collator ForLocale(string? localeTag, CollationStrength? strength = null, AlternateHandling? alternate = null)
+    {
+        var r = ResolveLocale(localeTag);
+        if (strength is null && alternate is null) return r.Collator;
+        return For(r.Table, r.Options with { Strength = strength ?? r.Options.Strength, Alternate = alternate ?? r.Options.Alternate });
+    }
 
     /// <summary>The (cached) table of a locale — the root table when the locale has no tailoring.</summary>
-    public static CollationTable TableForLocale(string? localeTag)
+    public static CollationTable TableForLocale(string? localeTag) => ResolveLocale(localeTag).Table;
+
+    /// <summary>Resolve (once per tag; cached) what a locale tag means to the engine: the CLDR collation of the tag
+    /// (<see cref="CldrLocaleLoader.ResolveCollation"/> → <see cref="CldrTailoringBuilder"/>) over the root table,
+    /// then the site's numeric tailoring for the tag or its language (<see cref="TailoringRules.ForLocale"/>) on top,
+    /// and the settings the CLDR collation and the tag's <c>-u-</c> keys declare. Null/empty/"root"/"und" is the root
+    /// order. A malformed <c>.tailor</c> file is an error, not a silent fallback.</summary>
+    public static ResolvedLocaleCollation ResolveLocale(string? localeTag)
     {
-        if (string.IsNullOrWhiteSpace(localeTag) || localeTag.Equals("root", StringComparison.OrdinalIgnoreCase))
-            return CollationTable.Root;
-        string tag = localeTag.Trim().Replace('_', '-');
-        return s_localeTables.GetOrAdd(tag, static t =>
-            TailoringRules.ForLocale(t) is { } rules ? CollationTable.Root.WithTailoring(rules) : CollationTable.Root);
+        string tag = string.IsNullOrWhiteSpace(localeTag) ? "" : localeTag.Trim().Replace('_', '-');
+        if (tag.Equals("root", StringComparison.OrdinalIgnoreCase) || tag.Equals("und", StringComparison.OrdinalIgnoreCase)) tag = "";
+        return s_locales.GetOrAdd(tag, static t => Resolve(t));
+    }
+
+    private static ResolvedLocaleCollation Resolve(string tag)
+    {
+        var selection = CldrLocaleLoader.ResolveCollation(tag);
+        var built = CldrTailoringBuilder.Build(selection, tag.Length == 0 ? "root" : tag);
+        var table = built.Table;
+        var rules = tag.Length == 0 ? null : TailoringRules.ForLocale(selection.Tag.BaseTag);
+        if (rules is not null) table = table.WithTailoring(rules);
+        return new ResolvedLocaleCollation(tag, table, built.Options, selection, rules, built.Unsupported, built.Notes);
+    }
+
+    /// <summary>Forget every resolved locale (a test that writes a tailoring or CLDR file at run time). Tables already
+    /// handed out stay valid; the next resolution re-reads the sources.</summary>
+    public static void ClearLocaleCache()
+    {
+        s_locales.Clear();
+        CldrLocaleLoader.ClearCache();
     }
 
     /// <summary>Resolve an <c>ORDER TABLE ordering-name IS literal</c> name (§12.3.7 / §15.85): the standard's
-    /// default table name (→ the root table), or a locale tag with a tailoring, or a locale tag .NET recognizes whose
-    /// order is the root order. Anything else is not a supported ordering table (→ EC-ORDER-NOT-SUPPORTED at the
-    /// reference, §15.85.4 r2).</summary>
+    /// default table name (→ the root table), or a locale tag — one with CLDR collation data (its file, or a parent's;
+    /// a <c>-u-co-</c> type is honored), one with a site <c>.tailor</c>, or one .NET recognizes whose order is the root
+    /// order. Anything else is not a supported ordering table (→ EC-ORDER-NOT-SUPPORTED at the reference, §15.85.4 r2).</summary>
     public static bool TryGetOrderingTable(string? name, out CollationTable table)
     {
         table = CollationTable.Root;
@@ -83,17 +143,39 @@ public static class CollationEngine
         string n = name.Trim();
         if (IsDefaultOrderingTableName(n)) return true;
         string tag = n.Replace('_', '-');
-        if (TailoringRules.ForLocale(tag) is not null)
-        {
-            table = TableForLocale(tag);
-            return true;
-        }
+        if (!IsKnownLocale(tag)) return false;
+        table = TableForLocale(tag);
+        return true;
+    }
+
+    /// <summary>Is <paramref name="localeTag"/> a locale this implementation KNOWS — one with a CLDR collation file of
+    /// its own (or of its region-less form, since a site may pass "de-AT" where CLDR has "de_AT" and .NET agrees), a
+    /// <c>.tailor</c> for the tag or its language, or a culture .NET recognizes? The CLDR parent CHAIN alone does not
+    /// make a tag known: "NO SUCH TABLE" parses as the tag <c>no-Such-TABLE</c>, whose chain reaches Norwegian's
+    /// file — an <c>ORDER TABLE</c> literal or a LOCALE name that names nothing must stay unknown
+    /// (EC-ORDER-NOT-SUPPORTED; an unselectable locale). The ONE rule <see cref="TryGetOrderingTable"/>,
+    /// <see cref="Locale.LocaleManager"/> and <see cref="Locale.LocaleConfig"/> share; a <c>-u-</c> extension is
+    /// ignored for the test and honored by the resolution. Null/empty/"root" is known (the root order).</summary>
+    public static bool IsKnownLocale(string? localeTag)
+    {
+        if (string.IsNullOrWhiteSpace(localeTag)) return true;
+        var parsed = CldrLocaleTag.Parse(localeTag.Trim().Replace('_', '-'));
+        string baseTag = parsed.BaseTag;
+        if (baseTag.Length == 0) return true;
+        if (CldrLocaleLoader.LoadExact(baseTag) is not null) return true;
+        if (TailoringRules.ForLocale(baseTag) is not null) return true;
+        return IsKnownCulture(baseTag);
+    }
+
+    private static bool IsKnownCulture(string tag)
+    {
         try
         {
             _ = CultureInfo.GetCultureInfo(tag, predefinedOnly: true);
-            return true;   // a known locale whose CLDR order is the root order
+            return true;
         }
         catch (CultureNotFoundException) { return false; }
+        catch (ArgumentException) { return false; }
     }
 
     /// <summary>"ISO 14651_2020_TABLE1" — case-insensitive, space/underscore interchangeable, any run of them one.</summary>
@@ -114,6 +196,6 @@ public static class CollationEngine
             if (strength == CollationStrength.Tertiary && alternate == AlternateHandling.NonIgnorable) return Collator.Root;
             if (strength == CollationStrength.Quaternary && alternate == AlternateHandling.Shifted) return Standard;
         }
-        return s_collators.GetOrAdd((table, strength, alternate), static k => new Collator(k.Table, k.Strength, k.Alternate));
+        return s_collators.GetOrAdd((table, new CollationOptions(strength, alternate)), static k => new Collator(k.Table, k.Options));
     }
 }
