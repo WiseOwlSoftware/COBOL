@@ -31,6 +31,12 @@ concurrency:
 # separate JOBS that run CONCURRENTLY (wall-clock = the slowest single job), the NIST regression is parallelised
 # across cores (guard-fast.sh), and NuGet packages are cached. All jobs are independent gates — a failure in one
 # is never masked by another.
+#
+# EVERY direct `dotnet test` step also writes a TRX log (--logger trx, --results-directory TestResults/<OS>-<job>/)
+# and its job uploads them with `if: always()` as artifact test-results-<OS>-<job|shard> (14-day retention) — a
+# red is diagnosable from the artifact without a re-run (kb/Work PB108). The two OSes share shard NAMES, so the
+# artifact name carries both. The guard job is the exception: its verdict is guard-fast.sh's own NIST-loop
+# output, not a `dotnet test` exit.
 jobs:
   # ── The authoritative legacy gate: the PARALLEL guard. guard-fast.sh runs exactly the checks scripts/guard.sh
   # does (build + unit + integration + the ~350 NIST CCVS-85 baselines) but fans the NIST suite across the
@@ -119,7 +125,9 @@ jobs:
         run: |
           set -o pipefail
           dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build \
-            --filter "${{ matrix.filter }}" 2>&1 | tee shard.log
+            --filter "${{ matrix.filter }}" \
+            --logger "trx;LogFileName=conformance-${{ matrix.shard }}.trx" --results-directory TestResults/${{ runner.os }}-${{ matrix.shard }} \
+            2>&1 | tee shard.log
           grep -Eo 'Total:[[:space:]]+[0-9]+' shard.log | tail -1 | grep -Eo '[0-9]+' > count.txt
           echo "shard ${{ matrix.shard }} executed $(cat count.txt) tests"
       - name: Publish shard count
@@ -127,6 +135,16 @@ jobs:
         with:
           name: shard-count-${{ runner.os }}-${{ matrix.shard }}
           path: count.txt
+      - name: Upload test results (TRX + shard log)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ runner.os }}-${{ matrix.shard }}
+          path: |
+            TestResults/${{ runner.os }}-${{ matrix.shard }}/*.trx
+            shard.log
+          if-no-files-found: ignore
+          retention-days: 14
 
   # Unit + characterization moved OFF the conformance job's critical path (A14 option 1): they are
   # project-granular (nothing hand-listed), so no population guard is needed here.
@@ -152,11 +170,19 @@ jobs:
           dotnet build tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
           dotnet build tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj
       - name: Greenfield unit tests
-        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build
+        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-unit
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # COBOLNET_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
-        run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build
+        run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
+      - name: Upload test results (TRX)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ runner.os }}-unit
+          path: TestResults/${{ runner.os }}-unit/*.trx
+          if-no-files-found: ignore
+          retention-days: 14
 
   # The Windows twin of greenfield-conformance — SAME shard filters (the population job checks both platforms'
   # sums), Release config like the rest of the Windows leg. Kept full-suite on Windows deliberately: the
@@ -206,7 +232,9 @@ jobs:
         run: |
           set -o pipefail
           dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --configuration Release \
-            --filter "${{ matrix.filter }}" 2>&1 | tee shard.log
+            --filter "${{ matrix.filter }}" \
+            --logger "trx;LogFileName=conformance-${{ matrix.shard }}.trx" --results-directory TestResults/${{ runner.os }}-${{ matrix.shard }} \
+            2>&1 | tee shard.log
           grep -Eo 'Total:[[:space:]]+[0-9]+' shard.log | tail -1 | grep -Eo '[0-9]+' > count.txt
           echo "shard ${{ matrix.shard }} executed $(cat count.txt) tests"
       - name: Publish shard count
@@ -214,6 +242,16 @@ jobs:
         with:
           name: shard-count-${{ runner.os }}-${{ matrix.shard }}
           path: count.txt
+      - name: Upload test results (TRX + shard log)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ runner.os }}-${{ matrix.shard }}
+          path: |
+            TestResults/${{ runner.os }}-${{ matrix.shard }}/*.trx
+            shard.log
+          if-no-files-found: ignore
+          retention-days: 14
 
   # ── The shard POPULATION GUARD: discovery is re-derived (`--list-tests`), and each platform's shard Totals
   # must SUM to it exactly. Runs only when every shard succeeded — it is the "did the shards cover everything"
@@ -292,7 +330,15 @@ jobs:
         env:
           COBOLNET_NIST_STD: "2023"
           COBOLNET_NIST_PERMISSIVE: "1"
-        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --filter "FullyQualifiedName~NistDifferentialTests.NistProgram_MatchesGolden"
+        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --filter "FullyQualifiedName~NistDifferentialTests.NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
+      - name: Upload test results (TRX)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ runner.os }}-inv1-strong
+          path: TestResults/${{ runner.os }}-inv1-strong/*.trx
+          if-no-files-found: ignore
+          retention-days: 14
 
   # ── Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
   # build) plus the legacy + greenfield suites on Windows. The NIST guard is Linux-only (bash), so this job gives
@@ -317,15 +363,23 @@ jobs:
       - name: Build (Release, warnings-as-errors)
         run: dotnet build CobolSharp.sln --configuration Release
       - name: Unit tests
-        run: dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --no-build --configuration Release
+        run: dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=legacy-unit.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Integration tests
-        run: dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --configuration Release
+        run: dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --configuration Release --logger "trx;LogFileName=legacy-integration.trx" --results-directory TestResults/${{ runner.os }}-build-test
       # Greenfield conformance moved to the windows-conformance SHARDED job (kb/Work A14) — same coverage,
       # a third of the wall time; the population guard proves nothing fell between the shards.
       - name: Greenfield unit tests
-        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --configuration Release
+        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
-        run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --configuration Release
+        run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
+      - name: Upload test results (TRX)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ runner.os }}-build-test
+          path: TestResults/${{ runner.os }}-build-test/*.trx
+          if-no-files-found: ignore
+          retention-days: 14
 
   # ── The opt-in legacy-oracle bake-verify cross-check (rearch P0). The normal battery now compares COBOL.NET to the
   # COMMITTED goldens under tests/differential/ (COBOLNET_DIFF_MODE=golden, the default) and never runs the legacy
@@ -359,4 +413,12 @@ jobs:
       - name: Differential verify (cobolnet == legacy == golden)
         env:
           COBOLNET_DIFF_MODE: verify
-        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~DifferentialTests&FullyQualifiedName!~NistDifferentialTests"
+        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~DifferentialTests&FullyQualifiedName!~NistDifferentialTests" --logger "trx;LogFileName=legacy-oracle.trx" --results-directory TestResults/${{ runner.os }}-legacy-oracle
+      - name: Upload test results (TRX)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ runner.os }}-legacy-oracle
+          path: TestResults/${{ runner.os }}-legacy-oracle/*.trx
+          if-no-files-found: ignore
+          retention-days: 14

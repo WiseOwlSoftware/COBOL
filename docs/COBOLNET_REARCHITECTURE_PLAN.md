@@ -321,7 +321,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   way (PB102 `.gitattributes -text` for the pinned data; PB103 the fleet build guard's self-block). The 18 §15.85 /
   ORDER TABLE inventory rows are adjudicated (17 CONFORMS, SR11 PARTIAL) — **GAP 3916**. Diagnostic band: 1662/1663
   used; next free per session-probe.
-  **NEXT, in order:** ① PB64 T1 (`LocaleSymbol` + `LocaleRef` +
+  **NEXT, in order:** ⓪ **PB108 — the tooling batch the owner adopted BEFORE T1 (2026-08-19, DEVLOG 1329):**
+  CI TRX + shard-log artifacts on every direct `dotnet test` step (✅ landed), `Control/RuntimeConfig.cs` — a
+  drift-guarded REGISTRY of every environment knob the runtime reads (nine names + the dynamic
+  `COBOL_<SWITCH-NAME>` family; no new knobs, no loading), `scripts/build-local.{sh,ps1}` (fresh solution build,
+  then the FILTERED wave-local gate; filter required) — the two external "hard implementation mode" prompts they
+  came from were otherwise rejected (a shared opcode IR, invented syntax, appsettings, .NET 8: DEVLOG 1329) ·
+  ① PB64 T1 (`LocaleSymbol` + `LocaleRef` +
   `LocaleFacts` + `LocaleState` on `RunUnit`; the SPECIAL-NAMES LOCALE clause declares — its external identification
   now names any CLDR locale (PB105); `SET` formats 11/12; the NAMED `IS LOCALE locale-name` form;
   revert PB100's `EcNameResolution` refusal of the EC-LOCALE names; four constructs.json rows; goldens) → T4 …
