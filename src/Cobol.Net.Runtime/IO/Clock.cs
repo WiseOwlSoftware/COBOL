@@ -27,12 +27,16 @@ public interface IClock
 /// falling back to the local system clock.</summary>
 public sealed class SystemClock : IClock
 {
+    /// <summary>The environment variable that pins the clock (<c>COBOLNET_CLOCK</c>; see the class summary).
+    /// Registered in <see cref="RuntimeConfig"/>.</summary>
+    public const string PinVariable = "COBOLNET_CLOCK";
+
     /// <summary>The shared instance (stateless — legitimately static).</summary>
     public static readonly SystemClock Instance = new();
 
     /// <inheritdoc/>
     public DateTimeOffset Now() =>
-        Environment.GetEnvironmentVariable("COBOLNET_CLOCK") is { Length: > 0 } pin
+        Environment.GetEnvironmentVariable(PinVariable) is { Length: > 0 } pin
         && DateTimeOffset.TryParse(pin, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTimeOffset pinned)
             ? pinned
             : DateTimeOffset.Now;

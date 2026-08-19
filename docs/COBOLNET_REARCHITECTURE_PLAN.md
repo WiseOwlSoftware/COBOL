@@ -324,7 +324,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **NEXT, in order:** ⓪ **PB108 — the tooling batch the owner adopted BEFORE T1 (2026-08-19, DEVLOG 1329):**
   CI TRX + shard-log artifacts on every direct `dotnet test` step (✅ landed), `Control/RuntimeConfig.cs` — a
   drift-guarded REGISTRY of every environment knob the runtime reads (nine names + the dynamic
-  `COBOL_<SWITCH-NAME>` family; no new knobs, no loading), `scripts/build-local.{sh,ps1}` (fresh solution build,
+  `COBOL_<SWITCH-NAME>` family; no new knobs, no loading; ✅ landed, DEVLOG 1330), `scripts/build-local.{sh,ps1}` (fresh solution build,
   then the FILTERED wave-local gate; filter required) — the two external "hard implementation mode" prompts they
   came from were otherwise rejected (a shared opcode IR, invented syntax, appsettings, .NET 8: DEVLOG 1329) ·
   ① PB64 T1 (`LocaleSymbol` + `LocaleRef` +

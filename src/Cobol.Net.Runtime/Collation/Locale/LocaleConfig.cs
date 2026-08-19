@@ -18,7 +18,7 @@ public static class LocaleConfig
     public const string DefaultLocaleVariable = LocaleState.UserDefaultVariable;
 
     /// <summary>The environment variable naming a directory of site tailoring files (<see cref="TailoringRules"/>).</summary>
-    public const string TailoringDirectoryVariable = "COBOL_COLLATION_DIR";
+    public const string TailoringDirectoryVariable = TailoringRules.EnvDirectory;
 
     /// <summary>The environment variable naming a directory of site CLDR collation files (<see cref="Cldr.CldrLocaleLoader"/>).</summary>
     public const string CldrDirectoryVariable = Cldr.CldrLocaleLoader.EnvDirectory;

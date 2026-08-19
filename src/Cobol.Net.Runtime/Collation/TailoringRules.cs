@@ -39,7 +39,9 @@ public sealed class TailoringRules
     /// <summary>One override: the code point sequence (length 1, or a contraction) and its element sequence.</summary>
     public sealed record Entry(int[] CodePoints, CollationElement[] Elements, int Line);
 
-    private const string EnvDirectory = "COBOL_COLLATION_DIR";
+    /// <summary>The environment variable naming a directory of site <c>.tailor</c> files (searched first;
+    /// <see cref="SearchDirectories"/>). Registered in <see cref="RuntimeConfig"/>.</summary>
+    public const string EnvDirectory = "COBOL_COLLATION_DIR";
     private const string ResourcePrefix = "Collation/Tailoring/";
     private const string FileExtension = ".tailor";
 

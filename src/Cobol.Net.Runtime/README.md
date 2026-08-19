@@ -126,6 +126,15 @@ than two cache lookups (measured in `tests/Cobol.Net.Benchmarks`).
   emitted `__COLLATE` carrier is `LocaleCollation.Current` for the bare `IS LOCALE` phrase.
 - **Hosts / tools.** `CollationEngine.*`, `LocaleManager.*`, `UnicodeNormalizer.*`, `GraphemeBreaker.*`,
   `CollationKeyCache.*` are the public surfaces; `CollationRuntime.Status` reports versions and state.
+- **Environment variables — ONE registry.** `Control/RuntimeConfig.cs` enumerates every variable the runtime reads
+  (`RuntimeConfig.All`, `Describe()`, `Find(name)`): `COBOL_USER_LOCALE` / `COBOL_SYSTEM_LOCALE` (the run unit's
+  locale defaults), `COBOL_COLLATION_DIR` / `COBOL_CLDR_DIR` (site data), `COBOL_COLLATION_CACHE` /
+  `COBOL_COLLATION_CACHE_EVICTION` / `COBOL_COLLATION_WARMUP`, `COBOLNET_CLOCK` (the clock pin), and the external
+  switches' family `COBOL_<SWITCH-NAME>`. It is a DIAGNOSTIC registry, not a configuration system — each subsystem
+  reads its own constant as before; the registry references those constants and `RuntimeConfigTests` scans the
+  runtime sources in both directions (a new read or name literal that is not registered fails; a registered entry
+  whose read disappeared fails). There is no appsettings file and no configuration framework: the runtime is
+  dependency-free.
 
 ## 8. Tests and benchmarks
 

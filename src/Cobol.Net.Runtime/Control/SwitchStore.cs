@@ -19,6 +19,14 @@ public sealed class SwitchStore
     /// scope (one switch referenced by all runtime elements of the run unit).</summary>
     private readonly Dictionary<string, bool> _states = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>The prefix of the external facility's variables: <c>COBOL_</c> — the one place the family
+    /// <c>COBOL_&lt;SWITCH-NAME&gt;</c> is spelled (<see cref="RuntimeConfig"/> registers the family by it).</summary>
+    public const string Prefix = "COBOL_";
+
+    /// <summary>The environment variable that supplies an implementor switch-name's initial status:
+    /// <see cref="Prefix"/> + the name with hyphens as underscores, upper-cased (<c>SWITCH-1</c> → <c>COBOL_SWITCH_1</c>).</summary>
+    public static string VariableNameFor(string implementorName) => Prefix + implementorName.Replace("-", "_").ToUpperInvariant();
+
     /// <summary>The current status of the switch (true = ON). The first read of an unset switch probes the
     /// <c>COBOL_&lt;NAME&gt;</c> environment variable and caches the result; an absent external setting means
     /// OFF (the all-conditions-default of an uninitialized external switch).</summary>
@@ -26,7 +34,7 @@ public sealed class SwitchStore
     {
         if (_states.TryGetValue(implementorName, out bool state)) return state;
 
-        string envName = "COBOL_" + implementorName.Replace("-", "_").ToUpperInvariant();
+        string envName = VariableNameFor(implementorName);
         if (Environment.GetEnvironmentVariable(envName) is { } envValue)
         {
             state = envValue.Equals("ON", StringComparison.OrdinalIgnoreCase)
