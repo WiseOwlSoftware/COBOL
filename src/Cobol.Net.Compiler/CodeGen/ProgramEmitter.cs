@@ -74,6 +74,10 @@ internal sealed class ProgramEmitter
             // CobolFatalException (EC-OO-UNIVERSAL, GR7c). A class-less EC-free program keeps the
             // zero-scaffolding invariant byte-exact (SSOT §18.16 — the test greps the namespace).
             w.Line("using CobolNet.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §14.6.13) + the D10 GR7c raises");
+        if (UnitsOf(comp).Any(u => u.Data.Classification is not null))
+            // A CHARACTER CLASSIFICATION clause anywhere in the compilation group: the per-module __CLASSIFY field and
+            // its activation-time resolution name the Globalization types (kb/Work PB64 T5). Zero-scaffolding otherwise.
+            w.Line("using CobolNet.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");
         w.Line();
 
         // Interfaces first (readability only — Roslyn needs no ordering), then classes (source order), then
@@ -163,6 +167,12 @@ internal sealed class ProgramEmitter
                 // the §15.15.4 r2 representative array + NextFree + the GR8/GR9 extremes — PB59) or a LocaleCollation
                 // for the LOCALE phrase; every comparison consumer, MAX/MIN, CHAR/ORD take the object.
                 w.Line($"private static readonly CobolCollation __COLLATE = {CollationEmit.New(collate)};");
+            if (data.Classification is not null)
+                // The OBJECT-COMPUTER CHARACTER CLASSIFICATION in effect for this runtime module (ISO §12.3.6.4 GR5–GR8;
+                // kb/Work PB64 T5): resolved at EVERY activation (GR8 — "effective with the initial state of the runtime
+                // modules"; §14.6.6 r2), in __Activate's prologue, so the word LOCALE binds the locale current when the
+                // program is entered. Read by UPPER-CASE / LOWER-CASE without a LOCALE phrase and by the ALPHABETIC class tests.
+                w.Line("private CharacterClassification __CLASSIFY = CharacterClassification.None;   // CHARACTER CLASSIFICATION (ISO §12.3.6) — resolved at activation");
             if (data.NationalCollating is { } nat)
                 // The NON-native NATIONAL program collating sequence (ISO §12.3.6 GR9/GR11): a SPARSE
                 // NationalCollation for an ALPHABET … FOR NATIONAL literal phrase (the runtime computes every
@@ -231,6 +241,20 @@ internal sealed class ProgramEmitter
 
             foreach (var child in unit.Children)
                 EmitProgramClass(child, w);
+        }
+    }
+
+    /// <summary>Every program unit of the compilation — the top-level units and, recursively, their contained
+    /// programs (the walk the usings header needs: a CHARACTER CLASSIFICATION clause on any unit, including an
+    /// inherited one, puts the Globalization types in the generated source).</summary>
+    private static IEnumerable<BoundUnit> UnitsOf(BoundCompilation comp)
+    {
+        var stack = new Stack<BoundUnit>(comp.Units);
+        while (stack.Count > 0)
+        {
+            var u = stack.Pop();
+            yield return u;
+            foreach (var c in u.Children) stack.Push(c);
         }
     }
 

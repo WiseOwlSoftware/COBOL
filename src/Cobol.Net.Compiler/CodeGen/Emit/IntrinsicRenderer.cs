@@ -834,6 +834,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             return EmitText.LoudValue("string", $"FUNCTION {sig.Name} (catalogued, not yet implemented)");
         return sig.RuntimeMethod switch
         {
+            // UPPER-CASE / LOWER-CASE (§15.97 / §15.57; kb/Work PB64 T5): with a LOCALE phrase, the named locale's LC_CTYPE
+            // (r2); else, when this module has a CHARACTER CLASSIFICATION, the classification's LC_CTYPE for the
+            // operand's class (r3 — __CLASSIFY, resolved at activation); else the implementor's correspondence (r4 —
+            // the invariant map the function always used).
+            "UpperCase" or "LowerCase" when ic.Locale.Tag is { } caseTag =>
+                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {EmitText.CsLiteral(caseTag)}"),
+            "UpperCase" or "LowerCase" when ctx.Data.Classification is not null =>
+                RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, __CLASSIFY.For({(IsNationalArg(ic.Args[0]) ? "true" : "false")})"),
             "UpperCase" or "LowerCase" or "Reverse" =>                         // §15.97/57/78 — length-preserving
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])),
             "Char" =>                                                          // §15.15 — PCS-relative (H5 conditional weights)
@@ -930,6 +938,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, {secExpr}, {secScale}, "
              + $"{(hasOff ? ArgInt(ic.Args[2]) : "0")}, {(hasOff ? "true" : "false")}{LeapSecondFlag}");
     }
+
+    /// <summary>Is the operand of class national (its category National) — the CHARACTER CLASSIFICATION's national
+    /// phrase governs it (ISO §12.3.6.4 GR5 f–j), the alphanumeric phrase everything else.</summary>
+    private static bool IsNationalArg(BoundOperand op) => op switch
+    {
+        BoundStringLiteral { Category: PicCategory.National } => true,
+        BoundFieldOperand { Place.Item.Pic.Category: PicCategory.National } => true,
+        _ => false,
+    };
 
     /// <summary>The bound <see cref="BoundIntrinsicCall.Locale"/> as the runtime's <c>localeTag</c> argument: the named
     /// locale's L1-normalized tag literal, or <c>null</c> for the current-locale form.</summary>

@@ -345,12 +345,16 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         string numericTest = numericCategory && fld!.Place.Item.Pic is { Signed: true } sp
             ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")})"
             : $"CobolClass.IsNumeric({arg})";
+        // ALPHABETIC / -UPPER / -LOWER under a CHARACTER CLASSIFICATION (ISO §8.8.4.4.4 GR3 b1/c1/d1 — the classification
+        // locale's LC_CTYPE, resolved at the module's activation into __CLASSIFY; kb/Work PB64 T5); without one the
+        // coded-character-set rule (b2/c2/d2 — the closed Latin set) stands, exactly as before.
+        string classify = ctx.Data.Classification is not null ? $", __CLASSIFY.For({(IsNationalOperand(c.Operand) ? "true" : "false")})" : "";
         string test = c.ClassKind switch
         {
             'N' => numericField ? "true" : numericTest,
-            'A' => $"CobolClass.IsAlphabetic({arg})",
-            'U' => $"CobolClass.IsAlphabeticUpper({arg})",
-            'L' => $"CobolClass.IsAlphabeticLower({arg})",
+            'A' => $"CobolClass.IsAlphabetic({arg}{classify})",
+            'U' => $"CobolClass.IsAlphabeticUpper({arg}{classify})",
+            'L' => $"CobolClass.IsAlphabeticLower({arg}{classify})",
             _ => EmitText.LoudValue("bool", "class condition"),
         };
         return c.Negated ? $"!({test})" : $"({test})";

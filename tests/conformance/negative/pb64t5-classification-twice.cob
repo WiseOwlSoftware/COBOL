@@ -1,0 +1,12 @@
+      *> reject-at: 2002 2014 2023
+      *> ISO 12.3.6.2: the OBJECT-COMPUTER paragraph's clauses may each appear at most once (the bracket carries choice
+      *> indicators - 5.2.6.4); a second CHARACTER CLASSIFICATION clause is COBOLNET1652 object-computer-duplicate-clause
+      *> (kb/Work PB78 registered the code for the PCS; PB64 T5 gives the classification clause the same arm).
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB64T5DUP.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       OBJECT-COMPUTER. X CHARACTER CLASSIFICATION IS LOCALE
+           CHARACTER CLASSIFICATION IS USER-DEFAULT.
+       PROCEDURE DIVISION.
+           STOP RUN.

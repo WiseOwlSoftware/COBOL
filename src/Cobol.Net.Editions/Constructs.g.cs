@@ -117,6 +117,8 @@ public static class Constructs
     public const string SpecialNamesLocale2002 = "special-names-locale-2002";
     public const string SetLocale2002 = "set-locale-2002";
     public const string SetSaveLocale2002 = "set-save-locale-2002";
+    public const string CharacterClassification2002 = "character-classification-2002";
+    public const string CaseFunctionLocalePhrase2002 = "case-function-locale-phrase-2002";
     public const string OrderTable2002 = "order-table-2002";
     public const string LocaleFunctions2002 = "locale-functions-2002";
     public const string LocaleTimeFromSeconds2014 = "locale-time-from-seconds-2014";

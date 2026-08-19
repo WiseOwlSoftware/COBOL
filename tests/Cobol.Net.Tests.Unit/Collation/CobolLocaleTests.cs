@@ -130,6 +130,102 @@ public sealed class CobolLocaleTests
         });
     }
 
+    /// <summary>UPPER-CASE / LOWER-CASE under a locale (T5): the LOCALE phrase (a tag) and the CHARACTER CLASSIFICATION
+    /// (LocaleFacts) — DETERMINATION L9's simple map through the culture's TextInfo (Turkish dotted/dotless I); null
+    /// facts is the invariant map; EC-LOCALE-MISSING for an unavailable named locale.</summary>
+    [Fact]
+    public void CaseMapping_FollowsTheLocalesLcCtype()
+    {
+        RunUnit.Run(ru =>
+        {
+            ru.Locale.Set(LocaleCategory.All, "");
+            Assert.Equal("\u0130", CobolLocale.UpperCase("i", "tr-TR"));           // dotted capital I
+            Assert.Equal("\u0131", CobolLocale.LowerCase("I", "tr-TR"));           // dotless small i
+            Assert.Equal("I", CobolLocale.UpperCase("i", (LocaleFacts?)null));    // the implementor's map (§15.97.4 r4)
+            Assert.Equal("I", CobolLocale.UpperCase("i", LocaleFacts.For("en-US")));
+            Assert.Equal("\u0130", CobolLocale.UpperCase("i", LocaleFacts.For("tr")));
+            Assert.Equal("", CobolLocale.UpperCase(null, "fr-FR"));
+            Assert.Equal("ABC", CobolLocale.UpperCase("abc", ""));                 // the root
+            // §15.97.4 r6 / §15.57.4 r6 — a letter with no correspondence is UNCHANGED (ß has no simple uppercase; the
+            // simple map of L9 never expands it to SS), under a locale and under the implementor's map alike.
+            Assert.Equal("STRA\u00DFE", CobolLocale.UpperCase("stra\u00DFe", "de-DE"));
+            Assert.Equal("STRA\u00DFE", CobolLocale.UpperCase("stra\u00DFe", (LocaleFacts?)null));
+            Assert.Equal(6, CobolLocale.UpperCase("stra\u00DFe", "de-DE").Length);   // r5 — the length is argument-1's
+            ExceptionState.LocaleMissingChecking = true;
+            try { Assert.Equal("EC-LOCALE-MISSING", Assert.Throws<CobolFatalException>(() => CobolLocale.UpperCase("a", "xx-NOWHERE")).EcName); }
+            finally { ExceptionState.LocaleMissingChecking = false; }
+            Assert.Equal("A", CobolLocale.UpperCase("a", "xx-NOWHERE"));           // checking off: the root's answer stands
+        });
+    }
+
+    /// <summary>The ONE §8.2.1 gate for the classification consumers (T5): a classification naming a DECLARED but
+    /// UNAVAILABLE locale resolves (the compiler never checks availability — L1) and every operation requiring it —
+    /// a class test, a case function without a phrase — raises EC-LOCALE-MISSING at use when checking is on, the coded
+    /// character set's behavior standing when it is off; an available locale whose culture data .NET lacks raises
+    /// EC-LOCALE-INVALID the same way (when the process HAS culture data at all).</summary>
+    [Fact]
+    public void Classification_UnavailableLocale_RaisesMissingAtUse()
+    {
+        RunUnit.Run(ru =>
+        {
+            ru.Locale.Set(LocaleCategory.All, "");
+            var missing = CharacterClassification.Resolve(LocalePhraseKind.Named, "xx-NOWHERE", LocalePhraseKind.None, null);
+            Assert.NotNull(missing.Alphanumeric);
+            Assert.False(missing.Alphanumeric!.IsAvailable);
+            // checking off — the coded character set's set (GR3 b2: space included) and the implementor's map stand
+            Assert.True(CobolClass.IsAlphabetic("ab cd", missing.Alphanumeric));
+            Assert.Equal("I", CobolLocale.UpperCase("i", missing.Alphanumeric));
+            ExceptionState.LocaleMissingChecking = true;
+            try
+            {
+                Assert.Equal("EC-LOCALE-MISSING", Assert.Throws<CobolFatalException>(() => CobolClass.IsAlphabetic("ab", missing.Alphanumeric)).EcName);
+                Assert.Equal("EC-LOCALE-MISSING", Assert.Throws<CobolFatalException>(() => CobolClass.IsAlphabeticUpper("AB", missing.Alphanumeric)).EcName);
+                Assert.Equal("EC-LOCALE-MISSING", Assert.Throws<CobolFatalException>(() => CobolClass.IsAlphabeticLower("ab", missing.Alphanumeric)).EcName);
+                Assert.Equal("EC-LOCALE-MISSING", Assert.Throws<CobolFatalException>(() => CobolLocale.LowerCase("A", missing.Alphanumeric)).EcName);
+                var tr = CharacterClassification.Resolve(LocalePhraseKind.Named, "tr-TR", LocalePhraseKind.None, null);
+                Assert.True(CobolClass.IsAlphabetic("\u0131", tr.Alphanumeric));       // an available locale raises nothing
+            }
+            finally { ExceptionState.LocaleMissingChecking = false; }
+            // the INVALID arm (available, no culture data) needs a site tailoring — AvailableLocaleWithoutCultureData_IsInvalid…
+        });
+    }
+
+    /// <summary>The CHARACTER CLASSIFICATION resolution at activation (§12.3.6.4 GR5; §14.6.6 r2): the four phrase
+    /// kinds, the None singleton, and the classification-aware class tests (§8.8.4.4.4 GR3 b1/c1/d1 — a Unicode letter
+    /// per LC_CTYPE; no space; the locale's case round-trip for upper/lower).</summary>
+    [Fact]
+    public void Classification_ResolvesAtActivation_AndDrivesTheClassTests()
+    {
+        RunUnit.Run(ru =>
+        {
+            ru.Locale.Set(LocaleCategory.All, "");
+            Assert.Same(CharacterClassification.None, CharacterClassification.Resolve(LocalePhraseKind.None, null, LocalePhraseKind.None, null));
+            var named = CharacterClassification.Resolve(LocalePhraseKind.Named, "tr-TR", LocalePhraseKind.None, null);
+            Assert.Equal("tr-TR", named.Alphanumeric!.Culture.Name);
+            Assert.Null(named.National);
+            ru.Locale.SetFromLocale(LocaleCategorySet.Ctype, "de-DE");
+            var current = CharacterClassification.Resolve(LocalePhraseKind.Current, null, LocalePhraseKind.Current, null);
+            Assert.Equal("de-DE", current.Alphanumeric!.Culture.Name);                 // the locale current at activation
+            Assert.Equal("de-DE", current.For(national: true)!.Culture.Name);
+            ru.Locale.SetFromLocale(LocaleCategorySet.Ctype, "fr-FR");
+            Assert.Equal("de-DE", current.Alphanumeric!.Culture.Name);                 // a later SET does not move it (GR8)
+            var user = CharacterClassification.Resolve(LocalePhraseKind.UserDefault, null, LocalePhraseKind.SystemDefault, null);
+            Assert.Equal(ru.Locale.UserDefault.Ctype, user.Alphanumeric!.Collate);
+            Assert.Equal(ru.Locale.SystemDefault.Ctype, user.National!.Collate);
+            // the class tests
+            var tr = LocaleFacts.For("tr-TR");
+            Assert.True(CobolClass.IsAlphabetic("\u0131\u0130", tr));                  // dotless/dotted I are letters
+            Assert.False(CobolClass.IsAlphabetic("\u0131", (LocaleFacts?)null));       // the Latin set without a locale
+            Assert.False(CobolClass.IsAlphabetic("ab cd", tr));                         // GR3 b1: space is not alpha
+            Assert.True(CobolClass.IsAlphabetic("ab cd", (LocaleFacts?)null));         // b2 names space
+            Assert.True(CobolClass.IsAlphabeticUpper("\u0130I", tr));
+            Assert.True(CobolClass.IsAlphabeticLower("\u0131i", tr));
+            Assert.False(CobolClass.IsAlphabeticUpper("\u0131", tr));
+            Assert.False(CobolClass.IsAlphabetic("", tr));                              // a zero-length operand is false (GR1)
+            Assert.False(CobolClass.IsAlphabetic("a1", tr));
+        });
+    }
+
     /// <summary>EC-LOCALE-INVALID (§8.2.1 "invalid or incomplete"): a locale that IS available — a site tailoring
     /// makes "zz-QQ" known — but has no .NET culture data for LC_TIME; the invariant format stands when checking is
     /// off and the condition is raised when on. LC_COLLATE is unaffected (the tailoring collates).</summary>
@@ -161,8 +257,19 @@ public sealed class CobolLocaleTests
                     Assert.Equal("EC-LOCALE-INVALID", Assert.Throws<CobolFatalException>(() => CobolLocale.Time("130509", "zz-QQ")).EcName);
                     Assert.Equal("08/19/2026", CobolLocale.Date("20260819", null));     // the root has its data
                     Assert.Equal("19/08/2026", CobolLocale.Date("20260819", "fr-FR"));  // so has France
+                    // the T5 consumers ride the SAME gate (LocaleFacts.Require): a CHARACTER CLASSIFICATION naming zz-QQ
+                    // resolves, and its class tests / case functions raise EC-LOCALE-INVALID at use under checking
+                    var cls = CharacterClassification.Resolve(LocalePhraseKind.Named, "zz-QQ", LocalePhraseKind.None, null);
+                    Assert.True(cls.Alphanumeric!.IsAvailable);
+                    Assert.Equal("EC-LOCALE-INVALID", Assert.Throws<CobolFatalException>(() => CobolClass.IsAlphabetic("ab", cls.Alphanumeric)).EcName);
+                    Assert.Equal("EC-LOCALE-INVALID", Assert.Throws<CobolFatalException>(() => CobolLocale.UpperCase("ab", cls.Alphanumeric)).EcName);
+                    Assert.Equal("EC-LOCALE-INVALID", Assert.Throws<CobolFatalException>(() => CobolLocale.LowerCase("AB", "zz-QQ")).EcName);   // the LOCALE phrase form too
                 }
                 finally { ExceptionState.LocaleInvalidChecking = false; }
+                // checking off: no LC_CTYPE content — the coded character set's Latin set (space included) and the invariant map stand
+                var cls2 = CharacterClassification.Resolve(LocalePhraseKind.Named, "zz-QQ", LocalePhraseKind.None, null);
+                Assert.True(CobolClass.IsAlphabetic("ab cd", cls2.Alphanumeric));
+                Assert.Equal("AB", CobolLocale.UpperCase("ab", cls2.Alphanumeric));
             });
             Assert.True(LocaleFacts.For("fr-FR").HasCultureData);
             Assert.True(LocaleFacts.For("es_ES.UTF-8").HasCultureData);             // L1-normalized before lookup

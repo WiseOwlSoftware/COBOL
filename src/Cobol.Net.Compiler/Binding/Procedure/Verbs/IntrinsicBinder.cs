@@ -511,8 +511,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // (items 6/13/12; NUMVAL-C's LOCALE keyword is a spec Annex-A LIST OMISSION, disposed identically —
         // §15.94.3 r1 imports every §15.68.3 rule); each arm is deleted as its increment (T5/T6) lands. The
         // function WITHOUT a LOCALE phrase binds exactly as before (zero regression).
-        if (sig.Name is "LOWER-CASE" or "UPPER-CASE" or "NUMVAL-C" or "TEST-NUMVAL-C" && HasLocalePhrase(argCtxs))
+        if (sig.Name is "NUMVAL-C" or "TEST-NUMVAL-C" && HasLocalePhrase(argCtxs))
             return LocaleUnsupported($"the LOCALE phrase of FUNCTION {sig.Name}");
+        // UPPER-CASE / LOWER-CASE `( argument-1 [ LOCALE locale-name-1 ] )` (§15.97.2 / §15.57.2; A.4.9 items 13 / 6)
+        // — LIVE since kb/Work PB64 T5: the phrase's locale-name is a SPECIAL-NAMES LOCALE clause's name, and the
+        // function maps case by that locale's LC_CTYPE (r2).
+        if (sig.Name is "LOWER-CASE" or "UPPER-CASE" && HasLocalePhrase(argCtxs))
+            return BindCaseFunctionWithLocale(sig, argCtxs);
 
         // STANDARD-COMPARE (§15.85) — argument-1 argument-2 [ordering-name-1] [argument-4]: the third position
         // is a §15.3 type-12 NAME (an ORDER TABLE ordering-name), not an operand, so the argument list is walked
@@ -923,6 +928,43 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // CobolString carries its own length, and the receiving context (a MOVE, a reference modification) bounds
         // it at run time, exactly as every dynamic-length result already does.
         return new BoundIntrinsicCall(sig, operands, sig.ResultCategory) { Locale = locale };
+    }
+
+    /// <summary>UPPER-CASE / LOWER-CASE with the LOCALE phrase (§15.97.2 / §15.57.2 — <c>( argument-1 [ LOCALE
+    /// locale-name-1 ] )</c>; kb/Work PB64 T5): argument-1 binds as the operand (§15.97.3 r1 / §15.57.3 r1 through the
+    /// row's Verified schema), the keyword LOCALE must be followed by exactly one locale-name declared by a
+    /// SPECIAL-NAMES LOCALE clause (COBOLNET1664 otherwise — the ONE undeclared-locale-name diagnostic), which rides
+    /// the bound node's <see cref="BoundIntrinsicCall.Locale"/>.</summary>
+    private BoundExpr BindCaseFunctionWithLocale(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    {
+        string rule = sig.Name == "UPPER-CASE" ? "ISO §15.97.2 / §15.97.4 r2 — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause"
+            : "ISO §15.57.2 / §15.57.4 r2 — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause";
+        if (argCtxs.Count != 3 || KeywordWordOf(argCtxs[1]) != "LOCALE")
+        {
+            ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes argument-1 optionally followed by LOCALE locale-name-1 "
+                + $"({rule}); {argCtxs.Count} argument(s) given");
+            return new BoundExprError($"FUNCTION {sig.Name}");
+        }
+        // The phrase is a 2002 introduction (the function is 1985): the construct gate, like EXCEPTION-FILE's argument.
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2002,
+            $"the LOCALE phrase of FUNCTION {sig.Name}");
+        var operand = BindArgOperand(argCtxs[0]);
+        LocaleRef locale;
+        if (KeywordWordOf(argCtxs[2]) is { } word)
+        {
+            var sym = ctx.Data.ResolveLocaleName(word, $"FUNCTION {sig.Name}'s LOCALE phrase '{word}'", rule);
+            if (sym is null) return new BoundExprError($"FUNCTION {sig.Name}");
+            locale = new LocaleRef(sym);
+        }
+        else
+        {
+            ctx.Edition.Error("COBOLNET1664", $"FUNCTION {sig.Name}'s LOCALE phrase: the word after LOCALE shall be a locale-name declared by a "
+                + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{argCtxs[2].GetText().Trim()}'");
+            return new BoundExprError($"FUNCTION {sig.Name}");
+        }
+        var operands = new List<BoundOperand> { operand };
+        CheckArgumentClasses(sig, operands);
+        return new BoundIntrinsicCall(sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands))) { Locale = locale };   // §15.97.1 / §15.57.1 — the type follows argument-1
     }
 
     private static string LocaleFunctionClause(string name) => name switch

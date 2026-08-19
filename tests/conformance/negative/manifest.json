@@ -253,7 +253,6 @@
   "pb73-move-alphabetic-view-to-boolean",
   "pb73-move-alphabetic-view-to-numeric",
   "pb78-object-computer-clause-without-name-85",
-  "pb78-object-computer-character-classification",
   "pb78-object-computer-duplicate-clause",
   "pb79-group-usage-85",
   "pb79-group-usage-explicit-usage",
@@ -349,7 +348,11 @@
   "pb64t1-locale-literal-sr10",
   "pb64t4-locale-date-width",
   "pb64t4-locale-function-name-undeclared",
-  "pb64t4-time-from-seconds-class"
+  "pb64t4-time-from-seconds-class",
+  "pb64t5-classification-name-undeclared",
+  "pb64t5-case-phrase-name-undeclared",
+  "pb64t5-class-condition-locale-alphabet",
+  "pb64t5-classification-twice"
  ],
  "pending": []
 }

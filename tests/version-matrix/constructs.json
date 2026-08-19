@@ -1329,6 +1329,30 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64SV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01  SAVED-LOC USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET SAVED-LOC TO LOCALE LC_ALL.\n    STOP RUN.\n"
     },
     {
+      "id": "character-classification-2002",
+      "description": "The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC IS locale-phrase-1 | FOR NATIONAL IS locale-phrase-2}...}), ISO 12.3.6.2 - introduced 2002 with the locale facility (Annex A.4.9 item 7; kb/Work PB64 T5). Each phrase is LOCALE (the locale current at the module's activation - 12.3.6.4 GR5b/GR8, 14.6.6 r2), SYSTEM-DEFAULT, USER-DEFAULT or a SPECIAL-NAMES locale-name (12.3.6.3 SR3); the classification's LC_CTYPE drives UPPER-CASE / LOWER-CASE without a LOCALE phrase and the ALPHABETIC class tests (GR7). Parse-arm gated on recognition (VisitCharacterClassificationClause; CLASSIFICATION is a context-sensitive word matched by text).",
+      "display": "the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.3.6.2 (the CHARACTER CLASSIFICATION clause); §12.3.6.3 SR3; §12.3.6.4 GR5-GR8; parse-arm gate (VisitCharacterClassificationClause)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the locale facility; kb/Work PB64 T5 - the classification is resolved at activation)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T5CCR.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. X CHARACTER CLASSIFICATION IS USER-DEFAULT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "case-function-locale-phrase-2002",
+      "description": "The LOCALE phrase of FUNCTION UPPER-CASE / LOWER-CASE (argument-1 LOCALE locale-name-1), ISO 15.97.2 / 15.57.2 - introduced 2002 with the locale facility (Annex A.4.9 items 13 / 6; kb/Work PB64 T5): the case correspondence of the named locale's LC_CTYPE (15.97.4 r2 / 15.57.4 r2). The functions themselves are 1985 (the Intrinsic Function Module amendment); the phrase is gated in the binder (IntrinsicBinder.BindCaseFunctionWithLocale) like the other function-argument introductions.",
+      "display": "the LOCALE phrase of UPPER-CASE / LOWER-CASE",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §15.97.2 / §15.57.2 (the LOCALE phrase); §15.97.4 r2 / §15.57.4 r2; binder gate (BindCaseFunctionWithLocale)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the locale facility; kb/Work PB64 T5)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T5CPR.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE TR IS \"tr-TR\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION UPPER-CASE(\"i\" LOCALE TR) TO S.\n    STOP RUN.\n"
+    },
+    {
       "id": "order-table-2002",
       "description": "The SPECIAL-NAMES ORDER TABLE ordering-name-1 IS literal-9 clause, ISO 12.3.7.2 (the last item of the paragraph's general format) - introduced 2002 with the cultural-ordering facility. Literal-9 identifies a cultural ordering table constructed per ISO/IEC 14651:2020 Annex A and the implementor specifies its allowable content (12.3.7.4 GR17); ordering-name-1 may be specified only in the STANDARD-COMPARE intrinsic function (12.3.7.3 SR9). Parse-arm gated on recognition (VisitOrderTableClause). The grammar predicate is NOT edition-gated, unlike the LOCALE clause's: TABLE is reserved at every edition (reserved-words.json r85 true), so the pair ORDER + TABLE has no competing COBOL-85 reading, and recognizing it everywhere is what makes the sub-2002 answer this explanatory COBOLNET0900 instead of a parse error at TABLE.",
       "display": "the ORDER TABLE clause",

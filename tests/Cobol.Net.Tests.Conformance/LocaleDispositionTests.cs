@@ -8,11 +8,11 @@ namespace CobolNet.Tests.Conformance;
 /// The ISO Annex A §A.4.9 locale-module disposition, increment by increment (owner decision Q1, 2026-08-18;
 /// DESIGN-locale-facility §12). LIVE: the FOUR locale FUNCTIONS (LOCALE-COMPARE §15.51 / LOCALE-DATE §15.52 /
 /// LOCALE-TIME §15.53 / LOCALE-TIME-FROM-SECONDS §15.54 — kb/Work PB64 T4; the facts below assert they COMPILE and
-/// bind their locale-name) and STANDARD-COMPARE (PB101 T7). Still DOCUMENTED NON-SUPPORT (conformant per ISO §4.2.7 +
-/// Annex A §A.4.1: an implementation accepts an optional element's syntax only when support is claimed), rejected
-/// with <c>COBOLNET1518</c> at bind time BY NAME: the LOCALE keyword PHRASE of the otherwise-supported LOWER-CASE
-/// §15.57 / UPPER-CASE §15.97 / NUMVAL-C §15.68 / TEST-NUMVAL-C §15.94 (T5/T6). The same functions WITHOUT a LOCALE
-/// phrase stay fully supported (the zero-regression proof).
+/// bind their locale-name), the LOCALE phrase of LOWER-CASE §15.57 / UPPER-CASE §15.97 (PB64 T5) and STANDARD-COMPARE
+/// (PB101 T7). Still DOCUMENTED NON-SUPPORT (conformant per ISO §4.2.7 + Annex A §A.4.1: an implementation accepts
+/// an optional element's syntax only when support is claimed), rejected with <c>COBOLNET1518</c> at bind time BY
+/// NAME: the LOCALE keyword PHRASE of the otherwise-supported NUMVAL-C §15.68 / TEST-NUMVAL-C §15.94 (T6). The same
+/// functions WITHOUT a LOCALE phrase stay fully supported (the zero-regression proof).
 /// <para>⚠ STANDARD-COMPARE §15.85 was the fifth, and is not any more — see the fact below: it is A.4.9 item 11
 /// but travels on §A.3 item 25 (an ISO/IEC 14651:2020 dependency), and that support is now claimed (kb/Work
 /// PB101 T7). Each remaining arm is deleted as its increment lands (owner decision Q1, 2026-08-18).</para>
@@ -127,12 +127,39 @@ public sealed class LocaleDispositionTests
         }
     }
 
-    // ── The LOCALE keyword phrase of the otherwise-supported functions (§15.57/97/68/94) → COBOLNET1518 ─────
+    // ── The LOCALE keyword phrase of the otherwise-supported functions: §15.57/97 LIVE (T5); §15.68/94 → COBOLNET1518 (T6) ──
 
-    [Fact] public void LowerCaseLocale_A49() =>
-        AssertA49(Move("FUNCTION LOWER-CASE(WS-X LOCALE LOC1)", "01 WS-X PIC X(3) VALUE \"AbC\".\n01 WS-R PIC X(3).", "WS-R"));
-    [Fact] public void UpperCaseLocale_A49() =>
-        AssertA49(Move("FUNCTION UPPER-CASE(WS-X LOCALE LOC1)", "01 WS-X PIC X(3) VALUE \"AbC\".\n01 WS-R PIC X(3).", "WS-R"));
+    // The LOCALE phrase of LOWER-CASE / UPPER-CASE is LIVE since kb/Work PB64 T5 (items 6 / 13): with a declared
+    // locale-name it compiles clean; with an undeclared one it is the ONE undeclared-locale-name diagnostic
+    // (COBOLNET1664), never the by-name refusal any more.
+    [Theory]
+    [InlineData("LOWER-CASE")]
+    [InlineData("UPPER-CASE")]
+    public void CaseFunctionLocalePhrase_IsLive(string fn)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. CASELIVE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                LOCALE TR IS "tr-TR".
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC X(3) VALUE "AbC".
+            01 WS-R PIC X(3).
+            PROCEDURE DIVISION.
+            MAIN.
+                MOVE FUNCTION {fn}(WS-X LOCALE TR) TO WS-R.
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
+        Assert.True(ok, string.Join("\n", errors));
+        var (ok2, errors2, _) = EditionHarness.CompileFull(Move($"FUNCTION {fn}(WS-X LOCALE LOC1)", "01 WS-X PIC X(3) VALUE \"AbC\".\n01 WS-R PIC X(3).", "WS-R"), 2023);
+        Assert.False(ok2);
+        EditionHarness.AssertHasDiagnostic(errors2, "COBOLNET1664");
+        Assert.DoesNotContain(errors2, e => e.Contains("COBOLNET1518"));
+    }
     [Fact] public void NumvalCLocale_A49() =>
         AssertA49(Move("FUNCTION NUMVAL-C(\"12,34\" LOCALE LOC1)", "01 WS-R PIC 9(4)V99.", "WS-R"));
     [Fact] public void TestNumvalCLocale_A49() =>

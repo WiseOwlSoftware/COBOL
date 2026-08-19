@@ -461,6 +461,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 CheckClassConditionOperand(opnd, k);
                 return new BoundClassCondition(opnd, k, not);
             }
+            // §8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
+            // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
+            // class condition could test membership of (kb/Work PB64 T5; the same rule family as §12.3.7.3 SR16g/SR17d
+            // — DataBinder.IsLocaleAlphabet is the one predicate, over BOTH classes of alphabet).
+            if (cls.cobolWord() is { } lcls && ctx.Data.IsLocaleAlphabet(lcls.GetText()))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{lcls.GetText()}': "
+                    + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §8.8.4.4.3 SR2) — "
+                    + "an ALPHABET … IS LOCALE defines a collating sequence, not a coded character set (§12.3.7.4 GR7 Table 6)");
+                return new BoundConditionError($"class condition '{cls.GetText()}'");
+            }
             // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
             if (cls.cobolWord() is { } ucls && operands.Length >= 1
                 && ctx.Data.UserClasses.TryGetValue(ucls.GetText(), out string? members))

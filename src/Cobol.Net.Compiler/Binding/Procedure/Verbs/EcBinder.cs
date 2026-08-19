@@ -430,9 +430,12 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             if (ctx.EcState.Turn.Enabled("EC-LOCALE-INCOMPATIBLE", null, line))
                 enabled.Add(("EC-LOCALE-INCOMPATIBLE", null));
             // EC-LOCALE-INVALID (§8.2.1 — incomplete locale content) rides the LOCALE intrinsics (T4: LOCALE-DATE/-TIME/
-            // -TIME-FROM-SECONDS; T5/T6 add the case and monetary operations), which render inline — any
-            // intrinsic-bearing statement, like EC-ARGUMENT-FUNCTION.
-            if (ctx.EcState.Turn.Enabled("EC-LOCALE-INVALID", null, line) && ContainsIntrinsic(node))
+            // -TIME-FROM-SECONDS; T5 the case functions' LOCALE phrase; T6 the monetary operations), which render
+            // inline — any intrinsic-bearing statement, like EC-ARGUMENT-FUNCTION — and, in a module WITH a CHARACTER
+            // CLASSIFICATION (T5), ANY statement: a class test (§12.3.6.4 GR7b) is not an intrinsic-bearing statement
+            // and can raise it at use (LocaleFacts.Require), as can a case function without a phrase (GR7a). Each raise
+            // fires only at its site, so the guard around an unrelated statement never catches anything.
+            if (ctx.EcState.Turn.Enabled("EC-LOCALE-INVALID", null, line) && (ContainsIntrinsic(node) || ctx.Data.Classification is not null))
                 enabled.Add(("EC-LOCALE-INVALID", null));
             // EC-DATA-CONVERSION (nonfatal, §15.19.4 r1/r3) rides any intrinsic-bearing statement too — FUNCTION
             // CONVERT sets it when an untranslatable character forces the substitution character; the ambient

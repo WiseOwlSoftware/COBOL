@@ -1014,6 +1014,15 @@ public static class DiagnosticCatalog
         + "shall reference an elementary data item of category data-pointer (USAGE POINTER) — the saved-locale handle "
         + "of §14.9.39.4 GR26/GR27 is a pointer value, stored and read only through such an item.",
         "ISO §14.9.39.3 SR27 / SR28");
+    public static readonly DiagnosticDescriptor LocaleAlphabetNotACharacterSet = new(
+        "COBOLNET1669", "locale-alphabet-not-a-charset", EditionSeverity.Error,
+        "An alphabet defined with the LOCALE phrase (ALPHABET … [FOR NATIONAL] IS LOCALE [locale-name]) is referenced "
+        + "where a CODED CHARACTER SET is required — a class condition's alphabet-name-1 (ISO §8.8.4.4.3 SR2: 'shall not "
+        + "reference an alphabet associated with a locale'; the same rule governs the IN phrases of SYMBOLIC CHARACTERS "
+        + "and CLASS, §12.3.7.3 SR16g / SR17d, and the CODE-SET clause, §13.18.13.3 SR1 / SR2). A LOCALE alphabet defines "
+        + "a collating sequence only (§12.3.7.4 GR7, Table 6) — it names no set of characters. Name a coded-character-set "
+        + "alphabet (NATIVE, STANDARD-1/2, UCS-4, UTF-8, UTF-16) instead.",
+        "ISO §8.8.4.4.3 SR2 / §12.3.7.3 SR16g, SR17d");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

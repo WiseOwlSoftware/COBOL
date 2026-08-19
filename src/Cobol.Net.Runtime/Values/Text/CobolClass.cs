@@ -24,6 +24,46 @@ public static class CobolClass
         return true;
     }
 
+    /// <summary>ALPHABETIC under a CHARACTER CLASSIFICATION locale (ISO §8.8.4.4.4 GR3 b1 — "consists only of characters
+    /// identified as alphabetic in locale category LC_CTYPE"; kb/Work PB64 T5): a Unicode LETTER per the locale's
+    /// culture — the POSIX <c>alpha</c> class. ⚠ As the rule reads, the locale case names letters ONLY: space is not
+    /// <c>alpha</c> (b2, the coded-character-set case, lists space explicitly; b1 does not) — documented in
+    /// CONFORMANCE.md §4 item 5. <paramref name="facts"/> null (no classification, or the coded character set's) is the
+    /// closed Latin set of <see cref="IsAlphabetic(string?)"/>.</summary>
+    public static bool IsAlphabetic(string? s, Globalization.LocaleFacts? facts)
+    {
+        facts = facts?.Require(LocaleCategory.Ctype, "class condition ALPHABETIC under the CHARACTER CLASSIFICATION", "ISO §8.8.4.4.4 GR3 b1 / §12.3.6.4 GR7b");
+        if (facts is null || !facts.HasCultureData) return IsAlphabetic(s);
+        if (string.IsNullOrEmpty(s)) return false;
+        foreach (var r in s.EnumerateRunes()) if (!System.Text.Rune.IsLetter(r)) return false;
+        return true;
+    }
+
+    /// <summary>ALPHABETIC-UPPER under a classification locale (§8.8.4.4.4 GR3 d1 — "uppercase alphabetic in LC_CTYPE",
+    /// the POSIX <c>upper</c> class): a letter that is uppercase, or a letter the locale's case mapping LOWERS to
+    /// something else (the round-trip test — Turkish dotted/dotless I under <c>tr</c>); null facts → the Latin set.</summary>
+    public static bool IsAlphabeticUpper(string? s, Globalization.LocaleFacts? facts)
+    {
+        facts = facts?.Require(LocaleCategory.Ctype, "class condition ALPHABETIC-UPPER under the CHARACTER CLASSIFICATION", "ISO §8.8.4.4.4 GR3 d1 / §12.3.6.4 GR7b");
+        if (facts is null || !facts.HasCultureData) return IsAlphabeticUpper(s);
+        if (string.IsNullOrEmpty(s)) return false;
+        foreach (var r in s.EnumerateRunes())
+            if (!System.Text.Rune.IsLetter(r) || !(System.Text.Rune.IsUpper(r) || (r.IsBmp && facts.TextInfo.ToLower((char)r.Value) != (char)r.Value))) return false;
+        return true;
+    }
+
+    /// <summary>ALPHABETIC-LOWER under a classification locale (§8.8.4.4.4 GR3 c1 — the POSIX <c>lower</c> class): a letter
+    /// that is lowercase, or one the locale's case mapping UPPERS to something else; null facts → the Latin set.</summary>
+    public static bool IsAlphabeticLower(string? s, Globalization.LocaleFacts? facts)
+    {
+        facts = facts?.Require(LocaleCategory.Ctype, "class condition ALPHABETIC-LOWER under the CHARACTER CLASSIFICATION", "ISO §8.8.4.4.4 GR3 c1 / §12.3.6.4 GR7b");
+        if (facts is null || !facts.HasCultureData) return IsAlphabeticLower(s);
+        if (string.IsNullOrEmpty(s)) return false;
+        foreach (var r in s.EnumerateRunes())
+            if (!System.Text.Rune.IsLetter(r) || !(System.Text.Rune.IsLower(r) || (r.IsBmp && facts.TextInfo.ToUpper((char)r.Value) != (char)r.Value))) return false;
+        return true;
+    }
+
     /// <summary>True if every character is A–Z, a–z, or space (ISO §8.8.4.1.4).</summary>
     public static bool IsAlphabetic(string? s)
     {

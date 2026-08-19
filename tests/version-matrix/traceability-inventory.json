@@ -8520,12 +8520,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "Simple class condition",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#IsLocaleAlphabet",
+  "test-ref": "conformance:negative/pb64t5-class-condition-locale-alphabet",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19): a class condition whose alphabet-name-1 names an ALPHABET … IS LOCALE [locale-name] — of EITHER class (alphanumeric, or FOR NATIONAL) — is COBOLNET1669 locale-alphabet-not-a-charset: a LOCALE alphabet defines a collating sequence only (§12.3.7.4 GR7, Table 6), so it names no coded character set a class condition could test membership of. DataBinder.IsLocaleAlphabet is the ONE predicate; the same rule family (§12.3.7.3 SR16g / SR17d — the IN phrases of SYMBOLIC CHARACTERS and CLASS; §13.18.13.3 SR1/SR2 — CODE-SET) awaits those phrases binding at all (kb/Work PB110). Rule --check verified at 8.8.4.4.3 2).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.8.4.4.3-3",
@@ -8637,11 +8637,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "Simple class condition",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabetic; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabeticUpper; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabeticLower; src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs#ConditionRenderer; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison",
+  "test-ref": "conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_classification_unavailable; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19) — ADJUDICATED ON ITEMS a)–d) ONLY; items e)–n) were not examined in this adjudication and are neither confirmed nor denied here. b1) / c1) / d1) LANDED: under a CHARACTER CLASSIFICATION locale, ALPHABETIC is 'characters identified as alphabetic in LC_CTYPE' — a Unicode letter per the locale (the dotless ı, outside the Latin set, IS alphabetic under tr), and, as the rule reads, SPACE IS NOT among them (b2 names space explicitly for the no-locale case; b1 does not — 'ab cd' is NOT ALPHABETIC under a classification; documented in CONFORMANCE.md §4 item 5); ALPHABETIC-LOWER / -UPPER are the locale's lowercase / uppercase letters (the case round-trip — ı/i lower, İ/I upper under tr). b2) / c2) / d2) — the Latin sets with space — are the pre-existing classification-free arms (the PLAIN program; CobolClass.IsAlphabetic(string)). a) is NOT IMPLEMENTED: a class condition with a coded-character-set alphabet-name-1 (NATIVE, STANDARD-1/2, UTF-8 …) binds to a BoundConditionError and compiles to a LOUD staged value (never a wrong answer) — registered as kb/Work PB109. PARTIAL on a) alone, whatever e)–n) hold. Rule --check verified at 8.8.4.4.4 3) b) 1.",
   "state": "GAP"
  },
  {
@@ -11822,12 +11822,12 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveClassification; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ClassificationPhrase; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveLocaleName",
+  "test-ref": "conformance:negative/pb64t5-classification-name-undeclared; conformance:2002/pb64t5_character_classification",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19): locale-name-1 / locale-name-2 of the CHARACTER CLASSIFICATION clause resolve through the ONE undeclared-locale-name diagnostic (COBOLNET1664, citing this rule) against the SPECIAL-NAMES LOCALE clause's names — the negative pins an undeclared name; the golden binds a declared one (tr-TR). LOCALE / SYSTEM-DEFAULT / USER-DEFAULT are the other locale-phrase alternatives, matched by text (§8.9 context-sensitive words), never resolved as names.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.6.3-4",
@@ -11900,11 +11900,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
-  "test-ref": "conformance:negative/pb78-object-computer-character-classification",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#Resolve; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveClassification",
+  "test-ref": "conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_case_locale_phrase; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB78 (2026-08-18): the CHARACTER CLASSIFICATION clause is Annex A.4.9 item 7 of the optional locale module, which COBOL.NET does not provide (CONFORMANCE.md §4 item 5); the clause is recognized and rejected with COBOLNET1518 — conformant per §4.2.7 / §A.4.1 because it is diagnosed. Its rules 5a–5j therefore never apply.",
+  "notes": "kb/Work PB64 T5 (2026-08-19): the initial classification is resolved at EACH activation of the module (__Activate prologue — GR8 / §14.6.6 r2) from the clause's two locale-phrases: a) a named locale's LC_CTYPE (golden 1, tr-TR); b) LOCALE — the locale current at activation (golden 2: the container resolved under the pinned root, the CALLed contained program after SET LOCALE LC_CTYPE TO TR resolves Turkish); c)/d) SYSTEM-DEFAULT / USER-DEFAULT (the unit test, against the run unit's two defaults); e)/j) an absent phrase is the coded character set's classification (CharacterClassification.For returns null — the Latin set / the invariant map); f)–i) the national phrase through the same resolver (the unit test's national arm). Rule --check verified at 12.3.6.4 5) b).",
   "state": "OK"
  },
  {
@@ -11914,10 +11914,10 @@
   "ordinal": 6,
   "subject": "OBJECT-COMPUTER paragraph",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
-  "test-ref": "conformance:negative/pb78-object-computer-character-classification; conformance:2023/pb78_object_computer_optional_name",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#None",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; conformance:2023/pb78_object_computer_optional_name",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB78 (2026-08-18): without a CHARACTER CLASSIFICATION clause the initial character classifications are those of the computer's coded character set at runtime — the ONLY classification COBOL.NET has (the clause itself is documented non-support), so every program takes this rule.",
+  "notes": "kb/Work PB78 / PB64 T5 (2026-08-19): without a CHARACTER CLASSIFICATION clause — in the unit or any containing unit — the classification is CharacterClassification.None, the coded character set's: the PLAIN program of the T5 golden (a second top-level unit beside one WITH the clause) maps \"i\" → \"I\" (ORD 74) even while the run unit's LC_CTYPE is Turkish, and the pb78 golden has no clause at all.",
   "state": "OK"
  },
  {
@@ -11926,11 +11926,11 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
-  "test-ref": "conformance:negative/pb78-object-computer-character-classification",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabetic; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabeticUpper; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabeticLower; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs#ConditionRenderer",
+  "test-ref": "conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_case_locale_phrase; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB78 (2026-08-18): LC_CTYPE-driven case mappings and class tests presuppose the CHARACTER CLASSIFICATION clause — A.4.9 item 7, documented non-support (COBOLNET1518); the case correspondence and class tests come from the runtime coded character set (CONFORMANCE.md §3 case-mapping bullet).",
+  "notes": "kb/Work PB64 T5 (2026-08-19): the two consumers of LC_CTYPE — a) UPPER-CASE / LOWER-CASE without a LOCALE phrase map through the classification locale's TextInfo (DETERMINATION L9 — simple 1:1; Turkish i → U+0130, I → U+0131 witnessed by ORD), b) the class tests ALPHABETIC / -LOWER / -UPPER classify by the locale (a Unicode letter per LC_CTYPE; the case round-trip for upper/lower — the dotless ı IS alphabetic and IS lower under tr). The class test with an alphabet-name associated with a locale (b's last clause) is NOT a coded-character-set test and is refused by §8.8.4.4.3 SR2 (COBOLNET1669) — the standard's own SR forbids the reference GR7b presupposes; CONFORMANCE.md §4 item 5 records the reading. Rule --check verified at 12.3.6.4 7).",
   "state": "OK"
  },
  {
@@ -11939,11 +11939,11 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
-  "test-ref": "conformance:negative/pb78-object-computer-character-classification",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#Resolve; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#For",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB78 (2026-08-18): the initial-state effect of an explicit CHARACTER CLASSIFICATION (locale-name-1/-2's LC_CTYPE) — A.4.9 item 7, documented non-support (COBOLNET1518).",
+  "notes": "kb/Work PB64 T5 (2026-08-19): the classification is established with the module's INITIAL state — resolved in the activation prologue and held in the module's __CLASSIFY field — so a later SET LOCALE LC_CTYPE does not move it (golden: OUTER-2 = 74 after the SET; the unit test's de-DE classification stays after SET … fr-FR); a named locale's classification IS that locale's LC_CTYPE (LocaleFacts.For(tag).TextInfo). Rule --check verified at 12.3.6.4 8).",
   "state": "OK"
  },
  {
@@ -27708,12 +27708,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Execution",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#Resolve; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#Require",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_classification_unavailable; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19): on activation of a runtime element with the clause, LC_CTYPE of the specified locale is what the class test and UPPER-CASE / LOWER-CASE use (the CALLed contained program resolves ITS classification at ITS activation — INNER = 305 under the Turkish current locale). A DECLARED but UNAVAILABLE locale (L1: availability is a run-time property) raises EC-LOCALE-MISSING at the operation that requires it — the class test, the case function — through the ONE §8.2.1 gate (LocaleFacts.Require), the coded character set's behavior standing when checking is off (golden 3). Rule --check verified at 14.6.6 2).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.6-3",
@@ -46090,12 +46090,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "LOWER-CASE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#HasLocalePhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "conformance-test:LocaleDispositionTests.LowerCaseLocale_A49; conformance:negative/locale_keyword_a49",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; conformance:negative/pb64t5-case-phrase-name-undeclared; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype; conformance-test:LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED. ABSENT, behind a LOUD NAMED REJECT - not silence, and not a wrong answer. Rule --check verified at 15.57.4 2). Re-confirmed by grep that there is no LC_CTYPE notion anywhere in src/Cobol.Net.*: no SPECIAL-NAMES LOCALE clause in the grammar, no locale carrier on any bound node, and CobolIntrinsics.Text.cs carries exactly one signature, `public static string LowerCase(string s)` (line 141) - no locale parameter. The reference form that would trigger this rule is refused at bind: IntrinsicBinder line 418-419 routes `LOWER-CASE ... HasLocalePhrase(argCtxs)` to LocaleUnsupported, which raises COBOLNET1518 citing A.4.9 BEFORE BindIntrinsicArgs runs, so locale-name-1 is never resolved (it could not be - there is no way to declare a locale-name). This is the ISO A.4.9 optional-module documented-non-support disposition: A.4.9 item 6 'LOWER-CASE function, LOCALE keyword (15.57)' --check verified; owner-ratified decision 3, published in docs/CONFORMANCE.md section 4 item 5 and the section 5 A.4.9 'Not claimed' row - both READ and confirmed. RECORDING the existing decision, not choosing one, so not NEEDS-OWNER-DECISION. Editions 2002+ because locale support (and hence this rule) entered with COBOL-2002; at 85 the rule does not exist. Both cited tests are spec-derived rejection tests pinning the named diagnostic (verified by reading LocaleDispositionTests.cs and confirming locale_keyword_a49.cob/.err exist and are registered at manifest.json line 79), not a differential.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T5 (2026-08-19) — LANDED; was NOT-IMPLEMENTED behind the COBOLNET1518 by-name refusal (A.4.9 item 6). With the LOCALE phrase the correspondence is LC_CTYPE of locale-name-1's locale: LOWER-CASE(\"I\" LOCALE TR) → U+0131 (ORD 306) whatever the current locale and the module's classification (PHRASE-LO); locale-name-1 shall be a SPECIAL-NAMES LOCALE clause's name (COBOLNET1664); the phrase is the 2002 construct row case-function-locale-phrase-2002; an unavailable named locale is EC-LOCALE-MISSING at use. Rule --check verified at 15.57.4 2).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.57.4-3",
@@ -46103,12 +46103,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "LOWER-CASE function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#computerAttributes; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitComputerAttributes; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#For",
+  "test-ref": "conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_case_locale_phrase",
   "editions": "2002,2014,2023",
-  "notes": "SUSTAINED, and STRENGTHENED by a second failure mode the adjudicator missed. SILENTLY ACCEPTED AND IGNORED - the one place in the A.4.9 disposition where the reject is not loud, and the harm lands precisely on this rule. Rule --check verified at 15.57.4 3); its antecedent 12.3.6.4 7) a) - 'the uppercase and lowercase mappings of characters for the UPPER-CASE and LOWER-CASE intrinsic functions' - is --check verified at 12.3.6.4. MECHANISM, RE-READ IN THE GRAMMAR: `objectComputerParagraph : OBJECT_COMPUTER DOT (computerName computerAttributes? programCollatingSequenceClause? DOT)?` (CobolParserCore.g4 line 379) with `computerAttributes : ~(DOT | PROGRAM)+` (line 397) - a raw-token SINK. Nothing in CHARACTER CLASSIFICATION IS <locale-phrase> is a DOT or a PROGRAM, and grep finds ZERO occurrences of CLASSIFICATION in src/Cobol.Net.Frontend or src/Cobol.Net.Compiler, so the whole clause is swallowed and discarded. The one pass that reads that sink, VersionConformancePass.VisitComputerAttributes (line 504), switches on child token TEXT for exactly three words - MEMORY, SEGMENT-LIMIT, DEBUGGING (lines 510/513/516) - and CLASSIFICATION is not among them. COBOLNET1518 has exactly ONE raise site (IntrinsicBinder.LocaleUnsupported), reachable only by function name or by the LOCALE argument phrase, so it cannot fire here. NET EFFECT: `OBJECT-COMPUTER. X CHARACTER CLASSIFICATION IS USER-DEFAULT.` compiles with no diagnostic at all - and note that the SYSTEM-DEFAULT / USER-DEFAULT / LOCALE alternatives of locale-phrase-1 (12.3.6.2) need no SPECIAL-NAMES locale-name, so this is a complete, self-contained request that a locale BE in effect for character classification - after which every FUNCTION LOWER-CASE quietly returns the rule-4 implementor-defined invariant fold instead of the LC_CTYPE mapping the source asked for. ⚠ NEW, FROM RENDERING THE FORMAT: the 12.3.6.2 figure note states the outer bracket encloses CHOICE INDICATORS, so per 5.2.6.4 the CHARACTER CLASSIFICATION and PROGRAM COLLATING SEQUENCE clauses may appear 'in either order'. The grammar fixes the order (computerAttributes then programCollatingSequenceClause), so a program writing CHARACTER CLASSIFICATION *after* PROGRAM COLLATING SEQUENCE has no slot at all and is a PARSE ERROR. The clause is therefore silently ignored in one order and rejects legal source in the other - two defects, one missing production. Contrast A.4.1: optional-element syntax is accepted only when support is claimed, so the conforming posture for the unclaimed A.4.9 module is a NAMED reject; A.4.9 item 7 'OBJECT-COMPUTER paragraph, CHARACTER CLASSIFICATION clause (12.3.6)' --check verified. ALREADY KNOWN IN PART: docs/CONFORMANCE.md section 4 item 5 line 223-224 admits in its own words that of the remaining locale entry points 'the third is silently accepted', tracked as review-ledger F3 - but the 15.57 consequence (a silently wrong case mapping, versus the loud COBOLNET1518 the sibling LOCALE phrase gets) is the concrete harm, and the ordering defect above is not recorded anywhere. Editions 2002+. No test anywhere in tests/ mentions CHARACTER CLASSIFICATION.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T5 (2026-08-19) — LANDED; was DIVERGES: the CHARACTER CLASSIFICATION clause used to be swallowed by the computerAttributes token sink (then, PB78, refused by name), so a program asking for a classification locale got the rule-4 invariant fold silently. The clause is a typed production now (characterClassificationClause; in either order with PROGRAM COLLATING SEQUENCE, at most once — COBOLNET1652), bound to a ClassificationSpec and resolved at activation, and LOWER-CASE without a phrase maps through the classification's LC_CTYPE: LOWER-CASE(\"I\") → U+0131 under CLASSIFICATION IS TR (LO-I). Rule --check verified at 15.57.4 3).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.57.4-4",
@@ -46116,12 +46116,12 @@
   "kind": "RV",
   "ordinal": 4,
   "subject": "LOWER-CASE function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
   "editions": "85,2002,2014,2023",
-  "notes": "OVERTURNED: CONFORMS -> PARTIAL. Rule --check verified at 15.57.4 4). THE RULE HAS A CONDITION AND A CONSEQUENCE, AND ONLY THE CONSEQUENCE IS IMPLEMENTED. CONSEQUENCE (verified): the implementor's choice is made and documented - docs/CONFORMANCE.md lines 118-122 state 'absent a locale, the case correspondence is implementor-defined (15.97.4 r4). COBOL.NET uses the .NET invariant Unicode case tables', which is exactly what `LowerCase(string s) => s.ToLowerInvariant()` does. CONDITION ('when a locale is not in effect') - NOT IMPLEMENTED: the compiler has no notion of a locale being in effect at all, so this branch is taken UNCONDITIONALLY rather than as the else-arm of rules 2 and 3. That is not merely theoretical: per RV-15.57.4-3 (which this same report records as DIVERGES) the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause is SILENTLY ACCEPTED, so a program can put a locale in effect for character classification, get no diagnostic, and still receive the rule-4 correspondence. The adjudicator's own justification - 'No locale is EVER in effect in this compiler (rules 2 and 3 are unreachable)' - contradicts its rule-3 row, where the clause is accepted rather than refused; a silently-swallowed clause is not an unreachable one. Per the two-halves discipline this is PARTIAL, never CONFORMS. ⚠ NOTES CORRECTION, factual: the adjudicator argued 'a choice alone would not have been enough' because the standard's implementor-defined item list demands documentation. It says the opposite - Annex A item 35 reads 'Computer's coded character set (correspondence between lowercase and uppercase letters when a locale is not in effect). This item is required. THIS ITEM NEED NOT BE DOCUMENTED IN THE IMPLEMENTOR'S USER DOCUMENTATION. (15.57, LOWER-CASE function; 15.97, UPPER-CASE function)'. The documentation is welcome but is not what the standard requires. CHECKED AND NOT A DIVERGENCE (independently re-derived): normative Annex C, 'Mapping of uppercase letters to lowercase letters in the COBOL character repertoire', does exist - but grep for every reference to it in the standard yields exactly two normative consumers, both in the 8.3.1 word-folding rules ('Equivalence of uppercase and lowercase basic letters is achieved by folding ... in accordance with the case mapping described in Annex C'), and NONE in 15.57. So rule 4's implementor latitude is genuine and the invariant tables are a conforming determination; docs/VERSION_CHANGE_REFERENCE.md row 20 (E.2 item 14, DOTLESS I / GREEK FINAL SIGMA deletions) and row 49 (E.3.3 item 6 additions) flag those as 2014->2023 case-mapping changes affecting UPPER-CASE/LOWER-CASE with an open `<!-- todo -->` gate marker, but under rule 4 they bind the annex, not this function. Editions: an implementor-defined correspondence with no locale is the ONLY behaviour at 85 and stays correct at 2002/2014/2023; the 'when a locale is not in effect' qualifier itself is 2002 wording. TEST-REF EMPTIED: StringFamily_PinnedToSpec is spec-derived, but `LOWER-CASE(\"HELLO9Z\") => [hello9z ]` is pure basic Latin, where EVERY candidate correspondence agrees - it cannot distinguish the invariant-table determination from any other, and it does not touch the unimplemented condition half at all.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T5 (2026-08-19) — was PARTIAL (the condition 'when a locale is not in effect' was unimplemented: the invariant fold was taken unconditionally). Now the ELSE-ARM of r2 and r3: the invariant tables (CONFORMANCE.md §3; Annex A item 35) apply exactly when no LOCALE phrase is given and no classification locale is in effect for the operand's class — the PLAIN program of the golden lowers/uppers invariantly while the run unit's LC_CTYPE is Turkish. Rule --check verified at 15.57.4 4).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.57.4-5",
@@ -46129,12 +46129,12 @@
   "kind": "RV",
   "ordinal": 5,
   "subject": "LOWER-CASE function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#TextInfo",
+  "test-ref": "conformance:2002/pb64t5_character_classification; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
   "editions": "85,2002,2014,2023",
-  "notes": "SUSTAINED. FIRST SENTENCE IMPLEMENTED, SECOND SENTENCE UNREACHABLE, AND THE FIRST IS UNTESTED. Rule --check verified at 15.57.4 5). The same-length half holds by construction: .NET's ToLowerInvariant is a SIMPLE (per-code-point) case mapping, never a full/expanding one, so the returned string has the argument image's exact length; IntrinsicRenderer.cs line 397 comments the family as 'length-preserving' and Reverse/UpperCase share the arm. The SECOND sentence (a non-one-to-one correspondence may return a longer or shorter string) can only arise from a locale correspondence, and no locale correspondence can ever be realized here (rule 2 is refused with COBOLNET1518; rule 3's CHARACTER CLASSIFICATION clause is discarded), so that half is not implemented - dead rather than wrong. PARTIAL, not CONFORMS, because only one of the rule's two halves was verified. NO TEST pins the length: the nearest candidate, StringFamily_PinnedToSpec, moves LOWER-CASE(\"HELLO9Z\") - 7 characters - into an X(8) receiver, so the trailing space in its expected `[hello9z ]` comes from the MOVE's padding, not from the function preserving width. Deliberately leaving test-ref EMPTY rather than citing a test that does not exercise this rule.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T5 (2026-08-19) — was PARTIAL (the locale half unreachable). DETERMINATION L9: the LC_CTYPE correspondence is SIMPLE (TextInfo.ToLower — one code unit to one, as ISO 9945's tolower is), so it is always one-to-one and the returned string has argument-1's length in every case: LEN-LO = 1 for LOWER-CASE(\"I\") under tr (the tailored dotless ı), and the locale-phrase form in the unit test. The second sentence is a permission not exercised; documented under §4.2.7. Rule --check verified at 15.57.4 5).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.57.4-6",
@@ -46142,12 +46142,12 @@
   "kind": "RV",
   "ordinal": 6,
   "subject": "LOWER-CASE function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase",
+  "test-ref": "unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype; conformance:2002/pb64t5_character_classification",
   "editions": "85,2002,2014,2023",
-  "notes": "SUSTAINED. FIRST CLAUSE IMPLEMENTED, LOCALE CLAUSE ABSENT. Rule --check verified at 15.57.4 6). The no-locale half holds: ToLowerInvariant is a TOTAL map that is the identity on every code point carrying no lowercase mapping, so an uppercase letter with no lowercase correspondent is returned unchanged, character for character, with no substitution and no dropping. The SECOND clause - 'when a locale is in effect for character classification and there is no lowercase correspondence specified in the locale, the letter or letters are unchanged' - has no implementation, because no locale correspondence is ever realized (rule 2 rejects with COBOLNET1518 per A.4.9 item 6; rule 3's CHARACTER CLASSIFICATION clause is silently discarded, see RV-15.57.4-3). PARTIAL per the two-halves discipline. NO TEST covers even the first clause: the only LOWER-CASE assertion in the greenfield tree, StringFamily_PinnedToSpec's `LOWER-CASE(\"HELLO9Z\") => [hello9z ]`, contains no uppercase LETTER lacking a lowercase correspondent - its '9' is a digit, which rule 1 already leaves alone by not being a letter at all, so it does not exercise this rule. (tests/CobolSharp.Tests.Integration/IntrinsicFunctionTests.cs line 402 also references LOWER-CASE but is a LEGACY-engine integration test, not a greenfield spec-derived one, and cannot close a row either.) test-ref left EMPTY rather than reaching for that or for a differential.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T5 (2026-08-19) — was PARTIAL (the locale clause absent). Both clauses hold by the same property: TextInfo.ToLower / ToLowerInvariant are TOTAL maps, the identity on every code point without a simple lowercase mapping, so an uppercase letter with no correspondent — under the implementor's map or in a locale whose LC_CTYPE gives none — is returned unchanged, character for character (the unit test's de-DE / invariant arms; the goldens' non-letter and untailored letters). Rule --check verified at 15.57.4 6).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.58.3-1",
@@ -48677,12 +48677,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "UPPER-CASE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale",
+  "test-ref": "conformance:negative/pb58-upper-zero; conformance:2002/pb64t5_case_locale_phrase; conformance:2023/pb58_argument_predicates_legal",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB58 / PB64 T5 (2026-08-19): UPPER-CASE's Verified row mirrors LOWER-CASE's (AR-15.57.3-1) — class alphabetic / alphanumeric / national with a MinWidth(1) predicate (negative pb58-upper-zero rejects a zero-length reference-modified argument; a one-character literal binds in the T5 golden) — and the LOCALE-phrase path (BindCaseFunctionWithLocale) binds argument-1 through the SAME row's class screen (CheckArgumentClasses), so the phrase adds no second argument rule.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.97.4-1",
@@ -48690,12 +48690,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "UPPER-CASE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+  "test-ref": "conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_case_locale_phrase; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19): a string with argument-1's content, lowercase letters replaced by their uppercase correspondents — under a locale (i → İ, a → A in the goldens, abc → ABC in the unit test) and under the implementor's map alike; non-letters and letters without a correspondent pass through (r6). The three arms of the renderer (LOCALE phrase / classification / plain) all return this shape.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.97.4-2",
@@ -48703,12 +48703,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "UPPER-CASE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; conformance:negative/pb64t5-case-phrase-name-undeclared; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype; conformance-test:LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19) — LANDED; was NOT-IMPLEMENTED behind the COBOLNET1518 by-name refusal (A.4.9 item 13). With the LOCALE phrase the correspondence is LC_CTYPE of locale-name-1's locale: UPPER-CASE(\"i\" LOCALE TR) → U+0130 (ORD 305) whatever the current locale and whatever the module's classification (PHRASE-UP). locale-name-1 shall be a SPECIAL-NAMES LOCALE clause's name (COBOLNET1664 otherwise); the phrase is the 2002 construct row case-function-locale-phrase-2002; an unavailable named locale is EC-LOCALE-MISSING at use (§8.2.1), the root's map standing when checking is off. Rule --check verified at 15.97.4 2).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.97.4-3",
@@ -48716,12 +48716,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "UPPER-CASE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/Cobol.Net.Runtime/Globalization/CharacterClassification.cs#For",
+  "test-ref": "conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_case_locale_phrase",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19) — LANDED; was DIVERGES (the CHARACTER CLASSIFICATION clause was swallowed silently, then refused by name). Without a LOCALE phrase, in a module whose (own or inherited) CHARACTER CLASSIFICATION puts a locale in effect for the operand's class, the correspondence is that locale's LC_CTYPE — UPPER-CASE(\"i\") → U+0130 under CLASSIFICATION IS TR (UP-I), and under CLASSIFICATION IS LOCALE the locale current at the module's ACTIVATION (INNER = 305 vs OUTER-2 = 74). Rule --check verified at 15.97.4 3).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.97.4-4",
@@ -48729,12 +48729,12 @@
   "kind": "RV",
   "ordinal": 4,
   "subject": "UPPER-CASE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase; src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19): the implementor's correspondence — the .NET invariant case tables (CONFORMANCE.md §3, the case-mapping bullet; Annex A item 35 needs no documentation) — is now the ELSE-ARM it is meant to be: taken when no LOCALE phrase is given and the module has no classification for the operand's class (the PLAIN program → 74 even while LC_CTYPE is Turkish; the null-facts unit arm). At 85 it is the only behaviour. Rule --check verified at 15.97.4 4).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.97.4-5",
@@ -48742,12 +48742,12 @@
   "kind": "RV",
   "ordinal": 5,
   "subject": "UPPER-CASE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#TextInfo",
+  "test-ref": "conformance:2002/pb64t5_character_classification; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19) — DETERMINATION L9: COBOL.NET's LC_CTYPE correspondence is SIMPLE (one code unit to one — TextInfo.ToUpper/ToLower, which ISO 9945's toupper/tolower also are), so the correspondence is ALWAYS one-to-one and the returned string has argument-1's length in every case (LEN-UP = 1 for a tailored letter; 'straße' → 'STRAßE', length 6, in the unit test — never 'STRASSE'). The rule's second sentence ('may be longer or shorter') is a permission an implementation with a one-to-one correspondence is not obliged to exercise; documented under §4.2.7 in CONFORMANCE.md §4 item 5. Rule --check verified at 15.97.4 5).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.97.4-6",
@@ -48755,12 +48755,12 @@
   "kind": "RV",
   "ordinal": 6,
   "subject": "UPPER-CASE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase",
+  "test-ref": "unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype; conformance:2002/pb64t5_character_classification",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19): both halves — a lowercase letter with no uppercase correspondent is unchanged under the implementor's map (ß under the invariant tables), and under a locale a letter the locale's LC_CTYPE gives no correspondence for is unchanged too ('straße' LOCALE de-DE → 'STRAßE'): TextInfo.ToUpper is a TOTAL map that is the identity on every code point without a simple uppercase mapping — no substitution, no dropping, no expansion. Rule --check verified at 15.97.4 6).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.98.3-1",
@@ -49978,10 +49978,10 @@
   "ordinal": 0,
   "subject": "OBJECT-COMPUTER paragraph",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#characterClassificationClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
-  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:negative/pb78-object-computer-clause-without-name-85; conformance:negative/pb78-object-computer-character-classification; conformance:negative/pb78-object-computer-duplicate-clause; conformance:2023/pb3_ord_collating_tail",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#characterClassificationClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveClassification",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:negative/pb78-object-computer-clause-without-name-85; conformance:negative/pb78-object-computer-duplicate-clause; conformance:negative/pb64t5-classification-twice; conformance:negative/pb64t5-classification-name-undeclared; conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_case_locale_phrase; conformance:2023/pb3_ord_collating_tail",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB78 (2026-08-18): OBJECT-COMPUTER. [computer-name-1] [ | CHARACTER CLASSIFICATION … | PROGRAM COLLATING SEQUENCE … | ] . — computer-name-1 is optional and the two clauses may follow the period directly, in any order, each at most once (the figure notes; a duplicate is COBOLNET1652). The '85 format hung the clauses off a REQUIRED name, so the name-less clause form is gated below 2002 (computer-name-optional-2002, COBOLNET0900) — it was `unexpected 'PROGRAM'`. CHARACTER CLASSIFICATION is parsed and rejected as A.4.9 item 7 documented non-support (COBOLNET1518) at every edition — the attribute sink used to swallow it silently after a name. The MEMORY SIZE / SEGMENT-LIMIT sink stays behind the name (VisitComputerAttributes).",
+  "notes": "kb/Work PB78 / PB64 T5 (2026-08-19): OBJECT-COMPUTER. [computer-name-1] [ | CHARACTER CLASSIFICATION … | PROGRAM COLLATING SEQUENCE … | ] . — computer-name-1 is optional and the two clauses may follow the period directly, in any order, each at most once (the figure notes; a duplicate is COBOLNET1652 — pb78 for the PCS, pb64t5-classification-twice for the classification). The '85 format hung the clauses off a REQUIRED name, so the name-less clause form is gated below 2002 (computer-name-optional-2002, COBOLNET0900). CHARACTER CLASSIFICATION is LIVE (T5): IS locale-phrase-1 [locale-phrase-2] or the FOR ALPHANUMERIC / FOR NATIONAL forms, each locale-phrase one of locale-name | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT (the two goldens; an undeclared locale-name is COBOLNET1664); the clause is the 2002 construct row character-classification-2002. The MEMORY SIZE / SEGMENT-LIMIT sink stays behind the name (VisitComputerAttributes).",
   "state": "OK"
  },
  {
@@ -52590,12 +52590,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "LOWER-CASE function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#HasLocalePhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LocaleUnsupported",
-  "test-ref": "conformance-test:LocaleDispositionTests.LowerCaseLocale_A49",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#HasLocalePhrase; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; conformance:negative/pb64t5-case-phrase-name-undeclared; conformance-test:LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive; conformance-test:LocaleDispositionTests.SupportedFunctions_WithoutLocale_StillWork",
   "editions": "85,2002,2014,2023",
-  "notes": "SUSTAINED, with two evidence corrections. MISSING PART = the bracketed [LOCALE locale-name-1] arm, which is refused rather than accepted. Format --check verified at 15.57.2. The required arm conforms in both reference forms: `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)? refModPart*` (line 325) -> `functionArgList : functionArgument (FNARG_SEPARATOR? functionArgument)*` (line 344) -> `functionArgument : fnArgPhraseWord | OMITTED | nonNumericLiteral | arithmeticExpression` (line 355); the keyword-omitted REPOSITORY form re-lexes its captured subscriptPart through ReparseArgs (IntrinsicBinder.cs lines 73/256/330 - VERIFIED present) into the SAME FunctionArgumentContext list and the same BindIntrinsicCore, so both reach the catalog row (line 125: IntrinsicType.Alphanumeric, Fixed 1..1, matching 15.57.1's type table and the format's single mandatory operand). Wrong arity draws the named COBOLNET1504 citing 15.3 (line 456). The optional arm is DOCUMENTED NON-SUPPORT, not a defect: LOCALE is not a lexer token in this grammar, so the phrase parses as extra space-separated arguments; HasLocalePhrase scans positions 2..n via KeywordWordOf and BindIntrinsicCore returns LocaleUnsupported at line 418-419, BEFORE the arity check, giving COBOLNET1518 by name. That is A.4.9 item 6, 'LOWER-CASE function, LOCALE keyword (15.57)' (--check verified), owner-ratified decision 3, published in docs/CONFORMANCE.md section 4 item 5 (READ - it names the LOCALE phrases of LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C and the COBOLNET1518 error explicitly) and the section 5 A.4.9 'Not claimed' row (line 243). I am RECORDING that decision, not choosing it, so this is not NEEDS-OWNER-DECISION. PARTIAL rather than CONFORMS because a general-format element the standard admits is not accepted. Editions: the function and its argument-1 arm are 85; the LOCALE arm is 2002+, locale support having arrived with COBOL-2002. TEST-REF CORRECTED: LocaleDispositionTests.LowerCaseLocale_A49 and the negative case (both READ and confirmed present, .cob + .err + manifest line 79) are spec-derived and retained; LocaleDispositionTests.SupportedFunctions_WithoutLocale_StillWork has been REMOVED from test-ref - I read its body and it asserts only `Assert.True(ok)`, i.e. that the no-LOCALE form COMPILES. It pins no format element and no value, so it cannot close any part of this row.",
-  "state": "GAP"
+  "notes": "kb/Work PB64 T5 (2026-08-19) — was PARTIAL (the bracketed [LOCALE locale-name-1] arm refused by name). Both arms accepted now: argument-1 alone (85+), and argument-1 LOCALE locale-name-1 (2002+ — the construct row case-function-locale-phrase-2002; COBOLNET0900 below 2002). LOCALE is still not a lexer token — the phrase arrives as two extra function arguments and BindCaseFunctionWithLocale checks the shape (exactly LOCALE + one word, COBOLNET1504 otherwise) and resolves the word as a SPECIAL-NAMES locale-name (COBOLNET1664 otherwise). Format --check verified at 15.57.2.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.58.2",
@@ -53110,12 +53110,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "UPPER-CASE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#HasLocalePhrase; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+  "test-ref": "conformance:2002/pb64t5_case_locale_phrase; conformance:negative/pb64t5-case-phrase-name-undeclared; conformance-test:LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive; conformance-test:LocaleDispositionTests.SupportedFunctions_WithoutLocale_StillWork",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB64 T5 (2026-08-19): FUNCTION UPPER-CASE ( argument-1 [ LOCALE locale-name-1 ] ) — argument-1 alone (85+) and with the LOCALE phrase (2002+, the construct row case-function-locale-phrase-2002); LOWER-CASE's twin in every respect (FMT-15.57.2). Format --check verified at 15.97.2.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.98.2",

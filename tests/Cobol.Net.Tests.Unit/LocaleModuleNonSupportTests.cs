@@ -14,9 +14,10 @@ namespace CobolNet.Tests.Unit;
 /// The §A.4.9 locale-module disposition's SECOND half (fix-queue PB27 §③): a function that is documented
 /// non-support (rejected by COBOLNET1518 at every edition) must NOT also assert an INTRODUCTION EDITION — and,
 /// since kb/Work PB64 T4 made the four locale FUNCTIONS live, the converse: their D8 edition window IS enforced
-/// again (COBOLNET1502 below it, the function binding at and after it). What still carries the non-support
-/// disposition is the LOCALE keyword PHRASE of LOWER-CASE / UPPER-CASE / NUMVAL-C / TEST-NUMVAL-C (T5/T6), and
-/// that phrase draws 1518 at every edition with no 1502 beside it.
+/// again (COBOLNET1502 below it, the function binding at and after it), and PB64 T5 did the same for the LOCALE
+/// phrase of LOWER-CASE / UPPER-CASE (a 2002 construct gate, COBOLNET0900 below 2002). What still carries the
+/// non-support disposition is the LOCALE keyword PHRASE of NUMVAL-C / TEST-NUMVAL-C (T6), and that phrase draws
+/// 1518 at every edition with no 1502 beside it.
 /// <para>
 /// ⛔ COBOLNET1502 STATES A FACT ABOUT THE STANDARD — "was introduced by ISO/IEC 1989:{year}" — AND FOR THIS
 /// FAMILY THAT YEAR IS UNVERIFIABLE. The 2023 standard carries no introduction record: §8.11 lists the intrinsic
@@ -54,7 +55,7 @@ public sealed class LocaleModuleNonSupportTests
     }
 
     /// <summary>At EVERY edition the non-support diagnostic is the whole story for a still-unclaimed element — the
-    /// LOCALE phrase of LOWER-CASE (T5) — and never an edition claim beside it.</summary>
+    /// LOCALE phrase of NUMVAL-C (T6) — and never an edition claim beside it.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
@@ -62,9 +63,28 @@ public sealed class LocaleModuleNonSupportTests
     [InlineData(2023)]
     public void ALocalePhrase_ReportsNonSupportOnly_AtEveryEdition(int edition)
     {
-        var errors = CompileErrors("           MOVE FUNCTION LOWER-CASE(R LOCALE FR) TO R.\n", edition);
+        var errors = CompileErrors("           COMPUTE S = FUNCTION NUMVAL-C(\"12,34\" LOCALE FR).\n", edition);
         Assert.Contains(errors, e => e.Contains("COBOLNET1518"));
         Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1502"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET0900"));
+    }
+
+    /// <summary>⚙ THE SUPPRESSION LIFTED a second time (kb/Work PB64 T5): the LOCALE phrase of LOWER-CASE / UPPER-CASE
+    /// is LIVE, so it is a 2002 construct gate — COBOLNET0900 below 2002 naming the phrase — and, at and after 2002,
+    /// the phrase binds (here to an UNDECLARED locale-name, the one undeclared-locale-name diagnostic COBOLNET1664 —
+    /// this helper declares no SPECIAL-NAMES LOCALE). Never 1518 any more, at any edition.</summary>
+    [Theory]
+    [InlineData(85, true)]
+    [InlineData(2002, false)]
+    [InlineData(2014, false)]
+    [InlineData(2023, false)]
+    public void TheCaseFunctionLocalePhrase_IsEditionGated_NowThatItIsLive(int edition, bool gated)
+    {
+        var errors = CompileErrors("           MOVE FUNCTION LOWER-CASE(R LOCALE FR) TO R.\n", edition);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+        if (gated) Assert.Contains(errors, e => e.Contains("COBOLNET0900") && e.Contains("LOCALE phrase"));
+        else Assert.DoesNotContain(errors, e => e.Contains("COBOLNET0900"));
+        Assert.Contains(errors, e => e.Contains("COBOLNET1664"));
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED (kb/Work PB64 T4 — the forcing function the class summary promised): the four

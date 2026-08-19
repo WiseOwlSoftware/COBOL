@@ -1105,6 +1105,15 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §12.3.6.2 — Annex A.4.9 item 7; kb/Work PB64
+        /// T5): a 2002 introduction, gated on recognition (the clause parses at every edition — CLASSIFICATION is a
+        /// context-sensitive word matched by text).</summary>
+        public override object? VisitCharacterClassificationClause(CobolParserCore.CharacterClassificationClauseContext ctx)
+        {
+            _p.Check(Constructs.CharacterClassification2002, "the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The SPECIAL-NAMES LOCALE clause (ISO §12.3.7.2 — the locale facility's declaration, Annex A.4.9 item
         /// 10; kb/Work PB64 T1): a 2002 introduction, gated on recognition. The grammar recognizes the clause by SHAPE at
         /// every edition (the '85 switch shapes are excluded by its predicate), so below 2002 the answer is this

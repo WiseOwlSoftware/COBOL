@@ -90,6 +90,35 @@ public static class CobolLocale
         return FormatTime(facts, hh, mm, ss, fraction);
     }
 
+    // ── UPPER-CASE / LOWER-CASE (§15.97 / §15.57; A.4.9 items 13 / 6; T5) ───────────────────────────────────────
+
+    /// <summary>UPPER-CASE with a LOCALE phrase (§15.97.4 r2 — "the correspondence of lowercase to uppercase letters is
+    /// determined from locale category LC_CTYPE in the locale associated with locale-name-1"): the named locale's
+    /// culture case mapping. ⚖ DETERMINATION L9: the mapping is SIMPLE (one code unit to one — <see cref="TextInfo"/>),
+    /// which §15.97.4 r5 admits and ISO 9945's LC_CTYPE toupper is; a letter without an uppercase correspondence is
+    /// unchanged (r6). EC-LOCALE-MISSING / EC-LOCALE-INVALID as the other LOCALE functions.</summary>
+    public static string UpperCase(string? s, string localeTag) => UpperCase(s, Facts(localeTag, LocaleCategory.Ctype, "UPPER-CASE"));
+
+    /// <summary>LOWER-CASE with a LOCALE phrase (§15.57.4 r2) — the named locale's LC_CTYPE; L9 simple mapping; r6.</summary>
+    public static string LowerCase(string? s, string localeTag) => LowerCase(s, Facts(localeTag, LocaleCategory.Ctype, "LOWER-CASE"));
+
+    /// <summary>UPPER-CASE under the module's CHARACTER CLASSIFICATION (§15.97.4 r3 — a locale in effect for character
+    /// classification; §12.3.6.4 GR7a): <paramref name="facts"/> null is the coded character set's correspondence —
+    /// the implementor's (r4), <see cref="string.ToUpperInvariant"/> — exactly what the function without any locale
+    /// did before T5.</summary>
+    public static string UpperCase(string? s, LocaleFacts? facts)
+    {
+        facts = facts?.Require(LocaleCategory.Ctype, "FUNCTION UPPER-CASE under the CHARACTER CLASSIFICATION", "ISO §15.97.4 r3 / §12.3.6.4 GR7a");
+        return facts is null || !facts.HasCultureData ? (s ?? "").ToUpperInvariant() : facts.TextInfo.ToUpper(s ?? "");
+    }
+
+    /// <summary>LOWER-CASE under the module's CHARACTER CLASSIFICATION (§15.57.4 r3; r4 when none).</summary>
+    public static string LowerCase(string? s, LocaleFacts? facts)
+    {
+        facts = facts?.Require(LocaleCategory.Ctype, "FUNCTION LOWER-CASE under the CHARACTER CLASSIFICATION", "ISO §15.57.4 r3 / §12.3.6.4 GR7a");
+        return facts is null || !facts.HasCultureData ? (s ?? "").ToLowerInvariant() : facts.TextInfo.ToLower(s ?? "");
+    }
+
     // ── resolution ─────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The named locale's collating sequence (§15.51.4 r3): EC-LOCALE-MISSING when unavailable — raised by
@@ -99,18 +128,25 @@ public static class CobolLocale
     /// <summary>The facts of the named (else current) locale for <paramref name="category"/>: EC-LOCALE-MISSING for an
     /// unavailable named locale (the root's facts stand when checking is off); EC-LOCALE-INVALID when the locale has
     /// no culture data for the category (the invariant facts stand).</summary>
+    /// <summary>The facts of a function's locale — locale-name-1's when given, else the locale CURRENT for the category
+    /// (§14.6.6 r7/r8) — through the ONE §8.2.1 gate (<see cref="LocaleFacts.Require"/>): EC-LOCALE-MISSING for an
+    /// unavailable named locale (the rule each function states — §15.51.4 r3, §15.52.4 r1, §15.53.4 r1, §15.54.4 r1;
+    /// §15.97.4 r2 / §15.57.4 r2 name the locale without restating the condition), the ROOT's answer standing when
+    /// checking is off; EC-LOCALE-INVALID for incomplete content.</summary>
     private static LocaleFacts Facts(string? localeTag, LocaleCategory category, string fn)
     {
         string tag = localeTag ?? RunUnit.Current.Locale.Current(category);
-        if (localeTag is not null && !LocaleIdentification.IsAvailable(tag))
+        string rule = fn switch
         {
-            ExceptionState.LocaleMissingError($"FUNCTION {fn}: the locale '{localeTag}' of locale-name-1 is not available in this operating environment (ISO §15.5{(fn == "LOCALE-DATE" ? "2" : fn == "LOCALE-TIME" ? "3" : "4")}.4 r1)");
-            return LocaleFacts.Root;
-        }
-        var facts = LocaleFacts.For(tag);
-        if (!facts.HasCultureData && facts.Collate.Length > 0)
-            ExceptionState.LocaleInvalidError($"FUNCTION {fn}: the locale '{tag}' has no {category switch { LocaleCategory.Time => "LC_TIME", LocaleCategory.Ctype => "LC_CTYPE", LocaleCategory.Monetary => "LC_MONETARY", _ => "category" }} content in this environment — its locale content is incomplete (ISO §8.2.1)");
-        return facts;
+            "LOCALE-COMPARE" => "ISO §15.51.4 r3",
+            "LOCALE-DATE" => "ISO §15.52.4 r1",
+            "LOCALE-TIME" => "ISO §15.53.4 r1",
+            "LOCALE-TIME-FROM-SECONDS" => "ISO §15.54.4 r1",
+            "UPPER-CASE" => "ISO §15.97.4 r2",
+            "LOWER-CASE" => "ISO §15.57.4 r2",
+            _ => "ISO §8.2.1",
+        };
+        return LocaleFacts.For(tag).Require(category, $"FUNCTION {fn}{(localeTag is not null ? " (locale-name-1)" : "")}", rule) ?? LocaleFacts.Root;
     }
 
     // ── t_fmt rendering ────────────────────────────────────────────────────────────────────────────────────────

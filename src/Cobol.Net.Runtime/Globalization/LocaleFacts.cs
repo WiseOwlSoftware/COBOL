@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using CobolNet.Runtime.Collation;
 using CobolNet.Runtime.Collation.Cldr;
+using CobolNet.Runtime.Exceptions;
 
 namespace CobolNet.Runtime.Globalization;
 
@@ -28,7 +29,9 @@ namespace CobolNet.Runtime.Globalization;
 /// false, the invariant culture's fields stand in, and an operation that needs the category raises
 /// EC-LOCALE-INVALID (gated; with checking off the invariant-formatted result stands). Under .NET's invariant
 /// globalization mode every culture collapses to the invariant one — detected once (<see cref="InvariantMode"/>),
-/// and every non-root locale's culture data is then INCOMPLETE for the same reason.</para>
+/// and every non-root locale's culture data is then INCOMPLETE for the same reason. <see cref="Require"/> is the
+/// ONE place both conditions are raised — every operation that needs a category (the LOCALE functions, the case
+/// functions and class tests under a CHARACTER CLASSIFICATION, PICTURE format 2) asks it at USE.</para>
 /// </summary>
 public sealed class LocaleFacts
 {
@@ -43,6 +46,7 @@ public sealed class LocaleFacts
         Collate = tag;
         Culture = culture;
         HasCultureData = hasCultureData;
+        IsAvailable = tag.Length == 0 || LocaleIdentification.IsAvailable(tag);
         DateTimeFormat = culture.DateTimeFormat;
         NumberFormat = culture.NumberFormat;
         TextInfo = culture.TextInfo;
@@ -70,6 +74,46 @@ public sealed class LocaleFacts
     /// <summary>True when a predefined .NET culture backs the tag (itself or an ancestor) and the process is not in
     /// invariant globalization mode — i.e. the category data is the locale's own, not the invariant stand-in.</summary>
     public bool HasCultureData { get; }
+
+    /// <summary>True when the locale IS AVAILABLE in this operating environment (the ONE known-locale rule,
+    /// <see cref="LocaleIdentification.IsAvailable"/>; the root always is). A CHARACTER CLASSIFICATION or LOCALE
+    /// phrase may name a declared locale no environment provides — the compiler never resolves an external
+    /// identification (DETERMINATION L1) — so its facts exist, unavailable, until an operation asks <see cref="Require"/>.</summary>
+    public bool IsAvailable { get; }
+
+    /// <summary>⛔ THE ONE §8.2.1 GATE — "If the locale is not found during an operation requiring a locale, the
+    /// EC-LOCALE-MISSING exception condition is set to exist and the operation is unsuccessful. If the locale content
+    /// is invalid or incomplete during an operation using a locale, the EC-LOCALE-INVALID exception condition is set
+    /// to exist and the operation is unsuccessful." Called by every operation that needs <paramref name="category"/>
+    /// of this locale, AT USE (a class test, a case function, a LOCALE function, an edit): an UNAVAILABLE locale
+    /// raises EC-LOCALE-MISSING (checking-gated, §14.6.13.1.1) and returns null — the caller's "no locale content"
+    /// arm, the coded character set's behavior, stands when checking is off (the implementor's determination under
+    /// §14.6.13.1.3 #8); an available locale WITHOUT culture data for the category raises EC-LOCALE-INVALID (gated)
+    /// and returns itself — the invariant stand-in fields are what the caller then reads. <paramref name="operation"/>
+    /// names the operation for the message ("FUNCTION LOCALE-DATE", "class condition ALPHABETIC"), <paramref
+    /// name="rule"/> the rule that makes the locale required there ("ISO §15.52.4 r1").</summary>
+    public LocaleFacts? Require(LocaleCategory category, string operation, string rule)
+    {
+        if (!IsAvailable)
+        {
+            ExceptionState.LocaleMissingError($"{operation}: the locale '{Collate}' is not available in this operating environment ({rule}; ISO §8.2.1)");
+            return null;
+        }
+        if (!HasCultureData && Collate.Length > 0)
+            ExceptionState.LocaleInvalidError($"{operation}: the locale '{Collate}' has no {CategoryName(category)} content in this environment — its locale content is incomplete ({rule}; ISO §8.2.1)");
+        return this;
+    }
+
+    private static string CategoryName(LocaleCategory category) => category switch
+    {
+        LocaleCategory.Collate => "LC_COLLATE",
+        LocaleCategory.Ctype => "LC_CTYPE",
+        LocaleCategory.Messages => "LC_MESSAGES",
+        LocaleCategory.Monetary => "LC_MONETARY",
+        LocaleCategory.Numeric => "LC_NUMERIC",
+        LocaleCategory.Time => "LC_TIME",
+        _ => "category",
+    };
 
     /// <summary>LC_TIME — the culture's date/time formats (<c>d_fmt</c> = <see cref="DateTimeFormatInfo.ShortDatePattern"/>,
     /// <c>t_fmt</c> = <see cref="DateTimeFormatInfo.LongTimePattern"/>; L10).</summary>

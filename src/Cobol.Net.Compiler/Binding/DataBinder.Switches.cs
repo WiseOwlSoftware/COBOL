@@ -53,6 +53,17 @@ public sealed partial class DataBinder
     /// or the sparse <see cref="NationalCollatingTable"/> of a literal phrase.</summary>
     public Dictionary<string, NationalAlphabetDef> NationalAlphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Is <paramref name="alphabetName"/> an alphabet "associated with a locale" (ISO §8.8.4.4.3 SR2) /
+    /// "specified with the LOCALE phrase" (§12.3.7.3 SR16g / SR17d) — of EITHER class (<c>ALPHABET … IS LOCALE</c>
+    /// registers in <see cref="Alphabets"/>, <c>ALPHABET … FOR NATIONAL IS LOCALE</c> in <see cref="NationalAlphabets"/>)?
+    /// Such an alphabet defines a collating sequence only (§12.3.7.4 GR7, Table 6: the LOCALE row names no coded
+    /// character set), so the ONE question every site that needs a CODED CHARACTER SET asks is this one (kb/Work PB64
+    /// T5 — the class condition's alphabet-name-1 today; the CLASS / SYMBOLIC CHARACTERS <c>IN</c> phrases and CODE-SET
+    /// when they bind, kb/Work PB110). An undeclared name is not a locale alphabet — its own diagnostic is elsewhere.</summary>
+    public bool IsLocaleAlphabet(string alphabetName)
+        => (Alphabets.TryGetValue(alphabetName, out var a) && a.Locale is not null)
+        || (NationalAlphabets.TryGetValue(alphabetName, out var n) && n.Locale is not null);
+
     /// <summary>SPECIAL-NAMES <c>ORDER TABLE</c> ordering-names (case-insensitive) → the DECODED literal-9 that
     /// identifies the cultural ordering table (ISO §12.3.7.2's last clause; §12.3.7.4 GR17 — "When ORDER TABLE is
     /// specified, ordering-name-1 shall reference a cultural ordering table that is identified by literal-9 and
@@ -72,6 +83,13 @@ public sealed partial class DataBinder
     /// -DATE / -TIME, UPPER-CASE / LOWER-CASE and CHARACTER CLASSIFICATION. The symbol holds the EXTERNAL IDENTIFICATION
     /// only (§8.1.5 — the locale is "determined at runtime"); it inherits into contained units (§12.3.7.4 GR1).</summary>
     public Dictionary<string, LocaleSymbol> Locales { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The OBJECT-COMPUTER <c>CHARACTER CLASSIFICATION</c> clause (ISO §12.3.6.2; §12.3.6.4 GR5–GR8; kb/Work PB64
+    /// T5), or null when none is specified and no containing unit specifies one (GR6 — the coded character set's
+    /// classification). Inherited per §12.3.6.4 GR1; consumed by the emitter (resolved at each activation —
+    /// <c>__CLASSIFY</c>), by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§15.97.4 r3 / §15.57.4 r3) and by the
+    /// ALPHABETIC class tests (§8.8.4.4.4 GR3).</summary>
+    public ClassificationSpec? Classification { get; private set; }
 
     /// <summary>The resolved ALPHANUMERIC PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9–GR11) — a literal-phrase table
     /// or a LOCALE sequence — or null when none is specified / the named alphabet is the native order. Drives
@@ -236,8 +254,10 @@ public sealed partial class DataBinder
         foreach (var (k, v) in container.NationalAlphabets) NationalAlphabets.TryAdd(k, v);
         foreach (var (k, v) in container.OrderTables) OrderTables.TryAdd(k, v);
         foreach (var (k, v) in container.Locales) Locales.TryAdd(k, v);   // §12.3.7.4 GR1 — locale-names reach contained units
-        // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§12.3.6 GR9–GR11)
+        // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§12.3.6 GR9–GR11) and CHARACTER CLASSIFICATION (GR1 — every
+        // OBJECT-COMPUTER clause applies to the contained units)
         Collating = container.Collating;
+        Classification = container.Classification;
         NationalCollating = container.NationalCollating;
         // SOURCE-COMPUTER … WITH DEBUGGING MODE (the '85 compile-time switch)
         DebuggingModeDeclared = container.DebuggingModeDeclared;
@@ -362,6 +382,7 @@ public sealed partial class DataBinder
     private void SwitchBindSpecialNames(Core.ProgramUnitContext program)
     {
         Core.ProgramCollatingSequenceClauseContext? pcsClause = null;
+        Core.CharacterClassificationClauseContext? ccClause = null;
         foreach (var para in EnvDivisions(program)
                      .SelectMany(env => env.configurationSection()?.configurationParagraph() ?? []))
         {
@@ -382,15 +403,18 @@ public sealed partial class DataBinder
                                 + "(ISO §12.3.6.2 — the paragraph's clauses may each appear at most once, §5.2.6.4)");
                         pcsClause = pcs;
                     }
-                    // §12.3.6 CHARACTER CLASSIFICATION — an §A.4.9 item 7 optional-locale element ("OBJECT-COMPUTER
-                    // paragraph, CHARACTER CLASSIFICATION clause"). Documented non-support is conformant per §4.2.7 /
-                    // §A.4.1 only because it is DIAGNOSED: the same COBOLNET1518 the SPECIAL-NAMES LOCALE clause and
-                    // the LOCALE phrases carry (kb/Work PB78 — the attribute sink swallowed it silently after a name).
-                    if (oc.characterClassificationClause() is not null)
-                        Edition.Error("COBOLNET1518", "the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause is in the optional "
-                            + "locale module (ISO/IEC 1989:2023 Annex A §A.4.9 item 7), which COBOL.NET does not support — "
-                            + "documented non-support, conformant per ISO §4.2.7 / §A.4.1; the character classification is "
-                            + "that of the runtime coded character set (§12.3.6.4 GR6).");
+                    // §12.3.6 CHARACTER CLASSIFICATION (Annex A.4.9 item 7) — IMPLEMENTED since kb/Work PB64 T5 (it was
+                    // refused by name with COBOLNET1518 since PB78, and swallowed by the attribute sink before that).
+                    // Saved and resolved AFTER the SPECIAL-NAMES paragraph, whose LOCALE clauses declare the names it
+                    // references (§12.3.6.3 SR3) — the PCS takes the same path. A second clause is COBOLNET1652.
+                    if (oc.characterClassificationClause() is { } cc)
+                    {
+                        if (ccClause is not null)
+                            Edition.Error(DiagnosticCatalog.ObjectComputerDuplicateClause,
+                                "the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause is specified more than once "
+                                + "(ISO §12.3.6.2 — the paragraph's clauses may each appear at most once, §5.2.6.4)");
+                        ccClause = cc;
+                    }
                 }
             }
             if (para.specialNamesParagraph() is not { } sn) continue;
@@ -432,6 +456,7 @@ public sealed partial class DataBinder
         // the NAMED alphabets become the program sequences — other defined alphabets have no effect (NC219A's
         // unreferenced COLLATING-SEQ-2). A native-order alphabet leaves the sequence null (the fast path).
         if (pcsClause is not null) ResolveProgramCollating(pcsClause);
+        if (ccClause is not null) ResolveClassification(ccClause);
         FinalizeCurrencySigns();   // §12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
     }
 
@@ -491,6 +516,58 @@ public sealed partial class DataBinder
             else
                 NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
         }
+    }
+
+    /// <summary>Bind the OBJECT-COMPUTER <c>CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC
+    /// IS locale-phrase-1 | FOR NATIONAL IS locale-phrase-2}…}</c> clause (ISO §12.3.6.2; kb/Work PB64 T5): each phrase is
+    /// LOCALE (the current locale at activation), SYSTEM-DEFAULT, USER-DEFAULT, or a locale-name of the SPECIAL-NAMES
+    /// paragraph (§12.3.6.3 SR3 — undeclared → COBOLNET1664, the ONE undeclared-locale-name diagnostic); the two-phrase IS
+    /// form gives the alphanumeric then the national classification (GR5 a–j); a class named twice in the FOR form is
+    /// a form violation (§5.2.6.4 — each at most once).</summary>
+    private void ResolveClassification(Core.CharacterClassificationClauseContext cc)
+    {
+        using var _ = Edition.At(cc);
+        LocalePhrase? alphanumeric = null, national = null;
+        var fors = cc.classificationForPhrase();
+        if (fors.Length > 0)
+        {
+            foreach (var f in fors)
+            {
+                bool nat = f.NATIONAL() is not null;
+                var phrase = ClassificationPhrase(f.cobolWord().GetText(), nat);
+                if (phrase is null) return;
+                if ((nat ? national : alphanumeric) is not null)
+                {
+                    Edition.Error("COBOLNET0898", $"CHARACTER CLASSIFICATION FOR {(nat ? "NATIONAL" : "ALPHANUMERIC")} is specified more than once "
+                        + "— each alternative of the clause's brace shall be specified at most once (ISO §12.3.6.2 / §5.2.6.4)");
+                    return;
+                }
+                if (nat) national = phrase; else alphanumeric = phrase;
+            }
+        }
+        else
+        {
+            var words = cc.cobolWord();   // [0] = CLASSIFICATION, [1] = locale-phrase-1, [2] = locale-phrase-2
+            if (words.Length < 2) return;  // a malformed shape already drew a parse error
+            alphanumeric = ClassificationPhrase(words[1].GetText(), national: false);
+            if (alphanumeric is null) return;
+            if (words.Length > 2)
+            {
+                national = ClassificationPhrase(words[2].GetText(), national: true);
+                if (national is null) return;
+            }
+        }
+        Classification = new ClassificationSpec(alphanumeric, national);
+    }
+
+    private LocalePhrase? ClassificationPhrase(string word, bool national)
+    {
+        if (word.Equals("LOCALE", StringComparison.OrdinalIgnoreCase)) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.Current, null);
+        if (word.Equals("SYSTEM-DEFAULT", StringComparison.OrdinalIgnoreCase)) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.SystemDefault, null);
+        if (word.Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase)) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.UserDefault, null);
+        var sym = ResolveLocaleName(word, $"CHARACTER CLASSIFICATION{(national ? " FOR NATIONAL" : "")} {word}",
+            $"ISO §12.3.6.3 SR3 — locale-name-{(national ? 2 : 1)} shall be a locale name defined in the SPECIAL-NAMES paragraph");
+        return sym is null ? null : new LocalePhrase(Runtime.Globalization.LocalePhraseKind.Named, sym);
     }
 
     /// <summary>
