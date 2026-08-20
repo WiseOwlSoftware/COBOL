@@ -130,6 +130,29 @@ public sealed class CobolLocaleTests
         });
     }
 
+    /// <summary>⚖ DETERMINATION L10 addendum (kb/Work PB112 — CI's Linux-only red): the U+202F / U+2009 spacing newer
+    /// ICU releases put in date/time patterns is normalized to the plain space, so LOCALE-TIME's output is IDENTICAL
+    /// on every host (Windows' bundled ICU renders en-US's day-period separator as ' ', Linux's ICU ≥ 72 as U+202F —
+    /// the T4 golden failed only on the Linux runners, on a byte no assert message could show). The end-to-end pin
+    /// asserts the PLAIN-SPACE byte on the host whose ICU says otherwise; the normalizer pin is host-independent.</summary>
+    [Fact]
+    public void TimePatternSpacing_IsHostStable()
+    {
+        Assert.Equal("h:mm:ss tt", LocaleFacts.NormalizeSpacing("h:mm:ss\u202Ftt"));
+        Assert.Equal("h:mm:ss tt", LocaleFacts.NormalizeSpacing("h:mm:ss\u2009tt"));
+        Assert.DoesNotContain('\u202F', LocaleFacts.For("en-US").TimeFormat);
+        Assert.DoesNotContain('\u2009', LocaleFacts.For("en-US").TimeFormat);
+        if (!LocaleFacts.InvariantMode && LocaleFacts.For("en-US").HasCultureData)
+            RunUnit.Run(ru =>
+            {
+                ru.Locale.Set(LocaleCategory.All, "");
+                // The T4 golden's TIME-US observable, byte-for-byte: a PLAIN U+0020 before the designator, whatever
+                // the host ICU's CLDR vintage says (the golden tests/conformance/2014/pb64t4_locale_functions.out
+                // pins the same bytes at the corpus level).
+                Assert.Equal("1:05:09 PM", CobolLocale.Time("130509", "en-US"));
+            });
+    }
+
     /// <summary>UPPER-CASE / LOWER-CASE under a locale (T5): the LOCALE phrase (a tag) and the CHARACTER CLASSIFICATION
     /// (LocaleFacts) — DETERMINATION L9's simple map through the culture's TextInfo (Turkish dotted/dotless I); null
     /// facts is the invariant map; EC-LOCALE-MISSING for an unavailable named locale.</summary>

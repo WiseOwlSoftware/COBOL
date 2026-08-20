@@ -289,7 +289,10 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    > otherwise), else the locale CURRENT for LC_COLLATE / LC_TIME (§14.6.6 r7/r8). **Determinations (documented per
    > §4.2.7; DETERMINATION L10):** `d_fmt` is the .NET culture's SHORT DATE pattern and `t_fmt` its LONG TIME pattern
    > (the one carrying seconds), read once per locale by `LocaleFacts` — the ONE place a `CultureInfo` is read — from
-   > the locale tag's nearest predefined .NET culture (the tag, then its ancestors); a scaled
+   > the locale tag's nearest predefined .NET culture (the tag, then its ancestors); **the U+202F / U+2009 spacing
+   > newer ICU releases put inside those patterns normalizes to the PLAIN SPACE** (kb/Work PB112 — host ICU versions
+   > differ, and the same program must print the same bytes on every host; ISO 9945's locale data and GnuCOBOL's
+   > strftime rendition both use the plain space); a scaled
    > `LOCALE-TIME-FROM-SECONDS` argument carries its fraction into the seconds (Annex D.31.4.5's nanosecond note);
    > the result length is run-time-determined (§15.52.4 r3 / §15.53.4 r3 / §15.54.4 r3 — a dynamic-length string).
    > **`EC-LOCALE-INVALID` is raised** (§8.2.1 "invalid or incomplete") when an available locale has no culture data

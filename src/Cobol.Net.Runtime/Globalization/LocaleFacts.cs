@@ -119,11 +119,25 @@ public sealed class LocaleFacts
     /// <c>t_fmt</c> = <see cref="DateTimeFormatInfo.LongTimePattern"/>; L10).</summary>
     public DateTimeFormatInfo DateTimeFormat { get; }
 
-    /// <summary>ISO 9945 <c>d_fmt</c> — the culture's short date pattern (L10).</summary>
-    public string DateFormat => DateTimeFormat.ShortDatePattern;
+    /// <summary>ISO 9945 <c>d_fmt</c> — the culture's short date pattern (L10), spacing-normalized.</summary>
+    public string DateFormat => NormalizeSpacing(DateTimeFormat.ShortDatePattern);
 
-    /// <summary>ISO 9945 <c>t_fmt</c> — the culture's long time pattern, hours, minutes AND seconds (L10).</summary>
-    public string TimeFormat => DateTimeFormat.LongTimePattern;
+    /// <summary>ISO 9945 <c>t_fmt</c> — the culture's long time pattern, hours, minutes AND seconds (L10),
+    /// spacing-normalized (<see cref="NormalizeSpacing"/>).</summary>
+    public string TimeFormat => NormalizeSpacing(DateTimeFormat.LongTimePattern);
+
+    /// <summary>⚖ DETERMINATION L10 addendum (kb/Work PB112): the U+202F NARROW NO-BREAK SPACE and U+2009 THIN
+    /// SPACE that newer CLDR/ICU releases put inside date/time patterns (ICU 72 moved en-US's day-period separator
+    /// from ' ' to U+202F) are normalized to the PLAIN SPACE in the patterns LOCALE-DATE / LOCALE-TIME /
+    /// LOCALE-TIME-FROM-SECONDS format with. Two grounds, documented in CONFORMANCE.md: (1) the host ICU version
+    /// varies BY HOST (Windows' bundled ICU lags the Linux runners'), so without this the SAME program prints
+    /// different bytes on different machines — the exact disease owner decision Q4 removed from collation; the
+    /// separator character inside a fixed COBOL text field must not depend on where the program runs. (2) ISO 9945's
+    /// own locale data (t_fmt <c>%r</c>) and GnuCOBOL's strftime rendition both use the plain space — the
+    /// survey-compilers-on-latitude rule. Found as CI's Linux-only red on the T4 golden (a U+202F between "09" and
+    /// "PM" that no eye could see in the assert message; the TRX artifact carried the bytes).</summary>
+    internal static string NormalizeSpacing(string pattern) =>
+        pattern.Replace('\u202F', ' ').Replace('\u2009', ' ');
 
     /// <summary>LC_MONETARY — the culture's number format (currency symbol, separators, grouping, digits, signs,
     /// patterns; the PICTURE format 2 / NUMVAL-C increment T6 reads these).</summary>

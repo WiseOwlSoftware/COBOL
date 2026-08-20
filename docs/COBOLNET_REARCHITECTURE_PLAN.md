@@ -361,7 +361,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `code-set-national-2002`), SR1–SR3 checked (→ 1672), the identity sets CLAIMED byte-exact and a differing
   on-medium set the DOCUMENTED A.3 item 27 non-support (1672, never a silent identity); the alphabet-name class
   condition is live (`CobolClass.IsInCodedSet` — PB109). 15 inventory rows — **GAP 3843**.
-  ⑤ **NEXT — ⛔ battery #26 FIRST** (owed for the accumulated batch: PB111 + PB110/PB109 — both commits ran only
+  ⑤ **NEXT — ⛔ battery #26 FIRST** (owed for the accumulated batch: PB111 + PB110/PB109 + PB112 (the CI fix: LOCALE-TIME's spacing was host-ICU-dependent — the Linux-only corpus-nist red since T4; DEVLOG 1337) — these commits ran only
   the wave-local gate), then `work.py next`: **PB64 T6** = PICTURE format 2 + the NUMVAL-C / TEST-NUMVAL-C LOCALE
   arms over ONE LC_MONETARY model (design §4.6), the LAST locale increment — after it the A.4.9 row in
   CONFORMANCE.md §5 reads "Claimed" and the COBOLNET1518 descriptor goes · then Phase-B adjudication (a NEW
