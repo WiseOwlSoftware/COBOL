@@ -4399,12 +4399,12 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "Figurative constant values",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SymbolicOf",
+  "test-ref": "conformance:2023/pb110_symbolic_and_class_in; unit:CodedCharacterSetTests.CharAt_FollowsEachPhrasesCorrespondence",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): ALL symbolic-character-1 with an undeclared name is COBOLNET1670 citing this rule; a declared one substitutes (the golden's ALL-ZED line). The BARE form is a word reference — an undeclared word is the ordinary undefined-reference diagnostic.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.3.3.6.4-1",
@@ -4425,12 +4425,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Figurative constant values",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#MoveEmitter",
+  "test-ref": "conformance:2023/pb110_symbolic_and_class_in; conformance:2023/pb71_all_national_boolean_figurative",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): the figurative fill — repeated character by character to the associated item's size, then right-truncated — over a VALUE clause (VAL-FILL3: position 3 of a PIC X(3) VALUE BELL holds the character) and a fixed-length MOVE receiver (MOVE-FILL: position 4 of an X(4)); the ALL-literal fill of PB71's golden is the same rule over a longer literal-1. One node (BoundAllLiteral) carries the semantics for the classic figuratives, ALL literal-1 and the symbolic characters alike.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.3.3.6.4-3",
@@ -4438,12 +4438,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "Figurative constant values",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand",
+  "test-ref": "conformance:2023/pb110_symbolic_and_class_in; conformance:2023/pb71_all_national_boolean_figurative",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): where the context does not size the string — a) in a concatenation, one character (the ConcatFolder figurative arm); b) a figurative other than ALL literal-1, one character (the golden's STRING-SC line: a bare symbolic character contributes ONE character to STRING); c) ALL literal-1, the literal's length (PB71's golden).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.5-1",
@@ -8638,10 +8638,10 @@
   "ordinal": 3,
   "subject": "Simple class condition",
   "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabetic; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabeticUpper; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsAlphabeticLower; src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs#ConditionRenderer; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison",
-  "test-ref": "conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_classification_unavailable; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests",
-  "editions": "2002,2014,2023",
-  "notes": "kb/Work PB64 T5 (2026-08-19) — ADJUDICATED ON ITEMS a)–d) ONLY; items e)–n) were not examined in this adjudication and are neither confirmed nor denied here. b1) / c1) / d1) LANDED: under a CHARACTER CLASSIFICATION locale, ALPHABETIC is 'characters identified as alphabetic in LC_CTYPE' — a Unicode letter per the locale (the dotless ı, outside the Latin set, IS alphabetic under tr), and, as the rule reads, SPACE IS NOT among them (b2 names space explicitly for the no-locale case; b1 does not — 'ab cd' is NOT ALPHABETIC under a classification; documented in CONFORMANCE.md §4 item 5); ALPHABETIC-LOWER / -UPPER are the locale's lowercase / uppercase letters (the case round-trip — ı/i lower, İ/I upper under tr). b2) / c2) / d2) — the Latin sets with space — are the pre-existing classification-free arms (the PLAIN program; CobolClass.IsAlphabetic(string)). a) is NOT IMPLEMENTED: a class condition with a coded-character-set alphabet-name-1 (NATIVE, STANDARD-1/2, UTF-8 …) binds to a BoundConditionError and compiles to a LOUD staged value (never a wrong answer) — registered as kb/Work PB109. PARTIAL on a) alone, whatever e)–n) hold. Rule --check verified at 8.8.4.4.4 3) b) 1.",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsInCodedSet; src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs#ConditionRenderer",
+  "test-ref": "conformance:2023/pb109_class_condition_alphabet; conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_classification_unavailable; unit:CodedCharacterSetTests.IsInCodedSet_ThreeKinds; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB109 (2026-08-19) — item a) LANDED (it was a loud staged value): the condition is true iff the content consists entirely of characters in the coded character set alphabet-name-1 identifies — STANDARD-1/2 the 128 ISO 646 characters (STD-ASCII yes / STD-ACCENT no / STD-SPACE yes — membership, not the letter rule), a literal-phrase alphabet the TOTAL native set (GR7 k4 — REV-ANY yes, deliberately), UCS-4/UTF-8 the scalar values (an unpaired surrogate fails), with GR1's zero-length-false and GR2's NOT (NOT-STD). Items b/c/d (PB64 T5), e (BOOLEAN), f (class-name), n (NUMERIC) are live. STILL MISSING — the float class conditions g)–m): FARTHEST-FROM-ZERO / FLOAT-INFINITY / FLOAT-NOT-A-NUMBER(-QUIET/-SIGNALING) / IN-ARITHMETIC-RANGE / NEAREST-TO-ZERO have no binder arm (a loud parse/bind failure, never a wrong answer) — PARTIAL on those alone.",
   "state": "GAP"
  },
  {
@@ -12316,12 +12316,12 @@
   "kind": "SR",
   "ordinal": 16,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSymbolic; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#CodedCharacterSetOf",
+  "test-ref": "conformance:negative/pb110-symbolic-sr16; conformance:negative/pb110-symbolic-locale-alphabet; conformance:2023/pb110_symbolic_and_class_in",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): a) a name defined once across the paragraph's SYMBOLIC CHARACTERS clauses (COBOLNET1670); b)/c) positional pairing, one-to-one (1670 — the negative pins two names against one integer); d) ALPHANUMERIC implied; e)/f) the ordinal shall exist in the native set of the clause's class or the IN alphabet's set, which shall be of that class (1670, the range and class-mismatch arms); g) alphabet-name-3 shall not be a LOCALE alphabet — COBOLNET1669 through the ONE coded-set resolver (the negative).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-L4.1",
@@ -12381,12 +12381,12 @@
   "kind": "SR",
   "ordinal": 17,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindClass; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#LiteralChars",
+  "test-ref": "conformance:negative/pb110-class-ordinal-range; conformance:2023/pb110_symbolic_and_class_in",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): b2) a numeric literal shall be within one through the character count of the native set (65 536 — the UTF-16 repertoire, CA26) or, under IN, of the referenced set (COBOLNET1671; an out-of-range ordinal used to DEGRADE TO RAW TEXT silently); d) alphabet-name-4 shall not be a LOCALE alphabet (COBOLNET1669 through the ONE resolver); a/b1/b3–b5/c are the pre-existing literal arms (the class-condition membership tests).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-L6.1",
@@ -12940,12 +12940,12 @@
   "kind": "GR",
   "ordinal": 11,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSymbolic; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#SymbolicOperand; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#CodedCharacterSet",
+  "test-ref": "conformance:2023/pb110_symbolic_and_class_in; conformance:negative/pb110-symbolic-sr16; conformance:negative/pb110-symbolic-locale-alphabet",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19) — the SYMBOLIC CHARACTERS clause was ACCEPTED-INERT (parsed, bound by nothing; every reference then failed as an undefined name). a) symbolic-character-1 defines a figurative constant — it substitutes at the figurative seams (the bare word at FieldOperand / the VALUE capture / INSPECT's operand; ALL symbolic-character-1 as a figurativeConstant grammar arm) with the ALL-literal FILL semantics (§8.3.3.6.4 GR2/GR10 — VAL-FILL3 / MOVE-FILL in the golden) and ONE character in an unsized context (GR3 b — the STRING-SC line); b)/c) the value is the character at ordinal integer-1 in the native character set of the clause's class or, under IN, in the coded character set referenced by alphabet-name-3 (CodedCharacterSet.CharAt — ZED IS 1 IN REV = 'Z', ORD 91). Editions: the clause is 85; FOR NATIONAL rides special-names-for-national-2002.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-12",
@@ -12953,12 +12953,12 @@
   "kind": "GR",
   "ordinal": 12,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindClass; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#LiteralChars; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#CodedCharacterSet",
+  "test-ref": "conformance:2023/pb110_symbolic_and_class_in; conformance:negative/pb110-class-ordinal-range",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19) — ⛔ the IN phrase was SILENTLY IGNORED: CLASS BYORD IS 1 THRU 3 IN REV built the class from the NATIVE ordinals (a wrong answer a class test then acted on). a) a numeric literal is the ordinal within the native set OR, under IN, within alphabet-name-4's coded character set (the golden: ordinals 1–3 IN REV are Z/Y/X — 'ZYX' IS the class, 'ABC' is not); b) a non-numeric literal is the character itself; the THROUGH/multi-character/duplication rules are the pre-existing arms. CLASS and SYMBOLIC CHARACTERS now bind AFTER the SPECIAL-NAMES walk, so an ALPHABET declared later in the paragraph resolves (the clauses are order-free).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-13",
@@ -17529,12 +17529,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "CODE-SET clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#CodedCharacterSetOf",
+  "test-ref": "conformance:negative/pb110-code-set-locale-alphabet; conformance:2023/pb110_code_set_identity",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): alphabet-name-1 shall reference an alphabet defining an ALPHANUMERIC coded character set — a LOCALE alphabet (no coded character set, Table 6) is COBOLNET1669 through the ONE resolver; a FOR NATIONAL alphabet in the slot or an undeclared name is COBOLNET1672/0898; the golden's STANDARD-1 satisfies it.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.13.3-2",
@@ -17542,12 +17542,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "CODE-SET clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause",
+  "test-ref": "conformance:negative/pb110-code-set-locale-alphabet",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): alphabet-name-2 shall reference an alphabet defining a NATIONAL coded character set — the class-mismatch arm (COBOLNET1672) mirrors SR1's; 2002+ (the national half). The same negative's LOCALE arm covers the Table-6 refusal shared with SR1.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.13.3-3",
@@ -17555,12 +17555,12 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "CODE-SET clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause",
+  "test-ref": "conformance:negative/pb110-code-set-nonidentity; conformance:2023/pb110_code_set_identity",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): with record description entries and no SELECT WHEN clauses (none exist in this grammar), one class only (both names → COBOLNET1672); a) every elementary item usage display and signed items SIGN SEPARATE (1672 — probed: a PIC S9 record under CODE-SET draws the SIGN SEPARATE arm); b) the national twin.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.13.4-1",
@@ -17568,12 +17568,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "CODE-SET clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause",
+  "test-ref": "conformance:2023/pb110_code_set_identity; conformance:negative/pb110-code-set-nonidentity",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19) — DETERMINATION, documented (CONFORMANCE.md §2 row 27): the sets whose implementor correspondence to the native set is the IDENTITY — NATIVE (§12.3.7.4 GR7 d, by definition), STANDARD-1/STANDARD-2 (GR7 c: the correspondence is implementor-defined, and the native set's first 128 characters ARE ISO/IEC 646 IRV), UTF-16 (the D-N1 substrate) — are CLAIMED, their conversion being the identity (the golden's byte-exact round trip); an alphabet whose on-medium representation would differ (a literal-phrase alphabet's remapped ordinals; UTF-8/UCS-4 as variable-width medium encodings) is the DOCUMENTED Annex A §A.3 item 27 non-support — COBOLNET1672, never a silent identity (the negative). Rule --check verified at 13.18.13.4 1).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.13.4-2",
@@ -17581,12 +17581,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "CODE-SET clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause",
+  "test-ref": "conformance:2023/pb110_code_set_identity",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): on OPEN the on-medium coded character set is the referenced one — for every CLAIMED set that is the native encoding itself (the identity correspondence), which the golden's write-then-read round trip observes; a non-identity set never reaches OPEN (refused at compile time, GR-13.18.13.4-1's determination).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.13.4-3",
@@ -17646,12 +17646,12 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "CODE-SET clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#SequentialConnector",
+  "test-ref": "conformance:2023/pb110_code_set_identity",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19): without a CODE-SET clause the native character set is assumed for data on the external media — every file ever written by this compiler takes this rule (the Latin-1 boundary codec, COBOLNET_DESIGN §18 item 13); the golden's clause-bearing file behaves identically because its set's correspondence is the identity.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.14.3-1",
@@ -50575,12 +50575,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "CODE-SET clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#codeSetClause; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitCodeSetClause",
+  "test-ref": "conformance:2023/pb110_code_set_identity; conformance:negative/pb110-code-set-nonidentity; conformance:negative/pb110-code-set-locale-alphabet",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB110 (2026-08-19) — ⛔ the grammar carried only the '85 one-name form (the 2002 FOR format was a raw parse error — rejects legal source) and NOTHING read the clause. Both formats parse and bind: IS alphabet-name-1 [alphabet-name-2], and the FOR ALPHANUMERIC / FOR NATIONAL phrases (one or both, any order — §5.2.6.4; a repeated class is COBOLNET1672); the national half (alphabet-name-2 / FOR) is gated below 2002 (code-set-national-2002, COBOLNET0900). Format --check verified at 13.18.13.2.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.14.2",

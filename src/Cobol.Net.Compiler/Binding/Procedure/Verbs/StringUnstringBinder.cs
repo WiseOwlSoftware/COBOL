@@ -39,14 +39,14 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         for (int i = 0; i < n; i++)
         {
             values[i] = StrUnstrOperand(phrases[i].strUnstrOperand(), "STRING sending operand");
-            if (values[i] is BoundAllLiteral)   // SR2 — literal-1 shall not be an ALL figurative
+            if (values[i] is BoundAllLiteral { BeginsWithAll: true })   // SR2 — literal-1 shall not be a figurative beginning with the word ALL (a bare symbolic character is not — PB110)
                 values[i] = new BoundOperandError("STRING sending ALL literal (ISO §14.9.43.3 SR2)");
             if (phrases[i].delimitedByPhrase() is not { } dp) continue;
             hasPhrase[i] = true;
             if (dp.SIZE() is not null) { bySize[i] = true; continue; }
             var d = StrUnstrOperand(dp.strUnstrOperand(), "STRING delimiter");
             // SR2 — literal-2 shall not be an ALL figurative; the grammar's (ALL)? token is not in the ISO format.
-            if (dp.ALL() is not null || d is BoundAllLiteral)
+            if (dp.ALL() is not null || d is BoundAllLiteral { BeginsWithAll: true })
                 d = new BoundOperandError("STRING DELIMITED BY ALL literal (ISO §14.9.43.3 SR2)");
             delims[i] = d;
         }
@@ -246,7 +246,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         => op is null ? new BoundOperandError(role)
         : op.strUnstrSender() is { } snd ? StrUnstrSender(snd, role)
         : op.literal() is { } lit ? host.Expr.LiteralOperand(lit)
-        : op.figurativeConstant() is { } fig ? ExpressionBinder.FigurativeOperand(fig)
+        : op.figurativeConstant() is { } fig ? host.Expr.FigurativeOperand(fig)
         : new BoundOperandError(role);
 
     /// <summary>Bind the narrower SENDER shape — an identifier only (a function-identifier or a data reference),

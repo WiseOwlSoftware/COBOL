@@ -61,7 +61,8 @@ public sealed record LocaleCollatingSpec(LocaleRef Locale)
 /// </summary>
 public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, string Phrase)
 {
-    /// <summary>The identity (native-order) alphabet: NATIVE, STANDARD-1, STANDARD-2.</summary>
+    /// <summary>The identity (native-order) alphabet: NATIVE, STANDARD-1, STANDARD-2 (their <see cref="Phrase"/>
+    /// differs — the coded character SETS differ per Table 6 even though the sequences are all the native order).</summary>
     public static AlphabetDef Native { get; } = new(null, null, "NATIVE");
 
     /// <summary>True when the alphabet IS the native order — no runtime carrier is emitted for it.</summary>
@@ -72,6 +73,11 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
 
     /// <summary>The sequence's LOW-VALUE character (§12.3.7.4 GR9 / §8.3.3.6.4 GR7).</summary>
     public char LowValue => Table?.LowValue ?? (char)0;
+
+    /// <summary>The CODED CHARACTER SET this alphabet defines (ISO §12.3.7.4 GR7 Table 6; kb/Work PB110), or null
+    /// for a LOCALE alphabet — Table 6's one blank coded-character-set row (the reference sites raise COBOLNET1669
+    /// through <c>DataBinder.CodedCharacterSetOf</c>, the ONE resolver).</summary>
+    public CodedCharacterSet? CodedSet => Locale is not null ? null : new CodedCharacterSet(Phrase, National: false, Table, null);
 }
 
 /// <summary>
@@ -147,4 +153,66 @@ public sealed record NationalAlphabetDef(NationalCollatingTable? Table, LocaleCo
 
     /// <summary>The national LOW-VALUE character (§12.3.7.4 GR9): the table's, else U+0000.</summary>
     public char LowValue => Table?.LowValue ?? (char)0;
+
+    /// <summary>The CODED CHARACTER SET this alphabet defines (Table 6; null for LOCALE — see the alphanumeric twin).</summary>
+    public CodedCharacterSet? CodedSet => Locale is not null ? null : new CodedCharacterSet(Phrase, National: true, null, Table);
+}
+
+/// <summary>
+/// The CODED CHARACTER SET an alphabet-name references (ISO §12.3.7.4 GR7 + Table 6; kb/Work PB110 — the model
+/// the four coded-set reference sites share: the class condition's alphabet-name-1, §8.8.4.4.4 GR3 a; SYMBOLIC
+/// CHARACTERS … IN, GR11 b/c; CLASS … IN, GR12 a; CODE-SET, §13.18.13). A set associates each of its characters
+/// with an ORDINAL POSITION (GR6), and for a literal-phrase alphabet the ordinals ARE the collating positions + 1
+/// (GR7 k4's implementor determination — the unspecified characters follow the highest specified position in
+/// native relative order, exactly as the collating sequence places them; documented in CONFORMANCE.md).
+/// <b>Determinations:</b> the native alphanumeric set is the UTF-16 repertoire in code-unit order (ordinal n =
+/// code unit n−1 — the same correspondence FUNCTION CHAR / ORD use, §15.15.4 r1 / §15.70.4 r1); STANDARD-1 /
+/// STANDARD-2 are ISO/IEC 646 IRV, 128 characters, the identity correspondence on U+0000–U+007F (GR7 c);
+/// NATIVE / UTF-16 national sets are the UTF-16 code units (GR7 d2/h); UCS-4 / UTF-8 are the ISO/IEC 10646
+/// scalar values (GR7 f/g — an unpaired surrogate is not a character of these sets).
+/// </summary>
+public sealed record CodedCharacterSet(string Phrase, bool National, CollatingTable? Table, NationalCollatingTable? NatTable)
+{
+    /// <summary>The number of ordinal positions in the set (the §12.3.7.3 SR16 e/f and SR17 b2 range bound):
+    /// 128 for STANDARD-1/2; 65 536 for the native / UTF-16 / literal-phrase sets (a literal phrase's set contains
+    /// every native character — GR7 k4); 0x110000 scalar values for UCS-4 / UTF-8.</summary>
+    public int OrdinalCount => Phrase switch
+    {
+        "STANDARD-1" or "STANDARD-2" => 128,
+        "UCS-4" or "UTF-8" => 0x110000 - 0x800,   // the scalar values (surrogate code points are not characters)
+        _ => 65536,
+    };
+
+    /// <summary>The character at 1-based <paramref name="ordinal"/> (GR11 b/c — SYMBOLIC CHARACTERS; GR12 a —
+    /// a numeric CLASS literal under IN), as a native STRING (a UCS-4/UTF-8 supplementary character is its UTF-16
+    /// surrogate pair — one character, two code units). Null when the ordinal is outside the set (the caller's
+    /// range diagnostic).</summary>
+    public string? CharAt(int ordinal)
+    {
+        if (ordinal < 1 || ordinal > OrdinalCount) return null;
+        if (Table is { } t)
+            return ordinal <= t.NextFree ? ((char)t.RepByPos[ordinal - 1]).ToString()
+                : ((char)(256 + (ordinal - 1) - t.NextFree)).ToString();          // the GR7 k3 tail: position = NextFree + (c − 256)
+        if (NatTable is { } n)
+        {
+            if (ordinal <= n.NextFree) return ((char)n.RepByPos[ordinal - 1]).ToString();
+            // position p ≥ NextFree belongs to the unspecified code unit c with c − |specified < c| = p − NextFree
+            int want = ordinal - 1 - n.NextFree;
+            int specifiedBelow = 0;
+            for (int c = 0; c < 65536; c++)
+            {
+                if (specifiedBelow < n.Codes.Length && n.Codes[specifiedBelow] == c) { specifiedBelow++; continue; }
+                if (c - specifiedBelow == want) return ((char)c).ToString();
+                if (c - specifiedBelow > want) break;
+            }
+            return null;
+        }
+        if (Phrase is "UCS-4" or "UTF-8")
+        {
+            int scalar = ordinal - 1;
+            if (scalar >= 0xD800) scalar += 0x800;                                 // skip the surrogate block — not scalar values
+            return char.ConvertFromUtf32(scalar);
+        }
+        return ((char)(ordinal - 1)).ToString();                                   // the native / STANDARD / UTF-16 identity
+    }
 }

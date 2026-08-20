@@ -24,6 +24,11 @@ internal static class RuntimeApi
     /// <summary>Boolean NOT — ISO §8.8.4.5 boolean expressions (the D-B1 '0'/'1' string substrate).</summary>
     public static string BoolNot(string operand) => $"{nameof(CobolBool)}.{nameof(CobolBool.Not)}({operand})";
 
+    /// <summary>The alphabet-name class condition's membership test (ISO §8.8.4.4.4 GR3 a; kb/Work PB109):
+    /// <c>CobolClass.IsInCodedSet(arg, CobolClass.CodedSetKind.&lt;kind&gt;)</c>.</summary>
+    public static string ClassInCodedSet(string arg, string kind) =>
+        $"{nameof(CobolClass)}.{nameof(CobolClass.IsInCodedSet)}({arg}, {nameof(CobolClass)}.{nameof(CobolClass.CodedSetKind)}.{kind})";
+
     /// <summary>A boolean dyadic op (AND/OR/XOR/EXCLUSIVE-OR family) — <c>CobolBool.{method}(l, r)</c>.
     /// <paramref name="method"/> is the runtime method NAME (validated by the anchors below at compile time
     /// via <see cref="BoolOpName"/>).</summary>

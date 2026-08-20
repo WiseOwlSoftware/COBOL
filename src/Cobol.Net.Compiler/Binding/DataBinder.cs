@@ -922,6 +922,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var clause in fd.fileDescriptionClauses()?.fileDescriptionClause() ?? [])
                 if (clause.recordClause() is { } rc)
                     BindRecordClause(rc, file);   // RECORD VARYING / m TO n → FileModel.Varying (ISO §13.18.43)
+                else if (clause.codeSetClause() is { } cs)
+                    BindCodeSetClause(cs, file, records);   // ISO §13.18.13 (kb/Work PB110)
                 else if (clause.linageClause() is { } lc)
                     BindLinageClause(lc, file);   // LINAGE logical-page model → FileModel.Linage (ISO §13.18.34)
                 else if (clause.reportClause() is { } rep)
@@ -2700,9 +2702,102 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (item.valueClauseOperand().FirstOrDefault() is { } op0
             && (op0.nonNumericLiteral()?.concatenationExpression() is not null
                 || op0.nonNumericLiteral()?.figurativeConstant()?.allLiteral() is { } al0 && al0.allLiteralOperand().Length > 1   // ALL over a concatenated literal-1 (PB71)
+                || op0.nonNumericLiteral()?.figurativeConstant()?.cobolWord() is not null   // ALL symbolic-character-1 (PB110)
+                || SymbolicValueRawText(op0) is not null
                 || ConstantValueRawText(op0) is not null))
             return RawValueOperandText(op0);
         return item.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
+    }
+
+    /// <summary>Bind an FD CODE-SET clause (ISO §13.18.13; kb/Work PB110 — it was parsed as the '85 one-name form
+    /// and read by nothing): both formats — <c>IS alphabet-name-1 [alphabet-name-2]</c> and the FOR ALPHANUMERIC /
+    /// FOR NATIONAL phrases (one or both, any order, each at most once — §5.2.6.4). SR1/SR2: each name shall
+    /// reference an alphabet defining a coded character set of its class (a LOCALE alphabet is COBOLNET1669 through
+    /// the ONE resolver; a class mismatch or an undeclared name is COBOLNET1672). SR3: with record description
+    /// entries and no SELECT WHEN, one class only, every elementary item of that usage, signed items SIGN SEPARATE.
+    /// GR2/GR6: the on-medium coded character set — the sets whose implementor correspondence is the IDENTITY
+    /// (NATIVE; STANDARD-1/2 on the ASCII-coincident native set — GR7 c; UTF-16 on the D-N1 substrate) convert as
+    /// the identity and are CLAIMED; a set whose on-medium representation would differ (a literal-phrase alphabet's
+    /// remapped ordinals; UTF-8 / UCS-4 as variable-width medium encodings) is the DOCUMENTED A.3 item 27
+    /// non-support (COBOLNET1672 — "dependent upon a device capable of supporting the specified code";
+    /// CONFORMANCE.md §2 row 27), never a silent identity.</summary>
+    private void BindCodeSetClause(Core.CodeSetClauseContext cs, FileModel file, IReadOnlyList<DataItem> records)
+    {
+        using var _ = Edition.At(cs);
+        string? alnumName = null, natName = null;
+        if (cs.codeSetForPhrase() is { Length: > 0 } fors)
+        {
+            foreach (var f in fors)
+            {
+                bool nat = f.NATIONAL() is not null;
+                ref string? slot = ref nat ? ref natName : ref alnumName;
+                if (slot is not null)
+                    Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET FOR {(nat ? "NATIONAL" : "ALPHANUMERIC")} "
+                        + "is specified more than once — each alternative of the clause's brace shall be specified at most "
+                        + "once (ISO §13.18.13.2 / §5.2.6.4)");
+                slot = f.cobolWord().GetText();
+            }
+        }
+        else
+        {
+            alnumName = cs.cobolWord(0).GetText();
+            natName = cs.cobolWord().Length > 1 ? cs.cobolWord(1).GetText() : null;
+        }
+        var alnumSet = alnumName is null ? null : CodedCharacterSetOf(alnumName, $"CODE-SET … {alnumName}",
+            "ISO §13.18.13.3 SR1 — alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set");
+        var natSet = natName is null ? null : CodedCharacterSetOf(natName, $"CODE-SET … {natName}",
+            "ISO §13.18.13.3 SR2 — alphabet-name-2 shall reference an alphabet that defines a national coded character set");
+        if (alnumName is not null && alnumSet is null || natName is not null && natSet is null) return;
+        if (alnumSet is { National: true })
+        {
+            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {alnumName}: alphabet-name-1 shall "
+                + "reference an alphabet that defines an ALPHANUMERIC coded character set — this alphabet is defined "
+                + "FOR NATIONAL (ISO §13.18.13.3 SR1)");
+            return;
+        }
+        if (natSet is { National: false })
+        {
+            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {natName}: alphabet-name-2 shall "
+                + "reference an alphabet that defines a NATIONAL coded character set — this alphabet is alphanumeric "
+                + "(ISO §13.18.13.3 SR2)");
+            return;
+        }
+        // SR3 — record description entries and no SELECT WHEN (none exists in this grammar): one class only.
+        if (records.Count > 0 && alnumName is not null && natName is not null)
+            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, "CODE-SET: if any record description entries are "
+                + "associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or "
+                + "alphabet-name-2 may be specified, but not both (ISO §13.18.13.3 SR3)");
+        // GR2/GR6 — which conversion the set asks for. The identity-correspondence sets are CLAIMED (the conversion
+        // IS the identity, byte-for-byte); a set that names a genuinely DIFFERENT on-medium code is the documented
+        // A.3 item 27 non-support — refused loudly, never a silent identity (that would be a wrong answer for an
+        // EBCDIC-shaped alphabet).
+        foreach (var (set, name) in new[] { (alnumSet, alnumName), (natSet, natName) })
+            if (set is not null && (set.Table is not null || set.NatTable is not null || set.Phrase is "UTF-8" or "UCS-4"))
+                Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {name}: the {set.Phrase} coded "
+                    + "character set's on-medium representation differs from the native encoding, and this processor "
+                    + "does not provide alternate device code sets (Annex A §A.3 item 27 — documented non-support, "
+                    + "CONFORMANCE.md §2 row 27); NATIVE, STANDARD-1, STANDARD-2 and UTF-16 convert as the identity");
+        // SR3 a/b — the selected class's usage over every elementary record item; signed numeric SIGN SEPARATE.
+        if (records.Count > 0 && (alnumName is not null || natName is not null))
+        {
+            bool wantNational = natName is not null;
+            void CheckItem(DataItem it)
+            {
+                foreach (var child in it.Children) CheckItem(child);
+                if (it.Pic is not { } pic || it.Children.Count > 0) return;   // elementary items only (SR3 a/b)
+                bool right = !wantNational && pic.Usage is Usage.Display || wantNational && pic.Usage is Usage.National;
+                if (!right)
+                    Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the record item "
+                        + $"'{it.CobolName}' is not usage {(wantNational ? "NATIONAL" : "DISPLAY")} — all elementary "
+                        + $"data items of all record description entries shall be described as usage "
+                        + $"{(wantNational ? "national" : "display")} (ISO §13.18.13.3 SR3 {(wantNational ? "b" : "a")})");
+                else if (pic is { Signed: true } sp && !sp.SignKind.Contains("Separate"))
+                    Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the signed numeric record "
+                        + $"item '{it.CobolName}' shall be described with the SIGN IS SEPARATE clause "
+                        + $"(ISO §13.18.13.3 SR3 {(wantNational ? "b" : "a")})");
+            }
+            foreach (var rec in records) CheckItem(rec);
+        }
     }
 
     /// <summary>The RAW single-literal text of a VALUE operand — the data path's currency (decoded at emit
@@ -2717,8 +2812,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // so the raw-text ALL reader (CobolLiteral.AllLiteralRaw) sees ONE literal of the right class.
             : op.nonNumericLiteral()?.figurativeConstant()?.allLiteral() is { } al && al.allLiteralOperand().Length > 1
             ? "ALL" + ConcatFolder.FoldAll(al).RawText
+            // [ALL] symbolic-character-1 (§8.3.3.6.2 Format 7; §12.3.7.4 GR11 — kb/Work PB110): the figurative's ONE
+            // character as an ALL literal of its class — GR2's fill in a VALUE association, exactly like ALL "c".
+            : op.nonNumericLiteral()?.figurativeConstant()?.cobolWord() is { } symAll && SymbolicRaw(symAll.GetText()) is { } rawAll
+            ? rawAll
+            : SymbolicValueRawText(op) is { } rawBare ? rawBare
             : ConstantValueRawText(op) is { } konst ? konst
             : NormalizeIfNumericLiteral(op.GetText());
+
+    /// <summary>The raw <c>ALL"c"</c> text a symbolic-character VALUE operand substitutes (bare-word form), or
+    /// null when the operand names no symbolic character (kb/Work PB110; the ConstantValueRawText shape).</summary>
+    private string? SymbolicValueRawText(Core.ValueClauseOperandContext op)
+    {
+        Antlr4.Runtime.Tree.IParseTree? n = op.unaryExpression();
+        while (n is not null and not Core.DataReferenceContext)
+            n = n.ChildCount == 1 ? n.GetChild(0) : null;
+        return n is Core.DataReferenceContext dref && SymbolicOf(dref) is { } sym ? SymbolicRaw(dref.GetText()) : null;
+    }
+
+    /// <summary>The raw ALL-literal text of the symbolic character named <paramref name="word"/>, or null: the
+    /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §8.3.1.2).</summary>
+    internal string? SymbolicRaw(string word) =>
+        SymbolicOf(word) is not { } sym ? null
+        : "ALL" + (sym.National ? "N" : "") + "\"" + sym.Value.Replace("\"", "\"\"") + "\"";
 
     /// <summary>Build the <see cref="EditingPhraseSpec"/> list for a PICTURE clause's EDITING phrases
     /// (ISO §13.18.40.2 Format 1) — DECODED character-1 + literal text, handed to <see cref="PictureAnalyzer"/>

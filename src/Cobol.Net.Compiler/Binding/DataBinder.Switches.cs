@@ -64,6 +64,49 @@ public sealed partial class DataBinder
         => (Alphabets.TryGetValue(alphabetName, out var a) && a.Locale is not null)
         || (NationalAlphabets.TryGetValue(alphabetName, out var n) && n.Locale is not null);
 
+    /// <summary>⛔ THE ONE resolver of an alphabet-name referenced where a CODED CHARACTER SET is required (ISO
+    /// §12.3.7.4 GR7 Table 6; kb/Work PB110 — the class condition's alphabet-name-1, SYMBOLIC CHARACTERS … IN,
+    /// CLASS … IN, CODE-SET): the set of the named alphabet of either class, with the two refusals every site
+    /// shares — a LOCALE alphabet defines a collating sequence only (Table 6's blank row → COBOLNET1669, citing
+    /// <paramref name="rule"/>), and an undeclared name is COBOLNET0898 naming the site. Null on either refusal.</summary>
+    internal CodedCharacterSet? CodedCharacterSetOf(string alphabetName, string site, string rule)
+    {
+        AlphabetDef? a = Alphabets.TryGetValue(alphabetName, out var av) ? av : null;
+        NationalAlphabetDef? n = NationalAlphabets.TryGetValue(alphabetName, out var nv) ? nv : null;
+        if (a is null && n is null)
+        {
+            Edition.Error("COBOLNET0898", $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
+                + $"SPECIAL-NAMES ALPHABET clause ({rule}; §12.3.7)");
+            return null;
+        }
+        var set = a is not null ? a.CodedSet : n!.CodedSet;   // a LOCALE alphabet has a null CodedSet — never fall to the OTHER class
+        if (set is null)
+        {
+            Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"{site}: the alphabet '{alphabetName}' "
+                + $"is associated with a locale — an ALPHABET … IS LOCALE defines a collating sequence, not a coded "
+                + $"character set (§12.3.7.4 GR7, Table 6), so it cannot be referenced here ({rule})");
+            return null;
+        }
+        return set;
+    }
+
+    /// <summary>SYMBOLIC CHARACTERS figurative constants (ISO §12.3.7.4 GR11 a — "Symbolic-character-1 defines a
+    /// figurative constant"; kb/Work PB110): name → the ONE-character value (GR11 b/c — the character at ordinal
+    /// integer-1 of the native or IN-alphabet coded character set) and its class. Substituted wherever a figurative
+    /// constant may stand — the reference seams consult <see cref="SymbolicOf"/> exactly as they consult the
+    /// §13.10 constant table, and the value fills like every figurative (§8.3.3.6.4 GR2 / GR10).</summary>
+    public Dictionary<string, (string Value, bool National)> SymbolicCharacters { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The symbolic character a BARE (unqualified, unsubscripted) data reference names, or null — the
+    /// twin of <c>ConstantOf</c> (one shape for "a word that stands for a literal").</summary>
+    internal (string Value, bool National)? SymbolicOf(Core.DataReferenceContext dref) =>
+        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w
+        && SymbolicCharacters.TryGetValue(w.GetText(), out var def) ? def : null;
+
+    /// <summary>The symbolic character named by a bare word, or null (the FigurativeOperand ALL-form lookup).</summary>
+    internal (string Value, bool National)? SymbolicOf(string word) =>
+        SymbolicCharacters.TryGetValue(word, out var def) ? def : null;
+
     /// <summary>SPECIAL-NAMES <c>ORDER TABLE</c> ordering-names (case-insensitive) → the DECODED literal-9 that
     /// identifies the cultural ordering table (ISO §12.3.7.2's last clause; §12.3.7.4 GR17 — "When ORDER TABLE is
     /// specified, ordering-name-1 shall reference a cultural ordering table that is identified by literal-9 and
@@ -383,6 +426,8 @@ public sealed partial class DataBinder
     {
         Core.ProgramCollatingSequenceClauseContext? pcsClause = null;
         Core.CharacterClassificationClauseContext? ccClause = null;
+        var classClauses = new List<Core.ClassDefinitionClauseContext>();
+        var symbolicClauses = new List<Core.SymbolicCharactersClauseContext>();
         foreach (var para in EnvDivisions(program)
                      .SelectMany(env => env.configurationSection()?.configurationParagraph() ?? []))
         {
@@ -427,14 +472,11 @@ public sealed partial class DataBinder
                 if (entry.localeClause() is { } loc) { LocaleBind(loc); continue; }
                 if (entry.orderTableClause() is { } ot) { OrderTableBind(ot); continue; }
                 if (entry.alphabetClause() is { } alpha) { AlphabetBind(alpha); continue; }
-                if (entry.classDefinitionClause() is { } cd) { SwitchBindClass(cd); continue; }
-                if (entry.symbolicCharactersClause() is { } sc)
-                {
-                    // SYMBOLIC CHARACTERS … FOR ALPHANUMERIC/NATIONAL — the FOR phrase edition gate is now
-                    // VersionConformancePass ParseArm.VisitSymbolicCharactersClause (14g.4). The base SYMBOLIC
-                    // CHARACTERS clause stays accepted-inert (unbound).
-                    continue;
-                }
+                // CLASS and SYMBOLIC CHARACTERS bind AFTER the walk (kb/Work PB110): their IN alphabet-name may be
+                // declared by a LATER ALPHABET clause of the same paragraph (the clauses are order-free — the
+                // ResolveProgramCollating shape).
+                if (entry.classDefinitionClause() is { } cd) { classClauses.Add(cd); continue; }
+                if (entry.symbolicCharactersClause() is { } sc) { symbolicClauses.Add(sc); continue; }
                 if (entry.decimalPointClause() is { } dp) { SwitchBindDecimalPoint(dp); continue; }
                 if (entry.currencySignClause() is { } cur) { SwitchBindCurrency(cur); continue; }
                 if (entry.implementorSwitchEntry() is not { } sw) continue;
@@ -457,6 +499,8 @@ public sealed partial class DataBinder
         // unreferenced COLLATING-SEQ-2). A native-order alphabet leaves the sequence null (the fast path).
         if (pcsClause is not null) ResolveProgramCollating(pcsClause);
         if (ccClause is not null) ResolveClassification(ccClause);
+        foreach (var cd in classClauses) SwitchBindClass(cd);           // after the alphabets exist (PB110)
+        foreach (var sc in symbolicClauses) SwitchBindSymbolic(sc);
         FinalizeCurrencySigns();   // §12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
     }
 
@@ -787,7 +831,11 @@ public sealed partial class DataBinder
         }
         if (def.NATIVE() is not null || def.STANDARD_1() is not null || def.STANDARD_2() is not null)
         {
-            Alphabets.TryAdd(name, AlphabetDef.Native);
+            // One identity COLLATING SEQUENCE, three distinct CODED CHARACTER SETS (Table 6 + GR7 c/d: STANDARD-1/2
+            // are the 128 ISO/IEC 646 IRV characters; NATIVE is the whole native set) — the Phrase carries which
+            // (kb/Work PB110); IsIdentity stays true, so no runtime carrier is emitted either way.
+            Alphabets.TryAdd(name, def.NATIVE() is not null ? AlphabetDef.Native
+                : new AlphabetDef(null, null, def.STANDARD_1() is not null ? "STANDARD-1" : "STANDARD-2"));
             return;
         }
 
@@ -1098,15 +1146,27 @@ public sealed partial class DataBinder
     {
         // CLASS … FOR ALPHANUMERIC/NATIONAL — the FOR phrase edition gate is now VersionConformancePass
         // ParseArm.VisitClassDefinitionClause (14g.4, recognition).
+        using var _ = Edition.At(cd);
         string name = cd.cobolWord(0).GetText();
+        // The IN phrase (ISO §12.3.7.4 GR12 a; kb/Work PB110): a NUMERIC literal is the ordinal of a character
+        // within the character set referenced by alphabet-name-4 — not the native set. SR17 d (a LOCALE alphabet)
+        // and an undeclared name refuse through the ONE resolver; the clause then binds no class (its references
+        // stay loud) rather than silently reverting to native ordinals.
+        CodedCharacterSet? inSet = null;
+        if (cd.cobolWord().Length > 1)
+        {
+            inSet = CodedCharacterSetOf(cd.cobolWord(1).GetText(), $"CLASS {name} … IN {cd.cobolWord(1).GetText()}",
+                "ISO §12.3.7.3 SR17 d — alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase");
+            if (inSet is null) return;
+        }
         var members = new System.Text.StringBuilder();
         foreach (var item in cd.classValueSet().classValueItem())
         {
             var lits = item.literal();
-            string lo = LiteralChars(lits[0]);
+            string lo = LiteralChars(lits[0], inSet, name);
             if (lits.Length >= 2)
             {
-                string hi = LiteralChars(lits[1]);
+                string hi = LiteralChars(lits[1], inSet, name);
                 if (lo.Length == 1 && hi.Length == 1)
                 {
                     char a = lo[0], b = hi[0];
@@ -1120,10 +1180,70 @@ public sealed partial class DataBinder
         UserClasses.TryAdd(name, members.ToString());
     }
 
+    /// <summary>Bind one SYMBOLIC CHARACTERS clause (ISO §12.3.7.2; §12.3.7.3 SR16; §12.3.7.4 GR11 — kb/Work
+    /// PB110: the clause was accepted-inert): each symbolic-character-1 defines a FIGURATIVE CONSTANT whose value
+    /// is the character at ordinal integer-1 in the native character set of the clause's class (ALPHANUMERIC
+    /// implied — SR16 d) or, under IN, in the coded character set of alphabet-name-3 (GR11 b/c; SR16 e1/f1 the
+    /// class of that alphabet; SR16 g / the ONE resolver refuse a LOCALE alphabet). The pairing is positional
+    /// per ENTRY (SR16 b), names then integers, with a one-to-one correspondence (SR16 c); a name may be defined
+    /// once across ALL the paragraph's SYMBOLIC CHARACTERS clauses (SR16 a).</summary>
+    private void SwitchBindSymbolic(Core.SymbolicCharactersClauseContext sc)
+    {
+        using var _ = Edition.At(sc);
+        bool national = sc.NATIONAL() is not null;
+        CodedCharacterSet? inSet = null;
+        if (sc.cobolWord() is { } inWord && inWord is not null)
+        {
+            inSet = CodedCharacterSetOf(inWord.GetText(), $"SYMBOLIC CHARACTERS … IN {inWord.GetText()}",
+                "ISO §12.3.7.3 SR16 g — alphabet-name-3 shall not reference an alphabet specified with the LOCALE phrase");
+            if (inSet is null) return;
+            if (inSet.National != national)
+            {
+                Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS{(national ? " FOR NATIONAL" : "")} "
+                    + $"IN {inWord.GetText()}: alphabet-name-3 shall reference an alphabet that defines "
+                    + $"{(national ? "a NATIONAL" : "an ALPHANUMERIC")} character set — this alphabet is "
+                    + $"{(inSet.National ? "FOR NATIONAL" : "alphanumeric")} (ISO §12.3.7.3 SR16 {(national ? "f1" : "e1")})");
+                return;
+            }
+        }
+        foreach (var entry in sc.symbolicCharacterEntry())
+        {
+            var names = entry.cobolWord();
+            var ords = entry.integerLiteral();
+            if (names.Length != ords.Length)
+            {
+                Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: {names.Length} "
+                    + $"symbolic-character name(s) against {ords.Length} integer(s) — there shall be a one-to-one "
+                    + "correspondence, paired by position (ISO §12.3.7.3 SR16 b/c)");
+                continue;
+            }
+            for (int i = 0; i < names.Length; i++)
+            {
+                string symName = names[i].GetText();
+                if (!int.TryParse(ords[i].GetText(), out int ordinal)) continue;
+                string? value = inSet is not null ? inSet.CharAt(ordinal)
+                    : ordinal >= 1 && ordinal <= 65536 ? ((char)(ordinal - 1)).ToString() : null;
+                if (value is null)
+                {
+                    Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS {symName} IS "
+                        + $"{ordinal}: the ordinal position does not exist in the "
+                        + $"{(inSet is not null ? $"character set referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} characters)" : "native character set (65 536 characters)")}"
+                        + $" — ISO §12.3.7.3 SR16 {(national ? "f" : "e")}{(inSet is not null ? "1" : "2")}");
+                    continue;
+                }
+                if (!SymbolicCharacters.TryAdd(symName, (value, national)))
+                    Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: '{symName}' is "
+                        + "already defined — a given symbolic-character-1 may be specified only once within the SYMBOLIC "
+                        + "CHARACTER clauses of this SPECIAL-NAMES paragraph (ISO §12.3.7.3 SR16 a)");
+            }
+        }
+    }
+
     /// <summary>The character content of a class-definition literal: a quoted literal's characters, or — for an
-    /// unsigned integer literal — the character at that ORDINAL position of the native collating sequence
-    /// (1-based, ISO §12.3.7; ordinal n ⇒ char code n−1 over the 8-bit native sequence).</summary>
-    private string LiteralChars(Core.LiteralContext lit)
+    /// unsigned integer literal — the character at that ORDINAL position of the native character set, or of the
+    /// IN alphabet's coded character set when given (1-based; ISO §12.3.7.4 GR12 a — kb/Work PB110: the IN phrase
+    /// used to be silently ignored, building the class from NATIVE ordinals). SR17 b2's range is the set's.</summary>
+    private string LiteralChars(Core.LiteralContext lit, CodedCharacterSet? inSet = null, string? className = null)
     {
         // §8.8.3.3 GR3: a concatenation expression stands anywhere a literal of its class may — fold an
         // ALPHABET/CLASS operand concat to its character value before decoding (GetText would glue the
@@ -1138,8 +1258,23 @@ public sealed partial class DataBinder
         // silently left native (e.g. ALPHABET … X"FF" THRU X"00" never reversed — §12.3.7.4 GR5).
         if (text.Length >= 3 && text[0] is 'X' or 'x' && text[1] is '"' or '\'')
             return CobolLiteral.DecodeHex(text);
-        return int.TryParse(text, out int ordinal) && ordinal >= 1 && ordinal <= 256
-            ? ((char)(ordinal - 1)).ToString()
-            : text;
+        if (int.TryParse(text, out int ordinal))
+        {
+            if (inSet is not null)
+            {
+                // GR12 a — "the ordinal number of a character … when the IN phrase is specified, within the character
+                // set referenced by alphabet-name-4"; SR17 b2 bounds it by that set's character count.
+                if (inSet.CharAt(ordinal) is { } ch) return ch;
+                Edition.Error(DiagnosticCatalog.ClassClauseViolation, $"CLASS {className}: the ordinal {ordinal} does not "
+                    + $"exist in the character set referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} "
+                    + "characters) — ISO §12.3.7.3 SR17 b2");
+                return "";
+            }
+            if (ordinal >= 1 && ordinal <= 65536) return ((char)(ordinal - 1)).ToString();
+            Edition.Error(DiagnosticCatalog.ClassClauseViolation, $"CLASS {className}: the ordinal {ordinal} does not "
+                + "exist in the native character set (65 536 characters) — ISO §12.3.7.3 SR17 b2");
+            return "";
+        }
+        return text;
     }
 }

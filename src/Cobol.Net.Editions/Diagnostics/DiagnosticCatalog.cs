@@ -1023,6 +1023,31 @@ public static class DiagnosticCatalog
         + "a collating sequence only (§12.3.7.4 GR7, Table 6) — it names no set of characters. Name a coded-character-set "
         + "alphabet (NATIVE, STANDARD-1/2, UCS-4, UTF-8, UTF-16) instead.",
         "ISO §8.8.4.4.3 SR2 / §12.3.7.3 SR16g, SR17d");
+    public static readonly DiagnosticDescriptor SymbolicCharactersViolation = new(
+        "COBOLNET1670", "symbolic-characters-clause", EditionSeverity.Error,
+        "A SYMBOLIC CHARACTERS clause violates one of ISO §12.3.7.3 SR16's sub-rules (the message names which): a) a "
+        + "given symbolic-character-1 may be specified only once within the paragraph's SYMBOLIC CHARACTERS clauses; "
+        + "b/c) the names pair with the integers by position, one-to-one; e/f) the ordinal position shall exist in the "
+        + "native character set of the clause's class or, under IN, in the character set referenced by alphabet-name-3, "
+        + "which shall define a set of that class. (A LOCALE alphabet under IN is COBOLNET1669 — SR16 g.)",
+        "ISO §12.3.7.3 SR16");
+    public static readonly DiagnosticDescriptor ClassClauseViolation = new(
+        "COBOLNET1671", "class-clause", EditionSeverity.Error,
+        "A SPECIAL-NAMES CLASS clause names an ordinal position that does not exist: a numeric literal-5/-6 shall be "
+        + "within the range one through the number of characters in the native character set or, when the IN phrase is "
+        + "specified, in the character set referenced by alphabet-name-4 (ISO §12.3.7.3 SR17 b2; the ordinal resolves in "
+        + "THAT set — §12.3.7.4 GR12 a). (A LOCALE alphabet under IN is COBOLNET1669 — SR17 d.)",
+        "ISO §12.3.7.3 SR17");
+    public static readonly DiagnosticDescriptor CodeSetClauseViolation = new(
+        "COBOLNET1672", "code-set-clause", EditionSeverity.Error,
+        "An FD CODE-SET clause violates one of ISO §13.18.13.3's syntax rules (the message names which): SR1/SR2 — "
+        + "alphabet-name-1 / alphabet-name-2 shall reference an alphabet defining an alphanumeric / national coded "
+        + "character set (a LOCALE alphabet is COBOLNET1669; a class mismatch or an undeclared name is named here); "
+        + "each class at most once (§5.2.6.4) — or names a coded character set whose on-medium representation differs "
+        + "from the native encoding, which this processor does not provide (Annex A §A.3 item 27 — the CODE-SET clause "
+        + "is dependent upon a device capable of supporting the specified code; documented non-support, CONFORMANCE.md "
+        + "§2 row 27: NATIVE and the identity-correspondence sets STANDARD-1 / STANDARD-2 / UTF-16 are supported).",
+        "ISO §13.18.13.3; Annex A §A.3 item 27");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

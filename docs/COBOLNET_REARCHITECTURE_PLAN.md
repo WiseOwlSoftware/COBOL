@@ -352,7 +352,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   OBJECT-COMPUTER clauses (PCS, CHARACTER CLASSIFICATION) were a CS0103 on the emitted class — `ObjectComputerEmit` is
   the ONE renderer of a type's OBJECT-COMPUTER members (program, instance, factory); a method's classification is an
   activation LOCAL. Wave-local gated; battery #26 owes it.
-  ④ **NEXT — `work.py next`: PB110 → PB64 T6 → PB109.** T6 = PICTURE format 2 + the NUMVAL-C / TEST-NUMVAL-C LOCALE
+  ④ ✅ **PB110 + PB109 LANDED (2026-08-19, DEVLOG 1336)** — the CODED CHARACTER SET family (§12.3.7.4 GR7 Table 6's
+  four reference sites): ONE `CodedCharacterSet` model + ONE resolver (`DataBinder.CodedCharacterSetOf` — 1669 for a
+  LOCALE alphabet everywhere); SYMBOLIC CHARACTERS binds (the figurative substitutes at the constant-name seams +
+  the `ALL cobolWord` grammar arm; `BoundAllLiteral.BeginsWithAll` separates the WORD the STRING/UNSTRING/INSPECT
+  screens bar from the fill semantics — SR16 → COBOLNET1670); CLASS … IN resolves ordinals in the NAMED set (the
+  silent wrong answer flipped; SR17 b2 → 1671); CODE-SET parses both formats (the national half gated
+  `code-set-national-2002`), SR1–SR3 checked (→ 1672), the identity sets CLAIMED byte-exact and a differing
+  on-medium set the DOCUMENTED A.3 item 27 non-support (1672, never a silent identity); the alphabet-name class
+  condition is live (`CobolClass.IsInCodedSet` — PB109). 15 inventory rows — **GAP 3843**.
+  ⑤ **NEXT — ⛔ battery #26 FIRST** (owed for the accumulated batch: PB111 + PB110/PB109 — both commits ran only
+  the wave-local gate), then `work.py next`: **PB64 T6** = PICTURE format 2 + the NUMVAL-C / TEST-NUMVAL-C LOCALE
   arms over ONE LC_MONETARY model (design §4.6), the LAST locale increment — after it the A.4.9 row in
   CONFORMANCE.md §5 reads "Claimed" and the COBOLNET1518 descriptor goes · then Phase-B adjudication (a NEW
   defect found on the way outranks). Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN; #22 on the

@@ -249,9 +249,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         var fig = c.figurativeConstant() ?? c.literal()?.nonNumericLiteral()?.figurativeConstant();
         if (fig is not null)
         {
-            if (fig.allLiteral() is not null)   // EVERY ALL literal-1 form — alphanumeric, hexadecimal, national, boolean (kb/Work PB71)
+            if (fig.allLiteral() is not null || fig.ALL() is not null && fig.cobolWord() is not null)   // EVERY form beginning with the word ALL — literal-1 (PB71) and ALL symbolic-character-1 (PB110)
                 return (new BoundOperandError(
-                    "INSPECT operand ALL \"literal\" (ISO §14.9.22.3 SR3 — a figurative constant beginning with ALL is not permitted)"), false);
+                    "INSPECT operand ALL \"literal\" / ALL symbolic-character (ISO §14.9.22.3 SR3 — a figurative constant beginning with ALL is not permitted)"), false);
             return (new BoundStringLiteral(InspectFigurativeChar(fig).ToString()), true);
         }
         // ⛔ A FUNCTION-IDENTIFIER OPERAND (ISO §8.4.3.1.2 Format 1; fix-queue PB45). §14.9.22.2 writes these as
@@ -275,6 +275,10 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             return (host.Expr.BooleanLiteralOperand(blit.GetText()), false);
         if (c.dataReference() is { } dref)
         {
+            // A bare symbolic character IS a figurative constant (§12.3.7.4 GR11; kb/Work PB110) — one character,
+            // with the SR6 / GR14 figurative expansion the literal figuratives get.
+            if (ctx.Data.SymbolicOf(dref) is { } sym)
+                return (new BoundStringLiteral(sym.Value) { Category = sym.National ? PicCategory.National : PicCategory.Alphanumeric }, true);
             if (ctx.Refs.Resolve(dref) is not { } p)
                 return (new BoundOperandError($"INSPECT operand '{dref.GetText()}'"), false);
             ctx.Validation.CheckInspectOperandUsage(p, dref.GetText());   // SR2 — pure check

@@ -77,6 +77,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     public string Visit(BoundUserClassCondition n) => n.Negated
         ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})"
         : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})";
+    // An alphabet-name class (§8.8.4.4.4 GR3 a; kb/Work PB109): membership of the alphabet's coded character set
+    // (routed through the RuntimeApi façade — the P7 Step 4b ratchet forbids NEW bare runtime accesses here).
+    public string Visit(BoundCodedSetClassCondition n) => n.Negated
+        ? $"!{RuntimeApi.ClassInCodedSet(OperandText.AsString(n.Operand, num, floatCheck: false), n.Kind)}"
+        : RuntimeApi.ClassInCodedSet(OperandText.AsString(n.Operand, num, floatCheck: false), n.Kind);
     public string Visit(BoundConditionError n) => EmitText.LoudValue("bool", n.Feature);
     // A per-evaluation user-function window (ISO §8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2): the activations run each
     // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a

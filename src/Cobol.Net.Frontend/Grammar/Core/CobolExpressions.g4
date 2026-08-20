@@ -576,4 +576,7 @@ figurativeConstant
     | ALL HIGH_VALUE
     | ALL LOW_VALUE
     | ALL QUOTE_
+    | ALL cobolWord   // Format 7 — ALL symbolic-character-1 (§8.3.3.6.2; SR4: a SYMBOLIC CHARACTERS name — kb/Work PB110);
+                      // LAST so the keyword forms and ALL literal-1 win; the bare form is a word reference (the
+                      // constant-name substitution seams)
     ;

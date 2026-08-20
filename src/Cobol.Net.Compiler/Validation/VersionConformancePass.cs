@@ -1174,6 +1174,15 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The FD CODE-SET clause's NATIONAL half (ISO §13.18.13.2; kb/Work PB110) — alphabet-name-2 and the
+        /// FOR phrases entered at 2002 with the national repertoire; the '85 format was the single-name IS form.</summary>
+        public override object? VisitCodeSetClause(CobolParserCore.CodeSetClauseContext ctx)
+        {
+            if (ctx.codeSetForPhrase().Length > 0 || ctx.cobolWord().Length > 1)
+                _p.Check(Constructs.CodeSetNational2002, "the CODE-SET national phrases (alphabet-name-2 / FOR)");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>PROCEDURE DIVISION … RETURNING (ISO §14.2) — a COBOL-2002 introduction. Gated only OUTSIDE a method
         /// (the shared procedureDivision rule serves both, but CallBindLinkage — the former gate site — runs for program
         /// units only; a method's RETURNING binds through OoBindMethodData, ungated). §14.2.3 GR6/SR1 stay bind-time.</summary>

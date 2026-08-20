@@ -1257,6 +1257,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15P.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F2 ASSIGN TO \"f2.dat\"\n        ORGANIZATION INDEXED ACCESS DYNAMIC RECORD KEY RK.\nDATA DIVISION.\nFILE SECTION.\nFD F2.\n01 R2.\n   05 RK PIC X(5).\n   05 RD2 PIC X(5).\nPROCEDURE DIVISION.\nMAIN.\n    START F2 KEY = RK WITH LENGTH 3.\n    STOP RUN.\n"
     },
     {
+        "id": "code-set-national-2002",
+        "description": "The NATIONAL half of the FD CODE-SET clause - alphabet-name-2 (the second name of the IS form) and the FOR ALPHANUMERIC / FOR NATIONAL phrases, ISO 13.18.13.2 - introduced 2002 with the national repertoire (the '85 format was CODE-SET IS alphabet-name-1 alone). Parse-arm gated (VisitCodeSetClause); kb/Work PB110.",
+        "display": "the CODE-SET national phrases (alphabet-name-2 / FOR)",
+        "diagnosticCode": "COBOLNET0900",
+        "citation": "ISO §13.18.13.2; parse-arm gated (VisitCodeSetClause)",
+        "introducedIn": 2002,
+        "removedIn": null,
+        "expectDiagnostic": "COBOLNET0900",
+        "vcr": "2002 introduction (the national repertoire; kb/Work PB110)",
+        "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB110CS.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET STD IS STANDARD-1.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F1 ASSIGN TO \"f1.dat\".\nDATA DIVISION.\nFILE SECTION.\nFD F1 CODE-SET FOR ALPHANUMERIC IS STD.\n01 R1 PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
       "id": "special-names-for-national-2002",
       "description": "The FOR ALPHANUMERIC / FOR NATIONAL phrase on the SPECIAL-NAMES ALPHABET, CLASS, and SYMBOLIC CHARACTERS clauses, ISO 12.3.7 - introduced 2002 (national repertoire). Parse-arm gated at the three sites (VisitAlphabetClause/VisitClassDefinitionClause/VisitSymbolicCharactersClause).",
       "display": "the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)",

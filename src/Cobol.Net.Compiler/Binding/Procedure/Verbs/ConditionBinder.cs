@@ -480,6 +480,23 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 CheckClassConditionOperand(opnd, 'C');   // SR4 also forbids a class-name for a boolean operand
                 return new BoundUserClassCondition(opnd, members, not);
             }
+            // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
+            // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the
+            // loud staged BoundConditionError.
+            if (cls.cobolWord() is { } acls && operands.Length >= 1
+                && (ctx.Data.Alphabets.TryGetValue(acls.GetText(), out var aDef) && aDef.CodedSet is { } aSet
+                    ? aSet : ctx.Data.NationalAlphabets.TryGetValue(acls.GetText(), out var nDef) ? nDef.CodedSet : null) is { } set)
+            {
+                var opnd = ComparisonOperand(operands[0]);
+                CheckClassConditionOperand(opnd, 'C');   // SR3's usage rule covers alphabet-name-1 exactly as a class-name
+                string setKind = set.Phrase switch
+                {
+                    "STANDARD-1" or "STANDARD-2" => "Ascii",
+                    "UCS-4" or "UTF-8" => "ScalarValues",
+                    _ => "AllNative",   // NATIVE / UTF-16 / a literal phrase — GR7 k4's total set
+                };
+                return new BoundCodedSetClassCondition(opnd, setKind, not);
+            }
             return new BoundConditionError($"class condition '{cls.GetText()}'");
         }
 

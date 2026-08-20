@@ -97,9 +97,17 @@ recordClause
     | RECORD IS? VARYING IN? SIZE? (FROM? integerLiteral)? (TO integerLiteral)? CHARACTERS? (DEPENDING ON? dataReference)?
     ;
 
-// CODE-SET clause (§13.18.13)
+// CODE-SET clause (§13.18.13.2 — the 2002 two-class format; kb/Work PB110): IS alphabet-name-1
+// [alphabet-name-2], or the FOR ALPHANUMERIC / FOR NATIONAL phrases — one or both, any order (the inner brace
+// carries choice indicators, §5.2.6.4; the binder enforces each class at most once). The '85 one-name form is
+// the first alternative's degenerate case.
 codeSetClause
-    : CODE_SET IS? cobolWord
+    : CODE_SET IS? cobolWord cobolWord?
+    | CODE_SET codeSetForPhrase+
+    ;
+
+codeSetForPhrase
+    : FOR (ALPHANUMERIC | NATIONAL) IS? cobolWord
     ;
 
 // LABEL RECORD(S) IS/ARE — obsolete COBOL-85 FD clause, semantically inert

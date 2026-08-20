@@ -351,6 +351,12 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     /// <c>ALL B"…"</c> / <c>ALL BX"…"</c>. Set through <see cref="Of"/> — the ONE constructor from source text.</summary>
     public PicCategory Category { get; init; } = PicCategory.Alphanumeric;
 
+    /// <summary>False for a BARE symbolic-character figurative (§8.3.3.6.2 Format 7 without ALL — kb/Work PB110):
+    /// its VALUE semantics are the ALL-literal fill (§8.3.3.6.4 GR2/GR10 — one node carries both), but the syntax
+    /// screens that bar "a figurative constant that begins with the word ALL" (STRING/UNSTRING §14.9.43.3 SR2 /
+    /// §14.9.48.3 SR5; INSPECT §14.9.22.3 SR3) key on THIS — the word, not the semantics.</summary>
+    public bool BeginsWithAll { get; init; } = true;
+
     /// <summary>THE constructor from the literal's RAW source text (kb/Work PB71): the value through
     /// <see cref="CobolNet.Common.CobolLiteral.Decode"/>, the category through the ONE literal-class classifier
     /// (<see cref="CobolNet.Common.CobolLiteral.ClassOf"/>). Every producer of an ALL literal — the
@@ -465,6 +471,15 @@ public sealed record BoundClassCondition(BoundOperand Operand, char ClassKind, b
 /// <summary>A USER-DEFINED class condition (ISO §8.8.4.1.4 with a SPECIAL-NAMES class-name, §12.3.7): true when
 /// the operand consists entirely of <paramref name="Members"/> (the clause's literals expanded at bind time).</summary>
 public sealed record BoundUserClassCondition(BoundOperand Operand, string Members, bool Negated) : BoundCondition;
+
+/// <summary>A class condition whose class is an ALPHABET-NAME (ISO §8.8.4.4.4 GR3 a; kb/Work PB109): true when
+/// the operand's content consists entirely of characters in the CODED CHARACTER SET the alphabet identifies
+/// (§12.3.7.4 GR7 Table 6 — never a LOCALE alphabet, §8.8.4.4.3 SR2). <paramref name="Kind"/> is the runtime
+/// membership test (<c>CobolClass.CodedSetKind</c>): Ascii for STANDARD-1/2 (the 128 ISO/IEC 646 IRV characters);
+/// ScalarValues for UCS-4 / UTF-8 (every character except an unpaired surrogate); AllNative for NATIVE / UTF-16 /
+/// a literal-phrase alphabet (GR7 k4 puts every native character in the set, so the test is TRUE for any content —
+/// deliberate, not vacuous: the SET is total even though the SEQUENCE is remapped).</summary>
+public sealed record BoundCodedSetClassCondition(BoundOperand Operand, string Kind, bool Negated) : BoundCondition;
 
 /// <summary>A condition the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundConditionError(string Feature) : BoundCondition;

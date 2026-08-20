@@ -113,6 +113,7 @@ public static partial class ConstructRegistry
         new("usage-float-extended-2002", "USAGE FLOAT-EXTENDED", 2002, null, null, "COBOLNET0900", "ISO §13.18.60.4 GR13 (USAGE clause; implementor-defined, mapped to double); LIVE"),
         new("repository-class-2002", "the REPOSITORY CLASS entry", 2002, null, null, "COBOLNET0900", "ISO §12.3.8 (OO); grammar-gated (repositoryEntry); W1.5 parse-layer 0900 mapping"),
         new("start-with-length-2002", "the START KEY … WITH LENGTH phrase", 2002, null, null, "COBOLNET0900", "ISO §14.9.41 (provisional 2002 edge); grammar-gated (startKeyPhrase); W1.5 parse-layer 0900 mapping"),
+        new("code-set-national-2002", "the CODE-SET national phrases (alphabet-name-2 / FOR)", 2002, null, null, "COBOLNET0900", "ISO §13.18.13.2; parse-arm gated (VisitCodeSetClause)"),
         new("special-names-for-national-2002", "the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)", 2002, null, null, "COBOLNET0900", "ISO §12.3.7; parse-arm gated at three SPECIAL-NAMES sites"),
         new("alphabet-national-2002", "the ALPHABET UCS-4/UTF-8/UTF-16 phrase (FOR NATIONAL)", 2002, null, null, "COBOLNET0900", "ISO §12.3.7.2 alphabet-name-clause (the FOR NATIONAL branch); §8.9 context-sensitive words UCS-4/UTF-8/UTF-16; parse-arm gate (VisitAlphabetClause)"),
         new("alphabet-locale-2002", "the ALPHABET LOCALE phrase", 2002, null, null, "COBOLNET0900", "ISO §12.3.7.2 alphabet-name-clause (the LOCALE phrase, either branch); §12.3.7.4 GR7e; parse-arm gate (VisitAlphabetClause)"),

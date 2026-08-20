@@ -264,6 +264,7 @@ internal static class UsageCollectionPass
                 case BoundCondition88 x: P(x.Parent); break;
                 case BoundClassCondition x: Op(x.Operand); break;
                 case BoundUserClassCondition x: Op(x.Operand); break;
+                case BoundCodedSetClassCondition x: Op(x.Operand); break;   // §8.8.4.4.4 GR3 a (kb/Work PB109)
                 default: break;   // sign/boolean/switch condition — numeric/boolean operand, no group
             }
         }

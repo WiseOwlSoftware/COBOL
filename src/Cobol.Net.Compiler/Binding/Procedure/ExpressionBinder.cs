@@ -197,7 +197,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// "figurative constant 'ALLX\"41\"'". §8.3.3.2 makes a hexadecimal literal one form of an ALPHANUMERIC
     /// literal, so Format 6's literal-1 admits it and the two arms are the same case.
     /// </remarks>
-    public static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
+    public BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
     {
         // ⛔ ONE ARM FOR EVERY LITERAL-1 KIND (kb/Work PB71): §8.3.3.6.3 SR2 admits an alphanumeric (plain or
         // hexadecimal), boolean or national literal-1, and the category rides on the literal's class through
@@ -206,6 +206,20 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // records it — and `ALL N"…"` had no grammar arm at all.
         if (fig.allLiteral() is { } al)
             return BoundAllLiteral.Of(al.allLiteralOperand().Select(o => o.GetText()).ToArray());
+        // Format 7 — ALL symbolic-character-1 (§8.3.3.6.2; §12.3.7.4 GR11 — kb/Work PB110): the one-character
+        // figurative the SYMBOLIC CHARACTERS clause defined, as the ALL literal of that character (§8.3.3.6.4
+        // GR10's "one or more of the character" IS the fill semantics BoundAllLiteral carries in every context).
+        if (fig.cobolWord() is { } symWord)
+        {
+            if (ctx.Data.SymbolicOf(symWord.GetText()) is { } sym)
+                return SymbolicOperand(sym) is BoundAllLiteral al7
+                    ? al7 with { BeginsWithAll = true }   // the EXPLICIT ALL form — the word is written
+                    : SymbolicOperand(sym);
+            ctx.Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"ALL {symWord.GetText()}: "
+                + "symbolic-character-1 shall be specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES "
+                + "paragraph (ISO §8.3.3.6.3 SR4)");
+            return new BoundOperandError($"ALL {symWord.GetText()}");
+        }
         if (fig.ZERO() is not null) return new BoundFigurative('Z');
         if (fig.SPACE() is not null) return new BoundFigurative('S');
         if (fig.HIGH_VALUE() is not null) return new BoundFigurative('H');
@@ -214,6 +228,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (fig.NULL_() is not null) return new BoundFigurative('N');
         return new BoundOperandError($"figurative constant '{fig.GetText()}'");
     }
+
+    /// <summary>The bound operand of a symbolic character (§12.3.7.4 GR11; kb/Work PB110): the ALL literal of its
+    /// ONE character — GR10 ("one or more of the character") is the figurative fill in a fixed-length association
+    /// (§8.3.3.6.4 GR2) and one character where the context does not size it (GR3 b), exactly BoundAllLiteral's
+    /// semantics in every consumer.</summary>
+    internal static BoundOperand SymbolicOperand((string Value, bool National) sym) =>
+        new BoundAllLiteral(sym.Value) { Category = sym.National ? PicCategory.National : PicCategory.Alphanumeric,
+            BeginsWithAll = false };   // the BARE Format-7 reference — fill semantics without the word ALL
 
     public BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
         host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
@@ -225,6 +247,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : host.Rw.CounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
         : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
         : ConstantOperand(dref) is { } konst ? konst   // a constant-name substitutes its literal (§13.10.3 SR2)
+        : ctx.Data.SymbolicOf(dref) is { } sym ? SymbolicOperand(sym)   // a symbolic character is a figurative constant (§12.3.7.4 GR11; PB110)
         : ctx.Refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError(RefFailure(dref));
 
     /// <summary>The §13.18.38.3 r7 screen for an operand slot OUTSIDE the five contexts that may reference an

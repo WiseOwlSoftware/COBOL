@@ -1614,10 +1614,54 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
       recognition, so the supplementary-plane codepoint/code-unit divergence is unreachable; the correspondence is
       the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§12.3.7 GR7
       Table 6): referencing them as a collating sequence is rejected (0898), and no codec boundary consumes their
-      coded-set role yet (the CODE-SET clause has no compiler surface — declaring them is well-formed, inert).
+      coded-set role as a CHARACTER SET (item 14a below — the CODE-SET boundary codec lands with kb/Work PB110 part 2).
     SORT/MERGE: alphabet-name-1 takes the alphanumeric table (GR5 precedence, live); alphabet-name-2 / the FOR
     NATIONAL form resolve + class-validate, but national KEYS cannot yet exist (D-N2; the table-sort national key
     stages loud), so the validated national sequence is not yet carried into the sort (lands with RESIDUE-11).
+14a. **The alphabet as a CODED CHARACTER SET (ISO §12.3.7.4 GR7 Table 6 — kb/Work PB110 / PB109).** An
+    alphabet-name references a collating sequence, a coded character set, or both; NOTE 2 of GR7 names the four
+    sites that reference the CODED CHARACTER SET — "*the class condition, the CLASS clause …, a SYMBOLIC CHARACTERS
+    clause, or the CODE-SET clause*" — and Table 6 which phrases define one (every phrase but LOCALE). ONE model
+    serves all four: `Binding/CodedCharacterSet.cs` — `CodedCharacterSet.Of(AlphabetDef)` / `Of(NationalAlphabetDef)`
+    (null for a LOCALE alphabet, and the ONE refusal `DataBinder.CodedCharacterSetOf(name, site, rule)` → COBOLNET1669
+    at every site — §8.8.4.4.3 SR2, §12.3.7.3 SR16g / SR17d, §13.18.13.3 SR1/SR2), with `CharAt(ordinal)` (the
+    character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §8.8.4.4.4 GR3 a) and
+    `Encoding` (the medium codec, §13.18.13.4 GR2). **Determinations (implementor items per GR7 c/d/f–k; documented
+    in CONFORMANCE.md):** the native ALPHANUMERIC set is the UTF-16 repertoire in code-unit order — ordinal n is
+    code unit n−1, 1 ≤ n ≤ 65 536 (the same ordinal FUNCTION CHAR / ORD use — one correspondence, never two);
+    **STANDARD-1 / STANDARD-2** are ISO/IEC 646 IRV (128 characters; STANDARD-2's national version IS the IRV), ordinal
+    n = code n−1, the correspondence to the native set the identity on U+0000–U+007F; **NATIVE / UTF-16** (national)
+    = UTF-16 code units, ordinal n = code unit n−1; **UCS-4 / UTF-8** (national) = ISO/IEC 10646 scalar values,
+    ordinal n = scalar n−1 (a supplementary character is ONE character — its UTF-16 surrogate pair); a **literal
+    phrase** defines a code set whose ordinals ARE its collating positions (GR7 k4 — "*the implementor defines the
+    ordinal number … for each character … not specified*": the unspecified characters follow the highest specified
+    position in native relative order, exactly as the sequence does — `CollatingTable.RepByPos` / `NextFree` and the
+    code-unit tail; the national twin over the sparse table); an ALSO group's representative is literal-1 (GR7 k6's
+    last sentence). **Consumers:** (a) `SYMBOLIC CHARACTERS` — each symbolic-character-1 defines a FIGURATIVE CONSTANT
+    (GR11 a) whose value is the character at ordinal integer-1 in the native set or the `IN` alphabet's set (GR11 b/c;
+    SR16 a/c/e/f/g checked); it is carried as `DataBinder.SymbolicCharacters` (name → the one-character literal and
+    its class) and SUBSTITUTED where a figurative constant may stand (§8.3.3.6.2 Format 7 `[ALL] symbolic-character-1`;
+    §8.3.3.6.4 GR2 — it FILLS a fixed-length receiver / VALUE like SPACE, GR3 b — one character in DISPLAY / STRING):
+    the substituted form IS the ALL-literal NODE of that one character (`BoundAllLiteral` — the fill semantics of
+    §8.3.3.6.4 GR2/GR10 in every context; the VALUE path's raw text `ALL"c"`), carrying `BeginsWithAll = false`
+    for the BARE form so the screens that bar "a figurative constant that begins with the word ALL" (STRING /
+    UNSTRING §14.9.43.3 SR2, INSPECT §14.9.22.3 SR3) fire only on the written word; `ALL symbolic-character-1`
+    is the grammar arm `figurativeConstant : … | ALL cobolWord` (LAST, so the keyword and literal forms win);
+    the bare form parses as a data reference and substitutes at the SAME hooks a constant-name does
+    (`ExpressionBinder.FieldOperand` → `SymbolicOperand`, the VALUE capture, INSPECT's operand arm) — ONE
+    mechanism for "a word that stands for a literal"; a symbolic character is not a receiver. (b) `CLASS … IN alphabet-name-4` — an
+    integer literal is the ordinal IN THAT SET (GR12 a; SR17 b2's range is that set's), a non-numeric literal the
+    character itself (GR12 b), THROUGH the native-contiguous range between the two resolved characters; both CLASS
+    and SYMBOLIC CHARACTERS bind AFTER the SPECIAL-NAMES walk (the clauses are order-free; the ALPHABET they name may
+    follow them — the `ResolveProgramCollating` shape). (c) The class condition `identifier IS alphabet-name-1`
+    (§8.8.4.4.4 GR3 a — kb/Work PB109): `BoundCodedSetClassCondition` → `CobolClass.IsInCodedSet(s, kind)` — STANDARD-1/2
+    ⇒ every code unit ≤ U+007F; NATIVE / a literal phrase ⇒ every native character (TRUE for any content — GR7 k4 puts
+    the whole native set in the code set); the national sets ⇒ well-formed UTF-16 (an unpaired surrogate is not a
+    character of UCS-4 / UTF-8 / UTF-16). (d) `CODE-SET` — PB110 part 2 (`COBOLNET_FILES_DESIGN.md`): the 2002 format
+    (`IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS … | FOR NATIONAL IS …}…`), SR1/SR2 through the ONE
+    refusal, and the set's `Encoding` threaded into the connector as §8.1's one codec parameter (STANDARD-1/2 = ASCII
+    with '?' for an unmappable character; NATIVE = the Latin-1 boundary codepage of item 13; UTF-8 / UTF-16 / UCS-4 =
+    their .NET encodings, no BOM, little-endian; a literal phrase = one byte per character, the ordinal − 1).
 15. **Reference modification out of range.** Throw (`EC-BOUND-REF-MOD` → `CobolRuntimeException`) by default; a
     lenient clamping dialect is a later option.
 16. **Exception model default.** EC checking OFF by default (NIST-faithful, fast — ISO §5000), enabled only by

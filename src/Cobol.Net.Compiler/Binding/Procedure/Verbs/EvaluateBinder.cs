@@ -284,7 +284,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     {
         // §8.8.3.3 GR3: a concatenation expression folds to (and selects as) the equivalent single literal.
         if (vo.nonNumericLiteral()?.concatenationExpression() is { } ce) return host.Expr.ConcatOperand(ce);
-        if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
+        if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return host.Expr.FigurativeOperand(fig);
         if (vo.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
         if (vo.nonNumericLiteral()?.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());
         if (vo.nonNumericLiteral()?.BOOLLIT() is { } bl) return host.Expr.BooleanLiteralOperand(bl.GetText());

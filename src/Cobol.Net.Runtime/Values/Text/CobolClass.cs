@@ -64,6 +64,49 @@ public static class CobolClass
         return true;
     }
 
+    /// <summary>The runtime membership test of a class condition whose class is an ALPHABET-NAME (ISO §8.8.4.4.4
+    /// GR3 a — "consists entirely of characters in the coded character set identified by alphabet-name-1"; kb/Work
+    /// PB109). The compile-time binder mapped the alphabet's phrase to the SET's membership rule (§12.3.7.4 GR7
+    /// Table 6 + the CodedCharacterSet determinations).</summary>
+    public enum CodedSetKind
+    {
+        /// <summary>NATIVE, UTF-16, or a literal-phrase alphabet: the set contains EVERY native character (GR7 k4
+        /// places the whole native set in a literal alphabet's code set), so the condition is true for any content —
+        /// deliberate, not vacuous (the SET is total even where the SEQUENCE is remapped).</summary>
+        AllNative,
+        /// <summary>STANDARD-1 / STANDARD-2 — the 128 ISO/IEC 646 IRV characters (GR7 c: the identity correspondence
+        /// on U+0000–U+007F).</summary>
+        Ascii,
+        /// <summary>UCS-4 / UTF-8 — the ISO/IEC 10646 scalar values (GR7 f/g): every character except an unpaired
+        /// surrogate code unit, which is not a character of these sets.</summary>
+        ScalarValues,
+    }
+
+    /// <summary>The GR3 a class condition: true iff <paramref name="s"/> consists entirely of characters of the
+    /// coded character set (a zero-length operand is FALSE — GR1, enforced like the other class tests).</summary>
+    public static bool IsInCodedSet(string? s, CodedSetKind kind)
+    {
+        if (string.IsNullOrEmpty(s)) return false;
+        switch (kind)
+        {
+            case CodedSetKind.AllNative: return true;
+            case CodedSetKind.Ascii:
+                foreach (char c in s) if (c > 0x7F) return false;
+                return true;
+            default:   // ScalarValues — well-formed UTF-16 (no unpaired surrogate)
+                for (int i = 0; i < s.Length; i++)
+                {
+                    if (char.IsHighSurrogate(s[i]))
+                    {
+                        if (i + 1 >= s.Length || !char.IsLowSurrogate(s[i + 1])) return false;
+                        i++;
+                    }
+                    else if (char.IsLowSurrogate(s[i])) return false;
+                }
+                return true;
+        }
+    }
+
     /// <summary>True if every character is A–Z, a–z, or space (ISO §8.8.4.1.4).</summary>
     public static bool IsAlphabetic(string? s)
     {

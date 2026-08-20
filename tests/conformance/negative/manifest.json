@@ -352,6 +352,11 @@
   "pb64t5-classification-name-undeclared",
   "pb64t5-case-phrase-name-undeclared",
   "pb64t5-class-condition-locale-alphabet",
+  "pb110-symbolic-locale-alphabet",
+  "pb110-symbolic-sr16",
+  "pb110-class-ordinal-range",
+  "pb110-code-set-nonidentity",
+  "pb110-code-set-locale-alphabet",
   "pb64t5-classification-twice"
  ],
  "pending": []
