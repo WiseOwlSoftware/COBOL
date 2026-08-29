@@ -59,7 +59,13 @@
            DISPLAY "6-STRING".
            STRING FUNCTION LOG10(W-Z) DELIMITED BY SIZE INTO W-T.
            DISPLAY "7-UNSTRING".
-           UNSTRING W-U DELIMITED BY FUNCTION LOG10(W-Z)
+      *> The delimiter must be CATEGORY ALPHANUMERIC (14.9.48.3 SR2 -
+      *> kb/Work PB155's screen; numeric LOG10 was illegal here), so the
+      *> EC-ARGUMENT probe in this position is CHAR(0) - 15.15.3 AR2
+      *> requires an argument greater than zero and within the collating
+      *> sequence, and 0 violates it exactly as LOG10(0) violated
+      *> 15.56.3 AR2.
+           UNSTRING W-U DELIMITED BY FUNCTION CHAR(W-Z)
                INTO W-P1 W-P2.
            DISPLAY "8-PERFORM-UNTIL".
            PERFORM UNTIL FUNCTION LOG10(W-Z) >= 0

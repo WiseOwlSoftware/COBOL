@@ -252,7 +252,8 @@
   "pb154_cancel_scope",
   "pb154_cancel_initial",
   "pb154_cancel_active",
-  "pb154_cancel_cascade"
+  "pb154_cancel_cascade",
+  "pb155_composite_edges"
  ],
  "pending": []
 }

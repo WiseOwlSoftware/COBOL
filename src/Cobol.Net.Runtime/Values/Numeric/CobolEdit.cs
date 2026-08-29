@@ -448,15 +448,30 @@ public static partial class CobolEdit
         // PICTURE P scaling positions (§13.18.40.3): trailing P → a NEGATIVE mask scale (the value is a multiple
         // of 10^P — PIC ZZZPP aligns 900 to unscaled 9, NC124A PICTURE-TEST-30); leading P → every digit position
         // is fractional (scale = P-count + digit positions). P never coexists with V-fraction digits.
+        // ⛔ The leading/trailing split anchors on EVERY digit position — 9/Z/* AND a FLOATING string's member
+        // occurrences (§13.18.40.6 Table 10 puts 'P (left of decimal point)' beside floating cs and +/−) — never
+        // on only the literal 9/Z/* (kb/Work PB155: `PIC $$$$PP` has no 9/Z/* at all, so its rightmost P run
+        // read as LEADING and the mask scale came out +2 where the value is a multiple of 10^2, scale −2).
+        // A FIXED single +/−/cs is not a digit position and must not anchor (a trailing fixed sign sits right
+        // of a trailing P run: 99PPCR).
         int pCount = 0;
         foreach (char raw in picture) if (char.ToUpperInvariant(raw) == 'P') pCount++;
         if (pCount > 0)
         {
             string up = picture.ToUpperInvariant();
-            int lastDigitPos = up.LastIndexOfAny(['9', 'Z', '*']);
+            bool IsDigitPos(char c) => c is '9' or 'Z' or '*'
+                || (c == currencyChar && !fixedCs) || (c == '+' && !fixedPlus) || (c == '-' && !fixedMinus);
+            int lastDigitPos = -1, digitPositions = 0;
+            bool sawFloating = false;
+            for (int i = 0; i < up.Length; i++)
+                if (IsDigitPos(up[i]))
+                {
+                    lastDigitPos = i;
+                    // the LEFTMOST occurrence of a floating string is the sign/currency itself, not a digit
+                    if (up[i] is not ('9' or 'Z' or '*') && !sawFloating) { sawFloating = true; continue; }
+                    digitPositions++;
+                }
             if (lastDigitPos >= 0 && up.IndexOf('P', lastDigitPos) > lastDigitPos) return -pCount;
-            int digitPositions = 0;
-            foreach (char c in up) if (c is '9' or 'Z' or '*') digitPositions++;
             return pCount + digitPositions;
         }
         int point = picture.IndexOf('V');

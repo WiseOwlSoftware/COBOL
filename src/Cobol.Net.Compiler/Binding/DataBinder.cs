@@ -1418,14 +1418,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // SR2 (ISO §13.18.63.3, ISO_COBOL.md:22906): the literal shall be a permissible value in the PICTURE range,
         // representable without truncation of a leading or trailing nonzero digit. Compare the literal's nonzero
-        // digit-exponent span against the subject's stored-digit exponent span [-Scale, Digits-Scale-1]. A fixed-point
-        // numeric-edited subject (SR6 — "no truncation of digits or sign") spans its DIGIT POSITIONS (P excluded —
-        // P scales, it stores nothing) at the MASK's scale (CobolEdit.MaskScale: the '.' or V, P-signed).
-        int storedDigits = edited ? pic.DigitPositions - mask.Count(c => c == 'P') : pic.Digits;
-        // A format-2 (LOCALE) item's scale is the picture's digits right of '.' (PicInfo.Scale — the analyzer set
-        // it; there is no mask for MaskScale to read, and 'P' does not exist in format 2).
-        int storedScale = pic.LocaleEdit is not null ? pic.Scale
-            : edited ? CobolEdit.MaskScale(mask, '$', DecimalPointIsComma) : pic.Scale;
+        // digit-exponent span against the subject's stored-digit exponent span [-Scale, Digits-Scale-1] —
+        // StoredShapeOf, the ONE fixed-point (digits, scale) geometry (kb/Work PB155 lifted it so the §14.7.7
+        // composite aligns on the same shape).
+        var (storedDigits, storedScale) = StoredShapeOf(pic);
         int lowStoredExp = -storedScale;
         int highStoredExp = storedDigits - storedScale - 1;
         if (highLitExp > highStoredExp || lowLitExp < lowStoredExp)
@@ -1435,6 +1431,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 : $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                     + "permissible value in the range the PICTURE indicates — it is not representable without truncation "
                     + "of leading or trailing nonzero digits (ISO §13.18.63.3 SR2)");
+    }
+
+    /// <summary>The stored digit-position span and P-signed scale of a FIXED-POINT item — plain numeric
+    /// (Digits/Scale), numeric-edited (the MASK's geometry: DigitPositions less its P positions, at
+    /// <c>CobolEdit.MaskScale</c> — the '.' or V, P-signed; SR6 "no truncation of digits or sign" spans the
+    /// digit positions, P excluded because P scales and stores nothing), or locale-edited format 2
+    /// (DigitPositions at the analyzer's Scale — there is no mask for MaskScale to read, and 'P' does not
+    /// exist in format 2). The ONE (digits, scale) shape the §13.18.63.3 SR2/SR6 VALUE-fit check and the
+    /// §14.7.7 r2 composite of operands both align on (kb/Work PB155). Callers exclude floating-point forms
+    /// first (<see cref="PicInfo.IsFloat"/> / <see cref="PicInfo.IsFloatEdited"/> — no fixed decimal
+    /// alignment exists for them).</summary>
+    internal (int Digits, int Scale) StoredShapeOf(PicInfo pic)
+    {
+        bool edited = pic.Category is PicCategory.NumericEdited;
+        string mask = pic.EditMask ?? "";
+        return (edited ? pic.DigitPositions - mask.Count(c => c == 'P') : pic.Digits,
+                pic.LocaleEdit is not null ? pic.Scale
+                    : edited ? CobolEdit.MaskScale(mask, '$', DecimalPointIsComma) : pic.Scale);
     }
 
     // (The former private DecodeString twin is retired — all callers use CobolNet.Common.CobolLiteral.Decode,

@@ -433,7 +433,15 @@
   "pb148-display-index-item",
   "pb148-display-null",
   "pb151-based-comp-leaf",
-  "pb154-cancel-numeric"
+  "pb154-cancel-numeric",
+  "pb155-add-edited-operand",
+  "pb155-add-string-literal",
+  "pb155-divide-composite-edited",
+  "pb155-divide-figurative",
+  "pb155-divide-into-alpha",
+  "pb155-set-to-edited",
+  "pb155-unstring-edited-sender",
+  "pb155-unstring-numeric-delimiter"
  ],
  "pending": []
 }

@@ -266,14 +266,28 @@ public static class PictureAnalyzer
         // a multiple of 10^P). LEADING P (e.g. P(4)9) puts the point left of every digit → scale = leadingP + the
         // digit count (all 9s are fractional). The net SIGNED scale flows through the whole numeric pipeline; the
         // runtime Rescale handles a negative scale natively (Pow10 of the always-non-negative scale difference).
-        // P positions classify against the DIGIT POSITIONS (9 and the suppression symbols Z/* — an EDITED
-        // P-scaled mask like ZZZPP has no '9' at all, NC124A PICTURE-TEST-30), not just the literal nines.
-        int firstNine = expanded.IndexOfAny(['9', 'Z', '*']), lastNine = expanded.LastIndexOfAny(['9', 'Z', '*']);
+        // P positions classify against the DIGIT POSITIONS — 9, the suppression symbols Z/* (an EDITED
+        // P-scaled mask like ZZZPP has no '9' at all, NC124A PICTURE-TEST-30), AND a FLOATING string's
+        // occurrences (kb/Work PB155: `PIC $$$$PP` has no 9/Z/* at all, so its rightmost P run classified as
+        // LEADING and the scale came out +2 where the value is a multiple of 10^2, scale −2; §13.18.40.6
+        // Table 10 places left-of-point P beside the floating symbols). The floating symbol is determined
+        // FIRST so the anchors can include it; §13.18.40.5 allows at most one floating string per picture.
+        int floatingExtra = 0;
+        char floatChar = '\0';
+        foreach (char fsym in new[] { '+', '-', cs })
+        {
+            int fc = expanded.Count(ch => ch == fsym);
+            if (fc >= 2) { floatingExtra = fc - 1; floatChar = fsym; break; }
+        }
+        bool IsDigitAnchor(char c) => c is '9' or 'Z' or '*' || (floatChar != '\0' && c == floatChar);
+        int firstNine = -1, lastNine = -1;
+        for (int i = 0; i < expanded.Length; i++)
+            if (IsDigitAnchor(expanded[i])) { if (firstNine < 0) firstNine = i; lastNine = i; }
         int leadingP = 0, trailingP = 0;
         for (int i = 0; i < expanded.Length; i++)
             if (expanded[i] == 'P') { if (firstNine < 0 || i < firstNine) leadingP++; else if (i > lastNine) trailingP++; }
         int digitPositions = expanded.Count(c => c is '9' or 'Z' or '*');
-        int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions : afterV;
+        int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions + floatingExtra : afterV;
 
         // §13.18.40.3 SR14 DIGIT-POSITION count for the 1–31 capacity cap: the 9/Z/* positions, every P (counted in the
         // maximum digit positions though it stores no digit, §13.18.40.4), and the floating '+'/'-'/currency digit
@@ -281,13 +295,7 @@ public static class PictureAnalyzer
         // sign/currency, not a digit). Counting SYMBOL occurrences (not run length) naturally excludes embedded simple
         // insertions ($$,$$9 → 4 '$' → 3 digit positions). For a pure-numeric picture (no Z/*, no floating) this equals
         // Digits + P. (CA33 — the cap must NOT undercount to only the '9's, which let Z(35)/Z(11)9(8) slip past.)
-        int floatingExtra = 0;
-        foreach (char fsym in new[] { '+', '-', cs })
-        {
-            int fc = expanded.Count(ch => ch == fsym);
-            if (fc >= 2) { floatingExtra = fc - 1; break; }   // §13.18.40.5 — at most one floating string per picture
-        }
-        int digitPos = digitPositions + leadingP + trailingP + floatingExtra;
+        int digitPos = digitPositions + leadingP + trailingP + floatingExtra;   // floatingExtra hoisted above the P split
 
         bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
         // CR / DB are fixed-insertion editing symbols too (ISO §13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED

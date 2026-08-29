@@ -66,7 +66,11 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         if (into is RefModPlace)
             return Reject($"STRING INTO '{intoText}': identifier-3 shall not be reference-modified (ISO §14.9.43.3 SR4)");
         if (into.Item.Pic is { Category: PicCategory.NumericEdited }
-            or { Category: PicCategory.Alphanumeric, EditMask: not null })
+            or { Category: PicCategory.Alphanumeric or PicCategory.National, EditMask: not null })
+            // The National arm too (kb/Work PB155's sweep): SR5 excludes ANY edited item, and a national-edited
+            // picture is modeled as Category National WITH an EditMask — the two-arm screen had covered only
+            // the numeric-edited and alphanumeric-edited forms. (Unreachable until Phase 4a residue #2 lands —
+            // a national-edited ITEM is 0899 at declaration — so no fixture pins it; shaped for that landing.)
             return Reject($"STRING INTO '{intoText}': identifier-3 shall not reference an edited data item (ISO §14.9.43.3 SR5)");
         if (into.Item.Justified)
             return Reject($"STRING INTO '{intoText}': identifier-3 shall not be described with the JUSTIFIED clause (ISO §14.9.43.3 SR5)");
@@ -138,6 +142,12 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             {
                 bool all = item.ALL() is not null;
                 var v = StrUnstrOperand(item.strUnstrOperand(), "UNSTRING delimiter");
+                // SR2 names identifier-2/-3 in the SAME sentence as identifier-1 — the sweep that screened
+                // only the sender left a numeric or edited DELIMITED BY operand binding clean (kb/Work PB155).
+                if (UnstringSenderCategory(v) is { } badDelim)
+                    return Reject($"UNSTRING delimiter '{item.strUnstrOperand().GetText()}' is category {badDelim} "
+                        + "(identifier-2 and identifier-3 shall reference data items of category alphanumeric "
+                        + "or national, ISO §14.9.48.3 SR2)");
                 if (v is BoundAllLiteral allLit) { v = new BoundStringLiteral(allLit.Literal) { Category = allLit.Category }; all = true; }
                 delims.Add(new BoundUnstringDelimiter(v, all));
             }
@@ -180,6 +190,12 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 {
                     if (ctx.Refs.Resolve(drefs[next]) is not { } d5)
                         return new BoundUnsupported($"UNSTRING DELIMITER IN '{drefs[next].GetText()}'");
+                    // identifier-5 is SR2's fourth name (kb/Work PB155) — the delimiter RECEIVER shares the
+                    // category rule, not SR4's receiver list.
+                    if (Sr2OffendingCategory(d5.Item.Pic) is { } badD5)
+                        return Reject($"UNSTRING DELIMITER IN '{drefs[next].GetText()}' is category {badD5} "
+                            + "(identifier-5 shall reference a data item of category alphanumeric or national, "
+                            + "ISO §14.9.48.3 SR2)");
                     delimIn = d5;
                     next++;
                 }
@@ -269,17 +285,32 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             : op;
     }
 
-    /// <summary>ISO §14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender, or <see langword="null"/> when
-    /// it is a permitted one. Reads the category off whichever operand shape the sender is: a FIELD's PICTURE
-    /// (a group has none and is an alphanumeric-image sender, so it passes), or a numeric/boolean intrinsic's
-    /// §15.2 RESULT category. A string-class function (UPPER-CASE, TRIM, SUBSTITUTE …) is a permitted sender;
-    /// FUNCTION ORD or a boolean function is not, for exactly the reason a numeric ITEM is not.</summary>
-    private static PicCategory? UnstringSenderCategory(BoundOperand source) => source switch
+    /// <summary>ISO §14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender (as its printable name), or
+    /// <see langword="null"/> when it is a permitted one. Reads the category off whichever operand shape the
+    /// sender is: a FIELD's PICTURE (a group has none and is an alphanumeric-image sender, so it passes), or a
+    /// numeric/boolean intrinsic's §15.2 RESULT category. A string-class function (UPPER-CASE, TRIM,
+    /// SUBSTITUTE …) is a permitted sender; FUNCTION ORD or a boolean function is not, for exactly the reason a
+    /// numeric ITEM is not. An alphanumeric-EDITED or national-EDITED item (Category Alphanumeric/National WITH
+    /// an EditMask — there is no *Edited enum member for them) is category alphanumeric-edited/national-edited,
+    /// NOT the category alphanumeric/national SR2 names (kb/Work PB155's sweep — the old screen passed
+    /// them).</summary>
+    private static string? UnstringSenderCategory(BoundOperand source) => source switch
     {
-        BoundFieldOperand f when f.Place.Item.Pic is
-            { Category: PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean } pic => pic.Category,
+        BoundFieldOperand f => Sr2OffendingCategory(f.Place.Item.Pic),
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } when ic.ResultCategory is
-            PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean => ic.ResultCategory,
+            PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean => ic.ResultCategory.ToString(),
+        _ => null,
+    };
+
+    /// <summary>ISO §14.9.48.3 SR2's category test as ONE predicate — the rule names identifier-1, -2, -3 AND
+    /// -5 in a single sentence, so the sender, both delimiter operands and the DELIMITER IN receiver all ask
+    /// this (kb/Work PB155). A missing PICTURE (a group — an alphanumeric-image item) passes.</summary>
+    private static string? Sr2OffendingCategory(PicInfo? pic) => pic switch
+    {
+        { Category: PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean } p =>
+            p.Category.ToString(),
+        { Category: PicCategory.Alphanumeric or PicCategory.National, EditMask: not null } p =>
+            $"{p.Category.ToString().ToLowerInvariant()}-edited",
         _ => null,
     };
 
@@ -306,7 +337,11 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// separately). Callers exempt a group (SR10) and a reference-modified slice before consulting this.</summary>
     private static bool UnstringReceiverAllowed(PicInfo? pic) => pic is
         { Category: PicCategory.Alphanumeric, EditMask: null }
-        or { Category: PicCategory.National }
+        // EditMask: null on the National arm too (kb/Work PB155's sweep): SR4 names CATEGORY national, and a
+        // national-edited picture (Category National WITH an EditMask) is category national-edited — the
+        // alphanumeric arm screened its edited form while this arm admitted one. (Unreachable until Phase 4a
+        // residue #2 lands — a national-edited ITEM is 0899 at declaration; shaped for that landing.)
+        or { Category: PicCategory.National, EditMask: null }
         or { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.National };
 
     /// <summary>The UNSTRING no-DELIMITED reception size (ISO §14.9.48.4 GR11b): the receiving area's size in

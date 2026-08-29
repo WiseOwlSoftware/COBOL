@@ -116,17 +116,28 @@ internal sealed class StatementValidation(DataBinder data)
         // four picture-less usages carry Category Numeric + IsFloat false, so without this guard they were wrongly
         // superimposed (BINARY-DOUBLE contributes up to 20 integer digits) and pushed a conforming program past 31
         // (COBOLNET0805). COMP-5 is NOT in rule 2b's list and stays counted; float usages are already IsFloat. (CA6.)
+        // Category NUMERIC-EDITED is IN the composite (kb/Work PB155): a MULTIPLY/DIVIDE GIVING resultant is a
+        // composite member (§14.9.26.3 SR4 counts ALL operands; §14.9.12.3 SR4 excludes only REMAINDER) and
+        // §14.9.26.3/§14.9.12.3 SR2 admit it as numeric-edited — requiring Category Numeric silently dropped it.
+        // A floating-point-FORM edited mask (IsFloatEdited) is excluded as a DOCUMENTED READING, not rule 2b's
+        // text (its list names usages and float literals, never an edited form): the composite is a
+        // superimposition "aligned on their decimal points" (§14.7.7 r2's own definition) and an E-form mask
+        // has no fixed decimal point to align — the same property that puts every listed exclusion outside
+        // the superimposition. Its DigitPositions is 0 anyway, so inclusion would contribute nothing.
         static bool InComposite(PicInfo p) =>
-            p is { Category: PicCategory.Numeric, IsFloat: false }
+            p is { Category: PicCategory.Numeric or PicCategory.NumericEdited, IsFloat: false, IsFloatEdited: false }
             && p.Usage is not (Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble);
         void OfExpr(BoundExpr e)
         {
             switch (e)
             {
                 case BoundNumRef { Place.Item.Pic: { } p } when InComposite(p):
-                    Shape(p.Digits, p.Scale);
+                    var (d, s) = data.StoredShapeOf(p);   // the ONE fixed-point geometry (edited: mask-derived)
+                    Shape(d, s);
                     break;
-                case BoundNumLiteral lit:
+                // §14.7.7 rule 2a/2b: a FLOATING-POINT literal is excluded from the composite — counting the
+                // E-form's characters here rejected legal `ADD 1.5E+3 TO <PIC 9(28)>` (kb/Work PB155).
+                case BoundNumLiteral lit when !CobolNet.Common.NumericLiteral.IsFloatingPointForm(lit.Text):
                     string t = lit.Text.TrimStart('+', '-');
                     int dot = t.IndexOf('.');
                     Shape(t.Count(char.IsAsciiDigit), dot < 0 ? 0 : t.Length - dot - 1);
@@ -136,7 +147,10 @@ internal sealed class StatementValidation(DataBinder data)
         foreach (var e in operands) OfExpr(e);
         foreach (var r in receivers)
             if (r.Place.Item.Pic is { } rp && InComposite(rp))
-                Shape(rp.Digits, rp.Scale);
+            {
+                var (rd, rs) = data.StoredShapeOf(rp);
+                Shape(rd, rs);
+            }
 
         // The cap is 31 at EVERY edition (ISO §14.7 rule 2a — the 2023 text). A COBOL-85-specific tightening to
         // 18 was considered and REFUTED by the conformance corpus itself: CCVS-85 NC101A multiplies 9(3)V9(3) by

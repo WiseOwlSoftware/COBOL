@@ -396,7 +396,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// </para></summary>
     private BoundExpr OperandRef(Core.DataReferenceContext dref, Place p, OperandContext context)
     {
-        if (context is OperandContext.Arithmetic && NonNumericOperandKind(p) is { } what)
+        // BOTH arithmetic contexts (kb/Work PB155): ArithmeticIndexWindow differs ONLY in the index-name
+        // interception (handled before this point), exactly as the enum doc states — R29 flipped eleven call
+        // sites (SET, PERFORM/SEARCH VARYING, compound subscripts, compound relation/EVALUATE operands) to the
+        // window context and this guard was never widened, so `SET IX TO <PIC X item>` silently digit-decoded
+        // under STRICT while `ADD` drew 0844.
+        if (context is OperandContext.Arithmetic or OperandContext.ArithmeticIndexWindow
+            && NonNumericOperandKind(p) is { } what)
         {
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning("COBOLNET0844", $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
@@ -445,8 +451,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         _ when p.Item.Pic is { Category: PicCategory.NumericEdited } =>
             $"item '{p.Item.CobolName}' of category numeric-edited (a numeric-edited data item is not a NUMERIC "
             + "data item — ISO §8.5.2.13 + §8.5.2.1 Table 2; de-editing is a MOVE rule, §14.9.25.4 GR6d1)",
-        _ when p.Item.Pic is { Category: PicCategory.Alphanumeric or PicCategory.National, EditMask: null } pic =>
-            $"item '{p.Item.CobolName}' of category {pic.Category}",
+        // NO EditMask condition (kb/Work PB155): an alphanumeric-edited/national-edited picture is modeled as
+        // Category Alphanumeric/National WITH an EditMask (there is no *Edited enum member for them), and the
+        // old `EditMask: null` pattern let `ADD <PIC XXBXX> TO N` slip past the screen and digit-decode under
+        // STRICT — the --permissive leniency applied unconditionally. Edited or plain, class alphanumeric or
+        // national is not class numeric (ISO §8.5.2.1 Table 2 / §8.8.1.1).
+        _ when p.Item.Pic is { Category: PicCategory.Alphanumeric or PicCategory.National } pic =>
+            $"item '{p.Item.CobolName}' of category {pic.Category.ToString().ToLowerInvariant()}"
+            + (pic.EditMask is not null ? "-edited (an edited item is not a NUMERIC data item — ISO §8.5.2.1 "
+                + "Table 2; the de-editing grant is MOVE's alone, §14.9.25.4 GR6d1)" : ""),
         _ => null,
     };
 
@@ -629,8 +642,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
               .OfType<Receiver>().ToList();
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) as an ISO §8.8.1.1
-    /// ARITHMETIC expression — numeric operands only. THE entry for COMPUTE, the arithmetic verbs, subscripts,
-    /// reference-modifier offsets, relation conditions, SET and PERFORM VARYING, i.e. every ordinary caller.
+    /// ARITHMETIC expression — numeric operands only. THE entry for COMPUTE, the arithmetic verbs and
+    /// reference-modifier offsets; the §13.18.38.3 r7 index-name windows (subscripts, SET, PERFORM/SEARCH
+    /// VARYING, relation/EVALUATE operands) moved to <see cref="BindIndexWindowExpr"/> at R29 (kb/Work PB155
+    /// re-unified the §8.8.1.1 screening the move had silently dropped there).
     /// <para>Deliberately takes NO context parameter: an optional one would break the method-group conversions this
     /// spine is used through (<c>Select(host.Expr.BindExpr)</c>) and would put a bare <c>true</c> at a call site.
     /// The contexts that differ have their own named entries, <see cref="BindFunctionArgumentExpr"/> and
@@ -692,13 +707,32 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             return new BoundExprError($"concatenation expression '{lit.GetText()}' in a numeric context");
         }
         if (lit.nonNumericLiteral()?.figurativeConstant() is { } fig)
-            return fig.ZERO() is not null ? new BoundNumLiteral("0")
-                : new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context");
+        {
+            if (fig.ZERO() is not null) return new BoundNumLiteral("0");
+            // §8.8.1.1 names ZERO as the ONLY figurative constant admissible in an arithmetic expression.
+            // The bare BoundExprError here carried no diagnostic and rendered as a RUNTIME NotImplemented —
+            // the wrong stage for a syntax-rule violation (kb/Work PB155).
+            ctx.Edition.Error("COBOLNET0844", $"figurative constant '{fig.GetText()}' is not a numeric "
+                + "operand (ISO §8.8.1.1 — ZERO is the only figurative constant admitted in an arithmetic "
+                + "expression)");
+            return new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context");
+        }
         if (lit.nonNumericLiteral() is { } nn && (nn.NATLIT() ?? nn.BOOLLIT()) is not null)
         {
             ctx.Edition.Error("COBOLNET0844", $"a {(nn.NATLIT() is not null ? "national" : "boolean")} "
                 + "literal is not a numeric operand (ISO §8.8.1.1 — arithmetic operands shall be numeric)");
             return new BoundExprError($"literal '{lit.GetText()}' in a numeric context");
+        }
+        if (lit.nonNumericLiteral() is { } an && (an.STRINGLIT() ?? an.HEXLIT()) is not null)
+        {
+            // kb/Work PB155: this arm fell through to BoundNumLiteral carrying the QUOTED text, and the
+            // emitter rendered it into the generated arithmetic — a raw Roslyn error at the wrong stage
+            // (the PB94 VALUE-clause fix's arithmetic sibling). Both formats of the alphanumeric literal —
+            // quoted and hexadecimal — are of class and category alphanumeric (ISO §8.3.3.2.1).
+            ctx.Edition.Error("COBOLNET0844", "an alphanumeric literal is not a numeric operand "
+                + "(ISO §8.8.1.1 — arithmetic operands shall be numeric; §8.3.3.2.1 — both formats of the "
+                + "alphanumeric literal are of class and category alphanumeric)");
+            return new BoundExprError($"literal {lit.GetText()} in a numeric context");
         }
         return new BoundNumLiteral(CheckLiteral(lit.GetText()));
     }
@@ -776,6 +810,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             // with the same dialect gate (strict rejects; --permissive decodes the digit characters). Before this,
             // `COMPUTE N = FUNCTION BOOLEAN-OF-INTEGER(5, 8) + 1` compiled clean and died at run time with an
             // unhandled NotImplemented — a crash on legal-shaped source, the wrong stage.
+            // ⛔ Arithmetic ONLY — deliberately NOT the ArithmeticIndexWindow (kb/Work PB155, measured by the
+            // wave gate): the window context serves BOTH genuinely-arithmetic positions (SET amounts, VARYING
+            // FROM/BY, subscripts) AND relation/EVALUATE COMPARAND positions, where a SOLE alphanumeric
+            // function is a legal §8.8.4.1.1 operand (`IF FUNCTION LOWER-CASE(X) = Y` — six NIST IF-suite
+            // programs). A sole DATA reference short-circuits through FieldOperand before OperandRef, so the
+            // data-item screen above is safe to widen; a sole FUNCTION call has no such short-circuit, and
+            // this screen cannot tell a comparand from an arithmetic term. Splitting the conflated context is
+            // kb/Work PB172 — until then `SET IX TO FUNCTION LOWER-CASE(X)` stays unscreened here.
             if (context is OperandContext.Arithmetic
                 && call is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } sc)
             {
