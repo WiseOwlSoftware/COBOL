@@ -43,7 +43,12 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && vals.FigurativeInitializer(raw, pic) is null)
                 return RuntimeApi.NumFormatImage(EmitText.UnscaledAtScale(raw, pic.Scale), item.ProfileName);
-            // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§13.18.63 GR6).
+            // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§13.18.63 GR6) —
+            // for a format-2 (LOCALE) member a RUNTIME image (no compile-time image exists, §13.18.40.5 r11;
+            // the ONE producer, RuntimeApi.LocaleEditCompose — PB64 T6; the EditCompose arm's mask deref would NRE).
+            if (pic.LocaleEdit is not null && !raw.StartsWith('"')
+                && ValueInitializer.TryParseNumeric(raw, out var luv, out int lsc))
+                return RuntimeApi.LocaleEditCompose(pic, luv, lsc, item.BlankWhenZero);
             if (pic.Category is PicCategory.NumericEdited && !raw.StartsWith('"')
                 && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
                 return EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!,

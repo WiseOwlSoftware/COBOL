@@ -315,6 +315,26 @@ public static class OoConformance
                 if (!string.Equals(f.EditMask, a.EditMask, StringComparison.Ordinal))
                     return $"PICTURE mismatch (formal '{f.EditMask}', argument '{a.EditMask}' — "
                         + "§14.8.2.3.2 rule 2 requires the same PICTURE clause)";
+                // A FORMAT-2 (LOCALE) picture's identity (§14.8.2.3.2 rule 2 / §8.5.3.1 rule 2 — PB64 T6): both
+                // masks are null, so the compare above passes vacuously; the rule requires the same SIZE phrase
+                // (the Length compare below carries it — Length = integer-1), the same character-string, and the
+                // same locale — "both specify the LOCALE phrase without a locale-name or both … with the same
+                // external identification" (the ONE identity, LocaleSymbol.SameLocaleAs over L1 normalization).
+                if ((f.LocaleEdit is not null) != (a.LocaleEdit is not null))
+                    return "PICTURE mismatch (only one of the pair is a format 2 LOCALE picture — "
+                        + "§14.8.2.3.2 rule 2 requires the same PICTURE clause)";
+                if (f.LocaleEdit is { } fle && a.LocaleEdit is { } ale)
+                {
+                    if (!string.Equals(fle.Picture, ale.Picture, StringComparison.Ordinal))
+                        return $"PICTURE mismatch (formal '{fle.Picture}', argument '{ale.Picture}' — "
+                            + "§14.8.2.3.2 rule 2 requires the same PICTURE clause)";
+                    bool same = fle.Locale.IsCurrent == ale.Locale.IsCurrent
+                        && (fle.Locale.IsCurrent || fle.Locale.Named!.SameLocaleAs(ale.Locale.Named!));
+                    if (!same)
+                        return $"LOCALE mismatch (formal {fle.Locale}, argument {ale.Locale} — §14.8.2.3.2 rule 2: "
+                            + "both shall specify the LOCALE phrase without a locale-name or with the same "
+                            + "external identification)";
+                }
                 return !anyLengthFormal && f.Length != a.Length
                     ? $"length mismatch (formal {f.Category} ({f.Length}), argument {a.Category} ({a.Length}))"
                     : null;

@@ -332,6 +332,7 @@ public sealed partial class DataBinder
             // Clause capture for THIS entry (clauses may appear in any order within the entry — RW104A).
             string? picText = null, usageText = null, rawValue = null;
             List<EditingPhraseSpec>? reportEditing = null;   // PICTURE EDITING phrases (§13.18.40.2)
+            LocaleEditSpec? reportLocale = null;             // PICTURE format 2 — the LOCALE phrase (PB113 / PB64 T6)
             SignSpec? ownSign = null;
             bool justified = false, blankWhenZero = false, groupIndicate = false, staysLoud = false;
             var columns = new List<ReportColumnSpec>();
@@ -402,6 +403,24 @@ public sealed partial class DataBinder
                 {
                     picText = pic.GetText();
                     reportEditing = BuildEditingSpecs(clause.pictureClause());
+                    // PICTURE format 2 in a REPORT GROUP entry (§13.15.4 GR2 imports the PICTURE clause's own
+                    // rules, so format 2 is LEGAL here; kb/Work PB113 — this arm used to ignore the phrase and
+                    // analyze the picture as format 1: a silent wrong answer). One analyzer, three callers. ⛔ Do
+                    // NOT pair it with a SIGN check: §13.15.3 carries no SR19 twin — the pair is legal here.
+                    if (clause.pictureClause()!.pictureLocalePhrase() is { } rlp)
+                    {
+                        var lw = rlp.cobolWord();
+                        var locale = LocaleRef.Current;
+                        if (lw.Length > 1)
+                        {
+                            var sym = ResolveLocaleName(lw[1].GetText(),
+                                $"RD '{model.Name}' entry '{entryName ?? "FILLER"}' PICTURE … LOCALE {lw[1].GetText()}",
+                                "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph");
+                            if (sym is not null) locale = new LocaleRef(sym);
+                        }
+                        int size = int.TryParse(rlp.integerLiteral().GetText(), out int sz) && sz > 0 ? sz : 1;
+                        reportLocale = new LocaleEditSpec(locale, size, "");
+                    }
                 }
                 else if (clause.usageClause() is { } usage)
                     usageText = UsageKeyword(usage);
@@ -492,7 +511,8 @@ public sealed partial class DataBinder
                 string itemWhere = $"RD '{model.Name}' printable item '{entryName ?? "FILLER"}'";
                 var pic = picText is not null
                     ? PictureAnalyzer.Analyze(picText, PictureAnalyzer.ParseUsage(usageText, Edition, itemWhere), Edition,
-                        itemWhere, ownSign, currencies: CurrencySigns, blankWhenZero: blankWhenZero, editing: reportEditing)
+                        itemWhere, ownSign, currencies: CurrencySigns, blankWhenZero: blankWhenZero, editing: reportEditing,
+                        localeFormat2: reportLocale)
                     : null;
                 if (pic is null)
                 {

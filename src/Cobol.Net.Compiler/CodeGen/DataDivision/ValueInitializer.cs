@@ -136,6 +136,15 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
         if (effRaw is not { } raw) return pic.DefaultInitializer;
 
+        // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §13.18.40.5 r11 + §14.6.6 r6 make
+        // the locale the one current AT THE TIME of editing — so the initializer is a RUNTIME CobolLocaleEdit
+        // call (the ONE producer, RuntimeApi.LocaleEditCompose; PB64 T6). A quoted literal falls through to the
+        // verbatim store below (§13.18.63.3 SR7 — the programmer supplies the edited form).
+        if (pic.LocaleEdit is not null && !raw.StartsWith('"') && !raw.StartsWith('\'')
+            && TryParseNumeric(FigurativeKind(raw) == 'Z' ? "0" : raw, out var luv, out int lsc)
+            && (FigurativeKind(raw) != 'Z' || ctx.Data.Edition.DialectLevel >= 2023))
+            return RuntimeApi.LocaleEditCompose(pic, luv, lsc, item.BlankWhenZero);
+
         // A NUMERIC-EDITED item's numeric VALUE (a numeric literal, or the figurative ZERO at >= 2023) is its EDITED
         // image — the ONE compose (EditedImageOfNumericValue) the level-88 membership test shares. Below 2023 a
         // figurative ZERO falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior, VCR 35).
@@ -186,6 +195,10 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// image is what MOVE literal TO item would store (BLANK WHEN ZERO included, NOTE 2).</summary>
     internal static string? EditedImageOfNumericValue(EmitContext ctx, DataItem item, PicInfo pic, string raw)
     {
+        // A format-2 (LOCALE) item has NO compile-time image (the locale is runtime data) — the callers carry
+        // their own runtime arm (RuntimeApi.LocaleEditCompose); returning null here keeps the EditMask derefs
+        // below unreachable for it (PB64 T6).
+        if (pic.LocaleEdit is not null) return null;
         if (raw.StartsWith('"') || raw.StartsWith('\'')) return null;
         bool zeroFigurative = FigurativeKind(raw) == 'Z';
         if (zeroFigurative && ctx.Data.Edition.DialectLevel < 2023) return null;

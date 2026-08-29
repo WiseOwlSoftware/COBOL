@@ -173,6 +173,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-LOCALE-INVALID-PTR", "LocaleInvalidPtrChecking"), // §14.9.39.4 GR21 — SET LOCALE through a pointer that holds no saved locale
         ("EC-LOCALE-INCOMPATIBLE", "LocaleIncompatibleChecking"),// §8.8.4.2.11 / L6 — a locale comparison over an ill-formed operand
         ("EC-LOCALE-INVALID", "LocaleInvalidChecking"),        // §8.2.1 — a locale operation over incomplete locale content (no culture data)
+        ("EC-LOCALE-SIZE", "LocaleSizeChecking"),              // §13.18.40.5 r14 b — locale editing truncated a non-zero, non-suppressed character (PB64 T6)
         // ⛔ THE EC-SIZE FAMILY FOR NON-ARITHMETIC STATEMENTS (kb/Work PB75). §14.7.5: the size error condition "may
         // occur as a result of … the evaluation of an arithmetic expression" — a condition, a function argument, a
         // subscript, an INVOKE argument — and without a SIZE ERROR phrase the level-3 EC-SIZE-* "is set to exist,

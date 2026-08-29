@@ -809,6 +809,12 @@ internal sealed class VersionConformancePass
         public override object? VisitPictureClause(CobolParserCore.PictureClauseContext ctx)
         {
             if (ctx.editingPhrase().Length > 0) _p.Check(Constructs.PictureEditing2023, "the PICTURE EDITING phrase");
+            // PICTURE format 2 (the LOCALE phrase, §13.18.40.2) — a COBOL-2002 introduction with the locale
+            // facility (A.4.9 item 8; kb/Work PB64 T6). Recognition-based here in the PARSE arm because the
+            // binder recovers/clears on every SR32–SR37 violation, so a bound-arm gate would drop the 0900 on
+            // exactly those paths. NOT also in PictureConstructId — the two arms are disjoint by the class
+            // contract and a double gate doubles the diagnostic.
+            if (ctx.pictureLocalePhrase() is not null) _p.Check(Constructs.PictureLocaleFormat22002, "the PICTURE LOCALE phrase (format 2)");
             return base.VisitChildren(ctx);
         }
 
@@ -1149,8 +1155,8 @@ internal sealed class VersionConformancePass
         /// <summary>OBJECT-COMPUTER clauses WITHOUT computer-name-1 (ISO §12.3.6.2 — the name is optional and the
         /// clauses may follow the period directly): a 2002 relaxation — X3.23-1985 hung MEMORY SIZE / PROGRAM COLLATING
         /// SEQUENCE / SEGMENT-LIMIT off a REQUIRED computer-name (kb/Work PB78). The empty paragraph is legal at every
-        /// edition; only a clause without a name is gated. CHARACTER CLASSIFICATION itself is rejected by the binder as
-        /// A.4.9 documented non-support (COBOLNET1518) at every edition.</summary>
+        /// edition; only a clause without a name is gated. CHARACTER CLASSIFICATION itself BINDS since kb/Work PB64 T5
+        /// (the A.4.9 locale module is implemented; the COBOLNET1518 non-support era is over).</summary>
         public override object? VisitObjectComputerParagraph(CobolParserCore.ObjectComputerParagraphContext ctx)
         {
             if (ctx.computerName() is null && ctx.objectComputerClause().Length > 0)
@@ -1913,7 +1919,7 @@ internal sealed class VersionConformancePass
             // the clause's OWN KEYWORD is grammar-matched as a cobolWord — and the funnel was reading it as a
             // user-defined word, reporting `'LOCALE' is a reserved word … and cannot be used as a user-defined
             // word` about a program that uses it as nothing of the sort. The clause already diagnoses correctly
-            // (COBOLNET1518, the ratified §A.4.9 item-10 non-support); this second diagnostic was a FALSE
+            // (then COBOLNET1518, the era's item-10 non-support; the clause BINDS since PB64 T1); the second diagnostic was a FALSE
             // statement about the source, printed beside a true one (fix-queue PB27).
             // ⚠ POSITION-EXACT, because the three cobolWord slots are three different KINDS of word:
             //   [0] the keyword LOCALE — a use OF the reserved word            → exempt
@@ -1951,20 +1957,22 @@ internal sealed class VersionConformancePass
                 return base.VisitChildren(ctx);
             // The ALPHABET clause's `IS LOCALE [locale-name-2]` phrase (§12.3.7.2; kb/Work PB100): LOCALE is the phrase's
             // own keyword (not a lexer token — it arrives as the first definition entry's cobolWord) and locale-name-2 is a
-            // REFERENCE to a SPECIAL-NAMES locale-name; the clause itself is COBOLNET1518 (A.4.9 item 10). The PB27 shape.
+            // REFERENCE to a SPECIAL-NAMES locale-name (LIVE since PB64 T1/T3 — the named IS LOCALE alphabet). The PB27 shape.
             if (ctx.Parent is CobolParserCore.AlphabetEntryContext ae
                 && ae.Parent is CobolParserCore.AlphabetDefinitionContext adef
                 && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(adef))
                 return base.VisitChildren(ctx);
-            // PICTURE Format 2's `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2; kb/Work PB100): LOCALE is the
-            // phrase's own keyword and locale-name-1 a reference; the phrase itself is COBOLNET1518 (A.4.9 item 8).
+            // PICTURE Format 2's `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2; kb/Work PB100, LIVE
+            // since PB64 T6): LOCALE is the phrase's own keyword (a use OF the reserved word — exempt) and
+            // locale-name-1 a REFERENCE to a SPECIAL-NAMES locale-name (reference positions stay unchecked by
+            // the funnel's policy; SR37 is the binder's COBOLNET1664).
             if (ctx.Parent is CobolParserCore.PictureLocalePhraseContext)
                 return base.VisitChildren(ctx);
             // The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (§12.3.6.2; kb/Work PB78) — the same shape as the
             // LOCALE clause: CLASSIFICATION is the clause's own keyword (not a lexer token), and each locale-phrase is
             // either a format keyword (LOCALE / SYSTEM-DEFAULT / USER-DEFAULT — uses OF reserved words) or a
             // REFERENCE to a SPECIAL-NAMES locale-name (reference positions stay unchecked by the funnel's policy).
-            // The clause itself is COBOLNET1518 (A.4.9 item 7 documented non-support); a second, false statement
+            // The clause BINDS since PB64 T5 (A.4.9 item 7 claimed); a second, false statement
             // about SYSTEM-DEFAULT being "used as a user-defined word" is exactly the PB27 shape.
             if (ctx.Parent is CobolParserCore.CharacterClassificationClauseContext or CobolParserCore.ClassificationForPhraseContext)
                 return base.VisitChildren(ctx);

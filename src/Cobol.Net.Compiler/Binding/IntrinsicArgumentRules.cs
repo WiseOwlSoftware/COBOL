@@ -819,7 +819,7 @@ internal static class IntrinsicArgumentRules
                 + "be specified\": a NAME, resolved by IntrinsicBinder.BindLocaleFunction against DataBinder.Locales "
                 + "(through DataBinder.ResolveLocaleName — the ONE undeclared-locale-name diagnostic, COBOLNET1664) "
                 + "for LOCALE-COMPARE (§15.51.3 r4), LOCALE-DATE (§15.52.3 r3), LOCALE-TIME (§15.53.3 r4) and "
-                + "LOCALE-TIME-FROM-SECONDS (§15.54.3 r2); the T5/T6 LOCALE phrases join it. It never reaches the "
+                + "LOCALE-TIME-FROM-SECONDS (§15.54.3 r2) — and by IntrinsicBinder.BindCaseFunctionWithLocale (the T5 case-function phrase) and IntrinsicBinder.BindNumvalCFamily (the T6 NUMVAL-C/TEST-NUMVAL-C LOCALE keyword). It never reaches the "
                 + "operand list, so no class screen applies to it",
         };
 

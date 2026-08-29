@@ -662,6 +662,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error(DiagnosticCatalog.ConstantRecordRule, $"'{item.CobolName ?? "FILLER"}': the "
                     + "ANY LENGTH, BASED, BLANK WHEN ZERO, SYNCHRONIZED, and TYPEDEF clauses shall not be "
                     + "specified in any entry subordinate to a CONSTANT RECORD entry (ISO §13.16.3 SR13)");
+            // §13.18.40.3 SR32 (subordinate half — the parent chain exists only here): a format 2 PICTURE clause
+            // shall not be specified in any data item subordinate to a CONSTANT RECORD item.
+            if (!item.IsConstantRecord && IsConstantRecordItem(item) && item.Pic is { LocaleEdit: not null })
+                Edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation, $"'{item.CobolName ?? "FILLER"}': a "
+                    + "format 2 PICTURE clause shall not be specified in any data item subordinate to a data item "
+                    + "described with the CONSTANT RECORD clause (ISO §13.18.40.3 SR32)");
             stack.Push(item);
             // A TYPEDEF template's items (root + subordinates) are NOT globally referenceable (ISO §13.18.58.4 GR1) —
             // keep them off ByName; the clones ExpandTypes produces ARE registered.
@@ -1349,6 +1355,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // (a floating-point edited mask's exponent '+' is NOT a representation of the value's sign — only the
         // significand's own sign symbol is, CobolEdit.FloatMask.SigSign.)
         bool signBearing = pic.IsFloatEdited ? CobolEdit.FloatMask.Parse(mask, DecimalPointIsComma).SigSign != '\0'
+            // A format-2 (LOCALE) item has no mask: its sign representation is the picture's '+' (§13.18.40.4
+            // GR18 — Signed carries it; PB64 T6). Reading the empty mask here falsely rejected a legal negative
+            // VALUE on a '+'-bearing format-2 picture.
+            : pic.LocaleEdit is not null ? pic.Signed
             : edited
             ? mask.Any(c => c is '+' or '-') || mask.Contains("CR", StringComparison.OrdinalIgnoreCase) || mask.Contains("DB", StringComparison.OrdinalIgnoreCase)
             : pic.Signed;
@@ -1391,7 +1401,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // numeric-edited subject (SR6 — "no truncation of digits or sign") spans its DIGIT POSITIONS (P excluded —
         // P scales, it stores nothing) at the MASK's scale (CobolEdit.MaskScale: the '.' or V, P-signed).
         int storedDigits = edited ? pic.DigitPositions - mask.Count(c => c == 'P') : pic.Digits;
-        int storedScale = edited ? CobolEdit.MaskScale(mask, '$', DecimalPointIsComma) : pic.Scale;
+        // A format-2 (LOCALE) item's scale is the picture's digits right of '.' (PicInfo.Scale — the analyzer set
+        // it; there is no mask for MaskScale to read, and 'P' does not exist in format 2).
+        int storedScale = pic.LocaleEdit is not null ? pic.Scale
+            : edited ? CobolEdit.MaskScale(mask, '$', DecimalPointIsComma) : pic.Scale;
         int lowStoredExp = -storedScale;
         int highStoredExp = storedDigits - storedScale - 1;
         if (highLitExp > highStoredExp || lowLitExp < lowStoredExp)
@@ -2061,6 +2074,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
         var groupUsage = GroupUsage.None;   // GROUP-USAGE (§13.18.29; D20/PB79)
         List<EditingPhraseSpec>? editingSpecs = null;   // PICTURE EDITING phrases (§13.18.40.2), threaded to PictureAnalyzer
+        LocaleEditSpec? pictureLocale = null;           // PICTURE format 2 — the LOCALE phrase (§13.18.40.2; PB64 T6)
         List<TableValueSpec>? tableValues = null;       // Format 2 (table) VALUE phrases (§13.18.63.2)
         bool gluedMultiLiteral = false;                 // a Format-1 VALUE with >1 operand (no FROM) — the glued-list reject
         string? objectClassName = null;   // USAGE OBJECT REFERENCE class-name (null = universal; §13.18.60.4)
@@ -2092,14 +2106,30 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     pictureText = picText;
                     editingSpecs = BuildEditingSpecs(clause.Context.pictureClause());   // PICTURE EDITING (§13.18.40.2)
-                    // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2): Annex A.4.9
-                    // item 8, an optional locale-module element COBOL.NET documents as NON-SUPPORT (CONFORMANCE.md §4
-                    // item 5) — refused BY NAME with the module's one diagnostic (kb/Work PB100; it was a raw parse
-                    // error). The character-string is analyzed as Format 1 for recovery; the compile has failed.
-                    if (clause.Context.pictureClause()?.pictureLocalePhrase() is not null)
-                        Edition.Error("COBOLNET1518", $"data item '{cobolName ?? "FILLER"}': the PICTURE clause's LOCALE "
-                            + "phrase (Format 2 — locale editing, ISO §13.18.40.2) is in the optional locale module "
-                            + "(Annex A.4.9 item 8), which COBOL.NET documents as not supported (CONFORMANCE.md §4 item 5)");
+                    // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2; LIVE
+                    // since kb/Work PB64 T6): capture the locale (SR37 through the ONE undeclared-locale-name path,
+                    // COBOLNET1664; absent ⇒ the current locale at each edit, §13.18.40.5 r11) and SIZE integer-1
+                    // (§13.18.40.4 GR17 — the item's length); the analysis is AnalyzeLocaleEdited's (SR33–SR36 +
+                    // Table 11 → COBOLNET1673).
+                    if (clause.Context.pictureClause()?.pictureLocalePhrase() is { } lp)
+                    {
+                        var lw = lp.cobolWord();   // [0] = the word LOCALE itself; [1] = locale-name-1 when written
+                        var locale = LocaleRef.Current;
+                        if (lw.Length > 1)
+                        {
+                            var sym = ResolveLocaleName(lw[1].GetText(),
+                                $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE {lw[1].GetText()}",
+                                "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph");
+                            if (sym is not null) locale = new LocaleRef(sym);
+                        }
+                        int size = int.TryParse(lp.integerLiteral().GetText(), out int sz) && sz > 0 ? sz : 0;
+                        if (size == 0)
+                            Edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation,
+                                $"data item '{cobolName ?? "FILLER"}': SIZE IS {lp.integerLiteral().GetText()} — "
+                                + "integer-1 gives the item's character positions and shall be a nonzero unsigned "
+                                + "integer (ISO §13.18.40.2 / §13.18.40.4 GR17)");
+                        pictureLocale = new LocaleEditSpec(locale, Math.Max(1, size), "");
+                    }
                 }
                 else if (clause.Context.basedClause() is not null)
                     // BASED (§13.18.5) validated below (§13.16 SR16 placement; the 0881 declaration band). The
@@ -2332,7 +2362,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         var pic = pictureText is not null
             ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, currencies: CurrencySigns,
-                blankWhenZero: blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs)
+                blankWhenZero: blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs,
+                localeFormat2: pictureLocale)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)
@@ -2406,6 +2437,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Edition.Error(DiagnosticCatalog.PictureFloatEdited, $"{entryWhere}: the SIGN clause may be specified only for a "
                 + "numeric entry whose picture contains the symbol S — a floating-point numeric-edited picture has none "
                 + "(ISO §13.18.52.3 SR1; §13.18.40.6 Table 10 row E)");
+        // §13.16.3 SR19 — the SIGN clause shall not be specified with a format-2 (LOCALE) PICTURE: the sign
+        // representation is the LOCALE's (§13.18.40.5 r13). The SCREEN description twin (§13.17.3 SR9) rides the
+        // screen arm; a REPORT GROUP entry carries NO such rule (§13.15.3) and the pair is legal there (PB113).
+        if (pic is { LocaleEdit: not null } && ownSign is not null)
+            Edition.Error(DiagnosticCatalog.SignClauseWithLocalePicture, $"{entryWhere}: the SIGN clause shall not be "
+                + "specified when the LOCALE phrase of the PICTURE clause is specified (ISO §13.16.3 SR19)");
 
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
@@ -2495,6 +2532,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error(DiagnosticCatalog.ConstantRecordRule, $"{entryWhere}: {crViolation}");
                 isConstantRecord = false;
             }
+            // §13.18.40.3 SR32 (same-entry half): a format 2 PICTURE clause shall not be specified in a data item
+            // described with the CONSTANT RECORD clause. Its OWN rule and code (the rule lives in §13.18.40.3,
+            // not §13.16.3, so not ConstantRecordRule); the subordinate half checks in BindEntries, where the
+            // parent chain exists.
+            if (isConstantRecord && pic is { LocaleEdit: not null })
+                Edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation, $"{entryWhere}: a format 2 PICTURE "
+                    + "clause shall not be specified in a data item described with the CONSTANT RECORD clause "
+                    + "(ISO §13.18.40.3 SR32)");
         }
         var item = new DataItem
         {

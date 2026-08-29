@@ -25,22 +25,14 @@ public enum IntrinsicArity { Fixed, OptionalTrailing, Variadic }
 /// QUANTIZED value, against Int128 scale-37 constants (<c>CobolIntrinsics.FromDoubleBounded</c>).</summary>
 public enum IntrinsicCodomain { None, UnitOpen, HalfPi, Pi }
 
-/// <summary>How a call binds (deep-dive D2/D7): <see cref="Runtime"/> = a <c>CobolIntrinsics</c>/<c>CobolDate</c>
-/// call; <see cref="Fold"/> = resolved at compile time (LENGTH from PIC metadata §15.50, WHEN-COMPILED's
-/// compilation timestamp §15.99.3 r2); <see cref="Deferred"/> = catalogued (so D8 edition gating and arity checks
-/// apply) but not yet implemented — renders a LOUD not-implemented guard (COBOLNET_DESIGN §1.4), never a wrong
-/// value; <see cref="Unsupported"/> = catalogued (edition/arity gating applies) but the containing OPTIONAL
-/// language module is DOCUMENTED NON-SUPPORT — a permanent, conformance-legal disposition, distinct from
-/// <see cref="Deferred"/>'s "will be implemented": ISO §4.2.7 + A.4.1 (an implementation accepts an optional
-/// element's syntax ONLY when support is claimed; non-support is conforming when documented), here the A.4.9
-/// locale module — non-support PER ELEMENT, each arm deleted as its increment lands (owner decision Q1,
-/// 2026-08-18: the module IS being implemented; DESIGN-locale-facility §12). The binder rejects such a reference
-/// at BIND time with COBOLNET1518 (the P11 Step-8 arm); the renderer's empty-<c>RuntimeMethod</c> loud fallback
-/// is the never-reached backstop.
-/// <para>⚠ STANDARD-COMPARE (§15.85) is NO LONGER one of them (kb/Work PB101 T7). It rode A.3 item 25 — "The
-/// implementor need not accept the syntax … when support for ISO/IEC 14651:2020 is not provided" — and support
-/// IS now provided, over the derived CLDR/UCA collation engine, so its row binds <see cref="Runtime"/>.</para></summary>
-public enum IntrinsicBind { Runtime, Fold, Deferred, Unsupported }
+/// <summary>How a catalog row binds: <see cref="Runtime"/> — a runtime body; <see cref="Fold"/> — a
+/// compile-time fold; <see cref="Deferred"/> — the renderer's never-hit backstop (P11 drove the backlog to
+/// zero and it stays only so an unregistered row fails LOUD).
+/// <para>⚠ The former <c>Unsupported</c> member — the A.4.9 locale module's documented-non-support bind,
+/// COBOLNET1518 — is DELETED (kb/Work PB64 T6): every A.4.9 element is implemented (owner decision Q1,
+/// 2026-08-18; DESIGN-locale-facility §12 T1–T7), the last rows moved to <see cref="Runtime"/> at T4, and an
+/// enum case with zero rows is a lookup nobody reads (feedback_a_dead_lookup_is_also_unverified).</para></summary>
+public enum IntrinsicBind { Runtime, Fold, Deferred }
 
 /// <summary>
 /// One catalog row (deep-dive D2 — the SINGLE source of result-category truth). <paramref name="ArgKinds"/> is the
@@ -111,10 +103,10 @@ public readonly record struct IntrinsicSig(
 /// The ONE declarative intrinsic-function table (ISO §15.6 summary of functions; deep-dive D2 — replaces the
 /// legacy's ad-hoc AlphanumericFunctions set + scattered special cases). Adding a function is one row. Every
 /// catalogued ISO function is LIVE (P11 drove the <see cref="IntrinsicBind.Deferred"/> backlog to zero): each row
-/// binds <see cref="IntrinsicBind.Runtime"/> (a runtime body), <see cref="IntrinsicBind.Fold"/> (a compile-time
-/// fold — LENGTH/BYTE-LENGTH/the ALGEBRAIC family/WHEN-COMPILED), or <see cref="IntrinsicBind.Unsupported"/> (the
-/// A.4.9 locale module — documented non-support, §4.2.7). The <see cref="IntrinsicBind.Deferred"/> member remains
-/// only as the renderer's never-hit backstop. Edition windows for post-85 rows beyond the 2023 seven-function
+/// binds <see cref="IntrinsicBind.Runtime"/> (a runtime body) or <see cref="IntrinsicBind.Fold"/> (a compile-time
+/// fold — LENGTH/BYTE-LENGTH/the ALGEBRAIC family/WHEN-COMPILED); the A.4.9 locale rows bind Runtime since
+/// PB64 T4–T6 (the former Unsupported member is deleted — the module is claimed). The
+/// <see cref="IntrinsicBind.Deferred"/> member remains only as the renderer's never-hit backstop. Edition windows for post-85 rows beyond the 2023 seven-function
 /// delta (docs/VERSION_CHANGE_REFERENCE.md rows 65–73) are firmed against the 2002/2014/2023 standards per the
 /// docs/rearchitecture/PHASE-11 §7 window-authority table.
 /// </summary>
@@ -246,10 +238,10 @@ public static class IntrinsicCatalog
         // ⚠ ANNEX D DISAGREES AND DOES NOT GOVERN: D.31.4.2 describes argument-1 as "a date in standard date
         // form (YYYYMMDD)", which reads as an integer — but Annex D is marked `(informative)` and §1167 calls it
         // an explanation of features, so clause 15 and Table 21 decide. A concepts annex is not a rule.
-        // ⚙ The column is NOT read for these rows today (Bind = Unsupported ⇒ COBOLNET1518 fires first, measured
-        // at every --std), which is exactly why it was never contradicted — a dead lookup is also an unverified
-        // one (feedback_a_dead_lookup_is_also_unverified). PB1 is the standing proof of the cost: an ArgKinds
-        // column enforced as written, without re-derivation, rejected 12 legal corpus programs.
+        // ⚙ Until PB64 T4 the column was never read (the rows bound as documented non-support, so
+        // COBOLNET1518 fired first) — a dead lookup is also an unverified one
+        // (feedback_a_dead_lookup_is_also_unverified); the Verified schemas re-derived it before the rows
+        // went live. PB1 is the standing proof of the cost of skipping that re-derivation.
         // LIVE since kb/Work PB64 T4 (DESIGN-locale-facility §4.7/§4.8): the trailing 'l' is §15.3 argument type 8, a
         // LOCALE-NAME — a word resolved in the SPECIAL-NAMES locale table by IntrinsicBinder.BindLocaleFunction, never an
         // operand (IntrinsicArgumentRules.NonOperandArgumentKinds['l']). The runtime methods are CobolLocale.*.

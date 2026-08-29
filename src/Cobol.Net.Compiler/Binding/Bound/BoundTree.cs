@@ -250,6 +250,13 @@ public sealed record BoundIntrinsicCall(
     /// other function.</summary>
     public LocaleRef Locale { get; init; } = LocaleRef.Current;
 
+    /// <summary>NUMVAL-C / TEST-NUMVAL-C: the LOCALE KEYWORD was written (§15.68.2 — <c>argument-1 LOCALE
+    /// [locale-name-1]</c>, the §15.68.3 r5 arm). ⛔ Needed because <see cref="Locale"/> DEFAULTS to
+    /// <see cref="LocaleRef.Current"/> on every node, so a bare <c>LOCALE</c> (r5a's current-locale form) and NO
+    /// phrase at all (the r3/r4 arm — a DIFFERENT accepted language) would reach the renderer identically
+    /// (kb/Work PB64 T6). The case functions dodge this only because their phrase requires a name.</summary>
+    public bool LocaleWritten { get; init; }
+
     /// <summary>FIND-STRING (§15.37.2): the <c>LAST</c> phrase keyword — seek the LAST occurrence of argument-2
     /// (rule 1) rather than the first. False for every other function.</summary>
     public bool FindLast { get; init; }

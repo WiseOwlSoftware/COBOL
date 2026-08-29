@@ -310,19 +310,22 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // mask scale (it has none); the dispatch is RuntimeApi.EditFormatFor's, keyed on the receiver's picture.
                 if (pic.IsFloatEdited)
                     return RuntimeApi.EditFormatFor(pic, e, "", "", ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
-                // A float (Real) source lands into the edited receiver via the runtime's ToScaled at the MASK's fraction
-                // scale (MOVE truncates toward zero, §14.6.8.2) — the edit Format takes a scaled Int128, not a double
-                // (D16 review: the numeric-edited path was missed by the Real integration → CS1503). NB the mask scale
-                // is the runtime's MaskScale, NOT pic.Scale (a numeric-edited item's Scale is 0 — the point is in the mask).
-                int ems = RuntimeApi.MaskScale(pic.EditMask!, '$', ctx.Data.DecimalPointIsComma);
-                // A STANDARD-DECIMAL intermediate lands at the MASK's scale (the §14.7 final transfer — the same
+                // A float (Real) source lands into the edited receiver via the runtime's ToScaled at the RECEIVER's
+                // fraction scale (MOVE truncates toward zero, §14.6.8.2) — the edit Format takes a scaled Int128,
+                // not a double (D16 review: the numeric-edited path was missed by the Real integration → CS1503).
+                // NB the receiver scale is the ONE ReceiverScaleOf rule, NOT pic.Scale (a masked item's Scale is 0 —
+                // the point is in the mask; a format-2 LOCALE item's IS pic.Scale — kb/Work PB64 T6).
+                int ems = RuntimeApi.ReceiverScaleOf(pic, ctx.Data.DecimalPointIsComma);
+                // A STANDARD-DECIMAL intermediate lands at the receiver's scale (the §14.7 final transfer — the same
                 // form ArithmeticEmitter's edited path uses; fix-queue PB65: MOVE FUNCTION E under the mode handed
                 // the CobolDec to the Int128 edit path, CS1503 on conforming source).
                 string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation, checkedLanding: false)   // a MOVE: §14.6.8.2 r4 truncation, low-order digits past the carrier (kb/Work PB77)
                     : e.Dec ? RuntimeApi.DecToUnscaled(e.Expr, $"{ems}", CobolRounding.Truncation)
                     : e.Expr;
                 int editScale = e.Real || e.Dec ? ems : e.Scale;
-                return RuntimeApi.EditFormat(editVal, $"{editScale}", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
+                // The form dispatch (mask vs LOCALE) is EditFormatFor's — never a call-site EditMask deref.
+                return RuntimeApi.EditFormatFor(pic, e, editVal, $"{editScale}",
+                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
             // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
             // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
@@ -422,9 +425,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     private ReceiverContext SenderContext(DataItem target)
     {
         if (target.Pic is not { } pic) return ReceiverContext.None;
-        int scale = pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
-            ? RuntimeApi.MaskScale(m, '$', ctx.Data.DecimalPointIsComma)
-            : pic.Scale;
+        // The ONE receiver-scale rule (RuntimeApi.ReceiverScaleOf — PB64 T6: this copy and ArithmeticEmitter's
+        // both fell to pic.Scale = 0 for a format-2 LOCALE item, silently truncating a fractional sender).
+        int scale = RuntimeApi.ReceiverScaleOf(pic, ctx.Data.DecimalPointIsComma);
         return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale), MoveSender = true };
     }
 }

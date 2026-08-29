@@ -107,11 +107,17 @@ public abstract class CobolParserCoreBase : Parser
         return false;
     }
 
-    /// <summary>PICTURE Format 2 (locale) — the word after the picture character-string spells LOCALE at 2002+ (ISO
-    /// §13.18.40.2 `PIC IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1`; kb/Work PB100). Below 2002
-    /// LOCALE is a user word and the phrase does not exist.</summary>
+    /// <summary>PICTURE Format 2 (locale) — the word after the picture character-string spells LOCALE (ISO
+    /// §13.18.40.2 `PIC IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1`; kb/Work PB100, live at
+    /// PB64 T6).
+    /// <para>⛔ NOT EDITION-GATED (the ORDER TABLE precedent, <see cref="orderTableAhead"/>): no data description
+    /// clause begins with a user-defined word, so at '85 a word LOCALE immediately after a PIC_STRING can begin
+    /// nothing else — there is no legal '85 reading to protect (unlike <see cref="localeClauseAhead"/>'s
+    /// implementor-switch hazard, which does not exist inside a data description entry). Recognizing the phrase at
+    /// every edition is what lets the ONE construct gate (<c>picture-locale-format2-2002</c>) answer below 2002
+    /// with the explanatory introduction diagnostic instead of a raw ANTLR error at SIZE.</para></summary>
     protected bool pictureLocaleAhead() =>
-        Edition.Has(2002) && string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase);
+        string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>The SPECIAL-NAMES <c>ORDER TABLE ordering-name-1 IS literal-9</c> clause (ISO §12.3.7.2 — the last
     /// item of the paragraph's general format; kb/Work PB101). ORDER is not a lexer token (the same choice the

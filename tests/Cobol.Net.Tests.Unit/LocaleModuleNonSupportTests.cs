@@ -11,27 +11,19 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// The §A.4.9 locale-module disposition's SECOND half (fix-queue PB27 §③): a function that is documented
-/// non-support (rejected by COBOLNET1518 at every edition) must NOT also assert an INTRODUCTION EDITION — and,
-/// since kb/Work PB64 T4 made the four locale FUNCTIONS live, the converse: their D8 edition window IS enforced
-/// again (COBOLNET1502 below it, the function binding at and after it), and PB64 T5 did the same for the LOCALE
-/// phrase of LOWER-CASE / UPPER-CASE (a 2002 construct gate, COBOLNET0900 below 2002). What still carries the
-/// non-support disposition is the LOCALE keyword PHRASE of NUMVAL-C / TEST-NUMVAL-C (T6), and that phrase draws
-/// 1518 at every edition with no 1502 beside it.
+/// The §A.4.9 locale-module EDITION GATING, arm by arm as the module went live (fix-queue PB27 §③ opened this
+/// class when the elements were documented non-support and their edition claims were SUPPRESSED; every
+/// suppression has now lifted): the four locale FUNCTIONS' D8 window is enforced since kb/Work PB64 T4
+/// (COBOLNET1502 below it, binding at and after it), the case functions' LOCALE phrase is a 2002 construct gate
+/// since T5 (COBOLNET0900 below 2002), and the NUMVAL-C / TEST-NUMVAL-C LOCALE keyword is a 2002 construct gate
+/// since T6 — the LAST arm, with which COBOLNET1518 itself was deleted.
 /// <para>
-/// ⛔ COBOLNET1502 STATES A FACT ABOUT THE STANDARD — "was introduced by ISO/IEC 1989:{year}" — AND FOR THIS
-/// FAMILY THAT YEAR IS UNVERIFIABLE. The 2023 standard carries no introduction record: §8.11 lists the intrinsic
-/// NAMES with no edition data, Annex E covers only 2014→2023 and does not mention these functions, the repo
-/// holds no 2002 or 2014 text (`specs-private/` is the 2023 PDF alone), the reserved-word tables do not carry
-/// intrinsic names (§8.11, not §8.9), and GnuCOBOL's testsuite pins no `-std=` on them. Every source was
-/// checked; the value in the catalog is hand-assigned.
-/// </para>
-/// <para>
-/// ⚠ AND THE CLAIM IS REDUNDANT: `Bind = Unsupported` rejects the reference at EVERY edition, so no `--std`
-/// makes the program compile and the edition sentence adds nothing actionable — only risk. The suppression keys
-/// on <c>Bind</c>, so implementing the locale module restores the gate, at which point the introduction year
-/// would have to be verified. That is the forcing function, and it is why this is a suppression rather than a
-/// deletion of the data.
+/// ⛔ THE FORCING FUNCTION, ANSWERED (the class summary once demanded it): the introduction years these gates
+/// assert were unverifiable from the 2023 text alone — §8.11 lists intrinsic NAMES with no edition data, Annex E
+/// covers only 2014→2023, the repo holds no 2002/2014 text. The construct-gate rows carry the answer the
+/// catalog settled on: the LOCALE keyword and phrases ride the 2002 locale facility (Annex A.4.9's home
+/// edition), LOCALE-TIME-FROM-SECONDS the provisional 2014 window (kb/Work R28 — WG4 CD 1.2 Annex D.2), all
+/// marked provisional in constructs.json under ratified decision #1 (no further standards acquisition).
 /// </para>
 /// </summary>
 public sealed class LocaleModuleNonSupportTests
@@ -54,19 +46,22 @@ public sealed class LocaleModuleNonSupportTests
         finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
     }
 
-    /// <summary>At EVERY edition the non-support diagnostic is the whole story for a still-unclaimed element — the
-    /// LOCALE phrase of NUMVAL-C (T6) — and never an edition claim beside it.</summary>
+    /// <summary>⚙ THE SUPPRESSION LIFTED a third time — the LAST (kb/Work PB64 T6; the module is CLAIMED whole):
+    /// the LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C is LIVE, so it is a 2002 construct gate — COBOLNET0900
+    /// below 2002 naming the keyword — and, at and after 2002, the keyword binds (here to an UNDECLARED
+    /// locale-name FR, the one undeclared-locale-name diagnostic COBOLNET1664 — this helper declares no
+    /// SPECIAL-NAMES LOCALE). Never 1518 any more, at any edition — the diagnostic is deleted.</summary>
     [Theory]
-    [InlineData(85)]
-    [InlineData(2002)]
-    [InlineData(2014)]
-    [InlineData(2023)]
-    public void ALocalePhrase_ReportsNonSupportOnly_AtEveryEdition(int edition)
+    [InlineData(85, true)]
+    [InlineData(2002, false)]
+    [InlineData(2014, false)]
+    [InlineData(2023, false)]
+    public void TheNumvalCLocaleKeyword_IsEditionGated_NowThatItIsLive(int edition, bool gated)
     {
-        var errors = CompileErrors("           COMPUTE S = FUNCTION NUMVAL-C(\"12,34\" LOCALE FR).\n", edition);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1518"));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1502"));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET0900"));
+        var errors = CompileErrors("           COMPUTE S = FUNCTION NUMVAL-C(\"12.34\" LOCALE FR).\n", edition);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+        if (gated) Assert.Contains(errors, e => e.Contains("COBOLNET0900") && e.Contains("LOCALE keyword"));
+        Assert.Contains(errors, e => e.Contains("COBOLNET1664"));
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED a second time (kb/Work PB64 T5): the LOCALE phrase of LOWER-CASE / UPPER-CASE

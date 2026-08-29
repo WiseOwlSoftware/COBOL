@@ -50,7 +50,11 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// unchanged. The ONE producer of these arguments — used by the orchestrator's MOVE/arithmetic edited stores,
     /// ACCEPT/STRING's edited receivers and the renderer's DeEdit.</summary>
     public string EditCfg(PicInfo? pic) =>
-        (pic?.CurrencyString is { } cur
+        // A format-2 (LOCALE) item takes NEITHER argument: the currency string is the LOCALE's (§13.18.40.5 r9)
+        // and DECIMAL-POINT IS COMMA has no effect on locale editing (§12.3.7.4 GR14) — and CobolLocaleEdit's
+        // signature has no such parameters, so leaking either is a generated-code CS1739 (PB64 T6).
+        pic?.LocaleEdit is not null ? ""
+        : (pic?.CurrencyString is { } cur
             ? $", currencyString: {SymbolDisplay.FormatLiteral(cur, quote: true)}" : "")
         + (Data.DecimalPointIsComma ? ", commaMode: true" : "");
 

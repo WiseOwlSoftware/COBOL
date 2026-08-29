@@ -1401,6 +1401,30 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T4TS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(20).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION LOCALE-TIME-FROM-SECONDS(47109) TO S.\n    STOP RUN.\n"
     },
     {
+      "id": "picture-locale-format2-2002",
+      "description": "PICTURE format 2 - the LOCALE phrase ({PICTURE|PIC} IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1), ISO 13.18.40.2 - introduced 2002 with the locale facility (Annex A.4.9 item 8; kb/Work PB64 T6): a fixed-point numeric-edited item (13.18.40.4 GR16) of integer-1 character positions (GR17) whose editing is the locale's LC_MONETARY (13.18.40.5 r9-r15; CobolLocaleEdit). Parse-arm gated on recognition (VisitPictureClause on pictureLocalePhrase presence; the predicate is NOT edition-gated - the ORDER TABLE precedent - so the gate, not a raw parse error at SIZE, answers below 2002).",
+      "display": "the PICTURE LOCALE phrase (format 2)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.40.2 format 2; §13.18.40.3 SR32-SR37; §13.18.40.4 GR16-GR18; parse-arm gate (VisitPictureClause)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the locale facility; kb/Work PB64 T6 - locale editing over the ONE LC_MONETARY model)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T6PL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE FR IS \"fr-FR\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 P PIC +$9.9 LOCALE IS FR SIZE IS 10.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "numval-c-locale-phrase-2002",
+      "description": "The LOCALE keyword of FUNCTION NUMVAL-C / TEST-NUMVAL-C (argument-1 LOCALE [locale-name-1] [ANYCASE]), ISO 15.68.2 / 15.94.2 - introduced 2002 with the locale facility (Annex A.4.9 item 12; kb/Work PB64 T6): argument-1 read under the named-else-current LC_MONETARY locale (15.68.3 r5). ONE row covers both functions - 15.94.3 r1 imports 15.68.3 whole. NUMVAL-C itself is 1985; the keyword is gated in the binder (BindNumvalCFamily) like case-function-locale-phrase-2002.",
+      "display": "the LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §15.68.2 / §15.94.2 (the LOCALE keyword); §15.68.3 r5; binder gate (BindNumvalCFamily)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the locale facility; kb/Work PB64 T6)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T6NL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC S9(7)V99.\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION NUMVAL-C(\"1234.56\" LOCALE).\n    STOP RUN.\n"
+    },
+    {
       "id": "standard-compare-2002",
       "description": "FUNCTION STANDARD-COMPARE (ISO 15.85) - the cultural-ordering comparison returning the single character \"<\", \"=\" or \">\" (15.85.4 r6/r7) over the ordering table an ORDER TABLE ordering-name identifies or, absent one, the default table 'ISO 14651_2020_TABLE1' (15.85.3 r5). LIVE (kb/Work PB101 T7): CobolIntrinsics.StandardCompare over the derived CLDR/UCA collation engine, argument-4's four ordering levels (15.85.4 r1/r2) and the 15.85.4 r4 trailing-space rule. Below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502) - the window is now enforced rather than suppressed, because the row's Bind is no longer Unsupported.",
       "display": "FUNCTION STANDARD-COMPARE (cultural ordering)",

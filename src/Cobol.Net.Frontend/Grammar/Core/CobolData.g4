@@ -361,14 +361,16 @@ pictureClause
     : PIC PIC_STRING editingPhrase* pictureLocalePhrase?
     ;
 
-// PICTURE Format 2 (locale) — `PIC IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1` (ISO §13.18.40.2).
-// ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED (kb/Work PB100): Annex A.4.9 item 8 is an optional
-// locale-module element and COBOL.NET's documented non-support (CONFORMANCE.md §4 item 5) is conformant per A.4.1
-// only when the element is refused BY NAME — the binder emits COBOLNET1518; before this the phrase was a raw parse
-// error at SIZE. LOCALE is not a lexer token (a plain word at COBOL-85, reserved 2002+), so the arm is text-predicated
-// and edition-gated (below 2002 the phrase is unreachable — the alternative simply is not taken).
+// PICTURE Format 2 (locale) — `PIC IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1` (ISO
+// §13.18.40.2; LIVE since kb/Work PB64 T6 — the item is fixed-point numeric-edited with locale editing, bound by
+// DataBinder's format-2 arm; the 2002 introduction is the picture-locale-format2-2002 construct gate, so the
+// predicate is NOT edition-gated — see pictureLocaleAhead's comment). LOCALE is not a lexer token (a plain word
+// at COBOL-85, reserved 2002+), so the arm is text-predicated; the first cobolWord IS the word LOCALE. Both IS
+// words are optional (non-underlined in the §13.18.40.2 figure; §5.2.3) — `LOCALE FR SIZE 12` is legal, and the
+// required IS this rule used to demand before locale-name-1 rejected legal source (kb/Work PB114). A superset
+// parse admits editingPhrase* alongside; format 2 has no EDITING phrase and the binder diagnoses the pairing.
 pictureLocalePhrase
-    : {pictureLocaleAhead()}? cobolWord (IS cobolWord)? SIZE IS? integerLiteral
+    : {pictureLocaleAhead()}? cobolWord (IS? cobolWord)? SIZE IS? integerLiteral
     ;
 
 // EDITING character-1 { IS literal-1 | FOR { NEGATIVE/POSITIVE choice } } (ISO §13.18.40.2 Format 1). character-1

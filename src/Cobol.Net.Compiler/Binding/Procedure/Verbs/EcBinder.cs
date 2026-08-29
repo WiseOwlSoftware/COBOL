@@ -437,6 +437,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // fires only at its site, so the guard around an unrelated statement never catches anything.
             if (ctx.EcState.Turn.Enabled("EC-LOCALE-INVALID", null, line) && (ContainsIntrinsic(node) || ctx.Data.Classification is not null))
                 enabled.Add(("EC-LOCALE-INVALID", null));
+            // EC-LOCALE-SIZE (§13.18.40.5 r14 b; PB64 T6 — the ONE raise site is CobolLocaleEdit.Format's move of
+            // the hypothetical item into the SIZE-declared item): any statement that stores into a format-2 item
+            // can raise it — a MOVE, an arithmetic store, INITIALIZE, a VALUE-composed level-88 compare never
+            // (reads don't edit). Wrapped conservatively (any statement in a checking-on region), the
+            // EC-BOUND-OVERFLOW precedent: the raise fires only at its site, so the guard around a
+            // locale-item-free statement never catches anything.
+            if (ctx.EcState.Turn.Enabled("EC-LOCALE-SIZE", null, line))
+                enabled.Add(("EC-LOCALE-SIZE", null));
             // EC-DATA-CONVERSION (nonfatal, §15.19.4 r1/r3) rides any intrinsic-bearing statement too — FUNCTION
             // CONVERT sets it when an untranslatable character forces the substitution character; the ambient
             // gate records it while checking is enabled (harmless around a non-CONVERT intrinsic — no site sets it).

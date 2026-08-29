@@ -400,9 +400,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             string collate = cat is PicCategory.Boolean ? ""
                 : cat is PicCategory.National ? ctx.NatCollateArg : ctx.CollateArg;
             string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
-            string lo = EmitText.CsLiteral(StringMembershipValue(low, parent));
+            string lo = StringMembershipExpr(low, parent);
             if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";
-            string hi = EmitText.CsLiteral(StringMembershipValue(high, parent));
+            string hi = StringMembershipExpr(high, parent);
             // §14.7.8 rule 2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
             // nonfatal EC-RANGE-INVALID for an inverted range, then treats it as empty — the empty behaviour is
             // otherwise emergent from the inclusive test). Boolean/other categories keep the inline byte-identical form.
@@ -442,6 +442,20 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// the conditional variable's width (ISO §8.3.3.6.4 GR2), a bare figurative WORD (QUOTE / SPACE / HIGH-VALUE /
     /// LOW-VALUE / ZERO — §8.3.1.2, materialized to the variable's width, NC250A IF--TEST-26/27), else the decoded
     /// literal.</summary>
+    /// <summary>The membership operand as a C# EXPRESSION: a format-2 (LOCALE) conditional variable's numeric
+    /// VALUE composes its edited image AT RUNTIME under the locale then current (§13.18.40.5 r11 — no
+    /// compile-time image exists; the ONE producer, <see cref="RuntimeApi.LocaleEditCompose"/>; falling back to
+    /// comparing raw literal text is precisely the PB97 defect shape); everything else is the compile-time
+    /// <see cref="StringMembershipValue"/> as a string literal.</summary>
+    private string StringMembershipExpr(string raw, DataItem parent)
+    {
+        if (parent.Pic is { LocaleEdit: not null } lpic
+            && !raw.StartsWith('"') && !raw.StartsWith('\'')
+            && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
+            return RuntimeApi.LocaleEditCompose(lpic, uv, sc, parent.BlankWhenZero);
+        return EmitText.CsLiteral(StringMembershipValue(raw, parent));
+    }
+
     private string StringMembershipValue(string raw, DataItem parent)
     {
         int width = parent.Pic?.Length ?? parent.ImageWidth;

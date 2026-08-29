@@ -216,10 +216,22 @@ public sealed record PicInfo(
     /// parser (the analyzer validated the form; consumers read it through the runtime type).</summary>
     public bool IsFloatEdited { get; init; }
 
+    /// <summary>PICTURE format 2 — the LOCALE phrase (ISO §13.18.40.2; kb/Work PB64 T6): the item is fixed-point
+    /// numeric-edited (§13.18.40.4 GR16) whose length is the SIZE phrase's integer-1 (GR17 — <see cref="Length"/>
+    /// carries it; the picture contributes only the digit shape), whose editing/de-editing is the named-else-current
+    /// locale's LC_MONETARY at each use (§13.18.40.5 r9–r15 — <c>CobolLocaleEdit</c>), and whose
+    /// <see cref="EditMask"/> is NULL (there is no fixed mask — the currency string, separators and sign are
+    /// runtime locale data). ⛔ Like <see cref="IsFloatEdited"/>, every edited store / read dispatches on THIS
+    /// property inside the runtime entry helpers (<c>RuntimeApi.EditFormatFor</c> / <c>EditTryFormatFor</c> /
+    /// <c>NumericRenderer.FieldNum</c>) — never at a call site.</summary>
+    public LocaleEditSpec? LocaleEdit { get; init; }
+
     /// <summary>For a <see cref="PicCategory.NumericEdited"/> item: the EXPANDED edited picture (repeats unrolled,
     /// uppercased, the implied point <c>V</c> retained, and the mask's currency symbol CANONICALIZED to <c>$</c> —
     /// see <see cref="CurrencyString"/>) — the mask <c>CobolEdit.Format</c> renders into. Null for every other
-    /// category.</summary>
+    /// category — ⛔ AND for a format-2 (locale) NumericEdited item (<see cref="LocaleEdit"/>): since PB64 T6 a
+    /// NumericEdited category no longer guarantees a mask, so a <c>{ Category: NumericEdited, EditMask: { } m }</c>
+    /// pattern must carry a LocaleEdit arm beside it and a <c>pic.EditMask!</c> deref is reachable-null.</summary>
     public string? EditMask { get; init; }
 
     /// <summary>For a numeric-edited item whose PICTURE uses a currency symbol: the currency STRING that symbol

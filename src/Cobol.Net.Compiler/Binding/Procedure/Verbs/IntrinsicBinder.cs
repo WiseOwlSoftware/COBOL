@@ -478,7 +478,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // introduction record (§8.11 lists the intrinsic NAMES with no edition data; Annex E covers only
         // 2014→2023), the repo holds no 2002 or 2014 text, the reserved-word tables do not carry intrinsic
         // names, and GnuCOBOL's testsuite pins no `-std=` on these functions. Every source was checked.
-        // ⚠ AND THE DIAGNOSTIC IS REDUNDANT HERE ANYWAY: `Bind = Unsupported` means COBOLNET1518 rejects the
+        // ⚠ HISTORY: while these rows bound as documented non-support (pre-T4), COBOLNET1518 rejected the
         // reference at EVERY edition, 2023 included (measured), so the edition claim adds no actionable
         // information — no `--std` makes the program compile — while asserting something we cannot substantiate.
         // ⚠ IT SELF-LIFTS: the suppression keys on Bind, so implementing the locale module restores the gate —
@@ -503,16 +503,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // IntrinsicRenderer.RenderDec), so a standard-arithmetic program gets the standard-decimal values the
         // rule requires — the "until CobolDec evaluations land" condition the stage recorded is satisfied.
 
-        // A.4.9 LOCALE MODULE — implemented increment by increment (owner decision Q1, 2026-08-18;
-        // DESIGN-locale-facility §12): the four LOCALE functions are LIVE since T4 (BindLocaleFunction below);
-        // STANDARD-COMPARE since T7 (PB101). What still binds as documented non-support — conformant per ISO
-        // §4.2.7 + Annex A §A.4.1 only because it is DIAGNOSED — is the LOCALE keyword variant of the
-        // case/numeric functions: LOWER-CASE (§15.57), UPPER-CASE (§15.97), NUMVAL-C (§15.68), TEST-NUMVAL-C (§15.94)
-        // (items 6/13/12; NUMVAL-C's LOCALE keyword is a spec Annex-A LIST OMISSION, disposed identically —
-        // §15.94.3 r1 imports every §15.68.3 rule); each arm is deleted as its increment (T5/T6) lands. The
-        // function WITHOUT a LOCALE phrase binds exactly as before (zero regression).
-        if (sig.Name is "NUMVAL-C" or "TEST-NUMVAL-C" && HasLocalePhrase(argCtxs))
-            return LocaleUnsupported($"the LOCALE phrase of FUNCTION {sig.Name}");
+        // A.4.9 LOCALE MODULE — fully implemented (owner decision Q1, 2026-08-18; DESIGN-locale-facility §12):
+        // the four LOCALE functions since T4 (BindLocaleFunction below), STANDARD-COMPARE since T7 (PB101), the
+        // case functions' LOCALE phrase since T5, and NUMVAL-C / TEST-NUMVAL-C's LOCALE keyword since T6
+        // (BindNumvalCFamily's r5 arm — §15.94.3 r1 imports every §15.68.3 rule). Nothing in §15 binds as
+        // documented non-support any more; COBOLNET1518 and its LocaleUnsupported arm are GONE with the claim.
         // UPPER-CASE / LOWER-CASE `( argument-1 [ LOCALE locale-name-1 ] )` (§15.97.2 / §15.57.2; A.4.9 items 13 / 6)
         // — LIVE since kb/Work PB64 T5: the phrase's locale-name is a SPECIAL-NAMES LOCALE clause's name, and the
         // function maps case by that locale's LC_CTYPE (r2).
@@ -1482,26 +1477,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { ModuleNameKind = kind };
     }
 
-    /// <summary>The ONE A.4.9 locale-module documented-non-support diagnostic (conformant per ISO §4.2.7 +
-    /// Annex A §A.4.1 — an implementation accepts an optional element's syntax only when support is claimed).
-    /// Shared by the FOUR locale FUNCTIONS still awaiting their increment (<c>Bind == Unsupported</c>) and by the
-    /// LOCALE phrase of the otherwise-supported LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C.
-    /// <paramref name="element"/> names the specific element.
-    /// <para>⚠ THE <c>alsoA3</c> PARAMETER IS GONE (kb/Work PB101 T7). It existed for exactly one caller —
-    /// STANDARD-COMPARE, whose §A.3 item 25 route is now CLAIMED rather than declined — and a parameter with no
-    /// remaining true call site is a lookup nobody reads, which this repository has paid for before
-    /// (feedback_a_dead_lookup_is_also_unverified). If a second A.3-routed element ever needs it, it comes back
-    /// with its caller.</para></summary>
-    private BoundExpr LocaleUnsupported(string element)
-    {
-        ctx.Edition.Error("COBOLNET1518", $"{element} is in the optional locale module (ISO/IEC 1989:2023 "
-            + "Annex A §A.4.9), which COBOL.NET does not support — documented non-support, conformant "
-            + "per ISO §4.2.7 / §A.4.1. Use a supported alternative (e.g. STANDARD-1/STANDARD-2 collating, "
-            + "FORMATTED-DATE/-TIME, or NUMVAL-C without the LOCALE phrase).");
-        return new BoundExprError($"{element} (A.4.9 locale, not supported)");
-    }
+    // (LocaleUnsupported — the ONE A.4.9 documented-non-support diagnostic, COBOLNET1518 — is DELETED with the
+    // module's claim at PB64 T6: every A.4.9 element is implemented, so the arm had zero callers. The code
+    // COBOLNET1518 is never reallocated — see the renumbering record at DataBinder.cs's 1577 note.)
 
-    /// <summary>Detect an A.4.9 <c>LOCALE</c> phrase in a function's argument list — the keyword appears as a
+    /// <summary>Detect the <c>LOCALE</c> phrase in a function's argument list — the keyword appears as a
     /// bare-word argument (via <see cref="KeywordWordOf"/>) at argument position 2 or later (never argument-1,
     /// the operand): <c>LOWER-CASE(arg-1 LOCALE locale-name-1)</c> (§15.57.2), <c>NUMVAL-C(arg-1 LOCALE
     /// [locale-name-1])</c> (§15.68.2). LOCALE is not a LEXER TOKEN here, so the phrase parses as extra space- or
@@ -1509,7 +1489,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <para>⚠ It IS a reserved word from 2002 (§8.9; <c>reserved-words.json</c> r2002/r2014/r2023) — this comment
     /// used to say otherwise, which is wrong by the repo's own data. Not tokenizing it is a deliberate choice, not
     /// a consequence of the reservation: this detection depends on the word arriving as an ordinary argument, so a
-    /// token would silently break the very diagnostic below. (fix-queue PB25.)</para>
+    /// token would silently break the recognition. (fix-queue PB25.)</para>
     /// The argument-1 exclusion avoids a false positive on a data item happening to
     /// be named LOCALE.</summary>
     private static bool HasLocalePhrase(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
@@ -1520,31 +1500,36 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>NUMVAL-C / TEST-NUMVAL-C (§15.68 / §15.94) — argument-1, then EITHER the argument-2 currency
-    /// string OR the LOCALE phrase (stacked alternatives, §15.68.2/§15.94.2), plus the orthogonal optional
-    /// ANYCASE keyword (§15.68.3 r4f — the currency match performed as if both sides were lowercased; rides
-    /// the ONE <see cref="BoundIntrinsicCall.Anycase"/> flag). With neither argument-2 nor LOCALE there is
-    /// exactly ONE currency string for the compilation unit — the SPECIAL-NAMES CURRENCY string or the default
-    /// sign (§15.68.3 r3) — injected HERE at bind time so the SPECIAL-NAMES config stays out of the backend
-    /// (bound nodes carry complete semantics). A LOCALE bare word is not consumed here — it falls to the
-    /// ordinary operand bind (an unresolved name) until the P11 Step-8 A.4.9 disposition claims it.</summary>
+    /// string OR the <c>LOCALE [locale-name-1]</c> keyword (a bracketed stack of alternatives, §15.68.2/§15.94.2
+    /// — at most one may be written), plus the orthogonal optional ANYCASE keyword (§15.68.3 r4f, or r5b.1/3
+    /// under LOCALE — rides the ONE <see cref="BoundIntrinsicCall.Anycase"/> flag). With neither argument-2 nor
+    /// LOCALE there is exactly ONE currency string for the compilation unit — the SPECIAL-NAMES CURRENCY string
+    /// or the default sign (§15.68.3 r3) — injected HERE at bind time so the SPECIAL-NAMES config stays out of
+    /// the backend (bound nodes carry complete semantics). Under LOCALE (r5 — LIVE since kb/Work PB64 T6, the
+    /// A.4.9 item-12 claim) NO currency is injected (r3 reads "If neither argument-2 nor the LOCALE keyword is
+    /// specified") and the bound node carries the resolved <see cref="BoundIntrinsicCall.Locale"/> plus the
+    /// <see cref="BoundIntrinsicCall.LocaleWritten"/> flag — the r4 and r5 arms accept DIFFERENT languages and
+    /// the renderer must tell a bare LOCALE from no phrase at all.</summary>
     private BoundExpr BindNumvalCFamily(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         string fmt = sig.Name == "NUMVAL-C" ? "15.68.2" : "15.94.2";
-        // §15.68.2/§15.94.2: ( argument-1 [argument-2] [ANYCASE] ) — a POSITIONAL walk, not an order-free
-        // keyword sweep (fix-queue PB60 / FMT-15.68.2). Slot 0 is ALWAYS argument-1 and binds as an operand
-        // (ANYCASE is §8.10 context-sensitive — a data item so named stays legal there); ANYCASE is admitted
-        // ONCE, after the operands, and nothing may follow it. The old sweep accepted
-        // NUMVAL-C(ANYCASE WS-A "USD") and a doubled trailing ANYCASE (both measured).
-        bool anycase = false;
+        // §15.68.2/§15.94.2: ( argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE] ) — a POSITIONAL walk,
+        // not an order-free keyword sweep (fix-queue PB60 / FMT-15.68.2). Slot 0 is ALWAYS argument-1 and binds
+        // as an operand (ANYCASE and LOCALE are §8.10 context-sensitive — a data item so named stays legal
+        // there); ANYCASE is admitted ONCE, after the operands, and nothing may follow it. The old sweep
+        // accepted NUMVAL-C(ANYCASE WS-A "USD") and a doubled trailing ANYCASE (both measured).
+        bool anycase = false, localeWritten = false;
+        var locale = LocaleRef.Current;
         var operands = new List<BoundOperand>();
-        foreach (var (a, at) in argCtxs.Select((a, at) => (a, at)))
+        for (int at = 0; at < argCtxs.Count; at++)
         {
+            var a = argCtxs[at];
             if (at > 0 && KeywordWordOf(a) == "ANYCASE")
             {
                 if (anycase)
                 {
                     ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name}: the ANYCASE keyword is repeated "
-                        + $"(ISO §{fmt} — argument-1 [argument-2] [ANYCASE])");
+                        + $"(ISO §{fmt} — argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE])");
                     return new BoundExprError($"FUNCTION {sig.Name} format");
                 }
                 anycase = true;
@@ -1556,12 +1541,38 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + $"the format places last (ISO §{fmt})");
                 return new BoundExprError($"FUNCTION {sig.Name} format");
             }
+            // The LOCALE keyword (§15.68.3 r5a; kb/Work PB64 T6): optionally followed by a locale-name declared
+            // in SPECIAL-NAMES (SR37's family rule → the ONE COBOLNET1664); absent, LC_MONETARY of the locale
+            // current at use. A 2002 introduction with the locale facility — the construct gate answers below.
+            if (at > 0 && !localeWritten && KeywordWordOf(a) == "LOCALE")
+            {
+                localeWritten = true;
+                ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.NumvalCLocalePhrase2002,
+                    $"the LOCALE keyword of FUNCTION {sig.Name}");
+                if (at + 1 < argCtxs.Count && KeywordWordOf(argCtxs[at + 1]) is { } lname && lname != "ANYCASE")
+                {
+                    var sym = ctx.Data.ResolveLocaleName(lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
+                        "ISO §15.68.3 r5a — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph");
+                    if (sym is null) return new BoundExprError($"FUNCTION {sig.Name}");
+                    locale = new LocaleRef(sym);
+                    at++;
+                }
+                continue;
+            }
             operands.Add(BindArgOperand(a));
+        }
+        if (localeWritten && operands.Count > 1)
+        {
+            // §15.68.2's bracketed stack: argument-2 and the LOCALE keyword are ALTERNATIVES (§5.2.6.2 — at
+            // most one of a bracketed stack may be written).
+            ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name}: argument-2 and the LOCALE keyword are "
+                + $"alternatives — at most one may be written (ISO §{fmt}; §5.2.6.2)");
+            return new BoundExprError($"FUNCTION {sig.Name} format");
         }
         if (operands.Count is < 1 or > 2)
         {
-            ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes argument-1 [argument-2] [ANYCASE] "
-                + $"(ISO §{fmt}); {operands.Count} operand argument(s) given");
+            ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes argument-1 [argument-2 | LOCALE "
+                + $"[locale-name-1]] [ANYCASE] (ISO §{fmt}); {operands.Count} operand argument(s) given");
             return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
         // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
@@ -1596,14 +1607,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
                     + "the letter pair CR/DB in any case (ISO §15.68.3 rule 2)");
         }
-        if (operands.Count == 1)
+        if (operands.Count == 1 && !localeWritten)
         {
-            // §15.68.3 r3: "If neither argument-2 nor the LOCALE keyword is specified, there shall be only one
+            // §15.68.3 r3: "If NEITHER argument-2 NOR THE LOCALE KEYWORD is specified, there shall be only one
             // currency string for the compilation unit, either the default currency sign or a currency string
             // specified in the SPECIAL-NAMES paragraph" — the unit's SoleCurrencyString ("$" with no clause, the
             // one explicitly specified string, NULL past that). Two or more distinct strings make the reference
             // illegal (kb/Work PB60 / AR-15.68.3-3 — the former scalar injected whichever clause bound last, so
-            // NUMVAL-C("#1,234.56") silently returned 0 in a '#'-then-'@' unit).
+            // NUMVAL-C("#1,234.56") silently returned 0 in a '#'-then-'@' unit). Under LOCALE nothing is
+            // injected — the currency strings are the locale's (r5b.3; PB64 T6).
             if (ctx.Data.SoleCurrencyString is { } sole)
                 operands.Add(new BoundStringLiteral(sole));
             else
@@ -1613,7 +1625,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "specified there shall be only one currency string for the compilation unit (ISO §15.68.3 "
                     + "rule 3) — name the currency string as argument-2");
         }
-        return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { Anycase = anycase };
+        return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric)
+        { Anycase = anycase, Locale = locale, LocaleWritten = localeWritten };
     }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
@@ -2291,7 +2304,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return new BoundNumLiteral(lit);
         }
         int scale; System.Numerics.BigInteger unscaled; bool signable;
-        if (edited)
+        if (edited && pic.LocaleEdit is not null)
+        {
+            // A format-2 (LOCALE) argument (§15.43.3 r1 admits numeric-edited; PB64 T6 — the MaskCapacity deref
+            // below was a reachable NRE): capacity = the picture's Z+9 digit positions at the picture's scale;
+            // signable = a '+' in character-string-1 (§13.18.40.5 r13 — the analyzer's Signed).
+            scale = pic.Scale;
+            unscaled = Pow10(pic.DigitPositions) - 1;
+            signable = pic.Signed;
+        }
+        else if (edited)
         {
             var (cap, frac) = CobolNet.Runtime.CobolEdit.MaskCapacity(pic.EditMask!, '$', ctx.Data.DecimalPointIsComma);
             scale = frac;

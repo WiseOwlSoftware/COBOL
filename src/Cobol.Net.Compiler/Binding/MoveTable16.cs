@@ -22,7 +22,7 @@ public readonly record struct Table16Operand(
     public static Table16Operand Of(DataItem item) =>
         item.OperandPic is not { } p
             ? new Table16Operand(PicCategory.Group)
-            : new Table16Operand(p.Category, p.IsAlphabetic, p.EditMask is not null,
+            : new Table16Operand(p.Category, p.IsAlphabetic, p.EditMask is not null || p.LocaleEdit is not null,
                 p.Category is PicCategory.Numeric && (p.IsFloat || p.Scale > 0));
 
     /// <summary>The Table-16 position of a PLACE — the entry every MOVE/INVOKE crossing must use, because a

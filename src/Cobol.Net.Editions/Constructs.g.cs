@@ -123,6 +123,8 @@ public static class Constructs
     public const string OrderTable2002 = "order-table-2002";
     public const string LocaleFunctions2002 = "locale-functions-2002";
     public const string LocaleTimeFromSeconds2014 = "locale-time-from-seconds-2014";
+    public const string PictureLocaleFormat22002 = "picture-locale-format2-2002";
+    public const string NumvalCLocalePhrase2002 = "numval-c-locale-phrase-2002";
     public const string StandardCompare2002 = "standard-compare-2002";
     public const string ProgramCollatingNational2002 = "program-collating-national-2002";
     public const string CallByValue2002 = "call-by-value-2002";

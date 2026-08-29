@@ -173,6 +173,27 @@ public static class CobolLocaleEdit
         return new string(h, cut, size);
     }
 
+    /// <summary>The ARITHMETIC store's capacity-checked twin (§14.7.5 — the size error condition): false, with the
+    /// receiver's content untouched, when the aligned |value| carries more integer digits than the picture's
+    /// integer digit positions; otherwise the <see cref="Format"/> result. ⛔ The size error condition (digit
+    /// CAPACITY — EC-SIZE-TRUNCATION under EC checking) is DISTINCT from EC-LOCALE-SIZE (§13.18.40.5 r14 b's
+    /// CHARACTER truncation in the layout's move into the SIZE-declared item): both can arise on one store, and a
+    /// capacity-clean value can still lose a currency character to a small SIZE — Format raises that one.</summary>
+    public static bool TryFormat(Int128 unscaled, int valueScale, string picture, string? localeTag, int size,
+        out string edited, bool blankWhenZero = false)
+    {
+        var p = Parse(picture);
+        Int128 mag = unscaled < 0 ? -unscaled : unscaled;
+        int magDigits = mag == 0 ? 1 : mag.ToString().Length;
+        if (magDigits - valueScale > p.DigitsLeft)
+        {
+            edited = "";
+            return false;
+        }
+        edited = Format(unscaled, valueScale, picture, localeTag, size, blankWhenZero);
+        return true;
+    }
+
     /// <summary>The integer-digit indexes (1-based, LEFT-to-right over <paramref name="digitsLeft"/> digits) after
     /// which a grouping separator sits — mon_grouping applied RIGHT-to-left from the decimal delimiter
     /// (§13.18.40.5 r12; POSIX: the last size repeats unless the list terminates).</summary>

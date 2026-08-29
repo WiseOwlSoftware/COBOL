@@ -1048,6 +1048,25 @@ public static class DiagnosticCatalog
         + "is dependent upon a device capable of supporting the specified code; documented non-support, CONFORMANCE.md "
         + "§2 row 27: NATIVE and the identity-correspondence sets STANDARD-1 / STANDARD-2 / UTF-16 are supported).",
         "ISO §13.18.13.3; Annex A §A.3 item 27");
+    public static readonly DiagnosticDescriptor PictureLocaleFormat2Violation = new(
+        "COBOLNET1673", "picture-locale-format2", EditionSeverity.Error,
+        "A format 2 (LOCALE) PICTURE clause violates one of ISO §13.18.40.3's syntax rules — the message names "
+        + "which: SR32 — not in (or subordinate to) a CONSTANT RECORD item; SR33 — character-string-1 shall "
+        + "contain at least one 'Z' or '9'; SR34 — each of '+', '.', the currency symbol at most once; SR35 — 1 "
+        + "through 31 digit positions; SR36 — the currency symbol and '+' only left of the decimal point "
+        + "position; the §13.18.40.6 Table 11 precedence (the symbols are ONLY '+', the currency symbol, 'Z', "
+        + "'9', '.' — '+' first, the currency symbol before every digit, no '9' before any 'Z', so the legal "
+        + "shape is [+] [cs] Z… 9… [. Z…|9…]); or an EDITING phrase beside the LOCALE phrase (format 2 has no "
+        + "EDITING phrase — it is format 1's).",
+        "ISO §13.18.40.3 SR32-SR37 / §13.18.40.6 Table 11");
+    public static readonly DiagnosticDescriptor SignClauseWithLocalePicture = new(
+        "COBOLNET1674", "sign-clause-with-locale-picture", EditionSeverity.Error,
+        "A SIGN clause is specified for a data item whose PICTURE clause carries the LOCALE phrase (format 2). "
+        + "ISO §13.16.3 SR19 (data description) / §13.17.3 SR9 (screen description): \"If the LOCALE phrase of "
+        + "the PICTURE clause is specified, the SIGN clause shall not be specified\" — a locale-edited item's "
+        + "sign representation comes from the locale (§13.18.40.5 rule 13), never from a SIGN clause. (A report "
+        + "group description entry carries NO such rule — §13.15.3 — and the pair is legal there.)",
+        "ISO §13.16.3 SR19 / §13.17.3 SR9");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

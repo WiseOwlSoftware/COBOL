@@ -232,6 +232,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             && p.Item.Pic is { Category: PicCategory.NumericEdited, IsFloatEdited: true, EditMask: { } fem }
         ? new NumX($"CobolEdit.DeEditFloat({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(fem)}{(ctx.Data.DecimalPointIsComma ? ", commaMode: true" : "")})", 0, Dec: true)
         : p is not RefModPlace && !p.Item.StoreAsImage
+            // A format-2 (LOCALE) sender DE-EDITS through CobolLocaleEdit under the locale current NOW
+            // (§13.18.40.5 r11; §14.6.13.2 r4 — impossible content is EC-DATA-INCOMPATIBLE); the scale is the
+            // PICTURE's (PB64 T6). The second of the two dispatch sites PicInfo.LocaleEdit's doc names.
+            && p.Item.Pic is { LocaleEdit: not null } lpic
+        ? new NumX(RuntimeApi.LocaleDeEdit(lpic, PlaceRenderer.Read(p), p.Item.BlankWhenZero), lpic.Scale)
+        : p is not RefModPlace && !p.Item.StoreAsImage
             // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
             // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
             && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }

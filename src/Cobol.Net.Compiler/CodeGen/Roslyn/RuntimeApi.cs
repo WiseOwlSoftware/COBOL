@@ -153,11 +153,68 @@ internal static class RuntimeApi
     /// (<paramref name="alignedFixed"/> — the caller's rescale, which a floating-point form never needs).</summary>
     public static string EditFormatFor(PicInfo pic, Emit.NumX value, string alignedFixed, string alignedScale, string cfgArgs)
     {
+        // A format-2 (LOCALE) receiver edits through CobolLocaleEdit (§13.18.40.5 r9–r15; PB64 T6) — the arm
+        // sits FIRST because a locale item has NO EditMask and the deref below is reachable-null for it. Its
+        // cfgArgs carry at most the blankWhenZero: flag — EmitContext.EditCfg produces "" for a locale item
+        // (no currencyString:, no commaMode: — §13.18.40.5 r9 / §12.3.7.4 GR14) and EditsArg "" (no EDITING).
+        if (pic.LocaleEdit is { } le)
+            return $"{nameof(CobolLocaleEdit)}.{nameof(CobolLocaleEdit.Format)}({alignedFixed}, {alignedScale}, "
+                + $"{Emit.EmitText.CsLiteral(le.Picture)}, {LocaleTagArg(le.Locale)}, {le.Size}{cfgArgs})";
         if (!pic.IsFloatEdited) return EditFormat(alignedFixed, alignedScale, Emit.EmitText.CsLiteral(pic.EditMask!), cfgArgs);
         string mask = Emit.EmitText.CsLiteral(pic.EditMask!);
         return value.Real || value.Dec
             ? $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatFloatMove)}({value.Expr}, {mask}{cfgArgs})"
             : $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatFloatMove)}({value.Expr}, {value.Scale}, {mask}{cfgArgs})";
+    }
+
+    /// <summary>A locale-name reference rendered for a runtime call: the L1-normalized tag as a string literal,
+    /// or <c>null</c> for the current-locale form (the runtime resolves the category's current locale at use —
+    /// §13.18.40.5 r11 / §14.6.6 r6). The ONE renderer of a <see cref="Binding.Model.LocaleRef"/> argument.</summary>
+    public static string LocaleTagArg(Binding.Model.LocaleRef locale) =>
+        locale.Tag is { } t ? Emit.EmitText.CsLiteral(t) : "null";
+
+    /// <summary>The format-2 (LOCALE) receiver's ARITHMETIC store (§14.7.5 — false = the size error condition,
+    /// receiver unchanged; the capacity is the picture's integer digit positions, DISTINCT from EC-LOCALE-SIZE,
+    /// which is §13.18.40.5 r14 b's character-truncation condition inside the edit itself):
+    /// <c>CobolLocaleEdit.TryFormat</c>. The EditTryFormatFloat shape.</summary>
+    public static string EditTryFormatLocale(PicInfo pic, string alignedFixed, string alignedScale, string imgVar, string cfgArgs)
+    {
+        var le = pic.LocaleEdit!;
+        return $"{nameof(CobolLocaleEdit)}.{nameof(CobolLocaleEdit.TryFormat)}({alignedFixed}, {alignedScale}, "
+            + $"{Emit.EmitText.CsLiteral(le.Picture)}, {LocaleTagArg(le.Locale)}, {le.Size}, out var {imgVar}{cfgArgs})";
+    }
+
+    /// <summary>The ONE PicInfo-keyed receiver-scale rule (kb/Work PB64 T6 — it was written twice, in
+    /// <c>MoveEmitter.SenderContext</c> and <c>ArithmeticEmitter.ScaleOf</c>, and both copies silently fell to
+    /// <c>pic.Scale</c> = 0 for a locale item, truncating a fractional sender): a floating-point edited receiver
+    /// has no fixed scale (0 — the caller's form dispatch never uses it); a format-2 (LOCALE) receiver's scale is
+    /// the picture's digits right of '.' (<see cref="PicInfo.Scale"/> — the analyzer set it; there is no mask);
+    /// a masked numeric-edited receiver's is the MASK's; everything else <see cref="PicInfo.Scale"/>.</summary>
+    public static int ReceiverScaleOf(PicInfo pic, bool commaMode) =>
+        pic.LocaleEdit is not null ? pic.Scale
+        // A float-edited receiver rides the mask arm too — its significand scale drives the working scale of
+        // an intermediate landing (measured: returning 0 here flipped a DIVIDE quotient golden to 0.00000E+00).
+        : pic is { Category: PicCategory.NumericEdited, EditMask: { } m } ? MaskScale(m, '$', commaMode)
+        : pic.Scale;
+
+    /// <summary>A format-2 (LOCALE) sender's DE-EDIT read (§14.9.25.4 GR5/GR6 d over §14.6.13.2 r4) — the
+    /// <c>CobolLocaleEdit.DeEdit</c> call under the locale current NOW; the scale is the picture's.</summary>
+    public static string LocaleDeEdit(PicInfo pic, string read, bool blankWhenZero)
+    {
+        var le = pic.LocaleEdit!;
+        return $"{nameof(CobolLocaleEdit)}.{nameof(CobolLocaleEdit.DeEdit)}({read}, {Emit.EmitText.CsLiteral(le.Picture)}, "
+            + $"{LocaleTagArg(le.Locale)}{(blankWhenZero ? ", blankWhenZero: true" : "")})";
+    }
+
+    /// <summary>A format-2 (LOCALE) item's VALUE-clause initializer — a RUNTIME <c>CobolLocaleEdit.Format</c>
+    /// call, never a baked image: §13.18.40.5 r11 + §14.6.6 r6 make the locale the one current AT THE TIME of
+    /// editing, so no compile-time image exists. The ONE producer for the field initializer, the group-image
+    /// composer and the level-88 membership value.</summary>
+    public static string LocaleEditCompose(PicInfo pic, Int128 unscaled, int scale, bool blankWhenZero)
+    {
+        var le = pic.LocaleEdit!;
+        return $"{nameof(CobolLocaleEdit)}.{nameof(CobolLocaleEdit.Format)}({Emit.EmitText.IntLiteral(unscaled.ToString())}, {scale}, "
+            + $"{Emit.EmitText.CsLiteral(le.Picture)}, {LocaleTagArg(le.Locale)}, {le.Size}{(blankWhenZero ? ", blankWhenZero: true" : "")})";
     }
 
     /// <summary>The floating-point form's ARITHMETIC store (§14.7.5 cases 3/4 — false = the size error condition,

@@ -44,7 +44,8 @@ public static class PictureAnalyzer
     /// </summary>
     public static PicInfo Analyze(string picture, Usage usage, EditionContext edition, string where,
         SignSpec? sign = null, char currency = '$', bool blankWhenZero = false, bool explicitUsage = false,
-        IReadOnlyList<EditingPhraseSpec>? editing = null, IReadOnlyDictionary<char, string>? currencies = null)
+        IReadOnlyList<EditingPhraseSpec>? editing = null, IReadOnlyDictionary<char, string>? currencies = null,
+        LocaleEditSpec? localeFormat2 = null)
     {
         // A TRAILING ';' is the clause SEPARATOR (ISO §8.3.5 rule 2 — a semicolon immediately followed by a
         // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
@@ -86,6 +87,15 @@ public static class PictureAnalyzer
         if (cs == '\0') cs = '$';   // no currency symbol in this picture: the whitelist/editing checks see the default
         // GR14: the first occurrence contributes the whole string; the mask below is canonical ('$').
         int currencyExtra = expanded.Any(c => char.ToUpperInvariant(c) == cs) ? currencyString.Length - 1 : 0;
+
+        // ── PICTURE format 2 (the LOCALE phrase, §13.18.40.2; kb/Work PB64 T6): its own analysis — the format-1
+        // walker below reads none of its rules (Table 11 replaces Table 10; the item's size is the SIZE integer,
+        // not the mask's width; the emitted separators/currency/sign are the locale's). The currency-symbol
+        // classification above still applies: the picture's cs is the program's currency symbol (§12.3.7.3 SR22
+        // — a CURRENCY SIGN clause's symbol classifies exactly like '$'), canonicalized to '$' below.
+        if (localeFormat2 is { } locale2)
+            return AnalyzeLocaleEdited(picture, expanded, cs, usage, edition, where, blankWhenZero, locale2,
+                hasEditingPhrase: editing is { Count: > 0 });
 
         // ── PICTURE EDITING phrases (ISO §13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
         // single-character render rules. char1Set lets the SR2 whitelist admit the declared editing characters
@@ -674,6 +684,93 @@ public static class PictureAnalyzer
         }
         return new PicInfo(PicCategory.NumericEdited, usage, Length: expanded.Length, Digits: digits, Scale: 0, Signed: signed)
         { EditMask = expanded, DigitPositions = 0, IsFloatEdited = true };
+    }
+
+    /// <summary>The format-2 (LOCALE) PICTURE analysis (ISO §13.18.40.3 SR33–SR36 + §13.18.40.6 Table 11;
+    /// kb/Work PB64 T6). The symbol alphabet is EXACTLY <c>{ '+', cs, 'Z', '9', '.' }</c> (§13.18.40.4 GR18
+    /// defines meanings for exactly those five) and Table 11's non-adjacent precedence closes to the shape
+    /// <c>[+] [cs] Z{a} 9{b} [ '.' Z{c} 9{d} ]</c> with fraction Z's only when no 9 precedes (row Z's 9 column is
+    /// BLANK: no '9' may precede ANY 'Z', so all Z's form one leading run over the digit sequence). ⛔ DECIMAL-POINT
+    /// IS COMMA IS INERT HERE — §12.3.7.4 GR14: "The DECIMAL-POINT IS COMMA clause has no effect on the editing or
+    /// de-editing of a data item described with the locale format of the PICTURE clause" (its NOTE 3: the character
+    /// written for the decimal separator "is always the period"); SR13's swap is printed under FORMAT 1. ',' is not
+    /// a format-2 symbol under any setting. ⛔ NO compile-time relation between integer-1 and the digit count is
+    /// checked — the hypothetical item's width is a RUNTIME quantity (the currency string's length is the locale's,
+    /// §13.18.40.5 r9) and §13.18.40.5 r14 reconciles the two at each edit. Violations are COBOLNET1673 with the
+    /// sub-rule named; the item recovers at the SIZE length (the compile has failed). The returned PicInfo: category
+    /// numeric-edited (GR16), Length = integer-1 (GR17 — never the mask width), Digits/Scale/DigitPositions from
+    /// character-string-1, EditMask NULL, <see cref="PicInfo.LocaleEdit"/> carrying the canonical picture.</summary>
+    private static PicInfo AnalyzeLocaleEdited(string picture, string expanded, char cs, Usage usage,
+        EditionContext edition, string where, bool blankWhenZero, LocaleEditSpec locale2, bool hasEditingPhrase)
+    {
+        PicInfo Bad(string why)
+        {
+            edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation,
+                $"invalid format 2 (LOCALE) PICTURE {picture} — {where}: {why}");
+            return PicInfo.Recovery(Math.Max(1, locale2.Size));
+        }
+        if (hasEditingPhrase)
+            return Bad("an EDITING phrase is specified beside the LOCALE phrase; format 2 has no EDITING phrase "
+                + "(ISO §13.18.40.2 — the EDITING phrase belongs to format 1)");
+        // Canonicalize the program's currency symbol to '$' (the ONE symbol kind the picture may use — the set
+        // membership was classified by the caller) and uppercase is already folded by ExpandRepeats.
+        string canonical = string.Concat(expanded.Select(c => char.ToUpperInvariant(c) == cs ? '$' : c));
+        int plus = 0, dots = 0, csCount = 0, digitsLeft = 0, digitsRight = 0, zRun = 0;
+        bool zOpen = true, sawDot = false;
+        for (int i = 0; i < canonical.Length; i++)
+        {
+            char c = canonical[i];
+            switch (c)
+            {
+                case '+':
+                    plus++;
+                    if (i != 0) return Bad("the symbol '+' shall be the first symbol (ISO §13.18.40.6 Table 11 — no symbol may precede it)");
+                    break;
+                case '$':
+                    csCount++;
+                    if (i > (canonical[0] == '+' ? 1 : 0))
+                        return Bad("the currency symbol may follow only a leading '+' (ISO §13.18.40.6 Table 11)");
+                    break;
+                case '.':
+                    dots++;
+                    sawDot = true;
+                    break;
+                case 'Z':
+                    if (!zOpen) return Bad("a 'Z' follows a '9' — no '9' may precede any 'Z', so every 'Z' precedes every '9' (ISO §13.18.40.6 Table 11, row Z)");
+                    zRun++;
+                    if (sawDot) digitsRight++; else digitsLeft++;
+                    break;
+                case '9':
+                    zOpen = false;
+                    if (sawDot) digitsRight++; else digitsLeft++;
+                    break;
+                default:
+                    return Bad($"the symbol '{c}' is not a format-2 picture symbol — character-string-1 may contain "
+                        + "only '+', the currency symbol, 'Z', '9' and '.' (ISO §13.18.40.4 GR18 defines exactly those; "
+                        + "§13.18.40.6 Table 11)");
+            }
+            // §13.18.40.3 SR36 (cs and '+' only left of the decimal point position) is subsumed by the Table 11
+            // position checks above — a cs or '+' past position 0/1 is rejected there, dot or no dot.
+        }
+        if (plus > 1 || dots > 1 || csCount > 1)
+            return Bad("each of the symbols '+', '.', the currency symbol may appear only once in character-string-1 (ISO §13.18.40.3 SR34)");
+        int digits = digitsLeft + digitsRight;
+        if (digits == 0)
+            return Bad("character-string-1 shall contain at least one of the symbols 'Z' or '9' (ISO §13.18.40.3 SR33)");
+        if (digits > 31)
+            return Bad($"character-string-1 describes {digits} digit positions — the number shall range from 1 through 31 (ISO §13.18.40.3 SR35)");
+        if (usage is Usage.National)
+        {
+            // §13.18.40.4 GR1 admits USAGE NATIONAL for format 2 (each position a national character position) —
+            // but the national-form numeric-edited leg is the SAME Phase 4a staged residue every national-form
+            // numeric item carries (one national posture, never a locale-specific fork).
+            edition.Error(DiagnosticCatalog.NationalData, $"national-form numeric-edited data (a format 2 LOCALE PICTURE "
+                + $"with USAGE NATIONAL) is recognized but not yet implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
+            usage = Usage.Display;
+        }
+        return new PicInfo(PicCategory.NumericEdited, usage, Length: locale2.Size, Digits: digits,
+            Scale: digitsRight, Signed: plus > 0)
+        { DigitPositions = digits, LocaleEdit = locale2 with { Picture = canonical } };
     }
 
     private static void StagedNotImplemented(EditionContext edition, string rowId, string phase, string where)

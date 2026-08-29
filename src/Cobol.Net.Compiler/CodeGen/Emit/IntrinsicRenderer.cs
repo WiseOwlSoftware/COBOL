@@ -248,6 +248,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "NumvalC":
             {
                 int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
+                // The LOCALE arm (§15.68.3 r5; kb/Work PB64 T6) — a DIFFERENT accepted language, selected on the
+                // phrase-written flag (Locale alone cannot tell a bare LOCALE from no phrase): the locale scan,
+                // NO argument-2 (none was injected) and NO commaMode (§15.68.3 r4 is not inherited).
+                if (ic.LocaleWritten)
+                    return new NumX(RuntimeApi.Intrinsic("NumvalCLocale",
+                        $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}, {ws}{AnycaseFlag(ic)}{DigitCapFlag}{CheckedFlag}"), ws);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{CheckedFlag}"), ws);
             }
@@ -259,6 +265,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);
             case "TestNumvalC":
+                // The LOCALE arm mirrors NumvalC's (§15.94.3 r1 imports §15.68.3 whole; PB64 T6).
+                if (ic.LocaleWritten)
+                    return new NumX(RuntimeApi.Intrinsic("TestNumvalCLocale",
+                        $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}{AnycaseFlag(ic)}{DigitCapFlag}"), 0);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}"), 0);
 
@@ -643,6 +653,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // arm runs only under the standard modes) and is still passed explicitly, exactly as the TEST- twins
             // receive it, so the scan's r1b sub-note-4 verdict and the value agree on the same number.
             "Numval" => Dec(RuntimeApi.Intrinsic("NumvalDec", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
+            // The alwaysDec list makes this the path for EVERY NUMVAL-C under a standard arithmetic mode — the
+            // LOCALE arm is needed HERE too or --arithmetic standard is silently wrong (indexing the absent
+            // ic.Args[1] — no argument-2 is injected under LOCALE; PB64 T6).
+            "NumvalC" when ic.LocaleWritten => Dec(RuntimeApi.Intrinsic("NumvalCLocaleDec",
+                $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}{AnycaseFlag(ic)}{DigitCapFlag}")),
             "NumvalC" => Dec(RuntimeApi.Intrinsic("NumvalCDec",
                 $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}")),
             "NumvalF" => Dec(RuntimeApi.Intrinsic("NumvalFDec", $"{mode}, {Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),

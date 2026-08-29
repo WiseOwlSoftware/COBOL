@@ -78,3 +78,12 @@ public readonly record struct LocaleRef(LocaleSymbol? Named)
 
     public override string ToString() => Named is null ? "LOCALE (current)" : $"LOCALE {Named.Name} ({Named.Tag})";
 }
+
+/// <summary>A PICTURE format 2 item's locale-edit identity (ISO §13.18.40.2; kb/Work PB64 T6): the LOCALE
+/// phrase's named-else-current locale (§13.18.40.5 r11 — resolved at each edit/de-edit, never at bind), the SIZE
+/// phrase's integer-1 (§13.18.40.4 GR17 — the item's ONLY size input), and the canonical expanded
+/// character-string-1 (uppercased, repeats unrolled, the currency symbol canonicalized to <c>$</c> — the shape
+/// <c>CobolLocaleEdit</c> parses: symbols <c>+ $ Z 9 .</c> only). Type equivalence for two such items is the SAME
+/// SIZE phrase plus the same locale identity — both current, or the same normalized external identification
+/// (§8.5.3.1 r2 / §14.8.2.3.2 r2; <see cref="LocaleSymbol.SameLocaleAs"/>).</summary>
+public sealed record LocaleEditSpec(LocaleRef Locale, int Size, string Picture);

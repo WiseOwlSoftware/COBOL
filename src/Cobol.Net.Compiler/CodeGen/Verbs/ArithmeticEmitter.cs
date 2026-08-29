@@ -303,6 +303,33 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(fpic, value, "", "", fcfg)));
             return;
         }
+        // A format-2 (LOCALE) numeric-edited resultant (kb/Work PB64 T6): the edit is the locale's LC_MONETARY at
+        // store time (§13.18.40.5 r9–r15) and the scale the PICTURE's. Under ON SIZE ERROR / EC-SIZE the digit
+        // CAPACITY (the picture's integer positions) is the size error condition — EC-SIZE-TRUNCATION — while
+        // EC-LOCALE-SIZE (r14 b's character truncation into the SIZE-declared item) is a DISTINCT condition the
+        // edit itself raises; both can arise on one store. This arm sits BEFORE the mask arm: a locale item has
+        // no EditMask, and without it the store fell to the "arithmetic into a non-fixed-point target" LoudStmt.
+        if (target.Item.Pic is { LocaleEdit: not null } lpic)
+        {
+            int ls = lpic.Scale;
+            string lAligned(bool checkedPath) =>
+                value.Real ? RuntimeApi.FloatToScaled(value.Expr, $"{ls}", mode, checkedPath)
+                : value.Dec ? (checkedPath ? RuntimeApi.DecToUnscaledChecked(value.Expr, $"{ls}", mode)
+                                           : RuntimeApi.DecToUnscaled(value.Expr, $"{ls}", mode))
+                : value.Scale == ls ? value.Expr
+                : RuntimeApi.NumRescale(value.Expr, $"{value.Scale}", $"{ls}", mode, checkedPath);
+            string lcfg = BwzFlag(target.Item);   // no EditCfg, no EditsArg — a locale item takes neither
+            if (ecState.SizeErrVar is { } lflag)
+            {
+                string limg = $"__sv{ctx.Names.NextStoreTmp()}";
+                string lOnFail = ecState.SizeErrEcVar is { } lecn ? $"{{ {lflag} = true; {lecn} = \"EC-SIZE-TRUNCATION\"; }}" : $"{lflag} = true;";
+                w.Line($"if (!{RuntimeApi.EditTryFormatLocale(lpic, lAligned(true), $"{ls}", limg, lcfg)}) {lOnFail}");
+                w.Line($"else {PlaceRenderer.Write(target, limg)}");
+                return;
+            }
+            w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(lpic, value, lAligned(false), $"{ls}", lcfg)));
+            return;
+        }
         if (target.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } mask })
         {
             int ms = RuntimeApi.MaskScale(mask, '$', ctx.Data.DecimalPointIsComma);
@@ -408,9 +435,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     };
 
     private int ScaleOf(Place p) =>
-        p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
-            ? RuntimeApi.MaskScale(m, '$', ctx.Data.DecimalPointIsComma)
-        : p.Item.Pic?.Scale ?? 0;
+        // The ONE receiver-scale rule (RuntimeApi.ReceiverScaleOf; PB64 T6 — this copy and MoveEmitter's
+        // SenderContext were the same rule written twice, and both fell to pic.Scale = 0 for a LOCALE item).
+        p.Item.Pic is { } pic ? RuntimeApi.ReceiverScaleOf(pic, ctx.Data.DecimalPointIsComma) : 0;
 
     /// <summary>The receiver's INTEGER digit positions — <see cref="ReceiverContext.IntegerDigits"/>, which caps
     /// the float quantization working scale (PB13). Measured from <c>DigitPositions</c> (ISO §13.18.40.3 SR14 —
