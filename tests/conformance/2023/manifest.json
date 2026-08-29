@@ -240,7 +240,12 @@
   "pb140_delete_file_gate",
   "pb141_delete_file_ec",
   "pb141_resume_io",
-  "pb141_report_not_terminated"
+  "pb141_report_not_terminated",
+  "pb145_pow_range",
+  "pb145_round_away",
+  "pb145_round_even",
+  "pb145_round_trunc",
+  "pb145_round_prohib"
  ],
  "pending": []
 }

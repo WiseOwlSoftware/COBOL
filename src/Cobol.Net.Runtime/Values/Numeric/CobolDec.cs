@@ -97,7 +97,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <see cref="Round34Wide"/> clamp).</summary>
     public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode)
     {
-        bool eInt = TryIntegerValue(e, out long n);
+        bool eInt = TryIntegerValue(e, out long n, out bool eNegative, out bool eEven);
         if (b.Sig == 0)
         {
             // §8.8.1.2 r6a / §8.8.1.5.4 r4: a zero base requires an exponent greater than zero.
@@ -112,17 +112,20 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
                 + "(ISO §8.8.1.2 r6c)", "EC-SIZE-EXPONENTIATION");
         if (eInt)
         {
-            // |n| is loop-bounded: past this bound a |base| ≠ 1 is out of the decimal128 range anyway (the
-            // adjusted exponent |n·log10|b|| ≥ |n|·(1/34) > 6144), and |base| = 1 resolves by parity.
+            // |n| is loop-bounded; past the bound the escape is MAGNITUDE-AWARE (kb/Work PB145 — the old
+            // escape's guard comment claimed |n·log10|b|| ≥ |n|/34, false within 10⁻³³ of 1, so a near-unit
+            // base raised a spurious size error; and it named OVERFLOW for BOTH out-of-range directions).
             // long.MinValue (the TryIntegerValue saturation) has no Math.Abs — saturate to long.MaxValue
-            // (identical disposition: it exceeds the loop bound).
+            // (identical disposition: it exceeds the loop bound; the sign/parity ride their own flags).
             const long LoopBound = 500_000;
             long m = n == long.MinValue ? long.MaxValue : Math.Abs(n);
             if (m > LoopBound)
             {
-                if (IsUnitMagnitude(b)) return b.Sig > 0 || m % 2 == 0 ? One : new CobolDec(-1, 0);
-                throw new CobolSizeError($"exponentiation result of |exponent| {m} exceeds the decimal128 "
-                    + "range (ISO §8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");
+                // |b| = 1 resolves by the EXACT parity of the exponent's integer value (carried out of
+                // TryIntegerValue on the Int128 — the old code took the parity of the SATURATED long, and
+                // long.MaxValue is odd, so (−1) ** 10²⁰ answered −1; §8.8.1.5.4 r2/r3).
+                if (IsUnitMagnitude(b)) return b.Sig > 0 || eEven ? One : new CobolDec(-1, 0);
+                return PowByLogs(b, eNegative ? -(double)m : m, mode);
             }
             CobolDec acc = One, sq = b;
             bool first = true;
@@ -132,24 +135,75 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
                 m >>= 1;
                 if (m > 0) sq = Mul(sq, sq, mode);
             }
-            return n < 0 ? Div(One, acc, mode) : acc;            // r3: 1 / (b ** |e|)
+            return eNegative ? Div(One, acc, mode) : acc;        // r3: 1 / (b ** |e|)
         }
         // r2e (non-integer exponent, positive base): implementor-defined — IEEE-double approximation converted
-        // through the one float→SDIDI operand conversion.
+        // through the one float→SDIDI operand conversion. A base OUTSIDE binary64's range would degenerate in
+        // ToDouble before Math.Pow ran (1.0E−400 ** 0.5 answered a silent 0; 2.0E+400 ** 0.5 a spurious
+        // overflow — kb/Work PB145), so those route through the log decomposition, which never leaves the
+        // exponent field. The 34-digit SDIDI-carried development r2e's first "shall" asks for is kb/Work
+        // PB167's owner decision.
+        double adjB = DigitCount(Int128.Abs(b.Sig)) + b.Exp - 1;
+        if (adjB is > 300 or < -300) return PowByLogs(b, e.ToDouble(), mode);
         return FromDouble(Math.Pow(b.ToDouble(), e.ToDouble()));
+    }
+
+    /// <summary>b ** p through the base-10 logarithm (kb/Work PB145): t = p·log10|b| computed in binary64 —
+    /// <see cref="Log10Abs"/> keeps its precision for near-unit AND out-of-binary64-range bases — then the
+    /// result is 10^frac(t) (a binary64 mantissa in [1,10)) carried on the SDIDI exponent field, so neither a
+    /// base nor a result outside binary64's range degenerates. Serves the past-loop-bound integer escape and
+    /// the out-of-range non-integer arm; the out-of-decimal128 directions raise their OWN names (r2's
+    /// too-large/too-small, §8.8.1.5.2 — the old escape named OVERFLOW for both).</summary>
+    private static CobolDec PowByLogs(CobolDec b, double p, CobolRounding mode)
+    {
+        double t = p * Log10Abs(b);
+        if (t > MaxAdjustedExp + 1)
+            throw new CobolSizeError("standard-decimal intermediate exceeds the decimal128 range "
+                + "(ISO §8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");
+        if (t < MinExp - 35)
+            throw new CobolSizeError("standard-decimal intermediate is below the decimal128 range "
+                + "(ISO §8.8.1.5.2 r2)", "EC-SIZE-UNDERFLOW");
+        double ti = Math.Floor(t);
+        var mant = FromDouble(Math.Pow(10, t - ti));             // in [1, 10) — always inside binary64
+        return Clamp(mant.Sig, mant.Exp + (int)ti, mode);        // the range verdict is Clamp's (one place)
+    }
+
+    /// <summary>log10|v| (v ≠ 0) without binary64 range collapse: the significand's leading digits normalize
+    /// into [1,10) and the decimal exponent adds EXACTLY. A base within binary64 epsilon of 1 (where the
+    /// normalized top rounds to 1.0 and the offset vanishes) instead uses log10(1+d) ≈ d·log10(e) on the
+    /// EXACT SDIDI difference d = |v| − 1 — the near-unit band the old loop-bound comment mispriced.</summary>
+    private static double Log10Abs(CobolDec v)
+    {
+        Int128 s = Int128.Abs(v.Sig);
+        int dc = DigitCount(s);
+        int adj = dc - 1 + v.Exp;
+        if (adj == 0)
+        {
+            var d = Sub(new CobolDec(s, v.Exp), One, CobolRounding.Truncation);
+            if (d.Sig == 0) return 0;
+            if (DigitCount(Int128.Abs(d.Sig)) + d.Exp - 1 <= -15)
+                return d.ToDouble() * 0.43429448190325176;       // log10(1+d) ≈ d·log10(e), |d| ≤ 1e−14
+        }
+        double top = (double)s / Math.Pow(10, dc - 1);           // [1, 10) — ≤17 significant digits survive
+        return Math.Log10(top) + adj;
     }
 
     /// <summary>Whether the value is an INTEGER, and its magnitude as a <see cref="long"/> when it fits (a
     /// trailing-zero significand normalizes into the exponent first; a value whose integer form exceeds the
     /// long range reports integer-ness with <paramref name="n"/> saturated — the caller's loop bound rejects
-    /// it before use).</summary>
-    private static bool TryIntegerValue(CobolDec v, out long n)
+    /// it before the MAGNITUDE is used). The SIGN and the exact PARITY ride their own flags, computed on the
+    /// Int128 value — never re-derived from the saturated long, whose fixed parity (long.MaxValue is odd)
+    /// gave (−1) ** 10²⁰ the wrong sign (kb/Work PB145).</summary>
+    private static bool TryIntegerValue(CobolDec v, out long n, out bool negative, out bool even)
     {
         Int128 sig = v.Sig;
         int exp = v.Exp;
         while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }   // normalize trailing zeros into the exponent
-        if (exp < 0) { n = 0; return false; }
-        // Integer: sig × 10^exp. Saturate past long range (the Pow loop bound rejects it).
+        negative = sig < 0;
+        if (exp < 0) { n = 0; even = false; return false; }
+        // |sig × 10^exp| is even iff any power of ten multiplies in (exp ≥ 1) or the significand is even.
+        even = exp >= 1 || Int128.Abs(sig) % 2 == 0;
+        // Integer: sig × 10^exp. Saturate past long range (the Pow loop bound rejects the magnitude).
         Int128 wide = sig;
         for (int i = 0; i < exp && Int128.Abs(wide) <= long.MaxValue; i++) wide *= 10;
         n = Int128.Abs(wide) > long.MaxValue ? (wide < 0 ? long.MinValue : long.MaxValue) : (long)wide;
@@ -425,6 +479,12 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         {
             // Re-round onto the 10^−6176 quantum (drop exp − MinExp digits with the true remainder).
             var (q, rem, den) = DivRemPow10(sig, MinExp - exp);
+            // Under INTERMEDIATE ROUNDING IS PROHIBITED the below-range re-round is still r2's TOO-SMALL
+            // condition — EC-SIZE-UNDERFLOW, never §14.7.4.3 r7's inexact-transfer TRUNCATION: one physical
+            // condition, one name, whatever the rounding clause (kb/Work PB145).
+            if (mode == CobolRounding.Prohibited && rem != 0)
+                throw new CobolSizeError("standard-decimal intermediate is below the decimal128 range "
+                    + "(ISO §8.8.1.5.2 r2; INTERMEDIATE ROUNDING IS PROHIBITED)", "EC-SIZE-UNDERFLOW");
             Int128 r = RoundFromRemainder(q, rem, den, sticky: false, mode);
             if (r == 0)
                 throw new CobolSizeError("standard-decimal intermediate is below the decimal128 range "

@@ -264,7 +264,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The EC-SIZE family an arithmetic statement can raise through the checked-store path
     /// (§14.7.5 size error ↔ Table 13: store truncation, intermediate overflow, zero divide, exponentiation).</summary>
     private static readonly string[] SizeNames =
-        ["EC-SIZE-TRUNCATION", "EC-SIZE-OVERFLOW", "EC-SIZE-ZERO-DIVIDE", "EC-SIZE-EXPONENTIATION"];
+        // EC-SIZE-UNDERFLOW was missing from this enumeration (kb/Work PB145 — the same missing-member shape
+        // as DELETE FILE in QueryFor): >>TURN EC-SIZE-UNDERFLOW CHECKING ON never reached a statement's mask,
+        // so a §8.8.1.5.2 r2 too-small raise was caught by ON SIZE ERROR but NEVER RECORDED — FUNCTION
+        // EXCEPTION-STATUS read the stale prior name inside the phrase.
+        ["EC-SIZE-TRUNCATION", "EC-SIZE-OVERFLOW", "EC-SIZE-UNDERFLOW", "EC-SIZE-ZERO-DIVIDE", "EC-SIZE-EXPONENTIATION"];
 
     /// <summary>The EC-I-O family raised from I-O status values (§9.1.13.1 correspondence) — THE canonical
     /// mask order (<see cref="ExceptionCatalog.IoMaskNames"/>; the emitter's per-statement mask bits).</summary>

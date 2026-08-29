@@ -469,6 +469,28 @@ reallocated).
 > nothing is itself undefined. An OCCURS DEPENDING range whose data-name-1 is 0, or a dynamic-capacity table at
 > capacity 0, is how a program reaches it.
 
+> ⚖ **DETERMINATION — the §8.8.1.5.4 r2e development of a non-integer (and past-loop-bound integer) power**
+> (2026-08-29; kb/Work PB145). The equivalent-expression development for `b ** e` with a non-integer exponent
+> is the IEEE binary64 approximation (`Math.Pow`), converted through the §8.8.1.5.1 float→SDIDI conversion —
+> ~17 correct digits, the same development GnuCOBOL's C `pow` takes — BOUNDED to operands binary64 can carry:
+> a base or result outside binary64's range routes through a base-10 log decomposition that never leaves the
+> decimal exponent field, so an SDIDI-range operand neither collapses to a silent zero nor raises a spurious
+> range error, and the out-of-decimal128 directions carry their own §8.8.1.5.2 r2 names (too large =
+> EC-SIZE-OVERFLOW, too small = EC-SIZE-UNDERFLOW). r2e's first shall ("Operands used in the development …
+> shall be in SDIDI form") is NOT met by the binary64 core — whether to fund a 34-digit SDIDI-carried exp/ln
+> or ratify this approximation permanently is kb/Work PB167's owner decision; GR-8.8.1.5.4-2/-3 stay PARTIAL
+> until it lands.
+
+> ⚖ **DETERMINATION — §8.8.1.5.2 r2's "too small" is the round-to-zero test, and gradual underflow sets no
+> exception** (2026-08-29; kb/Work PB145). A value below 10⁻⁶¹⁷⁶ re-rounds onto the 10⁻⁶¹⁷⁶ quantum under the
+> INTERMEDIATE ROUNDING mode (genuine gradual underflow — reduced precision, not a flush); only a value that
+> rounds to ZERO there raises EC-SIZE-UNDERFLOW. A tiny-and-inexact value landing on a NONZERO quantum
+> (1.5E−6176 → 2E−6176) sets nothing — r2's "too small … to be contained in an item in decimal128 format"
+> reads as the round-to-zero test, and IEC 60559's tiny∧inexact underflow SIGNAL (which the "exception
+> conditions … shall be the same as … decimal128 format" paragraph could be read to import) is not modelled.
+> Under INTERMEDIATE ROUNDING IS PROHIBITED a below-range landing keeps the too-small name EC-SIZE-UNDERFLOW —
+> never §14.7.4.3 r7's inexact-transfer EC-SIZE-TRUNCATION: one physical condition, one name.
+
 > ⚖ **DETERMINATION — the DELETE FILE statement's GR20/GR21 are internally contradictory in the printed
 > standard (§14.9.10.4)** (2026-08-29; kb/Work PB141). Both general rules open "If the execution of the DELETE
 > FILE statement is successful" (verified against the PDF text layer, page 638 — not a transcription error),
