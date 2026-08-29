@@ -160,14 +160,27 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// firing on the self-identifying <see cref="BoundKeyedDeleteFile"/> node (COBOLNET0900 below 2023).</summary>
     public BoundStatement BindDeleteFile(Core.DeleteFileStatementContext df)
     {
-        string name = df.fileName().GetText();
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
-            return new BoundUnsupported($"DELETE FILE of undeclared file '{name}'");
-        List<BoundStatement>? on = null, notOn = null;
-        if (df.deleteFileOnException() is { } ex)
-            (on, notOn) = PhraseBlocks.Split(ex.statementBlock(), PhraseBlocks.StartsWithNot(ex), b => host.BindBlocks([b]));
-        return new BoundKeyedDeleteFile(file, on, notOn)
-        { Retry = fileLock.BindVerbRetry(df.retryPhrase()) };   // §14.7.9 / §14.9.10 GR15 — the '62' re-attempt
+        // §14.9.10.2 Format 2 (kb/Work PB134): [OVERRIDE] {file-name-1}…. GR12: multiple names execute as if
+        // a separate DELETE FILE statement had been written for EACH, in order — each element re-binds the
+        // phrase blocks, the exact textual-duplication semantics the rule states. OVERRIDE (GR18) skips the
+        // fixed-file-attribute match; GR19 makes the validated set implementor-defined and THIS implementation
+        // validates none (documented), so accepting the word is the whole obligation.
+        var steps = new List<BoundStatement>();
+        foreach (var fn in df.fileName())
+        {
+            string name = fn.GetText();
+            if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
+            {
+                steps.Add(new BoundUnsupported($"DELETE FILE of undeclared file '{name}'"));
+                continue;
+            }
+            List<BoundStatement>? on = null, notOn = null;
+            if (df.deleteFileOnException() is { } ex)
+                (on, notOn) = PhraseBlocks.Split(ex.statementBlock(), PhraseBlocks.StartsWithNot(ex), b => host.BindBlocks([b]));
+            steps.Add(new BoundKeyedDeleteFile(file, on, notOn)
+            { Retry = fileLock.BindVerbRetry(df.retryPhrase()) });   // §14.7.9 / §14.9.10 GR15 — the '62' re-attempt
+        }
+        return steps.Count == 1 ? steps[0] : new BoundSequence(steps);
     }
 
     // ── START (ISO §14.9.41) ───────────────────────────────────────────────────────────────────────────────────

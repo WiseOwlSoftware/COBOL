@@ -263,10 +263,10 @@ internal sealed partial class EcBinder
                 + "exception-checking PERFORM (ISO §14.9.50.3 SR6)");
 
         // ── Region A (imperative-statement-1 only) ──
-        // XS-DELETE-FILE-MULTI (COBOLNET1613, §14.9.10.3 SR4) is UNREACHABLE under the current grammar — the
-        // `deleteFileStatement : DELETE FILE fileName` rule admits only ONE file-name (the 2023 Format-2
-        // `DELETE FILE [OVERRIDE] {file-name-1}…` multi-file shape is itself a separate unimplemented grammar
-        // gap). 1613 stays RESERVED, to be emitted when that grammar lands (like the >>POP/>>PUSH-gated 1602/1603).
+        // XS-DELETE-FILE-MULTI (§14.9.10.3 SR4) went LIVE with the Format-2 grammar (kb/Work PB134).
+        foreach (var dfm in regionA.SelectMany(Descendants<Core.DeleteFileStatementContext>).Where(s => s.fileName().Length > 1))
+            ctx.Edition.Error("COBOLNET1613", "a DELETE FILE naming more than one file-name shall not appear in "
+                + "imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.10.3 SR4)");
         foreach (var cl in regionA.SelectMany(Descendants<Core.CloseStatementContext>).Where(s => s.closeFilePhrase().Length > 1))
             ctx.Edition.Error("COBOLNET1612", "a multi-file CLOSE shall not appear in imperative-statement-1 of an "
                 + "exception-checking PERFORM (ISO §14.9.6.3 SR3)");

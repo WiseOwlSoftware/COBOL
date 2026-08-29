@@ -1983,15 +1983,28 @@
   },
   {
    "id": "end-accept-2002",
-   "description": "END-ACCEPT explicit scope terminator (ISO §14.9.1) — introduced 2002. PENDING: the current acceptStatement grammar (ACCEPT dataReference (FROM acceptSource)?) has no END_ACCEPT, so the binder gate (COBOLNET0816, folded to ConstructRegistry.Check in P2.6b) is presently UNREACHABLE — the matrix SKIPS its compile assertion until END-ACCEPT parsing lands and this row flips active with a real fixture.",
+   "description": "END-ACCEPT explicit scope terminator (ISO §14.9.1) — introduced 2002. the current acceptStatement grammar (ACCEPT dataReference (FROM acceptSource)?) has no END_ACCEPT, so the binder gate (COBOLNET0816, folded to ConstructRegistry.Check in P2.6b) is presently UNREACHABLE — the matrix SKIPS its compile assertion until END-ACCEPT parsing lands and this row flips active with a real fixture. ACTIVATED by kb/Work PB134: the terminator finally parses, so the gate and the matrix assertions are live.",
    "display": "END-ACCEPT (explicit scope terminator)",
    "diagnosticCode": "COBOLNET0816",
    "citation": "ISO §14.9.1 (ACCEPT general formats)",
    "introducedIn": 2002,
    "removedIn": null,
    "vcr": "2002 introduction (derive from the 2002 standard)",
-   "status": "pending",
+   "status": "active",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    ACCEPT W END-ACCEPT.\n    STOP RUN.\n",
+   "expectDiagnostic": "COBOLNET0816"
+  },
+  {
+   "id": "end-display-2002",
+   "description": "The explicit DISPLAY scope terminator END-DISPLAY (ISO 14.9.11.2) - a COBOL-2002 addition like the whole 2002 scope-terminator wave. The registered end-accept twin had a gate and END-DISPLAY had NONE, so `DISPLAY X END-DISPLAY` was silently accepted at 85 (kb/Work PB134).",
+   "display": "the END-DISPLAY scope terminator",
+   "diagnosticCode": "COBOLNET0816",
+   "citation": "ISO 14.9.11.2 - COBOL-2002 scope terminator",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "vcr": "2002 introduction (derive from the 2002 standard)",
+   "status": "active",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W134D.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4) VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W END-DISPLAY\n    STOP RUN.\n",
    "expectDiagnostic": "COBOLNET0816"
   },
   {

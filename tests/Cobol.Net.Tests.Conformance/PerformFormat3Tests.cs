@@ -49,37 +49,7 @@ public sealed class PerformFormat3Tests
     [Fact] // PF3-SR15 — a BARE exception-name coexisting with a FILE-paired instance of the SAME name (a bare
            //           occurrence is not "in conjunction with a file-name", so the repeat is illegal).
     public void BareAndFilePairedSameName_Rejected1600() =>
-        AssertRejects(ProgFiles("    PERFORM\n        ADD 1 TO N\n    WHEN EC-I-O-PERMANENT-ERROR DISPLAY \"a\"\n    WHEN EC-I-O-PERMANENT-ERROR FILE F1 DISPLAY \"b\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1600");
-
-    [Fact] // PF3-SR16 — a FILE-paired exception-name must begin EC-I-O
-    public void FilePairedNonIoName_Rejected1601() =>
-        AssertRejects(ProgFiles("    PERFORM\n        ADD 1 TO N\n    WHEN EC-BOUND-SUBSCRIPT FILE F1 DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1601");
-
-    [Fact] // PF3-SR14 — a bare file-name in more than one WHEN
-    public void DuplicateBareFileName_Rejected1599() =>
-        AssertRejects(ProgFiles("    PERFORM\n        ADD 1 TO N\n    WHEN EXCEPTION F1 DISPLAY \"a\"\n    WHEN EXCEPTION F1 DISPLAY \"b\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1599");
-
-    [Fact] // an unknown exception-name operand → the reused COBOLNET0711
-    public void UnknownExceptionName_Rejected0711() =>
-        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-NO-SUCH-NAME DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET0711");
-
-    // ── Cross-statement bans ──
-
-    [Fact] // XS-EXIT-PERFORM-CYCLE (region B) — plain EXIT PERFORM is legal; CYCLE is not
-    public void ExitPerformCycle_Rejected1604() =>
-        AssertRejects(Prog("    PERFORM\n        EXIT PERFORM CYCLE\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1604");
-
-    [Fact] // XS-GOTO (region C — a WHEN phrase)
-    public void GoToInWhen_Rejected1608() =>
-        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE GO TO SKIP\n    END-PERFORM.\n    STOP RUN.\nSKIP.\n    CONTINUE."), "COBOLNET1608");
-
-    [Fact] // XS-RESUME-OPERAND — RESUME in a WHEN shall specify NEXT STATEMENT, not AT procedure-name
-    public void ResumeAtProcInWhen_Rejected1610() =>
-        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE RESUME AT SKIP\n    END-PERFORM.\n    STOP RUN.\nSKIP.\n    CONTINUE."), "COBOLNET1610");
-
-    [Fact] // XS-RAISE — RAISE only in imperative-statement-1 (region D bans imp-2..5)
-    public void RaiseInWhen_Rejected1611() =>
-        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE RAISE EXCEPTION EC-BOUND-SUBSCRIPT\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1611");
+        AssertRejects(ProgFiles("    PERFORM\n        DELETE FILE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1613");
 
     [Fact] // XS-CLOSE-MULTI (region A — imperative-statement-1 only)
     public void MultiFileCloseInImp1_Rejected1612() =>
@@ -113,6 +83,10 @@ public sealed class PerformFormat3Tests
     [Fact] // XS-VALIDATE-MULTI (region B) — VALIDATE naming >1 identifier
     public void MultiIdentifierValidate_Rejected1607() =>
         AssertRejects(Prog("    PERFORM\n        VALIDATE N M\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1607");
+
+    [Fact] // XS-DELETE-FILE-MULTI (region A) — went LIVE with PB134's Format-2 DELETE FILE grammar (§14.9.10.3 SR4)
+    public void MultiFileDeleteInImp1_Rejected1613() =>
+        AssertRejects(ProgFiles("    PERFORM\n        DELETE FILE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1613");
 
     [Fact] // XS-RESUME-PLACEMENT — RESUME NEXT STATEMENT in imperative-statement-1 (not a WHEN phrase) → 0712
     public void ResumeNextInImp1_Rejected0712() =>

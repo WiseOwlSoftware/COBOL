@@ -874,8 +874,16 @@ addOperand
     | dataReference
     ;
 
+// §14.9.2.2 (kb/Work PB134): Format 1 prints `TO {identifier-2 [rounded]}…` (receivers); Format 2 prints
+// `TO {identifier-2 | literal-2}` — ONE operand in a SENDING role, which §8.4.3.1.2 lets a
+// function-identifier fill. Parsed WIDE (the union of the three ADDITIVE alternatives — the frozen legacy
+// compiler reads .receivingArithmeticOperand() off this context by name, so no wrapper rule);
+// ArithmeticBinder narrows by the GIVING phrase. functionCall sits OUTSIDE the receiving rules so the
+// §8.4.3.2.3 SR1 drift guard keeps holding the receiving side clean.
 addToPhrase
     : TO receivingArithmeticOperand+
+    | TO literal
+    | TO functionCall
     ;
 
 addGivingPhrase
@@ -908,6 +916,7 @@ subtractFromPhrase
 subtractFromOperand
     : receivingArithmeticOperand (receivingArithmeticOperand)*
     | receivingOperand
+    | functionCall      // §14.9.44.2 Format 2's sending `FROM {identifier-2 | literal-2}` (§8.4.3.1.2; kb/Work PB134)
     ;
 
 subtractGivingPhrase
@@ -930,6 +939,7 @@ multiplyOperand
 
 multiplyByOperand
     : receivingOperand roundedPhrase?
+    | functionCall      // §14.9.26.2 Format 2's sending `BY {identifier-2 | literal-2}` (§8.4.3.1.2; kb/Work PB134)
     ;
 
 multiplyGivingPhrase
@@ -958,6 +968,7 @@ divideIntoPhrase
 divideIntoOperand
     : receivingArithmeticOperand+   // dataReference ROUNDED? (non-GIVING form, multiple targets)
     | literal             // numeric literal (GIVING form only)
+    | functionCall        // §14.9.12.2 Format 2's sending `INTO {identifier-2 | literal-2}` (§8.4.3.1.2; kb/Work PB134)
     ;
 
 divideByPhrase
@@ -1291,7 +1302,7 @@ setIndexStatement
 // ==========================================
 
 acceptStatement
-    : ACCEPT dataReference (FROM acceptSource)?
+    : ACCEPT dataReference (FROM acceptSource)? END_ACCEPT?   // END-ACCEPT: 2002+ (gated in VersionConformancePass; kb/Work PB134)
     ;
 
 acceptSource

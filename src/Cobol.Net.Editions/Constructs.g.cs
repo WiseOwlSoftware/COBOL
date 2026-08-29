@@ -171,6 +171,7 @@ public static class Constructs
     public const string RecordLockPhrase2002 = "record-lock-phrase-2002";
     public const string UserWordSharing2002 = "user-word-sharing-2002";
     public const string EndAccept2002 = "end-accept-2002";
+    public const string EndDisplay2002 = "end-display-2002";
     public const string AlterRemoved2002 = "alter-removed-2002";
     public const string BareGotoRemoved2002 = "bare-goto-removed-2002";
     public const string CallOnOverflowRemoved2023 = "call-on-overflow-removed-2023";

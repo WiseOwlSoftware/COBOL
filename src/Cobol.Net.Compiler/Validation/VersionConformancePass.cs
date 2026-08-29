@@ -1354,6 +1354,20 @@ internal sealed class VersionConformancePass
         /// the scan finds nothing and this gate fires ZERO times today (as the bound-arm's
         /// BoundAccept.HasEndTerminator did); kept in the correct home so it lights up if the grammar gains the
         /// terminator.</summary>
+        /// <summary>END-DISPLAY (§14.9.11.2, a COBOL-2002 addition like every explicit scope terminator of the
+        /// 2002 wave) — the registered end-accept twin had a gate and this had NONE, so `DISPLAY X END-DISPLAY`
+        /// was silently accepted at 85 (kb/Work PB134).</summary>
+        public override object? VisitDisplayStatement(CobolParserCore.DisplayStatementContext ctx)
+        {
+            for (int i = 0; i < ctx.ChildCount; i++)
+                if (ctx.GetChild(i) is Antlr4.Runtime.Tree.ITerminalNode { Symbol.Type: CobolLexer.END_DISPLAY })
+                {
+                    _p.Check(Constructs.EndDisplay2002, "the DISPLAY statement");
+                    break;
+                }
+            return base.VisitChildren(ctx);
+        }
+
         public override object? VisitAcceptStatement(CobolParserCore.AcceptStatementContext ctx)
         {
             for (int i = 0; i < ctx.ChildCount; i++)

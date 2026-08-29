@@ -281,6 +281,14 @@ public static class DiagnosticCatalog
         + "the same type. The violation is EC-PROGRAM-ARG-MISMATCH at run time; with AS NESTED it is a "
         + "diagnostic at compile time.",
         "ISO §14.8.2.2 / §14.8.2.3.2");
+    public static readonly DiagnosticDescriptor ArithmeticFormatOperand = new(
+        "COBOLNET1689", "arithmetic-format-operand", EditionSeverity.Error,
+        "An arithmetic statement's operand does not fit the format its phrases select. The GIVING forms of "
+        + "ADD / SUBTRACT / MULTIPLY / DIVIDE print ONE sending `{identifier | literal}` TO/FROM/BY/INTO "
+        + "operand with no ROUNDED; the non-GIVING forms print receiving identifiers only, so a literal or "
+        + "function-identifier operand there is illegal; and every BY form of DIVIDE prints GIVING. The old "
+        + "binders silently dropped the extra operands and the ROUNDED, or crashed.",
+        "ISO §14.9.2.2 / §14.9.44.2 / §14.9.26.2 / §14.9.12.2");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
         "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "

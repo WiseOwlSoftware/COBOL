@@ -173,6 +173,7 @@ public static partial class ConstructRegistry
         new("record-lock-phrase-2002", "a record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK)", 2002, null, null, "COBOLNET0900", "ISO §14.9.30 / §14.9.51 / §14.9.35; LIVE (Phase 4d) — explicit MANUAL locking + IGNORING-LOCK bypass; 2002 introduction"),
         new("user-word-sharing-2002", "the word SHARING as a user-defined word", 85, 2002, null, "COBOLNET0901", "§8.9 interval encoding: user-definable at 85, reserved since 2002 (ReservedWords.Table covers SHARING/RETRY/UNLOCK; single representative — the user-word-raising-2002 precedent)"),
         new("end-accept-2002", "END-ACCEPT (explicit scope terminator)", 2002, null, null, "COBOLNET0816", "ISO §14.9.1 (ACCEPT general formats)"),
+        new("end-display-2002", "the END-DISPLAY scope terminator", 2002, null, null, "COBOLNET0816", "ISO 14.9.11.2 - COBOL-2002 scope terminator"),
         new("alter-removed-2002", "the ALTER statement", 85, 2002, null, "COBOLNET0810", "ISO §14.9.17 (no altered GO TO); obsolete ’85 element deleted by ISO 2002"),
         new("bare-goto-removed-2002", "GO TO without a procedure-name (the ALTER-dependent form)", 85, 2002, null, "COBOLNET0811", "ISO §14.9.17 (procedure-name-1 required); obsolete ’85 form deleted by ISO 2002"),
         new("call-on-overflow-removed-2023", "CALL … ON OVERFLOW", 85, 2023, null, "COBOLNET0882", "ISO 2023 Annex E.2 item 1c (removed 2023; use ON EXCEPTION)"),

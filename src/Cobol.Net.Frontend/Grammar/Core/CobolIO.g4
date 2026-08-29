@@ -511,7 +511,13 @@ deleteInvalidKeyPhrase
 // ==========================================
 
 deleteFileStatement
-    : DELETE FILE fileName
+    : DELETE FILE OVERRIDE? fileName
+      // §14.9.10.2 Format 2's {file-name-1}… repetition (kb/Work PB134; GR12 — as-if one statement per
+      // name). The loop continuation is PREDICATED on the lookahead not being a phrase keyword: RETRY /
+      // ON / NOT / EXCEPTION / END-DELETE all lex as word tokens the edition-shared cobolWord can match
+      // (reservation is a per-edition BIND screen), so a greedy fileName+ swallowed `RETRY …` as a
+      // second file-name — the gate's delete_file_sharing red. Left-edge predicate per the standing rule.
+      ({TokenStream.LA(1) != RETRY && TokenStream.LA(1) != ON && TokenStream.LA(1) != NOT && TokenStream.LA(1) != EXCEPTION && TokenStream.LA(1) != END_DELETE}? fileName)*
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       deleteFileOnException?
       END_DELETE?
@@ -528,8 +534,8 @@ unlockStatement
 // The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
 // below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 deleteFileOnException
-    : ON EXCEPTION statementBlock
-      (NOT ON EXCEPTION statementBlock)?
+    : ON? EXCEPTION statementBlock
+      (NOT ON? EXCEPTION statementBlock)?   // ON is not underlined (§5.2.3 optional word; kb/Work PB134)
     | NOT ON EXCEPTION statementBlock
       (ON EXCEPTION statementBlock)?
     ;

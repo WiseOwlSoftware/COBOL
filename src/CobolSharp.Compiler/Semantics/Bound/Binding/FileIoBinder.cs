@@ -403,7 +403,10 @@ internal sealed class FileIoBinder
     // accepted by the grammar but not yet honored (documented follow-up).
     internal BoundStatement? BindDeleteFile(CobolParserCore.DeleteFileStatementContext ctx)
     {
-        var fileNameCtx = ctx.fileName();
+        // Grammar accommodation (kb/Work PB134): deleteFileStatement's fileName is now a repetition (the
+        // 2023 Format-2 {file-name-1}…); this FROZEN oracle binds the first name — the only shape it ever
+        // supported — purely to keep compiling against the shared grammar.
+        var fileNameCtx = ctx.fileName() is { Length: > 0 } fns ? fns[0] : null;
         if (fileNameCtx == null) return null;
         var fileSym = _ctx.Semantic.ResolveFile(fileNameCtx.GetText());
         if (fileSym == null) return null;
