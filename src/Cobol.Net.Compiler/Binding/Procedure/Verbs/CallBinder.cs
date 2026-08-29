@@ -70,18 +70,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         var target = call.callTarget();
         if (target.literal() is { } lit)
         {
-            if (lit.nonNumericLiteral()?.STRINGLIT() is { } s)
-                literalName = CobolLiteral.Decode(s.GetText());
-            // §8.8.3.3 GR3: an alphanumeric concatenation expression may stand anywhere an alphanumeric
-            // literal may — including the §14.9.4 literal-1 program name; fold it at compile time.
-            else if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce
-                     && ConcatFolder.ClassOf(ce) is PicCategory.Alphanumeric)
-                literalName = ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value;
-            else
-                return new BoundUnsupported(
-                    $"CALL with a non-alphanumeric literal target '{lit.GetText()}' (ISO §14.9.4.3 SR2)");
-            if (literalName.Length == 0)
-                return new BoundUnsupported("CALL with a zero-length literal target (ISO §14.9.4.3 SR2)");
+            // kb/Work PB130: through the ONE program-name-literal reader — SR2 admits alphanumeric AND
+            // national literals (a hexadecimal literal IS §8.3.3.2 Format 2 of an alphanumeric one), and the
+            // old STRINGLIT-only read sent N"P" / X".." to a run-time loud on legal source.
+            if (ProgramNameLiteral(lit, "CALL", "§14.9.4.3 SR2") is not { } pn) return new BoundNop();
+            literalName = pn;
         }
         else if (target.dataReference() is { } dref)
         {
@@ -106,13 +99,25 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (a.callByReference() is { } byRef)
             {
                 mode = CobolPassMode.Reference;
+                // §14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130). The omitted-
+                // argument carrier joins the OPTIONAL-formal landing (PB133); until then the recognized form
+                // draws the same staged diagnostic family instead of a parse error on legal source.
+                if (byRef.OMITTED() is not null)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.OptionalFormal,
+                        "CALL … USING BY REFERENCE OMITTED (ISO §14.9.4.2 Format 2 / §14.9.4.4 GR11): the "
+                        + "omitted-argument carrier lands with OPTIONAL formal parameters (kb/Work PB133)");
+                    return new BoundNop();
+                }
+                if (byRef.dataReference() is not { } byRefDref)
+                    return new BoundUnsupported("CALL USING BY REFERENCE form");
                 // kb/Work PB128: a BY REFERENCE argument is a RECEIVING operand and rides the ONE receiving
                 // chokepoint — the direct Refs.Resolve bypass skipped the CONSTANT RECORD (§13.18.15.3 SR2),
                 // CAPACITY-register (§13.18.38 SR30–32), constant-name and LINE-COUNTER screens, letting a
                 // structured constant be silently overwritten by the callee (and a CAPACITY register reach
                 // PlaceRenderer.Write's internal throw — an unhandled compiler exception).
-                if (host.Expr.ResolveReceiving(byRef.dataReference()) is not { } p)
-                    return new BoundUnsupported($"CALL USING argument '{byRef.dataReference().GetText()}'");
+                if (host.Expr.ResolveReceiving(byRefDref) is not { } p)
+                    return new BoundUnsupported($"CALL USING argument '{byRefDref.GetText()}'");
                 args.Add(new BoundCallArg(CobolPassMode.Reference, p, null));
             }
             else if (a.callByContent() is { } byContent)
@@ -137,7 +142,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // §14.9.4.2 FORMAT 1's BY CONTENT IS `{ identifier-2 } …` AND NOTHING ELSE. An expression operand
                 // is legal only under Format 2, which the AS phrase selects — so accepting one here without that
                 // phrase would admit illegal source, the exact trade this item refused to make in the grammar.
-                if (!formatTwo && (cBool is not null || (cArith is not null && cDref is null)))
+                if (!formatTwo && (cBool is not null || cLit is not null || (cArith is not null && cDref is null)))
                 {
                     ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
                         $"CALL … USING BY CONTENT {byContent.GetText()}: an expression operand belongs to the "
@@ -166,6 +171,16 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else if (a.callByValue() is { } byValue)
             {
+                // §14.9.4.2 FORMAT 1 HAS NO BY VALUE ARM (kb/Work PB130): its USING brace prints BY REFERENCE
+                // and BY CONTENT only (the repaired figure notes’ required-word list has no VALUE), and
+                // SR21–SR23 sit under Format 2. Accepting it here passed a GR5-impossible mode.
+                if (!formatTwo)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
+                        "CALL … USING BY VALUE belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), "
+                        + "which the AS phrase selects — Format 1’s USING admits BY REFERENCE and BY CONTENT only");
+                    return new BoundNop();
+                }
                 // BY VALUE (§14.9.4) is a COBOL-2002 introduction; the edition gate moved to the post-bind
                 // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
                 mode = CobolPassMode.Value;
@@ -186,7 +201,53 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     return new BoundUnsupported($"CALL USING argument '{bare.GetText()}'");
                 args.Add(new BoundCallArg(mode, bp, null));
             }
+            // §14.9.4.2 Format 2's keyword-less non-identifier arguments (kb/Work PB130): literal-2,
+            // arithmetic-expression-1, boolean-expression-1 and OMITTED all print bare in Format 2 (its BY
+            // phrases are plain brackets — GR9 a)2 exists precisely for the non-identifier bare argument);
+            // Format 1's bare argument is identifier-2 only, so each arm narrows on formatTwo. A bare
+            // non-identifier crosses BY CONTENT semantics (a value, never a writeback carrier).
+            else if (a.OMITTED() is not null)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.OptionalFormal,
+                    "CALL … USING OMITTED (ISO §14.9.4.2 Format 2 / §14.9.4.4 GR11): the omitted-argument "
+                    + "carrier lands with OPTIONAL formal parameters (kb/Work PB133)");
+                return new BoundNop();
+            }
+            else if (a.literal() is { } bLit)
+            {
+                if (!formatTwo) { BareNeedsFormat2(bLit.GetText()); return new BoundNop(); }
+                args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(bLit)));
+            }
+            else if (a.booleanExpression() is { } bBool)
+            {
+                if (!formatTwo) { BareNeedsFormat2(bBool.GetText()); return new BoundNop(); }
+                ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
+                    "CALL … USING <boolean-expression> (§14.9.4.2 Format 2): the boolean value channel does "
+                    + "not yet cross a CALL boundary (the INVOKE side landed as PB46's ContentBool; the CALL "
+                    + "argument model has no counterpart — kb/Work PB131)");
+                return new BoundNop();
+            }
+            else if (a.arithmeticExpression() is { } bArith)
+            {
+                // A parenthesized sole reference reduces to its identifier (the callByContent discipline).
+                if (ConditionBinder.SoleDataReference(bArith) is { } sd)
+                {
+                    if (host.Expr.ResolveReceiving(sd) is not { } sp)
+                        return new BoundUnsupported($"CALL USING argument '{sd.GetText()}'");
+                    args.Add(new BoundCallArg(mode, sp, null));
+                }
+                else if (!formatTwo) { BareNeedsFormat2(bArith.GetText()); return new BoundNop(); }
+                else
+                    args.Add(new BoundCallArg(CobolPassMode.Content, null,
+                        IntrinsicBinder.OperandOf(host.Expr.BindExpr(bArith))));
+            }
         }
+
+        void BareNeedsFormat2(string text) =>
+            ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
+                $"CALL … USING {text}: a keyword-less literal or expression argument belongs to the "
+                + "program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects — Format 1's "
+                + "bare argument is identifier-2 only");
 
         // ── RETURNING (CALL side) — COBOL-2002+ (deep-dive "Edition gating"); maps to the activation result
         //    delivered through the opaque ABI's returning carrier (§14.2.3 GR7). ──
@@ -243,6 +304,27 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §14.9.5 — targets resolved like CALL's, §8.4.6.3).</summary>
+    /// <summary>The ONE program-name-literal reader (kb/Work PB130) — §14.9.4.3 SR2 / §14.9.5.3 SR2 admit
+    /// an alphanumeric OR national literal (a hexadecimal literal is §8.3.3.2 Format 2 of the alphanumeric
+    /// kind; a concatenation folds per §8.8.3.3 GR3; the D-N1 identity repertoire makes the national name
+    /// the same string). Reports the SR violation itself and returns null — a boolean literal, a numeric
+    /// literal, and a zero-length name each draw the cited diagnostic instead of a run-time loud.</summary>
+    private string? ProgramNameLiteral(Core.LiteralContext lit, string verb, string clause)
+    {
+        if (host.Expr.NonNumericLiteralOperand(lit.nonNumericLiteral()) is BoundStringLiteral
+            { Category: PicCategory.Alphanumeric or PicCategory.National } sl)
+        {
+            if (sl.Value.Length != 0) return sl.Value;
+            ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
+                $"{verb} with a zero-length literal program name (ISO {clause})");
+            return null;
+        }
+        ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
+            $"{verb} '{lit.GetText()}': the literal program name shall be an alphanumeric or national literal "
+            + $"(ISO {clause})");
+        return null;
+    }
+
     public BoundStatement BindCancel(Core.CancelStatementContext cancel)
     {
         var targets = new List<(string?, BoundOperand?)>();
@@ -250,21 +332,17 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         {
             if (t.literal() is { } lit)
             {
-                if (lit.nonNumericLiteral()?.STRINGLIT() is { } s)
-                    targets.Add((CobolLiteral.Decode(s.GetText()), null));
-                // §8.8.3.3 GR3: an alphanumeric concatenation expression stands anywhere an alphanumeric
-                // literal may — including the §14.9.5 literal-1 program name.
-                else if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce
-                         && ConcatFolder.ClassOf(ce) is PicCategory.Alphanumeric)
-                    targets.Add((ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value, null));
-                else
-                    return new BoundUnsupported($"CANCEL non-alphanumeric literal target '{lit.GetText()}' (ISO §14.9.5.2 SR1)");
+                // kb/Work PB130: the ONE reader (national + hex admitted per §14.9.5.3 SR2 — the old
+                // rejection also miscited §14.9.5.2 SR1); a bad target reports and the LOOP CONTINUES, so a
+                // statement with one illegal target no longer discards its legal ones.
+                if (ProgramNameLiteral(lit, "CANCEL", "§14.9.5.3 SR2") is { } pn)
+                    targets.Add((pn, null));
             }
             else if (t.dataReference() is { } dref)
             {
-                if (ctx.Refs.Resolve(dref) is not { } p)
-                    return new BoundUnsupported($"CANCEL target '{dref.GetText()}'");
-                targets.Add((null, new BoundFieldOperand(p)));
+                if (ctx.Refs.Resolve(dref) is { } p)
+                    targets.Add((null, new BoundFieldOperand(p)));
+                // an unresolved name was already diagnosed by the resolver; keep binding the rest
             }
         }
         return new BoundCancel(targets);

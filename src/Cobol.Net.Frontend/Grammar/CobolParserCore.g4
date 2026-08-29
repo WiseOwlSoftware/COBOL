@@ -466,7 +466,7 @@ usingByReference
     ;
 
 usingByValue
-    : BY VALUE dataReference
+    : BY? VALUE dataReference   // BY is optional (§14.2.1 — only VALUE is underlined; kb/Work PB130)
     ;
 
 returningClause
@@ -1053,19 +1053,33 @@ callUsingPhrase
     : USING callArgument+
     ;
 
+// kb/Work PB130: Format 2's keyword-less argument may be literal-2, arithmetic-expression-1,
+// boolean-expression-1 or OMITTED (all three BY phrases print in plain brackets there) — parsed WIDE on the
+// callByContent alternation's own precedent and narrowed in the binder by formatTwo (Format 1's bare
+// argument is identifier-2 only). DETERMINATION (whitespace is lexer-skipped, so `N + 1` is ambiguous
+// between one expression and the two arguments N and +1 — both legal Format-2 lists): the LIST reading
+// wins; parenthesize — `USING (N + 1)` — to force the expression reading (the paren cannot start a
+// dataReference or literal, so it selects the arithmeticExpression arm unambiguously). OMITTED joins both the bare list and the BY REFERENCE arm (§14.9.4.2
+// Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}`).
 callArgument
     : callByReference
     | callByValue
     | callByContent
-    | dataReference       // bare argument = BY REFERENCE (default)
+    | OMITTED
+    | {boolExprAhead()}? booleanExpression
+    | literal
+    | dataReference       // bare argument = the transitive mode (GR5) / the formal's mode (GR9)
+    | arithmeticExpression
     ;
 
 callByReference
-    : BY? REFERENCE dataReference
+    : BY? REFERENCE (dataReference | OMITTED)
     ;
 
+// BY is an OPTIONAL word before VALUE exactly as before REFERENCE/CONTENT — only VALUE is underlined in the
+// figure (§5.2.3; kb/Work PB130: `BY VALUE` required the word and rejected `USING VALUE X` on legal source).
 callByValue
-    : BY VALUE arithmeticExpression   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
+    : BY? VALUE arithmeticExpression   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
     ;
 
 // ⛔ THE TWO FORMATS' BY CONTENT OPERAND SETS DIFFER, AND ONE RULE CANNOT BE BOTH (fix-queue PB46, CALL half).

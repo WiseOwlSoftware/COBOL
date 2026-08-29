@@ -39,7 +39,7 @@
       *> 4 - Format 2 with a literal operand.
            CALL "PB46IN" AS NESTED USING BY CONTENT 42.
       *> 5 - THE SUBJECT: arithmetic-expression-1 under Format 2's BY CONTENT.
-           CALL "PB46IN" AS NESTED USING BY CONTENT N + 1.
+           CALL "PB46IN" AS NESTED USING BY CONTENT (N + 1).
            CALL "PB46IN" AS NESTED USING BY CONTENT N * 2 - 3.
            STOP RUN.
 

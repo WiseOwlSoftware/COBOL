@@ -29,7 +29,7 @@
       *>   the CALL leg: the same header shape on a called subprogram
            MOVE 7 TO WS-A.
            MOVE 100 TO WS-B.
-           CALL "SUBV-P10UV" USING WS-B BY VALUE WS-A.
+           CALL "SUBV-P10UV" AS NESTED USING WS-B BY VALUE WS-A.
            DISPLAY "A3=" WS-A.
            DISPLAY "B3=" WS-B.
            STOP RUN.

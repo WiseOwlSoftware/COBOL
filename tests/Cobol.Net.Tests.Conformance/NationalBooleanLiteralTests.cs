@@ -160,7 +160,7 @@ public sealed class NationalBooleanLiteralTests
             PROGRAM-ID. NBLIT07.
             PROCEDURE DIVISION.
             MAIN.
-                CALL "NBLIT07S" USING BY CONTENT N"AB" BY CONTENT B"01".
+                CALL "NBLIT07S" AS NESTED USING BY CONTENT N"AB" BY CONTENT B"01".
                 STOP RUN.
             IDENTIFICATION DIVISION.
             PROGRAM-ID. NBLIT07S.

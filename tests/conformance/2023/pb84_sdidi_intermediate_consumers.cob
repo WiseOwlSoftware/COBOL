@@ -58,8 +58,8 @@
               ELSE DISPLAY "T9 WRONG" END-IF.
            FREE P.
       *> §14.9.4 — CALL … BY VALUE arithmetic-expression.
-           CALL "PB84SUB" USING BY VALUE A ** 2.
-           CALL "PB84SUB" USING BY VALUE 2 ** -2 + 1.
+           CALL "PB84SUB" AS NESTED USING BY VALUE A ** 2.
+           CALL "PB84SUB" AS NESTED USING BY VALUE (2 ** -2 + 1).
       *> §14.9.23 — INVOKE … BY CONTENT arithmetic-expression.
            INVOKE CPB84X "NEW" RETURNING O.
            INVOKE O "TAKEN" USING BY CONTENT A ** 2.

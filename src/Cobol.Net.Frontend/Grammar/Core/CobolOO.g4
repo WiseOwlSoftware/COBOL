@@ -161,7 +161,7 @@ invokeUsing
 // predicate for a local reason — the DEVLOG-621 lesson — and would buy nothing the reduction does not already
 // guarantee.
 invokeArgument
-    : BY VALUE arithmeticExpression
+    : BY? VALUE arithmeticExpression   // BY optional (kb/Work PB130 — only VALUE is underlined)
     | BY REFERENCE dataReference
     | BY CONTENT ({boolExprAhead()}? booleanExpression | literal | arithmeticExpression)
     | dataReference

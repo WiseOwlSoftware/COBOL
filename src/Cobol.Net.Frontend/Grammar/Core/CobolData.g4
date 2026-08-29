@@ -182,7 +182,7 @@ parameterDescriptionBody
     ;
 
 parameterPassingClause
-    : USING (BY REFERENCE | BY VALUE | BY CONTENT)? dataReference
+    : USING (BY? REFERENCE | BY? VALUE | BY? CONTENT)? dataReference   // BY optional everywhere (kb/Work PB130)
     ;
 
 // ==========================================

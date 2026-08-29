@@ -1631,6 +1631,15 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.BooleanShiftOperators2023, "the boolean shift operators (B-SHIFT-L/R/LC/RC)");
         }
 
+        /// <summary>Site — a bare boolean-expression CALL argument (§14.9.4.2 Format 2's keyword-less
+        /// boolean-expression-1; kb/Work PB130 — the callArgument alternation gained the guarded arm and
+        /// the BooleanExpressionGateSiteDrift net demanded this gate the same day).</summary>
+        public override object? VisitCallArgument(CobolParserCore.CallArgumentContext ctx)
+        {
+            GateBooleanOperators(ctx.booleanExpression());
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>Site 1 — a boolean expression in a CONDITION (§8.8.4.2.2 relation / §8.8.4.3 simple
         /// condition). A B-op-free comparison uses the untouched shared comparison rule and never enters here.</summary>
         public override object? VisitPrimaryCondition(CobolParserCore.PrimaryConditionContext ctx)
