@@ -366,8 +366,14 @@ internal static class IntrinsicArgumentRules
         BoundNumericLiteral => CobolClass.Numeric,
         BoundFieldOperand f => ClassOfPlace(f.Place),
         // An arithmetic expression IS a numeric argument (§15.3 types 6 and 10 admit one outright); a nested
-        // intrinsic contributes the class of ITS result category.
-        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ClassOfCategory(ic.ResultCategory),
+        // intrinsic contributes the class of ITS result category — resolved through the SAME
+        // IntrinsicResultType.Resolve the binder types results with (kb/Work PB124 wave 5b): §15.2 item 6
+        // makes MAX/MIN over index arguments an INDEX function ("these are of the class and category index"),
+        // and the storage model's ResultCategory folds Index into Numeric, so reading the category alone let
+        // FUNCTION SQRT(FUNCTION MAX(IX1 IX2)) pass a class-numeric screen (GR-15.2-6 / AR-15.3-10).
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
+            IntrinsicResultType.Resolve(ic.Sig, ic.Args) is IntrinsicType.Index
+                ? CobolClass.Index : ClassOfCategory(ic.ResultCategory),
         // An INDEX-NAME operand (kb/Work R27): class index (§8.5.2.1 Table 2), which no §15 argument rule
         // admits — BEFORE the generic computed arm, whose is-numeric answer let `FUNCTION INTEGER(IX)`
         // compute the occurrence number silently.

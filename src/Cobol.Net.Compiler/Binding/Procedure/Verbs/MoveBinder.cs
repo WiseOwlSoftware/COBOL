@@ -94,6 +94,16 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             ctx.Edition.Error("COBOLNET0809",
                 $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60 GR10 — only SET, "
                 + $"SEARCH, and relation conditions may reference an index data item) — MOVE {sIdx.Place.Item.CobolName}");
+        // SR1 reaches a FUNCTION sender through §15.2 item 6 (kb/Work PB124 wave 5b): "Index functions.
+        // These are of the class and category index." — MAX/MIN over index arguments IS one, and its result's
+        // storage category (Numeric) made it indistinguishable from a numeric sender here, so
+        // MOVE FUNCTION MAX(IX1 IX2) TO 9(n) silently stored an occurrence-number image (GR-15.2-6).
+        // Typed by the SAME IntrinsicResultType.Resolve the binder resolves results with.
+        if (source is BoundComputedOperand { Expr: BoundIntrinsicCall sic }
+            && IntrinsicResultType.Resolve(sic.Sig, sic.Args) is IntrinsicType.Index)
+            ctx.Edition.Error("COBOLNET0809",
+                $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §15.2 item 6 — FUNCTION "
+                + $"{sic.Sig.Name} over index arguments is an INDEX function, of the class and category index)");
         foreach (var t in targets)
             if (t.Item.Pic is { Usage: Usage.Index })
                 ctx.Edition.Error("COBOLNET0809",
