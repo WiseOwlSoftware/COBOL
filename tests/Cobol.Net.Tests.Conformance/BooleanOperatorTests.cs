@@ -177,8 +177,10 @@ public sealed class BooleanOperatorTests
     [Fact]
     public void BooleanOperator_At85_Rejected()
     {
-        // The operator is unavailable at COBOL-85 ({is2002()}? off) — the COMPUTE F2 alt is dead, so the
-        // boolean expression does not parse. (The word B-AND stays a legal user word at 85 — see below.)
+        // The operator is unavailable at COBOL-85: the .g4 F2 alternative is predicate-free and the
+        // introduction gate lives in VersionConformancePass.VisitComputeStatement (GateBooleanOperators —
+        // kb/Work PB157 corrected the stale {is2002()}? claim here). (The word B-AND stays a legal user
+        // word at 85 — see below.)
         var (ok, _, _) = EditionHarness.CompileFull(Prog("BOP08", "COMPUTE R = A B-AND B."), 85);
         Assert.False(ok, "the boolean operators are a 2002 introduction — rejected at --std 85");
     }

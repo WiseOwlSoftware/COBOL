@@ -253,7 +253,9 @@
   "pb154_cancel_initial",
   "pb154_cancel_active",
   "pb154_cancel_cascade",
-  "pb155_composite_edges"
+  "pb155_composite_edges",
+  "pb157_compute_bit_group",
+  "pb157_compute_multi_sizeerr"
  ],
  "pending": []
 }

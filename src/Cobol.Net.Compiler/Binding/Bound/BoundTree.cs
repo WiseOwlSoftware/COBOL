@@ -408,7 +408,13 @@ public sealed record BoundBoolCall(BoundIntrinsicCall Call) : BoundBoolExpr;
 /// <summary>The figurative <c>ALL B"…"</c> (and figurative ZERO, normalized to <c>ALL B"0"</c> at bind) — a
 /// positionless pattern that materializes to the OTHER operand's length (ISO §8.3.3.6.4 GR2). <c>B-NOT ALL …</c>
 /// constant-folds to the flipped pattern at bind (ALL is positionless).</summary>
-public sealed record BoundBoolAll(string Bits) : BoundBoolExpr;
+/// <summary>A positionless boolean value — the figurative ZERO ([ALL] ZERO, §8.3.3.6.2 Format 1), the
+/// Format-6 <c>ALL B"…"</c> literal, or a B-NOT fold of either. <paramref name="IsAllLiteral"/> is true ONLY
+/// for a source-written Format-6 ALL literal — the operand §8.8.2 rules 4/5 and §14.9.8.3 SR3 restrict.
+/// Figurative ZERO is a DISJOINT §8.8.2 alternative (its ALL is Format 1's optional word, §8.3.3.6.3 SR2
+/// excludes figuratives from Format 6), and a fold result is no longer "the ALL literal" the source wrote —
+/// conflating them rejected `COMPUTE B = ZERO` and `= ALL ZERO` and `= B-NOT ZERO` (kb/Work PB157).</summary>
+public sealed record BoundBoolAll(string Bits, bool IsAllLiteral = false) : BoundBoolExpr;
 
 /// <summary>A binary boolean operation (<paramref name="Op"/> ∈ <c>'&amp;'</c> B-AND / <c>'|'</c> B-OR /
 /// <c>'^'</c> B-XOR), positionwise with rule-9 right-zero-extension and rule-10 result length (§8.8.2).</summary>

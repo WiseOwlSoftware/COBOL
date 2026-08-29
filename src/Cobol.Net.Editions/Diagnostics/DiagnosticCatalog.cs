@@ -675,6 +675,13 @@ public static class DiagnosticCatalog
         + "not yet implemented — the shared-static WS model (one last-used copy across activations) does not "
         + "yet compose with contained-program GLOBAL/__outer bridges.",
         "ISO §13.5.4 GR1 / §14.6.2.3.3 / §13.18.27 GR2", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor RefModBitGroupSlice = new(
+        NotImplemented, "refmod-bit-group-slice", EditionSeverity.Error,
+        "A reference-modified BIT-GROUP item as a boolean receiver or operand is recognized but not yet "
+        + "implemented: the boolean channel sizes the slice in BOOLEAN positions (§13.18.29.4 GR1b's as-if "
+        + "PICTURE 1(m)) while the group reference-modification substrate slices the PACKED byte image — "
+        + "the bit-position slice model is kb/Work PB173.",
+        "ISO §13.18.29.4 GR1b / §8.4.3.3", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor RecursiveWsPointerBacked = new(
         NotImplemented, "recursive-working-storage-pointer-backed", EditionSeverity.Error,
         "An ADDRESS-OF-taken record in the WORKING-STORAGE of a RECURSIVE program or function is recognized "

@@ -237,34 +237,48 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindCompute(Core.ComputeStatementContext compute)
     {
-        // COMPUTE Format 2 — boolean-compute (ISO §14.9.8; the {is2002()}? grammar alternative).
+        // COMPUTE Format 2 — boolean-compute (ISO §14.9.8). The .g4 alternative is predicate-free; the
+        // 2002 introduction gate lives in VersionConformancePass.VisitComputeStatement (GateBooleanOperators
+        // — kb/Work PB157 corrected the stale {is2002()}? claim here).
         if (compute.booleanExpression() is { } boolExpr) return BindComputeBoolean(compute, boolExpr);
         if (compute.arithmeticExpression() is not { } expr) return new BoundUnsupported("COMPUTE without an expression");
         // F1 → F2 re-route: `COMPUTE bool-item = bool-item` parses as Format 1 (a sole-identifier RHS predicts
         // the arithmetic alt), so a boolean receiver or a sole boolean-category RHS re-routes to the boolean
         // bind (the "ANTLR alternative-order reality" precedent). A boolean RHS/receiver never reaches the
         // numeric channel.
-        bool receiverBoolean = compute.computeStore().Length > 0
-            && ctx.Refs.Probe(compute.computeStore(0).dataReference()) is { Item.Pic.Category: PicCategory.Boolean };
-        bool rhsBoolean = ConditionBinder.SoleDataRef(expr) is { } d && ctx.Refs.Probe(d) is { Item.Pic.Category: PicCategory.Boolean };
+        // OperandPic, BOTH probes, over EVERY receiver (kb/Work PB157): a GROUP-USAGE BIT receiver has Pic
+        // null but IS an elementary boolean for these rules (§13.18.29.4 GR1b — OperandPic carries the as-if
+        // PICTURE 1(m)), and probing only computeStore(0) let `COMPUTE N B = 1` miss the boolean receiver
+        // (the reroute then judged it a pure Format 1).
+        bool receiverBoolean = compute.computeStore()
+            .Any(s => ctx.Refs.Probe(s.dataReference()) is { Item.OperandPic.Category: PicCategory.Boolean });
+        bool rhsBoolean = ConditionBinder.SoleDataRef(expr) is { } d && ctx.Refs.Probe(d) is { Item.OperandPic.Category: PicCategory.Boolean };
         if (receiverBoolean || rhsBoolean)
         {
-            BoundBoolExpr rerouted = ConditionBinder.SoleDataRef(expr) is { } sd && ctx.Refs.Resolve(sd) is { } sp
-                    && (sp is RefModPlace rm2 ? rm2.Inner.Item.Pic?.Category : sp.Item.Pic?.Category) is PicCategory.Boolean
-                ? new BoundBoolRef(sp)
-                : new BoundBoolError($"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
+            BoundBoolExpr rerouted;
+            if (ConditionBinder.SoleDataRef(expr) is { } sd && ctx.Refs.Resolve(sd) is { } sp
+                && (sp is RefModPlace rm2 ? rm2.Category : sp.Item.OperandPic?.Category) is PicCategory.Boolean)
+                rerouted = new BoundBoolRef(sp);
+            else
+            {
+                // The PB68 sweep's sixth site (kb/Work PB157): this arm built the error NODE without the
+                // DIAGNOSTIC, so `COMPUTE B = N + 1` compiled clean and threw at run time.
+                ctx.Edition.Error("COBOLNET1511", $"a boolean COMPUTE receiver takes a boolean expression, "
+                    + $"not '{expr.GetText()}' (ISO §14.9.8 Format 2 / §8.8.2)");
+                rerouted = new BoundBoolError($"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
                     + "(ISO §14.9.8 Format 2)");
+            }
             return BuildComputeBoolean(compute, rerouted);
         }
         var rhs = host.Expr.BindExpr(expr);
         return new BoundCompute(rhs, host.Expr.Receivers(compute.computeStore()), host.BindSizeError(compute.computeOnSizeError()));
     }
 
-    /// <summary>The <c>booleanExpression</c> parse tree reduced to a BARE figurative ZERO (<c>ZERO</c>/
-    /// <c>ZEROS</c>/<c>ZEROES</c>), or null for anything else — including <c>ALL ZERO</c> and <c>ALL B"…"</c>.</summary>
-    /// <remarks>Read off the TREE, not the bound node: <c>BindBoolExpr</c> normalises a figurative ZERO to
-    /// <c>BoundBoolAll("0")</c>, the same node <c>ALL B"0"</c> produces, so by bind time the two are
-    /// indistinguishable — the loss that made <c>COMPUTE n = ZERO</c> report an ALL-literal rule (PB51).</remarks>
+    /// <summary>The <c>booleanExpression</c> parse tree reduced to a sole figurative ZERO (<c>[ALL]
+    /// ZERO</c>/<c>ZEROS</c>/<c>ZEROES</c> — ALL is Format 1's OPTIONAL word, §8.3.3.6.2; kb/Work PB157
+    /// widened this from the bare form), or null for anything else — including <c>ALL B"…"</c> (Format 6,
+    /// the actual ALL literal). Used by the F2→F1 reroute; the SR3 screen now reads
+    /// <c>BoundBoolAll.IsAllLiteral</c> instead (one flag, set at the one Format-6 construction site).</summary>
     private static Core.FigurativeConstantContext? SoleFigurativeZero(Core.BooleanExpressionContext? b)
     {
         if (b?.booleanXorTerm() is not [{ } xor]) return null;
@@ -273,7 +287,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (shift.booleanShiftSuffix().Length != 0) return null;
         if (shift.booleanFactor() is not { } factor) return null;
         var fig = factor.valueOperand()?.nonNumericLiteral()?.figurativeConstant();
-        return fig is not null && fig.ALL() is null && fig.ZERO() is not null ? fig : null;
+        return fig is not null && fig.ZERO() is not null ? fig : null;   // [ALL] ZERO — ALL is optional (PB157)
     }
 
     private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)
@@ -298,7 +312,9 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // not the grammar re-architecture the queue entry proposed.
         if (SoleFigurativeZero(boolExpr) is not null
             && compute.computeStore().Length > 0
-            && ctx.Refs.Probe(compute.computeStore(0).dataReference()) is not { Item.Pic.Category: PicCategory.Boolean })
+            // OperandPic (kb/Work PB157): a GROUP-USAGE BIT receiver is boolean (§13.18.29.4 GR1b) — raw Pic
+            // read it as non-boolean and misrouted `COMPUTE <bit-group> = ZERO` to the arithmetic channel.
+            && ctx.Refs.Probe(compute.computeStore(0).dataReference()) is not { Item.OperandPic.Category: PicCategory.Boolean })
         {
             // §8.3.3.6.4 GR4 — "the numeric value '0' … depending on context"; a numeric receiver IS that context.
             return new BoundCompute(new BoundNumLiteral("0"), host.Expr.Receivers(compute.computeStore()),
@@ -309,8 +325,14 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // RECOGNITION in the VersionConformancePass parse-arm (VisitComputeStatement, HasBoolOp on the F2
         // booleanExpression); Step 14h.4b.
         var rhs = host.Cond.BindBoolExpr(boolExpr);
-        // SR3 (§14.9.8 :26575): the expression shall not consist solely of an ALL literal.
-        if (rhs is BoundBoolAll)
+        // SR3 (§14.9.8 :26575): the expression shall not consist solely of THE FIGURATIVE CONSTANT ALL
+        // LITERAL — Format 6, the only construction that sets BoundBoolAll.IsAllLiteral. Figurative ZERO —
+        // bare or `ALL ZERO`, whose ALL is Format 1's OPTIONAL word (§8.3.3.6.2) — is a DISJOINT §8.8.2
+        // operand alternative and legal here, as is a B-NOT fold (the expression is then not "solely" the
+        // literal). The old bound-node test conflated all three with the ALL literal and rejected them
+        // (kb/Work PB157 — the PB51 reading, decided by the spec; §8.3.3.6.3 SR2 excludes figuratives from
+        // Format 6's literal-1).
+        if (rhs is BoundBoolAll { IsAllLiteral: true })
             ctx.Edition.Error("COBOLNET1511", "a boolean COMPUTE expression shall not consist solely of an ALL "
                 + "literal (ISO §14.9.8 Format 2 SR3)");
         return BuildComputeBoolean(compute, rhs);
@@ -338,7 +360,21 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error("COBOLNET1511", $"COMPUTE receiver '{store.dataReference().GetText()}' is unresolvable");
                 continue;
             }
-            var cat = p is RefModPlace rm ? rm.Inner.Item.Pic?.Category : p.Item.Pic?.Category;
+            // OperandPic — THE ONE category reader (D20/PB79; kb/Work PB157): a GROUP-USAGE BIT receiver IS
+            // an elementary boolean for SR2 (§13.18.29.4 GR1b's as-if PICTURE 1(m)); raw Pic rejected it
+            // while the SENDING side of the same statement accepted it.
+            // ⛔ EXCEPT its REF-MOD slice: the boolean channel sizes in BOOLEAN positions while the group
+            // ref-mod substrate (GroupImagePlace) slices the PACKED BYTE image — admitting it (which the
+            // rm.Category read newly would) splices bit strings into byte positions. Recognized, staged
+            // loud (kb/Work PB173 owns the bit-position slice model).
+            if (p is RefModPlace { Inner.Item: { IsGroup: true } rbg } && rbg.OperandPic?.Category is PicCategory.Boolean)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.RefModBitGroupSlice,
+                    $"the receiver '{store.dataReference().GetText()}': a reference-modified BIT-GROUP "
+                    + "receiver — the bit-position slice over the packed group image is kb/Work PB173");
+                continue;
+            }
+            var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is not PicCategory.Boolean)
                 ctx.Edition.Error("COBOLNET1511", $"the receiver '{store.dataReference().GetText()}' of a boolean "
                     + "COMPUTE shall be an elementary boolean item (ISO §14.9.8 Format 2 SR2)");

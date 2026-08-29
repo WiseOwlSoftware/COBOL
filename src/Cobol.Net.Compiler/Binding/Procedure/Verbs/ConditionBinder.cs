@@ -46,6 +46,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BooleanExpressionResolver.Resolve<BoundBoolExpr>(
             ctx,
             leaf: BindBoolOperandValue,
+            // The fold CLEARS IsAllLiteral: `B-NOT ALL B"1"` no longer "consists solely of the ALL literal"
+            // and is not itself the first operand rule 5 names (kb/Work PB157).
             not: inner => inner is BoundBoolAll all ? new BoundBoolAll(FlipBits(all.Bits)) : new BoundBoolNot(inner),
             binary: MakeBoolBinary,
             shift: BindBoolShiftSuffix);
@@ -60,7 +62,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                  : suf.B_SHIFT_RC() is not null ? BoolShiftKind.RightCircular
                  : suf.B_SHIFT_L() is not null ? BoolShiftKind.Left
                  : BoolShiftKind.Right;
-        if (operand is BoundBoolAll)
+        if (operand is BoundBoolAll { IsAllLiteral: true })   // NOT figurative ZERO — a disjoint §8.8.2 operand (kb/Work PB157)
             ctx.Edition.Error("COBOLNET1511", "the first operand of a boolean shift operation shall not be the "
                 + "figurative constant ALL literal (ISO §8.8.2 rule 5)");
         return new BoundBoolShift(operand, kind, host.Expr.BindExpr(suf.arithmeticExpression()));
@@ -69,7 +71,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Rule 4 (§8.8.2 :9364): both operands of a binary boolean op shall not both be ALL "literal".</summary>
     private BoundBoolExpr MakeBoolBinary(BoundBoolExpr left, char op, BoundBoolExpr right)
     {
-        if (left is BoundBoolAll && right is BoundBoolAll)
+        if (left is BoundBoolAll { IsAllLiteral: true } && right is BoundBoolAll { IsAllLiteral: true })
+            // Rule 4 restricts the Format-6 ALL literal, not figurative ZERO — `ZERO B-AND ALL B"1"` has ONE
+            // ALL-literal operand and is legal (kb/Work PB157).
             ctx.Edition.Error("COBOLNET1511", "both operands of a boolean operator shall not be ALL literals "
                 + "(ISO §8.8.2 rule 4)");
         return new BoundBoolBinary(left, op, right);
@@ -94,7 +98,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             if (fig.ZERO() is not null) return new BoundBoolAll("0");   // figurative ZERO — boolean zeros by context (§8.3.3.6.4 GR4)
             if (fig.allLiteral() is { } al && al.allLiteralOperand().All(o => o.BOOLLIT() is not null))   // ALL B"…" (a concatenated literal-1 folds — kb/Work PB71)
-                return new BoundBoolAll(string.Concat(al.allLiteralOperand().Select(o => CobolLiteral.Decode(o.GetText()))));
+                return new BoundBoolAll(string.Concat(al.allLiteralOperand().Select(o => CobolLiteral.Decode(o.GetText()))),
+                    IsAllLiteral: true);   // the ONE Format-6 construction site (kb/Work PB157)
             return new BoundBoolError($"figurative constant '{fig.GetText()}' in a boolean expression "
                 + "(ISO §8.8.2 — only ZERO and ALL B\"…\" are boolean figuratives)");
         }
@@ -146,7 +151,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (nn?.concatenationExpression() is { } ce) return ConcatFolder.ClassOf(ce) is PicCategory.Boolean;
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref
             && ctx.Refs.Probe(dref) is { } p)   // Probe — a predicate is diagnostic-free (R30)
-            return (p is RefModPlace rm ? rm.Inner.Item.Pic?.Category : p.Item.Pic?.Category) is PicCategory.Boolean;
+            // OperandPic, the ONE category reader (kb/Work PB157) — a bit group routes boolean like the
+            // bind path at line ~106 already does. A ref-mod slice OF a bit group stays general-channel
+            // (see BoolValued; kb/Work PB173).
+            return p is RefModPlace rm
+                ? rm.Category is PicCategory.Boolean && rm.Inner.Item is not { IsGroup: true }
+                : p.Item.OperandPic?.Category is PicCategory.Boolean;
         // A sole FUNCTION-keyword reference to a catalogued BOOLEAN-typed function (§15.2 type 2 — today
         // BOOLEAN-OF-INTEGER): diagnostic-free, from the catalog's declared type (kb/Work PB68).
         if (vo.arithmeticExpression() is { } fx && SoleFunctionCall(fx) is { } sfc && sfc.functionName() is { } fn
@@ -172,7 +182,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// COMPUTE-store width (the max static boolean positions; literal/ALL operands do not count — GR3).</summary>
     internal static int Gr3Width(BoundBoolExpr e) => e switch
     {
-        BoundBoolRef r => r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.Pic?.Length ?? 0,
+        // OperandPic (kb/Work PB157): a bit GROUP is an elementary PICTURE 1(m) for GR3 (§13.18.29.4 GR1b) —
+        // raw Pic counted it as 0, so CobolBool.Resize truncated a 6-bit group's value to a sibling's width.
+        BoundBoolRef r => r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.OperandPic?.Length ?? 0,
         BoundBoolBinary b => System.Math.Max(Gr3Width(b.Left), Gr3Width(b.Right)),
         BoundBoolNot n => Gr3Width(n.Operand),
         BoundBoolShift s => Gr3Width(s.Operand),   // rule 9 — result length = the FIRST operand (the count adds none)
@@ -192,7 +204,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// inner item's full length as a conservative width; the dynamic case is named residue).</summary>
     private static int RefModLen(Place p) =>
         p is RefModPlace { Length: { } lit } && int.TryParse(lit, out int n) ? n
-        : p.Item.Pic?.Length ?? 0;
+        : p.Item.OperandPic?.Length ?? 0;   // OperandPic — a bit group's as-if 1(m) (kb/Work PB157)
 
     private static string FlipBits(string bits)
     {
@@ -217,7 +229,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private static bool BoolExprAllLengthOne(BoundBoolExpr e) => e switch
     {
         BoundBoolLiteral l => l.Bits.Length == 1,
-        BoundBoolRef r => (r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.Pic?.Length ?? 0) == 1,
+        BoundBoolRef r => (r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.OperandPic?.Length ?? 0) == 1,   // OperandPic (kb/Work PB157)
         BoundBoolBinary b => BoolExprAllLengthOne(b.Left) && BoolExprAllLengthOne(b.Right),
         BoundBoolNot n => BoolExprAllLengthOne(n.Operand),
         BoundBoolShift s => BoolExprAllLengthOne(s.Operand),   // shift preserves length (rule 9)
@@ -275,8 +287,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundBoolOperand => true,
         BoundStringLiteral { Category: PicCategory.Boolean } => true,
         BoundFigurative { Kind: 'Z' } => true,
-        BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
-        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
+        // OperandPic / rm.Category — THE ONE category reader (kb/Work PB157): a GROUP-USAGE BIT item is
+        // boolean-valued in a relation too (§13.18.29.4 GR1a/b). A ref-mod slice OF a bit group stays on the
+        // GENERAL relation channel (both sides byte-image, consistent): the boolean channel would size it in
+        // boolean positions over the packed byte substrate — kb/Work PB173 owns the bit-position slice.
+        BoundFieldOperand { Place: RefModPlace rm } =>
+            rm.Category is PicCategory.Boolean && rm.Inner.Item is not { IsGroup: true },
+        BoundFieldOperand f => f.Place.Item.OperandPic?.Category is PicCategory.Boolean,
         _ => false,
     };
 
@@ -428,8 +445,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
         PicInfo? pic = op switch
         {
-            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic,
-            BoundFieldOperand f => f.Place.Item.Pic,
+            // OperandPic (kb/Work PB157's sweep): a GROUP-USAGE BIT operand IS category boolean with as-if
+            // usage bit (§13.18.29.4 GR1a/b) — raw Pic let `IF BIT-GROUP IS NUMERIC/ALPHABETIC` compile while
+            // the elementary twin was rejected (§8.8.4.4.3 SR4/SR8).
+            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.OperandPic,
+            BoundFieldOperand f => f.Place.Item.OperandPic,
             _ => null,
         };
         if (pic is not { Category: PicCategory.Boolean }) return;

@@ -86,9 +86,11 @@ public sealed class ReferenceResolver(DataBinder data)
             if (rp.ObjectClassName is not { } cn)
             {
                 // The shape IS a property reference on a universal receiver — SR2 rejects it by name.
-                data.Edition.Error("COBOLNET0843",
-                    $"the object-property reference '{name}' OF '{recv}': the receiving identifier shall "
-                    + "not be a universal object reference (ISO §8.4.3.9.3 SR2)");
+                // (Silently null under a probe — the committing resolution reports; kb/Work PB157.)
+                if (!_probing)
+                    data.Edition.Error("COBOLNET0843",
+                        $"the object-property reference '{name}' OF '{recv}': the receiving identifier shall "
+                        + "not be a universal object reference (ISO §8.4.3.9.3 SR2)");
                 return null;
             }
             cls = table.Find(cn);
@@ -100,12 +102,19 @@ public sealed class ReferenceResolver(DataBinder data)
         var set = factory ? cls.FindFactoryMethod(setName) : cls.FindMethod(setName);
         if (get is null && set is null) return null;         // not a property of the roster → generic diagnosis
 
+        var model = get?.Binding!.Returning ?? set!.Binding!.Formals[0].Item;
+        // R30 PURITY (kb/Work PB157): a PROBE gets the property's MODEL item — the accessor's own
+        // description, carrying the category the sniff asks about — with NO temp, NO pending op and NO
+        // diagnostics. The committing resolution that follows does all three exactly once. (The orphan
+        // op a probing registration left behind classified as StoreKind.None and made OoWrapPropertyOps
+        // prepend a GET that §8.4.3.9.4 GR2 says a write-only occurrence must not invoke.)
+        if (_probing) return model.IsGroup ? null : model;
+
         if (!data.OoRepositoryProperties.Contains(name))
             data.Edition.Error("COBOLNET0843",
                 $"the object-property reference '{name}' OF '{recv}' requires a PROPERTY specifier in the "
                 + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");
 
-        var model = get?.Binding!.Returning ?? set!.Binding!.Formals[0].Item;
         if (model.IsGroup)
         {
             data.Edition.Error(DiagnosticCatalog.OoGroupValuedProperty,
@@ -189,7 +198,23 @@ public sealed class ReferenceResolver(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.UndefinedReference, msg);
     }
 
+    /// <summary>True while the CURRENT resolution is a <see cref="Probe"/> — the R30 purity flag (kb/Work
+    /// PB157). A probe is a TYPE-DISCRIMINATING sniff whose Place is discarded after reading its Item, so in
+    /// probe mode the resolver must be SIDE-EFFECT-FREE: no diagnostics beyond none, no OO property temp/op
+    /// registration (the orphan op made OoWrapPropertyOps prepend a GET §8.4.3.9.4 GR2 forbids — or reject a
+    /// WITH NO GET property), and no D18 subscript materialization (a function-bearing subscript would bind —
+    /// and later ACTIVATE — twice). Save/restored, not cleared: a COMMIT resolution can nest inside hooks.</summary>
+    private bool _probing;
+
     private Place? ResolveImpl(Core.DataReferenceContext dref, bool report)
+    {
+        bool savedProbing = _probing;
+        _probing = !report;
+        try { return ResolveImplCore(dref, report); }
+        finally { _probing = savedProbing; }
+    }
+
+    private Place? ResolveImplCore(Core.DataReferenceContext dref, bool report)
     {
         DataReferenceCst r = dref;
         // A special register — LINAGE-COUNTER (I-O control system, ISO §8.4.3.14), LINE-/PAGE-COUNTER (Report
@@ -248,7 +273,7 @@ public sealed class ReferenceResolver(DataBinder data)
         }
         if (refModCount > 1)
         {
-            if (_diagnosed.Add(dref))
+            if (!_probing && _diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                     $"'{name}' carries {refModCount} reference modifications; a reference-modified item cannot itself "
                     + "be reference-modified (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier instead.");
@@ -347,7 +372,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // the silent drop a receiving one fell into.
         if (RefModExclusion(item) is { } why)
         {
-            if (_diagnosed.Add(dref))
+            if (!_probing && _diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
                     $"'{dref.GetText()}': reference modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
             return null;
@@ -690,6 +715,7 @@ public sealed class ReferenceResolver(DataBinder data)
             // N-declarations arm (dead until now — R30 built it, this makes it reachable).
             // --permissive: the traditional first-declared match, warned (the DA6/R29 disposition shape).
             if (!data.Edition.Permissive) return null;
+            if (_probing) return list[0];   // R30 purity: the committing resolution warns (kb/Work PB157)
             data.Edition.Warning(DiagnosticCatalog.UndefinedReference,
                 $"'{name}' is declared {list.Count} times and referenced without qualification — "
                 + "ISO §8.4.2.2.1 requires qualification when spellings collide; --permissive resolves to "
@@ -1191,6 +1217,10 @@ public sealed class ReferenceResolver(DataBinder data)
     /// what it was before D18.</para></summary>
     private string? MaterializeViaFragment(List<IToken> tokens, SegmentPosition position)
     {
+        // R30 PURITY (kb/Work PB157): a probe must not BIND the segment — the hook registers a §15.4 pre-op
+        // and a function-bearing segment would activate TWICE (once per probe+commit). The probe's Place is
+        // discarded after its Item is read, so a dummy occurrence expression is never emitted.
+        if (_probing) return "1";
         if (MaterializeSegment is null || tokens.Count == 0) return null;
         var first = tokens[0];
         if (first.InputStream is not { } stream) return null;

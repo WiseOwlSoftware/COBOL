@@ -177,10 +177,18 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         }
         foreach (var t in cb.Targets)
         {
-            int width = t is RefModPlace ? -1 : t.Item.Pic?.Length ?? 0;
-            string store = width < 0
-                ? value   // a ref-mod boolean receiver — the slice write fits via SpliceInto (pad '0')
-                : RuntimeApi.StrStoreBoolean(value, $"{width}", t.Item.Justified);
+            // OperandPic (kb/Work PB157): a GROUP-USAGE BIT receiver's store width is its as-if PICTURE 1(m)
+            // length (§13.18.29.4 GR1b) — raw Pic gave 0 and the store truncated the whole value.
+            int width = t is RefModPlace ? -1 : t.Item.OperandPic?.Length ?? 0;
+            // A SOLE positionless RHS — figurative ZERO, or a B-NOT fold of one (`COMPUTE B = B-NOT ZERO`,
+            // reachable since kb/Work PB157 un-conflated ZERO from the ALL literal) — REPLICATES its pattern
+            // to the receiver's width (§8.3.3.6.4 GR2 "repeated as necessary"); the '0'-padding store would
+            // turn all-ones into 100…0.
+            string store = cb.Rhs is BoundBoolAll all && width > 0
+                ? EmitText.CsLiteral(ReplicateBits(all.Bits, width))
+                : width < 0
+                    ? value   // a ref-mod boolean receiver — the slice write fits via SpliceInto (pad '0')
+                    : RuntimeApi.StrStoreBoolean(value, $"{width}", t.Item.Justified);
             ctx.Writer.Line(PlaceRenderer.Write(t, store));
         }
     }
@@ -496,4 +504,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>The receiver's total DIGIT capacity (§14.9.12.4 GR6c's "same number of digits as
     /// identifier-3" — the subsidiary-quotient cap, kb/Work PB129).</summary>
     private static int DigitsOf(Place p) => p.Item.Pic?.DigitPositions ?? 0;
+
+    /// <summary>A positionless boolean pattern repeated to <paramref name="width"/> positions and truncated
+    /// on the right (ISO §8.3.3.6.4 GR2 — "repeated as necessary"); compile-time, the pattern is a bound
+    /// constant (kb/Work PB157).</summary>
+    private static string ReplicateBits(string bits, int width)
+    {
+        var sb = new System.Text.StringBuilder(width);
+        while (sb.Length < width) sb.Append(bits);
+        return sb.ToString(0, width);
+    }
 }
