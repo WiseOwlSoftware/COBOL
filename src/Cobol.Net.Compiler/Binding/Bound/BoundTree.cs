@@ -471,6 +471,12 @@ public sealed record BoundRangeMembership(BoundOperand Left, BoundOperand Lo, Bo
 /// NEGATIVE) rather than the Format-1 algebraic value.</summary>
 public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated, bool Format2Float = false) : BoundCondition;   // Kind: P/N/Z
 
+/// <summary>The §8.8.4.8 omitted-argument condition (kb/Work PB133 wave C): <c>data-name-1 IS [NOT]
+/// OMITTED</c> over a formal parameter of THIS source element — rendered as the formal carrier's IsNull
+/// test (the ONE presence law: <c>CobolArgAdapt.Present</c>, GR1c's transitive omission, and this
+/// condition all read it).</summary>
+public sealed record BoundOmittedCondition(string CarrierField, bool Negated) : BoundCondition;
+
 /// <summary>A class condition: <paramref name="Operand"/> IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER |
 /// ALPHABETIC-LOWER} (ISO §8.8.4.1.4). <paramref name="ClassKind"/> ∈ {N, A, U, L}.</summary>
 public sealed record BoundClassCondition(BoundOperand Operand, char ClassKind, bool Negated) : BoundCondition;

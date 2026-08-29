@@ -282,6 +282,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// subscript inside the closure — the GR3a capture-into-locals refinement is a known follow-up.)</summary>
     public string ArgText(BoundCallArg a)
     {
+        // §14.9.4.4 GR11 (kb/Work PB133 wave C): the omitted argument crosses as the NULL carrier —
+        // CobolArgAdapt.Present answers false, the formal's adapters hand out the GR12 checked-raise carrier,
+        // and a forwarded omitted formal stays omitted (GR1c) because IsNull rides the carrier itself.
+        if (a.Omitted)
+            return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, ManagedPointer.Null, 0, 0)";
         if (a.Place is { } p)
         {
             string digits = (p.Pic?.Digits ?? 0).ToString();
@@ -302,7 +307,21 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                     + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group"))
                     + "), 0, 0)";
             if (a.Mode == CobolPassMode.Reference)
+            {
+                // §14.9.4.4 GR1c/GR12 (kb/Work PB133 wave C): forwarding a CARRIER-RESIDENT formal passes the
+                // carrier ITSELF — presence (the omitted state) rides with it, GR1c's transitive omission
+                // reaches the next callee, and the sanctioned as-an-argument reference form never touches the
+                // accessors (a re-wrapped OverField over `__lnkpN.Value` would read — and GR12-raise — on an
+                // omitted formal). A resident formal's CsName IS its carrier accessor (DataBinder sets
+                // `__lnkpN.Value`); a SUBITEM or subscripted reference keeps the ordinary wrap, so referencing
+                // inside an omitted formal still raises, as GR12 requires.
+                if (p is MemberPlace { Path.Segments: [RootFieldSegment fr] }
+                    && fr.CsField.StartsWith("__lnkp", StringComparison.Ordinal)
+                    && fr.CsField.EndsWith(".Value", StringComparison.Ordinal))
+                    return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, "
+                        + $"{fr.CsField[..^".Value".Length]}, {digits}, {scale})";
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, {RefCarrier(p)}, {digits}, {scale})";
+            }
             // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9) — and BY VALUE with
             // an identifier argument (a UDF BY VALUE formal, §8.4.3.2.4 GR5c): both are value snapshots at
             // call initiation; the mode rides the wire so the arg is honest about which rule produced it

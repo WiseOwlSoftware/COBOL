@@ -1637,6 +1637,39 @@ internal sealed class VersionConformancePass
         public override object? VisitCallArgument(CobolParserCore.CallArgumentContext ctx)
         {
             GateBooleanOperators(ctx.booleanExpression());
+            if (ctx.OMITTED() is not null)
+                _p.Check(Constructs.OmittedArguments2002, "the OMITTED argument");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The omitted-argument facility's other three surfaces (kb/Work PB133 wave C) — all
+        /// COBOL-2002 introductions on one construct row: the BY REFERENCE OMITTED spelling, the OPTIONAL
+        /// formal-parameter phrase (§14.2.2), and the §8.8.4.8 omitted-argument condition.</summary>
+        public override object? VisitCallByReference(CobolParserCore.CallByReferenceContext ctx)
+        {
+            if (ctx.OMITTED() is not null)
+                _p.Check(Constructs.OmittedArguments2002, "the OMITTED argument");
+            return base.VisitChildren(ctx);
+        }
+
+        public override object? VisitUsingParameter(CobolParserCore.UsingParameterContext ctx)
+        {
+            if (ctx.OPTIONAL() is not null)
+                _p.Check(Constructs.OmittedArguments2002, "the OPTIONAL formal parameter");
+            return base.VisitChildren(ctx);
+        }
+
+        public override object? VisitUsingByReference(CobolParserCore.UsingByReferenceContext ctx)
+        {
+            if (ctx.OPTIONAL() is not null)
+                _p.Check(Constructs.OmittedArguments2002, "the OPTIONAL formal parameter");
+            return base.VisitChildren(ctx);
+        }
+
+        public override object? VisitComparisonExpression(CobolParserCore.ComparisonExpressionContext ctx)
+        {
+            if (ctx.OMITTED() is not null)
+                _p.Check(Constructs.OmittedArguments2002, "the omitted-argument condition");
             return base.VisitChildren(ctx);
         }
 

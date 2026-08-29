@@ -50,11 +50,23 @@ public sealed class ManagedPointer<T> : ManagedPointer
     private readonly Func<T> _get;
     private readonly Action<T> _set;
 
-    private ManagedPointer(Func<T> get, Action<T> set)
+    private readonly bool _omittedArgument;
+
+    private ManagedPointer(Func<T> get, Action<T> set, bool omittedArgument = false)
     {
         _get = get;
         _set = set;
+        _omittedArgument = omittedArgument;
     }
+
+    /// <summary>True for the omitted-argument carrier (ISO §14.9.4.4 GR11; kb/Work PB133 wave C): the
+    /// §8.8.4.8 omitted-argument condition, <c>CobolArgAdapt.Present</c>, and GR1c's TRANSITIVE omission (an
+    /// omitted formal forwarded as an argument) all read presence through this ONE test.</summary>
+    public override bool IsNull => _omittedArgument;
+
+    /// <summary>An omitted/absent CALL argument's typed carrier (kb/Work PB133 wave C) — IsNull answers true;
+    /// the accessors carry the GR12 checked raise.</summary>
+    internal static ManagedPointer<T> OmittedArgument(Func<T> get, Action<T> set) => new(get, set, omittedArgument: true);
 
     /// <summary>An accessor carrier over a native field: reads/writes go straight through to the owner's storage
     /// — the BY REFERENCE "same storage area" semantics (ISO §14.2.3 GR8) with zero indirection on the owner's

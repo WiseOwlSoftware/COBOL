@@ -282,11 +282,21 @@ public static class CobolArgAdapt
         else if (ret is ManagedPointer<CobolObject?> op) op.Value = value;
     }
 
-    /// <summary>A carrier whose first reference fails loud: the formal's argument was omitted or absent
-    /// (ISO §14.9.4.4 GR12 — referencing an omitted parameter is the EC-PROGRAM-ARG-OMITTED condition).</summary>
-    private static ManagedPointer<T> Omitted<T>(int position) => ManagedPointer<T>.OverField(
-        () => throw new CobolCallException(
-            $"reference to omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12 — EC-PROGRAM-ARG-OMITTED)", "EC-PROGRAM-ARG-OMITTED"),
-        _ => throw new CobolCallException(
-            $"store into omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12 — EC-PROGRAM-ARG-OMITTED)", "EC-PROGRAM-ARG-OMITTED"));
+    /// <summary>The omitted/absent CALL argument's carrier (ISO §14.9.4.4 GR11–GR12; kb/Work PB133 wave C):
+    /// IsNull answers true — what makes the §8.8.4.8 omitted-argument condition and GR1c's TRANSITIVE
+    /// omission work through the ordinary Present test — and a reference raises EC-PROGRAM-ARG-OMITTED
+    /// through the CA10 checked-raise gate IN THE CALLEE's engine. Checking OFF stays lenient (reads answer
+    /// the type's benign empty value, stores are ignored — GR12 leaves the content undefined; the documented
+    /// implementor choice). The old carrier threw CobolCallException unconditionally, which the CALL SITE's
+    /// catch arm treated as an ACTIVATION failure — an in-execution raise unwound into the CALLER's
+    /// ON EXCEPTION phrase, which GR3i forbids.</summary>
+    private static ManagedPointer<T> Omitted<T>(int position) => ManagedPointer<T>.OmittedArgument(
+        () =>
+        {
+            RunUnit.Current.Exceptions.ProgramArgOmittedError(
+                $"reference to omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12)");
+            return typeof(T) == typeof(string) ? (T)(object)"" : default!;
+        },
+        _ => RunUnit.Current.Exceptions.ProgramArgOmittedError(
+            $"store into omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12)"));
 }

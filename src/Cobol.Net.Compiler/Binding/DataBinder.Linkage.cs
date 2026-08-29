@@ -29,7 +29,7 @@ using Core = CobolParserCore;
 /// cell conformed to the formal's description (§14.2.3 GR10: the argument is the sending operand of a COMPUTE
 /// without ROUNDED into the allocated record); the callee's stores never reach the caller's storage.</param>
 public sealed record LinkageFormal(DataItem Item, int Position, string CarrierField, bool CarrierResident,
-    bool ByValue = false);
+    bool ByValue = false, bool Optional = false);
 
 /// <summary>The synthesized run-unit backing of one EXTERNAL record (ISO §13.18.22 / §8.6.7): the emitter
 /// renders <c>private ref string {BackingCsName} =&gt; ref ExternalStore.Cell({ExternalName}, {InitImage}).Ref;</c>
@@ -151,13 +151,9 @@ public sealed partial class DataBinder
                 optional = rb.OPTIONAL() is not null;
             }
             else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
-            if (optional)
-                // Conformant surface (§14.2.2 using-phrase — OPTIONAL may precede a BY REFERENCE formal),
-                // staged loud: the OPTIONAL/OMITTED formal model (§14.2.3 GR3, the §8.8.4.8 omitted-argument
-                // condition) is not implemented — never a silently-required formal.
-                Edition.Error(DiagnosticCatalog.OptionalFormal,
-                    $"formal parameter '{dref.GetText()}': the OPTIONAL phrase is recognized but OPTIONAL "
-                    + "formal parameters are not yet implemented (ISO §14.2.2 / §14.2.3 GR3)");
+            // §14.2.2's OPTIONAL phrase now CARRIES (kb/Work PB133 wave C): the formal records the flag,
+            // the SR24/count checks read it at the AS NESTED bind, and the §8.8.4.8 omitted-argument
+            // condition tests the carrier's presence — the staged OptionalFormal rejection is lifted.
 
             string pname = dref.GetText();
             var item = FindLinkageRoot(pname);
@@ -223,7 +219,7 @@ public sealed partial class DataBinder
                 item.CsName = carrier + ".Value";
                 _callSuppressedRootFields.Add(item.CsName);
             }
-            _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident, byValue));
+            _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident, byValue, optional));
             pos++;
         }
 

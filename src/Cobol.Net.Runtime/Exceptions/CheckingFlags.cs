@@ -57,6 +57,10 @@ public struct CheckingFlags
     /// <summary>EC-SIZE-ADDRESS — a non-integer SET pointer UP/DOWN BY amount (§14.9.39 Format 10 GR19).</summary>
     public bool SizeAddress;
 
+    /// <summary>EC-PROGRAM-ARG-OMITTED — a reference to an omitted formal parameter outside the
+    /// omitted-argument condition or an argument position (§14.9.4.4 GR12; kb/Work PB133 wave C).</summary>
+    public bool ProgramArgOmitted;
+
     /// <summary>EC-BOUND-SUBSCRIPT — a subscript below 1 or above the highest permissible occurrence number
     /// (§8.4.2.3.4 GR2).</summary>
     public bool BoundSubscript;

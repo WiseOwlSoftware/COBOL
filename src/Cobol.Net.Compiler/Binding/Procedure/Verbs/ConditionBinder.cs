@@ -500,6 +500,27 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return new BoundConditionError($"class condition '{cls.GetText()}'");
         }
 
+        if (cmp.OMITTED() is not null)
+        {
+            carry.Reset();
+            // §8.8.4.8 (kb/Work PB133 wave C): "data-name-1 IS [NOT] OMITTED" — SR1: data-name-1 shall be a
+            // formal parameter defined in the source element in which this condition is specified. The test
+            // renders as the formal carrier's IsNull — the ONE presence law (GR11's spelled/trailing omission
+            // and GR1c's transitive omission all arrive as a null carrier).
+            string fname = operands.Length >= 1 ? operands[0].GetText().Trim() : "";
+            LinkageFormal? formal = null;
+            foreach (var f in ctx.Data.LinkageFormals)
+                if (string.Equals(f.Item.CobolName, fname, StringComparison.OrdinalIgnoreCase)) { formal = f; break; }
+            if (formal is null)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.OmittedConditionOperand,
+                    $"omitted-argument condition '{fname} IS OMITTED': data-name-1 shall be a formal parameter "
+                    + "defined in the source element in which this condition is specified (ISO §8.8.4.8 SR1)");
+                return new BoundConditionError($"omitted-argument condition '{fname}'");
+            }
+            return new BoundOmittedCondition(formal.CarrierField, not);
+        }
+
         if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)
         {
             carry.Reset();

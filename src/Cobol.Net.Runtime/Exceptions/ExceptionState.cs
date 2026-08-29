@@ -434,6 +434,26 @@ public sealed class ExceptionEngine
         }
     }
 
+    /// <summary>True while EC-PROGRAM-ARG-OMITTED checking is enabled (fatal).</summary>
+    public bool ProgramArgOmittedChecking
+    {
+        get => _checking.ProgramArgOmitted;
+        set => _checking.ProgramArgOmitted = value;
+    }
+
+    /// <summary>Raise EC-PROGRAM-ARG-OMITTED (§14.9.4.4 GR12: a reference to a formal parameter for which
+    /// the omitted-argument condition is true, outside an argument position or the condition itself; Table 13
+    /// Fatal) when checking is enabled; otherwise return and the carrier's lenient benign value stands
+    /// (kb/Work PB133 wave C — the CA10 posture).</summary>
+    public void ProgramArgOmittedError(string detail)
+    {
+        if (ProgramArgOmittedChecking)
+        {
+            Set("EC-PROGRAM-ARG-OMITTED", fatal: true);
+            throw new CobolFatalException("EC-PROGRAM-ARG-OMITTED", detail);
+        }
+    }
+
     // ── EC-OO-UNIVERSAL: the ACTIVATOR half of the §14.9.23.4 GR7c "enabled in both" gate ─────────────────────
 
     /// <summary>True while the currently-executing INVOKE has EC-OO-UNIVERSAL checking enabled in the ACTIVATING
@@ -926,6 +946,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.SubscriptError"/>
     public static void SubscriptError(string detail) => E.SubscriptError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.ProgramArgOmittedChecking"/>
+    public static bool ProgramArgOmittedChecking
+    {
+        get => E.ProgramArgOmittedChecking;
+        set => E.ProgramArgOmittedChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.ProgramArgOmittedError"/>
+    public static void ProgramArgOmittedError(string detail) => E.ProgramArgOmittedError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.BoundOdoChecking"/>
     public static bool BoundOdoChecking

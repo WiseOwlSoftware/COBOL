@@ -1461,6 +1461,18 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15Q.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4) VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"SUB1\" AS NESTED USING BY VALUE W.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. SUB1.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LV PIC 9(4).\nPROCEDURE DIVISION USING BY VALUE LV.\nP.\n    GOBACK.\nEND PROGRAM SUB1.\nEND PROGRAM W15Q.\n"
   },
   {
+   "id": "omitted-arguments-2002",
+   "description": "The OMITTED-argument facility (ISO 14.9.4.4 GR11-12, 14.2.2 OPTIONAL, 8.8.4.8 omitted-argument condition): the OMITTED phrase in a CALL's USING list, the OPTIONAL phrase on a procedure-division-header formal, and the IS [NOT] OMITTED condition - all COBOL-2002 introductions (the 85 CALL general format has none of the three). Gated at the VersionConformancePass parse arms (kb/Work PB133 wave C).",
+   "display": "the omitted-argument facility (OMITTED / OPTIONAL / IS OMITTED)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO 14.9.4.2 Format 2 / 14.2.2 / 8.8.4.8 - COBOL-2002 introductions",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "M2 interprogram surface (design doc Edition gating: OMITTED arguments + the omitted-argument condition, 2002+)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W133Q.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4) VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"SUB1\" AS NESTED USING W OMITTED.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. SUB1.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-A PIC 9(4).\n01 L-B PIC 9(4).\nPROCEDURE DIVISION USING L-A OPTIONAL L-B.\nP.\n    IF L-B IS OMITTED CONTINUE END-IF\n    GOBACK.\nEND PROGRAM SUB1.\nEND PROGRAM W133Q.\n"
+  },
+  {
    "id": "pd-header-by-value-2002",
    "status": "active",
    "description": "PROCEDURE DIVISION USING ... BY VALUE formal-parameter phrase, ISO §14.2.2 using-phrase (:23641) - introduced 2002 with the value-passing convention (the CALL-side twin is call-by-value-2002; separate rows per the one-construct-one-gate granularity - §14.2 header vs §14.9.4 statement). ACTIVE as of P10 Step 10: the phrase parses at every edition (superset usingByValue rule), the introduction gate fires on recognition in the VersionConformancePass parse arm (VisitUsingByValue), and the callee side delivers a §14.2.3 GR10 VALUE COPY (a detached CobolArgAdapt.NumValue cell conformed to the formal - stores never reach the caller) for BOTH CALL targets and user-defined-function activations (§8.4.3.2.4 GR5c). The §14.2.2 SR2 class restriction (numeric/message-tag/object/pointer) is COBOLNET1553; the SR2-legal but not-yet-carried object/pointer/float shapes stage loud (0899 by-value-formal-carrier).",

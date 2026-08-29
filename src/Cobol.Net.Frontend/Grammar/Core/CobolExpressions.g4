@@ -147,7 +147,8 @@ booleanFactor     : B_NOT booleanFactor
                   ;
 
 comparisonExpression
-    : comparisonOperand IS? NOT? className                         // class condition
+    : comparisonOperand IS? NOT? OMITTED                           // omitted-argument condition (§8.8.4.8; 2002+ - kb/Work PB133)
+    | comparisonOperand IS? NOT? className                         // class condition
     | comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)      // sign condition (merged from signCondition)
     | comparisonOperand ( comparisonOperator comparisonOperand )?  // existing relational + bare operand
     ;

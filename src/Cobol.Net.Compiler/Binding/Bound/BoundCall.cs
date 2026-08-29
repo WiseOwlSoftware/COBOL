@@ -16,7 +16,7 @@ namespace CobolNet.Binding.Bound;
 /// <summary>One CALL USING argument: its resolved pass mode (the §14.9.4.4 GR5 transitivity already applied at
 /// bind time), and either a resolved <see cref="Place"/> (a data-reference argument) or a bound
 /// <see cref="Value"/> operand (a literal — inherently BY CONTENT — or a BY VALUE expression, §14.9.4.3 SR4).</summary>
-public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand? Value);
+public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand? Value, bool Omitted = false);
 
 /// <summary><c>CALL {literal|identifier} [USING …] [RETURNING …] [ON …][NOT ON …]</c> (ISO §14.9.4 Format 1).
 /// <paramref name="LiteralName"/> is the static target (SR2 — a non-zero-length alphanumeric literal);

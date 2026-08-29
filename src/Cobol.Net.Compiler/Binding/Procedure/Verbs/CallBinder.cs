@@ -139,10 +139,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // draws the same staged diagnostic family instead of a parse error on legal source.
                 if (byRef.OMITTED() is not null)
                 {
-                    ctx.Edition.Error(DiagnosticCatalog.OptionalFormal,
-                        "CALL … USING BY REFERENCE OMITTED (ISO §14.9.4.2 Format 2 / §14.9.4.4 GR11): the "
-                        + "omitted-argument carrier lands with OPTIONAL formal parameters (kb/Work PB133)");
-                    return new BoundNop();
+                    // §14.9.4.4 GR11 (kb/Work PB133 wave C): the omitted argument occupies its position with
+                    // the NULL carrier — the callee's Present test, the §8.8.4.8 condition, and GR12's checked
+                    // raise all read that one fact. SR24's OPTIONAL correspondence is checked after the loop.
+                    args.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true));
+                    continue;
                 }
                 if (byRef.dataReference() is not { } byRefDref)
                     return new BoundUnsupported("CALL USING BY REFERENCE form");
@@ -262,12 +263,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // Format 1's bare argument is identifier-2 only, so each arm narrows on formatTwo. A bare
             // non-identifier crosses BY CONTENT semantics (a value, never a writeback carrier).
             else if (a.OMITTED() is not null)
-            {
-                ctx.Edition.Error(DiagnosticCatalog.OptionalFormal,
-                    "CALL … USING OMITTED (ISO §14.9.4.2 Format 2 / §14.9.4.4 GR11): the omitted-argument "
-                    + "carrier lands with OPTIONAL formal parameters (kb/Work PB133)");
-                return new BoundNop();
-            }
+                // §14.9.4.4 GR11 — same carrier as the BY REFERENCE spelling (kb/Work PB133 wave C).
+                args.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true));
             else if (a.literal() is { } bLit)
             {
                 if (!formatTwo) { BareNeedsFormat2(bLit.GetText()); return new BoundNop(); }
@@ -304,6 +301,27 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 $"CALL … USING {text}: a keyword-less literal or expression argument belongs to the "
                 + "program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects — Format 1's "
                 + "bare argument is identifier-2 only");
+
+        // §14.8.2.1 + §14.9.4.3 SR24 (kb/Work PB133 wave C): with the AS NESTED callee's formals known at
+        // BIND time, the argument COUNT (equality, except trailing OPTIONAL formals omitted) and each written
+        // OMITTED's OPTIONAL correspondence are compile-time checks — the design doc's "or diagnostic" lane;
+        // the dynamic Format-1 count check (EC-PROGRAM-ARG-MISMATCH at activation) rides wave C2.
+        if (nestedFormals is not null)
+        {
+            bool countBad = args.Count > nestedFormals.Count;
+            for (int i = args.Count; !countBad && i < nestedFormals.Count; i++)
+                if (!nestedFormals[i].Optional) countBad = true;
+            if (countBad)
+                ctx.Edition.Error(DiagnosticCatalog.CallArgumentCount,
+                    $"CALL … AS NESTED supplies {args.Count} argument(s) where the program declares "
+                    + $"{nestedFormals.Count} formal parameter(s); ISO §14.8.2.1 requires the counts to be "
+                    + "equal, except for trailing formal parameters declared OPTIONAL and omitted");
+            for (int i = 0; i < args.Count && i < nestedFormals.Count; i++)
+                if (args[i].Omitted && !nestedFormals[i].Optional)
+                    ctx.Edition.Error(DiagnosticCatalog.CallOmittedNeedsOptional,
+                        $"CALL … USING OMITTED at argument {i + 1}: the corresponding formal parameter "
+                        + $"'{nestedFormals[i].Item.CobolName}' is not declared OPTIONAL (ISO §14.9.4.3 SR24)");
+        }
 
         // ── RETURNING (CALL side) — COBOL-2002+ (deep-dive "Edition gating"); maps to the activation result
         //    delivered through the opaque ABI's returning carrier (§14.2.3 GR7). ──

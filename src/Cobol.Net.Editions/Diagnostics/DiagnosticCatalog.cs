@@ -244,6 +244,26 @@ public static class DiagnosticCatalog
         + "leftmost position shall consist of only fixed-point numeric literals or all-literal arithmetic "
         + "expressions without exponentiation — the referenced address must be statically byte-aligned.",
         "ISO §14.9.4.3 SR6/SR8 / §8.5.1.6.3");
+    public static readonly DiagnosticDescriptor CallArgumentCount = new(
+        "COBOLNET1684", "call-argument-count", EditionSeverity.Error,
+        "ISO §14.8.2.1: \"The number of arguments in the activating element shall be equal to the number of "
+        + "formal parameters in the activated element, with the exception of trailing formal parameters that "
+        + "are specified with an OPTIONAL phrase in the procedure division header of the activated element and "
+        + "omitted from the list of arguments of the activating element.\" With AS NESTED the callee's header "
+        + "is known at compile time, so the mismatch is a diagnostic here rather than a run-time "
+        + "EC-PROGRAM-ARG-MISMATCH.",
+        "ISO §14.8.2.1");
+    public static readonly DiagnosticDescriptor CallOmittedNeedsOptional = new(
+        "COBOLNET1685", "call-omitted-needs-optional", EditionSeverity.Error,
+        "ISO §14.9.4.3 syntax rule 24: \"If the OMITTED phrase is specified, the OPTIONAL phrase shall be "
+        + "specified for the corresponding formal parameter in the procedure division header.\"",
+        "ISO §14.9.4.3 SR24");
+    public static readonly DiagnosticDescriptor OmittedConditionOperand = new(
+        "COBOLNET1686", "omitted-condition-operand", EditionSeverity.Error,
+        "ISO §8.8.4.8 syntax rule 1: \"Data-name-1 shall be a formal parameter defined in the source element "
+        + "in which this condition is specified.\" The omitted-argument condition asks whether an argument was "
+        + "provided to THIS program, function, or method — an ordinary data item has no such property.",
+        "ISO §8.8.4.8 SR1");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
         "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "
