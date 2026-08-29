@@ -297,16 +297,25 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>The ARGUMENT-scoped twin of <see cref="boolExprAhead"/> (kb/Work PB65, FMT-15.45.2): does a boolean
     /// operator belong to THIS intrinsic-function argument? §8.4.3.2.3 SR8 admits "a boolean expression" as
     /// argument-1 and §15.3 item 3 names it for a Boolean argument (INTEGER-OF-BOOLEAN(BIT-A B-AND BIT-B)). The
-    /// scan stops where the ARGUMENT ends — a depth-0 comma or the argument list's ')' — rather than at a condition
-    /// boundary, so `COMPUTE BR = FUNCTION BOOLEAN-OF-INTEGER(5, 8) B-AND BB` does not mistake its numeric
-    /// argument for a boolean one because a B-AND follows the call. Parentheses (a nested call, a grouped
-    /// sub-expression) are tracked by depth so an operator inside them still counts as this argument's.</summary>
+    /// scan stops where the ARGUMENT ends — a depth-0 comma, the argument list's ')', or a SPACE-SEPARATED
+    /// boundary: two adjacent operand terms with no operator between them (kb/Work PB124, AR-15.3-3 — boolean
+    /// expressions connect every term with a B-operator, so `CONCAT(WS-A B1 B-AND B2)` ends WS-A's argument at
+    /// B1 and the B-AND belongs to the LATER argument; the old scan predicated EVERY argument of the list into
+    /// the boolean alternative once ANY later one held a depth-0 B-operator). A '(' directly after a term is
+    /// that term's subscript/ref-mod — the parser's own reading — never a new term. `COMPUTE BR = FUNCTION
+    /// BOOLEAN-OF-INTEGER(5, 8) B-AND BB` still does not mistake its numeric argument for a boolean one.
+    /// The 512-token cap is the implementor's scan bound: with the boundary arm the scan ends at the first
+    /// adjacent-term pair, so only ONE argument written as a single >512-token boolean expression could ever
+    /// reach it (it would fall to the non-boolean alternative and draw a bind diagnostic, never parse silently
+    /// wrong).</summary>
     protected bool boolArgAhead()
     {
         int prev = 0, depth = 0;
-        for (int i = 1; i <= 96; i++)
+        for (int i = 1; i <= 512; i++)
         {
             int t = TokenStream.LA(i);
+            if (depth == 0 && IsBoolOperandTerm(prev) && IsTermStartToken(t))
+                return false;   // adjacent operand terms — a space-separated argument boundary (PB124)
             switch (t)
             {
                 case CobolLexer.LPAREN: case CobolLexer.FNARG_LPAREN: depth++; break;
@@ -347,6 +356,16 @@ public abstract class CobolParserCoreBase : Parser
     /// the legacy binder's copy of this same omission cost 31 NIST regressions.</remarks>
     private static bool IsBoolOperandTerm(int t) => t is
         CobolLexer.IDENTIFIER or CobolLexer.RPAREN or CobolLexer.SUB_RPAREN or CobolLexer.FNARG_RPAREN
+        or CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT or CobolLexer.FLOATLIT or CobolLexer.COMMA_FLOATLIT
+        or CobolLexer.STRINGLIT or CobolLexer.NATLIT or CobolLexer.HEXLIT or CobolLexer.BOOLLIT
+        or CobolLexer.SIGNED_INTEGERLIT or CobolLexer.SIGNED_DECIMALLIT;
+
+    /// <summary>A token that STARTS A NEW TERM when it directly follows a completed operand term (kb/Work
+    /// PB124 — <see cref="boolArgAhead"/>'s space-separated argument boundary): an identifier, any literal,
+    /// figurative ZERO, a unary B-NOT, or the FUNCTION keyword opening a nested call. Deliberately NOT
+    /// LPAREN — a paren straight after a term is that term's subscript/ref-mod, the parser's own reading.</summary>
+    private static bool IsTermStartToken(int t) => t is
+        CobolLexer.IDENTIFIER or CobolLexer.B_NOT or CobolLexer.ZERO or CobolLexer.FUNCTION
         or CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT or CobolLexer.FLOATLIT or CobolLexer.COMMA_FLOATLIT
         or CobolLexer.STRINGLIT or CobolLexer.NATLIT or CobolLexer.HEXLIT or CobolLexer.BOOLLIT
         or CobolLexer.SIGNED_INTEGERLIT or CobolLexer.SIGNED_DECIMALLIT;
