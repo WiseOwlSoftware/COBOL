@@ -1712,7 +1712,18 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB128–PB132+PB161 batch tree `7b984c64` (2026-08-29, battery #30).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB133–PB136+PB163 batch tree `e77cd9e6` (2026-08-29, battery #31).**
+  ✅ **Every internal leg GREEN; ten differential flips, nine of them the batch's own acceptances
+  confirmed by the external oracle** (artifacts in the session scratchpad `battery31/`; DEVLOG 1378):
+  FULL greenfield Conformance **5025 / 5025** · Unit **4591 / 4591** · characterization **33 / 33** ·
+  NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **1323 cases**: nine
+  WE_REJECT→AGREE_ACCEPT (END-ACCEPT/END-DISPLAY, the GIVING sending operands, the subscript shapes),
+  one attributed accept-divergence (syn_misc:1202 — an undeclared CRT STATUS item under the documented
+  A.4.2 screen-module non-claim); baseline deliberately regenerated. Totals 572/474/206/71. Covers
+  DEVLOG 1370–1377: the PB133 activation-boundary campaign (waves A–C2b + PB163 + the CancelNode
+  sibling), PB134 (four statement grammars), PB135 (OO environment plumbing), PB136 (subscript
+  splitter/quotients) — the population grew by 40 Conformance tests over #30.
+- **⛔ PRIOR BATTERY REFERENCE — the PB128–PB132+PB161 batch tree `7b984c64` (2026-08-29, battery #30).**
   ✅ **Green with three matrix reds and four differential flips, ALL one attributed cause — the PB130/PB132
   Format-1 narrowing** (artifacts in the session scratchpad `battery30/`; DEVLOG 1369): FULL greenfield
   Conformance **4982 / 4985** — the three reds were the `call-by-value-2002` matrix probe's FORMAT-1
@@ -1724,16 +1735,6 @@ result. Run the long legs ONE AT A TIME.
   they motivate is kb/Work PB162). Totals 581/465/207/70. Covers DEVLOG 1362–1368: PB128 (receiving
   chokepoint), PB129 (store discipline), PB130 (CALL grammar), PB131 (AS NESTED at bind), PB132 (operand
   screens), PB161 (bit-run codec OCCURS) — the population grew by 31 Conformance tests over #29.
-- **⛔ PRIOR BATTERY REFERENCE — the PB124-campaign tree `3b3bc921` (2026-08-29, battery #29).**
-  ✅ **Green with ONE schedule-dependent legacy-suite red, attributed and harness-fixed** (artifacts in the
-  session scratchpad `battery-29/`): FULL greenfield Conformance **4954 / 4954, zero skipped** (10 m 50 s) ·
-  greenfield Unit **4589 / 4589** · characterization **33 / 33** · guard-fast NIST **353 MATCH /
-  0 REGRESSION** (audit CLEAN, population 376) · GnuCOBOL differential **`0 PER-CASE FLIP(S)`** (1323 cases).
-  The one red: `int_rc=1` — one failure in the LEGACY CobolSharp.Tests.Integration suite (503/504 on a
-  serial re-run; the single skip is the documented D10 block) whose NAME the quiet-verbosity log could not
-  carry — kb/Work PB127 fixed the blindness (console;verbosity=minimal loggers + widened report greps) in
-  the same change set, so the next occurrence arrives named. Covers the PB124 six-wave campaign + PB126's
-  widening (DEVLOG 1355–1361) — the population grew by 20 Conformance tests over #28.
 - Battery #27, the PB64 T6 tree `d94d8e08` (2026-08-28 22:45 PDT) — superseded; kept for the trail.
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts in the session
   scratchpad `battery-27/`): FULL greenfield Conformance **4921 / 4921, zero skipped** (10 m 35 s) · greenfield
