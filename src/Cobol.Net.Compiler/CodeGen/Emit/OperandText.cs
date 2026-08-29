@@ -143,9 +143,10 @@ internal static class OperandText
                 PlaceRenderer.Read(p),
             // A zoned leaf stored as its image: the carrier already holds the storage characters.
             { Category: PicCategory.Numeric, IsFloat: false } when p.Item.StoreAsImage => PlaceRenderer.Read(p),
-            // A native fixed-point leaf: the bytes it occupies at a byte boundary (zoned digits for DISPLAY,
-            // radix-2 / BCD for BINARY / PACKED) — the ONE FormatImage recipe the group codec uses.
-            { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed } =>
+            // A native fixed-point leaf: the bytes it occupies at a byte boundary (zoned digits, radix-2, BCD —
+            // PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164 widened it to COMP-5 and
+            // BINARY-CHAR..DOUBLE here in lockstep) — the ONE FormatImage recipe the group codec uses.
+            { HasImageByteForm: true } =>
                 RuntimeApi.NumFormatImage(PlaceRenderer.Read(p), p.Item.ProfileName),
             _ => EmitText.LoudValue("string", TierCIsland.Reason(p.Item, "raw-storage image (CONVERT ANY) of")),
         };

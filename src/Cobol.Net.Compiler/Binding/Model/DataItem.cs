@@ -371,23 +371,24 @@ public sealed class DataItem
     /// DISPLAY (native <c>long</c>/<c>Int128</c>, its image is its zoned digit form) and BINARY/PACKED, whose
     /// image is its TRUE BYTES: radix-2 two's complement or BCD of exactly <see cref="Model.PicInfo.StorageWidth"/>
     /// (ISO/IEC 1989:2023 §13.18.60.4 GR4/GR11 leave the representation, including the sign, to the implementor —
-    /// see <see cref="NumericByteForm"/>; V59). Excluded — kept loud (§1.4): COMP-1/COMP-2 floats (no fixed
-    /// decimal width) and COMP-5 (its <c>BinaryCapacity</c> discipline stores values EXCEEDING the PICTURE digit
-    /// count, so its bytes and its picture disagree) and INDEX items (no image at all, §13.18.60.4 GR10). A group
-    /// is image-capable when every child is. Width-wise the codec uses <see cref="ImageWidth"/>, which IS
-    /// <see cref="ByteWidth"/> for every item that reaches an image — the ONE-WIDTH invariant
-    /// (<c>ImageWidthIsStorageWidthTests</c>).
+    /// see <see cref="NumericByteForm"/>; V59). COMP-5 and BINARY-CHAR..DOUBLE are IN (kb/Work PB164 — their
+    /// Binary byte form and StorageWidth were pinned by V59, and a BinaryCapacity value beyond the PICTURE
+    /// digits rides FormatImage's full-container Int128 bits contract; the old exclusion was predicate drift
+    /// that loud-staged a conforming group at CALL/MOVE/REDEFINES). Excluded — kept loud (§1.4): COMP-1/COMP-2
+    /// floats (no byte form pinned yet — PB164's queued IEEE half) and INDEX items (no image at all,
+    /// §13.18.60.4 GR10 — an owner decision when PB164's last half lands). A group is image-capable when every
+    /// child is. Width-wise the codec uses <see cref="ImageWidth"/>, which IS <see cref="ByteWidth"/> for every
+    /// item that reaches an image — the ONE-WIDTH invariant (<c>ImageWidthIsStorageWidthTests</c>).
     /// </summary>
     public bool IsImageCapable =>
         !IsDynamicTable && !IsDynamicLength && (   // out-of-line dynamic table / variable-length string — not in the static record codec (D9 / §8.5.1.10)
         IsElementary
             // P5.7: the leaf arm is defined DIRECTLY on Pic (a pure declared-shape fact, phase-stable at every
-            // point of the pipeline — resolve, procedure bind, emit). Value-identical to the former
-            // IsCharacterImage delegation: every image-PROMOTED leaf is a fixed-point Display/Binary/Packed
-            // numeric, already true via the numeric arm — the promotion can never change this property.
+            // point of the pipeline — resolve, procedure bind, emit). The numeric arm is PicInfo's ONE derived
+            // image predicate (HasImageByteForm — kb/Work PB164), never a hand-rolled usage union.
             ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean
-                || Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed }
+                || Pic is { HasImageByteForm: true }
             : IsGroup && Children.All(c => c.IsImageCapable));
 
     /// <summary>The character width of this item's image — meaningful for an <see cref="IsCharacterImage"/> item. For a

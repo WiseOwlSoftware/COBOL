@@ -255,7 +255,8 @@
   "pb154_cancel_cascade",
   "pb155_composite_edges",
   "pb157_compute_bit_group",
-  "pb157_compute_multi_sizeerr"
+  "pb157_compute_multi_sizeerr",
+  "pb164_comp5_group_image"
  ],
  "pending": []
 }

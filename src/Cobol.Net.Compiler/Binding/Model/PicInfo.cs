@@ -428,9 +428,12 @@ public sealed record PicInfo(
     public NumericByteForm ByteForm => Usage switch
     {
         // Radix 2 (GR4 BINARY / GR6 COMPUTATIONAL / GR12 the fixed-width binary usages) — two's complement,
-        // big-endian, StorageWidth bytes. COMP-5 and BINARY-CHAR..DOUBLE are excluded from the IMAGE by their
-        // BinaryCapacity discipline (values beyond the PICTURE digit count), never by their representation:
-        // stating the form here is what makes admitting them a width question, not a representation question.
+        // big-endian, StorageWidth bytes. COMP-5 and BINARY-CHAR..DOUBLE share the form: their
+        // BinaryCapacity discipline is a CAPACITY fact (values beyond the PICTURE digit count), never a
+        // representation fact — which is exactly what let kb/Work PB164 admit them to the image on THIS
+        // form (the width is StorageWidth; a full-container value rides FormatImage's Int128 bits
+        // contract). Stating the form here made admitting them a width question, and the width was
+        // already pinned.
         Usage.Binary or Usage.Comp5 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong
             or Usage.BinaryDouble => NumericByteForm.Binary,
         // Radix 10 BCD (GR11), with or without the trailing sign nibble the 2023 WITH NO SIGN phrase drops.
@@ -440,6 +443,16 @@ public sealed record PicInfo(
         Usage.Display => NumericByteForm.Zoned,
         _ => NumericByteForm.None,
     };
+
+    /// <summary>True when this picture is a fixed-point numeric with a PINNED byte representation — a
+    /// <see cref="ByteForm"/> other than <see cref="NumericByteForm.None"/> — i.e. it can occupy positions in
+    /// a record/group image, cross CALL/MOVE as group bytes, and back a REDEFINES window. ⛔ THE ONE image
+    /// predicate (kb/Work PB164): it is DERIVED from the ByteForm table, never a hand-rolled usage union —
+    /// four copies of the union had drifted to {Display, Binary, Packed}, excluding COMP-5 and
+    /// BINARY-CHAR..DOUBLE whose Binary form V59 pinned, so a group containing one loud-staged on conforming
+    /// source. A usage added to ByteForm (the float IEEE forms are the queued next case) widens every
+    /// consumer HERE.</summary>
+    public bool HasImageByteForm => Category is PicCategory.Numeric && !IsFloat && ByteForm is not NumericByteForm.None;
 
     /// <summary>The CAPACITY discipline that bounds this item's value — the SIZE ERROR boundary
     /// (<see cref="NumericTruncation"/>). Orthogonal to <see cref="ByteForm"/>, which is the byte

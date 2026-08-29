@@ -3512,7 +3512,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                         MarkImageForced(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
-                    else if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Binary or Usage.Packed })
+                    else if (leaf.Pic is { HasImageByteForm: true, Usage: not Usage.Display })   // the ONE image predicate (kb/Work PB164 — COMP-5/BINARY-* windows included)
                         // A fixed-point BINARY/PACKED leaf of a Tier-B class is image-stored too: its window over
                         // the one string backing IS its BYTES — radix-2 two's complement or BCD, of exactly
                         // PicInfo.StorageWidth (ISO §13.18.60.4 GR4/GR11 implementor representation;
@@ -3561,9 +3561,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         reject = null;
         var leaves = cls.Members.SelectMany(LeavesOf).ToList();
 
-        // Tier C → Rejected (interim): any leaf is float (COMP-1/2 — no fixed decimal-digit width), COMP-5 (its
-        // BinaryCapacity discipline stores values EXCEEDING the PICTURE digit count — a Digits-wide character
-        // window cannot carry them), or INDEX (no character image, §13.18.60). A DISPLAY + BINARY/PACKED mix is
+        // Tier C → Rejected (interim): any leaf is float (COMP-1/2 — no byte form pinned yet), COMP-5/
+        // BINARY-* (their BYTE image is pinned and they ride group images since kb/Work PB164 wave 1, but the
+        // REDEFINES tiering still models windows over the ZONED digit-image representation — the mixed-usage
+        // byte-window codec is PB164's remaining REDEFINES half, measured as the live Tier-C runtime loud),
+        // or INDEX (no image at all, §13.18.60). A DISPLAY + BINARY/PACKED mix is
         // Tier B: under the digit-image representation (ISO §13.18.60 USAGE GR4 — the representation, including
         // the sign, is implementor-defined; COBOLNET_DESIGN §4.2/§14.4) one string backing IS the shared area —
         // exactly §12.4.6.4.4 SAME RECORD AREA GR2's "equivalent to an implicit redefinition of the area, with

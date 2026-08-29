@@ -111,11 +111,17 @@ internal sealed class PhysicalModel(EmitContext ctx)
             int occurs = c.Occurs ?? 0;
             int width = occurs > 0 ? elemWidth * occurs : elemWidth;
             // A NATIVE fixed-point numeric field (the ElementType test excludes the string-stored shapes —
-            // StoreAsImage leaves, edited items — and floats): its slice of the group image is the zoned digit
-            // form, encoded/decoded by the image methods through CobolNum (COBOLNET_DESIGN §14.4). COMP-5 and
-            // INDEX never qualify (excluded by the usage filter; see DataItem.IsImageCapable).
-            DataItem? numLeaf = !c.IsGroup && c.ElementType is "long" or "Int128"
-                && c.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed }
+            // StoreAsImage leaves, edited items — and floats): its slice of the group image is its BYTE FORM
+            // (zoned digits, radix-2, BCD — PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164
+            // admitted COMP-5/BINARY-CHAR..DOUBLE, whose drifted exclusion here was the second copy of the
+            // union), encoded/decoded through CobolNum (COBOLNET_DESIGN §14.4). INDEX never qualifies
+            // (ByteForm None; see DataItem.IsImageCapable).
+            // ⛔ DERIVED from the predicate alone (kb/Work PB164 — the review fleet caught the carrier-name
+            // list `"long" or "Int128"` surviving as a FIFTH drifted copy: an unsigned wide COMP-5/
+            // BINARY-DOUBLE leaf carries ulong/UInt128, got NumLeaf null, and the codec emitted
+            // string-member code over a ulong field — uncompilable generated C#). StoreAsImage leaves are
+            // string-stored and take the pass-through arm.
+            DataItem? numLeaf = !c.IsGroup && !c.StoreAsImage && c.Pic is { HasImageByteForm: true }
                 ? c : null;
             // D19/PB43 — a USAGE BIT leaf's image is the PACKED run it belongs to, not its own carrier. The run's
             // leader carries the whole run's byte width; a continuation carries 0, so the group's image width is

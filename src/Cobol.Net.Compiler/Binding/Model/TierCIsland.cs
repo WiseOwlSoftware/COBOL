@@ -28,8 +28,10 @@ internal static class TierCIsland
 
     /// <summary>The uniform lead for the common shape (<paramref name="context"/> verb + the group name +
     /// its offending-leaf <paramref name="leafKind"/>), then the canonical tail. <paramref name="leafKind"/>
-    /// reflects the caller's predicate: <c>"float/COMP-5/INDEX"</c> for an <see cref="DataItem.IsImageCapable"/>
-    /// guard, <c>"COMP/binary"</c> for the stricter <see cref="DataItem.IsCharacterImage"/> guard.</summary>
-    public static string Reason(DataItem item, string context, string leafKind = "float/COMP-5/INDEX") =>
+    /// reflects the caller's predicate: <c>"float/INDEX"</c> for an <see cref="DataItem.IsImageCapable"/>
+    /// guard (COMP-5 and BINARY-CHAR..DOUBLE are IN the image since kb/Work PB164 wave 1 — a message naming
+    /// them would blame a cause that no longer exists), <c>"COMP/binary"</c> for the stricter
+    /// <see cref="DataItem.IsCharacterImage"/> guard.</summary>
+    public static string Reason(DataItem item, string context, string leafKind = "float/INDEX") =>
         Reason($"{context} '{item.CobolName}' with a {leafKind} leaf");
 }

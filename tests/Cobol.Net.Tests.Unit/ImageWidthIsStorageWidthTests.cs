@@ -38,12 +38,15 @@ public sealed class ImageWidthIsStorageWidthTests
         new(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: scale, Signed: signed);
 
     /// <summary>Every fixed-point numeric usage that reaches an image, across the digit counts where the pinned
-    /// width table steps (1-2-4-8 for BINARY; every packed byte boundary), signed and unsigned.</summary>
+    /// width table steps (1-2-4-8-16 for the binary forms; every packed byte boundary), signed and unsigned —
+    /// including the COMP-5/BINARY-CHAR..DOUBLE family kb/Work PB164 admitted (this enumeration was itself a
+    /// drifted copy of the retired usage union, so the ONE-WIDTH invariant was never asserted for them).</summary>
     public static TheoryData<Usage, int, bool> ImageCapableNumerics()
     {
         var data = new TheoryData<Usage, int, bool>();
-        foreach (var usage in new[] { Usage.Display, Usage.Binary, Usage.Packed })
-            foreach (int digits in new[] { 1, 2, 3, 4, 5, 6, 8, 9, 10, 15, 18 })
+        foreach (var usage in new[] { Usage.Display, Usage.Binary, Usage.Packed, Usage.Comp5,
+                     Usage.BinaryChar, Usage.BinaryShort, Usage.BinaryLong, Usage.BinaryDouble })
+            foreach (int digits in new[] { 1, 2, 3, 4, 5, 6, 8, 9, 10, 15, 18, 19, 31 })
                 foreach (bool signed in new[] { false, true })
                     data.Add(usage, digits, signed);
         return data;

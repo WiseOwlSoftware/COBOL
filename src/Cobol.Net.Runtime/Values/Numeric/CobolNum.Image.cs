@@ -55,6 +55,28 @@ public static partial class CobolNum
     /// <inheritdoc cref="StoreImage(string, in NumProfile, long)"/>
     public static string StoreImage(string image, in NumProfile item, string current) => image;
 
+    /// <summary>The UNSIGNED carrier lanes (kb/Work PB164): a <c>ulong</c>/<c>UInt128</c>-carried
+    /// BinaryCapacity item (an unsigned <c>PIC 9(10..)</c> COMP-5 / BINARY-DOUBLE) reinterprets
+    /// BIT-IDENTICALLY through the signed lane — the two's-complement bytes of the reinterpreted value ARE
+    /// the unsigned big-endian magnitude bytes at <see cref="NumProfile.StorageLength"/>, and the parse
+    /// reinterprets back, so <c>FormatBinaryImage</c>/<c>ParseBinaryImage</c> need no unsigned twins.
+    /// Without these overloads the group codec's emitted <c>FormatImage(field, …)</c> failed to COMPILE for
+    /// such a leaf (UInt128→Int128 is an explicit conversion).</summary>
+    public static string FormatImage(ulong unscaled, in NumProfile item) =>
+        FormatImage(unchecked((Int128)unscaled), item);
+
+    /// <inheritdoc cref="FormatImage(ulong, in NumProfile)"/>
+    public static string FormatImage(UInt128 unscaled, in NumProfile item) =>
+        FormatImage(unchecked((Int128)unscaled), item);
+
+    /// <inheritdoc cref="FormatImage(ulong, in NumProfile)"/>
+    public static ulong StoreImage(string image, in NumProfile item, ulong current) =>
+        unchecked((ulong)ParseImage(image, item));
+
+    /// <inheritdoc cref="FormatImage(ulong, in NumProfile)"/>
+    public static UInt128 StoreImage(string image, in NumProfile item, UInt128 current) =>
+        unchecked((UInt128)ParseImage(image, item));
+
     /// <summary>Decode an item's record-image bytes back to its unscaled value — the inverse of
     /// <see cref="FormatImage(Int128, in NumProfile)"/>.</summary>
     public static Int128 ParseImage(string image, in NumProfile item) => item.ByteForm switch
