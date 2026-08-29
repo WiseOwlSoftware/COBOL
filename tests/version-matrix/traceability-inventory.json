@@ -42879,12 +42879,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Intrinsic functions",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#StaticUsageOf",
-  "test-ref": "conformance:2002/intrinsics_boolean_conv; conformance:2023/pb65_boolean_expression_argument",
-  "editions": "85,2002,2014,2023",
-  "notes": "cite.py --check 15.2 'Boolean functions. These are of the class and category boolean. Boolean functions have an implicit usage bit.' => OK §15.2 2). THE CLASS/CATEGORY HALF IS DONE: IntrinsicCatalog.cs#CategoryOf maps IntrinsicType.Boolean => PicCategory.Boolean (the row comment cites §15.2 item 2 and §8.5.2.5 item 4, 'a boolean function'), BOOLEAN-OF-INTEGER is the one such row, and the category reaches the consumers — IntrinsicBinder.cs#IsStringOperand routes a Boolean-result nested call through the string pipeline (kb/Work PB68 — before that a numeric context over BOOLEAN-OF-INTEGER died with an unhandled NotImplemented), and ClassOf1 gives a nested Boolean-result call CobolClass.Boolean so it satisfies §15.45.3 r1. THE USAGE HALF IS NOT, AND IT IS CONTRADICTED WHERE IT IS READ: IntrinsicArgumentRules.cs#StaticUsageOf answers `PicCategory.Alphanumeric or PicCategory.Boolean => Usage.Display` for a nested intrinsic call, i.e. a BOOLEAN FUNCTION is reported as usage DISPLAY. That is the exact axis §15.18.3 r2 keys on ('If any argument is usage national, all arguments shall be usage national, otherwise all arguments shall be usage display' — cite.py --check 15.18.3 => OK r2), consumed by IntrinsicBinder.cs#CheckConcatArgs, and §15.18.1's own result table enumerates only 'Boolean usage Display' and 'Boolean usage National' rows — so a boolean FUNCTION argument, which §15.2 item 2 makes implicit usage BIT, passes CheckConcatArgs' r2 screen as a display argument. Nothing anywhere carries a usage for a function result (BoundIntrinsicCall holds ResultCategory only), and no test exercises the usage of a boolean function result. One half verified, one half unmodelled and locally contradicted => PARTIAL.",
-  "state": "GAP"
+  "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Concat_BooleanFunctionArgument_ImplicitUsageBit",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED (kb/Work PB124 wave 5c): the usage half is modelled - StaticUsageOf answers Usage.Bit for a Boolean-result nested call, per 15.2 item 2's own sentence ('Boolean functions ... have an implicit usage bit'), so CONCAT's 15.18.3 r2 usage screen rejects a boolean FUNCTION argument (usage bit satisfies neither of r2's families, exactly as 15.18.1's result table - which enumerates only display and national boolean rows - implies). A PIC 1 display boolean ITEM stays a legal display argument (its item usage answers, unchanged). The class/category half was already verified on this row.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-15.2-3",
@@ -43074,12 +43074,12 @@
   "kind": "AR",
   "ordinal": 11,
   "subject": "Intrinsic functions",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfCategory",
-  "test-ref": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "cite.py --check 15.3 'Object. An object reference shall be specified; the predefined object reference SUPER shall not be specified.' => OK §15.3 11). Table 21 gives type 11 ('Obj1') to exactly two functions, LENGTH and BYTE-LENGTH. WHAT IS VERIFIED BY READING. ClassOfCategory maps PicCategory.ObjectReference => CobolClass.Object; Object is in PolymorphicExcluded and in no Admissible arm, so an object-reference argument is refused everywhere §15 does not admit it (§15.59.3 r1's list, --check'd, names object). ExpressionBinder.cs#OperandRef applies the §8.8.1.1 non-numeric screen ONLY under OperandContext.Arithmetic, so under OperandContext.FunctionArgument an object-reference item does bind to a field operand; LENGTH/BYTE-LENGTH are DeliberatelyUnscreened (§15.50.3 r1 'a data item of any class or category', --check'd) and DataItem.ElementaryByteWidth pins Usage.ObjectReference at 8 bytes, which IntrinsicBinder.cs#LengthPositions returns through its §15.50.4 r3 arm. The SUPER prohibition is satisfied structurally rather than by a rule: SUPER is a lexer token (CobolLexer.g4:672) and is NOT an alternative of `cobolWord` (CobolWords.g4, grepped), so FUNCTION LENGTH(SUPER) cannot parse as a data reference. WHY PARTIAL. (a) NOT ONE test anywhere passes an object reference to any intrinsic — grepped tests/conformance for USAGE OBJECT REFERENCE: eleven oo_*.cob programs, none with a FUNCTION reference over one; pb61_length_byte_length_rule_branches, which is the rule-branch probe for exactly this family, covers COMP-1/COMP-2/INDEX/POINTER and omits OBJECT REFERENCE, so the 8-byte answer is an unexercised path. (b) The SUPER half has no §15.3-citing screen at all; it survives on a grammar property that no test asserts and that a future widening of cobolWord would silently remove. An unverified edge is PARTIAL by construction.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions",
+  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches; conformance-test:IntrinsicFunctionDifferentialTests.Length_SuperIsStructurallyUnparseable",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED (kb/Work PB124 wave 5c): both unverified edges now carry pins. (a) pb61's CARR line gained OBJECT REFERENCE and PROGRAM-POINTER legs - LENGTH/BYTE-LENGTH answer 8/8 through ElementaryByteWidth's previously-unexercised arms. (b) The SUPER prohibition's structural refusal (a lexer token outside cobolWord, so LENGTH(SUPER) cannot parse as a data reference) is pinned by a compile-must-fail fact - the drift pin the grammar property lacked; a future widening of cobolWord that admits SUPER breaks it loudly.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.3-12",
@@ -43100,12 +43100,12 @@
   "kind": "AR",
   "ordinal": 13,
   "subject": "Intrinsic functions",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfCategory",
   "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches; conformance:negative/pb58-concat-pointer",
-  "editions": "85,2002,2014,2023",
-  "notes": "cite.py --check 15.3 'Pointer. A data item of class pointer shall be specified.' => OK §15.3 13). Table 21 gives type 13 ('Ptr1') to LENGTH and BYTE-LENGTH only. BOTH directions are implemented and tested. ADMISSION: LENGTH/BYTE-LENGTH are DeliberatelyUnscreened (§15.50.3 r1 / §15.14.3 r1 admit any class), ExpressionBinder.cs#OperandRef lets a pointer item through under OperandContext.FunctionArgument (the §8.8.1.1 screen is Arithmetic-only), and DataItem.ElementaryByteWidth pins Usage.Pointer/ProgramPointer/FunctionPointer at 8 bytes, which LengthPositions returns through §15.50.4 r3 — pb61_length_byte_length_rule_branches' CARR= line pins FUNCTION LENGTH(PT) / BYTE-LENGTH(PT) = 8 8 with the expected values derived from the rule, not from an oracle. REFUSAL: ClassOfCategory folds PicCategory.Pointer and ProgramPointer to CobolClass.Pointer (Table 2's own collapse — 'Pointer | Data-pointer / Function-pointer / Program-pointer', read at specs/ISO_COBOL.md:7369); Pointer is in PolymorphicExcluded and in no Admissible arm, so every 'n'/'i'/'s'/'c'/'p' position rejects it — negative/pb58-concat-pointer pins the CONCAT case (§15.18.3 r1 admits every class but index/object/pointer). The figurative NULL is classified [Pointer] by CandidateClasses (§8.3.3.7) and therefore also refused wherever no rule admits a pointer. REFUTED: CONFORMS -> PARTIAL. Citation re-derived: cite.py --check 15.3 'Pointer. A data item of class pointer shall be specified.' => OK §15.3 13). The cited code-location is the refutation. §8.5.2.1 Table 2 (read at specs/ISO_COBOL.md:7362-7372) gives class Pointer THREE categories -- 'Data-pointer / Function-pointer / Program-pointer' -- and IntrinsicArgumentRules.cs#ClassOfCategory, whose own summary claims 'ISO §8.5.2.1 Table 2, read as written', names TWO: `PicCategory.Pointer or PicCategory.ProgramPointer => CobolClass.Pointer`. There is no PicCategory.FunctionPointer member at all (read src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs -- the PicCategory enum ends Group, Alphanumeric, Numeric, NumericEdited, National, Boolean, ObjectReference, Pointer, ProgramPointer), so a function-pointer item would classify NULL and fail OPEN at every 'n'/'i'/'s'/'c'/'p' screen rather than being rejected as class pointer. It is unreachable today only because PictureAnalyzer.cs:549-552 rejects the declaration outright -- `case \"FUNCTION-POINTER\": edition.Error(DiagnosticCatalog.UsageFunctionPointer, ...)` -- which also makes the `Usage.FunctionPointer => 8` arm of DataItem.ElementaryByteWidth (DataItem.cs:503-504) that the adjudicator cited as evidence a DEAD lookup, and a dead lookup has never been contradicted (feedback_a_dead_lookup_is_also_unverified). TEST COVERAGE MEASURED, not assumed: 2023/pb61_length_byte_length_rule_branches declares `01 PT USAGE POINTER` and `05 HP USAGE POINTER` and nothing else -- neither PROGRAM-POINTER nor FUNCTION-POINTER appears in it, so of Table 2's three pointer categories exactly one is exercised in the admission direction, and negative/pb58-concat-pointer likewise pins the refusal for a data-pointer only. One of three categories unclassifiable and undeclarable, one of three tested: PARTIAL.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "LANDED (kb/Work PB124 wave 5c): (a) PROGRAM-POINTER's admission direction is now exercised (pb61's new CARR leg, 8/8); the refusal direction stays pinned by pb58-concat-pointer. (b) The function-pointer category: PicCategory deliberately gains NO FunctionPointer member while USAGE FUNCTION-POINTER is documented non-support (COBOLNET1564, Annex A.3) - the category is unreachable BY CONSTRUCTION, recorded at ClassOfCategory's pointer arm with the instruction that the member lands in the same change set that ever makes the usage declarable (a dead lookup is also unverified, so none is kept). Table 2's three-way pointer collapse is implemented for both declarable categories.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.3-14",

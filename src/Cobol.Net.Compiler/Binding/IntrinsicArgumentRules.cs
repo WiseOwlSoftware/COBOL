@@ -427,6 +427,11 @@ internal static class IntrinsicArgumentRules
         PicCategory.Numeric => CobolClass.Numeric,
         PicCategory.Boolean => CobolClass.Boolean,
         PicCategory.ObjectReference => CobolClass.Object,
+        // Table 2 collapses all THREE pointer categories into class Pointer. PicCategory has no
+        // FunctionPointer member because USAGE FUNCTION-POINTER is documented non-support (COBOLNET1564,
+        // Annex A.3) — the category is unreachable BY CONSTRUCTION, not silently unclassifiable; this arm
+        // gains the member in the same change set that ever makes the usage declarable (kb/Work PB124
+        // wave 5c, AR-15.3-13 — a dead lookup is also unverified, so none is kept).
         PicCategory.Pointer or PicCategory.ProgramPointer => CobolClass.Pointer,
         _ => null,                                          // Group is handled by the caller
     };
@@ -451,7 +456,12 @@ internal static class IntrinsicArgumentRules
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory switch
         {
             PicCategory.National => Usage.National,
-            PicCategory.Alphanumeric or PicCategory.Boolean => Usage.Display,
+            PicCategory.Alphanumeric => Usage.Display,
+            // §15.2 item 2 (kb/Work PB124 wave 5c, GR-15.2-2): "Boolean functions … have an implicit usage
+            // bit." The old Display answer let a boolean FUNCTION pass CONCAT's §15.18.3 r2 usage screen as a
+            // display argument, though §15.18.1's own result table enumerates only display and national
+            // boolean rows — usage bit satisfies neither of r2's families, so the screen now rejects it.
+            PicCategory.Boolean => Usage.Bit,
             _ => null,   // a numeric result is a VALUE, not a stored character string
         },
         _ => null,

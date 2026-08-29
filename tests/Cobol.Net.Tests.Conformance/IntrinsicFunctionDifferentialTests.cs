@@ -974,6 +974,35 @@ public sealed class IntrinsicFunctionDifferentialTests
     }
 
     [Fact]
+    public void Length_SuperIsStructurallyUnparseable()
+    {
+        // §15.3 type 11 — "the predefined object reference SUPER shall not be specified". The refusal is
+        // STRUCTURAL: SUPER is a lexer token and not an alternative of cobolWord, so LENGTH(SUPER) cannot
+        // parse as a data reference (kb/Work PB124 wave 5c, AR-15.3-11 — this fact is the drift pin the
+        // grammar property lacked; a future widening of cobolWord that admits SUPER breaks it loudly).
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            Program("01 R PIC 9(4).", "    COMPUTE R = FUNCTION LENGTH(SUPER).\n    DISPLAY R."));
+        Assert.False(ok, "LENGTH(SUPER) must not compile (§15.3 type 11)");
+        Assert.Contains("SUPER", detail);
+    }
+
+    [Fact]
+    public void Concat_BooleanFunctionArgument_ImplicitUsageBit()
+    {
+        // §15.2 item 2: "Boolean functions … have an implicit usage bit." §15.18.3 r2 requires every CONCAT
+        // argument to be usage display or every one usage national — usage bit satisfies neither family, and
+        // §15.18.1's result table enumerates only display and national boolean rows. The old StaticUsageOf
+        // reported a boolean FUNCTION as usage display, so this bound clean (kb/Work PB124 wave 5c,
+        // GR-15.2-2). A PIC 1 display boolean ITEM stays a legal display argument.
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            Program("01 RS PIC X(10).",
+                "    MOVE FUNCTION CONCAT(\"x\" FUNCTION BOOLEAN-OF-INTEGER(5 8)) TO RS.\n    DISPLAY RS."));
+        Assert.False(ok, "a boolean function's implicit usage bit violates §15.18.3 r2");
+        Assert.Contains("COBOLNET1627", detail);
+        Assert.Contains("Bit", detail);
+    }
+
+    [Fact]
     public void Algebraic_LiteralArgument_1516()
     {
         // §15.83.3 r1 — argument-1 shall be a data item, not a literal.
