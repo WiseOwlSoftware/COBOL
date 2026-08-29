@@ -1712,7 +1712,17 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB141+PB143+PB145+PB148 batch tree `dae02598` (2026-08-29, battery #33).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB151+PB154+PB155 batch tree `9236274e` (2026-08-29, battery #34).**
+  ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
+  `/tmp/battery-20260829-130856`; DEVLOG 1392): FULL greenfield Conformance **5085 / 5085** · Unit
+  **4650 / 4650** · characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION** (audit CLEAN — the PB154
+  CANCEL/lifecycle rework, the PB155 arithmetic screens and the CobolEdit P-split anchor fix survived the
+  whole IC/IF/NC suites) · GnuCOBOL differential **1323 cases, 0 per-case flips** (totals unchanged
+  572/474/206/71 — the tightened screens flipped no external verdict). Covers DEVLOG 1389–1391: PB151
+  (ALLOCATE on true premises), PB154 (CANCEL whole — the modeled GR7 predicate, the static BASED bridge,
+  the tolerant transient close), PB155 (the arithmetic sending screen — edited operands, bind-time literal
+  rejects, the composite with real mask geometry) — the population grew by 17 Conformance tests over #33.
+- **⛔ PRIOR BATTERY REFERENCE — the PB141+PB143+PB145+PB148 batch tree `dae02598` (2026-08-29, battery #33).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts in the session
   scratchpad `battery33/`; DEVLOG 1388): FULL greenfield Conformance **5068 / 5068** · Unit **4633 / 4633** ·
   characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION** (audit CLEAN — the PB143 shared-store
