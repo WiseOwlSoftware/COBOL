@@ -522,13 +522,27 @@ public static partial class CobolIntrinsics
     /// characters (or of zero length) returns a zero-length string (rule 4).</summary>
     public static string Trim(string s, long mode, params string[] chars)
     {
-        char[] set = chars.Length == 0 ? [' '] : chars.Where(c => c.Length > 0).Select(c => c[0]).ToArray();
-        if (set.Length == 0) set = [' '];
-        return mode switch
+        // ⛔ SEQUENTIAL folds, never a set union (§15.96.4 r5 — "each argument-2 is processed completely in the
+        // order that they are specified"; its NOTE: TRIM(a b c) ≡ TRIM(TRIM(a b) c), and TRIM("aabbcc" "c" "b")
+        // is "aa"). The former one-pass s.Trim(set) removed interleavings the nesting cannot reach:
+        // TRIM("bcab" "c" "b") is "ca" per the rule — the inner fold strips nothing ('c' guards neither edge) —
+        // where the union gave "a" (kb/Work PB117, the §15 close-out's find). The NOTE's own example agrees
+        // under both readings, which is why a NOTE-derived golden would have passed over the defect.
+        string r = s;
+        bool any = false;
+        foreach (string c in chars)
         {
-            1 => s.TrimStart(set),   // LEADING (rule 1)
-            2 => s.TrimEnd(set),     // TRAILING (rule 2)
-            _ => s.Trim(set),        // both (rule 3)
+            if (c.Length == 0) continue;
+            any = true;
+            r = TrimOne(r, mode, c[0]);
+        }
+        return any ? r : TrimOne(r, mode, ' ');   // no argument-2: one fold over the class's space (r3 defaults)
+
+        static string TrimOne(string t, long mode, char c) => mode switch
+        {
+            1 => t.TrimStart(c),     // LEADING (rule 1)
+            2 => t.TrimEnd(c),       // TRAILING (rule 2)
+            _ => t.Trim(c),          // both (rule 3)
         };
     }
 
