@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Text;
 using CobolNet.Runtime.Collation;
 using CobolNet.Runtime.Collation.Cldr;
 using CobolNet.Runtime.Exceptions;
@@ -126,7 +127,8 @@ public sealed class LocaleFacts
     /// spacing-normalized (<see cref="NormalizeSpacing"/>).</summary>
     public string TimeFormat => NormalizeSpacing(DateTimeFormat.LongTimePattern);
 
-    /// <summary>⚖ DETERMINATION L10 addendum (kb/Work PB112): the U+202F NARROW NO-BREAK SPACE and U+2009 THIN
+    /// <summary>⚖ DETERMINATION L10 addendum (kb/Work PB112; generalized to L12 at PB64 T6 — see
+    /// <see cref="NormalizeLocaleText"/> below): the U+202F NARROW NO-BREAK SPACE and U+2009 THIN
     /// SPACE that newer CLDR/ICU releases put inside date/time patterns (ICU 72 moved en-US's day-period separator
     /// from ' ' to U+202F) are normalized to the PLAIN SPACE in the patterns LOCALE-DATE / LOCALE-TIME /
     /// LOCALE-TIME-FROM-SECONDS format with. Two grounds, documented in CONFORMANCE.md: (1) the host ICU version
@@ -136,8 +138,39 @@ public sealed class LocaleFacts
     /// own locale data (t_fmt <c>%r</c>) and GnuCOBOL's strftime rendition both use the plain space — the
     /// survey-compilers-on-latitude rule. Found as CI's Linux-only red on the T4 golden (a U+202F between "09" and
     /// "PM" that no eye could see in the assert message; the TRX artifact carried the bytes).</summary>
-    internal static string NormalizeSpacing(string pattern) =>
-        pattern.Replace('\u202F', ' ').Replace('\u2009', ' ');
+    internal static string NormalizeSpacing(string pattern) => NormalizeLocaleText(pattern);
+
+    /// <summary>⚖ DETERMINATION L12, generalizing the L10 addendum (kb/Work PB64 T6): the ONE normalization of
+    /// locale-sourced text — every Unicode FORMAT character (category Cf: the ar-* currency symbols' trailing
+    /// U+200F, the U+061C/U+200E marks inside sign strings) is REMOVED, and U+00A0 NO-BREAK SPACE joins the
+    /// L10 pair (U+202F, U+2009) in mapping to the PLAIN SPACE. Applied to the LC_TIME patterns above AND to
+    /// every LC_MONETARY string (<see cref="MonetaryFacts"/>): ICU 72 moved fr-FR's mon_thousands_sep from
+    /// U+00A0 to U+202F, and monetary strings consume CHARACTER POSITIONS of a fixed-width PICTURE format-2
+    /// item, so a host-varying byte would change the §13.18.40.5 r14 b) truncation arithmetic and
+    /// EC-LOCALE-SIZE itself — PB112's disease in monetary data. Mapping only U+202F would be insufficient:
+    /// the fr-FR byte would still differ between an old-ICU host (U+00A0) and a new one. U+2212 MINUS SIGN is
+    /// NOT mapped — a genuinely different character (sv-SE's negative_sign), not a spacing artifact.
+    /// CONFORMANCE.md documents the determination with L10's own grounds: host-stable bytes in fixed fields
+    /// (owner decision Q4's principle), and the plain forms are what ISO 9945's locale data and GnuCOBOL's
+    /// C-library rendition use.</summary>
+    internal static string NormalizeLocaleText(string text)
+    {
+        bool clean = true;
+        foreach (char c in text)
+            if (c is '\u00A0' or '\u202F' or '\u2009' || char.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.Format)
+            {
+                clean = false;
+                break;
+            }
+        if (clean) return text;
+        var sb = new StringBuilder(text.Length);
+        foreach (char c in text)
+        {
+            if (char.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.Format) continue;
+            sb.Append(c is '\u00A0' or '\u202F' or '\u2009' ? ' ' : c);
+        }
+        return sb.ToString();
+    }
 
     /// <summary>LC_MONETARY — the culture's number format (currency symbol, separators, grouping, digits, signs,
     /// patterns; the PICTURE format 2 / NUMVAL-C increment T6 reads these).</summary>

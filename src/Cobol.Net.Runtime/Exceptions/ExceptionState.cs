@@ -608,6 +608,27 @@ public sealed class ExceptionEngine
         }
     }
 
+    /// <summary>True while the currently-executing statement has EC-LOCALE-SIZE checking enabled (fatal).</summary>
+    public bool LocaleSizeChecking
+    {
+        get => _checking.LocaleSize;
+        set => _checking.LocaleSize = value;
+    }
+
+    /// <summary>Raise EC-LOCALE-SIZE (§13.18.40.5 r14 b — locale editing's move of the hypothetical data item into
+    /// the SIZE-declared item truncated a character that is "neither a zero nor a space caused by a suppressed
+    /// zero"; Table 13 Fatal; the ONE raise site is <c>CobolLocaleEdit.Format</c>, kb/Work PB64 T6) when checking
+    /// is enabled; otherwise return — the item holds the truncated content, exactly as r14 b's own text stores it,
+    /// and execution continues.</summary>
+    public void LocaleSizeError(string detail)
+    {
+        if (LocaleSizeChecking)
+        {
+            Set("EC-LOCALE-SIZE", fatal: true);
+            throw new CobolFatalException("EC-LOCALE-SIZE", detail);
+        }
+    }
+
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
@@ -992,6 +1013,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.LocaleInvalidError"/>
     public static void LocaleInvalidError(string detail) => E.LocaleInvalidError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleSizeChecking"/>
+    public static bool LocaleSizeChecking
+    {
+        get => E.LocaleSizeChecking;
+        set => E.LocaleSizeChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.LocaleSizeError"/>
+    public static void LocaleSizeError(string detail) => E.LocaleSizeError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();

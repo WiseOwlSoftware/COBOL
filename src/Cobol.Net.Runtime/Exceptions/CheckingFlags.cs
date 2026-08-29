@@ -97,4 +97,8 @@ public struct CheckingFlags
     /// environment (§8.2.1): a LOCALE-DATE / -TIME over a locale with no LC_TIME culture data (T4; T5/T6 add LC_CTYPE /
     /// LC_MONETARY).</summary>
     public bool LocaleInvalid;
+
+    /// <summary>EC-LOCALE-SIZE — locale editing of a PICTURE format-2 item truncated a character that is neither a
+    /// zero nor a space caused by a suppressed zero (§13.18.40.5 r14 b); Table 13 Fatal; PB64 T6).</summary>
+    public bool LocaleSize;
 }
