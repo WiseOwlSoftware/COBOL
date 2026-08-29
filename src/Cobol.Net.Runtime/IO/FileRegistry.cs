@@ -149,28 +149,58 @@ public sealed class FileRegistry
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
         if (IsSharingActive(name)) { SharedOpenAttempt(name, mode, null); return; }
-        if (!_files.TryGetValue(name, out var c)) return;
-        if (_locked.Contains(name)) c.SetStatus(FileStatusCode.FileLocked);
-        else c.Open(mode);
+        if (_locked.Contains(name)) Require(name).SetStatus(FileStatusCode.FileLocked);
+        else Require(name).Open(mode);
     }
+
+    /// <summary>A keyed verb reached a connector of the wrong organization — the binder screens
+    /// organizations at bind time (§14.9.10.3 SR2, §13.4.6.3 SR3 …), so this is a compiler defect and LOUD.
+    /// The old '30'-without-SetStatus fall-throughs left the FILE STATUS item reading its STALE value while
+    /// the statement's own branch local held '30' — one statement, two channels, opposite answers (PB140).</summary>
+    private static InvalidOperationException MisroutedVerb(string verb, string name, FileConnector c) =>
+        new($"{verb} reached a {c.GetType().Name} for '{name}' — the binder screens this (kb/Work PB140)");
+
+    /// <summary>The registered connector for <paramref name="name"/> — an unknown name is a COMPILER defect
+    /// (every SELECTed non-SD file registers at unit start, and the SD screens reject the rest at bind time),
+    /// so it is LOUD, never a silently-invented status. The old fail-open miss arms reported the SUCCESSFUL
+    /// '00' to the FILE STATUS item for a statement whose own local held '30' — one statement, two channels,
+    /// opposite answers (kb/Work PB140).</summary>
+    private FileConnector Require(string name) =>
+        _files.TryGetValue(name, out var c) ? c
+        : throw new InvalidOperationException(
+            $"file connector '{name}' was never registered — a compiler defect, not a program error (kb/Work PB140)");
 
     /// <summary>CLOSE (ISO §14.9.6). For a sharing-active connector this also deregisters it from the
     /// physical-file registry and releases its record locks (§9.1.16 :11754).</summary>
     public void Close(string name)
     {
         SharedClose(name);   // no-op for a non-sharing-active connector
-        if (_files.TryGetValue(name, out var c)) c.Close();
+        Require(name).Close();
     }
 
-    /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38).</summary>
-    public void CloseWithLock(string name) { Close(name); _locked.Add(name); }
+    /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38). Only a
+    /// SUCCESSFUL close locks: §14.9.6.4 GR1 makes a not-open CLOSE ('42') unsuccessful, and an unsuccessful
+    /// CLOSE performs none of its closing actions — the old unconditional add poisoned every later OPEN of a
+    /// file whose CLOSE WITH LOCK had failed (kb/Work PB140).</summary>
+    public void CloseWithLock(string name)
+    {
+        Close(name);
+        if (Require(name).Status[0] == '0') _locked.Add(name);
+    }
 
-    /// <summary>CLOSE … REEL/UNIT on a disk medium: a no-op that leaves the file open with status 07 (the file
-    /// is not reel-structured); on a not-open file it is 42. Sequential-organization surface only.</summary>
+    /// <summary>CLOSE … REEL/UNIT on a disk medium: a no-op that leaves the file open with status 07 (§9.1.13.2
+    /// item 6 — the file is on a non-reel/unit medium); on a not-open file it is 42 (§9.1.13.7 item 2). For an
+    /// absent OPTIONAL input file, §14.9.6.4 GR6 says NO unit processing is performed and the file position
+    /// indicator is unchanged — the CLOSE completes successfully ('00'; the '07' warning describes unit
+    /// processing that was never performed). Sequential-organization surface only — §14.9.6.3 SR1 restricts
+    /// the phrase at BIND time, so a keyed connector here is a compiler defect (the old pattern-match guard
+    /// silently skipped the status assignment and the FILE STATUS item kept its stale value).</summary>
     public void CloseReelUnit(string name)
     {
-        if (_files.TryGetValue(name, out var c) && c is SequentialConnector f)
-            f.SetStatus(f.IsOpen ? "07" : FileStatusCode.FileNotOpen);
+        if (Require(name) is not SequentialConnector f)
+            throw new InvalidOperationException(
+                $"CLOSE REEL/UNIT reached a non-sequential connector '{name}' — §14.9.6.3 SR1 rejects this at bind time (kb/Work PB140)");
+        f.SetStatus(!f.IsOpen ? FileStatusCode.FileNotOpen : f.OptionalNotPresent ? FileStatusCode.Success : "07");
     }
 
     /// <summary>Close every open file (run-unit termination, ISO §14.6 — flushes print streams; keyed stores
@@ -236,8 +266,10 @@ public sealed class FileRegistry
 
     // ── Organization-neutral accessors (ONE polymorphic read — the registry win) ────────────────────────────
 
-    /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
-    public string Status(string name) => _files.TryGetValue(name, out var c) ? c.Status : FileStatusCode.Success;
+    /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). An unknown name is LOUD — the
+    /// old fail-open '00' told the program a statement SUCCEEDED whose own branch local held '30' (kb/Work
+    /// PB140; the reachable case was an unregistered SD file, now a bind-time rejection).</summary>
+    public string Status(string name) => Require(name).Status;
 
     /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §15.28.4 r2): two alphanumeric spaces when the
     /// named connector was never opened, attempted to be opened, or otherwise attempted to be accessed (r2a — or is
@@ -268,35 +300,33 @@ public sealed class FileRegistry
         _files.TryGetValue(name, out var c) && c is RelativeConnector r ? r.LastSlot : 0;
 
     /// <summary>Keyed WRITE (§14.9.51) — returns the I-O status.</summary>
-    public string WriteKeyed(string name, string image, int length) => _files.TryGetValue(name, out var c)
-        ? c switch
-        {
-            RelativeConnector r => r.Write(image, length),
-            IndexedConnector ix => ix.Write(image, length),
-            _ => FileStatusCode.PermanentError,
-        }
-        : FileStatusCode.PermanentError;
+    public string WriteKeyed(string name, string image, int length) => Require(name) switch
+    {
+        RelativeConnector r => r.Write(image, length),
+        IndexedConnector ix => ix.Write(image, length),
+        var other => throw MisroutedVerb("keyed WRITE", name, other),
+    };
 
     /// <summary>Keyed REWRITE (§14.9.35) — returns the I-O status.</summary>
-    public string RewriteKeyed(string name, string image, int length) => _files.TryGetValue(name, out var c)
-        ? c switch
-        {
-            RelativeConnector r => r.Rewrite(image, length),
-            IndexedConnector ix => ix.Rewrite(image, length),
-            _ => FileStatusCode.PermanentError,
-        }
-        : FileStatusCode.PermanentError;
+    public string RewriteKeyed(string name, string image, int length) => Require(name) switch
+    {
+        RelativeConnector r => r.Rewrite(image, length),
+        IndexedConnector ix => ix.Rewrite(image, length),
+        var other => throw MisroutedVerb("keyed REWRITE", name, other),
+    };
 
     /// <summary>DELETE RECORD (§14.9.10 F1); for indexed random/dynamic the prime key is sliced from
     /// <paramref name="keyedRecordImage"/> (GR3) — relative uses the staged relative key (GR4).</summary>
-    public string DeleteRecord(string name, string keyedRecordImage) => _files.TryGetValue(name, out var c)
-        ? c switch
-        {
-            RelativeConnector r => r.Delete(),
-            IndexedConnector ix => ix.Delete(keyedRecordImage),
-            _ => FileStatusCode.PermanentError,
-        }
-        : FileStatusCode.PermanentError;
+    public string DeleteRecord(string name, string keyedRecordImage) => Require(name) switch
+    {
+        RelativeConnector r => r.Delete(),
+        IndexedConnector ix => ix.Delete(keyedRecordImage),
+        // §14.9.10.3 SR2 restricts DELETE RECORD to relative/indexed at BIND time — reaching here with a
+        // sequential connector is a compiler defect (the old '30'-without-SetStatus arm left the FILE STATUS
+        // item reading its stale value while the statement's own branch local held '30' — kb/Work PB140).
+        var other => throw new InvalidOperationException(
+            $"DELETE RECORD reached a {other.GetType().Name} for '{name}' — the binder screens this (kb/Work PB140)"),
+    };
 
     /// <summary>Sequential keyed READ [NEXT] (§14.9.30 F1) — returns the I-O status and the record image.</summary>
     public string ReadKeyedNext(string name, out string image)
@@ -337,23 +367,21 @@ public sealed class FileRegistry
 
     /// <summary>START on a relative file (§14.9.41 GR8–GR12) — a numeric RRN comparison.</summary>
     public string StartRelative(string name, string op, long rrn) =>
-        _files.TryGetValue(name, out var c) && c is RelativeConnector r
-            ? r.Start(op, rrn) : FileStatusCode.PermanentError;
+        Require(name) is RelativeConnector r ? r.Start(op, rrn)
+        : throw MisroutedVerb("START (relative)", name, Require(name));
 
     /// <summary>START on an indexed file (§14.9.41 GR13–GR17) — a leftmost-length partial-key comparison.</summary>
     public string StartIndexed(string name, int keyIndex, string op, string operand, int compareLength) =>
-        _files.TryGetValue(name, out var c) && c is IndexedConnector ix
-            ? ix.Start(keyIndex, op, operand, compareLength) : FileStatusCode.PermanentError;
+        Require(name) is IndexedConnector ix ? ix.Start(keyIndex, op, operand, compareLength)
+        : throw MisroutedVerb("START (indexed)", name, Require(name));
 
     /// <summary>START FIRST/LAST (COBOL-2002+; §14.9.41 GR11/GR12), either keyed organization.</summary>
-    public string StartFirstLast(string name, bool last) => _files.TryGetValue(name, out var c)
-        ? c switch
-        {
-            RelativeConnector r => r.StartFirstLast(last),
-            IndexedConnector ix => ix.StartFirstLast(last),
-            _ => FileStatusCode.PermanentError,
-        }
-        : FileStatusCode.PermanentError;
+    public string StartFirstLast(string name, bool last) => Require(name) switch
+    {
+        RelativeConnector r => r.StartFirstLast(last),
+        IndexedConnector ix => ix.StartFirstLast(last),
+        var other => throw MisroutedVerb("START FIRST/LAST", name, other),
+    };
 
     /// <summary>DELETE FILE (§14.9.10 Format 2, COBOL-2023): an OPEN connector → '41' (GR13); the physical file
     /// currently open by ANOTHER file connector → the file sharing conflict, '62' (GR15 / §9.1.13.9 item 2),
@@ -366,7 +394,7 @@ public sealed class FileRegistry
     /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 / §14.7.9).</summary>
     public string DeleteFile(string name, FileRetryKind retryKind, int retryAmount)
     {
-        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        var c = Require(name);
         // (a DELETE FILE accesses the connector — FUNCTION EXCEPTION-FILE r2a, §15.28.4 — recorded by the status
         // assignment below, the ONE access-recording path)
         string status;
@@ -378,11 +406,17 @@ public sealed class FileRegistry
         else
             try
             {
-                if (!File.Exists(c.HostPath)) status = FileStatusCode.OptionalFileNotFound;   // '05' GR14 — successful
-                else { File.Delete(c.HostPath); status = FileStatusCode.Success; }
+                // GR14's '05' is only for a file that is ABSENT. File.Exists swallows every access error and
+                // answers false, classifying a PRESENT-but-unobservable file as gone — GR16 requires '37'
+                // there — so the probe is File.GetAttributes, whose failures DISTINGUISH the two (PB140).
+                File.GetAttributes(c.HostPath);
+                File.Delete(c.HostPath);
+                status = FileStatusCode.Success;
             }
-            catch (UnauthorizedAccessException) { status = FileStatusCode.PermissionDenied; }   // '37' GR16
-            catch (IOException) { status = FileStatusCode.PermanentError; }
+            catch (FileNotFoundException) { status = FileStatusCode.OptionalFileNotFound; }      // '05' GR14 — successful
+            catch (DirectoryNotFoundException) { status = FileStatusCode.OptionalFileNotFound; } // '05' GR14
+            catch (UnauthorizedAccessException) { status = FileStatusCode.PermissionDenied; }    // '37' GR16
+            catch (IOException ex) { status = FileStatusCode.ForDeleteFileFailure(ex); }         // '37' GR17 / '30'
         c.SetStatus(status);
         return status;
     }
@@ -495,8 +529,7 @@ public sealed class FileRegistry
                 retryKind, retryAmount);
             if (conflict != FileStatusCode.Success)
             {
-                c.NoteReadLockConflict();   // the READ is unsuccessful (→ '43' on a following REWRITE/DELETE), FPI kept (GR10a)
-                SetStatusOf(name, conflict);
+                SetStatusOf(name, conflict);   // the status assignment drops the '43' gate (PB140); FPI kept (GR10a)
                 return conflict;
             }
         }
@@ -575,8 +608,7 @@ public sealed class FileRegistry
                         retryKind, retryAmount);
                     if (conflict != FileStatusCode.Success)
                     {
-                        f.NoteReadLockConflict();   // unsuccessful READ ('43' gate), FPI kept (GR10a)
-                        f.SetStatus(conflict);
+                        f.SetStatus(conflict);   // the status assignment drops the '43' gate (PB140); FPI kept (GR10a)
                         image = "";
                         return false;
                     }

@@ -27,6 +27,15 @@ public static class FileStatusCode
     public const string FileNotFound = "35";
     /// <summary>37 — OPEN failed: insufficient access permission.</summary>
     public const string PermissionDenied = "37";
+    /// <summary>Classify a DELETE FILE IOException (ISO §14.9.10.4 GR17 vs §9.1.13.6 item 1): a storage medium
+    /// that does not allow deletion — a write-protected volume (Windows ERROR_WRITE_PROTECT, HResult
+    /// 0x80070013) or a read-only mount (Unix EROFS = errno 30, which .NET surfaces as the IOException's
+    /// HResult) — is the '37' GR17 states; anything else is the generic permanent error '30'. Annex E.3.3
+    /// item 35 lists '37' (never '30' from a medium refusal) among the statuses DELETE FILE sets. Public so
+    /// the mapping is directly unit-testable (kb/Work PB140).</summary>
+    public static string ForDeleteFileFailure(IOException ex) =>
+        ex.HResult is unchecked((int)0x80070013) or 30 ? PermissionDenied : PermanentError;
+
     /// <summary>38 — OPEN of a file previously CLOSEd WITH LOCK (the ≤2014 CLOSE … WITH LOCK leg; NOT part of the
     /// 2002 5x/6x file-sharing family — that construct is COBOLNET0902-rejected at 2023 via the
     /// close-with-lock-removed-2023 gate, so 38 stays only for the still-legal ≤2014 path).</summary>

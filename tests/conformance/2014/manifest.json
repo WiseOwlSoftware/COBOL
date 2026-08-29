@@ -5,7 +5,7 @@
     "pb125_factorial_standard_decimal",
     "pb129_store_discipline",
     "pb129_remainder_no_phrase",
-  "pb116_sqrt_standard_decimal",
+    "pb116_sqrt_standard_decimal",
     "ca5a_prohibited_nested_no_size_error",
     "ca5b_prohibited_multi_receiver_size_error",
     "ca7_class_zero_length",
@@ -40,7 +40,8 @@
     "rounded_modes",
     "seconds_past_midnight",
     "external_constant_record_weak_type",
-    "pb64t4_locale_functions"
+    "pb64t4_locale_functions",
+    "pb140_close_lock"
   ],
   "pending": []
 }

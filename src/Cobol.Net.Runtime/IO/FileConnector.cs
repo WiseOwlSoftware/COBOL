@@ -43,7 +43,19 @@ public abstract class FileConnector
     public string Status
     {
         get => _status;
-        protected set { _status = value; EverAccessed = true; }
+        protected set
+        {
+            _status = value;
+            EverAccessed = true;
+            // §9.1.13.7 3): the '43' DELETE/REWRITE gate holds only when the IMMEDIATELY-previous operation on
+            // this connector was a successful READ. Every status assignment IS an operation's outcome
+            // (§9.1.13.1's closed statement set — CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), so
+            // the gate drops HERE, at the one chokepoint — and the READ terminals re-arm it AFTER their own
+            // assignment. Four verbs leaked the gate when each entry cleared it by hand: UNLOCK, DELETE FILE,
+            // the already-open '41' OPEN and the sharing '38'/'61' OPEN arms all reported '00' on a following
+            // DELETE where the spec requires '43' (kb/Work PB140).
+            PrevOpWasSuccessfulRead = false;
+        }
     }
     private string _status = FileStatusCode.Success;
 
@@ -71,8 +83,13 @@ public abstract class FileConnector
     /// sharing arbiter. An unshared connector keeps the default exclusive-writer OS posture, byte-for-byte.</summary>
     public bool SharedStreams { get; internal set; }
 
-    /// <summary>True between a successful OPEN and the matching CLOSE.</summary>
-    public abstract bool IsOpen { get; }
+    /// <summary>True while the connector is in an open mode (ISO §9.1.4): set by a success-family OPEN, cleared
+    /// by ANY completed CLOSE (§14.9.6.4 GR8 — and an unsuccessful close does not keep the open mode either).
+    /// ⛔ ONE bit with ONE job (kb/Work PB140): the FPI's "optional file not present" state lives on
+    /// <see cref="OptionalAbsent"/> and is NOT part of openness — folding it in forced every CloseCore to
+    /// mutate the file position indicator §14.9.6.4 GR6 says a CLOSE leaves unchanged.</summary>
+    public bool IsOpen => _openMode;
+    private bool _openMode;
 
     /// <summary>The current open mode (meaningful while <see cref="ModeKnown"/>).</summary>
     protected FileOpenMode Mode;
@@ -91,13 +108,32 @@ public abstract class FileConnector
 
     // Read-position state (ISO §14.9.30 GR21 / §14.9.35 GR5): a sequential READ after an unsuccessful READ with
     // no reposition is itself unsuccessful ('46'); a sequential-access REWRITE/DELETE requires the immediately-
-    // previous op be a successful READ (else '43'). Both reset at OPEN; every non-READ op clears the pair.
+    // previous op be a successful READ (else '43'). The '43' gate drops in the Status SETTER (every outcome is
+    // an operation; the READ terminals re-arm it after assigning) — kb/Work PB140's chokepoint. The '46' poison
+    // is NOT setter-managed: only a reposition (OPEN / START / a successful READ) clears it — a successful
+    // intervening WRITE establishes no next record, so it must survive other verbs' status assignments.
 
     /// <summary>True after an unsuccessful READ/START with no reposition since — the next sequential READ is '46'.</summary>
     protected bool LastReadUnsuccessful;
 
     /// <summary>True when the immediately-previous operation was a successful READ (the '43' gate).</summary>
     protected bool PrevOpWasSuccessfulRead;
+
+    /// <summary>A successful READ's terminal: assign the status (the setter drops the '43' gate like every
+    /// other outcome) and then RE-ARM it — the ONE place a read outcome may do so (§9.1.13.7 3)). A successful
+    /// READ is also a reposition, so the '46' poison clears (§14.9.30 GR21).</summary>
+    protected string ReadSucceeded(string status)
+    {
+        Status = status;
+        PrevOpWasSuccessfulRead = true;
+        LastReadUnsuccessful = false;
+        return status;
+    }
+
+    /// <summary>The file position indicator's "optional file not present" state (ISO §9.1.13.2 item 5 /
+    /// §14.9.6.4 GR6) — exposed for the registry's REEL/UNIT surface, which must perform NO unit processing
+    /// for an absent optional file.</summary>
+    internal bool OptionalNotPresent => OptionalAbsent;
 
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15 — the frame length on a varying
     /// file, the record width on a fixed one; the RECORD VARYING DEPENDING item receives it after a READ).</summary>
@@ -122,12 +158,6 @@ public abstract class FileConnector
     /// the WITH LOCK acquisition target).</summary>
     public virtual string LastWrittenRecordId => "";
 
-    /// <summary>Record that a READ terminated in the record-operation-conflict condition (I-O status 51,
-    /// §9.1.13.8): the READ is UNSUCCESSFUL — so a following sequential-access REWRITE/DELETE is '43'
-    /// (§14.9.35 GR5 / §14.9.10 GR2) — but the file position indicator is UNCHANGED (§14.9.30 GR10a), so the
-    /// read-position '46' poison (<see cref="LastReadUnsuccessful"/>) is NOT set and the READ may be retried.</summary>
-    internal void NoteReadLockConflict() => PrevOpWasSuccessfulRead = false;
-
     // ── OPEN / CLOSE (the shared preamble; ISO §14.9.27 / §14.9.6) ───────────────────────────────────────────
 
     /// <summary>OPEN the file in <paramref name="mode"/> (ISO §14.9.27 / §9.1.13.4): the already-open guard
@@ -140,19 +170,30 @@ public abstract class FileConnector
         Mode = mode;
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         OptionalAbsent = false;
-        LastReadUnsuccessful = false;
-        PrevOpWasSuccessfulRead = false;
-        try { return Status = OpenCore(mode); }
-        catch (UnauthorizedAccessException) { return Status = FileStatusCode.PermissionDenied; }
-        catch (IOException) { return Status = FileStatusCode.PermanentError; }
+        LastReadUnsuccessful = false;   // OPEN is a reposition; the '43' gate drops in the Status setter
+        string s;
+        try { s = OpenCore(mode); }
+        catch (UnauthorizedAccessException) { s = FileStatusCode.PermissionDenied; }
+        catch (IOException) { s = FileStatusCode.PermanentError; }
+        _openMode = s[0] == '0';   // a success-family OPEN ('00'/'05'/'07') puts the connector in its open mode
+        return Status = s;
     }
 
     /// <summary>CLOSE the file (ISO §14.9.6): the not-open guard ('42', §9.1.13.7 item 2), then the
-    /// organization's <see cref="CloseCore"/>. Sets and returns the status.</summary>
+    /// organization's <see cref="CloseCore"/> under the OPEN twin's exception mapping — an OS-level close
+    /// failure (a flush that cannot complete, a store that cannot persist) is the §9.1.13.6 item 1 permanent
+    /// error '30', where it previously escaped the emitted statement and aborted the run unit (kb/Work
+    /// PB140). Successful or not, a completed CLOSE takes the connector out of its open mode (§14.9.6.4 GR8;
+    /// the failure left it BOTH associated and open before). Sets and returns the status.</summary>
     public string Close()
     {
         if (!IsOpen) return Status = FileStatusCode.FileNotOpen;
-        return Status = CloseCore();
+        string s;
+        try { s = CloseCore(); }
+        catch (UnauthorizedAccessException) { s = FileStatusCode.PermanentError; }
+        catch (IOException) { s = FileStatusCode.PermanentError; }
+        _openMode = false;
+        return Status = s;
     }
 
     /// <summary>The organization-specific OPEN body: reset org state, probe/create/load the physical store, and

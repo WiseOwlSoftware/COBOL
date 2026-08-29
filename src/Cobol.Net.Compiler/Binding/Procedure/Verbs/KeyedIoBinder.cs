@@ -140,6 +140,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         string name = del.fileName().GetText();
         if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"DELETE of undeclared file '{name}'");
+        // §13.4.6.3 SR3: an SD file (its SELECT may even carry ORGANIZATION RELATIVE/INDEXED) previously bound
+        // and ran against an unregistered connector — the fail-open status read '00' (kb/Work PB140).
+        if (ctx.Validation.ScreenSortMergeFile(file, "DELETE") is { } sd)
+            return new BoundUnsupported(sd);
         if (file.IsSequential)
         {
             ctx.Edition.Error("COBOLNET0865", $"DELETE RECORD shall not be specified for sequential-organization "
@@ -172,6 +176,13 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
             {
                 steps.Add(new BoundUnsupported($"DELETE FILE of undeclared file '{name}'"));
+                continue;
+            }
+            // §14.9.10.3 SR3 / §13.4.6.3 SR3: DELETE FILE of the sort-merge file rejects at bind time —
+            // it previously compiled and the statement's TWO status channels answered oppositely (kb/Work PB140).
+            if (ctx.Validation.ScreenSortMergeFile(file, "DELETE FILE") is { } sd)
+            {
+                steps.Add(new BoundUnsupported(sd));
                 continue;
             }
             List<BoundStatement>? on = null, notOn = null;

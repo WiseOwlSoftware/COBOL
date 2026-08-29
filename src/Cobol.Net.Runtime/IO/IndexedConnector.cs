@@ -43,7 +43,6 @@ public sealed class IndexedConnector : FileConnector
     /// record locking (Phase 4d M2-FILE-1). Null before the first successful READ.</summary>
     public string? LastReadPrime => _lastReadPrime;
     private string? _lastWrittenPrimeId;   // the record released by the last successful Write (§14.9.51 GR11)
-    private bool _open;
 
     // ── Record-lock identity (ISO §9.1.16) — an indexed record's identity is its PRIME record key ────────────
 
@@ -60,7 +59,6 @@ public sealed class IndexedConnector : FileConnector
     public override string LastWrittenRecordId => _lastWrittenPrimeId ?? "";
 
     /// <summary>True between a successful OPEN and the matching CLOSE.</summary>
-    public override bool IsOpen => _open;
 
     // RECORD IS VARYING: the RecordFraming store carries each record's exact length; key slices pad on demand
     // (KeyOf), so a varying record persists at its written length (§13.18.43 GR13) and reports it on READ
@@ -174,7 +172,6 @@ public sealed class IndexedConnector : FileConnector
                 }
                 break;
         }
-        _open = true;
         _fpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
         return status;
     }
@@ -184,14 +181,11 @@ public sealed class IndexedConnector : FileConnector
     /// The not-open '42' guard lives on <see cref="FileConnector.Close"/>.</summary>
     protected override string CloseCore()
     {
-        try
-        {
-            if (!OptionalAbsent && Mode is not FileOpenMode.Input)
-                RecordFraming.WriteStore(HostPath, _recs.OrderBy(r => r.Arrival).Select(r => (string?)r.Image).ToList());
-        }
-        catch (IOException) { _open = false; return FileStatusCode.PermanentError; }
-        _open = false;
-        OptionalAbsent = false;
+        // A persist IOException maps to '30' on FileConnector.Close (§9.1.13.6 item 1 — the ONE mapping),
+        // which ends the open mode either way; ModeKnown then stays true for the USE-declarative scoping.
+        // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 (kb/Work PB140).
+        if (!OptionalAbsent && Mode is not FileOpenMode.Input)
+            RecordFraming.WriteStore(HostPath, _recs.OrderBy(r => r.Arrival).Select(r => (string?)r.Image).ToList());
         ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }
@@ -212,7 +206,6 @@ public sealed class IndexedConnector : FileConnector
     private string ReadSequential(out string image, bool previous)
     {
         image = new string(' ', RecordWidth);
-        PrevOpWasSuccessfulRead = false;
         if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;            // '47' §9.1.13.7 item 7
         if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.AtEnd; }
@@ -269,11 +262,9 @@ public sealed class IndexedConnector : FileConnector
         _fpiArrival = found.Arrival;
         _fpiValid = true; _inclusive = false; _positioner = 'R';
         _lastReadPrime = KeyOf(found.Image, -1);
-        PrevOpWasSuccessfulRead = true;
-        LastReadUnsuccessful = false;
         LastReadLength = found.Image.Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(found.Image);
-        return Status = status;
+        return ReadSucceeded(status);
 
         int PositionCompare(KeyedRec rec)
         {
@@ -290,7 +281,6 @@ public sealed class IndexedConnector : FileConnector
     public string ReadRandom(int keyIndex, string keyedRecordImage, out string image)
     {
         image = new string(' ', RecordWidth);
-        PrevOpWasSuccessfulRead = false;
         if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;
         _refKey = keyIndex;                                                // GR30/GR31
@@ -308,11 +298,9 @@ public sealed class IndexedConnector : FileConnector
         }
         _fpiKey = value; _fpiArrival = found.Arrival; _fpiValid = true; _inclusive = false; _positioner = 'R';
         _lastReadPrime = KeyOf(found.Image, -1);
-        PrevOpWasSuccessfulRead = true;
-        LastReadUnsuccessful = false;
         LastReadLength = found.Image.Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(found.Image);
-        return Status = FileStatusCode.Success;
+        return ReadSucceeded(FileStatusCode.Success);
     }
 
     // ── WRITE / REWRITE / DELETE (ISO §14.9.51 / §14.9.35 / §14.9.10) ───────────────────────────────────────
@@ -324,7 +312,6 @@ public sealed class IndexedConnector : FileConnector
     /// item 8.</summary>
     public string Write(string image, int length = -1)
     {
-        PrevOpWasSuccessfulRead = false;
         if (Stored(image, length) is not { } stored)
             return Status = FileStatusCode.RecordSizeViolation;            // '44' §13.18.43 GR14a
         image = Fit(image);   // key slices come from the record-area image (KeyOf pads on demand)
@@ -363,8 +350,7 @@ public sealed class IndexedConnector : FileConnector
     /// it takes the next arrival number); a permitted duplicate alternate created → '02' (§9.1.13.2 2c).</summary>
     public string Rewrite(string image, int length = -1)
     {
-        bool wasRead = PrevOpWasSuccessfulRead;
-        PrevOpWasSuccessfulRead = false;
+        bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         // §14.9.35 GR18 — an indexed record's size MAY differ from the replaced record's; GR20 still bounds it.
         if (Stored(image, length) is not { } stored)
@@ -406,8 +392,7 @@ public sealed class IndexedConnector : FileConnector
     /// (GR9) — the (key, arrival) position survives because the next READ re-derives it.</summary>
     public string Delete(string keyedRecordImage)
     {
-        bool wasRead = PrevOpWasSuccessfulRead;
-        PrevOpWasSuccessfulRead = false;
+        bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         string prime;
         if (_access == KeyedAccess.Sequential)
@@ -434,7 +419,6 @@ public sealed class IndexedConnector : FileConnector
     /// key of reference undefined (GR7).</summary>
     public string Start(int keyIndex, string op, string operand, int compareLength)
     {
-        PrevOpWasSuccessfulRead = false;
         if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;            // '47' §14.9.41 GR1
         if (OptionalAbsent) return StartFail();                           // '23' GR5
@@ -474,7 +458,6 @@ public sealed class IndexedConnector : FileConnector
     /// reference (the prime key after OPEN, §14.9.27 GR14); an empty or absent-optional file → invalid key.</summary>
     public string StartFirstLast(bool last)
     {
-        PrevOpWasSuccessfulRead = false;
         if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;
         if (OptionalAbsent || _recs.Count == 0) return StartFail();

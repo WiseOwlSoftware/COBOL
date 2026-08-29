@@ -91,7 +91,11 @@
            REWRITE B-REC FROM "ZZZZZ". DISPLAY "REWB51=" B-ST.
            REWRITE B-REC FROM "ZZZZZ" RETRY 2 TIMES.
            DISPLAY "REWBRT=" B-ST.
-      *> A unlocks; B's REWRITE lands (record 2 becomes ZZZZZ).
+      *> A unlocks; B's re-executed REWRITE is '43' (9.1.13.7 3) - the
+      *> intervening UNSUCCESSFUL REWRITE ('51') was the last executed
+      *> I-O statement, not a successful READ, and the setter chokepoint
+      *> drops the gate on EVERY outcome (kb/Work PB140; a program must
+      *> re-READ or use RETRY to land it). Record 2 keeps A's MMMMM.
            UNLOCK F-A. DISPLAY "UNLA=" A-ST.
            REWRITE B-REC FROM "ZZZZZ". DISPLAY "REWB=" B-ST.
            CLOSE F-A.

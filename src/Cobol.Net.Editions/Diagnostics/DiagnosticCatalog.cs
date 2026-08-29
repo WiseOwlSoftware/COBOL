@@ -303,6 +303,21 @@ public static class DiagnosticCatalog
         + "nor identifier-2 shall reference a variable-length group\" — both the device and the temporal "
         + "format exclude it.",
         "ISO §14.9.1.3");
+    public static readonly DiagnosticDescriptor SortMergeFileInIoStatement = new(
+        "COBOLNET1692", "sd-file-io-statement", EditionSeverity.Error,
+        "An input-output statement names a sort-merge (SD) file. \"A sort-merge file is referenced only by a "
+        + "SORT, MERGE, RELEASE, or RETURN statement\" (and a SORT/MERGE USING/GIVING) — CLOSE, DELETE, DELETE "
+        + "FILE, OPEN, READ, REWRITE, START, UNLOCK and WRITE all reject it at compile time. The old posture "
+        + "let CLOSE and the DELETE forms compile and run against an unregistered connector, whose fail-open "
+        + "status read '00'.",
+        "ISO §13.4.6.3");
+    public static readonly DiagnosticDescriptor ClosePhraseOrganization = new(
+        "COBOLNET1693", "close-phrase-organization", EditionSeverity.Error,
+        "A CLOSE statement's NO REWIND, REEL, or UNIT phrase on a file whose organization is not sequential: "
+        + "\"The NO REWIND, REEL, and UNIT phrases may be used only with files that are of sequential "
+        + "organization.\" The WITH LOCK phrase is not organization-restricted. The old acceptance degraded at "
+        + "run time to a stale FILE STATUS value with no defined meaning.",
+        "ISO §14.9.6.3");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
         "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "

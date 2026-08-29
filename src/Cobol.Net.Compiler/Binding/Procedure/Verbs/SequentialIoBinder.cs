@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -61,6 +62,20 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             string name = phrase.fileName().GetText();
             if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
                 return new BoundUnsupported($"CLOSE of undeclared file '{name}'");
+            // §13.4.6.3 SR3: an SD file-name in a CLOSE — the statement previously compiled and ran against an
+            // unregistered connector whose fail-open status read '00' (kb/Work PB140).
+            if (ctx.Validation.ScreenSortMergeFile(file, "CLOSE") is { } sd)
+                return new BoundUnsupported(sd);
+            // §14.9.6.3 SR1: "The NO REWIND, REEL, and UNIT phrases may be used only with files that are of
+            // sequential organization" (record and line sequential both, §9.1.7.2). WITH LOCK is not
+            // organization-restricted. The old acceptance degraded to a stale FILE STATUS value at run time.
+            if (phrase.closeOption() is { } o && o.LOCK() is null && !file.IsSequential)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.ClosePhraseOrganization,
+                    $"CLOSE '{name}' with the {(o.REWIND() is not null ? "NO REWIND" : "REEL/UNIT")} phrase — "
+                    + $"the phrase may be used only with a sequential-organization file (ISO §14.9.6.3 SR1)");
+                return new BoundUnsupported($"CLOSE phrase on non-sequential file '{name}'");
+            }
             BoundCloseKind kind = phrase.closeOption() is { } opt
                 ? opt.LOCK() is not null ? BoundCloseKind.WithLock
                 : opt.REEL() is not null || opt.UNIT() is not null ? BoundCloseKind.ReelUnit
@@ -231,14 +246,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         return null;
     }
 
-    /// <summary>A loud-reason string when <paramref name="file"/>'s organization is not yet implemented (relative /
-    /// indexed in the sequential slice), so the verb emits a runtime not-implemented guard; null when supported.</summary>
-    internal static string? UnsupportedOrg(FileModel file, string verb) =>
-        // A sort-merge (SD) file may be referenced ONLY by SORT/MERGE/RELEASE/RETURN (ISO §13.4.6 SR3/SR4).
-        // Every ISO §12.4.5.10 organization (sequential, line sequential, relative, indexed) now has a dedicated
-        // bind/emit path — the relative/indexed verbs route through the KeyedIo partial and OPEN/CLOSE flow
-        // through the CobolFile facade's keyed registries. Retained as the single seam a future organization
-        // gates on (loud, never silent).
-        file.IsSortMerge ? $"{verb} on sort-merge file '{file.CobolName}' — an SD file-name may appear only in SORT/MERGE/RELEASE/RETURN (ISO §13.4.6 SR3/SR4)"
-        : null;
+    /// <summary>The §13.4.6.3 SR3/SR4 sort-merge screen (a BIND-TIME error, kb/Work PB140 — routed through the
+    /// ONE <c>StatementValidation.ScreenSortMergeFile</c>), returning the message the verb's bound node keeps
+    /// as its loud belt. Every ISO §12.4.5.10 organization (sequential, line sequential, relative, indexed)
+    /// has a dedicated bind/emit path — the relative/indexed verbs route through the KeyedIo partial —
+    /// so this seam fires only for an SD file, and stays the single seam a future organization gates on.</summary>
+    private string? UnsupportedOrg(FileModel file, string verb) => ctx.Validation.ScreenSortMergeFile(file, verb);
 }

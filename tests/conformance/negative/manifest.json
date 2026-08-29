@@ -422,7 +422,12 @@
   "pb139-accept-strong-group",
   "pb139-accept-alphabetic-temporal",
   "pb139-accept-boolean-temporal",
-  "pb139-accept-vlg"
+  "pb139-accept-vlg",
+  "pb140-close-sd",
+  "pb140-delete-record-sd",
+  "pb140-delete-file-sd",
+  "pb140-close-reel-relative",
+  "pb140-close-norewind-indexed"
  ],
  "pending": []
 }

@@ -39,10 +39,7 @@ public sealed class RelativeConnector : FileConnector
     private long _pendingKey;            // the RELATIVE KEY item's value, set by the compiler before keyed verbs
     private long _seqNext = 1;           // next sequential-access WRITE slot (§14.9.51 GR29a)
     private long _lastSlot;              // last slot read/written — the GR25/GR29a store-back + seq REWRITE/DELETE target
-    private bool _open;
 
-    /// <summary>True between a successful OPEN and the matching CLOSE.</summary>
-    public override bool IsOpen => _open;
 
     /// <summary>The RRN of the record last made available / released — the §14.9.30 GR25 and §14.9.51 GR29a
     /// MOVE-back source the generated code stores into the RELATIVE KEY item.</summary>
@@ -131,7 +128,6 @@ public sealed class RelativeConnector : FileConnector
                 _seqNext = (_slots.Count == 0 ? 0 : _slots.Keys.Max()) + 1;   // §14.9.27 GR15 / §14.9.51 GR29a
                 break;
         }
-        _open = true;
         _fpi = 1;                                              // §14.9.27 GR14 — FPI = 1 on INPUT/I-O
         _fpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
         _inclusive = true;
@@ -143,13 +139,11 @@ public sealed class RelativeConnector : FileConnector
     /// lives on <see cref="FileConnector.Close"/>.</summary>
     protected override string CloseCore()
     {
-        try
-        {
-            if (!OptionalAbsent && Mode is not FileOpenMode.Input) Persist();
-        }
-        catch (IOException) { _open = false; return FileStatusCode.PermanentError; }
-        _open = false;
-        OptionalAbsent = false;
+        // A persist IOException maps to '30' on FileConnector.Close (§9.1.13.6 item 1 — the ONE mapping),
+        // which ends the open mode either way; ModeKnown then stays true for the USE-declarative scoping.
+        // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 says the file
+        // position indicator is unchanged; the next OPEN resets it (FileConnector.Open) — kb/Work PB140.
+        if (!OptionalAbsent && Mode is not FileOpenMode.Input) Persist();
         ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }
@@ -170,7 +164,6 @@ public sealed class RelativeConnector : FileConnector
     private string ReadSequential(out string image, bool previous)
     {
         image = new string(' ', RecordWidth);
-        PrevOpWasSuccessfulRead = false;
         if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;            // '47' §9.1.13.7 item 7
         if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.AtEnd; }   // '10' §9.1.13.4 1c
@@ -206,11 +199,9 @@ public sealed class RelativeConnector : FileConnector
         }
         _fpi = s; _fpiValid = true; _inclusive = false; _positioner = 'R';   // GR21 rule f
         _lastSlot = s;
-        PrevOpWasSuccessfulRead = true;
-        LastReadUnsuccessful = false;
         LastReadLength = _slots[s].Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(_slots[s]);
-        return Status = FileStatusCode.Success;
+        return ReadSucceeded(FileStatusCode.Success);
     }
 
     /// <summary>Format-2 random READ (§14.9.30 GR29): the FPI takes the RELATIVE KEY item's value (staged by
@@ -218,7 +209,6 @@ public sealed class RelativeConnector : FileConnector
     public string ReadRandom(out string image)
     {
         image = new string(' ', RecordWidth);
-        PrevOpWasSuccessfulRead = false;
         if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;
         if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.RecordNotFound; }
@@ -229,11 +219,9 @@ public sealed class RelativeConnector : FileConnector
         }
         _fpi = _pendingKey; _fpiValid = true; _inclusive = false; _positioner = 'R';
         _lastSlot = _pendingKey;
-        PrevOpWasSuccessfulRead = true;
-        LastReadUnsuccessful = false;
         LastReadLength = rec.Length;         // §13.18.43 GR15 — the stored frame length
         image = Fit(rec);
-        return Status = FileStatusCode.Success;
+        return ReadSucceeded(FileStatusCode.Success);
     }
 
     // ── WRITE / REWRITE / DELETE (ISO §14.9.51 / §14.9.35 / §14.9.10) ───────────────────────────────────────
@@ -244,7 +232,6 @@ public sealed class RelativeConnector : FileConnector
     /// legality per §9.1.13.7 item 8 ('48').</summary>
     public string Write(string image, int length = -1)
     {
-        PrevOpWasSuccessfulRead = false;
         bool sequential = _access == KeyedAccess.Sequential || Mode == FileOpenMode.Extend;
         if (sequential)
         {
@@ -277,8 +264,7 @@ public sealed class RelativeConnector : FileConnector
     /// the key item (absent → '23', GR21). The FPI is unaffected (GR13).</summary>
     public string Rewrite(string image, int length = -1)
     {
-        bool wasRead = PrevOpWasSuccessfulRead;
-        PrevOpWasSuccessfulRead = false;
+        bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         // §14.9.35 GR18 — a relative record's size MAY differ from the replaced record's; GR20 still bounds it.
         if (_access == KeyedAccess.Sequential)
@@ -301,8 +287,7 @@ public sealed class RelativeConnector : FileConnector
     /// invalid key '23', GR4). The FPI is unaffected (GR9).</summary>
     public string Delete()
     {
-        bool wasRead = PrevOpWasSuccessfulRead;
-        PrevOpWasSuccessfulRead = false;
+        bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         if (_access == KeyedAccess.Sequential)
         {
@@ -322,7 +307,6 @@ public sealed class RelativeConnector : FileConnector
     /// key '23' with the FPI invalidated (GR7/GR9c). Open mode must be input or I-O (GR1 → '47').</summary>
     public string Start(string op, long operand)
     {
-        PrevOpWasSuccessfulRead = false;
         if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;
         if (OptionalAbsent) return StartFail();                           // '23' §14.9.41 GR5
@@ -342,7 +326,6 @@ public sealed class RelativeConnector : FileConnector
     /// (or absent optional) file → invalid key '23'.</summary>
     public string StartFirstLast(bool last)
     {
-        PrevOpWasSuccessfulRead = false;
         if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;
         if (OptionalAbsent || _slots.Count == 0) return StartFail();

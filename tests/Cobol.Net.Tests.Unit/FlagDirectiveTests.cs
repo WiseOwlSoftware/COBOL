@@ -191,10 +191,26 @@ public sealed class FlagDirectiveTests
     [Fact]
     public void Compile_Flag02IoStatus07On_EmitsCobolnet1620_OnCloseNoRewind()
     {
-        // A CLOSE WITH NO REWIND under >>FLAG-02 I-O-STATUS-07 ON is flagged (§7.3.14.4 GR4 c).
-        string program = ReadPreviousProgram
-            .Replace("{DIRECTIVE}", "")
-            .Replace("           CLOSE F.\n", "       >>FLAG-02 I-O-STATUS-07 ON\n           CLOSE F WITH NO REWIND.\n");
+        // A CLOSE WITH NO REWIND under >>FLAG-02 I-O-STATUS-07 ON is flagged (§7.3.14.4 GR4 c). The file must
+        // be SEQUENTIAL — §14.9.6.3 SR1 restricts the NO REWIND phrase to sequential organization, and PB140's
+        // COBOLNET1693 rejects it elsewhere (this fixture previously rode the INDEXED ReadPreviousProgram).
+        string program =
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. FLAGNR.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT F ASSIGN TO \"f.dat\".\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD F.\n" +
+            "       01 F-REC PIC X(4).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           OPEN INPUT F.\n" +
+            "       >>FLAG-02 I-O-STATUS-07 ON\n" +
+            "           CLOSE F WITH NO REWIND.\n" +
+            "           STOP RUN.\n";
         var warnings = CompileWarnings(program);
         Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal));
     }

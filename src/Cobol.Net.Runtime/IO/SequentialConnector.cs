@@ -183,8 +183,6 @@ public sealed class SequentialConnector : FileConnector
 
     /// <summary>True between a successful OPEN and the matching CLOSE (an absent-OPTIONAL INPUT open counts —
     /// the connector is open at EOF with no physical stream).</summary>
-    public override bool IsOpen => _reader is not null || _writer is not null || OptionalAbsent;
-
     public SequentialConnector(string hostPath, int recordWidth, bool lineSequential,
         int varyMin = -1, int varyMax = -1)
         : base(hostPath, recordWidth, varyMin, varyMax)
@@ -303,12 +301,20 @@ public sealed class SequentialConnector : FileConnector
     /// <see cref="FileConnector.Close"/>.</summary>
     protected override string CloseCore()
     {
-        if (_afterAdvancing) { _writer?.Write("\r\n"); _afterAdvancing = false; }
-        _reader?.Dispose();
-        _writer?.Dispose();
-        _reader = null;
-        _writer = null;
-        OptionalAbsent = false;
+        try
+        {
+            if (_afterAdvancing) { _writer?.Write("\r\n"); _afterAdvancing = false; }
+            _reader?.Dispose();
+            _writer?.Dispose();   // a flush failure here maps to '30' on FileConnector.Close (§9.1.13.6 item 1)
+        }
+        finally
+        {
+            // Whatever the outcome, the streams never survive the CLOSE — a stale disposed _writer after a
+            // reopen-for-INPUT would take the WRITE arms (kb/Work PB140). OptionalAbsent (the FPI's "not
+            // present" state) DOES survive — §14.9.6.4 GR6; the next OPEN resets it.
+            _reader = null;
+            _writer = null;
+        }
         ModeKnown = false;   // §9.1.4 — after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }
@@ -416,7 +422,7 @@ public sealed class SequentialConnector : FileConnector
         image = new string(' ', RecordWidth);
         if (!IsOpen) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
         if (Mode is FileOpenMode.Output or FileOpenMode.Extend) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
-        if (OptionalAbsent) { PrevOpWasSuccessfulRead = false; LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
+        if (OptionalAbsent) { LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
         if (LastReadUnsuccessful) { Status = FileStatusCode.NoValidNextRecord; return false; }
         if (_reader is null) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
 
@@ -442,7 +448,7 @@ public sealed class SequentialConnector : FileConnector
             {
                 _lastLineStart = _lineByteOffset;                      // byte anchor of the physical line (§14.9.35 GR17 REWRITE)
                 line = ReadPhysicalLine(out int delimBytes);
-                if (line is null) { PrevOpWasSuccessfulRead = false; LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
+                if (line is null) { LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
                 _lineByteOffset += line.Length + delimBytes;          // Latin1: chars == bytes (past data + delimiter)
                 _lastLineBytes = Math.Min(line.Length, RecordWidth);  // data length of the record being replaced
                 _lastReadLinePartial = line.Length > RecordWidth;     // an over-length read transfers only part (GR17a)
@@ -460,7 +466,7 @@ public sealed class SequentialConnector : FileConnector
         {
             // Length-framed record: 4-byte LE prefix + payload (see the framing note at the field declarations).
             var pre = new char[4];
-            if (FillChars(pre, 4) < 4) { PrevOpWasSuccessfulRead = false; LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
+            if (FillChars(pre, 4) < 4) { LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
             int len = RecordFraming.PrefixLength(pre);
             var buf = new char[len];
             int n = FillChars(buf, len);
@@ -477,7 +483,7 @@ public sealed class SequentialConnector : FileConnector
             // boundary, not the read position.
             var buf = new char[RecordWidth];
             int n = FillChars(buf, RecordWidth);
-            if (n == 0) { PrevOpWasSuccessfulRead = false; LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
+            if (n == 0) { LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
             _lastReadBlockStart = _reader.BaseStream.CanSeek ? _readOffset : -1;
             _readOffset += n;
             LastReadLength = n;
@@ -486,10 +492,9 @@ public sealed class SequentialConnector : FileConnector
             // A longer-than-max record cannot occur (the buffer is read in RecordWidth chunks). n == 0 is EOF above.
             if (n < RecordWidth) shortLong = true;
         }
-        PrevOpWasSuccessfulRead = true;
         _readOrdinal++;   // the record just made available is ordinal N+1 (§9.1.16 lock identity)
-        Status = lineTooLong ? FileStatusCode.LineRecordTooLong
-            : shortLong ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success;
+        ReadSucceeded(lineTooLong ? FileStatusCode.LineRecordTooLong
+            : shortLong ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success);
         return true;
     }
 
@@ -545,7 +550,6 @@ public sealed class SequentialConnector : FileConnector
     {
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         if (!PrevOpWasSuccessfulRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
-        PrevOpWasSuccessfulRead = false;
         int len = IsVarying ? (length >= 0 ? length : image.Length) : RecordWidth;
         if (IsVarying && (len < VaryMin || len > VaryMax))
             return Status = FileStatusCode.RecordSizeViolation;       // '44' §14.9.35 GR20
