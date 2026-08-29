@@ -96,15 +96,32 @@ public static partial class CobolIntrinsics
     // C#-optional defaults the exact bodies use (50 / the argument-3 = 0 execution-year sentinel), because the
     // renderer emits only the arguments actually written.
     /// <summary>§15.23 DATE-TO-YYYYMMDD with a floating-point argument.</summary>
-    public static long DateToYyyymmddReal(double date, double off = 50, double baseYear = 0) =>
+    public static long DateToYyyymmddReal(double date, double off = 50) =>
+        TryIntegerArg(date, "DATE-TO-YYYYMMDD", out long d) && TryIntegerArg(off, "DATE-TO-YYYYMMDD", out long o)
+        ? CobolDate.DateToYyyymmdd(d, o) : 0;
+    /// <summary>§15.24 DATE-TO-YYYYMMDD, argument-3 written.</summary>
+    public static long DateToYyyymmddReal(double date, double off, double baseYear) =>
         TryIntegerArg(date, "DATE-TO-YYYYMMDD", out long d) && TryIntegerArg(off, "DATE-TO-YYYYMMDD", out long o)
         && TryIntegerArg(baseYear, "DATE-TO-YYYYMMDD", out long b) ? CobolDate.DateToYyyymmdd(d, o, b) : 0;
     /// <summary>§15.25 DAY-TO-YYYYDDD with a floating-point argument.</summary>
-    public static long DayToYyyydddReal(double day, double off = 50, double baseYear = 0) =>
+    public static long DayToYyyydddReal(double day, double off = 50) =>
+        TryIntegerArg(day, "DAY-TO-YYYYDDD", out long d) && TryIntegerArg(off, "DAY-TO-YYYYDDD", out long o)
+        ? CobolDate.DayToYyyyddd(d, o) : 0;
+    /// <summary>§15.25 DAY-TO-YYYYDDD, argument-3 written.</summary>
+    public static long DayToYyyydddReal(double day, double off, double baseYear) =>
         TryIntegerArg(day, "DAY-TO-YYYYDDD", out long d) && TryIntegerArg(off, "DAY-TO-YYYYDDD", out long o)
         && TryIntegerArg(baseYear, "DAY-TO-YYYYDDD", out long b) ? CobolDate.DayToYyyyddd(d, o, b) : 0;
-    /// <summary>§15.100 YEAR-TO-YYYY with a floating-point argument.</summary>
-    public static long YearToYyyyReal(double yy, double off = 50, double baseYear = 0) =>
+    /// <summary>§15.100 YEAR-TO-YYYY with a floating-point argument. ⛔ The OVERLOAD SPLIT mirrors the exact
+    /// core (kb/Work PB119 — the two-arm dispatch shape's sixth occurrence, and the sweep found all THREE
+    /// windowing twins carrying it): the former single signature defaulted an OMITTED argument-3 to an explicit
+    /// 0, which the core's §15.100.3 r4 "greater than 1600" screen rejected — the §15.3 default 0 (or an abort
+    /// under checking) where r3 requires windowing against the execution year; and a WRITTEN 0 must still reach
+    /// that screen, so a sentinel cannot express the difference — only the arity can.</summary>
+    public static long YearToYyyyReal(double yy, double off = 50) =>
+        TryIntegerArg(yy, "YEAR-TO-YYYY", out long y) && TryIntegerArg(off, "YEAR-TO-YYYY", out long o)
+        ? CobolDate.YearToYyyy(y, o) : 0;
+    /// <summary>§15.100 YEAR-TO-YYYY, argument-3 written.</summary>
+    public static long YearToYyyyReal(double yy, double off, double baseYear) =>
         TryIntegerArg(yy, "YEAR-TO-YYYY", out long y) && TryIntegerArg(off, "YEAR-TO-YYYY", out long o)
         && TryIntegerArg(baseYear, "YEAR-TO-YYYY", out long b) ? CobolDate.YearToYyyy(y, o, b) : 0;
 
