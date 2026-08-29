@@ -70,7 +70,15 @@ internal sealed class RoslynBackend : ICodeGenBackend
                 OutputKind.ConsoleApplication,
                 optimizationLevel: OptimizationLevel.Release,
                 // The generated source is machine-emitted and self-consistent; nullable warnings on it are noise.
-                nullableContextOptions: NullableContextOptions.Disable));
+                nullableContextOptions: NullableContextOptions.Disable,
+                // §15.99.3 r3's object-code half, decided EXPLICITLY (kb/Work PB120): deterministic PE — the
+                // COFF TimeDateStamp becomes a content hash and the MVID is content-derived, so the generated
+                // object code provides NO compilation date and time and r3's "if provided in … the generated
+                // object code" condition is not engaged (the only compilation time a produced program carries
+                // is WHEN-COMPILED's own baked constant). Identical source + references → byte-identical
+                // assembly (reproducible builds, the modern toolchain norm — csc has defaulted to
+                // /deterministic since VS2017; only the Roslyn API's back-compat default is false).
+                deterministic: true));
 
         EmitResult emit = compilation.Emit(outputDllPath);
         if (!emit.Success)

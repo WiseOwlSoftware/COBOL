@@ -35,6 +35,15 @@ internal sealed class ProgramEmitter
     private readonly CallUnitState _callState = new();
     private OoEmitter _oo = null!;
 
+    /// <summary>The WHEN-COMPILED stamp for THIS compilation (§15.99.3 r2 — "the date and time of compilation
+    /// of the compilation unit that contains this function"), captured once per <c>EmitBound</c> through the
+    /// injectable <see cref="Binding.Procedure.IntrinsicBinder.CompileClock"/> seam (deep-dive D6) and shared
+    /// by every unit of the run unit — contained source units bake the CONTAINING compilation's stamp (r2's
+    /// second sentence). Per-compilation, NOT per-process (kb/Work PB120): a long-lived compiler process gives
+    /// each successive compilation its OWN capture.</summary>
+    private readonly string _whenCompiledStamp =
+        RuntimeApi.DateFormat21(Binding.Procedure.IntrinsicBinder.CompileClock());
+
     /// <summary>The CURRENT unit's collaborator set — re-created by <see cref="BeginUnit"/> at each unit
     /// switch (the ONE unit-switch entry all three unit kinds share, Step 9m/9n).</summary>
     internal UnitEmitters Current { get; private set; } = null!;
@@ -43,7 +52,8 @@ internal sealed class ProgramEmitter
     /// collaborator emitter over the fresh writer/data/resolver (the <see cref="UnitEmitters"/> ctor wires
     /// the cycles).</summary>
     internal void BeginUnit(CodeWriter w, DataBinder data, ReferenceResolver refs)
-        => Current = new UnitEmitters(w, data, refs, _names, _dispatchState, _ecState, _callState, _oo);
+        => Current = new UnitEmitters(w, data, refs, _names, _dispatchState, _ecState, _callState, _oo,
+            _whenCompiledStamp);
 
     /// <summary>The EMIT half (rearch PHASE-03 Step 14a / PHASE-06 Step 2): render the run unit's C# from an
     /// already-bound immutable <see cref="BoundCompilation"/> — reached ONLY after the driver confirmed the edition

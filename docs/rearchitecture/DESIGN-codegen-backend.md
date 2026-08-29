@@ -124,6 +124,8 @@ Packaging (runtimeconfig + runtime-dll deploy) is split out of the compile path 
 `RoslynBackend.Compile` step is pure compilation with no packaging/deploy side effects — its only writes are the
 emitted assembly itself and the failed-emit cleanup of that partial output.
 
+**Deterministic PE (kb/Work PB120, §15.99.3 r3):** `RoslynBackend.Compile` sets `deterministic: true` — the COFF `TimeDateStamp` is a content hash and the MVID is content-derived, so the generated object code provides NO compilation date and time and §15.99.3 r3's “if provided in … the generated object code” condition is not engaged (there is no listing facility either; the only compilation time a produced program carries is WHEN-COMPILED's own baked constant). Identical source + references → a byte-identical assembly (the module name embeds the output FILE name, so “identical” includes the output name). The WHEN-COMPILED stamp itself is COMPILATION-scoped, not process-scoped: `ProgramEmitter` captures it once per `EmitBound` through the injectable `IntrinsicBinder.CompileClock` seam and threads it via `EmitContext.WhenCompiledStamp`, so a container and its contained units bake the SAME constant (§15.99.3 r2) while each successive compilation in a long-lived process gets its own.
+
 ---
 
 ## 2. Target design

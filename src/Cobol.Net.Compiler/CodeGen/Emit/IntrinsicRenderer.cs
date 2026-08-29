@@ -38,13 +38,6 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// capture is not reachable through an instance reference).</summary>
     private NumericRenderer Num => num;
 
-    /// <summary>WHEN-COMPILED's compile-time constant (§15.99.3 r2 — the COMPILATION timestamp, baked into the
-    /// generated source as a string literal; injectable via <see cref="Binding.Procedure.IntrinsicBinder.CompileClock"/>, D6).
-    /// One capture per process: every unit of a compilation run shares one stamp (§15.99.3 r2's "associated
-    /// with the compilation unit").</summary>
-    private static readonly Lazy<string> WhenCompiledStamp =
-        new(() => RuntimeApi.DateFormat21(Binding.Procedure.IntrinsicBinder.CompileClock()));
-
     // ── The numeric channel (COMPUTE / arithmetic / numeric comparisons / MOVE-to-numeric) ──────────────────
 
     /// <summary>Render a numeric-result intrinsic as a scaled value.</summary>
@@ -875,10 +868,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   or __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL)
                     $"{ArgInt(ic.Args[0])}{Collate(ic)}"),
             "CurrentDate" => RuntimeApi.DateFn(sig.RuntimeMethod, ""),         // §15.21 — the runtime clock
-            // WHEN-COMPILED is the COMPILATION timestamp (§15.99.3 r2) — a constant in the generated source.
-            // (The legacy's runtime-clock placeholder also passes IF142A's plausibility checks; the constant is
-            // the spec-correct form — scout brief §4.4.)
-            "WhenCompiled" => EmitText.CsLiteral(WhenCompiledStamp.Value),
+            // WHEN-COMPILED is the COMPILATION timestamp (§15.99.3 r2) — a constant in the generated source,
+            // captured ONCE PER COMPILATION on ProgramEmitter (kb/Work PB120), not per process. (The legacy's
+            // runtime-clock placeholder also passes IF142A's plausibility checks; the constant is the
+            // spec-correct form — scout brief §4.4.)
+            "WhenCompiled" => EmitText.CsLiteral(ctx.WhenCompiledStamp),
             "MaxString" or "MinString" =>                                      // §15.59/63 all-string form (PCS via CollatePrefix, CA23)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)),
             "Concat" =>                                                        // §15.18 — concatenate all argument images (2023);
