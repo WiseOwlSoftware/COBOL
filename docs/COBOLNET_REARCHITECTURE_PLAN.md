@@ -1712,7 +1712,19 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB124-campaign tree `3b3bc921` (2026-08-29, battery #29).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB128–PB132+PB161 batch tree `7b984c64` (2026-08-29, battery #30).**
+  ✅ **Green with three matrix reds and four differential flips, ALL one attributed cause — the PB130/PB132
+  Format-1 narrowing** (artifacts in the session scratchpad `battery30/`; DEVLOG 1369): FULL greenfield
+  Conformance **4982 / 4985** — the three reds were the `call-by-value-2002` matrix probe's FORMAT-1
+  `USING BY VALUE` spelling, respelled to conforming Format 2 and the full VersionMatrix leg re-run
+  **GREEN** · Unit **4589 / 4589** · characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION**
+  (audit CLEAN) · guard verdict ALL GREEN · GnuCOBOL differential **1323 cases, 4 attributed flips**
+  (strict ISO rejecting GnuCOBOL's Format-1 `BY VALUE` / `BY CONTENT <literal>` extensions — sources
+  inspected, baseline deliberately regenerated, exactly those four rows changed; the --permissive lane
+  they motivate is kb/Work PB162). Totals 581/465/207/70. Covers DEVLOG 1362–1368: PB128 (receiving
+  chokepoint), PB129 (store discipline), PB130 (CALL grammar), PB131 (AS NESTED at bind), PB132 (operand
+  screens), PB161 (bit-run codec OCCURS) — the population grew by 31 Conformance tests over #29.
+- **⛔ PRIOR BATTERY REFERENCE — the PB124-campaign tree `3b3bc921` (2026-08-29, battery #29).**
   ✅ **Green with ONE schedule-dependent legacy-suite red, attributed and harness-fixed** (artifacts in the
   session scratchpad `battery-29/`): FULL greenfield Conformance **4954 / 4954, zero skipped** (10 m 50 s) ·
   greenfield Unit **4589 / 4589** · characterization **33 / 33** · guard-fast NIST **353 MATCH /
@@ -1722,20 +1734,6 @@ result. Run the long legs ONE AT A TIME.
   carry — kb/Work PB127 fixed the blindness (console;verbosity=minimal loggers + widened report greps) in
   the same change set, so the next occurrence arrives named. Covers the PB124 six-wave campaign + PB126's
   widening (DEVLOG 1355–1361) — the population grew by 20 Conformance tests over #28.
-- **⛔ PRIOR BATTERY REFERENCE — the PB125/PB126 tree `6c177947` (2026-08-29, battery #28).**
-  ✅ **Green with ONE attributed-and-fixed unit flake** (artifacts in the session scratchpad `battery-28/`):
-  FULL greenfield Conformance **4934 / 4934, zero skipped** (10 m 45 s) · characterization **33 / 33** ·
-  `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential
-  **`0 PER-CASE FLIP(S)`** (1323 cases: 577/469/207/70). Unit ran **4588 / 4589**: the one red —
-  `CollationTailoringTests.Spanish_EnyeIsALetterAfterN`, an `Assert.Same` on the engine's per-locale collator
-  cache racing the locale tests' `ClearCache()` under parallel xUnit — was attributed mechanically (kb/Work
-  PB126, the process-globals family; pre-existing, schedule-dependent), fixed by the ONE
-  `[Collection("process-globals")]` over the five mutator/asserter classes, and the FULL Unit leg re-ran
-  **4589 / 4589 GREEN** on the fixed tree. Covers the whole PB115–PB126 batch (DEVLOG 1342–1354: the
-  correctly-rounded scaled→double lane, TRIM sequential folds, decimal SQRT, the windowing overload split,
-  the SUBSTITUTE tail screen, the compilation-scoped WHEN-COMPILED stamp + deterministic PE, TEST-NUMVAL-F's
-  position legs, SMALLEST-ALGEBRAIC's float path, the GLOBAL-FD resolutions, FACTORIAL off the saturation
-  class) — the population grew by 13 Conformance and 54 Unit tests over #27.
 - Battery #27, the PB64 T6 tree `d94d8e08` (2026-08-28 22:45 PDT) — superseded; kept for the trail.
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts in the session
   scratchpad `battery-27/`): FULL greenfield Conformance **4921 / 4921, zero skipped** (10 m 35 s) · greenfield
