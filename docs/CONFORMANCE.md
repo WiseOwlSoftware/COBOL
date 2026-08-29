@@ -21,17 +21,15 @@ mechanism: SCREEN handling → **COBOLNET1560**; MCS SEND/RECEIVE → **COBOLNET
 **COBOLNET1579**; VALIDATE → **COBOLNET1580**. Each is a WARNING, not an error — the program compiles, runs,
 and the facility is inert, and no associated exception condition is raised (§14.6.13.1.1 licenses this).
 
-> ⚠ **One documented position where the warning does NOT fire.** When a bare facility verb whose word is also
-> a legal user-name (`COMMIT`, `ROLLBACK`, `VALIDATE`) is written as the FIRST statement of an `EVALUATE … WHEN`
-> arm, the WHEN selection-object list absorbs it as a data reference before the statement arm is reached, so no
-> COBOLNET1579/1580 is emitted. The construct then fails LOUDLY at run time
-> (`NotImplementedCobolFeatureException: reference 'COMMIT'`) — it is not a silent wrong answer — but the
-> compile-time warning obligation is unmet in that one position. This is the pre-existing EVALUATE
-> selection-object greediness, NOT a Wave H regression: the identical behaviour occurs at `--std 2014`, where
-> `COMMIT` is a user word and the Wave H statement arm does not fire at all. `RECEIVE`/`SEND` are unaffected
-> (their `FROM`/`TO` operand keyword cannot continue an object list, so the parser recovers into the statement).
-> Registered as a P14 Step-0 GAP row; fixing it means constraining the EVALUATE object list, which is a shared
-> grammar change and is deliberately not bundled into this wave.
+> ℹ **The former warning dead spot is closed (kb/Work PB137).** A bare `COMMIT`/`ROLLBACK` after any
+> open operand list — a `DISPLAY` operand tail, an `EVALUATE … WHEN` arm's first statement, the
+> arithmetic receiver lists — now parses as its statement at the editions where §8.9 reserves the words:
+> the `cobolWord` alternatives for the two words carry a reservation predicate, so no operand list can
+> absorb them at 2023 while both remain ordinary user-defined words below 2023 (which is itself the §8.9
+> rule). The named warning fires in every position, the statements bind with IDENTITY
+> (`BoundCommitRollback`), and §14.9.7.3/§14.9.36.3 SR1 (recursive source elements, functions and
+> methods included) and SR2 (SORT/MERGE input/output procedures) reject at compile time (COBOLNET1690).
+> `VALIDATE` keeps the old absorption behavior (its own facility row).
 
 ## 2. Annex A.3 — processor-dependent language element disposition
 

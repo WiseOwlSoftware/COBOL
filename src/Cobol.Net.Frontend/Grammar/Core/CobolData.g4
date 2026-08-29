@@ -201,6 +201,11 @@ dataName
     : cobolWord
     | FILLER
     | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
+    // kb/Work PB137: the reservation-gated facility words leave cobolWord at 2023 (so operand lists cannot
+    // absorb the bare verbs), but a DECLARATION naming one must still PARSE so the §8.9 funnel's targeted
+    // COBOLNET0901 can NAME the reserved word instead of a generic parse error (the user-word-commit pin).
+    | {reservedHere("COMMIT")}? COMMIT
+    | {reservedHere("ROLLBACK")}? ROLLBACK
     ;
 
 dataDescriptionBody

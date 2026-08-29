@@ -289,6 +289,13 @@ public static class DiagnosticCatalog
         + "function-identifier operand there is illegal; and every BY form of DIVIDE prints GIVING. The old "
         + "binders silently dropped the extra operands and the ROUNDED, or crashed.",
         "ISO §14.9.2.2 / §14.9.44.2 / §14.9.26.2 / §14.9.12.2");
+    public static readonly DiagnosticDescriptor CommitRollbackContext = new(
+        "COBOLNET1690", "commit-rollback-context", EditionSeverity.Error,
+        "A COMMIT or ROLLBACK statement in a context its syntax rules ban: \"This statement shall not be "
+        + "specified in a recursive source element\" (ISO §14.9.7.3 SR1 / §14.9.36.3 SR1 — a function or "
+        + "method is always recursive, §8.6.6) and \"shall not be specified in the input or output procedure "
+        + "of a MERGE or file SORT statement\" (SR2 of both).",
+        "ISO §14.9.7.3 / §14.9.36.3");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
         "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "

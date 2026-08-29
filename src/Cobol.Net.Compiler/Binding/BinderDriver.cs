@@ -528,6 +528,7 @@ internal sealed class BinderDriver
             // visibility the runtime ResolveVisible applies, computed statically so GR9's formal-mode
             // lookup and SR15's scope check both happen at BIND time.
             NestedCallables = NestedCallablesOf(unit),
+            UnitRecursive = unit.Recursive,   // §14.9.7.3 SR1 / §14.9.36.3 SR1 (kb/Work PB137)
         };
         binder.ConfigureEc(session.Turn, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
         unit.Bound = binder.Bind(unit.Ctx);

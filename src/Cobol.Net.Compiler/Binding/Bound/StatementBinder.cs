@@ -102,6 +102,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// GR9's the-formal-decides mode derivation is a bind-time lookup (kb/Work PB131).</summary>
     public IReadOnlyDictionary<string, IReadOnlyList<LinkageFormal>>? NestedCallables { get; set; }
 
+    /// <summary>The unit's RECURSIVE attribute — explicit, or inherited per §11.10.4 GR4 (kb/Work PB137:
+    /// §14.9.7.3 SR1 bans COMMIT/ROLLBACK in a recursive source element). Set by BinderDriver.</summary>
+    public bool UnitRecursive { get; set; }
+
     /// <summary>The containing FUNCTION-ID unit's own function name, when this binder binds a function
     /// definition's body — §8.4.6.6: a referenced function-prototype-name shall be "the user-function-name
     /// of the containing function definition OR a function-prototype-name declared in the REPOSITORY
@@ -382,7 +386,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.mcsReceiveStatement() is not null || s.mcsSendStatement() is not null
             => BindUnsupportedFacility(DiagnosticCatalog.McsFacilityUnsupported),
         _ when s.commitFacilityStatement() is not null || s.rollbackFacilityStatement() is not null
-            => BindUnsupportedFacility(DiagnosticCatalog.CommitRollbackUnsupported),
+            => BindCommitRollback(s.commitFacilityStatement() is not null),
         _ when s.validateFacilityStatement() is not null
             => BindUnsupportedFacility(DiagnosticCatalog.ValidateFacilityUnsupported),
         _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
@@ -476,5 +480,25 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         Ctx.Edition.Warning(d.Code, d.Title);
         return new BoundNop();
+    }
+
+    /// <summary>COMMIT / ROLLBACK (kb/Work PB137): the §4.2.6 named warning keeps the documented A.3
+    /// non-support posture, §14.9.7.3/§14.9.36.3 SR1 rejects the statement in a RECURSIVE source element
+    /// at bind (a function and a method are ALWAYS recursive, §8.6.6), and the IDENTITY node lets the
+    /// VersionConformancePass enforce SR2's SORT/MERGE procedure ban.</summary>
+    private BoundStatement BindCommitRollback(bool isCommit)
+    {
+        string verb = isCommit ? "COMMIT" : "ROLLBACK";
+        string cite = isCommit ? "§14.9.7.3 SR1" : "§14.9.36.3 SR1";
+        Ctx.Edition.Warning(DiagnosticCatalog.CommitRollbackUnsupported.Code,
+            DiagnosticCatalog.CommitRollbackUnsupported.Title);
+        if (UnitRecursive || InMethod || UdfSelfName is not null)
+        {
+            Ctx.Edition.Error(DiagnosticCatalog.CommitRollbackContext,
+                $"{verb} shall not be specified in a recursive source element (ISO {cite}; a function or "
+                + "method is always recursive, §8.6.6)");
+            return new BoundNop();
+        }
+        return new BoundCommitRollback(isCommit);
     }
 }

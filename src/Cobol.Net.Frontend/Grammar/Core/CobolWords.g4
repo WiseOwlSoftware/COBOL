@@ -25,7 +25,7 @@ cobolWord
     | COLS
     | COLUMN
     | COLUMNS
-    | COMMIT
+    | {!reservedHere("COMMIT")}? COMMIT
     | CONDITION
     | CONSTANT
     | DEBUGGING
@@ -83,7 +83,7 @@ cobolWord
     | RERUN
     | RESUME
     | RETRY
-    | ROLLBACK
+    | {!reservedHere("ROLLBACK")}? ROLLBACK
     | ROUNDING
     | SCREEN
     | SECONDS

@@ -210,6 +210,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundExitPerform n) => false;
         public bool Visit(BoundExitProgram n) => false;
         public bool Visit(BoundNop n) => false;
+        public bool Visit(BoundCommitRollback n) => false;   // CONTINUE-equivalent (kb/Work PB137)
         public bool Visit(BoundContinueAfter n) => false;
         public bool Visit(BoundNextSentence n) => false;
         public bool Visit(BoundOpen n) => false;

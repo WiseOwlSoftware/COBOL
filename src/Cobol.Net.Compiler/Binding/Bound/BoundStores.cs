@@ -104,6 +104,7 @@ public static class BoundStores
         public StoreKind? Visit(BoundExitSection n) => StoreKind.None;
         public StoreKind? Visit(BoundExitPerform n) => StoreKind.None;
         public StoreKind? Visit(BoundNop n) => StoreKind.None;
+        public StoreKind? Visit(BoundCommitRollback n) => StoreKind.None;   // CONTINUE-equivalent (kb/Work PB137)
         public StoreKind? Visit(BoundContinueAfter n) => StoreKind.None;   // reads its interval expr; stores nothing
         public StoreKind? Visit(BoundNextSentence n) => StoreKind.None;
         public StoreKind? Visit(BoundOpen n) => StoreKind.None;

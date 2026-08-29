@@ -132,7 +132,9 @@ public sealed class CobolWordsDriftTests
             if (line == "cobolWord") { inRule = true; continue; }
             if (!inRule) continue;
             if (line == ";") break;
-            var m = Regex.Match(line, @"^[:|]\s*([A-Z][A-Z0-9_]*)\s*$");   // one alternative per line: ': X' or '| X'
+            // One alternative per line: ': X' or '| X', optionally behind a reservation-gate predicate
+            // '| {!reservedHere("X")}? X' (kb/Work PB137 — the generator emits it for reservationGated rows).
+            var m = Regex.Match(line, @"^[:|]\s*(?:\{[^}]*\}\?\s*)?([A-Z][A-Z0-9_]*)\s*$");
             if (m.Success) alts.Add(m.Groups[1].Value);
         }
         return alts;

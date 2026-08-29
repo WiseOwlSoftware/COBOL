@@ -708,6 +708,13 @@ public sealed record BoundContinueAfter(BoundExpr Seconds, bool CheckLessThanZer
 /// consecutively; a child that transfers control (GO TO/EXIT) behaves exactly as if written in line.</summary>
 public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps) : BoundStatement;
 
+/// <summary>COMMIT / ROLLBACK (ISO §14.9.7 / §14.9.36; kb/Work PB137): the transaction facility is the
+/// documented A.3 items-6/7 non-support, and with no APPLY COMMIT clause GR1 makes each statement
+/// CONTINUE-equivalent — but the node carries its IDENTITY, so §14.9.7.3/§14.9.36.3 SR2's SORT/MERGE
+/// procedure ban is enforceable in the cross-pass where the old payload-free BoundNop made the statement
+/// indistinguishable from CONTINUE forever.</summary>
+public sealed record BoundCommitRollback(bool IsCommit) : BoundStatement;
+
 /// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19 GR6 / §14.9.37 — archaic per Annex F.1, legal at every edition):
 /// transfer to the implicit CONTINUE following the current sentence's separator period.</summary>
 public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;

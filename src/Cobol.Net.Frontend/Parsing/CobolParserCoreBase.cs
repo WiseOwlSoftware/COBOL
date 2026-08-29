@@ -173,6 +173,12 @@ public abstract class CobolParserCoreBase : Parser
     /// Reads the SAME <see cref="ReservedWords"/> table the §8.9 funnel uses, so recognition and reservation
     /// can never diverge. Read-only — safe for ANTLR's repeated speculative prediction calls.
     /// </summary>
+    /// <summary>True when <paramref name="keyword"/> is a §8.9 reserved word at the compile edition — the
+    /// cobolWord exclusion predicate (kb/Work PB137): a word the edition reserves cannot be a user-defined
+    /// word, so the alternative that would absorb it into an operand list must not match.</summary>
+    protected bool reservedHere(string keyword)
+        => ReservedWords.Find(keyword)?.IsReservedAt(Edition.Year) ?? false;
+
     protected bool facilityWord(string keyword)
     {
         var t = CurrentToken;

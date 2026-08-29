@@ -154,9 +154,14 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine('options { tokenVocab = CobolLexer; }')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('cobolWord')
+$gated = [System.Collections.Generic.HashSet[string]]::new([string[]]@($rows | Where-Object { $_.PSObject.Properties['reservationGated'] -and $_.reservationGated } | ForEach-Object { $_.token }), [System.StringComparer]::Ordinal)
 for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
     $sep = if ($i -eq 0) { ':' } else { '|' }
-    [void]$sb.AppendLine("    $sep $($nameSlotTokens[$i])")
+    $tok = $nameSlotTokens[$i]
+    # kb/Work PB137: a reservationGated word leaves the user-word space exactly where 8.9 reserves it,
+    # so no operand list absorbs the bare facility verb at 2023 while pre-2023 user-word use survives.
+    if ($gated.Contains($tok)) { [void]$sb.AppendLine("    $sep {!reservedHere(`"$tok`")}? $tok") }
+    else { [void]$sb.AppendLine("    $sep $tok") }
 }
 [void]$sb.AppendLine('    ;')
 Set-Content -LiteralPath $g4Out -Value $sb.ToString().TrimEnd() -Encoding utf8

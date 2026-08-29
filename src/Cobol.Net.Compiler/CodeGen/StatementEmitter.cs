@@ -145,6 +145,10 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     private bool Emit(string line, bool terminated) { _ctx.Writer.Line(line); return terminated; }
     public bool Visit(BoundGoToDepending n) { _controlFlow.EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
+    // COMMIT/ROLLBACK: §14.9.7.4 GR1 — with no active APPLY COMMIT clause (the documented A.3 non-support,
+    // so there can never be one) the statement is CONTINUE-equivalent; the node exists for the SR2 cross-pass
+    // identity (kb/Work PB137).
+    public bool Visit(BoundCommitRollback n) => false;
     public bool Visit(BoundContinueAfter n)
     {
         // CONTINUE AFTER n SECONDS (§14.9.9): evaluate the interval at FULL precision (the GR1a/GR1b sign test

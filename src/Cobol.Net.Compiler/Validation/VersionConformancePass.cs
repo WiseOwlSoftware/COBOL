@@ -195,6 +195,15 @@ internal sealed class VersionConformancePass
                     $"MERGE '{m.File.CobolName}' is prohibited in the output procedure of another MERGE or the input "
                     + "or output procedure of a file SORT (ISO §14.9.24; COBOL-2023, Annex E.2 item 20)",
                     $"MERGE '{m.File.CobolName}'", "ISO §14.9.24; Annex E.2 item 20"));
+            // kb/Work PB137 — the batch-8 finding verbatim: this pass implemented exactly the SR2 ban with a
+            // MERGE-only predicate; COMMIT (§14.9.7.3 SR2) and ROLLBACK (§14.9.36.3 SR2) are its siblings,
+            // reachable only now that the bind produces an identity-bearing node.
+            if (s is BoundCommitRollback cr && prohibited.Any(r => paraPc >= r.Start && paraPc <= r.End))
+                _sink.Report(new EditionDiagnostic(DiagnosticCatalog.CommitRollbackContext.Code,
+                    EditionSeverity.Error, "commit-rollback-context",
+                    $"{(cr.IsCommit ? "COMMIT" : "ROLLBACK")} shall not be specified in the input or output "
+                    + $"procedure of a MERGE or file SORT statement (ISO {(cr.IsCommit ? "§14.9.7.3" : "§14.9.36.3")} SR2)",
+                    cr.IsCommit ? "COMMIT" : "ROLLBACK", "ISO §14.9.7.3 SR2 / §14.9.36.3 SR2"));
             foreach (var c in s.StatementChildren()) Flag(c, paraPc);
         }
         for (int i = 0; i < prog.Paragraphs.Count; i++)
@@ -2074,6 +2083,22 @@ internal sealed class VersionConformancePass
                     $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
                     + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
             }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>kb/Work PB137: dataName's reservation-gated direct-token alternatives (COMMIT/ROLLBACK)
+        /// keep DECLARATIONS parseable at 2023 precisely so this funnel can NAME the reserved word — they
+        /// bypass cobolWord entirely, so the §8.9 check must meet them here with the SAME one-per-word
+        /// report the cobolWord walk emits.</summary>
+        public override object? VisitDataName(CobolParserCore.DataNameContext ctx)
+        {
+            string? word = ctx.COMMIT() is not null ? "COMMIT" : ctx.ROLLBACK() is not null ? "ROLLBACK" : null;
+            if (word is not null && _reservedWords.RejectsAt(word, _p._edition.Year) && (_flaggedWords ??= []).Add(word))
+                _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
+                    EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
+                    "edition-reserved-word",
+                    $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
+                    + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
             return base.VisitChildren(ctx);
         }
     }
