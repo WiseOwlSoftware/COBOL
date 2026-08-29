@@ -578,19 +578,19 @@ warning sites are the code-side counterpart — keep the two in sync. This file 
 > implementor's user documentation"** and 23 explicitly do not. §4.2.5 requires the implementor to *specify*
 > every element identified as required and to *document* every element identified as requiring documentation;
 > D13 makes those 199 part of the definition of done.
-> **MEASURED 2026-08-09 — this register discharges 21 of the 199** (`python scripts/spec/audit_annex_a1.py`
-> reports it, and the numbers below are its output, not a hand count): items 2, **22**, **33**, **56**, 59,
-> **93**, **112**, **135**, 158, **171**, **179**, **180**, **188**, **202**,
-> and the **storage-representation family 205–215** that V59 pinned (BINARY · the BINARY-CHAR family ·
-> COMPUTATIONAL · INDEX · PACKED-DECIMAL: the byte width, the radix, the byte order and a worked example for
-> each, since a COBOL developer reading this needs to know what lands on disk). Item **123** (the native
-> Int128 intermediate) is documented voluntarily. **178 obligations remain** (`audit_annex_a1.py` is the
+> **MEASURED 2026-08-29 — this register discharges 33 of the 199** (`python scripts/spec/audit_annex_a1.py`
+> reports it, and the numbers below are its output, not a hand count): items 2, **18**, **19**, 22, 33, 56,
+> 58, 59, 70, 82, 87, 93, 112, 127, 133–137, 145, 158, 171, 179, 180, 188, 202,
+> and the **storage-representation items 205–209, 211 and 215** that V59 pinned (BINARY · the BINARY-CHAR
+> family · COMPUTATIONAL · INDEX · PACKED-DECIMAL: the byte width, the radix, the byte order and a worked
+> example for each, since a COBOL developer reading this needs to know what lands on disk). Items **92**,
+> **123** and **144** are documented voluntarily. **166 obligations remain** (`audit_annex_a1.py` is the
 > count's owner — re-run it rather than trusting this sentence).
 > ⚠ The MODULE-NAME row was filed under item **213** (which is USAGE NATIONAL) from 2026-08-05 until
 > 2026-08-08 — the audit's number/element cross-check caught it; its true item is **135** (§15.65.4 r4).
 > ⚠ **The two item-92 rows are VOLUNTARY**: A.1-92 is one of the 23 elements the standard says need *not* be
 > documented. They are kept because the determination is load-bearing for users, but they discharge no
-> obligation, and they only PARTIALLY address A.1-56 (DISPLAY data conversion), which remains open.
+> obligation. (Their DISPLAY-conversion half was subsumed when A.1-56 was completed — kb/Work PB148.)
 > Completing this register is **PHASE-14 Step 0** work — the four-edition traceability inventory enumerates
 > every A.1 row and drives it to zero-GAP; do not attempt it piecemeal here. Items are added below as, and only
 > as, the compiler's behaviour for them is actually settled — an undocumented determination and a
@@ -604,6 +604,8 @@ warning sites are the code-side counterpart — keep the two in sync. This file 
 | A.1 item | Element | Our determination |
 |---|---|---|
 | 2 | **ACCEPT statement — device used when FROM is unspecified**, §14.9.1 GR5, required + documented | The implementor default ACCEPT device is the process **standard input** stream. The input-capable SPECIAL-NAMES device-names (§12.3.7 Format 4, `device-name-1 IS mnemonic-name-3`) are **CONSOLE** and **SYSIN**, both naming standard input; a mnemonic bound to an output-only device fails §14.9.1.3 SR2 (`COBOLNET0817`). Implemented in `AcceptDisplayBinder` (`AcceptInputDevices`) + `AcceptDisplayEmitter.EmitAcceptDevice`. |
+| 18 | **CANCEL statement — result of canceling an active program when EC-PROGRAM-CANCEL-ACTIVE is not enabled**, §14.9.5 GR5, required + documented | The program is **not canceled and the run unit terminates** with the fatal `EC-PROGRAM-CANCEL-ACTIVE` raise (kb/Work PB154): `ProgramTable.CancelNode` throws before any state mutation regardless of the checking state — GR5's implementor-defined not-enabled arm is the SAME disposition as the enabled arm, so a program cannot observe a half-canceled active target either way. With checking enabled a USE declarative can take the condition and RESUME (pinned by `2023/pb154_cancel_active`). |
+| 19 | **CANCEL statement — result of canceling a non-COBOL program**, §14.9.5, required + documented | **No effect** (kb/Work PB154). A name that does not resolve to a registered COBOL.NET unit is the GR7 no-op, and CANCEL never probes sibling modules (the probe is a CALL-side locate step; running it on CANCEL loaded assemblies and cached the miss). A foreign (non-COBOL) DLL on disk is therefore never touched by CANCEL. There is no CALL-CONVENTION directive (§7.3.9) — no non-COBOL program can be declared, so no richer effect is definable yet. |
 | 56 | **DISPLAY statement — conversion of data**, §14.9.11 GR1, required + documented | Each operand converts to its character image (kb/Work PB148 completed the register): a **PICTURE-bearing numeric** item renders its PICTURE-digit image (digits the description declares, the decimal point and sign per the description; a BinaryCapacity item's beyond-PICTURE value renders full-width — owner decision R13, pinned by `comp5_display_beyond_picture`); a **signed item of a non-DISPLAY usage** (COMP/COMP-3/COMP-5/BINARY-*) has no zoned overpunch to render, so it prints a **leading `-` when negative and no sign character otherwise** — a VARIABLE-width form (digits, or `-`+digits), pinned by `pb148_display_forms`; a **PICTURE-less float** (COMP-1/COMP-2/FLOAT-*) renders the invariant-culture shortest-round-trip image (`CobolFloat.Display` — the same image a function result uses, item 92); **alphanumeric/edited/national/boolean** items transfer their character content verbatim (the UTF-16 repertoire is the device repertoire; a boolean prints its '0'/'1' characters). Class **object, pointer and index** operands (and the word NULL) are compile-time rejections (`COBOLNET1694` — §14.9.11.3 SR1 / §13.18.60.3 SR10), never converted. The variable-length-group format (A.1 item 57) is kb/Work PB164's open half. |
 | 58 | **DISPLAY statement — size of data transfer**, §14.9.11 GR2, required + documented | **Unbounded.** The standard display device (a byte stream) imposes no transfer size: every DISPLAY statement's operands are joined into ONE sending item and written in a single stream operation (GR3's device-accommodates arm is always taken; no operand splitting, no line folding). Implemented in `AcceptDisplayEmitter.EmitDisplay`. |
 | 59 | **DISPLAY statement — standard display device**, §14.9.11 GR8, required + documented | When the UPON phrase is omitted the standard display device is the process **standard output** stream. The output-capable SPECIAL-NAMES device-names are **CONSOLE** and **SYSOUT** (→ standard output) and **SYSERR** (→ standard error); a mnemonic bound to an input-only device (e.g. SYSIN) fails §14.9.11.3 SR2 (`COBOLNET0817`). Implemented in `AcceptDisplayBinder` (`DisplayOutputDevices` / `BindDisplayUpon`) + `AcceptDisplayEmitter.EmitDisplay`. |

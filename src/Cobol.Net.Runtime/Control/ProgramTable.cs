@@ -30,7 +30,14 @@ public sealed class ProgramTable
         public Action? StaticReset;         // re-initializes a RECURSIVE unit's STATIC working-storage (§13.5.4 GR1
                                             // static data lives on the CLASS, not the per-activation instance, so
                                             // dropping Instance alone cannot realize §14.9.5 GR3 / §14.6.2.3.2 for it)
+        /// <summary>A FUNCTION-ID unit — its name is a function-name, invisible to program-name lookups
+        /// (§8.4.6.3 first paragraph; kb/Work PB154).</summary>
+        public bool IsFunction;
         public int Active;                  // activation depth (GR3f recursion check; GR5 cancel-active check)
+        public bool CalledSinceCancel;      // §14.9.5 GR7's own predicate — false = "has not been called in this
+                                            // run unit" or "is at present canceled". NOT derivable from Instance:
+                                            // a returned RECURSIVE activation restores a NULL slot while the unit
+                                            // still holds run-state to cancel (kb/Work PB154).
         public int FormalCount = -1;        // §14.8.2.1 (kb/Work PB133 wave C2b): declared formals; -1 = not registered
         public int RequiredCount;           // formals minus the TRAILING OPTIONAL run (the omissible tail)
         public bool ArgMismatchChecking;    // the ACTIVATED half of GR3d's enabled-in-both gate (TURN at PD entry)
@@ -66,18 +73,28 @@ public sealed class ProgramTable
         bool initial, bool common, bool recursive,
         Func<ICobolProgram?, ICobolProgram> factory,
         Action? staticReset = null,
-        int formalCount = -1, int requiredCount = 0, bool argMismatchChecking = false)
+        int formalCount = -1, int requiredCount = 0, bool argMismatchChecking = false,
+        bool isFunction = false)
     {
         var node = new Node
         {
             Path = path, Name = name, ParentPath = parentPath,
             Initial = initial, Common = common, Recursive = recursive, Factory = factory,
             FormalCount = formalCount, RequiredCount = requiredCount, ArgMismatchChecking = argMismatchChecking,
-            StaticReset = staticReset,
+            StaticReset = staticReset, IsFunction = isFunction,
         };
         _byPath[path] = node;
         _order.Add(node);
-        if (parentPath is not null && _byPath.TryGetValue(parentPath, out var parent)) parent.Children.Add(node);
+        if (parentPath is not null)
+        {
+            // A containee whose container is unregistered would SILENTLY drop out of the GR4 cancel cascade
+            // and the ParentInstance chain — the registrar emits containers first, so this is a compiler
+            // defect and LOUD (kb/Work PB154).
+            if (!_byPath.TryGetValue(parentPath, out var parent))
+                throw new InvalidOperationException(
+                    $"program {name} registered before its container {parentPath} — the registrar emits containers first (kb/Work PB154)");
+            parent.Children.Add(node);
+        }
         staticReset?.Invoke();   // run-unit start = initial state for the unit's static data (§14.6.2.3.2 case 1)
     }
 
@@ -100,6 +117,7 @@ public sealed class ProgramTable
         var n = _byPath[path];
         var inst = n.Instance ??= n.Factory(null);
         n.Active++;
+        n.CalledSinceCancel = true;   // §14.9.5 GR7 — the main activation counts as "called in this run unit"
         _owner.Modules.PushMain(n.Name);   // TOP-LEVEL / the run-unit main (§15.65.4 r5/r10)
         try
         {
@@ -178,7 +196,7 @@ public sealed class ProgramTable
         var excState = _owner.Exceptions;
         int pendingExternalMask = excState.ExternalCheckMask;
         excState.ExternalCheckMask = 0;
-        var n = ResolveVisible(name, callerPath)
+        var n = ResolveVisible(name, callerPath, wantFunction: notFoundEc == "EC-FUNCTION-NOT-FOUND")
             ?? throw new CobolCallException(
                 notFoundEc == "EC-FUNCTION-NOT-FOUND"
                     ? $"FUNCTION '{name?.Trim()}': the user-defined function could not be located in the run unit "
@@ -228,6 +246,7 @@ public sealed class ProgramTable
             inst = n.Instance ??= n.Factory(ParentInstance(n));   // cached singleton — last-used state (§14.6.2.3.3)
 
         n.Active++;
+        n.CalledSinceCancel = true;   // §14.9.5 GR7 — called in this run unit (cleared again by CANCEL)
         _owner.Modules.Push(n.Name, OutermostName(n), n.ParentPath is not null);   // §15.65.4 r7/r8 frame
         // The EC-EXTERNAL enablement handshake (§14.8.4.1 / §14.9.4.4 GR3e): latch the CALL site's pending mask
         // as the activated element's ACTIVATOR mask (the "activating runtime element" half of the pair), then
@@ -260,6 +279,8 @@ public sealed class ProgramTable
             inst.CloseFiles();
             CancelContained(n);
             n.Instance = null;
+            n.CalledSinceCancel = false;   // §14.9.18 GR2 IS a CANCEL — the unit is "at present canceled",
+                                           // so a later explicit CANCEL is GR7's no-op
         }
 
         // The callee may have staged an exception condition via GOBACK/EXIT PROGRAM … RAISING (§14.9.18 GR).
@@ -279,10 +300,10 @@ public sealed class ProgramTable
     {
         string target = name?.Trim() ?? "";
         foreach (var n in _order)
-            if (n.ParentPath is null && NameEquals(n.Name, target)) { notFound = false; return new ProgramPointer(n.Name); }
+            if (n.ParentPath is null && !n.IsFunction && NameEquals(n.Name, target)) { notFound = false; return new ProgramPointer(n.Name); }
         if (ProbeSiblingModule(target))
             foreach (var n in _order)
-                if (n.ParentPath is null && NameEquals(n.Name, target)) { notFound = false; return new ProgramPointer(n.Name); }
+                if (n.ParentPath is null && !n.IsFunction && NameEquals(n.Name, target)) { notFound = false; return new ProgramPointer(n.Name); }
         notFound = true;
         return ProgramPointer.Null;   // §8.4.3.13 GR4 — the value is the predefined address NULL
     }
@@ -322,7 +343,10 @@ public sealed class ProgramTable
     {
         string n = name?.Trim() ?? "";
         if (n.Length == 0) return;   // §14.9.5 GR12
-        var node = ResolveVisible(n, callerPath);
+        // GR7: a name not located in the run unit is NO ACTION — so the sibling-module probe must not run
+        // (it loads assemblies, fires registrars/static resets, and caches the MISS, suppressing a later
+        // CALL's legitimate probe — kb/Work PB154); and a FUNCTION name is not a program-name (§8.4.6.3).
+        var node = ResolveVisible(n, callerPath, wantFunction: false, probe: false);
         if (node is null) return;
         CancelNode(node);
     }
@@ -333,13 +357,27 @@ public sealed class ProgramTable
             throw new CobolCallException(
                 $"CANCEL '{n.Name}': program is active (ISO §14.9.5 GR5 — EC-PROGRAM-CANCEL-ACTIVE; not canceled)",
                 "EC-PROGRAM-CANCEL-ACTIVE");
+        // GR7 — "has not been called in this run unit or has been called and is at present canceled": NO
+        // ACTION, the whole body. The predicate is modeled, never derived from Instance nullness (a returned
+        // RECURSIVE activation restores a NULL slot while run-state remains) and never from the registry (a
+        // never-called unit's connectors were never registered, so the transient close below would ask for
+        // names the registry cannot hold — NIST IC203A CNCL-TEST-04 measured exactly that; kb/Work PB154).
+        if (!n.CalledSinceCancel) return;
         for (int i = n.Children.Count - 1; i >= 0; i--)   // GR4 — contained programs, REVERSE source order
             CancelNode(n.Children[i]);
-        if (n.Instance is { } inst)
-        {
-            inst.CloseFiles();   // GR9 — implicit CLOSE of every open internal file connector
-            n.Instance = null;   // GR3 — the next CALL finds the initial state (GR8: the external store untouched)
-        }
+        // GR9 — implicit CLOSE of every open internal file connector, EVEN with no cached instance: a
+        // RECURSIVE activation restores a NULL slot on return while its connectors persist (and stay open)
+        // in the run-unit registry — the old instance-gated close leaked the OS handle and the post-CANCEL
+        // reopen answered '30' (kb/Work PB154). A transient factory instance supplies the emitted CloseFiles
+        // surface; its construction runs field initializers only. The parent lookup is TOLERANT here, unlike
+        // the activation path's ParentInstance invariant: the §14.9.18 GR2 implicit cancel runs AFTER the
+        // activation's finally restored an INITIAL/RECURSIVE container's slot to null, so a canceled
+        // containee's container legitimately has no live instance — and CloseFiles never touches container
+        // data, only run-unit-registry connectors keyed by name.
+        var parentInst = n.ParentPath is not null && _byPath.TryGetValue(n.ParentPath, out var pp)
+            ? pp.Instance : null;
+        (n.Instance ?? n.Factory(parentInst)).CloseFiles();
+        n.Instance = null;   // GR3 — the next CALL finds the initial state (GR8: the external store untouched)
         // A RECURSIVE unit's WS is STATIC data on the class (§13.5.4 GR1) — dropping the instance does not
         // touch it; the emitted __ResetStatics reassigns every static WS field/index cell to its initializer
         // so the next CALL finds the §14.6.2.3.2 initial state (GR3; also case 2 — an INITIAL container's
@@ -351,6 +389,7 @@ public sealed class ProgramTable
         // then re-call found WS-CTR=03 where §14.9.5 GR3 derives 0). On a never-called unit the reset is an
         // idempotent no-op, so GR7's no-op posture is preserved.
         n.StaticReset?.Invoke();
+        n.CalledSinceCancel = false;   // GR7 — "at present canceled": the next CANCEL is a no-op
     }
 
     private void CancelContained(Node n)
@@ -371,8 +410,12 @@ public sealed class ProgramTable
     /// in a (transitive) container of the caller — except from within that COMMON program or its containees
     /// unless it is recursive; (4) an OUTERMOST program of the run unit (callable from anywhere).
     /// </summary>
-    private Node? ResolveVisible(string? name, string? callerPath)
+    private Node? ResolveVisible(string? name, string? callerPath, bool wantFunction = false, bool probe = true)
     {
+        // §8.4.6.3's FIRST paragraph scopes PROGRAM-names to CALL/CANCEL/program-address/end-marker, and a
+        // FUNCTION-ID's name is a function-name, never a program-name — so a program lookup must not see a
+        // registered function (CANCEL of a UDF name re-initialized its statics before — kb/Work PB154) and a
+        // function lookup (the EC-FUNCTION-NOT-FOUND callers) must not see a program. One discriminator per arm.
         string target = name?.Trim() ?? "";
         if (target.Length == 0) return null;
         Node? caller = callerPath is not null && _byPath.TryGetValue(callerPath, out var c) ? c : null;
@@ -380,19 +423,20 @@ public sealed class ProgramTable
         if (caller is not null)
         {
             foreach (var child in caller.Children)                                   // rule 1
-                if (NameEquals(child.Name, target)) return child;
-            if (NameEquals(caller.Name, target) && caller.Recursive) return caller;  // rule 2
+                if (child.IsFunction == wantFunction && NameEquals(child.Name, target)) return child;
+            if (caller.IsFunction == wantFunction && NameEquals(caller.Name, target) && caller.Recursive)
+                return caller;                                                       // rule 2
             for (var anc = ParentOf(caller); anc is not null; anc = ParentOf(anc))   // rule 3 — nearest container first
                 foreach (var sib in anc.Children)
                 {
-                    if (!sib.Common || !NameEquals(sib.Name, target)) continue;
+                    if (sib.IsFunction != wantFunction || !sib.Common || !NameEquals(sib.Name, target)) continue;
                     bool onOwnChain = caller.Path.Equals(sib.Path, StringComparison.OrdinalIgnoreCase)
                         || caller.Path.StartsWith(sib.Path + "/", StringComparison.OrdinalIgnoreCase);
                     if (!onOwnChain || sib.Recursive) return sib;
                 }
         }
         foreach (var n in _order)                                                    // rule 4 — outermost programs
-            if (n.ParentPath is null && NameEquals(n.Name, target)) return n;
+            if (n.ParentPath is null && n.IsFunction == wantFunction && NameEquals(n.Name, target)) return n;
 
         // Rule-4 fallthrough: the run unit may be composed of SEPARATELY COMPILED modules ("a run unit contains
         // one or more runtime modules", ISO §14.6.1; §14.9.4.4 GR3b — the runtime system "attempts to locate"
@@ -401,9 +445,9 @@ public sealed class ProgramTable
         // public __CobolModule.Register() registrar (generated classes are internal — the registrar IS the
         // discovery surface), and retry rule 4 once. Probed names are cached, hit or miss — one I/O probe per
         // name per run unit.
-        if (ProbeSiblingModule(target))
+        if (probe && ProbeSiblingModule(target))
             foreach (var n in _order)
-                if (n.ParentPath is null && NameEquals(n.Name, target)) return n;
+                if (n.ParentPath is null && n.IsFunction == wantFunction && NameEquals(n.Name, target)) return n;
         return null;
     }
 

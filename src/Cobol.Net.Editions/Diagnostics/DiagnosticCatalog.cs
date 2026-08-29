@@ -326,6 +326,13 @@ public static class DiagnosticCatalog
         + "kb/Work PB164. Previously the class was rejected SILENTLY at bind and the program crashed at run "
         + "time on its first ALLOCATE, while the EXTERNAL twin of the same failure always diagnosed at bind.",
         "ISO §13.18.5 / §14.9.3");
+    public static readonly DiagnosticDescriptor CancelTargetCategory = new(
+        "COBOLNET1696", "cancel-target-category", EditionSeverity.Error,
+        "ISO §14.9.5.3 syntax rule 1: \"Identifier-1 shall be defined as an alphanumeric or national data "
+        + "item.\" CANCEL's admitted list is NARROWER than CALL's (§14.9.4.3 SR1 also admits a "
+        + "program-pointer item — COBOLNET1681's rule); any other identifier target is not a program-name "
+        + "carrier (kb/Work PB154: CANCEL of a numeric item compiled clean and no-opped silently).",
+        "ISO §14.9.5.3 SR1");
     public static readonly DiagnosticDescriptor OperandClassExcluded = new(
         "COBOLNET1694", "operand-class-excluded", EditionSeverity.Error,
         "A statement operand is of a class its syntax rules exclude. The recurring shape (kb/Work PB148): "
@@ -670,9 +677,11 @@ public static class DiagnosticCatalog
         "ISO §13.5.4 GR1 / §14.6.2.3.3 / §13.18.27 GR2", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor RecursiveWsPointerBacked = new(
         NotImplemented, "recursive-working-storage-pointer-backed", EditionSeverity.Error,
-        "BASED data or an ADDRESS-OF-taken record in the WORKING-STORAGE of a RECURSIVE program or function "
-        + "is recognized but its static cell/bridge storage is not yet implemented (the cell and the implicit "
-        + "data-address pointer are per-instance today, which would re-initialize per activation).",
+        "An ADDRESS-OF-taken record in the WORKING-STORAGE of a RECURSIVE program or function is recognized "
+        + "but its static addressable-cell storage is not yet implemented (the cell is per-instance today, "
+        + "which would re-initialize per activation). The BASED half landed with kb/Work PB154: a BASED "
+        + "root's data lives in its allocated cell and its data-address pointer is a static bridge field "
+        + "that CANCEL resets to NULL (§14.6.2.3.2 action 5).",
         "ISO §13.5.4 GR1 / §14.6.2.3.2 #5", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ValueNumericEditedOversize = new(
         "COBOLNET1570", "value-numeric-edited-oversize", EditionSeverity.Error,

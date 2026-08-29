@@ -196,8 +196,11 @@ internal sealed class ProgramEmitter
             }
             foreach (var (backing, addrField, width) in data.PtrBasedBridges)
             {
-                w.Line($"private ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5 GR2 — initially NULL)");
-                w.Line($"private ref string {backing} => ref {RuntimeApi.PtrDeref(addrField, $"{width}")}.Ref;   // BASED deref bridge (GR3/GR4 loud)");
+                // A RECURSIVE unit's static-WS based root emits its bridge STATIC (§13.5.4 GR1 — one copy on
+                // the class), reset to NULL by __ResetStatics (§14.6.2.3.2 action 5; kb/Work PB154).
+                string mod = data.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
+                w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5 GR2 — initially NULL)");
+                w.Line($"{mod} ref string {backing} => ref {RuntimeApi.PtrDeref(addrField, $"{width}")}.Ref;   // BASED deref bridge (GR3/GR4 loud)");
             }
 
             new DataEmitter(Current.Ctx).Emit();
@@ -225,8 +228,16 @@ internal sealed class ProgramEmitter
                 w.Line("void ICobolProgram.Activate() => __Activate();");
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files)
-                    if (!file.IsExternal)   // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists (GR8 / §13.18.22.4 GR4a)
-                        w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file))};");
+                    // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists
+                    // (GR8 / §13.18.22.4 GR4a). An SD is not a file connector at all — it never registers
+                    // (the same skip every registration/IO loop takes), so closing it would Require() a
+                    // name the registry cannot hold.
+                    if (!file.IsExternal && !file.IsSortMerge)
+                        // GR9 scopes the implicit CLOSE to a connector "that is open" — the guarded entry
+                        // skips a closed one instead of stamping it '42' (kb/Work PB154); a close failure
+                        // maps to '30' inside FileConnector.Close (PB140), so the loop never abandons the
+                        // remaining files ("executed for ALL such files, even when an error occurs").
+                        w.Line($"{RuntimeApi.FileCloseIfOpen(FileKeyExpr(file))};");
             if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
                 EmitRunGlobalUse(unit, w);
             w.Line();
@@ -427,7 +438,7 @@ internal sealed class ProgramEmitter
                 // A RECURSIVE unit with static WS registers its __ResetStatics — the runtime's §14.6.2.3.2
                 // initial-state hook (run-unit start / CANCEL / INITIAL-container cascade). The optional
                 // argument is OMITTED for every other unit, keeping their registration lines byte-identical.
-                string reset = u.Data.UnitStaticWs && u.Data.StaticRootFields.Count > 0
+                string reset = u.Data.UnitStaticWs && (u.Data.StaticRootFields.Count > 0 || u.Data.StaticBasedBridgeAddrs.Count > 0)
                     ? $", {u.ClassRef}.__ResetStatics" : "";
                 // §14.8.2.1 / §14.9.4.4 GR3d (kb/Work PB133 wave C2b): a unit WITH formals registers its
                 // count facts and its ACTIVATED-half checking bit; the required count excludes the trailing
@@ -440,8 +451,12 @@ internal sealed class ProgramEmitter
                     : "";
                 string resetNamed = reset.Length > 0 && argMeta.Length > 0
                     ? reset.Replace(", ", ", staticReset: ") : reset;
+                // A FUNCTION-ID registers with its discriminator (kb/Work PB154 — §8.4.6.3's first paragraph:
+                // a function-name is not a program-name, so CALL/CANCEL/SET TO ENTRY must not see it and a
+                // FUNCTION reference must not see a program). Program lines stay byte-identical.
+                string fnFlag = u.IsFunction ? ", isFunction: true" : "";
                 w.Line($"ProgramRegistry.Register({CsLiteral(u.Path)}, {CsLiteral(u.Name)}, {parentPath}, "
-                    + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{resetNamed}{argMeta});");
+                    + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{resetNamed}{argMeta}{fnFlag});");
             }
         w.Line();
         // The run-unit main is the first top-level PROGRAM unit (§8.3.1). A prototype precedes every other unit

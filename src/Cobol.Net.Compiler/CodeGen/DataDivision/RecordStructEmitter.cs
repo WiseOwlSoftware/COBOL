@@ -65,13 +65,22 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     private void EmitStaticReset(CodeWriter w)
     {
         // The emission condition MUST mirror the registration condition (ProgramEmitter passes
-        // `{ClassRef}.__ResetStatics` iff UnitStaticWs && StaticRootFields.Count > 0) — a divergence would
-        // reference an unemitted member in generated code (CS0103).
-        if (ctx.Data.StaticRootFields.Count == 0) return;
+        // `{ClassRef}.__ResetStatics` iff UnitStaticWs && (StaticRootFields or StaticBasedBridgeAddrs
+        // non-empty)) — a divergence would reference an unemitted member in generated code (CS0103).
+        if (ctx.Data.StaticRootFields.Count == 0 && ctx.Data.StaticBasedBridgeAddrs.Count == 0) return;
         var stmts = new List<string>();
         foreach (var root in ctx.Data.WorkingStorageRoots)
         {
-            if (root.Class is { Tier: RedefinesTier.StringCanonical } cls)
+            // §14.6.2.3.2 action 5: "The address of each based item is set to null" — the static bridge
+            // field (kb/Work PB154; the DATA lives in the allocated cell, so there is no value to re-seed).
+            // FIRST in the chain: a BASED root's class can be any tier (a plain X(n) BASED is Tier-B), and
+            // BASED-ness decides its reset shape before tier does. Emitted from THIS source-ordered walk,
+            // like every other reset line — never by iterating the membership set (a HashSet's enumeration
+            // order is not generated-source-worthy).
+            if (root.IsBased && root.Class?.BasedPointerField is { } bp
+                && ctx.Data.StaticBasedBridgeAddrs.Contains(bp))
+                stmts.Add($"{bp} = ManagedPointer.Null;   // {root.CobolName ?? "FILLER"} BASED address → NULL (§14.6.2.3.2 #5)");
+            else if (root.Class is { Tier: RedefinesTier.StringCanonical } cls)
             {
                 // The class's ONE string backing is the storage; members are windows. Reset once, at the canonical.
                 if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StaticRootFields.Contains(cls.BackingCsName))

@@ -186,6 +186,16 @@ public sealed class FileRegistry
         Require(name).Close();
     }
 
+    /// <summary>The IMPLICIT close surface (§14.9.5 GR9's "each … file connector that is open"): a closed
+    /// connector is skipped — no '42' stamp, no shared-close bookkeeping — and so is a name the registry
+    /// does not hold: registration happens at activation, so an activation that raised before registering
+    /// leaves a canceled unit's names unregistered, and "never registered" is a fortiori "not open"
+    /// (kb/Work PB154 — Require() here turned GR7's no-op into an InvalidOperationException).</summary>
+    public void CloseIfOpen(string name)
+    {
+        if (_files.TryGetValue(name, out var c) && c.IsOpen) Close(name);
+    }
+
     /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38). Only a
     /// SUCCESSFUL close locks: §14.9.6.4 GR1 makes a not-open CLOSE ('42') unsuccessful, and an unsuccessful
     /// CLOSE performs none of its closing actions — the old unconditional add poisoned every later OPEN of a

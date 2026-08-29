@@ -432,7 +432,8 @@
   "pb148-display-object",
   "pb148-display-index-item",
   "pb148-display-null",
-  "pb151-based-comp-leaf"
+  "pb151-based-comp-leaf",
+  "pb154-cancel-numeric"
  ],
  "pending": []
 }

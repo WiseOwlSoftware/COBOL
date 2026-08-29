@@ -434,7 +434,22 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (t.dataReference() is { } dref)
             {
                 if (ctx.Refs.Resolve(dref) is { } p)
+                {
+                    // §14.9.5.3 SR1 (kb/Work PB154): "Identifier-1 shall be defined as an alphanumeric or
+                    // national data item" — the CALL twin's class screen (PB132) that this arm never got:
+                    // CANCEL WS-NUM compiled clean and the digit image resolved to no program, a silent
+                    // no-op at both stages. Same rule family, but NOT the same rule — §14.9.4.3 SR1 also
+                    // admits program-pointer, so CANCEL carries its own descriptor.
+                    if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(p))
+                        is { } cCls and not (CobolClass.Alphanumeric or CobolClass.National))
+                    {
+                        ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
+                            $"CANCEL target '{dref.GetText()}' is of class {cCls.ToString().ToLowerInvariant()}; "
+                            + "ISO §14.9.5.3 SR1 admits an alphanumeric or national data item");
+                        continue;
+                    }
                     targets.Add((null, new BoundFieldOperand(p)));
+                }
                 // an unresolved name was already diagnosed by the resolver; keep binding the rest
             }
         }

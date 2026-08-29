@@ -248,7 +248,11 @@
   "pb145_round_prohib",
   "pb148_display_zero_length",
   "pb151_allocate",
-  "pb151_options_fill"
+  "pb151_options_fill",
+  "pb154_cancel_scope",
+  "pb154_cancel_initial",
+  "pb154_cancel_active",
+  "pb154_cancel_cascade"
  ],
  "pending": []
 }

@@ -22,7 +22,7 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
     void ICobolProgram.Activate() => __Activate();
     public void CloseFiles()
     {
-        CobolFile.Close("CHAR-SEQ-FILE::OUT-FILE");
+        CobolFile.CloseIfOpen("CHAR-SEQ-FILE::OUT-FILE");
     }
 
 

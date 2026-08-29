@@ -725,6 +725,10 @@ internal static class RuntimeApi
     public static string FileClose(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.Close)}({name})";
 
+    /// <summary>The IMPLICIT close (§14.9.5 GR9 — only a connector "that is open") — <c>CobolFile.CloseIfOpen</c>.</summary>
+    public static string FileCloseIfOpen(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.CloseIfOpen)}({name})";
+
     /// <summary>Sequential READ into an out-image (the implicit USING loop shape) — <c>CobolFile.Read</c>.</summary>
     public static string FileRead(string name, string imgVar) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.Read)}({name}, out var {imgVar})";

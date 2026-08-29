@@ -62,6 +62,12 @@ public sealed partial class DataBinder
     public IReadOnlySet<string> StaticRootFields => _staticRootFields;
     private readonly HashSet<string> _staticRootFields = new(StringComparer.Ordinal);
 
+    /// <summary>The BASED bridge address fields of a RECURSIVE unit's static WORKING-STORAGE (kb/Work PB154 —
+    /// §14.6.2.3.2 action 5): the `__addr_X` field emits STATIC and `__ResetStatics` sets it back to NULL,
+    /// where the old routing REJECTED legal `01 X BASED.` in a RECURSIVE program outright.</summary>
+    public IReadOnlySet<string> StaticBasedBridgeAddrs => _staticBasedBridgeAddrs;
+    private readonly HashSet<string> _staticBasedBridgeAddrs = new(StringComparer.Ordinal);
+
     /// <summary>Method root (01/77) → its owning method symbol (M2-OO-1h). The post-build passes (OdoResolve,
     /// ResolveRedefines) run AFTER <see cref="OoScopeSubtree"/> has moved method names out of the global maps, and
     /// <see cref="ActiveMethodScope"/> is null then — so they resolve a method item's data-name-1 / REDEFINES

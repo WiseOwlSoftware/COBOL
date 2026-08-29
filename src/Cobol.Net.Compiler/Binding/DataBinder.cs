@@ -530,13 +530,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (root.Class is { Tier: RedefinesTier.StringCanonical } cls
                 && CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName))
                 continue;   // an EXTERNAL-backed class (canonical AND views) — run-unit cell storage (§14.6.2.3.3), not a class static
-            if (root.IsBased || root.Class is { } c
-                && (c.BasedPointerField is not null || PtrAddressableCellOf.ContainsKey(c)))
+            if (root.IsBased)
+            {
+                // kb/Work PB154 — §14.6.2.3.2 action 5: a BASED root in a RECURSIVE unit's static WS routes
+                // its `__addr_X` bridge as a STATIC field, reset to NULL by __ResetStatics (the old code
+                // REJECTED this legal source). The DATA lives in the allocated cell, so no static root field
+                // joins the value-reset set. A based root whose class the substrate screen rejected
+                // (COBOLNET1695) was already diagnosed — skip quietly.
+                if (root.Class?.BasedPointerField is { } bp && !PtrAddressableCellOf.ContainsKey(root.Class))
+                    _staticBasedBridgeAddrs.Add(bp);
+                // An INDEXED BY cell under a BASED table is an ordinary emitted field (allocated in
+                // _indexFields regardless of BASED-ness) and §13.5.4 GR1 makes it static like the rest of
+                // the unit's WS — the bridge routes the ADDRESS, the index cells still route themselves.
+                foreach (var idx in IndexNamesUnder(root))
+                    if (_indexFields.TryGetValue(idx, out var basedCell))
+                        _staticIndexCells.Add(basedCell);
+                continue;
+            }
+            if (root.Class is { } c && (c.BasedPointerField is not null || PtrAddressableCellOf.ContainsKey(c)))
             {
                 Edition.Error(DiagnosticCatalog.RecursiveWsPointerBacked,
-                    $"'{root.CobolName ?? "FILLER"}': BASED data or an ADDRESS-OF-taken record in the "
-                    + "WORKING-STORAGE of a RECURSIVE program or function is recognized but its static "
-                    + "cell/bridge storage is not yet implemented (ISO §13.5.4 GR1 / §14.6.2.3.2 #5)");
+                    $"'{root.CobolName ?? "FILLER"}': an ADDRESS-OF-taken record in the WORKING-STORAGE of "
+                    + "a RECURSIVE program or function is recognized but its static cell storage is not yet "
+                    + "implemented (ISO §13.5.4 GR1 / §14.6.2.3.2 #5; the BASED half landed with kb/Work PB154)");
                 continue;
             }
             if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
