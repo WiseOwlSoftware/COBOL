@@ -13,6 +13,14 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1348 — 2026-08-28 23:47 PDT — PB118 LANDED: the cross-argument class rule reaches the variadic tail — §15.87.3 r2 governs EVERY SUBSTITUTE pair, and the screen stopped at the three declared schema positions
+
+`ArgSchema.MatchedPositions(argCount)` now extends the MatchArgument1 governed set over the variadic TAIL
+whenever the tail's kind matches position 0's — generic, so any tail-bearing MatchArgument1 schema is covered,
+not just SUBSTITUTE's. The negative `pb118-substitute-tail-class` pins the SECOND pair's national-vs-alphanumeric
+mismatch (`FUNCTION SUBSTITUTE(X3 "A" "Z" N"B" N"Y")` → COBOLNET1627 naming argument-4 and citing r2); the
+matched all-national pair list still binds (no over-reject). AR-15.87.3-2 → CONFORMS.
+
 ## Entry 1347 — 2026-08-28 23:43 PDT — PB119 LANDED: the three date-windowing Real twins mirror the exact cores' overload split — an OMITTED argument-3 windows on the execution year instead of arriving as an explicit 0 the r4 screen rejects
 
 The two-arm dispatch family's sixth occurrence (batch 7's find on YEAR-TO-YYYY), and the sweep found the SAME

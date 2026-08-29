@@ -175,12 +175,19 @@ internal sealed record ArgSchema(ArgRule[] Positions, ArgRule? Tail, CrossArgRul
     /// argument-1. Derived from the table rather than listed beside it, so a new row cannot forget to say which
     /// positions participate — and it is the honest reading, since "argument-2 shall be of the same class as
     /// argument-1" is only meaningful where both were declared in the same family.</summary>
-    public IEnumerable<int> MatchedPositions()
+    public IEnumerable<int> MatchedPositions(int argCount)
     {
         if (Positions.Length == 0) yield break;
         char first = Positions[0].Kind;
         for (int i = 0; i < Positions.Length; i++)
             if (Positions[i].Kind == first) yield return i;
+        // ⛔ The variadic TAIL is governed too (kb/Work PB118): §15.87.3 r2's class agreement covers EVERY
+        // (argument-2, argument-3) pair — §15.87.2 repeats the pair — but this enumerator stopped at the three
+        // DECLARED positions, so from the second pair onward a national/alphanumeric mismatch bound clean.
+        // Any MatchArgument1 schema whose tail kind matches position 0's is extended the same way.
+        if (Tail is { } t && t.Kind == first)
+            for (int i = Positions.Length; i < argCount; i++)
+                yield return i;
     }
 
     /// <summary>This schema with <paramref name="p"/> added to position <paramref name="position"/> (0-based) —
@@ -1032,7 +1039,7 @@ internal static class IntrinsicArgumentRules
 
         IEnumerable<int> governed = schema.Cross == CrossArgRule.AllSameClass
             ? Enumerable.Range(0, args.Count)
-            : schema.MatchedPositions();
+            : schema.MatchedPositions(args.Count);
 
         CobolClass[]? common = null;
         foreach (int i in governed)
