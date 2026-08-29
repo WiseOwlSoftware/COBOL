@@ -56,9 +56,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             string nameExpr = c.LiteralName is { } literal
                 ? CsLiteral(literal)
                 : $"({OperandText.AsString(c.DynamicName!, num)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
+            // §14.9.4.4 GR3d's ACTIVATING half (kb/Work PB133 wave C2b): this statement's TURN state.
+            bool argChk = EnabledProgramNames().Contains("EC-PROGRAM-ARG-MISMATCH");
             invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(callState.SelfPath)}, {args}, {ret}"
                 + $"{(ecState.Active ? ", siteHandlesPropagation: true" : "")}"
-                + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")});";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
+                + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")}"
+                + $"{(argChk ? ", siteArgMismatchChecking: true" : "")});";
         }
 
         var ecProg = EnabledProgramNames();

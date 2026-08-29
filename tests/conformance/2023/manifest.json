@@ -19,6 +19,8 @@
     "pb133_returning_pointer",
     "pb133_gr3a_once_only",
     "pb133_omitted_lenient",
+    "pb133_arg_mismatch_lenient",
+    "pb133_arg_mismatch_checked",
     "pb133_omitted_transitive",
     "pb133_omitted_args",
     "pb133_recursive_containee",

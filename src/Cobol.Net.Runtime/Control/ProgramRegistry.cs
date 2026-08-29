@@ -54,16 +54,20 @@ public static class ProgramRegistry
         string path, string name, string? parentPath,
         bool initial, bool common, bool recursive,
         Func<ICobolProgram?, ICobolProgram> factory,
-        Action? staticReset = null)
-        => RunUnit.Current.Programs.Register(path, name, parentPath, initial, common, recursive, factory, staticReset);
+        Action? staticReset = null,
+        int formalCount = -1, int requiredCount = 0, bool argMismatchChecking = false)
+        => RunUnit.Current.Programs.Register(path, name, parentPath, initial, common, recursive, factory,
+            staticReset, formalCount, requiredCount, argMismatchChecking);
 
     /// <inheritdoc cref="ProgramTable.RunMain"/>
     public static void RunMain(string path) => RunUnit.Current.Programs.RunMain(path);
 
     /// <inheritdoc cref="ProgramTable.CallProgram"/>
     public static void CallProgram(string name, string callerPath, CobolArg[] args, ManagedPointer? returning,
-        bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND")
-        => RunUnit.Current.Programs.CallProgram(name, callerPath, args, returning, siteHandlesPropagation, notFoundEc);
+        bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND",
+        bool siteArgMismatchChecking = false)
+        => RunUnit.Current.Programs.CallProgram(name, callerPath, args, returning, siteHandlesPropagation,
+            notFoundEc, siteArgMismatchChecking);
 
     /// <inheritdoc cref="ProgramTable.Cancel"/>
     public static void Cancel(string name, string callerPath) => RunUnit.Current.Programs.Cancel(name, callerPath);

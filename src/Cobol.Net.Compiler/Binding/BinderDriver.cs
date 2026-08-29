@@ -440,6 +440,9 @@ internal sealed class BinderDriver
         if (session.Turn.Enabled("EC-EXTERNAL-DATA-MISMATCH", null, divLine)) extMask |= (int)Runtime.ExternalChecks.DataMismatch;
         if (session.Turn.Enabled("EC-EXTERNAL-FILE-MISMATCH", null, divLine)) extMask |= (int)Runtime.ExternalChecks.FileMismatch;
         data.ExternalCheckMask = extMask;
+        // §14.9.4.4 GR3d's ACTIVATED half (kb/Work PB133 wave C2b) — the same before-Environment-division
+        // fold as the EC-EXTERNAL mask above.
+        data.ArgMismatchChecking = session.Turn.Enabled("EC-PROGRAM-ARG-MISMATCH", null, divLine);
         data.ExternalDescribe = Procedure.EcBinder.ExternalNames.Any(session.Turn.AnyEnabledFor);
 
         // GLOBAL FD inheritance (ISO §13.18.30: the file-name of a GLOBAL FD is a GLOBAL name, visible in every

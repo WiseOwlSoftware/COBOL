@@ -429,8 +429,19 @@ internal sealed class ProgramEmitter
                 // argument is OMITTED for every other unit, keeping their registration lines byte-identical.
                 string reset = u.Data.UnitStaticWs && u.Data.StaticRootFields.Count > 0
                     ? $", {u.ClassRef}.__ResetStatics" : "";
+                // §14.8.2.1 / §14.9.4.4 GR3d (kb/Work PB133 wave C2b): a unit WITH formals registers its
+                // count facts and its ACTIVATED-half checking bit; the required count excludes the trailing
+                // OPTIONAL run (§14.8.2.1's omissible tail). Formal-less units' lines stay byte-identical.
+                int fc = u.Data.LinkageFormals.Count;
+                int rq = fc;
+                while (rq > 0 && u.Data.LinkageFormals[rq - 1].Optional) rq--;
+                string argMeta = fc > 0
+                    ? $", formalCount: {fc}, requiredCount: {rq}, argMismatchChecking: {CallEmitter.CallBool(u.Data.ArgMismatchChecking)}"
+                    : "";
+                string resetNamed = reset.Length > 0 && argMeta.Length > 0
+                    ? reset.Replace(", ", ", staticReset: ") : reset;
                 w.Line($"ProgramRegistry.Register({CsLiteral(u.Path)}, {CsLiteral(u.Name)}, {parentPath}, "
-                    + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{reset});");
+                    + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{resetNamed}{argMeta});");
             }
         w.Line();
         // The run-unit main is the first top-level PROGRAM unit (§8.3.1). A prototype precedes every other unit

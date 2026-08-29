@@ -31,6 +31,9 @@ public sealed class ProgramTable
                                             // static data lives on the CLASS, not the per-activation instance, so
                                             // dropping Instance alone cannot realize §14.9.5 GR3 / §14.6.2.3.2 for it)
         public int Active;                  // activation depth (GR3f recursion check; GR5 cancel-active check)
+        public int FormalCount = -1;        // §14.8.2.1 (kb/Work PB133 wave C2b): declared formals; -1 = not registered
+        public int RequiredCount;           // formals minus the TRAILING OPTIONAL run (the omissible tail)
+        public bool ArgMismatchChecking;    // the ACTIVATED half of GR3d's enabled-in-both gate (TURN at PD entry)
         public List<Node> Children = [];    // contained programs, source order (GR4 cancels in REVERSE)
     }
 
@@ -62,12 +65,14 @@ public sealed class ProgramTable
         string path, string name, string? parentPath,
         bool initial, bool common, bool recursive,
         Func<ICobolProgram?, ICobolProgram> factory,
-        Action? staticReset = null)
+        Action? staticReset = null,
+        int formalCount = -1, int requiredCount = 0, bool argMismatchChecking = false)
     {
         var node = new Node
         {
             Path = path, Name = name, ParentPath = parentPath,
             Initial = initial, Common = common, Recursive = recursive, Factory = factory,
+            FormalCount = formalCount, RequiredCount = requiredCount, ArgMismatchChecking = argMismatchChecking,
             StaticReset = staticReset,
         };
         _byPath[path] = node;
@@ -163,7 +168,8 @@ public sealed class ProgramTable
     /// present) converts it to the exception branch (GR3h); otherwise the run unit terminates loudly.
     /// </summary>
     public void CallProgram(string name, string callerPath, CobolArg[] args, ManagedPointer? returning,
-        bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND")
+        bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND",
+        bool siteArgMismatchChecking = false)
     {
         // The EC-EXTERNAL enablement handshake, half 1 (§14.8.4.1 / §14.9.4.4 GR3e; kb/Work PB133): the
         // site's pending mask is consumed by THIS activation attempt — success or failure — so a NOT-FOUND
@@ -183,6 +189,19 @@ public sealed class ProgramTable
             throw new CobolCallException(
                 $"CALL '{n.Name}': program is already active and has no RECURSIVE attribute (ISO §14.9.4.4 GR3f — EC-PROGRAM-RECURSIVE-CALL)",
                 "EC-PROGRAM-RECURSIVE-CALL");
+        // §14.8.2.1 via §14.9.4.4 GR3d (kb/Work PB133 wave C2b): the argument COUNT shall equal the formal
+        // count except trailing OPTIONAL formals omitted. Raised ONLY "if checking for it is enabled in both
+        // the activated program and activating runtime element" — the activated half is registered (the
+        // unit's TURN state at its PD entry, the §14.8.4.1 ExternalCheckMask precedent), the activating half
+        // rides the call. Unchecked, the call proceeds LENIENTLY: a missing argument behaves as omitted, an
+        // excess argument is ignored (the design doc's documented posture). The AS NESTED lane diagnoses the
+        // same rule at BIND (COBOLNET1684) and never reaches this.
+        if (n.FormalCount >= 0 && (args.Length > n.FormalCount || args.Length < n.RequiredCount)
+            && siteArgMismatchChecking && n.ArgMismatchChecking)
+            throw new CobolCallException(
+                $"CALL '{n.Name}': {args.Length} argument(s) against {n.FormalCount} formal parameter(s) "
+                + $"({n.RequiredCount} required) — ISO §14.8.2.1 via §14.9.4.4 GR3d — EC-PROGRAM-ARG-MISMATCH",
+                "EC-PROGRAM-ARG-MISMATCH");
 
         ICobolProgram inst;
         bool freshInstance = n.Initial || n.Recursive;

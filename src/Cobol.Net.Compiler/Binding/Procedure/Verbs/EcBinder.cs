@@ -283,6 +283,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     private static readonly string[] ProgramNames =
     [
         "EC-PROGRAM-NOT-FOUND", "EC-PROGRAM-RECURSIVE-CALL", "EC-PROGRAM-CANCEL-ACTIVE", "EC-PROGRAM-ARG-OMITTED",
+        // §14.8.2.1 via §14.9.4.4 GR3d (kb/Work PB133 wave C2b) — the dynamic Format-1 count check at
+        // activation; membership here is BOTH what lets the site's catch arm name it AND what makes
+        // CallEmitter pass the ACTIVATING half of GR3d's enabled-in-both gate (siteArgMismatchChecking).
+        "EC-PROGRAM-ARG-MISMATCH",
         // §14.9.4.4 GR3b — CALL through a program-pointer holding the predefined address NULL. Membership here is
         // what makes QueryFor(BoundCallProgram) report the CALL as checkable, so EcWrap wraps it in
         // BoundEcChecked and CallEmitter emits the name-filtered catch. Without it the runtime raise (ProgramTable

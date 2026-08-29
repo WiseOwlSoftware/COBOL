@@ -105,6 +105,11 @@ public sealed partial class DataBinder
     /// <c>BinderDriver.BindUnitData</c> from the group TurnState folded at the unit's first
     /// post-Identification division header; emitted as the selfMask of the activation-entry
     /// <c>ExternalStore.Describe</c> registrations.</summary>
+    /// <summary>§14.9.4.4 GR3d's ACTIVATED half (kb/Work PB133 wave C2b): this unit's EC-PROGRAM-ARG-MISMATCH
+    /// enablement at its PD entry — registered with the program table so a dynamic CALL's count check can
+    /// apply the enabled-in-both gate.</summary>
+    public bool ArgMismatchChecking { get; set; }
+
     public int ExternalCheckMask { get; set; }
 
     /// <summary>True when any enabling <c>&gt;&gt;TURN</c> event anywhere in the compilation group covers an
