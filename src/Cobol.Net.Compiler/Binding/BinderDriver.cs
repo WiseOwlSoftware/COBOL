@@ -328,6 +328,14 @@ internal sealed class BinderDriver
         // is what keeps ProgramTable's §14.9.4.4 GR3f re-entry rejection (EC-PROGRAM-RECURSIVE-CALL) from
         // firing on a function's self-activation and selects the per-activation instance model (D3/D4).
         if (isFunction) recursive = true;
+        // §11.10.4 GR4 (kb/Work PB133): "The RECURSIVE clause specifies that the program AND ANY PROGRAMS
+        // CONTAINED WITHIN IT are recursive" — the attribute inherits down the containment tree (parents are
+        // built before their children, so one parent read cascades transitively). The §11.10.3 SR5–6
+        // exclusivity gate above sees only the WRITTEN clauses, so an INITIAL containee of a recursive
+        // container is legal and carries both attributes. This is what lets the legal R→C→R→C cycle
+        // through GR3f's re-entry check and lets a contained program call ITSELF (§8.4.6.3 r1's "in the
+        // program itself") — both drew EC-PROGRAM-RECURSIVE-CALL / NOT-FOUND before.
+        if (parent is { Recursive: true }) recursive = true;
 
         string baseName = "_PRG_" + DataItem.Sanitize(name).ToUpperInvariant();
         string className = baseName;

@@ -324,16 +324,31 @@ public sealed partial class DataBinder
     /// </summary>
     internal void CallBindExternalAndGlobal(Core.ProgramUnitContext program)
     {
-        if (program.dataDivision()?.workingStorageSection() is { } ws)
-            foreach (var entry in ws.dataDescriptionEntry())
+        // §13.18.27.3 SR1b (kb/Work PB163): GLOBAL is legal on a level-1 entry in the FILE, WORKING-STORAGE,
+        // LOCAL-STORAGE, or LINKAGE section — the old scan read WS only, so a GLOBAL LOCAL-STORAGE item was
+        // simply UNDEFINED in every containee (COBOLNET1639 on conforming source). EXTERNAL stays WS-only
+        // (§13.18.22.3 SR1: "level 1 data description entries in the working-storage section"). The 01/77
+        // admission is deliberately loose for both clauses (both SRs say level 1; the clause-site screen is
+        // PB163's named residue).
+        var dd = program.dataDivision();
+        var sectionEntries = new (IEnumerable<Core.DataDescriptionEntryContext> entries, bool externalLegal)[]
+        {
+            (dd?.workingStorageSection()?.dataDescriptionEntry() ?? [], true),
+            (dd?.localStorageSection()?.dataDescriptionEntry() ?? [], false),
+            (dd?.linkageSection()?.linkageEntry()
+                .Select(e => e.dataDescriptionEntry()).Where(e => e is not null).Select(e => e!)
+             ?? [], false),
+        };
+        foreach (var (entries, externalLegal) in sectionEntries)
+            foreach (var entry in entries)
             {
                 var clauses = entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
                 if (clauses is null) continue;
-                bool external = clauses.Any(cl => cl.externalClause() is not null);
+                bool external = externalLegal && clauses.Any(cl => cl.externalClause() is not null);
                 bool global = clauses.Any(cl => cl.globalClause() is not null);
                 if (!external && !global) continue;
                 if (!int.TryParse(entry.levelNumber().GetText(), out int lvl) || lvl is not (1 or 77))
-                    continue;   // §13.18.22 SR1 / §13.18.27 SR1 — record-description level-01/77 entries only
+                    continue;   // §13.18.22 SR1 / §13.18.27 SR1b — record-description level-01/77 entries only
                 if (entry.dataName()?.GetText() is not { } name) continue;
                 var item = Roots.FirstOrDefault(r =>
                     r.Level == lvl && string.Equals(r.CobolName, name, StringComparison.OrdinalIgnoreCase));

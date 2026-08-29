@@ -165,6 +165,13 @@ public sealed class ProgramTable
     public void CallProgram(string name, string callerPath, CobolArg[] args, ManagedPointer? returning,
         bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND")
     {
+        // The EC-EXTERNAL enablement handshake, half 1 (§14.8.4.1 / §14.9.4.4 GR3e; kb/Work PB133): the
+        // site's pending mask is consumed by THIS activation attempt — success or failure — so a NOT-FOUND
+        // or RECURSIVE-CALL throw cannot leak it into the NEXT statement's activator latch. (The old code
+        // zeroed it only after a successful resolution.)
+        var excState = _owner.Exceptions;
+        int pendingExternalMask = excState.ExternalCheckMask;
+        excState.ExternalCheckMask = 0;
         var n = ResolveVisible(name, callerPath)
             ?? throw new CobolCallException(
                 notFoundEc == "EC-FUNCTION-NOT-FOUND"
@@ -178,8 +185,15 @@ public sealed class ProgramTable
                 "EC-PROGRAM-RECURSIVE-CALL");
 
         ICobolProgram inst;
-        if (n.Initial || n.Recursive)
+        bool freshInstance = n.Initial || n.Recursive;
+        ICobolProgram? displacedInstance = null;
+        if (freshInstance)
         {
+            // kb/Work PB133: the registry slot is how CONTAINED programs reach their container's instance
+            // (ParentInstance), so a nested activation must RESTORE the instance it displaces — at depth 2
+            // the old code left the depth-2 instance in the slot after return, and the still-running depth-1
+            // activation's contained callees aliased a DEAD frame's automatic data (§14.6.2.3.2).
+            displacedInstance = n.Instance;
             // INITIAL: initial state on EVERY activation (§14.6.2.3.2) — a fresh instance IS the initial state
             // (its WS is INITIAL data, §13.5.4 GR2, emitted as instance fields).
             // RECURSIVE (incl. every FUNCTION, §8.6.6): per-activation instance (deep-dive D3/D4) — the instance
@@ -200,10 +214,9 @@ public sealed class ProgramTable
         // as the activated element's ACTIVATOR mask (the "activating runtime element" half of the pair), then
         // zero the pending mask so a site-emit-free nested CALL correctly reads "checking not enabled". Both
         // restore/re-zero on return — the mask never leaks across statements or activations.
-        var exc = _owner.Exceptions;
+        var exc = excState;
         int savedActivator = exc.ActivatorExternalMask;
-        exc.ActivatorExternalMask = exc.ExternalCheckMask;
-        exc.ExternalCheckMask = 0;
+        exc.ActivatorExternalMask = pendingExternalMask;   // half 2 — captured before resolution (GR3e)
         // Per-activation scope for the Format-3 exception-checking PERFORM interceptor (ISO §14.9.28.4): snapshot
         // the frame-stack depth so a called program's raise is NOT intercepted by the caller's active WHEN frame
         // (the cross-activation GR1 "in range" reading is a documented STAGED item). TrimPerformTo on return also
@@ -215,12 +228,16 @@ public sealed class ProgramTable
             n.Active--; _owner.Modules.Pop();
             exc.ActivatorExternalMask = savedActivator; exc.ExternalCheckMask = 0;
             exc.TrimPerformTo(savedPerformDepth);
+            if (freshInstance) n.Instance = displacedInstance;   // kb/Work PB133 — see above
         }
 
-        if (n.Initial)
+        if (n.Initial && n.Active == 0)
         {
             // "If the program … is an initial program, an implicit CANCEL statement referencing that program is
             // executed upon return" (ISO §14.9.18 GR2): close its files (§14.9.5 GR9), cascade (GR4), drop state.
+            // Guarded on Active == 0 (kb/Work PB133): with 11.10.4 GR4 inheritance an INITIAL containee of a
+            // recursive container can return while an OUTER activation of itself is still running — cancelling
+            // the live activation's contained state would corrupt it (§14.9.5's CANCEL-of-active shape).
             inst.CloseFiles();
             CancelContained(n);
             n.Instance = null;
@@ -303,14 +320,18 @@ public sealed class ProgramTable
         {
             inst.CloseFiles();   // GR9 — implicit CLOSE of every open internal file connector
             n.Instance = null;   // GR3 — the next CALL finds the initial state (GR8: the external store untouched)
-            // A RECURSIVE unit's WS is STATIC data on the class (§13.5.4 GR1) — dropping the instance does not
-            // touch it; the emitted __ResetStatics reassigns every static WS field/index cell to its initializer
-            // so the next CALL finds the §14.6.2.3.2 initial state (GR3; also case 2 — an INITIAL container's
-            // activation cascades here via CancelContained). EXTERNAL data stays untouched (GR8: it lives on
-            // the run unit's ExternalStore, never in these statics).
-            n.StaticReset?.Invoke();
         }
-        // no instance → never called / already canceled → no-op (GR7)
+        // A RECURSIVE unit's WS is STATIC data on the class (§13.5.4 GR1) — dropping the instance does not
+        // touch it; the emitted __ResetStatics reassigns every static WS field/index cell to its initializer
+        // so the next CALL finds the §14.6.2.3.2 initial state (GR3; also case 2 — an INITIAL container's
+        // activation cascades here via CancelContained). EXTERNAL data stays untouched (GR8: it lives on
+        // the run unit's ExternalStore, never in these statics).
+        // ⛔ OUTSIDE the instance check (kb/Work PB133 wave A): the activation-slot restore leaves the cached
+        // instance correctly NULL once every activation of a recursive unit has returned, so the GR3 reset can
+        // no longer hide behind it — the old dangling depth-1 instance was MASKING this (recursive_ws's CANCEL
+        // then re-call found WS-CTR=03 where §14.9.5 GR3 derives 0). On a never-called unit the reset is an
+        // idempotent no-op, so GR7's no-op posture is preserved.
+        n.StaticReset?.Invoke();
     }
 
     private void CancelContained(Node n)
