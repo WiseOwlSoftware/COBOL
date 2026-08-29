@@ -3,6 +3,7 @@
 using Antlr4.Runtime.Tree;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -47,16 +48,65 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // (Step 14e), reading BoundAccept.HasEndTerminator — computed once here and stamped on each ACCEPT node.
         bool endTerm = AcceptHasTerminator(ac);
 
+        // An index-NAME receiver: not an identifier at all (ISO §8.4.3.1.2 — an index-name is none of the
+        // identifier formats), and §13.18.38.3 r7 closes the contexts that may reference one. The context
+        // diagnostic (COBOLNET1637), not the §8.4.2.1 UNDEFINED report the demanding resolve would produce.
+        if (ac.dataReference() is { } dref && host.Expr.IndexFieldOf(dref) is not null)
+        {
+            ctx.Edition.Error("COBOLNET1637", $"ACCEPT receiver '{dref.GetText()}' is an index-name — an "
+                + "index-name is not an identifier (ISO §8.4.3.1.2) and ACCEPT is not among the contexts that "
+                + "may reference one (§13.18.38.3 r7); SET a data item to it first (§14.9.39)");
+            return new BoundUnsupported($"ACCEPT into index-name '{dref.GetText()}'");
+        }
+
         if (ctx.Refs.Resolve(ac.dataReference()) is not { } target)
             return new BoundUnsupported($"ACCEPT receiver '{ac.dataReference().GetText()}'");
 
-        // SR1/SR3: the receiver shall not be of class index (nor object / pointer / message-tag — classes the data
-        // model does not yet admit). The SR3 class-alphabetic/boolean exclusions await their PicCategory split.
-        if (target.Item.Pic is { Usage: Usage.Index })
+        // Format 2 is FROM a temporal source; FROM omitted / FROM mnemonic is the Format 1 device transfer.
+        bool temporal = ac.acceptSource() is { } tsrc && tsrc.dataReference() is null;
+
+        // §14.9.1.3 SR1 (identifier-1) / SR3 (identifier-2): the excluded receiver CLASSES both formats share.
+        // SR1 — "neither a strongly-typed group item nor a data item of class index, message-tag, object, or
+        // pointer"; SR3 repeats the same class rows for the temporal receiver (message-tag has no declarable
+        // shape in this data model). SR3's class-alphabetic/boolean exclusions are NOT listed here — they fall
+        // out of the Table 16 ask below. A strongly-typed group temporal receiver fails GR6's MOVE-rules store
+        // identically (§14.9.25.3 SR2 — the sender must be a group of the SAME type, and the conceptual
+        // temporal sender is an untyped integer), so both formats screen it.
+        var rItem = target.Item;
+        string? excluded =
+            rItem.Pic is { Usage: Usage.Index } ? "an index data item (class index)"
+            : rItem.Pic?.Category is PicCategory.ObjectReference ? "a data item of class object"
+            : rItem.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer ? "a data item of class pointer"
+            : StrongTypeModel.IsStrongGroup(rItem) ? "a strongly-typed group item"
+            : null;
+        if (excluded is not null)
         {
-            ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{target.Item.CobolName}' is an index data item "
-                + "(class index), which neither ACCEPT format permits (ISO §14.9.1.3 SR1/SR3)");
-            return new BoundUnsupported($"ACCEPT into index item '{target.Item.CobolName}'");
+            ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
+                + (temporal ? "the temporal format excludes (ISO §14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §14.9.25.3 SR2 via §14.9.1.4 GR6" : "") + ")"
+                            : "the device format excludes (ISO §14.9.1.3 SR1)"));
+            return new BoundUnsupported($"ACCEPT into {excluded} '{rItem.CobolName}'");
+        }
+
+        // §14.9.1.4 GR6: the temporal value stores "according to the rules for the MOVE statement" — the
+        // legality question is asked of the ONE Table 16 mechanism (PB53's MoveTable16; the conceptual sender
+        // is an unsigned INTEGER of usage display, GR7–GR12). That makes SR3's class-alphabetic and
+        // class-boolean exclusions AUTOMATIC (both are Table-16 'No' rows for an integer sender), along with
+        // every other refused receiver category — no hand-rolled copy of the table to drift.
+        if (temporal && MoveTable16.Refusal(new Table16Operand(PicCategory.Numeric), Table16Operand.Of(target)) is { } refusal)
+        {
+            ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
+                + $"stores by the MOVE rules (ISO §14.9.1.4 GR6 / §14.9.1.3 SR3) and this move is invalid — {refusal}");
+            return new BoundUnsupported($"ACCEPT temporal into '{rItem.CobolName}'");
+        }
+
+        // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§8.5.1.12 —
+        // a group with a DYNAMIC LENGTH elementary item or dynamic-capacity table subordinate at any depth).
+        if (rItem.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(rItem))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.AcceptVariableLengthGroup, $"ACCEPT receiver '{rItem.CobolName}' references a "
+                + "variable-length group (a DYNAMIC LENGTH item or dynamic-capacity table is subordinate to "
+                + "it) — ISO §14.9.1.3 SR6");
+            return new BoundUnsupported($"ACCEPT into variable-length group '{rItem.CobolName}'");
         }
 
         if (ac.acceptSource() is not { } src)

@@ -120,9 +120,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // (V occupies no position; SIGN SEPARATE adds one; P adds none — §13.18.40). deSign is moot for a group.
         // An ANY LENGTH receiver's width exists only at runtime (§13.18.2 GR1 — the carrier's current length).
         string gw = item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : $"{item.ImageWidth}";
-        string image = item.Justified
-            ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, num), gw)
-            : RuntimeApi.StrStore(OperandText.AsString(source, num), gw);
+        string image = RuntimeApi.StrStoreAligned(OperandText.AsString(source, num), gw, item.Justified);
         // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
         // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
         // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.
@@ -348,17 +346,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).
                 // wN: an ANY LENGTH receiver stores at its runtime length (§13.18.2 GR1), else Pic.Length.
-                return target.Justified
-                    ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, num, deSign: true), wN)
-                    : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: true), wN);
+                return RuntimeApi.StrStoreAligned(OperandText.AsString(source, num, deSign: true), wN, target.Justified);
             // A NATIONAL receiver stores exactly like alphanumeric on the character substrate (§14.6.8.5 —
             // left-justify, national-space pad, right truncation; JUSTIFIED per §13.18.32): A→N widening,
             // N→N, 9→N digit imaging, and boolean→N all ride AsString under the D-N4 Latin-1 identity
             // correspondence (§14.9.25.4 GR6/GR6a).
             case PicCategory.National:
-                return target.Justified
-                    ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, num, deSign: true), wN)
-                    : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: true), wN);
+                return RuntimeApi.StrStoreAligned(OperandText.AsString(source, num, deSign: true), wN, target.Justified);
             // A BOOLEAN receiver pads/left-fills with boolean ZEROS (§14.6.8.6; JUSTIFIED §13.18.32 GR2).
             // Figurative ZERO already early-returned above as a '0' fill; the SR7-illegal figurative shapes
             // never reach emit (bind-rejected, MoveCategoryLegality).

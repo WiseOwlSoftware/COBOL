@@ -195,4 +195,93 @@ public sealed class AcceptDifferentialTests
 
         AssertOutputs(source, expected: "20260610", clock: "2026-06-10T14:30:45.67", dialect: 2002);
     }
+
+    // §14.9.1.4 GR2: one transfer is EXACTLY one 80-character record — an input line longer than 80
+    // characters is CONSECUTIVE records, each padded to the card image, so line characters 81+ land at
+    // position 81 and their record PADS to 80 before the next line contributes. (The old whole-line append
+    // put the next line flush at position 91 — the GR2 deviation kb/Work PB139 measured.)
+    [Fact]
+    public void Device_LongLine_SplitsAtRecordBoundary()
+        => AssertOutputs(
+            Program("ACCDEV6", "01 WS-X PIC X(170).", """
+                ACCEPT WS-X.
+                DISPLAY WS-X "]".
+            """),
+            expected: new string('A', 80) + new string('B', 10) + new string(' ', 70) + "C" + new string(' ', 9) + "]",
+            stdin: new string('A', 80) + new string('B', 10) + "\nC\n");
+
+    // §14.9.1.4 GR4b: a receiver needing only record 1 ignores the long line's REMAINING records along with
+    // the rest of record 1 — the next ACCEPT reads a fresh input line, never leftover characters 81+.
+    [Fact]
+    public void Device_LongLine_NarrowReceiver_RemainingRecordsIgnored()
+        => AssertOutputs(
+            Program("ACCDEV7", """
+                01 WS-A PIC X(5).
+                01 WS-B PIC XX.
+                """, """
+                ACCEPT WS-A.
+                ACCEPT WS-B.
+                DISPLAY WS-A "]" WS-B "]".
+            """),
+            expected: "ABCDE]XY]",
+            stdin: "ABCDE" + new string('Z', 85) + "\nXY\n");
+
+    // §14.9.1.3 SR1's COMPLEMENT: the DEVICE format permits a class-alphabetic receiver — only SR3 (the
+    // temporal format) excludes class alphabetic. The screen must not over-reject Format 1.
+    [Fact]
+    public void Device_AlphabeticReceiver_Permitted()
+        => AssertOutputs(
+            Program("ACCDEV8", "01 WS-A PIC A(6).", """
+                ACCEPT WS-A.
+                DISPLAY WS-A "]".
+            """),
+            expected: "WORD  ]",
+            stdin: "WORD\n");
+
+    // §14.9.1.4 GR1: the device-to-receiver conversion is implementor-defined; for a BOOLEAN receiver (which
+    // SR1 does NOT exclude) ours converts each transferred '1' to boolean one and every other character —
+    // including the card image's pad spaces — to boolean zero, keeping the §13.18.40.4 GR14 '0'/'1'
+    // representation invariant. (The old default-arm raw store put pad SPACES into boolean storage.)
+    [Fact]
+    public void Device_BooleanReceiver_ConvertsToBooleanCharacters()
+        => AssertOutputs(
+            Program("ACCDEV9", "01 WS-B PIC 1(4).", """
+                ACCEPT WS-B.
+                DISPLAY WS-B "]".
+            """),
+            expected: "1000]",
+            stdin: "10\n",
+            dialect: 2002);
+
+    // §14.9.1.4 GR6 + §14.6.8.5: a NATIONAL receiver takes the temporal digit image exactly like
+    // alphanumeric on the character substrate — left-justified, space-filled (TIME's 8-digit image into
+    // N(10)). NATIONAL is 2002+. The old emitter had no national arm and staged a loud reject of the
+    // SR3-legal receiver (kb/Work PB139).
+    [Fact]
+    public void Time_NationalReceiver_StoresDigitImage()
+        => AssertOutputs(
+            Program("ACCTIM2", "01 WS-N PIC N(10).", """
+                ACCEPT WS-N FROM TIME.
+                DISPLAY WS-N "]".
+            """),
+            expected: "14304567  ]",
+            clock: "2026-06-10T14:30:45.67",
+            dialect: 2002);
+
+    // §14.9.1.4 GR6 via §14.9.25.4 GR6c / §13.18.34: a JUSTIFIED receiver right-justifies the temporal
+    // image — left space-fill when larger, LEFT truncation when smaller (DAY's image "26161" keeps its
+    // low-order characters "161" in X(3)). The old emitter ignored JUSTIFIED (kb/Work PB139).
+    [Fact]
+    public void Day_JustifiedReceiver_RightJustifiesAndLeftTruncates()
+        => AssertOutputs(
+            Program("ACCDAY2", """
+                01 WS-J PIC X(8) JUSTIFIED RIGHT.
+                01 WS-K PIC X(3) JUSTIFIED RIGHT.
+                """, """
+                ACCEPT WS-J FROM DAY.
+                ACCEPT WS-K FROM DAY.
+                DISPLAY "[" WS-J "]" WS-K "]".
+            """),
+            expected: "[   26161]161]",
+            clock: "2026-06-10T14:30:45.67");
 }

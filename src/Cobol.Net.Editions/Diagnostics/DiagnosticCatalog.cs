@@ -296,6 +296,13 @@ public static class DiagnosticCatalog
         + "method is always recursive, §8.6.6) and \"shall not be specified in the input or output procedure "
         + "of a MERGE or file SORT statement\" (SR2 of both).",
         "ISO §14.9.7.3 / §14.9.36.3");
+    public static readonly DiagnosticDescriptor AcceptVariableLengthGroup = new(
+        "COBOLNET1691", "accept-variable-length-group", EditionSeverity.Error,
+        "An ACCEPT receiver references a variable-length group: a group with a DYNAMIC LENGTH elementary item "
+        + "or a dynamic-capacity table subordinate to it at any depth (ISO §8.5.1.12). \"Neither identifier-1 "
+        + "nor identifier-2 shall reference a variable-length group\" — both the device and the temporal "
+        + "format exclude it.",
+        "ISO §14.9.1.3");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
         "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "

@@ -502,6 +502,14 @@ internal static class RuntimeApi
     public static string StrStoreJustified(string value, string width) =>
         $"{nameof(CobolString)}.{nameof(CobolString.Store)}({value}, {width}, justifiedRight: true)";
 
+    /// <summary>The ONE alignment dispatch for a character store (§14.9.25.4 GR6/GR6c via §13.18.32): a
+    /// JUSTIFIED receiver right-justifies (left space-fill / left truncation), otherwise left-justified with
+    /// right space-fill / right truncation. Every emitter storing a character image into an
+    /// alphanumeric/national receiver routes here — MOVE, STRING, the INVOKE formal copy-back, ACCEPT
+    /// temporal (kb/Work PB139's one-rule-one-place extraction of six hand-rolled ternaries).</summary>
+    public static string StrStoreAligned(string value, string width, bool justified) =>
+        justified ? StrStoreJustified(value, width) : StrStore(value, width);
+
     // ── Pointers (CobolPtr; ISO §14.9.39 F7/F10, §14.9.3, §14.9.15) ──
 
     /// <summary>Displace a pointer by n character positions — <c>CobolPtr.UpBy</c> (GR18 null trap inside).</summary>

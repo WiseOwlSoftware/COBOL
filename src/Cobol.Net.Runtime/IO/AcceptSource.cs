@@ -72,25 +72,54 @@ public static class AcceptSource
     /// <summary>
     /// The Format 1 device transfer (ISO §14.9.1.4 GR1–GR5): read 80-character card-image records from standard
     /// input until <paramref name="width"/> characters are available, and return EXACTLY <paramref name="width"/>
-    /// characters. Each record shorter than 80 characters is space-padded to the full record (the card image);
-    /// a receiver no larger than one record consumes exactly ONE record (GR3 / GR4b — only the leftmost
-    /// characters that fit are kept, the rest of the record is ignored); a larger receiver requests ADDITIONAL
-    /// records until filled (GR4a — stored aligned left, the next transfer landing in the unoccupied positions);
-    /// end-of-input leaves the unfilled remainder as spaces. A zero-size receiver transfers nothing (GR4b).
+    /// characters. An input line shorter than 80 characters is space-padded to the full record (the card image);
+    /// a line LONGER than 80 characters is consecutive records, each padded (GR2 — the transfer size is one
+    /// record, never one oversized line). A receiver no larger than one record consumes exactly ONE record
+    /// (GR3 / GR4b — only the leftmost characters that fit are kept, the rest ignored); a larger receiver
+    /// requests ADDITIONAL records until filled (GR4a — stored aligned left, the next transfer landing in the
+    /// unoccupied positions); end-of-input leaves the unfilled remainder as spaces. A zero-length receiver
+    /// still consumes one record and ignores ALL of its characters (GR4b's closing sentence).
     /// The standard input IS the device for both the FROM-omitted default (GR5) and the CONSOLE / SYSIN
     /// mnemonics (§12.3.7 — the implementor's device set; stdin redirection is the process-level seam).
     /// </summary>
     public static string Device(int width)
     {
-        if (width <= 0) return "";
+        if (width <= 0)
+        {
+            // GR4b's closing sentence: "If identifier-1 references a zero-length item, all the characters of
+            // the transferred data are ignored" — the transfer HAPPENS (one record is consumed) and every
+            // character of it is ignored. The old early-return never read, leaving the record for the next
+            // ACCEPT — a wrong answer one statement later.
+            Console.In.ReadLine();
+            return "";
+        }
         var sb = new StringBuilder(Math.Max(width, RecordSize));
         while (sb.Length < width)
         {
             string? line = Console.In.ReadLine();
             if (line is null) break;                                       // EOF — the tail space-fills (GR4a)
-            sb.Append(line.Length < RecordSize ? line.PadRight(RecordSize) : line);
-            if (width <= RecordSize) break;                                // fits one record: exactly ONE transfer
+            // GR2: one transfer is EXACTLY one 80-character card-image record. A shorter input line pads to
+            // the record; a LONGER line is CONSECUTIVE records, each padded — never one oversized transfer
+            // (the old whole-line append put line characters 81+ where record 2's padding belongs). Records
+            // of this line beyond the receiver's remaining need are ignored (GR4b — no push-back exists).
+            int records = Math.Max(1, (line.Length + RecordSize - 1) / RecordSize);
+            for (int r = 0; r < records && sb.Length < width; r++)
+                sb.Append(line.Substring(r * RecordSize, Math.Min(RecordSize, line.Length - r * RecordSize)).PadRight(RecordSize));
         }
         return sb.Length >= width ? sb.ToString(0, width) : sb.ToString().PadRight(width);
+    }
+
+    /// <summary>The Format 1 device transfer into a BOOLEAN receiver (ISO §14.9.1.4 GR1 — conversion between
+    /// the device and the data item is implementor-defined): each transferred character <c>'1'</c> converts to
+    /// boolean one and EVERY other character (a <c>'0'</c>, a pad space, any other device character) to
+    /// boolean zero, so the receiver's §13.18.40.4 GR14 <c>'0'</c>/<c>'1'</c> representation invariant holds
+    /// for any input. SR1 does not exclude a boolean receiver, so this path is conforming source.</summary>
+    public static string DeviceBoolean(int width)
+    {
+        string s = Device(width);
+        return string.Create(s.Length, s, static (span, src) =>
+        {
+            for (int i = 0; i < span.Length; i++) span[i] = src[i] == '1' ? '1' : '0';
+        });
     }
 }

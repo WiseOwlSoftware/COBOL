@@ -743,8 +743,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"string {tmp} = " + (a.Formal.IsAnyLength ? bv
                     : a.Formal.Pic!.Category is PicCategory.Boolean
                         ? RuntimeApi.StrStoreBoolean(bv, $"{bw}", a.Formal.Justified)
-                    : a.Formal.Justified ? RuntimeApi.StrStoreJustified(bv, $"{bw}")
-                    : RuntimeApi.StrStore(bv, $"{bw}")) + ";");
+                    : RuntimeApi.StrStoreAligned(bv, $"{bw}", a.Formal.Justified)) + ";");
             }
             else if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
             {

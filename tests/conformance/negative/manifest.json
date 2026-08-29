@@ -415,7 +415,14 @@
   "pb110-class-ordinal-range",
   "pb110-code-set-nonidentity",
   "pb110-code-set-locale-alphabet",
-  "pb64t5-classification-twice"
+  "pb64t5-classification-twice",
+  "pb139-accept-index-name",
+  "pb139-accept-object-receiver",
+  "pb139-accept-pointer-receiver",
+  "pb139-accept-strong-group",
+  "pb139-accept-alphabetic-temporal",
+  "pb139-accept-boolean-temporal",
+  "pb139-accept-vlg"
  ],
  "pending": []
 }

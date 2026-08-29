@@ -219,9 +219,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — n is fixed
                 // by the activation's argument), never its one-symbol Pic.Length.
                 string wS = target.Item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : $"{len}";
-                w.Line(PlaceRenderer.Write(target, target.Item.Justified
-                    ? RuntimeApi.StrStoreJustified(valueExpr, wS)
-                    : RuntimeApi.StrStore(valueExpr, wS)));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.StrStoreAligned(valueExpr, wS, target.Item.Justified)));
                 return;
             case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
                 string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", target.Item.ProfileName);

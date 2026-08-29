@@ -83,9 +83,19 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
             case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2
                 w.Line(LoudStmt($"ACCEPT into floating-point receiver '{item.CobolName}' (COMP-1/COMP-2 device conversion, deferred)"));
                 return;
+            case { Category: PicCategory.Boolean } bpic:
+                // A BOOLEAN device receiver (SR1 does not exclude it): GR1's implementor-defined conversion is
+                // AcceptSource.DeviceBoolean — each transferred '1' converts to boolean one, EVERY other
+                // character (a '0', a pad space, any device character) to boolean zero, so the §13.18.40.4
+                // GR14 '0'/'1' representation invariant holds for any input (the old default-arm raw store put
+                // pad SPACES into boolean storage — kb/Work PB139).
+                w.Line(PlaceRenderer.Write(target, $"AcceptSource.DeviceBoolean({bpic.Length})"));
+                return;
             default:
-                // Alphanumeric / alphabetic / edited: the characters store as-is (GR3/GR4 — no editing, no
-                // conversion; an edited PICTURE's Length counts every mask position).
+                // Alphanumeric / alphabetic / national / edited: the characters store as-is (GR3/GR4 — no
+                // editing; an edited PICTURE's Length counts every mask position). For a NATIONAL receiver the
+                // GR1 conversion is DEFINED as the identity on the UTF-16 character substrate — one device
+                // character per national position, so Device(pic.Length) is exact (kb/Work PB139).
                 w.Line(PlaceRenderer.Write(target, $"AcceptSource.Device({pic.Length})"));
                 return;
         }
@@ -148,11 +158,16 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                 // Alphanumeric-edited: the sending characters place into the mask positions (§13.18.40 insertion).
                 w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatAlphanumeric(sendImage, CsLiteral(amask))));
                 return;
-            case { Category: PicCategory.Alphanumeric } anPic:
-                // Alphanumeric MOVE: left-justified, right space-fill / right truncation (§14.9.25.4 GR6).
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.StrStore(sendImage, $"{anPic.Length}")));
+            case { Category: PicCategory.Alphanumeric or PicCategory.National } snPic:
+                // Alphanumeric MOVE: left-justified, right space-fill / right truncation; a JUSTIFIED receiver
+                // right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c). A NATIONAL receiver
+                // stores exactly like alphanumeric on the character substrate (§14.6.8.5; the digit image rides
+                // the D-N repertoire identity) — the same two stores MoveEmitter's national arm uses.
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.StrStoreAligned(sendImage, $"{snPic.Length}", item.Justified)));
                 return;
             default:
+                // §14.9.1.3 SR3 bind-rejects class alphabetic / boolean / index / object / pointer receivers,
+                // so this arm is the safety net for a category the screen does not yet know.
                 w.Line(LoudStmt($"ACCEPT temporal into receiver '{item.CobolName}' of unsupported category"));
                 return;
         }
