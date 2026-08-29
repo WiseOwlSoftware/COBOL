@@ -921,7 +921,8 @@ public sealed class ReferenceResolver(DataBinder data)
         }
 
         var exprs = new List<string>();
-        foreach (var seg in SplitSubscriptTokens(tokens))
+        foreach (var seg in SplitSubscriptTokens(tokens,
+                     name => ResolveUnqualified(name) is { IsTable: false }))   // kb/Work PB136 — declaration-informed '(' splitting
         {
             if (RenderSegment(seg, SegmentPosition.Subscript) is not { } e) return (null, false);
             exprs.Add(e);
@@ -940,16 +941,49 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <summary>Split a flat token list into subscript segments on depth-0 comma / multi-space boundaries (a faithful
     /// reduction of the legacy <c>ExpressionBinder.SplitSubscriptTokens</c>: a single space inside a relative
     /// subscript such as <c>I + 1</c> does not split; a separator space before a new operand does).</summary>
-    internal static List<List<IToken>> SplitSubscriptTokens(List<IToken> tokens)
+    internal static List<List<IToken>> SplitSubscriptTokens(List<IToken> tokens, Func<string, bool>? parenSplitsAfterName = null)
     {
         var segments = new List<List<IToken>>();
         var current = new List<IToken>();
         int depth = 0;
 
+        // kb/Work PB136: does a depth-0 '(' BEGIN A NEW SEGMENT? After ')' or a literal, always — neither can
+        // take a subscript, so the paren can only open a parenthesized-expression subscript (the spec's own
+        // NOTE 2 form, `DOG (XCOUNTER (- YCOUNTER))`, was rejected with a wrong-count error). After an
+        // IDENTIFIER it is AMBIGUOUS with the identifier's own subscript (`DOG (BAKER (I) 3)`), so the split
+        // is DECLARATION-INFORMED: a name that carries no OCCURS cannot be subscripted, so its '(' starts a
+        // new segment; with no lookup (the intrinsic-argument caller) the old join stands.
+        bool LParenStartsNew()
+        {
+            var lastNonWs = current.FindLast(x => x.Type != Core.SUB_WS);
+            if (lastNonWs is null) return false;
+            return lastNonWs.Type switch
+            {
+                Core.SUB_RPAREN or Core.SUB_INTEGERLIT or Core.SIGNED_INTEGERLIT or Core.SUB_DECIMALLIT
+                    or Core.SIGNED_DECIMALLIT or Core.SUB_STRINGLIT => true,
+                // The predicate answers true ONLY for a name that RESOLVES to a non-table data item: an
+                // unresolved name may be a function reference (`FUNCTION INTEGER (X)` — the first cut split
+                // a function from its own argument list and six goldens went red on "0 given"), and a TABLE
+                // name owns its paren as a subscript. Unknown → no split → the D18 loud names the operand.
+                Core.SUB_IDENTIFIER when parenSplitsAfterName is not null
+                    && !lastNonWs.Text.Equals("FUNCTION", StringComparison.OrdinalIgnoreCase)
+                    => parenSplitsAfterName(lastNonWs.Text),
+                _ => false,
+            };
+        }
+
         for (int i = 0; i < tokens.Count; i++)
         {
             var t = tokens[i];
-            if (t.Type == Core.SUB_LPAREN) { depth++; current.Add(t); continue; }
+            if (t.Type == Core.SUB_LPAREN)
+            {
+                if (depth == 0 && current.Count > 0 && LParenStartsNew())
+                {
+                    segments.Add(current);
+                    current = [];
+                }
+                depth++; current.Add(t); continue;
+            }
             if (t.Type == Core.SUB_RPAREN) { if (depth > 0) depth--; current.Add(t); continue; }
 
             if (depth == 0 && (t.Type == Core.SUB_COMMA || t.Type == Core.SUB_SEMICOLON))
@@ -979,9 +1013,12 @@ public sealed class ReferenceResolver(DataBinder data)
                     // The new-segment starters: every token that can BEGIN an operand — identifiers, all four
                     // numeric-literal shapes, string literals (intrinsic arguments may be space-separated,
                     // ISO §15's general formats), and the ALL subscript word (§15.3 table(ALL) arguments).
-                    if (!continues && nextType is Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT
+                    if (!continues && (nextType is Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT
                             or Core.SUB_IDENTIFIER or Core.SUB_INTEGERLIT or Core.SUB_DECIMALLIT
-                            or Core.SUB_STRINGLIT or Core.SUB_ALL)
+                            or Core.SUB_STRINGLIT or Core.SUB_ALL
+                        // kb/Work PB136 — the spaced NOTE 2 form: a '(' after this WS opens a NEW subscript
+                        // under the same declaration-informed rule as the unspaced arm above.
+                        || (nextType == Core.SUB_LPAREN && LParenStartsNew())))
                     {
                         segments.Add(current);
                         current = [];
@@ -1019,6 +1056,13 @@ public sealed class ReferenceResolver(DataBinder data)
         // result, so the direct read below is equivalent and cheaper.
         bool compound = tokens.Any(t => t.Type is Core.SUB_PLUS or Core.SUB_MINUS or Core.SUB_STAR
             or Core.SUB_SLASH or Core.SUB_POWER or Core.PLUS or Core.MINUS or Core.STAR or Core.SLASH);
+        // kb/Work PB136: a QUOTIENT-bearing segment routes to D18 UNCONDITIONALLY — the token splice would be
+        // C# integer division over long reads, truncating where §8.4.2.3.4 GR1b evaluates the exact result of
+        // the whole expression and requires EC-BOUND-SUBSCRIPT on a non-integer (`E((W-A + W-B) / 2)` with the
+        // sum 7 silently selected occurrence 3). The scaled-operand routing above (PB41) caught only segments
+        // whose OPERANDS are scaled; an all-integer quotient is exactly the case it could not see.
+        if (tokens.Any(t => t.Type is Core.SUB_SLASH or Core.SLASH))
+            return MaterializeViaFragment(tokens, position);
         for (int i = 0; i < tokens.Count; i++)
         {
             var t = tokens[i];
