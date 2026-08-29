@@ -16,9 +16,10 @@ namespace CobolNet.Tests.Unit.Collation;
 /// same values many times — SORT/MERGE key columns and the LOCALE key sequence — go through it and order exactly as
 /// the streaming comparison does.
 /// </summary>
-[Collection("process-environment")]   // mutates COBOL_COLLATION_CACHE (restored in a finally) — serialized
-                                      // against RuntimeConfigTests' reads-only snapshot of the same process
-                                      // global (kb/Work PB126).
+[Collection("process-globals")]   // kb/Work PB126: mutates COBOL_COLLATION_CACHE (restored in a finally) and
+                                  // identity-asserts the engine's shared key caches (CollationEngine.GetKey /
+                                  // CollationKeyCache.Shared), which the locale tests' ClearCache flushes —
+                                  // one collection for every process-global mutator/asserter.
 public sealed class CollationKeyCacheTests
 {
     [Fact]

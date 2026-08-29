@@ -28,10 +28,10 @@ namespace CobolNet.Tests.Unit;
 /// ⛔ A literal grep for <c>GetEnvironmentVariable("COBOL_</c> finds ZERO sites — every call passes a constant or a
 /// computed name — and would be vacuously green; hence the file-level pairing and the literal scan.
 /// </summary>
-[Collection("process-environment")]   // serialized against CollationKeyCacheTests (kb/Work PB126): the
-                                      // reads-only assertion snapshots COBOL_COLLATION_CACHE, a PROCESS-global
-                                      // that test legitimately sets-and-restores — parallel xUnit interleaving
-                                      // made the snapshot see the temporary value (one flake, named + serialized).
+[Collection("process-globals")]   // kb/Work PB126: the reads-only assertion snapshots COBOL_COLLATION_CACHE,
+                                  // a PROCESS-global CollationKeyCacheTests legitimately sets-and-restores —
+                                  // every class that mutates or identity-asserts a process-global (env vars,
+                                  // the engine's locale/key caches) shares this ONE collection.
 public sealed class RuntimeConfigTests
 {
     private static readonly string RuntimeRoot = TestRepo.Src("Cobol.Net.Runtime");

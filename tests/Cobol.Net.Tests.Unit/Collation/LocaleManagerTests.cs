@@ -16,7 +16,8 @@ namespace CobolNet.Tests.Unit.Collation;
 /// run unit's L2 user default; unknown tags are refused; and CollationRuntime's initialization / warm-up report what
 /// they did.
 /// </summary>
-[Collection("site-tailoring-directory")]
+[Collection("process-globals")]   // was "site-tailoring-directory"; widened (kb/Work PB126) — clears the
+                                  // process-global locale/collation caches and identity-asserts TableForLocale.
 public sealed class LocaleManagerTests
 {
     [Fact]

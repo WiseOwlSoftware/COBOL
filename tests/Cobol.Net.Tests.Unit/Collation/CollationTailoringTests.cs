@@ -10,6 +10,9 @@ namespace CobolNet.Tests.Unit.Collation;
 /// shipped en-US / fr-FR / es-ES / es files, locale resolution and fallback, canonical closure of a tailored code
 /// point, immutability of the base table, and the version guard.
 /// </summary>
+[Collection("process-globals")]   // kb/Work PB126 (battery #28's find): Assert.Same on CollationEngine's
+                                  // per-locale collator cache races the locale tests' ClearCache under parallel
+                                  // xUnit — structurally identical collators, different instances.
 public sealed class CollationTailoringTests
 {
     [Fact]

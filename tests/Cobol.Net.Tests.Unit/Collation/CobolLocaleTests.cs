@@ -20,7 +20,9 @@ namespace CobolNet.Tests.Unit.Collation;
 /// tag), and the gating (nothing raised with checking off; the documented stand-in answers). The golden
 /// tests/conformance/2014/pb64t4_locale_functions proves the same through compiled COBOL.
 /// </summary>
-[Collection("site-tailoring-directory")]
+[Collection("process-globals")]   // was "site-tailoring-directory"; widened (kb/Work PB126) — this class
+                                  // clears the process-global locale/collation caches (LocaleManager.ClearCache),
+                                  // which races any parallel identity-assert on the same caches.
 public sealed class CobolLocaleTests
 {
     [Fact]

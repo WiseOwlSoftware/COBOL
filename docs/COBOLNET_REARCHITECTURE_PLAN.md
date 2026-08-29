@@ -1712,7 +1712,21 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB64 T6 tree `d94d8e08` (2026-08-28 22:45 PDT, battery #27).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB125/PB126 tree `6c177947` (2026-08-29, battery #28).**
+  ✅ **Green with ONE attributed-and-fixed unit flake** (artifacts in the session scratchpad `battery-28/`):
+  FULL greenfield Conformance **4934 / 4934, zero skipped** (10 m 45 s) · characterization **33 / 33** ·
+  `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential
+  **`0 PER-CASE FLIP(S)`** (1323 cases: 577/469/207/70). Unit ran **4588 / 4589**: the one red —
+  `CollationTailoringTests.Spanish_EnyeIsALetterAfterN`, an `Assert.Same` on the engine's per-locale collator
+  cache racing the locale tests' `ClearCache()` under parallel xUnit — was attributed mechanically (kb/Work
+  PB126, the process-globals family; pre-existing, schedule-dependent), fixed by the ONE
+  `[Collection("process-globals")]` over the five mutator/asserter classes, and the FULL Unit leg re-ran
+  **4589 / 4589 GREEN** on the fixed tree. Covers the whole PB115–PB126 batch (DEVLOG 1342–1354: the
+  correctly-rounded scaled→double lane, TRIM sequential folds, decimal SQRT, the windowing overload split,
+  the SUBSTITUTE tail screen, the compilation-scoped WHEN-COMPILED stamp + deterministic PE, TEST-NUMVAL-F's
+  position legs, SMALLEST-ALGEBRAIC's float path, the GLOBAL-FD resolutions, FACTORIAL off the saturation
+  class) — the population grew by 13 Conformance and 54 Unit tests over #27.
+- **⛔ PRIOR BATTERY REFERENCE — the PB64 T6 tree `d94d8e08` (2026-08-28 22:45 PDT, battery #27).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts in the session
   scratchpad `battery-27/`): FULL greenfield Conformance **4921 / 4921, zero skipped** (10 m 35 s) · greenfield
   Unit **4535 / 4535** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /
@@ -1721,7 +1735,7 @@ result. Run the long legs ONE AT A TIME.
   whole T6 landing (DEVLOG 1339–1341: the LC_MONETARY runtime, the two 1518 arm flips, PB113/PB114, the A.4.9
   claim) — the population grew by 20 Conformance and 60 Unit tests over #26. **This is the comprehensive proof
   the A.4.9 "Claimed" row owed.**
-- **⛔ PRIOR BATTERY REFERENCE — the PB112 tree `36b7cc6d` (2026-08-28 20:00 PDT, battery #26).**
+- Battery #26, the PB112 tree `36b7cc6d` (2026-08-28 20:00 PDT) — superseded; kept for the trail.
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts in the session
   scratchpad `battery-26/`): FULL greenfield Conformance **4901 / 4901, zero skipped** (10 m 51 s) · greenfield
   Unit **4475 / 4475** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /
