@@ -982,18 +982,33 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExpr BindTrim(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         int mode = 0;   // 0 = both leading+trailing (r3), 1 = LEADING (r1), 2 = TRAILING (r2)
+        bool sawKeyword = false, sawAll = false;
         var operands = new List<BoundOperand>();
+        BoundExpr Malformed(string why)
+        {
+            ctx.Edition.Error("COBOLNET1504", "FUNCTION TRIM takes argument-1 [LEADING|TRAILING] "
+                + $"[argument-2]…, in that order (ISO §15.96.2) — {why}");
+            return new BoundExprError("FUNCTION TRIM");
+        }
         foreach (var a in argCtxs)
         {
             switch (KeywordWordOf(a))
             {
-                case "LEADING": mode = 1; continue;
-                case "TRAILING": mode = 2; continue;
+                // ⛔ A POSITIONAL WALK OVER THE §15.96.2 FORMAT (kb/Work PB124 — AR-15.3-7/FMT-15.96.2): the
+                // [LEADING|TRAILING] group sits AFTER argument-1 and BEFORE every argument-2, at most once;
+                // the old order-free switch took the keyword ANYWHERE and repeatedly.
+                case ("LEADING" or "TRAILING") and var kw:
+                    if (operands.Count == 0) return Malformed($"{kw} precedes argument-1");
+                    if (sawKeyword) return Malformed("the [LEADING|TRAILING] group appears more than once");
+                    if (operands.Count > 1 || sawAll) return Malformed($"{kw} follows an argument-2");
+                    mode = kw == "LEADING" ? 1 : 2;
+                    sawKeyword = true;
+                    continue;
             }
             // §15.96.2's `[ argument-2 ] …` repeats argument-2, so a table(ALL) is admissible here (§15.3) — one
             // enumerating operand, exactly as on the generic path (kb/Work PB62); it used to fall to the plain
             // subscript path and throw at run time.
-            if (TryBindAllArgument(sig, a, operands)) continue;
+            if (TryBindAllArgument(sig, a, operands)) { sawAll = true; continue; }
             operands.Add(BindArgOperand(a));
         }
         if (operands.Count == 0)
@@ -1003,8 +1018,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         // The argument-2 form (delete characters OTHER than space) is a 2023 enhancement — TRIM removed only
         // spaces through 2014 (Annex E.3.3 item 31; VERSION_CHANGE_REFERENCE row 74). Its introduction is gated
-        // by name+edition, like the whole-function 1502 gate above.
-        if (operands.Count > 1 && ctx.Edition.DialectLevel < 2023)
+        // by name+edition, like the whole-function 1502 gate above. A table(ALL) argument is the SAME form
+        // whatever its element count (kb/Work PB124 — FMT-15.96.2's edition-gate hole: ALL enumerates a
+        // variable argument list, which only the 2023 format has; the old `> 1` gate counted the enumeration
+        // as ONE operand and let `TRIM(ALL T)` through at 2014).
+        if ((operands.Count > 1 || sawAll) && ctx.Edition.DialectLevel < 2023)
             ctx.Edition.Error("COBOLNET1502", "the FUNCTION TRIM argument-2 form (removing characters other than "
                 + "space) was introduced by ISO/IEC 1989:2023 (§15.96; Annex E.3.3 item 31) — it requires "
                 + $"--std 2023 or later (targeting COBOL-{ctx.Edition.DialectLevel}); TRIM removed only spaces through 2014");
@@ -1119,13 +1137,37 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundExpr Malformed() { ctx.Edition.Error("COBOLNET1504", "FUNCTION SUBSTITUTE takes argument-1 and one "
             + "or more [ANYCASE][FIRST|LAST] argument-2 argument-3 pairs (ISO §15.87.2)"); return new BoundExprError("FUNCTION SUBSTITUTE"); }
 
+        BoundExpr MalformedOrder(string why)
+        {
+            ctx.Edition.Error("COBOLNET1504", "FUNCTION SUBSTITUTE's phrase keywords precede their pair in the "
+                + $"format's order — [ANYCASE] [FIRST|LAST] argument-2 argument-3 (ISO §15.87.2) — {why}");
+            return new BoundExprError("FUNCTION SUBSTITUTE");
+        }
         foreach (var a in argCtxs)
         {
             switch (KeywordWordOf(a))
             {
-                case "ANYCASE": pending |= 4; continue;
-                case "FIRST": pending |= 1; continue;
-                case "LAST": pending |= 2; continue;
+                // ⛔ POSITIONAL PER PAIR (kb/Work PB124 — AR-15.3-7): §15.87.2 prints `[ANYCASE] [FIRST|LAST]`
+                // BEFORE each argument-2/argument-3 pair, in that written order — the old `pending |=`
+                // accumulation took the keywords anywhere before the pair completed (between argument-2 and
+                // argument-3 included), repeated, and in either order. `pairOperands != 0` = we are between a
+                // pair's argument-2 and its argument-3 (always 0 on the flat table(ALL) form, whose pairing is
+                // a run-time fact and whose keyword placement is screened by SubstituteFlat).
+                case "ANYCASE":
+                    if (pairOperands != 0) return MalformedOrder("ANYCASE sits between argument-2 and argument-3");
+                    if ((pending & 4) != 0) return MalformedOrder("ANYCASE is repeated");
+                    if ((pending & 3) != 0) return MalformedOrder("ANYCASE follows FIRST/LAST");
+                    pending |= 4; continue;
+                case "FIRST":
+                    if (pairOperands != 0) return MalformedOrder("FIRST sits between argument-2 and argument-3");
+                    if ((pending & 3) != 0) return MalformedOrder((pending & 1) != 0
+                        ? "FIRST is repeated" : "FIRST and LAST are mutually exclusive");
+                    pending |= 1; continue;
+                case "LAST":
+                    if (pairOperands != 0) return MalformedOrder("LAST sits between argument-2 and argument-3");
+                    if ((pending & 3) != 0) return MalformedOrder((pending & 2) != 0
+                        ? "LAST is repeated" : "FIRST and LAST are mutually exclusive");
+                    pending |= 2; continue;
             }
             if (TryBindAllArgument(sig, a, operands))
             {
@@ -1142,8 +1184,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (flat) { pending = 0; continue; }   // the pairing is a run-time fact once an enumeration is in play
             if (++pairOperands == 2)   // argument-2 then argument-3 complete a pair
             {
-                // The pair's mode: the flags recorded on its argument-2 plus any pending before argument-3 — the
-                // union the bind-time pairing always applied (a keyword between the two operands rides the pair).
+                // The pair's mode = the flags recorded on its argument-2. `pending` is always 0 here since the
+                // switch rejects a keyword between argument-2 and argument-3 (kb/Work PB124); the `|` stays as
+                // a belt should that screen ever move.
                 int pairMode = partFlags[^2] | pending;
                 if ((pairMode & 3) == 3) return Malformed();   // FIRST and LAST are mutually exclusive (§15.87.2)
                 modes.Add(pairMode);
@@ -1947,9 +1990,19 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         bool physical = false, isByte = sig.Name == "BYTE-LENGTH";
         var operands = new List<BoundOperand>();
         DataItem? typeArg = null;
-        foreach (var a in argCtxs)
+        for (int i = 0; i < argCtxs.Count; i++)
         {
-            if (KeywordWordOf(a) == "PHYSICAL") { physical = true; continue; }
+            var a = argCtxs[i];
+            // ⛔ POSITIONAL (kb/Work PB124 — AR-15.3-7): §15.50.2 / §15.14.2 print `argument-1 [ PHYSICAL ]`,
+            // and PHYSICAL is NOT a reserved word (§8.10 has no row; reserved-words.json r2023: false), so the
+            // word is the keyword ONLY in the keyword's position — after argument-1, last, once. Anywhere
+            // else it is an ordinary word: `LENGTH(PHYSICAL)` measures a data item NAMED PHYSICAL (the old
+            // unordered swallow consumed the user's data-name and degraded the call to zero arguments).
+            if (KeywordWordOf(a) == "PHYSICAL" && operands.Count == 1 && !physical && i == argCtxs.Count - 1)
+            {
+                physical = true;
+                continue;
+            }
             // A type-name argument (§15.50.3 r1 / §15.14.3 r1 — kb/Work PB61): the length of the type
             // declaration — for a subordinate OCCURS DEPENDING, "the rules of the OCCURS clause for a receiving
             // data item" (§15.50.4 r4a / §15.14.4 r2a), i.e. the maximum, which is what the template's widths hold.

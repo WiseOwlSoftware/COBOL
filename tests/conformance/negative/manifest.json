@@ -1,6 +1,10 @@
 {
  "_comment": "The NEGATIVE corpus (must-REJECT programs; VERSION_TEST_MATRIX_DESIGN P2.8/Phase-2): each enabled entry is <name>.cob + <name>.err (the expected diagnostic substring, e.g. an edition-band code) + an \"editions\" map naming the --std values that must reject. Seeding: >=1 case per Wave-1 gate + the reserved-word interval witnesses (roadmap Phase 2 W2). The matrix reject cells already pin gate diagnostics; THIS corpus holds the free-form adversarial cases.",
  "enabled": [
+  "pb124-trim-keyword-after-arg2",
+  "pb124-substitute-keyword-order",
+  "pb124-substitute-midpair-keyword",
+  "pb124-trim-all-below-2023",
   "pb118-substitute-tail-class",
   "pb64t6-picture-locale-syntax",
   "pb64t6-picture-locale-sign",
