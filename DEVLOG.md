@@ -13,6 +13,16 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1388 — 2026-08-29 09:58 PDT — Battery #33 ALL GREEN, zero differential flips, guard whole — the PB141/PB143/PB145/PB148 batch confirmed
+
+One `bash scripts/battery.sh` run on tree `dae02598`: FULL greenfield Conformance 5068/5068 · Unit
+4633/4633 · characterization 33/33 · NIST 353 MATCH / 0 REGRESSIONS (audit CLEAN) · guard verdict ALL
+GREEN (the PB166 intermittent did not recur) · GnuCOBOL differential 1323 cases, ZERO per-case flips,
+totals unchanged 572/474/206/71. The PB143 per-physical-file store rewrite and the PB145 CobolDec.Pow
+rework faced the complete NIST RL/IX/SQ suites and the external oracle for the first time here — clean.
+Population +16 Conformance tests over #32 (PB141 CLOSE semantics, PB143 shared record store, PB145
+exponentiation, PB148 the operand-class gate). §0's battery reference now points at #33.
+
 ## Entry 1387 — 2026-08-29 09:43 PDT — PB148 LANDED: the reusable operand-CLASS gate — DISPLAY rejects pointer/object/index/NULL at compile time, the A.1 item-56/58 determinations complete, and the island legs consolidate into PB164
 
 The recurring 'shall not be of class X' shape has ONE gate now (kb/Work PB148):

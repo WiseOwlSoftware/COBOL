@@ -1712,7 +1712,16 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB137–PB140 batch tree `e79e8e20` (2026-08-29, battery #32).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB141+PB143+PB145+PB148 batch tree `dae02598` (2026-08-29, battery #33).**
+  ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts in the session
+  scratchpad `battery33/`; DEVLOG 1388): FULL greenfield Conformance **5068 / 5068** · Unit **4633 / 4633** ·
+  characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION** (audit CLEAN — the PB143 shared-store
+  rewrite and the PB145 CobolDec.Pow rework survived the whole RL/IX/SQ suites) · GnuCOBOL differential
+  **1323 cases, 0 per-case flips** (totals unchanged 572/474/206/71). The PB166 legacy-suite intermittent
+  did NOT recur (Integration green inside the guard). Covers DEVLOG 1384–1387: PB141 (CLOSE semantics
+  whole), PB143 (the per-physical-file record store), PB145 (CobolDec.Pow on true premises), PB148 (the
+  operand-class gate) — the population grew by 16 Conformance tests over #32.
+- **⛔ PRIOR BATTERY REFERENCE — the PB137–PB140 batch tree `e79e8e20` (2026-08-29, battery #32).**
   ✅ **Every leg GREEN, ZERO differential flips** (artifacts in the session scratchpad `battery32/`; DEVLOG
   1383): FULL greenfield Conformance **5052 / 5052** · Unit **4612 / 4612** · characterization **33 / 33** ·
   NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **1323 cases, 0 per-case flips**
