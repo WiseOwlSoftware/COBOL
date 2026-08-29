@@ -452,14 +452,20 @@ public static partial class CobolIntrinsics
 
     /// <summary>TEST-NUMVAL-F (§15.95, COBOL-2014+): 0 if the string conforms to the NUMVAL-F format; else the
     /// 1-based position of the first character in error (an embedded space inside the significand ⇒ the first
-    /// non-space after it, r b.1; a significand longer than the cap ⇒ the cap+1-th significand digit, r b.2);
-    /// else (all spaces, empty, or a valid-but-incomplete string like <c>" +."</c>) LENGTH+1 (r c). A pure
-    /// projection of the ONE <see cref="NvfScan"/> the NUMVAL-F value path also rides (PB60).</summary>
+    /// non-space after it, r b.1; a significand longer than the cap ⇒ the cap+1-th significand digit, r b.2;
+    /// a standard-decimal magnitude past the SDIDI's ±6144 range ⇒ the exponent's first digit, r b.6 —
+    /// kb/Work PB121); else (all spaces, empty, or a valid-but-incomplete string like <c>" +."</c>) LENGTH+1
+    /// (r c). A projection of the ONE <see cref="NvfScan"/> the NUMVAL-F value path also rides (PB60).</summary>
     /// <param name="digitCap">The §15.95.4 r1b sub-note cap — 31 native, 34 standard-decimal; the emitter's
     /// <c>DigitCapFlag</c>, exactly as TEST-NUMVAL/TEST-NUMVAL-C already receive it (the hardcoded 31 this
     /// replaces was the PB60 probe fleet's sibling find).</param>
-    public static long TestNumvalF(string text, bool commaMode = false, int digitCap = 31) =>
-        NvfScan(text, commaMode, digitCap).ErrPos;
+    public static long TestNumvalF(string text, bool commaMode = false, int digitCap = 31)
+    {
+        // §15.95.4 r1b.6 (kb/Work PB121): a conforming scan can still carry the standard-decimal capacity
+        // flag — TEST-NUMVAL-F reports it; the value twins do not (their own range check disposes).
+        NvfParse p = NvfScan(text, commaMode, digitCap);
+        return p.ErrPos != 0 ? p.ErrPos : p.CapPos;
+    }
 
     /// <summary>
     /// NUMVAL-C (§15.68): like NUMVAL with a currency string and grouping separators. The currency string —
@@ -642,7 +648,17 @@ public static partial class CobolIntrinsics
     /// decimal separator · optional <c>E{+|-}n(1..4)</c>. Spaces are legal leading, trailing, between sign and
     /// first digit, and around the exponent parts — and ILLEGAL between the first and last significand digits
     /// (r5's except-clause; r b.1 reports the first non-space after such a space).</summary>
-    private readonly record struct NvfParse(long ErrPos, bool CapHit, bool Neg, Int128 Unscaled, int Frac, int Exp);
+    /// <param name="CapPos">§15.95.4 r1b sub-note 6 (kb/Work PB121): when the scan CONFORMS but the magnitude
+    /// exceeds the standard intermediate data item's capacity for the mode the <c>digitCap</c> encodes
+    /// (34 ⇒ standard-decimal, the SDIDI's ±6144 adjusted-exponent range, §8.8.1.5.2 NOTE 2), the 1-based
+    /// position of the FIRST DIGIT of the exponent; else 0. A separate field, not an <c>ErrPos</c>, because the
+    /// twins project it differently: TEST-NUMVAL-F reports it (r1b.6), while NUMVAL-F's ARGUMENT rules
+    /// (§15.69.3) say nothing about magnitude — there the value path's own §8.8.1.5.2 range check disposes
+    /// (EC-SIZE-OVERFLOW), so the scan must NOT reject. Native arithmetic (cap 31) has no r1b.6 leg — the rule
+    /// names only the standard modes — and standard-binary (cap 35) is unreachable (COBOLNET0806 rejects
+    /// ARITHMETIC IS STANDARD-BINARY outright; its SBIDI range joins this map if that ever lands).</param>
+    private readonly record struct NvfParse(long ErrPos, bool CapHit, bool Neg, Int128 Unscaled, int Frac, int Exp,
+        long CapPos = 0);
 
     private static NvfParse NvfScan(string text, bool commaMode, int digitCap)
     {
@@ -670,8 +686,13 @@ public static partial class CobolIntrinsics
             if (c == ' ') { pendingSpace = true; continue; }          // trailing/interior space — decided by what follows
             break;                                                    // 'E' or a bad char — the exponent scan decides
         }
-        if (!anyDigit) return new(n + 1, false, false, 0, 0, 0);      // r c — no significand digit (incl. all-space / " +.")
+        // No digit anywhere: a scan that BROKE on a real character reports that character (r1b — "ABC" → 1,
+        // "--1" → 2, "$1.5" → 1); only a scan that ran off the end with valid-but-incomplete content
+        // (zero-length, all-spaces, " +.") is the r1c LENGTH+1 leg — the same discrimination NvScan makes
+        // (kb/Work PB121: this arm returned n+1 unconditionally, misreporting leg b as leg c).
+        if (!anyDigit) return new(i < n ? Pos() : n + 1, false, false, 0, 0, 0);
         pendingSpace = false;
+        long expDig1 = 0;                                             // position of the exponent's first digit (r1b.6)
         if (i < n && (text[i] == 'E' || text[i] == 'e'))
         {
             i++;
@@ -686,6 +707,7 @@ public static partial class CobolIntrinsics
             while (i < n && char.IsAsciiDigit(text[i]))               // n = 1..4 exponent digits
             {
                 if (++ed > 4) return new(Pos(), false, false, 0, 0, 0);
+                if (ed == 1) expDig1 = Pos();
                 ev = ev * 10 + (text[i] - '0');
                 i++;
             }
@@ -694,6 +716,19 @@ public static partial class CobolIntrinsics
         }
         while (i < n && text[i] == ' ') i++;                          // trailing spaces (r5)
         if (i != n) return new(Pos(), false, false, 0, 0, 0);         // any leftover char is in error
-        return new(0, false, neg, unscaled, frac < 0 ? 0 : frac, exp);
+        // §15.95.4 r1b.6 (kb/Work PB121): under standard-decimal arithmetic (digitCap 34 — see CapPos) a
+        // conforming argument whose magnitude exceeds the SDIDI's range flags the exponent's first digit.
+        // The most-significant digit's exponent is (digits₁₀(unscaled) − 1) + exp − frac; with ≤34 significand
+        // digits the value is representable exactly iff that is ≤ 6144 (§8.8.1.5.2 NOTE 2). Underflow is NOT
+        // this leg — a small magnitude does not "exceed the capacity" (the value twin's subnormal re-round
+        // disposes of it). Overflow implies a written exponent, so expDig1 is always set when this fires.
+        long capPos = 0;
+        if (digitCap == 34 && unscaled != 0)
+        {
+            int d10 = 0;
+            for (Int128 t = unscaled; t > 0; t /= 10) d10++;
+            if (d10 - 1 + exp - (frac < 0 ? 0 : frac) > 6144) capPos = expDig1;
+        }
+        return new(0, false, neg, unscaled, frac < 0 ? 0 : frac, exp, capPos);
     }
 }
