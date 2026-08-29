@@ -378,8 +378,18 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `IntrinsicBind.Unsupported` DELETED**; PB113 (report-writer format-2 silent accept — pre-existing) and PB114
   (the grammar's required IS) fixed in the same landing; goldens `2002/pb64t6_*` (6) + three negatives + the
   pb100/locale_keyword inversions; +60 Unit incl. the every-host-culture LC_MONETARY drift oracle. CONFORMANCE.md
-  §5's A.4.9 row reads **Claimed** (all thirteen items). **NEXT per `work.py next`** — Phase-B adjudication
-  resumes (a NEW defect found on the way outranks).
+  §5's A.4.9 row reads **Claimed** (all thirteen items).
+  ⑦ ✅ **PHASE-B BATCH 7 — THE §15 CLOSE-OUT (2026-08-28, DEVLOG 1343):** 137 rules adjudicated by a 40-agent
+  adjudicate+refute workflow (72 CONFORMS · 51 PARTIAL · 8 DIVERGES · 3 NOT-IMPLEMENTED · 3
+  NEEDS-OWNER-DECISION; 73 refute overturns), GAP 3823 → 3794 — **the entire intrinsics clause §15 is now
+  adjudicated**. Eleven new kb/Work notes: PB115 (Pow10D's inexact 10^scale — a legal ASIN goes NaN),
+  PB116 (SQRT's §15.84.4 exact 34-digit specification unmet), PB117 (TRIM's set-union vs sequential folds),
+  PB118 (SUBSTITUTE's unenforced tail pairs), PB119 (YEAR-TO-YYYY's float arm — two-arm #6), PB120
+  (WHEN-COMPILED's process-static stamp), PB121 (TEST-NUMVAL-F's missing SDIDI capacity leg), PB122
+  (SMALLEST-ALGEBRAIC's IN-ARITHMETIC-RANGE), PB123 (EXCEPTION-FILE's Files-vs-FilesByName — two-arm #7),
+  PB124 (the §15.3 kind-screen finer-axes analysis cluster), PB125 (FACTORIAL(34) under standard-decimal).
+  **NEXT per `work.py next`: PB115–PB117 lead** (wrong answers first), the fix wave interleaving with the
+  next adjudication batch (§8.8.1's 20 A3 rows, then §14.9 / §13.18 at scale).
   Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN; #22 on the PB104–106 tree; #23 on the T1 tree; #24
   on the T4 tree; #25 on the T5 tree; **#26 on this tree `36b7cc6d` (the reference below).**
   **✅ THREE MORE SUBSYSTEMS AND THE REPOSITORY-WIDE INTEGRATION LANDED — kb/Work PB104 / PB105 / PB106 (2026-08-19,
