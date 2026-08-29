@@ -1702,7 +1702,16 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB112 tree `36b7cc6d` (2026-08-28 20:00 PDT, battery #26).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB64 T6 tree `d94d8e08` (2026-08-28 22:45 PDT, battery #27).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts in the session
+  scratchpad `battery-27/`): FULL greenfield Conformance **4921 / 4921, zero skipped** (10 m 35 s) · greenfield
+  Unit **4535 / 4535** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /
+  0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **`0 PER-CASE FLIP(S)`** (1323 cases: 577/469/207/70 —
+  GnuCOBOL's suite carries no locale-PICTURE or NUMVAL-C-LOCALE case, per the design §9 survey). Covers the
+  whole T6 landing (DEVLOG 1339–1341: the LC_MONETARY runtime, the two 1518 arm flips, PB113/PB114, the A.4.9
+  claim) — the population grew by 20 Conformance and 60 Unit tests over #26. **This is the comprehensive proof
+  the A.4.9 "Claimed" row owed.**
+- **⛔ PRIOR BATTERY REFERENCE — the PB112 tree `36b7cc6d` (2026-08-28 20:00 PDT, battery #26).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts in the session
   scratchpad `battery-26/`): FULL greenfield Conformance **4901 / 4901, zero skipped** (10 m 51 s) · greenfield
   Unit **4475 / 4475** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /
