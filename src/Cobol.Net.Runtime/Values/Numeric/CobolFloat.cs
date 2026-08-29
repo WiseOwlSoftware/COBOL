@@ -24,6 +24,38 @@ public static class CobolFloat
     /// <inheritdoc cref="Display(float)"/>
     public static string Display(double v) => v.ToString(CultureInfo.InvariantCulture);
 
+    /// <summary>⛔ THE ONE scaled-value→double conversion (kb/Work PB115): the CORRECTLY-ROUNDED double of the
+    /// algebraic value <c>unscaled × 10^(−scale)</c>. Two paths, both single-rounded: when the unscaled magnitude
+    /// fits 2^53 and |scale| ≤ 22, both operands are EXACT doubles and one IEEE divide/multiply rounds once; past
+    /// either bound, the decimal-string round-trip (<see cref="double.Parse(string)"/> is IEEE correctly rounded
+    /// in this runtime). It replaced <c>(double)(x) / 10^scale</c> with an emit-time repeated-multiplication
+    /// divisor — exact only through 1e22, so at scale ≥ 23 the divisor sat one ulp low and a LEGAL
+    /// <c>ASIN(|x| ≤ 1)</c> argument (§15.10.3 r2) arrived above 1.0, evaluated NaN and drew the §15.3
+    /// EC-ARGUMENT-FUNCTION where §15.10.4 r1 requires an approximation of the arcsine; <c>CobolDec.ToDouble</c>'s
+    /// <c>(double)Sig * Math.Pow(10, Exp)</c> failed independently at other scales. A NEGATIVE scale (a PICTURE-P
+    /// trailing-scaled operand, or an SDIDI with a positive exponent) multiplies: 10^(−scale).</summary>
+    public static double ScaledToDouble(Int128 unscaled, int scale)
+    {
+        if (scale == 0) return (double)unscaled;
+        Int128 mag = unscaled < 0 ? -unscaled : unscaled;
+        if (mag <= (Int128)(1L << 53) && scale is >= -22 and <= 22)
+        {
+            double v = (double)(long)unscaled;                 // exact: |value| ≤ 2^53
+            return scale > 0 ? v / ExactPow10[scale] : v * ExactPow10[-scale];
+        }
+        // The slow path: one correctly-rounded decimal parse of "<unscaled>E<-scale>".
+        return double.Parse(
+            unscaled.ToString(CultureInfo.InvariantCulture) + "E" + (-scale).ToString(CultureInfo.InvariantCulture),
+            NumberStyles.Float, CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>10^0 … 10^22 — every power of ten a double represents EXACTLY.</summary>
+    private static readonly double[] ExactPow10 =
+    [
+        1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11,
+        1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22,
+    ];
+
     /// <summary>The checked read of a standard-float SENDING operand (ISO §14.6.13.2 item 3): return the value, but
     /// when EC-DATA-NOT-FINITE checking is enabled and the content is NaN or ±Infinity, raise the fatal
     /// EC-DATA-NOT-FINITE (via <see cref="ExceptionState.FloatNotFiniteError"/>). Always-emitted at the two float

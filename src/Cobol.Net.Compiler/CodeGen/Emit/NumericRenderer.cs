@@ -691,20 +691,16 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// NUMVAL family (<c>IntrinsicRenderer</c> reads it through <c>ReceiverContext.InSizeError</c>).</summary>
     internal string CheckedFlag => Checked ? ", checkedLanding: true" : "";
 
-    // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
     // Internal (not private): the intrinsic renderer converts float-family arguments to double through THIS
     // one scaled-value→double conversion (ISO §15.4.1 native-arithmetic family; singular-pattern rule).
+    // ⛔ A scaled operand routes through the runtime's CORRECTLY-ROUNDED CobolFloat.ScaledToDouble (kb/Work
+    // PB115): the former `(double)(x) / <10^scale literal>` built its divisor by repeated multiplication —
+    // exact only through 1e22 — so at scale ≥ 23 a LEGAL ASIN(|x| ≤ 1) argument (§15.10.3 r2) arrived one ulp
+    // above 1.0 and evaluated NaN; and even a correct literal divisor rounds twice (the Int128 cast, then the
+    // divide), which a boundary-sitting argument cannot afford.
     internal static string Real(NumX x) =>
         x.Real ? x.Expr                                   // already a double-typed float intermediate (D16)
         : x.Dec ? $"({x.Expr}).ToDouble()"
-        : x.Scale == 0 ? $"(double)({x.Expr})" : $"((double)({x.Expr}) / {Pow10D(x.Scale)})";
-
-    /// <summary>10^<paramref name="n"/> as a C# <c>double</c> literal. Handles a NEGATIVE scale (a PICTURE-P
-    /// trailing-scaled operand): 10^−1 → <c>0.1d</c>, so <see cref="Real"/>'s <c>value / 10^scale</c> scales correctly.</summary>
-    private static string Pow10D(int n)
-    {
-        double r = 1;
-        for (int i = 0; i < System.Math.Abs(n); i++) r *= 10;
-        return $"{(n < 0 ? 1 / r : r).ToString(System.Globalization.CultureInfo.InvariantCulture)}d";
-    }
+        : x.Scale == 0 ? $"(double)({x.Expr})"
+        : RuntimeApi.ScaledToDouble(x.Expr, x.Scale);
 }

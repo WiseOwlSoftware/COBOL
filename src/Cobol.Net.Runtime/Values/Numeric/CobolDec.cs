@@ -306,8 +306,11 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return RoundFromRemainder(q, rem, den, sticky: false, mode);
     }
 
-    /// <summary>The value as a <see cref="double"/> (the float-context bridge, e.g. exponentiation).</summary>
-    public double ToDouble() => (double)Sig * Math.Pow(10, Exp);
+    /// <summary>The value as a <see cref="double"/> (the float-context bridge, e.g. exponentiation) — the
+    /// CORRECTLY-ROUNDED double, through the ONE scaled→double conversion (kb/Work PB115: the former
+    /// <c>(double)Sig * Math.Pow(10, Exp)</c> rounded twice over an inexact power and overshot at scale 25,
+    /// independently of the emit lane's sibling defect).</summary>
+    public double ToDouble() => CobolFloat.ScaledToDouble(Sig, -Exp);
 
     /// <summary>The text image of an SDIDI intermediate used as an intrinsic function's returned value in a
     /// string context (DA2). An SDIDI carries its own exponent, so the fixed-point scale is <c>-Exp</c>; routing

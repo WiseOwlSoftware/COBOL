@@ -217,6 +217,11 @@ internal static class RuntimeApi
             + $"{Emit.EmitText.CsLiteral(le.Picture)}, {LocaleTagArg(le.Locale)}, {le.Size}{(blankWhenZero ? ", blankWhenZero: true" : "")})";
     }
 
+    /// <summary>The CORRECTLY-ROUNDED scaled-value→double conversion — <c>CobolFloat.ScaledToDouble</c> (kb/Work
+    /// PB115; the ONE conversion <c>NumericRenderer.Real</c> emits for a scaled float-lane argument).</summary>
+    public static string ScaledToDouble(string unscaled, int scale) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.ScaledToDouble)}({unscaled}, {scale})";
+
     /// <summary>The floating-point form's ARITHMETIC store (§14.7.5 cases 3/4 — false = the size error condition,
     /// receiver unchanged): <c>CobolEdit.TryFormatFloat</c> over the result's exact form.</summary>
     public static string EditTryFormatFloat(PicInfo pic, Emit.NumX value, string imgVar, string cfgArgs)
