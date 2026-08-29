@@ -1712,7 +1712,18 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB133–PB136+PB163 batch tree `e77cd9e6` (2026-08-29, battery #31).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB137–PB140 batch tree `e79e8e20` (2026-08-29, battery #32).**
+  ✅ **Every leg GREEN, ZERO differential flips** (artifacts in the session scratchpad `battery32/`; DEVLOG
+  1383): FULL greenfield Conformance **5052 / 5052** · Unit **4612 / 4612** · characterization **33 / 33** ·
+  NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **1323 cases, 0 per-case flips**
+  (totals unchanged 572/474/206/71 — the file_sharing_seq REWB '43' re-derivation flipped no external
+  verdict). ONE legacy-suite intermittent, named and dispositioned: CobolSharp.Tests.Integration
+  `DataTests.Renames_Through_Synonym` failed once in the battery's parallel Integration leg (no assert
+  message captured), then passed a clean serial re-run AND a clean full-suite re-run (503/504, the one
+  skip pre-existing) — recorded in kb/Work PB166, watch for recurrence. Covers DEVLOG 1379–1382: PB137
+  (COMMIT/ROLLBACK), PB138 (CONTINUE AFTER), PB139 (ACCEPT whole), PB140 (the I-O status discipline) —
+  the population grew by 27 Conformance tests over #31.
+- **⛔ PRIOR BATTERY REFERENCE — the PB133–PB136+PB163 batch tree `e77cd9e6` (2026-08-29, battery #31).**
   ✅ **Every internal leg GREEN; ten differential flips, nine of them the batch's own acceptances
   confirmed by the external oracle** (artifacts in the session scratchpad `battery31/`; DEVLOG 1378):
   FULL greenfield Conformance **5025 / 5025** · Unit **4591 / 4591** · characterization **33 / 33** ·
