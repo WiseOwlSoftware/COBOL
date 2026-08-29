@@ -318,6 +318,14 @@ public static class DiagnosticCatalog
         + "organization.\" The WITH LOCK phrase is not organization-restricted. The old acceptance degraded at "
         + "run time to a stale FILE STATUS value with no defined meaning.",
         "ISO §14.9.6.3");
+    public static readonly DiagnosticDescriptor BasedRecordSubstrate = new(
+        "COBOLNET1695", "based-record-substrate", EditionSeverity.Error,
+        "A BASED record has a subordinate item outside the character cell model (a COMP/COMP-3/COMP-5/"
+        + "BINARY/PACKED-DECIMAL/float/INDEX/NATIONAL/BIT/POINTER/OBJECT-REFERENCE leaf): the ALLOCATE/"
+        + "ADDRESS pointer bridge is recognized but not yet implemented for it — the Tier-C cell model, "
+        + "kb/Work PB164. Previously the class was rejected SILENTLY at bind and the program crashed at run "
+        + "time on its first ALLOCATE, while the EXTERNAL twin of the same failure always diagnosed at bind.",
+        "ISO §13.18.5 / §14.9.3");
     public static readonly DiagnosticDescriptor OperandClassExcluded = new(
         "COBOLNET1694", "operand-class-excluded", EditionSeverity.Error,
         "A statement operand is of a class its syntax rules exclude. The recurring shape (kb/Work PB148): "

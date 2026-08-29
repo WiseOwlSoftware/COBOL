@@ -521,8 +521,20 @@ internal static class RuntimeApi
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByScaled)}({ptr}, {amount}, {scale})";
 
     /// <summary>ALLOCATE a fresh cell — <c>CobolPtr.Allocate</c> (GR1/GR2; GR6 zero fill).</summary>
-    public static string PtrAllocate(string size, bool zeroFill = false) =>
-        $"{nameof(CobolPtr)}.{nameof(CobolPtr.Allocate)}({size}{(zeroFill ? ", zeroFill: true" : "")})";
+    /// <summary>ALLOCATE — <c>CobolPtr.Allocate</c> over the FULL Int128 size (no emitter-side narrowing —
+    /// the PB22 wrap family), with the GR6/GR8 fill character and the GR5 not-available out-flag.</summary>
+    public static string PtrAllocate(string sizeInt128, string fillCharLiteral, string notAvailVar) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.Allocate)}({sizeInt128}, {fillCharLiteral}, out {notAvailVar})";
+
+    /// <summary>ALLOCATE with a native-float expression — <c>CobolPtr.AllocateReal</c> (GR1's round-UP on
+    /// the double; kb/Work PB151).</summary>
+    public static string PtrAllocateReal(string sizeDouble, string fillCharLiteral, string notAvailVar) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.AllocateReal)}({sizeDouble}, {fillCharLiteral}, out {notAvailVar})";
+
+    /// <summary>SET pointer UP/DOWN BY a native-float amount — <c>CobolPtr.UpByReal</c> (GR19's integrality
+    /// test on the double; kb/Work PB151).</summary>
+    public static string PtrUpByReal(string ptr, string amount) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByReal)}({ptr}, {amount})";
 
     /// <summary>FREE a pointer's cell — <c>CobolPtr.Free</c> (three-way per GR1; not-alloc out-flag).</summary>
     public static string PtrFree(string ptr, string notAllocVar) =>

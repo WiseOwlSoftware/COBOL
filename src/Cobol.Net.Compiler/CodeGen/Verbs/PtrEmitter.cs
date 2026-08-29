@@ -76,6 +76,18 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         // under native arithmetic since PB69, and every STANDARD-DECIMAL expression — was `(long)(CobolDec)`.
         NumX x = num.Landed(NumericRenderer.DeU(num.Render(s.Amount, ReceiverContext.None)), ReceiverContext.None);
         string tmp = $"__ptrBy{ctx.Names.NextPtr()}";
+        // A NATIVE-FLOAT amount keeps its double all the way to CobolPtr.UpByReal, whose GR19 integrality
+        // test runs on the DOUBLE — the old `(long)(double)` truncation bypassed the raise entirely
+        // (kb/Work PB151; the same Scale==0/Real split EmitAllocate mispriced).
+        if (x.Real)
+        {
+            w.Line($"double {tmp} = ({x.Expr});");
+            string amountR = s.Down ? $"-{tmp}" : tmp;
+            foreach (var t in s.Targets)
+                w.Line(PlaceRenderer.Write(t, RuntimeApi.PtrUpByReal(PlaceRenderer.Read(t), amountR))
+                    + "   // SET pointer UP/DOWN BY float (ISO §14.9.39 F10 GR19)");
+            return;
+        }
         w.Line($"long {tmp} = (long)({x.Expr});");
         string amount = s.Down ? $"-{tmp}" : tmp;
         foreach (var t in s.Targets)
@@ -94,25 +106,93 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     public void EmitAllocate(BoundAllocate s)
     {
         var w = ctx.Writer;
+        // GR6/GR8/GR9: INITIALIZED = binary zeros; else the OPTIONS INITIALIZE clause's specified-fill-
+        // character when written (GR8/GR9 key on the CLAUSE, not on its section list — the allocated storage
+        // belongs to no section; the CONFORMANCE.md GR8 determination); else space (content undefined —
+        // space-filling is the conformant choice).
+        string fill = s.Initialized ? "'\\0'" : OptionsFillCharLiteral();
+        string na = $"__notAvail{ctx.Names.NextPtr()}";
+        w.Line($"bool {na};");
         if (s.Based is { } based)
         {
             if (based.Class?.BasedPointerField is not { } addr || based.Class is not { } cls)
             {
+                // Unreachable from a compiled program since PB151's bind-time COBOLNET1695 — the belt stays.
                 w.Line(LoudStmt($"ALLOCATE '{based.CobolName}' — the based item has no pointer bridge "
                     + $"({based.Class?.RejectReason ?? "unclassified"})"));
                 return;
             }
-            w.Line($"{addr} = {RuntimeApi.PtrAllocate($"{cls.Width}")};   // ALLOCATE based-item (ISO §14.9.3 GR3/GR4a)");
+            w.Line($"{addr} = {RuntimeApi.PtrAllocate($"(System.Int128){cls.Width}", fill, na)};   // ALLOCATE based-item (ISO §14.9.3 GR3/GR4a)");
             if (s.Returning is { } ret2)
                 w.Line(PlaceRenderer.Write(ret2, addr) + "   // GR4b — the RETURNING pointer also receives the address");
+            EmitStorageNotAvail(w, na);   // GR5c — data-name-2 and the based address already hold NULL
             return;
         }
         NumX x = num.Landed(NumericRenderer.DeU(num.Render(s.Chars!, ReceiverContext.None)), ReceiverContext.None);   // kb/Work PB84
-        string size = x.Scale == 0
-            ? $"(long)({x.Expr})"
-            : $"(long){RuntimeApi.NumRescale(x.Expr, $"{x.Scale}", "0", Runtime.CobolRounding.AwayFromZero)}";   // GR1 — round UP
-        w.Line(PlaceRenderer.Write(s.Returning!, RuntimeApi.PtrAllocate(size, zeroFill: s.Initialized))
-            + "   // ALLOCATE n CHARACTERS (ISO §14.9.3 GR1/GR2" + (s.Initialized ? "/GR6" : "") + ")");
+        // GR1's round-UP per lane (kb/Work PB151): a NATIVE-FLOAT expression ceilings on the DOUBLE inside
+        // AllocateReal (the old `(long)(double)` truncated 2.5 → 2 — a silently undersized cell); a scaled
+        // fixed/SDIDI expression rescales AwayFromZero to scale 0 (== ceiling for the positive values GR2
+        // does not shunt to NULL); and the size travels as the FULL Int128 — the old `(long)` narrowing
+        // wrapped a 20-digit request into a small VALID allocation (the PB22 cast family).
+        string alloc = x.Real
+            ? RuntimeApi.PtrAllocateReal($"({x.Expr})", fill, na)
+            : RuntimeApi.PtrAllocate(
+                x.Scale == 0
+                    ? $"(System.Int128)({x.Expr})"
+                    : $"(System.Int128){RuntimeApi.NumRescale(x.Expr, $"{x.Scale}", "0", Runtime.CobolRounding.AwayFromZero)}",
+                fill, na);
+        w.Line(PlaceRenderer.Write(s.Returning!, alloc)
+            + "   // ALLOCATE n CHARACTERS (ISO §14.9.3 GR1/GR2/GR5" + (s.Initialized ? "/GR6" : "/GR8") + ")");
+        EmitStorageNotAvail(w, na);
+    }
+
+    /// <summary>The GR5c raise: storage not available → the nonfatal EC-STORAGE-NOT-AVAIL reports through
+    /// the checking-gated block (§14.6.13.1.4 — an unchecked nonfatal condition is not raised; the EmitFree
+    /// EC-STORAGE-NOT-ALLOC pattern). GR5a/b need no code here — the runtime already returned NULL into
+    /// every address the statement assigns.</summary>
+    private void EmitStorageNotAvail(CodeWriter w, string na)
+    {
+        if (ecState.Info?.Enabled.Any(e => e.Ec == "EC-STORAGE-NOT-AVAIL") != true)
+        {
+            w.Line($"_ = {na};   // EC-STORAGE-NOT-AVAIL checking not enabled (§14.6.13.1.4 — not raised; the pointers hold NULL per GR5a/b)");
+            return;
+        }
+        using (w.Block($"if ({na})"))
+        {
+            w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-AVAIL\", false);   // §14.9.3.4 GR5c — set to exist (nonfatal)");
+            int did = ctx.Names.NextPtr();
+            w.Line($"int __pa{did} = {ec.EcDispatchExpr("\"EC-STORAGE-NOT-AVAIL\"", "\"\"")};");
+            w.Line($"if (__pa{did} >= 0) {{ __pc = __pa{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+        }
+    }
+
+    /// <summary>The OPTIONS INITIALIZE clause's fill character as a C# char literal (§14.9.3.4 GR8/GR9;
+    /// kb/Work PB151 — the clause previously had ZERO consumers): a literal fill takes its first character;
+    /// BINARY ZEROES → NUL; LOW-VALUES → NUL and HIGH-VALUES → U+FFFF (OPTIONS precedes SPECIAL-NAMES, so
+    /// the native extremes, never a PCS); SPACES → the space. No clause → the space (content undefined).</summary>
+    private string OptionsFillCharLiteral()
+    {
+        if (ctx.Data.Options?.Initialize is not { } init) return "' '";
+        return init.Fill switch
+        {
+            Binding.OptionsFill.BinaryZeroes or Binding.OptionsFill.LowValues => "'\\0'",
+            Binding.OptionsFill.HighValues => "'\\uFFFF'",
+            Binding.OptionsFill.Literal when FillCharOf(init.FillLiteral) is { } c => $"'\\u{(int)c:X4}'",
+            _ => "' '",
+        };
+    }
+
+    /// <summary>The OPTIONS INITIALIZE fill literal's CHARACTER value: the binder carries the literal's raw
+    /// spelling (quotes included; §11.9.10.3 admits a one-character alphanumeric or hex literal), so decode
+    /// the quoted form and the X"nn" hex form here.</summary>
+    private static char? FillCharOf(string? raw)
+    {
+        if (string.IsNullOrEmpty(raw)) return null;
+        if ((raw[0] is '"' or '\'') && raw.Length >= 3) return raw[1];
+        if (raw.Length >= 4 && (raw[0] is 'X' or 'x') && raw[1] is '"' or '\''
+            && int.TryParse(raw[2..^1], System.Globalization.NumberStyles.HexNumber, null, out int b))
+            return (char)b;
+        return raw[0];
     }
 
     /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 + §8.4.3.13;

@@ -109,16 +109,55 @@ public static class CobolPtr
         return UpBy(p, scaledBy / pow);
     }
 
-    /// <summary>ALLOCATE (ISO §14.9.3): a fresh <paramref name="size"/>-character cell (GR1 — the requested
-    /// bytes; the binder rounds a fractional request UP). GR2: a request of zero or less returns the NULL
-    /// pointer and no exception condition exists. GR6: INITIALIZED with CHARACTERS fills with binary zeros
-    /// (the faithful <c>'\0'</c> image in the character model); otherwise the content is undefined (GR8) —
-    /// this implementation space-fills, a conformant choice.</summary>
-    public static ManagedPointer Allocate(long size, bool zeroFill = false)
+    /// <summary>ALLOCATE (ISO §14.9.3): a fresh <paramref name="size"/>-character cell. GR2: a request of
+    /// zero or less returns the NULL pointer and NO exception condition exists. GR5: storage NOT AVAILABLE —
+    /// a request past the cell model's capacity, or an OutOfMemory landing — returns NULL with
+    /// <paramref name="notAvail"/> set for the emitter's checking-gated EC-STORAGE-NOT-AVAIL block (the
+    /// <see cref="Free"/> notAlloc twin; kb/Work PB151 — the old <c>checked((int)size)</c> threw an unhandled
+    /// OverflowException, and the emitter's earlier <c>(long)</c> narrowing could WRAP a 20-digit request
+    /// into a small VALID allocation, the PB22 cast family's unswept sibling — the size now arrives as the
+    /// full <see cref="Int128"/>). GR6/GR8: <paramref name="fill"/> is the content — <c>'\0'</c> for
+    /// INITIALIZED with CHARACTERS, the OPTIONS INITIALIZE clause's specified-fill-character when that
+    /// clause is written (GR8), else the space (content undefined; space-filling is the conformant
+    /// choice).</summary>
+    public static ManagedPointer Allocate(Int128 size, char fill, out bool notAvail)
     {
+        notAvail = false;
         if (size <= 0) return ManagedPointer.Null;
-        var cell = new StorageCell { Ref = new string(zeroFill ? '\0' : ' ', checked((int)size)), Allocated = true };
-        return new CellPointer(cell, 0);
+        if (size > int.MaxValue) { notAvail = true; return ManagedPointer.Null; }
+        try
+        {
+            var cell = new StorageCell { Ref = new string(fill, (int)size), Allocated = true };
+            return new CellPointer(cell, 0);
+        }
+        catch (OutOfMemoryException) { notAvail = true; return ManagedPointer.Null; }
+    }
+
+    /// <summary>ALLOCATE with a NATIVE-FLOAT arithmetic-expression-1 (kb/Work PB151): GR1's "rounded up to
+    /// the next whole number" happens HERE, on the double — the old emitter's <c>(long)(double)</c>
+    /// truncated 2.5 to 2, a silently undersized cell. A NaN request is "not available".</summary>
+    public static ManagedPointer AllocateReal(double size, char fill, out bool notAvail)
+    {
+        if (double.IsNaN(size)) { notAvail = true; return ManagedPointer.Null; }
+        double up = Math.Ceiling(size);                          // GR1
+        if (up <= 0) { notAvail = false; return ManagedPointer.Null; }   // GR2
+        if (up > int.MaxValue) { notAvail = true; return ManagedPointer.Null; }
+        return Allocate((Int128)up, fill, out notAvail);
+    }
+
+    /// <summary>SET pointer UP/DOWN BY a NATIVE-FLOAT amount (kb/Work PB151): §14.9.39 Format 10 GR19's
+    /// integrality test runs on the DOUBLE — the old emitter's <c>(long)(double)</c> truncation bypassed
+    /// <see cref="UpByScaled"/>'s raise entirely. Non-integral, non-finite or out-of-long amounts are the
+    /// GR19 unsuccessful case: the size-address error is set and the pointer is unchanged.</summary>
+    public static ManagedPointer UpByReal(ManagedPointer? p, double by)
+    {
+        if (!double.IsFinite(by) || by != Math.Truncate(by) || by < long.MinValue || by > long.MaxValue)
+        {
+            ExceptionState.SizeAddressError(
+                "SET pointer UP/DOWN BY a non-integer amount (ISO 14.9.39 Format 10 GR19)");
+            return p ?? ManagedPointer.Null;   // GR19 verbatim — unsuccessful; identifier-9 unchanged
+        }
+        return UpBy(p, (long)by);
     }
 
     /// <summary>FREE (ISO §14.9.15 GR1): (a) a pointer addressing the START of storage obtained by ALLOCATE

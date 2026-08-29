@@ -65,8 +65,20 @@ public sealed partial class DataBinder
 
         foreach (var root in Roots.Where(r => r.IsBased))
         {
-            // A rejected class (COMP leaf) keeps its RejectReason — every reference then fails loud.
-            if (ForceStringCanonical(root, "BASED item") is not { } cls) continue;
+            // A rejected class keeps its RejectReason — and the rejection is a BIND-TIME diagnostic now
+            // (kb/Work PB151): the bare continue left BasedPointerField null and every ALLOCATE/ADDRESS
+            // reference crashed at RUN time on a program that compiled clean, while the EXTERNAL twin
+            // (CallMakeExternal) always diagnosed the identical failure at bind — the two-arm shape. The
+            // character-cell model for non-DISPLAY leaves is the Tier-C island (kb/Work PB164).
+            if (ForceStringCanonical(root, "BASED item") is not { } cls)
+            {
+                Edition.Error(DiagnosticCatalog.BasedRecordSubstrate,
+                    $"BASED item '{root.CobolName}' has a subordinate outside the character cell model "
+                    + $"({root.Class?.RejectReason ?? "unclassified"}) — ALLOCATE/ADDRESS bridging for "
+                    + "non-DISPLAY leaves is recognized but not yet implemented (the Tier-C cell model, "
+                    + "kb/Work PB164; ISO §13.18.5 / §14.9.3)");
+                continue;
+            }
             string addr = "__addr_" + DataItem.Sanitize(root.CobolName ?? root.CsName).ToUpperInvariant();
             cls.BasedPointerField = addr;
             _ptrBasedBridges.Add((cls.BackingCsName, addr, cls.Width));

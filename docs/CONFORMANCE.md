@@ -469,6 +469,16 @@ reallocated).
 > nothing is itself undefined. An OCCURS DEPENDING range whose data-name-1 is 0, or a dynamic-capacity table at
 > capacity 0, is how a program reaches it.
 
+> ⚖ **DETERMINATION — ALLOCATE's GR8/GR9 fill keys on the OPTIONS INITIALIZE clause's PRESENCE, not its
+> section list** (2026-08-29; kb/Work PB151). §14.9.3.4 GR8/GR9 say the non-INITIALIZED allocated content
+> "depends on the INITIALIZE clause of the OPTIONS paragraph. If it is specified, the content is that of the
+> specified-fill-character" — the rules reference the CLAUSE, and allocated storage belongs to no section, so
+> the clause's LOCAL-STORAGE/SCREEN/WORKING-STORAGE target list does not scope it: any written INITIALIZE
+> clause supplies the fill. The fill character: a literal's value (first character; X"nn" decoded), BINARY
+> ZEROES and LOW-VALUES the NUL, HIGH-VALUES U+FFFF (OPTIONS precedes SPECIAL-NAMES, so the native extremes,
+> never a PCS), SPACES the space; no clause → space (GR8's "undefined", the conformant choice). INITIALIZED
+> always wins with binary zeros (GR6). Pinned by `2023/pb151_options_fill`.
+
 > ⚖ **DETERMINATION — the §8.8.1.5.4 r2e development of a non-integer (and past-loop-bound integer) power**
 > (2026-08-29; kb/Work PB145). The equivalent-expression development for `b ** e` with a non-integer exponent
 > is the IEEE binary64 approximation (`Math.Pow`), converted through the §8.8.1.5.1 float→SDIDI conversion —
