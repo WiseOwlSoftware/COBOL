@@ -96,6 +96,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// there fails loud (COBOLNET1505).</summary>
     public IReadOnlyDictionary<string, UserFunctionSignature>? UserFunctions { get; set; }
 
+    /// <summary>The programs an AS NESTED call in THIS unit may name (§14.9.4.3 SR15: directly contained in
+    /// the caller, or a visible COMMON program), each with its bound PD-header formals — built per unit in
+    /// BinderDriver.BindUnitProcedure, after every unit's DATA has bound (the UserFunctions precedent), so
+    /// GR9's the-formal-decides mode derivation is a bind-time lookup (kb/Work PB131).</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<LinkageFormal>>? NestedCallables { get; set; }
+
     /// <summary>The containing FUNCTION-ID unit's own function name, when this binder binds a function
     /// definition's body — §8.4.6.6: a referenced function-prototype-name shall be "the user-function-name
     /// of the containing function definition OR a function-prototype-name declared in the REPOSITORY

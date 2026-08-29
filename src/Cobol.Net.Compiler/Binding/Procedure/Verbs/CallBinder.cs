@@ -55,13 +55,29 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // directly contained in the calling program.
             if (call.callTarget().literal() is null)
             {
-                ctx.Edition.Error(DiagnosticCatalog.CallAsNestedNeedsLiteral,
+                ctx.Edition.Error(DiagnosticCatalog.CallAsNestedScope,
                     "CALL … AS NESTED: literal-1 shall be specified — the NESTED phrase names a contained or "
                     + "COMMON program by its PROGRAM-ID literal, not through an identifier (ISO §14.9.4.3 SR15)");
                 return new BoundNop();
             }
         }
-        _ = formatTwo;   // read below by the USING binder for the Format-2 BY CONTENT operand set
+        // kb/Work PB131 — the AS NESTED callee's bound formals (§14.9.4.3 SR15 sentence 2 enforced here:
+        // the name shall be a directly-contained or visible-COMMON program; the old binder bound the flag,
+        // discarded it, and let ProgramTable resolve ANY outermost program at run time).
+        IReadOnlyList<LinkageFormal>? nestedFormals = null;
+        if (asNested && call.callTarget().literal() is { } asLit)
+        {
+            string nestedName = CobolLiteral.Decode(asLit.GetText());
+            if (host.NestedCallables is { } nc && nc.TryGetValue(nestedName, out var nf))
+                nestedFormals = nf;
+            else
+            {
+                ctx.Edition.Error(DiagnosticCatalog.CallAsNestedScope,
+                    $"CALL … AS NESTED \"{nestedName}\": the name shall be a program contained directly within "
+                    + "the calling program, or a visible common program (ISO §14.9.4.3 SR15)");
+                return new BoundNop();
+            }
+        }
 
         // ── Target: literal (static) or identifier (dynamic, resolved at run time — GR3b) ──
         string? literalName = null;
@@ -195,11 +211,21 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else if (a.dataReference() is { } bare)
             {
-                // A bare argument takes the prevailing transitive mode (GR5) — Reference by default, so it
-                // is receiving-capable and rides the chokepoint too (kb/Work PB128).
+                // Format 1: a bare argument takes the prevailing transitive mode — §14.9.4.4 GR5 names
+                // BY REFERENCE and BY CONTENT only. Format 2 (kb/Work PB131): GR5 is a FORMAT 1 rule; GR9
+                // takes the keyword-less identifier's mode from the CORRESPONDING FORMAL, resolved at bind
+                // through the AS NESTED callee table (the old single transitive `mode` silently passed
+                // `USING BY VALUE A B`'s B detached, losing the callee's writeback).
+                CobolPassMode bareMode = mode;
+                if (formatTwo && nestedFormals is not null)
+                {
+                    int pos = args.Count;
+                    bareMode = pos < nestedFormals.Count && nestedFormals[pos].ByValue
+                        ? CobolPassMode.Value : CobolPassMode.Reference;
+                }
                 if (host.Expr.ResolveReceiving(bare) is not { } bp)
                     return new BoundUnsupported($"CALL USING argument '{bare.GetText()}'");
-                args.Add(new BoundCallArg(mode, bp, null));
+                args.Add(new BoundCallArg(bareMode, bp, null));
             }
             // §14.9.4.2 Format 2's keyword-less non-identifier arguments (kb/Work PB130): literal-2,
             // arithmetic-expression-1, boolean-expression-1 and OMITTED all print bare in Format 2 (its BY

@@ -33,6 +33,19 @@
            DISPLAY "A3=" WS-A.
            DISPLAY "B3=" WS-B.
            STOP RUN.
+      *> kb/Work PB131 - AS NESTED requires CONTAINMENT (§14.9.4.3 SR15 sentence 2, enforced at bind).
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SUBV-P10UV.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 S-REF PIC 9(4).
+       01 S-V PIC 9(4).
+       PROCEDURE DIVISION USING S-REF BY VALUE S-V.
+       P.
+           MOVE 8888 TO S-V.
+           ADD 5 TO S-REF.
+           GOBACK.
+       END PROGRAM SUBV-P10UV.
        END PROGRAM UBYVAL-P10UV.
 
        IDENTIFICATION DIVISION.
@@ -52,16 +65,3 @@
            ADD 1 TO L-REF.
            GOBACK.
        END FUNCTION SCALEV-P10UV.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. SUBV-P10UV.
-       DATA DIVISION.
-       LINKAGE SECTION.
-       01 S-REF PIC 9(4).
-       01 S-V PIC 9(4).
-       PROCEDURE DIVISION USING S-REF BY VALUE S-V.
-       P.
-           MOVE 8888 TO S-V.
-           ADD 5 TO S-REF.
-           GOBACK.
-       END PROGRAM SUBV-P10UV.

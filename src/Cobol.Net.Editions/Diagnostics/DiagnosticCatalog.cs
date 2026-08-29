@@ -186,12 +186,16 @@ public static class DiagnosticCatalog
         + "no repositoryEntry alternative, so no source can declare one. The sibling arm, CALL … AS NESTED, is "
         + "supported. Tracked as the P13 prototype registry.",
         "ISO §14.9.4.3 SR16 / §12.3.8.2", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor CallAsNestedNeedsLiteral = new(
-        NotImplemented, "call-as-nested-needs-literal", EditionSeverity.Error,
+    // The ONE §14.9.4.3 SR15 diagnostic (kb/Work PB131) — both sentences: literal-1 required, and the name
+    // resolved at BIND time against the containment tree (a directly contained program, or a visible common
+    // program per §8.4.6.3). Replaced the 0899-staged CallAsNestedNeedsLiteral: this is a permanent
+    // conformance rejection, not recognized-not-implemented debt.
+    public static readonly DiagnosticDescriptor CallAsNestedScope = new(
+        "COBOLNET1676", "call-as-nested-scope", EditionSeverity.Error,
         "CALL … AS NESTED names its program by literal-1. ISO §14.9.4.3 syntax rule 15: \"If the NESTED phrase "
         + "is specified, literal-1 shall be specified. Literal-1 shall be the same as the program-name specified "
-        + "in a PROGRAM-ID paragraph of a common program … or of a program that is directly contained in the "
-        + "calling program.\" An identifier target cannot name a contained program at compile time.",
+        + "in a PROGRAM-ID paragraph of a common program as specified in 8.4.6.3, Scope of program-names, or of "
+        + "a program that is directly contained in the calling program.\"",
         "ISO §14.9.4.3 SR15");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,

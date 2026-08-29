@@ -59,8 +59,8 @@
            DIVIDE A BY B GIVING Q REMAINDER R.
            DISPLAY "S11 Q=" Q " R=" R.
            STOP RUN.
-       END PROGRAM PB84STDDEC.
 
+      *> kb/Work PB131 - AS NESTED requires CONTAINMENT (§14.9.4.3 SR15 sentence 2, enforced at bind).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB84SDSUB.
        DATA DIVISION.
@@ -70,6 +70,7 @@
            DISPLAY "SUB V=" V.
            GOBACK.
        END PROGRAM PB84SDSUB.
+       END PROGRAM PB84STDDEC.
 
        IDENTIFICATION DIVISION.
        CLASS-ID. CPB84SDX.

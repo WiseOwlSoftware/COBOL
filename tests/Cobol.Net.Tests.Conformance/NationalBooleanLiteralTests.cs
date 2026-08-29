@@ -149,9 +149,9 @@ public sealed class NationalBooleanLiteralTests
     }
 
     /// <summary>CALL USING with national and boolean LITERAL arguments (ISO §14.9.4 — a literal argument
-    /// passes BY CONTENT — the phrase is REQUIRED per §14.9.4.2: a bare argument defaults to BY REFERENCE,
-    /// which admits identifiers only, and the grammar's callByContent carries one operand per phrase): the
-    /// callee's national/boolean formals see the decoded values, never the prefixed token text.</summary>
+    /// passes BY CONTENT: spelled explicitly here, though Format 2's keyword-less literal binds the same
+    /// mode per §14.9.4.4 GR9 a)2 since kb/Work PB130/PB131; the callee is CONTAINED because AS NESTED
+    /// requires it, §14.9.4.3 SR15): the formals see the decoded values, never the prefixed token text.</summary>
     [Fact]
     public void Call_UsingNationalAndBooleanLiterals_PassesDecodedContent()
     {
@@ -172,6 +172,8 @@ public sealed class NationalBooleanLiteralTests
             SUB-P.
                 DISPLAY "SUB=" LK-N "/" LK-B.
                 EXIT PROGRAM.
+            END PROGRAM NBLIT07S.
+            END PROGRAM NBLIT07.
             """;
         var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
         Assert.True(ok, detail);

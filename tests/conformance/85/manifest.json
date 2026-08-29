@@ -6,7 +6,8 @@
     "optional_on_size_error",
     "qualified_unique_match",
     "index_name_r7_windows",
-    "nested_special_names_inheritance"
+    "nested_special_names_inheritance",
+    "pb131_gr5_transitivity"
   ],
   "pending": []
 }

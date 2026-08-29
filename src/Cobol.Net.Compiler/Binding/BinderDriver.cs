@@ -512,6 +512,11 @@ internal sealed class BinderDriver
             UdfSelfName = unit.IsFunction ? unit.Name : null,
             // §15.65.3 argument rule 1 — MODULE-NAME NESTED requires a contained program.
             InNestedProgram = unit.Parent is not null,
+            // kb/Work PB131 — the AS NESTED callee set (§14.9.4.3 SR15): the caller's directly-contained
+            // children, plus every COMMON program contained in a (transitive) ancestor — the §10.7.2
+            // visibility the runtime ResolveVisible applies, computed statically so GR9's formal-mode
+            // lookup and SR15's scope check both happen at BIND time.
+            NestedCallables = NestedCallablesOf(unit),
         };
         binder.ConfigureEc(session.Turn, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
         unit.Bound = binder.Bind(unit.Ctx);
@@ -520,6 +525,21 @@ internal sealed class BinderDriver
         // type-checks — ISO §14.2.3 GR8 / §14.9 MOVE GR4) by the post-bind UsageCollectionPass, from data.LinkageFormals
         // + data.LinkageReturning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
         // ReferenceResolver no longer performs) — deleted, PHASE-05 Step 5.
+    }
+
+    /// <summary>The AS NESTED callee table for one caller (kb/Work PB131; §14.9.4.3 SR15 + §10.7.2):
+    /// name → the callee's bound PD-header formals. Directly-contained children first; a COMMON program
+    /// contained in an ancestor is visible too (nearest wins on a name clash, matching §10.7.2's scope).</summary>
+    private static Dictionary<string, IReadOnlyList<LinkageFormal>> NestedCallablesOf(BoundUnit unit)
+    {
+        var map = new Dictionary<string, IReadOnlyList<LinkageFormal>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var c in unit.Children)
+            map.TryAdd(c.Name, c.Data.LinkageFormals);
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+            foreach (var c in anc.Children)
+                if (c.Common)
+                    map.TryAdd(c.Name, c.Data.LinkageFormals);
+        return map;
     }
 
     /// <summary>Build the compilation group's user-function signature table (name → bound RETURNING item +
