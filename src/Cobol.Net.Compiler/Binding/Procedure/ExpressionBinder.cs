@@ -556,22 +556,58 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return place;
     }
 
+    /// <summary>The arithmetic RESULTANT category screen (kb/Work PB128): every arithmetic statement's syntax
+    /// rules fix its resultants' categories — the in-place receivers (ADD TO §14.9.2.3 SR2, SUBTRACT FROM
+    /// §14.9.44.3 SR2, MULTIPLY BY §14.9.26.3 SR1, DIVIDE INTO §14.9.12.3 SR1) shall be elementary NUMERIC;
+    /// the GIVING resultants, DIVIDE's REMAINDER (§14.9.12.3 SR2 — edited IS admitted there) and COMPUTE's
+    /// identifier-1 (§14.9.8.3 SR1) admit numeric or NUMERIC-EDITED. Nothing screened this before: a PIC X or
+    /// group resultant compiled clean and died in StoreArith's run-time loud, where §4.2.2 requires a
+    /// compile-time mechanism (the SENDING side has had DA6's screen for a month). Also rejected here: an
+    /// index DATA item (category numeric in the storage model, but §13.18.60.3 SR10's closed reference list
+    /// has no arithmetic-resultant entry) and a ref-mod slice (§8.4.3.3.4 GR6c — category alphanumeric).</summary>
+    internal Place? ScreenResultant(Place p, string refText, bool editedOk, string clause)
+    {
+        var pic = p.Item.Pic;
+        bool numeric = p is not RefModPlace && !p.Item.IsGroup
+            && pic is { Category: PicCategory.Numeric, Usage: not Usage.Index };
+        bool edited = p is not RefModPlace && !p.Item.IsGroup
+            && pic is { Category: PicCategory.NumericEdited };
+        if (numeric || (edited && editedOk)) return p;
+        string actual = p is RefModPlace ? "a reference-modified slice (category alphanumeric, §8.4.3.3.4 GR6c)"
+            : p.Item.IsGroup ? "a group item"
+            : pic is { Usage: Usage.Index } ? "an index data item (§13.18.60.3 SR10)"
+            : edited ? "a numeric-edited item, which this receiver position does not admit"
+            : $"of category {pic?.Category.ToString() ?? "unknown"}";
+        ctx.Edition.Error(DiagnosticCatalog.ArithmeticResultantCategory,
+            $"the arithmetic resultant '{refText}' is {actual}; ISO {clause} requires an elementary numeric"
+            + (editedOk ? " or numeric-edited" : "") + " data item");
+        return null;
+    }
+
     /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to
-    /// <see cref="Receiver"/>s, each carrying its own ROUNDED mode; an unresolvable reference is dropped.</summary>
-    public List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops) =>
-        ops.Select(o => ResolveReceiving(o.dataReference()) is { } p ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
+    /// <see cref="Receiver"/>s, each carrying its own ROUNDED mode and screened per the caller's syntax rule
+    /// (<paramref name="editedOk"/> — GIVING-style positions admit numeric-edited, in-place ones do not);
+    /// an unresolvable or rejected reference is dropped after its diagnostic.</summary>
+    public List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops, bool editedOk, string clause) =>
+        ops.Select(o => ResolveReceiving(o.dataReference()) is { } p
+                && ScreenResultant(p, o.dataReference().GetText(), editedOk, clause) is { } sp
+                ? new Receiver(sp, RoundingOf(o.roundedPhrase())) : null)
            .OfType<Receiver>().ToList();
 
     /// <summary>Resolve the in-place <c>MULTIPLY … BY</c> receivers (<c>multiplyByOperand</c> = receiving operand +
     /// optional ROUNDED), each carrying its own mode; a literal BY operand (only valid in a GIVING form) is dropped.</summary>
     public List<Receiver> Receivers(IEnumerable<Core.MultiplyByOperandContext> ops) =>
         ops.Select(o => o.receivingOperand()?.dataReference() is { } d && ResolveReceiving(d) is { } p
-                ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
+                && ScreenResultant(p, d.GetText(), editedOk: false, "§14.9.26.3 SR1") is { } sp
+                ? new Receiver(sp, RoundingOf(o.roundedPhrase())) : null)
            .OfType<Receiver>().ToList();
 
-    /// <summary>Resolve the <c>COMPUTE</c> resultants (<c>computeStore</c> = data reference + optional ROUNDED).</summary>
+    /// <summary>Resolve the <c>COMPUTE</c> Format-1 resultants (<c>computeStore</c> = data reference + optional
+    /// ROUNDED) — §14.9.8.3 SR1 admits elementary numeric or numeric-edited.</summary>
     public List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) =>
-        stores.Select(s => ResolveReceiving(s.dataReference()) is { } p ? new Receiver(p, RoundingOf(s.roundedPhrase())) : null)
+        stores.Select(s => ResolveReceiving(s.dataReference()) is { } p
+                && ScreenResultant(p, s.dataReference().GetText(), editedOk: true, "§14.9.8.3 SR1") is { } sp
+                ? new Receiver(sp, RoundingOf(s.roundedPhrase())) : null)
               .OfType<Receiver>().ToList();
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) as an ISO §8.8.1.1

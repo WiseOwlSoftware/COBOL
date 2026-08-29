@@ -106,7 +106,12 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (a.callByReference() is { } byRef)
             {
                 mode = CobolPassMode.Reference;
-                if (ctx.Refs.Resolve(byRef.dataReference()) is not { } p)
+                // kb/Work PB128: a BY REFERENCE argument is a RECEIVING operand and rides the ONE receiving
+                // chokepoint — the direct Refs.Resolve bypass skipped the CONSTANT RECORD (§13.18.15.3 SR2),
+                // CAPACITY-register (§13.18.38 SR30–32), constant-name and LINE-COUNTER screens, letting a
+                // structured constant be silently overwritten by the callee (and a CAPACITY register reach
+                // PlaceRenderer.Write's internal throw — an unhandled compiler exception).
+                if (host.Expr.ResolveReceiving(byRef.dataReference()) is not { } p)
                     return new BoundUnsupported($"CALL USING argument '{byRef.dataReference().GetText()}'");
                 args.Add(new BoundCallArg(CobolPassMode.Reference, p, null));
             }
@@ -175,8 +180,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else if (a.dataReference() is { } bare)
             {
-                // A bare argument takes the prevailing transitive mode (GR5).
-                if (ctx.Refs.Resolve(bare) is not { } bp)
+                // A bare argument takes the prevailing transitive mode (GR5) — Reference by default, so it
+                // is receiving-capable and rides the chokepoint too (kb/Work PB128).
+                if (host.Expr.ResolveReceiving(bare) is not { } bp)
                     return new BoundUnsupported($"CALL USING argument '{bare.GetText()}'");
                 args.Add(new BoundCallArg(mode, bp, null));
             }
@@ -188,7 +194,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         if (call.callReturningPhrase() is { } rp)
         {
             // call-returning-2002: the VersionConformancePass owns the edition gate (Exec Step E).
-            if (ctx.Refs.Resolve(rp.dataReference()) is not { } rpl)
+            // kb/Work PB128: identifier-3 is a pure receiver — the chokepoint's screens apply.
+            if (host.Expr.ResolveReceiving(rp.dataReference()) is not { } rpl)
                 return new BoundUnsupported($"CALL RETURNING '{rp.dataReference().GetText()}'");
             returning = rpl;
         }

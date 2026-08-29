@@ -1083,6 +1083,17 @@ public static class DiagnosticCatalog
         + "(COBOLNET_DESIGN §1.4: an unsupported shape fails loud, never silently). The statement is rejected rather "
         + "than run with the receiver dropped.", "COBOLNET_DESIGN §1.4",
         RecognizedNotImplemented);
+    // kb/Work PB128: arithmetic RESULTANTS never had a compile-time category screen — COMPUTE X-item = 1
+    // compiled and died in StoreArith's run-time loud, where §4.2.2 requires a compile-time mechanism.
+    public static readonly DiagnosticDescriptor ArithmeticResultantCategory = new(
+        "COBOLNET1675", "arithmetic-resultant-category", EditionSeverity.Error,
+        "An arithmetic statement's resultant identifier is not of a category its syntax rule admits. The in-place "
+        + "receivers (ADD TO / SUBTRACT FROM / MULTIPLY BY / DIVIDE INTO) shall reference elementary NUMERIC data "
+        + "items; the GIVING resultants, DIVIDE's REMAINDER and COMPUTE's identifier-1 admit elementary numeric or "
+        + "NUMERIC-EDITED items. A group, an alphanumeric/alphabetic/boolean item, an index data item "
+        + "(§13.18.60.3 SR10's closed reference list), or a reference-modified slice (§8.4.3.3.4 GR6c makes it "
+        + "category alphanumeric) is not a legal resultant.",
+        "ISO §14.9.2.3 SR2/SR4 · §14.9.8.3 SR1 · §14.9.12.3 SR1/SR2 · §14.9.26.3 SR1/SR2 · §14.9.44.3");
     public static readonly DiagnosticDescriptor PerformTimesCountNotInteger = new(
         "COBOLNET1646", "perform-times-count-not-integer", EditionSeverity.Error,
         "The PERFORM … TIMES count is not an integer. ISO §14.9.28.3 SR2: \"Each identifier shall reference a numeric "

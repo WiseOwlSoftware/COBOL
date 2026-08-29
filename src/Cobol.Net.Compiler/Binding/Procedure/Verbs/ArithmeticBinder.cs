@@ -32,7 +32,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // receiver; only the GIVING operands receive). Previously the TO operand was dropped from the sum.
             if (add.addToPhrase() is { } toAddend)
                 addends.AddRange(StatementBinder.DataRefs(toAddend).Select(host.Expr.BindExpr));
-            var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand());
+            var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.2.3 SR4");
             // §14.9.2.3 SR1b: the ADD Format-2 composite is "all of the operands ... excluding the data items that
             // follow the word GIVING" — the resultant identifiers are NOT superimposed into the composite (§14.7.7
             // rule 2). Pass no receivers so a wide GIVING target does not spuriously push the composite past 31
@@ -42,7 +42,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         }
         if (add.addToPhrase() is { } to)
         {
-            var recv = host.Expr.Receivers(to.receivingArithmeticOperand());
+            var recv = host.Expr.Receivers(to.receivingArithmeticOperand(), editedOk: false, "§14.9.2.3 SR2");
             ctx.Validation.CheckComposite("ADD", addends, recv);
             return new BoundAddTo(addends, recv, sizeErr);
         }
@@ -57,7 +57,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
         {
             var fromX = host.Expr.BindExpr(from);
-            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand());
+            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.44.3 (GIVING resultant)");
             // §14.9.44.3 SR1b: the SUBTRACT Format-2 composite excludes the data items following GIVING (§14.7.7
             // rule 2) — the resultants are not superimposed. Pass no receivers (see the ADD GIVING note above).
             ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], []);
@@ -65,7 +65,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         }
         if (sub.subtractFromPhrase()?.subtractFromOperand() is { } targets)
         {
-            var recv = host.Expr.Receivers(targets.receivingArithmeticOperand());
+            var recv = host.Expr.Receivers(targets.receivingArithmeticOperand(), editedOk: false, "§14.9.44.3 SR2");
             ctx.Validation.CheckComposite("SUBTRACT", minuends, recv);
             return new BoundSubtractFrom(minuends, recv, sizeErr);
         }
@@ -81,7 +81,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (mul.multiplyGivingPhrase() is { } giving && byOps.Length > 0)
         {
             var b = host.Expr.BindExpr(byOps[0]);
-            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand());
+            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.26.3 SR2");
             ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv);
             return new BoundMultiplyGiving(a, b, recv, sizeErr);
         }
@@ -101,9 +101,13 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (div.divideRemainderPhrase() is { } rem)
         {
             if (div.divideGivingPhrase() is not { } g) return new BoundUnsupported("DIVIDE REMAINDER without GIVING");
-            var quotients = host.Expr.Receivers(g.receivingArithmeticOperand());
+            var quotients = host.Expr.Receivers(g.receivingArithmeticOperand(), editedOk: true, "§14.9.12.3 SR2");
             if (quotients.Count != 1) return new BoundUnsupported("DIVIDE REMAINDER quotient receiver");
-            if (ctx.Refs.Resolve(rem.dataReference()) is not { } r)
+            // kb/Work PB128: identifier-4 rides the ONE receiving chokepoint like every other resultant —
+            // the direct Refs.Resolve bypass skipped the CONSTANT RECORD / CAPACITY-register / constant-name
+            // screens, and §14.9.12.3 SR2 fixes its category (numeric or numeric-edited).
+            if (host.Expr.ResolveReceiving(rem.dataReference()) is not { } r0
+                || host.Expr.ScreenResultant(r0, rem.dataReference().GetText(), editedOk: true, "§14.9.12.3 SR2") is not { } r)
                 return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.dataReference().GetText()}'");
             BoundExpr dividend = div.divideIntoPhrase() is { } i ? host.Expr.BindExpr(i.divideIntoOperand())
                 : div.divideByPhrase() is not null ? a
@@ -120,18 +124,18 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             if (div.divideGivingPhrase() is { } giving)
             {
                 var dividendX = host.Expr.BindExpr(into.divideIntoOperand());
-                var recv = host.Expr.Receivers(giving.receivingArithmeticOperand());
+                var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.12.3 SR2");
                 ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv);
                 return new BoundDivideGiving(dividendX, a, recv, sizeErr);
             }
-            var intoRecv = host.Expr.Receivers(into.divideIntoOperand().receivingArithmeticOperand());
+            var intoRecv = host.Expr.Receivers(into.divideIntoOperand().receivingArithmeticOperand(), editedOk: false, "§14.9.12.3 SR1");
             ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv);
             return new BoundDivideInto(a, intoRecv, sizeErr);   // target ← target ÷ a
         }
         if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } gv)
         {
             var divisorX = host.Expr.BindExpr(byPhrase.divideOperand());
-            var recv = host.Expr.Receivers(gv.receivingArithmeticOperand());
+            var recv = host.Expr.Receivers(gv.receivingArithmeticOperand(), editedOk: true, "§14.9.12.3 SR2");
             ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv);
             return new BoundDivideGiving(a, divisorX, recv, sizeErr);
         }
@@ -232,7 +236,11 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             if (store.roundedPhrase() is not null)
                 ctx.Edition.Error("COBOLNET1511", "ROUNDED may not be specified on a boolean COMPUTE "
                     + "(ISO §14.9.8 Format 2)");
-            if (ctx.Refs.Resolve(store.dataReference()) is not { } p)
+            // kb/Work PB128: the Format-2 boolean receivers ride the ONE receiving chokepoint (the direct
+            // Refs.Resolve bypass skipped the CONSTANT RECORD / CAPACITY / constant-name screens); the
+            // ARITHMETIC category screen deliberately does not apply — §14.9.8.3 SR2's boolean-receiver rule
+            // is BuildComputeBoolean's own (kb/Work PB157).
+            if (host.Expr.ResolveReceiving(store.dataReference()) is not { } p)
             {
                 ctx.Edition.Error("COBOLNET1511", $"COMPUTE receiver '{store.dataReference().GetText()}' is unresolvable");
                 continue;
