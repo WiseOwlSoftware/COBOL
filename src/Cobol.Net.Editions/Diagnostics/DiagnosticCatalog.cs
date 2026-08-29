@@ -318,6 +318,17 @@ public static class DiagnosticCatalog
         + "organization.\" The WITH LOCK phrase is not organization-restricted. The old acceptance degraded at "
         + "run time to a stale FILE STATUS value with no defined meaning.",
         "ISO §14.9.6.3");
+    public static readonly DiagnosticDescriptor OperandClassExcluded = new(
+        "COBOLNET1694", "operand-class-excluded", EditionSeverity.Error,
+        "A statement operand is of a class its syntax rules exclude. The recurring shape (kb/Work PB148): "
+        + "\"Identifier-1 shall not reference a data item of class …\" closes a class list per statement "
+        + "(DISPLAY's §14.9.11.3 SR1 excludes message-tag, object and pointer — where 'class pointer' spans "
+        + "the data-, function- and program-pointer categories), and §13.18.60.3 SR10 closes the reference "
+        + "contexts for an index DATA item. The reusable gate also rejects the word NULL in such slots — NULL "
+        + "is the predefined object reference/address (§8.4.3.7/§8.4.3.10), not a §8.3.3.6.2 figurative "
+        + "constant. The old fall-throughs printed a pointer's CLR carrier text, an object's ToString, an "
+        + "index item's EMPTY zero-digit image, and U+0000 for NULL.",
+        "ISO §14.9.11.3 / §13.18.60.3");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
         "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "

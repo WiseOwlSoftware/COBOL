@@ -427,7 +427,11 @@
   "pb140-delete-record-sd",
   "pb140-delete-file-sd",
   "pb140-close-reel-relative",
-  "pb140-close-norewind-indexed"
+  "pb140-close-norewind-indexed",
+  "pb148-display-pointer",
+  "pb148-display-object",
+  "pb148-display-index-item",
+  "pb148-display-null"
  ],
  "pending": []
 }

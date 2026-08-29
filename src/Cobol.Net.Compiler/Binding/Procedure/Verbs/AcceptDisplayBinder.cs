@@ -160,26 +160,50 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         return false;
     }
 
+    /// <summary>The classes a DISPLAY operand shall not present (kb/Work PB148): §14.9.11.3 SR1 excludes
+    /// class message-tag (undeclarable here), object and pointer — the old fall-through printed a pointer's
+    /// ManagedPointer.ToString() and an object's CLR text; §13.18.60.3 SR10's closed list keeps an index DATA
+    /// item out of DISPLAY — the old numeric arm printed a zero-digit EMPTY image for it; and the
+    /// grammar-carried NULL word (class pointer — NOT a §8.3.3.6.2 figurative) rejects through the same
+    /// gate, where it previously printed U+0000.</summary>
+    private static readonly CobolClass[] DisplayExcludedClasses =
+        [CobolClass.Pointer, CobolClass.Object, CobolClass.Index];
+
+    private const string DisplayClassCite =
+        "ISO §14.9.11.3 SR1 (class object/pointer); §13.18.60.3 SR10 (an index data item may be referenced "
+        + "only in SEARCH/SET, a relation condition, an intrinsic/method argument, or a USING phrase)";
+
     public BoundStatement BindDisplay(Core.DisplayStatementContext display)
     {
         var ops = new List<BoundOperand>();
         foreach (IParseTree child in StatementBinder.Children(display))
-            switch (child)
+        {
+            BoundOperand? op = child switch
             {
-                case Core.LiteralContext lit: ops.Add(host.Expr.LiteralOperand(lit)); break;
-                case Core.DataReferenceContext dref:
-                {
-                    // DISPLAY is none of §13.18.38.3 r7's five index-name contexts (kb/Work R16 — this
-                    // compiled clean and aborted at run time before).
-                    var op = host.Expr.FieldOperand(dref);
-                    ops.Add(host.Expr.ScreenIndexNameOperand(op, dref.GetText(), "DISPLAY")
-                        ? new BoundOperandError($"DISPLAY of the index-name '{dref.GetText()}' (ISO §13.18.38.3 r7)")
-                        : op);
-                    break;
-                }
+                Core.LiteralContext lit => host.Expr.LiteralOperand(lit),
+                Core.DataReferenceContext dref => host.Expr.FieldOperand(dref),
                 // DISPLAY FUNCTION … (ISO §8.4.4.1 — an identifier includes a function-identifier; §14.9.11.2).
-                case Core.FunctionCallContext fc: ops.Add(host.Intrinsic.IntrinsicOperand(fc)); break;
+                Core.FunctionCallContext fc => host.Intrinsic.IntrinsicOperand(fc),
+                _ => null,
+            };
+            if (op is null) continue;
+            string text = child.GetText();
+            // DISPLAY is none of §13.18.38.3 r7's five index-name contexts (kb/Work R16 — this compiled
+            // clean and aborted at run time before).
+            if (child is Core.DataReferenceContext && host.Expr.ScreenIndexNameOperand(op, text, "DISPLAY"))
+            {
+                ops.Add(new BoundOperandError($"DISPLAY of the index-name '{text}' (ISO §13.18.38.3 r7)"));
+                continue;
             }
+            // The operand-class gate (kb/Work PB148) — every operand shape, literals and intrinsic results
+            // included (FUNCTION MAX(IX1 IX2) is class index per §15.2 item 6).
+            if (host.Expr.ScreenOperandClass(op, DisplayExcludedClasses, text, "DISPLAY", DisplayClassCite))
+            {
+                ops.Add(new BoundOperandError($"DISPLAY operand '{text}' of an excluded class"));
+                continue;
+            }
+            ops.Add(op);
+        }
         bool toStdErr = display.displayUpon() is { } upon && BindDisplayUpon(upon);
         return new BoundDisplay(ops, display.displayNoAdvancing() is not null, toStdErr);
     }

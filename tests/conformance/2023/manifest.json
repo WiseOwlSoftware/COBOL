@@ -245,7 +245,8 @@
   "pb145_round_away",
   "pb145_round_even",
   "pb145_round_trunc",
-  "pb145_round_prohib"
+  "pb145_round_prohib",
+  "pb148_display_zero_length"
  ],
  "pending": []
 }

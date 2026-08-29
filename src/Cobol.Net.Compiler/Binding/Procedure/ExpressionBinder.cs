@@ -269,6 +269,24 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return true;
     }
 
+    /// <summary>The reusable operand-CLASS screen (kb/Work PB148): a statement operand slot whose syntax rule
+    /// closes a class list ("shall not reference a data item of class …", or a closed reference list like
+    /// §13.18.60.3 SR10's for an index DATA item) rejects here, over the ONE classifier
+    /// (<see cref="IntrinsicArgumentRules.ClassOf"/> — so "class pointer" spans data-, function- and
+    /// program-pointer, class object the object references, class index the index data items, and the
+    /// grammar-carried NULL word (class pointer via its CandidateClasses singleton — NULL is NOT a §8.3.3.6.2
+    /// figurative constant) rejects through the same gate). A figurative whose class the context would choose
+    /// (ZERO, SPACE …) has no singleton class and passes untouched. Returns true when rejected.</summary>
+    public bool ScreenOperandClass(BoundOperand op, IReadOnlyList<CobolClass> excluded, string sourceText,
+        string where, string cite)
+    {
+        if (IntrinsicArgumentRules.ClassOf(op) is not { } cls || !excluded.Contains(cls)) return false;
+        ctx.Edition.Error(DiagnosticCatalog.OperandClassExcluded,
+            $"{where} operand '{sourceText}' is of class {cls.ToString().ToLowerInvariant()}, which the "
+            + $"statement's rules exclude — {cite}");
+        return true;
+    }
+
     /// <summary>The bound literal a bare constant-name reference substitutes, or <see langword="null"/> when
     /// <paramref name="dref"/> names no constant (ISO §13.10.3 SR2 / §13.10.4 GR1 — "as if [the] literal were
     /// written where constant-name-1 is written"): the SAME bound shape the equivalent plain literal would

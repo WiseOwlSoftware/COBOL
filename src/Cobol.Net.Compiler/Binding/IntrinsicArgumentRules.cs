@@ -345,7 +345,10 @@ internal static class IntrinsicArgumentRules
         // GR5/GR6/GR7/GR8 — SPACE, HIGH-VALUE, LOW-VALUE, QUOTE are CHARACTER values, alphanumeric by GR1 or
         // national in a national context. Never numeric, never boolean.
         BoundFigurative { Kind: 'S' or 'H' or 'L' or 'Q' } => [CobolClass.Alphanumeric, CobolClass.National],
-        // NULL/NULLS is the pointer figurative (§8.3.3.7) — class pointer, and no §15 argument rule admits it.
+        // NULL/NULLS is NOT a figurative constant — §8.3.3.6.2 lists Formats 1–7 and NULL is none of them
+        // (the old comment cited a §8.3.3.7 the standard does not have — kb/Work PB148). It is the predefined
+        // object reference (§8.4.3.7) / predefined address (§8.4.3.10), carried in the grammar's figurative
+        // rule for parse convenience only: class pointer, so every class-closed operand slot rejects it.
         BoundFigurative { Kind: 'N' } => [CobolClass.Pointer],
         BoundFigurative => [],                                   // an unmodelled kind screens as before: fail open
         BoundAllLiteral all => ClassOfCategory(all.Category) is { } ac ? [ac] : [],
