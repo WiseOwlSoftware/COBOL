@@ -34,6 +34,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     public bool EmitCall(BoundCallProgram c)
     {
         var w = ctx.Writer;
+        // §14.9.4.4 GR3a (kb/Work PB133 wave B): "item identification is done for identifier-3 at the
+        // beginning of the execution of the CALL statement" — and 14.2.3 GR8 fixes each BY REFERENCE
+        // argument's STORAGE AREA at the same point. The aliasing carriers re-render their subscript and
+        // ref-mod expressions on every access, so a callee that reaches the caller's index item through
+        // another BY REFERENCE argument could re-aim them mid-call; each variable index is hoisted into a
+        // statement-local evaluated here, once.
+        c = HoistOnceOnlyIdentification(c, w);
         string args = ArgsArrayText(c);
         string ret = c.Returning is { } rp ? RefCarrier(rp) : "null";
         // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
@@ -87,6 +94,82 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             using (w.Block($"if (!__callErr{id})")) Statements.EmitStatementList(not);   // GR3i — only on a non-exception return
         EmitPropagationPickup();
         return false;
+    }
+
+    /// <summary>§14.9.4.4 GR3a's once-only identification (kb/Work PB133 wave B): rewrite the ALIASING
+    /// operands' places so every non-constant table subscript and ref-mod position is a hoisted local. The
+    /// value operands (BY CONTENT / BY VALUE snapshots) already read once when the args array is built.</summary>
+    private BoundCallProgram HoistOnceOnlyIdentification(BoundCallProgram c, CodeWriter w)
+    {
+        bool needed = (c.Returning is { } r0 && HasVariableIndex(r0))
+            || c.Args.Any(a => a.Mode == CobolPassMode.Reference && a.Place is { } p0 && HasVariableIndex(p0));
+        if (!needed) return c;
+        var args = c.Args
+            .Select(a => a.Mode == CobolPassMode.Reference && a.Place is { } p ? a with { Place = HoistPlace(p, w) } : a)
+            .ToList();
+        var ret = c.Returning is { } rp && HasVariableIndex(rp) ? HoistPlace(rp, w) : c.Returning;
+        return c with { Args = args, Returning = ret };
+    }
+
+    private static bool HasVariableIndex(Place p) => p switch
+    {
+        RefModPlace rm => !IsConstIndex(rm.Start) || (rm.Length is { } l && !IsConstIndex(l)) || HasVariableIndex(rm.Inner),
+        PlaceDecorator d => HasVariableIndex(d.Inner),
+        MemberPlace mp => PathHasVariableIndex(mp.Path),
+        DynTablePlace dp => PathHasVariableIndex(dp.Path),
+        _ => false,
+    };
+
+    private static bool PathHasVariableIndex(AccessPath path) => path.Segments.Any(s => s switch
+    {
+        FixedTableSegment ft => !IsConstIndex(ft.OneBasedIndex),
+        DynTableSegment dt => !IsConstIndex(dt.OneBasedIndex),
+        _ => false,
+    });
+
+    private static bool IsConstIndex(string rendered) => long.TryParse(rendered.Trim(), out _);
+
+    private int _gr3aSeq;
+
+    private Place HoistPlace(Place p, CodeWriter w)
+    {
+        switch (p)
+        {
+            case RefModPlace rm:
+                return rm with
+                {
+                    Inner = HoistPlace(rm.Inner, w),
+                    Start = HoistIndex(rm.Start, w),
+                    Length = rm.Length is { } l ? HoistIndex(l, w) : null,
+                };
+            case MemberPlace mp when PathHasVariableIndex(mp.Path):
+                return mp with { Path = HoistPath(mp.Path, w) };
+            case DynTablePlace dp when PathHasVariableIndex(dp.Path):
+                return dp with { Path = HoistPath(dp.Path, w) };
+            default:
+                return p;   // constant or index-free — nothing to pin
+        }
+    }
+
+    private AccessPath HoistPath(AccessPath path, CodeWriter w)
+    {
+        var segs = new List<AccessSegment>(path.Segments.Count);
+        foreach (var s in path.Segments)
+            segs.Add(s switch
+            {
+                FixedTableSegment ft when !IsConstIndex(ft.OneBasedIndex) => new FixedTableSegment(HoistIndex(ft.OneBasedIndex, w)),
+                DynTableSegment dt when !IsConstIndex(dt.OneBasedIndex) => new DynTableSegment(HoistIndex(dt.OneBasedIndex, w)),
+                _ => s,
+            });
+        return new AccessPath(segs);
+    }
+
+    private string HoistIndex(string rendered, CodeWriter w)
+    {
+        if (IsConstIndex(rendered)) return rendered;
+        string local = $"__ci{_gr3aSeq++}";
+        w.Line($"var {local} = {rendered};   // §14.9.4.4 GR3a — identified once, at the CALL's start");
+        return local;
     }
 
     /// <summary>The <c>CobolArg[]</c> expression of one bound call's arguments — the ONE argument-array text

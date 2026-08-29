@@ -257,6 +257,31 @@ public static class CobolArgAdapt
         else if (ret is ManagedPointer<long> lp && long.TryParse(value.Trim(), out long v)) lp.Value = v;
     }
 
+    /// <summary>Data-pointer RETURNING delivery (kb/Work PB133 wave B — §14.2.3 GR7 over a USAGE POINTER
+    /// item; the PB111 shape: legal source drew CS1503 because no overload matched the carrier type).</summary>
+    public static void StoreReturn(ManagedPointer? ret, ManagedPointer value)
+    {
+        if (ret is ManagedPointer<ManagedPointer> pp) pp.Value = value;
+    }
+
+    /// <summary>Program-pointer RETURNING delivery (kb/Work PB133 wave B — §13.18.60 GR24's identity
+    /// struct crosses by value; same CS1503 shape as the data pointer).</summary>
+    public static void StoreReturn(ManagedPointer? ret, ProgramPointer value)
+    {
+        if (ret is ManagedPointer<ProgramPointer> pp) pp.Value = value;
+    }
+
+    /// <summary>Object-reference RETURNING delivery (kb/Work PB133 wave B). The CobolObject constraint keeps
+    /// this overload away from every numeric/string carrier (a value type or string never derives it), so the
+    /// specific lanes above stay untouched. An IDENTICALLY-described returning pair (the §14.8.3 conforming
+    /// case a prototype-less CALL can realize today) matches the typed carrier exactly; the cross-class
+    /// described relationship rides the §14.8.2/§14.8.3 conformance campaign (PB133 wave C).</summary>
+    public static void StoreReturn<T>(ManagedPointer? ret, T? value) where T : CobolObject
+    {
+        if (ret is ManagedPointer<T?> tp) tp.Value = value;
+        else if (ret is ManagedPointer<CobolObject?> op) op.Value = value;
+    }
+
     /// <summary>A carrier whose first reference fails loud: the formal's argument was omitted or absent
     /// (ISO §14.9.4.4 GR12 — referencing an omitted parameter is the EC-PROGRAM-ARG-OMITTED condition).</summary>
     private static ManagedPointer<T> Omitted<T>(int position) => ManagedPointer<T>.OverField(
