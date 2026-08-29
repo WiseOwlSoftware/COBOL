@@ -34,15 +34,22 @@ public static partial class CobolIntrinsics
 {
     // ── Integer functions (ISO §15.36 / §15.44 / §15.49 / §15.81) ─────────────────────────────────────────────
 
-    /// <summary>FACTORIAL (§15.36.4): 0 ⇒ 1; n ⇒ n × (n−1)!. Computed in <see cref="Int128"/>: 33! ≈ 8.68e36 fits
-    /// (Int128.Max ≈ 1.70e38); 34! is the first overflow — the deep-dive's original "33! overflows" boundary was
-    /// off by one (verified analytically; doc fixed in the same change set). A negative argument violates §15.36.3
-    /// rule 1 and a 34+ argument overflows the carrier — both yield the EC-ARGUMENT-FUNCTION default result 0
-    /// (§15.3, checking disabled).</summary>
+    /// <summary>FACTORIAL (§15.36.4) on the NATIVE lane: 0 ⇒ 1; n ⇒ n × (n−1)!. Computed in
+    /// <see cref="Int128"/>: 33! ≈ 8.68e36 fits (Int128.Max ≈ 1.70e38); 34! is the first overflow. A NEGATIVE
+    /// argument violates §15.36.3 r1 — EC-ARGUMENT-FUNCTION, the §15.3 default 0 with checking disabled. A
+    /// 34+ argument CONFORMS (r1 admits every nonnegative integer), so it is NOT an argument error (kb/Work
+    /// PB125 — the old arm returned the default 0 there, and zero is no §15.4.1 "approximation" of 2.95e38):
+    /// it is the size error condition — the §15.36.4 r1c equivalent arithmetic expression's value exceeds the
+    /// native Int128 intermediate (CONFORMANCE.md item 179's class: ON SIZE ERROR / EC-SIZE checking take it;
+    /// without either, item 70's an-intermediate-that-cannot-be-formed fatal termination). Under a STANDARD
+    /// mode the renderer routes to <see cref="FactorialDec"/> instead, where 34! is exact.</summary>
     public static Int128 Factorial(long n)
     {
-        if (n is < 0 or > 33)                                // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
-            return Exceptions.ExceptionState.ArgumentError($"FACTORIAL argument {n} violates §15.36.3 rule 1 (negative) or overflows the Int128 carrier (> 33)");
+        if (n < 0)                                           // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
+            return Exceptions.ExceptionState.ArgumentError($"FACTORIAL argument {n} violates §15.36.3 rule 1 (shall be an integer greater than or equal to zero)");
+        if (n > 33)
+            throw new CobolSizeError($"FACTORIAL({n}) exceeds the native Int128 intermediate (33! is the "
+                + "largest representable factorial; ISO §15.36.4 r1c evaluated per §8.8.1.3)", "EC-SIZE-OVERFLOW");
         Int128 r = 1;
         for (long i = 2; i <= n; i++) r *= i;
         return r;

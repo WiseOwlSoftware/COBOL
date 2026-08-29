@@ -189,6 +189,24 @@ public static partial class CobolIntrinsics
         return CobolDec.Sqrt(v, mode);
     }
 
+    /// <summary>FACTORIAL under a STANDARD arithmetic mode (§15.36.4 r1c; kb/Work PB125): the equivalent
+    /// arithmetic expression n × (n−1) × … × 1 evaluated literally on the SDIDI carrier — each
+    /// multiplication rounds per §8.8.1.5.3, so FACTORIAL(34) is the exact 34! (every intermediate
+    /// product's dropped digits are its trailing zeros) where the Int128 native lane's 33 cap returned
+    /// the §15.3 default 0 on a conforming argument. A result past decimal128's range raises
+    /// EC-SIZE-OVERFLOW inside <see cref="CobolDec.Mul"/> (§8.8.1.5.2 r2) — the loop terminates by
+    /// overflow near n ≈ 1755, never by iteration count. §15.36.3 r1's negative screen is the runtime's
+    /// (values are runtime data): EC-ARGUMENT-FUNCTION with the §15.3 default 0.</summary>
+    public static CobolDec FactorialDec(CobolRounding mode, long n)
+    {
+        if (n < 0)
+            return CobolDec.From(Exceptions.ExceptionState.ArgumentError(
+                $"FACTORIAL argument {n} violates §15.36.3 rule 1 (shall be an integer greater than or equal to zero)"), 0);
+        CobolDec r = CobolDec.From(1, 0);
+        for (long i = 2; i <= n; i++) r = CobolDec.Mul(r, CobolDec.From(i, 0), mode);
+        return r;
+    }
+
     /// <summary>§15.85 STANDARD-DEVIATION — the square root of the §15.97 variance. The root itself is a
     /// prose approximation (§15.4.1 last ¶ — no equivalent arithmetic expression), computed in binary64 and
     /// converted in per §8.8.1.5.1, the same channel the SQRT/trig/log family's standard-mode results use.</summary>

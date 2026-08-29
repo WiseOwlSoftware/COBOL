@@ -633,7 +633,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // The native arms first ALIGN every argument to the list's maximum scale on the Int128 carrier, so a
         // 31-digit integer beside a scale-18 item needed 49 digits and RescaleEscape raised a size error where the
         // SDIDI holds the 30-digit answer exactly (MEAN(10³⁰, 2.0) = 500000000000000000000000000001).
-        bool alwaysDec = m is "Sqrt"   // §15.84.4 r2 (PB116): every standard-mode SQRT must reach the SqrtDec arm —
+        bool alwaysDec = m is "Sqrt" or "Factorial"   // Factorial: §15.36.4 r1c on the SDIDI (kb/Work PB125),
+                           // same shape as Sqrt — the arm's `when num.StandardDecimal` guard keeps the
+                           // native Int128 lane (and its documented 33 cap) untouched.   // §15.84.4 r2 (PB116): every standard-mode SQRT must reach the SqrtDec arm —
                            // without this the early-out below returned null for a plain-operand call and it
                            // fell to binary64; the arm's own `when num.StandardDecimal` guard keeps a NATIVE
                            // call (which reaches RenderDec only with a float/Dec argument) on the float lane.
@@ -664,6 +666,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // argument is present (AnyDecOrRealRaw), and an unguarded arm would flip native float SQRT onto
             // the Dec lane — a behavior change r4's approximation licence does not ask for.
             "Sqrt" when num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SqrtDec", $"{mode}, {DecArg(ic, 0)}")),
+            // FACTORIAL (§15.36.4 r1c; kb/Work PB125): the SDIDI product loop — FACTORIAL(34) is exact where
+            // the native Int128 lane's 33 cap returned the §15.3 default 0 on a conforming argument.
+            "Factorial" when num.StandardDecimal =>
+                Dec(RuntimeApi.Intrinsic("FactorialDec", $"{mode}, {IntArg(ic, 0)}")),
             "SignOf" => new NumX(RuntimeApi.Intrinsic("SignDec", DecArg(ic, 0)), 0),
             "AbsScaled" => Dec(RuntimeApi.Intrinsic("AbsDec", DecArg(ic, 0))),
             "Floor" => Dec(RuntimeApi.Intrinsic("FloorDec", DecArg(ic, 0))),

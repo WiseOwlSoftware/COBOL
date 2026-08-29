@@ -1,5 +1,5 @@
-      *> PB13 - the float->fixed quantizer's saturation is REACHABLE and SILENT. ⛔ PENDING: this pins the
-      *> CORRECT behaviour and FAILS today; it is registered under "pending" so the repro is executable and
+      *> PB13 - the float->fixed quantizer's saturation is REACHABLE and SILENT (FIXED; enabled). This pins the
+      *> CORRECT behaviour; it was drafted before the fix so the repro was executable and
       *> spec-derived the moment the fix lands, rather than living only in a prose ledger.
       *>
       *> IntrinsicRenderer#RenderFloat quantizes through CobolIntrinsics#FromDouble at ws = max(Receiver.Scale, 9),
