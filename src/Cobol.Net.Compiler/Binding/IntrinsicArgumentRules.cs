@@ -1002,8 +1002,108 @@ internal static class IntrinsicArgumentRules
         BoundNumericLiteral lit when HasNonZeroFraction(lit.Text) =>
             $"is the numeric literal {lit.Text}, whose fraction is nonzero — ISO §15.3 type 6 requires an integer "
             + "data item, an integer literal, or an always-integral arithmetic expression",
+        // §15.3 type 6's EXPRESSION alternative — the two PROVABLY not-always-integral shapes (kb/Work PB124,
+        // AR-15.3-6's remaining half). Soundness is the whole design: an arm may fire only when a witness
+        // VALUATION yielding a non-integer provably exists, and the counterexample zoo that keeps everything
+        // else fail-open is real legal source — `(I / 2) * 2` and `I / I` are always-integral, `362880 / D9`
+        // is integral for every 1-digit divisor, `SCALED * 100` cancels its scale, `SCALED - SCALED` nets to
+        // zero. Hence: only a BARE-item/LITERAL quotient at the ROOT (arm in NotAlwaysIntegral), and only a
+        // scale>0 item appearing PURELY as additive leaves with an uncancelled net coefficient.
+        BoundComputedOperand { Expr: { } expr } when NotAlwaysIntegral(expr) is { } why => why,
         _ => null,
     };
+
+    /// <summary>The provably-not-always-integral screen for §15.3 type 6's expression alternative (kb/Work
+    /// PB124). Returns the violation text, or null to FAIL OPEN — see the arm's comment for the soundness
+    /// obligations and the counterexamples that bound it.</summary>
+    private static string? NotAlwaysIntegral(BoundExpr expr)
+    {
+        // Root quotient over a BARE data item and a literal (either side): decidable from the item's picture
+        // granularity. An item of scale s ranges over every multiple of 10^(−s) its digits allow, so
+        // item/d is always-integral iff d divides that granularity — for s > 0 never (d ≠ ±1), for
+        // P-scaled/integer items iff d | 10^(−s)⁺. literal/item is sound only when NO possible divisor value
+        // divides the numerator, which a picture-ranged divisor defeats (362880 / PIC 9) — fail open there.
+        if (expr is BoundBinary { Op: '/', Left: BoundNumRef { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }, Right: BoundNumLiteral d }
+            && LiteralIntegerMagnitude(d.Text) is { } dv && dv > 1   // 1 always divides; 0 is the zero-divide diagnostic's business
+            && (np.Scale > 0 || System.Numerics.BigInteger.Pow(10, -np.Scale >= 0 ? -np.Scale : 0) % dv != 0))
+            return $"divides a data item of scale {np.Scale} by the literal {d.Text}, which does not always "
+                + "result in an integer value — ISO §15.3 type 6 admits an arithmetic expression only when it "
+                + "ALWAYS results in one";
+        // An additive spine (+, −, unary −) carrying a scale>0 item PURELY as its own leaves, with a net
+        // coefficient the item's granularity does not cancel (10^scale ∤ net): value every other leaf at any
+        // constant and step the item by 10^(−scale) — consecutive results are less than 1 apart, so a
+        // non-integer value exists. An occurrence inside a NON-additive subtree voids the witness (the subtree
+        // moves with the item — `SCALED - (SCALED * 1)` nets to zero through it), so such items are skipped.
+        var net = new Dictionary<DataItem, (int Coeff, int Scale, bool Opaque)>();
+        CollectAdditive(expr, 1, net);
+        foreach (var (item, (coeff, scale, opaque)) in net)
+            if (!opaque && scale > 0 && coeff != 0
+                && System.Numerics.BigInteger.Abs(coeff) % System.Numerics.BigInteger.Pow(10, scale) != 0)
+                return $"is an arithmetic expression whose term '{item.CobolName}' has digits to the right of "
+                    + "the decimal point, so the sum does not always result in an integer value — ISO §15.3 "
+                    + "type 6 admits an arithmetic expression only when it ALWAYS results in one";
+        return null;
+    }
+
+    /// <summary>Walk an additive spine, accumulating each scale>0 item's signed leaf count; any occurrence
+    /// under a non-additive node marks the item OPAQUE (the witness argument no longer holds for it).</summary>
+    private static void CollectAdditive(BoundExpr e, int sign, Dictionary<DataItem, (int, int, bool)> net)
+    {
+        switch (e)
+        {
+            case BoundBinary { Op: '+' } b:
+                CollectAdditive(b.Left, sign, net); CollectAdditive(b.Right, sign, net); break;
+            case BoundBinary { Op: '-' } b:
+                CollectAdditive(b.Left, sign, net); CollectAdditive(b.Right, -sign, net); break;
+            case BoundNegate n:
+                CollectAdditive(n.Operand, -sign, net); break;
+            case BoundNumRef { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Scale: > 0 } p } and { } it }:
+                net[it] = net.TryGetValue(it, out var v)
+                    ? (v.Item1 + sign, p.Scale, v.Item3) : (sign, p.Scale, false);
+                break;
+            default:
+                foreach (var it in ScaledItemsBeneath(e))
+                    net[it.Item] = net.TryGetValue(it.Item, out var prior)
+                        ? (prior.Item1, it.Scale, true) : (0, it.Scale, true);
+                break;
+        }
+    }
+
+    /// <summary>Every scale>0 numeric item referenced anywhere beneath a non-additive subtree.</summary>
+    private static IEnumerable<(DataItem Item, int Scale)> ScaledItemsBeneath(BoundExpr e)
+    {
+        switch (e)
+        {
+            case BoundNumRef { Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Scale: > 0 } p } and { } it }:
+                yield return (it, p.Scale); break;
+            case BoundBinary b:
+                foreach (var x in ScaledItemsBeneath(b.Left)) yield return x;
+                foreach (var x in ScaledItemsBeneath(b.Right)) yield return x;
+                break;
+            case BoundNegate n:
+                foreach (var x in ScaledItemsBeneath(n.Operand)) yield return x;
+                break;
+            case BoundPower p2:
+                foreach (var x in ScaledItemsBeneath(p2.Base)) yield return x;
+                foreach (var x in ScaledItemsBeneath(p2.Exp)) yield return x;
+                break;
+        }
+    }
+
+    /// <summary>The literal's magnitude as an integer, or null when it carries a nonzero fraction (those are
+    /// not the quotient screen's business — the item/d granularity argument needs an integral d).</summary>
+    private static System.Numerics.BigInteger? LiteralIntegerMagnitude(string text)
+    {
+        string t = text.TrimStart('+', '-');
+        if (t.Contains('E') || t.Contains('e')) return null;
+        int dp = t.IndexOfAny(['.', ',']);
+        if (dp >= 0)
+        {
+            if (t.AsSpan(dp + 1).ToString().Any(c => c is >= '1' and <= '9')) return null;
+            t = t[..dp];
+        }
+        return t.Length == 0 ? null : System.Numerics.BigInteger.Parse(t);
+    }
 
     /// <summary>Does this numeric literal's text carry a nonzero digit right of its decimal separator ('.' or the
     /// DECIMAL-POINT IS COMMA ',')? An E-form (floating-point) literal is left to the runtime.</summary>
