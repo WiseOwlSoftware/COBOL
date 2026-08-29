@@ -25,18 +25,49 @@ public static class CobolTiming
     /// (The §14.6.13.1.4 selection of a matching USE declarative for this nonfatal condition is a scheduled
     /// follow-on — the last-exception status this sets is the observable behavior.)
     /// </summary>
-    public static void ContinueAfter(double seconds, bool checkLessThanZero)
+    public static bool ContinueAfter(double seconds, bool checkLessThanZero)
     {
+        // kb/Work PB138: screen NON-FINITE before anything — `(long)double.NaN` saturates to 0, so a NaN
+        // interval silently skipped the suspension where §14.6.13.2 item 3 makes a NaN/±Inf sending operand
+        // EC-DATA-NOT-FINITE (the CA10 checked raise; unchecked, no suspension is the documented benign
+        // outcome — sleeping forever on +Inf is the one thing no reading licenses).
+        if (!double.IsFinite(seconds))
+        {
+            ExceptionState.FloatNotFiniteError($"CONTINUE AFTER interval is {seconds} (ISO §14.6.13.2 item 3)");
+            return false;
+        }
         // GR1a/GR1b operate on arithmetic-expression-1's EVALUATED value (the sign test precedes the m=0
         // truncation), so a negative FRACTIONAL interval in (-1, 0) must still set the exception — test the sign of
-        // the full-precision value, not a pre-truncated integer.
+        // the full-precision value, not a pre-truncated integer. The raise is REPORTED to the site (kb/Work
+        // PB138) so the emitted §14.6.13.1.4 nonfatal dispatch can run — the recorded status used to be the
+        // whole story and the golden's own generated handler pc was dead code.
         if (seconds < 0.0)
         {
-            if (checkLessThanZero) ExceptionState.Set("EC-CONTINUE-LESS-THAN-ZERO", fatal: false);
-            return;                                                 // GR1a — value set to 0 → no suspension
+            if (checkLessThanZero) { ExceptionState.Set("EC-CONTINUE-LESS-THAN-ZERO", fatal: false); return true; }
+            return false;                                           // GR1a - value set to 0 → no suspension
         }
-        long secs = (long)seconds;                                  // m = 0: truncate toward zero (GR1, no ROUNDED)
-        if (secs == 0) return;                                      // GR1 — no suspension for a zero interval
+        SleepTruncated((long)seconds);                              // m = 0: truncate toward zero (GR1, no ROUNDED)
+        return false;
+    }
+
+    /// <summary>The EXACT-lane overload (kb/Work PB138): a fixed-point or standard-decimal interval's
+    /// binary64 image can round UP across an integer boundary (0.999… with enough nines converts to exactly
+    /// 1.0), so the emitter hands the sign-test value AND the exactly-truncated seconds separately — GR1's
+    /// implicit COMPUTE without ROUNDED truncates in the value's own domain, never in binary64.</summary>
+    public static bool ContinueAfterExact(double fullPrecisionForSign, long truncatedSeconds, bool checkLessThanZero)
+    {
+        if (fullPrecisionForSign < 0.0)
+        {
+            if (checkLessThanZero) { ExceptionState.Set("EC-CONTINUE-LESS-THAN-ZERO", fatal: false); return true; }
+            return false;
+        }
+        SleepTruncated(truncatedSeconds);
+        return false;
+    }
+
+    private static void SleepTruncated(long secs)
+    {
+        if (secs <= 0) return;                                      // GR1 - no suspension for a zero interval
         System.Threading.Thread.Sleep((int)System.Math.Min(secs, MaxSeconds) * 1000);
     }
 }

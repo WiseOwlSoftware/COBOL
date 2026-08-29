@@ -377,7 +377,8 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundSearch:
                     Query(["EC-RANGE-SEARCH-INDEX", "EC-RANGE-SEARCH-NO-MATCH"]);
                     break;
-                // CONTINUE AFTER (§14.9.8.4 GR4): the raise is CobolTiming's — bound through
+                // CONTINUE AFTER (§14.9.9.4 GR1 — kb/Work PB138 fixed the §14.9.8.4 miscite, which is
+                // COMPUTE's clause): the raise is CobolTiming's — bound through
                 // BoundContinueAfter.CheckLessThanZero — and 2-argument; the arm supplies the ambient pair
                 // exactly like SEARCH (kb/Work R14).
                 case BoundContinueAfter:

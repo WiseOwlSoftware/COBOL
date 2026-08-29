@@ -575,7 +575,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         foreach (var s in sentences)
             foreach (var st in s.statement())
             {
-                if (st.continueStatement() is not null) continue;
+                // kb/Work PB138: bare CONTINUE is a no-op, but CONTINUE AFTER is a SUSPENSION — classifying
+                // it as a pure exit ended a USE handler's bounded dispatch AT this paragraph and the rest of
+                // the handler never ran.
+                if (st.continueStatement() is { } cs) { if (cs.AFTER() is null) continue; return false; }
                 if (st.exitStatement() is { } e
                     && e.PARAGRAPH() is null && e.PERFORM() is null && e.SECTION() is null
                     && e.PROGRAM() is null && e.METHOD() is null && e.FUNCTION() is null)

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
+using CobolNet.Runtime;
 using CobolNet.CodeGen.Emit;
 
 namespace CobolNet.CodeGen;
@@ -151,12 +152,38 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundCommitRollback n) => false;
     public bool Visit(BoundContinueAfter n)
     {
-        // CONTINUE AFTER n SECONDS (§14.9.9): evaluate the interval at FULL precision (the GR1a/GR1b sign test
-        // precedes the m=0 truncation), then suspend via the runtime, which sets the nonfatal
-        // EC-CONTINUE-LESS-THAN-ZERO under CHECKING ON for a negative value (incl. a fractional (-1,0)) and truncates
-        // toward zero (m=0) for the positive-value sleep.
-        string secs = NumericRenderer.Real(_num.Render(n.Seconds, ReceiverContext.None));
-        _ctx.Writer.Line(RuntimeApi.ContinueAfter(secs, n.CheckLessThanZero ? "true" : "false") + ";");
+        // CONTINUE AFTER n SECONDS (§14.9.9.4 GR1; kb/Work PB138): the sign test runs on the FULL-precision
+        // value (GR1a/GR1b — a fractional (-1,0) still sets the EC), and the m=0 truncation runs in the
+        // interval's OWN domain — a fixed-point or decimal 0.999… whose binary64 image rounds to exactly 1.0
+        // must still suspend ZERO seconds (the implicit COMPUTE without ROUNDED), so those lanes hand the
+        // exactly-truncated seconds beside the sign value. A float interval truncates in double (its own
+        // domain), with the runtime screening NaN/±Inf as EC-DATA-NOT-FINITE.
+        var x = _num.Render(n.Seconds, ReceiverContext.None);
+        string check = n.CheckLessThanZero ? "true" : "false";
+        string call = x switch
+        {
+            { Real: true } => RuntimeApi.ContinueAfter(x.Expr, check),
+            { Dec: true } => RuntimeApi.ContinueAfterExact($"({x.Expr}).ToDouble()",
+                $"(long)({x.Expr}).ToUnscaled(0, CobolRounding.Truncation)", check),
+            { Scale: 0 } => RuntimeApi.ContinueAfterExact($"(double)({x.Expr})", $"(long)({x.Expr})", check),
+            _ => RuntimeApi.ContinueAfterExact(NumericRenderer.Real(x),
+                "(long)" + RuntimeApi.NumRescale(x.Expr, x.Scale.ToString(), "0", CobolRounding.Truncation), check),
+        };
+        if (!n.CheckLessThanZero)
+        {
+            _ctx.Writer.Line(call + ";");
+            return false;
+        }
+        // §14.6.13.1.4 (kb/Work PB138): the NONFATAL condition's USE-declarative selection at the raise
+        // point — the runtime reports the raise and the site dispatches; the nonfatal default is to
+        // continue, so no throw arm. The recorded-but-never-dispatched status left the golden's own
+        // generated handler pc as dead code.
+        int id = _ctx.Names.NextEc();
+        using (_ctx.Writer.Block($"if ({call})"))
+        {
+            _ctx.Writer.Line($"int __r{id} = " + _ecEmit.EcDispatchExpr("\"EC-CONTINUE-LESS-THAN-ZERO\"", "\"\"") + ";");
+            _ctx.Writer.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+        }
         return false;
     }
 
