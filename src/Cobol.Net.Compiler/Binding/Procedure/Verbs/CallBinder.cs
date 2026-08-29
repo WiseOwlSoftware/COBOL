@@ -317,10 +317,41 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     + $"{nestedFormals.Count} formal parameter(s); ISO §14.8.2.1 requires the counts to be "
                     + "equal, except for trailing formal parameters declared OPTIONAL and omitted");
             for (int i = 0; i < args.Count && i < nestedFormals.Count; i++)
-                if (args[i].Omitted && !nestedFormals[i].Optional)
-                    ctx.Edition.Error(DiagnosticCatalog.CallOmittedNeedsOptional,
-                        $"CALL … USING OMITTED at argument {i + 1}: the corresponding formal parameter "
-                        + $"'{nestedFormals[i].Item.CobolName}' is not declared OPTIONAL (ISO §14.9.4.3 SR24)");
+            {
+                var f = nestedFormals[i];
+                var arg = args[i];
+                if (arg.Omitted)
+                {
+                    if (!f.Optional)
+                        ctx.Edition.Error(DiagnosticCatalog.CallOmittedNeedsOptional,
+                            $"CALL … USING OMITTED at argument {i + 1}: the corresponding formal parameter "
+                            + $"'{f.Item.CobolName}' is not declared OPTIONAL (ISO §14.9.4.3 SR24)");
+                    continue;
+                }
+                // §14.9.4.3 SR19/SR21 (kb/Work PB133 wave C2): the EXPLICIT phrase's mode must match the
+                // corresponding formal's (a keyword-less argument already DERIVED its mode from that formal
+                // — GR9, PB131 — so only a written phrase can disagree).
+                if (arg.Mode is CobolPassMode.Reference or CobolPassMode.Content && f.ByValue)
+                    ctx.Edition.Error(DiagnosticCatalog.CallArgumentMode,
+                        $"CALL … argument {i + 1} passes {(arg.Mode == CobolPassMode.Content ? "BY CONTENT" : "BY REFERENCE")} "
+                        + $"where the corresponding formal parameter '{f.Item.CobolName}' is BY VALUE "
+                        + "(ISO §14.9.4.3 SR19)");
+                else if (arg.Mode is CobolPassMode.Value && !f.ByValue)
+                    ctx.Edition.Error(DiagnosticCatalog.CallArgumentMode,
+                        $"CALL … argument {i + 1} passes BY VALUE where the corresponding formal parameter "
+                        + $"'{f.Item.CobolName}' is not BY VALUE (ISO §14.9.4.3 SR21)");
+                // §14.8.2.3.2 / §14.8.2.2 (BY REFERENCE only — 14.8.2.3.3 puts BY CONTENT / BY VALUE in the
+                // MOVE/SET-validity regime instead): the same-description check, through THE one comparator
+                // (OoConformance.DescriptionMismatch — previously INVOKE-only; a NESTED call is the same
+                // §14.8.2.3.2 rule-2 regime as a method). Run-time it would be EC-PROGRAM-ARG-MISMATCH;
+                // at bind it is the design's diagnostic lane.
+                else if (arg.Mode is CobolPassMode.Reference && arg.Place is { } ap
+                         && CobolNet.Compiler.Oo.OoConformance.DescriptionMismatch(f.Item, ap.Item,
+                                byRefGroupPrefix: true) is { } why)
+                    ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
+                        $"CALL … AS NESTED argument {i + 1} ('{ap.Item.CobolName}') does not conform to formal "
+                        + $"parameter '{f.Item.CobolName}': {why} (ISO §14.8.2)");
+            }
         }
 
         // ── RETURNING (CALL side) — COBOL-2002+ (deep-dive "Edition gating"); maps to the activation result

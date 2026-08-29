@@ -264,6 +264,23 @@ public static class DiagnosticCatalog
         + "in which this condition is specified.\" The omitted-argument condition asks whether an argument was "
         + "provided to THIS program, function, or method — an ordinary data item has no such property.",
         "ISO §8.8.4.8 SR1");
+    public static readonly DiagnosticDescriptor CallArgumentMode = new(
+        "COBOLNET1687", "call-argument-mode", EditionSeverity.Error,
+        "The argument's passing mode does not match its corresponding formal parameter's. ISO §14.9.4.3 "
+        + "syntax rule 19: with BY CONTENT or BY REFERENCE specified or implied for an argument, BY REFERENCE "
+        + "shall be specified or implied for the corresponding formal parameter; rule 21: with BY VALUE "
+        + "specified for an argument, BY VALUE shall be specified for the corresponding formal parameter. With "
+        + "AS NESTED the callee's header is known at compile time, so the mismatch is a diagnostic here.",
+        "ISO §14.9.4.3 SR19/SR21");
+    public static readonly DiagnosticDescriptor CallArgumentConformance = new(
+        "COBOLNET1688", "call-argument-conformance", EditionSeverity.Error,
+        "A BY REFERENCE argument does not conform to its corresponding formal parameter. ISO §14.8.2.3.2 "
+        + "(elementary, the NESTED-call regime): the definitions \"shall have the same ALIGN, BLANK WHEN ZERO, "
+        + "DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses\"; §14.8.2.2 (groups): an alphanumeric "
+        + "group or elementary alphanumeric formal of the same or smaller byte count, strongly-typed pairs of "
+        + "the same type. The violation is EC-PROGRAM-ARG-MISMATCH at run time; with AS NESTED it is a "
+        + "diagnostic at compile time.",
+        "ISO §14.8.2.2 / §14.8.2.3.2");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
         "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "
