@@ -164,6 +164,7 @@ of an unsupported facility.
   directive), but the migration / obsolescence diagnostics they request are a separate REMAINING Wave-D item — the
   flags are not yet emitted. Set: `ConditionalCompilationProcessor.KnownIgnoredDirectives`.
 - **Exception-checking PERFORM — FINALLY on the fatal path (§14.9.28.4, a GENUINE STANDARD DEFECT)**: NOTE 8 says "the
+- **CONVERT function — Table 21's `Type1` argument cell (§15.6 vs §15.19, a standard-text inconsistency)**: Table 21's CONVERT row lists `Type1` among argument-1's types, but §15.19.3's argument rules and §15.19.4's returned-value rules define nothing for a type-name — a type declaration has neither storage nor a value for any source-format (ANY/ANUM/NAT/HEX) to read, so no conforming behavior is derivable. COBOL.NET rejects a type-name argument-1 to CONVERT with a targeted COBOLNET1514 naming this note (kb/Work PB124 wave 4); every other Table-21 `TypeN` cell (LENGTH, BYTE-LENGTH) has §15.50.4/§15.14.4 semantics and is implemented.
   end of the PERFORM statement includes the statements in a FINALLY phrase", while GR20's fatal branch routes an
   unresumed fatal condition to §14.6.13.1.3 (abnormal termination), which never re-enters "the end of the PERFORM".
   The two cannot both hold. **Pinned choice: FINALLY runs on the NORMAL (and EXIT-PERFORM) fall-through path ONLY, NOT

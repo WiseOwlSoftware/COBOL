@@ -1249,7 +1249,23 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         var kws = new List<string>();
         foreach (var (a, at) in argCtxs.Select((a, at) => (a, at)))
         {
-            if (at == 0) { operands.Add(BindArgOperand(a)); continue; }
+            if (at == 0)
+            {
+                // Table 21 marks Type1 for CONVERT, but §15.19.3/§15.19.4 define NO argument rule and NO
+                // returned value for a type-name (a type declaration has neither storage nor a value for any
+                // source-format to read) — a standard-text inconsistency, recorded in CONFORMANCE.md
+                // (kb/Work PB124 wave 4). Rejected with the reason named rather than "undefined data-name".
+                if (TypeNameArgument(a) is { } td)
+                {
+                    ctx.Edition.Error("COBOLNET1514", $"FUNCTION CONVERT: argument-1 names the type "
+                        + $"declaration '{td.CobolName}' — Table 21 lists a type-name here, but §15.19 "
+                        + "defines no semantics for one (recorded as a standard-text inconsistency, "
+                        + "CONFORMANCE.md); write a data item described with the type instead");
+                    return new BoundExprError("FUNCTION CONVERT type argument");
+                }
+                operands.Add(BindArgOperand(a));
+                continue;
+            }
             if (KeywordWordOf(a) is { } w && IsConvertFormatWord(w)) { kws.Add(w); continue; }
             ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: the arguments after argument-1 shall be the "
                 + "source-format and destination-format keywords, in that order (ISO §15.19.2)");
@@ -1697,6 +1713,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// </remarks>
     private void CheckArgumentClasses(IntrinsicSig sig, IReadOnlyList<BoundOperand> args)
     {
+        // §15.3's trailing block (kb/Work PB124 wave 4): "A variable-length group shall be referenced as an
+        // argument to a function only when explicitly permitted in the function definition." Exactly TWO
+        // definitions permit one — §15.50.4 r7/r8 (LENGTH) and §15.14.4 r6/r7 (BYTE-LENGTH) define the
+        // variable-length-group value — so every other function rejects one, tested by the
+        // §8.5.1.12.1 definition (IsVariableLengthGroup — an ODO group is FIXED-length and stays legal).
+        // Placed BEFORE the Verified early-return: a
+        // deliberately-unscreened function is unscreened for CLASS, not for this shape rule.
+        if (sig.Name is not ("LENGTH" or "BYTE-LENGTH"))
+            for (int i = 0; i < args.Count; i++)
+                if (args[i] is BoundFieldOperand { Place: not RefModPlace, Place.Item: { IsGroup: true } g }
+                    && IsVariableLengthGroup(g))
+                    Report($"FUNCTION {sig.Name} argument-{i + 1} ('{g.CobolName}') is a variable-length "
+                        + "group, which ISO §15.3 admits only where the function definition explicitly "
+                        + "permits it — only LENGTH (§15.50.4 r7) and BYTE-LENGTH (§15.14.4 r6) do");
+
         // ⛔ Driven by the SPEC-VERIFIED table, not by sig.ArgKinds. The catalog's hint column is unaudited —
         // BYTE-LENGTH is declared "s" while §15.14.3 admits any class, and an empty ArgKinds defaults to 'n',
         // which would screen LENGTH as numeric-only. Screening from it rejected 12 legal corpus programs.
@@ -2016,7 +2047,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
         if (typeArg is not null)
+        {
+            // §15.3's second trailing sentence (kb/Work PB124 wave 4): "If any function permits a type
+            // declaration as an argument, the type declaration shall not describe a variable-length group."
+            if (IsVariableLengthGroup(typeArg))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name}: the type "
+                    + $"declaration '{typeArg.CobolName}' describes a variable-length group, which ISO §15.3 "
+                    + "does not admit as a type-declaration argument");
+                return new BoundExprError($"FUNCTION {sig.Name} type argument");
+            }
             return new BoundNumLiteral((isByte ? typeArg.ByteWidth : LengthPositions(typeArg)).ToString());
+        }
         // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
         // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
         // claimed it ran "before every per-function arm" — FALSE for the eight bespoke binders that
@@ -2041,6 +2083,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Is this group's length a RUNTIME value — an OCCURS DEPENDING table (§15.50.4 r4b / §15.14.4 r2b),
     /// or a dynamic-length elementary item or dynamic-capacity table (r7 / r6 — the §8.5.1.12.1 variable-length
     /// group) anywhere beneath it? The ONE predicate behind the folds' group arm and <see cref="KnownWidth"/>.</summary>
+    /// <summary>THE §8.5.1.12.1 DEFINITION, verbatim: "A variable-length group is a group item whose data
+    /// description has at least one dynamic-length elementary item or dynamic-capacity table as a subordinate
+    /// item. All other group items are referred to as fixed-length groups." — an OCCURS DEPENDING group is a
+    /// FIXED-length group (its maximum is fixed), so the §15.3 prohibitions do NOT reach it; using
+    /// <see cref="HasRuntimeLength"/> here over-rejected pb61's §15.50.4 r4a typedef leg, and the gate caught
+    /// it (kb/Work PB124 wave 4).</summary>
+    private static bool IsVariableLengthGroup(DataItem g) =>
+        HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);
+
     private static bool HasRuntimeLength(DataItem g) =>
         HasOdoBeneath(g) || HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);
 
