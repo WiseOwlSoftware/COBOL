@@ -1712,7 +1712,17 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB125/PB126 tree `6c177947` (2026-08-29, battery #28).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB124-campaign tree `3b3bc921` (2026-08-29, battery #29).**
+  ✅ **Green with ONE schedule-dependent legacy-suite red, attributed and harness-fixed** (artifacts in the
+  session scratchpad `battery-29/`): FULL greenfield Conformance **4954 / 4954, zero skipped** (10 m 50 s) ·
+  greenfield Unit **4589 / 4589** · characterization **33 / 33** · guard-fast NIST **353 MATCH /
+  0 REGRESSION** (audit CLEAN, population 376) · GnuCOBOL differential **`0 PER-CASE FLIP(S)`** (1323 cases).
+  The one red: `int_rc=1` — one failure in the LEGACY CobolSharp.Tests.Integration suite (503/504 on a
+  serial re-run; the single skip is the documented D10 block) whose NAME the quiet-verbosity log could not
+  carry — kb/Work PB127 fixed the blindness (console;verbosity=minimal loggers + widened report greps) in
+  the same change set, so the next occurrence arrives named. Covers the PB124 six-wave campaign + PB126's
+  widening (DEVLOG 1355–1361) — the population grew by 20 Conformance tests over #28.
+- **⛔ PRIOR BATTERY REFERENCE — the PB125/PB126 tree `6c177947` (2026-08-29, battery #28).**
   ✅ **Green with ONE attributed-and-fixed unit flake** (artifacts in the session scratchpad `battery-28/`):
   FULL greenfield Conformance **4934 / 4934, zero skipped** (10 m 45 s) · characterization **33 / 33** ·
   `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential
@@ -1726,7 +1736,7 @@ result. Run the long legs ONE AT A TIME.
   the SUBSTITUTE tail screen, the compilation-scoped WHEN-COMPILED stamp + deterministic PE, TEST-NUMVAL-F's
   position legs, SMALLEST-ALGEBRAIC's float path, the GLOBAL-FD resolutions, FACTORIAL off the saturation
   class) — the population grew by 13 Conformance and 54 Unit tests over #27.
-- **⛔ PRIOR BATTERY REFERENCE — the PB64 T6 tree `d94d8e08` (2026-08-28 22:45 PDT, battery #27).**
+- Battery #27, the PB64 T6 tree `d94d8e08` (2026-08-28 22:45 PDT) — superseded; kept for the trail.
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts in the session
   scratchpad `battery-27/`): FULL greenfield Conformance **4921 / 4921, zero skipped** (10 m 35 s) · greenfield
   Unit **4535 / 4535** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /

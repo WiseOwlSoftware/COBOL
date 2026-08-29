@@ -46,11 +46,14 @@ dotnet build tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj -v quiet
 dotnet build tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj -v quiet
 
 el "=== Unit + Integration tests (parallel, --no-build) ==="
+# --logger console;verbosity=minimal so a red run NAMES its failing tests in the log — battery #29's one
+# integration red was unnameable from a quiet-verbosity log, breaking the no-flake-without-a-name discipline
+# (kb/Work PB127): quiet prints only the Passed!/Failed! summary line.
 dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --no-build --verbosity quiet \
-    > "$TMP/gf_unit.log" 2>&1 &
+    --logger "console;verbosity=minimal" > "$TMP/gf_unit.log" 2>&1 &
 UNIT=$!
 dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --verbosity quiet \
-    > "$TMP/gf_int.log" 2>&1 &
+    --logger "console;verbosity=minimal" > "$TMP/gf_int.log" 2>&1 &
 INT=$!
 
 el "=== NIST: parallel compile + grouped parallel run (JOBS=$JOBS compile=$CJOBS run=$RJOBS) ==="
@@ -214,8 +217,8 @@ NIST_AUDIT=$?
 # (4) Wait for the .NET test runs.
 wait "$UNIT"; UNIT_RC=$?
 wait "$INT"; INT_RC=$?
-echo "=== Unit ==="; grep -E "Passed!|Failed!|error" "$TMP/gf_unit.log" | tail -2
-echo "=== Integration ==="; grep -E "Passed!|Failed!|error" "$TMP/gf_int.log" | tail -2
+echo "=== Unit ==="; grep -E "Passed!|Failed!|error|\[FAIL\]|Failed [A-Za-z]" "$TMP/gf_unit.log" | tail -6
+echo "=== Integration ==="; grep -E "Passed!|Failed!|error|\[FAIL\]|Failed [A-Za-z]" "$TMP/gf_int.log" | tail -6
 
 # (5) Baseline-cleanliness check (parity with guard.sh): no 0-byte / FAIL* / nonzero-footer baselines.
 BASE_FAILS=0
