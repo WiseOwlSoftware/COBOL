@@ -299,6 +299,13 @@ public static partial class CobolNum
     /// store's own digit-capacity mod instead of wrapping in binary. Selection results landing in a KNOWN
     /// receiver ride this (a MOVE has §14.9.25.4 GR6 truncation semantics, not raise semantics); the
     /// receiverless lane stays loud on <see cref="RescaleEscape"/>.</summary>
+    /// <summary>The low-order <paramref name="digits"/> of <paramref name="v"/>, sign preserved —
+    /// §14.9.12.4 GR6c's subsidiary-quotient cap (kb/Work PB129): the quotient used to form DIVIDE's
+    /// remainder has the GIVING receiver's digit count, exactly the value the §14.7.5 no-phrase store
+    /// leaves in it (high-order truncation keeps the low digits).</summary>
+    public static Int128 CapDigits(Int128 v, int digits) =>
+        digits is <= 0 or > 38 ? v : v % Pow10.AsWide(digits);
+
     public static Int128 RescaleStoreCap(Int128 value, int fromScale, int toScale, CobolRounding mode)
     {
         if (toScale <= fromScale) return Rescale(value, fromScale, toScale, mode);

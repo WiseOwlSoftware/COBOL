@@ -964,6 +964,11 @@ internal static class RuntimeApi
     public static string ModuleNameFn(int kind) =>
         $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({kind})";
 
+    /// <summary>§14.9.12.4 GR6c's subsidiary-quotient digit cap (kb/Work PB129) — the low-order digits
+    /// at the GIVING receiver's digit capacity, the §14.7.5 no-phrase store's own disposition.</summary>
+    public static string NumCapDigits(string expr, int digits) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.CapDigits)}({expr}, {digits})";
+
     /// <summary>The COMPILE-TIME WHEN-COMPILED stamp format (a typed passthrough like <see cref="MaskScale"/>):
     /// the §15.99.3 r2 compilation timestamp is baked as a constant with the SAME runtime formatter the
     /// generated CURRENT-DATE call uses.</summary>

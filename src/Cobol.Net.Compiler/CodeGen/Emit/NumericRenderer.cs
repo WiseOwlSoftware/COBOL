@@ -179,8 +179,29 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         _outermost = outer;
         return CombineCore(l, n.Op.ToString(), r);
     }
-    public NumX Visit(BoundNegate n) => Negate(n.Operand.Accept(this));
-    public NumX Visit(BoundPower n) => Power(n.Base.Accept(this), n.Exp.Accept(this), NonNegativeIntegerLiteral(n.Exp));
+    // ⛔ EVERY recursion clears _outermost, not only BoundBinary's (kb/Work PB129 — GR-8.8.1.2-1): a division
+    // under a unary minus, an exponent base, or a computed-operand wrapper is NOT the final transfer, so it
+    // must compute at the D2 guard scale with truncation — the receiver's ROUNDED mode binds to the final
+    // transfer only (§14.7.4.3 GR3–GR10; §8.8.1.2 r1 "treated as a single operand"). The leak reinstated the
+    // exact pre-CA5 defect for `(1 / 3) ** 0` under PROHIBITED, and made `(A / B) ** 2` differ from
+    // `1 * (A / B) ** 2` — multiplying by one changed the value.
+    public NumX Visit(BoundNegate n)
+    {
+        bool outer = _outermost;
+        _outermost = false;
+        var v = n.Operand.Accept(this);
+        _outermost = outer;
+        return Negate(v);
+    }
+    public NumX Visit(BoundPower n)
+    {
+        bool outer = _outermost;
+        _outermost = false;
+        var b = n.Base.Accept(this);
+        var e = n.Exp.Accept(this);
+        _outermost = outer;
+        return Power(b, e, NonNegativeIntegerLiteral(n.Exp));
+    }
 
     /// <summary>Is this exponent a literal integer that is not negative? Read from the BOUND TREE, never from the
     /// rendered expression text — a first cut did <c>long.TryParse(e.Expr)</c> and silently stopped matching,
@@ -199,7 +220,16 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // ── IBoundOperandVisitor<NumX> ───────────────────────────────────────────────────────────────────────────
     public NumX Visit(BoundNumericLiteral n) => LiteralOperandNum(n.Text);
     public NumX Visit(BoundFieldOperand n) => FieldNum(n.Place);
-    public NumX Visit(BoundComputedOperand n) => n.Expr.Accept(this);
+    public NumX Visit(BoundComputedOperand n)
+    {
+        // An operand-wrapped expression is a nested operand, never the final transfer (PB129 — see the
+        // BoundNegate note above).
+        bool outer = _outermost;
+        _outermost = false;
+        var v = n.Expr.Accept(this);
+        _outermost = outer;
+        return v;
+    }
     public NumX Visit(BoundFigurative n) => n.Kind == 'Z'
         ? EmitText.UnscaledLit("0")   // ZERO in a numeric context
         : new NumX(EmitText.LoudValue("long", $"figurative '{n.Kind}' in a numeric context"), 0);

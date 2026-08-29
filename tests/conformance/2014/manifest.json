@@ -3,6 +3,8 @@
   "enabled": [
     "pb121_test_numval_f_capacity",
     "pb125_factorial_standard_decimal",
+    "pb129_store_discipline",
+    "pb129_remainder_no_phrase",
   "pb116_sqrt_standard_decimal",
     "ca5a_prohibited_nested_no_size_error",
     "ca5b_prohibited_multi_receiver_size_error",

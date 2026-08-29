@@ -40,7 +40,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // undefined results anyway (§14.6.13.1.3). Pre-snapshotting all receiver reads before the first store would
             // close it; deferred to avoid restructuring the byte-critical arithmetic store loop for an undefined case.
             foreach (var r in targets)
-                StoreArith(r.Place, num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, ise)), r.Rounding);
+                GuardedStore(ise, () =>
+                    StoreArith(r.Place, num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, ise)), r.Rounding));
         });
 
     /// <summary>GIVING arithmetic: the value is computed once and stored into each receiver, rounded by that
@@ -61,7 +62,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // ONE initial evaluation (§14.7.7 GR4 + NOTE 3): materialized with several receivers so a receiver
             // aliasing a sender cannot change the value the remaining receivers store.
             if (targets.Count > 1) v = Snapshot(v);
-            foreach (var r in targets) StoreArith(r.Place, v, r.Rounding);
+            foreach (var r in targets) GuardedStore(ise, () => StoreArith(r.Place, v, r.Rounding));
         });
 
     public void EmitDivide(IReadOnlyList<Receiver> targets, BoundExpr? dividend, BoundExpr divisor, SizeErrorPhrase? sizeErr)
@@ -89,7 +90,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 NumX q = dividendX ?? num.FieldNum(r.Place);            // INTO-no-GIVING divides the target
                 // The DIVIDE top-level quotient IS the final transfer to r — outermost, so it rounds at r's scale +
                 // ROUNDED mode (§14.9.12.4 / §14.7.4). Operand sub-divisions (rendered above at :75-76) stay nested.
-                StoreArith(r.Place, num.Combine(q, "/", divisorX, RcvFor(r, ise), outermost: true), r.Rounding);
+                // Each receiver's quotient can raise its OWN size error (a PROHIBITED-inexact at r's scale) —
+                // guarded per receiver so the raise does not abandon the receivers to its right (PB129).
+                GuardedStore(ise, () =>
+                    StoreArith(r.Place, num.Combine(q, "/", divisorX, RcvFor(r, ise), outermost: true), r.Rounding));
             }
         });
 
@@ -127,14 +131,30 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // (which yields the quotient at the dividend's higher scale and poisons the remainder multiply).
             string qt = $"__q{ctx.Names.NextStoreTmp()}";
             w.Line($"Int128 {qt} = {RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", CobolRounding.Truncation)};");
-            var product = new NumX($"({qt} * {divisor.Expr})", qs + divisor.Scale);
-            NumX remainder = num.Combine(dividend, "-", product, rcv);   // GR7: dividend − subsidiaryQuotient × divisor
-            StoreArith(d.Quotient.Place,
+            // §14.9.12.4 GR6c (kb/Work PB129): the subsidiary quotient has "the same number of digits as
+            // identifier-3" — cap it at the GIVING receiver's DIGIT capacity (the low-order digits, the
+            // §14.7.5 no-phrase store's own disposition), or a quotient wider than identifier-3 poisons the
+            // remainder (Q PIC 9 stored 3 while the back-multiply used 333).
+            // The CAP applies to the REMAINDER's subsidiary quotient only — the quotient STORE below must
+            // still see the uncapped value so an over-wide quotient raises ITS size error (§14.7.5).
+            string qtc = $"__qc{ctx.Names.NextStoreTmp()}";
+            w.Line($"Int128 {qtc} = {RuntimeApi.NumCapDigits(qt, DigitsOf(d.Quotient.Place))};");
+            // The back-multiply rides Combine — the checked MulChecked fork under checking, the Dec lane under a
+            // standard mode — instead of a raw C# splice whose Int128 product wrapped silently (PB129).
+            NumX remainder = num.Combine(dividend, "-",
+                num.Combine(new NumX(qtc, qs), "*", divisor, rcv), rcv);   // GR7: dividend − subsidiaryQuotient × divisor
+            GuardedStore(ise, () => StoreArith(d.Quotient.Place,
                 d.Quotient.Rounding == CobolRounding.Truncation
                     ? new NumX(qt, qs)
                     : new NumX(RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", d.Quotient.Rounding), qs),
-                d.Quotient.Rounding);
-            StoreArith(d.Remainder, remainder, CobolRounding.Truncation);   // REMAINDER has no ROUNDED phrase
+                d.Quotient.Rounding));
+            // GR6c stores identifier-4 only "if the size error condition is not raised" — gated on the
+            // statement's flag when checking is on (the quotient's raise leaves the remainder untouched).
+            if (ise)
+                using (w.Block($"if (!{ecState.SizeErrVar})"))
+                    GuardedStore(true, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));
+            else
+                StoreArith(d.Remainder, remainder, CobolRounding.Truncation);   // REMAINDER has no ROUNDED phrase
         });
 
     /// <summary>COMPUTE: the RHS is rendered per receiver (so a quotient is computed at that receiver's scale + mode)
@@ -179,15 +199,46 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                     c.Targets.Max(t => IntDigitsOf(t.Place)));
                 NumX v = Snapshot(num.Render(c.Rhs, rcv));
                 foreach (var r in c.Targets)
-                    StoreArith(r.Place, v, r.Rounding);
+                    GuardedStore(ise, () => StoreArith(r.Place, v, r.Rounding));
                 return;
             }
             foreach (var r in c.Targets)
                 // Single receiver: the RHS's top-level division (if any) IS the final transfer to r — render it
                 // outermost so an outermost quotient rounds at r's scale + mode and a nested quotient does not
                 // inherit r's mode (CA5; §14.7.7 rule 3 NOTE 1).
-                StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, ise), outermost: true), r.Rounding);
+                GuardedStore(ise, () =>
+                    StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, ise), outermost: true), r.Rounding));
         });
+
+    /// <summary>The size-error catch pair (kb/Work PB129 — factored so the outer statement try and every
+    /// per-receiver <see cref="GuardedStore"/> emit the identical discipline).</summary>
+    private void WriteSizeCatches(string flag, string? ecnVar)
+    {
+        var w = ctx.Writer;
+        if (ecnVar is not null)
+        {
+            int cid = ctx.Names.NextEc();
+            w.Line($"catch (CobolSizeError __cse{cid}) {{ {flag} = true; {ecnVar} = __cse{cid}.EcName; }}");
+            w.Line($"catch (System.OverflowException) {{ {flag} = true; {ecnVar} = \"EC-SIZE-OVERFLOW\"; }}");
+        }
+        else
+        {
+            w.Line($"catch (CobolSizeError) {{ {flag} = true; }}");
+            w.Line($"catch (System.OverflowException) {{ {flag} = true; }}");
+        }
+    }
+
+    /// <summary>Emit ONE receiver's compute+store inside its own try when size-error checking is on (kb/Work
+    /// PB129): §14.7.7 r4b makes a raised size error PER-RECEIVER — "processing proceeds to the next resulting
+    /// data item to the right" — and §14.7.5 storing rule 2 requires the untouched receivers to hold the values
+    /// they would have had. The old single statement-wide try let one receiver's PROHIBITED/overflow raise
+    /// abandon every receiver to its right. The unchecked fast path is byte-identical to before.</summary>
+    private void GuardedStore(bool inSizeError, Action emitOne)
+    {
+        if (!inSizeError) { emitOne(); return; }
+        using (ctx.Writer.Block("try")) emitOne();
+        WriteSizeCatches(ecState.SizeErrVar!, ecState.SizeErrEcVar);
+    }
 
     /// <summary>The <see cref="ReceiverContext"/> for receiver <paramref name="r"/> (P7 Step 3 — the pure
     /// factory replacing the mutable <c>SetTarget</c> context writes).</summary>
@@ -246,18 +297,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // A zero divisor / PROHIBITED-inexact quotient raises CobolSizeError; an intermediate that overflows the
         // long engine raises OverflowException (the checked(...) the store wraps the value in). Both are the
         // statement's size error condition (ISO §14.7.5 — the phrase ENABLES checking, incl. case 5 intermediate
-        // overflow). >long-range overflow still needs the Int128 carrier (G3).
-        if (ecnVar is not null)
-        {
-            int cid = ctx.Names.NextEc();
-            w.Line($"catch (CobolSizeError __cse{cid}) {{ {flag} = true; {ecnVar} = __cse{cid}.EcName; }}");
-            w.Line($"catch (System.OverflowException) {{ {flag} = true; {ecnVar} = \"EC-SIZE-OVERFLOW\"; }}");
-        }
-        else
-        {
-            w.Line($"catch (CobolSizeError) {{ {flag} = true; }}");
-            w.Line($"catch (System.OverflowException) {{ {flag} = true; }}");
-        }
+        // overflow). >long-range overflow still needs the Int128 carrier (G3). This OUTER try now catches only
+        // the INITIAL evaluation's raises (a statement with no formable initial value has no results to store);
+        // each receiver's compute+store sits in its own GuardedStore try (kb/Work PB129 — §14.7.7 r4b:
+        // "processing proceeds to the next resulting data item to the right", §14.7.5 storing rule 2).
+        WriteSizeCatches(flag, ecnVar);
         ecState.SizeErrVar = null;
         ecState.SizeErrEcVar = null;
 
@@ -448,4 +492,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// a float receiver never reaches the quantizer at all.</summary>
     private int IntDigitsOf(Place p) =>
         p.Item.Pic is { } pic ? Math.Max(0, pic.DigitPositions - ScaleOf(p)) : 0;
+
+    /// <summary>The receiver's total DIGIT capacity (§14.9.12.4 GR6c's "same number of digits as
+    /// identifier-3" — the subsidiary-quotient cap, kb/Work PB129).</summary>
+    private static int DigitsOf(Place p) => p.Item.Pic?.DigitPositions ?? 0;
 }
