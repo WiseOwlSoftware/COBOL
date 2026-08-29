@@ -351,7 +351,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   flipping the axis the goldens held fixed, **PB111 ✅ LANDED (DEVLOG 1335, the next commit)**: a CLASS-ID's
   OBJECT-COMPUTER clauses (PCS, CHARACTER CLASSIFICATION) were a CS0103 on the emitted class — `ObjectComputerEmit` is
   the ONE renderer of a type's OBJECT-COMPUTER members (program, instance, factory); a method's classification is an
-  activation LOCAL. Wave-local gated; battery #26 owes it.
+  activation LOCAL. Battery #26 covers it (ALL GREEN, 2026-08-28).
   ④ ✅ **PB110 + PB109 LANDED (2026-08-19, DEVLOG 1336)** — the CODED CHARACTER SET family (§12.3.7.4 GR7 Table 6's
   four reference sites): ONE `CodedCharacterSet` model + ONE resolver (`DataBinder.CodedCharacterSetOf` — 1669 for a
   LOCALE alphabet everywhere); SYMBOLIC CHARACTERS binds (the figurative substitutes at the constant-name seams +
@@ -361,12 +361,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `code-set-national-2002`), SR1–SR3 checked (→ 1672), the identity sets CLAIMED byte-exact and a differing
   on-medium set the DOCUMENTED A.3 item 27 non-support (1672, never a silent identity); the alphabet-name class
   condition is live (`CobolClass.IsInCodedSet` — PB109). 15 inventory rows — **GAP 3843**.
-  ⑤ **NEXT — ⛔ battery #26 FIRST** (owed for the accumulated batch: PB111 + PB110/PB109 + PB112 (the CI fix: LOCALE-TIME's spacing was host-ICU-dependent — the Linux-only corpus-nist red since T4; DEVLOG 1337) — these commits ran only
-  the wave-local gate), then `work.py next`: **PB64 T6** = PICTURE format 2 + the NUMVAL-C / TEST-NUMVAL-C LOCALE
-  arms over ONE LC_MONETARY model (design §4.6), the LAST locale increment — after it the A.4.9 row in
-  CONFORMANCE.md §5 reads "Claimed" and the COBOLNET1518 descriptor goes · then Phase-B adjudication (a NEW
-  defect found on the way outranks). Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN; #22 on the
-  PB104–106 tree; #23 on the T1 tree; #24 on the T4 tree; **#25 on the T5 tree (the reference below).**
+  ⑤ ✅ **BATTERY #26 PAID (2026-08-28, ALL GREEN — the reference below; DEVLOG 1338)** — it covered the
+  accumulated batch PB111 + PB110/PB109 + PB112 (the CI fix: LOCALE-TIME's spacing was host-ICU-dependent — the
+  Linux-only corpus-nist red since T4; DEVLOG 1337), which had run only wave-local gates. **NEXT per
+  `work.py next`: PB64 T6** = PICTURE format 2 + the NUMVAL-C / TEST-NUMVAL-C LOCALE arms over ONE LC_MONETARY
+  model (design §4.6), the LAST locale increment — after it the A.4.9 row in CONFORMANCE.md §5 reads "Claimed"
+  and the COBOLNET1518 descriptor goes · then Phase-B adjudication (a NEW defect found on the way outranks).
+  Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN; #22 on the PB104–106 tree; #23 on the T1 tree; #24
+  on the T4 tree; #25 on the T5 tree; **#26 on this tree `36b7cc6d` (the reference below).**
   **✅ THREE MORE SUBSYSTEMS AND THE REPOSITORY-WIDE INTEGRATION LANDED — kb/Work PB104 / PB105 / PB106 (2026-08-19,
   DEVLOG 1328).** The owner's second guidance ("hard implementation mode": grapheme segmentation, a FULL CLDR locale
   loader, a collation key caching layer, then integrate everything): **PB104** `Runtime/Unicode/Segmentation/` —
@@ -1687,7 +1689,16 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB64 T5 tree (2026-08-19 14:20 PDT, battery #25).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB112 tree `36b7cc6d` (2026-08-28 20:00 PDT, battery #26).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts in the session
+  scratchpad `battery-26/`): FULL greenfield Conformance **4901 / 4901, zero skipped** (10 m 51 s) · greenfield
+  Unit **4475 / 4475** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /
+  0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **`0 PER-CASE FLIP(S)`** (1323 cases: 577/469/207/70 —
+  identical totals to #25 AND zero named flips). Covers the accumulated wave-local-only batch whole: DEVLOG 1335
+  (PB111 — a CLASS-ID's OBJECT-COMPUTER members), DEVLOG 1336 (PB110 + PB109 — the CODED CHARACTER SET family)
+  and DEVLOG 1337 (PB112 — LOCALE-TIME's host-ICU spacing normalized; CI's Linux-only red) — the population grew
+  by 14 Conformance and 5 Unit tests over #25. Nothing wave-local-only remains outstanding on this tree.
+- **⛔ PRIOR BATTERY REFERENCE — the PB64 T5 tree (2026-08-19 14:20 PDT, battery #25).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-pb64t5`; the log in the session scratchpad): FULL greenfield Conformance **4887 / 4887, zero
   skipped** (11 m 54 s) · greenfield Unit **4470 / 4470** · characterization **33 / 33** · `guard-fast` **ALL
@@ -1695,8 +1706,7 @@ result. Run the long legs ONE AT A TIME.
   (1323 cases: 577/469/207/70 — GnuCOBOL's suite carries no CHARACTER CLASSIFICATION or case-function LOCALE
   case). Covers DEVLOG 1334 whole (the CHARACTER CLASSIFICATION clause resolved at activation, the case-function
   LOCALE phrase, the classification-aware class tests, `LocaleFacts.Require`, COBOLNET1669) — the population grew by
-  16 Conformance and 7 Unit tests over #24b. ⚠ NOT covered: the PB111 commit that follows (a CLASS-ID's
-  OBJECT-COMPUTER members — wave-local gated; battery #26 owes it).
+  16 Conformance and 7 Unit tests over #24b. The PB111 commit that followed is covered by #26 above.
 - **⛔ PRIOR BATTERY REFERENCE — the PB64 T4 tree (2026-08-19 12:57 PDT, battery #24b).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-pb64t4b`; the log in the session scratchpad): FULL greenfield Conformance **4871 / 4871, zero
