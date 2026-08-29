@@ -178,11 +178,23 @@ public static partial class CobolIntrinsics
         return CobolDec.Div(acc, CobolDec.From(xs.Length, 0), mode);
     }
 
+    /// <summary>SQRT under STANDARD-DECIMAL arithmetic (§15.84.4 r2 — the 34-digit correctly-rounded value;
+    /// kb/Work PB116). §15.84.3 r2's "zero or positive" is the runtime's value screen here (the bind-time class
+    /// screen cannot see values): a negative argument is EC-ARGUMENT-FUNCTION with the §15.3 default 0.</summary>
+    public static CobolDec SqrtDec(CobolRounding mode, CobolDec v)
+    {
+        if (v.Sig < 0)
+            return CobolDec.From(Exceptions.ExceptionState.ArgumentError(
+                "SQRT argument-1 shall be zero or positive (ISO §15.84.3 rule 2)"), 0);
+        return CobolDec.Sqrt(v, mode);
+    }
+
     /// <summary>§15.85 STANDARD-DEVIATION — the square root of the §15.97 variance. The root itself is a
     /// prose approximation (§15.4.1 last ¶ — no equivalent arithmetic expression), computed in binary64 and
     /// converted in per §8.8.1.5.1, the same channel the SQRT/trig/log family's standard-mode results use.</summary>
     public static CobolDec StdDevDec(CobolRounding mode, params CobolDec[] xs) =>
-        CobolDec.FromDouble(Math.Sqrt(VarianceDec(mode, xs).ToDouble()));
+        CobolDec.Sqrt(VarianceDec(mode, xs), mode);   // §15.86.4 r1's EAE = SQRT(VARIANCE), evaluated in
+        // SDIDI form end to end (kb/Work PB116 — it detoured through Math.Sqrt in binary64, ~16 digits).
 
     /// <summary>§15.9 ANNUITY — rate = 0 → 1/periods; else rate / (1 − (1 + rate)^(−periods)) (§15.9.4 r1/r2).
     /// Domain per §15.9.3 r2/r3, through the SAME raise site as the double carrier (one site per rule).</summary>

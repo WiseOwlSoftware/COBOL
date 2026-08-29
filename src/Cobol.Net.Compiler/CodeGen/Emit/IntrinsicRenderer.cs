@@ -640,7 +640,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // The native arms first ALIGN every argument to the list's maximum scale on the Int128 carrier, so a
         // 31-digit integer beside a scale-18 item needed 49 digits and RescaleEscape raised a size error where the
         // SDIDI holds the 30-digit answer exactly (MEAN(10³⁰, 2.0) = 500000000000000000000000000001).
-        bool alwaysDec = m is "Annuity" or "PresentValue" or "Variance" or "StandardDeviation"
+        bool alwaysDec = m is "Sqrt"   // §15.84.4 r2 (PB116): every standard-mode SQRT must reach the SqrtDec arm —
+                           // without this the early-out below returned null for a plain-operand call and it
+                           // fell to binary64; the arm's own `when num.StandardDecimal` guard keeps a NATIVE
+                           // call (which reaches RenderDec only with a float/Dec argument) on the float lane.
+                           or "Annuity" or "PresentValue" or "Variance" or "StandardDeviation"
                            or "Numval" or "NumvalC" or "NumvalF"
                            or "SumScaled" or "RangeScaled" or "MeanScaled" or "MedianScaled" or "MidrangeScaled";
         if (!alwaysDec && !AnyDecOrRealRaw(ic)) return null;
@@ -661,6 +665,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "NumvalC" => Dec(RuntimeApi.Intrinsic("NumvalCDec",
                 $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}")),
             "NumvalF" => Dec(RuntimeApi.Intrinsic("NumvalFDec", $"{mode}, {Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
+            // SQRT (§15.84.4 r2; kb/Work PB116): the one function whose standard-mode value is FIXED — the
+            // 34-digit correctly-rounded root; without this arm it fell to RenderFloat's binary64 Math.Sqrt.
+            // ⛔ Guarded to STANDARD-DECIMAL: RenderDec is also consulted under NATIVE when a float-typed
+            // argument is present (AnyDecOrRealRaw), and an unguarded arm would flip native float SQRT onto
+            // the Dec lane — a behavior change r4's approximation licence does not ask for.
+            "Sqrt" when num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SqrtDec", $"{mode}, {DecArg(ic, 0)}")),
             "SignOf" => new NumX(RuntimeApi.Intrinsic("SignDec", DecArg(ic, 0)), 0),
             "AbsScaled" => Dec(RuntimeApi.Intrinsic("AbsDec", DecArg(ic, 0))),
             "Floor" => Dec(RuntimeApi.Intrinsic("FloorDec", DecArg(ic, 0))),

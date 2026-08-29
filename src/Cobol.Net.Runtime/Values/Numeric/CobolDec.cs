@@ -306,6 +306,43 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return RoundFromRemainder(q, rem, den, sticky: false, mode);
     }
 
+    /// <summary>The SDIDI square root (ISO §15.84.4 r1/r2; kb/Work PB116) — the ONE §15 function whose
+    /// standard-mode returned value the standard fixes EXACTLY: "computed to 34 digits, and the result rounded
+    /// to 34 digits according to the rules for standard-decimal arithmetic" (r2), with "argument-1 is not
+    /// rounded" (r1 — the EXACT operand enters: a fixed-point operand converts exactly, §8.8.1.5.2). Computed
+    /// as an EXACT integer floor square root over the significand scaled to ≥ 71 digits at an even power — the
+    /// 36–37-digit integer root carries 2–3 guard digits below the 34-digit rounding position, and the floor
+    /// remainder becomes the sticky bit, so <see cref="Round34(Int128, int, bool, CobolRounding)"/>'s landing is
+    /// CORRECTLY rounded in every mode (a tie exists only when the root is exact, and then sticky is false).
+    /// Negative arguments are the caller's §15.84.3 r2 screen; a defensive zero comes back for them.</summary>
+    public static CobolDec Sqrt(CobolDec v, CobolRounding mode)
+    {
+        if (v.Sig <= 0) return new CobolDec(0, 0);
+        var sig = (System.Numerics.BigInteger)v.Sig;
+        int digits = 1;
+        for (var t = sig; t >= 10; t /= 10) digits++;
+        int k = 72 - digits;
+        if (((v.Exp - k) & 1) != 0) k++;
+        var n = sig * System.Numerics.BigInteger.Pow(10, k);
+        var q = ISqrt(n);
+        bool exact = q * q == n;
+        return Round34((Int128)q, (v.Exp - k) / 2, sticky: !exact, mode);
+    }
+
+    /// <summary>The exact floor integer square root (Newton over <see cref="System.Numerics.BigInteger"/> —
+    /// monotone descent from an over-estimate; terminates in O(log log n) iterations).</summary>
+    private static System.Numerics.BigInteger ISqrt(System.Numerics.BigInteger n)
+    {
+        if (n < 2) return n;
+        var x = System.Numerics.BigInteger.One << (int)(n.GetBitLength() / 2 + 1);
+        while (true)
+        {
+            var y = (x + n / x) >> 1;
+            if (y >= x) return x;
+            x = y;
+        }
+    }
+
     /// <summary>The value as a <see cref="double"/> (the float-context bridge, e.g. exponentiation) — the
     /// CORRECTLY-ROUNDED double, through the ONE scaled→double conversion (kb/Work PB115: the former
     /// <c>(double)Sig * Math.Pow(10, Exp)</c> rounded twice over an inexact power and overshot at scale 25,
