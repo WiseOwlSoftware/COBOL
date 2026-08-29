@@ -115,6 +115,18 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   - Conformance net: `LinageConformanceTests.cs` (per-GR: GR7c1–c4/GR7d, GR26a/b discrimination incl. c==B, GR6b1/2/3 timing, GR1 no-footing, qualified/ambiguous register, ADVANCING 0, SR13/18/19).
 - On-disk framing: a fixed record-sequential file is contiguous; a variable sequential, relative, or indexed file uses a 4-byte little-endian length prefix; a sparse relative file uses 0xFF gaps.
 - DELETE FILE statement (14.9.10 Format 2): delete the host path and reset the in-memory map. A present file that is deleted gives 00 and an absent file gives 05 — BOTH successful (14.9.10 GR14/GR20); the error paths are 41 (the connector is still open, GR13), 62 (the physical file is open by another connector, GR15), and 37 (insufficient authority or the storage medium forbids deletion, GR16/GR17). A missing file is NEVER 35 — 35 is an OPEN-only status.
+- Keyed record stores are PER PHYSICAL FILE, not per connector (kb/Work PB143; §14.9.10.4 GR5 — "removed from
+  the physical file"): `KeyedStoreTable` (registry-owned, keyed by resolved host path — the same key
+  `PhysicalFileTable` arbitrates sharing and locks by) holds ONE `RelativeStore` (RRN → image) or `IndexedStore`
+  (arrival-ordered records + the GLOBAL arrival mint) per host. The FIRST opener loads from disk; later openers
+  ATTACH to the live store (never reload — the in-memory store is the truth while any connector holds it); every
+  DELETE/WRITE/REWRITE is instantly visible to every attached connector; any CLOSE persists the one shared state
+  (close order cannot resurrect a deleted record or drop another connector's write); the LAST detach drops the
+  entry so a later OPEN re-reads the disk; OPEN OUTPUT empties the shared view. Position/key state (FPI, key of
+  reference, the §14.9.51 GR29a sequential-WRITE slot, the GR38 high-key) stays per-CONNECTOR. The store is
+  unconditional — two SELECTs to one ASSIGN target reach it with no SHARING clause — and sequential connectors
+  are out of its scope (their OS-backed streams are already the shared store). A connector constructed outside a
+  registry (a focused unit test) keeps a private store.
 - I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOLNET1692/1693); `FileConnector.Close` maps OS failures to '30' (§9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close.
 - SAME AREA buffer-only and SAME SORT-MERGE AREA are no-ops in a managed runtime (pure memory-layout optimizations with no observable behavior).
 

@@ -33,6 +33,11 @@ public sealed class FileRegistry
     /// <summary>The physical-file sharing/record-lock registry (§9.1.15/§9.1.16).</summary>
     private readonly PhysicalFileTable _physical = new();
 
+    /// <summary>The per-physical-file KEYED record stores (kb/Work PB143 — §14.9.10.4 GR5): one record store
+    /// per resolved host path, attached by every relative/indexed connector over it, so mutations are visible
+    /// across connectors and the close order cannot pick a surviving private view.</summary>
+    private readonly KeyedStoreTable _stores = new();
+
     // ── Run-unit lifecycle ───────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Reset the registry (run-unit start): drain GC closes, close the sequential connectors (the
@@ -50,6 +55,7 @@ public sealed class FileRegistry
         while (_pendingObjectClose.TryDequeue(out _)) { }   // a new run unit starts with a clean queue
         _connectorShares.Clear();
         _physical.Clear();
+        _stores.Clear();   // kb/Work PB143 — a new run unit re-reads every physical file
     }
 
     /// <summary>Request the §9.1.4 deletion-time CLOSE of a per-object connector FROM THE GC FINALIZER THREAD:
@@ -118,7 +124,8 @@ public sealed class FileRegistry
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
         _files[cobolName] = new RelativeConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
-            (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax) { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName) };
+            (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax)
+        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores };
     }
 
     /// <summary>Register a SELECTed INDEXED file with its PRIME key's (offset, length) range (§12.4.5.12).</summary>
@@ -129,7 +136,8 @@ public sealed class FileRegistry
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
         _files[cobolName] = new IndexedConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
-            (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeCollation) { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName) };
+            (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeCollation)
+        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores };
     }
 
     /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order, with its optional
@@ -348,38 +356,38 @@ public sealed class FileRegistry
     /// <summary>Sequential keyed READ [NEXT] (§14.9.30 F1) — returns the I-O status and the record image.</summary>
     public string ReadKeyedNext(string name, out string image)
     {
-        if (_files.TryGetValue(name, out var c))
-        {
-            if (c is RelativeConnector r) return r.ReadNext(out image);
-            if (c is IndexedConnector ix) return ix.ReadNext(out image);
-        }
         image = "";
-        return FileStatusCode.PermanentError;
+        return Require(name) switch
+        {
+            RelativeConnector r => r.ReadNext(out image),
+            IndexedConnector ix => ix.ReadNext(out image),
+            var other => throw MisroutedVerb("keyed READ NEXT", name, other),   // the PB140 sweep's missed arm
+        };
     }
 
     /// <summary>Sequential keyed READ PREVIOUS (§14.9.30 F1, COBOL-2002+; compiler edition-gated).</summary>
     public string ReadKeyedPrevious(string name, out string image)
     {
-        if (_files.TryGetValue(name, out var c))
-        {
-            if (c is RelativeConnector r) return r.ReadPrevious(out image);
-            if (c is IndexedConnector ix) return ix.ReadPrevious(out image);
-        }
         image = "";
-        return FileStatusCode.PermanentError;
+        return Require(name) switch
+        {
+            RelativeConnector r => r.ReadPrevious(out image),
+            IndexedConnector ix => ix.ReadPrevious(out image),
+            var other => throw MisroutedVerb("keyed READ PREVIOUS", name, other),
+        };
     }
 
     /// <summary>Random keyed READ (§14.9.30 F2): indexed slices the key value from
     /// <paramref name="keyedRecordImage"/> (GR30–GR32); relative uses the staged relative key (GR29).</summary>
     public string ReadKeyed(string name, int keyIndex, string keyedRecordImage, out string image)
     {
-        if (_files.TryGetValue(name, out var c))
-        {
-            if (c is RelativeConnector r) return r.ReadRandom(out image);
-            if (c is IndexedConnector ix) return ix.ReadRandom(keyIndex, keyedRecordImage, out image);
-        }
         image = "";
-        return FileStatusCode.PermanentError;
+        return Require(name) switch
+        {
+            RelativeConnector r => r.ReadRandom(out image),
+            IndexedConnector ix => ix.ReadRandom(keyIndex, keyedRecordImage, out image),
+            var other => throw MisroutedVerb("keyed READ", name, other),
+        };
     }
 
     /// <summary>START on a relative file (§14.9.41 GR8–GR12) — a numeric RRN comparison.</summary>
@@ -708,7 +716,12 @@ public sealed class FileRegistry
     /// pre-operation conflict check against the record identified for deletion (locked by another connector →
     /// RETRY re-checks, else 51 with the record NOT removed — GR6a-c), then the GR7 releases: a self-lock on
     /// another record at the beginning (GR7a2, single), the deleted record's lock at completion (GR7a1/GR7b).
-    /// Returns the I-O status.</summary>
+    /// Returns the I-O status. Unlike its WRITE/REWRITE siblings this body consults no
+    /// <see cref="LocksEffective"/> — DELIBERATE, not an omission (kb/Work PB143 verified the premise): the
+    /// siblings gate their lock ACQUISITIONS on it, and DELETE acquires none; GR7's releases are conditioned
+    /// on "record locks are in effect", but a connector for which locks are not effective HOLDS none, so the
+    /// unconditional releases are correct by vacuity. The conflict CHECK is never disabled (§9.1.16 — a locked
+    /// record is inaccessible to another connector regardless of that connector's own lock mode).</summary>
     public string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, int retryAmount)
     {
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;

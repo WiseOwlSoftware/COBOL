@@ -16,19 +16,16 @@ namespace CobolNet.Runtime.IO;
 /// </summary>
 public sealed class IndexedConnector : FileConnector
 {
-    /// <summary>One stored record: its fixed-width character image and its arrival sequence (write order).</summary>
-    private sealed class KeyedRec
-    {
-        public string Image = "";
-        public long Arrival;
-    }
-
     private readonly KeyedAccess _access;
     private readonly int _primeOff, _primeLen;
     private readonly CobolCollation? _primeCollation;   // §12.4.5.7 prime-key collating sequence (the CobolCollation carrier); null = native ordinal
     private readonly List<(int Off, int Len, bool Dups, CobolCollation? Collation, string? Suppress)> _alts = [];
-    private readonly List<KeyedRec> _recs = [];   // arrival order — the persisted order
-    private long _nextArrival = 1;
+    /// <summary>The attached PER-PHYSICAL-FILE store (kb/Work PB143): every connector over one host path sees
+    /// ONE record list and ONE arrival mint. A placeholder until OPEN attaches (and after CLOSE detaches).</summary>
+    private IndexedStore _st = new();
+
+    private List<KeyedRec> _recs => _st.Recs;   // arrival order — the persisted order (the ATTACHED store's)
+    private long _nextArrival { get => _st.NextArrival; set => _st.NextArrival = value; }
 
     private int _refKey = -1;            // key of reference: -1 prime, i = i-th alternate (§14.9.30 GR30/GR31)
     private string _fpiKey = "";         // file position indicator: (key-of-reference value, arrival) (§9.1.11)
@@ -57,8 +54,6 @@ public sealed class IndexedConnector : FileConnector
 
     /// <inheritdoc/>
     public override string LastWrittenRecordId => _lastWrittenPrimeId ?? "";
-
-    /// <summary>True between a successful OPEN and the matching CLOSE.</summary>
 
     // RECORD IS VARYING: the RecordFraming store carries each record's exact length; key slices pad on demand
     // (KeyOf), so a varying record persists at its written length (§13.18.43 GR13) and reports it on READ
@@ -123,8 +118,6 @@ public sealed class IndexedConnector : FileConnector
     /// live on <see cref="FileConnector.Open"/>.</summary>
     protected override string OpenCore(FileOpenMode mode)
     {
-        _recs.Clear();
-        _nextArrival = 1;
         _refKey = -1;                                                       // §14.9.27 GR14 — prime key of reference
         _fpiKey = ""; _fpiArrival = 0; _inclusive = true; _positioner = 'O';
         _lastWrittenPrime = null;
@@ -139,32 +132,42 @@ public sealed class IndexedConnector : FileConnector
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     OptionalAbsent = true;
+                    Attach();                              // empty — the file is absent
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
-                Load();
+                Attach();
                 break;
             case FileOpenMode.Output:
+                Attach();
+                _recs.Clear();                             // OPEN OUTPUT empties the SHARED view (kb/Work PB143)
+                _nextArrival = 1;
                 RecordFraming.WriteStore(HostPath, []);
                 break;
             case FileOpenMode.IO:
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;   // '35' — spec-pinned
+                    Attach();
+                    _recs.Clear();
+                    _nextArrival = 1;
                     RecordFraming.WriteStore(HostPath, []);                // §14.9.27 GR17
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
-                Load();
+                Attach();
                 break;
             case FileOpenMode.Extend:
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
+                    Attach();
+                    _recs.Clear();
+                    _nextArrival = 1;
                     RecordFraming.WriteStore(HostPath, []);
                     status = FileStatusCode.OptionalFileNotFound;
                 }
-                else Load();
+                else Attach();
                 if (_recs.Count > 0)
                 {
                     var ordered = Ordered(-1);
@@ -176,6 +179,17 @@ public sealed class IndexedConnector : FileConnector
         return status;
     }
 
+    /// <summary>Attach the per-physical-file store (kb/Work PB143): the LIVE store when another connector holds
+    /// this host open (its content and arrival mint are the truth — never reloaded), else a fresh one loaded
+    /// from disk. With no registry table, a private freshly-loaded store — the pre-PB143 shape.</summary>
+    private void Attach()
+    {
+        if (SharedStores is { } t) { _st = t.AttachIndexed(HostPath, Load); return; }
+        var s = new IndexedStore();
+        Load(s);
+        _st = s;
+    }
+
     /// <summary>The indexed CLOSE body (§14.9.6): a writable mode persists the store in ARRIVAL order — so the
     /// duplicate-alternate retrieval order (§14.9.30 GR26) survives a CLOSE/OPEN cycle and run-unit termination.
     /// The not-open '42' guard lives on <see cref="FileConnector.Close"/>.</summary>
@@ -184,8 +198,18 @@ public sealed class IndexedConnector : FileConnector
         // A persist IOException maps to '30' on FileConnector.Close (§9.1.13.6 item 1 — the ONE mapping),
         // which ends the open mode either way; ModeKnown then stays true for the USE-declarative scoping.
         // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 (kb/Work PB140).
-        if (!OptionalAbsent && Mode is not FileOpenMode.Input)
-            RecordFraming.WriteStore(HostPath, _recs.OrderBy(r => r.Arrival).Select(r => (string?)r.Image).ToList());
+        // The DETACH runs whatever the persist outcome (kb/Work PB143): the connector leaves the shared
+        // store, and never aliases a detached one.
+        try
+        {
+            if (!OptionalAbsent && Mode is not FileOpenMode.Input)
+                RecordFraming.WriteStore(HostPath, _recs.OrderBy(r => r.Arrival).Select(r => (string?)r.Image).ToList());
+        }
+        finally
+        {
+            SharedStores?.Detach(HostPath);
+            _st = new IndexedStore();
+        }
         ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }
@@ -497,14 +521,15 @@ public sealed class IndexedConnector : FileConnector
         return image.Substring(off, len);
     }
 
-    private void Load()
+    private void Load(IndexedStore into)
     {
-        _recs.Clear();
-        _nextArrival = 1;
+        into.Recs.Clear();
+        into.NextArrival = 1;
+        if (!File.Exists(HostPath)) return;   // an absent file loads empty (OPEN OUTPUT / absent-optional attach, PB143)
         // A varying file's frames keep their exact stored lengths (§13.18.43 GR15 reports them on READ);
         // fixed frames normalize to the record width.
         foreach (string? frame in RecordFraming.ReadStore(HostPath))
             if (frame is not null)
-                _recs.Add(new KeyedRec { Image = IsVarying ? frame : Fit(frame), Arrival = _nextArrival++ });
+                into.Recs.Add(new KeyedRec { Image = IsVarying ? frame : Fit(frame), Arrival = into.NextArrival++ });
     }
 }

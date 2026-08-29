@@ -29,8 +29,13 @@ public sealed class RelativeConnector : FileConnector
     private readonly KeyedAccess _access;
     private readonly int _keyDigits;   // RELATIVE KEY digit capacity (0 = no RELATIVE KEY clause)
 
-    /// <summary>The sparse slot store: RRN (1-based, §12.4.5.13 GR1) → record image.</summary>
-    private readonly SortedDictionary<long, string> _slots = new();
+    /// <summary>The attached PER-PHYSICAL-FILE store (kb/Work PB143): every connector over one host path sees
+    /// ONE slot dictionary, so a DELETE through one is a deletion for all and the close order cannot pick a
+    /// surviving view. A placeholder until OPEN attaches (and again after CLOSE detaches).</summary>
+    private RelativeStore _st = new();
+
+    /// <summary>The sparse slot store: RRN (1-based, §12.4.5.13 GR1) → record image — the ATTACHED store's.</summary>
+    private SortedDictionary<long, string> _slots => _st.Slots;
 
     private long _fpi;                   // file position indicator: the current slot (§9.1.11)
     private bool _fpiValid;
@@ -85,7 +90,6 @@ public sealed class RelativeConnector : FileConnector
     /// <see cref="FileConnector.Open"/>.</summary>
     protected override string OpenCore(FileOpenMode mode)
     {
-        _slots.Clear();
         _pendingKey = 0;
         _lastSlot = 0;
         _positioner = 'O';
@@ -98,12 +102,15 @@ public sealed class RelativeConnector : FileConnector
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     OptionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
+                    Attach();                            // empty — the file is absent
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
-                Load();
+                Attach();
                 break;
             case FileOpenMode.Output:
+                Attach();
+                _slots.Clear();                            // OPEN OUTPUT empties the SHARED view (kb/Work PB143)
                 RecordFraming.WriteStore(HostPath, []);          // a new physical file; records persist at CLOSE
                 _seqNext = 1;                              // §14.9.51 GR29a — first record released is 1
                 break;
@@ -111,20 +118,24 @@ public sealed class RelativeConnector : FileConnector
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
+                    Attach();
+                    _slots.Clear();
                     RecordFraming.WriteStore(HostPath, []);      // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
-                Load();
+                Attach();
                 break;
             case FileOpenMode.Extend:
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
+                    Attach();
+                    _slots.Clear();
                     RecordFraming.WriteStore(HostPath, []);      // §14.9.27 GR17
                     status = FileStatusCode.OptionalFileNotFound;
                 }
-                else Load();
+                else Attach();
                 _seqNext = (_slots.Count == 0 ? 0 : _slots.Keys.Max()) + 1;   // §14.9.27 GR15 / §14.9.51 GR29a
                 break;
         }
@@ -132,6 +143,17 @@ public sealed class RelativeConnector : FileConnector
         _fpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
         _inclusive = true;
         return status;
+    }
+
+    /// <summary>Attach the per-physical-file store (kb/Work PB143): the LIVE store when another connector holds
+    /// this host open (its content is the truth — never reloaded from disk), else a fresh one loaded from disk.
+    /// With no registry table (a standalone connector), a private freshly-loaded store — the pre-PB143 shape.</summary>
+    private void Attach()
+    {
+        if (SharedStores is { } t) { _st = t.AttachRelative(HostPath, Load); return; }
+        var s = new RelativeStore();
+        Load(s);
+        _st = s;
     }
 
     /// <summary>The relative CLOSE body (ISO §14.9.6): a writable mode persists the store — including via the
@@ -143,7 +165,17 @@ public sealed class RelativeConnector : FileConnector
         // which ends the open mode either way; ModeKnown then stays true for the USE-declarative scoping.
         // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 says the file
         // position indicator is unchanged; the next OPEN resets it (FileConnector.Open) — kb/Work PB140.
-        if (!OptionalAbsent && Mode is not FileOpenMode.Input) Persist();
+        // The DETACH runs whatever the persist outcome (kb/Work PB143): the connector leaves the shared
+        // store, and never aliases a detached one.
+        try
+        {
+            if (!OptionalAbsent && Mode is not FileOpenMode.Input) Persist();
+        }
+        finally
+        {
+            SharedStores?.Detach(HostPath);
+            _st = new RelativeStore();
+        }
         ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }
@@ -348,13 +380,14 @@ public sealed class RelativeConnector : FileConnector
 
     // ── Persistence ──────────────────────────────────────────────────────────────────────────────────────────
 
-    private void Load()
+    private void Load(RelativeStore into)
     {
-        _slots.Clear();
+        into.Slots.Clear();
+        if (!File.Exists(HostPath)) return;   // an absent file loads empty (OPEN OUTPUT / absent-optional attach, PB143)
         var frames = RecordFraming.ReadStore(HostPath);
         for (int i = 0; i < frames.Count; i++)
             if (frames[i] is { } rec)
-                _slots[i + 1] = rec;        // slot ordinal = frame ordinal (1-based RRN, §12.4.5.13 GR1)
+                into.Slots[i + 1] = rec;    // slot ordinal = frame ordinal (1-based RRN, §12.4.5.13 GR1)
     }
 
     private void Persist()

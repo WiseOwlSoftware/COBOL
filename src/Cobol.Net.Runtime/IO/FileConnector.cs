@@ -77,6 +77,12 @@ public abstract class FileConnector
     /// <summary>True for a SELECT OPTIONAL file (ISO §14.9.27 GR13/GR17).</summary>
     public bool IsOptional { get; set; }
 
+    /// <summary>The registry's per-physical-file record-store table (kb/Work PB143 — §14.9.10.4 GR5's "removed
+    /// from the physical file"): the keyed connectors attach their record images through it so every connector
+    /// over one host path sees ONE store. Null (a connector constructed outside a registry, e.g. a focused
+    /// unit test) keeps the private-store behavior.</summary>
+    internal KeyedStoreTable? SharedStores { get; set; }
+
     /// <summary>True when the connector participates in file sharing (§9.1.15 — set by the registry when the
     /// SELECT declares SHARING/LOCK MODE or an OPEN carries a SHARING/RETRY phrase): its physical streams open
     /// with <see cref="FileShare.ReadWrite"/> so the §9.1.13.9 Table-19 registry — not the OS handle — is the
