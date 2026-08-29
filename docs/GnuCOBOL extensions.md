@@ -37,7 +37,7 @@ false conformance claim rather than a mere gap. Mapping the differential's rejec
 | A.4.2 ACCEPT/DISPLAY screen handling | Not claimed | 57 | Bucket 2 — refusing is conforming |
 | A.4.11 Report Writer | **Partial** | 35 | Mixed — the staged legs are known (COBOLNET0899 band); needs itemizing against the design doc's §5 |
 | A.4.7 File sharing / record locking | **Claimed** | 6 | ✅ **Investigated 2026-07-20 — no bug.** `LOCK MODE IS EXCLUSIVE` is refused, but ISO §12.4.5.9 admits exactly `MANUAL` / `AUTOMATIC`; **EXCLUSIVE is not an ISO lock mode** (bucket 1). The `SHARING WITH …` forms all compile. |
-| A.4.9 Locale support | Not claimed | 4 | Bucket 2 — refused with the named COBOLNET1518 |
+| A.4.9 Locale support | **Claimed** (PB64 T1–T7; the claim completed by T6, 2026-08-28) | 4 | Implemented — the four GnuCOBOL LOCALE-function cases flipped to agreement at T4 |
 | A.4.13 REWRITE FILE / WRITE FILE | Not claimed | 1 | Bucket 2 |
 | A.4.14 VALIDATE | Not claimed | 1 | Bucket 2 |
 

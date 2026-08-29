@@ -368,8 +368,8 @@ DEBUGGING MODE — deleted 2002, gated by `VisitComputerAttributes`' token scan)
 `~(…)+` sink reachable without one would swallow the next paragraph header — and now stops at CHARACTER as well as
 PROGRAM, so both standard clauses are recognized rather than eaten. (2) `characterClassificationClause : CHARACTER
 {classificationAhead()}? cobolWord (…)` — CLASSIFICATION is not a token (a plain word at '85), so the arm is
-predicated on the word after CHARACTER; the clause is PARSED SO IT CAN BE DIAGNOSED (A.4.9 item 7 documented
-non-support, COBOLNET1518 in the binder — the LOCALE clause's shape), and its words are exempt from the §8.9
+predicated on the word after CHARACTER; the clause BINDS since kb/Work PB64 T5 (A.4.9 item 7 claimed; it was
+parse-to-diagnose COBOLNET1518 until then — the LOCALE clause's shape), and its words are exempt from the §8.9
 funnel exactly as the LOCALE clause's are. The name-less clause form is the 2002 relaxation of the '85 required-name
 format (`computer-name-optional-2002`, `VisitObjectComputerParagraph`); `sourceComputerParagraph` keeps the same
 shape (`((computerName computerAttributes?)? DOT)?`). The legacy oracle reads the clause list too.

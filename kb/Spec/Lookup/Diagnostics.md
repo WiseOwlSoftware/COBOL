@@ -42,7 +42,6 @@ serves as the diagnostic→phase map). See [[kb/Semantics/Validation Rules]] and
 | `COBOLNET1578` | MCS SEND/RECEIVE unsupported | Warning | §4.2.6 / Annex A.3.4 / §14.9.31/.38 | Validate | asynchronous messaging |
 | `COBOLNET1579` | COMMIT/ROLLBACK unsupported (behaves as CONTINUE) | Warning | §4.2.6 / A.3.6-7 / §14.9.7/.36 | Validate | commit/rollback |
 | `COBOLNET1580` | VALIDATE unsupported (optional + obsolete 2023) | Warning | §4.2.7 / A.4.14 / §14.9.50 | Validate | VALIDATE |
-| `COBOLNET1518`* | Locale facility rejected (unclaimed optional) | Error | §4.2.7 / Annex A.4.1 | Bind | locale |
 
 ## Directive diagnostics (Preprocess / directive passes)
 | Code | Meaning (Id) | Sev | ISO § | Phase | Directive |
@@ -142,5 +141,5 @@ aren't in `DIAGNOSTICS.md` yet.
 ## Backlinks
 - [[kb/Spec/Lookup/Index]] · [[kb/Semantics/Validation Rules]] — link here.
 
-> \* `COBOLNET1560` and `COBOLNET1518` are cited from the conformance record ([[docs/CONFORMANCE]] §4) as the
+> \* `COBOLNET1560` is cited from the conformance record ([[docs/CONFORMANCE]] §4) as the
 > §4.2.6 warning band and the locale-reject; they may render as string-literals rather than first-class descriptors.

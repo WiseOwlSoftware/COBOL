@@ -31,7 +31,7 @@ enforces limits) and **engineering constraints** (the development doctrine from 
 | Reference format | fixed-form column areas / free-form rules | §6 | preprocessor normalize | indicator gates | [[kb/Compiler/Phases]] |
 | External-file consistency | matching SELECTs share external status/key items | §12.4 / §9.1 | binder + pass (1573/1575/1624) | cross-connector | [[kb/Semantics/Validation Rules]] |
 | REDEFINES legality | no VALUE on a redefiner; SYNC/type puns limited | §13.16 REDEFINES | data binder (4-tier reject-D) | overlay rules | [[kb/IR/Data Flow]] |
-| Documented non-support | MCS / COMMIT-ROLLBACK / VALIDATE / SCREEN / LOCALE | §4 / Annex A.4 | recognize+warn (1560 band) / reject (1518) | §4.2.6 | [[kb/Spec/Overview]] |
+| Documented non-support | MCS / COMMIT-ROLLBACK / VALIDATE / SCREEN (the LOCALE module is CLAIMED since PB64 T6) | §4 / Annex A.4 | recognize+warn (1560 band) | §4.2.6 | [[kb/Spec/Overview]] |
 | Loud-failure | a recognized-but-unimplemented case fails loudly, never silently | project rule (D8) | `BoundUnsupported` / ICE | no silent no-op | [[kb/Architecture/High-Level Design]] |
 
 ## Engineering constraints (anti-patterns)

@@ -5,8 +5,8 @@
 >
 > **The four owner decisions (2026-08-18), verbatim of record — they supersede council decision 3 (2026-07-03):**
 > - **Q1 — IMPLEMENT the A.4.9 locale module.** COBOL.NET claims support for Annex A.4.9 items 1–13 as each
->   increment of §12 lands; the ratified documented-non-support posture is REVERSED (until an item lands, its entry
->   point stays refused BY NAME with COBOLNET1518, and CONFORMANCE.md §4 item 5 tracks the remainder).
+>   increment of §12 lands — and EVERY increment HAS: T6 (2026-08-28) completed the claim, CONFORMANCE.md §5's
+>   A.4.9 row reads Claimed, and the COBOLNET1518 by-name refusal is DELETED (the code is never reallocated).
 > - **Q2 — the two defaults come from ENVIRONMENT VARIABLES** (DETERMINATION L2 as drafted): `COBOL_USER_LOCALE`
 >   (else the process `CultureInfo.CurrentCulture`, else `INVARIANT`) and `COBOL_SYSTEM_LOCALE` (else
 >   `CultureInfo.InstalledUICulture`, else `INVARIANT`), read ONCE at run-unit activation (L3).
@@ -947,9 +947,11 @@ New `constructs.json` rows (ids follow the existing `<feature>-<edition>` conven
 
 ⚠ **The mandatory edition-gate sweep applies** (`feedback_edition_gate_sweep`): gating a construct breaks every
 corpus program that compiles it below that edition. Each row lands with its four-`--std` matrix case, and the
-existing negative corpus entries (`locale_functions_a49`, `locale_keyword_a49`,
-`pb25-special-names-locale-a49`) **invert** — they currently assert `COBOLNET1518`, which will no longer be
-emitted. Rewriting them is part of the landing, not a follow-up.
+negative corpus entries asserting `COBOLNET1518` **invert** as their element lands. ✅ DONE, with a stale-list
+correction (T6): `locale_functions_a49` was deleted at T4 and `pb25-special-names-locale-a49` at T1;
+`locale_keyword_a49` inverted to COBOLNET1664 at T6 (its LOC1 is undeclared — no SPECIAL-NAMES paragraph), and
+`pb100-picture-locale-format-2` SPLIT: its P1 (`+$9.9 LOCALE SIZE IS 10`) is LEGAL format 2 and moved into the
+positive golden `pb64t6_picture_locale_smoke`; its P2 (`+$$9.99`) stays the SR34 negative at COBOLNET1673.
 
 ---
 
@@ -974,8 +976,8 @@ renumbering:
 | (d) `SET LOCALE USER-DEFAULT TO SYSTEM-DEFAULT`/`USER-DEFAULT` — SR25 requires identifier-10 or locale-name-1 | ✅ T1 — **COBOLNET1667** `set-locale-user-default-source` |
 | (e) identifier-10/-11 is not category data-pointer (§14.9.39.3 SR27/SR28) | ✅ T1 — **COBOLNET1668** `set-locale-pointer-category` |
 | — the LOCALE clause's literal-4 violating SR10/SR11 | ✅ T1 — the ONE SPECIAL-NAMES text-literal rule (COBOLNET0898), shared with ORDER TABLE's literal-9 |
-| (f) format-2 PICTURE violates SR32–SR36 (one code, sub-rule named) | T6 |
-| (g) `SIGN` clause with a LOCALE PICTURE phrase (§13.16.3 SR19 / §13.17.3 SR9) | T6 |
+| (f) format-2 PICTURE violates SR32–SR36 / Table 11 / EDITING-beside-LOCALE (one code, sub-rule named) | ✅ T6 — **COBOLNET1673** `picture-locale-format2` (`PictureAnalyzer.AnalyzeLocaleEdited`; SR32's two halves in `DataBinder`) |
+| (g) `SIGN` clause with a LOCALE PICTURE phrase (§13.16.3 SR19; §13.17.3 SR9 rides the A.4.13 SCREEN posture — the whole section is COBOLNET1560-recognized, so the screen twin is subsumed by that documented non-support; §13.15.3 has NO report-writer twin, a deliberate non-arm with a positive golden) | ✅ T6 — **COBOLNET1674** `sign-clause-with-locale-picture` |
 | (h) an alphabet defined `IS LOCALE` used where a **coded character set** is required (§8.8.4.4.3 SR2; §12.3.7.3 SR16g/SR17d; §13.18.13.3 SR1/SR2; Table 6) | ✅ T5 — **COBOLNET1669** `locale-alphabet-not-a-charset` at the class condition (`DataBinder.IsLocaleAlphabet`, both alphabet classes); the SYMBOLIC CHARACTERS / CLASS `IN` phrases and CODE-SET bind nothing yet — kb/Work PB110 |
 | (i) `CHARACTER CLASSIFICATION` / `PROGRAM COLLATING SEQUENCE` specified twice in one OBJECT-COMPUTER paragraph — ✅ landed with PB78 (COBOLNET1652 `object-computer-duplicate-clause`) | done |
 
@@ -1006,14 +1008,22 @@ lands in `docs/CONFORMANCE.md`.
 | LC_TIME `d_fmt` / `t_fmt` | LOCALE-DATE / -TIME | `ShortDatePattern` / `LongTimePattern` | DETERMINATION L10 — ✅ T4 (`LocaleFacts.DateFormat` / `TimeFormat`; `CobolLocale.FormatTime` renders `t_fmt` over its tokens, since hour 24 / seconds 99 / a fraction exceed a `DateTime`) |
 | LC_MESSAGES, LC_NUMERIC | settable and queryable only | stored slots | §8.2.1: "*not used directly by COBOL; however, the ability to set and query these locale categories is provided*" (`--check` OK) |
 
-**The pattern→placement table is generated, not written.** `CurrencyPositivePattern` 0–3 and
-`CurrencyNegativePattern` 0–15 enumerate placements; the mapping to
-(`cs_precedes`, `sep_by_space`, `sign_posn`) is derived once by a source generator that formats a probe amount
-with each pattern and reads the placement back. A **drift test** then asserts, for every culture installed on
-the test host, that COBOL.NET's locale editing of a value under an all-`9` picture with the locale's own
-`frac_digits` produces the same *placement shape* (symbol side, sign side, separator characters) as
-`value.ToString("C", culture)`. That is the "make the next case automatic" shape: a new ICU release that adds a
-pattern fails the test instead of silently mis-editing.
+**The pattern→placement tables are DERIVED AT RUNTIME, not written and not build-time-generated** (a T6
+correction to this section's own draft, rule 5: a build-time source generator bakes the BUILD host's
+`NumberFormatInfo` semantics into the assembly and can never fail on the RUN host, defeating the stated goal).
+`MonetaryPlacement`'s static initializer PROBES every pattern value the running .NET accepts — the range is
+DISCOVERED, never hard-coded: this runtime accepts SEVENTEEN `CurrencyNegativePattern` values (0–16; the
+documented 0–15 is false — luy-KE uses 16) — and derives each pattern's
+(`cs_precedes`, `sep_by_space`, `sign_posn`) convention by a round-trip against the ONE POSIX renderer,
+THROWING when no convention reproduces a layout. `sep_by_space` is load-bearing (9 of the 17 negative
+patterns need it nonzero; `$ -n` and `n- $` exist only at sep 2); the POSITIVE pattern carries NO sign slot,
+so `p_sign_posn` = 1 is an explicit determination (never mirrored — the invariant's `n_sign_posn` is 0).
+The **drift test** (`MonetaryFactsTests`) asserts, for every specific culture on the host (≥400 asserted
+examined), that COBOL.NET's format-2 edit produces the same *placement shape* as `value.ToString("C",
+culture)`, and that the derived range equals the runtime's accepted maximum — the assertion that would have
+caught pattern 16 and will catch a 17. ⚠ The test builds its picture FROM the culture's `frac_digits` so the
+two digit strings are comparable — a TEST-CONSTRUCTION choice, not a rule: §13.18.40.5 r12 hands the locale
+only the separators and group sizes, and NO editing rule reads `frac_digits`.
 
 **Three globalization-mode limits, all detected rather than assumed:**
 
@@ -1196,7 +1206,7 @@ Then, if Q1 is answered "implement":
 | T3 | ✅ **LANDED (PB101 the current-locale form; PB64 T1 the NAMED form and the SORT snapshot)** — `LocaleCollation` + `ALPHABET … IS LOCALE [locale-name-2]` + PCS + SORT/MERGE + indexed keys + MAX/MIN + HIGH/LOW-VALUE + ORD/CHAR; the named form is the sequence of THAT locale (its L1-normalized tag in the carrier; EC-LOCALE-MISSING at use when unavailable); the SORT/MERGE sequence is snapshotted at statement start (§14.6.6 r5) | items 10 (alphabet half), §8.8.4.2.11 |
 | T4 | ✅ **LANDED 2026-08-19 (PB64 T4)** — `Runtime/Intrinsics/CobolLocale.cs` (`Compare` over the ONE `LocaleCollation` carrier + the sign map; `Date` / `Time` / `TimeFromSeconds` over `LocaleFacts` — `Runtime/Globalization/LocaleFacts.cs`, the ONE place a `CultureInfo` is read, L10: `d_fmt` = ShortDatePattern, `t_fmt` = LongTimePattern, rendered over the pattern's tokens so §15.53.3 r3's hour 24 / seconds 99 and a scaled argument's fraction render); the catalog rows bind Runtime with the `'l'` locale-name kind (`IntrinsicArgumentRules.NonOperandArgumentKinds['l']`, `IntrinsicBinder.BindLocaleFunction`, `BoundIntrinsicCall.Locale` — the ONE `LocaleRef`), the Verified schemas screen the operands (the 8/6-position widths); EC-LOCALE-MISSING at use, **EC-LOCALE-INVALID** (§8.2.1 — no culture data; a new ambient gate) ; `RuntimeDetermined` needed no enum member: the dynamic-length string every §15 string function already returns IS the run-time-determined length | items 2–5 |
 | T5 | ✅ **LANDED 2026-08-19 (PB64 T5)** — `ClassificationSpec` / `LocalePhrase` (`Binding/Model/LocaleSymbol.cs`; `DataBinder.ResolveClassification`), `Runtime/Globalization/CharacterClassification.cs` (`Resolve` at each activation — the `__CLASSIFY` field, `DispatchEmitter`'s `__Activate` prologue; `LocalePhraseKind`), `CobolLocale.UpperCase / LowerCase` (the LOCALE phrase — `BindCaseFunctionWithLocale`, `BoundIntrinsicCall.Locale`; the classification — `__CLASSIFY.For(national)`), `CobolClass.IsAlphabetic* (s, LocaleFacts?)` (GR3 b1/c1/d1 — letters per LC_CTYPE, no space; the case round-trip), **`LocaleFacts.Require` — the ONE §8.2.1 gate** (MISSING / INVALID at use, the LOCALE functions moved onto it), `DataBinder.IsLocaleAlphabet` + COBOLNET1669 (§8.8.4.4.3 SR2), EC-LOCALE-INVALID enabled on every statement of a module with a classification; construct rows `character-classification-2002` / `case-function-locale-phrase-2002`; goldens `2002/pb64t5_*` (three) + four negatives; `locale_keyword_a49` shrunk to the T6 functions. Registered beside it: PB109 (the GR3 a coded-character-set class condition is a loud staged value) and PB110 (the SYMBOLIC CHARACTERS / CLASS `IN` phrases and CODE-SET bind nothing). | items 6, 7, 13 |
-| T6 | `PICTURE` format 2 + the NUMVAL-C/TEST-NUMVAL-C LOCALE arms (one shared LC_MONETARY model) | items 8, 12 |
+| T6 | ✅ **LANDED 2026-08-28 (PB64 T6)** — `Runtime/Globalization/MonetaryFacts.cs` (the ONE LC_MONETARY snapshot, L12-normalized) + `MonetaryPlacement.cs` (the ONE POSIX renderer + the RUNTIME-derived pattern tables, range discovered, round-trip-proved) + `Runtime/Values/Numeric/CobolLocaleEdit.cs` (§13.18.40.5 r9–r15 editing/de-editing; **EC-LOCALE-SIZE's first raise site**, character-based per r14 b; DeEdit = the §14.6.13.2 r4 image-inverse, EC-DATA-INCOMPATIBLE) + the NUMVAL-C LOCALE scan (`CobolIntrinsics.NumvalLocale.cs` — templates from the snapshot, r4 NOT inherited, ANYCASE folds only the currency comparison via the locale's LC_CTYPE, §15.94.4 positions ordinal); `PicInfo.LocaleEdit` (`LocaleEditSpec` — Length = SIZE, EditMask NULL, the doc that licenses every mask deref REWRITTEN), `AnalyzeLocaleEdited` (SR33–36 + Table 11's closed form `[+] [cs] Z… 9… [. Z…\|9…]`, DECIMAL-POINT IS COMMA inert per §12.3.7.4 GR14), the DataBinder arms (SR32 both halves, SR19 → 1674, SR37 → 1664, ValidateNumericValue's locale legs), the REPORT-WRITER arm (PB113 — one analyzer, three callers), the emit dispatch INSIDE `RuntimeApi.EditFormatFor`/`EditTryFormatLocale`/`ReceiverScaleOf` (the ONE receiver-scale rule replacing two drifted copies) + `NumericRenderer`'s de-edit arm + the three VALUE-image producers (`LocaleEditCompose` — runtime images, no compile-time image exists) + `ConditionRenderer`'s level-88 arm + `OoConformance`'s locale-identity axis + `HIGHEST-/LOWEST-ALGEBRAIC`'s locale arm; `BindNumvalCFamily`'s r5 arm (`BoundIntrinsicCall.LocaleWritten` — bare LOCALE ≠ no phrase) + the three renderer arms (native/Test/Dec); grammar `(IS? cobolWord)?` (PB114) + the edition-free predicate (the ORDER TABLE precedent); rows `picture-locale-format2-2002` / `numval-c-locale-phrase-2002`; COBOLNET1673/1674; COBOLNET1518 + `LocaleUnsupported` + `IntrinsicBind.Unsupported` DELETED; goldens `2002/pb64t6_*` (6) + three negatives + the pb100/locale_keyword inversions; +60 Unit (the drift oracle over every host culture green first run) | items 8, 12 — **the module claim completes** |
 | T7 | ✅ **LANDED 2026-08-18 (PB101)** — `ORDER TABLE ordering-name IS literal-9` (§12.3.7.2, one clause; SR10/SR11; GR17 — a literal the engine cannot resolve warns COBOLNET1662 and sets EC-ORDER-NOT-SUPPORTED at every reference) + `STANDARD-COMPARE` (§15.85: `BindStandardCompare`, ArgKinds `ssoi` with `'o'` = §15.3 item 12, COBOLNET1663 for r5/r6 violations; runtime `CobolIntrinsics.StandardCompare` over `CollationEngine.Standard` / `StandardAtLevel`, r4 trim, r6/r7 result; EC-ORDER-NOT-SUPPORTED through the ambient-gate machinery, `"="` when checking is off) | item 11 |
 
 T2 is deliberately a **behaviour-free** commit: a refactor that changes results is indistinguishable from a
@@ -1210,7 +1220,7 @@ feature that breaks them.
 |---|---|---|
 | R1 | ICU version/mode skew makes goldens host-dependent | T-F env pinning; relational (not absolute) assertions; the sort-version recorded in `LocaleFacts` |
 | R2 | The `CobolCollation` collapse regresses SORT/indexed/relation paths | T2 is behaviour-free and gated on a full battery + NIST; the `: c` order-equivalence proof is carried over verbatim |
-| R3 | Deleting `COBOLNET1518` breaks three negative corpus cases and four differential verdicts | Both are listed in §6/§10 as part of the landing, not as follow-ups |
+| R3 | Deleting `COBOLNET1518` breaks the negative corpus cases asserting it | ✅ Retired at T6 — TWO remained by then (§6's corrected list); both inverted/split in the deleting commit |
 | R4 | The ORD/CHAR order vector (65 k comparisons) is a startup cost | Lazy, per-culture, per-run-unit, and only for programs referencing ORD/CHAR under a locale PCS |
 | R5 | `EC-LOCALE-INCOMPATIBLE` is unreachable under ICU (DETERMINATION L6 could be wrong) | The drift test requires every registered EC to have a raise site **and** a golden that fires it |
 | R6 | The 2002 edition windows are provisional | Inherited, marked provisional, unchanged by this work; re-derivable only with the 2002/2014 texts (decision #1) |

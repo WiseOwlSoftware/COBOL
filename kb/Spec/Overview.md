@@ -49,7 +49,7 @@ status). Syntactically-detectable unsupported elements emit a compile-time warni
 Five whole facilities are not implemented: **MCS asynchronous messaging** (SEND/RECEIVE), **COMMIT/ROLLBACK**,
 **VALIDATE**, **SCREEN handling**, and the **Locale facility**. Four are recognized-and-warned
 (SCREEN→COBOLNET1560, MCS→1578, COMMIT/ROLLBACK→1579, VALIDATE→1580); the locale module is rejected at bind with the
-**COBOLNET1518 error** (the A.4.1 unclaimed-optional posture).
+**COBOLNET1518 error** (the A.4.1 unclaimed-optional posture) — RETIRED at kb/Work PB64 T6: the locale module is claimed whole and the diagnostic is deleted (its code is never reallocated).
 
 ## Four-editions mission
 
@@ -64,7 +64,7 @@ zero GAP. See [[kb/Spec/Version Targeting]] and [[kb/Modernization/Tasks]].
 - 16 clauses; Annexes A / E / F drive conformance and edition gating.
 - §4.2.16 user-documentation obligation → [[docs/CONFORMANCE]].
 - Annex A.1 lists ~222 implementor-defined elements (199 requiring documentation) — the definition of "done."
-- Five non-support facilities; COBOLNET1560-band warnings vs. the COBOLNET1518 error.
+- Four non-support facilities (the locale facility left §4 at PB64 T6 — claimed whole); the COBOLNET1560-band warnings.
 - Default edition 2023; four editions via `--std`.
 
 ## See also

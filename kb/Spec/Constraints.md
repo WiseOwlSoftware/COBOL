@@ -46,7 +46,7 @@ indicator-dependent gates (VCR rows 2/94) fire there. See [[kb/Compiler/Phases]]
 Five whole facilities are deliberately not implemented (a *documented* non-support, part of the deliverable, not a
 waiver): **MCS asynchronous messaging**, **COMMIT/ROLLBACK**, **VALIDATE**, **SCREEN handling**, and the **Locale
 facility**. Syntactically-detectable ones are recognized-and-warned (COBOLNET1560 band); the locale module is rejected
-at bind (COBOLNET1518). See [[kb/Semantics/Validation Rules]].
+at bind (COBOLNET1518 — retired at PB64 T6 with the A.4.9 claim). See [[kb/Semantics/Validation Rules]].
 
 ## Engineering constraints (project doctrine)
 

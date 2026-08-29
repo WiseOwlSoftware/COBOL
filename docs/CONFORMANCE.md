@@ -15,7 +15,7 @@ the 1985, 2002, and 2014 editions selected by `--std`. It implements the require
 except the optional/processor-dependent facilities listed as **not supported** below; the per-module
 optional-element dispositions are §5 (only Claimed/Partial rows there are claimed). Per §4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §4.2.7, an
-optional element is implemented only when support is claimed. All five **documented non-support facilities**
+optional element is implemented only when support is claimed. All four **documented non-support facilities**
 (§4) are now recognized at compile time with a NAMED warning, satisfying §4.2.6 ¶3's mandatory warning
 mechanism: SCREEN handling → **COBOLNET1560**; MCS SEND/RECEIVE → **COBOLNET1578**; COMMIT/ROLLBACK →
 **COBOLNET1579**; VALIDATE → **COBOLNET1580**. Each is a WARNING, not an error — the program compiles, runs,
@@ -254,9 +254,7 @@ of an unsupported facility.
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
 The following whole facilities are **not implemented**. SCREEN handling (item 4) is recognized at compile time
-and reported with the named COBOLNET1560 warning per §4.2.6; the locale facility's still-unclaimed elements
-(item 5 — most of the module IS implemented) are rejected at bind with the COBOLNET1518 error (the A.4.1
-unclaimed-optional posture); MCS, COMMIT/ROLLBACK, and VALIDATE
+and reported with the named COBOLNET1560 warning per §4.2.6; MCS, COMMIT/ROLLBACK, and VALIDATE
 (items 1–3) are today a generic parse error — their named recognize-and-warn diagnostics (the COBOLNET1560
 band) are the tracked PHASE-13 Wave H code half, after which every row here meets the §4.2.6 warning mechanism
 / §4.2.13 obsolete flagging:
@@ -270,13 +268,49 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    element (§4.2.13).
 4. **Screen handling** (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the
    EC-SCREEN family. Not provided.
-5. **Locale facility** (Annex A.4.9 optional module): the `LOCALE` phrases of `NUMVAL-C`/`TEST-NUMVAL-C` — each
-   rejected at bind time with the **COBOLNET1518 error** (per Annex A.4.1 a processor accepts optional-element
-   syntax only when support is claimed, so an ERROR — not the §4.2.6 COBOLNET1560 warning band, which applies to
-   processor-dependent elements — is the conforming disposition for the still-unclaimed elements of this optional
-   module), and the PICTURE clause's Format 2 `LOCALE [IS locale-name-1] SIZE IS integer-1` (item 8 — PB100; it
-   was a raw parse error at SIZE) likewise. Items 1–7, 9, 10, 11 and 13 ARE IMPLEMENTED (the blocks below).
-   **Every locale entry point the module names is either implemented or recognized and rejected by name.**
+**The locale facility (Annex A.4.9 optional module) — CLAIMED WHOLE** since kb/Work PB64 T6 (2026-08-28; owner
+decision Q1, 2026-08-18): all thirteen optional elements are implemented — the last two, item 8 (PICTURE format 2)
+and item 12 (the `LOCALE` keyword of `NUMVAL-C`/`TEST-NUMVAL-C`), landed with T6 — so this facility is NO LONGER a
+non-support item; the ⚖ determination blocks below are the module's §4.2.7 user documentation and stay here as the
+claimed-module section. The **COBOLNET1518** by-name refusal is DELETED with the claim (its code is never
+reallocated).
+
+   > ⚖ **A.4.9 items 8 and 12 — PICTURE format 2 (§13.18.40.2) and the `LOCALE` keyword of `NUMVAL-C` /
+   > `TEST-NUMVAL-C` (§15.68.3 r5 / §15.94.3 r1) — ARE IMPLEMENTED** (kb/Work PB64 T6, increment T6 of
+   > `docs/rearchitecture/DESIGN-locale-facility.md` §4.6). A format-2 item is fixed-point numeric-edited
+   > (§13.18.40.4 GR16) of exactly SIZE integer-1 character positions (GR17 — the picture is not the field size);
+   > its editing/de-editing is the named-else-current locale's LC_MONETARY AT EACH operation (§13.18.40.5 r9–r15;
+   > `CobolLocaleEdit`), EC-LOCALE-SIZE raised per r14 b (character-based — a truncated currency character,
+   > separator or sign raises; a truncated zero or suppressed-zero space does not; golden
+   > `2002/pb64t6_locale_size_ec`); the NUMVAL-C family's LOCALE arm reads argument-1 under the same LC_MONETARY
+   > model (`MonetaryFacts` — ONE snapshot for editing and recognition), §15.94.4's error positions ordinal in the
+   > original argument. **Determinations (documented per §4.2.7):**
+   > `currency_symbol` = the .NET culture's currency symbol and is what an EDIT emits (recognition also matches the
+   > first three characters of `int_curr_symbol` per r5b.3); `int_curr_symbol` = `RegionInfo.ISOCurrencySymbol` +
+   > one space, and is ABSENT for a neutral or invariant culture (the international alternative can then never
+   > match); `int_frac_digits` has no .NET carrier and equals `frac_digits`; `positive_sign` = "+" (.NET's numeric
+   > positive sign standing in — POSIX locales usually leave it empty); `p_sign_posn` = 1 flat (.NET's positive
+   > currency pattern carries no sign slot; never mirrored from `n_sign_posn`, whose invariant value is 0 —
+   > parentheses); the placement conventions (`*_cs_precedes`, `*_sep_by_space`, `*_sign_posn` — the latter two
+   > reach COBOL only through §8.2.1's ISO/IEC 9945:2009 clause-7 incorporation) are DERIVED AT RUNTIME from
+   > `CurrencyPositivePattern`/`CurrencyNegativePattern` by a probing round-trip that THROWS on an unreproducible
+   > layout (this runtime accepts SEVENTEEN negative patterns, 0–16; the derived range is asserted against the
+   > runtime's accepted maximum by `MonetaryFactsTests`); seven POSIX placement renderings are unreachable from
+   > .NET's patterns — a documented limit under §8.2.1's own licence ("The format and implementation of locales
+   > may differ from those specifications provided that logically-equivalent functionality is supported");
+   > grouping separators are validated by IDENTITY and digit-flanking, never by GROUP SIZE, and the fraction-digit
+   > count of argument-1 is not constrained by `frac_digits` (§15.68.1 names "the grouping separator and the
+   > decimal separator permitted"; r5b.5/6 are permissions — the strict readings reject legal source); spaces are
+   > admitted at every token adjacency (a superset of the three `sep_by_space` values); `frac_digits` is NEVER an
+   > editing input — §13.18.40.5 r12 hands the locale only the separators and group sizes, the fraction width is
+   > the picture's; §13.18.40.4 GR19's format-validation leg fires only inside a VALIDATE statement and rides the
+   > unclaimed VALIDATE facility (A.4.14, §4 item 3); ANYCASE folds ONLY the currency-string comparison, through
+   > the LOCALE's own LC_CTYPE (r5b.1/3 — with `LOCALE` written and locale-name-1 omitted, the cross-reference's
+   > nonexistent name is read as the same current locale r5a selects, an editorial-gap determination).
+   > **DETERMINATION L12** (generalizing L10): every LC_TIME pattern and LC_MONETARY string is normalized —
+   > Unicode Cf characters removed, U+00A0/U+202F/U+2009 mapped to the plain space (host-ICU stability: monetary
+   > strings occupy character positions of a fixed-width item, so a host-varying byte would move EC-LOCALE-SIZE
+   > itself; U+2212 is kept — a real character); recognition matches through the same equivalence.
 
    > ⚖ **A.4.9 items 2–5 — `LOCALE-COMPARE` (§15.51), `LOCALE-DATE` (§15.52), `LOCALE-TIME` (§15.53),
    > `LOCALE-TIME-FROM-SECONDS` (§15.54) — ARE IMPLEMENTED** (owner decision Q1; kb/Work PB64, increment T4 of
@@ -362,7 +396,8 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    > sequence whose locale is unavailable, and the LOCALE functions' locale-name-1), `EC-LOCALE-INVALID-PTR`
    > (GR21), `EC-LOCALE-INCOMPATIBLE` (§8.8.4.2.11, L6) and `EC-LOCALE-INVALID` (§8.2.1, the LOCALE functions — T4)
    > — each checking-gated per §14.6.13.1.1, fatal per §14.6.13.1.6's table, observed by the goldens
-   > `tests/conformance/2002/pb64t1_*` / `2014/pb64t4_*`. `EC-LOCALE-SIZE` awaits PICTURE format 2 (T6);
+   > `tests/conformance/2002/pb64t1_*` / `2014/pb64t4_*`. `EC-LOCALE-SIZE` is RAISED since T6 (§13.18.40.5 r14 b — the ONE raise site is `CobolLocaleEdit.Format`,
+   > observed by `2002/pb64t6_locale_size_ec`, both silent arms pinned);
    > `EC-LOCALE-IMP` is reserved. The construct rows
    > `special-names-locale-2002`, `set-locale-2002`, `set-save-locale-2002` gate the three at the 2002 edition.
 
@@ -406,7 +441,8 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    > 2026-08-03; fix-queue PB37). A.4.9 enumerates thirteen optional locale elements and names the `LOCALE`
    > keywords of `LOWER-CASE` (item 6), `TEST-NUMVAL-C` (item 12) and `UPPER-CASE` (item 13) individually, but
    > **not `NUMVAL-C`'s**. COBOL.NET reads that omission as **editorial**, so `NUMVAL-C`'s `LOCALE` phrase is an
-   > optional element of this module and its non-support is documented non-support rather than a conformance gap.
+   > optional element of this module — the reading under which T6's implementation of BOTH functions' LOCALE
+   > keyword completes the module's claim (it licensed the documented non-support while that stood).
    > Grounds: the `NUMVAL-C` and `TEST-NUMVAL-C` general formats are character-identical, and **§15.94 rule 1
    > states that the `TEST-NUMVAL-C` argument rules ARE §15.68's** — so the alternative reading has A.4.9 making
    > item 12 optional while leaving mandatory the very rules item 12 delegates to. Reading a whole optional module
@@ -476,7 +512,7 @@ summary claims only what is Claimed/Partial here.
 | A.4.6 | Extended letters | **Claimed** | National (UTF-16) repertoire (§2 row 38) |
 | A.4.7 | File sharing and record locking | **Claimed** | SHARING/LOCK MODE/RETRY on every organization (P10 FILE-LOCK) |
 | A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed | No surface — a parse error today; a named diagnostic is a tracked P14 disposition row |
-| A.4.9 | Locale support and related functions | Partial | **Items 1–7, 9, 10, 11 and 13 are CLAIMED** (kb/Work PB64 increments T1, T4, T5 and PB101 T3/T7 — the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names; `LOCALE-COMPARE` / `-DATE` / `-TIME` / `-TIME-FROM-SECONDS`; the `LOCALE` phrase of `LOWER-CASE` / `UPPER-CASE`; the OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause; `SET LOCALE` formats 11/12; the SPECIAL-NAMES `LOCALE` clause and both `ALPHABET … IS LOCALE` forms; `STANDARD-COMPARE` + `ORDER TABLE` — "Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data", §2 row 25). Not yet claimed: item 8 (PICTURE format 2) and item 12 (`TEST-NUMVAL-C`'s LOCALE keyword; `NUMVAL-C`'s by the §4 item 5 determination) — each recognized and rejected by name with the COBOLNET1518 error until PB64 T6 (§4 item 5) |
+| A.4.9 | Locale support and related functions | **Claimed** | **All thirteen items** (kb/Work PB64 increments T1/T4/T5/T6 + PB101 T3/T7): the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names; `LOCALE-COMPARE` / `-DATE` / `-TIME` / `-TIME-FROM-SECONDS`; the `LOCALE` phrase of `LOWER-CASE` / `UPPER-CASE` and the `LOCALE` keyword of `NUMVAL-C` / `TEST-NUMVAL-C` (item 12; `NUMVAL-C`'s rides the §4 editorial-omission determination); the OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause; PICTURE format 2 (item 8 — locale editing over the ONE LC_MONETARY model, EC-LOCALE-SIZE live); `SET LOCALE` formats 11/12; the SPECIAL-NAMES `LOCALE` clause and both `ALPHABET … IS LOCALE` forms; `STANDARD-COMPARE` + `ORDER TABLE` — "Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data", §2 row 25 |
 | A.4.10 | Object orientation optional items | Not claimed | The three OPTIONAL items only: multiple inheritance (×2 — multi-base INHERITS rejects COBOLNET0849) and parametric-polymorphism method resolution (rejected/deferred; §2 row 45 covers the supported single-dispatch resolution). The OO CORE is mandatory surface, claimed separately |
 | A.4.11 | Report Writer | Partial | Implemented: the RW nucleus incl. PRESENT WHEN + VARYING (P10 RW-2002) and the SUPPRESS statement (§14.9.45 — inhibits the current instance's printing/page-advance/NEXT GROUP/LINE-COUNTER but not sum accumulation or the end-of-group reset; SR1/GR1 resolve the enclosing USE BEFORE REPORTING group at bind, COBOLNET1581 rejects a misplaced SUPPRESS). Staged LOUD (COBOLNET0899 band): cross-program CODE, LINE NEXT PAGE / multiple LINE, report-group OCCURS, several counter/SOURCE/SUM legs. NO grammar surface yet (tracked, the P13 grammar batch + ledger): COLUMN LEFT/CENTER/RIGHT, PAGE COLS, LAST CONTROL HEADING. The full itemization: `docs/COBOLNET_REPORT_WRITER_DESIGN.md` §5 |
 | A.4.12 | RESUME statement | **Claimed** | §14.9.33 (the EC declarative RESUME) |

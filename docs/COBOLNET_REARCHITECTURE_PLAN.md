@@ -361,12 +361,25 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `code-set-national-2002`), SR1–SR3 checked (→ 1672), the identity sets CLAIMED byte-exact and a differing
   on-medium set the DOCUMENTED A.3 item 27 non-support (1672, never a silent identity); the alphabet-name class
   condition is live (`CobolClass.IsInCodedSet` — PB109). 15 inventory rows — **GAP 3843**.
-  ⑤ ✅ **BATTERY #26 PAID (2026-08-28, ALL GREEN — the reference below; DEVLOG 1338)** — it covered the
-  accumulated batch PB111 + PB110/PB109 + PB112 (the CI fix: LOCALE-TIME's spacing was host-ICU-dependent — the
-  Linux-only corpus-nist red since T4; DEVLOG 1337), which had run only wave-local gates. **NEXT per
-  `work.py next`: PB64 T6** = PICTURE format 2 + the NUMVAL-C / TEST-NUMVAL-C LOCALE arms over ONE LC_MONETARY
-  model (design §4.6), the LAST locale increment — after it the A.4.9 row in CONFORMANCE.md §5 reads "Claimed"
-  and the COBOLNET1518 descriptor goes · then Phase-B adjudication (a NEW defect found on the way outranks).
+  ⑤ ✅ **BATTERY #26 PAID (2026-08-28, ALL GREEN; DEVLOG 1338)** — it covered the accumulated batch
+  PB111 + PB110/PB109 + PB112, which had run only wave-local gates.
+  ⑥ ✅ **PB64 T6 LANDED (2026-08-28, DEVLOG 1339–1342) — THE A.4.9 MODULE CLAIM COMPLETES.** PICTURE format 2
+  and the NUMVAL-C / TEST-NUMVAL-C LOCALE keyword over ONE LC_MONETARY model (design §4.6, hardened by a 7-agent
+  read-only workflow + adversarial critic — 12 draft contradictions corrected, 37 gaps closed, zero owner
+  questions): `MonetaryFacts` (L12-normalized — the ONE snapshot editing and recognition share) +
+  `MonetaryPlacement` (the POSIX renderer; pattern tables DERIVED AT RUNTIME, range DISCOVERED — seventeen
+  negative patterns, round-trip-proved) + `CobolLocaleEdit` (§13.18.40.5 r9–r15; **EC-LOCALE-SIZE's first raise
+  site**, character-based; DeEdit = the §14.6.13.2 r4 image-inverse) + the NUMVAL-C LOCALE scan (§15.68.3 r5,
+  r4 NOT inherited); `PicInfo.LocaleEdit` / `AnalyzeLocaleEdited` (Table 11's closed form; DECIMAL-POINT IS
+  COMMA inert per §12.3.7.4 GR14); the ONE emit dispatch (`EditFormatFor` / `EditTryFormatLocale` /
+  `ReceiverScaleOf` — two drifted scale copies collapsed) + runtime VALUE/level-88/group images;
+  `BindNumvalCFamily`'s r5 arm + three renderer arms; rows `picture-locale-format2-2002` /
+  `numval-c-locale-phrase-2002`; COBOLNET1673/1674; **COBOLNET1518 / `LocaleUnsupported` /
+  `IntrinsicBind.Unsupported` DELETED**; PB113 (report-writer format-2 silent accept — pre-existing) and PB114
+  (the grammar's required IS) fixed in the same landing; goldens `2002/pb64t6_*` (6) + three negatives + the
+  pb100/locale_keyword inversions; +60 Unit incl. the every-host-culture LC_MONETARY drift oracle. CONFORMANCE.md
+  §5's A.4.9 row reads **Claimed** (all thirteen items). **NEXT per `work.py next`** — Phase-B adjudication
+  resumes (a NEW defect found on the way outranks).
   Battery #20 ran on the PB101 tree `a585cd6f` — ALL GREEN; #22 on the PB104–106 tree; #23 on the T1 tree; #24
   on the T4 tree; #25 on the T5 tree; **#26 on this tree `36b7cc6d` (the reference below).**
   **✅ THREE MORE SUBSYSTEMS AND THE REPOSITORY-WIDE INTEGRATION LANDED — kb/Work PB104 / PB105 / PB106 (2026-08-19,

@@ -7,8 +7,8 @@
 >
 > **SPINE 1 — IMPLEMENTED (every ISO §15 function LIVE — PHASE-11 drove the `Deferred` backlog to ZERO).**
 > `IntrinsicCatalog` (the complete §15 2023 table with D8 windows; every row now binds `Runtime` [a runtime
-> body], `Fold` [a compile-time fold — LENGTH/BYTE-LENGTH/the ALGEBRAIC family/WHEN-COMPILED], or `Unsupported`
-> [the A.4.9 locale module — documented non-support, §4.2.7, → COBOLNET1518]; the `Deferred` enum case remains
+> body] or `Fold` [a compile-time fold — LENGTH/BYTE-LENGTH/the ALGEBRAIC family/WHEN-COMPILED] — the former
+> `Unsupported` case (the A.4.9 non-support era) is DELETED with the module's claim at PB64 T6; the `Deferred` enum case remains
 > only as the renderer's never-hit backstop), `BoundIntrinsicCall`,
 > `Binding/Procedure/Verbs/IntrinsicBinder.cs` (P7 Step 12: FUNCTION arguments are REAL parse trees —
 > `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?`, each argument a §8.4.3.2 SR8 shape
