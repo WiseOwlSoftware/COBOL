@@ -930,14 +930,33 @@ public sealed class IntrinsicFunctionDifferentialTests
     }
 
     [Fact]
-    public void Algebraic_SmallestKeepsTheFloatGuard_1516()
+    public void Algebraic_SmallestFloat_FoldsToCarrierSubnormal()
     {
-        // §15.83.3 r4 — the latitude that stays: SMALLEST-ALGEBRAIC of a float remains loud.
-        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(
-            "01 D USAGE COMP-2.\n           01 R PIC +9.999.",
-            "    MOVE FUNCTION SMALLEST-ALGEBRAIC(D) TO R.\n    DISPLAY R.", "ALGS"));
-        Assert.False(ok, "SMALLEST-ALGEBRAIC of a float is implementor-rejected (§15.83.3 r4)");
+        // §15.83.1/§15.83.4 r2 (kb/Work PB122): the smallest algebraic difference between two values the
+        // item can represent = the carrier's smallest positive subnormal — a FORMAT property, foldable like
+        // 10^(−scale). binary64 → 2^−1074, binary32 → 2^−149 (each printed shortest-round-trip by the
+        // COMP-2 receiver's own display). The old guard refused every float on the r4 native latitude with
+        // a false "exponent-dependent" rationale; under the STANDARD modes that refusal was over-rejection.
+        var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(
+            "01 D USAGE COMP-2.\n           01 S USAGE COMP-1.\n           01 R USAGE COMP-2.",
+            "    COMPUTE R = FUNCTION SMALLEST-ALGEBRAIC(D).\n    DISPLAY R.\n"
+            + "    COMPUTE R = FUNCTION SMALLEST-ALGEBRAIC(S).\n    DISPLAY R.", "ALGS"));
+        Assert.True(ok, detail);
+        Assert.Equal("5E-324\n1.401298464324817E-45", output);
+    }
+
+    [Fact]
+    public void Algebraic_SmallestStandardDecimalBarsStandardBinaryFloat_1516()
+    {
+        // §15.83.3 r2 now reaches SMALLEST through the shared mode-aware float path (kb/Work PB122).
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALGSB.\nOPTIONS.\n    ARITHMETIC IS STANDARD-DECIMAL.\n"
+            + "DATA DIVISION.\nWORKING-STORAGE SECTION.\n"
+            + "01 B USAGE FLOAT-BINARY-32.\n01 R USAGE FLOAT-BINARY-32.\nPROCEDURE DIVISION.\nM-P.\n"
+            + "    COMPUTE R = FUNCTION SMALLEST-ALGEBRAIC(B).\n    DISPLAY R.\n    STOP RUN.");
+        Assert.False(ok, "a standard binary float usage is barred under STANDARD-DECIMAL (§15.83.3 r2)");
         Assert.Contains("COBOLNET1516", detail);
+        Assert.Contains("15.83.3", detail);
     }
 
     [Fact]

@@ -456,7 +456,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 + "file whose file description entry contains a LINAGE clause (ISO §8.4.3.14 / §13.18.34 GR7a)");
             return null;
         }
-        var linageFiles = ctx.Data.Files.Where(f => f.Linage is not null).ToList();
+        // The VISIBLE set, not the program's own FD list (kb/Work PB123's sweep): FilesByName carries the
+        // containers' GLOBAL FDs too (§13.18.30), so a contained program whose only LINAGE file is the
+        // container's GLOBAL one resolves the unqualified register instead of drawing COBOLNET0864; two
+        // visible LINAGE files — own plus inherited — still require qualification (§8.4.3.14 SR3).
+        var linageFiles = ctx.Data.FilesByName.Values.Where(f => f.Linage is not null).Distinct().ToList();
         if (linageFiles.Count == 1) return linageFiles[0];
         ctx.Edition.Error("COBOLNET0864", linageFiles.Count == 0
             ? "LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause (ISO §8.4.3.14 — "

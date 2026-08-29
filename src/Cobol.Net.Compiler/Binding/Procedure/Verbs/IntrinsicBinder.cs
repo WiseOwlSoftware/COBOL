@@ -770,8 +770,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // description entry at all fails the second half; the resolver used to match on the bare name only, so
         // both compiled clean and answered r2a's two spaces. The clause cited is the function's OWN.
         string clause = sig.Name == "EXCEPTION-FILE" ? "§15.28.3 rule 1" : "§15.29.3 rule 1";
-        var file = ctx.Data.Files.FirstOrDefault(f => f.SelectName.Equals(name, StringComparison.OrdinalIgnoreCase));
-        if (file is null)
+        // Resolve through FilesByName — the ONE file-name resolution every other site uses (kb/Work PB123:
+        // this arm scanned ctx.Data.Files, the program's OWN FD list, so a contained program naming its
+        // container's GLOBAL FD — visible per §13.18.30 / §13.18.27 GR1–2, merged into FilesByName by
+        // BinderDriver — drew "not the name of a file connector" on legal source).
+        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
         {
             ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
                 + $"is not the name of a file connector specified in an FD statement (ISO {clause})");
@@ -2223,40 +2226,75 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (pic.Usage is Usage.Index)   // class index — not category numeric (§13.18.60)
             return AlgebraicArgError(sig);
 
-        // Float usage — kb/Work R10 (Phase-B F72): the implementor-defined usage latitude is SMALLEST-ALGEBRAIC's
-        // ALONE (§15.83.3 r4; Annex A.1 item 180 documents it for SMALLEST only). HIGHEST/LOWEST (§15.43.3 /
-        // §15.58.3) carry exactly the two mode-aware bars below — under NATIVE arithmetic (the default) nothing
-        // bars any float, §8.5.2.12 item 2 makes every float usage category numeric, and §15.43.4 r2 /
-        // §15.58.4 r2 define the value as the greatest finite magnitude representable in argument-1 (negated for
-        // LOWEST — every float usage is signed). The old guard rejected ALL floats for ALL THREE functions, and
-        // its text asserted COMP-1/COMP-2 are barred by rule 2 under STANDARD-DECIMAL — false: rule 2 bars only
-        // the §3.166 STANDARD BINARY usages (FLOAT-BINARY-*), never the native family.
+        // Float usage — kb/Work R10 (Phase-B F72) + PB122: ALL THREE functions share one mode-aware path —
+        // the r2/r3 usage bars, the §15.x.4 r1 IN-ARITHMETIC-RANGE screen, then the per-function fold. Under
+        // NATIVE arithmetic nothing bars any float (§8.5.2.12 item 2 makes every float usage category
+        // numeric); §15.43.4 r2 / §15.58.4 r2 define HIGHEST/LOWEST as the greatest finite magnitude
+        // representable in argument-1 (negated for LOWEST — every float usage is signed), §15.83.4 r2
+        // SMALLEST as the smallest. R10's guard history: the original rejected ALL floats for ALL THREE and
+        // claimed COMP-1/COMP-2 are barred by rule 2 under STANDARD-DECIMAL — false, rule 2 bars only the
+        // §3.166 STANDARD BINARY usages; R10 fixed HIGHEST/LOWEST but left SMALLEST refusing every float on
+        // the r4 native latitude, which cannot license the refusal under the STANDARD modes (PB122 —
+        // A.1 item 180's documented restriction is now "none beyond rules 2 and 3", CONFORMANCE.md).
         if (pic.IsFloat)
         {
-            if (sig.Name == "SMALLEST-ALGEBRAIC")
-            {
-                ctx.Edition.Error("COBOLNET1516", "FUNCTION SMALLEST-ALGEBRAIC does not support a floating-point "
-                    + "argument: the usage restriction under native arithmetic is implementor-defined "
-                    + "(ISO §15.83.3 r4 / Annex A.1 item 180), and COBOL.NET defines no smallest positive "
-                    + "increment for IEEE floats (it is exponent-dependent, not a PICTURE property)");
-                return new BoundExprError($"FUNCTION {sig.Name} float argument");
-            }
+            string fsec3 = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3"
+                : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
             bool stdBinaryUsage = pic.Usage is Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128;
             bool stdDecimalUsage = pic.Usage is Usage.FloatDecimal16 or Usage.FloatDecimal34;
             if (ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal && stdBinaryUsage)
             {
                 ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: under STANDARD-DECIMAL arithmetic "
                     + "argument-1 shall not specify a standard binary floating-point usage "
-                    + $"(ISO §{(sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3")} rule 2)");
+                    + $"(ISO §{fsec3} rule 2)");
                 return new BoundExprError($"FUNCTION {sig.Name} float argument");
             }
             if (ctx.Data.Options.Arithmetic == ArithmeticMode.StandardBinary && stdDecimalUsage)
             {
                 ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: under STANDARD-BINARY arithmetic "
                     + "argument-1 shall not specify a standard decimal floating-point usage "
-                    + $"(ISO §{(sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3")} rule 3)");
+                    + $"(ISO §{fsec3} rule 3)");
                 return new BoundExprError($"FUNCTION {sig.Name} float argument");
             }
+            // §15.83.4 r1 (kb/Work PB122; the float-ITEM twin of the float-EDITED screen below): the entry
+            // shall be such that every value it permits passes an IN-ARITHMETIC-RANGE test — the carrier's
+            // extremes against the mode's intermediate range (§8.8.4.4.4 GR3 l). Every carrier declarable
+            // today passes under both reachable modes (binary32 ±38/−45, binary64 ±308/−324, decimal ±28,
+            // vs native binary64 ±308/−324 and standard-decimal ±6145/−6176) — this guard fires only if a
+            // wider carrier (a true binary128, say) ever lands, and then automatically.
+            {
+                var (farthestExp, closestExp) = pic.Usage switch
+                {
+                    Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => (38, -45),
+                    Usage.FloatDecimal16 or Usage.FloatDecimal34 => (28, -28),
+                    _ => (308, -324),
+                };
+                bool standardDec = ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal;
+                if (farthestExp > (standardDec ? 6145 : 308) || closestExp < (standardDec ? -6176 : -324))
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.AlgebraicFloatEditedRange, $"FUNCTION {sig.Name}: "
+                        + $"argument-1's usage describes values as far from zero as 1E+{farthestExp} and as near "
+                        + $"as 1E{closestExp}, outside the {(standardDec ? "standard-decimal" : "native (binary64)")} "
+                        + "intermediate's range — the entry shall be such that its values pass an "
+                        + $"IN-ARITHMETIC-RANGE test (ISO §{fsec3[..^2]}.4 rule 1; §8.8.4.4.4 GR3 l)");
+                    return new BoundExprError($"FUNCTION {sig.Name} float argument");
+                }
+            }
+            // SMALLEST — §15.83.1/§15.83.4 r2: the smallest algebraic difference between two values the item
+            // can represent = the CARRIER's smallest positive (subnormal) value — a property of the FORMAT,
+            // like 10^(−scale) for fixed-point (kb/Work PB122: the old blanket refusal claimed the increment
+            // was "exponent-dependent, not a PICTURE property" — that confuses ULP-of-a-value with the format
+            // minimum, and r4's implementor latitude it leaned on covers only NATIVE arithmetic anyway).
+            // Constants at full decimal128 precision (34 correctly-rounded digits — 2^−149 / 2^−1074); the
+            // MAX fold below keeps R10's adjudicated round-trip grain.
+            if (sig.Name == "SMALLEST-ALGEBRAIC")
+                return new BoundNumLiteral(pic.Usage switch
+                {
+                    Usage.Float or Usage.FloatShort or Usage.FloatBinary32
+                        => "1.401298464324817070923729583289916E-45",
+                    Usage.FloatDecimal16 or Usage.FloatDecimal34 => "1E-28",
+                    _ => "4.940656458412465441765687928682214E-324",
+                });
             // The greatest finite magnitude of the item's CARRIER (PicInfo.ClrType's mapping — §15.43.4 r2's
             // "represented in argument-1" is a property of this implementation's representation).
             string max = pic.Usage switch
