@@ -11,6 +11,8 @@
     "pb128_resultant_categories",
     "pb130_call_format2_bare",
     "pb131_gr9_formal_mode",
+    "pb132_bit_byref_aligned",
+    "pb132_dynamic_call_target",
   "pb117_trim_sequential",
   "pb64t6_locale_value_88",
   "algebraic_counter_registers",

@@ -197,6 +197,53 @@ public static class DiagnosticCatalog
         + "in a PROGRAM-ID paragraph of a common program as specified in 8.4.6.3, Scope of program-names, or of "
         + "a program that is directly contained in the calling program.\"",
         "ISO §14.9.4.3 SR15");
+    // ── The PB132 CALL operand screens (kb/Work PB132): each predicate existed in the tree and was
+    // unreached from CALL — these are the cited rejections for the shapes the binder silently accepted. ──
+    public static readonly DiagnosticDescriptor CallOperandSection = new(
+        "COBOLNET1677", "call-operand-section", EditionSeverity.Error,
+        "A CALL operand shall reference a data item defined in the file, working-storage, local-storage, or "
+        + "linkage section — ISO §14.9.4.3 syntax rule 3 for an argument, rule 7 for the RETURNING item. A "
+        + "SCREEN SECTION entry is not such an item (and the SCREEN SECTION is an unsupported optional "
+        + "facility — COBOLNET1560).",
+        "ISO §14.9.4.3 SR3/SR7");
+    public static readonly DiagnosticDescriptor CallByReferenceObjectData = new(
+        "COBOLNET1678", "call-by-reference-object-data", EditionSeverity.Error,
+        "ISO §14.9.4.3 syntax rule 3: \"If the BY REFERENCE phrase is specified or implied, identifier-2 "
+        + "shall not be defined in the working-storage or file section of a factory or an instance object.\" "
+        + "Object data is shared state; only BY CONTENT or BY VALUE may carry it out of a method's CALL.",
+        "ISO §14.9.4.3 SR3");
+    public static readonly DiagnosticDescriptor CallByReferenceOperandKind = new(
+        "COBOLNET1679", "call-by-reference-operand-kind", EditionSeverity.Error,
+        "ISO §14.9.4.3 syntax rule 10 (Format 1): \"If the BY REFERENCE phrase is specified or implied for "
+        + "an identifier-2, that identifier shall be neither a strongly-typed group item nor a data item of "
+        + "class object or pointer.\" A prototype-less callee cannot preserve the type discipline these items "
+        + "carry; Format 2 admits them under §14.8.2's conformance rules.",
+        "ISO §14.9.4.3 SR10");
+    public static readonly DiagnosticDescriptor CallVariableLengthGroup = new(
+        "COBOLNET1680", "call-variable-length-group", EditionSeverity.Error,
+        "ISO §14.9.4.3 syntax rule 12 (Format 1): \"Identifier-2 shall not reference a variable-length "
+        + "group.\" A group with a DYNAMIC LENGTH elementary item or a dynamic-capacity table subordinate to "
+        + "it (§8.5.1.12.1) has no prototype-less byte image to pass.",
+        "ISO §14.9.4.3 SR12 / §8.5.1.12.1");
+    public static readonly DiagnosticDescriptor CallTargetCategory = new(
+        "COBOLNET1681", "call-target-category", EditionSeverity.Error,
+        "ISO §14.9.4.3 syntax rule 1: \"Identifier-1 shall be defined as an alphanumeric, national, or "
+        + "program-pointer data item.\" Any other identifier target (numeric, boolean, alphabetic, index, "
+        + "object) is not a program name carrier.",
+        "ISO §14.9.4.3 SR1");
+    public static readonly DiagnosticDescriptor CallAsNestedContext = new(
+        "COBOLNET1682", "call-as-nested-context", EditionSeverity.Error,
+        "ISO §14.9.4.3 syntax rule 13 (Format 2): \"The NESTED phrase may be specified only in a program "
+        + "definition.\" A function, method, or interface definition contains no programs, so AS NESTED has "
+        + "nothing to name there.",
+        "ISO §14.9.4.3 SR13");
+    public static readonly DiagnosticDescriptor CallBitAlignment = new(
+        "COBOLNET1683", "call-bit-alignment", EditionSeverity.Error,
+        "A bit data item passed BY REFERENCE (ISO §14.9.4.3 syntax rule 6) or used as the CALL RETURNING "
+        + "item (rule 8) shall be aligned on a byte boundary, and its subscripts and reference-modification "
+        + "leftmost position shall consist of only fixed-point numeric literals or all-literal arithmetic "
+        + "expressions without exponentiation — the referenced address must be statically byte-aligned.",
+        "ISO §14.9.4.3 SR6/SR8 / §8.5.1.6.3");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
         "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "

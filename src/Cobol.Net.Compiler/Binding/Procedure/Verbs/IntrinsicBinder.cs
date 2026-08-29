@@ -2089,8 +2089,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// FIXED-length group (its maximum is fixed), so the §15.3 prohibitions do NOT reach it; using
     /// <see cref="HasRuntimeLength"/> here over-rejected pb61's §15.50.4 r4a typedef leg, and the gate caught
     /// it (kb/Work PB124 wave 4).</summary>
+    /// <summary>Delegates to THE one predicate (kb/Work PB132 — this was a second copy; §13.18.44.3 SR17
+    /// bars a dynamic item under REDEFINES, so the old redefines-skip changed nothing on legal source).
+    /// <see cref="HasDynamicLengthLeaf"/>/<see cref="HasDynamicCapacityTable"/> stay: they serve
+    /// <see cref="HasRuntimeLength"/>, which answers a LAYOUT question, not the §8.5.1.12.1 classification.</summary>
     private static bool IsVariableLengthGroup(DataItem g) =>
-        HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);
+        CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(g);
 
     private static bool HasRuntimeLength(DataItem g) =>
         HasOdoBeneath(g) || HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);

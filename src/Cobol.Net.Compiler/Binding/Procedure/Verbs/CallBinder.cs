@@ -50,7 +50,16 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     + "yet accept — the program-prototype registry is P13. `AS NESTED` is supported.");
                 return new BoundNop();
             }
-            // §14.9.4.3 SR13: the NESTED phrase may be specified only in a program definition.
+            // §14.9.4.3 SR13: "The NESTED phrase may be specified only in a program definition" — a
+            // function or method definition contains no programs (kb/Work PB132; the capability was one
+            // property access away and BindCall never read it).
+            if (asNested && (host.InMethod || host.UdfSelfName is not null))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.CallAsNestedContext,
+                    $"CALL … AS NESTED inside a {(host.InMethod ? "method" : "function")} definition: the "
+                    + "NESTED phrase may be specified only in a program definition (ISO §14.9.4.3 SR13)");
+                return new BoundNop();
+            }
             // §14.9.4.3 SR15: literal-1 shall be specified, and shall name a COMMON program or a program
             // directly contained in the calling program.
             if (call.callTarget().literal() is null)
@@ -97,10 +106,20 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Refs.Resolve(dref) is not { } place)
                 return new BoundUnsupported($"CALL target '{dref.GetText()}'");
             dynamicName = new BoundFieldOperand(place);
-            // §14.9.4.3 SR1 (:26082): identifier-1 may be alphanumeric, national, OR a PROGRAM-POINTER item —
-            // a pointer target activates the HELD program (GR :26177) through ProgramRegistry.CallPointer
-            // instead of a name-string read (P10 Step 7).
+            // §14.9.4.3 SR1: "Identifier-1 shall be defined as an alphanumeric, national, or program-pointer
+            // data item" — a program-pointer target activates the HELD program (ProgramRegistry.CallPointer,
+            // P10 Step 7); any OTHER class is rejected here (kb/Work PB132 — the old arm read the category
+            // only to set the pointer flag, and a numeric or boolean target fell through to a garbage
+            // name-string read at run time).
             if (place.Item.Pic?.Category is PicCategory.ProgramPointer) isPointerTarget = true;
+            else if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place))
+                     is { } tCls and not (CobolClass.Alphanumeric or CobolClass.National))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.CallTargetCategory,
+                    $"CALL target '{dref.GetText()}' is of class {tCls.ToString().ToLowerInvariant()}; ISO "
+                    + "§14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
+                return new BoundNop();
+            }
         }
         else
             return new BoundUnsupported("CALL target form");
@@ -133,7 +152,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // structured constant be silently overwritten by the callee (and a CAPACITY register reach
                 // PlaceRenderer.Write's internal throw — an unhandled compiler exception).
                 if (host.Expr.ResolveReceiving(byRefDref) is not { } p)
-                    return new BoundUnsupported($"CALL USING argument '{byRefDref.GetText()}'");
+                    return OperandUnresolved(byRefDref, "USING argument");
+                ScreenCallOperand(p, CobolPassMode.Reference, formatTwo, isReturning: false);
                 args.Add(new BoundCallArg(CobolPassMode.Reference, p, null));
             }
             else if (a.callByContent() is { } byContent)
@@ -167,7 +187,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     return new BoundNop();
                 }
                 if (cDref is not null && ctx.Refs.Probe(cDref) is { } cp)   // Probe — the cArith arm below is the
-                    args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));   // legal alternative and its bind demands (R30)
+                {                                                            // legal alternative and its bind demands (R30)
+                    ScreenCallOperand(cp, CobolPassMode.Content, formatTwo, isReturning: false);
+                    args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));
+                }
                 else if (cLit is { } clit)
                     args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(clit)));
                 else if (cArith is { } cax)
@@ -224,7 +247,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         ? CobolPassMode.Value : CobolPassMode.Reference;
                 }
                 if (host.Expr.ResolveReceiving(bare) is not { } bp)
-                    return new BoundUnsupported($"CALL USING argument '{bare.GetText()}'");
+                    return OperandUnresolved(bare, "USING argument");
+                ScreenCallOperand(bp, bareMode, formatTwo, isReturning: false);
+                // §14.9.4.3 SR22's OTHER arm (kb/Work PB132): "identifier-4 OR ITS CORRESPONDING FORMAL
+                // PARAMETER is specified with a BY VALUE phrase" — the formal-derived Value mode (GR9 b))
+                // must meet the same class screen the explicit BY VALUE arm runs.
+                if (bareMode is CobolPassMode.Value)
+                    ValueClassScreen(IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(bp)), bare.GetText());
                 args.Add(new BoundCallArg(bareMode, bp, null));
             }
             // §14.9.4.2 Format 2's keyword-less non-identifier arguments (kb/Work PB130): literal-2,
@@ -259,7 +288,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 if (ConditionBinder.SoleDataReference(bArith) is { } sd)
                 {
                     if (host.Expr.ResolveReceiving(sd) is not { } sp)
-                        return new BoundUnsupported($"CALL USING argument '{sd.GetText()}'");
+                        return OperandUnresolved(sd, "USING argument");
+                    ScreenCallOperand(sp, mode, formatTwo, isReturning: false);
                     args.Add(new BoundCallArg(mode, sp, null));
                 }
                 else if (!formatTwo) { BareNeedsFormat2(bArith.GetText()); return new BoundNop(); }
@@ -283,22 +313,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // call-returning-2002: the VersionConformancePass owns the edition gate (Exec Step E).
             // kb/Work PB128: identifier-3 is a pure receiver — the chokepoint's screens apply.
             if (host.Expr.ResolveReceiving(rp.dataReference()) is not { } rpl)
-                return new BoundUnsupported($"CALL RETURNING '{rp.dataReference().GetText()}'");
+                return OperandUnresolved(rp.dataReference(), "RETURNING item");
+            ScreenCallOperand(rpl, CobolPassMode.Reference, formatTwo, isReturning: true);
             returning = rpl;
         }
-
-        // §14.9.4.3 SR11/SR18 — a CALL argument (BY REFERENCE or BY CONTENT) and the CALL RETURNING item shall
-        // not be described with the ANY LENGTH clause: without a program-prototype the activated program's
-        // formal cannot be proven ANY LENGTH (the §13.18.2.3 SR2 NOTE), so passing a runtime-length item onward
-        // through CALL is banned outright (INVOKE permits it — §14.8.2.3.2 rule e pairs it with an ANY LENGTH
-        // method formal).
-        foreach (var a in args)
-            if (a.Place is { Item.IsAnyLength: true } ap)
-                ctx.Edition.Error("COBOLNET1542", $"CALL USING argument '{ap.Item.CobolName}' is described "
-                    + "with the ANY LENGTH clause (ISO §14.9.4.3 SR11 — a CALL argument shall not be ANY LENGTH)");
-        if (returning is { Item.IsAnyLength: true } anyRet)
-            ctx.Edition.Error("COBOLNET1542", $"CALL RETURNING item '{anyRet.Item.CobolName}' is described "
-                + "with the ANY LENGTH clause (ISO §14.9.4.3 SR18)");
 
         // ── Exception phrases — edition-gated spellings (deep-dive "Edition gating"; VERSION_CHANGE_REFERENCE
         //    row 3): [NOT] ON EXCEPTION is ANSI X3.23-1985 surface (CALL Format 2; CCVS-85 IC222A tests both
@@ -427,22 +445,219 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // version did exactly that and turned a wrongly-worded REJECT into a clean ACCEPT, which looks like a fix
         // and is a regression: the rule stopped being enforced at all. A bare identifier binds to BoundNumRef, so
         // its Place is the thing SR22 is about.
-        if (operand.Expr is not BoundNumRef { Place: { } place }) return;
-        if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place)) is not { } actual) return;
-        if (actual is CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
+        // kb/Work PB132: an index-NAME binds to BoundIndexRef, not BoundNumRef, and the old
+        // `is not BoundNumRef … return` guard ACCEPTED it — class index (§8.5.2.1 Table 2's own row) is not
+        // numeric, object, or pointer. Classified explicitly here; a genuine computed expression still
+        // classifies numeric through the generic arm.
+        CobolClass? actual = operand.Expr switch
+        {
+            BoundNumRef { Place: { } place } => IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place)),
+            BoundIndexRef => CobolClass.Index,
+            _ => IntrinsicArgumentRules.ClassOf(operand),
+        };
+        ValueClassScreen(actual, byValue.arithmeticExpression().GetText());
+    }
 
-        string what = byValue.arithmeticExpression().GetText();
-        string rule = $"CALL … USING BY VALUE operand '{what}' is of class {actual.ToString().ToLowerInvariant()}; "
+    /// <summary>The §14.9.4.3 SR22 class screen, shared by the EXPLICIT BY VALUE arm and the Format-2
+    /// bare argument whose FORMAL is BY VALUE (kb/Work PB132 — the two arms each ran half the rule).</summary>
+    private void ValueClassScreen(CobolClass? actual, string what)
+    {
+        if (actual is null or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
+        string rule = $"CALL … USING BY VALUE operand '{what}' is of class {actual.Value.ToString().ToLowerInvariant()}; "
             + "ISO §14.9.4.3 SR22 admits only class numeric, object or pointer by value";
         if (ctx.Edition.Permissive)
-        {
-            ctx.Edition.Warning(DiagnosticCatalog.CallByValueOperandClass,
-                $"{rule}; accepted under --permissive");
-        }
+            ctx.Edition.Warning(DiagnosticCatalog.CallByValueOperandClass, $"{rule}; accepted under --permissive");
         else
+            ctx.Edition.Error(DiagnosticCatalog.CallByValueOperandClass, $"{rule}. --permissive accepts it as an extension");
+    }
+
+    /// <summary>An unresolved CALL operand (kb/Work PB132): a SCREEN SECTION name draws the CITED §14.9.4.3
+    /// SR3/SR7 rejection at bind time — the R32 posture distinguishes "declared in an unsupported section"
+    /// from "not defined", and the old BoundUnsupported staged the answer to run time (the PB88 wrong-stage
+    /// shape). Everything else keeps the staged-loud posture.</summary>
+    private BoundStatement OperandUnresolved(Core.DataReferenceContext dref, string role)
+    {
+        string text = dref.GetText();
+        if (ctx.Data.ScreenNames.Contains(text))
         {
-            ctx.Edition.Error(DiagnosticCatalog.CallByValueOperandClass,
-                $"{rule}. --permissive accepts it as an extension");
+            ctx.Edition.Error(DiagnosticCatalog.CallOperandSection,
+                $"CALL {role} '{text}' names a SCREEN SECTION entry; ISO §14.9.4.3 "
+                + (role.StartsWith("RETURNING") ? "SR7" : "SR3")
+                + " requires a data item defined in the file, working-storage, local-storage, or linkage section");
+            return new BoundNop();
+        }
+        return new BoundUnsupported($"CALL {role} '{text}'");
+    }
+
+    /// <summary>The CALL operand chokepoint (kb/Work PB132) — ISO §14.9.4.3 SR3/SR6/SR8/SR10/SR11/SR12/SR18
+    /// over the RESOLVED mode (after GR5's transitivity or GR9's formal derivation), for every Place-carrying
+    /// USING argument and the RETURNING item, so both arms of every dispatch meet the same law.</summary>
+    private void ScreenCallOperand(Place p, CobolPassMode mode, bool formatTwo, bool isReturning)
+    {
+        var item = p.Item;
+        string? name = item.CobolName;
+        string role = isReturning ? "RETURNING item" : "USING argument";
+
+        // SR11 (Format 1: identifier-2 AND identifier-3) / SR18 (Format 2: identifier-4); Format 2's
+        // RETURNING rides §14.8.3 via SR25 — a prototype-less callee's formal cannot be proven ANY LENGTH
+        // (the §13.18.2.3 SR2 NOTE). INVOKE permits it (§14.8.2.3.2 rule e).
+        if (item.IsAnyLength)
+            ctx.Edition.Error("COBOLNET1542", $"CALL {role} '{name}' is described with the ANY LENGTH clause "
+                + (formatTwo
+                    ? (isReturning ? "(ISO §14.8.3 via §14.9.4.3 SR25)" : "(ISO §14.9.4.3 SR18)")
+                    : "(ISO §14.9.4.3 SR11)"));
+
+        // SR3 sentence 2: BY REFERENCE (specified or implied) shall not carry factory/instance object data.
+        if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.OoIsObjectData(item))
+            ctx.Edition.Error(DiagnosticCatalog.CallByReferenceObjectData,
+                $"CALL … USING BY REFERENCE '{name}': identifier-2 shall not be defined in the working-storage "
+                + "or file section of a factory or an instance object (ISO §14.9.4.3 SR3)");
+
+        // SR10 (Format 1, BY REFERENCE specified or implied).
+        if (!isReturning && !formatTwo && mode is CobolPassMode.Reference)
+        {
+            string? kind =
+                StrongTypeModel.IsStrongGroup(item) ? "a strongly-typed group item"
+                : p.Pic?.Category is PicCategory.ObjectReference ? "a data item of class object"
+                : p.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer ? "a data item of class pointer"
+                : null;
+            if (kind is not null)
+                ctx.Edition.Error(DiagnosticCatalog.CallByReferenceOperandKind,
+                    $"CALL … USING BY REFERENCE '{name}' is {kind} (ISO §14.9.4.3 SR10 — Format 1 shall pass "
+                    + "neither by reference; the program-prototype CALL admits them under §14.8.2)");
+        }
+
+        // SR12 (Format 1, any mode): no variable-length group (§8.5.1.12.1) — the ONE predicate.
+        if (!isReturning && !formatTwo && item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))
+            ctx.Edition.Error(DiagnosticCatalog.CallVariableLengthGroup,
+                $"CALL … USING argument '{name}' references a variable-length group (a DYNAMIC LENGTH item or "
+                + "dynamic-capacity table is subordinate to it) — ISO §14.9.4.3 SR12");
+
+        // SR6 (BY REFERENCE argument) / SR8 (RETURNING): a bit item must sit statically on a byte boundary.
+        if ((isReturning || mode is CobolPassMode.Reference) && BitLayout.IsBitItem(item))
+            ScreenBitAlignment(p, isReturning ? "§14.9.4.3 SR8" : "§14.9.4.3 SR6", role);
+    }
+
+    /// <summary>SR6/SR8's byte-boundary proof (kb/Work PB132): the referenced occurrence's start bit, computed
+    /// from the §8.5.1.6.3 cursor walk (<see cref="BitLayout.StartBitWithin"/>) plus each table subscript
+    /// times its element stride, plus a ref-mod's leftmost boolean position. The rules' second clause makes
+    /// every subscript a compile-time integer — a non-literal subscript is itself the violation. An operand
+    /// shape the walk cannot model (an unmodelled overlay, an exotic carrier) is ACCEPTED — the screen must
+    /// never reject legal source it cannot prove misaligned.</summary>
+    private void ScreenBitAlignment(Place p, string clause, string role)
+    {
+        long extra = 0;
+        Place core = p;
+        while (core is PlaceDecorator dec)
+        {
+            if (core is RefModPlace rm)
+            {
+                if (ConstIndex(rm.Start) is not { } s0)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CallBitAlignment,
+                        $"CALL {role} '{p.Item.CobolName}': a bit item's reference-modification leftmost position "
+                        + $"shall consist of only fixed-point numeric literals (ISO {clause})");
+                    return;
+                }
+                extra += s0 - 1;
+            }
+            core = dec.Inner;
+        }
+        AccessPath? path = core switch { MemberPlace mp => mp.Path, DynTablePlace dp => dp.Path, _ => null };
+        if (path is null) return;
+        var chain = new List<DataItem>();
+        for (var d = core.Item; d is not null; d = d.Parent) chain.Insert(0, d);
+        var subs = new Queue<string>();
+        foreach (var seg in path.Segments)
+        {
+            if (seg is FixedTableSegment ft) subs.Enqueue(ft.OneBasedIndex);
+            else if (seg is DynTableSegment dt) subs.Enqueue(dt.OneBasedIndex);
+        }
+        long bit = 0;
+        for (int i = 0; i < chain.Count; i++)
+        {
+            if (i > 0)
+            {
+                int within = BitLayout.StartBitWithin(chain[i - 1], chain[i]);
+                if (within < 0) return;
+                bit += within;
+            }
+            bool tabled = chain[i].Occurs is not null || chain[i].IsDynamicTable || chain[i].OccursSpec is not null;
+            if (tabled && subs.Count > 0)
+            {
+                if (ConstIndex(subs.Dequeue()) is not { } k)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CallBitAlignment,
+                        $"CALL {role} '{p.Item.CobolName}': a bit item's subscripts shall consist of only "
+                        + "fixed-point numeric literals or all-literal arithmetic expressions without "
+                        + $"exponentiation (ISO {clause})");
+                    return;
+                }
+                bit += (k - 1) * (long)BitLayout.WidthBits(chain[i]);
+            }
+        }
+        bit += extra;
+        if (bit % BitLayout.BitsPerCharacter != 0)
+            ctx.Edition.Error(DiagnosticCatalog.CallBitAlignment,
+                $"CALL {role} '{p.Item.CobolName}' starts at bit {bit} of its record — a bit item passed by "
+                + $"reference shall be aligned on a byte boundary (ISO {clause} / §8.5.1.6.3)");
+    }
+
+    /// <summary>Evaluate a rendered subscript/ref-mod index that SR6/SR8 permit — an integer literal or an
+    /// all-literal + - * / ( ) expression (no exponentiation; identifiers make it non-constant → null).</summary>
+    private static long? ConstIndex(string rendered)
+    {
+        string s = rendered.Trim();
+        if (long.TryParse(s, out long direct)) return direct;
+        foreach (char ch in s)
+            if (!(char.IsDigit(ch) || ch is '+' or '-' or '*' or '/' or '(' or ')' or ' ')) return null;
+        int i = 0;
+        long? r = AddSub(s, ref i);
+        return r is not null && SkipWs(s, ref i) == s.Length ? r : null;
+
+        static int SkipWs(string t, ref int j) { while (j < t.Length && t[j] == ' ') j++; return j; }
+        static long? AddSub(string t, ref int j)
+        {
+            long? v = MulDiv(t, ref j);
+            while (v is not null && SkipWs(t, ref j) < t.Length && t[j] is '+' or '-')
+            {
+                char op = t[j++];
+                long? w = MulDiv(t, ref j);
+                v = w is null ? null : op == '+' ? v + w : v - w;
+            }
+            return v;
+        }
+        static long? MulDiv(string t, ref int j)
+        {
+            long? v = Primary(t, ref j);
+            while (v is not null && SkipWs(t, ref j) < t.Length && t[j] is '*' or '/')
+            {
+                char op = t[j++];
+                long? w = Primary(t, ref j);
+                v = w is null or 0 && op == '/' ? null : op == '*' ? v * w : v / w;
+            }
+            return v;
+        }
+        static long? Primary(string t, ref int j)
+        {
+            if (SkipWs(t, ref j) >= t.Length) return null;
+            if (t[j] == '(')
+            {
+                j++;
+                long? v = AddSub(t, ref j);
+                if (SkipWs(t, ref j) >= t.Length || t[j] != ')') return null;
+                j++;
+                return v;
+            }
+            if (t[j] is '+' or '-')
+            {
+                char sign = t[j++];
+                long? v = Primary(t, ref j);
+                return sign == '-' ? -v : v;
+            }
+            int start = j;
+            while (j < t.Length && char.IsDigit(t[j])) j++;
+            return j > start && long.TryParse(t[start..j], out long n) ? n : null;
         }
     }
 }

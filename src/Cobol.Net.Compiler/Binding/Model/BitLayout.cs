@@ -97,6 +97,38 @@ internal static class BitLayout
         return group.GroupUsage is GroupUsage.Bit ? cursor : RoundUpToByte(cursor);
     }
 
+    /// <summary>The start-bit offset of DIRECT child <paramref name="child"/> within <paramref name="group"/>,
+    /// by the same four placement rules as <see cref="ExtentBits"/> — one walk, one law (kb/Work PB132;
+    /// §14.9.4.3 SR6/SR8 ask whether a BY REFERENCE bit argument "is aligned on a byte boundary"). A
+    /// redefining child overlays its target (§13.18.44), so its offset IS the target's — resolved here by
+    /// name. Returns -1 when the child is not found (an unmodelled overlay chain — callers must not reject
+    /// on -1).</summary>
+    public static int StartBitWithin(DataItem group, DataItem child)
+    {
+        // §13.18.44.3 SR17 bars a dynamic item under REDEFINES, so chasing the overlay chain terminates.
+        for (int hops = 0; child.RedefinesTargetName is not null && hops < 64; hops++)
+        {
+            DataItem? target = null;
+            foreach (var c in group.Children)
+                if (string.Equals(c.CobolName, child.RedefinesTargetName, System.StringComparison.OrdinalIgnoreCase))
+                { target = c; break; }
+            if (target is null) return -1;
+            child = target;
+        }
+        int cursor = 0;
+        DataItem? prev = null;
+        foreach (var c in group.Children)
+        {
+            if (c.RedefinesTargetName is not null) continue;
+            bool sharesByte = IsBitItem(c) && prev is not null && IsBitItem(prev) && prev.Level == c.Level;
+            if (!sharesByte) cursor = RoundUpToByte(cursor);
+            if (ReferenceEquals(c, child)) return cursor;
+            cursor += WidthBits(c) * (c.Occurs ?? 1);
+            prev = c;
+        }
+        return -1;
+    }
+
     /// <summary>The next byte boundary at or after <paramref name="bits"/> — "the first bit position of the first
     /// available byte" (§8.5.1.6.3), and equally the implicit-filler advance to a natural boundary. Already
     /// byte-aligned input is returned unchanged, so no phantom filler byte is generated.</summary>
