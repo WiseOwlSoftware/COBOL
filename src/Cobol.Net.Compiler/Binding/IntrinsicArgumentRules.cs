@@ -21,6 +21,17 @@ internal enum CobolClass
 {
     Alphanumeric,
 
+    /// <summary>Class ALPHABETIC — §8.5.2.1 Table 2's own first row ("Alphabetic | Alphabetic"), distinct from
+    /// Alphanumeric (kb/Work PB124 wave 5, AR-15.3-1). The STORAGE model folds PIC A into
+    /// PicCategory.Alphanumeric (one string carrier); the CLASS question un-folds here via
+    /// <c>PicInfo.IsAlphabetic</c>, so a category-worded rule ("shall be of category alphanumeric or
+    /// national" — NUMVAL and the 't' kind's rows) rejects a PIC A item while a class-worded rule
+    /// ("class alphabetic, alphanumeric, or national" — UPPER-CASE and the 's' kind's rows) admits it.
+    /// Cross rules treat alphabetic and alphanumeric as ONE block — §15.59.3 r2's own exception ("mixing of
+    /// arguments of alphabetic and alphanumeric classes is allowed"), the same two-block shape §15.87.3 r2
+    /// and §15.96.3 r2 write out — see <see cref="CrossViolation"/>.</summary>
+    Alphabetic,
+
     /// <summary>
     /// NUMERIC-EDITED with usage display — Table 2 class ALPHANUMERIC, modelled apart so the STRING family can
     /// admit it as the alphanumeric item Table 2 says it is, without the screen having to pretend it is numeric.
@@ -391,6 +402,10 @@ internal static class IntrinsicArgumentRules
         // class INDEX — a distinct class no §15 argument rule admits. Keying the usage first is what stops the
         // storage category from answering the CLASS question.
         if (p.Item.Pic is { Usage: Usage.Index }) return CobolClass.Index;
+        // Class ALPHABETIC before the category table (kb/Work PB124 wave 5): the storage model folds PIC A
+        // into PicCategory.Alphanumeric, so the category cannot answer — IsAlphabetic can, exactly as the
+        // Usage.Index arm above un-folds the index item's storage category.
+        if (p.Item.Pic is { IsAlphabetic: true }) return CobolClass.Alphabetic;
         return p.Item.Pic is { } pic ? ClassOfCategory(pic.Category) : null;
     }
 
@@ -502,7 +517,7 @@ internal static class IntrinsicArgumentRules
             // §15.79.3 r1/r3 — argument-1 is a national or alphanumeric LITERAL (its literal-ness is enforced by
             // the existing COBOLNET1517 arm); argument-2 "shall have the same type as argument-1" — the class
             // reading of "type", the cross-argument agreement (PB58; MatchArgument1 was already the shape).
-            ["SECONDS-FROM-FORMATTED-TIME"] = Schema("§15.79.3 r1/r3", ['s', 's'],
+            ["SECONDS-FROM-FORMATTED-TIME"] = Schema("§15.79.3 r1/r3", ['t', 't'],
                 cross: CrossArgRule.MatchArgument1, crossClause: "§15.79.3 r3"),
             // PI takes no arguments (§15.73.2) — present so the drift test can hold this table and the Phase-B
             // batch's function list in agreement rather than silently tolerating a gap.
@@ -591,7 +606,7 @@ internal static class IntrinsicArgumentRules
             // argument-1"), and its "shall be a DATA ITEM" half the DataItemOrLiteralOnly predicate's data-item
             // arm cannot express (it admits literals) — argument-2 as a literal is screened in BindIntrinsicCore's
             // format arm (PB58).
-            ["INTEGER-OF-FORMATTED-DATE"] = Schema("§15.48.3 r1/r3", ['s', 's'],
+            ["INTEGER-OF-FORMATTED-DATE"] = Schema("§15.48.3 r1/r3", ['t', 't'],
                 cross: CrossArgRule.MatchArgument1, crossClause: "§15.48.3 r3"),
             // ⛔ THE ONE THAT NEEDED PB20 FIRST. §15.45.3 r1 is "Argument-1 shall be of class BOOLEAN" — the only
             // rule in the catalogue that names that class, and `Admissible` had no arm able to say it. It is
@@ -631,7 +646,7 @@ internal static class IntrinsicArgumentRules
             // the subject is alphanumeric. ⚠ The screen runs BEFORE the §15.68.3 r3 default-currency injection,
             // deliberately: that operand is compiler-supplied, not written by the user, and screening it would
             // report a class disagreement on source that contains no argument-2 at all.
-            ["NUMVAL-C"] = Schema("§15.68.3 r1/r2", ['s', 's'], cross: CrossArgRule.MatchArgument1,
+            ["NUMVAL-C"] = Schema("§15.68.3 r1/r2", ['t', 't'], cross: CrossArgRule.MatchArgument1,
                 crossClause: "§15.68.3 r2"),
             // §15.37.3 — r1: argument-1 of class alphabetic, alphanumeric, or national; r2: argument-2 in the
             // SAME family as argument-1; r3: "argument-3 shall be an integer data item or integer literal".
@@ -661,8 +676,8 @@ internal static class IntrinsicArgumentRules
             // §15.53.3 r1 "… 6 character positions in length"; §15.54.3 r1 "a numeric value in standard numeric time
             // form" — 'n', not 'i' (a fractional seconds value is legal; its RANGE is the runtime's screen).
             ["LOCALE-COMPARE"] = Schema("§15.51.3 r1/r2", ['s', 's']),
-            ["LOCALE-DATE"] = Schema("§15.52.3 r1", ['s']).WithPredicate(0, ArgPredicate.ExactWidth(8, "§15.52.3 r1")),
-            ["LOCALE-TIME"] = Schema("§15.53.3 r1", ['s']).WithPredicate(0, ArgPredicate.ExactWidth(6, "§15.53.3 r1")),
+            ["LOCALE-DATE"] = Schema("§15.52.3 r1", ['t']).WithPredicate(0, ArgPredicate.ExactWidth(8, "§15.52.3 r1")),
+            ["LOCALE-TIME"] = Schema("§15.53.3 r1", ['t']).WithPredicate(0, ArgPredicate.ExactWidth(6, "§15.53.3 r1")),
             ["LOCALE-TIME-FROM-SECONDS"] = Schema("§15.54.3 r1", ['n']),
             // The FORMATTED-* family (§15.38–15.41): argument-1 is "a national or alphanumeric literal" (its
             // LITERAL-ness is the existing COBOLNET1517 arm, its CONTENT the format screen); the remaining
@@ -670,10 +685,10 @@ internal static class IntrinsicArgumentRules
             // time form (§15.40.3 r4, §15.41.3 r3), and the integer UTC offset (§15.40.3 r5, §15.41.3 r4).
             // ⚠ Standard numeric time form is 'n', not 'i': §15.3.3 admits a fractional-seconds representation,
             // so screening it as an integer would reject a legal fractional time.
-            ["FORMATTED-CURRENT-DATE"] = Schema("§15.38.3 r1", ['s']),
-            ["FORMATTED-DATE"] = Schema("§15.39.3 r1/r3", ['s', 'i']),
-            ["FORMATTED-DATETIME"] = Schema("§15.40.3 r1/r3/r4/r5", ['s', 'i', 'n', 'i']),
-            ["FORMATTED-TIME"] = Schema("§15.41.3 r1/r3/r4", ['s', 'n', 'i']),
+            ["FORMATTED-CURRENT-DATE"] = Schema("§15.38.3 r1", ['t']),
+            ["FORMATTED-DATE"] = Schema("§15.39.3 r1/r3", ['t', 'i']),
+            ["FORMATTED-DATETIME"] = Schema("§15.40.3 r1/r3/r4/r5", ['t', 'i', 'n', 'i']),
+            ["FORMATTED-TIME"] = Schema("§15.41.3 r1/r3/r4", ['t', 'n', 'i']),
 
             // ── kb/Work PB58 · the ABSENT rows. Every catalogued function now has a row here or a reason in
             //    DeliberatelyUnscreened, and IntrinsicArgumentClassDriftTests.EveryCataloguedFunction_HasARow
@@ -688,12 +703,12 @@ internal static class IntrinsicArgumentRules
             ["TEST-DATE-YYYYMMDD"] = Uniform('i', "§15.90.3 r1"),            // shall be an integer
             ["TEST-DAY-YYYYDDD"] = Uniform('i', "§15.91.3 r1"),              // shall be an integer
             // The NUMVAL family — argument-1 "an alphanumeric or national literal or … data item":
-            ["NUMVAL"] = Uniform('s', "§15.67.3 r1"),
-            ["NUMVAL-F"] = Uniform('s', "§15.69.3 r1"),
-            ["TEST-NUMVAL"] = Uniform('s', "§15.93.3 r1"),
-            ["TEST-NUMVAL-F"] = Uniform('s', "§15.95.3 r1"),
+            ["NUMVAL"] = Uniform('t', "§15.67.3 r1"),
+            ["NUMVAL-F"] = Uniform('t', "§15.69.3 r1"),
+            ["TEST-NUMVAL"] = Uniform('t', "§15.93.3 r1"),
+            ["TEST-NUMVAL-F"] = Uniform('t', "§15.95.3 r1"),
             // §15.94.3 r1 imports §15.68's argument rules whole — the NUMVAL-C row's shape, verbatim.
-            ["TEST-NUMVAL-C"] = Schema("§15.94.3 r1 → §15.68.3 r1/r2", ['s', 's'], cross: CrossArgRule.MatchArgument1,
+            ["TEST-NUMVAL-C"] = Schema("§15.94.3 r1 → §15.68.3 r1/r2", ['t', 't'], cross: CrossArgRule.MatchArgument1,
                 crossClause: "§15.68.3 r2 (via §15.94.3 r1)"),
             // The statistical trio — "Argument-1 shall be of class numeric" (variadic tail form):
             ["STANDARD-DEVIATION"] = Uniform('n', "§15.86.3 r1"),
@@ -713,7 +728,7 @@ internal static class IntrinsicArgumentRules
                 .WithPredicate(0, ArgPredicate.MinWidth(1, "§15.87.3 r3")),
             // §15.92.3 r1/r2 — a format LITERAL (the COBOLNET1517 arm) and argument-2 "of the same type as
             // argument-1" (the class reading, MatchArgument1).
-            ["TEST-FORMATTED-DATETIME"] = Schema("§15.92.3 r1/r2", ['s', 's'], cross: CrossArgRule.MatchArgument1,
+            ["TEST-FORMATTED-DATETIME"] = Schema("§15.92.3 r1/r2", ['t', 't'], cross: CrossArgRule.MatchArgument1,
                 crossClause: "§15.92.3 r2"),
             // §15.18.3 r1 — CONCAT admits "class alphabetic, alphanumeric, boolean, numeric or national" (the
             // 'c' kind: everything but index/object/pointer); r2's usage agreement and r3's usage-display +
@@ -871,19 +886,26 @@ internal static class IntrinsicArgumentRules
         // So `FUNCTION CHAR(WS-ED)` over a `PIC Z9` is NOT conforming. The distinction between a CLASS rule and
         // §15.3's integer TYPE is still real — it is just not a distinction about numeric-edited.
         'i' => [CobolClass.Numeric],
-        // The string family — §15.3 type 1 Alphabetic, type 2 Alphanumeric (which explicitly treats a
-        // strongly-typed group as alphanumeric) and type 9 National. Each catalogued 's' argument's own rule
-        // names some subset of these; screening their UNION rejects the classes none of them admits (numeric,
-        // boolean, object, pointer) without over-rejecting a function whose own rule is narrower. Narrowing
-        // per-function is a later refinement, and it can only ADD rejections — never un-reject legal source.
-        // Table 2 makes numeric-edited class ALPHANUMERIC, so the string family admits it as such — the
-        // distinct member above changes what §15.3's integer type accepts, never what a class rule means.
-        's' => [CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing, CobolClass.National],
+        // The CLASS-worded string rows (kb/Work PB124 wave 5 split the old union): "class alphabetic,
+        // alphanumeric, or national" — UPPER-CASE §15.97.3 r1, LOWER-CASE §15.57.3 r1, TRIM §15.96.3 r1,
+        // SUBSTITUTE §15.87.3 r1, ORD §15.70.3 r1, REVERSE §15.78.3 r1, FIND-STRING §15.37.3, STANDARD-COMPARE
+        // §15.85.3, LOCALE-COMPARE §15.51.3 — Table 21's cells all print Alph1. Table 2 makes numeric-edited
+        // (display) class ALPHANUMERIC, so a class rule admits it as such.
+        's' => [CobolClass.Alphabetic, CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing,
+                CobolClass.National],
+        // The CATEGORY-worded string rows — "of category alphanumeric or national" / "an alphanumeric or
+        // national literal or data item" (NUMVAL §15.67.3 r1, NUMVAL-F §15.69.3 r1, NUMVAL-C §15.68.3 r1 and
+        // the TEST- twins, the FORMATTED-* date/time family, LOCALE-DATE §15.52.3 r1, LOCALE-TIME §15.53.3 r1)
+        // — Table 2's closing sentence ("refers to the CATEGORY unless class is specifically indicated")
+        // settles them against a PIC A item, and Table 21 prints no Alph in any of their cells; the old single
+        // union admitted PIC A at every one of these positions (AR-15.3-1's measured over-admission).
+        't' => [CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing, CobolClass.National],
         // 'c' — CONCAT (§15.18.3 r1): "class alphabetic, alphanumeric, boolean, numeric or national" — everything
         // Table 2 names but index, object and pointer (kb/Work PB58; the r2/r3 USAGE halves are
-        // IntrinsicBinder.CheckConcatArgs' — a class kind cannot carry them).
-        'c' => [CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing, CobolClass.National, CobolClass.Numeric,
-                CobolClass.Boolean],
+        // IntrinsicBinder.CheckConcatArgs' — a class kind cannot carry them). Alphabetic joined when the class
+        // gained its member (PB124 wave 5) — the rule always named it; the fold made it unreachable.
+        'c' => [CobolClass.Alphabetic, CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing,
+                CobolClass.National, CobolClass.Numeric, CobolClass.Boolean],
         // 'p' — MAX/MIN/ORD-MAX/ORD-MIN, whose rule (§15.71.3 r1 and siblings) is a NEGATIVE list. An
         // admissible-set cannot express it without also excluding classes the rule permits.
         _ => null,
@@ -1147,6 +1169,12 @@ internal static class IntrinsicArgumentRules
             if (i >= args.Count) continue;
             var cs = CandidateClasses(args[i]);
             if (cs.Length == 0) continue;                       // not statically decidable — contributes nothing
+            // Alphabetic and alphanumeric are ONE block for every cross rule (kb/Work PB124 wave 5):
+            // §15.59.3 r2 writes the exception outright ("All arguments shall be of the same class with the
+            // exception that mixing of arguments of alphabetic and alphanumeric classes is allowed"), and
+            // §15.87.3 r2 / §15.96.3 r2 spell the same two blocks per pair ("class alphabetic or class
+            // alphanumeric" | national). Normalizing the candidate keeps the intersection model intact.
+            cs = [.. cs.Select(c => c == CobolClass.Alphabetic ? CobolClass.Alphanumeric : c).Distinct()];
             common = common is null ? cs : [.. common.Intersect(cs)];
             if (common.Length == 0)
                 return schema.Cross == CrossArgRule.AllSameClass
@@ -1160,6 +1188,7 @@ internal static class IntrinsicArgumentRules
 
     private static string Name(CobolClass c) => c switch
     {
+        CobolClass.Alphabetic => "alphabetic",
         CobolClass.Alphanumeric => "alphanumeric",
         CobolClass.NumericEditedDeEditing => "alphanumeric (numeric-edited)",
         CobolClass.Boolean => "boolean",
