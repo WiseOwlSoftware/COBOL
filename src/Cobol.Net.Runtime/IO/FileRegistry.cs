@@ -203,6 +203,23 @@ public sealed class FileRegistry
         f.SetStatus(!f.IsOpen ? FileStatusCode.FileNotOpen : f.OptionalNotPresent ? FileStatusCode.Success : "07");
     }
 
+    /// <summary>CLOSE … WITH NO REWIND on a disk medium (§14.9.6.4 Table 14, Non-unit × NO REWIND = c,g): the
+    /// file IS closed exactly as if no phrase were present (symbol g), and a SUCCESSFUL close then reports
+    /// '07' — the §9.1.13.2 item 6 phrase-on-a-non-reel-medium warning. An unsuccessful close ('42'/'30')
+    /// keeps its own status (item 6 rides a successful execution), and §14.9.6.4 GR6's absent-OPTIONAL case
+    /// keeps the plain-successful '00' (no processing the '07' would describe was performed) — the same
+    /// derivation the REEL/UNIT surface uses. Sequential-organization surface only (§14.9.6.3 SR1 binds it).
+    /// Previously the NO REWIND phrase bound to a plain CLOSE and reported '00' (kb/Work PB141).</summary>
+    public void CloseNoRewind(string name)
+    {
+        if (Require(name) is not SequentialConnector f)
+            throw new InvalidOperationException(
+                $"CLOSE WITH NO REWIND reached a non-sequential connector '{name}' — §14.9.6.3 SR1 rejects this at bind time (kb/Work PB141)");
+        bool absent = f.OptionalNotPresent;   // read BEFORE the close (the FPI state survives it — PB140)
+        Close(name);
+        if (!absent && f.Status[0] == '0') f.SetStatus("07");
+    }
+
     /// <summary>Close every open file (run-unit termination, ISO §14.6 — flushes print streams; keyed stores
     /// persist, e.g. NIST RL208A).</summary>
     public void CloseAll()

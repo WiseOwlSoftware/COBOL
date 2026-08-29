@@ -255,15 +255,20 @@ internal sealed class FlagConformancePass : CursorFollowingVisitor   // the curs
         return base.VisitChildren(ctx);
     }
 
-    // ── FLAG-02 c I-O-STATUS-07 (§7.3.14.4 GR4 c) — a CLOSE specifying WITH NO REWIND or the UNIT phrase (NOT
-    //    REEL — GR4 c names only UNIT and NO REWIND). Purely syntactic; one flag per CLOSE statement. ──
+    // ── FLAG-02 c I-O-STATUS-07 (§7.3.14.4 GR4 c) — a CLOSE specifying WITH NO REWIND or the REEL/UNIT phrase
+    //    (§14.9.6.3 SR2 makes REEL and UNIT one phrase). Purely syntactic; one flag per CLOSE statement. ──
     public override object? VisitCloseStatement(CobolParserCore.CloseStatementContext ctx)
     {
         foreach (var phrase in ctx.closeFilePhrase())
         {
             var opt = phrase.closeOption();
             if (opt is null) continue;
-            if (opt.UNIT() is not null || (opt.NO() is not null && opt.REWIND() is not null))
+            // §7.3.14.4 GR4 c names "the WITH NO REWIND phrase or the UNIT phrase" — and §14.9.6.3 SR2 makes
+            // REEL the SAME phrase as UNIT ("The words REEL and UNIT are equivalent"), so a CLOSE written with
+            // REEL specifies the UNIT phrase and flags identically. The old predicate deliberately excluded
+            // REEL on a misreading of GR4 c — a second consumer of one parse node breaking a spelling
+            // equivalence the semantic consumer kept (kb/Work PB141).
+            if (opt.REEL() is not null || opt.UNIT() is not null || (opt.NO() is not null && opt.REWIND() is not null))
             {
                 Flag(FlagOption.Flag02IoStatus07, ctx.Start.Line, "the CLOSE WITH NO REWIND / UNIT statement");
                 break;   // GR4 c flags the CLOSE statement once, however many such phrases it carries

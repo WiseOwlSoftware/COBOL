@@ -188,12 +188,17 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
     }
 
-    [Fact]
-    public void Compile_Flag02IoStatus07On_EmitsCobolnet1620_OnCloseNoRewind()
+    // §7.3.14.4 GR4 c flags "the WITH NO REWIND phrase or the UNIT phrase" — and §14.9.6.3 SR2 makes REEL
+    // the SAME phrase as UNIT, so all three spellings flag (the REEL arm was deliberately excluded before —
+    // kb/Work PB141). The file must be SEQUENTIAL: §14.9.6.3 SR1 restricts the phrases to sequential
+    // organization, and PB140's COBOLNET1693 rejects them elsewhere (this fixture previously rode the
+    // INDEXED ReadPreviousProgram).
+    [Theory]
+    [InlineData("CLOSE F WITH NO REWIND.")]
+    [InlineData("CLOSE F UNIT.")]
+    [InlineData("CLOSE F REEL.")]
+    public void Compile_Flag02IoStatus07On_EmitsCobolnet1620_OnEachPhraseSpelling(string close)
     {
-        // A CLOSE WITH NO REWIND under >>FLAG-02 I-O-STATUS-07 ON is flagged (§7.3.14.4 GR4 c). The file must
-        // be SEQUENTIAL — §14.9.6.3 SR1 restricts the NO REWIND phrase to sequential organization, and PB140's
-        // COBOLNET1693 rejects it elsewhere (this fixture previously rode the INDEXED ReadPreviousProgram).
         string program =
             "       IDENTIFICATION DIVISION.\n" +
             "       PROGRAM-ID. FLAGNR.\n" +
@@ -209,7 +214,7 @@ public sealed class FlagDirectiveTests
             "       MAIN.\n" +
             "           OPEN INPUT F.\n" +
             "       >>FLAG-02 I-O-STATUS-07 ON\n" +
-            "           CLOSE F WITH NO REWIND.\n" +
+            "           " + close + "\n" +
             "           STOP RUN.\n";
         var warnings = CompileWarnings(program);
         Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal));

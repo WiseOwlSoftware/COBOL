@@ -96,6 +96,11 @@ public sealed class CobolReport(
     public long PageCounter { get; private set; }
 
     private bool _active;                  // INITIATE…TERMINATE state (§14.9.21.4 GR4)
+
+    /// <summary>The report is in the ACTIVE state — INITIATEd and not yet TERMINATEd (§14.9.21.4 GR4). Read
+    /// by the emitted CLOSE of the report's file: §14.9.6.4 GR5 completes the CLOSE and sets
+    /// EC-REPORT-NOT-TERMINATED to exist when any associated report is still active (kb/Work PB141).</summary>
+    public bool IsActive => _active;
     private bool _started;                 // a GENERATE has executed since INITIATE (§14.9.46.4 GR2/GR3)
     private bool _firstBodySinceInitiate;  // the §13.18.35.4 GR4 page-fit exemption
     private bool _firstBodyOnPage;         // the §13.18.35.4 GR5b3 FIRST DETAIL placement

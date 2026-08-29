@@ -217,32 +217,44 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         if (bound.Ec is { HasIoChecked: true }) ec.EmitIoCheckEc(bound, w);
         if (ecState.UnitHasF3Perform) ec.EmitPerformInterceptor(w);   // __EcPerform + __RunF3 (§14.9.28 F3 interceptor)
         if (!dispatchState.UseDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
-        using (w.Block("private void __IoCheck(string __f, bool __atEnd, bool __invKey)"))
+        // Under the EC model __RunUse RETURNS the declarative's resume action, and __IoCheck must HAND IT BACK
+        // to the verb site — the old `__RunUse(…); return;` discarded it, so a Format-1 declarative's RESUME AT
+        // procedure-name never transferred on the plain (non-EC-masked) path of any I-O verb (kb/Work PB141;
+        // RESUME NEXT STATEMENT survived only because discarding −1 happens to mean fall-through). An EC-free
+        // build keeps the void form byte-identical.
+        bool ecInt = ecState.Active;
+        string none = ecInt ? "return -1;" : "return;";
+        using (w.Block($"private {(ecInt ? "int" : "void")} __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
-            w.Line("if (__st.Length == 0 || __st[0] == '0') return;   // successful — no declarative (ISO §14.9.49.4 GR6)");
-            w.Line("if (__atEnd && __st[0] == '1') return;    // the statement's AT END phrase covers the at-end family (§9.1.13.1)");
-            w.Line("if (__invKey && __st[0] == '2') return;   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
+            w.Line($"if (__st.Length == 0 || __st[0] == '0') {none}   // successful — no declarative (ISO §14.9.49.4 GR6)");
+            w.Line($"if (__atEnd && __st[0] == '1') {none}    // the statement's AT END phrase covers the at-end family (§9.1.13.1)");
+            w.Line($"if (__invKey && __st[0] == '2') {none}   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
+            string run(int i) => ecInt
+                ? $"return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});"
+                : $"__RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;";
             if (decls.Any(d => d.Files.Count > 0))
                 using (w.Block("switch (__f)"))   // file-name scope first (GR3a/GR5)
                 {
                     for (int i = 0; i < decls.Count; i++)
                         foreach (var f in decls[i].Files)
-                            w.Line($"case {FileKeyExpr(f)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;");
+                            w.Line($"case {FileKeyExpr(f)}: {run(i)}");
                 }
             if (decls.Any(d => d.ModeIndex is not null))
                 using (w.Block($"switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // open-mode scope (GR3b/GR6b–e)
                 {
                     for (int i = 0; i < decls.Count; i++)
                         if (decls[i].ModeIndex is { } m)
-                            w.Line($"case {m}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;");
+                            w.Line($"case {m}: {run(i)}");
                 }
             // No local declarative qualified — walk OUTWARD to the nearest containing program with a USE GLOBAL
             // declarative (ISO §14.9.49.4 GR4b: "a qualifying declarative with the GLOBAL attribute in the next
             // inclusive directly containing source element", repeated outward). The declarative executes in the
-            // DECLARING program's instance — its data (§8.4.6.2) — via the container's __RunGlobalUse.
+            // DECLARING program's instance — its data (§8.4.6.2) — via the container's __RunGlobalUse (whose
+            // RESUME, if any, resolves in the DECLARING program's own dispatch, never this one's pc space).
             if (dispatchState.OuterGlobalUse)
                 w.Line("__outer.__RunGlobalUse(__f);");
+            if (ecInt) w.Line("return -1;");
         }
         w.Line();
     }

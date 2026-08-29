@@ -839,7 +839,17 @@ public enum BoundOpenMode { Input, Output, Extend, IO }
 
 /// <summary>How a closed file is finalized (ISO §14.9.7): a plain close, <c>WITH LOCK</c> (no reopen), or a
 /// <c>REEL/UNIT</c> phrase (a no-op on a disk medium, leaves the file open).</summary>
-public enum BoundCloseKind { Normal, WithLock, ReelUnit }
+public enum BoundCloseKind
+{
+    Normal,
+    WithLock,
+    /// <summary>REEL/UNIT [FOR REMOVAL] — on a non-reel/unit medium the no-op '07' (Table 14 symbol e; the
+    /// FOR REMOVAL variant's Non-unit cell is the SAME symbol e, so it folds here deliberately).</summary>
+    ReelUnit,
+    /// <summary>WITH NO REWIND — Table 14's Non-unit cell is c,g: the file IS closed AND the status is '07'
+    /// (§9.1.13.2 item 6). Previously folded into Normal, reporting '00' (kb/Work PB141).</summary>
+    NoRewind,
+}
 
 /// <summary>The record-lock phrase on a READ/WRITE/REWRITE (ISO §14.9.30 etc.): explicit WITH LOCK, WITH NO
 /// LOCK (never lock), or IGNORING LOCK (read despite another connector's lock — READ only). None = the file's
@@ -871,7 +881,12 @@ public sealed record BoundOpen(IReadOnlyList<(FileModel File, BoundOpenMode Mode
 }
 
 /// <summary><c>CLOSE file [WITH LOCK | REEL/UNIT] …</c> (ISO §14.9.7).</summary>
-public sealed record BoundClose(IReadOnlyList<(FileModel File, BoundCloseKind Kind)> Files) : BoundStatement;
+public sealed record BoundClose(IReadOnlyList<(FileModel File, BoundCloseKind Kind)> Files) : BoundStatement
+{
+    /// <summary>§14.9.6.4 GR5: EC-REPORT-NOT-TERMINATED checking is enabled (>>TURN) at this statement — the
+    /// emitter then guards a report file's close on its reports' active state (kb/Work PB141).</summary>
+    public bool ReportNotTerminatedCheck { get; init; }
+}
 
 /// <summary>A <c>WRITE … {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c> phrase (ISO §14.9.46): print-control output.
 /// <paramref name="Page"/> = ADVANCING PAGE (a form feed); otherwise <paramref name="Lines"/> is the line count

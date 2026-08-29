@@ -29,7 +29,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// ISO §7.3.25) calls the EC-aware <c>__IoCheckEc</c> variant instead — same F1 behavior plus the §9.1.13.1
     /// status→EC raise, F3 selection and fatal default, returning a RESUME transfer pc when a declarative's
     /// RESUME redirected control (§14.9.33). A no-op for a declarative-free, checking-off program.</summary>
-    public void EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false)
+    public void EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false,
+        bool onExceptionHandled = false)
     {
         var w = ctx.Writer;
         if (ec.IoMaskFor(file) is not 0 and var mask)
@@ -42,11 +43,23 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 ? (CsLiteral(ecState.Info!.StatementName), CsLiteral(ecState.Info!.Location))
                 : ("null", "null");
             w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
-                + $"{(invalidKeyHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc});");
+                + $"{(invalidKeyHandled ? "true" : "false")}, {(onExceptionHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc});");
             w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
             return;
         }
         if (!dispatch.UseDecls) return;
+        // An ON EXCEPTION phrase is the statement's own handler for EVERY unsuccessful family (§14.9.10.4
+        // GR20c) — no declarative runs, and the plain path has no EC to raise, so the hook is a no-op.
+        if (onExceptionHandled) return;
+        if (ecState.Active)
+        {
+            // The EC-model __IoCheck returns the declarative's RESUME action — consumed exactly like the
+            // __IoCheckEc arm (the old void call discarded it, swallowing RESUME AT — kb/Work PB141).
+            int id = ctx.Names.NextEc();
+            w.Line($"int __ior{id} = __IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
+            w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            return;
+        }
         w.Line($"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
     }
 
@@ -208,6 +221,21 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         var w = ctx.Writer;
         foreach (var (file, kind) in c.Files)
         {
+            // §14.9.6.4 GR5: closing a report file while any associated report is ACTIVE (INITIATEd, not
+            // TERMINATEd) still completes the CLOSE — and sets EC-REPORT-NOT-TERMINATED to exist (nonfatal;
+            // the EC was catalogued and raised NOWHERE, kb/Work PB141). Read the active state BEFORE the
+            // close; the checking state is the statement's >>TURN (bind-time, BoundClose).
+            if (c.ReportNotTerminatedCheck
+                && ctx.Data.Reports.Where(r => ReferenceEquals(r.File, file)).ToList() is { Count: > 0 } reports)
+            {
+                using (w.Block($"if ({string.Join(" || ", reports.Select(r => $"__RPT_{r.CsIndex}.IsActive"))})"))
+                {
+                    w.Line("ExceptionState.Set(\"EC-REPORT-NOT-TERMINATED\", fatal: false);   // §14.9.6.4 GR5");
+                    int id = ctx.Names.NextEc();
+                    w.Line($"int __r{id} = {ec.EcDispatchExpr("\"EC-REPORT-NOT-TERMINATED\"", "\"\"")};");
+                    w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}");
+                }
+            }
             w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
             EmitStoreFileStatus(file);
             EmitUseHook(file);

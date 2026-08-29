@@ -237,7 +237,10 @@
   "value_numeric_edited",
   "wave_h_facilities_inert",
   "write_before_and_after",
-  "pb140_delete_file_gate"
+  "pb140_delete_file_gate",
+  "pb141_delete_file_ec",
+  "pb141_resume_io",
+  "pb141_report_not_terminated"
  ],
  "pending": []
 }

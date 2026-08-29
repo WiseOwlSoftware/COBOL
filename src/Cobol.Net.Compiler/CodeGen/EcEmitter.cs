@@ -425,7 +425,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     public void EmitIoCheckEc(BoundProgram bound, CodeWriter w)
     {
         var decls = bound.Declaratives ?? [];
-        using (w.Block("private int __IoCheckEc(string __f, bool __atEnd, bool __invKey, int __mask, int __locMask, string? __stmt, string? __loc)"))
+        using (w.Block("private int __IoCheckEc(string __f, bool __atEnd, bool __invKey, bool __onExc, int __mask, int __locMask, string? __stmt, string? __loc)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
             w.Line("string? __ec = ExceptionCatalog.IoEcOfStatus(__st);   // §9.1.13.1 status→EC correspondence");
@@ -451,6 +451,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                     w.Line("return __w == -3 ? -1 : __w;");
                 }
             }
+            // The statement's ON EXCEPTION phrase is its own handler for EVERY unsuccessful family (§14.9.10.4
+            // GR20c — DELETE FILE): the level-3 EC is ALREADY set above (GR20b — the old emitter skipped this
+            // whole hook, leaving EXCEPTION-STATUS stale inside imperative-statement-3, kb/Work PB141), and
+            // only the declarative dispatch and the fatal default are suppressed, exactly like the AT END /
+            // INVALID KEY suppressions below.
+            w.Line("if (__onExc) return -1;");
             w.Line("if (__atEnd && __st[0] == '1') return -1;    // the statement's AT END phrase covers the family (§9.1.13.1)");
             w.Line("if (__invKey && __st[0] == '2') return -1;   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
             w.Line("int __sel = -3;");

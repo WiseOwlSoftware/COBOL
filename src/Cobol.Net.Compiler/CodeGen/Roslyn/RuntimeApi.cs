@@ -748,12 +748,13 @@ internal static class RuntimeApi
             _ => nameof(CobolFile.OpenInput),
         }}({name})";
 
-    /// <summary>The kind-specific CLOSE — anchored over <c>CobolFile.Close{,WithLock,ReelUnit}</c>.</summary>
+    /// <summary>The kind-specific CLOSE — anchored over <c>CobolFile.Close{,WithLock,ReelUnit,NoRewind}</c>.</summary>
     public static string FileClose(string name, Binding.Bound.BoundCloseKind kind) =>
         $"{nameof(CobolFile)}.{kind switch
         {
             Binding.Bound.BoundCloseKind.WithLock => nameof(CobolFile.CloseWithLock),
             Binding.Bound.BoundCloseKind.ReelUnit => nameof(CobolFile.CloseReelUnit),
+            Binding.Bound.BoundCloseKind.NoRewind => nameof(CobolFile.CloseNoRewind),
             _ => nameof(CobolFile.Close),
         }}({name})";
 

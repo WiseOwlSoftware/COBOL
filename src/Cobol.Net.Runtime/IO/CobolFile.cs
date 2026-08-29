@@ -71,6 +71,10 @@ public static class CobolFile
     /// <summary>CLOSE … REEL/UNIT on a disk medium (status 07 open / 42 closed).</summary>
     public static void CloseReelUnit(string name) => _reg.CloseReelUnit(name);
 
+    /// <summary>CLOSE … WITH NO REWIND on a disk medium — the file IS closed and a successful close reports
+    /// '07' (Table 14 Non-unit = c,g; §9.1.13.2 item 6).</summary>
+    public static void CloseNoRewind(string name) => _reg.CloseNoRewind(name);
+
     /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46); <paramref name="length"/> is the varying-record length
     /// (ISO §13.18.43 GR13a), -1 = the record's own size.</summary>
     public static void Write(string name, string image, int length = -1) => _reg.Write(name, image, length);

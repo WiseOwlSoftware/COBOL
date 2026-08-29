@@ -306,7 +306,12 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         else
             w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File))};");
         SeqIo.EmitStoreFileStatus(df.File);
-        if (df.OnException is null) SeqIo.EmitUseHook(df.File);   // the ON EXCEPTION phrase suppresses the declarative entirely (§9.1.13.1)
+        // §14.9.10.4 GR20b: the enabled level-3 EC-I-O for the status is set to exist EVEN when the ON
+        // EXCEPTION phrase is written — the phrase suppresses only the declarative dispatch and the fatal
+        // default (GR20c), the same third-flag shape the AT END / INVALID KEY suppressions use. The old
+        // `if (OnException is null)` skip left EXCEPTION-STATUS stale inside imperative-statement-3
+        // (kb/Work PB141).
+        SeqIo.EmitUseHook(df.File, onExceptionHandled: df.OnException is not null);
         // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
         // completion (GR14) and takes the NOT ON EXCEPTION path.
         if (df.OnException is { } on)

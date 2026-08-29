@@ -359,6 +359,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundKeyedWrite k: Query(IoNames, k.File); break;
                 case BoundKeyedRewrite k: Query(IoNames, k.File); break;
                 case BoundKeyedDelete k: Query(IoNames, k.File); break;
+                // DELETE FILE (§14.9.10 F2, 2023) was the ONE I-O statement missing from this enumeration —
+                // no (EC-I-O, file) pair, no __IoCheckEc mask, so GR20 b)'s enabled EC never set even after
+                // the onExceptionHandled fix threaded through (kb/Work PB141).
+                case BoundKeyedDeleteFile k: Query(IoNames, k.File); break;
                 case BoundKeyedStart k: Query(IoNames, k.File); break;
                 case BoundInvoke or BoundInvokeUniversal:
                     Query(OoInvokeNames);   // §14.9.23.4 GR5 / GR7b
