@@ -183,7 +183,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
     /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);
     /// the remaining clauses are captured for the features that will consume them. Defaults when no OPTIONS.</summary>
-    public OptionsModel Options { get; private set; } = OptionsModel.Default;
+    public OptionsModel Options { get; internal set; } = OptionsModel.Default;
+
+    /// <summary>Seed the §11.9.4 GR1 baseline for a CLASS-CHANNEL bind (kb/Work PB135): OoDriver computes the
+    /// class/object/factory-level model from the skeleton paragraphs and hands it here before BindDeclarations,
+    /// whose own Bind over the synthetic unit (no identification body) then folds it as the baseline.</summary>
+    internal void CallInheritOptions(OptionsModel m) => _inheritedOptions = m;
 
     /// <summary>All SELECTed files (the SELECT clause joined with its FD records), in source order.
     /// (READ-ONLY view — P6 Step 5. The bind-phase file-connector qualification mutates the FileModel ELEMENTS,

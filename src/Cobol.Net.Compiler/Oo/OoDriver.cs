@@ -54,6 +54,11 @@ internal sealed class OoDriver(BindSession session)
         var edition = session.Edition;
         var data = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, RefModZeroLength = session.RefModZeroLength };
         data.CallSeedUids(session.TakeUidBand());
+        // §10.6.1 / §11.9.4 GR1 (kb/Work PB135): the class skeleton's OPTIONS paragraph is the contained
+        // definitions' baseline; the OBJECT paragraph's own overrides it clause by clause.
+        var clsOptions = Binding.OptionsBinder.BindParagraph(cls.Symbol.Ctx.optionsParagraph(), edition, null);
+        data.CallInheritOptions(Binding.OptionsBinder.BindParagraph(
+            cls.Symbol.Ctx.objectParagraph()?.optionsParagraph(), edition, clsOptions));
         var synthetic = OoReparentClassData(cls.Symbol.Ctx);
         data.BindDeclarations(synthetic);
         foreach (var m in cls.Symbol.Methods.ToList())   // snapshot — property synthesis appends accessors
@@ -71,6 +76,8 @@ internal sealed class OoDriver(BindSession session)
         // factory WS) works free: the factory binder's WS roots are not method-scoped → OoIsObjectData.
         var fdata = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, RefModZeroLength = session.RefModZeroLength };
         fdata.CallSeedUids(session.TakeUidBand());
+        fdata.CallInheritOptions(Binding.OptionsBinder.BindParagraph(
+            cls.Symbol.Ctx.factoryParagraph()?.optionsParagraph(), edition, clsOptions));   // §11.9.4 GR1 (kb/Work PB135)
         var fsynthetic = OoReparentFactoryData(cls.Symbol.Ctx);
         fdata.BindDeclarations(fsynthetic);
         foreach (var m in cls.Symbol.FactoryMethods.ToList())

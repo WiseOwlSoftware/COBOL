@@ -17,6 +17,7 @@ options { tokenVocab = CobolLexer; }
 // END CLASS. (FACTORY, INHERITS, ENVIRONMENT/REPOSITORY are later slices.)
 classDefinition
     : (IDENTIFICATION DIVISION DOT)? classIdParagraph
+      optionsParagraph?    // §10.6.1 [options-paragraph] (kb/Work PB135; §11.9.4 GR1 — inherited by the contained definitions)
       environmentDivision?
       factoryParagraph?
       objectParagraph?
@@ -30,6 +31,7 @@ classDefinition
 // (§10.6 :12760).
 factoryParagraph
     : (IDENTIFICATION DIVISION DOT)? FACTORY DOT implementsClause?
+      optionsParagraph?    // §10.6.1 (kb/Work PB135)
       environmentDivision?
       dataDivision?
       (PROCEDURE DIVISION DOT methodDefinition*)?
@@ -51,6 +53,7 @@ className
 // format :12765) — never the CLASS-ID (the dead sketch put it there; spec-wrong).
 objectParagraph
     : (IDENTIFICATION DIVISION DOT)? OBJECT DOT implementsClause?
+      optionsParagraph?    // §10.6.1 (kb/Work PB135)
       environmentDivision?
       dataDivision?
       (PROCEDURE DIVISION DOT methodDefinition*)?
@@ -72,6 +75,7 @@ interfaceName
 interfaceDefinition
     : (IDENTIFICATION DIVISION DOT)? INTERFACE_ID DOT interfaceName
       (INHERITS FROM interfaceName+)? DOT
+      optionsParagraph?    // §10.6.1 (kb/Work PB135; prototypes bind no bodies — the parse is the obligation)
       environmentDivision?
       (PROCEDURE DIVISION DOT methodDefinition*)?
       END INTERFACE interfaceName DOT
@@ -82,6 +86,7 @@ methodDefinition
     : (IDENTIFICATION DIVISION DOT)? METHOD_ID DOT
       ( methodName | methodPropertySelector )
       OVERRIDE? (IS? FINAL)? DOT
+      optionsParagraph?    // §10.6.1 [options-paragraph] in the method skeleton (kb/Work PB135; overrides per §11.9.4 GR1)
       environmentDivision?
       dataDivision?
       procedureDivision?

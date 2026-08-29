@@ -146,6 +146,11 @@ public sealed partial class DataBinder
                 + "— the configuration and input-output sections may appear only in a factory or instance "
                 + "definition (ISO §12.3.3 SR2 / §12.4.3 SR1)");
 
+        // §10.6.1's method skeleton prints [options-paragraph] (kb/Work PB135): fold it over the class
+        // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind.
+        if (m.Ctx.optionsParagraph() is { } mo)
+            m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options);
+
         var dd = m.Ctx.dataDivision();
         _bindingMethodScope = m.DataScope;   // M2-OO-1h step 4: route INDEXED BY index-names to the method scope
         if (dd is not null)

@@ -267,10 +267,21 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // The ordered quadruple (section → method scope → §11.7 GR5 data shadowing → cursor) is ONE
             // scoped operation (10s) — set coherently, restored coherently on dispose.
             using var _ = Ctx.EnterMethodScope(table.ParaSections[i], table.ParaMethods[i], i);
-            var sentences = new List<IReadOnlyList<BoundStatement>>();
-            foreach (var sentence in table.Paragraphs[i].Sentences)
-                sentences.Add(sentence.statement().Select(BindStatement).ToList());
-            bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
+            // §11.9.4 GR1 (kb/Work PB135): a method's own OPTIONS model governs ITS body only — swapped in
+            // for this pc's sentences (the binder reads ctx.Options per statement; statements bind HERE, in
+            // the per-pc pass, not in the roster registration loop above) and restored after.
+            var savedOptions = data.Options;
+            if (table.ParaMethods[i] is { } mScope && scopeToMethod.TryGetValue(mScope, out var mSym)
+                && mSym.MethodOptions is { } mOpt)
+                data.Options = mOpt;
+            try
+            {
+                var sentences = new List<IReadOnlyList<BoundStatement>>();
+                foreach (var sentence in table.Paragraphs[i].Sentences)
+                    sentences.Add(sentence.statement().Select(BindStatement).ToList());
+                bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
+            }
+            finally { data.Options = savedOptions; }
         }
         // Append the exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) above the whole class pc
         // space (ISO §14.9.28.4 GR17; design SSOT §9.10 — the SAME allocation the program path uses at Bind():163).

@@ -32,6 +32,15 @@ internal static class OptionsBinder
         if (paragraphs is null) return start;
 
         var options = paragraphs.Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null);
+        return BindParagraph(options, edition, start);
+    }
+
+    /// <summary>The paragraph-level core (kb/Work PB135): the OO units carry their OPTIONS paragraph on the
+    /// SKELETON (§10.6.1), not inside an identification body, so OoDriver / OoBindMethodData hand the
+    /// context in directly — with the container's model as the §11.9.4 GR1 baseline.</summary>
+    public static OptionsModel BindParagraph(Core.OptionsParagraphContext? options, EditionContext? edition, OptionsModel? baseline)
+    {
+        var start = baseline ?? OptionsModel.Default;
         if (options is null) return start;
 
         // options-paragraph-2002: the pass owns the edition gate (Exec Step E); below 2002 the paragraph is

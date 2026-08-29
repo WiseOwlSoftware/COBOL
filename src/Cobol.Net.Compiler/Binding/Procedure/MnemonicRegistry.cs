@@ -26,8 +26,22 @@ internal sealed class MnemonicRegistry
         var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         for (IParseTree? n = at; n is not null; n = n.Parent)
         {
-            if (n is not Core.ProgramUnitContext pu) continue;
-            var paragraphs = DataBinder.EnvDivisions(pu)
+            // kb/Work PB135: a METHOD's parse chain never meets a ProgramUnitContext (it tops out at
+            // compilationGroup through the class contexts), so the device map was EMPTY inside every method
+            // while the SWITCH map — built from the SAME rule through OoDriver's synthetic reparented unit —
+            // resolved. The walk now reads each OO ancestor's own configuration (a method itself may not
+            // declare one — §12.3.3 SR2, enforced as COBOLNET1519); TryAdd keeps the nearest scope.
+            var envs = n switch
+            {
+                Core.ProgramUnitContext pu => DataBinder.EnvDivisions(pu),
+                Core.ObjectParagraphContext op => op.environmentDivision() is { } e ? [e] : System.Array.Empty<Core.EnvironmentDivisionContext>(),
+                Core.FactoryParagraphContext fp => fp.environmentDivision() is { } e ? [e] : System.Array.Empty<Core.EnvironmentDivisionContext>(),
+                Core.ClassDefinitionContext cd => cd.environmentDivision() is { } e ? [e] : System.Array.Empty<Core.EnvironmentDivisionContext>(),
+                Core.InterfaceDefinitionContext idf => idf.environmentDivision() is { } e ? [e] : System.Array.Empty<Core.EnvironmentDivisionContext>(),
+                _ => null,
+            };
+            if (envs is null) continue;
+            var paragraphs = envs
                 .SelectMany(env => env.configurationSection()?.configurationParagraph() ?? []);
             foreach (var para in paragraphs)
                 foreach (var entry in para.specialNamesParagraph()?.specialNameEntry() ?? [])
