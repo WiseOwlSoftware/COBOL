@@ -114,6 +114,17 @@ public sealed class ImageWidthIsStorageWidthTests
         Assert.Equal(4, item.ByteWidth);
     }
 
+    /// <summary>The R40 INDEX pin's ONE-WIDTH agreement: the picture-less index item occupies its 8
+    /// occurrence-number bytes in BOTH views (the same 8 FUNCTION BYTE-LENGTH always reported — item 211).</summary>
+    [Fact]
+    public void IndexLeaf_ImageAndByteWidthsAgreeAtEight()
+    {
+        var item = Leaf(PicInfo.IndexItem);
+        Assert.Equal(8, item.ImageWidth);
+        Assert.Equal(8, item.ByteWidth);
+        Assert.True(item.IsImageCapable);
+    }
+
     /// <summary>NATIONAL is the ONE sanctioned divergence and it is exactly 2× (D-N1/D-N3) — asserted, so a
     /// future change cannot quietly widen the exemption.</summary>
     [Fact]

@@ -205,7 +205,7 @@ public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// the unique data item is an elementary alphanumeric item over the group's positions): reading is the generated
 /// <c>AsImage()</c> (an occurs-depending group with data-name-1 outside sends its CURRENT-count part, §13.18.38 GR8);
 /// writing distributes the spliced image back through the ONE group-image store (<c>PlaceRenderer.WriteGroupImage</c>
-/// — <c>FromImage</c>, or the GR8a current-extent splice). A group with a float / COMP-5 / INDEX leaf has no image
+/// — <c>FromImage</c>, or the GR8a current-extent splice). A variable-length group or a group with a pointer/object-class leaf has no image (every NUMERIC leaf kind joined the image across kb/Work PB164 + R40)
 /// (<see cref="DataItem.IsImageCapable"/>) and stays the loud Tier-C island. The <see cref="NumericImagePlace"/>
 /// shape for groups — kb/Work PB70: before it, the resolver's category gate returned null for every group, which
 /// was a run-time NotImplemented for a sending ref-mod and a SILENT no-op for a receiving one. Rendered by

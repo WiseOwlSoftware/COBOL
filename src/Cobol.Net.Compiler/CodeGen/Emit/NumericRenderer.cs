@@ -298,7 +298,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // PIC 9 leaves threw at run time, so the operand whose digits were unambiguous failed and the merely-textual
         // one succeeded. Migrating this arm while strict still ACCEPTED the construct would have extended acceptance
         // of illegal source instead of fixing anything — the two changes are correct only together. A
-        // USAGE INDEX group has no image at all and stays loud even under --permissive (kb/Work PB164).
+        // group with a pointer/object-class leaf (or a variable-length group) still has no image and stays
+        // loud even under --permissive (kb/Work PB164 + R40 — an INDEX-leaf group images now).
         null when p.Item.IsImageCapable =>
             new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? PlaceRenderer.Read(p) : $"{PlaceRenderer.Read(p)}.AsImage()")})", 0),
         null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? PlaceRenderer.Read(p)}'"), 0),

@@ -41,10 +41,11 @@ public sealed class NumericByteFormDriftTests
             [Usage.BinaryShort] = (NumericByteForm.Binary, NumericTruncation.BinaryCapacity),
             [Usage.BinaryLong] = (NumericByteForm.Binary, NumericTruncation.BinaryCapacity),
             [Usage.BinaryDouble] = (NumericByteForm.Binary, NumericTruncation.BinaryCapacity),
-            // ── USAGE INDEX carries a profile (category numeric, PICTURE-less) but reaches NO image: an
-            // occurrence-number carrier only SET, SEARCH and relation conditions may reference (§13.18.60.4 GR10).
-            // None is the honest answer, and it makes a codec handed one fail loud instead of inventing bytes. ──
-            [Usage.Index] = (NumericByteForm.None, NumericTruncation.DigitCount),
+            // ── USAGE INDEX (the R40 owner decision, 2026-08-30): the occurrence number as an 8-byte
+            // BIG-ENDIAN two's-complement binary — the documented 64-bit carrier's bytes in the byte order
+            // every other pinned form uses (A.1 item 211), so an INDEX-leaf group crosses images/CALL/MOVE/
+            // DISPLAY. §13.18.60.3 SR10 still restricts what may REFERENCE the item. ──
+            [Usage.Index] = (NumericByteForm.Binary, NumericTruncation.DigitCount),
             // ── The float family (kb/Work PB164 wave 2): the IEEE 754 interchange forms — binary32 for the
             // 4-byte usages, binary64 for the 8-byte ones (§13.18.60.4 GR14/GR15 pin the FLOAT-BINARY formats;
             // GR13/GR21 leave the rest to the implementor, one encoding serving both). EmitProfiles emits
@@ -155,6 +156,37 @@ public sealed class NumericByteFormDriftTests
         Assert.Contains("Truncation = NumericTruncation.PackedDecimal", Pic(Usage.Packed).ProfileInitializer);
         Assert.Contains("ByteForm = NumericByteForm.Ieee32", PicInfo.FloatItem(Usage.Float).ProfileInitializer);
         Assert.Contains("StorageLength = 8", PicInfo.FloatItem(Usage.Double).ProfileInitializer);
+        Assert.Contains("ByteForm = NumericByteForm.Binary", PicInfo.IndexItem.ProfileInitializer);
+        Assert.Contains("StorageLength = 8", PicInfo.IndexItem.ProfileInitializer);
+    }
+
+    /// <summary>The R40 pin at BYTE level, against the decision rather than the lane's own inverse: an index
+    /// item's image is its occurrence number as 8 big-endian two's-complement bytes through the ordinary
+    /// Binary lane (occurrence 3 → seven zero bytes then 0x03), and the store lane inverts it.</summary>
+    [Fact]
+    public void IndexImage_IsEightBigEndianOccurrenceBytes()
+    {
+        var profile = new NumProfile
+        {
+            Digits = 0,
+            FractionDigits = 0,
+            Signed = true,   // the two's-complement pin — see IndexItem's doc (the R40 fleet round)
+            Truncation = NumericTruncation.DigitCount,
+            ByteForm = NumericByteForm.Binary,
+            StorageLength = 8,
+        };
+        string image = CobolNum.FormatImage(3L, profile);
+        Assert.Equal(8, image.Length);
+        for (int i = 0; i < 7; i++) Assert.Equal((char)0, image[i]);
+        Assert.Equal((char)3, image[7]);
+        Assert.Equal(3, (long)CobolNum.ParseImage(image, profile));
+        // TWO'S COMPLEMENT, not magnitude (the R40 review fleet — an unsigned profile over the signed long
+        // carrier encoded |value| and decoded zero-extended, so the codec was not an involution and a group
+        // MOVE of HIGH-VALUES rewrote the index window where §14.9.25.4 GR4 requires a representation copy):
+        // −1 is eight 0xFF bytes, and those bytes parse back to −1.
+        string neg = CobolNum.FormatImage(-1L, profile);
+        for (int i = 0; i < 8; i++) Assert.Equal((char)0xFF, neg[i]);
+        Assert.Equal(-1, (long)CobolNum.ParseImage(neg, profile));
     }
 
     /// <summary>The FLOAT-BINARY endianness axis (§13.18.60.4 GR19 + §11.9.8, kb/Work PB164 wave 2), applied

@@ -372,12 +372,17 @@ public sealed class DataItem
     /// image is its TRUE BYTES: radix-2 two's complement or BCD of exactly <see cref="Model.PicInfo.StorageWidth"/>
     /// (ISO/IEC 1989:2023 §13.18.60.4 GR4/GR11 leave the representation, including the sign, to the implementor —
     /// see <see cref="NumericByteForm"/>; V59). COMP-5 and BINARY-CHAR..DOUBLE are IN (kb/Work PB164 wave 1 —
-    /// their Binary byte form and StorageWidth were pinned by V59; the old exclusion was predicate drift), and
-    /// the FLOAT family is IN too (wave 2 — the <see cref="NumericByteForm.Ieee32"/>/<c>Ieee64</c> big-endian
-    /// interchange pin, §13.18.60.4 GR13–GR15). Excluded — kept loud (§1.4): INDEX items only (no image at
-    /// all, §13.18.60.4 GR10 — an owner decision when PB164's last half lands). A group is image-capable when
-    /// every child is. Width-wise the codec uses <see cref="ImageWidth"/>, which IS <see cref="ByteWidth"/> for
-    /// every item that reaches an image — the ONE-WIDTH invariant (<c>ImageWidthIsStorageWidthTests</c>).
+    /// their Binary byte form and StorageWidth were pinned by V59; the old exclusion was predicate drift),
+    /// the FLOAT family is IN (wave 2 — the <see cref="NumericByteForm.Ieee32"/>/<c>Ieee64</c> big-endian
+    /// interchange pin, §13.18.60.4 GR13–GR15), and USAGE INDEX is IN (the R40 owner decision — the 8-byte
+    /// big-endian occurrence-number image; §13.18.60.3 SR10 still restricts what may REFERENCE the item).
+    /// Still excluded: a POINTER/PROGRAM-POINTER/FUNCTION-POINTER/OBJECT-REFERENCE leaf (class
+    /// pointer/object — no character image; <see cref="ElementImageCapable"/>'s category list) and the
+    /// DYNAMIC axis above (a variable-length group has no fixed record window; DISPLAY alone renders its
+    /// documented current-extent format, A.1 item 57). A group is
+    /// image-capable when every child is. Width-wise the codec uses <see cref="ImageWidth"/>, which IS
+    /// <see cref="ByteWidth"/> for every item that reaches an image — the ONE-WIDTH invariant
+    /// (<c>ImageWidthIsStorageWidthTests</c>).
     /// </summary>
     public bool IsImageCapable =>
         !IsDynamicTable && !IsDynamicLength   // out-of-line dynamic table / variable-length string — not in the static record codec (D9 / §8.5.1.10)
@@ -387,8 +392,9 @@ public sealed class DataItem
     /// the content at any one length. Split out of <see cref="IsImageCapable"/> (kb/Work PB164, the
     /// variable-length DISPLAY half) so the current-extent composer can ask whether a DYNAMIC table's element
     /// has a well-defined image without duplicating the predicate: a dynamic table of image-capable elements
-    /// concatenates their images at current capacity (§14.9.11.4 GR7's documented format), while a USAGE INDEX
-    /// leaf keeps its group imageless under EITHER axis.</summary>
+    /// concatenates their images at current capacity (§14.9.11.4 GR7's documented format), while a
+    /// pointer/object-class leaf keeps its group imageless under EITHER axis (an INDEX leaf images since
+    /// R40).</summary>
     public bool ElementImageCapable =>
         IsElementary
             // P5.7: the leaf arm is defined DIRECTLY on Pic (a pure declared-shape fact, phase-stable at every
@@ -510,12 +516,13 @@ public sealed class DataItem
                     or Usage.BinaryLong or Usage.BinaryDouble
                     or Usage.Float or Usage.FloatShort or Usage.FloatBinary32
                     or Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64
+                    or Usage.Index   // R40: the 8-byte occurrence-number image — one width authority
                     => pic.StorageWidth,
                 // The processor-dependent non-support formats (rejected at ParseUsage, COBOLNET1564) — their pinned
                 // ISO/IEC 60559 byte widths, so a BYTE-LENGTH fold under an already-errored compile is not off by 1x.
                 Usage.FloatBinary128 or Usage.FloatDecimal34 => 16,   // binary128 / decimal128 = 16 bytes
                 Usage.FloatDecimal16 => 8,                            // decimal64 = 8 bytes
-                Usage.Index or Usage.Pointer or Usage.ProgramPointer or Usage.FunctionPointer
+                Usage.Pointer or Usage.ProgramPointer or Usage.FunctionPointer
                     or Usage.ObjectReference => 8,
                 Usage.National => 2 * ElementaryImageWidth,     // 2 bytes per national position (UTF-16, D-N1/D-N3)
                 _ => ElementaryImageWidth,                       // DISPLAY / BIT: 1 byte per character/boolean position

@@ -89,8 +89,8 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// same. This is the §14.9.11.4 GR7 documented-format gate (kb/Work PB164 — A.1 item 57). ⚠ A runtime-length
     /// item INSIDE a table element stays OUT — deliberately the SAME boundary as the §15.50.4 r7 LENGTH sum's
     /// named stage (<c>IntrinsicBinder.VariableLengthGroupSum</c>), so DISPLAY and FUNCTION LENGTH agree about
-    /// which groups have a defined current extent. A USAGE INDEX leaf keeps the group loud under either
-    /// predicate.</summary>
+    /// which groups have a defined current extent. (Since the R40 INDEX pin no LEAF KIND excludes a group —
+    /// only the shapes above do.)</summary>
     public static bool CurrentExtentImageCapable(DataItem g) =>
         g.IsGroup && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(g)
         && g.Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))

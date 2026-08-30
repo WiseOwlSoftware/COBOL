@@ -9,10 +9,15 @@ namespace CobolNet.Tests.Conformance;
 /// with a non-image-capable leaf has no whole-group image, so the verbs that need one stage LOUD by name
 /// (COBOLNET_DESIGN §1.4, §4.2). Step C routed the ~12 scattered emit guards through the ONE
 /// <c>TierCIsland.Reason</c> source, and these facts are "a lock to flip against" — kb/Work PB164 wave 1
-/// FLIPPED the COMP-5/BINARY-CHAR..DOUBLE arms (their Binary byte form was pinned all along; such a group now
-/// crosses MOVE/CALL — <c>2023/pb164_comp5_group_image</c> pins the working behavior), so the island's TRUE
-/// remaining boundary after wave 2 (the IEEE float pin) is an INDEX leaf, and the lock fixture pins THAT. One fact pins the still-open
-/// COMP-5 DISPLAY leg by name (PB164's remaining DISPLAY half), so the residue stays measured, not assumed.
+/// FLIPPED the COMP-5/BINARY-CHAR..DOUBLE arms, wave 2 the floats, and the R40 owner decision the INDEX leaf
+/// (the 8-byte occurrence-number image; <c>DisplayIndexGroup_RendersVerbatimBytes</c> pins THAT working
+/// behavior below), so the island's remaining boundaries are the VARIABLE-LENGTH group (the primary lock
+/// fixture) and a POINTER/OBJECT-CLASS leaf (the R40 fleet's correction — every NUMERIC kind is in, the
+/// pointer/object categories are not; <c>DisplayPointerGroup_FailsLoud</c>/<c>MovePointerGroup_FailsLoud</c>
+/// pin that arm). DISPLAY of a COMPOSABLE variable-length group is NOT here: it renders the documented A.1 item-57
+/// format (<c>2023/pb164_vlg_display</c>); the DISPLAY loud lives on the UNCOMPOSABLE shape
+/// (<c>DisplayOdoGroupWithDynamicMember_FailsLoudNotCs1061</c>). ACCEPT/STRING receivers are BIND-screened
+/// by their own syntax rules (§14.9.1.3 SR6 / §14.9.43.3 SR11) and pinned as such.
 /// </summary>
 public sealed class TierCRejectionTests
 {
@@ -23,7 +28,7 @@ public sealed class TierCRejectionTests
         WORKING-STORAGE SECTION.
         01 WS-G.
            05 WS-G-A PIC X(3).
-           05 WS-G-N USAGE INDEX.
+           05 WS-G-D PIC X DYNAMIC LENGTH.
         01 WS-SRC  PIC X(7) VALUE "HELLOXX".
         01 WS-DEST PIC X(7).
         01 WS-CNT  PIC 9(2).
@@ -33,27 +38,92 @@ public sealed class TierCRejectionTests
             STOP RUN.
         """;
 
-    /// <summary>A mixed-usage-group shape must compile (the emit guard is a runtime LoudStmt/LoudValue, not a
-    /// bind error) and fail LOUD at run time through the ONE Tier-C reason, never a silent wrong value.</summary>
+    /// <summary>A variable-length-group shape must compile (the emit guard is a runtime LoudStmt/LoudValue, not
+    /// a bind error) and fail LOUD at run time through the ONE Tier-C reason, never a silent wrong value.</summary>
     private static void AssertLoudTierC(string proc)
     {
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(proc));
-        Assert.False(ok, "a mixed-usage group without a character image shall fail loud (§1.4)");
+        Assert.False(ok, "a variable-length group without a whole-group image shall fail loud (§1.4)");
         Assert.Contains("Tier-C", detail);
     }
 
-    [Fact] public void DisplayWholeGroup_FailsLoud() => AssertLoudTierC("    DISPLAY WS-G.");
+    /// <summary>A receiver its own SYNTAX RULE bars (§14.9.1.3 SR6 ACCEPT / §14.9.43.3 SR11 STRING) fails at
+    /// BIND with the rule's diagnostic — earlier and more precise than the runtime island.</summary>
+    private static void AssertBindRejected(string proc)
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(proc));
+        Assert.False(ok, "a variable-length-group receiver its syntax rule bars shall fail at bind");
+        Assert.Contains("variable-length", detail);
+    }
+
     [Fact] public void MoveIntoGroup_FailsLoud() => AssertLoudTierC("    MOVE WS-SRC TO WS-G.");
     [Fact] public void MoveGroupToElementary_FailsLoud() => AssertLoudTierC("    MOVE WS-G TO WS-DEST.");
-    [Fact] public void StringIntoGroup_FailsLoud() => AssertLoudTierC("    STRING WS-SRC DELIMITED BY SIZE INTO WS-G.");
     [Fact] public void InspectGroup_FailsLoud() => AssertLoudTierC("    INSPECT WS-G REPLACING ALL \"A\" BY \"B\".");
-    [Fact] public void AcceptIntoGroup_FailsLoud() => AssertLoudTierC("    ACCEPT WS-G.");
+    [Fact] public void StringIntoGroup_BindRejected() => AssertBindRejected("    STRING WS-SRC DELIMITED BY SIZE INTO WS-G.");
+    [Fact] public void AcceptIntoGroup_BindRejected() => AssertBindRejected("    ACCEPT WS-G.");
+
+    /// <summary>The POINTER/OBJECT-CLASS arm of the island (the R40 fleet's correction — the leaf-kind
+    /// boundary did NOT close entirely: pointer/object categories have no character image and R40's pin
+    /// covers the numeric kinds only). Compiles, throws Tier-C, names the pointer/object mechanism.</summary>
+    private static void AssertPointerGroupLoud(string proc)
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun($$"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TIERCRE5.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-GP.
+               05 WS-GP-A PIC X(3).
+               05 WS-GP-P USAGE POINTER.
+            01 WS-DST PIC X(7).
+            PROCEDURE DIVISION.
+            MAIN.
+            {{proc}}
+                STOP RUN.
+            """);
+        Assert.False(ok, "a pointer-leafed group has no whole-group image — loud (§1.4)");
+        Assert.Contains("Tier-C", detail);
+        Assert.Contains("pointer/object", detail);
+    }
+
+    [Fact] public void DisplayPointerGroup_FailsLoud() => AssertPointerGroupLoud("    DISPLAY WS-GP.");
+    [Fact] public void MovePointerGroup_FailsLoud() => AssertPointerGroupLoud("    MOVE WS-GP TO WS-DST.");
+
+    /// <summary>The R40 leg, pinned WORKING: an INDEX-leaf group displays its verbatim content — the leaf's
+    /// occurrence number as 8 big-endian two's-complement bytes (the R40 pin; A.1 items 56 + 211). SET (one
+    /// of the references §13.18.60.3 SR10 permits) seeds the value.</summary>
+    [Fact]
+    public void DisplayIndexGroup_RendersVerbatimBytes()
+    {
+        var (ok, stdout, _) = new CobolNetCompiler(2023).CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TIERCRE4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-T.
+               05 WS-E PIC X OCCURS 5 INDEXED BY IX.
+            01 WS-GI.
+               05 WS-GI-A PIC X(3) VALUE "ABC".
+               05 WS-GI-N USAGE INDEX.
+            PROCEDURE DIVISION.
+            MAIN.
+                SET IX TO 3.
+                SET WS-GI-N TO IX.
+                DISPLAY WS-GI.
+                STOP RUN.
+            """);
+        Assert.True(ok, "an INDEX-leaf group DISPLAYs its verbatim content (the R40 pin)");
+        Assert.StartsWith("ABC", stdout);
+        for (int i = 3; i < 10; i++) Assert.Equal('\0', stdout[i]);   // occurrence number 3, 8 bytes big-endian
+        Assert.Equal((char)3, stdout[10]);
+    }
 
     /// <summary>PB164's DISPLAY leg for a COMP-5 leaf CLOSED with the image widening: the group has a whole
     /// image now, and DISPLAY transfers a group's character content VERBATIM (the A.1 item-56 determination —
     /// a group is class alphanumeric), so the COMP-5 leaf's two's-complement bytes appear raw in the output,
     /// exactly as GnuCOBOL renders such a group (the split-latitude tiebreaker). GR-14.9.11.4-4's COMP-5
-    /// residue is discharged; the INDEX display leg remains with the island facts above (floats closed with wave 2).</summary>
+    /// residue is discharged; the floats closed with wave 2 and the INDEX leg with R40 — every leaf-kind
+    /// display leg is now a WORKING pin.</summary>
     [Fact]
     public void DisplayComp5Group_RendersVerbatimBytes()
     {

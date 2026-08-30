@@ -136,8 +136,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// <c>FromImage</c>. Handles any image-capable group — alphanumeric, numeric-edited, numeric-DISPLAY (native or
     /// stored as its character image, <see cref="DataItem.StoreAsImage"/>), and BINARY/PACKED/COMP-5/float
     /// leaves (their image slices are the pinned byte representations — radix-2/BCD/IEEE, COBOLNET_DESIGN
-    /// §14.4; kb/Work PB164). Only a group with a USAGE INDEX leaf stays the genuine Tier-C byte-island
-    /// (deferred, loud).</summary>
+    /// §14.4; kb/Work PB164 + R40 — INDEX leaves included). Only a variable-length group or a group with a
+    /// pointer/object-class leaf stays the genuine Tier-C byte-island (deferred, loud).</summary>
     private void EmitGroupMove(Place target, BoundOperand source)
     {
         if (!target.Item.IsCharacterImage)
@@ -163,7 +163,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // image-capable receiver distributes the source's character image via FromImage exactly like a
             // character group — its fixed-point leaves decode their zoned slices (GR4: filled without
             // consideration for the individual items, over the implementor digit-image representation). Only
-            // the genuinely incapable receiver (a USAGE INDEX leaf, kb/Work PB164) stays loud (§1.4).
+            // the genuinely incapable receiver (a VARIABLE-LENGTH group or a group with a pointer/object-class leaf, kb/Work PB164 + R40) stays loud (§1.4).
             if (!target.Item.IsImageCapable)
             {
                 ctx.Writer.Line(LoudStmt(TierCIsland.Reason(target.Item, "MOVE to group")));

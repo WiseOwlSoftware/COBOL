@@ -434,10 +434,9 @@ public sealed record PicInfo(
     /// <para>The truncation discipline CANNOT stand in for this: USAGE DISPLAY and USAGE BINARY are both
     /// <see cref="NumericTruncation.DigitCount"/> yet occupy entirely different bytes.</para>
     /// <para>Consulted only where a <c>NumProfile</c> is emitted (every numeric item, floats included since
-    /// kb/Work PB164 wave 2 — see <c>RecordStructEmitter.EmitProfiles</c>); <see cref="NumericByteForm.None"/>
-    /// is the honest answer for USAGE INDEX, whose occurrence-number carrier reaches no image at all
-    /// (§13.18.60.4 GR10), and for every usage that carries no profile. <c>NumericByteFormDriftTests</c> pins
-    /// the whole table.</para>
+    /// kb/Work PB164 wave 2 and USAGE INDEX since the R40 owner decision — see
+    /// <c>RecordStructEmitter.EmitProfiles</c>); <see cref="NumericByteForm.None"/> remains only for the
+    /// usages that carry no profile at all. <c>NumericByteFormDriftTests</c> pins the whole table.</para>
     /// </summary>
     public NumericByteForm ByteForm => Usage switch
     {
@@ -460,6 +459,14 @@ public sealed record PicInfo(
         // and the decimal floats never reach here (rejected at ParseUsage).
         Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => NumericByteForm.Ieee32,
         Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 => NumericByteForm.Ieee64,
+        // The R40 owner decision (2026-08-30; kb/Work PB164's last leaf-kind exclusion): an index data
+        // item's image is its occurrence number as an 8-byte BIG-ENDIAN two's-complement binary — the
+        // documented 64-bit carrier's bytes, in the byte order every other pinned form uses (A.1 item 211,
+        // §4.2.16; the representation determination is §13.18.60.4 GR10's implementor latitude). The
+        // REFERENCE restriction is §13.18.60.3 SR10 — SEARCH/SET, relation conditions, intrinsic and inline
+        // method-invocation arguments, and the USING phrases of a PD header / CALL / INVOKE — a
+        // statement-surface syntax rule that stands; this row opens the GROUP's byte crossing.
+        Usage.Index => NumericByteForm.Binary,
         _ => NumericByteForm.None,
     };
 
@@ -469,9 +476,9 @@ public sealed record PicInfo(
     /// predicate (kb/Work PB164): it is DERIVED from the ByteForm table, never a hand-rolled usage union —
     /// four copies of the union had drifted to {Display, Binary, Packed} (wave 1 admitted COMP-5/
     /// BINARY-CHAR..DOUBLE; wave 2 the IEEE float forms, which retired the interim !IsFloat conjunct exactly
-    /// as its doc promised). Only USAGE INDEX answers false among the numerics (ByteForm None,
-    /// §13.18.60.4 GR10 — the pending owner decision). A usage added to ByteForm widens every consumer
-    /// HERE.</summary>
+    /// as its doc promised; the R40 decision pinned USAGE INDEX's 8-byte binary occurrence-number image,
+    /// closing the last leaf-kind exclusion). EVERY numeric usage that survives ParseUsage now answers true.
+    /// A usage added to ByteForm widens every consumer HERE.</summary>
     public bool HasImageByteForm => Category is PicCategory.Numeric && ByteForm is not NumericByteForm.None;
 
     /// <summary>The CAPACITY discipline that bounds this item's value — the SIZE ERROR boundary
@@ -510,6 +517,8 @@ public sealed record PicInfo(
         Usage.BinaryShort => 2,
         Usage.BinaryLong => 4,
         Usage.BinaryDouble => 8,
+        // The R40 pin: 8 bytes — the documented 64-bit occurrence-number carrier (A.1 item 211).
+        Usage.Index => 8,
         // The IEEE interchange widths (kb/Work PB164 wave 2 — §13.18.60.4 GR13-GR15).
         Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => 4,
         Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 => 8,
@@ -552,8 +561,15 @@ public sealed record PicInfo(
 
     /// <summary>The synthesized profile of a PICTURE-less <c>USAGE INDEX</c> data item (ISO §13.18.60): an
     /// elementary <c>long</c> holding an occurrence number. Digits/Scale are irrelevant — SET copies an index value
-    /// UNCHANGED (§14.9.39 GR2b), never through a PICTURE store.</summary>
-    public static PicInfo IndexItem { get; } = new(PicCategory.Numeric, Usage.Index, Length: 0, Digits: 0, Scale: 0, Signed: false);
+    /// UNCHANGED (§14.9.39 GR2b), never through a PICTURE store. Its IMAGE is the R40 pin — the occurrence
+    /// number as 8 big-endian TWO'S-COMPLEMENT bytes (<see cref="ByteForm"/> Binary, <see cref="StorageWidth"/>
+    /// 8) — so an INDEX-leaf group crosses images/CALL/MOVE/DISPLAY; §13.18.60.3 SR10 still restricts what may
+    /// REFERENCE the item. ⛔ <c>Signed: true</c> IS the two's-complement pin (the R40 review fleet): the
+    /// carrier is a signed <c>long</c>, and an UNSIGNED profile routes FormatBinaryImage through its
+    /// absolute-value arm and ParseBinaryImage through zero-extension — magnitude out, unsigned in, NOT an
+    /// involution, so a group MOVE of arbitrary bytes (HIGH-VALUES) silently rewrote the index window where
+    /// §14.9.25.4 GR4 requires a representation copy. Signed makes both lanes the documented form.</summary>
+    public static PicInfo IndexItem { get; } = new(PicCategory.Numeric, Usage.Index, Length: 0, Digits: 0, Scale: 0, Signed: true);
 
     /// <summary>The synthesized profile of a PICTURE-less floating-point item — COMP-1/COMP-2/FLOAT-SHORT/-LONG/
     /// -EXTENDED (ISO §13.18.60.2: floating-point usages are picture-less). Category Numeric, SIGNED (§13.18.60.4

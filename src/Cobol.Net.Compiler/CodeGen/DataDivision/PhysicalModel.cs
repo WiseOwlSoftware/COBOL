@@ -114,8 +114,8 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // StoreAsImage leaves, edited items — and floats): its slice of the group image is its BYTE FORM
             // (zoned digits, radix-2, BCD — PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164
             // admitted COMP-5/BINARY-CHAR..DOUBLE, whose drifted exclusion here was the second copy of the
-            // union), encoded/decoded through CobolNum (COBOLNET_DESIGN §14.4). INDEX never qualifies
-            // (ByteForm None; see DataItem.IsImageCapable).
+            // union), encoded/decoded through CobolNum (COBOLNET_DESIGN §14.4). INDEX qualifies since the R40
+            // pin (ByteForm Binary, 8 bytes; see DataItem.IsImageCapable).
             // ⛔ DERIVED from the predicate alone (kb/Work PB164 — the review fleet caught the carrier-name
             // list `"long" or "Int128"` surviving as a FIFTH drifted copy: an unsigned wide COMP-5/
             // BINARY-DOUBLE leaf carries ulong/UInt128, got NumLeaf null, and the codec emitted

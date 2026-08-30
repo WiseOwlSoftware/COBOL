@@ -38,10 +38,11 @@ public enum NumericTruncation
 public enum NumericByteForm
 {
     /// <summary>NO byte representation — the item never reaches a character image or a file record, so a codec
-    /// that is handed one must reject it LOUDLY rather than invent bytes. USAGE INDEX is the live case (an
-    /// occurrence-number carrier, ISO §13.18.60.4 GR10; SET copies it unchanged and no other statement may
-    /// reference it). Value 0, so an unstated byte form fails loud instead of silently claiming to be
-    /// DISPLAY.</summary>
+    /// that is handed one must reject it LOUDLY rather than invent bytes. No shipping numeric usage carries it
+    /// any more (USAGE INDEX was the last, until the R40 owner decision pinned its 8-byte occurrence-number
+    /// image — kb/Work PB164): it remains the value every NON-profile usage reads and the guard a NEW usage
+    /// hits until somebody decides its representation. Value 0, so an unstated byte form fails loud instead of
+    /// silently claiming to be DISPLAY.</summary>
     None = 0,
 
     /// <summary>USAGE DISPLAY (ISO §13.18.60.4 GR7 — "an alphanumeric coded character set shall be used to

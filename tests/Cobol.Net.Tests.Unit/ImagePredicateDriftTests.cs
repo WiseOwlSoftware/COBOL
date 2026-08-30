@@ -34,6 +34,7 @@ public class ImagePredicateDriftTests
     [InlineData(Usage.FloatExtended)]
     [InlineData(Usage.FloatBinary32)]
     [InlineData(Usage.FloatBinary64)]
+    [InlineData(Usage.Index)]
     public void EveryPinnedByteForm_IsImageCapable(Usage usage)
     {
         var pic = Pic(usage);
@@ -42,14 +43,10 @@ public class ImagePredicateDriftTests
             $"{usage} has ByteForm {pic.ByteForm} — the image predicate must admit it (kb/Work PB164)");
     }
 
-    [Theory]
-    [InlineData(Usage.Index)]
-    public void NoByteForm_IsNotImageCapable(Usage usage)
-    {
-        var pic = Pic(usage);
-        Assert.Equal(NumericByteForm.None, pic.ByteForm);
-        Assert.False(pic.HasImageByteForm);
-    }
+    // The NoByteForm negative theory retired with the R40 owner decision: USAGE INDEX — its last (and only
+    // remaining) row — moved to the positive theory above with its 8-byte occurrence-number image. The
+    // future-usage guard lives where it always did: NumericByteFormDriftTests.EveryUsage_IsInTheTable makes
+    // an unstated byte form a RED test the moment a new usage is added.
 
     [Theory]
     // The binary forms occupy StorageWidth bytes in the image — never a byte per decimal digit (V59).

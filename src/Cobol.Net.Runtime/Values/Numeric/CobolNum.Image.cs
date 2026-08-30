@@ -131,8 +131,8 @@ public static partial class CobolNum
         _ => throw NoByteImage(item),
     };
 
-    /// <summary>An item with no byte representation (<see cref="NumericByteForm.None"/> — USAGE INDEX, whose
-    /// occurrence-number carrier reaches no image at all, §13.18.60.4 GR10) reached a byte boundary. That is a
+    /// <summary>An item with no byte representation (<see cref="NumericByteForm.None"/> — no shipping
+    /// numeric usage since the R40 INDEX pin; the guard for an unstated future usage) reached a byte boundary. That is a
     /// compiler invariant break, never a COBOL runtime condition: the binder's <c>IsImageCapable</c> gate is
     /// supposed to make it unreachable. Fail LOUD rather than invent bytes — inventing them is exactly the class
     /// of defect this codec exists to retire.</summary>

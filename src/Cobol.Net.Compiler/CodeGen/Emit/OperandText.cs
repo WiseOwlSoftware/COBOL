@@ -115,9 +115,9 @@ internal static class OperandText
     /// materializes §15.19.4 r2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
     /// image — storage, so no GR6a de-sign); a BINARY/PACKED/COMP-5 leaf its radix-2/BCD bytes
     /// (<c>CobolNum.FormatImage</c>, V59/§14.4); a float leaf its IEEE interchange bytes
-    /// (<c>CobolNum.FormatImageFloat</c> — kb/Work PB164 wave 2). A USAGE INDEX leaf has no defined image
-    /// (<see cref="DataItem.IsImageCapable"/>) and stages LOUD rather than returning a plausible wrong image;
-    /// index/pointer/object shapes are unreachable — the §15.19.3 r7 bind screen rejected them.</summary>
+    /// (<c>CobolNum.FormatImageFloat</c> — kb/Work PB164 wave 2); an INDEX leaf its 8-byte occurrence-number
+    /// bytes (R40). Only a VARIABLE-LENGTH group stages LOUD rather than returning a plausible wrong image;
+    /// pointer/object shapes are unreachable — the §15.19.3 r7 bind screen rejected them.</summary>
     public static string AsStorageImage(Place p)
     {
         // §8.4.3.3.4 GR6 — a ref-mod view is an elementary item over the underlying item's characters; its
@@ -211,7 +211,7 @@ internal static class OperandText
         // ⚠ THIS COMMENT USED TO SAY "its zoned decimal digit image … with a trailing-overpunch sign", which was
         // true of the PRE-V59 image and is now false — the bytes are not digits. Corrected rather than left, since
         // a stale comment describing the old representation is exactly how the two-predicate residue below spread.
-        // Only a group with a USAGE INDEX leaf stays the loud Tier-C island (kb/Work PB164). This is the
+        // Only a VARIABLE-LENGTH group or a group with a pointer/object-class leaf stays the loud Tier-C island (kb/Work PB164 + R40). This is the
         // WRITE / RELEASE / DISPLAY / compare sender path.
         // A BIT GROUP operates as an elementary boolean item of PICTURE 1(m) (§13.18.29.4 GR1b; D20/PB79): its
         // operand value is its BIT STRING (the subordinates' boolean positions concatenated — AsBits), never the

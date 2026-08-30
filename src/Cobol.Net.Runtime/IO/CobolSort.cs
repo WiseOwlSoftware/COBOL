@@ -280,8 +280,8 @@ public static class CobolSort
     /// value. Scale is irrelevant for ordering: both operands of one key share one PICTURE, so the unscaled
     /// values order identically to the scaled ones.</summary>
     /// <summary>Decode a fixed-point numeric key's window with the leaf's own profile (zoned/radix-2/BCD —
-    /// V59). A profile with NO byte form (<see cref="NumericByteForm.None"/> — USAGE INDEX) throws the codec's
-    /// loud invariant break rather than yielding an invented ordering; float keys take the algebraic lane in
+    /// V59). A profile with NO byte form (<see cref="NumericByteForm.None"/> — no shipping usage since R40) throws
+    /// the codec's loud invariant break rather than yielding an invented ordering; float keys take the algebraic lane in
     /// <see cref="KeyColumns.Build"/>, never this one.</summary>
     private static Int128 NumericKey(string image, in Key k) => CobolNum.ParseImage(Slice(image, k), k.Profile);
 }

@@ -131,8 +131,9 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // fixed-point leaf (DISPLAY/BINARY/PACKED) its zoned digit image (trailing-overpunch sign, the
             // §13.18.60 USAGE GR4 implementor representation) — and FromImage distributes a character image back
             // into them. Used by whole-group MOVE / DISPLAY / compare / WRITE / RELEASE and the READ / RETURN
-            // record-area distribution; the SD/FD record codec IS this pair (§8.2). Only a group with a
-            // USAGE INDEX leaf stays the loud Tier-C island (DataItem.IsImageCapable; kb/Work PB164).
+            // record-area distribution; the SD/FD record codec IS this pair (§8.2). Only a variable-length
+            // group or a group with a pointer/object-class leaf stays outside the static codec
+            // (DataItem.IsImageCapable; kb/Work PB164 + R40 — every NUMERIC leaf kind is in the image).
             // ⚠ Gated on the ELEMENT shape (ElementImageCapable), not IsImageCapable: a dynamic-capacity
             // TABLE's element struct has a well-defined per-occurrence image the current-extent composer
             // concatenates (CS1061 without it) — the STATIC record codec still consults IsImageCapable at
