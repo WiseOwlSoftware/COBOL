@@ -63,11 +63,13 @@ public sealed class ProgramTable
     }
 
     /// <summary>Register one program unit (emitted once per unit at run-unit start, containers before containees).
-    /// <paramref name="staticReset"/> — supplied ONLY by a RECURSIVE-and-not-INITIAL unit with working-storage —
-    /// re-initializes that unit's STATIC WS fields (§13.5.4 GR1: WS of a non-initial program / a function is
-    /// static data, ONE copy on the class): invoked here so §14.6.2.3.2 case 1 (initial state "the first time
-    /// the function … or program … is activated in a run unit") holds even when the same loaded module serves a
-    /// SECOND run unit in one process, and by <see cref="CancelNode"/> (§14.9.5 GR3 / §14.6.2.3.2 case 3).</summary>
+    /// <paramref name="staticReset"/> — supplied ONLY by a RECURSIVE-and-not-INITIAL unit with static WS
+    /// storage or unit-scoped file connectors (kb/Work PB168) — re-initializes that unit's STATIC WS fields
+    /// (§13.5.4 GR1: WS of a non-initial program / a function is static data, ONE copy on the class) and
+    /// resets its static file-registration guard: invoked here so §14.6.2.3.2 case 1 (initial state "the
+    /// first time the function … or program … is activated in a run unit") holds even when the same loaded
+    /// module serves a SECOND run unit in one process, and by <see cref="CancelNode"/> (§14.9.5 GR3 /
+    /// §14.6.2.3.2 case 3).</summary>
     public void Register(
         string path, string name, string? parentPath,
         bool initial, bool common, bool recursive,

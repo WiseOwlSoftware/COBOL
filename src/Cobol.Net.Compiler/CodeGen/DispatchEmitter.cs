@@ -59,19 +59,34 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             if (ctx.Data.Classification is { } cls)
                 // ISO §12.3.6.4 GR8 / §14.6.6 r2 — the classification is established at the module's activation.
                 w.Line(ObjectComputerEmit.ClassificationPrologue(cls));
-            // Register this program's SELECTed files at FIRST ACTIVATION of this instance (the IC114A lesson:
-            // connectors belong to the program's entry, not the run-unit Main; a fresh instance after CANCEL /
-            // an INITIAL activation re-registers — ISO §14.6.2.3.2). Run-unit CloseAll lives in the runtime RunMain boundary.
+            // Register this program's SELECTed files at FIRST ACTIVATION (the IC114A lesson: connectors
+            // belong to the program's entry, not the run-unit Main; a fresh instance after CANCEL / an
+            // INITIAL activation re-registers — ISO §14.6.2.3.2). For a UnitStaticFiles unit the guard is
+            // STATIC — one registration per run unit, §14.6.2.3.3 last-used across recursive activations,
+            // reset only on the initial-state cases via __ResetStatics (kb/Work PB168). Run-unit CloseAll
+            // lives in the runtime RunMain boundary.
             if (ctx.Data.Files.Count > 0)
             {
+                // ⛔ ONE GUARD PER SCOPE (kb/Work PB168 — the review fleet caught all three riding one flag):
+                // connector REGISTRATION is run-unit-scoped for a UnitStaticFiles unit (the flag is static
+                // there); report-engine CONSTRUCTION assigns per-INSTANCE fields and takes its own instance
+                // guard below; the LINAGE evaluator closes over THIS activation's instance and installs
+                // unguarded so the shared connector never reads a dead activation's geometry.
                 using (w.Block("if (!__filesRegistered)"))
                 {
                     w.Line("__filesRegistered = true;");
                     seqIo.EmitFileRegistration(w);
-                    // Report engines construct WITH the connectors (hazard: the report FD must be registered
-                    // before the engine's first write — COBOLNET_REPORT_WRITER_DESIGN §4).
-                    reportWriter.EmitReportConstruction(bound, w);
                 }
+                // Report engines construct AFTER the registration block (hazard: the report FD must be
+                // registered before the engine's first write — COBOLNET_REPORT_WRITER_DESIGN §4; ordering
+                // holds on every path: a skipped registration block means an EARLIER activation registered).
+                if (ctx.Data.Reports.Count > 0)
+                    using (w.Block("if (!__reportsConstructed)"))
+                    {
+                        w.Line("__reportsConstructed = true;");
+                        reportWriter.EmitReportConstruction(bound, w);
+                    }
+                seqIo.EmitLinageEvaluators(w);
             }
             // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
             // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM/GO TO (SR4).

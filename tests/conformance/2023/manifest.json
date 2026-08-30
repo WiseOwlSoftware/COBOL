@@ -259,7 +259,10 @@
   "pb164_comp5_group_image",
   "pb164_float_group_image",
   "pb164_float_hor_image",
-  "pb164_float_sort_key"
+  "pb164_float_sort_key",
+  "pb168_recursive_file_connector",
+  "pb168_recursive_record_area",
+  "pb168_recursive_report_engine"
  ],
  "pending": []
 }

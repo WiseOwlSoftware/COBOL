@@ -8,6 +8,17 @@
       *> not 41), and the BASED item's address NULL (action 5 - the leg
       *> whose static bridge the compiler previously REJECTED as
       *> RecursiveWsPointerBacked on legal source).
+      *> RE-PINNED HOST-INDEPENDENTLY (kb/Work PB168): the REOPEN=00 leg
+      *> alone was host-locking-dependent - on POSIX a re-registration
+      *> hands back a fresh closed connector even if CANCEL's implicit
+      *> close never ran; only Windows' sharing violation ('30') would
+      *> discriminate. THE FLUSHED LEG PROVES THE FLUSH BY ITS EFFECT ON
+      *> EVERY HOST: GROW writes a record it never closes, and reading
+      *> it back means the buffered write SURVIVED CANCEL - completed by
+      *> the 14.9.5.4 GR9 implicit CLOSE, with Register's displaced-
+      *> connector close (the PB168 hygiene, same observable effect) as
+      *> the backstop. The leg pins the OUTCOME the standard requires,
+      *> not which of the two same-effect mechanisms delivered it.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 MODE-W PIC X(8).
@@ -46,11 +57,17 @@
                MOVE "C" TO ELEM(3)
                MOVE "XYZ" TO DL
                OPEN OUTPUT F
+               MOVE "FLSH" TO F-REC
+               WRITE F-REC
                ALLOCATE B
                DISPLAY "GROW CAP=" CAP " LEN=" FUNCTION LENGTH(DL)
                    " FS=" FS
            ELSE
                DISPLAY "SHOW CAP=" CAP " LEN=" FUNCTION LENGTH(DL)
+               OPEN INPUT F
+               READ F
+               DISPLAY "FLUSHED=" F-REC " " FS
+               CLOSE F
                OPEN OUTPUT F
                DISPLAY "REOPEN=" FS
                CLOSE F

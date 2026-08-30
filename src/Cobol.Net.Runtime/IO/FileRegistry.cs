@@ -89,16 +89,32 @@ public sealed class FileRegistry
     // ── Registration ─────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Register a SELECTed sequential file (one per SELECT). Re-registering an INTERNAL connector
-    /// replaces it (a fresh program instance gets fresh connectors, ISO §14.6.2.3.2); an EXTERNAL connector (the
-    /// <c>"::EXT::"</c> key band) is ONE per run unit shared by every describing program (ISO §13.18.22.4 GR4a) —
-    /// a later describer keeps the existing live connector (IC227A).</summary>
+    /// replaces it — a registration only runs from a §14.6.2.3.2 INITIAL-state activation (an INITIAL/fresh
+    /// instance, or a unit-scoped RECURSIVE unit after run-unit start/CANCEL reset its static guard — kb/Work
+    /// PB168), where "not ... in any open mode" (action 3) is exactly a fresh connector; anything the
+    /// replacement displaces is closed first (<see cref="CloseDisplaced"/>). An EXTERNAL connector (the
+    /// <c>"::EXT::"</c> key band) is ONE per run unit shared by every describing program (ISO §13.18.22.4
+    /// GR4a) — a later describer keeps the existing live connector (IC227A).</summary>
     public void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
         bool optional, int varyMin, int varyMax, string? selectName = null)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a)
+        CloseDisplaced(cobolName);
         _files[cobolName] = new SequentialConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             lineSequential, varyMin, varyMax) { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName) };
+    }
+
+    /// <summary>Close a still-open INTERNAL connector a registration is about to replace (kb/Work PB168):
+    /// NO normal path replaces an open connector — a unit-scoped (RECURSIVE) unit registers once per run
+    /// unit behind its static guard, an INITIAL unit's files are implicitly closed at its termination, and
+    /// CANCEL closes before its post-CANCEL re-registration — so an open one here was abandoned by an
+    /// abnormally-ended activation. Closing flushes its buffered writes and frees the OS handle instead of
+    /// leaking both. The status result is deliberately dropped: this is registry hygiene, not a COBOL CLOSE
+    /// — there is no statement to report to.</summary>
+    private void CloseDisplaced(string cobolName)
+    {
+        if (_files.TryGetValue(cobolName, out var old) && old.IsOpen) old.Close();
     }
 
     /// <summary>The SELECT-spelled name of a registered connector (ISO §15.28.4 r1c/r2b — kb/Work PB63); for a key
@@ -123,6 +139,7 @@ public sealed class FileRegistry
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
+        CloseDisplaced(cobolName);
         _files[cobolName] = new RelativeConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax)
         { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores };
@@ -135,6 +152,7 @@ public sealed class FileRegistry
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
+        CloseDisplaced(cobolName);
         _files[cobolName] = new IndexedConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeCollation)
         { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores };

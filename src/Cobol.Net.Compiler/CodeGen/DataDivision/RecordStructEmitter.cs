@@ -50,24 +50,23 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                 // shared across instances, persistent across activations, ISO §11.7; pre-2023 editions only,
                 // §13.5.3 SR 1) or a RECURSIVE unit's WS (§13.5.4 GR1 — see RouteStaticUnitStorage).
                 w.Line($"private {(ctx.Data.StaticRootFields.Contains(f.Name) ? "static " : "")}{f.Type} {f.Name} = {f.Init};   // {f.Comment}");
-        if (ctx.Data.UnitStaticWs) EmitStaticReset(w);
+        if (ctx.Data.EmitsStaticReset) EmitStaticReset(w);
     }
 
     /// <summary>Emit a RECURSIVE unit's <c>__ResetStatics</c> — the §14.6.2.3.2 initial-state action for the
-    /// unit's STATIC working-storage (registered with the run-unit ProgramTable): reassigns every static WS
-    /// root field / Tier-B backing to the SAME composed initializer its declaration carries (the ONE
-    /// ValueInitializer channel — §13.18.63 VALUE semantics identical to first-load), and every static WS
-    /// index cell to 1. Invoked by the runtime at run-unit start (§14.6.2.3.2 case 1 — robust to a re-run of
-    /// the same loaded module), after CANCEL (case 3 / §14.9.5 GR3), and via an INITIAL container's implicit
-    /// cancel cascade (case 2). EXTERNAL records never enter the static channel (they are run-unit
-    /// ExternalStore cells, untouched per §14.9.5 GR8). Emitted only when static WS storage EXISTS, so every
-    /// other unit's generated source is byte-identical.</summary>
+    /// unit's STATIC working-storage AND its unit-scoped file-registration guard (registered with the
+    /// run-unit ProgramTable): reassigns every static WS root field / Tier-B backing to the SAME composed
+    /// initializer its declaration carries (the ONE ValueInitializer channel — §13.18.63 VALUE semantics
+    /// identical to first-load), every static WS index cell to 1, and <c>__filesRegistered</c> to false so
+    /// the next activation re-registers fresh connectors in no open mode (action 3; kb/Work PB168). Invoked
+    /// by the runtime at run-unit start (§14.6.2.3.2 case 1 — robust to a re-run of the same loaded module),
+    /// after CANCEL (case 3 / §14.9.5 GR3), and via an INITIAL container's implicit cancel cascade (case 2).
+    /// EXTERNAL records never enter the static channel (they are run-unit ExternalStore cells, untouched per
+    /// §14.9.5 GR8). Emission and hook registration read THE ONE shared condition
+    /// (<c>DataBinder.EmitsStaticReset</c> — the caller's gate and ProgramEmitter's), so the pair cannot
+    /// diverge into a CS0103 in generated code.</summary>
     private void EmitStaticReset(CodeWriter w)
     {
-        // The emission condition MUST mirror the registration condition (ProgramEmitter passes
-        // `{ClassRef}.__ResetStatics` iff UnitStaticWs && (StaticRootFields or StaticBasedBridgeAddrs
-        // non-empty)) — a divergence would reference an unemitted member in generated code (CS0103).
-        if (ctx.Data.StaticRootFields.Count == 0 && ctx.Data.StaticBasedBridgeAddrs.Count == 0) return;
         var stmts = new List<string>();
         foreach (var root in ctx.Data.WorkingStorageRoots)
         {
@@ -93,6 +92,11 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                 if (ctx.Data.IndexFields.TryGetValue(idx, out var cell) && ctx.Data.StaticIndexCells.Contains(cell))
                     stmts.Add($"{cell} = 1;   // INDEX-NAME {idx}");
         }
+        // The unit-scoped file-registration guard returns to false on the initial-state cases so the next
+        // activation re-registers — §14.6.2.3.2 action 3's "not ... in any open mode" realized as fresh
+        // connectors; FileRegistry.Register closes anything it displaces (kb/Work PB168).
+        if (ctx.Data.UnitStaticFiles && ctx.Data.Files.Count > 0)
+            stmts.Add("__filesRegistered = false;   // internal file connectors → no open mode via re-registration (§14.6.2.3.2 #3; kb/Work PB168)");
         w.Line();
         using (w.Block("internal static void __ResetStatics()   // static WS → initial state (ISO §14.6.2.3.2; §14.9.5 GR3)"))
             foreach (var s in stmts) w.Line(s);

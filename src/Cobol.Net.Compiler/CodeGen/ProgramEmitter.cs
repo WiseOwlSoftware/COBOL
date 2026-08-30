@@ -171,7 +171,20 @@ internal sealed class ProgramEmitter
             }
             w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14 GR2)");
             if (data.Files.Count > 0)
-                w.Line("private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)");
+                // The guard's storage duration IS the connector's scope (kb/Work PB168): §14.6.2.3.2
+                // action 3 puts internal connectors in no open mode only when data enters the INITIAL
+                // state — for a non-INITIAL unit's static data that is cases 1–3 — and §14.6.2.3.3 keeps
+                // them LAST-USED otherwise. A RECURSIVE unit's fresh per-activation instances therefore
+                // share ONE registration (static; __ResetStatics returns it to false on the initial-state
+                // cases), while an INITIAL/canceled unit re-registers per fresh instance as before.
+                w.Line(data.UnitStaticFiles
+                    ? "private static bool __filesRegistered;   // connectors register once per RUN UNIT — last-used across recursive activations (ISO §14.6.2.3.2 cases 1–3 / §14.6.2.3.3; kb/Work PB168); reset by __ResetStatics"
+                    : "private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)");
+            // The report ENGINES are per-INSTANCE objects and get their own per-INSTANCE guard — the PB168
+            // review fleet caught them riding the (now sometimes static) registration guard: a RECURSIVE
+            // unit's second activation skipped the block and NRE'd on a null __RPT_n. One guard per scope.
+            if (data.Reports.Count > 0)
+                w.Line("private bool __reportsConstructed;   // report engines construct once per INSTANCE (kb/Work PB168 — never behind the run-unit registration guard)");
             // The OBJECT-COMPUTER members — __COLLATE / __COLLATE_NAT / the __CLASSIFY field — from the ONE helper the OO
             // emitter shares (kb/Work PB111: a CLASS-ID with either clause used to be a CS0103 on its emitted methods).
             ObjectComputerEmit.EmitMembers(data, w, classificationField: true);
@@ -435,11 +448,12 @@ internal sealed class ProgramEmitter
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {u.ClassRef}(({pp.ClassRef})__o!)"
                     : $"static __o => new {u.ClassRef}()";
-                // A RECURSIVE unit with static WS registers its __ResetStatics — the runtime's §14.6.2.3.2
-                // initial-state hook (run-unit start / CANCEL / INITIAL-container cascade). The optional
-                // argument is OMITTED for every other unit, keeping their registration lines byte-identical.
-                string reset = u.Data.UnitStaticWs && (u.Data.StaticRootFields.Count > 0 || u.Data.StaticBasedBridgeAddrs.Count > 0)
-                    ? $", {u.ClassRef}.__ResetStatics" : "";
+                // A RECURSIVE unit with static WS storage OR unit-scoped file connectors registers its
+                // __ResetStatics — the runtime's §14.6.2.3.2 initial-state hook (run-unit start / CANCEL /
+                // INITIAL-container cascade). ⛔ THE ONE condition is DataBinder.EmitsStaticReset, shared
+                // with RecordStructEmitter's emission so the pair cannot diverge (kb/Work PB168). The
+                // optional argument is OMITTED for every other unit, keeping their lines byte-identical.
+                string reset = u.Data.EmitsStaticReset ? $", {u.ClassRef}.__ResetStatics" : "";
                 // §14.8.2.1 / §14.9.4.4 GR3d (kb/Work PB133 wave C2b): a unit WITH formals registers its
                 // count facts and its ACTIVATED-half checking bit; the required count excludes the trailing
                 // OPTIONAL run (§14.8.2.1's omissible tail). Formal-less units' lines stay byte-identical.

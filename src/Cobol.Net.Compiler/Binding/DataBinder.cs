@@ -84,6 +84,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// state without statics, byte-identically to the pre-slice emission.</para></summary>
     public bool UnitStaticWs { get; init; }
 
+    /// <summary>True when this unit's internal FILE CONNECTORS are unit-scoped — ONE registration per run
+    /// unit, LAST-USED across activations: a RECURSIVE-and-not-INITIAL unit, every FUNCTION included
+    /// (§8.6.6). ISO §14.6.2.3.2 action 3 sets internal connectors "to not be in any open mode" only when
+    /// data is placed in the INITIAL state, which for a non-INITIAL unit's static data is cases 1–3 (run-unit
+    /// start / an INITIAL container's activation / after CANCEL); §14.6.2.3.3 keeps them last-used otherwise.
+    /// UNLIKE <see cref="UnitStaticWs"/> this carries NO childless conjunct: the static registration flag is
+    /// referenced only from the unit's OWN class (never through an <c>__outer</c> bridge), so contained
+    /// programs do not constrain it. kb/Work PB168 — the per-INSTANCE flag re-ran registration on every
+    /// fresh RECURSIVE activation and <c>FileRegistry.Register</c> silently REPLACED the live connector
+    /// (the depth-2 WRITE answered '42'; the displaced writer's buffer was lost, its handle leaked).</summary>
+    public bool UnitStaticFiles { get; init; }
+
+    /// <summary>⛔ THE ONE condition for both EMITTING <c>__ResetStatics</c> (RecordStructEmitter) and
+    /// REGISTERING it as the unit's initial-state hook (ProgramEmitter → ProgramTable): static WS storage
+    /// exists, or the unit-scoped file-registration flag does — the flag must return to false on the
+    /// §14.6.2.3.2 initial-state cases so a run-unit re-run and a post-CANCEL activation re-register their
+    /// connectors. The two emitter sites previously mirrored this predicate BY HAND with a comment warning
+    /// that divergence is a CS0103 in generated code; reading it here retires the mirroring (kb/Work PB168;
+    /// the one-rule-one-place discipline).</summary>
+    public bool EmitsStaticReset =>
+        (UnitStaticWs && (StaticRootFields.Count > 0 || StaticBasedBridgeAddrs.Count > 0))
+        || (UnitStaticFiles && Files.Count > 0);
+
     /// <summary>The unit's WORKING-STORAGE SECTION roots, in source order — the subset of <see cref="Roots"/>
     /// whose storage class is decided by §13.5.4 (static/initial data), captured at bind so the static-WS
     /// routing (<see cref="RouteStaticUnitStorage"/>) and the emitter's <c>__ResetStatics</c> never guess from
@@ -526,42 +549,61 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         if (!UnitStaticWs) return;
         foreach (var root in _workingStorageRoots)
+            RouteStaticRoot(root, "WORKING-STORAGE");
+        // THE FILE SECTION ROUTES WITH IT (kb/Work PB168 — the review fleet's §8.6.4 finding): "Data items
+        // and file connectors defined in the working-storage or file section of a source element that is not
+        // an initial program are static items … For static items that are not object data, there is one copy
+        // in a run unit." The connector half is UnitStaticFiles/the static registration guard; the RECORD
+        // AREA half is this — without it, the shared connector reads into a per-activation area and the
+        // resumed outer activation sees stale record content (a silent wrong answer where the standard has
+        // ONE area). EXTERNAL files stay off the channel (run-unit ExternalStore, §8.6.7); a REPORT FD has
+        // no record description to route (§13.18.46). ⚠ __ResetStatics deliberately does NOT re-seed these:
+        // §14.6.2.3.2 action 2 names only the working-storage and local-storage sections.
+        foreach (var file in Files)
+            if (!file.IsExternal)
+                foreach (var record in file.Records)
+                    RouteStaticRoot(record, "FILE SECTION");
+    }
+
+    /// <summary>Route ONE root of a <see cref="UnitStaticWs"/> unit onto the static channel — shared by the
+    /// WORKING-STORAGE walk and the kb/Work PB168 FILE SECTION walk (<paramref name="section"/> names the
+    /// section in the staged-loud message).</summary>
+    private void RouteStaticRoot(DataItem root, string section)
+    {
+        if (root.Class is { Tier: RedefinesTier.StringCanonical } cls
+            && CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName))
+            return;   // an EXTERNAL-backed class (canonical AND views) — run-unit cell storage (§14.6.2.3.3), not a class static
+        if (root.IsBased)
         {
-            if (root.Class is { Tier: RedefinesTier.StringCanonical } cls
-                && CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName))
-                continue;   // an EXTERNAL-backed class (canonical AND views) — run-unit cell storage (§14.6.2.3.3), not a class static
-            if (root.IsBased)
-            {
-                // kb/Work PB154 — §14.6.2.3.2 action 5: a BASED root in a RECURSIVE unit's static WS routes
-                // its `__addr_X` bridge as a STATIC field, reset to NULL by __ResetStatics (the old code
-                // REJECTED this legal source). The DATA lives in the allocated cell, so no static root field
-                // joins the value-reset set. A based root whose class the substrate screen rejected
-                // (COBOLNET1695) was already diagnosed — skip quietly.
-                if (root.Class?.BasedPointerField is { } bp && !PtrAddressableCellOf.ContainsKey(root.Class))
-                    _staticBasedBridgeAddrs.Add(bp);
-                // An INDEXED BY cell under a BASED table is an ordinary emitted field (allocated in
-                // _indexFields regardless of BASED-ness) and §13.5.4 GR1 makes it static like the rest of
-                // the unit's WS — the bridge routes the ADDRESS, the index cells still route themselves.
-                foreach (var idx in IndexNamesUnder(root))
-                    if (_indexFields.TryGetValue(idx, out var basedCell))
-                        _staticIndexCells.Add(basedCell);
-                continue;
-            }
-            if (root.Class is { } c && (c.BasedPointerField is not null || PtrAddressableCellOf.ContainsKey(c)))
-            {
-                Edition.Error(DiagnosticCatalog.RecursiveWsPointerBacked,
-                    $"'{root.CobolName ?? "FILLER"}': an ADDRESS-OF-taken record in the WORKING-STORAGE of "
-                    + "a RECURSIVE program or function is recognized but its static cell storage is not yet "
-                    + "implemented (ISO §13.5.4 GR1 / §14.6.2.3.2 #5; the BASED half landed with kb/Work PB154)");
-                continue;
-            }
-            if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
-                _staticRootFields.Add(c2.BackingCsName);   // Tier-B: the ONE string backing IS the storage
-            _staticRootFields.Add(root.CsName);
+            // kb/Work PB154 — §14.6.2.3.2 action 5: a BASED root in a RECURSIVE unit's static WS routes
+            // its `__addr_X` bridge as a STATIC field, reset to NULL by __ResetStatics (the old code
+            // REJECTED this legal source). The DATA lives in the allocated cell, so no static root field
+            // joins the value-reset set. A based root whose class the substrate screen rejected
+            // (COBOLNET1695) was already diagnosed — skip quietly.
+            if (root.Class?.BasedPointerField is { } bp && !PtrAddressableCellOf.ContainsKey(root.Class))
+                _staticBasedBridgeAddrs.Add(bp);
+            // An INDEXED BY cell under a BASED table is an ordinary emitted field (allocated in
+            // _indexFields regardless of BASED-ness) and §13.5.4 GR1 makes it static like the rest of
+            // the unit's WS — the bridge routes the ADDRESS, the index cells still route themselves.
             foreach (var idx in IndexNamesUnder(root))
-                if (_indexFields.TryGetValue(idx, out var cell))
-                    _staticIndexCells.Add(cell);
+                if (_indexFields.TryGetValue(idx, out var basedCell))
+                    _staticIndexCells.Add(basedCell);
+            return;
         }
+        if (root.Class is { } c && (c.BasedPointerField is not null || PtrAddressableCellOf.ContainsKey(c)))
+        {
+            Edition.Error(DiagnosticCatalog.RecursiveWsPointerBacked,
+                $"'{root.CobolName ?? "FILLER"}': an ADDRESS-OF-taken record in the {section} of "
+                + "a RECURSIVE program or function is recognized but its static cell storage is not yet "
+                + "implemented (ISO §13.5.4 GR1 / §14.6.2.3.2 #5; the BASED half landed with kb/Work PB154)");
+            return;
+        }
+        if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
+            _staticRootFields.Add(c2.BackingCsName);   // Tier-B: the ONE string backing IS the storage
+        _staticRootFields.Add(root.CsName);
+        foreach (var idx in IndexNamesUnder(root))
+            if (_indexFields.TryGetValue(idx, out var cell))
+                _staticIndexCells.Add(cell);
     }
 
     /// <summary>Bind a run of data-description entries (a WORKING-STORAGE section or one FD's records) into the

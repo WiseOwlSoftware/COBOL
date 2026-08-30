@@ -94,14 +94,23 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // length-frames its records and enforces the GR14 '44' boundary checks.
             string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
             w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", vary, CsLiteral(file.SelectName))};");
-            // A LINAGE file registers its logical-page evaluator (ISO §13.18.34 GR6): ONE closure for both the
-            // literal (GR6a — a constant lambda) and data-name (GR6b — the connector re-reads at OPEN OUTPUT /
-            // ADVANCING PAGE / page overflow) forms. The lambda READS the program fields at call time — it is
-            // emitted in __Activate (an instance method), so they are in scope and never captured by value.
-            if (file.Linage is { } lin)
-                w.Line($"{RuntimeApi.FileSetLinage(FileKeyExpr(file), $"() => ({LinageOpExpr(lin.Body)}, {LinageOpExpr(lin.Footing)}, {LinageOpExpr(lin.Top)}, {LinageOpExpr(lin.Bottom)})")};");
             EmitSharingRegistration(w, file);
         }
+    }
+
+    /// <summary>Install every LINAGE file's logical-page evaluator (ISO §13.18.34 GR6): ONE closure for both
+    /// the literal (GR6a — a constant lambda) and data-name (GR6b — the connector re-reads at OPEN OUTPUT /
+    /// ADVANCING PAGE / page overflow) forms. Emitted UNGUARDED in <c>__Activate</c> — installed on EVERY
+    /// activation, so the evaluator on a run-unit-scoped connector always closes over the CURRENT activation's
+    /// instance (kb/Work PB168: under the registration guard the FIRST activation's capture outlived it on a
+    /// UnitStaticFiles unit's shared connector, and a LINKAGE/LOCAL-STORAGE LINAGE operand read a dead
+    /// activation's data). Idempotent for a cached-singleton unit: the same delegate shape re-installs over
+    /// itself.</summary>
+    public void EmitLinageEvaluators(CodeWriter w)
+    {
+        foreach (var file in ctx.Data.Files)
+            if (file.Linage is { } lin)
+                w.Line($"{RuntimeApi.FileSetLinage(FileKeyExpr(file), $"() => ({LinageOpExpr(lin.Body)}, {LinageOpExpr(lin.Footing)}, {LinageOpExpr(lin.Top)}, {LinageOpExpr(lin.Bottom)})")};");
     }
 
     /// <summary>Emit the sharing registration for a file that declares a SHARING and/or LOCK MODE

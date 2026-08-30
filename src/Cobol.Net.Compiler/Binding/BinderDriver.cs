@@ -382,12 +382,16 @@ internal sealed class BinderDriver
         // (A FUNCTION cannot contain programs, so every UDF takes the static leg.)
         bool staticWs = unit.Recursive && !unit.Initial && unit.Children.Count == 0;
         if (unit.Recursive && !unit.Initial && unit.Children.Count > 0
-            && unit.Ctx.dataDivision()?.workingStorageSection() is not null)
+            && unit.Ctx.dataDivision() is { } recDd
+            && (recDd.workingStorageSection() is not null || recDd.fileSection() is not null))
+            // The FILE SECTION joined the staged loud with kb/Work PB168: §8.6.4 puts its record areas in
+            // the SAME static one-copy sentence as WS, and the same GLOBAL/__outer bridge composition gap
+            // applies (an FD may be GLOBAL, §13.18.27).
             edition.Error(DiagnosticCatalog.RecursiveContainedWs,
                 $"program '{unit.Name}': a RECURSIVE program that directly contains programs and declares "
-                + "WORKING-STORAGE is recognized but not yet implemented — the shared-static WS model "
-                + "(ISO §13.5.4 GR1 / §14.6.2.3.3) does not yet compose with contained-program GLOBAL "
-                + "bridges (§13.18.27 GR2)");
+                + "WORKING-STORAGE or a FILE SECTION is recognized but not yet implemented — the "
+                + "shared-static storage model (ISO §13.5.4 GR1 / §8.6.4 / §14.6.2.3.3) does not yet "
+                + "compose with contained-program GLOBAL bridges (§13.18.27 GR2)");
         var data = new DataBinder(edition)
         {
             OoClasses = session.OoClasses,
@@ -399,6 +403,9 @@ internal sealed class BinderDriver
             UnitIsContained = unit.Parent is not null,
             UnitIsFunction = unit.IsFunction,
             UnitStaticWs = staticWs,
+            // The FILE-CONNECTOR twin of staticWs, WITHOUT the childless conjunct (kb/Work PB168): the
+            // static registration flag never crosses an __outer bridge, so containees do not constrain it.
+            UnitStaticFiles = unit.Recursive && !unit.Initial,
         };
         data.CallSeedUids(session.TakeUidBand());
 

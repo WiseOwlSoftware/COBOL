@@ -671,10 +671,11 @@ public static class DiagnosticCatalog
         "ISO §13.18.24", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor RecursiveContainedWs = new(
         NotImplemented, "recursive-contained-working-storage", EditionSeverity.Error,
-        "A RECURSIVE program that directly contains programs and declares WORKING-STORAGE is recognized but "
-        + "not yet implemented — the shared-static WS model (one last-used copy across activations) does not "
-        + "yet compose with contained-program GLOBAL/__outer bridges.",
-        "ISO §13.5.4 GR1 / §14.6.2.3.3 / §13.18.27 GR2", RecognizedNotImplemented);
+        "A RECURSIVE program that directly contains programs and declares WORKING-STORAGE or a FILE SECTION "
+        + "is recognized but not yet implemented — the shared-static storage model (one last-used copy "
+        + "across activations, §8.6.4 covering both sections; kb/Work PB168) does not yet compose with "
+        + "contained-program GLOBAL/__outer bridges.",
+        "ISO §13.5.4 GR1 / §8.6.4 / §14.6.2.3.3 / §13.18.27 GR2", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor RefModBitGroupSlice = new(
         NotImplemented, "refmod-bit-group-slice", EditionSeverity.Error,
         "A reference-modified BIT-GROUP item as a boolean receiver or operand is recognized but not yet "
