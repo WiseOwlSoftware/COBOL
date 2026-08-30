@@ -82,6 +82,83 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 : $"new string(' ', {pic.Length})";
     }
 
+    /// <summary>True when <paramref name="g"/> is a VARIABLE-LENGTH group (§8.5.1.12 — a dynamic-length item
+    /// or dynamic-capacity table subordinate) whose current-extent image is well defined: every member is
+    /// image-capable, a dynamic-length leaf (its current content IS its image), a dynamic-capacity table of
+    /// image-capable elements (<see cref="DataItem.ElementImageCapable"/>), or a nested group satisfying the
+    /// same. This is the §14.9.11.4 GR7 documented-format gate (kb/Work PB164 — A.1 item 57). ⚠ A runtime-length
+    /// item INSIDE a table element stays OUT — deliberately the SAME boundary as the §15.50.4 r7 LENGTH sum's
+    /// named stage (<c>IntrinsicBinder.VariableLengthGroupSum</c>), so DISPLAY and FUNCTION LENGTH agree about
+    /// which groups have a defined current extent. A USAGE INDEX leaf keeps the group loud under either
+    /// predicate.</summary>
+    public static bool CurrentExtentImageCapable(DataItem g) =>
+        g.IsGroup && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(g)
+        && g.Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))
+            .All(c =>
+                // ⛔ An OCCURS DEPENDING on or beneath a member stays OUT (the review fleet's repro: the
+                // fixed-member lane renders an ODO table at its MAXIMUM occurrences while the §15.50.4 r4b
+                // LENGTH sum counts the CURRENT count — and the composer CANNOT take the current extent,
+                // because CurrentImage() is a struct instance method while data-name-1 may live outside the
+                // group entirely; the LENGTH sum reads it through the operand's access path, a mechanism a
+                // struct method does not have). Loud beats a wrong width.
+                !HasOdoOnOrBeneath(c)
+                && (c.IsImageCapable
+                    || (c.IsDynamicLength && c.IsElementary)
+                    || (c.IsDynamicTable && c.ElementImageCapable)
+                    // A nested variable-length group composes ONLY as a SCALAR member. ⛔ Discriminated by
+                    // !IsDynamicTable, NOT by `Occurs is null` alone — a Format-4 DYNAMIC-capacity table
+                    // also carries Occurs == null (the fleet's CRITICAL: the first cut re-admitted through
+                    // this arm the very dynamic-table-with-runtime-length-element shape arm 3 rejects, and
+                    // the emission was uncompilable C# on legal source that never referenced the group).
+                    // Under a fixed OCCURS of its own it is the in-element runtime-length shape (the pb62
+                    // corpus case).
+                    || (c.IsGroup && !c.IsDynamicTable && c.Occurs is null && CurrentExtentImageCapable(c))));
+
+    /// <summary>An OCCURS DEPENDING clause on <paramref name="c"/> itself or any subordinate — the shape the
+    /// current-extent composer must refuse (see the gate's comment). The sibling of
+    /// <c>IntrinsicBinder.HasOdoBeneath</c>, which tests subordinates only (its callers already hold the
+    /// operand); the composer screens MEMBERS, where the clause may sit on the member itself.</summary>
+    private static bool HasOdoOnOrBeneath(DataItem c) =>
+        c.OccursSpec?.DependingName is not null
+        || (c.IsGroup && c.Children.Any(m => m.RedefinesTargetName is null && HasOdoOnOrBeneath(m)));
+
+    /// <summary>Emit a variable-length group's <c>CurrentImage()</c> — the §14.9.11.4 GR7 implementor-defined
+    /// DISPLAY format, documented as CONFORMANCE.md A.1 item 57 (kb/Work PB164): the members' images in
+    /// declaration order, each FIXED member contributing exactly its <see cref="AsImageOf"/> recipe (the ONE
+    /// member-image law — no second copy), each dynamic-length leaf its CURRENT content, each dynamic-capacity
+    /// table every occurrence at its CURRENT capacity, and each nested SCALAR variable-length group its own
+    /// <c>CurrentImage()</c>. The geometry follows the §15.50.4 r7 LENGTH sum in CHARACTER POSITIONS —
+    /// <c>FUNCTION LENGTH(G)</c> equals <c>CurrentImage().Length</c> except that a NATIONAL member displays
+    /// one character per position while LENGTH counts its two bytes (the sanctioned D-N1/D-N3 divergence;
+    /// the golden pins the relationship with a national member so it is observed, not assumed). DISPLAY-only:
+    /// the static record codec (<c>AsImage</c>/<c>FromImage</c>) still excludes these groups (D9 — no fixed
+    /// record window).</summary>
+    public void EmitCurrentImageMethod(DataItem group, CodeWriter w)
+    {
+        var dyn = group.Children
+            .Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary)
+                && (c.IsDynamicTable || c.IsDynamicLength || (c.IsGroup && !c.IsImageCapable)))
+            .ToDictionary(c => c.CsName, StringComparer.Ordinal);
+        var parts = phys.PhysicalChildrenOf(group)
+            .Select(f => dyn.TryGetValue(f.Name, out var d) ? CurrentMemberImage(d) : AsImageOf(f))
+            .ToList();
+        w.Line($"public readonly string CurrentImage() => {(parts.Count > 0 ? string.Join(" + ", parts) : "\"\"")};");
+    }
+
+    private string CurrentMemberImage(DataItem d) =>
+        d.IsDynamicTable
+            ? d.IsGroup ? $"{d.CsName}.CurrentImage(static __e => __e.AsImage())"
+            // The element lane mirrors PhysicalModel's numLeaf rule exactly: a NATIVE numeric element goes
+            // through its byte-form lane (float via the distinctly-named IEEE lane), a string-carried element
+            // (alphanumeric / edited / StoreAsImage) passes through.
+            : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
+                ? (d.Pic.IsFloat
+                    ? $"{d.CsName}.CurrentImage(__e => {RuntimeApi.NumFormatImageFloat("__e", d.ProfileName)})"
+                    : $"{d.CsName}.CurrentImage(__e => {RuntimeApi.NumFormatImage("__e", d.ProfileName)})")
+                : $"{d.CsName}.CurrentImage(static __e => __e)"
+        : d.IsDynamicLength ? d.CsName   // §15.50.4 r7b — the current content at its current length
+        : $"{d.CsName}.CurrentImage()";  // a nested variable-length group
+
     public void EmitImageMethods(DataItem group, CodeWriter w)
     {
         var members = phys.PhysicalChildrenOf(group);

@@ -133,7 +133,15 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // into them. Used by whole-group MOVE / DISPLAY / compare / WRITE / RELEASE and the READ / RETURN
             // record-area distribution; the SD/FD record codec IS this pair (§8.2). Only a group with a
             // USAGE INDEX leaf stays the loud Tier-C island (DataItem.IsImageCapable; kb/Work PB164).
-            if (item.IsImageCapable) codec.EmitImageMethods(item, w);
+            // ⚠ Gated on the ELEMENT shape (ElementImageCapable), not IsImageCapable: a dynamic-capacity
+            // TABLE's element struct has a well-defined per-occurrence image the current-extent composer
+            // concatenates (CS1061 without it) — the STATIC record codec still consults IsImageCapable at
+            // every consumer, so no dynamic group joins a record window; methods emitted ⊇ methods used.
+            if (item.ElementImageCapable) codec.EmitImageMethods(item, w);
+            // A VARIABLE-LENGTH group instead carries CurrentImage() — the §14.9.11.4 GR7 documented DISPLAY
+            // format (A.1 item 57; kb/Work PB164): fixed members by the ONE member-image law, dynamic members
+            // at their current extent. DISPLAY-only — such a group stays out of the static record codec (D9).
+            else if (GroupImageCodec.CurrentExtentImageCapable(item)) codec.EmitCurrentImageMethod(item, w);
         }
     }
 

@@ -20,7 +20,19 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
     /// and the no-UPON default use the standard display device (standard output) — the latter path is byte-identical.</summary>
     public void EmitDisplay(BoundDisplay d)
     {
-        var parts = d.Operands.Select(o => OperandText.AsString(o, num)).ToList();
+        // A VARIABLE-LENGTH group operand displays in the implementor-defined format §14.9.11.4 GR7 leaves to
+        // us, documented as CONFORMANCE.md A.1 item 57 (kb/Work PB164): the generated CurrentImage() — fixed
+        // members by the record-image member law, dynamic members at their CURRENT extent, following the
+        // §15.50.4 r7 LENGTH-sum geometry in character positions (a NATIONAL member displays one character
+        // per position where LENGTH counts two bytes — the sanctioned D-N1/D-N3 divergence; row 57 names the
+        // shapes that stay loud instead: ODO members, in-element runtime lengths, INDEX leaves).
+        // DISPLAY-ONLY by design: GR7 is a DISPLAY-statement determination, so the shared group-sender arm
+        // (WRITE/RELEASE/compare) keeps its loud posture.
+        var parts = d.Operands.Select(o =>
+            o is BoundFieldOperand { Place: { Item: { IsGroup: true, IsImageCapable: false } } vp }
+                && GroupImageCodec.CurrentExtentImageCapable(vp.Item)
+            ? $"{PlaceRenderer.Read(vp)}.CurrentImage()"
+            : OperandText.AsString(o, num)).ToList();
         string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);
         string sink = d.ToStdErr ? "System.Console.Error" : "System.Console";
         ctx.Writer.Line(d.NoAdvancing ? $"{sink}.Write({image});" : $"{sink}.WriteLine({image});");

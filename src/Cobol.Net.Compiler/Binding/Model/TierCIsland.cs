@@ -29,10 +29,36 @@ internal static class TierCIsland
 
     /// <summary>The uniform lead for the common shape (<paramref name="context"/> verb + the group name +
     /// its offending-leaf <paramref name="leafKind"/>), then the canonical tail. <paramref name="leafKind"/>
-    /// reflects the caller's predicate: <c>"USAGE INDEX"</c> for an <see cref="DataItem.IsImageCapable"/>
-    /// guard (COMP-5/BINARY-* landed with kb/Work PB164 wave 1 and the FLOAT family with wave 2 — a message
-    /// naming them would blame a cause that no longer exists), <c>"COMP/binary"</c> for the stricter
-    /// <see cref="DataItem.IsCharacterImage"/> guard.</summary>
-    public static string Reason(DataItem item, string context, string leafKind = "USAGE INDEX") =>
-        Reason($"{context} '{item.CobolName}' with a {leafKind} leaf");
+    /// reflects the caller's predicate: <c>"COMP/binary"</c> for the stricter
+    /// <see cref="DataItem.IsCharacterImage"/> guard; for an <see cref="DataItem.IsImageCapable"/> guard the
+    /// default is DERIVED FROM THE ITEM (kb/Work PB164 — a fixed string blamed "USAGE INDEX" even when the
+    /// group was imageless for a different reason): a VARIABLE-LENGTH group (§8.5.1.12) is named as such —
+    /// with the pointer that DISPLAY, uniquely, renders its documented current-extent format (A.1 item 57) —
+    /// and only a genuinely INDEX-leafed group blames USAGE INDEX (COMP-5/BINARY-* landed with wave 1, the
+    /// FLOAT family with wave 2 — naming them would blame a cause that no longer exists).</summary>
+    public static string Reason(DataItem item, string context, string? leafKind = null)
+    {
+        // Derivation order and wording per the PB164 review fleet: an IMAGELESS LEAF is tested FIRST (a
+        // group with both an INDEX leaf and a dynamic member is imageless because of the leaf — DISPLAY's
+        // current-extent composer refuses it too, so blaming the dynamic member handed the user a false
+        // remedy); an item that IS a dynamic table / dynamic-length item names the dynamic mechanism itself
+        // (HasVariableLengthSubordinate walks children only and answered false for it); and the message
+        // PROMISES NOTHING about DISPLAY — some variable-length shapes (an in-element runtime length, an
+        // OCCURS DEPENDING member) are loud under DISPLAY as well; CONFORMANCE.md row 57 states which
+        // shapes render.
+        string offender = leafKind is not null ? $"a {leafKind} leaf"
+            : HasImagelessLeaf(item) ? "a USAGE INDEX leaf"
+            : item.IsDynamicTable || item.IsDynamicLength
+                || CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(item)
+                ? "a dynamic-length / dynamic-capacity member (a variable-length group has no fixed record window)"
+            : "a USAGE INDEX leaf";
+        return Reason($"{context} '{item.CobolName}' with {offender}");
+    }
+
+    /// <summary>Any elementary descendant whose SHAPE is imageless — the leaf half of
+    /// <see cref="DataItem.ElementImageCapable"/> answered false (today exactly a USAGE INDEX leaf: category
+    /// numeric, <c>ByteForm</c> None). Tested on the item itself when elementary.</summary>
+    private static bool HasImagelessLeaf(DataItem item) =>
+        item.IsElementary ? !item.ElementImageCapable
+        : item.Children.Any(c => c.RedefinesTargetName is null && HasImagelessLeaf(c));
 }

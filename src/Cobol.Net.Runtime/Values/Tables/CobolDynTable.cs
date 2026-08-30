@@ -146,6 +146,17 @@ public sealed class CobolDynTable<T>
     /// the current capacity is unchanged.</summary>
     public void InitializeAll() { for (int i = 0; i < _count; i++) _store[i] = _seedAt(i + 1); }
 
+    /// <summary>The table's CURRENT-EXTENT character image: every occurrence up to the current capacity,
+    /// rendered by <paramref name="imageOf"/> and concatenated in occurrence order (kb/Work PB164 — the
+    /// §14.9.11.4 GR7 documented DISPLAY format for a variable-length group renders each dynamic-capacity
+    /// table "at its current capacity", the same extent §15.50.4 r7c counts for FUNCTION LENGTH).</summary>
+    public string CurrentImage(Func<T, string> imageOf)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < _count; i++) sb.Append(imageOf(_store[i]));
+        return sb.ToString();
+    }
+
     /// <summary>Mark the start of a SEARCH of this table (a SET Format 14 on it while active raises EC-FLOW-SEARCH,
     /// §14.9.39 GR31). Nestable (re-entrant SEARCH).</summary>
     public void EnterSearch() => _searching++;

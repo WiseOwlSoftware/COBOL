@@ -380,7 +380,16 @@ public sealed class DataItem
     /// every item that reaches an image — the ONE-WIDTH invariant (<c>ImageWidthIsStorageWidthTests</c>).
     /// </summary>
     public bool IsImageCapable =>
-        !IsDynamicTable && !IsDynamicLength && (   // out-of-line dynamic table / variable-length string — not in the static record codec (D9 / §8.5.1.10)
+        !IsDynamicTable && !IsDynamicLength   // out-of-line dynamic table / variable-length string — not in the static record codec (D9 / §8.5.1.10)
+        && ElementImageCapable;
+
+    /// <summary>The image capability of this item's SHAPE, ignoring the dynamic axis — i.e. of ONE occurrence /
+    /// the content at any one length. Split out of <see cref="IsImageCapable"/> (kb/Work PB164, the
+    /// variable-length DISPLAY half) so the current-extent composer can ask whether a DYNAMIC table's element
+    /// has a well-defined image without duplicating the predicate: a dynamic table of image-capable elements
+    /// concatenates their images at current capacity (§14.9.11.4 GR7's documented format), while a USAGE INDEX
+    /// leaf keeps its group imageless under EITHER axis.</summary>
+    public bool ElementImageCapable =>
         IsElementary
             // P5.7: the leaf arm is defined DIRECTLY on Pic (a pure declared-shape fact, phase-stable at every
             // point of the pipeline — resolve, procedure bind, emit). The numeric arm is PicInfo's ONE derived
@@ -388,7 +397,7 @@ public sealed class DataItem
             ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean
                 || Pic is { HasImageByteForm: true }
-            : IsGroup && Children.All(c => c.IsImageCapable));
+            : IsGroup && Children.All(c => c.IsImageCapable);
 
     /// <summary>The character width of this item's image — meaningful for an <see cref="IsCharacterImage"/> item. For a
     /// group it is the sum of each child's TOTAL image contribution, i.e. the child's per-occurrence image width × its
