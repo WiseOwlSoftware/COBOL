@@ -75,4 +75,32 @@ public sealed class TierCRejectionTests
         Assert.Equal('\0', stdout[3]);   // 0x0007 big-endian, verbatim
         Assert.Equal('\a', stdout[4]);
     }
+
+    /// <summary>kb/Work PB176 — a group with BOTH an OCCURS DEPENDING table and a dynamic member must COMPILE
+    /// and stage the runtime Tier-C loud. Before the <c>PlaceRenderer.GroupImage</c> capability guard (the
+    /// SEVENTH two-arm-dispatch instance — the write twin <c>WriteGroupImage</c> was guarded, the read side
+    /// was not), the ODO sender path emitted <c>.AsImage()</c> on a struct that never receives one, and this
+    /// legal source failed BACKEND compilation with CS1061 — the loud-failure rule violated in the worst
+    /// direction. The lock pins the restored posture: compiles, throws Tier-C, names the dynamic mechanism.</summary>
+    [Fact]
+    public void DisplayOdoGroupWithDynamicMember_FailsLoudNotCs1061()
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TIERCRE3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-GO.
+               05 WS-GO-N PIC 9(1) VALUE 2.
+               05 WS-GO-D PIC X DYNAMIC LENGTH.
+               05 WS-GO-T PIC X(3) OCCURS 1 TO 5 DEPENDING ON WS-GO-N.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY WS-GO.
+                STOP RUN.
+            """);
+        Assert.False(ok, "an ODO group with a dynamic member has no whole-group image — loud, never CS1061 (kb/Work PB176)");
+        Assert.Contains("Tier-C", detail);
+        Assert.Contains("dynamic", detail);
+    }
 }

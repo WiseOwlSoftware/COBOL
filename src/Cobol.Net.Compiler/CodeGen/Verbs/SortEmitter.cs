@@ -228,8 +228,8 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
         // the stricter predicate here therefore made SORT and `IF a > b` DISAGREE about the very same two group
         // operands: the IF compared their byte images while the SORT threw "no whole-group character image" —
         // a claim V59 falsified, since the codec is emitted for exactly IsImageCapable items. A group with a
-        // float / COMP-5 / INDEX leaf is still genuinely imageless and stays loud, so the leaf-kind wording now
-        // matches the predicate actually tested.
+        // USAGE INDEX leaf or a dynamic member is still genuinely imageless and stays loud (kb/Work PB164 —
+        // floats and COMP-5 joined the image), so the leaf-kind wording matches the predicate actually tested.
         // ⚠ NOT A BUG, AND DELIBERATE: a big-endian two's-complement image is NOT order-preserving across zero,
         // so a group key holding a NEGATIVE binary leaf orders by its bytes rather than its value. That is what
         // the standard prescribes — GR8 defers to the relation-condition rules, and those make a GROUP

@@ -225,11 +225,23 @@ internal static class PlaceRenderer
     /// <summary>The character IMAGE of a group place, whatever its storage shape (kb/Work PB80): a record-struct
     /// group's generated <c>AsImage()</c>; a Tier-B / BASED class-tier window's <c>Read</c> (already the string
     /// window); an occurs-depending wrapper's inner image (the wrapper's own <see cref="SendingImage"/> is the GR8
-    /// slice of this). THE ONE reader — a consumer that spells <c>.AsImage()</c> itself is wrong for the window shape.</summary>
+    /// slice of this). THE ONE reader — a consumer that spells <c>.AsImage()</c> itself is wrong for the window shape.
+    /// <para>⛔ Capability-guarded like its write twin <see cref="WriteGroupImage"/>, same arm order (kb/Work
+    /// PB176 — the SEVENTH two-arm-dispatch instance: the write side staged the Tier-C loud while this read
+    /// side emitted <c>.AsImage()</c> unconditionally, so a group with BOTH an OCCURS DEPENDING table and a
+    /// dynamic member — legal source whose struct never receives AsImage — failed BACKEND compilation with
+    /// CS1061 instead of the documented runtime loud).</para></summary>
     public static string GroupImage(Place group) => group switch
     {
         RedefViewPlace => Read(group),
+        // ⛔ UNWRAP BEFORE THE GUARD (the PB176 skeptic round): an OdoGroupPlace may wrap a Tier-B
+        // RedefViewPlace whose valid image IS the string window — a wrapper-first guard turned that
+        // working read into a loud throw (CallStringRead hands the WRAPPER in, unlike the other callers).
+        // The MemberPlace inner still meets the guard below with the exact predicate, so the CS1061 fix
+        // holds: guard fires ⟺ the struct has no AsImage.
         OdoGroupPlace o => GroupImage(o.Inner),
+        _ when !group.Item.IsImageCapable =>
+            EmitText.LoudValue("string", TierCIsland.Reason(group.Item, "whole-group image of")),
         _ => $"{Read(group)}.AsImage()",
     };
 
