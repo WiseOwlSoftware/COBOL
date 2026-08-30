@@ -4,8 +4,9 @@ namespace CobolNet.Binding.Model;
 
 /// <summary>
 /// The ONE reason source for the Tier-C mixed-usage-group image boundary (rearchitecture PHASE-11 Step C;
-/// DESIGN-data-model §2.3). A GROUP whose leaves are not uniformly character-imageable — a float / COMP-5 /
-/// INDEX / BINARY-* leaf (the <see cref="DataItem.IsImageCapable"/> predicate, P1), or a COMP/binary leaf that
+/// DESIGN-data-model §2.3). A GROUP whose leaves are not uniformly character-imageable — a USAGE INDEX leaf
+/// (the <see cref="DataItem.IsImageCapable"/> predicate, P1; floats and COMP-5/BINARY-* joined the image in
+/// kb/Work PB164 waves 1–2), or a COMP/binary leaf that
 /// was not whole-group image-promoted (<see cref="DataItem.IsCharacterImage"/>, P2) — has no whole-group
 /// character image, so the verbs that need one (MOVE/STRING/UNSTRING/INSPECT/ACCEPT/DISPLAY/CALL/SORT-key/
 /// record-area distribution/FILE-STATUS) stage LOUD by name (COBOLNET_DESIGN §1.4). This is the "Tier-C byte
@@ -28,10 +29,10 @@ internal static class TierCIsland
 
     /// <summary>The uniform lead for the common shape (<paramref name="context"/> verb + the group name +
     /// its offending-leaf <paramref name="leafKind"/>), then the canonical tail. <paramref name="leafKind"/>
-    /// reflects the caller's predicate: <c>"float/INDEX"</c> for an <see cref="DataItem.IsImageCapable"/>
-    /// guard (COMP-5 and BINARY-CHAR..DOUBLE are IN the image since kb/Work PB164 wave 1 — a message naming
-    /// them would blame a cause that no longer exists), <c>"COMP/binary"</c> for the stricter
+    /// reflects the caller's predicate: <c>"USAGE INDEX"</c> for an <see cref="DataItem.IsImageCapable"/>
+    /// guard (COMP-5/BINARY-* landed with kb/Work PB164 wave 1 and the FLOAT family with wave 2 — a message
+    /// naming them would blame a cause that no longer exists), <c>"COMP/binary"</c> for the stricter
     /// <see cref="DataItem.IsCharacterImage"/> guard.</summary>
-    public static string Reason(DataItem item, string context, string leafKind = "float/INDEX") =>
+    public static string Reason(DataItem item, string context, string leafKind = "USAGE INDEX") =>
         Reason($"{context} '{item.CobolName}' with a {leafKind} leaf");
 }

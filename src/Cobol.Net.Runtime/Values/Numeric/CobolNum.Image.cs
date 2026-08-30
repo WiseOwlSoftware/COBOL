@@ -77,6 +77,50 @@ public static partial class CobolNum
     public static UInt128 StoreImage(string image, in NumProfile item, UInt128 current) =>
         unchecked((UInt128)ParseImage(image, item));
 
+    /// <summary>The FLOAT carrier lanes (kb/Work PB164 wave 2): a <c>float</c>/<c>double</c>-carried item's
+    /// image is its IEEE 754 interchange encoding, 4 bytes for <see cref="NumericByteForm.Ieee32"/> / 8 for
+    /// <see cref="NumericByteForm.Ieee64"/> — bit reinterpretation, never a numeric conversion, packed one
+    /// byte per char exactly like the binary lane. The byte order follows the profile's effective FLOAT-BINARY
+    /// endianness (<see cref="NumProfile.FloatLittleEndian"/> — §13.18.60.4 GR19 + §11.9.8; big-endian is the
+    /// documented default and the only order the non-standard float usages take). A double value entering an
+    /// Ieee32 profile narrows to binary32 first (the item's own precision).
+    /// DISTINCTLY NAMED (not FormatImage overloads): an integer argument converts implicitly to BOTH Int128
+    /// and float, so overloading made every integer call site ambiguous (CS0121).</summary>
+    public static string FormatImageFloat(double value, in NumProfile item) =>
+        item.ByteForm is NumericByteForm.Ieee32
+            ? FormatIeeeBits(BitConverter.SingleToUInt32Bits((float)value), 4, item.FloatLittleEndian)
+            : FormatIeeeBits(BitConverter.DoubleToUInt64Bits(value), 8, item.FloatLittleEndian);
+
+    /// <inheritdoc cref="FormatImageFloat(double, in NumProfile)"/>
+    public static double ParseImageFloat(string image, in NumProfile item)
+    {
+        int n = item.ByteForm is NumericByteForm.Ieee32 ? 4 : 8;
+        ulong bits = 0;
+        int take = image is null ? 0 : Math.Min(n, image.Length);
+        // HIGH-ORDER-RIGHT (§13.18.60.4 GR19b): the LAST byte is the most significant — walk reversed.
+        if (item.FloatLittleEndian)
+            for (int i = take - 1; i >= 0; i--) bits = (bits << 8) | (byte)image![i];
+        else
+            for (int i = 0; i < take; i++) bits = (bits << 8) | (byte)image![i];
+        return n == 4 ? BitConverter.UInt32BitsToSingle((uint)bits) : BitConverter.UInt64BitsToDouble(bits);
+    }
+
+    /// <inheritdoc cref="FormatImageFloat(double, in NumProfile)"/>
+    public static float StoreImage(string image, in NumProfile item, float current) =>
+        (float)ParseImageFloat(image, item);
+
+    /// <inheritdoc cref="FormatImageFloat(double, in NumProfile)"/>
+    public static double StoreImage(string image, in NumProfile item, double current) =>
+        ParseImageFloat(image, item);
+
+    private static string FormatIeeeBits(ulong bits, int n, bool littleEndian)
+    {
+        var chars = new char[n];
+        for (int i = 0; i < n; i++)
+            chars[i] = (char)(byte)(bits >> (8 * (littleEndian ? i : n - 1 - i)));
+        return new string(chars);
+    }
+
     /// <summary>Decode an item's record-image bytes back to its unscaled value — the inverse of
     /// <see cref="FormatImage(Int128, in NumProfile)"/>.</summary>
     public static Int128 ParseImage(string image, in NumProfile item) => item.ByteForm switch

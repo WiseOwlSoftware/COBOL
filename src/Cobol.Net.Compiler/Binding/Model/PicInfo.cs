@@ -194,6 +194,19 @@ public sealed record PicInfo(
     /// is unchanged. Meaningful only when <see cref="Usage"/> is <see cref="Usage.Packed"/>.</summary>
     public bool PackedNoSign { get; init; }
 
+    /// <summary>The effective FLOAT-BINARY endianness of a STANDARD binary floating-point item (USAGE
+    /// FLOAT-BINARY-32/-64): <c>true</c> = HIGH-ORDER-RIGHT, the item's IEEE interchange bytes are
+    /// LITTLE-endian (ISO §13.18.60.4 GR19b). Derived ONCE, in <see cref="FloatItem"/>, from the unit's
+    /// effective OPTIONS FLOAT-BINARY clause (§11.9.8 — the clause supplies the IMPLIED endianness-phrase for
+    /// items that lack their own; §11.9.8.3 SR1 makes the no-clause default the implementor's documented
+    /// choice, ours HIGH-ORDER-LEFT / big-endian, Annex A.1 item 48). Always <c>false</c> for the
+    /// implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, GR13/GR21 — pinned
+    /// big-endian; GR19c scopes the clause to the standard usages). Rides <see cref="ProfileInitializer"/>
+    /// into the runtime's <c>NumProfile.FloatLittleEndian</c>, the one switch the IEEE image lanes read.
+    /// A per-item endianness-phrase on the USAGE clause (§13.18.60.2) would merge HERE when the grammar
+    /// carries it — kb/Work PB174.</summary>
+    public bool FloatLittleEndian { get; init; }
+
     /// <summary>The COBOL-2002 introduction gate (a <c>Constructs.*</c> id) this item's PICTURE carries as a
     /// recognized-but-unimplemented SKELETON — national-edited data (<c>NationalEdited2002</c>) — after
     /// <c>PictureAnalyzer.Analyze</c> RECOVERED the category to Alphanumeric so the doomed emit stays crash-free.
@@ -420,10 +433,11 @@ public sealed record PicInfo(
     /// implies, and <c>DataItem.ByteWidth</c> / <c>DataItem.ImageWidth</c> are two views of it, never two answers.
     /// <para>The truncation discipline CANNOT stand in for this: USAGE DISPLAY and USAGE BINARY are both
     /// <see cref="NumericTruncation.DigitCount"/> yet occupy entirely different bytes.</para>
-    /// <para>Consulted only where a <c>NumProfile</c> is emitted (a non-float numeric item — see
-    /// <c>RecordStructEmitter.EmitProfiles</c>); <see cref="NumericByteForm.None"/> is the honest answer for
-    /// USAGE INDEX, whose occurrence-number carrier reaches no image at all (§13.18.60.4 GR10), and for every
-    /// usage that carries no profile. <c>NumericByteFormDriftTests</c> pins the whole table.</para>
+    /// <para>Consulted only where a <c>NumProfile</c> is emitted (every numeric item, floats included since
+    /// kb/Work PB164 wave 2 — see <c>RecordStructEmitter.EmitProfiles</c>); <see cref="NumericByteForm.None"/>
+    /// is the honest answer for USAGE INDEX, whose occurrence-number carrier reaches no image at all
+    /// (§13.18.60.4 GR10), and for every usage that carries no profile. <c>NumericByteFormDriftTests</c> pins
+    /// the whole table.</para>
     /// </summary>
     public NumericByteForm ByteForm => Usage switch
     {
@@ -441,18 +455,24 @@ public sealed record PicInfo(
         // One byte per digit position (GR7). DISPLAY is the only profile-carrying usage that lands here; the
         // character usages (NATIONAL / BIT) and the carrier usages never reach this property.
         Usage.Display => NumericByteForm.Zoned,
+        // IEEE 754 interchange, big-endian (kb/Work PB164 wave 2): GR14/GR15 PIN the FLOAT-BINARY forms and
+        // GR13 leaves COMP-1/COMP-2/FLOAT-* to the implementor — one encoding serves both. FLOAT-BINARY-128
+        // and the decimal floats never reach here (rejected at ParseUsage).
+        Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => NumericByteForm.Ieee32,
+        Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 => NumericByteForm.Ieee64,
         _ => NumericByteForm.None,
     };
 
-    /// <summary>True when this picture is a fixed-point numeric with a PINNED byte representation — a
+    /// <summary>True when this picture is a numeric with a PINNED byte representation — a
     /// <see cref="ByteForm"/> other than <see cref="NumericByteForm.None"/> — i.e. it can occupy positions in
     /// a record/group image, cross CALL/MOVE as group bytes, and back a REDEFINES window. ⛔ THE ONE image
     /// predicate (kb/Work PB164): it is DERIVED from the ByteForm table, never a hand-rolled usage union —
-    /// four copies of the union had drifted to {Display, Binary, Packed}, excluding COMP-5 and
-    /// BINARY-CHAR..DOUBLE whose Binary form V59 pinned, so a group containing one loud-staged on conforming
-    /// source. A usage added to ByteForm (the float IEEE forms are the queued next case) widens every
-    /// consumer HERE.</summary>
-    public bool HasImageByteForm => Category is PicCategory.Numeric && !IsFloat && ByteForm is not NumericByteForm.None;
+    /// four copies of the union had drifted to {Display, Binary, Packed} (wave 1 admitted COMP-5/
+    /// BINARY-CHAR..DOUBLE; wave 2 the IEEE float forms, which retired the interim !IsFloat conjunct exactly
+    /// as its doc promised). Only USAGE INDEX answers false among the numerics (ByteForm None,
+    /// §13.18.60.4 GR10 — the pending owner decision). A usage added to ByteForm widens every consumer
+    /// HERE.</summary>
+    public bool HasImageByteForm => Category is PicCategory.Numeric && ByteForm is not NumericByteForm.None;
 
     /// <summary>The CAPACITY discipline that bounds this item's value — the SIZE ERROR boundary
     /// (<see cref="NumericTruncation"/>). Orthogonal to <see cref="ByteForm"/>, which is the byte
@@ -490,6 +510,9 @@ public sealed record PicInfo(
         Usage.BinaryShort => 2,
         Usage.BinaryLong => 4,
         Usage.BinaryDouble => 8,
+        // The IEEE interchange widths (kb/Work PB164 wave 2 — §13.18.60.4 GR13-GR15).
+        Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => 4,
+        Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 => 8,
         _ => 0,
     };
 
@@ -501,7 +524,9 @@ public sealed record PicInfo(
         $"new NumProfile {{ Digits = {Digits}, FractionDigits = {Scale}, " +
         $"Signed = {(Signed ? "true" : "false")}, SignKind = NumericSign.{SignKind}, " +
         $"Truncation = NumericTruncation.{Truncation}, ByteForm = NumericByteForm.{ByteForm}, " +
-        $"StorageLength = {StorageWidth} }}";
+        // HIGH-ORDER-RIGHT (§13.18.60.4 GR19b via §11.9.8, kb/Work PB164 wave 2) — stated only when set, so
+        // the emitted profile of every big-endian item (the documented default) is byte-identical to before.
+        $"StorageLength = {StorageWidth}{(FloatLittleEndian ? ", FloatLittleEndian = true" : "")} }}";
 
     /// <summary>The runtime <c>NumericSign</c> member name for a numeric item (COBOLNET_DESIGN §6.4): binary/packed
     /// usages use a leading minus; USAGE DISPLAY uses over-punch (trailing by default, leading under SIGN LEADING)
@@ -534,6 +559,16 @@ public sealed record PicInfo(
     /// -EXTENDED (ISO §13.18.60.2: floating-point usages are picture-less). Category Numeric, SIGNED (§13.18.60.4
     /// GR13 — "signed numeric data items"); <c>Digits</c>/<c>Scale</c> are inert (no PICTURE truncation, and the
     /// §14.7 composite-digit rule excludes float operands). The value lives in a native <c>float</c>/<c>double</c>
-    /// field (D16), not the scaled-integer substrate; <c>IsWide</c> stays false (it already guards <c>!IsFloat</c>).</summary>
-    public static PicInfo FloatItem(Usage usage) => new(PicCategory.Numeric, usage, Length: 0, Digits: 0, Scale: 0, Signed: true);
+    /// field (D16), not the scaled-integer substrate; <c>IsWide</c> stays false (it already guards <c>!IsFloat</c>).
+    /// <para><paramref name="floatBinaryEndianness"/> is the unit's effective OPTIONS FLOAT-BINARY model
+    /// (§11.9.8): THE ONE application of the implied-endianness-phrase rule — HIGH-ORDER-RIGHT flips
+    /// <see cref="FloatLittleEndian"/> for the STANDARD binary float usages only (§13.18.60.4 GR19b/GR19c);
+    /// <see cref="FloatEndianness.Unspecified"/>/HIGH-ORDER-LEFT and every non-standard float usage stay
+    /// big-endian (§11.9.8.3 SR1 — our documented default; GR13/GR21 — our implementor pin).</para></summary>
+    public static PicInfo FloatItem(Usage usage, FloatEndianness floatBinaryEndianness = FloatEndianness.Unspecified) =>
+        new(PicCategory.Numeric, usage, Length: 0, Digits: 0, Scale: 0, Signed: true)
+        {
+            FloatLittleEndian = usage is Usage.FloatBinary32 or Usage.FloatBinary64
+                && floatBinaryEndianness is FloatEndianness.HighOrderRight,
+        };
 }

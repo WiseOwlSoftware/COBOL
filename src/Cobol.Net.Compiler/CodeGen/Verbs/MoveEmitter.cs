@@ -134,9 +134,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9 MOVE GR4 — no conversion, filled without
     /// consideration for subordinate items): the source's character image fills the group's leaves via
     /// <c>FromImage</c>. Handles any image-capable group — alphanumeric, numeric-edited, numeric-DISPLAY (native or
-    /// stored as its character image, <see cref="DataItem.StoreAsImage"/>), and BINARY/PACKED leaves (their image
-    /// slice is the zoned digit form, the §13.18.60 USAGE GR4 implementor representation — COBOLNET_DESIGN §14.4).
-    /// Only a group with a float/COMP-5/INDEX leaf stays the genuine Tier-C byte-island (deferred, loud).</summary>
+    /// stored as its character image, <see cref="DataItem.StoreAsImage"/>), and BINARY/PACKED/COMP-5/float
+    /// leaves (their image slices are the pinned byte representations — radix-2/BCD/IEEE, COBOLNET_DESIGN
+    /// §14.4; kb/Work PB164). Only a group with a USAGE INDEX leaf stays the genuine Tier-C byte-island
+    /// (deferred, loud).</summary>
     private void EmitGroupMove(Place target, BoundOperand source)
     {
         if (!target.Item.IsCharacterImage)
@@ -162,7 +163,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // image-capable receiver distributes the source's character image via FromImage exactly like a
             // character group — its fixed-point leaves decode their zoned slices (GR4: filled without
             // consideration for the individual items, over the implementor digit-image representation). Only
-            // the genuinely incapable receiver (float/COMP-5/INDEX leaf) stays loud (§1.4).
+            // the genuinely incapable receiver (a USAGE INDEX leaf, kb/Work PB164) stays loud (§1.4).
             if (!target.Item.IsImageCapable)
             {
                 ctx.Writer.Line(LoudStmt(TierCIsland.Reason(target.Item, "MOVE to group")));

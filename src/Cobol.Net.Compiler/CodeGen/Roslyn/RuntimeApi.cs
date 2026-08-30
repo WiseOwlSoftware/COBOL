@@ -107,6 +107,16 @@ internal static class RuntimeApi
     public static string NumParseImage(string image, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImage)}({image}, {profile})";
 
+    /// <summary>The FLOAT decode lane (kb/Work PB164 wave 2) — <c>CobolNum.ParseImageFloat</c>, the IEEE bit
+    /// reinterpretation (the Int128 lane would numerically CONVERT).</summary>
+    public static string NumParseImageFloat(string image, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageFloat)}({image}, {profile})";
+
+    /// <summary>The FLOAT encode lane (kb/Work PB164 wave 2) — <c>CobolNum.FormatImageFloat</c>, distinctly
+    /// named because FormatImage overloads on a float would make integer call sites ambiguous.</summary>
+    public static string NumFormatImageFloat(string value, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImageFloat)}({value}, {profile})";
+
     // ── Strings (CobolString) ──
 
     /// <summary>The alphanumeric MOVE-rules store (left-justify, right space-fill/truncate) —

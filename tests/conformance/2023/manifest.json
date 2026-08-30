@@ -256,7 +256,10 @@
   "pb155_composite_edges",
   "pb157_compute_bit_group",
   "pb157_compute_multi_sizeerr",
-  "pb164_comp5_group_image"
+  "pb164_comp5_group_image",
+  "pb164_float_group_image",
+  "pb164_float_hor_image",
+  "pb164_float_sort_key"
  ],
  "pending": []
 }

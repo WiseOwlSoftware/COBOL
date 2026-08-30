@@ -214,10 +214,12 @@ public static class OoConformance
         {
             if (!(arg.IsGroup || arg.Pic?.Category is PicCategory.Alphanumeric))
                 return "a group formal requires a group or alphanumeric argument";
+            // The ONE Tier-C reason source (kb/Work PB164 — a hand-rolled string here went stale twice as the
+            // island shrank; TierCIsland.Reason names the leaf kind the predicate actually tests).
             if (arg.IsGroup && !arg.IsImageCapable)
-                return "the argument group has a float/COMP-5/INDEX leaf (no character image — Tier-C)";
+                return TierCIsland.Reason(arg, "argument group");
             if (!formal.IsImageCapable)
-                return "the formal group has a float/COMP-5/INDEX leaf (no character image — Tier-C)";
+                return TierCIsland.Reason(formal, "formal group");
             // §14.8.2.2 rule 1 (BY REFERENCE): the formal may be SMALLER than (a prefix of) the argument —
             // the callee sees the leading formal-width character positions; the tail survives write-back.
             // Override signatures and RETURNING pairs keep strict equality.

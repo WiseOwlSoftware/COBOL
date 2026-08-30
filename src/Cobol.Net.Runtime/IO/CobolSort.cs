@@ -184,14 +184,16 @@ public static class CobolSort
     {
         private readonly Key[] _keys;
         private readonly Int128[]?[] _numeric;
+        private readonly double[]?[] _float;
         private readonly Collation.CollationKey[]?[] _collationKeys;
         private readonly string[]?[] _slices;
         private readonly CobolCollation? _collation;
 
-        private KeyColumns(Key[] keys, Int128[]?[] numeric, Collation.CollationKey[]?[] collationKeys, string[]?[] slices, CobolCollation? collation)
+        private KeyColumns(Key[] keys, Int128[]?[] numeric, double[]?[] floats, Collation.CollationKey[]?[] collationKeys, string[]?[] slices, CobolCollation? collation)
         {
             _keys = keys;
             _numeric = numeric;
+            _float = floats;
             _collationKeys = collationKeys;
             _slices = slices;
             _collation = collation;
@@ -201,13 +203,24 @@ public static class CobolSort
         {
             int n = records.Count;
             var numeric = new Int128[]?[keys.Length];
+            var floats = new double[]?[keys.Length];
             var collationKeys = new Collation.CollationKey[]?[keys.Length];
             var slices = new string[]?[keys.Length];
             bool useKeys = collation is { SupportsKeys: true };
             for (int k = 0; k < keys.Length; k++)
             {
                 var key = keys[k];
-                if (key.Numeric)
+                // A FLOAT key (an Ieee-form profile, kb/Work PB164 wave 2) decodes through the IEEE lane and
+                // compares as its ALGEBRAIC double value (§14.9.40.4 GR8 → §8.8.4.2.4 — a numeric key compares
+                // by value regardless of usage; its raw big-endian IEEE bytes would order every negative after
+                // every positive). double.CompareTo is a total order, so an exotic NaN payload cannot throw.
+                if (key.Numeric && key.Profile.ByteForm is NumericByteForm.Ieee32 or NumericByteForm.Ieee64)
+                {
+                    var col = new double[n];
+                    for (int i = 0; i < n; i++) col[i] = CobolNum.ParseImageFloat(Slice(records[i], key), key.Profile);
+                    floats[k] = col;
+                }
+                else if (key.Numeric)
                 {
                     var col = new Int128[n];
                     for (int i = 0; i < n; i++) col[i] = NumericKey(records[i], key);
@@ -226,7 +239,7 @@ public static class CobolSort
                     slices[k] = col;
                 }
             }
-            return new KeyColumns(keys, numeric, collationKeys, slices, collation);
+            return new KeyColumns(keys, numeric, floats, collationKeys, slices, collation);
         }
 
         /// <summary>Compare records <paramref name="x"/> and <paramref name="y"/> on every key, most significant first.</summary>
@@ -236,6 +249,7 @@ public static class CobolSort
             {
                 int c;
                 if (_numeric[k] is { } nums) c = nums[x].CompareTo(nums[y]);
+                else if (_float[k] is { } fs) c = fs[x].CompareTo(fs[y]);
                 else if (_collationKeys[k] is { } ck) c = ck[x].CompareTo(ck[y]);
                 else
                 {
@@ -265,5 +279,9 @@ public static class CobolSort
     /// describe a zoned key, which is how a COMP key would have sorted by its digit characters instead of its
     /// value. Scale is irrelevant for ordering: both operands of one key share one PICTURE, so the unscaled
     /// values order identically to the scaled ones.</summary>
+    /// <summary>Decode a fixed-point numeric key's window with the leaf's own profile (zoned/radix-2/BCD —
+    /// V59). A profile with NO byte form (<see cref="NumericByteForm.None"/> — USAGE INDEX) throws the codec's
+    /// loud invariant break rather than yielding an invented ordering; float keys take the algebraic lane in
+    /// <see cref="KeyColumns.Build"/>, never this one.</summary>
     private static Int128 NumericKey(string image, in Key k) => CobolNum.ParseImage(Slice(image, k), k.Profile);
 }

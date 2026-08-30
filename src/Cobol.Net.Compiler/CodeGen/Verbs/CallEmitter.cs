@@ -303,8 +303,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // CALL rejected conforming source — §14.2.3 GR8 (`cite.py`-verified): "If the argument is passed by
             // reference, the activated runtime element operates as if the formal parameter occupies the same
             // storage area as the argument", which COBOL.NET realizes through the very image round-trip that
-            // exists. A float / COMP-5 / INDEX leaf is still genuinely imageless and stays loud — hence the
-            // leaf-kind wording now matches the predicate actually being tested.
+            // exists. A USAGE INDEX leaf is still genuinely imageless and stays loud (floats and COMP-5
+            // joined the image in kb/Work PB164 waves 1–2) — hence the leaf-kind wording now matches the
+            // predicate actually being tested.
             if (p.Item.IsGroup && !p.Item.IsImageCapable && p is not RedefViewPlace)
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                     + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group"))

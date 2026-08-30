@@ -113,8 +113,9 @@ internal static class OperandText
     /// never a second codec): a group is its generated <c>AsImage()</c>; a national leaf its UTF-16BE bytes
     /// (<c>CobolBits.NatBytes</c>, D-N1); a USAGE BIT leaf its packed bits (<c>CobolBits.Pack</c> — which also
     /// materializes §15.19.4 r2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
-    /// image — storage, so no GR6a de-sign); a BINARY/PACKED leaf its radix-2/BCD bytes
-    /// (<c>CobolNum.FormatImage</c>, V59/§14.4). A float / COMP-5 leaf has no defined image
+    /// image — storage, so no GR6a de-sign); a BINARY/PACKED/COMP-5 leaf its radix-2/BCD bytes
+    /// (<c>CobolNum.FormatImage</c>, V59/§14.4); a float leaf its IEEE interchange bytes
+    /// (<c>CobolNum.FormatImageFloat</c> — kb/Work PB164 wave 2). A USAGE INDEX leaf has no defined image
     /// (<see cref="DataItem.IsImageCapable"/>) and stages LOUD rather than returning a plausible wrong image;
     /// index/pointer/object shapes are unreachable — the §15.19.3 r7 bind screen rejected them.</summary>
     public static string AsStorageImage(Place p)
@@ -143,9 +144,11 @@ internal static class OperandText
                 PlaceRenderer.Read(p),
             // A zoned leaf stored as its image: the carrier already holds the storage characters.
             { Category: PicCategory.Numeric, IsFloat: false } when p.Item.StoreAsImage => PlaceRenderer.Read(p),
-            // A native fixed-point leaf: the bytes it occupies at a byte boundary (zoned digits, radix-2, BCD —
-            // PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164 widened it to COMP-5 and
-            // BINARY-CHAR..DOUBLE here in lockstep) — the ONE FormatImage recipe the group codec uses.
+            // A native numeric leaf: the bytes it occupies at a byte boundary (zoned digits, radix-2, BCD,
+            // or the wave-2 IEEE forms — PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164) —
+            // the same recipes the group codec uses, the float family through its distinctly-named lane.
+            { HasImageByteForm: true, IsFloat: true } =>
+                RuntimeApi.NumFormatImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName),
             { HasImageByteForm: true } =>
                 RuntimeApi.NumFormatImage(PlaceRenderer.Read(p), p.Item.ProfileName),
             _ => EmitText.LoudValue("string", TierCIsland.Reason(p.Item, "raw-storage image (CONVERT ANY) of")),
@@ -208,7 +211,7 @@ internal static class OperandText
         // ⚠ THIS COMMENT USED TO SAY "its zoned decimal digit image … with a trailing-overpunch sign", which was
         // true of the PRE-V59 image and is now false — the bytes are not digits. Corrected rather than left, since
         // a stale comment describing the old representation is exactly how the two-predicate residue below spread.
-        // Only a group with a float / COMP-5 / INDEX leaf stays the loud Tier-C island. This is the
+        // Only a group with a USAGE INDEX leaf stays the loud Tier-C island (kb/Work PB164). This is the
         // WRITE / RELEASE / DISPLAY / compare sender path.
         // A BIT GROUP operates as an elementary boolean item of PICTURE 1(m) (§13.18.29.4 GR1b; D20/PB79): its
         // operand value is its BIT STRING (the subordinates' boolean positions concatenated — AsBits), never the

@@ -371,14 +371,13 @@ public sealed class DataItem
     /// DISPLAY (native <c>long</c>/<c>Int128</c>, its image is its zoned digit form) and BINARY/PACKED, whose
     /// image is its TRUE BYTES: radix-2 two's complement or BCD of exactly <see cref="Model.PicInfo.StorageWidth"/>
     /// (ISO/IEC 1989:2023 §13.18.60.4 GR4/GR11 leave the representation, including the sign, to the implementor —
-    /// see <see cref="NumericByteForm"/>; V59). COMP-5 and BINARY-CHAR..DOUBLE are IN (kb/Work PB164 — their
-    /// Binary byte form and StorageWidth were pinned by V59, and a BinaryCapacity value beyond the PICTURE
-    /// digits rides FormatImage's full-container Int128 bits contract; the old exclusion was predicate drift
-    /// that loud-staged a conforming group at CALL/MOVE/REDEFINES). Excluded — kept loud (§1.4): COMP-1/COMP-2
-    /// floats (no byte form pinned yet — PB164's queued IEEE half) and INDEX items (no image at all,
-    /// §13.18.60.4 GR10 — an owner decision when PB164's last half lands). A group is image-capable when every
-    /// child is. Width-wise the codec uses <see cref="ImageWidth"/>, which IS <see cref="ByteWidth"/> for every
-    /// item that reaches an image — the ONE-WIDTH invariant (<c>ImageWidthIsStorageWidthTests</c>).
+    /// see <see cref="NumericByteForm"/>; V59). COMP-5 and BINARY-CHAR..DOUBLE are IN (kb/Work PB164 wave 1 —
+    /// their Binary byte form and StorageWidth were pinned by V59; the old exclusion was predicate drift), and
+    /// the FLOAT family is IN too (wave 2 — the <see cref="NumericByteForm.Ieee32"/>/<c>Ieee64</c> big-endian
+    /// interchange pin, §13.18.60.4 GR13–GR15). Excluded — kept loud (§1.4): INDEX items only (no image at
+    /// all, §13.18.60.4 GR10 — an owner decision when PB164's last half lands). A group is image-capable when
+    /// every child is. Width-wise the codec uses <see cref="ImageWidth"/>, which IS <see cref="ByteWidth"/> for
+    /// every item that reaches an image — the ONE-WIDTH invariant (<c>ImageWidthIsStorageWidthTests</c>).
     /// </summary>
     public bool IsImageCapable =>
         !IsDynamicTable && !IsDynamicLength && (   // out-of-line dynamic table / variable-length string — not in the static record codec (D9 / §8.5.1.10)
@@ -444,7 +443,7 @@ public sealed class DataItem
                 // single-byte-character model. The zoned form's digit run IS its byte form, so it stays digits
                 // plus a SIGN SEPARATE position (§13.18.52; a binary item never carries a separate sign).
                 return pic.ByteForm is NumericByteForm.Binary or NumericByteForm.Packed
-                        or NumericByteForm.PackedNoSign
+                        or NumericByteForm.PackedNoSign or NumericByteForm.Ieee32 or NumericByteForm.Ieee64
                     ? pic.StorageWidth
                     : pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0);
             return pic.Length;
@@ -495,10 +494,14 @@ public sealed class DataItem
             if (Pic is not { } pic) return 0;
             return pic.Usage switch
             {
+                // One width authority: PicInfo.StorageWidth carries every pinned representation's width —
+                // radix-2/BCD (V59) and the kb/Work PB164 IEEE interchange forms alike (its float arms were
+                // duplicated here as 4/8 literals until the wave-2 dedupe).
                 Usage.Binary or Usage.Comp5 or Usage.Packed or Usage.BinaryChar or Usage.BinaryShort
-                    or Usage.BinaryLong or Usage.BinaryDouble => pic.StorageWidth,
-                Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => 4,   // IEEE binary32 = 4 bytes
-                Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 => 8,   // binary64 = 8
+                    or Usage.BinaryLong or Usage.BinaryDouble
+                    or Usage.Float or Usage.FloatShort or Usage.FloatBinary32
+                    or Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64
+                    => pic.StorageWidth,
                 // The processor-dependent non-support formats (rejected at ParseUsage, COBOLNET1564) — their pinned
                 // ISO/IEC 60559 byte widths, so a BYTE-LENGTH fold under an already-errored compile is not off by 1x.
                 Usage.FloatBinary128 or Usage.FloatDecimal34 => 16,   // binary128 / decimal128 = 16 bytes

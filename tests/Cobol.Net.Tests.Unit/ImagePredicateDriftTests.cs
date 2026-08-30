@@ -27,6 +27,13 @@ public class ImagePredicateDriftTests
     [InlineData(Usage.BinaryShort)]
     [InlineData(Usage.BinaryLong)]
     [InlineData(Usage.BinaryDouble)]
+    [InlineData(Usage.Float)]
+    [InlineData(Usage.Double)]
+    [InlineData(Usage.FloatShort)]
+    [InlineData(Usage.FloatLong)]
+    [InlineData(Usage.FloatExtended)]
+    [InlineData(Usage.FloatBinary32)]
+    [InlineData(Usage.FloatBinary64)]
     public void EveryPinnedByteForm_IsImageCapable(Usage usage)
     {
         var pic = Pic(usage);
@@ -58,5 +65,22 @@ public class ImagePredicateDriftTests
         var pic = Pic(usage, digits);
         Assert.Equal(expectedBytes, pic.StorageWidth);
         Assert.Equal(NumericByteForm.Binary, pic.ByteForm);
+    }
+
+    [Theory]
+    // The IEEE interchange widths (kb/Work PB164 wave 2 — §13.18.60.4 GR13–GR15, big-endian).
+    [InlineData(Usage.Float, NumericByteForm.Ieee32, 4)]
+    [InlineData(Usage.FloatShort, NumericByteForm.Ieee32, 4)]
+    [InlineData(Usage.FloatBinary32, NumericByteForm.Ieee32, 4)]
+    [InlineData(Usage.Double, NumericByteForm.Ieee64, 8)]
+    [InlineData(Usage.FloatLong, NumericByteForm.Ieee64, 8)]
+    [InlineData(Usage.FloatExtended, NumericByteForm.Ieee64, 8)]
+    [InlineData(Usage.FloatBinary64, NumericByteForm.Ieee64, 8)]
+    public void FloatImageWidth_IsIeeeInterchangeWidth(Usage usage, NumericByteForm expectedForm, int expectedBytes)
+    {
+        var pic = Pic(usage, digits: 0);
+        Assert.Equal(expectedForm, pic.ByteForm);
+        Assert.Equal(expectedBytes, pic.StorageWidth);
+        Assert.True(pic.HasImageByteForm);
     }
 }

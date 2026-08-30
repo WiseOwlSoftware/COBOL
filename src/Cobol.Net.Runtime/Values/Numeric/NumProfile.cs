@@ -72,6 +72,24 @@ public enum NumericByteForm
     /// a leading pad nibble when the digit count is odd. SR31 forbids an <c>S</c> in the picture; the value is
     /// "always considered to have a zero, or positive value".</summary>
     PackedNoSign = 4,
+
+    /// <summary>COMP-1 / FLOAT-SHORT / FLOAT-BINARY-32: the IEEE 754 binary32 interchange FORMAT, 4 bytes
+    /// (kb/Work PB164 wave 2 — the byte-form pin that admits a float leaf to group images/records). The FORMAT
+    /// and the BYTE ORDER are separate spec channels: §13.18.60.4 GR14 pins FLOAT-BINARY-32 to the binary32
+    /// interchange format (ISO/IEC 60559) while GR13/GR21 leave COMP-1/FLOAT-SHORT to the implementor — one
+    /// form serves both. Byte order: §13.18.60.4 GR19 (HIGH-ORDER-LEFT = big-endian, HIGH-ORDER-RIGHT =
+    /// little-endian; for the STANDARD usages the implied phrase comes from §11.9.8, whose SR1 makes the
+    /// no-clause default OUR documented choice — HIGH-ORDER-LEFT, Annex A.1 item 48), carried per profile by
+    /// <see cref="NumProfile.FloatLittleEndian"/>. The implementor-defined usages (COMP-1/FLOAT-SHORT) are
+    /// PINNED big-endian, matching <see cref="Binary"/>'s byte order so a record interchanges.</summary>
+    Ieee32 = 5,
+
+    /// <summary>COMP-2 / FLOAT-LONG / FLOAT-EXTENDED / FLOAT-BINARY-64: the IEEE 754 binary64 interchange
+    /// FORMAT, 8 bytes (kb/Work PB164 wave 2; FLOAT-EXTENDED maps to binary64 — the documented GR13 subset
+    /// nesting, no .NET quad). Format pinned by §13.18.60.4 GR15 for FLOAT-BINARY-64, implementor-chosen
+    /// (GR13/GR21) for the rest; byte order per GR19 + §11.9.8 exactly as <see cref="Ieee32"/> documents —
+    /// big-endian unless <see cref="NumProfile.FloatLittleEndian"/>.</summary>
+    Ieee64 = 6,
 }
 
 /// <summary>
@@ -132,6 +150,17 @@ public readonly record struct NumProfile
     /// emits states it; the runtime's own hand-built profiles are character-image decoders and state
     /// <see cref="NumericByteForm.Zoned"/>.</summary>
     public required NumericByteForm ByteForm { get; init; }
+
+    /// <summary>The effective FLOAT-BINARY endianness for a STANDARD binary floating-point item
+    /// (<see cref="NumericByteForm.Ieee32"/>/<see cref="NumericByteForm.Ieee64"/> under USAGE
+    /// FLOAT-BINARY-32/-64): <c>true</c> = HIGH-ORDER-RIGHT, the item's interchange bytes are LITTLE-endian
+    /// (ISO §13.18.60.4 GR19b); <c>false</c> = HIGH-ORDER-LEFT / big-endian — GR19a, and the documented
+    /// implied-phrase default when no OPTIONS FLOAT-BINARY clause is specified (§11.9.8.3 SR1 makes that
+    /// default the implementor's REQUIRED-documented choice, Annex A.1 item 48). Always <c>false</c> for the
+    /// implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, GR13/GR21 — pinned
+    /// big-endian regardless of the clause, which speaks only to the standard usages, GR19c). Set at bind by
+    /// <c>PicInfo.FloatItem</c> — the ONE place the §11.9.8 implied-phrase rule is applied.</summary>
+    public bool FloatLittleEndian { get; init; }
 
     /// <summary>Storage width in bytes — used for <see cref="NumericTruncation.PackedDecimal"/> capacity
     /// (2n−1 digits) and <see cref="NumericTruncation.BinaryCapacity"/> two's-complement range, and it is the

@@ -170,10 +170,16 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         : f.Width == 0 ? "\"\""
         : f.Occurs == 0
             ? (f.IsGroupStruct ? $"{f.Name}.AsImage()"
-               : f.NumLeaf is { } leaf ? RuntimeApi.NumFormatImage(f.Name, leaf.ProfileName)
+               // A FLOAT leaf encodes through the IEEE lane (kb/Work PB164 wave 2 — distinctly named so
+               // integer call sites stay unambiguous).
+               : f.NumLeaf is { } leaf ? (leaf.Pic!.IsFloat
+                    ? RuntimeApi.NumFormatImageFloat(f.Name, leaf.ProfileName)
+                    : RuntimeApi.NumFormatImage(f.Name, leaf.ProfileName))
                : f.Name)
         : f.IsGroupStruct ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => __e.AsImage()))"
-        : f.NumLeaf is { } l ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => {RuntimeApi.NumFormatImage("__e", l.ProfileName)}))"
+        : f.NumLeaf is { } l ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => {(l.Pic!.IsFloat
+                ? RuntimeApi.NumFormatImageFloat("__e", l.ProfileName)
+                : RuntimeApi.NumFormatImage("__e", l.ProfileName))}))"
         : $"string.Concat({f.Name})";
 
     /// <summary>Distribute the slice of the image at <paramref name="off"/> into one member: a scalar string field
@@ -215,7 +221,11 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
                 : f.NumLeaf is { } leaf
-                ? $"{f.Name} = ({leaf.Pic!.ClrType}){RuntimeApi.NumParseImage($"__s.Substring({off}, {f.Width})", leaf.ProfileName)};"
+                // A FLOAT leaf decodes through the IEEE bit-reinterpretation lane — the Int128 lane's cast
+                // would numerically CONVERT the parsed integer (kb/Work PB164 wave 2).
+                ? $"{f.Name} = ({leaf.Pic!.ClrType}){(leaf.Pic!.IsFloat
+                        ? RuntimeApi.NumParseImageFloat($"__s.Substring({off}, {f.Width})", leaf.ProfileName)
+                        : RuntimeApi.NumParseImage($"__s.Substring({off}, {f.Width})", leaf.ProfileName))};"
                 : $"{f.Name} = __s.Substring({off}, {f.Width});");
             return;
         }
@@ -224,7 +234,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}[__i].FromImage(__s.Substring({off} + __i * {elem}, {elem}));"
                 : f.NumLeaf is { } l
-                ? $"{f.Name}[__i] = ({l.Pic!.ClrType}){RuntimeApi.NumParseImage($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName)};"
+                ? $"{f.Name}[__i] = ({l.Pic!.ClrType}){(l.Pic!.IsFloat
+                        ? RuntimeApi.NumParseImageFloat($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName)
+                        : RuntimeApi.NumParseImage($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName))};"
                 : $"{f.Name}[__i] = __s.Substring({off} + __i * {elem}, {elem});");
     }
 }

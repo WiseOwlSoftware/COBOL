@@ -49,8 +49,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
             return new BoundUnsupported($"SORT file '{file.CobolName}' is not described in a sort-merge description "
                 + "entry (ISO §14.9.40.3 SR4 — file-name-1 shall be described in an SD)");
         if (SortRecordOf(file) is not { } record)
-            return new BoundUnsupported($"SORT '{file.CobolName}' without a usable SD record (a COMP/binary-leaf "
-                + "record is the Tier-C byte island, deferred — COBOLNET_DESIGN §4.2)");
+            return new BoundUnsupported($"SORT '{file.CobolName}' without a usable SD record (an INDEX-leaf "
+                + "record is the Tier-C byte island, deferred — COBOLNET_DESIGN §4.2; kb/Work PB164)");
         int width = Model.RecordLayout.AreaWidth(record);
 
         var keys = new List<BoundSortMergeKey>();
@@ -273,10 +273,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     // ── Shared sort-family helpers ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>The SD's canonical record (the first 01 — secondary 01s share its area via the synthesized
-    /// REDEFINES, ISO §9.1.2), or null when absent / not image-capable (the sort store carries record IMAGES, and
-    /// a fixed-point BINARY/PACKED leaf's image is its zoned digit form per the §13.18.60 USAGE GR4 implementor
-    /// representation — COBOLNET_DESIGN §14.4/§8.2; only a float/COMP-5/INDEX leaf keeps the record a Tier-C byte
-    /// island the image store cannot carry — deferred, loud).</summary>
+    /// REDEFINES, ISO §9.1.2), or null when absent / not image-capable (the sort store carries record IMAGES —
+    /// zoned, radix-2, BCD and the kb/Work PB164 IEEE forms per the leaves' pinned byte representations,
+    /// COBOLNET_DESIGN §14.4/§8.2; only an INDEX leaf keeps the record a Tier-C byte island the image store
+    /// cannot carry — deferred, loud).</summary>
     private static DataItem? SortRecordOf(FileModel file) =>
         file.Records.Count > 0 && (file.Records[0].IsElementary || file.Records[0].IsImageCapable)
             ? file.Records[0] : null;
@@ -305,7 +305,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                 return $"SORT/MERGE key '{dref.GetText()}' — key data-names shall not be subject to any OCCURS "
                     + "clause (ISO §14.9.40.3 SR6b/SR6f)";
             var pic = item.Pic;
-            bool numeric = pic is { Category: PicCategory.Numeric, IsFloat: false };
+            bool numeric = pic is { Category: PicCategory.Numeric };
             int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ImageWidth;
             if (len <= 0) return $"SORT/MERGE key '{dref.GetText()}' has no character image";
             // SR6g: with variable-length records every key must lie within the first min-record-size bytes.
@@ -316,8 +316,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                     + "(ISO §14.9.40.3 SR6g)");
             // A numeric key carries the LEAF ITSELF, so the runtime decodes its window with the leaf's own
             // profile — the one description of its bytes (zoned digits for DISPLAY, radix-2 / BCD for
-            // BINARY / PACKED; V59). §14.9.40 GR8 + §8.8.4.2.4: numeric keys compare by ALGEBRAIC value
-            // regardless of how their usage is described, so the decode must match the representation exactly.
+            // BINARY / PACKED, the IEEE interchange forms for the float family — kb/Work PB164 wave 2; V59).
+            // §14.9.40 GR8 + §8.8.4.2.4: numeric keys compare by ALGEBRAIC value regardless of how their
+            // usage is described, so the decode must match the representation exactly — CobolSort's column
+            // builder dispatches on the profile's ByteForm (a float key's raw big-endian IEEE bytes would
+            // order every negative after every positive, so it takes the algebraic double lane).
             keys.Add(new BoundSortMergeKey(descending, off, len, numeric, numeric ? item : null));
         }
         return null;

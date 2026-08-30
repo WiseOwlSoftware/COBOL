@@ -413,8 +413,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // A STORAGE-boundary write: the WHOLE record image, whatever the record area's storage shape (a
             // record struct, a Tier-B view over a shared area, an occurs-depending record — kb/Work PB80) — the
             // ONE full-image store. A mixed-usage record area distributes through the generated FromImage (its
-            // BINARY/PACKED leaves decode their byte slices — COBOLNET_DESIGN §14.4/§8.2); a record with a
-            // float/COMP-5/INDEX leaf is the loud Tier-C island inside the helper (§1.4).
+            // BINARY/PACKED/COMP-5/float leaves decode their byte slices — COBOLNET_DESIGN §14.4/§8.2); a
+            // record with a USAGE INDEX leaf is the loud Tier-C island inside the helper (§1.4; kb/Work PB164).
             w.Line(PlaceRenderer.WriteFullGroupImage(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.ImageWidth}"),
                 $"record area '{record.Item.CobolName}' read"));
             return;
@@ -445,7 +445,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (item.IsGroup && place is not RedefViewPlace)
         {
             // Same image-capability rule as every other group receiver (COBOLNET_DESIGN §14.4): a mixed-usage
-            // status group distributes via FromImage; only a float/COMP-5/INDEX leaf stays loud (§1.4).
+            // status group distributes via FromImage; only a USAGE INDEX leaf stays loud (§1.4; kb/Work PB164).
             if (!item.IsImageCapable)
             {
                 ctx.Writer.Line(LoudStmt(TierCIsland.Reason(item, "FILE STATUS into group")));

@@ -37,7 +37,7 @@ internal static class PlaceRenderer
         // A GROUP viewed as its character image for reference modification (ISO §8.4.3.3.3 SR1 / §8.4.3.3.4 GR6 —
         // kb/Work PB70): the generated AsImage(); an occurs-depending group with data-name-1 outside sends its
         // CURRENT-count part (§13.18.38 GR8, so a position past the count is EC-BOUND-REF-MOD, not a read of the
-        // unused area); a Tier-C group (a float / COMP-5 / INDEX leaf) has no image and stays the loud island.
+        // unused area); a Tier-C group (a USAGE INDEX leaf, kb/Work PB164) has no image and stays the loud island.
         GroupImagePlace g => !g.Inner.Item.IsImageCapable
             ? EmitText.LoudValue("string", TierCIsland.Reason(g.Inner.Item, "reference modification of group"))
             : g.Inner is OdoGroupPlace { DependingInside: false } odo ? SendingImage(odo)
@@ -193,8 +193,8 @@ internal static class PlaceRenderer
     /// data-name-1 INSIDE uses the maximum length, GR8b — the plain FromImage); a Tier-B REDEFINES view's image IS
     /// its character window; a group nested under an OCCURS DYNAMIC level distributes through the RECEIVING accessor
     /// (RefReceiving grows-and-seeds past the current capacity, §8.5.1.9.3 — never RefSending, which drops an
-    /// out-of-capacity write into scratch). A group with a float / COMP-5 / INDEX leaf has no image
-    /// (<see cref="DataItem.IsImageCapable"/>) and stays the loud Tier-C island (COBOLNET_DESIGN §4.2) —
+    /// out-of-capacity write into scratch). A group with a USAGE INDEX leaf has no image
+    /// (<see cref="DataItem.IsImageCapable"/>; kb/Work PB164) and stays the loud Tier-C island (COBOLNET_DESIGN §4.2) —
     /// <paramref name="context"/> names the verb in that message.
     /// <para>V59 residue (DA5), written ONCE: this is a POSITIONAL character transfer INTO the group's storage — the
     /// same job a group MOVE does — so a COMP / PACKED group is admitted (its leaves decode their image slices) and

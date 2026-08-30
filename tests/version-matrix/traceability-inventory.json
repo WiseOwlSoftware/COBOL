@@ -11276,12 +11276,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "FLOAT-BINARY clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#FloatItem",
+  "test-ref": "conformance:2023/pb164_float_group_image; unit:NumericByteFormDriftTests.FloatBinaryEndianness_ReachesOnlyStandardBinaryFloatProfiles; unit:FloatImageLaneTests.FormatImageFloat_Ieee32_IsBigEndianBinary32",
+  "editions": "2014,2023",
+  "notes": "No FLOAT-BINARY clause: the implementor-specified implied phrase is HIGH-ORDER-LEFT (big-endian) - the REQUIRED documented determination (Annex A.1 item 48; docs/CONFORMANCE.md row 48). Matches the big-endian pin of every other byte representation so records interchange.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.8.3-2",
@@ -11289,12 +11289,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "FLOAT-BINARY clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#FloatItem",
+  "test-ref": "unit:NumericByteFormDriftTests.FloatBinaryEndianness_ReachesOnlyStandardBinaryFloatProfiles",
+  "editions": "2014,2023",
+  "notes": "HIGH-ORDER-LEFT specified: implied for every standard binary float item without its own endianness-phrase - big-endian, the same bytes as the default (the drift theory pins FloatLittleEndian=false for the HighOrderLeft row). The per-item endianness-phrase on the USAGE clause is kb/Work PB174.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.8.3-3",
@@ -11302,12 +11302,12 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "FLOAT-BINARY clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#FloatItem; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.Image.cs#FormatImageFloat",
+  "test-ref": "conformance:2023/pb164_float_hor_image; unit:FloatImageLaneTests.FloatLittleEndian_ReversesTheByteSequence",
+  "editions": "2014,2023",
+  "notes": "HIGH-ORDER-RIGHT specified: implied for every standard binary float item without its own endianness-phrase - FLOAT-BINARY-32/-64 images become little-endian (13.18.60.4 GR19b) via NumProfile.FloatLittleEndian; COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED stay big-endian (GR19c scopes the clause to the standard usages). The golden discriminates byte order with FUNCTION ORD reads (a round trip alone is self-inverse). Per-item phrase: kb/Work PB174.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.9.3-1",
@@ -49873,12 +49873,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "FLOAT-BINARY clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#floatBinaryClause",
+  "test-ref": "conformance:2023/pb164_float_hor_image",
+  "editions": "2014,2023",
+  "notes": "FLOAT-BINARY DEFAULT? IS? {HIGH-ORDER-LEFT | HIGH-ORDER-RIGHT} - the grammar matches the printed format (plain braces, exactly one required alternative; DEFAULT and IS optional words). Bound by OptionsBinder into OptionsModel.FloatBinaryEndianness and CONSUMED since kb/Work PB164 wave 2 (PicInfo.FloatItem).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-11.9.9.2",

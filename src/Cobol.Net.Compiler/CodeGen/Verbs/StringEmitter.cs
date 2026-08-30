@@ -196,8 +196,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
             // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
             // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
-            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
-            // hence the leaf-kind wording now matches the predicate actually tested.
+            // positionally over its bytes. A USAGE INDEX group is still imageless and stays loud (kb/Work
+            // PB164) — hence the leaf-kind wording now matches the predicate actually tested.
             // The ONE group-image store (MOVE rules — §14.9.48.4 GR11c: a GR8a current-extent splice for an
             // occurs-depending receiver, the Tier-B window, the Tier-C loud island; kb/Work PB80).
             w.Line(PlaceRenderer.WriteGroupImage(target, RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}"), "UNSTRING INTO group"));

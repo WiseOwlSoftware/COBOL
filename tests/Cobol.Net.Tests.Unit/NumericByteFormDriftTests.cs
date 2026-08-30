@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using CobolNet.Runtime;
 using Xunit;
@@ -44,15 +45,19 @@ public sealed class NumericByteFormDriftTests
             // occurrence-number carrier only SET, SEARCH and relation conditions may reference (§13.18.60.4 GR10).
             // None is the honest answer, and it makes a codec handed one fail loud instead of inventing bytes. ──
             [Usage.Index] = (NumericByteForm.None, NumericTruncation.DigitCount),
-            // ── No profile is emitted for these (RecordStructEmitter.EmitProfiles takes non-float numerics only),
-            // so their byte form is never consulted; None states that rather than defaulting to a lie. ──
-            [Usage.Float] = (NumericByteForm.None, NumericTruncation.DigitCount),
-            [Usage.Double] = (NumericByteForm.None, NumericTruncation.DigitCount),
-            [Usage.FloatShort] = (NumericByteForm.None, NumericTruncation.DigitCount),
-            [Usage.FloatLong] = (NumericByteForm.None, NumericTruncation.DigitCount),
-            [Usage.FloatExtended] = (NumericByteForm.None, NumericTruncation.DigitCount),
-            [Usage.FloatBinary32] = (NumericByteForm.None, NumericTruncation.DigitCount),
-            [Usage.FloatBinary64] = (NumericByteForm.None, NumericTruncation.DigitCount),
+            // ── The float family (kb/Work PB164 wave 2): the IEEE 754 interchange forms — binary32 for the
+            // 4-byte usages, binary64 for the 8-byte ones (§13.18.60.4 GR14/GR15 pin the FLOAT-BINARY formats;
+            // GR13/GR21 leave the rest to the implementor, one encoding serving both). EmitProfiles emits
+            // float profiles; the byte ORDER is the profile's FloatLittleEndian axis (§11.9.8), not a row here. ──
+            [Usage.Float] = (NumericByteForm.Ieee32, NumericTruncation.DigitCount),
+            [Usage.Double] = (NumericByteForm.Ieee64, NumericTruncation.DigitCount),
+            [Usage.FloatShort] = (NumericByteForm.Ieee32, NumericTruncation.DigitCount),
+            [Usage.FloatLong] = (NumericByteForm.Ieee64, NumericTruncation.DigitCount),
+            [Usage.FloatExtended] = (NumericByteForm.Ieee64, NumericTruncation.DigitCount),
+            [Usage.FloatBinary32] = (NumericByteForm.Ieee32, NumericTruncation.DigitCount),
+            [Usage.FloatBinary64] = (NumericByteForm.Ieee64, NumericTruncation.DigitCount),
+            // ── The processor-dependent non-support formats (rejected at ParseUsage, COBOLNET1564) — no byte
+            // form; None states that rather than defaulting to a lie. ──
             [Usage.FloatBinary128] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.FloatDecimal16] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.FloatDecimal34] = (NumericByteForm.None, NumericTruncation.DigitCount),
@@ -121,7 +126,7 @@ public sealed class NumericByteFormDriftTests
     {
         var pic = Pic(usage);
         bool hasOwnBytes = pic.ByteForm is NumericByteForm.Binary or NumericByteForm.Packed
-            or NumericByteForm.PackedNoSign;
+            or NumericByteForm.PackedNoSign or NumericByteForm.Ieee32 or NumericByteForm.Ieee64;
         Assert.Equal(hasOwnBytes, pic.StorageWidth > 0);
     }
 
@@ -148,6 +153,32 @@ public sealed class NumericByteFormDriftTests
         Assert.Contains("StorageLength = 3", Pic(Usage.Packed).ProfileInitializer);
         Assert.Contains("ByteForm = NumericByteForm.Zoned", Pic(Usage.Display).ProfileInitializer);
         Assert.Contains("Truncation = NumericTruncation.PackedDecimal", Pic(Usage.Packed).ProfileInitializer);
+        Assert.Contains("ByteForm = NumericByteForm.Ieee32", PicInfo.FloatItem(Usage.Float).ProfileInitializer);
+        Assert.Contains("StorageLength = 8", PicInfo.FloatItem(Usage.Double).ProfileInitializer);
+    }
+
+    /// <summary>The FLOAT-BINARY endianness axis (§13.18.60.4 GR19 + §11.9.8, kb/Work PB164 wave 2), applied
+    /// ONCE in <see cref="PicInfo.FloatItem"/>: an effective HIGH-ORDER-RIGHT flips the profile's
+    /// <c>FloatLittleEndian</c> for the STANDARD binary float usages ONLY — the implementor-defined usages
+    /// (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) are pinned big-endian regardless (GR13/GR21; GR19c scopes
+    /// the clause to the standard usages), and the no-clause default is our documented HIGH-ORDER-LEFT
+    /// (§11.9.8.3 SR1, Annex A.1 item 48).</summary>
+    [Theory]
+    [InlineData(Usage.FloatBinary32, FloatEndianness.HighOrderRight, true)]
+    [InlineData(Usage.FloatBinary64, FloatEndianness.HighOrderRight, true)]
+    [InlineData(Usage.FloatBinary32, FloatEndianness.HighOrderLeft, false)]
+    [InlineData(Usage.FloatBinary32, FloatEndianness.Unspecified, false)]
+    [InlineData(Usage.Float, FloatEndianness.HighOrderRight, false)]
+    [InlineData(Usage.Double, FloatEndianness.HighOrderRight, false)]
+    [InlineData(Usage.FloatShort, FloatEndianness.HighOrderRight, false)]
+    [InlineData(Usage.FloatLong, FloatEndianness.HighOrderRight, false)]
+    [InlineData(Usage.FloatExtended, FloatEndianness.HighOrderRight, false)]
+    public void FloatBinaryEndianness_ReachesOnlyStandardBinaryFloatProfiles(
+        Usage usage, FloatEndianness effective, bool expectLittle)
+    {
+        var pic = PicInfo.FloatItem(usage, effective);
+        Assert.Equal(expectLittle, pic.FloatLittleEndian);
+        Assert.Equal(expectLittle, pic.ProfileInitializer.Contains("FloatLittleEndian = true"));
     }
 
     /// <summary>The conflation V59 exists to retire, asserted directly: one capacity discipline, two byte

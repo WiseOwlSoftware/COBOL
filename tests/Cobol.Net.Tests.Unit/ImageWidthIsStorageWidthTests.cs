@@ -26,7 +26,8 @@ namespace CobolNet.Tests.Unit;
 /// views legitimately differ by exactly that factor, which this test asserts rather than skips.</item>
 /// <item>BOOLEAN is excluded because its unit is a boolean position, not a character position (§15.50.4 r1).</item>
 /// <item>Everything NOT <see cref="DataItem.IsImageCapable"/> is excluded because it never reaches an image at
-/// all — float / COMP-5 / INDEX are the loud Tier-C island. An item outside the image cannot contradict it.</item>
+/// all — USAGE INDEX is the loud Tier-C island (floats and COMP-5 joined the image in kb/Work PB164 waves
+/// 1–2 and are enumerated below). An item outside the image cannot contradict it.</item>
 /// </list>
 /// </para>
 /// </summary>
@@ -37,15 +38,19 @@ public sealed class ImageWidthIsStorageWidthTests
     private static PicInfo Numeric(Usage usage, int digits, int scale = 0, bool signed = false) =>
         new(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: scale, Signed: signed);
 
-    /// <summary>Every fixed-point numeric usage that reaches an image, across the digit counts where the pinned
-    /// width table steps (1-2-4-8-16 for the binary forms; every packed byte boundary), signed and unsigned —
-    /// including the COMP-5/BINARY-CHAR..DOUBLE family kb/Work PB164 admitted (this enumeration was itself a
-    /// drifted copy of the retired usage union, so the ONE-WIDTH invariant was never asserted for them).</summary>
+    /// <summary>Every numeric usage that reaches an image, across the digit counts where the pinned width
+    /// table steps (1-2-4-8-16 for the binary forms; every packed byte boundary), signed and unsigned —
+    /// including the COMP-5/BINARY-CHAR..DOUBLE family kb/Work PB164 wave 1 admitted and the float family
+    /// wave 2 admitted (this enumeration was itself a drifted copy of the retired usage union, so the
+    /// ONE-WIDTH invariant was never asserted for them; a float's width ignores the digit axis — asserted
+    /// constant across it rather than skipped).</summary>
     public static TheoryData<Usage, int, bool> ImageCapableNumerics()
     {
         var data = new TheoryData<Usage, int, bool>();
         foreach (var usage in new[] { Usage.Display, Usage.Binary, Usage.Packed, Usage.Comp5,
-                     Usage.BinaryChar, Usage.BinaryShort, Usage.BinaryLong, Usage.BinaryDouble })
+                     Usage.BinaryChar, Usage.BinaryShort, Usage.BinaryLong, Usage.BinaryDouble,
+                     Usage.Float, Usage.Double, Usage.FloatShort, Usage.FloatLong, Usage.FloatExtended,
+                     Usage.FloatBinary32, Usage.FloatBinary64 })
             foreach (int digits in new[] { 1, 2, 3, 4, 5, 6, 8, 9, 10, 15, 18, 19, 31 })
                 foreach (bool signed in new[] { false, true })
                     data.Add(usage, digits, signed);
@@ -84,6 +89,15 @@ public sealed class ImageWidthIsStorageWidthTests
     [InlineData(Usage.Packed, 4, 3)]
     [InlineData(Usage.Packed, 9, 5)]
     [InlineData(Usage.Packed, 18, 10)]
+    // The IEEE interchange widths (kb/Work PB164 wave 2 — §13.18.60.4 GR13–GR15): 4 bytes binary32,
+    // 8 bytes binary64, independent of the (inert) digit axis.
+    [InlineData(Usage.Float, 1, 4)]
+    [InlineData(Usage.FloatShort, 1, 4)]
+    [InlineData(Usage.FloatBinary32, 1, 4)]
+    [InlineData(Usage.Double, 1, 8)]
+    [InlineData(Usage.FloatLong, 1, 8)]
+    [InlineData(Usage.FloatExtended, 1, 8)]
+    [InlineData(Usage.FloatBinary64, 1, 8)]
     public void PinnedStorageWidths_AreTheDocumentedOnDiskForm(Usage usage, int digits, int expectedBytes)
     {
         Assert.Equal(expectedBytes, Numeric(usage, digits).StorageWidth);

@@ -2409,10 +2409,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // FLOAT-BINARY-*/FLOAT-DECIMAL-* family, §13.18.60.2, D16) — its value is a native float/double, never
             // scaled-integer (before this the chain fell to null → NRE). The processor-dependent non-support forms
             // (binary128/decimal, rejected COBOLNET1564) still synthesize a Pic so the errored compile does not NRE.
+            // The unit's effective FLOAT-BINARY endianness rides in (§11.9.8 — Options is bound at the top of
+            // BindDeclarations, before any entry): FloatItem applies the implied-phrase rule ONCE, for the
+            // standard binary float usages only (kb/Work PB164 wave 2).
             : entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
                 or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
                 or Usage.FloatDecimal16 or Usage.FloatDecimal34
-                ? PicInfo.FloatItem(entryUsage)
+                ? PicInfo.FloatItem(entryUsage, Options.FloatBinaryEndianness)
             : null;   // incl. a PICTURE-less USAGE NATIONAL/BIT entry — Pending (below) carries its adjudication
 
         // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to subordinates,
@@ -3561,10 +3564,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         reject = null;
         var leaves = cls.Members.SelectMany(LeavesOf).ToList();
 
-        // Tier C → Rejected (interim): any leaf is float (COMP-1/2 — no byte form pinned yet), COMP-5/
-        // BINARY-* (their BYTE image is pinned and they ride group images since kb/Work PB164 wave 1, but the
-        // REDEFINES tiering still models windows over the ZONED digit-image representation — the mixed-usage
-        // byte-window codec is PB164's remaining REDEFINES half, measured as the live Tier-C runtime loud),
+        // Tier C → Rejected (interim): any leaf is float or COMP-5/BINARY-* (their BYTE images are pinned and
+        // they ride group images since kb/Work PB164 waves 1–2, but the REDEFINES tiering still models windows
+        // over the ZONED digit-image representation — the mixed-usage byte-window codec is PB164's remaining
+        // REDEFINES half, measured as the live Tier-C runtime loud),
         // or INDEX (no image at all, §13.18.60). A DISPLAY + BINARY/PACKED mix is
         // Tier B: under the digit-image representation (ISO §13.18.60 USAGE GR4 — the representation, including
         // the sign, is implementor-defined; COBOLNET_DESIGN §4.2/§14.4) one string backing IS the shared area —

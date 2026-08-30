@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Conformance;
 /// <c>TierCIsland.Reason</c> source, and these facts are "a lock to flip against" — kb/Work PB164 wave 1
 /// FLIPPED the COMP-5/BINARY-CHAR..DOUBLE arms (their Binary byte form was pinned all along; such a group now
 /// crosses MOVE/CALL — <c>2023/pb164_comp5_group_image</c> pins the working behavior), so the island's TRUE
-/// remaining boundary is a FLOAT or INDEX leaf, and the lock fixture pins THAT. One fact pins the still-open
+/// remaining boundary after wave 2 (the IEEE float pin) is an INDEX leaf, and the lock fixture pins THAT. One fact pins the still-open
 /// COMP-5 DISPLAY leg by name (PB164's remaining DISPLAY half), so the residue stays measured, not assumed.
 /// </summary>
 public sealed class TierCRejectionTests
@@ -23,7 +23,7 @@ public sealed class TierCRejectionTests
         WORKING-STORAGE SECTION.
         01 WS-G.
            05 WS-G-A PIC X(3).
-           05 WS-G-N USAGE COMP-1.
+           05 WS-G-N USAGE INDEX.
         01 WS-SRC  PIC X(7) VALUE "HELLOXX".
         01 WS-DEST PIC X(7).
         01 WS-CNT  PIC 9(2).
@@ -53,7 +53,7 @@ public sealed class TierCRejectionTests
     /// image now, and DISPLAY transfers a group's character content VERBATIM (the A.1 item-56 determination —
     /// a group is class alphanumeric), so the COMP-5 leaf's two's-complement bytes appear raw in the output,
     /// exactly as GnuCOBOL renders such a group (the split-latitude tiebreaker). GR-14.9.11.4-4's COMP-5
-    /// residue is discharged; the float/INDEX display legs remain with the island facts above.</summary>
+    /// residue is discharged; the INDEX display leg remains with the island facts above (floats closed with wave 2).</summary>
     [Fact]
     public void DisplayComp5Group_RendersVerbatimBytes()
     {

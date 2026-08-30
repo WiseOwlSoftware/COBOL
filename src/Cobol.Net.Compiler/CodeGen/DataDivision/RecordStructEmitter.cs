@@ -127,15 +127,18 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // fixed-point leaf (DISPLAY/BINARY/PACKED) its zoned digit image (trailing-overpunch sign, the
             // §13.18.60 USAGE GR4 implementor representation) — and FromImage distributes a character image back
             // into them. Used by whole-group MOVE / DISPLAY / compare / WRITE / RELEASE and the READ / RETURN
-            // record-area distribution; the SD/FD record codec IS this pair (§8.2). Only a group with a float /
-            // COMP-5 / INDEX leaf stays the loud Tier-C island (DataItem.IsImageCapable).
+            // record-area distribution; the SD/FD record codec IS this pair (§8.2). Only a group with a
+            // USAGE INDEX leaf stays the loud Tier-C island (DataItem.IsImageCapable; kb/Work PB164).
             if (item.IsImageCapable) codec.EmitImageMethods(item, w);
         }
     }
 
     private static void EmitProfiles(DataItem item, CodeWriter w)
     {
-        if (item.IsElementary && item.Pic is { Category: PicCategory.Numeric, IsFloat: false })
+        // FLOATS INCLUDED (kb/Work PB164 wave 2): a float leaf's profile carries the Ieee byte form its image
+        // lanes dispatch on — the IsFloat:false here was the PROFILE-emission copy of the drifted filter
+        // (a float leaf in a group referenced `_P_n` the emitter never declared: CS0103 in generated code).
+        if (item.IsElementary && item.Pic is { Category: PicCategory.Numeric })
             // INTERNAL (not private): an INVOKE BY CONTENT conversion composes the FORMAL's value/image at
             // the CALL SITE, qualifying the profile by its owner class ({OWNER}._P_n) — same assembly, one
             // generated file (the OO slice-2 review's cross-class-profile rule).
