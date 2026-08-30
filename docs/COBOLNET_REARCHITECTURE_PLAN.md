@@ -1712,7 +1712,17 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB157+PB164-w1+w2 batch tree `17b2658e` (2026-08-30, battery #35).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB168+PB164-VLG+PB176 batch tree `a4a3d6a0` (2026-08-30, battery #36).**
+  ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
+  `scratchpad/battery-36`; DEVLOG 1400): FULL greenfield Conformance **5102 / 5102** · Unit
+  **5027 / 5027** · characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) ·
+  GnuCOBOL differential **1323 cases, 0 per-case flips** (totals unchanged 572/474/206/71). Covers
+  DEVLOG 1397–1399: PB168 (the file connector's §8.6.4 storage duration — static registration guard,
+  FD record areas on the static channel, the fleet's report-engine/LINAGE scope splits), PB164's
+  variable-length-group DISPLAY half (the A.1 item-57 format, LENGTH-sum geometry, the fleet's five
+  corrections), PB176 (the GroupImage capability guard — the seventh two-arm dispatch, skeptic-hardened)
+  — the population grew by 5 Conformance tests over #35.
+- **⛔ PRIOR BATTERY REFERENCE — the PB157+PB164-w1+w2 batch tree `17b2658e` (2026-08-30, battery #35).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-35`; DEVLOG 1396): FULL greenfield Conformance **5097 / 5097** · Unit
   **5027 / 5027** · characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION** (audit CLEAN — the
