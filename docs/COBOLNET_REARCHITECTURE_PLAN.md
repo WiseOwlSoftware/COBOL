@@ -1712,7 +1712,18 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB151+PB154+PB155 batch tree `9236274e` (2026-08-29, battery #34).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB157+PB164-w1+w2 batch tree `17b2658e` (2026-08-30, battery #35).**
+  ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
+  `scratchpad/battery-35`; DEVLOG 1396): FULL greenfield Conformance **5097 / 5097** · Unit
+  **5027 / 5027** · characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION** (audit CLEAN — the
+  PB157 boolean-COMPUTE rework and the PB164 image-predicate/IEEE-float re-derivation survived the whole
+  IC/IF/NC suites) · GnuCOBOL differential **1323 cases, 0 per-case flips** (totals unchanged
+  572/474/206/71 — admitting COMP-5/BINARY-*/float groups to the image and the FLOAT-BINARY endianness
+  axis flipped no external verdict). Covers DEVLOG 1393–1395: PB157 (COMPUTE's boolean family on the ONE
+  reader), PB164 wave 1 (the derived image predicate; COMP-5/BINARY-* groups cross MOVE/CALL/DISPLAY),
+  PB164 wave 2 (the float IEEE byte-form pin, the honored FLOAT-BINARY endianness, the algebraic float
+  SORT key) — the population grew by 12 Conformance tests over #34.
+- **⛔ PRIOR BATTERY REFERENCE — the PB151+PB154+PB155 batch tree `9236274e` (2026-08-29, battery #34).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `/tmp/battery-20260829-130856`; DEVLOG 1392): FULL greenfield Conformance **5085 / 5085** · Unit
   **4650 / 4650** · characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION** (audit CLEAN — the PB154
