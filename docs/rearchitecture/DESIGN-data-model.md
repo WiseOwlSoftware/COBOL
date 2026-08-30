@@ -216,14 +216,65 @@ The 4-tier lattice (A Alias ⊑ B StringCanonical ⊑ C ByteCanonical ⊑ D Reje
     loud through the one reason (the "Tier-C" substring). The OO/SORT/UDF bind-time conformance guards keep their
     context-specific messages by design (their strictness variants — UDF rejects Binary/Packed too — are
     deliberate, per the scout's risk-3 note).
-- **Step D (the confined `byte[]` codec) — DEFERRED, scheduled increment.** It is the one sanctioned `byte[]`
-  boundary of hard-invariant #1: `CobolByteImage` (COMP big-endian two's-complement / COMP-3 packed nibbles /
-  COMP-1/2 IEEE bits / DISPLAY chars) behind a real `StorageForm.TierCWindow` + a `GroupImageCodec` byte path, at
-  which point `ComputeTier`'s arm 1 flips `ByteCanonical` from Rejected to modeled and the `TierCIsland` guards
-  admit the class automatically (the payoff of the single predicate). **NEEDS RE-BASING against reality before
-  implementation** — the earlier §2.5/§3 sketch (a `RedefinesClassifier` type, init-only `Tier`/`Width`,
-  `TierCWindow.Read/Write`) does not match the as-built code; a fresh design pass authors it correctly. No NIST
-  program requires it, so its goldens are hand-authored spec-pinned cases.
+- **Step D — RE-BASED 2026-08-30 (the four-reader design scout; kb/Work PB164's last codegen half). THE
+  PREMISE INVERTED: there is NO byte codec to build.** The earlier sketch ("a confined `byte[]` codec,
+  `CobolByteImage`, `TierCWindow.Read/Write`") described a world V59 already dissolved: a Tier-B class's
+  geometry is ALREADY byte-form end to end — `ElementaryImageWidth` returns `StorageWidth` for every pinned
+  `NumericByteForm`, `AssignClassOffsets`/`RecordLayout` advance in those units, the backing seeds from
+  `ImageInitOf` (byte images), and a promoted member reads/writes through `FormatImage`/`ParseImage` windows
+  (pinned by `RedefinesClassificationTests.TierB_BinaryLeafPun_StringCanonicalOverItsTrueBytes` and the
+  `v59_byte_image` golden). The spec derivation is one-directional: §13.18.44.4 GR1 associates storage AT THE
+  BIT ("the number of bits required by the data item"), GR2 grants EVERY entry's name unconditioned reference
+  to that storage, §13.18.60.4 GR2 makes representation a function of THE USAGE CLAUSE alone, §13.18.44 and
+  Annex A.2 contain NO undefined-result escape, and §14.6.13.2 r2 (EC-DATA-INCOMPATIBLE) presupposes the
+  alias wrote the item's REAL storage — so one representation per item, REDEFINES views included, exactly
+  what CONFORMANCE items 205/207/208/211 already promise. **Step D is therefore a WIDENING + LANE
+  COMPLETION, in this order:**
+  1. **The spec-required Tier-D arm FIRST** ([[PB179]]): `ComputeTier` gains the §13.18.44.3 SR12/SR14
+     rejection for pointer/object/strongly-typed leaves — today they classify Tier B with ZERO-WIDTH windows
+     (the "no such items exist" comment is stale). A bind diagnostic, negative fixtures per side.
+  2. **The live Tier-B lane defects** ([[PB180]] ACCEPT's DisplayTextWidth store into a StorageWidth window;
+     [[PB181]] the CALL boundary's text-reader corruption of window bytes) — they corrupt TODAY's shipping
+     Tier B and the widened members inherit them.
+  3. **Dissolve `ComputeTier` arm 1** (float/COMP-5/BINARY-*/INDEX): the classifier's own Tier-B mark
+     (`HasImageByteForm && Usage != Display`) already admits them textually — but treat that mark as
+     UNPROVEN (it has been dead behind the reject; the first Tier-B COMP-5 window is a first execution),
+     and complete the lanes the widened members need, each with a byte-level pin:
+     - the FLOAT arm-order fixes (`NumericRenderer` `IsFloat` before `StoreAsImage`; `ArithmeticEmitter`'s
+       float receiver cast; `MoveEmitter`; `ValueInitializer`) and the `NumericImagePlace` float lane —
+       today they emit UNCOMPILABLE C# (CS0030/CS1503) for a promoted float leaf;
+     - the UNSIGNED WIDE lane (`ParseImage` has no unsigned twin; the `StoreAsImage` arm precedes the
+       `IsUnsignedWideBinary` arms — a wide COMP-5 window would decode SIGNED);
+     - the `Length: 0` seeds (`ImageInitOf` has no float/index arm — a float/INDEX member seeds "" where
+       4/8 bytes are due; every `pic.Length`-keyed lane needs the StorageWidth answer for the
+       PICTURE-less shapes).
+  4. **The SECOND gate deliberately** (`ForceStringCanonical` — EXTERNAL/BASED/ADDRESS-OF classes reject
+     every non-DISPLAY leaf, stricter than `ComputeTier`; the two-arm shape's eighth instance): widen it in
+     the same wave or record its narrower posture as an explicit staged residue — never leave the pair
+     silently divergent. The UDF RETURNING screen (`UdfBinder`, COBOLNET1510) and the
+     `{ Category: Numeric, IsFloat: false }` copies the scout catalogued are the same sweep.
+  5. **NATIONAL stays rejected THIS wave, with the reason corrected**: the old premise ("no single-byte
+     char-window overlay") dissolves under byte-form windows, but D-N1's 2-byte-per-position REDEFINES
+     layout is an undischarged A.1 obligation of its own — reject with the honest reason, tracked residue.
+  6. **Truth maintenance in the same change set**: `ComputeTier`'s stale "ZONED digit-image" comment and its
+     §12.4.6.4.4 GR2 miscitation (the clause DERIVES same-record-area FROM redefinition and its only
+     representational content — "aligned on the leftmost byte position" — argues FOR bytes);
+     `StorageForm.CharImage`'s pre-V59 doc; `RedefinesTier.Rejected`/`ByteCanonical`'s docs (`ByteCanonical`
+     and `StorageForm.TierCWindow` are DELETED — dissolving the tier removes `TierCWindow`'s only stated
+     parity obligation, and a quarantined form nothing assigns is the zero-fan-out trap); item 208's
+     unqualified REDEFINES promise gains its truth; the phantom §8.8.4.1.1 sweep ([[PB182]] — 18 sites,
+     §8.8.4.2.3 SR2 is the real clause).
+  7. **Migration + goldens**: the corpus applies ZERO pressure (no `.cob` under `tests/` trips the Tier-C
+     arm; the differential has no such row) — every behavioral fact is NEW and spec-derived, so the goldens
+     are hand-authored discriminating pins (FUNCTION ORD byte reads over each widened leaf kind's window;
+     the multi-01 FD/SD implicit class — 507 corpus constructs, none currently non-DISPLAY — gets its own
+     golden; the `RedefinesTierBDifferentialTests` baked goldens are hash-keyed to source: ADD cases, never
+     edit). The on-disk record-layout hazard V59 documented repeats for the widened usages and rides the
+     same disclosure. Owner-documentable determinations to record: the SR8 splice/seed PAD character
+     (space today) becoming window-visible data, and the Latin-1 char==byte backing vs the UTF-16
+     alphanumeric repertoire (the backing is STORAGE, never text — state where the boundary lanes are).
+  The drift locks (`V59ImagePredicateDriftTests`' inventory asserts, `StorageFormEnum` parity) fire on this
+  edit BY DESIGN — update them deliberately with the wave, never silence them.
 
 ### 2.4 `DataItem` — slim core + init-only pass facts
 

@@ -3606,17 +3606,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         reject = null;
         var leaves = cls.Members.SelectMany(LeavesOf).ToList();
 
-        // Tier C → Rejected (interim): any leaf is float or COMP-5/BINARY-* (their BYTE images are pinned and
-        // they ride group images since kb/Work PB164 waves 1–2, but the REDEFINES tiering still models windows
-        // over the ZONED digit-image representation — the mixed-usage byte-window codec is PB164's remaining
-        // REDEFINES half, measured as the live Tier-C runtime loud),
-        // or INDEX (no image at all, §13.18.60). A DISPLAY + BINARY/PACKED mix is
-        // Tier B: under the digit-image representation (ISO §13.18.60 USAGE GR4 — the representation, including
-        // the sign, is implementor-defined; COBOLNET_DESIGN §4.2/§14.4) one string backing IS the shared area —
-        // exactly §12.4.6.4.4 SAME RECORD AREA GR2's "equivalent to an implicit redefinition of the area, with
-        // records aligned on the leftmost byte position". Its binary/packed leaves become zoned windows (the
-        // StoreAsImage loop in ClassifyRedefinesClasses). (No pointer/object/strongly-typed items exist in the
-        // bound model yet → no Tier-D check.)
+        // Tier C → Rejected (interim; the DESIGN-data-model §2.3 Step D re-base, 2026-08-30, corrects this
+        // comment's OLD text — it claimed the tiering "still models windows over the ZONED digit-image
+        // representation", which V59 retired: the Tier-B geometry below is ALREADY byte-form end to end, and
+        // the StoreAsImage loop's own comment says so). The arm exists because the LANES the four excluded
+        // families need are incomplete (the float arm-order/seed/unsigned-wide gaps the Step D scout
+        // catalogued), not because the window model is wrong — dissolving it is PB164's remaining half,
+        // per the Step D order (Tier-D first, the live lane defects, then this arm).
+        // A DISPLAY + BINARY/PACKED mix is Tier B: one string backing IS the shared storage area
+        // (§13.18.44.4 GR1 — association at the bit over "the number of bits required"; GR2 grants every
+        // entry's name reference to that storage; §12.4.6.4.4 GR2's "aligned on the leftmost byte position"
+        // is the same BYTE model derived FOR same-record-area FROM redefinition). Its binary/packed leaves
+        // become BYTE-FORM windows via the StoreAsImage loop in ClassifyRedefinesClasses.
+        // ⚠ Pointer/object/strongly-typed leaves currently reach Tier B with ZERO-WIDTH windows — the
+        // missing §13.18.44.3 SR12/SR14 Tier-D arm is kb/Work PB179 (Step D lands it first).
         if (leaves.Any(l => l.Pic is { } p && (p.IsFloat
             || p.Usage is Usage.Comp5 or Usage.Index
                 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble)))
