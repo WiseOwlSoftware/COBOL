@@ -298,8 +298,12 @@ build; there was a predicate that stopped short.
      parity obligation, and a quarantined form nothing assigns is the zero-fan-out trap); item 208's
      unqualified REDEFINES promise gains its truth; the phantom §8.8.4.1.1 sweep ([[PB182]] — 18 sites,
      §8.8.4.2.3 SR2 is the real clause).
-  7. **Migration + goldens**: the corpus applies ZERO pressure (no `.cob` under `tests/` trips the Tier-C
-     arm; the differential has no such row) — every behavioral fact is NEW and spec-derived, so the goldens
+  7. **Migration + goldens**: the corpus applies ZERO pressure — and that claim is now stated in the units
+     that can carry it. ⛔ "No `.cob` under `tests/`" is the WRONG INSTRUMENT ([[PB209]]): that glob finds two
+     files in the external corpus, whose 1,323 programs are `AT_DATA` heredocs inside 36 `.at` wrappers. Ask
+     `scripts/corpus_sweep.py`, which reads all seven populations (3,106 programs) through the same extractor
+     the differential compiles with, and `--codes` for whether a screen actually FIRES. Measured that way, no
+     population trips the Tier-C arm and the differential has no such row — every behavioral fact is NEW and spec-derived, so the goldens
      are hand-authored discriminating pins (FUNCTION ORD byte reads over each widened leaf kind's window;
      the multi-01 FD/SD implicit class — 507 corpus constructs, none currently non-DISPLAY — gets its own
      golden; the `RedefinesTierBDifferentialTests` baked goldens are hash-keyed to source: ADD cases, never

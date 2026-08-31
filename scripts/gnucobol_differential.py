@@ -23,6 +23,13 @@ from __future__ import annotations
 import argparse, json, os, re, subprocess, sys, tempfile
 from concurrent.futures import ProcessPoolExecutor
 
+# ⛔ MODULE-LEVEL, not inside main(): `run_case` is shipped to a ProcessPoolExecutor, and on Windows the
+# spawned child re-imports this module rather than inheriting main()'s locals. An import made inside main()
+# leaves every worker with no `gx` — 1,323 identical RUNNER_ERRORs, which is precisely the shape the harness
+# rules below refuse to launder into compiler verdicts.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gnucobol_extract as gx                                                              # noqa: E402
+
 STD_MAP = {'cobol85': '85', 'cobol2002': '2002', 'cobol2014': '2014', 'cobol2023': '2023'}
 VENDOR_STDS = ('mf', 'ibm', 'acu', 'rm', 'xopen', 'mvs', 'bs2000', 'realia')
 
@@ -105,15 +112,13 @@ def evidence_control(exe: str) -> list[str]:
 def run_case(args):
     exe, group, workroot = args
     gid = group['id']
-    srcs = [f for f in group['data'] if f.lower().endswith(('.cob', '.cbl'))]
-    if not srcs:
+    # ⛔ THE POPULATION PREDICATE IS NOT SPELLED HERE (PB209). It used to be — "has a COBOL member AND a
+    # compile check", re-derived inline — while every reachability sweep spelled "the corpus" as a `*.cob`
+    # glob that found TWO files. One definition now, in gnucobol_extract, shared with corpus_sweep.py.
+    sel = gx.primary_source(group)
+    if sel is None:
         return None
-    # the primary source is the one the compile check names, else the first
-    compile_checks = [c for c in group['checks'] if c['kind'].startswith('compile')]
-    if not compile_checks:
-        return None
-    chk = compile_checks[0]
-    prim = next((s for s in srcs if s in chk['command']), srcs[0])
+    prim, chk = sel
 
     d = os.path.join(workroot, re.sub(r'[^A-Za-z0-9_.-]', '_', gid))
     os.makedirs(d, exist_ok=True)
@@ -290,18 +295,17 @@ def main() -> int:
         return 4
     print('evidence control: accept and reject are distinguishable on this build.')
 
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from gnucobol_extract import parse_file            # noqa: E402
-    from dataclasses import asdict
-
     if not os.path.isdir(a.src):
         print(f'!! corpus absent: {a.src}\n   run scripts/fetch-gnucobol-tests.ps1 (GPL, never committed).',
               file=sys.stderr)
         return 2
 
-    groups = []
-    for f in sorted(x for x in os.listdir(a.src) if x.endswith('.at') and x.startswith(a.only)):
-        groups.extend(asdict(g) for g in parse_file(os.path.join(a.src, f)))
+    # THE population, from the ONE definition — pre-filtered, so `len(payload)` IS `cases run` and the
+    # progress counter below stops counting groups it will silently drop (PB209).
+    groups = gx.differential_cases(a.src, a.only)
+    print(f'external corpus population: {len(groups)} case(s) from '
+          f'{len([x for x in os.listdir(a.src) if x.endswith(".at") and x.startswith(a.only)])} .at wrapper(s) '
+          f'- gnucobol_extract.differential_cases')
 
     work = tempfile.mkdtemp(prefix='gcdiff_')
     payload = [(a.exe, g, work) for g in groups]

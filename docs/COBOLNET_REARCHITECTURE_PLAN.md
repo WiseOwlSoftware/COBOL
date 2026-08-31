@@ -1688,6 +1688,21 @@ result. Run the long legs ONE AT A TIME.
   summary totals as the verdict — offsetting flips leave them identical, which is exactly what this replaced.
   ⚖ GPL: never commit or reproduce their source or expected output — titles and
   keywords only.
+- **⛔ "DOES ANY PROGRAM WE TEST AGAINST HAVE THIS SHAPE?" HAS ONE ANSWER, AND IT IS NOT `find`
+  (`scripts/corpus_sweep.py`, [[PB209]]).** Never type a `*.cob` glob at this question again: over
+  `tests/external/gnucobol` that glob finds **two files**, because the 1,323 corpus programs are `AT_DATA`
+  heredocs inside 36 `.at` wrappers — and two new bind-time rejections shipped on a blast radius stated as
+  empty because of it. The sweep reads all seven populations (**3,106 programs**) through
+  `gnucobol_extract.differential_cases` / `iter_programs`, the SAME definition `gnucobol_differential.py`
+  compiles, and it ALWAYS prints the per-population census so a population contributing two files cannot be
+  written up as a corpus.
+  - `python scripts/corpus_sweep.py --pattern '<regex>' --name '<what it looks for>'` — the reachability sweep.
+  - `python scripts/corpus_sweep.py --codes COBOLNET1701,…  --report <differential report>` — the OTHER half:
+    whether a screen actually FIRES is a compile question no grep can answer.
+  - `python scripts/corpus_sweep.py --verify-population` — the drift check, also run every build by
+    `ExternalCorpusPopulationDriftTests`.
+  ⛔ A failed population check makes the sweep **REFUSE to report hit counts** rather than return a clean zero;
+  a zero from a reader that opened nothing is the defect, not the answer.
 - **Mechanics that have burned us:** build `CobolSharp.sln` (not one project) before ANY `--no-build` test or CLI
   smoke — a stale test-bin compiler DLL hides regressions. Never `| tail -N` a guard verdict: redirect the FULL
   output to a file, then `grep 'ALL GREEN'` + `grep -iE 'crash|abort|Failed: *[1-9]'`. A high-JOBS parallel NIST
@@ -1717,9 +1732,9 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB164-arm-1 + owner-decision-wave + PB199 batch, tree `d4e93d6b`
+- **⛔ PRIOR BATTERY REFERENCE — the PB164-arm-1 + owner-decision-wave + PB199 batch, tree `d4e93d6b`
   (parent `088903c4`), 2026-08-31, battery #38.** (The battery ran on exactly that tree, which is why the sha
-  could only be written in this follow-up: a commit cannot name itself.)
+  could only be written in a follow-up: a commit cannot name itself.)
   ✅ **Every leg GREEN, and the differential's ONE flip is ATTRIBUTED AND INTENDED** (artifacts
   `scratchpad/battery-38-green`; DEVLOG 1412): FULL greenfield Conformance **5125 / 5125** · Unit
   **5064 / 5064** · characterization **33 / 33 — CONCURRENT, no host crash** (#37's "Test host process
@@ -1746,34 +1761,58 @@ result. Run the long legs ONE AT A TIME.
   on a RETURNING item; §8.4.3.2.4 GR1 clones the description without narrowing it). [[PB199]] landed the flip
   with byte-true runtime evidence plus the five stale texts; the structural half — nothing watches a TEST that
   pins shut a screen a `src/`-only drift test is unlocking — is [[PB200]], open.
-- **⛔ BATTERY #39 HAS RUN AND IS NOT RECORDED — four legs GREEN, the differential BLOCKED on two flips, tree
-  `3bc4e4db`, 2026-08-31** (artifacts `scratchpad/battery-39`; the batch is (a) the burn-down cluster A landing,
-  [[PB173]] + [[PB177]] + [[PB178]] and their review-fleet fix pass (DEVLOG 1413) and (b) the **PB184 + PB188 seed
-  wave and its review-fleet landing** (DEVLOG 1414) — all five notes `landed`). Measured:
-  FULL greenfield Conformance **5152 / 5152** · Unit **5091 / 5091** · characterization **33 / 33 — CONCURRENT,
-  no host crash** (#37's crash has still not recurred) · NIST **353 MATCH / 0 REGRESSION**, guard verdict
-  **ALL GREEN**, audit CLEAN · GnuCOBOL differential 1323 cases (no NEW/REMOVED), **`=== DIFFERENTIAL: 2 PER-CASE
-  FLIP(S) ===`**: `run_subscripts:351` and `syn_redefines:172`, both `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT`,
-  raised by **COBOLNET1702** (§13.18.63.3 SR13) and **COBOLNET1701** (§13.18.44.3 SR5) respectively. Totals
-  571/475/206/71 → 573/473/206/71, consistent with exactly those two and no offsetting pair.
-  ⛔ **The baseline TSV is DELIBERATELY UNCHANGED and #38 remains the CURRENT battery reference.** Both compiler
-  rejections were adjudicated SPEC-CORRECT against `--check`ed clause text — GnuCOBOL only warns on the REDEFINES
-  one and its own testsuite calls that a pending dialect option — so the flips are conformance IMPROVEMENTS. They
-  are blocked from recording because they **refute the reachability evidence the wave landed on**, and rebasing
-  over that would erase the only record: see [[PB209]].
-  ⛔ **THE 1,448-FILE SCAN CLAIM PREVIOUSLY WRITTEN HERE WAS FALSE AND IS WITHDRAWN.** It reported ZERO programs
-  with a REDEFINES whose target entry carries an OCCURS clause across "conformance + NIST + characterization +
-  **the GnuCOBOL testsuite sources**". Measured on this tree, the whole `tests/external/gnucobol` tree holds 75
-  files of which exactly **2** are `.cob`/`.cbl`: the 1323 differential programs live as `AT_DATA` heredocs inside
-  38 `.at` wrappers that the sweep never opened, and the case that fired COBOLNET1701 is titled *"REDEFINES: with
-  OCCURS"*. The conformance/NIST/characterization half of that sweep stands; the external half measured two files
-  and was reported as a corpus. [[PB209]] carries the structural fix (ONE `AT_DATA` extractor shared by the sweep
-  and the differential, plus a population-size drift test) — do that, re-run the differential, attribute both
-  flips, regenerate the baseline in that commit, and only then record #39.
-  ⛔ Remaining uncovered by construction until then: nothing. The seams a wave-local filter could not reach —
+- **⛔ BATTERY REFERENCE — CURRENT, the burn-down-cluster-A + seed-wave batch, battery #39, 2026-08-31.**
+  ✅ **Every leg GREEN, and the differential's TWO flips are ATTRIBUTED AND INTENDED.**
+  **⚠ The legs were earned on TWO trees, and the record says which:** the four greenfield/NIST legs ran on tree
+  `3bc4e4db` (artifacts `scratchpad/battery-39`, DEVLOG 1415) and are NOT re-run here; the **differential leg was
+  RE-RUN and re-confirmed on the [[PB209]] landing tree** (parent `19e48e2e`; the landing commit cannot name
+  itself, as #38's note records). That split is legitimate for exactly one reason, stated so it is checkable:
+  **the PB209 landing changes only `scripts/`, `tests/Cobol.Net.Tests.Unit/`, `kb/` and `docs/` — no `src/`
+  file, so no compiler behaviour the four legs measured can have moved** — and the one leg whose INPUTS did
+  change (the shared extractor now defines the differential's population) is precisely the leg that was re-run.
+  Measured: FULL greenfield Conformance **5152 / 5152** · Unit **5091 / 5091** · characterization
+  **33 / 33 — CONCURRENT, no host crash** (#37's "Test host process crashed" has still NOT recurred; the watch
+  stays open) · NIST **353 MATCH / 0 REGRESSION**, guard verdict **ALL GREEN**, audit CLEAN · GnuCOBOL
+  differential **1323 cases** (`external corpus population: 1323 case(s) from 36 .at wrapper(s)`, no NEW/REMOVED,
+  no case without a compiler verdict), **`=== DIFFERENTIAL: 2 PER-CASE FLIP(S) ===`**, both
+  `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT`. Totals **571/475/206/71 → 573/473/206/71**, consistent with exactly
+  those two and no offsetting pair.
+  **Both flips are SPEC-CORRECT REJECTIONS — conformance improvements, not regressions.** Clause text
+  `--check`ed at landing, never inherited from the diagnostic:
+  - **`syn_redefines:172`** (titled *"REDEFINES: with OCCURS"*) → **COBOLNET1701**. §13.18.44.3 **SR5 sentence
+    1**: *"The data description entry for data-name-2 shall not contain an OCCURS clause."* Squarely named.
+    **GnuCOBOL itself only WARNS here, and its own testsuite carries the comment that this "should be a dialect
+    option, currently it is _always_ a warning"** — so `WE_REJECT_THEY_ACCEPT` is the CONFORMING verdict and
+    their acceptance is documented latitude on their side.
+  - **`run_subscripts:351`** → **COBOLNET1702**. §13.18.63.3 **SR13 sentence 2**: *"The VALUE clause shall not
+    be specified at subordinate levels within this group."*
+  `tests/external/gnucobol-verdict-baseline.tsv` is **REGENERATED in the PB209 landing commit**, and the
+  regeneration changes **exactly those two rows** (`2 insertions / 2 deletions`, no other row moved, no NEW or
+  REMOVED case, 1323 rows before and after). A confirming re-run against the regenerated baseline printed
+  **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`**.
+  **Population:** Conformance **+27 over #38** (5125 → 5152); Unit **+27** (5064 → 5091), plus the three PB209
+  drift tests landing after #39's Unit leg ran. Covers DEVLOG 1413–1416: (a) the burn-down cluster A landing,
+  [[PB173]] + [[PB177]] + [[PB178]] and their review-fleet fix pass, (b) the **PB184 + PB188 seed wave and its
+  review-fleet landing**, and (c) [[PB209]].
+  ⛔ **THE 1,448-FILE SCAN CLAIM PREVIOUSLY WRITTEN HERE WAS FALSE, IS WITHDRAWN, AND HAS BEEN RE-MEASURED.**
+  It reported ZERO programs with a REDEFINES whose target entry carries an OCCURS clause across "conformance +
+  NIST + characterization + **the GnuCOBOL testsuite sources**". The whole `tests/external/gnucobol` tree holds
+  75 files of which exactly **2** are `.cob`/`.cbl`: the 1,323 differential programs are `AT_DATA` heredocs
+  inside 36 `.at` wrappers the sweep never opened. **The true census, printed by `scripts/corpus_sweep.py`:
+  conformance 966 · nist-programs 459 · nist-copylib 53 · characterization 17 · version-matrix 0 · differential
+  0 · gnucobol-external 1,611 = 3,106 programs.** Re-measured against that population
+  (`corpus_sweep.py --codes …`), **COBOLNET1701 fires on 1 case and COBOLNET1702 on 1 case — the two flips
+  above; COBOLNET1698, 1699, 1700 and 1703 fire on none**, so those four zero-candidate claims stand and are now
+  backed by a measurement rather than by a glob. [[PB209]] landed the structural repair: ONE population
+  definition in `gnucobol_extract.py` (`primary_source` / `differential_cases` / `iter_programs`) called by BOTH
+  `gnucobol_differential.py` and the new `corpus_sweep.py`, a census that always prints every population's
+  count, a sweep that REFUSES to report hit counts when its population check fails, and
+  `ExternalCorpusPopulationDriftTests` — proved failing first, against the old `*.cob` reader, which reported
+  `external: 2`.
+  ⛔ Remaining uncovered by construction: nothing. The seams a wave-local filter could not reach —
   `ExpandType`/`ExpandSameAs`'s flag read by every group-VALUE screen, `OdoModel.WrapGroup`'s extent unit, the
   `CallEmitter` boundary string pair, `IntrinsicArgumentRules.StaticUsageOf` — were all exercised by #39's NIST
-  and differential legs and produced no flip. COBOLNET1698/1699/1700/1703 fired on no differential case.
+  and differential legs and produced no flip.
   **Next-free diagnostic code: `COBOLNET1704`** (1700 = report-control-operand-index, 1701 = redefines-target-occurs,
   1702 = group-value-subordinate, 1703 = group-value-subject-shape). Never hand-read this — `session-probe.ps1`
   computes it from the catalog and the src grep, and the line is here only so a session that skipped the probe is

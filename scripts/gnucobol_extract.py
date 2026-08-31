@@ -173,9 +173,96 @@ def parse_file(path: str) -> list[Group]:
     return groups
 
 
+# ── THE ONE EXTERNAL-CORPUS POPULATION (PB209) ────────────────────────────────────────────────────────────
+#
+# ⛔ WHY THIS SECTION EXISTS. Until 2026-08-31 the differential defined "the corpus" INSIDE its own worker
+# (`run_case` re-derived "has a COBOL member AND has a compile check" inline), while every reachability sweep
+# defined it with a `find … -name '*.cob'` over `tests/external/gnucobol/`. Those two definitions disagree by
+# three orders of magnitude: the whole external tree holds 75 files of which exactly TWO are `.cob`, because
+# the 1,323 programs live as `AT_DATA` heredocs inside the `.at` wrappers this module parses. A wave therefore
+# proved a shape ABSENT from a corpus the gate then found it in — twice, and one of the cases is titled
+# "REDEFINES: with OCCURS" (PB209; §13.18.44.3 SR5 s.1 / §13.18.63.3 SR13 s.2).
+#
+# So the population is defined ONCE, here, and BOTH readers call it: `gnucobol_differential.py` for the cases
+# it compiles, `corpus_sweep.py` for the programs it greps. A sweep over "the corpus" now mechanically includes
+# the extracted programs, and `ExternalCorpusPopulationDriftTests` fails if the two ever diverge again.
+#
+# The canonical currency is the `asdict(Group)` DICT, not the dataclass: the differential ships groups across a
+# ProcessPoolExecutor, so they have to be picklable plain data anyway, and one shape means the predicate below
+# cannot acquire a second spelling.
+
+DEFAULT_SRC = 'tests/external/gnucobol/tests/testsuite.src'
+COBOL_SUFFIXES = ('.cob', '.cbl')
+
+
+@dataclass(frozen=True)
+class CorpusProgram:
+    """One COBOL program text in the external corpus, with the coordinate that names it."""
+    case_id: str        # the differential's case id, e.g. 'syn_redefines:172'
+    at_file: str        # the .at wrapper it was extracted from
+    filename: str       # the AT_DATA member name, e.g. 'prog.cob'
+    title: str          # the AT_SETUP title (citable identification, never their source)
+    text: str           # ⚖ GPL — hold in memory, never write to a committed file
+
+
+def cobol_members(g: dict) -> list[str]:
+    """The AT_DATA member names that are COBOL source, in declaration order."""
+    return [f for f in g['data'] if f.lower().endswith(COBOL_SUFFIXES)]
+
+
+def primary_source(g: dict) -> tuple[str, dict] | None:
+    """The (member, compile-check) pair the differential compiles, or None if this group is not a case.
+
+    ⛔ THE ONE DEFINITION OF "IS THIS A CORPUS CASE". A group qualifies when it carries COBOL source AND a
+    check that compiles it; the primary member is the one that check names, else the first. Returning the
+    pair rather than a bool is deliberate — `run_case` needs exactly this and must not re-derive it.
+    """
+    srcs = cobol_members(g)
+    if not srcs:
+        return None
+    compile_checks = [c for c in g['checks'] if c['kind'].startswith('compile')]
+    if not compile_checks:
+        return None
+    chk = compile_checks[0]
+    return next((s for s in srcs if s in chk['command']), srcs[0]), chk
+
+
+def is_case(g: dict) -> bool:
+    return primary_source(g) is not None
+
+
+def load_groups(src: str = DEFAULT_SRC, only: str = '') -> list[dict]:
+    """Every AT_SETUP group in every `.at` wrapper under `src`, as plain dicts."""
+    if not os.path.isdir(src):
+        raise FileNotFoundError(src)
+    groups: list[dict] = []
+    for f in sorted(x for x in os.listdir(src) if x.endswith('.at') and x.startswith(only)):
+        groups.extend(asdict(g) for g in parse_file(os.path.join(src, f)))
+    return groups
+
+
+def differential_cases(src: str = DEFAULT_SRC, only: str = '') -> list[dict]:
+    """THE external-corpus population: the groups the differential compiles. `len()` is its `cases run`."""
+    return [g for g in load_groups(src, only) if is_case(g)]
+
+
+def iter_programs(src: str = DEFAULT_SRC, only: str = '') -> "list[CorpusProgram]":
+    """Every COBOL program text in that population — what a reachability sweep must actually read.
+
+    A case may carry more than one COBOL member (a CALLed subprogram, a COPY book compiled separately), and a
+    sweep asking "does any corpus program have this shape" must see all of them, not just the primary.
+    """
+    out: list[CorpusProgram] = []
+    for g in differential_cases(src, only):
+        for fn in cobol_members(g):
+            out.append(CorpusProgram(case_id=g['id'], at_file=g['file'], filename=fn,
+                                     title=g['title'], text=g['data'][fn]))
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument('--src', default='tests/external/gnucobol/tests/testsuite.src')
+    ap.add_argument('--src', default=DEFAULT_SRC)
     ap.add_argument('--out', default='', help='ignored-tree dir to materialize cases into')
     ap.add_argument('--only', default='', help='filename prefix filter, e.g. syn_')
     ap.add_argument('--summary', action='store_true')
@@ -189,36 +276,34 @@ def main() -> int:
 
     files = sorted(f for f in os.listdir(a.src)
                    if f.endswith('.at') and f.startswith(a.only))
-    allg: list[Group] = []
-    for f in files:
-        allg.extend(parse_file(os.path.join(a.src, f)))
-
-    cobol_groups = [g for g in allg if any(k.endswith('.cob') or k.endswith('.CBL') for k in g.data)]
+    allg = load_groups(a.src, a.only)
+    cobol_groups = [g for g in allg if is_case(g)]
 
     if a.summary:
         from collections import Counter
         print(f'files              : {len(files)}')
         print(f'groups parsed      : {len(allg)}')
-        print(f'groups with COBOL  : {len(cobol_groups)}')
-        print(f'checks total       : {sum(len(g.checks) for g in allg)}')
-        print('check kinds        :', dict(Counter(c.kind for g in allg for c in g.checks)))
-        print('compile-expect-FAIL:', sum(1 for g in allg for c in g.checks
-                                          if c.kind.startswith('compile') and c.expects_failure))
-        print('compile-expect-OK  :', sum(1 for g in allg for c in g.checks
-                                          if c.kind.startswith('compile') and not c.expects_failure))
-        print('xfail groups       :', sum(1 for g in allg if g.xfail))
+        print(f'corpus cases       : {len(cobol_groups)}   (differential_cases — the ONE population)')
+        print(f'programs extracted : {len(iter_programs(a.src, a.only))}')
+        print(f'checks total       : {sum(len(g["checks"]) for g in allg)}')
+        print('check kinds        :', dict(Counter(c['kind'] for g in allg for c in g['checks'])))
+        print('compile-expect-FAIL:', sum(1 for g in allg for c in g['checks']
+                                          if c['kind'].startswith('compile') and c['expects_failure']))
+        print('compile-expect-OK  :', sum(1 for g in allg for c in g['checks']
+                                          if c['kind'].startswith('compile') and not c['expects_failure']))
+        print('xfail groups       :', sum(1 for g in allg if g['xfail']))
 
     if a.out:
         os.makedirs(a.out, exist_ok=True)
         # materialize ONLY under the ignored tree
         idx = []
         for g in cobol_groups:
-            d = os.path.join(a.out, re.sub(r'[^A-Za-z0-9_.:-]', '_', g.id).replace(':', '_'))
+            d = os.path.join(a.out, re.sub(r'[^A-Za-z0-9_.:-]', '_', g['id']).replace(':', '_'))
             os.makedirs(d, exist_ok=True)
-            for fn, content in g.data.items():
+            for fn, content in g['data'].items():
                 with open(os.path.join(d, fn), 'w', encoding='utf-8', newline='\n') as fh:
                     fh.write(content.lstrip('\n'))
-            idx.append({**asdict(g), 'dir': d})
+            idx.append({**g, 'dir': d})
         with open(os.path.join(a.out, '_index.json'), 'w', encoding='utf-8') as fh:
             json.dump(idx, fh, indent=1)
         print(f'materialized {len(idx)} groups into {a.out} (ignored tree)')

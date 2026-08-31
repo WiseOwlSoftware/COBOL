@@ -307,7 +307,7 @@ checkout (a failed regen fails the build — keep).
 A NO-VERDICT is never MATCH and never REGRESSION. It is an explicit statement that the run learned nothing,
 and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
-**Three corollaries, each earned by a defect.**
+**Four corollaries, each earned by a defect.**
 
 1. **Assert the POPULATION, not just the failure count.** A verdict computed from the results that *arrived*
    cannot see a program that produced none — losing one lowers MATCH and still passes. `guard-fast.sh` printed
@@ -324,6 +324,18 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
    control. `gnucobol_differential.py` runs an **evidence control** at startup (one program that must be
    accepted, one that must be rejected *with a reason*) and refuses to score anything if this build cannot be
    told apart, because `has_evidence` would otherwise reclassify every genuine rejection as a lost result.
+4. **⛔ THE POPULATION A CLAIM IS ABOUT MUST BE THE POPULATION THE INSTRUMENT OPENED — and two instruments
+   answering about "the corpus" must not each define it** (kb/Work PB209). Corollary 1 makes a harness assert
+   its OWN declared population; it says nothing about whether that declaration matches the corpus the claim is
+   written about. The differential defined its 1,323 cases inline in a `ProcessPoolExecutor` worker, so every
+   reachability sweep had to re-invent the same noun and re-invented it as `find … -name '*.cob'` — which
+   returns **two files** over a tree whose programs are `AT_DATA` heredocs inside `.at` wrappers. Two waves
+   therefore proved a shape absent from a corpus the gate then found it in, twice. The rule: **one executable
+   definition of a population, called by every reader**, a per-population count PRINTED on every run so a
+   contribution of two files cannot be reported as a corpus, and a drift test binding the readers together.
+   And a population that cannot be measured is not a population of zero — `corpus_sweep.py` REFUSES to report
+   hit counts when its population check fails, because the clean zero from a reader that opened nothing is
+   indistinguishable from evidence of absence.
 
 **Where it is implemented.**
 
@@ -336,7 +348,9 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 | `scripts/guard-fast.sh` | Group-runner stderr captured instead of discarded (a group could die and take its verdicts with it in silence); the audit gates `ALL GREEN`. ⛔ **FULL FAN-OUT IS KEPT AND THE LOST OBSERVATIONS ARE RE-TAKEN INSTEAD** — capping `-P` would pay for the damage on every run to protect against something the evidence rules now DETECT. Contention can no longer corrupt a verdict, only lose one, so step 3b re-runs just the affected groups serially. See §3.11 for the grouping. |
 | `scripts/guard-fast.sh` grouping | ⭐ **Isolation now comes from the DECLARED chain graph** (`corpus.tsv` `chain-preds`, as connected components: 332 groups over 376 programs) instead of a hand-written "these six suites run serially" list. Longest serial group **40 → 9**. Justified by evidence, not guessed: `NistDifferentialTests` already runs all 349 programs in per-program directories with only their declared predecessors and is green. Isolation is strictly SAFER than ordering — guard.sh's prose anti-dependencies ("no other TF022 writer between them") exist only because it shares ONE directory, and per-component dirs make them unstateable. It also corrected the hand list, which over-grouped `SQ204A` (that program `OPEN OUTPUT`s its own file). ⚠ **AND IT DID NOT MAKE THE LEG FASTER — say so.** Measured on a 32-core Windows box: NIST phase **564 s before, 598 s after**. The leg is THROUGHPUT-bound on `dotnet` cold-start (~150 s of the total is the compile phase alone, and effective concurrency was observed at ~7, not 32), not TAIL-bound, so shortening the longest serial group from 40 to 9 buys nothing here. It should matter on Linux CI where process spawn is far cheaper. **The real lever is a persistent run-host to amortize cold-start** — the change is kept for correctness and for retiring a hand-maintained list, NOT for speed. |
 | `scripts/guard-verify.sh` | Its verdict filter had silently omitted `LEGACY DIVERGENT`, dropping 11 programs from **both** sides of the equivalence proof. The vocabulary is now complete and any verdict-shaped line it does not recognize is reported rather than discarded. |
-| `scripts/gnucobol_differential.py` | A rejection needs a non-zero exit **and** a diagnostic; an acceptance needs the artifact. Evidence-free compiles are retried once and then bucketed `NO_COMPILER_EVIDENCE`, which counts as a harness failure and is **named for re-run**, never folded into a divergence bucket. |
+| `scripts/gnucobol_differential.py` | A rejection needs a non-zero exit **and** a diagnostic; an acceptance needs the artifact. Evidence-free compiles are retried once and then bucketed `NO_COMPILER_EVIDENCE`, which counts as a harness failure and is **named for re-run**, never folded into a divergence bucket. Its population is no longer its own: it filters with `gnucobol_extract.differential_cases()` before dispatch, so `len(payload)` IS `cases run` and the corpus has one definition. |
+| `scripts/gnucobol_extract.py` | **THE external-corpus population, as an API** — `primary_source` (the one "is this a case" predicate, returning the `(member, compile-check)` pair the caller actually needs so nothing re-derives half of it), `differential_cases` (the 1,323), `iter_programs` (the 1,611 COBOL members, what a sweep must read). Both readers call it; there is no second place to define the corpus. |
+| `scripts/corpus_sweep.py` + `ExternalCorpusPopulationDriftTests` | The reachability instrument and its lock. The sweep prints a per-population census on EVERY run and refuses to report hit counts when its population check fails. The drift test asserts the sweep's live external population equals the differential's COMMITTED per-case baseline — two independently produced numbers, so agreement is evidence. It was **proved failing first**, driven against the old `*.cob` reader, where it reported `{"external": 2, "baseline": 1323, "state": "drift"}`; `TheDriftCheck_ActuallyFails_WhenTheExtractionIsEmptied` keeps that red permanently reachable. A missing interpreter or an absent corpus is a LOUD failure, never a skip. |
 
 **What this does not claim.** The invariant makes a false GREEN and a false RED *visible*; it does not by itself
 prove the battery is deterministic. That is the measurement A12/A12d asks for, and it is recorded in plan §11
