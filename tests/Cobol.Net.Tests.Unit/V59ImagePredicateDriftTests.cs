@@ -56,17 +56,36 @@ public sealed class V59ImagePredicateDriftTests
         return Regex.Matches(string.Join("\n", code), $@"\b{Regex.Escape(identifier)}\b").Count;
     }
 
-    /// <summary>CALL's two guards are the READ and WRITE halves of ONE image round-trip, so they must test the
-    /// SAME predicate. If they diverged, a group could cross in through <c>FromImage</c> and back out through a
-    /// raw write, or be admitted by one half and refused by the other.</summary>
+    /// <summary>CALL's READ and WRITE halves are ONE image round-trip and must agree about which groups have an
+    /// image. If they diverged, a group could cross in through <c>FromImage</c> and back out through a raw write,
+    /// or be admitted by one half and refused by the other.
+    /// <para>⛔ THE INVARIANT CHANGED SHAPE AT kb/Work PB177 ARM B, DELIBERATELY — record the reason rather than
+    /// relaxing the count. This fact used to demand TWO spellings of <c>IsImageCapable</c> in
+    /// <c>CallEmitter</c>, one per half, and the two were NOT in fact in lockstep: the write half's own guard
+    /// let an imageless group FALL THROUGH to a raw <c>PlaceRenderer.Write</c>, rendering
+    /// <c>_G = &lt;string&gt;;</c> (backend CS0029) where the read half staged the Tier-C loud. The fix deleted
+    /// the write half's copy so every non-<c>RedefViewPlace</c> group routes to
+    /// <c>PlaceRenderer.WriteFullGroupImage</c>, whose arm order carries the SAME predicate — the lockstep is
+    /// now a STRUCTURAL fact instead of a count this test has to police. So: the read half still guards HERE,
+    /// the write half must DELEGATE, and <c>BoundaryImageChannelTests</c> holds the ONE writer's arms.</para></summary>
     [Fact]
     public void CallEmitter_ReadAndWriteHalves_UseTheSamePredicate()
     {
         string src = Read("src", "Cobol.Net.Compiler", "CodeGen", "Verbs", "CallEmitter.cs");
         int capable = CodeOccurrences(src, "IsImageCapable");
         int character = CodeOccurrences(src, "IsCharacterImage");
-        Assert.True(capable >= 2,
-            $"Expected both CALL group guards on IsImageCapable; found {capable}.");
+        Assert.True(capable >= 1,
+            $"Expected the CALL argument (read-half) group guard on IsImageCapable; found {capable}.");
+        // The WRITE half delegates instead of testing: it must hand every group to the ONE writer.
+        // ⛔ MEASURED WITH THE COMMENT-STRIPPER, NOT RAW TEXT. This was `Assert.Contains("WriteFullGroupImage",
+        // src)` against the unstripped file, and the PB177 comment block directly above the fixed arm names the
+        // method twice — so deleting the actual delegating CALL would have left this assertion green. A drift
+        // test satisfied by the comment explaining the drift is worse than no drift test: it reads as evidence.
+        // The same method's capability counts already used CodeOccurrences; this line simply joins them.
+        Assert.True(CodeOccurrences(src, "WriteFullGroupImage") >= 1,
+            "CallStringWrite must DELEGATE the group arm to PlaceRenderer.WriteFullGroupImage — no occurrence "
+            + "found in CODE (comments stripped).");
+        Assert.DoesNotContain("p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsImageCapable", src);
         Assert.True(character == 0,
             "CallEmitter must not use the pre-V59 IsCharacterImage: a group whose only non-character leaf is "
             + "BINARY/PACKED has a whole-group image (V59), and RecordStructEmitter emits its codec. Guarding on "

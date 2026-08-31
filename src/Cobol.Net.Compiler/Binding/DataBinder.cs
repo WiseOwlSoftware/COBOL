@@ -3510,6 +3510,46 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // (kb/Work PB183) and ComputeTier's backstop arm.
             if (Sr12Sr14Violation(item, item.RedefinesTarget) is { } srv)
                 Edition.Error(DiagnosticCatalog.RedefinesPointerObject, srv);
+            // §13.18.44.3 SR17, the SAME per-written-entry posture and for the same reason (kb/Work PB177 arm C):
+            // "Neither data-name-2 nor the subject of the entry shall be a variable-length group or a
+            // dynamic-length elementary item." A SYMMETRIC rule, so BOTH sides are tested — the two-arm
+            // discipline applied to the screen itself. It must run HERE, before the dissolve loop, or a nested
+            // entry's violation escapes into the outer class's staged-loud arm (the PB179 skeptic round's
+            // finding, which is why SR12/SR14 sit here).
+            // ⛔ AND IT CLOSES A SILENT MIS-MODEL, not just an under-rejection: StorageFormPass.Classify returns
+            // DynamicString for an IsDynamicLength item BEFORE reaching its Tier-B view arm, so such a view got
+            // its OWN disjoint native string — two storages for one shared area (§13.18.44.4 GR1 says one), with
+            // no diagnostic. Rejecting the entry makes that path unreachable.
+            foreach (var (side, sideItem) in new[]
+                     { ("the subject of the REDEFINES entry", item), ("data-name-2 of a REDEFINES entry", item.RedefinesTarget) })
+                if (Sr17Shape(sideItem) is { } shape)
+                    Edition.Error(DiagnosticCatalog.RedefinesVariableLength,
+                        $"'{sideItem.CobolName ?? sideItem.CsName}' is {side} but is {shape}: neither "
+                        + "data-name-2 nor the subject of the entry shall be a variable-length group or a "
+                        + "dynamic-length elementary item (ISO §13.18.44.3 SR17)");
+            // §13.18.44.3 SR5 SENTENCE 1 — the OBJECT side, per written entry like its two neighbours above.
+            // "The data description entry for data-name-2 shall not contain an OCCURS clause." ANY format: the
+            // fixed OCCURS of Format 1, Format 2's occurs-depending table, and Format 4's dynamic-capacity table
+            // are all THE OCCURS CLAUSE (§13.18.38), so the predicate is `IsTable` — the union. ⛔ NEITHER half
+            // alone works, and each is a live trap this repo has already sprung once: `Occurs is not null` is
+            // the FIXED physical capacity and is NULL for a Format-4 table (the CONTROL SR3 arm's defect), while
+            // `OccursSpec is not null` is NULL for a plain keyless fixed table, which OdoBindOccursSpec
+            // deliberately leaves allocation-free (measured: with that spelling `05 T PIC X(3) OCCURS 4. 05 R
+            // REDEFINES T PIC X(12).` still compiled clean — the very shape this screen exists for).
+            // ⛔ SENTENCE 2 IS THE LIMIT OF THIS ARM: "However, data-name-2 may be subordinate to an item whose
+            // data description entry contains an OCCURS clause." So the test is on data-name-2's OWN entry —
+            // an ancestor walk here would reject legal source.
+            // ⛔ AND THE DEPENDING SHAPE IS DELIBERATELY EXCLUDED, so one entry never draws two diagnostics from
+            // one rule: SENTENCE 4 ("Neither the original definition nor the redefinition shall include an
+            // occurs-depending table") is COBOLNET0855's, whose population is WIDER (an ODO table anywhere in
+            // either definition, not merely on data-name-2's own entry) and which already rejects every entry
+            // this arm would also match. One rule, four sentences, two disjoint screens.
+            if (item.RedefinesTarget.IsTable && item.RedefinesTarget.OccursSpec?.DependingName is null)
+                Edition.Error(DiagnosticCatalog.RedefinesTargetOccurs,
+                    $"'{item.CobolName ?? item.CsName}' REDEFINES '{item.RedefinesTarget.CobolName ?? item.RedefinesTarget.CsName}', "
+                    + "whose data description entry contains an OCCURS clause: the data description entry for "
+                    + "data-name-2 shall not contain an OCCURS clause (ISO §13.18.44.3 SR5) — data-name-2 may be "
+                    + "SUBORDINATE to an item that has one, but shall not carry one itself");
             DataItem anchor = item;
             // Chase data-name-2 to the non-redefining anchor. A CHAIN (X REDEFINES Y, Y REDEFINES Z) is
             // SR7-ILLEGAL (the skeptic round corrected this comment's SR11 miscitation — SR11 is the
@@ -3546,17 +3586,54 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var cls in byAnchor.Values)
         {
             var tier = ComputeTier(cls, out string? reject);
-            // §13.18.44 SR5 (:21497): the redefined item shall not contain an OCCURS clause; and a dynamic-capacity
-            // table is OUT-OF-LINE storage (a CobolDynTable, data-model D9) that can neither overlay nor be
-            // overlaid. Reject a class whose canonical OR any redefining member is, or contains, a dynamic table.
-            if (cls.Members.Any(ContainsDynamicTable))
+            // ⛔ CITATION REPAIRED **TWO-SIDEDLY**, AND THE SCREEN NARROWED TO THE SUBJECT SIDE (kb/Work PB177
+            // arm C, then its follow-up). Three moves, and the middle one was itself wrong on one side:
+            //  1. The arm used to cite "§13.18.44 SR5" for BOTH sides.
+            //  2. The repair read SR5's FOURTH sentence ("Neither the original definition nor the redefinition
+            //     shall include an occurs-depending table" — COBOLNET0855's rule) and concluded the whole rule
+            //     was about something else, so it wrote "which NO syntax rule literally names". ⛔ THAT IS TRUE
+            //     ONLY OF THE SUBJECT SIDE. SR5's FIRST sentence is "The data description entry for data-name-2
+            //     shall not contain an OCCURS clause", and OCCURS DYNAMIC is Format 4 OF the OCCURS clause
+            //     (§13.18.38) — so the OBJECT side is named outright, and is now COBOLNET1701 per written entry.
+            //     Reading one sentence of a four-sentence rule and generalising is the same inheritance failure
+            //     CLAUDE.md rule 1 names, one level down: the clause NUMBER was right and the SENTENCE was not.
+            //  3. The dynamic-capacity SUBORDINATE case is §13.18.44.3 SR17's (a group with such a table
+            //     subordinate IS a "variable-length group", §8.5.1.12.1) and is screened per WRITTEN ENTRY above
+            //     as COBOLNET1698.
+            // WHAT REMAINS HERE IS THE SUBJECT THAT IS ITSELF A DYNAMIC-CAPACITY TABLE, and for THAT side the
+            // "no syntax rule names it" reading holds: §13.18.38.3 carries no REDEFINES restriction, and SR17
+            // does not reach an ELEMENTARY dynamic table (§8.5.1.12.1's "variable-length group" is defined over
+            // items SUBORDINATE to the group). So cite what actually decides it — §13.18.44.4 GR1 ("Storage
+            // association for the subject of the entry starts at the first bit of the data item referenced by
+            // data-name-2 and continues over an area sufficient to contain the number of bits required by the
+            // data item referenced by the subject of the entry") against §8.5.1.9.1's dynamic-capacity model,
+            // whose "physical and logical capacities may vary during execution": there is no fixed area to
+            // associate. A COBOL.NET storage-model rejection, honestly labelled, not a borrowed rule number.
+            // (The message names the OFFENDING MEMBER, not the class canonical — it used to say "the
+            // dynamic-capacity table in '<canonical>'" even when the canonical was the ordinary fixed item and
+            // the dynamic table was the REDEFINING entry.)
+            if (cls.Members.FirstOrDefault(m => !ReferenceEquals(m, cls.Canonical) && m.IsDynamicTable) is { } dynSubject)
             {
-                Edition.Error("COBOLNET1525", $"REDEFINES involving the dynamic-capacity table in "
-                    + $"'{cls.Canonical.CobolName ?? cls.Canonical.CsName}': a dynamic-capacity table is out-of-line "
-                    + "storage and shall be neither the subject nor the object of a REDEFINES (ISO §13.18.44 SR5)");
+                Edition.Error("COBOLNET1525", $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.CsName}' is "
+                    + "itself a dynamic-capacity table: its capacity \"may vary during execution\" (ISO "
+                    + "§8.5.1.9.1), so it has no fixed area for the storage association §13.18.44.4 GR1 requires; "
+                    + "it shall not be the subject of a REDEFINES");
                 tier = RedefinesTier.Rejected;
-                reject ??= "REDEFINES of/over a dynamic-capacity table (§13.18.44 SR5, D9)";
+                reject ??= "REDEFINES subject is a dynamic-capacity table (§13.18.44.4 GR1 / §8.5.1.9.1, D9)";
             }
+            // The §13.18.44.3 SR5 sentence-1 TIER verdict, same posture as SR12/SR14's and SR17's below (the
+            // DIAGNOSTIC fired per written entry, before dissolution — no second diagnostic here). The tier
+            // matters on its own: without it the class model is built as though the OCCURS-bearing object were
+            // a legal single area, and the offsets/width walk below lays a view over one occurrence's worth of
+            // storage. The predicate is the RULE's (`OccursSpec is not null`, every format) even though the
+            // depending shape's DIAGNOSTIC belongs to COBOLNET0855 — a tier is not a message.
+            foreach (var m in cls.Members)
+                if (m.RedefinesTarget is { IsTable: true } occTarget)
+                {
+                    tier = RedefinesTier.Rejected;
+                    reject = $"REDEFINES over '{occTarget.CobolName ?? occTarget.CsName}', whose data "
+                        + "description entry contains an OCCURS clause (ISO §13.18.44.3 SR5)";
+                }
             // The SR12/SR14 TIER verdict for a retained class (the DIAGNOSTIC fired per written entry in the
             // grouping loop above, before dissolution — no second diagnostic here): the class rejects with
             // the spec-required reason, OVERRIDING ComputeTier's staged-loud one (its backstop arm also
@@ -3567,6 +3644,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     tier = RedefinesTier.Rejected;
                     reject = srReason;
+                }
+            // The §13.18.44.3 SR17 TIER verdict, same posture as SR12/SR14's above (the DIAGNOSTIC fired per
+            // written entry, before dissolution — no second diagnostic here).
+            // ⛔ THE TIER IS BELT-AND-BRACES, AND THE COMMENT HERE USED TO OVERCLAIM IT. It said "Rejecting the
+            // CLASS makes that path structurally unreachable rather than merely unreached because a diagnostic
+            // happened to stop the compile." MEASURED FALSE (RedefinesClassificationTests, once its assertion
+            // was made non-inert): StorageFormPass.Classify orders its arms (1) IsDynamicTable, (1b)
+            // IsDynamicLength → DynamicString, and only THEN (2) the REDEFINES-view arm — so arm 1b returns
+            // before the tier is ever read, and a Rejected class's dynamic-length view still classifies as
+            // DynamicString. A class DISSOLVED by the nested-anchor loop below bypasses the tier loop entirely,
+            // which is the same hole from the other side. WHAT ACTUALLY PREVENTS THE DISJOINT STORAGE REACHING
+            // A USER'S PROGRAM IS THE COBOLNET1698 DIAGNOSTIC, which is fatal. The tier verdict is a second,
+            // independent verdict at the modelling layer and is worth keeping as one — every consumer that asks
+            // the CLASS gets the right answer — but "structurally unreachable" was a claim about a path this
+            // code does not close.
+            foreach (var m in cls.Members)
+                if (Sr17Shape(m) is { } vlShape)
+                {
+                    tier = RedefinesTier.Rejected;
+                    reject = $"REDEFINES entry side '{m.CobolName ?? m.CsName}' is {vlShape} "
+                        + "(ISO §13.18.44.3 SR17)";
                 }
             // The width is a member table's FULL extent (every occurrence). ONE verdict application (P5.11d).
             cls.Classify(tier, cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1)), reject);
@@ -3622,10 +3720,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// cascade D &gt; B &gt; A — Tier C dissolved into B: every numeric leaf kind's byte form is pinned, so a
     /// mixed-USAGE pun is an ordinary byte-window class. D rejects the nested pointer/object backstop and the
     /// NATIONAL residue.</summary>
-    /// <summary>True if <paramref name="d"/> is, or has anywhere beneath it, an OCCURS DYNAMIC table (data-model
-    /// D9) — the REDEFINES 1525 guard (a dynamic table is out-of-line and cannot participate in a shared area).</summary>
-    private static bool ContainsDynamicTable(DataItem d) =>
-        d.IsDynamicTable || d.Children.Any(ContainsDynamicTable);
+    // (ContainsDynamicTable was deleted with kb/Work PB177 arm C: its SUBORDINATE half is §13.18.44.3 SR17's,
+    // now screened per written entry through ReferenceResolver.HasVariableLengthSubordinate — §8.5.1.12.1's own
+    // definition of "variable-length group" — and its SELF half is the narrowed `m.IsDynamicTable` test at the
+    // COBOLNET1525 arm. Two spellings of one walk collapsed into the predicate the standard actually defines.)
 
     /// <summary>The §13.18.44.3 SR12/SR14 class test (kb/Work PB179): object/pointer classes occupy no
     /// character positions and can neither overlay nor be overlaid. Message-tag has no bound model yet;
@@ -3645,6 +3743,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// documents ("An INTERNAL redefine … is legitimate and NOT flagged") — this screen must not silently
     /// overturn that determination; whether the §13.18.57.3 SR4 letter overturns IT is [[PB183]]'s companion
     /// derivation.</para></summary>
+    /// <summary>The §8.5.1.12.1 shapes ISO §13.18.44.3 SR17 bars from EITHER side of a REDEFINES entry: a
+    /// DYNAMIC-LENGTH elementary item, or a VARIABLE-LENGTH GROUP — "a group item whose data description has at
+    /// least one dynamic-length elementary item or dynamic-capacity table as a subordinate item". Returns the
+    /// clause of the message naming which shape was found, or null when the item is fine.
+    /// <para>The dynamic-capacity half overlaps the COBOLNET1525 arm deliberately: 1525 is
+    /// the narrower per-CLASS backstop for an item that IS itself a dynamic-capacity table (which SR17 does not
+    /// literally name — it names variable-length GROUPS and dynamic-length ELEMENTARY items), and it now fires
+    /// only where SR17 does not. Neither code is reallocated.</para></summary>
+    private static string? Sr17Shape(DataItem item) =>
+        item.IsDynamicLength ? "a dynamic-length elementary item (ISO §8.5.1.10)"
+        : item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item)
+            ? "a variable-length group (ISO §8.5.1.12.1 — a dynamic-length elementary item or a "
+              + "dynamic-capacity table is subordinate to it)"
+        : null;
+
     private static string? Sr12Sr14Violation(DataItem subject, DataItem target)
     {
         if (PointerObjectClass(subject))

@@ -123,6 +123,26 @@ Positive conformance tests live in `tests/conformance/2002/oo_*.cob`; the reject
 
 ### D6. Parameter passing: BY REFERENCE → C# `ref` of the typed field (value-class items) or the reference itself (object/string); BY CONTENT → pass a copy; BY VALUE → value parameter; RETURNING → C# return value; OMITTED → nullable param + omitted-arg condition.
 
+**A GROUP formal or RETURNING item crosses as its CHARACTER IMAGE, through THE ONE CHANNEL.** §14.2.3 GR8 makes
+a BY REFERENCE formal "occupy the same storage area as the argument" and §14.9.23.4 GR8 delivers the RETURNING
+item; COBOL.NET realizes both through the generated `AsImage()`/`FromImage()` round trip. ⛔ `OoEmitter` does
+**not** spell that round trip itself — it routes every group crossing through `PlaceRenderer.GroupImage` /
+`PlaceRenderer.WriteFullGroupImage` (the law stated in `GroupImage`'s doc-comment: "THE ONE reader — a consumer
+that spells `.AsImage()` itself is wrong for the window shape"), building the boundary root's `Place` with
+`OoEmitter.MethodRootPlace` because a method's LINKAGE/LOCAL roots are C# **locals**, not fields (D3). A Tier-B
+REDEFINES canonical root is the exception handled before that call: its storage IS its string backing local
+(`MethodRedefinesBackingDecl`) at the **class** width, since a wider level-01 redefiner needs the full backing
+(§13.18.44.3 SR8), not the canonical view's width.
+
+**Tier-C posture at the method boundary.** A group with a pointer/object-class leaf, or a variable-length group
+(§8.5.1.12.1), has no character image (`DataItem.IsImageCapable`) and the crossing stages the documented Tier-C
+loud (COBOLNET_DESIGN §4.2) — it is never a backend compile error. That distinction is load-bearing: the bind
+side (`DataBinder.Oo`) applies no image screen, and `OoConformance.DescriptionMismatch`'s `!formal.IsImageCapable`
+arm runs only when an INVOKE or an override/implements **pair** exists, so a method that is merely DECLARED must
+still emit compilable C#. Held by `tests/Cobol.Net.Tests.Unit/BoundaryImageChannelTests.cs` (a source-level drift
+test forbidding a self-spelled `.AsImage()`/`.FromImage(` outside the generator) and by the golden
+`pb177_method_group_boundary`, whose two never-invoked Tier-C methods are exactly this case. kb/Work PB177 arm A.
+
 **Rationale.** §9.3.6 match-rule 3c requires a BY REFERENCE argument and its formal parameter to be the same class/category — so a real typed `ref` parameter is fully conformant; this is precisely why the C#-native target can use typed parameters instead of the legacy ManagedPointer[] byte ABI. RETURNING-as-return is the idiomatic and §14.9.23 GR8-faithful mapping.
 
 **Rejected alternatives.** Keep the ManagedPointer[] args ABI (legacy) for uniformity with CALL — rejected: byte-substrate-adjacent, unidiomatic, and unnecessary now that types are native. Box everything to object[] for all params — rejected: loses Roslyn type checking and adds boxing.

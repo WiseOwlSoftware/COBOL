@@ -1,0 +1,161 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text.RegularExpressions;
+using CobolNet.Tests.Shared;
+using Xunit;
+
+namespace CobolNet.Tests.Unit;
+
+/// <summary>
+/// ⛔ THE ONE-READER LAW FOR GROUP IMAGES, HELD STRUCTURALLY (kb/Work PB177 + PB178).
+/// <para>The rule, stated once in <c>PlaceRenderer.GroupImage</c>'s own doc-comment — "THE ONE reader — a
+/// consumer that spells <c>.AsImage()</c> itself is wrong for the window shape" — is: the character image of a
+/// group operand is the struct's generated <c>AsImage()</c>, EXCEPT that a Tier-B / BASED string-canonical
+/// view's <c>Read</c> ALREADY IS the image (§13.18.44.4 GR1 — one storage area), an <c>OdoGroupPlace</c> must
+/// be unwrapped first (and in a SENDING context sliced to §13.18.38.4 GR8's current extent), and an imageless
+/// group stages the Tier-C loud. <c>PlaceRenderer</c>'s <c>GroupImage</c> / <c>SendingGroupImage</c> /
+/// <c>WriteGroupImage</c> / <c>WriteFullGroupImage</c> state all four arms; every consumer routes through
+/// them.</para>
+/// <para><b>Why a SOURCE-LEVEL test.</b> The law was already written down and FOUR consumers spelled the call
+/// themselves anyway, each missing a different arm: <c>OperandText.AsStorageImage</c> had no RedefViewPlace arm
+/// (CS1061 on <c>CobolStr.RefMod(...).AsImage()</c> — PB178), <c>NumericRenderer.FieldNumCore</c> had no ODO
+/// unwrap AND returned the maximum image instead of GR8's current extent (PB178's sibling),
+/// <c>OoEmitter.EmitMethod</c> had no arm and no capability guard at all (CS1061 on a method formal group with
+/// a POINTER leaf — PB177 arm A), and <c>OperandText.FieldAsString</c> was complete only by luck of three
+/// separate early returns. A doc-comment cannot stop the fifth copy; this can. Rule 5: prefer the shape that
+/// makes the NEXT boundary automatic, and pair it with a drift test so "automatic" stays true.</para>
+/// <para>⛔ THIS TEST HAS BEEN RED. Run against the tree before PB177 arm A landed it reported the three
+/// <c>OoEmitter</c> sites verbatim; a drift test that has never failed is not evidence
+/// (<c>feedback_green_gates_arent_evidence</c>).</para>
+/// </summary>
+public sealed class BoundaryImageChannelTests
+{
+    // The generated codec's DEFINITIONS live here (CodeGen/DataDivision) and are correct by definition — this is
+    // the emitter that WRITES the AsImage/FromImage/AsBits/FromBits members. PlaceRenderer (CodeGen/Roslyn) is
+    // THE ONE READER/WRITER itself. Neither directory is scanned; only the CONSUMER directories are.
+    private static readonly string[] ConsumerDirs = ["CodeGen/Emit", "CodeGen/Verbs"];
+
+    /// <summary>The image-channel member names a consumer must never spell for itself. <c>AsImage</c>/
+    /// <c>FromImage</c> are the character-image pair; <c>AsBits</c>/<c>FromBits</c> are the bit-group
+    /// (§13.18.29.4 GR1b) pair, which has the identical window/ODO/capability problem.</summary>
+    private static readonly string[] Members = [".AsImage()", ".FromImage(", ".AsBits()", ".FromBits("];
+
+    /// <summary>⛔ THE ALLOW-LIST IS THE HAND-MAINTAINED PART, so it is keyed on the TYPE plus a written
+    /// justification and it must stay tiny. An addition without a justification is a review failure, not a
+    /// mechanical pass (rule 5's warning about hand-maintained lists applies to this list itself).</summary>
+    private static readonly Dictionary<string, (int Count, string Why)> AllowList = new()
+    {
+        // SortEmitter.TableCompare renders `a.{MemberPath}` STRUCT RVALUES (the sort comparer's two element
+        // parameters), never a Place — so no window, ODO or Tier-C shape can reach it and there is no Place to
+        // hand PlaceRenderer. Its own IsImageCapable guard sits one line above. Self-spelled by NECESSITY.
+        ["CodeGen/Verbs/SortEmitter.cs"] = (2, "TableCompare compares struct rvalues, not Places"),
+        // ⛔ OperandText.FieldAsString's bit-group row IS GONE — routed, not re-justified. It read
+        // `Read(p).AsBits()` for itself and was exempted on the promise "kb/Work PB173 gives the bit channel its
+        // own Place subtype; when that lands this row is the next one to route". PB173 landed and the row was
+        // NOT routed, which is exactly the shape this list exists to catch: the self-spelled call sat BELOW the
+        // OdoGroupPlace early return, so a bit group carrying an occurs-depending table took the CHARACTER
+        // reader — two alphabets on one operand, at a character-unit extent that came out negative. It now calls
+        // PlaceRenderer.SendingBits, THE ONE bit reader. A justification that promises a future routing is a
+        // debt; this row is the evidence the debt gets paid rather than renewed.
+    };
+
+    /// <summary>Occurrences in CODE only — these members are named constantly in the doc-comments that explain
+    /// the law (that is the comments' job), so a raw text count is a false positive. Same stripper as
+    /// <see cref="V59ImagePredicateDriftTests"/>.</summary>
+    private static int CodeOccurrences(string src, string needle)
+    {
+        var code = new List<string>();
+        foreach (string raw in src.Split('\n'))
+        {
+            string line = raw.TrimEnd('\r');
+            string t = line.TrimStart();
+            if (t.StartsWith("///") || t.StartsWith("//")) continue;
+            int i = line.IndexOf("//", StringComparison.Ordinal);
+            code.Add(i >= 0 ? line[..i] : line);
+        }
+        return Regex.Matches(string.Join("\n", code), Regex.Escape(needle)).Count;
+    }
+
+    [Fact]
+    public void NoConsumerSpellsTheImageChannelItself()
+    {
+        string root = TestRepo.Src("Cobol.Net.Compiler");
+        var actual = new Dictionary<string, int>();
+        foreach (string dir in ConsumerDirs)
+        {
+            string full = Path.Combine(root, dir.Replace('/', Path.DirectorySeparatorChar));
+            foreach (string f in Directory.EnumerateFiles(full, "*.cs", SearchOption.AllDirectories))
+            {
+                string src = File.ReadAllText(f);
+                int n = Members.Sum(m => CodeOccurrences(src, m));
+                if (n > 0) actual[Path.GetRelativePath(root, f).Replace('\\', '/')] = n;
+            }
+        }
+
+        var expected = AllowList.ToDictionary(k => k.Key, k => k.Value.Count);
+        Assert.Equal(
+            expected.OrderBy(k => k.Key).Select(k => $"{k.Key}={k.Value}").ToArray(),
+            actual.OrderBy(k => k.Key).Select(k => $"{k.Key}={k.Value}").ToArray());
+    }
+
+    /// <summary>The ONE reader and the ONE writer both carry the capability guard and both arms of the window /
+    /// ODO dispatch. If a future edit deletes an arm from one and not the other, that is the two-arm-dispatch
+    /// shape this repo reproduces more than any other — assert the pairing directly.</summary>
+    [Fact]
+    public void PlaceRenderer_ReadAndWriteGroupImage_BothCarryEveryArm()
+    {
+        string src = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Roslyn", "PlaceRenderer.cs"));
+        foreach (string reader in new[] { "GroupImage", "WriteGroupImage" })
+        {
+            // The arm list is spelled inside each switch; both must name the window shape, the ODO wrapper and
+            // the capability predicate.
+            int at = src.IndexOf($"string {reader}(", StringComparison.Ordinal);
+            Assert.True(at > 0, $"PlaceRenderer.{reader} not found — the ONE {(reader.StartsWith("Write") ? "writer" : "reader")} was renamed or removed.");
+            string body = src[at..(src.IndexOf("};", at, StringComparison.Ordinal) + 2)];
+            Assert.Contains("RedefViewPlace", body);
+            Assert.Contains("OdoGroupPlace", body);
+            Assert.Contains("IsImageCapable", body);
+        }
+    }
+
+    /// <summary>The BIT channel is a two-arm dispatch too (kb/Work PB173): a <c>BitImagePlace</c> without BOTH
+    /// a <c>Read</c> arm and a <c>Write</c> arm is a runtime <c>Unhandled</c> throw, not a compile error — the
+    /// <c>_ =&gt; throw Unhandled(p)</c> default swallows it. Assert the pair directly. (The units this place
+    /// carries — BIT positions, §8.4.3.3.4 GR5a — are why it is a separate type from
+    /// <c>GroupImagePlace</c>, and a NATIONAL group deliberately keeps the latter, §13.18.29.4 GR2b.)
+    /// <para>⛔ Both arms must DELEGATE to <c>SendingBits</c>/<c>WriteBits</c> rather than spell the member: the
+    /// bit channel has the same §13.18.38.4 GR8 current-extent split the image channel has, and the first cut of
+    /// these arms spelled <c>Read(b.Inner).AsBits()</c> / <c>.FromBits(rhs)</c> with NO ODO arm on either side —
+    /// so a bit group holding an occurs-depending table read and wrote its MAXIMUM bit positions. The ONE
+    /// reader/writer pair is asserted the same way <see cref="PlaceRenderer_ReadAndWriteGroupImage_BothCarryEveryArm"/>
+    /// asserts the image pair's arms.</para></summary>
+    [Fact]
+    public void PlaceRenderer_BitImagePlace_HasBothARead_AndAWriteArm()
+    {
+        string src = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Roslyn", "PlaceRenderer.cs"));
+        Assert.Contains("BitImagePlace b => SendingBits(b.Inner)", src);
+        Assert.Contains("BitImagePlace b => WriteBits(b.Inner, rhs)", src);
+        foreach (string one in new[] { "SendingBits", "WriteBits" })
+        {
+            int at = src.IndexOf($"string {one}(", StringComparison.Ordinal);
+            Assert.True(at > 0, $"PlaceRenderer.{one} not found — the ONE bit {(one.StartsWith("Write") ? "writer" : "reader")} was renamed or removed.");
+            // Each must name the ODO wrapper (GR8's current extent) and the generated member it owns. The body
+            // ends at the blank line before the next member (a `;` scan would stop inside an interpolated
+            // string — the emitted `FromBits(…);` carries one).
+            int end = src.IndexOf("\r\n\r\n", at, StringComparison.Ordinal);
+            string body = end > at ? src[at..end] : src[at..];
+            Assert.Contains("OdoGroupPlace", body);
+            Assert.Contains("LengthExpr(o)", body);
+        }
+        // The ref-mod pad and the figurative fill are the other two-arm pair PB173 fixed; both must read
+        // OperandPic (null-safe for a GROUP), never the raw Pic that made a bit-group slice space-fill. The
+        // ACCEPT omitted-length width is the THIRD arm of that family.
+        Assert.DoesNotContain("r.Inner.Item.Pic is { Category: PicCategory.Boolean }", src);
+        string move = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Verbs", "MoveEmitter.cs"));
+        Assert.Contains("rmp.Inner.Item.OperandPic?.Category", move);
+        Assert.DoesNotContain("rmp.Inner.Item.Pic?.Category", move);
+        string acc = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Verbs", "AcceptDisplayEmitter.cs"));
+        Assert.Contains("rm.Inner.Item.OperandPic?.Length ?? rm.Inner.Item.ImageWidth", acc);
+        Assert.DoesNotContain("rm.Inner.Item.Pic?.Length ?? rm.Inner.Item.ImageWidth", acc);
+    }
+}

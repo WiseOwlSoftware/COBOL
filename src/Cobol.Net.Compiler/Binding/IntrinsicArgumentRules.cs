@@ -453,7 +453,15 @@ internal static class IntrinsicArgumentRules
     /// as "leave it to the runtime value screen".</summary>
     public static Usage? StaticUsageOf(BoundOperand op) => op switch
     {
-        BoundFieldOperand { Place.Item: { IsGroup: false, Pic: { } pic } } => pic.Usage,
+        // ⛔ OperandPic, NOT `IsGroup: false` + raw Pic (D20's ONE category/usage reader; kb/Work PB173's
+        // sibling sweep). §13.18.29.4 GR1b/GR2b make a bit / national GROUP "an elementary data item of usage
+        // bit" / "of usage national", so it HAS a static representation and the keyword-keyed screens must see
+        // it. Measured before the change: `FUNCTION CONVERT(<PIC 1(8) USAGE BIT leaf> ANUM NAT)` was correctly
+        // rejected COBOLNET1514 by §15.19.3 r5, while the byte-identical GROUP-USAGE BIT group was ADMITTED —
+        // one rule, one usage, two verdicts, because the group's raw `Pic` is null. An ordinary ALPHANUMERIC
+        // group still answers null (OperandPic is null for it), which is the "leave it to the runtime value
+        // screen" answer this contract documents.
+        BoundFieldOperand { Place.Item.OperandPic: { } pic } => pic.Usage,
         BoundStringLiteral { Category: PicCategory.National } => Usage.National,
         BoundStringLiteral => Usage.Display,
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory switch

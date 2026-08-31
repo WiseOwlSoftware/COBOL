@@ -404,20 +404,59 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// SENDING-OPERAND rule for MOVE/compare/INSPECT, not a storage-aliasing rule (IC207A: CALL … USING TABLE-01
     /// with DN3=3 must still carry all 15 character positions in, and carry the callee's full table back out).
     /// Every call site of this helper (the BY REFERENCE carrier, BY CONTENT snapshot, callee copy-out, and
-    /// RETURNING delivery) is such a boundary.</summary>
-    internal static string CallStringRead(Place p) => p is OdoGroupPlace odo
-        ? PlaceRenderer.GroupImage(odo)   // the FULL image (GR8 is a sending-operand rule, not a boundary one) — window or struct (kb/Work PB80)
-        : OperandText.FieldImage(p);
+    /// RETURNING delivery) is such a boundary.
+    /// <para>⛔ A GROUP CROSSES AS ITS STORAGE IMAGE, NOT AS ITS OPERAND VALUE (kb/Work PB173 — measured, and
+    /// PRE-EXISTING at 876d8ab0: `01 G GROUP-USAGE BIT. 05 B1 PIC 1(4). 05 B2 PIC 1(4).` holding 11001010 and
+    /// passed BY REFERENCE arrived in the callee as 00110001 and came home as 00110000). §14.2.3 GR8 makes the
+    /// formal occupy "the same storage area as the argument", so the carrier is the group's character IMAGE —
+    /// the exact inverse of the write half's <c>FromImage</c>. Routing through <c>OperandText.FieldImage</c>
+    /// instead delivered a BIT group's OPERAND value (§13.18.29.4 GR1b's m boolean positions, <c>AsBits</c>)
+    /// into a <c>FromImage</c> that reads ceil(m/8) PACKED characters — two alphabets, one carrier, silent
+    /// argument corruption on legal source that §14.9.4.3 SR6 explicitly admits ("If the BY REFERENCE phrase is
+    /// specified or implied for an identifier-2 that is a bit data item, identifier-2 shall be described such
+    /// that it is aligned on a byte boundary …", which a level-01 bit group satisfies by construction).
+    /// <c>PlaceRenderer.GroupImage</c> is THE ONE reader and already owns all four arms — the Tier-B window, the
+    /// <c>OdoGroupPlace</c> unwrap to the FULL allocation, the capability guard and the struct image — so this
+    /// is now the exact mirror of <see cref="CallStringWrite"/>'s group arm, arm for arm.</para></summary>
+    internal static string CallStringRead(Place p) =>
+        // ⛔ A REFERENCE-MODIFIED OPERAND IS AN ELEMENTARY ALPHANUMERIC ITEM OVER THE SLICE (§8.4.3.3.4 GR6),
+        // whatever the inner item is — it must NOT take the group arm below. Its own substrate wrap
+        // (GroupImagePlace / BitImagePlace / NumericImagePlace) is already inside the RefModPlace, so
+        // `PlaceRenderer.Read` gives the slice and `PlaceRenderer.Write` splices it back: an exact pair. This
+        // arm is stated FIRST and explicitly on BOTH halves because the alternative is invisible — widening the
+        // read half's group test to `p.Item.IsGroup` (RefModPlace.Item forwards to the INNER item, so a
+        // ref-modded group answers true) rendered `CobolStr.RefMod(G.AsImage(),1,3).AsImage()`, a backend
+        // CS1061 on `string`, and the write half had been emitting the `.FromImage(` half of exactly that pair
+        // since before this change (measured at 876d8ab0: `CALL "S" USING G(1:3)` = one CS1061; with the group
+        // test widened, two).
+        p is RefModPlace ? OperandText.FieldImage(p)
+        : p.Item.IsGroup
+            ? PlaceRenderer.GroupImage(p)   // the FULL image (GR8 is a sending-operand rule, not a boundary one) — window or struct (kb/Work PB80)
+            : OperandText.FieldImage(p);
 
     internal static string CallStringWrite(Place p, string value) =>
         // The boundary WRITE half of the §14.2.3 GR8/GR9 full-allocation rule above: a group (including an
         // occurs-depending group — OdoGroupPlace.Write delegates to the full-width struct) distributes the whole
         // image through FromImage, never the GR8a current-extent splice.
-        // IsImageCapable, matching the ArgText guard above — the two are the READ and WRITE halves of ONE
-        // round-trip, so a predicate that differed between them would let a group cross IN through FromImage and
-        // back OUT through a raw write (or refuse the write for a group the guard had just admitted). Kept in
-        // lockstep deliberately; `V59ImagePredicateDriftTests` fails if they diverge again.
-        p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsImageCapable
+        // ⛔ NO `&& p.Item.IsImageCapable` HERE — THE ONE WRITER OWNS THE GUARD (kb/Work PB177 arm B, the EIGHTH
+        // two-arm-dispatch instance in this repo). This arm used to carry the capability test itself and an
+        // imageless group therefore FELL THROUGH to the raw `PlaceRenderer.Write(p, value)` at the bottom, which
+        // for a group MemberPlace renders `_G = <string>;` — a backend CS0029 (measured: a sub-program whose
+        // `PROCEDURE DIVISION USING G` names a group with a USAGE POINTER leaf, compiled ALONE, so the
+        // caller-side ArgText screen above gives it no cover). Its READ twin `CallStringRead` correctly staged
+        // the Tier-C loud through `OperandText.FieldImage`, and the comment right here claimed the two were
+        // "kept in lockstep deliberately" while they were not. Routing EVERY non-RedefViewPlace group to
+        // `WriteFullGroupImage` makes the lockstep a STRUCTURAL fact — `WriteGroupImage`'s own arm order stages
+        // the same loud — instead of something a drift test has to assert. All FIVE live callers inherit it with
+        // no edit: ProgramEmitter's callee formal copy-in (ProgramEmitter.cs), the CALL BY REFERENCE cell
+        // (CallEmitter.cs), the two INVOKE argument write-backs (OoEmitter.cs — the BY REFERENCE copy-out and
+        // the RETURNING delivery), and ReportWriterEmitter's `CONTROL IS <group>` restore. (⚠ this sentence used
+        // to say "three", which under-counted the two OO sites — the enumeration is now the grep.)
+        // The RECEIVING twin of CallStringRead's first arm: a ref-modded operand splices its slice back
+        // (§8.4.3.3.4 GR6 — an elementary alphanumeric item over the slice), and takes NEITHER the group image
+        // store NOR the numeric decode/re-encode below, whose predicates both read through to the INNER item.
+        p is RefModPlace ? PlaceRenderer.Write(p, value)
+        : p.Item.IsGroup && p is not RedefViewPlace
             ? PlaceRenderer.WriteFullGroupImage(p, value, "CALL boundary copy")   // the FULL image — an ODO wrapper is unwrapped (kb/Work PB80)
         // kb/Work PB181 (measured — 1234 crossed BY REFERENCE, ADD 1, came home as 2594): the elementary
         // boundary convention carries the DISPLAY image, and a byte-form windowed / image-stored NUMERIC

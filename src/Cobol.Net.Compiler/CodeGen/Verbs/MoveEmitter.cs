@@ -34,8 +34,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     // to the associated fixed-length item; §8.4.3.3 GR5/GR6 make the slice a unique fixed-length
                     // item); the fill char is category-aware (national/boolean = the D-N3 pin, not the PCS extreme).
                     var rmp = (RefModPlace)target;
+                    // ⛔ OperandPic, NOT raw `Pic` — THE SECOND ARM of kb/Work PB173's pad defect (its twin is
+                    // PlaceRenderer.Write's RefModPlace boolean pad). `Pic` is null for any GROUP, so a
+                    // figurative fill into a BIT-GROUP slice chose the alphanumeric SPACE instead of the boolean
+                    // zero §14.6.8.6 requires. `OperandPic` answers the as-if PICTURE 1(m) of §13.18.29.4 GR1b —
+                    // the ONE category reader, the same one RefModPlace.Category uses.
                     ctx.Writer.Line(m.Source is BoundFigurative fig
-                        ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.Pic?.Category, ctx.Data.NationalCollating))
+                        ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.OperandPic?.Category, ctx.Data.NationalCollating))
                         : PlaceRenderer.Write(rmp, OperandText.AsString(m.Source, num)));
                     break;
                 case MoveKind.Group:

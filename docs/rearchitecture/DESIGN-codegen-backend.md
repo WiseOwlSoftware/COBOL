@@ -204,6 +204,23 @@ binding**. The bind orchestration lives in the binder phase (`BinderDriver.Bind`
 
 ### 2.3 Decision C — backend-neutral `Place` (structural)
 
+**Invariant C-1 — THE ONE GROUP-IMAGE CHANNEL.** The character image of a group operand has exactly four arms,
+and they are stated once, in `PlaceRenderer`: a Tier-B / BASED string-canonical view's `Read` ALREADY IS the
+image (§13.18.44.4 GR1 — one storage area, so a second encoding would be a second storage); an `OdoGroupPlace`
+is unwrapped first, and in a SENDING context sliced to §13.18.38.4 GR8's CURRENT extent (GR8a and GR8b agree on
+the sending direction — only a RECEIVING operand takes the maximum); an imageless group (`IsImageCapable` false)
+stages the Tier-C loud; otherwise it is the struct's generated `AsImage()`. `GroupImage` / `SendingGroupImage` /
+`WriteGroupImage` / `WriteFullGroupImage` are those arms. **No consumer may spell `.AsImage()` / `.FromImage(`
+for itself**, and each takes a `context` string so routing through the ONE reader costs no diagnostic quality.
+
+⛔ Enforcement is a SOURCE-LEVEL drift test, `tests/Cobol.Net.Tests.Unit/BoundaryImageChannelTests.cs`, not a
+doc-comment — because the law WAS already a doc-comment and four consumers spelled the call anyway, each missing
+a different arm (kb/Work PB178 + PB177). Its allow-list is two entries with written justifications; an addition
+without one is a review failure. Note the trap the cluster was built out of: `IsImageCapable` answers "does the
+struct have a codec", NOT "is this Place already a string window" — a Tier-B group view is fully image-CAPABLE
+and still CS1061'd, so adding another capability check instead of routing through the ONE reader fixes nothing.
+See also DESIGN-data-model §2.3's Tier-B section: the window's "Read IS the image" fact is what this protects.
+
 `Place` loses `Read()/Write()`. It becomes a pure structural value the backend renders.
 
 ```csharp

@@ -200,6 +200,23 @@ public static class DiagnosticCatalog
         + "\"Data-name-2 shall not be of class object, message-tag, or pointer, a strongly-typed group "
         + "item, or an item subordinate to a strongly-typed group item.\"",
         "ISO §13.18.44.3 SR12/SR14");
+    // The §13.18.44.3 SR17 REDEFINES screen (kb/Work PB177 arm C — the decision-free half). SR17 is a
+    // SYMMETRIC rule naming BOTH sides of the entry, and only its dynamic-CAPACITY half was screened (as
+    // COBOLNET1525, and under SR5's number — SR5's own sentence is "Neither the original definition nor the
+    // redefinition shall include an occurs-depending table", a DIFFERENT rule, which COBOLNET0855 already
+    // enforces). The dynamic-LENGTH half was not merely unscreened but SILENTLY MIS-MODELLED: StorageFormPass
+    // classifies IsDynamicLength BEFORE the Tier-B view arm, so `01 A PIC X(8). 01 B REDEFINES A. 05 D PIC X
+    // DYNAMIC LENGTH.` gave the view its OWN disjoint native string — two storages for one shared area, no
+    // diagnostic (measured: MOVE "ZZ" TO D left A unchanged, violating §13.18.44.4 GR1). "Variable-length
+    // group" is §8.5.1.12.1's defined term: a group with a dynamic-length elementary item or a
+    // dynamic-capacity table subordinate.
+    public static readonly DiagnosticDescriptor RedefinesVariableLength = new(
+        "COBOLNET1698", "redefines-variable-length", EditionSeverity.Error,
+        "ISO §13.18.44.3 syntax rule 17: \"Neither data-name-2 nor the subject of the entry shall be a "
+        + "variable-length group or a dynamic-length elementary item.\" A variable-length group is "
+        + "\"a group item whose data description has at least one dynamic-length elementary item or "
+        + "dynamic-capacity table as a subordinate item\" (ISO §8.5.1.12.1).",
+        "ISO §13.18.44.3 SR17");
 
     public static readonly DiagnosticDescriptor CallAsNestedScope = new(
         "COBOLNET1676", "call-as-nested-scope", EditionSeverity.Error,
@@ -605,9 +622,56 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportNotInFile = new(
         NotImplemented, "report-not-in-file", EditionSeverity.Error,
         "A report is not named in any file description entry's REPORT clause.", "ISO §13.18.46 / §13.14");
+    // ⛔ CITATION REPAIRED (kb/Work PB177 arm C). This descriptor and its two message sites all cited
+    // "ISO §13.18.16.3 SR3" for an UNRESOLVABLE CONTROL operand — a REAL clause answering a DIFFERENT
+    // question: SR3 is "Data-name-1 shall not be subject to any OCCURS clauses." Nothing in §13.18.16.3
+    // governs resolution failure; that is ordinary name resolution, §8.4.2.1. `cite.py --check` on the
+    // clause NUMBER alone would have passed either way — the exact failure mode CLAUDE.md rule 1 names.
     public static readonly DiagnosticDescriptor ReportControlOperandUnresolved = new(
         NotImplemented, "report-control-operand-unresolved", EditionSeverity.Error,
-        "A CONTROL operand does not resolve to a data item.", "ISO §13.18.16.3 SR3");
+        "A CONTROL operand does not resolve to a data item.", "ISO §8.4.2.1");
+    // The §13.18.16.3 CONTROL-operand SYNTAX RULES over the SHAPE of data-name-1 (kb/Work PB177 arm C) —
+    // ONE screen, one arm per rule, so the next rule on this clause drops in beside them instead of
+    // becoming a fourth place the clause is enforced. All three were unscreened and MEASURED so: SR3 (an
+    // operand subject to an OCCURS clause) and SR5 (an operand with an occurs-depending table subordinate)
+    // compiled and ran silently; SR7 (a variable-length group) compiled and staged a RUNTIME Tier-C loud,
+    // where a SYNTAX rule requires a compile-time rejection.
+    public static readonly DiagnosticDescriptor ReportControlOperandShape = new(
+        "COBOLNET1699", "report-control-operand-shape", EditionSeverity.Error,
+        "ISO §13.18.16.3 syntax rule 3: \"Data-name-1 shall not be subject to any OCCURS clauses.\"; "
+        + "syntax rule 5: \"The entry specified by data-name-1 shall not have an occurs-depending table "
+        + "subordinate to it.\"; syntax rule 7: \"Data-name-1 shall not reference a variable-length group.\"",
+        "ISO §13.18.16.3 SR3/SR5/SR7");
+    // An INDEX CONTROL operand is illegal for a reason that lives OUTSIDE §13.18.16.3, which is why it gets its
+    // own code rather than riding COBOLNET1699's clause list (kb/Work PB177 arm C follow-up): §13.18.60.3 SR10
+    // closes the set of contexts in which an index data item may be referenced explicitly, and §8.4.5 makes a
+    // data-division clause naming a data item exactly such an explicit reference. It was a RUNTIME loud —
+    // ReportWriterEmitter's §13.18.16.4 GR3 "no character image" backstop — where a syntax rule requires the
+    // compile-time rejection. (The FLOAT operand of the same runtime guard is NOT this: no syntax rule bars it,
+    // and it stays loud because the RESTORE half has no float channel — see that guard's own comment.)
+    public static readonly DiagnosticDescriptor ReportControlOperandIndex = new(
+        "COBOLNET1700", "report-control-operand-index", EditionSeverity.Error,
+        "ISO §13.18.60.3 syntax rule 10: \"An index data item may be referenced explicitly only in a SEARCH or "
+        + "SET statement, a relation condition, an intrinsic function argument, an inline method invocation "
+        + "argument, the USING phrase of a procedure division header, or the USING phrase of a CALL or INVOKE "
+        + "statement.\" A CONTROL clause naming the item is an explicit reference (§8.4.5).",
+        "ISO §13.18.60.3 SR10 / §8.4.5");
+    // ⛔ §13.18.44.3 SR5 SENTENCE 1, RESTORED AS THE OBJECT-SIDE AUTHORITY (kb/Work PB177 arm C follow-up).
+    // SR5 is FOUR sentences and each side of this family quotes a different one. Sentence 4 ("Neither the
+    // original definition nor the redefinition shall include an occurs-depending table") is COBOLNET0855's, and
+    // reading only that one produced the claim that the OCCURS-bearing data-name-2 "NO syntax rule literally
+    // names" — which is false: sentence 1 is "The data description entry for data-name-2 shall not contain an
+    // OCCURS clause", and OCCURS DYNAMIC is Format 4 OF THE OCCURS CLAUSE (§13.18.38), so sentence 1 covers the
+    // dynamic-capacity object as squarely as the fixed one. That claim was true only of the SUBJECT side, which
+    // keeps COBOLNET1525's §13.18.44.4 GR1 / §8.5.1.9.1 storage-model reasoning.
+    // Measured before this screen: `05 T PIC X(3) OCCURS 4. 05 R REDEFINES T PIC X(12).` compiled CLEAN and ran.
+    public static readonly DiagnosticDescriptor RedefinesTargetOccurs = new(
+        "COBOLNET1701", "redefines-target-occurs", EditionSeverity.Error,
+        "ISO §13.18.44.3 syntax rule 5, sentence 1: \"The data description entry for data-name-2 shall not "
+        + "contain an OCCURS clause.\" (Sentence 2 permits data-name-2 to be SUBORDINATE to such an item; that "
+        + "is a different shape and is not screened here. Sentence 4's occurs-depending prohibition is "
+        + "COBOLNET0855's, and owns the entries where data-name-2 IS an occurs-depending table.)",
+        "ISO §13.18.44.3 SR5");
     public static readonly DiagnosticDescriptor ReportControlTypeOperand = new(
         NotImplemented, "report-control-type-operand", EditionSeverity.Error,
         "A TYPE CH/CF operand is not an operand of the CONTROL clause.", "ISO §13.18.57.3 SR10/SR11");
@@ -690,13 +754,11 @@ public static class DiagnosticCatalog
         + "across activations, §8.6.4 covering both sections; kb/Work PB168) does not yet compose with "
         + "contained-program GLOBAL/__outer bridges.",
         "ISO §13.5.4 GR1 / §8.6.4 / §14.6.2.3.3 / §13.18.27 GR2", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor RefModBitGroupSlice = new(
-        NotImplemented, "refmod-bit-group-slice", EditionSeverity.Error,
-        "A reference-modified BIT-GROUP item as a boolean receiver or operand is recognized but not yet "
-        + "implemented: the boolean channel sizes the slice in BOOLEAN positions (§13.18.29.4 GR1b's as-if "
-        + "PICTURE 1(m)) while the group reference-modification substrate slices the PACKED byte image — "
-        + "the bit-position slice model is kb/Work PB173.",
-        "ISO §13.18.29.4 GR1b / §8.4.3.3", RecognizedNotImplemented);
+    // (RefModBitGroupSlice was DELETED by kb/Work PB173, which implemented the model it deferred: a bit group's
+    // reference modification is a BitImagePlace over the UNPACKED boolean string, so the boolean channel's
+    // BOOLEAN positions and the substrate's positions are the same positions — §8.4.3.3.4 GR5a. It carried the
+    // shared 0899 recognized-not-implemented code, so no number is freed and none is reallocated. Verified
+    // before removal: no `.err` fixture in the corpus expected it, so no green test was pinning the gap open.)
     public static readonly DiagnosticDescriptor RecursiveWsPointerBacked = new(
         NotImplemented, "recursive-working-storage-pointer-backed", EditionSeverity.Error,
         "An ADDRESS-OF-taken record in the WORKING-STORAGE of a RECURSIVE program or function is recognized "

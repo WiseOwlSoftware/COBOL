@@ -592,6 +592,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         }
 
         // SR12 (Format 1, any mode): no variable-length group (§8.5.1.12.1) — the ONE predicate.
+        // ⛔ THE `!isReturning && !formatTwo` GATE IS SPEC-CORRECT ON BOTH CONJUNCTS. DO NOT "FIX" IT, and do
+        // not clone this screen at INVOKE (kb/Work PB177 arm C — the derivation reversed the finding that
+        // proposed exactly that). In the PRINTED standard SR12 sits under the **FORMAT 1** heading, which opens
+        // at SR10 and closes at SR13's `FORMAT 2`, and its sentence names **identifier-2** only — never
+        // identifier-3, the RETURNING item of SR7/SR9. Format 2's own law is SR25: "The rules for conformance
+        // specified in 14.8.2, Parameters and 14.8.3, Returning items apply" — and §14.8.2.2 / §14.8.3.2 ADMIT
+        // a variable-length group subject to the §8.5.1.12 COMPATIBILITY relation rather than forbidding it,
+        // with §14.9.4.4 GR3d making the verdict a RUNTIME EC-PROGRAM-ARG-MISMATCH where the callee's
+        // description is not statically visible. §14.9.23.3 SR1–SR17 (INVOKE) contains no such prohibition at
+        // all; an SR12 clone there would REJECT LEGAL SOURCE. The compatibility relation itself is not yet
+        // implemented anywhere in the tree — a missing CHECK plus a genuinely missing crossing FEATURE,
+        // registered on PB177 as the one owner decision, never a widening of this gate.
         if (!isReturning && !formatTwo && item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))
             ctx.Edition.Error(DiagnosticCatalog.CallVariableLengthGroup,
                 $"CALL … USING argument '{name}' references a variable-length group (a DYNAMIC LENGTH item or "

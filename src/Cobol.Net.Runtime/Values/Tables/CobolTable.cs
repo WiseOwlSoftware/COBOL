@@ -87,7 +87,7 @@ public static class CobolTable
     /// <param name="min">integer-1 of the OCCURS DEPENDING clause — the LOWER bound §13.18.38.4 GR7 requires the
     /// control value to fall within. It was previously absent and the floor hardcoded to 0, so a below-minimum
     /// DEPENDING value silently clamped instead of raising.</param>
-    public static int OdoExtent(long count, int min, int max, int fixedChars, int elemChars)
+    public static int OdoExtent(long count, int min, int max, int fixedUnits, int elemUnits)
     {
         // §13.18.38.4 GR7 — the value "shall fall within the bounds from integer-1 through integer-2. If the
         // value of the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition
@@ -97,7 +97,19 @@ public static class CobolTable
             ExceptionState.OdoError(
                 $"OCCURS DEPENDING value {count} is outside {min}..{max} (ISO 13.18.38.4 GR7)");
         long c = count < 0 ? 0 : count > max ? max : count;
-        return fixedChars + (int)c * elemChars;
+        return fixedUnits + (int)c * elemUnits;
+    }
+
+    /// <summary>The current CHARACTER extent of an occurs-depending GROUP operand whose positions are counted in
+    /// <paramref name="positionsPerChar"/> units (1 for a character subtree, 8 for one holding USAGE BIT leaves —
+    /// ISO/IEC 1989:2023 §8.5.1.6.3, kb/Work PB173): <see cref="OdoExtent"/> rounded UP to whole characters. The
+    /// ceiling is where §8.5.1.6.3's trailing-filler rule puts the group's own partial byte, and it is the same
+    /// rounding §15.50.4 r9 requires of every other bit width. With <paramref name="positionsPerChar"/> = 1 it is
+    /// the identity, so the character channel has ONE arm, never a units branch.</summary>
+    public static int OdoExtentChars(long count, int min, int max, int fixedUnits, int elemUnits, int positionsPerChar)
+    {
+        int units = OdoExtent(count, min, max, fixedUnits, elemUnits);
+        return positionsPerChar <= 1 ? units : (units + positionsPerChar - 1) / positionsPerChar;
     }
 
     // ── The table(ALL) intrinsic-argument enumeration (ISO §15.3; kb/Work PB62) ─────────────────────────────

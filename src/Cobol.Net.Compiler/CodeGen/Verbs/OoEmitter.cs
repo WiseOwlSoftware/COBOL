@@ -25,6 +25,24 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData,
     IReadOnlyList<AdapterPair> adapters)
 {
+    /// <summary>A <see cref="Place"/> over a METHOD BOUNDARY ROOT — the ONE thing that lets the OO boundary join
+    /// the group-image channel every other operand path already uses (kb/Work PB177 arm A).
+    /// <para>A method's LINKAGE / LOCAL-STORAGE roots are C# LOCALS, not fields (§14.5.3 — re-initialized each
+    /// activation), so there was no <see cref="Place"/> to hand <see cref="PlaceRenderer"/> and the three
+    /// boundary sites spelled <c>.AsImage()</c> / <c>.FromImage(</c> themselves, with no capability guard and no
+    /// window arm. A root local is structurally an <see cref="AccessPath"/> of exactly one
+    /// <see cref="RootFieldSegment"/> — the same construction <c>AccessPath.Reroot</c> performs for a
+    /// contained-program root — so building it here costs nothing and buys the ONE reader's whole arm list,
+    /// including any arm added to it later.</para>
+    /// <para>⛔ NEVER used for a Tier-B REDEFINES canonical: that root's storage IS its string backing local
+    /// (<c>MethodRedefinesBackingDecl</c>), whose width is the CLASS width — a wider level-01 redefiner needs
+    /// the full backing (§13.18.44.3 SR8) — not the canonical VIEW's width. Every caller tests
+    /// <c>MethodRedefinesBackingDecl</c> first and takes that arm, so the place built here is always a plain
+    /// struct root: never a <c>RedefViewPlace</c>, never an <c>OdoGroupPlace</c> (a method boundary carries the
+    /// FULL allocation, §14.2.3 GR8, exactly as <c>CallEmitter.CallStringRead</c> derives for CALL).</para></summary>
+    private static Place MethodRootPlace(DataItem root) =>
+        new MemberPlace(new AccessPath([new RootFieldSegment(root.CsName)]), root);
+
     private UnitEmitters U => program.Current;
     private EmitContext Ctx => U.Ctx;
     private NumericRenderer Num => U.Num;
@@ -507,9 +525,18 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     w.Line($"{type} {root.CsName} = {init};   // LINKAGE {root.CobolName} (§14.2.3 GR6)");
                 else if (root.IsGroup)
                 {
-                    // The image crossing: construct (arrays allocated), then distribute the caller's image.
+                    // The image crossing: construct (arrays allocated), then distribute the caller's image
+                    // through ⛔ THE ONE GROUP-IMAGE STORE (kb/Work PB177 arm A). This site used to spell
+                    // `{root}.FromImage({param})` itself with NO capability consult, so a method DECLARING
+                    // `01 G. 05 P USAGE POINTER. 05 A PIC X(4).` as a formal failed BACKEND compilation with
+                    // CS1061 — `RecordStructEmitter` emits the codec for exactly `ElementImageCapable` items and
+                    // a POINTER leaf is in neither of its category lists. Nothing invoked the method: the bind
+                    // side (`DataBinder.Oo`) applies no image screen and `OoConformance.DescriptionMismatch`'s
+                    // `!formal.IsImageCapable` arm runs only when an INVOKE or an override/implements PAIR
+                    // exists, so a merely-DECLARED method must not emit uncompilable C#.
                     w.Line($"{type} {root.CsName} = {init};   // LINKAGE formal {root.CobolName} (group — image crossing)");
-                    w.Line($"{root.CsName}.FromImage({formal.ParamName});");
+                    w.Line(PlaceRenderer.WriteFullGroupImage(MethodRootPlace(root), formal.ParamName,
+                        "OO method LINKAGE formal copy-in"));
                 }
                 else
                     w.Line($"{type} {root.CsName} = {formal.ParamName};   // LINKAGE formal {root.CobolName} (BY REFERENCE copy-in)");
@@ -592,13 +619,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             foreach (var f in m.Binding!.Formals)
             {
                 string src = fields.MethodRedefinesBackingDecl(f.Item) is { } bk ? bk.Name
-                    : f.Item.IsGroup ? $"{f.Item.CsName}.AsImage()" : f.Item.CsName;
+                    : f.Item.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(f.Item), "OO method BY REFERENCE copy-out")
+                    : f.Item.CsName;
                 w.Line($"{f.ParamName} = {src};   // BY REFERENCE copy-out (§14.2.3 GR8)");
             }
             if (m.Binding!.Returning is { } r)
             {
                 string src = fields.MethodRedefinesBackingDecl(r) is { } bk ? bk.Name
-                    : r.IsGroup ? $"{r.CsName}.AsImage()" : r.CsName;
+                    : r.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(r), "OO method RETURNING delivery")
+                    : r.CsName;
                 w.Line($"return {src};   // the invocation result (§14.9.23.4 GR8)");
             }
             // Close the PB36 activation try. The finally must cover every exit — the RETURNING `return` above, a

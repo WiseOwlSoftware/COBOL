@@ -363,17 +363,12 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // OperandPic — THE ONE category reader (D20/PB79; kb/Work PB157): a GROUP-USAGE BIT receiver IS
             // an elementary boolean for SR2 (§13.18.29.4 GR1b's as-if PICTURE 1(m)); raw Pic rejected it
             // while the SENDING side of the same statement accepted it.
-            // ⛔ EXCEPT its REF-MOD slice: the boolean channel sizes in BOOLEAN positions while the group
-            // ref-mod substrate (GroupImagePlace) slices the PACKED BYTE image — admitting it (which the
-            // rm.Category read newly would) splices bit strings into byte positions. Recognized, staged
-            // loud (kb/Work PB173 owns the bit-position slice model).
-            if (p is RefModPlace { Inner.Item: { IsGroup: true } rbg } && rbg.OperandPic?.Category is PicCategory.Boolean)
-            {
-                ctx.Edition.Error(DiagnosticCatalog.RefModBitGroupSlice,
-                    $"the receiver '{store.dataReference().GetText()}': a reference-modified BIT-GROUP "
-                    + "receiver — the bit-position slice over the packed group image is kb/Work PB173");
-                continue;
-            }
+            // (kb/Work PB173 LANDED: the PB157 containment that staged a reference-modified BIT-GROUP receiver
+            // loud is DELETED, together with DiagnosticCatalog.RefModBitGroupSlice. Its premise — "the boolean
+            // channel sizes in BOOLEAN positions while the group ref-mod substrate slices the PACKED BYTE
+            // image" — was a true description of a SUBSTRATE defect, and the substrate is now a BitImagePlace
+            // over the unpacked boolean string (§8.4.3.3.4 GR5a). The units agree, so the receiver is an
+            // ordinary boolean one and needs no exclusion.)
             var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is not PicCategory.Boolean)
                 ctx.Edition.Error("COBOLNET1511", $"the receiver '{store.dataReference().GetText()}' of a boolean "

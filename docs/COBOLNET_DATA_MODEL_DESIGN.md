@@ -380,7 +380,35 @@ VCR row) with the ParseArm gate on `VisitGroupUsageClause`; the edition-gate swe
 `ConditionBinder`'s comparison class, `InspectBinder`/`StringBinder`/`UnstringBinder` operand screens,
 `IntrinsicBinder.LengthPositions` (r1/r2 — drop the `IsElementary` guard, read `OperandPic`),
 `IsStringOperand`, `DISPLAY-OF`/`NATIONAL-OF` argument screens, `DataBinder`'s §13.18.49.3 SR9 SIGN guard (the
-"GROUP-USAGE is not modeled" branch becomes the real check).
+"GROUP-USAGE is not modeled" branch becomes the real check),
+⛔ **`PlaceRenderer.Write`'s reference-modification BOOLEAN PAD and `MoveEmitter`'s `RefModSlice` FIGURATIVE
+FILL** — the two WRITE-SIDE sites this sweep list ORIGINALLY OMITTED, and that omission is the origin of
+[[PB173]]. Both read raw `Pic`, which is **null for any group**, so a bit-group slice padded and filled with
+SPACE where §14.6.8.6 requires the value be "transferred … into the corresponding boolean positions of the
+receiving data item, with zero fill or truncation to the right". One rule, two arms, nine files apart, and the
+list named only the classifier (`RefModPlace.Category`) that made the units disagree.
+
+**Reference modification of a bit group — `BitImagePlace` ([[PB173]], LANDED).** A bit group ref-modifies in
+**BIT POSITIONS**, and that is a chain of three rules: §8.4.3.3.3 SR1's last sentence ("For reference
+modification, bit group items and national group items are treated as elementary data items") admits it AS AN
+ELEMENTARY ITEM rather than through the group bullet; §13.18.29.4 GR1b makes that item `PICTURE 1(m)` of usage
+bit; §8.4.3.3.4 GR5a then states it outright — "If the usage of identifier-1 is bit, positions used in
+evaluation are bit positions". So `ReferenceResolver` wraps a bit group in `BitImagePlace` (rendered
+`AsBits()`/`FromBits(…)`, the pair `GroupImageCodec.EmitBitMethods` already emits — no new runtime code) instead
+of `GroupImagePlace`, and because `RefModPlace` sits OVER it, the start/length index the boolean string directly:
+GR5a is satisfied STRUCTURALLY, and §8.4.3.3.4 GR6's unique item really does keep usage bit / category boolean.
+⛔ **A NATIONAL group deliberately keeps `GroupImagePlace`** — §13.18.29.4 GR2b's as-if `PICTURE N(m)` is in
+NATIONAL positions and `DataItem.IsCharacterImage` guarantees a national leaf contributes `ImageWidth = Length`
+character positions, "never byte-doubled", so its `AsImage()` already IS its national-position string. The
+asymmetry is derived, not an oversight, and it is written into the type's XML doc so the split is not
+"simplified" back: two types because they carry two UNITS, which is GR5a's own two-branch sentence.
+This also DELETED the PB157 containment it made unnecessary — `ArithmeticBinder`'s 0899 stage, the
+`RefModBitGroupSlice` descriptor, and BOTH `ConditionBinder` exclusions that kept a bit-group ref-mod on the
+general relation channel. That channel was not merely "byte-consistent": it compared the PACKED image at bit
+offsets, so `IF G(1:3) = B"110"` read the wrong characters — a live silent wrong answer, not a deferral. The
+golden gap closed with it: this doc's "As built" paragraph below listed ref-mod read+write for
+`pb79_group_usage_national` and OMITTED it for `pb79_group_usage_bit`, which is where the legs now live
+(including a 12-bit group whose slice spans a packed-byte boundary, and a nested bit group).
 
 **As built (2026-08-18, DEVLOG 1317):** exactly the above, with the emitter half spelled out — a bit group's
 elementary face is `AsBits()` / `FromBits()` (`GroupImageCodec.EmitBitMethods`; read through `OperandText`'s as-if
@@ -519,7 +547,10 @@ read + SET Format 14 write · implicit + explicit growth · INITIALIZED seeding 
 ALL over current capacity · `INITIALIZE <dynamic-table>` · the 2014 edition gate + matrix/VCR rows. **Staged LOUD
 (diagnostic, not a silent wrong answer):** variable-length-group MOVE/COMPARE + whole-group image of a containing
 group (**COBOLNET1527**, §14.6.9) · VALUE-derived initial capacity (**1528**, §13.18.63 GR16) · ref-mod of a
-subordinate (**1526**, §13.7.1 SR6) · REDEFINES subject/object a dynamic table (**1525**, §13.18.44 SR5 + §8.5.1.9.1).
+subordinate (**1526**, §13.7.1 SR6) · REDEFINES **object** carries an OCCURS clause of any format, dynamic included
+(**1701**, §13.18.44.3 SR5 sentence 1) · REDEFINES **subject** IS a dynamic table (**1525**, §13.18.44.4 GR1 +
+§8.5.1.9.1 — the one side no syntax rule names) · REDEFINES either side a variable-length group, i.e. with a
+dynamic-length item or dynamic-capacity table SUBORDINATE (**1698**, §13.18.44.3 SR17 + §8.5.1.12.1).
 
 **Grammar (SHARED .g4 → FULL legacy guard; additive).** A new `CAPACITY` lexer token; a DYNAMIC alt on
 `occursClause` (LL-disjoint — DYNAMIC is not an integerLiteral; superset parse — no edition predicate) with an
@@ -580,12 +611,18 @@ image would be WRONG for a VALUE element). Implemented as an `InitializeDynLoop(
 that yields a `DynTablePlace` (writes via `RefReceiving`, within bounds so no growth). A group CONTAINING a dynamic
 table (the other GR10 case) is a variable-length group → staged LOUD (the §14.6.9 1527 family). → `dyn_search`/
 `dyn_initialize`; (5) the staged-loud
-guards. **1522** (`DynamicResolve`): SR28 (:19987) — TO ≤ FROM rejected. **1525** (`ClassifyRedefinesClasses`, via a
-`ContainsDynamicTable` subtree walk): §13.18.44 SR5 (data-name-2 shall not contain an OCCURS clause — which includes
-OCCURS DYNAMIC, so a dynamic table cannot be the REDEFINES OBJECT) + §8.5.1.9.1 (a dynamic table's out-of-line,
-implementor-allocated storage cannot form the fixed overlay §13.18.44.4 GR1 requires of the SUBJECT; §13.18.44 NOTE 3
-permits REDEFINES only SUBORDINATE to a dynamic table) — a dynamic table (out-of-line) shall be neither the
-subject nor object of a REDEFINES; the class is forced `Rejected`. **1528** (`DynamicResolve`): §13.18.38 GR16 /
+guards. **1522** (`DynamicResolve`): SR28 (:19987) — TO ≤ FROM rejected. **The REDEFINES-over-a-dynamic-table
+family is THREE screens, one per rule, not one walk** (kb/Work PB177 arm C and its follow-up; the deleted
+`ContainsDynamicTable` subtree walk conflated all three under one citation): **1701**
+(`ClassifyRedefinesClasses`, per WRITTEN ENTRY, `RedefinesTarget.IsTable`) — §13.18.44.3 SR5 **sentence 1**, "The
+data description entry for data-name-2 shall not contain an OCCURS clause", which reaches EVERY format including
+Format 4, so a dynamic table cannot be the REDEFINES OBJECT (nor can a plain `OCCURS 4` entry, which had been
+screened nowhere and compiled clean); **1698** (per written entry, `Sr17Shape`) — §13.18.44.3 SR17 for either side
+being a variable-length group per §8.5.1.12.1, i.e. with a dynamic-length item or dynamic-capacity table
+SUBORDINATE; **1525** (the class loop, narrowed to a NON-canonical member) — the SUBJECT that IS itself a dynamic
+table, the one shape in the family no syntax rule names, decided by §13.18.44.4 GR1's fixed association area
+against §8.5.1.9.1's capacities that "may vary during execution" (§13.18.44 NOTE 3 permits REDEFINES only
+SUBORDINATE to a dynamic table). Each forces the class `Rejected`. **1528** (`DynamicResolve`): §13.18.38 GR16 /
 §13.18.63 GR6 (:24102) — a VALUE on an ELEMENTARY dynamic entry derives the initial capacity (staged); a VALUE on a
 GROUP dynamic table's SUBORDINATE is the element seed (capacity = FROM) and is NOT caught. **1527** (the containing-
 group INITIALIZE `InitializeErrorAction` message; the whole-dynamic-table value op stays a runtime `NotImplemented`

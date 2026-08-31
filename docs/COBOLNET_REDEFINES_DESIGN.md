@@ -139,7 +139,9 @@ MODEL (IMPLEMENTED — `src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs` 
   DataBinder: binds the REDEFINES clause to RedefinesTargetName (resolved after the forest is built); binds level 66 via BindRenames —
   attached to the owning record's Renames66 list, NOT the storage tree; a post-build pass resolves REDEFINES/RENAMES targets, groups overlaid
   entries into RedefinesClasses, and runs ComputeTier (cascade D > B > A; a mixed-USAGE pun is an ordinary Tier-B byte-window class since Step D,
-  kb/Work PB164 — the remaining Tier-D rejects are the 2-byte national overlay and the §13.18.44 SR5 dynamic-table case).
+  kb/Work PB164 — the remaining Tier-D rejects are the 2-byte national overlay, the §13.18.44.3 SR5 sentence-1
+  OCCURS-bearing OBJECT (COBOLNET1701, every OCCURS format), and the dynamic-table SUBJECT that §13.18.44.4 GR1 /
+  §8.5.1.9.1 decide against (COBOLNET1525)).
 
 ## Hard problems
 
@@ -205,7 +207,13 @@ The overlay is PER ELEMENT: the array element type (the record struct for the OC
 - EXTERNAL/GLOBAL with REDEFINES (GLOBAL GR3: only the subject is global): cross-program identity deferred to the LINKAGE/EXTERNAL subsystem; the redefines canonical = the externalized member.
 - Numeric view wider than 18 digits: parses to Int128 (the numeric subsystem's escape hatch), not long.
 - Reference modification of a view: composes with the accessor's own offset (Tier B = substring of substring; Tier C numeric = ref-mod over the materialized image, shared with whole-group-alphanumeric).
-- Tier D loud-reject classes: object/pointer/message-tag/strongly-typed (SR12/SR14); OCCURS DEPENDING ON / variable-length / dynamic-length (SR5/SR17) — these are already illegal, so a diagnostic is conformant.
+- Tier D loud-reject classes, one screen per rule (⛔ this line used to read "OCCURS DEPENDING ON / variable-length / dynamic-length (SR5/SR17)", which cited a FOUR-SENTENCE rule by number and left it unknowable which sentence was meant — and sentence 1's population was in fact screened nowhere):
+  - object/pointer/message-tag/strongly-typed — §13.18.44.3 SR12/SR14, per written entry (COBOLNET1697).
+  - data-name-2's own entry carries an OCCURS clause, ANY format — §13.18.44.3 SR5 **sentence 1** (COBOLNET1701). Sentence 2 expressly permits data-name-2 to be SUBORDINATE to such an item, so the test is on its own entry.
+  - an occurs-depending table in either definition — §13.18.44.3 SR5 **sentence 4** (COBOLNET0855), whose population is wider than sentence 1's and owns the overlap.
+  - either side a variable-length group (§8.5.1.12.1) or a dynamic-length elementary item — §13.18.44.3 SR17 (COBOLNET1698).
+  - the SUBJECT that IS a dynamic-capacity table — no syntax rule names it; §13.18.44.4 GR1's fixed association area against §8.5.1.9.1 (COBOLNET1525).
+  These are already illegal, so a diagnostic is conformant.
 
 ## ISO citations
 

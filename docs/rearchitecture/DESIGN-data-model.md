@@ -237,6 +237,36 @@ build; there was a predicate that stopped short.
   1. **The spec-required Tier-D arm FIRST** ([[PB179]]): `ComputeTier` gains the §13.18.44.3 SR12/SR14
      rejection for pointer/object/strongly-typed leaves — today they classify Tier B with ZERO-WIDTH windows
      (the "no such items exist" comment is stale). A bind diagnostic, negative fixtures per side.
+  1b. **§13.18.44.3 SR17, the same posture** ([[PB177]] arm C, LANDED): "Neither data-name-2 nor the subject of
+     the entry shall be a variable-length group or a dynamic-length elementary item" — a SYMMETRIC rule, so
+     `DataBinder.Sr17Shape` is tested on BOTH sides per WRITTEN ENTRY, beside the SR12/SR14 screen and before
+     the dissolve loop (a per-class screen lets a nested entry's violation escape into the outer class's
+     staged-loud arm). "Variable-length group" is §8.5.1.12.1's defined term — a group with a dynamic-length
+     elementary item or a dynamic-CAPACITY table subordinate — so the predicate is
+     `ReferenceResolver.HasVariableLengthSubordinate`, the standard's own definition, not a second walk.
+     COBOLNET1698, two negative fixtures (one per side), and the class TIER is set Rejected as well as the
+     diagnostic raised. The underlying defect was not merely an under-rejection: `StorageFormPass.Classify`
+     returns `DynamicString` for an `IsDynamicLength` item BEFORE reaching its Tier-B view arm, so such a view
+     kept its OWN disjoint native string — two storages for the one area §13.18.44.4 GR1 defines, MEASURED as a
+     silent wrong answer (`MOVE "ZZ"` into the view left the redefined item unchanged).
+     ⛔ **THE TIER VERDICT IS BELT-AND-BRACES, NOT THE STRUCTURAL BARRIER** — this paragraph and the two code
+     comments claimed "rejecting the class makes that path structurally unreachable", and the regression test
+     written to hold that claim was asserting on a field its harness never populated. Driven through the whole
+     pipeline it FAILS: arm 1b returns before the tier is consulted, so a Rejected class's dynamic-length view
+     still classifies as `DynamicString`, and a class dissolved by the nested-anchor loop never reaches the tier
+     loop at all. **What prevents the disjoint storage reaching a user's program is the fatal COBOLNET1698
+     diagnostic.** The tier is a second, independent verdict at the modelling layer, kept as one; the measured
+     behaviour is pinned by `RedefinesClassificationTests` so the claim cannot out-run the code again.
+     Citations were repaired in the same change set, and the first repair was itself one-sided:
+     COBOLNET1525 cited "SR5" for the dynamic-CAPACITY case on BOTH sides; the repair read SR5's FOURTH sentence
+     ("Neither the original definition nor the redefinition shall include an occurs-depending table" —
+     COBOLNET0855's rule) and concluded no syntax rule named the case at all. **SR5's FIRST sentence is "The
+     data description entry for data-name-2 shall not contain an OCCURS clause"**, and OCCURS DYNAMIC is Format
+     4 OF the OCCURS clause, so the OBJECT side is named outright — it is now **COBOLNET1701** per written
+     entry, over EVERY OCCURS format (the fixed-OCCURS object had been screened nowhere and compiled clean).
+     COBOLNET1525 is NARROWED to the SUBJECT that is itself a dynamic-capacity table — the one side of the
+     family no syntax rule names — and cites what actually decides it, §13.18.44.4 GR1's storage association
+     against §8.5.1.9.1's "may vary during execution".
   2. **The live Tier-B lane defects** ([[PB180]] ACCEPT's DisplayTextWidth store into a StorageWidth window;
      [[PB181]] the CALL boundary's text-reader corruption of window bytes) — they corrupt TODAY's shipping
      Tier B and the widened members inherit them.

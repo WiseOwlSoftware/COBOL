@@ -705,7 +705,9 @@ public sealed partial class DataBinder
                     ctl.Item = LookupQualified(cn, ctl.Qualifiers);
                     if (ctl.Item is null)
                         Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{cn}' does not "
-                            + "resolve to a data item (ISO §13.18.16.3 SR3)");
+                            + "resolve to a data item (ISO §8.4.2.1)");
+                    else if (ControlOperandShapeViolation(ctl.Item) is { } shape)
+                        Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{cn}' {shape.Clause}");
                 }
 
             foreach (var group in model.Groups)
@@ -836,6 +838,57 @@ public sealed partial class DataBinder
                     break;
                 }
         }
+    }
+
+    /// <summary>⛔ THE ONE SHAPE SCREEN FOR A CONTROL OPERAND — the syntax rules over data-name-1, one arm per
+    /// rule (kb/Work PB177 arm C). Returns the diagnostic to raise and the clause of the message naming the rule
+    /// violated, or null when the operand is legal. Each arm carries its OWN descriptor, so a rule from outside
+    /// §13.18.16.3 keeps its own citation instead of being folded into a clause list it does not belong to.
+    /// <para>Every arm was MISSING and each was measured before it was written: SR3 and SR5 compiled and RAN
+    /// silently; SR7 and the INDEX shape compiled and then staged a RUNTIME loud — a syntax rule demands a
+    /// compile-time rejection, and the emitter's loud is a backstop, not the verdict. Note the SR5/SR7 pair is
+    /// exactly the trap <c>feedback_validate_the_premise_not_only_the_rule</c> names: an occurs-DEPENDING table
+    /// does NOT make a group "variable-length" (§8.5.1.12.1 defines that term over dynamic-length elementary
+    /// items and dynamic-CAPACITY tables), so SR7 does not reach the ODO shape and SR5 exists precisely because
+    /// it does not — two rules, two arms, and a screen written for only one of them would leave the other
+    /// open.</para>
+    /// <para>⛔ THE SR3 ARM RECOGNISES A TABLE WITH <see cref="DataItem.IsTable"/>, NOT <c>Occurs is not null</c>
+    /// (kb/Work PB177 arm C follow-up). <see cref="DataItem.Occurs"/> is the FIXED physical capacity and is NULL
+    /// for a Format-4 dynamic-capacity table, so the first spelling missed BOTH dynamic shapes — the operand that
+    /// IS the dynamic table and the operand subordinate to one — and SR7 structurally cannot cover the first of
+    /// them (§8.5.1.12.1 defines "variable-length group" over items SUBORDINATE to the group, so the table entry
+    /// itself is never one). Measured: both compiled clean and reached ReportWriterEmitter's runtime loud. This is
+    /// a table-RECOGNITION site, which is exactly what <c>IsTable</c>'s own doc-comment says it is for.</para></summary>
+    private static (DiagnosticDescriptor Code, string Clause)? ControlOperandShapeViolation(DataItem item)
+    {
+        for (DataItem? n = item; n is not null; n = n.Parent)
+            if (n.IsTable)
+                return (DiagnosticCatalog.ReportControlOperandShape,
+                    $"is subject to the OCCURS clause on '{n.CobolName ?? n.CsName}': data-name-1 shall "
+                    + "not be subject to any OCCURS clauses (ISO §13.18.16.3 SR3)");
+        if (OdoModel.TableUnder(item) is { } odo)
+            return (DiagnosticCatalog.ReportControlOperandShape,
+                $"has the occurs-depending table '{odo.CobolName ?? odo.CsName}' subordinate to it: the "
+                + "entry specified by data-name-1 shall not have an occurs-depending table subordinate to it "
+                + "(ISO §13.18.16.3 SR5)");
+        if (item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))
+            return (DiagnosticCatalog.ReportControlOperandShape,
+                "is a variable-length group (ISO §8.5.1.12.1 — a dynamic-length elementary item or a "
+                + "dynamic-capacity table is subordinate to it): data-name-1 shall not reference a "
+                + "variable-length group (ISO §13.18.16.3 SR7)");
+        // §13.18.60.3 SR10 closes the set of contexts in which an index data item may be referenced EXPLICITLY,
+        // and §8.4.5 makes a data-division clause naming a data item exactly such an explicit reference: "a
+        // specification in the environment or data division may specify the name of a data item as an explicit
+        // reference in order to identify those data items that are to be referenced implicitly in procedure
+        // division statements related to such specifications." The CONTROL clause is not on SR10's list.
+        if (item.Pic is { Usage: Usage.Index })
+            return (DiagnosticCatalog.ReportControlOperandIndex,
+                "is an index data item: an index data item may be referenced explicitly only in a SEARCH or SET "
+                + "statement, a relation condition, an intrinsic function argument, an inline method invocation "
+                + "argument, the USING phrase of a procedure division header, or the USING phrase of a CALL or "
+                + "INVOKE statement (ISO §13.18.60.3 SR10; a CONTROL clause naming it is an explicit reference, "
+                + "§8.4.5)");
+        return null;
     }
 
     /// <summary>Resolve a (possibly IN/OF-qualified) data-name against the storage forest: the first

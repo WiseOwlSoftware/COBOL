@@ -122,16 +122,33 @@ internal static class OperandText
     {
         // §8.4.3.3.4 GR6 — a ref-mod view is an elementary item over the underlying item's characters; its
         // storage is the slice's characters (a NATIONAL slice keeps category national, so its bytes are UTF-16BE).
+        // ⛔ A BIT-USAGE SLICE IS THE THIRD CASE, AND IT WAS MISSING (kb/Work PB173). §8.4.3.3.4 GR5a gives a
+        // usage-bit operand BIT positions, and GR6 preserves its class, category and usage — so the slice's
+        // '0'/'1' carrier is NOT its storage, exactly as it is not for the whole item three arms below. §15.19.3
+        // r7 asks for the item's storage BITS and §15.19.4 r2 then pads: "If the number of bits in argument-1 is
+        // not a multiple of those needed for a single alphanumeric character, the trailing portion needed to make
+        // up a complete multiple is padded with zero bits". Measured before the fix: `CONVERT(XM(1:3) ANY ANUM
+        // HEX)` returned 313130 — the three CHARACTERS '1','1','0' — where the unsliced `CONVERT(XM ANY ANUM
+        // HEX)` correctly returned CA. Both the bit-GROUP slice (new with this place) and the ELEMENTARY USAGE
+        // BIT slice (which predates it) take this arm, and both were wrong; one arm fixes both.
+        // ⚠ A DISPLAY-FORM boolean slice must NOT pack: §13.18.60.4 GR7 makes usage DISPLAY "an alphanumeric
+        // coded character set", one character per boolean position, so its carrier IS its storage. That is why
+        // the test reads the USAGE and not the category (measured: `PIC 1(8)` without USAGE BIT correctly
+        // returns 3131303031303130 sliced and unsliced alike, and must keep doing so).
         if (p is RefModPlace rmp)
-            return rmp.Category is PicCategory.National
-                ? RuntimeApi.NatBytes(PlaceRenderer.Read(p))
-                : PlaceRenderer.Read(p);
-        // An occurs-depending group sends its current-count storage window (§13.18.38 GR8), same as the display path.
-        if (p is OdoGroupPlace odo) return PlaceRenderer.SendingImage(odo);
-        if (p.Item.IsGroup)
-            return p.Item.IsImageCapable
-                ? $"{PlaceRenderer.Read(p)}.AsImage()"
-                : EmitText.LoudValue("string", TierCIsland.Reason(p.Item, "raw-storage image (CONVERT ANY) of"));
+            return rmp.Category is PicCategory.National ? RuntimeApi.NatBytes(PlaceRenderer.Read(p))
+                : rmp.Inner.Item.OperandPic is { Category: PicCategory.Boolean, Usage: Usage.Bit }
+                    ? RuntimeApi.BitsPackAll(PlaceRenderer.Read(p))
+                    : PlaceRenderer.Read(p);
+        // A GROUP's raw storage IS its character image — through THE ONE SENDING READER, never a self-spelled
+        // `.AsImage()`. That routing is the fix for kb/Work PB178: a Tier-B REDEFINES group VIEW is fully
+        // image-CAPABLE and its Read() is ALREADY the (offset, width) window over the class backing
+        // (§13.18.44.4 GR1 — one storage area, so the view's raw storage IS that window, never a second
+        // encoding), so the capability guard this arm already had was the WRONG AXIS and
+        // `CobolStr.RefMod(...).AsImage()` was a backend CS1061. `SendingGroupImage` owns all four arms —
+        // the RedefViewPlace window, the OdoGroupPlace §13.18.38 GR8 current-extent slice (the arm this site
+        // used to spell itself, one line above), the capability guard, and the plain struct image.
+        if (p.Item.IsGroup) return PlaceRenderer.SendingGroupImage(p, "raw-storage image (CONVERT ANY) of");
         return p.Item.Pic switch
         {
             { Category: PicCategory.National } => RuntimeApi.NatBytes(PlaceRenderer.Read(p)),
@@ -225,11 +242,6 @@ internal static class OperandText
         // category (ISO §8.4.3.3.4 GR6) — its Read() is already the character slice (a numeric inner goes through
         // NumericImagePlace), never the numeric format path.
         if (p is RefModPlace) return PlaceRenderer.Read(p);
-        // An occurs-depending GROUP operand SENDS only the current-count part (ISO §13.18.38 GR8 — "that part of the
-        // table area specified by data-name-1 at the start of the operation"); a zero count with no fixed prefix is
-        // the zero-length item of §8.5.4. This is the read side of every quadrant (MOVE/compare/INSPECT/STRING/
-        // UNSTRING source); the receiving direction split lives at the store sites.
-        if (p is OdoGroupPlace odo) return PlaceRenderer.SendingImage(odo);
         // A Tier-B REDEFINES view's Read() is already its character-image window (a string), for a group or an
         // elementary view alike — use it directly (no .AsImage(), no FormatDisplay). EXCEPT for a NUMERIC view
         // whose bytes are not text: every non-zoned byte form (binary / packed / COMP-5 / IEEE float) decodes
@@ -256,14 +268,25 @@ internal static class OperandText
         // (kb/Work PB164 + R40 — there is no "Tier-C island" left for a numeric leaf: every numeric usage has a
         // pinned byte form). This is the WRITE / RELEASE / DISPLAY / compare sender path.
         // A BIT GROUP operates as an elementary boolean item of PICTURE 1(m) (§13.18.29.4 GR1b; D20/PB79): its
-        // operand value is its BIT STRING (the subordinates' boolean positions concatenated — AsBits), never the
-        // packed byte image AsImage yields; a NATIONAL group's operand value IS its character image (GR2b).
-        if (p.Item.IsAsIfElementary && p.Item.GroupUsage is GroupUsage.Bit)
-            return $"{PlaceRenderer.Read(p)}.AsBits()";
-        if (p.Item.IsGroup)
-            return p.Item.IsImageCapable
-                ? $"{PlaceRenderer.Read(p)}.AsImage()"
-                : EmitText.LoudValue("string", TierCIsland.Reason(p.Item, "whole-group image of"));
+        // operand value is its BIT STRING (the subordinates' boolean positions concatenated), never the packed
+        // byte image AsImage yields; a NATIONAL group's operand value IS its character image (GR2b).
+        // ⛔ THIS TEST PRECEDES THE OdoGroupPlace ARM, AND THE ORDER IS THE FIX (kb/Work PB173): the ODO early
+        // return used to sit above it and steal every bit group with an occurs-depending table into the CHARACTER
+        // reader — two different alphabets on one operand (`IF G = B"1100"` compared packed bytes against a boolean
+        // literal), and the character-unit extent it then computed was NEGATIVE for a sub-byte element, so the
+        // operand rendered as the EMPTY string. `SendingBits` is the ONE bit reader and carries the GR8a
+        // current-extent arm itself, so the ODO shape is served here rather than routed past.
+        if (p.Item.IsAsIfElementary && p.Item.GroupUsage is GroupUsage.Bit) return PlaceRenderer.SendingBits(p);
+        // An occurs-depending GROUP operand SENDS only the current-count part (ISO §13.18.38 GR8 — "that part of the
+        // table area specified by data-name-1 at the start of the operation"); a zero count with no fixed prefix is
+        // the zero-length item of §8.5.4. This is the read side of every quadrant (MOVE/compare/INSPECT/STRING/
+        // UNSTRING source); the receiving direction split lives at the store sites.
+        if (p is OdoGroupPlace odo) return PlaceRenderer.SendingGroupImage(odo);
+        // THE ONE READER (kb/Work PB178). Reaching here p is neither a RefModPlace, an OdoGroupPlace nor a
+        // RedefViewPlace — the three early returns above own those shapes — so this is byte-identical to the
+        // `Read(p).AsImage()` it replaces; routing it anyway is what removes the third self-spelled copy and
+        // lets the source-level drift test (BoundaryImageChannelTests) hold the law.
+        if (p.Item.IsGroup) return PlaceRenderer.GroupImage(p);
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)

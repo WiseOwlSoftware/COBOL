@@ -91,17 +91,37 @@ public static class OdoModel
 
     /// <summary>Wrap a resolved GROUP place whose subtree contains the occurs-depending <paramref name="table"/>
     /// (ISO §13.18.38 GR8). The fixed prefix is everything before the table in the group's emitted image — exact
-    /// because the table is the record's trailing storage (SR22, enforced at bind).</summary>
+    /// because the table is the record's trailing storage (SR22, enforced at bind).
+    /// <para>⛔ <b>THE EXTENT IS COUNTED IN THE GROUP'S OWN POSITION UNIT, WHICH IS BITS WHEN THE SUBTREE HOLDS A
+    /// USAGE BIT LEAF</b> (kb/Work PB173). <c>fixed + occ × elem</c> is only an identity in a unit where each
+    /// occurrence starts where the previous one ended, and §8.5.1.6.3's shared-byte runs break that in CHARACTERS:
+    /// for <c>05 BT PIC 1(3) OCCURS 1 TO 4 DEPENDING ON N</c> the per-occurrence CHARACTER width rounds 3 bits up
+    /// to 1, so three occurrences measured as 3 characters occupy 9 bits = 2 — and the fixed prefix computed as
+    /// <c>PhysicalWidth − elem × max</c> came out NEGATIVE (an 8-bit group: 2 − 4 = −2), which made the whole
+    /// group operand render as the EMPTY string. In BIT positions the same arithmetic is exact, because
+    /// <see cref="BitLayout.ExtentBits"/> advances its cursor by <c>WidthBits × Occurs</c> in ONE contiguous step
+    /// and every alignment round-up happens BEFORE the trailing table (SR22). <see cref="OdoGroupPlace.PositionsPerCharacter"/>
+    /// then records the unit so the CHARACTER channel (<c>AsImage</c>/<c>FromImage</c>) takes the ceiling — the same
+    /// ceiling <see cref="BitLayout.Characters"/> gives every other bit width — while the BIT channel
+    /// (<c>AsBits</c>/<c>FromBits</c>, §13.18.29.4 GR1b's as-if PICTURE 1(m)) uses the positions directly.</para></summary>
     public static OdoGroupPlace WrapGroup(Place inner, Place depending, DataItem group, DataItem table)
     {
-        int elem = table.ImageWidth;                          // per-occurrence character width
+        // Bit-granular whenever the subtree holds a USAGE BIT leaf — not merely when the group is GROUP-USAGE BIT:
+        // an ordinary alphanumeric group with a trailing bit ODO table has exactly the same sub-byte arithmetic.
+        // The prefix is the table's own placement offset (never `total − elem × max`, which would charge rule 4's
+        // trailing filler to the prefix); -1 means an unmodelled overlay chain, and the character path stands in.
+        bool bitUnits = group.HasBitDescendant && BitLayout.StartBitOf(group, table) >= 0;
         int max = table.Occurs ?? 1;                          // the allocated capacity = integer-2 (§8.5.1.8)
         // integer-1 — the LOWER bound §13.18.38.4 GR7 requires the control value to fall within. Carried so the
         // extent computation can raise EC-BOUND-ODO below it; the runtime floor used to be hardcoded 0, which
         // made a below-minimum DEPENDING value clamp silently instead of setting the condition.
         int min = table.OccursSpec?.Min ?? 0;
-        int fixedChars = Model.RecordLayout.PhysicalWidth(group) - elem * max;   // SR22 — the variable tail is trailing
-        return new OdoGroupPlace(inner, depending, fixedChars, elem, min, max, IsWithin(depending.Item, group));
+        int elem = bitUnits ? BitLayout.WidthBits(table) : table.ImageWidth;   // per-occurrence positions
+        int fixedUnits = bitUnits
+            ? BitLayout.StartBitOf(group, table)
+            : Model.RecordLayout.PhysicalWidth(group) - elem * max;            // SR22 — the variable tail is trailing
+        return new OdoGroupPlace(inner, depending, fixedUnits, elem, min, max, IsWithin(depending.Item, group),
+            bitUnits ? BitLayout.BitsPerCharacter : 1);
     }
 
     /// <summary>The SEARCH / SEARCH ALL depending item for an OCCURS DEPENDING table (ISO §14.9.37.4 GR4/GR9 →

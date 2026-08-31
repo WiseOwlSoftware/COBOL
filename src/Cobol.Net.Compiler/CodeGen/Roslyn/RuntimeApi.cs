@@ -617,10 +617,20 @@ internal static class RuntimeApi
     public static string TableAt(string path, string oneBasedIndex) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.At)}({path}, {oneBasedIndex})";
 
-    /// <summary>The current CHARACTER extent of an occurs-depending GROUP operand (ISO §13.18.38 GR8) — the fixed
-    /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>.</summary>
-    public static string TableOdoExtent(string occ, int minOccurs, int maxOccurs, int fixedChars, int elemChars) =>
-        $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtent)}({occ}, {minOccurs}, {maxOccurs}, {fixedChars}, {elemChars})";
+    /// <summary>The current POSITION extent of an occurs-depending GROUP operand (ISO §13.18.38 GR8) — the fixed
+    /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>. The unit is the
+    /// group's own (bit positions for a subtree holding USAGE BIT leaves, character positions otherwise; kb/Work
+    /// PB173) — the CHARACTER channel uses <see cref="TableOdoExtentChars"/>.</summary>
+    public static string TableOdoExtent(string occ, int minOccurs, int maxOccurs, int fixedUnits, int elemUnits) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtent)}({occ}, {minOccurs}, {maxOccurs}, {fixedUnits}, {elemUnits})";
+
+    /// <summary>The current CHARACTER extent of an occurs-depending GROUP operand — <see cref="TableOdoExtent"/>
+    /// rounded up to whole characters (<c>CobolTable.OdoExtentChars</c>). Identity when the positions ARE characters,
+    /// so the image channel has ONE arm rather than a units branch (kb/Work PB173).</summary>
+    public static string TableOdoExtentChars(
+        string occ, int minOccurs, int maxOccurs, int fixedUnits, int elemUnits, int positionsPerChar) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtentChars)}"
+        + $"({occ}, {minOccurs}, {maxOccurs}, {fixedUnits}, {elemUnits}, {positionsPerChar})";
 
     /// <summary>A table(ALL) intrinsic argument's enumeration (ISO §15.3; kb/Work PB62) — <c>CobolTable.AllArgs&lt;T&gt;</c>
     /// over one range lambda per ALL level (each <c>Func&lt;long[], long&gt;</c>, the index vector in) and the element
@@ -962,6 +972,12 @@ internal static class RuntimeApi
     /// <summary>Pack a bit run's carrier into its packed record image — <c>CobolBits.Pack</c>.</summary>
     public static string BitsPack(string bitsExpr, string countExpr) =>
         $"{nameof(CobolBits)}.{nameof(CobolBits.Pack)}({bitsExpr}, {countExpr})";
+
+    /// <summary>Pack every boolean position the carrier holds — <c>CobolBits.Pack(bits)</c>. For an operand
+    /// whose position count is the carrier's own length (a reference-modified usage-bit slice, §8.4.3.3.4 GR5c;
+    /// kb/Work PB173), so the slice expression is evaluated once and no count is re-derived at the call site.</summary>
+    public static string BitsPackAll(string bitsExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.Pack)}({bitsExpr})";
 
     /// <summary>Unpack a packed image slice back to the run's carrier — <c>CobolBits.Unpack</c>.</summary>
     public static string BitsUnpack(string imageExpr, string countExpr) =>

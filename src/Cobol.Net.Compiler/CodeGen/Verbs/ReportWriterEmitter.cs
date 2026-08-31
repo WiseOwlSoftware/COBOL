@@ -217,11 +217,34 @@ internal sealed class ReportWriterEmitter(
                     w.Line($"__RPT_{r.CsIndex}.AddControl(true, static () => \"\", static __v => {{ }});   // FINAL (§13.18.16.4 GR2 — never breaks)");
                     continue;
                 }
-                if (ctl.Item is not { } item || refs.ResolveItem(item) is not { } place
-                    || place.Item.Pic is { IsFloat: true } or { Usage: Usage.Index })
+                // ⛔ THREE LIMBS, THREE REASONS — and the message must name the one that fired (kb/Work PB177
+                // arm C follow-up: the repaired message described the float/INDEX limb only, so a CONTROL
+                // operand this backend could not RESOLVE reported "has no character image", which is neither
+                // true of it nor a lead to the actual problem).
+                // ⛔ CITATION REPAIRED (kb/Work PB177 arm C): this said "ISO §13.18.16.3 SR3", but SR3 is
+                // "Data-name-1 shall not be subject to any OCCURS clauses" — a real clause answering a
+                // different question. The §13.18.16.3 SHAPE rules (SR3/SR5/SR7) and the §13.18.60.3 SR10 INDEX
+                // rule are now REJECTED AT BIND TIME by DataBinder.ControlOperandShapeViolation, so an INDEX
+                // operand no longer reaches this guard at all. What survives here is an implementation limit,
+                // labelled as one:
+                //   • an unresolved operand — the shapes ReferenceResolver returns null for, which today are
+                //     the dynamic-capacity table entry and a leaf beneath one (both ALSO rejected at bind now,
+                //     by the IsTable arm), so this limb is a backstop for a resolver shape not yet enumerated;
+                //   • a FLOAT operand (COMP-1/COMP-2) — which violates NO syntax rule and is deliberately still
+                //     loud: the read half would work (CallStringRead renders the DISPLAY image), but the
+                //     RESTORE half has no float arm — CallStringWrite falls to `_GF = __v;`, a string→double
+                //     CS0029 — so unguarding it turns a runtime loud into a BACKEND CRASH. The prior-control
+                //     restore channel is what is missing, not the image.
+                if (ctl.Item is not { } item || refs.ResolveItem(item) is not { } place)
                 {
-                    w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Name}' not resolvable to "
-                        + "image-carrying storage (ISO §13.18.16.3 SR3)"));
+                    w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Name}' does not resolve to a place "
+                        + "this backend can save and restore as the prior control value (ISO §13.18.16.4 GR3)"));
+                    continue;
+                }
+                if (place.Item.Pic is { IsFloat: true })
+                {
+                    w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Name}' is a floating-point item, "
+                        + "which has no prior-control RESTORE channel in this backend (ISO §13.18.16.4 GR3)"));
                     continue;
                 }
                 // The prior-control save/compare/restore key is the item's CHARACTER IMAGE (§13.18.16.4 GR3 —

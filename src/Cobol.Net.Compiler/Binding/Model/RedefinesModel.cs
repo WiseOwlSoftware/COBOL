@@ -67,8 +67,29 @@ public enum RedefinesTier
     /// the R40 index bytes — the Step D arm-1 dissolution admitted every numeric leaf kind; the former Tier C
     /// dissolved into this). The dominant real case.</summary>
     StringCanonical,
-    /// <summary>D — spec-forbidden / unmodelable (object/pointer/strongly-typed SR12/14; OCCURS DEPENDING ON /
-    /// variable-length SR5/17): a loud diagnostic, which is conformant since these are already illegal.</summary>
+    /// <summary>D — spec-forbidden / unmodelable: a loud diagnostic, which is conformant since these are already
+    /// illegal. The rejection set, one entry per screen, each with the rule it enforces:
+    /// <list type="bullet">
+    ///   <item>§13.18.44.3 SR12/SR14 — object / pointer / strongly-typed, per WRITTEN ENTRY (COBOLNET1697,
+    ///     kb/Work PB179).</item>
+    ///   <item>§13.18.44.3 SR17 — neither side a variable-length group per §8.5.1.12.1, nor a dynamic-length
+    ///     elementary item (COBOLNET1698, kb/Work PB177 arm C).</item>
+    ///   <item>§13.18.44.3 SR5 SENTENCE 1 — "The data description entry for data-name-2 shall not contain an
+    ///     OCCURS clause", every format of it (COBOLNET1701).</item>
+    ///   <item>§13.18.44.3 SR5 SENTENCE 4 — "Neither the original definition nor the redefinition shall include
+    ///     an occurs-depending table" (COBOLNET0855).</item>
+    ///   <item>The SUBJECT that IS a dynamic-capacity table — the one shape in this family that no syntax rule
+    ///     literally names, decided by §13.18.44.4 GR1's storage association against §8.5.1.9.1 (COBOLNET1525).</item>
+    /// </list>
+    /// <para>⛔ THIS LIST HAS BEEN WRONG TWICE, IN OPPOSITE DIRECTIONS, AND BOTH ARE WHY IT IS NOW SPELLED PER
+    /// SENTENCE. First it read "OCCURS DEPENDING ON / variable-length SR5/17" while the dynamic-LENGTH half of
+    /// SR17 had NO screen anywhere in the tree — worse than unscreened, it was silently mis-modelled
+    /// (<c>StorageFormPass</c> gave such a view its own disjoint storage). Then the repair narrowed "SR5" to
+    /// "SR5's occurs-depending table (COBOLNET0855)" — accurate about sentence 4 and silently dropping sentence
+    /// 1, whose population (a data-name-2 carrying a fixed OCCURS) was screened NOWHERE and compiled clean. A
+    /// four-sentence rule cited by NUMBER hides which sentence is meant; a tier doc asserting coverage the code
+    /// lacks is how a gap survives a reading, and the negative fixtures beside each code are what make these
+    /// sentences checkable.</para></summary>
     Rejected,
 }
 

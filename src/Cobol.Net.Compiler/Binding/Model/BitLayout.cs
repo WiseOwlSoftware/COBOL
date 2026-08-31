@@ -135,6 +135,28 @@ internal static class BitLayout
     private static int RoundUpToByte(int bits) =>
         (bits + BitsPerCharacter - 1) / BitsPerCharacter * BitsPerCharacter;
 
+    /// <summary>The bit offset of <paramref name="item"/> within <paramref name="ancestor"/> — the sum of each
+    /// intervening level's <see cref="StartBitWithin"/> placement, so a DEEP descendant is located by the same four
+    /// rules as a direct child. Returns -1 when any level cannot be resolved (an unmodelled overlay chain, or
+    /// <paramref name="item"/> not being a descendant); callers must not compute a layout from -1.
+    /// <para>⛔ This is the honest "fixed prefix" for an OCCURS DEPENDING extent over a bit-bearing subtree
+    /// (§13.18.38.4 GR8 read through §8.5.1.6.3), and it is NOT <c>ExtentBits(ancestor) − elem × max</c>: rule 4's
+    /// trailing filler belongs AFTER the variable tail, so subtracting the tail from a byte-rounded total charges
+    /// the filler to the prefix. The group's own filler is recovered by taking the CEILING of the current extent
+    /// (<see cref="Characters"/>), which is what rule 4 says it is.</para></summary>
+    public static int StartBitOf(DataItem ancestor, DataItem item)
+    {
+        int off = 0;
+        for (DataItem? n = item; !ReferenceEquals(n, ancestor); n = n.Parent)
+        {
+            if (n?.Parent is not { } parent) return -1;
+            int at = StartBitWithin(parent, n);
+            if (at < 0) return -1;
+            off += at;
+        }
+        return off;
+    }
+
     /// <summary>The character positions a bit extent occupies — the ceiling, which is also the shape
     /// <b>§15.50.4 r9</b> requires ("if argument-1 does not occupy an integral number of positions, the returned
     /// value is rounded to the next larger integer value"). With rule 4 above the extent is already integral for a

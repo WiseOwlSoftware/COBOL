@@ -1746,6 +1746,18 @@ result. Run the long legs ONE AT A TIME.
   on a RETURNING item; §8.4.3.2.4 GR1 clones the description without narrowing it). [[PB199]] landed the flip
   with byte-true runtime evidence plus the five stale texts; the structural half — nothing watches a TEST that
   pins shut a screen a `src/`-only drift test is unlocking — is [[PB200]], open.
+- **⚠ BATTERY #39 IS OWED, and it covers the burn-down cluster A batch** — [[PB173]] + [[PB177]] + [[PB178]]
+  and their review-fleet fix pass (DEVLOG 1413), all three notes now `landed`. Landed on wave-local only:
+  Conformance **1905/1905** · Unit **5072/5072** · characterization **33/33**, filter
+  `~Accept|~Bit|~Report|~Control|~Redefines|~Convert|~Call|~Oo|~Udf|~Image|~Corpus|~Negative|~Odo|~Occurs|~Intrinsic|~Group|~Dynamic|~Boolean|~Move|~Compute`.
+  ⛔ **The differential and NIST legs have NOT seen this batch**, and it touched shared seams a wave-local
+  filter cannot reach: `OdoModel.WrapGroup`'s extent unit (every occurs-depending GROUP operand), the
+  `CallEmitter` boundary string pair (every CALL/INVOKE argument), `IntrinsicArgumentRules.StaticUsageOf` (the
+  CONVERT/BASECONVERT/CONCAT usage screens) and three new bind-time rejections. A corpus-wide mechanical scan
+  found ZERO programs with a REDEFINES whose target entry carries an OCCURS clause (conformance + NIST +
+  characterization + the GnuCOBOL testsuite sources, 1,448 files), which is the reachability evidence for
+  COBOLNET1701's new rejection; the other seams have no such standing proof and are what #39 is for.
+  **Next-free diagnostic code: `COBOLNET1702`** (1700 = report-control-operand-index, 1701 = redefines-target-occurs).
 - **⛔ PRIOR BATTERY REFERENCE — the R40+PB179+PB180/181 batch tree `d21fbae8` (2026-08-30, battery #37).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-37`; DEVLOG 1405): FULL greenfield Conformance **5109 / 5109** · Unit

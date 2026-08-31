@@ -42,6 +42,15 @@ internal static class PlaceRenderer
             ? EmitText.LoudValue("string", TierCIsland.Reason(g.Inner.Item, "reference modification of group"))
             : g.Inner is OdoGroupPlace { DependingInside: false } odo ? SendingImage(odo)
             : GroupImage(g.Inner),
+        // A BIT GROUP reference-modified in BIT POSITIONS (ISO §8.4.3.3.4 GR5a; §8.4.3.3.3 SR1's last sentence;
+        // §13.18.29.4 GR1b's as-if PICTURE 1(m)) — kb/Work PB173. AsBits() is the generated unpacked boolean
+        // string (GroupImageCodec.EmitBitMethods, already emitted for every bit group); the RefModPlace above
+        // then slices IT, so GR5a's units are structural rather than a per-site adjustment. ⛔ THROUGH THE ONE
+        // BIT READER, which carries §13.18.38.4 GR8a's current-extent arm exactly as the GroupImagePlace arm
+        // above does — the capability guard the image twin also carries is UNREACHABLE here and deliberately
+        // absent: §13.18.29.3 SR1 bars a variable-length group from GROUP-USAGE and SR2 forces every subordinate
+        // elementary item to be usage bit / category boolean, so a bit group is always image-capable.
+        BitImagePlace b => SendingBits(b.Inner),
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' character images.
         RenamesPlace n => n.Leaves.Count == 1
             ? Read(n.Leaves[0])
@@ -85,20 +94,38 @@ internal static class PlaceRenderer
     {
         // Splice the new slice back into the inner field, preserving its width. A BOOLEAN receiver pads with
         // boolean-zero (§14.6.8.6; §8.4.3.3 GR5a); every other category keeps the space fill.
+        // ⛔ THE PAD READS OperandPic, NOT RAW Pic (kb/Work PB173 — one of the TWO arms of this defect; the other
+        // is MoveEmitter's RefModSlice figurative fill, nine files away, which made the identical raw-`Pic` read).
+        // `Pic` is NULL for any GROUP, so a BIT-GROUP slice padded with SPACE where §14.6.8.6 requires the value
+        // be "transferred … into the corresponding boolean positions of the receiving data item, with zero fill
+        // or truncation to the right". `OperandPic` is the ONE category reader — it answers the bit group's as-if
+        // PICTURE 1(m) (Boolean), which is what RefModPlace.Category on the very next line of Place.cs already
+        // used; D20's consumer-switch sweep named that site and omitted these two, and that omission IS the bug.
         RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(Read(r.Inner), RmStart(r), RmLen(r), rhs,
-            r.Inner.Item.Pic is { Category: PicCategory.Boolean } ? "'0'" : null, allowZeroLength: r.AllowZeroLength)),
+            r.Inner.Item.OperandPic is { Category: PicCategory.Boolean } ? "'0'" : null, allowZeroLength: r.AllowZeroLength)),
         // Decode the spliced image back into the typed field (via the FormatImage/StoreImage pair — the same
         // bytes the read produced, so a splice round-trips whatever the item's byte form is).
         NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreImage(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         // The spliced group image goes back through the ONE group-image store (kb/Work PB70).
         GroupImagePlace g => WriteGroupImage(g.Inner, rhs, "reference modification into group"),
+        // The spliced BOOLEAN string goes back through the generated FromBits, which distributes the boolean
+        // positions to the subordinates (kb/Work PB173 — the receiving twin of the BitImagePlace read arm; the
+        // same distribution the `MemberPlace { Item.IsAsIfElementary: true }` bit arm below performs for a whole
+        // bit-group receiver, now reached through the ref-mod slice as well). ⛔ THROUGH THE ONE BIT WRITER,
+        // which carries §13.18.38.4 GR8's DependingInside direction split exactly as WriteGroupImage does.
+        BitImagePlace b => WriteBits(b.Inner, rhs),
         RenamesPlace n => WriteRenames(n, rhs),
+        // A WHOLE bit-group receiver that also carries an occurs-depending table takes GR8's direction split
+        // through the ONE bit writer — this arm must precede the plain ODO unwrap below, which would otherwise
+        // hand the MemberPlace arm the MAXIMUM length for a GR8a (depending-outside) receiver (kb/Work PB173).
+        OdoGroupPlace { Item: { IsAsIfElementary: true, GroupUsage: GroupUsage.Bit } } o => WriteBits(o, rhs),
         OdoGroupPlace o => Write(o.Inner, rhs),
         // A bit / national GROUP receiving as an ELEMENTARY item (§13.18.29.4 GR1b/GR2b; D20/PB79): the value is
-        // its as-if picture's string — the bit string for a bit group (FromBits distributes the boolean positions
-        // to the subordinates), the national character image for a national group (the ONE group-image store).
+        // its as-if picture's string — the bit string for a bit group (the ONE bit writer's FromBits distributes
+        // the boolean positions to the subordinates), the national character image for a national group (the ONE
+        // group-image store).
         MemberPlace { Item.IsAsIfElementary: true } m => m.Item.GroupUsage is GroupUsage.Bit
-            ? $"{RenderPath(m.Path, AccessDir.Sending)}.FromBits({rhs});"
+            ? WriteBits(m, rhs)
             : WriteGroupImage(m, rhs, "national group receiver"),
         // A member/fixed-table store — the structural path as an assignment target.
         MemberPlace m => $"{RenderPath(m.Path, AccessDir.Sending)} = {rhs};",
@@ -230,8 +257,12 @@ internal static class PlaceRenderer
     /// PB176 — the SEVENTH two-arm-dispatch instance: the write side staged the Tier-C loud while this read
     /// side emitted <c>.AsImage()</c> unconditionally, so a group with BOTH an OCCURS DEPENDING table and a
     /// dynamic member — legal source whose struct never receives AsImage — failed BACKEND compilation with
-    /// CS1061 instead of the documented runtime loud).</para></summary>
-    public static string GroupImage(Place group) => group switch
+    /// CS1061 instead of the documented runtime loud).</para>
+    /// <para><paramref name="context"/> names the operation in the Tier-C message, mirroring
+    /// <see cref="WriteGroupImage"/>'s parameter of the same name — so a consumer can route through THE ONE
+    /// reader and still keep its own site-specific reason (kb/Work PB178: the alternative, a consumer
+    /// spelling <c>.AsImage()</c> itself to preserve its message, is exactly the copy this law forbids).</para></summary>
+    public static string GroupImage(Place group, string context = "whole-group image of") => group switch
     {
         RedefViewPlace => Read(group),
         // ⛔ UNWRAP BEFORE THE GUARD (the PB176 skeptic round): an OdoGroupPlace may wrap a Tier-B
@@ -239,15 +270,57 @@ internal static class PlaceRenderer
         // working read into a loud throw (CallStringRead hands the WRAPPER in, unlike the other callers).
         // The MemberPlace inner still meets the guard below with the exact predicate, so the CS1061 fix
         // holds: guard fires ⟺ the struct has no AsImage.
-        OdoGroupPlace o => GroupImage(o.Inner),
+        OdoGroupPlace o => GroupImage(o.Inner, context),
         _ when !group.Item.IsImageCapable =>
-            EmitText.LoudValue("string", TierCIsland.Reason(group.Item, "whole-group image of")),
+            EmitText.LoudValue("string", TierCIsland.Reason(group.Item, context)),
         _ => $"{Read(group)}.AsImage()",
     };
 
+    /// <summary>⛔ THE ONE READER OF A GROUP OPERAND'S IMAGE IN A <b>SENDING</b> CONTEXT — <see cref="GroupImage"/>,
+    /// except that an occurs-depending group sends only its ISO §13.18.38.4 GR8 CURRENT-count part. Both GR8 arms
+    /// agree on the sending direction: GR8a (data-name-1 outside the group) and GR8b (data-name-1 inside, "and the
+    /// group data item is referenced as a sending operand") each say "only that part of the table area that is
+    /// specified by the value of the data item referenced by data-name-1 at the start of the operation will be
+    /// used"; only a RECEIVING operand takes the maximum length, which is <see cref="WriteGroupImage"/>'s
+    /// <c>DependingInside</c> split.
+    /// <para>Three consumers used to spell this dispatch themselves — <c>OperandText.FieldAsString</c>,
+    /// <c>OperandText.AsStorageImage</c> and <c>NumericRenderer.FieldNumCore</c> — and the third had the ODO arm
+    /// MISSING, so <c>Read(OdoGroupPlace o) =&gt; Read(o.Inner)</c> handed a Tier-B / BASED string window straight
+    /// into <c>.AsImage()</c> (CS1061), and it returned the MAXIMUM image where GR8 wants the current extent
+    /// (kb/Work PB178). One rule, one place.</para></summary>
+    public static string SendingGroupImage(Place group, string context = "whole-group image of") =>
+        group is OdoGroupPlace o ? SendingImage(o, context) : GroupImage(group, context);
+
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>
-    public static string SendingImage(OdoGroupPlace p) => $"{GroupImage(p.Inner)}.Substring(0, {LengthExpr(p)})";
+    public static string SendingImage(OdoGroupPlace p, string context = "whole-group image of") =>
+        $"{GroupImage(p.Inner, context)}.Substring(0, {CharLengthExpr(p)})";
+
+    /// <summary>⛔ THE ONE READER OF A BIT GROUP'S OPERAND VALUE (ISO §13.18.29.4 GR1b — "a bit group is treated as
+    /// though it were an elementary data item of usage bit and class and category boolean described with PICTURE
+    /// 1(m), where m is the bit length of the group"): the generated <c>AsBits()</c> boolean-position string, with
+    /// §13.18.38.4 GR8a's CURRENT-extent truncation when an occurs-depending table lies beneath it. The bit twin of
+    /// <see cref="SendingGroupImage"/>, and the reason the two must exist side by side is that they speak DIFFERENT
+    /// ALPHABETS — <c>AsImage()</c> is ceil(m/8) PACKED characters, <c>AsBits()</c> is m boolean positions — so a
+    /// consumer that reaches for the image reader on a bit group compares packed bytes against boolean literals
+    /// (kb/Work PB173: <c>OperandText.FieldAsString</c>'s ODO early return did exactly that, and the character-unit
+    /// extent it then computed was NEGATIVE, so the whole operand rendered as the empty string).
+    /// <para>A Tier-B <c>RedefViewPlace</c> never reaches here: <c>ReferenceResolver</c> does not wrap one in a
+    /// <see cref="BitImagePlace"/> (kb/Work PB203 holds that gap), and §13.18.44.3 SR5 bars an occurs-depending
+    /// table on either side of a REDEFINES, so <c>OdoGroupPlace</c> over a view cannot carry one either.</para></summary>
+    public static string SendingBits(Place group) =>
+        group is OdoGroupPlace o
+            ? $"{Read(o.Inner)}.AsBits().Substring(0, {LengthExpr(o)})"
+            : $"{Read(group)}.AsBits()";
+
+    /// <summary>⛔ THE ONE WRITER of a bit group's boolean-position string — <c>FromBits</c> distributes the
+    /// positions to the subordinates. GR8a (data-name-1 OUTSIDE an occurs-depending table beneath the group)
+    /// modifies only the current extent: the stored prefix is spliced over the live bit string, positions past the
+    /// count untouched. GR8b (data-name-1 inside) keeps the maximum length, which is the plain arm.</summary>
+    public static string WriteBits(Place group, string bits) =>
+        group is OdoGroupPlace { DependingInside: false } o
+            ? $"{Read(o.Inner)}.FromBits({RuntimeApi.StrSpliceInto($"{Read(o.Inner)}.AsBits()", "1", LengthExpr(o), bits, "'0'", allowZeroLength: true)});"
+            : $"{Read(group)}.FromBits({bits});";
 
     /// <summary>A receiving store over an occurs-depending GROUP operand's CURRENT extent (GR8a — depending-outside):
     /// splice the stored prefix over the live image, leaving positions past the count unmodified. <c>allowZeroLength</c>
@@ -255,11 +328,19 @@ internal static class PlaceRenderer
     /// reference-modification violation — this internal splice is not a user ref-mod, so it must not raise
     /// EC-BOUND-REF-MOD under checking (review V48).</summary>
     public static string ReceiveInto(OdoGroupPlace p, string imageExpr) =>
-        WriteGroupImage(p.Inner, RuntimeApi.StrSpliceInto(GroupImage(p.Inner), "1", LengthExpr(p), imageExpr, allowZeroLength: true),
+        WriteGroupImage(p.Inner, RuntimeApi.StrSpliceInto(GroupImage(p.Inner), "1", CharLengthExpr(p), imageExpr, allowZeroLength: true),
             "occurs-depending group receive");
 
-    /// <summary>The C# <c>int</c> expression for an occurs-depending group operand's current character extent (GR8):
-    /// the fixed prefix plus data-name-1's clamped value × the element width, read at the operation site.</summary>
+    /// <summary>The C# <c>int</c> expression for an occurs-depending group operand's current POSITION extent (GR8):
+    /// the fixed prefix plus data-name-1's clamped value × the element width, read at the operation site. The unit
+    /// is the group's own — BIT positions for a subtree holding USAGE BIT leaves (§8.5.1.6.3; kb/Work PB173),
+    /// character positions otherwise — so this is the extent the <c>AsBits</c>/<c>FromBits</c> channel slices at.</summary>
     public static string LengthExpr(OdoGroupPlace p) =>
-        RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(Read(p.Depending)), p.MinOccurs, p.MaxOccurs, p.FixedChars, p.ElemChars);
+        RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(Read(p.Depending)), p.MinOccurs, p.MaxOccurs, p.FixedUnits, p.ElemUnits);
+
+    /// <summary>The same extent in CHARACTER positions — <see cref="LengthExpr"/> rounded up (the identity when the
+    /// positions already ARE characters). This is what the <c>AsImage</c>/<c>FromImage</c> channel slices at.</summary>
+    public static string CharLengthExpr(OdoGroupPlace p) =>
+        RuntimeApi.TableOdoExtentChars(RuntimeApi.TableOcc(Read(p.Depending)), p.MinOccurs, p.MaxOccurs,
+            p.FixedUnits, p.ElemUnits, p.PositionsPerCharacter);
 }

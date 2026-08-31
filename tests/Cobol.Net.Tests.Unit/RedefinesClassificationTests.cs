@@ -17,8 +17,82 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class RedefinesClassificationTests
 {
+    /// <summary>§13.18.44.3 SR17 (kb/Work PB177 arm C) — "Neither data-name-2 nor the subject of the entry
+    /// shall be a variable-length group or a dynamic-length elementary item." BOTH sides, one case each: the
+    /// two-arm discipline, because a screen written for one side only is this repo's most reproducible defect.
+    /// <para>⛔ THE TIER, NOT JUST THE DIAGNOSTIC. This was not merely an under-rejection but a SILENT
+    /// MIS-MODEL: <c>StorageFormPass.Classify</c> tests <c>IsDynamicLength</c> BEFORE its Tier-B view arm, so a
+    /// dynamic-length REDEFINES view got its own disjoint native <c>string</c> — two storages for the one area
+    /// §13.18.44.4 GR1 defines, with no diagnostic (measured: <c>MOVE "ZZ" TO D</c> left the redefined item
+    /// unchanged). Asserting <c>Rejected</c> is what makes that path unreachable structurally rather than
+    /// merely unreached because a diagnostic stopped the compile.</para></summary>
+    [Theory]
+    [InlineData("01 WS-A PIC X(8).\n01 WS-B REDEFINES WS-A.\n   05 WS-D PIC X DYNAMIC LENGTH.", "WS-B")]
+    [InlineData("01 WS-D PIC X DYNAMIC LENGTH.\n01 WS-B REDEFINES WS-D PIC X(4).", "WS-B")]
+    public void TierD_VariableLengthSide_RejectedSr17(string ws, string name)
+    {
+        var d = Bind(ws, dialect: 2014);   // DYNAMIC LENGTH is COBOL-2014+
+        var item = Item(d, name);
+        Assert.Equal(RedefinesTier.Rejected, item.Class!.Tier);
+        Assert.Contains("SR17", item.Class.RejectReason);
+    }
+
+    /// <summary>The silent-mis-model regression itself, asserted at the pass that produced it: a REDEFINES
+    /// view that is (or contains) a dynamic-length item must never come out of <c>StorageFormPass</c> with a
+    /// <c>DynamicString</c> form.
+    /// <para>⛔ THIS TEST RUNS THE WHOLE PIPELINE, AND THE REASON IS THE BATTERY-#38 LESSON. Its first cut used
+    /// the resolve-only <see cref="Bind"/> helper, which never runs <c>StorageFormPass</c> — the ONLY writer of
+    /// <see cref="DataItem.Storage"/> (StorageFormPass.cs, two sites, reached through
+    /// <c>BindPipeline.GroupTail</c>). <c>Storage</c> was therefore always <see langword="null"/>,
+    /// <c>null is StorageForm.DynamicString</c> always false, and the distinctive assertion passed
+    /// UNCONDITIONALLY: an inert assertion in a regression test, in the one test written to police a silent
+    /// mis-model. <see cref="BindFull"/> drives <c>BinderDriver.Bind</c>, whose group tail runs the pass even
+    /// when bind diagnostics exist (the driver fails the COMPILE afterwards), so the field is populated and the
+    /// assertion has something to be false about.</para>
+    /// <para>⛔ AND WHAT THE REAL RUN MEASURED CORRECTED THE CLAIM THE TEST WAS WRITTEN TO HOLD. The shipping
+    /// comments said "Rejecting the CLASS makes that path structurally unreachable rather than merely unreached
+    /// because a diagnostic happened to stop the compile." That is FALSE, and the very first non-inert run
+    /// proved it: <c>StorageFormPass.Classify</c> orders its arms (1) <c>IsDynamicTable</c>, (1b)
+    /// <c>IsDynamicLength</c> → <c>DynamicString</c>, and only THEN (2) the REDEFINES-view arm — so arm 1b
+    /// returns before the tier is ever consulted, and the view DOES come out with <c>DynamicString</c> even
+    /// though its class is Rejected. (A class DISSOLVED by the nested-anchor loop bypasses the tier loop
+    /// entirely, which is the same hole from the other side.) What actually keeps a user program from carrying
+    /// the disjoint storage is the COBOLNET1698 DIAGNOSTIC, which is fatal — the compile never reaches emit. The
+    /// tier verdict is belt-and-braces at the modelling layer, and worth having as such.</para>
+    /// <para>So this test asserts the two things that are TRUE and load-bearing — the tier verdict and the fatal
+    /// diagnostic — and PINS the measured storage form rather than a wish. If someone later teaches
+    /// <c>StorageFormPass</c> to consult the tier, this fails and the claim is upgraded DELIBERATELY, with the
+    /// comments, instead of a doc-comment quietly out-running the code again.</para></summary>
+    [Fact]
+    public void Sr17RejectedClass_TheDiagnosticIsTheBarrier_TheTierIsBeltAndBraces()
+    {
+        var (d, ed) = BindFull("01 WS-A PIC X(8).\n01 WS-B REDEFINES WS-A.\n   05 WS-D PIC X DYNAMIC LENGTH.", dialect: 2014);
+        var view = Item(d, "WS-D");
+        // (1) The tier verdict — load-bearing, and set by ClassifyRedefinesClasses' Sr17Shape loop.
+        Assert.Equal(RedefinesTier.Rejected, Item(d, "WS-B").Class!.Tier);
+        // (2) THE ACTUAL BARRIER: a fatal bind diagnostic, so nothing downstream of it ever runs for real.
+        Assert.Contains(ed.Diagnostics, x => x.Contains("COBOLNET1698", StringComparison.Ordinal));
+        // (3) The pass RAN — without this every storage assertion below is inert, which is precisely how this
+        //     test shipped green while asserting nothing (the battery-#38 lesson).
+        Assert.NotNull(Item(d, "WS-A").Storage);
+        // (4) The MEASURED form, not the hoped-for one: arm 1b wins over the tier.
+        Assert.IsType<StorageForm.DynamicString>(view.Storage);
+    }
+
+    /// <summary>The CONTROL that gives assertion (4) above its meaning: the SAME dynamic-length item OUTSIDE any
+    /// REDEFINES class gets the identical <c>DynamicString</c> form — so the Rejected tier changes NOTHING about
+    /// the storage classification, which is exactly the "belt-and-braces, not structural" finding stated as a
+    /// measurement. Flip the axis the subject holds fixed
+    /// (feedback_probe_the_shape_the_subject_hides).</summary>
+    [Fact]
+    public void DynamicLengthItem_OutsideARedefinesClass_GetsTheSameDynamicStringStorage()
+    {
+        var (d, _) = BindFull("01 WS-A PIC X(8).\n01 WS-D PIC X DYNAMIC LENGTH.", dialect: 2014);
+        Assert.IsType<StorageForm.DynamicString>(Item(d, "WS-D").Storage);
+    }
+
     /// <summary>Bind a WORKING-STORAGE fragment and return the populated <see cref="DataBinder"/>.</summary>
-    private static DataBinder Bind(string ws)
+    private static DataBinder Bind(string ws, int dialect = 85)
     {
         string src = $"""
             IDENTIFICATION DIVISION.
@@ -35,7 +109,7 @@ public sealed class RedefinesClassificationTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { DialectLevel = 85 }.Parse(path, diags);
+            var tree = new CnFrontend { DialectLevel = dialect }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             Assert.NotNull(tree);
             var program = tree!.compilationGroup().SelectMany(g => g.programUnit()).First();
@@ -47,6 +121,39 @@ public sealed class RedefinesClassificationTests
     }
 
     private static DataItem Item(DataBinder d, string name) => d.ByName[name][0];
+
+    /// <summary>Bind a WORKING-STORAGE fragment through the WHOLE pipeline — <c>BinderDriver.Bind</c>, whose
+    /// <c>BindPipeline.GroupTail</c> runs <c>StorageFormPass</c>, the only writer of
+    /// <see cref="DataItem.Storage"/>. Use this (never <see cref="Bind"/>) for any assertion on a fact the group
+    /// tail computes; the resolve-only helper leaves those fields null and makes such an assertion inert.
+    /// Bind diagnostics do NOT stop the tail — the driver fails the compile afterwards — which is what lets a
+    /// REJECTED class still be measured at the storage layer.</summary>
+    private static (DataBinder Data, EditionContext Edition) BindFull(string ws, int dialect = 85)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TFULL.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            {ws}
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                STOP RUN.
+            """;
+        string path = Path.Combine(Path.GetTempPath(), "cn_redeffull_" + Guid.NewGuid().ToString("N")[..8] + ".cob");
+        File.WriteAllText(path, src);
+        try
+        {
+            var diags = new DiagnosticBag();
+            var tree = new CnFrontend { DialectLevel = dialect }.Parse(path, diags);
+            Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
+            Assert.NotNull(tree);
+            var ed = new EditionContext(dialect);
+            var bound = new BinderDriver().Bind(tree!, ed);
+            return (bound.Units[0].Data, ed);
+        }
+        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+    }
 
     /// <summary>§13.18.44.3 SR12 (kb/Work PB179 — the Step D Tier-D bind half): a POINTER item as the
     /// SUBJECT of a REDEFINES entry is a conformance rejection — before the screen it classified Tier B

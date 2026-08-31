@@ -127,13 +127,20 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 ///     — <see cref="DependingInside"/> lets each receiver keep the plain full-width <c>FromImage</c> store.</item>
 /// </list>
 /// The legacy engine proved exactly this direction split over the NIST-85 corpus (NC247A; its
-/// <c>LocationResolver.ResolveWholeItem(receiving)</c>); the greenfield twin computes the CHARACTER extent at the
-/// operand site — no runtime table state (COBOLNET_DESIGN §3.6 / §14.4 — ONE image facility, the GR8 slice is a
-/// view over it). The legacy's LINKAGE max-length shortcut is deliberately NOT ported: GR8 applies in any section.
+/// <c>LocationResolver.ResolveWholeItem(receiving)</c>); the greenfield twin computes the extent at the operand
+/// site — no runtime table state (COBOLNET_DESIGN §3.6 / §14.4 — ONE image facility, the GR8 slice is a view over
+/// it). The legacy's LINKAGE max-length shortcut is deliberately NOT ported: GR8 applies in any section.
+/// <para>⛔ <b>THE EXTENT IS IN POSITIONS, AND A POSITION IS NOT ALWAYS A CHARACTER</b> (kb/Work PB173).
+/// <see cref="PositionsPerCharacter"/> is 8 for a subtree holding a USAGE BIT leaf and 1 otherwise, so
+/// <see cref="FixedUnits"/>/<see cref="ElemUnits"/> are bit positions for the first and character positions for the
+/// second — <c>fixed + occ × elem</c> is an identity only in a unit where each occurrence starts where the previous
+/// one ended, which §8.5.1.6.3's shared-byte runs break in characters. The BIT channel (<c>AsBits</c>/
+/// <c>FromBits</c>, §13.18.29.4 GR1b) uses the positions directly; the CHARACTER channel (<c>AsImage</c>/
+/// <c>FromImage</c>) takes the ceiling, which is also where §8.5.1.6.3 rule 4's trailing filler lives.</para>
 /// </summary>
 public sealed record OdoGroupPlace(
-    Place Inner, Place Depending, int FixedChars, int ElemChars, int MinOccurs, int MaxOccurs,
-    bool DependingInside)
+    Place Inner, Place Depending, int FixedUnits, int ElemUnits, int MinOccurs, int MaxOccurs,
+    bool DependingInside, int PositionsPerCharacter = 1)
     : PlaceDecorator(Inner);
 
 /// <summary>
@@ -212,6 +219,36 @@ public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// <c>CodeGen.PlaceRenderer</c>.
 /// </summary>
 public sealed record GroupImagePlace(Place Inner) : PlaceDecorator(Inner);
+
+/// <summary>
+/// A BIT GROUP viewed as its UNPACKED BOOLEAN-POSITION string, for reference modification (kb/Work PB173).
+/// <para><b>The derivation, in three links.</b> §13.18.29.4 GR1b: "a bit group is treated as though it were an
+/// elementary data item of usage bit and class and category boolean described with PICTURE 1(m), where m is the
+/// bit length of the group". §8.4.3.3.3 SR1's last sentence: "For reference modification, bit group items and
+/// national group items are treated as elementary data items" — so a bit group is admitted as identifier-1 AS AN
+/// ELEMENTARY ITEM, not through the group bullet. §8.4.3.3.4 GR5a: "If the usage of identifier-1 is bit,
+/// positions used in evaluation are BIT POSITIONS; otherwise, positions used in evaluation are character
+/// positions." Chained: <c>G(1:3)</c> denotes bit positions 1..3 of the m-bit string, and by GR6 the resulting
+/// unique item keeps usage bit and category boolean.</para>
+/// <para>⛔ WHY THIS IS A SECOND TYPE AND NOT A FLAG ON <see cref="GroupImagePlace"/>. The two carry DIFFERENT
+/// UNITS — bit positions versus character positions — and that split is GR5a's own two-branch sentence, which is
+/// exactly the case where two types are right rather than the two-mechanism anti-pattern. Sharing one type let
+/// the classifier and the substrate disagree: <see cref="RefModPlace.Category"/> already read the bit group's
+/// as-if PICTURE (Boolean, length in BITS) while <c>Read</c> delivered <c>AsImage()</c>'s PACKED bytes
+/// (ceil(m/8) characters), so <c>MOVE B"11" TO G(1:2)</c> spliced two characters at BYTE offsets of the packed
+/// image and <c>FromImage</c> redistributed the corruption — a silent wrong answer. Do not "simplify" the split
+/// back.</para>
+/// <para>⛔ A NATIONAL GROUP DELIBERATELY KEEPS <see cref="GroupImagePlace"/>. §13.18.29.4 GR2b makes it as-if
+/// <c>PICTURE N(m)</c> in NATIONAL POSITIONS, and <c>DataItem.IsCharacterImage</c>'s contract guarantees a
+/// national leaf contributes CHARACTER positions with <c>ImageWidth = Length</c>, "never byte-doubled" — so its
+/// <c>AsImage()</c> ALREADY IS its national-position string and the shared wrap is correct for it. The asymmetry
+/// is load-bearing; it is written down here so a later reader does not generalize the bit fix onto it.</para>
+/// <para>Rendered by <c>CodeGen.PlaceRenderer</c> through the generated <c>AsBits()</c> / <c>FromBits(string)</c>
+/// pair, which <c>GroupImageCodec.EmitBitMethods</c> already emits for every bit group — no new runtime code.
+/// Because <see cref="RefModPlace"/> sits OVER this place, its start/length then index the boolean string
+/// directly and GR5a is satisfied structurally.</para>
+/// </summary>
+public sealed record BitImagePlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
 /// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §13.18.38 GR15 / §8.5.1.9.1; data-model D9):

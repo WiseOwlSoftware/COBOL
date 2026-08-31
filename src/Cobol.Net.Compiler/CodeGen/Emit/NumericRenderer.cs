@@ -302,9 +302,23 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // of illegal source instead of fixing anything — the two changes are correct only together. A
         // group with a pointer/object-class leaf (or a variable-length group) still has no image and stays
         // loud even under --permissive (kb/Work PB164 + R40 — an INDEX-leaf group images now).
-        null when p.Item.IsImageCapable =>
-            new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? PlaceRenderer.Read(p) : $"{PlaceRenderer.Read(p)}.AsImage()")})", 0),
-        null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? PlaceRenderer.Read(p)}'"), 0),
+        // ⛔ THROUGH THE ONE SENDING READER, never a self-spelled `.AsImage()` (kb/Work PB178, the sibling of
+        // OperandText.AsStorageImage's defect and found in the same sweep). This site used to inline
+        // `p is RedefViewPlace ? Read(p) : Read(p).AsImage()`, which had TWO independent holes:
+        //   (a) NO OdoGroupPlace unwrap — `Read(OdoGroupPlace o) => Read(o.Inner)`, so an ODO wrapper over a
+        //       Tier-B / BASED string-canonical window (what `ReferenceResolver`'s
+        //       `WrapIfOdoGroup(new RedefViewPlace(...))` builds for a BASED record carrying an ODO table)
+        //       rendered `<string window>.AsImage()` → backend CS1061. MEASURED, not deduced: strict
+        //       conformance rejects a group arithmetic operand (COBOLNET0844 below), so the reach is
+        //       `--permissive`, which is a SUPPORTED mode — `COMPUTE X = <BASED ODO group> + 1 --permissive`
+        //       was the probe.
+        //   (b) the MAXIMUM image where §13.18.38.4 GR8 wants the CURRENT-count part. A numeric decode of a
+        //       group's image is a SENDING reference of that group, and GR8a/GR8b both give a sending operand
+        //       the current extent — which its sibling `OperandText.FieldAsString` already got right. A
+        //       wrong ANSWER, independent of (a)'s crash.
+        // The capability guard now lives in the ONE reader too (it stages the same Tier-C loud), so the
+        // former `when p.Item.IsImageCapable` arm and its hand-written twin below collapse into this one.
+        null => new NumX($"CobolNum.FromAlphanumeric({PlaceRenderer.SendingGroupImage(p, "numeric use of group item")})", 0),
         // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native
         // IEEE double — NOT truncated to (long) at scale 0 (the pre-D16 stub that silently dropped the fraction). The
         // sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking, §14.6.13.2

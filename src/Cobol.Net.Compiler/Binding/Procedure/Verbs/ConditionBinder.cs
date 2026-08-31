@@ -152,10 +152,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref
             && ctx.Refs.Probe(dref) is { } p)   // Probe — a predicate is diagnostic-free (R30)
             // OperandPic, the ONE category reader (kb/Work PB157) — a bit group routes boolean like the
-            // bind path at line ~106 already does. A ref-mod slice OF a bit group stays general-channel
-            // (see BoolValued; kb/Work PB173).
+            // bind path at line ~106 already does. kb/Work PB173 REMOVED the `is not { IsGroup: true }`
+            // exclusion that kept a bit-group ref-mod on the general channel: that channel compared the
+            // PACKED byte image at bit offsets (a silent wrong answer, e.g. `IF G(1:3) = B"110"` read the
+            // three characters of a one-character image), and the slice is now a BitImagePlace in boolean
+            // positions, so §8.4.3.3.4 GR6's unique item really does keep usage bit / category boolean.
             return p is RefModPlace rm
-                ? rm.Category is PicCategory.Boolean && rm.Inner.Item is not { IsGroup: true }
+                ? rm.Category is PicCategory.Boolean
                 : p.Item.OperandPic?.Category is PicCategory.Boolean;
         // A sole FUNCTION-keyword reference to a catalogued BOOLEAN-typed function (§15.2 type 2 — today
         // BOOLEAN-OF-INTEGER): diagnostic-free, from the catalog's declared type (kb/Work PB68).
@@ -288,11 +291,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundStringLiteral { Category: PicCategory.Boolean } => true,
         BoundFigurative { Kind: 'Z' } => true,
         // OperandPic / rm.Category — THE ONE category reader (kb/Work PB157): a GROUP-USAGE BIT item is
-        // boolean-valued in a relation too (§13.18.29.4 GR1a/b). A ref-mod slice OF a bit group stays on the
-        // GENERAL relation channel (both sides byte-image, consistent): the boolean channel would size it in
-        // boolean positions over the packed byte substrate — kb/Work PB173 owns the bit-position slice.
-        BoundFieldOperand { Place: RefModPlace rm } =>
-            rm.Category is PicCategory.Boolean && rm.Inner.Item is not { IsGroup: true },
+        // boolean-valued in a relation too (§13.18.29.4 GR1a/b). kb/Work PB173 REMOVED the
+        // `is not { IsGroup: true }` exclusion (the twin of the one in the bind-path predicate above): the
+        // "both sides byte-image, consistent" justification described the CHANNEL, not the ANSWER — the
+        // general channel sliced the PACKED image at bit offsets and compared the wrong characters. With the
+        // slice in boolean positions (BitImagePlace, §8.4.3.3.4 GR5a) the boolean channel is simply correct.
+        BoundFieldOperand { Place: RefModPlace rm } => rm.Category is PicCategory.Boolean,
         BoundFieldOperand f => f.Place.Item.OperandPic?.Category is PicCategory.Boolean,
         _ => false,
     };

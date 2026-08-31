@@ -102,6 +102,17 @@ The group carrier round-trips the WHOLE struct per access: get reads a copy, set
 
 **ODO full-allocation rule (§14.2.3 GR8):** an occurs-depending group crosses the CALL boundary at its FULL maximum allocation, never the §13.18.38 GR8 current-extent window — §14.2.3 GR8 says BY REFERENCE "operates as if the formal parameter occupies the same storage area as the argument", and the *storage* is the maximum allocation (the ODO window is a *sending-operand* rule for MOVE/compare/INSPECT, not a storage-aliasing rule). BY CONTENT groups follow the same full-allocation rule (GR9 — the copy is of the record). Mechanically: `CodeGen/Verbs/CallEmitter.cs::CallStringRead/CallStringWrite` are the ONE boundary read/write pair (the BY REFERENCE carrier, the BY CONTENT snapshot, the callee copy-in/copy-out, RETURNING) and bypass `OdoGroupPlace.SendingImage()`/`ReceiveInto` for the full `AsImage()`/`FromImage` forms.
 
+**Tier-C at the boundary, in BOTH halves.** A group with no character image (a pointer/object-class leaf, or a
+variable-length group per §8.5.1.12.1 — `DataItem.IsImageCapable`) stages the documented Tier-C loud rather than
+crossing. ⛔ The WRITE half does not test that predicate itself: `CallStringWrite` hands **every** non-`RedefViewPlace`
+group to `PlaceRenderer.WriteFullGroupImage`, whose arm order owns the guard, so the read/write lockstep this
+paragraph asserts is a STRUCTURAL fact rather than a coincidence two guards have to maintain. It was not, once:
+the write half carried its own `IsImageCapable` conjunct and an imageless group fell through to a raw
+`PlaceRenderer.Write`, rendering `_G = <string>;` — a backend CS0029 — while the read half correctly staged the
+loud (kb/Work PB177 arm B, the eighth two-arm-dispatch instance). The exposure was not only at a CALL site: the
+CALLEE's own LINKAGE formal copy-in (`ProgramEmitter`) and Report Writer's `CONTROL IS <group>` both call this
+pair, and separate compilation means the caller-side `ArgText` screen gives the callee nothing.
+
 **Boundary-copy limitation (known, accepted — re-architect only if a test ever observes it):** group formals are boundary-copied (`FromImage` at activation entry, `AsImage` copy-out at activation exit), not live-aliased; a STRICT reading of GR8 implies live sharing (a caller-side mutation of the group mid-call — e.g. from a re-entered container — would not be seen by the callee until the next activation). No NIST program observes mid-call group mutation from the caller's side; elementary formals ARE live-aliased (carrier-resident, per-access).
 
 ### RECURSIVE programs and functions/methods need per-activation data; a `static class Program` cannot recurse or hold per-activation copies.

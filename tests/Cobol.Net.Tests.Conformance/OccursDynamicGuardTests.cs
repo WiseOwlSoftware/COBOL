@@ -36,14 +36,34 @@ public sealed class OccursDynamicGuardTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1522");
     }
 
-    /// <summary>§13.18.44 SR5 — a dynamic-capacity table is out-of-line storage that can neither be the subject nor
-    /// the object of a REDEFINES (it does not share a fixed area). COBOLNET1525.</summary>
+    /// <summary>⛔ THE TWO SIDES OF A REDEFINES OVER/BY A DYNAMIC-CAPACITY TABLE ARE DIFFERENT RULES, and this
+    /// test used to conflate them under one citation and one code (kb/Work PB177 arm C follow-up).
+    /// <para>The OBJECT side is named by a SYNTAX RULE: §13.18.44.3 SR5 SENTENCE 1, "The data description entry
+    /// for data-name-2 shall not contain an OCCURS clause" — and OCCURS DYNAMIC is Format 4 OF the OCCURS clause
+    /// (§13.18.38), so the dynamic-capacity object is as squarely named as a fixed one. COBOLNET1701. (This
+    /// method's old doc-comment cited "§13.18.44 SR5 — a dynamic-capacity table is out-of-line storage that can
+    /// neither be the subject nor the object of a REDEFINES", which is the right clause NUMBER attached to a
+    /// storage-model sentence the rule does not contain.)</para></summary>
     [Fact]
-    public void RedefinesOverDynamicTable_Rejected1525()
+    public void RedefinesOverDynamicTable_ObjectSide_Rejected1701()
     {
         var (ok, diag) = EditionHarness.Compile(Prog(
             "01 WS-TABLE.\n   05 WS-E PIC 9(3) OCCURS DYNAMIC FROM 3.\n   05 WS-R REDEFINES WS-E PIC X(9)."), 2014);
-        Assert.False(ok, "a REDEFINES over a dynamic-capacity table must be rejected (ISO §13.18.44 SR5)");
+        Assert.False(ok, "a REDEFINES whose data-name-2 carries an OCCURS clause must be rejected (ISO §13.18.44.3 SR5)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1701");
+    }
+
+    /// <summary>The SUBJECT side, and the one for which "no syntax rule literally names it" is TRUE: §13.18.38.3
+    /// carries no REDEFINES restriction and §13.18.44.3 SR17 does not reach an ELEMENTARY dynamic table
+    /// (§8.5.1.12.1 defines "variable-length group" over items SUBORDINATE to the group). What decides it is the
+    /// storage model — §13.18.44.4 GR1's fixed association area against §8.5.1.9.1's capacities that "may vary
+    /// during execution". COBOLNET1525, narrowed to exactly this side.</summary>
+    [Fact]
+    public void RedefinesByDynamicTable_SubjectSide_Rejected1525()
+    {
+        var (ok, diag) = EditionHarness.Compile(Prog(
+            "01 WS-TABLE.\n   05 WS-E PIC X(9).\n   05 WS-R REDEFINES WS-E PIC 9(3) OCCURS DYNAMIC FROM 3."), 2014);
+        Assert.False(ok, "a REDEFINES entry that IS a dynamic-capacity table must be rejected (§13.18.44.4 GR1 / §8.5.1.9.1)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1525");
     }
 

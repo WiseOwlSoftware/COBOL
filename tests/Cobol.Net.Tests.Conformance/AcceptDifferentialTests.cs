@@ -309,4 +309,39 @@ public sealed class AcceptDifferentialTests
             expected: "1234\n5 211\nabc",
             stdin: "1234",
             dialect: 2023);
+
+    // kb/Work PB173 — the OMITTED-LENGTH ref-mod width over a GROUP-USAGE BIT receiver, the THIRD arm of the
+    // pad family (PlaceRenderer.Write's boolean pad and MoveEmitter's RefModSlice fill were the first two).
+    // §8.4.3.3.4 GR5c: "If length is not specified, the unique data item extends from and includes the position
+    // identified by leftmost-position up to and including the rightmost position of the data item referenced by
+    // identifier-1"; GR5a: "If the usage of identifier-1 is bit, positions used in evaluation are bit positions".
+    // So the omitted-length transfer size is m − start + 1 in BIT positions (m = 8 by §13.18.29.4 GR1b's as-if
+    // PICTURE 1(8)), and the omitted form must equal its explicit-length twin. The emitter read raw `Pic`, which
+    // is NULL for any group, and fell back to ImageWidth = ceil(8/8) = 1 PACKED CHARACTER: `(3:)` computed
+    // 1 − 3 + 1 = −1 and `(1:)` computed 1, so EVERY start under-transferred and zero-filled the remainder
+    // (measured before the fix: 11000000 for the (3:) leg, against the 11101010 both other legs produce).
+    // Each transferred character converts by the same §14.9.1.4 GR1 boolean conversion
+    // Device_BooleanReceiver_ConvertsToBooleanCharacters pins.
+    [Fact]
+    public void Device_OmittedLengthBitGroupSlice_TransfersBitPositions()
+        => AssertOutputs(
+            Program("ACCPB173", """
+                01 WS-XM GROUP-USAGE BIT.
+                   05 WS-XM1 PIC 1(4) VALUE B"1100".
+                   05 WS-XM2 PIC 1(4) VALUE B"1010".
+                01 WS-XN GROUP-USAGE BIT.
+                   05 WS-XN1 PIC 1(4) VALUE B"1100".
+                   05 WS-XN2 PIC 1(4) VALUE B"1010".
+                01 WS-XP GROUP-USAGE BIT.
+                   05 WS-XP1 PIC 1(4) VALUE B"1100".
+                   05 WS-XP2 PIC 1(4) VALUE B"1010".
+                """, """
+                ACCEPT WS-XM(3:).
+                ACCEPT WS-XN(3:6).
+                ACCEPT WS-XP(1:).
+                DISPLAY WS-XM "]" WS-XN "]" WS-XP "]".
+            """),
+            expected: "11101010]11101010]10101010]",
+            stdin: "101010\n101010\n10101010\n",
+            dialect: 2023);
 }

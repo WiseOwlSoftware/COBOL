@@ -385,7 +385,21 @@ public sealed class ReferenceResolver(DataBinder data)
         // NATIONAL (SR1 admits it) has no national image channel yet — the loud stage.
         if (item.IsGroup)
         {
-            if (inner is not RedefViewPlace) inner = new GroupImagePlace(inner);
+            // ⛔ A BIT GROUP TAKES BIT POSITIONS, NOT CHARACTER POSITIONS (kb/Work PB173). §8.4.3.3.3 SR1's last
+            // sentence admits a bit group as identifier-1 "treated as [an] elementary data item", §13.18.29.4
+            // GR1b makes that item PICTURE 1(m) of usage bit, and §8.4.3.3.4 GR5a then says in so many words:
+            // "If the usage of identifier-1 is bit, positions used in evaluation are bit positions". So it wraps
+            // as its UNPACKED boolean string, never as AsImage()'s ceil(m/8) packed characters — the units the
+            // boolean channel already counts (ConditionBinder's widths read OperandPic.Length, which is
+            // ExtentBits) and the units RefModPlace.Category already reports.
+            // A NATIONAL group keeps GroupImagePlace, and that asymmetry is DERIVED, not an oversight:
+            // §13.18.29.4 GR2b's as-if PICTURE N(m) is in NATIONAL positions and DataItem.IsCharacterImage
+            // guarantees a national leaf contributes ImageWidth = Length character positions, "never
+            // byte-doubled", so its AsImage() IS its national-position string.
+            if (inner is not RedefViewPlace)
+                inner = item.IsAsIfElementary && item.GroupUsage is GroupUsage.Bit
+                    ? new BitImagePlace(inner)
+                    : new GroupImagePlace(inner);
         }
         else if (item.Pic?.Category is PicCategory.Numeric)
         {
@@ -414,8 +428,12 @@ public sealed class ReferenceResolver(DataBinder data)
     /// 8); a group that is neither strongly typed nor variable-length (bullet 9; §8.5.1.12 — a variable-length group
     /// has a dynamic-length item or a dynamic-capacity table subordinate to it). Everything else — a numeric item of
     /// BINARY / PACKED / COMP-5 / float usage, an index item, a pointer, an object reference — is excluded. Bit and
-    /// national GROUPS are "treated as elementary" by SR1's last sentence; GROUP-USAGE is not yet modelled (kb/Work
-    /// PB79), so they read as ordinary groups here.</summary>
+    /// national GROUPS are "treated as elementary" by SR1's last sentence, and GROUP-USAGE IS modelled — kb/Work
+    /// PB79 landed 2026-08-18 (DEVLOG 1317): <c>AsIfPic</c> / <c>OperandPic</c> / <c>IsAsIfElementary</c> carry the
+    /// as-if description, so this predicate's group bullet admits them for the right reason. Their SUBSTRATE then
+    /// differs by usage: a bit group wraps as a <c>BitImagePlace</c> over its unpacked boolean string, because
+    /// §8.4.3.3.4 GR5a evaluates a bit item's positions as BIT positions (kb/Work PB173), while a national group
+    /// keeps <c>GroupImagePlace</c> — §13.18.29.4 GR2b's as-if PICTURE N(m) is already in national positions.</summary>
     internal static string? RefModExclusion(DataItem item)
     {
         if (item.IsGroup)

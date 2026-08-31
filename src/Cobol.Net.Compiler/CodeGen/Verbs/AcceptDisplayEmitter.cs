@@ -69,11 +69,22 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
 
         // A ref-modified receiver: the slice length IS the transfer size; the splice left-justifies/space-fills
         // into the slice (§8.4.3.3.4 GR6), which coincides with the GR4 left-aligned store.
+        // ⛔ THE OMITTED-LENGTH WIDTH READS OperandPic, NOT RAW Pic — the THIRD arm of kb/Work PB173's pad family
+        // (the other two are PlaceRenderer.Write's boolean ref-mod pad and MoveEmitter's RefModSlice figurative
+        // fill). §8.4.3.3.4 GR5c: "If length is not specified, the unique data item extends from and includes the
+        // position identified by leftmost-position up to and including the rightmost POSITION of the data item
+        // referenced by identifier-1", and GR5a fixes what a POSITION is: "If the usage of identifier-1 is bit,
+        // positions used in evaluation are bit positions". `Pic` is NULL for any group, so a BIT group fell back
+        // to `ImageWidth` — ceil(m/8) PACKED CHARACTERS — and every omitted-length ACCEPT into a bit-group slice
+        // transferred too few characters at EVERY start (an 8-bit group's `ACCEPT XM(3:)` computed 1 - 3 + 1 = -1;
+        // its `ACCEPT XM(1:)` computed 1, storing one character into an 8-position slice and zero-filling the
+        // rest). `OperandPic` is the ONE category/position reader (DataItem §D20): it answers the bit group's
+        // as-if PICTURE 1(m) length, the same units RefModPlace.Category and the write-side pad already use.
         if (target is RefModPlace rm)
         {
             string len = rm.Length is { } l
                 ? $"(int)({l})"
-                : $"{rm.Inner.Item.Pic?.Length ?? rm.Inner.Item.ImageWidth} - (int)({rm.Start}) + 1";
+                : $"{rm.Inner.Item.OperandPic?.Length ?? rm.Inner.Item.ImageWidth} - (int)({rm.Start}) + 1";
             w.Line(PlaceRenderer.Write(target, $"AcceptSource.Device({len})"));
             return;
         }
