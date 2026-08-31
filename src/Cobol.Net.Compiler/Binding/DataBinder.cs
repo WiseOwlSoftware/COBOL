@@ -3500,8 +3500,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             if (item.RedefinesTarget is null) continue;
             using var _ = Edition.At(item);
+            // §13.18.44.3 SR12/SR14 (kb/Work PB179; the skeptic round moved this screen HERE, per WRITTEN
+            // ENTRY and BEFORE dissolution — the dissolve loop below removes nested classes, so a per-class
+            // screen let an inner entry's violation escape the diagnostic and fall to the outer class's
+            // staged-loud arm: same verdict, wrong posture): SR12 bars the SUBJECT being of class
+            // object/message-tag/pointer or a strongly-typed group; SR14 bars data-name-2 (the DIRECT
+            // target as written) likewise, plus "subordinate to a strongly-typed group item". These are the
+            // rules' LETTER — the drafting contrast with SR9's "nor any entry subordinate to it" shows they
+            // name the entry-level items only; a NESTED pointer leaf is §13.18.60.3 SR14's territory
+            // (kb/Work PB183) and ComputeTier's backstop arm.
+            if (Sr12Sr14Violation(item, item.RedefinesTarget) is { } srv)
+                Edition.Error(DiagnosticCatalog.RedefinesPointerObject, srv);
             DataItem anchor = item;
-            while (anchor.RedefinesTarget is { } t) anchor = t;     // chase the chain to the original (SR11)
+            // Chase data-name-2 to the non-redefining anchor. A CHAIN (X REDEFINES Y, Y REDEFINES Z) is
+            // SR7-ILLEGAL (the skeptic round corrected this comment's SR11 miscitation — SR11 is the
+            // nested-under-a-redefinition PERMISSION) and diagnosed at resolve; it reaches here only under
+            // --permissive, where the anchor walk still yields one shared area.
+            while (anchor.RedefinesTarget is { } t) anchor = t;
             if (!byAnchor.TryGetValue(anchor, out var cls))
             {
                 cls = new RedefinesClass { Canonical = anchor };
@@ -3543,6 +3558,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 tier = RedefinesTier.Rejected;
                 reject ??= "REDEFINES of/over a dynamic-capacity table (§13.18.44 SR5, D9)";
             }
+            // The SR12/SR14 TIER verdict for a retained class (the DIAGNOSTIC fired per written entry in the
+            // grouping loop above, before dissolution — no second diagnostic here): the class rejects with
+            // the spec-required reason, OVERRIDING ComputeTier's staged-loud one (its backstop arm also
+            // matches an entry-level pointer).
+            foreach (var m in cls.Members)
+                if (!ReferenceEquals(m, cls.Canonical) && m.RedefinesTarget is { } srTarget
+                    && Sr12Sr14Violation(m, srTarget) is { } srReason)
+                {
+                    tier = RedefinesTier.Rejected;
+                    reject = srReason;
+                }
             // The width is a member table's FULL extent (every occurrence). ONE verdict application (P5.11d).
             cls.Classify(tier, cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1)), reject);
             // Each top-level member overlays the area from its start (a REDEFINES begins at the target's first
@@ -3601,6 +3627,46 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static bool ContainsDynamicTable(DataItem d) =>
         d.IsDynamicTable || d.Children.Any(ContainsDynamicTable);
 
+    /// <summary>The §13.18.44.3 SR12/SR14 class test (kb/Work PB179): object/pointer classes occupy no
+    /// character positions and can neither overlay nor be overlaid. Message-tag has no bound model yet;
+    /// a USAGE FUNCTION-POINTER entry's semantics are staged at declaration (the P13 band — its Pic stays
+    /// null), so it never reaches the class machinery live.</summary>
+    private static bool PointerObjectClass(DataItem d) =>
+        d.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.ObjectReference;
+
+    /// <summary>ONE §13.18.44.3 SR12/SR14 verdict per WRITTEN entry — <paramref name="subject"/> is the item
+    /// carrying the REDEFINES clause, <paramref name="target"/> its DIRECT data-name-2 (never the chained
+    /// anchor). Returns the violation text (the diagnostic message AND the class RejectReason), or null.
+    /// Each arm's message names the arm that actually fired (the skeptic round: a subordinate-to-strong
+    /// violation was described as "is a strongly-typed group" — false of the item named).
+    /// <para>⚠ The SR14 "subordinate to a strongly-typed group item" arm fires only when the subject sits
+    /// OUTSIDE the target's strong subtree: a REDEFINES written INSIDE a STRONG typedef template (subject and
+    /// target under one strong root) is the recorded deliberate carve-out `CheckStrongTypeDeclarations`
+    /// documents ("An INTERNAL redefine … is legitimate and NOT flagged") — this screen must not silently
+    /// overturn that determination; whether the §13.18.57.3 SR4 letter overturns IT is [[PB183]]'s companion
+    /// derivation.</para></summary>
+    private static string? Sr12Sr14Violation(DataItem subject, DataItem target)
+    {
+        if (PointerObjectClass(subject))
+            return $"'{subject.CobolName ?? subject.CsName}' is the subject of a REDEFINES entry but is of "
+                + "class object/pointer (ISO §13.18.44.3 SR12)";
+        if (StrongTypeModel.IsStrongGroup(subject))
+            return $"'{subject.CobolName ?? subject.CsName}' is the subject of a REDEFINES entry but is a "
+                + "strongly-typed group item (ISO §13.18.44.3 SR12)";
+        if (PointerObjectClass(target))
+            return $"'{target.CobolName ?? target.CsName}' is redefined (data-name-2) but is of class "
+                + "object/pointer (ISO §13.18.44.3 SR14)";
+        if (StrongTypeModel.IsStrongGroup(target))
+            return $"'{target.CobolName ?? target.CsName}' is redefined (data-name-2) but is a strongly-typed "
+                + "group item (ISO §13.18.44.3 SR14)";
+        if (StrongTypeModel.StrongRoot(target) is { } tRoot
+            && !ReferenceEquals(StrongTypeModel.StrongRoot(subject), tRoot))
+            return $"'{target.CobolName ?? target.CsName}' is redefined (data-name-2) but is subordinate to "
+                + "the strongly-typed group item "
+                + $"'{tRoot.CobolName ?? tRoot.CsName}' (ISO §13.18.44.3 SR14)";
+        return null;
+    }
+
     private static RedefinesTier ComputeTier(RedefinesClass cls, out string? reject)
     {
         reject = null;
@@ -3620,6 +3686,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // become BYTE-FORM windows via the StoreAsImage loop in ClassifyRedefinesClasses.
         // ⚠ Pointer/object/strongly-typed leaves currently reach Tier B with ZERO-WIDTH windows — the
         // missing §13.18.44.3 SR12/SR14 Tier-D arm is kb/Work PB179 (Step D lands it first).
+        // Tier D backstop — a pointer/object-class LEAF nested inside a member (kb/Work PB179): NOT
+        // §13.18.44.3 SR12/SR14's letter (those bar the ENTRY-level items — screened per written entry in
+        // ClassifyRedefinesClasses). The skeptic round derived that §13.18.60.3 SR14 makes the nested
+        // declaration itself NONCONFORMING (a pointer/object USAGE is legal only at level 1 or under a
+        // STRONG type — and the strong case trips the entry-level screen via its enclosing group), so on
+        // conforming source this arm is unreachable-by-construction; it stands as the loud guard for the
+        // recovery/permissive paths until the missing §13.18.60.3 SR14 declaration screen lands ([[PB183]]
+        // — which must first verify that rule's severity against the PRINTED page and sweep the corpus).
+        // Never a silent zero-width Tier-B alias.
+        if (leaves.Any(PointerObjectClass))
+        {
+            reject = $"a pointer/object-class leaf under REDEFINES of '{cls.Canonical.CobolName}' (a managed "
+                + "pointer/reference cell has no byte-window overlay; the declaration itself is "
+                + "§13.18.60.3 SR14-nonconforming — kb/Work PB183)";
+            return RedefinesTier.Rejected;
+        }
+
         if (leaves.Any(l => l.Pic is { } p && (p.IsFloat
             || p.Usage is Usage.Comp5 or Usage.Index
                 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble)))

@@ -48,6 +48,40 @@ public sealed class RedefinesClassificationTests
 
     private static DataItem Item(DataBinder d, string name) => d.ByName[name][0];
 
+    /// <summary>§13.18.44.3 SR12 (kb/Work PB179 — the Step D Tier-D bind half): a POINTER item as the
+    /// SUBJECT of a REDEFINES entry is a conformance rejection — before the screen it classified Tier B
+    /// with a ZERO-WIDTH window (the pointer categories occupy no character positions).</summary>
+    [Fact]
+    public void TierD_PointerSubject_RejectedSr12()
+    {
+        var d = Bind("01 WS-A PIC X(8).\n01 WS-P REDEFINES WS-A USAGE POINTER.");
+        var p = Item(d, "WS-P");
+        Assert.Equal(RedefinesTier.Rejected, p.Class!.Tier);
+        Assert.Contains("SR12", p.Class.RejectReason);
+    }
+
+    /// <summary>§13.18.44.3 SR14: data-name-2 (the redefined item) of class pointer.</summary>
+    [Fact]
+    public void TierD_PointerTarget_RejectedSr14()
+    {
+        var d = Bind("01 WS-P USAGE POINTER.\n01 WS-A REDEFINES WS-P PIC X(8).");
+        var a = Item(d, "WS-A");
+        Assert.Equal(RedefinesTier.Rejected, a.Class!.Tier);
+        Assert.Contains("SR14", a.Class.RejectReason);
+    }
+
+    /// <summary>A pointer leaf NESTED inside a redefining group is NOT SR12/SR14's letter (those bar the
+    /// entry-level items) — it takes the staged-loud Tier-D arm: Rejected with the byte-window-overlay
+    /// mechanism named, never a silent zero-width Tier-B alias.</summary>
+    [Fact]
+    public void TierD_NestedPointerLeaf_StagedLoud()
+    {
+        var d = Bind("01 WS-A PIC X(8).\n01 WS-G REDEFINES WS-A.\n   05 WS-G-X PIC X(3).\n   05 WS-G-P USAGE POINTER.");
+        var g = Item(d, "WS-G");
+        Assert.Equal(RedefinesTier.Rejected, g.Class!.Tier);
+        Assert.Contains("byte-window overlay", g.Class.RejectReason);
+    }
+
     [Fact]
     public void TierA_IdenticalPic_OneClassOneCanonical()
     {

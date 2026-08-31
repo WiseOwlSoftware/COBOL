@@ -56,6 +56,8 @@
   "pb124-substitute-midpair-keyword",
   "pb124-trim-all-below-2023",
   "pb118-substitute-tail-class",
+  "pb179-redefines-pointer-subject",
+  "pb179-redefines-pointer-target",
   "pb64t6-picture-locale-syntax",
   "pb64t6-picture-locale-sign",
   "pb64t6-picture-locale-constant-record",

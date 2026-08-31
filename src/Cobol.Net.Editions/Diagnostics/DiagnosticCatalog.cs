@@ -190,6 +190,17 @@ public static class DiagnosticCatalog
     // resolved at BIND time against the containment tree (a directly contained program, or a visible common
     // program per §8.4.6.3). Replaced the 0899-staged CallAsNestedNeedsLiteral: this is a permanent
     // conformance rejection, not recognized-not-implemented debt.
+    // The §13.18.44.3 SR12/SR14 REDEFINES class screen (kb/Work PB179 — the Step D Tier-D arm's bind
+    // half): a permanent conformance rejection of the ENTRY-level shapes the rules name. The NESTED
+    // pointer/object-leaf shape is NOT these rules' letter and takes ComputeTier's staged-loud arm instead.
+    public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
+        "COBOLNET1697", "redefines-pointer-object", EditionSeverity.Error,
+        "ISO §13.18.44.3 syntax rule 12: \"The REDEFINES clause shall not be specified for a data item of "
+        + "class object, message-tag, or pointer or a strongly-typed group item\"; syntax rule 14: "
+        + "\"Data-name-2 shall not be of class object, message-tag, or pointer, a strongly-typed group "
+        + "item, or an item subordinate to a strongly-typed group item.\"",
+        "ISO §13.18.44.3 SR12/SR14");
+
     public static readonly DiagnosticDescriptor CallAsNestedScope = new(
         "COBOLNET1676", "call-as-nested-scope", EditionSeverity.Error,
         "CALL … AS NESTED names its program by literal-1. ISO §14.9.4.3 syntax rule 15: \"If the NESTED phrase "
