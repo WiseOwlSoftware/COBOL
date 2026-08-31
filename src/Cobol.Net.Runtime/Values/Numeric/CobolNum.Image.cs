@@ -56,22 +56,45 @@ public static partial class CobolNum
     public static string StoreImage(string image, in NumProfile item, string current) => image;
 
     /// <summary>The UNSIGNED carrier lanes (kb/Work PB164): a <c>ulong</c>/<c>UInt128</c>-carried
-    /// BinaryCapacity item (an unsigned <c>PIC 9(10..)</c> COMP-5 / BINARY-DOUBLE) reinterprets
-    /// BIT-IDENTICALLY through the signed lane — the two's-complement bytes of the reinterpreted value ARE
-    /// the unsigned big-endian magnitude bytes at <see cref="NumProfile.StorageLength"/>, and the parse
-    /// reinterprets back, so <c>FormatBinaryImage</c>/<c>ParseBinaryImage</c> need no unsigned twins.
+    /// BinaryCapacity item (an unsigned <c>PIC 9(10..)</c> COMP-5 / BINARY-DOUBLE) writes its container value
+    /// as the unsigned big-endian magnitude bytes at <see cref="NumProfile.StorageLength"/>.
     /// Without these overloads the group codec's emitted <c>FormatImage(field, …)</c> failed to COMPILE for
-    /// such a leaf (UInt128→Int128 is an explicit conversion).</summary>
+    /// such a leaf (UInt128→Int128 is an explicit conversion).
+    /// <para>⛔ THE UNSIGNED VALUE MUST NOT ENTER THE SIGNED LANE (kb/Work PB164 — the Step D review's
+    /// sweep-note #409). It was written as <c>FormatImage(unchecked((Int128)unscaled), item)</c> on the theory
+    /// that the reinterpretation is bit-identical. It is not, because
+    /// <see cref="FormatBinaryImage"/> applies §14.9.25.4 GR6b — "when an unsigned numeric item is the
+    /// receiving item, the ABSOLUTE VALUE of the sending value is used" — and that rule is about a NEGATIVE
+    /// VALUE, while a 16-byte container value ≥ 2^127 reinterprets to a negative <c>Int128</c> that is not a
+    /// negative value at all. The rule then NEGATED the bit pattern: an item holding 2^128−1 encoded as
+    /// <c>00…01</c>. Measured, not deduced — a windowed <c>PIC 9(31) COMP-5</c> round trip came back 1.
+    /// The 8-byte lane never tripped it (every <c>ulong</c> is a non-negative <c>Int128</c>), but it routes
+    /// through the same door so the fix cannot rot back in.</para></summary>
     public static string FormatImage(ulong unscaled, in NumProfile item) =>
-        FormatImage(unchecked((Int128)unscaled), item);
+        FormatImage((UInt128)unscaled, item);
 
     /// <inheritdoc cref="FormatImage(ulong, in NumProfile)"/>
     public static string FormatImage(UInt128 unscaled, in NumProfile item) =>
-        FormatImage(unchecked((Int128)unscaled), item);
+        item.ByteForm is NumericByteForm.Binary
+            ? BinaryBytes(Mask(unscaled, Width(item)), Width(item))
+            : FormatImage(unchecked((Int128)unscaled), item);
 
     /// <inheritdoc cref="FormatImage(ulong, in NumProfile)"/>
     public static ulong StoreImage(string image, in NumProfile item, ulong current) =>
         unchecked((ulong)ParseImage(image, item));
+
+    /// <summary>The unsigned READ twins of <see cref="ParseImage"/> (the Step D arm-1 dissolution, kb/Work
+    /// PB164): a ulong/UInt128-carried BinaryCapacity item read through a byte-form WINDOW must decode to
+    /// its unsigned container value — the signed lane's Int128 result reinterprets bit-identically, exactly
+    /// as the unsigned StoreImage lanes above do (the two's-complement bytes of the reinterpreted value ARE
+    /// the unsigned magnitude bytes). Without these, a wide unsigned COMP-5 window decoded SIGNED — a silent
+    /// wrong answer above Int128.MaxValue's bit pattern.</summary>
+    public static ulong ParseImageU(string image, in NumProfile item) =>
+        unchecked((ulong)ParseImage(image, item));
+
+    /// <inheritdoc cref="ParseImageU(string, in NumProfile)"/>
+    public static UInt128 ParseImageU128(string image, in NumProfile item) =>
+        unchecked((UInt128)ParseImage(image, item));
 
     /// <inheritdoc cref="FormatImage(ulong, in NumProfile)"/>
     public static UInt128 StoreImage(string image, in NumProfile item, UInt128 current) =>
@@ -148,8 +171,18 @@ public static partial class CobolNum
     private static string FormatBinaryImage(Int128 unscaled, in NumProfile item)
     {
         int n = Width(item);
+        // §14.9.25.4 GR6b — an unsigned receiving item takes the ABSOLUTE VALUE of the sending value. This is a
+        // VALUE-domain rule; the unsigned CARRIER lanes above therefore never come through here, because their
+        // "negative" Int128 is a reinterpreted bit pattern, not a negative value.
         if (!item.Signed && unscaled < 0) unscaled = -unscaled;
-        UInt128 raw = Mask(unchecked((UInt128)unscaled), n);
+        return BinaryBytes(Mask(unchecked((UInt128)unscaled), n), n);
+    }
+
+    /// <summary>The radix-2 rendering itself: <paramref name="raw"/>'s low <paramref name="n"/> bytes, most
+    /// significant first, one byte per char. The ONE place binary bytes are laid out — the signed lane reaches
+    /// it after §14.9.25.4 GR6b normalization, the unsigned carrier lanes directly.</summary>
+    private static string BinaryBytes(UInt128 raw, int n)
+    {
         var chars = new char[n];
         for (int i = 0; i < n; i++) chars[i] = (char)(byte)(raw >> (8 * (n - 1 - i)));
         return new string(chars);
@@ -163,7 +196,10 @@ public static partial class CobolNum
         // §14.6.13.2 leaves it undefined): the bytes present are read as the LOW-order bytes, deterministically.
         int take = image is null ? 0 : Math.Min(n, image.Length);
         for (int i = 0; i < take; i++) raw = (raw << 8) | (byte)image![i];
-        if (!item.Signed) return (Int128)raw;
+        // UNCHECKED: a 16-byte unsigned container value ≥ 2^127 has no Int128 image, and the reinterpretation is
+        // exactly what ParseImageU128 converts back — an overflow throw here would be a wrong stage, not a
+        // diagnosis (the value is legal; §13.18.60.4 GR12 gives the item its full container range).
+        if (!item.Signed) return unchecked((Int128)raw);
         // Sign-extend from the pinned width: a set top bit is a negative two's-complement value.
         if (n >= 16) return unchecked((Int128)raw);
         UInt128 span = UInt128.One << (8 * n);

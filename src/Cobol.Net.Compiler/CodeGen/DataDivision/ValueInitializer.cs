@@ -128,6 +128,13 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // declared textually earlier (EmitProfiles runs first), so it is initialized before this use.
         if (item.StoreAsImage)
         {
+            // A WINDOWED FLOAT member (the Step D arm-1 dissolution) seeds its IEEE window bytes from the
+            // (float-literal or zero) VALUE through the ONE literal recipe (RawValueAsFloat) — the integer
+            // lane would throw NoByteImage on an Ieee profile.
+            if (pic.IsFloat)
+                return RuntimeApi.NumFormatImageFloat(
+                    effRaw is { } fv && FigurativeInitializer(fv, pic) is null ? RawValueAsFloat(fv, pic) : "0d",
+                    item.ProfileName);
             string unscaled = effRaw is { } rv && FigurativeInitializer(rv, pic) is null
                 ? EmitText.UnscaledAtScale(rv, pic.Scale)
                 : "0L";
@@ -274,7 +281,8 @@ internal sealed class ValueInitializer(EmitContext ctx)
         return FigurativeConstants.KindOf(key, includeNull: true);
     }
 
-    /// <summary>A numeric VALUE literal as a C# float/double literal for a COMP-1/COMP-2 item.</summary>
-    private static string RawValueAsFloat(string raw, PicInfo pic) =>
+    /// <summary>A numeric VALUE literal as a C# float/double literal for a COMP-1/COMP-2 item. Internal:
+    /// the ONE literal recipe — the group-image codec's float backing seed reuses it (Step D).</summary>
+    internal static string RawValueAsFloat(string raw, PicInfo pic) =>
         pic.IsSingle ? $"{raw.Trim().TrimStart('+')}f" : $"{raw.Trim().TrimStart('+')}d";   // COMP-1/FLOAT-SHORT → float literal, else double
 }

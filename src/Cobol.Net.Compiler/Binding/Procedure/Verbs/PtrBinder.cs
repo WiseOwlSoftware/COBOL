@@ -62,8 +62,10 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// pass (or be an EXTERNAL record — already cell-backed). A qualified operand resolves through the ONE
     /// §8.4.2.2 qualification machinery; a subscripted operand addresses THE OCCURRENCE (GR1) — the resolver
     /// returns its in-class occurrence displacement (<c>ReferenceResolver.ResolveForAddressOf</c>). Un-forcible
-    /// shapes (a rejected COMP-leaf class, an OCCURS-resident anchor, a carrier-resident LINKAGE formal) and
-    /// reference-modified operands stage LOUD — never a pointer to the wrong storage.</summary>
+    /// shapes (a class rejected for a national/bit/pointer-class leaf, an OCCURS-resident anchor, a
+    /// carrier-resident LINKAGE formal) and reference-modified operands stage LOUD — never a pointer to the
+    /// wrong storage. A COMP/float/INDEX leaf is NOT un-forcible any more: every numeric byte form rides the
+    /// cell (kb/Work PB164).</summary>
     private BoundAddressOf? PtrBindAddressOf(Core.DataReferenceContext addrRef)
     {
         if (ctx.Refs.ResolveForAddressOf(addrRef) is not { } r)
@@ -85,8 +87,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET0869",
                 $"ADDRESS OF '{addrRef.GetText()}': the operand's record could not be placed on addressable "
-                + "cell storage (a COMP/float/index leaf, an OCCURS-resident anchor, or a carrier-resident "
-                + "LINKAGE formal — named increment residue; ISO §8.4.3.11)");
+                + "cell storage (a national/bit/pointer-class leaf, an OCCURS-resident anchor, or a "
+                + "carrier-resident LINKAGE formal — named increment residue; ISO §8.4.3.11)");
             return null;
         }
         return new BoundAddressOf(item, occursDisp);

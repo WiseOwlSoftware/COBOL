@@ -43,9 +43,12 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 : RuntimeApi.PtrUpBy(addr, off);
         if (ctx.Data.PtrAddressableCellOf.TryGetValue(cls, out var cell))
             return $"ManagedPointer.At({cell}, {off})";
+        // ⛔ The SAME seed expression the backing property emits (DataEmitter.ExternalCellSeed — the ONE
+        // composer): whichever of the two runs first CREATES the run-unit cell, so a divergence here would make
+        // the record's initial content depend on statement order.
         if (ctx.Data.CallExternalBackings.FirstOrDefault(b => b.BackingCsName == cls.BackingCsName) is { } ext)
             return $"ManagedPointer.At(ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
-                + $"{CsLiteral(ext.InitImage)}), {off})";
+                + $"{new DataEmitter(ctx).ExternalCellSeed(ext)}), {off})";
         return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' — unrecognized cell backing");
     }
 

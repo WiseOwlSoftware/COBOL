@@ -17,24 +17,31 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// the canonical's VALUE): a group concatenates its leaves' images; an elementary item formats its VALUE (numeric
     /// → <c>CobolNum.FormatDisplay</c>; alphanumeric/edited → the stored string; figurative/default per width). A
     /// fixed-OCCURS entry's image repeats <c>Occurs</c> times — every occurrence takes the VALUE (ISO §13.18.63 GR9;
-    /// the recursion runs through this wrapper, so nested OCCURS repeat too).</summary>
-    public string ImageInitOf(DataItem item)
+    /// the recursion runs through this wrapper, so nested OCCURS repeat too).
+    /// <para><paramref name="useValues"/> false suppresses every VALUE and composes the CATEGORY-DEFAULT initial
+    /// image instead — the §13.18.63 GR4a shape, where "a PLAIN external item's VALUE takes effect only during
+    /// INITIALIZE", so its run-unit cell must seed blank/zero rather than VALUE-composed. It is the SAME
+    /// composition either way, which is the point: a byte-form leaf's default is the ZERO ENCODING of its pinned
+    /// form (radix-2 / BCD / IEEE / INDEX bytes), never a run of ASCII '0' characters. The EXTERNAL path used to
+    /// hand-roll that default in the BINDER (<c>CallInitialImage</c>, a second seeder with a char-fill model that
+    /// predated the byte forms); one seeder, one flag (kb/Work PB164 — one-mechanism-per-job).</para></summary>
+    public string ImageInitOf(DataItem item, bool useValues = true)
     {
-        string one = ImageInitOfOne(item);
+        string one = ImageInitOfOne(item, useValues);
         return item.Occurs is { } n and > 1 ? RuntimeApi.StrRepeat(one, $"{n}") : one;
     }
 
-    private string ImageInitOfOne(DataItem item)
+    private string ImageInitOfOne(DataItem item, bool useValues)
     {
         if (item.IsGroup)
         {
             // Redefining children overlay storage already composed by their targets — never part of the image.
             var parts = item.Children.Where(c => (c.IsGroup || c.IsElementary) && c.RedefinesTargetName is null)
-                .Select(ImageInitOf);
+                .Select(c => ImageInitOf(c, useValues));
             return item.Children.Count > 0 ? "(" + string.Join(" + ", parts) + ")" : "\"\"";
         }
         var pic = item.Pic!;
-        if (item.RawValue is { } raw)
+        if (useValues && item.RawValue is { } raw)
         {
             if (vals.FigurativeInitializer(raw, pic) is { } fig && pic.Category is not PicCategory.Numeric) return fig;
             // CCVS leniency (same as InitializerFor): an ALPHANUMERIC literal VALUE on a numeric DISPLAY item
@@ -70,6 +77,15 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             if (pic.Category is PicCategory.National)
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
         }
+        // A FLOAT member's image is its IEEE window bytes (the Step D arm-1 dissolution — the ' '×Length
+        // fall-through seeded ZERO characters for the PICTURE-less float shapes, Length 0): the VALUE
+        // literal through the ONE recipe, else the zero encoding.
+        if (pic.Category is PicCategory.Numeric && pic.IsFloat)
+            return RuntimeApi.NumFormatImageFloat(
+                useValues && item.RawValue is { } fraw && !fraw.StartsWith('"')
+                    && vals.FigurativeInitializer(fraw, pic) is null
+                    ? ValueInitializer.RawValueAsFloat(fraw, pic) : "0d",
+                item.ProfileName);
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
             ? RuntimeApi.NumFormatImage("0L", item.ProfileName)
             // Boolean initial state — zeros (§13.18.63). A USAGE BIT item's zeros are PACKED, so the seed is

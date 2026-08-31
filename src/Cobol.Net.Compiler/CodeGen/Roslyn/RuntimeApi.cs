@@ -112,6 +112,20 @@ internal static class RuntimeApi
     public static string NumParseImageFloat(string image, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageFloat)}({image}, {profile})";
 
+    /// <summary>The UNSIGNED decode twins (the Step D arm-1 dissolution) — a ulong/UInt128-carried window
+    /// decodes to its container value, bit-identically through the signed lane.
+    /// <para>⚠ The 8-byte (<c>ulong</c>) half has NO emitter caller: <c>ParseBinaryImage</c> already returns an
+    /// unsigned item's full width as a non-negative <c>Int128</c>, so <c>NumericRenderer</c>'s generic
+    /// StoreAsImage arm decodes a <c>PIC 9(10..18) COMP-5</c> window identically and the extra arm was pure
+    /// duplication (kb/Work PB164, the Step D review). Kept as the named half of the runtime's unsigned lane
+    /// pair, NOT as live drift — the 16-byte twin below is the one an emitter picks.</para></summary>
+    public static string NumParseImageU(string image, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageU)}({image}, {profile})";
+
+    /// <inheritdoc cref="NumParseImageU"/>
+    public static string NumParseImageU128(string image, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageU128)}({image}, {profile})";
+
     /// <summary>The FLOAT encode lane (kb/Work PB164 wave 2) — <c>CobolNum.FormatImageFloat</c>, distinctly
     /// named because FormatImage overloads on a float would make integer call sites ambiguous.</summary>
     public static string NumFormatImageFloat(string value, string profile) =>

@@ -55,11 +55,13 @@ Because two typed reps cannot both be live over one storage without a shared `by
 **exactly ONE stored backing (the canonical)** and every other view is a **computed accessor** over it (priority
 cascade D>C>B>A):
 - **A — Alias** (identical PIC+USAGE / RENAMES no-THRU): one typed field, others pass-through.
-- **B — StringCanonical** (whole class is USAGE DISPLAY — the dominant NIST case): canonical = one `string` of
-  class-max width; each view is a typed `(offset,width)` window (`RedefViewPlace`) — substring / `ParseDisplay`→long /
-  `FormatDisplay`. No bytes.
-- **C — ByteCanonical** (genuine mixed-USAGE pun over COMP/COMP-3/COMP-5/INDEX): one class-scoped `byte[]`, SYNC-aware,
-  each leaf a codec accessor — currently interim loud-rejected pending the RedefCodec.
+- **B — StringCanonical** (the whole class has a byte image — since Step D that is every non-alias, non-rejected
+  case, mixed-USAGE puns included): canonical = one `string` of class-max width under the char==byte convention;
+  each view is a typed `(offset,width)` window (`RedefViewPlace`) holding the leaf's pinned `NumericByteForm`
+  bytes — zoned digits for DISPLAY, radix-2 for BINARY/COMP-5, BCD for PACKED, big-endian IEEE for the float
+  family, the 8-byte occurrence number for INDEX.
+- ~~**C — ByteCanonical**~~ — **DELETED (Step D, kb/Work PB164):** no class-scoped `byte[]`, no RedefCodec; the
+  mixed-USAGE pun it was reserved for is an ordinary Tier-B byte window.
 - **D — Reject loud** (object/pointer/strongly-typed/ODO puns — already spec-illegal).
 
 RENAMES folds into the same tiers as a composed view (`RenamesPlace` distributes writes across the spanned leaves).

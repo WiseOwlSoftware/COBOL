@@ -158,20 +158,26 @@ public sealed class RedefinesClassificationTests
         Assert.Equal("BinaryMinus", b.Pic!.SignKind);   // untouched: the sign lives in the two's-complement bytes
     }
 
+    /// <summary>The FLIPPED lock (the Step D arm-1 dissolution — this fact previously pinned the Tier-C
+    /// rejection): a float or COMP-5 pun is an ordinary Tier-B byte-window class now — the leaf's window is
+    /// its pinned byte form at StorageWidth (IEEE 4 bytes for COMP-1; the full-container 2 bytes for a
+    /// 9(4) COMP-5), image-forced onto the one string backing. The float fixture is re-expressed as the
+    /// LEGAL picture-less <c>USAGE COMP-1</c> (the old <c>PIC 9(4) COMP-1</c> was COBOLNET1521 illegal
+    /// source binding through error recovery — it proved nothing).</summary>
     [Fact]
-    public void TierC_FloatAndComp5Puns_StayRejected()
+    public void TierB_FloatAndComp5Puns_ByteWindows()
     {
-        // The narrowed Tier-C island: no fixed character-digit image — float (COMP-1/2) and COMP-5 (whose
-        // BinaryCapacity discipline stores values beyond the PICTURE digit count) stay loud-rejected.
-        // (The float leaf carries a PICTURE so the classifier sees a Pic: a PICTURE-less COMP-1 binds with no
-        // PicInfo at all today — a pre-existing data-model gap outside this classifier's scope.)
-        var d = Bind("01 WS-A PIC X(4).\n01 WS-B REDEFINES WS-A PIC 9(4) COMP-1.");
-        var cls = Item(d, "WS-A").Class!;
-        Assert.Equal(RedefinesTier.Rejected, cls.Tier);
-        Assert.NotNull(cls.RejectReason);
+        var d = Bind("01 WS-A PIC X(4).\n01 WS-B REDEFINES WS-A USAGE COMP-1.");
+        var b = Item(d, "WS-B");
+        Assert.Equal(RedefinesTier.StringCanonical, b.Class!.Tier);
+        Assert.Equal(4, b.ImageWidth);            // the IEEE binary32 window
+        Assert.Contains(b, d.ImageForcedItems);   // image-forced onto the one backing
 
         var d5 = Bind("01 WS-C PIC X(4).\n01 WS-D REDEFINES WS-C PIC 9(4) COMP-5.");
-        Assert.Equal(RedefinesTier.Rejected, Item(d5, "WS-C").Class!.Tier);
+        var w5 = Item(d5, "WS-D");
+        Assert.Equal(RedefinesTier.StringCanonical, w5.Class!.Tier);
+        Assert.Equal(2, w5.ImageWidth);           // the full-container radix-2 window
+        Assert.Contains(w5, d5.ImageForcedItems);
     }
 
     [Fact]

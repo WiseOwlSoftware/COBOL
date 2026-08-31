@@ -383,8 +383,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     string srcD = NumericRenderer.Real(num.AsNum(source, ReceiverContext.None, floatSendingExempt: sameUsage));
                     // §14.9.25.4 GR4 step 4a: a MOVE into a SINGLE-precision receiver raises EC-DATA-OVERFLOW when a
                     // finite source overflows to ±Inf (StoreSingleChecked). A double receiver cannot overflow from a
-                    // finite double, so it keeps the bare cast.
-                    return pic.IsSingle ? RuntimeApi.FloatStoreSingleChecked(srcD) : $"({pic.ClrType})({srcD})";
+                    // finite double, so it keeps the bare cast. A WINDOWED float receiver (Tier-B / image-stored —
+                    // the Step D arm-1 dissolution) re-encodes as its IEEE window bytes.
+                    string fval = pic.IsSingle ? RuntimeApi.FloatStoreSingleChecked(srcD) : $"({pic.ClrType})({srcD})";
+                    return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(fval, target.ProfileName) : fval;
                 }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)

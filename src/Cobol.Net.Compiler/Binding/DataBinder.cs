@@ -3619,9 +3619,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
     }
 
-    /// <summary>Assign a redefines class its tier (COBOLNET_DESIGN §4.2 cascade D &gt; C &gt; B &gt; A). Tier C (the
-    /// confined byte[] codec for a genuine mixed-USAGE pun) is not yet implemented, so a class that would be Tier C is
-    /// loudly rejected in the interim — a conformant diagnostic on a legal-but-unimplemented construct.</summary>
+    /// <summary>Assign a redefines class its tier (COBOLNET_DESIGN §4.2; the Step D arm-1 dissolution made the
+    /// cascade D &gt; B &gt; A — Tier C dissolved into B: every numeric leaf kind's byte form is pinned, so a
+    /// mixed-USAGE pun is an ordinary byte-window class. D rejects the nested pointer/object backstop and the
+    /// NATIONAL residue.</summary>
     /// <summary>True if <paramref name="d"/> is, or has anywhere beneath it, an OCCURS DYNAMIC table (data-model
     /// D9) — the REDEFINES 1525 guard (a dynamic table is out-of-line and cannot participate in a shared area).</summary>
     private static bool ContainsDynamicTable(DataItem d) =>
@@ -3672,20 +3673,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         reject = null;
         var leaves = cls.Members.SelectMany(LeavesOf).ToList();
 
-        // Tier C → Rejected (interim; the DESIGN-data-model §2.3 Step D re-base, 2026-08-30, corrects this
-        // comment's OLD text — it claimed the tiering "still models windows over the ZONED digit-image
-        // representation", which V59 retired: the Tier-B geometry below is ALREADY byte-form end to end, and
-        // the StoreAsImage loop's own comment says so). The arm exists because the LANES the four excluded
-        // families need are incomplete (the float arm-order/seed/unsigned-wide gaps the Step D scout
-        // catalogued), not because the window model is wrong — dissolving it is PB164's remaining half,
-        // per the Step D order (Tier-D first, the live lane defects, then this arm).
-        // A DISPLAY + BINARY/PACKED mix is Tier B: one string backing IS the shared storage area
-        // (§13.18.44.4 GR1 — association at the bit over "the number of bits required"; GR2 grants every
-        // entry's name reference to that storage; §12.4.6.4.4 GR2's "aligned on the leftmost byte position"
-        // is the same BYTE model derived FOR same-record-area FROM redefinition). Its binary/packed leaves
-        // become BYTE-FORM windows via the StoreAsImage loop in ClassifyRedefinesClasses.
-        // ⚠ Pointer/object/strongly-typed leaves currently reach Tier B with ZERO-WIDTH windows — the
-        // missing §13.18.44.3 SR12/SR14 Tier-D arm is kb/Work PB179 (Step D lands it first).
+        // ⛔ THE TIER-C ARM IS GONE (the Step D arm-1 dissolution — DESIGN-data-model §2.3; kb/Work PB164's
+        // LAST codegen half): every NUMERIC leaf kind carries a pinned byte form (NumericByteForm — waves
+        // 1–2 + R40), the Tier-B geometry has been byte-form since V59 (§13.18.44.4 GR1 associates storage
+        // at the bit over "the number of bits required"; GR2 grants every entry's name reference to that
+        // storage), and the StoreAsImage loop's HasImageByteForm mark goes LIVE for float/COMP-5/BINARY-*/
+        // INDEX leaves — each lane it feeds carries its own byte-level pin (the windowed-float read/store
+        // arms, the unsigned ParseImage twins, the float seeds, the StorageFormPass canonical promotion).
+        // A mixed class is simply Tier B: one string backing IS the shared storage area, every member an
+        // (offset, StorageWidth) byte window.
         // Tier D backstop — a pointer/object-class LEAF nested inside a member (kb/Work PB179): NOT
         // §13.18.44.3 SR12/SR14's letter (those bar the ENTRY-level items — screened per written entry in
         // ClassifyRedefinesClasses). The skeptic round derived that §13.18.60.3 SR14 makes the nested
@@ -3703,13 +3699,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             return RedefinesTier.Rejected;
         }
 
-        if (leaves.Any(l => l.Pic is { } p && (p.IsFloat
-            || p.Usage is Usage.Comp5 or Usage.Index
-                or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble)))
-        {
-            reject = $"float/COMP-5/BINARY-*/INDEX REDEFINES of '{cls.Canonical.CobolName}' (Tier-C byte path) not yet implemented";
-            return RedefinesTier.Rejected;
-        }
 
         // A NATIONAL leaf: §13.18.44 lays the shared area in BYTES, and the documented 2-byte national
         // character (D-N1/D-N2) has no char-window overlay over the single-byte members — recognized, staged
@@ -3717,8 +3706,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // legitimately (one '0'/'1' char = one byte, D-B1).
         if (leaves.Any(l => l.Pic is { Category: PicCategory.National }))
         {
-            reject = $"REDEFINES over national data in '{cls.Canonical.CobolName}' (the 2-byte national "
-                + "character has no single-byte char-window overlay) not yet implemented (Phase 4a residue)";
+            // Reason CORRECTED with the Step D dissolution (the old "no single-byte char-window overlay"
+            // premise dissolved under byte-form windows): the honest residue is D-N1's 2-byte-per-position
+            // REDEFINES layout — its own undischarged A.1 obligation (RESIDUE-11).
+            reject = $"REDEFINES over national data in '{cls.Canonical.CobolName}' (the D-N1 2-byte-per-"
+                + "position REDEFINES layout is an undischarged documentation residue — RESIDUE-11) "
+                + "not yet implemented";
             return RedefinesTier.Rejected;
         }
 

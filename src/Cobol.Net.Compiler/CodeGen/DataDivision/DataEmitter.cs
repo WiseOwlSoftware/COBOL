@@ -41,5 +41,15 @@ internal sealed class DataEmitter
     public (string Name, string Init)? MethodRedefinesBackingDecl(DataItem root) => _structs.MethodRedefinesBackingDecl(root);
 
     /// <summary>See <see cref="GroupImageCodec.ImageInitOf"/>.</summary>
-    public string ImageInitOf(DataItem item) => _codec.ImageInitOf(item);
+    public string ImageInitOf(DataItem item, bool useValues = true) => _codec.ImageInitOf(item, useValues);
+
+    /// <summary>The SEED image of one EXTERNAL record's run-unit cell — the expression handed to
+    /// <c>ExternalStore.Cell(name, seed)</c>. ⛔ THE ONE COMPOSER, because there are TWO call sites that must
+    /// agree: the backing property (<c>OoEmitter.EmitExternalBackings</c>) and the ADDRESS-OF cell reference
+    /// (<c>PtrEmitter</c>). Whichever runs first CREATES the cell, so a divergence between them would make the
+    /// record's initial content depend on statement order. A plain external item seeds with the category
+    /// DEFAULT image (§13.18.63 GR4a — its VALUE takes effect only during INITIALIZE); a CONSTANT RECORD seeds
+    /// with its VALUE-composed image (§11.9.10.4 GR7, the one external item initialized at initial state).</summary>
+    public string ExternalCellSeed(CallExternalBacking ext) =>
+        RuntimeApi.StrStore(ImageInitOf(ext.Record, useValues: ext.Record.IsConstantRecord), $"{ext.Width}");
 }

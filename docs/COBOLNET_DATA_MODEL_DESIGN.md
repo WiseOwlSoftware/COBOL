@@ -68,11 +68,13 @@ backing — the **canonical** — and EVERY other view is a **computed accessor 
 two stored fields per area, so a write through any view is coherent across all.
   • **A — Alias** (identical PIC+USAGE / RENAMES-without-THRU): one typed field; other names are pass-through accessors.
   • **B — StringCanonical** (whole class is USAGE DISPLAY — the dominant case, and the ENTIRE near-term NIST path):
-    canonical = ONE `string` of class-max width (a DISPLAY item's byte image IS its characters); each view is a typed
-    accessor (substring / `ParseDisplay`→long / `FormatDisplay`/`CobolEdit`) over it. NO bytes.
-  • **C — ByteCanonical** (genuine mixed-USAGE pun observing COMP/COMP-3/5/INDEX cross-view): canonical = ONE
-    *class-scoped* `byte[]` (SYNC-aware offsets), each leaf a typed get/set codec over `(offset,length,usage)`. The
-    byte image is confined to the REDEFINES class, never the record, never persisted (owner decision §18 #1).
+    canonical = ONE `string` of class-max width under the char==byte convention; each view is a typed
+    `(offset,width)` accessor over it, holding the leaf's PINNED `NumericByteForm` bytes — zoned characters for
+    DISPLAY, radix-2 for BINARY/COMP-5/BINARY-*, BCD for PACKED-DECIMAL, big-endian IEEE for the float family, the
+    8-byte occurrence number for INDEX (V59 + kb/Work PB164 waves 1–2 + R40). Since the Step D arm-1 dissolution
+    this covers every mixed-USAGE pun too.
+  • ~~**C — ByteCanonical**~~ — **DELETED (Step D, kb/Work PB164).** No class-scoped `byte[]` canonical exists;
+    the puns it was reserved for are ordinary Tier-B byte windows, so the owner fork at §18 #1 is moot.
   • **D — Reject loud** (object/pointer/strongly-typed/variable-length puns — already spec-illegal): a diagnostic.
 The redefining view emits NO stored VALUE field (init only from the original, REDEFINES SR9); a numeric view still
 emits its `_P_` NumProfile (an arithmetic target must compile). FILLER under a REDEFINES needs no field. Tier selection
@@ -161,7 +163,7 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 **Rejected alternatives.** Materializing 88s as stored booleans kept in sync on every parent write — rejected: redundant state, sync bugs, non-idiomatic.
 
-### D5. REDEFINES uses the 4-tier ONE-canonical-backing model (A Alias / B StringCanonical / C class-scoped ByteCanonical / D reject-loud); every non-canonical view is a computed `Place` accessor over the single backing — never two stored fields per storage area. [Canonical: `COBOLNET_DESIGN.md` §4 + `COBOLNET_REDEFINES_DESIGN.md`]
+### D5. REDEFINES uses the 3-tier ONE-canonical-backing model (A Alias / B StringCanonical / D reject-loud — Tier C `ByteCanonical` is DELETED, kb/Work PB164); every non-canonical view is a computed `Place` accessor over the single backing — never two stored fields per storage area. [Canonical: `COBOLNET_DESIGN.md` §4 + `COBOLNET_REDEFINES_DESIGN.md`]
 
 **Rationale.** A write through any view must be visible through every other view of the same area (ISO §13.18.44 "same storage area"). One stored canonical + computed accessors guarantees that coherence with NO byte substrate for the dominant DISPLAY-homogeneous case (Tiers A/B — the entire near-term NIST path), and confines `byte[]` to genuine mixed-USAGE puns only (Tier C, owner decision §18 #1).
 

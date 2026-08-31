@@ -287,11 +287,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : p.Item.Pic switch
     {
         // A GROUP operand in a remaining numeric context (an arithmetic operand, a subscript…) decodes its
-        // alphanumeric IMAGE as an UNSIGNED integer (a group is category alphanumeric, §8.8.4.1.1; the
+        // alphanumeric IMAGE as an UNSIGNED integer (an alphanumeric group item "has class and category
+        // alphanumeric", §8.5.2.1 — NOT the phantom §8.8.4.1.1, kb/Work PB182; the
         // deterministic digit decode §14.6.13.2 permits for incompatible content). NOTE: a MOVE never reaches
         // this branch — a group SENDER makes the move a GROUP move (§14.9.25.4 GR4: no conversion; classified
         // at EmitMove → EmitGroupToElementaryMove), never a numeric decode of the image (the pre-fix NC105A
-        // MOVE MOVE43 TO MOVE3 mis-derivation). A mixed-usage (COMP-leaf) group stays loud (Tier-C).
+        // MOVE MOVE43 TO MOVE3 mis-derivation). A mixed-usage (COMP-leaf) group is an ORDINARY image-capable
+        // group now — its leaves' pinned bytes ARE the image (the Step D arm-1 dissolution).
         // ⛔ IsImageCapable, and correct ONLY because strict conformance now REJECTS a group arithmetic operand
         // (DA6 — §8.8.1.1, COBOLNET0844 in ExpressionBinder). Reaching here therefore means --permissive was
         // requested, and the leniency must be CONSISTENT: before, a group of PIC X leaves computed while a group of
@@ -307,9 +309,27 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // IEEE double — NOT truncated to (long) at scale 0 (the pre-D16 stub that silently dropped the fraction). The
         // sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking, §14.6.13.2
         // item 3) UNLESS this is an exempt context (sign condition / same-usage MOVE — floatCheck false = raw read).
+        // ⛔ THE WINDOWED-FLOAT ARM PRECEDES THE NATIVE FLOAT ARM (the Step D arm-1 dissolution — the design
+        // scout's pre-loaded CS0030: with the order reversed, a Tier-B float view rendered
+        // `(double)(<string window>)`). The window's IEEE bytes decode through the distinctly-named lane.
+        { IsFloat: true } when p.Item.StoreAsImage => new NumX(
+            floatCheck
+                ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName))
+                : RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName),
+            0, Real: true),
         { IsFloat: true } => new NumX(
             floatCheck ? RuntimeApi.FloatSending($"(double)({PlaceRenderer.Read(p)})") : $"(double)({PlaceRenderer.Read(p)})",
             0, Real: true),
+        // The windowed 16-byte UNSIGNED arm precedes the signed decode (the scout's silent-wrong-answer: a
+        // wide unsigned COMP-5 window decoded SIGNED above Int128.MaxValue's bit pattern) — ParseImageU128
+        // reinterprets bit-identically into the UInt128 lane, which keeps the item's full [0, 2^128) container
+        // range (§13.18.60.4 GR12).
+        // ⛔ THERE IS NO 8-BYTE (IsUnsignedLongBinary) TWIN HERE, and adding one back would be duplication:
+        // ParseBinaryImage already returns an unsigned item's FULL width as a non-negative Int128, and every
+        // ulong value fits Int128 — so the generic StoreAsImage arm below decodes a `PIC 9(10..18) COMP-5`
+        // window identically. Only the 16-byte range genuinely exceeds the signed carrier.
+        { IsUnsignedWideBinary: true } pic when p.Item.StoreAsImage =>
+            new NumX(RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName), pic.Scale, U: true),
         // A numeric leaf stored as its character image (whole-group-aliased / Tier-B): decode the STORED BYTES to
         // its unscaled value for numeric use — zoned digits for DISPLAY, radix-2 / BCD for BINARY / PACKED (V59;
         // ISO §14.6.13.2 — incompatible content decodes deterministically).

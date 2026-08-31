@@ -179,14 +179,21 @@ internal static class StorageFormPass
                     : new StorageForm.TierBWindow(cls, item.ClassOffset, item.ImageWidth);
             if (cls.Tier == RedefinesTier.Alias)
                 return Classify(cls.Canonical, promoted);   // Tier-A: forward to the canonical's form
-            // ByteCanonical (Tier-C) / Rejected: unreachable corpus-wide today — fall through to base classify.
+            // Rejected (Tier-D backstop / NATIONAL residue): fall through to base classify — the reference
+            // resolver already refuses non-canonical members of a Rejected class (the runtime loud).
         }
 
         // (3) Base classification, then the numeric-image promotion for a whole-group / figurative / ref-mod /
         //     file-record / print-item leaf (the OO harmonize applies its flips AFTER classification, at the
         //     Storage level).
         var form = BaseElementary(item);
-        if (promoted.Contains(item) && form is StorageForm.NativeInt)
+        // ⛔ The promotion admits every byte-form NATIVE shape, not only NativeInt (the Step D design scout's
+        // canonical-vs-view asymmetry: arm 2 above promotes ANY promoted view to CharImage, while this
+        // canonical-side arm promoted only NativeInt — a CANONICAL float/INDEX member of a widened Tier-B
+        // class kept its native form while its views were image-stored, splitting one storage in two).
+        // The predicate is the ONE image predicate: a promoted leaf whose Pic carries a pinned byte form.
+        if (promoted.Contains(item)
+            && form is StorageForm.NativeInt or StorageForm.NativeFloat or StorageForm.IndexCell)
             return new StorageForm.CharImage(item.ImageWidth, PicCategory.Numeric);
         return form;
     }
@@ -242,7 +249,6 @@ internal static class StorageFormPass
         StorageForm.TierBWindow => "string",       // a Tier-B window is a string slice (a numeric Tier-B leaf is CharImage)
         StorageForm.DynamicTable dt => StorageElementType(dt.Element),
         StorageForm.DynamicString => "string",      // a DYNAMIC LENGTH item IS a native string (§8.5.1.10)
-        StorageForm.TierCWindow => "string",       // unreachable today
         _ => "object",
     };
 

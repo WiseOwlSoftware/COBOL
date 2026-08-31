@@ -31,7 +31,7 @@ facts scattered across three layers and, for the pivotal case, **mutated late**:
 | `string` character image | `DataItem.StoreAsImage` flips `ElementType` to `"string"` (`DataItem.cs:304`) | **late mutation** |
 | Tier-B `(offset,width)` window over one shared `string` | `RedefViewPlace` + `RedefinesClass.Tier` (`Place.cs:82`, `RedefinesModel.cs:46`) | REDEFINES classification pass |
 | Out-of-line `CobolDynTable<T>` | `DataItem.FieldType` (`DataItem.cs:309`) | OCCURS DYNAMIC (early) |
-| (declared, unimplemented) Tier-C `byte[]` | `RedefinesTier.ByteCanonical` (`RedefinesModel.cs:48`) | classification → **Rejected loud** |
+| ~~(declared, unimplemented) Tier-C `byte[]`~~ | **RESOLVED — no such representation exists.** `RedefinesTier.ByteCanonical` and `StorageForm.TierCWindow` are DELETED (Step D, kb/Work PB164): a mixed-USAGE pun is an ordinary Tier-B byte window, because every numeric usage has a pinned `NumericByteForm`. | — |
 
 ### 1.1 The pivotal defect: `StoreAsImage` is a late-mutated, cross-layer flag
 
@@ -74,8 +74,9 @@ Consequences, all called out by the survey/critique:
   `FieldEmitter`'s layout each compute record character offsets/widths independently and *must agree*
   (`OdoModel.cs:154` comment: "mirrors FieldEmitter's physical layout"). Sort/Keyed add two more copies.
 - **`RedefinesClass.Tier` / `.Width` / `ClassOffset`** are set-then-overwritten across passes (mutable temporal state).
-- **Tier-C is declared but unimplemented** — `ByteCanonical` exists in the enum and ~10 scattered guards defer to it
-  (`DataBinder.cs:1606,1631,1642`, `RedefinesModel.cs:48`, `CSharpEmitter.cs:565,615,1759,1794`).
+- ~~**Tier-C is declared but unimplemented**~~ — **RESOLVED (Step D, kb/Work PB164).** The enum member, the
+  `TierCWindow` storage form and every guard deferring to them are gone; the "unimplemented byte codec" turned out
+  to be a predicate that stopped at USAGE DISPLAY, not a missing representation.
 - **PicInfo carries dead skeleton scaffolding** (`IsUnimplementedSkeleton => false`, `SkeletonReached`,
   three `ReferenceEquals` sentinel singletons — `PicInfo.cs:175,216,691-705`), and its 230-line `Analyze` scanner
   makes it not a pure value record.
@@ -90,7 +91,7 @@ Consequences, all called out by the survey/critique:
 ### 2.0 One-paragraph thesis
 
 Introduce **`StorageForm`** — a single, closed, computed discriminator that names *exactly how a value is stored*
-(native int / native float / character image / Tier-B window / Tier-C byte / out-of-line table / object-ref /
+(native int / native float / character image / Tier-B window / out-of-line table / object-ref /
 pointer / index). It is computed **once**, by a **`StorageFormPass`** that runs after all facts (including
 procedure-division whole-group use) are collected, and stored **init-only** on `DataItem`. Every downstream reader —
 `FieldEmitter`, `NumericRenderer`, `OperandText`, `Place` construction — asks `StorageForm`, never re-infers from
@@ -124,7 +125,8 @@ public abstract record StorageForm
     /// Native scaled integer: long (≤18 digits) or Int128 (>18). NOT character-imageable as itself, but IS
     /// image-CAPABLE (its zoned digit image is derived on demand). Width = digits + separate-sign.
     public sealed record NativeInt(bool Wide, int Digits, int Width) : StorageForm { … }
-    /// Native IEEE float (COMP-1/FLOAT-SHORT) or double. Never in a static record image (loud Tier-C island).
+    /// Native IEEE float (COMP-1/FLOAT-SHORT) or double. Its record-image bytes are the big-endian IEEE
+    /// interchange encoding (kb/Work PB164 wave 2, §13.18.60.4 GR13-GR15) — it participates like any other leaf.
     public sealed record NativeFloat(bool Single, int Width) : StorageForm { … }
     /// A C# string of exactly Width characters: alphanumeric / numeric-edited / national / boolean, OR a
     /// numeric-DISPLAY leaf promoted to its zoned image because it is used under a whole-group operand (§14.9 GR4).
@@ -132,8 +134,7 @@ public abstract record StorageForm
     public sealed record CharImage(int Width, PicCategory Category) : StorageForm { … }
     /// A Tier-B REDEFINES view: a typed (offset, width) window over the class's ONE shared string backing.
     public sealed record TierBWindow(RedefinesClass Class, int Offset, int Width) : StorageForm { … }
-    /// A Tier-C REDEFINES view over the class's ONE confined byte[] (§4.2 tier C). QUARANTINED until implemented.
-    public sealed record TierCWindow(RedefinesClass Class, int Offset, int Length, Usage Usage) : StorageForm { … }
+    // (No Tier-C form. A mixed-USAGE REDEFINES view is a TierBWindow like any other — Step D, kb/Work PB164.)
     /// An out-of-line OCCURS DYNAMIC table (CobolDynTable<T>, D9); Element is the per-occurrence element's form.
     public sealed record DynamicTable(StorageForm Element) : StorageForm { … }
     /// A .NET object reference (typed class or universal CobolObject?). Zero character positions.
@@ -187,24 +188,24 @@ consolidation:
 
 ### 2.3 The REDEFINES tier model (unchanged semantics, owned representation)
 
-The 4-tier lattice (A Alias ⊑ B StringCanonical ⊑ C ByteCanonical ⊑ D Rejected, `RedefinesModel.cs:37-53`) is
-**correct and kept**. Changes are about ownership, not behavior:
+The lattice is now **3 tiers — A Alias ⊑ B StringCanonical ⊑ D Rejected** (`RedefinesModel.cs`, `enum
+RedefinesTier`). Tier C (`ByteCanonical`) and `StorageForm.TierCWindow` are **DELETED**: Step D's arm-1
+dissolution (kb/Work PB164) established that a mixed-USAGE pun is not a separate representation at all — every
+numeric usage has a pinned `NumericByteForm` (zoned, radix-2, BCD, IEEE, the R40 index bytes), so a mixed-usage
+class is an ORDINARY Tier-B byte-window class over the one string backing. There was never a second codec to
+build; there was a predicate that stopped short.
 
 - Tier classification produces `StorageForm` for each member: Tier-A view → the canonical's form; Tier-B view →
-  `TierBWindow`; Tier-C view → `TierCWindow`; Tier-D → a rejection diagnostic (no form emitted).
+  `TierBWindow`; Tier-D → a rejection diagnostic (no form emitted).
 - `RedefinesClass.Tier`/`.Width` become **init-only**, set once by `RedefinesClassifier` (§2.5) — no set-then-overwrite.
-- **Tier-C decision — AS BUILT (PHASE-11 Step C):** the rejection is single-sourced; the confined `byte[]` codec is
-  a scheduled increment (Step D — deferred). The as-built shape differs from the earlier sketch above, because the
-  P11 re-scout found the surface was already partly consolidated and more nuanced than "~10 guards":
-  - **The REDEFINES-CLASS Tier-C rejection was ALREADY single-sourced.** A genuine mixed-USAGE REDEFINES pun
-    (`RedefinesTier.ByteCanonical`) is rejected in ONE place — `DataBinder.ComputeTier` (whose two reason arms +
-    the dynamic-table arm carry the ISO citations) applied through the ONE `RedefinesClass.Classify` mutator, with
-    the reason threaded to references by `ExpressionBinder.RefFailure`. `ByteCanonical` is dead-by-construction
-    (ComputeTier never returns it); `StorageForm.TierCWindow` stays QUARANTINED (assigned to zero leaves, no
-    `Read`/`Write` members — `StorageForm` is a pure classification record, so the "throw the internal-error
-    backstop" sketch has no counterpart; the de-facto backstop is `ReferenceResolver.PlaceForItem` returning null →
-    the caller fails loud). There is **no** `RedefinesClassifier` type; classification lives in
-    `DataBinder.ClassifyRedefinesClasses` + `ComputeTier`.
+- **Tier-C decision — AS BUILT (Step D, LANDED):** there is no Tier C. A genuine mixed-USAGE REDEFINES pun is
+  ADMITTED as Tier B, and `ComputeTier`'s remaining reason arms carry only the boundaries that survive — the
+  2-byte national overlay (D-N1/D-N2) and the dynamic-table reject (§13.18.44 SR5). `RedefinesTier.ByteCanonical`
+  and `StorageForm.TierCWindow` are deleted outright rather than left quarantined, since a name nothing can
+  return is a name the next reader has to re-derive. There is **no** `RedefinesClassifier` type; classification
+  lives in `DataBinder.ClassifyRedefinesClasses` + `ComputeTier`, applied through the ONE
+  `RedefinesClass.Classify` mutator, with the reason threaded to references by `ExpressionBinder.RefFailure`.
+  The de-facto loud backstop is `ReferenceResolver.PlaceForItem` returning null → the caller fails loud.
   - **What P11 Step C consolidated** is the SEPARATE *classless* mixed-usage-GROUP image island — a plain group
     (not a REDEFINES pun) whose leaves are not uniformly character-imageable (a float/COMP-5/INDEX/BINARY-* leaf
     under `DataItem.IsImageCapable`, or a COMP/binary leaf under the stricter `DataItem.IsCharacterImage`) has no
@@ -394,7 +395,7 @@ elementary / group / `ALL 'x'` / Report-Writer SOURCE VALUEs. This closes the co
 | refactor | `DataItem.ImageWidth`/`IsCharacterImage`/`IsImageCapable` recursion (`DataItem.cs:245-300`) | cached init-only fields filled by StorageFormPass; width via `RecordLayout` | Removes ~119 O(subtree) re-walks; single owner (§2.4/§2.6). |
 | merge | `OdoModel.PhysicalWidth` + `Sort`/`KeyedIo` geometry | `RecordLayout` | One layout authority; deletes 4 divergent copies (§2.6). |
 | refactor | `RedefinesClass.Tier`/`.Width`/`ClassOffset` (`set`) | init-only, written once by `RedefinesClassifier` | Removes set-then-overwrite temporal state (§2.3). |
-| refactor | ~10 inline Tier-C guards (`DataBinder.cs:1606,1631,1642`, `CSharpEmitter.cs:565…`) | one `RedefinesClassifier.RejectTierC` + `TierCWindow` backstop | Single-source the Tier-C rejection (§2.3). |
+| delete | ~10 inline Tier-C guards + `RedefinesTier.ByteCanonical` + `StorageForm.TierCWindow` | *(nothing)* | **LANDED (Step D, kb/Work PB164):** the tier dissolved into Tier B rather than being single-sourced — a mixed-USAGE pun needed no separate representation (§2.3). |
 | split | `PicInfo.Analyze` (`PicInfo.cs:333-562`) | `PictureAnalyzer.Analyze` | PicInfo becomes a pure value record (§2.7). |
 | delete | `PicInfo` skeleton scaffolding (`:175,216,691-705`) | `PicAnalysis` result discriminant | Removes dead sentinels/branches (§2.7). |
 | rename | `DataBinder.ResolveIndexItems` | folded into `UsageInheritancePass` | Name matched actual scope (USAGE markers, not index-only) (§2.5/§2.7). |

@@ -68,15 +68,15 @@ public sealed partial class DataBinder
             // A rejected class keeps its RejectReason — and the rejection is a BIND-TIME diagnostic now
             // (kb/Work PB151): the bare continue left BasedPointerField null and every ALLOCATE/ADDRESS
             // reference crashed at RUN time on a program that compiled clean, while the EXTERNAL twin
-            // (CallMakeExternal) always diagnosed the identical failure at bind — the two-arm shape. The
-            // character-cell model for non-DISPLAY leaves is the Tier-C island (kb/Work PB164).
+            // (CallMakeExternal) always diagnosed the identical failure at bind — the two-arm shape. What the
+            // shared byte cell still cannot carry is a national, USAGE BIT or pointer-class leaf; every numeric
+            // byte form rides it (kb/Work PB164 — the interpolated RejectReason names the actual leaf).
             if (ForceStringCanonical(root, "BASED item") is not { } cls)
             {
                 Edition.Error(DiagnosticCatalog.BasedRecordSubstrate,
-                    $"BASED item '{root.CobolName}' has a subordinate outside the character cell model "
-                    + $"({root.Class?.RejectReason ?? "unclassified"}) — ALLOCATE/ADDRESS bridging for "
-                    + "non-DISPLAY leaves is recognized but not yet implemented (the Tier-C cell model, "
-                    + "kb/Work PB164; ISO §13.18.5 / §14.9.3)");
+                    $"BASED item '{root.CobolName}' has a subordinate the shared byte cell cannot carry "
+                    + $"({root.Class?.RejectReason ?? "unclassified"}) — ALLOCATE/ADDRESS bridging for it "
+                    + "is recognized but not yet implemented (kb/Work PB164; ISO §13.18.5 / §14.9.3)");
                 continue;
             }
             string addr = "__addr_" + DataItem.Sanitize(root.CobolName ?? root.CsName).ToUpperInvariant();

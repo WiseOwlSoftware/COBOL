@@ -142,8 +142,14 @@ internal static class OperandText
             // Display-form boolean, alphanumeric, edited: the carrier IS the storage, one char per byte.
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.Boolean } =>
                 PlaceRenderer.Read(p),
-            // A zoned leaf stored as its image: the carrier already holds the storage characters.
-            { Category: PicCategory.Numeric, IsFloat: false } when p.Item.StoreAsImage => PlaceRenderer.Read(p),
+            // A numeric leaf stored as its image: the carrier ALREADY HOLDS the storage bytes, whatever byte form
+            // they are — zoned digits, radix-2, BCD, or the IEEE interchange bytes of a windowed float. §15.19.3 r7
+            // asks for the item's STORAGE, and a windowed item's window IS its storage, so it passes through
+            // untouched. ⛔ THIS ARM MUST PRECEDE the native byte-form arms below (the same ordering pin
+            // NumericRenderer's windowed-float arm carries): with an `IsFloat: false` conjunct here a windowed
+            // float fell through to FormatImageFloat(<string window>) — a backend CS1503, the ONE shape
+            // §15.19.3 r7's ANY source format can reach.
+            { Category: PicCategory.Numeric } when p.Item.StoreAsImage => PlaceRenderer.Read(p),
             // A native numeric leaf: the bytes it occupies at a byte boundary (zoned digits, radix-2, BCD,
             // or the wave-2 IEEE forms — PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164) —
             // the same recipes the group codec uses, the float family through its distinctly-named lane.
@@ -156,7 +162,8 @@ internal static class OperandText
     }
 
     /// <summary>True if an operand is compared as text (an alphanumeric literal, or an alphanumeric/edited/group
-    /// field — a group compares as alphanumeric, ISO §8.8.4.1.1).</summary>
+    /// field — an alphanumeric group item "has class and category alphanumeric", ISO §8.5.2.1, and §8.8.4.2.3 SR2
+    /// admits it as a relation operand). ⚠ §8.8.4.1.1 DOES NOT EXIST (kb/Work PB182 — the repo-wide sweep).</summary>
     public static bool IsString(BoundOperand op) => op.Accept(_isString);
 
     /// <summary>⛔ BYTES ARE NOT TEXT (V59). An image-STORED BINARY/PACKED leaf holds its radix-2 / BCD bytes, and
@@ -166,12 +173,44 @@ internal static class OperandText
     /// Returns null for every ZONED item — there the stored image IS the text, and passing the window through
     /// verbatim also preserves the incompatible content a group MOVE can legitimately deposit (spaces in a numeric
     /// leaf), which a decode-and-reformat round trip would silently turn into zeros.
-    /// <para>A GROUP operand is the opposite case and is handled before this: §8.8.4.1.1 makes it alphanumeric over
-    /// the items' REPRESENTATION, so its text IS the record image, bytes and all.</para></summary>
-    private static string? NonTextBytes(Place p, bool deSign)
+    /// <para>A GROUP operand is the opposite case and is handled before this: §8.5.2.1 makes it class and category
+    /// alphanumeric over the items' REPRESENTATION, so its text IS the record image, bytes and all.</para>
+    /// <para>⛔ EVERY byte form the window can hold decodes here, keyed on the item's own carrier lane — the
+    /// decode is the exact inverse of the encode the group codec / REDEFINES backing used, so a WINDOWED leaf
+    /// and its NATIVE twin print identical text. §13.18.44.4 GR1 associates the two descriptions with ONE
+    /// storage area, so "same value, two descriptions, two different printed images" is never a defensible
+    /// answer, whatever latitude §14.9.11.4 GR1 leaves the implementor over the FORM of that text (COBOL.NET's
+    /// determination: docs/CONFORMANCE.md Annex A.1 items 56/92). The three lanes below are the three carriers
+    /// a byte-form numeric leaf can have, and they mirror <c>NumericRenderer.FieldNumCore</c>'s windowed arms
+    /// one for one — the float lane FIRST (its <c>IsFloat</c> exclusion is what printed raw IEEE bytes), then
+    /// the UInt128 lane (a signed decode of a 16-byte unsigned window is a silent wrong answer above
+    /// <c>Int128.MaxValue</c>'s bit pattern), then the signed Int128 lane every other form rides. An 8-byte
+    /// UNSIGNED window needs no twin: <c>ParseImage</c> already returns its full [0, 2^64) range as an
+    /// Int128.</para></summary>
+    private static string? NonTextBytes(Place p, bool deSign, bool floatCheck)
     {
-        if (p.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false } pic
+        if (p.Item.Pic is not { Category: PicCategory.Numeric } pic
             || pic.ByteForm is NumericByteForm.Zoned or NumericByteForm.None) return null;
+        // A FLOAT window holds the item's IEEE interchange bytes (§13.18.60.4 GR13–GR15, the wave-2 pin): decode
+        // through the distinctly-named float lane and render through the SAME CobolFloat.Display the native float
+        // arm below uses, including the CobolFloat.Sending guard (EC-DATA-NOT-FINITE, §14.6.13.2 item 3) unless
+        // the caller is an exempt context. deSign is a no-op: §14.9.25.4 GR6a speaks of an item "described as
+        // being signed numeric" — a float item has no PICTURE and no operational sign to drop.
+        if (pic.IsFloat)
+        {
+            string dec = RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName);
+            return RuntimeApi.FloatDisplay(floatCheck ? RuntimeApi.FloatSending(dec) : dec);
+        }
+        // A 16-byte UNSIGNED BinaryCapacity window (UInt128 carrier, kb/Work R10): the unsigned parse twin
+        // reinterprets the signed lane's Int128 bit-identically, and the U-named format lane keeps the full
+        // [0, 2^128) range — picked by NAME, never by overload (see CobolNum.FormatDisplayU).
+        if (pic.IsUnsignedWideBinary)
+        {
+            string uv = RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName);
+            return deSign
+                ? PExpand($"CobolNum.FormatUnsignedDisplayU({uv}, {pic.Digits})", pic)
+                : RuntimeApi.NumFormatDisplay(uv, p.Item.ProfileName, u: true);
+        }
         string value = RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName);
         // GR6a: an alphanumeric move/compare drops the operational sign — the magnitude digits, never the
         // BinaryMinus form (which is VARIABLE width and would shift a fixed receiver).
@@ -192,12 +231,14 @@ internal static class OperandText
         // UNSTRING source); the receiving direction split lives at the store sites.
         if (p is OdoGroupPlace odo) return PlaceRenderer.SendingImage(odo);
         // A Tier-B REDEFINES view's Read() is already its character-image window (a string), for a group or an
-        // elementary view alike — use it directly (no .AsImage(), no FormatDisplay). EXCEPT when this signed-numeric
-        // view is the de-signed source of an alphanumeric move/compare: its window holds the sign-aware image
-        // (over-punch or separate sign), so decode and re-emit the magnitude digits (ISO §14.9.25.4 GR6a), exactly
-        // as the StoreAsImage branch below does — the same de-sign rule, just a different storage shape.
+        // elementary view alike — use it directly (no .AsImage(), no FormatDisplay). EXCEPT for a NUMERIC view
+        // whose bytes are not text: every non-zoned byte form (binary / packed / COMP-5 / IEEE float) decodes
+        // through NonTextBytes and re-renders its DISPLAY image, so the view prints what its NATIVE twin prints
+        // (§13.18.44.4 GR1 — one storage, two descriptions). The zoned case falls through to the window verbatim,
+        // and a signed zoned view that is the de-signed source of an alphanumeric move/compare re-emits its
+        // magnitude digits (ISO §14.9.25.4 GR6a) exactly as the StoreAsImage branch below does.
         if (p is RedefViewPlace)
-            return NonTextBytes(p, deSign) is { } rvBytes ? rvBytes
+            return NonTextBytes(p, deSign, floatCheck) is { } rvBytes ? rvBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
                 ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName), rvp.Digits), rvp)
                 : PlaceRenderer.Read(p);
@@ -211,8 +252,9 @@ internal static class OperandText
         // ⚠ THIS COMMENT USED TO SAY "its zoned decimal digit image … with a trailing-overpunch sign", which was
         // true of the PRE-V59 image and is now false — the bytes are not digits. Corrected rather than left, since
         // a stale comment describing the old representation is exactly how the two-predicate residue below spread.
-        // Only a VARIABLE-LENGTH group or a group with a pointer/object-class leaf stays the loud Tier-C island (kb/Work PB164 + R40). This is the
-        // WRITE / RELEASE / DISPLAY / compare sender path.
+        // Only a VARIABLE-LENGTH group or a group with a pointer/object-class leaf has no image and stays loud
+        // (kb/Work PB164 + R40 — there is no "Tier-C island" left for a numeric leaf: every numeric usage has a
+        // pinned byte form). This is the WRITE / RELEASE / DISPLAY / compare sender path.
         // A BIT GROUP operates as an elementary boolean item of PICTURE 1(m) (§13.18.29.4 GR1b; D20/PB79): its
         // operand value is its BIT STRING (the subordinates' boolean positions concatenated — AsBits), never the
         // packed byte image AsImage yields; a NATIONAL group's operand value IS its character image (GR2b).
@@ -225,7 +267,7 @@ internal static class OperandText
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)
-            return NonTextBytes(p, deSign) is { } siBytes ? siBytes
+            return NonTextBytes(p, deSign, floatCheck) is { } siBytes ? siBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
                 ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName), sip.Digits), sip)
                 : PlaceRenderer.Read(p);

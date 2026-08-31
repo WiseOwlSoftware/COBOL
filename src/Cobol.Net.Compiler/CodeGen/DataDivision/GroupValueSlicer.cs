@@ -39,10 +39,14 @@ internal sealed class GroupValueSlicer(PhysicalModel phys)
         item.Class is null && (item.IsGroup
             ? item.Children.All(DistributableSubtree)
             // A string-stored leaf takes its slice verbatim; a NATIVE numeric USAGE-DISPLAY leaf decodes its
-            // positional slice (the group VALUE initializes the area "without consideration for the individual
-            // elementary items", ISO §13.18.63 — the slice IS the leaf's zoned image; the IF-suite shape
-            // `01 ARR VALUE "40537". 02 IND OCCURS 5 PIC 9.`). Binary/packed/float leaves stay undistributable
-            // (their character image is the Tier-C byte boundary) and keep the member-wise default.
+            // positional slice (ISO §13.18.63.4 GR5 — "the group area is initialized without consideration for
+            // the individual elementary or group items contained within this group"; the slice IS the
+            // leaf's zoned image; the IF-suite shape `01 ARR VALUE "40537". 02 IND OCCURS 5 PIC 9.`).
+            // ⚠ Binary/packed/float/INDEX leaves stay undistributable and keep the member-wise default — which
+            // is a KNOWN DEFECT, kb/Work PB184, not a boundary: since V59/PB164 every numeric usage HAS a pinned
+            // byte form, so GR5's area reading is defined for them too. Closing it means distributing over the
+            // BYTE image (StorageWidth) rather than this character text, which is a derivation with its own
+            // blast radius — hence a registered note rather than a widening of this predicate.
             : item.StoreAsImage || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean   // string-stored — the slice is the chars (D-N4 identity)
               || item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false });

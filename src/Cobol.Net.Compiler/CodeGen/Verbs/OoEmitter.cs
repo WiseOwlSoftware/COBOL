@@ -42,12 +42,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         foreach (var ext in data.CallExternalBackings)
         {
             // §13.18.63 GR4a: a PLAIN external item's VALUE takes effect only during INITIALIZE, so its cell seeds
-            // with the blank/zoned initial image. §11.9.10.4 GR7: a CONSTANT RECORD is the ONE external item initialized
-            // at initial state — seed its cell with the VALUE-composed image via the SAME Tier-B seeder
-            // (GroupImageCodec.ImageInitOf) that RecordStructEmitter/ProgramEmitter use for every other string backing.
-            string init = ext.Record.IsConstantRecord
-                ? RuntimeApi.StrStore(new DataEmitter(Ctx).ImageInitOf(ext.Record), $"{ext.Width}")
-                : CsLiteral(ext.InitImage);
+            // with the category-DEFAULT initial image. §11.9.10.4 GR7: a CONSTANT RECORD is the ONE external item
+            // initialized at initial state — its cell seeds with the VALUE-composed image. ⛔ ONE SEEDER, ONE FLAG
+            // (GroupImageCodec.ImageInitOf — what RecordStructEmitter/ProgramEmitter use for every other string
+            // backing): the plain arm used to take a SECOND, bind-time seeder whose char-fill model predated the
+            // pinned byte forms, so a COMP-5/float/INDEX leaf's cell seeded with ASCII '0' characters where its
+            // own codec writes the zero ENCODING. ISO mandates no initial value for a plain EXTERNAL at all
+            // (§14.6.2.3.3 leaves it undefined), so this is a consistency fix, not a corrected answer — but two
+            // seeders composing different bytes for one cell is exactly how the next one becomes wrong.
+            string init = new DataEmitter(Ctx).ExternalCellSeed(ext);
             w.Line($"private ref string {ext.BackingCsName} => ref ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
                 + $"{init}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
         }

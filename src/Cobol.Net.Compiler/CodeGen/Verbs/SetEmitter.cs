@@ -132,7 +132,12 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
                 ctx.Writer.Line($"{ix.IndexField} = (long)({NumericRenderer.Align(value, 0)});");
                 break;
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
-                ctx.Writer.Line(PlaceRenderer.Write(p, $"(long)({NumericRenderer.Align(value, 0)})"));
+                // A WINDOWED index data item (Tier-B / image-stored — the Step D arm-1 dissolution) stores
+                // its 8 occurrence-number bytes (the R40 pin); a native one takes the raw long unchanged
+                // (§14.9.39 GR2b). The raw arm against a window was CS1503 in generated code.
+                ctx.Writer.Line(PlaceRenderer.Write(p, p.Item.StoreAsImage
+                    ? RuntimeApi.NumFormatImage($"(long)({NumericRenderer.Align(value, 0)})", p.Item.ProfileName)
+                    : $"(long)({NumericRenderer.Align(value, 0)})"));
                 break;
             case SetPlaceTarget { Place: var p }:
                 arith.StoreArith(p, value, CobolRounding.Truncation);
@@ -153,7 +158,12 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
                 ctx.Writer.Line($"{ix.IndexField} {op}= (long)({NumericRenderer.Align(amount, 0)});");
                 break;
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
-                ctx.Writer.Line(PlaceRenderer.Write(p, $"(long)({PlaceRenderer.Read(p)} {op} {NumericRenderer.Align(amount, 0)})"));
+                // The windowed twin of the StoreSetTarget arm (Step D): decode → augment → re-encode.
+                ctx.Writer.Line(PlaceRenderer.Write(p, p.Item.StoreAsImage
+                    ? RuntimeApi.NumFormatImage(
+                        $"(long)({RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName)} {op} {NumericRenderer.Align(amount, 0)})",
+                        p.Item.ProfileName)
+                    : $"(long)({PlaceRenderer.Read(p)} {op} {NumericRenderer.Align(amount, 0)})"));
                 break;
             case SetPlaceTarget { Place: var p }:
                 arith.StoreArith(p, num.Combine(num.FieldNum(p), op, amount, ReceiverContext.None), CobolRounding.Truncation);

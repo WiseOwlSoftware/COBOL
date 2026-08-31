@@ -186,8 +186,9 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// function's RETURNING item (any level-01/77 LINKAGE entry without BASED/REDEFINES), and §8.4.3.2.4 GR1
     /// clones its description into the caller temp — so every shape named here is an IMPLEMENTATION residue
     /// staged loud (§1.4), never a conformance rule. Supported: elementary fixed-point numeric,
-    /// alphanumeric/alphabetic, numeric-edited, national; character-form groups (every leaf character-stored
-    /// or fixed-point numeric DISPLAY — the leaves the whole-group image promotion covers). Staged: FLOAT
+    /// alphanumeric/alphabetic, numeric-edited, national; image-form groups (every leaf
+    /// <see cref="DataItem.ElementImageCapable"/> — character-stored, or any pinned numeric byte form:
+    /// zoned DISPLAY, binary, packed, COMP-5, IEEE float, INDEX). Staged: FLOAT
     /// (the CALL-boundary string carrier has no float write half — CallEmitter.CallStringWrite renders a raw
     /// string store into the double field), BOOLEAN (the §8.8.2 boolean-expression channel has no
     /// function-result arm — admitting it would half-wire: MOVE/relations would work while IF f(x) and
@@ -209,14 +210,19 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 if (d.OccursSpec is { } os && (os.DependingName is not null || os.IsDynamic))
                     return "a variable-length (OCCURS DEPENDING/DYNAMIC CAPACITY) group RETURNING item is not "
                         + "yet carried (ISO §8.5.1.12 / §14.8.3.2 variable-length-group conformance; a named residue)";
-                if (d.IsElementary && d.Pic is not (
-                        { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
-                            or PicCategory.National or PicCategory.Boolean }
-                        or { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display }))
-                    return $"a group RETURNING item with a non-character leaf ('{d.CobolName ?? "FILLER"}') is "
-                        + "not yet carried — binary/packed/COMP-5/float/index/pointer/object leaves have no "
-                        + "shared character image across the activation boundary (the Tier-C island, "
-                        + "COBOLNET_DESIGN §4.2; a named residue)";
+                // ⛔ THE DERIVED IMAGE PREDICATE, never a hand-rolled usage union. This screen asks exactly one
+                // question — does the leaf have a character image the group codec can carry across the
+                // activation boundary? — and DataItem.ElementImageCapable is where that question is answered
+                // for every consumer (the group codec, the REDEFINES backing, the record window). It read
+                // `{ Numeric, IsFloat: false, Usage: Display }` — the DISPLAY-only union from before V59 — so it
+                // went on rejecting binary / packed / COMP-5 / float / INDEX group leaves years after those
+                // forms got their pinned bytes (V59, kb/Work PB164 waves 1–2, R40). What is genuinely left is
+                // the pointer/object class, which has no character image under EITHER axis.
+                if (d.IsElementary && !d.ElementImageCapable)
+                    return $"a group RETURNING item with a pointer- or object-class leaf ('{d.CobolName ?? "FILLER"}') "
+                        + "is not yet carried — a data-pointer, program-pointer, function-pointer or "
+                        + "object-reference leaf has no character image to cross the activation boundary "
+                        + "(ISO §8.5.2.6 / §13.18.60 GR23 reference restrictions; a named residue)";
                 foreach (var c in d.Children) stack.Push(c);
             }
             return null;   // a character-form group — the implemented group leg

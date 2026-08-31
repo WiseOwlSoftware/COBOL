@@ -29725,9 +29725,9 @@
   "subject": "ALLOCATE statement",
   "verdict": "PARTIAL",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Ptr.cs#PtrBindBasedAndAddressables",
-  "test-ref": "conformance:negative/pb151-based-comp-leaf; conformance:2023/pb80_based_odo_group",
+  "test-ref": "conformance:2023/stepd_based_comp_leaf; conformance:2023/pb80_based_odo_group; conformance:negative/pb164-based-national-leaf",
   "editions": "2002,2014,2023",
-  "notes": "PB151 converts the SILENT arm: a BASED record with a non-DISPLAY leaf is a BIND-TIME COBOLNET1695 now (the bare continue left BasedPointerField null and the program crashed at run time on a clean compile, while CallMakeExternal always diagnosed the identical failure - the two-arm shape). The width halves (template width; ODO maximum) were already verified. REMAINING: the character cell model for non-DISPLAY leaves - kb/Work PB164's Tier-C island; until it lands the rule is realized only for all-DISPLAY records, now loudly at bind instead of a runtime crash.",
+  "notes": "RE-ADJUDICATED at the kb/Work PB164 landing (2026-08-30), and DELIBERATELY NOT FLIPPED. The two width halves stand (the template width; the ODO maximum, pb80_based_odo_group), and the Step D second-gate widening removed the whole NUMERIC exclusion: ForceStringCanonical now admits every HasImageByteForm leaf to the cell, so a BASED record with a COMP / COMP-5 / BINARY-* / PACKED-DECIMAL / COMP-1 / COMP-2 / INDEX leaf is ordinary cell-backed storage and GR3's byte quantity is computed and observed for it - 2023/stepd_based_comp_leaf ALLOCATEs 01 R with S9(4) COMP + S9(3) COMP-3 + COMP-1 leaves, windows the same cell through a second BASED PIC X(8) entry, and reads all eight bytes with FUNCTION ORD (FF FE, 12 3D, 3F C0 00 00), which is the 2+2+4 sum GR3 demands. The old negative fixture pb151-based-comp-leaf, which pinned the bind-time COBOLNET1695 for that shape, was DELETED: 13.18.5.3 SR1/SR2 restrict a BASED subject only to 'shall not be of class object' and 'shall not be a dynamic-length elementary item or a variable-length group', and 14.9.3.3 SR1 asks only for the BASED clause, so it was rejecting legal source. RESIDUE KEEPING PARTIAL, and it is a GR3-shaped residue rather than someone else's: a record carrying a NATIONAL, USAGE BIT or pointer-class leaf still draws COBOLNET1695 at bind (witness conformance:negative/pb164-based-national-leaf), so for those legal data-name-1s NO number of bytes is computed at all - and the reason is precisely 'the number of bytes required to hold an item as described by data-name-1': a national position is TWO bytes over a byte-addressed cell (RESIDUE-11) and a USAGE BIT run is a sub-byte packing, neither of which the shared cell lays out today. Named, loud, and owned rather than guessed at.",
   "state": "GAP"
  },
  {
@@ -29740,7 +29740,7 @@
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitAllocate",
   "test-ref": "conformance:2023/pb151_allocate; conformance:2002/allocate_initialized",
   "editions": "2002,2014,2023",
-  "notes": "PB151: the 'is available for allocation' antecedent is now REAL (GR5's leg exists - on notAvail both GR4 addresses hold NULL by construction, since the runtime returns NULL into the same assignments), and the non-DISPLAY-leaf crash became the bind-time COBOLNET1695. REMAINING: GR4a/b over a BASED record with a non-DISPLAY leaf needs kb/Work PB164's cell model.",
+  "notes": "PB151: the 'is available for allocation' antecedent is now REAL (GR5's leg exists - on notAvail both GR4 addresses hold NULL by construction, since the runtime returns NULL into the same assignments), and the unsupported-leaf crash became the bind-time COBOLNET1695. PB164 then gave every NUMERIC usage a pinned byte form, so a BASED record with a COMP/COMP-5/PACKED/float/INDEX leaf now allocates (conformance:2023/stepd_based_comp_leaf). REMAINING: GR4a/b over a BASED record with a NATIONAL, USAGE BIT or pointer-class leaf - the shared byte cell cannot carry those (conformance:negative/pb164-based-national-leaf).",
   "state": "GAP"
  },
  {
@@ -29779,7 +29779,7 @@
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindAllocateInitialized",
   "test-ref": "conformance:2002/allocate_initialized",
   "editions": "2002,2014,2023",
-  "notes": "Unchanged mechanism (the WITH FILLER ALL TO VALUE THEN TO DEFAULT lowering is exact); PB151 upgraded the non-DISPLAY-leaf boundary from a runtime crash to the bind-time COBOLNET1695. REMAINING: the GR7 expansion over such records - kb/Work PB164's cell model.",
+  "notes": "Unchanged mechanism (the WITH FILLER ALL TO VALUE THEN TO DEFAULT lowering is exact); PB151 upgraded the unsupported-leaf boundary from a runtime crash to the bind-time COBOLNET1695, and PB164 narrowed it to NATIONAL / USAGE BIT / pointer-class leaves once every numeric usage got a pinned byte form. REMAINING: the GR7 expansion over a record carrying one of those three leaf kinds (conformance:negative/pb164-based-national-leaf).",
   "state": "GAP"
  },
  {
@@ -29803,9 +29803,9 @@
   "subject": "ALLOCATE statement",
   "verdict": "PARTIAL",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/PtrEmitter.cs#OptionsFillCharLiteral",
-  "test-ref": "conformance:2023/pb151_options_fill",
+  "test-ref": "conformance:2023/pb151_options_fill; conformance:negative/pb164-based-national-leaf",
   "editions": "2023",
-  "notes": "PB151 lands HALF 2: the OPTIONS INITIALIZE clause has its first consumer - a non-INITIALIZED ALLOCATE fills with the clause's specified-fill-character (literal first-char/X\"nn\" decoded; BINARY ZEROES and LOW-VALUES the NUL, HIGH-VALUES U+FFFF - OPTIONS precedes SPECIAL-NAMES so the native extremes; the GR8/GR9 determination in CONFORMANCE.md reads the rules as keying on the CLAUSE, not its section list, since allocated storage belongs to no section). pb151_options_fill pins FILL=QQQ beside the GR6 INITIALIZED zeros. REMAINING - half 1: null-seeding class object/pointer items inside allocated storage needs a BASED record that can CONTAIN them, kb/Work PB164's cell model (today such a record is the bind-time COBOLNET1695). DIVERGES cleared: the wrong-value half is fixed; the absent half is loud and owned.",
+  "notes": "PB151 lands HALF 2: the OPTIONS INITIALIZE clause has its first consumer - a non-INITIALIZED ALLOCATE fills with the clause's specified-fill-character (literal first-char/X\"nn\" decoded; BINARY ZEROES and LOW-VALUES the NUL, HIGH-VALUES U+FFFF - OPTIONS precedes SPECIAL-NAMES so the native extremes; the GR8/GR9 determination in CONFORMANCE.md reads the rules as keying on the CLAUSE, not its section list, since allocated storage belongs to no section). pb151_options_fill pins FILL=QQQ beside the GR6 INITIALIZED zeros. REMAINING - half 1, RE-STATED at the PB164 landing (2026-08-30): null-seeding class object / class pointer items inside allocated storage still has no realization, and the reason is no longer 'PB164's cell model' in general - that model now carries every NUMERIC usage - but the pointer-class leaf specifically, which the byte-addressed cell cannot represent and which therefore still draws the bind-time COBOLNET1695 (the same residue boundary the negative fixture pb164-based-national-leaf witnesses). DIVERGES cleared: the wrong-value half is fixed; the absent half is loud and owned.",
   "state": "GAP"
  },
  {
@@ -31378,7 +31378,7 @@
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
   "test-ref": "conformance-test:TierCRejectionTests.DisplayComp5Group_RendersVerbatimBytes; conformance-test:TierCRejectionTests.DisplayIndexGroup_RendersVerbatimBytes; conformance:2023/pb164_float_group_image; conformance:2023/pb164_vlg_display",
   "editions": "85,2002,2014,2023",
-  "notes": "NARROWED across kb/Work PB164 + R40 (2026-08-30): the full-width half stands (initialize_phrases / national_data); a COMP-5/BINARY-* leaf group displays its verbatim byte image (wave 1, byte-level pin), a float leaf group the IEEE interchange pin (wave 2), an INDEX-leaf group its verbatim 8-byte two's-complement occurrence image (R40, byte-level pin), and a composable VARIABLE-LENGTH group the GR7/A.1-item-57 format. RESIDUE keeping PARTIAL (the R40 review fleet's catch - the first CONFORMS flip overclaimed 'every operand kind'): a group with a POINTER/PROGRAM-POINTER/FUNCTION-POINTER/OBJECT-REFERENCE leaf (class pointer/object, no character image; 14.9.11.3 SR1 excludes only the elementary pointer/object IDENTIFIER, so the containing group is a legal operand) is still the Tier-C loud - pinned by TierCRejectionTests.DisplayPointerGroup_FailsLoud; and the uncomposable variable-length shapes stay with GR7's row.",
+  "notes": "NARROWED across kb/Work PB164 + R40 (2026-08-30): the full-width half stands (initialize_phrases / national_data); a COMP-5/BINARY-* leaf group displays its verbatim byte image (wave 1, byte-level pin), a float leaf group the IEEE interchange pin (wave 2), an INDEX-leaf group its verbatim 8-byte two's-complement occurrence image (R40, byte-level pin), and a composable VARIABLE-LENGTH group the GR7/A.1-item-57 format. RESIDUE keeping PARTIAL, TWO members. (1) The R40 review fleet's catch (the first CONFORMS flip overclaimed 'every operand kind'): a group with a POINTER/PROGRAM-POINTER/FUNCTION-POINTER/OBJECT-REFERENCE leaf (class pointer/object, no character image; 14.9.11.3 SR1 excludes only the elementary pointer/object IDENTIFIER, so the containing group is a legal operand) is still the loud - pinned by TierCRejectionTests.DisplayPointerGroup_FailsLoud. (2) Recorded at the PB164 Step D landing and registered as kb/Work PB189: DISPLAY of a SUBSCRIPTED dynamic-capacity-table ELEMENT is loud although that element's struct now carries CurrentImage/AsImage - the sender arm keys on the TABLE item rather than on the referenced element, so a legal operand with an available image is refused. The uncomposable variable-length shapes stay with GR7's row.",
   "state": "GAP"
  },
  {

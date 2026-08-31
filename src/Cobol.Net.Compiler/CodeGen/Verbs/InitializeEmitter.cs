@@ -30,8 +30,16 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
             case InitializeStore { Target.Item.Pic: { IsFloat: true } fp } s:
                 // A COMP-1/COMP-2 receiver: the GR6c ZEROES default is the IEEE zero (its declared default
                 // initializer); the float MOVE path (REPLACING/VALUE senders) is deferred backend-wide → loud.
+                // ⛔ A WINDOWED float receiver (Tier-B / image-stored — the Step D arm-1 dissolution) stores its
+                // IEEE window BYTES, never the raw carrier value: the exact shape MoveEmitter's float-receiver
+                // arm uses (`target.StoreAsImage ? NumFormatImageFloat(v) : v`), so INITIALIZE and MOVE deposit
+                // identical bytes into the same window. Writing the bare `0f` here spliced a float into a string
+                // window — a backend CS1503, since §14.9.20 GR4's implicit MOVE has no float exemption from
+                // §13.18.44.4 GR1's one-storage association.
                 w.Line(s.Source is BoundFigurative { Kind: 'Z' }
-                    ? PlaceRenderer.Write(s.Target, fp.DefaultInitializer)
+                    ? PlaceRenderer.Write(s.Target, s.Target.Item.StoreAsImage
+                        ? RuntimeApi.NumFormatImageFloat(fp.DefaultInitializer, s.Target.Item.ProfileName)
+                        : fp.DefaultInitializer)
                     : LoudStmt($"INITIALIZE REPLACING/VALUE into floating-point item " +
                                $"'{s.Target.Item.CobolName ?? PlaceRenderer.Read(s.Target)}' (float MOVE path deferred)"));
                 break;

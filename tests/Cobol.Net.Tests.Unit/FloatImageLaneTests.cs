@@ -108,4 +108,43 @@ public sealed class FloatImageLaneTests
         Assert.Equal(ulong.MaxValue,
             CobolNum.StoreImage(Chars(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF), profile, 0UL));
     }
+
+    /// <summary>⛔ THE 16-BYTE UNSIGNED LANE ABOVE 2^127 (kb/Work PB164 — the Step D review's sweep-note #409).
+    /// The 8-byte fact above could never have caught this: every <c>ulong</c> reinterprets to a NON-NEGATIVE
+    /// <c>Int128</c>, so it never reached the branch that was wrong. A 16-byte container value ≥ 2^127 does
+    /// reinterpret negative, and <c>FormatBinaryImage</c> applied §14.9.25.4 GR6b — "when an unsigned numeric
+    /// item is the receiving item, the ABSOLUTE VALUE of the sending value is used" — to that bit pattern,
+    /// NEGATING it. An item holding 2^128−1 encoded as <c>00…01</c>: a silent wrong answer in the lane wave 1
+    /// had just introduced. 2^127 alone round-tripped BY ACCIDENT (−Int128.MinValue is Int128.MinValue), which
+    /// is why the +1 case is pinned beside it — a single sample here would have passed over the defect.
+    /// <para>These are the bytes §13.18.60.4 GR4 asks for ("a radix of 2 is used", most significant byte first)
+    /// over the full container range GR12 gives the item, stated directly rather than through the lane's own
+    /// inverse.</para></summary>
+    [Fact]
+    public void UnsignedWideCarrierLane_AboveInt128MaxValue_KeepsItsBits()
+    {
+        var profile = new NumProfile
+        {
+            Digits = 31,
+            FractionDigits = 0,
+            Signed = false,
+            Truncation = NumericTruncation.BinaryCapacity,
+            ByteForm = NumericByteForm.Binary,
+            StorageLength = 16,
+        };
+        string allOnes = Chars(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                               0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
+        string twoPow127 = Chars(0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        string twoPow127Plus1 = Chars(0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01);
+
+        Assert.Equal(allOnes, CobolNum.FormatImage(UInt128.MaxValue, profile));
+        Assert.Equal(twoPow127, CobolNum.FormatImage(UInt128.One << 127, profile));
+        Assert.Equal(twoPow127Plus1, CobolNum.FormatImage((UInt128.One << 127) + 1, profile));
+
+        // …and the parse twin brings each one back unchanged (the round trip, now that both halves are right).
+        Assert.Equal(UInt128.MaxValue, CobolNum.ParseImageU128(allOnes, profile));
+        Assert.Equal(UInt128.One << 127, CobolNum.ParseImageU128(twoPow127, profile));
+        Assert.Equal((UInt128.One << 127) + 1, CobolNum.ParseImageU128(twoPow127Plus1, profile));
+        Assert.Equal(UInt128.MaxValue, CobolNum.StoreImage(allOnes, profile, (UInt128)0));
+    }
 }

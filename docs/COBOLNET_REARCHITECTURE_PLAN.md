@@ -1723,6 +1723,14 @@ result. Run the long legs ONE AT A TIME.
   unchanged 572/474/206/71). Covers DEVLOG 1400–1404: the R40 INDEX wave, PB179 (the SR12/SR14
   Tier-D arm), PB180+PB181 (the Tier-B boundary-store pair) — the population grew by 7 Conformance
   tests over #36.
+  **⏳ BATTERY #38 ACCRUES (owed, not yet run): the PB164 arm-1 dissolution + its review-fleet fixes F1–F11**
+  (DEVLOG 1406, 2026-08-31) — `ComputeTier`'s arm 1 and the `ByteCanonical`/`TierCWindow` types DELETED, the
+  second gate widened, the windowed float / unsigned-wide / index emit lanes completed, three new goldens
+  (`stepd_mixed_usage_redefines`, `stepd_fd_multi01_comp`, `stepd_based_comp_leaf`), one negative fixture
+  replaced by a positive golden plus a new residue witness (`pb164-based-national-leaf`), and a `FormatImage`
+  unsigned-lane wrong answer fixed. Wave-local gate GREEN (Conformance 1429 · Unit 5035 · characterization 33);
+  the DIFFERENTIAL leg is the one to watch, since DISPLAY of a windowed float changed from raw IEEE bytes to
+  its value.
 - **⛔ PRIOR BATTERY REFERENCE — the PB168+PB164-VLG+PB176 batch tree `a4a3d6a0` (2026-08-30, battery #36).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-36`; DEVLOG 1400): FULL greenfield Conformance **5102 / 5102** · Unit

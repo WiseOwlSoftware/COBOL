@@ -424,7 +424,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // (the receiver holds the exact algebraic value). BEFORE the fixed-point guard below.
         if (target.Item.Pic is { IsFloat: true })
         {
-            w.Line(PlaceRenderer.Write(target, $"({target.Item.Pic.ClrType})({NumericRenderer.Real(value)})"));
+            // A WINDOWED float receiver (Tier-B / image-stored — the Step D arm-1 dissolution) re-encodes the
+            // algebraic value as its IEEE window bytes; a native receiver keeps the bare cast (the scout's
+            // pre-loaded CS1503: a float expression assigned into a string window).
+            string algebraic = $"({target.Item.Pic.ClrType})({NumericRenderer.Real(value)})";
+            w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage
+                ? RuntimeApi.NumFormatImageFloat(algebraic, target.Item.ProfileName)
+                : algebraic));
             return;
         }
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })

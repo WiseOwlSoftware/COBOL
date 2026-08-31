@@ -308,28 +308,30 @@ Two differently-typed C# reps over one storage stay coherent with NO shared `byt
 exist**: a "redefines class" (all entries sharing a storage area) has exactly ONE stored backing — the *canonical* —
 and EVERY other view is a **computed accessor (a C# property)** over it. Never two stored fields per storage area.
 
-### 4.2 The 4 tiers (priority cascade D > C > B > A; lattice A ⊑ B ⊑ C ⊑ D, join = max tier)
+### 4.2 The 3 tiers (priority cascade D > B > A; lattice A ⊑ B ⊑ D, join = max tier)
 
 - **A — Alias** (identical PIC+USAGE, or RENAMES without THRU): one typed field; other names are pass-through
   properties (`WS_COUNT_ALIAS { get => WS_COUNTER; set => WS_COUNTER = value; }`).
-- **B — StringCanonical** (whole class is character-imageable — alphanumeric/edited/alphabetic, DISPLAY-numeric,
-  **and fixed-point BINARY/PACKED**, per the §14.4 digit-image representation): canonical = ONE `string` of class-max
-  width (a DISPLAY item's byte image IS its characters; a fixed-point COMP/COMP-3 leaf's window IS its zoned digit
-  image — ISO §13.18.60 USAGE GR4 makes the representation, including the sign, implementor-defined); each view = a
-  typed accessor (substring / parse-digits→long / format) over it. NO bytes. An image-stored BINARY/PACKED leaf has
-  its `Pic.SignKind` REWRITTEN to `TrailingOverpunch` at classification (DataBinder) so every accessor that threads
-  its `_P_` profile describes the zoned window — `BinaryMinus` is variable-width and would corrupt the fixed window
-  (the observable consequence: DISPLAY of such a leaf shows the zoned overpunch image, the conformant face of the
-  GR4 license — Phase 1E / ST134A). **This is the dominant real case and covers the ENTIRE NIST path** (incl.
-  SAME RECORD AREA / multi-01 FD classes with COMP leaves).
-- **C — ByteCanonical** (puns observing a representation with NO fixed character-digit image cross-view: float
-  COMP-1/COMP-2, COMP-5 — whose `BinaryCapacity` discipline stores values exceeding the PICTURE digit count, which a
-  Digits-wide window cannot carry — and INDEX): canonical = ONE *class-scoped* `byte[]` of class-max width
-  (SYNC-aware offsets, from a ported `StorageLayoutComputer`); each leaf = a typed get/set accessor over
-  `(offset,length,usage)` via a small `RedefCodec` runtime helper. Byte image confined to the class, never the
-  record, never persisted further. The byte[] is the PERSISTENT canonical (not materialize-on-demand — distinct from
-  §14.4's transient whole-group image). This tier is not yet realized — its puns draw a loud Rejected verdict; the
-  decimal-digit usages (BINARY/PACKED) live in Tier B, where they have an exact character representation.
+- **B — StringCanonical** (the whole class has a byte image): canonical = ONE `string` of class-max width under the
+  char==byte convention, and each view is a typed `(offset, width)` accessor over it. ⛔ **A view's window holds the
+  leaf's PINNED `NumericByteForm` BYTES, not its digits** (V59 — *bytes are not text*): zoned characters for
+  DISPLAY, radix-2 two's complement for BINARY/COMP-5/BINARY-*, BCD for PACKED-DECIMAL, the big-endian IEEE
+  interchange encoding for the float family, and the 8-byte big-endian occurrence number for USAGE INDEX. ISO
+  §13.18.60.4 GR4/GR11/GR13–GR15 leave each representation, including its sign, to the implementor; ours is pinned
+  once in `NumericByteForm` and documented in CONFORMANCE.md items 205–215. A read decodes that window and
+  re-renders the item's DISPLAY image, so a windowed leaf prints exactly what its natively-carried twin prints
+  (§13.18.44.4 GR1 gives them one storage). **This is the dominant real case and covers the ENTIRE NIST path**
+  (incl. SAME RECORD AREA / multi-01 FD classes with COMP leaves), and since the Step D arm-1 dissolution it also
+  covers every MIXED-USAGE pun — float, COMP-5 and INDEX included.
+  <br>⚠ It once read "a fixed-point COMP/COMP-3 leaf's window IS its zoned digit image", with a classification-time
+  `SignKind` rewrite to `TrailingOverpunch`. That was the PRE-V59 representation; no such rewrite exists in the
+  binder now, and the bytes are not digits.
+- ~~**C — ByteCanonical**~~ — **DELETED (Step D, kb/Work PB164).** The tier was reserved for puns observing a
+  representation with "no fixed character image cross-view" (float, COMP-5, INDEX) and was to become a class-scoped
+  `byte[]` canonical. It never needed to exist: once every numeric usage had a pinned `NumericByteForm`, those puns
+  became ordinary Tier-B byte windows over the one string backing. The enum member and `StorageForm.TierCWindow`
+  are gone; the COMP-5 range concern is answered by the item owning its full container range (R10), decoded through
+  the unsigned lanes rather than a Digits-wide window.
 - **D — Reject loud** (spec-forbidden/unmodelable: object/pointer/message-tag/strongly-typed SR12/14; OCCURS
   DEPENDING ON / variable-length / dynamic-length SR5/17): a diagnostic — conformant, since these are already illegal.
 

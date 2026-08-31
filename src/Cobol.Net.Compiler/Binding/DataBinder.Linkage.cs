@@ -32,14 +32,16 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
     bool ByValue = false, bool Optional = false);
 
 /// <summary>The synthesized run-unit backing of one EXTERNAL record (ISO §13.18.22 / §8.6.7): the emitter
-/// renders <c>private ref string {BackingCsName} =&gt; ref ExternalStore.Cell({ExternalName}, {InitImage}).Ref;</c>
-/// and every reference windows it through the Tier-B view machinery. <see cref="InitImage"/> is the §13.18.63 GR4a
-/// initial image for a PLAIN external item — spaces/zoned-zeros, since a plain external item's VALUE takes effect
-/// only during INITIALIZE, not at initial state. <see cref="Record"/> carries the record's own DataItem so the
-/// emitter can substitute the VALUE-composed image (<c>GroupImageCodec.ImageInitOf</c>) for a CONSTANT RECORD, which
-/// §11.9.10.4 GR7 DOES initialize at initial state (the one external exception — external WS items are not
-/// initialized at initial state "except for those with the CONSTANT RECORD clause").</summary>
-public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, string InitImage, DataItem Record);
+/// renders <c>private ref string {BackingCsName} =&gt; ref ExternalStore.Cell({ExternalName}, «seed»).Ref;</c>
+/// and every reference windows it through the Tier-B view machinery. <see cref="Record"/> carries the record's own
+/// DataItem, which is ALL the emitter needs: the seed is composed by the ONE Tier-B seeder
+/// (<c>GroupImageCodec.ImageInitOf</c>), with VALUEs suppressed for a plain external item — whose VALUE takes
+/// effect only during INITIALIZE, not at initial state (§13.18.63 GR4a) — and honoured for a CONSTANT RECORD,
+/// which §11.9.10.4 GR7 DOES initialize at initial state (the one external exception: external WS items are not
+/// initialized at initial state "except for those with the CONSTANT RECORD clause"). ⛔ There is no precomputed
+/// InitImage field any more: it was a SECOND seeder, hand-rolled in the binder from a char-fill model that
+/// predated the pinned byte forms (kb/Work PB164).</summary>
+public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, DataItem Record);
 
 /// <summary>One FUNCTION-ID unit's activation signature (ISO §9.4 user-defined functions; M2-UDF-1): the
 /// registered function name, its PROCEDURE DIVISION RETURNING item (whose description the caller-side result
@@ -390,31 +392,33 @@ public sealed partial class DataBinder
     /// <summary>Re-base one EXTERNAL record onto the run-unit external cell (see
     /// <see cref="CallBindExternalAndGlobal"/>). <paramref name="externalName"/> overrides the cell key (the
     /// FD-record case keys by the FILE's externalized name, §13.18.22.4 GR5; a WS record keys by its own name).
-    /// A record with a non-DISPLAY (COMP/float/index) leaf would need the Tier-C byte island — rejected loud,
-    /// conformant-but-unimplemented.</summary>
+    /// A record with a national, USAGE BIT or pointer-class leaf cannot be carried by the shared byte cell —
+    /// rejected loud, conformant-but-unimplemented. Every NUMERIC leaf rides it on its pinned byte form
+    /// (kb/Work PB164).</summary>
     private void CallMakeExternal(DataItem item, string? externalName = null)
     {
         if (ForceStringCanonical(item, "EXTERNAL record") is not { } cls)
         {
             // The silent-skip left the record as ORDINARY storage — the program ran with its EXTERNAL
             // sharing semantics silently dropped (the W1-test finding, Phase 4a). Loud at bind: the
-            // reason names the leaf (COMP/float/index Tier-C, or the RESIDUE-11 national/bit cell legs).
+            // interpolated reason names the actual leaf (the RESIDUE-11 national layout, the bit-packing
+            // residue, or a pointer-class leaf with no byte form).
             Edition.Error(DiagnosticCatalog.ExternalRecordNotCellBacked, $"EXTERNAL record '{item.CobolName}' cannot be cell-backed — "
                 + $"{item.Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented");
             return;
         }
         _callExternalBackings.Add(new CallExternalBacking(
-            cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width,
-            CallInitialImage(item).PadRight(cls.Width), item));
+            cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width, item));
     }
 
     /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
     /// feedback_one_mechanism_per_job): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
     /// member, so a heap-cell-backed <c>ref</c>-property with the class's <see cref="RedefinesClass.BackingCsName"/>
     /// can supply the storage (EXTERNAL records → the run-unit <c>ExternalStore</c> cell; ADDRESS-OF-taken items →
-    /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). A COMP/float/index leaf fails
-    /// the shared-character-image gate — the class goes Rejected and every reference fails loud (the caller
-    /// skips its bridge registration). Returns the forced class, or null on rejection.</summary>
+    /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). Every byte-form numeric
+    /// leaf rides the cell since the Step D arm-1 dissolution (the gate reads THE ONE image predicate);
+    /// a national/bit/pointer-class leaf fails it — the class goes Rejected and every reference fails loud
+    /// (the caller skips its bridge registration). Returns the forced class, or null on rejection.</summary>
     internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
     {
         var cls = item.Class;
@@ -426,16 +430,25 @@ public sealed partial class DataBinder
         }
 
         var leaves = cls.Members.SelectMany(LeavesOf).ToList();
-        if (leaves.Any(l => l.Pic is not { IsFloat: false, Usage: Usage.Display }))
+        // ⛔ THE SAME predicate as the main classifier (the Step D arm-1 dissolution widened this SECOND gate
+        // in the same wave — it was the eighth two-arm instance: ComputeTier admitted COMP/PACKED while this
+        // cell-backed gate refused every non-DISPLAY leaf, so an EXTERNAL/BASED/ADDRESS-OF record with a COMP
+        // member rejected where its plain sibling worked). A leaf rides the cell when its bytes are pinned:
+        // character categories, display-form BOOLEAN ('0'/'1' char == byte, D-B1), and every numeric with a
+        // byte form (HasImageByteForm — DISPLAY/BINARY/PACKED/COMP-5/float/INDEX; the byte-window lanes are
+        // backing-residence-agnostic). STILL OUT, each its own recorded residue: NATIONAL (two bytes per
+        // position over a byte-addressed cell — RESIDUE-11), USAGE BIT (the packing residue), and the
+        // pointer/object classes (no bytes — kb/Work PB179/PB183).
+        static bool CellCapable(DataItem l) => l.Pic is { } p
+            && (p.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                || (p.Category is PicCategory.Boolean && p.Usage is not Usage.Bit)
+                || p is { Category: PicCategory.Numeric, HasImageByteForm: true });
+        if (leaves.Any(l => !CellCapable(l)))
         {
-            // The gate is usage-keyed, so it also refuses NATIONAL (two bytes per position — a byte-addressed
-            // cell window over it would break ADDRESS-OF/BASED/F10 byte arithmetic, RESIDUE-11) and BIT
-            // (kept out of cells until the packing residue closes — one leg, one posture). Display-form
-            // BOOLEAN leaves PASS deliberately: one '0'/'1' char = one byte (D-B1), cell-safe.
             cls.Classify(RedefinesTier.Rejected, cls.Width,
-                $"{what} '{item.CobolName}' has a COMP/float/index/national/bit leaf — the "
-                + "shared single-byte character image cannot carry it (Tier-C byte island / the RESIDUE-11 "
-                + "2-byte national layout, deferred)");
+                $"{what} '{item.CobolName}' has a national/bit/pointer-class leaf — the shared byte cell "
+                + "cannot carry it (the RESIDUE-11 2-byte national layout / the bit-packing residue / "
+                + "no byte form, deferred)");
             return null;
         }
 
@@ -448,31 +461,18 @@ public sealed partial class DataBinder
             AssignClassOffsets(member, 0, cls);
             member.IsCanonical = false;   // NO local stored field — the backing is the cell bridge
         }
-        // A numeric-DISPLAY leaf windowed over a string backing decodes/encodes its zoned image (the same
-        // image pipeline Tier-B uses — ClassifyRedefinesClasses' rule, applied here for the synth class).
+        // ⛔ EVERY byte-form numeric leaf windowed over the string backing decodes/encodes its IMAGE — the
+        // same rule ClassifyRedefinesClasses applies to a Tier-B class, applied here for the synth class.
+        // The predicate MUST be the one CellCapable admits above (THE ONE image predicate): the Step D
+        // widening opened the GATE to COMP/PACKED/COMP-5/float/INDEX leaves while this consequence still
+        // read the pre-wave DISPLAY-only union, so an admitted non-DISPLAY leaf got a NATIVE storage form
+        // over a STRING window — the accessors then spliced a raw long/float into the cell and read window
+        // TEXT back into CobolNum.Store, i.e. UNCOMPILABLE generated C# (CS1503/CS0019) on legal source,
+        // strictly worse than the bind diagnostic it replaced. The two-arm shape, nine lines apart.
         foreach (var leaf in leaves)
-            if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+            if (leaf.Pic is { Category: PicCategory.Numeric, HasImageByteForm: true })
                 MarkImageForced(leaf);   // the collected image fact
         return cls;
-    }
-
-    /// <summary>The compile-time initial character image of a record: zoned zeros for a numeric-DISPLAY leaf,
-    /// spaces elsewhere, each OCCURS position repeated (ISO §14.6.2.3.2 initial state; VALUE clauses across
-    /// EXTERNAL describers must agree per §13.18.22 GR6 — the default image is used uniformly here, the GR6
-    /// conformance check being §14.8.4 EC territory).</summary>
-    private static string CallInitialImage(DataItem item)
-    {
-        if (item.IsElementary)
-        {
-            // Zoned zeros for numeric-DISPLAY; boolean zeros for a boolean leaf (§13.18.63 — its initial
-            // state; byte=char under D-B1 so it sits in the cell image directly); spaces elsewhere.
-            char fill = item.Pic is { Category: PicCategory.Numeric, IsFloat: false }
-                or { Category: PicCategory.Boolean } ? '0' : ' ';
-            string one = new(fill, item.ImageWidth);
-            return item.Occurs is { } n ? string.Concat(Enumerable.Repeat(one, n)) : one;
-        }
-        string image = string.Concat(item.Children.Select(CallInitialImage));
-        return item.Occurs is { } o ? string.Concat(Enumerable.Repeat(image, o)) : image;
     }
 
     /// <summary>Seed the unique-id counter so every unit of a multi-program compilation gets a disjoint

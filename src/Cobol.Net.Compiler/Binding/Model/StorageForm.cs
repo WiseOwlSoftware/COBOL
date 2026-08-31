@@ -61,14 +61,9 @@ public abstract record StorageForm
         public override int ImageWidth => Width;
     }
 
-    /// <summary>A Tier-C REDEFINES view over the class's ONE confined <c>byte[]</c> (§4.2 tier C). QUARANTINED —
-    /// unreachable corpus-wide today (the classifier rejects float/COMP-5/BINARY-*/INDEX/National Tier-C classes), so
-    /// its parity obligation is that <c>StorageFormPass</c> assigns it to ZERO leaves.</summary>
-    public sealed record TierCWindow(RedefinesClass Class, int Offset, int Length, Usage Usage) : StorageForm
-    {
-        public override bool IsCharacterImage => false;
-        public override int ImageWidth => Length;
-    }
+    // TierCWindow DELETED (the Step D arm-1 dissolution): it was quarantined with a zero-assignment parity
+    // obligation — the zero-fan-out trap the design §2.3 names — and its job dissolved into TierBWindow when
+    // every numeric leaf kind's byte form was pinned (NumericByteForm; PB164 waves 1–2 + R40).
 
     /// <summary>An out-of-line OCCURS DYNAMIC table (<c>CobolDynTable&lt;T&gt;</c>, D9). <paramref name="Element"/> is
     /// the per-occurrence element's form. Never character-image (an item-level query short-circuits on IsDynamicTable).</summary>
