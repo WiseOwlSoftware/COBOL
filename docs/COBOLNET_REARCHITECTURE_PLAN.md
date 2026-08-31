@@ -1008,12 +1008,17 @@ the single origin of every numeric argument. Measure the WHOLE population after 
      Recorded in full as `COBOLNET_NUMERIC_DESIGN.md` **D19**. ⭐ The SURVEY decided it: IBM and Micro Focus fall
      back to floating point past the fixed capacity, GnuCOBOL has no boundary (GMP), so no shipping COBOL raises
      a size error there — which ruled out `CobolDec.Pow`'s own precedent.
-   · **PB37 — NUMVAL-C's LOCALE phrase is an §A.4.9 OPTIONAL element** (editorial omission). ✅ **APPLIED:**
-     eight rows (§15.68.3 r5 + the seven r5b items) are DOCUMENTED-NON-SUPPORT and now CLOSED, and the
-     determination with its grounds is in `docs/CONFORMANCE.md` §4 item 5. ⭐ **The compiler and the doc were
-     ALREADY behaving this way** — `COBOLNET1518` rejects the phrase at bind time citing §A.4.9, verified by
-     probe, and `LocaleDispositionTests` already covered it. Only the inventory and the *justification* were
-     missing, which is why this closed 8 rows without a line of compiler change.
+   · **PB37 — NUMVAL-C's LOCALE phrase is an §A.4.9 OPTIONAL element** (editorial omission; and §A.4.1's
+     catch-all — "Any associated syntax rules … are also optional, even if not explicitly listed" — reaches the
+     same place without the inference, added 2026-08-31). ✅ **CLOSED 2026-08-31, SUPERSEDED by PB64 T6.**
+     ⛔ **The two sentences that stood here until 2026-08-31 had become FALSE and are struck**: they said the
+     eight rows were "DOCUMENTED-NON-SUPPORT and now CLOSED" and that "`COBOLNET1518` rejects the phrase at bind
+     time". **T6 (2026-08-28) IMPLEMENTED the keyword on BOTH functions**: rows `AR-15.68.3-L2.1…L2.7` are
+     **CONFORMS and OK** on `2002/pb64t6_numvalc_locale` + the `NumvalCLocaleScan*` unit tests, and
+     **COBOLNET1518 was DELETED with the claim** (its code is never reallocated). The determination did not
+     become wrong — its ROLE changed: it licensed documented non-support while the keyword was unimplemented,
+     and now licenses the CLAIM, since an element must be optional-and-claimed for T6 to complete the A.4.9
+     module rather than merely add an extension. See `kb/Work/PB37.md`'s supersession section.
    · **THE DENOMINATOR — adjudicate all 100 unharvested clauses as ONE BATCH and admit the normative ones.**
      ⚙ **STARTED: 15 clauses ADMITTED (120 rules), 85 clauses / 344 ordinals remain.** The whole MULTI-SUBLIST
      slice is done except §8.3.2.2. The denominator is now **3,981** (was 3,861) and §11 **A3 is UNBLOCKED** — it can no longer audit the

@@ -36,7 +36,7 @@
     "DOCUMENTED-NON-SUPPORT": {
       "resolves": true,
       "requires": ["notes"],
-      "meaning": "An OWNER decision (never an agent's) that an optional module is not supported, per ISO 4.2.16. The notes field carries the decision reference; closing still needs a test proving we diagnose rather than silently miscompile."
+      "meaning": "An OWNER decision (never an agent's) that a language element is not supported, and is DOCUMENTED as unsupported. Three grounds, not one: ISO 4.2.16 (the conformance claim itself), 4.2.7 for an OPTIONAL element ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support'), and 4.2.6 for a PROCESSOR-DEPENDENT one ('The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation'). The 4.2.16-only wording was too narrow and was widened 2026-08-31: the verdict already carried processor-dependent declines and rules whose stated range no host can satisfy, neither of which is an optional module. The notes field carries the decision reference; closing still needs a test proving we diagnose (or, where the departure is a reported VALUE rather than a rejected construct, that the documented behaviour is what actually happens) rather than silently miscompile."
     },
     "DIVERGES": {
       "resolves": false,

@@ -481,6 +481,13 @@ reallocated).
    > item 12 optional while leaving mandatory the very rules item 12 delegates to. Reading a whole optional module
    > as excluding one keyword of one function, on an omission the standard nowhere states, would also be the only
    > reading under which a processor could claim A.4.9 non-support and still owe `NUMVAL-C` locale parsing.
+   > **And the annex says so itself — §A.4.1's catch-all is the ground this determination should have rested on
+   > from the start:** *"This list identifies features, statements, formats (or parts of formats), clauses, or
+   > phrases that are optional. **Any associated syntax rules, general rules, other rules, exception conditions,
+   > and I-O status values are also optional, even if not explicitly listed.**"* §15.94 r1 makes §15.68's argument
+   > rules the associated rules of item 12, so they are optional by A.4.1's own terms and no editorial-gap
+   > inference is needed to reach the same place. The inference is kept because it is independently sound and
+   > because it explains WHY the list looks incomplete; A.4.1 is what makes the conclusion not depend on it.
 
 > ⚖ **DETERMINATION — `FUNCTION LENGTH`'s `PHYSICAL` argument (§15.50.4 rule 8)** (2026-08-04; fix-queue PB24).
 > Rule 8 splits on whether argument-1 "is physically located where it is defined": if it is not, the returned
