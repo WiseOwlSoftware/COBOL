@@ -1712,7 +1712,18 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB168+PB164-VLG+PB176 batch tree `a4a3d6a0` (2026-08-30, battery #36).**
+- **⛔ BATTERY REFERENCE — CURRENT, the R40+PB179+PB180/181 batch tree `d21fbae8` (2026-08-30, battery #37).**
+  ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
+  `scratchpad/battery-37`; DEVLOG 1405): FULL greenfield Conformance **5109 / 5109** · Unit
+  **5032 / 5032** · characterization **33 / 33 — with a named disposition**: the battery's concurrent
+  run ABORTED with "Test host process crashed" (no test named, no verdict line — a leg failure by the
+  no-verdict rule), and the required clean SERIAL re-run passed 33/33; first occurrence across
+  batteries #34–37, watch for recurrence (a second earns a register note) · NIST **353 MATCH /
+  0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **1323 cases, 0 per-case flips** (totals
+  unchanged 572/474/206/71). Covers DEVLOG 1400–1404: the R40 INDEX wave, PB179 (the SR12/SR14
+  Tier-D arm), PB180+PB181 (the Tier-B boundary-store pair) — the population grew by 7 Conformance
+  tests over #36.
+- **⛔ PRIOR BATTERY REFERENCE — the PB168+PB164-VLG+PB176 batch tree `a4a3d6a0` (2026-08-30, battery #36).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-36`; DEVLOG 1400): FULL greenfield Conformance **5102 / 5102** · Unit
   **5027 / 5027** · characterization **33 / 33** · NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) ·
