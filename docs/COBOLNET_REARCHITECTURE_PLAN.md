@@ -1765,8 +1765,10 @@ result. Run the long legs ONE AT A TIME.
   ✅ **Every leg GREEN, and the differential's TWO flips are ATTRIBUTED AND INTENDED.**
   **⚠ The legs were earned on TWO trees, and the record says which:** the four greenfield/NIST legs ran on tree
   `3bc4e4db` (artifacts `scratchpad/battery-39`, DEVLOG 1415) and are NOT re-run here; the **differential leg was
-  RE-RUN and re-confirmed on the [[PB209]] landing tree** (parent `19e48e2e`; the landing commit cannot name
-  itself, as #38's note records). That split is legitimate for exactly one reason, stated so it is checkable:
+  RE-RUN and re-confirmed on the [[PB209]] landing tree `66615f70`** (parent `19e48e2e`; the sha could only be
+  written in this follow-up, since a commit cannot name itself — the same note #38 carries. Nothing the
+  differential reads changed after it: its scripts and its baseline are `66615f70`'s own content). That split is
+  legitimate for exactly one reason, stated so it is checkable:
   **the PB209 landing changes only `scripts/`, `tests/Cobol.Net.Tests.Unit/`, `kb/` and `docs/` — no `src/`
   file, so no compiler behaviour the four legs measured can have moved** — and the one leg whose INPUTS did
   change (the shared extractor now defines the differential's population) is precisely the leg that was re-run.
