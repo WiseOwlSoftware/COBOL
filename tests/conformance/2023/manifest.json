@@ -268,7 +268,8 @@
   "pb181_call_tier_b_window",
   "stepd_based_comp_leaf",
   "stepd_fd_multi01_comp",
-  "stepd_mixed_usage_redefines"
+  "stepd_mixed_usage_redefines",
+  "delete_file_attribute_set_empty"
  ],
  "pending": []
 }
