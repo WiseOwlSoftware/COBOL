@@ -340,12 +340,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // decimal identity of the IEEE value); the operations themselves are SDIDI (P10 Step 12).
         // STANDARD was DROPPED by ISO/IEC 1989:2023 (§8.8.1 names only NATIVE/STANDARD-BINARY/STANDARD-DECIMAL)
         // → the pass's arithmetic-standard-2002 dual-window row rejects it at --std 2023 (0807).
-        // STANDARD-BINARY is spec-obsolete (§8.8.1.4.1 NOTE 1 — binary128 intermediates, no exact .NET carrier)
-        // and documented-unsupported at EVERY edition that has it; its 2014 introduction edge is the pass's
+        // STANDARD-BINARY is DECLINED — but the screen is NOT here any more: it moved to OptionsBinder's
+        // ArithmeticOf, the single point every unit kind's OPTIONS clause is read through. This binder does not
+        // see a METHOD's or an INTERFACE's options paragraph, so the twin that stood here left both of those
+        // arms silent (kb/Work PB197, measured). Its 2014 introduction edge remains the pass's
         // arithmetic-standard-binary-2014 row.
-        if (Options.Arithmetic == ArithmeticMode.StandardBinary)
-            Edition.Error("COBOLNET0806", "ARITHMETIC IS STANDARD-BINARY is an obsolete feature (ISO §8.8.1.4.1 "
-                + "NOTE 1 / Annex F) and is not supported; use NATIVE or STANDARD-DECIMAL");
         // arithmetic-standard-2002 (dual-window; dropped 2023): the pass owns the edition gate (Exec Step E).
 
         // The '85 debug facility's compile-time switch (X3.23-1985 SOURCE-COMPUTER … WITH DEBUGGING MODE; the

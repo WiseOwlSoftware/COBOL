@@ -55,6 +55,43 @@ public sealed record OptionsModel
 /// item 21) in favor of <see cref="StandardBinary"/>/<see cref="StandardDecimal"/>; the CCVS still writes it.</summary>
 public enum ArithmeticMode { Native, Standard, StandardBinary, StandardDecimal }
 
+/// <summary>Facts the standard states PER ARITHMETIC MODE. One table per fact, exhaustive over
+/// <see cref="ArithmeticMode"/>, so adding a mode is a compile-or-drift-test failure rather than a silent
+/// fall-through to whatever the old ternary's else-branch happened to be.</summary>
+public static class ArithmeticModes
+{
+    /// <summary>The NUMVAL-family digit cap — the number of digits beyond which §15.93.4 r1b / §15.94.4 r1b
+    /// report the next digit's position as the first character in error. The standard states it per mode, in
+    /// three sub-notes of the same rule: <b>2)</b> "If native arithmetic is in effect, because the character in
+    /// error for an argument that is greater than 31 digits is the 32nd digit…"; <b>3)</b> "If standard-binary
+    /// arithmetic is in effect, and the argument has more than 35 digits…"; <b>4)</b> "If standard-decimal
+    /// arithmetic is in effect, and the argument has more than 34 digits…".
+    ///
+    /// <para><see cref="ArithmeticMode.Standard"/> (the 2002 mode) is not named by those sub-notes; it takes 34
+    /// because it routes to the SAME SDIDI decimal engine as STANDARD-DECIMAL for its reachable operands
+    /// (<c>NumericRenderer.StandardDecimal</c>, <c>DataBinder.BindDeclarations</c>).</para>
+    ///
+    /// <para>⛔ <see cref="ArithmeticMode.StandardBinary"/>'s 35 is UNREACHABLE and is written down anyway. The
+    /// mode is declined at bind (<c>OptionsBinder.ArithmeticOf</c> → COBOLNET0806), so no compilation can carry
+    /// it this far — but a table with a hole is a table that answers a question it has never been asked, and the
+    /// previous shape here was a two-state ternary whose else-branch silently gave standard-binary the NATIVE
+    /// cap. Recording the spec's real value keeps the double defence honest: the mode is rejected, AND if it
+    /// ever were not, this lane would not quietly emit the wrong number.
+    /// <c>ArithmeticModeTableTests</c> asserts the table is exhaustive over the enum.</para></summary>
+    public static int NumvalDigitCap(ArithmeticMode mode) => mode switch
+    {
+        ArithmeticMode.Native => 31,            // §15.93.4 r1b sub-note 2
+        ArithmeticMode.Standard => 34,          // routes to the SDIDI decimal engine (see the remark above)
+        ArithmeticMode.StandardBinary => 35,    // §15.93.4 r1b sub-note 3 — unreachable; declined at bind
+        ArithmeticMode.StandardDecimal => 34,   // §15.93.4 r1b sub-note 4
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no §15.93.4 r1b digit cap for this mode"),
+    };
+
+    /// <summary>The cap the runtime assumes when the emitted call omits the argument — the native one. Kept
+    /// beside the table so "which value means omit" cannot drift away from "what the table says native is".</summary>
+    public const int DefaultDigitCap = 31;
+}
+
 /// <summary>Endianness of a standard floating-point usage (FLOAT-BINARY / FLOAT-DECIMAL clauses, §11.9.8/§11.9.9).</summary>
 public enum FloatEndianness { Unspecified, HighOrderLeft, HighOrderRight }
 

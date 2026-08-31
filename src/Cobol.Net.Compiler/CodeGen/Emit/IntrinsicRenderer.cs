@@ -804,9 +804,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// flag), rendered only when present so the default-free call stays byte-stable.</summary>
     private static string AnycaseFlag(BoundIntrinsicCall ic) => ic.Anycase ? ", anycase: true" : "";
 
-    /// <summary>The §15.93.4/§15.94.4 r1b digit-cap named argument: 34 under the SDIDI standard-arithmetic
-    /// modes (sub-note 4), omitted for the native default 31 (sub-note 2).</summary>
-    private string DigitCapFlag => num.StandardDecimal ? ", digitCap: 34" : "";
+    /// <summary>The §15.93.4/§15.94.4 r1b digit-cap named argument, DERIVED FROM THE MODE
+    /// (<see cref="ArithmeticModes.NumvalDigitCap"/> — the one table, keyed on the mode the standard keys its
+    /// three sub-notes on). Omitted when the cap is the runtime's own default, so the generated call stays
+    /// byte-stable for every native compilation.
+    ///
+    /// <para>This was a two-state ternary on <c>num.StandardDecimal</c>, which gave STANDARD-BINARY the NATIVE
+    /// cap through its else-branch. Unreachable today — the mode is declined at bind — but a lane that answers
+    /// a question it was never asked is the half of a double defence that rots first.</para></summary>
+    private string DigitCapFlag =>
+        ArithmeticModes.NumvalDigitCap(ctx.Data.Options.Arithmetic) is var cap && cap != ArithmeticModes.DefaultDigitCap
+            ? $", digitCap: {cap}" : "";
 
     /// <summary>The landing form past the Int128 carrier for a quantizer / exact-family parse (kb/Work PB77) — the
     /// ONE <c>NumericRenderer.CheckedFlag</c>, read from the receiver context this render runs under.</summary>

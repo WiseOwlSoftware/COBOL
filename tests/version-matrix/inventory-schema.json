@@ -60,6 +60,50 @@
     }
   },
 
+  "derived-verdicts": {
+    "$comment": [
+      "A verdict that follows MECHANICALLY from one owner determination plus the rule TEXT, rather than being",
+      "adjudicated row by row. The selector is DATA here so the batch generator (Python) and the drift test (C#)",
+      "read the SAME predicate; writing it twice is how the mode-set drift of kb/Work PB194 happened.",
+      "",
+      "⛔ A derived verdict is NOT a shortcut past adjudication. It applies only where a single decision makes",
+      "an entire rule unreachable, so there is nothing left to adjudicate PER ROW — and the drift test then holds",
+      "every selected row at that verdict, which is what stops the population drifting back into five states."
+    ],
+    "standard-binary-only": {
+      "verdict": "DOCUMENTED-NON-SUPPORT",
+      "decision": "kb/Work PB198 — ARITHMETIC IS STANDARD-BINARY is declined (owner protocol 2026-08-30); docs/CONFORMANCE.md §2 row 2.",
+      "$selector": [
+        "A rule is SOLELY conditioned on standard-binary arithmetic when it names that MODE and names no other",
+        "arithmetic mode. Both halves must be about the MODE, not the words:",
+        "  • 'standard-binary' also names a FLOAT-BINARY USAGE (§11.9.8, §13.18.63) — nothing to do with the",
+        "    arithmetic mode, so 'requires' demands the mode phrase and rejects SR-11.9.8.3-1/-2/-3.",
+        "  • 'standard decimal floating-point usage' likewise names a USAGE, so the standard-decimal exclusion",
+        "    carries a negative lookahead — without it AR-15.43.3-3, which IS solely mode-conditioned, was wrongly",
+        "    excluded.",
+        "  • A rule reading 'standard-decimal or standard-binary arithmetic is in effect' has content under a mode",
+        "    we DO support, so it is excluded — which is why the exclusion cannot require a trailing 'arithmetic'",
+        "    after standard-decimal (GR-14.7.7-3, GR-14.9.26.4-3 slipped through when it did).",
+        "",
+        "⛔ TEXT IS NOT THE ONLY WAY A RULE IS CONDITIONED. Six rules of §8.8.1.4 (the clause TITLED 'Standard-binary",
+        "arithmetic') never repeat the phrase — GR-8.8.1.4.2-1 just says 'Any operand of an arithmetic expression",
+        "that is not already in SBIDI is converted into SBIDI form' — and a text-only predicate missed every one of",
+        "them. `requires-sections` selects by CLAUSE, which is what the standard actually uses to scope them.",
+        "",
+        "Measured 2026-08-31: 16 rules are solely conditioned on the mode (10 by text, 6 by clause), carrying four",
+        "different verdicts before this determination. The mixed rules keep their own — they have reachable content",
+        "under a mode we DO support, and stamping them would over-claim."
+      ],
+      "requires-sections": ["8.8.1.4"],
+      "requires-pattern": "standard[-\\s]binary\\s+(arithmetic|intermediate)",
+      "excludes-patterns": [
+        "native\\s+arithmetic",
+        "standard[-\\s]decimal(?!\\s+floating)",
+        "\\bstandard\\s+arithmetic"
+      ]
+    }
+  },
+
   "editions": ["85", "2002", "2014", "2023"],
 
   "code-location": {

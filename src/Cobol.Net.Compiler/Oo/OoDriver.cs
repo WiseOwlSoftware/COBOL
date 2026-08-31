@@ -33,6 +33,12 @@ internal sealed class OoDriver(BindSession session)
     {
         var data = new DataBinder(session.Edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, RefModZeroLength = session.RefModZeroLength };
         data.CallSeedUids(session.TakeUidBand());
+        // §10.6.1 / §11.9.4 GR1: the INTERFACE skeleton carries its own OPTIONS paragraph, and nothing bound it
+        // — so its clauses had no effect on the prototypes AND, because OptionsBinder is where the
+        // processor-dependence screens live, an interface could select a declined arithmetic mode in silence
+        // (kb/Work PB197: the second hollow arm, found by sweeping all six optionsParagraph-bearing productions
+        // rather than only the METHOD one the finding named).
+        data.CallInheritOptions(Binding.OptionsBinder.BindParagraph(iface.Ctx.optionsParagraph(), session.Edition, null));
         var synthetic = new Core.ProgramUnitContext(null!, -1);
         if (iface.Ctx.environmentDivision() is { } env) synthetic.AddChild(env);
         data.BindDeclarations(synthetic);

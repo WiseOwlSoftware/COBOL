@@ -447,7 +447,15 @@
   "pb157-compute-all-literal",
   "pb157-compute-bool-arith-rhs",
   "pb157-compute-group-receiver",
-  "pb157-compute-mixed-receivers"
+  "pb157-compute-mixed-receivers",
+  "standard-binary-e-2014",
+  "standard-binary-e-2002",
+  "standard-binary-pi-2014",
+  "standard-binary-pi-2002",
+  "standard-binary-sqrt-2014",
+  "standard-binary-sqrt-2002",
+  "standard-binary-test-numval-2014",
+  "standard-binary-test-numval-2002"
  ],
  "pending": []
 }

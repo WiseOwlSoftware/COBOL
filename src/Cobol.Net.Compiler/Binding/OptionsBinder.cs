@@ -57,7 +57,7 @@ internal static class OptionsBinder
     private static OptionsModel Apply(OptionsModel m, Core.OptionsClauseContext c, EditionContext? edition)
     {
         if (c.arithmeticClause()?.arithmeticMethod() is { } am)
-            return m with { Arithmetic = ArithmeticOf(am) };
+            return m with { Arithmetic = ArithmeticOf(am, edition) };
         if (c.defaultRoundedClause()?.roundingModeName() is { } dr)
             return m with { DefaultRounding = RoundingModes.Map(dr) };
         if (c.entryConventionClause()?.cobolWord() is { } ec)
@@ -73,11 +73,43 @@ internal static class OptionsBinder
         return m;
     }
 
-    private static ArithmeticMode ArithmeticOf(Core.ArithmeticMethodContext m) =>
-        m.STANDARD_BINARY() is not null ? ArithmeticMode.StandardBinary
-        : m.STANDARD_DECIMAL() is not null ? ArithmeticMode.StandardDecimal
-        : m.STANDARD() is not null ? ArithmeticMode.Standard
-        : ArithmeticMode.Native;
+    /// <summary>The ARITHMETIC clause's mode — AND the one place COBOL.NET declines STANDARD-BINARY.
+    ///
+    /// <para>⛔ THE SCREEN LIVES HERE BECAUSE THIS IS THE SINGLE CONSTRUCTION POINT. It used to live in
+    /// <c>DataBinder</c>, which binds programs, functions and the class/factory/object skeletons but NOT a
+    /// method's or an interface's OPTIONS paragraph — so <c>METHOD-ID … OPTIONS. ARITHMETIC IS STANDARD-BINARY.</c>
+    /// compiled with NO diagnostic at all at <c>--std 2014</c> (measured 2026-08-31, kb/Work PB197), and the
+    /// INTERFACE-ID arm was hollow the same way. Six grammar productions carry <c>optionsParagraph?</c>
+    /// (identificationParagraph · classDefinition · factoryParagraph · objectParagraph · interfaceDefinition ·
+    /// methodDefinition) and every one of them reaches THIS method, so screening the clause where it is READ
+    /// makes the next options-bearing production automatic instead of adding a seventh place to remember.
+    /// <c>ArithmeticModeScreenDriftTests</c> enumerates the productions out of the grammar and fails when one
+    /// is added without a covering fixture.</para>
+    ///
+    /// <para>The decline is a §4.2.6 processor-dependence choice, not an obsolescence one: A.3 item 2 makes the
+    /// clause processor-dependent ("The ARITHMETIC IS STANDARD-BINARY clause in the OPTIONS paragraph is
+    /// dependent on the capabilities of the processor"), and §4.2.6 grants the discretion to decline plus the
+    /// obligation to warn and to document. Obsolescence grants nothing — F.2 says a conforming implementation
+    /// "shall support obsolete language elements EXCEPT for elements that are also optional or
+    /// processor-dependent", so it is the processor-dependence that carries this, and F.2 item 3's
+    /// reevaluation note is why the decline is recorded as REVISITABLE. docs/CONFORMANCE.md §2 row 2.</para>
+    ///
+    /// <para>Screening the CLAUSE rather than the resulting model also keeps §11.9.4 GR1 inheritance quiet: a
+    /// contained unit that merely inherits the container's mode has written nothing, and is not diagnosed twice.</para>
+    /// </summary>
+    private static ArithmeticMode ArithmeticOf(Core.ArithmeticMethodContext m, EditionContext? edition)
+    {
+        if (m.STANDARD_BINARY() is not null)
+        {
+            edition?.Error("COBOLNET0806", "ARITHMETIC IS STANDARD-BINARY is a processor-dependent language "
+                + "element (ISO Annex A.3 item 2) for which support is not claimed (§4.2.6); it is also obsolete "
+                + "(§8.8.1.4.1 NOTE 1 / Annex F.2 item 3). Use NATIVE or STANDARD-DECIMAL");
+            return ArithmeticMode.StandardBinary;
+        }
+        return m.STANDARD_DECIMAL() is not null ? ArithmeticMode.StandardDecimal
+            : m.STANDARD() is not null ? ArithmeticMode.Standard
+            : ArithmeticMode.Native;
+    }
 
     private static FloatEndianness EndiannessOf(Core.EndiannessPhraseContext e) =>
         e.HIGH_ORDER_LEFT() is not null ? FloatEndianness.HighOrderLeft : FloatEndianness.HighOrderRight;

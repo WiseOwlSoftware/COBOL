@@ -21,6 +21,22 @@ mechanism: SCREEN handling → **COBOLNET1560**; MCS SEND/RECEIVE → **COBOLNET
 **COBOLNET1579**; VALIDATE → **COBOLNET1580**. Each is a WARNING, not an error — the program compiles, runs,
 and the facility is inert, and no associated exception condition is raised (§14.6.13.1.1 licenses this).
 
+> ⚖ **The warning band and the hard errors are DELIBERATELY asymmetric, and the axis is whether a program can
+> still mean what it says.** §4.2.6 ¶3 requires a warning mechanism and adds that "The implementor is not
+> required to produce executable code when unsupported processor-dependent language elements are used" — so both
+> severities conform, and the choice is ours to make and to explain.
+> **The 1560 band warns** because those facilities are *additive*: a program with a SCREEN SECTION, a SEND, a
+> COMMIT or a VALIDATE has a well-defined meaning with the facility inert, and the rest of the program is
+> unaffected. Compiling and running it is more useful than refusing it.
+> **`ARITHMETIC IS STANDARD-BINARY` is a hard error (COBOLNET0806)** because it is *pervasive*: §8.8.1.4.1 makes
+> it "a method of evaluating an arithmetic expression, an arithmetic statement, the SUM clause, and certain
+> integer and numeric functions", in effect for the whole unit the moment the phrase is written, so there is
+> no inert reading — compiling it with the clause ignored would silently run the whole program under a different
+> arithmetic than the source selected, and the divergence would appear as wrong VALUES, not as a missing
+> facility. A warning nobody reads plus wrong answers is the worst of the available outcomes; refusing is the
+> honest one. `ARITHMETIC IS STANDARD` (removed 2023) and the removed/introduced edition gates are errors for
+> the same reason.
+
 > ℹ **The former warning dead spot is closed (kb/Work PB137).** A bare `COMMIT`/`ROLLBACK` after any
 > open operand list — a `DISPLAY` operand tail, an `EVALUATE … WHEN` arm's first statement, the
 > arithmetic receiver lists — now parses as its statement at the editions where §8.9 reserves the words:
@@ -40,7 +56,7 @@ of an unsupported facility.
 | A.3 # | Element | § | Disposition | Note |
 |---|---|---|---|---|
 | 1 | Significand/exponent >31/>3 digits in float literal / numeric-edited PICTURE | 8.3.3.3.3 / 13.18.40 | **Claimed** (all four) | COBOL.NET supports the standard floating-point usages and STANDARD-DECIMAL arithmetic, so item 1's latitude is unavailable and the FULL forms are provided: a floating-point literal's significand of up to 36 digits and exponent of up to 4 digits (kb/Work PB99 — the value range is A.1 item 82's determination), a floating-point numeric-edited PICTURE with a 36-digit significand and a 4-digit exponent (kb/Work PB66, D21) |
-| 2 | ARITHMETIC IS STANDARD-BINARY | 11.9.5 | Not claimed | Obsolete feature (A.3 NOTE 1); the native/standard-decimal modes are provided |
+| 2 | ARITHMETIC IS STANDARD-BINARY | 11.9.5 / 8.8.1.4 | **Not claimed — REVISITABLE** | ⛔ **The ground is PROCESSOR-DEPENDENCE, not obsolescence** (this row said "Obsolete feature" until 2026-08-31, which names a fact that grants nothing). **A.3 item 2**: "The ARITHMETIC IS STANDARD-BINARY clause in the OPTIONS paragraph is dependent on the capabilities of the processor" — and **§4.2.6** is what makes declining it conforming: the decision to claim support "is within an implementor's discretion", the absence "shall be specified in the implementor's user documentation" (this row), and a compile-time warning mechanism is required (COBOLNET0806 — see §1 on why an error). Obsolescence is *not* a licence: Annex **F.2**'s preamble reads "A conforming implementation shall support obsolete language elements **except** for elements that are also optional or processor-dependent" — so the exception is doing the work, and the obsolescence only corroborates. **REVISITABLE by the standard's own words**: F.2 item 3 ("STANDARD-BINARY arithmetic and STANDARD BINARY Intermediate Data Item. These features have not been implemented as of the writing of this revision by any COBOL provider") adds "Unlike other obsolete features, it is intended that interest in these facilities will be **reevaluated** during the next revision". Every rule conditioned solely on the mode carries this ONE determination (a derived verdict — `inventory-schema.json` `derived-verdicts.standard-binary-only`); NATIVE and STANDARD-DECIMAL are provided. Decision: kb/Work PB198. |
 | 3 | ARITHMETIC IS STANDARD-DECIMAL | 11.9.5 | **Claimed** | Full SDIDI consumption (P10): `CobolDec` engine, decimal128 range ECs |
 | 4 | Asynchronous messaging (MCS) facility | E.3.2 | **Not claimed** | Documented non-support (§4) — inter-run-unit communication not provided |
 | 5 | BLOCK CONTAINS clause | 13.x | **Claimed** (inert) | Accepted; no effect on the managed I-O model (A.3 item 5 sanctions this) |
