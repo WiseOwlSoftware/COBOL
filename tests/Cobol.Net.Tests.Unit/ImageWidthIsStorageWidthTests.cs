@@ -135,6 +135,54 @@ public sealed class ImageWidthIsStorageWidthTests
         Assert.Equal(8, item.ByteWidth);
     }
 
+    /// <summary>
+    /// ⛔ THE SEED-WIDTH AXIS — the drift test for kb/Work PB188. The one-width invariant above says
+    /// <see cref="DataItem.ImageWidth"/> and <see cref="DataItem.ByteWidth"/> agree; this says the third
+    /// number, <c>Pic.Length</c> (the PICTURE's character/digit count), DOES NOT — for exactly the leaves
+    /// V59/PB164 admitted to the image.
+    /// <para>That divergence is what made PB188 possible. A <c>StoreAsImage</c> numeric leaf's storage is a
+    /// <c>CharImage(item.ImageWidth)</c> window (<c>StorageFormPass.Classify</c>), and the VALUE seeders used to
+    /// hand-spell <c>StrStore(chars, pic.Length)</c>. While every such leaf was zoned DISPLAY the two numbers
+    /// were the same and nothing could catch it; once a byte-form leaf could be <c>StoreAsImage</c> the seed
+    /// wrote a window of the wrong LENGTH and displaced every following member of the group image. Both
+    /// seeders now encode through <c>RuntimeApi.NumFormatImage</c> with the item's own profile, so the width
+    /// comes from the pinned byte form by construction — this test states the fact that makes any future
+    /// re-introduction of a <c>pic.Length</c>-wide numeric seed wrong.</para>
+    /// <para>The last row is the case that shows the axis is not only about COMP: a SIGN SEPARATE zoned DISPLAY
+    /// item carries a sign POSITION that its picture's digit count does not (§13.18.52), so digits and stored
+    /// characters differ there too.</para>
+    /// </summary>
+    [Theory]
+    [InlineData(Usage.Binary, 4, false, 2)]     // PIC 9(4) COMP        — 4 digits, 2 bytes
+    [InlineData(Usage.Comp5, 18, false, 8)]     // PIC 9(18) COMP-5     — 18 digits, 8 bytes
+    [InlineData(Usage.Packed, 3, true, 2)]      // PIC S9(3) COMP-3     — 3 digits, 2 bytes
+    [InlineData(Usage.Binary, 31, true, 16)]    // PIC S9(31) COMP      — 31 digits, 16 bytes
+    [InlineData(Usage.Float, 1, false, 4)]      // COMP-1               — 1 "digit", 4 bytes
+    public void ByteFormLeaf_ImageWidthIsNotThePictureLength(Usage usage, int digits, bool signed, int expectedBytes)
+    {
+        var pic = Numeric(usage, digits, signed: signed);
+        var item = Leaf(pic);
+        Assert.True(item.IsImageCapable);
+        Assert.Equal(expectedBytes, item.ImageWidth);
+        Assert.Equal(item.ImageWidth, item.ByteWidth);
+        Assert.NotEqual(pic.Length, item.ImageWidth);   // ⛔ the seed width is NOT the picture length
+    }
+
+    /// <summary>The SIGN SEPARATE row of the same axis, kept apart because it needs a <c>SignKind</c> rather
+    /// than a usage: a zoned DISPLAY item stores its sign in its own character position, so it occupies
+    /// <c>Digits + 1</c> positions while its picture length is <c>Digits</c>.</summary>
+    [Theory]
+    [InlineData("LeadingSeparate")]
+    [InlineData("TrailingSeparate")]
+    public void SignSeparateDisplayLeaf_ImageWidthIsNotThePictureLength(string signKind)
+    {
+        var pic = Numeric(Usage.Display, 3, signed: true) with { SignKind = signKind };
+        var item = Leaf(pic);
+        Assert.Equal(4, item.ImageWidth);
+        Assert.Equal(item.ImageWidth, item.ByteWidth);
+        Assert.NotEqual(pic.Length, item.ImageWidth);
+    }
+
     /// <summary>A group's two widths compose from its leaves', so the invariant holds transitively — this is the
     /// shape the original defect actually presented as (BYTE-LENGTH(G) = 5 vs LENGTH(G) = 8).</summary>
     [Fact]

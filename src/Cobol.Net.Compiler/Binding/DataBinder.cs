@@ -1670,6 +1670,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         to.Pic ??= from.Pic;
         if (to.Pending is PicPending.None) to.Pending = from.Pending;
+        // The provenance of the VALUE travels with it (DataItem.ValueIsCopied): the §13.18.63.3 SR13/SR14
+        // screen's subject is the entry that WROTE the VALUE clause, so a copied one must not re-report the
+        // template's / target's already-screened entry once per reference site.
+        if (to.RawValue is null && from.RawValue is not null) to.ValueIsCopied = true;
         to.RawValue ??= from.RawValue;
         to.Justified |= from.Justified;
         to.BlankWhenZero |= from.BlankWhenZero;
@@ -1703,6 +1707,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             OwnSign = src.OwnSign,
             OwnUsage = src.OwnUsage,
             RawValue = src.RawValue,
+            ValueIsCopied = src.RawValue is not null,   // a clone never WROTE its VALUE (see DataItem.ValueIsCopied)
             Occurs = src.Occurs,
             // Clone the OccursSpec — never SHARE it: its Depending / CapacityRegister are RESOLVED per-clone by the
             // post-build OdoResolve / DynamicResolve, so a shared object would let two clones of the same group type
@@ -3878,8 +3883,37 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// reference — so they must NOT be dedup'd by <c>PicInfo</c> identity: two distinct source pointer items share the ONE
     /// <c>PicInfo.PointerItem</c> singleton). The result is exactly the set of items the binder's per-entry
     /// <c>PictureAnalyzer.ParseUsage</c>/<c>Analyze</c> gates fired for, once each.
+    ///
+    /// <para>⛔ This is the WRITTEN-ENTRY forest and its exclusion of the clones is part of its contract — do not
+    /// widen it. A pass whose subject is a property of the COMPOSED entry rather than of the written clause list
+    /// takes <see cref="CompositionForest"/> instead; that distinction is why the §13.18.63.3 SR13/SR14 screen
+    /// missed the whole TYPE population on its first landing.</para>
     /// </summary>
-    public IEnumerable<DataItem> ConformanceForest()
+    public IEnumerable<DataItem> ConformanceForest() =>
+        DeclaredForest().Where(item => StrongTypeModel.TypeAnchor(item) is null);
+
+    /// <summary>
+    /// Every data item this unit binds AS COMPOSED — the same forest as <see cref="ConformanceForest"/> plus the
+    /// TYPE / SAME AS clone subtrees it excludes, pre-order DFS in declaration order, still without the OO/UDF
+    /// compiler temps.
+    ///
+    /// <para>⛔ TWO FORESTS, TWO KINDS OF SUBJECT — pick by what the rule is ABOUT, not by convenience.
+    /// <see cref="ConformanceForest"/> answers "which entries did the programmer WRITE, as written": it is the
+    /// once-per-source-entry set the per-entry data-attribute gates fire over, and excluding the clones is right
+    /// there because the TEMPLATE carried the same clauses and was gated once. A rule whose subject is a property
+    /// of the COMPOSED entry has no such counterpart on the template: `01 R TYPE T VALUE "ABCD".` composes a
+    /// §13.18.63.3 SR14 violation out of a VALUE clause the reference site wrote and a usage the template wrote,
+    /// and NEITHER entry carries it alone. Measured on the first landing of the SR13/SR14 screen: that program
+    /// compiled clean while its byte-identical inline spelling was rejected — the whole TYPE population escaped.
+    /// Use this forest for such a rule, and keep the item's OWN provenance (see <see cref="DataItem.ValueIsCopied"/>)
+    /// to avoid re-reporting a clause the template already answered for.</para>
+    /// </summary>
+    public IEnumerable<DataItem> CompositionForest() => DeclaredForest();
+
+    /// <summary>The shared spine of the two forests: <see cref="Roots"/> + <see cref="LinkageRoots"/> +
+    /// <see cref="TypeDecls"/> templates, pre-order DFS in declaration order, pruning the OO/UDF compiler temps
+    /// recorded in <see cref="CompilerTempClones"/>.</summary>
+    private IEnumerable<DataItem> DeclaredForest()
     {
         var temps = CompilerTempClones.Count == 0 ? null
             : new HashSet<DataItem>(CompilerTempClones.Select(t => t.Temp));
@@ -3893,10 +3927,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var c in d.Children)
                 foreach (var x in Walk(c)) yield return x;
         }
-        foreach (var item in Roots.Concat(LinkageRoots).SelectMany(Walk)
-                     .Concat(TypeDecls.Values.SelectMany(Walk)))
-            if (StrongTypeModel.TypeAnchor(item) is null)
-                yield return item;
+        return Roots.Concat(LinkageRoots).SelectMany(Walk).Concat(TypeDecls.Values.SelectMany(Walk));
     }
 
     /// <summary>The elementary leaves of an item (itself if elementary), in source order.</summary>

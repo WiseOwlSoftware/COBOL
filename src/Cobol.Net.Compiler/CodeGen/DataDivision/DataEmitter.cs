@@ -23,7 +23,7 @@ internal sealed class DataEmitter
     {
         var phys = new PhysicalModel(ctx);
         _values = new ValueInitializer(ctx);
-        var slicer = new GroupValueSlicer(phys);
+        var slicer = new GroupValueSlicer(ctx, phys);
         _codec = new GroupImageCodec(ctx, phys, _values);
         phys.Values = _values;
         phys.Codec = _codec;

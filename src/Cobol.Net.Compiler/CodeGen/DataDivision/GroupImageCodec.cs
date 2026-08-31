@@ -35,6 +35,31 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     {
         if (item.IsGroup)
         {
+            // ⛔ A GROUP-LEVEL VALUE INITIALIZES THE AREA (ISO §13.18.63.4 GR5 — "the group area is initialized
+            // without consideration for the individual elementary or group items contained within this group"),
+            // so it REPLACES the member-wise composition below rather than being composed alongside it. The one
+            // area rule is GroupValueSlicer.AreaTextOf, shared with the record-struct lane.
+            //
+            // ⚠ THIS ARM WAS MISSING, and it was a live silent wrong answer on LEGAL source (kb/Work PB184's
+            // sibling sweep). ImageInitOf is THE seeder for every character-image backing since the PB164
+            // consolidation — Tier-B REDEFINES backings (RecordStructEmitter / PhysicalModel), EXTERNAL run-unit
+            // cells (DataEmitter.ExternalCellSeed), BASED/ADDRESS-OF cells (ProgramEmitter / PtrEmitter) and the
+            // OO backings — and it walked straight past the group's own RawValue into the members. Measured on
+            // 8ca74a3d: `01 G VALUE "ABCD". 05 A PIC X(2). 05 B PIC X(2). 01 R REDEFINES G PIC X(4).` left A, B
+            // and R all SPACES, while the identical group WITHOUT the REDEFINES initialized "AB"/"CD" — the
+            // whole VALUE lost to nothing but the presence of an alias. §13.18.63.3 SR12 bars a VALUE in the
+            // redefinING entry, never in the redefined one, so that program is conforming.
+            // (The seventh instance of the two-arm-dispatch shape: the slicer's arm was written, the codec's
+            // was not, and only the slicer's lane was ever tested.)
+            //
+            // ⛔ The BIT-PACKED exclusion is NOT restated here. It used to be, keyed on GROUP-USAGE BIT — a
+            // predicate NARROWER than the fact it protects: what switches DataItem.ImageWidth from a character
+            // sum to the §8.5.1.6.3 bit walk is HasBitDescendant (D19/PB43), which GROUP-USAGE BIT is only the
+            // commonest way to acquire. The exclusion now lives once, inside AreaTextOf, so both lanes inherit
+            // the same predicate and no future lane can pick up the narrow one (kb/Work PB207).
+            if (useValues && GroupValueSlicer.AreaTextOf(item, ctx) is { } area)
+                return EmitText.CsLiteral(area);
+
             // Redefining children overlay storage already composed by their targets — never part of the image.
             var parts = item.Children.Where(c => (c.IsGroup || c.IsElementary) && c.RedefinesTargetName is null)
                 .Select(c => ImageInitOf(c, useValues));
@@ -44,12 +69,18 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (useValues && item.RawValue is { } raw)
         {
             if (vals.FigurativeInitializer(raw, pic) is { } fig && pic.Category is not PicCategory.Numeric) return fig;
-            // CCVS leniency (same as InitializerFor): an ALPHANUMERIC literal VALUE on a numeric DISPLAY item
-            // contributes its CHARACTERS to the image (NC107A's `PIC 999 VALUE "000"` under a REDEFINES).
-            if (pic.Category is PicCategory.Numeric && !pic.IsFloat && raw.StartsWith('"'))
-                return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
+            // A NUMERIC member contributes the BYTES of its VALUE through its own pinned byte form — zoned
+            // digits for DISPLAY, radix-2 / BCD for BINARY / PACKED (V59). ⛔ ONE ENCODER, so the width is the
+            // item's StorageWidth BY CONSTRUCTION (kb/Work PB188): the CCVS-leniency spelling that used to sit
+            // here stored `pic.Length` CHARACTERS — the PICTURE's digit count — which for a byte-form member is
+            // simply a different number (`PIC 9(4) COMP` is 4 digits and 2 bytes) and displaced every following
+            // member of the image. The leniency itself survives as what it always meant: an alphanumeric literal
+            // on a numeric item is read AS the numeric literal §13.18.63.3 SR2 asked for (NC107A's
+            // `PIC 999 VALUE "000"` under a REDEFINES), which is the SAME encode — hence one arm, not two.
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && vals.FigurativeInitializer(raw, pic) is null)
-                return RuntimeApi.NumFormatImage(EmitText.UnscaledAtScale(raw, pic.Scale), item.ProfileName);
+                return RuntimeApi.NumFormatImage(
+                    EmitText.UnscaledAtScale(raw.StartsWith('"') ? CobolLiteral.Decode(raw) : raw, pic.Scale),
+                    item.ProfileName);
             // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§13.18.63 GR6) —
             // for a format-2 (LOCALE) member a RUNTIME image (no compile-time image exists, §13.18.40.5 r11;
             // the ONE producer, RuntimeApi.LocaleEditCompose — PB64 T6; the EditCompose arm's mask deref would NRE).

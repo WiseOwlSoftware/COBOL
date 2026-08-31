@@ -114,14 +114,26 @@ internal sealed class ValueInitializer(EmitContext ctx)
             return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynLengthLimit.ToString());
         }
 
-        // CCVS leniency: an ALPHANUMERIC literal VALUE on a numeric DISPLAY item stores its CHARACTERS as the
-        // item's content (ISO §13.18.63 SR2 wants a numeric literal; the 85 corpus writes `PIC 999 VALUE "000"`
-        // — NC107A's DATA-P — and the legacy oracle accepts the character form). Strict rejection is a future
-        // version-conformance pass row.
+        // CCVS leniency: an ALPHANUMERIC literal VALUE on a NUMERIC item is read AS the numeric literal ISO
+        // §13.18.63.3 SR2 asked for (the 85 corpus writes `PIC 999 VALUE "000"` — NC107A's DATA-P; DataBinder's
+        // ValidateValueCategory diagnoses it, COBOLNET1657, and rewrites it to the number under --permissive).
+        // ⛔ ONE RECIPE FOR BOTH STORAGE AXES (kb/Work PB188). The image arm used to hand-spell
+        // `StrStore(chars, pic.Length)` — the PICTURE's DIGIT COUNT — which was right only while every
+        // StoreAsImage numeric leaf was zoned DISPLAY, where digits and bytes are the same number. Since the
+        // V59/PB164 widening a StoreAsImage leaf can be BYTE-FORM, and then they are not: `PIC 9(4) COMP` is 4
+        // digits and 2 bytes, `PIC 9(18) COMP-5` is 18 and 8, `PIC S9(3) COMP-3` is 3 and 2 — and even a zoned
+        // `PIC S999 SIGN SEPARATE` is 3 and 4. The window a CharImage leaf occupies is item.ImageWidth
+        // (StorageFormPass), so a pic.Length-wide seed displaced every following member of the group image.
+        // Routing through NumFormatImage — the SAME encoder the numeric arm below and GroupImageCodec use —
+        // takes the width from the item's own pinned byte form BY CONSTRUCTION, and makes the leniency MEAN the
+        // same thing on both axes: the number, encoded as this item stores numbers.
         if (effRaw is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
+        {
+            string unscaledText = EmitText.UnscaledAtScale(CobolLiteral.Decode(q), pic.Scale);
             return item.StoreAsImage
-                ? RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(q)), $"{pic.Length}")
-                : CarrierInit(EmitText.UnscaledAtScale(CobolLiteral.Decode(q), pic.Scale), pic);
+                ? RuntimeApi.NumFormatImage(unscaledText, item.ProfileName)
+                : CarrierInit(unscaledText, pic);
+        }
 
         // A numeric leaf stored as its character image (whole-group-aliased / Tier-B): initialize to the BYTES
         // of its unscaled VALUE (zoned digits for DISPLAY, radix-2 / BCD for BINARY / PACKED — V59) (a numeric/figurative VALUE → that value; no VALUE → 0). The _P_ profile is
@@ -265,9 +277,10 @@ internal sealed class ValueInitializer(EmitContext ctx)
     }
 
     /// <summary>The figurative KIND of a VALUE text (ALL-stripped, ISO §8.3.3.6.4), or null when it is not a
-    /// figurative constant. The ONE detector shared by <see cref="FigurativeInitializer"/> and the VCR 35
-    /// numeric-edited figurative-ZERO branch.</summary>
-    private static char? FigurativeKind(string raw)
+    /// figurative constant. The ONE detector shared by <see cref="FigurativeInitializer"/>, the VCR 35
+    /// numeric-edited figurative-ZERO branch, and the §13.18.63.4 GR5 group-area rule
+    /// (<see cref="GroupValueSlicer.AreaTextOf"/> — internal for that third rider, kb/Work PB184).</summary>
+    internal static char? FigurativeKind(string raw)
     {
         string key = raw.ToUpperInvariant();
         // ALL <figurative-word> (e.g. ALL ZEROS, ALL SPACES) is equivalent to the bare figurative (a single-character

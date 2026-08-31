@@ -1746,10 +1746,19 @@ result. Run the long legs ONE AT A TIME.
   on a RETURNING item; §8.4.3.2.4 GR1 clones the description without narrowing it). [[PB199]] landed the flip
   with byte-true runtime evidence plus the five stale texts; the structural half — nothing watches a TEST that
   pins shut a screen a `src/`-only drift test is unlocking — is [[PB200]], open.
-- **⚠ BATTERY #39 IS OWED, and it covers the burn-down cluster A batch** — [[PB173]] + [[PB177]] + [[PB178]]
-  and their review-fleet fix pass (DEVLOG 1413), all three notes now `landed`. Landed on wave-local only:
-  Conformance **1905/1905** · Unit **5072/5072** · characterization **33/33**, filter
-  `~Accept|~Bit|~Report|~Control|~Redefines|~Convert|~Call|~Oo|~Udf|~Image|~Corpus|~Negative|~Odo|~Occurs|~Intrinsic|~Group|~Dynamic|~Boolean|~Move|~Compute`.
+- **⚠ BATTERY #39 IS OWED, and it now covers TWO batches** — (a) the burn-down cluster A batch, [[PB173]] +
+  [[PB177]] + [[PB178]] and their review-fleet fix pass (DEVLOG 1413), all three notes `landed`; and (b) the
+  **PB184 + PB188 seed wave and its review-fleet landing** (DEVLOG 1414), both notes `landed`, which added
+  COBOLNET1702 / COBOLNET1703 / a COBOLNET0899 staged loud, a SECOND forest over the bound data
+  (`DataBinder.CompositionForest`) and a new `DataItem.ValueIsCopied` provenance fact written by every TYPE /
+  SAME AS description copy. Landed on wave-local only: (a) Conformance **1905/1905** · Unit **5072/5072** ·
+  characterization **33/33**, filter
+  `~Accept|~Bit|~Report|~Control|~Redefines|~Convert|~Call|~Oo|~Udf|~Image|~Corpus|~Negative|~Odo|~Occurs|~Intrinsic|~Group|~Dynamic|~Boolean|~Move|~Compute`;
+  (b) Conformance **1281/1281** · Unit **5091/5091** · characterization **33/33**, filter
+  `~Value|~Group|~Init|~Image|~Corpus|~Negative|~Type|~Redefines|~UsageWord|~Diagnostic|~StorageForm`.
+  ⛔ Batch (b)'s uncovered seam is the one a wave-local filter structurally cannot reach: `ExpandType` /
+  `ExpandSameAs` now write a flag every group-VALUE screen reads, so any program using TYPE or SAME AS is in the
+  blast radius, and the NIST + GnuCOBOL legs are where that population lives.
   ⛔ **The differential and NIST legs have NOT seen this batch**, and it touched shared seams a wave-local
   filter cannot reach: `OdoModel.WrapGroup`'s extent unit (every occurs-depending GROUP operand), the
   `CallEmitter` boundary string pair (every CALL/INVOKE argument), `IntrinsicArgumentRules.StaticUsageOf` (the
@@ -1757,7 +1766,10 @@ result. Run the long legs ONE AT A TIME.
   found ZERO programs with a REDEFINES whose target entry carries an OCCURS clause (conformance + NIST +
   characterization + the GnuCOBOL testsuite sources, 1,448 files), which is the reachability evidence for
   COBOLNET1701's new rejection; the other seams have no such standing proof and are what #39 is for.
-  **Next-free diagnostic code: `COBOLNET1702`** (1700 = report-control-operand-index, 1701 = redefines-target-occurs).
+  **Next-free diagnostic code: `COBOLNET1704`** (1700 = report-control-operand-index, 1701 = redefines-target-occurs,
+  1702 = group-value-subordinate, 1703 = group-value-subject-shape). Never hand-read this — `session-probe.ps1`
+  computes it from the catalog and the src grep, and the line is here only so a session that skipped the probe is
+  not misled.
 - **⛔ PRIOR BATTERY REFERENCE — the R40+PB179+PB180/181 batch tree `d21fbae8` (2026-08-30, battery #37).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-37`; DEVLOG 1405): FULL greenfield Conformance **5109 / 5109** · Unit

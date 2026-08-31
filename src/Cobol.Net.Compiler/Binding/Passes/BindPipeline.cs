@@ -40,6 +40,11 @@ internal static class BindPipeline
         new BindPass("ClassifyRedefinesClasses", PassPhase.SignResolved, PassPhase.RedefinesClassified, d => d.ClassifyRedefinesClasses()),
         new BindPass("CheckStrongTypeDeclarations", PassPhase.RedefinesClassified, PassPhase.StrongTypeChecked, d => d.CheckStrongTypeDeclarations()),
         new BindPass("OoRouteMethodRedefinesBackings", PassPhase.RedefinesClassified, PassPhase.StrongTypeChecked, d => d.OoRouteMethodRedefinesBackings()),
+        // The §13.18.63.3 SR13/SR14 group-level VALUE subordinate screen (kb/Work PB184). Placed HERE because
+        // SR14's "explicitly or IMPLICITLY described with usage DISPLAY" needs UsageInheritancePass to have
+        // propagated a group-level USAGE down to the leaves (§13.18.60.4 GR1) — an inherited COMP must be
+        // caught exactly as a written one is — and nothing later than that: it reads only declared shape.
+        new BindPass("CheckGroupValueDeclarations", PassPhase.StrongTypeChecked, PassPhase.StrongTypeChecked, d => d.CheckGroupValueDeclarations()),
         new BindPass("OdoResolve", PassPhase.StrongTypeChecked, PassPhase.OccursResolved, d => d.OdoResolve()),
         new BindPass("DynamicResolve", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.DynamicResolve()),
         new BindPass("ResolveFiles", PassPhase.OccursResolved, PassPhase.FilesResolved, d => d.ResolveFiles()),

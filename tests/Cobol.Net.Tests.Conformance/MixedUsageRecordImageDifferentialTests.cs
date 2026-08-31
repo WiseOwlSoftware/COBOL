@@ -200,7 +200,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
     // ── Whole-group MOVE / compare over the digit-image representation (§14.9.25.4 GR4 / §8.8.4.2.1) ─────────
 
     /// <summary>A NON-ALIGNED mixed-group MOVE (3 source leaves → 4 receiver leaves — the ST127A 10→11 shape) is a
-    /// positional representation copy "without consideration for the individual elementary items" (§14.9.25.4 GR4):
+    /// positional representation copy "without consideration for the individual elementary or group items" (§14.9.25.4 GR4):
     /// the source's image is <c>"AB" + FF 85 + "CDE"</c> — a <c>PIC S9(4) COMP</c> holding −123 is TWO bytes of
     /// two's complement, 0x10000 − 123 = 0xFF85 (§13.18.60.4 GR4, radix 2; V59) — and it refills the receiver's
     /// windows as AB | FF | 85 | CDE. Each one-byte <c>PIC S9(2) COMP</c> receiver then reads its byte as signed:

@@ -672,6 +672,53 @@ public static class DiagnosticCatalog
         + "is a different shape and is not screened here. Sentence 4's occurs-depending prohibition is "
         + "COBOLNET0855's, and owns the entries where data-name-2 IS an occurs-depending table.)",
         "ISO §13.18.44.3 SR5");
+    // ⛔ THE GROUP-LEVEL VALUE SUBORDINATE SCREEN (kb/Work PB184). §13.18.63.3 SR13/SR14 restrict what may sit
+    // UNDER an entry that carries a group-level VALUE, and NONE of the three restrictions existed: measured on
+    // 8ca74a3d, `01 GV VALUE "40537". 05 GB PIC 9 COMP-5 OCCURS 5.` compiled CLEAN and left every occurrence
+    // ZERO; so did a JUSTIFIED / SYNCHRONIZED subordinate and a subordinate carrying its own VALUE.
+    // ⚠ PB184 was registered as a §13.18.63.4 GR5 DISTRIBUTION gap — "the group area is initialized without
+    // consideration for the individual elementary or group items contained within this group", so the byte-form
+    // leaves should take their slice of the literal's BYTES. That premise is refuted by SR14: a COMP-5 leaf
+    // under an alphanumeric group item carrying a VALUE is not usage DISPLAY, so the program is NOT CONFORMING
+    // and there is no area to distribute. GR5 is already implemented for the population SR14 admits (every
+    // subordinate usage DISPLAY, where the character image IS the byte image). The missing half was the
+    // DIAGNOSTIC on the complement, never a widening of the distributor — the
+    // [[validate_the_premise_not_only_the_rule]] shape.
+    // SR14 is TWO conjuncts in one sentence and SR13's second sentence is the third restriction on the same
+    // subject; all three live here so a future case is automatic rather than a fourth unscreened arm.
+    public static readonly DiagnosticDescriptor GroupValueSubordinate = new(
+        "COBOLNET1702", "group-value-subordinate", EditionSeverity.Error,
+        "ISO §13.18.63.3 syntax rule 14: \"If a VALUE clause is specified at the group level, subordinate items "
+        + "within that group shall not be described with a JUSTIFIED or SYNCHRONIZED clause, and all data items "
+        + "subordinate to an alphanumeric group item shall be explicitly or implicitly described with usage "
+        + "DISPLAY.\"; syntax rule 13, sentence 2: \"The VALUE clause shall not be specified at subordinate "
+        + "levels within this group.\" (Syntax rule 16 applies both to the format 2 (table) VALUE.)",
+        "ISO §13.18.63.3 SR13/SR14");
+    // The SUBJECT half of the same screen. SR1 restricts what the VALUE-carrying entry may BE, and it is the
+    // rule that keeps SR14's second conjunct honest: §13.18.29.4 GR3 makes a group an ALPHANUMERIC group item
+    // only when it is "not strongly typed and is not a variable-length group", so without SR1 those two shapes
+    // reach the SR14 usage arm and are rejected under a rule that does not govern them. Measured (probe, this
+    // landing): `01 ST IS TYPEDEF STRONG VALUE "ABCD". 05 SY PIC 9(4) COMP.` and `01 GV VALUE "ABCDE".
+    // 05 GB PIC 9(4) COMP OCCURS DYNAMIC CAPACITY IN CAP FROM 1 TO 5.` each drew COBOLNET1702 naming SR14,
+    // while the rule they actually violate — SR1 — was unenforced.
+    public static readonly DiagnosticDescriptor GroupValueSubjectShape = new(
+        "COBOLNET1703", "group-value-subject-shape", EditionSeverity.Error,
+        "ISO §13.18.63.3 syntax rule 1: \"The subject of the entry shall not be a strongly-typed group item or "
+        + "a variable-length group.\" (A variable-length group is §8.5.1.12.1's — a group with a dynamic-length "
+        + "elementary item or a dynamic-capacity table subordinate to it.)",
+        "ISO §13.18.63.3 SR1");
+    // A group-level VALUE whose area is BIT-PACKED (kb/Work PB207). §13.18.63.4 GR5 initializes "the group
+    // area"; for a group with a USAGE BIT descendant that area is ceil(bits/8) PACKED bytes laid out by the
+    // §8.5.1.6.3 walk, not a character run, so the positional CHARACTER slice both initializer lanes implement
+    // has no meaning over it. Measured on 8ca74a3d and unchanged by PB184's widening: the multi-member shape
+    // `01 BG GROUP-USAGE BIT VALUE B"1010". 05 B1 PIC 1(2). 05 B2 PIC 1(2).` CRASHED the emitter with an
+    // unhandled ArgumentOutOfRangeException, and the single-member shape silently stored ONE boolean position
+    // where the literal has four. Staged LOUD rather than either: a wrong answer that compiles is worse than a
+    // named refusal, and PB207 carries the real fix (a boolean-position area rule for both lanes).
+    public static readonly DiagnosticDescriptor BitGroupLevelValue = new(
+        NotImplemented, "bit-group-level-value", EditionSeverity.Error,
+        "A group-level VALUE clause on a group whose area is bit-packed (a USAGE BIT item is subordinate to it) "
+        + "is recognized but not yet implemented.", "ISO §13.18.63.4 GR5 / §8.5.1.6.3", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ReportControlTypeOperand = new(
         NotImplemented, "report-control-type-operand", EditionSeverity.Error,
         "A TYPE CH/CF operand is not an operand of the CONTROL clause.", "ISO §13.18.57.3 SR10/SR11");

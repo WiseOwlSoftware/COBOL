@@ -273,6 +273,55 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   glued-multi-literal defect is fixed: `DataBinder.ExtractValue` GLUES a bare multi-operand list via `GetText` over
   the collapsed `valueItem` (not "first-only") — a data-item VALUE with >1 operand and no FROM is now rejected
   (COBOLNET1585); 88s bind through `BindCondition`'s own per-operand loop (never `ExtractValue`).
+- **A GROUP-level VALUE initializes the AREA, and there is ONE rule that says what the area contains.**
+  ISO §13.18.63.4 GR5 — "the group area is initialized without consideration for the individual elementary or group
+  items contained within this group" — so the operand's characters are deposited positionally across the group's
+  storage (GR7 aligns them per §14.6.8: left-justified, space fill, no editing, JUSTIFIED inert) and each
+  subordinate is then whatever its own description makes of the characters under it. That rule is
+  **`GroupValueSlicer.AreaTextOf`**, and it covers all three operand forms — a quoted literal, `ALL "literal"`,
+  and a **figurative constant word** — under ONE rule, **§8.3.3.6.4 GR2**: it is the branch for the case "the
+  length of the string is specified in the rules for the context", it names the VALUE clause explicitly, and it
+  carries both the repeat-to-width and the truncate-from-the-right. (GR3 is the complementary branch — the length
+  *not* specified — and its sub-rule a is scoped to a concatenation expression, which is `ConcatFolder`'s rule and
+  not this one. §13.18.63.4 GR5 makes the group area the receiving field, so the length is always specified here.
+  The fill CHARACTER is GR1's, with the per-format GR4–GR8 identities.)
+  TWO lanes consume it and neither may re-derive it: `GroupValueSlicer.ComposedInit` distributes the area text into
+  the typed-native record-struct fields, and **`GroupImageCodec.ImageInitOf`** — THE seeder for every
+  character-image backing (Tier-B REDEFINES, EXTERNAL run-unit cells, BASED/ADDRESS-OF cells, OO backings) —
+  emits it as the backing's initial image. A **BIT-PACKED** group is the one declared exclusion: its width is
+  `ceil(bits/8)` characters laid out by the §8.5.1.6.3 walk and its members do not tile it, so a positional
+  character slice has no meaning over it. The exclusion lives ONCE, inside `AreaTextOf`, keyed on
+  `DataItem.HasBitDescendant` — the fact that switches `ImageWidth` to the bit walk, not `GROUP-USAGE BIT`, which
+  is only the commonest way to acquire it; the binder rejects the shape first with a staged loud (kb/Work PB207,
+  which carries the boolean-position area rule that will replace it).
+- **The group-level VALUE SYNTAX rules are screened at bind time, in one place**
+  (`DataBinder.CheckGroupValueDeclarations` → COBOLNET1702 / COBOLNET1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
+  SR16 extends SR13/SR14 to the format 2 table VALUE). SR1 bars a strongly-typed group item or a variable-length
+  group from BEING the subject; SR14 forbids a JUSTIFIED or SYNCHRONIZED subordinate **and** requires every data
+  item subordinate to an *alphanumeric* group item carrying a VALUE to be explicitly or implicitly usage DISPLAY;
+  SR13 sentence 2 forbids a VALUE at subordinate levels within that group. "Alphanumeric group item" is
+  §13.18.29.4 GR3's, in FULL — no GROUP-USAGE clause specified or implied, **and** not strongly typed, **and** not
+  a variable-length group; dropping the last two qualifiers made SR1's own population answer the SR14 usage arm.
+  ⛔ **SR14 is why the area rule needs no character-vs-byte width question**: for the whole conforming population
+  every subordinate is usage DISPLAY, so the character image IS the byte image. A COMP/COMP-3/COMP-5/float/INDEX/
+  NATIONAL-usage leaf under a group VALUE is NOT conforming source and is rejected — it is not a distribution case
+  (kb/Work PB184, which was registered on the opposite premise). The pass runs after `UsageInheritancePass` so
+  "implicitly" sees an inherited group USAGE.
+- ⛔ **The screen walks `DataBinder.CompositionForest`, and that distinction is a design commitment, not a
+  detail.** There are TWO forests over the bound data, and a pass picks by what its rule is ABOUT.
+  `ConformanceForest` is the WRITTEN-ENTRY forest — the once-per-source-entry set the per-entry data-attribute
+  gates fire over — and it excludes TYPE/SAME AS clone subtrees because the template carried the same clauses and
+  was gated once. `CompositionForest` adds them back. A rule whose subject is a property of the **composed** entry
+  has no counterpart on the template: `01 R TYPE T VALUE "ABCD".` composes an SR14 violation out of a VALUE the
+  reference site wrote and a usage the template wrote, and neither entry carries it alone — that program compiled
+  clean on the screen's first landing while its byte-identical inline spelling was rejected. Provenance keeps the
+  verdict count honest: `DataItem.ValueIsCopied` marks a VALUE this entry only ASSUMED (§13.18.57.4 GR1 /
+  §13.18.49 GR1), so the screen answers once per WRITTEN VALUE clause rather than once per reference site.
+- **A staged loud beats a silent wrong answer, and a crash is neither.** The one shape the area rule cannot yet
+  express — a bit-packed group's VALUE — is refused by name (COBOLNET0899, `bit-group-level-value`) rather than
+  answered wrongly. Measured before the refusal: the multi-member shape raised an unhandled
+  `ArgumentOutOfRangeException` out of `GroupValueSlicer.SliceInit`, and the single-member shape stored ONE
+  boolean position where the literal has four.
 - **`ByName` becomes a MULTIMAP** (`Dictionary<string,List<DataItem>>`) — COBOL permits duplicate names disambiguated
   only by qualification; the current single-value Dictionary silently overwrites (latent wrong-item bug).
 - **SYNCHRONIZED is a no-op for in-memory typed data** (the CLR aligns a `long` naturally); honored only at the

@@ -119,6 +119,19 @@ public sealed class DataItem
     /// per-occurrence emitter map after the forest is built (dimensions / dynamic expected capacity are known then).</summary>
     public IReadOnlyList<TableValueSpec>? TableValues { get; set; }
 
+    /// <summary>True when this entry's <see cref="RawValue"/> was TRANSPLANTED from another entry's data
+    /// description rather than written in this entry's own — a TYPE template's VALUE assumed by its reference
+    /// site (ISO §13.18.57.4 GR1; GR3 gives the subject's OWN VALUE precedence, hence <c>??=</c>), a SAME AS
+    /// target's assumed by its subject (§13.18.49 GR1), or a cloned template subtree's member VALUE.
+    ///
+    /// <para>⛔ THE PROVENANCE THE SYNTAX-RULE SCREENS NEED. A rule whose subject is "an entry that specifies a
+    /// VALUE clause" (§13.18.63.3 SR13/SR14) speaks about the entry the PROGRAMMER WROTE: the template is
+    /// screened once where it is declared, and re-screening each composed copy reports the identical source
+    /// entry once per reference site. Measured: `01 A VALUE "ABCD". 05 X PIC 9(4) COMP. 01 B SAME AS A.` emitted
+    /// COBOLNET1702 TWICE, both anchored at X's one declaration. Without this flag the fact is unrecoverable at
+    /// screen time — the merge has already happened and the text is indistinguishable.</para></summary>
+    public bool ValueIsCopied { get; set; }
+
     /// <summary>True when this entry carries a TYPEDEF clause — it is a TYPE DECLARATION (a named template; ISO
     /// §13.18.58, data-model D17), allocating NO storage. Registered in <c>DataBinder.TypeDecls</c>, kept OFF
     /// <c>Roots</c>/<c>ByName</c>; its subordinate names are not globally referenceable (GR1).</summary>
