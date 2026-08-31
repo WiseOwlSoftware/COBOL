@@ -35,7 +35,8 @@ Owner-emphasized, each earned by a correction. These eight are the SSOT; `PROMPT
 
 8. **⛔ THERE IS EXACTLY ONE WORK REGISTER — `kb/Work/` — AND YOU MAY NOT CREATE ANOTHER.** One note per item
    (`kind:` defect · analysis · adjudication · decision), tracked in git, frontmatter carrying `status`,
-   `severity`, `area` and the harm flags; the forensic prose lives in the note body. `kb/Work.base` is the view.
+   `severity`, `area`, the harm flags and `inventory_rows` (the traceability-inventory rows the note claims);
+   the forensic prose lives in the note body. `kb/Work.base` is the view.
    **Read it with `python scripts/spec/work.py next` and keep it CURRENT in the same change set as the work** —
    a landed fix flips its note's `status` in the commit that lands it, and a newly found defect becomes a note
    before it becomes a DEVLOG paragraph.

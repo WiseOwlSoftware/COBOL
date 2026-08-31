@@ -1761,7 +1761,7 @@ result. Run the long legs ONE AT A TIME.
   on a RETURNING item; §8.4.3.2.4 GR1 clones the description without narrowing it). [[PB199]] landed the flip
   with byte-true runtime evidence plus the five stale texts; the structural half — nothing watches a TEST that
   pins shut a screen a `src/`-only drift test is unlocking — is [[PB200]], open.
-- **⛔ BATTERY REFERENCE — CURRENT, the burn-down-cluster-A + seed-wave batch, battery #39, 2026-08-31.**
+- **⛔ PRIOR BATTERY REFERENCE — the burn-down-cluster-A + seed-wave batch, battery #39, 2026-08-31.**
   ✅ **Every leg GREEN, and the differential's TWO flips are ATTRIBUTED AND INTENDED.**
   **⚠ The legs were earned on TWO trees, and the record says which:** the four greenfield/NIST legs ran on tree
   `3bc4e4db` (artifacts `scratchpad/battery-39`, DEVLOG 1415) and are NOT re-run here; the **differential leg was
@@ -1835,30 +1835,49 @@ result. Run the long legs ONE AT A TIME.
   the gate goes red — which is the event most worth failing on. Seven proposed CONFORMS re-adjudications were
   REFUSED rather than recorded on a read (`kb/Work PB258`); the two rows held defective purely for visibility
   are `PB259`; the owed A.4.2 / A.4.3 witnesses are `PB260` / `PB261`.
-- **⛔ BATTERY #40 RAN AND STOPPED ONE ROW SHORT OF GREEN — tree `6f8461d9`, 2026-08-31, artifacts
-  `scratchpad/battery-40`; the burn-down-cluster-B batch (PB169–PB172 + PB210–PB215 + PB216–PB224) plus the
-  defective-row registration wave.** It is NOT recorded as a green reference and the baseline TSV is
-  **UNCHANGED**; battery #39 remains the current green reference below.
-  **Four legs GREEN:** FULL greenfield Conformance **5235 / 5235** · Unit **5106 / 5106** · characterization
+- **⛔ BATTERY REFERENCE — CURRENT, the burn-down-cluster-B + defective-row-registration batch (PB169–PB172 +
+  PB210–PB215 + PB216–PB224 plus the registration wave), battery #40, 2026-08-31.**
+  ✅ **Every leg GREEN, and the differential's ONE flip is ATTRIBUTED AND INTENDED.**
+  **⚠ The legs were earned on TWO trees, and the record says which** — the #39 precedent, restated so it stays
+  checkable: the **four greenfield/NIST legs ran on tree `6f8461d9`** (artifacts `scratchpad/battery-40`, DEVLOG
+  1419) and are **NOT re-run here**; the **differential leg was RE-RUN and its baseline REGENERATED on the
+  recording tree** (parent `645b25bb` — the sha of the recording commit could only be written in a follow-up,
+  since a commit cannot name itself; the same note #38 and #39 both carry; artifacts
+  `scratchpad/battery-40-rebaseline`). That split is legitimate for exactly one mechanically checkable reason:
+  **`git diff --name-only 6f8461d9 645b25bb -- src/ tests/` is EMPTY** (that range touches only `DEVLOG.md`,
+  `docs/`, and two `kb/` notes), and the recording commit adds only `DEVLOG.md`, `docs/`, `kb/`, `CLAUDE.md` and
+  the baseline TSV — **no `src/` file, so no compiler behaviour the four legs measured can have moved** — while
+  the one leg whose INPUT did change (the baseline itself) is precisely the leg that was re-run.
+  Measured: FULL greenfield Conformance **5235 / 5235** · Unit **5106 / 5106** · characterization
   **33 / 33 — CONCURRENT, no host crash** (#37's "Test host process crashed" has still NOT recurred; the watch
-  stays open) · NIST **353 MATCH / 0 REGRESSION**, guard verdict **ALL GREEN**, audit CLEAN.
-  **The GnuCOBOL leg returned `=== DIFFERENTIAL: 1 PER-CASE FLIP(S) ===`** against an owed list
-  (`kb/Work/PB169.md`) whose stated prediction was ZERO movement in every bucket in both directions:
-  `syn_subscripts:23` **`WE_ACCEPT_THEY_REJECT → AGREE_REJECT`** on COBOLNET0844, totals
-  **573/473/206/71 → 573/473/207/70** (1323 cases, no NEW/REMOVED, no case without a compiler verdict).
-  **The compiler is RIGHT and the EVIDENCE was wrong — [[PB262]].** The rejection is spec-correct (§8.4.2.3.2
-  admits a subscript only as ALL / arithmetic-expression-1 / index-name-1; §8.8.1.1 admits only an identifier
-  referencing a NUMERIC data item, a numeric literal or ZERO; §8.5.2.1 Table 2 puts the `PIC X` operand in class
-  alphanumeric), it CONVERGES onto GnuCOBOL's own rejection of a case they ship as a negative test titled
-  *"Non-numeric subscript"*, and it closes an under-reject. Attributed to
+  stays open) · NIST **353 MATCH / 0 REGRESSION**, guard verdict **ALL GREEN**, audit CLEAN · GnuCOBOL
+  differential **1323 cases** (`external corpus population: 1323 case(s) from 36 .at wrapper(s)`, no NEW/REMOVED,
+  no case without a compiler verdict, no harness failure), ONE per-case flip: `syn_subscripts:23`
+  **`WE_ACCEPT_THEY_REJECT → AGREE_REJECT`** on COBOLNET0844. Totals **573/473/206/71 → 573/473/207/70** —
+  `AGREE_REJECT` +1, `WE_ACCEPT_THEY_REJECT` −1, consistent with exactly that one flip and no offsetting pair.
+  **The flip is a SPEC-CORRECT REJECTION — a divergence→AGREE convergence, i.e. a FIX.** Clause text re-derived
+  and `--check`ed at the stop ([[PB262]]), never inherited from the diagnostic: **§8.4.2.3.2** admits a subscript
+  only as `ALL` / arithmetic-expression-1 / index-name-1; **§8.8.1.1** admits an arithmetic expression only as an
+  identifier referencing a **numeric** data item, a numeric literal or `ZERO`; **§8.5.2.1 Table 2** puts the
+  `PIC X` operand in class alphanumeric. It **converges onto GnuCOBOL's own rejection** of a case they ship as a
+  negative test titled *"Non-numeric subscript"*, and it closes an under-reject (before the batch the compiler
+  accepted it and digit-decoded the alphanumeric bytes into an occurrence number). Attributed to
   `ReferenceResolver.ScreenPositionOperandClass`, **new in `1884ba1e`** ([[PB170]]), whose own doc comment names
-  the flipped program's exact shape. ⛔ The owed list's **bucket 8 heading claims the "subscript / ref-mod"
-  screen while its evidence sentence measures refmod bounds only** — the subscript position is swept nowhere in
-  the list — which is [[PB209]] repeated one level up, in the list written to prevent it. Blast radius
-  re-measured with `corpus_sweep.py --codes COBOLNET0844`: **3 external cases, of which 2 are unchanged
-  pre-existing controls and 1 is this flip.**
-  **Owner decision owed before #40 can be re-run to green:** whether to regenerate the baseline to encode this
-  one intended row (`PB262` → "What would close it").
+  the flipped program's exact shape. Blast radius re-measured with `corpus_sweep.py --codes COBOLNET0844`:
+  **3 external cases — 2 unchanged pre-existing controls and this flip.**
+  `tests/external/gnucobol-verdict-baseline.tsv` is **REGENERATED in the recording commit** from a fresh
+  differential run, and the regeneration changes **exactly that one row** (`1 insertion / 1 deletion` at line
+  1306, no other row moved, no NEW or REMOVED case, **1323 rows before and after**). A confirming re-run against
+  the regenerated baseline printed **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`**.
+  **Population:** Conformance **+83 over #39** (5152 → 5235); Unit **+15** (5091 → 5106). Covers DEVLOG 1417–1420:
+  the burn-down cluster B landing, the defective-row registration wave, the #40 stop record, and this recording.
+  ⛔ **The escape this battery bought is [[PB262]], and it stays OPEN.** Regenerating the baseline answers only
+  its item 3; **items 1 and 2 are untouched** — re-deriving the owed list's bucket 8 *per syntactic position*
+  (the screen takes a two-member `SegmentPosition`, and a list with one bucket per screen cannot be complete by
+  construction), and the structural half that would GENERATE an owed list from `corpus_sweep.py --codes` so a
+  bucket cannot be written by hand at all. Rewriting the baseline here does not erase that record: the stop was
+  committed **first and separately** at `645b25bb` (DEVLOG 1419 + the `PB262` note + the refutation block appended
+  to `kb/Work/PB169.md`), which is exactly the sequencing `PB262` item 3 asked for.
 - **⛔ PRIOR BATTERY REFERENCE — the R40+PB179+PB180/181 batch tree `d21fbae8` (2026-08-30, battery #37).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-37`; DEVLOG 1405): FULL greenfield Conformance **5109 / 5109** · Unit
