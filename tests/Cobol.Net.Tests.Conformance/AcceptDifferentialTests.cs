@@ -284,4 +284,29 @@ public sealed class AcceptDifferentialTests
             """),
             expected: "[   26161]161]",
             clock: "2026-06-10T14:30:45.67");
+
+    // kb/Work PB180 — a BINARY member of a REDEFINES class (a Tier-B byte-form window) accepts by the
+    // SAME §14.9.1.4 GR1 conversion every numeric receiver takes: four typed device characters decode to
+    // the VALUE 1234 and re-encode as the window's TWO radix-2 bytes (04 D2 — pinned via FUNCTION ORD on
+    // the redefined X view, §15.70). The old image arm spliced the raw characters ("1234" → bytes 31 32 =
+    // the value 12594) — a silent wrong answer on shipping Tier B, and the discriminating first line
+    // would have read 12594 with ORD 50/51.
+    [Fact]
+    public void Device_TierBBinaryWindow_ConvertsThenReencodes()
+        => AssertOutputs(
+            Program("ACCPB180", """
+                01 WS-G.
+                   05 WS-G-N PIC 9(4) COMP.
+                   05 WS-G-A PIC X(3).
+                01 WS-R REDEFINES WS-G PIC X(5).
+                """, """
+                MOVE "abc" TO WS-G-A.
+                ACCEPT WS-G-N.
+                DISPLAY WS-G-N.
+                DISPLAY FUNCTION ORD(WS-R(1:1)) " " FUNCTION ORD(WS-R(2:1)).
+                DISPLAY WS-G-A.
+            """),
+            expected: "1234\n5 211\nabc",
+            stdin: "1234",
+            dialect: 2023);
 }

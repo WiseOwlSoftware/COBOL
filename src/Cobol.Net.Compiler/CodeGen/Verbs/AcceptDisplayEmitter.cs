@@ -91,11 +91,18 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
             case { Category: PicCategory.Numeric, IsFloat: false }:
                 // The DEVICE window is CHARACTERS — digit count + a SIGN SEPARATE position (ISO §13.18.52
                 // GR6a) — never the item's byte width: a PIC 9(4) COMP receiver reads FOUR typed digits and
-                // stores TWO bytes (V59).
+                // stores TWO bytes (V59). EVERY numeric receiver converts (§14.9.1.4 GR1 — the documented
+                // determination this emitter's own doc states: decode the typed characters per the
+                // receiver's profile), then an image-stored/windowed receiver re-encodes through the ONE
+                // byte-form recipe. ⛔ kb/Work PB180: the old image arm stored the DEVICE CHARACTERS RAW
+                // ("the characters ARE the storage") — true only of the pre-V59 zoned windows; against a
+                // V59 byte-form window it spliced DisplayTextWidth characters into a StorageWidth window
+                // (PIC 9(4) COMP under REDEFINES: "1234" became the two bytes 31 32 = 12594).
                 string image = $"AcceptSource.Device({item.DisplayTextWidth})";
+                string value = ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item);
                 w.Line(item.StoreAsImage || target is RedefViewPlace
-                    ? PlaceRenderer.Write(target, image)   // image-stored zoned field / Tier-B window: the characters ARE the storage
-                    : PlaceRenderer.Write(target, ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item)));
+                    ? PlaceRenderer.Write(target, RuntimeApi.NumFormatImage(value, item.ProfileName))
+                    : PlaceRenderer.Write(target, value));
                 return;
             case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2
                 w.Line(LoudStmt($"ACCEPT into floating-point receiver '{item.CobolName}' (COMP-1/COMP-2 device conversion, deferred)"));

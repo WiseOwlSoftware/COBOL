@@ -419,6 +419,15 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // lockstep deliberately; `V59ImagePredicateDriftTests` fails if they diverge again.
         p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsImageCapable
             ? PlaceRenderer.WriteFullGroupImage(p, value, "CALL boundary copy")   // the FULL image — an ODO wrapper is unwrapped (kb/Work PB80)
+        // kb/Work PB181 (measured — 1234 crossed BY REFERENCE, ADD 1, came home as 2594): the elementary
+        // boundary convention carries the DISPLAY image, and a byte-form windowed / image-stored NUMERIC
+        // receiver must DECODE it and re-encode through the ONE byte-form recipe (the same MOVE/ACCEPT
+        // store shape) — the raw splice put the returned CHARACTERS into a StorageWidth window.
+        : (p.Item.StoreAsImage || p is RedefViewPlace)
+            && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false }
+            ? PlaceRenderer.Write(p, RuntimeApi.NumFormatImage(
+                ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(value, p.Item.ProfileName), p.Item),
+                p.Item.ProfileName))
             : PlaceRenderer.Write(p, value);
 
     /// <summary>Emit CANCEL (ISO §14.9.5): one registry call per target, left to right (GR2). Under enabled
