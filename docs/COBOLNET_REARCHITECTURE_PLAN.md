@@ -1819,9 +1819,25 @@ result. Run the long legs ONE AT A TIME.
   1702 = group-value-subordinate, 1703 = group-value-subject-shape, **1704 = termination-status-operand**, taken by
   the cluster-B wave). Never hand-read this — `session-probe.ps1` computes it from the catalog and the src grep,
   and the line is here only so a session that skipped the probe is not misled.
+- **✅ THE DEFECTIVE-ROW REGISTRATION WAVE LANDED 2026-08-31 — the P14 inventory's defective set and the work
+  register are now ONE list, held there by a gate.** Measured on the cluster-B tree: of **138** rows verdicted
+  PARTIAL / NOT-IMPLEMENTED / DIVERGES, **131 were invisible to `work.py next`** — a defect the register cannot
+  see cannot be ranked, while the number the owner watches counted it. All 131 are now dispositioned: **16**
+  reconciled to DOCUMENTED-NON-SUPPORT under Annexes A.4.2 / A.4.3 (the screen and commit modules
+  `docs/CONFORMANCE.md` §5 records as Not claimed — GAP unchanged at **3641**, every one of the sixteen still
+  owing the witness the schema requires), and **115** registered on **37 new notes** (PB225–PB261) plus
+  `inventory_rows` claims added to **13** existing live notes. `work.py next` actionable: **29 → 54**.
+  **The invariant is `DefectiveRowCoverageDriftTests`** (`tests/Cobol.Net.Tests.Unit`): every row whose verdict
+  the schema marks non-resolving is claimed by a live `kb/Work` note's **`inventory_rows`** frontmatter list —
+  a NEW register field, and the machine-readable NOTE→ROW back-link the register never had. Proved failing
+  before it was believed (a blanked claim, then a typo'd one; both checks fired). ⛔ Consequence to know before
+  landing anything: **when a note flips to `landed`, its rows must be re-verdicted in the same change set** or
+  the gate goes red — which is the event most worth failing on. Seven proposed CONFORMS re-adjudications were
+  REFUSED rather than recorded on a read (`kb/Work PB258`); the two rows held defective purely for visibility
+  are `PB259`; the owed A.4.2 / A.4.3 witnesses are `PB260` / `PB261`.
 - **⛔ BATTERY #40 IS OWED AND HAS NOT RUN — the burn-down-cluster-B batch (PB169–PB172 + PB210–PB215 +
-  PB216–PB224), landed 2026-08-31.** The wave-local gate is green on the landing tree; the comprehensive battery
-  accrues and MUST run before the next merge.
+  PB216–PB224) plus the defective-row registration wave, landed 2026-08-31.** The wave-local gate is green on
+  the landing tree; the comprehensive battery accrues and MUST run before the next merge.
   ⛔ **ITS GnuCOBOL LEG HAS A MEASURED OWED LIST, AND THE PREDICTION IS *ZERO MOVEMENT*.** The pre-battery sweep
   for this wave pre-declared ~32 "owed" differential cases; the cluster-B review fleet showed that list was of
   cases that MENTION the construct, not of cases whose verdict can move — an owed list that can absorb up to 32

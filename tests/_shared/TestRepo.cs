@@ -54,6 +54,9 @@ internal static class TestRepo
     /// <summary><c>specs/</c> — the public ISO transcription (<c>ISO_COBOL.md</c>).</summary>
     public static string Specs(params string[] segments) => At(["specs", .. segments]);
 
+    /// <summary><c>kb/</c> — the knowledge base, and under <c>kb/Work/</c> THE work register.</summary>
+    public static string Kb(params string[] segments) => At(["kb", .. segments]);
+
     /// <summary><c>tests/version-matrix/</c> — constructs, reserved words, the traceability inventory.</summary>
     public static string VersionMatrix(params string[] segments) => Tests(["version-matrix", .. segments]);
 

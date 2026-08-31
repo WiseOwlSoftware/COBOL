@@ -23,6 +23,20 @@ a previous summary was wrong — lives in the note BODY, which is where it alrea
     python scripts/spec/work.py check      # validate frontmatter; non-zero on a bad/missing field
     python scripts/spec/work.py next       # the ranked work list (session-probe prints this)
     python scripts/spec/work.py stats      # counts by kind/status/harm
+
+⭐ `inventory_rows:` — THE BACK-LINK TO THE P14 TRACEABILITY INVENTORY, and the register's newest field
+(2026-08-31). A note lists the `rule-id`s it owns; that list is the SSOT for ownership, and the note's prose
+"Rows:" line is narrative beside it. It exists because the two artifacts answering "what is left to do" had
+NOTHING holding them together: of 138 inventory rows verdicted PARTIAL / NOT-IMPLEMENTED / DIVERGES, **131 were
+invisible to `next`** when it was first measured — ranked by nothing, owed by nobody, and counted by the
+burn-down the whole time.
+
+⛔ The field is enforced by `DefectiveRowCoverageDriftTests` (tests/Cobol.Net.Tests.Unit) and NOT here, on
+purpose: the predicate has to keep holding as the INVENTORY changes underneath a note, so it belongs to
+something that runs every build, and validating a rule-id against the inventory from Python as well would be
+the same rule in two places. What that gate asserts is that every defective-verdict row is claimed by a note
+whose status is not terminal — so **flipping a note to `landed` without re-verdicting its rows turns the
+battery red**, which is exactly the event that used to pass unnoticed.
 """
 from __future__ import annotations
 
