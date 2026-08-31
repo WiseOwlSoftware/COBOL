@@ -1835,17 +1835,30 @@ result. Run the long legs ONE AT A TIME.
   the gate goes red — which is the event most worth failing on. Seven proposed CONFORMS re-adjudications were
   REFUSED rather than recorded on a read (`kb/Work PB258`); the two rows held defective purely for visibility
   are `PB259`; the owed A.4.2 / A.4.3 witnesses are `PB260` / `PB261`.
-- **⛔ BATTERY #40 IS OWED AND HAS NOT RUN — the burn-down-cluster-B batch (PB169–PB172 + PB210–PB215 +
-  PB216–PB224) plus the defective-row registration wave, landed 2026-08-31.** The wave-local gate is green on
-  the landing tree; the comprehensive battery accrues and MUST run before the next merge.
-  ⛔ **ITS GnuCOBOL LEG HAS A MEASURED OWED LIST, AND THE PREDICTION IS *ZERO MOVEMENT*.** The pre-battery sweep
-  for this wave pre-declared ~32 "owed" differential cases; the cluster-B review fleet showed that list was of
-  cases that MENTION the construct, not of cases whose verdict can move — an owed list that can absorb up to 32
-  unexpected flips is [[PB209]] wearing a new coat. It is REPLACED by a per-bucket, per-case list with a derived
-  direction for every case, in **`kb/Work/PB169.md` → "THE OWED-DIFFERENTIAL LIST FOR BATTERY #40"**. Read it
-  before reading the leg. Battery #40's differential must reproduce battery #39's
-  **573 / 206 / 71 / 473** with **no per-case flip attributable to this batch**; there is no slack in the list,
-  so any flip is unexplained and must be attributed before the battery is called green.
+- **⛔ BATTERY #40 RAN AND STOPPED ONE ROW SHORT OF GREEN — tree `6f8461d9`, 2026-08-31, artifacts
+  `scratchpad/battery-40`; the burn-down-cluster-B batch (PB169–PB172 + PB210–PB215 + PB216–PB224) plus the
+  defective-row registration wave.** It is NOT recorded as a green reference and the baseline TSV is
+  **UNCHANGED**; battery #39 remains the current green reference below.
+  **Four legs GREEN:** FULL greenfield Conformance **5235 / 5235** · Unit **5106 / 5106** · characterization
+  **33 / 33 — CONCURRENT, no host crash** (#37's "Test host process crashed" has still NOT recurred; the watch
+  stays open) · NIST **353 MATCH / 0 REGRESSION**, guard verdict **ALL GREEN**, audit CLEAN.
+  **The GnuCOBOL leg returned `=== DIFFERENTIAL: 1 PER-CASE FLIP(S) ===`** against an owed list
+  (`kb/Work/PB169.md`) whose stated prediction was ZERO movement in every bucket in both directions:
+  `syn_subscripts:23` **`WE_ACCEPT_THEY_REJECT → AGREE_REJECT`** on COBOLNET0844, totals
+  **573/473/206/71 → 573/473/207/70** (1323 cases, no NEW/REMOVED, no case without a compiler verdict).
+  **The compiler is RIGHT and the EVIDENCE was wrong — [[PB262]].** The rejection is spec-correct (§8.4.2.3.2
+  admits a subscript only as ALL / arithmetic-expression-1 / index-name-1; §8.8.1.1 admits only an identifier
+  referencing a NUMERIC data item, a numeric literal or ZERO; §8.5.2.1 Table 2 puts the `PIC X` operand in class
+  alphanumeric), it CONVERGES onto GnuCOBOL's own rejection of a case they ship as a negative test titled
+  *"Non-numeric subscript"*, and it closes an under-reject. Attributed to
+  `ReferenceResolver.ScreenPositionOperandClass`, **new in `1884ba1e`** ([[PB170]]), whose own doc comment names
+  the flipped program's exact shape. ⛔ The owed list's **bucket 8 heading claims the "subscript / ref-mod"
+  screen while its evidence sentence measures refmod bounds only** — the subscript position is swept nowhere in
+  the list — which is [[PB209]] repeated one level up, in the list written to prevent it. Blast radius
+  re-measured with `corpus_sweep.py --codes COBOLNET0844`: **3 external cases, of which 2 are unchanged
+  pre-existing controls and 1 is this flip.**
+  **Owner decision owed before #40 can be re-run to green:** whether to regenerate the baseline to encode this
+  one intended row (`PB262` → "What would close it").
 - **⛔ PRIOR BATTERY REFERENCE — the R40+PB179+PB180/181 batch tree `d21fbae8` (2026-08-30, battery #37).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-37`; DEVLOG 1405): FULL greenfield Conformance **5109 / 5109** · Unit
