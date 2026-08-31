@@ -1717,8 +1717,9 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB164-arm-1 + owner-decision-wave + PB199 batch — THIS commit's own
-  tree (parent `088903c4`), 2026-08-31, battery #38.**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB164-arm-1 + owner-decision-wave + PB199 batch, tree `d4e93d6b`
+  (parent `088903c4`), 2026-08-31, battery #38.** (The battery ran on exactly that tree, which is why the sha
+  could only be written in this follow-up: a commit cannot name itself.)
   ✅ **Every leg GREEN, and the differential's ONE flip is ATTRIBUTED AND INTENDED** (artifacts
   `scratchpad/battery-38-green`; DEVLOG 1412): FULL greenfield Conformance **5125 / 5125** · Unit
   **5064 / 5064** · characterization **33 / 33 — CONCURRENT, no host crash** (#37's "Test host process
