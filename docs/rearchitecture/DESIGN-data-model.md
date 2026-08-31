@@ -215,8 +215,11 @@ build; there was a predicate that stopped short.
     predicate** (P1 `IsImageCapable` vs P2 `IsCharacterImage` — no lossy single-predicate collapse) and its
     operation-specific lead + offending-leaf descriptor. `TierCRejectionTests` locks that every shape still fails
     loud through the one reason (the "Tier-C" substring). The OO/SORT/UDF bind-time conformance guards keep their
-    context-specific messages by design (their strictness variants — UDF rejects Binary/Packed too — are
-    deliberate, per the scout's risk-3 note).
+    context-specific messages by design. ⚠ The scout's risk-3 note recorded one such variant as deliberate —
+    *"UDF rejects Binary/Packed too"* — and that is NO LONGER TRUE: it was a hand-rolled DISPLAY-only usage
+    union, not a decision, and PB164's F8 replaced it with the derived `DataItem.ElementImageCapable`
+    predicate (§14.2.2 SR5 imposes no usage restriction on a RETURNING item). `UdfReturningResidue`'s only
+    surviving LEAF screen is the pointer/object class (kb/Work PB199).
 - **Step D — RE-BASED 2026-08-30 (the four-reader design scout; kb/Work PB164's last codegen half). THE
   PREMISE INVERTED: there is NO byte codec to build.** The earlier sketch ("a confined `byte[]` codec,
   `CobolByteImage`, `TierCWindow.Read/Write`") described a world V59 already dissolved: a Tier-B class's

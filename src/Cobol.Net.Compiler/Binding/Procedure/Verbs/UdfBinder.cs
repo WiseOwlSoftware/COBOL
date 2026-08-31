@@ -193,7 +193,10 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// string store into the double field), BOOLEAN (the §8.8.2 boolean-expression channel has no
     /// function-result arm — admitting it would half-wire: MOVE/relations would work while IF f(x) and
     /// COMPUTE Format 2 would not), pointer/object/index classes (§8.8.4-restricted reference sets), and the
-    /// group residues (strongly-typed identity, internal REDEFINES, variable-length, non-character leaves).</summary>
+    /// group residues (strongly-typed identity, internal REDEFINES, variable-length, and a pointer- or
+    /// object-class LEAF — the only leaf form with no character image under either axis). ⛔ A byte-form
+    /// numeric leaf (binary/packed/COMP-5/float/INDEX) is NOT a residue: it is carried by the
+    /// <c>ElementImageCapable</c> arm above, and this sentence said otherwise until kb/Work PB199.</summary>
     private static string? UdfReturningResidue(DataItem ret)
     {
         if (ret.IsGroup)

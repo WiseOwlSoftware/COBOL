@@ -396,10 +396,17 @@ public sealed class UdfInvocationTests
 
     /// <summary>The RETURNING category channel (§8.4.3.2.4 GR1 / §14.2.2 SR5 — NO category restriction on a
     /// function's RETURNING item; P10 Step 9): the CARRIED categories — elementary fixed-point numeric,
-    /// alphanumeric, numeric-edited, national, and character-form groups — compile end-to-end (the runtime
-    /// behavior is the udf_returning_categories golden); the STAGED residues — FLOAT (no CALL-boundary float
-    /// write half), BOOLEAN (no §8.8.2 boolean-expression function-result arm), and a group with a
-    /// non-character (binary) leaf (the Tier-C image island) — stay loud COBOLNET1510 by name.</summary>
+    /// alphanumeric, numeric-edited, national, and IMAGE-FORM groups (every leaf
+    /// <c>DataItem.ElementImageCapable</c>: character-stored, or any pinned numeric byte form — zoned DISPLAY,
+    /// binary, packed, COMP-5, IEEE float, INDEX) — compile end-to-end (the runtime behavior is the
+    /// udf_returning_categories golden, and for the binary-leaf group the byte-true
+    /// <see cref="ReturningGroup_BinaryLeaf_CarriesValuesAcrossTheActivation"/> below); the STAGED residues —
+    /// FLOAT (no CALL-boundary float write half), BOOLEAN (no §8.8.2 boolean-expression function-result arm) —
+    /// stay loud COBOLNET1510 by name. ⚠ The BIN row was pinned `false` until battery #38 caught it
+    /// (kb/Work PB199): PB164's F8 widened the screen from a hand-rolled DISPLAY-only usage union to the
+    /// derived <c>ElementImageCapable</c> predicate, and §14.2.2 SR5 imposes no usage restriction at all, so the
+    /// surviving GROUP residues are strongly-typed identity, internal REDEFINES, variable-length, and a
+    /// pointer/object-class leaf — never a byte-form numeric one.</summary>
     [Theory]
     [InlineData("ALN", "01 L-R PIC X(4).", true)]
     [InlineData("GRP", "01 L-R.\n               05 L-R-A PIC 9(2).\n               05 L-R-B PIC 9(2).", true)]
@@ -407,7 +414,7 @@ public sealed class UdfInvocationTests
     [InlineData("NAT", "01 L-R PIC N(3).", true)]
     [InlineData("FLT", "01 L-R USAGE FLOAT-LONG.", false)]
     [InlineData("BOL", "01 L-R PIC 1(4).", false)]
-    [InlineData("BIN", "01 L-R.\n               05 L-R-A PIC X(2).\n               05 L-R-B PIC 9(4) USAGE BINARY.", false)]
+    [InlineData("BIN", "01 L-R.\n               05 L-R-A PIC X(2).\n               05 L-R-B PIC 9(4) USAGE BINARY.", true)]
     public void ReturningCategories_CarriedVsStaged1510(string tag, string returningDecl, bool carried)
     {
         // DISPLAY is the category-neutral reference site (a MOVE receiver would entangle Table-16 legality —
@@ -447,6 +454,54 @@ public sealed class UdfInvocationTests
             Assert.False(ok);
             EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1510");
         }
+    }
+
+    /// <summary>The BIN row's DISCRIMINATING evidence (kb/Work PB199): a group RETURNING item with a
+    /// <c>PIC 9(4) USAGE BINARY</c> leaf does not merely COMPILE — both leaves carry their VALUES across the
+    /// activation boundary. §14.2.2 SR5 constrains a RETURNING item to a level-01/77 linkage entry without
+    /// BASED/REDEFINES and imposes NO usage or category restriction; §8.4.3.2.4 GR1 clones that description
+    /// into the caller's temp, so the group's whole-image round trip (AsImage/FromImage over the leaf's pinned
+    /// bytes — V59) must reproduce the alphanumeric leaf byte-for-byte AND the binary leaf's computed value in
+    /// its zoned reading form. A compile-only assertion cannot tell a real carry from a silently empty one.</summary>
+    [Fact]
+    public void ReturningGroup_BinaryLeaf_CarriesValuesAcrossTheActivation()
+    {
+        string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDFT14BINCARRYP199.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION UDFXBINCARRYP199.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-G.
+               05 WS-A PIC X(2).
+               05 WS-B PIC 9(4) USAGE BINARY.
+            PROCEDURE DIVISION.
+            MAIN.
+                MOVE FUNCTION UDFXBINCARRYP199(1) TO WS-G.
+                DISPLAY "A=[" WS-A "] B=[" WS-B "]".
+                STOP RUN.
+            END PROGRAM UDFT14BINCARRYP199.
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UDFXBINCARRYP199.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(4).
+            01 L-R.
+               05 L-R-A PIC X(2).
+               05 L-R-B PIC 9(4) USAGE BINARY.
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            P.
+                MOVE "AB" TO L-R-A.
+                COMPUTE L-R-B = L-X * 2.
+                GOBACK.
+            END FUNCTION UDFXBINCARRYP199.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2002);
+        Assert.True(ok, detail);
+        Assert.Equal(CutRunner.Normalize("A=[AB] B=[0002]"), stdout);
     }
 
     /// <summary>Shapes the goldens do not cover, locked at bind level: a no-argument function, a nested

@@ -1717,7 +1717,35 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R40+PB179+PB180/181 batch tree `d21fbae8` (2026-08-30, battery #37).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB164-arm-1 + owner-decision-wave + PB199 batch — THIS commit's own
+  tree (parent `088903c4`), 2026-08-31, battery #38.**
+  ✅ **Every leg GREEN, and the differential's ONE flip is ATTRIBUTED AND INTENDED** (artifacts
+  `scratchpad/battery-38-green`; DEVLOG 1412): FULL greenfield Conformance **5125 / 5125** · Unit
+  **5064 / 5064** · characterization **33 / 33 — CONCURRENT, no host crash** (#37's "Test host process
+  crashed" has NOT recurred; the watch stays open, a second occurrence still earns a register note) ·
+  NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **1323 cases, 1 per-case flip:
+  `syn_misc:5699` `WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT`** — a FIX, attributable to PB164's widening of
+  `ForceStringCanonical` (the deliberately-stricter EXTERNAL/BASED/ADDRESS-OF second gate), which removed the
+  old `COBOLNET0899` "EXTERNAL record cannot be cell-backed" rejection of that case.
+  `tests/external/gnucobol-verdict-baseline.tsv` is REGENERATED in this same commit **from THIS run's own
+  report** rather than from a fresh re-measurement — the baseline must encode the verdicts the gate READ — and
+  the regeneration changes **exactly that one row**: totals **572/474/206/71 → 571/475/206/71**, `1 insertion /
+  1 deletion`, no other row moved, no NEW or REMOVED case.
+  **Population:** Conformance **+16 over #37** (5109 → 5125) — 15 from the DEVLOG 1406–1411 commits and 1 from
+  PB199's new byte-true carry fact; Unit **+32** (5032 → 5064). Covers DEVLOG 1406–1412: PB164 arm-1 + its
+  review-fleet fixes F1–F11 (`ComputeTier` arm 1 and the `ByteCanonical`/`TierCWindow` types DELETED, the
+  second gate widened, the windowed float / unsigned-wide / index emit lanes completed, three new goldens, a
+  `FormatImage` unsigned-lane wrong answer fixed), PB185, the owner-decision wave D-D/D-E/D-F/D-G/D-A, and
+  PB199 itself.
+  ⚠ **BATTERY #38's FIRST RUN (tree `a3053400`, artifacts `scratchpad/battery-38`) was NOT green, and the
+  catch is the point.** One Conformance failure out of 5124:
+  `UdfInvocationTests.ReturningCategories_CarriedVsStaged1510(tag: "BIN")` asserted `COBOLNET1510` for a group
+  RETURNING item with a `PIC 9(4) USAGE BINARY` leaf — a reject PB164's F8 had deliberately DELETED. **The
+  compiler was right and the TEST was the stale record** (§14.2.2 SR5 places no usage or category restriction
+  on a RETURNING item; §8.4.3.2.4 GR1 clones the description without narrowing it). [[PB199]] landed the flip
+  with byte-true runtime evidence plus the five stale texts; the structural half — nothing watches a TEST that
+  pins shut a screen a `src/`-only drift test is unlocking — is [[PB200]], open.
+- **⛔ PRIOR BATTERY REFERENCE — the R40+PB179+PB180/181 batch tree `d21fbae8` (2026-08-30, battery #37).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-37`; DEVLOG 1405): FULL greenfield Conformance **5109 / 5109** · Unit
   **5032 / 5032** · characterization **33 / 33 — with a named disposition**: the battery's concurrent
@@ -1728,14 +1756,6 @@ result. Run the long legs ONE AT A TIME.
   unchanged 572/474/206/71). Covers DEVLOG 1400–1404: the R40 INDEX wave, PB179 (the SR12/SR14
   Tier-D arm), PB180+PB181 (the Tier-B boundary-store pair) — the population grew by 7 Conformance
   tests over #36.
-  **⏳ BATTERY #38 ACCRUES (owed, not yet run): the PB164 arm-1 dissolution + its review-fleet fixes F1–F11**
-  (DEVLOG 1406, 2026-08-31) — `ComputeTier`'s arm 1 and the `ByteCanonical`/`TierCWindow` types DELETED, the
-  second gate widened, the windowed float / unsigned-wide / index emit lanes completed, three new goldens
-  (`stepd_mixed_usage_redefines`, `stepd_fd_multi01_comp`, `stepd_based_comp_leaf`), one negative fixture
-  replaced by a positive golden plus a new residue witness (`pb164-based-national-leaf`), and a `FormatImage`
-  unsigned-lane wrong answer fixed. Wave-local gate GREEN (Conformance 1429 · Unit 5035 · characterization 33);
-  the DIFFERENTIAL leg is the one to watch, since DISPLAY of a windowed float changed from raw IEEE bytes to
-  its value.
 - **⛔ PRIOR BATTERY REFERENCE — the PB168+PB164-VLG+PB176 batch tree `a4a3d6a0` (2026-08-30, battery #36).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-36`; DEVLOG 1400): FULL greenfield Conformance **5102 / 5102** · Unit
