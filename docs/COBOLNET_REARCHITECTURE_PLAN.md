@@ -1746,26 +1746,34 @@ result. Run the long legs ONE AT A TIME.
   on a RETURNING item; §8.4.3.2.4 GR1 clones the description without narrowing it). [[PB199]] landed the flip
   with byte-true runtime evidence plus the five stale texts; the structural half — nothing watches a TEST that
   pins shut a screen a `src/`-only drift test is unlocking — is [[PB200]], open.
-- **⚠ BATTERY #39 IS OWED, and it now covers TWO batches** — (a) the burn-down cluster A batch, [[PB173]] +
-  [[PB177]] + [[PB178]] and their review-fleet fix pass (DEVLOG 1413), all three notes `landed`; and (b) the
-  **PB184 + PB188 seed wave and its review-fleet landing** (DEVLOG 1414), both notes `landed`, which added
-  COBOLNET1702 / COBOLNET1703 / a COBOLNET0899 staged loud, a SECOND forest over the bound data
-  (`DataBinder.CompositionForest`) and a new `DataItem.ValueIsCopied` provenance fact written by every TYPE /
-  SAME AS description copy. Landed on wave-local only: (a) Conformance **1905/1905** · Unit **5072/5072** ·
-  characterization **33/33**, filter
-  `~Accept|~Bit|~Report|~Control|~Redefines|~Convert|~Call|~Oo|~Udf|~Image|~Corpus|~Negative|~Odo|~Occurs|~Intrinsic|~Group|~Dynamic|~Boolean|~Move|~Compute`;
-  (b) Conformance **1281/1281** · Unit **5091/5091** · characterization **33/33**, filter
-  `~Value|~Group|~Init|~Image|~Corpus|~Negative|~Type|~Redefines|~UsageWord|~Diagnostic|~StorageForm`.
-  ⛔ Batch (b)'s uncovered seam is the one a wave-local filter structurally cannot reach: `ExpandType` /
-  `ExpandSameAs` now write a flag every group-VALUE screen reads, so any program using TYPE or SAME AS is in the
-  blast radius, and the NIST + GnuCOBOL legs are where that population lives.
-  ⛔ **The differential and NIST legs have NOT seen this batch**, and it touched shared seams a wave-local
-  filter cannot reach: `OdoModel.WrapGroup`'s extent unit (every occurs-depending GROUP operand), the
-  `CallEmitter` boundary string pair (every CALL/INVOKE argument), `IntrinsicArgumentRules.StaticUsageOf` (the
-  CONVERT/BASECONVERT/CONCAT usage screens) and three new bind-time rejections. A corpus-wide mechanical scan
-  found ZERO programs with a REDEFINES whose target entry carries an OCCURS clause (conformance + NIST +
-  characterization + the GnuCOBOL testsuite sources, 1,448 files), which is the reachability evidence for
-  COBOLNET1701's new rejection; the other seams have no such standing proof and are what #39 is for.
+- **⛔ BATTERY #39 HAS RUN AND IS NOT RECORDED — four legs GREEN, the differential BLOCKED on two flips, tree
+  `3bc4e4db`, 2026-08-31** (artifacts `scratchpad/battery-39`; the batch is (a) the burn-down cluster A landing,
+  [[PB173]] + [[PB177]] + [[PB178]] and their review-fleet fix pass (DEVLOG 1413) and (b) the **PB184 + PB188 seed
+  wave and its review-fleet landing** (DEVLOG 1414) — all five notes `landed`). Measured:
+  FULL greenfield Conformance **5152 / 5152** · Unit **5091 / 5091** · characterization **33 / 33 — CONCURRENT,
+  no host crash** (#37's crash has still not recurred) · NIST **353 MATCH / 0 REGRESSION**, guard verdict
+  **ALL GREEN**, audit CLEAN · GnuCOBOL differential 1323 cases (no NEW/REMOVED), **`=== DIFFERENTIAL: 2 PER-CASE
+  FLIP(S) ===`**: `run_subscripts:351` and `syn_redefines:172`, both `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT`,
+  raised by **COBOLNET1702** (§13.18.63.3 SR13) and **COBOLNET1701** (§13.18.44.3 SR5) respectively. Totals
+  571/475/206/71 → 573/473/206/71, consistent with exactly those two and no offsetting pair.
+  ⛔ **The baseline TSV is DELIBERATELY UNCHANGED and #38 remains the CURRENT battery reference.** Both compiler
+  rejections were adjudicated SPEC-CORRECT against `--check`ed clause text — GnuCOBOL only warns on the REDEFINES
+  one and its own testsuite calls that a pending dialect option — so the flips are conformance IMPROVEMENTS. They
+  are blocked from recording because they **refute the reachability evidence the wave landed on**, and rebasing
+  over that would erase the only record: see [[PB209]].
+  ⛔ **THE 1,448-FILE SCAN CLAIM PREVIOUSLY WRITTEN HERE WAS FALSE AND IS WITHDRAWN.** It reported ZERO programs
+  with a REDEFINES whose target entry carries an OCCURS clause across "conformance + NIST + characterization +
+  **the GnuCOBOL testsuite sources**". Measured on this tree, the whole `tests/external/gnucobol` tree holds 75
+  files of which exactly **2** are `.cob`/`.cbl`: the 1323 differential programs live as `AT_DATA` heredocs inside
+  38 `.at` wrappers that the sweep never opened, and the case that fired COBOLNET1701 is titled *"REDEFINES: with
+  OCCURS"*. The conformance/NIST/characterization half of that sweep stands; the external half measured two files
+  and was reported as a corpus. [[PB209]] carries the structural fix (ONE `AT_DATA` extractor shared by the sweep
+  and the differential, plus a population-size drift test) — do that, re-run the differential, attribute both
+  flips, regenerate the baseline in that commit, and only then record #39.
+  ⛔ Remaining uncovered by construction until then: nothing. The seams a wave-local filter could not reach —
+  `ExpandType`/`ExpandSameAs`'s flag read by every group-VALUE screen, `OdoModel.WrapGroup`'s extent unit, the
+  `CallEmitter` boundary string pair, `IntrinsicArgumentRules.StaticUsageOf` — were all exercised by #39's NIST
+  and differential legs and produced no flip. COBOLNET1698/1699/1700/1703 fired on no differential case.
   **Next-free diagnostic code: `COBOLNET1704`** (1700 = report-control-operand-index, 1701 = redefines-target-occurs,
   1702 = group-value-subordinate, 1703 = group-value-subject-shape). Never hand-read this — `session-probe.ps1`
   computes it from the catalog and the src grep, and the line is here only so a session that skipped the probe is
