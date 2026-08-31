@@ -187,8 +187,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         + "Format 1's BY CONTENT admits `{ identifier-2 } …` only.");
                     return new BoundNop();
                 }
-                if (cDref is not null && ctx.Refs.Probe(cDref) is { } cp)   // Probe — the cArith arm below is the
-                {                                                            // legal alternative and its bind demands (R30)
+                // Probe to DISCRIMINATE (the cArith arm below is the legal alternative and its bind demands —
+                // R30), then RESOLVE to commit: a probe is unscreened, so its Place must never enter the bound
+                // tree (kb/Work PB221 — this arm used to commit the probe's Place, so `BY CONTENT E(XE)` with
+                // `XE PIC X(4)` compiled clean while the BY REFERENCE operand of the same statement drew
+                // COBOLNET0844, and a function-bearing subscript bound occurrence 1).
+                if (cDref is not null && ctx.Refs.Probe(cDref) is not null
+                    && ctx.Refs.Resolve(cDref) is { } cp)
+                {
                     ScreenCallOperand(cp, CobolPassMode.Content, formatTwo, isReturning: false);
                     args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));
                 }

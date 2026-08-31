@@ -1815,10 +1815,21 @@ result. Run the long legs ONE AT A TIME.
   `ExpandType`/`ExpandSameAs`'s flag read by every group-VALUE screen, `OdoModel.WrapGroup`'s extent unit, the
   `CallEmitter` boundary string pair, `IntrinsicArgumentRules.StaticUsageOf` — were all exercised by #39's NIST
   and differential legs and produced no flip.
-  **Next-free diagnostic code: `COBOLNET1704`** (1700 = report-control-operand-index, 1701 = redefines-target-occurs,
-  1702 = group-value-subordinate, 1703 = group-value-subject-shape). Never hand-read this — `session-probe.ps1`
-  computes it from the catalog and the src grep, and the line is here only so a session that skipped the probe is
-  not misled.
+  **Next-free diagnostic code: `COBOLNET1705`** (1700 = report-control-operand-index, 1701 = redefines-target-occurs,
+  1702 = group-value-subordinate, 1703 = group-value-subject-shape, **1704 = termination-status-operand**, taken by
+  the cluster-B wave). Never hand-read this — `session-probe.ps1` computes it from the catalog and the src grep,
+  and the line is here only so a session that skipped the probe is not misled.
+- **⛔ BATTERY #40 IS OWED AND HAS NOT RUN — the burn-down-cluster-B batch (PB169–PB172 + PB210–PB215 +
+  PB216–PB224), landed 2026-08-31.** The wave-local gate is green on the landing tree; the comprehensive battery
+  accrues and MUST run before the next merge.
+  ⛔ **ITS GnuCOBOL LEG HAS A MEASURED OWED LIST, AND THE PREDICTION IS *ZERO MOVEMENT*.** The pre-battery sweep
+  for this wave pre-declared ~32 "owed" differential cases; the cluster-B review fleet showed that list was of
+  cases that MENTION the construct, not of cases whose verdict can move — an owed list that can absorb up to 32
+  unexpected flips is [[PB209]] wearing a new coat. It is REPLACED by a per-bucket, per-case list with a derived
+  direction for every case, in **`kb/Work/PB169.md` → "THE OWED-DIFFERENTIAL LIST FOR BATTERY #40"**. Read it
+  before reading the leg. Battery #40's differential must reproduce battery #39's
+  **573 / 206 / 71 / 473** with **no per-case flip attributable to this batch**; there is no slack in the list,
+  so any flip is unexplained and must be attributed before the battery is called green.
 - **⛔ PRIOR BATTERY REFERENCE — the R40+PB179+PB180/181 batch tree `d21fbae8` (2026-08-30, battery #37).**
   ✅ **Every leg GREEN — guard verdict ALL GREEN, ZERO differential flips** (artifacts
   `scratchpad/battery-37`; DEVLOG 1405): FULL greenfield Conformance **5109 / 5109** · Unit

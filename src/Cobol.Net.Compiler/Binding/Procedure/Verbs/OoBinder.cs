@@ -243,7 +243,9 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // identifier-1 vs class-name-1 (§14.9.23.2): resolve as a data item first (a data-name shadows);
         // an unresolved SIMPLE name is then a class-name candidate in the pass-1 table — a LEGAL alternative,
         // so this is a Probe; the else-tail below reports when NEITHER reading holds (R30).
-        if (ctx.Refs.Probe(dref) is { } receiver)
+        // ⛔ Probe to DISCRIMINATE, RESOLVE to commit (kb/Work PB221): a probe is unscreened, so its Place must
+        // never enter the bound tree — the receiver's subscripts would bypass every position screen.
+        if (ctx.Refs.Probe(dref) is not null && ctx.Refs.Resolve(dref) is { } receiver)
             return OoBindInstanceInvoke(inv, receiver, methodName);
         if (host.OoClasses?.Find(dref.GetText()) is { } cls)
             return OoBindClassInvoke(inv, cls, methodName);
@@ -926,14 +928,17 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         else if (!senderNull)
         {
             if (senderRef is null) return new BoundUnsupported("SET object-reference sender shape");
-            var sp = ctx.Refs.Probe(senderRef);   // Probe — EXCEPTION-OBJECT below is a legal alternative (R30)
-            if (sp is not null && sp.Item.Pic is { Category: PicCategory.ObjectReference } spic)
+            // Probe — EXCEPTION-OBJECT below is a legal alternative (R30) — then RESOLVE to commit, because a
+            // probe's Place is unscreened and must never enter the bound tree (kb/Work PB221).
+            var sniff = ctx.Refs.Probe(senderRef);
+            if (sniff is { Item.Pic: { Category: PicCategory.ObjectReference } spic } sn
+                && ctx.Refs.Resolve(senderRef) is { } sp)
             {
                 foreach (var tp in targets)
                     if (tp.Item.Pic!.ObjectClassName is not null
                         && OoConformance.ObjectRefWideningMismatch(host.OoClasses, spic, tp.Item.Pic!) is { } werr)
                         ctx.Edition.Error("COBOLNET0867",
-                            $"SET '{tp.Item.CobolName}' TO '{sp.Item.CobolName}': {werr} "
+                            $"SET '{tp.Item.CobolName}' TO '{sn.Item.CobolName}': {werr} "
                             + "(ISO §14.9.39.3 SR12 — a universal sender needs an object view to narrow)");
                 src = sp;
             }

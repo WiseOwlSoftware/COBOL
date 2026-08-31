@@ -73,6 +73,73 @@ internal enum OperandContext
     ArithmeticIndexWindow,
 }
 
+/// <summary>⛔ THE TWO AXES EVERY OPERAND SLOT DECIDES, AS A TABLE (kb/Work PB169–PB172 — the burn-down cluster's
+/// spine). An operand position in this compiler used to acquire ISO §8.8.1.1 BY DEFAULT — by being handed to
+/// <see cref="ExpressionBinder.BindExpr"/> — rather than by declaring that §8.8.1.1 governs it, and the two
+/// questions it actually has to answer were recorded in four different places: an enum member at ten sites, a
+/// call-site comment at two, a private category switch at three, and NOWHERE AT ALL in
+/// <c>ReferenceResolver</c>'s token renderer. All four defects of the cluster are one site answering one axis
+/// wrongly or not at all.
+/// <list type="number">
+///   <item><b>NumericClassScreen</b> — does §8.8.1.1's class-numeric screen govern this position, or does the
+///         position have its own syntax rule? <c>CALL … BY VALUE</c> (§14.9.4.3 SR22) and an intrinsic argument
+///         (§15.3) are governed by NARROWER rules of their own, so quoting §8.8.1.1 at their programmer names a
+///         rule that was not broken.</item>
+///   <item><b>IndexNameScreen</b> — is the §13.18.38.3 r7 index-name screen applied HERE? r7's closed context
+///         list is "as a subscript · PERFORM VARYING · SEARCH VARYING · SET · an operand in a relation
+///         condition", which is exactly <see cref="OperandContext.ArithmeticIndexWindow"/>; CALL BY VALUE is
+///         exempt because SR22 screens the operand itself.</item>
+///   <item><b>IndexDataItemAdmitted</b> — does §13.18.60.3 SR10 admit a class-INDEX <i>data item</i> here?
+///         ⛔ THIS IS A THIRD AXIS, NOT A CONSEQUENCE OF THE FIRST, and treating it as one was a measured
+///         over-reach: SR10's list is "a SEARCH or SET statement, a relation condition, an intrinsic function
+///         argument, an inline method invocation argument, the USING phrase of a procedure division header, or
+///         the USING phrase of a CALL or INVOKE statement" — which is NOT §13.18.38.3 r7's list and NOT
+///         §8.8.1.1's class rule. Deriving it from "class index is not class numeric" rejected
+///         <c>SET IN1 TO IDN1</c> in EIGHT NIST programs (IC106A · IC107A · IC207A · IC208A · NC131A · NC133A ·
+///         NC135A · NC236A), every one of them a SET statement SR10 names outright. A rule that enumerates
+///         CONTEXTS cannot be modelled as a property of the operand (feedback_model_the_rule_shape_not_one_case).
+///         </item>
+/// </list>
+/// ⛔ A NEW MEMBER CANNOT SILENTLY INHERIT §8.8.1.1. The discard arm THROWS rather than defaulting — an enum
+/// switch expression needs one at all (CS8509 covers the undeclared-value space, and this repository builds with
+/// <c>TreatWarningsAsErrors</c>), and a defaulting arm is exactly the mechanism this table exists to remove: it
+/// would hand a new context whichever answer the author of the default happened to prefer. `OperandContextRules`
+/// is therefore guarded from OUTSIDE as well — <c>OperandContextRulesTests</c> enumerates
+/// <c>Enum.GetValues&lt;OperandContext&gt;()</c> and calls this for each, and a second fact asserts no screen has
+/// gone back to keying on a hand-written member list. That is what turns "which arm did I fix" — the
+/// repository's most reproducible defect shape — into a question that cannot be asked.</summary>
+internal static class OperandContextRules
+{
+    internal static (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted) Rules(
+        this OperandContext c) => c switch
+    {
+        //                                       §8.8.1.1   §13.18.38.3 r7   §13.18.60.3 SR10
+        OperandContext.Arithmetic            => (true,      true,            false),
+        OperandContext.FunctionArgument      => (false,     true,            true),   // SR10: "an intrinsic function argument"
+        OperandContext.CallByValue           => (false,     false,           true),   // SR10: "the USING phrase of a CALL"
+        // ⚠ SR10 names three of this context's sites outright — a SET statement (every SET format, including
+        // CAPACITY / SIZE / pointer UP BY), a SEARCH statement, and a relation condition — so class INDEX is
+        // ADMITTED here. It does NOT name PERFORM VARYING, the Report Writer's VARYING, or a subscript, which
+        // this one member also serves; those stay admitted, which is the PRE-EXISTING behaviour and is
+        // registered as its own defect rather than closed by a member split guessed at under time pressure
+        // (kb/Work PB215). The SIMPLE subscript and ref-mod bound do not come through here at all — they are
+        // screened in ReferenceResolver, where SR10's silence on subscripts is enforced correctly; the residual
+        // subscript shape is the COMPOUND segment that actually reaches the D18 materializer, i.e. `E(IDX / 1)`
+        // or `E(FUNCTION INTEGER(IDX))` — NOT `E(IDX + 1)`, which stays on the renderer's fast path and IS
+        // rejected (measured; three of the five hand-off exits are order-dependent, so a name reached before the
+        // exit is screened anyway). ⚠ AXIS B HAS ITS OWN RESIDUAL ON THIS ROW: `IndexNameScreen = false` exempts
+        // the index-NAME screen at the Report Writer's VARYING, which is on NEITHER clause's list — r7 names
+        // only PERFORM's and SEARCH's VARYING — and `VARYING RV-A FROM <index-name>` compiles clean under strict
+        // (measured 2026-08-31; PB215 carries it).
+        OperandContext.ArithmeticIndexWindow => (true,      false,           true),
+        _ => throw new ArgumentOutOfRangeException(nameof(c), c,
+            "a new OperandContext must declare ALL THREE axes in OperandContextRules.Rules() — whether ISO "
+            + "§8.8.1.1's class screen governs the position, whether §13.18.38.3 r7's index-name screen applies, "
+            + "and whether §13.18.60.3 SR10 admits a class-index DATA item. A context that declares none "
+            + "acquires §8.8.1.1 by default, which is the shape of kb/Work PB169–PB172."),
+    };
+}
+
 /// <summary>
 /// The shared operand/expression/receiving spine (P7 Step 10q — the expression-spine flip; the plan’s
 /// `Binding/Procedure/ExpressionBinder`, a SIBLING of <see cref="BinderContext"/>/<see cref="PhraseBlocks"/>,
@@ -122,7 +189,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // ⛔ DA3 — X"…" is an ALPHANUMERIC literal, not a separate species: §8.3.3.2 Format 2 IS the
         // hexadecimal-alphanumeric FORMAT of the alphanumeric literal, and §8.3.3.2.1 makes every format of it "of
         // the class and category alphanumeric" (both cite.py-verified). So it belongs wherever an alphanumeric
-        // literal belongs — a relation condition (§8.8.4.1.1 admits a literal on either side), MOVE, STRING, an
+        // literal belongs — a relation condition (§8.8.4.2.1 constrains only that not BOTH operands be
+        // literals, so a literal on one side is admitted; the phantom "§8.8.4.1.1" this used to cite does not
+        // exist — cite.py --check, kb/Work PB182, whose note owns the remaining sites), MOVE, STRING, an
         // intrinsic argument. CobolLiteral.DecodeHex is the ONE hex codec (landed by DA1 for the §12.3.7 ALPHABET
         // path); this reuses it rather than decoding again.
         if (nn.HEXLIT() is { } hx) return new BoundStringLiteral(CobolLiteral.DecodeHex(hx.GetText()));
@@ -257,7 +326,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// ("computed expression in a string context") and MOVE-to-numeric silently computed — against the same
     /// judgment COBOLNET0809 already applies to class-index DATA ITEMS in MOVE. Returns true when the operand
     /// was an index-name (the caller substitutes its own error operand or continues; the diagnostic is
-    /// emitted here, once).</summary>
+    /// emitted here, once).
+    /// <para>⛔ NO <c>--permissive</c> LANE HERE, AND THE REASON IS WRITTEN DOWN RATHER THAN INFERRED (kb/Work
+    /// PB219). r7's four enforcement sites take ONE of two postures, chosen by what the SLOT IS: an ARITHMETIC
+    /// position (<see cref="IndexNameExpr"/>, and <see cref="ReferenceResolver"/>'s ref-mod bound per §8.4.3.3.3
+    /// SR4) carries the GnuCOBOL occurrence-number coercion under <c>--permissive</c>; an IDENTIFIER slot — this
+    /// screen's callers (DISPLAY, MOVE, STRING, the STOP RUN / GOBACK status operand) and
+    /// <c>InspectBinder</c>'s — rejects in BOTH lanes, because the slot needs an IDENTIFIER and an occurrence
+    /// number is not one, so there is no coercion to offer. <c>dialect_two_axes</c> constrains the leniencies
+    /// this compiler implements; it does not require inventing one.</para></summary>
     public bool ScreenIndexNameOperand(BoundOperand op, string sourceText, string where)
     {
         if (op is not BoundComputedOperand { Expr: BoundIndexRef }) return false;
@@ -352,15 +429,24 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// the arithmetic sibling of R16's statement-slot screen). r7's closed context list admits an index-name
     /// in a subscript, PERFORM/SEARCH VARYING, SET, and a relation condition — those positions bind under
     /// <see cref="OperandContext.ArithmeticIndexWindow"/> and pass through. A true arithmetic position
-    /// (COMPUTE and the arithmetic verbs, RETRY, CONTINUE AFTER, STOP STATUS …) or a compound
-    /// function-argument expression is NOT in the list and §8.8.1.1 does not name index-names among
-    /// arithmetic operands — the classic vendor extension (GnuCOBOL computes the occurrence number), so the
-    /// disposition is the DA6/PB1 shape: strict = reject with the r7 citation, <c>--permissive</c> = the
-    /// documented coercion (the occurrence number computes, with a warning). CallByValue keeps its own
-    /// §14.9.4.3 SR22 screen and is deliberately not intercepted here.</summary>
+    /// (COMPUTE and the arithmetic verbs, RETRY, CONTINUE AFTER, a reference-modification bound per
+    /// §8.4.3.3.3 SR4 …) or a compound function-argument expression is NOT in the list and §8.8.1.1 does not
+    /// name index-names among arithmetic operands — the classic vendor extension (GnuCOBOL computes the
+    /// occurrence number), so the disposition is the DA6/PB1 shape: strict = reject with the r7 citation,
+    /// <c>--permissive</c> = the documented coercion (the occurrence number computes, with a warning).
+    /// CallByValue keeps its own §14.9.4.3 SR22 screen and is deliberately not intercepted here.
+    /// <para>⚠ THE STOP RUN / GOBACK STATUS OPERAND IS NO LONGER ONE OF THIS METHOD'S CALLERS, AND IT WAS NEVER
+    /// "a true arithmetic position" (kb/Work PB169 + PB223 — this summary listed it as both). §14.9.42.2 writes
+    /// the slot <c>{identifier-1 | literal-1}</c>, not <c>arithmetic-expression-1</c>, so §8.8.1.1 never governed
+    /// it; <c>ControlFlowBinder.BindTerminationStatus</c> now binds it as the position's own operand and screens
+    /// r7 there through R16's <see cref="ScreenIndexNameOperand"/> — an IDENTIFIER-slot posture (unconditional
+    /// Error, no coercion to offer), not this one. The slot is named here only to record that it left.</para>
+    /// <para>The lane split across r7's four sites is written down once, in
+    /// <see cref="ReferenceResolver"/><c>.IndexNameInPositionError</c>: an ARITHMETIC position takes THIS
+    /// method's two lanes, an IDENTIFIER slot takes R16's single one.</para></summary>
     private BoundExpr IndexNameExpr(Core.DataReferenceContext dref, string ix, OperandContext context)
     {
-        if (context is OperandContext.Arithmetic or OperandContext.FunctionArgument)
+        if (context.Rules().IndexNameScreen)
         {
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.IndexNameContext,
@@ -400,10 +486,26 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // interception (handled before this point), exactly as the enum doc states — R29 flipped eleven call
         // sites (SET, PERFORM/SEARCH VARYING, compound subscripts, compound relation/EVALUATE operands) to the
         // window context and this guard was never widened, so `SET IX TO <PIC X item>` silently digit-decoded
-        // under STRICT while `ADD` drew 0844.
-        if (context is OperandContext.Arithmetic or OperandContext.ArithmeticIndexWindow
-            && NonNumericOperandKind(p) is { } what)
+        // under STRICT while `ADD` drew 0844. The two contexts are now the two rows of
+        // <see cref="OperandContextRules.Rules"/> that declare NumericClassScreen, so the pair cannot drift apart
+        // again (kb/Work PB172).
+        // ⛔ THE VERDICT IS THE ONE CLASSIFIER'S, not this method's (kb/Work PB170): before, a private category
+        // switch decided admissibility and had no index-data-item arm, so `COMPUTE N = IDX + 1` with `01 IDX
+        // USAGE INDEX` compiled clean under STRICT and computed the occurrence number — while the receiving-side
+        // twin ScreenResultant DID reject it. NonNumericOperandKind now only DESCRIBES a rejection the
+        // §8.5.2.1 Table-2 classifier has already made.
+        var rules = context.Rules();
+        // ⛔ SR10 IS ASKED BEFORE §8.8.1.1, because it is a DIFFERENT rule about a DIFFERENT thing: §8.8.1.1
+        // says what an arithmetic expression may be built from, §13.18.60.3 SR10 enumerates the CONTEXTS an
+        // index data item may be referenced in — and three of this window's sites (SET, SEARCH, a relation
+        // condition) are on that list by name. Deriving SR10 from "class index is not class numeric" rejected
+        // `SET IN1 TO IDN1` in eight NIST programs; the rule enumerates contexts, so the context has to answer.
+        bool indexItem = p is not RefModPlace && p.Item.Pic is { Usage: Usage.Index };
+        if (indexItem && rules.IndexDataItemAdmitted) return new BoundNumRef(p);
+        if (rules.NumericClassScreen
+            && !IntrinsicArgumentRules.IsArithmeticOperandClass(new BoundFieldOperand(p)))
         {
+            string what = NonNumericOperandKind(p);
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning("COBOLNET0844", $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
                     + "under --permissive, decoding its digit characters as an unsigned integer");
@@ -418,9 +520,17 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return new BoundNumRef(p);
     }
 
-    /// <summary>A human-readable description of WHY a place is not a numeric operand, or <see langword="null"/>
-    /// when it is one. Class BOOLEAN carries its own §8.8.1 rejection in the renderer; INDEX / POINTER never
-    /// resolve to a <c>Pic</c> here.
+    /// <summary>A human-readable description of WHY a place is not a numeric operand — the DESCRIPTION half only.
+    /// <para>
+    /// ⛔ IT NO LONGER DECIDES (kb/Work PB170). This was a private, incomplete re-statement of §8.5.2.1 Table 2
+    /// whose null return meant "admissible", and the arms it lacked were the defect: an index DATA item
+    /// (<c>PicInfo.IndexItem</c> carries category NUMERIC for the storage model, so it fell through the category
+    /// arms), a pointer and an object reference all returned null and computed silently under STRICT, while the
+    /// receiving-side twin <see cref="ScreenResultant"/> rejected the first of them by name — two arms of one
+    /// rule, one written. The verdict is now <see cref="IntrinsicArgumentRules.IsArithmeticOperandClass"/>'s, over
+    /// the ONE Table-2 classifier, and this method is called only AFTER that verdict is "reject". Its arms are
+    /// therefore TOTAL: the trailing class-named arm catches every shape the specific ones do not.
+    /// </para>
     /// <para>
     /// ⛔ <b>A NUMERIC-EDITED ITEM IS REJECTED (owner decision 2026-08-02, reversing DA6's admission).</b> This
     /// arm previously read "a numeric-EDITED item de-edits to a defined numeric value and is admissible", and it
@@ -444,10 +554,17 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// 's' string family still admits a numeric-edited item, because Table 2 genuinely makes it class
     /// alphanumeric and a CLASS rule means what it says.
     /// </para></summary>
-    private static string? NonNumericOperandKind(Place p) => p switch
+    private static string NonNumericOperandKind(Place p) => p switch
     {
         RefModPlace => "a reference-modified operand (class alphanumeric, ISO §8.4.3.3.4 GR6)",
         _ when p.Item.IsGroup => $"group item '{p.Item.CobolName}' (class alphanumeric, ISO §8.5)",
+        // The INDEX arm the old switch lacked (kb/Work PB170): §8.5.2.1 Table 2 puts an index data item in class
+        // INDEX, and §13.18.60.3 SR10's closed reference list — "a SEARCH or SET statement, a relation condition,
+        // an intrinsic function argument" — has no arithmetic-operand entry. Named by the same words
+        // ScreenResultant already used for the receiving side, so the two halves of one rule read alike.
+        _ when p.Item.Pic is { Usage: Usage.Index } =>
+            $"item '{p.Item.CobolName}', an index data item (class index, ISO §8.5.2.1 Table 2; §13.18.60.3 SR10 "
+            + "admits an index data item only in SEARCH/SET, a relation condition, or an intrinsic argument)",
         _ when p.Item.Pic is { Category: PicCategory.NumericEdited } =>
             $"item '{p.Item.CobolName}' of category numeric-edited (a numeric-edited data item is not a NUMERIC "
             + "data item — ISO §8.5.2.13 + §8.5.2.1 Table 2; de-editing is a MOVE rule, §14.9.25.4 GR6d1)",
@@ -460,7 +577,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             $"item '{p.Item.CobolName}' of category {pic.Category.ToString().ToLowerInvariant()}"
             + (pic.EditMask is not null ? "-edited (an edited item is not a NUMERIC data item — ISO §8.5.2.1 "
                 + "Table 2; the de-editing grant is MOVE's alone, §14.9.25.4 GR6d1)" : ""),
-        _ => null,
+        // ⛔ TOTAL BY CONSTRUCTION. The classifier has already said "not class numeric", so there is no
+        // admissible shape left to fall through to — a pointer, a program-pointer, an object reference, a PIC A
+        // alphabetic item and a bit/national group all land here and are NAMED rather than silently admitted
+        // (which is what the former `_ => null` did for the first three).
+        _ => $"item '{p.Item.CobolName}' of class "
+            + $"{IntrinsicArgumentRules.ClassOfPlace(p)?.ToString().ToLowerInvariant() ?? "unknown"} "
+            + "(ISO §8.5.2.1 Table 2)",
     };
 
     /// <summary>Reject a non-numeric constant-name in a numeric-expression position (ISO §8.8.1.1 — arithmetic
@@ -595,7 +718,18 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// group resultant compiled clean and died in StoreArith's run-time loud, where §4.2.2 requires a
     /// compile-time mechanism (the SENDING side has had DA6's screen for a month). Also rejected here: an
     /// index DATA item (category numeric in the storage model, but §13.18.60.3 SR10's closed reference list
-    /// has no arithmetic-resultant entry) and a ref-mod slice (§8.4.3.3.4 GR6c — category alphanumeric).</summary>
+    /// has no arithmetic-resultant entry) and a ref-mod slice (§8.4.3.3.4 GR6c — category alphanumeric).
+    /// <para>⛔ WHY THIS IS NOT ROUTED THROUGH <c>IntrinsicArgumentRules.IsArithmeticOperandClass</c>, ASKED AND
+    /// ANSWERED (cluster-B review, sweep 478 — "a surviving fourth class-answer copy"). It is not a fourth copy:
+    /// it answers a DIFFERENT question on the OTHER side of the statement. <c>IsArithmeticOperandClass</c> is
+    /// §8.8.1.1's SENDING question — "is this operand of class numeric" — and has no position axis, because
+    /// §8.8.1.1 has none. A RESULTANT's admissibility is fixed per-clause by the statement's own syntax rules and
+    /// turns on an axis §8.8.1.1 does not possess: numeric-edited is admitted at GIVING / DIVIDE's REMAINDER
+    /// (§14.9.12.3 SR2) / COMPUTE's identifier-1 (§14.9.8.3 SR1) and BARRED at the in-place receivers (ADD TO
+    /// §14.9.2.3 SR2, SUBTRACT FROM §14.9.44.3 SR2, MULTIPLY BY §14.9.26.3 SR1, DIVIDE INTO §14.9.12.3 SR1) —
+    /// which is the <paramref name="editedOk"/> parameter. Collapsing the two would either lose that axis or
+    /// smuggle a receiver rule into the sending screen. The two DO share the class vocabulary
+    /// (<c>ClassOfPlace</c> / <c>ClassOfItem</c>) already, which is the part that must not fork.</para></summary>
     internal Place? ScreenResultant(Place p, string refText, bool editedOk, string clause)
     {
         var pic = p.Item.Pic;
@@ -694,36 +828,76 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// in a numeric context is a loud error rather than the raw word rendered as an identifier. A national or
     /// boolean literal is NOT a numeric operand (§8.8.1.1 — arithmetic operands shall be numeric): COBOLNET0844
     /// at bind, never raw literal text spliced into the generated expression.</summary>
-    private BoundExpr NumLiteral(Core.LiteralContext lit)
+    /// <param name="positionRule">See <see cref="NonNumericInNumericContext"/>. Threaded so the WRAPPED literal
+    /// form (<c>literal : numericLiteral | nonNumericLiteral</c>) names the same position clause the BARE
+    /// <c>nonNumericLiteral</c> arm does — before this, <c>IF "ABC" IS POSITIVE</c> cited §8.8.4.7.3 SR1 and the
+    /// wrapped spelling of the same operand cited §8.8.1.1 alone (kb/Work PB218). The remaining two delegating
+    /// arms — <c>BindExprCore</c> and <c>RefExpr</c> — still cite §8.8.1.1 alone; that residue is DECLARED in
+    /// docs/rearchitecture/DESIGN-binder-bound-tree.md's funnel entry table rather than left to be rediscovered.</param>
+    private BoundExpr NumLiteral(Core.LiteralContext lit, string? positionRule = null) =>
+        NonNumericInNumericContext(lit.nonNumericLiteral(), lit.GetText(), positionRule)
+        ?? new BoundNumLiteral(CheckLiteral(lit.GetText()));
+
+    /// <summary>⛔ THE ONE <c>nonNumericLiteral</c> → NUMERIC-CONTEXT reading (ISO §8.8.1.1), the numeric-side twin
+    /// of <see cref="NonNumericLiteralOperand"/>. Returns null when the node is absent (so the caller falls back to
+    /// its numeric literal), the constant zero for figurative ZERO — the ONE figurative §8.8.1.1 admits — and a
+    /// diagnosed <see cref="BoundExprError"/> for every other alternative.
+    /// <para>
+    /// ⛔ WHY IT IS A SPLIT AND NOT A NEW DISPATCH (kb/Work PB171). This body was reachable only through a
+    /// <c>Core.LiteralContext</c>, and the grammar's <c>valueOperand : arithmeticExpression | nonNumericLiteral</c>
+    /// puts a BARE <c>NonNumericLiteralContext</c> under <c>comparisonOperand</c> — no <c>literal</c> wrapper — so
+    /// <see cref="BindOperandExprCore"/>'s walk had no arm for it, drained, and returned <c>BoundNumLiteral("0")</c>:
+    /// <c>IF "ABC" IS POSITIVE</c> compiled clean and evaluated <c>0 &gt; 0</c>. Copying the dispatch into the walk
+    /// would have made a SECOND hand-maintained list of the literal forms, which is DA3's defect exactly (three
+    /// copies, one missing the hexadecimal arm). One body, two entries.
+    /// </para></summary>
+    /// <param name="positionRule">The clause that closes THIS position's operand list, appended to the diagnostic so
+    /// the programmer is sent to the rule they broke rather than to §8.8.1.1 alone (the COBOLNET1628 lesson) —
+    /// e.g. the sign condition's §8.8.4.7.3 SR1. Null in a plain arithmetic position, where §8.8.1.1 IS the rule.</param>
+    private BoundExpr? NonNumericInNumericContext(Core.NonNumericLiteralContext? nn, string text, string? positionRule)
     {
-        if (lit.nonNumericLiteral()?.concatenationExpression() is not null)
+        if (nn is null) return null;
+        string where = positionRule is null ? "" : $" — {positionRule}";
+        if (nn.concatenationExpression() is not null)
         {
             // A concatenation expression is of class alphanumeric, boolean, or national (ISO §8.8.3.2 SR1) —
             // never numeric, so it is not an arithmetic operand (§8.8.1.1): the same 0844 posture as a bare
             // national/boolean literal in a numeric context.
             ctx.Edition.Error("COBOLNET0844", "a concatenation expression is not a numeric operand "
                 + "(ISO §8.8.3.2 SR1 — class alphanumeric/boolean/national; §8.8.1.1 — arithmetic operands "
-                + "shall be numeric)");
-            return new BoundExprError($"concatenation expression '{lit.GetText()}' in a numeric context");
+                + "shall be numeric)" + where);
+            return new BoundExprError($"concatenation expression '{text}' in a numeric context");
         }
-        if (lit.nonNumericLiteral()?.figurativeConstant() is { } fig)
+        if (nn.figurativeConstant() is { } fig)
         {
-            if (fig.ZERO() is not null) return new BoundNumLiteral("0");
-            // §8.8.1.1 names ZERO as the ONLY figurative constant admissible in an arithmetic expression.
+            // ⛔ §8.3.3.6.3 SR1a IS ENFORCED HERE, NOT MERELY QUOTED (kb/Work PB218). SR1a: "If the literal is
+            // restricted to a numeric literal, the only figurative constant permitted is ZERO (ZEROS, ZEROES)
+            // WITHOUT the ALL phrase." This position IS SR1a's antecedent, derived and not assumed: §8.8.1.1
+            // enumerates what an arithmetic expression may be — "an identifier referencing a numeric data item,
+            // a NUMERIC LITERAL, the figurative constant ZERO (ZEROS, ZEROES)" — so the literal admitted here is
+            // restricted to a numeric literal, and the figurative it names is the bare word, never ALL ZERO.
+            // ⚠ THE TEST IS `ALL() is null`, AND THE PREVIOUS COMMENT'S MECHANISM WAS FALSE. It claimed "the
+            // grammar routes the bare word to ZERO() and every ALL form to allLiteral()"; `figurativeConstant`
+            // has a DISTINCT `ALL ZERO` alternative (CobolExpressions.g4), so for `ALL ZEROS` both `ALL()` and
+            // `ZERO()` are non-null and the old `fig.ZERO() is not null` arm admitted it. Measured before the
+            // fix: `IF ALL ZEROS IS POSITIVE` compiled clean and evaluated `0 > 0`, under a comment quoting the
+            // very rule that bars it — a citation enforcing nothing is worse than no citation.
+            if (fig.ZERO() is not null && fig.ALL() is null) return new BoundNumLiteral("0");
             // The bare BoundExprError here carried no diagnostic and rendered as a RUNTIME NotImplemented —
             // the wrong stage for a syntax-rule violation (kb/Work PB155).
             ctx.Edition.Error("COBOLNET0844", $"figurative constant '{fig.GetText()}' is not a numeric "
-                + "operand (ISO §8.8.1.1 — ZERO is the only figurative constant admitted in an arithmetic "
-                + "expression)");
+                + "operand (ISO §8.8.1.1 — the only figurative constant an arithmetic expression admits is ZERO "
+                + "(ZEROS, ZEROES); §8.3.3.6.3 SR1a — where the literal is restricted to a numeric literal, ZERO "
+                + "is permitted WITHOUT the ALL phrase)" + where);
             return new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context");
         }
-        if (lit.nonNumericLiteral() is { } nn && (nn.NATLIT() ?? nn.BOOLLIT()) is not null)
+        if ((nn.NATLIT() ?? nn.BOOLLIT()) is not null)
         {
             ctx.Edition.Error("COBOLNET0844", $"a {(nn.NATLIT() is not null ? "national" : "boolean")} "
-                + "literal is not a numeric operand (ISO §8.8.1.1 — arithmetic operands shall be numeric)");
-            return new BoundExprError($"literal '{lit.GetText()}' in a numeric context");
+                + "literal is not a numeric operand (ISO §8.8.1.1 — arithmetic operands shall be numeric)" + where);
+            return new BoundExprError($"literal '{text}' in a numeric context");
         }
-        if (lit.nonNumericLiteral() is { } an && (an.STRINGLIT() ?? an.HEXLIT()) is not null)
+        if ((nn.STRINGLIT() ?? nn.HEXLIT()) is not null)
         {
             // kb/Work PB155: this arm fell through to BoundNumLiteral carrying the QUOTED text, and the
             // emitter rendered it into the generated arithmetic — a raw Roslyn error at the wrong stage
@@ -731,10 +905,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             // quoted and hexadecimal — are of class and category alphanumeric (ISO §8.3.3.2.1).
             ctx.Edition.Error("COBOLNET0844", "an alphanumeric literal is not a numeric operand "
                 + "(ISO §8.8.1.1 — arithmetic operands shall be numeric; §8.3.3.2.1 — both formats of the "
-                + "alphanumeric literal are of class and category alphanumeric)");
-            return new BoundExprError($"literal {lit.GetText()} in a numeric context");
+                + "alphanumeric literal are of class and category alphanumeric)" + where);
+            return new BoundExprError($"literal {text} in a numeric context");
         }
-        return new BoundNumLiteral(CheckLiteral(lit.GetText()));
+        // ⛔ NO SILENT FALL-THROUGH. Every `nonNumericLiteral` alternative the grammar lists is covered above, so
+        // reaching here means the RULE grew an alternative this screen has not read — which is exactly the
+        // condition that must fail loud rather than be admitted as a number (COBOLNET_DESIGN §1.4).
+        ctx.Edition.Error("COBOLNET0844", $"the literal '{text}' is not a numeric operand "
+            + "(ISO §8.8.1.1 — arithmetic operands shall be numeric)" + where);
+        return new BoundExprError($"literal '{text}' in a numeric context");
     }
 
     /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a — the comma form
@@ -810,18 +989,31 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             // with the same dialect gate (strict rejects; --permissive decodes the digit characters). Before this,
             // `COMPUTE N = FUNCTION BOOLEAN-OF-INTEGER(5, 8) + 1` compiled clean and died at run time with an
             // unhandled NotImplemented — a crash on legal-shaped source, the wrong stage.
-            // ⛔ Arithmetic ONLY — deliberately NOT the ArithmeticIndexWindow (kb/Work PB155, measured by the
-            // wave gate): the window context serves BOTH genuinely-arithmetic positions (SET amounts, VARYING
-            // FROM/BY, subscripts) AND relation/EVALUATE COMPARAND positions, where a SOLE alphanumeric
-            // function is a legal §8.8.4.1.1 operand (`IF FUNCTION LOWER-CASE(X) = Y` — six NIST IF-suite
-            // programs). A sole DATA reference short-circuits through FieldOperand before OperandRef, so the
-            // data-item screen above is safe to widen; a sole FUNCTION call has no such short-circuit, and
-            // this screen cannot tell a comparand from an arithmetic term. Splitting the conflated context is
-            // kb/Work PB172 — until then `SET IX TO FUNCTION LOWER-CASE(X)` stays unscreened here.
-            if (context is OperandContext.Arithmetic
-                && call is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } sc)
+            // ⛔ BOTH ARITHMETIC CONTEXTS, and the reason it is finally safe (kb/Work PB172). PB155 widened this
+            // to the window context and had to REVERT it: the window serves BOTH genuinely-arithmetic positions
+            // (SET amounts, VARYING FROM/BY, subscripts) AND relation/EVALUATE COMPARAND positions, where a SOLE
+            // alphanumeric function is a legal §8.8.4.2.1 operand (`IF FUNCTION LOWER-CASE(X) = Y` — six NIST
+            // IF-suite programs). A sole DATA reference short-circuited through FieldOperand before OperandRef;
+            // a sole FUNCTION call had NO such short-circuit, so this screen could not tell a comparand from an
+            // arithmetic term and rejected legal source.
+            // THE BOUNDARY IS SOLE-vs-COMPOUND, NOT STATEMENT-vs-STATEMENT — `IF FUNCTION LOWER-CASE(X) + 1 = Y`
+            // is illegal in the very statement where the sole form is legal, so no per-statement context member
+            // could ever express it. `ConditionBinder.SoleFunctionCall` / `EvaluateBinder.BindValueOperand` now
+            // supply the missing short-circuit beside the two that already existed, which is what lets the screen
+            // key on the RULE (Rules().NumericClassScreen) instead of on one enum member — and the eight
+            // genuinely-arithmetic window sites gain it with no per-site edit at all.
+            // ⛔ THE VERDICT READS THE CLASS, NOT ResultCategory (IntrinsicArgumentRules.cs's PB124 wave-5b note):
+            // the storage model folds §15.2 item 6's INDEX functions into category numeric, so a ResultCategory
+            // test let `FUNCTION SQRT(FUNCTION MAX(IX1 IX2))` pass a class-numeric screen. Widening a screen that
+            // carries a known hole would have spread the hole to eight more sites.
+            if (context.Rules().NumericClassScreen && call is BoundIntrinsicCall sc
+                && IntrinsicBinder.OperandOf(sc) is { } scOp
+                && !IntrinsicArgumentRules.IsArithmeticOperandClass(scOp))
             {
-                string what = $"FUNCTION {sc.Sig.Name} (a {sc.ResultCategory.ToString().ToLowerInvariant()} function, ISO §15.2)";
+                string cls = IntrinsicArgumentRules.ClassOf(scOp)?.ToString().ToLowerInvariant()
+                    ?? sc.ResultCategory.ToString().ToLowerInvariant();
+                string what = $"FUNCTION {sc.Sig.Name} ({(cls[0] is 'a' or 'e' or 'i' or 'o' or 'u' ? "an" : "a")} "
+                    + $"{cls} function, ISO §15.2)";
                 if (ctx.Edition.Permissive)
                     ctx.Edition.Warning("COBOLNET0844", $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
                         + "under --permissive, decoding its digit characters as an unsigned integer");
@@ -842,11 +1034,23 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// ref. The wrapper chain can nest the expression MORE than one level deep (<c>comparisonOperand →
     /// valueOperand → arithmeticExpression</c>, CobolExpressions.g4), so the walk is BREADTH-FIRST to the
     /// shallowest match — a depth-first leaf grab would collapse a multi-term operand to its first data
-    /// reference (a sign condition's operand is the WHOLE expression, ISO §8.8.4.3 — NC250A IF--TEST-55/56).</summary>
-    public BoundExpr BindOperandExpr(IParseTree node) => BindOperandExprCore(node, OperandContext.Arithmetic);
+    /// reference.
+    /// <para>
+    /// ⛔ THE CLAUSE THAT MAKES IT BREADTH-FIRST is ISO §8.8.4.7.3 SR1: "Arithmetic-expression-1 shall be any
+    /// single numeric data item described with a usage other than a standard floating-point usage, or any form of
+    /// arithmetic expression" — so a sign condition's operand is the WHOLE expression (NC250A IF--TEST-55/56),
+    /// which a first-data-reference grab would silently truncate. ⚠ This comment used to cite §8.8.4.3, which is
+    /// the SIMPLE BOOLEAN CONDITION ("Boolean-expression-1 shall reference only boolean items of length 1") — a
+    /// real clause answering a different question, and it sat on the exact line PB171's defect lived on
+    /// (CLAUDE.md rule 1's inherited-citation failure mode; repaired with kb/Work PB171).
+    /// </para></summary>
+    /// <param name="positionRule">See <see cref="NonNumericInNumericContext"/> — the clause closing this
+    /// position's operand list, named in the diagnostic when the wrapper holds a non-numeric literal.</param>
+    public BoundExpr BindOperandExpr(IParseTree node, string? positionRule = null) =>
+        BindOperandExprCore(node, OperandContext.Arithmetic, positionRule);
 
     /// <inheritdoc cref="BindOperandExpr"/>
-    private BoundExpr BindOperandExprCore(IParseTree node, OperandContext context)
+    private BoundExpr BindOperandExprCore(IParseTree node, OperandContext context, string? positionRule = null)
     {
         var queue = new Queue<IParseTree>();
         queue.Enqueue(node);
@@ -864,16 +1068,29 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 // with W-Z = 4 added FOUR instead of TWO. Silent, and it survives "does it compile" entirely —
                 // it was caught only by checking the VALUE against the spec-derived answer.
                 if (c is Core.FunctionCallContext fc) return host.Intrinsic.BindIntrinsic(fc);
-                if (c is Core.LiteralContext l) return NumLiteral(l);
+                // ⛔ THE BARE nonNumericLiteral ARM (kb/Work PB171), BEFORE the LiteralContext arm and for a
+                // reason the tree hides: `valueOperand : arithmeticExpression | nonNumericLiteral` names
+                // `nonNumericLiteral` DIRECTLY, bypassing the `literal : numericLiteral | nonNumericLiteral`
+                // wrapper this walk knew — so a NonNumericLiteralContext is NOT a LiteralContext and matched no
+                // arm at all. The queue drained and the fallback below returned zero: `IF "ABC" IS POSITIVE`
+                // compiled clean and evaluated `0 > 0`. Routed through the ONE numeric-context literal reading,
+                // never a second copy of the dispatch.
+                if (c is Core.NonNumericLiteralContext nn
+                    && NonNumericInNumericContext(nn, nn.GetText(), positionRule) is { } nnx) return nnx;
+                if (c is Core.LiteralContext l) return NumLiteral(l, positionRule);
                 if (c is Core.DataReferenceContext d) return RefExpr(d, context);
                 queue.Enqueue(c);
             }
         }
-        // ⚠ A WRAPPER HOLDING NOTHING BINDABLE SILENTLY BECOMES ZERO, which is the same silent-wrong-answer shape
-        // as the defect above: a new operand alternative that nobody adds an arm for degrades to `0` rather than
-        // failing. Kept as a literal zero ONLY because an errored parse can reach here; every REACHABLE shape must
-        // have an arm above, and ArithmeticSendingOperandDriftTests exists to keep the grammar from growing one
-        // this walk cannot see.
-        return new BoundNumLiteral("0");
+        // ⛔ A WRAPPER HOLDING NOTHING BINDABLE FAILS LOUD (kb/Work PB171). This used to `return new
+        // BoundNumLiteral("0")`, and its own comment already named the hazard — "a new operand alternative that
+        // nobody adds an arm for degrades to `0` rather than failing" — while crediting a drift test that only
+        // ever compared the four ARITHMETIC operand rules to each other and never looked at `comparisonOperand`.
+        // The green guard is what stopped anyone looking. Every reachable shape now has an arm above, so the
+        // next alternative added to `valueOperand` fails at the wrong-stage boundary (COBOLNET_DESIGN §1.4)
+        // instead of computing zero; an ALREADY-errored parse reaching here costs nothing, because the compile
+        // has already failed. `OperandWalkCoverageTests` enumerates the served rules from the .g4 so the arm is
+        // added at BUILD time, not after the wrong answer ships.
+        return new BoundExprError($"operand wrapper '{node.GetText()}' with no bindable content");
     }
 }

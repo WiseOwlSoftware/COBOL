@@ -167,11 +167,15 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // Peek the FIRST target's category without consuming diagnostics: an index-name or non-pointer item
         // belongs to the Format-2 index path.
         if (host.Expr.IndexFieldOf(drefs[0]) is not null) return null;
-        if (ctx.Refs.Probe(drefs[0]) is not { } first || first.Item.Pic?.Category is not PicCategory.Pointer)
+        if (ctx.Refs.Probe(drefs[0]) is not { } sniff || sniff.Item.Pic?.Category is not PicCategory.Pointer)
             return null;
 
         // SET pointer UP/DOWN BY (§14.9.39 Format 10) is a COBOL-2002 introduction; edition gate moved to
         // VersionConformancePass (Step 14b), firing on the self-identifying BoundSetPointerUpDown node.
+        // ⛔ RESOLVE to commit — the probe above only DISCRIMINATED the format (kb/Work PB221). Committing the
+        // probe's Place made `SET P(XE) Q(XE) UP BY 4` diagnose COBOLNET0844 for Q and not for P: one statement,
+        // one rule, two verdicts, decided by which operand the format sniff happened to read.
+        if (ctx.Refs.Resolve(drefs[0]) is not { } first) return new BoundNop();
         var targets = new List<Place> { first };
         foreach (var dref in drefs.Skip(1))
         {

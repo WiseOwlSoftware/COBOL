@@ -2667,15 +2667,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The argument's sole data reference — non-null when the arithmetic-expression alternative is
-    /// exactly one <c>dataReference</c> primary with no operators, unary signs, or parentheses around it.</summary>
-    private static Core.DataReferenceContext? SoleDataReference(Core.FunctionArgumentContext a)
-    {
-        if (a.arithmeticExpression()?.additiveExpression() is not { } add) return null;
-        if (add.multiplicativeExpression() is not [{ } mul]) return null;
-        if (mul.powerExpression() is not [{ } pow]) return null;
-        if (pow.unaryExpression() is not [{ } un]) return null;
-        return un.primaryExpression()?.dataReference();
-    }
+    /// exactly one <c>dataReference</c> primary with no operators, unary signs, or parentheses around it.
+    /// <para>⛔ THROUGH THE ONE DESCENT (kb/Work PB224). This was a tier-by-tier list-pattern re-implementation
+    /// of <see cref="CobolNet.Frontend.Expressions.SoleOperand.Primary"/> that agreed with it by coincidence
+    /// rather than by construction — the fifth copy of a boundary that decides §8.8.4.7.3 SR2, §8.8.1.1's
+    /// sole-vs-compound split and the §7.3.11 directive operand at once.</para></summary>
+    private static Core.DataReferenceContext? SoleDataReference(Core.FunctionArgumentContext a) =>
+        CobolNet.Frontend.Expressions.SoleOperand.DataRef(a.arithmeticExpression());
 
     /// <summary>
     /// A <c>table(… ALL …)</c> argument (ISO §15.3; kb/Work PB62): detected from an argument that is a sole data

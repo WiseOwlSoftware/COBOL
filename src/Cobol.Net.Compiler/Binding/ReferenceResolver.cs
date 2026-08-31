@@ -61,7 +61,13 @@ public sealed class ReferenceResolver(DataBinder data)
     /// precedent's own words are "a nested call registers while its consumer's arguments bind, so it precedes the
     /// consumer in the sequence". Deferring the bind to the drain would append an INNER segment's temp AFTER its
     /// consumer's — <c>W-E(FUNCTION INTEGER(W-F(FUNCTION INTEGER(2))))</c> would store in the wrong order.</para></summary>
-    internal Func<string, int, DataItem?>? MaterializeSegment { get; set; }
+    /// <remarks>⛔ THE POSITION RIDES THE HOOK (kb/Work PB170/PB172). It used to be <c>Func&lt;string, int,
+    /// DataItem?&gt;</c>, so ONE hook served BOTH <see cref="SegmentPosition.Subscript"/> and
+    /// <see cref="SegmentPosition.RefMod"/> and the binder hard-coded the index-name window context for both —
+    /// but §13.18.38.3 r7's five contexts list "as a subscript" and do NOT list a reference-modification
+    /// position, so an index-name in a ref-mod bound was wrongly admitted. One hook, two positions, one context
+    /// was the defect; the position is now part of the hook's question.</remarks>
+    internal Func<string, SegmentPosition, int, DataItem?>? MaterializeSegment { get; set; }
     /// <summary>The object-property reference BINDER (ISO §8.4.3.9; deep-dive D-P2): when normal
     /// qualification fails and the single qualifier is a class-name (factory form) or a TYPED object
     /// reference (instance form) whose roster carries an accessor for the head word under the PINNED
@@ -145,8 +151,30 @@ public sealed class ReferenceResolver(DataBinder data)
     /// no item returns null SILENTLY — for type-discriminating probes whose null arm continues to a legal
     /// alternative reading (INVOKE's class-name receiver, SET's format sniffs, EXCEPTION-OBJECT, the
     /// boolean-operand predicate that is documented diagnostic-free). Never use it where a data item is
-    /// REQUIRED — that silence is exactly the R30 defect.</summary>
-    public Place? Probe(Core.DataReferenceContext dref) => ResolveImpl(dref, report: false);
+    /// REQUIRED — that silence is exactly the R30 defect.
+    /// <para>⛔ IT RETURNS A SNIFF, NOT A <see cref="Place"/>, AND THE TYPE IS THE FIX (kb/Work PB221). The
+    /// documented contract has always been "a probe is a TYPE-DISCRIMINATING sniff whose Place is DISCARDED
+    /// after reading its Item" — but it returned a <c>Place</c>, and FOUR callers (CallBinder's BY CONTENT arm,
+    /// OoBinder's INVOKE receiver and SET object-reference sender, PtrBinder's SET UP/DOWN first target) simply
+    /// committed it into the bound tree. Everything <c>_probing</c> suppresses to keep a probe pure then went
+    /// missing from the committed bind: the §8.8.1.1 position screen and the §13.18.38.3 r7 index-name screen
+    /// never ran (<c>CALL "S" USING BY CONTENT E(XE)</c> with <c>XE PIC X(4)</c> compiled clean while the
+    /// adjacent <c>BY REFERENCE</c> operand drew COBOLNET0844 — one statement, two verdicts), and the D18
+    /// materializer's <c>return "1"</c> short-circuit made <c>E(FUNCTION INTEGER(2))</c> bind occurrence ONE — a
+    /// WRONG ANSWER, live since PB157 landed the flag. A comment cannot hold that invariant; a return type can.
+    /// A caller that has finished discriminating asks <see cref="Resolve"/> for the Place that enters the tree,
+    /// which is the pattern <c>SetBinder.BindSetLocale</c> already used.</para></summary>
+    public ProbeResult? Probe(Core.DataReferenceContext dref) =>
+        ResolveImpl(dref, report: false) is { } p
+            ? new ProbeResult(p.Item, p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category)
+            : null;
+
+    /// <summary>What a <see cref="Probe"/> may tell its caller: the resolved <see cref="DataItem"/> and the
+    /// operand CATEGORY of the reference (§8.4.3.3.4 GR6 for a reference-modified one — <see cref="RefModPlace"/>'s
+    /// own reader — else <see cref="DataItem.OperandPic"/>, the D20 one reader, so a GROUP-USAGE group sniffs as
+    /// the boolean / national operand it is). Deliberately NOT a <see cref="Place"/>: a probe is unscreened, so a
+    /// Place it produced must never reach the bound tree (kb/Work PB221).</summary>
+    public readonly record struct ProbeResult(DataItem Item, PicCategory? OperandCategory);
 
     /// <summary>The drefs this resolver has already DIAGNOSED (an undefined name — <see cref="ReportUnidentified"/> —
     /// or a rejected reference shape: SR3 ref-mod-of-ref-mod, SR1 identifier-1 exclusion): one report per source
@@ -1086,10 +1114,26 @@ public sealed class ReferenceResolver(DataBinder data)
     /// one token at a time — integer literals, data-name / index-name references, <c>+ - * /</c> and parentheses,
     /// i.e. the relative-subscript and simple-index forms. <b>EVERYTHING ELSE routes through
     /// <see cref="MaterializeViaFragment"/></b>, which re-parses and binds it properly; the renderer is an
-    /// optimization over that route, never the arbiter of what is legal in the position (fix-queue PB42).</summary>
+    /// optimization over that route, never the arbiter of what is legal in the position (fix-queue PB42).
+    /// <para>⚠ THAT INVARIANT WAS A CLAIM, NOT A FACT, until kb/Work PB170. A name the renderer CAN render never
+    /// reached the binder, so nothing ever applied §8.8.1.1 to it and <c>T(XE)</c> with <c>XE PIC X(4)</c>
+    /// compiled clean under STRICT — the renderer WAS deciding the position's legality, by omission. It holds now
+    /// because <see cref="ScreenPositionOperandClass"/> asks the same classifier the binder would have asked, so
+    /// the fast path and the D18 route reach the same verdict rather than two different ones.</para>
+    /// <para>⛔ THE FAST PATH'S SCREENS ARE DEFERRED TO ITS COMMIT POINT (kb/Work PB220). They used to fire
+    /// INSIDE the token loop, and the loop's five exits to D18 are ORDER-DEPENDENT — a later token with no case
+    /// arm (<c>**</c>), an unresolvable name, or a scaled operand in a compound abandons the whole fast path
+    /// AFTER an earlier name was already screened, and the D18 route then screens the same operand again through
+    /// the expression binder. Measured: <c>MOVE E(XE ** 2) TO R</c> with <c>XE PIC X(4)</c> emitted COBOLNET0844
+    /// TWICE (and Error+Warning under <c>--permissive</c>, which is worse than either lane alone). A
+    /// <c>_diagnosed</c>-style dedupe cannot fix it — the second diagnostic comes from a different class over a
+    /// different bound operand — so the screens are QUEUED here and flushed only when this method actually
+    /// returns a rendered segment. Every D18 reroute discards the queue, which makes the deduplication a
+    /// property of the control flow rather than of a set, and makes the NEXT late exit automatic.</para></summary>
     private string? RenderSegment(List<IToken> tokens, SegmentPosition position)
     {
         var sb = new System.Text.StringBuilder();
+        List<PendingScreen>? pending = null;
         // ⛔ A COMPOUND segment (one carrying an arithmetic operator) whose operands include a SCALED item cannot
         // be rendered operand-by-operand, because §8.4.2.3.4 GR1b tests the integrality of THE RESULT of the whole
         // expression, not of each operand: `W-E(W-P + W-Q)` with W-P = W-Q = 1.5 has the integral result 3.0 and
@@ -1161,7 +1205,7 @@ public sealed class ReferenceResolver(DataBinder data)
                     // text, because the fragment binder reaches the individual operand. (That an undefined
                     // subscript name is a RUN-TIME abort at all is a separate, pre-existing wrong-stage
                     // defect; it is recorded in PB50's note, not fixed here.)
-                    if (ResolveSubscriptName(name, qualifiers, position, out bool scaled) is not { } readExpr)
+                    if (ResolveSubscriptName(name, qualifiers, position, ref pending, out bool scaled) is not { } readExpr)
                         return MaterializeViaFragment(tokens, position);
                     // A scaled operand inside a compound segment — evaluate the whole expression instead (above).
                     if (scaled && compound) return MaterializeViaFragment(tokens, position);
@@ -1186,8 +1230,20 @@ public sealed class ReferenceResolver(DataBinder data)
             }
         }
         string expr = sb.ToString().Trim();
-        return expr.Length == 0 ? null : expr;
+        if (expr.Length == 0) return null;   // the caller's loud posture — nothing was rendered, so nothing is screened
+        if (pending is not null && !_probing)   // R30 purity: a probe never diagnoses (kb/Work PB157)
+            foreach (var ps in pending)
+                if (ps.Item is { } it) ScreenPositionOperandClass(it, ps.Name, position);
+                else IndexNameInPositionError(ps.Name, position);
+        return expr;
     }
+
+    /// <summary>A screen the fast path OWES once it commits to rendering the segment — either the §8.8.1.1 class
+    /// screen over a resolved item (<see cref="ScreenPositionOperandClass"/>) or the §13.18.38.3 r7 index-name
+    /// screen (<see cref="IndexNameInPositionError"/>, <c>Item</c> null). Queued rather than emitted so an exit
+    /// to D18 later in the token loop cannot leave a diagnostic behind for the D18 route to duplicate — see
+    /// <see cref="RenderSegment"/>.</summary>
+    private readonly record struct PendingScreen(DataItem? Item, string Name);
 
     /// <summary>True when this segment contains a FUNCTION-IDENTIFIER (ISO §8.4.3.1.2 Format 1) and therefore
     /// belongs to the D18 materialization route rather than the token renderer: either the explicit
@@ -1244,7 +1300,7 @@ public sealed class ReferenceResolver(DataBinder data)
         if (first.InputStream is not { } stream) return null;
         string text = stream.GetText(
             new Antlr4.Runtime.Misc.Interval(first.StartIndex, tokens[^1].StopIndex));
-        return MaterializeSegment(text, first.Line) is { } temp ? PositionRead(temp, position) : null;
+        return MaterializeSegment(text, position, first.Line) is { } temp ? PositionRead(temp, position) : null;
     }
 
     /// <summary>A subscript data-name → its C# read expression: an INDEXED BY index-name (a <c>long</c> field), or
@@ -1255,12 +1311,21 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <param name="scaled">Set when the resolved operand carries a nonzero PICTURE scale, so the caller can send a
     /// COMPOUND segment to the D18 materializer instead (the §8.4.2.3.4 GR1b result-vs-operand distinction).</param>
     private string? ResolveSubscriptName(string name, List<string> qualifiers, SegmentPosition position,
-        out bool scaled)
+        ref List<PendingScreen>? pending, out bool scaled)
     {
         scaled = false;
         // An index-name is an occurrence number by construction (§13.18.38) and a constant-name substitutes an
         // INTEGER literal — neither can be scaled, so both keep the fast path.
-        if (qualifiers.Count == 0 && data.Symbols.TryResolveIndex(name, data.ActiveScope, out var field)) return field;
+        // ⛔ BUT ONLY IN THE POSITION r7 LISTS (kb/Work PB170). §13.18.38.3 r7's five contexts include "as a
+        // subscript" and do NOT include a reference-modification position, and this line returned the index
+        // field regardless of `position` — so `W(IX:2)` compiled clean. The R16 screen for exactly this rule
+        // already existed (ExpressionBinder.ScreenIndexNameOperand); it simply was not applied here.
+        if (qualifiers.Count == 0 && data.Symbols.TryResolveIndex(name, data.ActiveScope, out var field))
+        {
+            if (position == SegmentPosition.Subscript) return field;
+            (pending ??= []).Add(new PendingScreen(null, name));
+            return field;   // keep rendering: a null here would re-route to D18 and screen the operand twice
+        }
         // An INTEGER constant-name in a subscript position substitutes its integer literal (ISO §13.10.3 SR2 /
         // §13.10.4 GR1/GR3 — a subscript is a literal position, §8.4.2.3.2) — the literal text IS the C# read.
         if (qualifiers.Count == 0
@@ -1268,8 +1333,99 @@ public sealed class ReferenceResolver(DataBinder data)
             return k.Text;
         DataItem? item = qualifiers.Count == 0 ? ResolveUnqualified(name) : ResolveQualified(name, qualifiers);
         if (item is null) return null;
+        if (!IntrinsicArgumentRules.IsArithmeticOperandClass(item)) (pending ??= []).Add(new PendingScreen(item, name));
         scaled = item.Pic?.Scale > 0;
         return PositionRead(item, position);
+    }
+
+    /// <summary>⛔ §13.18.38.3 r7 AT THE TOKEN RENDERER'S REF-MOD BOUND — <b>ONE RULE, ONE LANE POSTURE, DECIDED
+    /// BY THE SLOT KIND</b> (kb/Work PB219). r7 is enforced at four sites and they were not all on the same
+    /// disposition; the axis that settles each one is what the slot IS, never which route reached it:
+    /// <list type="bullet">
+    ///   <item><b>An ARITHMETIC-expression position</b> — <c>ExpressionBinder.IndexNameExpr</c> (R29) and THIS
+    ///   site. §8.4.3.3.3 SR4 makes a reference-modification leftmost-position/length an arithmetic expression,
+    ///   so the ref-mod bound is R29's family, not R16's. Posture: strict REJECTS with the r7 citation;
+    ///   <c>--permissive</c> WARNS and computes the occurrence number (the documented GnuCOBOL coercion). The
+    ///   emit floor is identical either way — this method's caller renders <c>field</c> in both lanes.</item>
+    ///   <item><b>An IDENTIFIER slot</b> — <c>ExpressionBinder.ScreenIndexNameOperand</c> (R16: DISPLAY, MOVE,
+    ///   STRING, the STOP RUN/GOBACK status operand) and <c>InspectBinder</c>. Posture: an unconditional Error in
+    ///   BOTH lanes, and the written reason is that THERE IS NO COERCION TO OFFER — the slot needs an identifier,
+    ///   and an occurrence number is not one. That is a leniency this compiler declines to invent, not an
+    ///   oversight; <c>dialect_two_axes</c> constrains the leniencies you implement, it does not require one.</item>
+    /// </list>
+    /// Before this, the ref-mod fast path carried the R16 posture while its OWN D18 route carried R29's, so
+    /// under <c>--permissive</c> <c>W(IX:2)</c> was a hard error and <c>W(IX / 1:2)</c> — the same rule, the same
+    /// position — warned and compiled, keyed on nothing but whether the token renderer could render the
+    /// bound.</summary>
+    private void IndexNameInPositionError(string name, SegmentPosition position)
+    {
+        string what = $"the index-name '{name}' is not an identifier (ISO §8.4.3.1.2) and a "
+            + "reference-modification leftmost-position/length is not one of §13.18.38.3 r7's five contexts (a "
+            + "subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — §8.4.3.3.3 SR4 makes both bounds "
+            + "arithmetic expressions";
+        if (data.Edition.Permissive)
+            data.Edition.Warning(DiagnosticCatalog.IndexNameContext,
+                $"{what}; accepted under --permissive, computing the occurrence number");
+        else
+            data.Edition.Error(DiagnosticCatalog.IndexNameContext,
+                $"{what}. SET a data item to the index first (SET data-item TO {name})");
+    }
+
+    /// <summary>⛔ THE §8.8.1.1 CLASS SCREEN FOR THE TOKEN RENDERER'S FAST PATH (kb/Work PB170) — the funnel entry
+    /// that never reached the funnel.
+    /// <para><b>The chain, every link cite.py-checked.</b> §8.4.2.3.2's subscript general format is exactly three
+    /// alternatives — <c>ALL | arithmetic-expression-1 | index-name-1 [{+|-} integer-1]</c> — so a bare data-name
+    /// subscript is admitted ONLY as arithmetic-expression-1; §8.8.1.1 then admits "an identifier referencing a
+    /// NUMERIC data item, a numeric literal, the figurative constant ZERO"; §8.5.2.1 Table 2 puts category
+    /// alphanumeric and alphanumeric-edited in class ALPHANUMERIC. §8.4.3.3.3 SR4 ("leftmost-position and length
+    /// shall be arithmetic expressions") carries the identical rule to the ref-mod bounds. So <c>T(XE)</c> and
+    /// <c>W(XE:2)</c> with <c>XE PIC X(4)</c> are illegal, and <c>T(IDX)</c> with an index DATA item is illegal
+    /// twice over (§13.18.60.3 SR10's closed reference list has no subscript entry).</para>
+    /// <para><b>Why the screen has to be HERE.</b> <see cref="ResolveSubscriptName"/> renders the position read
+    /// straight from the token — <c>ExpressionBinder.OperandRef</c> never runs, because the operand never enters
+    /// the expression binder at all. Measured on 9a89fbd1: <c>E(XE)</c> compiled clean and digit-decoded "0002"
+    /// to occurrence 2, and so did the COMPOUND <c>E(XE + 1)</c> — the renderer routes to the screened D18 path
+    /// only for a slash, a function, an unresolvable name, a SCALED operand inside a compound, or a token with no
+    /// case arm, and plain <c>+</c> over an unscaled alphanumeric name is none of those.</para>
+    /// <para>⚠ THE VERDICT IS <see cref="IntrinsicArgumentRules"/>'s, deliberately: a category switch written here
+    /// would have been the fifth place answering "is this operand class numeric". Routing the segment to D18
+    /// instead — which would reuse OperandRef's screen with no new code — was REJECTED: it materializes a §15.4
+    /// temp and a PendingPreOp for every permissive alphanumeric subscript, changing permissive-lane emitted text
+    /// and adding an integrality check where <c>CobolTable.Occ(string)</c> has none. Screening in place keeps the
+    /// emit floor byte-identical.</para>
+    /// <para>⚠ AND THE RENDERER'S OWN INVARIANT IS RESTORED, not abandoned: <see cref="RenderSegment"/> documents
+    /// itself as "an optimization over that route, never the arbiter of what is legal in the position", and this
+    /// defect falsified it. Asking the ONE classifier the question the binder would have asked is what makes the
+    /// sentence true again — the fast path now reaches the same verdict, not a different one.</para>
+    /// <para>⚠ PRECONDITION: the class question is asked in <see cref="ResolveSubscriptName"/>
+    /// (<c>IntrinsicArgumentRules.IsArithmeticOperandClass</c>) and only a REJECTED item is queued, so this
+    /// method composes the message and nothing else. The <c>_probing</c> purity guard lives at the queue's flush
+    /// in <see cref="RenderSegment"/> — ONE place, since that is also where the ordering fix lives
+    /// (kb/Work PB220).</para></summary>
+    private void ScreenPositionOperandClass(DataItem item, string name, SegmentPosition position)
+    {
+        string what = item.IsGroup ? $"group item '{name}' (class alphanumeric, ISO §8.5)"
+            : item.Pic is { Usage: Usage.Index }
+                ? $"item '{name}', an index data item (class index, ISO §8.5.2.1 Table 2; §13.18.60.3 SR10 admits "
+                  + "an index data item only in SEARCH/SET, a relation condition, or an intrinsic argument)"
+            : $"item '{name}' of class "
+              + $"{IntrinsicArgumentRules.ClassOfItem(item)?.ToString().ToLowerInvariant() ?? "unknown"} "
+              + "(ISO §8.5.2.1 Table 2)";
+        string where = position == SegmentPosition.Subscript
+            ? "a subscript is arithmetic-expression-1 (ISO §8.4.2.3.2)"
+            : "a reference-modification leftmost-position/length is an arithmetic expression (ISO §8.4.3.3.3 SR4)";
+        // The SAME dialect gate the expression-binder screen carries (dialect_two_axes — every leniency is
+        // dialect-gated): --permissive keeps the CobolTable.Occ(string) digit decode, which is the leniency
+        // already implemented by that overload, and the emitted text is unchanged either way.
+        if (data.Edition.Permissive)
+            data.Edition.Warning("COBOLNET0844", $"{what} is not a numeric operand — {where}, and ISO §8.8.1.1 "
+                + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
+                + "figurative constant ZERO; accepted under --permissive, decoding its digit characters as an "
+                + "unsigned integer");
+        else
+            data.Edition.Error("COBOLNET0844", $"{what} is not a numeric operand: {where}, and ISO §8.8.1.1 "
+                + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
+                + "figurative constant ZERO. --permissive accepts it as a digit-decoding extension");
     }
 
     /// <summary>⛔ THE ONE ORDINAL-POSITION READ (fix-queue PB41): an already-resolved numeric item → the C#

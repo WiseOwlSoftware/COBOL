@@ -481,17 +481,12 @@ public sealed class CompileTimeExpressionEvaluator
     private void ReportDirective(string where, string message) => _diag.Report(CtDiagCode.DirectiveRule, $"{where}: {message}");
 
     /// <summary>The sole (unqualified, unsubscripted) data reference an arithmetic expression consists of, or null
-    /// — walking the single-child expression spine to the primary.</summary>
-    private static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr)
-    {
-        IParseTree n = expr;
-        while (n is not Core.PrimaryExpressionContext)
-        {
-            if (n.ChildCount != 1) return null;
-            n = n.GetChild(0);
-        }
-        return ((Core.PrimaryExpressionContext)n).dataReference();
-    }
+    /// — through <see cref="SoleOperand"/>, THE ONE single-child descent (kb/Work PB224). It was the last
+    /// surviving copy of that walk and it survived the PB172 collapse only because the other five lived in
+    /// <c>Cobol.Net.Compiler</c>, which this assembly cannot reference; the shared body therefore moved HERE,
+    /// where the parse trees are defined.</summary>
+    private static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr) =>
+        SoleOperand.DataRef(expr);
 
     /// <summary>True when the subtree contains a terminal of the given token <paramref name="type"/> — the §7.3.3
     /// SR10 float/figurative scan over a directive arithmetic operand.</summary>

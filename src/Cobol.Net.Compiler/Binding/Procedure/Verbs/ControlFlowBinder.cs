@@ -3,6 +3,7 @@
 using Antlr4.Runtime.Tree;
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
@@ -37,17 +38,171 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Decode a shared <c>statusPhrase</c> (<c>WITH? (ERROR|NORMAL) (STATUS (dataReference|literal)?)?</c>,
     /// ISO §14.9.42.2 / §14.9.18.2) into a <see cref="TerminationStatus"/>, or null when the phrase is absent. The
-    /// ERROR/NORMAL keyword is mandatory when the phrase is present; the STATUS value operand is optional (§14.9.42.4
-    /// GR5 / §14.9.18.4 GR10 — an integer literal or a display/national/integer data item, bound as a numeric
-    /// expression). Shared by STOP RUN and GOBACK (the same grammar rule).</summary>
+    /// ERROR/NORMAL keyword is mandatory when the phrase is present; the STATUS value operand is optional.
+    /// Shared by STOP RUN and GOBACK — ONE method, so the two verbs cannot acquire different rules (verified, not
+    /// assumed: CallBinder's GOBACK arm is this method's only other caller).
+    ///
+    /// <para>⛔ THE POSITION IS NOT AN ARITHMETIC EXPRESSION, and binding it as one rejected legal COBOL
+    /// (kb/Work PB169). The general format §14.9.42.2 writes the operand <c>{identifier-1 | literal-1}</c>, not
+    /// <c>arithmetic-expression-1</c>, so §8.8.1.1 never governed it — and both arms went through
+    /// <c>host.Expr.BindExpr</c>. Measured on 9a89fbd1: <c>STOP RUN WITH ERROR STATUS "ABEND"</c> AND
+    /// <c>STOP RUN WITH ERROR STATUS WS-CODE</c> with <c>WS-CODE PIC X(3)</c> each drew COBOLNET0844 citing
+    /// §8.8.1.1, while THIS METHOD'S OWN DOC COMMENT already said the position takes "an integer literal or a
+    /// display/national/integer data item" — the code rejected two of the three shapes its documentation
+    /// promised. This is the <c>BindByValueExpr</c> / COBOLNET1628 shape exactly: a rule enforced at a site that
+    /// could not know its own context, quoting the wrong clause at the programmer.</para>
+    ///
+    /// <para><b>The position's OWN rules, now enforced</b> (§14.9.42.3 for STOP, the identical §14.9.18.3 SR6–SR8
+    /// for GOBACK), each cite.py-checked:
+    /// <list type="bullet">
+    ///   <item>SR2/SR6 — "Identifier-1 shall reference an integer data item or a data item with usage display or
+    ///         usage national" (§14.9.18.3 SR6 is the same rule word for word, over <b>identifier-2</b> — GOBACK's
+    ///         identifier-1 is the RAISING object; cite.py --check fails on the identifier-1 spelling there, so do
+    ///         not propagate it). Excluded: an ALPHANUMERIC group (no elementary description of its own), a BIT
+    ///         group and a usage-BIT item, an index data item, a pointer, an object reference and a non-integer
+    ///         COMP/BINARY item. ADMITTED: a <c>PIC X(3)</c> DISPLAY item, a GROUP-USAGE NATIONAL group
+    ///         (§13.18.29.4 GR2 b), and a REFERENCE-MODIFIED display/national operand (§8.4.3.3.4 GR6 preserves
+    ///         usage) — the last two were the residual over-rejections PB217 closed.</item>
+    ///   <item>SR3/SR7 — "If literal-1 is numeric, it shall be an integer". The CONDITIONAL is what makes the
+    ///         non-numeric form conforming: a rule that has to say "if it is numeric" presupposes that it may
+    ///         not be.</item>
+    ///   <item>SR4/SR8 — "Literal-1 shall not be a zero-length literal" (previously unenforced at both verbs).</item>
+    /// </list></para>
+    ///
+    /// <para>GR5 leaves the VALUE constraint implementor-defined and <c>docs/CONFORMANCE.md</c> item 192 already
+    /// published this compiler's determination — "the integer value of literal-1 / identifier-1 (truncated toward
+    /// zero) becomes the exit code; a non-integer display/national operand is interpreted numerically" — so the
+    /// mapping here is not a new decision, it is the published one finally implemented. The renderer already had
+    /// it: <c>NumericRenderer.FieldNumCore</c> decodes an alphanumeric/national place through
+    /// <c>CobolNum.FromAlphanumeric</c>, and <c>Visit(BoundStringLiteral)</c> does the same for a literal.</para></summary>
     internal TerminationStatus? BindTerminationStatus(Core.StatusPhraseContext? sp)
     {
         if (sp is null) return null;
-        BoundExpr? value = sp.dataReference() is { } d ? host.Expr.BindExpr(d)
-            : sp.literal() is { } l ? host.Expr.BindExpr(l)
-            : null;
-        return new TerminationStatus(sp.ERROR() is not null, value);
+        return new TerminationStatus(sp.ERROR() is not null, StatusOperand(sp));
     }
+
+    /// <summary>The STATUS phrase's <c>{identifier-1 | literal-1}</c> operand, bound as the position's own operand
+    /// and screened by the position's own syntax rules — the <c>CountOperand</c> pattern (PERFORM … TIMES), which
+    /// is the model this copies rather than adding a fifth <c>OperandContext</c> member: the slot does not admit
+    /// an arithmetic EXPRESSION at all, so routing it through the expression spine would repeat the very category
+    /// error PB169 is.</summary>
+    private BoundOperand? StatusOperand(Core.StatusPhraseContext sp)
+    {
+        if (sp.literal() is { } l)
+            return ScreenStatusOperand(host.Expr.LiteralOperand(l), l.GetText());   // THE one literal→operand mapping (§8.3.3)
+        if (sp.dataReference() is { } d)
+        {
+            var op = host.Expr.FieldOperand(d);
+            // §13.18.38.3 r7 — the STATUS phrase is NOT one of the five contexts that may reference an
+            // index-name (a subscript, PERFORM/SEARCH VARYING, SET, a relation condition). The R16 screen for
+            // exactly this already existed and simply was not applied at this site.
+            if (host.Expr.ScreenIndexNameOperand(op, d.GetText(), "the STOP RUN / GOBACK status operand"))
+                return new BoundOperandError($"index-name '{d.GetText()}' in a termination-status phrase");
+            return ScreenStatusOperand(op, d.GetText());
+        }
+        return null;   // WITH ERROR / NORMAL, no STATUS value — GR2/GR3's implementor indication
+    }
+
+    /// <summary>⛔ THE POSITION'S SCREEN, KEYED ON THE BOUND SHAPE — never on which parse arm produced it
+    /// (kb/Work PB216). The first cut asked SR3/SR4 inside the <c>sp.literal()</c> arm and SR2 inside the
+    /// <c>sp.dataReference()</c> arm, which is wrong on BOTH sides of the general format: §13.10.4 GR1 makes a
+    /// constant-name's effect "as if literal-1 … were written where constant-name-1 is written", so
+    /// <c>78 K VALUE 1.5.</c> + <c>STATUS K</c> arrives on the dataReference arm AS a numeric literal and skipped
+    /// SR3 entirely (measured: it compiled clean and exited 1); and §12.3.7.4 GR11 makes a symbolic-character
+    /// reference a figurative constant, likewise on the dataReference arm. One screen over the shapes the ONE
+    /// §8.3.3 literal→operand mapping and <c>FieldOperand</c> can produce is what keeps the next literal form
+    /// from finding a hole — the identifier arm had a completeness structure (<see cref="AdmittedStatusItem"/>)
+    /// while the literal arm was two ad-hoc <c>is</c> patterns over a six-shape mapping, and that asymmetry WAS
+    /// the defect generator.
+    /// <para>⛔ WHAT IS *NOT* SCREENED IS THE POINT. §8.3.3.6.3 SR1 admits a figurative constant "whenever
+    /// 'literal' appears in a format", narrowed only (a) where "the literal is restricted to a numeric literal"
+    /// — §14.9.42.3 SR3's CONDITIONAL "if literal-1 is numeric" is the proof that it is not — and (b) where a
+    /// syntax rule prohibits it; SR2/SR3/SR4 prohibit nothing about class. §8.3.3.6.4 GR3 NOTE 2 names the STOP
+    /// statement BY NAME and gives the figurative a length of one character there. So <c>STATUS SPACE</c>,
+    /// <c>STATUS ALL "5"</c> and <c>STATUS B"01"</c> are CONFORMING source: the remedy is to RENDER them under
+    /// the GR5 mapping docs/CONFORMANCE.md item 192 already publishes, not to add a sixth rejection arm — which
+    /// would mint the rejects-legal-source defect PB169 exists to close, one literal form over. Measured before
+    /// the fix: each compiled clean and died at run time with NotImplementedCobolFeatureException.</para>
+    /// <para>The one word the grammar carries here that is NOT a literal is <c>NULL</c>: §8.3.3.6.2 lists no NULL
+    /// format (it is a predefined address / object reference, §8.4.3.10.1) and §8.4.3.10.3 SR1 confines it to an
+    /// INITIALIZE/SET sending operand, a prototype argument, and a pointer-or-object-reference relation
+    /// condition — the status slot is none of those.</para></summary>
+    private BoundOperand ScreenStatusOperand(BoundOperand op, string text)
+    {
+        switch (op)
+        {
+            // SR3/SR7 — a NUMERIC literal-1 shall be an integer. (A non-numeric literal-1 is unconstrained here;
+            // SR4/SR8 bars only the zero-length one.)
+            case BoundNumericLiteral num when !IsIntegerLiteralText(num.Text):
+                StatusError($"the numeric status literal '{text}' shall be an integer", "SR3", "SR7");
+                break;
+            // SR4/SR8 — literal-1 shall not be a zero-length literal (alphanumeric, national or boolean alike).
+            case BoundStringLiteral { Value.Length: 0 }:
+                StatusError("the status literal shall not be a zero-length literal", "SR4", "SR8");
+                break;
+            // NULL — neither identifier-1 nor literal-1 (§8.4.3.10.1/.3 SR1). Loud-named rather than rendered:
+            // the predefined address has no character value the GR5 mapping could interpret.
+            case BoundFigurative { Kind: 'N' }:
+                ctx.Edition.Error(DiagnosticCatalog.TerminationStatusOperand,
+                    "NULL is a predefined address / object reference, not a literal or an identifier, and ISO "
+                    + "§8.4.3.10.3 SR1 admits it only as an INITIALIZE/SET sending operand, a prototype argument, "
+                    + "or in a pointer-or-object-reference relation condition — not in a termination-status phrase");
+                return new BoundOperandError("NULL in a termination-status phrase");
+            // SR2/SR6 — an integer data item, OR a data item with usage display or usage national.
+            case BoundFieldOperand { Place: var place } when !AdmittedStatusItem(place):
+                StatusError($"the status operand '{text}' shall reference an integer data item or a data "
+                    + "item with usage display or usage national", "SR2", "SR6");
+                break;
+        }
+        return op;
+    }
+
+    /// <summary>§14.9.42.3 SR2 / §14.9.18.3 SR6, read as written: an INTEGER data item, or a data item whose
+    /// USAGE is DISPLAY or NATIONAL. An index data item, a pointer and an object reference have their own usages
+    /// and are excluded by name; an ALPHANUMERIC group is excluded because §8.5.2.1 gives it class alphanumeric
+    /// with no elementary description of its own.
+    /// <para>⛔ THROUGH <see cref="DataItem.OperandPic"/>, THE ONE OPERAND-CATEGORY READER (D20) — never
+    /// <c>Pic</c> guarded by <c>IsGroup</c>, which is the spelling that reader's own doc comment forbids by name
+    /// and which this screen used to have (kb/Work PB217). §13.18.29.3 SR3 implies USAGE NATIONAL for the subject
+    /// of a GROUP-USAGE NATIONAL entry and §13.18.29.4 GR2 b makes such a group "treated as though it were an
+    /// elementary data item of usage national … described with PICTURE N(m)" — so it IS "a data item with usage
+    /// national" and SR2 admits it. Reading <c>OperandPic</c> settles all four group kinds with no hand-list: a
+    /// national group is admitted, a BIT group (usage bit) is not, an alphanumeric group has no operand PICTURE
+    /// and is not, and every elementary item behaves exactly as before.</para>
+    /// <para>⛔ A REFERENCE-MODIFIED OPERAND IS ADMITTED ON ITS SUBJECT'S USAGE (kb/Work PB217). §8.4.3.3.3 SR5
+    /// permits reference modification "anywhere an identifier referencing a data item of class alphanumeric,
+    /// boolean, or national is permitted", and §8.4.3.3.4 GR6 gives the unique data item "the same class,
+    /// category, and usage as that defined for identifier-1" — the three lettered exceptions rewrite class and
+    /// category only, never USAGE. So SR2's SECOND alternative decides a slice, and its FIRST cannot: GR6 c has
+    /// already removed category numeric (<see cref="RefModPlace.Category"/>, THE ONE GR6 reader, records that no
+    /// ref-mod result is ever category NUMERIC), so a slice of <c>PIC 9(5)</c> DISPLAY is admitted as a
+    /// display item and not as an integer one. A slice of a usage-BIT item or of an alphanumeric group stays
+    /// rejected. The former blanket <c>p is RefModPlace</c> rejected <c>STATUS WS-CODE(1:2)</c> with a diagnostic
+    /// quoting the very rule that admits it.</para></summary>
+    private static bool AdmittedStatusItem(Place p)
+    {
+        if (p.Item.OperandPic is not { } pic) return false;
+        if (pic.Usage is Usage.Index) return false;   // §8.5.2.1 Table 2 — class index, not a display/national item
+        if (IntrinsicArgumentRules.ClassOfPlace(p) is CobolClass.Pointer or CobolClass.Object) return false;
+        // §8.4.3.3.4 GR6 — a slice keeps identifier-1's USAGE and loses category numeric (GR6 c), so only SR2's
+        // usage alternative can admit it.
+        if (p is RefModPlace) return pic.Usage is Usage.Display or Usage.National;
+        // An INTEGER data item (any usage — BINARY, PACKED, COMP-5 …) is the first alternative.
+        if (pic is { Category: PicCategory.Numeric, Scale: 0, IsFloat: false }) return true;
+        // …or a data item WITH USAGE DISPLAY OR NATIONAL, whatever its category (this is the alternative that
+        // makes `WS-CODE PIC X(3)` legal, and the one the arithmetic funnel could not express).
+        return pic.Usage is Usage.Display or Usage.National;
+    }
+
+    /// <summary>A numeric literal is an INTEGER when it carries no decimal separator and no exponent
+    /// (§8.3.1.2 / §8.3.3.3 — the literal's written form decides; DECIMAL-POINT IS COMMA is normalized by
+    /// <c>ExpressionBinder.CheckLiteral</c> before this, so only the dot form reaches here).</summary>
+    private static bool IsIntegerLiteralText(string text) =>
+        !text.Contains('.') && !text.Contains('E') && !text.Contains('e');
+
+    private void StatusError(string what, string stopRule, string gobackRule) =>
+        ctx.Edition.Error(DiagnosticCatalog.TerminationStatusOperand,
+            $"{what} (ISO §14.9.42.3 {stopRule} for STOP RUN; §14.9.18.3 {gobackRule} for GOBACK)");
 
     /// <summary>CONTINUE [AFTER arithmetic-expression-1 SECONDS] (ISO §14.9.9). Plain CONTINUE is a 1985-continuous
     /// no-op (<see cref="BoundNop"/>). The AFTER … SECONDS timed-pause phrase (COBOL-2023, introduction-gated on the

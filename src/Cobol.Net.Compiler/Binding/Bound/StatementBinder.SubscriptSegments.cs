@@ -81,7 +81,7 @@ public sealed partial class StatementBinder
     /// through the ONE arithmetic store path — scale alignment, truncation mode, and the wide tier all behave as
     /// they do for a COMPUTE the programmer wrote, and a future change to that path cannot forget this caller.
     /// No ON SIZE ERROR phrase: the temp is 30 digits wide precisely so a size error is unreachable.</para></summary>
-    private DataItem? MaterializeSubscriptSegment(string text, int line)
+    private DataItem? MaterializeSubscriptSegment(string text, SegmentPosition position, int line)
     {
         if (Frontend.Parsing.SubscriptExpressionFragment.Parse(text, Ctx.Edition.Edition) is not { } frag)
             // A segment that does not parse as an arithmetic expression is NOT a diagnosis of the source: the
@@ -90,7 +90,17 @@ public sealed partial class StatementBinder
             // the pre-D18 behaviour for them exactly.
             return null;
 
-        var value = Expr.BindIndexWindowExpr(frag.arithmeticExpression());   // a SUBSCRIPT is an r7 window (kb/Work R29)
+        // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §13.18.38.3 r7 lists five contexts in
+        // which an index-name may be referenced — "as a subscript; in the VARYING phrase of a PERFORM statement;
+        // in the VARYING phrase of a SEARCH statement; in the SET statement; as an operand in a relation
+        // condition" — and a REFERENCE-MODIFICATION position is not among them. This site hard-coded
+        // BindIndexWindowExpr for BOTH positions under the comment "a SUBSCRIPT is an r7 window", which is true
+        // of the position it names and false of the other one it serves: `W(IX:2)` was wrongly admitted. §8.4.3.3.3
+        // SR4 makes both ref-mod bounds plain arithmetic expressions, so they bind under Arithmetic, where the
+        // r7 screen fires.
+        var value = position == SegmentPosition.Subscript
+            ? Expr.BindIndexWindowExpr(frag.arithmeticExpression())   // a SUBSCRIPT is an r7 window (kb/Work R29)
+            : Expr.BindExpr(frag.arithmeticExpression());             // a ref-mod bound is NOT (§8.4.3.3.3 SR4)
         if (value is BoundExprError) return null;   // already diagnosed by the expression binder
 
         // The MODEL is a description carrier only: CreateCompilerTemp clones its Pic (and, for a group, its

@@ -100,6 +100,55 @@ public sealed class ArithmeticOperandClassTests
         Assert.Contains(expectedPrefix, output);
     }
 
+    /// <summary>⛔ THE LENIENCY STAYS DIALECT-GATED AT THE POSITION OPERANDS TOO (kb/Work PB170;
+    /// dialect_two_axes — every leniency is dialect-gated). The new screen sits in
+    /// <c>ReferenceResolver.ResolveSubscriptName</c>, on the fast path EVERY subscript and reference-modification
+    /// in the corpus takes, and it must have the SAME two lanes the expression-binder screen has: strict rejects,
+    /// <c>--permissive</c> warns and decodes the digit characters. The decode is not new behaviour to write —
+    /// <c>CobolTable.Occ(string)</c> and <c>CobolString.RefModPosition(string, …)</c> already implement it — so
+    /// the permissive lane's EMITTED TEXT is unchanged and only the diagnostic differs.
+    /// <para>The strict half is pinned at all four editions by the corpus fixtures
+    /// <c>pb170-subscript-alphanumeric-simple</c> / <c>-compound</c> / <c>-edited</c> /
+    /// <c>pb170-refmod-alphanumeric-bound</c>; this owns the fact a reject-only fixture cannot express.</para>
+    /// </summary>
+    [Fact]
+    public void Permissive_AlphanumericSubscriptAndRefModBound_StillDecode()
+    {
+        const string ws = "       01 XE PIC X(4) VALUE \"0002\".\n"
+            + "       01 W PIC X(5) VALUE \"ABCDE\".\n       01 R PIC X.\n       01 R2 PIC X(2).\n"
+            + "       01 T.\n          05 E PIC X OCCURS 3 TIMES.";
+        const string body = "           MOVE \"ABC\" TO T.\n"
+            + "           MOVE E(XE) TO R.\n           DISPLAY \"SUB=\" R.\n"
+            + "           MOVE W(XE:2) TO R2.\n           DISPLAY \"REFMOD=\" R2.";
+        var (ok, output, detail) = EditionHarness.CompileAndRun(Program(ws, body), 2023, permissive: true);
+        Assert.True(ok, $"--permissive must ACCEPT the digit-decoding extension: {detail}");
+        // "0002" decodes to 2: occurrence 2 of "ABC" is 'B', and W(2:2) is "BC".
+        Assert.Equal("SUB=B\nREFMOD=BC", output.Trim().Replace("\r\n", "\n"));
+    }
+
+    /// <summary>The index DATA item, the arm the private category switch never had (kb/Work PB170). §8.5.2.1
+    /// Table 2 puts it in class INDEX and §13.18.60.3 SR10's closed reference list — "a SEARCH or SET statement,
+    /// a relation condition, an intrinsic function argument" — has no arithmetic-operand and no subscript entry,
+    /// so BOTH shapes below are illegal. Measured on 9a89fbd1: both compiled clean under STRICT, and
+    /// <c>COMPUTE N = IDX + 1</c> returned the occurrence number. The receiving-side twin
+    /// <c>ScreenResultant</c> already rejected an index item by name — two arms of one rule, one written.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void Strict_RejectsAnIndexDataItemAsAPositionOrArithmeticOperand(int edition)
+    {
+        const string ws = "       01 IDX USAGE INDEX.\n       01 N PIC 9(4).\n       01 R PIC X.\n"
+            + "       01 T.\n          05 E PIC X OCCURS 3 TIMES.";
+        foreach (string stmt in new[] { "COMPUTE N = IDX + 1.", "MOVE E(IDX) TO R." })
+        {
+            var (ok, errors, _) = EditionHarness.CompileFull(Program(ws, "           SET IDX TO 2.\n           " + stmt), edition);
+            Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §13.18.60.3 SR10 / §8.8.1.1");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+        }
+    }
+
     /// <summary>A genuinely NUMERIC operand is untouched by any of this — the control that proves the screen is not
     /// simply rejecting everything.</summary>
     [Fact]
@@ -136,5 +185,83 @@ public sealed class ArithmeticOperandClassTests
             "           COMPUTE R = N + E + 1.\n           DISPLAY \"R=\" R."), 2023);
         Assert.False(ok, $"a numeric-edited arithmetic operand must be rejected (ISO §8.8.1.1); got: {output}");
         Assert.Contains("COBOLNET0844", detail + output);
+    }
+
+    /// <summary>⛔ ONE SOURCE DEFECT, ONE DIAGNOSTIC (kb/Work PB220). The token renderer's fast path used to run
+    /// its §8.8.1.1 screen INSIDE the token loop, and the loop's exits to the D18 materializer are
+    /// ORDER-DEPENDENT: a later token with no case arm — <c>**</c> — abandons the fast path AFTER the earlier
+    /// name was screened, and D18 then re-binds the same operand through the expression binder, which screens it
+    /// again. Measured before the fix: <b>two</b> COBOLNET0844s for one <c>E(XE ** 2)</c>, in BOTH lanes
+    /// (Error+Error under strict, Warning+Warning under --permissive). The screens are now queued and flushed
+    /// only when the fast path commits, so an exit discards them — deduplication by control flow, not by a set,
+    /// which is what makes the NEXT late exit automatic.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ReroutedCompoundSegment_DiagnosesExactlyOnce(bool permissive)
+    {
+        const string ws = "       01 XE PIC X(4) VALUE \"0001\".\n       01 R PIC X.\n"
+            + "       01 T.\n          05 E PIC X OCCURS 3 TIMES.";
+        var (ok, errors, warnings) = EditionHarness.CompileFull(
+            Program(ws, "           MOVE \"ABC\" TO T.\n           MOVE E(XE ** 2) TO R."), 2023, permissive);
+        int hits = errors.Concat(warnings).Count(d => d.Contains("COBOLNET0844", StringComparison.Ordinal));
+        Assert.True(hits == 1,
+            $"[permissive={permissive}] one non-numeric subscript name must draw ONE COBOLNET0844, not {hits} — "
+            + "the fast-path screen and the D18 route are two readings of ONE rule, and the reader must not be "
+            + "told twice. Got: " + string.Join(" ;; ", errors.Concat(warnings)));
+        Assert.Equal(permissive, ok);   // the leniency still decides acceptance; only the COUNT changed
+    }
+
+    /// <summary>⛔ §13.18.38.3 r7 GETS ONE LANE POSTURE PER SLOT KIND, AND BOTH ROUTES TO THE SAME SLOT AGREE
+    /// (kb/Work PB219). A reference-modification bound is an ARITHMETIC position (§8.4.3.3.3 SR4), so it takes
+    /// R29's disposition: strict rejects with the r7 citation, <c>--permissive</c> warns and computes the
+    /// occurrence number. Before this, the token renderer's fast path carried R16's IDENTIFIER-slot posture
+    /// (an unconditional Error) while its OWN D18 route carried R29's — so under <c>--permissive</c>
+    /// <c>W(IX:2)</c> was a hard error and <c>W(IX / 1:2)</c> warned and ran, the same rule and the same
+    /// position, keyed on nothing but whether the renderer could render the bound. Both shapes, both lanes.
+    /// <para>The two bounds are equal by construction (<c>IX / 1</c> = <c>IX</c>), so a divergence in the ACCEPTED
+    /// output would be visible too, not only in the verdict.</para></summary>
+    [Theory]
+    [InlineData("W(IX:2)", false)]
+    [InlineData("W(IX / 1:2)", false)]
+    [InlineData("W(IX:2)", true)]
+    [InlineData("W(IX / 1:2)", true)]
+    public void R7IndexNameInARefModBound_HasOneDispositionOnBothRoutes(string bound, bool permissive)
+    {
+        const string ws = "       01 W PIC X(5) VALUE \"ABCDE\".\n       01 R2 PIC X(2).\n"
+            + "       01 T.\n          05 E PIC X OCCURS 3 TIMES INDEXED BY IX.";
+        string body = "           SET IX TO 2.\n           MOVE " + bound + " TO R2.\n           DISPLAY \"RM=\" R2.";
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Program(ws, body), 2023, permissive);
+        Assert.True(ok == permissive,
+            $"[permissive={permissive}] '{bound}' — r7 admits an index-name only as a subscript, in PERFORM/SEARCH "
+            + $"VARYING, in SET, or in a relation condition. Got ok={ok}: {string.Join(" ;; ", errors)}");
+        EditionHarness.AssertHasDiagnostic(permissive ? warnings : errors, "COBOLNET1637");
+        if (!permissive) return;
+        var (runOk, output, detail) = EditionHarness.CompileAndRun(Program(ws, body), 2023, permissive: true);
+        Assert.True(runOk, detail);
+        Assert.Equal("RM=BC", output.Trim());   // the coercion computes occurrence 2 on BOTH routes
+    }
+
+    /// <summary>⛔ A PROBE'S PLACE IS NOT A BOUND PLACE (kb/Work PB221). <c>Refs.Probe</c> is a
+    /// type-discriminating sniff and is documented as side-effect-free, which means it applies NO position
+    /// screen — so a caller that commits the probe's Place into the bound tree silently loses every screen.
+    /// Four did. Measured before the fix on this same tree: <c>CALL "S" USING BY CONTENT E(XE)</c> with
+    /// <c>XE PIC X(4)</c> compiled CLEAN under strict while the adjacent <c>BY REFERENCE</c> operand — and the
+    /// byte-identical <c>MOVE E(XE)</c> — drew COBOLNET0844. One statement, one rule, two verdicts.</summary>
+    [Fact]
+    public void ProbedCallByContentOperand_IsScreenedLikeEveryOtherReference()
+    {
+        const string ws = "       01 XE PIC X(4) VALUE \"0002\".\n       01 R PIC X.\n"
+            + "       01 T.\n          05 E PIC X OCCURS 3 TIMES.";
+        var (contentOk, contentErrors, _) = EditionHarness.CompileFull(
+            Program(ws, "           CALL \"PB221SUB\" USING BY CONTENT E(XE)."), 2023);
+        var (moveOk, moveErrors, _) = EditionHarness.CompileFull(
+            Program(ws, "           MOVE E(XE) TO R."), 2023);
+        Assert.False(moveOk, "control: the MOVE form is rejected");
+        Assert.False(contentOk,
+            "BY CONTENT commits a Probe's Place; the §8.8.1.1 position screen must still apply to it — "
+            + string.Join(" ;; ", contentErrors));
+        EditionHarness.AssertHasDiagnostic(contentErrors, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(moveErrors, "COBOLNET0844");
     }
 }

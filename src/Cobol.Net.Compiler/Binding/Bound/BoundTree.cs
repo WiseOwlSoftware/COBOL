@@ -542,7 +542,19 @@ public sealed record BoundUnsupported(string Feature) : BoundStatement;
 /// operand is given. On .NET the single observable is the process exit code (<see cref="Runtime.RunUnit.ExitStatus"/>
 /// → <c>Environment.ExitCode</c>): the value wins when present, else ERROR ⇒ 1 / NORMAL ⇒ 0 (the documented
 /// implementor mapping — <c>docs/CONFORMANCE.md</c> §4.2.16).</summary>
-public sealed record TerminationStatus(bool Error, BoundExpr? Value);
+/// <remarks>⛔ <paramref name="Value"/> IS A <see cref="BoundOperand"/>, NOT A <see cref="BoundExpr"/> (kb/Work
+/// PB169). §14.9.42.2 writes the operand as <c>{identifier-1 | literal-1}</c> — it is NOT an
+/// arithmetic-expression position — and §14.9.42.3 SR2 admits "an integer data item or a data item with usage
+/// display or usage national", while SR3's conditional ("If literal-1 IS numeric, it shall be an integer")
+/// presupposes the non-numeric form. A <c>BoundExpr</c> carrier could hold none of that: the numeric funnel
+/// rejected <c>STOP RUN WITH ERROR STATUS "ABEND"</c> and <c>STATUS &lt;PIC X item&gt;</c> alike with
+/// COBOLNET0844, quoting §8.8.1.1 — a rule that does not govern this position — at a programmer who had broken
+/// nothing. The operand carrier is the shape the general format actually has.
+/// <para>⚠ The widening is EMIT-NEUTRAL for every program that compiled before: for an integer literal
+/// <c>Visit(BoundNumericLiteral)</c> and <c>Visit(BoundNumLiteral)</c> both reduce to
+/// <c>EmitText.UnscaledLit</c>, and <c>Visit(BoundFieldOperand)</c> and <c>Visit(BoundNumRef)</c> are both
+/// <c>FieldNum(Place)</c> — the same text, by construction rather than by inspection.</para></remarks>
+public sealed record TerminationStatus(bool Error, BoundOperand? Value);
 
 /// <summary><c>STOP RUN [ WITH {NORMAL|ERROR} STATUS [value] ]</c> (ISO §14.9.42): terminate the run unit,
 /// passing <see cref="Status"/> to the operating system as the process exit code. The edition gate

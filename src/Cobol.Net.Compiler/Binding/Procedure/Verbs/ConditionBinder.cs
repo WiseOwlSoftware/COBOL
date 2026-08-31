@@ -151,15 +151,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (nn?.concatenationExpression() is { } ce) return ConcatFolder.ClassOf(ce) is PicCategory.Boolean;
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref
             && ctx.Refs.Probe(dref) is { } p)   // Probe — a predicate is diagnostic-free (R30)
-            // OperandPic, the ONE category reader (kb/Work PB157) — a bit group routes boolean like the
-            // bind path at line ~106 already does. kb/Work PB173 REMOVED the `is not { IsGroup: true }`
-            // exclusion that kept a bit-group ref-mod on the general channel: that channel compared the
-            // PACKED byte image at bit offsets (a silent wrong answer, e.g. `IF G(1:3) = B"110"` read the
-            // three characters of a one-character image), and the slice is now a BitImagePlace in boolean
-            // positions, so §8.4.3.3.4 GR6's unique item really does keep usage bit / category boolean.
-            return p is RefModPlace rm
-                ? rm.Category is PicCategory.Boolean
-                : p.Item.OperandPic?.Category is PicCategory.Boolean;
+            // ProbeResult.OperandCategory IS the one category reader for a probed reference (kb/Work PB157 +
+            // PB221): §8.4.3.3.4 GR6 for a ref-modified reference, else DataItem.OperandPic, so a bit group
+            // routes boolean like the bind path at line ~106 already does. kb/Work PB173 REMOVED the
+            // `is not { IsGroup: true }` exclusion that kept a bit-group ref-mod on the general channel: that
+            // channel compared the PACKED byte image at bit offsets (a silent wrong answer, e.g.
+            // `IF G(1:3) = B"110"` read the three characters of a one-character image), and the slice is now a
+            // BitImagePlace in boolean positions, so GR6's unique item really does keep usage bit / boolean.
+            return p.OperandCategory is PicCategory.Boolean;
         // A sole FUNCTION-keyword reference to a catalogued BOOLEAN-typed function (§15.2 type 2 — today
         // BOOLEAN-OF-INTEGER): diagnostic-free, from the catalog's declared type (kb/Work PB68).
         if (vo.arithmeticExpression() is { } fx && SoleFunctionCall(fx) is { } sfc && sfc.functionName() is { } fn
@@ -169,17 +168,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The sole <c>functionCall</c> primary of an arithmetic expression (no operators, signs or
-    /// parentheses around it), or null — the function-identifier twin of <see cref="SoleDataRef"/>.</summary>
-    public static Core.FunctionCallContext? SoleFunctionCall(Core.ArithmeticExpressionContext expr)
-    {
-        IParseTree n = expr;
-        while (n is not Core.PrimaryExpressionContext)
-        {
-            if (n.ChildCount != 1) return null;
-            n = n.GetChild(0);
-        }
-        return ((Core.PrimaryExpressionContext)n).functionCall();
-    }
+    /// parentheses around it), or null — the function-identifier twin of <see cref="SoleDataRef"/>, over the ONE
+    /// <see cref="SolePrimary"/> descent.
+    /// <para>⛔ IT ALREADY EXISTED, AND THAT IS THE POINT (kb/Work PB172). PB68 wrote it for the BOOLEAN operand
+    /// path — "a function-identifier IS an identifier referencing a temporary data item whose category is the
+    /// function's type" — which is the identical §15.2 argument the RELATION path needed. The comparand binder
+    /// simply never called it, so a sole function comparand went down the expression spine into
+    /// <c>BindPrimary</c>'s arithmetic screen. The missing thing was never the helper; it was the fourth member
+    /// of <see cref="ComparisonOperandOf"/>'s short-circuit family.</para></summary>
+    public static Core.FunctionCallContext? SoleFunctionCall(Core.ArithmeticExpressionContext expr) =>
+        SolePrimary(expr)?.functionCall();
 
     /// <summary>The set of category-boolean ITEMS referenced in a bound boolean expression, for the §14.9.8 GR3
     /// COMPUTE-store width (the max static boolean positions; literal/ALL operands do not count — GR3).</summary>
@@ -549,7 +547,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             carry.Reset();
             char kind = cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z';
-            return new BoundSignCondition(host.Expr.BindOperandExpr(operands[0]), kind, not, IsFormat2FloatSign(operands[0]));
+            // ISO §8.8.4.7.3 SR1 closes the operand to "any single numeric data item described with a usage other
+            // than a standard floating-point usage, or any form of arithmetic expression" — named here so a
+            // non-numeric operand is sent to the rule it broke, not to §8.8.1.1 alone (kb/Work PB171).
+            return new BoundSignCondition(
+                host.Expr.BindOperandExpr(operands[0],
+                    "ISO §8.8.4.7.3 SR1 admits only a single numeric data item or an arithmetic expression as a "
+                    + "sign-condition operand"),
+                kind, not, IsFormat2FloatSign(operands[0]));
         }
 
 
@@ -685,15 +690,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// GROUPING-PAREN-ONLY: a <c>primaryExpression</c> parenthesis is always the arithmetic grouping one, never
     /// the §8.4.3.2.3 SR6 argument-list twin, which belongs to <c>functionCall</c>)
     /// — the SR2 "single data item … not enclosed in parentheses" reduction, mirroring
-    /// <see cref="IntrinsicBinder"/>.SoleDataReference. Subscript/ref-mod parens inside the dataReference are fine.</summary>
-    internal static Core.DataReferenceContext? SoleDataReference(Core.ArithmeticExpressionContext? arith)
-    {
-        if (arith?.additiveExpression() is not { } add) return null;
-        if (add.multiplicativeExpression() is not [{ } mul]) return null;
-        if (mul.powerExpression() is not [{ } pow]) return null;
-        if (pow.unaryExpression() is not [{ } un]) return null;
-        return un.primaryExpression()?.dataReference();
-    }
+    /// <see cref="IntrinsicBinder"/>.SoleDataReference. Subscript/ref-mod parens inside the dataReference are fine.
+    /// <para>⚠ NULL-TOLERANT WRAPPER over the ONE <see cref="SolePrimary"/> descent. It used to be a second,
+    /// independently-written implementation (tier-by-tier list patterns) that agreed with
+    /// <see cref="SoleDataRef"/> by coincidence rather than by construction — one mechanism written twice, and a
+    /// live drift hazard the moment the family grew a third member (kb/Work PB172).</para></summary>
+    internal static Core.DataReferenceContext? SoleDataReference(Core.ArithmeticExpressionContext? arith) =>
+        SolePrimary(arith)?.dataReference();
 
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>
     private BoundOperand ComparisonOperand(Core.ComparisonOperandContext operand) =>
@@ -705,12 +708,26 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         // §8.8.3.3 GR3: a concatenation expression folds to (and compares as) the equivalent single literal.
         // Through the ONE literal mapping. ⛔ THIS was the copy that lacked the hexadecimal arm, so
-        // `IF A = X"6162"` — conforming source, since §8.8.4.1.1 admits a literal on either side of a relation and
+        // `IF A = X"6162"` — conforming source, since §8.8.4.2.1 bars only a relation whose operands are BOTH
+        // literals (the "§8.8.4.1.1" this used to cite is a phantom clause — kb/Work PB182; the rule is the
+        // clause's UNNUMBERED closing sentence, so the citation is bare — never "r13", which is "Two compatible
+        // variable-length groups" and which cite.py's rule_path nonetheless prints, kb/Work PB222) and
         // §8.3.3.2 Format 2 makes X"…" an alphanumeric literal — fell past every arm here and staged loud as
         // "comparison operand" at run time, while the SAME literal worked in a MOVE (DA3).
         if (host.Expr.NonNumericLiteralOperand(vo?.nonNumericLiteral()) is { } litOp) return litOp;
         if (vo?.arithmeticExpression() is { } expr)
             return SoleDataRef(expr) is { } dref ? host.Expr.FieldOperand(dref)
+                // ⛔ THE SOLE-FUNCTION SHORT-CIRCUIT (kb/Work PB172), the fourth member of the family above and
+                // the one whose absence made the §8.8.1.1 intrinsic screen unwidenable. §15.2 gives a function
+                // "the class and category" of its result and says it "may be used anywhere a sending data item
+                // of that class and category may be specified", so a SOLE alphanumeric function is a legal
+                // §8.8.4.2.1 relation operand — `IF FUNCTION LOWER-CASE(X) = Y`, six NIST IF-suite programs.
+                // Reaching it through the expression spine instead handed it to BindPrimary's arithmetic screen,
+                // which is why PB155's widening had to be reverted. A PARENTHESIZED form is deliberately NOT
+                // short-circuited: `(FUNCTION LOWER-CASE(X))` is "an arithmetic expression enclosed in
+                // parentheses" (§8.8.1.1) and the single-child descent gives that for free.
+                : SoleFunctionCall(expr) is { } sfc
+                    ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(sfc))
                 // A sole numeric LITERAL stays a literal operand — against an alphanumeric/group operand it
                 // participates as its WRITTEN character form, leading zeros intact (ISO §8.8.4.2.1), which a
                 // computed wrapper would lose.
@@ -792,27 +809,32 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return baseOp switch { ">" => "<=", ">=" => "<", "<" => ">=", "<=" => ">", "==" => "!=", _ => "==" };
     }
 
-    public static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr)
-    {
-        IParseTree n = expr;
-        while (n is not Core.PrimaryExpressionContext)
-        {
-            if (n.ChildCount != 1) return null;
-            n = n.GetChild(0);
-        }
-        return ((Core.PrimaryExpressionContext)n).dataReference();
-    }
+    public static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr) =>
+        SolePrimary(expr)?.dataReference();
 
     /// <summary>The raw text of an arithmetic expression that is a SOLE numeric literal, else null.</summary>
-    public static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr)
-    {
-        IParseTree n = expr;
-        while (n is not Core.PrimaryExpressionContext)
-        {
-            if (n.ChildCount != 1) return null;
-            n = n.GetChild(0);
-        }
-        var pe = (Core.PrimaryExpressionContext)n;
-        return pe.numericLiteral()?.GetText() ?? (pe.ZERO_ARITH() is not null ? "0" : null);
-    }
+    public static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr) =>
+        SolePrimary(expr) is { } pe ? pe.numericLiteral()?.GetText() ?? (pe.ZERO_ARITH() is not null ? "0" : null)
+        : null;
+
+    /// <summary>⛔ THE ONE "is this expression a single unparenthesized primary" DESCENT — the shared body of
+    /// <see cref="SoleDataRef"/>, <see cref="SoleNumLiteral"/>, <see cref="SoleFunctionCall"/> and
+    /// <see cref="SoleDataReference"/>. Any operator, unary sign, or enclosing parenthesis gives the node more
+    /// than one child and stops the descent, which IS the §8.8.4.7.3 SR2 "single data item … not enclosed in
+    /// parentheses" reduction and the §8.8.1.1 sole-vs-compound boundary at once.
+    /// <para>⚠ IT REPLACES FOUR COPIES OF ITSELF, not the two the cluster analysis predicted — the fourth,
+    /// <see cref="SoleFunctionCall"/>, was found only because adding a fifth collided with it at compile time
+    /// (kb/Work PB172). Three were this single-child descent written out again; the former
+    /// <see cref="SoleDataReference"/> was an independently-written tier-by-tier list-pattern version that agreed
+    /// with them by coincidence rather than by construction. A family of four near-duplicates around a boundary
+    /// this load-bearing is a drift hazard, and the collision was luck: two of them were byte-identical bodies
+    /// differing only in the accessor on the last line (feedback_one_mechanism_per_job).</para>
+    /// <para>⛔ AND THE BODY NOW LIVES ONE LAYER DOWN, in <see cref="SoleOperand"/> (kb/Work PB224). Two more
+    /// copies survived the PB172 collapse because they were out of reach of a compiler-side helper —
+    /// <c>IntrinsicBinder.SoleDataReference(FunctionArgumentContext)</c> (same assembly, a list-pattern
+    /// re-implementation) and <c>CompileTimeExpressionEvaluator.SoleDataRef</c> (a DIFFERENT assembly,
+    /// <c>Cobol.Net.Frontend</c>). The descent reads PARSE TREES and nothing else, so the frontend is its
+    /// correct home and both layers now read the same body.</para></summary>
+    private static Core.PrimaryExpressionContext? SolePrimary(Core.ArithmeticExpressionContext? expr) =>
+        SoleOperand.Primary(expr);
 }

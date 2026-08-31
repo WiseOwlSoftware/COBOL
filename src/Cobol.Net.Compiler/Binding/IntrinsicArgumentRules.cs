@@ -307,6 +307,31 @@ internal static class IntrinsicArgumentRules
     public static CobolClass? ClassOf(BoundOperand op) =>
         CandidateClasses(op) is [var only] ? only : null;
 
+    /// <summary>⛔ THE ONE ISO §8.8.1.1 OPERAND-CLASS ANSWER (kb/Work PB169–PB172 — the burn-down cluster's
+    /// spine): "An arithmetic expression may be an identifier referencing a numeric data item, a numeric literal,
+    /// the figurative constant ZERO …", so an operand is admissible in an arithmetic-expression position iff its
+    /// class is (or, for a figurative, may be) NUMERIC.
+    /// <para>
+    /// Before this, that question was answered by FOUR independent mechanisms — <c>ExpressionBinder</c>'s private
+    /// <c>NonNumericOperandKind</c> category switch (which had no index-data-item arm, so
+    /// <c>COMPUTE N = IDX + 1</c> compiled clean under STRICT and returned the occurrence number), its
+    /// <c>BindPrimary</c> <c>ResultCategory</c> test (which folds §15.2 item 6's INDEX functions into numeric),
+    /// the receiving-side <c>ScreenResultant</c> (which DID have the index arm), and this table, which nothing in
+    /// the arithmetic funnel used. Expressing the rule over <see cref="CandidateClasses"/> closes the index hole,
+    /// the pointer/object hole and the bit/national-group hole in one stroke, and preserves the 2026-08-02 owner
+    /// decision on numeric-edited BY CONSTRUCTION (Table 2 puts category numeric-edited in class alphanumeric,
+    /// which this table reports as <see cref="CobolClass.NumericEditedDeEditing"/> — never Numeric).
+    /// </para>
+    /// <para>An EMPTY candidate set means "not statically decidable", and fails OPEN: the screen exists to reject
+    /// what the standard names, never to reject what this compiler cannot classify.</para></summary>
+    public static bool IsArithmeticOperandClass(BoundOperand op) =>
+        CandidateClasses(op) is var set && (set.Length == 0 || set.Contains(CobolClass.Numeric));
+
+    /// <summary>The §8.8.1.1 answer for a resolved data item — the <see cref="ClassOfItem"/> lane, for the
+    /// <c>ReferenceResolver</c> fast path that never builds a <see cref="Place"/> (kb/Work PB170).</summary>
+    public static bool IsArithmeticOperandClass(DataItem item) =>
+        ClassOfItem(item) is not { } cls || cls == CobolClass.Numeric;
+
     /// <summary>
     /// Every ISO §8.5.2.1 Table-2 class this operand is capable of presenting — a singleton for everything with a
     /// fixed class, EMPTY when the class is not statically decidable, and genuinely plural only for a figurative
@@ -386,7 +411,7 @@ internal static class IntrinsicArgumentRules
         _ => null,
     };
 
-    private static CobolClass? ClassOfPlace(Place p)
+    internal static CobolClass? ClassOfPlace(Place p)
     {
         // ISO §8.4.3.3.4 GR6 — the unique data item reference modification creates has the SAME class and
         // category as identifier-1 except for the three lettered rewrites (PB20). This said "class alphanumeric,
@@ -395,11 +420,24 @@ internal static class IntrinsicArgumentRules
         // place; a ref-modified boolean item is class BOOLEAN and a ref-modified national item class NATIONAL.
         if (p is RefModPlace rmp)
             return ClassOfCategory(rmp.Category);   // a ref-modded GROUP is an elementary alphanumeric item (GR6; kb/Work PB70)
+        return ClassOfItem(p.Item);
+    }
+
+    /// <summary>The ISO §8.5.2.1 Table-2 class of a DATA ITEM — the half of <see cref="ClassOfPlace"/> that does
+    /// not need a <see cref="Place"/>, so a caller holding only the resolved item asks the SAME table.
+    /// <para>⛔ IT IS A SPLIT, NOT A SECOND CLASSIFIER (kb/Work PB170). <c>ReferenceResolver</c> resolves a
+    /// subscript / reference-modification operand to a <see cref="DataItem"/> and renders its position read
+    /// WITHOUT ever building a <c>Place</c> or entering the expression binder, so the §8.8.1.1 screen could not
+    /// reach it: <c>T(XE)</c> with <c>XE PIC X(4)</c> compiled clean and digit-decoded under STRICT. Giving that
+    /// path its own category switch would have been the FIFTH place answering "is this operand class numeric";
+    /// this entry is what lets it ask the first.</para></summary>
+    internal static CobolClass? ClassOfItem(DataItem item)
+    {
         // §8.5.2.1 — an alphanumeric group item has class alphanumeric, a bit group boolean, a national group
         // national. A group has no PICTURE of its own, so it cannot fall through to the category table.
-        if (p.Item.IsGroup)
+        if (item.IsGroup)
         {
-            return p.Item.AsIfPic?.Category switch   // D20/PB79 — a bit / national group's as-if picture
+            return item.AsIfPic?.Category switch   // D20/PB79 — a bit / national group's as-if picture
             {
                 PicCategory.National => CobolClass.National,
                 PicCategory.Boolean => CobolClass.Boolean,
@@ -410,12 +448,12 @@ internal static class IntrinsicArgumentRules
         // carries category NUMERIC for the storage model (PicInfo.IndexItem), but §8.5.2.1 Table 2 puts it in
         // class INDEX — a distinct class no §15 argument rule admits. Keying the usage first is what stops the
         // storage category from answering the CLASS question.
-        if (p.Item.Pic is { Usage: Usage.Index }) return CobolClass.Index;
+        if (item.Pic is { Usage: Usage.Index }) return CobolClass.Index;
         // Class ALPHABETIC before the category table (kb/Work PB124 wave 5): the storage model folds PIC A
         // into PicCategory.Alphanumeric, so the category cannot answer — IsAlphabetic can, exactly as the
         // Usage.Index arm above un-folds the index item's storage category.
-        if (p.Item.Pic is { IsAlphabetic: true }) return CobolClass.Alphabetic;
-        return p.Item.Pic is { } pic ? ClassOfCategory(pic.Category) : null;
+        if (item.Pic is { IsAlphabetic: true }) return CobolClass.Alphabetic;
+        return item.Pic is { } pic ? ClassOfCategory(pic.Category) : null;
     }
 
     /// <summary>ISO §8.5.2.1 Table 2, read as written.</summary>

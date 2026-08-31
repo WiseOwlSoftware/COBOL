@@ -719,6 +719,25 @@ public static class DiagnosticCatalog
         NotImplemented, "bit-group-level-value", EditionSeverity.Error,
         "A group-level VALUE clause on a group whose area is bit-packed (a USAGE BIT item is subordinate to it) "
         + "is recognized but not yet implemented.", "ISO §13.18.63.4 GR5 / §8.5.1.6.3", RecognizedNotImplemented);
+    // ⛔ THE TERMINATION-STATUS PHRASE HAS ITS OWN SYNTAX RULES, and none of them existed (kb/Work PB169). The
+    // operand was bound through the ARITHMETIC funnel, so §8.8.1.1 — a rule that does not govern this position —
+    // rejected the two shapes the position's own rules explicitly admit: measured on 9a89fbd1, both
+    // `STOP RUN WITH ERROR STATUS "ABEND"` (SR3's conditional presupposes the non-numeric literal; SR4 bars only
+    // a zero-length one) and `STOP RUN WITH ERROR STATUS WS-CODE` with `WS-CODE PIC X(3)` (SR2 admits a data item
+    // "with usage display") drew COBOLNET0844. Meanwhile the position's ACTUAL rules went unenforced in both
+    // directions: `STATUS ""`, `STATUS 1.5` and `STATUS <index-name>` all compiled clean. This code carries the
+    // rules; the §8.8.1.1 screen no longer reaches the site at all.
+    public static readonly DiagnosticDescriptor TerminationStatusOperand = new(
+        "COBOLNET1704", "termination-status-operand", EditionSeverity.Error,
+        "ISO §14.9.42.3 syntax rule 2: \"Identifier-1 shall reference an integer data item or a data item with "
+        + "usage display or usage national.\"; syntax rule 3: \"If literal-1 is numeric, it shall be an "
+        + "integer.\"; syntax rule 4: \"Literal-1 shall not be a zero-length literal.\" (GOBACK's §14.9.18.3 "
+        + "SR6/SR7/SR8 are the same three rules for the same shared phrase, over identifier-2 — GOBACK's "
+        + "identifier-1 is the RAISING object.) The code also carries the slot's ADMISSIBILITY where the "
+        + "operand is neither identifier-1 nor literal-1: NULL is a predefined address / object reference "
+        + "(§8.4.3.10.1) whose §8.4.3.10.3 SR1 admits it only in INITIALIZE/SET, a prototype argument, or a "
+        + "pointer-or-object-reference relation condition.",
+        "ISO §14.9.42.3 SR2/SR3/SR4");
     public static readonly DiagnosticDescriptor ReportControlTypeOperand = new(
         NotImplemented, "report-control-type-operand", EditionSeverity.Error,
         "A TYPE CH/CF operand is not an operand of the CONTROL clause.", "ISO §13.18.57.3 SR10/SR11");

@@ -70,6 +70,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             return BindFunctionTarget(IntrinsicBinder.OperandOf(kof), ins.dataReference().GetText());
         // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §13.18.38.3 r7's five index-name
         // contexts — a compile diagnostic, not the unresolvable-item runtime stage below.
+        // ⛔ Both lanes, deliberately: identifier-1 is an IDENTIFIER SLOT, so there is no occurrence-number
+        // coercion to offer under --permissive (the r7 lane split is written down at
+        // ExpressionBinder.ScreenIndexNameOperand and ReferenceResolver.IndexNameInPositionError — kb/Work PB219).
         if (host.Expr.IndexFieldOf(ins.dataReference()) is not null)
         {
             ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,

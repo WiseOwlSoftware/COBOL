@@ -372,6 +372,85 @@ FieldEmitter vs OdoModel copies), `CobolLiteral.Decode` (the tripled `DecodeCobo
 `DataItem.Root` (the 4× RootOf walk → one accessor), `FigurativeConstants` (the 4-site figurative-fill → one
 service). These are cross-cutting with the emitter-renderer sibling design; the binder owns the bind-side callers.
 
+### 3.6 The §8.8.1.1 operand funnel — every entry declares its rule
+
+⛔ **An operand slot in this compiler used to acquire ISO §8.8.1.1 BY DEFAULT — by being handed to
+`ExpressionBinder.BindExpr` — rather than by declaring that §8.8.1.1 governs it.** Everything in the
+PB169–PB172 burn-down cluster followed from that default, and the four defects look different only because the
+decision was recorded in four different places: an enum member at ten sites, a call-site comment at two, a
+private category switch at three, and **nowhere at all** in `ReferenceResolver`'s token renderer.
+
+Every operand slot answers **two independent axes**, and both now live in `OperandContextRules.Rules()`
+(`ExpressionBinder.cs`), a switch with no discard arm:
+
+| Axis | Question | Clause |
+|---|---|---|
+| **A — NumericClassScreen** | Does §8.8.1.1's class-numeric screen govern this position, or does the position have its own syntax rule? | §8.8.1.1 |
+| **B — IndexNameScreen** | Is the index-**name** screen applied here, or is this one of r7's five contexts? | §13.18.38.3 r7 |
+| **C — IndexDataItemAdmitted** | May a class-index **data item** be referenced here? | §13.18.60.3 SR10 |
+
+| `OperandContext` | A | B | C | Why |
+|---|---|---|---|---|
+| `Arithmetic` | screen | screen | no | the plain arithmetic-expression position |
+| `ArithmeticIndexWindow` | screen | exempt | yes | r7 lists it (subscript · PERFORM/SEARCH VARYING · SET · relation operand) |
+| `FunctionArgument` | exempt | screen | yes | the function's own §15.x argument rule governs (COBOLNET1627) |
+| `CallByValue` | exempt | exempt | yes | §14.9.4.3 SR22 governs, and screens the operand itself (COBOLNET1628) |
+
+⛔ **AXIS C IS NOT A CONSEQUENCE OF AXIS A, and assuming it was is a measured mistake.** The two index lists
+are genuinely different rules about different things:
+
+- **r7** (index-**name**): *as a subscript · PERFORM VARYING · SEARCH VARYING · SET · a relation-condition operand.*
+- **SR10** (index **data item**): *a SEARCH or SET statement · a relation condition · an intrinsic function
+  argument · an inline method invocation argument · the USING phrase of a procedure division header · the USING
+  phrase of a CALL or INVOKE statement.*
+
+A **subscript** and **PERFORM VARYING** are on r7's list and not SR10's; an **intrinsic argument** and a **CALL
+USING** phrase are on SR10's and not r7's. Deriving C from A ("class index is not class numeric") rejected
+`SET IN1 TO IDN1` in **eight NIST programs** — every one a SET statement SR10 names outright. A rule that
+enumerates CONTEXTS cannot be modelled as a property of the OPERAND
+(`feedback_model_the_rule_shape_not_one_case`). `ArithmeticIndexWindow` was built to name r7's list and so
+cannot express SR10's; the residual over-admission that leaves (PERFORM/RW VARYING and a compound subscript
+segment) is registered as **PB215**, not papered over.
+
+**The funnel's entry points, classified.** A slot is in exactly one row; a new statement operand belongs in one
+before it is written.
+
+Each row also declares its **LANE POSTURE** — what `--permissive` does — because r7 is enforced at four sites
+and they do not all answer that the same way, and the split is legitimate (kb/Work PB219). The axis is what the
+SLOT IS, never which route reached it: an **arithmetic** position carries the documented GnuCOBOL
+occurrence-number coercion (strict rejects · `--permissive` warns and computes); an **identifier** slot rejects
+in BOTH lanes, because the slot needs an identifier and an occurrence number is not one — there is no coercion
+to offer, and `dialect_two_axes` constrains the leniencies this compiler implements rather than requiring one.
+
+| Entry | Rule that governs | Where | r7 lane |
+|---|---|---|---|
+| ADD/SUBTRACT/MULTIPLY/DIVIDE senders · COMPUTE RHS · CONTINUE AFTER · RETRY · ALLOCATE · START WITH LENGTH · boolean-shift count · CALL BY CONTENT/REFERENCE arithmetic arg | §8.8.1.1 — genuinely `arithmetic-expression-1` | `BindExpr` | arithmetic: warn+coerce |
+| SET TO / UP BY / CAPACITY / SIZE · pointer SET UP BY · PERFORM VARYING FROM/BY · RW VARYING · D18 **subscript** segment · compound relation / EVALUATE operand | §8.8.1.1 + r7 window | `BindIndexWindowExpr` | exempt (r7 lists them) — ⚠ except RW VARYING, which r7 does NOT list; see PB215 |
+| D18 **ref-mod** segment | §8.4.3.3.3 SR4 → §8.8.1.1; **r7 does NOT list a ref-mod position** | `BindExpr` (PB170/PB172) | arithmetic: warn+coerce |
+| simple/compound subscript name · ref-mod bound name (the token renderer's fast path) | §8.4.2.3.2 / §8.4.3.3.3 SR4 → §8.8.1.1 | axis A: `ReferenceResolver.ScreenPositionOperandClass`; axis B: `ResolveSubscriptName`'s index arm → `IndexNameInPositionError` (a SEPARATE site — the table used to leave this row's axis B undeclared) | arithmetic: warn+coerce (PB219) |
+| sign-condition operand | §8.8.4.7.3 SR1 → §8.8.1.1 | `BindOperandExpr` — reached by a **wrapper WALK**, not `BindExprCore` (PB171) | arithmetic: warn+coerce |
+| **SOLE** relation / EVALUATE comparand | §8.8.4.2.1 + §15.2 — **exempt**; the operand is a sending item of its own class | `ComparisonOperandOf` / `BindValueOperand` short-circuits (PB172) — **arm for arm identical**, §14.9.13.4 GR2 makes them one question (PB224) | exempt (r7 lists a relation operand) |
+| CALL … USING BY VALUE | §14.9.4.3 SR22 — **exempt** | `BindByValueExpr` + COBOLNET1628 | exempt |
+| intrinsic-function argument | the function's §15.x argument rule — **exempt** | `BindFunctionArgumentExpr` + COBOLNET1627 | arithmetic: warn+coerce |
+| PERFORM … TIMES count | §14.9.28.3 SR2 — **exempt** | `ControlFlowBinder.CountOperand` | n/a |
+| OCCURS DEPENDING ON data-name-1 | §13.18.38.3 SR17 — **exempt** | `DataBinder.Odo` | n/a |
+| ref-mod SUBJECT identifier-1 | §8.4.3.3.3 SR1 — **exempt** | `ReferenceResolver.RefModExclusion` | n/a |
+| STOP RUN / GOBACK … STATUS | §14.9.42.3 SR2/SR3/SR4 · §14.9.18.3 SR6/SR7/SR8 (SR6 over **identifier-2**) — **exempt**; the format is `{identifier-1 \| literal-1}`, so the screen is keyed on the BOUND SHAPE and reaches both parse arms — a constant-name substitutes literal-1 under §13.10.4 GR1 (PB216) | `ControlFlowBinder.ScreenStatusOperand` + COBOLNET1704 (PB169/PB216/PB217) | identifier slot: reject in BOTH lanes |
+| arithmetic RESULTANTS | each verb's resultant SR — **exempt**; NOT a fourth copy of the §8.8.1.1 sending question — a resultant turns on an axis §8.8.1.1 does not have (numeric-edited is admitted at GIVING/REMAINDER/COMPUTE and barred at the in-place receivers) | `ExpressionBinder.ScreenResultant` | n/a |
+
+**⛔ The SOLE-vs-COMPOUND boundary is a RULE, not a statement property.** `IF FUNCTION LOWER-CASE(X) = Y` is
+legal and `IF FUNCTION LOWER-CASE(X) + 1 = Y` is illegal **in the same statement kind**, because the second
+operand is an arithmetic expression and the first is a §15.2 sending item. No per-statement context member can
+express that, which is why the comparand positions short-circuit their sole operands (data reference, numeric
+literal, non-numeric literal, **function call**) instead of splitting the enum.
+
+**⛔ "Is this operand of class numeric?" has exactly ONE answer**, `IntrinsicArgumentRules.CandidateClasses`
+(the §8.5.2.1 Table-2 classifier) via `IsArithmeticOperandClass`. It previously had four — a private category
+switch missing the index arm, a `ResultCategory` test that folded §15.2 item 6 index functions into numeric, the
+receiving-side `ScreenResultant` (which DID have the index arm), and this classifier, which nothing in the funnel
+used. The extraction is what closes the index-data-item, pointer and object holes without a new rule, and what
+preserves the 2026-08-02 numeric-edited owner decision by construction rather than by a hand-written arm.
+
 ---
 
 ## 4. Current → target module changes

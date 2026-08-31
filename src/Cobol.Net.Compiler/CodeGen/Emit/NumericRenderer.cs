@@ -595,9 +595,38 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10): the status VALUE truncated to an integer at scale 0 when present
     /// (SR3 — an integer is passed to the OS), else the implementor error/normal indication ERROR ⇒ 1 / NORMAL ⇒ 0
     /// (§14.9.42.4 GR2/GR3; docs/CONFORMANCE.md §4.2.16). The value renders receiver-less (scale 0) exactly as a
-    /// boolean-shift count or an intrinsic integer argument does.</summary>
+    /// boolean-shift count or an intrinsic integer argument does.
+    /// <para>⛔ THE VALUE IS AN OPERAND, NOT AN EXPRESSION (kb/Work PB169) — §14.9.42.2 writes the slot
+    /// <c>{identifier-1 | literal-1}</c>. The NUMERIC arm is byte-identical to the former
+    /// <c>Render(BoundExpr)</c> text by construction: <c>Visit(BoundNumericLiteral)</c> and
+    /// <c>Visit(BoundNumLiteral)</c> both reduce to <c>EmitText.UnscaledLit</c> for an integer literal (SR3
+    /// admits no other), and <c>Visit(BoundFieldOperand)</c> and <c>Visit(BoundNumRef)</c> are the same
+    /// <c>FieldNum(Place)</c> call.</para></summary>
     public string ExitStatus(TerminationStatus st) =>
-        st.Value is { } v ? $"(long)({Align(Render(v, ReceiverContext.None), 0)})" : st.Error ? "1L" : "0L";
+        st.Value is { } v ? $"(long)({Align(StatusNum(v), 0)})" : st.Error ? "1L" : "0L";
+
+    /// <summary>The GR5 numeric interpretation of a status operand. A NUMERIC operand (an integer literal-1, a
+    /// numeric identifier-1) renders through the ordinary numeric channel; a NON-NUMERIC literal-1 of ANY form
+    /// is interpreted through its CHARACTERS — docs/CONFORMANCE.md item 192's published determination, "its
+    /// digit characters decode as an unsigned integer, a non-digit position contributing no digit"
+    /// (<c>CobolNum.FromAlphanumeric</c>), the same decode <see cref="FieldNumCore"/> gives an alphanumeric or
+    /// national identifier-1.
+    /// <para>⛔ ONE ARM FOR EVERY NON-NUMERIC LITERAL SHAPE, THROUGH THE ONE CHARACTER-IMAGE READER (kb/Work
+    /// PB216). The first cut read only <see cref="AsNum"/>, whose figurative / ALL-literal / boolean arms are
+    /// LOUD — correctly so, because they answer the §8.8.1.1 ARITHMETIC question, and the status slot is not an
+    /// arithmetic position. The consequence was that <c>STOP RUN WITH ERROR STATUS SPACE</c>,
+    /// <c>… STATUS ALL "5"</c>, <c>… STATUS B"01"</c> and <c>… STATUS B"1" &amp; B"0"</c> — all conforming
+    /// (§8.3.3.6.3 SR1 admits a figurative wherever 'literal' appears, and §14.9.42.3 SR3's conditional "if
+    /// literal-1 is numeric" is the proof the slot is not restricted to a numeric literal) — compiled clean and
+    /// died with <c>NotImplementedCobolFeatureException</c>. <see cref="OperandText.AsString"/> is THE ONE
+    /// operand→character-image reader and already carries §8.3.3.6.4 GR3 b (a non-ALL figurative is ONE
+    /// character — GR3's NOTE 2 names the STOP statement by name) and GR3 c (an <c>ALL literal-1</c> is
+    /// literal-1 once), PCS-aware for HIGH-/LOW-VALUE. Routing the whole literal family through it is what makes
+    /// the NEXT literal form automatic; <c>NumericRendererStatusOperandTests</c> holds that true.</para></summary>
+    private NumX StatusNum(BoundOperand v) =>
+        v is BoundStringLiteral or BoundFigurative or BoundAllLiteral
+            ? new NumX(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(v, this)), 0)
+            : AsNum(v, ReceiverContext.None);
 
     /// <summary>Exponentiation (ISO §8.8.1.2: a native-arithmetic exponentiation whose result has no exact
     /// representation is an IMPLEMENTOR-DEFINED approximation): computed in double, quantized through the ONE

@@ -282,16 +282,37 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// operand — the same shapes <see cref="ComparisonOperand"/> produces.</summary>
     private BoundOperand BindValueOperand(Core.ValueOperandContext vo)
     {
-        // §8.8.3.3 GR3: a concatenation expression folds to (and selects as) the equivalent single literal.
-        if (vo.nonNumericLiteral()?.concatenationExpression() is { } ce) return host.Expr.ConcatOperand(ce);
-        if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return host.Expr.FigurativeOperand(fig);
-        if (vo.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
-        if (vo.nonNumericLiteral()?.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());
-        if (vo.nonNumericLiteral()?.BOOLLIT() is { } bl) return host.Expr.BooleanLiteralOperand(bl.GetText());
+        // ⛔ THROUGH THE ONE nonNumericLiteral MAPPING (kb/Work PB172's sweep). This was a FOURTH hand-written
+        // copy of that dispatch — concatenation, figurative, STRINGLIT, NATLIT, BOOLLIT — and it was **missing
+        // the HEXLIT arm**, so `EVALUATE X WHEN X"6162"` fell past all five, found no arithmeticExpression, and
+        // bound to `BoundOperandError("EVALUATE operand")` → an unhandled NotImplementedCobolFeatureException at
+        // RUN TIME on conforming source (§8.3.3.2.1 makes both formats of the alphanumeric literal class and
+        // category alphanumeric). That is DA3's defect exactly, in the one copy DA3's extraction missed:
+        // ExpressionBinder.NonNumericLiteralOperand's own remark lists the three it collapsed. Measured on
+        // 9a89fbd1 before the fix, not deduced.
+        if (host.Expr.NonNumericLiteralOperand(vo.nonNumericLiteral()) is { } litOp) return litOp;
         if (vo.arithmeticExpression() is { } expr)
+            // ⛔ ARM FOR ARM IN THE SAME ORDER AS ConditionBinder.ComparisonOperandOf, DELIBERATELY (kb/Work
+            // PB224). §14.9.13.4 GR2 makes an EVALUATE subject/object comparison "as if" the corresponding
+            // relation condition were written, so the two operand binders answer ONE question and any divergence
+            // between them is a latent Table-15-vs-§8.8.4.2 split. The order was data-ref → num-literal →
+            // function-call here and data-ref → function-call → num-literal there; the alternatives are disjoint,
+            // so the two agreed by luck, and "agrees by luck" is what this cluster keeps finding.
             return ConditionBinder.SoleDataRef(expr) is { } dref ? host.Expr.FieldOperand(dref)
+                // A SOLE function-identifier is a §15.2 sending item of its own class, not an arithmetic term —
+                // the same short-circuit ConditionBinder.ComparisonOperandOf makes, and for the same reason
+                // (kb/Work PB172): `EVALUATE FUNCTION LOWER-CASE(X) WHEN "abc"` compares alphanumerically.
+                : ConditionBinder.SoleFunctionCall(expr) is { } sfc
+                    ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(sfc))
+                // A sole numeric LITERAL stays a literal operand — against an alphanumeric/group operand it
+                // participates as its WRITTEN character form, leading zeros intact (ISO §8.8.4.2.1).
                 : ConditionBinder.SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(host.Expr.CheckLiteral(lit))
-                : new BoundComputedOperand(host.Expr.BindIndexWindowExpr(expr));   // EVALUATE compares — a relation window (kb/Work R29)
+                // The ONE expression→operand mapping, as on the relation side: a user-function reference binds to
+                // a BoundNumRef over its result temp and MUST surface as a FIELD operand so the temp's cloned
+                // category (§8.4.3.2.4 GR1) drives the class dispatch; a raw BoundComputedOperand — which this
+                // arm used to build — would compare an alphanumeric/national result NUMERICALLY. For every other
+                // shape OperandOf returns the identical BoundComputedOperand, so the emit floor is unchanged.
+                : IntrinsicBinder.OperandOf(host.Expr.BindIndexWindowExpr(expr));   // EVALUATE compares — a relation window (kb/Work R29)
         return new BoundOperandError("EVALUATE operand");
     }
 }
