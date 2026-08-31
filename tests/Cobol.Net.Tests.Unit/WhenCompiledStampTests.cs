@@ -19,6 +19,11 @@ namespace CobolNet.Tests.Unit;
 /// provides no compilation date and time, so r3's "if provided" condition is not engaged — and identical
 /// source + references must produce a byte-identical assembly.</para>
 /// </summary>
+[Collection("process-globals")]   // kb/Work PB126: IntrinsicBinder.CompileClock is a PROCESS-global static this
+                                  // class sets-and-restores. It was the only mutator until the D-D determination
+                                  // added a second (CurrentDateOffsetDeterminationTests) — and the two then raced
+                                  // immediately: this class's per-compilation assertion read the OTHER class's
+                                  // injected clock and failed, green in isolation and red in the full run.
 public sealed class WhenCompiledStampTests : CobolNetTestBase
 {
     private const string WcSource = """

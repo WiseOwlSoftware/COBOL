@@ -120,6 +120,29 @@ of an unsupported facility.
   mapping is the determination (a corner case; the general Latin/basic repertoire matches exactly). Since kb/Work
   PB64 T5 this is the ELSE-arm it is meant to be: a `LOCALE locale-name-1` phrase (r2) or a CHARACTER CLASSIFICATION
   locale in effect for the operand's class (r3) maps through THAT locale's LC_CTYPE instead — see §4 item 5.
+- **CURRENT-DATE / WHEN-COMPILED UTC-offset positions 17–21 — the TRUE offset is reported, out of the rule's
+  stated range when the host is (§15.21.3 r1 / §15.99.3 r1; documented per §4.2.6 / §4.2.7).** One determination
+  covers both functions because one formatter serves both (`CobolDate.Format21`; the compile-time bake and the
+  run-time read are separate seams onto it). §15.21.3 r1 fixes positions 18–19 at "00 through 13" when position 17
+  is `+` and "00 through 12" when it is `–`, and §15.99.3 r1 carries that table character for character. **Real
+  offsets exceed both bounds.** UTC+14:00 is a shipping zone on both platforms COBOL.NET targets — IANA
+  `Pacific/Kiritimati`, Windows `Line Islands Standard Time` ("(UTC+14:00) Kiritimati Island", verified against the
+  host zone table, not assumed) — and the `COBOLNET_CLOCK` pin reaches **−14:00** as well, because it parses a
+  `DateTimeOffset` directly and that type's offset range is ±14:00. So the departure is **symmetric: both signs**.
+  For such a clock **the rule's table offers no in-range value at all**, and every available behaviour departs from
+  something: emitting `14` leaves the stated range; clamping to `13` misreports the offset, which §15.21.1 defines
+  as "the … local time differential factor provided by the system on which the function is evaluated"; and writing
+  `0`/`00`/`00` asserts position 17's "the system … does not have the facility to provide the local time
+  differential factor", which is false — the system has it and it is 14 hours.
+  **The determination: report the true offset.** It is the only one of the three that does not state something
+  untrue, and it keeps the value usable as an offset. The departure is confined to positions 18–19 and to
+  |offset| > 13 (`+`) / > 12 (`–`); positions 1–16, 17 and 20–21 conform outright at every offset, which is what
+  makes this one bounded determination rather than an open-ended divergence — `CurrentDateOffsetDeterminationTests`
+  asserts exactly that scope (the full §15.21.3 r1 position table re-derived from the rule text, with the violation
+  set required to be **precisely** `{18-19}` across the whole fixture range and empty for every in-range offset).
+  End to end through the clock seam: `CurrentDateOffsetPinTests` (a COBOL program under `COBOLNET_CLOCK` at
+  ±14:00, +13:00, +05:45, +00:00 and −09:30). Inventory rows `RV-15.21.3-1` and `RV-15.99.3-1` carry this one
+  determination at DOCUMENTED-NON-SUPPORT.
 - **STOP RUN / GOBACK termination status (§14.9.42.4 GR5 / §14.9.18.4 GR10 — Annex A required items 192/193)**:
   the status "passed to the operating system" and the ERROR/NORMAL termination indication both map to the single
   observable available on .NET — the process exit code (`Environment.ExitCode`). The constraint on the STATUS
