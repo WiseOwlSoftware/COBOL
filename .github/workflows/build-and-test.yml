@@ -165,6 +165,18 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
+      # The external GnuCOBOL corpus is GPL and NEVER committed (.gitignore's licensing block); the population
+      # drift gate (PB209) fails loud when it cannot measure the corpus it exists to measure. CI therefore
+      # fetches ON DEMAND — the exact contract scripts/fetch-gnucobol-tests.ps1 exists for — pinned and
+      # sha256-verified, with the tarball cached so the network is touched only on a cold cache. (kb/Work PB277)
+      - name: Cache GnuCOBOL testsuite tarball (GPL — fetched on demand, never committed)
+        uses: actions/cache@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
+      - name: Fetch GnuCOBOL testsuite (pinned 3.2, sha256-verified)
+        shell: pwsh
+        run: ./scripts/fetch-gnucobol-tests.ps1
       - name: Build greenfield test projects
         run: |
           dotnet build tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
@@ -368,6 +380,15 @@ jobs:
         run: dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --configuration Release --logger "trx;LogFileName=legacy-integration.trx" --results-directory TestResults/${{ runner.os }}-build-test
       # Greenfield conformance moved to the windows-conformance SHARDED job (kb/Work A14) — same coverage,
       # a third of the wall time; the population guard proves nothing fell between the shards.
+      # GPL corpus fetched on demand for the PB209 population drift gate — see the Linux job's twin. (PB277)
+      - name: Cache GnuCOBOL testsuite tarball (GPL — fetched on demand, never committed)
+        uses: actions/cache@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
+      - name: Fetch GnuCOBOL testsuite (pinned 3.2, sha256-verified)
+        shell: pwsh
+        run: ./scripts/fetch-gnucobol-tests.ps1
       - name: Greenfield unit tests
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Greenfield characterization snapshots (behavior-neutrality gate)

@@ -15,8 +15,10 @@
         * tests/external/gnucobol-expectations.json  (independently-authored FACTS about cases:
           id -> classification + our §-cited rationale — never their source or their expected output)
 
-    A missing corpus is not an error for the test suite: the adapter SKIPS with a loud notice rather
-    than silently passing. This script is what turns the skip into a run.
+    A missing corpus is handled two ways, deliberately different (PB209/PB277): the adapter conformance
+    suite SKIPS with a loud notice rather than silently passing, while the population drift gate
+    (ExternalCorpusPopulationDriftTests) FAILS — a gate that cannot see its population must not read as
+    green. CI runs this script on demand (cached, pinned) so that gate measures everywhere.
 
 .PARAMETER Force
     Re-download even when a verified tarball is already present.
