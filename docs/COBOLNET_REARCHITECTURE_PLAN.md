@@ -1835,6 +1835,18 @@ result. Run the long legs ONE AT A TIME.
   the gate goes red — which is the event most worth failing on. Seven proposed CONFORMS re-adjudications were
   REFUSED rather than recorded on a read (`kb/Work PB258`); the two rows held defective purely for visibility
   are `PB259`; the owed A.4.2 / A.4.3 witnesses are `PB260` / `PB261`.
+- **⚠ BATTERY #41 ACCRUES — the ARITHMETIC WAVE (owner decisions D-B + D-C, PB194/PB195, and the review
+  fleet's landing PB266–PB276), 2026-08-31. NOT run; the reference below is battery #40 and stays current
+  until #41 is measured.** The wave is gated wave-local GREEN on
+  `~Arithmetic|~Numeric|~Dec|~Pow|~Literal|~Float|~Intrinsic|~Corpus|~Move|~Ec|~Options|~SpecTraceability|~VersionMatrix|~Exception`.
+  What #41 must attend to when it runs: the wave moves COMPUTED VALUES on the standard-decimal `**` path
+  (§8.8.1.5.4 r3 hoisted to one place; a near-unit logarithm band; the past-loop-bound escape carrying the
+  exponent operand instead of a clamped `long`) and it changes an EC NAME in two directions —
+  `2 ** -600000` OVERFLOW where it was UNDERFLOW, and its mirror — so the **GnuCOBOL differential is the leg
+  most likely to move**, and every flip there needs attribution per-case, never by the four totals. No
+  greenfield golden digit moved in the wave itself (all six arithmetic goldens diffed byte-for-byte before the
+  new legs were added); the goldens that changed did so by GAINING legs, not by rebaselining.
+  Inventory: **GAP 3637 → 3636** (RV-15.4.1-3 PARTIAL → CONFORMS, recorded through `record_verdicts.py`).
 - **⛔ BATTERY REFERENCE — CURRENT, the burn-down-cluster-B + defective-row-registration batch (PB169–PB172 +
   PB210–PB215 + PB216–PB224 plus the registration wave), battery #40, 2026-08-31.**
   ✅ **Every leg GREEN, and the differential's ONE flip is ATTRIBUTED AND INTENDED.**

@@ -260,17 +260,37 @@ token — `( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+` (significand SHA
 r2; 'E' not `[eE]` — the lexer is case-insensitive) placed BEFORE `DECIMALLIT` so maximal munch keeps `1.5E3` one
 token — plus a `FLOATLIT` alt in `numericLiteralCore` (and the DECIMAL-POINT IS COMMA twin `COMMA_FLOATLIT`,
 kb/Work PB98). `EmitText.UnscaledLit` detects the E and returns a `Real` NumX with the literal verbatim (a COBOL
-float literal is already valid C# `double` syntax). **Where that binary64 form applies (kb/Work PB99, 2026-08-18):**
-inside an ARITHMETIC expression or statement under NATIVE arithmetic only — §8.8.1.3 leaves the method of
-evaluating an arithmetic expression / statement to the implementor, and a float literal there is a floating-point
-operand, so the expression evaluates in IEEE binary64 (`NumericRenderer.LiteralNum`). In an OPERAND position — a
-MOVE source, a relation / EVALUATE comparand, a PERFORM VARYING FROM / BY value, a function argument, a CALL BY
-VALUE argument — the literal is its EXACT value (§8.3.3.3.3 GR5: significand × 10^exponent) on the `Dec` lane
-(`LiteralOperandNum` → `CobolDec.FromParsed`), and under ARITHMETIC IS STANDARD-DECIMAL every floating literal is
-that exact decimal128 operand (§8.8.1.5.2 r1). The binder checks the literal's FORM (SR2/SR3/SR4 — COBOLNET1661) at
-the ONE normalizer and its RANGE at the ONE expression chokepoint (`CheckLiteral`: binary64 natively, decimal128
-under standard-decimal) and at the VALUE funnel for a FLOAT-* subject (the receiver's binary form) — the
-implementor-defined exponent range of §8.3.3.3.3 r3, CONFORMANCE.md §7 A.1 item 82.
+float literal is already valid C# `double` syntax — the form the CALL/INVOKE argument emitters still take).
+⛔ **THE LITERAL IS ITS EXACT VALUE IN EVERY POSITION AND EVERY MODE** (owner decision D-B, 2026-08-30; kb/Work
+PB156 + PB195, superseding the per-position split PB99 left behind). `NumericRenderer.LiteralNum` is the ONE
+rendering: a floating-point literal becomes its §8.3.3.3.3 rule-5 value — significand × 10^exponent — on the `Dec`
+(SDIDI) lane, whether it sits in an arithmetic expression or statement, a MOVE source, a relation / EVALUATE
+comparand, a PERFORM VARYING FROM / BY value or a function argument. The former native arm made it a binary64
+operand on D16's §8.8.1.3 latitude, and §14.9.2.4 GR4 (with its §14.9.44.4 GR4 SUBTRACT twin) does not grant that:
+GR4 excludes only operands "described with usage" binary-*/float-*, a LITERAL is not described with usage
+anything, and §14.7.7 rule 2 lists "a floating-point literal" as its OWN bullet beside the usage list — proof the
+drafters name it when they mean it. Measured: `ADD 1.0E+0` to a PIC 9(20) holding 12345678901234567890 owed …891
+and delivered …168.
+**D16 IS NARROWED, NOT OVERTURNED.** `CombineCore` is unchanged and its `Real` lane still takes precedence whenever
+a float ITEM or a float RECEIVER is present — that is native float arithmetic, IEEE binary64, and it is exactly
+the case where GR4's own condition stops holding. What D16 no longer claims is that the notation of a literal changes its
+VALUE: `ADD 1.0E+0` computes what `ADD 1.0` computes, and `2 ** 0.5E+0` what `2 ** 0.5` computes, because those
+are the same values. ⚠ The notation *does* still select the intermediate LANE, and that is a published
+§8.8.1.3 determination rather than an invariant (CONFORMANCE.md A.1 item 82): a float literal operand routes a
+NATIVE statement onto the decimal128 lane (34 significant digits) where a fixed-point literal keeps
+`CombineNative`'s Int128 one (~38), so `A * B + 0.0E+0` and `A * B + 0.0` differ for 18-digit A and B, and
+INTERMEDIATE ROUNDING (§11.9.11) reaches the first and not the second. The sentence "a literal's NOTATION never
+changes the arithmetic" was written in four places and is false in all of them (kb/Work PB274).
+The binder checks the literal's FORM (SR2/SR3/SR4 — COBOLNET1661) at the ONE normalizer and its RANGE at the ONE
+expression chokepoint (`CheckLiteral`, now decimal128 in every mode — one carrier, one range) and, separately, at
+the VALUE funnel for a FLOAT-* subject, where §13.18.63.3 SR2 asks for "permissible values within the range
+indicated by the PICTURE clause or the USAGE clause" (cite.py-verified verbatim) and, a FLOAT-* subject having
+no PICTURE, the bound is therefore the ITEM's binary form. The implementor-defined exponent range of
+§8.3.3.3.3 r3 is published in CONFORMANCE.md §7 A.1 item 82, together with its one residual: SR2 admits a 36-digit
+significand and the SDIDI carrier holds 34, so a 35th/36th significand digit rounds at `CobolDec.FromParsed`.
+⚠ **Known exception, registered not fixed:** the CALL argument emitter renders a bare numeric-literal argument
+through `EmitText.UnscaledLit` rather than this rendering — kb/Work PB263 (BY CONTENT: a raw Roslyn CS1503) and
+PB264 (BY VALUE: the fraction digits truncated away).
 
 **Float-integration edge cases.** The Real integration covers these paths: a float source/result into a
 NUMERIC-EDITED receiver (MOVE + COMPUTE) lands via `ToScaled` at the MASK scale (`CobolEdit.MaskScale`, NOT

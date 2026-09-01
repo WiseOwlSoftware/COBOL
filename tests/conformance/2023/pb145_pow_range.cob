@@ -39,4 +39,28 @@
            COMPUTE R2 = 2 ** 600000
                ON SIZE ERROR DISPLAY "OVER=" FUNCTION EXCEPTION-STATUS
            END-COMPUTE
+      *> ...and a NEGATIVE out-of-range exponent takes its name from r3's own expression, not from where
+      *> the final value lands (kb/Work PB266).  r3 makes 2 ** -600000 the evaluation of
+      *> 1 / (2 ** 600000), and THAT inner power is the operation whose value leaves the range - upward.
+      *> 8.8.1.5.2 r2 names the condition of the operation that meets it, and 8.8.1.5.2 requires the
+      *> exception conditions encountered to be those the mandated evaluation encounters.  Before the r3
+      *> hoist these two lines answered the other way round: the sign rode inside the exp argument, so
+      *> 2 ** -600000 said UNDERFLOW and 0.5 ** -600000 said OVERFLOW.
+           COMPUTE R2 = 2 ** -600000
+               ON SIZE ERROR DISPLAY "R3OVER=" FUNCTION EXCEPTION-STATUS
+           END-COMPUTE
+           COMPUTE R2 = 0.5 ** -600000
+               ON SIZE ERROR DISPLAY "R3UNDR=" FUNCTION EXCEPTION-STATUS
+           END-COMPUTE
+      *> An exponent past the LONG range is the written exponent, never the clamped loop-bound probe
+      *> (kb/Work PB267).  1.0E+25 x ln(1.0000000000000001) = 1E+9 and x ln(0.9999999999999999) = -1E+9,
+      *> both far outside the decimal128 exponent range - so these are r2's two names.  With the clamped
+      *> probe the development computed b ** 9223372036854775807 instead: 3.68E+400 (a SIZE ERROR by
+      *> receiver capacity, under a DIFFERENT name) and 2.71E-401 (a SILENT zero, no condition at all).
+           COMPUTE R2 = 1.0000000000000001 ** 1.0E+25
+               ON SIZE ERROR DISPLAY "SATOVR=" FUNCTION EXCEPTION-STATUS
+           END-COMPUTE
+           COMPUTE R2 = 0.9999999999999999 ** 1.0E+25
+               ON SIZE ERROR DISPLAY "SATUND=" FUNCTION EXCEPTION-STATUS
+           END-COMPUTE
            STOP RUN.

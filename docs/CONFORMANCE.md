@@ -250,8 +250,8 @@ of an unsupported facility.
   EC-STORAGE-NOT-AVAIL (arithmetic-expression-5 form) under `>>TURN EC-STORAGE-NOT-AVAIL CHECKING ON` (golden
   `2023/ec_storage_not_avail`).** The integer-2 literal form is compile-time bounded by SR34, so its out-of-range
   cases are compile diagnostics, not this runtime EC.
-- **EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW applied to EVERY floating-point usage (§14.6.13.2 item 3 / §14.9.25.4 GR4
-  step 4a)**: the standard scopes these to a "standard floating-point usage" (the ISO/IEC 60559 FLOAT-BINARY-32/64/128
+- **EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW applied to EVERY floating-point usage (§14.6.13.2 item 3 / §14.9.25.4
+  GR6 d)4.a)**: the standard scopes these to a "standard floating-point usage" (the ISO/IEC 60559 FLOAT-BINARY-32/64/128
   and FLOAT-DECIMAL-16/34 forms — §13.18.60 item 19; FLOAT-SHORT/-LONG/-EXTENDED and COMP-1/COMP-2 have
   implementor-defined representation, §13.18.60 item 21, with implementor-specified exception conditions per
   §14.6.13.4). In the typed-native model EVERY floating-point usage is a native IEEE `float`/`double`, so **pinned
@@ -259,8 +259,25 @@ of an unsupported facility.
   an implementor determination (which the standard delegates) for FLOAT-SHORT/-LONG/-EXTENDED and COMP-1/COMP-2.
   EC-DATA-NOT-FINITE (fatal) fires when a NaN/±Infinity float sending operand is referenced (both the numeric-value and
   the string-image read paths) except in a class condition, a sign condition, a same-usage MOVE, or VALIDATE;
-  EC-DATA-OVERFLOW (fatal) fires when a MOVE's finite value overflows a single-precision receiver to ±Infinity. Both
-  default OFF (byte-identical to a pre-slice build). Goldens `2023/ec_data_not_finite`, `2023/ec_data_overflow`.
+  EC-DATA-OVERFLOW (fatal) fires when a MOVE's algebraic value is farther from zero than the receiver's usage
+  permits — §14.9.25.4 GR6 d)4.a verbatim: "If the algebraic value of the sending operand is farther from zero
+  than is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW exception
+  condition is set to exist, and the content of the receiving data item is undefined." Both default OFF
+  (byte-identical to a pre-slice build). Goldens `2023/ec_data_not_finite`, `2023/ec_data_overflow`,
+  `2023/pb271_float_receiver_overflow`.
+  ⛔ **THAT TEST IS ON THE ALGEBRAIC VALUE, WHICH MEANS IT MUST HOLD THE DECIMAL SENDER** (kb/Work PB271). It
+  used to be inferred from an IEEE cast: a single-precision receiver asked whether a FINITE double had become
+  ±Infinity, and a double receiver was a bare cast on the premise that "a double receiver cannot overflow from
+  a finite double". Both premises assumed the sender reaching them was a finite double. A STANDARD-DECIMAL
+  intermediate reaches ±9.999…E+6144 and collapses to ±Infinity in the conversion, so `MOVE 1.0E+400 TO` a
+  FLOAT-BINARY-64 (or -32, or FLOAT-LONG) stored +Infinity and raised NOTHING, at every checking level — and
+  owner decision D-B made that literal legal in the DEFAULT arithmetic mode, so the shape reached ordinary
+  programs. The screen is now on the `CobolDec` itself, before the conversion.
+  ⚠ **What a DEFAULT build does is unchanged and is its own determination:** checking is off by default
+  (§14.6.13.1.1) and GR6 d)4.a makes the receiver's content undefined in the overflow case, so COBOL.NET
+  performs the ISO/IEC 60559 conversion and keeps its result — ±Infinity for an over-range value, zero for an
+  under-range one, which is not this EC in either direction. `2023/pb271_float_receiver_overflow` pins that
+  half; `2023/ec_data_overflow` pins the checking-ON half.
   **Documented gaps:** (a) a floating-point NUMERIC-EDITED MOVE receiver is not covered by the EC-DATA-OVERFLOW seam
   (§14.9.25.4 GR4 also names it) — deferred until floating-point numeric-edited PICTUREs are supported; (b) a
   multi-receiver `ADD/SUBTRACT … TO/FROM` with several float receivers under EC-DATA-NOT-FINITE checking can
@@ -558,16 +575,63 @@ reallocated).
 > always wins with binary zeros (GR6). Pinned by `2023/pb151_options_fill`.
 
 > ⚖ **DETERMINATION — the §8.8.1.5.4 r2e development of a non-integer (and past-loop-bound integer) power**
-> (2026-08-29; kb/Work PB145). The equivalent-expression development for `b ** e` with a non-integer exponent
-> is the IEEE binary64 approximation (`Math.Pow`), converted through the §8.8.1.5.1 float→SDIDI conversion —
-> ~17 correct digits, the same development GnuCOBOL's C `pow` takes — BOUNDED to operands binary64 can carry:
-> a base or result outside binary64's range routes through a base-10 log decomposition that never leaves the
-> decimal exponent field, so an SDIDI-range operand neither collapses to a silent zero nor raises a spurious
-> range error, and the out-of-decimal128 directions carry their own §8.8.1.5.2 r2 names (too large =
-> EC-SIZE-OVERFLOW, too small = EC-SIZE-UNDERFLOW). r2e's first shall ("Operands used in the development …
-> shall be in SDIDI form") is NOT met by the binary64 core — whether to fund a 34-digit SDIDI-carried exp/ln
-> or ratify this approximation permanently is kb/Work PB167's owner decision; GR-8.8.1.5.4-2/-3 stay PARTIAL
-> until it lands.
+> (2026-08-29, REPLACED 2026-08-31 by owner decision D-C; kb/Work PB145 + PB167). r2e leaves the equivalent
+> arithmetic expression to the implementor and constrains the DEVELOPMENT: "Operands used in the development of
+> that value shall be in SDIDI form. All additions, subtractions, multiplications and divisions performed in the
+> development of the result shall be performed in accordance with the corresponding rules in ISO/IEC 60559:2020."
+> **COBOL.NET's equivalent expression is `exp(operand-2 × ln operand-1)`, developed entirely on SDIDI operands —
+> no binary64 anywhere in it** (`CobolDec.PowCore` / `Ln` / `LnReduced` / `Exponential`: the ln decomposition
+> splits the decimal exponent, then takes the atanh series over one of TWO argument reductions — three exact
+> square roots to m^(1/8) away from 1, and ln(1+δ) over δ = m − 1 directly inside |m − 1| ≤ ¼, where the roots
+> would cancel the difference away; the exp reduction takes out `n × ln 10` so the `10^n` factor is an EXACT
+> decimal exponent shift, then runs the Taylor series). **One chosen special case: at operand-2 = ½ the
+> equivalent expression is `FUNCTION SQRT(operand-1)`**, whose standard-decimal value §15.84.4 r2 fixes EXACTLY —
+> so `b ** 0.5` and `FUNCTION SQRT(b)` agree digit-for-digit by construction rather than by luck. They disagreed
+> before, from the 17th significant digit.
+> ⛔ **r3 IS NOT PART OF THAT LATITUDE AND IS WRITTEN ONCE.** r2's latitude is scoped "When the value of
+> operand-2 is greater than zero"; for a NEGATIVE operand-2 r3 fixes the result as the evaluation of
+> `(1 / (operand-1 ** FUNCTION ABS (operand-2)))`, which under per-operation 34-digit rounding is a different
+> value from `exp(-|p| × ln b)`. `CobolDec.Pow` reciprocates at the top, over the same development at
+> |operand-2|, so every arm below is r3-correct by construction. One visible consequence: an out-of-range
+> negative exponent takes its EC name from r3's own expression, because the operation that leaves the range is
+> the INNER power — `2 ** -600000` is EC-SIZE-OVERFLOW and `0.5 ** -600000` EC-SIZE-UNDERFLOW (kb/Work PB266).
+> ⚠ **What is claimed is an r2e-conforming SDIDI development, NOT 34 correct digits.** §8.8.1.5.2 rounds every
+> operation to 34 digits, so a development of N operations carries the accumulated rounding of all N. MEASURED
+> (an independent 34-digit emulation of the development checked against 120-digit truth, not estimated):
+> **≈33 correct significant digits** for a moderate exponent — 33.00–33.58 over the six
+> `CobolDecPowDevelopmentTests` rows and 30.87 as the floor over a 400-case randomized in-range sweep (the
+> binary64 predecessor reached ≈17) — **degrading as ≈ 33 − log₁₀|operand-2 × ln operand-1|** once that product
+> passes 1 (32.15 digits at 7.1, 31.12 at 69, 30.11 at 693, 28.78 at 13 863). THAT driver is inherent to the
+> equivalent expression: an exp development turns ABSOLUTE error in its argument into RELATIVE error in its
+> result.
+> ⛔ **This determination previously read "≈31 … degrading as |operand-2 × ln operand-1| grows and for a base
+> very near 1 — … inherent to the equivalent expression", and the near-unit half of that was NOT inherent — it
+> was this coding of it** (kb/Work PB269). The three-square-root reduction carried m^(1/8) at 34 SIGNIFICANT
+> digits about 1, so `Sub(u, One)` cancelled away the whole of b−1: 17.05 correct digits at the worst point of
+> |m−1| ≤ ¼, and EXACTLY ZERO at m = 1 + 10⁻³³, where `(1 + 10⁻³³) ** 10³⁰` answered a flat 1 against a true
+> 1.0010005. The δ arm removes it — the same three cases now measure 32.4, 29.1 and 33.2 — so the near-unit
+> driver is gone rather than reduced, and only the |operand-2 × ln operand-1| one remains.
+> The range dispositions PB145 established are unchanged: the out-of-decimal128 directions carry their own
+> §8.8.1.5.2 r2 names (too large = EC-SIZE-OVERFLOW, too small = EC-SIZE-UNDERFLOW), and no SDIDI-range operand
+> collapses to a silent zero or raises a spurious range error. The past-loop-bound INTEGER escape now enters the
+> SAME development — it used to be a SECOND, different binary64 one, which also dropped the sign of a negative
+> base raised to an odd exponent — **with the exponent OPERAND, never the loop-bound probe.** That probe clamps
+> at `long.MaxValue`, and the escape used to rebuild the exponent from it, so every exponent past 2⁶³−1 was
+> silently replaced by 9223372036854775807: `(1 + 10⁻³³) ** 1.0E+20` answered 1.0000000000000 where
+> 1.0000000000001 is owed and `0.9999999999999999 ** 1.0E+25` answered a silent 0 where the value is below the
+> decimal128 range and EC-SIZE-UNDERFLOW is owed (kb/Work PB267). ⚠ The disposition is NOT "a clamped exponent
+> with |base| ≠ 1 is out of range": the closest SDIDI value to one is 1 ± 10⁻³³ and `(1 + 10⁻³³) ** 10²⁰` is in
+> range, so that screen would be PB145's spurious size error again. GR-8.8.1.5.4-2/-3 are CONFORMS. Pinned by `2023/pb167_sdidi_exponentiation`,
+> `2023/exp_standard_decimal_eae` and `CobolDecPowDevelopmentTests`, whose drift leg fails if any binary64
+> transcendental returns to `CobolDec`.
+> ⚠ **Consequence under INTERMEDIATE ROUNDING IS PROHIBITED, and it is the standard's:** §11.9.11.2 rule 3 d —
+> "If the PROHIBITED phrase is specified and an intermediate value cannot be represented exactly in SDIDI form,
+> the EC-SIZE-TRUNCATION exception condition is set to exist and the results of the operation are undefined."
+> The r2e development is a chain of inexact 34-digit operations over an irrational result, so under PROHIBITED a
+> NON-INTEGER power now raises, exactly as `FUNCTION SQRT` already did for an inexact root. The binary64
+> predecessor did NOT raise — it computed in IEEE double and entered the SDIDI through one EXACT `FromDouble`,
+> so the prohibition never saw the inexactness it exists to report. An INTEGER power still computes (r2a–r2d is
+> exact multiplication). Pinned by `2023/pb167_sdidi_exponentiation_prohibited`.
 
 > ⚖ **DETERMINATION — §8.8.1.5.2 r2's "too small" is the round-to-zero test, and gradual underflow sets no
 > exception** (2026-08-29; kb/Work PB145). A value below 10⁻⁶¹⁷⁶ re-rounds onto the 10⁻⁶¹⁷⁶ quantum under the
@@ -703,7 +767,7 @@ warning sites are the code-side counterpart — keep the two in sync. This file 
 | 133 | **MODULE-NAME — the length of the returned value item and whether it may have trailing spaces**, §15.65.4 r1/r2, conditionally required (documented voluntarily) | **A dynamic-length alphanumeric item with no trailing spaces**, r1's stated exception included (a single space for ACTIVATING in a main program, and STACK's final single-space entry — content, not padding). The name is delivered as its exact string; there is no fixed width between the module stack and the expression, so §15.65.4 r2's "does not fit" antecedent (EC-BOUND-FUNC-RET-VALUE) is structurally unreachable — pinned by `ModuleStackInvariantTests` (kb/Work PB63 / RV-15.65.4-2), which also fixes the r10 host-boundary arm above. |
 | 209 | **USAGE BIT clause — alignment and representation of data**, §13.18.60.4 GR5 + §8.5.1.6.3, required + documented | A `USAGE BIT` item **occupies bits**, as GR5 requires. Bits per character position is **8** — §8.1.2 leaves it implementor-specified, and 8 is what makes it agree with DISPLAY's one byte per character position. Alignment follows §8.5.1.6.3 exactly: a bit item immediately following an elementary bit item **of the same level** takes the next bit position (they share a byte); any other bit item starts at the first bit of the next available byte; implicit filler advances to the next item's natural boundary and fills a trailing partial byte to an integral number of characters, and §15.50.4 r5 counts that filler. In a record image a bit run is **packed high-order bit first** — §8.5.1.6.3 numbers positions from "the first bit position" — with trailing filler bits zero. ⚠ The item's VALUE CARRIER is a `'0'`/`'1'` string, which is not observable to a COBOL program and is not a conformance claim; what is claimed is the SIZE, ALIGNMENT and IMAGE above. A boolean item with **no** USAGE clause is a different case: §13.18.60.3 SR13(b) implies DISPLAY and GR7 makes it one alphanumeric character per boolean position. |
 | 215 | **USAGE PACKED-DECIMAL clause — computer storage allocation, alignment and representation of data**, §13.18.60.4 GR11, required + documented | A PACKED-DECIMAL item is **binary-coded decimal, two digits per byte, most significant first**, with a **trailing sign nibble** in the low half of the last byte: `C` positive, `D` negative, `F` for an item with no operational sign (the convention IBM, Micro Focus and GnuCOBOL all write, so a data file interchanges). The digit run is padded on the left with a zero nibble when needed, giving **`digits / 2 + 1` bytes**; the implied decimal point occupies no nibble. Under the COBOL-2023 **WITH NO SIGN** phrase the sign nibble is not reserved at all — every nibble is a digit and the width is **`ceil(digits / 2)`**. ⚠ The two forms can occupy the SAME number of bytes: 3 digits is 2 bytes either way, laid out `12 3C` signed and `01 23` unsigned-no-sign. **Alignment: none** (no SYNCHRONIZED padding). Worked example: `PIC 9(4) COMP-3 VALUE 1234` occupies 3 bytes `01 23 4F`; `PIC S9(4) COMP-3 VALUE -1234` occupies `01 23 4D`. Decoding accepts the universal readings — `B` and `D` negative, everything else positive — so a file written by another COBOL system reads correctly. |
-| 82 | **Floating-point numeric literals — the maximum and minimum permitted value of the exponent**, §8.3.3.3.3 r3, required + documented | The FORM is the standard's (SR2/SR3: a 1–36-digit significand with a decimal point, an exponent of at most four digits — COBOLNET1661 otherwise, kb/Work PB99). The permitted VALUE depends on the form the literal evaluates in: **a literal in an arithmetic expression, a relation or a MOVE source is a binary64 operand (design D16) and shall be finite in binary64 and not below its smallest subnormal — about 4.9E-324 ≤ \|v\| ≤ 1.8E+308** (`1.0E+400`, `1.0E-400` → COBOLNET1661); a VALUE on a FLOAT-SHORT / FLOAT-BINARY-32 item shall lie in binary32's range, on FLOAT-LONG / FLOAT-BINARY-64 / FLOAT-EXTENDED in binary64's (§13.18.63.3 SR2 — "the range indicated by the USAGE clause"); a VALUE on a fixed-point numeric item or a floating-point numeric-edited item keeps the literal's EXACT value, so its range is the receiver's PICTURE (`PIC 9E+9999 VALUE 1.0E+9999` seeds `1E+9999`; `PIC 9(5)V99 VALUE 1.5E+3` seeds 1500.00). A literal in an OPERAND position — a MOVE source, a relation / EVALUATE comparand, a PERFORM VARYING FROM / BY value, a function argument — is its EXACT value in every mode (§8.3.3.3.3 GR5; a MOVE or a comparison is not native arithmetic, so D16's binary64 latitude does not reach it), carried on the exact-decimal lane. Under ARITHMETIC IS STANDARD-DECIMAL a literal in an arithmetic expression or statement is likewise the exact decimal128 operand (§8.8.1.5.2 r1) and its range is decimal128's (about 1E-6176 to 9.99E+6144 — `1.0E+400 / 1.0E+398` evaluates). Pinned by `2023/pb99_floating_literal_extremes`, `pb99_floating_literal_operand_exact`, `pb99_floating_literal_standard_decimal`; negatives `pb99-floating-literal-form` / `-range`. |
+| 82 | **Floating-point numeric literals — the maximum and minimum permitted value of the exponent**, §8.3.3.3.3 r3, required + documented | The FORM is the standard's (SR2/SR3: a 1–36-digit significand with a decimal point, an exponent of at most four digits — COBOLNET1661 otherwise, kb/Work PB99). **The permitted VALUE is the decimal128 range — about 1E-6176 to 9.99E+6144 — in EVERY position and EVERY arithmetic mode** (owner decision D-B, 2026-08-30; kb/Work PB156 + PB195). The literal IS its exact §8.3.3.3.3 rule-5 value wherever it appears (significand × 10^exponent), carried on the SDIDI lane, so the implementor-defined range r3 asks for is that carrier's; `1.0E+400` evaluates, `1.0E+9999` and `1.0E-9999` are COBOLNET1661. ⛔ This REPLACED a per-position split in which an arithmetic expression, a relation or a MOVE source screened the literal against IEEE binary64 (about 4.9E-324 ≤ \|v\| ≤ 1.8E+308): §14.9.2.4 GR4 and its §14.9.44.4 GR4 twin exclude only operands "described with usage" binary-*/float-*, never a literal, and §14.7.7 rule 2 names a floating-point literal as its OWN bullet where it means to include one — so `ADD 1.0E+0` to a PIC 9(20) holding 12345678901234567890 owed …891 and a binary64 operand delivered …168, and `IF 1.0E+400 > X` was refused under native arithmetic while the identical program compiled under ARITHMETIC IS STANDARD-DECIMAL. A literal's notation now never changes its VALUE. ⚠ It does still select the intermediate LANE under native arithmetic, and that is a published §8.8.1.3 determination, not an invariant: a float literal operand routes a native statement onto the decimal128 lane (34 significant digits) where a fixed-point literal keeps the Int128 one (~38), so `A * B + 0.0E+0` and `A * B + 0.0` differ for 18-digit A and B, and INTERMEDIATE ROUNDING (§11.9.11) reaches the first and not the second — pinned by `pb156_float_literal_exact_native`'s LANE/LANEF legs (kb/Work PB274). Separately, the exact-integer `**` arm is keyed on the exponent's VALUE and not its spelling, so `10 ** 30`, `10 ** 30.0` and `10 ** 3.0E+1` are one expression (kb/Work PB272). **The VALUE-clause range is a different rule and keeps the carrier's bound:** §13.18.63.3 SR2 wants "permissible values within the range indicated by the PICTURE clause or the USAGE clause" (verbatim, cite.py-verified) and a FLOAT-* subject has no PICTURE, so a VALUE on FLOAT-SHORT / FLOAT-BINARY-32 shall lie in binary32's range and on FLOAT-LONG / FLOAT-BINARY-64 / FLOAT-EXTENDED in binary64's, while a VALUE on a fixed-point numeric item or a floating-point numeric-edited item keeps the literal's EXACT value and its range is the receiver's PICTURE (`PIC 9E+9999 VALUE 1.0E+9999` seeds `1E+9999`; `PIC 9(5)V99 VALUE 1.5E+3` seeds 1500.00). **Residual, stated honestly:** SR2 admits a 36-digit significand and the SDIDI carrier holds 34, so the 35th and 36th significand digits of such a literal round at `CobolDec.FromParsed` under the INTERMEDIATE ROUNDING mode; the form is accepted (SR2 is satisfied) and the two trailing digits are not preserved. Pinned by `2023/pb99_floating_literal_extremes`, `pb99_floating_literal_operand_exact`, `pb99_floating_literal_standard_decimal`, `pb156_float_literal_exact_native`; negatives `pb99-floating-literal-form` / `-range`. |
 | 87 | **FORMATTED-CURRENT-DATE function — accuracy of the returned time portion**, §15.38.4 r2 (Annex A.1 lists it under "Returned value rule 1"; the obligation's text is r2 — do not "correct" it the other way), required + documented | **The run unit's clock TICK — 100 ns, i.e. 7 significant fraction digits**, exactly SECONDS-PAST-MIDNIGHT's precision (item 171) and the same injectable `RunUnit.Clock` seam (`COBOLNET_CLOCK`-deterministic; the code once read `DateTimeOffset.Now` directly and no longer does). The value is carried at 9 fraction digits as `ticks × 100` — integer arithmetic, no binary64 conversion on the way (kb/Work PB65, 2026-08-18) — so a format's `s` fraction field renders the first 7 digits from the clock and ZEROS beyond them, up to the §15.3.3.2 maximum of 18; nothing is truncated or diagnosed. The date portion is the clock's local calendar date; the UTC-offset portion (`+hh:mm`) is the clock's offset. Pinned by `CobolDateWindowingTests` through the same clock seam. |
 | 144 | **RANDOM function — seed value when no argument on first reference**, §15.75.3 r4, required (the seed VALUE need not be documented — this row is VOLUNTARY, the item-92 precedent, kept because the determination is load-bearing for users) | **Per-process OS entropy — sequences are deliberately NOT reproducible across runs without an explicit seed argument.** The unseeded generator is .NET's parameterless `Random` (xoshiro256** seeded from OS entropy); there is no fixed seed value, which is itself the determination §15.75.3 r4 requires. ⚖ Decided 2026-08-09 under the owner's standing latitude rule (follow GnuCOBOL where the standard leaves latitude): **surveyed, not assumed** — GnuCOBOL 3.x `cob_intr_random` seeds its first unseeded reference from `get_seconds_past_midnight() * (module-pointer bits)` (libcob/intrinsic.c, read 2026-08-09), i.e. per-process entropy, the SAME choice — and IBM documents the unseeded seed as unpredictable, so the vendors do not even split. A program needing a reproducible sequence writes `FUNCTION RANDOM(seed)` on first reference, which fully determines the sequence per r3/r5. |
 | 145 | **RANDOM function — the subset of the domain of argument-1 that yields distinct sequences**, §15.75.4 r3 ("shall include the values from 0 through at least 32767"), required + documented | **Every seed 0 through 2,147,483,647 selects its own generator state; the seeds 0 through 65,535 are MEASURED pairwise distinct** — `RandomSeedSubsetTests` compares the first three draws of every seed in that range and finds no two alike, which discharges the required floor 0..32,767 with a margin (only what is measured is claimed: distinctness above 65,535 is the generator's design, `System.Random(int)` seeding injectively on the value, not a measurement). A seed at or above 2³¹ ALIASES to `seed AND 0x7FFFFFFF` (2,147,483,648 → 0, 2,147,483,649 → 1 — pinned), a negative seed is EC-ARGUMENT-FUNCTION (§15.75.3 r2, item 144's sibling row). The generator is `System.Random(int)` (the .NET Knuth subtractive sequence, `CobolIntrinsics.Random(long seed)`); the same seed reproduces the same sequence within and across processes on a given .NET runtime (§15.75.4 r2). |

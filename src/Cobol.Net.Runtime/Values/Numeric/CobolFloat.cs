@@ -79,19 +79,52 @@ public static class CobolFloat
         return v;
     }
 
-    /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision standard-float receiver (ISO
-    /// §14.9.25.4 GR4 step 4a): cast to <see cref="float"/> and, when a FINITE source overflows the single-precision
+    /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision float receiver (ISO
+    /// §14.9.25.4 GR6 d)4.a): cast to <see cref="float"/> and, when a FINITE source overflows the single-precision
     /// exponent range to ±Infinity and EC-DATA-OVERFLOW checking is enabled, raise the fatal EC-DATA-OVERFLOW (via
     /// <see cref="ExceptionState.FloatOverflowError"/>). The <c>double.IsFinite(src)</c> guard keeps a NaN/±Infinity
     /// source out of overflow (that is EC-DATA-NOT-FINITE at the sending read, or the valid §14.6.8.3 GR1 result under
     /// checking OFF). The test is cast-based — never <c>Math.Abs(src) &gt; float.MaxValue</c>, since a double in
-    /// (float.MaxValue, ~3.4028235678e38] rounds to a FINITE <c>float.MaxValue</c>, not ±Infinity. A double receiver
-    /// cannot overflow from a finite double, so it keeps a bare cast (no checked store).</summary>
+    /// (float.MaxValue, ~3.4028235678e38] rounds to a FINITE <c>float.MaxValue</c>, not ±Infinity.
+    /// <para>⛔ THIS OVERLOAD CANNOT SEE A DECIMAL SENDER'S MAGNITUDE — use <see cref="StoreChecked(CobolDec,bool)"/>
+    /// for one. A binary64 conversion happens before this is called, so an SDIDI past binary64's range arrives
+    /// ALREADY ±Infinity and <c>double.IsFinite(src)</c> is false.</para></summary>
     public static float StoreSingleChecked(double src)
     {
         float r = (float)src;
         if (double.IsFinite(src) && float.IsInfinity(r))
-            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §14.9.25.4 GR4 step 4a)");
+            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §14.9.25.4 GR6 d)4.a)");
+        return r;
+    }
+
+    /// <summary>The checked store of a MOVE algebraic value that is a STANDARD-DECIMAL intermediate into a float
+    /// receiver (ISO §14.9.25.4 GR6 d)4.a; kb/Work PB271).
+    /// <para>⛔ THE TEST IS ON THE ALGEBRAIC VALUE, WHICH MEANS IT MUST HOLD THE <see cref="CobolDec"/> — after
+    /// <see cref="CobolDec.ToDouble"/> the magnitude is gone. An SDIDI reaches ±9.999…E+6144, twenty decades past
+    /// binary64 and 6100 past binary32, so <c>MOVE 1.0E+400 TO F</c> collapsed to ±Infinity at the conversion and
+    /// BOTH float arms then failed to notice: the double arm was a bare cast on the premise that "a double receiver
+    /// cannot overflow from a finite double" (true, but the sender reaching it stopped being a finite double), and
+    /// <see cref="StoreSingleChecked(double)"/>'s finite-source guard was already false. GR6 d)4.a requires the
+    /// fatal EC-DATA-OVERFLOW here: "If the algebraic value of the sending operand is farther from zero than is
+    /// permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW exception condition
+    /// is set to exist, and the content of the receiving data item is undefined" (cite.py-verified).</para>
+    /// <para>A <see cref="CobolDec"/> has no infinity, so <c>IsInfinity</c> on the CORRECTLY-ROUNDED conversion is
+    /// exactly "farther from zero than the usage permits" — a value between the receiver's maximum and the next
+    /// representable magnitude rounds back to that maximum and is NOT an overflow, which a
+    /// <c>&gt; MaxValue</c> comparison would get wrong.</para>
+    /// <para>SCOPE. GR6 d)4.a binds a receiver "described with a standard floating-point usage" — FLOAT-BINARY-32
+    /// and FLOAT-BINARY-64 here (§13.18.60.4 GR14/GR15). For COMP-1/COMP-2/FLOAT-SHORT/FLOAT-LONG/FLOAT-EXTENDED
+    /// §14.6.8.3 rule 1 instead says "the implementor specifies any exception conditions that might be set to
+    /// exist during data conversion" (cite.py-verified), and COBOL.NET's determination is the SAME condition —
+    /// one rule for every float receiver, published in CONFORMANCE.md. The single-precision arm has raised it for
+    /// COMP-1 since D21, so this makes the family consistent rather than adding a second regime.</para></summary>
+    public static double StoreChecked(CobolDec src, bool single)
+    {
+        double r = src.ToDouble();
+        if (double.IsInfinity(r) || (single && float.IsInfinity((float)r)))
+            ExceptionState.FloatOverflowError("a MOVE algebraic value is farther from zero than the "
+                + (single ? "single" : "double") + "-precision float receiver's usage permits "
+                + "(ISO §14.9.25.4 GR6 d)4.a)");
         return r;
     }
 

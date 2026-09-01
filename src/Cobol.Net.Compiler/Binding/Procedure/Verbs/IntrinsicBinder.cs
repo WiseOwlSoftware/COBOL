@@ -2366,10 +2366,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             }
             // §15.83.4 r1 (kb/Work PB122; the float-ITEM twin of the float-EDITED screen below): the entry
             // shall be such that every value it permits passes an IN-ARITHMETIC-RANGE test — the carrier's
-            // extremes against the mode's intermediate range (§8.8.4.4.4 GR3 l). Every carrier declarable
-            // today passes under both reachable modes (binary32 ±38/−45, binary64 ±308/−324, decimal ±28,
-            // vs native binary64 ±308/−324 and standard-decimal ±6145/−6176) — this guard fires only if a
-            // wider carrier (a true binary128, say) ever lands, and then automatically.
+            // extremes against the MODE's intermediate range (§8.8.4.4.4 GR3 l), which is
+            // ArithmeticModes.IntermediateExponentRange and nowhere else (kb/Work PB194). Every carrier
+            // declarable today (binary32 ±38/−45, binary64 ±308/−324, decimal ±28) passes under every reachable
+            // mode, so this arm is LATENT: it fires only if a wider carrier (a true binary128, say) ever lands,
+            // and then automatically. Its sibling below — the float-EDITED arm, whose PICTURE can name any
+            // exponent width — is the one the mode-set drift was observable through.
             {
                 var (farthestExp, closestExp) = pic.Usage switch
                 {
@@ -2377,12 +2379,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     Usage.FloatDecimal16 or Usage.FloatDecimal34 => (28, -28),
                     _ => (308, -324),
                 };
-                bool standardDec = ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal;
-                if (farthestExp > (standardDec ? 6145 : 308) || closestExp < (standardDec ? -6176 : -324))
+                // ⛔ THE MODE'S OWN BOUNDS, FROM THE ONE TABLE (kb/Work PB194) — this site used to test
+                // `== StandardDecimal` alone, so ARITHMETIC IS STANDARD screened against binary64 while its
+                // engine was the SDIDI. ArithmeticModes.IntermediateExponentRange is the single home.
+                var (modeFar, modeNear) = ArithmeticModes.IntermediateExponentRange(ctx.Data.Options.Arithmetic);
+                if (farthestExp > modeFar || closestExp < modeNear)
                 {
                     ctx.Edition.Error(DiagnosticCatalog.AlgebraicFloatEditedRange, $"FUNCTION {sig.Name}: "
                         + $"argument-1's usage describes values as far from zero as 1E+{farthestExp} and as near "
-                        + $"as 1E{closestExp}, outside the {(standardDec ? "standard-decimal" : "native (binary64)")} "
+                        + $"as 1E{closestExp}, outside the {ArithmeticModes.IntermediateName(ctx.Data.Options.Arithmetic)} "
                         + "intermediate's range — the entry shall be such that its values pass an "
                         + $"IN-ARITHMETIC-RANGE test (ISO §{fsec3[..^2]}.4 rule 1; §8.8.4.4.4 GR3 l)");
                     return new BoundExprError($"FUNCTION {sig.Name} float argument");
@@ -2430,14 +2435,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // farthest = (10^d − 1) × 10^(−f) × 10^maxExp  ≈ 10^(intDigits + maxExp); closest nonzero = 10^(intDigits − 1 − maxExp)
             int farthestExp = intDigits + fm.MaxExp;             // the decimal exponent of the extreme's magnitude
             int closestExp = intDigits - 1 - fm.MaxExp;
-            bool standardDecimal = ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal;
-            int modeFarthest = standardDecimal ? 6145 : 308;      // decimal128 ≈ 1E+6145 / binary64 1.797E+308
-            int modeClosest = standardDecimal ? -6176 : -324;     // decimal128 1.0E−6176 / binary64 4.94E−324
+            // ⛔ THE SAME ONE TABLE AS THE USAGE ARM ABOVE (kb/Work PB194 — this is the second of the two copies
+            // that named StandardDecimal alone; the mode set now lives in exactly one place).
+            var (modeFarthest, modeClosest) = ArithmeticModes.IntermediateExponentRange(ctx.Data.Options.Arithmetic);
             if (farthestExp > modeFarthest || closestExp < modeClosest)
             {
                 ctx.Edition.Error(DiagnosticCatalog.AlgebraicFloatEditedRange, $"FUNCTION {sig.Name}: argument-1's picture "
                     + $"{pic.EditMask} describes values as far from zero as 1E+{farthestExp} and as near as 1E{closestExp}, "
-                    + $"outside the {(standardDecimal ? "standard-decimal" : "native (binary64)")} intermediate's range — the entry "
+                    + $"outside the {ArithmeticModes.IntermediateName(ctx.Data.Options.Arithmetic)} intermediate's range — the entry "
                     + "shall be such that its extreme passes an IN-ARITHMETIC-RANGE test (ISO §15.43.4 r1 / §15.58.4 r1; §8.8.4.4.4 GR3 l)");
                 return new BoundExprError($"FUNCTION {sig.Name} floating-point edited argument");
             }

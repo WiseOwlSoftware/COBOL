@@ -1,6 +1,7 @@
 {
  "_comment": "The 2023 positive-corpus DISCOVERY MANIFEST (roadmap Phase-1 runner shells): CorpusRunnerTests compiles (and, given a sibling .out, runs+compares) every ENABLED program at --std 2023 strict. Programs exercising not-yet-implemented features stay PENDING (the ISO-validation critics' mass-red guard) and are enabled by the wave that lands their feature. The integrity fact asserts every .cob here is listed (enabled or pending) - nothing is silently undiscovered.",
  "enabled": [
+  "pb271_float_receiver_overflow",
   "pb169_status_operand_shapes",
   "pb170_position_operand_legal_shapes",
   "pb171_sign_condition_operands",
@@ -279,7 +280,10 @@
   "stepd_based_comp_leaf",
   "stepd_fd_multi01_comp",
   "stepd_mixed_usage_redefines",
-  "delete_file_attribute_set_empty"
+  "delete_file_attribute_set_empty",
+  "pb156_float_literal_exact_native",
+  "pb167_sdidi_exponentiation",
+  "pb167_sdidi_exponentiation_prohibited"
  ],
  "pending": []
 }

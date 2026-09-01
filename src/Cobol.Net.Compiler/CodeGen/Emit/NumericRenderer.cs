@@ -90,12 +90,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     }
 
     /// <summary>Render a bound expression that the FORMAT admits only as an OPERAND — PERFORM VARYING's FROM / BY
-    /// (ISO §14.9.28.2: identifier, index-name or literal; the binder types them BoundExpr for convenience): a bare
-    /// floating-point literal keeps its EXACT value (<see cref="LiteralOperandNum"/> — kb/Work PB99: `FROM 1.0E+3`
-    /// set a 20-decimal item to 999.999…9161, the binary64 1E+23 product), everything else renders as an expression
-    /// under <see cref="ReceiverContext.None"/>.</summary>
-    public NumX RenderOperandLike(BoundExpr e) =>
-        e is BoundNumLiteral nl ? LiteralOperandNum(nl.Text) : Render(e, ReceiverContext.None);
+    /// (ISO §14.9.28.2: identifier, index-name or literal; the binder types them BoundExpr for convenience). A bare
+    /// floating-point literal keeps its EXACT value (kb/Work PB99: `FROM 1.0E+3` set a 20-decimal item to
+    /// 999.999…9161, the binary64 1E+23 product) — which is now what <see cref="LiteralNum"/> gives it in EVERY
+    /// position, so this is plain <see cref="Render"/> under <see cref="ReceiverContext.None"/>.
+    /// <para>⛔ THE OPERAND-vs-EXPRESSION SPLIT IS GONE (owner decision D-B, kb/Work PB156/PB195). It existed only
+    /// because a literal rendered differently in the two positions; one rendering means one path, and the named
+    /// method survives solely to document WHY the format admits no expression here.</para></summary>
+    public NumX RenderOperandLike(BoundExpr e) => Render(e, ReceiverContext.None);
 
     /// <summary>Render a bound operand as a scaled native-integer value, computed FOR <paramref name="rcv"/>
     /// (re-entrant — see <see cref="Render"/>). <paramref name="floatSendingExempt"/> suppresses the float
@@ -115,27 +117,36 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // ── IBoundExprVisitor<NumX> ──────────────────────────────────────────────────────────────────────────────
     public NumX Visit(BoundNumLiteral n) => LiteralNum(n.Text);
 
-    /// <summary>A numeric literal inside an ARITHMETIC expression or statement (a <c>BoundNumLiteral</c>): the
-    /// fixed-point / binary64 rendering of <see cref="EmitText.UnscaledLit"/> — a floating-point literal is a binary64
-    /// operand under NATIVE arithmetic (numeric design D16: §8.8.1.3 leaves the method of evaluating an arithmetic
-    /// expression / statement to the implementor) — except that under ARITHMETIC IS STANDARD-DECIMAL it is the EXACT
-    /// decimal128 operand (ISO §8.8.1.5.2 r1 — <c>CobolDec.FromParsed</c>; kb/Work PB99: a binary64 on the way lost
-    /// every digit past the 17th and could not carry a 4-digit exponent at all).</summary>
+    /// <summary>⛔ THE ONE numeric-literal → <see cref="NumX"/> rendering, for EVERY position and EVERY arithmetic
+    /// mode (owner decision D-B, 2026-08-30; kb/Work PB156 + PB195). A FLOATING-POINT literal is its EXACT
+    /// ISO §8.3.3.3.3 rule-5 value — "the algebraic product of the value of its significand and the quantity derived
+    /// by raising ten to the power of the exponent" — carried on the Dec (SDIDI) lane; a fixed-point literal is the
+    /// scaled-integer rendering of <see cref="EmitText.UnscaledLit"/>, unchanged.
+    /// <para>WHY THE NATIVE ARM IS EXACT TOO. §14.9.2.4 GR4 (and its §14.9.44.4 GR4 SUBTRACT twin) says: "When
+    /// native arithmetic is in effect and none of the operands is described with usage binary-char, binary-short,
+    /// binary-long, binary-double, float-short, float-long, or float-extended, enough places shall be carried so as
+    /// not to lose any significant digits during execution." A LITERAL is not "described with usage" anything, and
+    /// §14.7.7 rule 2 proves the drafters spell a float literal out as its OWN bullet when they mean to include it —
+    /// GR4 does not. So `ADD 1.0E+0 TO W` over a PIC 9(20) holding 12345678901234567890 owed …891 and a binary64
+    /// operand delivered …168. Numeric design D16's §8.8.1.3 latitude is therefore NARROWED to what it always
+    /// described: an expression touching a float ITEM or a float RECEIVER still evaluates in IEEE binary64 (the
+    /// <c>Real</c> lane keeps precedence in <see cref="CombineCore"/> — untouched by D-B).</para>
+    /// <para>⛔ THE INVARIANT THIS BUYS, STATED EXACTLY (it was written as "a literal's NOTATION never changes the
+    /// arithmetic — only its VALUE does", and that sentence is FALSE — kb/Work PB274): the VALUE a literal
+    /// contributes is its exact §8.3.3.3.3 rule-5 value, in every position and every arithmetic mode, and no
+    /// operand ever arrives rounded to binary64. `ADD 1.0E+0` computes what `ADD 1.0` computes and
+    /// `2 ** 0.5E+0` what `2 ** 0.5` computes, because those are the same VALUES.</para>
+    /// <para>What the notation still selects, under NATIVE arithmetic, is the INTERMEDIATE LANE, and that is a
+    /// published §8.8.1.3 determination rather than an invariant (CONFORMANCE.md A.1 item 82): a float literal
+    /// operand routes the statement onto the decimal128 lane (34 significant digits) where a fixed-point literal
+    /// keeps the Int128 one (~38), so `A * B + 0.0E+0` and `A * B + 0.0` differ for 18-digit A and B — and
+    /// INTERMEDIATE ROUNDING (§11.9.11) reaches the first and not the second. See <see cref="CombineCore"/>.</para>
+    /// <para>Residual, documented (CONFORMANCE.md §7 / A.1 item 82): §8.3.3.3.3 rule 2 admits a 36-digit
+    /// significand and the SDIDI carrier holds 34, so a 35th/36th significand digit rounds at
+    /// <c>CobolDec.FromParsed</c>.</para>
+    /// <para>Every consumer of the Dec lane already exists — the PB84 landing/store funnel; <see cref="Real"/>
+    /// converts it where a binary64 body wants a double; <see cref="DecOperand"/> where an SDIDI body does.</para></summary>
     private NumX LiteralNum(string text) =>
-        StandardDecimal && CobolNet.Common.NumericLiteral.IsFloatingPointForm(text)
-            && CobolNet.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
-        ? new NumX(RuntimeApi.DecFromParsedLiteral(sig, exp10, IntermediateMode), 0, Dec: true)
-        : EmitText.UnscaledLit(text);
-
-    /// <summary>A numeric literal in an OPERAND position (a <c>BoundNumericLiteral</c> — a MOVE source, a relation
-    /// or EVALUATE comparand, a function argument, a PERFORM VARYING value, a CALL BY VALUE argument): a
-    /// floating-point literal is its EXACT value in EVERY mode (ISO §8.3.3.3.3 GR5 — significand × 10^exponent; a
-    /// MOVE / comparison is not native arithmetic, so D16's binary64 latitude does not reach it — kb/Work PB99: `MOVE
-    /// 1.2345678901234567890123E+3 TO N` stored 1234.567890123456858…, and the same literal into a floating-point
-    /// numeric-edited item defeated D21's exact channel), carried on the Dec lane — every consumer of an operand
-    /// already accepts it (the PB84 landing / store funnel; <see cref="Real"/> converts it where a binary64 body
-    /// wants a double). A fixed-point literal is unchanged.</summary>
-    private NumX LiteralOperandNum(string text) =>
         CobolNet.Common.NumericLiteral.IsFloatingPointForm(text)
             && CobolNet.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
         ? new NumX(RuntimeApi.DecFromParsedLiteral(sig, exp10, IntermediateMode), 0, Dec: true)
@@ -197,10 +208,43 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     {
         bool outer = _outermost;
         _outermost = false;
-        var b = n.Base.Accept(this);
-        var e = n.Exp.Accept(this);
+        var b = IntegerValuedLiteral(n.Base) ?? n.Base.Accept(this);
+        var e = IntegerValuedLiteral(n.Exp) ?? n.Exp.Accept(this);
         _outermost = outer;
         return Power(b, e, NonNegativeIntegerLiteral(n.Exp));
+    }
+
+    /// <summary>A numeric LITERAL whose algebraic VALUE is an integer the native carrier can hold, as a scale-0
+    /// operand — whatever notation it was written in. <c>null</c> for anything else.
+    /// <para>⛔ THE EXACT-INTEGER <c>**</c> ARM IS KEYED ON THE VALUE, NEVER ON THE SPELLING (kb/Work PB272).
+    /// <see cref="Power"/>'s exact arm asks <c>e.Scale == 0 &amp;&amp; !e.Dec &amp;&amp; !e.Real</c>, all three of
+    /// which are properties of how the operand was WRITTEN: <c>10 ** 30</c> took the exact Int128 power and
+    /// <c>10 ** 30.0</c> (scale 1) and <c>10 ** 3.0E+1</c> (a Dec since D-B, a Real before it) both dropped to the
+    /// §8.8.1.2 binary64 approximation — the same expression, three notations, and the answers differed from the
+    /// 17th significant digit up. §8.3.3.3.3 rule 5 makes a floating-point literal's value "the algebraic product
+    /// of the value of its significand and the quantity derived by raising ten to the power of the exponent" and
+    /// nothing more (cite.py-verified), and §8.3.1.2's fixed-point form is likewise a value — so trailing zeros
+    /// past the point are notation, not precision, and 30, 30.0 and 3.0E+1 are ONE operand.</para>
+    /// <para>Not applied under a standard arithmetic mode: there every operand is an SDIDI by §8.8.1.5.2 r1 and
+    /// this arm does not exist. Not applied past <see cref="Int128"/>: the exact arm's carrier cannot hold it, and
+    /// the Dec lane it would otherwise reach is the right home.</para></summary>
+    private NumX? IntegerValuedLiteral(BoundExpr x)
+    {
+        if (StandardDecimal) return null;
+        // `BoundNumLiteral` is the ONE literal shape an arithmetic expression's operands take — the operand-level
+        // `BoundNumericLiteral` never reaches a `BoundPower`, which is why `NonNegativeIntegerLiteral` matches the
+        // same single node.
+        string? text = x is BoundNumLiteral l ? l.Text : null;
+        if (text is null || !CobolNet.Common.NumericLiteral.TryParseExact(text, out Int128 sig, out int exp10))
+            return null;
+        while (exp10 < 0 && sig % 10 == 0) { sig /= 10; exp10++; }   // trailing zeros are notation, not scale
+        if (exp10 < 0) return null;                                   // a genuinely non-integer value
+        for (int i = 0; i < exp10; i++)
+        {
+            if (Int128.Abs(sig) > Int128.MaxValue / 10) return null;   // past the exact arm's own carrier
+            sig *= 10;
+        }
+        return new NumX(EmitText.IntLiteral(sig.ToString(System.Globalization.CultureInfo.InvariantCulture)), 0);
     }
 
     /// <summary>Is this exponent a literal integer that is not negative? Read from the BOUND TREE, never from the
@@ -218,7 +262,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     public NumX Visit(BoundExprError n) => new(EmitText.LoudValue("long", n.Feature), 0);
 
     // ── IBoundOperandVisitor<NumX> ───────────────────────────────────────────────────────────────────────────
-    public NumX Visit(BoundNumericLiteral n) => LiteralOperandNum(n.Text);
+    public NumX Visit(BoundNumericLiteral n) => LiteralNum(n.Text);   // the SAME rendering as the expression arm (D-B)
     public NumX Visit(BoundFieldOperand n) => FieldNum(n.Place);
     public NumX Visit(BoundComputedOperand n)
     {
@@ -426,16 +470,29 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // the D16 float branch: under a standard mode a FLOATING-POINT operand converts into SDIDI form via
         // the §8.8.1.5.1 implementor-defined conversion (CobolDec.FromDouble — the shortest-round-trip decimal
         // identity of the IEEE value; see DecOperand) and the operation itself is the SDIDI one.
-        // ⛔ AND A NATIVE OPERATION WITH AN SDIDI-CARRIED OPERAND EVALUATES ON THE SDIDI TOO (kb/Work PB69). Under
-        // native arithmetic the only Dec producer is an integer power (PowNativeIntDec — exact while it fits the
-        // carrier, the owner-decided double approximation past it, the reciprocal for a negative exponent), and
-        // its result has no compile-time scale: landing it into Int128 at the operation's static scale truncated
-        // `2 ** -2 + 1` to 1 (the additive arm) and did not compile at all for `*` and `/` (a raw Dec into an
-        // Int128 slot — CS1503). The SDIDI carries both the exact power and the approximation, so the operation
+        // ⛔ AND A NATIVE OPERATION WITH AN SDIDI-CARRIED OPERAND EVALUATES ON THE SDIDI TOO (kb/Work PB69). The
+        // Dec producers under NATIVE arithmetic are THREE, not one (kb/Work PB273 — this sentence named only the
+        // first for two waves, and D-B made the third the common case):
+        //   · an integer power (PowNativeIntDec — exact while it fits the carrier, the owner-decided double
+        //     approximation past it, the reciprocal for a negative exponent);
+        //   · a floating-point numeric-EDITED sender, lifted onto the Dec lane by FieldNum in every mode;
+        //   · a FLOATING-POINT LITERAL operand (LiteralNum — since PB99 for an operand, and since owner decision
+        //     D-B for every position), which is now much the most common of the three.
+        // The reason is the same for all three and is why the branch tests the CARRIER: a Dec has no compile-time
+        // scale, and landing it into Int128 at the operation's static scale truncated `2 ** -2 + 1` to 1 (the
+        // additive arm) and did not compile at all for `*` and `/` (a raw Dec into an Int128 slot — CS1503). The
+        // SDIDI carries the exact power, the approximation and the literal's exact value alike, so the operation
         // computes there and the result lands ONCE at the receiver (TryStore(CobolDec), checked). The float lane
         // keeps precedence when a float operand or a float receiver is present (native float arithmetic is IEEE,
-        // D16). Cost, documented: a 35–38-digit exact intermediate that only `**` can produce rounds to the SDIDI's
-        // 34 digits inside `*` and `/`; MOD/REM keep exact integers exact through their own integer fast path.
+        // D16).
+        // ⚠ COST, AND IT IS A PUBLISHED DETERMINATION (§8.8.1.3 leaves "the method of evaluating an arithmetic
+        // statement" to the implementor; CONFORMANCE.md A.1 item 82): this lane carries 34 significant digits
+        // where CombineNative's Int128 carries ~38, so an expression whose exact intermediate needs 35–38 digits
+        // rounds here and not there. That is observable — `A * B + 0.0E+0` differs from `A * B + 0.0` for
+        // 18-digit A and B — so it is NOT covered by "a literal's notation never changes the arithmetic"; the
+        // literal's VALUE is exact either way, and the LANE is the determination. It also means INTERMEDIATE
+        // ROUNDING (§11.9.11) reaches a native statement carrying a float literal, PROHIBITED included.
+        // MOD/REM keep exact integers exact through their own integer fast path.
         if (StandardDecimal || ((a.Dec || b.Dec) && !a.Real && !b.Real && !_rcv.Real))
             return op switch
             {
@@ -456,7 +513,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // Plain STANDARD arithmetic (2002; obsolete 2014, removed 2023 — Annex E.2 item 21) uses the standard
     // intermediate data item, which for these operands IS the standard DECIMAL form — STANDARD routes to the
     // same CobolDec engine as STANDARD-DECIMAL (DataBinder.BindDeclarations documents the bind-side rationale).
-    internal bool StandardDecimal => ctx.Data.Options.Arithmetic is ArithmeticMode.StandardDecimal or ArithmeticMode.Standard;
+    // ⛔ The SET lives in ONE place — ArithmeticModes.IsDecimalEngine (kb/Work PB194): two other sites had written
+    // it out again and both had dropped ARITHMETIC IS STANDARD from it.
+    internal bool StandardDecimal => ArithmeticModes.IsDecimalEngine(ctx.Data.Options.Arithmetic);
 
     internal string IntermediateMode => $"CobolRounding.{ctx.Data.Options.IntermediateRounding}";
 

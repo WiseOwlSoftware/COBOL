@@ -90,6 +90,80 @@ public static class ArithmeticModes
     /// <summary>The cap the runtime assumes when the emitted call omits the argument — the native one. Kept
     /// beside the table so "which value means omit" cannot drift away from "what the table says native is".</summary>
     public const int DefaultDigitCap = 31;
+
+    /// <summary>⛔ THE ONE SPELLING OF "this mode's arithmetic runs on the SDIDI decimal engine" (kb/Work PB194).
+    /// <see cref="ArithmeticMode.Standard"/> — the 2002 mode, obsolete 2014, removed 2023 — is NOT a third engine:
+    /// its standard intermediate data item for every operand COBOL.NET can carry IS the standard DECIMAL one, so it
+    /// routes to the same <c>CobolDec</c> path as STANDARD-DECIMAL (<c>NumericRenderer.StandardDecimal</c>,
+    /// <c>DataBinder.BindDeclarations</c>, and <see cref="NumvalDigitCap"/>'s 34 above all say so).
+    /// <para>The set used to be written down in four places and TWO of the copies named STANDARD-DECIMAL alone.
+    /// Measured 2026-08-31 at <c>--std 2014</c>: <c>01 EA PIC 9(3)E+999.</c> with
+    /// <c>OPTIONS. ARITHMETIC IS STANDARD.</c> was REJECTED — "COBOLNET1660 … outside the native (binary64)
+    /// intermediate's range" — in a program that had selected a standard mode, while the identical entry under
+    /// STANDARD-DECIMAL compiled and printed <c>999E+999</c>. One arithmetic mode, two contradictory bounds,
+    /// decided by which file the code path happened to reach. <c>ArithmeticModeTableTests</c> now holds the set to
+    /// one home (and to this accessor by a drift test).</para></summary>
+    public static bool IsDecimalEngine(ArithmeticMode mode) => mode switch
+    {
+        ArithmeticMode.Native => false,
+        ArithmeticMode.Standard => true,         // the 2002 mode — the SAME SDIDI engine (see the remark)
+        ArithmeticMode.StandardBinary => false,  // SBIDI, §8.8.1.4.2 — unreachable; declined at bind (COBOLNET0806)
+        ArithmeticMode.StandardDecimal => true,  // SDIDI, §8.8.1.5.2
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no engine classification for this mode"),
+    };
+
+    /// <summary>The DECIMAL EXPONENT bounds of the mode's intermediate data item, as the §8.8.4.4.4 GR3 l
+    /// IN-ARITHMETIC-RANGE test (§15.43.4 r1 / §15.58.4 r1 / §15.83.4 r1) measures a data description's extremes
+    /// against them.
+    /// <para>⛔ <c>Farthest</c> IS A STRICT UPPER DECADE BOUND, NOT THE LARGEST MAGNITUDE'S OWN EXPONENT — it is
+    /// the largest f for which every magnitude the caller can present below 10^f is in range, which is what the
+    /// caller's own over-approximation (<c>intDigits + fm.MaxExp</c>, an "exponent the magnitude is strictly
+    /// below") needs to be compared against. That is why the SDIDI row reads 6145 and not 6144: decimal128's
+    /// maximum is (1 − 10⁻³⁴)·10^6145, i.e. 9.999…E+6144 with 34 nines, so the all-nines extremes this test
+    /// receives sit just under 10^6145. Binary64 reads 308 rather than 309 for the mirror reason — its maximum
+    /// leads with 1.797, so 9.99E+308 is NOT representable and a bound of 309 would admit it. This summary used
+    /// to say "the decimal exponent of the largest representable magnitude", which is a floor(log₁₀) rule the
+    /// SDIDI rows do not obey, and no single floor/ceil rule describes all four (kb/Work PB275).</para>
+    /// <para>⚠ AND THE COLUMN IS READ UNDER TWO CONVENTIONS. <c>IntrinsicBinder</c>'s float-EDITED arm supplies
+    /// <c>intDigits + fm.MaxExp</c> (the strict upper bound above); its float-ITEM arm supplies the carrier's
+    /// EXACT magnitude exponent ({28, 38, 308}). Nothing separates them today — §13.18.40.4 GR13 b caps the
+    /// exponent part at four digit positions and §13.18.40.3 SR15 the significand at 36, so the edited arm's
+    /// reachable values are confined to [9,45] ∪ [99,135] ∪ [999,1035] ∪ [9999,10035] and 6144/6145 (and
+    /// 308/309) are behaviourally interchangeable. If the ITEM arm ever gains a TRUE decimal128 carrier row it
+    /// must be written 6144, its exact magnitude exponent, NOT 6145.</para>
+    /// <para><c>Closest</c> is the EXACT decimal exponent of the smallest nonzero magnitude — exact for every
+    /// row because that value is a power of ten in each format.</para>
+    /// <list type="bullet">
+    /// <item>NATIVE — the implementor-defined intermediate is IEEE binary64 (numeric design D16): 1.797E+308 down
+    /// to 4.94E−324.</item>
+    /// <item>STANDARD / STANDARD-DECIMAL — the SDIDI. §8.8.1.5.2 NOTE 2: the range is ±9.999…E+6144 "with a maximum
+    /// precision of 34 decimal digits; the smallest positive nonzero value is 1.0E-6176".</item>
+    /// <item>STANDARD-BINARY — the SBIDI. §8.8.1.4.2 NOTE 3: ±(2**16384 − 2**16271) ≈ 1.19E+4932, and "the smallest
+    /// positive nonzero value is 2**-16494" ≈ 6.5E−4966. UNREACHABLE (declined at bind), recorded anyway for the
+    /// same reason <see cref="NumvalDigitCap"/> records its 35: a table with a hole answers a question it has never
+    /// been asked, and the shape this replaced was a two-state ternary whose else-branch silently gave every
+    /// non-STANDARD-DECIMAL mode the NATIVE bounds.</item>
+    /// </list></summary>
+    public static (int Farthest, int Closest) IntermediateExponentRange(ArithmeticMode mode) => mode switch
+    {
+        ArithmeticMode.Native => (308, -324),           // binary64 (numeric design D16)
+        ArithmeticMode.Standard => (6145, -6176),       // the SDIDI — same engine as STANDARD-DECIMAL
+        ArithmeticMode.StandardBinary => (4932, -4966), // SBIDI, §8.8.1.4.2 NOTE 3 — unreachable; declined at bind
+        ArithmeticMode.StandardDecimal => (6145, -6176),// SDIDI, §8.8.1.5.2 NOTE 2
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no intermediate exponent range for this mode"),
+    };
+
+    /// <summary>How a diagnostic NAMES the mode's intermediate data item. Beside the bounds so a message can never
+    /// describe a compilation as "native (binary64)" while screening it against the SDIDI's numbers, which is
+    /// exactly what the two drifted copies did (kb/Work PB194).</summary>
+    public static string IntermediateName(ArithmeticMode mode) => mode switch
+    {
+        ArithmeticMode.Native => "native (binary64)",
+        ArithmeticMode.Standard => "standard-decimal",          // ARITHMETIC IS STANDARD routes to the SDIDI
+        ArithmeticMode.StandardBinary => "standard-binary",
+        ArithmeticMode.StandardDecimal => "standard-decimal",
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no intermediate name for this mode"),
+    };
 }
 
 /// <summary>Endianness of a standard floating-point usage (FLOAT-BINARY / FLOAT-DECIMAL clauses, §11.9.8/§11.9.9).</summary>

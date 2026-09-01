@@ -464,9 +464,16 @@ internal static class RuntimeApi
 
     /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision float receiver —
     /// <c>CobolFloat.StoreSingleChecked(src)</c>: raises the fatal EC-DATA-OVERFLOW when a finite source overflows to
-    /// ±Infinity under checking (ISO §14.9.25.4 GR4 step 4a), else returns the cast value.</summary>
+    /// ±Infinity under checking (ISO §14.9.25.4 GR6 d)4.a), else returns the cast value.</summary>
     public static string FloatStoreSingleChecked(string src) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.StoreSingleChecked)}({src})";
+
+    /// <summary>The checked store of a STANDARD-DECIMAL MOVE algebraic value into a float receiver —
+    /// <c>CobolFloat.StoreChecked(dec, single)</c>. The SDIDI is handed over WHOLE, because the range test is on
+    /// the algebraic value and a <c>ToDouble</c> would have already collapsed it to ±Infinity (ISO §14.9.25.4
+    /// GR6 d)4.a; kb/Work PB271).</summary>
+    public static string FloatStoreDecChecked(string dec, bool single) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.StoreChecked)}({dec}, {(single ? "true" : "false")})";
 
     /// <summary>The BOOLEAN-receiver store (§14.6.8.6 — boolean-ZERO pad, explicit justification) —
     /// <c>CobolString.Store</c> with <c>pad: '0'</c>.</summary>

@@ -93,10 +93,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             if (RenderDec(ic) is { } dec)
                 return dec;
         }
-        // NATIVE arithmetic with an SDIDI-carried ARGUMENT (kb/Work PB69) — today the only native Dec producer is
-        // integer exponentiation past (or within) the Int128 window: the function computes on the SDIDI body when
-        // it has one (MOD/REM keep exact integers exact — CobolIntrinsics.ModDec's integer fast path), rather than
-        // landing the argument into Int128 at a working scale that a 33-digit power already overflows.
+        // NATIVE arithmetic with an SDIDI-carried ARGUMENT (kb/Work PB69): the function computes on the SDIDI
+        // body when it has one (MOD/REM keep exact integers exact — CobolIntrinsics.ModDec's integer fast path),
+        // rather than landing the argument into Int128 at a working scale that a 33-digit power already overflows.
+        // ⚠ The native Dec producers are THREE, not one — an integer power (past or within the Int128 window), a
+        // floating-point numeric-EDITED sender, and a floating-point LITERAL operand, which owner decision D-B
+        // made much the most common of them. This comment named only the first, and so did CombineCore's
+        // (kb/Work PB273); the census is written out there.
         else if (AnyDecRaw(ic) && RenderDec(ic) is { } decNative)
             return decNative;
         if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);

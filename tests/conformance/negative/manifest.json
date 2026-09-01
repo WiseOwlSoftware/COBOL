@@ -381,6 +381,7 @@
   "pb98-comma-float-literal-without-comma-mode",
   "pb99-floating-literal-form",
   "pb99-floating-literal-range",
+  "pb99-floating-literal-range-statement",
   "pb100-picture-locale-format-2",
   "pb94-value-alphanumeric-on-numeric",
   "pb94-value-nonnumeric-on-numeric",

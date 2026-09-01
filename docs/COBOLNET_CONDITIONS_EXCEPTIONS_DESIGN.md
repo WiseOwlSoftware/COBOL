@@ -108,7 +108,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   `floatCheck:false` (a sign operand's whole sub-tree, via the re-entrant `NumericRenderer._floatSendingExempt`), a
   **same-usage MOVE** (source and receiver share the same `Usage` — endianness is a separate phrase, not a Usage
   value) passes the exempt flag, and **VALIDATE** will pass `floatCheck:false` once its emitter lands (documented
-  no-op today). **EC-DATA-OVERFLOW (§14.9.25.4 GR4 step 4a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
+  no-op today). **EC-DATA-OVERFLOW (§14.9.25.4 GR6 d)4.a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
   single-precision-float MOVE receiver raises when a FINITE source casts to ±Inf (cast-based, `double.IsFinite(src)
   && float.IsInfinity((float)src)` — never a MaxValue compare, since a double in `(float.MaxValue, ~3.4028e38]`
   rounds to a finite `float.MaxValue`). An arithmetic ±Inf store (`ArithmeticEmitter.StoreArith`) stays a bare cast

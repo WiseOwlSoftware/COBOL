@@ -385,12 +385,25 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 {
                     bool sameUsage = source is BoundFieldOperand fsrc
                         && fsrc.Place.Item.Pic is { IsFloat: true } sp && sp.Usage == pic.Usage;
-                    string srcD = NumericRenderer.Real(num.AsNum(source, ReceiverContext.None, floatSendingExempt: sameUsage));
-                    // §14.9.25.4 GR4 step 4a: a MOVE into a SINGLE-precision receiver raises EC-DATA-OVERFLOW when a
-                    // finite source overflows to ±Inf (StoreSingleChecked). A double receiver cannot overflow from a
-                    // finite double, so it keeps the bare cast. A WINDOWED float receiver (Tier-B / image-stored —
-                    // the Step D arm-1 dissolution) re-encodes as its IEEE window bytes.
-                    string fval = pic.IsSingle ? RuntimeApi.FloatStoreSingleChecked(srcD) : $"({pic.ClrType})({srcD})";
+                    NumX fsrcNum = num.AsNum(source, ReceiverContext.None, floatSendingExempt: sameUsage);
+                    // §14.9.25.4 GR6 d)4.a: "If the algebraic value of the sending operand is farther from zero than
+                    // is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW
+                    // exception condition is set to exist" — a FATAL condition (Table 13), MOVE-only, armed by
+                    // EcBinder. THE TEST IS ON THE ALGEBRAIC VALUE, so a decimal sender is handed over WHOLE:
+                    // ⛔ an SDIDI sender reaches ±9.999…E+6144 and collapses to ±Infinity in ToDouble, so BOTH arms
+                    // used to miss it (kb/Work PB271) — the double arm was a bare cast whose stated premise, "a
+                    // double receiver cannot overflow from a finite double", quietly assumed a finite DOUBLE ever
+                    // reached it, and StoreSingleChecked's own finite-source guard was already false.
+                    // `MOVE 1.0E+400 TO F` stored +Infinity with no condition raised, at every checking level.
+                    // A non-decimal sender cannot exceed binary64 (a fixed-point item caps at 31 digits, a float
+                    // item is already binary64), so it keeps the double-domain single-precision check.
+                    string fval = fsrcNum.Dec
+                        ? $"({pic.ClrType})({RuntimeApi.FloatStoreDecChecked(fsrcNum.Expr, pic.IsSingle)})"
+                        : pic.IsSingle
+                            ? RuntimeApi.FloatStoreSingleChecked(NumericRenderer.Real(fsrcNum))
+                            : $"({pic.ClrType})({NumericRenderer.Real(fsrcNum)})";
+                    // A WINDOWED float receiver (Tier-B / image-stored — the Step D arm-1 dissolution) re-encodes
+                    // as its IEEE window bytes.
                     return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(fval, target.ProfileName) : fval;
                 }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit

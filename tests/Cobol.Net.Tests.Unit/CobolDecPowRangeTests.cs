@@ -27,9 +27,16 @@ public sealed class CobolDecPowRangeTests
         => Assert.Equal(new CobolDec(1, 0), CobolDec.Pow(MinusOne, TenTo20, Mode));
 
     // §8.8.1.5.4 r3: (−1) ** (−10²⁰) = 1 / ((−1) ** 10²⁰) = +1.
+    // ⛔ COMPARED BY VALUE, NOT BY (Sig, Exp) — for the reason the TinyBase case below already carries.
+    // r3's reciprocal is now spelled once, at the top of Pow, so this answer arrives through a real
+    // Div(1, 1) whose pre-scaled quotient normalizes to (10³³, −33). That is the same VALUE as (1, 0), and
+    // §8.8.1.5.2 leaves the internal representation to the implementor; the structural assertion that used to
+    // stand here was pinning a representation the standard does not fix, and it was only ever satisfied
+    // because r3 was NOT being evaluated on this path.
     [Fact]
     public void MinusOne_ToAnEvenNegativeExponentPastLongRange_IsPlusOne()
-        => Assert.Equal(new CobolDec(1, 0), CobolDec.Pow(MinusOne, new CobolDec(-TenTo20.Sig, 0), Mode));
+        => Assert.Equal(0, CobolDec.Compare(new CobolDec(1, 0),
+            CobolDec.Pow(MinusOne, new CobolDec(-TenTo20.Sig, 0), Mode)));
 
     // §8.8.1.5.2 r2 sets the size error only when the value is out of range: 1.00001 ** 1000000 = e^9.99995…
     // ≈ 22025.36 is comfortably inside decimal128 (the old escape raised a spurious EC-SIZE-OVERFLOW).
@@ -60,9 +67,15 @@ public sealed class CobolDecPowRangeTests
 
     // §8.8.1.5.4 r2e over a base OUTSIDE binary64's range: 1.0E−400 ** 0.5 = 1.0E−200 EXACTLY (the old
     // ToDouble underflowed the base to 0 and answered a silent 0).
+    // ⛔ COMPARED BY VALUE, NOT BY (Sig, Exp). §8.8.1.5.2 leaves the SDIDI's internal representation to the
+    // implementor — 1E−200 is 1×10⁻²⁰⁰ and 10³³×10⁻²³³ alike, and the two arms that can produce it legitimately
+    // produce different pairs (since owner decision D-C the ½ exponent routes through Sqrt, whose exact-integer
+    // root carries its guard digits into the significand). Structural equality here was pinning a representation
+    // the standard does not fix; CobolDec.Compare is the relation the language's own `=` uses.
     [Fact]
     public void TinyBase_NonIntegerExponent_DoesNotCollapseToZero()
-        => Assert.Equal(new CobolDec(1, -200), CobolDec.Pow(CobolDec.From(1, 400), CobolDec.From(5, 1), Mode));
+        => Assert.Equal(0, CobolDec.Compare(new CobolDec(1, -200),
+            CobolDec.Pow(CobolDec.From(1, 400), CobolDec.From(5, 1), Mode)));
 
     // …and 2.0E+400 ** 0.5 ≈ 1.4142…E+200 is inside decimal128 (the old path raised a spurious overflow).
     [Fact]

@@ -11,10 +11,14 @@
       *>                 constant TRUNCATED at 30 fraction digits (the no-ROUNDED default, 14.7.4).
       *>   15.73.3 r3  - PI is exactly 3.141592653589793238462643383279503 (34 digits).
       *>   15.4.1      - "the returned value is the same for all instances of a given function within a
-      *>                 single execution": the two EXP10(0.5) receivers below hold prefixes of ONE SDIDI
-      *>                 (a non-integer exponent is the 8.8.1.5.4 r2e implementor-defined approximation;
-      *>                 the pinned digits are this implementation's documented one) - before R18 they
-      *>                 held two DIFFERENT quantizations.
+      *>                 single execution": the two EXP10(0.5) receivers below hold prefixes of ONE SDIDI -
+      *>                 before R18 they held two DIFFERENT quantizations.
+      *>   15.84.4 r2  - since owner decision D-C (kb/Work PB167) the 8.8.1.5.4 r2e equivalent expression
+      *>                 chosen at |operand-2| = 1/2 is FUNCTION SQRT(operand-1), whose standard-decimal
+      *>                 value the standard fixes EXACTLY ("the exact square root of argument-1 rounded to
+      *>                 34 digits"), so P17 below is the SPEC's sqrt(10) truncated at 17 fraction digits -
+      *>                 3.16227766016837933, not the old binary64 development's ...950 (wrong from the
+      *>                 17th significant digit). pb167_sdidi_exponentiation pins the identity itself.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. R18EXPSD.
        OPTIONS.

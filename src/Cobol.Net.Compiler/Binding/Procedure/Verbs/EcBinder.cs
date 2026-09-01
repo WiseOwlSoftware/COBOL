@@ -519,7 +519,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // statement is harmless. A precise "references a float sending operand" filter is a documented follow-on.
             if (ctx.EcState.Turn.Enabled("EC-DATA-NOT-FINITE", null, line))
                 enabled.Add(("EC-DATA-NOT-FINITE", null));
-            // EC-DATA-OVERFLOW (fatal, §14.9.25.4 GR4 step 4a) is MOVE-only: a MOVE whose finite algebraic value
+            // EC-DATA-OVERFLOW (fatal, §14.9.25.4 GR6 d)4.a) is MOVE-only: a MOVE whose finite algebraic value
             // overflows a single-precision float receiver to ±Inf. A precise "has a single-float receiver" filter is
             // a documented follow-on (like the ContainsRefMod note); MOVE CORRESPONDING expands to BoundMove steps
             // which this sees through the BoundSequence recursion.

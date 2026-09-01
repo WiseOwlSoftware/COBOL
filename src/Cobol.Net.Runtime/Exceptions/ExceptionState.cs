@@ -702,7 +702,7 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the currently-executing statement has EC-DATA-OVERFLOW checking enabled (fatal). Only a
     /// MOVE into a single-precision standard-float receiver consults it — the <see cref="CobolFloat.StoreSingleChecked"/>
-    /// store site (§14.9.25.4 GR4 step 4a is MOVE-only).</summary>
+    /// store site (§14.9.25.4 GR6 d)4.a is MOVE-only).</summary>
     public bool FloatOverflowChecking
     {
         get => _checking.FloatOverflow;
@@ -710,7 +710,7 @@ public sealed class ExceptionEngine
     }
 
     /// <summary>Raise EC-DATA-OVERFLOW when a MOVE's finite sending algebraic value is farther from zero than the
-    /// standard-float receiver's usage can represent — an exponent overflow to ±Infinity (ISO §14.9.25.4 GR4 step 4a,
+    /// standard-float receiver's usage can represent — an exponent overflow to ±Infinity (ISO §14.9.25.4 GR6 d)4.a,
     /// spec :28634; Table 13 Fatal). Distinct from an arithmetic ±Inf result (a valid §14.6.8.3 GR1 value, never this
     /// EC) and from a NaN/±Inf SOURCE (that is EC-DATA-NOT-FINITE). Same fatal throw/dispatch contract as
     /// <see cref="FloatNotFiniteError"/>.</summary>

@@ -922,29 +922,34 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     public string CheckLiteral(string text)
     {
         text = ctx.Data.NormalizeNumericLiteral(text);
-        // A floating-point literal is a binary64 operand (D16); its digits are not the fixed-point 31/18 cap's subject
-        // (§8.3.3.3.3 SR2/SR3 — checked by the normalizer), and its VALUE shall lie in the implementor-defined exponent
-        // range, which for the binary64 form is binary64's (kb/Work PB99 — beyond it the generated C# double literal
+        // A floating-point literal's digits are not the fixed-point 31/18 cap's subject (§8.3.3.3.3 SR2/SR3 —
+        // checked by the normalizer); what it owes is r3's "The maximum permitted value and minimum permitted value
+        // of the exponent is implementor-defined" (kb/Work PB99 — beyond the range the generated C# double literal
         // was Roslyn's CS0594, never a COBOL diagnostic).
         if (NumericLiteral.IsFloatingPointForm(text))
         {
-            // Under ARITHMETIC IS STANDARD-DECIMAL the literal is the EXACT decimal128 operand (§8.8.1.5.2 r1 — the
-            // renderer lifts it through CobolDec.FromParsed), so its range is decimal128's; natively it is a binary64.
-            if (ctx.Data.Options.Arithmetic is ArithmeticMode.StandardDecimal or ArithmeticMode.Standard)
-            {
-                bool inRange = NumericLiteral.TryParseExact(text, out var sig, out int exp10);
-                if (inRange)
-                    try { CobolDec.FromParsed(sig, exp10, CobolRounding.NearestEven); }
-                    catch (CobolSizeError) { inRange = false; }
-                if (!inRange)
-                    ctx.Edition.Error(DiagnosticCatalog.FloatingLiteral, $"floating-point numeric literal '{text}': its value lies outside "
-                        + "the implementor-defined exponent range for a standard-decimal operand — the decimal128 range, about "
-                        + "1E-6176 to 9.99E+6144 (ISO §8.3.3.3.3 r3; §8.8.1.5.2 r2; CONFORMANCE.md §7)");
-            }
-            else if (!NumericLiteral.FitsBinaryFloat(text))
+            // ⛔ ONE RANGE, IN EVERY ARITHMETIC MODE (owner decision D-B, 2026-08-30; kb/Work PB156 + PB195). The
+            // literal IS its exact §8.3.3.3.3 rule-5 value wherever it appears, carried on the SDIDI lane
+            // (NumericRenderer.LiteralNum), so the implementor-defined range r3 asks for is that carrier's:
+            // decimal128's. The former native arm screened the same literal against IEEE binary64 and REJECTED
+            // `IF 1.0E+400 > X` — a hard error on source the identical program compiled under
+            // ARITHMETIC IS STANDARD-DECIMAL (PB195, measured both arms). Nothing about the literal changed
+            // between those two runs, and §14.9.2.4 GR4 / §14.9.44.4 GR4 exclude only operands "described with
+            // usage" binary-*/float-* — never a literal — so the binary64 bound was screening the value against
+            // the carrier of a lane it need not enter.
+            // (The VALUE-clause range check is a DIFFERENT rule and keeps its binary64/binary32 bound:
+            // §13.18.63.3 SR2 asks for "permissible values within the range indicated by the PICTURE clause or
+            // the USAGE clause" of the item being initialized (cite.py-verified verbatim; the elided "the
+            // PICTURE clause or" is what makes the rule cover a fixed-point subject too, and it is exactly the
+            // half this comment used to drop) — DataBinder's FitsBinaryFloat screen, which is where that belongs.)
+            bool inRange = NumericLiteral.TryParseExact(text, out var sig, out int exp10);
+            if (inRange)
+                try { CobolDec.FromParsed(sig, exp10, CobolRounding.NearestEven); }
+                catch (CobolSizeError) { inRange = false; }
+            if (!inRange)
                 ctx.Edition.Error(DiagnosticCatalog.FloatingLiteral, $"floating-point numeric literal '{text}': its value lies outside "
-                    + "the implementor-defined exponent range for a floating-point operand — the IEEE binary64 range, about "
-                    + "4.9E-324 to 1.8E+308 (ISO §8.3.3.3.3 r3; CONFORMANCE.md §7)");
+                    + "the implementor-defined exponent range for a floating-point literal — the decimal128 range, about "
+                    + "1E-6176 to 9.99E+6144 (ISO §8.3.3.3.3 r3; §8.8.1.5.2 r2; CONFORMANCE.md §7)");
             return text;
         }
         int digits = text.Count(char.IsAsciiDigit);
