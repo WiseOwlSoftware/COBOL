@@ -17,7 +17,7 @@ at G8* — so the net itself must be rearchitected first, or it evaporates mid-m
 ### 1.1 Test projects (four, two stacks)
 | Project | Files | Role |
 |---|---|---|
-| `tests/Cobol.Net.Tests.Conformance` | ~80 `.cs` | ACTIVE greenfield net: differential feature tests (`*DifferentialTests.cs`), `NistDifferentialTests` (318 goldens as inline `[InlineData]`), `VersionMatrixTests`, `CorpusRunnerTests`, `EditionHarness`, `CompilerUnderTest`/`CutRunner`. |
+| `tests/Cobol.Net.Tests.Conformance` | ~80 `.cs` | ACTIVE greenfield net: differential feature tests (`*DifferentialTests.cs`), `NistDifferentialTests` (the corpus goldens, `[MemberData]` over `corpus.tsv` — see §3.2), `VersionMatrixTests`, `CorpusRunnerTests`, `EditionHarness`, `CompilerUnderTest`/`CutRunner`. Those three theory-heavy families are **PARTITIONED across xUnit collections** — §3.11. |
 | `tests/Cobol.Net.Tests.Unit` | ~17 `.cs` | Greenfield unit: runtime kernels, `ConstructRegistryDriftTests`, `ReservedWordsDriftTests`, `CheckOnlyCompileTests`, CLI parser, `EditionContextTests`. |
 | `tests/CobolSharp.Tests.Integration` | legacy | FROZEN legacy oracle + the post-85 `ConformanceTests` corpus runner with the `GreenfieldOnly` / `LegacyDivergent` skip sets. |
 | `tests/CobolSharp.Tests.Unit` | legacy | FROZEN legacy unit tests. |
@@ -40,7 +40,7 @@ implicitly `tests/nist/chains.tsv`).
   (11 ISO-rebaselined goldens the legacy legitimately differs on) and the golden-cleanliness sweep.
 - `scripts/guard-fast.sh` — parallel version. Isolation is now the CONNECTED COMPONENTS of `corpus.tsv`'s
   declared `chain-preds` (332 groups over 376 programs, longest 9), replacing the former per-suite heuristic —
-  see §3.10/§3.11. Verdicts are checked ABSOLUTELY by `guard-nist-audit.sh` against the manifest, which is a
+  see §3.10's grouping row. Verdicts are checked ABSOLUTELY by `guard-nist-audit.sh` against the manifest, which is a
   stronger check than `guard-verify.sh`'s diff against the serial guard (that one is relative: it cannot see the
   two guards deviating together).
 - `scripts/guard-run-group.sh` — one group, serial, in its own scratch dir; owns the per-test EVIDENCE RULES.
@@ -363,7 +363,7 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by **both** guards so the rule is written once. `--self-test` proves all eleven checks can fail. |
 | `scripts/guard-run-group.sh`, `scripts/guard.sh` | The evidence rules per test, kept character-for-character in step because `guard-verify.sh` proves the two guards equivalent by diffing these very lines. Compile diagnostics are captured (`<TEST>.compile.log` + `.compile.rc`) instead of `/dev/null`; the run is bounded by `timeout` and its exit status kept instead of `\|\| true`. |
-| `scripts/guard-fast.sh` | Group-runner stderr captured instead of discarded (a group could die and take its verdicts with it in silence); the audit gates `ALL GREEN`. ⛔ **FULL FAN-OUT IS KEPT AND THE LOST OBSERVATIONS ARE RE-TAKEN INSTEAD** — capping `-P` would pay for the damage on every run to protect against something the evidence rules now DETECT. Contention can no longer corrupt a verdict, only lose one, so step 3b re-runs just the affected groups serially. See §3.11 for the grouping. |
+| `scripts/guard-fast.sh` | Group-runner stderr captured instead of discarded (a group could die and take its verdicts with it in silence); the audit gates `ALL GREEN`. ⛔ **FULL FAN-OUT IS KEPT AND THE LOST OBSERVATIONS ARE RE-TAKEN INSTEAD** — capping `-P` would pay for the damage on every run to protect against something the evidence rules now DETECT. Contention can no longer corrupt a verdict, only lose one, so step 3b re-runs just the affected groups serially. See this table's grouping row below. |
 | `scripts/guard-fast.sh` grouping | ⭐ **Isolation now comes from the DECLARED chain graph** (`corpus.tsv` `chain-preds`, as connected components: 332 groups over 376 programs) instead of a hand-written "these six suites run serially" list. Longest serial group **40 → 9**. Justified by evidence, not guessed: `NistDifferentialTests` already runs all 349 programs in per-program directories with only their declared predecessors and is green. Isolation is strictly SAFER than ordering — guard.sh's prose anti-dependencies ("no other TF022 writer between them") exist only because it shares ONE directory, and per-component dirs make them unstateable. It also corrected the hand list, which over-grouped `SQ204A` (that program `OPEN OUTPUT`s its own file). ⚠ **AND IT DID NOT MAKE THE LEG FASTER — say so.** Measured on a 32-core Windows box: NIST phase **564 s before, 598 s after**. The leg is THROUGHPUT-bound on `dotnet` cold-start (~150 s of the total is the compile phase alone, and effective concurrency was observed at ~7, not 32), not TAIL-bound, so shortening the longest serial group from 40 to 9 buys nothing here. It should matter on Linux CI where process spawn is far cheaper. **The real lever is a persistent run-host to amortize cold-start** — the change is kept for correctness and for retiring a hand-maintained list, NOT for speed. |
 | `scripts/guard-verify.sh` | Its verdict filter had silently omitted `LEGACY DIVERGENT`, dropping 11 programs from **both** sides of the equivalence proof. The vocabulary is now complete and any verdict-shaped line it does not recognize is reported rather than discarded. |
 | `scripts/gnucobol_differential.py` | A rejection needs a non-zero exit **and** a diagnostic; an acceptance needs the artifact. Evidence-free compiles are retried once and then bucketed `NO_COMPILER_EVIDENCE`, which counts as a harness failure and is **named for re-run**, never folded into a divergence bucket. Its population is no longer its own: it filters with `gnucobol_extract.differential_cases()` before dispatch, so `len(payload)` IS `cases run` and the corpus has one definition. |
@@ -373,6 +373,119 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 **What this does not claim.** The invariant makes a false GREEN and a false RED *visible*; it does not by itself
 prove the battery is deterministic. That is the measurement A12/A12d asks for, and it is recorded in plan §11
 beside the row, not here.
+
+### 3.11 TEST-COLLECTION PARALLELISM — the partitioned-theory mechanism (plan §11 A13)
+
+> **A test CLASS is a scheduling unit, not just a namespace.** xUnit 2.9.2 parallelizes at TEST-COLLECTION
+> granularity and by default **each test class is one collection**, so every test in a class — including every
+> row of a `[Theory]` — runs SERIALLY ON ONE THREAD. A fat class caps an assembly's whole wall clock, and
+> nothing in the normal output says so: `dotnet test` reports totals and a duration, never concurrency.
+
+**The instrument.** `scripts/profile-test-parallelism.py <run.trx>` reads the trx `scripts/battery.sh` already
+emits and prints, per class, `tests / sum(s) / span(s)` plus the assembly's average concurrency. Read the two time
+columns together: `sum ≈ span` means the class ran serially and is a splitting candidate; `span << sum` means it
+was already spread across threads.
+
+**The mechanism** — `tests/_shared/TestPartitioning.cs`, linked into every project under `tests/`.
+
+xUnit v2 offers exactly two levers and only one of them can split: `[Collection]` MERGES classes into a shared
+collection, so it can never divide one. That leaves genuine class splits — and the naive class split duplicates
+the test bodies, which is how a split rots. So the tests live ONCE in an abstract generic base and each partition
+is one line:
+
+```csharp
+public abstract class FamilyTestsBase<TSlot> where TSlot : ITestPartitionSlot
+{
+    public const int Partitions = 12;                     // read by the drift audit
+
+    [PartitionedRowSource(nameof(Rows))]                  // the UNPARTITIONED set
+    public static IEnumerable<object[]> AllRows() => …;
+
+    public static IEnumerable<object[]> Rows() => TestPartitioning.SliceRows<TSlot>(AllRows(), Partitions);
+
+    [Theory][MemberData(nameof(Rows))] public void TheTest(…) { … }   // written once
+}
+
+public sealed class FamilyTests_P0 : FamilyTestsBase<Slot0>;          // one line per collection
+```
+
+Row `i` belongs to slot `i % Partitions` — a STRIDE, not a contiguous block, because theory rows are ordered by
+construct or program name and adjacent rows have correlated cost; a block would concentrate the expensive rows in
+one partition.
+
+⭐ **Why it works:** static members of a CLOSED generic type are per-type-argument, and xUnit resolves
+`[MemberData]` against `testMethod.DeclaringType`, which for a method inherited from `FamilyTestsBase<Slot3>` is
+the *closed* type, not the open definition. That was PROVED with a standalone probe on xunit 2.9.2 /
+xunit.runner.visualstudio 2.8.2 before any real class was touched — 3 partitions over 9 rows produced 9 tests, 3
+per partition, each asserting its own slot; open-type resolution would have produced 27 tests and 18 failures.
+
+**⛔ The invariant, and its gate.** A partitioned family FAILS OPEN: delete one partition class and the rows it
+owned are simply never run — no error, no red, just a smaller and entirely plausible test count.
+`TestPartitionAudit`, run per assembly by `TestPartitionCoverageDriftTests`, closes that. It is SHAPE-DRIVEN, not
+registered — it finds every family by structure (a top-level, author-written, abstract generic base with one type
+parameter constrained to `ITestPartitionSlot`), so a NEW family is covered the moment it is written. Four checks,
+one per way a family loses rows silently:
+
+| check | what it catches |
+|---|---|
+| the row source yields NOTHING | every check below would compare an empty union against an empty source and report green |
+| slot indices ≠ {0 … `Partitions`−1} | a deleted, duplicated or mis-slotted partition class |
+| an EMPTY partition over a non-empty source | more partitions declared than the source can fill — the one waste the union check cannot see, because the surviving slots still cover the whole set |
+| union of the partitions ≠ the source as a MULTISET | rows dropped or double-run, each named in the failure |
+
+Plus a ladder check: `Slot9.Index => 8` would silently put two classes in one partition and corrupt EVERY family
+at once, so the slot ladder is verified against its own names, once, centrally.
+
+⚠ **The gate was proved failing, not trusted silent** — and it earned that on its FIRST real run, before any
+deliberate break: Roslyn emits a nested `<>O` delegate-cache class inside any generic type that caches a lambda,
+and a nested type inherits its enclosing type's generic parameter *with its constraints*, so every family produced
+a phantom family with no `Partitions` const. Both structural checks were then fired deliberately (a partition
+class commented out → the slot-set violation plus a per-source "87 row(s) NEVER RUN" naming the exact dropped
+rows; a slice count desynced from the const → `TestPartitioning.Slice`'s own range guard throws first, which is
+why that direction cannot reach the audit at all).
+
+#### 3.11.1 What is partitioned, and what it measured
+
+| family | `Partitions` | before (battery #41 trx) | after |
+|---|---|---|---|
+| `VersionMatrixTests_P0 … _P11` | 12 | 2127 rows, **720.5 s SERIAL** — the whole 721 s leg | 12 × (175…179 rows), 552–601 s each, all spanning the run together |
+| `NistDifferentialTests_P0 … _P5` | 6 | 349 rows, 237.9 s SERIAL | 6 × (58–59 rows), 329–354 s each |
+| `CorpusRunnerTests_P0 … _P2` | 3 | 1005 rows, 83.9 s SERIAL | 3 × (332–334 rows), 117–145 s each |
+| `StorageFormNistEquivalenceTests_P0 … _P7` | 8 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock | 8 slice-`[Fact]`s, 81–138 s each |
+
+Whole-corpus assertions stay OFF the partitioned base and run ONCE (`VersionMatrixTests`' two catalogue facts,
+`CorpusRunnerTests.Manifest_CoversEveryProgram_NoOverlap`) — an inherited `[Fact]` would run N times and inflate
+the count N-fold. The StorageForm sweep is the one deliberate count change (6 → 13) and it keeps its POPULATION
+assertion: the whole-corpus bar was `parsed >= 50`, and each partition now asserts its proportional share rounded
+UP, so a partition that silently stopped binding goes RED instead of green-and-empty (§3.10 corollary 1).
+
+**Measured, same box (24-physical/32-logical i9-13900K), same `Conformance ∥ Unit ∥ Characterization` shape:**
+
+| leg | wall | sum of test time | avg concurrency |
+|---|---|---|---|
+| Conformance | 721 s → **600 s** | 1948 s → 10469 s | 2.7× → **17.4×** |
+| Unit | 171 s → **138 s** | 329 s → 895 s | 1.9× → **6.5×** |
+
+⛔ **THE TAIL IS GONE; THE WALL BARELY MOVED — AND THE SECOND HALF OF THAT SENTENCE IS THE FINDING.** A13
+predicted ~783 s → ~80 s. The split did precisely what it was designed to do, yet bought 17%, because
+`sum-of-test-time ÷ wall` measures COLLECTION concurrency, **not core utilisation**, and the "idle" cores were
+never idle: one COBOL.NET compile is internally parallel (Roslyn `Emit`) and a NIST row spawns a `dotnet` child
+that is too. The proof is in the after-profile itself — the SAME work reports **5.4× more test time** because the
+new collections found contention, not silicon; at 17.4× + 6.5× ≈ 24 threads on 24 physical cores the box is
+saturated. **The class-split lever is therefore EXHAUSTED**, and the remaining lever is to reduce the WORK — the
+persistent compile/run host of §3.10's `guard-fast` row and A13(c), not more parallelism. Kept for the balance
+and for the drift gate, exactly as the `guard-fast` regrouping was kept for correctness rather than speed.
+
+#### 3.11.2 ⛔ Filters must key on the METHOD, never on `Class.Method`
+
+A partition class is `VersionMatrixTests_P0`, so `FullyQualifiedName~VersionMatrixTests` still selects it and
+`!~VersionMatrixTests` still excludes it — but `~VersionMatrixTests.Cobol85Program_…` can never match
+`VersionMatrixTests_P0.Cobol85Program_…`, and **vstest answers a filter that matches nothing with a SILENT
+GREEN**. Two CI filters were keyed that way: the three continuity shards, and the **INV-1-STRONG job**
+(`~NistDifferentialTests.NistProgram_MatchesGolden`), which unlike the shard matrix has **no population guard**
+and would have kept reporting success over ZERO goldens. Both now key on the method name alone — unique in the
+tree, and immune to the next re-partition. The shard-population job (§3.8) is what catches this class of error for
+the sharded leg, and it was re-run locally against the split tree: 349+349+349+1080+1354+1761 = 5242 = discovered.
 
 ---
 

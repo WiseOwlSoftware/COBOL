@@ -92,12 +92,20 @@ jobs:
           # Continuity was still ~20 min alone (each case compiles a FULL corpus program): 1047 = 349
           # programs x 3 later editions, and the display name carries `edition: NNNN` (program names are
           # XX###X — a year string cannot collide), so it shards BY EDITION, 349 cases each.
+          # ⛔ THE CONTINUITY FILTER IS KEYED ON THE METHOD NAME ALONE, NOT `Class.Method` (plan §11 A13).
+          # VersionMatrixTests is now twelve partition CLASSES (VersionMatrixTests_P0 …) so its 2,127 rows stop
+          # being one serial xUnit collection; a `~VersionMatrixTests.Cobol85Program_…` substring can never
+          # match `VersionMatrixTests_P0.Cobol85Program_…`, and vstest answers a filter that matches nothing
+          # with a SILENT GREEN. Cobol85Program_StillCompilesAtLaterEdition is unique in the tree, so keying on
+          # it is both correct today and immune to the next re-partition. Every `~VersionMatrixTests`,
+          # `~CorpusRunnerTests` and `~NistDifferentialTests` filter below still matches, partitions included,
+          # because each partition class keeps its family name as a prefix.
           - shard: matrix-cont-2002
-            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2002"
+            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2002"
           - shard: matrix-cont-2014
-            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2014"
+            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2014"
           - shard: matrix-cont-2023
-            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2023"
+            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2023"
           - shard: matrix-constructs
             filter: "FullyQualifiedName~VersionMatrixTests&FullyQualifiedName!~Cobol85Program_StillCompilesAtLaterEdition"
           - shard: corpus-nist
@@ -211,12 +219,20 @@ jobs:
           # Continuity was still ~20 min alone (each case compiles a FULL corpus program): 1047 = 349
           # programs x 3 later editions, and the display name carries `edition: NNNN` (program names are
           # XX###X — a year string cannot collide), so it shards BY EDITION, 349 cases each.
+          # ⛔ THE CONTINUITY FILTER IS KEYED ON THE METHOD NAME ALONE, NOT `Class.Method` (plan §11 A13).
+          # VersionMatrixTests is now twelve partition CLASSES (VersionMatrixTests_P0 …) so its 2,127 rows stop
+          # being one serial xUnit collection; a `~VersionMatrixTests.Cobol85Program_…` substring can never
+          # match `VersionMatrixTests_P0.Cobol85Program_…`, and vstest answers a filter that matches nothing
+          # with a SILENT GREEN. Cobol85Program_StillCompilesAtLaterEdition is unique in the tree, so keying on
+          # it is both correct today and immune to the next re-partition. Every `~VersionMatrixTests`,
+          # `~CorpusRunnerTests` and `~NistDifferentialTests` filter below still matches, partitions included,
+          # because each partition class keeps its family name as a prefix.
           - shard: matrix-cont-2002
-            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2002"
+            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2002"
           - shard: matrix-cont-2014
-            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2014"
+            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2014"
           - shard: matrix-cont-2023
-            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2023"
+            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2023"
           - shard: matrix-constructs
             filter: "FullyQualifiedName~VersionMatrixTests&FullyQualifiedName!~Cobol85Program_StillCompilesAtLaterEdition"
           - shard: corpus-nist
@@ -338,11 +354,15 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
+      # ⛔ KEYED ON THE METHOD NAME, NOT `Class.Method` (plan §11 A13): NistDifferentialTests is now six
+      # partition CLASSES (NistDifferentialTests_P0 …), and `~NistDifferentialTests.NistProgram_MatchesGolden`
+      # can never match `NistDifferentialTests_P0.NistProgram_MatchesGolden`. vstest answers an unmatched
+      # filter with a SILENT GREEN, so this job would have kept reporting success over ZERO goldens.
       - name: NIST goldens byte-exact at --std 2023 --permissive (the existing NistDifferentialTests, re-editioned)
         env:
           COBOLNET_NIST_STD: "2023"
           COBOLNET_NIST_PERMISSIVE: "1"
-        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --filter "FullyQualifiedName~NistDifferentialTests.NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
+        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
       - name: Upload test results (TRX)
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
