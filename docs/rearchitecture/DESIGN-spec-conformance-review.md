@@ -88,13 +88,54 @@ rather than under `docs/`, because its reader is the battery, not a person.
 > a gate that cries wolf is a gate nobody reads. A symbol survives refactoring, moves with the code it names, and
 > fails only when the thing it points at actually stops existing — which is the one event worth failing on.
 
-## 5. Execution model
+## 5. Execution model — two concurrent lanes, five row-shape lanes (owner decision PB278, 2026-09-01)
 
 Workflow-orchestrated (owner: max parallelism for disjoint work). **Fan out by §-clause** (disjoint units).
 **Incremental accumulation** into the inventory — resumable across sessions; the GAP count is the burn-down. **Loop-
 until-dry + completeness critics** so nothing is silently uncovered. Every Phase-C fix lands with its **spec-derived
-golden** and a comprehensive gate (tiered testing, `feedback_tiered_gates`). This is many sessions
-of work; it is paced by the inventory GAP, not big-banged.
+golden** and a comprehensive gate (tiered testing, `feedback_tiered_gates`). This is many sessions of work; it is
+paced by the inventory GAP, not big-banged.
+
+**⚖ Adjudication and fixing are TWO LANES THAT RUN CONCURRENTLY** (`kb/Work/PB278`, replacing the 2026-08-09
+"backlog to zero before adjudication" order). The measurement behind it: of 3,636 GAP rows on 2026-09-01, 3,361 had
+never been adjudicated while thirteen per-wave review fleets (~1,000 agents, ~4B cache-read tokens in three days)
+had moved the GAP by 27 rows. The two lanes never write the same thing: the adjudication lane reads a `git
+worktree` pinned at a commit and writes verdict batch files; the fix lane edits the main tree.
+
+### 5.1 The lanes, ordered by rows closed per token
+
+| lane | rows (2026-09-01) | unit of work | what closes a row |
+|---|---|---|---|
+| **Golden** | CONFORMS rows with an empty `test-ref` (139) + DOCUMENTED-NON-SUPPORT rows without a witness (18) | one writer agent per subject family (~10–14 rows), one refuter per file checking ONLY that each expected value is derivable from the cited rule text | a spec-derived golden (or witness) registered in the manifest; no compiler change |
+| **Derived verdict** | rules made unreachable by an A.4 module the owner has declared *Not claimed* (`CONFORMANCE.md` §5) | one `derived-verdicts` selector per module in `inventory-schema.json` (DATA — the PB198 mechanism) + one witness negative test per module | the selector + the witness; the drift test holds the population |
+| **Adjudication** | never-adjudicated rules (3,361) | `phase_b_batch.py` batches of ≤20 rules per agent, **dossier-fed** (§5.2), refuters read only the CONFORMS / DNS candidates | a verified verdict; CONFORMS rows then go to the golden lane, defective rows to `kb/Work/` |
+| **Fix** | defective rows (PARTIAL / NOT-IMPLEMENTED / DIVERGES) via their `kb/Work` notes | clusters by MECHANISM, not by note; the proven loop (implementer → self-review → fleet → director → lander) with the fleet sized in §5.3 | the fix + golden + re-verdict in one change set; one comprehensive battery per cluster batch |
+| **A.1 documentation** | Annex A.1 DOC rows (222) | first the schema defines what closes a DOC row (39 §7 determinations exist and zero rows carry a verdict); then batches by statement family | a §7 determination as `code-location` + a witness golden as `test-ref` |
+
+**Batch order in the adjudication lane** alternates a *defect-rich* batch — §14 statement groups, grouped by
+mechanism (the I/O statements together, the string statements together) so the notes it produces already cluster —
+with a *closure-rich* batch (§13, then §12, §11, §8, §7, the small clauses; §13/§12 adjudicate ~96% CONFORMS where
+§14 adjudicates 64%). The lane stays one batch ahead of the fix lane: the GAP moves every battery and the fix lane
+never starves.
+
+### 5.2 The dossier — agents verify, they do not search
+
+Phase-B batch 8 agents spent ~120 turns each, most of them discovering what they were to verify. The batch
+generator therefore hands each agent, beside the rule texts: the `.g4` rules for the construct, the binder /
+emitter / runtime files that cite the clause, every test and golden that cites it, and the `CONFORMANCE.md`
+determinations for it. Discovery is a grep; verification is the agent's job.
+
+### 5.3 The fleet is sized to the cluster, and it runs once
+
+A fleet per wave at ~100 agents was the largest token sink relative to burn-down, and five of the last eleven
+findings were defects the wave itself introduced. So: the implementer runs the four review lenses as a **self-review
+checklist before** any fleet; the fleet is **~40 agents** (four lenses, two refuters per finding) and runs **once
+per cluster**; implementer agents receive the apply-ready contract, not a discovery brief, with a turn budget.
+Refute stages on anything that CLOSES a row are never dropped (§9).
+
+Two mechanical enablers, each its own change set: the A13 collection split (`VersionMatrixTests` runs 780 s on one
+thread, so a battery is ~15 min where ~4 is available), and the pinned-worktree convention that lets the
+adjudication lane read while the fix lane builds.
 
 ## 6. Governance / relationship to existing artifacts
 

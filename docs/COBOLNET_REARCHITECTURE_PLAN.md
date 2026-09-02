@@ -512,10 +512,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **INCIDENTAL FINDS REGISTERED:** PB68 (class-boolean checkpoints, ex-RV-15.13.4-1 D2/D3) · PB69
   (FromDouble sentinel-as-argument, `MOD(A ** 3, B)`) · PB70 (group-refmod MOVE loud stage) · PB71
   (`ALL N"…"` parse gap). All in `work.py next`'s pool.
-- **▶ THE PRIOR HANDOFF (2026-08-09 13:30 — the owner's STANDING DIRECTIVES, all still in force):
-  ① FIX THE KNOWN DEFECT BACKLOG TO ZERO — no new adjudication exploration until it reads zero
-  (owner, 2026-08-09). The backlog = inventory rows with DIVERGES/PARTIAL/NOT-IMPLEMENTED verdicts;
-  session-probe/`work.py next` rank the fix queue. ② Run fully autonomously, no permission pauses;
+- **▶ THE PRIOR HANDOFF (2026-08-09 13:30 — the owner's STANDING DIRECTIVES; ② and ③ still in force,
+  ① SUPERSEDED 2026-09-01):
+  ① ~~FIX THE KNOWN DEFECT BACKLOG TO ZERO — no new adjudication exploration until it reads zero~~
+  — ⛔ **REPLACED by owner decision PB278 (2026-09-01): adjudication and fixing run as TWO CONCURRENT
+  LANES.** The backlog is 3% of the GAP, so serializing the other 97% behind it was the wrong order;
+  see the PB278 bullet below and `DESIGN-spec-conformance-review.md` §5. The backlog itself is
+  unchanged as a THING — inventory rows with DIVERGES/PARTIAL/NOT-IMPLEMENTED verdicts, ranked by
+  session-probe/`work.py next` — it simply no longer gates the adjudication lane.
+  ② Run fully autonomously, no permission pauses;
   only D13-class spec decisions are owner-reserved. ③ ALL subagents run Opus 5
   (`CLAUDE_CODE_SUBAGENT_MODEL` is set persistently; also pass `model:'opus'` in workflow scripts).**
   **WHERE THE CAMPAIGN STANDS (all numbers COMPUTED — run the probe):** the 2026-08-09 triage
@@ -1839,19 +1844,45 @@ result. Run the long legs ONE AT A TIME.
   the gate goes red — which is the event most worth failing on. Seven proposed CONFORMS re-adjudications were
   REFUSED rather than recorded on a read (`kb/Work PB258`); the two rows held defective purely for visibility
   are `PB259`; the owed A.4.2 / A.4.3 witnesses are `PB260` / `PB261`.
-- **⚠ BATTERY #41 ACCRUES — the ARITHMETIC WAVE (owner decisions D-B + D-C, PB194/PB195, and the review
-  fleet's landing PB266–PB276), 2026-08-31. NOT run; the reference below is battery #40 and stays current
-  until #41 is measured.** The wave is gated wave-local GREEN on
-  `~Arithmetic|~Numeric|~Dec|~Pow|~Literal|~Float|~Intrinsic|~Corpus|~Move|~Ec|~Options|~SpecTraceability|~VersionMatrix|~Exception`.
-  What #41 must attend to when it runs: the wave moves COMPUTED VALUES on the standard-decimal `**` path
-  (§8.8.1.5.4 r3 hoisted to one place; a near-unit logarithm band; the past-loop-bound escape carrying the
-  exponent operand instead of a clamped `long`) and it changes an EC NAME in two directions —
-  `2 ** -600000` OVERFLOW where it was UNDERFLOW, and its mirror — so the **GnuCOBOL differential is the leg
-  most likely to move**, and every flip there needs attribution per-case, never by the four totals. No
-  greenfield golden digit moved in the wave itself (all six arithmetic goldens diffed byte-for-byte before the
-  new legs were added); the goldens that changed did so by GAINING legs, not by rebaselining.
-  Inventory: **GAP 3637 → 3636** (RV-15.4.1-3 PARTIAL → CONFORMS, recorded through `record_verdicts.py`).
-- **⛔ BATTERY REFERENCE — CURRENT, the burn-down-cluster-B + defective-row-registration batch (PB169–PB172 +
+- **⚖ OWNER DECISION 2026-09-01 — THE BURN-DOWN RUNS AS TWO CONCURRENT LANES (`kb/Work/PB278`).** The
+  2026-08-09 "backlog to zero before adjudication" order is replaced: Phase-B adjudication (read-only, in a pinned
+  `git worktree`, one batch ahead) runs INTERLEAVED with the defect-fix lane, and three cheaper row-shape lanes run
+  first — the golden lane (the 139 CONFORMS-untested + 18 DNS-witness rows, no compiler change), the derived-verdict
+  lane (one selector per A.4 module already *Not claimed*), and the A.1 documentation lane once the schema defines
+  a DOC row's closing shape. Method and rationale: `DESIGN-spec-conformance-review.md` §5; the measurements that
+  earned it (3,361 of 3,636 GAP rows never adjudicated; ~1,000 fleet agents for 27 rows of burn-down in three days)
+  are in the decision note. **Lanes are QUERIES over `kb/Work/` and the inventory — no new list anywhere.**
+- **⛔ BATTERY REFERENCE — CURRENT, the ARITHMETIC WAVE batch (owner decisions D-B + D-C, PB194/PB195 and the
+  review fleet's landing PB266–PB276) plus the PB277 CI repair, battery #41, 2026-09-01.**
+  ✅ **Every leg GREEN on ONE tree, in ONE run — `2acbd842` (HEAD, clean), no split and no rebaseline.**
+  Measured: FULL greenfield Conformance **5241 / 5241** (12 m) · Unit **5143 / 5143** (2 m 51 s) ·
+  characterization **33 / 33** (3 s — CONCURRENT, and #37's "Test host process crashed" still has NOT recurred;
+  the watch stays open) · NIST **353 MATCH / 0 REGRESSION**, audit **CLEAN**, guard verdict **ALL GREEN** ·
+  GnuCOBOL differential **1323 cases**, **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`** (totals unchanged at
+  573/473/207/70) · **`=== BATTERY: ALL GREEN ===`**, exit 0. Artifacts
+  `scratchpad/battery-41` (`summary.txt`, both `.trx`, `guard.log`, `gnucobol-report.json`).
+  ⚠ **The one thing the accrual bullet PREDICTED and this run REFUTED, recorded because a refuted prediction is
+  the only part of a green battery worth reading:** the accrual note called the GnuCOBOL differential "the leg
+  most likely to move", because the wave changes an EC NAME in two directions (`2 ** -600000` raising
+  **OVERFLOW** where it had raised UNDERFLOW, and its mirror). It moved **nothing** — zero per-case flips, so
+  **no baseline regeneration was needed at all**, unlike #38/#39/#40. The reason is visible in the differential's
+  own unit of measurement: it records ACCEPT/REJECT per case, and an exception-condition NAME is a runtime
+  value, not a compile verdict — so a change that moves computed values and EC names is invisible to that oracle
+  by construction. The leg that would have seen it is the greenfield Conformance suite, which is where the
+  wave's own goldens live and where it is green. **Per-case attribution stays mandatory anyway** (identical
+  totals are consistent with offsetting flips — that is why the per-case diff exists), and here the mechanical
+  line, not the four totals, is what says zero.
+  **Population:** Conformance **+6 over #40** (5235 → 5241); Unit **+37** (5106 → 5143). ⚠ These are COMPUTED
+  from the #40 bullet directly below, not carried in from the batch notes, which quoted +116 / +79 against some
+  other baseline; the reference bullets are the single-write record and they are what a delta is derived from.
+  Covers DEVLOG **1421–1422** (the arithmetic review fleet's landing, and the PB277 CI repair — a workflow-only
+  change the battery cannot see, which is the whole point of PB277: `battery.sh` is not a superset of CI).
+  **Extends to `f7e8382e` (PB279) and to this recording commit by the #40 mechanical argument, restated so it
+  stays checkable:** `git diff --name-only 2acbd842 f7e8382e -- src/ tests/` is **EMPTY** (that range touches
+  only `DEVLOG.md`, `docs/`, one `kb/` note and `scripts/hooks/`), and this recording commit adds only `docs/`
+  and `kb/` — **no `src/` or `tests/` file, so no compiler behaviour any leg measured can have moved.**
+  **No gate is owed.**
+- **⛔ PRIOR BATTERY REFERENCE — the burn-down-cluster-B + defective-row-registration batch (PB169–PB172 +
   PB210–PB215 + PB216–PB224 plus the registration wave), battery #40, 2026-08-31.**
   ✅ **Every leg GREEN, and the differential's ONE flip is ATTRIBUTED AND INTENDED.**
   **⚠ The legs were earned on TWO trees, and the record says which** — the #39 precedent, restated so it stays
