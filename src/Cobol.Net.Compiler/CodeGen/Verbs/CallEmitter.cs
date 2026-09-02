@@ -338,20 +338,20 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             case BoundStringLiteral s:
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), 0, 0)";
+            // ⛔ ONE NUMERIC-ARGUMENT FUNNEL for both non-place arms (kb/Work PB263 + PB264). A numeric literal
+            // reaches this switch in EITHER bound shape — BY CONTENT and a bare Format-2 argument bind it as
+            // BoundNumericLiteral, while BY VALUE binds it as a BoundComputedOperand wrapping a BoundNumLiteral
+            // (CallBinder's byValue arm goes through BindByValueExpr) — and the two arms used to derive a
+            // carrier and a scale EACH. They disagreed, so ONE rule ("a numeric literal argument crosses with
+            // its exact value") produced three different wrong answers depending on how it was spelled.
             case BoundNumericLiteral n:
-            {
-                // The cell type follows the literal's own carrier (kb/Work R12 — a 19+-digit literal used to be
-                // a LOUD stage; the typed crossing takes it natively, and the R10 unsigned-wide fold literal
-                // rides its UInt128 cell the same way).
-                var lit = UnscaledLit(n.Text);
-                int digits = n.Text.Count(char.IsAsciiDigit);
-                string cellT = lit.U ? "UInt128" : digits > 18 ? "Int128" : "long";
-                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<{cellT}>.Cell({lit.Expr}), {digits}, {lit.Scale})";
-            }
+                return NumericArgText(a.Mode, n.Text);
+            case BoundComputedOperand ce when ConstLiteralText(ce.Expr) is { } ct:
+                return NumericArgText(a.Mode, ct);
             case BoundComputedOperand expr:
             {
-                // An expression argument snapshots its computed value (§14.2.3 GR9/GR10 — the CALL BY VALUE
-                // grammar leg binds Mode=Value; a UDF expression argument to a BY REFERENCE formal binds
+                // A GENUINE runtime expression snapshots its computed value (§14.2.3 GR9/GR10 — the CALL BY
+                // VALUE grammar leg binds Mode=Value; a UDF expression argument to a BY REFERENCE formal binds
                 // Mode=Content per §8.4.3.2.4 GR5b — the mode is bound, not assumed here).
                 // An unsigned-wide result (a HIGHEST-ALGEBRAIC fold literal — kb/Work R10) funnels through the
                 // same DeU rule as every arithmetic consumer: loud beyond the Int128 intermediate, never a wrap.
@@ -359,7 +359,14 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // through the ONE landing at the receiver-less working scale (kb/Work PB84 — `(long)(CobolDec)` was
                 // a Roslyn error on `CALL … BY VALUE A ** 2`).
                 NumX x = num.Landed(NumericRenderer.DeU(num.Render(expr.Expr, ReceiverContext.None)), ReceiverContext.None);
-                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
+                // ⛔ THE CELL IS Int128, NOT long, AND THE CONVERSION IS WIDENING (kb/Work PB264). This used to
+                // be `ManagedPointer<long>.Cell((long)(x.Expr))` — an UNCHECKED narrowing of a value that the
+                // DeU/Landed funnel above delivers on the Int128 lane, so an argument beyond 18 digits crossed
+                // as its MODULAR LOW-ORDER BITS: a silent wrong value, in the one direction the callee cannot
+                // detect. Widening to the lane's own carrier removes the narrowing rather than checking it —
+                // there is no value on the Int128 lane that an Int128 cell cannot hold — and every carrier the
+                // ABI accepts is read back through CobolArgAdapt's ReadNumericCell (kb/Work R12).
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<Int128>.Cell((Int128)({x.Expr})), 38, {x.Scale})";
             }
             case BoundAllLiteral all:
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CsLiteral(all.Literal)}), 0, 0)";
@@ -369,6 +376,65 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell("
                     + LoudValue("string", "CALL USING argument form") + "), 0, 0)";
         }
+    }
+
+    /// <summary>The COMPILE-TIME numeric-literal text of an argument expression — the literal itself, with any
+    /// leading sign folded in — or null when the expression is not a literal constant.
+    /// <para>⛔ WHY THE NEGATE ARM EXISTS, and it is the two-arm shape again. At a LITERAL position the sign is
+    /// part of the token (<c>numericLiteral : signedNumericLiteral</c>), but inside an ARITHMETIC EXPRESSION —
+    /// which is what a BY VALUE argument binds as — a leading '−' before the FLOATING-POINT form is taken by
+    /// <c>unaryExpression</c> first, so <c>BY VALUE -1.234E-5</c> arrives as BoundNegate(BoundNumLiteral) while
+    /// <c>BY VALUE -0.00001234</c> arrives as a bare BoundNumLiteral. Matching only the bare shape fixed the
+    /// unsigned spelling and left the signed one falling through to the runtime-expression arm, where the
+    /// receiver-less working scale (6 fraction digits) truncated it: −0.00001234 crossed as −0.000012, a silent
+    /// wrong value on conforming source. One rule, two spellings, and only one of them fixed is exactly the
+    /// defect being repaired here — so the fold is part of the fix, not a refinement of it.</para></summary>
+    private static string? ConstLiteralText(BoundExpr e) => e switch
+    {
+        BoundNumLiteral n => n.Text,
+        BoundNegate g => ConstLiteralText(g.Operand) is { } t ? Negated(t) : null,
+        _ => null,
+    };
+
+    /// <summary>The literal text of the algebraic negation of <paramref name="text"/> (ISO §8.3.3.3.2 rule 2 —
+    /// a sign, if used, is the leftmost character; §8.3.3.3.3 rule 2 makes a signed significand sign the whole
+    /// floating-point literal).</summary>
+    private static string Negated(string text)
+    {
+        string t = text.Trim().TrimStart('+');
+        return t.StartsWith('-') ? t[1..] : "-" + t;
+    }
+
+    /// <summary>⛔ THE ONE numeric-LITERAL argument carrier build, for every notation and every pass mode
+    /// (kb/Work PB263 + PB264). A numeric literal argument crosses as the <c>(unscaled value, scale)</c> pair
+    /// that <see cref="EmitText.TryUnscaledParts"/> derives EXACTLY from the literal — its §8.3.3.3.2 rule-4
+    /// value for the fixed-point form, its §8.3.3.3.3 rule-5 value ("the algebraic product of the value of its
+    /// significand and the quantity derived by raising ten to the power of the exponent") for the
+    /// floating-point form — so the two notations of one value cross identically, and the callee's own
+    /// conformance (<c>CobolArgAdapt.Num</c> for §14.2.3 GR9, <c>NumValue</c> for GR10's "COMPUTE statement
+    /// without the ROUNDED phrase") receives the value the program actually wrote.
+    /// <para>THE CARRIER AND THE DIGIT META COME FROM THE RENDERED VALUE, never from the source text. The digit
+    /// count used to be <c>Text.Count(char.IsAsciiDigit)</c>, which counts a floating-point literal's EXPONENT
+    /// digits as significand digits, and the cell type was re-derived from that miscount — so
+    /// <c>BY CONTENT 1.5E+3</c> asked for a <c>long</c> cell and got a <c>double</c> expression, a raw Roslyn
+    /// CS1503 on conforming source with no COBOL diagnostic at all (PB263). <c>IntLiteralCore</c> now decides
+    /// the rendering and its carrier together, so they cannot disagree.</para></summary>
+    private static string NumericArgText(CobolPassMode mode, string literalText)
+    {
+        // ONE decomposition, then ONE carrier decision over it. ⛔ Deliberately NOT `UnscaledLit` here: that
+        // would decompose the literal a SECOND time and take only half of the result, leaving the rendered
+        // expression and the cell type derived independently again — which is the precise shape of the defect
+        // this method exists to remove.
+        if (!TryUnscaledParts(literalText, out string unscaled, out int scale))
+            // Not a canonical numeric literal — the binder has already diagnosed it (COBOLNET1661 for an
+            // out-of-range exponent, the §8.3.3.3.3 SR2/SR3 form checks otherwise). Stage loud rather than
+            // emit a cell whose type cannot be derived; never a silent value.
+            return $"new CobolArg({RuntimeApi.PassModeText(mode)}, ManagedPointer<string>.Cell("
+                + LoudValue("string", $"CALL USING numeric literal '{literalText}'") + "), 0, 0)";
+        var (cell, _, carrier) = IntLiteralCore(unscaled);
+        int digits = unscaled.Count(char.IsAsciiDigit);
+        return $"new CobolArg({RuntimeApi.PassModeText(mode)}, "
+            + $"ManagedPointer<{carrier}>.Cell({cell}), {digits}, {scale})";
     }
 
     /// <summary>An accessor carrier over a caller place — the BY REFERENCE / RETURNING aliasing form (design D1:

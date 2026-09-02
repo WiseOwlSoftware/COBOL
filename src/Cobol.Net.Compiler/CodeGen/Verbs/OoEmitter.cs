@@ -832,10 +832,22 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // CONTENT numeric conversion (COMPUTE rules, §14.8.2.3.3 2a): rescale + truncate into the
                 // formal's description through the OWNER's internal profile.
                 w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){NumericRenderer.StoreExpr(cx, a.Formal.Pic!.Scale, qualProfile)};");
+            else if (a.Source is { } np)
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({Num.AsNum(new BoundFieldOperand(np), ReceiverContext.None).Expr});");
             else
-                w.Line(a.Source is { } np
-                    ? $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({Num.AsNum(new BoundFieldOperand(np), ReceiverContext.None).Expr});"
-                    : $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){RuntimeApi.NumStore(UnscaledLit(a.NumericLiteral!).Expr, $"{UnscaledLit(a.NumericLiteral!).Scale}", qualProfile)};");
+            {
+                // A numeric LITERAL argument: its exact value as the (unscaled, scale) pair, stored through the
+                // formal's own profile (§14.8.2.3.3 rule 2a's COMPUTE regime, as the CONTENT arms above).
+                // ⛔ THE THIRD ARM OF THE SAME LITERAL-RENDERING DISPATCH as the CALL lane's two (kb/Work PB263):
+                // UnscaledLit used to hand back a binary64 `Real` NumX for the floating-point form, so
+                // `INVOKE … USING BY CONTENT 1.5E+3` emitted a C# `double` into an Int128-typed store and the
+                // generated code did not compile — a raw Roslyn CS1503 on conforming source. It now decomposes
+                // BOTH notations to the exact scaled integer of ISO §8.3.3.3.3 rule 5 / §8.3.3.3.2 rule 4.
+                // (Evaluated ONCE — this used to call UnscaledLit twice to read its two halves.)
+                NumX lit = UnscaledLit(a.NumericLiteral!);
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})"
+                    + $"{RuntimeApi.NumStore(lit.Expr, $"{lit.Scale}", qualProfile)};");
+            }
             argExprs.Add($"ref {tmp}");
 
             if (!a.WriteBack || a.Source is not { } src) continue;

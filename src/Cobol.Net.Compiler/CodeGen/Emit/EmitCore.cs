@@ -126,24 +126,74 @@ internal static class EmitText
     }
 
     /// <summary>Thin forward to the one codec — see <see cref="CobolNet.Common.CobolLiteral.AllLiteralText"/>
-    /// (delimiter-agnostic, ISO §8.3.1.2).</summary>
+    /// (delimiter-agnostic, ISO §8.3.3.2 — §8.3.1.2 does not exist; see kb/Work PB290).</summary>
     public static string? AllLiteralText(string raw) => CobolNet.Common.CobolLiteral.AllLiteralText(raw);
+
+    /// <summary>⛔ THE ONE exact unscaled decomposition of a numeric literal, in EITHER notation: the signed
+    /// unscaled digit string and the fraction-digit SCALE, so that the literal's value is exactly
+    /// <c>digits × 10^−scale</c>. A FIXED-POINT literal is its digits at its decimal-point position (ISO
+    /// §8.3.3.3.2 rule 4 — "The value of a fixed-point numeric literal is the algebraic quantity represented by
+    /// the characters in the fixed-point numeric literal"); a FLOATING-POINT literal decomposes to the SAME
+    /// KIND OF PAIR, because ISO §8.3.3.3.3 rule 5 makes its value "the algebraic product of the value of its
+    /// significand and the quantity derived by raising ten to the power of the exponent" — an EXACT scaled
+    /// integer, never an approximation.
+    /// <para>⛔ NEVER A TEXT EXPANSION. The pair comes from <c>NumericLiteral.TryParseExact</c>'s (significand,
+    /// power of ten). Expanding the value to digit text would build a string as long as the literal's decade
+    /// bound allows, and that bound is the SDIDI intermediate exponent range (owned solely by
+    /// <c>ArithmeticModes.IntermediateExponentRange</c>, which COBOLNET1661 enforces on the literal at bind) —
+    /// thousands of characters for one argument. The SCALE simply goes NEGATIVE instead — <c>1.0E+300</c> is 1
+    /// at scale −300 — which <c>CobolNum.Rescale</c> already carries (it is the same negative scale a PICTURE-P
+    /// trailing-scaled item uses).</para>
+    /// <para>The pair is normalized toward a NON-NEGATIVE scale while the unscaled magnitude still fits
+    /// <see cref="Int128"/>, so <c>1.5E+3</c> decomposes exactly as <c>1500</c> does. That is the visible form of
+    /// owner decision D-B's invariant — a literal's NOTATION never changes the VALUE it contributes — now true
+    /// on the argument lane as well.</para>
+    /// Returns false for text that is not a canonical numeric literal; the binder has already diagnosed it
+    /// (COBOLNET1661 for an out-of-range exponent, the §8.3.3.3.3 SR2/SR3 form checks for the rest).</summary>
+    internal static bool TryUnscaledParts(string text, out string digits, out int scale)
+    {
+        string t = text.Trim().TrimStart('+');
+        if (t.IndexOf('E') < 0 && t.IndexOf('e') < 0)
+        {
+            // The FIXED-POINT form, textually — byte-identical to what this helper has always produced (leading
+            // zeros and the sign are preserved; IntLiteralX does the magnitude test).
+            int dot = t.IndexOf('.');
+            digits = dot < 0 ? t : t.Remove(dot, 1);
+            scale = dot < 0 ? 0 : t.Length - dot - 1;
+            return true;
+        }
+        digits = ""; scale = 0;
+        if (!CobolNet.Common.NumericLiteral.TryParseExact(t, out Int128 sig, out int exp10)) return false;
+        // Normalize toward scale ≥ 0 while the magnitude still fits the Int128 carrier (the guard keeps the
+        // multiply from overflowing; a literal's significand is at most 36 digits per §8.3.3.3.3 rule 2).
+        Int128 limit = Int128.MaxValue / 10;
+        while (exp10 > 0 && sig >= -limit && sig <= limit) { sig *= 10; exp10--; }
+        digits = sig.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        scale = -exp10;
+        return true;
+    }
 
     /// <summary>Render a numeric literal as a scaled integer: its digits as the unscaled value, its fractional
     /// digit count as the scale (e.g. <c>"3.5"</c> → <c>(35L, 1)</c>, <c>"-12"</c> → <c>(-12L, 0)</c>). A literal
-    /// wider than 18 digits (legal to 31, ISO §8.3.1.2 — the 2002+ wide tier) emits an <c>Int128.Parse</c> since
-    /// C# has no Int128 literal form.</summary>
+    /// wider than 18 digits (legal to 31, ISO §8.3.3.3.2 — the 2002+ wide tier) emits an <c>Int128.Parse</c>
+    /// since C# has no Int128 literal form.
+    /// <para>⛔ A FLOATING-POINT literal is a scaled integer TOO (<see cref="TryUnscaledParts"/>, ISO §8.3.3.3.3
+    /// rule 5) and this helper's contract IS that pair. It used to return the literal's own source text as a
+    /// binary64 <c>Real</c> NumX, which is not a scaled integer at all, and the two consumers that render an
+    /// OPERAND through this helper — the CALL argument lane and the INVOKE argument lane — then handed a C#
+    /// <c>double</c> to a <c>ManagedPointer&lt;long|Int128&gt;.Cell(…)</c>: the generated C# did not compile, so
+    /// conforming source was rejected by a RAW ROSLYN CS1503 with no COBOL diagnostic at all (kb/Work PB263).</para>
+    /// <para>⛔ THIS IS NOT THE ARITHMETIC LANE. <c>NumericRenderer.LiteralNum</c> takes a canonical
+    /// floating-point literal onto the SDIDI (<c>Dec</c>) lane BEFORE it reaches here (owner decision D-B), so
+    /// the §8.8.1.3 intermediate-lane determination is untouched by this rendering; only a literal that is not
+    /// canonical at all — which the binder has already diagnosed — still falls through to the <c>Real</c>
+    /// form.</para></summary>
     public static NumX UnscaledLit(string text)
     {
-        string t = text.Trim().TrimStart('+');
-        // A floating-point literal (ISO §8.3.3.3.3 — significand E exponent) is a floating-point operand: it
-        // evaluates in IEEE binary64 (D16). The COBOL form (1.5E3, -2.5E-2) is itself a valid C# double literal,
-        // so emit it directly as a Real NumX (never the scaled-integer parse below).
-        if (t.IndexOf('E') >= 0 || t.IndexOf('e') >= 0)
-            return new NumX(t, 0, Real: true);
-        int dot = t.IndexOf('.');
-        var (lit, u) = IntLiteralX(dot < 0 ? t : t.Remove(dot, 1));
-        return new NumX(lit, dot < 0 ? 0 : t.Length - dot - 1, U: u);
+        if (!TryUnscaledParts(text, out string digits, out int scale))
+            return new NumX(text.Trim().TrimStart('+'), 0, Real: true);
+        var (lit, u) = IntLiteralX(digits);
+        return new NumX(lit, scale, U: u);
     }
 
     /// <summary>The C# literal for an unscaled integer digit string: <c>…L</c> while it fits <see cref="long"/>
@@ -151,20 +201,35 @@ internal static class EmitText
     public static string IntLiteral(string signedDigits) => IntLiteralX(signedDigits).Text;
 
     /// <summary>The carrier-aware form of <see cref="IntLiteral"/>. A SOURCE literal never exceeds 31 digits
-    /// (ISO §8.3.1.2), but a COMPILER-SYNTHESIZED literal can: the HIGHEST-ALGEBRAIC fold of a 16-byte unsigned
-    /// COMP-5 container is 2^128−1 (39 digits, §15.43.4 r2 — kb/Work R10 F73; the old unconditional
+    /// (ISO §8.3.3.3.2), but a COMPILER-SYNTHESIZED literal can: the HIGHEST-ALGEBRAIC fold of a 16-byte
+    /// unsigned COMP-5 container is 2^128−1 (39 digits, §15.43.4 r2 — kb/Work R10 F73; the old unconditional
     /// <c>Int128.Parse</c> threw <c>OverflowException</c> at run time). A positive magnitude beyond
     /// <see cref="Int128.MaxValue"/> renders as <c>UInt128.Parse</c> and is flagged unsigned-wide (<c>U</c>) so
     /// the renderer routes it down the unsigned lane. (A NEGATIVE value never needs it — the most negative fold,
     /// −2^127, is exactly <see cref="Int128.MinValue"/>.)</summary>
     internal static (string Text, bool U) IntLiteralX(string signedDigits)
     {
+        var c = IntLiteralCore(signedDigits);
+        return (c.Text, c.U);
+    }
+
+    /// <summary>⛔ THE ONE carrier decision for an unscaled integer literal — the rendered C# text, the
+    /// unsigned-wide flag, and the C# CARRIER TYPE that text is typed as, decided TOGETHER so they cannot
+    /// disagree. The CALL / INVOKE argument lanes need the third fact: a <c>CobolArg</c>'s cell is a
+    /// <c>ManagedPointer&lt;T&gt;</c> and <c>T</c> has to be the type the rendered expression actually has.
+    /// <para>kb/Work PB263: the cell type used to be re-derived at the call site from a SOURCE-TEXT digit
+    /// count, which counted a floating-point literal's EXPONENT digits as significand digits — <c>1.5E+3</c>
+    /// "has 3 digits", so the site asked for a <c>long</c> cell and handed it a <c>double</c> expression. Two
+    /// derivations of one fact, and they disagreed. Deriving the carrier HERE, from the same magnitude test that
+    /// chooses the rendering, is what makes the next carrier tier automatic instead of a second edit.</para></summary>
+    internal static (string Text, bool U, string Carrier) IntLiteralCore(string signedDigits)
+    {
         string mag = signedDigits.TrimStart('-').TrimStart('0');
-        if (mag.Length <= 18) return ($"{signedDigits}L", false);
+        if (mag.Length <= 18) return ($"{signedDigits}L", false, "long");
         if (signedDigits.StartsWith('-') || mag.Length < 39
             || System.Numerics.BigInteger.Parse(mag) <= (System.Numerics.BigInteger)Int128.MaxValue)
-            return ($"Int128.Parse(\"{signedDigits}\")", false);
-        return ($"UInt128.Parse(\"{signedDigits}\")", true);
+            return ($"Int128.Parse(\"{signedDigits}\")", false, "Int128");
+        return ($"UInt128.Parse(\"{signedDigits}\")", true, "UInt128");
     }
 
     /// <summary>Render a numeric literal as a C# <c>long</c> holding its UNSCALED value at <paramref name="scale"/>

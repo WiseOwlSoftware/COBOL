@@ -283,6 +283,8 @@
   "delete_file_attribute_set_empty",
   "pb156_float_literal_exact_native",
   "pb167_sdidi_exponentiation",
+  "pb263_call_literal_arg_exact_value",
+  "pb263_invoke_literal_arg_exact_value",
   "pb167_sdidi_exponentiation_prohibited"
  ],
  "pending": []
