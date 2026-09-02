@@ -253,6 +253,7 @@ subject → hand each result to an INDEPENDENT agent told to overturn it → mer
 
 ```
 python scripts/spec/phase_b_batch.py 15.32-15.44     # writes scratchpad/phase-b/in-<slug>.json, prints the slugs
+#   … each file carries the subject's DOSSIER; --no-dossier omits it, --include-adjudicated is NOT for a batch …
 #   … run the workflow (one adjudicate agent + one refute agent per slug) …
 python scripts/spec/record_verdicts.py --dry-run scratchpad/phase-b/out-*.json
 python scripts/spec/record_verdicts.py scratchpad/phase-b/out-*.json
@@ -260,6 +261,26 @@ dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabi
 ```
 
 `phase_b_batch.py` excludes rules that already carry a verdict, so a re-run after a partial batch is safe.
+
+**Every input file also carries a DOSSIER — the discovery, pre-computed, so the agent VERIFIES instead of
+SEARCHING.** Batch 8 (2026-09-01) cost 574M cache-read tokens over 39 agents for 224 rows, and most of each
+agent's ~120 turns went on the same three greps — where is the grammar rule, where is the binder and emitter,
+where are the tests — a search with one answer per subject that was being bought once per agent. The dossier
+computes it once per subject and pastes it into each of that subject's part files: the ANTLR rules (matched on
+the rule name, on the clause its comment block cites, and on the construct keyword), every `src/Cobol.Net.*` file
+citing the subject's clause with the citing lines, the same for `tests/` including the `.cob` goldens, the
+`docs/CONFORMANCE.md` determinations, the `kb/Work/` notes whose `spec_refs` or `inventory_rows` fall inside the
+subject **with their `status`** — which is how §8 item 8's "do not re-report a landed fix" gets answered without
+anybody hand-writing the list it forbids — and the citing `docs/DIAGNOSTICS.md` rows. Nothing is hand-mapped:
+the clause set comes from the catalog rows plus their construct root, and the keyword from the catalog's own
+`subject` field, because a hand-kept construct→file table would be a sixth work register (CLAUDE.md rule 8) whose
+staleness would be invisible — a dossier missing an entry looks exactly like a construct that has none.
+⛔ **That is also the dossier's limit, and every file repeats it to the agent in `how-to-read`: it is a selector,
+so it is evidence about what it RETURNED and none about what it dropped.** An empty list means "this derivation
+found none", never "the compiler has none" — 8 of the catalog's 599 subjects are prose with no keyword to search
+with at all, and code implementing a rule without citing its clause is invisible to it. A NOT-IMPLEMENTED verdict
+still needs the agent's own search. The generator prints a per-subject count table, and a row of zeros is the
+signal that that one agent starts cold.
 
 ### ⛔ The refute stage is not optional, and the evidence is now three batches deep
 
