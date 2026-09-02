@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse hook — REFUSE to build or test while a subagent fleet is live.
+"""PreToolUse hook — REFUSE to build or test while a subagent fleet is live IN THE CALLER'S OWN WORKING TREE.
 
 ⛔ WHY THIS EXISTS. On 2026-08-04 a ten-agent measurement fan-out was dispatched over the §15 result-type
 population, and the fix for what it was measuring was then implemented WHILE IT RAN: ~6 `dotnet build`
@@ -13,7 +13,36 @@ The owner's correction: each repetition wasted tokens. Memory alone did not stop
 ⚖ THE RULE IT ENFORCES is the ORDER of two decisions, not just the concurrency:
   1. Measure INLINE first. A fan-out for work an inline probe already did is pure waste — PB15's entire
      population was derived and measured in three tool calls before the fleet was ever dispatched.
-  2. Once a fleet IS running, the tree is FROZEN. Build/test only after the completion signal, or stop the fleet.
+  2. Once a fleet IS running, THE TREE IT IS PROBING is FROZEN. Build/test only after the completion signal, or
+     stop the fleet.
+
+⚖ THE UNIT OF THE FREEZE IS THE WORKING TREE, NOT THE SESSION (2026-09-01). The guard originally denied a build
+whenever ANY other agent of this session was live, which is the right harm model applied at the wrong scope: the
+harm is "my build changes the binaries THAT agent is executing", and two agents in two `git worktree` checkouts
+share no `bin/obj`, no `cobol.exe` and no source. Keying on the session therefore denied a build that could not
+collide with anything, and with the owner's 2026-09-01 direction for MAXIMUM SUBAGENT PARALLELISM in the fix
+lane that false denial became the binding constraint: N implementer agents in N worktrees serialized behind each
+other's liveness. So the guard now denies iff some FOREIGN live agent is working in the SAME tree as the caller.
+
+Both trees in that comparison are DERIVED, never listed — a hand-maintained map of agent→tree is exactly the
+shape rule 5 forbids, and it would go stale the first time the host renamed a directory:
+  • the CALLER's tree = the repository root of the payload's `cwd` — the nearest ancestor holding a `.git`
+    entry, which is a DIRECTORY in the main checkout and a FILE in a worktree. Stopping at the FIRST one is
+    what makes a worktree resolve to itself rather than to the repository it was cut from (`repo_root_of`).
+  • the MAIN checkout = that root itself when its `.git` is a directory, else the `gitdir: <main>/.git/
+    worktrees/<name>` target named by the worktree's `.git` FILE, parsed here rather than by shelling out to
+    git — a PreToolUse hook runs on every `dotnet` call and must not pay a subprocess (`main_repo_root`).
+  • a FOREIGN agent's tree = `<main>/.claude/worktrees/agent-<agentId>` WHEN THAT DIRECTORY EXISTS, else the
+    main checkout. This is true BY CONSTRUCTION: `Agent(isolation="worktree")` creates exactly that path and
+    starts the agent in it, so the directory's existence IS the launch mode (`agent_working_tree`).
+Consequences, all three intended: a worktree agent may build its OWN worktree while main-tree fleets are live; a
+MAIN-tree build is still denied while any main-tree agent is live (the original purpose, unchanged); and a
+main-tree build is ALLOWED while only worktree agents are live, because their binaries are not the main tree's.
+
+⚠ AND THE FALLBACK IS TOWARD THE OLD RULE, NEVER TOWARD ALLOWING. If the caller's tree cannot be located, or the
+worktree's `.git` file cannot be read or parsed, the agent→tree map cannot be built at all — so the decision
+reverts to the SESSION-WIDE rule and every foreign live agent denies. Fail-open (below) covers a BROKEN guard;
+this covers an UNKNOWN tree, where allowing would be the one outcome that reproduces 2026-08-04.
 
 Detection is by TRANSCRIPT MTIME, which is the one signal that cannot be faked by a stale process: a live agent
 writes to its own `agent-*.jsonl` continuously, so a file touched within the window means an agent is thinking
@@ -21,21 +50,28 @@ right now. Keyed on this session's id, so another project's fleet never blocks t
 
 ⚠ THE CALLER IS NEVER A FLEET. The question the guard asks is "is any transcript OTHER THAN MINE live?", and the
 caller's own transcript is always fresh at PreToolUse — it is being written by this very tool call. Getting that
-exclusion wrong makes the guard fail CLOSED, which it has now done three separate ways (PB101 worktree agents,
-PB103 main-tree agents, PB185 every subagent). The exclusion is therefore keyed on the caller's IDENTITY, not on
+exclusion wrong makes the guard fail CLOSED, which it has now done three separate ways — PB103's TWO modes (an
+agent inside its own worktree, then a main-tree agent counting its own transcript) and PB185 (every subagent,
+because `transcript_path` names the SESSION transcript). ⚠ Cite PB103, not PB101: PB101 is the COLLATION
+subsystem note, and it appears in this history only because its agent was the one who HIT the worktree mode
+(`kb/Work/PB103.md` records the find that way). The exclusion is therefore keyed on the caller's IDENTITY, not on
 a path string: see `caller_identity` / `foreign_transcripts`.
 
 FAIL-OPEN BY CONSTRUCTION. Any error, any missing path, any unreadable directory ⇒ exit 0 and allow the build. A
 guard that blocks the build because IT broke would be worse than the defect it prevents.
 
 Both branches are provable without a fleet: `python scripts/hooks/fleet_active_build.py --self-test` drives the
-pure decision function through DENY and ALLOW alike (feedback_prove_the_watchdog_fails — a monitor is a gate;
-fire its failure branch once before trusting its silence).
+pure decision functions through DENY and ALLOW alike, over REAL temporary worktrees so the `.git`-file parse and
+the `.claude/worktrees/agent-<id>` existence check are exercised rather than mocked
+(feedback_prove_the_watchdog_fails — a monitor is a gate; fire its failure branch once before trusting its
+silence).
 """
 import json
 import os
 import pathlib
+import re
 import sys
+import tempfile
 import time
 
 WINDOW_SECONDS = 120
@@ -43,6 +79,14 @@ WINDOW_SECONDS = 120
 # `dotnet clean/publish/run` rewrite or delete the same outputs a live agent is executing, so they are in scope
 # too. `dotnet --version`, `dotnet tool`, `dotnet nuget` etc. are not.
 BUILD_VERBS = ("build", "test", "clean", "publish", "run", "msbuild")
+
+# The `.git` FILE of a `git worktree` checkout; the value is `<main>/.git/worktrees/<name>`, absolute by default
+# and relative when the worktree was created with `--relative-paths`.
+GITDIR_PREFIX = "gitdir:"
+
+# `cd <dir> && dotnet build …` builds in <dir>, not in the payload's cwd. This is the SAME tree question asked of
+# a more accurate answer — not a second mechanism (PB103 recognized the worktree this way too).
+CD_PREFIX_RE = re.compile(r"""^\s*cd\s+(?:"([^"]+)"|'([^']+)'|([^\s&;|]+))\s*(?:&&|;|&)""", re.IGNORECASE)
 
 
 def bail() -> None:
@@ -108,6 +152,155 @@ def foreign_transcripts(data: dict, candidates: list) -> list:
     return foreign
 
 
+def same_path(a, b) -> bool:
+    """Path equality that survives Windows' case-insensitive filesystem.
+
+    The two sides are built from different strings — one from the payload's `cwd`, one from a `.git` file's
+    `gitdir:` line — so `E:\\CobolSharp` and `e:\\cobolsharp` are both spellings that occur in practice and a
+    raw `==` would silently answer "different tree" for the same tree.
+    """
+    return os.path.normcase(str(a)) == os.path.normcase(str(b))
+
+
+def repo_root_of(start: str) -> "pathlib.Path | None":
+    """The WORKING TREE containing `start`: its nearest ancestor holding a `.git` entry, resolved.
+
+    `.git` is a DIRECTORY in the main checkout and a FILE in a `git worktree`; both count, and stopping at the
+    FIRST one is precisely what makes a worktree resolve to ITSELF rather than to the repository it was cut
+    from. `None` means "no tree found", which the caller must treat as UNKNOWN, never as "no conflict".
+    """
+    if not start:
+        return None
+    try:
+        here = pathlib.Path(start).resolve()
+    except OSError:
+        return None
+    for d in (here, *here.parents):
+        try:
+            if (d / ".git").exists():
+                return d
+        except OSError:
+            continue
+    return None
+
+
+def main_repo_root(tree_root: pathlib.Path) -> "pathlib.Path | None":
+    """The MAIN checkout owning `tree_root` — the tree under which `.claude/worktrees/` lives.
+
+    ⛔ Parsed, not shelled out. This hook runs on EVERY `dotnet` invocation with a 30 s budget; spawning
+    `git rev-parse` per call would put a process launch in front of every build, and on a broken/locked repo it
+    is also the one call that can hang. The `.git` file's format (`gitdir: <path>`, optionally relative) is
+    part of git's on-disk layout, so reading it is as stable as calling git and cannot block.
+
+    Returns `None` when the file is missing, unreadable or does not carry a `gitdir:` line — the UNKNOWN answer,
+    which `agents_sharing_tree` turns into the old session-wide rule rather than into an allow.
+    """
+    dot_git = tree_root / ".git"
+    try:
+        if dot_git.is_dir():
+            return tree_root  # this IS the main checkout
+        text = dot_git.read_text(encoding="utf-8", errors="replace")
+    except (OSError, ValueError):
+        return None
+
+    gitdir = ""
+    for line in text.splitlines():
+        line = line.strip()
+        if line.lower().startswith(GITDIR_PREFIX):
+            gitdir = line[len(GITDIR_PREFIX):].strip()
+            break
+    if not gitdir:
+        return None
+
+    try:
+        p = pathlib.Path(gitdir)
+        if not p.is_absolute():
+            p = tree_root / p  # `git worktree add --relative-paths` writes `../../.git/worktrees/<name>`
+        p = p.resolve()
+    except OSError:
+        return None
+
+    # `<main>/.git/worktrees/<name>` ⇒ the main root is the parent of the `.git` component. Walking up to the
+    # component rather than slicing three levels keeps this correct if git ever nests the admin dir deeper.
+    for d in (p, *p.parents):
+        if d.name == ".git":
+            return d.parent
+    return None
+
+
+def agent_id_of(transcript: pathlib.Path) -> str:
+    """`…/agent-<agentId>.jsonl` ⇒ `<agentId>`; anything else ⇒ `""` (an agent with no derivable tree)."""
+    name = transcript.name
+    stem = name[:-len(".jsonl")] if name.lower().endswith(".jsonl") else name
+    return stem[len("agent-"):] if stem.lower().startswith("agent-") else ""
+
+
+def agent_working_tree(agent_id: str, main_root: pathlib.Path) -> pathlib.Path:
+    """Where a live agent is working — decided by CONSTRUCTION, never by a maintained list.
+
+    `Agent(isolation="worktree")` creates `<main>/.claude/worktrees/agent-<agentId>` and starts the agent with
+    its cwd there, so the DIRECTORY'S EXISTENCE IS THE LAUNCH MODE. No directory ⇒ the agent was launched
+    without isolation (a read-only fleet, a main-tree implementer) and is working in the main checkout. This is
+    the whole reason nothing here needs hand-maintaining: the next isolation mode the host adds shows up as a
+    directory or does not, and the answer stays right either way.
+    """
+    if agent_id:
+        wt = main_root / ".claude" / "worktrees" / f"agent-{agent_id}"
+        try:
+            if wt.is_dir():
+                return wt.resolve()
+        except OSError:
+            pass
+    return main_root
+
+
+def agents_sharing_tree(caller_cwd: str, foreign: list) -> tuple[list, "pathlib.Path | None"]:
+    """The live foreign agents working in the CALLER'S tree — the only builds that can collide with this one.
+
+    Returns `(sharing, caller_tree)`. When the caller's tree or its main checkout cannot be determined, EVERY
+    foreign agent is returned: the guard reverts to the session-wide rule it had before 2026-09-01 rather than
+    guess, because the failure it exists to prevent is a build that went ahead.
+    """
+    caller_tree = repo_root_of(caller_cwd)
+    if caller_tree is None:
+        return list(foreign), None
+    main_root = main_repo_root(caller_tree)
+    if main_root is None:
+        return list(foreign), caller_tree
+    sharing = [
+        p for p in foreign
+        if same_path(agent_working_tree(agent_id_of(p), main_root), caller_tree)
+    ]
+    return sharing, caller_tree
+
+
+def effective_cwd(data: dict) -> str:
+    """Where the build will actually run: a leading `cd <dir>` in the command, else the payload's `cwd`.
+
+    `cwd` is a documented PreToolUse payload field (Claude Code hooks: `session_id`, `transcript_path`, `cwd`,
+    `hook_event_name`, `tool_name`, `tool_input`) and this hook has keyed on it since PB103. `os.getcwd()` is
+    kept as a fallback for a host that omits it — the hook is launched from the caller's directory, so it is
+    the same answer by a different route, and it keeps a missing field from collapsing the tree to UNKNOWN.
+    """
+    cwd = (data.get("cwd") or "").strip()
+    if not cwd:
+        try:
+            cwd = os.getcwd()
+        except OSError:
+            cwd = ""
+
+    command = (data.get("tool_input") or {}).get("command") or ""
+    m = CD_PREFIX_RE.match(command)
+    if m:
+        target = next((g for g in m.groups() if g), "")
+        try:
+            p = pathlib.Path(target)
+            cwd = str(p if p.is_absolute() else pathlib.Path(cwd) / p)
+        except (OSError, ValueError):
+            pass
+    return cwd
+
+
 def live_agent_transcripts(session_id: str) -> list:
     cfg = os.environ.get("CLAUDE_CONFIG_DIR")
     root = pathlib.Path(cfg) if cfg else pathlib.Path.home() / ".claude"
@@ -129,19 +322,58 @@ def live_agent_transcripts(session_id: str) -> list:
     return live
 
 
-def deny_reason(live: list) -> str:
-    names = sorted({p.parent.name for p in live})
+def deny_reason(live: list, tree: "pathlib.Path | None" = None) -> str:
+    # ⛔ `p.stem`, not `p.parent.name`: the parent of `…/subagents/agent-bbb.jsonl` is `subagents`, so the
+    # message used to name the CONTAINING DIRECTORY for every agent and printed "subagents" as the culprit.
+    names = sorted({p.stem for p in live})
     detail = ", ".join(names[:4]) + (f" (+{len(names) - 4} more)" if len(names) > 4 else "")
+    where = (
+        f"the SAME working tree as this build ({tree})" if tree is not None
+        else "a working tree that could not be determined, so the session-wide rule applies"
+    )
     return (
         f"BLOCKED — {len(live)} subagent transcript(s) were written in the last {WINDOW_SECONDS}s, so a "
-        f"fleet is LIVE: {detail}. Building or testing now changes the binary those agents are probing, "
-        f"which is what made a 60-agent run unusable on 2026-08-04 (PB15). "
+        f"fleet is LIVE in {where}: {detail}. Building or testing now changes the binary those agents are "
+        f"probing, which is what made a 60-agent run unusable on 2026-08-04 (PB15). "
         f"Do ONE of: (a) wait for the completion notification, then build; "
         f"(b) stop the fleet with TaskStop if its results are no longer worth having; "
         f"(c) if you are about to fix what it measures, stop it now — you already have the answer, and a "
-        f"fleet measuring a tree you are editing produces verdicts you will have to disclaim. "
+        f"fleet measuring a tree you are editing produces verdicts you will have to disclaim; "
+        f"(d) re-dispatch the agent with `isolation: \"worktree\"` — an agent in its own worktree builds its "
+        f"own binaries and neither blocks nor is blocked by this tree. "
         f"Meanwhile, doc / DEVLOG / design-doc / kb-note work is safe."
     )
+
+
+def _build_fixture(root: pathlib.Path) -> dict:
+    """A REAL main checkout with REAL worktrees on disk, for the self-test.
+
+    Mocking the filesystem here would defeat the point: the two facts this guard now turns on are a `.git`
+    FILE's parse and a `.claude/worktrees/agent-<id>` directory's EXISTENCE, and a fake for either is a probe
+    that cannot fail for the reason production would.
+    """
+    main = root / "main"
+    (main / ".git" / "worktrees").mkdir(parents=True)
+    (main / "scripts" / "hooks").mkdir(parents=True)
+
+    def worktree(name: str, gitdir_text: str) -> pathlib.Path:
+        wt = main / ".claude" / "worktrees" / name
+        wt.mkdir(parents=True)
+        (wt / ".git").write_text(gitdir_text, encoding="utf-8")
+        return wt.resolve()
+
+    return {
+        "main": main.resolve(),
+        "nested": (main / "scripts" / "hooks").resolve(),
+        # Absolute gitdir — what `git worktree add` writes by default.
+        "wtA": worktree("agent-aaa", f"gitdir: {(main / '.git' / 'worktrees' / 'agent-aaa').as_posix()}\n"),
+        "wtB": worktree("agent-bbb", f"gitdir: {(main / '.git' / 'worktrees' / 'agent-bbb').as_posix()}\n"),
+        # Relative gitdir — what `git worktree add --relative-paths` writes.
+        "wtRel": worktree("agent-rel", "gitdir: ../../../.git/worktrees/agent-rel\n"),
+        # A `.git` file that exists but yields no gitdir — the UNKNOWN-tree branch.
+        "wtBroken": worktree("agent-broken", "this file is not a gitdir pointer\n"),
+        "outside": root.resolve(),
+    }
 
 
 def self_test() -> int:
@@ -149,8 +381,19 @@ def self_test() -> int:
 
     A guard is only trustworthy once its failure branch has been observed firing — a silent guard and a broken
     guard look identical (feedback_prove_the_watchdog_fails). Three of this hook's defects were the ALLOW branch
-    failing CLOSED, which no amount of green silence would ever have revealed.
+    failing CLOSED, which no amount of green silence would ever have revealed; the 2026-09-01 tree-scoping is the
+    same shape one level up (the whole guard failing closed for every parallel worktree agent), so its ALLOW
+    cases are asserted here as hard as its DENY cases.
     """
+    failures = 0
+
+    def check(name: str, got, expected) -> None:
+        nonlocal failures
+        ok = got == expected
+        failures += 0 if ok else 1
+        print(f"  [{'ok' if ok else 'FAIL'}] {name}: {got!r} expected={expected!r}")
+
+    # ── 1. The caller-identity exclusion (PB103's two modes / PB185), unchanged ────────────────────────────
     sess = "S1"
     # Real `Path`s, not `PurePath`s: `foreign_transcripts` resolves candidates, and a self-test that could not
     # reach that line would be exactly the well-formed-but-worthless probe the guard exists to prevent.
@@ -161,39 +404,91 @@ def self_test() -> int:
 
     # The exact payload shape measured 2026-08-31: a subagent's `transcript_path` is the SESSION transcript.
     subagent = {"agent_id": "aaa", "transcript_path": session_transcript}
-    main = {"transcript_path": session_transcript}
+    main_payload = {"transcript_path": session_transcript}
 
-    cases = [
-        # name,                                        payload,               candidates,     expected foreign
+    for name, payload, candidates, expected in [
         ("subagent alone (PB185) -> ALLOW", subagent, [mine], 0),
         ("subagent, own file nested in workflows/ -> ALLOW", subagent, [nested], 0),
         ("subagent inside a REAL fleet -> DENY", subagent, [mine, other], 1),
-        ("main session + real fleet -> DENY", main, [mine, other], 2),
-        ("main session, no fleet -> ALLOW", main, [], 0),
+        ("main session + real fleet -> DENY", main_payload, [mine, other], 2),
+        ("main session, no fleet -> ALLOW", main_payload, [], 0),
         ("agent id case-folded -> ALLOW", {"agent_id": "AAA"}, [mine], 0),
         ("no identity in payload -> DENY (the one fail-closed path)", {}, [mine], 1),
-    ]
+    ]:
+        check(f"identity: {name}", len(foreign_transcripts(payload, candidates)), expected)
 
-    failures = 0
-    for name, payload, candidates, expected in cases:
-        got = len(foreign_transcripts(payload, candidates))
-        ok = got == expected
-        failures += 0 if ok else 1
-        print(f"  [{'ok' if ok else 'FAIL'}] {name}: foreign={got} expected={expected}")
+    # ── 2. Tree resolution, over REAL temp worktrees ──────────────────────────────────────────────────────
+    with tempfile.TemporaryDirectory() as tmp:
+        fx = _build_fixture(pathlib.Path(tmp))
 
-    # The verb matcher, both ways — `dotnet --version` must stay OUT of scope or the guard blocks a bare probe.
-    verb_cases = [
+        check("tree: main checkout resolves to itself", repo_root_of(str(fx["main"])), fx["main"])
+        check("tree: a nested dir walks UP to the main checkout", repo_root_of(str(fx["nested"])), fx["main"])
+        check("tree: a worktree resolves to ITSELF, not to main", repo_root_of(str(fx["wtA"])), fx["wtA"])
+        check("tree: main's own main-root is itself", main_repo_root(fx["main"]), fx["main"])
+        check("tree: worktree .git FILE parses to main", main_repo_root(fx["wtA"]), fx["main"])
+        check("tree: RELATIVE gitdir parses to main", main_repo_root(fx["wtRel"]), fx["main"])
+        check("tree: unparseable .git file -> UNKNOWN", main_repo_root(fx["wtBroken"]), None)
+        check("tree: agent WITH a worktree dir", agent_working_tree("aaa", fx["main"]), fx["wtA"])
+        check("tree: agent WITHOUT one falls to main", agent_working_tree("zzz", fx["main"]), fx["main"])
+
+        def t(agent: str) -> pathlib.Path:
+            """A live transcript for `agent`, wherever the host files it."""
+            return pathlib.Path(f"/p/x/{sess}/subagents/agent-{agent}.jsonl")
+
+        # name, caller cwd, foreign transcripts, expected sharing count
+        tree_cases = [
+            # THE CASE THIS CHANGE EXISTS FOR: N implementer agents, N worktrees, all building at once.
+            ("worktree caller + main-tree fleet -> ALLOW", fx["wtA"], [t("main1"), t("main2")], 0),
+            ("worktree caller + ANOTHER worktree's agent -> ALLOW", fx["wtA"], [t("bbb")], 0),
+            ("worktree caller + BOTH -> ALLOW", fx["wtA"], [t("bbb"), t("main1")], 0),
+            # A helper spawned inside agent-aaa's worktree: its cwd IS that worktree, and aaa is still live.
+            ("worktree caller + live agent in the SAME worktree -> DENY", fx["wtA"], [t("aaa")], 1),
+            ("worktree caller, same tree + a foreign tree -> DENY on the one", fx["wtA"], [t("aaa"), t("bbb")], 1),
+            # The original purpose, unchanged.
+            ("main caller + main-tree agent -> DENY", fx["main"], [t("main1")], 1),
+            ("main caller (nested cwd) + main-tree agent -> DENY", fx["nested"], [t("main1")], 1),
+            ("main caller + worktree-only agents -> ALLOW", fx["main"], [t("aaa"), t("bbb")], 0),
+            ("main caller, no fleet -> ALLOW", fx["main"], [], 0),
+            # Fallbacks: UNKNOWN tree reverts to the pre-2026-09-01 session-wide rule, never to an allow.
+            ("unparseable .git -> DENY session-wide (old rule)", fx["wtBroken"], [t("aaa"), t("main1")], 2),
+            ("cwd outside any repo -> DENY session-wide (old rule)", fx["outside"], [t("main1")], 1),
+            ("empty cwd -> DENY session-wide (old rule)", "", [t("main1")], 1),
+        ]
+        for name, cwd, foreign, expected in tree_cases:
+            sharing, _ = agents_sharing_tree(str(cwd), foreign)
+            check(f"scope: {name}", len(sharing), expected)
+
+        # `cd <dir> && dotnet build` builds in <dir>: the tree question asked of the right directory.
+        check(
+            "scope: `cd <main> && dotnet build` from a worktree -> DENY on the main fleet",
+            len(agents_sharing_tree(
+                effective_cwd({"cwd": str(fx["wtA"]),
+                               "tool_input": {"command": f'cd "{fx["main"]}" && dotnet build'}}),
+                [t("main1")],
+            )[0]),
+            1,
+        )
+        check(
+            "scope: no `cd` -> the payload cwd stands",
+            effective_cwd({"cwd": str(fx["wtA"]), "tool_input": {"command": "dotnet build CobolSharp.sln"}}),
+            str(fx["wtA"]),
+        )
+
+        # The DENY message must name the agents AND the shared tree (it named `subagents` for every one).
+        sharing, tree = agents_sharing_tree(str(fx["main"]), [t("main1"), t("main2")])
+        msg = deny_reason(sharing, tree)
+        check("message: names the live agents", "agent-main1" in msg and "agent-main2" in msg, True)
+        check("message: names the shared tree", str(fx["main"]) in msg, True)
+
+    # ── 3. The verb matcher, both ways — `dotnet --version` must stay OUT of scope ─────────────────────────
+    for cmd, expected in [
         ("dotnet build CobolSharp.sln", True),
         ("timeout 900 dotnet test x.csproj", True),
         ("dotnet --version", False),
         ("dotnet tool list", False),
         ("git status", False),
-    ]
-    for cmd, expected in verb_cases:
-        got = is_build_command(cmd)
-        ok = got == expected
-        failures += 0 if ok else 1
-        print(f"  [{'ok' if ok else 'FAIL'}] verb `{cmd}`: {got} expected={expected}")
+    ]:
+        check(f"verb `{cmd}`", is_build_command(cmd), expected)
 
     print("SELF-TEST " + ("PASS" if not failures else f"FAIL ({failures} case(s))"))
     return 1 if failures else 0
@@ -211,21 +506,13 @@ command = (data.get("tool_input") or {}).get("command") or ""
 if not command or not is_build_command(command):
     bail()
 
-# An agent building INSIDE ITS OWN git worktree (`.claude/worktrees/<agent>/`, the Agent tool's `isolation:
-# "worktree"`) has private bin/obj and its own checkout: nothing it builds is the binary another agent probes, and
-# nothing else builds what it probes. The guard's harm model does not apply there — and applied literally it is a
-# SELF-BLOCK (the agent's own transcript is one of the "live" ones, so the window never clears; found 2026-08-18 by
-# the normalization-subsystem agent, kb/Work PB101). Recognized by the tool's cwd or a `cd` in the command itself.
-cwd = (data.get("cwd") or "").replace("\\", "/")
-if "/.claude/worktrees/" in cwd + "/" or "/.claude/worktrees/" in command.replace("\\", "/"):
-    bail()
-
 session_id = data.get("session_id") or ""
 if not session_id:
     bail()
 
 try:
-    live = foreign_transcripts(data, live_agent_transcripts(session_id))
+    foreign = foreign_transcripts(data, live_agent_transcripts(session_id))
+    live, caller_tree = agents_sharing_tree(effective_cwd(data), foreign)
 except Exception:  # noqa: BLE001
     bail()
 
@@ -237,7 +524,7 @@ json.dump(
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": deny_reason(live),
+            "permissionDecisionReason": deny_reason(live, caller_tree),
         }
     },
     sys.stdout,

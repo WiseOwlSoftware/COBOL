@@ -71,6 +71,24 @@ NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
 unrelated rules (e.g. `1533` ×3). There is no registry, no `docs/DIAGNOSTICS.md`, no per-code metadata, so tests
 and `--suppress` cannot target a specific rule and the version matrix cannot enumerate diagnostics.
 
+### 1.7 The fleet build guard (`scripts/hooks/fleet_active_build.py`) — a PreToolUse gate on `dotnet *`
+Wired in `.claude/settings.json` for both `Bash(dotnet *)` and `PowerShell(dotnet *)`. It **denies**
+`dotnet build|test|clean|publish|run|msbuild` while a live subagent is probing the binaries the build would
+replace — the guard that exists because ~6 rebuilds under a running 60-agent fleet made all 60 verdicts unusable
+(2026-08-04, PB15). Liveness is transcript MTIME within 120 s, scoped to this session's id.
+**The unit of the freeze is the WORKING TREE, not the session (2026-09-01).** It denies iff some *foreign* live
+agent works in the caller's own tree, and both trees are derived, never listed: the caller's tree is the nearest
+ancestor of the payload `cwd` holding a `.git` entry (a directory in the main checkout, a file in a worktree);
+the main checkout is that root, or the `gitdir:` target parsed out of the worktree's `.git` file (parsed, not
+shelled out — this runs before every `dotnet` call); and a foreign agent's tree is
+`<main>/.claude/worktrees/agent-<agentId>` **when that directory exists**, else the main checkout, because
+`Agent(isolation="worktree")` creates exactly that path. So N implementer agents in N worktrees build in
+parallel, a main-tree build is still denied by a live main-tree agent, and a main-tree build is *allowed* while
+only worktree agents are live. Fail-open on any error; an **unknown** tree (unreadable/unparseable `.git`)
+reverts to the old session-wide deny rather than to an allow. `--self-test` fires every branch over real
+temporary worktrees and is the only thing that proves the ALLOW arm — three of this hook's four defects were it
+failing closed.
+
 ---
 
 ## 2. Problems this design must fix

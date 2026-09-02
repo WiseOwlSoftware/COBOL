@@ -925,7 +925,8 @@ D18 had specified `Scale: 0`; that truncates, so `W-E(FUNCTION SQRT(2))` would h
 instead of setting EC-BOUND-SUBSCRIPT. Asking what that would do is what exposed PB41 — the same bug with no
 function in sight. When a design names a synthesized item's PICTURE, ask which spec fact that PICTURE destroys.
 ⚠ **A PROCESS GUARD LANDED 2026-08-04 AND IT IS MECHANICAL, NOT ADVISORY:** `scripts/hooks/fleet_active_build.py`
-DENIES `dotnet build`/`test` while any subagent transcript for the session was written in the last 120 s. It exists
+DENIES `dotnet build`/`test` while a subagent transcript from THE CALLER'S OWN WORKING TREE was written in the last
+120 s (session-wide until 2026-09-01; see the "Mechanics that have burned us" bullet below). It exists
 because I rebuilt the compiler ~6 times underneath a running 60-agent measurement fleet, wasting all of it —
 and explained away the `MSB3027 cobol.exe locked` build failure that was the tell. Measure INLINE first; a fan-out
 for work already done is pure waste.
@@ -1714,6 +1715,9 @@ result. Run the long legs ONE AT A TIME.
   across two trees and every leg after phase 1 becomes unattributable. This cost a full 11-minute run on
   2026-08-04. The `fleet_active_build.py` guard covers subagent FLEETS, not batteries — this one is on the human
   side of the loop. If sources must change, stop the run, then re-run it whole.
+  Since 2026-09-01 that guard freezes only the caller's own WORKING TREE, so agents in separate
+  `.claude/worktrees/agent-<id>` checkouts build in parallel while a main-tree build stays blocked by a live
+  main-tree agent (`docs/rearchitecture/DESIGN-test-build-ci.md` §1.7).
 - ✅ **THAT OWED GATE HAS BEEN PAID — the comprehensive battery ran on the PB17+PB41+PB42 tree and printed
   `=== BATTERY: ALL GREEN ===`** (2026-08-04 19:13, one `bash scripts/battery.sh` run, artifacts
   `/tmp/battery-20260804-191318`). It therefore covers PB15 as well, which had only ever had the wave-local gate.
