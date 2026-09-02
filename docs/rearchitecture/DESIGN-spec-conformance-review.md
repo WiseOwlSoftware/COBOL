@@ -88,6 +88,30 @@ rather than under `docs/`, because its reader is the battery, not a person.
 > a gate that cries wolf is a gate nobody reads. A symbol survives refactoring, moves with the code it names, and
 > fails only when the thing it points at actually stops existing — which is the one event worth failing on.
 
+> **⚙ THE `code-location` OF A `kind: DOC` ROW (Annex A.1), and why it has a second form.** A DOC row is not a
+> behavioural rule: it is an obligation to SPECIFY and to DOCUMENT an implementor-defined element (§4.2.5), and a
+> binder symbol alone cannot discharge that — a DETERMINATION in `docs/CONFORMANCE.md` §7 can. So a DOC row's
+> `code-location` is **its §7 register anchor, plus every greenfield implementing site**:
+> `docs/CONFORMANCE.md#DOC-A.1-<n>; src/Cobol.Net.…#Symbol[; …]`.
+>
+> **The anchor is COMPUTED from the row's own rule-id, never chosen** —
+> `inventory-schema.json` → `kinds.DOC.anchor-template` expands `{rule-id}`, which is why §7's item key is the
+> rule-id `DOC-A.1-<n>` and not the bare item number. Two things follow. A determination filed under a
+> neighbouring item cannot be *spelled*, which is the structural answer to `kb/Work/A11` (the §15.3.3.2
+> determination sat under item 87, whose obligation is FORMATTED-CURRENT-DATE's accuracy). And a bare number
+> could never have been an anchor at all: the gate resolves a `#Symbol` by a word search over the file, so `#7` —
+> which five live rows carried, all `state: OK` — matched the digit 7 anywhere in a 790-line document.
+> `code-location.anchored-files` now holds each such file to its real anchor spaces (`DOC-A.1-<n>` for §7,
+> `4.2.16` for §1, `A.4.<n>` for §5) and forbids citing one bare.
+>
+> **A DOC row closes exactly as every other row does**: its own anchor, at least one site matching
+> `kinds.DOC.implementation-pattern` (`^src/Cobol\.Net\.` — the same greenfield predicate `audit_annex_a1.py`'s
+> source sweep applies), and a spec-derived `test-ref`. ⛔ There is **no policy arm**: a row whose only location
+> is its §7 anchor stays a GAP, because closing it would widen §1(a) above, and the owner's completion metric is
+> not an agent's to redefine (the bare question is `kb/Work/PB280` Q2). The §7 row's machine-readable **`Pinned
+> by`** cell names the same spec-derived test(s), and `audit_annex_a1.py` holds the two in agreement — the
+> determination and its evidence are one artifact, which is the half the computed anchor does not cover.
+
 ## 5. Execution model — two concurrent lanes, five row-shape lanes (owner decision PB278, 2026-09-01)
 
 Workflow-orchestrated (owner: max parallelism for disjoint work). **Fan out by §-clause** (disjoint units).
@@ -186,14 +210,21 @@ A record sets only the five adjudicated fields and is keyed by `rule-id`:
  "editions": "85,2002,2014,2023", "notes": ""}
 ```
 
-**The four parts, and why each is where it is.**
+**The five parts, and why each is where it is.**
 
 | part | file | owns |
 |---|---|---|
-| the rules, as DATA | `tests/version-matrix/inventory-schema.json` | the verdict vocabulary, each verdict's `resolves` flag and required evidence, the legal editions, the `code-location` pattern, the `test-ref` forms |
+| the rules, as DATA | `tests/version-matrix/inventory-schema.json` | the verdict vocabulary, each verdict's `resolves` flag and required evidence, the legal editions, the `code-location` pattern, the `test-ref` forms, and **`kinds`** — the PER-KIND evidence rules (§4) |
 | the Python loader | `scripts/spec/inventory_schema.py` | parsing that schema, deriving `state`, and the ATOMIC inventory write |
 | the writer | `scripts/spec/record_verdicts.py` | validating a batch's SHAPE and merging it all-or-nothing |
 | the battery gate | `tests/Cobol.Net.Tests.Unit/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
+| the register audit | `scripts/spec/audit_annex_a1.py`, run by `AnnexA1RegisterDriftTests` | that `docs/CONFORMANCE.md` §7 is internally sound and agrees with the inventory |
+
+- **`kinds` is orthogonal to `verdicts`, and that is the point.** `verdicts` says what a VERDICT costs; `kinds`
+  says what a ROW OF THIS KIND costs. Before it existed the schema described only one kind of claim — a
+  behavioural rule located in a binder and pinned by a golden — so all 222 Annex A.1 rows sat verdict-less while
+  §7 already carried 39 determinations, a third of that work invisible to the burn-down. Adding a kind is an
+  edit to the JSON; the two evaluators read it, and neither carries a copy.
 
 - **The vocabulary is data, in one file.** Three consumers read it — the row builder, the writer and the C# gate —
   and none carries a copy. Adding a verdict is an edit to the JSON and nothing else. This is CLAUDE.md rule 5
@@ -230,12 +261,23 @@ A record sets only the five adjudicated fields and is keyed by `rule-id`:
 > spec-derived requirement explicitly. `session-probe` had the same blind spot in the same direction — it counted
 > "test-needed" as an EMPTY `test-ref` rather than as a row that did not close, under-reporting 11 as 4.
 
-**What the gate actually enforces** (nine facts, and it is proven able to fail — see below): the inventory covers
+**What the gate actually enforces** (eleven facts, and it is proven able to fail — see below): the inventory covers
 the catalog exactly, no row contradicts its catalog entry, every verdict is in the vocabulary, every stored `state`
 equals the derived one, every verdict carries its required evidence, every edition name is real, every
 `code-location` names a file that exists and a symbol still in it, and every `test-ref` resolves —
 `conformance:<edition>/<case>` and `nist:`/`characterization:` to a `.cob` on disk, `unit:<Class>.<Method>` and
-`conformance-test:<Class>.<Method>` to a method really declared in that class.
+`conformance-test:<Class>.<Method>` to a method really declared in that class. Plus the two `kinds` facts (§4):
+every kind-anchored row carries the anchor its OWN rule-id computes, and every fragment on an `anchored-files`
+path is a legal anchor of that file's space — an anchored file being cited bare included.
+
+**And the register audit runs every build.** `audit_annex_a1.py --check --json` was wired into nothing until
+2026-09-02 — not `battery.sh`, not the CI workflow, not `build-local.*` — so the A.1 register's own correctness
+was enforced when a human remembered. `AnnexA1RegisterDriftTests` now shells it from the Unit project, following
+`ExternalCorpusPopulationDriftTests`'s precedent for a Python gate, which puts it in the per-commit wave-local
+gate, battery phase 1 and both CI unit jobs at once. It asserts its POPULATION (a run that filed nothing is not a
+pass), that every §7 row is filed under the item A.1 names, that no `DOC-A.1-<n>` token occurs outside a row key,
+that each row's `Pinned by` agrees with its inventory row's spec-derived `test-ref`, that every verdicted DOC row
+has a determination, and that the script's own `--self-test` still names every case it drives.
 
 > **⚠ A gate observed only passing is indistinguishable from a gate that inspects nothing**
 > (`feedback_green_gates_arent_evidence`), and this one will spend most of its life green over rows nobody has

@@ -24,24 +24,29 @@
     "untested → write the spec-derived golden (so coverage is DURABLE, not merely asserted)'.",
     "It is a genuinely useful state — the rule is verified, and the row is one golden away from done — and",
     "collapsing it into either CONFORMS-and-closed or PARTIAL would lose that. The first Phase-B batch produced",
-    "seven of them on its first run."
+    "seven of them on its first run.",
+    "",
+    "The same split is what makes a DOCUMENTED-BUT-UNPINNED Annex A.1 row expressible (see `kinds` below): the",
+    "§7 determination is written, filed under its own item and correct, and no test yet pins the behaviour it",
+    "describes. 19 of the 37 rows the first A.1 back-fill recorded are exactly that — the identical legitimate Phase-C",
+    "category as CONFORMS-but-untested, not a defect in the batch."
   ],
 
   "verdicts": {
     "CONFORMS": {
       "resolves": true,
       "requires": ["code-location"],
-      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP."
+      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP. On a kind-DOC row the 'implementation' read is the DETERMINATION: docs/CONFORMANCE.md §7 states what this implementor-defined element does, and the compiler does it. ⚠ A determination that READS negative is still CONFORMS where the not-providing is itself the implementor's answer to A.1's question — item 206 answers 'exactly the GR12 minimum range' and item 127 answers 'one object computer, any computer-name'. DOCUMENTED-NON-SUPPORT is for a declined FACILITY, and it is an OWNER decision; ⛔ whether a 'Not provided.' determination on an A.1-OPTIONAL item closes as CONFORMS or as DOCUMENTED-NON-SUPPORT is an OPEN owner question (kb/Work PB280 Q1) and no agent may answer it — one answer settles ~30 items."
     },
     "DOCUMENTED-NON-SUPPORT": {
       "resolves": true,
       "requires": ["notes"],
-      "meaning": "An OWNER decision (never an agent's) that a language element is not supported, and is DOCUMENTED as unsupported. Three grounds, not one: ISO 4.2.16 (the conformance claim itself), 4.2.7 for an OPTIONAL element ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support'), and 4.2.6 for a PROCESSOR-DEPENDENT one ('The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation'). The 4.2.16-only wording was too narrow and was widened 2026-08-31: the verdict already carried processor-dependent declines and rules whose stated range no host can satisfy, neither of which is an optional module. The notes field carries the decision reference; closing still needs a test proving we diagnose (or, where the departure is a reported VALUE rather than a rejected construct, that the documented behaviour is what actually happens) rather than silently miscompile."
+      "meaning": "An OWNER decision (never an agent's) that a language element is not supported, and is DOCUMENTED as unsupported. Three grounds, not one: ISO 4.2.16 (the conformance claim itself), 4.2.7 for an OPTIONAL element ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support'), and 4.2.6 for a PROCESSOR-DEPENDENT one ('The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation'). The 4.2.16-only wording was too narrow and was widened 2026-08-31: the verdict already carried processor-dependent declines and rules whose stated range no host can satisfy, neither of which is an optional module. The notes field carries the decision reference; closing still needs a test proving we diagnose (or, where the departure is a reported VALUE rather than a rejected construct, that the documented behaviour is what actually happens) rather than silently miscompile. On a kind-DOC row it means the CONDITIONING FACILITY is not implemented, so Annex A.1's own provision precondition is unmet and there is no element left to document ('When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented' — A.1 preamble). Items 13 and 15 — the rules for forming and locating a non-COBOL program name — are the shape, once the owner records that the §4.2.3 interaction is unclaimed."
     },
     "DIVERGES": {
       "resolves": false,
       "requires": ["code-location", "notes"],
-      "meaning": "The implementation contradicts the spec. The notes field carries the CONFORMANCE-FIX-QUEUE item id that owns the fix."
+      "meaning": "The implementation contradicts the spec. The notes field carries the CONFORMANCE-FIX-QUEUE item id that owns the fix. On a kind-DOC row: §7 documents one thing and the compiler does another — the failure §7's own preamble calls worse than an undocumented determination, and which had no expressible form until a DOC row could carry a verdict at all."
     },
     "PARTIAL": {
       "resolves": false,
@@ -104,6 +109,50 @@
     }
   },
 
+  "kinds": {
+    "$comment": [
+      "PER-KIND EVIDENCE RULES. `verdicts` says what a VERDICT costs; this says what a ROW OF THIS KIND costs, and",
+      "the two are orthogonal. Annex A.1's 222 DOC rows are not behavioural rules: each is an obligation to SPECIFY",
+      "and to DOCUMENT an implementor-defined element (ISO 4.2.5 — 'the implementor shall specify, at a minimum, the",
+      "implementor-defined language elements that are identified as required. Each implementor-defined language",
+      "element specified by the implementor shall be documented if the implementor-defined language element is",
+      "identified as requiring user documentation.'). A binder symbol alone cannot discharge that; a DETERMINATION in",
+      "docs/CONFORMANCE.md §7 can. Before this object existed the schema had no way to say so, and all 222 rows sat",
+      "verdict-less while §7 already carried 39 determinations — a third of that work invisible to the burn-down.",
+      "",
+      "⛔ THE ANCHOR IS COMPUTED, NEVER CHOSEN. `anchor-template` expands the row's OWN rule-id, so a DOC row's",
+      "register location is a FUNCTION of the row: the next determination's anchor is derived rather than typed, and",
+      "a mis-filed one cannot be spelled at all. That is the direct structural answer to kb/Work A11's finding — the",
+      "§15.3.3.2 determination filed under item 87 when it belongs to item 202. It is also why §7's item key is the",
+      "rule-id `DOC-A.1-<n>` and not the bare number: '#7', an anchor five live rows used, resolves against the digit",
+      "7 ANYWHERE in a 790-line document and proves nothing (see `anchored-files` below).",
+      "",
+      "⛔ OBSERVABLE IS DECIDED BY DATA ON THE ROW, NOT BY A HAND LIST. Annex A.1 conditions the documentation duty on",
+      "provision ('Documentation required: If the element is provided by the implementor, the implementor's user",
+      "documentation shall document the element…'), so 'can a program observe this determination?' IS 'is there",
+      "greenfield code that provides it?' — a question whose answer is a PATH, which an independent refuter can",
+      "falsify by finding the code, rather than an opinion, which nobody can. `implementation-pattern` reads it off",
+      "the row's own code-location list using the SAME greenfield predicate scripts/spec/audit_annex_a1.py's",
+      "sweep_source_citations applies to a source path (`p.startswith('Cobol.Net.')` under src/), so the register",
+      "audit and the inventory gate cannot disagree — and the legacy CobolSharp engine is evidence of nothing.",
+      "",
+      "⛔ THERE IS NO POLICY ARM, AND ITS ABSENCE IS DELIBERATE. A DOC row closes exactly as every other row does:",
+      "its computed anchor is present, it names at least one implementing site under `implementation-pattern`, and a",
+      "SPEC-DERIVED test covers it. A row whose ONLY location is the §7 anchor — nothing in the compiler to observe —",
+      "therefore stays a GAP. Letting such a row close on the register alone would widen DESIGN-spec-conformance-",
+      "review.md §1(a)'s definition of DONE ('a located implementation (a traceability link into src/Cobol.Net.*), OR",
+      "a recorded owner documented-non-support decision'), and the owner's completion metric is not an agent's to",
+      "redefine. It was also measured to be unreachable: all 39 rows of the first back-fill carry a greenfield site,",
+      "so the arm would have had zero instances and its own negative claim ('nothing implements this') would have",
+      "been cross-checkable for only 13 of 222 items — a MISSING observation standing in for a NEGATIVE one, which",
+      "feedback_verdict_evidence_invariant forbids. The bare question is open as kb/Work PB280 Q2."
+    ],
+    "DOC": {
+      "anchor-template": "docs/CONFORMANCE.md#{rule-id}",
+      "implementation-pattern": "^src/Cobol\\.Net\\."
+    }
+  },
+
   "editions": ["85", "2002", "2014", "2023"],
 
   "code-location": {
@@ -114,10 +163,32 @@
       "file, so 3,790 rows of them would turn the gate permanently red for reasons that have nothing to do with",
       "conformance — and a gate that cries wolf is a gate nobody reads. A SYMBOL survives refactoring, moves with",
       "the code it names, and fails only when the thing it points at actually stops existing, which is precisely",
-      "the event worth failing on."
+      "the event worth failing on.",
+      "",
+      "The symbol class admits '-' because a register anchor is not a C# identifier: `docs/CONFORMANCE.md#DOC-A.1-2`",
+      "is the computed anchor of the A.1 item-2 row (see `kinds`), and before this one character the whole 39-record",
+      "back-fill failed shape validation on that line alone."
     ],
-    "pattern": "^[A-Za-z0-9_./-]+(#[A-Za-z0-9_.<>]+)?$",
-    "separator": "; "
+    "pattern": "^[A-Za-z0-9_./-]+(#[A-Za-z0-9_.<>-]+)?$",
+    "separator": "; ",
+    "$anchored-files-comment": [
+      "A file whose fragments are a NAMED ANCHOR SPACE rather than a code symbol. The gate resolves '#Symbol' by a",
+      "word search over the file body: exact for a C# identifier, worthless for a number. Five live rows carried",
+      "`docs/CONFORMANCE.md#7` and were state OK on that basis — '#7' matches the digit 7 anywhere in a 790-line",
+      "document — and three more cited the BARE path, which resolves on File.Exists alone and is weaker still. So:",
+      "every fragment on a listed file must match its pattern, AND a listed file may not be cited without one.",
+      "",
+      "The pattern is an ALTERNATION over the anchor spaces docs/CONFORMANCE.md ACTUALLY has, derived from the",
+      "document's own section keys rather than from one section's needs: §7's Annex A.1 rows are keyed by the",
+      "inventory rule-id `DOC-A.1-<n>`; §1 is the §4.2.16 conformance summary, which RV-15.31.3-L2.3 legitimately",
+      "anchors as '4.2.16'; §5's Annex A.4 rows are keyed 'A.4.<n>'. ⚠ §2's Annex A.3 rows are keyed by a BARE",
+      "NUMBER and therefore have NO anchor space — anchoring one would reproduce the '#7' defect exactly, and the",
+      "answer when a row needs it is to re-key §2 the way §7 was re-keyed, not to widen this pattern. §3 and §4 are",
+      "prose lists with no keys at all."
+    ],
+    "anchored-files": {
+      "docs/CONFORMANCE.md": "^(DOC-A\\.1-[0-9]+|4\\.2\\.16|A\\.4\\.[0-9]+)$"
+    }
   },
 
   "test-ref": {

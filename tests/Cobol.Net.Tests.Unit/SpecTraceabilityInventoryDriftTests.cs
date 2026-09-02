@@ -28,9 +28,17 @@ namespace CobolNet.Tests.Unit;
 /// </para>
 /// <para>
 /// The vocabulary these tests enforce is not written down here either: verdicts, their <c>resolves</c> flag, their
-/// required evidence and the test-ref forms are read from <c>tests/version-matrix/inventory-schema.json</c>, the
-/// same file the Python side reads. What exists twice is the evaluator, not the rule — and
-/// <see cref="EveryRowState_IsDerived_NotAsserted"/> is what would catch the two evaluators drifting apart.
+/// required evidence, the test-ref forms, the per-KIND evidence rules and the anchored-file spaces are read from
+/// <c>tests/version-matrix/inventory-schema.json</c>, the same file the Python side reads. What exists twice is
+/// the evaluator, not the rule — and <see cref="EveryRowState_IsDerived_NotAsserted"/> is what would catch the two
+/// evaluators drifting apart.
+/// </para>
+/// <para>
+/// ⚖ WITHIN this side the predicate exists ONCE. <see cref="AnchorFor"/> and <see cref="IsObservable"/> are the
+/// only places that decide what a kind-anchored row's anchor is and whether it names an implementing site;
+/// <see cref="DerivedState"/> and <see cref="MisanchoredRows"/> both route through them. Three sites each keying
+/// on the same regex independently would have meant that a single typo in <c>implementation-pattern</c> silently
+/// reclassified every DOC row while three "independent" assertions stayed green.
 /// </para>
 /// <para>
 /// ⚠ <see cref="TheseChecks_ActuallyFail_OnAFabricatedInventory"/> is not a formality. A gate that has only ever
@@ -53,6 +61,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     private sealed record TestRefForm(string Scheme, string? PathTemplate, string? TestDir, bool SpecDerived);
 
+    /// <summary>
+    /// The per-KIND evidence rules (<c>kinds</c> in the schema): what a row of this kind costs, as opposed to
+    /// what its VERDICT costs. <c>AnchorTemplate</c> expands the row's own rule-id into the register anchor it
+    /// must carry; <c>Implementation</c> is the predicate that decides, from the row's own locations, whether
+    /// there is anything in the compiler to observe.
+    /// </summary>
+    private sealed record KindRule(string AnchorTemplate, Regex? Implementation);
+
     private sealed record Schema(
         IReadOnlyDictionary<string, Verdict> Verdicts,
         string[] Editions,
@@ -61,7 +77,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
         string TestRefSeparator,
         IReadOnlyDictionary<string, TestRefForm> TestRefForms,
         bool SpecDerivedRequired,
-        Regex[] DisqualifyingMethods);
+        Regex[] DisqualifyingMethods,
+        IReadOnlyDictionary<string, KindRule> Kinds,
+        IReadOnlyDictionary<string, Regex> AnchoredFiles);
 
     private static string Str(JsonElement e, string name) =>
         e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
@@ -93,6 +111,32 @@ public sealed class SpecTraceabilityInventoryDriftTests
         }
 
         var loc = root.GetProperty("code-location");
+
+        // `kinds` and `anchored-files` both carry $-prefixed DOCUMENTATION siblings inside the same object, so
+        // both readers skip them by prefix rather than by name — a new comment key must never read as a kind.
+        var kinds = new Dictionary<string, KindRule>(StringComparer.Ordinal);
+        if (root.TryGetProperty("kinds", out var kindsElem))
+        {
+            foreach (var p in kindsElem.EnumerateObject())
+            {
+                if (p.Name.StartsWith('$')) continue;
+                string impl = Str(p.Value, "implementation-pattern");
+                kinds[p.Name] = new KindRule(
+                    Str(p.Value, "anchor-template"),
+                    impl.Length > 0 ? new Regex(impl, RegexOptions.Compiled) : null);
+            }
+        }
+
+        var anchored = new Dictionary<string, Regex>(StringComparer.Ordinal);
+        if (loc.TryGetProperty("anchored-files", out var anchoredElem))
+        {
+            foreach (var p in anchoredElem.EnumerateObject())
+            {
+                if (p.Name.StartsWith('$')) continue;
+                anchored[p.Name] = new Regex(p.Value.GetString()!, RegexOptions.Compiled);
+            }
+        }
+
         return new Schema(
             verdicts,
             [.. root.GetProperty("editions").EnumerateArray().Select(x => x.GetString()!)],
@@ -102,7 +146,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
             forms,
             testRef.GetProperty("spec-derived-required").GetBoolean(),
             [.. testRef.GetProperty("disqualifying-method-patterns").EnumerateArray()
-                .Select(x => new Regex(x.GetString()!, RegexOptions.Compiled))]);
+                .Select(x => new Regex(x.GetString()!, RegexOptions.Compiled))],
+            kinds,
+            anchored);
     }
 
     private static List<Row> LoadInventory()
@@ -146,9 +192,87 @@ public sealed class SpecTraceabilityInventoryDriftTests
     {
         if (!s.Verdicts.TryGetValue(r.Verdict, out var v) || !v.Resolves) return "GAP";
         if (!v.Requires.All(f => Field(r, f).Length > 0)) return "GAP";
+        // A kind that declares evidence rules pays them too, and BOTH are extra COSTS rather than an escape: the
+        // computed anchor must be present (a determination filed under another item is not evidence for this
+        // row), and something in the compiler must implement it. A DOC row whose only location is its own §7
+        // anchor therefore stays a GAP — closing it would widen the design doc §1(a) definition of DONE, which
+        // is the owner's to widen and not an agent's (kb/Work PB280 Q2).
+        if (AnchorFor(r, s) is not null && (!IsAnchored(r, s) || !IsObservable(r, s))) return "GAP";
         if (!s.SpecDerivedRequired) return r.TestRef.Length > 0 ? "OK" : "GAP";
         return Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s)) ? "OK" : "GAP";
     }
+
+    /// <summary>
+    /// The register anchor this row's KIND obliges, COMPUTED from the row's own rule-id — or <c>null</c> when the
+    /// kind declares no rule. Mirrors <c>Schema.anchor_for</c> in Python.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ Written ONCE on this side and read by <see cref="DerivedState"/> and <see cref="MisanchoredRows"/>, so
+    /// the two cannot disagree about what a row's anchor is. The anchor being a FUNCTION of the row is the whole
+    /// mechanism: a determination cannot be filed under the wrong item the way <c>kb/Work/A11</c> recorded — the
+    /// §15.3.3.2 fractional-seconds determination sat under item 87, whose obligation is FORMATTED-CURRENT-DATE's
+    /// accuracy, because the NUMBER was inherited and never re-derived.
+    /// </remarks>
+    private static string? AnchorFor(Row r, Schema s) =>
+        s.Kinds.TryGetValue(r.Kind, out var k) && k.AnchorTemplate.Length > 0
+            ? k.AnchorTemplate.Replace("{rule-id}", r.RuleId, StringComparison.Ordinal)
+            : null;
+
+    private static bool IsAnchored(Row r, Schema s) =>
+        AnchorFor(r, s) is { } anchor
+        && Split(r.CodeLocation, s.CodeLocationSeparator).Contains(anchor, StringComparer.Ordinal);
+
+    /// <summary>
+    /// Does this row name a site in the compiler through which a program could observe the determination?
+    /// </summary>
+    /// <remarks>
+    /// The predicate is the row's OWN <c>code-location</c> list read through its kind's
+    /// <c>implementation-pattern</c> — the greenfield <c>src/Cobol.Net.*</c> predicate
+    /// <c>scripts/spec/audit_annex_a1.py</c>'s source sweep already applies. A PATH is falsifiable by an
+    /// independent reader who goes looking for the code; an opinion is not. A kind that declares no pattern is
+    /// vacuously observable, so adding a kind never tightens an existing one.
+    /// </remarks>
+    private static bool IsObservable(Row r, Schema s)
+    {
+        if (!s.Kinds.TryGetValue(r.Kind, out var k) || k.Implementation is null) return true;
+        string? anchor = AnchorFor(r, s);
+        return Split(r.CodeLocation, s.CodeLocationSeparator)
+            .Any(x => !string.Equals(x, anchor, StringComparison.Ordinal) && k.Implementation.IsMatch(x));
+    }
+
+    /// <summary>
+    /// A row whose KIND obliges a register anchor and whose locations do not carry the anchor its own rule-id
+    /// computes — either none at all, or, the <c>kb/Work/A11</c> shape, the anchor of a DIFFERENT item.
+    /// </summary>
+    private static List<string> MisanchoredRows(IEnumerable<Row> rows, Schema s) =>
+        [.. from r in rows
+            where (r.Verdict.Length > 0 || r.CodeLocation.Length > 0)
+                  && AnchorFor(r, s) is not null && !IsAnchored(r, s)
+            select $"{r.RuleId}: kind {r.Kind} requires the computed register anchor '{AnchorFor(r, s)}' among "
+                   + $"its code-location(s) [{r.CodeLocation}] — the anchor is derived from the rule-id, never "
+                   + "chosen, so a determination filed under another item cannot be spelled"];
+
+    /// <summary>
+    /// Any <c>code-location</c> naming a file whose fragments are a NAMED ANCHOR SPACE, with a fragment outside
+    /// that space — or with no fragment at all.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ This is the check that turns <c>docs/CONFORMANCE.md#7</c> red. The resolver below satisfies a
+    /// <c>#Symbol</c> by a word search over the file body: exact for a C# identifier, worthless for a number —
+    /// <c>#7</c> matches the digit 7 anywhere in a 790-line document, and five live rows were <c>state: OK</c> on
+    /// that basis. A BARE citation of an anchored file is the same defect one step weaker, resolving on
+    /// <c>File.Exists</c> alone, so it is a violation too; three more live rows were doing it.
+    /// </remarks>
+    private static List<string> BadAnchorFragments(IEnumerable<Row> rows, Schema s) =>
+        [.. from r in rows
+            where r.CodeLocation.Length > 0
+            from loc in Split(r.CodeLocation, s.CodeLocationSeparator)
+            let parts = loc.Split('#', 2)
+            where s.AnchoredFiles.ContainsKey(parts[0])
+            let rx = s.AnchoredFiles[parts[0]]
+            where parts.Length == 1 || !rx.IsMatch(parts[1])
+            select $"{r.RuleId}: code-location '{loc}' — '{parts[0]}' is an anchored file, so its fragment must "
+                   + $"match {rx} ({(parts.Length == 1 ? "there is no fragment at all" : $"got '{parts[1]}'")})"];
 
     private static string Field(Row r, string name) => name switch
     {
@@ -420,6 +544,38 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.True(bad.Count == 0, Report("bad edition name(s)", bad, rows.Count));
     }
 
+    /// <summary>
+    /// ⛔ Every row of a kind that carries a register anchor anchors ITS OWN register entry. The anchor is
+    /// computed from the row's rule-id, so this fails on the <c>kb/Work/A11</c> shape — a determination filed
+    /// under a neighbouring item — which no amount of reading the prose had caught.
+    /// </summary>
+    [Fact]
+    public void EveryKindAnchoredRow_AnchorsItsOwnRegisterEntry()
+    {
+        var rows = LoadInventory();
+        var s = LoadSchema();
+        Assert.True(s.Kinds.Count > 0,
+            "inventory-schema.json declares no `kinds` — this gate would then measure nothing, so the schema, "
+            + "not the gate, is what changed.");
+        var bad = MisanchoredRows(rows, s);
+        Assert.True(bad.Count == 0, Report("misanchored row(s)", bad, rows.Count));
+    }
+
+    /// <summary>
+    /// Every fragment on a file whose fragments are a named anchor space is a legal anchor of that space — and an
+    /// anchored file is never cited bare.
+    /// </summary>
+    [Fact]
+    public void EveryRegisterAnchor_IsAWellFormedAnchorOfItsFile()
+    {
+        var rows = LoadInventory();
+        var s = LoadSchema();
+        Assert.True(s.AnchoredFiles.Count > 0,
+            "inventory-schema.json lists no `anchored-files` — the mechanism that turns `#7` red is gone.");
+        var bad = BadAnchorFragments(rows, s);
+        Assert.True(bad.Count == 0, Report("ill-formed register anchor(s)", bad, rows.Count));
+    }
+
     /// <summary>Every traceability link still points at code that exists — the link is the whole point of it.</summary>
     [Fact]
     public void EveryCodeLocation_ResolvesInTheTree()
@@ -517,5 +673,75 @@ public sealed class SpecTraceabilityInventoryDriftTests
             {
                 TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRowState_IsDerived_NotAsserted",
             }], s, root));
+
+        // ── kind-DOC rows: the register anchor, and what a DOC row costs ─────────────────────────────
+        //
+        // A DOC row is an obligation to DOCUMENT an implementor-defined element (ISO §4.2.5), so its evidence is
+        // a §7 determination filed under its own item PLUS a site in the compiler PLUS a spec-derived test. Each
+        // of the three is driven separately below, and each positive control shows the checker discriminating.
+        const string Anchor = "docs/CONFORMANCE.md#DOC-A.1-19";
+        const string Src = "src/Cobol.Net.Runtime/Control/ProgramTable.cs#CancelNode";
+        Row Doc(string id) => new(id, "A.1", "DOC", 19,
+            "CANCEL statement (result of canceling a non-COBOL program)", "CONFORMS", "", "", "", "", "GAP");
+
+        // A src site and no register anchor at all: the determination is unlocatable.
+        Assert.Single(MisanchoredRows([Doc("DOC-A.1-19") with { CodeLocation = Src }], s));
+        // ⛔ THE A11 SHAPE — the anchor of a DIFFERENT item. `#DOC-A.1-18` is a real anchor of a real row, so
+        // nothing about it is malformed; it is simply not THIS row's, and only a COMPUTED anchor can see that.
+        Assert.Single(MisanchoredRows(
+            [Doc("DOC-A.1-19") with { CodeLocation = $"docs/CONFORMANCE.md#DOC-A.1-18; {Src}" }], s));
+        // …and the control: its own anchor passes, so the two failures above are not blanket rejection.
+        Assert.Empty(MisanchoredRows([Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}" }], s));
+        // A non-DOC row is untouched by the anchor rule — adding a kind must not retroactively bind 4,089 others.
+        Assert.Empty(MisanchoredRows([Base("X-13") with { Verdict = "CONFORMS", CodeLocation = Src }], s));
+
+        // ⛔ `#7`: the fragment five live rows carried, which the resolver satisfies against the digit 7 anywhere
+        // in the file. And the bare path, which is the same defect resolving on File.Exists alone.
+        Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md#7" }], s));
+        Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md" }], s));
+        // The controls: every anchor space the document really has stays legal — §7's item rows, §1's §4.2.16
+        // summary, §5's Annex A.4 rows — and a file that is not anchored is not policed.
+        Assert.Empty(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor }], s));
+        Assert.Empty(BadAnchorFragments(
+            [Base("X-14") with { CodeLocation = "docs/CONFORMANCE.md#4.2.16" }], s));
+        Assert.Empty(BadAnchorFragments(
+            [Base("X-15") with { CodeLocation = "docs/CONFORMANCE.md#A.4.9" }], s));
+        Assert.Empty(BadAnchorFragments([Base("X-16") with { CodeLocation = Src }], s));
+
+        // OBSERVABLE but untested, asserted OK — the ordinary §1(c) failure, on a DOC row.
+        Assert.Single(BadStates(
+            [Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}", State = "OK" }], s));
+        // ⛔ NO POLICY ARM. A row whose ONLY location is its register anchor does not close — not with no test,
+        // and not with a spec-derived one either. Closing it would widen the design doc §1(a) definition of DONE
+        // (a traceability link into src/Cobol.Net.*, or a recorded owner non-support decision), and that is the
+        // owner's completion metric, not an agent's (kb/Work PB280 Q2). Both arms are driven, because the
+        // second is the one a future "it has a test, surely it closes" reading would break.
+        Assert.Single(BadStates([Doc("DOC-A.1-19") with { CodeLocation = Anchor, State = "OK" }], s));
+        Assert.Single(BadStates(
+            [Doc("DOC-A.1-19") with
+            {
+                CodeLocation = Anchor, TestRef = "conformance:2023/pb154_cancel_active", State = "OK",
+            }], s));
+        // The LEGACY engine is not an implementing site: CobolSharp.* is the oracle being retired, not the
+        // compiler, so a row resting on it is as unobservable as one resting on nothing.
+        Assert.Single(BadStates(
+            [Doc("DOC-A.1-19") with
+            {
+                CodeLocation = $"{Anchor}; src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs#Cancel",
+                TestRef = "conformance:2023/pb154_cancel_active", State = "OK",
+            }], s));
+        // ✔ And the shape that DOES close: own anchor + a greenfield site + a spec-derived test.
+        Assert.Empty(BadStates(
+            [Doc("DOC-A.1-19") with
+            {
+                CodeLocation = $"{Anchor}; {Src}", TestRef = "conformance:2023/pb154_cancel_active", State = "OK",
+            }], s));
+        // …which is also the row `DifferentialOnlyCoverage` must leave alone — no kind exemption exists there,
+        // and none is needed, because every closing DOC row carries a spec-derived test like every other row.
+        Assert.Empty(DifferentialOnlyCoverage(
+            [Doc("DOC-A.1-19") with
+            {
+                CodeLocation = $"{Anchor}; {Src}", TestRef = "conformance:2023/pb154_cancel_active", State = "OK",
+            }], s));
     }
 }

@@ -29,7 +29,9 @@ land look exactly like reviewed work and nothing afterwards can tell them from i
 
 WHAT IS CHECKED HERE, AND WHAT IS NOT. This validates SHAPE only: the rule-id is real, the verdict is in the
 vocabulary, the fields that verdict requires are present, the editions are legal, the syntax of each reference
-parses. Whether a `code-location` symbol still exists and whether a `test-ref` names a test that is really on disk
+parses, the register anchor the row's KIND computes is present, and no fragment on an `anchored-files` path is
+outside that file's anchor space. All of that is decidable from the record plus the schema, with no disk access.
+Whether a `code-location` symbol still exists and whether a `test-ref` names a test that is really on disk
 is checked by the C# battery gate `SpecTraceabilityInventoryDriftTests` — deliberately NOT here. That check has to
 keep holding as the tree changes under an already-recorded row, so it belongs to something that runs every build,
 and implementing it in both places would be exactly the duplication CLAUDE.md rule 5 forbids.
@@ -58,12 +60,17 @@ def read_batch(path: pathlib.Path) -> list[dict]:
     return raw
 
 
-def validate(records: list[tuple[pathlib.Path, int, dict]], schema, known: set[str]) -> list[str]:
+def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dict[str, str]) -> list[str]:
     """Every shape violation across the whole set — reported together, never one at a time.
 
     Stopping at the first bad record would make a reviewer re-run this once per mistake, and a batch produced by a
     fan-out of agents tends to carry the SAME mistake in many rows: seeing all of them at once is what turns a
     twenty-round correction loop into one.
+
+    `catalog` maps a rule-id to its catalog KIND, because two of the shape rules are per-kind: the computed
+    register anchor a `kinds` entry obliges, and the anchor space a listed file's fragments must belong to. A
+    batch record carries no `kind` of its own — the catalog owns it — so the lookup happens here rather than the
+    record being trusted to restate it.
     """
     bad: list[str] = []
     seen: dict[str, str] = {}
@@ -74,7 +81,7 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, known: set[s
         if not rid:
             bad.append(f"{where}: no rule-id")
             continue
-        if rid not in known:
+        if rid not in catalog:
             bad.append(f"{where}: rule-id '{rid}' is not in the catalog")
         if rid in seen and seen[rid] != where:
             bad.append(f"{where}: rule-id '{rid}' recorded twice in this run (also {seen[rid]})")
@@ -110,9 +117,27 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, known: set[s
             if illegal := [e for e in schema.split(ed, ",") if e not in schema.editions]:
                 bad.append(f"{where}: editions {illegal} not in {schema.editions}")
 
-        for loc in schema.split(rec.get("code-location", ""), schema.code_location_sep):
+        locations = schema.split(rec.get("code-location", ""), schema.code_location_sep)
+        for loc in locations:
             if not schema.code_location_re.match(loc):
                 bad.append(f"{where}: code-location '{loc}' is not '<repo-relative-path>[#Symbol]'")
+                continue
+            # ⛔ A LISTED FILE'S FRAGMENT IS AN ANCHOR OR IT IS A FAILURE — and a BARE citation of one is the
+            # weakest form of the same defect, resolving on File.Exists alone. Five live rows carried
+            # `docs/CONFORMANCE.md#7`, which the battery gate's word search satisfies against the digit 7
+            # anywhere in a 790-line document, and three more cited the bare path.
+            file, _, fragment = loc.partition("#")
+            if (rx := schema.anchored_files.get(file)) is not None and not rx.match(fragment):
+                bad.append(
+                    f"{where}: code-location '{loc}' — '{file}' is an anchored file, so its fragment must match "
+                    f"{rx.pattern} ({'no fragment at all' if not fragment else f'got {fragment!r}'})")
+
+        # The row's KIND may oblige a COMPUTED register anchor (`kinds` in the schema). It is derived from the
+        # rule-id rather than typed, so a mis-filed determination cannot be spelled — kb/Work A11's failure mode.
+        probe = {"rule-id": rid, "kind": catalog.get(rid, ""), "code-location": rec.get("code-location", "")}
+        if (anchor := schema.anchor_for(probe)) is not None and anchor not in locations:
+            bad.append(f"{where}: kind {catalog[rid]} requires the register anchor '{anchor}' among its "
+                       f"code-location(s) — it is computed from the rule-id, never chosen")
 
         for ref in schema.split(rec.get("test-ref", ""), schema.test_ref_sep):
             scheme = ref.split(":", 1)[0]
@@ -138,7 +163,7 @@ def main() -> int:
     schema = load_schema()
     rows = load_inventory()
     by_id = {r["rule-id"]: r for r in rows}
-    known = {r["id"] for r in load_catalog()}
+    catalog = {r["id"]: r.get("kind", "") for r in load_catalog()}
 
     records: list[tuple[pathlib.Path, int, dict]] = []
     for path in args.batches:
@@ -150,7 +175,7 @@ def main() -> int:
         print("no records in the named batch file(s) — nothing to do")
         return 0
 
-    if bad := validate(records, schema, known):
+    if bad := validate(records, schema, catalog):
         print(f"⛔ {len(bad)} shape violation(s) — NOTHING was written:\n")
         for b in bad:
             print(f"   {b}")

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Audit `docs/CONFORMANCE.md` §7 against Annex A.1 — the implementor-defined documentation register.
 
-    python scripts/spec/audit_annex_a1.py            # report coverage + findings
-    python scripts/spec/audit_annex_a1.py --check    # exit non-zero on any finding (gate form)
+    python scripts/spec/audit_annex_a1.py             # report coverage + findings
+    python scripts/spec/audit_annex_a1.py --check     # exit non-zero on any finding (gate form)
+    python scripts/spec/audit_annex_a1.py --json      # + one machine-readable `JSON {...}` line
+    python scripts/spec/audit_annex_a1.py --self-test # prove every check can fail, for its own reason
 
 ⛔ WHY THIS EXISTS. ISO §4.2.5 requires the implementor to SPECIFY every A.1 element identified as *required*
 and to DOCUMENT every element identified as *requiring user documentation*; owner decision D13 makes those part
@@ -10,6 +12,14 @@ of the definition of v1.0. `docs/CONFORMANCE.md` §7 is that register. Its rows 
 and nothing checked those numbers — so an entry could sit under the wrong obligation indefinitely, which
 CONFORMANCE.md §7's own preamble calls the worse failure: "an undocumented determination and a wrongly-
 documented one are both non-conformance, and the second is worse."
+
+⚙ THE KEY IS NOW THE INVENTORY RULE-ID `DOC-A.1-<n>`, not the bare number, because the P14 inventory row for
+item *n* carries `docs/CONFORMANCE.md#DOC-A.1-<n>` as a code-location COMPUTED from its own rule-id
+(`inventory-schema.json` → `kinds.DOC.anchor-template`). Three checks follow from that and are here rather than
+in the C# gate, because they are about THIS document: every key parses as a rule-id of a real A.1 item; the set
+of `DOC-A.1-<n>` TOKENS in the whole file equals the set of §7 row keys, so a prose mention can never masquerade
+as a filed determination; and each row's `Pinned by` cell AGREES with the inventory row's own spec-derived
+`test-ref`, so a determination and its evidence are one artifact instead of two that drift apart.
 
 ⭐ IT FOUND ONE ON ITS FIRST RUN. The determination for the maximum fractional-seconds precision (§15.3.3.2)
 was filed as **item 87**; item 87 is *FORMATTED-CURRENT-DATE (accuracy of returned time)* — a different, still
@@ -22,6 +32,7 @@ parses straight out of Annex A.1 — so this script adds no second copy of the r
 """
 from __future__ import annotations
 
+import collections
 import json
 import pathlib
 import re
@@ -67,21 +78,47 @@ def load_register() -> dict[int, dict]:
     return {r['ordinal']: r for r in catalog['rules'] if r.get('kind') == 'DOC'}
 
 
-def section7_rows(text: str) -> list[tuple[str, str]]:
-    """(item-key, element-cell) for every data row of the §7 table."""
+#: A §7 row key: the inventory rule-id of the A.1 item the row discharges.
+ITEM_KEY_RX = re.compile(r'^DOC-A\.1-(\d+)$')
+#: The same token ANYWHERE in the file. The set of these must equal the set of row keys — a determination is
+#: filed by being a ROW, and a passing prose mention that resolved as an anchor would be a silent false claim.
+TOKEN_RX = re.compile(r'\bDOC-A\.1-\d+\b')
+
+
+def cells_of(line: str) -> list[str]:
+    """A markdown row's content cells, split on UNESCAPED pipes.
+
+    ⚠ Splitting on a bare '|' is wrong here and was wrong once: the item-82 determination writes an absolute
+    value as `\\|v\\|`, so a naive split reports that row with two extra cells and mis-places anything appended
+    to it.
+    """
+    parts = [c.replace('\\|', '|').strip() for c in re.split(r'(?<!\\)\|', line.rstrip('\n'))]
+    return parts[1:-1]
+
+
+def section7_rows(text: str) -> list[tuple[str, str, str]]:
+    """(item-key, element-cell, pinned-by-cell) for every data row of the §7 table."""
     start = text.index('## 7. Annex A.1')
     rows = []
     for line in text[start:].splitlines():
         if not line.startswith('| '):
             continue
-        cells = [c.strip() for c in line.split('|')[1:-1]]
+        cells = cells_of(line)
         if len(cells) < 2 or cells[0] in ('A.1 item',) or set(cells[0]) <= set('-: '):
             continue
-        rows.append((cells[0], cells[1]))
+        rows.append((cells[0], cells[1], cells[3] if len(cells) > 3 else ''))
     return rows
 
 
-SELF_TEST_HEADER = '## 7. Annex A.1\n\n| A.1 item | Element | Our determination |\n|---|---|---|\n'
+def pins_of(cell: str) -> list[str]:
+    """The test-refs a `Pinned by` cell names — backticks are legibility, not content."""
+    if cell.strip() in ('', '—', '-'):
+        return []
+    return [p.strip().strip('`').strip() for p in cell.split(';') if p.strip().strip('`').strip()]
+
+
+SELF_TEST_HEADER = ('## 7. Annex A.1\n\n| A.1 item | Element | Our determination | Pinned by |\n'
+                    '|---|---|---|---|\n')
 
 
 def self_test() -> int:
@@ -91,16 +128,32 @@ def self_test() -> int:
     worse, because it reads as working. Each case below breaks exactly one rule.
     """
     register = load_register()
-    good = f'| 2 | ACCEPT statement device used when FROM is unspecified, §14.9.1 GR5 |'
+    good = '| DOC-A.1-2 | ACCEPT statement device used when FROM is unspecified, §14.9.1 GR5 | det | — |'
     cases = [
         ('control: a correct row passes', good, None),
         ('a wrong item number is caught',
-         '| 87 | **Maximum digit positions in the decimal fraction of the seconds subfield**, §15.3.3.2 |',
+         '| DOC-A.1-87 | **Maximum digit positions in the decimal fraction of the seconds subfield**, '
+         '§15.3.3.2 | det | — |',
          'do not correspond'),
         ('an item number outside A.1 is caught',
-         '| 999 | Something, §14.9.1 |', 'not an A.1 item number'),
+         '| DOC-A.1-999 | Something, §14.9.1 | det | — |', 'not an A.1 item number'),
         ('an unnumbered row is caught',
-         '| — (§15.4.1) | Something voluntary |', 'carry no A.1 item number'),
+         '| — (§15.4.1) | Something voluntary | det | — |', 'carry no A.1 item number'),
+        # ⚙ THE KEY FORM ITSELF. A bare number was the key until 2026-09-02 and is no longer a row key at all:
+        # it cannot be an anchor (`#7` matched the digit 7 anywhere in the file), so a row still spelling it
+        # discharges nothing and must be reported rather than silently skipped.
+        ('the OLD bare-number key form is caught',
+         '| 2 | ACCEPT statement device used when FROM is unspecified, §14.9.1 GR5 | det | — |',
+         'carry no A.1 item number'),
+        # ⛔ THE TOKEN SET: a `DOC-A.1-<n>` token anywhere but a row key would resolve as a filed determination
+        # under the C# gate's word search over the whole file.
+        ('a DOC-A.1 token for an ITEM WITH NO ROW is caught',
+         good + '\n\nSee DOC-A.1-19 for the CANCEL case.', 'outside a row key'),
+        # ⚠ THE CASE THE FIRST IMPLEMENTATION MISSED. A set difference stayed green here, because the row key
+        # already put this token in the set; only a COUNT sees a second occurrence — and a second occurrence is
+        # precisely what survives the row it shadows being deleted.
+        ('a DOC-A.1 token DUPLICATING an item that does have a row is caught',
+         good + '\n\nSee DOC-A.1-2 for the ACCEPT case.', 'appears 2×'),
     ]
     rc = 0
     print('=== audit_annex_a1 --self-test ===')
@@ -115,6 +168,37 @@ def self_test() -> int:
             print(f'  ok: {name}')
         else:
             print(f'  SELF-TEST FAILED: {name} -> {findings}')
+            rc = 1
+
+    # ── the `Pinned by` ↔ inventory agreement check, driven on a fabricated pair ──────────────────────
+    from inventory_schema import load_schema
+    schema = load_schema()
+    pin_cases = [
+        ('control: the row names the test the inventory closes on',
+         {87: ['unit:CobolDateWindowingTests.NowFunctions_OnePinnedClock_OneInstant']},
+         [{'rule-id': 'DOC-A.1-87',
+           'test-ref': 'unit:CobolDateWindowingTests.NowFunctions_OnePinnedClock_OneInstant'}], None),
+        # ⛔ THE A11 SHAPE ONE LAYER DOWN — the evidence half. Item 171's test closing item 87 is exactly what
+        # the first back-fill did, and it is invisible to every check that asks only whether the method exists.
+        ('a test the row does not name is caught',
+         {87: ['unit:CobolDateWindowingTests.NowFunctions_OnePinnedClock_OneInstant']},
+         [{'rule-id': 'DOC-A.1-87',
+           'test-ref': 'unit:CobolDateWindowingTests.SecondsPastMidnight_PinnedClock_ExactTicks'}],
+         'does not name in'),
+        ('an inventory row closing with no §7 row at all is caught',
+         {}, [{'rule-id': 'DOC-A.1-87', 'test-ref': 'conformance:2023/whatever'}], 'no row for item 87'),
+        ('a NON-spec-derived ref is not required to be named (it can never close a row)',
+         {87: []}, [{'rule-id': 'DOC-A.1-87', 'test-ref': 'nist:IF128A'}], None),
+        ('a row with no verdict evidence at all is silent',
+         {87: []}, [{'rule-id': 'DOC-A.1-87', 'test-ref': ''}], None),
+    ]
+    for name, pinned, inv, want in pin_cases:
+        got = check_pins(pinned, inv, schema)
+        ok = (not got) if want is None else any(want in f for f in got)
+        if ok:
+            print(f'  ok: {name}')
+        else:
+            print(f'  SELF-TEST FAILED: {name} -> {got}')
             rc = 1
     # kb/Work R23 — the source-citation sweep, proven able to fail for BOTH of its reasons.
     import tempfile
@@ -143,18 +227,22 @@ def self_test() -> int:
     return rc
 
 
-def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int, str], list[str]]:
+def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int, str], list[str], dict[int, list[str]]]:
     """The checks, over a §7 body — separated from reporting so --self-test can drive them."""
     findings: list[str] = []
     numbered: dict[int, str] = {}
     unnumbered: list[str] = []
-    for key, element in section7_rows(text):
-        if key.isdigit():
-            n = int(key)
+    pinned: dict[int, list[str]] = {}
+    keys: collections.Counter[str] = collections.Counter()
+    for key, element, pins in section7_rows(text):
+        if (m := ITEM_KEY_RX.match(key)) is not None:
+            n = int(m.group(1))
+            keys[key] += 1
             if n not in register:
                 findings.append(f'§7 row "{key}" is not an A.1 item number (A.1 has {len(register)} items)')
                 continue
             numbered[n] = element
+            pinned.setdefault(n, []).extend(pins_of(pins))
             if not corresponds(element, register[n]):
                 findings.append(
                     f'§7 item {n} says "{element[:70]}" but A.1-{n} is "{register[n]["subject"][:70]}" — the '
@@ -164,7 +252,26 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
     if unnumbered:
         findings.append(f'{len(unnumbered)} §7 row(s) carry no A.1 item number, so no obligation is discharged '
                         f'by them and nothing can check them')
-    return findings, numbered, unnumbered
+
+    # ⛔ THE TOKEN COUNT — not the token SET. `DOC-A.1-<n>` is the ANCHOR an inventory row computes and the C#
+    # gate resolves by a word search over this WHOLE file, so a stray occurrence outside a §7 row key lets a
+    # passing prose mention satisfy a traceability claim. A determination is filed by BEING A ROW, so the number
+    # of occurrences of each token equals the number of §7 rows keyed by it (items 56 and 92 legitimately have
+    # two rows each, and therefore two occurrences each).
+    #
+    # ⚠ IT WAS WRITTEN AS A SET DIFFERENCE FIRST, AND THAT VERSION HAD A HOLE THIS FOUND: driven against the
+    # real file with `See DOC-A.1-50 for the DELETE FILE case.` inserted as prose, it stayed GREEN, because
+    # item 50's own row key put the same token in the set. A set cannot see a DUPLICATE, and the duplicate is
+    # exactly the shape that survives the row it shadows being deleted.
+    seen_tokens = collections.Counter(TOKEN_RX.findall(text))
+    for token, count in sorted(seen_tokens.items()):
+        if count != keys[token]:
+            findings.append(
+                f'"{token}" appears {count}× in CONFORMANCE.md but is the key of {keys[token]} §7 row(s) — an '
+                f'inventory row anchors on that token by a word search over the WHOLE file, so an occurrence '
+                f'outside a row key resolves as a filed determination. Cite items as "A.1 item N" in prose; the '
+                f'token is a row key and nothing else')
+    return findings, numbered, unnumbered, pinned
 
 
 # kb/Work R23 — the drift half: a SOURCE comment claiming "implementor item N" is a documentation claim, and
@@ -196,6 +303,42 @@ def sweep_source_citations(register: dict[int, dict], numbered: dict[int, str], 
                 findings.append(f'{where} cites "{m.group(0)}" as documented, but CONFORMANCE.md §7 carries '
                                 f'no item-{n} row — the claim is undischarged (A.1-{n}: '
                                 f'"{register[n]["subject"][:60]}")')
+    return findings
+
+
+def check_pins(pinned: dict[int, list[str]], inventory: list[dict], schema) -> list[str]:
+    """Every SPEC-DERIVED `test-ref` on a DOC inventory row is named by that item's own §7 row(s).
+
+    ⛔ WHY THIS IS THE HALF THE COMPUTED ANCHOR DOES NOT COVER. The anchor makes a mis-filed DETERMINATION
+    unspellable; it does nothing about mis-filed EVIDENCE, and that is the half kb/Work A11 actually cost. The
+    first back-fill closed item 87 (FORMATTED-CURRENT-DATE accuracy, §15.38.4) on
+    `SecondsPastMidnight_PinnedClock_ExactTicks` — item 171's test, which never calls the function — and both
+    C# checks were structurally blind to it: `UnresolvedTestRefs` asks only that the method be declared, and
+    `IsSpecDerived` only that the form and name qualify. Naming the pin in the DETERMINATION and requiring the
+    two to agree is what makes an agent's free choice of "any method that compiles" impossible.
+
+    Direction is deliberate: the inventory's spec-derived refs must be a SUBSET of what §7 names. §7 may name a
+    pin the inventory has not recorded yet (the determination is ahead of the batch); the inventory may not
+    close on evidence the determination does not claim.
+    """
+    findings: list[str] = []
+    for row in inventory:
+        rid = row.get('rule-id', '')
+        if (m := ITEM_KEY_RX.match(rid)) is None:
+            continue
+        n = int(m.group(1))
+        refs = [r for r in schema.split(row.get('test-ref', '') or '', schema.test_ref_sep)
+                if schema.is_spec_derived(r)]
+        if not refs:
+            continue
+        if n not in pinned:
+            findings.append(f'inventory {rid} closes on {refs} but CONFORMANCE.md §7 carries no row for item {n}')
+            continue
+        for r in refs:
+            if r not in pinned[n]:
+                findings.append(
+                    f'inventory {rid} cites the spec-derived test "{r}", which its own §7 row does not name in '
+                    f'`Pinned by` ({pinned[n] or "empty"}) — the determination and its evidence disagree')
     return findings
 
 
@@ -231,18 +374,24 @@ def main(argv: list[str]) -> int:
     # re-decide anything, or --self-test would be proving a different implementation than the one that runs.
     # (The first draft did exactly that — two copies of the same rules, which is the defect this repo keeps
     # re-learning: feedback_one_rule_one_place.)
-    findings_from_rows, numbered, unnumbered = evaluate(register, text)
+    findings_from_rows, numbered, unnumbered, pinned = evaluate(register, text)
     findings.extend(findings_from_rows)
     # kb/Work R23 — source comments claiming "implementor item N" must be discharged by a real §7 row.
-    findings.extend(sweep_source_citations(register, numbered, ROOT / 'src'))
+    src_findings = sweep_source_citations(register, numbered, ROOT / 'src')
+    findings.extend(src_findings)
+    # The determination and its evidence are ONE artifact: §7's `Pinned by` cell and the inventory row's own
+    # spec-derived test-ref must agree. Imported lazily so the register audit still runs where the inventory
+    # has not been built (the error a missing inventory raises is a SystemExit with the rebuild command).
+    from inventory_schema import load_inventory, load_schema
+    findings.extend(check_pins(pinned, load_inventory(), load_schema()))
 
     print('\n=== docs/CONFORMANCE.md §7 ROWS ===')
     seen: set[int] = set()
-    for key, element in rows:
-        if not key.isdigit():
+    for key, element, _pins in rows:
+        if (m := ITEM_KEY_RX.match(key)) is None:
             print(f'  ⚠ (unnumbered) {element[:74]}')
             continue
-        n = int(key)
+        n = int(m.group(1))
         if n not in register:
             print(f'  ⛔ {key:<5} NOT AN A.1 ITEM')
             continue
@@ -269,6 +418,23 @@ def main(argv: list[str]) -> int:
         print('  none — every §7 row names an A.1 item whose element it matches')
     for f in findings:
         print(f'  ⛔ {f}')
+
+    if '--json' in argv:
+        # ⛔ ONE LINE, PREFIXED, so a C# gate can find it without parsing the report — the idiom
+        # scripts/corpus_sweep.py --json established and ExternalCorpusPopulationDriftTests reads. `filed` is
+        # the POPULATION: a run that observed nothing must be distinguishable from a run that found nothing
+        # wrong (feedback_verdict_evidence_invariant).
+        print('JSON ' + json.dumps({
+            'items': len(register),
+            'filed': sorted(numbered),
+            'pinned': {str(k): v for k, v in sorted(pinned.items())},
+            'documented_required': doc_required,
+            'discharged': len(covered_doc),
+            'remaining': doc_required - len(covered_doc),
+            'src_citations': len(src_findings),
+            'findings': findings,
+        }, ensure_ascii=False))
+
     if '--check' in argv:
         return 1 if findings else 0
     return 0
