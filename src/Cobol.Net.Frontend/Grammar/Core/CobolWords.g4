@@ -8,6 +8,7 @@ options { tokenVocab = CobolLexer; }
 
 cobolWord
     : IDENTIFIER
+    | APPLY
     | ARITHMETIC
     | AS
     | AUTO
@@ -34,6 +35,7 @@ cobolWord
     | DEBUGGING
     | DECIMAL_ENCODING
     | DEFAULT
+    | DESTINATION
     | EC
     | EDITING
     | END_RECEIVE
@@ -101,6 +103,9 @@ cobolWord
     | STATEMENT
     | UNDERLINE_
     | UNLOCK
+    | VALID
     | VALIDATE
+    | VALIDATE_STATUS
+    | VAL_STATUS
     | XOR
     ;

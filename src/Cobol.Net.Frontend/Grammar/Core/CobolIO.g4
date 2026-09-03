@@ -209,6 +209,12 @@ ioControlParagraph
 
 ioControlClause
     : sameClause
+    // The DECLINED A.4.3 APPLY COMMIT clause (ISO §12.4.6.3; Grammar/Core/CobolDeclined.g4) — recognized so
+    // DataBinder refuses it BY NAME (COBOLNET1709). It must precede genericClause, which would otherwise
+    // match the bare word APPLY and then die on COMMIT with an unnamed error. {is2023()}? because the whole
+    // commit-and-rollback facility is a COBOL-2023 addition (Annex E.3.2 item 2) — below 2023 APPLY and
+    // COMMIT are user-defined words and the clause simply does not exist.
+    | {is2023()}? applyCommitClause
     | multipleFileClause
     | rerunClause
     | genericClause

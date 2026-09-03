@@ -13,7 +13,7 @@ options {
 // completely disjoint grammar rules — zero ambiguity.
 tokens { ZERO_ARITH }
 
-import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen, CobolWords;
+import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen, CobolDeclined, CobolWords;
 
 // ==========================================
 // CONTEXT-SENSITIVE KEYWORDS
@@ -1324,12 +1324,24 @@ acceptSource
 // Format 2 (screen, §14.9.11.2 — Annex A.4.2 item 9) gets the same declined-but-named surface as ACCEPT
 // format 3. ⛔ THE OPERAND LOOP MUST STOP AT THE POSITIONING PHRASE. `DISPLAY SG COLUMN 5` used to bind as a
 // THREE-operand device DISPLAY because COL/COLS/COLUMN/COLUMNS are cobolWord alternatives while AT/LINE are
-// not — the same construct produced two different non-diagnoses (kb/Work PB260, GR-14.9.11.4-16). The
-// left-edge `{!screenPositionAhead()}?` closes it, and it is SAFE because AT, LINE and COLUMN are §8.9
-// reserved at EVERY edition (COL/COLS/COLUMNS from 2002, which the predicate honours via reservedHere): none
-// of them can legally be a DISPLAY operand, so nothing legal is lost.
+// not — the same construct produced two different non-diagnoses (kb/Work PB260, GR-14.9.11.4-16).
+// `{!screenPositionAhead()}?` closes it, honouring reservedHere for COL/COLS/COLUMNS, which are §8.9
+// reserved only from 2002 (AT, LINE and COLUMN are reserved at every edition).
+//
+// ⛔ AND THE FIRST OPERAND IS DELIBERATELY UNGUARDED, which is the whole difference between this rule and
+// the one that shipped. Guarding EVERY iteration of a `( … )+` loop leaves a DISPLAY whose first token is a
+// positioning word with NO viable reading at all, so the rule dies on a raw `COBOL0001: failed predicate`.
+// The argument for guarding it — "none of them can legally be a DISPLAY operand, so nothing legal is lost" —
+// is true of LEGAL source and misses that ILLEGAL source must still reach its NAMED diagnostic:
+// `01 COLUMN PIC 9.` … `DISPLAY COLUMN.` is a §8.3.2.1 rule-1 violation whose answer is COBOLNET0901 from
+// the §8.9 funnel, and the guard turned that into an unexplained parse error at every edition
+// (ReservedWordPositionConformanceTests.DataItemNamedColumn_Rejected0901_EvenAt85; the memory is
+// `left_edge_predicates`). Requiring one operand unconditionally and guarding only the CONTINUATION keeps
+// both answers: `DISPLAY COLUMN.` binds COLUMN as a dataReference and the funnel names it, while
+// `DISPLAY SG COLUMN 5` still takes SG as its one operand and hands COLUMN 5 to screenTail.
 displayStatement
-    : DISPLAY ({!screenPositionAhead()}? (dataReference | literal | functionCall))+
+    : DISPLAY (dataReference | literal | functionCall)
+      ({!screenPositionAhead()}? (dataReference | literal | functionCall))*
       displayUpon? displayNoAdvancing? screenTail? END_DISPLAY?
     ;
 

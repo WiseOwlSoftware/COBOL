@@ -35,7 +35,8 @@ public sealed record DiagnosticDescriptor(
     EditionSeverity Severity,
     string Title,
     string IsoSection,
-    string? SuppressKey = null)
+    string? SuppressKey = null,
+    bool PermissiveInert = false)
 {
     /// <summary>The effective <c>--suppress</c> family key: <see cref="SuppressKey"/> when set, else
     /// <see cref="Code"/>.</summary>

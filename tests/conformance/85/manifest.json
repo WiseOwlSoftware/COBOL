@@ -14,7 +14,8 @@
     "l1_acos_domain_accept",
     "l1_factorial_eae_native",
     "l1_integer_floor_85",
-    "a413_declined_phrase_positive_control"
+    "a413_declined_phrase_positive_control",
+    "declined_validate_words_are_user_words"
   ],
   "pending": []
 }

@@ -407,6 +407,10 @@ ALTERNATE   : 'ALTERNATE' ;
 AND         : 'AND' ;
 ANY         : 'ANY' ;
 ASCENDING   : 'ASCENDING' ;
+// APPLY COMMIT clause (ISO §12.4.6.3) — the declined A.4.3 commit-and-rollback facility's I-O-CONTROL surface.
+// APPLY is a §8.10 CONTEXT-SENSITIVE word ("I-O-CONTROL paragraph"), never §8.9-reserved, so it stays a legal
+// user-defined word at every edition through cobolWord.
+APPLY       : 'APPLY' ;
 ASSIGN      : 'ASSIGN' ;
 ARE         : 'ARE' ;
 AT          : 'AT' ;
@@ -470,6 +474,12 @@ DELIMITED   : 'DELIMITED' ;
 DELIMITER   : 'DELIMITER' ;
 DEPENDING   : 'DEPENDING' ;
 DESCENDING  : 'DESCENDING' ;
+// DESTINATION clause (ISO §13.18.18) — the declined A.4.14 VALIDATE facility's data-division surface. §8.9
+// reserves the word at EVERY edition, but it is still admitted to cobolWord: the token must reach a name slot
+// so `01 DESTINATION PIC X.` keeps drawing the NAMED COBOLNET0901 reserved-word diagnostic instead of the
+// generic parse error a keyword-only token would produce (the PB100 lesson — a declined facility must not
+// degrade a neighbouring diagnostic).
+DESTINATION : 'DESTINATION' ;
 DOWN        : 'DOWN' ;
 DUPLICATES  : 'DUPLICATES' ;
 DYNAMIC     : 'DYNAMIC' ;
@@ -695,6 +705,14 @@ UNTIL       : 'UNTIL' ;
 UP          : 'UP' ;
 USAGE       : 'USAGE' ;
 USING       : 'USING' ;
+// VALIDATE-STATUS / VAL-STATUS (ISO §13.18.62; §13.18.62.3 SR9 makes the two words EQUIVALENT) and VALID (the
+// §13.18.63 format-5 content-validation entry) — the declined A.4.14 surface. HYPHENATED, so VALIDATE_STATUS
+// must precede IDENTIFIER (an equal-length match is broken by rule order); it also precedes VALIDATE here for
+// readability — ANTLR's maximal munch already prefers the longer literal. All three are §8.9-reserved from
+// 2002 and USER WORDS at 85, so all three ride cobolWord and the §8.9 funnel makes the ≥2002 rejection.
+VALIDATE_STATUS : 'VALIDATE-STATUS' ;
+VAL_STATUS      : 'VAL-STATUS' ;
+VALID       : 'VALID' ;
 VALIDATE    : 'VALIDATE' ;     // VALIDATE (ISO 14.9.50) - optional 4.2.7/A.4.14 + obsolete 4.2.13
 VALUE       : 'VALUE' ;
 VALUES      : 'VALUES' ;

@@ -816,8 +816,14 @@ own instance fields); `obj "M"`→`obj.M(args)` (virtual); `SELF "M"`→`this.M(
 item, or a universal `object?` receiver)→`recv.__CobolInvoke(name, args)` (a per-class switch — reflection-free).
 Instance methods are `virtual` by default (COBOL forbids implicit hiding, §11.7 SR4a → never emit C# `new`); OVERRIDE→
 `override`; FINAL→`sealed override`; ABSTRACT→`abstract`. BY REFERENCE → typed `ref` (§9.3.6 match-rule 3c requires
-same class/category — so `ref` is conformant); RETURNING → C# return value. **Parametric polymorphism deferred** (an
-OPTIONAL feature, §12063; no corpus use; `PIC 9(4)`/`PIC 9(8)` both map to `long` and would collide).
+same class/category — so `ref` is conformant); RETURNING → C# return value. **Parametric polymorphism is DECLINED, not
+merely deferred** — an OPTIONAL element (ISO **§9.3.5.3**, rule 7 "Parametric polymorphism is an optional feature in
+this Working Draft International Standard"; Annex **A.4.10 item 3**) whose support COBOL.NET does not claim: a duplicate
+method name is refused BY NAME with `COBOLNET0822`, naming the facility and its A.4.10 item. (`PIC 9(4)`/`PIC 9(8)`
+both map to `long`, so a signature-keyed resolution would collide in the emitted type anyway.) ⚠ The `§12063` this
+paragraph and the two `COBOLNET0822` emit sites used to cite is **not a clause** — ISO/IEC 1989:2023 ends at §16 and
+that number was a stray line anchor (`DESIGN-SPEC-RECONCILIATION.md` finding 44); all three now carry the
+`cite.py --check`ed §9.3.5.3.
 
 ### 10.4 The correctness blocker (resolved)
 

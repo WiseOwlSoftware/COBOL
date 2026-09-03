@@ -134,3 +134,6 @@ docs/rearchitecture/evidence/conformance-ledger.html
 # the per-benchmark projects it generates and builds under this folder; it is a build output, and the numbers
 # worth keeping live in tests/Cobol.Net.Benchmarks/README.md instead.
 BenchmarkDotNet.Artifacts/
+
+# Lander/implementer checkpoint files — a worktree artifact, never part of a landing (DEVLOG 1441).
+STATUS.md

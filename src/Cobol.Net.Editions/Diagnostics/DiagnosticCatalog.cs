@@ -50,6 +50,12 @@ public static class DiagnosticCatalog
     /// half of the old 0899 catch-all) so it can be muted as a group during development.</summary>
     public const string RecognizedNotImplemented = "recognized-not-implemented";
 
+    /// <summary>The <c>--suppress</c> family grouping every refusal of an Annex A.4 OPTIONAL element whose
+    /// support this implementation does not claim (§4.2.7 / A.4.1). One key, because a migrating program that
+    /// wants to see past ONE declined module almost always wants to see past all of them; the per-module
+    /// identity stays in the message, which names the module and its A.4 item.</summary>
+    public const string DeclinedOptionalElement = "declined-optional-element";
+
     // ── Edition band (single-sourced from EditionCodes) ──────────────────────────────────────────────
     public static readonly DiagnosticDescriptor EditionIntroduction = new(
         EditionCodes.Introduction, "edition-introduction", EditionSeverity.Error,
@@ -1681,6 +1687,50 @@ public static class DiagnosticCatalog
         + "its own implicit-record semantics (§14.9.51.4 GR8, §14.9.35.4 GR9) that a whole-record-area write "
         + "does not implement, so accepting it inert would be a wrong answer.",
         "ISO §4.2.7 / Annex A.4.1 / Annex A.4.13 items 1-2 / §14.9.51 / §14.9.35");
+    // ── The A.4 DECLINED-OPTIONAL-ELEMENT band (§4.2.7 / Annex A.4.1). ⛔ A DIFFERENT OBLIGATION FROM THE
+    //    WAVE-H BAND ABOVE, and the severity difference is the whole point. §4.2.6 ¶3 covers PROCESSOR-DEPENDENT
+    //    elements (Annex A.3): we may accept them and must WARN — 1578/1579 do exactly that. Annex A.4.1 covers
+    //    OPTIONAL elements: "An implementation shall accept the syntax and provide the functionality for an
+    //    optional element ONLY when support for that language element is claimed by the implementor", so for a
+    //    module docs/CONFORMANCE.md §5 records as Not claimed, ACCEPTING the syntax is itself the
+    //    non-conformance — the element has to be REFUSED BY NAME. Severity therefore routes through the ONE
+    //    EditionContext.Removed seam: Error under strict, Warning under --permissive (the migration mode), the
+    //    shape kb/Work PB100 established for the locale module. Naming the module in the message is the point:
+    //    MEASURED before this band, every one of these constructs drew a bare COBOL0001/COBOL0307 parse error
+    //    (or, for the declined modules' EXCEPTION-NAMES, no diagnostic at all — they were ACCEPTED against
+    //    families with zero setting sites), so a user learned their syntax was bad rather than that this
+    //    implementation does not provide the facility.
+    public static readonly DiagnosticDescriptor ValidateDataDivisionClauseUnsupported = new(
+        "COBOLNET1708", "validate-data-division-clause-unsupported", EditionSeverity.Error,
+        "A data-division clause of the VALIDATE facility (the §13.16.2 validation-clauses group — DEFAULT, "
+        + "DESTINATION, INVALID, PRESENT WHEN format 2, VARYING's validation leg, VALIDATE-STATUS/VAL-STATUS — "
+        + "or the §13.18.63 format-5 content-validation entry) is written. The VALIDATE facility is an OPTIONAL "
+        + "element (Annex A.4.14) whose support COBOL.NET does not claim (docs/CONFORMANCE.md §4 item 3, §5), "
+        + "and at COBOL-2023 it is additionally OBSOLETE (§4.2.13; Annex F.2 item 5); Annex A.4.1 admits the "
+        + "syntax only when support IS claimed, so the clause is refused by name. The clause exists from "
+        + "COBOL-2002 — below that its words are user-defined words (§8.9).",
+        "ISO Annex A.4.1 / Annex A.4.14 / §13.16.2 / §4.2.13", DeclinedOptionalElement, PermissiveInert: true);
+    public static readonly DiagnosticDescriptor ApplyCommitClauseUnsupported = new(
+        "COBOLNET1709", "apply-commit-clause-unsupported", EditionSeverity.Error,
+        "The I-O-CONTROL paragraph's APPLY COMMIT clause (ISO §12.4.6.3) is written. The commit and rollback "
+        + "facility is an OPTIONAL element (Annex A.4.3 item 2) and processor-dependent (Annex A.3 items 6-7) "
+        + "whose support COBOL.NET does not claim (docs/CONFORMANCE.md §4 item 2, §5) — there is no transaction "
+        + "manager — so Annex A.4.1 makes refusing the clause by name the conforming posture. With no clause "
+        + "accepted, no APPLY COMMIT clause is ever active, which is exactly the state §14.9.7.4 GR1 / "
+        + "§14.9.36.4 GR1 make COMMIT and ROLLBACK behave as CONTINUE in. Introduced by COBOL-2023 (Annex E.3.2 "
+        + "item 2); below that APPLY and COMMIT are user-defined words (§8.9 / §8.10).",
+        "ISO Annex A.4.1 / Annex A.4.3 item 2 / §12.4.6.3 / Annex E.3.2 item 2", DeclinedOptionalElement, PermissiveInert: true);
+    public static readonly DiagnosticDescriptor DeclinedModuleExceptionName = new(
+        "COBOLNET1710", "declined-module-exception-name", EditionSeverity.Error,
+        "A written exception-name (>>TURN, RAISE, EXIT/GOBACK RAISING, a USE declarative, or an "
+        + "exception-checking PERFORM's WHEN phrase) belongs to an OPTIONAL module whose support COBOL.NET does "
+        + "not claim, so no statement in this implementation can ever set that condition to exist. Annex A.4.1 "
+        + "makes the module's exception conditions optional WITH it (\"Any associated syntax rules, general "
+        + "rules, other rules, exception conditions, and I-O status values are also optional, even if not "
+        + "explicitly listed\"), and §14.6.13.1.1 licenses raising nothing for an unimplemented optional "
+        + "element — but neither licenses accepting the NAME, which would let a program check, declare and "
+        + "match a condition that cannot occur. The message names the module.",
+        "ISO Annex A.4.1 / §14.6.13.1.1", DeclinedOptionalElement, PermissiveInert: true);
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "

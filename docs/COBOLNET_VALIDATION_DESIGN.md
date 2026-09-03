@@ -86,6 +86,51 @@ semantics).
   site lives in the `VersionConformancePass`, and the registry + drift discipline are the pass's data source.
   `status: "pending"` rows are catalogued/frozen but compile-asserted only when their owning roadmap phase lands
   (ONE pending mechanism, shared with the corpus manifests).
+- **The DECLINED-OPTIONAL-ELEMENT pass** (`Validation/DeclinedFacilityPass.cs` + the grammar fragment
+  `Frontend/Grammar/Core/CobolDeclined.g4`): THE one place an Annex **A.4** optional element whose support
+  `docs/CONFORMANCE.md` §5 records as *Not claimed* is **refused by name** — COBOLNET1708 (the VALIDATE
+  facility's §13.16.2 *validation-clauses* group and the §13.18.63 format-5 content-validation entry),
+  COBOLNET1709 (the I-O-CONTROL `APPLY COMMIT` clause, §12.4.6.3), COBOLNET1710 (a declined module's
+  exception-names, emitted from the `EcNameResolution` funnel rather than from the pass). A **third sibling** to
+  `VersionConformancePass` and `FlagConformancePass`, run right after them from `BinderDriver`, over the shared
+  `CursorFollowingVisitor`.
+  - **Why a separate pass, not an arm of the version pass.** Three orthogonal axes, three passes: edition gating
+    answers *does this construct exist in the edition you targeted*; flag gating answers *did your directive
+    state ask to be told*; this answers *does this implementation claim support for this optional module*. An
+    A.4 decline fires at every edition the element exists in and takes its severity from `Removed()`, not from
+    `ConstructAvailability`. Folding it in would give `VersionConformancePass` two answers to two questions —
+    the shape `DESIGN-version-conformance-pipeline.md` exists to prevent.
+  - **Why a parse-tree walk, not a binder hook.** A declined clause has NO bound node — that is what declining
+    it means — and the binder's own entry paths drop it exactly where it matters: `DataBinder.BindEntry` returns
+    early for levels 66/88 and `BindCondition` returns early for an UNNAMED level-88, which IS the §13.16.2
+    format-4 validation entry.
+  - **⛔ ERROR, not Warning — the distinction from the §4.2.6 band.** COBOLNET1560/1578/1579/1580 cover
+    PROCESSOR-DEPENDENT elements (Annex A.3), where §4.2.6 ¶3 requires only a compile-time warning and the
+    construct may be accepted-inert. A.4.1 is stronger: syntax is accepted "only when support … is claimed", so
+    accepting a declined optional element's syntax IS the non-conformance. All three route through the ONE
+    `Removed()` seam (Error strict / Warning `--permissive`) and share the `declined-optional-element`
+    `--suppress` family. It is also what makes the rows WITNESSABLE — the negative corpus asserts a failing
+    compile, and the 1560-band warnings have no assertion mechanism at all.
+  - **⛔ NO `constructs.json` ROW, deliberately.** The `new-construct` skill's matrix row asserts a construct
+    "compiles clean at the introducing edition and produces the gating diagnostic below it" — both halves are
+    FALSE for a declined element, which is refused at *every* edition it exists in and has no gating edge to
+    assert. `ConstructRegistry` is the edition-gating registry; putting a decline in it would be the same
+    two-answers-to-two-questions mistake as folding the pass into `VersionConformancePass`. The declined band's
+    per-edition obligation is discharged instead by the negative corpus's `*> reject-at:` header plus the
+    below-edition POSITIVE controls (`conformance:85/declined_validate_words_are_user_words` — the clause words
+    are legal user-defined words at COBOL-85 — and `DeclinedFacilityTests.CommitAt2014_IsAUserWord…`).
+  - **Adding one.** Put the rule in `CobolDeclined.g4` behind an `{isXXXX()}?` LEFT-EDGE predicate (the clause
+    words are user-defined words below the edition that introduced them) and, if it is an ENTRY POINT there — a
+    rule no other rule in that file references — add a `VisitXxx` override. An alternative added *under*
+    `validationClause` needs no code: the message names the clause from its own leading keywords, minus the
+    §5.2.3 optional connectives. `DeclinedFacilityDriftTests` derives that obligation FROM the grammar file, so
+    a new entry-point rule with no override fails rather than parsing into silence.
+  - **The declined-EC-name table** (`EcNameResolution.DeclinedEcFamilies`): prefix → facility / annex /
+    documentation, matched on a `-` boundary so a family's level-2 name, its level-3 names and the open
+    `EC-IMP` suffixes resolve to one row. It is keyed to the three names Annex A.4.3 item 3 LISTS, never to the
+    live `EC-FLOW` level-2 family — `EC-FLOW-RELEASE` and its siblings belong to implemented facilities, and
+    `conformance:2023/declined_ec_flow_sibling_still_legal` is that complement's witness. EC-SCREEN-\* and
+    EC-MCS-\* have the same zero-setting-site shape and are ONE ROW EACH when their modules' witnesses land.
 - **Corpus runners** (`CorpusRunnerTests`, Phase-1 shells): per-edition `tests/conformance/<ed>/manifest.json`
   discovery (enabled compile-asserted strict; pending catalogued; integrity facts forbid silent
   non-discovery) + the `tests/conformance/negative/` must-reject corpus (`.cob` + `.err` + a `*> reject-at:`

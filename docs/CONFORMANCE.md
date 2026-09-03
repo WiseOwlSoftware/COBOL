@@ -351,23 +351,76 @@ of an unsupported facility.
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
-The following whole facilities are **not implemented**.
+The following whole facilities are **not implemented**, and every element of each is **recognized and refused or
+warned BY NAME** — never a generic parse error, and never silently accepted. Which of the two it is follows from
+WHICH annex licenses the decline, and the distinction is normative, not stylistic:
 
-⛔ **The posture is NOT uniform across a facility, and this preamble used to say it was.** Until 2026-09-02 it
-read "MCS, COMMIT/ROLLBACK, and VALIDATE (items 1–3) are today a generic parse error — their named
-recognize-and-warn diagnostics … are the tracked PHASE-13 Wave H code half". Wave H **landed** for the
-statements: `COMMIT` and `ROLLBACK` draw the named COBOLNET1579 at every site and `VALIDATE` draws COBOLNET1580,
-both from the binder. What is still a generic parse error — or worse — is the **rest of each facility**, which is
-where most of the rules live: the I-O-CONTROL `APPLY COMMIT` clause has no grammar surface at all, VALIDATE's
-eight data-division elements likewise (three of them surfacing as the *misleading* COBOLNET0901 "is a reserved
-word") and the EC-VALIDATE family is accepted with no diagnostic whatever. So a *statement* meets §4.2.6's
-warning-mechanism requirement today and a *clause* of the same facility does not. **Item 4 (screen handling) is
-the exception, and it is now uniform**: since 2026-09-02 every one of the module's seven source shapes — the
-SCREEN SECTION header, each screen description entry clause, the SPECIAL-NAMES `CURSOR` / `CRT STATUS` clauses,
-the OPTIONS `INITIALIZE … SCREEN` target, `ACCEPT` format 3, `DISPLAY` format 2, `SET … ATTRIBUTE` and every
-EC-SCREEN exception-name — is refused by name through one funnel
-(`src/Cobol.Net.Compiler/Binding/ScreenFacility.cs`). The per-facility measurements are in §5's Annex A.4
-table; the remaining debt is `kb/Work` PB261 and PB283.
+* A **processor-dependent** element (Annex A.3, §4.2.6) may be accepted, and §4.2.6 ¶3 makes the compile-time
+  **warning mechanism** mandatory — so the MCS and COMMIT/ROLLBACK *statements* and the VALIDATE statement are
+  accepted-inert with a named **Warning** (COBOLNET1578 / 1579 / 1580) and the program still runs.
+* An **optional** element (Annex A.4, §4.2.7) is different: A.4.1 says an implementation "shall accept the syntax
+  and provide the functionality for an optional element **only when support for that language element is claimed
+  by the implementor**". For a module §5 records as *Not claimed*, accepting the syntax is itself the
+  non-conformance — so those elements are refused by name with an **Error**: **COBOLNET1560 / 1707** (screen
+  handling, A.4.2), **1705** (FORMAT / SELECT WHEN, A.4.8), **1706** (WRITE / REWRITE FILE, A.4.13) and
+  **1708 / 1709 / 1710** (VALIDATE's data-division clauses, APPLY COMMIT, and every declined module's
+  exception-names — the `declined-optional-element` suppress family). All of them emit through the ONE
+  declined-element seam, `EditionContext.Declined`, whose descriptor chooses the channel.
+  ⚠ **`--permissive` moves SOME of these and not others, and the axis is whether an inert compile could
+  change the ANSWER.** 1708/1709/1710 downgrade to warnings and bind to a no-op, because their sibling
+  STATEMENTS are already accept-inert (1579/1580) and a declined module's exception-names raise nothing
+  either way — nothing observable changes. 1560/1705/1706/1707 do **not** move in either direction: an
+  inert screen `ACCEPT` is re-read as the device ACCEPT and moves the wrong data, an inert `FORMAT` clause
+  changes which bytes reach the medium, an inert `WRITE FILE` writes the wrong record. The fact lives on
+  the descriptor (`PermissiveInert`) and is read in the seam, never tested at an emit site.
+
+1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
+   and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
+   of this edition). Processor-dependent; not provided. The statements are accepted-inert with **COBOLNET1578**.
+   ⚠ The EC-MCS-\* exception-names are still ACCEPTED against a facility with no setting sites — the same shape
+   items 2 and 3 close below; owed with this module's own witnesses.
+2. **Commit and rollback** (E.3.2 item 2 / A.3 items 6–7 / **Annex A.4.3**), in full — the facility's surface is
+   three elements, not one, and each has its own posture:
+   * the `COMMIT` and `ROLLBACK` **statements** (§14.9.7, §14.9.36 — A.4.3 items 4 and 5): accepted-inert with
+     **COBOLNET1579**, behaving as `CONTINUE` exactly as §14.9.7.4 GR1 / §14.9.36.4 GR1 prescribe when there is
+     no active APPLY COMMIT clause; §14.9.7.3 SR1/SR2 additionally reject them in a recursive source element or
+     a SORT/MERGE procedure (COBOLNET1690).
+   * the I-O-CONTROL **`APPLY COMMIT` clause** (§12.4.6.3 — A.4.3 item 2): refused by name, **COBOLNET1709**.
+     Refusing it is what makes the statements' CONTINUE behaviour the *complete* behaviour — with no clause
+     accepted, no APPLY COMMIT clause can ever be active.
+   * the **EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK** exception conditions (A.4.3 item 3):
+     refused by name wherever an exception-name may be written, **COBOLNET1710**.
+   No transaction manager. The whole facility is a COBOL-2023 addition (E.3.2 item 2), so below `--std 2023`
+   `APPLY` and `COMMIT` are user-defined words and the names draw the ordinary introduction gate instead.
+3. **VALIDATE facility** (§14.9.50, §13.16–13.18, F.2 item 5 / **Annex A.4.14**), in full:
+   * the `VALIDATE` **statement** (§14.9.50): accepted-inert with **COBOLNET1580**.
+   * the **validation clauses** of the §13.16.2 *validation-clauses* group — `DEFAULT` (§13.18.17),
+     `DESTINATION` (§13.18.18), `INVALID` (§13.18.31), `PRESENT WHEN` **format 2** (§13.18.41), `VARYING`'s
+     validation leg (§13.18.64), `VALIDATE-STATUS` / `VAL-STATUS` (§13.18.62) — and the `VALUE` clause's
+     **format-5 content-validation entry** (§13.18.63; §13.16.2 format 4): refused by name, **COBOLNET1708**.
+   * the **EC-VALIDATE** family (§14.6.13.1.6 Table 13): refused by name, **COBOLNET1710**.
+   An obsolete optional element (§4.2.13). ⚠ `PRESENT WHEN` and `VARYING` are **shared** with report writer,
+   which IS claimed (Annex A.4.11 items 14 and 20; §5 records it *Partial* with both implemented) — the two legs
+   are told apart by WHERE the clause is written, and the report-group forms are untouched.
+   ⚠ The **`CLASS` clause (§13.18.11)** is listed here historically but is **NOT** part of this decline: Annex
+   A.4 never lists it under any optional module, and it is the only VALIDATE clause carrying no "obsolete
+   feature" NOTE. If it is not optional, A.4.1 obliges acceptance of `CLASS IS NUMERIC`, which this compiler does
+   not provide — an OPEN owner question, recorded rather than answered in either direction.
+   ⚠ §13.18.40.4 GR15/GR19 (PICTURE "takes effect during the format validation stage") have no syntax of their
+   own; they are general rules about what a supported clause does *inside* a VALIDATE statement, so the
+   statement's own COBOLNET1580 is their witness.
+4. **Screen handling** (§13.9, optional §4.2.7 / Annex A.4.2): the SCREEN SECTION, ACCEPT/DISPLAY format-3
+   (screen), and the EC-SCREEN family. Not provided; the section draws **COBOLNET1560**. ⚠ The EC-SCREEN-\*
+   names are still ACCEPTED against a facility with no setting sites (`kb/Work PB260`) — owed with this module's
+   own witnesses, one row in the `EcNameResolution` declined-family table.
+
+Beyond these four whole facilities, three **optional items of an otherwise-claimed module** are likewise refused
+by name (Annex **A.4.10**, "Object orientation" — the OO core itself is mandatory surface and is implemented):
+item 1, the repetition of `object-class-name-2` in a `CLASS-ID … INHERITS` clause (§11.3.2 — multiple
+inheritance), **COBOLNET0849**; and item 3, **parametric polymorphism** (§9.3.5.3 — overloading by method
+resolution signature), **COBOLNET0822**. Item 2, the `INTERFACE-ID … INHERITS` repetition (§11.6.2), is
+**implemented** — `INHERITS FROM interface-name-2 …` parses, resolves and enforces §11.6.3 SR2/SR3/SR6
+(COBOLNET0840); the deliberate asymmetry with the class side is that .NET interface lists are native.
 
 ⚠ **A warning nothing asserts is a warning that can silently stop firing**, and that is why the WARNING band
 needs assertions the corpora structurally cannot make: the negative corpus matches ERROR codes only and the
@@ -378,21 +431,6 @@ unasserted** and could lose its diagnostic without a gate going red. Item 4 is n
 all: a refusal fails the compile, so its 41 witnesses are ordinary negative-corpus entries
 (`tests/conformance/negative/a42-*`), each `.err` naming the construct as well as the code.
 
-1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
-   and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
-   of this edition). Processor-dependent; not provided.
-2. **Commit and rollback** (E.3.2 item 2 / A.3 items 6–7 / **A.4.3**): the `COMMIT` and `ROLLBACK` statements
-   (§14.9.7, §14.9.36), the I-O-CONTROL **`APPLY COMMIT` clause** (§12.4.6.3) and the **EC-FLOW-APPLY-COMMIT /
-   EC-FLOW-COMMIT / EC-FLOW-ROLLBACK** exception conditions. No transaction manager. ⚠ This item named only the
-   two statements until 2026-09-02, while 17 of the module's 25 rules belong to the APPLY COMMIT clause — a
-   §4.2.7 documentation that did not mention the element it declines.
-3. **VALIDATE facility** (§14.9.50, §13.16–13.18, F.2 item 5): the `VALIDATE` statement, the validation clauses
-   (`CLASS`/`DEFAULT`/`DESTINATION`/`INVALID`/`PRESENT WHEN`/`VARYING`), the `VAL-STATUS` / `VALIDATE-STATUS`
-   clause, the format-4 and format-5 (content-validation) `VALUE` entries, and EC-VALIDATE. An obsolete optional
-   element (§4.2.13). ⚠ The **`CLASS` clause (§13.18.11)** is named here but Annex A.4 lists it under NO optional
-   module and gives it no obsolete-feature NOTE — if it is not optional, A.4.1 obliges us to accept `CLASS IS
-   NUMERIC`, which we do not. That is an open adjudication, and it is why the derived selector holds §13.18.11
-   out rather than stamping it.
 4. **Screen handling** (§13.9, optional §4.2.7; Annex A.4.2): the SCREEN SECTION, every screen description
    entry clause, the SPECIAL-NAMES `CURSOR` and `CRT STATUS` clauses, the OPTIONS `INITIALIZE … SCREEN`
    target, ACCEPT format 3, DISPLAY format 2, `SET … ATTRIBUTE`, and the EC-SCREEN family. Not provided —

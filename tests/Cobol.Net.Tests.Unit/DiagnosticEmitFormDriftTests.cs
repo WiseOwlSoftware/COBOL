@@ -25,9 +25,12 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class DiagnosticEmitFormDriftTests
 {
-    // Error( / Warning( whose FIRST argument ends in `.Id` — the slug-in-the-code-position mistake.
+    // Error( / Warning( / Removed( whose FIRST argument ends in `.Id` — the slug-in-the-code-position mistake.
+    // Removed is in the set because it is the THIRD emit form on EditionContext (the strict/permissive severity
+    // seam) and takes a code in the same position: a guard that names only two of three emit forms teaches the
+    // next caller that the third is exempt (feedback_two_arm_dispatch — ask which arm you fixed).
     private static readonly Regex SlugInCodePosition =
-        new(@"\.(?:Error|Warning)\(\s*[A-Za-z0-9_.]*\.Id\s*,", RegexOptions.Compiled);
+        new(@"\.(?:Error|Warning|Removed)\(\s*[A-Za-z0-9_.]*\.Id\s*,", RegexOptions.Compiled);
 
     [Fact]
     public void NoDiagnosticIsEmittedByItsSlug_InTheCodePosition()

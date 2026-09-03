@@ -290,6 +290,7 @@ dataDescriptionClause
     | genericDataClause
     | groupUsageClause   // COBOL-2002 §13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
     | selectWhenClause   // ISO §13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOLNET1705)
+    | {is2002()}? validationClause   // ISO §13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only, refused by name at bind (COBOLNET1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
     ;
 
 // SELECT WHEN clause (§13.18.51.2, printed general format p481 — RENDERED).
@@ -620,6 +621,13 @@ valueClause
     | (VALUE | VALUES) (IS | ARE)? valueItem ({!(is2002() && TokenStream.LA(1)==PROPERTY)}? COMMA? valueItem)*
       (WHEN SET TO FALSE_ IS? literal)?
       (IN IDENTIFIER)?
+      // Format 5 (content-validation-entry, ISO §13.18.63.2) — the DECLINED A.4.14 tail
+      // `[IS|ARE] {INVALID|VALID} [WHEN condition-1]`, refused by name with COBOLNET1708 at bind. Written as
+      // a tail of the condition-name arm because formats 3 and 5 share their literal/THRU list; the printed
+      // format-5 figure differs only in dropping the IS/ARE connective before the list, which this arm's
+      // `(IS|ARE)?` already tolerates as a superset. {is2002()}? at the left edge of the optional block: VALID
+      // is a user-defined word at COBOL-85 (§8.9).
+      ({is2002()}? validateValidPhrase)?
     ;
 
 // One Format-2 table phrase: a literal list, then FROM (subscript-1 …) [TO (subscript-2 …)]. The subscripts are

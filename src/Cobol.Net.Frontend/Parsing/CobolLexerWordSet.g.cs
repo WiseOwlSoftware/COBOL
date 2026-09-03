@@ -10,6 +10,7 @@ public partial class CobolLexer
     private static readonly System.Collections.Generic.HashSet<int> _dataNameTokens = new()
     {
         IDENTIFIER,
+        APPLY,
         ARITHMETIC,
         AUTO,
         AUTOMATIC,
@@ -34,6 +35,7 @@ public partial class CobolLexer
         DEBUGGING,
         DECIMAL_ENCODING,
         DEFAULT,
+        DESTINATION,
         DISPLAY,
         EC,
         EDITING,
@@ -107,7 +109,10 @@ public partial class CobolLexer
         SUM,
         UNDERLINE_,
         UNLOCK,
+        VALID,
         VALIDATE,
+        VALIDATE_STATUS,
+        VAL_STATUS,
         XOR,
     };
 }

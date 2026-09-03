@@ -74,10 +74,18 @@ public sealed class OoClassTable
     /// Build the table from the group's class definitions (pass-1: identity + roster only — no data or statement
     /// binding). Structural diagnostics raised here, each per its ISO rule: duplicate class name / emitted-type
     /// collision (COBOLNET0820), END CLASS name mismatch (§10.7 — 0820), unknown INHERITS base (§11.3.2 —
-    /// COBOLNET0821, never silently a root class), duplicate method name within a class (COBOLNET0822 — the v1
-    /// unique-name restriction, deep-dive D9: parametric polymorphism §12063 is OPTIONAL and deferred).
+    /// COBOLNET0821, never silently a root class), duplicate method name within a class (COBOLNET0822 — the
+    /// unique-name restriction, deep-dive D9: parametric polymorphism, ISO §9.3.5.3, is the OPTIONAL Annex
+    /// A.4.10 item 3 whose support this implementation does not claim).
     /// INHERITS emission itself is a later port slice (3a) — a KNOWN base still 0899s until it lands, but the
     /// base link is recorded so method lookup walks the chain from day one.
+    /// <para>⚠ The three §12063 citations that stood here and at the two COBOLNET0822 emit sites were NOT
+    /// clause numbers — ISO/IEC 1989:2023 has no §12063; the number was a stray line anchor, recorded as
+    /// finding 44 of <c>docs/rearchitecture/DESIGN-SPEC-RECONCILIATION.md</c>. Re-derived and
+    /// <c>cite.py --check</c>ed: §9.3.5.3 is "Parametric polymorphism", its rule 7 is "Parametric polymorphism
+    /// is an optional feature in this Working Draft International Standard", and Annex A.4.10 item 3 is
+    /// "Parametric polymorphism (9.3.5.3)". The CLAUDE.md rule-1 inherited-citation failure, caught at the
+    /// point the rows it covers were being witnessed.</para>
     /// </summary>
     public static OoClassTable Build(IReadOnlyList<Core.ClassDefinitionContext> classes, EditionContext edition,
         IReadOnlyList<Core.InterfaceDefinitionContext>? interfaces = null)
@@ -264,8 +272,9 @@ public sealed class OoClassTable
                 if (!sym.TryAddMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate method name '{methodName}' — method names shall be unique "
-                        + "within a class (v1 restriction, OO deep-dive D9: overloading by method resolution "
-                        + "signature, ISO §12063, is an OPTIONAL feature and is deferred)");
+                        + "within a class in this implementation (OO deep-dive D9). Overloading by method "
+                        + "resolution signature is PARAMETRIC POLYMORPHISM (ISO §9.3.5.3), an OPTIONAL element "
+                        + "(Annex A.4.10 item 3; §9.3.5.3 rule 7) whose support COBOL.NET does not claim");
                 if (sel is null && m.methodName().Length > 1
                     && !string.Equals(m.methodName(1).GetText(), methodName, StringComparison.OrdinalIgnoreCase))
                     edition.Error("COBOLNET0820",
@@ -307,7 +316,10 @@ public sealed class OoClassTable
                 if (!sym.TryAddFactoryMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate factory method name '{methodName}' — method names shall "
-                        + "be unique within the factory definition (v1 restriction, deep-dive D9)");
+                        + "be unique within the factory definition in this implementation (OO deep-dive D9). "
+                        + "Overloading by method resolution signature is PARAMETRIC POLYMORPHISM (ISO "
+                        + "§9.3.5.3), an OPTIONAL element (Annex A.4.10 item 3) whose support COBOL.NET does "
+                        + "not claim — the factory arm carried NO citation at all before this");
                 if (fsel is null && m.methodName().Length > 1
                     && !string.Equals(m.methodName(1).GetText(), methodName, StringComparison.OrdinalIgnoreCase))
                     edition.Error("COBOLNET0820",

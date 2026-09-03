@@ -199,18 +199,12 @@ internal static class ScreenFacility
             $"the SET statement's screen attribute format 6 (ISO §14.9.39; Annex A.4.2 item 24) applied to "
             + $"'{screenName}'");
 
-    /// <summary>Refuse an EC-SCREEN exception-name (Annex A.4.2 item 10 — the RAISING phrases of EXIT
-    /// (§14.9.14) and GOBACK (§14.9.18), the RAISING phrase of the procedure division header (§14.2.1
-    /// "Procedure division structure — General formats"; the RAISING legality rules are §14.2.2 SR7–SR9), the
-    /// USE statement (§14.9.49), the WHEN phrase of PERFORM (§14.9.28), RAISE (§14.9.29), and the
-    /// &gt;&gt;TURN directive (§7.3.25)). §14.6.13.1.1 licenses raising NO condition for a
-    /// level-3 name belonging to an optional element, but it does not license ACCEPTING the name: a catalogued
-    /// exception-name with no raise site reads as implemented to every consumer that can see it, so
-    /// <c>&gt;&gt;TURN EC-SCREEN-FIELD-OVERLAP CHECKING ON</c> used to compile against a facility that does not
-    /// exist and quietly never fire.</summary>
-    public static void ReportExceptionName(EditionContext edition, string name, string where) =>
-        edition.Declined(DiagnosticCatalog.ScreenStatementUnsupported,
-            $"the exception-name {name} of the EC-SCREEN family (Annex A.4.2 item 10), written in {where} — no "
-            + "screen statement exists to set it, so the name is refused rather than accepted against a "
-            + "facility that can never raise it");
+    // ⛔ THE EC-SCREEN EXCEPTION-NAMES ARE NOT REFUSED HERE. Annex A.4.2 item 10's six written-name sites
+    // — the RAISING phrases of EXIT (§14.9.14), GOBACK (§14.9.18) and the procedure division header
+    // (§14.2.1; legality §14.2.2 SR7–SR9), the USE statement (§14.9.49), the WHEN phrase of PERFORM
+    // (§14.9.28), RAISE (§14.9.29) and the &gt;&gt;TURN directive (§7.3.25) — are the SAME six every
+    // declined module owns, so the refusal lives in the ONE resolution funnel that serves them all:
+    // `EcNameResolution.Advise`, over the `DeclinedEcFamilies` table, where this module is one row
+    // carrying COBOLNET1707 as its descriptor. This wave shipped a second predicate for that job and the
+    // A.4.14/A.4.3 wave shipped the table; the table won (feedback_one_mechanism_per_job).
 }

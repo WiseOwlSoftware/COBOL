@@ -159,9 +159,18 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// A.3 and A.4, data surface and statement surface — calls THIS, never a local <c>if (severity == …)</c>
     /// and never a second Report/Declined twin (feedback_one_mechanism_per_job).</para>
     /// <para>⛔ NOT routed through <see cref="Removed"/>: that is the strict/permissive migration seam for
-    /// constructs an edition REMOVED, and a declined optional element has no pre-removal semantics to
-    /// preserve. <c>--permissive</c> therefore does not move an A.3/A.4 decline in either direction — which is
-    /// also, measurably, how the accept-inert rows have always behaved.</para>
+    /// constructs an edition REMOVED. A declined optional element has no pre-removal semantics to preserve —
+    /// but SOME declines do have an INERT reading, and whether this one does is the descriptor's
+    /// <see cref="DiagnosticDescriptor.PermissiveInert"/> fact, read here and nowhere else. The axis is the
+    /// same one that splits Warning from Error: a decline whose sibling STATEMENT is already accept-inert
+    /// (the A.4.14 VALIDATE clauses beside COBOLNET1580, the A.4.3 APPLY COMMIT clause beside COBOLNET1579,
+    /// and a declined module's exception-names, which raise nothing either way) can be tolerated under
+    /// <c>--permissive</c> and bound to a no-op — nothing observable changes. A decline that would REBIND the
+    /// source to a different construct cannot: an inert A.4.2 screen ACCEPT is re-read as the device ACCEPT
+    /// and moves the wrong data (COBOLNET1560/1707), an inert FORMAT clause changes which bytes reach the
+    /// medium (1705), an inert WRITE FILE writes the wrong record (1706). Those four are
+    /// <c>PermissiveInert: false</c> and <c>--permissive</c> does not move them in either direction — which
+    /// is also, measurably, how the accept-inert rows have always behaved.</para>
     /// <para><paramref name="seen"/> is the site's naming of WHICH element of the module was written (the
     /// module owns the code, the site owns the spelling); omit it and the descriptor's own
     /// <see cref="DiagnosticDescriptor.Title"/> is the whole message — the byte-identical shape the
@@ -169,7 +178,9 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public void Declined(DiagnosticDescriptor descriptor, string? seen = null)
     {
         string message = seen is null ? descriptor.Title : $"{seen}: {descriptor.Title}";
-        if (descriptor.Severity == EditionSeverity.Error) Error(descriptor.Code, message);
+        bool refuse = descriptor.Severity == EditionSeverity.Error
+                      && !(descriptor.PermissiveInert && Permissive);
+        if (refuse) Error(descriptor.Code, message);
         else Warning(descriptor.Code, message);
     }
 

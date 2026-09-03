@@ -62,13 +62,76 @@ internal static class EcNameResolution
         return Advise(edition, info, where);
     }
 
-    /// <summary>True for the EC-SCREEN family (the level-2 name and its four level-3 names) — the exception
-    /// half of Annex A.4.2, which docs/CONFORMANCE.md §5 records as Not claimed. Written as ONE predicate over
-    /// the catalog's own hierarchy rather than a name list, so a level-3 EC-SCREEN name added to Table 13 is
-    /// covered without editing this file.</summary>
-    private static bool IsDeclinedScreenName(EcInfo info) =>
-        info.Name.Equals("EC-SCREEN", StringComparison.OrdinalIgnoreCase)
-        || ExceptionCatalog.UnderLevel2(info.Name, "EC-SCREEN");
+    /// <summary>One declined module's exception-name family: the name PREFIX it owns, plus the three strings the
+    /// diagnostic needs. A record rather than three parallel arrays, and a TABLE rather than an if-chain,
+    /// because the population is open — every A.4 module this compiler declines owns one (CLAUDE.md rule 5:
+    /// prefer the shape that makes the NEXT case automatic).</summary>
+    private readonly record struct DeclinedEcFamily(string Prefix, DiagnosticDescriptor Descriptor,
+                                                   string Facility, string Annex, string Documentation);
+
+    /// <summary>⛔ THE DECLINED-MODULE EXCEPTION-NAME TABLE. Ordered by prefix length so a longer, more specific
+    /// prefix cannot be shadowed by a shorter one.
+    /// <para>WHY REFUSING THE NAME IS THE CONFORMING ANSWER, not over-strictness: §14.6.13.1.1 says "The
+    /// implementor is not required to raise any exception conditions for level-3 exception-names that are
+    /// associated with optional language elements … that the implementor has not implemented" — and that is
+    /// exactly the problem. These names had catalog entries and ZERO setting sites, so
+    /// `&gt;&gt;TURN EC-VALIDATE CHECKING ON`, `RAISE EC-VALIDATE-CONTENT` and a `USE AFTER EXCEPTION CONDITION
+    /// EC-FLOW-COMMIT` declarative all compiled CLEAN against a facility that does not exist — a silent promise
+    /// the run unit can never keep. A.4.1 makes the module's exception conditions optional WITH the module, so
+    /// declining the module declines its names.</para>
+    /// <para>⛔ EC-SCREEN IS A ROW HERE, and that is the whole point of the table shape. The A.4.2 screen
+    /// wave (kb/Work PB260) landed its own predicate for the same job an hour before this one merged —
+    /// two mechanisms for "a declined module's exception-names", which is the anti-pattern
+    /// (feedback_one_mechanism_per_job). Folded in as one row, carrying its OWN descriptor: the screen
+    /// module is refused under COBOLNET1707 (its statement surface's code, so the negative witnesses keep
+    /// naming the construct) while the A.4.14 and A.4.3 families are refused under COBOLNET1710. The
+    /// descriptor also carries whether <c>--permissive</c> moves the refusal, so the row is the only place
+    /// a module's posture is written down.
+    /// <para>⚠ EC-MCS-* still has the SAME zero-setting-site shape and is NOT here: asynchronous messaging
+    /// is Annex A.3 item 4, whose §4.2.6 licence is accept-and-WARN (COBOLNET1578), so refusing its names
+    /// would be the wrong posture, not merely a missing row. It is registered work. EC-LOCALE-* was in this
+    /// table until kb/Work PB64 adopted the locale module whole, at which point its row was DELETED rather
+    /// than special-cased — the table's other direction working correctly.</para></para></summary>
+    private static readonly DeclinedEcFamily[] DeclinedEcFamilies =
+    [
+        // Annex A.4.2 item 10 — the EC-SCREEN conditions in the RAISING phrases of EXIT and GOBACK, the
+        // RAISING phrase of the procedure division header, the USE statement, the WHEN phrase of PERFORM,
+        // RAISE and the TURN directive. Covers the level-2 EC-SCREEN and all four level-3 names. Its
+        // descriptor is the SCREEN STATEMENT code (1707), not 1710: the module owns a code per division
+        // surface and this is its procedure surface (kb/Work PB260).
+        new("EC-SCREEN", DiagnosticCatalog.ScreenStatementUnsupported, "the screen handling module",
+            "ISO Annex A.4.2 item 10; §14.9.1 / §14.9.11 / §14.9.39", "docs/CONFORMANCE.md §4 item 4"),
+        // Annex A.4.14 item 10 — "EC-VALIDATE exception conditions in the RAISING phrase of the EXIT and GOBACK
+        // statements, the RAISING phrase of the procedure division header, the USE statement, the WHEN phrase of
+        // the PERFORM statement, the RAISE statement, and the TURN compiler directive", i.e. every site this
+        // funnel serves. Covers the level-2 EC-VALIDATE and all five level-3 names (§14.6.13.1.6 Table 13, whose
+        // NOTE records the whole family as obsolete).
+        new("EC-VALIDATE", DiagnosticCatalog.DeclinedModuleExceptionName, "the VALIDATE facility", "ISO Annex A.4.14 item 10; §14.9.50",
+            "docs/CONFORMANCE.md §4 item 3"),
+        // Annex A.4.3 item 3 — the three commit-and-rollback conditions, all COBOL-2023 additions (Annex E.3.2
+        // item 2). NOT a bare "EC-FLOW" prefix: EC-FLOW is a live level-2 family whose OTHER level-3 names
+        // (EC-FLOW-GLOBAL-EXIT, EC-FLOW-RELEASE, EC-FLOW-RETURN, EC-FLOW-USE, …) belong to facilities this
+        // compiler DOES implement — declining them would reject legal source (feedback_spec_fidelity: check
+        // the siblings).
+        new("EC-FLOW-APPLY-COMMIT", DiagnosticCatalog.DeclinedModuleExceptionName, "the commit and rollback facility", "ISO Annex A.4.3 item 3; §12.4.6.3",
+            "docs/CONFORMANCE.md §4 item 2"),
+        new("EC-FLOW-COMMIT", DiagnosticCatalog.DeclinedModuleExceptionName, "the commit and rollback facility", "ISO Annex A.4.3 item 3; §14.9.7",
+            "docs/CONFORMANCE.md §4 item 2"),
+        new("EC-FLOW-ROLLBACK", DiagnosticCatalog.DeclinedModuleExceptionName, "the commit and rollback facility", "ISO Annex A.4.3 item 3; §14.9.36",
+            "docs/CONFORMANCE.md §4 item 2"),
+    ];
+
+    /// <summary>The declined module owning <paramref name="name"/>, or null. Prefix-matched so a family's
+    /// level-2 name and every level-3 name under it resolve to one row — including the open EC-IMP suffixes
+    /// (§14.6.13.1.1) a program may write for a declined module.</summary>
+    private static DeclinedEcFamily? DeclinedModuleOf(string name)
+    {
+        foreach (var f in DeclinedEcFamilies)
+            if (name.StartsWith(f.Prefix, StringComparison.OrdinalIgnoreCase)
+                && (name.Length == f.Prefix.Length || name[f.Prefix.Length] == '-'))
+                return f;
+        return null;
+    }
 
     /// <summary>The §15.33 width advisory (COBOLNET1636, Warning — legal source stays legal): §15.33.3 r1 fixes
     /// FUNCTION EXCEPTION-STATUS's value at 31 characters while COBOL-2023 words run to 63 (§8.3.2.1) and the
@@ -83,16 +146,22 @@ internal static class EcNameResolution
     /// must treat that as an unresolved name.</returns>
     public static bool Advise(EditionContext edition, EcInfo info, string where = "exception-name")
     {
-        // ⛔ THE EC-SCREEN REFUSAL LIVES HERE, NOT AT THE SIX WRITING SITES (Annex A.4.2 item 10 names all six:
-        // the RAISING phrases of EXIT and GOBACK, the RAISING phrase of the procedure division header, the USE
-        // statement, the WHEN phrase of PERFORM, RAISE, and the TURN directive). Putting it in the resolution
+        // ⛔ EVERY DECLINED MODULE'S EXCEPTION-NAME REFUSAL LIVES HERE, NOT AT THE SIX WRITING SITES (each
+        // module's Annex item names all six: the RAISING phrases of EXIT and GOBACK, the RAISING phrase of
+        // the procedure division header, the USE statement, the WHEN phrase of PERFORM, RAISE, and the TURN
+        // directive). Putting it in the resolution
         // funnel is what makes it cover all of them at once — and the two RAISING sites that call Advise
         // DIRECTLY (EcAddPdRaisingWord, DataBinder.Oo) are exactly the arms a per-site check would have missed
         // (feedback_two_arm_dispatch). This is the shape the EC-LOCALE family had while A.4.9 was declined
         // (kb/Work PB100), removed when PB64 T1 claimed that module and gave its names real raise sites.
-        if (IsDeclinedScreenName(info))
+        if (DeclinedModuleOf(info.Name) is { } declined)
         {
-            ScreenFacility.ReportExceptionName(edition, info.Name, where);
+            edition.Declined(declined.Descriptor,
+                $"the exception-name {info.Name} of {declined.Facility} ({declined.Annex}), written in "
+                + $"{where} — no statement in this implementation can set that condition, so checking for "
+                + "it, declaring a handler for it or matching it would be unreachable, and "
+                + $"{declined.Documentation} records the decline. §14.6.13.1.1 licenses raising nothing for "
+                + "such a name, but not ACCEPTING it");
             return false;
         }
         if (info.Level != 3 || info.Name.Length <= 31) return true;

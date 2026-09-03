@@ -2,6 +2,12 @@
  "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4 (cobolWord) + src/Cobol.Net.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
  "words": [
   {
+   "token": "APPLY",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "APPLY COMMIT clause (12.4.6.3, 2023): 8.10 context-sensitive ('I-O-CONTROL paragraph'), never 8.9-reserved, so a legal user word at every edition. Tokenized so the declined A.4.3 clause is recognized and named (COBOLNET1709) instead of drawing a generic parse error"
+  },
+  {
    "token": "ARITHMETIC",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -159,6 +165,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "OPTIONS-paragraph DEFAULT (ISO 11.9): reserved only inside OPTIONS, a legal data-name elsewhere"
+  },
+  {
+   "token": "DESTINATION",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "DESTINATION clause (13.18.18) of the declined A.4.14 VALIDATE facility: 8.9-reserved at EVERY edition, yet name-slot-admitted so `01 DESTINATION PIC X.` keeps the named COBOLNET0901 funnel diagnostic (the COLUMN/LENGTH class)"
   },
   {
    "token": "DISPLAY",
@@ -606,10 +618,28 @@
    "note": "the UNLOCK statement (14.9.47, 2002+): a user word below 2002, funnel-0901'd >=2002"
   },
   {
+   "token": "VALID",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the VALUE clause format-5 content-validation entry (13.18.63) of the declined A.4.14 facility: added 2002, a user word at 85"
+  },
+  {
    "token": "VALIDATE",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "VALIDATE statement (ISO 14.9.50). USER WORD at 85; reserved 2002+. nameSlot keeps `01 VALIDATE PIC X.` legal at --std 85. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+  },
+  {
+   "token": "VALIDATE_STATUS",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "VALIDATE-STATUS clause (13.18.62) of the declined A.4.14 facility: added 2002, a user word at 85. 13.18.62.3 SR9 makes VALIDATE-STATUS and VAL-STATUS equivalent, and BOTH stay 8.9-reserved from 2002 independently of the decline"
+  },
+  {
+   "token": "VAL_STATUS",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "VAL-STATUS, the 13.18.62.3 SR9 equivalent spelling of VALIDATE-STATUS: added 2002, a user word at 85"
   },
   {
    "token": "XOR",

@@ -421,9 +421,19 @@ internal sealed class VersionConformancePass
     internal static bool IsProvableUserWordPosition(CobolParserCore.CobolWordContext ctx) => ctx.Parent switch
     {
         // The data-description / linkage-parameter ENTRY-NAME slot (§13.16 level-number data-name-1): the
-        // slot is optional, but NO dataDescriptionClause alternative begins with a cobolWord-admitted token
-        // (PIC/USAGE/OCCURS/VALUE/… are dedicated tokens outside cobolWord; bare NATIONAL/BIT usages require
-        // the USAGE prefix in this grammar), so a cobolWord token here is always the entry's name.
+        // slot is optional, and a cobolWord token that lands in it is always the entry's NAME.
+        // ⚠ THE GROUND FOR THAT CHANGED and is re-derived here rather than inherited. It used to read "NO
+        // dataDescriptionClause alternative begins with a cobolWord-admitted token", which the declined-A.4.14
+        // validationClause arm (Grammar/Core/CobolDeclined.g4) made FALSE: DEFAULT, DESTINATION, PRESENT,
+        // VAL-STATUS and VALIDATE-STATUS all lead an alternative AND all ride cobolWord (they must, so
+        // `01 DESTINATION PIC X.` keeps drawing the named 0901 rather than a parse error). The CONCLUSION
+        // survives on a stronger footing: ANTLR's prediction here is FULL-CONTEXT, so the token lands in a
+        // DataNameContext only when the whole entry parses with it as the name — and a program whose entry
+        // parses that way IS naming something with the word, which is the §8.3.2.1 violation the 0901 band
+        // reports. The mis-parse worry that keeps the report-group and screen entry-name slots UNCHECKED (a
+        // greedy `reportGroupName?` swallowing a COLUMN keyword) does not arise: each validation-clause
+        // alternative diverges from the name reading within one or two tokens. The witness that it stays true
+        // is `conformance:negative/declined-validate-entry-name-still-0901`.
         CobolParserCore.DataNameContext
         {
             Parent: CobolParserCore.DataDescriptionEntryContext
@@ -2059,6 +2069,22 @@ internal sealed class VersionConformancePass
             // subtree is exempt (an ancestor walk, the EXCEPTION-OBJECT shape).
             for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
                 if (a is CobolParserCore.SetLocaleStatementContext)
+                    return base.VisitChildren(ctx);
+            // Inside a DECLINED Annex-A.4 construct (Grammar/Core/CobolDeclined.g4) — the PB27/PB100 shape, and
+            // the sharpest instance of it, because the whole construct is being REFUSED by name in the same
+            // compile. §13.18.62.2's ON group names FORMAT / CONTENT / RELATION, which are the clause's OWN
+            // keywords: FORMAT is §8.9-reserved from 2002 but has no lexer token and RELATION is §8.10
+            // context-sensitive, so both arrive as cobolWord and the funnel printed "'FORMAT' is a reserved
+            // word … and cannot be used as a user-defined word" beside COBOLNET1708 — a FALSE statement about
+            // the source, printed next to the true one. §4.2.6 does not require diagnosing syntax WITHIN
+            // unsupported syntax, and one diagnostic per declined construct is the posture DeclinedFacilityPass
+            // itself takes (it does not descend either). Whole-subtree, by ancestor walk: an IDENTIFIER token is
+            // checked position-blind, so a per-slot exemption would leave the next declined clause's keywords
+            // exposed (feedback_two_arm_dispatch).
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.ValidationClauseContext
+                    or CobolParserCore.ValidateValidPhraseContext
+                    or CobolParserCore.ApplyCommitClauseContext)
                     return base.VisitChildren(ctx);
             // EXCEPTION-OBJECT inside an objectReference operand (SET sender, RAISE operand) is a reference to
             // the PREDEFINED register (§8.4.3.6 — the EC-OO wave), not a user-defined word: the reservation
