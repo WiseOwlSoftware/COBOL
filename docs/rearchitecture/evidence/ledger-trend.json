@@ -81,6 +81,15 @@
       "dns": 333,
       "label": "Cluster E — PB142/PB144/PB19",
       "battery": null
+    },
+    {
+      "sha": "66c85a90",
+      "date": "2026-09-02",
+      "gap": 3407,
+      "closed": 904,
+      "dns": 333,
+      "label": "Witness cluster A — A.4.8/A.",
+      "battery": null
     }
   ]
 }
