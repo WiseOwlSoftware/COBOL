@@ -14,7 +14,12 @@
       *> and under EC-ARGUMENT-FUNCTION checking the receiver-less form raised NOTHING AT ALL, which 14.6.13.1
       *> requires. CobolIntrinsics#RealResult restores the screen on the unquantized arms without re-quantizing.
       *>
-      *> ACOS(2) is out of domain by 15.8.3 r1 (argument-1 shall be >= -1 and <= +1); the double result is NaN.
+      *> ACOS(2) is out of domain by 15.8.3 r2 (argument-1 shall be >= -1 and <= +1); the double result is NaN.
+      *> (⚠ r2, NOT r1: 15.8.3 r1 is "Argument-1 shall be of class numeric", a different rule. This comment read
+      *>  "r1" until 2026-09-02 while quoting r2's text verbatim - the inherited-citation shape CLAUDE.md rule 1
+      *>  names, where --check passes on the TEXT and only the NUMBER is wrong. Both re-derived:
+      *>  cite.py --check 15.8.3 "The value of argument-1 shall be greater than or equal to" -> OK 15.8.3 2);
+      *>  cite.py --check 15.8.3 "Argument-1 shall be of class numeric." -> OK 15.8.3 1).)
       *> 15.3's closing paragraph makes the value implementor-defined while checking is disabled - this golden
       *> pins that the two SHAPES AGREE, which is the part the standard does fix, not the particular default.
        IDENTIFICATION DIVISION.
@@ -34,7 +39,8 @@
            ELSE
               DISPLAY "RECEIVERLESS=OTHER"
            END-IF
-      *> The same question through SQRT of a negative (15.84.3 r1), which reaches NaN by a different body.
+      *> The same question through SQRT of a negative (15.84.3 r2 - "The value of argument-1 shall be zero or
+      *> positive"; r1 is the class-numeric rule), which reaches NaN by a different body.
            IF FUNCTION SQRT(-1) = 0
               DISPLAY "SQRT-NEG=DEFAULT"
            ELSE

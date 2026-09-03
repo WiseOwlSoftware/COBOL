@@ -156,7 +156,12 @@
     "goback_raising_main",
     "rw_suppress_bare",
     "pb140_read_gate",
-    "pb148_display_forms"
+    "pb148_display_forms",
+    "l1_byte_length_implicit_filler",
+    "l1_char_national_also_positions",
+    "l1_char_national_argument_bound",
+    "l1_day_to_yyyyddd_format",
+    "l1_windowing_omitted_arg3"
   ],
   "pending": []
 }

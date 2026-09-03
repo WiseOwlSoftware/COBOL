@@ -1,0 +1,6 @@
+ARMED  =[EC-CONTINUE-LESS-THAN-ZERO     ]
+CLEARED=[                               ]
+NEXTSNT=REACHED
+EXITPFM=03
+EXITPAR=BEFORE
+SILENT =[                               ]

@@ -43,7 +43,12 @@
     "pb64t4_locale_functions",
     "pb140_close_lock",
     "pb157_compute_sdidi_sole",
-    "pb194_standard_mode_algebraic_range"
+    "pb194_standard_mode_algebraic_range",
+    "l1_fdt_rules_2014",
+    "l1_iofd_national_literal_arg1",
+    "l1_iofd_two_argument_format",
+    "l1_repository_bare_intrinsic_names",
+    "l1_trim_zero_length_result_2014"
   ],
   "pending": []
 }

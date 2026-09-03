@@ -344,4 +344,66 @@ public sealed class AcceptDifferentialTests
             expected: "11101010]11101010]10101010]",
             stdin: "101010\n101010\n10101010\n",
             dialect: 2023);
+
+    // §14.9.1.4 GR3: "If a device is capable of transferring data of the same size as the receiving data
+    // item, the transferred data is stored in the receiving data item." This implementation's transfer size
+    // is one 80-character card-image record (GR2 — "the implementor shall define, for each device, the size
+    // of a data transfer"), so an X(80) receiver is EXACTLY the same size as one transfer: the record is
+    // stored WHOLE — not truncated, not edited, and no additional data is requested. Every other device
+    // fact here lands in GR4a or GR4b (a receiver smaller or larger than the transfer); the exact-size case
+    // is the one GR3 governs, and no other test in this class sits on the boundary (widths 2, 3, 4, 5, 10,
+    // 100 and 170 all miss it).
+    [Fact]
+    public void Device_ExactSizeReceiver_StoresTheWholeTransfer()
+        => AssertOutputs(
+            Program("ACCDEV10", "01 WS-X PIC X(80).", """
+                ACCEPT WS-X.
+                DISPLAY WS-X "]".
+            """),
+            expected: new string('A', 40) + new string('B', 40) + "]",
+            stdin: new string('A', 40) + new string('B', 40) + "\n");
+
+    // §14.9.1.4 GR3 + GR2, the DISCRIMINATING leg: the transferred data is one RECORD — a short input line
+    // padded to the full card image — so it is still the same size as an X(80) receiver and GR3 applies,
+    // never GR4a. The proof is the SECOND ACCEPT: because GR3 stored the transfer whole and requested no
+    // additional data, WS-Y reads a FRESH input line. Had the transfer been sized to the five typed
+    // characters instead, GR4a would have pulled line 2 into positions 6..80 of WS-X and WS-Y would have
+    // met end-of-input (two spaces).
+    [Fact]
+    public void Device_ExactSizeReceiver_ShortLine_ConsumesExactlyOneRecord()
+        => AssertOutputs(
+            Program("ACCDEV11", """
+                01 WS-X PIC X(80).
+                01 WS-Y PIC XX.
+                """, """
+                ACCEPT WS-X.
+                ACCEPT WS-Y.
+                DISPLAY WS-X "]" WS-Y "]".
+            """),
+            expected: "HELLO" + new string(' ', 75) + "]ZZ]",
+            stdin: "HELLO\nZZ\n");
+
+    // §14.9.1.4 GR10 + the version-gating rule: DAY with the phrase YYYYDDD "behaves as if it had been
+    // described as an unsigned elementary integer data item of usage display SEVEN digits in length",
+    // character positions 1-4 "four numeric characters of the year in the Gregorian calendar" and 5-7
+    // "three numeric characters of the day of the year in the range 001 through 366". 2026-06-10 is day
+    // 161 (31+28+31+30+31+10 — 2026 is not a leap year), so the conceptual value is 2026161 and an
+    // exact-width 9(7) receiver shows precisely that seven-digit format. The YYYYDDD phrase is an ISO 2002
+    // introduction (the 1985 Format 2 lists only bare DATE / DAY / DAY-OF-WEEK / TIME), so --std 85 rejects
+    // it. The gate's message ternary has TWO arms and only the DATE one was ever exercised
+    // (DateYYYYMMDD_RejectedAt85_RunsAt2002), so the DAY spelling is asserted explicitly.
+    [Fact]
+    public void DayYYYYDDD_RejectedAt85_RunsAt2002()
+    {
+        string source = Program("ACCDAY3", "01 WS-D PIC 9(7).", """
+                ACCEPT WS-D FROM DAY YYYYDDD.
+                DISPLAY WS-D.
+            """);
+        var (ok85, diags) = EditionHarness.Compile(source, 85);
+        Assert.False(ok85, "ACCEPT FROM DAY YYYYDDD must be rejected at --std 85 (introduced by ISO 2002, §14.9.1)");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0815");
+        EditionHarness.AssertHasDiagnostic(diags, "ACCEPT FROM DAY YYYYDDD");
+
+        AssertOutputs(source, expected: "2026161", clock: "2026-06-10T14:30:45.67", dialect: 2002);
+    }
 }
