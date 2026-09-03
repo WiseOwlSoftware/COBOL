@@ -9,7 +9,7 @@ take the refuter's corrected verdict with the reason appended to notes. Defectiv
 DIVERGES) need a register note in `notes` before record_verdicts accepts them — the digest lists the mechanisms so the
 note-writer can allocate ids and the notes field is filled in a second pass (this script leaves a `@@NOTE@@` marker).
 """
-import json, pathlib, sys, collections
+import json, pathlib, sys, collections, re
 sys.stdout.reconfigure(encoding="utf-8")
 out = pathlib.Path(sys.argv[1]); label = sys.argv[2]
 
@@ -38,8 +38,18 @@ for f in sorted(out.glob("out-*.json")) + sorted(out.glob("adjudicate-*.jsonl"))
             if rid in refuted:
                 v = refuted[rid]
                 if not v["upheld"]:
-                    r["verdict"] = v.get("corrected_verdict") or "PARTIAL"
-                    r["notes"] = (r.get("notes", "") + " || REFUTED: " + v.get("why", "")).strip()
+                    # A refuter's corrected_verdict is free text around a vocabulary word ("CONFORMS, but with the
+                    # test-ref WITHDRAWN …", "CONFORMS (test-ref amended: add conformance:2002/x …)"). Take the word;
+                    # apply the two instruction shapes the refuters actually write; anything else is PARTIAL.
+                    cv = v.get("corrected_verdict") or ""
+                    word = next((w for w in ("CONFORMS", "PARTIAL", "DIVERGES", "NOT-IMPLEMENTED", "NEEDS-OWNER-DECISION") if cv.upper().startswith(w)), "PARTIAL")
+                    r["verdict"] = word
+                    if "WITHDRAWN" in cv.upper():
+                        r["test-ref"] = ""
+                    m = re.search(r"amended:\s*add\s+([A-Za-z0-9_:./-]+)", cv)
+                    if m:
+                        r["test-ref"] = "; ".join(x for x in [r.get("test-ref", ""), m.group(1)] if x)
+                    r["notes"] = (r.get("notes", "") + " || REFUTED: " + cv + " — " + v.get("why", "")).strip()
             else:
                 unrefuted.append(rid); continue
         if r["verdict"] == "NEEDS-OWNER-DECISION":

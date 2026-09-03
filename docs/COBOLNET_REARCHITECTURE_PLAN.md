@@ -24,7 +24,22 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-08-17 — the live resume point):**
+- **▶ SESSION HANDOFF (2026-09-02 — THE live resume point; the campaign paused on the session limit):** the
+  two-lane campaign (`kb/Work/PB278`, doctrine `DESIGN-spec-conformance-review.md` §5 and the `workstream` skill)
+  ran its first day: twelve landings on main, GAP 3636 → 3407, DOCUMENTED-NON-SUPPORT 36 → 333 → the A.4.8/A.4.13
+  rows witnessed (DEVLOG 1423–1435). ⛔ Run the probe; the worklist is `kb/Work/` (`python scripts/spec/work.py
+  next`), never this paragraph.
+  **Owed on resume, in this order (all briefed; the orchestrator's memory carries the worktree and scratchpad
+  paths):** ① lander 2 finishes cluster F (clusters E and witness A landed as `0b1c39bc` / `66c85a90`; each remaining
+  cluster is a worktree with WIP commits + `STATUS.md`); ② lander 3 lands the screen witnesses (+163 rows) → the
+  citation sweep → cluster D → witness B2 (+108 rows), folding the three "declined facility" seams into one; ③ the
+  lane-3 batch-1 registrar lands (85 mechanisms → notes; 15 rows close); ④ **battery #42 — comprehensive, owed since
+  the golden lane `c11949e3`; the reference below is #41**; ⑤ the ledger refresh after every landing (`python
+  scripts/spec/gen_ledger.py`, then publish). Then lane 3 resumes from its on-disk checkpoints (batch 2 adjudicated,
+  batch 3 inputs generated) and the golden lane's round 2 takes the CONFORMS-but-untested rows the registrars list.
+  Owner questions pending, one at a time: `PB280` Q1–Q3, the CLASS-clause scope (§13.16.2 vs A.4.14), and `USAGE
+  POINTER TO type-name`'s introducing edition (`A1`).
+- **▶ SESSION HANDOFF (2026-08-17 — superseded by the 2026-09-02 handoff above; kept as history until the next §0 sweep):**
   **✅ Battery:** the PB60-closing tree `080733bf` measured every internal leg green (Conformance 4381/4381 ·
   Unit 4182/4182 · NIST 353/0 audit-clean) and ONE attributed FIX flip in the differential (GnuCOBOL's
   "SPECIAL-NAMES CLASS" case now AGREE_ACCEPT — the `classValueSet` comma fix; baseline regenerated) — the §9
