@@ -1077,6 +1077,78 @@ Model an index-name as a C# `long` holding a 1-BASED OCCURRENCE NUMBER, not a di
 - REDEFINES of a table or by a table; REDEFINES chains (A redefines B redefines C): resolve the ultimate base; the whole chain is ONE redefines class with ONE canonical backing per the 4-tier verdict (A alias / B string canonical / C class-scoped byte canonical / D reject loud — `COBOLNET_REDEFINES_DESIGN.md`); never independent stored fields per view.
 - Qualification of an index-name or a LINAGE-COUNTER by file/report name (grammar dataReference alts): index-name qualification is by table name (ISO §8.4.2.2 rule 6) — resolve via the owning table; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER are special registers, not data items — they get dedicated Places.
 
+## The SCREEN SECTION — a DECLINED data-division section (Annex A.4.2)
+
+The data division has one section this model deliberately does **not** map: **`SCREEN SECTION` (ISO §13.9)**.
+It is the root of Annex **A.4.2**, *ACCEPT and DISPLAY screen handling* — the largest optional module in the
+standard (27 listed elements) — which `docs/CONFORMANCE.md` §5 records as **Not claimed**. There is no
+`DataItem`, no `record struct` and no `Place` for a screen item, and there is not meant to be.
+
+**The posture is REFUSAL, not accept-and-ignore, and the licence decides which.** Annex **A.4.1**: *"An
+implementation shall accept the syntax and provide the functionality for an optional element **only when**
+support for that language element is claimed by the implementor."* That is a prohibition on accepting, so an
+unclaimed A.4 module is a named **error** (`COBOLNET1560` / `COBOLNET1707`). Contrast the Annex **A.3
+processor-dependent** facilities — MCS, COMMIT/ROLLBACK — whose licence is §4.2.6 and whose posture is
+accept-inert plus a mandatory compile-time **warning** (`COBOLNET1578`, `COBOLNET1579`; `COBOLNET1580` VALIDATE
+rides the same band). The severity is carried by the `DiagnosticDescriptor` and dispatched once in
+`EditionContext.Report(descriptor, message)` — never by a local test at an emit site.
+
+**One funnel: `src/Cobol.Net.Compiler/Binding/ScreenFacility.cs`.** It owns a table mapping every alternative of
+the grammar's `screenClause` rule to the clause's name and its ISO §, so the diagnostic says *which* construct
+the user wrote (`the AUTO clause (ISO §13.18.3) …`) rather than "something screen-shaped". That precision is
+load-bearing for the witnesses: every screen **statement** program must declare a SCREEN SECTION to have a
+screen-name, so a single undiscriminated code would let a statement witness pass on the section's own
+diagnostic. `ScreenFacilityConstructDriftTests` reads the `.g4` and fails when an alternative has no row.
+
+**Six source shapes, all now diagnosed** (before kb/Work PB260 only the first was, and by a bare string literal
+with no descriptor — so the code had no `docs/DIAGNOSTICS.md` row at all):
+
+| Shape | ISO | Code | What it did before |
+|---|---|---|---|
+| `SCREEN SECTION` + each screen description entry clause | §13.9 / §13.17 / §13.18.x | 1560 | a WARNING; the program compiled |
+| SPECIAL-NAMES `CURSOR` / `CRT STATUS` | §12.3.7 (A.4.2 item 25) | 1560 | parsed, read by **no** binder — a clean compile, zero diagnostics |
+| `ACCEPT screen-name-1` (format 3) | §14.9.1 (item 1) | 1707 | token-identical to the device format ⇒ bound as one, reading device input into a screen record |
+| `DISPLAY screen-name-1` (format 2) | §14.9.11 (item 9) | 1707 | bound as a device DISPLAY and **printed** the screen record; `DISPLAY SG COLUMN 5` bound as a *three-operand* device DISPLAY |
+| `SET screen-name-1 ATTRIBUTE …` (format 6) | §14.9.39 (item 24) | 1707 | no grammar alternative ⇒ a generic COBOL0001 parse error |
+| `EC-SCREEN-*` in the six item-10 contexts | §14.6.13.1.1 (item 10) | 1707 | catalogued in `ExceptionCatalog` with no raise site and no reader ⇒ `>>TURN`/`RAISE` compiled against nothing |
+
+The EC arm lives in `EcNameResolution.Advise`, the ONE resolution funnel, which is what makes it cover
+`>>TURN`, `USE`, the PERFORM `WHEN` phrase and `RAISE` together; the two RAISING sites that call `Advise`
+directly already refuse a non-`EC-USER` name with COBOLNET0858. §14.6.13.1.1 licenses raising *no* condition for
+an optional element's level-3 name, but it does not license silently accepting the name.
+
+The OPTIONS paragraph's `INITIALIZE … SCREEN …` target (§11.9.10.4 GR3) is a seventh shape and draws 1560 too;
+**only the explicit leg**, because GR1's `ALL` implies two supported sections as well and refusing it would
+reject legal source over a section the program does not have.
+
+**The grammar parses all of it on purpose** (`Grammar/Core/CobolScreen.g4`) — superset-parse, bind-narrow. A
+named refusal that says *which facility* is strictly better than a parse error, and for the two statement
+formats a surface is the only way to fail at all. Completing that surface from the rendered general formats
+added `MINUS`/`-` to the LINE and COLUMN clauses, the `END OF LINE` / `END OF SCREEN` spellings to ERASE, and
+`usageClause` to `screenClause`.
+
+⛔ **The ACCEPT/DISPLAY exception phrases are bound to the positioning phrase (`screenTail`), and that coupling
+is load-bearing.** `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the same on a screen statement as on the
+statements that already own one, and DISPLAY sits inside every one of their imperative-statement slots — so a
+free-standing optional `screenExceptionPhrases` made the inner DISPLAY of
+`DELETE FILE F ON EXCEPTION DISPLAY "EXC" NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE` swallow DELETE's own
+NOT-arm. Requiring the AT/LINE/COLUMN phrase first makes the tail unambiguous, because no other statement's
+exception arm can begin with it. `NestedDisplayInAnExceptionArm_DoesNotStealTheEnclosingStatementsNotArm` pins
+it; the cost is one spelling (an unpositioned `DISPLAY screen-name ON EXCEPTION …`), which stays a parse error
+exactly as it was before.
+
+**Declining the module must not cost the user the words.** §8.10 makes `BACKGROUND-COLOR`, `FOREGROUND-COLOR`
+and `REVERSE-VIDEO` **context-sensitive** (never reserved), and §8.9 reserves `CRT` and `CURSOR` only from 2002
+— yet all five were lexer tokens that `cobolWord` did not admit, so a legal `01 REVERSE-VIDEO PIC X.` was a
+parse error at every edition and `01 CURSOR PIC X.` at COBOL-85. All five are now `nameSlot` rows in
+`tests/version-matrix/cobol-words.json` (CRT/CURSOR reservation-gated), and `specialNameEntry`'s CURSOR /
+CRT STATUS arms are gated on `reservedHere` so a COBOL-85 `SPECIAL-NAMES. CURSOR IS FOO.` keeps its
+implementor-switch reading (kb/Work PB301).
+
+**At `--std 85` the refusal is the same one.** Screen handling does not exist in COBOL-85 at all, so there is no
+"introduction gate then decline" ladder to build: the construct is refused by name at every edition, and the
+message says the facility exists from COBOL-2002.
+
 ## Per-edition gating (the G1 obligation)
 
 `cobol.exe` is four compilers in one (`--std 85|2002|2014|2023`, default COBOL-2023). Every edition-varying

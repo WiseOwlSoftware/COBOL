@@ -479,6 +479,13 @@ public sealed partial class DataBinder
                 if (entry.symbolicCharactersClause() is { } sc) { symbolicClauses.Add(sc); continue; }
                 if (entry.decimalPointClause() is { } dp) { SwitchBindDecimalPoint(dp); continue; }
                 if (entry.currencySignClause() is { } cur) { SwitchBindCurrency(cur); continue; }
+                // §12.3.7 CURSOR / CRT STATUS (Annex A.4.2 item 25) — the SCREEN module's environment-division
+                // surface. ⚠ Both clauses PARSED and were read by no binder at all until kb/Work PB260, so
+                // `CRT STATUS IS WS-CRT` compiled clean with ZERO diagnostics: a declined facility that a program
+                // could write and get a clean compile out of is not declined, it is undiagnosed. Refused by name
+                // (COBOLNET1560), the same posture as the SCREEN SECTION they belong to.
+                if (entry.cursorClause() is { } curs) { ScreenFacility.ReportCursorClause(Edition, curs); continue; }
+                if (entry.crtStatusClause() is { } crt) { ScreenFacility.ReportCrtStatusClause(Edition, crt); continue; }
                 if (entry.implementorSwitchEntry() is not { } sw) continue;
                 var ids = sw.cobolWord();   // [0] = switch-name; [1] = mnemonic-name when Option 1
                 if (ids.Length == 0) continue;

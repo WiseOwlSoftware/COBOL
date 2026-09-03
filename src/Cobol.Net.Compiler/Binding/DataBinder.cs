@@ -223,10 +223,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// targets and to map a WRITE/REWRITE record-name back to its owning file.</summary>
     public Dictionary<string, FileModel> FilesByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Names DECLARED in the (documented-unsupported, COBOLNET1560) SCREEN SECTION — kb/Work R32:
-    /// a reference to one keeps the documented compile-accept posture with a staged runtime loud naming the
-    /// screen-section cause, and is exempt from the §8.4.2.1 UNDEFINED diagnostic (COBOLNET1639), because
-    /// "not defined" and "declared in an unsupported section" are different verdicts.</summary>
+    /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
+    /// (COBOLNET1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
+    /// <list type="number">
+    /// <item>kb/Work R32 — a reference to such a name is exempt from the §8.4.2.1 UNDEFINED diagnostic
+    /// (COBOLNET1639). The compile already fails on the section; adding "SG is not defined" on top would send
+    /// the user hunting a declaration that is right there. "Not defined" and "declared in a refused section"
+    /// are different verdicts, and only the second is true.</item>
+    /// <item>It is how <c>ACCEPT screen-name-1</c> / <c>DISPLAY screen-name-1</c> are told apart from their
+    /// token-identical DEVICE formats (AcceptDisplayBinder.ScreenFormatOf) — the operand's DECLARATION is the
+    /// only thing that distinguishes them.</item></list>
+    /// ⚠ The posture used to be compile-ACCEPT with a staged runtime loud; kb/Work PB260 measured what that
+    /// actually did (a screen record printed to standard output) and made it a refusal.</summary>
     public HashSet<string> ScreenNames { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>True when SOURCE-COMPUTER declares WITH DEBUGGING MODE (the X3.23-1985 compile-time debug
@@ -393,26 +401,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         BindReportSection(program);                // RD entries → ReportModels (ISO §13.14; DataBinder.Reports.cs)
         BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
 
-        // SCREEN SECTION (ISO §13.9) is an OPTIONAL facility (§4.2.7) COBOL.NET does not implement: it parses but is
-        // not bound. §4.2.6 requires a compile-time WARNING naming the unsupported element (rather than the former
-        // silent drop) — the COBOLNET1560 non-support band, catalogued in docs/CONFORMANCE.md §4. The program still
-        // compiles; the screen behavior is simply absent.
+        // SCREEN SECTION (ISO §13.9) is an OPTIONAL element of Annex A.4.2, the module docs/CONFORMANCE.md §5
+        // records as Not claimed. A.4.1 admits an optional element's syntax ONLY when support is claimed, so the
+        // section, every entry in it and every clause inside those entries are refused BY NAME (COBOLNET1560) —
+        // ScreenFacility is the one funnel and names the construct the user actually wrote. The declared
+        // screen-names are recorded there as well, so a later reference reports "declared in a refused section"
+        // rather than the §8.4.2.1 UNDEFINED verdict (kb/Work R32; the differential's syn_screen:221 flip).
+        // ⚠ This was a WARNING until kb/Work PB260: the program compiled, the screen behavior was simply absent,
+        // and a DISPLAY of the screen record printed its characters — a declined facility that produced output.
         if (program.dataDivision()?.screenSection() is { } scr)
-        {
-            // The ONE declined-element seam (EditionContext.Declined): the descriptor carries the severity —
-            // Warning here, because the SCREEN facility is ADDITIVE (the program means what it says with the
-            // screen behavior absent). The emitted text is the descriptor's Title, byte-identical to the bare
-            // COBOLNET1560 literal it replaced; cataloguing it also makes 1560 visible to the next-free
-            // allocation scan and to docs/DIAGNOSTICS.md, which a bare literal never was.
-            Edition.Declined(DiagnosticCatalog.ScreenSectionUnsupported);
-            // kb/Work R32 — the DECLARED screen names are recorded so a reference keeps the documented posture
-            // (compile-accept + a staged runtime loud naming THIS cause) instead of drawing the §8.4.2.1
-            // UNDEFINED diagnostic: "not defined" and "declared in an unsupported section" are different
-            // verdicts, and R30's demanding resolver must not conflate them (the differential's syn_screen:221
-            // flip did exactly that).
-            foreach (var e in scr.screenDescriptionEntry())
-                if (e.screenName()?.cobolWord()?.GetText() is { } sn) ScreenNames.Add(sn);
-        }
+            ScreenFacility.ReportSection(Edition, scr, ScreenNames);
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
             _workingStorageRoots.AddRange(BindEntries(ws.dataDescriptionEntry(), _rootNames));

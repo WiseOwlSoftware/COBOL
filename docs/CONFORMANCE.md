@@ -3,10 +3,12 @@
 > **STATUS: LIVE conformance record (ISO/IEC 1989:2023 §4.2.16).** This document is the implementor's user
 > documentation required by §4.2.6 (processor-dependent elements), §4.2.7 (optional elements), and §4.2.13
 > (obsolete elements): it states, for every processor-dependent language element in Annex A.3 and every optional
-> facility this compiler does **not** implement, whether support is claimed. The compiler emits a compile-time
-> warning (the **COBOLNET1560 band**, §4.2.6 third paragraph) when a syntactically-detectable unsupported
-> processor-dependent or optional element is used; this document is the authoritative catalogue behind those
-> warnings. Default `--std` = COBOL-2023.
+> facility this compiler does **not** implement, whether support is claimed. Every syntactically-detectable
+> unsupported element is NAMED at compile time, on the channel its licence chooses: an Annex A.3
+> **processor-dependent** facility is accepted with a named WARNING (the **COBOLNET1578–1580 band**, §4.2.6
+> third paragraph), and an Annex A.4 **optional module for which no support is claimed** is REFUSED with a
+> named ERROR (the **COBOLNET1560 / 1705 / 1706 / 1707 band**, Annex A.4.1). This document is the
+> authoritative catalogue behind both. Default `--std` = COBOL-2023.
 
 ## 1. Conformance summary (§4.2.16)
 
@@ -16,18 +18,27 @@ except the optional/processor-dependent facilities listed as **not supported** b
 optional-element dispositions are §5 (only Claimed/Partial rows there are claimed). Per §4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §4.2.7, an
 optional element is implemented only when support is claimed. All four **documented non-support facilities**
-(§4) are now recognized at compile time with a NAMED warning, satisfying §4.2.6 ¶3's mandatory warning
-mechanism: SCREEN handling → **COBOLNET1560**; MCS SEND/RECEIVE → **COBOLNET1578**; COMMIT/ROLLBACK →
-**COBOLNET1579**; VALIDATE → **COBOLNET1580**. Each is a WARNING, not an error — the program compiles, runs,
-and the facility is inert, and no associated exception condition is raised (§14.6.13.1.1 licenses this).
+(§4) are now recognized at compile time with a NAMED diagnostic. Three of them are ACCEPT-INERT WARNINGS,
+satisfying §4.2.6 ¶3's mandatory warning mechanism: MCS SEND/RECEIVE → **COBOLNET1578**; COMMIT/ROLLBACK →
+**COBOLNET1579**; VALIDATE → **COBOLNET1580**. The program compiles, runs, the facility is inert, and no
+associated exception condition is raised (§14.6.13.1.1 licenses this). **SCREEN handling is a REFUSAL** —
+**COBOLNET1560** (the data / environment surface) and **COBOLNET1707** (the procedure surface), both Errors,
+at every edition where the words are reserved — because Annex A.4.1 admits an optional element's syntax
+"only when support for that language element is claimed", which is a prohibition on ACCEPTING and not a
+licence to accept-and-flag. The A.4.8 (FORMAT / SELECT WHEN, **COBOLNET1705**) and A.4.13 (WRITE / REWRITE
+FILE, **COBOLNET1706**) declines are refusals for the same reason.
 
 > ⚖ **The warning band and the hard errors are DELIBERATELY asymmetric, and the axis is whether a program can
 > still mean what it says.** §4.2.6 ¶3 requires a warning mechanism and adds that "The implementor is not
 > required to produce executable code when unsupported processor-dependent language elements are used" — so both
 > severities conform, and the choice is ours to make and to explain.
-> **The 1560 band warns** because those facilities are *additive*: a program with a SCREEN SECTION, a SEND, a
-> COMMIT or a VALIDATE has a well-defined meaning with the facility inert, and the rest of the program is
-> unaffected. Compiling and running it is more useful than refusing it.
+> **The 1578–1580 band warns** because those facilities are *additive*: a program with a SEND, a COMMIT or a
+> VALIDATE has a well-defined meaning with the facility inert, and the rest of the program is unaffected.
+> Compiling and running it is more useful than refusing it. **SCREEN handling left that band on 2026-09-02**
+> (kb/Work PB260): it is not additive in practice — `ACCEPT screen-name-1` and `DISPLAY screen-name-1` are
+> token-identical to their format-1 DEVICE forms, so "inert" meant *silently binding the other statement* and
+> moving the wrong data — and A.4.1's licence for an unclaimed OPTIONAL module reads the other way from
+> §4.2.6's for a PROCESSOR-DEPENDENT one. A.4 unclaimed ⇒ the syntax is not accepted at all.
 > **`ARITHMETIC IS STANDARD-BINARY` is a hard error (COBOLNET0806)** because it is *pervasive*: §8.8.1.4.1 makes
 > it "a method of evaluating an arithmetic expression, an arithmetic statement, the SUM clause, and certain
 > integer and numeric functions", in effect for the whole unit the moment the phrase is written, so there is
@@ -349,15 +360,23 @@ statements: `COMMIT` and `ROLLBACK` draw the named COBOLNET1579 at every site an
 both from the binder. What is still a generic parse error — or worse — is the **rest of each facility**, which is
 where most of the rules live: the I-O-CONTROL `APPLY COMMIT` clause has no grammar surface at all, VALIDATE's
 eight data-division elements likewise (three of them surfacing as the *misleading* COBOLNET0901 "is a reserved
-word"), the screen `ACCEPT`/`DISPLAY` formats are silently reinterpreted as their device formats, and the
-`CURSOR` / `CRT STATUS` clauses and the whole EC-SCREEN and EC-VALIDATE families are accepted with no diagnostic
-whatever. So a *statement* meets §4.2.6's warning-mechanism requirement today and a *clause* of the same facility
-does not. The per-facility measurements are in §5's Annex A.4 table; the debt is `kb/Work` PB260, PB261, PB283.
+word") and the EC-VALIDATE family is accepted with no diagnostic whatever. So a *statement* meets §4.2.6's
+warning-mechanism requirement today and a *clause* of the same facility does not. **Item 4 (screen handling) is
+the exception, and it is now uniform**: since 2026-09-02 every one of the module's seven source shapes — the
+SCREEN SECTION header, each screen description entry clause, the SPECIAL-NAMES `CURSOR` / `CRT STATUS` clauses,
+the OPTIONS `INITIALIZE … SCREEN` target, `ACCEPT` format 3, `DISPLAY` format 2, `SET … ATTRIBUTE` and every
+EC-SCREEN exception-name — is refused by name through one funnel
+(`src/Cobol.Net.Compiler/Binding/ScreenFacility.cs`). The per-facility measurements are in §5's Annex A.4
+table; the remaining debt is `kb/Work` PB261 and PB283.
 
-⚠ **And a warning nothing asserts is a warning that can silently stop firing**: no test anywhere in `tests/`
-asserts COBOLNET1560, 1578, 1579 or 1580 — the negative corpus matches ERROR codes only and the `.out` goldens
-capture stdout, while these ride the non-failing compile channel. Every row below could lose its diagnostic
-without a gate going red. That, not a missing implementation, is why no rule in this section can close.
+⚠ **A warning nothing asserts is a warning that can silently stop firing**, and that is why the WARNING band
+needs assertions the corpora structurally cannot make: the negative corpus matches ERROR codes only and the
+`.out` goldens capture stdout, while a warning rides the non-failing compile channel.
+`DocumentedNonSupportWitnessTests` is where those assertions live — it pins COBOLNET1579 (item 2) and
+COBOLNET1580 (item 3) on the same sources the positive corpus runs. **COBOLNET1578 (item 1, MCS) is still
+unasserted** and could lose its diagnostic without a gate going red. Item 4 is no longer exposed to this at
+all: a refusal fails the compile, so its 41 witnesses are ordinary negative-corpus entries
+(`tests/conformance/negative/a42-*`), each `.err` naming the construct as well as the code.
 
 1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
    and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
@@ -374,25 +393,36 @@ without a gate going red. That, not a missing implementation, is why no rule in 
    module and gives it no obsolete-feature NOTE — if it is not optional, A.4.1 obliges us to accept `CLASS IS
    NUMERIC`, which we do not. That is an open adjudication, and it is why the derived selector holds §13.18.11
    out rather than stamping it.
-4. **Screen handling** (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), the
-   SPECIAL-NAMES `CURSOR` and `CRT STATUS` clauses, `SET … ATTRIBUTE`, and the EC-SCREEN family. Not provided.
-   The SCREEN SECTION header itself draws the named `COBOLNET1560` (`DataBinder.BindDeclarations`) and a
-   statement that references a screen-name is refused at run time naming that same cause rather than resolving
-   to "not defined" — measured by `2023/pb260_screen_facility_witness`, `2023/pb260_screen_locale_sign_witness`
-   and `2023/pb260_accept_screen_reference`, and asserted (the warning channel included, which no `.out` can
-   read) by `DocumentedNonSupportWitnessTests`.
-   > ⚠ **One position in this facility is still SILENT, and it is a registered defect, not a disposition.**
-   > Annex A.4.2 **item 10** makes the EC-SCREEN condition NAMES optional wherever a program can write one —
-   > the RAISING phrase of the EXIT and GOBACK statements, the RAISING phrase of the procedure division header,
-   > the USE statement, the WHEN phrase of the PERFORM statement, the RAISE statement, and the TURN compiler
-   > directive. **Those six positions need no SCREEN SECTION**, so none of them reaches the `COBOLNET1560`
-   > site above. The five EC-SCREEN names are catalogued in `ExceptionCatalog` with **no setting site anywhere**
-   > in the compiler or the runtime and draw **no diagnostic at all**, so `>>TURN EC-SCREEN-LINE-NUMBER
-   > CHECKING ON` and `RAISE EC-SCREEN-FIELD-OVERLAP` compile clean against a facility that does not exist — a
-   > catalogued name with a reader and no setter reads as implemented support to every consumer that can see
-   > it, the author of the program included. `kb/Work` **PB302** owns it (found by the PB260 measurement it
-   > asked for), and the inventory rows `GR-14.9.11.4-18` with its two level-2 legs and `GR-14.9.11.4-19` stay
-   > **OPEN** on it rather than being closed on a witness that would pin the silence.
+4. **Screen handling** (§13.9, optional §4.2.7; Annex A.4.2): the SCREEN SECTION, every screen description
+   entry clause, the SPECIAL-NAMES `CURSOR` and `CRT STATUS` clauses, the OPTIONS `INITIALIZE … SCREEN`
+   target, ACCEPT format 3, DISPLAY format 2, `SET … ATTRIBUTE`, and the EC-SCREEN family. Not provided —
+   and **REFUSED, not accepted inert** (2026-09-02, kb/Work PB260). Annex A.4.1: "An implementation shall
+   accept the syntax and provide the functionality for an optional element only when support for that
+   language element is claimed by the implementor." Unclaimed ⇒ the syntax is not accepted, so every one of
+   the seven source shapes draws a named **Error**: `COBOLNET1560` for the data / environment surface and
+   `COBOLNET1707` for the procedure surface, both from the one funnel
+   `src/Cobol.Net.Compiler/Binding/ScreenFacility.cs`, whose message names the construct the program actually
+   wrote ("the AUTO clause (ISO §13.18.3)", "the exception-name EC-SCREEN-FIELD-OVERLAP"). Two codes and not
+   one because a Format-3 ACCEPT needs a screen-name and a screen-name needs a SCREEN SECTION: with a single
+   code every statement witness would pass on the section's own diagnostic. Witnessed by 41 negative-corpus
+   programs `tests/conformance/negative/a42-*` and by `ScreenFacilityConstructDriftTests`, which reads
+   `CobolScreen.g4` and fails when a grammar alternative has no clause row — so a clause added to the grammar
+   cannot ship un-named. At `--std 85` the posture is pinned by `negative/a42-screen-section-at-85`.
+   ⚠ Declining the module does **not** cost the user its context-sensitive WORDS: §8.10 reserves
+   `BACKGROUND-COLOR`, `FOREGROUND-COLOR` and `REVERSE-VIDEO` nowhere, and §8.9 reserves `CRT` / `CURSOR`
+   only from 2002, so `01 REVERSE-VIDEO PIC X.` is legal at every edition and `01 CURSOR PIC X.` is legal at
+   COBOL-85 (kb/Work PB301).
+   > **The A.4.2 item-10 EC-SCREEN naming surface used to be the one SILENT position in this facility, and it
+   > is now refused with the rest** (kb/Work PB302, closed by the PB260 wave). Item 10 makes the EC-SCREEN
+   > condition NAMES optional wherever a program can write one — the RAISING phrase of the EXIT and GOBACK
+   > statements, the RAISING phrase of the procedure division header, the USE statement, the WHEN phrase of
+   > the PERFORM statement, the RAISE statement, and the TURN compiler directive. **Those six positions need
+   > no SCREEN SECTION**, so none of them reached the section-level diagnostic, and the five EC-SCREEN names
+   > sat in `ExceptionCatalog` with no setting site and no diagnostic at all: `>>TURN EC-SCREEN-LINE-NUMBER
+   > CHECKING ON` compiled clean against a facility that does not exist. §14.6.13.1.1 licenses raising NO
+   > condition for a level-3 name belonging to an optional element, but it does not license ACCEPTING the
+   > name. All six positions now resolve through one EC-name seam and draw `COBOLNET1707`
+   > (`negative/a42-ec-screen-raise`, `-use`, `-turn`, `-perform-when`).
 
 ⚠ **Three further modules are Not claimed and have no item here** — A.4.8 (FORMAT / SELECT WHEN), A.4.13
 (REWRITE FILE / WRITE FILE) and A.4.10's declined optional items. For those the §5 Annex A.4 row IS the whole of
@@ -639,9 +669,14 @@ reallocated).
 > packed bytes laid out by the §8.5.1.6.3 walk rather than a run of character positions.
 > **Scope:** the clause is COBOL-2023 (Annex E.3.3 item 33), so below 2023 it cannot be written and the
 > unchanged space/zero seed remains the conformant realization of §11.9.10.4 GR6's "undefined or specified by
-> the implementor" there. **§11.9.10.4 GR3 (the SCREEN arm)** has no data items to reach: the SCREEN SECTION is
-> a §4.2.7 optional facility documented as unsupported in §4 below (COBOLNET1560), and that one warning remains
-> the posture rather than a second diagnostic. Pinned by `2023/pb152_options_initialize_background`,
+> the implementor" there. **§11.9.10.4 GR3 (the SCREEN arm)** has no data items to reach, and since
+> 2026-09-02 it is not reached at all: the SCREEN SECTION is a §4.2.7 optional facility documented as
+> unsupported in §4 below, so the
+> explicit `INITIALIZE … SCREEN …` target is REFUSED by name (COBOLNET1560,
+> `negative/a42-options-initialize-screen`) — it was the module's seventh source shape, parsed into an
+> `OptionsSections.Screen` flag that nothing read. ⛔ Only the EXPLICIT leg: GR1 makes `ALL` imply
+> LOCAL-STORAGE, SCREEN and WORKING-STORAGE and two of those three are supported, so `INITIALIZE ALL` stays
+> legal source. Pinned by `2023/pb152_options_initialize_background`,
 > `_sections`, `_local_storage`, `_tier_b`, `_external`, `_figurative` and `_arm_agreement`.
 > ⚖ **DETERMINATION — §11.9.10.3 SR1's "one-byte hexadecimal-alphanumeric literal" is §8.3.3.2.2 FORMAT 2, and
 > nothing else** (2026-09-02; kb/Work PB152, COBOLNET1727). "Hexadecimal-alphanumeric literal" is a defined
@@ -768,7 +803,7 @@ summary claims only what is Claimed/Partial here.
 
 | A.4 § | Module | Disposition | Note |
 |---|---|---|---|
-| A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed | The SCREEN facility (§4 item 4). **Posture today, measured, and it is not uniform**: the SCREEN SECTION header draws the named COBOLNET1560 warning (`DataBinder`), but `ACCEPT screen-name` and `DISPLAY screen-name` have no screen alternative in the grammar and are silently REINTERPRETED as their device formats; their positional phrases and `SET … ATTRIBUTE` are a generic parse error; and the SPECIAL-NAMES `CURSOR` / `CRT STATUS` clauses and the four EC-SCREEN names are accepted with **no diagnostic at all**. kb/Work PB260 owns the debt. Every rule the facility conditions carries this row's determination through `inventory-schema.json` `derived-verdicts.screen-handling-only` (156 rows) |
+| A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed | The SCREEN facility (§4 item 4). **REFUSED BY NAME, uniformly, since 2026-09-02 (kb/Work PB260)** — the row used to record a measured NON-uniform accept-and-warn posture, and the measurement that produced it is what refuted it. Annex A.4.1 admits an optional element's syntax "only when support for that language element is claimed by the implementor", so an unclaimed module is not accepted at all: all SEVEN source shapes now draw a named **Error** through the single funnel `src/Cobol.Net.Compiler/Binding/ScreenFacility.cs` — **COBOLNET1560** for the SCREEN SECTION header (§13.9), every screen description entry clause (§13.17 / §13.18.x, one message per clause KIND naming the clause and its ISO §), the SPECIAL-NAMES `CURSOR` / `CRT STATUS` clauses (§12.3.7) and the OPTIONS `INITIALIZE … SCREEN` target (§11.9.10.4 GR3 — the seventh shape, which parsed into a flag nothing read; GR1's `ALL` stays legal), and **COBOLNET1707** for ACCEPT format 3 (§14.9.1), DISPLAY format 2 (§14.9.11) and SET format 6 ATTRIBUTE (§14.9.39 — whose printed format has no `TO`) plus every EC-SCREEN exception-name in the six item-10 positions. Two codes, split at the DIVISION boundary, because a statement witness must declare a SCREEN SECTION to have a screen-name and would otherwise pass on the section's diagnostic. Declining the module costs the user none of its WORDS: `BACKGROUND-COLOR` / `FOREGROUND-COLOR` / `REVERSE-VIDEO` are §8.10 context-sensitive and reserved nowhere, `CRT` / `CURSOR` are §8.9-reserved only from 2002, and all five are now legal user words where the standard leaves them so (kb/Work PB301). Witnesses: 41 negative-corpus programs `negative/a42-*` (each `.err` carrying the code AND the named construct) plus `ScreenFacilityConstructDriftTests`, which reads `CobolScreen.g4` and fails when a `screenClause` alternative has no row. Every rule the facility conditions carries this row's determination through `inventory-schema.json` `derived-verdicts.screen-handling-only` (156 rows) |
 | A.4.3 | Commit and rollback | Not claimed | §4 item 2. **The two halves differ**: the COMMIT and ROLLBACK *statements* are recognized and named today — COBOLNET1579 at every site (`StatementBinder.BindCommitRollback`) — while the I-O-CONTROL **APPLY COMMIT clause** (§12.4.6.3) has no grammar surface at any edition and is a generic syntax error, which is 17 of the 25 rules. kb/Work PB261 owns the witness debt. Rules: `derived-verdicts.commit-and-rollback-only` |
 | A.4.4 | Dynamic capacity tables | **Claimed** | OCCURS DYNAMIC (P12 §8.5.1.9; EC-BOUND-OVERFLOW raise live) |
 | A.4.5 | DYNAMIC LENGTH elementary items | Partial | Alphanumeric live (§13.18.19, the 1561–1563 SR band); the NATIONAL dynamic-length FUNCTION LENGTH / BYTE-LENGTH runtime paths are staged loud (the P12 residue ledger) |
@@ -785,8 +820,9 @@ summary claims only what is Claimed/Partial here.
 ## 6. Maintenance
 
 Update this document in the same change set as any change to the supported surface (a new usage, a facility
-newly implemented or newly documented as non-support, an I-O status determination). The COBOLNET1560-band
-warning sites are the code-side counterpart — keep the two in sync. This file is referenced by
+newly implemented or newly documented as non-support, an I-O status determination). The declined-facility
+sites — every one of them routed through `EditionContext.Declined`, whose descriptor severity chooses
+warn-inert from refuse — are the code-side counterpart; keep the two in sync. This file is referenced by
 `docs/VERSION_CHANGE_REFERENCE.md` (the edition-change checklist) and by `docs/DOC_INDEX.md`.
 
 ## 7. Annex A.1 — implementor-defined language element register (§4.2.5 / §4.2.16)

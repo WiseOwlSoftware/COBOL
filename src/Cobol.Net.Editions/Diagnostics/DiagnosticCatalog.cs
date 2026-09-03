@@ -141,7 +141,7 @@ public static class DiagnosticCatalog
     //    §13.18.15; P10 Step 15). 1547 = the §13.10 constant-entry syntax rules; 1548 = the receiving-operand
     //    rejection (a constant substitutes a LITERAL — §13.10.3 SR2/GR1 — and §13.18.15.3 SR2 forbids storing
     //    into a structured constant); 1549 = the CONSTANT RECORD structural rules (§13.18.15.3 SR1 +
-    //    §13.16.3 SR3/SR6/SR13). 1540–1546 taken; 1550/1551/1552 are unallocated mid-band holes (the PHASE-12 earmark expired unused); 1560-band (PHASE-13). ──
+    //    §13.16.3 SR3/SR6/SR13). 1540–1546 taken; 1550/1551/1552 are unallocated mid-band holes (the PHASE-12 earmark expired unused); 1560 = the Annex A.4.2 screen-handling refusal (below). ──
     public static readonly DiagnosticDescriptor ConstantEntryRule = new(
         "COBOLNET1547", "constant-entry-rule", EditionSeverity.Error,
         "A constant entry violates a §13.10 syntax rule (figurative operand SR6; non-literal / exponentiation / "
@@ -481,7 +481,8 @@ public static class DiagnosticCatalog
     // ── COBOLNET1558 — EXTERNAL type declarations (§13.18.22 / §13.18.58; P10 Step 16) ───────────────
     // ── COBOLNET1559 — the report-group PRESENT WHEN / VARYING / multiple-COLUMN syntax rules, one code for
     //    the rule family (§13.15.3 / §13.18.64.3; P10 Step 13 — the SameAsEntryRule bundling precedent).
-    //    1560-band stays earmarked (PHASE-13). ──
+    //    COBOLNET1560 is NO LONGER an earmark: it is the Annex A.4.2 screen-handling refusal, declared with its
+    //    procedure-division twin COBOLNET1707 at the end of this file (kb/Work PB260). ──
     public static readonly DiagnosticDescriptor ReportGroupClauseRule = new(
         "COBOLNET1559", "report-group-clause-rule", EditionSeverity.Error,
         "A report group description entry violates a PRESENT WHEN / VARYING syntax rule: a PRESENT WHEN "
@@ -1549,8 +1550,8 @@ public static class DiagnosticCatalog
     //    every site routes through `EditionContext.Declined(descriptor, seen)`, never a local strictness test
     //    and never a second helper (feedback_one_mechanism_per_job).
     //
-    //    • ACCEPT-INERT (Warning) — COBOLNET1560 / 1578 / 1579 / 1580. These facilities are ADDITIVE: the
-    //      program still means what it says with them absent (no screen I-O, no message I-O, COMMIT behaves as
+    //    • ACCEPT-INERT (Warning) — COBOLNET1578 / 1579 / 1580. These facilities are ADDITIVE: the
+    //      program still means what it says with them absent (no message I-O, COMMIT behaves as
     //      CONTINUE, VALIDATE validates nothing), so §4.2.6 ¶3's mandatory compile-time warning mechanism
     //      ("shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
     //      processor-dependent language elements not supported") is the whole obligation, and §14.6.13.1.1
@@ -1558,20 +1559,16 @@ public static class DiagnosticCatalog
     //      Before this band these constructs produced a GENERIC parse error, which satisfied neither the
     //      warning obligation nor the "never a silent wrong answer" rule.
     //
-    //    • REFUSE (Error) — COBOLNET1705 / 1706. These facilities are NOT additive: compiled inert they
-    //      change the ANSWER (which bytes reach the medium; which record description entry is selected; a
-    //      whole-record-area write standing in for a §14.9.51.4 GR8 implicit record). A.4.1's first sentence
+    //    • REFUSE (Error) — COBOLNET1560 / 1705 / 1706 / 1707. These facilities are NOT additive: compiled
+    //      inert they change the ANSWER (which bytes reach the medium; which record description entry is
+    //      selected; a whole-record-area write standing in for a §14.9.51.4 GR8 implicit record; a screen
+    //      ACCEPT re-read as the device format, which transfers the wrong data). A.4.1's first sentence
     //      is the licence to refuse: "An implementation shall accept the syntax and provide the functionality
     //      for an optional element only when support for that language element is claimed by the implementor."
     //      Unclaimed ⇒ the syntax is not accepted. The strictness axis does NOT move these: --permissive is
     //      the REMOVED-construct / documented-leniency migration seam (EditionContext.Removed) and there is no
     //      "pre-removal semantics" to preserve here — matching the accept-inert rows above, which --permissive
     //      likewise does not move.
-    public static readonly DiagnosticDescriptor ScreenSectionUnsupported = new(
-        "COBOLNET1560", "screen-section-unsupported", EditionSeverity.Warning,
-        "the SCREEN SECTION (ISO §13.9) is an optional facility (§4.2.7) that is not supported — it is "
-        + "accepted but produces no screen behavior (see docs/CONFORMANCE.md §4)",
-        "ISO §4.2.7 / Annex A.4.2 / §13.9", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor McsFacilityUnsupported = new(
         "COBOLNET1578", "mcs-facility-unsupported", EditionSeverity.Warning,
         "The asynchronous messaging facility (SEND/RECEIVE, ISO §14.9.31/§14.9.38) is a processor-dependent "
@@ -1593,7 +1590,8 @@ public static class DiagnosticCatalog
         + "2002/2014/2023 (the facility exists from 2002); at --std 85 VALIDATE is a user word, not a statement. "
         + "See docs/CONFORMANCE.md §4.",
         "ISO §4.2.7 / Annex A.4.14 / §4.2.13 / Annex F.2 item 5 / §14.9.50", RecognizedNotImplemented);
-    // ── 1705 / 1706 — the REFUSE half of the band (see the header above). One code per A.4 MODULE, not per
+    // ── 1560 / 1705 / 1706 / 1707 — the REFUSE half of the band (see the header above). One code per A.4
+    //    MODULE (A.4.2 takes two, split at the division boundary — see the header below it), not per
     //    clause: the module is the unit §4.2.7 makes the implementor document and Annex A.4 makes optional, so
     //    a user who reads CONFORMANCE.md §5 finds exactly one row per code. The `seen` half of the message is
     //    composed at the site and names WHICH element of the module was written.
@@ -1606,7 +1604,7 @@ public static class DiagnosticCatalog
         + "inert. Refused at EVERY edition: an inert FORMAT changes which bytes reach the medium "
         + "(§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry "
         + "(§13.18.51.4 GR1) with an I-O status 45 path (§9.1.13.7 rule 5) — a wrong answer, not a missing "
-        + "facility, which is why this is an Error and not the COBOLNET1560/1578/1579/1580 accept-inert band. "
+        + "facility, which is why this is an Error and not the COBOLNET1578/1579/1580 accept-inert band. "
         + "At --std 85 the FORMAT clause additionally cannot be written at all: §8.9 reserves FORMAT only from "
         + "2002, so there the word is a user-defined name.",
         "ISO §4.2.7 / Annex A.4.1 / Annex A.4.8 items 1-2 / §13.18.24 / §13.18.51");
@@ -1633,6 +1631,53 @@ public static class DiagnosticCatalog
         + "cannot honor (the overpunch/separate sign breaks lexical=algebraic). Equality and every "
         + "unsigned/alphanumeric-leaf ordering ARE carried by the image comparison (provably element-equivalent "
         + "for a fixed same-type profile).", "ISO §8.8.4.2.12 / §8.8.4.2.4", RecognizedNotImplemented);
+
+    // ── Annex A.4.2 — ACCEPT and DISPLAY SCREEN HANDLING, the largest DECLINED optional module (kb/Work PB260).
+    //
+    //    ⛔ WHY AN ERROR AND NOT THE §4.2.6 RECOGNIZE-AND-WARN OF 1578/1579/1580. Those three name Annex A.3
+    //    PROCESSOR-DEPENDENT elements, whose licence is §4.2.6 — "the decision to provide support … is within an
+    //    implementor's discretion" plus a mandatory compile-time WARNING mechanism, i.e. accept-and-flag. Screen
+    //    handling is an Annex A.4 OPTIONAL module, and A.4.1's licence reads the other way: "An implementation
+    //    shall accept the syntax and provide the functionality for an optional element ONLY WHEN support for that
+    //    language element is claimed by the implementor." docs/CONFORMANCE.md §5 already documents the consequence
+    //    — for a Not-claimed module "a parse error or a named error is the conforming posture". A.4.1 ¶2 extends
+    //    the licence from the 27 named elements to every syntax rule, general rule and exception condition hanging
+    //    off them, which is what carries the screen description entry's clauses and the EC-SCREEN family.
+    //
+    //    ⛔ WHY TWO CODES. A Format-3 ACCEPT, a Format-2 DISPLAY and a Format-6 SET can only name a screen-name,
+    //    and a screen-name can only be declared in a SCREEN SECTION — so EVERY statement witness necessarily
+    //    carries the data-division surface too and would draw 1560 whether or not the STATEMENT was diagnosed.
+    //    One code would make every procedure-division witness pass for the wrong reason
+    //    (feedback_green_gates_arent_evidence). Splitting the module at the division boundary makes each `.err`
+    //    an actual observation: 1560 can never be produced by a statement site, 1707 never by a data site.
+    /// <summary>COBOLNET1560 — the A.4.2 DATA/ENVIRONMENT surface: the SCREEN SECTION header (§13.9), every
+    /// screen description entry clause (§13.17 / §13.18.x), and the SPECIAL-NAMES CURSOR and CRT STATUS clauses
+    /// (§12.3.7). The emitted message NAMES the construct seen — <see cref="Binding.ScreenFacility"/> is the one
+    /// funnel and derives the clause name and its ISO § from the parse-tree rule.</summary>
+    public static readonly DiagnosticDescriptor ScreenFacilityUnsupported = new(
+        "COBOLNET1560", "screen-facility-unsupported", EditionSeverity.Error,
+        "A SCREEN SECTION construct (the section header §13.9, a screen description entry §13.17, one of its "
+        + "clauses §13.18.x, or the SPECIAL-NAMES CURSOR / CRT STATUS clause §12.3.7) is part of the OPTIONAL "
+        + "screen handling module (§4.2.7; Annex A.4.2), for which COBOL.NET claims no support — A.4.1 admits "
+        + "an optional element's syntax only when support is claimed, so it is refused by name rather than "
+        + "silently accepted and dropped. The facility exists from COBOL-2002. See docs/CONFORMANCE.md §5.",
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.2 / §13.9 / §13.17 / §12.3.7");
+    /// <summary>COBOLNET1707 — the A.4.2 PROCEDURE-division surface: ACCEPT format 3 (screen, §14.9.1), DISPLAY
+    /// format 2 (screen, §14.9.11 — A.4.2 item 9 misprints the cross-reference as 14.9.10, which is DELETE),
+    /// SET format 6 (attribute, §14.9.39), and the EC-SCREEN exception-names in the six contexts A.4.2 item 10
+    /// names (RAISING on EXIT / GOBACK / the procedure division header, USE, the PERFORM WHEN phrase, RAISE, and
+    /// the &gt;&gt;TURN directive).</summary>
+    public static readonly DiagnosticDescriptor ScreenStatementUnsupported = new(
+        "COBOLNET1707", "screen-statement-unsupported", EditionSeverity.Error,
+        "A screen-handling STATEMENT or exception-name — ACCEPT format 3 (§14.9.1), DISPLAY format 2 (§14.9.11), "
+        + "SET format 6 ATTRIBUTE (§14.9.39), or an EC-SCREEN exception-name in a RAISING phrase, a USE "
+        + "statement, a PERFORM WHEN phrase, a RAISE statement or a >>TURN directive — is part of the OPTIONAL "
+        + "screen handling module (§4.2.7; Annex A.4.2 items 1, 9, 10, 24), for which COBOL.NET claims no "
+        + "support. A.4.1 admits an optional element's syntax only when support is claimed; a screen ACCEPT or "
+        + "DISPLAY silently re-read as its device format would transfer the wrong data, and a catalogued "
+        + "EC-SCREEN name with no raise site reads as implemented to every consumer that can see it. "
+        + "See docs/CONFORMANCE.md §5.",
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.2 items 1, 9, 10, 24 / §14.9.1 / §14.9.11 / §14.9.39");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

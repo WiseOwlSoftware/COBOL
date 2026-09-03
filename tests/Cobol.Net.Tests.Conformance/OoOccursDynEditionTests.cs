@@ -88,8 +88,11 @@ public sealed class OoOccursDynEditionTests
             STOP RUN.
         """;
 
-    // OCCURS DYNAMIC under a SCREEN-section entry: the screen section is parsed but unbound, so the former gate never
-    // reached it — the program compiled clean at 85 before this gate existed (DEVLOG-736 verdict-change witness).
+    // OCCURS DYNAMIC under a SCREEN-section entry: the screen section is parsed but never routed through
+    // OdoBindOccursSpec, so the introduction gate does not reach it (DEVLOG-736 verdict-change witness).
+    // ⚠ Since kb/Work PB260 this program does NOT compile — the SCREEN SECTION is refused as the declined
+    // Annex A.4.2 module (COBOLNET1560). That is not what this test measures: Count0900 counts COBOLNET0900
+    // diagnostics naming the OCCURS DYNAMIC clause, and the assertion is still that there are none.
     private const string ScreenSectionDynamic = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. SCRDYN.
@@ -154,8 +157,10 @@ public sealed class OoOccursDynEditionTests
     public void OccursDynamicInReportGroup_At85_DoesNotGate()
         => Assert.Equal(0, Count0900(ReportGroupDynamic, 85, "the OCCURS DYNAMIC clause"));
 
-    /// <summary>OCCURS DYNAMIC in a SCREEN-section entry does NOT gate at 85 — the screen section is unbound, so the
-    /// former gate never reached it; a bare walk turned a clean compile into a rejection.</summary>
+    /// <summary>OCCURS DYNAMIC in a SCREEN-section entry does NOT draw the 2014 introduction gate at 85 — the
+    /// entry is never routed through OdoBindOccursSpec, so the gate never reaches it; a bare walk added a
+    /// COBOLNET0900 that had nothing to do with the edition. (The program is separately REFUSED for the screen
+    /// facility itself, COBOLNET1560 — a different code and a different question.)</summary>
     [Fact]
     public void OccursDynamicInScreenSection_At85_DoesNotGate()
         => Assert.Equal(0, Count0900(ScreenSectionDynamic, 85, "the OCCURS DYNAMIC clause"));

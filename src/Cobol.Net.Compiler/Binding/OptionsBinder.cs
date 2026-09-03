@@ -129,7 +129,7 @@ internal static class OptionsBinder
         var target = init.optionsInitializeTarget();
         OptionsSections sections = target.ALL() is not null
             ? OptionsSections.All
-            : target.optionsInitializeSection().Aggregate(OptionsSections.None, (acc, s) => acc | SectionOf(s));
+            : target.optionsInitializeSection().Aggregate(OptionsSections.None, (acc, s) => acc | SectionOf(s, edition));
 
         var fill = init.optionsInitializeFill();
         // §8.8.3.3 GR3: a concatenation-expression fill literal folds to its equivalent literal's raw text
@@ -180,8 +180,20 @@ internal static class OptionsBinder
                             System.Globalization.CultureInfo.InvariantCulture, out int b) ? (char)b : null;
     }
 
-    private static OptionsSections SectionOf(Core.OptionsInitializeSectionContext s) =>
-        s.LOCAL_STORAGE() is not null ? OptionsSections.LocalStorage
-        : s.SCREEN() is not null ? OptionsSections.Screen
-        : OptionsSections.WorkingStorage;
+    /// <summary>One target of the OPTIONS INITIALIZE clause (ISO §11.9.10.2).
+    /// <para>⛔ THE EXPLICIT <c>SCREEN</c> LEG IS REFUSED; THE <c>ALL</c> LEG IS NOT — and the standard itself
+    /// split them, which is what makes the distinction legitimate rather than convenient. §11.9.10.4 GR3 ("If
+    /// SCREEN is specified, all data items in the screen section are initialized…") is solely conditioned on
+    /// the declined Annex A.4.2 module and is refused by name; GR1 ("If ALL is specified, LOCAL-STORAGE, SCREEN,
+    /// and WORKING-STORAGE apply") names three targets of which TWO are supported, so <c>INITIALIZE ALL SECTION
+    /// TO SPACES</c> stays fully legal — refusing it would reject legal source over a section the program does
+    /// not have. Before kb/Work PB260 the SCREEN leg parsed, set this flag, and was read by nothing: a declined
+    /// facility a program could write and get a clean compile out of.</para></summary>
+    private static OptionsSections SectionOf(Core.OptionsInitializeSectionContext s, EditionContext? edition)
+    {
+        if (s.LOCAL_STORAGE() is not null) return OptionsSections.LocalStorage;
+        if (s.SCREEN() is null) return OptionsSections.WorkingStorage;
+        if (edition is not null) ScreenFacility.ReportOptionsInitializeScreen(edition, s);
+        return OptionsSections.Screen;
+    }
 }

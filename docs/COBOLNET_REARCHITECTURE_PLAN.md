@@ -26,8 +26,8 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 - **▶ SESSION HANDOFF (2026-09-02 — THE live resume point; the campaign paused on the session limit):** the
   two-lane campaign (`kb/Work/PB278`, doctrine `DESIGN-spec-conformance-review.md` §5 and the `workstream` skill)
-  ran its first day: fourteen landings on main, GAP 3636 → **3379**, DOCUMENTED-NON-SUPPORT 36 → 333 → the
-  A.4.8/A.4.13 rows witnessed (DEVLOG 1423–1437). ⛔ Run the probe; the worklist is `kb/Work/`
+  ran its first day: fifteen landings on main, GAP 3636 → **3227**, DOCUMENTED-NON-SUPPORT 36 → 333 → the
+  A.4.8/A.4.13/A.4.2 rows witnessed (DEVLOG 1423–1438). ⛔ Run the probe; the worklist is `kb/Work/`
   (`python scripts/spec/work.py next`), never this paragraph.
   **Owed on resume, in this order (all briefed; the orchestrator's memory carries the worktree and scratchpad
   paths):** ① ✅ **DONE — lander 2's whole queue landed**: cluster E `0b1c39bc`, witness A `66c85a90`, cluster F
@@ -40,6 +40,8 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   START · UNLOCK · USE recorded, GAP 3394 → **3379**, 85 mechanisms clustered into `PB316`–`PB372` with `PB236`
   extended; 37 CONFORMS-but-untested rows are the golden lane's next input set (listed in `PB370` with what each
   golden must assert) and one owner question covering a family of fourteen rules is `PB371`;
+  ①b **lander 3 is IN FLIGHT**: the A.4.2 screen module-witness landing is DONE (DEVLOG 1438, GAP 3379 →
+  **3227**, `PB260`/`PB302` landed, `PB301` at `half`, worktree `agent-ac67d1b2b8c191894` removable); the citation sweep, cluster D and witness B2 follow, then it stops for battery #42;
   ④ **battery #42 — comprehensive, owed since
   the golden lane `c11949e3`; the reference below is #41**; ⑤ the ledger refresh after every landing (`python
   scripts/spec/gen_ledger.py`, then publish). Then lane 3 resumes from its on-disk checkpoints (batch 2 adjudicated,
@@ -1854,9 +1856,9 @@ result. Run the long legs ONE AT A TIME.
   `ExpandType`/`ExpandSameAs`'s flag read by every group-VALUE screen, `OdoModel.WrapGroup`'s extent unit, the
   `CallEmitter` boundary string pair, `IntrinsicArgumentRules.StaticUsageOf` — were all exercised by #39's NIST
   and differential legs and produced no flip.
-  **Next-free diagnostic code: `COBOLNET1705`** (1700 = report-control-operand-index, 1701 = redefines-target-occurs,
-  1702 = group-value-subordinate, 1703 = group-value-subject-shape, **1704 = termination-status-operand**, taken by
-  the cluster-B wave). Never hand-read this — `session-probe.ps1` computes it from the catalog and the src grep,
+  **Next-free diagnostic code: `COBOLNET1728`** (1700–1704 were the cluster-B wave; 1705/1706 witness A,
+  1707 the A.4.2 screen-statement surface, 1720 cluster E, 1724–1727 cluster F — the band has holes below its
+  maximum). Never hand-read this — `session-probe.ps1` computes it from the catalog and the src grep,
   and the line is here only so a session that skipped the probe is not misled.
 - **✅ THE DEFECTIVE-ROW REGISTRATION WAVE LANDED 2026-08-31 — the P14 inventory's defective set and the work
   register are now ONE list, held there by a gate.** Measured on the cluster-B tree: of **138** rows verdicted
@@ -1882,28 +1884,36 @@ result. Run the long legs ONE AT A TIME.
   a DOC row's closing shape. Method and rationale: `DESIGN-spec-conformance-review.md` §5; the measurements that
   earned it (3,361 of 3,636 GAP rows never adjudicated; ~1,000 fleet agents for 27 rows of burn-down in three days)
   are in the decision note. **Lanes are QUERIES over `kb/Work/` and the inventory — no new list anywhere.**
-- **▶ BURN-DOWN STATE after the 2026-09-02 FIX-LANE CLUSTER F landing (DEVLOG 1436), which followed
-  module-witness cluster A (DEVLOG 1434), fix-lane cluster E (DEVLOG 1433), the golden lane (DEVLOG 1431) and the
-  three-landing batch (DEVLOG 1427–1429; cluster C · the Annex A.1 DOC-row mechanism · the derived-verdict
-  selectors).**
-  **GAP 3394 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → 3456 → 3407 → **3394**: cluster C was a CORRECTION of
-  an already-CONFORMS row, the A.1 back-fill closed 18, the derived lane moved it by design zero — a declined row
-  closes on its WITNESS, not on its verdict — the golden lane then wrote 151 of those witnesses, cluster E closed
-  8 I-O rows plus the 3 Annex A.1 DOC rows its own determinations made statable, witness cluster A wrote the
-  49 witnesses that let lane 2a's A.4.8 + A.4.13 declines finally close, and cluster F closed 13 on the USAGE
-  declaration-placement family and the OPTIONS INITIALIZE background).
-  **1303 rows adjudicated · CONFORMS 859 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 97 · NOT-IMPLEMENTED 13 ·
-  DIVERGES 1** — witness A moved no verdict, only evidence, which is what a witness lane does; cluster F took
-  DIVERGES down to its last row.
-  **24 CONFORMS rows are still test-needed** — each is one spec-derived golden away from OK.
-  **Corpus 567 positive goldens · 601 negative fixtures.** **Diagnostic band — cluster E claimed COBOLNET1720
-  (`io-phrase-forbidden-here`, one reusable descriptor for §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6),
-  witness A claimed COBOLNET1705/1706 (the two declined-module refusals) and catalogued the previously
-  bare-literal COBOLNET1560, and cluster F claimed COBOLNET1724/1725/1726 (§13.18.60.3 SR14/SR15/SR4) and
-  COBOLNET1727 (§11.9.10.3 SR1); the band has holes below its maximum and next free is COBOLNET1728.**
-  **`EditionContext.Declined(descriptor, seen)` is THE declined-element seam** — its SEVERITY picks accept-inert
-  (Warning: screen 1560, MCS 1578, commit/rollback 1579, VALIDATE 1580) versus refuse (Error: A.4.8 1705,
-  A.4.13 1706, where an inert accept would be a wrong answer rather than a missing facility).
+- **▶ BURN-DOWN STATE after the 2026-09-02 A.4.2 SCREEN MODULE-WITNESS landing (DEVLOG 1438), which followed
+  the lane-3 batch-1 registration (DEVLOG 1437), fix-lane cluster F (DEVLOG 1436), module-witness cluster A
+  (DEVLOG 1434), fix-lane cluster E (DEVLOG 1433), the golden lane (DEVLOG 1431) and the three-landing batch
+  (DEVLOG 1427–1429; cluster C · the Annex A.1 DOC-row mechanism · the derived-verdict selectors).**
+  **GAP 3227 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → 3456 → 3407 → 3394 → 3379 → **3227**: cluster C was a
+  CORRECTION of an already-CONFORMS row, the A.1 back-fill closed 18, the derived lane moved it by design zero —
+  a declined row closes on its WITNESS, not on its verdict — the golden lane then wrote 151 of those witnesses,
+  cluster E closed 8 I-O rows plus the 3 Annex A.1 DOC rows its own determinations made statable, witness cluster
+  A wrote the 49 witnesses that let lane 2a's A.4.8 + A.4.13 declines finally close, cluster F closed 13 on the
+  USAGE declaration-placement family and the OPTIONS INITIALIZE background, the batch-1 registration closed 15,
+  and the A.4.2 screen wave closed **152 net of 163 re-verdicted** — eleven of its rows had been closed by the
+  golden lane on POSITIVE witnesses that a refusal posture makes impossible, and are re-witnessed on the
+  negatives).
+  **1482 rows adjudicated · CONFORMS 911 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 152 · DIVERGES 48 ·
+  NOT-IMPLEMENTED 38** — a witness lane moves no verdict, only evidence, which is why A.4.2's 163 rows left the
+  GAP with the DOCUMENTED-NON-SUPPORT count unchanged.
+  **61 CONFORMS rows are still test-needed** — each is one spec-derived golden away from OK.
+  **Corpus 565 positive goldens · 643 negative fixtures**, and the negative manifest's `pending` list is now
+  EMPTY. **Diagnostic band — cluster E claimed COBOLNET1720 (`io-phrase-forbidden-here`, one reusable descriptor
+  for §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6), witness A claimed COBOLNET1705/1706 (the two
+  declined-module refusals), cluster F claimed COBOLNET1724/1725/1726 (§13.18.60.3 SR14/SR15/SR4) and
+  COBOLNET1727 (§11.9.10.3 SR1), and the A.4.2 screen wave claimed COBOLNET1707 (`screen-statement-unsupported`)
+  while turning the previously bare-literal COBOLNET1560 into a catalogued ERROR; the band has holes below its
+  maximum and next free is COBOLNET1728.**
+  **`EditionContext.Declined(descriptor, seen)` is THE declined-element seam, and it is the ONLY one** — the
+  A.4.2 wave's independently-invented `Report(descriptor, message)` twin was folded into it at the landing. Its
+  SEVERITY picks accept-inert (Warning: MCS 1578, commit/rollback 1579, VALIDATE 1580 — Annex A.3
+  processor-dependent elements, whose §4.2.6 licence is accept-and-flag) versus refuse (Error: A.4.2 screen
+  1560/1707, A.4.8 1705, A.4.13 1706 — Annex A.4 optional modules, whose A.4.1 licence admits the syntax ONLY
+  when support is claimed, so an unclaimed one is not accepted at all).
   ⚠ **THE GNUCOBOL BASELINE MOVED SINCE BATTERY #41 AND THE NEXT BATTERY MUST EXPECT THE NEW TOTALS —
   575 / 471 / 209 / 68** (WE_REJECT_THEY_ACCEPT / AGREE_ACCEPT / AGREE_REJECT / WE_ACCEPT_THEY_REJECT), against
   #41's 573 / 473 / 207 / 70. `tests/external/gnucobol-verdict-baseline.tsv` was rewritten from a full 1323-case

@@ -25,7 +25,8 @@ internal static class EcNameResolution
     /// a valid EC-USER-/EC-IMP- open-family name; optionally COBOLNET0710 when a level-1/-2 name stands where
     /// only level-3 is legal (the RAISE/RAISING contexts, §14.9.29.3 SR1 — checked BEFORE the introduction gate
     /// so the level error keeps priority for a level-2 name of a later family); COBOLNET0878 when the name's
-    /// family postdates the targeted edition. On success, <see cref="Advise"/> runs.</summary>
+    /// family postdates the targeted edition. Otherwise <see cref="Advise"/> decides: it carries the §15.33
+    /// width advisory AND the EC-SCREEN refusal (COBOLNET1707), and returns false when it refused.</summary>
     public static bool TryResolve(EditionContext edition, string raw, string where, out EcInfo info,
         bool requireLevel3 = false)
     {
@@ -41,6 +42,10 @@ internal static class EcNameResolution
         // the IS LOCALE sequence §8.8.4.2.11), so a program can >>TURN them on, name them in a USE declarative, or match
         // them in a WHEN phrase — as EC-ORDER-NOT-SUPPORTED has been since PB101 T7. Refusing a name whose condition
         // this compiler raises would make the condition unobservable.
+        // ⚠ THE EC-SCREEN FAMILY IS THE SAME SHAPE IN THE OTHER DIRECTION and lives in Advise (kb/Work PB260):
+        // Annex A.4.2 is still Not claimed, those four names have no raise site and no reader, and accepting
+        // them made a >>TURN or RAISE compile against a facility that does not exist. When the screen module is
+        // ever claimed, delete that branch exactly as PB64 T1 deleted this one — the two are one rule.
         if (requireLevel3 && info.Level != 3)
         {
             edition.Error("COBOLNET0710", $"{where}: exception-name '{info.Name}' is a level-{info.Level} "
@@ -54,9 +59,16 @@ internal static class EcNameResolution
                 + $"later (targeting COBOL-{edition.DialectLevel})");
             return false;
         }
-        Advise(edition, info);
-        return true;
+        return Advise(edition, info, where);
     }
+
+    /// <summary>True for the EC-SCREEN family (the level-2 name and its four level-3 names) — the exception
+    /// half of Annex A.4.2, which docs/CONFORMANCE.md §5 records as Not claimed. Written as ONE predicate over
+    /// the catalog's own hierarchy rather than a name list, so a level-3 EC-SCREEN name added to Table 13 is
+    /// covered without editing this file.</summary>
+    private static bool IsDeclinedScreenName(EcInfo info) =>
+        info.Name.Equals("EC-SCREEN", StringComparison.OrdinalIgnoreCase)
+        || ExceptionCatalog.UnderLevel2(info.Name, "EC-SCREEN");
 
     /// <summary>The §15.33 width advisory (COBOLNET1636, Warning — legal source stays legal): §15.33.3 r1 fixes
     /// FUNCTION EXCEPTION-STATUS's value at 31 characters while COBOL-2023 words run to 63 (§8.3.2.1) and the
@@ -67,15 +79,30 @@ internal static class EcNameResolution
     /// a documented-nowhere truncation (Phase-B F6). Below 2023 the word itself cannot reach here (the 31-char
     /// COBOL-2002 word limit rejects it first), so no edition guard is needed. One advisory per spelling —
     /// the same name legitimately appears at TURN + RAISE + USE in one program.</summary>
-    public static void Advise(EditionContext edition, EcInfo info)
+    /// <returns><see langword="false"/> when the name was REFUSED (today: the EC-SCREEN family) — every caller
+    /// must treat that as an unresolved name.</returns>
+    public static bool Advise(EditionContext edition, EcInfo info, string where = "exception-name")
     {
-        if (info.Level != 3 || info.Name.Length <= 31) return;
+        // ⛔ THE EC-SCREEN REFUSAL LIVES HERE, NOT AT THE SIX WRITING SITES (Annex A.4.2 item 10 names all six:
+        // the RAISING phrases of EXIT and GOBACK, the RAISING phrase of the procedure division header, the USE
+        // statement, the WHEN phrase of PERFORM, RAISE, and the TURN directive). Putting it in the resolution
+        // funnel is what makes it cover all of them at once — and the two RAISING sites that call Advise
+        // DIRECTLY (EcAddPdRaisingWord, DataBinder.Oo) are exactly the arms a per-site check would have missed
+        // (feedback_two_arm_dispatch). This is the shape the EC-LOCALE family had while A.4.9 was declined
+        // (kb/Work PB100), removed when PB64 T1 claimed that module and gave its names real raise sites.
+        if (IsDeclinedScreenName(info))
+        {
+            ScreenFacility.ReportExceptionName(edition, info.Name, where);
+            return false;
+        }
+        if (info.Level != 3 || info.Name.Length <= 31) return true;
         if (edition.Warnings.Any(w =>
-                w.Contains(DiagnosticCatalog.EcNameWiderThanStatus.Code) && w.Contains(info.Name))) return;
+                w.Contains(DiagnosticCatalog.EcNameWiderThanStatus.Code) && w.Contains(info.Name))) return true;
         edition.Warning(DiagnosticCatalog.EcNameWiderThanStatus,
             $"exception-name {info.Name} is {info.Name.Length} characters long; FUNCTION EXCEPTION-STATUS "
             + "returns a 31-character value (ISO §15.33.3 r1), so this name and any other sharing its first 31 "
             + "characters are indistinguishable through that function (checking and declarative selection use "
             + "the full name)");
+        return true;
     }
 }

@@ -193,9 +193,10 @@ public sealed class ReferenceResolver(DataBinder data)
     private void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
     {
         if (!_diagnosed.Add(dref)) return;
-        // kb/Work R32 — a name DECLARED in the (documented-unsupported) SCREEN SECTION is not undefined:
-        // the documented COBOLNET1560 posture is compile-accept, so the reference stays the staged loud
-        // (RefFailure names the screen-section cause), never the §8.4.2.1 diagnostic. The SAME shape for a
+        // kb/Work R32 — a name DECLARED in the SCREEN SECTION is not undefined. Since kb/Work PB260 the
+        // section itself is REFUSED (COBOLNET1560), so the compile already fails with the true cause; adding
+        // the §8.4.2.1 "is not defined" verdict on top would send the user hunting a declaration that is right
+        // there. Suppressing it here is cascade control, not leniency. The SAME shape for a
         // declared ALPHABET-NAME referenced in a data position (kb/Work R38 — GnuCOBOL's INSPECT CONVERTING
         // alphabet extension): declared-in-another-namespace is a different verdict than "not defined", and
         // whether the construct is admitted is R38's open adjudication, not this diagnostic's.

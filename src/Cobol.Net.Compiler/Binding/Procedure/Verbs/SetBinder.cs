@@ -30,6 +30,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             bool save = sl.cobolWord(0).Start.TokenIndex > sl.dataReference().Start.TokenIndex;   // F12: the words follow the identifier
             return save ? BindSaveLocale(sl) : BindSetLocale(sl);
         }
+        // F6 attribute (§14.9.39; Annex A.4.2 item 24) — DECLINED: the screen module. It had NO grammar
+        // alternative at all before kb/Work PB260, so `SET SG ATTRIBUTE HIGHLIGHT ON` was a generic COBOL0001
+        // parse error pointing at ATTRIBUTE rather than a named refusal naming the facility.
+        if (set.setScreenAttributeStatement() is { } sat)
+        {
+            ScreenFacility.ReportSetAttribute(ctx.Edition, sat.dataReference().GetText());
+            return new BoundNop();
+        }
         if (set.setLastExceptionStatement() is not null) return host.Ec.BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
         if (set.setEntryStatement() is { } se) return BindSetEntry(se);   // F9 + §8.4.3.13 ENTRY sender (P10 Step 7)
         if (set.setSizeStatement() is { } ss)

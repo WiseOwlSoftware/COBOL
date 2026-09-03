@@ -21,8 +21,13 @@ specialNameEntry
     | classDefinitionClause DOT?
     | symbolicCharactersClause DOT?
     | alphabetClause DOT?
-    | crtStatusClause DOT?
-    | cursorClause DOT?
+    // CRT STATUS / CURSOR (§12.3.7; Annex A.4.2 item 25 — the DECLINED screen module, refused by name at bind
+    // with COBOLNET1560). ⚠ RESERVATION-GATED. §8.9 reserves CRT and CURSOR from 2002 ONLY, so at COBOL-85 they
+    // are ordinary user words and `SPECIAL-NAMES. CURSOR IS FOO.` is a legal '85 implementor-switch entry that
+    // must keep parsing as one — the localeClause precedent exactly. Without the gate the '85 program drew a
+    // screen-facility refusal for a switch entry that has nothing to do with screens (kb/Work PB301).
+    | {reservedHere("CRT")}?    crtStatusClause DOT?
+    | {reservedHere("CURSOR")}? cursorClause DOT?
     | channelClause DOT?
     | reserveClause DOT?
     // MUST precede implementorSwitchEntry: `LOCALE FR IS "fr_FR"` otherwise matches `cobolWord (IS cobolWord)?`

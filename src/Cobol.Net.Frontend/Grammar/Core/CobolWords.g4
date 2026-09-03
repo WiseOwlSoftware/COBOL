@@ -12,6 +12,7 @@ cobolWord
     | AS
     | AUTO
     | AUTOMATIC
+    | BACKGROUND_COLOR
     | BELL
     | BINARY_ENCODING
     | BIT
@@ -28,6 +29,8 @@ cobolWord
     | {!reservedHere("COMMIT")}? COMMIT
     | CONDITION
     | CONSTANT
+    | {!reservedHere("CRT")}? CRT
+    | {!reservedHere("CURSOR")}? CURSOR
     | DEBUGGING
     | DECIMAL_ENCODING
     | DEFAULT
@@ -46,6 +49,7 @@ cobolWord
     | FACTORY
     | FLOAT_BINARY
     | FLOAT_DECIMAL
+    | FOREGROUND_COLOR
     | FOREVER
     | FORMAT
     | FULL_
@@ -84,6 +88,7 @@ cobolWord
     | RERUN
     | RESUME
     | RETRY
+    | REVERSE_VIDEO
     | {!reservedHere("ROLLBACK")}? ROLLBACK
     | ROUNDING
     | SCREEN

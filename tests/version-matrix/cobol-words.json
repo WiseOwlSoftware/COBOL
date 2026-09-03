@@ -26,6 +26,12 @@
    "note": "LOCK MODE AUTOMATIC (12.4.5.9, 2002+): 8.10 context-sensitive, a user word at every edition"
   },
   {
+   "token": "BACKGROUND_COLOR",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "screen BACKGROUND-COLOR attribute (token BACKGROUND_COLOR = 'BACKGROUND-COLOR'). ISO 8.10 lists it CONTEXT-SENSITIVE (\"screen description entry\") and 8.9 does NOT reserve it at any edition, so `01 BACKGROUND-COLOR PIC X.` is legal COBOL at 85/2002/2014/2023 - yet the lexer tokenizes the word and cobolWord did not admit it, so the declaration was a parse error. kb/Work PB301 (found by the A.4.2 screen-word sweep)."
+  },
+  {
    "token": "BELL",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -121,6 +127,20 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "constant entry / CONSTANT RECORD (13.10 / 13.18.15, 2002+): a user word at 85, funnel-0901'd >=2002 (the PROTOTYPE precedent; P10 Step 15)"
+  },
+  {
+   "token": "CRT",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the SPECIAL-NAMES CRT STATUS clause word. ISO 8.9 reserves CRT from 2002 ONLY (reserved-words.json r85 false), so at --std 85 it is an ordinary user word and `01 CRT PIC X.` is legal COBOL-85 - the lexer tokenizes it and cobolWord did not admit it, so the 85 declaration was a parse error. RESERVATION-GATED (the COMMIT/ROLLBACK precedent, kb/Work PB137): admitted only where 8.9 does not reserve it. kb/Work PB301.",
+   "reservationGated": true
+  },
+  {
+   "token": "CURSOR",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the SPECIAL-NAMES CURSOR clause word - the CRT twin, same 8.9 2002-only reservation and the same reservation gate. kb/Work PB301.",
+   "reservationGated": true
   },
   {
    "token": "DEBUGGING",
@@ -235,6 +255,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+  },
+  {
+   "token": "FOREGROUND_COLOR",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "screen FOREGROUND-COLOR attribute (token FOREGROUND_COLOR = 'FOREGROUND-COLOR') - the BACKGROUND-COLOR twin: 8.10 context-sensitive, never 8.9-reserved, so legal as a data-name at every edition. kb/Work PB301."
   },
   {
    "token": "FOREVER",
@@ -481,6 +507,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "the RETRY phrase (14.7.9, 2002+): a user word below 2002, funnel-0901'd >=2002"
+  },
+  {
+   "token": "REVERSE_VIDEO",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "screen REVERSE-VIDEO attribute (token REVERSE_VIDEO = 'REVERSE-VIDEO') - 8.10 context-sensitive (\"screen description entry and SET attribute statement\"), never 8.9-reserved, so legal as a data-name at every edition. kb/Work PB301."
   },
   {
    "token": "ROLLBACK",

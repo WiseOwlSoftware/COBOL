@@ -151,7 +151,13 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// compiles, runs, and the facility does nothing: COBOLNET1560/1578/1579/1580, satisfying §4.2.6 ¶3's
     /// mandatory compile-time warning mechanism); <see cref="EditionSeverity.Error"/> ⇒ REFUSE (an inert
     /// compile would change the ANSWER, so Annex A.4.1's "shall accept the syntax … only when support … is
-    /// claimed" applies: COBOLNET1705/1706).</para>
+    /// claimed" applies: COBOLNET1560/1705/1706/1707).</para>
+    /// <para>⛔ THE BAND SPLITS ON THE LICENCE, NOT ON TASTE, and that is why there is ONE method and not two:
+    /// an Annex A.3 processor-dependent facility is accepted-and-warned under §4.2.6, while an Annex A.4
+    /// optional module that is Not claimed is refused. Both are "name the facility, then bind to a no-op or
+    /// refuse"; only the severity differs, so the severity lives in the descriptor and every declined site —
+    /// A.3 and A.4, data surface and statement surface — calls THIS, never a local <c>if (severity == …)</c>
+    /// and never a second Report/Declined twin (feedback_one_mechanism_per_job).</para>
     /// <para>⛔ NOT routed through <see cref="Removed"/>: that is the strict/permissive migration seam for
     /// constructs an edition REMOVED, and a declined optional element has no pre-removal semantics to
     /// preserve. <c>--permissive</c> therefore does not move an A.3/A.4 decline in either direction — which is

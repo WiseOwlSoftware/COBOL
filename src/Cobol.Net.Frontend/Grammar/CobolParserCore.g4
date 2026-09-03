@@ -1183,6 +1183,7 @@ cancelTarget
 
 setStatement
     : setLocaleStatement          // F11/F12 (A.4.9 item 9) — FIRST: predicated on the LOCALE word, so no other form can claim it (kb/Work PB92)
+    | setScreenAttributeStatement // F6 (A.4.2 item 24) — predicated on the ATTRIBUTE word, refused by name at bind (COBOLNET1707)
     | setLastExceptionStatement
     | setSwitchStatement
     | setEntryStatement
@@ -1301,8 +1302,13 @@ setIndexStatement
 // ACCEPT (§14.9.0)
 // ==========================================
 
+// Formats 1 (device) and 2 (temporal) are IMPLEMENTED; format 3 (screen, §14.9.1.2 — Annex A.4.2 item 1) is a
+// DECLINED optional element given a surface here purely so it draws the named COBOLNET1707 instead of a generic
+// parse error, and so its MINIMAL shape stops being invisible: `ACCEPT screen-name-1` is token-identical to the
+// format-1 device ACCEPT, so without the binder's screen-name test it silently transfers device input into a
+// screen record (kb/Work PB260). The positioning and exception phrases live in CobolScreen.g4.
 acceptStatement
-    : ACCEPT dataReference (FROM acceptSource)? END_ACCEPT?   // END-ACCEPT: 2002+ (gated in VersionConformancePass; kb/Work PB134)
+    : ACCEPT dataReference (FROM acceptSource)? screenTail? END_ACCEPT?   // END-ACCEPT: 2002+ (gated in VersionConformancePass; kb/Work PB134)
     ;
 
 acceptSource
@@ -1322,8 +1328,16 @@ acceptSource
 // An operand may be a function-identifier (ISO §8.4.4.1 — an identifier includes a function-identifier;
 // §14.9.11.2 identifier-1): DISPLAY FUNCTION EXCEPTION-STATUS is the EC model's canonical interrogation shape.
 // functionCall starts with the FUNCTION token, so the alternative is unambiguous.
+// Format 2 (screen, §14.9.11.2 — Annex A.4.2 item 9) gets the same declined-but-named surface as ACCEPT
+// format 3. ⛔ THE OPERAND LOOP MUST STOP AT THE POSITIONING PHRASE. `DISPLAY SG COLUMN 5` used to bind as a
+// THREE-operand device DISPLAY because COL/COLS/COLUMN/COLUMNS are cobolWord alternatives while AT/LINE are
+// not — the same construct produced two different non-diagnoses (kb/Work PB260, GR-14.9.11.4-16). The
+// left-edge `{!screenPositionAhead()}?` closes it, and it is SAFE because AT, LINE and COLUMN are §8.9
+// reserved at EVERY edition (COL/COLS/COLUMNS from 2002, which the predicate honours via reservedHere): none
+// of them can legally be a DISPLAY operand, so nothing legal is lost.
 displayStatement
-    : DISPLAY (dataReference | literal | functionCall)+ displayUpon? displayNoAdvancing? END_DISPLAY?
+    : DISPLAY ({!screenPositionAhead()}? (dataReference | literal | functionCall))+
+      displayUpon? displayNoAdvancing? screenTail? END_DISPLAY?
     ;
 
 displayUpon

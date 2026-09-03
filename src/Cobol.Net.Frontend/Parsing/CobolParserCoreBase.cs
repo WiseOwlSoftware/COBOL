@@ -135,6 +135,48 @@ public abstract class CobolParserCoreBase : Parser
         string.Equals(TokenStream.LT(1)?.Text, "ORDER", StringComparison.OrdinalIgnoreCase)
         && TokenStream.LT(2)?.Type == CobolLexer.TABLE;
 
+    /// <summary>SET screen-name-1 ATTRIBUTE … (ISO §14.9.39.2 Format 6 — Annex A.4.2 item 24; kb/Work PB260) —
+    /// a LEFT-EDGE predicate (LT(1) is the SET token itself): true when the word ATTRIBUTE stands somewhere in
+    /// the receiver position, i.e. after a bounded walk over screen-name-1 and any qualifiers.
+    /// <para>ATTRIBUTE is a §8.10 CONTEXT-SENSITIVE word ("SET statement"), never reserved, so it is not a lexer
+    /// token — the same reason ORDER and LOCALE are read as text here.</para>
+    /// <para>⛔ NOT EDITION-GATED, the ORDER TABLE precedent. `SET x ATTRIBUTE …` has no other reading at any
+    /// edition: Format 1 requires TO, Format 2 requires UP/DOWN BY, and a bare `SET x y` is not a SET at all — so
+    /// there is no COBOL-85 reading to protect, and recognizing the shape everywhere is what lets the named
+    /// COBOLNET1707 refusal replace a raw parse error below 2002 as well as above it.</para></summary>
+    protected bool setAttributeAhead()
+    {
+        for (int i = 2; i <= 12; i++)
+        {
+            var t = TokenStream.LT(i);
+            if (t is null || t.Type == TokenConstants.EOF || t.Type == CobolLexer.DOT) return false;
+            if (Word(t, "ATTRIBUTE")) return i > 2;   // i == 2 would mean SET *with no receiver*
+        }
+        return false;
+    }
+
+    /// <summary>True when the next token opens the ACCEPT-format-3 / DISPLAY-format-2 POSITIONING PHRASE (ISO
+    /// §14.9.1.2 / §14.9.11.2: <c>[AT {|[LINE NUMBER …] [{COLUMN|COL} NUMBER …]|}]</c>) — the guard that stops
+    /// the DISPLAY operand loop from swallowing it.
+    /// <para>⛔ WHY THIS IS SAFE RATHER THAN A HEURISTIC. AT, LINE and COLUMN are §8.9 reserved words at EVERY
+    /// edition, so none of them can be a user-defined word and none can legally begin a DISPLAY operand; the
+    /// plural/abbreviated spellings COL, COLS and COLUMNS are reserved only from 2002, so they are tested
+    /// through <see cref="reservedHere"/> and stay ordinary user words at COBOL-85 (where <c>DISPLAY COLS</c> is
+    /// legal and must keep binding as a one-operand device DISPLAY). Without this, `DISPLAY SG COLUMN 5` bound
+    /// as a three-operand device DISPLAY while `DISPLAY SG COLUMN NUMBER 5` was a parse error — one construct,
+    /// two non-diagnoses (kb/Work PB260).</para></summary>
+    protected bool screenPositionAhead()
+    {
+        var t = TokenStream.LT(1);
+        if (t is null) return false;
+        return t.Type switch
+        {
+            CobolLexer.AT or CobolLexer.LINE or CobolLexer.COLUMN => true,
+            CobolLexer.COL or CobolLexer.COLS or CobolLexer.COLUMNS => reservedHere(t.Text),
+            _ => false,
+        };
+    }
+
     protected bool localeClauseAhead()
     {
         if (!string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase)) return false;
