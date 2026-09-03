@@ -79,9 +79,13 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     /// there. <c>conformance:negative/oo-multi-base-super</c> and the OO corpus exercise the method path.</para></summary>
     public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx) => null;
 
-    /// <summary>The §13.16.2 "validation-clauses" group of the DECLINED A.4.14 VALIDATE facility: DEFAULT
-    /// (§13.18.17), DESTINATION (§13.18.18), INVALID (§13.18.31), PRESENT WHEN format 2 (§13.18.41), VARYING's
-    /// validation leg (§13.18.64) and VALIDATE-STATUS / VAL-STATUS (§13.18.62).
+    /// <summary>The §13.16.2 "validation-clauses" group of the DECLINED A.4.14 VALIDATE facility: CLASS
+    /// (§13.18.11), DEFAULT (§13.18.17), DESTINATION (§13.18.18), INVALID (§13.18.31), PRESENT WHEN format 2
+    /// (§13.18.41), VARYING's validation leg (§13.18.64) and VALIDATE-STATUS / VAL-STATUS (§13.18.62).
+    /// <para>⚠ CLASS is the one the annex does not list. It joins the group by owner decision (kb/Work PB375,
+    /// 2026-09-02) on §13.16.2's own ground — the printed Format-1 validation-clauses block opens with
+    /// <c>[ class-clause ]</c> and maps it to "13.18.11, CLASS clause" — and because §13.18.11.1 gives the
+    /// clause no content outside the module. It needed no arm here, which is the derived namer working.</para>
     /// <para>⚠ PRESENT WHEN and VARYING are SHARED with report writer, which IS supported (Annex A.4.11 items 14
     /// and 20; <c>docs/CONFORMANCE.md</c> §5 records report writer as Partial with both implemented). The two
     /// legs are told apart by WHERE the clause is written, not by how — so the report-writer forms have their
@@ -126,8 +130,17 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     /// <summary>Name the clause from its OWN leading keywords — the terminals before the first sub-rule, minus
     /// the §5.2.3 optional connectives. Derived rather than switched so a new alternative added to
     /// <c>validationClause</c> is named correctly with no code change here (CLAUDE.md rule 5: prefer the shape
-    /// that makes the next case automatic). Yields DEFAULT · DESTINATION · INVALID WHEN · PRESENT WHEN ·
-    /// VARYING · VALIDATE-STATUS · VAL-STATUS.</summary>
+    /// that makes the next case automatic). Yields CLASS · DEFAULT · DESTINATION · INVALID WHEN · PRESENT WHEN ·
+    /// VARYING · VALIDATE-STATUS · VAL-STATUS.
+    /// <para>⛔ THE GRAMMAR CONTRACT THIS RESTS ON, stated because it is invisible from here and was first
+    /// tested by the CLASS clause: an alternative of <c>validationClause</c> must put its OPERANDS in a
+    /// sub-rule, never inline as terminals. Every alternative before CLASS took operands that were already
+    /// sub-rules (<c>literal</c>, <c>dataReference</c>, <c>condition</c>), so the contract had never been
+    /// exercised; CLASS's operands are the reserved words NUMERIC / ALPHABETIC / ALPHABETIC-LOWER /
+    /// ALPHABETIC-UPPER, and inlining them would have produced "the CLASS NUMERIC clause" — a diagnostic that
+    /// renames the clause after whatever the user wrote. <c>validateClassOperand</c> exists for that reason and
+    /// <c>DeclinedFacilityTests.ClassClause_IsNamedByItsClauseWord_NotByItsOperand</c> makes the contract
+    /// fail loudly rather than silently.</para></summary>
     private static string ClauseName(CobolParserCore.ValidationClauseContext ctx)
     {
         var words = new List<string>();

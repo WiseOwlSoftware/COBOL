@@ -33,9 +33,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   carries the scratchpad and pinned-worktree paths):** ① ✅ **DONE 2026-09-03 — battery #42** on `80b4f1e6` (the
   CURRENT reference bullet under "Gates": every test leg green; 7 differential flips, all `COBOLNET1560`,
   rebaselined; the citation red was a stale gitignored generation, `PB378`, fixed in the same commit; six misfiled citations the
-  un-gated doc audit found are `PB379`, implementer in flight); ② the PB371 + CLASS-clause
-  implementer (fourteen vacuous syntax rules close on the witnesses that pin their refused antecedent; the CLASS
-  clause joins the declined VALIDATE family — owner decisions 2026-09-02); ③ lane 3 batch 2 from its on-disk
+  un-gated doc audit found are `PB379`, implementer in flight); ② ✅ **DONE 2026-09-03 — PB371 + PB375
+  landed, GAP 3119 → 3106** (SEVEN vacuous syntax rules, not fourteen — the other seven state live content under
+  the complement — each closed on its own negative witness writing the rule's forbidden construct beside the
+  refused APPLY COMMIT; the CLASS clause §13.18.11 joins the declined VALIDATE family with one grammar
+  alternative, one descriptor sentence, one selector arm, one witness, no new code; `PB382` opened for the
+  reserved-word funnel COBOLNET0901 reaching only the words `dataName` admits); ③ lane 3 batch 2 from its on-disk
   checkpoints, then its registrar, then batch 3 (inputs and pinned compiler ready); ④ golden-lane round 2 from its
   drafts (61 CONFORMS-untested rows), then its validator and lander; ⑤ the ledger refresh after each. Owner-decision
   queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts).

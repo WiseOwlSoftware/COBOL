@@ -148,4 +148,87 @@ public sealed class DeclinedFacilityTests
         Assert.True(okPermissive, "--permissive: the declined clause downgrades through the Removed() seam");
         EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1708");
     }
+
+    private const string ClassEntry = """
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. DCLCLSU.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 WS-REC.
+                      05 WS-A PIC X(4) CLASS IS NUMERIC.
+                   PROCEDURE DIVISION.
+                       DISPLAY WS-A.
+                       STOP RUN.
+
+               """;
+
+    /// <summary>⛔ THE GRAMMAR CONTRACT <c>DeclinedFacilityPass.ClauseName</c> RESTS ON, made observable. The
+    /// namer takes the LEADING TERMINAL RUN of the matched alternative, which is what lets a new alternative of
+    /// <c>validationClause</c> be named with no code change. Every alternative before the §13.18.11 CLASS clause
+    /// took operands that were already sub-rules (<c>literal</c> / <c>dataReference</c> / <c>condition</c>), so
+    /// the contract had never been exercised and could not fail. CLASS's operands are the RESERVED WORDS
+    /// NUMERIC / ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER (§13.18.11.2, rendered at PDF p412), so an
+    /// inlined alternation would make the leading terminal run "CLASS NUMERIC" and the diagnostic would rename
+    /// the clause after whatever the user wrote. <c>validateClassOperand</c> is why it does not.
+    /// <para>Make it fail once: inline the operand alternation into <c>validateClassClause</c> and the
+    /// <c>DoesNotContain</c> goes red.</para></summary>
+    [Fact]
+    public void ClassClause_IsNamedByItsClauseWord_NotByItsOperand()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(ClassEntry, 2023);
+        Assert.False(ok, "strict: the declined A.4.14 CLASS clause is an ERROR (Annex A.4.1)");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1708");
+        string message = string.Join("\n", errors);
+        Assert.Contains("the CLASS clause of the", message, StringComparison.Ordinal);
+        Assert.DoesNotContain("CLASS NUMERIC clause", message, StringComparison.Ordinal);
+    }
+
+    /// <summary>THE EDITION ARM, and it is NOT the arm kb/Work PB375 asked for. PB375 proposed the same control
+    /// every other declined validation clause has — "the word is a legal user-defined word at COBOL-85, so
+    /// <c>01 CLASS PIC X.</c> must still compile". MEASURED against
+    /// <c>tests/version-matrix/reserved-words.json</c>, that premise is FALSE: CLASS is reserved at all four
+    /// editions ("continuous since 1985"), because §12.3.7's SPECIAL-NAMES CLASS clause has always existed.
+    /// <para>The fact the <c>{is2002()}?</c> gate actually carries is this one: the DATA-DESCRIPTION CLASS
+    /// clause (§13.18.11) arrived with VALIDATE at COBOL-2002, so at <c>--std 85</c> the entry is a construct
+    /// that does not exist in the targeted edition — an ordinary syntax error — and naming the declined
+    /// VALIDATE facility there would be the wrong answer under the four-editions mandate. Without this leg the
+    /// theory above would pass just as well against an ungated arm.</para></summary>
+    [Fact]
+    public void ClassClauseAt85_IsNotTheDeclinedFacility_ButAPlainSyntaxError()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(ClassEntry, 85);
+        Assert.False(ok, "the §13.18.11 CLASS clause does not exist at COBOL-85");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1708");
+    }
+
+    /// <summary>⛔ THE NEIGHBOURING HAZARD, which is a SUPPORTED construct sharing the same word — the shape
+    /// <c>conformance:negative/declined-validate-entry-name-still-0901</c> exists for on the DESTINATION side.
+    /// §12.3.7's SPECIAL-NAMES CLASS clause (<c>CLASS class-name IS literal THRU literal</c>) is claimed,
+    /// implemented and reachable through the class condition; adding a data-description arm on the same leading
+    /// token must not disturb it. Asserted by RUNNING it, not merely compiling it, because a decline that fired
+    /// in the environment division would still let the program compile with the class condition mis-bound.</summary>
+    [Fact]
+    public void SpecialNamesClassClause_IsUnaffectedByTheDeclinedDataDescriptionArm()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull("""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. DCLCLSSN.
+                   ENVIRONMENT DIVISION.
+                   CONFIGURATION SECTION.
+                   SPECIAL-NAMES.
+                       CLASS HEXDIG IS "0" THRU "9" "A" THRU "F".
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 WS-A PIC X(4) VALUE "1A2B".
+                   PROCEDURE DIVISION.
+                       IF WS-A IS HEXDIG
+                           DISPLAY "HEX"
+                       END-IF.
+                       STOP RUN.
+
+               """, 2023);
+        Assert.True(ok, "the §12.3.7 SPECIAL-NAMES CLASS clause is CLAIMED and must keep compiling: "
+            + string.Join("\n", errors));
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1708");
+    }
 }

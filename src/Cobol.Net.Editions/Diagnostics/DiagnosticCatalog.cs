@@ -1703,13 +1703,18 @@ public static class DiagnosticCatalog
     //    implementation does not provide the facility.
     public static readonly DiagnosticDescriptor ValidateDataDivisionClauseUnsupported = new(
         "COBOLNET1708", "validate-data-division-clause-unsupported", EditionSeverity.Error,
-        "A data-division clause of the VALIDATE facility (the §13.16.2 validation-clauses group — DEFAULT, "
-        + "DESTINATION, INVALID, PRESENT WHEN format 2, VARYING's validation leg, VALIDATE-STATUS/VAL-STATUS — "
-        + "or the §13.18.63 format-5 content-validation entry) is written. The VALIDATE facility is an OPTIONAL "
-        + "element (Annex A.4.14) whose support COBOL.NET does not claim (docs/CONFORMANCE.md §4 item 3, §5), "
-        + "and at COBOL-2023 it is additionally OBSOLETE (§4.2.13; Annex F.2 item 5); Annex A.4.1 admits the "
-        + "syntax only when support IS claimed, so the clause is refused by name. The clause exists from "
-        + "COBOL-2002 — below that its words are user-defined words (§8.9).",
+        "A data-division clause of the VALIDATE facility (the §13.16.2 validation-clauses group — CLASS, "
+        + "DEFAULT, DESTINATION, INVALID, PRESENT WHEN format 2, VARYING's validation leg, "
+        + "VALIDATE-STATUS/VAL-STATUS — or the §13.18.63 format-5 content-validation entry) is written. The "
+        + "VALIDATE facility is an OPTIONAL element (Annex A.4.14) whose support COBOL.NET does not claim "
+        + "(docs/CONFORMANCE.md §4 item 3, §5), and at COBOL-2023 it is additionally OBSOLETE (§4.2.13; Annex "
+        + "F.2 item 5); Annex A.4.1 admits the syntax only when support IS claimed, so the clause is refused by "
+        + "name. Every clause of the group exists from COBOL-2002. CLASS is the one whose leading word is "
+        + "reserved BELOW that edition too (§12.3.7's SPECIAL-NAMES CLASS clause, continuous since 1985), so "
+        + "at --std 85 `CLASS IS NUMERIC` in a data description entry is an ordinary syntax error rather than "
+        + "this decline; for the others the word is a user-defined word there (§8.9). Annex A.4 does not list "
+        + "CLASS among A.4.14's items — it reaches the module through §13.16.2's validation-clauses group, "
+        + "which opens with `[ class-clause ]` (owner decision, kb/Work PB375, 2026-09-02).",
         "ISO Annex A.4.1 / Annex A.4.14 / §13.16.2 / §4.2.13", DeclinedOptionalElement, PermissiveInert: true);
     public static readonly DiagnosticDescriptor ApplyCommitClauseUnsupported = new(
         "COBOLNET1709", "apply-commit-clause-unsupported", EditionSeverity.Error,

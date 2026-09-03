@@ -14253,12 +14253,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "LOCK MODE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported; src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause",
+  "test-ref": "conformance:negative/apply-commit-lock-mode",
+  "editions": "2023",
+  "notes": "OWNER DECISION, kb/Work PB371, 2026-09-02 — CONFORMS + a witness pinning the refusal. §12.4.5.9.3 SR1 forbids the LOCK MODE clause \"for a file that is the subject of an APPLY COMMIT clause\". The LOCK MODE clause is CLAIMED; the antecedent is the APPLY COMMIT clause (ISO §12.4.6.3), Annex A.4.3 item 2 of the declined commit-and-rollback module, which COBOLNET1709 refuses BY NAME at every site (docs/CONFORMANCE.md §4 item 2, §5 row A.4.3). No compilable program can create the antecedent, so the rule is vacuously satisfied and holds. ⛔ NOT DOCUMENTED-NON-SUPPORT: this rule's subject is LOCK MODE, a facility A.4.7 claims, and §4.2.7 discharges non-support through user documentation that declines COMMIT AND ROLLBACK — never LOCK MODE. The `commit-and-rollback-only` derived selector NAMES this row and deliberately excludes it for that reason. Editions is 2023 because the APPLY COMMIT clause is a COBOL-2023 addition (Annex E.3.2 item 2). The witness writes the rule's OWN forbidden pairing, so the verdict is forced back to a real adjudication the day A.4.3 is claimed.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.9.3-2",
@@ -15124,12 +15124,12 @@
   "kind": "SR",
   "ordinal": 11,
   "subject": "SAME clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported; src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause",
+  "test-ref": "conformance:negative/apply-commit-same-area",
+  "editions": "2023",
+  "notes": "OWNER DECISION, kb/Work PB371, 2026-09-02 — CONFORMS + a witness pinning the refusal. §12.4.6.4.3 SR11: \"A file or record area that is subject to an APPLY COMMIT clause shall not be specified with another file or record area that is not subject to an APPLY COMMIT clause.\" The SAME clause (§12.4.6.4) is CLAIMED and supported; the antecedent is the APPLY COMMIT clause, Annex A.4.3 item 2, refused by name (COBOLNET1709). No accepted program can put a file in an APPLY COMMIT clause, so the rule cannot be violated. ⛔ NOT DOCUMENTED-NON-SUPPORT — the verdict field would speak about SAME, a claimed facility; see the `commit-and-rollback-only` selector, which names this row among its exclusions. Editions 2023: the APPLY COMMIT clause is a COBOL-2023 addition (Annex E.3.2 item 2).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.6.4.4-1",
@@ -15163,12 +15163,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "SAME clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported; src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause",
+  "test-ref": "conformance:negative/apply-commit-same-area-shared",
+  "editions": "2023",
+  "notes": "OWNER DECISION, kb/Work PB371, 2026-09-02 — CONFORMS + a witness pinning the refusal. §12.4.6.4.4 GR3: \"The file and record area of a file subject to commit and rollback may not be shared with another such file or record area unless it has been closed, a commit or a rollback has been executed and the APPLY COMMIT clause for the file has been deactivated.\" ⚠ ITS SHAPE IS NOT SR-12.4.6.4.3-11'S and it therefore gets its OWN witness: SR11 forbids mixing a commit-subject file with one that is NOT subject, while GR3 says \"another SUCH file\" — BOTH files subject to commit and rollback. The SAME clause (§12.4.6.4) is CLAIMED and supported; the antecedent is the APPLY COMMIT clause (ISO §12.4.6.3), Annex A.4.3 item 2, refused BY NAME by COBOLNET1709, so no file is ever subject to the facility and the rule cannot be violated. ⛔ NOT DOCUMENTED-NON-SUPPORT: the verdict field would speak about SAME, a claimed facility, and §4.2.7 discharges non-support through user documentation that declines commit and rollback — never SAME. The `commit-and-rollback-only` derived selector names this row among its exclusions for that reason. Editions 2023: the APPLY COMMIT clause is a COBOL-2023 addition (Annex E.3.2 item 2).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.6.4.4-4",
@@ -17386,12 +17386,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "CLASS clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+  "test-ref": "conformance:negative/declined-validate-class; conformance-test:DeclinedFacilityTests.ClassClause_IsNamedByItsClauseWord_NotByItsOperand; conformance-test:DeclinedFacilityTests.ClassClauseAt85_IsNotTheDeclinedFacility_ButAPlainSyntaxError",
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3, which already named CLASS a validation clause. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules — which is the sentence CLASS needs, because Annex A.4 never LISTS this clause. OWNER DECISION, kb/Work PB375, 2026-09-02: the clause is DECLINED WITH VALIDATE, on §13.16.2's own ground — the printed Format-1 validation-clauses group opens with `[ class-clause ]` and maps it to \"13.18.11, CLASS clause\" (RENDERED, PDF p394 / folio 364) — and §13.18.11.1 leaves it no content outside the module. Refused BY NAME (COBOLNET1708) where it drew a bare \"COBOL0307: unexpected 'CLASS'\" before. Editions are the DATA-DESCRIPTION clause's band, not the word's: CLASS itself is reserved at all four editions (§12.3.7 SPECIAL-NAMES CLASS clause), so at --std 85 this entry is an ordinary syntax error rather than this decline.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.11.4-1",
@@ -17399,12 +17399,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "CLASS clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+  "test-ref": "conformance:negative/declined-validate-class; conformance-test:DeclinedFacilityTests.ClassClause_IsNamedByItsClauseWord_NotByItsOperand",
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02 — the CLASS clause is DECLINED WITH VALIDATE. This rule is the clause's own statement of that confinement: \"The CLASS clause takes effect during the content validation stage of the execution of a VALIDATE statement. The CLASS clause is ignored during the execution of any statement other than a VALIDATE statement.\" With no VALIDATE statement implemented there is no stage for it to take effect in, and the clause is refused by name (COBOLNET1708) rather than accepted and ignored.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.11.4-2",
@@ -17412,12 +17412,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "CLASS clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+  "test-ref": "conformance:negative/declined-validate-class",
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02. The rule conditions the clause on the item's internal indicator after the FORMAT VALIDATION stage — a per-item state that exists only inside a VALIDATE statement (§14.9.50.4), so nothing of it survives the decline.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.11.4-3",
@@ -17425,12 +17425,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "CLASS clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+  "test-ref": "conformance:negative/declined-validate-class",
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02. ⚠ The rule DELEGATES to §8.8.4.4, Simple class condition — a CLAIMED facility — but what it states is the setting of the item's internal indicator to invalid on content, which only a VALIDATE statement has. The class CONDITION's own rows are separate and unaffected; §12.3.7's SPECIAL-NAMES CLASS clause, which defines class-name-1, likewise stays claimed and implemented.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.11.4-4",
@@ -17438,12 +17438,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "CLASS clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+  "test-ref": "conformance:negative/declined-validate-class",
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02. The group-item propagation of General rules 2 and 3, carrying the same VALIDATE-only content, with a PRESENT WHEN exemption that is itself a declined clause of the same group.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.12.3-1",
@@ -35053,12 +35053,12 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "OPEN statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported; src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause",
+  "test-ref": "conformance:negative/apply-commit-open-sharing",
+  "editions": "2023",
+  "notes": "OWNER DECISION, kb/Work PB371, 2026-09-02 — CONFORMS + a witness pinning the refusal. §14.9.27.3 SR7: \"The sharing phrase shall not be specified for a file subject to an APPLY COMMIT clause.\" OPEN and its sharing phrase are CLAIMED (A.4.7); the antecedent is the APPLY COMMIT clause, Annex A.4.3 item 2, refused by name (COBOLNET1709), so no OPEN in this implementation can violate SR7. ⛔ NOT DOCUMENTED-NON-SUPPORT — §4.2.7 discharges non-support through documentation that declines commit and rollback, never OPEN. ⚠ Distinguish the SIBLING SR-14.9.27.3-8, whose antecedent is the COMPLEMENT (\"When file-name-1 is NOT subject to an APPLY COMMIT clause\") and is therefore always true here: its content is live and it carries its own verdict. Editions 2023 (Annex E.3.2 item 2).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.27.3-8",
@@ -36132,12 +36132,12 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "READ statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported; src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause",
+  "test-ref": "conformance:negative/apply-commit-read-lock",
+  "editions": "2023",
+  "notes": "OWNER DECISION, kb/Work PB371, 2026-09-02 — CONFORMS + a witness pinning the refusal. §14.9.30.3 SR5 (format-1 sublist): \"If file-name-1 is subject to an APPLY COMMIT clause, none of the phrases IGNORING LOCK, WITH LOCK, or WITH NO LOCK shall be specified.\" READ and its record-locking phrases are CLAIMED; the antecedent is the APPLY COMMIT clause, Annex A.4.3 item 2, refused by name (COBOLNET1709). ⚠ Do not confuse it with the adjacent SR-14.9.30.3-4, which forbids the same three phrases under the REACHABLE antecedent \"If automatic locking has been specified for file-name-1\" — that rule has live content and is not covered here. ⛔ NOT DOCUMENTED-NON-SUPPORT: the subject is READ, a claimed facility. Editions 2023 (Annex E.3.2 item 2).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.30.3-6",
@@ -37263,12 +37263,12 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "REWRITE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported; src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause",
+  "test-ref": "conformance:negative/apply-commit-rewrite-lock",
+  "editions": "2023",
+  "notes": "OWNER DECISION, kb/Work PB371, 2026-09-02 — CONFORMS + a witness pinning the refusal. §14.9.35.3 SR5: \"If the rewrite file is subject to an APPLY COMMIT clause, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified.\" REWRITE and its lock phrases are CLAIMED; the antecedent is the APPLY COMMIT clause, Annex A.4.3 item 2, refused by name (COBOLNET1709). ⚠ A DIFFERENT decline lives in the same statement and is not this row's: REWRITE's FILE phrase is Annex A.4.13 item 2 (COBOLNET1706) — the witness writes the mandatory `REWRITE record-name` alternative so only the APPLY COMMIT refusal can fire. ⛔ NOT DOCUMENTED-NON-SUPPORT: the subject is REWRITE, a claimed facility. Editions 2023 (Annex E.3.2 item 2).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.35.3-6",
@@ -41332,12 +41332,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "UNLOCK statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported; src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause",
+  "test-ref": "conformance:negative/apply-commit-unlock",
+  "editions": "2023",
+  "notes": "OWNER DECISION, kb/Work PB371, 2026-09-02 — CONFORMS + a witness pinning the refusal. §14.9.47.3 SR2: \"File-name-1 shall not be a file specified in an APPLY COMMIT clause.\" This is the row PB371's bare question was written around: UNLOCK is CLAIMED, and §4.2.7 discharges non-support through user documentation that declines commit and rollback — never UNLOCK — so DOCUMENTED-NON-SUPPORT was never available for it, and the `commit-and-rollback-only` derived selector excludes it by name. It records CONFORMS because the APPLY COMMIT clause (Annex A.4.3 item 2) is refused by name (COBOLNET1709) and no file can be specified in one. Editions 2023 (Annex E.3.2 item 2).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.47.4-1",
@@ -50549,12 +50549,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "CLASS clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolDeclined.g4#validateClassClause; src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+  "test-ref": "conformance:negative/declined-validate-class",
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02. The GENERAL FORMAT row: the grammar RECOGNIZES the printed format — `CLASS IS { NUMERIC | ALPHABETIC | ALPHABETIC-LOWER | ALPHABETIC-UPPER | BOOLEAN | alphabet-name-1 | class-name-1 }`, RENDERED at PDF p412 / folio 382 (CLASS and the five keywords underlined, IS not; a plain required choice with no choice indicators) — and refuses it by name rather than failing to parse it. BOOLEAN has no lexer token and rides the class-name-1 arm, which is unobservable because the clause is refused whichever arm matched. The negative fixture exercises BOTH arms (a class-name and a keyword, the latter without the optional word IS).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.12.2",

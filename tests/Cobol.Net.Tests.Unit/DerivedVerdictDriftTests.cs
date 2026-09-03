@@ -515,11 +515,27 @@ public sealed class DerivedVerdictDriftTests
         // The Report Writer arm of VARYING, which §5 records as implemented under A.4.11.
         Assert.DoesNotContain("GR-13.18.64.4-3", ids);
         Assert.DoesNotContain("GR-13.18.64.4-5", ids);
-        // ⛔ THE §13.18.11 CLASS CLAUSE IS AN OPEN OWNER QUESTION, NOT A DERIVED ROW: its content is entirely
-        // VALIDATE, yet Annex A.4 never lists it and it carries no obsolete-feature NOTE. If it is not optional,
-        // A.4.1 obliges us to ACCEPT `CLASS IS NUMERIC` — and we reject it.
-        foreach (string id in (string[])["GR-13.18.11.4-1", "GR-13.18.11.4-2", "SR-13.18.11.3-1"])
+        // ⚖ THE §13.18.11 CLASS CLAUSE IS IN, by OWNER DECISION 2026-09-02 (kb/Work PB375) — these three
+        // assertions were `DoesNotContain` while the question was open. Its content is entirely VALIDATE, yet
+        // Annex A.4 never lists it and it carries no obsolete-feature NOTE, so the alternative reading (not
+        // optional ⇒ A.4.1 obliges us to ACCEPT `CLASS IS NUMERIC`) was live and an agent could not settle it.
+        // The deciding ground is §13.16.2 itself: its printed Format-1 validation-clauses group opens with
+        // `[ class-clause ]` and maps it to "13.18.11, CLASS clause".
+        foreach (string id in (string[])
+                 ["SR-13.18.11.3-1", "GR-13.18.11.4-1", "GR-13.18.11.4-2", "GR-13.18.11.4-3",
+                  "GR-13.18.11.4-4", "FMT-13.18.11.2"])
+            Assert.Contains(id, ids);
+        // ⛔ AND THE WORD IS NOT THE CLAUSE — the arm keys on the SECTION, so the two CLAIMED constructs that
+        // spell CLASS are untouched: §12.3.7's SPECIAL-NAMES CLASS clause and §8.8.4.4's simple class
+        // condition. This is what fails if someone re-expresses the arm as a text pattern on "CLASS clause".
+        // (Both ids are real catalog rows — a DoesNotContain on a rule-id that does not exist is vacuously
+        // green, which is how a control stops being evidence.)
+        var catalogIds = Catalog().Select(r => r.Id).ToHashSet(StringComparer.Ordinal);
+        foreach (string id in (string[])["SR-12.3.7.3-1", "SR-8.8.4.4.3-1"])
+        {
+            Assert.Contains(id, catalogIds);
             Assert.DoesNotContain(id, ids);
+        }
         // EC-DATA-INCOMPATIBLE names VALIDATE only to exempt it.
         Assert.DoesNotContain("GR-14.6.13.2-1", ids);
         Assert.DoesNotContain("GR-14.6.13.2-2", ids);
