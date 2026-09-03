@@ -35,12 +35,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   subtract were mid-chunk at the stop); resume the refute workflow with the same args and an empty
   `adjudicateFirst`, then registrar b2 from its brief (ids PB387+); ② batch 3 (17 inputs ready) on a FRESH pin
   cut from current main and built when no fleet is live (the fleet guard refuses a build while one runs);
-  ③ owner question **`PB386`** — a rule with no observable obligation (Annex A.2 undefinedness, an unpopulatable
-  antecedent, an indistinguishable consequent) has no closure path; may a CHECKABLE owner-signed derivation stand
-  in place of a test for exactly that class? — ask as the bare question, with `PB280` Q2's "No" as the precedent
-  it must be distinguished from; ④ `PB383` (BOOLEAN-OF-INTEGER returns "0" where a zero-length value is
+  ③ ⚖ **`PB386` DECIDED 2026-09-03 — YES, checkable only:** a rule with no observable obligation (Annex A.2
+  undefinedness, an unpopulatable antecedent, an indistinguishable consequent) may close on a checkable
+  owner-signed derivation in CONFORMANCE.md — the A.2 arm mechanical, the other two reviewed arguments,
+  `Schema.state_for` + `DerivedState` in one change set, a drift test refusing a derivation on a row WITH an
+  obligation; implement it as a fix-lane item (eight rows); ④ `PB383` (BOOLEAN-OF-INTEGER returns "0" where a zero-length value is
   documented — wrong answer) into the fix lane, `PB380` (reachability probe) and `PB382` (the reserved-word
-  funnel's recovery arm) behind it; ⑤ the ledger refresh after each landing. Owner-decision queue: `PB386` and
+  funnel's recovery arm) behind it; ⑤ the ledger refresh after each landing. Owner-decision queue: only
   the `USAGE POINTER TO type-name` edition item (`A1`).
 - **▶ SESSION HANDOFF (2026-09-02 evening — superseded by the third-pause bullet above):**
   the two-lane campaign's first day ended with **GAP 3636 → 3119**, DOCUMENTED-NON-SUPPORT 36 → 340, twenty landings
