@@ -30,15 +30,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   predicate guarding a mandatory first operand) was fixed in the last landing; the register holds 110 actionable
   items (batch 1's 85 I/O mechanisms among them). ⛔ Run the probe; the worklist is `kb/Work/`, never this paragraph.
   **Owed on resume, in this order (all briefed — the orchestrator's memory `burndown-campaign-pause-2026-09-02`
-  carries the scratchpad and pinned-worktree paths):** ① **battery #42** — comprehensive, owed since the golden lane
-  `c11949e3`, on a tree twenty landings past #41; expect the rebaselined differential totals; ② the PB371 + CLASS-clause
+  carries the scratchpad and pinned-worktree paths):** ① ✅ **DONE 2026-09-03 — battery #42** on `80b4f1e6` (the
+  CURRENT reference bullet under "Gates": every test leg green; 7 differential flips, all `COBOLNET1560`,
+  rebaselined; the citation red was a stale gitignored generation, `PB378`, fixed in the same commit; six misfiled citations the
+  un-gated doc audit found are `PB379`, implementer in flight); ② the PB371 + CLASS-clause
   implementer (fourteen vacuous syntax rules close on the witnesses that pin their refused antecedent; the CLASS
   clause joins the declined VALIDATE family — owner decisions 2026-09-02); ③ lane 3 batch 2 from its on-disk
   checkpoints, then its registrar, then batch 3 (inputs and pinned compiler ready); ④ golden-lane round 2 from its
   drafts (61 CONFORMS-untested rows), then its validator and lander; ⑤ the ledger refresh after each. Owner-decision
   queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts).
-  A named CI flake to register: `Collation.CollationKeyCacheTests.ConcurrentCallers_GetOneKeyPerText_AndNeverAWrongOne`
-  failed on two of seven Linux unit runs today (A12 shape).
+  The CI flake `Collation.CollationKeyCacheTests.ConcurrentCallers_GetOneKeyPerText_AndNeverAWrongOne` (3 of 8
+  Linux unit runs, A12 shape) is registered as `PB377` with an implementer in flight since 2026-09-03; lane 3
+  batch 2 (adjudicate-then-refute) and golden-lane round 2 (`misc-p1`) resumed from their on-disk checkpoints
+  the same morning.
 - **▶ SESSION HANDOFF (2026-09-02 afternoon — superseded by the evening bullet above):** the
   two-lane campaign (`kb/Work/PB278`, doctrine `DESIGN-spec-conformance-review.md` §5 and the `workstream` skill)
   ran its first day: fifteen landings on main, GAP 3636 → **3227**, DOCUMENTED-NON-SUPPORT 36 → 333 → the
@@ -1990,7 +1994,32 @@ result. Run the long legs ONE AT A TIME.
   `negative/pb260-accept-screen-at-phrase`: it IS rejected at 2002/2014/2023, but only by a generic parse error,
   which `docs/CONFORMANCE.md` §4 records as PB260's debt rather than as the conforming posture; enabling it would
   pin the debt. `kb/Work/PB260` carries the substring to record when the named diagnostic lands.
-- **⛔ BATTERY REFERENCE — CURRENT, the ARITHMETIC WAVE batch (owner decisions D-B + D-C, PB194/PB195 and the
+- **⛔ BATTERY REFERENCE — CURRENT, the TWO-LANE BURN-DOWN CAMPAIGN's first day (twenty landings, DEVLOG
+  1423–1443: clusters C/D/E/F, the Annex A.1 DOC rows, the derived-verdict selectors, the golden lane, witness
+  clusters A/B1/B2, the citation-repair sweep, the batch-1 registrar, PB280), battery #42, 2026-09-03.**
+  ✅ **Every test leg GREEN on ONE tree, in ONE run — `80b4f1e6` (HEAD, clean); the two red lines were both
+  ATTRIBUTED: one is a deliberate rebaseline, the other a stale gitignored generation.**
+  Measured: FULL greenfield Conformance **5515 / 5515** (8 m 25 s) · Unit **5293 / 5293** (2 m 9 s) ·
+  characterization **33 / 33** (2 s) · NIST **353 MATCH / 0 REGRESSION**, audit **CLEAN**, guard verdict
+  **ALL GREEN** · GnuCOBOL differential **1323 cases**, **`=== DIFFERENTIAL: 7 PER-CASE FLIP(S) ===`** — every
+  one of the seven is `COBOLNET1560`, the named DOCUMENTED-NON-SUPPORT refusal of the declined SCREEN SECTION /
+  CRT STATUS surface that the A.4.2 screen-witness landing `60bf02d7` introduced (3 × AGREE_ACCEPT →
+  WE_REJECT_THEY_ACCEPT, 4 × WE_ACCEPT_THEY_REJECT → AGREE_REJECT: `syn_definition:1485`, `syn_misc:1202`,
+  `syn_screen:221/371/506/592/616`); the baseline was REWRITTEN from the run's own report in this recording
+  commit and its diff is exactly those seven rows. Totals 575/471/209/68 (lander 2's rebaseline at `cbd696ce`)
+  → **578/468/213/64**. `=== BATTERY: NOT GREEN (rc=1) ===` as printed, green once attributed — the mechanical
+  per-case line, not the four totals, is what says seven.
+  ⚠ **The second red — `citations: ⛔ 23 finding(s)` — was MANUFACTURED, and is registered and fixed as
+  `PB378` (the citation corpus now enumerates from `git ls-files`, retiring the hand-kept build-output set):** every
+  finding was a phantom clause (§8.8.4.1.4, §8.3.1.2, §8.4.2.4, §8.8.4.1.2, §14.2.4) in `kb/Reference/**`, which
+  is GITIGNORED output of `scripts/gen-vault-reference.ps1` and had last been generated on 2026-07-26 — before
+  the citation-repair sweep (`9c08e6fe`) removed those citations from the source XML docs it renders.
+  Regenerating it took the audit to **0 findings**; the tracked tree never carried them. Artifacts
+  `scratchpad/battery42` (`summary.txt`, both `.trx`, `guard.log`, `gnucobol-report.json`, `citations.log`).
+  **Population:** Conformance **+274 over #41** (5241 → 5515); Unit **+150** (5143 → 5293) — computed from the
+  #41 bullet directly below. **No gate is owed on this tree; the next is owed by the first landing that touches
+  `src/` or `tests/`.**
+- **⛔ PRIOR BATTERY REFERENCE — the ARITHMETIC WAVE batch (owner decisions D-B + D-C, PB194/PB195 and the
   review fleet's landing PB266–PB276) plus the PB277 CI repair, battery #41, 2026-09-01.**
   ✅ **Every leg GREEN on ONE tree, in ONE run — `2acbd842` (HEAD, clean), no split and no rebaseline.**
   Measured: FULL greenfield Conformance **5241 / 5241** (12 m) · Unit **5143 / 5143** (2 m 51 s) ·

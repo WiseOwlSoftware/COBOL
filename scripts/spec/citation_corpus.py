@@ -10,7 +10,9 @@ THIRTEEN places across five source files (DEVLOG 13557/13606). One glob, one pla
 """
 from __future__ import annotations
 
+import functools
 import pathlib
+import subprocess
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 
@@ -22,20 +24,33 @@ FROZEN = (
     "docs/rearchitecture/evidence",
 )
 
-#: ⛔ BUILD OUTPUT IS NOT SOURCE, AND A CITATION AUDIT THAT READS IT CANNOT EVER GO GREEN. The ANTLR
-#: build task copies every `.g4` into `src/<project>/obj/antlr-lib/`, so a rebuilt tree carries a SECOND
-#: copy of every grammar comment: each grammar finding was reported TWICE, and — worse — the copy is the
-#: grammar as it stood at the LAST BUILD, so a repaired citation stayed red until somebody rebuilt, and a
-#: clean checkout and a built one disagreed about whether the gate passed. A generated file cannot be
-#: repaired at all, only regenerated (feedback: generated_parser_is_a_build_output). Matched on PATH
-#: SEGMENTS, not on a prefix, so it holds for every project layout rather than the two that exist today.
-BUILD_OUTPUT = frozenset({"obj", "bin", "Generated"})
+@functools.lru_cache(maxsize=None)
+def repository_files() -> frozenset[pathlib.Path]:
+    """⛔ THE POPULATION IS THE REPOSITORY, NEVER THE MACHINE. `git ls-files --cached --others
+    --exclude-standard`: every tracked file, plus every untracked file the ignore rules do not exclude — so a
+    golden written but not yet `git add`ed IS audited, and a build tree, a generated parser, a rendered vault
+    is NOT. Anything gitignored is by definition derived from something that is, and is covered through it.
+
+    Two manufactured reds earned this. First the ANTLR build task's copies of every `.g4` under `obj/antlr-lib/`
+    (each grammar finding reported twice, the copy frozen at the last build, a clean checkout and a built one
+    disagreeing about the gate); that was answered with a hand-kept set of build-output directory names. Then
+    `kb/Reference/` — gitignored output of `gen-vault-reference.ps1` — rendered weeks before the citation-repair
+    sweep, so battery #42 printed 23 phantom clauses the tracked tree had already shed (kb/Work PB378). The
+    directory-name set would have needed a third entry; the ignore rules already knew all three. One mechanism,
+    and the next generated tree is excluded the day its `.gitignore` line is written."""
+    try:
+        out = subprocess.run(["git", "-C", str(REPO), "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+                             check=True, capture_output=True).stdout
+    except (OSError, subprocess.CalledProcessError) as e:  # no git, or not a checkout
+        raise SystemExit("⛔ citation_corpus: cannot enumerate the repository with git; the audits refuse to "
+                         f"guess a population from the disk ({e})") from e
+    return frozenset(REPO / p.decode("utf-8") for p in out.split(b"\0") if p)
 
 
 def _keep(p: pathlib.Path) -> bool:
-    rel = p.relative_to(REPO)
-    if BUILD_OUTPUT & set(rel.parts[:-1]):
+    if p not in repository_files():
         return False
+    rel = p.relative_to(REPO)
     return not any(rel.as_posix().startswith(f) for f in FROZEN)
 
 
