@@ -30,13 +30,14 @@
   </div>
   <div class="cardgrid">
     <div class="card">
-      <h3>Owner decisions open <span class="pill warn">1</span></h3>
-      <p><strong>PB280 Q1–Q3 were answered on 2026-09-02</strong> and are no longer open; <strong>one question from lane-3 batch 1</strong> remains.</p>
+      <h3>Owner decisions open <span class="pill warn">2</span></h3>
+      <p><strong>PB280 Q1–Q3 and PB371 were answered on 2026-09-02</strong> and are no longer open; <strong>PB386</strong> (from golden-lane round 2) and the pointer-edition question remain.</p>
       <ul>
         <li><strong>Q1 — answered: DOCUMENTED-NON-SUPPORT.</strong> An A.1-<em>optional</em> element whose §7 determination reads "Not provided." is documented non-support, on A.1's own preamble ("if the element is provided by the implementor…") plus §4.2.7. Landed as the <span class="mono">a1-optional-not-provided</span> derived selector — a predicate over the requirement class the standard states and the determination this register filed — so it settles the two held rows today and the rest as they are determined, with no further adjudication. The rows stay open until a witness pins the documented posture.</li>
         <li><strong>Q2 — answered: no.</strong> A DOC row with nothing in the compiler to observe stays a GAP; the definition of DONE is not widened. Only 13 of 222 items are cited by any source, so a "nothing to observe" claim would be unfalsifiable for the other 209.</li>
         <li><strong>Q3 — answered: yes, and state the value.</strong> This repo's <span class="mono">CONFORMANCE.md</span> is the §4.2.16 user documentation; a determination may cite the governing host document, with its version, but shall also state the resulting value — because the value is what a witness can pin, and a by-reference row states none.</li>
         <li><strong>Q4 — answered (PB371): CONFORMS, with a witness pinning the refusal.</strong> A syntax rule that constrains a <em>claimed</em> statement, but whose antecedent only a <em>declined</em> module can create, closes on the negative golden that pins the antecedent's named diagnostic; landed 2026-09-03 — and the family turned out to be seven, not fourteen: the other seven state live content under the complement of the declined clause. The CLASS clause landed beside it, declined alongside VALIDATE.</li>
+        <li><strong>PB386, open — the rules with no observable obligation.</strong> Golden-lane round 2 emptied the CONFORMS-but-untested band down to nine rows, and eight of them can never earn a witness: a rule on Annex A.2's undefined list, an antecedent no device or medium the compiler has can satisfy, a consequent indistinguishable from its neighbour. The schema makes every resolving verdict owe a spec-derived test, so they sit GAP for ever, honestly. The question is whether a checkable owner-signed <em>derivation</em> may stand in place of a test for exactly that class — a widening of the definition of DONE that only the owner may make.</li>
         <li><strong>Still open, and not yet a bare question:</strong> the introducing edition of <span class="mono">USAGE POINTER TO type-name</span> — it needs the 2002 and 2014 texts before it can be asked.</li>
       </ul>
     </div>
