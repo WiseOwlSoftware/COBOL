@@ -96,6 +96,41 @@ def cells_of(line: str) -> list[str]:
     return parts[1:-1]
 
 
+def unreachable_items() -> dict[int, str]:
+    """A.1 items that CANNOT ARISE, because the feature they document is one we decline.
+
+    ⛔ THE STANDARD SAYS SO ITSELF, in Annex A.1's own preamble — this is not an inference from §4.2.7:
+
+        "Required: The element shall be provided by the implementor. When the element is part of a feature
+         that is optional or processor-dependent, the item is not required if the optional or
+         processor-dependent feature is not implemented."   (cite.py --check A.1 → OK)
+
+    §4.2.5 ¶1 and A.4.1's closing line say the same from the other side ("The provisions of this clause apply
+    to required normative elements … and to optional language elements for which an implementor claims
+    support"). So DOC-A.1-84's own sentence "This item is required" is answered head-on: it is required only
+    while the FORMAT clause is claimed, and it is not.
+
+    ⛔ AND THE LIST IS NOT WRITTEN HERE. It is DERIVED from the `derived-verdicts` selectors in
+    `inventory-schema.json` — the same predicate the batch generator and the C# drift test read. The failure
+    this prevents was measured on 2026-09-02: the A.4 derived landing stamps DOC-A.1-84, -85, -173 and -86
+    DOCUMENTED-NON-SUPPORT in the traceability inventory, while this script's REMAINING counter — which
+    CONFORMANCE.md §7 names as the count's owner — went on counting them open. One item, two registers, two
+    answers, which is exactly the harm CLAUDE.md rule 8 exists to stop. Deriving it means the next declined
+    module is handled with no edit here at all.
+    """
+    from inventory_schema import load_catalog, load_schema  # local: keeps this script standalone-runnable
+    schema = load_schema()
+    rules = load_catalog()
+    out: dict[int, str] = {}
+    for name, sel in schema.derived.items():
+        if sel.verdict != 'DOCUMENTED-NON-SUPPORT':
+            continue
+        for rid in sel.select(rules):
+            if rid.startswith('DOC-A.1-'):
+                out[int(rid.rsplit('-', 1)[1])] = name
+    return out
+
+
 def section7_rows(text: str) -> list[tuple[str, str, str]]:
     """(item-key, element-cell, pinned-by-cell) for every data row of the §7 table."""
     start = text.index('## 7. Annex A.1')
@@ -361,12 +396,21 @@ def main(argv: list[str]) -> int:
     optional = sum(1 for r in register.values() if r['requirement'] == 'optional')
     conditional = sum(1 for r in register.values() if r['requirement'] == 'conditionally required')
     unclassified = sum(1 for r in register.values() if r['requirement'] == 'unclassified')
-    doc_required = sum(1 for r in register.values() if r['documented'])
+    unreachable = unreachable_items()
+    doc_all = sum(1 for r in register.values() if r['documented'])
+    doc_unreachable = sorted(n for n in unreachable if n in register and register[n]['documented'])
+    doc_required = doc_all - len(doc_unreachable)
 
     print('=== ANNEX A.1 REGISTER (from spec-rule-catalog.json, parsed out of the standard) ===')
     print(f'  items {len(register)}  =  required {required} · optional {optional} · '
           f'conditionally required {conditional} · unclassified {unclassified}')
-    print(f'  identified as REQUIRING USER DOCUMENTATION: {doc_required}   (not required: {len(register) - doc_required})')
+    print(f'  identified as REQUIRING USER DOCUMENTATION: {doc_all}   (not required: {len(register) - doc_all})')
+    if doc_unreachable:
+        print(f'  ⊘ CANNOT ARISE — the feature is declined, so A.1\'s preamble makes the item not required: '
+              f'{len(doc_unreachable)}')
+        for n in doc_unreachable:
+            print(f'      A.1-{n:<5d} {register[n]["subject"][:62]:<64s} ({unreachable[n]})')
+        print(f'  → obligations in scope: {doc_required}')
     if required + optional + conditional + unclassified != len(register):
         findings.append('the requirement classes do not sum to the item count')
 
@@ -427,6 +471,10 @@ def main(argv: list[str]) -> int:
         print('JSON ' + json.dumps({
             'items': len(register),
             'filed': sorted(numbered),
+            # The items a DECLINED module withdraws (derived from the `derived-verdicts` selectors, never listed
+            # here). Emitted because the C# register gate needs the same set: such an item carries an inventory
+            # verdict and must NOT be expected to have a §7 determination — A.1's preamble says so.
+            'unreachable': sorted(unreachable),
             'pinned': {str(k): v for k, v in sorted(pinned.items())},
             'documented_required': doc_required,
             'discharged': len(covered_doc),

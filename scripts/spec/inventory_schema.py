@@ -41,6 +41,123 @@ INVENTORY_PATH = REPO / "tests" / "version-matrix" / "traceability-inventory.jso
 #: record may set. Everything else on a row is regenerated from the catalog and is not the reviewer's to write.
 ADJUDICATED = ("verdict", "code-location", "test-ref", "editions", "notes")
 
+#: A parenthesised or semicolon-introduced clause citation inside a rule's own text — the form Annex A.1 uses to
+#: point an implementor-defined documentation obligation at the clause that creates it:
+#: "(13.18.40, PICTURE clause, General rule 15; 13.18.60, USAGE clause, General rule 3)".
+XREF_CITATION = re.compile(r"[(;]\s*(\d+(?:\.\d+)*)\s*,")
+
+#: ⛔ THE TRANSCRIPTION SPELLS A COBOL OPERAND NAME'S HYPHEN TWO WAYS AND A PREDICATE CANNOT SEE THE DIFFERENCE.
+#: 29 catalog rules carry U+2011 NON-BREAKING HYPHEN where every other rule carries ASCII '-': SR-13.18.14.3-12
+#: reads "Identifier‑1 shall be described in the file, working‑storage, …". A selector arm written
+#: `\bidentifier-1\b` — the obvious spelling, and the one four of these six selectors need — silently matches
+#: NOTHING there, and a selector that silently under-selects is the failure mode feedback_measure_the_selectors_-
+#: complement names: the drift test stays green and the rows stay unstamped. Folding it HERE, in the one place
+#: both engines read the text through, is the fix that makes the next selector immune; putting the alternation in
+#: each pattern instead would be the same rule written down N times, which is what CLAUDE.md rule 5 forbids.
+#: Only the two unambiguous HYPHEN code points are folded — U+2013 EN DASH is left alone, because the standard
+#: uses it both as the MINUS-sign glyph and as a clause-range separator ("13.16–13.18").
+HYPHENS = {0x2010: "-", 0x2011: "-"}
+
+
+def section_matches(prefix: str, section: str) -> bool:
+    """Does `section` fall under `prefix`, COMPONENT-WISE?
+
+    ⛔ THIS IS THE ONE RULE THAT MUST NOT BE A RAW `startswith`, AND IT IS WHY THIS FUNCTION EXISTS AT ALL.
+    A clause number is a dotted PATH, not a string: §13.18.30 is not inside §13.18.3, and §13.18.40 (PICTURE) is
+    not inside §13.18.4 (BACKGROUND-COLOR). A raw prefix test says otherwise. Measured on the A.4.2 screen
+    selector, whose clause arm names §13.18.3, §13.18.4, §13.18.6, §13.18.7 and §13.18.9 among others: the raw
+    test selects 538 rules where the component-wise test selects 149 — 389 extra, 33 of them already adjudicated
+    (32 CONFORMS, 1 DOCUMENTED-NON-SUPPORT), i.e. a silent flip of thirty-two verified rows to non-support.
+
+    Trailing dots in the DATA are accepted and ignored: "13.18.3" and "13.18.3." mean the same path here, so the
+    defensive spelling a previous author reached for cannot become load-bearing again.
+    """
+    p = [c for c in prefix.strip().strip(".").split(".") if c]
+    s = [c for c in section.strip().strip(".").split(".") if c]
+    return len(p) <= len(s) and s[: len(p)] == p
+
+
+class DerivedSelector:
+    """One `derived-verdicts` entry — a verdict that follows MECHANICALLY from one owner determination.
+
+    ⛔ THE PREDICATE IS DATA AND BOTH ENGINES READ IT. This class and
+    `tests/Cobol.Net.Tests.Unit/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
+    a selector. Until 2026-09-02 the schema's own $comment claimed that already — and it was false: no Python
+    consumer of `derived-verdicts` existed, so the PB198 batch was produced by hand and the "two readers" that
+    justify writing the predicate as data were one reader and an aspiration.
+
+    THE SHAPE IS `arms`, and the arms are a DISJUNCTION of CONJUNCTIONS. Within an arm every field that is
+    present must hold; a rule is selected when ANY arm holds and NO global `excludes-patterns` entry matches its
+    text. Four modules of the 2026-09-02 landing needed four different scoping mechanisms and the flat
+    requires-sections/requires-pattern pair could express only two of them:
+      · `sections`       the rule's OWN clause (§8.8.1.4 is titled for the declined mode — PB198's lesson)
+      · `pattern`        the rule's TEXT
+      · `sections` + `pattern` together — an AND-gate. `file-name-1` is STATEMENT-LOCAL: in §13.4.5.4 it is the
+        file description entry's own subject, so A.4.13's text arm ungated selects 176 rules instead of 12. The
+        same gate is what reaches a rule scoped by OPERAND NAME — §12.3.7.3's data-name-1/-2 are the CURSOR and
+        CRT STATUS operands and nothing else, and neither a clause arm nor a bare text arm can see them.
+      · `xref-sections`  a clause citation inside the rule's text — how an Annex A.1 documentation obligation
+        names the clause that creates it. Derived from the clause numbers, so adding a module clause extends the
+        A.1 arm for free instead of silently not extending it.
+      · `kinds` / `excludes-kinds` the rule's KIND, per arm. A general-format diagram (kind FMT) is evidence
+        about a CLAUSE, never about one of its formats, so the TEXT axis must not select one: without this,
+        FMT-14.9.1.2 and FMT-14.9.11.2 — the ACCEPT and DISPLAY formats, both PARTIAL, both carrying the
+        compiler's most-used statement — flip to non-support because their optional format names screen-name-1.
+        The CLAUSE axis still takes FMT-13.17.2, whose every format IS screen.
+    """
+
+    def __init__(self, name: str, raw: dict[str, Any]) -> None:
+        self.name = name
+        self._raw = raw
+        self.verdict: str = raw["verdict"]
+        self.decision: str = raw.get("decision", "")
+        self.excludes = [re.compile(p, re.IGNORECASE) for p in raw.get("excludes-patterns", [])]
+        self.arms: list[dict[str, Any]] = []
+        for i, arm in enumerate(raw["arms"]):
+            keys = {k for k in arm if not k.startswith("$")}
+            if not keys & {"sections", "pattern", "xref-sections", "kinds"}:
+                # An arm with only NEGATIVE fields selects the whole catalog. Refusing it here is cheap; the
+                # alternative is a 4,311-row batch that validates perfectly and is entirely wrong.
+                raise SystemExit(f"derived-verdicts.{name} arm[{i}]: no positive field — it would select every rule")
+            self.arms.append({
+                "sections": list(arm.get("sections", [])),
+                "xref-sections": list(arm.get("xref-sections", [])),
+                "pattern": re.compile(arm["pattern"], re.IGNORECASE) if "pattern" in arm else None,
+                "kinds": set(arm.get("kinds", [])),
+                "excludes-kinds": set(arm.get("excludes-kinds", [])),
+            })
+
+    @staticmethod
+    def text_of(rule: dict[str, Any]) -> str:
+        """The rule text a predicate is matched against — hyphen-normalised. See HYPHENS."""
+        return rule.get("text", "").translate(HYPHENS)
+
+    def _arm_selects(self, arm: dict[str, Any], rule: dict[str, Any]) -> bool:
+        kind = rule.get("kind", "")
+        if arm["kinds"] and kind not in arm["kinds"]:
+            return False
+        if kind in arm["excludes-kinds"]:
+            return False
+        if arm["sections"] and not any(section_matches(p, rule.get("section", "")) for p in arm["sections"]):
+            return False
+        text = self.text_of(rule)
+        if arm["xref-sections"]:
+            cited = XREF_CITATION.findall(text)
+            if not any(section_matches(p, c) for p in arm["xref-sections"] for c in cited):
+                return False
+        if arm["pattern"] is not None and not arm["pattern"].search(text):
+            return False
+        return True
+
+    def select(self, rules: list[dict[str, Any]]) -> list[str]:
+        out = []
+        for r in rules:
+            if any(x.search(self.text_of(r)) for x in self.excludes):
+                continue
+            if any(self._arm_selects(a, r) for a in self.arms):
+                out.append(r["id"])
+        return out
+
 
 class Schema:
     """`tests/version-matrix/inventory-schema.json`, parsed."""
@@ -64,6 +181,12 @@ class Schema:
         #: Files whose '#fragment' is a NAMED ANCHOR SPACE, mapped to the pattern every fragment must match.
         self.anchored_files: dict[str, re.Pattern[str]] = {
             f: re.compile(p) for f, p in raw["code-location"].get("anchored-files", {}).items()}
+        #: The DERIVED-VERDICT selectors (`derived-verdicts` in the schema) — the `$comment` key is documentation.
+        self.derived: dict[str, DerivedSelector] = {
+            name: DerivedSelector(name, entry)
+            for name, entry in raw.get("derived-verdicts", {}).items()
+            if not name.startswith("$")
+        }
 
     def locations(self, row: dict[str, Any]) -> list[str]:
         """The row's `code-location` list, split on the schema's own separator."""
@@ -82,6 +205,22 @@ class Schema:
         if not kind or not kind.get("anchor-template"):
             return None
         return kind["anchor-template"].replace("{rule-id}", row.get("rule-id", ""))
+
+    def anchor_obliged(self, row: dict[str, Any]) -> bool:
+        """Must this row CARRY the anchor `anchor_for` computes — i.e. does its VERDICT claim a determination?
+
+        ⛔ `anchor_for` says what the anchor IS (a function of the row); this says whether the row owes it.
+        CONFORMS, PARTIAL and DIVERGES each assert something about what the register says, so each owes its own
+        §7 row. DOCUMENTED-NON-SUPPORT asserts the opposite: the conditioning facility is not implemented, so
+        Annex A.1's preamble withdraws the item ("the item is not required if the optional or
+        processor-dependent feature is not implemented") and there is no determination left to anchor. The
+        exempt verdicts are DATA on the kind (`anchor-exempt-verdicts`), read here and by `AnchorObliged` on the
+        C# side, so the writer and the gate cannot disagree.
+        """
+        if self.anchor_for(row) is None:
+            return False
+        kind = self.kinds.get(row.get("kind") or "", {})
+        return (row.get("verdict") or "") not in set(kind.get("anchor-exempt-verdicts", []))
 
     def is_observable(self, row: dict[str, Any]) -> bool:
         """Does this row name a site in the compiler a program could observe the determination through?

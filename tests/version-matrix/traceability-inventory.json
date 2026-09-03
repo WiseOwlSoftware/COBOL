@@ -5842,11 +5842,11 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "SELF and SUPER",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.10 | Object orientation optional items | Partial' — item 1 (CLASS-ID INHERITS repetition of object-class-name-2) and item 3 (parametric polymorphism) are NOT claimed; item 2 (INTERFACE-ID INHERITS repetition of interface-name-2) IS supported and enforced. That row was corrected on 2026-09-02 (kb/Work PB285) because it had said 'Not claimed' of all three while the compiler ships item 2. Licence for the declined two: §4.2.7 + A.4.1; item 1 is refused COBOLNET0849 at pass-1 (src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build). ⚠ §4 carries no A.4.10 item, so the §5 row is the whole of the §4.2.7 user documentation.",
   "state": "GAP"
  },
  {
@@ -9612,11 +9612,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Screens",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -9625,11 +9625,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Screens",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -9638,11 +9638,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "Screens",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -9651,11 +9651,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Screens",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -10496,11 +10496,11 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "CLASS-ID paragraph",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.10 | Object orientation optional items | Partial' — item 1 (CLASS-ID INHERITS repetition of object-class-name-2) and item 3 (parametric polymorphism) are NOT claimed; item 2 (INTERFACE-ID INHERITS repetition of interface-name-2) IS supported and enforced. That row was corrected on 2026-09-02 (kb/Work PB285) because it had said 'Not claimed' of all three while the compiler ships item 2. Licence for the declined two: §4.2.7 + A.4.1; item 1 is refused COBOLNET0849 at pass-1 (src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build). ⚠ §4 carries no A.4.10 item, so the §5 row is the whole of the §4.2.7 user documentation.",
   "state": "GAP"
  },
  {
@@ -10574,11 +10574,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "CLASS-ID paragraph",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.10 | Object orientation optional items | Partial' — item 1 (CLASS-ID INHERITS repetition of object-class-name-2) and item 3 (parametric polymorphism) are NOT claimed; item 2 (INTERFACE-ID INHERITS repetition of interface-name-2) IS supported and enforced. That row was corrected on 2026-09-02 (kb/Work PB285) because it had said 'Not claimed' of all three while the compiler ships item 2. Licence for the declined two: §4.2.7 + A.4.1; item 1 is refused COBOLNET0849 at pass-1 (src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build). ⚠ §4 carries no A.4.10 item, so the §5 row is the whole of the §4.2.7 user documentation.",
   "state": "GAP"
  },
  {
@@ -11432,11 +11432,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "INITIALIZE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -12017,11 +12017,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -12056,11 +12056,11 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -12667,11 +12667,11 @@
   "kind": "SR",
   "ordinal": 29,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -12680,11 +12680,11 @@
   "kind": "SR",
   "ordinal": 30,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -12992,11 +12992,11 @@
   "kind": "GR",
   "ordinal": 15,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -13005,11 +13005,11 @@
   "kind": "GR",
   "ordinal": 16,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -14773,11 +14773,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14786,11 +14786,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14799,11 +14799,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14812,11 +14812,11 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14825,11 +14825,11 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14838,11 +14838,11 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14851,11 +14851,11 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14864,11 +14864,11 @@
   "kind": "SR",
   "ordinal": 8,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14877,11 +14877,11 @@
   "kind": "SR",
   "ordinal": 9,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14890,11 +14890,11 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14903,11 +14903,11 @@
   "kind": "SR",
   "ordinal": 11,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14916,11 +14916,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14929,11 +14929,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14942,11 +14942,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14955,11 +14955,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14968,11 +14968,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -14981,11 +14981,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "APPLY COMMIT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -15293,11 +15293,11 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "File description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -15722,11 +15722,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "Screen section",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -15735,11 +15735,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Screen section",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16632,11 +16632,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Data description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -16645,11 +16645,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16658,11 +16658,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16671,11 +16671,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16684,11 +16684,11 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16697,11 +16697,11 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16710,11 +16710,11 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16723,11 +16723,11 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16736,11 +16736,11 @@
   "kind": "SR",
   "ordinal": 8,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16762,11 +16762,11 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16775,11 +16775,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16788,11 +16788,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16918,11 +16918,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "AUTO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16931,11 +16931,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "AUTO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16944,11 +16944,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "AUTO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16957,11 +16957,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "AUTO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16970,11 +16970,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "AUTO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16983,11 +16983,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "BACKGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -16996,11 +16996,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "BACKGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17009,11 +17009,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "BACKGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17022,11 +17022,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "BACKGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17035,11 +17035,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "BACKGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17048,11 +17048,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "BACKGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17139,11 +17139,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "BELL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17152,11 +17152,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "BELL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17165,11 +17165,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "BLANK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17178,11 +17178,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "BLANK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17191,11 +17191,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "BLANK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17204,11 +17204,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "BLANK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17217,11 +17217,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "BLANK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17295,11 +17295,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "BLINK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17308,11 +17308,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "BLINK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17620,11 +17620,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "CODE-SET clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -17789,11 +17789,11 @@
   "kind": "SR",
   "ordinal": 11,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17802,11 +17802,11 @@
   "kind": "SR",
   "ordinal": 12,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17815,11 +17815,11 @@
   "kind": "SR",
   "ordinal": 13,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17984,11 +17984,11 @@
   "kind": "GR",
   "ordinal": 13,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -17997,11 +17997,11 @@
   "kind": "GR",
   "ordinal": 14,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18010,11 +18010,11 @@
   "kind": "GR",
   "ordinal": 15,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18023,11 +18023,11 @@
   "kind": "GR",
   "ordinal": 16,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18036,11 +18036,11 @@
   "kind": "GR",
   "ordinal": 17,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18049,11 +18049,11 @@
   "kind": "GR",
   "ordinal": 18,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18062,11 +18062,11 @@
   "kind": "GR",
   "ordinal": 19,
   "subject": "COLUMN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18283,11 +18283,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "DEFAULT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18296,11 +18296,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "DEFAULT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18309,11 +18309,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "DEFAULT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18322,11 +18322,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "DEFAULT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18335,11 +18335,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "DEFAULT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18348,11 +18348,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "DEFAULT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18361,11 +18361,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18374,11 +18374,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18387,11 +18387,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18400,11 +18400,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18413,11 +18413,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18426,11 +18426,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18439,11 +18439,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18452,11 +18452,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18465,11 +18465,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -18608,11 +18608,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "ERASE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18621,11 +18621,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "ERASE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18634,11 +18634,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "ERASE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18647,11 +18647,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "ERASE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18803,11 +18803,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "FOREGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18816,11 +18816,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "FOREGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18829,11 +18829,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "FOREGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18842,11 +18842,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "FOREGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18855,11 +18855,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "FOREGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18868,11 +18868,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "FOREGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -18881,11 +18881,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18894,11 +18894,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18907,11 +18907,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18920,11 +18920,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18933,11 +18933,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18946,11 +18946,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18959,11 +18959,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18972,11 +18972,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18985,11 +18985,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -18998,11 +18998,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19011,11 +19011,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19024,11 +19024,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19037,11 +19037,11 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19050,11 +19050,11 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19063,11 +19063,11 @@
   "kind": "GR",
   "ordinal": 9,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19076,11 +19076,11 @@
   "kind": "GR",
   "ordinal": 10,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19089,11 +19089,11 @@
   "kind": "GR",
   "ordinal": 11,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19102,11 +19102,11 @@
   "kind": "GR",
   "ordinal": 12,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -19115,11 +19115,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "FROM clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19128,11 +19128,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "FROM clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19141,11 +19141,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "FROM clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19154,11 +19154,11 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "FROM clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19167,11 +19167,11 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "FROM clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19180,11 +19180,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "FROM clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19193,11 +19193,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "FULL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19206,11 +19206,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "FULL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19219,11 +19219,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "FULL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19232,11 +19232,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "FULL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19245,11 +19245,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "FULL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19258,11 +19258,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "FULL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19271,11 +19271,11 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "FULL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19479,11 +19479,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "HIGHLIGHT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19492,11 +19492,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "HIGHLIGHT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -19505,11 +19505,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "INVALID clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -19518,11 +19518,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "INVALID clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -19531,11 +19531,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "INVALID clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -19544,11 +19544,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "INVALID clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -19713,11 +19713,11 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "Level-number",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20103,11 +20103,11 @@
   "kind": "SR",
   "ordinal": 11,
   "subject": "LINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20116,11 +20116,11 @@
   "kind": "SR",
   "ordinal": 12,
   "subject": "LINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20129,11 +20129,11 @@
   "kind": "SR",
   "ordinal": 13,
   "subject": "LINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20259,11 +20259,11 @@
   "kind": "GR",
   "ordinal": 10,
   "subject": "LINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20272,11 +20272,11 @@
   "kind": "GR",
   "ordinal": 11,
   "subject": "LINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20285,11 +20285,11 @@
   "kind": "GR",
   "ordinal": 12,
   "subject": "LINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20298,11 +20298,11 @@
   "kind": "GR",
   "ordinal": 13,
   "subject": "LINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20311,11 +20311,11 @@
   "kind": "GR",
   "ordinal": 14,
   "subject": "LINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20324,11 +20324,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "LOWLIGHT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20337,11 +20337,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "LOWLIGHT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20649,11 +20649,11 @@
   "kind": "SR",
   "ordinal": 11,
   "subject": "OCCURS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20662,11 +20662,11 @@
   "kind": "SR",
   "ordinal": 12,
   "subject": "OCCURS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20675,11 +20675,11 @@
   "kind": "SR",
   "ordinal": 13,
   "subject": "OCCURS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20688,11 +20688,11 @@
   "kind": "SR",
   "ordinal": 14,
   "subject": "OCCURS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -20701,11 +20701,11 @@
   "kind": "SR",
   "ordinal": 15,
   "subject": "OCCURS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -21000,11 +21000,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "OCCURS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -21013,11 +21013,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "OCCURS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -21923,11 +21923,11 @@
   "kind": "GR",
   "ordinal": 15,
   "subject": "PICTURE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -22196,11 +22196,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "PRESENT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -22261,11 +22261,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "PRESENT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -22274,11 +22274,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "PRESENT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -22287,11 +22287,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "PRESENT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -23028,11 +23028,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "REDEFINES clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -23275,11 +23275,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "REQUIRED clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23288,11 +23288,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "REQUIRED clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23301,11 +23301,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "REQUIRED clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23314,11 +23314,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "REQUIRED clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23327,11 +23327,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "REQUIRED clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23340,11 +23340,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "REQUIRED clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23353,11 +23353,11 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "REQUIRED clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23366,11 +23366,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "REVERSE-VIDEO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23379,11 +23379,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "REVERSE-VIDEO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23587,11 +23587,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "SECURE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23600,11 +23600,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "SECURE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23613,11 +23613,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "SECURE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23626,11 +23626,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "SECURE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -23639,11 +23639,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23652,11 +23652,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23665,11 +23665,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23678,11 +23678,11 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23691,11 +23691,11 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23704,11 +23704,11 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23717,11 +23717,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23730,11 +23730,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23743,11 +23743,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23756,11 +23756,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -23769,11 +23769,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -24523,11 +24523,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "TO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -24536,11 +24536,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "TO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -24549,11 +24549,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "TO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -24562,11 +24562,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "TO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -24575,11 +24575,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "TO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25030,11 +25030,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "UNDERLINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25043,11 +25043,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "UNDERLINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25264,11 +25264,11 @@
   "kind": "SR",
   "ordinal": 17,
   "subject": "USAGE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25355,11 +25355,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "USAGE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25719,11 +25719,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "USING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25732,11 +25732,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "USING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25745,11 +25745,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "USING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25758,11 +25758,11 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "USING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25771,11 +25771,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "USING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25784,11 +25784,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "USING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -25797,11 +25797,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25810,11 +25810,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25823,11 +25823,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25836,11 +25836,11 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25849,11 +25849,11 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25862,11 +25862,11 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25875,11 +25875,11 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25888,11 +25888,11 @@
   "kind": "SR",
   "ordinal": 8,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25901,11 +25901,11 @@
   "kind": "SR",
   "ordinal": 9,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25914,11 +25914,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25927,11 +25927,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25940,11 +25940,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25953,11 +25953,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25966,11 +25966,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25979,11 +25979,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -25992,11 +25992,11 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -26005,11 +26005,11 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -26200,11 +26200,11 @@
   "kind": "SR",
   "ordinal": 15,
   "subject": "VALUE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -26486,11 +26486,11 @@
   "kind": "SR",
   "ordinal": 37,
   "subject": "VALUE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -26642,11 +26642,11 @@
   "kind": "GR",
   "ordinal": 10,
   "subject": "VALUE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -26837,11 +26837,11 @@
   "kind": "GR",
   "ordinal": 25,
   "subject": "VALUE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -26850,11 +26850,11 @@
   "kind": "GR",
   "ordinal": 26,
   "subject": "VALUE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -26863,11 +26863,11 @@
   "kind": "GR",
   "ordinal": 27,
   "subject": "VALUE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -26876,11 +26876,11 @@
   "kind": "GR",
   "ordinal": 28,
   "subject": "VALUE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -26889,11 +26889,11 @@
   "kind": "GR",
   "ordinal": 29,
   "subject": "VALUE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -26954,11 +26954,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "VARYING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -27006,11 +27006,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "VARYING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -27513,11 +27513,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Initial and last-used states of data",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -27981,11 +27981,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Execution",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -35079,11 +35079,11 @@
   "kind": "SR",
   "ordinal": 9,
   "subject": "OPEN statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -37289,11 +37289,11 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "REWRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -37302,11 +37302,11 @@
   "kind": "SR",
   "ordinal": 8,
   "subject": "REWRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -37328,11 +37328,11 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "REWRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -37341,11 +37341,11 @@
   "kind": "SR",
   "ordinal": 11,
   "subject": "REWRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -37354,11 +37354,11 @@
   "kind": "SR",
   "ordinal": 12,
   "subject": "REWRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -37471,11 +37471,11 @@
   "kind": "GR",
   "ordinal": 9,
   "subject": "REWRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -37822,11 +37822,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "ROLLBACK statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -37835,11 +37835,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "ROLLBACK statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -37848,11 +37848,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "ROLLBACK statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -37861,11 +37861,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "ROLLBACK statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
   "state": "GAP"
  },
  {
@@ -38810,11 +38810,11 @@
   "kind": "SR",
   "ordinal": 15,
   "subject": "SET statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -38823,11 +38823,11 @@
   "kind": "SR",
   "ordinal": 16,
   "subject": "SET statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -39252,11 +39252,11 @@
   "kind": "GR",
   "ordinal": 11,
   "subject": "SET statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -42164,11 +42164,11 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42177,11 +42177,11 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42190,11 +42190,11 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42203,11 +42203,11 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42216,11 +42216,11 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42229,11 +42229,11 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42242,11 +42242,11 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42255,11 +42255,11 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42268,11 +42268,11 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42281,11 +42281,11 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42294,11 +42294,11 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42307,11 +42307,11 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42320,11 +42320,11 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42333,11 +42333,11 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42346,11 +42346,11 @@
   "kind": "GR",
   "ordinal": 9,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42359,11 +42359,11 @@
   "kind": "GR",
   "ordinal": 10,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -42450,11 +42450,11 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "WRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -42463,11 +42463,11 @@
   "kind": "SR",
   "ordinal": 8,
   "subject": "WRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -42476,11 +42476,11 @@
   "kind": "SR",
   "ordinal": 9,
   "subject": "WRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -42489,11 +42489,11 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "WRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -42736,11 +42736,11 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "WRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -42749,11 +42749,11 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "WRITE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
   "state": "GAP"
  },
  {
@@ -50341,11 +50341,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "Screen section",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50406,11 +50406,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "Screen description entry",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50445,11 +50445,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "AUTO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50458,11 +50458,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "BACKGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50484,11 +50484,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "BELL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50497,11 +50497,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "BLANK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50523,11 +50523,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "BLINK clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50627,11 +50627,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "DEFAULT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -50640,11 +50640,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "DESTINATION clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -50679,11 +50679,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "ERASE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50705,11 +50705,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "FOREGROUND-COLOR clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50718,11 +50718,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "FORMAT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -50731,11 +50731,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "FROM clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50744,11 +50744,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "FULL clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50796,11 +50796,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "HIGHLIGHT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -50809,11 +50809,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "INVALID clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -50874,11 +50874,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "LOWLIGHT clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -51017,11 +51017,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "REQUIRED clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -51030,11 +51030,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "REVERSE-VIDEO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -51056,11 +51056,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "SECURE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -51069,11 +51069,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "SELECT WHEN clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -51134,11 +51134,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "TO clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -51173,11 +51173,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "UNDERLINE clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -51199,11 +51199,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "USING clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
   "state": "GAP"
  },
  {
@@ -51212,11 +51212,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "VALIDATE-STATUS clause",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -51914,11 +51914,11 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "VALIDATE statement",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -54241,11 +54241,11 @@
   "kind": "DOC",
   "ordinal": 84,
   "subject": "FORMAT clause (representation produced)",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -54254,11 +54254,11 @@
   "kind": "DOC",
   "ordinal": 85,
   "subject": "FORMAT clause (exclusions on restoring to same internal representation)",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {
@@ -54267,11 +54267,11 @@
   "kind": "DOC",
   "ordinal": 86,
   "subject": "Format validation (rules for checking items of usages other than display or national)",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.14 | VALIDATE | Not claimed | §4 item 3' + §4 item 3 ('VALIDATE facility (§14.9.50, §13.16-13.18, F.2 item 5): the VALIDATE statement, the validation clauses (CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/VARYING), and EC-VALIDATE. An obsolete optional element (§4.2.13)'). Licence: §4.2.7 + A.4.1. Obsolescence (F.2 item 5) is corroboration, never the licence — kb/Work PB198. kb/Work PB283 owns the data-division witness debt.",
   "state": "GAP"
  },
  {
@@ -55398,11 +55398,11 @@
   "kind": "DOC",
   "ordinal": 173,
   "subject": "SELECT WHEN clause (whether a SELECT WHEN takes effect for READ statements and REWRITE or WRITE statements with the FILE",
-  "verdict": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
   "state": "GAP"
  },
  {

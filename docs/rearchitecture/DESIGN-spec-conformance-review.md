@@ -111,6 +111,20 @@ rather than under `docs/`, because its reader is the battery, not a person.
 > not an agent's to redefine (the bare question is `kb/Work/PB280` Q2). The §7 row's machine-readable **`Pinned
 > by`** cell names the same spec-derived test(s), and `audit_annex_a1.py` holds the two in agreement — the
 > determination and its evidence are one artifact, which is the half the computed anchor does not cover.
+>
+> ⚠ **The anchor is owed by the verdicts that CLAIM a determination, and by no others.** CONFORMS, PARTIAL and
+> DIVERGES each assert something about what §7 says. `DOCUMENTED-NON-SUPPORT` asserts the opposite — the
+> conditioning facility is not implemented — and A.1's own preamble then withdraws the item ("the item is not
+> required if the optional or processor-dependent feature is not implemented"), so there is no determination to
+> anchor and nothing implemented to observe. `kinds.DOC.anchor-exempt-verdicts` names those verdicts as DATA,
+> read by one predicate per language (`Schema.anchor_obliged` / `AnchorObliged`), and `audit_annex_a1.py`
+> derives the withdrawn ITEMS from the same `derived-verdicts` selectors (`unreachable_items`, emitted as
+> `--json`'s `unreachable`) so the writer, the drift gate, the register gate and the REMAINING counter answer
+> alike. Such a row still owes its module's **witness**, which is what keeps it a GAP (§8.1). ⛔ This was found
+> only by landing the A.1 lane and the derived-verdict lane onto one tree (2026-09-02): the A.1 lane wrote the
+> anchor rule where every DOC row was a determination, the derived lane then stamped four DOC rows (84, 85, 173,
+> 86) `DOCUMENTED-NON-SUPPORT`, and the writer refused the whole batch. Giving those rows an anchor would have
+> claimed a §7 row that does not, and should not, exist.
 
 ## 5. Execution model — two concurrent lanes, five row-shape lanes (owner decision PB278, 2026-09-01)
 
@@ -134,7 +148,7 @@ worktree` pinned at a commit and writes verdict batch files; the fix lane edits 
 | **Derived verdict** | rules made unreachable by an A.4 module the owner has declared *Not claimed* (`CONFORMANCE.md` §5) | one `derived-verdicts` selector per module in `inventory-schema.json` (DATA — the PB198 mechanism) + one witness negative test per module | the selector + the witness; the drift test holds the population |
 | **Adjudication** | never-adjudicated rules (3,361) | `phase_b_batch.py` batches of ≤20 rules per agent, **dossier-fed** (§5.2), refuters read only the CONFORMS / DNS candidates | a verified verdict; CONFORMS rows then go to the golden lane, defective rows to `kb/Work/` |
 | **Fix** | defective rows (PARTIAL / NOT-IMPLEMENTED / DIVERGES) via their `kb/Work` notes | clusters by MECHANISM, not by note; the proven loop (implementer → self-review → fleet → director → lander) with the fleet sized in §5.3 | the fix + golden + re-verdict in one change set; one comprehensive battery per cluster batch |
-| **A.1 documentation** | Annex A.1 DOC rows (222) | first the schema defines what closes a DOC row (39 §7 determinations exist and zero rows carry a verdict); then batches by statement family | a §7 determination as `code-location` + a witness golden as `test-ref` |
+| **A.1 documentation** | Annex A.1 DOC rows (222; 37 now carry a verdict, 39 §7 determinations exist) | the schema's `kinds.DOC` defines what a DOC row costs (§4); then batches by statement family | a §7 determination as `code-location` + a witness golden as `test-ref` — **except** a DOC row an A.4 module the owner declined has withdrawn, which belongs to the **Derived verdict** lane instead and closes on that module's witness alone (A.1's preamble makes the item not required, so there is no determination to file: `kinds.DOC.anchor-exempt-verdicts`, §8.1; four rows — items 84, 85, 173, 86 — as of 2026-09-02) |
 
 **Batch order in the adjudication lane** alternates a *defect-rich* batch — §14 statement groups, grouped by
 mechanism (the I/O statements together, the string statements together) so the notes it produces already cluster —
@@ -261,14 +275,69 @@ A record sets only the five adjudicated fields and is keyed by `rule-id`:
 > spec-derived requirement explicitly. `session-probe` had the same blind spot in the same direction — it counted
 > "test-needed" as an EMPTY `test-ref` rather than as a row that did not close, under-reporting 11 as 4.
 
+### 8.1 The DERIVED verdict — one determination, applied by a predicate rather than by a list
+
+Some verdicts are not adjudicated per row at all. When the owner declines a whole optional module, every rule the
+module conditions becomes unreachable *at once*, and there is nothing left to decide about any single one of them.
+Recording that by hand produced the failure kb/Work PB198 measured: sixteen rules on one question carrying **four
+different verdicts** — NOT-IMPLEMENTED (9), blank (2), NEEDS-OWNER-DECISION (4) and CONFORMS (1).
+
+So the module's scope is written **once, as DATA**, in `inventory-schema.json` under `derived-verdicts`, and
+**both engines read it**: `DerivedSelector` in `scripts/spec/inventory_schema.py` (driven by
+`scripts/spec/derive_verdict_batch.py`, which emits the batch) and `DerivedVerdictDriftTests.Select` (which holds
+the population every build). Neither carries a selector. ⚠ That claim was *aspirational* from PB198 until
+2026-09-02 — no Python consumer of `derived-verdicts` existed, so the PB198 batch was hand-made and the schema's
+own `$comment` asserted a second reader that was not there.
+
+**A selector is `arms`: a disjunction of conjunctions.** Within an arm every field present must hold; a rule is
+selected when any arm holds and no entry-level `excludes-patterns` matches its text. The fields exist because the
+standard scopes a module in more than one way and each way was, at some point, the one a text-only predicate
+missed:
+
+| field | the scoping mechanism it reads | the module that needed it |
+|---|---|---|
+| `sections` | the rule's own CLAUSE — §8.8.1.4 is *titled* for the declined mode and its rules never repeat the phrase | A.4.3, A.4.8, A.4.14, PB198 |
+| `pattern` | the rule's TEXT — the facility's functionality stated from inside a mandatory clause | PB198, A.4.14 |
+| both, as an AND-gate | a term that is STATEMENT-LOCAL (`file-name-1` means the FD's own subject in §13.4.5.4) or an OPERAND NAME (§12.3.7's `data-name-1` IS the CURSOR operand) | A.4.13, A.4.2 |
+| `xref-sections` + `kinds` | an Annex A.1 documentation obligation citing a declined clause, keyed on the same clause numbers as the clause arm | A.4.8, A.4.14 |
+| `excludes-kinds`, per arm | a general format (kind FMT) is evidence about a CLAUSE, never one of its formats | A.4.2, A.4.3 |
+
+Two properties belong to the **matcher**, not to any selector, because a convention each author must remember is
+a convention one author will forget. Clause prefixes match **component-wise** — §13.18.30 is not inside §13.18.3,
+and a raw `StartsWith` had the screen selector taking 543 rules instead of 156, flipping 32 CONFORMS rows to
+non-support. And the text is **hyphen-normalised** before matching, because 29 catalog rules spell an operand name
+with U+2011 where the rest use ASCII `-`, which silently *under*-selects — the direction that leaves the drift
+test green.
+
+**Three properties keep a derived verdict honest, and they are what distinguish it from a shortcut:**
+
+1. **It may never overwrite an adjudication.** A selected row may be blank, or may already carry the selector's
+   own verdict (agreement — the reassuring direction). A row carrying CONFORMS, PARTIAL or DIVERGES means the
+   determination and a human reading of the code disagree, so `derive_verdict_batch.py` **refuses the whole
+   batch** rather than reporting a rewrite the way an adjudication batch legitimately does.
+2. **One row, one determination.** Two selectors claiming the same rule would leave it carrying whichever batch
+   ran last; the generator refuses it and `NoTwoSelectors_ClaimTheSameRow` asserts it against the data.
+3. **It does not close the row.** DOCUMENTED-NON-SUPPORT resolves, but §1(c) still demands a spec-derived test
+   proving the documented posture is what *actually happens* — and for a declined module that is the module's
+   **witness**: a negative case showing the construct is refused, by name. The 2026-09-02 A.4 landing stamped
+   **308 rows** and moved the GAP by **zero**, which is the correct and expected outcome.
+
+**What a selector cannot reach is recorded, not silently dropped** (`feedback_measure_the_selectors_complement`).
+The standard also scopes rules by the printed **FORMAT band**, and the catalog does not carry it —
+`extract_rule_catalog.py` glues the heading onto the preceding rule's text — so twelve rules that *are* solely
+conditioned stay outside the predicate and are named in the schema's `$format-band-residue` and in kb/Work PB284.
+Reaching them by regex would be a hand list in regex clothing; the repair is the extractor, and a denominator
+change rebuilds the inventory and is its own landing.
+
 **What the gate actually enforces** (eleven facts, and it is proven able to fail — see below): the inventory covers
 the catalog exactly, no row contradicts its catalog entry, every verdict is in the vocabulary, every stored `state`
 equals the derived one, every verdict carries its required evidence, every edition name is real, every
 `code-location` names a file that exists and a symbol still in it, and every `test-ref` resolves —
 `conformance:<edition>/<case>` and `nist:`/`characterization:` to a `.cob` on disk, `unit:<Class>.<Method>` and
 `conformance-test:<Class>.<Method>` to a method really declared in that class. Plus the two `kinds` facts (§4):
-every kind-anchored row carries the anchor its OWN rule-id computes, and every fragment on an `anchored-files`
-path is a legal anchor of that file's space — an anchored file being cited bare included.
+every kind-anchored row whose VERDICT claims a determination carries the anchor its OWN rule-id computes (§4's
+`anchor-exempt-verdicts` carve-out), and every fragment on an `anchored-files` path is a legal anchor of that
+file's space — an anchored file being cited bare included.
 
 **And the register audit runs every build.** `audit_annex_a1.py --check --json` was wired into nothing until
 2026-09-02 — not `battery.sh`, not the CI workflow, not `build-local.*` — so the A.1 register's own correctness

@@ -65,9 +65,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// The per-KIND evidence rules (<c>kinds</c> in the schema): what a row of this kind costs, as opposed to
     /// what its VERDICT costs. <c>AnchorTemplate</c> expands the row's own rule-id into the register anchor it
     /// must carry; <c>Implementation</c> is the predicate that decides, from the row's own locations, whether
-    /// there is anything in the compiler to observe.
+    /// there is anything in the compiler to observe; <c>AnchorExemptVerdicts</c> names the verdicts that do NOT
+    /// claim a determination and therefore owe no anchor (a declined facility withdraws the A.1 item).
     /// </summary>
-    private sealed record KindRule(string AnchorTemplate, Regex? Implementation);
+    private sealed record KindRule(string AnchorTemplate, Regex? Implementation, string[] AnchorExemptVerdicts);
 
     private sealed record Schema(
         IReadOnlyDictionary<string, Verdict> Verdicts,
@@ -121,9 +122,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
             {
                 if (p.Name.StartsWith('$')) continue;
                 string impl = Str(p.Value, "implementation-pattern");
+                string[] exempt = p.Value.TryGetProperty("anchor-exempt-verdicts", out var ex)
+                    ? [.. ex.EnumerateArray().Select(x => x.GetString()!)]
+                    : [];
                 kinds[p.Name] = new KindRule(
                     Str(p.Value, "anchor-template"),
-                    impl.Length > 0 ? new Regex(impl, RegexOptions.Compiled) : null);
+                    impl.Length > 0 ? new Regex(impl, RegexOptions.Compiled) : null,
+                    exempt);
             }
         }
 
@@ -196,8 +201,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // computed anchor must be present (a determination filed under another item is not evidence for this
         // row), and something in the compiler must implement it. A DOC row whose only location is its own §7
         // anchor therefore stays a GAP — closing it would widen the design doc §1(a) definition of DONE, which
-        // is the owner's to widen and not an agent's (kb/Work PB280 Q2).
-        if (AnchorFor(r, s) is not null && (!IsAnchored(r, s) || !IsObservable(r, s))) return "GAP";
+        // is the owner's to widen and not an agent's (kb/Work PB280 Q2). ⚠ Both costs are charged only to a
+        // verdict that CLAIMS a determination: a DOCUMENTED-NON-SUPPORT DOC row declines the facility, which
+        // withdraws the A.1 item (A.1 preamble) — there is no §7 row to anchor and nothing implemented to
+        // observe. It still owes its WITNESS test, which is what keeps such a row a GAP here.
+        if (AnchorObliged(r, s) && (!IsAnchored(r, s) || !IsObservable(r, s))) return "GAP";
         if (!s.SpecDerivedRequired) return r.TestRef.Length > 0 ? "OK" : "GAP";
         return Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s)) ? "OK" : "GAP";
     }
@@ -221,6 +229,22 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private static bool IsAnchored(Row r, Schema s) =>
         AnchorFor(r, s) is { } anchor
         && Split(r.CodeLocation, s.CodeLocationSeparator).Contains(anchor, StringComparer.Ordinal);
+
+    /// <summary>
+    /// Does this row OWE the anchor <see cref="AnchorFor"/> computes — i.e. does its verdict claim a
+    /// determination? Mirrors <c>Schema.anchor_obliged</c> in Python.
+    /// </summary>
+    /// <remarks>
+    /// CONFORMS, PARTIAL and DIVERGES each assert something about what the register says, so each owes its own §7
+    /// row. DOCUMENTED-NON-SUPPORT asserts the opposite: the conditioning facility is not implemented, so Annex
+    /// A.1's own preamble withdraws the item ("the item is not required if the optional or processor-dependent
+    /// feature is not implemented") and there is no determination left to anchor. The exempt verdicts are DATA on
+    /// the kind (<c>anchor-exempt-verdicts</c>), so this side and the Python writer read ONE rule.
+    /// </remarks>
+    private static bool AnchorObliged(Row r, Schema s) =>
+        AnchorFor(r, s) is not null
+        && s.Kinds.TryGetValue(r.Kind, out var k)
+        && !k.AnchorExemptVerdicts.Contains(r.Verdict, StringComparer.Ordinal);
 
     /// <summary>
     /// Does this row name a site in the compiler through which a program could observe the determination?
@@ -247,7 +271,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private static List<string> MisanchoredRows(IEnumerable<Row> rows, Schema s) =>
         [.. from r in rows
             where (r.Verdict.Length > 0 || r.CodeLocation.Length > 0)
-                  && AnchorFor(r, s) is not null && !IsAnchored(r, s)
+                  && AnchorObliged(r, s) && !IsAnchored(r, s)
             select $"{r.RuleId}: kind {r.Kind} requires the computed register anchor '{AnchorFor(r, s)}' among "
                    + $"its code-location(s) [{r.CodeLocation}] — the anchor is derived from the rule-id, never "
                    + "chosen, so a determination filed under another item cannot be spelled"];
@@ -742,6 +766,33 @@ public sealed class SpecTraceabilityInventoryDriftTests
             [Doc("DOC-A.1-19") with
             {
                 CodeLocation = $"{Anchor}; {Src}", TestRef = "conformance:2023/pb154_cancel_active", State = "OK",
+            }], s));
+
+        // ── the anchor is owed by the verdicts that CLAIM a determination (`anchor-exempt-verdicts`) ──
+        //
+        // ⛔ A DOC row a DECLINED module withdraws has no determination to anchor and nothing implemented to
+        // observe: A.1's own preamble makes the item "not required if the optional or processor-dependent
+        // feature is not implemented". Found only by landing the A.1 lane and the derived-verdict lane onto one
+        // tree (2026-09-02): the derived lane stamps items 84, 85, 173 and 86 DOCUMENTED-NON-SUPPORT, and the
+        // anchor rule — written where every DOC row was a determination — refused the whole 308-record batch.
+        Row Declined(string id) => Doc(id) with
+        {
+            Verdict = "DOCUMENTED-NON-SUPPORT",
+            Notes = "the conditioning module is Not claimed (docs/CONFORMANCE.md §5)",
+            CodeLocation = "",
+        };
+        Assert.Empty(MisanchoredRows([Declined("DOC-A.1-19")], s));
+        // …AND THE EXEMPTION IS NOT AN ESCAPE. Without its module's WITNESS the row still does not close, so a
+        // module cannot move the burn-down by being declined — the §1(c) rule survives the carve-out intact.
+        Assert.Single(BadStates([Declined("DOC-A.1-19") with { State = "OK" }], s));
+        // The pairing that proves the exemption DISCRIMINATES rather than blanket-disabling the check: the same
+        // absent anchor on a CONFORMS row is still caught (driven above), and the declined row closes exactly
+        // when its witness arrives.
+        Assert.Single(MisanchoredRows([Doc("DOC-A.1-19") with { CodeLocation = "" }], s));
+        Assert.Empty(BadStates(
+            [Declined("DOC-A.1-19") with
+            {
+                TestRef = "conformance:2023/pb154_cancel_active", State = "OK",
             }], s));
     }
 }

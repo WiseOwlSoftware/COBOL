@@ -8,25 +8,61 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// A DERIVED verdict is one that follows mechanically from a single owner determination plus the rule TEXT —
-/// and this is what stops the derived population drifting back into a spread of hand-adjudicated states.
+/// A DERIVED verdict is one that follows mechanically from a single owner determination plus the rule's own
+/// SCOPE — and this is what stops the derived population drifting back into a spread of hand-adjudicated states.
 ///
-/// <para><b>The case that motivated it.</b> ARITHMETIC IS STANDARD-BINARY is declined (kb/Work PB198). Ten
+/// <para><b>The case that motivated it.</b> ARITHMETIC IS STANDARD-BINARY is declined (kb/Work PB198). Sixteen
 /// catalog rules are conditioned SOLELY on that mode, so every one of them is unreachable and there is nothing
 /// left to adjudicate row by row — yet before this landed they carried <b>four different verdicts</b>:
-/// NOT-IMPLEMENTED (3), blank (2), NEEDS-OWNER-DECISION (4) and CONFORMS (1). Four answers to one question.</para>
+/// NOT-IMPLEMENTED (9), blank (2), NEEDS-OWNER-DECISION (4) and CONFORMS (1). Four answers to one question.</para>
 ///
-/// <para><b>Why the predicate is data and not code.</b> The selector lives in <c>inventory-schema.json</c> under
-/// <c>derived-verdicts</c>, and BOTH the batch generator (Python) and this test read it. Writing the same
+/// <para><b>Why the predicate is data and not code.</b> The selectors live in <c>inventory-schema.json</c> under
+/// <c>derived-verdicts</c>, and BOTH the batch generator (Python — <c>scripts/spec/inventory_schema.py</c>'s
+/// <c>DerivedSelector</c>, driven by <c>derive_verdict_batch.py</c>) and this test read them. Writing the same
 /// predicate twice in two languages is exactly the drift kb/Work PB194 records, where a mode SET was spelled one
-/// way in two files and the other way in a third.</para>
+/// way in two files and the other way in a third. ⚠ That claim was ASPIRATIONAL until 2026-09-02: no Python
+/// consumer of <c>derived-verdicts</c> existed, so this test was the only reader and the PB198 batch was made by
+/// hand. Three of the six A.4 module refuters found that independently.</para>
 ///
-/// <para><b>The selector is subtle, so the test asserts it is still SHARP</b> — a predicate that quietly widened
-/// to select everything, or narrowed to select nothing, would keep this test green while meaning nothing.</para>
+/// <para><b>The selectors are subtle, so the tests assert they are still SHARP</b> — a predicate that quietly
+/// widened to select everything, or narrowed to select nothing, would keep this file green while meaning
+/// nothing. Every sentinel below corresponds to a draft that was measurably wrong.</para>
 /// </summary>
 public sealed class DerivedVerdictDriftTests
 {
-    private sealed record Rule(string Id, string Section, string Text);
+    private sealed record Rule(string Id, string Section, string Kind, string Text);
+
+    /// <summary>⛔ The transcription spells a COBOL operand name's hyphen two ways. 29 catalog rules carry
+    /// U+2011 NON-BREAKING HYPHEN where the rest carry ASCII '-' — SR-13.18.14.3-12 reads "Identifier‑1 shall be
+    /// described in the file, working‑storage, …" — so an arm written <c>\bidentifier-1\b</c> matches NOTHING
+    /// there. It cost two rows on the first measured run of the A.4 landing, and under-selection is the worse
+    /// direction: the drift test stays green and the rows stay unstamped. Folded in the ONE place each engine
+    /// reads the text; the Python side does the same in <c>DerivedSelector.text_of</c>. U+2013 EN DASH is left
+    /// alone — the standard uses it as the MINUS glyph AND as a clause-range separator ("13.16–13.18").</summary>
+    private static string Normalize(string text) => text.Replace('‐', '-').Replace('‑', '-');
+
+    /// <summary>⛔ A clause number is a dotted PATH, not a string, and this is the one rule that must never be a
+    /// raw <c>StartsWith</c>. Both engines used one until 2026-09-02, under which §13.18.30 falls inside
+    /// §13.18.3 and §13.18.40 (PICTURE) inside §13.18.4 (BACKGROUND-COLOR). Measured on the screen selector,
+    /// whose clause arm names five such prefixes: raw selects 543 rules where component-wise selects 156 — 387
+    /// extra, 33 of them already adjudicated (32 CONFORMS + 1 DOCUMENTED-NON-SUPPORT), i.e. a silent flip of
+    /// thirty-two verified rows to non-support. A trailing dot in the data is accepted and ignored, so the
+    /// hand-written "13.18.3." convention that used to be the only defence cannot become load-bearing again.
+    /// </summary>
+    internal static bool SectionMatches(string prefix, string section)
+    {
+        string[] p = prefix.Trim().Trim('.').Split('.', StringSplitOptions.RemoveEmptyEntries);
+        string[] s = section.Trim().Trim('.').Split('.', StringSplitOptions.RemoveEmptyEntries);
+        if (p.Length > s.Length) return false;
+        for (int i = 0; i < p.Length; i++)
+            if (!string.Equals(p[i], s[i], StringComparison.Ordinal)) return false;
+        return true;
+    }
+
+    /// <summary>A parenthesised or semicolon-introduced clause citation inside a rule's own text — how an Annex
+    /// A.1 documentation obligation names the clause that creates it: "(13.18.24, FORMAT clause, General rule
+    /// 10)".</summary>
+    private static readonly Regex XrefCitation = new(@"[(;]\s*(\d+(?:\.\d+)*)\s*,", RegexOptions.Compiled);
 
     private static JsonElement Schema() =>
         JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("inventory-schema.json"))).RootElement;
@@ -38,7 +74,8 @@ public sealed class DerivedVerdictDriftTests
         return [.. doc.RootElement.GetProperty("rules").EnumerateArray()
             .Select(r => new Rule(r.GetProperty("id").GetString()!,
                                   r.TryGetProperty("section", out var s) ? s.GetString() ?? "" : "",
-                                  r.TryGetProperty("text", out var t) ? t.GetString() ?? "" : ""))];
+                                  r.TryGetProperty("kind", out var k) ? k.GetString() ?? "" : "",
+                                  Normalize(r.TryGetProperty("text", out var t) ? t.GetString() ?? "" : "")))];
     }
 
     private static Dictionary<string, JsonElement> Inventory()
@@ -50,32 +87,73 @@ public sealed class DerivedVerdictDriftTests
         return map;
     }
 
-    /// <summary>Apply one <c>derived-verdicts</c> selector to the catalog — the same predicate the generator
-    /// applies. A rule is named EITHER by its text (<c>requires-pattern</c>) OR by its clause
-    /// (<c>requires-sections</c>), and is then dropped if it matches any <c>excludes-patterns</c>.
+    private static List<string> Strings(JsonElement arm, string field) =>
+        arm.TryGetProperty(field, out var a) ? [.. a.EnumerateArray().Select(x => x.GetString()!)] : [];
+
+    /// <summary>Apply one <c>derived-verdicts</c> selector to the catalog — the same predicate
+    /// <c>DerivedSelector.select</c> applies in Python.
     ///
-    /// <para>The clause arm is not decoration: the six rules of §8.8.1.4 never repeat the phrase
-    /// "standard-binary" — GR-8.8.1.4.2-1 reads "Any operand of an arithmetic expression that is not already in
-    /// SBIDI is converted into SBIDI form" — and a text-only predicate missed every one of them.</para></summary>
+    /// <para><b><c>arms</c> is a DISJUNCTION of CONJUNCTIONS</b>: within one arm every field that is present must
+    /// hold; a rule is selected when ANY arm holds and NO entry-level <c>excludes-patterns</c> matches its text.
+    /// Four modules of the 2026-09-02 A.4 landing needed four different scoping mechanisms, and the flat
+    /// requires-sections/requires-pattern pair could express only two of them:</para>
+    /// <list type="bullet">
+    /// <item><c>sections</c> alone — §8.8.1.4 is TITLED for the declined mode and its rules never repeat the
+    /// phrase (GR-8.8.1.4.2-1 is just "Any operand of an arithmetic expression that is not already in SBIDI is
+    /// converted into SBIDI form"), so a text-only predicate missed all six.</item>
+    /// <item><c>pattern</c> alone — a rule stating the facility's own functionality from inside a MANDATORY
+    /// clause, e.g. GR-14.6.11-1's implicit COMMIT over all active APPLY COMMIT clauses.</item>
+    /// <item>both together, an AND-gate — <c>file-name-1</c> is STATEMENT-LOCAL (in §13.4.5.4 it is the file
+    /// description entry's own subject), so A.4.13's text ungated selects 176 rules instead of 12. The same gate
+    /// is the only reach to a rule scoped by OPERAND NAME: §12.3.7.3's data-name-1/-2 ARE the CURSOR and CRT
+    /// STATUS operands, and those rules carry no screen vocabulary at all.</item>
+    /// <item><c>xref-sections</c> + <c>kinds</c> — an Annex A.1 obligation citing a declined clause, keyed on the
+    /// SAME clause numbers as the clause arm so the next module gets it free instead of needing a second copy.
+    /// </item>
+    /// <item><c>excludes-kinds</c>, per arm — a general format (kind FMT) is evidence about a CLAUSE, never about
+    /// one of its formats, so the TEXT axis must never take one. It also replaced A.4.3's <c>^&lt;pre</c>
+    /// exclusion, a RENDERING proxy for a kind predicate that leaks on 56 of 322 FMT rows.</item>
+    /// </list></summary>
     private static (List<string> ids, string verdict) Select(string name)
     {
         var sel = Schema().GetProperty("derived-verdicts").GetProperty(name);
-        var require = new Regex(sel.GetProperty("requires-pattern").GetString()!, RegexOptions.IgnoreCase);
-        var sections = sel.TryGetProperty("requires-sections", out var s)
-            ? s.EnumerateArray().Select(x => x.GetString()!).ToList() : [];
-        var excludes = sel.GetProperty("excludes-patterns").EnumerateArray()
-            .Select(p => new Regex(p.GetString()!, RegexOptions.IgnoreCase)).ToList();
-        var ids = Catalog()
-            .Where(r => (require.IsMatch(r.Text) || sections.Any(p => r.Section.StartsWith(p, StringComparison.Ordinal)))
-                        && !excludes.Any(x => x.IsMatch(r.Text)))
-            .Select(r => r.Id).ToList();
+        var excludes = sel.TryGetProperty("excludes-patterns", out var ex)
+            ? ex.EnumerateArray().Select(p => new Regex(p.GetString()!, RegexOptions.IgnoreCase)).ToList()
+            : [];
+        var arms = sel.GetProperty("arms").EnumerateArray().Select(a => (
+            sections: Strings(a, "sections"),
+            xrefs: Strings(a, "xref-sections"),
+            kinds: Strings(a, "kinds"),
+            notKinds: Strings(a, "excludes-kinds"),
+            pattern: a.TryGetProperty("pattern", out var p)
+                ? new Regex(p.GetString()!, RegexOptions.IgnoreCase) : null)).ToList();
+
+        Assert.All(arms, a => Assert.True(a.sections.Count + a.xrefs.Count + a.kinds.Count > 0 || a.pattern is not null,
+            $"derived-verdicts.{name}: an arm with no positive field selects the entire catalog"));
+
+        var ids = new List<string>();
+        foreach (var r in Catalog())
+        {
+            if (excludes.Any(x => x.IsMatch(r.Text))) continue;
+            foreach (var a in arms)
+            {
+                if (a.kinds.Count > 0 && !a.kinds.Contains(r.Kind)) continue;
+                if (a.notKinds.Contains(r.Kind)) continue;
+                if (a.sections.Count > 0 && !a.sections.Any(p => SectionMatches(p, r.Section))) continue;
+                if (a.xrefs.Count > 0
+                    && !XrefCitation.Matches(r.Text).Any(m => a.xrefs.Any(p => SectionMatches(p, m.Groups[1].Value))))
+                    continue;
+                if (a.pattern is not null && !a.pattern.IsMatch(r.Text)) continue;
+                ids.Add(r.Id);
+                break;
+            }
+        }
         return (ids, sel.GetProperty("verdict").GetString()!);
     }
 
-    [Fact]
-    public void NoStandardBinaryConditionedRow_Diverges()
+    private static void AssertHeldAtTheDerivedVerdict(string name, string why)
     {
-        var (ids, verdict) = Select("standard-binary-only");
+        var (ids, verdict) = Select(name);
         var inv = Inventory();
 
         var wrong = new List<string>();
@@ -88,19 +166,93 @@ public sealed class DerivedVerdictDriftTests
         }
 
         Assert.True(wrong.Count == 0,
-            $"every rule conditioned SOLELY on the declined ARITHMETIC IS STANDARD-BINARY mode must carry the ONE "
-            + $"derived verdict '{verdict}'. Diverging rows:\n  " + string.Join("\n  ", wrong)
-            + "\nThe decision is kb/Work PB198; re-derive with the schema's derived-verdicts selector rather than "
-            + "adjudicating one row.");
+            $"every rule the '{name}' selector reaches must carry the ONE derived verdict '{verdict}' — {why}. "
+            + $"Diverging rows:\n  " + string.Join("\n  ", wrong)
+            + $"\nRe-derive with the schema's selector (python scripts/spec/derive_verdict_batch.py {name}) "
+            + "rather than adjudicating one row.");
     }
+
+    // ── The determinations ────────────────────────────────────────────────────────────────────────────────────
+    // One fact per declined module. They are separate [Fact]s on purpose: a single loop over every selector
+    // would report the first failure and hide the rest, and these six modules fail for unrelated reasons.
+
+    [Fact]
+    public void NoStandardBinaryConditionedRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("standard-binary-only",
+            "ARITHMETIC IS STANDARD-BINARY is declined (kb/Work PB198)");
+
+    [Fact]
+    public void NoScreenHandlingConditionedRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("screen-handling-only",
+            "Annex A.4.2 ACCEPT/DISPLAY screen handling is Not claimed (CONFORMANCE.md §5, §4 item 4)");
+
+    [Fact]
+    public void NoCommitAndRollbackConditionedRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("commit-and-rollback-only",
+            "Annex A.4.3 commit and rollback is Not claimed (CONFORMANCE.md §5, §4 item 2)");
+
+    [Fact]
+    public void NoFormatOrSelectWhenConditionedRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("format-select-when-only",
+            "Annex A.4.8 FORMAT and SELECT WHEN file handling is Not claimed (CONFORMANCE.md §5)");
+
+    [Fact]
+    public void NoDeclinedOoOptionalItemRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("oo-optional-items-only",
+            "Annex A.4.10 items 1 and 3 are Not claimed; item 2 IS supported (CONFORMANCE.md §5, kb/Work PB285)");
+
+    [Fact]
+    public void NoRewriteOrWriteFilePhraseRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("rewrite-write-file-only",
+            "Annex A.4.13 REWRITE FILE and WRITE FILE is Not claimed (CONFORMANCE.md §5)");
+
+    [Fact]
+    public void NoValidateConditionedRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("validate-only",
+            "Annex A.4.14 VALIDATE is Not claimed (CONFORMANCE.md §5, §4 item 3)");
+
+    // ── The engine ────────────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>⛔ THE COMPONENT-WISE PREFIX RULE, ASSERTED DIRECTLY, INCLUDING THE COLLISION THAT WOULD HAVE
+    /// SHIPPED. A raw <c>StartsWith</c> puts §13.18.30 inside §13.18.3 and §13.18.40 (PICTURE) inside §13.18.4.
+    /// The screen selector names both of those prefixes, so under the old matcher it selected 543 rules instead
+    /// of 156 and flipped 32 CONFORMS rows to non-support. The predicate below fails on a dotless collision by
+    /// construction, in both languages.</summary>
+    [Theory]
+    [InlineData("13.18.3", "13.18.30.2", false)]   // HIGHLIGHT is not inside AUTO
+    [InlineData("13.18.4", "13.18.40.4", false)]   // PICTURE is not inside BACKGROUND-COLOR
+    [InlineData("13.18.6", "13.18.63.3", false)]   // VALUE is not inside BELL
+    [InlineData("13.18.6", "13.18.60.3", false)]   // USAGE is not inside BELL
+    [InlineData("14.9.7", "14.9.70.4", false)]     // and it holds for clause numbers that do not exist YET
+    [InlineData("13.18.3", "13.18.3.2", true)]
+    [InlineData("13.18.3.", "13.18.3.2", true)]    // a trailing dot in the DATA is accepted and ignored
+    [InlineData("8.8.1.4", "8.8.1.4.2", true)]
+    [InlineData("13.18.51", "13.18.51", true)]     // the clause itself, not only its children
+    public void SectionPrefixes_MatchComponentWise_NeverAsRawStrings(string prefix, string section, bool expected)
+        => Assert.Equal(expected, SectionMatches(prefix, section));
+
+    /// <summary>The hyphen fold, asserted on the two real catalog rules that need it. Without it the screen
+    /// selector's operand arm silently drops SR-13.18.14.3-12 and SR-13.18.35.3-12 — an UNDER-selection, which
+    /// leaves every other assertion in this file green.</summary>
+    [Fact]
+    public void NonBreakingHyphens_AreFolded_SoAnOperandArmCanSeeThem()
+    {
+        Assert.Equal("identifier-1", Normalize("identifier‑.").Replace(".", "1")[..12]);
+        var byId = Catalog().ToDictionary(r => r.Id, r => r.Text, StringComparer.Ordinal);
+        foreach (string id in (string[])["SR-13.18.14.3-12", "SR-13.18.35.3-12"])
+            Assert.Matches(new Regex(@"\bIdentifier-1\b", RegexOptions.IgnoreCase), byId[id]);
+    }
+
+    // ── Sharpness: a predicate is evidence ONLY about what it RETURNED ─────────────────────────────────────────
+    // feedback_measure_the_selectors_complement. Every id below is a measured edge, not an illustration: it is
+    // either a row a wrong draft dropped, or a row a wrong draft took.
 
     [Fact]
     public void TheSelector_IsStillSharp_NeitherEverythingNorNothing()
     {
-        // A predicate is only evidence about what it RETURNED (feedback_measure_the_selectors_complement), so
-        // pin both edges. It selected 16 of 4,311 rows when it landed — 10 by text and 6 by clause; the bounds
-        // are generous enough to survive ordinary catalog growth and tight enough that a pattern typo which
-        // matched everything, or a regex that silently compiled to a never-match, would fail here.
+        // It selected 16 of 4,311 rows when it landed — 10 by text and 6 by clause; the bounds are generous
+        // enough to survive ordinary catalog growth and tight enough that a pattern typo which matched
+        // everything, or a regex that silently compiled to a never-match, would fail here.
         var (ids, _) = Select("standard-binary-only");
         Assert.InRange(ids.Count, 8, 45);
 
@@ -124,5 +276,234 @@ public sealed class DerivedVerdictDriftTests
         // And the rule whose only "standard decimal" is a USAGE must still be IN — dropping it was the bug in
         // the second draft of this predicate.
         Assert.Contains("AR-15.43.3-3", ids);
+    }
+
+    [Fact]
+    public void TheScreenSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("screen-handling-only");
+        Assert.InRange(ids.Count, 120, 200);   // 156 when it landed
+
+        // The CLAUSE arm — these say nothing about screens ("The word EOL is equivalent to the words END OF
+        // LINE"), so a text-only predicate misses 52 rows including both wholly-screen general formats.
+        foreach (string id in (string[])["FMT-13.17.2", "FMT-13.9.2", "GR-9.2.3-1", "SR-13.18.21.3-1",
+                                         "GR-13.18.61.4-2"])
+            Assert.Contains(id, ids);
+        // The TEXT arm, reaching into shared clauses.
+        foreach (string id in (string[])["GR-13.18.35.4-14", "SR-13.18.38.3-11", "SR-13.18.60.3-17",
+                                         "GR-11.9.10.4-3", "GR-14.6.2.3.2-L2.4", "SR-14.9.39.3-16"])
+            Assert.Contains(id, ids);
+        // The OPERAND arms — the third scoping mechanism, and the five rows the first draft could not see.
+        // §12.3.7's data-name-1/-2 ARE the CURSOR and CRT STATUS operands; MINUS and identifier-1 exist only in
+        // the screen format of COLUMN and LINE. The LINE pair is feedback_two_arm_dispatch verbatim: the COLUMN
+        // arm was inspected and the LINE arm was not.
+        foreach (string id in (string[])["SR-12.3.7.3-4", "SR-12.3.7.3-29", "SR-12.3.7.3-30",
+                                         "SR-13.18.14.3-11", "SR-13.18.14.3-12",
+                                         "SR-13.18.35.3-11", "SR-13.18.35.3-12"])
+            Assert.Contains(id, ids);
+
+        // ⛔ THE SINGLE MOST IMPORTANT PAIR IN THIS FILE. FMT-14.9.1.2 and FMT-14.9.11.2 are the ACCEPT and
+        // DISPLAY general formats — both currently PARTIAL, both carrying the compiler's most-used statements —
+        // and they match a screen pattern only because their OPTIONAL format names screen-name-1. A diagram is
+        // evidence about a CLAUSE, never about one format. If either returns, `excludes-kinds` has been lost off
+        // the text arm and a supported statement has just been documented as unsupported.
+        Assert.DoesNotContain("FMT-14.9.1.2", ids);
+        Assert.DoesNotContain("FMT-14.9.11.2", ids);
+
+        // The COLUMN/LINE format-1 (report-writer) rules must stay out — the clause is shared.
+        Assert.DoesNotContain("GR-13.18.14.4-1", ids);
+        Assert.DoesNotContain("GR-13.18.35.4-1", ids);
+        // Near-misses that enumerate the screen construct ALONGSIDE its data-division twin, so content survives.
+        Assert.DoesNotContain("SR-13.18.20.3-3", ids);
+        Assert.DoesNotContain("GR-11.9.10.4-1", ids);
+        // SR-12.3.7.3-2's CONTENT is what it FORBIDS — every clause other than CURSOR and CRT STATUS — which
+        // survives entirely. It is the one §12.3.7.3 rule the operand arm must NOT take.
+        Assert.DoesNotContain("SR-12.3.7.3-2", ids);
+        // The Annex A.1 screen obligations are dispositioned by CONFORMANCE.md §7, not here.
+        Assert.DoesNotContain("DOC-A.1-11", ids);
+        // And the clause arm must not have widened past its own paths (the dotless collision).
+        Assert.DoesNotContain("GR-13.18.40.4-1", ids);   // PICTURE, inside "13.18.4" only under a raw prefix
+        Assert.DoesNotContain("SR-13.18.30.3-1", ids);   // HIGHLIGHT SR1 is real; §13.18.30 is not §13.18.3
+    }
+
+    [Fact]
+    public void TheCommitRollbackSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("commit-and-rollback-only");
+        Assert.InRange(ids.Count, 15, 40);   // 25 when it landed
+
+        // Clause arm: seven §12.4.6.3 rules say only "this clause" and a text-only predicate drops all of them.
+        Assert.Contains("SR-12.4.6.3.3-1", ids);
+        // The anchored EC exclusion must NOT reach EC-FLOW-APPLY-COMMIT.
+        Assert.Contains("GR-12.4.6.3.4-6", ids);
+        // Text arm: the module's own functionality stated inside the MANDATORY §14.6.11. Note the PLURAL.
+        Assert.Contains("GR-14.6.11-1", ids);
+        // The closest call in the set — see the entry's $selector for why "separately" settles it.
+        Assert.Contains("SR-12.4.6.3.3-10", ids);
+
+        // ⛔ FOUR ROWS THAT ARE IMPLEMENTED AND GOLDEN-COVERED (kb/Work PB137). If any returns, an exclusion was
+        // dropped and shipped code is being documented as unsupported.
+        foreach (string id in (string[])["SR-14.9.7.3-1", "SR-14.9.7.3-2", "GR-14.9.7.4-1", "GR-14.9.36.4-7"])
+            Assert.DoesNotContain(id, ids);
+        // PB259 holds this one open as a genuine adjudication.
+        Assert.DoesNotContain("GR-14.9.7.4-2", ids);
+        // How a GENERAL FORMAT records under an unclaimed module is PB259's open question, and FMT-14.9.36.2
+        // would be wrong as non-support anyway — ROLLBACK IS a recognized statement in the shipped grammar.
+        // Excluded by KIND, not by matching "^<pre": that rendering proxy leaks on 56 of 322 FMT rows.
+        Assert.DoesNotContain("FMT-14.9.36.2", ids);
+        Assert.DoesNotContain("FMT-12.4.6.3.2", ids);
+        // ⛔ AND THE SCOPE STOPS AT THE MODULE'S OWN CLAUSES. These name APPLY COMMIT only as an antecedent; with
+        // the module absent they are VACUOUSLY SATISFIED, which is not the same fact as unsupported, and their
+        // verdicts speak about UNLOCK / sharing / LOCK MODE — facilities A.4.7 CLAIMS.
+        foreach (string id in (string[])["SR-14.9.47.3-2", "GR-9.1.15-3", "SR-12.4.5.9.3-1", "DOC-A.1-28"])
+            Assert.DoesNotContain(id, ids);
+    }
+
+    [Fact]
+    public void TheFormatSelectWhenSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("format-select-when-only");
+        Assert.InRange(ids.Count, 30, 55);   // 37 when it landed
+
+        // The TEXT arm must stay live — a clause-only predicate drops all three.
+        foreach (string id in (string[])["SR-13.4.5.3-6", "GR-13.18.13.4-5", "SR-14.9.27.3-9"])
+            Assert.Contains(id, ids);
+        // The Annex A.1 arm: obligations whose cross-reference points INTO a declined clause. These are the
+        // first DOC rows in the inventory to carry any verdict; audit_annex_a1.py applies the same A.1-preamble
+        // exclusion so §7's counter and the inventory cannot give two answers about one item.
+        foreach (string id in (string[])["DOC-A.1-84", "DOC-A.1-85", "DOC-A.1-173"])
+            Assert.Contains(id, ids);
+
+        // ⛔ The A.1 arm is keyed on `kinds: [DOC]`, and FMT-13.16.2's cross-reference table also cites
+        // "13.18.51, SELECT WHEN clause". It is the higher-level construct A.4.1 NOTE 1 makes NOT optional, and
+        // it carries a dozen live clauses besides. If it returns, the kind filter has been lost.
+        Assert.DoesNotContain("FMT-13.16.2", ids);
+        Assert.DoesNotContain("FMT-13.4.5.2", ids);
+        // The CODE-SET no-SELECT-WHEN branches are the behaviour WITHOUT the module, implemented today in
+        // DataBinder.BindCodeSetClause. Excluding on the word CODE-SET would have dropped three of the module's
+        // OWN rules instead, because excludes apply to every arm — which is why the pattern is narrow.
+        foreach (string id in (string[])["SR-13.18.13.3-3", "GR-13.18.13.4-3", "GR-13.18.13.4-4"])
+            Assert.DoesNotContain(id, ids);
+        // The sharpest near-miss: I-O status 45 is arguably unreachable without the module, but that is a
+        // three-clause deduction over text naming CODE-SET, so it wants a one-row owner adjudication.
+        Assert.DoesNotContain("GR-9.1.13.7-5", ids);
+        // One name in a list of several — content survives entirely.
+        foreach (string id in (string[])["GR-13.18.49.4-1", "GR-13.18.57.4-1", "SR-13.16.3-13", "GR-14.9.24.4-2"])
+            Assert.DoesNotContain(id, ids);
+    }
+
+    [Fact]
+    public void TheOoOptionalItemsSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("oo-optional-items-only");
+        Assert.InRange(ids.Count, 2, 8);   // 3 when it landed
+
+        foreach (string id in (string[])["SR-8.4.3.8.3-5", "SR-11.3.3-7", "GR-11.3.4-4"])
+            Assert.Contains(id, ids);
+
+        // ⛔ ITEM 2 IS SUPPORTED AND THIS IS NOW THE OWNER'S ROW, NOT AN AGENT'S READING (kb/Work PB285).
+        // CobolOO.g4:77 parses `INHERITS FROM interfaceName+`; OoClassTable enforces §11.6.3 SR2/SR3/SR6 with
+        // COBOLNET0840. SR-11.6.3-6's text is verbatim parallel to SR-11.3.3-7 and matches the pattern, so the
+        // `interface-name` exclusion is the only thing holding it out; if it returns, an implemented, shipping
+        // facility is being documented as unsupported. SR-11.6.3-5 is ordinary work to adjudicate.
+        Assert.DoesNotContain("SR-11.6.3-6", ids);
+        Assert.DoesNotContain("SR-11.6.3-5", ids);
+        // A clause arm over [11.3, 11.6, 8.4.3.8] selects 40 rows where 3 are conditioned, so there is none.
+        Assert.DoesNotContain("FMT-11.3.2", ids);
+        Assert.DoesNotContain("FMT-11.6.2", ids);
+        // Mixed blocks keep their own verdicts: SR-11.3.3-6's second sentence has a satisfiable antecedent in a
+        // LINEAR chain, and GR-9.3.6-L6.3 absorbs the overload tie-break — the sharpest trap for a widening.
+        Assert.DoesNotContain("SR-11.3.3-6", ids);
+        Assert.DoesNotContain("GR-9.3.6-L6.3", ids);
+        // The pattern is anchored to "in an INHERITS clause"; an unanchored "appear more than once" draft
+        // dragged in the SUM clause and the procedure division header. Measured, not imagined.
+        Assert.DoesNotContain("SR-13.18.54.3-1", ids);
+        Assert.DoesNotContain("SR-14.2.2-1", ids);
+    }
+
+    [Fact]
+    public void TheRewriteWriteFileSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("rewrite-write-file-only");
+        Assert.InRange(ids.Count, 8, 20);   // 12 when it landed
+
+        // The second alternative, which no "FILE phrase" text arm reaches: SR-14.9.35.3-11 is "File-name-1 shall
+        // not reference a report file or a sort-merge file description entry." — and its leading capital F is
+        // why the pattern carries (?i) in the DATA rather than trusting the reader's options. Case-sensitively
+        // the arm returns 11.
+        Assert.Contains("SR-14.9.35.3-11", ids);
+        Assert.Contains("SR-14.9.51.3-7", ids);
+
+        // ⛔ THE MIRROR ARMS. These are conditioned on the FILE phrase being NOT specified, i.e. they govern
+        // plain `REWRITE/WRITE record-name-1`, fully supported surface. They match the pattern and are held out
+        // by one exclusion; if either returns, two supported rules have been declared unsupported.
+        Assert.DoesNotContain("SR-14.9.35.3-9", ids);
+        Assert.DoesNotContain("SR-14.9.51.3-11", ids);
+        // ⛔ THE SCOPE GATE. `file-name-1` is STATEMENT-LOCAL: in §13.4.5.4 it is the FD's own subject. This row
+        // is a genuine ungated match, so it is the anchor that actually proves the AND-gate is still there —
+        // ungated the selector takes 176 rules of DELETE, OPEN, CLOSE, READ, START, UNLOCK and every FD clause.
+        Assert.DoesNotContain("GR-13.4.5.4-1", ids);
+        // The asymmetric twin: WRITE's SR-12 says "the write file", which SR1 defines as covering the
+        // record-name arm too. The asymmetry is the standard's own wording, not a reading.
+        Assert.DoesNotContain("SR-14.9.51.3-12", ids);
+        // Belongs to A.4.8 and also covers READ statements.
+        Assert.DoesNotContain("DOC-A.1-173", ids);
+    }
+
+    [Fact]
+    public void TheValidateSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("validate-only");
+        Assert.InRange(ids.Count, 55, 110);   // 75 when it landed
+
+        Assert.Contains("FMT-14.9.50.2", ids);          // clause arm
+        Assert.Contains("GR-13.18.40.4-19", ids);       // text arm, reaching outside the module's own clauses
+        // Its identical sibling had been left BLANK by hand while -19 carried the verdict — the four-answers-to-
+        // one-question drift a derived verdict exists to stop.
+        Assert.Contains("GR-13.18.40.4-15", ids);
+        // DOC-A.1-86 cites exactly the two rules the text arm already stamps, so the selector's own reasoning
+        // convicts it. Reached by matching "format validation" rather than "format validation STAGE".
+        Assert.Contains("DOC-A.1-86", ids);
+        // ⛔ GR-13.18.64.4-2's antecedent is "If the VARYING clause is NOT specified in a report description
+        // entry", so the Report Writer licence cannot reach it — and its complementary half -6 was selected on
+        // an antecedent word-for-word identical. It had been excluded; that exclusion is gone.
+        Assert.Contains("GR-13.18.64.4-2", ids);
+        Assert.Contains("GR-13.18.64.4-6", ids);
+
+        // The PICTURE symbol table CONFORMS today, with code and a golden; its only VALIDATE text is an
+        // EXCEPTION ("except within the execution of a VALIDATE statement"). A rule that mentions VALIDATE as an
+        // exception is not conditioned on it.
+        Assert.DoesNotContain("GR-13.18.40.4-14", ids);
+        // The Report Writer arm of VARYING, which §5 records as implemented under A.4.11.
+        Assert.DoesNotContain("GR-13.18.64.4-3", ids);
+        Assert.DoesNotContain("GR-13.18.64.4-5", ids);
+        // ⛔ THE §13.18.11 CLASS CLAUSE IS AN OPEN OWNER QUESTION, NOT A DERIVED ROW: its content is entirely
+        // VALIDATE, yet Annex A.4 never lists it and it carries no obsolete-feature NOTE. If it is not optional,
+        // A.4.1 obliges us to ACCEPT `CLASS IS NUMERIC` — and we reject it.
+        foreach (string id in (string[])["GR-13.18.11.4-1", "GR-13.18.11.4-2", "SR-13.18.11.3-1"])
+            Assert.DoesNotContain(id, ids);
+        // EC-DATA-INCOMPATIBLE names VALIDATE only to exempt it.
+        Assert.DoesNotContain("GR-14.6.13.2-1", ids);
+        Assert.DoesNotContain("GR-14.6.13.2-2", ids);
+    }
+
+    /// <summary>Two determinations must never claim the same row: the row would then carry whichever batch ran
+    /// last, and the drift facts above would both pass while disagreeing about WHY. The Python generator refuses
+    /// such a batch outright; this is the same invariant asserted against the data.</summary>
+    [Fact]
+    public void NoTwoSelectors_ClaimTheSameRow()
+    {
+        var names = Schema().GetProperty("derived-verdicts").EnumerateObject()
+            .Where(p => !p.Name.StartsWith('$')).Select(p => p.Name).ToList();
+        Assert.InRange(names.Count, 2, 40);
+
+        var owner = new Dictionary<string, string>(StringComparer.Ordinal);
+        var clashes = new List<string>();
+        foreach (string n in names)
+            foreach (string id in Select(n).ids)
+                if (!owner.TryAdd(id, n))
+                    clashes.Add($"{id}: claimed by both '{owner[id]}' and '{n}'");
+
+        Assert.True(clashes.Count == 0, "one row, one determination:\n  " + string.Join("\n  ", clashes));
     }
 }

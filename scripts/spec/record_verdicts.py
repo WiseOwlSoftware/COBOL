@@ -134,8 +134,12 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
 
         # The row's KIND may oblige a COMPUTED register anchor (`kinds` in the schema). It is derived from the
         # rule-id rather than typed, so a mis-filed determination cannot be spelled — kb/Work A11's failure mode.
-        probe = {"rule-id": rid, "kind": catalog.get(rid, ""), "code-location": rec.get("code-location", "")}
-        if (anchor := schema.anchor_for(probe)) is not None and anchor not in locations:
+        # ⚠ Only a verdict that CLAIMS a determination owes it: `anchor_obliged` exempts the verdicts the kind
+        # names in `anchor-exempt-verdicts` (a declined facility withdraws the A.1 item, so there is no §7 row).
+        probe = {"rule-id": rid, "kind": catalog.get(rid, ""), "verdict": rec.get("verdict", ""),
+                 "code-location": rec.get("code-location", "")}
+        anchor = schema.anchor_for(probe)
+        if schema.anchor_obliged(probe) and anchor not in locations:
             bad.append(f"{where}: kind {catalog[rid]} requires the register anchor '{anchor}' among its "
                        f"code-location(s) — it is computed from the rule-id, never chosen")
 

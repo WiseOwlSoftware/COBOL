@@ -1860,6 +1860,17 @@ result. Run the long legs ONE AT A TIME.
   a DOC row's closing shape. Method and rationale: `DESIGN-spec-conformance-review.md` §5; the measurements that
   earned it (3,361 of 3,636 GAP rows never adjudicated; ~1,000 fleet agents for 27 rows of burn-down in three days)
   are in the decision note. **Lanes are QUERIES over `kb/Work/` and the inventory — no new list anywhere.**
+- **▶ BURN-DOWN STATE after the 2026-09-02 three-landing batch (DEVLOG 1427–1429; cluster C · the Annex A.1
+  DOC-row mechanism · the derived-verdict selectors).** **GAP 3618 of 4311** (3636 → 3636 → 3618 → 3618:
+  cluster C was a CORRECTION of an already-CONFORMS row, the A.1 back-fill closed 18, and the derived lane moved
+  it by design zero — a declined row closes on its WITNESS, not on its verdict).
+  **DOCUMENTED-NON-SUPPORT 36 → 333** (308 rows stamped across six A.4 selectors; 297 changed, 11 already held).
+  **Diagnostic band UNCHANGED — no codes were claimed by any of the three.** The two lanes the owner decision
+  above listed as pending their mechanism are now both live: `inventory-schema.json` → `kinds.DOC` defines what a
+  DOC row costs, and `derived-verdicts` is read by BOTH engines (`DerivedSelector` +
+  `scripts/spec/derive_verdict_batch.py` on the Python side, `DerivedVerdictDriftTests.Select` on the C#) rather
+  than the one the schema used to claim. Annex A.1 scope is **195, not 199** — four items a declined module
+  withdraws, DERIVED from the same selectors — with **36 discharged, 159 remaining**.
 - **⛔ BATTERY REFERENCE — CURRENT, the ARITHMETIC WAVE batch (owner decisions D-B + D-C, PB194/PB195 and the
   review fleet's landing PB266–PB276) plus the PB277 CI repair, battery #41, 2026-09-01.**
   ✅ **Every leg GREEN on ONE tree, in ONE run — `2acbd842` (HEAD, clean), no split and no rebaseline.**

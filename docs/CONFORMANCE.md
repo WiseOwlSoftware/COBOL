@@ -93,7 +93,7 @@ of an unsupported facility.
 | 41–42 | Cultural collating for keys / multiple alt keys with differing collating | 12.4.5.7 | **Partial** | The file-control COLLATING SEQUENCE clause (§12.4.5.7, Format 1 + Format 2 per-key) is supported for **alphanumeric** keys under a declared SPECIAL-NAMES alphabet — per-key weighted ordering/START/uniqueness on the greenfield IndexedConnector (COBOLNET1582/1583), and — owner decision Q3 (2026-08-18; kb/Work PB101, determination L8) — for a key whose alphabet is declared `ALPHABET … IS LOCALE`: **LOCALE-based cultural collating IS provided** (§A.3 item 41's own latitude): the key orders by the derived CLDR/UCA collation of the locale current when the connector is registered, and a file written under one locale and read under another is not guaranteed to be in key order (documented). **NATIONAL-key collating** (COBOLNET1584) is NOT claimed — a documented P14 GAP |
 | 43 | Zero-length record for relative/sequential files | 9.x | Not claimed | Minimum record length is 1 |
 | 44 | Abnormal termination indication | 14.6.12 | **Claimed** | Nonzero process exit on an unresumed fatal exception condition |
-| 45 | Parametric-polymorphism method resolution | 11.x | **Claimed** | Single-dispatch OO method resolution over the class table |
+| 45 | Parametric-polymorphism method resolution | 11.x | N/A | Parametric polymorphism itself is **not claimed** (§5, A.4.10 item 3, §9.3.5.3): method overloading is refused COBOLNET0822 and the implemented resolution signature is the degenerate one — the method NAME alone — so there is no parametric resolution to define. This row read **Claimed** on "single-dispatch OO method resolution over the class table" until 2026-09-02, which described the *degenerate* mechanism as if it discharged the item; corrected to agree with §5 (kb/Work PB285). It becomes a real disposition if item 3 is ever claimed. |
 | 46 | Detect a specific level-3 exception condition | 14.6.13 | **Claimed** | The EC engine detects the implemented level-3 conditions (§14.6.13.1.1 license for the rest) |
 
 ## 3. Behavior determinations (§4.2.6 / Annex E — pinned implementor choices)
@@ -340,21 +340,46 @@ of an unsupported facility.
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
-The following whole facilities are **not implemented**. SCREEN handling (item 4) is recognized at compile time
-and reported with the named COBOLNET1560 warning per §4.2.6; MCS, COMMIT/ROLLBACK, and VALIDATE
-(items 1–3) are today a generic parse error — their named recognize-and-warn diagnostics (the COBOLNET1560
-band) are the tracked PHASE-13 Wave H code half, after which every row here meets the §4.2.6 warning mechanism
-/ §4.2.13 obsolete flagging:
+The following whole facilities are **not implemented**.
+
+⛔ **The posture is NOT uniform across a facility, and this preamble used to say it was.** Until 2026-09-02 it
+read "MCS, COMMIT/ROLLBACK, and VALIDATE (items 1–3) are today a generic parse error — their named
+recognize-and-warn diagnostics … are the tracked PHASE-13 Wave H code half". Wave H **landed** for the
+statements: `COMMIT` and `ROLLBACK` draw the named COBOLNET1579 at every site and `VALIDATE` draws COBOLNET1580,
+both from the binder. What is still a generic parse error — or worse — is the **rest of each facility**, which is
+where most of the rules live: the I-O-CONTROL `APPLY COMMIT` clause has no grammar surface at all, VALIDATE's
+eight data-division elements likewise (three of them surfacing as the *misleading* COBOLNET0901 "is a reserved
+word"), the screen `ACCEPT`/`DISPLAY` formats are silently reinterpreted as their device formats, and the
+`CURSOR` / `CRT STATUS` clauses and the whole EC-SCREEN and EC-VALIDATE families are accepted with no diagnostic
+whatever. So a *statement* meets §4.2.6's warning-mechanism requirement today and a *clause* of the same facility
+does not. The per-facility measurements are in §5's Annex A.4 table; the debt is `kb/Work` PB260, PB261, PB283.
+
+⚠ **And a warning nothing asserts is a warning that can silently stop firing**: no test anywhere in `tests/`
+asserts COBOLNET1560, 1578, 1579 or 1580 — the negative corpus matches ERROR codes only and the `.out` goldens
+capture stdout, while these ride the non-failing compile channel. Every row below could lose its diagnostic
+without a gate going red. That, not a missing implementation, is why no rule in this section can close.
 
 1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
    and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
    of this edition). Processor-dependent; not provided.
-2. **Commit and rollback** (E.3.2 item 2 / A.3 items 6–7): `COMMIT`, `ROLLBACK`. No transaction manager.
+2. **Commit and rollback** (E.3.2 item 2 / A.3 items 6–7 / **A.4.3**): the `COMMIT` and `ROLLBACK` statements
+   (§14.9.7, §14.9.36), the I-O-CONTROL **`APPLY COMMIT` clause** (§12.4.6.3) and the **EC-FLOW-APPLY-COMMIT /
+   EC-FLOW-COMMIT / EC-FLOW-ROLLBACK** exception conditions. No transaction manager. ⚠ This item named only the
+   two statements until 2026-09-02, while 17 of the module's 25 rules belong to the APPLY COMMIT clause — a
+   §4.2.7 documentation that did not mention the element it declines.
 3. **VALIDATE facility** (§14.9.50, §13.16–13.18, F.2 item 5): the `VALIDATE` statement, the validation clauses
-   (`CLASS`/`DEFAULT`/`DESTINATION`/`INVALID`/`PRESENT WHEN`/`VARYING`), and EC-VALIDATE. An obsolete optional
-   element (§4.2.13).
-4. **Screen handling** (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the
-   EC-SCREEN family. Not provided.
+   (`CLASS`/`DEFAULT`/`DESTINATION`/`INVALID`/`PRESENT WHEN`/`VARYING`), the `VAL-STATUS` / `VALIDATE-STATUS`
+   clause, the format-4 and format-5 (content-validation) `VALUE` entries, and EC-VALIDATE. An obsolete optional
+   element (§4.2.13). ⚠ The **`CLASS` clause (§13.18.11)** is named here but Annex A.4 lists it under NO optional
+   module and gives it no obsolete-feature NOTE — if it is not optional, A.4.1 obliges us to accept `CLASS IS
+   NUMERIC`, which we do not. That is an open adjudication, and it is why the derived selector holds §13.18.11
+   out rather than stamping it.
+4. **Screen handling** (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), the
+   SPECIAL-NAMES `CURSOR` and `CRT STATUS` clauses, `SET … ATTRIBUTE`, and the EC-SCREEN family. Not provided.
+
+⚠ **Three further modules are Not claimed and have no item here** — A.4.8 (FORMAT / SELECT WHEN), A.4.13
+(REWRITE FILE / WRITE FILE) and A.4.10's declined optional items. For those the §5 Annex A.4 row IS the whole of
+the §4.2.7 user documentation, and it says so in the row.
 **The locale facility (Annex A.4.9 optional module) — CLAIMED WHOLE** since kb/Work PB64 T6 (2026-08-28; owner
 decision Q1, 2026-08-18): all thirteen optional elements are implemented — the last two, item 8 (PICTURE format 2)
 and item 12 (the `LOCALE` keyword of `NUMVAL-C`/`TEST-NUMVAL-C`), landed with T6 — so this facility is NO LONGER a
@@ -690,19 +715,19 @@ summary claims only what is Claimed/Partial here.
 
 | A.4 § | Module | Disposition | Note |
 |---|---|---|---|
-| A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed | The SCREEN facility (§4 item 4; COBOLNET1560 warning) |
-| A.4.3 | Commit and rollback | Not claimed | §4 item 2 |
+| A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed | The SCREEN facility (§4 item 4). **Posture today, measured, and it is not uniform**: the SCREEN SECTION header draws the named COBOLNET1560 warning (`DataBinder`), but `ACCEPT screen-name` and `DISPLAY screen-name` have no screen alternative in the grammar and are silently REINTERPRETED as their device formats; their positional phrases and `SET … ATTRIBUTE` are a generic parse error; and the SPECIAL-NAMES `CURSOR` / `CRT STATUS` clauses and the four EC-SCREEN names are accepted with **no diagnostic at all**. kb/Work PB260 owns the debt. Every rule the facility conditions carries this row's determination through `inventory-schema.json` `derived-verdicts.screen-handling-only` (156 rows) |
+| A.4.3 | Commit and rollback | Not claimed | §4 item 2. **The two halves differ**: the COMMIT and ROLLBACK *statements* are recognized and named today — COBOLNET1579 at every site (`StatementBinder.BindCommitRollback`) — while the I-O-CONTROL **APPLY COMMIT clause** (§12.4.6.3) has no grammar surface at any edition and is a generic syntax error, which is 17 of the 25 rules. kb/Work PB261 owns the witness debt. Rules: `derived-verdicts.commit-and-rollback-only` |
 | A.4.4 | Dynamic capacity tables | **Claimed** | OCCURS DYNAMIC (P12 §8.5.1.9; EC-BOUND-OVERFLOW raise live) |
 | A.4.5 | DYNAMIC LENGTH elementary items | Partial | Alphanumeric live (§13.18.19, the 1561–1563 SR band); the NATIONAL dynamic-length FUNCTION LENGTH / BYTE-LENGTH runtime paths are staged loud (the P12 residue ledger) |
 | A.4.6 | Extended letters | **Claimed** | National (UTF-16) repertoire (§2 row 38) |
 | A.4.7 | File sharing and record locking | **Claimed** | SHARING/LOCK MODE/RETRY on every organization (P10 FILE-LOCK) |
-| A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed | No surface — a parse error today; a named diagnostic is a tracked P14 disposition row |
+| A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed | **No surface at all, verified 2026-09-02**: there is no `FORMAT` lexer token and no `formatClause` in `fileDescriptionClause`; `dataDescriptionClause` has no `selectWhenClause`; no COBOLNET code, no `constructs.json` row and no test names either clause — `DataBinder` says so in its own source ("none exists in this grammar"). ⚠ The refusal today is therefore a GENERIC parse error, and that is what a user sees; a NAMED diagnostic is owed (kb/Work PB281), and because an inert FORMAT would write different bytes to the medium it should be an ERROR, not the COBOLNET1560 warning band. ⚠ §4 carries no item for this module, so THIS ROW is the whole of the §4.2.7 user documentation. Rules: `derived-verdicts.format-select-when-only` (37 rows, incl. the Annex A.1 obligations A.1-84/-85/-173, which A.1's own preamble makes not-required while the clauses are declined) |
 | A.4.9 | Locale support and related functions | **Claimed** | **All thirteen items** (kb/Work PB64 increments T1/T4/T5/T6 + PB101 T3/T7): the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names; `LOCALE-COMPARE` / `-DATE` / `-TIME` / `-TIME-FROM-SECONDS`; the `LOCALE` phrase of `LOWER-CASE` / `UPPER-CASE` and the `LOCALE` keyword of `NUMVAL-C` / `TEST-NUMVAL-C` (item 12; `NUMVAL-C`'s rides the §4 editorial-omission determination); the OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause; PICTURE format 2 (item 8 — locale editing over the ONE LC_MONETARY model, EC-LOCALE-SIZE live); `SET LOCALE` formats 11/12; the SPECIAL-NAMES `LOCALE` clause and both `ALPHABET … IS LOCALE` forms; `STANDARD-COMPARE` + `ORDER TABLE` — "Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data", §2 row 25 |
-| A.4.10 | Object orientation optional items | Not claimed | The three OPTIONAL items only: multiple inheritance (×2 — multi-base INHERITS rejects COBOLNET0849) and parametric-polymorphism method resolution (rejected/deferred; §2 row 45 covers the supported single-dispatch resolution). The OO CORE is mandatory surface, claimed separately |
+| A.4.10 | Object orientation optional items | Partial | The three OPTIONAL items only; the OO CORE is mandatory surface, claimed separately. **Item 2 — INTERFACE-ID multiple inheritance, the repetition of interface-name-2 (§11.6) — IS SUPPORTED**: `CobolOO.g4` parses `INHERITS FROM interfaceName+`, `OoClassTable` carries and resolves the full base list, `OoInterfaceSymbol.AllPrototypes()` walks the whole multi-base closure, and §11.6.3 SR2 (unknown base), SR3 (cycle) and SR6 (a base named twice) are enforced by COBOLNET0840. **Item 1 — CLASS-ID multiple inheritance (§11.3) — is NOT claimed**: a multi-base class INHERITS is refused COBOLNET0849 at pass-1, the deliberate asymmetry (a C# interface list is native; multiple class inheritance is not). **Item 3 — parametric polymorphism (§9.3.5.3) — is NOT claimed**: method overloading is refused COBOLNET0822, and the implemented method-resolution signature is the degenerate one, the method NAME alone. ⛔ This row read "Not claimed" of all three until 2026-09-02 while the compiler shipped item 2 — a conformance claim must describe the compiler (kb/Work PB285). §2 row 45 (parametric-polymorphism method resolution) claimed the A.3 item on the strength of that degenerate signature and contradicted item 3; it was corrected to **N/A** in the same change set, the disposition §2's own header defines for a property of an unsupported facility. ⚠ §4 carries no item for this module. Rules: `derived-verdicts.oo-optional-items-only` |
 | A.4.11 | Report Writer | Partial | Implemented: the RW nucleus incl. PRESENT WHEN + VARYING (P10 RW-2002) and the SUPPRESS statement (§14.9.45 — inhibits the current instance's printing/page-advance/NEXT GROUP/LINE-COUNTER but not sum accumulation or the end-of-group reset; SR1/GR1 resolve the enclosing USE BEFORE REPORTING group at bind, COBOLNET1581 rejects a misplaced SUPPRESS). Staged LOUD (COBOLNET0899 band): cross-program CODE, LINE NEXT PAGE / multiple LINE, report-group OCCURS, several counter/SOURCE/SUM legs. NO grammar surface yet (tracked, the P13 grammar batch + ledger): COLUMN LEFT/CENTER/RIGHT, PAGE COLS, LAST CONTROL HEADING. The full itemization: `docs/COBOLNET_REPORT_WRITER_DESIGN.md` §5 |
 | A.4.12 | RESUME statement | **Claimed** | §14.9.33 (the EC declarative RESUME) |
-| A.4.13 | REWRITE FILE and WRITE FILE | Not claimed | No surface — a parse error today; a named diagnostic is a tracked P14 disposition row |
-| A.4.14 | VALIDATE | Not claimed | §4 item 3 |
+| A.4.13 | REWRITE FILE and WRITE FILE | Not claimed | ⛔ **"No surface — a parse error today" was FALSE and is corrected (measured 2026-09-02, kb/Work PB282).** `CobolIO.g4` carries `WRITE (recordName \| FILE fileName)` and `REWRITE (recordName \| FILE fileName)`, and FILE is reserved at every edition, so the alternative is reachable — and the two arms differ. `WRITE FILE F FROM X` **parses, binds and compiles clean at every edition**, through a live arm in `SequentialIoBinder` that writes the whole record area: undeclared support for an unclaimed module, and not even the §14.9.51.4 GR8 implicit-record model. `REWRITE FILE F FROM X` **also compiles clean** and defers to a RUN-TIME `NotImplemented` throw whose message interpolates an empty name. No named diagnostic, no `constructs.json` row, no edition gate, no test. ⚠ §4 carries no item for this module, so THIS ROW is the whole of the §4.2.7 user documentation. Rules: `derived-verdicts.rewrite-write-file-only` (12 rows — the FILE PHRASE only; the two statements are mandatory context per A.4.1 NOTE 1) |
+| A.4.14 | VALIDATE | Not claimed | §4 item 3. **The posture splits and the row now says so**: the VALIDATE *statement* is recognized and named — COBOLNET1580, a warning, at 2002/2014/2023, and VALIDATE stays a user-defined word at COBOL-85. Every other item is not. The eight data-division elements (DEFAULT, DESTINATION, INVALID, VAL-STATUS/VALIDATE-STATUS, the format-4/format-5 VALUE entry, and PRESENT WHEN / VARYING outside a report group) have no arm in `dataDescriptionClause` and are a **generic parse error** — or, for DESTINATION / VAL-STATUS / VALIDATE-STATUS, which are reserved words with no lexer token, the *misleading* COBOLNET0901 "is a reserved word", which names the wrong problem. EC-VALIDATE and its five level-3 names are catalogued with **zero setting sites**, so `>>TURN EC-VALIDATE CHECKING ON` compiles clean against a facility that does not exist. kb/Work PB283 owns that debt. Rules: `derived-verdicts.validate-only` (75 rows) — but NOT the §13.18.11 CLASS clause, which Annex A.4 never lists and which is an open adjudication |
 
 ## 6. Maintenance
 
@@ -720,15 +745,25 @@ warning sites are the code-side counterpart — keep the two in sync. This file 
 > implementor's user documentation"** and 23 explicitly do not. §4.2.5 requires the implementor to *specify*
 > every element identified as required and to *document* every element identified as requiring documentation;
 > D13 makes those 199 part of the definition of done.
-> **MEASURED 2026-08-31 — this register discharges 36 of the 199** (`python scripts/spec/audit_annex_a1.py`
+> **MEASURED 2026-09-02 — this register discharges 36 of the 195 in scope** (`python scripts/spec/audit_annex_a1.py`
 > reports it, and the numbers below are its output, not a hand count): items 2, **18**, **19**, 22, 33, 48,
 > **50**, 56, 57, 58, 59, 70, 82, 87, 93, 112, 127, 133–137, 145, 158, 171, 179, 180, 188, 202,
 > and the **storage-representation items 205–209, 211 and 215** that V59 pinned (BINARY · the BINARY-CHAR
 > family · COMPUTATIONAL · INDEX · PACKED-DECIMAL: the byte width, the radix, the byte order and a worked
 > example for each, since a COBOL developer reading this needs to know what lands on disk). Items **92**,
-> **123** and **144** are documented voluntarily. **163 obligations remain** (`audit_annex_a1.py` is the
+> **123** and **144** are documented voluntarily. **159 obligations remain** (`audit_annex_a1.py` is the
 > count's owner — re-run it rather than trusting this sentence; it was stale by three when item 50 landed,
 > which is exactly why the script and not this paragraph is the authority).
+> ⛔ **FOUR OF THE 199 CANNOT ARISE, so the denominator is 195** — items **84**, **85** (FORMAT clause), **173**
+> (SELECT WHEN clause) and **86** (Format validation, which cites only PICTURE GR15 and USAGE GR3 *during a
+> VALIDATE statement*). Annex A.1's own preamble is the licence, not an inference from §4.2.7: *"Required: The
+> element shall be provided by the implementor. **When the element is part of a feature that is optional or
+> processor-dependent, the item is not required if the optional or processor-dependent feature is not
+> implemented.**"* A.4.8 and A.4.14 are Not claimed (§5), so these four obligations cannot be incurred, and they
+> carry DOCUMENTED-NON-SUPPORT in the traceability inventory. ⚠ The exclusion is **derived, not listed**:
+> `audit_annex_a1.py` reads the same `derived-verdicts` selectors the inventory batch and the C# drift test read,
+> so the next declined module is handled with no edit here — and, more to the point, this counter and the
+> inventory can never give two answers about one item, which is what they did before 2026-09-02.
 > ⚠ The MODULE-NAME row was filed under item **213** (which is USAGE NATIONAL) from 2026-08-05 until
 > 2026-08-08 — the audit's number/element cross-check caught it; its true item is **135** (§15.65.4 r4).
 > ⚠ **The two item-92 rows are VOLUNTARY**: A.1-92 is one of the 23 elements the standard says need *not* be

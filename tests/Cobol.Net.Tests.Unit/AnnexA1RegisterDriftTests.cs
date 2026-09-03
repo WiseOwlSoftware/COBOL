@@ -111,11 +111,19 @@ public sealed class AnnexA1RegisterDriftTests
     /// same claim from opposite ends — a DOC row's whole evidence is its determination — so a verdict recorded
     /// against an item the register does not document would be a claim with nothing behind it.
     /// </summary>
+    /// <remarks>
+    /// ⚠ EXCEPT an item a DECLINED module withdraws. Annex A.1's preamble makes an item "not required if the
+    /// optional or processor-dependent feature is not implemented", so a DOC row stamped DOCUMENTED-NON-SUPPORT
+    /// by a `derived-verdicts` selector has no determination to file and must not be expected to have one. The
+    /// excluded set is the audit's own <c>unreachable</c>, DERIVED from those selectors — not a list here, so a
+    /// module declined tomorrow needs no edit in this file.
+    /// </remarks>
     [Fact]
     public void EveryVerdictedDocRow_HasItsRegisterDetermination()
     {
-        var filed = JsonLineOf(RunAudit("--json")).GetProperty("filed")
-            .EnumerateArray().Select(x => x.GetInt32()).ToHashSet();
+        var json = JsonLineOf(RunAudit("--json"));
+        var filed = json.GetProperty("filed").EnumerateArray().Select(x => x.GetInt32()).ToHashSet();
+        var withdrawn = json.GetProperty("unreachable").EnumerateArray().Select(x => x.GetInt32()).ToHashSet();
 
         string path = TestRepo.VersionMatrix("traceability-inventory.json");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
@@ -132,11 +140,12 @@ public sealed class AnnexA1RegisterDriftTests
         Assert.True(verdicted.Count > 0,
             "no kind-DOC inventory row carries a verdict — this gate would then be vacuous, and the A.1 "
             + "back-fill is what changed.");
-        var orphan = verdicted.Where(n => !filed.Contains(n)).Order().ToList();
+        var orphan = verdicted.Where(n => !filed.Contains(n) && !withdrawn.Contains(n)).Order().ToList();
         Assert.True(orphan.Count == 0,
             $"{orphan.Count} A.1 item(s) carry an inventory verdict with no docs/CONFORMANCE.md §7 row: "
             + $"[{string.Join(", ", orphan.Take(20))}] — a DOC row's evidence IS its determination, so the "
-            + "verdict rests on nothing.");
+            + "verdict rests on nothing. (An item a declined module withdraws is exempt and is reported by the "
+            + "audit's own `unreachable`; these are not in it.)");
     }
 
     /// <summary>
