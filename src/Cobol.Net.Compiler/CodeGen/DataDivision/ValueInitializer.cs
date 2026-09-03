@@ -15,6 +15,11 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// <summary>The group-VALUE positional distributor (set once by <see cref="DataEmitter"/>).</summary>
     public GroupValueSlicer Slicer { get; set; } = null!;
 
+    /// <summary>THE §14.6.2.3.2 action-1 background (kb/Work PB152) — shared with <see cref="GroupImageCodec"/>
+    /// so the native-field arm and the Tier-B image arm cannot answer "what fills a VALUE-less item" differently.
+    /// One instance per emitter so its section-root sets are built once.</summary>
+    public InitialStateBackground Background { get; } = new(ctx);
+
     /// <summary>The C# initializer for a field: an array literal for an OCCURS table (every element initialized so
     /// none is left at <c>default</c>), a composed object-initializer for a group, else the elementary VALUE.</summary>
     public string FieldInit(DataItem item)
@@ -153,7 +158,13 @@ internal sealed class ValueInitializer(EmitContext ctx)
             return RuntimeApi.NumFormatImage(unscaled, item.ProfileName);
         }
 
-        if (effRaw is not { } raw) return pic.DefaultInitializer;
+        // ⛔ THE NO-VALUE BRANCH — §14.6.2.3.2 action 1, the BACKGROUND. `pic.DefaultInitializer` is the
+        // NO-CLAUSE baseline and stays exactly that; when the OPTIONS paragraph wrote an INITIALIZE clause whose
+        // section list selects this item, the background is the specified-fill-character instead. Action 1
+        // precedes action 2 (the VALUE seed) and this is the only place that ordering has to appear, because a
+        // field initializer is one expression and every VALUE-bearing path above has already returned.
+        // ONE choke point, shared with the Tier-B image arm — see InitialStateBackground.
+        if (effRaw is not { } raw) return Background.Seed(item, pic) ?? pic.DefaultInitializer;
 
         // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §13.18.40.5 r11 + §14.6.6 r6 make
         // the locale the one current AT THE TIME of editing — so the initializer is a RUNTIME CobolLocaleEdit

@@ -2020,7 +2020,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// nor renamed in whole or in part. Both → COBOLNET1532. (SR6, the level-1/strong-parent placement rule, is
     /// checked at clone time in <see cref="ExpandType"/>.) An INTERNAL redefine — a REDEFINES that is part of the same
     /// strong subtree, cloned in from the type template — is legitimate and NOT flagged (its subject and target share
-    /// a strong root); only an EXTERNAL redefinition of a strong item is prohibited.</summary>
+    /// a strong root); only an EXTERNAL redefinition of a strong item is prohibited.
+    /// <para><b>The carve-out survives §13.18.57.3 SR4's letter — kb/Work PB183's companion derivation, ANSWERED.</b>
+    /// SR4 reads "If type-name-1 is described with the STRONG phrase, the subject of the entry shall not be implicitly
+    /// or explicitly redefined in whole or in part", and the question was whether that overturns the internal carve-out.
+    /// It does not, because SR4's SUBJECT is the entry CARRYING the TYPE clause, and §13.18.57.3 SR2 — "A data
+    /// description entry in which a TYPE clause is specified shall not be followed immediately by a subordinate data
+    /// description entry or a level 88 entry" — makes a subordinate REDEFINES under a TYPE entry syntactically
+    /// unwritable. The only REDEFINES that can reach a strong subtree from outside is <c>01 X REDEFINES S.</c>, which
+    /// the loop below already rejects. A REDEFINES written INSIDE the typedef TEMPLATE has no TYPE-clause subject at
+    /// all, so SR4 never reaches it. PB179's cross-root narrowing was correct and needs no change; a positive golden
+    /// (<c>pb183_redefines_in_strong_typedef_ok</c>) guards it against a later "tightening".</para></summary>
     internal void CheckStrongTypeDeclarations()
     {
         foreach (var item in AllItems())
@@ -3539,8 +3549,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // object/message-tag/pointer or a strongly-typed group; SR14 bars data-name-2 (the DIRECT
             // target as written) likewise, plus "subordinate to a strongly-typed group item". These are the
             // rules' LETTER — the drafting contrast with SR9's "nor any entry subordinate to it" shows they
-            // name the entry-level items only; a NESTED pointer leaf is §13.18.60.3 SR14's territory
-            // (kb/Work PB183) and ComputeTier's backstop arm.
+            // name the entry-level items only; a NESTED pointer leaf is §13.18.60.3 SR14's territory — now
+            // screened at its own declaration by CheckUsageDeclarations (kb/Work PB183, COBOLNET1724), with
+            // ComputeTier's backstop arm kept as the recovery-path guard behind it.
             if (Sr12Sr14Violation(item, item.RedefinesTarget) is { } srv)
                 Edition.Error(DiagnosticCatalog.RedefinesPointerObject, srv);
             // §13.18.44.3 SR17, the SAME per-written-entry posture and for the same reason (kb/Work PB177 arm C):
@@ -3761,7 +3772,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>The §13.18.44.3 SR12/SR14 class test (kb/Work PB179): object/pointer classes occupy no
     /// character positions and can neither overlay nor be overlaid. Message-tag has no bound model yet;
     /// a USAGE FUNCTION-POINTER entry's semantics are staged at declaration (the P13 band — its Pic stays
-    /// null), so it never reaches the class machinery live.</summary>
+    /// null), so it never reaches the class machinery live.
+    /// <para>⛔ THE ONE CLASS PREDICATE FOR BOTH SCREENS. §13.18.60.3 SR14's declaration-placement screen
+    /// (<c>DataBinder.UsageDeclaration.cs</c>, kb/Work PB183) resolves its class question through this same
+    /// method — see <c>Sr14PlacementClass</c>. The two rules spell the population differently (SR12/SR14 name
+    /// the CLASSES "class object, message-tag, or pointer"; §13.18.60.3 SR14 names the five USAGE PHRASES that
+    /// produce exactly those classes) and a second hand-written list would drift the moment MESSAGE-TAG or
+    /// FUNCTION-POINTER gains a model. A unit pin asserts the identity. ⛔ CLASS INDEX IS NOT HERE and must
+    /// never be added: §13.18.60.3 SR4 is the rule whose list includes INDEX, and it has its own predicate.
+    /// </para></summary>
     private static bool PointerObjectClass(DataItem d) =>
         d.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.ObjectReference;
 
@@ -3831,11 +3850,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // §13.18.44.3 SR12/SR14's letter (those bar the ENTRY-level items — screened per written entry in
         // ClassifyRedefinesClasses). The skeptic round derived that §13.18.60.3 SR14 makes the nested
         // declaration itself NONCONFORMING (a pointer/object USAGE is legal only at level 1 or under a
-        // STRONG type — and the strong case trips the entry-level screen via its enclosing group), so on
-        // conforming source this arm is unreachable-by-construction; it stands as the loud guard for the
-        // recovery/permissive paths until the missing §13.18.60.3 SR14 declaration screen lands ([[PB183]]
-        // — which must first verify that rule's severity against the PRINTED page and sweep the corpus).
-        // Never a silent zero-width Tier-B alias.
+        // STRONG type — and the strong case trips the entry-level screen via its enclosing group).
+        // ⛔ THAT SCREEN NOW EXISTS — CheckUsageDeclarations (DataBinder.UsageDeclaration.cs, COBOLNET1724,
+        // kb/Work PB183), which runs EARLIER in the pipeline and rejects the declaration itself, so on
+        // conforming source this arm is unreachable-by-construction exactly as predicted. It is KEPT, not
+        // deleted: it remains the loud guard for the recovery paths and for any future mode that admits a
+        // nonconforming declaration, and without it such a leaf would reach the byte-window machinery as a
+        // silent zero-width Tier-B alias. Never that.
         if (leaves.Any(PointerObjectClass))
         {
             reject = $"a pointer/object-class leaf under REDEFINES of '{cls.Canonical.CobolName}' (a managed "

@@ -64,7 +64,20 @@ public sealed class TierCRejectionTests
 
     /// <summary>The POINTER/OBJECT-CLASS arm of the island (the R40 fleet's correction — the leaf-kind
     /// boundary did NOT close entirely: pointer/object categories have no character image and R40's pin
-    /// covers the numeric kinds only). Compiles, throws Tier-C, names the pointer/object mechanism.</summary>
+    /// covers the numeric kinds only). Compiles, throws Tier-C, names the pointer/object mechanism.
+    ///
+    /// <para>⛔ THE GROUP IS A STRONG TYPEDEF, AND THAT IS FORCED BY THE STANDARD, not a stylistic choice.
+    /// This fixture was written <c>01 WS-GP. 05 WS-GP-P USAGE POINTER.</c> — an ordinary group with a pointer
+    /// member — which ISO §13.18.60.3 SR14 does not permit: "A USAGE clause with the MESSAGE-TAG, OBJECT
+    /// REFERENCE, POINTER, FUNCTION-POINTER, or PROGRAM-POINTER phrase may be specified only for an elementary
+    /// data item at level 1 or an elementary data item subordinate to a type declaration that includes the
+    /// STRONG phrase." The declaration screen (kb/Work PB183, COBOLNET1724) now rejects that at compile time, so
+    /// the fixture was NONCONFORMING SOURCE and these tests were passing on a program the standard forbids.
+    /// A STRONG typedef is the ONE conforming spelling of "a group whose leaf is class pointer", so it is what
+    /// the arm must be exercised through. Measured: both legs still reach the Tier-C stage with the identical
+    /// message — no strong-type MOVE guard intercepts the MOVE leg — so the boundary under test is unchanged
+    /// and this is a source repair, not a weakened assertion. ⛔ Do NOT "fix" a future failure here by relaxing
+    /// the SR14 screen; the screen is right and the program was wrong.</para></summary>
     private static void AssertPointerGroupLoud(string proc)
     {
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun($$"""
@@ -72,9 +85,10 @@ public sealed class TierCRejectionTests
             PROGRAM-ID. TIERCRE5.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
-            01 WS-GP.
+            01 GPT IS TYPEDEF STRONG.
                05 WS-GP-A PIC X(3).
                05 WS-GP-P USAGE POINTER.
+            01 WS-GP TYPE GPT.
             01 WS-DST PIC X(7).
             PROCEDURE DIVISION.
             MAIN.

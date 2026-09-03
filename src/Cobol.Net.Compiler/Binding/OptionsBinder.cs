@@ -3,6 +3,7 @@
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 
 namespace CobolNet.Binding;
 
@@ -134,16 +135,49 @@ internal static class OptionsBinder
         // §8.8.3.3 GR3: a concatenation-expression fill literal folds to its equivalent literal's raw text
         // (GetText would glue the operand tokens). OPTIONS precedes SPECIAL-NAMES, so no PCS table applies.
         if (fill.literal() is { } lit)
-            return new OptionsInitialize(sections, OptionsFill.Literal,
-                lit.nonNumericLiteral()?.concatenationExpression() is { } ce && edition is not null
-                    ? ConcatFolder.Fold(ce, edition, null).RawText
-                    : lit.GetText());
+        {
+            string raw = lit.nonNumericLiteral()?.concatenationExpression() is { } ce && edition is not null
+                ? ConcatFolder.Fold(ce, edition, null).RawText
+                : lit.GetText();
+            char? c = OneByteHexAlphanumeric(raw);
+            if (c is null)
+                edition?.Error(DiagnosticCatalog.OptionsInitializeFillLiteral, $"the INITIALIZE clause's fill "
+                    + $"literal {raw} is not a one-byte hexadecimal-alphanumeric literal — literal-1 shall be "
+                    + "written in the format-2 alphanumeric form X\"nn\" (or X'nn'), exactly two hexadecimal "
+                    + "digits (ISO §11.9.10.3 SR1; §8.3.3.2.2 format 2; §8.3.3.2.3 SR5)");
+            // Recovery leaves the byte UNRESOLVED (null), never a guessed one off the rejected literal:
+            // InitialStateBackground then falls back to the §11.9.10.4 GR6 no-clause background, so a rejected
+            // clause behaves as though it were absent instead of laying down a character the program did not
+            // conformingly ask for.
+            return new OptionsInitialize(sections, OptionsFill.Literal, raw, c);
+        }
         OptionsFill kind =
             fill.BINARY() is not null ? OptionsFill.BinaryZeroes
             : fill.HIGH_VALUE() is not null ? OptionsFill.HighValues
             : fill.LOW_VALUE() is not null ? OptionsFill.LowValues
             : OptionsFill.Spaces;
-        return new OptionsInitialize(sections, kind, null);
+        // ⛔ No figurative character is resolved here — see OptionsInitialize.LiteralFillChar. GR5 b/d depend on
+        // the PROGRAM COLLATING SEQUENCE (§8.3.3.6.4 GR6), which this compiler defines in exactly one place.
+        return new OptionsInitialize(sections, kind, null, null);
+    }
+
+    /// <summary>ISO §11.9.10.3 SR1's decode: literal-1's byte, or null when the literal is not a ONE-BYTE
+    /// HEXADECIMAL-ALPHANUMERIC literal.
+    ///
+    /// <para>⛔ "Hexadecimal-alphanumeric literal" is a DEFINED TERM and this predicate is written to it, not to
+    /// a paraphrase. §8.3.3.2.2 gives the alphanumeric literal exactly two general formats — format 1
+    /// (<c>"…"</c> / <c>'…'</c>) and format 2 (<c>X"…"</c> / <c>X'…'</c>) — and "hexadecimal-alphanumeric" names
+    /// FORMAT 2. A format-1 literal such as <c>"Z"</c> is therefore NOT admitted however short it is, which is
+    /// the one place a natural reading of SR1 ("surely a one-character quoted literal is fine") diverges from
+    /// what it says. §8.3.3.2.3 SR5 requires the hex-character-sequence to be composed of hexadecimal digits,
+    /// and ONE BYTE is exactly two of them.</para></summary>
+    private static char? OneByteHexAlphanumeric(string? raw)
+    {
+        if (raw is null || raw.Length != 5) return null;                       // X + quote + 2 digits + quote
+        if (raw[0] is not ('X' or 'x')) return null;
+        if (raw[1] is not ('"' or '\'') || raw[4] != raw[1]) return null;
+        return int.TryParse(raw.AsSpan(2, 2), System.Globalization.NumberStyles.HexNumber,
+                            System.Globalization.CultureInfo.InvariantCulture, out int b) ? (char)b : null;
     }
 
     private static OptionsSections SectionOf(Core.OptionsInitializeSectionContext s) =>

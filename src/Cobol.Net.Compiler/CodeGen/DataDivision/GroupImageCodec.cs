@@ -117,6 +117,13 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     && vals.FigurativeInitializer(fraw, pic) is null
                     ? ValueInitializer.RawValueAsFloat(fraw, pic) : "0d",
                 item.ProfileName);
+        // ⛔ THE TIER-B IMAGE ARM'S NO-VALUE SEED — §14.6.2.3.2 action 1's BACKGROUND on the image axis
+        // (kb/Work PB152). This was the arm PB151 could not reach: the ALLOCATE fix landed with its fill decoder
+        // PRIVATE to PtrEmitter, so this fall-through went on hardcoding ' ' / '0' with no way to consult the
+        // OPTIONS model. It now asks the SAME choke point the native-field arm asks (InitialStateBackground),
+        // one call apart, and a drift test asserts the two agree for every category × usage. The baselines below
+        // are unchanged and remain what a no-clause program gets.
+        if (vals.Background.Seed(item, pic) is { } bg) return bg;
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
             ? RuntimeApi.NumFormatImage("0L", item.ProfileName)
             // Boolean initial state — zeros (§13.18.63). A USAGE BIT item's zeros are PACKED, so the seed is

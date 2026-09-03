@@ -611,10 +611,46 @@ reallocated).
 > "depends on the INITIALIZE clause of the OPTIONS paragraph. If it is specified, the content is that of the
 > specified-fill-character" — the rules reference the CLAUSE, and allocated storage belongs to no section, so
 > the clause's LOCAL-STORAGE/SCREEN/WORKING-STORAGE target list does not scope it: any written INITIALIZE
-> clause supplies the fill. The fill character: a literal's value (first character; X"nn" decoded), BINARY
-> ZEROES and LOW-VALUES the NUL, HIGH-VALUES U+FFFF (OPTIONS precedes SPECIAL-NAMES, so the native extremes,
-> never a PCS), SPACES the space; no clause → space (GR8's "undefined", the conformant choice). INITIALIZED
-> always wins with binary zeros (GR6). Pinned by `2023/pb151_options_fill`.
+> clause supplies the fill. No clause → space (GR8's "undefined", the conformant choice). INITIALIZED always
+> wins with binary zeros (GR6). Pinned by `2023/pb151_options_fill` and, against the other two consuming arms,
+> by `2023/pb152_options_initialize_arm_agreement`.
+> ⛔ **CORRECTED 2026-09-02 (kb/Work PB152) — this paragraph used to state the fill map itself, and it was
+> WRONG in two ways.** It said a literal fill takes its "first character", which admitted spellings
+> §11.9.10.3 SR1 forbids (see the §11.9.10 determination below); and it said HIGH-VALUES is U+FFFF, while every
+> other HIGH-VALUE in this compiler is the program collating sequence's highest character (§8.3.3.6.4 GR6),
+> U+00FF under the native sequence. That second answer existed only because the ALLOCATE arm carried a PRIVATE
+> copy of the §11.9.10.4 GR5 map. There is now ONE resolution of the specified-fill-character
+> (`InitialStateBackground`, over `FigurativeConstants.FillChar`) shared by all three arms, and this document
+> no longer restates the map.
+
+> ⚖ **DETERMINATION — what the OPTIONS INITIALIZE background means for a NATIVE carrier (§11.9.10 /
+> §14.6.2.3.2 action 1)** (2026-09-02; kb/Work PB152). §11.9.10.4 GR5 makes the specified-fill-character a
+> CHARACTER, and §14.6.2.3.2 action 1 sets "the storage allocated for the implied or associated sections" to
+> it. COBOL.NET has no byte substrate: a `long` / `Int128` / `float` / `double` field and an INDEX cell have no
+> character positions to receive one. **The realization: character-formed storage takes the fill; a
+> native-numeric carrier and an index cell take their zero.** §13.18.63.4 GR4 c) licenses exactly this — a
+> VALUE-less item's initial content is "undefined and set to a value that may or may not be allowed for that
+> data item or index" — so the fill is a background over storage the standard does not otherwise constrain, and
+> a carrier that cannot hold it takes the value it can. **Character-formed** = alphanumeric, national,
+> numeric-edited and DISPLAY-form boolean (one character per position, D-B1), *including* every such member of
+> a Tier-B REDEFINES string backing. **Two carve-outs, each from a RULE and not from convenience:** class
+> object / message-tag / pointer take NULL, because GR4 c) states that as a positive requirement in the same
+> sentence; and USAGE BIT keeps its packed ceil(n/8) zero seed (D19 / kb/Work PB43), because its storage is
+> packed bytes laid out by the §8.5.1.6.3 walk rather than a run of character positions.
+> **Scope:** the clause is COBOL-2023 (Annex E.3.3 item 33), so below 2023 it cannot be written and the
+> unchanged space/zero seed remains the conformant realization of §11.9.10.4 GR6's "undefined or specified by
+> the implementor" there. **§11.9.10.4 GR3 (the SCREEN arm)** has no data items to reach: the SCREEN SECTION is
+> a §4.2.7 optional facility documented as unsupported in §4 below (COBOLNET1560), and that one warning remains
+> the posture rather than a second diagnostic. Pinned by `2023/pb152_options_initialize_background`,
+> `_sections`, `_local_storage`, `_tier_b`, `_external`, `_figurative` and `_arm_agreement`.
+> ⚖ **DETERMINATION — §11.9.10.3 SR1's "one-byte hexadecimal-alphanumeric literal" is §8.3.3.2.2 FORMAT 2, and
+> nothing else** (2026-09-02; kb/Work PB152, COBOLNET1727). "Hexadecimal-alphanumeric literal" is a defined
+> term: §8.3.3.2.2 gives the alphanumeric literal exactly two general formats — format 1 (`"…"` / `'…'`) and
+> format 2 (`X"…"` / `X'…'`) — and the term names format 2. `INITIALIZE ALL TO "Z"` is therefore **not** a
+> conforming spelling however short the literal is; `X"5A"` is, and one byte is exactly two hexadecimal digits
+> (§8.3.3.2.3 SR5). This is recorded as a determination because the natural reading of SR1 diverges from its
+> letter here, and because the previous decoder took the literal's first character for ANY shape — so
+> `INITIALIZE ALL TO "AB"` silently filled with `A`.
 
 > ⚖ **DETERMINATION — the §8.8.1.5.4 r2e development of a non-integer (and past-loop-bound integer) power**
 > (2026-08-29, REPLACED 2026-08-31 by owner decision D-C; kb/Work PB145 + PB167). r2e leaves the equivalent

@@ -11393,12 +11393,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "INITIALIZE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#OneByteHexAlphanumeric; src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#InitializeOf",
+  "test-ref": "conformance:negative/pb152-options-initialize-fill-literal-not-hex; conformance:negative/pb152-options-initialize-fill-literal-two-bytes; unit:InitialStateBackgroundDriftTests.Sr1AdmitsOnlyAOneByteHexadecimalAlphanumericLiteral",
+  "editions": "2023",
+  "notes": "LANDED 2026-09-02 (PB152), COBOLNET1727. 'Hexadecimal-alphanumeric literal' is a DEFINED TERM and the screen is written to it, not to a paraphrase: 8.3.3.2.2 gives the alphanumeric literal exactly two general formats - format 1 (\"...\" / '...') and format 2 (X\"...\" / X'...') - and 'hexadecimal-alphanumeric' names FORMAT 2, so a one-character format-1 literal such as \"Z\" is NOT admitted however short it is. One byte is exactly two hexadecimal digits (8.3.3.2.3 SR5). Before the screen the decoder took raw[0] for ANY shape, so INITIALIZE ALL TO \"AB\" silently became 'A'. The 2026-08-30 analysis that scoped this work carried the paraphrase 'a one-character alphanumeric OR one-byte hex literal', which would have shipped an under-reject; the printed page (PDF 307 / folio 277) was rendered and read to settle it. PB151's own golden pb151_options_fill was written with the format-1 spelling and is repaired to X\"51\" by this landing - 0x51 IS 'Q', so its expected output is unchanged byte for byte.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.10.4-1",
@@ -11406,12 +11406,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "INITIALIZE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#InitializeOf; src/Cobol.Net.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor",
+  "test-ref": "conformance:2023/pb152_options_initialize_background; conformance:2023/pb152_options_initialize_local_storage",
+  "editions": "2023",
+  "notes": "LANDED 2026-09-02 (PB152). The ALL fold was BUILT by the binder from the start and read by NOBODY - OptionsInitialize.Sections was a producer-only field, so GR1 had never executed. It now has its first consumer. The fold is probed from both sides: pb152_options_initialize_background shows ALL selecting WORKING-STORAGE and pb152_options_initialize_local_storage shows the same clause selecting LOCAL-STORAGE without naming it.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.10.4-2",
@@ -11419,12 +11419,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "INITIALIZE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor",
+  "test-ref": "conformance:2023/pb152_options_initialize_sections; conformance:2023/pb152_options_initialize_local_storage",
+  "editions": "2023",
+  "notes": "LANDED 2026-09-02 (PB152). Section selection keys on ROOT MEMBERSHIP in DataBinder.LocalStorageRoots, never on 'not a file record': 13.18.63.4 GR2/GR3 leave file-section and linkage initial values undefined or governed by 13.7, so those sections are outside this rule's reach entirely and a negative test would sweep them in. pb152_options_initialize_sections probes BOTH directions - a clause naming LOCAL-STORAGE alone must leave WORKING-STORAGE at its baseline - because a one-section probe passes for the wrong reason under an implementation that ignores the section list and fills everything. LOCAL-STORAGE is automatic data (13.6.4 GR1), so the background is re-laid on EVERY activation; pinned by a two-CALL golden that mutates the item in between.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.10.4-3",
@@ -11433,11 +11433,11 @@
   "ordinal": 3,
   "subject": "INITIALIZE clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindDeclarations",
+  "test-ref": "conformance:2023/pb152_options_initialize_sections",
+  "editions": "2023",
+  "notes": "The SCREEN arm. The SCREEN SECTION is a 4.2.7 OPTIONAL facility this compiler documents as unsupported and warns about at compile time (COBOLNET1560, docs/CONFORMANCE.md section 4; kb/Work R32), so there are no screen-section data items for GR3's fill to reach. The gap stays VISIBLE through the existing 1560 warning rather than becoming a silent no-op: any program with a SCREEN SECTION is already told the section is unsupported, and a program without one has nothing for GR3 to initialize, which is a correct no-op rather than an omission. Deliberately NOT given a second diagnostic - one non-support posture per optional facility. Closes with the SCREEN SECTION itself.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.10.4-4",
@@ -11445,12 +11445,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "INITIALIZE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor; src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFor; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOfOne",
+  "test-ref": "conformance:2023/pb152_options_initialize_background; conformance:2023/pb152_options_initialize_tier_b; conformance:2023/pb152_options_initialize_arm_agreement",
+  "editions": "2023",
+  "notes": "LANDED 2026-09-02 (PB152). The working-storage background reaches BOTH storage axes through ONE choke point: the native-field arm (ValueInitializer's no-VALUE branch) and the Tier-B image arm (GroupImageCodec's fall-through, the arm PB151 could not have reached because its fill decoder was private to PtrEmitter). Proven by reverting the image arm alone and watching pb152_options_initialize_tier_b and pb152_options_initialize_arm_agreement go RED while pb152_options_initialize_background stayed green.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.10.4-5",
@@ -11458,12 +11458,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "INITIALIZE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#ClauseFillChar",
+  "test-ref": "conformance:2023/pb152_options_initialize_figurative; conformance:2023/pb152_options_initialize_background; conformance:2023/pb152_options_initialize_arm_agreement",
+  "editions": "2023",
+  "notes": "LANDED 2026-09-02 (PB152). All five GR5 arms. ⛔ GR5 b/d resolve through FigurativeConstants.FillChar - the compiler's ONE definition of the alphanumeric high and low value, which 8.3.3.6.4 GR6 makes a PROGRAM-COLLATING-SEQUENCE-dependent fact rather than a constant - and NOT through a second map. This was measured wrong: PB151's landed ALLOCATE arm carried its own GR5 map spelling HIGH-VALUES as U+FFFF while every other HIGH-VALUE in the compiler is U+00FF under the native sequence. One rule, two places, two answers, and the arm with the private copy was the one that disagreed with the rest of the compiler. GR5 a is kept SEPARATE from GR5 d on purpose: 'a string of binary zeros' is the literal zero byte while 'the alphanumeric low value character' is the collating minimum - they coincide natively and diverge under a PROGRAM COLLATING SEQUENCE. pb152_options_initialize_arm_agreement asks all three consuming arms the same HIGH-VALUES question in one program.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.10.4-6",
@@ -11471,12 +11471,12 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "INITIALIZE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#DefaultInitializer",
+  "test-ref": "unit:InitialStateBackgroundDriftTests.WithNoClauseTheBaselineSeedIsUnchanged; conformance:negative/pb152-options-initialize-below-2023",
+  "editions": "2023",
+  "notes": "LANDED 2026-09-02 (PB152). GR6's second sentence - with no INITIALIZE clause the content of items without predefined initialization values 'is undefined or specified by the implementor' - is what makes PicInfo.DefaultInitializer's space/zero seed a conforming choice, and it stays EXACTLY that seed: FillFor returns null when the clause is absent, so the whole no-clause population (every program in the corpus) is byte-unchanged. That invariant is a unit test rather than an assumption, because a regression in it is a corpus-wide wrong answer. The determination is documented in CONFORMANCE.md as required by 4.2.16.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.10.4-7",
@@ -11484,12 +11484,12 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "INITIALIZE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor",
+  "test-ref": "conformance:2023/pb152_options_initialize_external",
+  "editions": "2023",
+  "notes": "LANDED 2026-09-02 (PB152). The exclusion AND its stated exception: an EXTERNAL working-storage record is not filled (its storage is shared across the run unit and outlives any one element's initial state), except one carrying the CONSTANT RECORD clause, whose content IS its initialization (13.18.15.4 GR1). The golden writes the exception as the POSITIVE half so the rule cannot be implemented as a blanket skip-everything-EXTERNAL, and includes an ordinary working-storage item alongside so the exclusion cannot be implemented as skip-everything.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.11.2-1",
@@ -25095,12 +25095,12 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs#CheckUsageDeclarations; src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs#Sr4ConstantRecordUsage",
+  "test-ref": "conformance:negative/pb183-usage-index-constant-record; unit:UsageDeclarationPlacementDriftTests.Sr4ListIsExactlySr14ListPlusIndex",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-09-01 (PB183). SIX phrases - INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, PROGRAM-POINTER - barred from a CONSTANT RECORD entry 'or in any item subordinate to' one; the subtree reach is DataBinder.IsConstantRecordItem, shared with the 13.18.15.3 SR2 receiving guard rather than re-walked. The predicate is written as SR14's five phrases PLUS INDEX so the ONE-phrase difference between SR4 and SR14 is the code's own structure; the drift test asserts Sr4 minus Sr14 == {INDEX} in both directions. MESSAGE-TAG has no Usage member (a 2023 addition, VCR row 32) and FUNCTION-POINTER's PicInfo stays null (staged loud at ParseUsage, the P13 band) - both are covered by the WRITTEN-clause arm and held open by EveryUsageMemberCarriesAnSr14Verdict.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.60.3-5",
@@ -25225,12 +25225,12 @@
   "kind": "SR",
   "ordinal": 14,
   "subject": "USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs#CheckUsageDeclarations; src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs#Sr14PermittedLevel; src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs#Sr14UnderStrongTypeDeclaration",
+  "test-ref": "conformance:negative/pb183-usage-pointer-in-group; conformance:negative/pb183-usage-objref-in-group; conformance:negative/pb183-usage-progptr-in-group; conformance:negative/pb183-usage-pointer-in-weak-typedef; conformance:negative/pb183-usage-pointer-group-usage; conformance:negative/pb183-usage-pointer-same-as; conformance:2023/pb183_usage_pointer_placement_ok; conformance:2023/pb183_usage_index_in_group_ok; unit:UsageDeclarationPlacementDriftTests.Sr14PermittedLevelAdmitsLevel1AndLevel77Only",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-09-01 (PB183). The rule was verified against the PRINTED page (PDF 535 / folio 505) before implementation - the transcription is character-for-character correct and there is no falsely-restrictive OCR here. ONE screen over DataBinder.ConformanceForest() covers all FOUR usage-acquisition routes (a written clause; 13.18.60.4 GR1 group inheritance; a TYPE clone, verdicted ONCE at the template because the forest prunes clones; a SAME AS copy, which is its own written entry). DETERMINATION: level 77 SATISFIES the 'at level 1' arm - 8.5.1.3.2 puts a 77 entry outside the level system ('no true concept of level') and 13.11.1 declares the level-1 and level-77 spellings ALTERNATIVES for one non-hierarchical data element; GnuCOBOL agrees. Held by ONE named predicate (Sr14PermittedLevel) so the determination is a one-line change. The second arm reads the DECLARATION-side TypedefStrong, not the post-expansion StrongType, so a WEAK typedef's pointer member is rejected at the template rather than once per TYPE use. ARMS SHIP UNGATED below 2023: Annex E carries no note on this clause but its scope is 2014-to-2023 only, so its silence is a missing observation, not evidence of no change. Corpus cost measured: two fixtures held nonconforming source (pb61 repaired POINTER->INDEX, byte-identical output; pb177 LEG 2 re-spelled under a STRONG TYPEDEF, the one conforming spelling of the shape it tests). Zero other changes across 493 conformance goldens and 459 NIST programs.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.60.3-15",
@@ -25238,12 +25238,12 @@
   "kind": "SR",
   "ordinal": 15,
   "subject": "USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs#CheckUsageDeclarations; src/Cobol.Net.Compiler/Binding/DataBinder.cs#IsFileSectionItem",
+  "test-ref": "conformance:negative/pb183-usage-objref-file-section",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-09-01 (PB183). The DIRECT declaration arm of a two-arm dispatch whose indirect arm was already enforced: the SAME AS twin 13.18.49.3 SR6 has been screened as COBOLNET1556 since the SAME AS landing, while writing USAGE OBJECT REFERENCE directly on an FD record was accepted. Shares IsFileSectionItem with that twin rather than re-deriving the root test. Reported independently of SR14, since a level-1 FD record passes SR14 and violates only this rule.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.60.3-16",
@@ -27435,12 +27435,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Initial and last-used states of data",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/InitialStateBackground.cs; src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFor",
+  "test-ref": "conformance:2023/pb152_options_initialize_background; conformance:2023/pb152_options_initialize_local_storage; unit:InitialStateBackgroundDriftTests.TheBackgroundHasExactlyTwoPublicProducers",
+  "editions": "2023",
+  "notes": "LANDED 2026-09-02 (PB152). Action 1 is the consumer point 11.9.10.4 GR2/GR3/GR4 route to, and its ORDER against action 2 is structural: the fill is a BACKGROUND laid down first and then OVERWRITTEN by VALUE clauses, never a per-item substitute for a missing VALUE. pb152_options_initialize_background pins the ordering with an item that HAS a VALUE beside one that does not. No sequencing code was added - a field initializer is one expression, and only the expression's no-VALUE case changed - so the re-application sites (RecordStructEmitter's field initializers and __ResetStatics, the LOCAL-STORAGE per-activation re-seed, the OO instance cell) inherit it by construction. DETERMINATION recorded in CONFORMANCE.md and COBOLNET_DATA_MODEL_DESIGN D23: 'the storage ... is set to the specified-fill-character' over a typed-native model means CHARACTER-FORMED storage takes the fill, while a NATIVE-NUMERIC carrier and an INDEX cell take their zero - licensed by 13.18.63.4 GR4 c), whose own sentence leaves a VALUE-less item 'undefined and set to a value that may or may not be allowed for that data item or index'. Class object/message-tag/pointer take NULL instead, because that same sentence states it as a positive requirement; USAGE BIT keeps its packed ceil(n/8) zero seed (D19) because its storage is packed bytes rather than character positions.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.2.3.2-2",
@@ -29788,12 +29788,12 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "ALLOCATE statement",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Control/CobolPtr.cs#Allocate",
-  "test-ref": "",
-  "editions": "2002,2014,2023",
-  "notes": "Rule (--check OK, §14.9.3.4 8), TWO halves. Half 1 (no OPTIONS INITIALIZE clause -> content undefined): `CobolPtr.Allocate` space-fills (`new string(' ', size)`), which is a conformant realization of 'undefined' — and Annex F's implementor-defined list confirms it (specs/ISO_COBOL.md:34689 'the content of allocated storage is undefined'). CONFORMS. Half 2 (OPTIONS INITIALIZE specified -> the content SHALL be the specified-fill-character): NOT honored, silently. The clause IS parsed and modeled — grammar `optionsInitializeClause : INITIALIZE optionsInitializeTarget SECTION? TO optionsInitializeFill` and `OptionsBinder.InitializeOf` builds `OptionsInitialize(Sections, Fill, FillLiteral)` with OptionsFill in {BinaryZeroes, HighValues, LowValues, Spaces, Literal} — but a grep for consumers of `OptionsModel.Initialize` / `OptionsFill` across src/Cobol.Net.Compiler finds ONLY the producer (OptionsBinder) and the model itself: nothing reads it, and `EmitAllocate` passes only `zeroFill: s.Initialized` to the helper, never a fill character. So `OPTIONS. INITIALIZE ALL TO BINARY ZEROES.` followed by `ALLOCATE 10 CHARACTERS RETURNING P` yields SPACES where the standard mandates binary zeros — a wrong observable value with no diagnostic. ROOT CAUSE is shared with GR-14.9.3.4-9 and with §11.9.10 itself (WORKING-STORAGE/LOCAL-STORAGE/SCREEN background fill is equally unconsumed): the OptionsInitialize model has zero consumers. EDITION NOTE: the divergent branch exists only at 2023 — §E.3.3 33) 'INITIALIZE clause of the OPTIONS paragraph' (--check OK) lists it among the changes from the previous standard, so at 2002/2014 half 2 has no antecedent and the space fill is conformant there. What would close the row: thread OptionsInitialize's fill character into CobolPtr.Allocate (a fill-char parameter beside zeroFill) and add a 2023 golden pairing OPTIONS INITIALIZE ALL TO LOW-VALUES with a non-INITIALIZED ALLOCATE n CHARACTERS read back through a based item. || UPHELD: I re-ran the consumer search myself over src/ (excluding bin/obj) for `OptionsInitialize` and `OptionsFill` — the only hits are OptionsBinder.cs:85-105 (the producer), OptionsModel.cs:47/67-75 (the model), VersionConformancePass.cs:1524-1525 (the edition gate) and Constructs.g.cs:58. NOTHING in CodeGen reads it, and PtrEmitter.cs:114 passes only `zeroFill: s.Initialized`, so half 2 is silently dropped exactly as reported. I re-derived the edition claim from Annex E rather than from the code catalog: specs/ISO_COBOL.md:43996 is item 33 of §E.3.3 ('Substantive changes probably not affecting existing programs — Not affecting', heading at :43225), so the OPTIONS INITIALIZE clause is a 2023 addition and half 2 has no antecedent at 2002/2014. Half 1's 'undefined' realization I confirmed against CobolPtr.cs:120's non-zeroFill branch. Verdict stands: one half conformant, one half a silent wrong value at 2023.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#AllocateFillLiteral; src/Cobol.Net.Compiler/CodeGen/Verbs/PtrEmitter.cs#OptionsFillCharLiteral",
+  "test-ref": "conformance:2023/pb151_options_fill; conformance:2023/pb152_options_initialize_arm_agreement",
+  "editions": "2023",
+  "notes": "LANDED 2026-08 (PB151), CORRECTED 2026-09-02 (PB152). PB151 wired the fill through and closed the wrong-value half of this rule, but with a decoder PRIVATE to PtrEmitter carrying its own 11.9.10.4 GR5 map - which spelled HIGH-VALUES as U+FFFF while the compiler's one definition of the alphanumeric high value (FigurativeConstants.FillChar, 8.3.3.6.4 GR6) is U+00FF under the native sequence. The extraction routes this arm through the shared InitialStateBackground, so GR8's fill is now the SAME character the data-division background uses; pb152_options_initialize_arm_agreement asks all three arms in one program. GR8/GR9 deliberately key on the CLAUSE and not on its section list - allocated storage belongs to no section - and pb151_options_fill is the characterization pin proving the extraction preserved the landed behaviour (its fill literal was repaired from the nonconforming \"Q\" to X\"51\", the same byte).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.3.4-9",

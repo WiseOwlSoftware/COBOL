@@ -17,7 +17,8 @@
       *> Binary, so HasImageByteForm is TRUE and an INDEX-leaf group has been fully image-capable since R40.
       *> The formal here spans EVERY leaf kind the R40 + PB164 widening admits, so the dissolution stays proved.
       *> LEGS 2 and 3 are the SURVIVING live repros, compiled but never invoked - the pointer/object-class leaf
-      *> (PicCategory.Pointer is in neither ElementImageCapable list) and the variable-length group
+      *> (PicCategory.Pointer is in neither ElementImageCapable list; carried under a STRONG TYPEDEF because
+      *> 13.18.60.3 SR14 admits a subordinate pointer usage nowhere else - see LEG 2) and the variable-length group
       *> (IsImageCapable short-circuits on the dynamic axis). Both crashed the backend before this fix; both now
       *> emit the documented Tier-C loud in a body nobody runs, so the compilation group builds.
        IDENTIFICATION DIVISION.
@@ -100,12 +101,19 @@
 
       *> LEG 2 - the surviving pointer-leaf repro. NEVER INVOKED: the whole point is that a merely-DECLARED
       *> method must not emit uncompilable C#.
+      *> The pointer leaf sits under a STRONG TYPEDEF because 13.18.60.3 SR14 (kb/Work PB183) admits a
+      *> pointer/object usage at a subordinate level ONLY there - "an elementary data item at level 1 or an
+      *> elementary data item subordinate to a type declaration that includes the STRONG phrase". The plain
+      *> `01 LP. 05 LPP USAGE POINTER.` this leg was written with is nonconforming source, and the strong
+      *> typedef is the ONE conforming spelling of the shape under test. The repro is unchanged: LP is still a
+      *> group formal whose leaf is PicCategory.Pointer, in neither ElementImageCapable list.
        METHOD-ID. TIERCPTR.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 LP.
+       01 TPTR IS TYPEDEF STRONG.
           05 LPP USAGE POINTER.
           05 LPA PIC X(4).
+       01 LP TYPE TPTR.
        PROCEDURE DIVISION USING LP.
        MAIN-P.
            CONTINUE.

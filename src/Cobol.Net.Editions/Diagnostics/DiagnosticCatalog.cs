@@ -761,6 +761,57 @@ public static class DiagnosticCatalog
         + "(§8.4.3.10.1) whose §8.4.3.10.3 SR1 admits it only in INITIALIZE/SET, a prototype argument, or a "
         + "pointer-or-object-reference relation condition.",
         "ISO §14.9.42.3 SR2/SR3/SR4");
+    // ── The §13.18.60.3 USAGE DECLARATION-PLACEMENT family (kb/Work PB183) ────────────────────────────────
+    // Three syntax rules about WHERE a usage phrase may be written, none of which existed anywhere in the
+    // compiler. SR14 is the headline: measured on 2acbd842, `01 G. 05 P USAGE POINTER.` compiled and ran, as
+    // did a pointer member of a WEAK typedef template and a `05 Q SAME AS P` copy of a level-1 pointer. The
+    // rule was verified against the PRINTED page (folio 505, PDF 535) before the screen was written — the
+    // reading is restrictive enough that the falsely-restrictive-OCR hazard had to be excluded, and it was:
+    // the transcription is character-for-character the printed rule.
+    //
+    // ⛔ SR14's list OMITS INDEX while the neighbouring SR4 INCLUDES it. That is deliberate drafting, not an
+    // oversight to "unify": `05 IX USAGE INDEX.` inside an ordinary group is LEGAL and a positive golden pins
+    // it. The two rules take two descriptors and two predicates for exactly that reason.
+    public static readonly DiagnosticDescriptor UsageDeclarationPlacement = new(
+        "COBOLNET1724", "usage-declaration-placement", EditionSeverity.Error,
+        "ISO §13.18.60.3 syntax rule 14: \"A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, "
+        + "FUNCTION-POINTER, or PROGRAM-POINTER phrase may be specified only for an elementary data item at "
+        + "level 1 or an elementary data item subordinate to a type declaration that includes the STRONG "
+        + "phrase.\" (A level-77 entry satisfies the first arm: §13.11.1 makes the level-1 and level-77 "
+        + "spellings ALTERNATIVES for one data element that \"bear[s] no hierarchical relationship to any "
+        + "other data item\", and §8.5.1.3.2 puts a 77 entry outside the level system altogether — \"three "
+        + "types of entries exist for which there is no true concept of level\". The group form is reached "
+        + "through §13.18.60.4 GR1, which applies a group's usage \"only to each elementary item in the "
+        + "group\" — at that item's own level.)",
+        "ISO §13.18.60.3 SR14");
+    public static readonly DiagnosticDescriptor UsageObjectReferenceFileSection = new(
+        "COBOLNET1725", "usage-object-reference-file-section", EditionSeverity.Error,
+        "ISO §13.18.60.3 syntax rule 15: \"The USAGE OBJECT REFERENCE clause shall not be specified in the "
+        + "file section.\" (The SAME AS twin — §13.18.49.3 SR6, a file-section SAME AS whose data-name-1 "
+        + "description contains an object reference — is COBOLNET1556; this is the DIRECT declaration arm, "
+        + "which had no screen at all.)",
+        "ISO §13.18.60.3 SR15");
+    public static readonly DiagnosticDescriptor UsageConstantRecord = new(
+        "COBOLNET1726", "usage-constant-record", EditionSeverity.Error,
+        "ISO §13.18.60.3 syntax rule 4: \"The INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, "
+        + "and PROGRAM-POINTER phrases shall not be specified in a data item described with the CONSTANT "
+        + "RECORD clause, or in any item subordinate to a data item described with the CONSTANT RECORD "
+        + "clause.\" (SIX phrases — INDEX is in THIS rule's list and NOT in SR14's.)",
+        "ISO §13.18.60.3 SR4");
+    // The OPTIONS INITIALIZE clause's ONE syntax rule (kb/Work PB152). ⛔ "hexadecimal-alphanumeric literal" is a
+    // DEFINED TERM, not loose wording for "alphanumeric or hex": §8.3.3.2.2 gives the alphanumeric literal exactly
+    // two formats — format 1 `"…"` / `'…'` and format 2 `X"…"` / `X'…'` — and "hexadecimal-alphanumeric" names
+    // format 2. So `INITIALIZE ALL TO "Z"` is NOT a conforming spelling; `X"5A"` is. Measured on 2acbd842, the
+    // decoder took `raw[0]` for ANY shape, so `INITIALIZE ALL TO "AB"` silently became 'A' — a fill character the
+    // program never asked for, from a literal the standard does not admit. (PB151's own golden was written with
+    // the format-1 spelling and is repaired to X"51" by this landing.)
+    public static readonly DiagnosticDescriptor OptionsInitializeFillLiteral = new(
+        "COBOLNET1727", "options-initialize-fill-literal", EditionSeverity.Error,
+        "ISO §11.9.10.3 syntax rule 1: \"Literal-1 shall specify a one-byte hexadecimal-alphanumeric literal.\" "
+        + "(A hexadecimal-alphanumeric literal is §8.3.3.2.2's FORMAT 2 — X\"…\" or X'…' — whose "
+        + "hex-character-sequence \"shall be composed of hexadecimal digits\" (§8.3.3.2.3 SR5). One byte is "
+        + "exactly two hexadecimal digits.)",
+        "ISO §11.9.10.3 SR1");
     public static readonly DiagnosticDescriptor ReportControlTypeOperand = new(
         NotImplemented, "report-control-type-operand", EditionSeverity.Error,
         "A TYPE CH/CF operand is not an operand of the CONTROL clause.", "ISO §13.18.57.3 SR10/SR11");

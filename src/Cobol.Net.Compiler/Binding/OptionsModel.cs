@@ -173,10 +173,24 @@ public enum FloatEndianness { Unspecified, HighOrderLeft, HighOrderRight }
 public enum FloatEncoding { Unspecified, BinaryEncoding, DecimalEncoding }
 
 /// <summary>The INITIALIZE clause (§11.9.10): which sections' background is set, and to what fill character.</summary>
-/// <param name="Sections">The sections to initialize (ALL ⇒ all three).</param>
+/// <param name="Sections">The sections to initialize (ALL ⇒ all three, §11.9.10.4 GR1).</param>
 /// <param name="Fill">The fill kind.</param>
 /// <param name="FillLiteral">The literal text when <paramref name="Fill"/> is <see cref="OptionsFill.Literal"/>.</param>
-public sealed record OptionsInitialize(OptionsSections Sections, OptionsFill Fill, string? FillLiteral);
+/// <param name="LiteralFillChar">
+/// The BYTE of literal-1 (§11.9.10.4 GR5 c), decoded and validated ONCE at bind time; null for every other
+/// fill kind. Bind time is where this belongs because §11.9.10.3 SR1 — "Literal-1 shall specify a one-byte
+/// hexadecimal-alphanumeric literal" — is a SYNTAX rule, and this is its diagnostic site.
+/// <para>⛔ ONLY the literal arm is resolved here. GR5's four FIGURATIVE arms are NOT, because HIGH-VALUES and
+/// LOW-VALUES are not compile-time constants: §8.3.3.6.4 GR6 makes the high-value format "the character … that
+/// has the highest ordinal position in the program collating sequence", so the character depends on
+/// OBJECT-COMPUTER's PROGRAM COLLATING SEQUENCE. The compiler already has exactly one definition of that fact —
+/// <c>FigurativeConstants.FillChar</c> — and <c>InitialStateBackground</c> resolves GR5 a/b/d/e through it.
+/// Writing a second map here is how the landed ALLOCATE arm came to fill with U+FFFF while every other
+/// HIGH-VALUE in the compiler was U+00FF (kb/Work PB152 — measured, and the reason this parameter is the
+/// literal alone).</para>
+/// </param>
+public sealed record OptionsInitialize(OptionsSections Sections, OptionsFill Fill, string? FillLiteral,
+                                       char? LiteralFillChar);
 
 /// <summary>The sections an INITIALIZE OPTIONS clause targets (a flags set; ALL ⇒ all three).</summary>
 [Flags]

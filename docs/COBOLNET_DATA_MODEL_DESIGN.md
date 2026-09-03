@@ -874,6 +874,95 @@ position's own Table 13 condition. Only the *materialization* is transitional; `
 two wrappers are permanent, and the goldens `pb41_scaled_position` / `pb41_position_not_integer` pin them across
 the migration.
 
+### D22. The USAGE clause's DECLARATION-PLACEMENT rules (§13.18.60.3 SR14 / SR15 / SR4) are ONE bind pass over the WRITTEN-ENTRY forest — never a copy of the rule at each usage-acquisition site. (kb/Work PB183.)
+
+**The rules.** SR14: "A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, or
+PROGRAM-POINTER phrase may be specified only for an elementary data item at level 1 or an elementary data item
+subordinate to a type declaration that includes the STRONG phrase." SR15: "The USAGE OBJECT REFERENCE clause
+shall not be specified in the file section." SR4: the same five phrases *plus INDEX* barred from a CONSTANT
+RECORD entry "or in any item subordinate to" one. Three rules of one clause, none previously enforced anywhere;
+all three are now `CheckUsageDeclarations`
+(`src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs` — COBOLNET1724 / 1725 / 1726), a declared
+`BindPipeline` pass at `UsageResolved`.
+
+**Why ONE pass and not five checks.** A pointer usage reaches a data item by FOUR routes: a written USAGE clause,
+§13.18.60.4 GR1 group inheritance, a TYPE clone, and a SAME AS copy. The structural twin §13.18.57.3 SR6 is
+implemented in this tree as two hand-written parent walks (in `ExpandType` and `ExpandSameAs`), so writing SR14
+that way would have duplicated a rule at four sites instead of two. `DataBinder.ConformanceForest()` already means
+"every entry the programmer WROTE, once each" — it walks `Roots` + `LinkageRoots` + the `TypeDecls` templates and
+prunes TYPE-clone subtrees — so one predicate over it covers all four routes, anchors the verdict at the entry
+that must change (a weak typedef's pointer member is reported ONCE at the template, not once per `TYPE` use), and
+screens a fifth route added later for free.
+
+**Two determinations recorded here rather than left implicit.**
+1. **A level-77 entry SATISFIES SR14's "at level 1" arm.** §8.5.1.3.2 places a 77 entry outside the level system
+   ("three types of entries exist for which there is no true concept of level"), and §13.11.1 declares the level-1
+   and level-77 spellings ALTERNATIVES for one data element that "bear[s] no hierarchical relationship to any
+   other data item" — which is the property SR14's first arm stands for. Surveyed implementations agree. Held by
+   ONE named predicate (`Sr14PermittedLevel`) so a re-reading is a one-line change.
+2. **SR14's list omits INDEX; SR4's includes it, and the two must never be unified.** `05 IX USAGE INDEX.` inside
+   an ordinary group is legal COBOL. The SR4 predicate is written as *SR14's set plus INDEX* so the one-phrase
+   difference is the code's own structure, and a drift test asserts `Sr4 \ Sr14 == {INDEX}` in both directions.
+   Over-rejection, not under-rejection, is this screen's hazard.
+
+**Consequence for the storage model, worth stating because it bounds other subsystems' input.** On conforming
+source, the ONLY way to write a GROUP containing a pointer/object-class leaf is inside a `TYPEDEF STRONG`
+template. Everything else — an ordinary group member, a weak typedef member, a SAME AS copy into a group, a
+group-level pointer USAGE — is now rejected at the declaration. That is what makes `ComputeTier`'s nested
+pointer/object Tier-D backstop (D5 / `COBOLNET_REDEFINES_DESIGN.md`) unreachable-by-construction on conforming
+source; the backstop is kept as the recovery-path guard, never deleted.
+
+**Forward obligations, held by a test rather than by memory.** There is no `Usage.MessageTag` member (a 2023
+addition), so SR14's and SR4's message-tag arms and SR21 (MESSAGE-TAG exclusivity) are unimplementable today and
+are deliberately NOT written as dead code; `UsageDeclarationPlacementDriftTests` requires a recorded verdict for
+every `Usage` member and so fails the moment the member lands. The pre-2023 shape of these rules is not derivable
+from the 2023 text (Annex E's scope is 2014→2023 only, so its silence is a missing observation) — the arms ship
+ungated below 2023, recorded as kb/Work PB296.
+
+### D23. The initial-state BACKGROUND (§11.9.10 OPTIONS INITIALIZE + §14.6.2.3.2 action 1) is ONE choke point, `InitialStateBackground`, that all three consuming arms route through — the fill is a background laid UNDER the VALUE seed, never a substitute for a missing one. (kb/Work PB152.)
+
+**The rule, in order.** §14.6.2.3.2 numbers the initial-state actions: action 1 — "If the INITIALIZE clause is
+specified in the OPTIONS paragraph, the storage allocated for the implied or associated sections is set to the
+specified-fill-character"; action 2 — "The internal data described in the working-storage section and
+local-storage section is initialized as described in 13.18.63, VALUE clause." §11.9.10.4 GR2/GR3/GR4 route the
+three sections to that consumer point and GR1 folds `ALL` into all three. **No sequencing code implements the
+ordering:** a generated field initializer is one expression, and only its no-VALUE case changed, so the
+re-application sites (`RecordStructEmitter`'s field initializers and `__ResetStatics`, the LOCAL-STORAGE
+per-activation re-seed in `ProgramEmitter`, the OO instance cell) inherit it by construction.
+
+**Why one choke point is the design and not a tidiness preference.** "What fills storage that has no VALUE
+clause" was written in THREE places and exactly one had ever been fixed: kb/Work PB151 wired the ALLOCATE arm
+(§14.9.3.4 GR8/GR9) with its fill decoder **private to `PtrEmitter`**, so `PicInfo.DefaultInitializer` (the
+native-field arm) and `GroupImageCodec`'s fall-through (the Tier-B image arm) went on hardcoding `' '` / `'0'` /
+`0L` and *could not* have reused it. The private copy also carried its own §11.9.10.4 GR5 map, which spelled
+HIGH-VALUES as U+FFFF while every other HIGH-VALUE in the compiler is U+00FF — one rule, three places, two
+different answers, and the arm with the private copy was the one that disagreed. `InitialStateBackground` is now
+the sole producer of a background seed; a unit drift test pins that it has exactly three public producers, and
+`pb152_options_initialize_arm_agreement` asks all three arms the same question inside one COBOL program.
+
+**Where each fact is resolved, and why not elsewhere.**
+- **literal-1's byte — at BIND time**, on `OptionsInitialize.LiteralFillChar`, because §11.9.10.3 SR1 ("Literal-1
+  shall specify a one-byte hexadecimal-alphanumeric literal") is a SYNTAX rule and that is its diagnostic site
+  (COBOLNET1727). ⛔ "Hexadecimal-alphanumeric" is §8.3.3.2.2's FORMAT 2 (`X"nn"`), a defined term — *not* loose
+  wording for "a short quoted literal", so `INITIALIZE ALL TO "Z"` is nonconforming.
+- **the FIGURATIVE fills — at CODEGEN**, through `FigurativeConstants.FillChar`, the compiler's single definition
+  of the alphanumeric extremes. §8.3.3.6.4 GR6 makes the high-value format "the character … that has the highest
+  ordinal position in the program collating sequence", so it is a PCS-dependent fact and a second map is exactly
+  the defect described above. ⛔ GR5 a (BINARY ZEROES, "a string of binary zeros") stays a SEPARATE arm from
+  GR5 d (LOW-VALUES, "the alphanumeric low value character"): they coincide natively and diverge under a
+  PROGRAM COLLATING SEQUENCE whose minimum is not NUL.
+- **section selection and the GR7 exclusion — once**, in `FillFor`, keyed on root membership in the binder's own
+  `WorkingStorageRoots` / `LocalStorageRoots`, never on "not a file record" (§13.18.63.4 GR2/GR3 put the file and
+  linkage sections outside this rule's reach entirely). This is the first consumer `OptionsInitialize.Sections`
+  has ever had — the binder built the flag set, GR1 fold included, and nothing read it.
+
+**The determination for a typed-native carrier** (recorded in `CONFORMANCE.md`): character-formed storage takes
+the fill; a native-numeric carrier and an INDEX cell take their zero, licensed by §13.18.63.4 GR4 c)'s own
+"undefined and set to a value that may or may not be allowed for that data item or index". Class object /
+message-tag / pointer take NULL, which the same sentence states as a positive requirement; USAGE BIT keeps its
+packed ceil(n/8) zero seed (D19). **With NO clause the seed is byte-unchanged** — `PicInfo.DefaultInitializer`
+remains the §11.9.10.4 GR6 baseline it correctly is, which is the invariant covering the entire existing corpus.
+
 ## C# mapping
 
 CONCRETE COBOL→C# MAPPINGS:
@@ -1027,6 +1116,9 @@ editions that have it, rejected-with-the-right-diagnostic below its intro editio
 - §13.18.32 JUSTIFIED — right-justification for alphanumeric/alphabetic receivers only
 - §13.18.8 BLANK WHEN ZERO — display all spaces when value is zero
 - §13.18.63 / §14.9.4 VALUE clause and initial state — default initial values; table initialization; figurative constants
+- §13.18.60.3 USAGE syntax rules — the DECLARATION-PLACEMENT family (D22): SR14 (the five pointer/object phrases only at level 1/77 or under a STRONG type declaration), SR15 (no USAGE OBJECT REFERENCE in the file section), SR4 (those five PLUS INDEX barred in or under a CONSTANT RECORD). ⛔ SR14 omits INDEX where SR4 includes it — two lists, deliberately
+- §13.18.60.4 GR1 — a group-level USAGE "applies only to each elementary item in the group", which is how a group entry's pointer phrase becomes an SR14 violation at each subordinate's own level
+- §8.5.1.3.2 Level-numbers / §13.11.1 — a level-77 entry has "no true concept of level" and is an ALTERNATIVE spelling of the level-1 single-elementary record; together they settle that 77 satisfies SR14's first arm
 - §14.9.39 SET statement — condition-name SET TO TRUE assigns the first/low value (GR6), SET TO FALSE the WHEN-SET-TO-FALSE literal (GR7); index-name SET semantics
 - §8.8.1 / §14.9.25 arithmetic on the algebraic value regardless of representation; MOVE rules (justify, truncation, GR8 unsigned magnitude)
 - Conditional-flag REF-MOD-ZERO-LENGTH (spec line 4523) — zero-length reference modification permitted, yields empty

@@ -99,6 +99,11 @@ internal static class EmitText
     /// <summary>Render a .NET string as a safely-escaped C# string literal.</summary>
     public static string CsLiteral(string value) => SymbolDisplay.FormatLiteral(value, quote: true);
 
+    /// <summary>Render a char as a C# char literal, ALWAYS in the <c>'\uXXXX'</c> escape form. One form for every
+    /// character means the NUL, the space and U+FFFF — the three the §11.9.10.4 GR5 fill map produces — need no
+    /// per-character casing, and no emitted literal can ever contain a raw control character or a quote.</summary>
+    public static string CsCharLiteral(char c) => $"'\\u{(int)c:X4}'";
+
     /// <summary>The C# expression evaluating to file <paramref name="f"/>'s runtime connector key — the ONE way a
     /// connector is addressed at OPEN/READ/WRITE/CLOSE/registration/STATUS/USE-selection (feedback_one_mechanism_per_job).
     /// For a program, factory, or EXTERNAL file it is the qualified-name literal; for a per-object instance file

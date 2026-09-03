@@ -26,12 +26,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 - **▶ SESSION HANDOFF (2026-09-02 — THE live resume point; the campaign paused on the session limit):** the
   two-lane campaign (`kb/Work/PB278`, doctrine `DESIGN-spec-conformance-review.md` §5 and the `workstream` skill)
-  ran its first day: twelve landings on main, GAP 3636 → 3407, DOCUMENTED-NON-SUPPORT 36 → 333 → the A.4.8/A.4.13
-  rows witnessed (DEVLOG 1423–1435). ⛔ Run the probe; the worklist is `kb/Work/` (`python scripts/spec/work.py
-  next`), never this paragraph.
+  ran its first day: thirteen landings on main, GAP 3636 → **3394**, DOCUMENTED-NON-SUPPORT 36 → 333 → the
+  A.4.8/A.4.13 rows witnessed (DEVLOG 1423–1436). ⛔ Run the probe; the worklist is `kb/Work/`
+  (`python scripts/spec/work.py next`), never this paragraph.
   **Owed on resume, in this order (all briefed; the orchestrator's memory carries the worktree and scratchpad
-  paths):** ① lander 2 finishes cluster F (clusters E and witness A landed as `0b1c39bc` / `66c85a90`; each remaining
-  cluster is a worktree with WIP commits + `STATUS.md`); ② lander 3 lands the screen witnesses (+163 rows) → the
+  paths):** ① ✅ **DONE — lander 2's whole queue landed**: cluster E `0b1c39bc`, witness A `66c85a90`, cluster F
+  `8e7cc683` (DEVLOG 1433 · 1434 · 1436), GAP 3636 → **3394**; its three worktrees
+  (`agent-a383892848abd6895`, `agent-a4e96fdfc1f71b6ca`, `agent-a70664a7e3ef2be42`) and its own
+  (`agent-aa4e8718dabd3b680`) are dead and removable. Each remaining cluster is a worktree with WIP commits +
+  `STATUS.md`; ② lander 3 lands the screen witnesses (+163 rows) → the
   citation sweep → cluster D → witness B2 (+108 rows), folding the three "declined facility" seams into one; ③ the
   lane-3 batch-1 registrar lands (85 mechanisms → notes; 15 rows close); ④ **battery #42 — comprehensive, owed since
   the golden lane `c11949e3`; the reference below is #41**; ⑤ the ledger refresh after every landing (`python
@@ -1875,24 +1878,36 @@ result. Run the long legs ONE AT A TIME.
   a DOC row's closing shape. Method and rationale: `DESIGN-spec-conformance-review.md` §5; the measurements that
   earned it (3,361 of 3,636 GAP rows never adjudicated; ~1,000 fleet agents for 27 rows of burn-down in three days)
   are in the decision note. **Lanes are QUERIES over `kb/Work/` and the inventory — no new list anywhere.**
-- **▶ BURN-DOWN STATE after the 2026-09-02 MODULE-WITNESS CLUSTER A landing (DEVLOG 1434), which followed
-  fix-lane cluster E (DEVLOG 1433), the golden lane (DEVLOG 1431) and the three-landing batch (DEVLOG 1427–1429;
-  cluster C · the Annex A.1 DOC-row mechanism · the derived-verdict selectors).**
-  **GAP 3407 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → 3456 → **3407**: cluster C was a CORRECTION of an
-  already-CONFORMS row, the A.1 back-fill closed 18, the derived lane moved it by design zero — a declined row
+- **▶ BURN-DOWN STATE after the 2026-09-02 FIX-LANE CLUSTER F landing (DEVLOG 1436), which followed
+  module-witness cluster A (DEVLOG 1434), fix-lane cluster E (DEVLOG 1433), the golden lane (DEVLOG 1431) and the
+  three-landing batch (DEVLOG 1427–1429; cluster C · the Annex A.1 DOC-row mechanism · the derived-verdict
+  selectors).**
+  **GAP 3394 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → 3456 → 3407 → **3394**: cluster C was a CORRECTION of
+  an already-CONFORMS row, the A.1 back-fill closed 18, the derived lane moved it by design zero — a declined row
   closes on its WITNESS, not on its verdict — the golden lane then wrote 151 of those witnesses, cluster E closed
-  8 I-O rows plus the 3 Annex A.1 DOC rows its own determinations made statable, and witness cluster A wrote the
-  49 witnesses that let lane 2a's A.4.8 + A.4.13 declines finally close).
-  **1292 rows adjudicated · CONFORMS 847 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 97 · NOT-IMPLEMENTED 13 ·
-  DIVERGES 2** — witness A moved no verdict, only evidence, which is what a witness lane does.
+  8 I-O rows plus the 3 Annex A.1 DOC rows its own determinations made statable, witness cluster A wrote the
+  49 witnesses that let lane 2a's A.4.8 + A.4.13 declines finally close, and cluster F closed 13 on the USAGE
+  declaration-placement family and the OPTIONS INITIALIZE background).
+  **1303 rows adjudicated · CONFORMS 859 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 97 · NOT-IMPLEMENTED 13 ·
+  DIVERGES 1** — witness A moved no verdict, only evidence, which is what a witness lane does; cluster F took
+  DIVERGES down to its last row.
   **24 CONFORMS rows are still test-needed** — each is one spec-derived golden away from OK.
-  **Corpus 557 positive goldens · 590 negative fixtures.** **Diagnostic band — cluster E claimed COBOLNET1720
-  (`io-phrase-forbidden-here`, one reusable descriptor for §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6) and
+  **Corpus 567 positive goldens · 601 negative fixtures.** **Diagnostic band — cluster E claimed COBOLNET1720
+  (`io-phrase-forbidden-here`, one reusable descriptor for §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6),
   witness A claimed COBOLNET1705/1706 (the two declined-module refusals) and catalogued the previously
-  bare-literal COBOLNET1560; the band has holes below its maximum and next free is COBOLNET1721.**
+  bare-literal COBOLNET1560, and cluster F claimed COBOLNET1724/1725/1726 (§13.18.60.3 SR14/SR15/SR4) and
+  COBOLNET1727 (§11.9.10.3 SR1); the band has holes below its maximum and next free is COBOLNET1728.**
   **`EditionContext.Declined(descriptor, seen)` is THE declined-element seam** — its SEVERITY picks accept-inert
   (Warning: screen 1560, MCS 1578, commit/rollback 1579, VALIDATE 1580) versus refuse (Error: A.4.8 1705,
-  A.4.13 1706, where an inert accept would be a wrong answer rather than a missing facility). Both lanes the
+  A.4.13 1706, where an inert accept would be a wrong answer rather than a missing facility).
+  ⚠ **THE GNUCOBOL BASELINE MOVED SINCE BATTERY #41 AND THE NEXT BATTERY MUST EXPECT THE NEW TOTALS —
+  575 / 471 / 209 / 68** (WE_REJECT_THEY_ACCEPT / AGREE_ACCEPT / AGREE_REJECT / WE_ACCEPT_THEY_REJECT), against
+  #41's 573 / 473 / 207 / 70. `tests/external/gnucobol-verdict-baseline.tsv` was rewritten from a full 1323-case
+  run on the merged tree at the cluster F landing, with **four** attributed rows: `listings:2320` (cluster F's
+  §13.18.60.3 SR14 screen — the pointer member at level 02 under an ordinary group), `run_file:6119` (cluster E's
+  COBOLNET1720 — `READ … AT END` under `ACCESS RANDOM`, §14.9.30.3 SR6), and `syn_file:1694` + `syn_file:1753`,
+  which are FIXES: witness A's COBOLNET1706 made us AGREE with GnuCOBOL's rejection of `WRITE FILE`, external
+  corroboration that `kb/Work/PB282`'s undeclared-support finding was real. Both lanes the
   owner decision above listed as pending their mechanism
   are live: `inventory-schema.json` → `kinds.DOC` defines what a DOC row costs, and `derived-verdicts` is read by
   BOTH engines (`DerivedSelector` + `scripts/spec/derive_verdict_batch.py` on the Python side,

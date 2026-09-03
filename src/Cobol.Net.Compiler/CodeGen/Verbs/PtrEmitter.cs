@@ -168,33 +168,19 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     }
 
     /// <summary>The OPTIONS INITIALIZE clause's fill character as a C# char literal (§14.9.3.4 GR8/GR9;
-    /// kb/Work PB151 — the clause previously had ZERO consumers): a literal fill takes its first character;
-    /// BINARY ZEROES → NUL; LOW-VALUES → NUL and HIGH-VALUES → U+FFFF (OPTIONS precedes SPECIAL-NAMES, so
-    /// the native extremes, never a PCS); SPACES → the space. No clause → the space (content undefined).</summary>
-    private string OptionsFillCharLiteral()
-    {
-        if (ctx.Data.Options?.Initialize is not { } init) return "' '";
-        return init.Fill switch
-        {
-            Binding.OptionsFill.BinaryZeroes or Binding.OptionsFill.LowValues => "'\\0'",
-            Binding.OptionsFill.HighValues => "'\\uFFFF'",
-            Binding.OptionsFill.Literal when FillCharOf(init.FillLiteral) is { } c => $"'\\u{(int)c:X4}'",
-            _ => "' '",
-        };
-    }
+    /// kb/Work PB151's arm).
+    /// <para>⛔ This USED to be the decode itself — two private methods, invisible to every other consumer, whose
+    /// <c>raw[0]</c> fall-through silently accepted a fill literal §11.9.10.3 SR1 forbids and took its first
+    /// character, and whose private §11.9.10.4 GR5 map spelled HIGH-VALUES as U+FFFF where the rest of the
+    /// compiler says U+00FF (kb/Work PB152). literal-1's byte is now decoded ONCE at bind time, where SR1 gets
+    /// its diagnostic, and the figurative arms resolve through the compiler's single definition — all three
+    /// initial-state arms reading one fact through <see cref="InitialStateBackground"/>.</para></summary>
+    private string OptionsFillCharLiteral() => _background.AllocateFillLiteral();
 
-    /// <summary>The OPTIONS INITIALIZE fill literal's CHARACTER value: the binder carries the literal's raw
-    /// spelling (quotes included; §11.9.10.3 admits a one-character alphanumeric or hex literal), so decode
-    /// the quoted form and the X"nn" hex form here.</summary>
-    private static char? FillCharOf(string? raw)
-    {
-        if (string.IsNullOrEmpty(raw)) return null;
-        if ((raw[0] is '"' or '\'') && raw.Length >= 3) return raw[1];
-        if (raw.Length >= 4 && (raw[0] is 'X' or 'x') && raw[1] is '"' or '\''
-            && int.TryParse(raw[2..^1], System.Globalization.NumberStyles.HexNumber, null, out int b))
-            return (char)b;
-        return raw[0];
-    }
+    /// <summary>The shared §14.6.2.3.2 background resolver, held once rather than constructed per ALLOCATE:
+    /// it caches the section-root sets it may need, and an emitter-lifetime field is the same lifetime
+    /// <c>ValueInitializer</c> gives it.</summary>
+    private readonly InitialStateBackground _background = new(ctx);
 
     /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 + §8.4.3.13;
     /// P10 Step 7): resolve the named OUTERMOST program through the run-unit ProgramTable ONCE, assign the

@@ -35,6 +35,14 @@ internal static class BindPipeline
         // ── The per-unit resolution passes, in the EXACT pre-P5 BindResolve order (DataBinder.cs). ──
         new BindPass("ExpandTypes", PassPhase.None, PassPhase.TypesExpanded, d => d.ExpandTypes()),
         new BindPass("UsageInheritancePass", PassPhase.TypesExpanded, PassPhase.UsageResolved, d => d.UsageInheritancePass()),
+        // The §13.18.60.3 USAGE declaration-PLACEMENT screen — SR14/SR15/SR4 (kb/Work PB183). Placed HERE, and
+        // not one pass earlier or later, for two reasons. It needs UsageInheritancePass to have settled
+        // §13.18.60.4 GR1 group-usage inheritance, so an INHERITED pointer usage is screened exactly as a
+        // written one. And it must precede ClassifyRedefinesClasses, whose Tier-D backstop rejects a nested
+        // pointer/object leaf under REDEFINES with a message that names THIS rule as the missing screen: the
+        // declaration's own defect should be reported before the downstream machinery's defense against it.
+        // A plain syntax rule, so NOT the terminal VersionConformancePass — that pass is the edition gate.
+        new BindPass("CheckUsageDeclarations", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckUsageDeclarations()),
         new BindPass("InheritSignClauses", PassPhase.UsageResolved, PassPhase.SignResolved, d => d.InheritSignClauses()),
         new BindPass("ResolveRedefines", PassPhase.SignResolved, PassPhase.SignResolved, d => d.ResolveRedefines()),
         new BindPass("ClassifyRedefinesClasses", PassPhase.SignResolved, PassPhase.RedefinesClassified, d => d.ClassifyRedefinesClasses()),

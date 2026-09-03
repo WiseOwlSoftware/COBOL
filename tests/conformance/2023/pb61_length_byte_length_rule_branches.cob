@@ -7,7 +7,13 @@
       *>        national", so LENGTH counts alphanumeric positions = the pinned byte width: 4 8 8 8, and
       *>        BYTE-LENGTH (15.14.4 r1) the same bytes. Before PB61 every carrier folded to 1.
       *> GG/GH: an alphanumeric group holding a national or carrier child - X(3)+N(2) = 3+4 = 7; X(3)+COMP 9(4)+
-      *>        POINTER = 3+2+8 = 13. Before PB61 the national child counted one position per character.
+      *>        INDEX = 3+2+8 = 13. Before PB61 the national child counted one position per character.
+      *>        (GH's carrier child was USAGE POINTER until kb/Work PB183 landed the 13.18.60.3 SR14 screen -
+      *>        that rule confines the five pointer/object usage phrases to level 1 or a STRONG type
+      *>        declaration, so `05 HP USAGE POINTER.` inside an ordinary group was NONCONFORMING SOURCE.
+      *>        SR14's list OMITS INDEX where the neighbouring SR4 includes it, and INDEX carries the same
+      *>        pinned 8-byte width, so the repair preserves the branch under test, the arithmetic and the
+      *>        expected output byte for byte. Repairing nonconforming source - never bending valid COBOL.)
       *> ZL:    15.50.4 r2/r3 and 15.14.4 r1 over a ZERO-LENGTH literal (8.5.4 item 8 - "a literal whose ...
       *>        length at runtime is zero"): 0 0 0 0. Before PB61 a Math.Max(1, ...) clamp answered 1.
       *> RM:    15.14.3 r1 admits "a data item of any class or category" and 8.4.3.3.4 GR6 makes a ref-mod a
@@ -53,7 +59,7 @@
        01 GH.
           05 HA PIC X(3).
           05 HC PIC 9(4) COMP.
-          05 HP USAGE POINTER.
+          05 HP USAGE INDEX.
        01 GOD.
           05 GON PIC 9 VALUE 3.
           05 GOE PIC X(2) OCCURS 1 TO 5 DEPENDING ON GON.
