@@ -5,7 +5,7 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// PHASE-05 Step 13 (exit criterion #6) — apostrophe-delimited literals, ISO/IEC 1989:2023 §8.3.1.2: the
+/// PHASE-05 Step 13 (exit criterion #6) — apostrophe-delimited literals, ISO/IEC 1989:2023 §8.3.3.1: the
 /// quotation-mark and apostrophe forms are EQUAL-STANDING (a doubled OPENING delimiter is one embedded delimiter),
 /// in every edition. Each case compiles the SAME program twice — once with '-delimited literals, once with the
 /// "-delimited twin — and asserts byte-identical output. This locks the P5.1 <c>CobolLiteral</c> fix (the
@@ -58,7 +58,7 @@ public sealed class ApostropheValueDifferentialTests
         Assert.Contains("G=[XY007]", apos);
     }
 
-    /// <summary>The DOUBLED-OPENING-DELIMITER rule (§8.3.1.2 — one embedded delimiter character), per form: the
+    /// <summary>The DOUBLED-OPENING-DELIMITER rule (§8.3.3.2.3 r3 — one embedded delimiter character), per form: the
     /// contents legitimately DIFFER across forms (an embedded ' vs an embedded "), so each asserts its own decode
     /// — the case the '"'-only guards silently miscompiled for the apostrophe form.</summary>
     [Fact]

@@ -18,8 +18,10 @@
        PROGRAM-ID. PB43BITS.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-      *> A bit item after a CHARACTER item: "aligned at the first bit position of the
-      *> first available byte" -> byte 3. It is the last item of an alphanumeric-group
+      *> A bit item after a CHARACTER item: 8.5.1.6.3 - "Alignment of all other bit
+      *> data items within a record, when a SYNCHRONIZED clause is not specified, is
+      *> at the first bit position of the first available byte." -> byte 3. It is the
+      *> last item of an alphanumeric-group
       *> record, so 8.5.1.6.3 adds trailing filler "to fill an integral number of
       *> characters" -> 1 char. 15.50.4 r5 requires that filler be COUNTED. 3+1 = 4.
        01 W-MIX.

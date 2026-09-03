@@ -5,7 +5,7 @@ using Xunit;
 
 namespace CobolNet.Tests.Unit;
 
-/// <summary>The ONE literal codec (rearchitecture PHASE 05, Step 1): ISO/IEC 1989:2023 §8.3.1.2 — the
+/// <summary>The ONE literal codec (rearchitecture PHASE 05, Step 1): ISO/IEC 1989:2023 §8.3.3.1 — the
 /// quotation-mark and apostrophe delimiter forms are EQUAL-STANDING, and a doubled OPENING delimiter is one
 /// embedded delimiter. Locks the apostrophe-delimited handling the retired hard-coded <c>'"'</c>-only guards
 /// silently miscompiled.</summary>

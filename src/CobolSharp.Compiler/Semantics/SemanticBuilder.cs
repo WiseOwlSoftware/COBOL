@@ -2085,7 +2085,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             var figText = fig.GetText().ToUpperInvariant();
             if (figText.StartsWith("ALL")) figText = figText[3..];
             // Character figuratives assume the size of the parent field — i.e. the
-            // single character repeated to fill it (ISO 1989:1985 8.3.1.2). Mark them
+            // single character repeated to fill it (ISO/IEC 1989:2023 §8.3.3.6.4 r2). Mark them
             // IsAllLiteral so the lowerer expands the pattern to the parent's length;
             // otherwise QUOTE on a PIC X(4) field would compare a 1-char '"' (space
             // padded) against the 4-char field and never match. ZERO stays numeric so

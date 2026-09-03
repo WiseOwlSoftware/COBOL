@@ -405,7 +405,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   ⇒ `__addr_B = «P.Read()»` (F7 GR13 snapshot). The active `based-clause-2002` matrix witness (a
   declaration-only BASED GROUP, constructs.json:88-95) keeps compiling: classification + fields emit fine and
   the bridge is never invoked. Declaration validation rides the new 0881 band (below); a VALUE clause on a
-  BASED entry follows the LINKAGE posture (level-88 only — verify the exact §13.18.65 SR at implementation).
+  BASED entry follows the LINKAGE posture (level-88 only — verify the exact §13.18.5.3 SR at implementation).
 - **ALLOCATE / FREE.** New binder arms in the statement dispatch (StatementBinder.cs:171-226 — today both fall
   to the generic `BoundUnsupported` tail at :226). `BoundAllocate`: form-1 `ALLOCATE expr CHARACTERS
   [INITIALIZED] RETURNING p` ⇒ `«p» = CobolPtr.Allocate(«ceil(expr)», zeroFill: INITIALIZED)` (GR1 round-up;
@@ -1044,7 +1044,7 @@ both ways); negative corpus +1 (based-level-05).
 agents mid-run, so the unverified findings were adjudicated in-session on Opus). 6 dual-confirmed + 3
 self-adjudicated-real fixed SAME change set; the rest refuted or staged:**
 1. **Apostrophe-delimited `N'…'`/`B'…'` stored their quotes** (silent-wrong-value) — all THREE DecodeCobolString
-   twins unwrapped only `"`; now unwrap EITHER delimiter and collapse the doubled OPENING quote (§8.3.1.2).
+   twins unwrapped only `"`; now unwrap EITHER delimiter and collapse the doubled OPENING quote (§8.3.3.1 both delimiters, §8.3.3.2.3 r3 the doubling).
    ALSO closed the pre-existing plain-`'…'` STRINGLIT leg. Probed `N'AB'`→`AB `, `N'IT''S'`→`IT'S`.
 2. **§14.9.25.3 SR8 unenforced** (spec-violation) — a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sender to a national
    (or any non-numeric) receiver compiled silently; `MoveCategoryLegality` gained a top-of-loop SR8 guard

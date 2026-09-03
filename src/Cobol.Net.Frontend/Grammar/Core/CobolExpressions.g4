@@ -84,7 +84,7 @@ abbreviatedAndChain
     : abbreviatedRelation ( AND abbreviatedRelation )*
     ;
 
-// Abbreviated relational condition (COBOL-85 §6.3.4.2):
+// Abbreviated combined relation condition (ISO §8.8.4.12):
 // After AND/OR, the left operand (and optionally the operator) can be
 // elided from the previous comparison.
 //   IF A > B OR < C          →  comparisonOperator comparisonOperand
@@ -176,14 +176,14 @@ classCondition
     ;
 
 comparisonOperator
-    // Symbolic (with optional IS prefix per §6.3.4.2)
+    // Symbolic (with optional IS prefix per §8.8.4.2.2, the relation-condition general format)
     : IS? EQUALS
     | IS? NOTEQUAL
     | IS? LTEQUAL
     | IS? GTEQUAL
     | IS? LT
     | IS? GT
-    // Abbreviated NOT + symbolic (COBOL-85 §6.3.4.2)
+    // Abbreviated NOT + symbolic (ISO §8.8.4.12)
     | IS? NOT EQUALS       // NOT =
     | IS? NOT GT            // NOT >
     | IS? NOT LT            // NOT <
@@ -302,7 +302,7 @@ primaryExpression
 //     01 W PICTURE S99999 VALUE ZERO
 //            SIGN LEADING SEPARATE.        ->  COBOLNET1585 "takes exactly one literal"
 // LENGTH is safe there only because LENGTH does not BEGIN a data-description clause; SIGN and SUM both do
-// (§13.18.53 SIGN, §13.14 report-writer SUM). This alternative is confined to expression/operand positions and
+// (§13.18.52 SIGN, §13.18.54 report-writer SUM). This alternative is confined to expression/operand positions and
 // cannot reach a data description at all, so that whole class is structurally out of reach.
 // ⚠ THE ARGUMENT LIST IS A `subscriptPart`, NOT `LPAREN functionArgList RPAREN`, and a token dump is what says
 // so: these words carry subscriptTrigger=true, so with no FUNCTION keyword before them the lexer pushes
@@ -320,7 +320,7 @@ primaryExpression
 // A VALUE clause operand is a `unaryExpression`, which reaches functionCall, and the operand loop is greedy —
 // so admitting a BARE SIGN made the loop swallow the SIGN CLAUSE of the NEXT line as a second VALUE literal
 // (COBOLNET1585). With the group required, `SIGN LEADING` cannot match a functionCall at all and the loop stops
-// where it should. The same applies to the report-writer `SUM OF` clause (§13.14).
+// where it should. The same applies to the report-writer `SUM OF` clause (§13.18.54).
 // RANDOM is different and needs no group: §15.75.2 brackets the whole parenthesised part, so the bare form is
 // legal — and RANDOM begins no data-description clause, so nothing can swallow it.
 // ⛔ THE ARGUMENT-LIST PARENS ARE FNARG_LPAREN / FNARG_RPAREN, NOT LPAREN / RPAREN (fix-queue PB48). §8.4.3.2.3

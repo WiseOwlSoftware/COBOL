@@ -84,8 +84,8 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundCondition88` | Level-88 condition-name membership test | §8.8.4.5 | over resolved conditional-variable place | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundRangeMembership` | THRU-range membership (EVALUATE / EC-RANGE) | §14.7.8 | §14.7.8 rule 2 EC-RANGE-INVALID; inclusive bounds | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundSignCondition` | Sign POSITIVE/NEGATIVE/ZERO | §8.8.4.7 | Format-2 tests IEEE sign bit (GR2) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundClassCondition` | Class NUMERIC/ALPHABETIC[-U/-L] | §8.8.4.1.4 | ClassKind ∈ {N,A,U,L} | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundUserClassCondition` | User-defined class condition | §8.8.4.1.4 / §12.3.7 | members expanded at bind | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundClassCondition` | Class NUMERIC/ALPHABETIC[-U/-L] | §8.8.4.4 | ClassKind ∈ {N,A,U,L} | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundUserClassCondition` | User-defined class condition | §8.8.4.4 / §12.3.7 | members expanded at bind | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundUdfEvaluated` | Per-evaluation UDF activations wrapper | §8.8.4.13 | §8.4.3.2.4 GR6a per-evaluation (IIFE) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundSwitchCondition` | External switch-status condition | §8.8.4.6.2 | GR1 ON/OFF per condition-name | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 
@@ -248,13 +248,13 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | IR Node | Purpose | Related Spec Construct (ISO §) | Semantic Rule | Compiler Phase | Diagram |
 |---|---|---|---|---|---|
 | `BoundStringLiteral` | Non-numeric literal (+ category) | §8.3.3.5 | one node for ALPHANUM/N"…"/B"…"; drives MOVE legality | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundNumericLiteral` | Numeric literal operand (raw text) | §8.3.1.2 | backend scales at render | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundNumericLiteral` | Numeric literal operand (raw text) | §8.3.3.3.2 | backend scales at render | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundFieldOperand` | Data-item reference operand | §8.4.1 | category decides string-vs-numeric render | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundComputedOperand` | Computed numeric expr as operand | §8.8.1 | wraps BoundExpr for comparison/args | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundFigurative` | Figurative constant operand | §8.3.1.2 | materialized to receiver/other-operand width | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundFigurative` | Figurative constant operand | §8.3.3.6 | materialized to receiver/other-operand width | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundAllLiteral` | ALL 'literal' figurative operand | §8.3.3.6.4 Format 6 | GR2 repeated to width; SR5 digit-only→numeric MOVE | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundBoolOperand` | Boolean expr as relation operand | §8.8.4.2.2 | rides shared BoundRelational renderer | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundNumLiteral` | Numeric literal (expr, raw text) | §8.3.1.2 | backend scales | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundNumLiteral` | Numeric literal (expr, raw text) | §8.3.3.3.2 | backend scales | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundNumRef` | Numeric data-item reference | §8.4.1 | resolved Place | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundBinary` | Binary arithmetic + − × ÷ | §8.8.1 | scale tracked at render | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundNegate` | Arithmetic negation | §8.8.1 | binder invariant | Bind | [[kb/Diagrams/IR Node Hierarchy]] |

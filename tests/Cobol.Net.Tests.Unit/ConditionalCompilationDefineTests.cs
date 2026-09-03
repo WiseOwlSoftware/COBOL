@@ -53,7 +53,8 @@ public sealed class ConditionalCompilationDefineTests
     }
 
     [Fact] // GR4 — AS PARAMETER sources the value from the operating environment (numeric here). The compilation-
-           // variable-name is a COBOL user-defined word (§8.3.1.2 — letters/digits/hyphens; NO underscore).
+           // variable-name is a COBOL user-defined word (§8.3.2.1 — letters, digits, hyphen and underscore;
+           // ⚠ the lexer does not yet accept the underscore §8.3.2.1 permits — kb/Work PB159 reports it).
     public void Parameter_SourcesFromEnvironment()
     {
         Environment.SetEnvironmentVariable("CN-CC-TEST-PARAM", "42");

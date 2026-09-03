@@ -447,7 +447,7 @@ internal sealed class ExpressionBinder
             {
                 char quoteChar = text[0];
                 text = text[1..^1];
-                // Un-escape doubled quotes: "" → " (ISO §8.3.1.2)
+                // Un-escape doubled quotes: "" → " (ISO §8.3.3.2.3 r3)
                 text = text.Replace(new string(quoteChar, 2), new string(quoteChar, 1));
             }
             return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);

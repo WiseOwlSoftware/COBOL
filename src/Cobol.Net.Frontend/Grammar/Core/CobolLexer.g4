@@ -216,7 +216,7 @@ B_SHIFT_R       : 'B-SHIFT-R' ;
 FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
 FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
 FLOAT_EXTENDED  : 'FLOAT-EXTENDED' ;// COBOL-2002 extended float — mapped to IEEE-754 double (.NET has no quad)
-// COBOL-2002 ROUNDED MODE names (ISO §14.9.4). Reserved words; corpus-checked (only in comments).
+// COBOL-2002 ROUNDED MODE names (ISO §14.7.4). Reserved words; corpus-checked (only in comments).
 AWAY_FROM_ZERO          : 'AWAY-FROM-ZERO' ;
 NEAREST_AWAY_FROM_ZERO  : 'NEAREST-AWAY-FROM-ZERO' ;
 NEAREST_EVEN            : 'NEAREST-EVEN' ;
@@ -249,7 +249,8 @@ FILE_CONTROL    : 'FILE-CONTROL' ;
 I_O_CONTROL     : 'I-O-CONTROL' ;
 I_O             : 'I-O' ;
 PACKED_DECIMAL  : 'PACKED-DECIMAL' ;
-// COBOL-2002 fixed-width binary usages (ISO §13.18.60). Must precede BINARY/IDENTIFIER; maximal munch
+// COBOL-2002 fixed-width binary usages of the USAGE clause (ISO §13.18.60). Must precede
+// BINARY/IDENTIFIER; maximal munch
 // matches the full 'BINARY-xxx' over the shorter 'BINARY' token.
 BINARY_CHAR     : 'BINARY-CHAR' ;
 BINARY_SHORT    : 'BINARY-SHORT' ;
@@ -411,7 +412,7 @@ ARE         : 'ARE' ;
 AT          : 'AT' ;
 AUTO        : 'AUTO' ;
 AUTHOR      : 'AUTHOR' ;
-BACKWARD    : 'BACKWARD' ;   // COBOL-2002 INSPECT … BACKWARD (right-to-left inspection, ISO §14.9.21)
+BACKWARD    : 'BACKWARD' ;   // COBOL-2002 INSPECT … BACKWARD (right-to-left inspection, ISO §14.9.22)
 BEFORE      : 'BEFORE' ;
 BELL        : 'BELL' ;
 BLINK       : 'BLINK' ;
@@ -559,7 +560,8 @@ LINES       : 'LINES' ;
 LOCATION    : 'LOCATION' ;                // exception-checking PERFORM WITH LOCATION phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
 LOCK        : 'LOCK' ;
 LOWLIGHT    : 'LOWLIGHT' ;
-// ── COBOL-2002 file sharing / record locking (ISO §12.4.5.9/.15, §14.7.9, §14.9.27/.30/.47). SHARING/RETRY/
+// ── COBOL-2002 file sharing / record locking (ISO §12.4.5.9 LOCK MODE, §12.4.5.15 SHARING, §14.7.9 RETRY,
+// §14.9.27 OPEN, §14.9.30 READ, §14.9.47 UNLOCK). SHARING/RETRY/
 // UNLOCK are §8.9-reserved since 2002 (funnel-gated); MANUAL/AUTOMATIC/IGNORING/FOREVER/SECONDS/ONLY are
 // §8.10 context-sensitive (user-legal at every edition). The operator meaning is {is2002()}?-gated in CobolIO.g4.
 MANUAL      : 'MANUAL' ;
@@ -663,7 +665,7 @@ SEPARATE    : 'SEPARATE' ;
 SEQUENCE    : 'SEQUENCE' ;
 SEQUENTIAL  : 'SEQUENTIAL' ;
 SIGN        : 'SIGN' ;
-SIGNED      : 'SIGNED' ;     // COBOL-2002 BINARY-xxx SIGNED (ISO §13.18.60); longest-match beats SIGN
+SIGNED      : 'SIGNED' ;     // COBOL-2002 BINARY-xxx SIGNED (USAGE clause, ISO §13.18.60); beats SIGN
 UNSIGNED    : 'UNSIGNED' ;   // COBOL-2002 BINARY-xxx UNSIGNED
 SIZE        : 'SIZE' ;
 SOURCE      : 'SOURCE' ;

@@ -506,7 +506,7 @@ public static class ReferenceFormatProcessor
                 case '-':
                     gates?.OnContinuation(lineNo);
                     // The WORD-continuation shape (removed 2023, VCR row 2): a NON-literal continuation whose
-                    // splice joins two COBOL word characters (§6.2.4 — the continuation's first nonblank
+                    // splice joins two COBOL word characters (§6.3.5 — the continuation's first nonblank
                     // immediately follows the preceding line's last nonblank). Literal continuation and
                     // non-word splices (e.g. after a period or parenthesis) are NOT word continuation.
                     if (gates is not null && !inLiteral
@@ -672,7 +672,7 @@ public static class ReferenceFormatProcessor
         if (!inLiteral)
         {
             // Not in a literal — strip trailing spaces from previous line and
-            // append trimmed continuation content (§6.2.4: first non-space of
+            // append trimmed continuation content (§6.3.5: first non-space of
             // continuation immediately follows last non-space of preceding line)
             while (result.Length > 0 && result[result.Length - 1] == ' ')
                 result.Length--;

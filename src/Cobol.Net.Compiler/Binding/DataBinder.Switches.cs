@@ -36,7 +36,7 @@ public sealed partial class DataBinder
     /// <summary>User-defined CLASS names (case-insensitive) → the EXPANDED member-character set (ISO §12.3.7
     /// class-name clause: each literal lists its characters; a THRU pair contributes every character between the
     /// two ordinals in the NATIVE collating sequence, in either order). Consulted by the class-condition binder
-    /// (§8.8.4.1.4 — true when the operand consists entirely of members).</summary>
+    /// (§8.8.4.4 — true when the operand consists entirely of members).</summary>
     public Dictionary<string, string> UserClasses { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>ALPHANUMERIC alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7): the
@@ -647,7 +647,7 @@ public sealed partial class DataBinder
     /// §12.3.7.2; DESIGN-locale-facility §4.1, T1): declare the locale-name with its external identification. §12.3.7.3
     /// SR10 — literal-4 "shall be alphanumeric or national"; SR11 — "shall not be a symbolic-character figurative
     /// constant" nor a zero-length literal (the grammar admits any literal, so both are checked here); a locale-name
-    /// declared twice is COBOLNET1665 (§8.3.1.1.1 — a user-defined word of one type is unique within its scope). §12.3.7.4
+    /// declared twice is COBOLNET1665 (§8.3.2.2 — a user-defined word of one type is unique within its scope). §12.3.7.4
     /// GR5 — the implementor specifies the allowable content: DETERMINATION L1, a locale tag, POSIX spellings normalized
     /// (<see cref="LocaleSymbol.Tag"/>); availability is NOT checked here (§8.1.5 — run time; L1 item 4).</summary>
     private void LocaleBind(Core.LocaleClauseContext loc)
@@ -666,7 +666,7 @@ public sealed partial class DataBinder
         if (!Locales.TryAdd(name, symbol))
         {
             Edition.Error("COBOLNET1665", $"LOCALE {name}: the locale-name is already declared in this SPECIAL-NAMES paragraph "
-                + $"(as {Locales[name]}); a user-defined word is unique within its scope (ISO §8.3.1.1.1 / §12.3.7.2)");
+                + $"(as {Locales[name]}); a user-defined word is unique within its scope (ISO §8.3.2.2 / §12.3.7.2)");
         }
     }
 
@@ -1258,7 +1258,7 @@ public sealed partial class DataBinder
         if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce)
             return ConcatFolder.Fold(ce, Edition, collate: null).Value;
         string text = lit.GetText();
-        if (CobolLiteral.IsStringLiteral(text))   // both ISO §8.3.1.2 delimiters (an apostrophe CLASS literal was miscompiled)
+        if (CobolLiteral.IsStringLiteral(text))   // both ISO §8.3.3.1 delimiters (an apostrophe CLASS literal was miscompiled)
             return CobolLiteral.Decode(text);
         // §8.3.3.2 hexadecimal-format alphanumeric literal (X"hh…"): each hex-digit pair is one character. Without
         // this, X"FF" fell through to raw text, so its length != 1 skipped the THRU/ALSO range and the alphabet was

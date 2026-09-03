@@ -51,7 +51,7 @@ internal static class StorageFormPass
     /// <see cref="DataBinder.ImageForcedItems"/> records (Tier-B/CALL-cell/file-record/print-item at resolve,
     /// figurative-fill + ref-mod-store at procedure bind); (2) the compiler-temp re-sync (a temp mirrors its
     /// model's PRE-whole-group state — the fused pipeline's re-sync ordering); (3) the whole-group promotion
-    /// (§14.9 MOVE GR4) over <see cref="DataBinder.WholeGroupReferenced"/>.</summary>
+    /// (§14.9.25.4 MOVE GR4) over <see cref="DataBinder.WholeGroupReferenced"/>.</summary>
     private static HashSet<DataItem> ComputePromotedSet(GroupBindContext ctx)
     {
         var promoted = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);

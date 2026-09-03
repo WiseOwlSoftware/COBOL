@@ -9,7 +9,7 @@
       *> character each, §8.3.3.6.4 GR3a; both-figurative => class
       *> alphanumeric, §8.8.3.3 GR1b). Positions: VALUE clauses (01 +
       *> level-88), MOVE / DISPLAY / IF / EVALUATE operands, and
-      *> FUNCTION LENGTH over a concatenated result (§15.55).
+      *> FUNCTION LENGTH over a concatenated result (§15.50).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. LITCONCATP10CC.
        DATA DIVISION.

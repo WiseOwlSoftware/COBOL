@@ -280,7 +280,8 @@ useStatement
     // Format 3 (exception-name, EC model 2002+ — binder-gated): USE AFTER {EXCEPTION CONDITION | EC}
     // {exception-name-1 | exception-name-2 {FILE file-name-2}…}… (ISO §14.9.49.2; SR12: EC ≡ EXCEPTION
     // CONDITION). Exception-names are cobolWords — an OPEN set (EC-USER-*, §14.6.13.1.1 / §7.3.25.3 SR2), so
-    // name validation (and SR13/SR14) is the binder's, never a token enumeration.
+    // name validation (and SR13/SR14) is the binder's, never a token enumeration. (§7.3.25.3 is the TURN
+    // compiler directive's syntax rules, which is where the EC-USER-* name shape is fixed.)
     | USE AFTER (EXCEPTION CONDITION | EC) useEcEntry+
     // Format 4 (ISO §14.9.49.2 — USE AFTER {EXCEPTION OBJECT | EO} {class-name | interface-name}, ONE
     // operand; SR15: EO ≡ EXCEPTION OBJECT): the exception-OBJECT declarative selector (GR14 — class-or-
@@ -353,7 +354,7 @@ statusPhrase
     ;
 
 // ==========================================
-// CONTINUE / NEXT SENTENCE (§14.9.9, §14.9.19)
+// CONTINUE (§14.9.9) / NEXT SENTENCE (a phrase of the IF statement, §14.9.19)
 // ==========================================
 
 // CONTINUE [AFTER arithmetic-expression-1 SECONDS] (ISO §14.9.9). Plain CONTINUE is a 1985-continuous no-op;

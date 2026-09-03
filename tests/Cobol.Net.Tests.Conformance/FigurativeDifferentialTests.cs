@@ -6,7 +6,7 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// Figurative constants (ZERO / SPACE …) in operand position — MOVE source, DISPLAY operand, and comparison
-/// (ISO §8.3.1.2). Ubiquitous in real COBOL (every NC program uses <c>MOVE ZERO</c>/<c>SPACES</c>), so this is on
+/// (ISO §8.3.3.6). Ubiquitous in real COBOL (every NC program uses <c>MOVE ZERO</c>/<c>SPACES</c>), so this is on
 /// the G3-core path to running a real NC program through the differential harness. The constant materializes to the
 /// receiving / other operand's category and width.
 /// </summary>
@@ -60,7 +60,7 @@ public sealed class FigurativeDifferentialTests
     public void FigurativeComparison(string ws, string proc) => AssertSameAsLegacy(Program(ws, proc));
 
     [Theory]
-    // Figurative ZERO as a numeric-expression operand (ISO §8.3.1.2 — ZERO is a valid numeric operand). Previously the
+    // Figurative ZERO as a numeric-expression operand (ISO §8.3.3.6.3 r1a / §8.3.3.6.4 r4 — ZERO is the numeric value 0). Previously the
     // arithmetic path rendered the word "ZERO" as a C# identifier (CS0103 ZEROL), breaking NC118A/119A/175A/177A.
     [InlineData("01 N PIC 9(3) VALUE 5.", "    ADD ZERO TO N.\n    DISPLAY N.")]                      // 005
     [InlineData("01 N PIC 9(3) VALUE 5.", "    COMPUTE N = N + ZERO.\n    DISPLAY N.")]                // 005

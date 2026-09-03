@@ -9,7 +9,7 @@
       *> (`MOVE "Z" TO TB(2:1)`) was a SILENT no-op — the receiver was dropped
       *> from the list. Expected values are the positional character semantics:
       *> the group's positions are its leaves' images in declaration order
-      *> (§13.18.60.4 GR4 / §14.9.25.4 GR4 — no conversion), a slice is a
+      *> (USAGE §13.18.60.4 GR4 / MOVE §14.9.25.4 GR4 — no conversion), a slice is a
       *> substring of that image, and a store splices the slice back.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB70GRPREFMOD.
@@ -41,7 +41,7 @@
       *> (the leaf's image is its zoned digits — §8.4.3.3.4 GR2 posture over the group).
            IF GP(2:2) = "B1" DISPLAY "T3 EQ" ELSE DISPLAY "T3 NE [" GP(2:2) "]" END-IF.
            DISPLAY "T4 [" GP(3:3) "]".
-      *> 5-6 — function arguments: ORD (§15.71 — 'A' is ordinal 66) and LENGTH (§15.50 — the slice's positions).
+      *> 5-6 — function arguments: ORD (§15.70 — 'A' is ordinal 66) and LENGTH (§15.50 — the slice's positions).
            COMPUTE N = FUNCTION ORD(GP(1:1)) - 1.
            DISPLAY "T5 ORD-1=" N.
            COMPUTE N = FUNCTION LENGTH(GP(2:4)).
@@ -70,7 +70,7 @@
            UNSTRING R DELIMITED BY SPACE INTO GP(6:2).
            DISPLAY "T14 [" GP "]".
       *> 15-18 — a group slice as a function argument's operand and a MOVE receiver, a class condition
-      *> (§8.8.4.1.4 — "8V" is not alphabetic), and an EVALUATE subject.
+      *> (§8.8.4.4 — "8V" is not alphabetic), and an EVALUATE subject.
            MOVE "260818" TO GP(1:6).
            MOVE FUNCTION UPPER-CASE(GP(6:2)) TO GP(1:2).
            DISPLAY "T16 [" GP "]".

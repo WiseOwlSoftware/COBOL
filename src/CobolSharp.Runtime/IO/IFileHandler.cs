@@ -70,7 +70,7 @@ public interface IFileHandler : IDisposable
 }
 
 /// <summary>
-/// COBOL OPEN statement modes (ISO §6.6.38).
+/// COBOL OPEN statement modes (ISO §9.1.4).
 /// </summary>
 public enum FileOpenMode
 {
@@ -85,7 +85,7 @@ public enum FileOpenMode
 }
 
 /// <summary>
-/// Key comparison condition for the COBOL START statement (ISO §6.6.54).
+/// Key comparison condition for the COBOL START statement (ISO §14.9.41).
 /// Positions the file cursor relative to the supplied key value.
 /// </summary>
 public enum StartCondition

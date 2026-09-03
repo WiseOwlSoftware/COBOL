@@ -48,8 +48,8 @@ they attach to, and the runtime consequence. See [[kb/Semantics/Validation Rules
 |---|---|---|---|---|---|
 | Condition precedence | NOT > AND > XOR > OR, fully parenthesized | §8.8.4.2 | binder | `BoundLogical`/`BoundNot` | short-circuit eval |
 | Abbreviated combined | subject/relation carried across operands | §8.8.4.2 | binder | `BoundRelational` | expansion |
-| Level-88 value-set | VALUE/THRU defines the truth set | §8.8.4.1.4 | binder | `BoundCondition88` | bool property |
-| Class condition | NUMERIC/ALPHABETIC/CLASS test | §8.8.4.1.3 | binder | `BoundClassCondition` | class test |
+| Level-88 value-set | VALUE/THRU defines the truth set | §8.8.4.4 | binder | `BoundCondition88` | bool property |
+| Class condition | NUMERIC/ALPHABETIC/CLASS test | §8.8.4.2.16 | binder | `BoundClassCondition` | class test |
 | EC checking scope | ECs off by default; `>>TURN` folds at compile | §14.6.12 / §7.3.13 | `EcFeatures` fold | `BoundEcChecked` | EC engine |
 | EC hierarchy & fatality | Table 13 exception hierarchy | §14.6.12 Table 13 | binder | `BoundRaise` | fatal/nonfatal |
 

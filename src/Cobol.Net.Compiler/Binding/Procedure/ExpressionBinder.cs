@@ -205,7 +205,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>A <c>literal</c> node as an operand: the non-numeric forms through the ONE
     /// <see cref="NonNumericLiteralOperand"/> mapping, else a numeric literal under the edition digit cap
-    /// (ISO §8.3.1.2).</summary>
+    /// (ISO §8.3.3.3.2).</summary>
     public BoundOperand LiteralOperand(Core.LiteralContext lit) =>
         NonNumericLiteralOperand(lit.nonNumericLiteral())
         ?? new BoundNumericLiteral(CheckLiteral(lit.GetText()));
@@ -825,7 +825,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     };
 
     /// <summary>A numeric literal expression from a <c>literal</c> node, mapping a figurative ZERO (incl. <c>ALL ZEROS</c>)
-    /// to <c>0</c> (ISO §8.3.1.2 — ZERO is a valid numeric operand); a non-numeric figurative (SPACE / HIGH-VALUE / …)
+    /// to <c>0</c> (ISO §8.3.3.6.3 r1a / §8.3.3.6.4 r4 — ZERO is the one figurative a numeric literal admits, and it is the numeric value 0); a non-numeric figurative (SPACE / HIGH-VALUE / …)
     /// in a numeric context is a loud error rather than the raw word rendered as an identifier. A national or
     /// boolean literal is NOT a numeric operand (§8.8.1.1 — arithmetic operands shall be numeric): COBOLNET0844
     /// at bind, never raw literal text spliced into the generated expression.</summary>
@@ -919,7 +919,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a — the comma form
     /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and edition-gate the digit count
-    /// (ISO §8.3.1.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
+    /// (ISO §8.3.3.3.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
     public string CheckLiteral(string text)
     {
         text = ctx.Data.NormalizeNumericLiteral(text);

@@ -47,7 +47,7 @@ public static partial class ConstructRegistry
         new("group-usage-clause-2002", "GROUP-USAGE clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.29"),
         new("procedure-returning-2002", "PROCEDURE DIVISION RETURNING", 2002, null, null, "COBOLNET0900", "ISO §14.2"),
         new("currency-picture-symbol-2002", "CURRENCY SIGN WITH PICTURE SYMBOL", 2002, null, null, "COBOLNET0893", "ISO §12.3.7; pinned pre-band code (VCR Table 7 row 7.3, DEVLOG 558 — in the roadmap traceability band); the W1.5 registry truth-fix (was mislabeled 0900)"),
-        new("pic-wide-19-digits-2002", "fixed-point item wider than 18 digits", 2002, null, null, "COBOLNET0802", "ISO §8.3.1.2 / §13.18.40 (the LIVE digit-capacity gate)"),
+        new("pic-wide-19-digits-2002", "fixed-point item wider than 18 digits", 2002, null, null, "COBOLNET0802", "ISO §8.3.3.3.2 / §13.18.40 (the LIVE digit-capacity gate)"),
         new("options-arithmetic-native-2002", "OPTIONS paragraph / ARITHMETIC IS NATIVE", 2002, null, null, "COBOLNET0900", "ISO §11.9 / §11.9.5; Annex E.2 item 21"),
         new("rounded-mode-is-2014", "ROUNDED MODE IS", 2014, null, null, "COBOLNET0803", "ISO §14.7.4"),
         new("arithmetic-standard-decimal-2014", "ARITHMETIC IS STANDARD-DECIMAL", 2014, null, null, "COBOLNET0900", "ISO §11.9.5 / §8.8.1.5"),

@@ -19,7 +19,7 @@
        01 R PIC 9(4).
        PROCEDURE DIVISION.
        MAIN.
-      *> POSITION 1 - A RELATION CONDITION (8.8.4.1.1 ADMITS A
+      *> POSITION 1 - A RELATION CONDITION (8.8.4.2.1 ADMITS A
       *> LITERAL ON EITHER SIDE). X"6162" IS "ab".
            IF A = X"6162"
                DISPLAY "CMP=EQ"

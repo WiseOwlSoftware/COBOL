@@ -296,7 +296,7 @@ public sealed class ProgramTable
     /// identified by the externalized program-name"; the §8.4.6.3 rule-4 scope, including the separately-
     /// compiled sibling-module probe). Not locatable → GR4: <paramref name="notFound"/> is set (the emitted
     /// site raises EC-PROGRAM-NOT-FOUND per its checking state) and the result is the NULL program address.
-    /// The returned pointer carries the CANONICAL registered name, so pointer equality (§8.8.4.1.3) holds
+    /// The returned pointer carries the CANONICAL registered name, so pointer equality (§8.8.4.2.16) holds
     /// across differently-cased ENTRY spellings.</summary>
     public ProgramPointer EntryOf(string name, out bool notFound)
     {

@@ -163,7 +163,7 @@ internal sealed class ReportWriterEmitter(
     /// (ZERO/SPACE/QUOTE/HIGH-VALUE/LOW-VALUE — ISO §8.3.3.6), or a numeric literal.</summary>
     private static BoundOperand ValueOperand(string raw)
     {
-        if (CobolLiteral.IsStringLiteral(raw))   // both ISO §8.3.1.2 delimiters (apostrophe VALUE was silently miscompiled)
+        if (CobolLiteral.IsStringLiteral(raw))   // both ISO §8.3.3.1 delimiters (apostrophe VALUE was silently miscompiled)
             return new BoundStringLiteral(CobolLiteral.Decode(raw));
         if (CobolLiteral.AllLiteralRaw(raw) is { } allRaw) return BoundAllLiteral.Of(allRaw);   // ALL literal (§8.3.3.6.4 F6; the category rides on literal-1 — PB71)
         return FigurativeConstants.KindOf(raw) is { } k   // the ONE word-recognition table (P7 Step 4)

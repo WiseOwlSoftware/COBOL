@@ -323,7 +323,7 @@ internal sealed class ConditionLowerer
         if (!IsPtr(left) && !IsPtr(right))
             return false;   // not a pointer comparison
 
-        // Only equality/inequality are defined for pointers (ISO §8.8.4.1.4).
+        // Only equality/inequality are defined for pointers (ISO §8.8.4.4).
         if (bin.OperatorKind is not (BoundBinaryOperatorKind.Equal or BoundBinaryOperatorKind.NotEqual))
             return false;
 
@@ -383,7 +383,7 @@ internal sealed class ConditionLowerer
         }
 
         // A figurative ZERO compared with a numeric arithmetic expression (e.g. IF LINE-COUNTER = ZERO) is
-        // the numeric value 0 (ISO §8.3.1.2), so normalize it to a numeric literal and let the numeric
+        // the numeric value 0 (ISO §8.3.3.6.4 r4), so normalize it to a numeric literal and let the numeric
         // arithmetic-expression cases handle it.
         if (left.Kind == ComparisonOperandKind.ArithmeticExpression
             && right.Kind == ComparisonOperandKind.Figurative && right.FigurativeKind == FigurativeKind.Zero)

@@ -336,7 +336,7 @@ public sealed record BoundFieldOperand(Place Place) : BoundOperand;
 /// <summary>A computed numeric expression used as an operand (e.g. a comparison operand <c>A + B</c>).</summary>
 public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand;
 
-/// <summary>A figurative constant operand (ISO §8.3.1.2). <paramref name="Kind"/> ∈ {Z=ZERO, S=SPACE, H=HIGH-VALUE,
+/// <summary>A figurative constant operand (ISO §8.3.3.6). <paramref name="Kind"/> ∈ {Z=ZERO, S=SPACE, H=HIGH-VALUE,
 /// L=LOW-VALUE, Q=QUOTE, N=NULL}; its value is materialized against the receiving / other operand's category and
 /// width (a single occurrence in DISPLAY, the receiver width in MOVE, the other operand's width in a comparison).</summary>
 public sealed record BoundFigurative(char Kind) : BoundOperand;
@@ -484,10 +484,10 @@ public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated,
 public sealed record BoundOmittedCondition(string CarrierField, bool Negated) : BoundCondition;
 
 /// <summary>A class condition: <paramref name="Operand"/> IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER |
-/// ALPHABETIC-LOWER} (ISO §8.8.4.1.4). <paramref name="ClassKind"/> ∈ {N, A, U, L}.</summary>
+/// ALPHABETIC-LOWER} (ISO §8.8.4.4). <paramref name="ClassKind"/> ∈ {N, A, U, L}.</summary>
 public sealed record BoundClassCondition(BoundOperand Operand, char ClassKind, bool Negated) : BoundCondition;
 
-/// <summary>A USER-DEFINED class condition (ISO §8.8.4.1.4 with a SPECIAL-NAMES class-name, §12.3.7): true when
+/// <summary>A USER-DEFINED class condition (ISO §8.8.4.4 with a SPECIAL-NAMES class-name, §12.3.7): true when
 /// the operand consists entirely of <paramref name="Members"/> (the clause's literals expanded at bind time).</summary>
 public sealed record BoundUserClassCondition(BoundOperand Operand, string Members, bool Negated) : BoundCondition;
 

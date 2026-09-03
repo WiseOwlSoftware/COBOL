@@ -362,7 +362,7 @@ decision.
 > single-character ALL → integer numeric elementary receiver rides `move-all-digit-integer-obsolete-2023`
 > (0903 ≥2023, VCR 92/128); every other alphanumeric-figurative/ALL → numeric/numeric-edited elementary move
 > rides `move-alphanumeric-figurative-removed-2023` (0902 @2023, VCR 1) with the §-mandated exemptions (ZERO
-> §8.3.3.6.4 GR4; group receivers §14.9.25.4 GR4; ref-mod receivers §8.4.2.4).
+> §8.3.3.6.4 GR4; group receivers §14.9.25.4 GR4; ref-mod receivers §8.4.3.3.4).
 > ALL-digit folds to its GR6d3b/GR2 value compile-time (`AllDigitFill` in `MoveEmitter`, `CodeGen/Verbs/MoveEmitter.cs`;
 > ALL "5"→9(3)=555, →9V9=5.5); non-digit fills deposit the character image via the `StoreAsImage` character-image
 > storage form (legacy-oracle-adjudicated, provisional per ratified decision 1). Two legacy NON-conformances

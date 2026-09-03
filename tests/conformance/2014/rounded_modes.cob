@@ -1,4 +1,4 @@
-      *> ISO §14.9.4 — ROUNDED MODE (COBOL-2002), all eight modes + the bare-ROUNDED default.
+      *> ISO §14.7.4 — ROUNDED MODE (COBOL-2002), all eight modes + the bare-ROUNDED default.
       *> Rounding 2.25 / 2.21 / 2.20 to one fraction digit exposes how each mode resolves the
       *> dropped digits (the three NEAREST-* modes differ only on the 2.25 tie):
       *>   TRUNCATION              2.25 -> 2.2   (toward zero)

@@ -41,7 +41,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   extended; 37 CONFORMS-but-untested rows are the golden lane's next input set (listed in `PB370` with what each
   golden must assert) and one owner question covering a family of fourteen rules is `PB371`;
   ①b **lander 3 is IN FLIGHT**: the A.4.2 screen module-witness landing is DONE (DEVLOG 1438, GAP 3379 →
-  **3227**, `PB260`/`PB302` landed, `PB301` at `half`, worktree `agent-ac67d1b2b8c191894` removable); the citation sweep, cluster D and witness B2 follow, then it stops for battery #42;
+  **3227**, `PB260`/`PB302` landed, `PB301` at `half`, worktree `agent-ac67d1b2b8c191894` removable) and so
+  is the CITATION-REPAIR SWEEP (DEVLOG 1439, GAP unmoved — comments and citations only; `PB159`/`PB182`/
+  `PB290`/`PB299` landed, `PB300` open, worktree `agent-a5d2efeeeb9862939` removable); cluster D and witness
+  B2 follow, then it stops for battery #42;
   ④ **battery #42 — comprehensive, owed since
   the golden lane `c11949e3`; the reference below is #41**; ⑤ the ledger refresh after every landing (`python
   scripts/spec/gen_ledger.py`, then publish). Then lane 3 resumes from its on-disk checkpoints (batch 2 adjudicated,
@@ -1908,6 +1911,13 @@ result. Run the long legs ONE AT A TIME.
   COBOLNET1727 (§11.9.10.3 SR1), and the A.4.2 screen wave claimed COBOLNET1707 (`screen-statement-unsupported`)
   while turning the previously bare-literal COBOLNET1560 into a catalogued ERROR; the band has holes below its
   maximum and next free is COBOLNET1728.**
+  **CITATION GATES (new 2026-09-02, DEVLOG 1439).** `python scripts/spec/audit_code_citations.py --check`
+  — PHANTOM (the clause does not exist) · SUBJECT (the cited clause names a different construct) · HEADER
+  (a definition-header cites a clause that is not its construct's) — baseline **ZERO findings** over 2633
+  files, `--self-test` PASS (five firing legs, five silent twins). Wired into `scripts/build-local.{sh,ps1}`
+  before the build and `scripts/battery.sh` PHASE -1; deliberately NOT in CI, where `submodules: false`
+  makes the spec absent and PHANTOM would SKIP. `python scripts/spec/audit_doc_citations.py` — 192 checked,
+  147 correct, **6 MISFILED is the recorded baseline and must not increase**.
   **`EditionContext.Declined(descriptor, seen)` is THE declined-element seam, and it is the ONLY one** — the
   A.4.2 wave's independently-invented `Report(descriptor, message)` twin was folded into it at the landing. Its
   SEVERITY picks accept-inert (Warning: MCS 1578, commit/rollback 1579, VALIDATE 1580 — Annex A.3

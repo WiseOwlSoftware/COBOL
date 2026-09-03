@@ -616,7 +616,7 @@ public sealed class ReferenceResolver(DataBinder data)
         if (BuildAccessPath(accessItem, indexExprs) is not { } path) return null;
         // (Resolving a group no longer mutates WholeGroupReferenced — the "which groups are whole-image operands"
         // analysis is the post-bind UsageCollectionPass, which walks the BOUND tree and collects ONLY true
-        // whole-group operands, not every RESOLVED group. PHASE-05 Step 5, §14.9 MOVE GR4.)
+        // whole-group operands, not every RESOLVED group. PHASE-05 Step 5, §14.9.25.4 MOVE GR4.)
         return WrapIfOdoGroup(new MemberPlace(path, item), item);
     }
 

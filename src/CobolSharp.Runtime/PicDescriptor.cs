@@ -3,26 +3,26 @@
 namespace CobolSharp.Runtime;
 
 /// <summary>
-/// COBOL data category lattice (ISO §6.1.2).
+/// COBOL data category lattice (ISO §8.5.2).
 /// Shared between compiler and runtime.
 /// </summary>
 public enum CobolCategory
 {
     /// <summary>Category not yet determined or not applicable.</summary>
     Unknown = 0,
-    /// <summary>PIC 9/S/V/P fields — participate in arithmetic (ISO §6.1.2.1).</summary>
+    /// <summary>PIC 9/S/V/P fields — participate in arithmetic (ISO §8.5.2.12).</summary>
     Numeric,
-    /// <summary>PIC with insertion/suppression symbols — display-only numeric (ISO §6.1.2.2).</summary>
+    /// <summary>PIC with insertion/suppression symbols — display-only numeric (ISO §8.5.2.13).</summary>
     NumericEdited,
-    /// <summary>PIC A fields — alphabetic-only data (ISO §6.1.2.3).</summary>
+    /// <summary>PIC A fields — alphabetic-only data (ISO §8.5.2.2).</summary>
     Alphabetic,
-    /// <summary>PIC X fields — general-purpose character data (ISO §6.1.2.4).</summary>
+    /// <summary>PIC X fields — general-purpose character data (ISO §8.5.2.3).</summary>
     Alphanumeric,
-    /// <summary>PIC X with B/0// insertion — display-formatted character data (ISO §6.1.2.4).</summary>
+    /// <summary>PIC X with B/0 insertion — display-formatted character data (ISO §8.5.2.4).</summary>
     AlphanumericEdited,
-    /// <summary>PIC N fields — double-byte / UTF-16 character data (ISO §6.1.2.5).</summary>
+    /// <summary>PIC N fields — double-byte / UTF-16 character data (ISO §8.5.2.10).</summary>
     National,
-    /// <summary>PIC N with B/0 insertion — display-formatted national data (ISO §6.1.2.6).</summary>
+    /// <summary>PIC N with B/0 insertion — display-formatted national data (ISO §8.5.2.11).</summary>
     NationalEdited,
     /// <summary>PIC 1 fields — boolean data (each position is a boolean character '0'/'1'; ISO §8.5.1.3,
     /// COBOL-2002). Stored one byte per position holding ASCII '0'/'1' (§13.18.40.4 R14 permits an

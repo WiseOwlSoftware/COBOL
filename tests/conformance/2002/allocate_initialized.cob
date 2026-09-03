@@ -3,7 +3,7 @@
       *>        WITH FILLER ALL TO VALUE THEN TO DEFAULT statement were executed" — VALUE clauses win,
       *>        then numeric/numeric-edited items get ZERO (the EDITED zero through MOVE editing),
       *>        character items get SPACES; FILLER items are included (WITH FILLER).
-      *>   GR4b: with data-name-1 AND RETURNING, the pointer also receives the address.
+      *>   GR4a: with data-name-1 AND RETURNING, the pointer also receives the address.
       *>   GR6 (CHARACTERS form): INITIALIZED = all bytes binary zeros.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. ALLOCINIP10AL.
@@ -22,7 +22,7 @@
        01 Z   PIC X(6) BASED.
        PROCEDURE DIVISION.
        MAIN.
-      *> GR7 + GR4b: VALUE-carrying members take their VALUE (ALL TO VALUE); the rest default
+      *> GR7 + GR4a: VALUE-carrying members take their VALUE (ALL TO VALUE); the rest default
       *> (THEN TO DEFAULT) — numerics to ZERO, the edited member to the EDITED zero, X to SPACES.
            ALLOCATE G INITIALIZED RETURNING P.
            DISPLAY "ID=[" G-ID "]".
@@ -30,7 +30,7 @@
            DISPLAY "AMT=" G-AMT.
            DISPLAY "TXT=[" G-TXT "]".
            DISPLAY "ED=[" G-ED "]".
-      *> GR4b witness: P addresses the SAME initialized storage — window its first 10 characters
+      *> GR4a witness: P addresses the SAME initialized storage — window its first 10 characters
       *> ("AB12" + "007" + the WITH-FILLER spaces) through a second based item.
            SET ADDRESS OF W TO P.
            DISPLAY "W=[" W "]".

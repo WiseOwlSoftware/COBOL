@@ -129,7 +129,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // BareOperandAsCondition's §8.8.4.3 arm reports) rejected the legal `EVALUATE BW WHEN B"01"` over a
         // `PIC 1(2)` item — identifier × condition is a blank cell. The wave-local gate caught it.
         if (host.Cond.IsBooleanValueOperand(vo)) return null;
-        // A bare word that RESOLVES to a condition-name is condition-2 (§8.8.4.1.2), not identifier-2 — the same
+        // A bare word that RESOLVES to a condition-name is condition-2 (§8.8.4.2.7 r2), not identifier-2 — the same
         // symbol-table question BindWhenItem asks below, asked once through the same helper.
         return host.Cond.BareOperandAsCondition(vo) is not null ? EvaluateObjectOperand.Condition : OperandKindOf(vo);
     }
@@ -187,7 +187,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // FALSE… If the truth value of the selection subject and selection object match, the result of the
         // analysis is true" — and §14.9.13.3 SR10 Table 15 admits ONLY a condition, TRUE/FALSE or ANY against a
         // TRUE/FALSE subject, never identifier-2 or a value.
-        // ⛔ A BARE CONDITION-NAME IS condition-2 (§8.8.4.1.2) BUT ARRIVES THROUGH THE valueOperand ARM, because a
+        // ⛔ A BARE CONDITION-NAME IS condition-2 (§8.8.4.2.7 r2) BUT ARRIVES THROUGH THE valueOperand ARM, because a
         // bare word is equally an arithmeticExpression and the grammar cannot tell them apart — only the resolved
         // SYMBOL can. Without this arm the commonest EVALUATE idiom there is —
         //     EVALUATE TRUE  WHEN VALID-CODE …
@@ -246,7 +246,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (subject.valueOperand() is not { } vo) return null;
         if (subject.classCondition() is not { } cls)
         {
-            // A sole data-reference that names a level-88 IS the condition (§8.8.4.1.2); the reference's
+            // A sole data-reference that names a level-88 IS the condition (§8.8.4.2.7 r2); the reference's
             // subscripts identify the conditional variable's occurrence (§8.4.2.3 Format 2).
             if (vo.arithmeticExpression() is not { } expr || ConditionBinder.SoleDataRef(expr) is not { } dref
                 || host.Cond.ConditionOf(dref) is not { } cond) return null;

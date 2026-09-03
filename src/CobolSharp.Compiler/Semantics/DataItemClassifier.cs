@@ -100,7 +100,7 @@ public static class DataItemClassifier
 
     /// <summary>
     /// Returns true if the item has a parent with an OCCURS clause.
-    /// Items subordinate to OCCURS should not have VALUE clauses (ISO §6.13.2).
+    /// Items subordinate to OCCURS should not have VALUE clauses (ISO §13.18.63.3).
     /// </summary>
     private static bool IsSubordinateToOccurs(DataSymbol data)
     {

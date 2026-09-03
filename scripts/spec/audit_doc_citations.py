@@ -39,7 +39,10 @@ import re
 import subprocess
 import sys
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import citation_corpus  # noqa: E402
+
+REPO = citation_corpus.REPO
 CITE = REPO / "scripts" / "spec" / "cite.py"
 
 #: A citation we can check: a clause with at least two dots (an ISO clause shape, not a doc's own §4), followed on
@@ -68,13 +71,18 @@ def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     show_all = "--all" in sys.argv
 
-    docs = sorted(REPO.joinpath("docs").rglob("*.md")) + [REPO / "CLAUDE.md"]
-    # ⛔ SOURCE DOC-COMMENTS TOO. Scanning only docs/ measures half the prose: an XML comment above the
-    # implementing method carries a citation at the same density and with the same authority as the design doc,
-    # and is read by the same person for the same reason. PB3 proved it — the fabricated "GR7 k3" survived a full
-    # docs/ sweep in THIRTEEN places across five source files, including the comments on the one implementation
-    # that gets the rule right.
-    docs += sorted(REPO.joinpath("src").rglob("*.cs")) + sorted(REPO.joinpath("src").rglob("*.g4"))
+    # ⛔ SOURCE DOC-COMMENTS TOO, AND THE GLOB LIVES IN ONE PLACE. Scanning only docs/ measures half the prose:
+    # an XML comment above the implementing method carries a citation at the same density and with the same
+    # authority as the design doc, and is read by the same person for the same reason. PB3 proved it — the
+    # fabricated "GR7 k3" survived a full docs/ sweep in THIRTEEN places across five source files, including the
+    # comments on the one implementation that gets the rule right. `citation_corpus.all_files()` is that glob,
+    # shared with `audit_code_citations.py` so a file cannot be covered by one citation rule and not the other.
+    # ⛔ AND THE GOLDEN HEADERS ARE IN IT. A `.cob` fixture's header is where it records the rule it exists to
+    # pin, and it quotes the standard to do so — `pb43_usage_bit_occupies_bits.cob` carried a FABRICATED
+    # quotation of §8.5.1.6.3 ("aligned at the first bit position of the first available byte"; the standard
+    # says "Alignment of all other bit data items within a record, when a SYNCHRONIZED clause is not specified,
+    # is at the first bit position of the first available byte"). Nothing was reading those headers.
+    docs = citation_corpus.all_files()
     seen: set[tuple[str, str]] = set()
     misfiled: list[tuple[str, str, str, str]] = []
     absent: list[tuple[str, str, str]] = []

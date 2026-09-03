@@ -33,7 +33,7 @@ public static class PicRuntime
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
 
-        // ISO §14.19.4: when moving to an unsigned numeric DISPLAY target,
+        // ISO §14.9.25.4 GR6: when moving to an unsigned numeric DISPLAY target,
         // the sign is not preserved; the magnitude is stored.
         if (!dstPic.IsSigned && dstPic.IsNumeric && !dstPic.HasEditing)
         {
@@ -500,7 +500,7 @@ public static class PicRuntime
         int roundingMode)
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
-        // Per ISO §14.19.4: numeric → alphanumeric strips sign (absolute value only)
+        // Per ISO §14.9.25.4 GR6: numeric → alphanumeric strips sign (absolute value only)
         value = Math.Abs(value);
         int fractionScale = srcPic.FractionDigits + srcPic.LeadingScaleDigits;
         string formatted = FormatNumericForDisplay(value, fractionScale, srcPic.TotalDigits);
@@ -558,7 +558,7 @@ public static class PicRuntime
     {
         if (dstPic.IsJustifiedRight)
         {
-            // ISO §13.16.35: JUSTIFIED RIGHT — right-justify receiving field.
+            // ISO §13.18.32: JUSTIFIED RIGHT — right-justify receiving field.
             // When source > target: truncate from the LEFT (keep rightmost chars).
             // When source < target: pad on the LEFT with spaces.
             if (srcLength > dstLength)
@@ -765,7 +765,7 @@ public static class PicRuntime
 
         if (negative) value = -value;
 
-        // ISO §14.19.4: unsigned target strips sign
+        // ISO §14.9.25.4 GR6: unsigned target strips sign
         if (!dstPic.IsSigned && dstPic.IsNumeric && !dstPic.HasEditing)
         {
             value = Math.Abs(value);
@@ -1288,7 +1288,7 @@ public static class PicRuntime
     }
 
     /// <summary>
-    /// National comparison (ISO §8.8.4.1.2). Operands are UTF-16LE; the shorter is extended on the right
+    /// National comparison (ISO §8.8.4.2.7 r2). Operands are UTF-16LE; the shorter is extended on the right
     /// with national spaces (U+0020). Compares whole character positions (code units), not bytes — so the
     /// ordering is correct for code points ≥ U+0100, unlike a little-endian byte-wise compare. Returns -1/0/1.
     /// </summary>
@@ -1390,7 +1390,7 @@ public static class PicRuntime
     /// Copy <paramref name="srcChars"/> UTF-16LE character positions into a national receiver of
     /// <paramref name="dstChars"/> positions: left-justified with national-space fill / right truncation,
     /// or right-justified (pad/truncate on the left) when the receiver is JUSTIFIED RIGHT
-    /// (ISO §14.6.8.5, §13.16.35.4). Operates on whole 2-byte units; no decode needed.
+    /// (ISO §14.6.8.5, §13.18.32.4). Operates on whole 2-byte units; no decode needed.
     /// </summary>
     private static void WriteNationalChars(
         byte[] src, int srcOff, int srcChars,

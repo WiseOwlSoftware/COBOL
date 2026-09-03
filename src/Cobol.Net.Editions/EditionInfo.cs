@@ -27,7 +27,7 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     public static EditionInfo Of(int year, bool permissive = false) => new(Validate(year), permissive);
 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
-    /// §8.3.1.2 fixed-point literals 1–31 digits; the §14.7 composite-of-operands rules; PICTURE digit
+    /// §8.3.3.3.2 fixed-point literals 1–31 digits; the §14.7 composite-of-operands rules; PICTURE digit
     /// positions).</summary>
     public int MaxDigits => Year < 2002 ? 18 : 31;
 

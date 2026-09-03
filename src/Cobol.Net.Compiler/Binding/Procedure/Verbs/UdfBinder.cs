@@ -238,8 +238,10 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 + "CALL-boundary string carrier has no float write half (ISO §14.8.3.3 usage-identical "
                 + "conformance; the float-RETURNING descriptor, a named residue)",
             { Category: PicCategory.Numeric, Usage: Usage.Index } =>
-                "an index RETURNING item is not a carried result category (ISO §13.18.60 GR10 — only SET, "
-                + "SEARCH, and relation conditions reference class index; a named residue)",
+                "an index RETURNING item is not a carried result category (ISO §13.18.60.3 SR10 — only a "
+                + "SEARCH or SET statement, a relation condition, an intrinsic-function or inline-method "
+                + "argument, or a procedure-division / CALL / INVOKE USING phrase references class index; "
+                + "a named residue)",
             { Category: PicCategory.Numeric } => null,                 // the original fixed-point leg
             { Category: PicCategory.Alphanumeric } => null,           // alphanumeric + alphabetic (§8.4.2 class alphanumeric)
             { Category: PicCategory.NumericEdited } => null,          // the edited image carries as its mask'd string

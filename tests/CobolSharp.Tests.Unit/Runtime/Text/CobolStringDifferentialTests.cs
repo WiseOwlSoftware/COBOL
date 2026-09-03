@@ -18,7 +18,7 @@ namespace CobolSharp.Tests.Unit.Runtime.Text;
 /// left- and right-justified, across a grid of source patterns × receiver widths. <b>Comparison</b> is proven
 /// sign-identical to <see cref="StorageHelpers.CompareFieldToField"/> over a grid of base strings × trailing
 /// spaces — the grid deliberately excludes non-space trailing bytes (NUL / control), where the legacy
-/// <c>TrimEnd()</c> path diverges from COBOL's <c>0x20</c>-only space-extension (ISO §8.8.4.1.2); a few
+/// <c>TrimEnd()</c> path diverges from COBOL's <c>0x20</c>-only space-extension (ISO §8.8.4.2.7 r2); a few
 /// known-answer tests pin that COBOL-correct extension directly.</para>
 /// </summary>
 public sealed class CobolStringDifferentialTests

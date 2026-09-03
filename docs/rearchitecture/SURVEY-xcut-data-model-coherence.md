@@ -23,7 +23,7 @@
 - **Unification is feasible and correct — but only at the *classification/decision* layer, not the *physical* layer.**
   The right target is exactly what `DESIGN-data-model.md` proposes: one closed `StorageForm` discriminator computed
   **once** by one pass, read by everyone, replacing the late-mutated flag. The multiple physical forms are intrinsic
-  (they exist for real §14.9 GR4 / §13.18.44 reasons) and should stay; the *defect* is the scattered late decision,
+  (they exist for real §14.9.25.4 GR4 / §13.18.44 reasons) and should stay; the *defect* is the scattered late decision,
   not the plurality.
 - **The roadmap (`DESIGN-data-model.md` + `PHASE-05-…md`) is strong and largely complete.** The gaps are narrow and
   listed in §9: (1) the OO override-harmonize *pairwise cross-unit* reconciliation is assumed to become a declarative
@@ -179,7 +179,7 @@ WS_SRC.FromImage(new string(' ', 7));                      // MOVE SPACES — th
 ```
 
 Run output: `DST-N=042`, `DST-X=WXYZ`, `SRC-N-AFTER-SPACES=[   ]` — the numeric leaf legitimately holds spaces
-(exactly why the promotion exists: §14.9 MOVE GR4 fills a group "without consideration for the individual
+(exactly why the promotion exists: §14.9.25.4 MOVE GR4 fills a group "without consideration for the individual
 elementary items"). The **same source** compiled without the whole-group use would keep `WS_SN` a `long` (trace 1
 shows the un-promoted shape).
 

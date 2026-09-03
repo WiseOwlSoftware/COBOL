@@ -14,7 +14,7 @@ using Core = CobolParserCore;
 /// every AddParagraph appends to all three), the section map (ISO §14.4.3), the method-local scope maps
 /// (§11.7 — registered through the ambient <see cref="BinderContext.CurrentMethodScope"/> collection
 /// cursor), <see cref="ResolveProcedure"/> (§8.4.2.2 — explicit OF/IN → in-section → global → section-name,
-/// method-confined inside a method), and the DECLARATIVES half (ISO §14.2.4 / §14.9.49 USE — each
+/// method-confined inside a method), and the DECLARATIVES half (ISO §14.3 / §14.9.49 USE — each
 /// declarative section joins the same pc space; the USE sentence binds into a <see cref="BoundDeclarative"/>
 /// scope, never a bound statement; the §14.9.49.4 GR7 handler exit pc is computed here with the CCVS
 /// termination-tail accommodation, see <see cref="DeclHandlerEndPc"/>).
@@ -231,7 +231,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
             ctx.Edition.Error("COBOLNET0897", $"declarative section '{name}': the first sentence shall consist "
-                + "of a single USE statement (ISO §14.2.4 / §14.9.49 SR1)");
+                + "of a single USE statement (ISO §14.3 / §14.9.49 SR1)");
         else if (use.DEBUGGING() is not null)
         {
             // X3.23-1985 USE FOR DEBUGGING (the '85 debug facility, deleted by ISO 2002 — 0902-gated ≥2002 by

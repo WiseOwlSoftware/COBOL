@@ -206,7 +206,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
     /// <summary>Cast a numeric VALUE literal to the item's CARRIER type where C# has no implicit conversion: an
     /// unsigned BinaryCapacity item carries <c>ulong</c> / <c>UInt128</c> (kb/Work R10), and its VALUE literal —
-    /// a non-negative source literal of ≤31 digits (ISO §8.3.1.2), rendered as <c>…L</c> or <c>Int128.Parse</c> —
+    /// a non-negative source literal of ≤31 digits (ISO §8.3.3.3.2), rendered as <c>…L</c> or <c>Int128.Parse</c> —
     /// converts exactly.</summary>
     private static string CarrierInit(string literal, PicInfo pic) =>
         pic.IsUnsignedWideBinary ? $"(UInt128)({literal})"
@@ -279,7 +279,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     }
 
     /// <summary>If <paramref name="raw"/> is a figurative constant, its C# initializer given the receiver's category
-    /// and width; otherwise null (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
+    /// and width; otherwise null (ISO §8.3.3.6; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
     public string? FigurativeInitializer(string raw, PicInfo pic)
     {
         if (FigurativeKind(raw) is not { } k) return null;

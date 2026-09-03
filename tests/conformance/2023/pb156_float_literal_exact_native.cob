@@ -16,7 +16,7 @@
       *> THE INVARIANT, STATED EXACTLY (it was over-stated as "a literal's NOTATION never changes the
       *> arithmetic, only its VALUE does" - see the LANE leg at the end, which falsifies that sentence):
       *>
-      *>   The VALUE a literal contributes is its exact 8.3.3.3.3 rule-5 / 8.3.1.2 value, in every position
+      *>   The VALUE a literal contributes is its exact 8.3.3.3.3 rule-5 / 8.3.3.3.2 value, in every position
       *>   and every arithmetic mode, and no operand ever arrives rounded to binary64.
       *>
       *> Each E-form line below is paired with the plain fixed-point literal of the same value, and they agree.

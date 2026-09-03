@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// ⛔ ISO §8.8.1.1 — THE CLASS OF AN ARITHMETIC OPERAND (DA6). "An arithmetic expression may be an identifier
 /// referencing a <b>numeric data item</b>, a numeric literal, the figurative constant ZERO (ZEROS, ZEROES) …".
 /// A group item (class alphanumeric, §8.5), an elementary alphanumeric or national item, and a reference-modified
-/// slice (§8.4.2.4) are therefore NOT permissible arithmetic operands.
+/// slice (§8.4.3.3.4) are therefore NOT permissible arithmetic operands.
 /// <para>
 /// COBOL.NET accepted all of them and decoded their digit characters — and did so INCONSISTENTLY: a group of
 /// <c>PIC X</c> leaves computed, while a group of <c>PIC 9</c> leaves compiled and then THREW at run time. The

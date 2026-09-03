@@ -150,7 +150,8 @@ the exponent. The analyzer therefore validates SR24/SR25 on each half, never on 
 
 **This is a live defect the wave must fix:** `DataBinder.cs:2147` today routes every
 `Category: Numeric or NumericEdited` item through `EditionContext.CheckDigitCapacity`, which emits
-`COBOLNET0801` citing "31 digits (ISO §8.3.1.2)". A 36-digit significand is legal; the SR14 path must be
+`COBOLNET0801` citing "31 digits (ISO §8.3.3.3.2)" (the message cited the phantom §8.3.1.2 until
+kb/Work PB159/PB290 repaired it). A 36-digit significand is legal; the SR14 path must be
 skipped for the float form and replaced with the SR15 + GR13 b pair (§4.3).
 
 ### 1.4 Editing (the store direction)
@@ -450,7 +451,7 @@ and the `SkeletonGate` recovery at `:122-123`. The `E` case is lifted OUT of the
 `DataBinder.cs:2147` becomes
 `if (pic is { Category: …, IsFloat: false, IsFloatEdited: false } && pic.DigitPositions > 0)`.
 The float form's capacity was already checked in step 4e/3 against SR15/GR13 b, which are its rules. Leaving the
-current call in place would reject a legal 36-digit significand with a message citing §8.3.1.2 — the
+current call in place would reject a legal 36-digit significand with a message citing §8.3.3.3.2 (the fixed-point clause) — the
 `a_real_clause_can_answer_a_different_question` shape.
 
 ### 4.4 Usage

@@ -37,7 +37,7 @@ fileDescriptionEntry
     : FD fileName fileDescriptionClauses? DOT dataDescriptionEntry*
     ;
 
-// SD entry — per §13.4.14, only RECORD clause is permitted (not BLOCK, CODE-SET, etc.)
+// SD entry — per §13.4.6.3, only RECORD clause is permitted (not BLOCK, CODE-SET, etc.)
 sortMergeDescriptionEntry
     : SD fileName sortMergeDescriptionClauses? DOT dataDescriptionEntry*
     ;
@@ -99,7 +99,7 @@ reportClause
     : (REPORT IS? | REPORTS ARE?) reportName+
     ;
 
-// IS GLOBAL / IS EXTERNAL on an FD (§13.18.30/§13.18.23): GLOBAL makes the file-name and
+// IS GLOBAL / IS EXTERNAL on an FD (§13.18.27/§13.18.22): GLOBAL makes the file-name and
 // record visible to contained programs; EXTERNAL shares the file across the run unit.
 // Parsed here; GLOBAL visibility is handled by nested-program name resolution.
 fileGlobalExternalClause
@@ -147,7 +147,7 @@ valueOfClause
     : VALUE OF (cobolWord | literal | IS)+
     ;
 
-// LINAGE clause (ISO §13.16) — page-based printing for sequential files
+// LINAGE clause (ISO §13.18.34) — page-based printing for sequential files
 linageClause
     : LINAGE IS? (dataReference | integerLiteral) LINES?
       linageFootingPhrase?
@@ -367,7 +367,7 @@ globalClause
     : IS? GLOBAL
     ;
 
-// TYPE clause (TYPEDEF family, ISO §13.18.58): PROVISIONAL COBOL-2002 edge — the former {is2023()}? gate was
+// TYPE clause (ISO §13.18.57; the TYPEDEF clause it names is §13.18.58): PROVISIONAL COBOL-2002 edge — the former {is2023()}? gate was
 // PROVABLY wrong (ISO-validation, DEVLOG 582: TYPEDEF has ~33 hits in the 2023 spec body yet ZERO Annex E
 // 2014→2023 change rows ⇒ it predates 2023). The 2002-vs-2014 refinement is blocked on the older standards
 // (roadmap decision 1 provisional policy; tests/version-matrix/constructs.json row type-clause-2002).

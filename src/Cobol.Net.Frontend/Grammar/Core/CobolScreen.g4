@@ -90,8 +90,9 @@ screenColumnClause
     : (COLUMN | COL | COLUMNS | COLS) NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD | MINUS)? (dataReference | integerLiteral)
     ;
 
-// BLANK {LINE | SCREEN}   (§13.17.2 format 2; format 1 (group) admits SCREEN only — bind-narrowed, not
-// grammar-narrowed, since the whole entry is refused anyway)
+// BLANK {LINE | SCREEN}   (§13.18.7; the screen description entry's §13.17.2 format 2 (elementary) is
+// where it may appear — format 1 (group) admits SCREEN only, bind-narrowed rather than grammar-narrowed,
+// since the whole entry is refused anyway)
 screenBlankClause
     : BLANK (LINE | SCREEN)
     ;
@@ -142,7 +143,8 @@ screenUsingClause
     ;
 
 // ==========================================
-// The screen STATEMENT surfaces (ISO §14.9.1 format 3, §14.9.11 format 2, §14.9.39 format 6)
+// The screen STATEMENT surfaces (ACCEPT ISO §14.9.1 format 3, DISPLAY §14.9.11 format 2,
+// SET §14.9.39 format 6)
 // ==========================================
 
 // The positioning phrase shared VERBATIM by ACCEPT format 3 and DISPLAY format 2. Rendered from the printed

@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// Regression locks for the Phase-4a national/boolean ADVERSARIAL-REVIEW wave (the DEVLOG 615/617/619 cadence).
 /// Each fact pins one confirmed finding so it cannot silently re-open:
 /// <list type="bullet">
-/// <item>Apostrophe-delimited N'…'/B'…' literals decode (ISO §8.3.1.2 — both quote forms equal-standing; the
+/// <item>Apostrophe-delimited N'…'/B'…' literals decode (ISO §8.3.3.1 — both quote forms equal-standing; the
 ///   delimiters are not part of the value; a doubled opening quote is one embedded quote).</item>
 /// <item>§14.9.25.3 SR8 — a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sender requires a numeric/numeric-edited receiver.</item>
 /// <item>§8.3.3.6.4 GR2 / §8.4.3.3 GR5 — a figurative MOVE fills EVERY position of a ref-mod slice.</item>

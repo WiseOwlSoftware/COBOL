@@ -11,7 +11,7 @@
       *> MOD(7, 3) = 1 (§15.64), and the identifier/literal controls. A
       *> trailing-P item (PIC 9P VALUE 20) IS an integer (no digit position right
       *> of the decimal point) and counts by VALUE, 20 — not by its stored digit;
-      *> a GO TO … DEPENDING ON selector reads the same way (§14.9.20 — value 10
+      *> a GO TO … DEPENDING ON selector reads the same way (§14.9.17 — value 10
       *> is out of range for two procedure-names, so control falls through).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB86TIMES.

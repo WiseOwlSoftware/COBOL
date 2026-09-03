@@ -1565,7 +1565,7 @@ public sealed class CilEmitter
         }
     }
 
-    /// <summary>Emit a pointer address-identity comparison (ISO §8.8.4.1.4): result =
+    /// <summary>Emit a pointer address-identity comparison (ISO §8.8.4.4): result =
     /// <c>ReferenceEquals(l.Buffer, r.Buffer) &amp;&amp; l.Offset == r.Offset</c> (right NULL ⇒ Buffer null, Offset 0),
     /// inverted for <c>NOT =</c>. NOT the record-struct <c>Equals</c> (which also weighs Length/Pic).</summary>
     private void EmitPointerCompare(ILProcessor il, IR.IrPointerCompare pc,

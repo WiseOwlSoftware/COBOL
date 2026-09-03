@@ -286,7 +286,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>A figurative-constant word's <see cref="BoundFigurative"/> kind, or null when the text is not a
-    /// figurative word (ISO §8.3.1.2 — the singular/plural forms are identical).</summary>
+    /// figurative word (ISO §8.3.3.6.2 — the singular/plural forms are alternatives of one format).</summary>
     private static char? InitializeFigurativeKind(string word) => word.ToUpperInvariant() switch
     {
         "ZERO" or "ZEROS" or "ZEROES" => 'Z',

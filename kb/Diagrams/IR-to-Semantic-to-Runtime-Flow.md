@@ -125,7 +125,7 @@ SizeErrorPhrase             --[ ON SIZE ERROR §14.7.5 ]------->  try/catch(Cobo
 ## Conditions
 *Nodes: `BoundRelational`, `BoundLogical`, `BoundNot`, `BoundCondition88`, `BoundRangeMembership`, `BoundClassCondition`, `BoundUserClassCondition`, `BoundSignCondition`, `BoundSwitchCondition`, `BoundBooleanCondition`*
 
-**Spec mapping.** These leaves of the abstract `BoundCondition` (COBOLNET_DESIGN §11) cover every ISO conditional expression. `BoundRelational` is the relation condition (§8.8.4.2), including the Format-2 boolean relation (§8.8.4.2.2); `BoundLogical`/`BoundNot` are the combined condition (§8.8.4.13 — NOT > AND > OR precedence, short-circuit rules 1–2). `BoundCondition88` is the condition-name test (§8.8.4.5), `BoundRangeMembership` its/EVALUATE THRU range (§14.7.8). `BoundClassCondition` + `BoundUserClassCondition` are the class condition (§8.8.4.1.4, SPECIAL-NAMES class §12.3.7); `BoundSignCondition` the sign condition (§8.8.4.7, IEEE Format-2 §8.8.4.7.4 GR2); `BoundSwitchCondition` the switch-status condition (§8.8.4.6); `BoundBooleanCondition` the simple boolean condition (§8.8.4.3). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
+**Spec mapping.** These leaves of the abstract `BoundCondition` (COBOLNET_DESIGN §11) cover every ISO conditional expression. `BoundRelational` is the relation condition (§8.8.4.2), including the Format-2 boolean relation (§8.8.4.2.2); `BoundLogical`/`BoundNot` are the combined condition (§8.8.4.13 — NOT > AND > OR precedence, short-circuit rules 1–2). `BoundCondition88` is the condition-name test (§8.8.4.5), `BoundRangeMembership` its/EVALUATE THRU range (§14.7.8). `BoundClassCondition` + `BoundUserClassCondition` are the class condition (§8.8.4.4, SPECIAL-NAMES class §12.3.7); `BoundSignCondition` the sign condition (§8.8.4.7, IEEE Format-2 §8.8.4.7.4 GR2); `BoundSwitchCondition` the switch-status condition (§8.8.4.6); `BoundBooleanCondition` the simple boolean condition (§8.8.4.3). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
 
 **Semantic rules.** Most rules are binder-invariant in `ConditionBinder`: a boolean relation admits only EQUAL/NOT EQUAL (§8.8.4.2.2 — no ordering), both operands boolean-valued, a simple boolean condition references only length-1 boolean items (§8.8.4.3 SR1) — all raise `COBOLNET1511`. Boolean-literal (`B"…"`) and boolean-operator *recognition* is edition-gated in `VersionConformancePass` (2002+). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
@@ -136,7 +136,7 @@ BoundRelational       --[ relation §8.8.4.2 ]-------------->  scaled ints / Cob
 BoundLogical / Not    --[ combined §8.8.4.13 ]------------->  ( a && b ) / ( a || b ) / ^ / !(a)   short-circuit
 BoundCondition88      --[ cond-name §8.8.4.5 GR2 ]--------->  OR of membership compares (CobolString.Compare)
 BoundRangeMembership  --[ THRU range §14.7.8 r2 ]---------->  CobolString.ThruMember  (sets EC-RANGE-INVALID)
-BoundClassCondition   --[ class §8.8.4.1.4 ]--------------->  CobolClass.IsNumeric/IsAlphabetic[Upper|Lower]
+BoundClassCondition   --[ class §8.8.4.4 ]--------------->  CobolClass.IsNumeric/IsAlphabetic[Upper|Lower]
 BoundUserClassCondition --[ class §12.3.7 ]--------------->  CobolClass.IsInClass(operand, members)
 BoundSignCondition    --[ sign §8.8.4.7 / .7.4 GR2 ]------>  v>0 / v<0 / v==0  |  double.IsNegative (Format-2)
 BoundSwitchCondition  --[ switch §8.8.4.6 GR1 ]----------->  ExternalSwitches.Get(name)  ([!])
@@ -388,7 +388,7 @@ BoundLinageCounterRef --[ §8.4.3.14 GR7b   ]-->  connector LINAGE-COUNTER
 ## Operands, literals, boolean & error nodes
 *Nodes: `BoundStringLiteral`, `BoundFieldOperand`, `BoundFigurative`, `BoundAllLiteral`, `BoundComputedOperand`, `BoundBoolBinary`, `BoundBoolNot`, `BoundBoolShift`, `BoundBoolRef`, `BoundUnsupported`, `BoundExprError`, `BoundConditionError`, `BoundOperandError`, `BoundBoolError`*
 
-**Spec mapping.** The operand family carries the leaf terms of a statement. `BoundStringLiteral` is a non-numeric literal (ISO §8.3.3), its `Category` distinguishing plain alphanumeric, national `N"…"` (§8.3.3.5) and boolean `B"…"` (§8.3.3.4). `BoundFigurative` (Kind ∈ ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/NULL) is §8.3.1.2; `BoundAllLiteral` is `ALL "literal"` (§8.3.3.6.4 Format 6). `BoundFieldOperand`/`BoundComputedOperand` wrap a `Place` or numeric sub-expression. The boolean channel realizes boolean expressions (§8.8.2, operators §8.7.2): `BoundBoolBinary` (B-AND/B-OR/B-XOR), `BoundBoolNot` (B-NOT), `BoundBoolShift` (B-SHIFT-L/R/LC/RC, rule 8, 2023), `BoundBoolRef`. See [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Language Features]].
+**Spec mapping.** The operand family carries the leaf terms of a statement. `BoundStringLiteral` is a non-numeric literal (ISO §8.3.3), its `Category` distinguishing plain alphanumeric, national `N"…"` (§8.3.3.5) and boolean `B"…"` (§8.3.3.4). `BoundFigurative` (Kind ∈ ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/NULL) is §8.3.3.6; `BoundAllLiteral` is `ALL "literal"` (§8.3.3.6.4 Format 6). `BoundFieldOperand`/`BoundComputedOperand` wrap a `Place` or numeric sub-expression. The boolean channel realizes boolean expressions (§8.8.2, operators §8.7.2): `BoundBoolBinary` (B-AND/B-OR/B-XOR), `BoundBoolNot` (B-NOT), `BoundBoolShift` (B-SHIFT-L/R/LC/RC, rule 8, 2023), `BoundBoolRef`. See [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Language Features]].
 
 **Semantic rules.** Boolean formation is enforced invariantly in the binder (`ConditionBinder`, diagnostic `COBOLNET1511`): the first shift operand and dual-ALL operands are rejected, and SR1 length-1 checks apply to simple boolean conditions (§8.8.4.3). Edition *introduction* is conditional in `VersionConformancePass` — `BooleanOperators2002` gates the B-operators, `BooleanShiftOperators2023` gates the shifts. The `…Error`/`BoundUnsupported` nodes keep the tree total (D8 loud-failure, §1.4): a recognized-but-unresolved construct becomes a typed error node rather than a silent drop. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
@@ -397,7 +397,7 @@ BoundLinageCounterRef --[ §8.4.3.14 GR7b   ]-->  connector LINAGE-COUNTER
 ```text
   BoundStringLiteral  --[ §8.3.3 literal / Category ]-->  string|numeric image (OperandText / NumericRenderer)
   BoundFieldOperand   --[ §8.4 data reference       ]-->  Place read (PlaceRenderer)
-  BoundFigurative     --[ §8.3.1.2 fig constant      ]-->  materialized to receiver width
+  BoundFigurative     --[ §8.3.3.6 fig constant      ]-->  materialized to receiver width
   BoundAllLiteral     --[ §8.3.3.6.4 ALL Fmt-6       ]-->  pattern repeated to width
   BoundComputedOperand--[ operand = arith expr       ]-->  NumericRenderer
 

@@ -5,7 +5,7 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// Class conditions (ISO §8.8.4.1.4): <c>IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER | ALPHABETIC-LOWER}</c>.
+/// Class conditions (ISO §8.8.4.4): <c>IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER | ALPHABETIC-LOWER}</c>.
 /// ALPHABETIC is the closed Latin set {A–Z, a–z, space} (not <c>char.IsLetter</c>); a typed-numeric field IS NUMERIC
 /// folds to true. Pinned to the legacy oracle.
 /// </summary>

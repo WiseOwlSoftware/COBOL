@@ -134,7 +134,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
   - **PROGRESS — Stage 0 character substrate `CobolString` LANDED (DEVLOG 399), guard 1184/481/364:** ☑
     `src/CobolSharp.Runtime/Text/CobolString.cs` — the typed-string analogue of `CobolNum`: COBOL alphanumeric
     MOVE value semantics (`Store` — width/justify/space-fill, ISO §14.9.25/§13.18.36) + ordinal space-extended
-    comparison (`Compare`, ISO §8.8.4.1.2) + the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR
+    comparison (`Compare`, ISO §8.8.4.2.7 r2) + the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR
     R10/§2.5). ☑ a **differential oracle** (`CobolStringDifferentialTests`, +9) proves it byte-identical to the
     legacy `StorageHelpers` path (MOVE over binary/LOW-/HIGH-VALUE × widths × left/justified; window round-trip;
     compare sign-identical). Additive/unwired (guard green by construction). Surfaced (and deliberately left for

@@ -101,7 +101,7 @@ Length-omitted write target: length = `dst.Length - (leftmost-1)`.
 
 === ALPHANUMERIC MOVE + COMPARISON (already present, keep) ===
 MOVE alpha→alpha: `DEST = CobolString.Store(<src-image>, destWidth, justifiedRight);` (left-justify pad/truncate right; JUSTIFIED RIGHT pad/truncate left — ISO §14.9.25/§13.18.32). Numeric source → its DISPLAY image first.
-COMPARE: `CobolString.Compare(a,b) <op> 0` — shorter operand space-extended (ISO §8.8.4.1.2), ordinal.
+COMPARE: `CobolString.Compare(a,b) <op> 0` — shorter operand space-extended (ISO §8.8.4.2.7 r2), ordinal.
 
 === INSPECT ===
 Signatures (port of InspectRuntime, byte[]→string; counters/COUNT via CobolNum):
@@ -203,7 +203,7 @@ String ops span editions. Every edition-varying construct carries TWO co-equal o
 - ISO/IEC 1989:2023 §7.3.23.3 GR1 (REF-MOD-ZERO-LENGTH directive: zero-length ref-mod raises EC-BOUND-REF-MOD when off) — line 4914
 - ISO/IEC 1989:2023 §8.4.3.3.4 GR2/GR3 (numeric/edited DISPLAY operand treated as alphanumeric of same size; usage NATIONAL non-national treated as national of same size) — lines 7075-7077
 - ISO/IEC 1989:2023 §8.5.1.4 (limitations of character handling: no surrogate-pair recognition; each UTF-16 code element treated as one character) — lines 8051-8067
-- ISO/IEC 1989:2023 §8.8.4.1.2 (alphanumeric relation condition: shorter operand space-extended)
+- ISO/IEC 1989:2023 §8.8.4.2.7 r2 (alphanumeric relation condition: shorter operand space-extended)
 - ISO/IEC 1989:2023 §14.9.22 INSPECT — General rules §14.9.22.4 (GR2 zero-length no-op; GR4a-d operand treatment incl. signed-numeric de-signing; GR8 single comparison cycle; GR9 BEFORE/AFTER; GR10/16 ALL/LEADING/FIRST transitivity; GR12 tally rules; GR13/18/21 overlap undefined; GR14/15/22 EC-RANGE-INSPECT-SIZE; GR17 replace rules; GR19 format-3; GR20/23 CONVERTING) — lines 28205-28358; BACKWARD §14.9.22.4 GR3/8 + NOTE — line 28227-28267
 - ISO/IEC 1989:2023 §14.9.43 STRING — General rules §14.9.43.4 (GR1 DELIMITED BY SIZE whole value; GR3a-c transfer + zero-length sending ignored; GR4/5 POINTER >0; GR6 char-at-a-time; GR7 only written positions change; GR8 EC-OVERFLOW-STRING + ON OVERFLOW; GR10 overlap undefined) — lines 32337-32383
 - ISO/IEC 1989:2023 §14.9.48 UNSTRING — General rules §14.9.48.4 (GR2 zero-length terminate; GR7 ALL contiguous; GR8 contiguous delimiters fill; GR9 multi-char delimiter; GR10 OR/first-listed; GR11a-g pointer/DELIMITED BY/COUNT IN/DELIMITER IN; GR13 pointer increment; GR14 tally per receiver acted upon; GR15 overflow conditions; GR16 ON OVERFLOW; GR18 overlap undefined) — lines 32764-32859

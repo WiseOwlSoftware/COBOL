@@ -438,13 +438,13 @@
   },
   {
    "id": "pic-wide-19-digits-2002",
-   "description": "Fixed-point item wider than 18 digits (PIC 9(19)) — the 2002+ wide tier; COBOL-85 caps numeric items/literals at 18 digits (ISO §8.3.1.2, §13.18.40)",
+   "description": "Fixed-point item wider than 18 digits (PIC 9(19)) — the 2002+ wide tier; COBOL-85 caps numeric items/literals at 18 digits (ISO §8.3.3.3.2, §13.18.40)",
    "display": "fixed-point item wider than 18 digits",
    "diagnosticCode": "COBOLNET0802",
-   "citation": "ISO §8.3.1.2 / §13.18.40 (the LIVE digit-capacity gate)",
+   "citation": "ISO §8.3.3.3.2 / §13.18.40 (the LIVE digit-capacity gate)",
    "introducedIn": 2002,
    "removedIn": null,
-   "vcr": "85→2002 capacity change (derive from the 2002 standard; ISO §8.3.1.2 1..31-digit literals)",
+   "vcr": "85→2002 capacity change (derive from the 2002 standard; ISO §8.3.3.3.2 1..31-digit literals)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WIDE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(19) VALUE 1234567890123456789.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
   },
   {
@@ -744,7 +744,7 @@
   {
    "id": "usage-program-pointer-2002",
    "status": "active",
-   "description": "USAGE PROGRAM-POINTER (§13.18.60 GR24 — a program-pointer data item holding the address of an OUTERMOST program) — a COBOL-2002 introduction. ACTIVE as of P10 Step 7: the ProgramPointer carrier resolves through the ONE RunUnit ProgramTable (SET … TO ENTRY §8.4.3.13; CALL through the pointer §14.9.4 SR1; relations §8.8.4.1.3). The restricted TO-prototype form (GR25) is staged loud (program prototypes = P13). Gate home: the bound-arm UsageConstructId (the usage-pointer-2002 pattern).",
+   "description": "USAGE PROGRAM-POINTER (§13.18.60 GR24 — a program-pointer data item holding the address of an OUTERMOST program) — a COBOL-2002 introduction. ACTIVE as of P10 Step 7: the ProgramPointer carrier resolves through the ONE RunUnit ProgramTable (SET … TO ENTRY §8.4.3.13; CALL through the pointer §14.9.4 SR1; relations §8.8.4.2.16). The restricted TO-prototype form (GR25) is staged loud (program prototypes = P13). Gate home: the bound-arm UsageConstructId (the usage-pointer-2002 pattern).",
    "display": "USAGE PROGRAM-POINTER",
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §13.18.60 GR24/GR25",

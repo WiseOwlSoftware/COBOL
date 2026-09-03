@@ -13,7 +13,7 @@ namespace CobolSharp.Runtime.Text;
 ///
 /// <para><b>Two responsibilities.</b> (1) The COBOL whole-field alphanumeric MOVE / comparison semantics
 /// over <see cref="string"/> — left/right justification, space fill/truncation (ISO §14.9.25), and the
-/// alphanumeric relation condition with the shorter operand space-extended (ISO §8.8.4.1.2, default native
+/// alphanumeric relation condition with the shorter operand space-extended (ISO §8.8.4.2.7 r2, default native
 /// collating sequence). (2) The <c>IDataSlot</c> boundary codec (ADR §2.5) between a typed <see cref="string"/>
 /// field and a byte window, under the <b>Latin-1</b> convention (byte <c>k</c> ↔ <c>U+00kk</c>, ADR R10) so
 /// arbitrary content — incl. <c>LOW-VALUE</c>/<c>HIGH-VALUE</c>/binary — round-trips losslessly. This matches
@@ -28,7 +28,7 @@ namespace CobolSharp.Runtime.Text;
 ///
 /// <para><b>Always ordinal</b> (ADR §1.2.1 guardrail 1): every comparison is by character value, never the BCL's
 /// culture-aware default, which would silently break COBOL semantics. <see cref="Compare"/> implements the COBOL
-/// space-extension of the shorter operand directly (the <c>0x20</c> fill, ISO §8.8.4.1.2), which is the
+/// space-extension of the shorter operand directly (the <c>0x20</c> fill, ISO §8.8.4.2.7 r2), which is the
 /// COBOL-correct refinement of the legacy <c>TrimEnd()</c>-then-ordinal path; they agree on all data whose only
 /// trailing whitespace is the COBOL space.</para>
 /// </summary>
@@ -61,7 +61,7 @@ public static class CobolString
 
     /// <summary>
     /// Compares two alphanumeric operands by the default native collating sequence (ordinal character value),
-    /// with the shorter operand space-extended to the longer (ISO §8.8.4.1.2). Returns a negative value, zero,
+    /// with the shorter operand space-extended to the longer (ISO §8.8.4.2.7 r2). Returns a negative value, zero,
     /// or a positive value as <paramref name="left"/> is less than, equal to, or greater than
     /// <paramref name="right"/>. <b>Not</b> culture-aware (ADR §1.2.1 guardrail 1). When a
     /// <c>PROGRAM COLLATING SEQUENCE</c> is active the weight-table path is used instead (ADR §1.2.1 collating

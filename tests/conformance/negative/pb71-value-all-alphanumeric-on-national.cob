@@ -1,6 +1,6 @@
       *> reject-at: 2002 2014 2023
       *> ISO §13.18.63.3 SR5: the VALUE of a national item shall be a national literal or a figurative constant;
-      *> the figurative ALL "AB" carries an ALPHANUMERIC literal-1 (§8.3.3.6.3 SR2 / §14.9.25.4 GR7 Table 17 -
+      *> the figurative ALL "AB" carries an ALPHANUMERIC literal-1 (§8.3.3.6.3 SR2 / MOVE §14.9.25.4 GR7 Table 17 -
       *> its category is literal-1's), so it does not seed a national item. kb/Work PB71: the VALUE validator now
       *> classifies literal-1 through the ONE literal-class classifier and keeps this rejection (COBOLNET0898)
       *> while admitting ALL N"…" / NX"…" on the same item.

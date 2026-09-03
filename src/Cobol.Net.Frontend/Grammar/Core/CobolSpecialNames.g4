@@ -104,7 +104,8 @@ classDefinitionClause
     : CLASS cobolWord IS? classValueSet (FOR (ALPHANUMERIC | NATIONAL))? (IN cobolWord)?
     ;
 
-// { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (ISO §12.3.7.2's diagram carries its own ellipsis
+// { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (the SPECIAL-NAMES paragraph's §12.3.7.2
+// diagram carries its own ellipsis
 // on the group; the comma is the optional separator it is everywhere). `(COMMA x)*` REQUIRED a comma between
 // groups and rejected `CLASS HEXDIG IS "0" THRU "9" "A" THRU "F"` — legal COBOL at every edition (kb/Work PB60's
 // configuration-inheritance golden surfaced it, 2026-08-17; the OO in-line invocation's argumentList had the
@@ -119,7 +120,7 @@ classValueItem
 
 // SYMBOLIC CHARACTERS [FOR {ALPHANUMERIC|NATIONAL}]
 //   {name}... {IS|ARE} {integer}... [IN alphabet-name] ...
-// N:N positional mapping: first name ↔ first integer, etc. (§12.3.7)
+// N:N positional mapping: first name ↔ first integer, etc. (SPECIAL-NAMES paragraph, §12.3.7)
 symbolicCharactersClause
     : SYMBOLIC CHARACTERS (FOR (ALPHANUMERIC | NATIONAL))?
       symbolicCharacterEntry+ (IN cobolWord)?

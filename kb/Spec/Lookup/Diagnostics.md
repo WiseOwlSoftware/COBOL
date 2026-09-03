@@ -61,8 +61,8 @@ serves as the diagnostic→phase map). See [[kb/Semantics/Validation Rules]] and
 ## Data, value, constant, type (Bind)
 | Code | Meaning (Id) | Sev | ISO § | Phase | Where |
 |---|---|---|---|---|---|
-| `COBOLNET0801` | fixed-point item/literal > 31 digits | Error | §8.3.1.2 | Bind | digit capacity |
-| `COBOLNET0802` | fixed-point > 18 digits pre-2002 | Error | §8.3.1.2 | Bind | digit capacity (edition) |
+| `COBOLNET0801` | fixed-point item/literal > 31 digits | Error | §8.3.3.3.2 | Bind | digit capacity |
+| `COBOLNET0802` | fixed-point > 18 digits pre-2002 | Error | §8.3.3.3.2 | Bind | digit capacity (edition) |
 | `COBOLNET1540` | concat operands not same class | Error | §8.8.3.2 SR1 | Bind | `&` concatenation |
 | `COBOLNET1541` | concat operand is an ALL figurative | Error | §8.8.3.2 SR1 | Bind | concatenation |
 | `COBOLNET1545` | concat result > 8191 chars | Error | §8.8.3.2 SR2–4 | Bind | concatenation |

@@ -67,7 +67,7 @@ public static class DiagnosticCatalog
     // ── Digit-capacity band (emitted by EditionContext.CheckDigitCapacity) ───────────────────────────
     public static readonly DiagnosticDescriptor DigitCapacityOver31 = new(
         "COBOLNET0801", "digit-capacity-over-31", EditionSeverity.Error,
-        "A fixed-point item/literal exceeds the 31-digit ISO limit.", "ISO §8.3.1.2");
+        "A fixed-point item/literal exceeds the 31-digit ISO limit.", "ISO §8.3.3.3.2");
     // ── The §8.3.2.1 word-length ceiling — ONE rule (CobolWordRule), reported from the tree-walk funnel
     //    (VersionConformancePass.VisitCobolWord) AND the directive stages (>>TURN operands, >>DEFINE names),
     //    which never reach the tree walk (kb/Work R05's sweep). ─────────────────────────────────────────
@@ -78,7 +78,7 @@ public static class DiagnosticCatalog
         + "31 at 2002/2014, 30 at 1985.", "ISO §8.3.2.1");
     public static readonly DiagnosticDescriptor DigitCapacityOver18Pre2002 = new(
         "COBOLNET0802", "digit-capacity-over-18-pre-2002", EditionSeverity.Error,
-        "A fixed-point item/literal exceeds the 18-digit COBOL-85 limit (19–31 need --std 2002+).", "ISO §8.3.1.2");
+        "A fixed-point item/literal exceeds the 18-digit COBOL-85 limit (19–31 need --std 2002+).", "ISO §8.3.3.3.2");
 
     // ── Compiler-directing facility band (emitted by the frontend directive processors). Registered by the
     //    P13 plan-vs-spec remediation (review finding C1's recurrence guard): every emitted code must be a
@@ -1051,7 +1051,7 @@ public static class DiagnosticCatalog
         + "different and entirely legal shape (§8.4.3.1.4 GR1 a→g) and is not affected; only a SECOND reference "
         + "modification is rejected.",
         "ISO §8.4.3.3.3 SR3 / §8.4.3.3.4 GR5");
-    // 1631 — a FORMATTED-*/INTEGER-OF-FORMATTED-DATE/… format argument that is not one of the §15.3.1–§15.3.4
+    // 1631 — a FORMATTED-*/INTEGER-OF-FORMATTED-DATE/… format argument that is not one of the §15.3.1–§15.3.3
     // formats, or is the wrong KIND for the function (fix-queue PB11). Before this, the format was validated
     // character-wise only, so any string assembled from legal subfields was accepted and the function
     // FABRICATED a value — `FORMATTED-DATE("hhmmss" …)` returned "000000". Edition-invariant in substance; the
@@ -1060,12 +1060,12 @@ public static class DiagnosticCatalog
         "COBOLNET1631", "date-time-format-kind", EditionSeverity.Error,
         "A date/time FORMAT argument is not a format the standard defines, or is the wrong KIND for the "
         + "function. ISO §15.3.1.1 fixes SIX date formats (basic and extended, for calendar, ordinal and week "
-        + "dates), §15.3.2 twelve time formats (four common-time shapes × local / UTC / offset), and §15.3.4 "
+        + "dates), §15.3.2 twelve time formats (four common-time shapes × local / UTC / offset), and §15.3.3.7 "
         + "makes a combined format a date format, an uppercase T, and a time format. §15.39.3 r2 requires a "
         + "DATE format, §15.41.3 r2 a TIME format and §15.40.3 r2 a COMBINED one. ⛔ BASIC AND EXTENDED NEVER "
         + "MIX: `YYYY-MMDD` and `YYYY-MM-DDThhmmss` are built entirely from legal subfields and are still not "
         + "formats, which is why membership is tested rather than each field in isolation.",
-        "ISO §15.3.1.1 / §15.3.2 / §15.3.4 / §15.39.3 r2 / §15.40.3 r2 / §15.41.3 r2");
+        "ISO §15.3.1.1 / §15.3.2 / §15.3.3.7 / §15.39.3 r2 / §15.40.3 r2 / §15.41.3 r2");
     // PB10's INSPECT half. Deliberately NOT an INSPECT-specific code: §8.4.3.2.3 SR1 is ONE rule about
     // function-identifiers in RECEIVING positions, and PB10's remaining positions plus PB17 want the same
     // verdict. Naming it after the rule rather than the statement is what stops the next site minting a second
@@ -1371,8 +1371,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor LocaleNameDuplicate = new(
         "COBOLNET1665", "locale-name-duplicate", EditionSeverity.Error,
         "The same locale-name is declared by more than one SPECIAL-NAMES LOCALE clause of one paragraph. A user-defined "
-        + "word of one type is unique within its scope (ISO §8.3.1.1.1); the LOCALE clause is repeatable (§12.3.7.2) so "
-        + "several LOCALES may be declared, each under its own name.", "ISO §8.3.1.1.1 / §12.3.7.2");
+        + "word of one type is unique within its scope (ISO §8.3.2.2); the LOCALE clause is repeatable (§12.3.7.2) so "
+        + "several LOCALES may be declared, each under its own name.", "ISO §8.3.2.2 / §12.3.7.2");
     public static readonly DiagnosticDescriptor SetLocaleCategories = new(
         "COBOLNET1666", "set-locale-categories", EditionSeverity.Error,
         "The first operand of SET LOCALE (ISO §14.9.39.2 format 11) is malformed: a category is specified more than "

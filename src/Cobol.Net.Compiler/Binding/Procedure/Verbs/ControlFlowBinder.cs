@@ -195,7 +195,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>A numeric literal is an INTEGER when it carries no decimal separator and no exponent
-    /// (§8.3.1.2 / §8.3.3.3 — the literal's written form decides; DECIMAL-POINT IS COMMA is normalized by
+    /// (§8.3.3.3.2 / §8.3.3.3 — the literal's written form decides; DECIMAL-POINT IS COMMA is normalized by
     /// <c>ExpressionBinder.CheckLiteral</c> before this, so only the dot form reaches here).</summary>
     private static bool IsIntegerLiteralText(string text) =>
         !text.Contains('.') && !text.Contains('E') && !text.Contains('e');

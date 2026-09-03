@@ -5,7 +5,7 @@
       *> working scale 6, so SIGN(A9 − 0) of a 1e-9 operand returned 0 where §15.81.4 r1a says +1.
       *> Derivations: SIGN(1e-9)=+1 · MAX(1e-9, 0)=1e-9 · MOD(7e-9, 3e-9)=1e-9 (§15.64.4 r1:
       *> a − b·INTEGER(a/b) = 7e-9 − 3e-9·2) · MEDIAN(2e-9 4e-9 9e-9)=4e-9 · VARIANCE(1 2 3)=2/3
-      *> (§15.97.4: ((1−2)²+0+1)/3), stored truncating into 9V9(5) → 0.66666 · ANNUITY(0, 4)=1/4
+      *> (VARIANCE, §15.98.4: ((1−2)²+0+1)/3), stored truncating into 9V9(5) → 0.66666 · ANNUITY(0, 4)=1/4
       *> (§15.9.4 r1 rate-zero arm) · PRESENT-VALUE(1, 8 8)=8/2+8/4=6 (§15.74.4 r1) ·
       *> STANDARD-DEVIATION(2 2 2)=√0=0. The four financial/statistical functions were COBOLNET0899-
       *> staged under the standard modes until these SDIDI evaluations existed; this golden is the

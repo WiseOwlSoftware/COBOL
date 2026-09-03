@@ -586,7 +586,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                         "both operands of an object-reference relation shall be of class object — an "
                         + "object reference or the NULL figurative (ISO §8.8.4.2.1 SR5)");
             }
-            // Data-pointer relations (ISO §8.8.4.1.3 / §8.8.4.2 — pointers admit ONLY [NOT] EQUAL, against
+            // Data-pointer relations (ISO §8.8.4.2.16 / §8.8.4.2 — pointers admit ONLY [NOT] EQUAL, against
             // another pointer or the NULL figurative; the renderer's pointer branch does SameTarget identity).
             static bool IsPtrOperand(BoundOperand o) =>
                 o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.Pointer;
@@ -594,13 +594,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             {
                 if (op is not ("==" or "!="))
                     ctx.Edition.Error("COBOLNET0869",
-                        "a data-pointer relation admits only [NOT] EQUAL (ISO §8.8.4.1.3 — pointers are "
+                        "a data-pointer relation admits only [NOT] EQUAL (ISO §8.8.4.2.16 — pointers are "
                         + "not ordered)");
                 else if (!(IsPtrOperand(subject) || subject is BoundFigurative { Kind: 'N' })
                          || !(IsPtrOperand(right) || right is BoundFigurative { Kind: 'N' }))
                     ctx.Edition.Error("COBOLNET0869",
                         "both operands of a data-pointer relation shall be a data pointer or NULL "
-                        + "(ISO §8.8.4.1.3)");
+                        + "(ISO §8.8.4.2.16)");
             }
             // (A boolean-EXPRESSION relation — `IF (a B-AND b) = c` — is staged residue this increment; the
             // item↔item boolean compares of the data increment ride CheckedRelational's 0844 guard below.)
@@ -632,7 +632,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The three shapes in which a BARE operand IS itself a complete condition — a level-88
-    /// condition-name (§8.8.4.1.2), a switch-status condition-name (§8.8.4.6), or a simple boolean condition over
+    /// condition-name (§8.8.4.2.7 r2), a switch-status condition-name (§8.8.4.6), or a simple boolean condition over
     /// a length-1 boolean item/literal (§8.8.4.3) — or <c>null</c> when the operand is a plain VALUE.
     /// <para>⛔ THIS IS A SYMBOL-TABLE QUESTION, WHICH IS WHY IT CANNOT LIVE IN THE GRAMMAR. A bare word is equally
     /// a condition-name and an <c>arithmeticExpression</c>, so it always arrives through the <c>valueOperand</c>

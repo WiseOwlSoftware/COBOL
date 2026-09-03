@@ -135,7 +135,7 @@ tags: [cobolsharp, work, defect]
 - **⛔ SCOPE IS WIDER THAN THIS ENTRY ORIGINALLY SAID, and the decision was taken on the narrower premise.**
   §8.8.1.1 bars every ALPHANUMERIC arithmetic operand, not just a group. Measured, all three forms are accepted
   today: `COMPUTE R = X + 1` with `X PIC X(4) VALUE "0012"` → **13**; `COMPUTE R = X(1:2) + 1` (a ref-mod slice,
-  alphanumeric per §8.4.2.4) → **1**; and the group → **35**. `NumericRenderer` has FOUR `FromAlphanumeric` arms
+  alphanumeric per §8.4.3.3.4) → **1**; and the group → **35**. `NumericRenderer` has FOUR `FromAlphanumeric` arms
   (literal · ref-mod · group · elementary alphanumeric/national), so rejecting only the group half would create a
   FRESH inconsistency of exactly the kind DA5/DA6 exist to remove. ⚠ Note the elementary arm's own comment cites
   §14.9.25.4 GR6 as justification — that is the MOVE rule, not the arithmetic-operand rule; a MOVE citation cannot
@@ -289,7 +289,7 @@ tags: [cobolsharp, work, defect]
 
 ### DA3 (original entry, for provenance) — a HEXADECIMAL literal as a comparison operand is staged loud at RUN TIME
 - **Spec:** §8.3.3.2 defines the hexadecimal format of an alphanumeric literal (`X"F0F1"`), and it is an
-  ALPHANUMERIC LITERAL — §8.8.4.1.1 admits a literal on either side of a relation condition with no format
+  ALPHANUMERIC LITERAL — §8.8.4.2.1 admits a literal on either side of a relation condition with no format
   restriction. So `IF G = X"FFF94142"` is CONFORMING SOURCE.
 - **Observed (2026-07-29, while re-pinning the V59 group-image test):** the program compiles and then throws
   `NotImplementedCobolFeatureException: comparison operand` at run time. A quoted literal in the same position works

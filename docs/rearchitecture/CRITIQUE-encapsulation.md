@@ -94,7 +94,7 @@ roadmap changes 25-28 / 39-43 and PHASE-07.
 (`data.IndexFields.TryAdd(...)`).
 
 **Description.** The hard invariant is "the emitter must NEVER mutate the binder's model." It is violated in four
-distinct places. `MarkStoreAsImage` is a *binding-time semantic decision* (ISO §14.9 MOVE GR4 — which
+distinct places. `MarkStoreAsImage` is a *binding-time semantic decision* (ISO §14.9.25.4 MOVE GR4 — which
 numeric-DISPLAY leaves must be stored as their character image) that runs **from inside the code generator**,
 writing `DataItem.StoreAsImage` after binding is nominally complete. The run-unit orchestrator additionally
 re-syncs that flag across `CompilerTempClones`, and the OO emit path flips it again. The emitter even inserts

@@ -109,7 +109,7 @@ functionIdParagraph
 // PROGRAM-ID paragraph
 // ------------------------------------------
 
-// ISO §11.4.2: PROGRAM-ID. program-name [AS literal] [IS {COMMON|INITIAL|RECURSIVE}… PROGRAM].
+// ISO §11.10.2: PROGRAM-ID. program-name [AS literal] [IS {COMMON|INITIAL|RECURSIVE}… PROGRAM].
 // IS and the trailing PROGRAM are optional noise words around the attribute list (IC401M writes
 // `IC401M IS INITIAL.`); the attribute list itself stays required inside the group.
 programIdParagraph
@@ -810,7 +810,7 @@ receivingArithmeticOperand
     : dataReference roundedPhrase?
     ;
 
-// ROUNDED [MODE IS rounding-mode] (§14.9.4, COBOL-2002). The MODE phrase selects one of the
+// ROUNDED [MODE IS rounding-mode] (§14.7.4, COBOL-2002). The MODE phrase selects one of the
 // eight ISO rounding modes; bare ROUNDED defaults to NEAREST-AWAY-FROM-ZERO.
 roundedPhrase
     : ROUNDED (MODE IS? roundingModeName)?
@@ -844,7 +844,7 @@ arithmeticOnSizeError
     ;
 
 // ==========================================
-// ADD (§14.9.1)
+// ADD (§14.9.2)
 // ==========================================
 
 addStatement
@@ -891,7 +891,7 @@ addGivingPhrase
     ;
 
 // ==========================================
-// SUBTRACT (§14.9.42)
+// SUBTRACT (§14.9.44)
 // ==========================================
 
 subtractStatement
@@ -924,7 +924,7 @@ subtractGivingPhrase
     ;
 
 // ==========================================
-// MULTIPLY (§14.9.23)
+// MULTIPLY (§14.9.26)
 // ==========================================
 
 multiplyStatement
@@ -1006,7 +1006,7 @@ computeOnSizeError
     ;
 
 // ==========================================
-// MOVE (§14.9.24)
+// MOVE (§14.9.25)
 // ==========================================
 
 moveStatement
@@ -1299,7 +1299,7 @@ setIndexStatement
     ;
 
 // ==========================================
-// ACCEPT (§14.9.0)
+// ACCEPT (§14.9.1)
 // ==========================================
 
 // Formats 1 (device) and 2 (temporal) are IMPLEMENTED; format 3 (screen, §14.9.1.2 — Annex A.4.2 item 1) is a
@@ -1349,7 +1349,7 @@ displayNoAdvancing
     ;
 
 // ==========================================
-// GOBACK (§14.9.16)
+// GOBACK (§14.9.18)
 // ==========================================
 
 gobackStatement

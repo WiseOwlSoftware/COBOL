@@ -7,7 +7,7 @@
       *>                 an exact base EXACT (repeated SDIDI multiplication) - 10**23 is exactly 10^23,
       *>                 never binary64's 99999999999999991611392.
       *>   15.27.3 r3  - E is exactly  2.718281828459045235360287471352662 (34 digits); a fixed-point
-      *>                 receiver caps at 31 digits (8.3.1.2), so the 9V9(30) stores below hold the
+      *>                 receiver caps at 31 digits (8.3.3.3.2), so the 9V9(30) stores below hold the
       *>                 constant TRUNCATED at 30 fraction digits (the no-ROUNDED default, 14.7.4).
       *>   15.73.3 r3  - PI is exactly 3.141592653589793238462643383279503 (34 digits).
       *>   15.4.1      - "the returned value is the same for all instances of a given function within a

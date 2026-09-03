@@ -178,7 +178,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// typed walk of the bound tree (+ the structural FILE-record and boundary-formal sources), NOT by
     /// <see cref="ReferenceResolver"/> mid-resolve (which over-collected every RESOLVED group; PHASE-05 Step 5). The
     /// <c>StorageFormPass</c> consults this to decide which numeric-DISPLAY leaves must store their character
-    /// image (ISO §14.9 MOVE GR4 — a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).
+    /// image (ISO §14.9.25.4 MOVE GR4 — a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).
     /// </summary>
     public HashSet<DataItem> WholeGroupReferenced { get; } = [];
 
@@ -520,7 +520,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 if (child.IsGroup) MarkImageLeaves(child);
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    MarkImageForced(child);      // the collected image fact (same rule as the whole-group union, §14.9 MOVE GR4)
+                    MarkImageForced(child);      // the collected image fact (same rule as the whole-group union, §14.9.25.4 MOVE GR4)
             }
         }
     }
@@ -1215,7 +1215,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return sawDigit && anyNonZero;
     }
 
-    /// <summary>The numeric-literal FORM test (§8.3.1.2 fixed-point: an optional sign, digits, at most one decimal
+    /// <summary>The numeric-literal FORM test (§8.3.3.3.2 fixed-point: an optional sign, digits, at most one decimal
     /// point, at least one digit) — the shape a permissive digits-only alphanumeric VALUE must have to be stored as a
     /// number (kb/Work PB94).</summary>
     private static bool IsNumericLiteralForm(string text)
@@ -1503,7 +1503,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     // (The former private DecodeString twin is retired — all callers use CobolNet.Common.CobolLiteral.Decode,
-    // the one ISO §8.3.1.2 literal codec, PHASE-05 Step 1.)
+    // the one ISO §8.3.3.1/§8.3.3.2 literal codec, PHASE-05 Step 1.)
 
     /// <summary>The most-recently-opened 01/77 record, so a following level-66 RENAMES attaches to its owner.</summary>
     private DataItem? _lastRoot;
@@ -2543,7 +2543,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
-        // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.
+        // COBOL-85 and 31 by 2002+ (ISO §8.3.3.3.2 / §13.18.40) — reject, never silently mis-store.
         // §13.18.40.3 SR14: the 1–31 (18 pre-2002) cap is measured against DIGIT POSITIONS, not just the '9' count —
         // a numeric-edited Z(11)9(8) is 19 positions and Z(35) is 35 (Digits=0), both of which the old '9'-only
         // Digits check let slip past. DigitPositions == Digits for pure-numeric-without-P, so no regression. (CA33.)
@@ -2996,7 +2996,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     /// <summary>The raw ALL-literal text of the symbolic character named <paramref name="word"/>, or null: the
-    /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §8.3.1.2).</summary>
+    /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §8.3.3.2.3 r3).</summary>
     internal string? SymbolicRaw(string word) =>
         SymbolicOf(word) is not { } sym ? null
         : "ALL" + (sym.National ? "N" : "") + "\"" + sym.Value.Replace("\"", "\"\"") + "\"";

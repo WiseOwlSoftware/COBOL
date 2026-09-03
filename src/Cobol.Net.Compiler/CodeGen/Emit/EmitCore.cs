@@ -131,7 +131,10 @@ internal static class EmitText
     }
 
     /// <summary>Thin forward to the one codec — see <see cref="CobolNet.Common.CobolLiteral.AllLiteralText"/>
-    /// (delimiter-agnostic, ISO §8.3.3.2 — §8.3.1.2 does not exist; see kb/Work PB290).</summary>
+    /// (the ALL literal-1 figurative form, ISO §8.3.3.6.2 Format 6 / §8.3.3.6.4 GR9; the delimiters are
+    /// interchangeable per §8.3.3.1 — "The paired quotation symbols specified in the opening and closing
+    /// delimiters of alphanumeric, boolean, and national literals may be either apostrophes or quotation
+    /// marks". §8.3.1.2 does not exist; see kb/Work PB290).</summary>
     public static string? AllLiteralText(string raw) => CobolNet.Common.CobolLiteral.AllLiteralText(raw);
 
     /// <summary>⛔ THE ONE exact unscaled decomposition of a numeric literal, in EITHER notation: the signed

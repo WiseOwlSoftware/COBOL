@@ -223,7 +223,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// §8.8.1.2 binary64 approximation — the same expression, three notations, and the answers differed from the
     /// 17th significant digit up. §8.3.3.3.3 rule 5 makes a floating-point literal's value "the algebraic product
     /// of the value of its significand and the quantity derived by raising ten to the power of the exponent" and
-    /// nothing more (cite.py-verified), and §8.3.1.2's fixed-point form is likewise a value — so trailing zeros
+    /// nothing more (cite.py-verified), and §8.3.3.3.2's fixed-point form is likewise a value — so trailing zeros
     /// past the point are notation, not precision, and 30, 30.0 and 3.0E+1 are ONE operand.</para>
     /// <para>Not applied under a standard arithmetic mode: there every operand is an SDIDI by §8.8.1.5.2 r1 and
     /// this arm does not exist. Not applied past <see cref="Int128"/>: the exact arm's carrier cannot hold it, and

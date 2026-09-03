@@ -32,6 +32,17 @@ T0=$(date +%s); el() { echo "[+$(( $(date +%s) - T0 ))s] $*"; }
 RC=0; SUMMARY="$OUT/summary.txt"; : > "$SUMMARY"
 note() { echo "$1" | tee -a "$SUMMARY"; }
 
+# ⛔ PHASE -1: THE STATIC CITATION AUDIT. It takes a second, it needs no build, and it is the only gate that can
+# see a WRONG CLAUSE NUMBER — the defect CLAUDE.md rule 1 exists for, which no test can ever fail on
+# (`// MOVE (§14.9.24)` compiles perfectly; §14.9.24 is MERGE). Baseline is ZERO findings; `--self-test` proves
+# each of its three checks still fails on a real defect. It needs `specs/ISO_COBOL.md` for the phantom check and
+# announces a SKIP loudly if the private submodule is absent, so a green here is never green-by-absence.
+el "=== PHASE -1: citation audit (static, no build) ==="
+python3 scripts/spec/audit_code_citations.py --check > "$OUT/citations.log" 2>&1
+CIT=$?
+note "$(printf '%-16s %s' 'citations:' "$(grep -E '^(⛔|[0-9]+ files)' "$OUT/citations.log" | tail -1)")"
+[ "$CIT" -eq 0 ] || { note "citations:       ⛔ findings — see $OUT/citations.log"; RC=1; }
+
 el "=== PHASE 0: build the solution (once) ==="
 if ! dotnet build CobolSharp.sln -v quiet > "$OUT/build.log" 2>&1; then
     note "BUILD: FAILED — see $OUT/build.log"; tail -20 "$OUT/build.log"; exit 1

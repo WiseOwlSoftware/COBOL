@@ -224,7 +224,7 @@ public sealed class DataItem
     /// <summary>
     /// True when this numeric fixed-point elementary item is stored as its CHARACTER IMAGE (a C# <see cref="string"/>
     /// of zoned digits) rather than a native <see cref="long"/> — a numeric-DISPLAY leaf under a group used as a
-    /// whole operand (ISO/IEC 1989:2023 §14.9 MOVE GR4 fills such a group "without consideration for the individual
+    /// whole operand (ISO/IEC 1989:2023 §14.9.25.4 MOVE GR4 fills such a group "without consideration for the individual
     /// elementary items", so the leaf may receive non-numeric characters a native <c>long</c> cannot represent), a
     /// Tier-B REDEFINES window, a figurative-fill / ref-mod-store receiver, a FILE-record or report print face, or
     /// an OO crossing-form flip. Numeric <i>use</i> then goes through <c>CobolNum.ParseDisplay</c> (read) /
@@ -491,7 +491,10 @@ public sealed class DataItem
             ? pic.Category is PicCategory.Numeric
                 ? pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0)
                 : pic.Length
-            : ImageWidth;   // a group prints its image (its leaves' storage, §8.8.4.1.1)
+            : ImageWidth;   // a group prints its image (its leaves' storage): §8.5.2.1 gives an
+                            // alphanumeric group class and category alphanumeric and a usage of display, so its
+                            // character positions ARE its leaves' stored representations (kb/Work PB182 — the
+                            // §8.8.4.1.1 this used to cite is a phantom clause)
 
     /// <summary>The item's size in BYTES — the FUNCTION BYTE-LENGTH (§15.14) authority (the D7 byte-vs-position
     /// distinction). A group sums each non-redefining child's byte contribution × its own fixed-OCCURS count

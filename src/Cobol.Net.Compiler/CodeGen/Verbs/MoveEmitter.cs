@@ -72,7 +72,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// the legacy byte engine's fill — MOVE QUOTE TO PIC 9(3) leaves three quotation marks, IS NUMERIC is then
     /// false, and a later numeric read decodes deterministically (§14.6.13.2: a non-digit contributes no digit).
     /// The binder flagged an eligible numeric-DISPLAY receiver <see cref="DataItem.StoreAsImage"/> (REUSING the
-    /// §14.9 MOVE GR4 whole-group image substrate — never a parallel mechanism), so the store is a plain image
+    /// §14.9.25.4 MOVE GR4 whole-group image substrate — never a parallel mechanism), so the store is a plain image
     /// write; a Tier-B REDEFINES window / NumericImagePlace writes its character image directly. Only a
     /// non-DISPLAY numeric receiver (BINARY / PACKED / COMP-5 / float — no character image in the typed-native
     /// model) remains a NARROW loud guard (§1.4). Eligibility is the NODE's <see cref="MoveKind"/> (classified
@@ -136,7 +136,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             : PlaceRenderer.Write(target, image));
     }
 
-    /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9 MOVE GR4 — no conversion, filled without
+    /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9.25.4 MOVE GR4 — no conversion, filled without
     /// consideration for subordinate items): the source's character image fills the group's leaves via
     /// <c>FromImage</c>. Handles any image-capable group — alphanumeric, numeric-edited, numeric-DISPLAY (native or
     /// stored as its character image, <see cref="DataItem.StoreAsImage"/>), and BINARY/PACKED/COMP-5/float
@@ -242,7 +242,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// (ISO §8.3.3.6.4 GR2 repetition + §14.9.25.4 GR6d3b — the digit string spans the receiver's digit positions,
     /// fraction digits included, so the unscaled value IS the repeated digit run at the receiver's scale). ≤18
     /// digit positions fold to a native <c>long</c> literal; a WIDE receiver (19–31 digits, COBOL-2002+ — ISO
-    /// §8.3.1.2) decodes its digit run through the ONE deterministic digit decode (<c>FromAlphanumeric</c>,
+    /// §8.3.3.3.2) decodes its digit run through the ONE deterministic digit decode (<c>FromAlphanumeric</c>,
     /// Int128 — numeric design D1).</summary>
     private static NumX AllDigitFill(string literal, PicInfo pic)
     {
@@ -285,7 +285,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         if (target.IsDynamicLength)
             return RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: true), target.DynLengthLimit.ToString());
         string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§13.18.2 GR1)
-        // A figurative constant fills the receiver to its width (ISO §8.3.1.2 / §14.9.24) — EXCEPT figurative
+        // A figurative constant fills the receiver to its width (ISO §8.3.3.6.4 r2 / §14.9.25) — EXCEPT figurative
         // ZERO into a numeric-edited receiver, which is the numeric value 0 EDITED into the mask (§14.9.25.4 GR5;
         // 'ZZ9.99' shows '  0.00', not a zero-fill), and EXCEPT an alphanumeric-EDITED receiver, whose insertion
         // positions keep their characters under the editing move (GR5 — MOVE SPACES TO 'XXXBXX/XX' yields '/' at
@@ -343,7 +343,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
-                // A figurative source supplies its fill for EVERY data position (§8.3.1.2 — repeated to width).
+                // A figurative source supplies its fill for EVERY data position (§8.3.3.6.4 r2 — repeated to width).
                 string aeSrc = source is BoundFigurative ff
                     ? $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Collating)}, {pic.Length})"
                     : OperandText.AsString(source, num, deSign: true);

@@ -43,7 +43,7 @@ public enum PicCategory
     /// PICTURE-less elementary item that may contain the address of a program — for a COBOL program, an
     /// OUTERMOST program's externalized identity — carried by the runtime <c>ProgramPointer</c> and resolved
     /// through the ONE run-unit <c>ProgramTable</c> (SET … TO ENTRY §8.4.3.13; CALL §14.9.4 SR1; relations
-    /// §8.8.4.1.3). Occupies NO character positions (the Pointer/ObjectReference image posture).</summary>
+    /// §8.8.4.2.16). Occupies NO character positions (the Pointer/ObjectReference image posture).</summary>
     ProgramPointer,
 }
 
@@ -270,7 +270,7 @@ public sealed record PicInfo(
     public bool IsAlphabetic { get; init; }
 
     /// <summary>True for the WIDE storage tier: a fixed-point picture of 19–38 digits (legal 19–31 at COBOL-2002+,
-    /// ISO §8.3.1.2 / the composite rules §14.7) stores as <see cref="Int128"/> — the design's graduated substrate
+    /// ISO §8.3.3.3.2 / the composite rules §14.7) stores as <see cref="Int128"/> — the design's graduated substrate
     /// (numeric design D1 / SSOT §18 #4). ≤18 digits stay hardware-native <see cref="long"/>.</summary>
     public bool IsWide => Category is PicCategory.Numeric && !IsFloat && Digits > 18;
 

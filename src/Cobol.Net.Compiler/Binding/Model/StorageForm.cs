@@ -43,7 +43,7 @@ public abstract record StorageForm
 
     /// <summary>A C# <c>string</c> of exactly <paramref name="Width"/> characters — the ONE string-stored case:
     /// alphanumeric / numeric-edited / national / boolean, OR a numeric-DISPLAY (or Tier-B BINARY/PACKED) leaf
-    /// promoted to its zoned image because it is used under a whole-group operand (§14.9 GR4). <paramref
+    /// promoted to its zoned image because it is used under a whole-group operand (§14.9.25.4 GR4). <paramref
     /// name="Category"/> is retained so the numeric pipeline decodes/encodes zoned images and so the promoted-numeric
     /// sub-case (<c>Category is Numeric</c>) equals the legacy <c>StoreAsImage</c>.</summary>
     public sealed record CharImage(int Width, PicCategory Category) : StorageForm

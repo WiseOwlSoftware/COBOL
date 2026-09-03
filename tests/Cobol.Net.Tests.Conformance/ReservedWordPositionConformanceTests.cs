@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// Per-edition enforcement of the screen/report allowlist-band reserved words through the POSITION-AWARE §8.9
 /// funnel (P2.8 W2 — the RW104A adversarial review): a band context-keyword token (COLUMN, COL, SCREEN, BIT,
 /// DEFAULT, LENGTH, NATIONAL are the table-backed ones) rejects with COBOLNET0901 (ISO §8.3.2.1 rule 1 /
-/// §8.3.2.4.1: "reserved words shall not be used as user-defined words") ONLY when it occupies a provable
+/// §8.3.2.1 r1: "Reserved words shall not be used as user-defined words or system-names") ONLY when it occupies a provable
 /// user-word position — the data entry-name slot (§13.16), a paragraph/section definition (§14.4.2/§14.4.3),
 /// the SELECT file-name (§12.4.5.1), a program-name site (§11.4.2). KEYWORD occurrences that the permissive
 /// grammar binds into optional entry-name slots — the report-group COLUMN clause (§13.18.14), the RW104A

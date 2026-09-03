@@ -10,7 +10,7 @@ namespace CobolNet.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The arithmetic-verb binder (P7 Step 10p): ADD (ISO §14.9.1) / SUBTRACT (§14.9.44) / MULTIPLY (§14.9.26) /
+/// The arithmetic-verb binder (P7 Step 10p): ADD (ISO §14.9.2) / SUBTRACT (§14.9.44) / MULTIPLY (§14.9.26) /
 /// DIVIDE (§14.9.12, all five formats incl. REMAINDER SR6) / COMPUTE (§14.9.8 Format 1 + the Format-2 boolean
 /// compute with the F1→F2 sole-boolean re-route — the "ANTLR alternative-order reality" precedent). The CORR
 /// formats (ADD/SUBTRACT Format 3) retarget <see cref="CorrespondingBinder"/> via the host accessor. The shared

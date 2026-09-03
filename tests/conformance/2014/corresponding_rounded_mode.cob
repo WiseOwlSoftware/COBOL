@@ -1,4 +1,4 @@
-      *> ISO §14.9.4 + §14.9.1/§14.9.42 — ROUNDED MODE on ADD/SUBTRACT CORRESPONDING. The mode applies
+      *> ISO §14.7.4 + §14.9.2/§14.9.44 — ROUNDED MODE on ADD/SUBTRACT CORRESPONDING. The mode applies
       *> uniformly to every corresponding pair. 1.25 -> 1.2 (TRUNCATION) vs 1.3 (NEAREST-AWAY-FROM-ZERO).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. CORRMODE.

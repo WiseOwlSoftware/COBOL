@@ -1,7 +1,7 @@
       *> kb/Work PB84 — the STANDARD-DECIMAL twin. Under ARITHMETIC IS
       *> STANDARD-DECIMAL every arithmetic expression is an SDIDI intermediate
       *> (§8.8.1.5.2), so the same consumers — the sign condition (§8.8.4.7),
-      *> SET pointer UP/DOWN BY (§14.9.36 Format 8), ALLOCATE … CHARACTERS
+      *> SET pointer UP/DOWN BY (§14.9.39 Format 8), ALLOCATE … CHARACTERS
       *> (§14.9.3), CALL … BY VALUE (§14.9.4), INVOKE … BY CONTENT (§14.9.23),
       *> and DIVIDE … REMAINDER over a float sender (§14.9.12.4 GR7, PB85) —
       *> were Roslyn errors on every expression here before the ONE landing.

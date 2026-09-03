@@ -49,7 +49,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 ## 2. Data Division — items, PICTURE, USAGE, clauses
 | Construct id | Summary | ISO § | Intro | Removed | Diag | Status |
 |---|---|---|---|---|---|---|
-| pic-wide-19-digits-2002 | Fixed-point item wider than 18 digits | §8.3.1.2 | 2002 | | 0802 | active |
+| pic-wide-19-digits-2002 | Fixed-point item wider than 18 digits | §8.3.3.3.2 | 2002 | | 0802 | active |
 | usage-packed-no-sign-2023 | USAGE PACKED-DECIMAL WITH NO SIGN | §13.18.60.4 GR11 | 2023 | | 0900 | active |
 | based-clause-2002 | BASED clause (pointer/ALLOCATE-addressed item) | §13.18.5 | 2002 | | 0900 | active |
 | any-length-clause-2002 | ANY LENGTH clause (linkage length tracks argument) | §13.18.2 | 2002 | | 0900 | active |

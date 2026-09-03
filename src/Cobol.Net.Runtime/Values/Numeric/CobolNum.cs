@@ -639,7 +639,7 @@ public static partial class CobolNum
     /// inverse of <see cref="FormatDisplay"/> (COBOLNET_DESIGN §6.4). The image is the zoned digit run at the item's
     /// scale (no decimal point — the point is implied); the operational sign is decoded per the receiver's
     /// <see cref="NumProfile.SignKind"/> (over-punch, separate <c>+</c>/<c>-</c>, or a leading minus). Non-digit
-    /// characters (e.g. the spaces a whole-group MOVE legitimately deposits — ISO/IEC 1989:2023 §14.9 MOVE GR4 fills
+    /// characters (e.g. the spaces a whole-group MOVE legitimately deposits — ISO/IEC 1989:2023 §14.9.25.4 MOVE GR4 fills
     /// without consideration for subordinate items) contribute no digit; an all-non-digit image decodes to 0, since
     /// using incompatible data in a numeric context is undefined (§14.6.13.2 / the EC-DATA-INCOMPATIBLE condition),
     /// so a deterministic 0 is conformant.

@@ -256,7 +256,7 @@ public static class ReportWriterRuntime
         }
         else if (nextPage || ctx.LineCounter + advance > ctx.LastDetail)
         {
-            // Page overflow (§13.18.35.4.4): present the PAGE FOOTING on the current page, advance to a
+            // Page overflow (§13.18.35.4 GR4): present the PAGE FOOTING on the current page, advance to a
             // fresh page (form-feed), increment PAGE-COUNTER and reset LINE-COUNTER.
             PresentAutoGroup(ctx, SlotPageFooting);
             FileRuntime.WriteAdvancing(ctx.FileName, Array.Empty<byte>(), 0, 0, -1, isBefore: false);
@@ -438,7 +438,7 @@ public static class ReportWriterRuntime
         return s.PadLeft(width, '0');
     }
 
-    /// <summary>TERMINATE report-name (§14.9.62): present the REPORT FOOTING (after all control footings — a
+    /// <summary>TERMINATE report-name (§14.9.46): present the REPORT FOOTING (after all control footings — a
     /// later increment adds those), then end report processing for this report.</summary>
     public static void TerminateReport(string reportName)
     {

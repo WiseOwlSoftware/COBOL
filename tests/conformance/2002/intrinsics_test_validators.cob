@@ -1,4 +1,4 @@
-      *> ISO §15.90 TEST-DATE-YYYYMMDD / §15.91 TEST-DAY-YYYYDDD / §15.93 TEST-NUMVAL / §15.94
+      *> ISO §15.90 TEST-DATE-YYYYMMDD / §15.91 TEST-DAY-YYYYDDD / §15.93 TEST-NUMVAL / §15.94 and NUMVAL-C
       *> TEST-NUMVAL-C — the validator quartet (P11 Step 6). Values hand-derived in
       *> docs/rearchitecture/PHASE-11-scout-notes.md (spec:validators): the date verdicts are if/else-if
       *> CHAINS (year before month before day — 16000230 is 1, not 2; TEST-DAY has NO code 3, D.31.3.8/9);

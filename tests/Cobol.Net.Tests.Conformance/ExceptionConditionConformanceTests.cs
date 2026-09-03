@@ -35,7 +35,7 @@ public sealed class ExceptionConditionConformanceTests
         if (expectedStdout is not null) Assert.Equal(expectedStdout, stdout);
     }
 
-    /// <summary>A declaratives-bearing program skeleton (sections after END DECLARATIVES per §14.2.4).</summary>
+    /// <summary>A declaratives-bearing program skeleton (sections after END DECLARATIVES per §14.3).</summary>
     private static string Prog(string name, string turn, string env, string ws, string decls, string proc) => $"""
         {turn}
         IDENTIFICATION DIVISION.

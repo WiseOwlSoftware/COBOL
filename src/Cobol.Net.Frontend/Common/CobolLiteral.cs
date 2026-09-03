@@ -3,7 +3,7 @@
 namespace CobolNet.Common;
 
 /// <summary>
-/// The ONE COBOL string-literal codec (ISO/IEC 1989:2023 §8.3.1.2 — the quotation-mark (<c>"…"</c>) and
+/// The ONE COBOL string-literal codec (ISO/IEC 1989:2023 §8.3.3.1 — the quotation-mark (<c>"…"</c>) and
 /// apostrophe (<c>'…'</c>) delimiter forms are EQUAL-STANDING; the delimiters are not part of the value, and a
 /// doubled OPENING delimiter inside is one embedded delimiter). National / boolean literals (<c>N"…"</c>/<c>B"…"</c>
 /// and their apostrophe forms, ISO §8.3.3.5/§8.3.3.4) carry the prefix letter as part of the token. This single
@@ -53,7 +53,7 @@ public static class CobolLiteral
         }
         // ⛔ ONE literal, WELL-FORMED (kb/Work PB71): the former first/last-character test answered "a literal" for
         // `"A"&"B"` (a concatenation's source text) and Decode then produced `A"&"B`. Inside the delimiters an
-        // embedded delimiter shall be doubled (§8.3.1.2), so an undoubled one before the end is not this literal.
+        // embedded delimiter shall be doubled (§8.3.3.2.3 r3), so an undoubled one before the end is not this literal.
         if (body.Length < 2 || body[0] is not ('"' or '\'') || body[^1] != body[0]) return null;
         char d = body[0];
         for (int i = 1; i < body.Length - 1; i++)
@@ -99,7 +99,7 @@ public static class CobolLiteral
     /// <summary>Decode a <c>STRINGLIT</c> (or an <c>N</c>/<c>B</c>/<c>X</c>-prefixed national, boolean or
     /// HEXADECIMAL literal) to its character value; returns <paramref name="raw"/> unchanged when it is not a
     /// quoted literal. Unwraps either delimiter and collapses a doubled opening delimiter to one embedded
-    /// delimiter (§8.3.1.2). Body ported verbatim from the retired <c>EmitText.DecodeCobolString</c> twin.</summary>
+    /// delimiter (§8.3.3.1). Body ported verbatim from the retired <c>EmitText.DecodeCobolString</c> twin.</summary>
     /// <remarks>
     /// ⛔ THE <c>X</c> ARM IS THE FOURTH COPY OF A DISPATCH DA3 FOUND THREE OF, and it belongs here rather than
     /// at the call sites. This decoder handled the <c>N</c> and <c>B</c> prefixes and silently returned a

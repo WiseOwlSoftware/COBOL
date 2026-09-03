@@ -84,7 +84,7 @@ public static class StorageHelpers
 
     /// <summary>
     /// MOVE "literal" TO JUSTIFIED RIGHT field. Right-justified, left-padded/left-truncated.
-    /// ISO §13.16.35: when source > target, truncate from the left (keep rightmost chars).
+    /// ISO §13.18.32: when source > target, truncate from the left (keep rightmost chars).
     /// </summary>
     public static void MoveStringToJustifiedField(byte[] area, int offset, int size, string value)
     {

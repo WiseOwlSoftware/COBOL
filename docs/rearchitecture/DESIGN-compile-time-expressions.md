@@ -141,7 +141,7 @@ cceRelationOrBoolean
   arithmetic operand becomes `ZERO_ARITH`.
 * **Edition** `EditionInfo.Of(EditionInfo.Latest)` (not literal 2023) — the operand parses at the newest edition
   (the whole-`>>`-facility introduction gate below 2002 is ledger C15). Recorded coupling: `Latest` also relaxes
-  fixed-point digit capacity (§8.3.1.2), closed with C15 when the real edition is threaded.
+  fixed-point digit capacity (§8.3.3.3.2), closed with C15 when the real edition is threaded.
 * An error-flag listener (the `FunctionArgFragment.SyntaxErrorFlag` pattern) turns any syntax error into a loud
   `COBOLNET1619`; a partial parse is never evaluated.
 
@@ -296,8 +296,13 @@ the rewrite only ADDS correct multi-token evaluation (the closed defect) and lou
 `ConformanceTests` (its cce directives fold to a DISPLAY-only surviving program both pipelines compile
 identically), so no `GreenfieldOnly` exclusion is needed. **Gate:** the full legacy guard (`scripts/guard.sh`)
 `=== ALL GREEN ===` before commit (not guard-fast — the shared `.g4` changed). One behavior note: the deleted
-tokenizer wrongly accepted `_` in a compilation-variable name; ANTLR (correct COBOL, §8.3.1.2 — letters/digits/
-hyphens) does not, so a test using an underscore name was corrected to a hyphenated one.
+tokenizer accepted `_` in a compilation-variable name and ANTLR does not, so a test using an underscore
+name was written hyphenated. ⛔ **THE LEXER IS THE ONE THAT IS WRONG, AND THE OLD WORDING HERE CALLED IT
+CORRECT while citing a clause that does not exist (§8.3.1.2 — kb/Work PB159/PB290).** §8.3.2.1 reads
+"Each character of a COBOL word that is not a special character word shall be selected from the set of
+basic letters, basic digits, extended letters, and the basic special characters hyphen and underscore",
+so an underscore-bearing user-defined word is legal from COBOL-2002 on; `CobolLexer.g4`'s `NAME_BODY`
+admits no underscore in any alternative. Tracked as a REJECTS-LEGAL-SOURCE defect, not a doc note.
 
 ## 11. Test plan (ships in the change set)
 

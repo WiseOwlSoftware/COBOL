@@ -397,7 +397,7 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - IS NUMERIC on a signed numeric-DISPLAY item accepts the overpunch sign ({,A-I positive; },J-R negative) or separate sign (+/-) at the sign position; spaces are NOT digits so a field with embedded/trailing spaces is NOT NUMERIC.
 - IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOLNET0706): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime CobolClass check (CobolClass.IsNumeric, §8.8.4.4 GR1/GR2).
 - NOT POSITIVE means ≤ 0 (includes zero), which is NOT the same as NEGATIVE — the !(>0) wrap gets it right.
-- Figurative ZERO compared with a numeric value is the numeric 0 (ISO §8.3.1.2), not the character '0'.
+- Figurative ZERO compared with a numeric value is the numeric 0 (ISO §8.3.3.6.4 r4), not the character '0'.
 - Literal-vs-literal comparisons constant-fold at emit time to true/false (clean output, matches mainstream compilers).
 - SET cond TO FALSE with no WHEN SET TO FALSE phrase is a syntax error (the FALSE phrase is required) → COBOLNET0705.
 - SET cond TO TRUE on a THRU-range condition-name moves the range START (first literal).
@@ -448,7 +448,7 @@ done).
 - §8.8.4.4 — simple class condition (NUMERIC; ALPHABETIC closed set {A-Z,a-z,space}); §8.8.4.7 — simple sign condition
 - §8.8.4.5 — simple condition-name condition (88-level abbreviates 'conditional variable == one of its values')
 - §8.8.4.9 — logical operators AND / OR / EXCLUSIVE-OR / XOR / NOT and their meanings; §8.8.4.11.3 — precedence NOT > AND > XOR > OR; §8.8.4.13 rule 1 — left-to-right order of evaluation with short-circuit termination of each hierarchical level
-- §8.3.1.2 — figurative ZERO as numeric 0; §8.4.3.6 — EXCEPTION-OBJECT predefined object reference
+- §8.3.3.6.4 r4 — figurative ZERO as numeric 0; §8.4.3.6 — EXCEPTION-OBJECT predefined object reference
 - §13.18.63 — VALUE clause condition-name format (THRU ranges; WHEN SET TO FALSE literal-4; GR20 SET TO FALSE)
 - §14.6.13 / §14.6.13.1.1 — exception condition handling; default EC-ALL OFF; last-exception status; per-element indicators cleared at start of each statement
 - §14.6.13.1.3 / §14.6.13.1.4 — fatal vs nonfatal exception condition handling order (phrase → PERFORM WHEN → USE declarative → continue/terminate)

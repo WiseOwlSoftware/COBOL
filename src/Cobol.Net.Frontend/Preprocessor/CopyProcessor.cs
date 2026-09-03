@@ -61,7 +61,7 @@ public sealed class CopyProcessor(
     /// <summary>Add a directory to search for copybooks.</summary>
     public void AddSearchPath(string path) => _searchPaths.Add(path);
 
-    /// <summary>Ensure the source's own directory is searched FIRST (the <see cref="Process"/> setup, ISO §7.4.2)
+    /// <summary>Ensure the source's own directory is searched FIRST (the <see cref="Process"/> setup, ISO §7.2.3)
     /// — used by the merged CC+COPY driver, which calls <see cref="ExpandCopiesOneLevel"/> directly.</summary>
     internal void RegisterSourceDir(string sourceDir)
     {
@@ -166,7 +166,7 @@ public sealed class CopyProcessor(
 
     /// <summary>
     /// Apply COBOL REPLACE / COPY REPLACING substitutions on a TEXT-WORD basis. Pseudo-text
-    /// matching ignores the amount of intervening white space and line breaks (ISO §7.4.6 /
+    /// matching ignores the amount of intervening white space and line breaks (ISO §7.2.4 /
     /// §7.5): each operand is a sequence of text words, matched word-for-word against the source
     /// words. A match's original span is replaced verbatim by the replacement text. Matching is
     /// left-to-right; at each position the first operand (in source order) that matches wins, and
@@ -379,7 +379,7 @@ public sealed class CopyProcessor(
         string libraryName = ReadTextNameOrLiteral(text, ref afterCopy);
         SkipWhitespace(text, ref afterCopy);
 
-        // Optional library qualifier: COPY text-name (IN | OF) library-name (ISO §7.4.2).
+        // Optional library qualifier: COPY text-name (IN | OF) library-name (ISO §7.2.3).
         string? libraryQualifier = null;
         if (afterCopy < text.Length && (MatchWord(text, afterCopy, "IN") || MatchWord(text, afterCopy, "OF")))
         {
@@ -420,7 +420,7 @@ public sealed class CopyProcessor(
         }
 
         // Library text is itself in reference (fixed) format — normalize to free form so inserted lines align in
-        // the program's source area; then COPY … REPLACING (same text-word matching as REPLACE, ISO §7.4.6).
+        // the program's source area; then COPY … REPLACING (same text-word matching as REPLACE, ISO §7.2.4).
         var normalizedMapped = NormalizeCopybookMapped(File.ReadAllText(copybookPath), copybookPath);
         string normalized = normalizedMapped.Text;
         // §7.2.3.4 GR10 (kb/Work R34): "If the REPLACING phrase is specified, the library text shall not
@@ -802,7 +802,7 @@ public sealed class CopyProcessor(
 
     private string? FindCopybook(string textName, string? libraryName = null)
     {
-        // COPY text-name OF/IN library-name selects the copy library (ISO §7.4.2). A library
+        // COPY text-name OF/IN library-name selects the copy library (ISO §7.2.3). A library
         // name is resolved to a same-named subdirectory of a search path, so the same text-name
         // can resolve to different text in different libraries. If the qualified library has no
         // such member, fall back to the unqualified search (a single default library).

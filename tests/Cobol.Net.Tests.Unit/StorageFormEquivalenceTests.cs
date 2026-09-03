@@ -162,7 +162,7 @@ internal static class StorageFormEquivalence
 public sealed class StorageFormEquivalenceTests
 {
     [Theory]
-    // A whole-group MOVE promotes the group's numeric-DISPLAY leaf to its string image (§14.9 GR4) — Storage must be
+    // A whole-group MOVE promotes the group's numeric-DISPLAY leaf to its string image (§14.9.25.4 GR4) — Storage must be
     // CharImage(Numeric) (ElementType "string"), exactly as the legacy StoreAsImage flag makes it.
     [InlineData(StorageFormEquivalence.WholeGroupMove)]
     // A fixed-OCCURS numeric-DISPLAY element under a whole group is promoted per occurrence (element type string[]).

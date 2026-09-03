@@ -1,4 +1,4 @@
-      *> ISO §14.9.16 — COBOL-2002 GOBACK RETURNING. The RETURNING operand supplies the value returned to
+      *> ISO §14.9.18 — COBOL-2002 GOBACK RETURNING. The RETURNING operand supplies the value returned to
       *> the activating element: GOBACK RETURNING x is equivalent to moving x into the PROCEDURE DIVISION
       *> RETURNING item and returning. The caller's CALL … RETURNING receives it. (GIVING is a synonym.)
        IDENTIFICATION DIVISION.

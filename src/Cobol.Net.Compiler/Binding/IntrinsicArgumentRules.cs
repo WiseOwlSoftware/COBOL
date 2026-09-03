@@ -485,7 +485,7 @@ internal static class IntrinsicArgumentRules
     /// alphanumeric") cuts by representation, not class — a numeric or edited DISPLAY item holds alphanumeric
     /// characters and qualifies, a COMP item's storage is not characters at all and does not; r7's exclusion
     /// list is six usages. §15.12.3 r1 (BASECONVERT, display-or-national) waits on the same axis. A literal
-    /// answers the usage its category implies (§8.3.1.2 — an N"…" literal is national characters, any other
+    /// answers the usage its category implies (§8.3.3.5 / §8.3.3.2 — an N"…" literal is national characters, any other
     /// string literal display characters), as does a nested intrinsic's STRING result; null = no statically
     /// fixed representation (a group, a figurative, an ALL literal, a numeric value) — every caller reads null
     /// as "leave it to the runtime value screen".</summary>

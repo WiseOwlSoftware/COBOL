@@ -88,7 +88,7 @@ public static class NumericLiteral
 
     /// <summary>The ISO §8.3.3.3.3 SR2/SR3/SR4 form check of a canonical floating-point literal text (which shall
     /// satisfy <see cref="IsFloatingPointForm"/>). SR2's "shall include a decimal point" is the lexer's shape
-    /// (a point-less <c>1E10</c> is a user-defined word, §8.3.1.1); the digit counts and the zero form are checked
+    /// (a point-less <c>1E10</c> is a user-defined word, §8.3.2.1); the digit counts and the zero form are checked
     /// here — the ONE place, since both the expression funnel and the VALUE funnel normalize through it.</summary>
     public static FloatingLiteralIssue CheckFloatingPointForm(string text)
     {

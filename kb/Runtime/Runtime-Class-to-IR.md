@@ -33,13 +33,13 @@ only through a facade or supertype, that path is marked *(transitive)*. See [[kb
 | `CobolString` | alphanumeric store / justify / compare | `BoundMove`, `BoundCorresponding`, `BoundInitialize`, `BoundRelational`, `BoundCondition88`, `BoundRangeMembership` | §14.9.25, §8.8.4.2/.5 |
 | `CobolDynString` | dynamic-length item resize in place | dynamic-length receiver stores; `BoundSetUpDown`/SET-size | §13.18.20 |
 | `CobolBool` | boolean operators + simple boolean test | `BoundBoolBinary`, `BoundBoolNot`, `BoundBoolShift`, `BoundBoolRef`, `BoundBooleanCondition` | §8.7.2, §8.8.2, §8.8.4.3 |
-| `CobolClass` | class-condition membership tests | `BoundClassCondition`, `BoundUserClassCondition` | §8.8.4.1.4, §12.3.7 |
+| `CobolClass` | class-condition membership tests | `BoundClassCondition`, `BoundUserClassCondition` | §8.8.4.4, §12.3.7 |
 | `NationalCollation` | national repertoire collation weights | `BoundIntrinsicCall` (national CHAR/ORD, collated MAX/MIN), ALPHABET setup, national `BoundRelational` | §8.3.3.5, §15.15/.17 |
 
 ## Tables
 | Runtime class | Purpose | IR nodes that call it | ISO area |
 |---|---|---|---|
-| `CobolTable` | fixed OCCURS element access + ODO count | `BoundFieldOperand` (subscripted, via `PlaceRenderer`), ODO extent reads | §13.18.38, §8.4.1.2 |
+| `CobolTable` | fixed OCCURS element access + ODO count | `BoundFieldOperand` (subscripted, via `PlaceRenderer`), ODO extent reads | §13.18.38, §8.4.2.3 |
 | `CobolDynTable` | DYNAMIC-capacity OCCURS backing + register ops | dynamic-table value-init (`BoundProgram` data), dynamic-table register operations | §13.18.38 Fmt 4 (D9) |
 
 ## Files & Sort

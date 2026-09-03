@@ -301,7 +301,7 @@ internal static class IntrinsicResultType
 
     /// <summary>
     /// §15.2 type 5 — an INTEGER argument: a numeric value with no digit positions to the right of the decimal
-    /// point. A numeric literal written without a decimal point is one (§8.3.1.2), a numeric item is one when its
+    /// point. A numeric literal written without a decimal point is one (§8.3.3.3.2), a numeric item is one when its
     /// PICTURE has scale 0, and a nested INTEGER-typed function is one. Anything not provably an integer answers
     /// false, which keeps the numeric row — the fail-soft direction.
     /// </summary>

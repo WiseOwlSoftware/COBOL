@@ -3,7 +3,7 @@
 namespace CobolNet.Binding.Model;
 
 /// <summary>
-/// A level-88 condition-name (ISO §13.18.4 / §8.8.4.1.2): a named boolean predicate over a conditional variable
+/// A level-88 condition-name (ISO §13.18.4 / §8.8.4.2.7 r2): a named boolean predicate over a conditional variable
 /// (its immediately superior data item). It owns no storage — referencing it tests whether the parent's current
 /// value is among the condition's VALUE set (singletons and THRU ranges); <c>SET cond TO TRUE</c> moves the first
 /// VALUE into the parent (COBOLNET_DESIGN §3.5). The compiler renders both forms over the parent's <see cref="Place"/>.

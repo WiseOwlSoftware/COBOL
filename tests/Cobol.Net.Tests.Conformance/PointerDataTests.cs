@@ -5,7 +5,7 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// USAGE POINTER data (ISO §8.5.2.6 / §13.18.60 / §14.9.39 Format 4 / §8.8.4.1.3) — Phase-4b increment 1
+/// USAGE POINTER data (ISO §8.5.2.6 / §13.18.60 / §14.9.39 Format 4 / §8.8.4.2.16) — Phase-4b increment 1
 /// (the ManagedPointer carrier; DEVLOG 613). Increment 1 holds only NULL: declaration, SET TO NULL /
 /// pointer, and [NOT] EQUAL comparison against NULL and another pointer. ADDRESS OF / BASED / ALLOCATE are
 /// increment 2+. The end-to-end behavior rides the pointer_data conformance golden; these lock the edition
@@ -53,7 +53,7 @@ public sealed class PointerDataTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
     }
 
-    /// <summary>§8.8.4.1.3 — a data pointer is not ORDERED: only [NOT] EQUAL; an ordering operator or an
+    /// <summary>§8.8.4.2.16 — a data pointer is not ORDERED: only [NOT] EQUAL; an ordering operator or an
     /// object/numeric mix is COBOLNET0869.</summary>
     [Theory]
     [InlineData("    IF P < Q DISPLAY \"X\" END-IF.")]   // ordering

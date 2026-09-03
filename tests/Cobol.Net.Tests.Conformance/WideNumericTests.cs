@@ -6,7 +6,7 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// The WIDE numeric tier (numeric design D1 / SSOT §18 #4): PIC 9(19..31) items store as <see cref="Int128"/>
-/// and compute exactly through the Int128 carrier — a COBOL-2002+ feature (ISO §8.3.1.2 caps literals/items at
+/// and compute exactly through the Int128 carrier — a COBOL-2002+ feature (ISO §8.3.3.3.2 caps literals/items at
 /// 31 digits; COBOL-85 capped at 18). SPEC-PINNED (the legacy reference is a COBOL-85 implementation with a
 /// 28-digit decimal engine — it cannot oracle this tier). Includes the edition gates BOTH ways: 19+ digits
 /// REJECTED at --std 85 with a diagnostic NAMING the required edition; >31 rejected at every edition.

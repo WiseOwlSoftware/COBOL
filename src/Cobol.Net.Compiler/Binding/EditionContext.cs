@@ -66,7 +66,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public bool HasErrors => Diagnostics.Count > 0;
 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
-    /// §8.3.1.2 fixed-point literals 1–31 digits; the §14.7 composite-of-operands rules; PICTURE digit
+    /// §8.3.3.3.2 fixed-point literals 1–31 digits; the §14.7 composite-of-operands rules; PICTURE digit
     /// positions) — delegated to <see cref="Edition"/>.</summary>
     public int MaxDigits => Edition.MaxDigits;
 
@@ -184,14 +184,14 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         else Warning(d.Code, d.Message);
     }
 
-    /// <summary>Check a fixed-point digit-position count against the edition cap (ISO §8.3.1.2 / §13.18.40):
+    /// <summary>Check a fixed-point digit-position count against the edition cap (ISO §8.3.3.3.2 / §13.18.40):
     /// 19–31 digits require COBOL-2002+; more than 31 is invalid at every edition.</summary>
     public void CheckDigitCapacity(int digits, string what)
     {
         if (digits <= MaxDigits) return;
         if (digits > 31)
             Error("COBOLNET0801", $"{what} has {digits} digit positions; ISO/IEC 1989 limits fixed-point items "
-                + "and literals to 31 digits (ISO §8.3.1.2)");
+                + "and literals to 31 digits (ISO §8.3.3.3.2)");
         else
             Error("COBOLNET0802", $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
                 + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})");

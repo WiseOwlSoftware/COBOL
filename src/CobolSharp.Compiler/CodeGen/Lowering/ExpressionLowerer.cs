@@ -221,7 +221,7 @@ internal sealed class ExpressionLowerer
 
     /// <summary>
     /// Format a numeric literal for MOVE to alphanumeric field.
-    /// Per ISO §14.19.4: the literal is treated as an unsigned integer field
+    /// Per ISO §14.9.25.4 GR6: the literal is treated as an unsigned integer field
     /// whose size is the number of digits specified in the literal.
     /// </summary>
     public static string FormatLiteralForAlphanumeric(string originalText)

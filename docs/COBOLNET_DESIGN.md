@@ -1012,7 +1012,8 @@ the same class — Tier A/B accessors share the canonical; Tier C shares the cla
 > An ELEMENTARY numeric operand used as text still renders its DIGITS (§14.9.25.4 GR6 / §8.8.4.2.2 — "as though it
 > were moved to an alphanumeric data item"), which is why `DataItem.DisplayTextWidth` exists beside `ImageWidth` and
 > why `OperandText` decodes a non-zoned stored image before rendering it. A GROUP operand is the opposite case:
-> §8.8.4.1.1 makes it alphanumeric over the items' REPRESENTATION, so its text IS the record image, bytes and all.
+> §8.5.2.1 gives an alphanumeric group class and category alphanumeric and a usage of DISPLAY, so its character
+> positions are the items' REPRESENTATIONS and its text IS the record image, bytes and all.
 > **⚠ MIGRATION — THE ON-DISK RECORD LAYOUT CHANGED.** A data file written by a build BEFORE this carries a
 > BINARY/PACKED field as its zoned digit characters; this build reads that window as radix-2 / BCD bytes. A
 > fixed-length sequential file carries no self-description, so the failure would present as silent garbage. Detection
@@ -1034,8 +1035,12 @@ usages (see the total rule below).
 **Mixed-usage (COMP-leaf) groups — the TOTAL rule.** The
 standard leaves a binary item's representation to the implementor (§13.18.60.4 GR4 — "Each implementor specifies
 the precise effect of the USAGE BINARY clause upon the … representation of the data item …, including the
-representation of any algebraic sign"; GR11 the same for PACKED-DECIMAL; §8.8.4.1.1 — a group operand is
-alphanumeric over the items' representations). The typed-native backend DEFINES that representation, totally, and
+representation of any algebraic sign"; GR11 the same for PACKED-DECIMAL; §8.5.2.1 — an alphanumeric group
+item "has class and category alphanumeric" and "is treated as though it had a usage of display", so its
+character positions are its leaves' representations, and §8.8.4.2.1 — "For comparison, an alphanumeric group
+item shall be treated as an elementary alphanumeric data item"). ⚠ The third premise USED to cite §8.8.4.1.1,
+a clause the standard does not have; kb/Work PB182 re-derived it as the §8.5.2.1 + §8.8.4.2.1 pair above, and
+the rule is unchanged by the correction — both real clauses say what the phantom was standing in for. The typed-native backend DEFINES that representation, totally, and
 it is ONE representation everywhere: **a fixed-point leaf's image IS its bytes** — zoned digits for USAGE DISPLAY,
 radix-2 two's complement (big-endian) for BINARY, BCD with a `0xC`/`0xD`/`0xF` sign nibble for PACKED — of exactly
 `PicInfo.StorageWidth` (`NumericByteForm`, §6.3). The generated `AsImage()`/`FromImage()` (gated on

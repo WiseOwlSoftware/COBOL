@@ -110,8 +110,14 @@ fileReserveClause
     : RESERVE integerLiteral (AREA | AREAS)?
     ;
 
-// ISO §12.4.5.9 PADDING CHARACTER clause: PADDING [CHARACTER] IS {data-name-1 | literal-1}.
-// An obsolete block-padding control with no effect on CobolSharp's record model — parsed and ignored.
+// PADDING CHARACTER: PADDING [CHARACTER] IS {data-name-1 | literal-1}. ⛔ THE STANDARD HAS NO SUCH
+// CLAUSE — the file control entry's clauses are §12.4.5.4–§12.4.5.15 and none of them is PADDING
+// (§12.4.5.9, which this comment used to cite, is the LOCK MODE clause; kb/Work PB159). A pre-2002
+// legacy surface accepted leniently, with no effect on CobolSharp's record model — parsed and ignored.
+// ⛔ OPEN DEFECT, kb/Work PB300, and it has TWO arms: the clause is ungated (accepted even at
+// --std 2023, where the doctrine says every leniency is dialect-gated), AND because PADDING is a lexer
+// token that cobolWord does not admit, `01 PADDING PIC X.` is a PARSE ERROR at 2014/2023 — editions at
+// which §8.9 does not reserve the word, so that declaration is legal COBOL (the PB301 shape).
 paddingCharacterClause
     : PADDING CHARACTER? IS? (literal | dataReference)
     ;
@@ -247,7 +253,7 @@ rerunEvery
     ;
 
 // ==========================================
-// OPEN / CLOSE (§14.9.25, §14.9.7)
+// OPEN / CLOSE (§14.9.27, §14.9.6)
 // ==========================================
 
 openStatement
@@ -276,7 +282,7 @@ recordLockPhrase
     | WITH? LOCK
     ;
 
-// Each opened file may carry an obsolete tape phrase (ISO §14.9.25): REVERSED or WITH NO REWIND —
+// Each opened file may carry an obsolete tape phrase (ISO §14.9.27): REVERSED or WITH NO REWIND —
 // vertical/tape positioning hints with no effect on disk files, parsed and ignored.
 openFileSpec
     : dataReference (REVERSED | WITH? NO REWIND)?
@@ -507,7 +513,7 @@ rewriteInvalidKeyPhrase
     ;
 
 // ==========================================
-// DELETE RECORD (§14.9.11)
+// DELETE RECORD (§14.9.10)
 // ==========================================
 
 deleteStatement
@@ -639,7 +645,8 @@ sortCollatingPhrase
     : COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord (cobolWord)?)
     ;
 
-// The ONE FOR-class collating subrule (ISO §12.3.6.2 / §14.9.40.2 — the PROGRAM COLLATING SEQUENCE clause
+// The ONE FOR-class collating subrule (ISO §12.3.6.2 OBJECT-COMPUTER / §14.9.40.2 SORT — the PROGRAM
+// COLLATING SEQUENCE clause
 // and the SORT/MERGE COLLATING SEQUENCE phrase share it).
 collatingForPhrase
     : FOR (ALPHANUMERIC | NATIONAL) IS? cobolWord
@@ -662,7 +669,7 @@ sortOutputProcedurePhrase
     ;
 
 // ==========================================
-// MERGE (§14.9.22)
+// MERGE (§14.9.24)
 // ==========================================
 
 mergeStatement
@@ -707,7 +714,8 @@ returnStatement
 
     ;
 
-// AT is optional in the AT END phrase (ISO §14.9.39 — "AT" is an optional reserved word),
+// AT is optional in the AT END phrase (ISO §14.9.34.2 — "AT" is not underlined in RETURN's general
+// format, so it is an optional word),
 // and RECORD above is optional, so "RETURN f END …" and "RETURN f RECORD AT END …" both parse.
 // ISO §14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order.
 returnAtEndPhrase
@@ -718,7 +726,7 @@ returnAtEndPhrase
     ;
 
 // ==========================================
-// RELEASE (§14.9.33)
+// RELEASE (§14.9.32)
 // ==========================================
 
 releaseStatement
@@ -741,7 +749,7 @@ releaseFrom
     ;
 
 // ==========================================
-// STRING (§14.9.41)
+// STRING (§14.9.43)
 // ==========================================
 
 stringStatement
@@ -795,7 +803,7 @@ stringOnOverflow
     ;
 
 // ==========================================
-// UNSTRING (§14.9.44)
+// UNSTRING (§14.9.48)
 // ==========================================
 
 unstringStatement
@@ -845,7 +853,7 @@ unstringOnOverflow
     ;
 
 // ==========================================
-// INSPECT (§14.9.21 — COBOL-85)
+// INSPECT (§14.9.22 — COBOL-85)
 // ==========================================
 
 // identifier-1 admits a FUNCTION-IDENTIFIER, but only in Format 1 (PB10). §8.4.3.1.2 Format 1 makes a

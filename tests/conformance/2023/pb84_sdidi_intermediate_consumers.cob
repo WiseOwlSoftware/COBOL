@@ -3,7 +3,7 @@
       *> consumer of a rendered intermediate that had only a native arm was a
       *> Roslyn error on conforming COBOL: the sign condition (§8.8.4.7 —
       *> `IF 9 ** TWO + (180 - 90) IS NOT POSITIVE`, NIST NC250A), SET
-      *> pointer UP/DOWN BY (§14.9.36 Format 8), ALLOCATE … CHARACTERS
+      *> pointer UP/DOWN BY (SET, §14.9.39 Format 8), ALLOCATE … CHARACTERS
       *> (§14.9.3), CALL … BY VALUE arithmetic-expression (§14.9.4), and
       *> INVOKE … BY CONTENT arithmetic-expression (§14.9.23). PB85: DIVIDE
       *> … REMAINDER (§14.9.12.4 GR7) over a FLOAT-LONG sender snapshotted
@@ -44,7 +44,7 @@
               ELSE DISPLAY "T6 WRONG" END-IF.
            IF A ** 2 IS POSITIVE AND B ** 2 - 25 IS ZERO
               DISPLAY "T7 COMPOUND" ELSE DISPLAY "T7 WRONG" END-IF.
-      *> §14.9.36 Format 8 — SET pointer UP BY / DOWN BY an SDIDI amount.
+      *> §14.9.39 Format 8 — SET pointer UP BY / DOWN BY an SDIDI amount.
            ALLOCATE 10 CHARACTERS RETURNING P.
            SET P2 TO P.
            SET P UP BY A ** 2.

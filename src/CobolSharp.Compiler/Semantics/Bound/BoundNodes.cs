@@ -183,7 +183,7 @@ public sealed class BoundInitiateStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.InitiateStatement;
 }
 
-/// <summary>TERMINATE report-name… (§14.9.62).</summary>
+/// <summary>TERMINATE report-name… (§14.9.46).</summary>
 public sealed class BoundTerminateStatement : BoundStatement
 {
     public IReadOnlyList<ReportSymbol> Reports { get; }

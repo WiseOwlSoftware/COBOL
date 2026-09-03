@@ -87,7 +87,7 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     public static readonly EditionInfo Latest = new(2023);
     public static EditionInfo Of(int year, bool permissive = false) => new(Validate(year), permissive);
 
-    /// Fixed-point digit capacity: 18 at '85, 31 at 2002+ (ISO §8.3.1.2 / §14.7 / §13.18.40).
+    /// Fixed-point digit capacity: 18 at '85, 31 at 2002+ (ISO §8.3.3.3.2 / §14.7 / §13.18.40).
     public int MaxDigits => Year < 2002 ? 18 : 31;
 
     public bool Has(int introducedIn) => Year >= introducedIn;

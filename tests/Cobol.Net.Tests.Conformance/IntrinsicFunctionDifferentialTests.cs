@@ -1146,7 +1146,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void RefModArgument_Renders() =>
-        // A reference-modified argument is an alphanumeric operand (§8.4.2.4) — live through the ONE
+        // A reference-modified argument is an alphanumeric operand (§8.4.3.3.4) — live through the ONE
         // dataReference resolution (the hand parser rejected ref-mod arguments loud).
         AssertSpec(Program("01 WS-IN PIC X(8) VALUE \"abcdEFGH\".\n01 T PIC X(8).",
             "    MOVE FUNCTION UPPER-CASE(WS-IN(1:4)) TO T.\n    DISPLAY \"[\" T \"]\"."),

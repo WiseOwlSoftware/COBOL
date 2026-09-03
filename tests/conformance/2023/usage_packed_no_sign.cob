@@ -1,4 +1,4 @@
-      *> ISO/IEC 1989:2023 §13.18.60.4 GR11 — PACKED-DECIMAL WITH NO SIGN reserves no sign nibble (SR31 forbids
+      *> ISO/IEC 1989:2023 USAGE clause §13.18.60.4 GR11 — PACKED-DECIMAL WITH NO SIGN reserves no sign nibble (SR31 forbids
       *> 'S'); the value is always considered zero-or-positive. The ONLY observable difference from plain unsigned
       *> packed is the byte width: NO SIGN = ceil(Digits/2); plain packed = Digits/2+1 (still a sign nibble). The
       *> delta shows only for EVEN digit counts — 9(6): 3 vs 4. A negative MOVE stores the magnitude (§8.5.1.2).

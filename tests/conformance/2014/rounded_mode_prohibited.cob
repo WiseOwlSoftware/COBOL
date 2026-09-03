@@ -1,4 +1,4 @@
-      *> ISO §14.9.4 — ROUNDED MODE IS PROHIBITED (COBOL-2002). Rounding is NOT permitted, so a result that
+      *> ISO §14.7.4 — ROUNDED MODE IS PROHIBITED (COBOL-2002). Rounding is NOT permitted, so a result that
       *> is not exactly representable at the receiver's scale raises the SIZE ERROR condition
       *> (EC-SIZE-TRUNCATION) and leaves the receiver UNCHANGED — it must NOT silently truncate.
       *> Regression test for the bug where PROHIBITED fell through to truncation and never signaled size error:

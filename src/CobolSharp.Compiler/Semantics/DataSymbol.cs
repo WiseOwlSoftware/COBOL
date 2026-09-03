@@ -236,7 +236,7 @@ public sealed class DataSymbol : Symbol
     {
         child.Parent = this;
 
-        // ISO §13.16.56: USAGE on a group applies to all subordinate items
+        // ISO §13.18.60.4: USAGE on a group applies to all subordinate items
         // that do not have their own explicit USAGE clause.
         if (!child.HasExplicitUsage && Usage != UsageKind.Display)
             child.Usage = Usage;

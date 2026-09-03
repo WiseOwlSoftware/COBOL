@@ -22,7 +22,7 @@ public sealed record OptionsModel
     public ArithmeticMode Arithmetic { get; init; } = ArithmeticMode.Native;
 
     /// <summary>DEFAULT ROUNDED clause (§11.9.6) — the rounding mode applied to a bare <c>ROUNDED</c> phrase that omits
-    /// its own MODE. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§11.9.6 r2).</summary>
+    /// its own MODE. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§11.9.6.3 r2).</summary>
     public CobolRounding DefaultRounding { get; init; } = CobolRounding.NearestAwayFromZero;
 
     /// <summary>ENTRY-CONVENTION clause (§11.9.7): <c>COBOL</c> or an implementor entry-convention-name, as written;
@@ -40,7 +40,7 @@ public sealed record OptionsModel
     public FloatEndianness FloatDecimalEndianness { get; init; } = FloatEndianness.Unspecified;
 
     /// <summary>INTERMEDIATE ROUNDING clause (§11.9.11) — rounding for intermediate results under standard
-    /// arithmetic. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§11.9.11 r3).</summary>
+    /// arithmetic. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§11.9.11.2 r3a).</summary>
     public CobolRounding IntermediateRounding { get; init; } = CobolRounding.NearestAwayFromZero;
 
     /// <summary>INITIALIZE clause (§11.9.10) — the section-background fill applied at allocation; null when absent.</summary>

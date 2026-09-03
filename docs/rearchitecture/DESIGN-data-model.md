@@ -36,7 +36,7 @@ facts scattered across three layers and, for the pivotal case, **mutated late**:
 ### 1.1 The pivotal defect: `StoreAsImage` is a late-mutated, cross-layer flag
 
 A numeric `USAGE DISPLAY` leaf is stored as a native `long`/`Int128` **unless** it lives under a group referenced as
-a whole operand — then it must become a `string` (ISO §14.9 MOVE GR4 fills a group "without consideration for the
+a whole operand — then it must become a `string` (ISO §14.9.25.4 MOVE GR4 fills a group "without consideration for the
 individual elementary items", so the leaf can receive spaces a `long` cannot hold). That fact is only known **after
 PROCEDURE DIVISION binding**. Today it is realized by mutating `DataItem.StoreAsImage` (`DataItem.cs:169`, a public
 `get; set;`) from **7+ sites across three layers**:
@@ -129,7 +129,7 @@ public abstract record StorageForm
     /// interchange encoding (kb/Work PB164 wave 2, §13.18.60.4 GR13-GR15) — it participates like any other leaf.
     public sealed record NativeFloat(bool Single, int Width) : StorageForm { … }
     /// A C# string of exactly Width characters: alphanumeric / numeric-edited / national / boolean, OR a
-    /// numeric-DISPLAY leaf promoted to its zoned image because it is used under a whole-group operand (§14.9 GR4).
+    /// numeric-DISPLAY leaf promoted to its zoned image because it is used under a whole-group operand (§14.9.25.4 GR4).
     /// Category is retained so the numeric pipeline decodes/encodes zoned images (ParseDisplay/FormatDisplay).
     public sealed record CharImage(int Width, PicCategory Category) : StorageForm { … }
     /// A Tier-B REDEFINES view: a typed (offset, width) window over the class's ONE shared string backing.

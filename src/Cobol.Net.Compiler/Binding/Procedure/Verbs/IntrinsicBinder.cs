@@ -608,7 +608,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // §15.38.3/§15.39.3/§15.40.3/§15.41.3/§15.48.3/§15.79.3/§15.92.3 rule 2 — the format's CONTENT
         // (fix-queue PB11). The literal screen above established only that argument-1 IS a literal; this asks
-        // the question nothing asked before: is it one of the §15.3.1–§15.3.4 formats, and is it a kind THIS
+        // the question nothing asked before: is it one of the §15.3.1–§15.3.3 formats, and is it a kind THIS
         // function admits? Character-wise validation cannot answer that — every counter-example is assembled
         // from individually legal subfields.
         // §15.40.3 r6 / §15.41.3 r5 — the OFFSET ARGUMENT vs the format's ZONE (fix-queue PB11's value half).
@@ -639,7 +639,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     $"FUNCTION {sig.Name} argument-1 is '{fmt.Value}', which is "
                     + (actual is null
                         ? "not a date, time or combined date-and-time format at all (ISO §15.3.1.1 / §15.3.2 / "
-                          + "§15.3.4 — note that basic and extended forms never mix)"
+                          + "§15.3.3.7 — note that basic and extended forms never mix)"
                         : $"a {Name(actual.Value)} format; this function admits "
                           + string.Join(" or ", admitted.Select(Name)))
                     + $" ({FormatRuleCitation(sig.Name)}).");
@@ -733,7 +733,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // §15.18.4 r3 — CONCAT returns an ALPHABETIC value when argument-1 is usage display and argument-1 and
         // all argument-2 are of class alphabetic (PB59 family 7 / RV-15.18.4-3). Class alphabetic is a PIC A
-        // DATA ITEM — §8.3.1.2 gives no literal that class, a ref-mod view is class alphanumeric (§8.4.3.3.4
+        // DATA ITEM — §8.3.3 (to which §8.5.2.1 delegates a literal's class) gives no literal that class, a ref-mod view is class alphanumeric (§8.4.3.3.4
         // GR2/GR6), and a nested CONCAT contributes through its own rider — and every PIC A item is usage
         // display, so all-alphabetic subsumes r3's usage-display precondition. Fail-soft: any shape not
         // provably alphabetic keeps r3's "otherwise" arm (alphanumeric).
@@ -1357,7 +1357,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The statically knowable data category of a function argument (drives the §15.3 per-function
     /// argument class/category rules): a categorized literal, a non-group field reference (a reference-modified
-    /// operand keeps its item's category — a national item's ref-mod is category national, §8.4.4.4), a nested
+    /// operand keeps its item's category — a national item's ref-mod is category national, §8.4.3.3.4), a nested
     /// intrinsic's result category, or numeric for a computed arithmetic expression. Null = no fixed static
     /// class (groups, figuratives, ALL literals, error operands) — the caller skips its check.
     /// <para>⚠ THE DEFINITION LIVES IN <see cref="IntrinsicResultType"/>: the §15.x.1 RESULT-type rules need the

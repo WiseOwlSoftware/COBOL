@@ -590,7 +590,7 @@ internal sealed class FlagConformancePass : CursorFollowingVisitor   // the curs
         return r.Register == SpecialRegister.None ? r.BaseName : null;
     }
 
-    /// <summary>The stripped text of a SOLE nonnumeric string-literal operand (§8.3.1.2), else null.</summary>
+    /// <summary>The stripped text of a SOLE nonnumeric string-literal operand (§8.3.3.2), else null.</summary>
     private static string? OperandLiteral(CobolParserCore.ComparisonOperandContext op)
         => op.valueOperand()?.nonNumericLiteral()?.STRINGLIT() is { } s ? StripLiteral(s.GetText()) : null;
 

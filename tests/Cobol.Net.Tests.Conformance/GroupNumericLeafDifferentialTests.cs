@@ -53,7 +53,7 @@ public sealed class GroupNumericLeafDifferentialTests
 
     [Fact]
     public void SpacesLandInNumericPosition_TheCcvsDotvalueCase()
-        // MOVE a short literal to the group → the trailing numeric leaf's positions get SPACES (ISO §14.9 GR4: no
+        // MOVE a short literal to the group → the trailing numeric leaf's positions get SPACES (ISO §14.9.25.4 GR4: no
         // conversion), NOT "00". The bracket exposes the internal spaces, so spec-pinned (legacy trims them).
         => AssertSpec(
             Program("""

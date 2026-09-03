@@ -86,14 +86,16 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // The §14.9.25.3 SR1 class check FIRST — version-invariant, every sender kind: "The class of
         // identifier-1 or identifier-2 shall not be index, message-tag, object, or pointer." An index data
         // item may be referenced only by SET, SEARCH, relation conditions, and as a function/USING argument
-        // (§13.18.60 GR10) — a MOVE operand of class index is invalid at EVERY edition, never an Annex-E
+        // (§13.18.60.3 SR10) — a MOVE operand of class index is invalid at EVERY edition, never an Annex-E
         // removal (the W2 adversarial review caught the 0902 row mislabeling it "permitted through 2014").
         // Message-tag/object/pointer classes cannot reach a bound MOVE yet (their usages are compile-gated
         // skeletons, W2 track B) — this check gains those arms when their phases land.
         if (source is BoundFieldOperand { Place.Item.Pic.Usage: Usage.Index } sIdx)
             ctx.Edition.Error("COBOLNET0809",
-                $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60 GR10 — only SET, "
-                + $"SEARCH, and relation conditions may reference an index data item) — MOVE {sIdx.Place.Item.CobolName}");
+                $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60.3 SR10 — only a "
+                + $"SEARCH or SET statement, a relation condition, an intrinsic-function or inline-method "
+                + $"argument, or a procedure-division / CALL / INVOKE USING phrase may reference an index "
+                + $"data item) — MOVE {sIdx.Place.Item.CobolName}");
         // SR1 reaches a FUNCTION sender through §15.2 item 6 (kb/Work PB124 wave 5b): "Index functions.
         // These are of the class and category index." — MAX/MIN over index arguments IS one, and its result's
         // storage category (Numeric) made it indistinguishable from a numeric sender here, so
@@ -107,7 +109,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         foreach (var t in targets)
             if (t.Item.Pic is { Usage: Usage.Index })
                 ctx.Edition.Error("COBOLNET0809",
-                    $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60 GR10) — "
+                    $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60.3 SR10) — "
                     + $"MOVE … TO {t.Item.CobolName}");
 
         // Classify the SENDER (only the SR5 alphanumeric figuratives / ALL "literal" participate). The §14.9.25.3

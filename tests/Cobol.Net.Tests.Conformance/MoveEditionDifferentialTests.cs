@@ -119,7 +119,7 @@ public sealed class MoveEditionDifferentialTests
     [Fact]
     // Annex E.2 item 1 bullet 1: MOVE SPACE TO a numeric item was permitted through 2014. Pre-removal semantics
     // (legacy-adjudicated, provisional): the receiver's character image is space-filled at its fixed width
-    // (§8.3.3.6.4 GR2; §14.6.8 fixed-width alignment) and the item is then NOT NUMERIC (§8.8.4.1.4 — its content
+    // (§8.3.3.6.4 GR2; §14.6.8 fixed-width alignment) and the item is then NOT NUMERIC (§8.8.4.4 — its content
     // is not digits). Pinned (no legacy cross-check): the legacy renders the space-filled numeric as EMPTY, an
     // artifact inconsistent with its own numeric-edited receiver ("   ") and QUOTE fill (three quotes).
     public void SpaceToNumeric_ImageFill_NotNumeric_At85_E2Item1()
@@ -413,7 +413,7 @@ public sealed class MoveEditionDifferentialTests
     }
 
     /// <summary>The ref-mod round-trip-loss fix: a MOVE into a reference-modified slice of a numeric-DISPLAY
-    /// item deposits CHARACTERS (§8.4.2.4 — the unique result is elementary alphanumeric; §8.4.3.3.4 GR5 the
+    /// item deposits CHARACTERS (§8.4.3.3.4 — the unique result is elementary alphanumeric; §8.4.3.3.4 GR5 the
     /// slice is a subset of the item's character positions). Before the fix the spliced image round-tripped
     /// through the backing long and silently lost the spaces (printed [003]/NUM); the item is now image-backed
     /// at bind time for EVERY sender kind. Pinned (no legacy cross-check: the greenfield value matches the
@@ -428,7 +428,7 @@ public sealed class MoveEditionDifferentialTests
                 DISPLAY "[" M "]".
             """), "[  3]\nNOTNUM\n[AB6]\n");
 
-    /// <summary>The ref-mod receiver is ALPHANUMERIC (§8.4.2.4), so a figurative MOVE into a slice is legal
+    /// <summary>The ref-mod receiver is ALPHANUMERIC (§8.4.3.3.4), so a figurative MOVE into a slice is legal
     /// at EVERY edition — no 0902 even at 2023 strict (the SR5 exemption the gate honors).</summary>
     [Fact]
     public void RefModSlice_FigurativeMove_Legal_At2023Strict()

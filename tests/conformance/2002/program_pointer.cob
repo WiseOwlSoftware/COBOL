@@ -4,7 +4,7 @@
       *> (§13.18.63); SET Format 9 (§14.9.39 SR21) with the §8.4.3.13
       *> program-address-identifier sender — ENTRY literal and ENTRY
       *> identifier (GR1a) — a program-pointer sender, and NULL;
-      *> §8.8.4.1.3 pointer relations (= / NOT = / NULL); CALL through
+      *> §8.8.4.2.16 pointer relations (= / NOT = / NULL); CALL through
       *> the pointer (§14.9.4 SR1 — identifier-1 references a
       *> program-pointer; GR — the item contains the location of the
       *> program being called); and the §8.4.3.13 GR4 not-found leg

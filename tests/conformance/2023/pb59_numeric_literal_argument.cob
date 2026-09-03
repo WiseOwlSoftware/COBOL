@@ -7,7 +7,7 @@
       *> had no numeric-literal arm, pinned as designed by a drift test — the pin moved WITH the fix.
       *> The folded nested numeric function (FUNCTION LENGTH of a fixed item folds to a numeric
       *> literal at bind) reaches the same arm. The admission is PER-FUNCTION: NUMVAL and friends
-      *> still refuse a numeric literal (their §15.67.3/§15.69.3 rules exclude it).
+      *> still refuse a numeric literal (the NUMVAL §15.67.3 and NUMVAL-F §15.69.3 rules exclude it).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB59NUMLIT.
        DATA DIVISION.

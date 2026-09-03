@@ -80,7 +80,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         BoundFieldOperand { Place.Item.Pic.Category: PicCategory.National } => true,
         _ => false,
     };
-    // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
+    // A user-defined class (§8.8.4.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
         ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})"
         : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})";
@@ -124,7 +124,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             string core = $"object.ReferenceEquals({ObjRead(r.Left)}, {ObjRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
-        // Data-pointer relations (Phase-4b; §8.8.4.1.3 — ManagedPointer.SameTarget: both-NULL / same-storage;
+        // Data-pointer relations (Phase-4b; §8.8.4.2.16 — ManagedPointer.SameTarget: both-NULL / same-storage;
         // the NULL figurative renders as the null carrier). Before the figurative branch (NULL must not
         // width-materialize against a pointer).
         static bool IsPtr(BoundOperand o) =>
@@ -135,7 +135,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             string core = $"ManagedPointer.SameTarget({PtrRead(r.Left)}, {PtrRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
-        // Program-pointer relations (P10 Step 7; §8.8.4.1.3 — ProgramPointer.SameTarget: both-NULL / the same
+        // Program-pointer relations (P10 Step 7; §8.8.4.2.16 — ProgramPointer.SameTarget: both-NULL / the same
         // program's identity; the NULL figurative renders as the Null carrier — a struct, never C# null).
         static bool IsPp(BoundOperand o) =>
             o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ProgramPointer;
@@ -214,7 +214,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     }
 
     /// <summary>A relational comparison where one side is a figurative constant — it materializes to the other
-    /// operand's category and width (ISO §8.8.4.1.1): a numeric anchor → ZERO is 0; an alphanumeric/group anchor →
+    /// operand's category and width (ISO §8.3.3.6.4 r2 sizes it from the associated operand; §8.8.4.2.1
+    /// treats a group anchor as an elementary alphanumeric item — kb/Work PB182 corrected the phantom
+    /// §8.8.4.1.1 this used to cite): a numeric anchor → ZERO is 0; an alphanumeric/group anchor →
     /// the figurative is a string of the anchor's width.</summary>
     private string RenderFigurativeRelational(BoundRelational r)
     {
@@ -341,7 +343,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         return s.Negated ? $"!({test})" : $"({test})";
     }
 
-    /// <summary>A class condition (ISO §8.8.4.1.4). A typed-numeric operand IS NUMERIC folds to <c>true</c> ONLY
+    /// <summary>A class condition (ISO §8.8.4.4). A typed-numeric operand IS NUMERIC folds to <c>true</c> ONLY
     /// when its storage is the native long/Int128 (it can only hold digits — COBOLNET_DESIGN §6.6); a numeric item
     /// whose storage is a CHARACTER window (a REDEFINES view, or a whole-group-aliased StoreAsImage leaf) can hold
     /// arbitrary characters and tests its image at run time — sign-aware for a signed zoned item (§8.8.4.4 r3,
@@ -447,7 +449,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// §8.8.4.5 GR2 then compares by the relation-condition rules (kb/Work PB97: the raw text "10" was compared to the
     /// image " 10.00" — every such condition-name was silently false); a figurative <c>ALL "literal"</c> repeated to
     /// the conditional variable's width (ISO §8.3.3.6.4 GR2), a bare figurative WORD (QUOTE / SPACE / HIGH-VALUE /
-    /// LOW-VALUE / ZERO — §8.3.1.2, materialized to the variable's width, NC250A IF--TEST-26/27), else the decoded
+    /// LOW-VALUE / ZERO — §8.3.3.6.4 r2, materialized to the variable's width, NC250A IF--TEST-26/27), else the decoded
     /// literal.</summary>
     /// <summary>The membership operand as a C# EXPRESSION: a format-2 (LOCALE) conditional variable's numeric
     /// VALUE composes its edited image AT RUNTIME under the locale then current (§13.18.40.5 r11 — no
@@ -475,7 +477,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     }
 
     /// <summary>The fill character of a bare figurative-constant word (with or without a leading <c>ALL</c> —
-    /// the same figurative either way, ISO §8.3.1.2), or null when the text is not a figurative word. The fill
+    /// the same figurative either way, ISO §8.3.3.6.2), or null when the text is not a figurative word. The fill
     /// characters match <see cref="FigurativeConstants.FillChar"/> (HIGH/LOW = U+00FF/U+0000, COBOLNET_DESIGN §14.9).</summary>
     private char? FigurativeFillChar(string raw)
     {
@@ -490,7 +492,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     }
 
     /// <summary>A numeric level-88 VALUE operand → its unscaled-<c>long</c> text. A figurative ZERO maps to <c>0</c>
-    /// (ISO §8.3.1.2 — a valid numeric operand); otherwise the literal is scaled. Without this a figurative VALUE word
+    /// (ISO §8.3.3.6.4 r4 — the zero format represents the numeric value 0); otherwise the literal is scaled. Without this a figurative VALUE word
     /// (e.g. <c>88 IS-ZERO VALUE ZERO</c>) would reach <c>UnscaledAtScale("ZERO", …)</c> and emit a bare identifier.</summary>
     private static string NumericMembershipValue(string raw, int scale) =>
         raw.ToUpperInvariant() is "ZERO" or "ZEROS" or "ZEROES" ? "0L" : EmitText.UnscaledAtScale(raw, scale);

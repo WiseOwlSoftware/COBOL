@@ -3,7 +3,7 @@
 namespace CobolNet.Runtime;
 
 /// <summary>
-/// Class-condition predicates over a value's character image (ISO §8.8.4.1.4). ALPHABETIC is the closed Latin set
+/// Class-condition predicates over a value's character image (ISO §8.8.4.4). ALPHABETIC is the closed Latin set
 /// {A–Z, a–z, space} — NOT <c>char.IsLetter</c> (COBOLNET_DESIGN §11.2); NUMERIC over an alphanumeric operand is the
 /// digits 0–9 only (no operational sign — §8.8.4.4 rule 2).
 /// </summary>
@@ -107,7 +107,7 @@ public static class CobolClass
         }
     }
 
-    /// <summary>True if every character is A–Z, a–z, or space (ISO §8.8.4.1.4).</summary>
+    /// <summary>True if every character is A–Z, a–z, or space (ISO §8.8.4.4).</summary>
     public static bool IsAlphabetic(string? s)
     {
         if (string.IsNullOrEmpty(s)) return false;   // a zero-length operand: the class condition is false (ISO §8.8.4.4.4 GR1)
@@ -159,7 +159,7 @@ public static class CobolClass
         return true;
     }
 
-    /// <summary>A USER-DEFINED class test (ISO §8.8.4.1.4 with a SPECIAL-NAMES class-name, §12.3.7): true iff the
+    /// <summary>A USER-DEFINED class test (ISO §8.8.4.4 with a SPECIAL-NAMES class-name, §12.3.7): true iff the
     /// value consists ENTIRELY of the class's member characters (<paramref name="members"/> — the clause's
     /// literals/THRU ranges expanded at compile time). Spaces are members only if listed; a zero-length item is
     /// FALSE (ISO §8.8.4.4.4 GR1 — every class condition on a zero-length operand is false; zero-length items are

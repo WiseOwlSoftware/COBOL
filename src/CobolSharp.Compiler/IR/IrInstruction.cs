@@ -606,7 +606,7 @@ public sealed class IrPointerStore : IrInstruction
 }
 
 /// <summary>
-/// Compares two pointers by ADDRESS IDENTITY (ISO §8.8.4.1.4): <c>p = q</c> ⇔
+/// Compares two pointers by ADDRESS IDENTITY (ISO §8.8.4.4): <c>p = q</c> ⇔
 /// <c>ReferenceEquals(p.Buffer, q.Buffer) &amp;&amp; p.Offset == q.Offset</c>; <c>p = NULL</c> ⇔ <c>p.Buffer == null</c>.
 /// NOT the record-struct <c>Equals</c> (which would also compare Length/Pic). <see cref="RightField"/> null means the
 /// right operand is NULL. <see cref="Negated"/> is true for <c>NOT =</c> (the equality result is inverted).

@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-// REPORT SECTION rules (ISO 1989:2023 §13.14/§13.15; clauses §13.18.12/14/16/29/35/37/39/41/53/54/57/64).
+// REPORT SECTION rules (ISO 1989:2023 §13.14 report description entry / §13.15 report group description
+// entry; clauses §13.18.12 CODE, .14 COLUMN, .16 CONTROL, .29 GROUP-USAGE, .35 LINE, .37 NEXT GROUP,
+// .39 PAGE, .41 PRESENT WHEN, .53 SOURCE, .54 SUM, .57 TYPE, .64 VARYING).
 // The COBOL-85 surface plus the 2002 additions (PRESENT WHEN, VARYING, the multiple/relative COLUMN and
 // multiple LINE operand forms) — superset parse; the 2002 forms are introduction-gated post-bind by the
 // VersionConformancePass ParseArm (0900 below 2002). Imported by CobolParserCore.g4 — no options block of
@@ -37,7 +39,7 @@ reportDescriptionClause
     | reportPageClause
     ;
 
-// IS GLOBAL (§13.18.23)
+// IS GLOBAL (§13.18.27)
 reportGlobalClause
     : IS? GLOBAL
     ;
@@ -164,7 +166,7 @@ reportSumReset
     : RESET ON? (FINAL | dataReference)
     ;
 
-// GROUP INDICATE  (§13.18.29) — print this field only on the first
+// GROUP INDICATE  (§13.18.28) — print this field only on the first
 // detail of a page or after a control break.
 reportGroupIndicateClause
     : GROUP INDICATE?
@@ -197,14 +199,14 @@ initiateStatement
     : INITIATE reportName+
     ;
 
-// GENERATE {report-group-name | report-name} (§14.9.19) — produce a detail line (or summary reporting).
+// GENERATE {report-group-name | report-name} (§14.9.16) — produce a detail line (or summary reporting).
 // The operand is a report-group-name (detail reporting) or a report-name (summary reporting); the binder
 // distinguishes by resolving the name against the report model.
 generateStatement
     : GENERATE reportName
     ;
 
-// TERMINATE report-name... (§14.9.62) — end report processing: produce final CONTROL/REPORT FOOTINGs.
+// TERMINATE report-name... (§14.9.46) — end report processing: produce final CONTROL/REPORT FOOTINGs.
 terminateStatement
     : TERMINATE reportName+
     ;

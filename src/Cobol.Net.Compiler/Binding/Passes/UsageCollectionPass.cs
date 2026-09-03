@@ -13,7 +13,7 @@ namespace CobolNet.Binding.Passes;
 
 /// <summary>
 /// PHASE-05 Step 5 (DESIGN-data-model §2.5 step 9): the single owner of the "which groups are referenced as a WHOLE
-/// character-image operand" fact — the input to the numeric-DISPLAY-leaf image promotion (§14.9 MOVE GR4). It is
+/// character-image operand" fact — the input to the numeric-DISPLAY-leaf image promotion (§14.9.25.4 MOVE GR4). It is
 /// collected here, AFTER binding, by an explicit walk of the bound tree, replacing <see cref="ReferenceResolver"/>'s
 /// mid-resolve mutation of <see cref="DataBinder.WholeGroupReferenced"/>.
 /// <para><b>Correctness (owner-directed redesign, 2026-07-10):</b> the bound tree is the CORRECT oracle — a group has

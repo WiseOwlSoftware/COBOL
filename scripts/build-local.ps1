@@ -12,9 +12,13 @@ param([Parameter(Mandatory = $true)][string]$Filter)
 $ErrorActionPreference = 'Continue'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 $Filter = [regex]::Replace($Filter, '(^|[|&(])(!=|=|~)', '$1FullyQualifiedName$2')
+$rc = 0
+# ⛔ THE CITATION AUDIT RUNS FIRST, BEFORE THE BUILD — see the note in build-local.sh: a wrong § is the one
+# defect class no test can catch, the check costs a second, and its baseline is zero.
+python scripts/spec/audit_code_citations.py --check
+if ($LASTEXITCODE -ne 0) { Write-Host '=== CITATIONS: RED (see above) ==='; $rc = 1 }
 dotnet build CobolSharp.sln -v quiet
 if ($LASTEXITCODE -ne 0) { Write-Host '=== WAVE-LOCAL GATE: BUILD FAILED ==='; exit 1 }
-$rc = 0
 function Leg([string]$name, [string[]]$testArgs) {
     $out = & dotnet test @testArgs 2>&1 | ForEach-Object { "$_" }
     $legRc = $LASTEXITCODE

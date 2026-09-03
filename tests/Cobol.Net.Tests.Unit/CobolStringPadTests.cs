@@ -86,7 +86,7 @@ public sealed class CobolStringPadTests
         => Assert.Equal(expectedSign, Math.Sign(CobolString.Compare(left, right, pad: '0')));
 
     /// <summary>The default-pad Compare is byte-identical to the pre-pad behavior (space extension, ordinal —
-    /// ISO §8.8.4.1.2).</summary>
+    /// ISO §8.8.4.2.7 r2).</summary>
     [Theory]
     [InlineData("AB", "AB  ", 0)]
     [InlineData("AB", "AC", -1)]

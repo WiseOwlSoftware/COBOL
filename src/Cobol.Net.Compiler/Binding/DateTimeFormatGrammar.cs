@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace CobolNet.Binding;
 
-/// <summary>The three things a §15.3.1–§15.3.4 format string can be.</summary>
+/// <summary>The three things a §15.3.1–§15.3.3 format string can be.</summary>
 internal enum DateTimeFormatKind { Date, Time, Combined }
 
 /// <summary>The ZONE of a format's time portion (ISO §15.3.3.4–§15.3.3.6): a plain common time format
@@ -18,7 +18,7 @@ internal enum DateTimeZone { None, Local, Utc, Offset }
 internal readonly record struct DateTimeFormatInfo(DateTimeFormatKind Kind, DateTimeZone Zone);
 
 /// <summary>
-/// THE RECOGNIZER for the ISO §15.3.1–§15.3.4 date, time and combined date-and-time formats — the answer to
+/// THE RECOGNIZER for the ISO §15.3.1–§15.3.3 date, time and combined date-and-time formats — the answer to
 /// "is this string one of the formats the standard defines?", which nothing previously asked (fix-queue PB11).
 ///
 /// <para>⛔ <b>WHY A RECOGNIZER AND NOT MORE CHECKS.</b> <c>CobolDate.Tokenize</c> validates a format
@@ -39,7 +39,7 @@ internal readonly record struct DateTimeFormatInfo(DateTimeFormatKind Kind, Date
 /// <para><b>The grammar, read from the standard.</b> §15.3.1.1: "COBOL supports six date formats: basic and
 /// extended formats for calendar dates, basic and extended formats for ordinal dates, and basic and extended
 /// formats for week dates." §15.3.2: four common-time shapes × {local, UTC, offset} = twelve time formats.
-/// §15.3.4: a combined format is a date format, an uppercase <c>T</c>, and a time format — <b>basic with basic
+/// §15.3.3.7: a combined format is a date format, an uppercase <c>T</c>, and a time format — <b>basic with basic
 /// and extended with extended</b>, which is the rule the chimera above breaks.</para>
 ///
 /// <para><b>⚠ BASIC AND EXTENDED NEVER MIX</b>, and that is the whole reason this is a recognizer rather than a
@@ -87,7 +87,7 @@ internal static class DateTimeFormatGrammar
         if (IsDate(format)) return new DateTimeFormatInfo(DateTimeFormatKind.Date, DateTimeZone.None);
         if (ZoneOf(format, sep) is { } tz) return new DateTimeFormatInfo(DateTimeFormatKind.Time, tz);
 
-        // §15.3.4 — a combined format is <date>T<time>, basic with basic and extended with extended. 'T' occurs
+        // §15.3.3.7 — a combined format is <date>T<time>, basic with basic and extended with extended. 'T' occurs
         // in no other position of any format, so the first one is the separator.
         int t = format.IndexOf('T');
         if (t > 0)

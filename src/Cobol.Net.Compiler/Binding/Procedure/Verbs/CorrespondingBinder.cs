@@ -166,7 +166,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
 
     /// <summary>
     /// Rule 2's move-validity filter (ISO §14.7.6 r2 → §14.9.25.3 SR10, Table 16) over the modeled categories. A
-    /// group operand is class/category alphanumeric (§8.8.4.1.1). Table 16 rows: alphanumeric → every modeled
+    /// group operand is class/category alphanumeric (§8.5.2.1 — kb/Work PB182 corrected the phantom §8.8.4.1.1). Table 16 rows: alphanumeric → every modeled
     /// receiver; alphanumeric-EDITED → alphanumeric only (numeric / numeric-edited: No); numeric INTEGER (a
     /// fixed-point item with no fraction digits — a P-scaled ×10ⁿ item included) → every modeled receiver; numeric
     /// NONINTEGER (fraction digits, or a float usage) → numeric / numeric-edited only; numeric-edited → alphanumeric

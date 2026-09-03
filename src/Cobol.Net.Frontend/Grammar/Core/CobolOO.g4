@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-// Object-Orientation grammar (COBOL-2002, ISO §11.2/§11.3/§11.7/§11.8 + §14.9.23 INVOKE). This is a version-factored
+// Object-Orientation grammar (COBOL-2002, ISO §11.2 identification division structure, §11.3 CLASS-ID,
+// §11.7 METHOD-ID, §11.8 OBJECT + §14.9.23 INVOKE). This is a version-factored
 // fragment imported by CobolParserCore.g4 — OO rule BODIES live here; the minimal {is2002()}?-gated HOOK alternatives
 // (classDefinition in compilationGroup, invokeStatement in statement, objectReferenceUsage in usageKeyword) are added
 // to the core rules they extend. Keeps 2002 OO out of the COBOL-85 base (see memory feedback_grammar_version_factoring).

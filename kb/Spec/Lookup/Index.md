@@ -75,7 +75,7 @@ flowchart LR
 - **Elementary item / Group item** — a leaf field / a record of subordinate items (§13).
 - **PICTURE / USAGE** — data category+size / physical representation (§13.16).
 - **Figurative constant** — ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/ALL (§8.3.2).
-- **Condition-name (88)** — a named truth-test over a value set (§8.8.4.1.4).
+- **Condition-name (88)** — a named truth-test over a value set (§8.8.4.4).
 - **Intrinsic function** — a built-in FUNCTION (§15).
 - **Exception condition (EC)** — a named runtime error condition (§14.6.12, Table 13).
 - **Edition** — an ISO revision (1985/2002/2014/2023) selectable by `--std`.

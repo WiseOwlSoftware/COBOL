@@ -15,7 +15,7 @@ public abstract class ManagedPointer
     /// <summary>True for the NULL carrier.</summary>
     public virtual bool IsNull => false;
 
-    /// <summary>Data-pointer equality (ISO §8.8.4.1.3 / §8.8.4.2 :9772 — "equal if they reference the same
+    /// <summary>Data-pointer equality (ISO §8.8.4.2.16 / §8.8.4.2 :9772 — "equal if they reference the same
     /// address": STRUCTURAL over (storage cell, byte offset) for window pointers; two NULLs are equal; a
     /// legacy accessor carrier compares by instance (the CALL-ABI closures carry no address identity).</summary>
     public static bool SameTarget(ManagedPointer? a, ManagedPointer? b)
