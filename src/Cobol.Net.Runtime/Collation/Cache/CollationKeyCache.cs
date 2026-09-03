@@ -21,6 +21,13 @@ namespace CobolNet.Runtime.Collation.Cache;
 /// (<see cref="CacheEvictionStrategy.SizeBased"/>, by insertion stamp), gathered by a lock-free enumeration — down to
 /// (1 − <see cref="CacheConfig.EvictionFraction"/>) of the maximum, so the eviction pass is amortized over many
 /// inserts and lookups never block. Texts longer than <see cref="CacheConfig.MaxTextLength"/> are built but not stored.</para>
+/// <para><b>What <see cref="CacheConfig.MaxEntries"/> guarantees.</b> It is a QUIESCENCE bound, and it is a real one:
+/// while callers are inserting concurrently the count rides above the maximum (an insert has to push it over before
+/// anything notices, and a batch's removals are counted once at the end), but <b>once the last caller has returned
+/// from <see cref="GetKey"/> the cache holds at most <see cref="CacheConfig.MaxEntries"/> keys</b> — the thread that
+/// evicts keeps going until that is true and re-checks after it releases the flag, so an overflow raised by a caller
+/// that arrived mid-pass is never dropped. (kb/Work PB377: it used to be dropped, and the maximum was then not a
+/// bound at all — measured at 213 live entries for a cache configured with 64.)</para>
 /// <para><b>Instances.</b> <see cref="For"/> hands out the cache of a collator (one per collator, created on demand,
 /// held weakly so a discarded collator's cache is collected); <see cref="Shared"/> is the root collator's; the static
 /// <see cref="GetOrBuild(string)"/> is the root-order convenience the design brief names. All configured by
@@ -102,11 +109,15 @@ public sealed class CollationKeyCache
     /// <summary>A snapshot of the entries (diagnostics; not in any particular order).</summary>
     public IReadOnlyList<CacheEntry> Entries => _map.Values.ToArray();
 
-    /// <summary>Remove every entry (the counters keep counting).</summary>
+    /// <summary>Remove every entry (the hit/miss/eviction counters keep counting). A reset, meant for a quiescent
+    /// cache: it is atomic against nothing, so the count is re-read from the map rather than assumed to be zero —
+    /// writing a flat zero would DISCARD the increment of a lookup that inserted between the two statements, and the
+    /// counter would then under-report the map for the rest of the process, which is the unsafe direction (the cache
+    /// would sail past <see cref="CacheConfig.MaxEntries"/> without ever reaching the eviction trigger).</summary>
     public void Clear()
     {
         _map.Clear();
-        Volatile.Write(ref _count, 0);
+        Interlocked.Exchange(ref _count, _map.Count);
     }
 
     private CollationKey? Lookup(string text, bool build)
@@ -127,45 +138,78 @@ public sealed class CollationKeyCache
         if (!build) return null;
         Interlocked.Increment(ref _misses);
         var key = Collator.GetKey(text);
-        var added = _map.GetOrAdd(text, new CacheEntry(text, key, now));
-        if (!ReferenceEquals(added.Key, key)) return added.Key;   // another thread won the race: one key per text
+        var mine = new CacheEntry(text, key, now);
+        var added = _map.GetOrAdd(text, mine);
+        // Count the insert only if OUR entry is the one in the map — asking whether our ENTRY won, not whether the
+        // returned KEY is ours, is what keeps the counter right no matter what Collator.GetKey does (it builds a
+        // fresh key per call today; if it ever memoized, a key-identity test would let both racers count one entry).
+        if (!ReferenceEquals(added, mine)) return added.Key;      // another thread won the race: one key per text
         if (Interlocked.Increment(ref _count) > Config.MaxEntries) Evict();
         return key;
     }
 
-    /// <summary>Evict a batch: one thread at a time; the others go on without waiting. The entries are gathered by
-    /// enumerating the dictionary (lock-free — never <c>ToArray</c>/<c>Count</c>, which take every bucket lock),
-    /// sorted by their stamp (last access for LRU, creation for size-based) and the oldest removed. O(n log n) per
-    /// batch, amortized over a quarter of the capacity's worth of inserts (~150 ns per miss at 1,024 entries).</summary>
+    /// <summary>Bring the cache back within <see cref="CacheConfig.MaxEntries"/>: one thread at a time; the others go
+    /// on without waiting. It evicts BATCH BY BATCH until the count is back under the maximum, re-deriving the budget
+    /// from the live count each time, because a batch's own budget goes stale the moment a concurrent caller inserts.
+    /// <para>The batch flag is deliberately a try-once, not a wait — but the thread that holds it owns the whole job,
+    /// including the overflows raised while it held it. Those callers found the flag taken and went on
+    /// (<c>CompareExchange</c> failed), leaving no trace of themselves anywhere else, so if this loop did not pick
+    /// them up they would be dropped and the cache would stay over its maximum until some later insert happened to
+    /// find the flag clear — which, when the workload ends inside an eviction pass, never comes. That is exactly
+    /// kb/Work PB377: a <c>Parallel.For</c> whose eight workers all finished within one pass left 73 keys in a cache
+    /// configured with 64, and under heavier oversubscription 213.</para>
+    /// <para>The release must be a full barrier (<see cref="Interlocked.Exchange(ref int,int)"/>, not
+    /// <c>Volatile.Write</c>): a racer's <c>Interlocked.Increment</c> of <see cref="_count"/> happens-before its
+    /// failed <c>CompareExchange</c> on <see cref="_evicting"/>; that failed RMW and this release are RMW/atomic
+    /// operations on the SAME location and so are totally ordered, and the CAS failed only because the flag was still
+    /// ours, so it precedes this release. A release-store followed by an acquire-load still permits StoreLoad
+    /// reordering — the one reordering that would let the loop's re-read miss that increment — and a full barrier is
+    /// what forbids it.</para></summary>
     private void Evict()
     {
-        if (Interlocked.CompareExchange(ref _evicting, 1, 0) != 0) return;
-        try
+        while (Volatile.Read(ref _count) > Config.MaxEntries)
         {
-            int max = Config.MaxEntries;
-            int keep = Math.Max(0, max - (int)Math.Ceiling(max * Config.EvictionFraction));
-            int toRemove = Count - keep;
-            if (toRemove <= 0) return;
-            // Parallel arrays — the stamps sort with the primitive comparer (no delegate per comparison) and carry
-            // the entries along.
-            var entries = new List<KeyValuePair<string, CacheEntry>>(Count + 16);
-            foreach (var kv in _map) entries.Add(kv);
-            var stamps = new long[entries.Count];
-            bool lru = Config.Eviction == CacheEvictionStrategy.LeastRecentlyUsed;
-            for (int i = 0; i < stamps.Length; i++) stamps[i] = lru ? entries[i].Value.LastAccess : entries[i].Value.CreatedAt;
-            var items = entries.ToArray();
-            Array.Sort(stamps, items);
-            var collection = (ICollection<KeyValuePair<string, CacheEntry>>)_map;
-            long evicted = 0;
-            for (int i = 0; i < toRemove && i < items.Length; i++)
-                if (collection.Remove(items[i])) evicted++;   // remove only the exact entry (a text re-inserted meanwhile keeps its new entry)
-            Interlocked.Add(ref _evictions, evicted);
-            Interlocked.Add(ref _count, (int)-evicted);
+            if (Interlocked.CompareExchange(ref _evicting, 1, 0) != 0) return;   // another thread owns the job, and re-checks
+            long evicted;
+            try
+            {
+                evicted = EvictOneBatch();
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _evicting, 0);
+            }
+            if (evicted == 0) return;   // no progress (the map holds fewer than the counter claims): do not spin
         }
-        finally
-        {
-            Volatile.Write(ref _evicting, 0);
-        }
+    }
+
+    /// <summary>One eviction batch: the entries are gathered by enumerating the dictionary (lock-free — never
+    /// <c>ToArray</c>/<c>Count</c>, which take every bucket lock), sorted by their stamp (last access for LRU,
+    /// creation for size-based) and the oldest removed, down to (1 − <see cref="CacheConfig.EvictionFraction"/>) of
+    /// the maximum. O(n log n) per batch, amortized over a quarter of the capacity's worth of inserts (~150 ns per
+    /// miss at 1,024 entries). Returns how many entries it removed.</summary>
+    private long EvictOneBatch()
+    {
+        int max = Config.MaxEntries;
+        int keep = Math.Max(0, max - (int)Math.Ceiling(max * Config.EvictionFraction));
+        int toRemove = Count - keep;
+        if (toRemove <= 0) return 0;
+        // Parallel arrays — the stamps sort with the primitive comparer (no delegate per comparison) and carry
+        // the entries along.
+        var entries = new List<KeyValuePair<string, CacheEntry>>(Count + 16);
+        foreach (var kv in _map) entries.Add(kv);
+        var stamps = new long[entries.Count];
+        bool lru = Config.Eviction == CacheEvictionStrategy.LeastRecentlyUsed;
+        for (int i = 0; i < stamps.Length; i++) stamps[i] = lru ? entries[i].Value.LastAccess : entries[i].Value.CreatedAt;
+        var items = entries.ToArray();
+        Array.Sort(stamps, items);
+        var collection = (ICollection<KeyValuePair<string, CacheEntry>>)_map;
+        long evicted = 0;
+        for (int i = 0; i < toRemove && i < items.Length; i++)
+            if (collection.Remove(items[i])) evicted++;   // remove only the exact entry (a text re-inserted meanwhile keeps its new entry)
+        Interlocked.Add(ref _evictions, evicted);
+        Interlocked.Add(ref _count, (int)-evicted);
+        return evicted;
     }
 
     public override string ToString() => $"CollationKeyCache({Collator.Table.Name}/{Collator.Strength}): {Count} keys, {Hits} hits, {Misses} misses, {Evictions} evictions";

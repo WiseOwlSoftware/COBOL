@@ -40,7 +40,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   drafts (61 CONFORMS-untested rows), then its validator and lander; ⑤ the ledger refresh after each. Owner-decision
   queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts).
   The CI flake `Collation.CollationKeyCacheTests.ConcurrentCallers_GetOneKeyPerText_AndNeverAWrongOne` (3 of 8
-  Linux unit runs, A12 shape) is registered as `PB377` with an implementer in flight since 2026-09-03; lane 3
+  Linux unit runs, A12 shape) is `PB377`, LANDED 2026-09-03 — `MaxEntries` was not a bound (a try-once eviction
+  pass dropped concurrent overflows; the red was the size assertion, never the wrong-key one), with `PB380` opened
+  for the sibling one-shot in `CollationRuntime.Initialize` (reachability unmeasured); lane 3
   batch 2 (adjudicate-then-refute) and golden-lane round 2 (`misc-p1`) resumed from their on-disk checkpoints
   the same morning.
 - **▶ SESSION HANDOFF (2026-09-02 afternoon — superseded by the evening bullet above):** the

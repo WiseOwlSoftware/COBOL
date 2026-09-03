@@ -12,9 +12,9 @@ namespace CobolNet.Tests.Unit.Collation;
 /// The collation key cache (Runtime/Collation/Cache/, kb/Work PB106): a cached key IS the collator's key (same
 /// object on a hit, equal order always); the counters count; LRU keeps the recently used and evicts the rest,
 /// size-based (FIFO) evicts the oldest; a disabled cache is a pass-through; over-long texts are built but not stored;
-/// concurrent callers get one key per text; the per-collator instances stay apart; and the consumers that compare the
-/// same values many times — SORT/MERGE key columns and the LOCALE key sequence — go through it and order exactly as
-/// the streaming comparison does.
+/// concurrent callers get one key per text and the maximum is a real bound once they stop (kb/Work PB377); the
+/// per-collator instances stay apart; and the consumers that compare the same values many times — SORT/MERGE key
+/// columns and the LOCALE key sequence — go through it and order exactly as the streaming comparison does.
 /// </summary>
 [Collection("process-globals")]   // kb/Work PB126: mutates COBOL_COLLATION_CACHE (restored in a finally) and
                                   // identity-asserts the engine's shared key caches (CollationEngine.GetKey /
@@ -153,6 +153,53 @@ public sealed class CollationKeyCacheTests
         // … and while an entry lives, every caller sees the same instance.
         var e = cache.Entries.FirstOrDefault();
         if (e is not null) Assert.Same(e.Key, cache.GetKey(e.Text));
+    }
+
+    [Fact]
+    public void TheMaximum_IsABound_OnceTheCallersStop_HoweverTheyRaced()
+    {
+        // kb/Work PB377. MaxEntries is a QUIESCENCE bound: while callers are inserting the count rides above it
+        // (an insert has to push it over before anything evicts, and a batch counts its removals once at the end),
+        // but when the last caller has returned the cache must be back within it.
+        //
+        // It was not. The thread inside an eviction pass took its removal budget as a SNAPSHOT, and every caller
+        // that overflowed while it held the flag found the flag taken, went on, and left no trace of itself
+        // anywhere — so an overflow raised mid-pass was DROPPED, and the cache stayed over its maximum until some
+        // later insert happened to find the flag clear. When the workload ends inside a pass, that insert never
+        // comes. Measured on the pre-fix cache: 1,594 keys in a cache configured with 512, and in the shape the
+        // test above uses, all 90 distinct texts in a cache configured with 64 — which is the Linux-only red that
+        // `Count <= 64` reported on 3 of 8 CI runs and that a re-run always hid.
+        //
+        // The callers here all stop on ONE flag, so they leave together and the round has a real chance of ending
+        // while a pass is still in flight — the shape that fails. Against the pre-fix cache this failed 23 of 30
+        // rounds; six rounds put a regression past 99.9% certain to be caught.
+        const int max = 512;
+        int threads = Math.Max(16, Environment.ProcessorCount * 2);
+        string[] texts = [.. Enumerable.Range(0, 1600).Select(i => $"pb377-{i}")];
+        for (int round = 0; round < 6; round++)
+        {
+            var cache = new CollationKeyCache(Collator.Root, new CacheConfig(MaxEntries: max, EvictionFraction: 0.01));
+            int stop = 0;
+            using var start = new ManualResetEventSlim(false);
+            var workers = new Thread[threads];
+            for (int t = 0; t < threads; t++)
+            {
+                int seed = t;
+                workers[t] = new Thread(() =>
+                {
+                    start.Wait();
+                    for (int i = 0; Volatile.Read(ref stop) == 0; i++) cache.GetKey(texts[(i + seed) % texts.Length]);
+                })
+                { IsBackground = true };
+                workers[t].Start();
+            }
+            start.Set();
+            Thread.Sleep(15);
+            Volatile.Write(ref stop, 1);
+            foreach (var w in workers) w.Join();
+            Assert.True(cache.Count <= max, $"round {round}: the cache settled at {cache.Count} keys, over its maximum of {max}");
+            Assert.Equal(cache.Count, cache.Entries.Count);       // and the counter agrees with the map it counts
+        }
     }
 
     [Fact]
