@@ -135,6 +135,15 @@
       "dns": 335,
       "label": "PB280 answered whole: an OPT",
       "battery": null
+    },
+    {
+      "sha": "56878ebf",
+      "date": "2026-09-02",
+      "gap": 3119,
+      "closed": 1192,
+      "dns": 340,
+      "label": "Witness B2: the declined A.4",
+      "battery": null
     }
   ]
 }
