@@ -144,6 +144,15 @@
       "dns": 340,
       "label": "Witness B2: the declined A.4",
       "battery": null
+    },
+    {
+      "sha": "4cbb8f3c",
+      "date": "2026-09-03",
+      "gap": 3106,
+      "closed": 1205,
+      "dns": 346,
+      "label": "PB371 + PB375: two owner dec",
+      "battery": null
     }
   ]
 }
