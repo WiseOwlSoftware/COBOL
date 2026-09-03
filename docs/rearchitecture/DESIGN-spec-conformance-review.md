@@ -171,9 +171,17 @@ checklist before** any fleet; the fleet is **~40 agents** (four lenses, two refu
 per cluster**; implementer agents receive the apply-ready contract, not a discovery brief, with a turn budget.
 Refute stages on anything that CLOSES a row are never dropped (§9).
 
-Two mechanical enablers, each its own change set: the A13 collection split (`VersionMatrixTests` runs 780 s on one
-thread, so a battery is ~15 min where ~4 is available), and the pinned-worktree convention that lets the
-adjudication lane read while the fix lane builds.
+Two mechanical enablers, each its own change set: the A13 collection split (landed 2026-09-02 as partitions — the
+Conformance leg fell 721 → 600 s, not the ~10× predicted, because the box saturates at 24 physical cores; the next
+lever is a persistent compile host), and the pinned-worktree convention that lets the adjudication lane read while the
+fix lane builds.
+
+**⛔ How every lane is RUN is the owner's standing instruction of 2026-09-02, and its operational SSOT is the
+`workstream` skill (`.claude/skills/workstream/SKILL.md`, with the brief and workflow templates):** checkpoint to disk
+(WIP commits + `STATUS.md` per worktree; one JSON line per rule per workflow stage), replace a killed agent with a
+fresh one reading the checkpoint, keep to the concurrency budget (one lander + ≤3 implementers + one four-wide
+read-only chunk), land finished work first with one lander on main at a time, allocate ids centrally. The fleet
+sizing above is a consequence of that budget, not a separate rule.
 
 ## 6. Governance / relationship to existing artifacts
 

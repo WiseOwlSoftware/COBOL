@@ -70,3 +70,10 @@ Findings become tracked work, never prose that evaporates.
   Read the verdict line, then commit as a separate step.
 - **Honest reporting.** Log missteps, dead ends and friction in the DEVLOG. Never write "verified" or "complete"
   without the evidence in hand. A "flake" verdict requires a named test and a clean re-run of that test.
+- **Token-frugal, restart-safe workstreams (owner standing instruction, 2026-09-02).** Every fleet, lander,
+  implementer and adjudication workflow runs so that a session-limit kill costs at most one step and a restart never
+  repeats work: checkpoint to DISK (WIP commits + `STATUS.md` per worktree; one JSON line per rule per workflow
+  stage), replace a killed agent with a FRESH one reading the checkpoint (never resume a long transcript), keep to the
+  concurrency budget (1 lander + ≤3 implementers + one 4-wide read-only chunk), land finished work first with one
+  lander on main at a time, and allocate ids centrally. The operational SSOT and the brief/workflow templates are the
+  `workstream` skill (`.claude/skills/workstream/`) — invoke it before dispatching anything.
