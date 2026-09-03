@@ -1961,8 +1961,13 @@ result. Run the long legs ONE AT A TIME.
   (a definition-header cites a clause that is not its construct's) — baseline **ZERO findings** over 2633
   files, `--self-test` PASS (five firing legs, five silent twins). Wired into `scripts/build-local.{sh,ps1}`
   before the build and `scripts/battery.sh` PHASE -1; deliberately NOT in CI, where `submodules: false`
-  makes the spec absent and PHANTOM would SKIP. `python scripts/spec/audit_doc_citations.py` — 192 checked,
-  147 correct, **6 MISFILED is the recorded baseline and must not increase**.
+  makes the spec absent and PHANTOM would SKIP. **Its sibling `python scripts/spec/audit_doc_citations.py
+  --check` (a QUOTED fragment vs the clause it is filed under) now sits in the same three seats and at the
+  same baseline — 236 citations checked, 193 correct, ZERO MISFILED, `--self-test` PASS (nine legs).** It ran
+  in no gate until 2026-09-03 and was reporting six misfilings nobody owned; adjudicating them (kb/Work PB379)
+  found ONE inherited clause number and five sites the audit could not READ, because a citation is written in
+  more than one order here and it knew only `§ … "quote"`. It now reads the POSTFIX order too (`"quote" §N`),
+  which both removed the false positives and put ~15 previously-unchecked citations under the rule.
   **`EditionContext.Declined(descriptor, seen)` is THE declined-element seam, and it is the ONLY one** — THREE
   implementers cut from one base each built one, and the A.4.2 wave's `Report(descriptor, message)` and
   witness B2's `Removed(descriptor, message)` were both folded into it at their landings. Its SEVERITY picks

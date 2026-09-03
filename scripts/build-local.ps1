@@ -13,10 +13,13 @@ $ErrorActionPreference = 'Continue'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 $Filter = [regex]::Replace($Filter, '(^|[|&(])(!=|=|~)', '$1FullyQualifiedName$2')
 $rc = 0
-# ⛔ THE CITATION AUDIT RUNS FIRST, BEFORE THE BUILD — see the note in build-local.sh: a wrong § is the one
-# defect class no test can catch, the check costs a second, and its baseline is zero.
+# ⛔ THE CITATION AUDITS RUN FIRST, BEFORE THE BUILD — see the note in build-local.sh: a wrong § is the one
+# defect class no test can catch, the checks cost a second, and both baselines are zero. Two of them: clause vs
+# the CONSTRUCT the comment names, and a QUOTED fragment vs the clause it is filed under (kb/Work PB379).
 python scripts/spec/audit_code_citations.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== CITATIONS: RED (see above) ==='; $rc = 1 }
+python scripts/spec/audit_doc_citations.py --check
+if ($LASTEXITCODE -ne 0) { Write-Host '=== DOC CITATIONS: RED (see above) ==='; $rc = 1 }
 dotnet build CobolSharp.sln -v quiet
 if ($LASTEXITCODE -ne 0) { Write-Host '=== WAVE-LOCAL GATE: BUILD FAILED ==='; exit 1 }
 function Leg([string]$name, [string[]]$testArgs) {

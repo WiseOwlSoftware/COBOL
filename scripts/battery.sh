@@ -32,16 +32,26 @@ T0=$(date +%s); el() { echo "[+$(( $(date +%s) - T0 ))s] $*"; }
 RC=0; SUMMARY="$OUT/summary.txt"; : > "$SUMMARY"
 note() { echo "$1" | tee -a "$SUMMARY"; }
 
-# ⛔ PHASE -1: THE STATIC CITATION AUDIT. It takes a second, it needs no build, and it is the only gate that can
-# see a WRONG CLAUSE NUMBER — the defect CLAUDE.md rule 1 exists for, which no test can ever fail on
-# (`// MOVE (§14.9.24)` compiles perfectly; §14.9.24 is MERGE). Baseline is ZERO findings; `--self-test` proves
-# each of its three checks still fails on a real defect. It needs `specs/ISO_COBOL.md` for the phantom check and
-# announces a SKIP loudly if the private submodule is absent, so a green here is never green-by-absence.
-el "=== PHASE -1: citation audit (static, no build) ==="
+# ⛔ PHASE -1: THE STATIC CITATION AUDITS. They take a second, they need no build, and they are the only gate
+# that can see a WRONG CLAUSE NUMBER — the defect CLAUDE.md rule 1 exists for, which no test can ever fail on
+# (`// MOVE (§14.9.24)` compiles perfectly; §14.9.24 is MERGE). Baseline is ZERO findings for BOTH; each has a
+# `--self-test` proving its checks still fail on a real defect. They need `specs/ISO_COBOL.md` for the phantom
+# check and announce a SKIP loudly if the private submodule is absent, so a green is never green-by-absence.
+#
+# ⛔ AND THERE ARE TWO OF THEM, BECAUSE ONE OF THEM RAN FOR MONTHS WITH NOBODY READING IT. `audit_code_citations`
+# (clause vs CONSTRUCT) sat in this leg while its sibling `audit_doc_citations` (quoted fragment vs the clause it
+# is filed under) sat in no gate at all — and at the battery #42 close it reported SIX misfiled citations in
+# tracked files, two of them in `src/`, that no note owned (kb/Work PB379). Same rule 1, same second of runtime,
+# same log, same red: an audit nobody runs is a checker that has never contradicted anything.
+el "=== PHASE -1: citation audits (static, no build) ==="
 python3 scripts/spec/audit_code_citations.py --check > "$OUT/citations.log" 2>&1
 CIT=$?
 note "$(printf '%-16s %s' 'citations:' "$(grep -E '^(⛔|[0-9]+ files)' "$OUT/citations.log" | tail -1)")"
 [ "$CIT" -eq 0 ] || { note "citations:       ⛔ findings — see $OUT/citations.log"; RC=1; }
+python3 scripts/spec/audit_doc_citations.py --check >> "$OUT/citations.log" 2>&1
+DOCCIT=$?
+note "$(printf '%-16s %s' 'doc citations:' "$(grep -E '^⛔ [0-9]+ MISFILED' "$OUT/citations.log" | tail -1)")"
+[ "$DOCCIT" -eq 0 ] || { note "doc citations:   ⛔ misfiled — see $OUT/citations.log"; RC=1; }
 
 el "=== PHASE 0: build the solution (once) ==="
 if ! dotnet build CobolSharp.sln -v quiet > "$OUT/build.log" 2>&1; then

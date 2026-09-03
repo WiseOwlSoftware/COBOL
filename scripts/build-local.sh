@@ -15,12 +15,15 @@ if [ -z "$F" ]; then echo "usage: $0 \"<conformance filter, e.g. ~Area|~Other>\"
 cd "$(dirname "$0")/.."
 F="$(printf '%s' "$F" | sed -E 's/(^|[|&(])(!=|=|~)/\1FullyQualifiedName\2/g')"
 RC=0
-# ⛔ THE CITATION AUDIT RUNS FIRST, BEFORE THE BUILD — it is a second and costs nothing, and a wrong § is the
+# ⛔ THE CITATION AUDITS RUN FIRST, BEFORE THE BUILD — they are a second and cost nothing, and a wrong § is the
 # one defect class no test can ever catch (CLAUDE.md rule 1: the failure mode is INHERITING a clause number).
-# It gates on three checks with a proven-zero baseline; `--self-test` proves each one still fails on a real
-# defect. It needs `specs/ISO_COBOL.md` for the phantom check and says so loudly when the submodule is absent —
-# which is why it lives HERE and in battery.sh, and not in CI, where the checkout is `submodules: false`.
+# `audit_code_citations` gates on three checks (clause vs the CONSTRUCT the comment is about) and
+# `audit_doc_citations` on one (a QUOTED fragment vs the clause it is filed under); both have a proven-zero
+# baseline and a `--self-test` proving each check still fails on a real defect. They need `specs/ISO_COBOL.md`
+# for the phantom check and say so loudly when the submodule is absent — which is why they live HERE and in
+# battery.sh, and not in CI, where the checkout is `submodules: false`.
 python scripts/spec/audit_code_citations.py --check || { echo "=== CITATIONS: RED (see above) ==="; RC=1; }
+python scripts/spec/audit_doc_citations.py --check || { echo "=== DOC CITATIONS: RED (see above) ==="; RC=1; }
 dotnet build CobolSharp.sln -v quiet || { echo "=== WAVE-LOCAL GATE: BUILD FAILED ==="; exit 1; }
 leg() {   # leg <name> <dotnet test args…> — the verdict is the Passed!/Failed! line; none = the filter matched nothing = RED
     local name="$1"; shift

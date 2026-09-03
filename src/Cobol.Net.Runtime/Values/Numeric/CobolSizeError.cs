@@ -13,7 +13,9 @@ namespace CobolNet.Runtime;
 /// <list type="bullet">
 ///   <item>inside an arithmetic statement's checked shape — an ON SIZE ERROR phrase or EC-SIZE checking — the
 ///         statement's own <c>try/catch (CobolSizeError)</c> takes it: the phrase runs, or the EC-SIZE handling
-///         sets the status and dispatches (§14.7.5 "if the SIZE ERROR phrase is specified" / no-phrase rules 1–5);</item>
+///         sets the status and dispatches — the split being on the phrase itself:
+///         §14.7.5 rules 1–3 when "the size error condition exists and the SIZE ERROR phrase is specified", its
+///         no-phrase rules 1–5 when it is not;</item>
 ///   <item>ESCAPING — from a condition, a DISPLAY / function argument, a subscript, an INVOKE argument, or a
 ///         no-phrase arithmetic statement whose checking is off — it IS the fatal exception condition §14.7.5's
 ///         no-phrase rules name (EC-SIZE-OVERFLOW / -ZERO-DIVIDE / -EXPONENTIATION / -TRUNCATION, "processing

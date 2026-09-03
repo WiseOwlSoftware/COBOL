@@ -349,9 +349,10 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor CommitRollbackContext = new(
         "COBOLNET1690", "commit-rollback-context", EditionSeverity.Error,
         "A COMMIT or ROLLBACK statement in a context its syntax rules ban: \"This statement shall not be "
-        + "specified in a recursive source element\" (ISO §14.9.7.3 SR1 / §14.9.36.3 SR1 — a function or "
-        + "method is always recursive, §8.6.6) and \"shall not be specified in the input or output procedure "
-        + "of a MERGE or file SORT statement\" (SR2 of both).",
+        + "specified in a recursive source element\" (ISO §14.9.7.3 SR1 / §14.9.36.3 SR1 — and a function or a "
+        + "method always is one, ISO §8.6.6), and ISO §14.9.7.3 SR2 — \"shall not be specified in the input or "
+        + "output procedure of a MERGE or file SORT statement\"; ISO §14.9.36.3 SR2 states the same rule for "
+        + "ROLLBACK, with SORT unqualified.",
         "ISO §14.9.7.3 / §14.9.36.3");
     public static readonly DiagnosticDescriptor AcceptVariableLengthGroup = new(
         "COBOLNET1691", "accept-variable-length-group", EditionSeverity.Error,
