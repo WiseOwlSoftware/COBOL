@@ -24,7 +24,25 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-09-02 evening — THE live resume point; paused on owner instruction to reserve quota):**
+- **▶ THIRD PAUSE (2026-09-03 13:15 PDT — THE live resume point; owner: "approaching the weekly limit, finish up
+  and save context"):** the resumed day landed battery #42 (`ac2dadb8`, the CURRENT reference under "Gates"; PB378
+  fixed the citation corpus population), PB377 (`6ffdb5a8`, the collation cache's missing bound), PB379
+  (`d531e358`, the doc-citation audit reads both citation orders and is seated in the battery), PB371 + PB375
+  (`4cbb8f3c`, GAP 3119 → 3106) and golden-lane round 2 (`0fa1fe9e`, 49 witnesses, GAP → **3054**); CI green
+  through `b22d3b07`. ⛔ Run the probe; the worklist is `kb/Work/`, never this paragraph. **Owed on resume, in this
+  order (the orchestrator's memory `burndown-campaign-pause-2026-09-02` carries the exact paths and args):**
+  ① lane-3 batch 2 — all 20 subjects adjudicated, refute checkpoints on disk for 16 of 20 (set-p3/p4/p5 and
+  subtract were mid-chunk at the stop); resume the refute workflow with the same args and an empty
+  `adjudicateFirst`, then registrar b2 from its brief (ids PB387+); ② batch 3 (17 inputs ready) on a FRESH pin
+  cut from current main and built when no fleet is live (the fleet guard refuses a build while one runs);
+  ③ owner question **`PB386`** — a rule with no observable obligation (Annex A.2 undefinedness, an unpopulatable
+  antecedent, an indistinguishable consequent) has no closure path; may a CHECKABLE owner-signed derivation stand
+  in place of a test for exactly that class? — ask as the bare question, with `PB280` Q2's "No" as the precedent
+  it must be distinguished from; ④ `PB383` (BOOLEAN-OF-INTEGER returns "0" where a zero-length value is
+  documented — wrong answer) into the fix lane, `PB380` (reachability probe) and `PB382` (the reserved-word
+  funnel's recovery arm) behind it; ⑤ the ledger refresh after each landing. Owner-decision queue: `PB386` and
+  the `USAGE POINTER TO type-name` edition item (`A1`).
+- **▶ SESSION HANDOFF (2026-09-02 evening — superseded by the third-pause bullet above):**
   the two-lane campaign's first day ended with **GAP 3636 → 3119**, DOCUMENTED-NON-SUPPORT 36 → 340, twenty landings
   on main and **CI green on `56878ebf`** after a one-test regression from the screen-witness landing (a DISPLAY
   predicate guarding a mandatory first operand) was fixed in the last landing; the register holds 110 actionable
