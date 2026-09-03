@@ -426,7 +426,16 @@ BYTE-LENGTH 2; MOVE to bit / display / shorter receivers; MOVE into the group di
 `B-OR`; a nested bit group; the group-level USAGE BIT leaves; a bit group sharing a byte inside an alphanumeric
 group), negatives `pb79-group-usage-explicit-usage` / `-not-a-group` / `-subordinate-conflict` (1653) and `-85`
 (0900). Found on the way and fixed with it: **PB95** — `[USAGE IS]` is optional for EVERY usage (§13.18.60.2);
-`usageClause` is one `(USAGE IS?)? usageKeyword` alternative (`2023/pb95_bare_usage_keywords`).
+`usageClause` is one `(USAGE IS?)? usageKeyword` alternative (`2023/pb95_bare_usage_keywords`), with the clause's
+optional TAILS as siblings of the keyword rather than inside it — `binarySign? noSignPhrase? floatFormatPhrase*`.
+That placement is load-bearing, not cosmetic: `DataBinder.UsageKeyword` derives the canonical keyword from the
+`usageKeyword` node's text, so a tail written INSIDE it glues (`"FLOAT-BINARY-32HIGH-ORDER-LEFT"`) and lands on
+`PictureAnalyzer.ParseUsage`'s internal-error arm — the failure bare `BINARY-CHAR SIGNED` produced historically.
+**PB174** added `floatFormatPhrase*` for §13.18.60.2's per-item `endianness-phrase` / `encoding-phrase`; each is
+grammatically tolerated after any keyword and narrowed by the binder (COBOLNET1716/1706/1707), the same
+parse-wide/bind-narrow posture `noSignPhrase` established. `UsageFloatFormatPhraseDriftTests` reads the keyword
+inventory out of the `.g4` and fails when a usage is added without deciding which tails the printed diagram
+gives it.
 
 ### D21. Floating-point numeric-edited data (the PICTURE symbol E — §13.18.40.4 GR13 b): a numeric-EDITED item whose value channel is EXACT DECIMAL (`CobolDec`), stored as its character image; the form dispatch lives in the four existing edited-store / edited-read choke points. (kb/Work PB66; adopts `docs/rearchitecture/pb66-extfloat-design-draft-2026-08-09.md`, re-derived 2026-08-18.)
 

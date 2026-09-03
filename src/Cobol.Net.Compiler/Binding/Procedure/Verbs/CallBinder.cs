@@ -357,6 +357,27 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
                         $"CALL … AS NESTED argument {i + 1} ('{ap.Item.CobolName}') does not conform to formal "
                         + $"parameter '{f.Item.CobolName}': {why} (ISO §14.8.2)");
+
+                // §14.8.2.3.2, last sentence of the class-pointer rule: "If either is a restricted pointer, both
+                // shall be restricted and of the same type." The file already consulted StrongTypeModel for
+                // §14.9.4.3 SR10 above, so the model was in hand and only this clause of the same conformance
+                // regime was missing (kb/Work PB153).
+                // ⛔ SCOPED DELIBERATELY TO THE AS-NESTED LOOP, i.e. to operands WITHIN ONE SOURCE ELEMENT.
+                // StrongTypeModel's type equivalence is name-based within an element and explicitly DEFERS
+                // cross-program EXTERNAL equivalence, so applying this to a separately-compiled callee would
+                // over-reject on the deferred axis — rejecting legal source, the worse failure.
+                if (arg.Mode is CobolPassMode.Reference && arg.Place is { } restrictedArg)
+                {
+                    string? argR = StrongTypeModel.PointerRestriction(restrictedArg.Item);
+                    string? formalR = StrongTypeModel.PointerRestriction(f.Item);
+                    if ((argR is not null || formalR is not null) && !StrongTypeModel.SameRestriction(argR, formalR))
+                        ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
+                            $"CALL … AS NESTED argument {i + 1} ('{restrictedArg.Item.CobolName}') and formal parameter "
+                            + $"'{f.Item.CobolName}': one is a RESTRICTED data-pointer and the other is not "
+                            + $"restricted to the same type (argument: {argR ?? "unrestricted"}; formal: "
+                            + $"{formalR ?? "unrestricted"}) — ISO §14.8.2.3.2 requires that if either is a "
+                            + "restricted pointer, both shall be restricted and of the same type");
+                }
             }
         }
 

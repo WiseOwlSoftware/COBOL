@@ -158,6 +158,29 @@ public enum Usage
     BinaryDouble,
 }
 
+/// <summary>The two usage FAMILIES the standard names as terms and then legislates over by name — ISO §3.166
+/// "standard binary floating-point usages: usages float-binary-32, float-binary-64, and float-binary-128" and
+/// §3.167 "standard decimal floating-point usages: usages float-decimal-16 and float-decimal-34". Written down
+/// ONCE: at least four rules key on these exact sets (§13.18.60.4 GR19c/GR19d/GR20, §11.9.8.3 SR1-SR3, §11.9.9.3
+/// SR1-SR6, §15.x's standard-decimal-arithmetic argument rules), and the alternative is the same or-chain spelled
+/// out at each of them — where the NEXT member of a family (a future float-binary-256, say) would be added to some
+/// and missed at others. kb/Work PB174.</summary>
+public static class UsageFamilies
+{
+    /// <summary>ISO §3.166 — the standard BINARY floating-point usages.</summary>
+    public static bool IsStandardBinaryFloat(Usage u) =>
+        u is Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128;
+
+    /// <summary>ISO §3.167 — the standard DECIMAL floating-point usages.</summary>
+    public static bool IsStandardDecimalFloat(Usage u) => u is Usage.FloatDecimal16 or Usage.FloatDecimal34;
+
+    /// <summary>The union — every usage the §13.18.60.2 general format prints an endianness-phrase on (and the
+    /// only usages §13.18.60.4 GR19c/d give an implied phrase). The implementor-defined float usages
+    /// (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) are deliberately OUTSIDE it: GR13/GR21 leave their
+    /// representation to the implementor, and COBOL.NET pins them big-endian (Annex A.1 item 48).</summary>
+    public static bool IsStandardFloat(Usage u) => IsStandardBinaryFloat(u) || IsStandardDecimalFloat(u);
+}
+
 /// <summary>
 /// The analyzed PICTURE + USAGE of an elementary item: its category, the numeric profile (digit count, decimal
 /// scale, sign) and the .NET type COBOL.NET represents it with. This is pure spec analysis — no byte storage.
@@ -186,6 +209,17 @@ public sealed record PicInfo(
     /// </summary>
     public string SignKind { get; init; } = "TrailingOverpunch";
 
+    /// <summary>The <c>type-name-1</c> of a RESTRICTED data-pointer — <c>USAGE POINTER TO type-name-1</c>
+    /// (ISO §13.18.60.2 general format; §13.18.60.4 GR23). Null for an ordinary data-pointer and for every
+    /// non-pointer item. It is the guarantee Annex D.9.2.2 describes: "a restricted data-pointer … shall contain
+    /// only the predefined address NULL or the address of a data item of the specified type", enforced by the
+    /// ALLOCATE / SET ADDRESS OF / CALL screens (§14.9.3.3 SR4/SR5, §14.9.39.3 SR19/SR20, §14.8.2.3.2).
+    /// <para>The OTHER source of a restriction carries no PicInfo at all: Annex D.9.2.2 item 2 and its normative
+    /// §8.4.3.11.4 GR2 make <c>ADDRESS OF identifier-1</c> a restricted data-pointer whenever identifier-1 is a
+    /// strongly-typed group item or another restricted data-pointer — see
+    /// <c>StrongTypeModel.AddressOfRestriction</c>. kb/Work PB153.</para></summary>
+    public string? RestrictedTypeName { get; init; }
+
     /// <summary>USAGE PACKED-DECIMAL WITH NO SIGN (ISO/IEC 1989:2023 §13.18.60.4 GR11, a 2023 addition): the item
     /// reserves NO trailing sign nibble, so its storage is exactly the digit nibbles — <c>ceil(Digits/2)</c> bytes
     /// (vs a plain packed item's <c>Digits/2+1</c>). The VALUE semantics are identical to an unsigned (S-less)
@@ -196,15 +230,22 @@ public sealed record PicInfo(
 
     /// <summary>The effective FLOAT-BINARY endianness of a STANDARD binary floating-point item (USAGE
     /// FLOAT-BINARY-32/-64): <c>true</c> = HIGH-ORDER-RIGHT, the item's IEEE interchange bytes are
-    /// LITTLE-endian (ISO §13.18.60.4 GR19b). Derived ONCE, in <see cref="FloatItem"/>, from the unit's
-    /// effective OPTIONS FLOAT-BINARY clause (§11.9.8 — the clause supplies the IMPLIED endianness-phrase for
-    /// items that lack their own; §11.9.8.3 SR1 makes the no-clause default the implementor's documented
-    /// choice, ours HIGH-ORDER-LEFT / big-endian, Annex A.1 item 48). Always <c>false</c> for the
-    /// implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, GR13/GR21 — pinned
-    /// big-endian; GR19c scopes the clause to the standard usages). Rides <see cref="ProfileInitializer"/>
-    /// into the runtime's <c>NumProfile.FloatLittleEndian</c>, the one switch the IEEE image lanes read.
-    /// A per-item endianness-phrase on the USAGE clause (§13.18.60.2) would merge HERE when the grammar
-    /// carries it — kb/Work PB174.</summary>
+    /// LITTLE-endian (ISO §13.18.60.4 GR19b). Derived ONCE, in <see cref="FloatItem"/>, from a TWO-LEVEL source
+    /// the standard itself orders: the ITEM's own endianness-phrase on its USAGE clause (§13.18.60.2 general
+    /// format) where it wrote one, else the unit's effective OPTIONS FLOAT-BINARY clause (§11.9.8), whose phrase
+    /// is implied only "for … any data item described with a standard binary floating-point usage in which an
+    /// endianness-phrase is not specified" (§11.9.8.3 SR2/SR3 — so the per-item phrase wins by the implying
+    /// clause's own wording, not by preference); §11.9.8.3 SR1 makes the no-clause default the implementor's
+    /// documented choice, ours HIGH-ORDER-LEFT / big-endian, Annex A.1 item 48. <c>DataBinder</c> performs that
+    /// merge at the single call site and screens the phrase's applicability (COBOLNET1716/1706/1707). Always
+    /// <c>false</c> for the implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED,
+    /// GR13/GR21 — pinned big-endian; GR19c scopes the clause AND the phrase to the standard usages). Rides
+    /// <see cref="ProfileInitializer"/> into the runtime's <c>NumProfile.FloatLittleEndian</c>, the one switch the
+    /// IEEE image lanes read — so §14.9.25.4 GR6 item 2c ("When the usage specifications of the receiving data
+    /// item differ from those of the sending operand only in endianness specifications, the data … is transferred
+    /// … in the endianness of the receiving operand, but without any other change") is satisfied structurally by
+    /// the typed-native model: the value lives as a native float and only its IMAGE is byte-ordered, so the MOVE
+    /// is a value copy that lands in the receiver's own order for free.</summary>
     public bool FloatLittleEndian { get; init; }
 
     /// <summary>The COBOL-2002 introduction gate (a <c>Constructs.*</c> id) this item's PICTURE carries as a
@@ -310,9 +351,17 @@ public sealed record PicInfo(
         { ObjectClassName = className };
 
     /// <summary>A USAGE POINTER item's representation (Phase-4b; PICTURE-less per §13.18.60 — the IndexItem
-    /// synthesis pattern). Occupies NO character positions (never part of a group's §13.18.60 GR4 image).</summary>
-    public static PicInfo PointerItem { get; } =
-        new(PicCategory.Pointer, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false);
+    /// synthesis pattern). Occupies NO character positions (never part of a group's §13.18.60 GR4 image).
+    /// <para><paramref name="restrictedTypeName"/> is the <c>TO type-name-1</c> of the RESTRICTED data-pointer
+    /// form (§13.18.60.2 general format; §13.18.60.4 GR23 — "If type-name-1 is specified, this data item is a
+    /// restricted data-pointer. A restricted data-pointer shall contain only the predefined address NULL or the
+    /// address of a data item of the specified type."). Null = an ordinary, unrestricted data-pointer. It is a
+    /// type NAME rather than a resolved <see cref="DataItem"/> because a restriction is to a TYPE, not to a
+    /// member position, and because the naming entry may be bound before the type declaration it references
+    /// (the TYPE-clause forward-reference discipline). kb/Work PB153.</para></summary>
+    public static PicInfo PointerItem(string? restrictedTypeName = null) =>
+        new(PicCategory.Pointer, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false)
+        { RestrictedTypeName = restrictedTypeName };
 
     /// <summary>A USAGE PROGRAM-POINTER item's representation (P10 Step 7; PICTURE-less per §13.16.3 SR8 —
     /// the PointerItem synthesis pattern). Occupies NO character positions (§13.18.60 GR24 leaves alignment/
@@ -576,11 +625,15 @@ public sealed record PicInfo(
     /// GR13 — "signed numeric data items"); <c>Digits</c>/<c>Scale</c> are inert (no PICTURE truncation, and the
     /// §14.7 composite-digit rule excludes float operands). The value lives in a native <c>float</c>/<c>double</c>
     /// field (D16), not the scaled-integer substrate; <c>IsWide</c> stays false (it already guards <c>!IsFloat</c>).
-    /// <para><paramref name="floatBinaryEndianness"/> is the unit's effective OPTIONS FLOAT-BINARY model
-    /// (§11.9.8): THE ONE application of the implied-endianness-phrase rule — HIGH-ORDER-RIGHT flips
+    /// <para><paramref name="floatBinaryEndianness"/> is the item's EFFECTIVE endianness — its own
+    /// endianness-phrase (§13.18.60.2) where it wrote one, else the unit's OPTIONS FLOAT-BINARY model (§11.9.8),
+    /// merged by <c>DataBinder</c> at the single call site per §11.9.8.3 SR2/SR3 ("in which an endianness-phrase
+    /// is not specified"). THIS is the one application of GR19a/b: HIGH-ORDER-RIGHT flips
     /// <see cref="FloatLittleEndian"/> for the STANDARD binary float usages only (§13.18.60.4 GR19b/GR19c);
     /// <see cref="FloatEndianness.Unspecified"/>/HIGH-ORDER-LEFT and every non-standard float usage stay
-    /// big-endian (§11.9.8.3 SR1 — our documented default; GR13/GR21 — our implementor pin).</para></summary>
+    /// big-endian (§11.9.8.3 SR1 — our documented default; GR13/GR21 — our implementor pin). FLOAT-BINARY-128 is
+    /// in §3.166's family and so ADMITS the phrase, but the usage itself is documented non-support
+    /// (COBOLNET1564) and has no IEEE image lane, so it stays big-endian here too.</para></summary>
     public static PicInfo FloatItem(Usage usage, FloatEndianness floatBinaryEndianness = FloatEndianness.Unspecified) =>
         new(PicCategory.Numeric, usage, Length: 0, Digits: 0, Scale: 0, Signed: true)
         {

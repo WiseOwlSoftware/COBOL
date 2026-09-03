@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -45,6 +46,17 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             var senderRef = sa.dataReference(1);
             if (PtrResolvePointer(senderRef, "the sender of SET ADDRESS OF (ISO §14.9.39 SR17)") is not { } src)
                 return new BoundNop();
+            // §14.9.39.3 SR19, second sentence — the RECEIVER arm: "If data-name-1 is a strongly-typed group item
+            // or a restricted pointer, identifier-6 shall reference a data-pointer restricted to the type of
+            // data-name-1." Here data-name-1 is the BASED receiver and identifier-6 the pointer sender.
+            if ((StrongTypeModel.StrongGroupType(based) ?? StrongTypeModel.PointerRestriction(based)) is { } needed
+                && !StrongTypeModel.SameRestriction(needed, StrongTypeModel.PointerRestriction(src.Item)))
+            {
+                RejectRestriction(senderRef.GetText(),
+                    $"the receiver of SET ADDRESS OF is restricted to type '{needed}', so the sender shall "
+                    + "reference a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
+                return new BoundNop();
+            }
             return new BoundSetAddressOfBased(based, src);
         }
 
@@ -54,8 +66,40 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         if (PtrResolvePointer(targetRef, "the receiver of SET … TO ADDRESS OF (ISO §14.9.39 Format 7)") is not { } tp)
             return new BoundNop();
         if (PtrBindAddressOf(addrRef) is not { } addr) return new BoundNop();
+        // ⛔ THE SECOND ARM, AND IT IS A SEPARATE CODE PATH — the two-arm question asked and answered. §14.9.39.3
+        // SR19's first sentence governs the RECEIVING pointer: "If identifier-5 references a restricted
+        // data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
+        // restricted to the same type." SR20 is its converse: "If identifier-6 references a restricted
+        // data-pointer, either identifier-5 shall reference a data-pointer restricted to the same type or
+        // data-name-1 shall be a typed item of the type to which identifier-6 is restricted." Here identifier-5 is
+        // the pointer receiver and the ADDRESS OF operand supplies identifier-6's restriction (§8.4.3.11.4 GR2).
+        string? receiverRestriction = StrongTypeModel.PointerRestriction(tp.Item);
+        string? sourceRestriction = StrongTypeModel.AddressOfRestriction(addr.Item);
+        if (receiverRestriction is not null && !StrongTypeModel.SameRestriction(receiverRestriction, sourceRestriction))
+        {
+            RejectRestriction(addrRef.GetText(),
+                $"the receiving data-pointer is restricted to type '{receiverRestriction}', so the sender shall "
+                + "be NULL or a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
+            return new BoundNop();
+        }
+        if (sourceRestriction is not null && receiverRestriction is null)
+        {
+            RejectRestriction(targetRef.GetText(),
+                $"ADDRESS OF '{addrRef.GetText()}' is a RESTRICTED data-pointer of type '{sourceRestriction}' "
+                + "(ISO §8.4.3.11.4 GR2 — the operand is a strongly-typed group item or a restricted pointer), so "
+                + "the receiver shall be a data-pointer restricted to the same type (ISO §14.9.39.3 SR20)");
+            return new BoundNop();
+        }
         return new BoundSetPointer([tp], null, ToNull: false, Address: addr);
     }
+
+    /// <summary>Report a restricted-data-pointer type-safety violation. The 0869 pointer band, where PtrBinder
+    /// already reports every other §14.9.39 / §14.9.3 operand rule (SR1, SR2, SR3, SR17, SR18, SR23) — these are
+    /// operand rules of the same statements, so they belong to the same band rather than to new codes.</summary>
+    private void RejectRestriction(string operandText, string what) =>
+        ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape, $"'{operandText}': {what}. Annex D.9.2.2: a restricted data-pointer "
+            + "\"shall contain only the predefined address NULL or the address of a data item of the specified "
+            + "type\"");
 
     /// <summary>Resolve an <c>ADDRESS OF identifier</c> operand (ISO §8.4.3.11): a BASED item's value is its
     /// implicit pointer (§8.6.5); an ordinary record must have been storage-forced onto a cell by the data
@@ -70,7 +114,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     {
         if (ctx.Refs.ResolveForAddressOf(addrRef) is not { } r)
         {
-            ctx.Edition.Error("COBOLNET0869",
+            ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"ADDRESS OF '{addrRef.GetText()}': the operand is unresolvable, reference-modified, or "
                 + "mis-subscripted — ADDRESS OF takes a (possibly qualified/subscripted) data item "
                 + "(ISO §8.4.3.11)");
@@ -85,7 +129,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 || ctx.Data.CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName));
         if (!cellBacked)
         {
-            ctx.Edition.Error("COBOLNET0869",
+            ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"ADDRESS OF '{addrRef.GetText()}': the operand's record could not be placed on addressable "
                 + "cell storage (a national/bit/pointer-class leaf, an OCCURS-resident anchor, or a "
                 + "carrier-resident LINKAGE formal — named increment residue; ISO §8.4.3.11)");
@@ -118,9 +162,21 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // Form 1: ALLOCATE arithmetic-expression CHARACTERS [INITIALIZED] RETURNING pointer.
             if (returning is null)
             {
-                ctx.Edition.Error("COBOLNET0869",
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     "ALLOCATE … CHARACTERS requires the RETURNING phrase (ISO §14.9.3 SR2 — without a based "
                     + "item there is no other way to address the storage)");
+                return new BoundNop();
+            }
+            // §14.9.3.3 SR4, the CHARACTERS arm: "If data-name-2 references a restricted data-pointer,
+            // data-name-1 shall be specified …" — and in Format 1 there IS no data-name-1, so a restricted
+            // RETURNING can never be satisfied here. Screening it in this branch too is what keeps the rule from
+            // being half-enforced: Form 1 and Form 2 are separate code paths.
+            if (StrongTypeModel.PointerRestriction(returning.Item) is { } charsRestriction)
+            {
+                RejectRestriction(drefs[^1].GetText(),
+                    $"the RETURNING data item is a data-pointer restricted to type '{charsRestriction}', which "
+                    + "ALLOCATE … CHARACTERS cannot satisfy — it specifies no data-name-1 to supply that type "
+                    + "(ISO §14.9.3.3 SR4)");
                 return new BoundNop();
             }
             return new BoundAllocate(null, host.Expr.BindExpr(al.arithmeticExpression()), al.INITIALIZED() is not null, returning);
@@ -129,6 +185,44 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // Form 2: ALLOCATE based-item [INITIALIZED] [RETURNING pointer].
         var basedRef = drefs[0];
         if (PtrResolveBased(basedRef) is not { } based) return new BoundNop();
+        // ⛔ §14.9.3.3 SR4 AND SR5 — the restricted-data-pointer type-safety pair, BOTH directions, and neither
+        // existed before kb/Work PB153. Measured on this tree beforehand: `01 T TYPEDEF STRONG. 02 F PIC 9(4).
+        // 01 V TYPE T BASED. 01 P USAGE POINTER. ALLOCATE V RETURNING P.` bound clean, silently defeating the
+        // Annex D.9.2.2 type-safety guarantee this whole model exists to provide.
+        //   SR5: "If both data-name-1 and data-name-2 are specified and data-name-1 references a strongly-typed
+        //         group item, the data item referenced by data-name-2 shall be restricted to the type of
+        //         data-name-1."
+        //   SR4: "If data-name-2 references a restricted data-pointer, data-name-1 shall be specified and shall
+        //         reference a typed data item, and the data item referenced by data-name-2 shall be restricted to
+        //         the type of data-name-1."  — the converse, which catches a restricted RETURNING over an
+        //         untyped or absent based item.
+        if (returning is { } ret)
+        {
+            string? returningRestriction = StrongTypeModel.PointerRestriction(ret.Item);
+            // ⛔ SR4 AND SR5 ASK ABOUT DIFFERENT THINGS, and conflating them rejects legal source. SR5's
+            // antecedent is "data-name-1 references a STRONGLY-TYPED GROUP ITEM"; SR4's is "data-name-2
+            // references a restricted data-pointer", and its requirement on data-name-1 is only that it
+            // "reference a TYPED DATA ITEM" — which a WEAK typedef satisfies. So the two tests take different
+            // type accessors: StrongGroupType for SR5, the plain TYPE anchor for SR4.
+            string? strongType = StrongTypeModel.StrongGroupType(based);
+            string? basedType = StrongTypeModel.TypeAnchor(based)?.TypeName;
+            if (strongType is not null && !StrongTypeModel.SameRestriction(strongType, returningRestriction))
+            {
+                RejectRestriction(drefs[^1].GetText(),
+                    $"'{basedRef.GetText()}' is a strongly-typed group item of type '{strongType}', so the "
+                    + "RETURNING data item shall be a data-pointer restricted to that type (ISO §14.9.3.3 SR5)");
+                return new BoundNop();
+            }
+            if (returningRestriction is not null
+                && !StrongTypeModel.SameRestriction(returningRestriction, basedType))
+            {
+                RejectRestriction(drefs[^1].GetText(),
+                    $"the RETURNING data item is a data-pointer restricted to type '{returningRestriction}', so "
+                    + $"'{basedRef.GetText()}' shall reference a typed data item of that type — it is "
+                    + $"{(basedType is null ? "untyped" : $"of type '{basedType}'")} (ISO §14.9.3.3 SR4)");
+                return new BoundNop();
+            }
+        }
         var alloc = new BoundAllocate(based, null, al.INITIALIZED() is not null, returning);
         if (al.INITIALIZED() is null) return alloc;
         // GR7: "the allocated storage is initialized as if an INITIALIZE data-name-1 WITH FILLER ALL TO VALUE
@@ -191,7 +285,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     private Place? PtrResolvePointer(Core.DataReferenceContext dref, string what)
     {
         if (ctx.Refs.Resolve(dref) is { } p && p.Item.Pic?.Category is PicCategory.Pointer) return p;
-        ctx.Edition.Error("COBOLNET0869",
+        ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
             $"'{dref.GetText()}': {what} shall be a USAGE POINTER data item");
         return null;
     }
@@ -202,7 +296,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         DataItem? item = dref.ChildCount == 1 && ctx.Data.ByName.TryGetValue(dref.GetText(), out var list) && list.Count > 0
             ? list[0] : null;
         if (item is { IsBased: true }) return item;
-        ctx.Edition.Error("COBOLNET0869",
+        ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
             $"'{dref.GetText()}': the operand shall be a BASED level-01/77 item (ISO §14.9.39 SR18 / "
             + "§14.9.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)");
         return null;

@@ -593,12 +593,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (IsPtrOperand(subject) || IsPtrOperand(right))
             {
                 if (op is not ("==" or "!="))
-                    ctx.Edition.Error("COBOLNET0869",
+                    ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                         "a data-pointer relation admits only [NOT] EQUAL (ISO §8.8.4.2.16 — pointers are "
                         + "not ordered)");
                 else if (!(IsPtrOperand(subject) || subject is BoundFigurative { Kind: 'N' })
                          || !(IsPtrOperand(right) || right is BoundFigurative { Kind: 'N' }))
-                    ctx.Edition.Error("COBOLNET0869",
+                    ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                         "both operands of a data-pointer relation shall be a data pointer or NULL "
                         + "(ISO §8.8.4.2.16)");
             }

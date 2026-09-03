@@ -189,6 +189,34 @@ parse-tree arm on the RETRY phrase's recognition (`VisitRetryPhrase` → `Check(
   identical — only the repository-resolved name set separates them — so it fires at bind, on recognition, before
   operand binding.
 
+#### 2.4.1 The post-bind SIBLING passes — what does NOT belong in VersionConformancePass
+
+`VersionConformancePass` owns **edition gating**, and its charter ("the two arms are disjoint: a `Check` for any one
+construct fires from EXACTLY one arm") describes construct edition checks. Two sibling passes run right after it in
+`BinderDriver`, each on an axis orthogonal to editions. Neither is a bolt-on, and the reason is the same both
+times: folding an orthogonal rule into the edition pass silently widens a charter that other decisions depend on.
+
+| Pass | Axis | Severity | Keyed on |
+|---|---|---|---|
+| `FlagConformancePass` | migration flagging (§7.3.14 FLAG-02 / §7.3.15 FLAG-14) | always Warning | the user's `>>FLAG` directive state, regardless of `--std` |
+| `ExpressionFormationPass` | non-edition SYNTAX-RULE conformance (§8.8.1.2 Table 3, §8.8.2 Table 4) | Error | the parse tree alone — no edition, no directive state |
+
+**Why the formation tables cannot be edition-gated.** They have no `introducedIn`: the (unary, unary) and
+(B-NOT, B-NOT) pairs are invalid in 1985, 2002, 2014 and 2023 alike. There is no `constructs.json` row to write and
+no `Check` to make.
+
+**And no dialect arm exists either** — this is the part worth recording, because the contrary assumption is the
+natural one. The two-axes model gates LENIENCIES, but `--permissive` softens exactly one verdict:
+`EditionSeverityPolicy.For` maps `ConstructAvailability.Removed` to Warning and nothing else. An invalid symbol
+pair was never legal at any edition, so it is not a removed construct, and a `--permissive` arm here would be a
+flag nothing could ever set. Measured against `EditionSeverityPolicy` before the pass was written (kb/Work PB158).
+
+The RULE itself lives in the frontend (`ArithmeticFormationRules`), not in the pass, because the compile-time
+expression evaluator applies the same rule during compiler-directive processing — before any compiler pass exists.
+The pass is the compiler's invocation of it, once per parse tree; `CompileTimeExpressionEvaluator` is the other
+consumer. This is the `BooleanExpressionResolver` pattern: one frontend rule, consumer-generic, so the three
+evaluating arms (`ExpressionBinder.BindExprCore`, `EvalArith`, and `SoleNumericLiteral`) cannot drift apart.
+
 ### 2.5 Bind/emit phase separation (the "no codegen on errors" fix)
 `CompilerDriver` runs `bind → conformance-pass → (halt if errors) → emit`. **Binding** (producing the `BoundProgram`)
 and **emission** (rendering C# from a valid `BoundProgram`) are distinct phases and the driver gates between them.

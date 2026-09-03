@@ -41,10 +41,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   extended; 37 CONFORMS-but-untested rows are the golden lane's next input set (listed in `PB370` with what each
   golden must assert) and one owner question covering a family of fourteen rules is `PB371`;
   ①b **lander 3 is IN FLIGHT**: the A.4.2 screen module-witness landing is DONE (DEVLOG 1438, GAP 3379 →
-  **3227**, `PB260`/`PB302` landed, `PB301` at `half`, worktree `agent-ac67d1b2b8c191894` removable) and so
-  is the CITATION-REPAIR SWEEP (DEVLOG 1439, GAP unmoved — comments and citations only; `PB159`/`PB182`/
-  `PB290`/`PB299` landed, `PB300` open, worktree `agent-a5d2efeeeb9862939` removable); cluster D and witness
-  B2 follow, then it stops for battery #42;
+  **3227**, `PB260`/`PB302` landed, `PB301` at `half`, worktree `agent-ac67d1b2b8c191894` removable), the
+  CITATION-REPAIR SWEEP is DONE (DEVLOG 1439, GAP unmoved — comments and citations only; `PB159`/`PB182`/
+  `PB290`/`PB299` landed, `PB300` open, worktree `agent-a5d2efeeeb9862939` removable), and FIX-LANE CLUSTER
+  D is DONE (DEVLOG 1440, GAP 3227 → **3223**; `PB174`/`PB158`/`PB153` landed, `PB175` re-measured DOWN,
+  worktree `agent-a6ed6adc93c86a1ae` removable); witness B2 follows, then it stops for battery #42;
   ④ **battery #42 — comprehensive, owed since
   the golden lane `c11949e3`; the reference below is #41**; ⑤ the ledger refresh after every landing (`python
   scripts/spec/gen_ledger.py`, then publish). Then lane 3 resumes from its on-disk checkpoints (batch 2 adjudicated,
@@ -1891,7 +1892,7 @@ result. Run the long legs ONE AT A TIME.
   the lane-3 batch-1 registration (DEVLOG 1437), fix-lane cluster F (DEVLOG 1436), module-witness cluster A
   (DEVLOG 1434), fix-lane cluster E (DEVLOG 1433), the golden lane (DEVLOG 1431) and the three-landing batch
   (DEVLOG 1427–1429; cluster C · the Annex A.1 DOC-row mechanism · the derived-verdict selectors).**
-  **GAP 3227 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → 3456 → 3407 → 3394 → 3379 → **3227**: cluster C was a
+  **GAP 3223 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → 3456 → 3407 → 3394 → 3379 → 3227 → **3223**: cluster C was a
   CORRECTION of an already-CONFORMS row, the A.1 back-fill closed 18, the derived lane moved it by design zero —
   a declined row closes on its WITNESS, not on its verdict — the golden lane then wrote 151 of those witnesses,
   cluster E closed 8 I-O rows plus the 3 Annex A.1 DOC rows its own determinations made statable, witness cluster
@@ -1899,18 +1900,24 @@ result. Run the long legs ONE AT A TIME.
   USAGE declaration-placement family and the OPTIONS INITIALIZE background, the batch-1 registration closed 15,
   and the A.4.2 screen wave closed **152 net of 163 re-verdicted** — eleven of its rows had been closed by the
   golden lane on POSITIVE witnesses that a refusal posture makes impossible, and are re-witnessed on the
-  negatives).
-  **1482 rows adjudicated · CONFORMS 911 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 152 · DIVERGES 48 ·
-  NOT-IMPLEMENTED 38** — a witness lane moves no verdict, only evidence, which is why A.4.2's 163 rows left the
-  GAP with the DOCUMENTED-NON-SUPPORT count unchanged.
+  negatives), and cluster D closed 4 (§8.8.1.2 Table 3 adjacency · §14.9.3.3 SR4/SR5 restricted pointers).
+  **1482 rows adjudicated · CONFORMS 915 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 150 · DIVERGES 48 ·
+  NOT-IMPLEMENTED 36** — a witness lane moves no verdict, only evidence, which is why A.4.2's 163 rows left the
+  GAP with the DOCUMENTED-NON-SUPPORT count unchanged; cluster D then took 2 PARTIAL and 2 NOT-IMPLEMENTED
+  rows to CONFORMS.
   **61 CONFORMS rows are still test-needed** — each is one spec-derived golden away from OK.
-  **Corpus 565 positive goldens · 643 negative fixtures**, and the negative manifest's `pending` list is now
+  **Corpus 569 positive goldens · 656 negative fixtures**, and the negative manifest's `pending` list is now
   EMPTY. **Diagnostic band — cluster E claimed COBOLNET1720 (`io-phrase-forbidden-here`, one reusable descriptor
   for §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6), witness A claimed COBOLNET1705/1706 (the two
   declined-module refusals), cluster F claimed COBOLNET1724/1725/1726 (§13.18.60.3 SR14/SR15/SR4) and
-  COBOLNET1727 (§11.9.10.3 SR1), and the A.4.2 screen wave claimed COBOLNET1707 (`screen-statement-unsupported`)
-  while turning the previously bare-literal COBOLNET1560 into a catalogued ERROR; the band has holes below its
-  maximum and next free is COBOLNET1728.**
+  COBOLNET1727 (§11.9.10.3 SR1), the A.4.2 screen wave claimed COBOLNET1707 (`screen-statement-unsupported`)
+  while turning the previously bare-literal COBOLNET1560 into a catalogued ERROR, and cluster D claimed
+  COBOLNET1716/1717/1718 (the USAGE float-format phrases) and COBOLNET1719 (§8.8.1.2 Table 3 adjacency); the
+  band has holes below its maximum and next free is COBOLNET1728.**
+  ⚠ **The semgrep baseline MOVED DOWN at the cluster-D landing and `kb/Work/PB175` carries the new numbers:
+  compare a landing against `cobolnet-no-biginteger` 36 and `cobolnet-raw-diagnostic-code-literal` 439** (was
+  475 — three BAND codes, COBOLNET0869/0881/1529, had no catalogue descriptor at all and were emitted from 38
+  bare literals across five binders; all 38 now go through band descriptors, with no emitted byte changed).
   **CITATION GATES (new 2026-09-02, DEVLOG 1439).** `python scripts/spec/audit_code_citations.py --check`
   — PHANTOM (the clause does not exist) · SUBJECT (the cited clause names a different construct) · HEADER
   (a definition-header cites a clause that is not its construct's) — baseline **ZERO findings** over 2633

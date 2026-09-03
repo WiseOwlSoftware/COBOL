@@ -125,7 +125,12 @@ comparisonOperand
 // ── COBOL-2002 boolean expressions (ISO §8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
 // Permissive-superset doctrine: the operand SHAPES (a boolean item / boolean literal / figurative ZERO /
 // ALL B"…") are enforced at BIND (the boolean-expression constraint band); the tiers enforce the formation
-// rules 1–3 + Table 4 adjacency STRUCTURALLY. The tiers are SUPERSET-parsed (no edition predicate); they are
+// rules 1–3 and EVERY Table 4 adjacency cell but ONE structurally. ⛔ THE EXCEPTION IS (B-NOT, B-NOT): this
+// comment used to claim Table 4 was enforced structurally in full, and it was not — `booleanFactor : B_NOT
+// booleanFactor` self-recurses, so `B-NOT B-NOT x` parsed with no diagnostic at any --std while the comment
+// asserted otherwise (a green-looking claim holding a gap open, kb/Work PB158). That cell is now screened by
+// ExpressionFormationPass / ArithmeticFormationRules (COBOLNET1719), alongside §8.8.1.2 Table 3's matching
+// (unary, unary) cell — one mechanism for both adjacency tables. The tiers are SUPERSET-parsed (no edition predicate); they are
 // reached ONLY through the boolExprAhead()-gated primaryCondition ENTRY (or COMPUTE F2), so a B-op-free condition
 // never enters them (the shared comparisonExpression rule is untouched — the DEVLOG-621 lesson). The COBOL-2002
 // introduction gate is bind-time: Check(BooleanOperators2002) in BindBoolExpr when HasBoolOp — residue migration #2. ──
@@ -232,6 +237,17 @@ powerExpression
     : unaryExpression ( POWER unaryExpression )*
     ;
 
+// ⛔ THE SELF-RECURSION IS DELIBERATE AND MUST STAY (kb/Work PB158). §8.8.1.2 Table 3 marks (unary, unary) an
+// INVALID pair, and the obvious fix — `addOp primaryExpression`, the non-self-recursive shape §8.8.4.11.3's
+// Table 5 tier (unaryLogicalExpression) uses to exclude NOT NOT structurally — REJECTS LEGAL SOURCE here.
+// §8.3.3.3.2 rule 2 makes a sign part of the numeric literal when the literal is one contiguous character-string,
+// so `- -2` is the PERMISSIBLE (unary, literal) pair while `- - 2` is the invalid (unary, unary) one — and in the
+// DEFAULT lexer mode both emit MINUS MINUS INTEGERLIT (the SIGNED_INTEGERLIT/SIGNED_DECIMALLIT twins that encode
+// the adjacency exist only in the FUNCTION-argument and SUBSCRIPT regions). No CFG tier can separate them; only
+// the TOKEN POSITIONS can. The cell is therefore screened post-parse by ArithmeticFormationRules (COBOLNET1719),
+// which reads that adjacency off the token stream. Precedence is unaffected and correct as written: powerExpression
+// puts a full unaryExpression in its base position, so `- 2 ** 2` binds as (-2)**2 = 4 per Table 3 GR2's rank 1
+// over rank 2 — COBOL's one inversion of the mainstream convention.
 unaryExpression
     : addOp unaryExpression          // unary + or -
     | primaryExpression

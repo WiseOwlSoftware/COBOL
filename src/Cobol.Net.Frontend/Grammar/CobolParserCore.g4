@@ -219,15 +219,8 @@ floatDecimalEncoding
     | endiannessPhrase
     ;
 
-encodingPhrase
-    : BINARY_ENCODING
-    | DECIMAL_ENCODING
-    ;
-
-endiannessPhrase
-    : HIGH_ORDER_LEFT
-    | HIGH_ORDER_RIGHT
-    ;
+// encodingPhrase / endiannessPhrase are DEFINED in the imported Core/CobolData.g4, beside the USAGE clause that
+// is their third citing site (ISO §13.18.60.2) — one rule, one place, reached here through the import merge.
 
 // §11.9.10 — INITIALIZE {ALL | {LOCAL-STORAGE | SCREEN | WORKING-STORAGE}...} [SECTION]
 //            TO {BINARY ZEROES | HIGH-VALUES | literal-1 | LOW-VALUES | SPACES}.

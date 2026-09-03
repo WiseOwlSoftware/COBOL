@@ -696,7 +696,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             else
             {
                 if (item.IsTypedef)   // §13.18.58 SR — a TYPEDEF is a level-01 entry only, never a subordinate.
-                    Edition.Error("COBOLNET1529", $"TYPEDEF on '{item.CobolName ?? "FILLER"}': the TYPEDEF clause "
+                    Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"TYPEDEF on '{item.CobolName ?? "FILLER"}': the TYPEDEF clause "
                         + "shall be specified only in a level-01 record-description entry (ISO §13.18.58)");
                 var parent = stack.Peek();
                 // §13.18.57.3 SR2 (review DEVLOG 664 fix #2): a TYPE-clause entry shall not be followed immediately by
@@ -745,19 +745,34 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private void RegisterTypeDecl(DataItem item)
     {
         if (item.Level != 1)
-            Edition.Error("COBOLNET1529", $"TYPEDEF '{item.CobolName ?? item.CsName}': a type declaration shall be a "
+            Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"TYPEDEF '{item.CobolName ?? item.CsName}': a type declaration shall be a "
                 + "level-01 record-description entry (ISO §13.18.58 / §13.16)");
         if (item.CobolName is null)
         {
-            Edition.Error("COBOLNET1529", "a TYPEDEF entry shall be named (not FILLER) — it defines a type-name "
+            Edition.Error(DiagnosticCatalog.TypeDeclarationShape, "a TYPEDEF entry shall be named (not FILLER) — it defines a type-name "
                 + "(ISO §13.18.58.4 GR2)");
             return;
         }
         if (item.RedefinesTargetName is not null)
-            Edition.Error("COBOLNET1529", $"TYPEDEF '{item.CobolName}': the TYPEDEF and REDEFINES clauses are "
+            Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"TYPEDEF '{item.CobolName}': the TYPEDEF and REDEFINES clauses are "
                 + "mutually exclusive (ISO §13.16)");
+        // ⛔ §8.5.3.1: "Elementary type definitions shall not be specified with the STRONG phrase." — with
+        // §8.5.3.3, "The only kind of items that may be strongly typed are group items." Unenforced until
+        // kb/Work PB153: `01 T TYPEDEF STRONG PIC 9(3).` bound clean, and the illegal shape had already reached
+        // the corpus — tests/version-matrix/constructs.json's usage-pointer-to-type-2014 row carried exactly it
+        // as the construct's canonical witness. A type declaration nothing ever compiled is a declaration nothing
+        // ever contradicted.
+        // ⛔ THE TEST IS `IsElementary`, NOT `!IsGroup`, AND THAT IS NOT A STYLE CHOICE. RegisterTypeDecl runs
+        // while the forest is still being BUILT — the level-01 is registered before its subordinate entries are
+        // attached — so `IsGroup` (Pic is null AND Children.Count > 0) is FALSE for every group typedef at this
+        // moment and the check would reject all of them. `Pic`, by contrast, is already assigned by BindEntry
+        // before the item is pushed, so `IsElementary` is exactly the settled fact this rule needs.
+        if (item.TypedefStrong && item.IsElementary)
+            Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"TYPEDEF '{item.CobolName}': an ELEMENTARY type definition shall not be "
+                + "specified with the STRONG phrase (ISO §8.5.3.1) — §8.5.3.3 makes group items the only kind of "
+                + "item that may be strongly typed");
         if (!TypeDecls.TryAdd(item.CobolName, item))
-            Edition.Error("COBOLNET1529", $"duplicate type-name '{item.CobolName}' — a type-name shall be unique "
+            Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"duplicate type-name '{item.CobolName}' — a type-name shall be unique "
                 + "(ISO §13.18.58)");
     }
 
@@ -2192,6 +2207,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool justified = false, blankWhenZero = false, synchronized = false;
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
         bool noSign = false;           // USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.4 GR11 — no sign nibble; 2023)
+        // The entry's USAGE clause node, kept for the float FORMAT phrases (ISO §13.18.60.2 general format, 2014):
+        // their applicability depends on the RESOLVED usage, so the whole phrase adjudication runs in one block
+        // after entryUsage exists. kb/Work PB174.
+        Core.UsageClauseContext? usageCtx = null;
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
         bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
@@ -2321,6 +2340,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // BINARY-CHAR SIGNED) and the bare (BINARY-CHAR SIGNED) alternatives.
                     binaryUnsigned = usage.binarySign()?.UNSIGNED() is not null;
                     noSign = usage.noSignPhrase() is not null;   // §13.18.60.4 GR11 — validated against usage/picture below
+                    // The item's OWN float format phrases (ISO §13.18.60.2, 2014) are adjudicated in ONE block
+                    // below, where entryUsage is resolved (their applicability is per-usage) — the clause node is
+                    // captured here rather than four derived locals, so §13.18.60.2's phrase rules stay in one
+                    // place. kb/Work PB174.
+                    usageCtx = usage;
                     var oru = usage.usageKeyword()?.objectReferenceUsage();
                     if (oru?.FACTORY() is not null)
                         // OBJECT REFERENCE FACTORY OF class (§13.18.60 :22681) — the factory-object
@@ -2436,13 +2460,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             if (pictureText is not null)
             {
-                Edition.Error("COBOLNET0881", $"{entryWhere}: PICTURE may not be specified with USAGE "
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: PICTURE may not be specified with USAGE "
                     + "PROGRAM-POINTER or FUNCTION-POINTER — the item is picture-less (ISO §13.16.3 SR8)");
                 pictureText = null;
             }
             if (rawValue is not null)
             {
-                Edition.Error("COBOLNET0881", $"{entryWhere}: the VALUE clause shall not be specified with a "
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: the VALUE clause shall not be specified with a "
                     + "USAGE clause carrying the PROGRAM-POINTER or FUNCTION-POINTER phrase (ISO §13.18.63 SR9)");
                 rawValue = null;
             }
@@ -2457,9 +2481,95 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // gate the entry silently misbound BY ITS PICTURE, the W2 hazard class). The 0881 declaration band.
         if (entryUsage is Usage.Pointer && pictureText is not null)
         {
-            Edition.Error("COBOLNET0881", $"{entryWhere}: PICTURE may not be specified with USAGE POINTER — "
+            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: PICTURE may not be specified with USAGE POINTER — "
                 + "a data-pointer item is picture-less (ISO §13.18.60.4)");
             pictureText = null;
+        }
+
+        // USAGE POINTER TO type-name-1 — the RESTRICTED data-pointer (§13.18.60.2 general format; §13.18.60.4
+        // GR23). §13.18.60.3 SR18 constrains the DECLARATION SHAPE, and it is the rule that makes the obvious
+        // spelling illegal: "If type-name-1 is specified, the TYPEDEF clause shall be specified for the subject
+        // of the entry." So a restricted data-pointer is declared as a TYPE DECLARATION and then referenced by a
+        // TYPE clause — `01 P USAGE POINTER TO T.` is itself nonconforming. The 0881 declaration band, beside the
+        // PROGRAM-POINTER declaration gates above. kb/Work PB153.
+        var dpu = usageCtx?.usageKeyword()?.dataPointerUsage();
+        string? restrictedTypeName = dpu?.TO() is not null ? dpu.cobolWord()?.GetText() : null;
+        if (restrictedTypeName is not null && !isTypedef)
+        {
+            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: USAGE POINTER TO {restrictedTypeName} declares a "
+                + "RESTRICTED data-pointer, and the TYPEDEF clause shall be specified for the subject of such an "
+                + "entry (ISO §13.18.60.3 SR18) — declare the restricted pointer as a type declaration and "
+                + "reference it with a TYPE clause");
+            restrictedTypeName = null;
+        }
+
+        // ⛔ THE USAGE CLAUSE'S OWN FLOAT FORMAT PHRASES (ISO §13.18.60.2 general format, a COBOL-2014 addition;
+        // kb/Work PB174). ONE block owns all three of the general format's rules over them, because the grammar
+        // parses `floatFormatPhrase*` after ANY usageKeyword (the established binarySign/noSignPhrase superset
+        // posture) and the narrowing is the binder's:
+        //   • REPEAT — §5.2.6.4, "any single alternative may be specified only once" (COBOLNET1718). The
+        //     FLOAT-DECIMAL-16/-34 tail is a BRACKETED CHOICE-INDICATOR group over { encoding-phrase,
+        //     endianness-phrase }: zero or more, each at most once, in ANY order. The FLOAT-BINARY-* tail is a
+        //     plain single bracket, so at most one endianness-phrase there too.
+        //   • ENDIANNESS APPLICABILITY — the figure prints the endianness-phrase only on the five STANDARD float
+        //     usages (COBOLNET1716); §13.18.60.4 GR19c/d scope the OPTIONS-implied phrase the same way, and
+        //     GR13/GR21 leave the implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) to
+        //     our documented big-endian pin (Annex A.1 item 48).
+        //   • ENCODING APPLICABILITY — the figure prints the encoding-phrase only on FLOAT-DECIMAL-16/-34
+        //     (COBOLNET1717); GR20a says the same in prose ("any standard decimal floating-point usage").
+        // The RESULT — the item's own endianness — then feeds PicInfo.FloatItem below as the phrase that WINS over
+        // the OPTIONS-supplied implied one, which is not a preference but §11.9.8.3 SR2/SR3's own wording: the
+        // clause is implied "for … any data item described with a standard binary floating-point usage IN WHICH AN
+        // ENDIANNESS-PHRASE IS NOT SPECIFIED". §11.9.9.3 SR1-SR6 say it for the decimal usages.
+        // A phrase on FLOAT-BINARY-128 / FLOAT-DECIMAL-16 / -34 PARSES and is applicable — those usages are
+        // documented non-support (COBOLNET1564, Annex A.3 items 17/19), so the reject a user sees names the
+        // non-support, never a raw parse error at the wrong stage.
+        FloatEndianness itemEndianness = FloatEndianness.Unspecified;
+        FloatEncoding itemEncoding = FloatEncoding.Unspecified;
+        if (usageCtx is not null)
+        {
+            foreach (var phrase in usageCtx.floatFormatPhrase())
+            {
+                if (phrase.endiannessPhrase() is { } ep)
+                {
+                    if (itemEndianness is not FloatEndianness.Unspecified)
+                        Edition.Error(DiagnosticCatalog.UsageFloatFormatPhraseRepeated, $"{entryWhere}: the "
+                            + "endianness-phrase is specified more than once on this USAGE clause "
+                            + "(ISO §5.2.6.4 — any single alternative may be specified only once)");
+                    itemEndianness = FloatFormatPhrase.Endianness(ep);
+                }
+                else if (phrase.encodingPhrase() is { } enc)
+                {
+                    if (itemEncoding is not FloatEncoding.Unspecified)
+                        Edition.Error(DiagnosticCatalog.UsageFloatFormatPhraseRepeated, $"{entryWhere}: the "
+                            + "encoding-phrase is specified more than once on this USAGE clause "
+                            + "(ISO §5.2.6.4 — any single alternative may be specified only once)");
+                    itemEncoding = FloatFormatPhrase.Encoding(enc);
+                }
+            }
+            if (itemEndianness is not FloatEndianness.Unspecified && !UsageFamilies.IsStandardFloat(entryUsage))
+            {
+                Edition.Error(DiagnosticCatalog.UsageEndiannessPhraseScope, $"{entryWhere}: an endianness-phrase "
+                    + "(HIGH-ORDER-LEFT / HIGH-ORDER-RIGHT) is written only with a standard floating-point usage — "
+                    + "FLOAT-BINARY-32/-64/-128 or FLOAT-DECIMAL-16/-34 — not USAGE "
+                    + $"{usageText ?? "DISPLAY"} (ISO §13.18.60.2 general format; §13.18.60.4 GR19c/d)");
+                itemEndianness = FloatEndianness.Unspecified;
+            }
+            if (itemEncoding is not FloatEncoding.Unspecified
+                && !UsageFamilies.IsStandardDecimalFloat(entryUsage))
+            {
+                Edition.Error(DiagnosticCatalog.UsageEncodingPhraseScope, $"{entryWhere}: an encoding-phrase "
+                    + "(BINARY-ENCODING / DECIMAL-ENCODING) is written only with a standard DECIMAL "
+                    + "floating-point usage — FLOAT-DECIMAL-16 or FLOAT-DECIMAL-34 — not USAGE "
+                    + $"{usageText ?? "DISPLAY"} (ISO §13.18.60.2 general format; §13.18.60.4 GR20a)");
+                itemEncoding = FloatEncoding.Unspecified;
+            }
+            // A SURVIVING encoding-phrase has no consumer, and that is a MEASURED state, not an oversight: the
+            // only usages it is applicable to — FLOAT-DECIMAL-16/-34 — are documented non-support (COBOLNET1564,
+            // Annex A.3 item 19: .NET has no IEEE decimal64/128 type and GR17/GR18 pin the formats). The phrase
+            // is screened here so the reject a user sees names that non-support rather than a parse error, and the
+            // value is deliberately NOT carried onto PicInfo: a field nothing reads is a lookup nothing has ever
+            // contradicted. It threads through when the usages themselves land.
         }
 
         // PICTURE is prohibited with a floating-point usage (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) — the item
@@ -2482,7 +2592,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 blankWhenZero: blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs,
                 localeFormat2: pictureLocale)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
-            : entryUsage is Usage.Pointer ? PicInfo.PointerItem
+            : entryUsage is Usage.Pointer ? PicInfo.PointerItem(restrictedTypeName)
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
@@ -2491,13 +2601,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // FLOAT-BINARY-*/FLOAT-DECIMAL-* family, §13.18.60.2, D16) — its value is a native float/double, never
             // scaled-integer (before this the chain fell to null → NRE). The processor-dependent non-support forms
             // (binary128/decimal, rejected COBOLNET1564) still synthesize a Pic so the errored compile does not NRE.
-            // The unit's effective FLOAT-BINARY endianness rides in (§11.9.8 — Options is bound at the top of
-            // BindDeclarations, before any entry): FloatItem applies the implied-phrase rule ONCE, for the
-            // standard binary float usages only (kb/Work PB164 wave 2).
+            // The item's effective endianness rides in, resolved by ONE null-coalesce over the two-level
+            // derivation §11.9.8.3 SR2/SR3 legislates: the ITEM's own endianness-phrase (§13.18.60.2, captured
+            // above) where it stated one, else the unit's OPTIONS FLOAT-BINARY model (§11.9.8 — Options is bound
+            // at the top of BindDeclarations, before any entry), whose clause is implied only "for … any data
+            // item … IN WHICH AN ENDIANNESS-PHRASE IS NOT SPECIFIED". FloatItem then applies GR19a/b ONCE, for
+            // the standard binary float usages only (kb/Work PB164 wave 2 + PB174).
             : entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
                 or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
                 or Usage.FloatDecimal16 or Usage.FloatDecimal34
-                ? PicInfo.FloatItem(entryUsage, Options.FloatBinaryEndianness)
+                ? PicInfo.FloatItem(entryUsage, itemEndianness is FloatEndianness.Unspecified
+                    ? Options.FloatBinaryEndianness : itemEndianness)
             : null;   // incl. a PICTURE-less USAGE NATIONAL/BIT entry — Pending (below) carries its adjudication
 
         // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to subordinates,
@@ -2700,13 +2814,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             if (level is not (1 or 77))
             {
-                Edition.Error("COBOLNET0881", $"{entryWhere}: the BASED clause may be specified only in a "
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: the BASED clause may be specified only in a "
                     + "level-01 or level-77 entry (ISO §13.16 SR16 / §13.18.5)");
                 isBased = false;
             }
             else if (redefinesTargetName is not null)
             {
-                Edition.Error("COBOLNET0881", $"{entryWhere}: BASED and REDEFINES may not be specified "
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: BASED and REDEFINES may not be specified "
                     + "together (ISO §13.18.5 SR)");
                 isBased = false;
             }
@@ -2715,7 +2829,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // §13.16.3 SR5: "The EXTERNAL clause shall not be specified in the same data description
                 // entry as the REDEFINES or BASED clause" — without this, BOTH mechanisms would emit a
                 // bridge under the ONE BackingCsName (a CS0102 duplicate member, the review finding).
-                Edition.Error("COBOLNET0881", $"{entryWhere}: BASED and EXTERNAL may not be specified "
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: BASED and EXTERNAL may not be specified "
                     + "together (ISO §13.16.3 SR5)");
                 isBased = false;
             }
@@ -2844,6 +2958,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // would glue the prototype name into the keyword (the OBJECT REFERENCE precedent).
                 : kw.programPointerUsage() is not null ? "PROGRAM-POINTER"
                 : kw.functionPointerUsage() is not null ? "FUNCTION-POINTER"
+                // USAGE POINTER [TO type-name] (§13.18.60.2) is a RULE for the same reason: the restricted form's
+                // type-name would otherwise glue into the keyword ("POINTERT") and reach ParseUsage's
+                // internal-error arm. kb/Work PB153.
+                : kw.dataPointerUsage() is not null ? "POINTER"
                 : kw.GetText();
         // Unreachable since `[USAGE IS] usageKeyword` became ONE alternative (kb/Work PB95): every spelling, bare
         // or prefixed, carries the usageKeyword node.
@@ -3219,7 +3337,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 + $"(Phase 4a residue) — data item '{l.CobolName ?? "FILLER"}' "
                                 + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1)");
                         else if (l.Pic is not null and not { Category: PicCategory.National })
-                            Edition.Error("COBOLNET0881", $"data item '{l.CobolName ?? "FILLER"}': USAGE "
+                            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"data item '{l.CobolName ?? "FILLER"}': USAGE "
                                 + "NATIONAL inherited from its group admits boolean, national, "
                                 + "national-edited, numeric, and numeric-edited pictures only "
                                 + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1; §13.18.40.3 SR30)");
@@ -3232,7 +3350,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     {
                         using var __l = Edition.At(l);   // the LEAF's own entry position (kb/Work PB82)
                         if (l.Pic is not null and not { Category: PicCategory.Boolean })
-                            Edition.Error("COBOLNET0881", $"data item '{l.CobolName ?? "FILLER"}': USAGE BIT "
+                            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"data item '{l.CobolName ?? "FILLER"}': USAGE BIT "
                                 + "inherited from its group requires a boolean PICTURE (symbol 1 only) "
                                 + "(ISO §13.18.60.3 SR5 / §13.18.60.4 GR1)");
                         // §13.18.60.4 GR1 — the group's USAGE BIT (declared, or implied by GROUP-USAGE BIT — §13.18.29.3
@@ -3269,7 +3387,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // A PICTURE-less ELEMENTARY item may not carry USAGE NATIONAL/BIT — they are not among the
                 // picture-less usages (§13.18.60.4; contrast INDEX/POINTER/OBJECT REFERENCE/BINARY-x). The
                 // recovery shape keeps the doomed emit crash-free (the DEVLOG-597 pattern).
-                Edition.Error("COBOLNET0881", $"data item '{item.CobolName ?? "FILLER"}': an elementary item "
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"data item '{item.CobolName ?? "FILLER"}': an elementary item "
                     + $"with USAGE {(item.Pending is PicPending.BitUsage ? "BIT" : "NATIONAL")} "
                     + "requires a PICTURE clause (ISO §13.18.60.4 — not a picture-less usage)");
                 item.Pic = PicInfo.Recovery();
@@ -3927,8 +4045,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// never re-analyzed and so never gated: a <c>TYPE IS type-name</c> clone subtree (its items carry a non-null
     /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <c>TypeDecls</c>) and the
     /// OO/UDF compiler temps (recorded in <see cref="CompilerTempClones"/>; both share the source item's <c>PicInfo</c> by
-    /// reference — so they must NOT be dedup'd by <c>PicInfo</c> identity: two distinct source pointer items share the ONE
-    /// <c>PicInfo.PointerItem</c> singleton). The result is exactly the set of items the binder's per-entry
+    /// reference — so they must NOT be dedup'd by <c>PicInfo</c> identity: a clone and its source share ONE <c>PicInfo</c>
+    /// instance. (<c>PicInfo.PointerItem</c> stopped being a singleton at kb/Work PB153 — it is a factory now, since a
+    /// restricted data-pointer carries its <c>TO type-name</c> — so the dedup hazard no longer needs that example to be
+    /// real, but the clone-sharing one still is.) The result is exactly the set of items the binder's per-entry
     /// <c>PictureAnalyzer.ParseUsage</c>/<c>Analyze</c> gates fired for, once each.
     ///
     /// <para>⛔ This is the WRITTEN-ENTRY forest and its exclusion of the clones is part of its contract — do not

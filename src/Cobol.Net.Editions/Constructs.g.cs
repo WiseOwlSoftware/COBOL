@@ -23,6 +23,7 @@ public static class Constructs
     public const string StopRunStatus2002 = "stop-run-status-2002";
     public const string GobackStatus2023 = "goback-status-2023";
     public const string UsagePackedNoSign2023 = "usage-packed-no-sign-2023";
+    public const string UsageFloatFormatPhrase2014 = "usage-float-format-phrase-2014";
     public const string SetDynLengthSize2023 = "set-dyn-length-size-2023";
     public const string WordLength632023 = "word-length-63-2023";
     public const string ContinueAfter2023 = "continue-after-2023";

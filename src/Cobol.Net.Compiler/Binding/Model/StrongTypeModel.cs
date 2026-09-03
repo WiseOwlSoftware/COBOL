@@ -61,6 +61,49 @@ public static class StrongTypeModel
         return RelativeMemberPath(a, ra).SequenceEqual(RelativeMemberPath(b, rb), StringComparer.Ordinal);
     }
 
+    // ── RESTRICTED DATA-POINTERS (ISO Annex D.9.2.2; §13.18.60.4 GR23, §8.4.3.11.4 GR2) ─────────────────────
+    // Annex D.9.2.2 names the model's TWO sources outright: a restricted data-pointer arises "1) by specifying a
+    // data description entry that contains a usage clause of the form USAGE POINTER TO type-name-1, or 2) by
+    // specifying a data-address-identifier (ADDRESS OF identifier-1, where identifier-1 is a strongly typed group
+    // item or another restricted data-pointer)". The SECOND source needs no grammar at all and was violable the
+    // day strong TYPEDEF landed — the whole strong-type use-restriction network was built out across MOVE / CALL /
+    // ACCEPT / STRING / REDEFINES / RENAMES / intrinsics and the POINTER subsystem was never wired in (kb/Work
+    // PB153). Both sources are reduced HERE to one thing — a type NAME — so the consumption screens
+    // (§14.9.3.3 SR4/SR5, §14.9.39.3 SR19/SR20, §14.8.2.3.2) all ask the same question of the same model.
+
+    /// <summary>The type a DATA-POINTER ITEM's value is restricted to — Annex D.9.2.2 source 1, the declared
+    /// <c>USAGE POINTER TO type-name-1</c> (§13.18.60.4 GR23). Null for an ordinary data-pointer, and for any
+    /// item that is not a data-pointer at all.</summary>
+    public static string? PointerRestriction(DataItem item) =>
+        item.Pic is { Category: PicCategory.Pointer } pic ? pic.RestrictedTypeName : null;
+
+    /// <summary>The type an <c>ADDRESS OF identifier-1</c> VALUE is restricted to — Annex D.9.2.2 source 2, whose
+    /// normative statement is §8.4.3.11.4 GR2: "If identifier-1 is a strongly-typed group item or a restricted
+    /// data-pointer, the data-address-identifier is a restricted data-pointer that is restricted to the type of
+    /// identifier-1." Null when the operand is neither, i.e. the address is unrestricted.
+    /// <para>⛔ The strong-group arm deliberately uses <see cref="IsStrongGroup"/>, so a LEAF subordinate to a
+    /// strong group yields null: <c>SET P TO ADDRESS OF &lt;leaf of a strong record&gt;</c> is UNRESTRICTED and
+    /// must stay legal. That asymmetry is the model's own (a strong record is still built up field by field), and
+    /// an over-eager screen here would break it.</para></summary>
+    public static string? AddressOfRestriction(DataItem operand) =>
+        IsStrongGroup(operand) ? TypeAnchor(operand)?.TypeName : PointerRestriction(operand);
+
+    /// <summary>"Restricted to the same type" (§14.9.39.3 SR19, §14.8.2.3.2, §14.9.3.3 SR4/SR5). A restriction is
+    /// to a TYPE, not to a member position, so this is type-NAME equivalence and NOT
+    /// <see cref="SameStrongType"/>, whose relative-member-path refinement answers the different question of
+    /// whether two OPERANDS occupy corresponding positions in equivalent type declarations.
+    /// <para>Equivalence is within one source element, identically-named — the same scope
+    /// <see cref="SameStrongType"/> documents, with cross-program EXTERNAL equivalence deferred. §14.8.2.3.2's
+    /// CALL rule is inherently cross-program, so its screen is scoped to within-element operands and must not
+    /// over-reject on the deferred axis.</para></summary>
+    public static bool SameRestriction(string? a, string? b) =>
+        a is not null && b is not null && string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The type a strongly-typed group item IS (§14.9.3.3 SR5's "the type of data-name-1"), or null when
+    /// the item is not a strongly-typed group.</summary>
+    public static string? StrongGroupType(DataItem item) =>
+        IsStrongGroup(item) ? TypeAnchor(item)?.TypeName : null;
+
     /// <summary>The member-name path from <paramref name="root"/> (exclusive) down to <paramref name="item"/>
     /// (inclusive), root-first — the operand's relative position within its strong type.</summary>
     private static List<string> RelativeMemberPath(DataItem item, DataItem root)

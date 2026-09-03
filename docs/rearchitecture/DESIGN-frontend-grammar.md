@@ -233,7 +233,7 @@ a one-line banner at the top of each fragment (there is currently no per-fragmen
 | Fragment | Owns | Version-gated content (construct-id annotated; gated by the pass) |
 |---|---|---|
 | `CobolExpressions.g4` | arithmetic/condition/boolean tiers, FUNCTION calls, literals | boolean operator tiers (2002), XOR (2023) |
-| `CobolData.g4` | level entries, PIC, USAGE, OCCURS(+DYNAMIC), REDEFINES, VALUE, TYPEDEF/TYPE | OCCURS DYNAMIC (2014), TYPEDEF/TYPE/BASED/PROPERTY (2002) |
+| `CobolData.g4` | level entries, PIC, USAGE (incl. the shared `encodingPhrase`/`endiannessPhrase` the OPTIONS clauses also cite), OCCURS(+DYNAMIC), REDEFINES, VALUE, TYPEDEF/TYPE | OCCURS DYNAMIC (2014), TYPEDEF/TYPE/BASED/PROPERTY (2002), the USAGE float format phrases (2014) |
 | `CobolSpecialNames.g4` | SPECIAL-NAMES, ALPHABET/CLASS/CURRENCY | FOR NATIONAL (2002) |
 | `CobolIO.g4` | FILE-CONTROL/SELECT, OPEN/READ/…, SORT/MERGE, sharing/lock | SHARING/LOCK/RETRY/UNLOCK (2002) |
 | `CobolControlFlow.g4` | IF/EVALUATE/PERFORM/GO/CALL/RAISE/RESUME | RAISE/RESUME/RAISING (2002) |

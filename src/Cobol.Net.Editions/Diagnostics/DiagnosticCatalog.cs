@@ -813,6 +813,65 @@ public static class DiagnosticCatalog
         + "hex-character-sequence \"shall be composed of hexadecimal digits\" (§8.3.3.2.3 SR5). One byte is "
         + "exactly two hexadecimal digits.)",
         "ISO §11.9.10.3 SR1");
+    // ⛔ THE THREE SCREENS THAT NARROW THE USAGE CLAUSE'S FLOAT FORMAT PHRASES (kb/Work PB174). The grammar
+    // parses `floatFormatPhrase*` after ANY usageKeyword — the established binarySign / noSignPhrase posture, a
+    // superset parse the binder narrows (DESIGN-version-conformance-pipeline's parse-wide/bind-narrow direction).
+    // The general format is what scopes each phrase: §13.18.60.2 prints the endianness-phrase ONLY on
+    // FLOAT-BINARY-32/-64/-128 and FLOAT-DECIMAL-16/-34, and the encoding-phrase ONLY on FLOAT-DECIMAL-16/-34
+    // (verified against the PRINTED page, PDF p.533 = printed 503). GR19c/d and GR20c corroborate by naming the
+    // usage families the OPTIONS clauses supply the IMPLIED phrase for.
+    public static readonly DiagnosticDescriptor UsageEndiannessPhraseScope = new(
+        "COBOLNET1716", "usage-endianness-phrase-scope", EditionSeverity.Error,
+        "ISO §13.18.60.2 general format: the endianness-phrase is written only with the standard floating-point "
+        + "usages — FLOAT-BINARY-32, FLOAT-BINARY-64, FLOAT-BINARY-128, FLOAT-DECIMAL-16 and FLOAT-DECIMAL-34. "
+        + "§13.18.60.4 general rule 19 scopes its meaning the same way: c) \"For the standard binary "
+        + "floating-point usages, if neither the HIGH-ORDER-LEFT phrase nor the HIGH-ORDER-RIGHT phrase is "
+        + "specified, 11.9.8, FLOAT-BINARY clause, specifies which of these phrases is implied.\" and d) its "
+        + "standard-decimal twin. The implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/"
+        + "-EXTENDED) are outside both — GR13/GR21 leave their representation to the implementor, and COBOL.NET "
+        + "pins them big-endian (Annex A.1 item 48).",
+        "ISO §13.18.60.2 / §13.18.60.4 GR19c-d");
+    public static readonly DiagnosticDescriptor UsageEncodingPhraseScope = new(
+        "COBOLNET1717", "usage-encoding-phrase-scope", EditionSeverity.Error,
+        "ISO §13.18.60.2 general format: the encoding-phrase is written only with the standard DECIMAL "
+        + "floating-point usages, FLOAT-DECIMAL-16 and FLOAT-DECIMAL-34 — it is absent from every other line of "
+        + "the figure, the standard BINARY float usages included. §13.18.60.4 general rule 20a says the same in "
+        + "prose: \"The BINARY-ENCODING phrase specifies that the encoding of the information in a data item "
+        + "described with any standard decimal floating-point usage is the binary encoding as specified in "
+        + "ISO/IEC 60559:2020, 3.5.\"",
+        "ISO §13.18.60.2 / §13.18.60.4 GR20");
+    public static readonly DiagnosticDescriptor UsageFloatFormatPhraseRepeated = new(
+        "COBOLNET1718", "usage-float-format-phrase-repeated", EditionSeverity.Error,
+        "ISO §5.2.6.4, Choice indicators: \"When enclosed by brackets, zero or more of the alternatives "
+        + "contained within the choice indicators shall be specified, but any single alternative may be "
+        + "specified only once.\" — the FLOAT-DECIMAL-16/-34 phrase group of the §13.18.60.2 general format is "
+        + "exactly such a bracketed choice-indicator group over { encoding-phrase, endianness-phrase }, so each "
+        + "phrase may appear at most once (in either order, per the same clause: \"The alternatives may be "
+        + "specified in any order.\"). The standard BINARY float usages carry a single bracketed "
+        + "endianness-phrase, which is likewise at most one.",
+        "ISO §5.2.6.4 / §13.18.60.2");
+    // ⛔ THE EXPRESSION FORMATION TABLES (kb/Work PB158). §8.8.1.2 Table 3 and §8.8.2 Table 4 each state which
+    // ordered pairs of adjacent symbols an expression may contain; a '—' cell is an invalid pair. Most cells are
+    // excluded structurally by the expression tiers — MEASURED, one probe per cell: ten of Table 3's thirteen are
+    // already hard parse errors and two more cannot form at all, because COBOL reads a '(' after an identifier as
+    // a subscript. The tiers admit exactly one cell from each table, and this code carries both, because they are
+    // one rule ("an invalid adjacent pair") over two tables. The arithmetic cell CANNOT be closed in the grammar:
+    // §8.3.3.3.2 rule 2 makes an ADJACENT sign part of the numeric literal, so `- -2` is the permissible
+    // (unary, literal) pair while `- - 2` is the invalid (unary, unary) one — and in the default lexer mode both
+    // emit MINUS MINUS INTEGERLIT, so only the TOKEN POSITIONS separate them. A tier rejecting both would reject
+    // legal source, the worse failure.
+    public static readonly DiagnosticDescriptor ExpressionFormationPair = new(
+        "COBOLNET1719", "expression-formation-pair", EditionSeverity.Error,
+        "ISO §8.8.1.2 Table 3, Combinations of symbols in arithmetic expressions: \"The letter 'P' indicates a "
+        + "permissible pair of symbols. The character '—' indicates an invalid pair.\" Row \"Unary + or −\" × "
+        + "column \"Unary + or −\" is '—', so a unary operator may not be immediately followed by another unary "
+        + "operator. §8.8.2 Table 4 is the boolean counterpart: its B-NOT row × B-NOT column is likewise '—', and "
+        + "§8.8.4.11.3's Table 5 NOTE states the same restriction for conditions outright — \"the pair 'NOT NOT' "
+        + "is not permissible\". The sign-adjacency carve-out is §8.3.3.3.2 rule 2: a numeric literal is a "
+        + "character-string and \"If a sign is used, it shall appear as the leftmost character of the literal\", "
+        + "so a sign written against the digits belongs to the literal and forms the PERMISSIBLE (unary, literal) "
+        + "pair instead.",
+        "ISO §8.8.1.2 Table 3 / §8.8.2 Table 4");
     public static readonly DiagnosticDescriptor ReportControlTypeOperand = new(
         NotImplemented, "report-control-type-operand", EditionSeverity.Error,
         "A TYPE CH/CF operand is not an operand of the CONTROL clause.", "ISO §13.18.57.3 SR10/SR11");
@@ -1678,6 +1737,41 @@ public static class DiagnosticCatalog
         + "EC-SCREEN name with no raise site reads as implemented to every consumer that can see it. "
         + "See docs/CONFORMANCE.md §5.",
         "ISO §4.2.7 / Annex A.4.1 / Annex A.4.2 items 1, 9, 10, 24 / §14.9.1 / §14.9.11 / §14.9.39");
+
+    // ── THE THREE BAND CODES THAT HAD NO DESCRIPTOR AT ALL (kb/Work PB175) ────────────────────────────
+    //    COBOLNET0869 / 0881 / 1529 were emitted from 38 BARE STRING LITERALS across five binders and from
+    //    nowhere else — no catalogue row, so no `docs/DIAGNOSTICS.md` row, no drift test, and nothing for
+    //    `session-probe`'s next-free scan or the suppress-key machinery to see. They are BANDS: one code over
+    //    a family of neighbouring rules, the shape COBOLNET1720 (`io-phrase-forbidden-here`, three syntax
+    //    rules) and COBOLNET1707 (four statement formats) already use, so the descriptor's Title states the
+    //    BAND and each site composes the rule it caught. Converting the sites changes no emitted byte:
+    //    `Error(DiagnosticDescriptor, string)` forwards to `Error(descriptor.Code, string)`.
+    /// <summary>COBOLNET0869 — the POINTER / ADDRESS OPERAND band: what may be written where a pointer,
+    /// an address or an object reference is expected, and what a restricted data-pointer narrows that to.
+    /// Covers ISO §14.9.39 (SET Formats 5–7 — SET ADDRESS OF / a pointer receiver / an index-name),
+    /// §8.4.3.11 and §8.4.3.13 (the ADDRESS OF and LENGTH OF special registers as operands), §8.8.4.2.16
+    /// (the pointer relation condition), §14.9.3 (ALLOCATE's RETURNING operand) and Annex D.9.2.2 (the
+    /// restricted data-pointer, whose target type constrains every one of the above).</summary>
+    public static readonly DiagnosticDescriptor PointerOperandShape = new(
+        "COBOLNET0869", "pointer-operand-shape", EditionSeverity.Error,
+        "A pointer, address or object-reference OPERAND is not of a shape its statement admits — the SET statement's pointer formats (ISO §14.9.39), the ADDRESS OF / LENGTH OF special registers (§8.4.3.11, §8.4.3.13), the pointer relation condition (§8.8.4.2.16), the ALLOCATE statement's RETURNING operand (§14.9.3), or the target-type restriction a RESTRICTED data-pointer (Annex D.9.2.2) puts on all of them. The site names the rule it caught.",
+        "ISO §14.9.39 / §8.4.3.11 / §8.4.3.13 / §8.8.4.2.16 / §14.9.3 / Annex D.9.2.2");
+    /// <summary>COBOLNET0881 — the USAGE-CLAUSE COMPATIBILITY band: which other data description clauses may
+    /// share an entry with which usage. Covers ISO §13.18.60.3 (the USAGE clause's own syntax rules, incl.
+    /// SR18's restricted-pointer TYPEDEF requirement) and §13.18.60.4, plus the clauses those rules exclude —
+    /// PICTURE (§13.18.40.3), VALUE (§13.18.63), BLANK WHEN ZERO, JUSTIFIED, SIGN and SYNCHRONIZED.</summary>
+    public static readonly DiagnosticDescriptor UsageClauseCompatibility = new(
+        "COBOLNET0881", "usage-clause-compatibility", EditionSeverity.Error,
+        "A data description entry combines a USAGE with a clause its syntax rules exclude, or omits one they require (ISO §13.18.60.3 / §13.18.60.4) — a PICTURE (§13.18.40.3) or VALUE (§13.18.63) clause on a usage that admits neither, a restricted `USAGE POINTER TO type-name` whose subject carries no TYPEDEF clause (SR18), and the neighbouring clause exclusions. The site names the rule it caught.",
+        "ISO §13.18.60.3 / §13.18.60.4 / §13.18.40.3 / §13.18.63");
+    /// <summary>COBOLNET1529 — the TYPE DECLARATION band: the shape a TYPEDEF entry and a TYPE reference must
+    /// have. Covers ISO §13.18.58 (the TYPEDEF clause), §13.18.57.3 (the TYPE clause's syntax rules) and
+    /// §8.5.3.1 / §8.5.3.3 (type declarations and strong typing — including SR1's prohibition on an
+    /// ELEMENTARY type definition carrying the STRONG phrase).</summary>
+    public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
+        "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
+        "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",
+        "ISO §13.18.58 / §13.18.57.3 / §8.5.3.1 / §8.5.3.3");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

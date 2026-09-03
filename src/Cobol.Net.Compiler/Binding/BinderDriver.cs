@@ -106,6 +106,14 @@ internal sealed class BinderDriver
         // when the source carries no >>FLAG directive — the zero-overhead invariant.
         global::CobolNet.Validation.FlagConformancePass.Run(ctx, FlagState.Build(flagEvents), edition);
 
+        // The expression-formation pass (ISO §8.8.1.2 Table 3 / §8.8.2 Table 4) — a THIRD sibling on the same
+        // "orthogonal axis ⇒ separate pass" precedent. It is not edition gating (the tables have no introducedIn:
+        // an invalid symbol pair is invalid in 1985, 2002, 2014 and 2023 alike) and not directive-state flagging,
+        // so neither existing pass's charter covers it. It walks the RAW parse tree once, never once per binding
+        // site; the rule itself is the shared frontend ArithmeticFormationRules, which the compile-time
+        // expression evaluator invokes on its own trees. kb/Work PB158.
+        global::CobolNet.Validation.ExpressionFormationPass.Run(tree, edition);
+
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
         // pre-EC build (the zero-scaffolding invariant, SSOT §18.16).

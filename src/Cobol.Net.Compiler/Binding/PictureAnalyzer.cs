@@ -178,7 +178,7 @@ public static class PictureAnalyzer
                 // NationalData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
                 // GateData/GateReports enumerator (keyed on Pic.Category National); Step 14g.1.
                 if (explicitUsage && usage is not Usage.National)
-                    edition.Error("COBOLNET0881", $"{where}: a national PICTURE (symbol N) admits only USAGE "
+                    edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a national PICTURE (symbol N) admits only USAGE "
                         + $"NATIONAL, not {usage} (ISO §13.18.60.3 SR20; SR13a implies NATIONAL when no USAGE "
                         + "clause is specified)");
                 return new PicInfo(PicCategory.National, Usage.National,
@@ -214,7 +214,7 @@ public static class PictureAnalyzer
                         usage = Usage.Display;
                         break;
                     default:
-                        edition.Error("COBOLNET0881", $"{where}: a boolean PICTURE (symbol 1) admits only USAGE "
+                        edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a boolean PICTURE (symbol 1) admits only USAGE "
                             + $"DISPLAY, BIT, or NATIONAL, not {usage} (ISO §13.18.60.3 SR5/SR12/SR13b)");
                         usage = Usage.Display;
                         break;
@@ -234,7 +234,7 @@ public static class PictureAnalyzer
         // has already failed; the value only keeps the doomed emit crash-free. ──
         if (usage is Usage.Bit)
         {
-            edition.Error("COBOLNET0881", $"{where}: USAGE BIT requires a boolean PICTURE (symbol 1 only) — "
+            edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE BIT requires a boolean PICTURE (symbol 1 only) — "
                 + $"PICTURE {picture} is not boolean (ISO §13.18.60.3 SR5)");
             usage = Usage.Display;
         }
@@ -242,7 +242,7 @@ public static class PictureAnalyzer
         {
             if (expanded.Any(c => c is 'X' or 'A'))
             {
-                edition.Error("COBOLNET0881", $"{where}: USAGE NATIONAL may not be specified with an "
+                edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE NATIONAL may not be specified with an "
                     + $"alphabetic or alphanumeric PICTURE ({picture}) — it admits boolean, national, "
                     + "national-edited, numeric, and numeric-edited pictures only (ISO §13.18.60.3 SR12; "
                     + "§13.18.40.3 SR30)");
@@ -319,7 +319,7 @@ public static class PictureAnalyzer
                 Usage.Binary => "BINARY", Usage.Packed => "PACKED-DECIMAL", Usage.Comp5 => "COMPUTATIONAL-5",
                 _ => usage.ToString(),
             };
-            edition.Error("COBOLNET0881", $"{where}: USAGE {kw} requires a PICTURE that describes a numeric "
+            edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE {kw} requires a PICTURE that describes a numeric "
                 + $"item — PICTURE {picture} is alphabetic/alphanumeric (ISO §13.18.60.3 SR3)");
             usage = Usage.Display;
         }

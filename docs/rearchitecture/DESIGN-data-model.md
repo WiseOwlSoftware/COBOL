@@ -336,6 +336,45 @@ Split the god-struct into a **mostly-immutable declared core** plus **init-only 
 `SameStrongType`/`TypeAnchor`/`RelativeMemberPath` (`DataItem.cs:101-133`) move to a `StrongTypeModel` static helper —
 they are strong-typing logic, not core shape.
 
+#### 2.4.1 Restricted data-pointers — the strong-typing overlay's pointer half
+
+Annex D.9.2.2 states the guarantee the whole strong-typing overlay exists to provide: a restricted data-pointer
+"may contain only the predefined address NULL or the address of a data item of a specific type", and restricted
+data-pointers "provide type safety by precluding the treatment of data of one type as data of another type … the
+existing restrictions for enforcing the integrity of strongly-typed group items cannot be circumvented by the use
+of addresses, pointers, and based items."
+
+**The model has TWO sources, and only one of them involves grammar** (Annex D.9.2.2 items 1 and 2):
+
+1. A data description entry `USAGE POINTER TO type-name-1` (§13.18.60.2 general format; §13.18.60.4 GR23). Carried
+   on `PicInfo.RestrictedTypeName`, read by `StrongTypeModel.PointerRestriction`.
+2. `ADDRESS OF identifier-1` where identifier-1 is a strongly-typed group item or another restricted data-pointer.
+   Normative at §8.4.3.11.4 GR2. **This source needs no grammar at all** and was violable from the day strong
+   TYPEDEF landed — `StrongTypeModel.AddressOfRestriction`.
+
+A restriction is reduced to a type **name**, not a `DataItem`: a restriction is to a TYPE, not to a member
+position, so `SameRestriction` is name equivalence and deliberately NOT `SameStrongType`, whose relative-member-path
+refinement answers the different question of whether two OPERANDS occupy corresponding positions. Equivalence is
+within one source element (cross-program EXTERNAL equivalence stays deferred, as it is for `SameStrongType`).
+
+**The declaration shape is not the obvious one.** §13.18.60.3 SR18 — "If type-name-1 is specified, the TYPEDEF
+clause shall be specified for the subject of the entry" — makes `01 P USAGE POINTER TO T.` itself nonconforming:
+the restricted pointer is declared as a **type declaration** and reached through a TYPE clause. With §8.5.3.1
+("Elementary type definitions shall not be specified with the STRONG phrase") the only legal shape is a GROUP
+strong typedef, a TYPEDEF'd `USAGE POINTER TO` entry, and a `TYPE` item of it — pinned by
+`tests/conformance/2023/pb153_restricted_pointer`.
+
+**Consumption screens** (all in the 0869 pointer band, where `PtrBinder` already reports every other §14.9.39 /
+§14.9.3 operand rule): `PtrBinder.BindAllocate` — §14.9.3.3 SR5 and its SR4 converse, in both the based form and
+the CHARACTERS form; `PtrBinder.BindSetAddress` — §14.9.39.3 SR19 and SR20 in **both** of its arms (`SET ADDRESS OF
+based TO ptr` and `SET ptr TO ADDRESS OF x` are separate code paths); `CallBinder` — §14.8.2.3.2's "If either is a
+restricted pointer, both shall be restricted and of the same type", scoped to the AS-NESTED loop so the deferred
+cross-program axis cannot over-reject.
+
+⛔ The asymmetry `StrongTypeModel` already documents is load-bearing here: a leaf subordinate to a strong group is
+NOT itself strongly typed, so `SET P TO ADDRESS OF <leaf of a strong record>` is **unrestricted and legal**. An
+over-eager screen would break it. (kb/Work PB153.)
+
 ### 2.5 The explicit bind pipeline (the pass contract)
 
 Replace `BindResolve`'s comment-ordered calls **and** the emitter-hidden binder passes with a declared pipeline in

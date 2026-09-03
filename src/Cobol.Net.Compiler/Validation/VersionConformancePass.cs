@@ -578,11 +578,21 @@ internal sealed class VersionConformancePass
         /// <summary>USAGE … WITH NO SIGN (ISO §13.18.60.4 GR11) — a COBOL-2023 addition. Recognition-based on the
         /// parsed noSignPhrase (NO SIGN is a modifier on Usage.Packed, which exists at every edition, so it cannot
         /// be keyed on the resolved Usage enum). The binder separately rejects NO SIGN on a non-Packed usage (1565)
-        /// and an 'S' picture (SR31, 1566); this arm owns only the below-2023 introduction gate.</summary>
+        /// and an 'S' picture (SR31, 1566); this arm owns only the below-2023 introduction gate.
+        /// <para>The USAGE clause's float FORMAT phrases (endianness-phrase / encoding-phrase, ISO §13.18.60.2
+        /// general format) are a COBOL-2014 addition and gate from the SAME override — a disjoint alternative, the
+        /// STOP-statement precedent. Recognition-based for the same reason: the phrase is a MODIFIER, and the
+        /// grammar tolerates it after any usageKeyword (the binder narrows — COBOLNET1716/1706/1707), so the
+        /// resolved Usage enum cannot key it. A below-2014 program that writes it on a standard float usage draws
+        /// this gate AND the usage keyword's own (usage-float-binary32-2014 etc.): two distinct 2014 language
+        /// elements were written, and Annex A.3 item 18 names the phrase separately from item 17's usages.</para></summary>
         public override object? VisitUsageClause(CobolParserCore.UsageClauseContext ctx)
         {
             if (ctx.noSignPhrase() is not null)
                 _p.Check(Constructs.UsagePackedNoSign2023, "USAGE PACKED-DECIMAL WITH NO SIGN");
+            if (ctx.floatFormatPhrase().Length > 0)
+                _p.Check(Constructs.UsageFloatFormatPhrase2014,
+                    "the USAGE clause's endianness-phrase / encoding-phrase");
             return base.VisitChildren(ctx);
         }
 

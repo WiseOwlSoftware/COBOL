@@ -2348,8 +2348,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             string fsec3 = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3"
                 : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
-            bool stdBinaryUsage = pic.Usage is Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128;
-            bool stdDecimalUsage = pic.Usage is Usage.FloatDecimal16 or Usage.FloatDecimal34;
+            // The two families through the ONE place they are written down (UsageFamilies, PicInfo.cs) — §3.166
+            // and §3.167 name them as terms and several rules key on those exact sets, so a second spelling here
+            // is a set that can silently disagree when a member is added (kb/Work PB174).
+            bool stdBinaryUsage = UsageFamilies.IsStandardBinaryFloat(pic.Usage);
+            bool stdDecimalUsage = UsageFamilies.IsStandardDecimalFloat(pic.Usage);
             if (ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal && stdBinaryUsage)
             {
                 ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: under STANDARD-DECIMAL arithmetic "

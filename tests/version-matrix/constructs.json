@@ -172,6 +172,18 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NOSGN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(6) PACKED-DECIMAL WITH NO SIGN.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 12 TO W.\n    STOP RUN.\n"
   },
   {
+   "id": "usage-float-format-phrase-2014",
+   "description": "The USAGE clause's per-item endianness-phrase and encoding-phrase (ISO §13.18.60.2 general format: FLOAT-BINARY-32/-64/-128 [ endianness-phrase ], and FLOAT-DECIMAL-16/-34 with a bracketed choice-indicator group over { encoding-phrase, endianness-phrase }) — a COBOL-2014 addition arriving with the standard floating-point usages themselves. §13.18.60.4 GR19a/b give the phrase its meaning (HIGH-ORDER-LEFT = big-endian, HIGH-ORDER-RIGHT = little-endian) and GR19c/d make the OPTIONS FLOAT-BINARY / FLOAT-DECIMAL clause supply the IMPLIED phrase only where the item states none — so the item's own phrase WINS, per §11.9.8.3 SR2/SR3's 'in which an endianness-phrase is not specified'. Recognition-based on the parsed floatFormatPhrase, like the noSignPhrase row above: the phrase is a modifier, not a usage keyword, so it cannot be keyed on the resolved Usage enum. Annex A.3 item 18 makes the phrase processor-dependent AND requires that when the FLOAT-BINARY clause is supported, the USAGE-clause phrases match it — COBOL.NET supports both phrases in both places.",
+   "display": "USAGE FLOAT-BINARY-32 HIGH-ORDER-RIGHT (the endianness-phrase)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §13.18.60.2 general format / §13.18.60.4 GR19a-d, GR20; §11.9.8.3 SR2/SR3; Annex A.3 item 18",
+   "introducedIn": 2014,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "2014 introduction (§13.18.60.2 endianness-phrase / encoding-phrase on the USAGE clause; arrives with the standard floating-point usages)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UFFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-BINARY-32 HIGH-ORDER-RIGHT.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 1.5 TO F.\n    STOP RUN.\n"
+  },
+  {
    "id": "set-dyn-length-size-2023",
    "description": "SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16) — a COBOL-2023 addition: set the current length of a DYNAMIC LENGTH elementary item (growing space-fills the added positions, GR39; shrinking drops trailing positions). Semantic gate on the BoundSetSize node (the target must be dynamic-length), covering both the explicit SIZE OF form and the bare re-routed form. The DYNAMIC LENGTH clause itself is 2014, but the SET-length form is 2023.",
    "display": "SET [SIZE OF] dyn-length TO n",
@@ -631,14 +643,14 @@
   {
    "id": "usage-pointer-to-type-2014",
    "status": "pending",
-   "description": "USAGE POINTER TO type-name — a RESTRICTED data-pointer whose target is constrained to a strong TYPEDEF type (ISO §13.18.60.2 general format; the concept narrated in Annex D.9.2.2 'Restricted data-pointers'). PENDING: this is the genuine 'TYPE TO / pointer-target' deferral (conformance-plan M3-2) — the re-scout corrected the label: plain 'TYPE TO' is the TYPE clause's OPTIONAL word (§13.18.57.2 Format 1, TYPE [TO] type-name, already covered by the live TYPE clause), NOT a pointer form; the pointer-target constructs are the USAGE POINTER/FUNCTION-POINTER/PROGRAM-POINTER [TO name] restricted forms. This row catalogues the restricted data-pointer, which has no grammar today; it would activate with the restricted-pointer wave (dovetails with the FUNCTION-POINTER prototype work).",
+   "description": "USAGE POINTER TO type-name — a RESTRICTED data-pointer (ISO §13.18.60.2 general format, verified against the printed page; §13.18.60.4 GR23; narrated in Annex D.9.2.2 'Restricted data-pointers'). THE GRAMMAR AND THE SEMANTICS ARE LIVE since kb/Work PB153: dataPointerUsage parses the TO tail, PicInfo.RestrictedTypeName carries the restriction, and the consumption screens are enforced (§14.9.3.3 SR4/SR5 on ALLOCATE, §14.9.39.3 SR19/SR20 on SET ADDRESS OF in BOTH arms, §14.8.2.3.2 on a nested CALL). ⛔ THE SOURCE BELOW WAS REWRITTEN: the previous witness was DOUBLY NONCONFORMING and had never been compiled, so nothing had ever contradicted it — '01 T TYPEDEF STRONG PIC 9(3).' violates §8.5.3.1 (\"Elementary type definitions shall not be specified with the STRONG phrase\") and '01 P USAGE POINTER TO T.' violates §13.18.60.3 SR18 (\"If type-name-1 is specified, the TYPEDEF clause shall be specified for the subject of the entry\"). Activating that row would have pinned illegal COBOL as the construct's definition. The replacement is the ONLY legal declaration shape SR14+SR18 admit, and it was measured to compile and run. STILL PENDING FOR ONE REASON ONLY — THE EDITION IS UNVERIFIED: introducedIn was self-labelled 'provisional' and the row has never been exercised. Annex E (the 2014→2023 substantive-changes list) contains no pointer entry, which RULES OUT 2023; the feature's dependencies (STRONG TYPEDEF §8.5.3, USAGE POINTER, BASED, ALLOCATE) are all COBOL-2002 in this registry, so the true answer is 2002 or 2014 and cannot be settled from the 2023 document alone. Activating with a guessed number would enshrine it. NO CONFORMANCE HOLE IS HELD OPEN by the wait: a restricted-pointer program already draws COBOLNET0900 below 2002 through the usage-pointer-2002 and TYPEDEF gates (measured).",
    "display": "USAGE POINTER TO type-name (restricted data-pointer)",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §13.18.60.2 (USAGE POINTER [TO type-name]) / Annex D.9.2.2; provisional 2014 (conformance-plan M3-2 deferral)",
+   "citation": "ISO §13.18.60.2 general format / §13.18.60.4 GR23 / §13.18.60.3 SR14+SR18 (the legal declaration shape) / Annex D.9.2.2; the EDITION is unverified — Annex E rules out 2023, leaving 2002 or 2014",
    "introducedIn": 2014,
    "removedIn": null,
-   "vcr": "provisional 2014 (§13.18.60.2 restricted data-pointer; the M3-2 TYPE TO deferral, re-anchored from the TYPE clause to the restricted USAGE POINTER form)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PTT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T TYPEDEF STRONG PIC 9(3).\n01 P USAGE POINTER TO T.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+   "vcr": "EDITION UNVERIFIED (§13.18.60.2 restricted data-pointer). Annex E carries no pointer entry, so not 2023; re-derive 2002 vs 2014 from those standards before activating this row — the gate it installs would enshrine whatever number is here",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PTT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 TPT TYPEDEF STRONG.\n   05 F PIC 9(4).\n01 PTR-T TYPEDEF USAGE POINTER TO TPT.\n01 V TYPE TPT BASED.\n01 P TYPE PTR-T.\nPROCEDURE DIVISION.\nMAIN.\n    ALLOCATE V RETURNING P.\n    SET ADDRESS OF V TO P.\n    FREE P.\n    STOP RUN.\n"
   },
   {
    "id": "usage-float-short-2002",

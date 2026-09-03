@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Common;
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime;
@@ -197,7 +198,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (senderIsSelfSuper)
         {
-            ctx.Edition.Error("COBOLNET0869",
+            ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 "SET … TO SELF/SUPER: SELF and SUPER are object references, not data pointers "
                 + "(ISO §14.9.39 Format 4/5 — the sender of a pointer SET is NULL or another pointer)");
             return new BoundNop();
@@ -207,7 +208,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
             {
-                ctx.Edition.Error("COBOLNET0869",
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{t.GetText()}': the receiving operand of a data-pointer SET shall be USAGE POINTER "
                     + "(ISO §14.9.39 Format 4)");
                 return new BoundNop();
@@ -220,7 +221,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (senderRef is null) return new BoundUnsupported("SET pointer — sender shape");
             if (ctx.Refs.Resolve(senderRef) is not { } sp || sp.Item.Pic?.Category is not PicCategory.Pointer)
             {
-                ctx.Edition.Error("COBOLNET0869",
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET … TO '{senderRef?.GetText()}': a data-pointer sender shall be NULL or another "
                     + "USAGE POINTER item (ISO §14.9.39 Format 4; ADDRESS OF senders are a later increment)");
                 return new BoundNop();
@@ -239,7 +240,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (senderIsSelfSuper)
         {
-            ctx.Edition.Error("COBOLNET0869",
+            ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 "SET … TO SELF/SUPER: SELF and SUPER are object references, not program pointers "
                 + "(ISO §14.9.39 Format 5/9 — the sender of a program-pointer SET is NULL, another "
                 + "program-pointer, or an ENTRY program-address-identifier)");
@@ -250,7 +251,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
-                ctx.Edition.Error("COBOLNET0869",
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{t.GetText()}': the receiving operand of a program-pointer SET shall be USAGE "
                     + "PROGRAM-POINTER (ISO §14.9.39 Format 9 SR21)");
                 return new BoundNop();
@@ -264,7 +265,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Refs.Resolve(senderRef) is not { } sp
                 || sp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
-                ctx.Edition.Error("COBOLNET0869",
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET … TO '{senderRef?.GetText()}': a program-pointer sender shall be NULL, another "
                     + "USAGE PROGRAM-POINTER item, or an ENTRY program-address-identifier "
                     + "(ISO §14.9.39 Format 9 SR21 / §8.4.3.13)");
@@ -292,7 +293,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Refs.Resolve(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
-                ctx.Edition.Error("COBOLNET0869",
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{drefs[i].GetText()}': the receiving operand of SET … TO ENTRY shall be USAGE "
                     + "PROGRAM-POINTER (ISO §14.9.39 Format 9 SR21 / §8.4.3.13)");
                 return new BoundNop();
@@ -304,7 +305,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             var nn = se.nonNumericLiteral();
             if (nn?.STRINGLIT() is not { } lit)
             {
-                ctx.Edition.Error("COBOLNET0869",
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET … TO ENTRY {nn?.GetText()}: the ENTRY literal shall be an alphanumeric literal "
                     + "naming a program (ISO §8.4.3.13 / §8.3.2.2)");
                 return new BoundNop();
@@ -313,7 +314,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
         if (ctx.Refs.Resolve(drefs[^1]) is not { } namePlace)
         {
-            ctx.Edition.Error("COBOLNET0869",
+            ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"SET … TO ENTRY '{drefs[^1].GetText()}': the ENTRY identifier is unresolvable (ISO §8.4.3.13 GR1a)");
             return new BoundNop();
         }

@@ -60,6 +60,13 @@ public sealed class CompileTimeExpressionEvaluator
     /// <see langword="null"/> (already reported) on any §7.3.6.2 violation.</summary>
     public CtNumber? EvaluateArithmeticOperand(Core.ArithmeticExpressionContext expr, string where)
     {
+        // ⛔ THE §8.8.1.2 TABLE 3 FORMATION SCREEN RUNS FIRST, BEFORE THE SINGLE-LITERAL PROBE BELOW — and that
+        // ORDER is the whole point (kb/Work PB158). SoleNumericLiteral walks a stacked unary chain toggling the
+        // sign, so it would reclassify `- - 5` as the literal 5 and return a value for an expression the standard
+        // does not admit. That is a THIRD evaluating arm beyond this method's own recursion and the compiler's
+        // ExpressionBinder, which is exactly why the rule is one shared frontend screen invoked per tree rather
+        // than a gate copied into each walker.
+        if (FormationViolation(expr, where)) return null;
         // §7.3.11.4 GR5 / §13.10.3 SR1 — a single (possibly signed) numeric literal is a LITERAL, not an
         // expression, so it keeps its value (AS 0.25 stays 0.25) and is NOT truncated. As a literal it may be of
         // ANY numeric class, so a floating-point (E-form) literal is valid here — unlike a §7.3.6.2 SR1b
@@ -312,7 +319,10 @@ public sealed class CompileTimeExpressionEvaluator
     /// runtime §8.8.2 admits. <see langword="null"/> (already reported) on any violation, propagated through the
     /// fold so an errored sub-expression never yields a value.</summary>
     public BitString? EvaluateBoolean(Core.BooleanExpressionContext expr, string where) =>
-        BooleanExpressionResolver.Resolve<BitString?>(
+        // §8.8.2 Table 4's (B-NOT, B-NOT) cell — the boolean twin of the arithmetic screen above, from the same
+        // shared rule so the two tables are enforced by ONE mechanism (kb/Work PB158).
+        FormationViolation(expr, where) ? null
+        : BooleanExpressionResolver.Resolve<BitString?>(
             expr,
             leaf: vo => BooleanLeaf(vo, where),
             not: b => b?.Not(),
@@ -479,6 +489,23 @@ public sealed class CompileTimeExpressionEvaluator
     /// <summary>Report a compiler-directive expression formation violation through the code-preserving sink (the
     /// frontend routes <see cref="CtDiagCode.DirectiveRule"/> to COBOLNET1619).</summary>
     private void ReportDirective(string where, string message) => _diag.Report(CtDiagCode.DirectiveRule, $"{where}: {message}");
+
+    /// <summary>The frontend's invocation of the SHARED expression-formation rule (ISO §8.8.1.2 Table 3 /
+    /// §8.8.2 Table 4) — <see cref="ArithmeticFormationRules"/>, the same rule the compiler's
+    /// <c>ExpressionFormationPass</c> applies to a whole parse tree. Routed to
+    /// <see cref="CtDiagCode.ArithmeticRule"/>, the kind this consumer already owns for §7.3.6 formation
+    /// violations. Returns true when at least one violation was reported, so the caller returns its
+    /// "null means already reported" result rather than evaluating a shape the standard does not admit.</summary>
+    private bool FormationViolation(IParseTree expr, string where)
+    {
+        bool any = false;
+        ArithmeticFormationRules.Check(expr, (_, message) =>
+        {
+            any = true;
+            _diag.Report(CtDiagCode.ArithmeticRule, $"{where}: {message}");
+        });
+        return any;
+    }
 
     /// <summary>The sole (unqualified, unsubscripted) data reference an arithmetic expression consists of, or null
     /// — through <see cref="SoleOperand"/>, THE ONE single-child descent (kb/Work PB224). It was the last

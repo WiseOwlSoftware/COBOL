@@ -194,7 +194,12 @@ public sealed class NumericByteFormDriftTests
     /// <c>FloatLittleEndian</c> for the STANDARD binary float usages ONLY — the implementor-defined usages
     /// (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) are pinned big-endian regardless (GR13/GR21; GR19c scopes
     /// the clause to the standard usages), and the no-clause default is our documented HIGH-ORDER-LEFT
-    /// (§11.9.8.3 SR1, Annex A.1 item 48).</summary>
+    /// (§11.9.8.3 SR1, Annex A.1 item 48).
+    /// <para>The parameter is the item's EFFECTIVE endianness, so this test cannot see WHICH source supplied it.
+    /// The two-level derivation §11.9.8.3 SR2/SR3 legislates — the item's own §13.18.60.2 endianness-phrase beats
+    /// the OPTIONS-implied one — is merged in <c>DataBinder</c> and pinned END TO END, in BOTH directions, by the
+    /// goldens <c>tests/conformance/2023/pb174_float_item_endianness{,_default}</c> (kb/Work PB174). Adding
+    /// "precedence" rows here would pin nothing: both arms reach FloatItem identically.</para></summary>
     [Theory]
     [InlineData(Usage.FloatBinary32, FloatEndianness.HighOrderRight, true)]
     [InlineData(Usage.FloatBinary64, FloatEndianness.HighOrderRight, true)]

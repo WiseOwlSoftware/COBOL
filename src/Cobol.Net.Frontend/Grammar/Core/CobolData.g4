@@ -445,7 +445,7 @@ editingForPhrase
 // reads as the usage, which the binder / VersionConformancePass then names as the 2002 introduction — the
 // superset-parse / bind-narrow direction of DESIGN-version-conformance-pipeline.
 usageClause
-    : (USAGE IS?)? usageKeyword binarySign? noSignPhrase?
+    : (USAGE IS?)? usageKeyword binarySign? noSignPhrase? floatFormatPhrase*
     ;
 
 // USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.2 / GR11 — a COBOL-2023 addition): no trailing sign nibble.
@@ -453,6 +453,41 @@ usageClause
 // and rejects an 'S' picture with NO SIGN (SR31, COBOLNET1566). WITH is the conventional optional noise word.
 noSignPhrase
     : WITH? NO SIGN
+    ;
+
+// The floating-point FORMAT phrases of the USAGE clause (ISO §13.18.60.2 general format, verified against the
+// PRINTED page — PDF p.533 / printed 503): `FLOAT-BINARY-32/-64/-128 [ endianness-phrase ]`, and FLOAT-DECIMAL-16/
+// -34 followed by a BRACKETED CHOICE-INDICATOR group over { encoding-phrase, endianness-phrase }. §5.2.6.4 gives
+// that group its semantics — "When enclosed by brackets, zero or more of the alternatives contained within the
+// choice indicators shall be specified, but any single alternative may be specified only once" and "The
+// alternatives may be specified in any order" — which IS the `*` written here plus a binder duplicate screen
+// (COBOLNET1718). The `*` is on the CLAUSE, not inside usageKeyword, and that placement is load-bearing:
+// DataBinder.UsageKeyword derives the canonical keyword from the usageKeyword node, so a phrase INSIDE it would
+// glue ("FLOAT-BINARY-32HIGH-ORDER-LEFT") and fall to PictureAnalyzer.ParseUsage's internal-error arm — the exact
+// failure that method's own doc comment records for bare `BINARY-CHAR SIGNED` (the W2 loud-guard sweep).
+// Grammatically tolerated after ANY usageKeyword, the established binarySign/noSignPhrase posture: the binder
+// rejects an endianness-phrase on a non-standard-float usage (COBOLNET1716, §13.18.60.4 GR19c/d scope it) and an
+// encoding-phrase on anything but FLOAT-DECIMAL-16/-34 (COBOLNET1717, GR20). The 2014 introduction gate is
+// VersionConformancePass ParseArm.VisitUsageClause (Constructs.UsageFloatFormatPhrase2014) — NOT a parse-time
+// {is2014()}? predicate (COBOLNET_DESIGN §1.1: this tree has no parse-time edition predicates).
+floatFormatPhrase
+    : encodingPhrase
+    | endiannessPhrase
+    ;
+
+// encoding-phrase / endianness-phrase (ISO §13.18.60.2 "where encoding-phrase is" / "where endianness-phrase is").
+// ONE definition, THREE citing clauses: the USAGE clause above, the OPTIONS FLOAT-BINARY clause (§11.9.8) and the
+// OPTIONS FLOAT-DECIMAL clause (§11.9.9) — the two OPTIONS rules live in CobolParserCore.g4 and reach these
+// through the import merge. They are DEFINED here, in the imported fragment, so the reference direction is always
+// importing-grammar → imported-rule.
+encodingPhrase
+    : BINARY_ENCODING
+    | DECIMAL_ENCODING
+    ;
+
+endiannessPhrase
+    : HIGH_ORDER_LEFT
+    | HIGH_ORDER_RIGHT
     ;
 
 usageKeyword
@@ -483,10 +518,22 @@ usageKeyword
     | INDEX
     | NATIONAL
     | BIT
-    | POINTER
+    | dataPointerUsage       // USAGE POINTER [TO type-name] (§13.18.60.2; the TO form is a RESTRICTED data-pointer, GR23)
     | programPointerUsage    // USAGE PROGRAM-POINTER [TO prototype] (§13.18.60 GR24/GR25, 2002) — introduction-gated post-bind (VersionConformancePass UsageConstructId)
     | functionPointerUsage   // USAGE FUNCTION-POINTER [TO prototype] (§13.18.60, 2002) — superset parse; semantics STAGED LOUD (function prototypes = P13)
     | objectReferenceUsage   // USAGE OBJECT REFERENCE [class] (OO/2002) — introduction-gated at BIND time (PicInfo.ParseUsage → ConstructRegistry.Check), like NATIONAL/BIT/POINTER above
+    ;
+
+// USAGE POINTER [TO type-name-1] (ISO §13.18.60.2 general format, verified against the PRINTED page — PDF p.533
+// = printed 503 prints `POINTER [ TO type-name-1 ]`). The TO form declares a RESTRICTED data-pointer: §13.18.60.4
+// GR23 — "If type-name-1 is specified, this data item is a restricted data-pointer. A restricted data-pointer
+// shall contain only the predefined address NULL or the address of a data item of the specified type." Written to
+// MIRROR its programPointerUsage / functionPointerUsage neighbours below, which is why it is a RULE and not a
+// bare terminal with a tail: DataBinder.UsageKeyword derives the canonical keyword from this node, so the operand
+// must not be glued into it ("POINTERT" — the OBJECT REFERENCE / PROGRAM-POINTER precedent). §13.18.60.3 SR18
+// additionally requires the SUBJECT of a `TO type-name` entry to carry TYPEDEF, screened in the binder.
+dataPointerUsage
+    : POINTER (TO cobolWord)?
     ;
 
 // USAGE PROGRAM-POINTER [TO program-prototype-name-1] (ISO §13.18.60 :22686): a program-pointer data item —

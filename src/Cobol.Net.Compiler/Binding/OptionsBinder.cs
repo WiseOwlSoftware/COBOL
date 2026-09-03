@@ -64,7 +64,7 @@ internal static class OptionsBinder
         if (c.entryConventionClause()?.cobolWord() is { } ec)
             return m with { EntryConvention = ec.GetText() };
         if (c.floatBinaryClause()?.endiannessPhrase() is { } fb)
-            return m with { FloatBinaryEndianness = EndiannessOf(fb) };
+            return m with { FloatBinaryEndianness = FloatFormatPhrase.Endianness(fb) };
         if (c.floatDecimalClause()?.floatDecimalEncoding() is { } fd)
             return ApplyFloatDecimal(m, fd);
         if (c.intermediateRoundingClause()?.intermediateRoundingMode() is { } ir)
@@ -112,15 +112,14 @@ internal static class OptionsBinder
             : ArithmeticMode.Native;
     }
 
-    private static FloatEndianness EndiannessOf(Core.EndiannessPhraseContext e) =>
-        e.HIGH_ORDER_LEFT() is not null ? FloatEndianness.HighOrderLeft : FloatEndianness.HighOrderRight;
-
+    // The token → enum mapping is FloatFormatPhrase (OptionsModel.cs) — ONE definition shared by §11.9.8, §11.9.9
+    // and the USAGE clause's per-item phrases (§13.18.60.2), exactly as the grammar shares one
+    // encodingPhrase/endiannessPhrase rule pair across all three (kb/Work PB174).
     private static OptionsModel ApplyFloatDecimal(OptionsModel m, Core.FloatDecimalEncodingContext fd)
     {
-        FloatEncoding encoding = fd.encodingPhrase() is { } e
-            ? (e.BINARY_ENCODING() is not null ? FloatEncoding.BinaryEncoding : FloatEncoding.DecimalEncoding)
-            : m.FloatDecimalEncoding;
-        FloatEndianness endianness = fd.endiannessPhrase() is { } ep ? EndiannessOf(ep) : m.FloatDecimalEndianness;
+        FloatEncoding encoding = fd.encodingPhrase() is { } e ? FloatFormatPhrase.Encoding(e) : m.FloatDecimalEncoding;
+        FloatEndianness endianness = fd.endiannessPhrase() is { } ep
+            ? FloatFormatPhrase.Endianness(ep) : m.FloatDecimalEndianness;
         return m with { FloatDecimalEncoding = encoding, FloatDecimalEndianness = endianness };
     }
 

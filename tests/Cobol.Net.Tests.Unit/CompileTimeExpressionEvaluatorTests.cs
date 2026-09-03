@@ -85,6 +85,50 @@ public sealed class CompileTimeExpressionEvaluatorTests
         Assert.Equal(1500m, r.Value.Value);
     }
 
+    /// <summary>§8.8.1.2 Table 3, row "Unary + or −" × column "Unary + or −" = '—' (kb/Work PB158). This is the
+    /// walker the note's two-arm framing MISSES: <c>EvaluateArithmeticOperand</c> reaches
+    /// <c>SoleNumericLiteral</c>, which toggles the sign through a stacked unary chain and used to reclassify
+    /// <c>- - 2</c> as the literal 2 — a value for an expression the standard does not admit. The screen runs
+    /// BEFORE that probe, which is why the order in the method body is load-bearing.</summary>
+    [Fact]
+    public void Rejects_StackedUnarySigns_PinnedToSpec()
+    {
+        var (r, diag) = Eval("- - 2");
+        Assert.Null(r);
+        Assert.Contains(diag.Reports, x => x.Code == CtDiagCode.ArithmeticRule
+                                           && x.Message.Contains("Table 3", StringComparison.Ordinal));
+    }
+
+    /// <summary>The over-rejection guard, and the reason the rule could not be a grammar tier: §8.3.3.3.2 rule 2
+    /// makes a numeric literal "a character-string" whose sign is "the leftmost character of the literal", so a
+    /// sign written AGAINST the digits is part of the literal and <c>- -2</c> is Table 3's PERMISSIBLE
+    /// (unary, literal) pair. Its token stream is identical to <c>- - 2</c>'s in the default lexer mode, so only
+    /// the token POSITIONS separate them — a test that pinned the reject alone would pass for a screen that
+    /// rejected legal source too.</summary>
+    [Fact]
+    public void Accepts_UnaryThenAdjacentSignedLiteral_PinnedToSpec()
+    {
+        var (r, diag) = Eval("- -2");
+        Assert.Empty(diag.Reports);
+        Assert.NotNull(r);
+        Assert.Equal(2m, r!.Value.Value);
+    }
+
+    /// <summary>The other permissible neighbours of a unary sign, so the screen is pinned against firing on
+    /// Table 3's 'P' cells: row "+ − * / **" × column "Unary" = P (a binary operator may be followed by a unary
+    /// sign) and row "(" × column "Unary" = P.</summary>
+    [Theory]
+    [InlineData("5 - - 3", "8")]
+    [InlineData("5 * - 3", "-15")]
+    [InlineData("- (3 + 4)", "-7")]
+    public void Accepts_PermissibleUnaryNeighbours_PinnedToSpec(string src, string expected)
+    {
+        var (r, diag) = Eval(src);
+        Assert.Empty(diag.Reports);
+        Assert.NotNull(r);
+        Assert.Equal(expected, r!.Value.Text);
+    }
+
     [Fact] // §7.3.6.2 SR2 — a sole literal beyond the decimal evaluation range is rejected LOUDLY, never a silent null.
     public void Rejects_OverRangeSoleLiteral()
     {
