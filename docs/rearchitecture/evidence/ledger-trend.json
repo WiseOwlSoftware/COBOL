@@ -108,6 +108,15 @@
       "dns": 333,
       "label": "Batch b1 registered: 179 row",
       "battery": null
+    },
+    {
+      "sha": "60bf02d7",
+      "date": "2026-09-02",
+      "gap": 3227,
+      "closed": 1084,
+      "dns": 333,
+      "label": "A.4.2 screen handling: refus",
+      "battery": null
     }
   ]
 }
