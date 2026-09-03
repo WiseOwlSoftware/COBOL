@@ -24,7 +24,22 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-09-02 — THE live resume point; the campaign paused on the session limit):** the
+- **▶ SESSION HANDOFF (2026-09-02 evening — THE live resume point; paused on owner instruction to reserve quota):**
+  the two-lane campaign's first day ended with **GAP 3636 → 3119**, DOCUMENTED-NON-SUPPORT 36 → 340, twenty landings
+  on main and **CI green on `56878ebf`** after a one-test regression from the screen-witness landing (a DISPLAY
+  predicate guarding a mandatory first operand) was fixed in the last landing; the register holds 110 actionable
+  items (batch 1's 85 I/O mechanisms among them). ⛔ Run the probe; the worklist is `kb/Work/`, never this paragraph.
+  **Owed on resume, in this order (all briefed — the orchestrator's memory `burndown-campaign-pause-2026-09-02`
+  carries the scratchpad and pinned-worktree paths):** ① **battery #42** — comprehensive, owed since the golden lane
+  `c11949e3`, on a tree twenty landings past #41; expect the rebaselined differential totals; ② the PB371 + CLASS-clause
+  implementer (fourteen vacuous syntax rules close on the witnesses that pin their refused antecedent; the CLASS
+  clause joins the declined VALIDATE family — owner decisions 2026-09-02); ③ lane 3 batch 2 from its on-disk
+  checkpoints, then its registrar, then batch 3 (inputs and pinned compiler ready); ④ golden-lane round 2 from its
+  drafts (61 CONFORMS-untested rows), then its validator and lander; ⑤ the ledger refresh after each. Owner-decision
+  queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts).
+  A named CI flake to register: `Collation.CollationKeyCacheTests.ConcurrentCallers_GetOneKeyPerText_AndNeverAWrongOne`
+  failed on two of seven Linux unit runs today (A12 shape).
+- **▶ SESSION HANDOFF (2026-09-02 afternoon — superseded by the evening bullet above):** the
   two-lane campaign (`kb/Work/PB278`, doctrine `DESIGN-spec-conformance-review.md` §5 and the `workstream` skill)
   ran its first day: fifteen landings on main, GAP 3636 → **3227**, DOCUMENTED-NON-SUPPORT 36 → 333 → the
   A.4.8/A.4.13/A.4.2 rows witnessed (DEVLOG 1423–1438). ⛔ Run the probe; the worklist is `kb/Work/`

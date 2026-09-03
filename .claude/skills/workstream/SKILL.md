@@ -45,6 +45,11 @@ jobs behind the near-done ones.
   (fast-forward, never `--force`); the orchestrator runs `git merge --ff-only origin/main` locally and removes dead
   worktrees itself (`git worktree remove --force`, `git branch -D`).
 - Verdict batches are RE-APPLIED on the merged tree (`record_verdicts.py`), never merged as inventory JSON hunks.
+- ⛔ A checkpoint file never enters a landing: every landing `git add` excludes it —
+  `git add -A -- . ":!.claude/settings.local.json" ":!STATUS.md"` — and a lander that rebases onto a main that
+  already carries a stray `STATUS.md` removes it (`git rm --cached STATUS.md`) in its commit. (2026-09-02: lander 3's
+  checkpoint reached main inside a landing, and the next lander's rebase then had to choose between two agents'
+  checkpoints for one path.)
 - Read-only fleets probe a **pinned worktree with its own built compiler** (`git worktree add --detach <path> <sha>`,
   build there once) so no landing swaps a binary under them.
 - One comprehensive battery per landing batch, run by the orchestrator when no fleet is live.
