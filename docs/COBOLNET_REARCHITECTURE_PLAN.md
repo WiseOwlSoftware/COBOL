@@ -26,8 +26,8 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 - **▶ SESSION HANDOFF (2026-09-02 — THE live resume point; the campaign paused on the session limit):** the
   two-lane campaign (`kb/Work/PB278`, doctrine `DESIGN-spec-conformance-review.md` §5 and the `workstream` skill)
-  ran its first day: thirteen landings on main, GAP 3636 → **3394**, DOCUMENTED-NON-SUPPORT 36 → 333 → the
-  A.4.8/A.4.13 rows witnessed (DEVLOG 1423–1436). ⛔ Run the probe; the worklist is `kb/Work/`
+  ran its first day: fourteen landings on main, GAP 3636 → **3379**, DOCUMENTED-NON-SUPPORT 36 → 333 → the
+  A.4.8/A.4.13 rows witnessed (DEVLOG 1423–1437). ⛔ Run the probe; the worklist is `kb/Work/`
   (`python scripts/spec/work.py next`), never this paragraph.
   **Owed on resume, in this order (all briefed; the orchestrator's memory carries the worktree and scratchpad
   paths):** ① ✅ **DONE — lander 2's whole queue landed**: cluster E `0b1c39bc`, witness A `66c85a90`, cluster F
@@ -35,8 +35,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   (`agent-a383892848abd6895`, `agent-a4e96fdfc1f71b6ca`, `agent-a70664a7e3ef2be42`) and its own
   (`agent-aa4e8718dabd3b680`) are dead and removable. Each remaining cluster is a worktree with WIP commits +
   `STATUS.md`; ② lander 3 lands the screen witnesses (+163 rows) → the
-  citation sweep → cluster D → witness B2 (+108 rows), folding the three "declined facility" seams into one; ③ the
-  lane-3 batch-1 registrar lands (85 mechanisms → notes; 15 rows close); ④ **battery #42 — comprehensive, owed since
+  citation sweep → cluster D → witness B2 (+108 rows), folding the three "declined facility" seams into one; ③ ✅
+  **DONE — the lane-3 batch-1 registrar landed** (DEVLOG 1437): 179 rows of OPEN · READ · RELEASE · RETURN ·
+  START · UNLOCK · USE recorded, GAP 3394 → **3379**, 85 mechanisms clustered into `PB316`–`PB372` with `PB236`
+  extended; 37 CONFORMS-but-untested rows are the golden lane's next input set (listed in `PB370` with what each
+  golden must assert) and one owner question covering a family of fourteen rules is `PB371`;
+  ④ **battery #42 — comprehensive, owed since
   the golden lane `c11949e3`; the reference below is #41**; ⑤ the ledger refresh after every landing (`python
   scripts/spec/gen_ledger.py`, then publish). Then lane 3 resumes from its on-disk checkpoints (batch 2 adjudicated,
   batch 3 inputs generated) and the golden lane's round 2 takes the CONFORMS-but-untested rows the registrars list.
