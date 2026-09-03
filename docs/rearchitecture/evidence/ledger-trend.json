@@ -153,6 +153,15 @@
       "dns": 346,
       "label": "PB371 + PB375: two owner dec",
       "battery": null
+    },
+    {
+      "sha": "0fa1fe9e",
+      "date": "2026-09-03",
+      "gap": 3054,
+      "closed": 1257,
+      "dns": 346,
+      "label": "Golden lane round 2: 49 witn",
+      "battery": null
     }
   ]
 }

@@ -188,7 +188,7 @@ of a mechanism the register documents as per-process OS entropy.
 
 `PB370` keeps all **7** of its rows — round 2 drew a different band, and that residue is the harder kind: three
 whose existing witness asserts something strictly weaker than the rule. `PB260`, `PB261` and `PB284` are
-untouched; no DOCUMENTED-NON-SUPPORT row moved this round, so DNS stays at 344 closed. `PB303`'s
+untouched; no DOCUMENTED-NON-SUPPORT row moved this round, so the ledger DNS figure stays at 346 (344 of them closed). `PB303`'s
 `inventory_rows` was corrected from `RV-15.65.4-4` — a MODULE-NAME returned-value rule that merely PERMITS the
 AS form, and which closed CONFORMS in this very batch — to the three §11.10 rows the AS phrase actually needs to
 parse.
