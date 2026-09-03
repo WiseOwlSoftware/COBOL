@@ -1860,20 +1860,23 @@ result. Run the long legs ONE AT A TIME.
   a DOC row's closing shape. Method and rationale: `DESIGN-spec-conformance-review.md` §5; the measurements that
   earned it (3,361 of 3,636 GAP rows never adjudicated; ~1,000 fleet agents for 27 rows of burn-down in three days)
   are in the decision note. **Lanes are QUERIES over `kb/Work/` and the inventory — no new list anywhere.**
-- **▶ BURN-DOWN STATE after the 2026-09-02 GOLDEN LANE landing (DEVLOG 1431), which followed the three-landing
-  batch (DEVLOG 1427–1429; cluster C · the Annex A.1 DOC-row mechanism · the derived-verdict selectors).**
-  **GAP 3467 of 4311** (3636 → 3636 → 3618 → 3618 → **3467**: cluster C was a CORRECTION of an already-CONFORMS
-  row, the A.1 back-fill closed 18, the derived lane moved it by design zero — a declined row closes on its
-  WITNESS, not on its verdict — and the golden lane then wrote 151 of those witnesses).
-  **1287 rows adjudicated · CONFORMS 836 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 99 · NOT-IMPLEMENTED 15 ·
-  DIVERGES 4.** **24 CONFORMS rows are still test-needed** — each is one spec-derived golden away from OK.
-  **Corpus 553 positive goldens · 577 negative fixtures.** **Diagnostic band UNCHANGED — the golden lane claimed
-  no codes; next free is COBOLNET1705.** Both lanes the owner decision above listed as pending their mechanism
+- **▶ BURN-DOWN STATE after the 2026-09-02 FIX-LANE CLUSTER E landing (DEVLOG 1433), which followed the golden
+  lane (DEVLOG 1431) and the three-landing batch (DEVLOG 1427–1429; cluster C · the Annex A.1 DOC-row mechanism ·
+  the derived-verdict selectors).**
+  **GAP 3456 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → **3456**: cluster C was a CORRECTION of an
+  already-CONFORMS row, the A.1 back-fill closed 18, the derived lane moved it by design zero — a declined row
+  closes on its WITNESS, not on its verdict — the golden lane then wrote 151 of those witnesses, and cluster E
+  closed 8 I-O rows plus the 3 Annex A.1 DOC rows its own determinations made statable).
+  **1292 rows adjudicated · CONFORMS 847 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 97 · NOT-IMPLEMENTED 13 ·
+  DIVERGES 2.** **24 CONFORMS rows are still test-needed** — each is one spec-derived golden away from OK.
+  **Corpus 556 positive goldens · 582 negative fixtures.** **Diagnostic band — cluster E claimed COBOLNET1720
+  (`io-phrase-forbidden-here`, one reusable descriptor for §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6);
+  next free is COBOLNET1721.** Both lanes the owner decision above listed as pending their mechanism
   are live: `inventory-schema.json` → `kinds.DOC` defines what a DOC row costs, and `derived-verdicts` is read by
   BOTH engines (`DerivedSelector` + `scripts/spec/derive_verdict_batch.py` on the Python side,
   `DerivedVerdictDriftTests.Select` on the C#) rather than the one the schema used to claim. Annex A.1 scope is
-  **195, not 199** — four items a declined module withdraws, DERIVED from the same selectors — with **38
-  discharged, 157 remaining** (`python scripts/spec/audit_annex_a1.py --check` is the count's owner; it reports
+  **195, not 199** — four items a declined module withdraws, DERIVED from the same selectors — with **41
+  discharged, 154 remaining** (`python scripts/spec/audit_annex_a1.py --check` is the count's owner; it reports
   zero findings). ⚠ **One negative corpus entry is deliberately `pending`, not enabled** —
   `negative/pb260-accept-screen-at-phrase`: it IS rejected at 2002/2014/2023, but only by a generic parse error,
   which `docs/CONFORMANCE.md` §4 records as PB260's debt rather than as the conforming posture; enabling it would

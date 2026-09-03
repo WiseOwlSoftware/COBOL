@@ -161,7 +161,9 @@
     "l1_char_national_also_positions",
     "l1_char_national_argument_bound",
     "l1_day_to_yyyyddd_format",
-    "l1_windowing_omitted_arg3"
+    "l1_windowing_omitted_arg3",
+    "pb142_retry_open_sharing",
+    "pb144_indexed_delete_record"
   ],
   "pending": []
 }

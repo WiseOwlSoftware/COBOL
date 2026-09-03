@@ -576,7 +576,12 @@
   "stat-ord-min-zero-length-literal-argument",
   "stat-standard-deviation-arg-class-numeric",
   "stat-variance-arg-class-numeric",
-  "l1-substitute-index-argument1"
+  "l1-substitute-index-argument1",
+  "delete-record-invalid-key-sequential-access",
+  "rewrite-invalid-key-sequential-org",
+  "rewrite-invalid-key-relative-sequential",
+  "read-phrase-random-access",
+  "delete-record-sequential-org"
  ],
  "pending": [
   "pb260-accept-screen-at-phrase"

@@ -30960,9 +30960,9 @@
   "subject": "DELETE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete",
-  "test-ref": "conformance:negative/l1-delete-record-sequential-organization; conformance:negative/l1-delete-record-implicit-sequential-organization",
+  "test-ref": "conformance:negative/delete-record-sequential-org",
   "editions": "85,2002,2014,2023",
-  "notes": "Both routes to sequential organization are witnessed: the written ORGANIZATION IS SEQUENTIAL clause, and the no-clause default of 12.4.5.10.3 GR6; both assert COBOLNET0865 at all four editions.",
+  "notes": "The rule was ENFORCED but never PROVED: COBOLNET0865 occurred exactly ONCE in the whole repository, at its own emit site, so nothing anywhere exercised it and the row sat CONFORMS with no test-ref (kb/Work PB144). SR1 is correctly a HARD error at every edition and strictness — deliberately NOT routed through the new COBOLNET1720 leniency seam, because it is not a documented dialect leniency — and FileModel.IsSequential covers the implicit-sequential (no ORGANIZATION clause) case. The new negative pins it.",
   "state": "OK"
  },
  {
@@ -30971,12 +30971,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "DELETE statement",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase",
+  "test-ref": "conformance:negative/delete-record-invalid-key-sequential-access; conformance:2002/pb144_indexed_delete_record",
   "editions": "85,2002,2014,2023",
-  "notes": "The rule requires the source to be rejected; nothing rejects it, at any strictness. Read BindDelete: immediately after the SR1 gate it binds the phrase unconditionally -- 'KeyedInvalidKey? invalid = del.deleteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(...) : null;' -- with the comment '14.9.10 SR2 forbids INVALID KEY in sequential access mode -- tolerated in the default (CCVS-lenient) mode: a sequential-access DELETE raises only 4x statuses, so the phrase is dead, never misrouted.' There is no access-mode test and no diagnostic code allocated anywhere for it, and crucially no strict-mode arm: the repo already owns the policy seam for exactly this shape (EditionContext.Removed(code, message) -- 'this seam now also carries DOCUMENTED-DIALECT-LENIENCY gating ... error strict, warning ... under --permissive ... ONE policy seam, never a parallel Lenient() method'), and BindDelete does not use it, so even a strict compile accepts source the standard forbids. The runtime-deadness argument the comment makes is about consequences, not about the syntax rule, and it is only half true anyway: it presumes the phrase can never see a '2x' status in sequential access, which is true for the connectors as written but is not what SR2 asserts. Verdict is NOT-IMPLEMENTED rather than DIVERGES because no code implements the check at all. Same shape as the sibling leniencies noted for READ SR6 and REWRITE SR2 in this file -- worth sweeping together. Closing this row needs the access-mode test routed through EditionContext.Removed with a new COBOLNET code, plus a negative fixture for strict and a golden proving the --permissive warning. || UPHELD: confirmed at source -- BindDelete (KeyedIoBinder.cs:152-153) binds 'del.deleteInvalidKeyPhrase()' unconditionally with no FileModel.AccessMode test anywhere in the method, under the toleration comment quoted verbatim, and EditionContext.Removed (EditionContext.cs:140-144) -- the ONE dialect-leniency seam -- is never called from it. I also verified the sibling sweep this implies: BindDelete never tests FileModel.IsSortMerge either, so 13.4.6 SR3/SR4 ('an SD file-name may appear only in SORT/MERGE/RELEASE/RETURN', which SequentialIoBinder.UnsupportedOrg does enforce for other verbs) is unenforced for DELETE RECORD as well as for DELETE FILE (SR-14.9.10.3-3). Same one-rule-written-in-one-place miss, and the three should land in one change set.",
-  "state": "GAP"
+  "notes": "NOT-IMPLEMENTED -> CONFORMS (kb/Work PB144). The INVALID KEY / NOT INVALID KEY phrases were bound UNCONDITIONALLY in sequential access mode with a 'tolerated in the default (CCVS-lenient) mode' comment and NO strict arm, so at --std 2023 strict the compiler accepted source the standard forbids and said nothing — measured with a CLI probe, not inferred. The severity decision now routes through EditionContext.Removed, THE policy seam (which already carries documented-dialect-leniency gating as well as removed-construct gating): ERROR under strict, WARNING with an UNCHANGED bind under --permissive, so the CCVS-85 corpus that motivated the leniency keeps compiling with its existing semantics. ONE reusable descriptor (COBOLNET1720) serves this rule and its two siblings, on the COBOLNET1694 precedent, because the SHAPE is one rule and each site quotes its own SR. EDITION-GATE SWEEP RUN, not assumed: all 459 NIST programs check-batched at strict --std 85 produce the SAME 17 pre-existing failures (all CM* COMMUNICATION-SECTION parse errors and DB* COBOLNET1571 debug-module rejections, each read individually) and ZERO new ones; the harness was proved able to surface COBOLNET1720 as FAIL before that zero was trusted. The gate is edition-invariant by construction (Removed keys on Permissive, never on edition) and measured identical at 85/2002/2014/2023.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.10.3-3",
@@ -31010,12 +31010,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "DELETE statement",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Delete",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Delete",
+  "test-ref": "conformance:2002/pb144_indexed_delete_record",
   "editions": "85,2002,2014,2023",
-  "notes": "Read RelativeConnector.Delete and its twin IndexedConnector.Delete: both open with 'if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO', and FileStatusCode.DeleteRewriteNotOpenForIO = \"49\" (src/Cobol.Net.Runtime/IO/FileStatus.cs). That is exactly 9.1.13.7 item 9 -- 'I-O status = 49. The execution of a DELETE RECORD or REWRITE statement is attempted referencing a file connector that is not open in the I-O mode' -- and it covers BOTH failing shapes (never opened, and opened in a non-I-O mode). The second conjunct ('the physical file ... shall be a mass storage file') has no explicit check, but it cannot be violated on the reachable paths: FileRegistry.DeleteRecord dispatches only to RelativeConnector.Delete / IndexedConnector.Delete (its default arm returns PermanentError), both connectors persist to a resolved host path, and KeyedIoBinder.BindDelete removes the sequential arm at compile time via COBOLNET0865 (SR1) before any non-mass-storage shape could reach the runtime. No spec-derived golden or negative fixture asserts the '49' outcome (I searched tests/conformance/*/ *.cob for DELETE -- only file_sharing_mutate, ca17_indexed_rewrite_collating, pb63_exception_file_select_names and the three delete_file* fixtures reference it, and none opens a file in a non-I-O mode before a DELETE RECORD). Closing this row needs a golden that opens an indexed or relative file INPUT (and one that never opens it), issues DELETE ... RECORD, and pins FILE STATUS = 49. || REFUTED: CONFORMS -> PARTIAL. The OPEN-MODE conjunct is confirmed exactly as read: RelativeConnector.cs:302-306 and IndexedConnector.cs:407-411 both begin 'if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO', FileStatus.cs:47 gives DeleteRewriteNotOpenForIO = \"49\", and I validated the status independently (cite.py --check 9.1.13.7 -> 'OK 9.1.13.7 9) I-O status = 49. The execution of a DELETE RECORD or REWRITE statement is attempted referencing a file connector that is not open in the I-O mode.'). The SECOND conjunct of the rule -- 'the physical file associated with that file connector shall be a mass storage file' (validated verbatim against 14.9.10.4 GR1) -- is NOT verified, and the ground offered for calling it unviolable is a deduction, not a measurement. Measured instead: DataBinder.BindFileControl (DataBinder.cs:730) sets FileModel.AssignTarget from 'tgt.STRINGLIT() is { } s ? CobolLiteral.Decode(s.GetText()) : tgt.GetText()' -- an arbitrary decoded string -- and there is NO device model anywhere in SELECT binding (no PRINTER/KEYBOARD/DISPLAY/device concept exists in the file-control binder at all). So 'SELECT R ASSIGN TO \"NUL\"' / '\"CON\"' / '\"/dev/tty\"' with ORGANIZATION RELATIVE binds an ordinary RelativeConnector over a character device, and DELETE ... RECORD still answers '00' or '23' out of the in-memory _slots map with nothing checking, rejecting or documenting the mass-storage premise. Ground rule 5 is explicit: a rule with two halves where one was verified is PARTIAL. UNVERIFIED HALF = the mass-storage premise. WHAT WOULD VERIFY IT = either a bind-time rejection / documented implementor treatment of a non-mass-storage assign target, or a documented statement that every ASSIGN target this implementation resolves is a mass storage file. Separately, the '49' half is still untested -- I re-ran the fixture search and confirm the only DELETE-bearing .cob files are 2002/file_sharing_mutate, 2002/ca17_indexed_rewrite_collating, 2023/pb63_exception_file_select_names and the three 2023/delete_file* files, none of which opens a keyed file INPUT (or leaves it unopened) before a DELETE RECORD.",
-  "state": "GAP"
+  "notes": "PARTIAL -> CONFORMS (kb/Work PB144). 'The open mode of the file connector referenced by file-name-1 shall be I-O.' IndexedConnector.Delete gates on !IsOpen || Mode != IO -> '49', but that arm had never executed against an INDEXED connector: MEASURED, 37 fixtures mention INDEXED and NOT ONE issued a DELETE against one, and both DELETE unit tests build RELATIVE connectors. The new fixture's IX49 leg is the first execution of it.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.10.4-2",
@@ -31036,12 +31036,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "DELETE statement",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Delete",
-  "test-ref": "",
+  "test-ref": "conformance:2002/pb144_indexed_delete_record",
   "editions": "85,2002,2014,2023",
-  "notes": "|| REFUTED: downgraded CONFORMS -> PARTIAL. The adjudicator verified only the SINGLE-DATA-ITEM form of the prime record key. GR3 --check OK. VERIFIED HALF (I re-read it rather than inheriting it): IndexedConnector.Delete takes the else arm for every _access other than KeyedAccess.Sequential, so RANDOM and DYNAMIC both compute 'prime = KeyOf(Fit(keyedRecordImage), -1)'; KeyOf's 'keyIndex < 0 ? (_primeOff, _primeLen) : (_alts[keyIndex].Off, _alts[keyIndex].Len)' makes -1 the PRIME key unconditionally, so a DYNAMIC file whose key of reference is an alternate (ReadRandom sets '_refKey = keyIndex') still deletes by prime key. Lookup '_recs.FirstOrDefault(r => KeyEq(KeyOf(r.Image,-1), prime, -1))' is collation-aware via KeyCompare/_primeCollation; 'target is null -> Status = FileStatusCode.RecordNotFound' is the 9.1.14 invalid key condition, routed by KeyedIoEmitter.EmitInvalid (st[0]=='2') with EmitUseHook(file, invalidKeyHandled: del.InvalidKey?.Invalid is not null). I also checked the record-area splice the adjudicator relied on: SequentialIoEmitter's read path documents 'A Tier-B view record (a multi-01 FD whose shared area is a synthesized REDEFINES)', so a key described in a non-AreaRecord 01 does alias into FileModel.AreaRecord and the splice is sound. || UNVERIFIED HALF -- the SPLIT prime record key. 12.4.5.12.2's general format is 'RECORD KEY IS { data-name-1 | record-key-name-1 SOURCE IS { data-name-2 } ... }' and 12.4.5.12.4 GR2 defines record-key-name-1 as 'a record key consisting of the concatenation of all occurrences of data-name-2 in the order specified'. GR3's 'the content of the prime record key data item' therefore has a second, non-contiguous shape that IndexedConnector cannot represent: _primeOff/_primeLen is ONE contiguous (offset,length) slice, set once in the constructor, and KeyOf does 'image.Substring(off, len)'. The front end matches: src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4 has 'recordKeyClause : RECORD KEY? IS? dataReference' with no SOURCE alternative, so the split form is not accepted either. This is a NOT-IMPLEMENTED belonging to 12.4.5.12, but it leaves GR3 implemented for only one of the two key shapes the rule ranges over, which is PARTIAL by construction. || No qualifying test for EITHER half: I re-ran the search over tests/conformance/**/*.cob and no fixture DELETEs from an INDEXED file at all (the NIST IX* programs are a regression net, non-qualifying). What would close the row: an 85 or 2002 golden that WRITEs indexed records, DELETEs one by prime key in RANDOM access, re-READs it for '23', and DELETEs a never-written key through an INVALID KEY phrase; plus, for the second half, a split-key (SOURCE IS) fixture once 12.4.5.12 admits it.",
-  "state": "GAP"
+  "notes": "PARTIAL -> CONFORMS (kb/Work PB144). The INDEXED random/dynamic delete — 'the mass storage control system logically removes from the physical file the record identified by the content of the prime record key data item', and 'if the physical file does not contain the record specified by the key, the invalid key condition exists'. This is the path that had never run in the suite, including KeyedIoEmitter's key-slice emission through FileModel.AreaRecord. Legs: IXDEL00 (the delete succeeds, '00'), IXGONE (GR5 — a random re-READ of the removed key gives '23', so it really is gone), IXIK23 + IXIKFIRED (an absent key raises the invalid key condition, '23', and the INVALID KEY imperative RUNS). Every expected value was derived from the rule before the fixture was executed, and all eight legs matched on the first run — which the analysis warned to distrust, so the FPI leg was mutation-proved (below).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.10.4-4",
@@ -31075,12 +31075,12 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "DELETE statement",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#RetryLoop",
-  "test-ref": "conformance:2002/file_sharing_mutate;unit:CobolFileLockTests.RewriteAndDelete_HonorAnotherConnectorsLock_51_ThenUnlockFrees",
-  "editions": "2002,2014,2023",
-  "notes": "|| REFUTED: overturned CONFORMS -> DIVERGES. GR6 --check OK. Its own text delegates: 'If the RETRY phrase is specified, additional attempts may be made to delete the record AS SPECIFIED IN THE RULES IN 14.7.9' and 'The I-O status is set IN ACCORDANCE WITH THE RULES FOR THE RETRY PHRASE'. The adjudicator cited 14.7.9 one level short and never read 14.7.9.3 GR4 a), which is where the divergence lives. 14.7.9.3 GR4 a) --check OK: 'If the RETRY phrase is not specified OR THE RESULT OF THE EVALUATION OF arithmetic-expression-1 OR arithmetic-expression-2 IS NEGATIVE OR ZERO, the statement is unsuccessful, the appropriate value is placed in the I-O status associated with the file connector according to the rules for 9.1.13'. DEFECT 1 (wrong I-O status on legal source): FileRegistry.RetryLoop is 'string s = attempt(); if (s == Success) return s; switch (kind) { case None: return s; case Times: for (int i = 0; i < amount && s != Success; i++) s = attempt(); return s; default: s = attempt(); return s == Success ? s : FileStatusCode.Deadlock; }'. The Seconds/Forever arm NEVER LOOKS AT amount, so 'DELETE F RECORD RETRY FOR 0 SECONDS' (or a negative/zero arithmetic-expression-2 computed at run time) reports '52' where GR4 a) requires the RETRY-not-specified outcome, i.e. the record operation conflict '51'. 9.1.13.8 --check OK on both: item 1 '51 ... currently locked by another file connector', item 2 '52 ... due to a deadlock'. The TIMES arm is correct for zero/negative (the loop body never runs, so the first attempt's '51' is returned) -- one arm fixed, the other not, the two-arm shape again. DEFECT 2 (same delegated sentence): 14.7.9.3 GR1 requires 'If arithmetic-expression-1 does not evaluate to an integer, the value of arithmetic-expression-1 is ROUNDED UP to the next whole number', but SequentialIoEmitter.RetryAmount renders '(int)(NumericRenderer.Align(num.Render(amount, ReceiverContext.None), 0))' and every arm of NumericRenderer.Align passes CobolRounding.Truncation, so 'RETRY WS-N TIMES' with WS-N = 1.5 makes ONE additional attempt where the rule requires two. Neither is rejected at bind time: StatementBinder.BindRetry does 'rp.SECONDS() is not null ? new RetrySpec(RetryKind.Seconds, Expr.BindExpr(...)) : new RetrySpec(RetryKind.Times, Expr.BindExpr(...))' with no range or integrality check. || UPHELD half (re-read, not inherited): the conflict detection and the a)/b)/c) consequences. KeyedIoEmitter.EmitDelete routes through SequentialIoEmitter.LockGoverned(file, BoundRecordLock.None, del.Retry) to FileRegistry.DeleteShared, which computes 'target = c.MutationTargetRecordId(image)' (RelativeConnector: LastReadRecordId in sequential access, else _pendingKey; IndexedConnector: LastReadRecordId else the prime-key slice) and, on a non-Success RetryLoop result, does 'c.SetStatus(conflict); return conflict;' BEFORE calling DeleteRecord -- a) the record is untouched, b) the status is stored (EmitStoreFileStatus), c) EmitInvalid/EmitUseHook see a non-'0' first character. Golden: file_sharing_mutate.out DELQ51=51 (no RETRY) and DELQRT=51 (RETRY 1 TIMES exhausts), with DELQ=00 after UNLOCK F-P proving GR6 a). The deadlock-bail for a POSITIVE seconds/forever value remains defensible latitude under 9.1.13.8 item 2 ('The implementor shall specify under what conditions a deadlock is detected'); GR4 a) removes that latitude only for zero/negative. || What would close the row: make RetryLoop honour the GR4 a) zero/negative gate for Seconds as it already does for Times, round the RETRY amount UP per GR1, and add a 2002 golden covering DELETE ... RETRY FOR 0 SECONDS -> 51, RETRY FOR n SECONDS -> 52, and a fractional TIMES count.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#ExhaustionStatus",
+  "test-ref": "conformance:2002/file_sharing_mutate; conformance:2002/pb142_retry_open_sharing; unit:CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass; unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
+  "editions": "85,2002,2014,2023",
+  "notes": "DIVERGES -> CONFORMS (kb/Work PB142). GR6's record-operation conflict says 'The I-O status is set in accordance with the rules for the RETRY phrase', and GR6b says only 'A value is placed ... to indicate the record operation conflict condition' -- implementor latitude among the values 9.1.13.8 defines. That latitude is now exercised in ONE place, FileRegistry.ExhaustionStatus, rather than improvised at the six RetryLoop call sites: an exhausted retry lands the CONFLICT'S OWN 9.1.13 status ('51'), with the single documented exception that a RETRY FOREVER waiting on a record locked by another file connector is the 9.1.13.8 item 2 deadlock ('52') this implementation detects, since the holder is inside the executing run unit and 14.7.9.3 GR3's 'until the input-output operation has been completed' can never terminate. The detection conditions are now the Annex A.1 item 109 determination in docs/CONFORMANCE.md 7 (audit_annex_a1.py counts it discharged), and the design is COBOLNET_FILES_DESIGN.md D8, which the deep-dive previously did not mention at all (grep -c RETRY was 0). TWO ROOT DEFECTS WERE FIXED, not one: (1) the Seconds/Forever arm never read its amount and manufactured '52' for every conflict class; (2) NEWLY FOUND AND NOT IN THE FILED NOTE -- RetryLoop engaged on ANY non-Success status, where 14.7.9.3 GR4 scopes the whole discipline to 'a file sharing conflict condition or a record operation conflict condition', so an OPEN of an absent file under RETRY FOREVER answered '52' instead of '35' (measured, then fixed by the IsConflict gate). The drift test asserts every retry-form x conflict-class cell INCLUDING the not-a-conflict row.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.10.4-7",
@@ -31115,10 +31115,10 @@
   "ordinal": 8,
   "subject": "DELETE statement",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete",
-  "test-ref": "conformance:2023/l1_delete_record_area_unchanged",
+  "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Delete",
+  "test-ref": "conformance:2002/pb144_indexed_delete_record",
   "editions": "85,2002,2014,2023",
-  "notes": "Sentinels in the record area and in the RECORD VARYING DEPENDING item survive both a successful DELETE ('00') and an unsuccessful one ('43'); the ']' terminator pins the full eight character positions. The setup line LEN=08 is a real pin of 13.18.43.4 GR15 because the program forces WS-LEN to 99 between OPEN I-O and the READ.",
+  "notes": "The row was CONFORMS with NO test-ref — 'The execution of a DELETE RECORD statement does not affect the content of the record area.' It holds BY CONSTRUCTION (the record area is the generated record struct; the runtime connector cannot reach it), which is precisely why nothing had ever contradicted it — a dead lookup is also an unverified one. The fixture now READS the area rather than noting that the code does not write it: IXAREABEF and IXAREAAFT capture the area either side of a DELETE and are both printed in the golden, so any divergence shows as a value change rather than hiding behind a boolean, and IXGR8 reports the comparison.",
   "state": "OK"
  },
  {
@@ -31128,10 +31128,10 @@
   "ordinal": 9,
   "subject": "DELETE statement",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Delete",
-  "test-ref": "conformance:2023/l1_delete_fpi_unaffected",
+  "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Delete",
+  "test-ref": "conformance:2002/pb144_indexed_delete_record",
   "editions": "85,2002,2014,2023",
-  "notes": "14.9.30.4 GR21 relative rules f and c make the retained FPI observable: after READ 1,2 and a DELETE the next READ must give record 3 - proven on BOTH Delete arms (sequential, deleting the record at the FPI; dynamic, deleting RRN 4 while the FPI holds 2).",
+  "notes": "The row was CONFORMS with NO test-ref — 'The file position indicator is not affected by the execution of a DELETE RECORD statement.' Also satisfied by omission (Delete touches neither _fpiKey/_fpiArrival nor _fpiValid), so it too had never been contradicted. PROVED TO DISCRIMINATE RATHER THAN TRUSTED: with IndexedConnector.Delete mutated to set _fpiValid = false on the success path, the fixture's IXNEXTST flips '00' -> '46' and IXNEXT flips 'K03' -> 'K02'; the mutant was then reverted (verified byte-identical by an empty git diff). The leg positions on K02 with START + READ NEXT, deletes the record the FPI is sitting on, and requires the next READ NEXT to return K03.",
   "state": "OK"
  },
  {
@@ -31155,9 +31155,9 @@
   "subject": "DELETE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete",
-  "test-ref": "conformance:2023/l1_delete_invalid_key_transfer",
+  "test-ref": "conformance:2002/pb144_indexed_delete_record",
   "editions": "85,2002,2014,2023",
-  "notes": "All four 9.1.14 arms in one program on ACCESS RANDOM (forced by 14.9.10.3 SR2): INVALID KEY taken and the declarative suppressed ('23'); NOT INVALID KEY taken on success ('00'); no INVALID KEY phrase, so the declarative runs ('23'); and a '49' unsuccessful-but-not-invalid-key completion that must reach the declarative while the written INVALID KEY imperative stays unexecuted.",
+  "notes": "The row was CONFORMS with NO test-ref — GR11 routes transfer of control on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases per 9.1.14. Both directions are now pinned on an INDEXED file, which is where neither had ever been exercised: IXNIK proves a SUCCESSFUL delete takes the NOT INVALID KEY branch, and IXIKFIRED proves an absent key takes the INVALID KEY branch and NOT the other one. Each leg's wrong branch prints a distinct WRONG-BRANCH marker, so a mis-route fails the golden by name rather than by absence.",
   "state": "OK"
  },
  {
@@ -31205,12 +31205,12 @@
   "kind": "GR",
   "ordinal": 15,
   "subject": "DELETE statement",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#RetryLoop",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#DeleteFile",
+  "test-ref": "conformance:2023/delete_file_sharing; conformance:2023/pb142_retry_conflict_class_ec; unit:CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass; unit:CobolFileLockTests.DeleteFile_OpenByAnotherConnector_62_ThenCloseFrees",
   "editions": "2023",
-  "notes": "Read FileRegistry.DeleteFile plus its helper OpenByAnotherConnector. The conflict probe is 'RetryLoop(() => OpenByAnotherConnector(name, c.HostPath) ? FileStatusCode.DeleteFileSharing : FileStatusCode.Success, retryKind, retryAmount)' with DeleteFileSharing = \\\"62\\\", and when it does not clear, 'status = sharing' is taken BEFORE the try block that calls File.Delete -- so sub-rule (a) 'the file is not deleted, and may be accessed' holds by construction, (b) the '62' value is produced, and (c) the statement is unsuccessful (st[0] != '0' routes to ON EXCEPTION / exception processing in KeyedIoEmitter.EmitDeleteFile). The RETRY half is routed through the same 14.7.9 RetryLoop the record-lock paths use, so 'additional attempts may be made ... as specified in the rules in 14.7.9' is honoured rather than re-implemented. conformance:2023/delete_file_sharing is spec-derived (header cites 9.1.13.9 item 2 / 14.9.10 GR15) and its .out pins DEL62=62 (no RETRY), DELRT=62 (RETRY 2 TIMES exhausts), DELFV=52 (RETRY FOREVER deadlock-bails per 9.1.13.8 item 2, whose detection conditions the standard leaves to the implementor), then DEL00=00 after the other connector closes -- which is also the direct proof of sub-rule (a), since the file was still there to delete. Two things the golden does NOT show and that I did not treat as closed: the ON EXCEPTION arm firing on a '62' (only the NOT ON EXCEPTION arm on '05' is covered, by delete_file_absent), and RETRY FOR n SECONDS, which is the documented single-run-unit residue (no external releaser exists in one process, so it bails rather than sleeps). Note the premise wording: GR15 gates on 'file locking is in effect ... locked by another file connector' while the code gates on open-by-another-connector; 9.1.13.9 item 2 defines '62' in exactly the code's terms, and COBOL.NET's implementor-defined default sharing mode is exclusive (14.9.27 GR23), so the two premises coincide here. The trailing NOTE about APPLY COMMIT is informative, not normative. || REFUTED: CONFORMS -> DIVERGES, and the test-ref is REMOVED because the golden PINS the divergent value. The no-RETRY and n-TIMES arms are right; the SECONDS and FOREVER arms place a status this rule forbids. FileRegistry.RetryLoop (FileRegistry.cs:739-753) carries a 'default:' arm for Seconds/Forever -- 's = attempt(); return s == FileStatusCode.Success ? s : FileStatusCode.Deadlock;' -- with FileStatus.cs:81 Deadlock = \\\"52\\\", and DeleteFile assigns it straight through ('else if (sharing != FileStatusCode.Success) status = sharing;'). GR15 sub-rule (b) is unconditional once the file sharing conflict condition exists; validated verbatim against the transcription (cite.py --check 14.9.10.4 'b) The valu62\\' is placed into the I-O status associated with file-name-1 to indicate the file operation conflict condition.' -> OK 14.9.10.4 15); the OCR has eaten \\\"e '\\\" out of \\\"value '62'\\\", but the intended value is unambiguous and is confirmed from the other side by 9.1.13.9 2) (validated: 'I-O status = 62. A file sharing conflict condition exists because a DELETE FILE statement is attempted on a physical file and that physical file is currently open by another file connector.'). The condition still EXISTS on this arm -- the other connector never released the physical file, nothing cleared it -- so (b) applies. '52' is not a file-sharing status at all: 9.1.13.8 is titled 'Record operation conflict condition with unsuccessful completion' and its item 2 (validated: 'I-O status = 52. The input-output statement is unsuccessful due to a deadlock. The implementor shall specify under what conditions a deadlock is detected.') sits under the RECORD conflict condition. The latitude the standard grants there is over WHEN a deadlock is detected, not over answering a FILE-sharing conflict with a RECORD-conflict status. Two independent corroborations that '52' is out of bounds here: Annex E.3.3 item 35 enumerates the statuses the new DELETE FILE may set as '05', '37', '39', '41' and '62' -- '52' is absent (validated); and the project's own docs/COBOLNET_FILES_DESIGN.md:117 lists the DELETE FILE error paths as 41 / 62 / 37 with no 52, so the code also contradicts its own design SSOT. SECOND, narrower divergence in the same arm: 14.7.9.3 4) a) (validated: 'If the RETRY phrase is not specified or the result of the evaluation of arithmetic-expression-1 or arithmetic-expression-2 is negative or zero, the statement is unsuccessful, the appropriate value is placed in the I-O status ... according to the rules for 9.1.13') means RETRY FOR 0 SECONDS must behave exactly as the no-RETRY case, i.e. '62'. RetryLoop's Times arm honours it (the 'for (int i = 0; i < amount ...)' loop runs zero times and returns the first attempt's '62'), but the Seconds arm IGNORES the 'amount' parameter entirely and still bails to '52'. And 14.7.9.3 3) (validated: 'If the FOREVER phrase is specified, the mass storage control system shall attempt to gain access to a locked resource until the input-output operation has been completed') is not met by a single re-check. A GREEN TEST IS HOLDING THIS OPEN: tests/conformance/2023/delete_file_sharing.cob line 'DELETE FILE F-B RETRY FOREVER' and its .out 'DELFV=52' ratify the divergent value, so that golden must be corrected to 62 in the same change set as the fix. Sub-rules (a) and (c) ARE met on every arm (the status is assigned before the try that calls File.Delete, and st[0] != '0' routes to ON EXCEPTION / exception processing). What closes the row: RetryLoop must not substitute a record-conflict status for the caller's own conflict status -- return the attempt's own failure value and let the SECONDS amount drive the GR4a zero/negative short-circuit -- plus a golden pinning 62 for RETRY FOREVER, RETRY FOR 0 SECONDS and RETRY FOR n SECONDS, and one exercising the ON EXCEPTION arm on a '62'.",
-  "state": "GAP"
+  "notes": "DIVERGES -> CONFORMS (kb/Work PB142). The DELETE FILE file-sharing conflict now answers '62' under EVERY retry form. Previously the SECONDS/FOREVER arm of FileRegistry.RetryLoop manufactured '52', and a GREEN golden (2023/delete_file_sharing, DELFV=52) RATIFIED that divergence -- corrected in the same change set, per the rule that a green golden pinning a divergence cannot close its row. The value is established NOT from GR15b's own sentence, which the PRINTED standard garbles as 'The valu62' is placed' (an ISO defect transcribed faithfully; LEDGER.json:4277 adjudicated it identically -- do not 'repair'), but from 9.1.13.9 item 2 and Annex E.3.3 item 35, both of which read cleanly and neither of which admits '52' for DELETE FILE. WHY IT WAS A WRONG-ANSWER DEFECT AND NOT TWO COSMETIC DIGITS: 9.1.13.1 keys the exception-name on the first digit ('5' -> EC-I-O-RECORD-OPERATION, '6' -> EC-I-O-FILE-SHARING), so a handler keyed on the file-sharing condition silently did not fire; 2023/pb142_retry_conflict_class_ec IS that handler and asserts EC-I-O-FILE-SHARING on all five retry forms. Two further legs pin the A.1 item 166 determination (maximum meaningful timeout value = 0): DELSC0 and DELSC30 must AGREE, which is the observable form of the clamp.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.10.4-16",
@@ -31244,12 +31244,12 @@
   "kind": "GR",
   "ordinal": 18,
   "subject": "DELETE statement",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#DeleteFile",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#ValidateFixedFileAttributes",
+  "test-ref": "conformance:2023/delete_file_attribute_set_empty; conformance:2023/pb134_delete_file_format2",
   "editions": "2023",
-  "notes": "Neither half of the rule exists. (1) The '39' attribute-conflict outcome is never produced: FileRegistry.DeleteFile has no attribute comparison at all -- its status arms are exactly '41', '62'/'52', '05', '00', '37' and '30' -- and there is no \\\"39\\\" constant anywhere in src/Cobol.Net.Runtime/IO (grep for '\\\"39\\\"' and 'Mismatch' returns nothing). docs/CONFORMANCE.md lines 103-105 state it plainly: 'I-O status 39 (fixed-file-attribute conflict ...): not produced -- the host-file model carries no persisted fixed-attribute catalog (record size / organization / code-set) to detect a conflict against, so DELETE FILE / OPEN never returns 39.' (2) The OVERRIDE escape the rule defines cannot even be written: deleteFileStatement is 'DELETE FILE fileName ...' with no OVERRIDE bracket, and because OVERRIDE is in the cobolWord context-word list (CobolWords.g4) that fileName resolves to, 'DELETE FILE OVERRIDE F' consumes OVERRIDE AS THE FILE-NAME and then fails on the real name -- a confusing rejection of legal 2023 source rather than a clean one. Ground rule 6 applies: the CONFORMANCE.md text frames this as documented non-support, which is not an adjudicator's call, so the verdict is NOT-IMPLEMENTED. Closing this row needs a persisted fixed-file-attribute record per physical file, the comparison against the connector's attributes with '39' on mismatch, the '[ OVERRIDE ]' grammar bracket carried into BoundKeyedDeleteFile to suppress that comparison, and goldens for match / mismatch / mismatch-with-OVERRIDE. Note the sibling: 14.9.27.4 GR10 gives OPEN the identical '39' branch and it is equally absent. || UPHELD, with one refinement that matters for sequencing. I re-verified both halves mechanically rather than by reading: grep for '\\\"39\\\"' and for 'Mismatch|AttributeConflict' over src/Cobol.Net.Runtime/IO returns NOTHING, and FileRegistry.DeleteFile's status arms are exactly the six listed; and the OVERRIDE bracket is absent from deleteFileStatement (CobolIO.g4:513-519) while CobolWords.g4:70 does list '| OVERRIDE' inside the cobolWord alternation that CobolParserCore.g4:589-591 'fileName : cobolWord' resolves to, so 'DELETE FILE OVERRIDE F' silently binds OVERRIDE as the file-name. docs/CONFORMANCE.md:103-105 reads as quoted. REFINEMENT: this row does NOT become CONFORMS under any resolution of GR-14.9.10.4-19. Even if the owner defines the validated fixed-file-attribute set as EMPTY -- which would make the '39' comparison vacuous -- GR18's final sentence still grants the program a legal syntax, 'If the OVERRIDE phrase is specified, the file attributes are not checked', that cannot be written at all, so the grammar half stays NOT-IMPLEMENTED independently of the attribute-store decision. The two halves must therefore be tracked separately, not merged into the GR19 question.",
-  "state": "GAP"
+  "notes": "NOT-IMPLEMENTED -> CONFORMS (kb/Work PB196; the GR19 half is PB192/bcd330c5). BOTH of this row's prior claims were false against the current tree and are struck. (1) The grammar claim -- 'OVERRIDE is missing from deleteFileStatement and binds as the file-name' -- was stale within hours of being written: CobolIO.g4:514 has read 'DELETE FILE OVERRIDE? fileName' since commit 92ee39a7 (PB134, 2026-08-29), and a probe compiles and runs 'DELETE FILE OVERRIDE F-A'. (2) The REFINEMENT -- 'this row does NOT become CONFORMS under any resolution of GR19, because the grammar half stays NOT-IMPLEMENTED independently' -- rests entirely on that vanished premise and would have held a closable row open; it is withdrawn. WHAT WAS ACTUALLY DEFECTIVE, and is now fixed: the parser consumed OVERRIDE and the binder dropped it, so GR18's second sentence ('If the OVERRIDE phrase is specified, the file attributes are not checked') had no representation below the parse tree. BoundKeyedDeleteFile now carries Override, KeyedIoBinder sets it (GR12's as-if duplication carries the phrase onto every name in the list), and it reaches the runtime, where the ONE place the GR19 validated set is defined -- ValidateFixedFileAttributes -- consults it. BOTH HALVES OF GR18 NOW HOLD: the match-or-'39' branch is satisfied because the validated set is EMPTY by the A.1 item 50 determination, so '39' is unreachable BY DEFINITION rather than by omission; and the OVERRIDE branch is a real bypass rather than a coincidence, so a future non-empty set is a change to one method instead of a silent behaviour change for every program that wrote OVERRIDE to opt out. The OPEN sibling (14.9.27.4 GR10 / A.1 item 129) is NOT swept in -- its set is not empty and it needs the persisted attribute catalog: kb/Work PB193.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.10.4-19",
@@ -36145,12 +36145,12 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "READ statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+  "test-ref": "conformance:negative/read-phrase-random-access",
+  "editions": "85,2002,2014,2023",
+  "notes": "First verdict (kb/Work PB144). 'None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1.' Previously tolerated with no strict arm as part of the L1-L3 phrase-placement leniency family; now screened through EditionContext.Removed like its two siblings, naming every forbidden phrase the statement actually wrote. Under --permissive it warns and the bind is unchanged - the emitter's status-first branches make a phrase that cannot fire ('1x' on a random read) simply dead, never silently rerouted, which is the property the leniency depends on. SR10/SR11 (the KEY phrase) were already hard COBOLNET0864 errors and are untouched.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.30.3-7",
@@ -37224,12 +37224,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "REWRITE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase",
+  "test-ref": "conformance:negative/rewrite-invalid-key-sequential-org; conformance:negative/rewrite-invalid-key-relative-sequential",
+  "editions": "85,2002,2014,2023",
+  "notes": "First verdict (kb/Work PB144). THE RULE HAS TWO ARMS AND ONLY ONE WAS EVEN COMMENTED — the repo's most reproducible defect shape, found again. SR2 reads 'Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be specified for a REWRITE statement that references A FILE WITH SEQUENTIAL ORGANIZATION or a file with relative organization and sequential access mode.' KeyedIoBinder.BindRewrite handled only the relative-sequential arm (bound, undiagnosed); the sequential-ORGANIZATION arm goes through SequentialIoBinder.BindRewrite, which never read rewriteInvalidKeyPhrase() AT ALL — parsed and dropped on the floor, a strictly worse shape than its twin. Probed: BOTH arms compiled clean at strict --std 2023 with no diagnostic. Both are now screened through the one seam, and BOTH have a negative fixture, because a fix landing only one of them would reproduce the very shape that made the rule wrong.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.35.3-3",
@@ -54566,12 +54566,12 @@
   "kind": "DOC",
   "ordinal": 109,
   "subject": "I-O status 52 (conditions under which deadlock is detected)",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-109; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ExhaustionStatus",
+  "test-ref": "unit:CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass; conformance:2002/file_sharing_seq; conformance:2002/file_sharing_mutate; conformance:2002/pb142_retry_open_sharing; conformance:2023/pb142_retry_conflict_class_ec",
+  "editions": "2002,2014,2023",
+  "notes": "GAP -> CONFORMS, recorded by the LANDER (see DOC-A.1-165 for why the implementer could not). §9.1.13.8 item 2 leaves the conditions under which a deadlock is detected to the implementor, and until cluster E there was no answer to state: the runtime manufactured '52' for every exhausted retry of every conflict class. The determination now has exactly one circumstance -- a RETRY FOREVER waiting on a record locked by another file connector, where §14.7.9.3 GR3's 'until the input-output operation has been completed' can never terminate because the holder is inside the executing run unit. No FILE SHARING conflict ever answers '52', because §9.1.13.9 defines only '61' and '62' and no deadlock value, and §9.1.13.1 keys the exception-name on the first digit. Decided in ONE place (ExhaustionStatus) rather than improvised at six RetryLoop call sites.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-110",
@@ -55294,12 +55294,12 @@
   "kind": "DOC",
   "ordinal": 165,
   "subject": "RETRY phrase (interval between attempts to obtain access to a locked file or record)",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-165; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RetryLoop",
+  "test-ref": "unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
+  "editions": "2002,2014,2023",
+  "notes": "GAP -> CONFORMS, recorded by the LANDER, not by the implementer: cluster E wrote the §14.7.9.3 GR1 determination into docs/CONFORMANCE.md §7 while its worktree was cut from a main on which an A.1 DOC row could not yet carry a verdict at all. The DOC-row mechanism (kb/Work A11 / PB280) landed afterwards, so the row is closable now and leaving it GAP would understate what is documented. The determination: the interval between the `n TIMES` re-attempts is ZERO — every lock this implementation arbitrates is held by a file connector of the EXECUTING run unit, which cannot release while another statement of that run unit runs, so no releaser can execute between two attempts and a nonzero interval could only delay an identical answer. The attempt count itself is pinned cell by cell by the drift test (RETRY n TIMES makes exactly n re-attempts, GR1's round-up applied).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-166",
@@ -55307,12 +55307,12 @@
   "kind": "DOC",
   "ordinal": 166,
   "subject": "RETRY phrase (maximum meaningful time-out value and internal representation; technique for determining frequency of retr",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-166; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RenderRetry",
+  "test-ref": "conformance:2023/delete_file_sharing; unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
+  "editions": "2002,2014,2023",
+  "notes": "GAP -> CONFORMS, recorded by the LANDER (see DOC-A.1-165 for why the implementer could not). §14.7.9.3 GR2 requires the implementor to state the internal representation of the SECONDS temporary, the maximum meaningful time-out value, and the technique for determining the frequency of retries. The determination is 9(1)V9(0) (n=1, m=0), maximum meaningful value 0, and no attempts during the timeout period — one rule, not a special case, which is why `RETRY FOR 0 SECONDS` and `RETRY FOR 30 SECONDS` agree. That AGREEMENT is the observable form of the determination and is what the golden pins (DELSC0 / DELSC30 both '62'). GR2's temporary is an implicit COMPUTE WITHOUT ROUNDED — truncation at m — which is a different rule from GR1's round-up on the TIMES count; the two keep separate renderings in RenderRetry.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-167",

@@ -160,8 +160,9 @@ public static class CobolFile
     /// <summary>START FIRST/LAST (COBOL-2002+; §14.9.41 GR11/GR12), either keyed organization.</summary>
     public static string StartFirstLast(string name, bool last) => _reg.StartFirstLast(name, last);
 
-    /// <summary>DELETE FILE (§14.9.10 Format 2, COBOL-2023).</summary>
-    public static string DeleteFile(string name) => _reg.DeleteFile(name);
+    /// <summary>DELETE FILE (§14.9.10 Format 2, COBOL-2023); <paramref name="overridden"/> is the GR18 OVERRIDE
+    /// phrase, which suppresses the fixed-file-attribute match.</summary>
+    public static string DeleteFile(string name, bool overridden = false) => _reg.DeleteFile(name, overridden);
 
     /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §15.28.4 r2) — the named connector's I-O status +
     /// SELECT-spelled name, or two spaces when never opened/attempted/accessed.</summary>
@@ -200,9 +201,10 @@ public static class CobolFile
     public static string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, int retryAmount)
         => _reg.DeleteShared(name, keyedRecordImage, retryKind, retryAmount);
 
-    /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 — the '62' file-sharing conflict re-attempt).</summary>
-    public static string DeleteFile(string name, FileRetryKind retryKind, int retryAmount)
-        => _reg.DeleteFile(name, retryKind, retryAmount);
+    /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 — the '62' file-sharing conflict re-attempt) and
+    /// the GR18 OVERRIDE flag.</summary>
+    public static string DeleteFile(string name, FileRetryKind retryKind, int retryAmount, bool overridden = false)
+        => _reg.DeleteFile(name, retryKind, retryAmount, overridden);
 
     /// <summary>UNLOCK file [RECORD[S]] (§14.9.47 GR1).</summary>
     public static void Unlock(string name, bool records) => _reg.Unlock(name, records);

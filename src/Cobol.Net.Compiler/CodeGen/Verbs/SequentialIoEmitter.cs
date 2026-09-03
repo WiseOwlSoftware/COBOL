@@ -195,19 +195,38 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         _ => "FileSharing.AllOther",
     };
 
-    /// <summary>Render a bound RETRY phrase (ISO §14.7.9) to the runtime <c>(FileRetryKind, int amount)</c> pair —
-    /// the amount is the n-TIMES count (rendered as a C# int); SECONDS/FOREVER pass 0 (their amount is a
-    /// single-run-unit no-op, deadlock-bailing to status 52).</summary>
+    /// <summary>Render a bound RETRY phrase (ISO §14.7.9) to the runtime <c>(FileRetryKind, int amount)</c> pair.
+    /// FOREVER carries no expression. The two that do are governed by DIFFERENT rounding rules and must keep
+    /// separate renderings — this is one clause with two arms, not one helper serving both:
+    /// <list type="bullet">
+    /// <item>TIMES — §14.7.9.3 GR1: "if arithmetic-expression-1 does not evaluate to an integer, the value …
+    /// is rounded up to the next whole number", so <c>RETRY 1.5 TIMES</c> is TWO re-attempts. That round-up is
+    /// the shared rule <see cref="NumericRenderer.AlignRoundedUp"/> owns (ALLOCATE §14.9.3.4 GR1 is its only
+    /// sibling).</item>
+    /// <item>SECONDS — §14.7.9.3 GR2 instead stores the timeout period through an implicit COMPUTE WITHOUT the
+    /// ROUNDED phrase into a 9(n)V9(m) temporary, i.e. TRUNCATION at the implementor's m. COBOL.NET's
+    /// determination is n = 1, m = 0 with a maximum meaningful value of 0 (A.1 item 166, docs/CONFORMANCE.md
+    /// §7), so the amount is clamped to a zero-length period at the runtime and is inert — but it is still
+    /// PASSED, because it is the GR4a screen input, and it is still rendered by the truncating
+    /// <see cref="NumericRenderer.Align"/>, because merging the two arms would re-merge the two rules.</item>
+    /// </list></summary>
     public (string Kind, string Amount) RenderRetry(RetrySpec? retry) => retry switch
     {
         null => ("FileRetryKind.None", "0"),
         { Kind: RetryKind.Forever } => ("FileRetryKind.Forever", "0"),
-        { Kind: RetryKind.Seconds } => ("FileRetryKind.Seconds", RetryAmount(retry.Amount)),
-        _ => ("FileRetryKind.Times", RetryAmount(retry.Amount)),
+        { Kind: RetryKind.Seconds } => ("FileRetryKind.Seconds", RetrySeconds(retry.Amount)),
+        _ => ("FileRetryKind.Times", RetryTimes(retry.Amount)),
     };
 
-    private string RetryAmount(BoundExpr? amount) =>
-        amount is null ? "0" : $"(int)({NumericRenderer.Align(num.Render(amount, ReceiverContext.None), 0)})";
+    /// <summary>§14.7.9.3 GR1 — the n-TIMES count, ROUNDED UP to the next whole number.</summary>
+    private string RetryTimes(BoundExpr? amount) =>
+        amount is null ? "0"
+        : $"(int)({NumericRenderer.AlignRoundedUp(num.Render(amount, ReceiverContext.None))})";
+
+    /// <summary>§14.7.9.3 GR2 — the timeout period, truncated to the implementor's m (= 0).</summary>
+    private string RetrySeconds(BoundExpr? amount) =>
+        amount is null ? "0"
+        : $"(int)({NumericRenderer.Align(num.Render(amount, ReceiverContext.None), 0)})";
 
     /// <summary>Map a bound record-lock phrase to the runtime <c>FileRecordLock</c> enum member (Phase 4d).</summary>
     public static string RuntimeRecordLock(BoundRecordLock l) => l switch

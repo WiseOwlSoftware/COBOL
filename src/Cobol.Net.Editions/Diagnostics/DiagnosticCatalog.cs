@@ -193,6 +193,29 @@ public static class DiagnosticCatalog
     // The §13.18.44.3 SR12/SR14 REDEFINES class screen (kb/Work PB179 — the Step D Tier-D arm's bind
     // half): a permanent conformance rejection of the ENTRY-level shapes the rules name. The NESTED
     // pointer/object-leaf shape is NOT these rules' letter and takes ComputeTier's staged-loud arm instead.
+    // The L1–L3 phrase-placement leniency family (kb/Work PB144), finally gated. THREE syntax rules across
+    // READ/REWRITE/DELETE close a phrase out of a particular access mode or organization, and all three were
+    // bound unconditionally with a "CCVS-lenient" comment and NO strict arm — so strict `--std 2023` accepted
+    // source the standard forbids and said nothing. One reusable descriptor rather than three near-identical
+    // ones, on the COBOLNET1694 precedent: the SHAPE is one rule ("a phrase is written where this statement's
+    // syntax rules forbid it") and each site's message quotes its own §/SR. Emitted through
+    // StatementValidation.ScreenForbiddenPhrase → EditionContext.Removed, so it is an ERROR under strict and a
+    // WARNING with an UNCHANGED bind under --permissive, which is what keeps the CCVS-85 corpus compiling.
+    public static readonly DiagnosticDescriptor IoPhraseForbiddenHere = new(
+        "COBOLNET1720", "io-phrase-forbidden-here", EditionSeverity.Error,
+        "An input-output statement specifies a phrase its syntax rules exclude for that file's organization or "
+        + "access mode. ISO §14.9.10.3 syntax rule 2: \"The INVALID KEY and the NOT INVALID KEY phrases shall "
+        + "not be specified for a DELETE RECORD statement that references a file that is in sequential access "
+        + "mode.\" ISO §14.9.35.3 syntax rule 2: \"Neither the INVALID KEY phrase nor the NOT INVALID KEY "
+        + "phrase shall be specified for a REWRITE statement that references a file with sequential "
+        + "organization or a file with relative organization and sequential access mode.\" ISO §14.9.30.3 "
+        + "syntax rule 6: \"None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be "
+        + "specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1.\" "
+        + "Under --permissive the phrase is tolerated and bound with its pre-gate semantics (it is dead in the "
+        + "status-first branches, never silently rerouted), which is the documented dialect leniency the "
+        + "CCVS-85 corpus depends on.",
+        "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6");
+
     public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
         "COBOLNET1697", "redefines-pointer-object", EditionSeverity.Error,
         "ISO §13.18.44.3 syntax rule 12: \"The REDEFINES clause shall not be specified for a data item of "

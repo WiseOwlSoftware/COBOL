@@ -85,8 +85,15 @@ public static class FileStatusCode
     /// <summary>51 — a record READ/REWRITE/DELETE could not lock the record because another file connector holds
     /// its lock (§9.1.13.8 item 1).</summary>
     public const string RecordLocked = "51";
-    /// <summary>52 — an implementor-detected deadlock: a record/file lock cannot be granted and a bounded RETRY
-    /// (or SECONDS/FOREVER, which cannot block productively in one run unit) is exhausted (§9.1.13.8 item 2).</summary>
+    /// <summary>52 — the implementor-detected deadlock (§9.1.13.8 item 2; the detection conditions are the
+    /// Annex A.1 item 109 determination recorded in docs/CONFORMANCE.md §7). COBOL.NET detects one exactly when
+    /// a RETRY FOREVER waits on a record locked by another file connector: that holder is inside the executing
+    /// run unit and cannot release while this statement runs, so §14.7.9.3 GR3's "until the operation has been
+    /// completed" would never terminate.
+    /// <para>⛔ This is a RECORD-conflict value only. A FILE SHARING conflict lands on its own §9.1.13.9 status
+    /// ('61' OPEN / '62' DELETE FILE) — that clause defines no deadlock value, and answering '52' there raises
+    /// EC-I-O-RECORD-OPERATION instead of EC-I-O-FILE-SHARING (§9.1.13.1). See
+    /// <c>FileRegistry.ExhaustionStatus</c>, the ONE place the landing is decided.</para></summary>
     public const string Deadlock = "52";
     /// <summary>53 — the maximum number of record locks for the run unit has been exceeded (§9.1.13.8 item 3).</summary>
     public const string RunUnitLockLimit = "53";

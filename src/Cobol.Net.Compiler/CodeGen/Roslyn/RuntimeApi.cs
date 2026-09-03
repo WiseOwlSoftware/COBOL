@@ -718,8 +718,8 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteShared)}({name}, {areaImage}, {retryKind}, {retryAmount})";
 
     /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 — the '62' re-attempt) — <c>CobolFile.DeleteFile</c>.</summary>
-    public static string FileDeleteFileRetry(string name, string retryKind, string retryAmount) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteFile)}({name}, {retryKind}, {retryAmount})";
+    public static string FileDeleteFileRetry(string name, string retryKind, string retryAmount, string overridden) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteFile)}({name}, {retryKind}, {retryAmount}, {overridden})";
 
     /// <summary>The connector's current relative slot number — <c>CobolFile.RelativeSlot</c>.</summary>
     public static string FileRelativeSlot(string name) =>
@@ -739,8 +739,8 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteRecord)}({name}, {areaImage})";
 
     /// <summary>DELETE FILE (Format 2, every organization) — <c>CobolFile.DeleteFile</c>.</summary>
-    public static string FileDeleteFile(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteFile)}({name})";
+    public static string FileDeleteFile(string name, string overridden) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteFile)}({name}, {overridden})";
 
     /// <summary>START FIRST/LAST — <c>CobolFile.StartFirstLast</c>.</summary>
     public static string FileStartFirstLast(string name, string last) =>

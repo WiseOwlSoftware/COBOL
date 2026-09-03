@@ -439,13 +439,15 @@ public sealed class FileRegistry
     /// <summary>DELETE FILE (§14.9.10 Format 2, COBOL-2023): an OPEN connector → '41' (GR13); the physical file
     /// currently open by ANOTHER file connector → the file sharing conflict, '62' (GR15 / §9.1.13.9 item 2),
     /// re-attempted under a RETRY phrase (GR15 → §14.7.9; in one run unit the other connector cannot close
-    /// mid-loop, so n TIMES exhausts to 62 and SECONDS/FOREVER deadlock-bail to 52); an ABSENT physical file is
+    /// mid-loop, so EVERY retry form exhausts to '62' — §9.1.13.9 defines no deadlock value for a file-sharing
+    /// conflict, see <see cref="ExhaustionStatus"/>); an ABSENT physical file is
     /// a SUCCESSFUL completion, status '05' (GR14); insufficient authority → '37' (GR16) — ONE polymorphic body
     /// over <see cref="FileConnector"/> for all three organizations.</summary>
-    public string DeleteFile(string name) => DeleteFile(name, FileRetryKind.None, 0);
+    public string DeleteFile(string name, bool overridden = false) =>
+        DeleteFile(name, FileRetryKind.None, 0, overridden);
 
-    /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 / §14.7.9).</summary>
-    public string DeleteFile(string name, FileRetryKind retryKind, int retryAmount)
+    /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 / §14.7.9) and the GR18 OVERRIDE flag.</summary>
+    public string DeleteFile(string name, FileRetryKind retryKind, int retryAmount, bool overridden = false)
     {
         var c = Require(name);
         // (a DELETE FILE accesses the connector — FUNCTION EXCEPTION-FILE r2a, §15.28.4 — recorded by the status
@@ -454,8 +456,10 @@ public sealed class FileRegistry
         string sharing = RetryLoop(() => OpenByAnotherConnector(name, c.HostPath)
             ? FileStatusCode.DeleteFileSharing : FileStatusCode.Success, retryKind, retryAmount);
         if (c.IsOpen) status = FileStatusCode.FileAlreadyOpen;             // '41' GR13
+        else if (ValidateFixedFileAttributes(c, overridden) is { } conflict)
+            status = conflict;                                             // '39' GR18 — see the method
         else if (sharing != FileStatusCode.Success)
-            status = sharing;   // '62' GR15/§9.1.13.9 item 2 — the file is not deleted ('52' on a deadlock-bail)
+            status = sharing;   // '62' GR15/§9.1.13.9 item 2 — the file is not deleted, under every retry form
         else
             try
             {
@@ -474,6 +478,27 @@ public sealed class FileRegistry
         return status;
     }
 
+    /// <summary>§14.9.10.4 GR18 — the fixed-file-attribute match a DELETE FILE performs when the OVERRIDE phrase
+    /// is NOT specified. Returns the attribute-conflict status ('39') or null when there is no conflict.
+    /// <para>⛔ THIS IS THE ONE PLACE THE §14.9.10.4 GR19 VALIDATED SET IS DEFINED, and today that set is EMPTY,
+    /// uniformly and by design — the owner determination recorded as the Annex A.1 item 50 row in
+    /// docs/CONFORMANCE.md §7 (kb/Work PB192). GR19 obliges the implementor to DEFINE which fixed-file attributes
+    /// are validated; it nowhere requires the set to be non-empty, so an empty definition discharges it. With
+    /// nothing validated there is nothing to mismatch, so '39' is unreachable from DELETE FILE BY DEFINITION
+    /// rather than by omission, and this method returns null on both arms.</para>
+    /// <para>The <paramref name="overridden"/> arm is therefore not dead code and must not be "simplified" away:
+    /// GR18's second sentence ("If the OVERRIDE phrase is specified, the file attributes are not checked") is a
+    /// guarantee the program is entitled to, and carrying it here is what makes a future NON-EMPTY set — the
+    /// persisted physical-attribute catalog OPEN still needs and does not have (kb/Work PB193) — a change to ONE
+    /// method instead of a silent behaviour change for every program that wrote OVERRIDE to opt out (kb/Work
+    /// PB196). A non-empty set plugs in below the guard, and nowhere else.</para></summary>
+    private static string? ValidateFixedFileAttributes(FileConnector c, bool overridden)
+    {
+        if (overridden) return null;   // GR18 — "the file attributes are not checked"
+        _ = c;                         // the GR19 validated set is empty (A.1 item 50): nothing to compare
+        return null;
+    }
+
     /// <summary>True when a file connector OTHER than <paramref name="name"/> currently has the physical file at
     /// <paramref name="host"/> open (§9.1.13.9 item 2 — the DELETE FILE sharing conflict is defined over "another
     /// file connector" plainly, so a non-sharing-registered open connector counts too).</summary>
@@ -489,8 +514,9 @@ public sealed class FileRegistry
     // ── COBOL-2002 file sharing / record locking (ISO §9.1.15/§9.1.16/§14.9.27/§14.9.47/§14.7.9) ─────────────
     // Design D1: the 51/52/61 statuses are defined over "another file connector" (§9.1.13.9) — two SELECTs bound
     // to one resolved host path are two distinct connectors over one physical file within one run unit, so the
-    // machinery is REAL. Single-run-unit residue (loud, documented): RETRY SECONDS/FOREVER cannot block
-    // productively (no external releaser) so an unsatisfiable conflict deadlock-bails to 52 — never a sleep.
+    // machinery is REAL. Single-run-unit residue (loud, documented): no RETRY form can block productively (no
+    // external releaser exists), so an unsatisfiable conflict lands on the conflict's OWN §9.1.13 status —
+    // never a sleep, and never a manufactured one. See D8 in docs/COBOLNET_FILES_DESIGN.md and ExhaustionStatus.
 
     /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (emitted right after registration, only
     /// for a file that carries either clause). Marks the connector sharing-active so its OPEN routes through the
@@ -515,9 +541,11 @@ public sealed class FileRegistry
         if (!_connectorShares.ContainsKey(name))
             RegisterSharing(name, FileSharing.AllOther, FileLockMode.None, false);
         FileSharing? ov = hasSharingOverride ? sharingOverride : null;
-        string status = RetryLoop(() => SharedOpenAttempt(name, mode, ov), retryKind, retryAmount);
-        // SharedOpenAttempt already set the connector status on the terminal attempt; a deadlock-bail overrides it.
-        if (status == FileStatusCode.Deadlock) SetStatusOf(name, FileStatusCode.Deadlock);
+        // SharedOpenAttempt sets the connector status on the terminal attempt, and RetryLoop now lands an
+        // exhausted retry on the CONFLICT'S OWN status (§14.7.9.3 closing paragraph → §9.1.13.9 item 1 = '61'),
+        // so there is nothing left to override here — the former `if (status == Deadlock) SetStatusOf(…)`
+        // line existed only to re-assert the '52' RetryLoop used to manufacture (kb/Work PB142).
+        _ = RetryLoop(() => SharedOpenAttempt(name, mode, ov), retryKind, retryAmount);
     }
 
     /// <summary>The sharing-aware OPEN body. Returns the resulting I-O status; on a Table-19 conflict returns 61
@@ -823,25 +851,68 @@ public sealed class FileRegistry
         if (_physical.TryGet(HostPathOf(name), out var st)) PhysicalFileTable.ReleaseSingle(st, name, recId);
     }
 
-    /// <summary>Evaluate <paramref name="attempt"/> under the RETRY discipline (§14.7.9): None = one attempt;
-    /// TIMES = n+1 attempts (GR1); SECONDS/FOREVER cannot block productively in one run unit, so a still-failing
-    /// attempt deadlock-bails to 52 (GR2/GR3 + §9.1.13.8). Never sleeps.</summary>
+    /// <summary>Evaluate <paramref name="attempt"/> under the RETRY discipline (ISO §14.7.9.3 — see
+    /// docs/COBOLNET_FILES_DESIGN.md "D8. The RETRY phrase and the conflict-status class rule").
+    /// <para>GR4 scopes the WHOLE discipline: it engages only "if the I/O operation is unsuccessful on the first
+    /// attempt because of a file sharing conflict condition or a record operation conflict condition"
+    /// (<see cref="IsConflict"/>). Success — and every other unsuccessful status, an OPEN's '35' included — is
+    /// the statement's own answer and is returned untouched, un-retried.</para>
+    /// <para>GR4a: no RETRY phrase, or an arithmetic-expression evaluating negative or zero, makes NO further
+    /// attempt. GR1: n TIMES makes n further attempts after the initial failure. GR2: FOR n SECONDS clamps the
+    /// timeout period to the implementor's maximum meaningful value, which COBOL.NET defines as ZERO (A.1 item
+    /// 166, docs/CONFORMANCE.md §7), so its period is zero-length and it likewise makes none. GR3: FOREVER waits
+    /// until the operation completes. Never sleeps — the ground for the GR2 determination is that a lock here is
+    /// held only by a file connector of the EXECUTING run unit, which cannot release it while this statement
+    /// runs, so no positive timeout could change the outcome.</para>
+    /// <para>Every landing goes through <see cref="ExhaustionStatus"/> — the status is a function of the
+    /// conflict's own class, NEVER a literal at a call site.</para></summary>
     public static string RetryLoop(Func<string> attempt, FileRetryKind kind, int amount)
     {
         string s = attempt();
-        if (s == FileStatusCode.Success) return s;
-        switch (kind)
-        {
-            case FileRetryKind.None:
-                return s;
-            case FileRetryKind.Times:
-                for (int i = 0; i < amount && s != FileStatusCode.Success; i++) s = attempt();
-                return s;
-            default:   // Seconds / Forever — a single re-check, then deadlock-bail (no external releaser exists)
-                s = attempt();
-                return s == FileStatusCode.Success ? s : FileStatusCode.Deadlock;   // 52
-        }
+        if (!IsConflict(s)) return s;   // GR4 — success, or an unsuccessful status that is not a conflict
+        if (kind == FileRetryKind.Times)
+            // GR1 — n further attempts after the initial failure; a zero or negative n makes none (GR4a).
+            for (int i = 0; i < amount && IsConflict(s); i++) s = attempt();
+        else if (kind == FileRetryKind.Forever)
+            // GR3 — "until the input-output operation has been completed". A conflict here is held by a
+            // connector of this run unit, which cannot release while this statement executes, so one attempt
+            // settles it; the wait that can never complete is the deadlock ExhaustionStatus names.
+            s = attempt();
+        // The two arms with no `else` are deliberate, not forgotten: FileRetryKind.None makes no further
+        // attempt by GR4a, and FileRetryKind.Seconds makes none because GR2 clamps its period to this
+        // implementation's maximum meaningful value of ZERO (A.1 item 166) — a zero-length timeout period
+        // during which no retry can be attempted. Seconds still RECEIVES its amount because that value is
+        // GR4a's screen input, even though the clamp then makes it inert.
+        return IsConflict(s) ? ExhaustionStatus(s, kind) : s;
     }
+
+    /// <summary>True when <paramref name="status"/> is one of the two conditions §14.7.9.3 GR4 names as the
+    /// RETRY phrase's subject: a RECORD OPERATION conflict (§9.1.13.8, first digit '5') or a FILE SHARING
+    /// conflict (§9.1.13.9, first digit '6'). The first digit IS the standard's own classification of these
+    /// clauses (§9.1.13.1, which maps '5' → EC-I-O-RECORD-OPERATION and '6' → EC-I-O-FILE-SHARING).</summary>
+    private static bool IsConflict(string status) =>
+        status.Length == 2 && (status[0] == '5' || status[0] == '6');
+
+    /// <summary>The status an exhausted retry lands on. §14.7.9.3 GR4a and that clause's closing paragraph give
+    /// the SAME landing — "the appropriate value is placed in the I-O status associated with the file connector
+    /// according to the rules for 9.1.13" — so the answer is the CONFLICT'S OWN status, with exactly one
+    /// documented implementor exception.
+    /// <para>⛔ THE EXCEPTION IS CLASS-SCOPED, and harmonizing the two classes breaks conformance in one
+    /// direction or two green goldens in the other. §9.1.13.9 (file sharing) defines exactly TWO values — '61'
+    /// for OPEN and '62' for DELETE FILE — and NO deadlock value, so a file-sharing conflict has no landing but
+    /// its own; §14.9.10.4 GR15b is imperative there ("The value … is placed") where its record-conflict twin
+    /// GR6b says only "A value". §9.1.13.8 item 2's '52' is a RECORD-conflict value whose detection conditions
+    /// the implementor defines (A.1 item 109, recorded in docs/CONFORMANCE.md §7): COBOL.NET detects a deadlock
+    /// exactly when a FOREVER retry waits on a record locked by another file connector (§9.1.13.8 item 1), since
+    /// that holder is inside the executing run unit and can never release while this statement runs, so GR3's
+    /// "until the operation has been completed" would never terminate.</para>
+    /// <para>Answering '52' for a FILE conflict would also raise the WRONG exception-name — §9.1.13.1 maps the
+    /// first digit — so a USE declarative or exception-checking PERFORM keyed on EC-I-O-FILE-SHARING would
+    /// silently not fire (kb/Work PB142).</para></summary>
+    private static string ExhaustionStatus(string conflict, FileRetryKind kind) =>
+        kind == FileRetryKind.Forever && conflict == FileStatusCode.RecordLocked
+            ? FileStatusCode.Deadlock   // §9.1.13.8 item 2 — the implementor-detected deadlock
+            : conflict;                 // §14.7.9.3 closing paragraph → §9.1.13
 
     // ── Internals ────────────────────────────────────────────────────────────────────────────────────────────
 

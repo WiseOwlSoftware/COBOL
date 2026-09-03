@@ -328,6 +328,36 @@ PERFORM VARYING FROM/BY, report VARYING, RETRY count), and without it the double
 caller expecting a scaled integral — the PB2 shape. It was already reachable through a COMP-2 operand, so the arm
 is a latent fix as well as a required one, and it belongs at the ONE choke point rather than at forty call sites.
 
+**The round-UP sibling: `NumericRenderer.AlignRoundedUp` (kb/Work PB142/PB151).** `Align` truncates on every lane
+— that is its contract, and it is right for the value-semantics intermediate sites it serves. A handful of clauses
+instead say the expression is **"rounded up to the next whole number"**, and those must NOT reach `Align`.
+The population is **closed, not sampled**: a sweep of the standard for that phrase returns exactly TWO normative
+sites — **§14.7.9.3 GR1** (the RETRY phrase's `arithmetic-expression-1`, an n-TIMES count) and **§14.9.3.4 GR1**
+(ALLOCATE's `arithmetic-expression-1`, a byte count). `AlignRoundedUp` is the one place that rule is written; both
+clauses call it, and `NumericRoundUpSiteDriftTests` asserts that neither round-up-ruled emit site reaches
+`Align(…, 0)` — the defect it was built from was not a wrong helper but a call site choosing the wrong one
+(`RETRY 1.5 TIMES` emitted 1 re-attempt where GR1 requires 2, and `RETRY 0.5 TIMES` emitted 0, silently degrading
+to the no-retry case).
+
+The mode is **`CobolRounding.TowardGreater`** — round toward positive infinity, which *is* "rounded up to the next
+whole number" on every lane (`CobolFloat` via `Math.Ceiling`, `CobolNum`/`CobolDec` by adding one only when
+positive). Deliberately **not** `AwayFromZero`, which agrees on positives but rounds −1.5 to −2 where the rule
+requires −1. Both clauses guard their own negatives — §14.9.3.4 GR2 shunts ≤ 0 to NULL, §14.7.9.3 GR4a shunts a
+negative or zero expression to the unsuccessful path before the rounded value is used — so the choice is
+behaviour-neutral at both of today's sites and simply correct at the next one. The lane structure mirrors `Align`
+exactly, checked landings included.
+
+⚠ **One named exemption, so it is not read as drift.** ALLOCATE's NATIVE-FLOAT lane keeps `CobolPtr.AllocateReal`,
+which fuses the same ceiling with GR2's ≤ 0 ⇒ NULL and with the storage-not-available outcomes only the ALLOCATE
+statement defines (a NaN or over-wide request answers "not available" instead of raising). Routing it through a
+checked emitter-side landing would trade that defined outcome for a size-error condition and re-open a green
+PB151 landing. The rounding RULE is still written once; `AllocateReal`'s ceiling is that rule realised inside the
+statement's own outcome machinery, and the drift test knows the exemption by name.
+
+The RETRY phrase's SECONDS arm is governed by a DIFFERENT rule and keeps its own truncating rendering: §14.7.9.3
+GR2 stores the timeout period through an implicit COMPUTE **without** the ROUNDED phrase into a `9(n)V9(m)`
+temporary. One clause, two arms, two roundings — see `COBOLNET_FILES_DESIGN.md` **D8**.
+
 **Rationale (fix-queue PB13).** `FromDouble` saturates at `Int128.MaxValue`, and the store then rescales
 ws→receiver scale, which DIVIDES the sentinel back down. The receiver's digit-capacity check — the one mechanism
 that would raise the size error — therefore never sees it, which is why the saturation was SILENT rather than

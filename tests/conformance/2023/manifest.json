@@ -337,7 +337,8 @@
   "pb260_accept_screen_reference",
   "pb260_screen_facility_witness",
   "pb260_screen_locale_sign_witness",
-  "pb261_commit_facility_witness"
+  "pb261_commit_facility_witness",
+  "pb142_retry_conflict_class_ec"
  ],
  "pending": []
 }

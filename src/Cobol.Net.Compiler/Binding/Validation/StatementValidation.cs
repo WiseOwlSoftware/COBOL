@@ -204,6 +204,34 @@ internal sealed class StatementValidation(DataBinder data)
         return msg;
     }
 
+    /// <summary>⛔ THE ONE SCREEN for the L1–L3 "phrase written where this statement's syntax rules forbid it"
+    /// leniency family (kb/Work PB144). Three syntax rules across READ/REWRITE/DELETE say a phrase "shall not be
+    /// specified" in a particular access mode or organization, and all three were TOLERATED unconditionally with
+    /// a "CCVS-lenient" comment and no strict arm — so at <c>--std 2023</c> strict the compiler accepted source
+    /// the standard forbids, silently (measured, not assumed: a REWRITE with INVALID KEY on both a
+    /// sequential-organization and a relative-sequential-access file compiled clean and printed no diagnostic).
+    /// <para>The severity decision routes through <see cref="EditionContext.Removed"/> — THE policy seam, which
+    /// already carries documented-dialect-leniency gating as well as removed-construct gating: an ERROR under
+    /// strict, a WARNING under <c>--permissive</c> with the bind UNCHANGED, so the CCVS-85 corpus that motivated
+    /// the leniency keeps compiling and keeps its existing semantics. Never a local <c>Permissive</c> test and
+    /// never a parallel <c>Lenient()</c> method.</para>
+    /// <para>Returns true when the phrase is forbidden (the caller may still bind it — under permissive it must,
+    /// and under strict the compile has already failed), so a call site reads as a screen, not a branch.</para></summary>
+    /// <param name="forbidden">Whether the rule's condition holds — computed by the caller, since only it knows
+    /// the statement's own access-mode/organization test.</param>
+    /// <param name="phrase">The phrase as the program wrote it, e.g. "INVALID KEY".</param>
+    /// <param name="verb">The statement, e.g. "REWRITE".</param>
+    /// <param name="because">The rule's own condition, quoted from it, e.g. "a file with sequential organization".</param>
+    /// <param name="citation">The §/SR, e.g. "ISO §14.9.35.3 SR2".</param>
+    public bool ScreenForbiddenPhrase(bool forbidden, string phrase, string verb, string because, string citation)
+    {
+        if (!forbidden) return false;
+        data.Edition.Removed(DiagnosticCatalog.IoPhraseForbiddenHere.Code,
+            $"the {phrase} phrase shall not be specified for a {verb} statement that references {because} "
+            + $"({citation})");
+        return true;
+    }
+
     public bool CheckOpenSharingAllOther(FileModel file, SharingMode? effectiveSharing)
     {
         if (!(effectiveSharing is SharingMode.AllOther && file.LockMode is null)) return true;

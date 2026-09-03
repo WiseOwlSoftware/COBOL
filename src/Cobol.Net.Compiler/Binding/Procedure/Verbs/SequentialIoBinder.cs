@@ -172,6 +172,17 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
         RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryPhrase());                                      // §14.7.9 / §14.9.35 GR11
         if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
+        // §14.9.35.3 SR2, arm (a) — "Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be
+        // specified for a REWRITE statement that references a file with SEQUENTIAL ORGANIZATION". This arm
+        // dropped the parsed phrase on the floor with no diagnostic at all, which is a strictly worse shape than
+        // its relative twin in KeyedIoBinder (which at least bound it as dead): the rule has TWO arms and only
+        // one of them was ever noticed (kb/Work PB144 — the two-arm dispatch again). A sequential REWRITE raises
+        // only 4x statuses, so nothing is rerouted either way; the phrase has no representation on BoundRewrite
+        // and needs none, because there is no '2x' invalid-key condition for it to carry.
+        if (rw.rewriteInvalidKeyPhrase() is { } ik)
+            ctx.Validation.ScreenForbiddenPhrase(true,
+                PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "REWRITE",
+                "a file with sequential organization", "ISO §14.9.35.3 SR2");
         return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()),
             UnsupportedOrg(file, "REWRITE"))
         { Lock = rlock, Retry = rretry };

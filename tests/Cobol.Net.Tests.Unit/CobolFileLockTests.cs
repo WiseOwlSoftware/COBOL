@@ -126,6 +126,64 @@ public sealed class CobolFileLockTests
         Assert.Equal(2, calls);
     }
 
+    /// <summary>⛔ THE DRIFT TEST for the §14.7.9.3 conflict-status CLASS rule (kb/Work PB142; the design is
+    /// docs/COBOLNET_FILES_DESIGN.md D8). Every retry form × every conflict class, asserted cell by cell, so
+    /// that "the exhausted retry lands the CONFLICT'S OWN §9.1.13 status" cannot silently regrow a manufactured
+    /// literal at any one call site. The single exception — FOREVER on a record LOCK, the §9.1.13.8 item 2
+    /// deadlock this implementation detects — is one cell here, not a rule spread over six callers.</summary>
+    [Theory]
+    // ── RECORD OPERATION conflict, §9.1.13.8 item 1 ('51'): the conflict's own status, except FOREVER.
+    [InlineData(FileRetryKind.None, 0, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]
+    [InlineData(FileRetryKind.Times, 0, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]    // GR4a
+    [InlineData(FileRetryKind.Times, -3, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]   // GR4a
+    [InlineData(FileRetryKind.Times, 2, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]    // GR1
+    [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]  // GR4a
+    [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)] // GR2 clamp
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.RecordLocked, FileStatusCode.Deadlock)]      // GR3 + item 2
+    // ── FILE SHARING conflict, §9.1.13.9 item 1 ('61', OPEN): NEVER a deadlock — that clause defines none.
+    [InlineData(FileRetryKind.None, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
+    [InlineData(FileRetryKind.Times, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
+    [InlineData(FileRetryKind.Times, -3, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
+    [InlineData(FileRetryKind.Times, 2, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
+    [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
+    [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
+    // ── FILE SHARING conflict, §9.1.13.9 item 2 ('62', DELETE FILE): §14.9.10.4 GR15b is imperative.
+    [InlineData(FileRetryKind.None, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    [InlineData(FileRetryKind.Times, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    [InlineData(FileRetryKind.Times, -3, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    [InlineData(FileRetryKind.Times, 2, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    // ── NOT A CONFLICT AT ALL: §14.7.9.3 GR4 scopes the whole discipline to the two conflict conditions, so an
+    //    OPEN's '35' (or any other unsuccessful status) is the statement's own answer and RETRY cannot touch it.
+    [InlineData(FileRetryKind.None, 0, FileStatusCode.FileNotFound, FileStatusCode.FileNotFound)]
+    [InlineData(FileRetryKind.Times, 2, FileStatusCode.FileNotFound, FileStatusCode.FileNotFound)]
+    [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.FileNotFound, FileStatusCode.FileNotFound)]
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.FileNotFound, FileStatusCode.FileNotFound)]
+    public void RetryLoop_LandsTheConflictsOwnStatus_ByClass(
+        FileRetryKind kind, int amount, string conflict, string expected) =>
+        Assert.Equal(expected, CobolFile.RetryLoop(() => conflict, kind, amount));
+
+    /// <summary>§14.7.9.3 GR4 again, on the axis the status cannot witness: a NON-conflict status must not be
+    /// RE-ATTEMPTED either, and GR4a's zero/negative screen must make no attempt beyond the first.</summary>
+    [Theory]
+    [InlineData(FileRetryKind.None, 0, FileStatusCode.RecordLocked, 1)]
+    [InlineData(FileRetryKind.Times, 0, FileStatusCode.RecordLocked, 1)]     // GR4a — zero: no further attempt
+    [InlineData(FileRetryKind.Times, -3, FileStatusCode.RecordLocked, 1)]    // GR4a — negative: likewise
+    [InlineData(FileRetryKind.Times, 3, FileStatusCode.RecordLocked, 4)]     // GR1 — n further attempts
+    [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked, 1)]  // GR2 — zero-length clamped period
+    [InlineData(FileRetryKind.Times, 3, FileStatusCode.FileNotFound, 1)]     // GR4 — not a conflict: no retry
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.FileNotFound, 1)]   // GR4 — not a conflict: no retry
+    public void RetryLoop_AttemptCount_FollowsGR1AndGR4(
+        FileRetryKind kind, int amount, string conflict, int expectedCalls)
+    {
+        int calls = 0;
+        CobolFile.RetryLoop(() => { calls++; return conflict; }, kind, amount);
+        Assert.Equal(expectedCalls, calls);
+    }
+
     [Fact]
     public void Unlock_OfANotOpenFile_Is42()
     {
@@ -229,11 +287,14 @@ public sealed class CobolFileLockTests
         CobolFile.Register("DB", host, 5, false, false);
         CobolFile.OpenOutput("DA");
         CobolFile.Write("DA", "HELLO");
-        // §9.1.13.9 item 2 / §14.9.10 GR15 — the physical file is open by ANOTHER connector → 62 (not deleted);
-        // RETRY n TIMES exhausts to 62; FOREVER deadlock-bails to 52 (§14.7.9 — no external closer in one run unit).
+        // §9.1.13.9 item 2 / §14.9.10 GR15 — the physical file is open by ANOTHER connector → 62 (not deleted).
+        // EVERY retry form exhausts to 62: §14.7.9.3's closing paragraph lands the conflict's own §9.1.13 status
+        // and §9.1.13.9 defines no deadlock value for a FILE SHARING conflict (kb/Work PB142).
         Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB"));
         Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB", FileRetryKind.Times, 2));
-        Assert.Equal(FileStatusCode.Deadlock, CobolFile.DeleteFile("DB", FileRetryKind.Forever, 0));
+        Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB", FileRetryKind.Forever, 0));
+        Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB", FileRetryKind.Seconds, 0));
+        Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB", FileRetryKind.Seconds, 30));
         CobolFile.Close("DA");
         Assert.Equal(FileStatusCode.Success, CobolFile.DeleteFile("DB"));            // GR20 — deleted
         Assert.Equal(FileStatusCode.OptionalFileNotFound, CobolFile.DeleteFile("DB"));   // GR14 — absent = successful '05'

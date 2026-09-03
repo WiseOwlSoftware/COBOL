@@ -650,6 +650,41 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // come through here.
         : RuntimeApi.NumRescaleEscape(x.Expr, $"{x.Scale}", $"{toScale}", CobolRounding.Truncation);
 
+    /// <summary>Land an arithmetic-expression at scale 0 ROUNDED UP — the sibling of <see cref="Align"/> for the
+    /// clauses that say "rounded up to the next whole number" rather than taking the value-semantics truncation.
+    /// <para>⛔ THIS IS THE ONE PLACE THAT RULE IS WRITTEN, and its population is CLOSED, not sampled: a grep for
+    /// "rounded up" over the whole standard returns exactly TWO normative sites — §14.7.9.3 GR1 (the RETRY
+    /// phrase's arithmetic-expression-1, an n-TIMES count) and §14.9.3.4 GR1 (ALLOCATE's arithmetic-expression-1,
+    /// a byte count). Both call here. Every other <c>Align(…, 0)</c> consumer was checked against its own clause
+    /// and none of them says "rounded up" (EVALUATE / GO TO DEPENDING selectors, PERFORM VARYING and PERFORM n
+    /// TIMES, relative RRN / START WITH LENGTH / key fields, SET amounts, boolean shift counts, report-writer
+    /// counts, WRITE ADVANCING lines, and STOP RUN's exit status, whose §14.9.42 SR3 explicitly wants the integer
+    /// truncation). A new site governed by a round-up clause belongs here, never in a second local ceiling —
+    /// <c>NumericRoundUpSiteTests</c> is the drift test that keeps that true.</para>
+    /// <para>The mode is <see cref="CobolRounding.TowardGreater"/>, which IS "rounded up to the next whole
+    /// number" — round toward positive infinity — on every lane (<c>CobolFloat</c> uses <c>Math.Ceiling</c>,
+    /// <c>CobolNum</c>/<c>CobolDec</c> add one only when the value is positive). It is deliberately NOT
+    /// <c>AwayFromZero</c>, which agrees with it on positives but rounds −1.5 to −2 where the rule requires −1.
+    /// Both clauses guard their own negatives — §14.9.3.4 GR2 shunts ≤ 0 to NULL and §14.7.9.3 GR4a shunts a
+    /// negative or zero expression to the unsuccessful path before the rounded value is used — so the choice is
+    /// behaviour-neutral at both of today's sites and simply correct at the next one.</para>
+    /// <para>The lane structure mirrors <see cref="Align"/> exactly, including its checked landings: an
+    /// intermediate consumer has no capacity check downstream, so a value past the carrier stays the loud
+    /// sentinel here rather than becoming the low-order digits a STORE may take (kb/Work PB77/PB69/PB65).</para>
+    /// <para>NOTE — ALLOCATE's NATIVE-FLOAT lane does NOT come through here, and that is not an oversight:
+    /// <c>CobolPtr.AllocateReal</c> fuses GR1's <c>Math.Ceiling</c> with GR2's ≤ 0 ⇒ NULL and with the
+    /// storage-not-available outcomes that only the ALLOCATE statement defines, so a NaN or an over-wide request
+    /// answers "not available" instead of raising (kb/Work PB151). Routing it through a checked emitter-side
+    /// landing would trade that defined outcome for a size-error condition. The ROUNDING RULE is still written
+    /// once — here — and AllocateReal's ceiling is that rule realised inside the statement's own outcome
+    /// machinery; the drift test knows about the exemption by name.</para></summary>
+    public static string AlignRoundedUp(NumX x) =>
+        x.Real ? RuntimeApi.FloatToScaled(x.Expr, "0", CobolRounding.TowardGreater, checkedLanding: true)
+        : x.Dec ? RuntimeApi.DecToUnscaledIntermediate(x.Expr, "0", CobolRounding.TowardGreater)
+        : x.U ? AlignRoundedUp(DeU(x))
+        : x.Scale == 0 ? x.Expr
+        : RuntimeApi.NumRescaleEscape(x.Expr, $"{x.Scale}", "0", CobolRounding.TowardGreater);
+
     /// <summary>Render a STOP RUN / GOBACK termination-status phrase to a C# <c>long</c> exit-status expression
     /// (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10): the status VALUE truncated to an integer at scale 0 when present
     /// (SR3 — an integer is passed to the OS), else the implementor error/normal indication ERROR ⇒ 1 / NORMAL ⇒ 0

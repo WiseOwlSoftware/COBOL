@@ -4,8 +4,13 @@
       *> item 2 / 14.9.10 GR15): a DELETE FILE attempted while the
       *> physical file is currently open by ANOTHER file connector is
       *> unsuccessful with I-O status 62 and the file is not deleted; a
-      *> RETRY phrase re-attempts (n TIMES exhausts to 62, FOREVER
-      *> deadlock-bails to 52 in one run unit, 14.7.9). After the other
+      *> RETRY phrase re-attempts and EVERY form exhausts to 62 -- 14.7.9.3
+      *> GR4a and that clause's closing paragraph both land "the appropriate
+      *> value ... according to the rules for 9.1.13", and 9.1.13.9 defines
+      *> no deadlock value for a FILE SHARING conflict (52 is 9.1.13.8's
+      *> RECORD-conflict value). FOR 0 SECONDS (GR4a's zero screen) and FOR
+      *> 30 SECONDS (GR2's maximum-meaningful clamp, which this
+      *> implementation defines as 0) must therefore AGREE. After the other
       *> connector closes: delete -> 00; an absent file -> the SUCCESSFUL
       *> 05 (GR14); the deleted file's OPEN INPUT -> 35. The conflict is
       *> defined over "another file connector" plainly, so two ordinary
@@ -36,6 +41,8 @@
            DELETE FILE F-B. DISPLAY "DEL62=" B-ST.
            DELETE FILE F-B RETRY 2 TIMES. DISPLAY "DELRT=" B-ST.
            DELETE FILE F-B RETRY FOREVER. DISPLAY "DELFV=" B-ST.
+           DELETE FILE F-B RETRY FOR 0 SECONDS. DISPLAY "DELSC0=" B-ST.
+           DELETE FILE F-B RETRY FOR 30 SECONDS. DISPLAY "DELSC30=" B-ST.
       *> F-A closed: the delete succeeds; a second delete of the now
       *> absent file is the SUCCESSFUL 05; OPEN INPUT reports 35.
            CLOSE F-A.

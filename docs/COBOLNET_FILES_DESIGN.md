@@ -60,6 +60,107 @@ Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records,
 
 **Rejected alternatives.** Raw big-endian bytes as Latin-1 characters (the legacy on-disk form): a SECOND representation for the same concept — compare/DISPLAY contexts already use digit images, so `RETURN`-then-compare would disagree with `IF group = group` about what a record "looks like"; also needs a new Binary decode kind in `CobolSort.Key` and control characters through every string seam, buying only a cross-engine compatibility that is not required. Leading-separate-sign images (width = Digits+1 — would change `ImageWidth` and every offset computation).
 
+### D8. The RETRY phrase and the conflict-status class rule: an exhausted retry lands the CONFLICT'S OWN §9.1.13 status, decided in ONE place, and the timeout period's maximum meaningful value is defined as ZERO.
+
+**The rule.** ISO §14.7.9.3 GR4 scopes the whole RETRY discipline: it engages only "if the I/O operation is
+unsuccessful on the first attempt **because of a file sharing conflict condition or a record operation conflict
+condition**". Every other outcome — success, and every other unsuccessful status — is the statement's own answer
+and the phrase does not touch it. When the discipline does engage, GR4a (no phrase, or an arithmetic-expression
+evaluating negative or zero) and the clause's closing paragraph give the *same* landing: "the appropriate value is
+placed in the I-O status associated with the file connector according to the rules for 9.1.13". The status is
+therefore **a function of the conflict's own class**, never a literal chosen at a call site.
+
+**The class asymmetry is deliberate and load-bearing.** §9.1.13.9 (file sharing conflict) defines exactly two
+values — `61` for OPEN and `62` for DELETE FILE — and **no deadlock value**, so a file-sharing conflict has no
+conforming landing but its own; §14.9.10.4 GR15b is imperative there ("*The* value … is placed") where its
+record-conflict twin GR6b says only "*A* value". §9.1.13.8 item 2's `52` is a **record**-conflict value whose
+detection conditions the implementor defines. COBOL.NET detects a deadlock in exactly one circumstance: a
+`RETRY FOREVER` waiting on a record locked by another file connector (§9.1.13.8 item 1). That holder is inside the
+executing run unit and cannot release while this statement runs, so GR3's "until the input-output operation has
+been completed" would never terminate — which is what makes it a deadlock rather than a timeout. Harmonizing the
+two classes breaks conformance in one direction (a `52` for a file conflict) or two green goldens in the other.
+
+**Why the class matters beyond the digits.** §9.1.13.1 keys the exception-name on the status's first digit: `5` →
+`EC-I-O-RECORD-OPERATION`, `6` → `EC-I-O-FILE-SHARING`. Answering `52` for a file-sharing conflict raises the
+*wrong* condition, so a USE declarative or exception-checking PERFORM keyed on `EC-I-O-FILE-SHARING` silently does
+not fire. That is why this is a wrong-answer defect and not two cosmetic digits (kb/Work PB142).
+
+**The GR2 determination (Annex A.1 item 166).** §14.7.9.3 GR2 requires the implementor to specify the timeout
+temporary's picture `9(n)V9(m)` and the **maximum meaningful value** of arithmetic-expression-2. COBOL.NET defines
+**n = 1, m = 0, maximum meaningful value = 0**. The ground is structural, not a convenience: every file and record
+lock here is held by a file connector *of the executing run unit*, and a connector cannot release one while another
+statement of the same run unit is executing, so no positive timeout period can change the outcome — a sleep would
+only delay an identical answer. GR2 therefore clamps every SECONDS amount into a zero-length timeout period, GR4b's
+"attempts as specified in General rule 2" performs none, and the closing paragraph lands the conflict's own status
+— the same answer GR4a gives for a zero or negative expression. `RETRY FOR 0 SECONDS` and `RETRY FOR 30 SECONDS`
+are thus correct **by one rule** rather than by a special case, which is the observable form of the determination
+and is pinned as such in `2023/delete_file_sharing` (`DELSC0` / `DELSC30`). ⚠ Do not "fix" this into a
+`Thread.Sleep`: that would hang a program for a guaranteed failure. The determination and its ground are recorded
+in `docs/CONFORMANCE.md` §7 under A.1 items 165/166; the deadlock detection conditions are item 109.
+
+**The two roundings are different rules and must stay separate in code.** GR1 rounds the TIMES count **up to the
+next whole number** (`RETRY 1.5 TIMES` is two re-attempts), which is one of only two clauses in the standard that
+say so — the other is ALLOCATE's §14.9.3.4 GR1 — and both render through the single
+`NumericRenderer.AlignRoundedUp` (see `COBOLNET_NUMERIC_DESIGN.md`). GR2 instead stores the SECONDS period through
+an implicit COMPUTE *without* the ROUNDED phrase, i.e. truncation at the implementor's `m`. One clause, two arms,
+two roundings.
+
+**No compile-time screen exists, and none may be added.** §14.7.9 has only 14.7.9.1/.2/.3 — General, General
+format, General rules — and **no Syntax rules clause at all**. A non-integer or out-of-range arithmetic-expression
+is LEGAL SOURCE that GR1/GR2/GR4a define at run time; rejecting it would be a `rejects_legal_source` regression.
+`StatementBinder.BindRetry` binds the three forms with no screen and must stay that way.
+
+**Where it lives.** `FileRegistry.RetryLoop` gates on `IsConflict` (§9.1.13.1's own first-digit classification) and
+routes every landing through the private `ExhaustionStatus` — the ONE place the rule is written. Its six callers
+(`DeleteFile`, `OpenShared`, `ReadLockGovern`, `ReadShared`, `RewriteShared`, `DeleteShared`) inherit it rather
+than each judging for themselves; `WriteShared` deliberately takes the phrase and discards it (§14.9.51 GR16 —
+no record-operation conflict is defined for WRITE). The drift test is
+`CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass`, which asserts every retry-form × conflict-class
+cell including the not-a-conflict row.
+
+### D9. The L1–L3 phrase-placement leniency family is gated at ONE seam: an error under strict, a warning with an unchanged bind under `--permissive`.
+
+**The rule shape.** Three syntax rules across READ/REWRITE/DELETE close a phrase out of a particular organization
+or access mode:
+
+| rule | forbids | when |
+|---|---|---|
+| §14.9.10.3 SR2 | INVALID KEY / NOT INVALID KEY | a DELETE RECORD referencing a file **in sequential access mode** |
+| §14.9.35.3 SR2 | INVALID KEY / NOT INVALID KEY | a REWRITE referencing **a file with sequential organization**, *or* a file with **relative organization and sequential access mode** |
+| §14.9.30.3 SR6 | ADVANCING / AT END / NEXT / NOT AT END / PREVIOUS | a READ whose file control entry specifies **ACCESS MODE RANDOM** |
+
+**What was wrong.** All three were bound unconditionally with a "tolerated in the default (CCVS-lenient) mode"
+comment and **no strict arm**, so at `--std 2023` strict the compiler accepted source the standard forbids and
+emitted nothing — measured with CLI probes, not inferred. ⚠ §14.9.35.3 SR2 has **two arms** and only the second
+was even commented: the sequential-*organization* arm binds through `SequentialIoBinder.BindRewrite`, which never
+read `rewriteInvalidKeyPhrase()` at all — the phrase was parsed and dropped on the floor, a strictly worse shape
+than its relative twin, which at least bound it as dead. Both arms are screened now, and both have a negative
+fixture, because a fix landing only one of them reproduces the very shape that made the rule wrong.
+
+**Where it lives.** `StatementValidation.ScreenForbiddenPhrase` is the one screen; the severity decision routes
+through **`EditionContext.Removed`**, THE policy seam — which already carries documented-dialect-leniency gating
+as well as removed-construct gating — so it is an ERROR under strict and a WARNING with an **unchanged bind**
+under `--permissive`. Never a local `Permissive` test, never a parallel `Lenient()` method. ⛔ The legacy
+`DialectStrictnessChecks` lives only in `src/CobolSharp.Compiler` and must not be revived.
+
+**Why the tolerated path is safe.** The bind is unchanged under `--permissive` because the emitter's status-first
+branches make a phrase that cannot fire simply dead — a `'2x'` invalid-key branch on a sequential-access DELETE,
+a `'1x'` at-end branch on a random READ — never silently rerouted. That is what the CCVS-85 corpus depends on.
+
+**One code, three rules.** `COBOLNET1720` serves all three, on the `COBOLNET1694` precedent: the *shape* is one
+rule ("a phrase is written where this statement's syntax rules forbid it") and each site's message quotes its own
+§/SR. §14.9.10.3 **SR1** (DELETE RECORD on a sequential-organization file) is deliberately **not** on this seam —
+it is a hard `COBOLNET0865` error at every edition and strictness, because it is not a documented leniency.
+
+**The edition-gate sweep was RUN, not assumed** (gating a construct breaks everything compiling it below that
+edition). The rules are edition-invariant — `Removed` keys on `Permissive`, never on edition — and the probe
+emits an identical diagnostic count at 85/2002/2014/2023. The corpus risk was the real one: a static scan finds
+**315** `REWRITE … INVALID KEY` and **28** `DELETE … INVALID KEY` sites in the NIST programs, and NIST runs
+**strict** by default. Compiling all **459** at `--std 85` produces the **same 17 pre-existing failures** (every
+one read individually: `CM*` COMMUNICATION SECTION parse errors and `DB*` `COBOLNET1571` debug-module rejections)
+and **zero** new ones — every one of those 343 phrase sites is on an organization/access mode where the phrase is
+LEGAL. The harness was proved able to surface `COBOLNET1720` as a failure before that zero was trusted.
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

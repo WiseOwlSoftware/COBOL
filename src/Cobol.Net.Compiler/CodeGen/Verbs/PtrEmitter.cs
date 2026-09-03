@@ -132,18 +132,16 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             return;
         }
         NumX x = num.Landed(NumericRenderer.DeU(num.Render(s.Chars!, ReceiverContext.None)), ReceiverContext.None);   // kb/Work PB84
-        // GR1's round-UP per lane (kb/Work PB151): a NATIVE-FLOAT expression ceilings on the DOUBLE inside
-        // AllocateReal (the old `(long)(double)` truncated 2.5 → 2 — a silently undersized cell); a scaled
-        // fixed/SDIDI expression rescales AwayFromZero to scale 0 (== ceiling for the positive values GR2
-        // does not shunt to NULL); and the size travels as the FULL Int128 — the old `(long)` narrowing
-        // wrapped a 20-digit request into a small VALID allocation (the PB22 cast family).
+        // GR1's round-UP per lane (kb/Work PB151/PB142). §14.9.3.4 GR1 and §14.7.9.3 GR1 (RETRY n TIMES) are the
+        // standard's ONLY two "rounded up to the next whole number" clauses, so the scaled lane's round-up is
+        // NumericRenderer.AlignRoundedUp — the one place that rule is written — and not a second local ceiling.
+        // The NATIVE-FLOAT lane stays inside CobolPtr.AllocateReal, which fuses the same ceiling with GR2's
+        // ≤ 0 ⇒ NULL and the storage-not-available outcomes only ALLOCATE defines (the old `(long)(double)`
+        // truncated 2.5 → 2, a silently undersized cell). Either way the size travels as the FULL Int128 — the
+        // old `(long)` narrowing wrapped a 20-digit request into a small VALID allocation (the PB22 cast family).
         string alloc = x.Real
             ? RuntimeApi.PtrAllocateReal($"({x.Expr})", fill, na)
-            : RuntimeApi.PtrAllocate(
-                x.Scale == 0
-                    ? $"(System.Int128)({x.Expr})"
-                    : $"(System.Int128){RuntimeApi.NumRescale(x.Expr, $"{x.Scale}", "0", Runtime.CobolRounding.AwayFromZero)}",
-                fill, na);
+            : RuntimeApi.PtrAllocate($"(System.Int128)({NumericRenderer.AlignRoundedUp(x)})", fill, na);
         w.Line(PlaceRenderer.Write(s.Returning!, alloc)
             + "   // ALLOCATE n CHARACTERS (ISO §14.9.3 GR1/GR2/GR5" + (s.Initialized ? "/GR6" : "/GR8") + ")");
         EmitStorageNotAvail(w, na);

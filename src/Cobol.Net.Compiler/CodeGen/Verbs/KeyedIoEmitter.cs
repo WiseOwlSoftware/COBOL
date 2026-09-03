@@ -292,19 +292,23 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // §14.9.10 Format 2 applies to EVERY organization (GR13/GR14/GR16): the sequential connector now
         // exposes its host path, so the runtime DeleteFile handles it uniformly with relative/indexed (DEVLOG
         // 612, Phase-4 track d). After a successful delete, the same name's next OPEN INPUT reports '35'
-        // (file not available) — the golden's round-trip. (Multiple file-names, §14.9.10 GR — `DELETE FILE
-        // f1 f2…` — need the fileName+ grammar; a documented follow-up.)
+        // (file not available) — the golden's round-trip. GR12's multiple file-names are bound as one
+        // BoundKeyedDeleteFile per name (kb/Work PB134), so this emitter always sees exactly one.
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         // A RETRY phrase re-attempts the §14.9.10 GR15 file-sharing-conflict check ('62' — the physical file
-        // open by another connector); the plain form keeps the existing single-attempt entry.
+        // open by another connector); the plain form keeps the existing single-attempt entry. The OVERRIDE
+        // phrase (GR18) travels to the runtime as the flag that suppresses the fixed-file-attribute match —
+        // it must be CARRIED even while the validated set is empty, or a future non-empty set silently checks
+        // a program that wrote OVERRIDE precisely to opt out (kb/Work PB196).
+        string ovr = df.Override ? "true" : "false";
         if (df.Retry is { } retry)
         {
             var (retryKind, retryAmount) = SeqIo.RenderRetry(retry);
-            w.Line($"var {st} = {RuntimeApi.FileDeleteFileRetry(FileKeyExpr(df.File), retryKind, retryAmount)};");
+            w.Line($"var {st} = {RuntimeApi.FileDeleteFileRetry(FileKeyExpr(df.File), retryKind, retryAmount, ovr)};");
         }
         else
-            w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File))};");
+            w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File), ovr)};");
         SeqIo.EmitStoreFileStatus(df.File);
         // §14.9.10.4 GR20b: the enabled level-3 EC-I-O for the status is set to exist EVEN when the ON
         // EXCEPTION phrase is written — the phrase suppresses only the declarative dispatch and the fatal

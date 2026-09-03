@@ -59,11 +59,17 @@ public enum FileRetryKind
 {
     /// <summary>No RETRY phrase — a single lock attempt (GR4a).</summary>
     None,
-    /// <summary>RETRY n TIMES — the lock check is attempted n+1 times (GR1).</summary>
+    /// <summary>RETRY n TIMES — the lock check is attempted n+1 times (GR1); a zero or negative n makes no
+    /// further attempt (GR4a).</summary>
     Times,
-    /// <summary>RETRY FOR n SECONDS — wall-clock retry; in one run unit no external releaser exists, so an
-    /// unsatisfiable conflict deadlock-bails to status 52 rather than blocking (GR2 + §9.1.13.8 impl-license).</summary>
+    /// <summary>RETRY FOR n SECONDS — a timeout period clamped by GR2 to the implementor's MAXIMUM MEANINGFUL
+    /// VALUE, which COBOL.NET defines as ZERO (Annex A.1 item 166, recorded in docs/CONFORMANCE.md §7): a lock
+    /// here is held only by a file connector of the executing run unit, which cannot release it while this
+    /// statement runs, so no positive timeout could change the outcome. The period is therefore zero-length,
+    /// no further attempt is made, and the conflict's OWN §9.1.13 status stands — never a sleep.</summary>
     Seconds,
-    /// <summary>RETRY FOREVER — likewise deadlock-bails to 52 in one run unit (GR3).</summary>
+    /// <summary>RETRY FOREVER — GR3's unbounded wait. The conflict's own §9.1.13 status stands, except that a
+    /// wait on a record locked by another file connector is the deadlock §9.1.13.8 item 2 defines and this
+    /// implementation detects ('52'; A.1 item 109). See <c>FileRegistry.ExhaustionStatus</c>.</summary>
     Forever,
 }

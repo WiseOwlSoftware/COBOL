@@ -47,10 +47,23 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // READ PREVIOUS (§14.9.30 Format 1) is a COBOL-2002 introduction; the edition gate moved to the post-bind
         // VersionConformancePass (Step 14c), firing on BoundKeyedRead.Kind == Previous.
 
-        // §14.9.30 SR6 forbids NEXT/PREVIOUS/AT END under ACCESS RANDOM and the formats keep INVALID KEY off the
-        // sequential read — but the CCVS-85 corpus is lenient about phrase placement (the L1–L3 leniency family),
-        // so misplaced phrases are TOLERATED and bound: the emitter's status-first branches make a phrase that
-        // cannot fire ('2x' on a sequential read, '1x' on a random read) simply dead, never silently rerouted.
+        // §14.9.30.3 SR6 — "None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be
+        // specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1." Gated through
+        // the ONE severity seam (kb/Work PB144): an error under strict, a warning under --permissive with the
+        // bind UNCHANGED, because the CCVS-85 corpus is lenient about phrase placement (the L1–L3 family) and
+        // the emitter's status-first branches make a phrase that cannot fire ('1x' on a random read) simply
+        // dead, never silently rerouted. SR10/SR11 (the KEY phrase) are hard errors below and always were.
+        if (file.AccessMode == FileAccessMode.Random)
+        {
+            var present = new List<string>();
+            if (r.readAdvancingOnLock() is not null) present.Add("ADVANCING");
+            if (r.readAtEnd() is { } ae6) present.Add(PhraseBlocks.StartsWithNot(ae6) ? "NOT AT END" : "AT END");
+            if (next) present.Add("NEXT");
+            if (previous) present.Add("PREVIOUS");
+            if (present.Count > 0)
+                ctx.Validation.ScreenForbiddenPhrase(true, string.Join(" / ", present), "READ",
+                    "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §14.9.30.3 SR6");
+        }
         KeyedReadKind kind = file.AccessMode switch
         {
             FileAccessMode.Random => KeyedReadKind.Random,
@@ -120,11 +133,21 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         BoundRecordLock lock_, RetrySpec? retry)
     {
         KeyedValidateFile(file);
-        // §14.9.35 SR2 forbids INVALID KEY for a relative file in sequential access — tolerated in the default
-        // (CCVS-lenient) mode like the L1 leniency that parsed it: a sequential-access relative REWRITE can only
-        // raise 4x statuses, so the bound phrase is dead in the status-first branches, never silently rerouted.
-        KeyedInvalidKey? invalid =
-            rw.rewriteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
+        // §14.9.35.3 SR2, arm (b) — "… or a file with relative organization and sequential access mode". Arm (a),
+        // sequential ORGANIZATION, never reaches here and is screened at SequentialIoBinder.BindRewrite, which
+        // dropped the phrase entirely; the rule has two arms and only this one was even commented (kb/Work
+        // PB144). Gated through the ONE severity seam: error under strict, warning + unchanged bind under
+        // --permissive, where the phrase stays dead in the status-first branches.
+        KeyedInvalidKey? invalid = null;
+        if (rw.rewriteInvalidKeyPhrase() is { } ik)
+        {
+            ctx.Validation.ScreenForbiddenPhrase(
+                file.Organization == FileOrganization.Relative
+                    && file.AccessMode == FileAccessMode.Sequential,
+                PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "REWRITE",
+                "a file with relative organization and sequential access mode", "ISO §14.9.35.3 SR2");
+            invalid = KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
+        }
         return new BoundKeyedRewrite(file, record,
             host.SeqIo.WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()), invalid)
         { Lock = lock_, Retry = retry };
@@ -151,10 +174,19 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return new BoundUnsupported($"DELETE on sequential file '{name}'");
         }
         KeyedValidateFile(file);
-        // §14.9.10 SR2 forbids INVALID KEY in sequential access mode — tolerated in the default (CCVS-lenient)
-        // mode: a sequential-access DELETE raises only 4x statuses, so the phrase is dead, never misrouted.
-        KeyedInvalidKey? invalid =
-            del.deleteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
+        // §14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD
+        // that references a file in SEQUENTIAL ACCESS MODE. Gated through the ONE severity seam (kb/Work PB144):
+        // an error under strict, a warning under --permissive with the bind unchanged — a sequential-access
+        // DELETE raises only 4x statuses, so the tolerated phrase stays dead in the status-first branches and is
+        // never silently rerouted.
+        KeyedInvalidKey? invalid = null;
+        if (del.deleteInvalidKeyPhrase() is { } ik)
+        {
+            ctx.Validation.ScreenForbiddenPhrase(file.AccessMode == FileAccessMode.Sequential,
+                PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "DELETE RECORD",
+                "a file that is in sequential access mode", "ISO §14.9.10.3 SR2");
+            invalid = KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
+        }
         return new BoundKeyedDelete(file, invalid)
         { Retry = fileLock.BindVerbRetry(del.retryPhrase()) };   // §14.7.9 / §14.9.10 GR6
     }
@@ -166,9 +198,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         // §14.9.10.2 Format 2 (kb/Work PB134): [OVERRIDE] {file-name-1}…. GR12: multiple names execute as if
         // a separate DELETE FILE statement had been written for EACH, in order — each element re-binds the
-        // phrase blocks, the exact textual-duplication semantics the rule states. OVERRIDE (GR18) skips the
-        // fixed-file-attribute match; GR19 makes the validated set implementor-defined and THIS implementation
-        // validates none (documented), so accepting the word is the whole obligation.
+        // phrase blocks, the exact textual-duplication semantics the rule states. The OVERRIDE phrase precedes
+        // the WHOLE name list, so GR12's as-if duplication carries it onto every element (kb/Work PB196).
+        bool overridden = df.OVERRIDE() is not null;   // §14.9.10.4 GR18 second sentence
         var steps = new List<BoundStatement>();
         foreach (var fn in df.fileName())
         {
@@ -189,7 +221,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             if (df.deleteFileOnException() is { } ex)
                 (on, notOn) = PhraseBlocks.Split(ex.statementBlock(), PhraseBlocks.StartsWithNot(ex), b => host.BindBlocks([b]));
             steps.Add(new BoundKeyedDeleteFile(file, on, notOn)
-            { Retry = fileLock.BindVerbRetry(df.retryPhrase()) });   // §14.7.9 / §14.9.10 GR15 — the '62' re-attempt
+            {
+                Retry = fileLock.BindVerbRetry(df.retryPhrase()),   // §14.7.9 / §14.9.10 GR15 — the '62' re-attempt
+                Override = overridden,                              // §14.9.10.4 GR18 — suppress the attribute match
+            });
         }
         return steps.Count == 1 ? steps[0] : new BoundSequence(steps);
     }
