@@ -48,6 +48,11 @@ jobs behind the near-done ones.
 - Read-only fleets probe a **pinned worktree with its own built compiler** (`git worktree add --detach <path> <sha>`,
   build there once) so no landing swaps a binary under them.
 - One comprehensive battery per landing batch, run by the orchestrator when no fleet is live.
+- **The owner's ledger artifact is refreshed after EVERY landing that moves GAP / DOCUMENTED-NON-SUPPORT / the
+  actionable count, and at every battery close** (owner reminder 2026-09-02): `python scripts/spec/gen_ledger.py
+  --out <html> --in-flight <md>` then an `Artifact` publish to the existing URL (recorded in the orchestrator's memory
+  `conformance-ledger-artifact`). Numbers are computed by the generator, never typed; only the in-flight narrative is
+  hand-written.
 - `python scripts/semgrep/verify.py` has a recorded red baseline (`kb/Work/PB175`): a landing must not INCREASE it.
 
 ## 4. Central allocation

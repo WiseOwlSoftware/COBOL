@@ -2851,6 +2851,10 @@ already-derivable coverage; none change the pipeline.
   `gen-diagnostics-doc.ps1`. GreenfieldOnly exclusions live in `tests/CobolSharp.Tests.Integration/
   ConformanceTests.cs` — enabling a shared-corpus golden REQUIRES the exclusion or a legacy-suite run SAME
   commit.
+- Owner status page: `python scripts/spec/gen_ledger.py` renders the **COBOL.NET Conformance Ledger** artifact
+  from the repo — inventory, `kb/Work` (through `work.py`'s own predicate), `audit_annex_a1.py --json`, `CONFORMANCE.md`
+  §2/§4/§5 and §0's CURRENT battery bullet — so a refresh is one run plus one publish to the artifact's existing URL,
+  never a hand rewrite; `--check` reports staleness and the GAP series lives in `docs/rearchitecture/evidence/ledger-trend.json`.
 
 ## §10 Document map (post-consolidation)
 

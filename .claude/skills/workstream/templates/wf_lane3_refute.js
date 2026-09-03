@@ -52,7 +52,10 @@ characterization:/*_MatchesLegacy never). CONFORMS-but-untested (empty test-ref)
 The dossier is a MAP: its silence is not evidence.`
 
 phase('Adjudicate')
-const adj = await parallel(MISSING.map(slug => () => agent(`${COMMON}
+const adj = []
+for (let i = 0; i < MISSING.length; i += N) {
+  const chunk = MISSING.slice(i, i + N)
+  const rs = await parallel(chunk.map(slug => () => agent(`${COMMON}
 
 YOUR INPUT FILE: ${IN}/in-${slug}.json — read it whole (rules, sibling parts, clause map, DOSSIER with grammar/source/
 tests/determinations/register notes with status — never re-report a landed fix; reference an open note that already owns
@@ -63,7 +66,10 @@ cannot decide); assign the verdict; name an EXISTING spec-derived covering test 
 rows by MECHANISM into findings (register-ready paragraph each, with repro + spec-derived expected result); write them to
 ${OUT}/findings-${slug}.json as you go. When done, write the whole structured result to ${OUT}/out-${slug}.json and return it.`,
   { label: `adjudicate:${slug}`, phase: 'Adjudicate', model: 'opus', schema: ADJ_OUT })))
-log(`Adjudicate: ${adj.filter(Boolean).length}/${MISSING.length} missing subjects completed`)
+  rs.forEach(r => { if (r) adj.push(r) })
+  log(`Adjudicate: ${Math.min(i + N, MISSING.length)}/${MISSING.length}`)
+}
+log(`Adjudicate: ${adj.length}/${MISSING.length} subjects completed`)
 
 phase('Refute')
 const results = []

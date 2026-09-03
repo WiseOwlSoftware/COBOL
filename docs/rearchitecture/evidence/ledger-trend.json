@@ -1,0 +1,77 @@
+{
+  "_comment": "GAP burn-down series for the COBOL.NET Conformance Ledger artifact, appended by scripts/spec/gen_ledger.py. ONE POINT PER BATTERY OR GAP-MOVING LANDING - a commit that moves no row adds no point, or this becomes a commit log with a y-axis. Every field is MEASURED, never remembered: each point's gap/closed/dns were read out of that commit's own tests/version-matrix/traceability-inventory.json (git show <sha>:<path>), which is why the series can be re-derived by anyone who doubts it. `battery` carries the battery number when the point is the tree a comprehensive run was measured on, and null otherwise; the chart marks that point, because a burn-down without its last gate on it invites the reader to trust an ungated number. `label` is a short chart caption for the first point only - the rest are dated. This file is DATA for a derived view; it is not a work list and must never grow one (CLAUDE.md rule 8). Seeded 2026-09-02 from the five landings that moved the inventory since the 2026-08-29 phase-B batch; earlier history is in DEVLOG.md and is recoverable the same way.",
+  "points": [
+    {
+      "sha": "8cc64aa0",
+      "date": "2026-08-29",
+      "gap": 3742,
+      "closed": 569,
+      "dns": 2,
+      "label": "phase-B batch 8",
+      "battery": null
+    },
+    {
+      "sha": "8ca74a3d",
+      "date": "2026-08-31",
+      "gap": 3641,
+      "closed": 670,
+      "dns": 20,
+      "label": "burn-down cluster A",
+      "battery": null
+    },
+    {
+      "sha": "6f8461d9",
+      "date": "2026-08-31",
+      "gap": 3641,
+      "closed": 670,
+      "dns": 36,
+      "label": "defective-row registration",
+      "battery": null
+    },
+    {
+      "sha": "1318032e",
+      "date": "2026-08-31",
+      "gap": 3636,
+      "closed": 675,
+      "dns": 36,
+      "label": "arithmetic review fleet",
+      "battery": null
+    },
+    {
+      "sha": "2acbd842",
+      "date": "2026-08-31",
+      "gap": 3636,
+      "closed": 675,
+      "dns": 36,
+      "label": "PB277 CI repair",
+      "battery": 41
+    },
+    {
+      "sha": "a54f4502",
+      "date": "2026-09-02",
+      "gap": 3618,
+      "closed": 693,
+      "dns": 36,
+      "label": "Annex A.1 DOC-row mechanism",
+      "battery": null
+    },
+    {
+      "sha": "2f4fbda9",
+      "date": "2026-09-02",
+      "gap": 3618,
+      "closed": 693,
+      "dns": 333,
+      "label": "derived-verdict selectors",
+      "battery": null
+    },
+    {
+      "sha": "c11949e3",
+      "date": "2026-09-02",
+      "gap": 3467,
+      "closed": 844,
+      "dns": 333,
+      "label": "The golden lane: 151 rows cl",
+      "battery": null
+    }
+  ]
+}
