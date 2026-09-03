@@ -117,6 +117,15 @@
       "dns": 333,
       "label": "A.4.2 screen handling: refus",
       "battery": null
+    },
+    {
+      "sha": "80c6f46e",
+      "date": "2026-09-02",
+      "gap": 3223,
+      "closed": 1088,
+      "dns": 333,
+      "label": "Cluster D: USAGE float-forma",
+      "battery": null
     }
   ]
 }
