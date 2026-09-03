@@ -96,8 +96,32 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         };
     }
 
+    /// <summary>⛔ THE ONE SITE for Annex A.4.13 — the declined <c>FILE file-name-1</c> alternative of
+    /// <c>{ record-name-1 | FILE file-name-1 }</c>, shared by WRITE (§14.9.51.2, both formats) and REWRITE
+    /// (§14.9.35.2). Returns true when the phrase was written, having named it (COBOLNET1706); the caller
+    /// then yields <see cref="BoundUnsupported"/> without binding.
+    /// <para>Placed BEFORE the sequential/keyed reroute so Format 1 and Format 2 are covered by the same
+    /// check — the alternative is declined for every organization, and a check after the reroute would have
+    /// left the indexed/relative arm undiagnosed. Both verbs call this single helper rather than each
+    /// carrying a copy: the previous shape had WRITE silently IMPLEMENTING the unclaimed module (a live
+    /// <c>else if (w.fileName() …)</c> arm writing the whole record area) while REWRITE fell through to a
+    /// run-time <c>NotImplemented</c> throw whose interpolated record name was EMPTY — one construct, two
+    /// arms, two postures, neither of them the documented one (feedback_two_arm_dispatch).</para>
+    /// <para>The whole-record-area write it replaced was not merely undiagnosed but WRONG: §14.9.51.4 GR8
+    /// derives the implicit record from the DESCRIPTION OF identifier-1, not from the largest record's
+    /// view.</para></summary>
+    private bool DeclinedFilePhrase(Core.FileNameContext? fileName, string verb)
+    {
+        if (fileName is null) return false;
+        ctx.Edition.Declined(DiagnosticCatalog.WriteRewriteFileUnclaimed,
+            $"{verb} FILE {fileName.GetText()}");
+        return true;
+    }
+
     public BoundStatement BindWrite(Core.WriteStatementContext w)
     {
+        if (DeclinedFilePhrase(w.fileName(), "WRITE"))                      // Annex A.4.13 item 2) — COBOLNET1706
+            return new BoundUnsupported("WRITE FILE (ISO §14.9.51 FILE phrase) — Annex A.4.13, not claimed");
         Place? record = null;
         FileModel? file = null;
         if (w.recordName()?.dataReference() is { } rn && ctx.Refs.Resolve(rn) is { } place)
@@ -105,15 +129,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             record = place;
             file = FileOfRecord(place);
         }
-        else if (w.fileName() is { } fn && ctx.Data.FilesByName.TryGetValue(fn.GetText(), out var f) && f.AreaRecord is { } far)
-        {
-            // The file-name fallback has no named record — write the WHOLE record area through the largest
-            // record's view (FileModel.AreaRecord, ISO §13.4.2).
-            file = f;
-            record = ctx.Refs.ResolveItem(far);
-        }
         if (file is null || record is null)
-            return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");
+            return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText()}' not resolvable to a file");
         // The WRITE lock/RETRY phrases (§14.9.51 Format 1/2 — [retry-phrase] [WITH LOCK | WITH NO LOCK]) bind
         // for EVERY organization; the emitter routes a lock-relevant statement through the governed runtime entry.
         BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
@@ -165,6 +182,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 
     public BoundStatement BindRewrite(Core.RewriteStatementContext rw)
     {
+        if (DeclinedFilePhrase(rw.fileName(), "REWRITE"))                    // Annex A.4.13 item 1) — COBOLNET1706
+            return new BoundUnsupported("REWRITE FILE (ISO §14.9.35 FILE phrase) — Annex A.4.13, not claimed");
         Place? record = rw.recordName()?.dataReference() is { } rn ? ctx.Refs.Resolve(rn) : null;
         FileModel? file = record is not null ? FileOfRecord(record) : null;
         if (file is null || record is null)

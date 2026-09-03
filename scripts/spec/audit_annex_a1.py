@@ -208,24 +208,35 @@ def self_test() -> int:
     # ── the `Pinned by` ↔ inventory agreement check, driven on a fabricated pair ──────────────────────
     from inventory_schema import load_schema
     schema = load_schema()
+    # ⚠ Every fabricated row carries a `kind` AND a `verdict`, because `check_pins` now asks
+    # `schema.anchor_obliged` — a row with neither is exempt by accident and every case below would pass
+    # vacuously. That is not hypothetical: the first version of these fixtures omitted both, and when the
+    # exemption was added (kb/Work PB315) two cases silently stopped testing anything until the fixtures were
+    # made real rows.
+    def doc_row(test_ref: str, verdict: str = 'CONFORMS') -> dict:
+        return {'rule-id': 'DOC-A.1-87', 'kind': 'DOC', 'verdict': verdict, 'test-ref': test_ref}
+
     pin_cases = [
         ('control: the row names the test the inventory closes on',
          {87: ['unit:CobolDateWindowingTests.NowFunctions_OnePinnedClock_OneInstant']},
-         [{'rule-id': 'DOC-A.1-87',
-           'test-ref': 'unit:CobolDateWindowingTests.NowFunctions_OnePinnedClock_OneInstant'}], None),
+         [doc_row('unit:CobolDateWindowingTests.NowFunctions_OnePinnedClock_OneInstant')], None),
         # ⛔ THE A11 SHAPE ONE LAYER DOWN — the evidence half. Item 171's test closing item 87 is exactly what
         # the first back-fill did, and it is invisible to every check that asks only whether the method exists.
         ('a test the row does not name is caught',
          {87: ['unit:CobolDateWindowingTests.NowFunctions_OnePinnedClock_OneInstant']},
-         [{'rule-id': 'DOC-A.1-87',
-           'test-ref': 'unit:CobolDateWindowingTests.SecondsPastMidnight_PinnedClock_ExactTicks'}],
+         [doc_row('unit:CobolDateWindowingTests.SecondsPastMidnight_PinnedClock_ExactTicks')],
          'does not name in'),
         ('an inventory row closing with no §7 row at all is caught',
-         {}, [{'rule-id': 'DOC-A.1-87', 'test-ref': 'conformance:2023/whatever'}], 'no row for item 87'),
+         {}, [doc_row('conformance:2023/whatever')], 'no row for item 87'),
         ('a NON-spec-derived ref is not required to be named (it can never close a row)',
-         {87: []}, [{'rule-id': 'DOC-A.1-87', 'test-ref': 'nist:IF128A'}], None),
+         {87: []}, [doc_row('nist:IF128A')], None),
         ('a row with no verdict evidence at all is silent',
-         {87: []}, [{'rule-id': 'DOC-A.1-87', 'test-ref': ''}], None),
+         {87: []}, [doc_row('')], None),
+        # ⛔ THE WITHDRAWN-ITEM ARM (kb/Work PB315). A DOCUMENTED-NON-SUPPORT DOC row declines the facility, so
+        # A.1's preamble withdraws the item and §7 must carry NO row for it — demanding one reported three
+        # correctly-closed rows as findings. The control above proves the check still fires for a claiming row.
+        ('a DECLINED item closing on its witness needs no §7 row',
+         {}, [doc_row('conformance:negative/a48-format-clause-declined', 'DOCUMENTED-NON-SUPPORT')], None),
     ]
     for name, pinned, inv, want in pin_cases:
         got = check_pins(pinned, inv, schema)
@@ -355,11 +366,21 @@ def check_pins(pinned: dict[int, list[str]], inventory: list[dict], schema) -> l
     Direction is deliberate: the inventory's spec-derived refs must be a SUBSET of what §7 names. §7 may name a
     pin the inventory has not recorded yet (the determination is ahead of the batch); the inventory may not
     close on evidence the determination does not claim.
+
+    ⚠ A row whose VERDICT is anchor-exempt for its kind is skipped, and that is not a hole. A
+    DOCUMENTED-NON-SUPPORT DOC row declines the conditioning facility, so Annex A.1's preamble WITHDRAWS the item
+    ("the item is not required if the optional or processor-dependent feature is not implemented") — §7 must
+    carry no row for it, and demanding one would make the register claim a determination the standard does not
+    ask for. Such a row still owes its WITNESS test; that obligation lives in `Schema.state_for`, not here.
+    Asking `anchor_for` instead of `anchor_obliged` was the same defect as kb/Work PB315's third arm: this check
+    reported three withdrawn items as findings on a correct batch.
     """
     findings: list[str] = []
     for row in inventory:
         rid = row.get('rule-id', '')
         if (m := ITEM_KEY_RX.match(rid)) is None:
+            continue
+        if not schema.anchor_obliged(row):
             continue
         n = int(m.group(1))
         refs = [r for r in schema.split(row.get('test-ref', '') or '', schema.test_ref_sep)

@@ -281,14 +281,24 @@ class Schema:
         item is not evidence for this row), and it must name an implementing site — a DOC row with nothing in the
         compiler to observe stays a GAP, because closing it would widen §1(a)'s definition of DONE and that is
         the owner's to widen (kb/Work PB280 Q2). The spec-derived test clause below then applies unchanged.
+
+        ⚠ Both costs are charged only to a verdict that CLAIMS a determination — the `anchor_obliged` predicate,
+        not `anchor_for`. A DOCUMENTED-NON-SUPPORT DOC row declines the facility, which withdraws the A.1 item
+        (A.1's preamble: the item is not required if the optional or processor-dependent feature is not
+        implemented), so there is no §7 row to anchor and nothing implemented to observe; the row still owes its
+        WITNESS test, which is the clause that keeps it open. ⛔ Reading `anchor_for` here instead was a real
+        defect (kb/Work PB315): the C# twin `DerivedState` had ALWAYS asked `AnchorObliged` and said in its own
+        comment that "this side and the Python writer read ONE rule" — they did not, and the disagreement was
+        unobservable until a declined DOC row first earned a witness test, at which point three rows could never
+        close and `EveryRowState_IsDerived_NotAsserted` went red on a correct batch.
         """
         verdict = row.get("verdict") or ""
         if verdict not in self.resolving:
             return "GAP"
         if not all(row.get(f) for f in self.requires(verdict)):
             return "GAP"
-        if (anchor := self.anchor_for(row)) is not None:
-            if anchor not in self.locations(row):
+        if self.anchor_obliged(row):
+            if self.anchor_for(row) not in self.locations(row):
                 return "GAP"
             if not self.is_observable(row):
                 return "GAP"

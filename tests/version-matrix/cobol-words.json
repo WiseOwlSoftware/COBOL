@@ -243,6 +243,12 @@
    "note": "RETRY FOREVER (14.7.9, 2002+): 8.10 context-sensitive, a user word at every edition"
   },
   {
+   "token": "FORMAT",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the FD FORMAT clause (13.18.24), the Annex A.4.8 optional module this implementation DECLINES (CONFORMANCE.md 5; refused by COBOLNET1705 at bind). FORMAT gained a lexer token when the clause gained a parse surface, so the nameSlot row is what keeps a COBOL-85 data item NAMED Format legal - ReservedWords.Table has FORMAT r85=false, reserved 2002+, and the 8.9 funnel COBOLNET0901 names it above 85. subscriptTrigger=true because a table may be named Format and nothing in the FORMAT clause is followed by '(' (the AS row's deliberate false has no analogue here)"
+  },
+  {
    "token": "FULL_",
    "nameSlot": true,
    "subscriptTrigger": true,

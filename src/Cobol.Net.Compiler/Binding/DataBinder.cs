@@ -399,8 +399,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // compiles; the screen behavior is simply absent.
         if (program.dataDivision()?.screenSection() is { } scr)
         {
-            Edition.Warning("COBOLNET1560", "the SCREEN SECTION (ISO §13.9) is an optional facility (§4.2.7) that is "
-                + "not supported — it is accepted but produces no screen behavior (see docs/CONFORMANCE.md §4)");
+            // The ONE declined-element seam (EditionContext.Declined): the descriptor carries the severity —
+            // Warning here, because the SCREEN facility is ADDITIVE (the program means what it says with the
+            // screen behavior absent). The emitted text is the descriptor's Title, byte-identical to the bare
+            // COBOLNET1560 literal it replaced; cataloguing it also makes 1560 visible to the next-free
+            // allocation scan and to docs/DIAGNOSTICS.md, which a bare literal never was.
+            Edition.Declined(DiagnosticCatalog.ScreenSectionUnsupported);
             // kb/Work R32 — the DECLARED screen names are recorded so a reference keeps the documented posture
             // (compile-accept + a staged runtime loud naming THIS cause) instead of drawing the §8.4.2.1
             // UNDEFINED diagnostic: "not defined" and "declared in an unsupported section" are different
@@ -992,6 +996,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     BindRecordClause(rc, file);   // RECORD VARYING / m TO n → FileModel.Varying (ISO §13.18.43)
                 else if (clause.codeSetClause() is { } cs)
                     BindCodeSetClause(cs, file, records);   // ISO §13.18.13 (kb/Work PB110)
+                else if (clause.formatClause() is { } fmt)
+                    // FORMAT clause (ISO §13.18.24) — Annex A.4.8 item 1), an OPTIONAL element this
+                    // implementation does not claim (docs/CONFORMANCE.md §5). Recognized so it can be REFUSED
+                    // BY NAME rather than parse-erroring or, worse, binding inert: §13.18.24.4 GR1 makes the
+                    // clause change the on-medium representation, so an inert compile writes the wrong bytes.
+                    // Every occurrence reports (this loop runs per clause per FD).
+                    Edition.Declined(DiagnosticCatalog.FormatSelectWhenUnclaimed,
+                        $"the FORMAT clause on file description entry '{name}' ({Spelled(fmt)})");
                 else if (clause.linageClause() is { } lc)
                     BindLinageClause(lc, file);   // LINAGE logical-page model → FileModel.Linage (ISO §13.18.34)
                 else if (clause.reportClause() is { } rep)
@@ -2142,6 +2154,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     /// <summary>Bind one data-description entry (skips level-66 RENAMES and level-88 condition names for now).</summary>
+    /// <summary>A clause's source spelling with its words SEPARATED. <c>ctx.GetText()</c> concatenates the
+    /// tokens ("FORMATCHARACTERDATA"), which is unreadable in a diagnostic whose whole job is to quote back
+    /// what the user wrote — one join, at the two declined-clause sites that quote a multi-word clause.</summary>
+    private static string Spelled(Antlr4.Runtime.Tree.IParseTree node) =>
+        string.Join(' ', Enumerable.Range(0, node.ChildCount).Select(i => node.GetChild(i).GetText()));
+
     private DataItem? BindEntry(Core.DataDescriptionEntryContext entry)
     {
         DataDescriptionCst e = entry;
@@ -2271,6 +2289,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // independently in DataBinder.Oo.OoBindPropertyClauses (which reads the propertyClause node directly),
                 // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
                 // so the storage-clause loop needs no branch for it.
+                else if (clause.Context.selectWhenClause() is { } sw)
+                    // SELECT WHEN clause (ISO §13.18.51) — Annex A.4.8 item 2), DECLINED (CONFORMANCE.md §5).
+                    // Reported HERE, in BindEntry, because BindEntry is the ONE path every data description
+                    // entry of every section reaches (BindEntries feeds it for file / working-storage /
+                    // local-storage / linkage alike), so the refusal cannot be dodged by moving the record —
+                    // and §13.18.51.3 SR1 admits the clause in all four of those sections. Never bound: an
+                    // inert SELECT WHEN would silently select the wrong record description entry
+                    // (§13.18.51.4 GR1/GR2).
+                    Edition.Declined(DiagnosticCatalog.FormatSelectWhenUnclaimed,
+                        $"the SELECT WHEN clause on '{cobolName ?? "FILLER"}' ({Spelled(sw)})");
                 else if (clause.Context.groupUsageClause() is { } gu)
                     // GROUP-USAGE (ISO §13.18.29; D20/PB79). The COBOL-2002 introduction gate is VersionConformancePass
                     // ParseArm.VisitGroupUsageClause; SR1 (a group, not strongly typed, not variable-length) and the

@@ -378,8 +378,20 @@ readInvalidKey
     ;
 
 // ==========================================
-// WRITE (§14.9.46 — full expansion)
+// WRITE (§14.9.51 — full expansion)
 // ==========================================
+// ⛔ THE CLAUSE NUMBER HERE READ "§14.9.46" UNTIL 2026-09-02, AND §14.9.46 IS THE **TERMINATE** STATEMENT
+// (`cite.py --check 14.9.46` → "TERMINATE statement"). The WRITE statement is §14.9.51
+// (`--check 14.9.51.1` → "The WRITE statement releases a logical record for an output or input-output
+// file."). The same file's BODY comments cite §14.9.51 correctly throughout — the header was the one stale
+// copy, which is exactly CLAUDE.md rule 1's inherited-citation failure: never re-derived, and it propagated
+// into the A.4.13 module survey. Its REWRITE twin below carried the same defect.
+//
+// `FILE fileName` is a DISTINCT parse alternative because it is Annex A.4.13's optional element (item 2),
+// which this implementation does NOT claim — the binder needs to SEE the arm to refuse it by name
+// (SequentialIoBinder.DeclinedFilePhrase → COBOLNET1706). Both printed formats — Format 1 (sequential) and
+// Format 2 (random) — carry the same `{ record-name-1 | FILE file-name-1 }` choice, so ONE alternative
+// serves both and the sequential/keyed reroute below inherits the refusal.
 
 writeStatement
     : WRITE (recordName | FILE fileName)
@@ -446,11 +458,22 @@ recordName
     ;
 
 // ==========================================
-// REWRITE (§14.9.36)
+// REWRITE (§14.9.35)
 // ==========================================
+// ⛔ THIS HEADER READ "§14.9.36" UNTIL 2026-09-02, AND §14.9.36 IS THE **ROLLBACK** STATEMENT
+// (`cite.py --check 14.9.36` → "ROLLBACK statement"). REWRITE is §14.9.35 (`--check 14.9.35.1` → "The
+// REWRITE statement logically replaces a record existing in a mass storage file."). The WRITE twin above
+// carried the identical defect — one stale citation written down twice.
+//
+// `RECORD` is an OPTIONAL WORD of §14.9.35.2's printed general format (RENDERED, PDF p710: `REWRITE
+// { record-name-1 | FILE file-name-1 } RECORD [ FROM … ]`, with RECORD NOT underlined). It was absent from
+// this rule, so `REWRITE REC RECORD FROM WS` — legal source at every edition, on the MANDATORY record-name
+// arm — was rejected outright. That is an under-accept independent of A.4.13 and is fixed here rather than
+// only on the FILE arm, because half a fix on a two-arm construct is the shape that keeps coming back
+// (feedback_two_arm_dispatch). WRITE's two formats carry NO such word — do not mirror it there.
 
 rewriteStatement
-    : REWRITE (recordName | FILE fileName)
+    : REWRITE (recordName | FILE fileName) RECORD?
       rewriteFrom?
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))

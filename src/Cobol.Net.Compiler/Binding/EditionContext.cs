@@ -143,6 +143,30 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         else Error(code, message);
     }
 
+    /// <summary>⛔ THE ONE SEAM for a DECLINED OPTIONAL/PROCESSOR-DEPENDENT ELEMENT — every Annex A.3/A.4
+    /// facility this implementation does not claim is named through here, at bind, once per occurrence.
+    /// <para>The DESCRIPTOR's <see cref="DiagnosticDescriptor.Severity"/> chooses the disposition, so the
+    /// policy lives in the catalogue (where it is documented and drift-tested) and never in a local test at
+    /// the site: <see cref="EditionSeverity.Warning"/> ⇒ ACCEPT-INERT (the facility is additive — the program
+    /// compiles, runs, and the facility does nothing: COBOLNET1560/1578/1579/1580, satisfying §4.2.6 ¶3's
+    /// mandatory compile-time warning mechanism); <see cref="EditionSeverity.Error"/> ⇒ REFUSE (an inert
+    /// compile would change the ANSWER, so Annex A.4.1's "shall accept the syntax … only when support … is
+    /// claimed" applies: COBOLNET1705/1706).</para>
+    /// <para>⛔ NOT routed through <see cref="Removed"/>: that is the strict/permissive migration seam for
+    /// constructs an edition REMOVED, and a declined optional element has no pre-removal semantics to
+    /// preserve. <c>--permissive</c> therefore does not move an A.3/A.4 decline in either direction — which is
+    /// also, measurably, how the accept-inert rows have always behaved.</para>
+    /// <para><paramref name="seen"/> is the site's naming of WHICH element of the module was written (the
+    /// module owns the code, the site owns the spelling); omit it and the descriptor's own
+    /// <see cref="DiagnosticDescriptor.Title"/> is the whole message — the byte-identical shape the
+    /// accept-inert sites emitted before this seam existed.</para></summary>
+    public void Declined(DiagnosticDescriptor descriptor, string? seen = null)
+    {
+        string message = seen is null ? descriptor.Title : $"{seen}: {descriptor.Title}";
+        if (descriptor.Severity == EditionSeverity.Error) Error(descriptor.Code, message);
+        else Warning(descriptor.Code, message);
+    }
+
     /// <summary>The <see cref="IDiagnosticSink"/> bridge: render a structured <see cref="EditionDiagnostic"/>
     /// back onto the legacy string channels with byte-identical text — an <see cref="EditionSeverity.Error"/>
     /// goes to <see cref="Error"/> (fails the compile), a <see cref="EditionSeverity.Warning"/> to

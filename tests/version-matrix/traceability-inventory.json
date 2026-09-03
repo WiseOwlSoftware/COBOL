@@ -15294,11 +15294,11 @@
   "ordinal": 6,
   "subject": "File description entry",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.4.5.3-7",
@@ -17621,11 +17621,11 @@
   "ordinal": 5,
   "subject": "CODE-SET clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.13.4-6",
@@ -18882,11 +18882,11 @@
   "ordinal": 1,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.24.3-2",
@@ -18895,11 +18895,11 @@
   "ordinal": 2,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.24.3-3",
@@ -18908,11 +18908,11 @@
   "ordinal": 3,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-1",
@@ -18921,11 +18921,11 @@
   "ordinal": 1,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-2",
@@ -18934,11 +18934,11 @@
   "ordinal": 2,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-L2.1",
@@ -18947,11 +18947,11 @@
   "ordinal": 1,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-L2.2",
@@ -18960,11 +18960,11 @@
   "ordinal": 2,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-L2.3",
@@ -18973,11 +18973,11 @@
   "ordinal": 3,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-3",
@@ -18986,11 +18986,11 @@
   "ordinal": 3,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-4",
@@ -18999,11 +18999,11 @@
   "ordinal": 4,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-5",
@@ -19012,11 +19012,11 @@
   "ordinal": 5,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-6",
@@ -19025,11 +19025,11 @@
   "ordinal": 6,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-7",
@@ -19038,11 +19038,11 @@
   "ordinal": 7,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-8",
@@ -19051,11 +19051,11 @@
   "ordinal": 8,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-9",
@@ -19064,11 +19064,11 @@
   "ordinal": 9,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-10",
@@ -19077,11 +19077,11 @@
   "ordinal": 10,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-11",
@@ -19090,11 +19090,11 @@
   "ordinal": 11,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.24.4-12",
@@ -19103,11 +19103,11 @@
   "ordinal": 12,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.25.3-1",
@@ -23640,11 +23640,11 @@
   "ordinal": 1,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.51.3-2",
@@ -23653,11 +23653,11 @@
   "ordinal": 2,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.51.3-3",
@@ -23666,11 +23666,11 @@
   "ordinal": 3,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.51.3-4",
@@ -23679,11 +23679,11 @@
   "ordinal": 4,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.51.3-5",
@@ -23692,11 +23692,11 @@
   "ordinal": 5,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.51.3-6",
@@ -23705,11 +23705,11 @@
   "ordinal": 6,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.51.4-1",
@@ -23718,11 +23718,11 @@
   "ordinal": 1,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.51.4-2",
@@ -23731,11 +23731,11 @@
   "ordinal": 2,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.51.4-3",
@@ -23744,11 +23744,11 @@
   "ordinal": 3,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.51.4-4",
@@ -23757,11 +23757,11 @@
   "ordinal": 4,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.51.4-5",
@@ -23770,11 +23770,11 @@
   "ordinal": 5,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.52.3-1",
@@ -35080,11 +35080,11 @@
   "ordinal": 9,
   "subject": "OPEN statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-1",
@@ -37290,11 +37290,11 @@
   "ordinal": 7,
   "subject": "REWRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.35.3-8",
@@ -37303,11 +37303,11 @@
   "ordinal": 8,
   "subject": "REWRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.35.3-9",
@@ -37329,11 +37329,11 @@
   "ordinal": 10,
   "subject": "REWRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.35.3-11",
@@ -37342,11 +37342,11 @@
   "ordinal": 11,
   "subject": "REWRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.35.3-12",
@@ -37355,11 +37355,11 @@
   "ordinal": 12,
   "subject": "REWRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.35.4-1",
@@ -37472,11 +37472,11 @@
   "ordinal": 9,
   "subject": "REWRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-rewrite-file-declined; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.35.4-10",
@@ -42451,11 +42451,11 @@
   "ordinal": 7,
   "subject": "WRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.51.3-8",
@@ -42464,11 +42464,11 @@
   "ordinal": 8,
   "subject": "WRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.51.3-9",
@@ -42477,11 +42477,11 @@
   "ordinal": 9,
   "subject": "WRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.51.3-10",
@@ -42490,11 +42490,11 @@
   "ordinal": 10,
   "subject": "WRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.51.3-11",
@@ -42737,11 +42737,11 @@
   "ordinal": 7,
   "subject": "WRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-8",
@@ -42750,11 +42750,11 @@
   "ordinal": 8,
   "subject": "WRITE statement",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+  "test-ref": "conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:negative/a413-write-file-format-1; conformance:negative/a413-write-file-format-2; conformance:85/a413_declined_phrase_positive_control, with conformance:85/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOLNET1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-9",
@@ -50719,11 +50719,11 @@
   "ordinal": 0,
   "subject": "FORMAT clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.25.2",
@@ -51070,11 +51070,11 @@
   "ordinal": 0,
   "subject": "SELECT WHEN clause",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.52.2",
@@ -54242,11 +54242,11 @@
   "ordinal": 84,
   "subject": "FORMAT clause (representation produced)",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word; conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word; conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-85",
@@ -54255,11 +54255,11 @@
   "ordinal": 85,
   "subject": "FORMAT clause (exclusions on restoring to same internal representation)",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word; conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word; conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-86",
@@ -55399,11 +55399,11 @@
   "ordinal": 173,
   "subject": "SELECT WHEN clause (whether a SELECT WHEN takes effect for READ statements and REWRITE or WRITE statements with the FILE",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-  "state": "GAP"
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word; conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
+  "editions": "85,2002,2014,2023",
+  "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:negative/a48-format-clause-declined; conformance:negative/a48-format-clause-choice-combination; conformance:negative/a48-format-clause-no-optional-word; conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other. COBOLNET1705 is raised at bind for EVERY occurrence and is an Error, not the COBOLNET1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-174",

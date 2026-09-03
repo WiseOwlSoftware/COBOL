@@ -471,14 +471,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private static string FirstToken(IParseTree node) =>
         node.ChildCount > 0 ? node.GetChild(0).GetText() : node.GetText();
 
-    /// <summary>Recognize-and-name an unsupported facility: emit its NAMED §4.2.6/§4.2.13 warning once per
-    /// site on the non-failing channel and bind to <see cref="BoundNop"/>. The program still compiles and
-    /// runs; the facility is inert. This is the ONE mechanism for the band — do not add a parallel
-    /// Lenient()/Unsupported() helper (feedback_one_mechanism_per_job); it routes through the same
-    /// <c>EditionContext.Warning</c> channel the SCREEN non-support warning already uses.</summary>
+    /// <summary>Recognize-and-name an ACCEPT-INERT unsupported facility (§4.2.6 ¶3 / §4.2.13): name it once
+    /// per site and bind to <see cref="BoundNop"/>, so the program still compiles and runs with the facility
+    /// inert. The severity decision is NOT here — it is the descriptor's, read by the ONE declined-element
+    /// seam <see cref="EditionContext.Declined"/> (feedback_one_mechanism_per_job); this helper only supplies
+    /// the statement-shaped half (bind to a no-op), which is why it is reachable solely from
+    /// Warning-severity descriptors. A REFUSE-severity decline (COBOLNET1705/1706) calls
+    /// <c>Declined</c> directly at its own site and yields <see cref="BoundUnsupported"/>, not a no-op.</summary>
     private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
     {
-        Ctx.Edition.Warning(d.Code, d.Title);
+        Ctx.Edition.Declined(d);
         return new BoundNop();
     }
 
@@ -490,8 +492,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         string verb = isCommit ? "COMMIT" : "ROLLBACK";
         string cite = isCommit ? "§14.9.7.3 SR1" : "§14.9.36.3 SR1";
-        Ctx.Edition.Warning(DiagnosticCatalog.CommitRollbackUnsupported.Code,
-            DiagnosticCatalog.CommitRollbackUnsupported.Title);
+        Ctx.Edition.Declined(DiagnosticCatalog.CommitRollbackUnsupported);
         if (UnitRecursive || InMethod || UdfSelfName is not null)
         {
             Ctx.Edition.Error(DiagnosticCatalog.CommitRollbackContext,

@@ -1493,13 +1493,34 @@ public static class DiagnosticCatalog
         "A method data item's REDEFINES target shall be a preceding item in the SAME method scope — a method "
         + "item may not redefine object or program data (ISO §13.18.44.3).",
         "ISO §13.18.44.3");
-    // ── Wave H — the §4.2.6 ¶3 / §4.2.13 RECOGNIZE-AND-NAME band. These are WARNINGS, not errors: the
-    //    facilities are optional (§4.2.7) or processor-dependent (§4.2.6), so we need not implement them —
-    //    but §4.2.6 ¶3 makes the compile-time warning MECHANISM mandatory ("shall provide a warning mechanism
-    //    at compile time to indicate use of syntactically-detectable processor-dependent language elements not
-    //    supported"), and §14.6.13.1.1 licenses raising NO exception conditions for them. So the program
-    //    COMPILES, RUNS, and the facility is inert. Before this band these constructs produced a GENERIC parse
-    //    error, which satisfied neither the warning obligation nor the "never a silent wrong answer" rule. ──
+    // ── THE DECLINED-OPTIONAL-ELEMENT BAND (§4.2.6 ¶3 / §4.2.7 / §4.2.13 / Annex A.3–A.4) ─────────────────
+    //    ONE mechanism, TWO dispositions, and the descriptor's own Severity is what chooses between them —
+    //    every site routes through `EditionContext.Declined(descriptor, seen)`, never a local strictness test
+    //    and never a second helper (feedback_one_mechanism_per_job).
+    //
+    //    • ACCEPT-INERT (Warning) — COBOLNET1560 / 1578 / 1579 / 1580. These facilities are ADDITIVE: the
+    //      program still means what it says with them absent (no screen I-O, no message I-O, COMMIT behaves as
+    //      CONTINUE, VALIDATE validates nothing), so §4.2.6 ¶3's mandatory compile-time warning mechanism
+    //      ("shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
+    //      processor-dependent language elements not supported") is the whole obligation, and §14.6.13.1.1
+    //      licenses raising NO exception conditions. The program COMPILES, RUNS, and the facility is inert.
+    //      Before this band these constructs produced a GENERIC parse error, which satisfied neither the
+    //      warning obligation nor the "never a silent wrong answer" rule.
+    //
+    //    • REFUSE (Error) — COBOLNET1705 / 1706. These facilities are NOT additive: compiled inert they
+    //      change the ANSWER (which bytes reach the medium; which record description entry is selected; a
+    //      whole-record-area write standing in for a §14.9.51.4 GR8 implicit record). A.4.1's first sentence
+    //      is the licence to refuse: "An implementation shall accept the syntax and provide the functionality
+    //      for an optional element only when support for that language element is claimed by the implementor."
+    //      Unclaimed ⇒ the syntax is not accepted. The strictness axis does NOT move these: --permissive is
+    //      the REMOVED-construct / documented-leniency migration seam (EditionContext.Removed) and there is no
+    //      "pre-removal semantics" to preserve here — matching the accept-inert rows above, which --permissive
+    //      likewise does not move.
+    public static readonly DiagnosticDescriptor ScreenSectionUnsupported = new(
+        "COBOLNET1560", "screen-section-unsupported", EditionSeverity.Warning,
+        "the SCREEN SECTION (ISO §13.9) is an optional facility (§4.2.7) that is not supported — it is "
+        + "accepted but produces no screen behavior (see docs/CONFORMANCE.md §4)",
+        "ISO §4.2.7 / Annex A.4.2 / §13.9", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor McsFacilityUnsupported = new(
         "COBOLNET1578", "mcs-facility-unsupported", EditionSeverity.Warning,
         "The asynchronous messaging facility (SEND/RECEIVE, ISO §14.9.31/§14.9.38) is a processor-dependent "
@@ -1521,6 +1542,37 @@ public static class DiagnosticCatalog
         + "2002/2014/2023 (the facility exists from 2002); at --std 85 VALIDATE is a user word, not a statement. "
         + "See docs/CONFORMANCE.md §4.",
         "ISO §4.2.7 / Annex A.4.14 / §4.2.13 / Annex F.2 item 5 / §14.9.50", RecognizedNotImplemented);
+    // ── 1705 / 1706 — the REFUSE half of the band (see the header above). One code per A.4 MODULE, not per
+    //    clause: the module is the unit §4.2.7 makes the implementor document and Annex A.4 makes optional, so
+    //    a user who reads CONFORMANCE.md §5 finds exactly one row per code. The `seen` half of the message is
+    //    composed at the site and names WHICH element of the module was written.
+    public static readonly DiagnosticDescriptor FormatSelectWhenUnclaimed = new(
+        "COBOLNET1705", "a48-format-select-when-unclaimed", EditionSeverity.Error,
+        "the FORMAT clause (ISO §13.18.24) and the SELECT WHEN clause (ISO §13.18.51) are the two items of "
+        + "Annex A.4.8, an OPTIONAL language element (§4.2.7) for which this implementation claims NO support "
+        + "(docs/CONFORMANCE.md §5, row A.4.8) — Annex A.4.1: an implementation shall accept the syntax for an "
+        + "optional element ONLY when support for it is claimed, so the clause is refused rather than accepted "
+        + "inert. Refused at EVERY edition: an inert FORMAT changes which bytes reach the medium "
+        + "(§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry "
+        + "(§13.18.51.4 GR1) with an I-O status 45 path (§9.1.13.7 rule 5) — a wrong answer, not a missing "
+        + "facility, which is why this is an Error and not the COBOLNET1560/1578/1579/1580 accept-inert band. "
+        + "At --std 85 the FORMAT clause additionally cannot be written at all: §8.9 reserves FORMAT only from "
+        + "2002, so there the word is a user-defined name.",
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.8 items 1-2 / §13.18.24 / §13.18.51");
+    public static readonly DiagnosticDescriptor WriteRewriteFileUnclaimed = new(
+        "COBOLNET1706", "a413-write-rewrite-file-unclaimed", EditionSeverity.Error,
+        "the FILE phrase of the WRITE statement (ISO §14.9.51) and of the REWRITE statement (ISO §14.9.35) — "
+        + "`WRITE FILE file-name-1 FROM …` / `REWRITE FILE file-name-1 RECORD FROM …` — are the two items of "
+        + "Annex A.4.13, an OPTIONAL language element (§4.2.7) for which this implementation claims NO support "
+        + "(docs/CONFORMANCE.md §5, row A.4.13) — Annex A.4.1: an implementation shall accept the syntax for an "
+        + "optional element ONLY when support for it is claimed. The two STATEMENTS are mandatory and fully "
+        + "supported; only this one alternative of `{ record-name-1 | FILE file-name-1 }` is declined "
+        + "(A.4.1 NOTE 1: the higher-level cross-referenced construct is not optional), so plain "
+        + "`WRITE record-name-1` / `REWRITE record-name-1` are unaffected. Refused at EVERY edition and in "
+        + "BOTH printed formats (§14.9.51.2 Format 1 sequential and Format 2 random): the declined phrase has "
+        + "its own implicit-record semantics (§14.9.51.4 GR8, §14.9.35.4 GR9) that a whole-record-area write "
+        + "does not implement, so accepting it inert would be a wrong answer.",
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.13 items 1-2 / §14.9.51 / §14.9.35");
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "

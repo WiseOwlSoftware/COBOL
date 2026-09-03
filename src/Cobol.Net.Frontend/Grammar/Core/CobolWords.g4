@@ -47,6 +47,7 @@ cobolWord
     | FLOAT_BINARY
     | FLOAT_DECIMAL
     | FOREVER
+    | FORMAT
     | FULL_
     | FUNCTION_POINTER
     | GET

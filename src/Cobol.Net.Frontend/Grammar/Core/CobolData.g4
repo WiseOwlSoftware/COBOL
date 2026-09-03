@@ -65,6 +65,7 @@ fileDescriptionClause
     | blockContainsClause
     | recordClause
     | codeSetClause
+    | formatClause
     | labelRecordsClause
     | dataRecordsClause
     | valueOfClause
@@ -72,6 +73,25 @@ fileDescriptionClause
     | linageClause
     | reportClause
     | genericFileDescriptionClause
+    ;
+
+// FORMAT clause (§13.18.24.2, printed general format p403 — RENDERED, not read off the OCR).
+//
+// ⛔ RECOGNIZE-ONLY. The FORMAT clause is item 1) of Annex A.4.8, an OPTIONAL language element this
+// implementation does NOT claim (docs/CONFORMANCE.md §5). A.4.1: "An implementation shall accept the syntax
+// and provide the functionality for an optional element only when support for that language element is
+// claimed by the implementor" — so the clause is parsed in order to be REFUSED BY NAME at bind
+// (DataBinder → COBOLNET1705), never bound and never silently ignored. Compiling it inert would change
+// which bytes reach the medium (§13.18.24.4 GR1/GR2) — a wrong answer, not a missing facility, which is why
+// this is an Error and not the additive-facility warning band (COBOLNET1560/1578/1579/1580).
+//
+// SHAPE: `FORMAT { | BIT | CHARACTER | NUMERIC | } DATA`. The three alternatives are enclosed in CHOICE
+// INDICATORS (the `|` bars just inside the braces), so §5.2.6.4 makes them ONE OR MORE, each at most once,
+// IN ANY ORDER — `FORMAT BIT CHARACTER DATA` is legal source, not a syntax error. `DATA` is NOT underlined
+// in the printed format: an optional word. The "each at most once" half is a §5.2.6.4 syntax rule an EBNF
+// `+` cannot express; it is not enforced separately because the whole clause is refused either way.
+formatClause
+    : FORMAT (BIT | CHARACTER | NUMERIC)+ DATA?
     ;
 
 // REPORT(S) clause (§13.18.46): names the report(s) produced on this file by the Report Writer.
@@ -269,6 +289,27 @@ dataDescriptionClause
     | dynamicLengthClause
     | genericDataClause
     | groupUsageClause   // COBOL-2002 §13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
+    | selectWhenClause   // ISO §13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOLNET1705)
+    ;
+
+// SELECT WHEN clause (§13.18.51.2, printed general format p481 — RENDERED).
+//
+// ⛔ RECOGNIZE-ONLY, the twin of formatClause above: item 2) of Annex A.4.8, an OPTIONAL element this
+// implementation does not claim (docs/CONFORMANCE.md §5), parsed so it can be REFUSED BY NAME at bind
+// (COBOLNET1705). An inert SELECT WHEN would select the WRONG record description entry
+// (§13.18.51.4 GR1/GR2) with a status-45 failure path — a wrong answer, so Error, not the warning band.
+//
+// SHAPE: `SELECT WHEN { condition-name-1 | OTHER }`. Plain braces, NO choice indicators: exactly one of the
+// two. SELECT, WHEN and OTHER are underlined (required words); condition-name-1 is a user-defined word.
+// OTHER leads so ANTLR's first-match cannot route it into the conditionName slot (OTHER is reserved at every
+// edition and is not cobolWord-admitted, so this is belt-and-braces, not load-bearing).
+selectWhenClause
+    : SELECT WHEN (OTHER | conditionName)
+    ;
+
+// condition-name-1 of the SELECT WHEN clause (§13.18.51.2) — a user-defined word, the level-88 name slot.
+conditionName
+    : cobolWord
     ;
 
 // GROUP-USAGE clause (COBOL-2002 §13.18.29): the group item is treated as an elementary item of usage bit /

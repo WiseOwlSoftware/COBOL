@@ -1860,18 +1860,25 @@ result. Run the long legs ONE AT A TIME.
   a DOC row's closing shape. Method and rationale: `DESIGN-spec-conformance-review.md` §5; the measurements that
   earned it (3,361 of 3,636 GAP rows never adjudicated; ~1,000 fleet agents for 27 rows of burn-down in three days)
   are in the decision note. **Lanes are QUERIES over `kb/Work/` and the inventory — no new list anywhere.**
-- **▶ BURN-DOWN STATE after the 2026-09-02 FIX-LANE CLUSTER E landing (DEVLOG 1433), which followed the golden
-  lane (DEVLOG 1431) and the three-landing batch (DEVLOG 1427–1429; cluster C · the Annex A.1 DOC-row mechanism ·
-  the derived-verdict selectors).**
-  **GAP 3456 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → **3456**: cluster C was a CORRECTION of an
+- **▶ BURN-DOWN STATE after the 2026-09-02 MODULE-WITNESS CLUSTER A landing (DEVLOG 1434), which followed
+  fix-lane cluster E (DEVLOG 1433), the golden lane (DEVLOG 1431) and the three-landing batch (DEVLOG 1427–1429;
+  cluster C · the Annex A.1 DOC-row mechanism · the derived-verdict selectors).**
+  **GAP 3407 of 4311** (3636 → 3636 → 3618 → 3618 → 3467 → 3456 → **3407**: cluster C was a CORRECTION of an
   already-CONFORMS row, the A.1 back-fill closed 18, the derived lane moved it by design zero — a declined row
-  closes on its WITNESS, not on its verdict — the golden lane then wrote 151 of those witnesses, and cluster E
-  closed 8 I-O rows plus the 3 Annex A.1 DOC rows its own determinations made statable).
+  closes on its WITNESS, not on its verdict — the golden lane then wrote 151 of those witnesses, cluster E closed
+  8 I-O rows plus the 3 Annex A.1 DOC rows its own determinations made statable, and witness cluster A wrote the
+  49 witnesses that let lane 2a's A.4.8 + A.4.13 declines finally close).
   **1292 rows adjudicated · CONFORMS 847 · DOCUMENTED-NON-SUPPORT 333 · PARTIAL 97 · NOT-IMPLEMENTED 13 ·
-  DIVERGES 2.** **24 CONFORMS rows are still test-needed** — each is one spec-derived golden away from OK.
-  **Corpus 556 positive goldens · 582 negative fixtures.** **Diagnostic band — cluster E claimed COBOLNET1720
-  (`io-phrase-forbidden-here`, one reusable descriptor for §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6);
-  next free is COBOLNET1721.** Both lanes the owner decision above listed as pending their mechanism
+  DIVERGES 2** — witness A moved no verdict, only evidence, which is what a witness lane does.
+  **24 CONFORMS rows are still test-needed** — each is one spec-derived golden away from OK.
+  **Corpus 557 positive goldens · 590 negative fixtures.** **Diagnostic band — cluster E claimed COBOLNET1720
+  (`io-phrase-forbidden-here`, one reusable descriptor for §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6) and
+  witness A claimed COBOLNET1705/1706 (the two declined-module refusals) and catalogued the previously
+  bare-literal COBOLNET1560; the band has holes below its maximum and next free is COBOLNET1721.**
+  **`EditionContext.Declined(descriptor, seen)` is THE declined-element seam** — its SEVERITY picks accept-inert
+  (Warning: screen 1560, MCS 1578, commit/rollback 1579, VALIDATE 1580) versus refuse (Error: A.4.8 1705,
+  A.4.13 1706, where an inert accept would be a wrong answer rather than a missing facility). Both lanes the
+  owner decision above listed as pending their mechanism
   are live: `inventory-schema.json` → `kinds.DOC` defines what a DOC row costs, and `derived-verdicts` is read by
   BOTH engines (`DerivedSelector` + `scripts/spec/derive_verdict_batch.py` on the Python side,
   `DerivedVerdictDriftTests.Select` on the C#) rather than the one the schema used to claim. Annex A.1 scope is

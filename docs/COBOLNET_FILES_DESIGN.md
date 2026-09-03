@@ -264,6 +264,57 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   never duplicated per backend. The NIST corpus compiles at `--std` 85 and is the 85 positive net; the
   rejected-construct negative cases are version-test-matrix work, not NIST work.
 
+## Declined optional elements of the I-O statements and the file description entry
+
+Two Annex A.4 modules of the file-handling surface are OPTIONAL language elements (§4.2.7) for which this
+implementation claims NO support, per the owner's documented-non-support decision recorded in
+`docs/CONFORMANCE.md` §5. They are **recognized and refused by name at bind**, never parse-errored and never
+compiled inert:
+
+| Module | Elements | Where it parses | Refusal |
+| --- | --- | --- | --- |
+| A.4.8 | FORMAT clause (§13.18.24) on an FD; SELECT WHEN clause (§13.18.51) on a record description entry | `formatClause` in `fileDescriptionClause`; `selectWhenClause` in `dataDescriptionClause` (`Core/CobolData.g4`) | `COBOLNET1705`, from `DataBinder` — the FD clause loop and `BindEntry` |
+| A.4.13 | the `FILE file-name-1` alternative of WRITE (§14.9.51.2, **both** formats) and REWRITE (§14.9.35.2) | the `FILE fileName` alternative of `writeStatement` / `rewriteStatement` (`Core/CobolIO.g4`) | `COBOLNET1706`, from `SequentialIoBinder.DeclinedFilePhrase` — ONE site, both verbs |
+
+**Why recognize-and-refuse, and why an ERROR rather than the accept-inert band.** Annex A.4.1: *"An
+implementation shall accept the syntax and provide the functionality for an optional element only when
+support for that language element is claimed by the implementor."* Unclaimed ⇒ the syntax is not accepted. A
+parse error would satisfy that letter but not the product bar — it names nothing the user can act on, and it
+is what the traceability inventory refuses to close a DOCUMENTED-NON-SUPPORT row against. So the grammar
+carries the full printed general format (rendered from the PDF, not read off the OCR) purely so the binder
+can name what it saw.
+
+The severity is the point of difference from `COBOLNET1560/1578/1579/1580`, which ACCEPT their facility inert
+and warn. Those facilities are **additive** — a program means what it says with the screen, message, commit
+or validate behavior simply absent. These two are not: an inert FORMAT changes which bytes reach the medium
+(§13.18.24.4 GR1 — external media format), an inert SELECT WHEN selects the wrong record description entry
+(§13.18.51.4 GR1/GR2, with the §9.1.13.7 rule-5 status-45 path), and the FILE phrase carries its own
+implicit-record model (§14.9.51.4 GR8, §14.9.35.4 GR9) that a whole-record-area write does not implement.
+Compiling them inert is a **wrong answer**, not a missing facility.
+
+**One mechanism.** Every A.3/A.4 decline — accept-inert and refuse alike — routes through
+`EditionContext.Declined(descriptor, seen)`, and the DESCRIPTOR's severity chooses the disposition. There is
+no local strictness test at any site. `--permissive` does **not** move an A.4 decline in either direction: it
+is the migration seam for constructs an edition REMOVED (`EditionContext.Removed`), and a declined optional
+element has no pre-removal semantics to preserve.
+
+**Edition posture.** The decline is edition-INVARIANT — the module is unclaimed at 85, 2002, 2014 and 2023
+alike, and the negative witnesses carry `*> reject-at: 85 2002 2014 2023`. One lexical consequence differs at
+85: §8.9 reserves `FORMAT` only from 2002 (`ReservedWords.Table`, `r85=false`), so at `--std 85` the word is a
+legal user-defined name. That is preserved by the `nameSlot` row in `tests/version-matrix/cobol-words.json`
+— measured: `01 FORMAT PIC X(4).` plus a subscripted `FORMAT-E (2)` compiles and RUNS at `--std 85`, and
+draws `COBOLNET0901` by name at 2002/2014/2023 through the existing §8.9 funnel. No `constructs.json` row is
+owed: that register's contract is source that COMPILES CLEAN at its introducing edition, which a permanently
+declined element never does — the same reason VALIDATE, the SCREEN SECTION, MCS and COMMIT/ROLLBACK have no
+rows either.
+
+**What is NOT declined.** A.4.1 NOTE 1: *"The higher-level constructs or cross-referenced topics are not
+optional."* The WRITE and REWRITE statements themselves are mandatory, fully supported surface; only one
+alternative of `{ record-name-1 | FILE file-name-1 }` is declined. `tests/conformance/85/`
+`a413_declined_phrase_positive_control` is the run-and-compare witness for that half, and it also pins the
+optional word `RECORD` of §14.9.35.2 (not underlined in the printed format, therefore optional) which this
+grammar did not accept at all before 2026-09-02.
+
 ## ISO citations
 
 - ISO/IEC 1989:2023 section 9.1.13 I-O status: two-character codes; first digit 1 at-end, 2 invalid-key, 3 4 7 9 fatal or exception; subsections 9.1.13.2 through 9.1.13.11 enumerate every code (00 02 04 05 06 07 09 10 14 21 22 23 24 30 34 35 37 39 41 42 43 44 46 47 48 49).
@@ -271,6 +322,7 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
 - Section 9.1.1: CODE-SET or FORMAT translation occurs only when a logical record transfers to or from the physical unit; padding is added or deleted as necessary.
 - Sections 13.18.13 CODE-SET, 13.18.34 LINAGE, 13.18.43 RECORD VARYING DEPENDING ON, 13.18.41 implicit default record.
 - Sections 14.9.30 READ, 14.9.35 REWRITE, 14.9.41 START, 14.9.51 WRITE, 14.9.10 DELETE and DELETE FILE, 14.9.40 and 14.9.24 SORT and MERGE, 8.8.4.2.4 numeric-key value compare, 8.8.4.2.7 alphanumeric compare with shorter-operand space-extension, 14.9.49 USE statement (declarative).
+- Section 4.2.7 optional language elements and Annex A.4 (A.4.1 general + NOTE 1, A.4.8 items 1–2, A.4.13 items 1–2) — the declined-element section above; §13.18.24 FORMAT clause and §13.18.51 SELECT WHEN clause are the two A.4.8 clauses, §14.9.51.2 / §14.9.35.2 carry the A.4.13 FILE phrase.
 
 ## Open questions — RESOLVED (`COBOLNET_DESIGN.md` §15 #3 + §18, owner-confirmed 2026-06-08)
 

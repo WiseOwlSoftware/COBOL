@@ -581,7 +581,15 @@
   "rewrite-invalid-key-sequential-org",
   "rewrite-invalid-key-relative-sequential",
   "read-phrase-random-access",
-  "delete-record-sequential-org"
+  "delete-record-sequential-org",
+  "a48-format-clause-declined",
+  "a48-format-clause-choice-combination",
+  "a48-format-clause-no-optional-word",
+  "a48-select-when-condition-name",
+  "a48-select-when-other",
+  "a413-write-file-format-1",
+  "a413-write-file-format-2",
+  "a413-rewrite-file-declined"
  ],
  "pending": [
   "pb260-accept-screen-at-phrase"

@@ -502,6 +502,7 @@ FILE        : 'FILE' ;
 FILLER      : 'FILLER' ;
 FINAL       : 'FINAL' ;
 FINALLY     : 'FINALLY' ;                 // exception-checking PERFORM FINALLY phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
+FORMAT      : 'FORMAT' ;                  // FD FORMAT clause (ISO §13.18.24). Reserved from 2002 only (ReservedWords.Table row: r85=false) — so it is cobolWord/nameSlot-admitted (tests/version-matrix/cobol-words.json) and a COBOL-85 program may still name a data item FORMAT; §8.9's COBOLNET0901 funnel names it at 2002+.
 FULL_       : 'FULL' ;
 POSITIVE    : 'POSITIVE' ;
 NEGATIVE    : 'NEGATIVE' ;
