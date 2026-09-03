@@ -1,0 +1,7 @@
+R1-SRT=[BBBbbbbb]
+R1-OUT=[BBBbbbbb]
+R2-SRT=[AAAaaaaa]
+R2-OUT=[AAAaaaaa]
+SORTED=[AAAaaaaa]
+SORTED=[BBBbbbbb]
+DONE

@@ -48,7 +48,9 @@
       *> the same item without the clause would (Annex A.1 item 195; CONFORMANCE.md §7 item 195).
       *> SO THIS GOLDEN CLOSES §15.14.4 r3 ON SOURCES (a) AND (c), and states why (b) is not closable here.
       *> BITS PER BYTE. §8.1.2: "The implementor shall specify the number of bits in a byte for each supported
-      *> computer." COBOL.NET pins 8 (CONFORMANCE.md §4.2.16; Annex A.1 item 209), which is what turns every bit
+      *> computer." COBOL.NET pins 8 (CONFORMANCE.md §4.2.16; Annex A.1 item 12, "Byte (number of bits in) …
+      *> (8.1.2, Computer's coded character set)" — item 209 is USAGE DISPLAY, and this comment inherited that
+      *> number from the misfiled §7 row repaired 2026-09-03), which is what turns every bit
       *> count below into its byte answer.
       *>
       *> RUN2  - two INTERIOR filler runs, source (a). Placement is §8.5.1.6.3's second paragraph: a bit item

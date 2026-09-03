@@ -684,7 +684,12 @@
   "oo-inherits-diamond",
   "oo-inherits-same-base-twice",
   "oo-multi-base-super",
-  "oo-parametric-polymorphism"
+  "oo-parametric-polymorphism",
+  "l1-use-format1-names-sort-file",
+  "l1-use-format3-names-sort-file",
+  "l1-use-input-phrase-twice",
+  "l1-display-upon-input-only-device",
+  "l1-time-fraction-past-max"
  ],
  "pending": []
 }

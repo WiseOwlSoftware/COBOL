@@ -92,7 +92,12 @@ public static partial class CobolIntrinsics
     // ── RANDOM (ISO §15.75) ────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>ONE current pseudo-random sequence per run unit (§15.75.3): the first argument-less reference uses
-    /// an implementor-defined seed (rule 4 — here the .NET time-derived default); a seeded reference REPLACES the
+    /// an implementor-defined seed (rule 4 — <c>docs/CONFORMANCE.md#DOC-A.1-144</c> is that determination and it is
+    /// PER-PROCESS OS ENTROPY: the parameterless <see cref="System.Random"/> is .NET's shared xoshiro256** seeded
+    /// from OS entropy, so there is no fixed seed and a sequence is reproducible only from an explicit
+    /// <c>FUNCTION RANDOM(seed)</c>. This comment said "the .NET time-derived default" until 2026-09-03 — a
+    /// pre-.NET-6 description of a different mechanism, and the register is the one that is right); a seeded
+    /// reference REPLACES the
     /// sequence (rule 3). NOTE: the legacy oracle instead news a throwaway generator per seeded call — both satisfy
     /// the 0 ≤ r &lt; 1 NIST range checks, but the spec form (one current sequence that seeded calls restart and
     /// argument-less calls continue) is implemented here per the scout brief §4.1.</summary>

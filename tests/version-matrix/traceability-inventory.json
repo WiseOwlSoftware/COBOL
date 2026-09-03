@@ -35016,10 +35016,10 @@
   "subject": "OPEN statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_open_mixed_org_access",
   "editions": "85,2002,2014,2023",
-  "notes": "“The files referenced in the OPEN statement need not all have the same organization or access” (cite.py --check 14.9.27.3 … OK, rule 4). A PERMISSIVE rule, so conformance means the compiler imposes no agreement it was not asked for — and it does not. BindOpen resolves each openFileSpec to its own FileModel independently and the only screen it applies is `UnsupportedOrg` → StatementValidation.ScreenSortMergeFile, which rejects an SD sort-merge file-name (§13.4.6.3 SR3/SR4, a different and legitimate rule) and nothing about organization or access; EmitOpen then emits one per-file call whose runtime entry (FileRegistry.Open) dispatches on the connector's own kind. No cross-file comparison exists anywhere on the path. MEASURED (probe/open-p1): mix1.cob opens a SEQUENTIAL file, a RELATIVE/ACCESS RANDOM file and an INDEXED/ACCESS DYNAMIC file in ONE `OPEN OUTPUT FS FR FI`, compiles clean and runs to completion (prints MIXED-OPEN-OK). CONFORMS-but-untested: no spec-derived case in the corpus opens files of differing organization in one statement (tests/conformance/2002/file_sharing.cob is the only multi-connector OPEN case and all three of its files are relative/random), so the row stays a GAP pending a golden.",
-  "state": "GAP"
+  "notes": "ONE OPEN statement over SEQUENTIAL/SEQUENTIAL + RELATIVE/RANDOM + INDEXED/DYNAMIC compiles and gives each file-name its own '00' (SR4 permissive + GR20 separate-OPEN equivalence + Table 18 + 9.1.13.2 item 1).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.27.3-5",
@@ -35094,10 +35094,10 @@
   "subject": "OPEN statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Open; src/Cobol.Net.Runtime/IO/FileConnector.cs#Status; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Open; src/Cobol.Net.Runtime/IO/FileRegistry.cs#OpenShared; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_open_status_updated",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE: 'The execution of the OPEN statement causes the value of the I-O status associated with file-name-1 to be updated to one of the values in 9.1.13, I-O status.' cite.py --check 14.9.27.4 on the rule text: OK (§14.9.27.4 1)). CODE: FileConnector.Open assigns Status on EVERY exit — the already-open guard, the organization body's return, and the two exception arms ('37' UnauthorizedAccessException, '30' IOException) — and Status has ONE setter (the property, which is also the §9.1.13.7 3) '43'-gate chokepoint). The two registry entries both terminate in an assignment: FileRegistry.Open routes to SetStatus(FileLocked) / connector.Open, and OpenShared's SharedOpenAttempt calls SetStatus('61') on a Table-19 conflict or connector.Open otherwise. EmitOpen then stores the value into the FILE STATUS item per file. EVERY value the OPEN paths can assign is a §9.1.13 value: 00, 05 (§9.1.13.2 4a), 35 (§9.1.13.6 5), 37 (§9.1.13.6 6), 41 (§9.1.13.7 1), 61 (§9.1.13.9 1), 30 (§9.1.13.6 1), 52 (§9.1.13.8 2). EDGE CHECKED: FileStatusCode.FileLocked = '38' is NOT in ISO 2023 §9.1.13 (grep of the spec for \"'38'\" / 'status = 38' returns nothing) — but its only producer is an OPEN after CLOSE … WITH LOCK, and that phrase is removed at 2023 and rejected by the construct gate 'close-with-lock-removed-2023' / COBOLNET0902 (src/Cobol.Net.Editions/ConstructRegistry.g.cs:97), so a 2023 program cannot reach it; at 85/2002/2014 '38' is that edition's own defined value. EDGE CHECKED: SharedOpenAttempt's unregistered-connector arm returns '30' WITHOUT SetStatus, but the emitter's immediately-following status store goes through FileRegistry.Status → Require(), which throws loudly for an unregistered name — no silent stale FILE STATUS. NOTE: GR1 only requires the value to BE one of §9.1.13's; that the value CHOSEN is wrong for OPEN … WITH NO REWIND is GR11's defect, recorded there. NO covering spec-derived test asserts the every-OPEN-updates-status invariant (FileStatusDisciplineTests asserts individual outcomes, not the invariant) — test-needed. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "Four structurally different OPEN outcomes leave four distinct 9.1.13 values: '00' (9.1.13.2 1), '41' (GR2), '35' (9.1.13.6 5), '05' (9.1.13.2 4a).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-2",
@@ -35159,10 +35159,10 @@
   "subject": "OPEN statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Read; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Write; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Rewrite; src/Cobol.Net.Runtime/IO/FileConnector.cs#Close; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Unlock; src/Cobol.Net.Runtime/IO/FileRegistry.cs#DeleteFile",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1_open_not_open_statements",
   "editions": "85,2002,2014",
-  "notes": "The rule is a prohibition on the PROGRAM; an implementation honours it by giving each forbidden statement the §9.1.13.7 logic-error status rather than acting on the file. PROBE (out-b1/probe/open-modes-status), all against a never-opened connector: READ → '47' (item 7), WRITE → '48' (item 8), REWRITE → '49' (item 9), CLOSE → '42' (item 2); none touched the file. The four exempt statements behave as the rule requires: OPEN is the only verb that may run (FileConnector.Open); DELETE FILE guards only `if (c.IsOpen) status = '41'` so a not-open connector deletes normally (FileRegistry.DeleteFile, GR13/GR14); SORT/MERGE USING/GIVING open implicitly through the same registry entry points (SortEmitter.cs:96/125, cited §14.9.40 GR12a/GR15a); COMMIT and ROLLBACK are a docs/CONFORMANCE.md §4 item-2 documented non-support (A.4.3 Not claimed), so the rule has no COMMIT/ROLLBACK leg to satisfy here. CONFORMS-but-untested: no existing spec-derived test drives the not-open family from COBOL source — unit:FileStatusDisciplineTests.Close_ThenCloseAgain42_ThenReopen00 covers only the CLOSE leg, so it is not named as covering. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023. The exempt list grew with the editions (COMMIT/ROLLBACK and UNLOCK are 2002; DELETE FILE Format 2 is 2023) but the prohibition itself is version-invariant.",
-  "state": "GAP"
+  "notes": "A never-opened connector answers CLOSE '42', READ '47', WRITE '48', REWRITE '49' (9.1.13.7 items 2/7/8/9) and touches nothing; the exempt OPEN succeeds and the file then holds only the record written after it.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-7",
@@ -35198,10 +35198,10 @@
   "subject": "OPEN statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_open_no_first_record",
   "editions": "85,2002,2014,2023",
-  "notes": "'Execution of the OPEN statement does not obtain or release the first record.' Every OpenCore only resets position state and establishes the stream/store: the sequential arm sets _readOffset/_readOrdinal to 0 and constructs a StreamReader/StreamWriter without reading; the relative and indexed arms Attach() the store and set the file position indicator (§14.9.27.4 GR14) without making a record available; no OpenCore assigns LastReadLength or calls ReadSucceeded, and none writes a record (the OUTPUT arms write an EMPTY store, which is GR18's 'the file contains no records', not a released record). EmitOpen emits only the registry call plus the FILE STATUS store and the USE hook — no record-area transfer. PROBE (out-b1/probe/open-modes-status): `MOVE ALL \"Z\" TO RQ` then OPEN INPUT leaves the record area 'ZZZZZZZZZZ'; only the following READ makes 'REC0000001' available. CONFORMS-but-untested — no existing spec-derived test asserts the record area is untouched across an OPEN. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023 — version-invariant.",
-  "state": "GAP"
+  "notes": "The first READ after OPEN INPUT delivers the FIRST record (nothing obtained); an OPEN OUTPUT and an OPEN EXTEND each followed immediately by CLOSE add no record (nothing released) - GR18 corroborating.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-10",
@@ -35250,10 +35250,10 @@
   "subject": "OPEN statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#OptionalAbsent; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_open_optional_input_absent",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE: 'If the file is not present, and the INPUT phrase is specified in the OPEN statement, and the OPTIONAL clause is specified in the file control entry for file-name-1, the file position indicator in the file connector referenced by file-name-1 is set to indicate that an optional input file is not present.' cite.py --check 14.9.27.4: OK (§14.9.27.4 13)). CODE: all three OpenCore INPUT arms take '!exists && IsOptional' ⇒ OptionalAbsent = true and return FileStatusCode.OptionalFileNotFound ('05', §9.1.13.2 4a). OptionalAbsent is the FPI's 'not present' state and is deliberately a SEPARATE bit from IsOpen (FileConnector.cs:111-113, kb/Work PB140), and it survives CLOSE per §14.9.6.4 GR6. Each organization's sequential-read entry consumes it as §9.1.13.4 1c: SequentialConnector.Read / RelativeConnector.ReadSequential / IndexedConnector.ReadSequential all answer AtEnd '10' on OptionalAbsent, and no physical file is created. PROBE (out-b1/probe/openbasic/OPBAS01.cob sequential; out-b1/probe/openkeyed/OPKEY03.cob relative + indexed): OPEN INPUT of an absent SELECT OPTIONAL file ⇒ '05' on all three organizations, first READ ⇒ '10' on all three, and no host file appears on disk (verified by ls after the run — the GR13 vs GR17 distinction is honored: INPUT does not create, EXTEND/I-O do). Spec-derived expected per §9.1.13.2 4a + §9.1.13.4 1c: exactly that. No spec-derived test covers the INPUT arm (CA16 in SequentialFileIoSpecTests covers the I-O arm of GR17, not this rule) — test-needed. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "On all three organizations an absent OPTIONAL file opened INPUT gives '05' (9.1.13.2 4a), its first sequential READ '10' (14.9.30.4 GR21 / 9.1.13.4 1c) and a START '23' (14.9.41.4 GR5 / 9.1.13.5 3b); a second OPEN INPUT is '05' again, so INPUT created nothing.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-14",
@@ -35263,10 +35263,10 @@
   "subject": "OPEN statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadSequential",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_open_position_input_io",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE: 'When the organization of the file referenced by file-name-1 is sequential or relative and the INPUT or I-O phrase is specified in the OPEN statement, the file position indicator for that file connector is set to 1. When the organization is indexed, the file position indicator is set to the characters that have the lowest ordinal position in the collating sequence associated with the file, and the prime record key is established as the key of reference.' cite.py --check 14.9.27.4: OK (§14.9.27.4 14)). CODE — sequential: OpenCore resets _readOffset/_readOrdinal to 0 and the reader opens at byte 0. CODE — relative: OpenCore line 142 '_fpi = 1; // §14.9.27 GR14' with _fpiValid = (Input or IO) and _inclusive = true, so the first READ NEXT selects the first EXISTING slot at or after 1. CODE — indexed: OpenCore line 121 '_refKey = -1; // §14.9.27 GR14 — prime key of reference' and _fpiKey = \"\" with _positioner = 'O'; ReadSequential's _positioner=='O' arm then takes Ordered(-1)[0] DIRECTLY rather than walking PositionCompare against the empty sentinel — an explicitly-handled adversarial edge (its comment: under a §12.4.5.7 alphabet where the pad SPACE weighs high the sentinel is NOT the lowest value, so a compare-walk would find nothing), which is the right reading of 'lowest ordinal position in the collating sequence ASSOCIATED WITH THE FILE'. PROBES: out-b1/probe/openbasic/OPBAS01.cob (sequential OPEN INPUT after EXTEND ⇒ first record AAAAAAAAAA, not the appended BBBBBBBBBB); out-b1/probe/openkeyed/OPKEY01.cob (relative OPEN INPUT ⇒ slot 1 with RELATIVE KEY moved back as 0001); out-b1/probe/openkeyed/OPKEY02.cob (indexed K003/K005/K007: OPEN INPUT ⇒ K003, the lowest prime key; then START KEY = alternate 'MMM' makes the ALTERNATE the key of reference and the next READ yields K007; CLOSE + re-OPEN INPUT ⇒ K003 again, proving the prime key is re-established as key of reference by the OPEN). Spec-derived expected: exactly that. No spec-derived test covers it — test-needed. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "Sequential and relative INPUT and I-O reposition to record 1 on every OPEN (14.9.30.4 GR21b/GR25); indexed OPEN INPUT delivers the LOWEST prime key though the write order was K005/K003/K007, and re-establishes the PRIME key as key of reference after a START had made an alternate the key of reference.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-15",
@@ -35276,10 +35276,10 @@
   "subject": "OPEN statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_open_extend_position",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE: 'When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for a sequential file is the last record written in the file. The last logical record for a relative file is the currently existing record with the highest relative record number. The last logical record for an indexed file is the currently existing record with the highest prime key value.' cite.py --check 14.9.27.4: OK (§14.9.27.4 15)). Three organization arms; ALL THREE checked. CODE — sequential: OpenCore's Extend arm opens the StreamWriter with append: true (both the shared and unshared stream shapes), so writes land after the last byte; SeedSharedWriteBase additionally derives the pre-existing record COUNT for the §9.1.16 lock ordinal from the physical shape (frames / lines / fixed-width blocks). CODE — relative: OpenCore line 139 '_seqNext = (_slots.Count == 0 ? 0 : _slots.Keys.Max()) + 1; // §14.9.27 GR15' — the highest EXISTING RRN plus one, correct for a sparse store (a deleted tail slot does not count as existing). CODE — indexed: OpenCore's Extend arm sets _lastWrittenPrime = KeyOf(Ordered(-1)[^1]) — the highest prime key under the key's collating sequence — which is the §14.9.51 GR38 ascending-sequence seed a sequential-access EXTEND write is compared against. PROBE (out-b1/probe/openbasic/OPBAS01.cob): sequential OPEN EXTEND ⇒ '00', the appended record reads back SECOND. PROBE (out-b1/probe/openkeyed/OPKEY01.cob): relative EXTEND after slots 1-2 releases slot 3 (RELATIVE KEY = 0003); indexed EXTEND over an existing K002 accepts K005 ('00') and then REJECTS K001 with '21' (§9.1.13.5 1 sequence error) — i.e. the position really is after the highest prime key, not at the beginning. Spec-derived expected: exactly that. No spec-derived test covers it — test-needed. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "EXTEND appends after the last record written (sequential), releases highest-EXISTING-RRN+1 = 0005 on a file sparse at 1 and 4 (14.9.51.4 GR29a), and positions after the highest prime key - a first EXTEND write of K004 over K002/K006/K008 is refused '21' (14.9.51.4 GR38 / 9.1.13.5 1).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-16",
@@ -35302,10 +35302,10 @@
   "subject": "OPEN statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_open_optional_create",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE: 'If the file is not present, and the EXTEND or I-O phrase is specified in the OPEN statement, and the OPTIONAL clause is specified in the file control entry for file-name-1, the OPEN statement creates the file. This creation takes place as if the following statements were executed in the order shown: OPEN OUTPUT file-name-1. CLOSE file-name-1. These statements are followed by execution of the OPEN statement specified in the source element and the I-O status value associated with file-name-1 is set t05\\'.' (the trailing 'set t05\\'' is an OCR artifact of \"set to '05'\"; §9.1.13.2 4a supplies the value). cite.py --check 14.9.27.4: OK (§14.9.27.4 17)). SIX arms (3 organizations × EXTEND/I-O); ALL SIX checked. CODE: sequential I-O creates the empty file with a throwaway StreamWriter then re-opens ReadWrite and returns '05'; sequential EXTEND opens append (which creates) and returns '05'; relative and indexed EXTEND and I-O each Attach(), clear the store and RecordFraming.WriteStore(HostPath, []) — the literal 'as if OPEN OUTPUT + CLOSE' — then return '05'. The non-optional twin is '35' (§9.1.13.6 5) in every arm. PROBES: out-b1/probe/openbasic/OPBAS01.cob (sequential I-O ⇒ '05', the file then exists and re-OPEN INPUT ⇒ '00'); out-b1/probe/openkeyed/OPKEY01.cob (relative EXTEND ⇒ '05' then writes release RRN 1,2 — an EMPTY created file, not a phantom record; indexed I-O ⇒ '05'; indexed EXTEND ⇒ '00' on the now-existing file). Spec-derived expected per §9.1.13.2 4a: '05' with the physical file created and containing no records. TEST COVERAGE: conformance-test:SequentialFileIoSpecTests.OptionalSequential_OpenIoAbsent_Creates05_ThenFirstReadIsAtEnd10 (CA16) is spec-derived and cites this rule, but it covers ONE of the six arms (sequential × I-O); the EXTEND arm and both keyed organizations are unrepresented, so the row is left test-needed rather than closed on a one-sixth cover. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "All SIX arms (sequential/relative/indexed x EXTEND/I-O): '05' on the creating OPEN (9.1.13.2 4a), '00' on a following OPEN INPUT (so the file was created), '10' on its first READ (GR18 - created empty).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-18",
@@ -36290,10 +36290,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_into_unsuccessful",
   "editions": "85,2002,2014,2023",
-  "notes": "Rule text validated (cite.py --check 14.9.30.4 \"the content of the data item referenced by identifier-1 is unchanged and item identification\" => OK 5)). Both obligations hold structurally, not by accident. (i) 'content unchanged': the implicit MOVE is emitted ONLY inside the success branch — SequentialIoEmitter.EmitRead puts it inside `using (w.Block($\"if ({readCall})\"))`, and KeyedIoEmitter.EmitRead inside the `if (__kst[0]=='0')` arm; the else/at-end/invalid-key arms emit no store into identifier-1. (ii) 'item identification is NOT done': because the MOVE node itself is emitted inside that branch, the subscript/reference-modification evaluation of identifier-1 is inside the branch too, so an unsuccessful READ evaluates no subscript and can raise no EC-BOUND-SUBSCRIPT from identifier-1 — which is also the positive half of GR4b's 'item identification … is done after the record has been read and immediately before it is moved'. Note the GR4 sender-size defect does not touch GR5: it is about WHAT is moved on success, not about whether anything is moved on failure. No spec-derived test asserts the unchanged-receiver leg (the citing tests are legacy-baked: see dossier_gaps). || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "Both GR5 obligations: identifier-1 still reads KEEP after the at-end READ INTO, and the out-of-range subscript raises EC-BOUND-SUBSCRIPT on the successful read (GR4b, the positive control) but not on the unsuccessful one.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-6",
@@ -36316,10 +36316,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#LocksEffective; src/Cobol.Net.Runtime/IO/FileRegistry.cs#OpenShared; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ApplyReadLockDiscipline; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitSharingRegistration",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_lock_mode_governs",
   "editions": "2014,2023",
-  "notes": "RULE: 'Whether record locking is in effect is determined by the rules specified in 12.4.5.9, LOCK MODE clause.' This is a pure delegation rule, so it was adjudicated by checking that each 12.4.5.9 GR the delegation reaches is honoured. CODE: FileRegistry.LocksEffective implements 12.4.5.9 GR1a (`meta.LockMode == FileLockMode.None` => false — a SHARING clause with the LOCK MODE clause omitted sets no locks) and GR3 (`open.Sharing == FileSharing.NoOther` => false); FileRegistry.OpenShared registers a connector that had neither clause with `FileLockMode.None` when the OPEN itself carries the phrase, which is GR1b1; SequentialIoEmitter.EmitSharingRegistration returns early when `file.Sharing == None && file.LockMode is null`, so a file with neither clause is not sharing-active at all — the GR1b2 implementor default realised as 'no record locking'. ApplyReadLockDiscipline implements GR4 (AUTOMATIC locks on any READ), GR5 (MANUAL only with an explicit LOCK phrase) and GR6 (single locking releases the prior lock on any I-O statement); PhysicalFileTable enforces GR7's ceilings (15/connector -> '54', 255/run unit -> '53'). VALIDATED: `python scripts/spec/cite.py --check 12.4.5.9.4 \"no record locks are set by the execution of I-O statements through the associated file connector\"` -> OK 12.4.5.9.4 1) a); `python scripts/spec/cite.py --check 12.4.5.9.4 \"Records are locked when any READ statement is executed\"` -> OK 12.4.5.9.4 4). PROBED (probe/p4x-gr7/p4xgr7.cob): with SHARING WITH READ ONLY and NO LOCK MODE clause, connector A's `READ FA WITH LOCK` sets no lock and B's read of the same record returns '00' (GR1a); with LOCK MODE IS AUTOMATIC, C's plain READ locks and D's read of the same record returns '51' (GR4). GR5/GR6 were observed in probe/p4x-gr8: under MANUAL a plain READ neither locks nor keeps the prior lock. GR3 is read-verified only — a second connector can never observe it, because Table 19 (a)/(b) refuse the second OPEN. NOTE (adjacent, not a divergence of this rule): 12.4.5.9 GR1b2 obliges the implementor to DEFINE the default; docs/CONFORMANCE.md documents A.4.7 as Claimed but does not state the 'no record locking' default anywhere. TEST-REF: none — tests/Cobol.Net.Tests.Unit/CobolFileLockTests.cs covers the ceilings, Table 19 and the read paths, but nothing covers LocksEffective's GR1a/GR3 determination, so this row is CONFORMS-but-untested. || EDITIONS AS ADJUDICATED: 2014/2023 identical (Annex E lists no change to 14.9.30.4 GR7 or to 12.4.5.9); the facility it delegates to is the Annex A.4.7 optional module 'File sharing and record locking', which docs/CONFORMANCE.md §5 declares Claimed. This document carries no evidence about 1985/2002, so no claim is made for them here.",
-  "state": "GAP"
+  "notes": "The delegation measured as a pair: identical READs give '00' under 12.4.5.9 GR1a (SHARING WITH READ ONLY, no LOCK MODE clause) and '51' under GR4 (SHARING WITH ALL OTHER plus LOCK MODE IS AUTOMATIC). LEG 1 must carry READ ONLY, not ALL OTHER: 14.9.27.3 SR8 requires a LOCK MODE clause whenever the ALL phrase is in the SHARING clause and the OPEN omits its own sharing phrase, and GR1a's antecedent is any SHARING clause, so READ ONLY satisfies the rule under test while keeping the source conforming.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-8",
@@ -36329,10 +36329,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#IsLockedByOther; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ReadShared; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ReadLockGovern",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_self_lock_ignored",
   "editions": "2014,2023",
-  "notes": "RULE: 'If record locking is enabled ... and the record identified for access by the general rules for the READ statement is locked by that file connector, the record lock is ignored and the READ operation proceeds as if the record were not locked.' VALIDATED: `python scripts/spec/cite.py --check 14.9.30.4 \"the record lock is ignored and the READ operation proceeds as if the record were not locked\"` -> OK 14.9.30.4 8). Corroborated by 9.1.16: `python scripts/spec/cite.py --check 9.1.16 \"A locked record may be re-accessed by the same file connector that holds the lock\"` -> OK. CODE: BOTH read arms consult the same predicate, so the rule cannot be half-implemented here. PhysicalFileTable.IsLockedByOther returns the lock only when `!string.Equals(owner, name, OrdinalIgnoreCase)`, i.e. a self-held lock is invisible; FileRegistry.ReadShared (the sequential-organization pre-read check, FileRegistry.cs:648-668) and FileRegistry.ReadLockGovern (the keyed post-read check, FileRegistry.cs:576-588) both gate on it, so a self-locked record never enters the conflict/RETRY path. PhysicalFileTable.LockRecord additionally makes a self re-lock idempotent rather than a '51'. PROBED END-TO-END (probe/p4x-gr9/p4xgr9.cob): connector FA does `READ FA WITH LOCK` on RRN 1 ('00'), FB's read of RRN 1 is refused '51' (proving the lock is real and still held), FB's `READ ... IGNORING LOCK` returns the record ('00', GR12), and FA's own subsequent read of the still-self-locked RRN 1 returns '00' with the record delivered — exactly GR8. TEST-REF: RecordLock_Grants_ThenBlocksAnotherConnector_51 asserts `Assert.False(CobolFile.IsLockedByOther(\"CA\", \"1\"))` with the comment 'GR8: not \"other\" to its own owner' — the discriminating predicate both READ arms consult, so breaking GR8 fails it. SelfRelock_IsIdempotent_GR8 corroborates. Neither drives a READ end to end, so a conformance golden over the probe above would be a worthwhile addition, but the row is covered. || REFUTED: CONFORMS, but with the test-ref WITHDRAWN (empty) -- the row is CONFORMS-but-untested and must not be counted closed — The BEHAVIOUR survives everything I threw at it, and I strengthened it: the adjudicator's own probe ran under LOCK MODE IS MANUAL and single locking, where ApplyReadLockDiscipline's `if (!meta.Multiple) ReleaseAllForConnector` (FileRegistry.cs:601) drops the connector's own lock BEFORE the record is re-read, so 'the lock is ignored' and 'the lock was silently released first' are indistinguishable -- the probe could not tell GR8 from GR6. I re-ran it under AUTOMATIC WITH LOCK ON MULTIPLE RECORDS, where the self-held lock genuinely persists across the intervening read, on BOTH dispatch arms, and GR8 holds. What does NOT survive is the test-ref. `unit:CobolFileLockTests.RecordLock_Grants_ThenBlocksAnotherConnector_51` (tests/Cobol.Net.Tests.Unit/CobolFileLockTests.cs:31-38) executes no READ statement and touches neither read arm; it asserts `Assert.False(CobolFile.IsLockedByOther(\"CA\", \"1\"))` -- a property of the HELPER the arms happen to call. Replace either arm's `PhysicalFileTable.IsLockedByOther(st, name, recId)` with `st.RecordLocks.ContainsKey(recId)` and GR8 is broken on every organization while that assertion, and SelfRelock_IsIdempotent_GR8 with it, stay green. A test-ref is what marks an inventory row CLOSED; this one does not gate the rule's branch, so citing it closes a row nothing measures. The verdict stands, the closure does not. || EDITIONS AS ADJUDICATED: 2014/2023 identical (Annex E lists no change); the facility is the Annex A.4.7 optional module, Claimed in docs/CONFORMANCE.md §5. No claim made for 1985/2002 from this document.",
-  "state": "GAP"
+  "notes": "Run under AUTOMATIC WITH LOCK ON MULTIPLE RECORDS so 12.4.5.9 GR6's release cannot masquerade as GR8's 'ignored'; the trailing '51' proves the lock still stands after the self re-read.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-9",
@@ -36550,10 +36550,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadSequential",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_indexed_seq_walk",
   "editions": "2014,2023",
-  "notes": "RULE (GR21, indexed rule e.1 — previous operation a successful READ, key of reference NOT a duplicate-permitting alternate): 'If NEXT is specified or implied, the record to be made available is the first existing record in the physical file whose key value is greater than or equal to the key value in the file position indicator.' VALIDATED as part of `python scripts/spec/cite.py --check 14.9.30.4 \"whose key of reference value is greater than or equal to the key value in the file position indicator\"` -> OK 14.9.30.4 21) for d.1 and by reading rule e in situ. ADJUDICATION OF A DEFECT IN THE STANDARD'S OWN TEXT: read literally, e.1's '>=' would re-deliver the record just read for ever, since GR21 rule g sets the FPI to the key of the record made available. e.3's closing sentence is the corrective: 'Otherwise, the first record in the physical file whose key value is greater than the key of reference is made available.' The only self-consistent reading is that e.1's >= is the EXISTENCE test and the record made available is the first STRICTLY greater. CODE: after a successful READ, ReadSequential sets `_inclusive = false; _positioner = 'R'`, so the forward arm accepts only `c > 0` — strictly greater in (key, arrival) order, which for a unique key of reference is strictly greater key. That is the e.1+e.3 reading. PROBED (probe/p4x-idx, case D): START KEY = '02', READ NEXT -> 02, READ NEXT -> 03 FS=00 (not 02 again). CONFORMS-but-untested. || EDITIONS AS ADJUDICATED: 2014/2023 identical (Annex E's only change in this area is item 22 / rule d.3). READ NEXT on an indexed file is core surface 1985-2023.",
-  "state": "GAP"
+  "notes": "GR21 rule e.1 read with e.3's corrective: the strictly-greater step N1->N2->N3 (01,02,03) is the branch; a literal '>=' walk prints 01 three times.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-L3.2",
@@ -36563,10 +36563,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadSequential",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_indexed_seq_walk",
   "editions": "2014,2023",
-  "notes": "RULE (GR21, indexed rule e.2): 'If PREVIOUS is specified, the first existing record in the physical file whose key value is less than or equal to the key value in the file position indicator.' Read with e.3's corrective clause (see L3.1) the retrieved record is the first STRICTLY less, symmetrically with e.1/e.3 — otherwise a READ PREVIOUS after a READ would re-deliver the same record indefinitely. CODE: after a successful READ `_inclusive == false`, so ReadSequential's reverse arm accepts only `c < 0` — the greatest (key, arrival) strictly below the file position indicator. PROBED (probe/p4x-idx, case D): after READ NEXT -> 03, READ PREVIOUS -> 02 FS=00. Corroborated on a duplicate-free relative walk (probe/p4x-relc). CONFORMS-but-untested: no closable test covers the indexed e walk. || EDITIONS AS ADJUDICATED: 2014/2023 identical (Annex E.2 item 22 amends d.3 only). PREVIOUS is Annex A.3 item 39, Claimed in docs/CONFORMANCE.md §2 row 39; 2002+ surface.",
-  "state": "GAP"
+  "notes": "GR21 rule e.2 + e.3: P1/P2 give 02 then 01, the strictly-less mirror; no PREVIOUS ever follows an OPEN in the golden.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-L3.3",
@@ -36576,10 +36576,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadSequential",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_indexed_seq_walk",
   "editions": "2014,2023",
-  "notes": "RULE (GR21, indexed rule e.3): 'If no such record is found, the at end condition exists and execution proceeds as indicated in General rule 24. Otherwise, the first record in the physical file whose key value is greater than the key of reference is made available.' VALIDATED: `python scripts/spec/cite.py --check 14.9.30.4 \"Otherwise, the first record in the physical file whose key value is greater than the key of reference is made available\"` -> OK 14.9.30.4 21). CODE: both halves land in ReadSequential — the `found is null` tail sets LastReadUnsuccessful, clears `_fpiValid` (GR24b) and returns FileStatusCode.AtEnd '10'; the 'otherwise' half is the strictly-greater forward walk described under L3.1. The emitted READ takes the AT END branch on `FileStatus(name)[0] == '1'` (SequentialIoEmitter.EmitRead / KeyedIoEmitter), so the at-end family routes to imperative-statement-1 per GR24c. PROBED: probe/p4x-idx case D shows the 'otherwise' half (02 -> 03); case F's exhausting READ PREVIOUS and probe/p4x-relc's second READ PREVIOUS both show the at-end half ('ATEND FS=10' with the AT END imperative taken). CONFORMS-but-untested. || EDITIONS AS ADJUDICATED: 2014/2023 identical (Annex E.2 item 22 amends d.3 only).",
-  "state": "GAP"
+  "notes": "GR21 rule e.3 both halves: the 'otherwise' strictly-greater step (N2/N3) and the at end '10' printed BY the AT END imperative (P3).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-L4.1",
@@ -36589,10 +36589,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadSequential; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Ordered; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_alt_dup_walk",
   "editions": "2014,2023",
-  "notes": "RULE (GR21, indexed rule f.1 — key of reference is a duplicate-permitting alternate): 'If NEXT is specified or implied, and there exists ... a record whose key value is equal to the key of reference and whose logical position within the set of duplicates is after the record that was made available by that prior READ statement, the record within the set of duplicates that is immediately after ... Otherwise, the first record in the physical file whose key value is greater than the key of reference value.' VALIDATED: `python scripts/spec/cite.py --check 14.9.30.4 \"the record within the set of duplicates that is immediately after the record that was made available by that prior READ statement\"` -> OK 14.9.30.4 21). 'Logical position within the set of duplicates' is fixed by GR26 — `python scripts/spec/cite.py --check 14.9.30.4 \"made available in the same order, or, in the case of PREVIOUS, in the reverse order, in which they are released by execution of WRITE statements\"` -> OK 14.9.30.4 26) — i.e. WRITE-release order, not prime-key order. CODE: every record carries a monotone ARRIVAL number minted at Write; Ordered(keyIndex) sorts by (key value, arrival), and ReadSequential's PositionCompare compares the key first and the arrival as tie-break, so the strictly-greater forward step is exactly 'the next duplicate, else the first record with a greater key'. PROBED (probe/p4x-idx case E): records 01/XX 02/XX 03/YY 04/XX; START on the alternate = 'XX' then four READ NEXTs -> 01/XX(02), 02/XX(02), 04/XX(00), 03/YY(00) — the three duplicates in release order followed by the next greater alternate key, with the GR27a '02' look-ahead correct. PROBED AGAIN with the release order DELIBERATELY out of prime order (probe/p4x-dup: 04/XX, 01/XX, 02/XX written in that order) -> the walk returns 04, 01, 02, proving the connector follows GR26 release order rather than prime-key order. CONFORMS-but-untested. || EDITIONS AS ADJUDICATED: 2014/2023 identical (Annex E.2 item 22 amends d.3 only). ALTERNATE RECORD KEY WITH DUPLICATES is core surface 1985-2023.",
-  "state": "GAP"
+  "notes": "GR21 rule f.1 over GR26 release order: the records are released OUT of prime order so the duplicate walk 03,01,02 then 04/YY measures release order rather than assuming it.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-L4.2",
@@ -36602,10 +36602,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadSequential; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Ordered",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_alt_dup_walk",
   "editions": "2014,2023",
-  "notes": "RULE (GR21, indexed rule f.2): PREVIOUS over a duplicate-permitting alternate key delivers 'the record within the set of duplicates that is immediately before the record that was made available by that prior READ statement; Otherwise, the last record within the set of duplicates, if any, whose key value is ... less than the key of reference value.' (The transcription of f.2 is visibly garbled in the printed standard — 'is made available.' appears mid-sentence and the trailing clause reads 'whose key value is the first key value is less than' — but the intent is unambiguous and exactly mirrors f.1.) CODE: ReadSequential's reverse arm walks Ordered(_refKey) from the end and takes the first entry with `PositionCompare < 0`, i.e. the greatest (key, arrival) pair below the file position indicator: the immediately preceding duplicate when one exists, otherwise the LAST record of the greatest smaller key. That is f.2's two branches with no special-casing. PROBED (probe/p4x-idx case F): after walking forward to 04/XX (the third duplicate, arrival 4), READ PREVIOUS -> 02/XX, READ PREVIOUS -> 01/XX, READ PREVIOUS -> ATEND FS=10 (no record with an alternate key below 'XX'). The GR27b '02' look-ahead on the reverse walk is also correct (02 on 02/XX, 00 on 01/XX). CONFORMS-but-untested. || EDITIONS AS ADJUDICATED: 2014/2023 identical (Annex E.2 item 22 amends d.3 only). PREVIOUS is Annex A.3 item 39, Claimed in docs/CONFORMANCE.md §2 row 39; 2002+ surface.",
-  "state": "GAP"
+  "notes": "GR21 rule f.2 both branches: B2 is the 'otherwise' arm (the LAST record of the smaller key's duplicate set), B3/B4 the immediately-preceding duplicate in reverse release order.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-L4.3",
@@ -36654,10 +36654,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#ReadSequential; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadSequential",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_at_end_transfer; conformance:2023/l1_read_at_end_ec",
   "editions": "85,2002,2014,2023",
-  "notes": "Rule text validated (cite.py --check 14.9.30.4 \"the EC-I-O-AT-END exception condition is set to exist\" => OK 24); --check \"Any other applicable exception processing statements are not executed\" => OK 24)). All four sub-rules verified by reading, in the order the rule prescribes. a) status '10': SequentialConnector.Read / RelativeConnector.ReadSequential / IndexedConnector.ReadSequential each return FileStatusCode.AtEnd on exhaustion, and the emitters store it (EmitStoreFileStatus) BEFORE anything else in the failure arm; the EC half is set in the generated __IoCheckEc BEFORE the phrase short-circuit (`if (__en) ExceptionState.SetIo(...)` precedes `if (__atEnd && __st[0]=='1') return -1;`), so EC-I-O-AT-END exists even when AT END is written — ExceptionCatalog.IoEcOfStatus maps '1' => EC-I-O-AT-END, which also covers the GR21-rule-d '14' at-end. b) FPI: RelativeConnector and IndexedConnector set `_fpiValid = false` on the at-end return, SequentialConnector sets LastReadUnsuccessful; every subsequent sequential READ is then unsuccessful, which is the observable of 'no next or previous logical record exists'. c) AT END phrase: both emitters pass `atEndHandled: rd.AtEnd is not null`, and BOTH generated hooks (__IoCheck and __IoCheckEc) return before any declarative/EC dispatch on a '1x' status — 'any other applicable exception processing statements are not executed'; the imperative is then run under `if (status[0]=='1')` and falls through to the end of the READ. d) no AT END phrase: atEndHandled is false (NOT AT END alone does NOT set it — it is a different phrase), so the F1 file-scope, F1 open-mode-scope, F3 and outward-GLOBAL USE tiers run, else control falls to the end of the statement. Partial spec-derived coverage of a)+c) on the sequential organization exists at conformance-test:SequentialFileIoSpecTests.OptionalSequential_OpenIoAbsent_Creates05_ThenFirstReadIsAtEnd10 (asserts 'ATEND FS=10' and that NOT AT END is not taken); b) and d) have no spec-derived test — the citing UseDeclarativeDifferentialTests are legacy-baked (see dossier_gaps) — so test-ref is left empty. CROSS-PART DEPENDENCY: GR21 rule d makes the relative significant-digit overflow an at-end condition with status '14', which contradicts GR24 a)'s flat '10'; COBOL.NET reports '14'. That tension is GR21's to adjudicate (part 2), not GR24's. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023 for a)–d); the 'and, if enabled, the EC-I-O-AT-END exception condition is set to exist' clause of a) is the 2002 exception-condition mechanism (2002 · 2014 · 2023). Annex E records no change (E.2 item 22 touches GR21 d.3 only).",
-  "state": "GAP"
+  "notes": "Two goldens, each pinning a different half of GR24. l1_read_at_end_transfer pins a)'s STATUS conjunct ('10' on every at-end line), c) (the AT END phrase suppresses the USE AFTER STANDARD ERROR declarative — A2-ATEND=10 with no DF= line) and d) (with no AT END phrase the declarative runs — DG=10), with the '46' read as the live-declarative positive control. l1_read_at_end_ec pins a)'s EC conjunct ('and, if enabled, the EC-I-O-AT-END exception condition is set to exist') by reading FUNCTION EXCEPTION-STATUS (§15.33.1) inside the AT END imperative — the ONLY evidence for that conjunct anywhere, which is why it is named here rather than left as an unattached manifest entry.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-25",
@@ -36667,10 +36667,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#LastSlot; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RelativeSlot",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_relative_key_moved",
   "editions": "85,2002,2014,2023",
-  "notes": "Rule text validated (cite.py --check 14.9.30.4 \"moves the relative record number of the record made available to the relative key data item\" => OK 25)). Every conjunct checked. 'For a relative file': guarded by `file.Organization == FileOrganization.Relative`. 'if the RELATIVE KEY clause is specified': guarded by `file.RelativeKeyItem is { } rk && refs.ResolveItem(rk) is { } rkPlace` — a relative file without the clause (legal under ACCESS SEQUENTIAL, §12.4.5.13) emits no store. FORMAT scope: GR25 sits under the FORMAT 1 heading (rules 19–27), and the emitter restricts the store to `rd.Kind != KeyedReadKind.Random` — the Format-2 random read correctly does NOT write back (GR29 makes the key item the SOURCE there, not the target). 'of the record MADE AVAILABLE': the store is inside `if (__kst[0]=='0')`, so an unsuccessful READ leaves the key item untouched, and RelativeConnector._lastSlot is assigned only on the successful path of ReadSequential/ReadRandom. 'according to the rules for the MOVE statement': ArithmeticEmitter.StoreArith into the typed RELATIVE KEY field with CobolRounding.Truncation — the canonical numeric MOVE store; the receiver is an unsigned integer by §12.4.5.13 SR2 (enforced at bind, COBOLNET0863), and GR21 rule d has already turned a too-wide RRN into '14' + at end, so the truncating store never silently loses digits on a successful read. No spec-derived test: the citing KeyedIoDifferentialTests are legacy-baked, and no tests/conformance golden declares a RELATIVE KEY together with a Format-1 read-back. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "The key item is clobbered to 9999 before every read, so 0001/0002/0003 can only be GR25's store, and the at-end read must leave 9999 ('the record MADE AVAILABLE').",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-26",
@@ -36693,10 +36693,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadSequential",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_alt_dup_walk",
   "editions": "85,2002,2014,2023",
-  "notes": "Rule text validated (cite.py --check 14.9.30.4 \"the alternate record key in the record that follows the record that was successfully read duplicates\" => OK 27)). All four conjuncts are enforced at the one site: 'the execution … is successful' (the '02' is only assigned on the found path, and ReadSucceeded carries it); 'an indexed file is being SEQUENTIALLY accessed' (the look-ahead lives in ReadSequential only — ReadRandom never sets '02', correctly, since GR27 is a FORMAT 1 rule); 'the key of reference is an ALTERNATE record key' (`if (_refKey >= 0)` — the prime key is −1 and is excluded); and the adjacency test picks `seq[foundIdx+1]` for NEXT (a) and `seq[foundIdx-1]` for PREVIOUS (b) over `Ordered(_refKey)`, comparing with KeyEq, i.e. under that key's §12.4.5.7 collating sequence per §12.4.5.12.4 GR1 rather than ordinally. Ordered() excludes SUPPRESS WHEN records, which is right: §12.4.5.6.4 GR6 makes a suppressed record 'not considered to exist' under that key, so it is neither the neighbour nor a duplicate. NOTE 7/NOTE 8 impose no requirement. Empirically confirmed by the GR26 probe (scratchpad/lane3/out-b1/probe/gr26-altorder): the walk on the duplicated alternate key printed FS=02 for the record that has a following duplicate and FS=00 for the last one. No spec-derived test exists — tests/conformance/2023/altkey_suppress_when.cob walks an alternate key but asserts no status, and the only '02'-on-READ assertion in the tree (CobolSharp.Tests.Integration/FileIOTests.FileIO_FileStatus02_DuplicateAlternateKey) targets the LEGACY engine and asserts '02' on a PRIME-key-of-reference read, which GR27 forbids — see dossier_gaps. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023 for a); b) rides READ PREVIOUS (a 2002 introduction; Annex A.3 item 39), so 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "GR27 a) and b) on one duplicate set: 02,02,00,00 forward and 00,02,02,00 reverse; the '00' lines pin the negative half that an unconditional '02' would break.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-28",
@@ -36732,10 +36732,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadRandom",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_key_of_reference",
   "editions": "85,2002,2014,2023",
-  "notes": "Rule text validated (cite.py --check 14.9.30.4 \"data-name-1 or record-key-name-1 is established as the key of reference for this retrieval\" => OK 30)). First half: KeyedIoBinder.BindRead resolves the KEY operand through RecordLayout.KeyIndexByPosition (by STORAGE POSITION, per §12.4.5.12 GR4, so a REDEFINES or a duplicate name still resolves) into `BoundKeyedRead.KeyIndex`; the emitter passes it to FileReadKeyed, and IndexedConnector.ReadRandom assigns `_refKey = keyIndex` as its FIRST act — established for THIS retrieval, before any lookup. Second half ('If the dynamic access mode is specified … also used for retrievals by any subsequent executions of sequential format READ statements … until a different key of reference is established'): `_refKey` is connector state, and ReadSequential reads it (`Ordered(_refKey)` plus the (key, arrival) PositionCompare), so a following `READ f NEXT` under ACCESS DYNAMIC walks in the established key's order from the FPI the random read left. The only other writers of `_refKey` are OpenCore (§14.9.27 GR14 — prime), Start (§14.9.41 GR16) and a later Format-2 READ — exactly the 'until a different key of reference is established' set. Setting `_refKey` even on an unsuccessful retrieval is within licence: GR18 makes the key of reference undefined after an unsuccessful READ. NO spec-derived test exists — there is no `READ … KEY IS` anywhere in the greenfield suites (tests/Cobol.Net.Tests.*) or in tests/conformance/**. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "READ ... KEY IS the alternate, then READ NEXT walks in alternate order (01/DD, not 03/BB); prime and alternate orders are exact opposites in this file. First READ ... KEY IS in the corpus.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-31",
@@ -36745,10 +36745,10 @@
   "subject": "READ statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#ReadRandom",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_read_key_of_reference",
   "editions": "85,2002,2014,2023",
-  "notes": "Rule text validated (cite.py --check 14.9.30.4 \"the prime record key is established as the key of reference for this retrieval\" => OK 31)). KeyedIoBinder.BindRead initializes `int keyIndex = -1;   // the prime record key (GR31) … when no KEY phrase` and only overwrites it inside `if (r.readKey()?.dataReference() is { } keyRef)`, so an absent KEY phrase reaches IndexedConnector.ReadRandom with −1, which KeyOf/KeyCompare/IsSuppressed all read as the PRIME key (`keyIndex < 0 ? (_primeOff, _primeLen) : …`; IsSuppressed returns false for the prime key, correctly — §12.4.5.6.4 GR6 scopes suppression to alternate keys). The persistence half is the same `_refKey` state as GR30, so a bare `READ f` under ACCESS DYNAMIC followed by `READ f NEXT` walks in PRIME-key order. An explicitly written KEY phrase naming the RECORD KEY resolves to the same −1 through KeyIndexByPosition, so the two rules agree on that overlap rather than disagreeing. No spec-derived test isolates GR31 from GR30 (no `READ … KEY IS` case exists at all). || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "The alternate is established FIRST so the bare random READ's prime-key establishment is observable: the following READ NEXT gives 02/CC where an unchanged alternate key of reference would give at end '10'.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.30.4-32",
@@ -36953,10 +36953,10 @@
   "subject": "RELEASE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindIoControl; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/Cobol.Net.Runtime/IO/CobolSort.cs#Release",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_release_same_record_area",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE (`--check 14.9.32.4 \"The logical record released by the execution of the RELEASE statement is no longer available in the record area unless the sort-merge file-name associated with record-name-1 is specified in a SAME RECORD AREA clause.\"` => OK 14.9.32.4 3). BOTH SENTENCES VERIFIED. Sentence 1: the emitter never clears the record area, so after a RELEASE the content survives. That is a CONFORMANT REFINEMENT, not a divergence: 'no longer available' states that a conforming program may not rely on the content, it does not prescribe a value, so no conforming program can distinguish retention from any other realization -- the same posture the inventory already records for GR-14.9.3.4-8's 'undefined' half. Probe out-b1/probe/base/base.cob prints `AFTER-REL-SRTREC=[CCCccccc]` immediately after `RELEASE SRT-REC FROM WS-SEND`. Sentence 2 (WITH the clause, the record stays available AND is available as a record of the other files named in the same SAME RECORD AREA clause) is realized structurally: DataBinder.BindIoControl (DataBinder.cs:1104-1127) makes every further file's first 01 REDEFINE the anchor file's 01, one shared area. Probe out-b1/probe/gr3sra/gr3sra.cob declares `SAME RECORD AREA FOR SRTF OUTF.` over `SD SRTF / 01 SRT-REC` and `FD OUTF / 01 OUT-REC`, and after `RELEASE SRT-REC` prints `SRT-REC-AFTER=[AAAaaaaa]` AND `OUT-REC-AFTER=[AAAaaaaa]` -- the record available both in its own area and as the other file's record, then returned correctly by the output procedure. NO SPEC-DERIVED TEST covers the SAME RECORD AREA leg (grep of tests/ finds no case combining SAME RECORD AREA with RELEASE), so this row is CONFORMS-but-untested and stays a GAP. EDITIONS: Annex E lists no substantive change to 14.9.32; the rule is edition-neutral in its own text.",
-  "state": "GAP"
+  "notes": "SAME RECORD AREA FOR SRTF OUTF: after RELEASE, SRT-REC still reads the released bytes (GR3 sentence 1's 'unless' branch) and OUT-REC reads the same bytes (sentence 2, leftmost-aligned per 12.4.6.4.4 GR2); the sorted RETURN order proves the release was real.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.32.4-4",
@@ -36979,10 +36979,10 @@
   "subject": "RELEASE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindIoControl",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_release_from_sender_available",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE (`--check 14.9.32.4 \"After the execution of the RELEASE statement is complete, the information in the area referenced by identifier-1 is available\"` => OK 14.9.32.4 5) -- 'even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause'. WHAT THE CODE DOES: EmitRelease touches identifier-1 only as the SENDING operand of the implicit MOVE; nothing in the RELEASE path writes to it, and CobolSort.Release takes an immutable string copy of the record image, so no aliasing can reach back into identifier-1. BOTH HALVES PROBED, out-b1/probe/base/base.cob: after `RELEASE SRT-REC FROM WS-SEND` the program prints `AFTER-REL-WSSEND=[CCCccccc]` (identifier-1 intact -- the rule's requirement) and `AFTER-REL-SRTREC=[CCCccccc]` (record-name-1 also retained, the conformant refinement of 'not available' discussed on GR-14.9.32.4-3); with SAME RECORD AREA the retention is REQUIRED and is delivered (out-b1/probe/gr3sra/gr3sra.cob). NO SPEC-DERIVED TEST asserts identifier-1's post-RELEASE availability -- SortMergeDifferentialTests.Release_From_EquivalentToMoveThenRelease reuses WS-BUF but never DISPLAYs it after the release -- so this row is CONFORMS-but-untested and stays a GAP. EDITIONS: Annex E lists no substantive change to 14.9.32; the rule is edition-neutral in its own text.",
-  "state": "GAP"
+  "notes": "RELEASE SRT-REC FROM WS-SEND then DISPLAY WS-SEND, twice inside the input procedure and once after the SORT: identifier-1's area is available exactly as GR5 requires; the ascending RETURN order pins GR4's implicit MOVE.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.32.4-6",
@@ -40320,10 +40320,10 @@
   "subject": "START statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/Cobol.Net.Runtime/IO/FileRegistry.cs#StartRelative; src/Cobol.Net.Runtime/IO/FileRegistry.cs#StartIndexed; src/Cobol.Net.Runtime/IO/FileRegistry.cs#StartFirstLast; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Start; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Start",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_start_no_record_locks",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE (cite.py --check 14.9.41.4 OK, GR3): 'The execution of the START statement does not detect, acquire, or release record locks.' STRUCTURE: the grammar's startStatement (Core/CobolIO.g4:547) carries no recordLockPhrase and no retryPhrase (the general format 14.9.41.2 has none), and BindStart never calls fileLock — so no lock intent can even be expressed. The three runtime entry points FileRegistry.StartRelative / StartIndexed / StartFirstLast call the connector DIRECTLY and bypass the governed wrappers (ReadShared / WriteShared / RewriteShared / DeleteShared) where the whole lock discipline lives (ApplyReadLockDiscipline, PhysicalFileTable.ReleaseAllForConnector, PhysicalFileTable.LockRecord, IsLockedByOther). RelativeConnector.Start/StartFirstLast/StartAt/StartFail and IndexedConnector.Start/StartFirstLast/StartFail touch no lock state. This is exactly the shape 12.4.5.9.4 GR6 demands (cite.py --check 12.4.5.9.4 OK: 'Execution of any I-O statement except START releases any previously locked record in that file for that file connector'), and FileRegistry.cs:593 already cites it. OBSERVED (probe/lock-start/STPRB5.cob, STPRB6.cob, two connectors on one physical indexed file, LOCK MODE AUTOMATIC + SHARING WITH ALL OTHER): FA READ 'BBB200' -> '00' (auto-lock); FB READ 'BBB200' -> '51'; FA START KEY > 'BBB200' -> '00'; FB READ 'BBB200' -> STILL '51' (the START did NOT RELEASE); FB READ 'CCC300' (the record the START positioned at) -> '00' (the START did NOT ACQUIRE). STPRB6: FB START KEY = 'BBB200' on a record locked by FA -> '00', not '51' (the START did NOT DETECT). SEQUENTIAL-ORGANIZATION ARM: START on sequential organization is not implemented at all (see GR20/GR21), so no lock code can run there either; a prohibition cannot be violated by an absent statement, which is why this stays CONFORMS rather than PARTIAL. EDITIONS: the rule carries no Annex E entry (unchanged from 2014); at COBOL-85 the record-locking facility it constrains does not exist, so the rule is vacuously satisfied there.",
-  "state": "GAP"
+  "notes": "Two connectors on one indexed file with SHARING ALL OTHER + LOCK MODE AUTOMATIC: a START neither releases the holder's lock (the blocked read stays '51'), nor acquires one on the record it positioned at ('00'), nor detects one ('00' where the same connector's READ was refused '51').",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.41.4-4",
@@ -40411,10 +40411,10 @@
   "subject": "START statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Start",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_start_relative_key_item",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE: \"The comparison described in General rule 9 uses the data item referenced by the RELATIVE KEY clause in the file control entry associated with file-name-1.\" (cite.py --check 14.9.41.4 \"The comparison described in General rule 9 uses the data item referenced by the RELATIVE KEY clause\" -> OK §14.9.41.4 10)). CODE: BindStart's relative arm rejects any operand that is not `file.RelativeKeyItem` (COBOLNET0862, §14.9.41.3 SR5) and, when the KEY phrase is absent, defaults `operand ??= file.RelativeKeyItem`; so BOTH spellings resolve to the one RELATIVE KEY item. EmitStart then renders it as `(long)(Align(FieldNum(operand),0))` — a typed read of that item, not of the record area. §12.4.5.13 SR2's unsigned-integer requirement is enforced in KeyedIoBinder.KeyedValidateFile, so the scale-0 alignment is lossless. MEASURED (probe start-p2-c, relative DYNAMIC, records at RRN 3/7/9): `MOVE 5 TO RK` + `START RLF KEY IS GREATER THAN RK` -> READ NEXT gives R007/RRN 7; `MOVE 7 TO RK` + bare `START RLF` -> R007. Both are the value of the RELATIVE KEY item, not of the record area (the record area held XXXX/other content throughout). NO SPEC-DERIVED TEST: KeyedIoDifferentialTests.Relative_StartKeyGreaterOrEqual_PositionsThenWalks is a legacy differential (DifferentialGolden.Assert) and does not close the row — test-needed. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023 — no edition marker; Annex E lists no START change.",
-  "state": "GAP"
+  "notes": "On a relative file sparse at RRN 3/7/9, START KEY > with the RELATIVE KEY item holding 5 positions at 0007 (GR9a), the KEY phrase OMITTED with the item holding 7 positions at 0007 (GR8 defaults to the same item), and the same relation with the item holding 9 is INVALID KEY '23' - S1 and S3 differ only in that item's content.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.41.4-11",
@@ -40424,10 +40424,10 @@
   "subject": "START statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/RelativeConnector.cs#StartFirstLast; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#StartFail; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_start_first_last_relative",
   "editions": "2014,2023",
-  "notes": "RULE: \"If FIRST is specified, the file position indicator is set to the relative record number of the first existing logical record in the file. If no records exist in the file, the invalid key condition exists and the execution of the START statement is unsuccessful.\" (cite.py --check 14.9.41.4 \"If FIRST is specified, the file position indicator is set to the relative record number of the first existing logical record in the file.\" -> OK §14.9.41.4 11)). CODE: `_slots` is a SortedDictionary<long,string> (RelativeConnector.cs:38), so `_slots.Keys.Min()` is the lowest EXISTING RRN — correct on a sparse file, where a naive 'RRN 1' would be wrong; `OptionalAbsent || _slots.Count == 0` routes to StartFail, which sets '23' (FileStatus.cs:76 RecordNotFound) and clears _fpiValid (GR7). MEASURED (probe start-p2-c, records at RRN 3/7/9): `START RLF FIRST` -> FS=00 and the following READ NEXT delivers R003/RRN 0003 — the LOWEST EXISTING record, not RRN 1. Empty file: `START RLF FIRST` -> INVALID KEY taken, FS=23. No spec-derived covering test (no conformance golden and no unit test exercises START FIRST semantics; EditionGateDiagnosticTests L161-L180 pins only the COBOLNET0900 edition gate) — test-needed. || EDITIONS AS ADJUDICATED: 2014 / 2023 established from the spec (Annex E lists no START change from 2014, and §14.9.41 carries no edition marker). The FIRST phrase is absent from COBOL-85's START; this transcription does not date its introduction, so the 1985-vs-2002 boundary is NOT derivable from the spec text — treat the pre-2014 band as unestablished here.",
-  "state": "GAP"
+  "notes": "On a relative file sparse at RRN 3/7/9, START FIRST positions at 0003 - the first EXISTING record, not RRN 1 - and on a file with no records takes INVALID KEY with '23'.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.41.4-12",
@@ -40437,10 +40437,10 @@
   "subject": "START statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/RelativeConnector.cs#StartFirstLast; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#StartFail",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_start_first_last_relative",
   "editions": "2014,2023",
-  "notes": "RULE: \"If LAST is specified, the file position indicator is set to the relative record number of the last existing logical record in the file. If no records exist in the file, the invalid key condition exists and the execution of the START statement is unsuccessful.\" (cite.py --check 14.9.41.4 \"If LAST is specified, the file position indicator is set to the relative record number of the last existing logical record in the file.\" -> OK §14.9.41.4 12)). CODE: `StartAt(last ? _slots.Keys.Max() : _slots.Keys.Min())` over the SortedDictionary — the highest EXISTING RRN, correct on a sparse file; empty/absent-optional -> StartFail '23'. MEASURED (probe start-p2-c, records at RRN 3/7/9): `START RLF LAST` -> FS=00, READ NEXT gives R009/RRN 0009. Empty file -> INVALID KEY, FS=23. NOTE the relative arm is CORRECT where the INDEXED arm of the same phrase is not: RelativeConnector.StartFirstLast has no key-of-reference to reset, so the GR18/GR19 defect (see the findings) does not reach it. No spec-derived covering test — test-needed. || EDITIONS AS ADJUDICATED: 2014 / 2023 established from the spec (Annex E lists no START change from 2014). The LAST phrase is absent from COBOL-85's START; the transcription does not date its introduction.",
-  "state": "GAP"
+  "notes": "On the same sparse file START LAST positions at 0009 - the last EXISTING record, not the record count - and on a file with no records takes INVALID KEY with '23'.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.41.4-13",
@@ -40528,10 +40528,10 @@
   "subject": "START statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Start; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#StartFail; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitInvalid",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_start_indexed_invalid_key",
   "editions": "85,2002,2014,2023",
-  "notes": "RULE (cite.py --check 14.9.41.4 OK, GR17 e) 2.): 'If the comparison is not satisfied by any record in the file, the invalid key condition exists and the execution of the START statement is unsuccessful.' IMPLEMENTATION: IndexedConnector.Start ends `if (found is null) return StartFail();` and StartFail sets Status='23', _fpiValid=false, LastReadUnsuccessful=true — the invalid key condition (9.1.13.5 item 3, the only family whose statuses 9.1.14 admits) plus the GR7 consequence, after which EmitInvalid routes the '2x' status to the INVALID KEY imperative. Three distinct 'not satisfied' shapes all land on the same StartFail: no record satisfies the relation, the file is empty, and every candidate is filtered out by SUPPRESS WHEN (Ordered returns an empty list). OBSERVED: probe/idx-start/STPRB3 step N — 'KEY = ZZZ999' over AAA100/BBB200/CCC300 -> INVALID KEY taken, FS='23'; step O — the following READ NEXT gives '46', confirming the execution was unsuccessful in the 9.1.13.7 6a sense. probe/empty-start/STPRBC — 'KEY >= AA' on an indexed file with zero records -> INVALID KEY, FS='23'. NO CLOSING TEST: neither conformance:2002/file_collating_seq nor conformance:2023/altkey_suppress_when reaches its INVALID KEY arm (both STARTs succeed), and the KeyedOffsetSpecTests START cases both succeed too. CONFORMS-but-untested.",
-  "state": "GAP"
+  "notes": "An indexed START whose comparison no record satisfies, and one on an empty indexed file, both take INVALID KEY and set '23' (9.1.13.5 by elimination); the following sequential READ is '46' (GR7 + 9.1.13.7 6a). A satisfiable START is the control.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.41.4-18",
@@ -41763,10 +41763,10 @@
   "subject": "USE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1-use-format1-names-sort-file; conformance:negative/l1-use-format3-names-sort-file",
   "editions": "85,2002,2014,2023",
-  "notes": "BOTH named operands are covered, in two separate sites, and both were probed. Format 1 (file-name-1): DeclBindUse checks `file.IsSortMerge` after FilesByName resolution -> COBOLNET0897 'USE may not name the sort/merge file (ISO 14.9.49 SR2)'. Probe SR2SORT.cob (`USE AFTER STANDARD ERROR PROCEDURE ON SF.` with `SD SF.`) -> COBOLNET0897 at the declarative's line, correct. Format 3 (file-name-2): DeclBindUseF3 repeats the same check inside the FILE loop -> COBOLNET0897 citing 14.9.49.3 SR2. Probe F3SORT.cob (`USE AFTER EXCEPTION CONDITION EC-I-O FILE SF.`) -> COBOLNET0897, correct. Both arms of the two-arm dispatch were exercised. No spec-derived test exists (no test in tests/ asserts COBOLNET0897) -- CONFORMS-but-untested. || EDITIONS AS ADJUDICATED: 1985, 2002, 2014, 2023 (the file-name-2 half from 2002, with Format 3)",
-  "state": "GAP"
+  "notes": "One rejecting witness per named operand: Format 1's file-name-1 (all four editions) and Format 3's FILE file-name-2 (2002+), each naming an SD file and each pinning the SR2 message text.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-3",
@@ -41801,11 +41801,11 @@
   "ordinal": 5,
   "subject": "USE statement",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3",
-  "test-ref": "",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitDispatchSelector",
+  "test-ref": "conformance:2023/l1_use_mixed_org_access; conformance:2023/l1_use_mixed_org_format3",
   "editions": "85,2002,2014,2023",
-  "notes": "A relaxation: the compiler must NOT restrict, and it does not. No organization or access-mode predicate appears on any USE operand path in either format's binder -- the F1 file list only screens IsSortMerge (SR2), and the F3 FILE loop the same. Both the EXPLICIT and the IMPLICIT half of the rule were probed. Explicit, Format 1: SR5MIX.cob `USE AFTER STANDARD ERROR PROCEDURE ON F1 F2.` with F1 ORGANIZATION SEQUENTIAL and F2 ORGANIZATION INDEXED ACCESS DYNAMIC -> compiles clean. Explicit, Format 3: SR5F3.cob `USE AFTER EC EC-I-O FILE F1 FILE F2.` over the same mixed pair -> compiles clean. Implicit (a mode-scoped USE, which references its files only implicitly): sr5run.cob `USE AFTER STANDARD ERROR PROCEDURE ON INPUT.` with a failing `OPEN INPUT` of BOTH a sequential and an indexed file printed `HANDLER 35` twice then `DONE` -- the one declarative served both organizations and both access modes. CONFORMS-but-untested (no spec-derived test). || EDITIONS AS ADJUDICATED: 1985, 2002, 2014, 2023 (the Format 3 half from 2002)",
-  "state": "GAP"
+  "notes": "All FOUR arms of 'implicitly or explicitly ... FORMATS 1 AND 3': a Format 1 file list, a Format 1 mode scope, a Format 3 FILE list (GR3 d)), and a Format 3 bare exception-name (GR3 f)) serving the same mixed pair - each declarative serving a SEQUENTIAL/SEQUENTIAL and an INDEXED/DYNAMIC file.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-6",
@@ -41815,10 +41815,10 @@
   "subject": "USE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_use_error_exception_synonym",
   "editions": "85,2002,2014,2023",
-  "notes": "The grammar writes the two words as one alternation, `(EXCEPTION | ERROR)`, with no downstream test on which was written -- DeclBindUse never reads either token, so the two spellings cannot diverge by construction. Verified beyond the grammar, since 'synonymous' is a behavioural claim: probe sr5run.cob (`... STANDARD ERROR PROCEDURE ON INPUT`) and sr6run.cob (the same program with `... STANDARD EXCEPTION PROCEDURE ON INPUT`) produce byte-identical output, `HANDLER 35 / HANDLER 35 / DONE`. Interchangeability in the other direction was exercised too: SR6MIX.cob writes ERROR in one declarative section and EXCEPTION in another of the same program and compiles clean. CONFORMS-but-untested (no spec-derived test).",
-  "state": "GAP"
+  "notes": "Two Format 1 declaratives identical in everything but the word ERROR / EXCEPTION, over identically declared files provoked by the identical CLOSE-42: both fire and both report 42, inside the handler and after it.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-7",
@@ -41828,10 +41828,10 @@
   "subject": "USE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1-use-input-phrase-twice; conformance:2023/l1_use_four_mode_phrases",
   "editions": "85,2002,2014,2023",
-  "notes": "`_declScopedModes` (a HashSet<int> keyed on the runtime FileOpenMode ordinal) is added to once per mode-scoped USE; a repeat raises COBOLNET0897 '... this open mode already has a USE procedure in this source element (ISO 14.9.49 SR7)'. Probe SR7DUP.cob (two declarative sections, both `... PROCEDURE ON INPUT.`) -> COBOLNET0897 on the second, correct; SR5MIX.cob shows a file-scoped and a mode-scoped USE coexisting, so the check is not over-broad. The scope wording was checked too, since 'of a given procedure division' is the load-bearing phrase and the diagnostic text says 'source element': `_declScopedModes` is a field of ProcedureTableBuilder, which is per-unit on BinderContext.Table, and DECLARATIVES in a method procedure division are rejected outright (DiagnosticCatalog.OoMethodDeclaratives), so per-unit and per-procedure-division coincide. Probed the crossing that would break it: nest.cob, an outer program and a CONTAINED program each with their own `USE AFTER STANDARD ERROR PROCEDURE ON INPUT.`, compiles clean and both handlers fire (OUTER-HANDLER 35 / INNER-HANDLER 35) -- no cross-division leak. CONFORMS-but-untested.",
-  "state": "GAP"
+  "notes": "Both directions of 'each ... only once': a duplicated INPUT phrase is rejected at all four editions, and all four phrases each written once are accepted with each firing its own handler - the drift test for the four distinct open-mode scopes.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-8",
@@ -41932,10 +41932,10 @@
   "subject": "USE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#EO",
-  "test-ref": "",
+  "test-ref": "conformance:2002/oo_ec_raise_object",
   "editions": "2002,2014,2023",
-  "notes": "The grammar writes `USE AFTER (EXCEPTION OBJECT | EO) cobolWord` -- one alternation -- and DeclBindUse dispatches on `use.OBJECT() is not null || use.EO() is not null`, i.e. the two spellings enter the identical Format-4 path and no later code reads which was written. Verified behaviourally, since 'synonymous' is a behavioural claim: probes cls.cob (`USE AFTER EXCEPTION OBJECT CF4A.`) and eo.cob (`USE AFTER EO CF4A.`), identical but for the spelling, both compile and both print `HANDLER / DONE` when the class object is raised -- the EO form selects the same declarative. CONFORMS-but-untested: no test in tests/ writes the EO spelling (grep for 'AFTER EO' returns nothing), so the synonym half of the alternation has no covering test.",
-  "state": "GAP"
+  "notes": "Already covered: oo_ec_raise_object.cob writes USE AFTER EO CERR1 (line 20) alongside USE AFTER EXCEPTION OBJECT COTH1 (line 16) and its .out shows the EO-spelled declarative selected by the GR14 class match.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-16",
@@ -46573,10 +46573,10 @@
   "subject": "MODULE-NAME function",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Control/ProgramTable.cs#RunMain; src/Cobol.Net.Runtime/Control/ProgramTable.cs#CallProgram; src/Cobol.Net.Runtime/Control/ProgramTable.cs#OutermostName; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#programIdParagraph",
-  "test-ref": "",
+  "test-ref": "conformance:2023/pb36_module_name_invoke_activation; conformance:2023/pb63_module_name_lengths",
   "editions": "2023",
-  "notes": "TRIAGE RE-VERDICT 2026-08-09 (backlog campaign): the recorded divergence no longer reproduces on the current tree - probed with variations by the triage prober and independently re-probed by an adversarial refuter (both executed CLI probes, not code reading). Evidence: rxg1 `F-CUR=[RXG1FN]` (a FUNCTION-ID element names itself), `P-CUR=[RXG1]`; rxg2 `FA-CUR=[RXGA]`, `O-CUR=[RXGA]`, `I-CUR=[RXGA]`, `I-ACT=[OUTER]` (a METHOD reported by its METHOD-ID when it is the ACTIVATOR). docs/CONFOR [\"the FUNCTION-ID element kind (rxg1), which the row's own documented sentence names and which no prior probe on this row measured.\", \"a FACTORY method and an INHERITED instance method (rxg2): an RXGB instance running RX Attribution: kb/Work/PB36.md (status: landed) -- the 2026-08-05 MODULE-NAME landing that added the docs/CONFORMANCE.md A.1 row (mis-filed as 213 and corrected to 135 on 2026-08-08 by the audit's number/element cross-check recorded at CONFORMANCE.md lines 308-309) PRIOR (PARTIAL): Verdict SUSTAINED, with the adjudicator's citation REPLACED because the one it ran was degenerate: `cite.py --check 11.10.2 \"AS\"` matches a two-letter substring of almost anything and proves nothing. Re-checked against the printed general format line itself, which does carry `[ AS literal-1 ]` with ",
-  "state": "GAP"
+  "notes": "§15.65.4 r4 - the returned form is the *-ID paragraph name, the first form r4 permits and the one docs/CONFORMANCE.md DOC-A.1-135 documents: pb36 pins PROGRAM-ID (P-CUR/C-CUR), FUNCTION-ID (F-CUR=[PB36MNFN]), METHOD-ID (D-ACT=[SHOW]) and CLASS-ID (I-CUR) verbatim, never an operating-environment spelling. The §11.10.2 AS-phrase gap is kb/Work PB303's §11.10 defect, not r4's.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.65.4-5",
@@ -47483,10 +47483,10 @@
   "subject": "RANDOM function",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#_random",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_random_unseeded_first_reference",
   "editions": "85,2002,2014,2023",
-  "notes": "DETERMINATION MADE 2026-08-09 under the owner's standing follow-GnuCOBOL-on-latitude rule, closing the NEEDS-OWNER-DECISION: the SS15.75.3 r4 implementor-defined unseeded seed is per-process OS entropy (xoshiro256**), deliberately NOT reproducible across runs. SURVEYED, not assumed: GnuCOBOL 3.x cob_intr_random seeds its first unseeded reference from get_seconds_past_midnight() * (module-pointer bits) - the same per-process-entropy choice - and IBM documents the unseeded seed as unpredictable, so the vendors do not split. Recorded in docs/CONFORMANCE.md SS7 item 144 (VOLUNTARY row - A.1-144 waives documenting the seed VALUE, and there is none). A.1 item 144's 'specify' obligation is thereby satisfied; reproducibility is available via an explicit FUNCTION RANDOM(seed) first reference per r3/r5. Prior record: BARE QUESTION: shall the §15.75.3 rule-4 implementor-defined seed be a FIXED value, so an un-seeded FUNCTION RANDOM sequence is reproducible across runs, or stay the current per-process entropy seed? Why this is not CONFORMS: the field initializer is `private static Random _random = new()`, and on .NET 6+ the PARAMETERLESS Random constructor seeds xoshiro256** directly from OS entropy — there is n",
-  "state": "GAP"
+  "notes": "§15.75.3 r4 - the run unit's FIRST reference omits argument-1, so the implementor's seed applies: the value is in §15.75.4 r1's codomain, r5's next number continues that sequence, and an explicit RANDOM(7) then REPLACES it and reproduces per r3 + §15.75.4 r2. The seed VALUE stays unpinned (DOC-A.1-144: per-process OS entropy).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.75.3-5",
@@ -53177,10 +53177,10 @@
   "subject": "ACCEPT statement (device used when FROM is unspecified)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-2; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#AcceptInputDevices; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice",
-  "test-ref": "",
+  "test-ref": "conformance-test:AcceptDifferentialTests.Device_ShortLine_StoresLeftAlignedSpaceFilled",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "§14.9.1.4 GR5 - the FROM-omitted device is the process standard input (docs/CONFORMANCE.md DOC-A.1-2); the test pipes \"ABC\" to stdin, ACCEPTs with NO FROM phrase and asserts the GR4a left-aligned store, which only standard input can produce. A .cob/.out golden cannot witness it: the corpus runner passes no stdin and AcceptSource.Device returns spaces at EOF.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-3",
@@ -53397,10 +53397,10 @@
   "ordinal": 19,
   "subject": "CANCEL statement (result of canceling a non-COBOL program)",
   "verdict": "CONFORMS",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-19; src/Cobol.Net.Runtime/Control/ProgramTable.cs#CancelNode",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-19; src/Cobol.Net.Runtime/Control/ProgramTable.cs#Cancel; src/Cobol.Net.Runtime/Control/ProgramTable.cs#CancelNode",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "§14.9.5.4 GR10's branch is UNREACHABLE from COBOL source in this implementation, so the row stays a GAP and this record deliberately carries NO test-ref. GR10's premise is a program the runtime system LOCATED per GR2 (§8.4.6/§8.4.6.3); ProgramTable.Cancel resolves every target with probe:false and returns on a null node, so CANCEL performs no locate step that could reach a sibling module and the named module's LANGUAGE is never consulted — a foreign module name and a nonexistent name take the byte-identical not-located path. No CALL-CONVENTION directive exists (§7.3.9), so a non-COBOL program cannot be declared either. A corpus golden therefore cannot exercise this determination: any such program's output is invariant under it. What is observable — GR3 re-initialization and GR7's never-called/not-located/already-canceled no-ops with its control-transfer sentence — is already pinned by conformance:2023/pb154_cancel_scope and conformance:2023/pb154_cancel_cascade and belongs to items 18/other GR rows, not to item 19. Closing item 19 needs an owner decision: re-file the row as an unreachable-branch determination, or add a harness that deploys a companion non-COBOL module and drives ProgramTable.Cancel directly (a unit: ref).",
   "state": "GAP"
  },
  {
@@ -53436,11 +53436,11 @@
   "ordinal": 22,
   "subject": "CHAR-NATIONAL function (which one of the multiple characters is returned)",
   "verdict": "CONFORMS",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-22; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#CharNational; src/Cobol.Net.Runtime/Values/Text/NationalCollation.cs#CharAt",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-22; src/Cobol.Net.Runtime/Values/Text/LocaleCollation.cs#CharAt; src/Cobol.Net.Runtime/Values/Text/NationalCollation.cs#CharAt; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#CharNational",
+  "test-ref": "conformance:2002/l1_char_national_locale_tie; conformance:2002/l1_char_national_also_positions",
+  "editions": "2002,2014,2023",
+  "notes": "A.1 item 22 is §15.16.4 r2's SECOND sentence - the branch where the order of several characters sharing an ordinal position is UNDEFINED. The row documented the FIRST sentence (the ALSO order, which §12.3.7.4 GR7 k)6 decides for the implementor) until 2026-09-03, so no golden could close it: l1_char_national_also_positions says in its own header that it does not. The undefined-order branch is reached through ALPHABET ... FOR NATIONAL IS LOCALE, whose sequence is an algorithm rather than a written order; l1_char_national_locale_tie reads position 1 (the completely-ignorable rank) twice and gets 000001 both times - the LOWEST-CODED member of the rank (LocaleCollation.OrderVector.FirstOfRank, materialized once per collator), which is r2's third sentence measured as well as its second.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-23",
@@ -53775,10 +53775,10 @@
   "subject": "Default endianness specifications (for standard floating-point usages)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-48; src/Cobol.Net.Compiler/Binding/OptionsModel.cs#FloatEndianness; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth",
-  "test-ref": "",
+  "test-ref": "conformance:2023/pb174_float_item_endianness_default; conformance:2023/pb174_float_item_endianness; conformance:negative/pb174-float-decimal-encoding-nonsupport",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "§11.9.8.3 SR1's implied phrase measured by the D leg of pb174_float_item_endianness_default (no OPTIONS paragraph, no item endianness-phrase -> D=[64 1] = big-endian), with pb164_float_hor_image as the specified-clause mirror (SR3) and pb174_float_item_endianness as the item-beats-OPTIONS arm; §11.9.9.3 SR6 never arises (COBOLNET1564 non-support). l1_float_binary_default_endianness is optional strengthening landed alongside — it adds the FLOAT-BINARY-64 default leg and a COMP-1 control under the same implied phrase — and is not required for this verdict.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-49",
@@ -53892,10 +53892,10 @@
   "subject": "DISPLAY statement (format for display of a variable-length group)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-57; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum",
-  "test-ref": "",
+  "test-ref": "conformance:2023/pb164_vlg_display",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "§14.9.11.4 GR7's implementor format measured at TWO extents (G1/G2) with the §15.50.4 r7 LENGTH sum beside it (L1/L2) and the sanctioned national divergence visible in the difference.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-58",
@@ -53905,10 +53905,10 @@
   "subject": "DISPLAY statement (size of data transfer)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-58; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_display_transfer_size",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "§14.9.11.4 GR2's transfer size measured as unbounded: a 2,000-position operand (an ALL-literal fill under §8.3.3.6.4 GR2, the fixed-length-association arm) emitted as ONE line — GR5 a) would fold it — plus GR6's FIVE-operand sending item on one line. Residue: GR2's obligation is 'for each device' and only the no-UPON standard display device is measured. ⛔ The docs/CONFORMANCE.md row-58 cell must be corrected in the same change set: it says 'GR3's device-accommodates arm', but GR3 is the figurative-constant rule and the device-accommodates arm is GR4.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-59",
@@ -53918,10 +53918,10 @@
   "subject": "DISPLAY statement (standard display device)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-59; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#DisplayOutputDevices; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplayUpon; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_display_standard_device; conformance:negative/l1-display-upon-input-only-device",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "§14.9.11.4 GR8's standard display device = standard output, with CONSOLE/SYSOUT on it and SYSERR demonstrably off it (its line is absent from the golden), and §14.9.11.3 SR2's input-only complement rejected at all four editions.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-60",
@@ -54282,10 +54282,10 @@
   "subject": "FORMATTED-CURRENT-DATE (accuracy of returned time)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-87; src/Cobol.Net.Runtime/Control/RunUnit.cs#Clock",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_formatted_current_date_accuracy; unit:CobolDateAccuracyTests.FormattedCurrentDate_PinnedClock_ClockTickThenZeros",
   "editions": "",
-  "notes": "EVIDENCE RE-FILED 2026-09-02, AND THE ROW LEFT OPEN. The batch first cited CobolDateWindowingTests.SecondsPastMidnight_PinnedClock_ExactTicks, which is item 171's test (§15.80.3 r3, SECONDS-PAST-MIDNIGHT) and never touches FORMATTED-CURRENT-DATE — one test about item 171 was closing both 171 and 87, the kb/Work A11 misfiling one layer down, in the EVIDENCE rather than in the determination. The only method in the tests tree that calls CobolDate.FormattedCurrentDate is NowFunctions_OnePinnedClock_OneInstant (§15.38.4 r1), and IT DOES NOT VERIFY THIS DETERMINATION EITHER: it pins the format \"·ss.ss\" — TWO fraction digits (.81 of a clock instant .8124791) — while the §7 determination claims the clock tick, SEVEN significant digits then zeros up to the §15.3.3.2 maximum of 18. Digits 3-7 and the zero tail are pinned by nothing. A test that does not verify the determination cannot close its row, so this row is recorded CONFORMS-but-UNTESTED with an EMPTY test-ref and its §7 `Pinned by` cell is likewise empty: it STAYS A GAP until a golden renders a long fraction field from a pinned clock. (Orchestrator decision, 2026-09-02, over the implementer's close.)",
-  "state": "GAP"
+  "notes": "§15.38.4 r2's accuracy measured as the pair the row's 2026-09-02 note demanded: the unit test renders the 18-digit fraction field from a PINNED clock (tick then zeros, at widths 7/9/18), the golden renders the same field on an unpinned clock and pins the zero tail and the exact 44-position length.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-88",
@@ -54750,10 +54750,10 @@
   "subject": "Native arithmetic (techniques used, intermediate data item)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-123; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#Widen",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_native_arithmetic_intermediate; conformance:2023/l1_native_arith_lane_and_rounding; conformance:2002/pb125_factorial_native_size",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "§8.8.1.3 / §14.7.7 r4a: the scaled-Int128 intermediate measured exact at the r2a 31-digit composite boundary and in scale, at its ~1.7e38 ceiling from both sides (pb125), on the binary64 lane switch at 2^53+1, and on §14.7.7 r3 NOTE 1's single rounding at the final transfer.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-124",
@@ -55023,10 +55023,10 @@
   "subject": "RANDOM function (seed value when no argument on first reference)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-144; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_random_seed_determination",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "The first reference in the run unit omits argument-1 (the §15.75.3 r4 branch) and its value satisfies §15.75.4 r1; re-seeding reproduces per r3 + rv-r2. The seed VALUE is not asserted - A.1 item 144 does not require it documented.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-145",
@@ -55205,10 +55205,10 @@
   "subject": "Reference format (rightmost character position of program-text area)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-158; src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#IsFixedForm",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_margin_r_program_text_area",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "Margin R pinned from both sides in a forced fixed-form file: an output-producing statement at column 73 is ignored, and a statement whose period is the 72nd character compiles (§6.3.1).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-159",
@@ -55595,10 +55595,10 @@
   "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, UCS-4, UTF-8, and UTF-16 phrases (correspondence with native character set)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-188; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#CodedCharacterSet",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_alphabet_ucs4_utf8_utf16_correspondence",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "SYMBOLIC CHARACTERS FOR NATIONAL ... IN <UTF-16|UCS-4|UTF-8> read back through FUNCTION ORD (§12.3.7.4 GR11 c + GR6): identity on the BMP, and UCS-4/UTF-8 ordinal 55297 = U+E000 because surrogates are not scalar values (GR7 f/g).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-189",
@@ -55777,10 +55777,10 @@
   "subject": "Time formats and corresponding function values (maximum precision not less than nine fractional digits)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-202; src/Cobol.Net.Compiler/Binding/DateTimeFormatGrammar.cs#MaxFractionDigits",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_time_fraction_max_digits",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "Nine fraction digits accepted (§15.3.3.2's floor) and eighteen accepted (the determination); conformance:negative/l1-time-fraction-past-max rejects nineteen with COBOLNET1631, pinning the maximum at exactly 18.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-203",
@@ -55816,10 +55816,10 @@
   "subject": "USAGE BINARY clause (computer storage allocation, alignment and representation of data)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-205; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_usage_binary_storage",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "The 1/2/4/8/16 ladder checked against GR4's 'sufficient storage' floor at every tier, alignment none, and the two's-complement big-endian image of -1234 (X\"FB2E\") read byte by byte.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-206",
@@ -55842,10 +55842,10 @@
   "subject": "USAGE BINARY-SHORT, BINARY-LONG, BINARY-DOUBLE, FLOAT-SHORT, FLOAT-LONG, FLOAT-EXTENDED (representation and length of da",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-207; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_usage_fixed_width_lengths",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "GR21's signed==unsigned length requirement asserted on all four fixed-width binary usages, GR13's nesting probed at the binary32 and binary64 integer boundaries, and the big-endian IEEE image of 1.5 read byte by byte.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-208",
@@ -55867,11 +55867,11 @@
   "ordinal": 209,
   "subject": "USAGE DISPLAY (size and representation of characters)",
   "verdict": "CONFORMS",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-209; src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#BitLayout",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-209; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth",
+  "test-ref": "conformance:2023/l1_usage_display_character_size",
+  "editions": "85,2002,2014,2023",
+  "notes": "A.1 item 209 is USAGE DISPLAY (§13.18.60.4 GR7); the row carried the USAGE BIT determination (GR5 + §8.5.1.6.3) under its number until 2026-09-03, when it was re-filed and the BIT determination moved to §3 (A.1 has no USAGE BIT item at all - 208 COMPUTATIONAL runs straight to 209 DISPLAY). All three GR7 obligations are measured, not asserted: uniform size (UNI=1 5 9 over X(1)/X(5)/X(9)), the constraint against the national size (LEQN=1 2), the character-boundary alignment that generates no filler (ALIGN=5), the position/byte identity (POS=5 5), and the numeric-DISPLAY sign grid (NUM=5 5 6).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-210",
@@ -55894,10 +55894,10 @@
   "subject": "USAGE INDEX clause (alignment and representation of data)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-211; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth",
-  "test-ref": "",
+  "test-ref": "conformance:2023/pb164_index_group_image",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "Existing golden already pins GR10 whole: occurrence-number correspondence (SET/relation round trip), the 8-byte big-endian occurrence image (ORD reads of bytes 4 and 11) and no alignment filler (X(11) = 3 + 8).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-212",
@@ -55946,10 +55946,10 @@
   "subject": "USAGE PACKED-DECIMAL clause (computer storage allocation, alignment and representation of data)",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-215; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_usage_packed_decimal_storage",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "GR11's nibble representation measured, not assumed: BCD two digits per byte most significant first, sign nibble D/C/F, WITH NO SIGN reserving none, and the d/2+1 vs ceil(d/2) widths with the 3-digit tie as control.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-216",

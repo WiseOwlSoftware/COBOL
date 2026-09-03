@@ -39,8 +39,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   refused APPLY COMMIT; the CLASS clause §13.18.11 joins the declined VALIDATE family with one grammar
   alternative, one descriptor sentence, one selector arm, one witness, no new code; `PB382` opened for the
   reserved-word funnel COBOLNET0901 reaching only the words `dataName` admits); ③ lane 3 batch 2 from its on-disk
-  checkpoints, then its registrar, then batch 3 (inputs and pinned compiler ready); ④ golden-lane round 2 from its
-  drafts (61 CONFORMS-untested rows), then its validator and lander; ⑤ the ledger refresh after each. Owner-decision
+  checkpoints, then its registrar, then batch 3 (inputs and pinned compiler ready); ④ ✅ **DONE 2026-09-03 —
+  golden-lane round 2 landed, GAP 3106 → 3054** (49 witnesses across six writer slugs — 44 positive, 5 negative —
+  closing 52 rows; two drafts held OUT of the tree as suspected compiler defects, and the CONFORMS-but-untested
+  band is now **9 rows**, of which 8 are the unobservable class `PB386` puts to the owner and the ninth is `PB383`; 7 `PARTIAL` rows
+  remain in `PB370`. New `PB383` (BOOLEAN-OF-INTEGER's length guard answers `"0"` where the register documents a
+  zero-length value), `PB384` LANDED (three A.1 determinations re-filed and the audit's correspondence check made
+  relative), `PB385` (105 transcription sub-items at column 0, so `cite.py` labels each with its predecessor's
+  letter), `PB386` (owner: the closure path for a rule with no observable obligation); `PB303`'s `inventory_rows`
+  corrected); ⑤ the ledger refresh after each. Owner-decision
   queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts).
   The CI flake `Collation.CollationKeyCacheTests.ConcurrentCallers_GetOneKeyPerText_AndNeverAWrongOne` (3 of 8
   Linux unit runs, A12 shape) is `PB377`, LANDED 2026-09-03 — `MaxEntries` was not a bound (a try-once eviction

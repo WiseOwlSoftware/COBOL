@@ -66,7 +66,7 @@ def clauses(text: str) -> set[str]:
     return set(re.findall(r'\b(\d+(?:\.\d+)+)\b', text))
 
 
-def corresponds(element: str, entry: dict) -> bool:
+def corresponds(element: str, entry: dict, register: dict[int, dict] | None = None) -> bool:
     """Does a §7 row name the A.1 item it is filed under?
 
     ⚠ THE CLAUSE IS THE IDENTITY, not the prose. The first draft of this check compared WORDS only, and
@@ -75,10 +75,30 @@ def corresponds(element: str, entry: dict) -> bool:
     representation, …)") — the register's own preamble says its headers are a *paraphrase* of the normative
     detail, so demanding lexical overlap with a paraphrase is demanding the wrong thing. A row that cites a
     clause A.1 cross-references for that item is naming that item, whatever words it chose.
+
+    ⛔ AND THE OVERLAP IS RELATIVE, not absolute — the lesson of DOC-A.1-209. That row carried the **USAGE
+    BIT** determination under item 209 (**USAGE DISPLAY**) and this check printed `ok` for it from the day it
+    landed, because a bare "≥ 2 shared words" threshold cannot separate siblings inside one A.1 family: the
+    row shared `usage` + `representation` with item 209 and that was the whole test. Words like those are
+    near-universal in A.1's own headers (`character` 26, `value` 23, `representation` 16, `usage` 14 subjects
+    each), so an absolute threshold measures vocabulary, not identity — and a green check that never looked
+    at what it was checking is what let a misfiled determination ship, and then propagated the wrong item
+    number into a landed golden's comment.
+
+    So the row must fit the item it is filed under **at least as well as it fits every other A.1 item**. No
+    tuned constant: the misfiling scored 2 against item 209 and 3 against each of 205/208/210/211/215, which
+    is the finding. Measured 2026-09-03 over all 47 §7 rows — every correctly filed row is a best (or tied)
+    match for its own item, so the rule adds no noise, and it generalizes: any future determination whose
+    prose fits some other A.1 element better than its own number is flagged without an edit here.
     """
     if clauses(element) & clauses(entry['text']):
         return True
-    return len(words(element) & words(entry['subject'])) >= 2
+    mine = len(words(element) & words(entry['subject']))
+    if mine < 2:
+        return False
+    if register is None:
+        return True
+    return not any(len(words(element) & words(e['subject'])) > mine for e in register.values())
 
 
 def load_register() -> dict[int, dict]:
@@ -161,6 +181,14 @@ def self_test() -> int:
         ('a wrong item number is caught',
          '| DOC-A.1-87 | **Maximum digit positions in the decimal fraction of the seconds subfield**, '
          '§15.3.3.2 | det | — |',
+         'do not correspond'),
+        # ⛔ THE MISFILING THAT SHIPPED, replayed verbatim (landed under item 209 until 2026-09-03). It shares
+        # TWO words with its own item — `usage`, `representation` — so the old absolute "≥ 2 shared words"
+        # threshold printed `ok` for it. It shares THREE with items 205/208/210/211/215, and that is the
+        # finding: a row must fit its own item at least as well as it fits any other.
+        ('a SIBLING-FAMILY misfiling (2 shared words, another item fits better) is caught',
+         '| DOC-A.1-209 | **USAGE BIT clause — alignment and representation of data**, §13.18.60.4 GR5 + '
+         '§8.5.1.6.3 | det | — |',
          'do not correspond'),
         ('an item number outside A.1 is caught',
          '| DOC-A.1-999 | Something, §14.9.1 | det | — |', 'not an A.1 item number'),
@@ -288,7 +316,7 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
                 continue
             numbered[n] = element
             pinned.setdefault(n, []).extend(pins_of(pins))
-            if not corresponds(element, register[n]):
+            if not corresponds(element, register[n], register):
                 findings.append(
                     f'§7 item {n} says "{element[:70]}" but A.1-{n} is "{register[n]["subject"][:70]}" — the '
                     f'NUMBER and the ELEMENT do not correspond, and neither do their clauses')
@@ -470,7 +498,7 @@ def main(argv: list[str]) -> int:
         # ⚠ MORE THAN ONE ROW PER ITEM IS LEGITIMATE, not a finding. One A.1 element can need several
         # determinations (A.1-92 needs one for a function result's text image and one for evaluation under a
         # floating-point argument). The first draft failed on the duplicate and was simply wrong.
-        mark = 'ok' if corresponds(element, register[n]) else '⛔'
+        mark = 'ok' if corresponds(element, register[n], register) else '⛔'
         print(f'  {mark} {key:<5} {register[n]["subject"][:74]}'
               + ('   (2nd determination)' if n in seen else ''))
         seen.add(n)

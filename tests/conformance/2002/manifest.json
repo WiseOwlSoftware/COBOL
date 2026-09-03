@@ -163,7 +163,8 @@
     "l1_day_to_yyyyddd_format",
     "l1_windowing_omitted_arg3",
     "pb142_retry_open_sharing",
-    "pb144_indexed_delete_record"
+    "pb144_indexed_delete_record",
+    "l1_char_national_locale_tie"
   ],
   "pending": []
 }
