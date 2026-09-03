@@ -107,24 +107,37 @@ rather than under `docs/`, because its reader is the battery, not a person.
 > **A DOC row closes exactly as every other row does**: its own anchor, at least one site matching
 > `kinds.DOC.implementation-pattern` (`^src/Cobol\.Net\.` — the same greenfield predicate `audit_annex_a1.py`'s
 > source sweep applies), and a spec-derived `test-ref`. ⛔ There is **no policy arm**: a row whose only location
-> is its §7 anchor stays a GAP, because closing it would widen §1(a) above, and the owner's completion metric is
-> not an agent's to redefine (the bare question is `kb/Work/PB280` Q2). The §7 row's machine-readable **`Pinned
-> by`** cell names the same spec-derived test(s), and `audit_annex_a1.py` holds the two in agreement — the
-> determination and its evidence are one artifact, which is the half the computed anchor does not cover.
+> is its §7 anchor stays a GAP. **The owner answered that question `no` on 2026-09-02 (`kb/Work/PB280` Q2)** —
+> §1(a) is not widened — on the ground that the claim such an arm would rest on is unfalsifiable: greenfield
+> source cites just **13 of the 222** items in `implementor item N` comments, so for the other 209 "there is
+> nothing in the compiler to observe" would be contradicted by nothing *and confirmed by nothing*
+> (`feedback_verdict_evidence_invariant`). An item with genuinely nothing to observe is discharged by an
+> explicit owner decline per item, or stays open. The §7 row's machine-readable **`Pinned by`** cell names the
+> same spec-derived test(s), and `audit_annex_a1.py` holds the two in agreement — the determination and its
+> evidence are one artifact, which is the half the computed anchor does not cover.
 >
-> ⚠ **The anchor is owed by the verdicts that CLAIM a determination, and by no others.** CONFORMS, PARTIAL and
-> DIVERGES each assert something about what §7 says. `DOCUMENTED-NON-SUPPORT` asserts the opposite — the
-> conditioning facility is not implemented — and A.1's own preamble then withdraws the item ("the item is not
-> required if the optional or processor-dependent feature is not implemented"), so there is no determination to
-> anchor and nothing implemented to observe. `kinds.DOC.anchor-exempt-verdicts` names those verdicts as DATA,
-> read by one predicate per language (`Schema.anchor_obliged` / `AnchorObliged`), and `audit_annex_a1.py`
-> derives the withdrawn ITEMS from the same `derived-verdicts` selectors (`unreachable_items`, emitted as
-> `--json`'s `unreachable`) so the writer, the drift gate, the register gate and the REMAINING counter answer
-> alike. Such a row still owes its module's **witness**, which is what keeps it a GAP (§8.1). ⛔ This was found
-> only by landing the A.1 lane and the derived-verdict lane onto one tree (2026-09-02): the A.1 lane wrote the
-> anchor rule where every DOC row was a determination, the derived lane then stamped four DOC rows (84, 85, 173,
-> 86) `DOCUMENTED-NON-SUPPORT`, and the writer refused the whole batch. Giving those rows an anchor would have
-> claimed a §7 row that does not, and should not, exist.
+> ⚠ **The anchor is owed by the rows with a determination to point at — and the REGISTER decides which those
+> are, not the verdict.** CONFORMS, PARTIAL and DIVERGES each assert something about what §7 says, so each owes
+> its own row unconditionally. `DOCUMENTED-NON-SUPPORT` has **two grounds on a DOC row**, and they differ exactly
+> here:
+>
+> | ground | §7 row | anchor | how it closes |
+> |---|---|---|---|
+> | the conditioning facility is not implemented, so A.1's preamble **withdraws** the item ("the item is not required if the optional or processor-dependent feature is not implemented") | must **not** exist | not owed | its module's **witness** alone (items 84, 85, 173, 86) |
+> | the element is **optional and not provided** — `kb/Work/PB280` Q1, owner, 2026-09-02 | **exists**: stating the non-provision *is* the determination | owed, like CONFORMS | anchor + a site + a witness (items 127, 206) |
+>
+> `kinds.DOC.anchor-exempt-verdicts` therefore names the verdicts that **may** be exempt, and one predicate per
+> language (`Schema.anchor_obliged` / `AnchorObliged`) asks the register, over one parser per language
+> (`inventory_schema.section7_rows` / `tests/_shared/ConformanceRegister.cs`). `audit_annex_a1.py` applies the
+> same test — the DNS selectors' rows *minus the ones §7 documents* (`unreachable_items`, emitted as `--json`'s
+> `unreachable`) — so the writer, the drift gate, the register gate and the REMAINING counter answer alike.
+> ⛔ The first half was found only by landing the A.1 lane and the derived-verdict lane onto one tree
+> (2026-09-02): the A.1 lane wrote the anchor rule where every DOC row was a determination, the derived lane then
+> stamped four DOC rows `DOCUMENTED-NON-SUPPORT`, and the writer refused the whole batch. ⛔ The second half was
+> wrong from the moment PB280 Q1 was answered, and silently: keyed on the verdict, items 127 and 206 would have
+> been excused their own determination, `check_pins` would have stopped holding their witness in agreement with
+> §7's `Pinned by` at the moment the witness landed, and the audit would have printed "⊘ CANNOT ARISE" about an
+> element this register documents in full — dropping REMAINING by two for no work done.
 
 ## 5. Execution model — two concurrent lanes, five row-shape lanes (owner decision PB278, 2026-09-01)
 
@@ -148,7 +161,7 @@ worktree` pinned at a commit and writes verdict batch files; the fix lane edits 
 | **Derived verdict** | rules made unreachable by an A.4 module the owner has declared *Not claimed* (`CONFORMANCE.md` §5) | one `derived-verdicts` selector per module in `inventory-schema.json` (DATA — the PB198 mechanism) + one witness negative test per module | the selector + the witness; the drift test holds the population |
 | **Adjudication** | never-adjudicated rules (3,361) | `phase_b_batch.py` batches of ≤20 rules per agent, **dossier-fed** (§5.2), refuters read only the CONFORMS / DNS candidates | a verified verdict; CONFORMS rows then go to the golden lane, defective rows to `kb/Work/` |
 | **Fix** | defective rows (PARTIAL / NOT-IMPLEMENTED / DIVERGES) via their `kb/Work` notes | clusters by MECHANISM, not by note; the proven loop (implementer → self-review → fleet → director → lander) with the fleet sized in §5.3 | the fix + golden + re-verdict in one change set; one comprehensive battery per cluster batch |
-| **A.1 documentation** | Annex A.1 DOC rows (222; 37 now carry a verdict, 39 §7 determinations exist) | the schema's `kinds.DOC` defines what a DOC row costs (§4); then batches by statement family | a §7 determination as `code-location` + a witness golden as `test-ref` — **except** a DOC row an A.4 module the owner declined has withdrawn, which belongs to the **Derived verdict** lane instead and closes on that module's witness alone (A.1's preamble makes the item not required, so there is no determination to file: `kinds.DOC.anchor-exempt-verdicts`, §8.1; four rows — items 84, 85, 173, 86 — as of 2026-09-02) |
+| **A.1 documentation** | Annex A.1 DOC rows (222; 49 now carry a verdict, 45 §7 determinations exist) | the schema's `kinds.DOC` defines what a DOC row costs (§4); then batches by statement family | a §7 determination as `code-location` + a witness golden as `test-ref` — **except** a DOC row an A.4 module the owner declined has **withdrawn**, which belongs to the **Derived verdict** lane instead and closes on that module's witness alone (A.1's preamble makes the item not required, so there is no determination to file: §4, §8.1; four rows — items 84, 85, 173, 86 — as of 2026-09-02). ⚠ A DOC row the derived lane stamps because the element is **optional and not provided** (PB280 Q1) is NOT that case: it has a determination, so it stays on this lane's evidence rules in full (items 127, 206) |
 
 **Batch order in the adjudication lane** alternates a *defect-rich* batch — §14 statement groups, grouped by
 mechanism (the I/O statements together, the string statements together) so the notes it produces already cluster —
@@ -290,6 +303,15 @@ module conditions becomes unreachable *at once*, and there is nothing left to de
 Recording that by hand produced the failure kb/Work PB198 measured: sixteen rules on one question carrying **four
 different verdicts** — NOT-IMPLEMENTED (9), blank (2), NEEDS-OWNER-DECISION (4) and CONFORMS (1).
 
+**Two shapes qualify, and the second one is newer than the mechanism's own description of itself.** Until
+2026-09-02 "the decision makes the rules unreachable" was written down as if it were the definition; PB280 Q1 is
+the counter-example. Its rows are perfectly **reachable** — an A.1 documentation obligation for an element a user
+can write today — and what is common to all of them is the **adjudication**: the owner answered, once, a question
+each of up to 30 rows asks in the same words ("an A.1-OPTIONAL element §7 records as *Not provided.* closes as
+DOCUMENTED-NON-SUPPORT"). A selector of the second shape wants reading twice as carefully, because its rows are
+live surface; the protection is that its arms turn on **what the owner wrote** — the requirement class the
+standard states and the determination this repository filed — never on an agent's reading of a rule's text.
+
 So the module's scope is written **once, as DATA**, in `inventory-schema.json` under `derived-verdicts`, and
 **both engines read it**: `DerivedSelector` in `scripts/spec/inventory_schema.py` (driven by
 `scripts/spec/derive_verdict_batch.py`, which emits the batch) and `DerivedVerdictDriftTests.Select` (which holds
@@ -309,6 +331,8 @@ missed:
 | both, as an AND-gate | a term that is STATEMENT-LOCAL (`file-name-1` means the FD's own subject in §13.4.5.4) or an OPERAND NAME (§12.3.7's `data-name-1` IS the CURSOR operand) | A.4.13, A.4.2 |
 | `xref-sections` + `kinds` | an Annex A.1 documentation obligation citing a declined clause, keyed on the same clause numbers as the clause arm | A.4.8, A.4.14 |
 | `excludes-kinds`, per arm | a general format (kind FMT) is evidence about a CLAUSE, never one of its formats | A.4.2, A.4.3 |
+| `requirement` | the A.1 **requirement class the standard itself states** ("This item is optional."), carried on the catalog row — A.1's preamble writes its licences per class | PB280 Q1 |
+| `determination-prefix` | what **`docs/CONFORMANCE.md` §7 says** about the element, read off the register row keyed by the rule's own id — which is exactly the anchor `kinds.DOC.anchor-template` computes | PB280 Q1 |
 
 Two properties belong to the **matcher**, not to any selector, because a convention each author must remember is
 a convention one author will forget. Clause prefixes match **component-wise** — §13.18.30 is not inside §13.18.3,
@@ -316,6 +340,25 @@ and a raw `StartsWith` had the screen selector taking 543 rules instead of 156, 
 non-support. And the text is **hyphen-normalised** before matching, because 29 catalog rules spell an operand name
 with U+2011 where the rest use ASCII `-`, which silently *under*-selects — the direction that leaves the drift
 test green.
+
+⛔ **`determination-prefix` is the first arm field that reads an artifact outside the catalog, and it has to be:
+a DOC row's implementation IS its determination.** Three consequences, each load-bearing. The §7 table therefore
+has **one parser per language** — `inventory_schema.section7_rows` and `tests/_shared/ConformanceRegister.cs` —
+because three readers now need it (the register audit, `anchor_obliged`, this arm). An item with **no** §7 row is
+never selected: a missing determination is not a negative one. And the match is on the cell's **opening** words
+with markdown emphasis stripped, never `contains` — item 127's determination discusses what is *not* provided
+three sentences into its body, and the opening words are the register's answer to A.1's question.
+
+⛔ **AND NEITHER OF THOSE TWO AXES IS FALSIFIABLE AGAINST TODAY'S DOCUMENT.** All 30 A.1-optional items and all
+47 §7 rows agree — the only "Not provided." determinations are on optional items, and the only optional items
+with a determination say "Not provided." — so a predicate that had dropped `requirement` altogether, or matched
+*any* determination, selects the same two rows and leaves `DerivedVerdictDriftTests` green. That is precisely the
+shape `feedback_green_gates_arent_evidence` names, so each axis is driven against a **fabricated** catalog and a
+**fabricated** register by `python scripts/spec/derive_verdict_batch.py --self-test`, which
+`TheSelectorEngine_ProvesEveryAxisCanFail` shells every build and which asserts the **case names**, because a
+shrinking self-test still exits 0. The axis that most needs it is `requirement`: a **required** item whose §7 row
+said "Not provided." is a conformance *defect*, and stamping it DOCUMENTED-NON-SUPPORT would document
+non-conformance as if the owner had licensed it.
 
 **Three properties keep a derived verdict honest, and they are what distinguish it from a shortcut:**
 
@@ -328,7 +371,8 @@ test green.
 3. **It does not close the row.** DOCUMENTED-NON-SUPPORT resolves, but §1(c) still demands a spec-derived test
    proving the documented posture is what *actually happens* — and for a declined module that is the module's
    **witness**: a negative case showing the construct is refused, by name. The 2026-09-02 A.4 landing stamped
-   **308 rows** and moved the GAP by **zero**, which is the correct and expected outcome.
+   **308 rows** and moved the GAP by **zero**, which is the correct and expected outcome; the PB280 Q1 landing
+   stamped **2** and moved it by zero for the same reason (their witness debt is `kb/Work/PB373`).
 
 **What a selector cannot reach is recorded, not silently dropped** (`feedback_measure_the_selectors_complement`).
 The standard also scopes rules by the printed **FORMAT band**, and the catalog does not carry it —

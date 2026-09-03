@@ -36,12 +36,12 @@
     "CONFORMS": {
       "resolves": true,
       "requires": ["code-location"],
-      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP. On a kind-DOC row the 'implementation' read is the DETERMINATION: docs/CONFORMANCE.md §7 states what this implementor-defined element does, and the compiler does it. ⚠ A determination that READS negative is still CONFORMS where the not-providing is itself the implementor's answer to A.1's question — item 206 answers 'exactly the GR12 minimum range' and item 127 answers 'one object computer, any computer-name'. DOCUMENTED-NON-SUPPORT is for a declined FACILITY, and it is an OWNER decision; ⛔ whether a 'Not provided.' determination on an A.1-OPTIONAL item closes as CONFORMS or as DOCUMENTED-NON-SUPPORT is an OPEN owner question (kb/Work PB280 Q1) and no agent may answer it — one answer settles ~30 items."
+      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP. On a kind-DOC row the 'implementation' read is the DETERMINATION: docs/CONFORMANCE.md §7 states what this implementor-defined element does, and the compiler does it. ⚠ A determination that READS negative is still CONFORMS where the not-providing is itself the implementor's answer to A.1's question AND the item is one the standard REQUIRES. ⛔ Where the item is OPTIONAL and the determination opens 'Not provided.', the verdict is DOCUMENTED-NON-SUPPORT — owner decision, kb/Work PB280 Q1, 2026-09-02, applied as the `a1-optional-not-provided` derived selector rather than row by row (items 127 and 206 today, up to 30 as the register fills). The question was open here until then and no agent was permitted to answer it."
     },
     "DOCUMENTED-NON-SUPPORT": {
       "resolves": true,
       "requires": ["notes"],
-      "meaning": "An OWNER decision (never an agent's) that a language element is not supported, and is DOCUMENTED as unsupported. Three grounds, not one: ISO 4.2.16 (the conformance claim itself), 4.2.7 for an OPTIONAL element ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support'), and 4.2.6 for a PROCESSOR-DEPENDENT one ('The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation'). The 4.2.16-only wording was too narrow and was widened 2026-08-31: the verdict already carried processor-dependent declines and rules whose stated range no host can satisfy, neither of which is an optional module. The notes field carries the decision reference; closing still needs a test proving we diagnose (or, where the departure is a reported VALUE rather than a rejected construct, that the documented behaviour is what actually happens) rather than silently miscompile. On a kind-DOC row it means the CONDITIONING FACILITY is not implemented, so Annex A.1's own provision precondition is unmet and there is no element left to document ('When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented' — A.1 preamble). Items 13 and 15 — the rules for forming and locating a non-COBOL program name — are the shape, once the owner records that the §4.2.3 interaction is unclaimed."
+      "meaning": "An OWNER decision (never an agent's) that a language element is not supported, and is DOCUMENTED as unsupported. Three grounds, not one: ISO 4.2.16 (the conformance claim itself), 4.2.7 for an OPTIONAL element ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support'), and 4.2.6 for a PROCESSOR-DEPENDENT one ('The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation'). The 4.2.16-only wording was too narrow and was widened 2026-08-31: the verdict already carried processor-dependent declines and rules whose stated range no host can satisfy, neither of which is an optional module. The notes field carries the decision reference; closing still needs a test proving we diagnose (or, where the departure is a reported VALUE rather than a rejected construct, that the documented behaviour is what actually happens) rather than silently miscompile. ⛔ ON A KIND-DOC ROW IT HAS TWO GROUNDS, AND THEY DIFFER IN WHETHER §7 CARRIES A ROW — which is why `anchor-exempt-verdicts` is not read on the verdict alone (see `kinds`). (a) The CONDITIONING FACILITY is not implemented, so A.1's provision precondition is unmet and the item is WITHDRAWN — there is no element left to document ('When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented' — A.1 preamble); §7 carries NO row (items 84, 85, 173, 86), and items 13 and 15 — forming and locating a non-COBOL program name — are the next of the shape, once the owner records that the §4.2.3 interaction is unclaimed. (b) The item is OPTIONAL and the ELEMENT is not provided (kb/Work PB280 Q1, owner 2026-09-02): A.1's preamble conditions the documentation duty on provision ('Documentation required: If the element is provided by the implementor …'), §4.2.7 obliges us to identify what we claim, and §7 DOES carry the row, because stating the non-provision is the determination. Such a row is anchored, and its witness must prove the documented posture is what actually happens."
     },
     "DIVERGES": {
       "resolves": false,
@@ -79,13 +79,21 @@
       "aspiration. Three of the six A.4 refuters found it independently. The evaluator now lives in",
       "inventory_schema.py and both engines call it.",
       "",
-      "⛔ A derived verdict is NOT a shortcut past adjudication. It applies only where a single decision makes",
-      "an entire rule unreachable, so there is nothing left to adjudicate PER ROW — and the drift test then holds",
-      "every selected row at that verdict, which is what stops the population drifting back into five states.",
+      "⛔ A derived verdict is NOT a shortcut past adjudication. It applies only where a single decision leaves",
+      "nothing to adjudicate PER ROW — and the drift test then holds every selected row at that verdict, which is",
+      "what stops the population drifting back into five states. Two shapes qualify, and it took the second one",
+      "landing (2026-09-02) to notice that the first had been written down as if it were the definition:",
+      "  · the decision makes an entire rule UNREACHABLE — the seven A.4 module declines; or",
+      "  · the decision answers, once, a question every row of a CLASS asks in the same words — kb/Work PB280 Q1",
+      "    ('a §7 determination of \"Not provided.\" on an A.1-OPTIONAL item closes as DOCUMENTED-NON-SUPPORT'),",
+      "    where the rules are perfectly reachable and it is the ADJUDICATION that is common to all of them.",
+      "A selector of the second shape must be read twice as carefully, because its rows are live surface: the",
+      "protection is that its arms turn on what the OWNER wrote (the requirement class the standard states, and",
+      "the determination this repository filed), never on an agent's reading of a rule's text.",
       "",
       "⛔ AND IT IS NOT A SHORTCUT PAST THE WITNESS EITHER. DOCUMENTED-NON-SUPPORT resolves, but a row closes only",
       "on a test proving the documented posture is what ACTUALLY happens (see $verdict-vs-state). Every row these",
-      "six A.4 selectors stamp stays a GAP until its module's witness lands; the verdict is the cheap half."
+      "eight selectors stamp stays a GAP until its witness lands; the verdict is the cheap half."
     ],
     "$arms": [
       "THE SHAPE. `arms` is a DISJUNCTION of CONJUNCTIONS: within one arm every field that is present must hold,",
@@ -106,6 +114,19 @@
       "                       10)', which is how an Annex A.1 documentation obligation names the clause that",
       "                       creates it. Keyed on the SAME clause numbers as the clause arm, so adding a module",
       "                       clause extends the A.1 arm for free instead of silently not extending it.",
+      "  · `requirement`    — the A.1 REQUIREMENT CLASS the standard states in the item's own text ('This item is",
+      "                       optional.'), carried on the catalog row: 164 required · 30 optional · 27",
+      "                       conditionally required · 1 unclassified. The A.1 preamble writes its licences PER",
+      "                       CLASS, so a selector deriving from one of them must read the class and not infer it.",
+      "  · `determination-prefix` — what docs/CONFORMANCE.md §7 SAYS about the element, read off the register row",
+      "                       keyed by the rule's own id (which is exactly the anchor `kinds.DOC.anchor-template`",
+      "                       computes), leading markdown emphasis stripped, matched case-insensitively on the",
+      "                       cell's OPENING words. It is the first arm field that reads an artifact outside the",
+      "                       catalog, and it has to be: a DOC row's implementation IS its determination. An item",
+      "                       with no §7 row is never selected — a missing determination is not a negative one.",
+      "                       ⚠ Neither of these two axes is falsifiable against today's data (all 30 optional",
+      "                       items and all 47 §7 rows agree), so each is driven against fabricated data by",
+      "                       `python scripts/spec/derive_verdict_batch.py --self-test`, which the C# gate shells.",
       "  · `kinds` / `excludes-kinds` — the rule's KIND, per ARM, which is the point. A general format (kind FMT)",
       "                       is evidence about a CLAUSE, never about one of its formats, so the TEXT axis must",
       "                       never select one: without `excludes-kinds` on the text arm, FMT-14.9.1.2 and",
@@ -718,6 +739,59 @@
         "\\breport item\\b",
         "a sending item is processed in a VALIDATE statement"
       ]
+    },
+    "a1-optional-not-provided": {
+      "verdict": "DOCUMENTED-NON-SUPPORT",
+      "decision": "kb/Work PB280 Q1 — OWNER DECISION 2026-09-02. An Annex A.1 item the standard marks OPTIONAL, whose docs/CONFORMANCE.md §7 determination records the element as 'Not provided.', closes as DOCUMENTED-NON-SUPPORT. Licence: A.1's own preamble, which conditions the documentation duty on provision — 'Optional: The element may be provided at the implementor's option.' and 'Documentation required: If the element is provided by the implementor, the implementor's user documentation shall document the element or shall reference other documentation that fulfills this requirement.' (both cite.py --check A.1 → OK) — plus §4.2.7 ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support', cite.py --check OK), which this verdict's own `meaning` already names as its second ground. ⛔ The §7 row STAYS and is the row's evidence: unlike an item an A.4 module WITHDREW, a not-provided optional element has a determination — the record of the non-provision — so the row carries its computed anchor and its witness is held to §7's `Pinned by` like any other.",
+      "$selector": [
+        "An A.1 documentation obligation is settled by this one decision when BOTH halves hold, and each half is",
+        "a fact somebody else wrote down rather than a reading of the rule's text:",
+        "  • the STANDARD classifies the item as optional — `requirement`, parsed out of A.1's own sentence 'This",
+        "    item is optional.' by extract_rule_catalog.py, never inferred from the subject line; and",
+        "  • THIS IMPLEMENTOR has determined the element is not provided — docs/CONFORMANCE.md §7's determination",
+        "    cell opens with 'Not provided.', which is the register's fixed opening for exactly that answer.",
+        "That is why the arms carry no `pattern` over the rule TEXT at all. Every A.1 item's text is the same",
+        "boilerplate ('This item is optional. This item, if provided by the implementor, shall be documented …'),",
+        "so a text arm here would select by requirement class in regex clothing while looking like a judgement.",
+        "",
+        "⛔ WHY THE REQUIREMENT CLASS IS LOAD-BEARING AND NOT DECORATION. A REQUIRED item whose §7 row said 'Not",
+        "provided.' would be a CONFORMANCE DEFECT — an element §4.2.5 obliges the implementor to specify, with a",
+        "register row admitting we do not — and stamping it DOCUMENTED-NON-SUPPORT would document that as if the",
+        "owner had licensed it. A.1's preamble licenses the decline for an OPTIONAL element, and for a required",
+        "element only when the FEATURE it belongs to is optional and unimplemented, which is the SEPARATE",
+        "withdrawal the A.4 module selectors express. There is no such row today, so the axis is unfalsifiable",
+        "against the live document and is driven against fabricated data by derive_verdict_batch.py --self-test.",
+        "",
+        "⛔ AND WHY 'BEGINS WITH', NOT 'CONTAINS'. Determinations discuss what is not provided all the time —",
+        "item 127's own body says the CHARACTER CLASSIFICATION clause behaves identically with or without a name.",
+        "The opening words are the register's answer to A.1's question; the rest is the reasoning. A `contains`",
+        "predicate would have taken rows whose answer is the opposite of their prose.",
+        "",
+        "MEASURED 2026-09-02: 2 selected of 4,311 — DOC-A.1-127 (OBJECT-COMPUTER computer-name and implied",
+        "equipment configuration: there is ONE object computer, the .NET runtime) and DOC-A.1-206 (USAGE",
+        "BINARY-CHAR/-SHORT/-LONG/-DOUBLE wider range than the GR12 minimum: each usage holds exactly the",
+        "minimum). Both were BLANK — held out of the 2026-09-02 A.1 back-fill precisely because this question was",
+        "open — so the selector changes NO adjudicated row. The complement, measured rather than asserted: §7",
+        "carries 47 rows, of which exactly 2 open with 'Not provided.'; A.1 has 30 optional items, of which",
+        "exactly those same 2 have a §7 row at all. The other 28 are not selected because nothing has been",
+        "determined about them, which is the honest state and not a gap in the predicate — as each is determined,",
+        "this selector picks it up with no edit here, and the drift test turns RED until the batch is re-run."
+      ],
+      "arms": [
+        {
+          "$arm": "the standard says OPTIONAL and this register says NOT PROVIDED — an AND-gate over two authorities",
+          "kinds": [
+            "DOC"
+          ],
+          "requirement": [
+            "optional"
+          ],
+          "determination-prefix": [
+            "Not provided"
+          ]
+        }
+      ],
+      "excludes-patterns": []
     }
   },
 
@@ -759,15 +833,27 @@
       "been cross-checkable for only 13 of 222 items — a MISSING observation standing in for a NEGATIVE one, which",
       "feedback_verdict_evidence_invariant forbids. The bare question is open as kb/Work PB280 Q2.",
       "",
-      "⛔ THE ANCHOR IS OBLIGED BY THE VERDICTS THAT CLAIM A DETERMINATION, AND BY NO OTHERS. CONFORMS, PARTIAL and",
-      "DIVERGES each assert something about what §7 says, so each owes the §7 row its own rule-id computes.",
-      "DOCUMENTED-NON-SUPPORT asserts the opposite — the CONDITIONING FACILITY is not implemented, so Annex A.1's own",
-      "preamble withdraws the item ('When the element is part of a feature that is optional or processor-dependent,",
-      "the item is not required if the optional or processor-dependent feature is not implemented') and there is no",
-      "determination left to anchor, nor any greenfield site to observe it through. `anchor-exempt-verdicts` names",
-      "those verdicts as DATA so the writer, the C# drift gate and the register audit read one rule; the audit's own",
-      "`unreachable_items()` derives the same set from the `derived-verdicts` selectors, so a declined module",
-      "withdraws its A.1 items from the anchor obligation and from the REMAINING counter by the same act.",
+      "⛔ THE ANCHOR IS OBLIGED BY THE ROWS WITH A DETERMINATION TO POINT AT, AND BY NO OTHERS. CONFORMS, PARTIAL",
+      "and DIVERGES each assert something about what §7 says, so each owes the §7 row its own rule-id computes.",
+      "DOCUMENTED-NON-SUPPORT may assert the opposite — that the CONDITIONING FACILITY is not implemented, so Annex",
+      "A.1's own preamble withdraws the item ('When the element is part of a feature that is optional or",
+      "processor-dependent, the item is not required if the optional or processor-dependent feature is not",
+      "implemented') and there is no determination left to anchor, nor any greenfield site to observe it through.",
+      "",
+      "⛔ BUT THE VERDICT IS NOT THE DISCRIMINATOR — THE REGISTER IS, AND THAT IS A CORRECTION MADE ON 2026-09-02",
+      "(kb/Work PB280 Q1). DOCUMENTED-NON-SUPPORT acquired a SECOND ground on a DOC row that day: an item the",
+      "standard marks OPTIONAL whose element we do not provide. §7 carries that row — the non-provision IS the",
+      "determination — so the row owes its anchor exactly as a CONFORMS row does, and keying the exemption on the",
+      "verdict would have excused precisely those rows from naming their own determination, and would have stopped",
+      "`check_pins` holding their witness in agreement with §7's `Pinned by` at the moment the witness landed. So",
+      "`anchor-exempt-verdicts` names the verdicts that MAY be exempt and the REGISTER decides: exempt when",
+      "docs/CONFORMANCE.md §7 carries no row for the item, obliged when it does. One predicate per language",
+      "(`Schema.anchor_obliged` / `AnchorObliged`) reads it, over one parser per language (`section7_rows` /",
+      "`ConformanceRegister`). The audit's own `unreachable_items()` applies the SAME test — a DNS selector's rows",
+      "minus the ones §7 documents — so a declined module withdraws its A.1 items from the anchor obligation and",
+      "from the REMAINING counter by one act, while a documented decline is counted as the discharged obligation",
+      "it is. Keying it on the verdict would have printed '⊘ CANNOT ARISE' about an element this register",
+      "documents in full, and dropped REMAINING by two for no work done.",
       "⚠ FOUND BY LANDING THE TWO LANES TOGETHER, 2026-09-02: neither could see it alone. The DOC lane wrote the",
       "anchor rule against a tree where every DOC row was a determination; the derived lane then stamped four DOC",
       "rows (84, 85, 173, 86 — the FORMAT clause and VALIDATE) DOCUMENTED-NON-SUPPORT, and the writer refused the",

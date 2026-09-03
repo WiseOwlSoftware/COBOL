@@ -50,8 +50,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   the golden lane `c11949e3`; the reference below is #41**; ⑤ the ledger refresh after every landing (`python
   scripts/spec/gen_ledger.py`, then publish). Then lane 3 resumes from its on-disk checkpoints (batch 2 adjudicated,
   batch 3 inputs generated) and the golden lane's round 2 takes the CONFORMS-but-untested rows the registrars list.
-  Owner questions pending, one at a time: `PB280` Q1–Q3, the CLASS-clause scope (§13.16.2 vs A.4.14), and `USAGE
-  POINTER TO type-name`'s introducing edition (`A1`).
+  Owner questions pending, one at a time: the CLASS-clause scope (§13.16.2 vs A.4.14) and `USAGE POINTER TO
+  type-name`'s introducing edition (`A1`). ✅ **`PB280` Q1–Q3 are ANSWERED (2026-09-02, DEVLOG 1441):** an
+  A.1-OPTIONAL element whose §7 determination reads "Not provided." is **DOCUMENTED-NON-SUPPORT**, applied by the
+  `a1-optional-not-provided` derived selector (rows 127 and 206, GAP unmoved — their witness debt is `PB373`); an
+  anchor-only DOC row **stays a GAP** (DESIGN §1(a) is not widened); and `docs/CONFORMANCE.md` **is** the §4.2.16
+  user documentation, where a determination may cite the governing document but shall also **state the value**.
 - **▶ SESSION HANDOFF (2026-08-17 — superseded by the 2026-09-02 handoff above; kept as history until the next §0 sweep):**
   **✅ Battery:** the PB60-closing tree `080733bf` measured every internal leg green (Conformance 4381/4381 ·
   Unit 4182/4182 · NIST 353/0 audit-clean) and ONE attributed FIX flip in the differential (GnuCOBOL's

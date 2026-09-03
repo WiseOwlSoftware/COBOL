@@ -30,13 +30,13 @@
   </div>
   <div class="cardgrid">
     <div class="card">
-      <h3>Owner decisions open <span class="pill warn">4</span></h3>
-      <p><strong>PB280 Q1–Q3</strong>, raised by the Annex A.1 DOC-row landing, and <strong>one question from lane-3 batch 1</strong>.</p>
+      <h3>Owner decisions open <span class="pill warn">1</span></h3>
+      <p><strong>PB280 Q1–Q3 were answered on 2026-09-02</strong> and are no longer open; <strong>one question from lane-3 batch 1</strong> remains.</p>
       <ul>
-        <li><strong>Q1</strong> — does a "Not provided." determination on an A.1-<em>optional</em> item close as CONFORMS, or as DOCUMENTED-NON-SUPPORT? One answer settles about thirty items as a single selector rather than thirty adjudications; two rows are held out of the back-fill until it is answered.</li>
-        <li><strong>Q2</strong> — may a DOC row with nothing in the compiler to observe close on the register alone? This widens the definition of DONE, which is exactly why that arm did not land with the mechanism.</li>
-        <li><strong>Q3</strong> — is this repo's <span class="mono">CONFORMANCE.md</span> the §4.2.16 user documentation, able to discharge an obligation by reference?</li>
-        <li><strong>Q4, new</strong> — how does a syntax rule that constrains a <em>claimed</em> statement, but whose antecedent only a <em>declined</em> module can create, record? It is vacuously satisfied by every program that compiles. One answer settles a family of fourteen such rules across OPEN, READ, REWRITE, UNLOCK, CLOSE, DELETE, LOCK MODE and SAME. Documented-non-support is already ruled out by the derived selector, which names these rows and declines to stamp them — the choice is between CONFORMS with a witness pinning the refusal, and holding them open.</li>
+        <li><strong>Q1 — answered: DOCUMENTED-NON-SUPPORT.</strong> An A.1-<em>optional</em> element whose §7 determination reads "Not provided." is documented non-support, on A.1's own preamble ("if the element is provided by the implementor…") plus §4.2.7. Landed as the <span class="mono">a1-optional-not-provided</span> derived selector — a predicate over the requirement class the standard states and the determination this register filed — so it settles the two held rows today and the rest as they are determined, with no further adjudication. The rows stay open until a witness pins the documented posture.</li>
+        <li><strong>Q2 — answered: no.</strong> A DOC row with nothing in the compiler to observe stays a GAP; the definition of DONE is not widened. Only 13 of 222 items are cited by any source, so a "nothing to observe" claim would be unfalsifiable for the other 209.</li>
+        <li><strong>Q3 — answered: yes, and state the value.</strong> This repo's <span class="mono">CONFORMANCE.md</span> is the §4.2.16 user documentation; a determination may cite the governing host document, with its version, but shall also state the resulting value — because the value is what a witness can pin, and a by-reference row states none.</li>
+        <li><strong>Q4, open</strong> — how does a syntax rule that constrains a <em>claimed</em> statement, but whose antecedent only a <em>declined</em> module can create, record? It is vacuously satisfied by every program that compiles. One answer settles a family of fourteen such rules across OPEN, READ, REWRITE, UNLOCK, CLOSE, DELETE, LOCK MODE and SAME. Documented-non-support is already ruled out by the derived selector, which names these rows and declines to stamp them — the choice is between CONFORMS with a witness pinning the refusal, and holding them open.</li>
       </ul>
     </div>
     <div class="card">

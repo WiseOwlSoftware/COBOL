@@ -834,15 +834,17 @@ warn-inert from refuse — are the code-side counterpart; keep the two in sync. 
 > implementor's user documentation"** and 23 explicitly do not. §4.2.5 requires the implementor to *specify*
 > every element identified as required and to *document* every element identified as requiring documentation;
 > D13 makes those 199 part of the definition of done.
-> **MEASURED 2026-09-02 — this register discharges 38 of the 195 in scope** (`python scripts/spec/audit_annex_a1.py`
-> reports it, and the numbers below are its output, not a hand count): items 2, **18**, **19**, 22, 33, 48,
-> **50**, 56, 57, 58, 59, 70, 82, 87, 93, 112, 127, 133–137, 145, 158, 171, 179, 180, 188, **195**, 202,
-> **204**, and the **storage-representation items 205–209, 211 and 215** that V59 pinned (BINARY · the
-> BINARY-CHAR family · COMPUTATIONAL · INDEX · PACKED-DECIMAL: the byte width, the radix, the byte order and a
-> worked example for each, since a COBOL developer reading this needs to know what lands on disk). Items
-> **90**, **92**, **123** and **144** are documented voluntarily. **157 obligations remain**
-> (`audit_annex_a1.py` is the count's owner — re-run it rather than trusting this sentence; it was stale by
-> three when item 50 landed, which is exactly why the script and not this paragraph is the authority).
+> **MEASURED 2026-09-02 — this register discharges 41 of the 195 in scope, and 154 obligations remain**;
+> 45 items carry a determination, four of them (**90**, **92**, **123**, **144**) documented voluntarily where
+> A.1 does not require it. ⚙ **The numbers and the item list are `python scripts/spec/audit_annex_a1.py`'s
+> output, not a hand count — run it rather than trusting this sentence.** An enumeration of the discharged items
+> used to live in this paragraph and it rotted twice: stale by three when item 50 landed, and by three again by
+> 2026-09-02. The script prints the list (`--json`'s `filed`), the C# gate `AnnexA1RegisterDriftTests` runs it
+> every build, and a list here could only ever be a second answer to a question one artifact already owns.
+> The rows below are the register itself, and they are what the script reads. Notable among them are the
+> **storage-representation items 205–209, 211 and 215** that V59 pinned (BINARY · the BINARY-CHAR family ·
+> COMPUTATIONAL · INDEX · PACKED-DECIMAL: the byte width, the radix, the byte order and a worked example for
+> each, since a COBOL developer reading this needs to know what lands on disk).
 > ⛔ **FOUR OF THE 199 CANNOT ARISE, so the denominator is 195** — items **84**, **85** (FORMAT clause), **173**
 > (SELECT WHEN clause) and **86** (Format validation, which cites only PICTURE GR15 and USAGE GR3 *during a
 > VALIDATE statement*). Annex A.1's own preamble is the licence, not an inference from §4.2.7: *"Required: The
@@ -885,6 +887,25 @@ warn-inert from refuse — are the code-side counterpart; keep the two in sync. 
 > NIST golden or a `*_MatchesLegacy` differential is corroboration and never appears here: it cannot close a row
 > (CLAUDE.md rule 1). ⚠ A `—` is an honest state, not a defect — the determination is written and correct, and
 > the row stays a GAP until a golden pins it.
+>
+> ⚙ **A determination may cite the document that governs it, but it shall also STATE THE VALUE** — owner
+> decision, `kb/Work/PB280` Q3, 2026-09-02. §4.2.16 permits an implementor to meet a documentation requirement
+> "by reference to other documents", and A.1's own preamble likewise allows a row to "reference other
+> documentation that fulfills this requirement"; this register takes the narrower path deliberately, because a
+> by-reference row states no value, so **no test can pin it** and the gate can only check that a row exists —
+> the same unfalsifiable shape Q2 refused. Where the answer is the host's (the .NET case-mapping table, the
+> Unicode version, an OS limit), name the document *and its version* **and** write down the resulting value; the
+> value is what the `Pinned by` golden asserts.
+>
+> ⚙ **An element the standard marks OPTIONAL that we do not provide is recorded here as `Not provided.` and
+> carries DOCUMENTED-NON-SUPPORT in the traceability inventory** — owner decision, `kb/Work/PB280` Q1,
+> 2026-09-02. A.1's preamble conditions the duty on provision ("Documentation required: **If the element is
+> provided by the implementor**, the implementor's user documentation shall document the element…") and §4.2.7
+> obliges us to identify the optional elements we *do* claim, so stating the non-provision IS the determination —
+> which is why the row stays here rather than being withdrawn the way the four items above are. The verdict is
+> applied by a predicate, not row by row: `inventory-schema.json` → `derived-verdicts.a1-optional-not-provided`
+> selects on the requirement class plus this cell's opening words, so writing `Not provided.` into an optional
+> item's row turns the drift gate red until the batch is re-run. Items **127** and **206** today.
 
 | A.1 item | Element | Our determination | Pinned by |
 |---|---|---|---|

@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Diagnostics;
 using System.Text.Json;
 using CobolNet.Tests.Shared;
 using Xunit;
@@ -36,37 +35,15 @@ namespace CobolNet.Tests.Unit;
 public sealed class AnnexA1RegisterDriftTests
 {
     /// <summary>
-    /// The interpreter name that actually launches here, resolved once. <c>ProcessObserver.Observe</c> is the
-    /// non-throwing form on purpose — a probe wants LaunchFailed REPORTED, not raised and retried.
+    /// Run the audit. The interpreter probe itself is <see cref="PythonInstrument"/> — shared, because
+    /// <see cref="DerivedVerdictDriftTests"/> shells the selector engine's self-test the same way and two
+    /// private copies of "which python launches here" is one rule written down twice.
     /// </summary>
-    private static readonly Lazy<string> Python = new(() =>
-    {
-        foreach (string exe in new[] { "python", "python3" })
-        {
-            var psi = new ProcessStartInfo(exe);
-            psi.ArgumentList.Add("--version");
-            if (ProcessObserver.Observe(psi, null, 30_000).Outcome != ProcessOutcome.LaunchFailed) return exe;
-        }
-
-        throw new InvalidOperationException(
-            "neither `python` nor `python3` launches here — scripts/spec/audit_annex_a1.py is a Python "
-            + "instrument and this gate cannot run without it. That is a hard failure rather than a skip on "
-            + "purpose: an unrun register audit reporting green is what let a determination sit under the wrong "
-            + "A.1 obligation for five days (kb/Work A11).");
-    });
-
     private static ProcessObservation RunAudit(params string[] args)
     {
         string script = TestRepo.Scripts("spec", "audit_annex_a1.py");
         Assert.True(File.Exists(script), $"the register audit is missing: {script}");
-
-        var psi = new ProcessStartInfo(Python.Value) { WorkingDirectory = TestRepo.Root };
-        psi.ArgumentList.Add(script);
-        foreach (string a in args) psi.ArgumentList.Add(a);
-        // ProcessObserver decodes both streams as UTF-8; tell CPython to encode them that way rather than
-        // falling back to the host ANSI code page, or the report's § and ⛔ read back mangled.
-        psi.Environment["PYTHONIOENCODING"] = "utf-8";
-        return ProcessObserver.ObserveOrThrow(psi);
+        return PythonInstrument.Run(script, args);
     }
 
     private static JsonElement JsonLineOf(ProcessObservation r)
@@ -172,6 +149,10 @@ public sealed class AnnexA1RegisterDriftTests
                      "a DOC-A.1 token DUPLICATING an item that does have a row is caught",
                      "a test the row does not name is caught",
                      "an inventory row closing with no §7 row at all is caught",
+                     // ⛔ The PB280 Q1 arm: a DECLINED item §7 DOES document still owes the `Pinned by`
+                     // agreement. Keyed on the verdict rather than on the register, that case passes
+                     // vacuously — a gate reading as working while inspecting nothing.
+                     "a DECLINED item that §7 DOES document still owes the agreement",
                      "a citation of a nonexistent A.1 item is caught",
                      "a citation §7 does not discharge is caught",
                  })

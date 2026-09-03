@@ -30,7 +30,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class DerivedVerdictDriftTests
 {
-    private sealed record Rule(string Id, string Section, string Kind, string Text);
+    private sealed record Rule(string Id, string Section, string Kind, string Text, string Requirement);
 
     /// <summary>⛔ The transcription spells a COBOL operand name's hyphen two ways. 29 catalog rules carry
     /// U+2011 NON-BREAKING HYPHEN where the rest carry ASCII '-' — SR-13.18.14.3-12 reads "Identifier‑1 shall be
@@ -75,7 +75,11 @@ public sealed class DerivedVerdictDriftTests
             .Select(r => new Rule(r.GetProperty("id").GetString()!,
                                   r.TryGetProperty("section", out var s) ? s.GetString() ?? "" : "",
                                   r.TryGetProperty("kind", out var k) ? k.GetString() ?? "" : "",
-                                  Normalize(r.TryGetProperty("text", out var t) ? t.GetString() ?? "" : "")))];
+                                  Normalize(r.TryGetProperty("text", out var t) ? t.GetString() ?? "" : ""),
+                                  // The A.1 REQUIREMENT CLASS the standard states in the item's own sentence
+                                  // ("This item is optional."), parsed out of Annex A.1 by
+                                  // extract_rule_catalog.py. Only DOC rules carry it.
+                                  r.TryGetProperty("requirement", out var q) ? q.GetString() ?? "" : ""))];
     }
 
     private static Dictionary<string, JsonElement> Inventory()
@@ -113,6 +117,12 @@ public sealed class DerivedVerdictDriftTests
     /// <item><c>excludes-kinds</c>, per arm — a general format (kind FMT) is evidence about a CLAUSE, never about
     /// one of its formats, so the TEXT axis must never take one. It also replaced A.4.3's <c>^&lt;pre</c>
     /// exclusion, a RENDERING proxy for a kind predicate that leaks on 56 of 322 FMT rows.</item>
+    /// <item><c>requirement</c> — the A.1 REQUIREMENT CLASS the standard itself states, and
+    /// <c>determination-prefix</c> — what <c>docs/CONFORMANCE.md</c> §7 SAYS about the element. Added for
+    /// kb/Work PB280 Q1, the first derived verdict that is not a module decline: the rules it selects are
+    /// perfectly reachable, and what is common to them is the ADJUDICATION. Both axes read something the OWNER
+    /// wrote rather than an agent's reading of a rule's text. ⚠ Neither is falsifiable against today's data —
+    /// see <see cref="TheSelectorEngine_ProvesEveryAxisCanFail"/>.</item>
     /// </list></summary>
     private static (List<string> ids, string verdict) Select(string name)
     {
@@ -125,12 +135,17 @@ public sealed class DerivedVerdictDriftTests
             xrefs: Strings(a, "xref-sections"),
             kinds: Strings(a, "kinds"),
             notKinds: Strings(a, "excludes-kinds"),
+            requirement: Strings(a, "requirement"),
+            determination: Strings(a, "determination-prefix"),
             pattern: a.TryGetProperty("pattern", out var p)
                 ? new Regex(p.GetString()!, RegexOptions.IgnoreCase) : null)).ToList();
 
-        Assert.All(arms, a => Assert.True(a.sections.Count + a.xrefs.Count + a.kinds.Count > 0 || a.pattern is not null,
+        Assert.All(arms, a => Assert.True(
+            a.sections.Count + a.xrefs.Count + a.kinds.Count + a.requirement.Count + a.determination.Count > 0
+            || a.pattern is not null,
             $"derived-verdicts.{name}: an arm with no positive field selects the entire catalog"));
 
+        var determinations = ConformanceRegister.Determinations;
         var ids = new List<string>();
         foreach (var r in Catalog())
         {
@@ -139,6 +154,19 @@ public sealed class DerivedVerdictDriftTests
             {
                 if (a.kinds.Count > 0 && !a.kinds.Contains(r.Kind)) continue;
                 if (a.notKinds.Contains(r.Kind)) continue;
+                if (a.requirement.Count > 0 && !a.requirement.Contains(r.Requirement)) continue;
+                // What §7 says about THIS element, found by the rule's own id — which is exactly the anchor
+                // `kinds.DOC.anchor-template` computes for it. An item with no §7 row yields "", which starts
+                // with no prefix, so an undetermined element is never selected: a MISSING determination is not
+                // a NEGATIVE one (feedback_verdict_evidence_invariant).
+                if (a.determination.Count > 0)
+                {
+                    string said = determinations.TryGetValue(r.Id, out var cell) ? ConformanceRegister.Plain(cell) : "";
+                    if (said.Length == 0
+                        || !a.determination.Any(p => said.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+                }
+
                 if (a.sections.Count > 0 && !a.sections.Any(p => SectionMatches(p, r.Section))) continue;
                 if (a.xrefs.Count > 0
                     && !XrefCitation.Matches(r.Text).Any(m => a.xrefs.Any(p => SectionMatches(p, m.Groups[1].Value))))
@@ -210,6 +238,16 @@ public sealed class DerivedVerdictDriftTests
     public void NoValidateConditionedRow_Diverges() =>
         AssertHeldAtTheDerivedVerdict("validate-only",
             "Annex A.4.14 VALIDATE is Not claimed (CONFORMANCE.md §5, §4 item 3)");
+
+    /// <summary>The one selector that is NOT a module decline: an owner ADJUDICATION common to a whole class of
+    /// rows. It also drifts by a route none of the others can — a new §7 determination — and that is deliberate:
+    /// writing "Not provided." into §7 for an optional item turns this red until the batch is re-run, which is
+    /// the register and the inventory being held to one answer instead of two.</summary>
+    [Fact]
+    public void NoOptionalNotProvidedA1Row_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("a1-optional-not-provided",
+            "an A.1-OPTIONAL element docs/CONFORMANCE.md §7 records as 'Not provided.' is documented "
+            + "non-support (owner, kb/Work PB280 Q1, 2026-09-02)");
 
     // ── The engine ────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -485,6 +523,102 @@ public sealed class DerivedVerdictDriftTests
         // EC-DATA-INCOMPATIBLE names VALIDATE only to exempt it.
         Assert.DoesNotContain("GR-14.6.13.2-1", ids);
         Assert.DoesNotContain("GR-14.6.13.2-2", ids);
+    }
+
+    [Fact]
+    public void TheA1OptionalNotProvidedSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("a1-optional-not-provided");
+        Assert.InRange(ids.Count, 1, 30);   // 2 when it landed; the ceiling is A.1's 30 optional items
+
+        // The two the owner's answer settled. Both were BLANK when it landed — held out of the 2026-09-02 A.1
+        // back-fill for exactly this open question — so this selector overwrote no adjudication.
+        Assert.Contains("DOC-A.1-127", ids);   // OBJECT-COMPUTER computer-name: one object computer, the runtime
+        Assert.Contains("DOC-A.1-206", ids);   // USAGE BINARY-CHAR family: exactly the GR12 minimum range
+
+        // ⛔ EVERY SELECTED ROW IS AN OPTIONAL ITEM WHOSE §7 CELL OPENS "Not provided." — asserted here rather
+        // than trusted, because a widened predicate would still contain the two rows above and stay green.
+        var byId = Catalog().ToDictionary(r => r.Id, r => r, StringComparer.Ordinal);
+        foreach (string id in ids)
+        {
+            Assert.Equal("optional", byId[id].Requirement);
+            Assert.StartsWith("Not provided",
+                ConformanceRegister.Plain(ConformanceRegister.Determinations[id]),
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        // A DOC row §7 does not carry at all must stay out: nothing has been determined about it, and a MISSING
+        // determination is not a NEGATIVE one. Item 7 is A.1-optional and has no §7 row.
+        Assert.DoesNotContain("DOC-A.1-7", ids);
+        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-7"),
+            "item 7 is the anchor for 'optional, but undetermined' — if §7 has grown a row for it, this "
+            + "assertion's subject moved and another optional item with no determination must take its place");
+        // A REQUIRED item with a determination stays out — item 19's is positive, so this is the pair working
+        // together rather than either axis alone. The axes are separated in the engine's own self-test.
+        Assert.DoesNotContain("DOC-A.1-19", ids);
+        // …and the four items the A.4 declines WITHDREW belong to their module's selector, not to this one:
+        // they have no §7 row, which is the whole difference between a withdrawn item and a documented decline.
+        foreach (string id in (string[])["DOC-A.1-84", "DOC-A.1-85", "DOC-A.1-86", "DOC-A.1-173"])
+            Assert.DoesNotContain(id, ids);
+    }
+
+    /// <summary>⛔ THE REGISTER IS REALLY BEING READ, asserted before anything above is believed. A parser that
+    /// silently returned nothing would leave <c>determination-prefix</c> matching nothing at all — an
+    /// UNDER-selection, the direction that keeps every other fact in this file green
+    /// (<c>feedback_measure_the_selectors_complement</c>).</summary>
+    [Fact]
+    public void TheRegisterParser_ReadsSection7_AndNotAnEmptyTable()
+    {
+        Assert.True(File.Exists(ConformanceRegister.Path), $"the register is missing: {ConformanceRegister.Path}");
+        Assert.InRange(ConformanceRegister.Rows.Count, 20, 400);        // 47 rows when this landed
+        Assert.All(ConformanceRegister.Rows, r => Assert.Matches(@"^DOC-A\.1-\d+$", r.Key));
+
+        // The escaped-pipe case, which is why the split is not `Split('|')`: item 82's determination writes an
+        // absolute value as \|v\|, and a naive split gives that row two extra cells and mis-places the rest.
+        var escaped = ConformanceRegister.Parse(
+            "## 7. Annex A.1\n| DOC-A.1-82 | E | rounds \\|v\\| away from zero | — |\n");
+        Assert.Equal("rounds |v| away from zero", Assert.Single(escaped).Determination);
+    }
+
+    /// <summary>
+    /// ⛔ THE TWO NEWEST AXES CANNOT BE FALSIFIED BY THIS FILE, so they are falsified somewhere that can.
+    /// </summary>
+    /// <remarks>
+    /// Every assertion above measures a selector against the LIVE catalog and the LIVE register — the right
+    /// check for a selector that has landed, and powerless over an axis the live data cannot separate. Today all
+    /// 30 A.1-optional items and all 47 §7 rows agree: the only rows with a "Not provided." determination are
+    /// optional, and the only optional rows with a determination say "Not provided.". So a predicate that had
+    /// dropped <c>requirement</c> altogether, or matched ANY determination, selects the same two rows and stays
+    /// green here. <c>derive_verdict_batch.py --self-test</c> drives each axis against a fabricated catalog and
+    /// a fabricated register, one broken thing at a time; this shells it so it runs every build rather than when
+    /// a human remembers — the failure mode measured on <c>audit_annex_a1.py</c> on 2026-09-01.
+    /// </remarks>
+    [Fact]
+    public void TheSelectorEngine_ProvesEveryAxisCanFail()
+    {
+        string script = TestRepo.Scripts("spec", "derive_verdict_batch.py");
+        Assert.True(File.Exists(script), $"the derived-verdict batch generator is missing: {script}");
+        var r = PythonInstrument.Run(script, "--self-test");
+
+        Assert.Contains("ALL GREEN (every axis proven able to fail)", r.Stdout, StringComparison.Ordinal);
+        // Asserting the CASE NAMES, not just the exit code: a shrinking self-test still exits 0.
+        foreach (string mustDrive in new[]
+                 {
+                     "the REQUIREMENT axis discriminates",
+                     "the KIND axis discriminates",
+                     "the DETERMINATION axis discriminates",
+                     "an item with NO §7 row is never selected",
+                     "a determination that merely CONTAINS the phrase is not one that begins with it",
+                     "the emphasis strip is real",
+                     "an arm with only negative fields is refused",
+                 })
+        {
+            Assert.Contains(mustDrive, r.Stdout, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("control:", r.Stdout, StringComparison.Ordinal);
+        Assert.DoesNotContain("SELF-TEST FAILED", r.Stdout, StringComparison.Ordinal);
+        Assert.Equal(0, r.ExitCode);
     }
 
     /// <summary>Two determinations must never claim the same row: the row would then carry whichever batch ran

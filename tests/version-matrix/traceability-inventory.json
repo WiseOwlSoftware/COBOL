@@ -54800,11 +54800,11 @@
   "kind": "DOC",
   "ordinal": 127,
   "subject": "OBJECT-COMPUTER paragraph (computer-name and implied equipment configuration)",
-  "verdict": "",
-  "code-location": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-127",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "kb/Work PB280 Q1 — OWNER DECISION 2026-09-02. An Annex A.1 item the standard marks OPTIONAL, whose docs/CONFORMANCE.md §7 determination records the element as 'Not provided.', closes as DOCUMENTED-NON-SUPPORT. Licence: A.1's own preamble, which conditions the documentation duty on provision — 'Optional: The element may be provided at the implementor's option.' and 'Documentation required: If the element is provided by the implementor, the implementor's user documentation shall document the element or shall reference other documentation that fulfills this requirement.' (both cite.py --check A.1 → OK) — plus §4.2.7 ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support', cite.py --check OK), which this verdict's own `meaning` already names as its second ground. ⛔ The §7 row STAYS and is the row's evidence: unlike an item an A.4 module WITHDREW, a not-provided optional element has a determination — the record of the non-provision — so the row carries its computed anchor and its witness is held to §7's `Pinned by` like any other.",
   "state": "GAP"
  },
  {
@@ -55827,11 +55827,11 @@
   "kind": "DOC",
   "ordinal": 206,
   "subject": "USAGE BINARY-CHAR, BINARY-SHORT, BINARY-LONG, BINARY-DOUBLE (allow wider range than minimum specified)",
-  "verdict": "",
-  "code-location": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-206",
   "test-ref": "",
   "editions": "",
-  "notes": "",
+  "notes": "kb/Work PB280 Q1 — OWNER DECISION 2026-09-02. An Annex A.1 item the standard marks OPTIONAL, whose docs/CONFORMANCE.md §7 determination records the element as 'Not provided.', closes as DOCUMENTED-NON-SUPPORT. Licence: A.1's own preamble, which conditions the documentation duty on provision — 'Optional: The element may be provided at the implementor's option.' and 'Documentation required: If the element is provided by the implementor, the implementor's user documentation shall document the element or shall reference other documentation that fulfills this requirement.' (both cite.py --check A.1 → OK) — plus §4.2.7 ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support', cite.py --check OK), which this verdict's own `meaning` already names as its second ground. ⛔ The §7 row STAYS and is the row's evidence: unlike an item an A.4 module WITHDREW, a not-provided optional element has a determination — the record of the non-provision — so the row carries its computed anchor and its witness is held to §7's `Pinned by` like any other.",
   "state": "GAP"
  },
  {

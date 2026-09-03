@@ -38,6 +38,14 @@ import pathlib
 import re
 import sys
 
+# ⛔ THE §7 TABLE PARSER IS NO LONGER WRITTEN HERE. It was, and then three readers needed it — this audit, which
+# CHECKS the rows; `Schema.anchor_obliged`, which asks whether an item has a determination at all; and
+# `DerivedSelector`'s `determination-prefix` arm, which reads what the determination SAYS. A markdown table read
+# three ways is `feedback_one_rule_one_place` waiting to happen, so it moved down into the module every consumer
+# already imports, and the two names this file used keep working unchanged.
+from inventory_schema import register_cells as cells_of
+from inventory_schema import section7_rows
+
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 CATALOG = ROOT / 'docs' / 'rearchitecture' / 'spec-rule-catalog.json'
 CONFORMANCE = ROOT / 'docs' / 'CONFORMANCE.md'
@@ -85,17 +93,6 @@ ITEM_KEY_RX = re.compile(r'^DOC-A\.1-(\d+)$')
 TOKEN_RX = re.compile(r'\bDOC-A\.1-\d+\b')
 
 
-def cells_of(line: str) -> list[str]:
-    """A markdown row's content cells, split on UNESCAPED pipes.
-
-    ⚠ Splitting on a bare '|' is wrong here and was wrong once: the item-82 determination writes an absolute
-    value as `\\|v\\|`, so a naive split reports that row with two extra cells and mis-places anything appended
-    to it.
-    """
-    parts = [c.replace('\\|', '|').strip() for c in re.split(r'(?<!\\)\|', line.rstrip('\n'))]
-    return parts[1:-1]
-
-
 def unreachable_items() -> dict[int, str]:
     """A.1 items that CANNOT ARISE, because the feature they document is one we decline.
 
@@ -117,32 +114,27 @@ def unreachable_items() -> dict[int, str]:
     CONFORMANCE.md §7 names as the count's owner — went on counting them open. One item, two registers, two
     answers, which is exactly the harm CLAUDE.md rule 8 exists to stop. Deriving it means the next declined
     module is handled with no edit here at all.
+
+    ⛔ AND A DECLINED ITEM §7 DOES DOCUMENT IS NOT WITHDRAWN (PB280 Q1, 2026-09-02). The verdict alone stopped
+    being the discriminator the moment DOCUMENTED-NON-SUPPORT acquired its second DOC-row ground: an item that
+    is OPTIONAL and NOT PROVIDED carries a §7 determination *stating the non-provision*, which is a discharged
+    obligation, not a withdrawn one. Counting it here would remove it from the denominator while it stayed in
+    the numerator — REMAINING would fall by two for no work done — and would print "⊘ CANNOT ARISE" about an
+    element this register documents in full. The presence of the row is the test, and it is the same fact
+    `Schema.anchor_obliged` keys on, read through the same parser.
     """
     from inventory_schema import load_catalog, load_schema  # local: keeps this script standalone-runnable
     schema = load_schema()
     rules = load_catalog()
+    determined = schema.register_items()
     out: dict[int, str] = {}
     for name, sel in schema.derived.items():
         if sel.verdict != 'DOCUMENTED-NON-SUPPORT':
             continue
         for rid in sel.select(rules):
-            if rid.startswith('DOC-A.1-'):
+            if rid.startswith('DOC-A.1-') and rid not in determined:
                 out[int(rid.rsplit('-', 1)[1])] = name
     return out
-
-
-def section7_rows(text: str) -> list[tuple[str, str, str]]:
-    """(item-key, element-cell, pinned-by-cell) for every data row of the §7 table."""
-    start = text.index('## 7. Annex A.1')
-    rows = []
-    for line in text[start:].splitlines():
-        if not line.startswith('| '):
-            continue
-        cells = cells_of(line)
-        if len(cells) < 2 or cells[0] in ('A.1 item',) or set(cells[0]) <= set('-: '):
-            continue
-        rows.append((cells[0], cells[1], cells[3] if len(cells) > 3 else ''))
-    return rows
 
 
 def pins_of(cell: str) -> list[str]:
@@ -232,11 +224,18 @@ def self_test() -> int:
          {87: []}, [doc_row('nist:IF128A')], None),
         ('a row with no verdict evidence at all is silent',
          {87: []}, [doc_row('')], None),
-        # ⛔ THE WITHDRAWN-ITEM ARM (kb/Work PB315). A DOCUMENTED-NON-SUPPORT DOC row declines the facility, so
-        # A.1's preamble withdraws the item and §7 must carry NO row for it — demanding one reported three
-        # correctly-closed rows as findings. The control above proves the check still fires for a claiming row.
+        # ⛔ THE WITHDRAWN-ITEM ARM (kb/Work PB315). A DOCUMENTED-NON-SUPPORT DOC row whose module withdrew the
+        # item has NO §7 row — demanding one reported three correctly-closed rows as findings. The control above
+        # proves the check still fires for a claiming row.
         ('a DECLINED item closing on its witness needs no §7 row',
          {}, [doc_row('conformance:negative/a48-format-clause-declined', 'DOCUMENTED-NON-SUPPORT')], None),
+        # ⛔ AND ITS TWIN, WHICH IS WHY THE SKIP IS KEYED ON THE REGISTER AND NOT ON THE VERDICT (PB280 Q1). An
+        # OPTIONAL element §7 records as "Not provided." carries the SAME verdict and a REAL determination, so
+        # its witness is held to that row's `Pinned by` like any other. Keyed on the verdict, this case passes
+        # vacuously — the exact shape of a gate that reads as working while inspecting nothing.
+        ('a DECLINED item that §7 DOES document still owes the agreement',
+         {87: ['unit:Cls.TheWitness']},
+         [doc_row('unit:Cls.SomeOtherTest', 'DOCUMENTED-NON-SUPPORT')], 'does not name in'),
     ]
     for name, pinned, inv, want in pin_cases:
         got = check_pins(pinned, inv, schema)
@@ -280,7 +279,7 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
     unnumbered: list[str] = []
     pinned: dict[int, list[str]] = {}
     keys: collections.Counter[str] = collections.Counter()
-    for key, element, pins in section7_rows(text):
+    for key, element, _determination, pins in section7_rows(text):
         if (m := ITEM_KEY_RX.match(key)) is not None:
             n = int(m.group(1))
             keys[key] += 1
@@ -367,20 +366,28 @@ def check_pins(pinned: dict[int, list[str]], inventory: list[dict], schema) -> l
     pin the inventory has not recorded yet (the determination is ahead of the batch); the inventory may not
     close on evidence the determination does not claim.
 
-    ⚠ A row whose VERDICT is anchor-exempt for its kind is skipped, and that is not a hole. A
-    DOCUMENTED-NON-SUPPORT DOC row declines the conditioning facility, so Annex A.1's preamble WITHDRAWS the item
-    ("the item is not required if the optional or processor-dependent feature is not implemented") — §7 must
-    carry no row for it, and demanding one would make the register claim a determination the standard does not
-    ask for. Such a row still owes its WITNESS test; that obligation lives in `Schema.state_for`, not here.
-    Asking `anchor_for` instead of `anchor_obliged` was the same defect as kb/Work PB315's third arm: this check
-    reported three withdrawn items as findings on a correct batch.
+    ⚠ A row the register does not carry at all is skipped, and that is not a hole. A DOC row an A.4 module
+    WITHDREW declines the conditioning facility, so Annex A.1's preamble makes the item "not required if the
+    optional or processor-dependent feature is not implemented" — §7 must carry no row for it, and demanding one
+    would make the register claim a determination the standard does not ask for. Such a row still owes its
+    WITNESS test; that obligation lives in `Schema.state_for`, not here. Asking `anchor_for` instead of
+    `anchor_obliged` was the same defect as kb/Work PB315's third arm: this check reported three withdrawn items
+    as findings on a correct batch.
+
+    ⛔ THE SKIP IS THE REGISTER'S CALL, NOT THE VERDICT'S (PB280 Q1). A DOCUMENTED-NON-SUPPORT row for an
+    OPTIONAL element §7 records as "Not provided." HAS a determination, so its witness must be named in that
+    row's `Pinned by` exactly as a CONFORMS row's is — and keying the skip on the verdict would have dropped
+    precisely those rows from this check at the moment their goldens landed. `pinned` is the register as parsed
+    by the caller, so it is also what decides here: the audit's fabricated §7 bodies stay hermetic and the live
+    run reads the live document.
     """
     findings: list[str] = []
+    determined = {f'DOC-A.1-{n}' for n in pinned}
     for row in inventory:
         rid = row.get('rule-id', '')
         if (m := ITEM_KEY_RX.match(rid)) is None:
             continue
-        if not schema.anchor_obliged(row):
+        if not schema.anchor_obliged(row, determined):
             continue
         n = int(m.group(1))
         refs = [r for r in schema.split(row.get('test-ref', '') or '', schema.test_ref_sep)
@@ -452,7 +459,7 @@ def main(argv: list[str]) -> int:
 
     print('\n=== docs/CONFORMANCE.md §7 ROWS ===')
     seen: set[int] = set()
-    for key, element, _pins in rows:
+    for key, element, _determination, _pins in rows:
         if (m := ITEM_KEY_RX.match(key)) is None:
             print(f'  ⚠ (unnumbered) {element[:74]}')
             continue

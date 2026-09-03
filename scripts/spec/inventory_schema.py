@@ -18,8 +18,10 @@ burn-down.
 DIVISION OF LABOUR between the two, deliberately with NO overlap:
   · SHAPE      — verdict is in the vocabulary, required fields present, editions legal, rule-id known, and — for a
                  kind that declares evidence rules (`kinds`) — the computed register anchor is present and every
-                 fragment on an `anchored-files` path is a legal anchor of that file's space. All of it decidable
-                 from the record and the schema, with no disk access.
+                 fragment on an `anchored-files` path is a legal anchor of that file's space. Decidable from the
+                 record, the schema and THE REGISTER THE SCHEMA NAMES (`kinds.DOC.anchor-template` points at
+                 docs/CONFORMANCE.md §7, and since 2026-09-02 `anchor_obliged` asks whether that document
+                 actually carries the row — see below). It still does not go looking in `src/`.
                  Checked HERE, at record time, so a malformed batch never reaches the inventory.
   · REFERENCE  — the code-location symbol still exists, the test-ref names a test that is really on disk.
                  Checked ONLY by the C# battery gate, because it must keep holding as the tree changes underneath
@@ -30,12 +32,16 @@ from __future__ import annotations
 import json
 import pathlib
 import re
-from typing import Any
+from typing import Any, NamedTuple
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA_PATH = REPO / "tests" / "version-matrix" / "inventory-schema.json"
 CATALOG_PATH = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 INVENTORY_PATH = REPO / "tests" / "version-matrix" / "traceability-inventory.json"
+#: The IMPLEMENTOR-DEFINED ELEMENT REGISTER — docs/CONFORMANCE.md §7, whose rows are keyed by the inventory
+#: rule-id `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor.
+REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
+REGISTER_HEADING = "## 7. Annex A.1"
 
 #: The adjudicated fields — the ones a re-run of build_inventory.py must carry forward, and the ones a verdict
 #: record may set. Everything else on a row is regenerated from the catalog and is not the reviewer's to write.
@@ -77,6 +83,79 @@ def section_matches(prefix: str, section: str) -> bool:
     return len(p) <= len(s) and s[: len(p)] == p
 
 
+class Section7Row(NamedTuple):
+    """One data row of the docs/CONFORMANCE.md §7 register, by cell."""
+
+    key: str            #: the inventory rule-id the row discharges — `DOC-A.1-<n>`
+    element: str        #: the A.1 element the row claims to be about
+    determination: str  #: WHAT WE DO — the determination itself
+    pinned: str         #: the spec-derived test-ref(s) that pin it, or '—'
+
+
+def register_cells(line: str) -> list[str]:
+    """A markdown row's content cells, split on UNESCAPED pipes.
+
+    ⚠ Splitting on a bare '|' is wrong here and was wrong once: the item-82 determination writes an absolute
+    value as `\\|v\\|`, so a naive split reports that row with two extra cells and mis-places anything appended
+    to it.
+    """
+    parts = [c.replace("\\|", "|").strip() for c in re.split(r"(?<!\\)\|", line.rstrip("\n"))]
+    return parts[1:-1]
+
+
+def section7_rows(text: str) -> list[Section7Row]:
+    """Every data row of the §7 register table, in document order.
+
+    ⛔ THE ONE PARSER, and it lives HERE rather than in `audit_annex_a1.py` where it was written, because three
+    readers now need it and a markdown table read three ways is `feedback_one_rule_one_place` waiting to happen:
+    the register audit (which CHECKS the rows), `Schema.anchor_obliged` (which asks whether an item has a
+    determination at all) and `DerivedSelector` (whose `determination-prefix` arm reads what the determination
+    SAYS). The C# twin is `tests/_shared/ConformanceRegister.cs`; that pair is the same two-engines-one-artifact
+    shape as the selector evaluator, and `EveryRowState_IsDerived_NotAsserted` catches them drifting.
+    """
+    start = text.index(REGISTER_HEADING)
+    rows: list[Section7Row] = []
+    for line in text[start:].splitlines():
+        if not line.startswith("| "):
+            continue
+        cells = register_cells(line)
+        if len(cells) < 2 or cells[0] in ("A.1 item",) or set(cells[0]) <= set("-: "):
+            continue
+        rows.append(Section7Row(cells[0], cells[1],
+                                cells[2] if len(cells) > 2 else "",
+                                cells[3] if len(cells) > 3 else ""))
+    return rows
+
+
+def plain(cell: str) -> str:
+    """A determination cell with its leading markdown emphasis removed.
+
+    A determination is written for a HUMAN first — `**Not provided.** Each usage holds …` — so a predicate that
+    reads the cell must not be reading the bold markers. Stripping them in the one place both engines call is
+    what stops the next author's `*Not provided.*` from silently un-selecting a row.
+    """
+    return cell.lstrip("*_ \t")
+
+
+_REGISTER_CACHE: dict[str, str] | None = None
+
+
+def register_determinations(text: str | None = None) -> dict[str, str]:
+    """`{row key -> determination cell}` for the §7 register — cached when read from disk.
+
+    An item with SEVERAL determinations (A.1-56 and A.1-92 legitimately have two rows each) keeps the FIRST:
+    the question every caller asks is "does this element have a determination, and what does it say", and the
+    first row is the one the item's own obligation is discharged by. `audit_annex_a1.py` is the place that cares
+    about the second row, and it reads `section7_rows` directly.
+    """
+    global _REGISTER_CACHE
+    if text is not None:
+        return {r.key: r.determination for r in reversed(section7_rows(text))}
+    if _REGISTER_CACHE is None:
+        _REGISTER_CACHE = register_determinations(REGISTER_PATH.read_text(encoding="utf-8"))
+    return _REGISTER_CACHE
+
+
 class DerivedSelector:
     """One `derived-verdicts` entry — a verdict that follows MECHANICALLY from one owner determination.
 
@@ -104,18 +183,37 @@ class DerivedSelector:
         FMT-14.9.1.2 and FMT-14.9.11.2 — the ACCEPT and DISPLAY formats, both PARTIAL, both carrying the
         compiler's most-used statement — flip to non-support because their optional format names screen-name-1.
         The CLAUSE axis still takes FMT-13.17.2, whose every format IS screen.
+      · `requirement`   the A.1 REQUIREMENT CLASS the standard states for a DOC rule in its own text ("This item
+        is optional." / "This item is required." / "conditionally required"), carried on the catalog row by
+        `extract_rule_catalog.py`: 164 required · 30 optional · 27 conditionally required · 1 unclassified. It is
+        the axis kb/Work PB280 Q1 turns on, and it exists because the licence for that determination is A.1's
+        own preamble, which is written PER CLASS.
+      · `determination-prefix`  what docs/CONFORMANCE.md §7 SAYS about this element — the register row keyed by
+        the rule's own id (which is exactly the anchor `kinds.DOC.anchor-template` computes), matched on its
+        leading words with markdown emphasis stripped. ⛔ This is the first arm field that reads an artifact
+        outside the catalog, and that is the point: a determination is the DOC row's implementation, so a
+        selector about determinations has nowhere else to look. An item with NO §7 row is not selected — nothing
+        has been determined about it yet, and a MISSING determination is not a NEGATIVE one
+        (`feedback_verdict_evidence_invariant`).
     """
 
-    def __init__(self, name: str, raw: dict[str, Any]) -> None:
+    #: The arm fields that NARROW the catalog. An arm carrying none of them selects all 4,311 rules.
+    POSITIVE = ("sections", "pattern", "xref-sections", "kinds", "requirement", "determination-prefix")
+
+    def __init__(self, name: str, raw: dict[str, Any], register: dict[str, str] | None = None) -> None:
         self.name = name
         self._raw = raw
         self.verdict: str = raw["verdict"]
         self.decision: str = raw.get("decision", "")
         self.excludes = [re.compile(p, re.IGNORECASE) for p in raw.get("excludes-patterns", [])]
+        #: The §7 register this selector reads for its `determination-prefix` arms. Injectable so a self-test
+        #: drives the predicate against a FABRICATED register instead of the live one — the two new axes cannot
+        #: be falsified against today's document, where all four "optional + Not provided" cells agree.
+        self._register = register
         self.arms: list[dict[str, Any]] = []
         for i, arm in enumerate(raw["arms"]):
             keys = {k for k in arm if not k.startswith("$")}
-            if not keys & {"sections", "pattern", "xref-sections", "kinds"}:
+            if not keys & set(self.POSITIVE):
                 # An arm with only NEGATIVE fields selects the whole catalog. Refusing it here is cheap; the
                 # alternative is a 4,311-row batch that validates perfectly and is entirely wrong.
                 raise SystemExit(f"derived-verdicts.{name} arm[{i}]: no positive field — it would select every rule")
@@ -125,7 +223,13 @@ class DerivedSelector:
                 "pattern": re.compile(arm["pattern"], re.IGNORECASE) if "pattern" in arm else None,
                 "kinds": set(arm.get("kinds", [])),
                 "excludes-kinds": set(arm.get("excludes-kinds", [])),
+                "requirement": set(arm.get("requirement", [])),
+                "determination-prefix": [p.casefold() for p in arm.get("determination-prefix", [])],
             })
+
+    @property
+    def register(self) -> dict[str, str]:
+        return register_determinations() if self._register is None else self._register
 
     @staticmethod
     def text_of(rule: dict[str, Any]) -> str:
@@ -138,6 +242,14 @@ class DerivedSelector:
             return False
         if kind in arm["excludes-kinds"]:
             return False
+        if arm["requirement"] and rule.get("requirement", "") not in arm["requirement"]:
+            return False
+        if arm["determination-prefix"]:
+            said = plain(self.register.get(rule.get("id", ""), "")).casefold()
+            # An item with no §7 row yields '', which starts with no prefix — so an undetermined element is
+            # never selected, whatever its requirement class.
+            if not said or not any(said.startswith(p) for p in arm["determination-prefix"]):
+                return False
         if arm["sections"] and not any(section_matches(p, rule.get("section", "")) for p in arm["sections"]):
             return False
         text = self.text_of(rule)
@@ -206,21 +318,39 @@ class Schema:
             return None
         return kind["anchor-template"].replace("{rule-id}", row.get("rule-id", ""))
 
-    def anchor_obliged(self, row: dict[str, Any]) -> bool:
-        """Must this row CARRY the anchor `anchor_for` computes — i.e. does its VERDICT claim a determination?
+    def anchor_obliged(self, row: dict[str, Any], register: set[str] | None = None) -> bool:
+        """Must this row CARRY the anchor `anchor_for` computes — i.e. is there a determination to point at?
 
         ⛔ `anchor_for` says what the anchor IS (a function of the row); this says whether the row owes it.
         CONFORMS, PARTIAL and DIVERGES each assert something about what the register says, so each owes its own
-        §7 row. DOCUMENTED-NON-SUPPORT asserts the opposite: the conditioning facility is not implemented, so
-        Annex A.1's preamble withdraws the item ("the item is not required if the optional or
-        processor-dependent feature is not implemented") and there is no determination left to anchor. The
-        exempt verdicts are DATA on the kind (`anchor-exempt-verdicts`), read here and by `AnchorObliged` on the
-        C# side, so the writer and the gate cannot disagree.
+        §7 row unconditionally.
+
+        ⛔ THE EXEMPTION IS KEYED ON "HAS A §7 ROW", NOT ON THE VERDICT, AND THAT IS A CORRECTION (PB280 Q1,
+        2026-09-02). DOCUMENTED-NON-SUPPORT has TWO grounds on a DOC row and they differ exactly here:
+          · the item is WITHDRAWN — the conditioning facility is not implemented, so A.1's preamble makes the
+            item "not required if the optional or processor-dependent feature is not implemented" and §7 must
+            carry NO row (items 84, 85, 173, 86). Nothing to anchor.
+          · the element is OPTIONAL AND NOT PROVIDED — §7 DOES carry the row, because the non-provision IS the
+            determination and A.1's preamble conditions the documentation duty on provision ("Documentation
+            required: If the element is provided by the implementor …"). The row is the evidence, so the anchor
+            is owed exactly as for CONFORMS (items 127, 206).
+        Keying on the verdict alone answers both cases the same and gets the second one wrong: the row would be
+        excused its own determination, and `check_pins` would stop holding its witness in agreement with §7's
+        `Pinned by` — silently, at the moment the witness lands. So `anchor-exempt-verdicts` now names the
+        verdicts that MAY be exempt and THE REGISTER DECIDES, which is a fact neither the row nor the schema
+        carries and which cannot therefore be got wrong by an editor.
         """
         if self.anchor_for(row) is None:
             return False
         kind = self.kinds.get(row.get("kind") or "", {})
-        return (row.get("verdict") or "") not in set(kind.get("anchor-exempt-verdicts", []))
+        if (row.get("verdict") or "") not in set(kind.get("anchor-exempt-verdicts", [])):
+            return True
+        reg = self.register_items() if register is None else register
+        return (row.get("rule-id") or "") in reg
+
+    def register_items(self) -> set[str]:
+        """The rule-ids docs/CONFORMANCE.md §7 carries a determination for."""
+        return set(register_determinations())
 
     def is_observable(self, row: dict[str, Any]) -> bool:
         """Does this row name a site in the compiler a program could observe the determination through?
@@ -282,11 +412,13 @@ class Schema:
         compiler to observe stays a GAP, because closing it would widen §1(a)'s definition of DONE and that is
         the owner's to widen (kb/Work PB280 Q2). The spec-derived test clause below then applies unchanged.
 
-        ⚠ Both costs are charged only to a verdict that CLAIMS a determination — the `anchor_obliged` predicate,
-        not `anchor_for`. A DOCUMENTED-NON-SUPPORT DOC row declines the facility, which withdraws the A.1 item
-        (A.1's preamble: the item is not required if the optional or processor-dependent feature is not
-        implemented), so there is no §7 row to anchor and nothing implemented to observe; the row still owes its
-        WITNESS test, which is the clause that keeps it open. ⛔ Reading `anchor_for` here instead was a real
+        ⚠ Both costs are charged only to a row with a determination to point at — the `anchor_obliged`
+        predicate, not `anchor_for`. A DOC row an A.4 module WITHDRAWS (A.1's preamble: the item is not required
+        if the optional or processor-dependent feature is not implemented) has no §7 row to anchor and nothing
+        implemented to observe; it still owes its WITNESS test, which is the clause that keeps it open. A DOC row
+        that is DOCUMENTED-NON-SUPPORT because the OPTIONAL element is not provided (PB280 Q1) is the opposite
+        case — §7 states the non-provision, so the row pays both costs like any other, and stays a GAP until a
+        witness proves the documented posture is what actually happens. ⛔ Reading `anchor_for` here instead was a real
         defect (kb/Work PB315): the C# twin `DerivedState` had ALWAYS asked `AnchorObliged` and said in its own
         comment that "this side and the Python writer read ONE rule" — they did not, and the disagreement was
         unobservable until a declined DOC row first earned a witness test, at which point three rows could never
