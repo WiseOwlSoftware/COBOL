@@ -13,6 +13,11 @@ import json, pathlib, sys, collections, re
 sys.stdout.reconfigure(encoding="utf-8")
 out = pathlib.Path(sys.argv[1]); label = sys.argv[2]
 
+#: A refuter telling the registrar to drop the cited evidence. Either order, within one sentence.
+TESTREF_CLEARED = re.compile(
+    r"(?:test-?ref[^.\n]{0,120}\b(?:WITHDRAWN|CLEARED?|EMPTY)\b"
+    r"|\b(?:WITHDRAWN|CLEARED?|EMPTY)\b[^.\n]{0,120}test-?ref)", re.I)
+
 records, digest, unrefuted, skipped = [], collections.OrderedDict(), [], []
 for f in sorted(out.glob("out-*.json")) + sorted(out.glob("adjudicate-*.jsonl")):
     slug = f.stem.split("-", 1)[1]
@@ -44,7 +49,14 @@ for f in sorted(out.glob("out-*.json")) + sorted(out.glob("adjudicate-*.jsonl"))
                     cv = v.get("corrected_verdict") or ""
                     word = next((w for w in ("CONFORMS", "PARTIAL", "DIVERGES", "NOT-IMPLEMENTED", "NEEDS-OWNER-DECISION") if cv.upper().startswith(w)), "PARTIAL")
                     r["verdict"] = word
-                    if "WITHDRAWN" in cv.upper():
+                    # ⛔ THE CLEARING INSTRUCTION IS NOT ALWAYS IN `corrected_verdict`, AND IT IS NOT ALWAYS
+                    # THE WORD "WITHDRAWN". Lane-3 batch b2 produced both misses in one run, each of which
+                    # would have CLOSED a row on evidence the refuter had just shown cannot pin the rule:
+                    #   GR-14.9.37.4-6  corrected_verdict "CONFORMS (test-ref must be CLEARED …)"
+                    #   SR-14.9.44.3-5  corrected_verdict bare "CONFORMS"; the instruction ("record … as
+                    #                   CONFORMS with an EMPTY test-ref") was written only in `why`.
+                    # So scan BOTH fields, and take any clearing verb adjacent to a test-ref mention.
+                    if TESTREF_CLEARED.search(cv) or TESTREF_CLEARED.search(v.get("why") or ""):
                         r["test-ref"] = ""
                     m = re.search(r"amended:\s*add\s+([A-Za-z0-9_:./-]+)", cv)
                     if m:

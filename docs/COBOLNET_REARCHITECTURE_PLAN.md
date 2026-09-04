@@ -57,8 +57,16 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   the complement — each closed on its own negative witness writing the rule's forbidden construct beside the
   refused APPLY COMMIT; the CLASS clause §13.18.11 joins the declined VALIDATE family with one grammar
   alternative, one descriptor sentence, one selector arm, one witness, no new code; `PB382` opened for the
-  reserved-word funnel COBOLNET0901 reaching only the words `dataName` admits); ③ lane 3 batch 2 from its on-disk
-  checkpoints, then its registrar, then batch 3 (inputs and pinned compiler ready); ④ ✅ **DONE 2026-09-03 —
+  reserved-word funnel COBOLNET0901 reaching only the words `dataName` admits); ③ ✅ **DONE 2026-09-04 — lane-3 batch 2 REGISTERED, GAP 3054 → 3022** (20 statement
+  subjects — EVALUATE · EXIT · GO TO · GOBACK · IF · INITIALIZE · MOVE · PERFORM · SEARCH · SET ·
+  SUBTRACT — 295 adjudicated rows, **292 recorded**; 120 refuter checkpoints, 76 upheld and **44
+  overturned, every one downward**; CONFORMS 78 = 32 that close + 46 test-needed, listed in `PB370`
+  for the golden lane. 84 register notes (PB387–PB467 plus extensions to the open PB210/PB211/PB212).
+  Three records DROPPED rather than recorded: SET Format 6 ATTRIBUTE was fixed by `60bf02d7` after the
+  pin, and the batch would have overwritten an OWNER-decided DOCUMENTED-NON-SUPPORT verdict on rows
+  already state OK. `merge_batch.py` fixed at its source — it cleared a refuted row's test-ref only on
+  the literal word WITHDRAWN, and two b2 rows would have CLOSED on evidence their own refuter had just
+  destroyed); **batch 3 is next** (inputs and pinned compiler ready); ④ ✅ **DONE 2026-09-03 —
   golden-lane round 2 landed, GAP 3106 → 3054** (49 witnesses across six writer slugs — 44 positive, 5 negative —
   closing 52 rows; two drafts held OUT of the tree as suspected compiler defects, and the CONFORMS-but-untested
   band is now **9 rows**, of which 8 are the unobservable class `PB386` puts to the owner and the ninth is `PB383`; 7 `PARTIAL` rows
