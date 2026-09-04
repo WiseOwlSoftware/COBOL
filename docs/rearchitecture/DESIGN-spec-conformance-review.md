@@ -24,9 +24,58 @@ Every normative ISO/IEC 1989:2023 rule — and its 1985/2002/2014 applicability 
   documented-non-support decision** (optional modules only, per §4.2.16);
 - **(b)** a conformance **verdict VERIFIED against the spec TEXT** (not against the legacy or GnuCOBOL);
 - **(c)** a **spec-derived test** that covers it — the expected value COMPUTED FROM THE SPEC, never copied from an
-  implementation oracle.
+  implementation oracle; **OR, only for a rule that carries no observable obligation, the owner-signed
+  DERIVATION of §1.1 below.**
 
 The traceability inventory at **zero unresolved GAP** = P14 DONE (D13). This supersedes differential-based confidence.
+
+### 1.1 The DERIVATION — the (c) alternative for a rule with no observable obligation (owner, `kb/Work/PB386`, 2026-09-03)
+
+⛔ **This is the ONE widening of §1 an agent did not make, and the bounds are the owner's, not a paraphrase.**
+Some normative rules impose no obligation a conforming program can observe: the standard declares the result
+*undefined* (§4.4 2): *"Situations in which the results of executing a statement are explicitly undefined or
+unpredictable are identified in A.2, Undefined language element list. A COBOL run unit that allows these
+situations to happen is a conforming run unit"* — `cite.py --check 4.4` OK); or the rule's antecedent cannot be
+populated in this implementation; or its consequent cannot be told apart from another rule's. For such a rule
+§1(c) is not merely unmet, it is **unmeetable**: any golden written for it would pin an IMPLEMENTATION CHOICE as
+though it were the standard's answer, which is exactly what the schema's `spec-derived` clause exists to prevent.
+The measured population before the door opened was **eight rows** — every CONFORMS-but-untested row on the tree
+except `DOC-A.1-93`, which is a real defect (`kb/Work/PB383`).
+
+A **derivation** is a determination recorded in `docs/CONFORMANCE.md` §8, keyed by the inventory `rule-id`,
+naming ONE of three arms and signed by the owner. It stands in place of §1(c) **and of nothing else**: (a) and
+(b) are paid in full, and a `kind: DOC` row still pays its register anchor and its observability cost.
+
+| arm | what it claims | how it is CHECKED |
+|---|---|---|
+| `undefined-A.2` | the standard itself lists this rule as explicitly undefined | **MECHANICAL.** The `Names` cell reads `A.2 item <n>`; the checker resolves Annex A.2 item *n*'s own trailing citation (`(14.9.5, CANCEL statement, General rule 11)`) against the rule catalog and requires **this row's `rule-id` to be among the ids it resolves to**. Naming an item that does not cover the row is refused. |
+| `unpopulatable-antecedent` | the antecedent is false for every state this implementation can reach | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must STATE the closed set that makes it unreachable (≥20 characters — a dash or an `n/a` is refused). The argument itself has a reader, and the owner's signature is that reader. |
+| `indistinguishable-consequent` | the consequent is byte-identical to another rule's, so no conforming program can distinguish them | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must be a `rule-id` that EXISTS in the catalog and is not this row's own. |
+
+**What is REFUSED, by the writer and by the gate.** Each of these is a bound the owner set, encoded rather than
+described:
+
+1. a derivation on a row that already carries a **spec-derived `test-ref`** — the row demonstrably HAS an
+   observable obligation, so the premise of the whole mechanism is false for it;
+2. a derivation on a row whose **verdict does not resolve** — a derivation explains why no test can exist, not
+   why a DIVERGES is acceptable;
+3. a derivation on a row of a kind that **obliges a register determination which `docs/CONFORMANCE.md` does not
+   carry** — the documentation obligation is not yet stated, so there is nothing for the derivation to be about;
+4. an `undefined-A.2` arm naming an item that **does not resolve to this row**;
+5. a **missing or wrong owner signature** (`owner: 2026-09-03` — the schema holds the literal);
+6. a `derivation` field that is not the anchor **COMPUTED** from the row's own rule-id, or for which
+   `docs/CONFORMANCE.md` §8 carries **no row**.
+
+⚖ **How this coexists with `PB280` Q2 ("no" for anchor-only DOC rows), which it does NOT reverse.** A DOC row
+asks the implementor to STATE a choice, so "there is nothing to observe" is unfalsifiable there and cannot close
+a row — that answer stands. `DOC-A.1-19` is admitted for the opposite reason: its determination **is** stated,
+in §7, and it names a greenfield site; only its WITNESS is impossible, because §14.9.5.4 GR10's branch is
+reachable only through the GR2 locate step this runtime never performs, so the effect is byte-identical to
+GR7's mandated no-op. **The distinction is encoded by ORDER, not by a special case**: `state_for` charges the
+kind's anchor and observability costs FIRST and consults the derivation only where a spec-derived `test-ref`
+would have been consulted. A DOC row whose only location is its §7 anchor therefore still computes `GAP`, with
+a derivation or without one — refusal 3 above adds the second half, that a DOC row §7 does not document cannot
+carry a derivation at all.
 
 ## 2. The unit of review — the normative rule
 
@@ -77,6 +126,7 @@ rather than under `docs/`, because its reader is the battery, not a person.
 | `code-location` | the traceability link: `path` or `path#Symbol` (see the correction below), or `""` if not located |
 | `verdict` | one of the six defined in `inventory-schema.json` — the vocabulary lives THERE, not here, so it cannot drift between this doc and the tools |
 | `test-ref` | the spec-derived test covering it, in a form that RESOLVES on disk (§8), or `""` |
+| `derivation` | §1.1's owner-signed alternative to `test-ref`, for a rule with no observable obligation: the register anchor `docs/CONFORMANCE.md#DRV-<rule-id>`, **COMPUTED from the row's own rule-id**, or `""` |
 | `notes` | the fix-queue item id for a DIVERGES; the owner decision for a non-support |
 | `state` | **derived, never written** — `OK` only when the verdict resolves AND every field that verdict requires is filled; otherwise `GAP` |
 
@@ -408,6 +458,40 @@ has a determination, and that the script's own `--self-test` still names every c
 > REAL artifact once, by corrupting `traceability-inventory.json` in place: a row hand-promoted to `OK` and a
 > CONFORMS row citing a file and a golden that do not exist turned exactly three tests red, then green again on
 > restore.
+
+### 8.2 The DERIVATION — how §1.1's evidence kind is recorded and checked
+
+§1.1 says WHAT a derivation is and what it may not do; this says where the parts live. **The reference shape is
+the DOC row's, reused rather than paralleled**: an anchor COMPUTED from the row's own rule-id, carried on the
+row, cross-checked against a register PARSED by one reader per language.
+
+| part | file | owns |
+|---|---|---|
+| the rules, as DATA | `tests/version-matrix/inventory-schema.json` → `derivation` | the record field, the anchor template, the §8 heading, the owner signature literal, and the three arms with their `names-pattern` + `check` |
+| the register | `docs/CONFORMANCE.md` **§8** | the determinations themselves — one row per closed rule, keyed `DRV-<rule-id>` |
+| the register parser | `inventory_schema.register_section` / `tests/_shared/ConformanceRegister.cs` | ONE markdown-table reader per language, now taking the HEADING and stopping at the next `## ` — §7 and §8 are two calls, not two parsers |
+| the undefined-element list | `tests/version-matrix/annex-a2-undefined.json`, generated by `scripts/spec/extract_annex_a2.py` | Annex A.2's 66 items, each item's own trailing citation, and the catalog `rule-id`s that citation RESOLVES to |
+| the state rule | `Schema.state_for` / `DerivedState` | the same clause, in both engines, in the same change set (`kb/Work/PB315`'s lesson) |
+| the writer | `record_verdicts.validate` | the six refusals of §1.1, at record time |
+| the gates | `SpecTraceabilityInventoryDriftTests` · `AnnexA2UndefinedListDriftTests` | that every derivation row still holds, and that the A.2 artifact still equals the spec |
+
+- **The A.2 list is a GENERATED ARTIFACT, not a parse at check time, and that is the shape that makes the next
+  A.2 row automatic.** The extraction lives in exactly one place — a Python script that reads
+  `specs/ISO_COBOL.md` and resolves each item's citation against `spec-rule-catalog.json` — and both engines then
+  read the resolved `rule-ids` as data. Parsing the spec markdown in C# as well would be the second parser this
+  design spends its whole length avoiding, and re-parsing 66 items per row would put a 1.3 MB read on the path
+  `EveryRowState_IsDerived_NotAsserted` walks 4,311 times. `extract_annex_a2.py --check` regenerates and diffs, so
+  the artifact cannot go stale silently; `AnnexA2UndefinedListDriftTests` runs it every build, the
+  `AnnexA1RegisterDriftTests` precedent.
+- **Adding an A.2-arm row costs one register row.** The item→rule-id resolution is mechanical, so the next rule
+  the standard declares undefined needs no edit to any list — only the determination and its `A.2 item <n>`.
+- **⛔ §7's `DOC-A.1-<n>` token invariant had to learn the second register.** `audit_annex_a1.py` asserts the
+  COUNT of each `DOC-A.1-<n>` token in `CONFORMANCE.md` equals the number of §7 rows keyed by it — a check that
+  exists because an inventory row resolves its anchor by a word search over the WHOLE file, so a prose mention
+  would otherwise read as a filed determination. A §8 row keyed `DRV-DOC-A.1-19` is a second, legitimate
+  occurrence. The invariant is therefore stated over BOTH registers (`§7 rows keyed T` + `§8 rows keyed DRV-T`),
+  and `check_pins` — which is what actually holds a DOC row's evidence in agreement with §7 — was widened at the
+  same time from "closes on a spec-derived test-ref" to "closes", so the guard that matters did not weaken.
 
 ## 9. RUNNING A PHASE-B BATCH — the fan-out, and what its prompt MUST carry
 

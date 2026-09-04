@@ -1,0 +1,985 @@
+{
+ "$comment": [
+  "GENERATED — do not hand-edit. `python scripts/spec/extract_annex_a2.py` writes it;",
+  "`--check` re-derives it from specs/ISO_COBOL.md and exits 1 on any difference, and",
+  "AnnexA2UndefinedListDriftTests runs that check every build.",
+  "",
+  "Annex A.2 is the standard's own list of the language elements it declares explicitly undefined.",
+  "It is the mechanical arm of the DERIVATION evidence kind (DESIGN-spec-conformance-review.md 1.1,",
+  "owner decision kb/Work/PB386, 2026-09-03): a docs/CONFORMANCE.md section-8 row may close an inventory",
+  "row by naming 'A.2 item <n>', and the checker requires that row's rule-id to be among the ids item n",
+  "resolves to. `rule-ids` is that resolution — derived from the item's OWN trailing citation, never typed.",
+  "",
+  "An item with no citation of a numbered rule resolves to NO rule-ids. That is deliberate: an item that",
+  "does not name a rule cannot be shown to cover one, and an arm naming such an item is refused."
+ ],
+ "source": "specs/ISO_COBOL.md#section-a-2",
+ "generator": "scripts/spec/extract_annex_a2.py",
+ "items": [
+  {
+   "item": 1,
+   "text": "ALLOCATE statement. If the INITIALIZED phrase is not specified in the ALLOCATE statement, the INITIALIZE clause is not specified in the OPTIONS paragraph, and arithmetic-expression-1 is specified, the content of allocated storage is undefined. (14.9.3, ALLOCATE statement, General rule 8)",
+   "citations": [
+    {
+     "clause": "14.9.3",
+     "kind": "GR",
+     "rules": [
+      8
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.3.4-8"
+   ]
+  },
+  {
+   "item": 2,
+   "text": "ALLOCATE statement. If the INITIALIZED phrase is not specified in the ALLOCATE statement and data-name-1 is specified, the content of allocated storage is undefined except for data items of class object or class pointer. (14.9.3, ALLOCATE statement, General rule 9)",
+   "citations": [
+    {
+     "clause": "14.9.3",
+     "kind": "GR",
+     "rules": [
+      9
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.3.4-9"
+   ]
+  },
+  {
+   "item": 3,
+   "text": "CALL statement. If a program-pointer data item containing an invalid program address is used in a CALL statement, execution of the CALL statement is undefined. (14.9.4, CALL statement, General rule 3g)",
+   "citations": [
+    {
+     "clause": "14.9.4",
+     "kind": "GR",
+     "rules": [
+      3
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.4.4-3",
+    "GR-14.9.4.4-L2.3"
+   ]
+  },
+  {
+   "item": 4,
+   "text": "CANCEL statement. If a program-pointer has been set to point to the program to be canceled, the result of referencing that program-pointer in a subsequent CALL statement is undefined. (14.9.5, CANCEL statement, General rule 11)",
+   "citations": [
+    {
+     "clause": "14.9.5",
+     "kind": "GR",
+     "rules": [
+      11
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.5.4-11"
+   ]
+  },
+  {
+   "item": 5,
+   "text": "CLOSE statement. The unsuccessful execution of the CLOSE statement without the UNIT phrase leaves the availability of the record area undefined. (14.9.6, CLOSE statement, General rule 7)",
+   "citations": [
+    {
+     "clause": "14.9.6",
+     "kind": "GR",
+     "rules": [
+      7
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.6.4-7"
+   ]
+  },
+  {
+   "item": 6,
+   "text": "COLUMN clause. The result of printing a report line is undefined if any given column position in the report line is occupied by more than one printable item when the line is printed. (13.18.14, COLUMN clause, General rule 4)",
+   "citations": [
+    {
+     "clause": "13.18.14",
+     "kind": "GR",
+     "rules": [
+      4
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.14.4-4"
+   ]
+  },
+  {
+   "item": 7,
+   "text": "Cursor. The position and visibility of the cursor is undefined during execution of a DISPLAY screen statement. (9.2.4, Cursor)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 8,
+   "text": "Cursor locator. The value of the cursor locator is undefined after an unsuccessful execution of an ACCEPT screen statement. (9.2.5, Cursor locator)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 9,
+   "text": "Cursor locator. The value of the cursor locator is undefined if the position of the visible cursor is at a line or column number that is greater than 999 when the execution of an ACCEPT screen statement is terminated. (9.2.5, Cursor locator)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 10,
+   "text": "Exception conditions. The exception condition that is set to exist if multiple exceptions are detected during the execution of a statement is undefined unless otherwise specified. (14.6.13.1, Exception conditions)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 11,
+   "text": "Explicit and implicit transfers of control. In the declarative section the flow of control is undefined when there is no next executable statement after either the last statement when the paragraph in which it appears is not being executed under the control of some other COBOL statement, or the last statement when the statement is in the range of an active PERFORM statement executed in a different section and this last statement of the declarative section is not also the last statement of the procedure that is the exit of the active PERFORM statement. (14.6.3, Explicit and implicit transfers of control)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 12,
+   "text": "File section. The initial value of the data items in the file section is undefined. (13.4, File section, General rule 1 and 13.18.63, VALUE clause, General rule 2)",
+   "citations": [
+    {
+     "clause": "13.4",
+     "kind": "GR",
+     "rules": [
+      1
+     ]
+    },
+    {
+     "clause": "13.18.63",
+     "kind": "GR",
+     "rules": [
+      2
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.63.4-2",
+    "GR-13.4.4-1",
+    "GR-13.4.5.4-1",
+    "GR-13.4.6.4-1"
+   ]
+  },
+  {
+   "item": 13,
+   "text": "FREE statement. The contents of any data items located within the dynamic storage area being released become undefined. (14.9.15, FREE statement, General rule 1)",
+   "citations": [
+    {
+     "clause": "14.9.15",
+     "kind": "GR",
+     "rules": [
+      1
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.15.4-1"
+   ]
+  },
+  {
+   "item": 14,
+   "text": "Function-identifier. The results of the execution of a function are undefined if the activated function references an omitted argument. (8.4.3.2, Function-identifier, General rule 8)",
+   "citations": [
+    {
+     "clause": "8.4.3.2",
+     "kind": "GR",
+     "rules": [
+      8
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-8.4.3.2.4-8"
+   ]
+  },
+  {
+   "item": 15,
+   "text": "Incompatible data. When a numeric-edited data item is the sending operand of a de-editing MOVE statement and the content of that data item is not a possible result for any editing operation in that data item, the result of the MOVE operation is undefined and an EC-DATA-INCOMPATIBLE exception condition is set to exist. (14.6.13.2, Incompatible data)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 16,
+   "text": "Incompatible data. When the content of a boolean or numeric sending operand is referenced during the execution of a statement and the content of that sending operand would result in a false value in the corresponding class test, the result of the reference is undefined and an EC-DATA-INCOMPATIBLE exception condition is set to exist, except when the sending operand is referenced in a class condition or in a VALIDATE statement. (14.6.13.2, Incompatible data)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 17,
+   "text": "Incompatible data on partial reference. If part of a sending operand's content is referenced by a given execution of a statement, it is undefined whether any incompatible data in the unreferenced content is detected. (14.6.13.2, Incompatible data)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 18,
+   "text": "Initial items. It is undefined whether each activation of an initial program has its own copy of initial items. (8.6.4, Automatic, initial, and static internal items)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 19,
+   "text": "Initial state. If a VALUE clause is not associated with a data item described in the working-storage section, screen section, or local-storage section with the exception of data items of category object reference and data items of class pointer, the initial value of the data item is undefined unless the INITIALIZED clause is specified in the OPTIONS paragraph. The initial value of the following is always undefined: an index, a based item, and an item described with the EXTERNAL clause that does not also contain a CONSTANT RECORD clause. (13.18.63, VALUE clause, General rule 4)",
+   "citations": [
+    {
+     "clause": "13.18.63",
+     "kind": "GR",
+     "rules": [
+      4
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.63.4-4"
+   ]
+  },
+  {
+   "item": 20,
+   "text": "INITIALIZE statement. The result of the execution of the INITIALIZE statement is undefined if the receiving operand and the sending operand occupies the same storage area even if they are defined by the same data description entry. (14.9.20, INITIALIZE statement, General rule 9)",
+   "citations": [
+    {
+     "clause": "14.9.20",
+     "kind": "GR",
+     "rules": [
+      9
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.20.4-9"
+   ]
+  },
+  {
+   "item": 21,
+   "text": "INSPECT statement. The results of the execution of an INSPECT statement are undefined if: a) the CONVERTING phrase is specified and the size of the item preceding TO is not equal to the size of the item following TO; b) the CHARACTERS phrase is specified and the size of the replacement item is not one character; c) replacing-phrase is specified and CHARACTERS is not specified and the size of the replacing item is not equal to the size of the item being replaced; d) the INSPECT identifier, ALL identifier, LEADING identifier, AFTER identifier, or BEFORE identifier occupies the same storage area as the TALLYING identifier; e) the CHARACTERS BY identifier, ALL identifier, LEADING identifier, FIRST identifier, BY identifier, AFTER identifier, or BEFORE identifier occupies the same storage area as the INSPECT identifier; f) the CONVERTING identifier, TO identifier, AFTER identifier, or BEFORE identifier occupies the same storage area as the INSPECT identifier. (14.9.22, INSPECT statement, General rules 13, 14, 15, 18, 21, and 22)",
+   "citations": [
+    {
+     "clause": "14.9.22",
+     "kind": "GR",
+     "rules": [
+      13,
+      14,
+      15,
+      18,
+      21
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.22.4-13",
+    "GR-14.9.22.4-14",
+    "GR-14.9.22.4-15",
+    "GR-14.9.22.4-18"
+   ]
+  },
+  {
+   "item": 22,
+   "text": "Intrinsic functions. The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of the reference to the function-identifier is undefined. (15.3, Arguments)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 23,
+   "text": "Linkage section. If a formal parameter or returning item in the linkage section is accessed in a program that is not a called program, such as a program that is activated by the operating system, the effect is undefined. (13.7, Linkage section, General rule 3)",
+   "citations": [
+    {
+     "clause": "13.7",
+     "kind": "GR",
+     "rules": [
+      3
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.7.4-3"
+   ]
+  },
+  {
+   "item": 24,
+   "text": "Linkage section. If the runtime element containing the linkage section is activated by the operating system, the initial value of a linkage section data item is undefined. (13.7, Linkage section, General rule 5)",
+   "citations": [
+    {
+     "clause": "13.7",
+     "kind": "GR",
+     "rules": [
+      5
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.7.4-5"
+   ]
+  },
+  {
+   "item": 25,
+   "text": "LINE clause. The results of printing a report that is divided into pages are undefined if each report group does not fit on one page. (13.18.35, LINE clause, General rule 2)",
+   "citations": [
+    {
+     "clause": "13.18.35",
+     "kind": "GR",
+     "rules": [
+      2
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.35.4-2"
+   ]
+  },
+  {
+   "item": 26,
+   "text": "LINE clause. The results of printing a report group are undefined if any lines or groups of lines overlap each other, except that the non-space characters of a relative line specified with a relative line number of zero will overwrite the corresponding characters of the preceding line. (13.18.35, LINE clause, General rule 3)",
+   "citations": [
+    {
+     "clause": "13.18.35",
+     "kind": "GR",
+     "rules": [
+      3
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.35.4-3"
+   ]
+  },
+  {
+   "item": 27,
+   "text": "MERGE statement. Unless the EC-SORT-MERGE-SEQUENCE exception condition is enabled, the results of the merge operation are undefined if the records in the USING files are not ordered as described in the ASCENDING or DESCENDING KEY phrases in the collating sequence associated with the MERGE statement. (14.9.24, MERGE statement, General rule 6)",
+   "citations": [
+    {
+     "clause": "14.9.24",
+     "kind": "GR",
+     "rules": [
+      6
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.24.4-6"
+   ]
+  },
+  {
+   "item": 28,
+   "text": "MERGE statement. For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement. (14.9.24, MERGE statement, General rule 7c)",
+   "citations": [
+    {
+     "clause": "14.9.24",
+     "kind": "GR",
+     "rules": [
+      7
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.24.4-7"
+   ]
+  },
+  {
+   "item": 29,
+   "text": "MERGE statement. The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for the USING file or files is undefined upon completion of the MERGE statement. (14.9.24, MERGE statement, General rule 7)",
+   "citations": [
+    {
+     "clause": "14.9.24",
+     "kind": "GR",
+     "rules": [
+      7
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.24.4-7"
+   ]
+  },
+  {
+   "item": 30,
+   "text": "MERGE statement. Unless the EC-SORT-MERGE-ACTIVE exception condition is enabled, the results of the execution of a MERGE statement are undefined if the range of the output procedure causes the execution of any MERGE, RELEASE, or file format SORT statement. (14.9.24, MERGE statement, General rule 8)",
+   "citations": [
+    {
+     "clause": "14.9.24",
+     "kind": "GR",
+     "rules": [
+      8
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.24.4-8"
+   ]
+  },
+  {
+   "item": 31,
+   "text": "MERGE statement. The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for the MERGE file is undefined upon completion of the MERGE statement for which the GIVING phrase is specified. (14.9.24, MERGE statement, General rule 12)",
+   "citations": [
+    {
+     "clause": "14.9.24",
+     "kind": "GR",
+     "rules": [
+      12
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.24.4-12"
+   ]
+  },
+  {
+   "item": 32,
+   "text": "MOVE statement. The results of the execution of a MOVE statement are undefined if the contents of the sending operand are not valid according to the rules for incompatible data. (14.9.25, MOVE statement, General rules 6d and 14.6.13.2, Incompatible data)",
+   "citations": [
+    {
+     "clause": "14.9.25",
+     "kind": "GR",
+     "rules": [
+      6
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.25.4-6"
+   ]
+  },
+  {
+   "item": 33,
+   "text": "MOVE statement. The result of the execution of a MOVE statement is undefined if the sending operand is of category alphanumeric-edited or national-edited and the receiving operand shares the same storage area and the same data-description entry as the sending operand. (14.9.25, MOVE statement, General rule 6b).",
+   "citations": [
+    {
+     "clause": "14.9.25",
+     "kind": "GR",
+     "rules": [
+      6
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.25.4-6"
+   ]
+  },
+  {
+   "item": 34,
+   "text": "OCCURS clause. The value of an index is undefined when execution of a statement creates a value for the index that is outside the range of the values allowed by the implementor. (13.18.38, OCCURS clause, General rule 2)",
+   "citations": [
+    {
+     "clause": "13.18.38",
+     "kind": "GR",
+     "rules": [
+      2
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.38.4-2"
+   ]
+  },
+  {
+   "item": 35,
+   "text": "OCCURS clause, DEPENDING phrase. For an occurs-depending table, the content of a data item whose occurrence number exceeds the value of the data item referenced by the DEPENDING ON data-name is undefined. (13.18.38, OCCURS clause, General rule 7)",
+   "citations": [
+    {
+     "clause": "13.18.38",
+     "kind": "GR",
+     "rules": [
+      7
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.38.4-7"
+   ]
+  },
+  {
+   "item": 36,
+   "text": "Overlapping operands. The situations where the results of an operation involving overlapping operands are undefined as follows: a) When a sending and a receiving operand in any statement share a part or all of their storage areas, yet are not defined by the same data description entry, and the sequence of operations described in the rules for the statement do not ensure a defined result. b) When one or more of the operands is reference-modified. (14.6.10, Overlapping operands)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 37,
+   "text": "PERFORM statement. The results of the execution of overlapping PERFORM statements are undefined. (14.9.28, PERFORM statement, General rule 2)",
+   "citations": [
+    {
+     "clause": "14.9.28",
+     "kind": "GR",
+     "rules": [
+      2
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.28.4-2",
+    "GR-14.9.28.4-L2.2",
+    "GR-14.9.28.4-L3.2"
+   ]
+  },
+  {
+   "item": 38,
+   "text": "PERFORM STATEMENT. The results of processing are undefined when the contents of a control variable are not numeric. (14.9.28, PERFORM statement)",
+   "citations": [],
+   "rule-ids": []
+  },
+  {
+   "item": 39,
+   "text": "Procedure division header. The Initial value of the RETURNING data-name is undefined. (14.2, Procedure division structure, General rule 7)",
+   "citations": [
+    {
+     "clause": "14.2",
+     "kind": "GR",
+     "rules": [
+      7
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.2.3-7"
+   ]
+  },
+  {
+   "item": 40,
+   "text": "READ statement. The content of the associated record area is undefined at the completion of most unsuccessful executions of the READ statement. (14.9.30, READ statement, General rules 10c and 18)",
+   "citations": [
+    {
+     "clause": "14.9.30",
+     "kind": "GR",
+     "rules": [
+      10,
+      18
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.30.4-10",
+    "GR-14.9.30.4-18"
+   ]
+  },
+  {
+   "item": 41,
+   "text": "READ statement. The contents of any data items that lie outside the range of the current data record are undefined at the completion of the execution of the READ statement. (14.9.30, READ statement, General rule 3)",
+   "citations": [
+    {
+     "clause": "14.9.30",
+     "kind": "GR",
+     "rules": [
+      3
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.30.4-3",
+    "GR-14.9.30.4-L2.3",
+    "GR-14.9.30.4-L3.3",
+    "GR-14.9.30.4-L4.3"
+   ]
+  },
+  {
+   "item": 42,
+   "text": "READ statement. The key of reference is undefined at the completion of most unsuccessful executions of the READ statement for an indexed file. (14.9.30, READ statement, General rule 18)",
+   "citations": [
+    {
+     "clause": "14.9.30",
+     "kind": "GR",
+     "rules": [
+      18
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.30.4-18"
+   ]
+  },
+  {
+   "item": 43,
+   "text": "READ statement. The portion of the record area that is to the right of the last valid character read is undefined when the number of bytes in the record that is read is less than the minimum size specified by the record description entries for the file being read. (14.9.30, READ statement, General rule 17)",
+   "citations": [
+    {
+     "clause": "14.9.30",
+     "kind": "GR",
+     "rules": [
+      17
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.30.4-17"
+   ]
+  },
+  {
+   "item": 44,
+   "text": "RECORD clause. The contents of any implicit filler bits generated to complete the last byte of a logical record are undefined. (13.18.43, RECORD clause, General rule 4)",
+   "citations": [
+    {
+     "clause": "13.18.43",
+     "kind": "GR",
+     "rules": [
+      4
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.43.4-4"
+   ]
+  },
+  {
+   "item": 45,
+   "text": "RELEASE statement. The content of the bytes that extend outside the end of the record are undefined when the number of bytes to be released to the sort operation is greater than the number of bytes in the record. (14.9.32, RELEASE statement, General rule 6)",
+   "citations": [
+    {
+     "clause": "14.9.32",
+     "kind": "GR",
+     "rules": [
+      6
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.32.4-6"
+   ]
+  },
+  {
+   "item": 46,
+   "text": "RETURN statement. The contents of any data items that lie outside the range of the current data record are undefined at the completion of the execution of the RETURN statement. (14.9.34, RETURN statement, General rule 2)",
+   "citations": [
+    {
+     "clause": "14.9.34",
+     "kind": "GR",
+     "rules": [
+      2
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.34.4-2"
+   ]
+  },
+  {
+   "item": 47,
+   "text": "RETURN statement. The contents of the record area are undefined when the at end condition occurs. (14.9.34, RETURN statement, General rule 3)",
+   "citations": [
+    {
+     "clause": "14.9.34",
+     "kind": "GR",
+     "rules": [
+      3
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.34.4-3"
+   ]
+  },
+  {
+   "item": 48,
+   "text": "RETURN statement. The results of the execution of a RETURN statement are undefined if an attempt is made to execute a RETURN statement as part of the current output procedure after an at end condition occurs. (14.9.34, RETURN statement, General rule 3)",
+   "citations": [
+    {
+     "clause": "14.9.34",
+     "kind": "GR",
+     "rules": [
+      3
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.34.4-3"
+   ]
+  },
+  {
+   "item": 49,
+   "text": "REWRITE statement. The content of the bytes that extend beyond the end of the record are undefined when the number of bytes to be written to the file is greater than the number of bytes in the record. (14.9.35, REWRITE statement, General rule 15) a) SEARCH ALL statement. If one or more settings of the search index satisfy all conditions in the WHEN phrase, it is undefined whether the search will succeed in identifying any applicable index unless: b) The contents of each key data item referenced in the WHEN phrase are sequenced in the table according to the ASCENDING or DESCENDING phrase associated with that key data item, and c) When the table is subordinate to one or more data description entries that contain an OCCURS clause, the evaluation of the conditions within a WHEN phrase that references a key data item subordinate to the table results in the same occurrence number for any subscripts associated with a given level of the superordinate tables. (14.9.37, SEARCH statement, General rule 6)",
+   "citations": [
+    {
+     "clause": "14.9.35",
+     "kind": "GR",
+     "rules": [
+      15
+     ]
+    },
+    {
+     "clause": "14.9.37",
+     "kind": "GR",
+     "rules": [
+      6
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.35.4-15",
+    "GR-14.9.37.4-6"
+   ]
+  },
+  {
+   "item": 50,
+   "text": "SEARCH ALL statement. If there is more than one setting of the search index that satisfies all conditions in the WHEN phrase, it is undefined which one will be used as the final setting of the search index. (14.9.37, SEARCH statement, General rule 7)",
+   "citations": [
+    {
+     "clause": "14.9.37",
+     "kind": "GR",
+     "rules": [
+      7
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.37.4-7"
+   ]
+  },
+  {
+   "item": 51,
+   "text": "SEARCH ALL statement. If any of the conditions specified in the WHEN phrase are not satisfied for any setting of the index within the permitted range, control is passed to the AT END phrase imperative statement, when specified, or to the end of the SEARCH statement when the AT END phrase is not specified; in either case the final setting of the search index is undefined. (14.9.37, SEARCH statement, General rule 9)",
+   "citations": [
+    {
+     "clause": "14.9.37",
+     "kind": "GR",
+     "rules": [
+      9
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.37.4-9"
+   ]
+  },
+  {
+   "item": 52,
+   "text": "SORT statement. If the DUPLICATES phrase is not specified and the contents of all the key data items associated with one data record or table element are equal to the contents of the corresponding key data items associated with one or more other data records or table elements, the order of return of these records or the relative order of the contents of these table elements is undefined. (14.9.40, SORT statement, General rule 4)",
+   "citations": [
+    {
+     "clause": "14.9.40",
+     "kind": "GR",
+     "rules": [
+      4
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.40.4-4"
+   ]
+  },
+  {
+   "item": 53,
+   "text": "SORT statement. Unless the EC-SORT-MERGE-FILE-OPEN exception condition is enabled, the results of the execution of a file SORT statement are undefined when a file specified in the USING or GIVING phases is in an open mode. (14.9.40, SORT statement, General rules 9a and 9c)",
+   "citations": [
+    {
+     "clause": "14.9.40",
+     "kind": "GR",
+     "rules": [
+      9
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.40.4-9"
+   ]
+  },
+  {
+   "item": 54,
+   "text": "SORT Statement. Unless the EC-SORT-MERGE-FILE-ACTIVE exception condition is enabled, the results of the execution of a file SORT statement are undefined if the range of the input procedure causes the execution of any MERGE, RETURN, or file SORT statement. (14.9.40, SORT statement, General rule 10)",
+   "citations": [
+    {
+     "clause": "14.9.40",
+     "kind": "GR",
+     "rules": [
+      10
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.40.4-10"
+   ]
+  },
+  {
+   "item": 55,
+   "text": "SORT Statement. Unless the EC-SORT-MERGE-FILE-ACTIVE exception condition is enabled, the results of the execution of a file SORT statement are undefined if the range of the output procedure causes the execution of any MERGE, RELEASE, or file SORT statement. (14.9.40, SORT statement, General rule 13)",
+   "citations": [
+    {
+     "clause": "14.9.40",
+     "kind": "GR",
+     "rules": [
+      13
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.40.4-13"
+   ]
+  },
+  {
+   "item": 56,
+   "text": "SORT statement. For a relative file, the content of the relative key data item is undefined after the execution of the SORT statement if the USING file is not referenced in the GIVING phrase. (14.9.40, SORT statement, General rule 12c)",
+   "citations": [
+    {
+     "clause": "14.9.40",
+     "kind": "GR",
+     "rules": [
+      12
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.40.4-12"
+   ]
+  },
+  {
+   "item": 57,
+   "text": "SORT statement. The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for the USING file is undefined upon completion of the SORT statement for which the USING phrase is specified. (14.9.40, SORT statement, General rule 12)",
+   "citations": [
+    {
+     "clause": "14.9.40",
+     "kind": "GR",
+     "rules": [
+      12
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.40.4-12"
+   ]
+  },
+  {
+   "item": 58,
+   "text": "SORT statement. The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file SORT file name is undefined upon completion of the SORT statement for which the GIVING phrase is specified. (14.9.40, SORT statement, General rule 15)",
+   "citations": [
+    {
+     "clause": "14.9.40",
+     "kind": "GR",
+     "rules": [
+      15
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.40.4-15"
+   ]
+  },
+  {
+   "item": 59,
+   "text": "START statement. Following the unsuccessful execution of the START statement for a given indexed file, the key of reference for that file is undefined. (14.9.41, START statement, General rule 7)",
+   "citations": [
+    {
+     "clause": "14.9.41",
+     "kind": "GR",
+     "rules": [
+      7
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.41.4-7"
+   ]
+  },
+  {
+   "item": 60,
+   "text": "STRING statement. If the STRING identifier, or DELIMITED BY identifier, occupies the same storage area as the INTO identifier, or WITH POINTER identifier, or if the INTO identifier and the WITH POINTER identifier occupy the same storage area, the result of the execution of the STRING statement is undefined, even if they are defined by the same data description entry. (14.9.43, STRING statement, General rule 10 and 14.6.10, Overlapping operands)",
+   "citations": [
+    {
+     "clause": "14.9.43",
+     "kind": "GR",
+     "rules": [
+      10
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.43.4-10"
+   ]
+  },
+  {
+   "item": 61,
+   "text": "UNSTRING statement. If the UNSTRING identifier, DELIMITED BY identifier, or OR identifier, occupies the same storage area as the INTO identifier, DELIMITER identifier, COUNT identifier, POINTER identifier, or TALLYING identifier, or if the INTO identifier, DELIMITER identifier, or COUNT identifier, occupies the same storage area as the POINTER identifier or TALLYING identifier, or if the POINTER identifier and the TALLYING identifier occupy the same storage area, the result of the execution of the UNSTRING statement is undefined, even if they are defined by the same data description entry. (14.9.48, UNSTRING statement, General rule 18 and 14.6.10, Overlapping operands)",
+   "citations": [
+    {
+     "clause": "14.9.48",
+     "kind": "GR",
+     "rules": [
+      18
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.48.4-18"
+   ]
+  },
+  {
+   "item": 62,
+   "text": "VALIDATE statement. If the evaluation of an arithmetic expression specified in the VARYING clause of an element of the operand of a VALIDATE statement produces a noninteger value, the content of the receiving items of the VALIDATE statement is undefined. (13.18.64, VARYING clause, General rule 6)",
+   "citations": [
+    {
+     "clause": "13.18.64",
+     "kind": "GR",
+     "rules": [
+      6
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.64.4-6"
+   ]
+  },
+  {
+   "item": 63,
+   "text": "VARYING clause. If the value of an arithmetic expression in the VARYING clause produces a noninteger value, the content of the print line is undefined. (13.18.64, VARYING clause, General rule 5)",
+   "citations": [
+    {
+     "clause": "13.18.64",
+     "kind": "GR",
+     "rules": [
+      5
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-13.18.64.4-5"
+   ]
+  },
+  {
+   "item": 64,
+   "text": "WRITE statement. The content of the bytes that extend outside the end of the record are undefined when the number of bytes to be written to the file is greater than the number of bytes in the record. (14.9.51, WRITE statement, General rule 13)",
+   "citations": [
+    {
+     "clause": "14.9.51",
+     "kind": "GR",
+     "rules": [
+      13
+     ]
+    }
+   ],
+   "rule-ids": [
+    "GR-14.9.51.4-13"
+   ]
+  },
+  {
+   "item": 65,
+   "text": "WRITE statement. If two or more file connectors for a sequential file add records by sharing the physical file after opening it in extend mode, the added records follow the records present in the physical file when it was opened, but are otherwise in an undefined order. (14.9.51, WRITE statement, General rule 19)",
+   "citations": [
+    {
+     "clause": "14.9.51",
+     "kind": "GR",
+     "rules": [
+      19
+     ]
+    }
+   ],
+   "rule-ids": []
+  },
+  {
+   "item": 66,
+   "text": "WRITE statement (ADVANCING phrase). If the value of the data item referenced by the ADVANCING identifier is negative, the results of the ADVANCING operation are undefined. (14.9.51, WRITE statement, General rule 25b)",
+   "citations": [
+    {
+     "clause": "14.9.51",
+     "kind": "GR",
+     "rules": [
+      25
+     ]
+    }
+   ],
+   "rule-ids": []
+  }
+ ]
+}

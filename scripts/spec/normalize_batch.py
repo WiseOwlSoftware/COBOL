@@ -26,7 +26,12 @@ import pathlib
 import re
 import sys
 
-ALLOWED = {"verdict", "code-location", "test-ref", "editions", "notes"}
+#: ⛔ IMPORTED, NOT RETYPED. This set is the SAME rule `record_verdicts` enforces, and it had a second copy here
+#: until 2026-09-03 — at which point adding the `derivation` field (kb/Work PB386) would have made this
+#: normalizer reject, whole, every batch the writer accepts. One rule, one place.
+from inventory_schema import ADJUDICATED
+
+ALLOWED = set(ADJUDICATED)
 KNOWN_FORMS = ("conformance:", "nist:", "characterization:", "unit:", "conformance-test:")
 
 #: `tests/<project>/<...>/<Class>.cs#<Method>` -> the canonical form, when the project names the form.

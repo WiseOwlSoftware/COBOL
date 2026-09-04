@@ -53,7 +53,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     private sealed record Row(
         string RuleId, string Section, string Kind, int Ordinal, string Subject,
-        string Verdict, string CodeLocation, string TestRef, string Editions, string Notes, string State);
+        string Verdict, string CodeLocation, string TestRef, string Derivation, string Editions, string Notes,
+        string State);
 
     private sealed record CatalogRule(string Id, string Section, string Kind, int Ordinal, string Subject);
 
@@ -70,6 +71,40 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// </summary>
     private sealed record KindRule(string AnchorTemplate, Regex? Implementation, string[] AnchorExemptVerdicts);
 
+    /// <summary>One arm of the <c>derivation</c> rule: the shape its <c>Names</c> cell must have, and the
+    /// check that shape feeds.</summary>
+    private sealed record DerivationArm(Regex Names, string Check);
+
+    /// <summary>
+    /// One reason a claimed derivation does not stand — a STABLE CODE plus the sentence a reviewer reads. The
+    /// twin of Python's <c>inventory_schema.Refusal</c>.
+    /// </summary>
+    /// <remarks>
+    /// The code exists so <see cref="TheDerivationRule_AgreesWithTheFixtureAndWithPython"/> can compare what the
+    /// two engines REFUSED, not merely that they refused: two evaluators rejecting one row for two different
+    /// reasons look identical under a boolean, and that is precisely the shape <c>kb/Work/PB315</c>'s
+    /// disagreement hid behind for months.
+    /// </remarks>
+    private sealed record Refusal(string Code, string Message);
+
+    /// <summary>
+    /// <c>derivation</c> in the schema — §1.1's owner-signed ALTERNATIVE to a spec-derived test, for a rule
+    /// that carries no observable obligation (owner decision <c>kb/Work/PB386</c>, 2026-09-03). The twin of
+    /// <c>inventory_schema.Derivation</c>.
+    /// </summary>
+    /// <param name="Field">the inventory field carrying the claim</param>
+    /// <param name="AnchorTemplate">the §8 anchor, COMPUTED from the row's own rule-id</param>
+    /// <param name="Heading">the §8 register heading, so the section can be renamed in one place</param>
+    /// <param name="Signature">the literal owner signature a determination must carry</param>
+    /// <param name="Arms">the three grounds the owner accepted</param>
+    /// <param name="Register">docs/CONFORMANCE.md §8, parsed — injectable so the self-test is hermetic</param>
+    /// <param name="Undefined">Annex A.2 item → the rule-ids it covers, from the generated artifact</param>
+    private sealed record DerivationRule(
+        string Field, string AnchorTemplate, string Heading, string Signature,
+        IReadOnlyDictionary<string, DerivationArm> Arms,
+        IReadOnlyDictionary<string, ConformanceRegister.DerivationRow> Register,
+        IReadOnlyDictionary<int, IReadOnlySet<string>> Undefined);
+
     private sealed record Schema(
         IReadOnlyDictionary<string, Verdict> Verdicts,
         string[] Editions,
@@ -84,7 +119,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
         //: The rule-ids docs/CONFORMANCE.md §7 carries a determination for. Not part of the schema FILE — it is
         //: the register the schema POINTS AT, and `AnchorObliged` needs it to tell a WITHDRAWN A.1 item from a
         //: documented decline. Injectable so the fabricated-inventory self-test drives both arms hermetically.
-        IReadOnlySet<string> RegisterItems);
+        IReadOnlySet<string> RegisterItems,
+        //: §1.1's owner-signed alternative to §1(c)'s test — `null` when the schema declares none, so removing
+        //: the object from the JSON closes the door in both engines at once.
+        DerivationRule? Derivation,
+        //: Every rule-id the catalog knows, for the `indistinguishable-consequent` arm.
+        IReadOnlySet<string> CatalogRuleIds);
 
     private static string Str(JsonElement e, string name) =>
         e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
@@ -158,8 +198,60 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 .Select(x => new Regex(x.GetString()!, RegexOptions.Compiled))],
             kinds,
             anchored,
-            ConformanceRegister.Determinations.Keys.ToHashSet(StringComparer.Ordinal));
+            ConformanceRegister.Determinations.Keys.ToHashSet(StringComparer.Ordinal),
+            root.TryGetProperty("derivation", out var derivation) ? LoadDerivation(derivation) : null,
+            CatalogIds.Value);
     }
+
+    /// <summary>
+    /// The <c>derivation</c> rule, with the two artifacts it points at already read: <c>docs/CONFORMANCE.md</c>
+    /// §8, and the GENERATED Annex A.2 undefined-element list.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ THE A.2 LIST IS READ FROM DATA, NOT PARSED FROM THE SPEC HERE. <c>scripts/spec/extract_annex_a2.py</c>
+    /// owns the extraction and <see cref="AnnexA2UndefinedListDriftTests"/> proves the artifact still equals the
+    /// standard; parsing 1.3 MB of spec markdown on this side too would be the second parser this whole schema
+    /// exists to avoid, and <see cref="EveryRowState_IsDerived_NotAsserted"/> recomputes 4,311 rows per build.
+    /// </remarks>
+    private static DerivationRule LoadDerivation(JsonElement d)
+    {
+        var arms = new Dictionary<string, DerivationArm>(StringComparer.Ordinal);
+        foreach (var p in d.GetProperty("arms").EnumerateObject())
+        {
+            if (p.Name.StartsWith('$')) continue;
+            arms[p.Name] = new DerivationArm(
+                new Regex(Str(p.Value, "names-pattern"), RegexOptions.Compiled), Str(p.Value, "check"));
+        }
+
+        string heading = Str(d, "register-heading");
+        string listRel = Str(d, "undefined-list");
+        string listPath = Path.Combine(TestRepo.Root, listRel.Replace('/', Path.DirectorySeparatorChar));
+        Assert.True(File.Exists(listPath),
+            $"the Annex A.2 undefined-element list is missing: {listRel} — "
+            + "run python scripts/spec/extract_annex_a2.py");
+        var undefined = new Dictionary<int, IReadOnlySet<string>>();
+        using (var list = JsonDocument.Parse(File.ReadAllText(listPath)))
+        {
+            foreach (var it in list.RootElement.GetProperty("items").EnumerateArray())
+            {
+                undefined[it.GetProperty("item").GetInt32()] =
+                    it.GetProperty("rule-ids").EnumerateArray().Select(x => x.GetString()!)
+                      .ToHashSet(StringComparer.Ordinal);
+            }
+        }
+
+        return new DerivationRule(
+            Str(d, "field"), Str(d, "anchor-template"), heading, Str(d, "signature"), arms,
+            ConformanceRegister.Derivations(heading, Str(d, "register-header-cell")), undefined);
+    }
+
+    /// <summary>
+    /// Every rule-id the catalog knows, parsed ONCE per test assembly. <c>LoadSchema()</c> runs a dozen times a
+    /// gate and the catalog is 4,311 rules; the <c>indistinguishable-consequent</c> arm needs the ids and
+    /// nothing else, so re-parsing that file per call is pure cost.
+    /// </summary>
+    private static readonly Lazy<IReadOnlySet<string>> CatalogIds =
+        new(() => LoadCatalog().Select(c => c.Id).ToHashSet(StringComparer.Ordinal));
 
     private static List<Row> LoadInventory()
     {
@@ -170,7 +262,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         return [.. doc.RootElement.EnumerateArray().Select(e => new Row(
             Str(e, "rule-id"), Str(e, "section"), Str(e, "kind"), e.GetProperty("ordinal").GetInt32(),
             Str(e, "subject"), Str(e, "verdict"), Str(e, "code-location"), Str(e, "test-ref"),
-            Str(e, "editions"), Str(e, "notes"), Str(e, "state")))];
+            Str(e, "derivation"), Str(e, "editions"), Str(e, "notes"), Str(e, "state")))];
     }
 
     private static List<CatalogRule> LoadCatalog()
@@ -213,8 +305,153 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // is not provided (PB280 Q1) is the opposite case — §7 states the non-provision, so it pays both.
         if (AnchorObliged(r, s) && (!IsAnchored(r, s) || !IsObservable(r, s))) return "GAP";
         if (!s.SpecDerivedRequired) return r.TestRef.Length > 0 ? "OK" : "GAP";
-        return Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s)) ? "OK" : "GAP";
+        if (Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s))) return "OK";
+        return DerivationStands(r, s) ? "OK" : "GAP";
     }
+
+    /// <summary>
+    /// Does this row carry an owner-signed DERIVATION that stands in place of §1(c)'s test? Mirrors
+    /// <c>Schema.derivation_stands</c> in Python.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ IT IS CONSULTED HERE AND ONLY HERE — after the verdict, after <c>requires</c>, after a kind's anchor
+    /// and observability costs, and exactly where a spec-derived <c>test-ref</c> would have been. That ORDER is
+    /// the encoding of how <c>kb/Work/PB386</c> and <c>PB280</c> Q2 coexist: a DOC row with nothing in the
+    /// compiler to observe still computes GAP, derivation or no derivation, because it never reaches this line.
+    /// Moving the call earlier would silently reverse an owner decision.
+    /// </remarks>
+    private static bool DerivationStands(Row r, Schema s) =>
+        s.Derivation is { } d && r.Derivation.Trim().Length > 0 && DerivationRefusals(r, s).Count == 0;
+
+    private static string DerivationAnchor(Row r, Schema s) =>
+        s.Derivation!.AnchorTemplate.Replace("{rule-id}", r.RuleId, StringComparison.Ordinal);
+
+    /// <summary>
+    /// Why this row's derivation does NOT stand — empty when it does. The twin of
+    /// <c>inventory_schema.Derivation.refusals</c>, and the six bounds the owner set on
+    /// <c>kb/Work/PB386</c> written as code rather than as prose.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ ONE PREDICATE, TWO CALLERS ON EACH SIDE: <c>record_verdicts.validate</c> prints these reasons at record
+    /// time and <see cref="DerivedState"/> asks only whether the list is empty. Writing the bounds twice is how a
+    /// writer and a gate come to disagree about one rule — the entire content of <c>kb/Work/PB315</c>.
+    /// </remarks>
+    private static List<Refusal> DerivationRefusals(Row r, Schema s)
+    {
+        var bad = new List<Refusal>();
+        if (s.Derivation is not { } d) return bad;
+        string claimed = r.Derivation.Trim();
+        if (claimed.Length == 0) return bad;
+
+        string anchor = DerivationAnchor(r, s);
+        if (!string.Equals(claimed, anchor, StringComparison.Ordinal))
+        {
+            bad.Add(new("not-computed-anchor",
+                $"{r.RuleId}: derivation '{claimed}' is not the anchor computed from this row's rule-id "
+                + $"('{anchor}') — it is derived, never chosen"));
+        }
+
+        // ⛔ REFUSAL 1 — the row demonstrably HAS an observable obligation. A derivation asserts that no
+        // spec-derived test can exist; a spec-derived test on the same row refutes that outright.
+        if (Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s)))
+        {
+            bad.Add(new("has-spec-derived-test",
+                $"{r.RuleId}: already carries a SPEC-DERIVED test-ref, so it has an observable obligation and "
+                + "may not close on a derivation (design doc §1.1 refusal 1)"));
+        }
+
+        // ⛔ REFUSAL 2 — a derivation explains why no test can exist, never why a non-resolving verdict is fine.
+        if (!s.Verdicts.TryGetValue(r.Verdict, out var v) || !v.Resolves)
+        {
+            bad.Add(new("verdict-does-not-resolve",
+                $"{r.RuleId}: verdict '{r.Verdict}' does not resolve — a derivation stands in for the covering "
+                + "test, not for the verdict"));
+        }
+
+        // ⛔ REFUSAL 3 — a kind that owes a register determination must have STATED it first. A DOC row asks the
+        // implementor to state a choice, and "nothing to observe" about an unstated choice is unfalsifiable
+        // (kb/Work PB280 Q2); DOC-A.1-19 is admitted precisely because §7 states its determination.
+        if (AnchorFor(r, s) is not null && !s.RegisterItems.Contains(r.RuleId))
+        {
+            bad.Add(new("determination-not-stated",
+                $"{r.RuleId}: kind {r.Kind} owes a determination in docs/CONFORMANCE.md and none is filed — "
+                + "nothing yet for a derivation to be about"));
+        }
+
+        string key = anchor[(anchor.IndexOf('#') + 1)..];
+        if (!d.Register.TryGetValue(key, out var entry))
+        {
+            bad.Add(new("no-register-row",
+                $"{r.RuleId}: docs/CONFORMANCE.md {d.Heading.Trim('#', ' ')} carries no row keyed '{key}'"));
+            return bad;
+        }
+        if (!string.Equals(entry.Signature, d.Signature, StringComparison.Ordinal))
+        {
+            bad.Add(new("bad-signature",
+                $"{r.RuleId}: determination '{key}' is signed '{entry.Signature}', not '{d.Signature}' — a "
+                + "derivation is the OWNER's, and the signature records it"));
+        }
+        if (!d.Arms.TryGetValue(entry.Arm, out var arm))
+        {
+            bad.Add(new("unknown-arm",
+                $"{r.RuleId}: determination '{key}' names arm '{entry.Arm}', not one of "
+                + string.Join('/', d.Arms.Keys.Order())));
+            return bad;
+        }
+        var m = arm.Names.Match(entry.Names);
+        if (!m.Success)
+        {
+            bad.Add(new("names-shape",
+                $"{r.RuleId}: determination '{key}' arm {entry.Arm}: 'Names' cell '{entry.Names}' does not "
+                + $"match {arm.Names}"));
+            return bad;
+        }
+
+        switch (arm.Check)
+        {
+            case "a2-item":
+                int item = int.Parse(m.Groups[1].Value);
+                if (!d.Undefined.TryGetValue(item, out var covered))
+                {
+                    bad.Add(new("a2-no-such-item",
+                        $"{r.RuleId}: determination '{key}': Annex A.2 has no item {item}"));
+                }
+                else if (!covered.Contains(r.RuleId))
+                {
+                    bad.Add(new("a2-does-not-cover",
+                        $"{r.RuleId}: determination '{key}': Annex A.2 item {item} does not cover this rule — it "
+                        + $"resolves to [{string.Join(", ", covered.Order())}] (design doc §1.1 refusal 4)"));
+                }
+                break;
+            case "stated":
+                break;      // the names-pattern IS the shape check for a reviewed argument
+            case "rule-exists":
+                string named = m.Groups[1].Value;
+                if (string.Equals(named, r.RuleId, StringComparison.Ordinal))
+                {
+                    bad.Add(new("self-indistinguishable",
+                        $"{r.RuleId}: determination '{key}': a rule cannot be indistinguishable from itself"));
+                }
+                else if (!s.CatalogRuleIds.Contains(named))
+                {
+                    bad.Add(new("unknown-rule",
+                        $"{r.RuleId}: determination '{key}': names '{named}', not a rule in the catalog"));
+                }
+                break;
+            default:
+                bad.Add(new("unknown-check",
+                    $"{r.RuleId}: determination '{key}': arm {entry.Arm} declares check '{arm.Check}', which "
+                    + "this evaluator does not implement — the schema and the gate disagree"));
+                break;
+        }
+
+        return bad;
+    }
+
+    /// <summary>Every live row whose <c>derivation</c> claim does not stand — the gate over §1.1.</summary>
+    private static List<string> BadDerivations(IEnumerable<Row> rows, Schema s) =>
+        [.. rows.Where(r => r.Derivation.Trim().Length > 0)
+                .SelectMany(r => DerivationRefusals(r, s)).Select(x => $"[{x.Code}] {x.Message}")];
 
     /// <summary>
     /// The register anchor this row's KIND obliges, COMPUTED from the row's own rule-id — or <c>null</c> when the
@@ -320,6 +557,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         "verdict" => r.Verdict,
         "code-location" => r.CodeLocation,
         "test-ref" => r.TestRef,
+        "derivation" => r.Derivation,
         "editions" => r.Editions,
         "notes" => r.Notes,
         _ => throw new InvalidOperationException(
@@ -372,10 +610,15 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private static List<string> DifferentialOnlyCoverage(IEnumerable<Row> rows, Schema s)
     {
         if (!s.SpecDerivedRequired) return [];
+        // ⚠ A row closed on an owner-signed DERIVATION is not "covered by a differential" — it is covered by
+        // nothing, on purpose, because §1.1 says no test can exist for it. Excluding it here is the SECOND ARM
+        // of the same rule `DerivedState` implements, and forgetting it would have turned every PB386 closure
+        // red under a check about NIST goldens (`feedback_two_arm_dispatch`). `DerivationStands` is the same
+        // predicate, so the two arms cannot come to disagree.
         return [.. from r in rows
                    where r.State == "OK"
                    let refs = Split(r.TestRef, s.TestRefSeparator)
-                   where !refs.Any(x => IsSpecDerived(x, s))
+                   where !refs.Any(x => IsSpecDerived(x, s)) && !DerivationStands(r, s)
                    select $"{r.RuleId}: state OK but covered ONLY by non-spec-derived test(s) "
                           + $"[{string.Join(", ", refs)}] — a differential cannot close a row (design doc §1c)"];
     }
@@ -617,6 +860,195 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.True(bad.Count == 0, Report("ill-formed register anchor(s)", bad, rows.Count));
     }
 
+    /// <summary>
+    /// ⛔ Every row that closes on an owner-signed DERIVATION still stands under its own arm. The A.2 arm is
+    /// re-resolved against the standard's own undefined-element list on every build; the two argument arms are
+    /// re-checked for shape and for the existence of what they name.
+    /// </summary>
+    /// <remarks>
+    /// A derivation moves the v1.0 burn-down without a test, which is the whole reason <c>kb/Work/PB386</c>'s
+    /// second stated cost is that it be CHECKABLE: "or the GAP metric becomes cheaper to move than the work it
+    /// stands for". This is where that cost is charged continuously, as the register, the catalog and the spec
+    /// change underneath a determination recorded sessions ago.
+    /// </remarks>
+    [Fact]
+    public void EveryDerivation_StandsUnderItsOwnArm()
+    {
+        var rows = LoadInventory();
+        var s = LoadSchema();
+        Assert.True(s.Derivation is not null,
+            "inventory-schema.json declares no `derivation` — §1.1's evidence kind is gone, so this gate would "
+            + "measure nothing and the schema, not the gate, is what changed.");
+        var bad = BadDerivations(rows, s);
+        Assert.True(bad.Count == 0, Report("row(s) whose derivation does not stand", bad, rows.Count));
+    }
+
+    /// <summary>
+    /// ⛔ THE POPULATION GUARD. The rows closed on a derivation rather than a test are enumerated HERE, so the
+    /// door the owner opened cannot widen by accident.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>kb/Work/PB386</c>'s third stated cost: "every existing CONFORMS-but-untested row becomes a candidate
+    /// for the escape, so the population must be MEASURED before the door opens, not after." It was — eight
+    /// rows, the whole CONFORMS-but-untested band except <c>DOC-A.1-93</c>, which is a real defect
+    /// (<c>kb/Work/PB383</c>). This list is the measurement, held.
+    /// </para>
+    /// <para>
+    /// ⚖ THIS IS THE ONE HAND LIST IN THE MECHANISM, AND IT IS DELIBERATE. Every CHECKER above is data-driven —
+    /// the arms, their shapes, the A.2 resolution and the register are all read rather than typed — precisely so
+    /// the next case costs one register row. The guard is the opposite by design: adding a ninth row must be an
+    /// EDIT SOMEONE MAKES, in a file a reviewer reads, or "checkable" degrades into "checked once".
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void TheRowsClosedOnADerivation_AreTheEnumeratedPopulation()
+    {
+        string[] population =
+        [
+            "DOC-A.1-19", "GR-14.9.11.4-11", "GR-14.9.30.4-20", "GR-14.9.30.4-23", "GR-14.9.30.4-3",
+            "GR-14.9.34.4-2", "GR-14.9.5.4-11", "RV-15.50.4-9",
+        ];
+
+        var s = LoadSchema();
+        var closed = LoadInventory()
+            .Where(r => r.Derivation.Trim().Length > 0 && DerivedState(r, s) == "OK")
+            .Select(r => r.RuleId).Order(StringComparer.Ordinal).ToList();
+
+        Assert.True(population.Order(StringComparer.Ordinal).SequenceEqual(closed, StringComparer.Ordinal),
+            "the set of rows closed on an owner-signed derivation is not the measured population.\n"
+            + $"    expected: [{string.Join(", ", population.Order(StringComparer.Ordinal))}]\n"
+            + $"    actual  : [{string.Join(", ", closed)}]\n"
+            + "    A row added here is a row the burn-down moves without a test. It needs an owner-signed §8 "
+            + "determination AND a deliberate edit to this list (kb/Work PB386).");
+    }
+
+    /// <summary>
+    /// ⛔ THE CROSS-LANGUAGE PARITY GATE FOR §1.1. This engine, the Python engine and the recorded expectation
+    /// must give the SAME answer — state and refusal codes — for every case in
+    /// <c>tests/version-matrix/derivation-parity-cases.json</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>kb/Work/PB315</c> is the note recording what happens when <c>Schema.state_for</c> and
+    /// <see cref="DerivedState"/> read one rule differently: the disagreement was UNOBSERVABLE until a row first
+    /// exercised the divergent branch, and it then looked exactly like a correct batch. The owner's first stated
+    /// cost for opening this door was that both engines learn the evidence kind in the same change set — this
+    /// is what makes that claim falsifiable rather than a sentence in a commit message.
+    /// </para>
+    /// <para>
+    /// ⚠ The fixture's world is FABRICATED on purpose. All eight live determinations are correct, so an arm
+    /// cannot be falsified against the real document, and a fixture built from it would pass for the wrong
+    /// reason (<c>feedback_probe_the_shape_the_subject_hides</c>).
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void TheDerivationRule_AgreesWithTheFixtureAndWithPython()
+    {
+        string path = TestRepo.VersionMatrix("derivation-parity-cases.json");
+        Assert.True(File.Exists(path), $"the derivation parity fixture is missing: {path}");
+        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        var world = doc.RootElement.GetProperty("world");
+        var cases = doc.RootElement.GetProperty("cases").EnumerateArray().ToList();
+        Assert.True(cases.Count > 10,
+            $"the parity fixture carries {cases.Count} case(s) — too few to be measuring the rule");
+
+        var baseSchema = LoadSchema();
+        Assert.True(baseSchema.Derivation is not null,
+            "inventory-schema.json declares no `derivation` — the schema, not this gate, is what changed.");
+
+        var mine = new List<(string Name, string State, string[] Refusals)>();
+        foreach (var c in cases)
+        {
+            var s = WorldSchema(baseSchema, world, c);
+            var r = FixtureRow(c.GetProperty("row"));
+            mine.Add((c.GetProperty("name").GetString()!, DerivedState(r, s),
+                      [.. DerivationRefusals(r, s).Select(x => x.Code).Order(StringComparer.Ordinal)]));
+        }
+
+        var bad = new List<string>();
+        for (int i = 0; i < cases.Count; i++)
+        {
+            string want = cases[i].GetProperty("state").GetString()!;
+            string[] wantRefusals =
+                [.. cases[i].GetProperty("refusals").EnumerateArray().Select(x => x.GetString()!)
+                    .Order(StringComparer.Ordinal)];
+            if (mine[i].State != want)
+                bad.Add($"'{mine[i].Name}': this engine derives {mine[i].State}, the fixture says {want}");
+            if (!mine[i].Refusals.SequenceEqual(wantRefusals, StringComparer.Ordinal))
+            {
+                bad.Add($"'{mine[i].Name}': this engine refuses [{string.Join(", ", mine[i].Refusals)}], the "
+                        + $"fixture says [{string.Join(", ", wantRefusals)}]");
+            }
+        }
+
+        // …and the OTHER engine, run for real rather than assumed. A fixture both sides are compared against is
+        // only half the check: this is the half that would have caught PB315.
+        var run = PythonInstrument.Run(TestRepo.Scripts("spec", "audit_derivations.py"), "--parity", "--json");
+        string? line = run.Stdout.Split('\n').Select(l => l.Trim())
+            .FirstOrDefault(l => l.StartsWith("JSON ", StringComparison.Ordinal));
+        Assert.True(line is not null,
+            $"audit_derivations.py --parity --json emitted no JSON line.\n{run.Stdout}\n{run.Stderr}");
+        using var py = JsonDocument.Parse(line!["JSON ".Length..]);
+        var theirs = py.RootElement.GetProperty("parity").EnumerateArray().ToList();
+        Assert.Equal(cases.Count, theirs.Count);
+        for (int i = 0; i < cases.Count; i++)
+        {
+            string state = theirs[i].GetProperty("state").GetString()!;
+            string[] refusals =
+                [.. theirs[i].GetProperty("refusals").EnumerateArray().Select(x => x.GetString()!)
+                    .Order(StringComparer.Ordinal)];
+            if (state != mine[i].State)
+                bad.Add($"'{mine[i].Name}': Python derives {state}, this engine {mine[i].State}");
+            if (!refusals.SequenceEqual(mine[i].Refusals, StringComparer.Ordinal))
+            {
+                bad.Add($"'{mine[i].Name}': Python refuses [{string.Join(", ", refusals)}], this engine "
+                        + $"[{string.Join(", ", mine[i].Refusals)}]");
+            }
+        }
+        Assert.Equal(0, run.ExitCode);
+
+        Assert.True(bad.Count == 0, Report("derivation parity disagreement(s)", bad, cases.Count));
+    }
+
+    /// <summary>The schema a parity case is evaluated under — the fabricated world, plus any per-case override.</summary>
+    private static Schema WorldSchema(Schema s, JsonElement world, JsonElement c)
+    {
+        JsonElement Field(string name) =>
+            c.TryGetProperty("world-overrides", out var o) && o.TryGetProperty(name, out var v)
+                ? v : world.GetProperty(name);
+
+        var register = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal);
+        foreach (var r in Field("register").EnumerateArray())
+        {
+            register[Str(r, "key")] = new ConformanceRegister.DerivationRow(
+                Str(r, "key"), Str(r, "arm"), Str(r, "names"), Str(r, "argument"), Str(r, "signature"));
+        }
+
+        var undefined = new Dictionary<int, IReadOnlySet<string>>();
+        foreach (var p in Field("undefined").EnumerateObject())
+        {
+            if (p.Name.StartsWith('$')) continue;
+            undefined[int.Parse(p.Name)] =
+                p.Value.EnumerateArray().Select(x => x.GetString()!).ToHashSet(StringComparer.Ordinal);
+        }
+
+        return s with
+        {
+            Derivation = s.Derivation! with { Register = register, Undefined = undefined },
+            CatalogRuleIds = Field("catalog-rule-ids").EnumerateArray().Select(x => x.GetString()!)
+                .ToHashSet(StringComparer.Ordinal),
+            RegisterItems = Field("register-items").EnumerateArray().Select(x => x.GetString()!)
+                .ToHashSet(StringComparer.Ordinal),
+        };
+    }
+
+    private static Row FixtureRow(JsonElement e) => new(
+        Str(e, "rule-id"), Str(e, "section"), Str(e, "kind"),
+        e.TryGetProperty("ordinal", out var o) ? o.GetInt32() : 0, Str(e, "subject"),
+        Str(e, "verdict"), Str(e, "code-location"), Str(e, "test-ref"), Str(e, "derivation"),
+        Str(e, "editions"), Str(e, "notes"), Str(e, "state"));
+
     /// <summary>Every traceability link still points at code that exists — the link is the whole point of it.</summary>
     [Fact]
     public void EveryCodeLocation_ResolvesInTheTree()
@@ -645,7 +1077,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         var s = LoadSchema();
         string root = TestRepo.Root;
 
-        Row Base(string id) => new(id, "15.7", "AR", 1, "ABS function", "", "", "", "", "", "GAP");
+        Row Base(string id) => new(id, "15.7", "AR", 1, "ABS function", "", "", "", "", "", "", "GAP");
 
         // A verdict outside the vocabulary.
         Assert.Single(BadVerdicts([Base("X-1") with { Verdict = "PROBABLY-FINE" }], s));
@@ -723,7 +1155,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         const string Anchor = "docs/CONFORMANCE.md#DOC-A.1-19";
         const string Src = "src/Cobol.Net.Runtime/Control/ProgramTable.cs#CancelNode";
         Row Doc(string id) => new(id, "A.1", "DOC", 19,
-            "CANCEL statement (result of canceling a non-COBOL program)", "CONFORMS", "", "", "", "", "GAP");
+            "CANCEL statement (result of canceling a non-COBOL program)", "CONFORMS", "", "", "", "", "", "GAP");
 
         // A src site and no register anchor at all: the determination is unlocatable.
         Assert.Single(MisanchoredRows([Doc("DOC-A.1-19") with { CodeLocation = Src }], s));
@@ -842,5 +1274,108 @@ public sealed class SpecTraceabilityInventoryDriftTests
             {
                 TestRef = "conformance:2023/pb154_cancel_active", State = "OK",
             }], reg));
+
+        // ── the DERIVATION: §1.1's owner-signed alternative to a test, and every bound the owner set ──
+        //
+        // ⛔ THE ARMS CANNOT BE FALSIFIED AGAINST TODAY'S DOCUMENT, where all eight determinations are correct.
+        // So the register and the Annex A.2 list are FABRICATED here, and every refusal is driven with a
+        // positive control beside it — a checker that rejected everything would satisfy the negatives alone.
+        var d = s.Derivation!;
+        var fakeRegister = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
+        {
+            ["DRV-GR-14.9.5.4-11"] = new("DRV-GR-14.9.5.4-11", "undefined-A.2", "A.2 item 4", "…", d.Signature),
+            ["DRV-GR-14.9.5.4-12"] = new("DRV-GR-14.9.5.4-12", "undefined-A.2", "A.2 item 41", "…", d.Signature),
+            ["DRV-GR-14.9.5.4-13"] = new("DRV-GR-14.9.5.4-13", "undefined-A.2", "A.2 item 999", "…", d.Signature),
+            ["DRV-GR-14.9.5.4-14"] = new("DRV-GR-14.9.5.4-14", "unpopulatable-antecedent",
+                                         "the two-valued DISPLAY device set", "…", d.Signature),
+            ["DRV-GR-14.9.5.4-15"] = new("DRV-GR-14.9.5.4-15", "unpopulatable-antecedent", "—", "…", d.Signature),
+            ["DRV-GR-14.9.5.4-16"] = new("DRV-GR-14.9.5.4-16", "indistinguishable-consequent",
+                                         "GR-14.9.5.4-7", "…", d.Signature),
+            ["DRV-GR-14.9.5.4-17"] = new("DRV-GR-14.9.5.4-17", "indistinguishable-consequent",
+                                         "GR-99.99.99.4-1", "…", d.Signature),
+            ["DRV-GR-14.9.5.4-18"] = new("DRV-GR-14.9.5.4-18", "undefined-A.2", "A.2 item 4", "…", "owner: 1999"),
+            ["DRV-GR-14.9.5.4-19"] = new("DRV-GR-14.9.5.4-19", "made-it-up", "A.2 item 4", "…", d.Signature),
+        };
+        var fakeA2 = new Dictionary<int, IReadOnlySet<string>>
+        {
+            // -18 is covered so the bad-signature row fails for the SIGNATURE alone: a case with two causes
+            // cannot show which check fired.
+            [4] = new HashSet<string>(StringComparer.Ordinal) { "GR-14.9.5.4-11", "GR-14.9.5.4-18" },
+            [41] = new HashSet<string>(StringComparer.Ordinal) { "GR-14.9.30.4-3" },
+        };
+        var ds = s with
+        {
+            Derivation = d with { Register = fakeRegister, Undefined = fakeA2 },
+            CatalogRuleIds = new HashSet<string>(StringComparer.Ordinal) { "GR-14.9.5.4-7" },
+        };
+        Row Derived(string id, string subject = "CANCEL statement") => new(
+            id, "14.9.5.4", "GR", 11, subject, "CONFORMS",
+            "src/Cobol.Net.Runtime/Control/ProgramTable.cs#CallPointer", "",
+            $"docs/CONFORMANCE.md#DRV-{id}", "85,2002,2014,2023", "", "OK");
+
+        // ✔ THE SHAPE THAT CLOSES: a resolving verdict, its evidence, and an A.2 arm that mechanically covers
+        // this very rule. Driven FIRST, so every refusal below is a discrimination and not a blanket no.
+        Assert.Empty(DerivationRefusals(Derived("GR-14.9.5.4-11"), ds));
+        Assert.Empty(BadStates([Derived("GR-14.9.5.4-11")], ds));
+        // …and the two argument arms, likewise accepted when their shape holds.
+        Assert.Empty(BadStates([Derived("GR-14.9.5.4-14")], ds));
+        Assert.Empty(BadStates([Derived("GR-14.9.5.4-16")], ds));
+
+        static string[] Codes(List<Refusal> rs) => [.. rs.Select(x => x.Code).Order(StringComparer.Ordinal)];
+
+        // ⛔ DRIFT (ii) — AN A.2 ARM NAMING AN ITEM THAT DOES NOT COVER THIS ROW. Item 41 is a real A.2 item
+        // about a real undefined rule; it is simply not THIS one, which only a mechanical resolution can see.
+        Assert.Equal(["a2-does-not-cover"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-12"), ds)));
+        Assert.Equal(["a2-no-such-item"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-13"), ds)));
+        Assert.Single(BadStates([Derived("GR-14.9.5.4-12")], ds));
+
+        // ⛔ DRIFT (i) — A DERIVATION ON A ROW WITH AN OBSERVABLE OBLIGATION IS REFUSED. This is the owner's
+        // explicit bound: a spec-derived test on the same row REFUTES the claim that none can exist. ⚠ The row
+        // still computes OK — on the TEST — so the refusal is only visible in the predicate, which is exactly
+        // why `record_verdicts` asks it rather than inferring the bound from the state.
+        var tested = Derived("GR-14.9.5.4-11") with { TestRef = "conformance:2023/pb154_cancel_scope" };
+        Assert.Equal(["has-spec-derived-test"], Codes(DerivationRefusals(tested, ds)));
+        // …and a NON-spec-derived ref does not trip it: a NIST golden is corroboration, not an obligation met.
+        Assert.Empty(DerivationRefusals(Derived("GR-14.9.5.4-11") with { TestRef = "nist:IF128A" }, ds));
+
+        // The remaining four bounds, one row each.
+        Assert.Equal(["verdict-does-not-resolve"],
+            Codes(DerivationRefusals(Derived("GR-14.9.5.4-11") with { Verdict = "PARTIAL", Notes = "n" }, ds)));
+        // ⚙ …and the register is looked up by the COMPUTED key, never by the claimed string — so citing another
+        // row's determination is caught as a wrong ANCHOR and cannot smuggle in that row's arm.
+        Assert.Equal(["not-computed-anchor"], Codes(DerivationRefusals(
+            Derived("GR-14.9.5.4-11") with { Derivation = "docs/CONFORMANCE.md#DRV-GR-14.9.5.4-14" }, ds)));
+        Assert.Equal(["bad-signature"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-18"), ds)));
+        Assert.Equal(["unknown-arm"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-19"), ds)));
+        Assert.Equal(["names-shape"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-15"), ds)));
+        Assert.Equal(["unknown-rule"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-17"), ds)));
+        Assert.Equal(["no-register-row"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-99"), ds)));
+
+        // ⛔ AND THE ORDER THAT KEEPS PB280 Q2 ANSWERED. A kind-DOC row pays its anchor and its observability
+        // BEFORE a derivation is consulted, so a row whose only location is its §7 anchor stays a GAP with a
+        // perfectly valid derivation attached — the escape cannot be routed around the owner's earlier "no".
+        var docReg = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
+        {
+            ["DRV-DOC-A.1-19"] = new("DRV-DOC-A.1-19", "indistinguishable-consequent", "GR-14.9.5.4-7", "…",
+                                     d.Signature),
+        };
+        var docS = s with
+        {
+            Derivation = d with { Register = docReg, Undefined = fakeA2 },
+            CatalogRuleIds = new HashSet<string>(StringComparer.Ordinal) { "GR-14.9.5.4-7" },
+            RegisterItems = new HashSet<string>(StringComparer.Ordinal) { "DOC-A.1-19" },
+        };
+        const string Drv19 = "docs/CONFORMANCE.md#DRV-DOC-A.1-19";
+        Assert.Single(BadStates(
+            [Doc("DOC-A.1-19") with { CodeLocation = Anchor, Derivation = Drv19, State = "OK" }], docS));
+        // ✔ …and the shape that DOES close on a derivation: its own §7 anchor, a greenfield site, no test.
+        Assert.Empty(BadStates(
+            [Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}", Derivation = Drv19, State = "OK" }],
+            docS));
+        // ⛔ REFUSAL 3 — the same row where §7 does NOT document the item: the documentation obligation is not
+        // yet STATED, so there is nothing for a derivation to be about (PB280 Q2's unfalsifiable shape).
+        Assert.Equal(["determination-not-stated"], Codes(DerivationRefusals(
+            Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}", Derivation = Drv19 },
+            docS with { RegisterItems = new HashSet<string>(StringComparer.Ordinal) })));
     }
 }

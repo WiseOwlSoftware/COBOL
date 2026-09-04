@@ -28,18 +28,28 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   and save context"):** the resumed day landed battery #42 (`ac2dadb8`, the CURRENT reference under "Gates"; PB378
   fixed the citation corpus population), PB377 (`6ffdb5a8`, the collation cache's missing bound), PB379
   (`d531e358`, the doc-citation audit reads both citation orders and is seated in the battery), PB371 + PB375
-  (`4cbb8f3c`, GAP 3119 → 3106) and golden-lane round 2 (`0fa1fe9e`, 49 witnesses, GAP → **3054**); CI green
+  (`4cbb8f3c`, GAP 3119 → 3106) and golden-lane round 2 (`0fa1fe9e`, 49 witnesses, GAP → 3054); the
+  resume then landed lane-3 batch 2's registration (`073d764a`, 292 rows, GAP → 3022), `PB383` (`e2790667`,
+  GAP → 3021) and `PB386`'s derivation evidence kind (GAP → **3013**); CI green
   through `b22d3b07`. ⛔ Run the probe; the worklist is `kb/Work/`, never this paragraph. **Owed on resume, in this
   order (the orchestrator's memory `burndown-campaign-pause-2026-09-02` carries the exact paths and args):**
   ① lane-3 batch 2 — all 20 subjects adjudicated, refute checkpoints on disk for 16 of 20 (set-p3/p4/p5 and
   subtract were mid-chunk at the stop); resume the refute workflow with the same args and an empty
-  `adjudicateFirst`, then registrar b2 from its brief (ids PB387+); ② batch 3 (17 inputs ready) on a FRESH pin
+  `adjudicateFirst`; ✅ registrar b2 LANDED 2026-09-04 (`073d764a`, 292 rows, ids PB387–PB467); ② batch 3 (17 inputs ready) on a FRESH pin
   cut from current main and built when no fleet is live (the fleet guard refuses a build while one runs);
-  ③ ⚖ **`PB386` DECIDED 2026-09-03 — YES, checkable only:** a rule with no observable obligation (Annex A.2
-  undefinedness, an unpopulatable antecedent, an indistinguishable consequent) may close on a checkable
-  owner-signed derivation in CONFORMANCE.md — the A.2 arm mechanical, the other two reviewed arguments,
-  `Schema.state_for` + `DerivedState` in one change set, a drift test refusing a derivation on a row WITH an
-  obligation; implement it as a fix-lane item (eight rows); ④ ✅ **DONE 2026-09-04 — `PB383` LANDED, GAP 3022 →
+  ③ ✅ **`PB386` DECIDED 2026-09-03 AND LANDED 2026-09-04 — the DERIVATION evidence kind:** a rule with no
+  observable obligation (Annex A.2 undefinedness, an unpopulatable antecedent, an indistinguishable
+  consequent) now closes on a checkable owner-signed determination in `docs/CONFORMANCE.md` **§8**, keyed
+  `DRV-<rule-id>` and carried on the row as the COMPUTED `derivation` field. The A.2 arm is mechanical
+  against `tests/version-matrix/annex-a2-undefined.json` (generated from the standard by
+  `scripts/spec/extract_annex_a2.py`); the other two arms are shape-checked reviewed arguments; six
+  refusals — including the owner's bound that a row already carrying a spec-derived test may NOT close on a
+  derivation — live in ONE predicate both engines ask. `Schema.state_for` and `DerivedState` learned it in
+  the same change set, with a 19-case cross-language parity fixture comparing state AND refusal codes, and
+  a population guard holding the door at the eight rows measured before it opened. **GAP 3021 → 3013**.
+  The eight were the WHOLE of the CONFORMS-but-untested band as measured before lane-3 batch 2 (9 rows,
+  the ninth being `PB383`, closed by ④); that band now stands at **46**, every one of them a batch-2 row
+  registered 2026-09-04 and none of the original nine; ④ ✅ **DONE 2026-09-04 — `PB383` LANDED, GAP 3022 →
   3021** (DEVLOG 1452: BOOLEAN-OF-INTEGER's single `length < 1 || length > 8191` guard held two rules with
   different owners — §15.13.3 r2's ARGUMENT rule and §15.4's RETURNED-VALUE-LENGTH rule, 8,192 satisfying the
   former — and answered the one-position boolean `"0"` where rows `DOC-A.1-90`/`DOC-A.1-93` document a
@@ -75,7 +85,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   destroyed); **batch 3 is next** (inputs and pinned compiler ready); ④ ✅ **DONE 2026-09-03 —
   golden-lane round 2 landed, GAP 3106 → 3054** (49 witnesses across six writer slugs — 44 positive, 5 negative —
   closing 52 rows; two drafts held OUT of the tree as suspected compiler defects, and the CONFORMS-but-untested
-  band is now **9 rows**, of which 8 are the unobservable class `PB386` puts to the owner and the ninth is `PB383`; 7 `PARTIAL` rows
+  band was then **9 rows**, of which 8 were the unobservable class `PB386` put to the owner — all eight now
+  closed on derivations, and the ninth (`PB383`) closed by its own fix, so NONE of that population survives;
+  the band's current 46 rows are lane-3 batch 2's test-needed CONFORMS, tracked in `PB370`; 7 `PARTIAL` rows
   remain in `PB370`. New `PB383` (BOOLEAN-OF-INTEGER's length guard answers `"0"` where the register documents a
   zero-length value), `PB384` LANDED (three A.1 determinations re-filed and the audit's correspondence check made
   relative), `PB385` (105 transcription sub-items at column 0, so `cite.py` labels each with its predecessor's

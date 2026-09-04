@@ -43,6 +43,7 @@ import sys
 # `DerivedSelector`'s `determination-prefix` arm, which reads what the determination SAYS. A markdown table read
 # three ways is `feedback_one_rule_one_place` waiting to happen, so it moved down into the module every consumer
 # already imports, and the two names this file used keep working unchanged.
+from inventory_schema import derivation_rows, load_schema
 from inventory_schema import register_cells as cells_of
 from inventory_schema import section7_rows
 
@@ -167,6 +168,14 @@ def pins_of(cell: str) -> list[str]:
 SELF_TEST_HEADER = ('## 7. Annex A.1\n\n| A.1 item | Element | Our determination | Pinned by |\n'
                     '|---|---|---|---|\n')
 
+#: A fabricated §8 DERIVATION register carrying one row keyed for A.1 item 2 — the second legitimate home a
+#: `DOC-A.1-<n>` token acquired on 2026-09-03 (kb/Work PB386). The heading is read from the SCHEMA so renaming
+#: the section cannot leave this fixture silently testing a section that no longer exists.
+DERIVATION_SELF_TEST_ROWS = (
+    '\n' + load_schema().derivation.heading + '\n\n'
+    '| Rule | Arm | Names | The derivation | Signed |\n|---|---|---|---|---|\n'
+    '| DRV-DOC-A.1-2 | undefined-A.2 | A.2 item 4 | a fabricated derivation | owner: 2026-09-03 |\n')
+
 
 def self_test() -> int:
     """Prove every check can FAIL, and for its OWN reason (feedback_green_gates_arent_evidence).
@@ -209,6 +218,14 @@ def self_test() -> int:
         # precisely what survives the row it shadows being deleted.
         ('a DOC-A.1 token DUPLICATING an item that does have a row is caught',
          good + '\n\nSee DOC-A.1-2 for the ACCEPT case.', 'appears 2×'),
+        # ⚙ AND THE WIDENING (kb/Work PB386, 2026-09-03). §8 keys an owner-signed DERIVATION by `DRV-` plus the
+        # inventory rule-id, so a `DOC-A.1-<n>` token now has TWO legitimate homes. The pair below is what
+        # proves the widening did not blunt the check: the same §8 row that must be ACCEPTED is present in both
+        # cases, and the prose mention beside it is still caught.
+        ('a §8 DERIVATION row key is a legitimate SECOND occurrence of its item token',
+         good + '\n' + DERIVATION_SELF_TEST_ROWS, None),
+        ('…and a PROSE mention beside that §8 row is STILL caught',
+         good + '\n' + DERIVATION_SELF_TEST_ROWS + '\nSee DOC-A.1-2 for the ACCEPT case.', 'appears 3×'),
     ]
     rc = 0
     print('=== audit_annex_a1 --self-test ===')
@@ -336,14 +353,24 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
     # real file with `See DOC-A.1-50 for the DELETE FILE case.` inserted as prose, it stayed GREEN, because
     # item 50's own row key put the same token in the set. A set cannot see a DUPLICATE, and the duplicate is
     # exactly the shape that survives the row it shadows being deleted.
+    #
+    # ⚙ AND IT HAD TO LEARN THE SECOND REGISTER (kb/Work PB386, 2026-09-03). §8 keys an owner-signed DERIVATION
+    # by the inventory rule-id it closes, so `DRV-DOC-A.1-19` is a second, LEGITIMATE occurrence of the item-19
+    # token. The invariant is therefore stated over BOTH registers — a row key here or a row key there — which
+    # keeps it exactly as sharp against the thing it was written for: a PROSE mention, which is a key of neither.
+    if (deriv := load_schema().derivation) is not None:
+        for row in derivation_rows(text, deriv.heading):
+            if row.key.startswith('DRV-') and ITEM_KEY_RX.match(row.key[len('DRV-'):]):
+                keys[row.key[len('DRV-'):]] += 1
+
     seen_tokens = collections.Counter(TOKEN_RX.findall(text))
     for token, count in sorted(seen_tokens.items()):
         if count != keys[token]:
             findings.append(
-                f'"{token}" appears {count}× in CONFORMANCE.md but is the key of {keys[token]} §7 row(s) — an '
-                f'inventory row anchors on that token by a word search over the WHOLE file, so an occurrence '
-                f'outside a row key resolves as a filed determination. Cite items as "A.1 item N" in prose; the '
-                f'token is a row key and nothing else')
+                f'"{token}" appears {count}× in CONFORMANCE.md but is the key of {keys[token]} register row(s) '
+                f'(§7 determinations + §8 derivations) — an inventory row anchors on that token by a word '
+                f'search over the WHOLE file, so an occurrence outside a row key resolves as a filed '
+                f'determination. Cite items as "A.1 item N" in prose; the token is a row key and nothing else')
     return findings, numbered, unnumbered, pinned
 
 
@@ -420,10 +447,18 @@ def check_pins(pinned: dict[int, list[str]], inventory: list[dict], schema) -> l
         n = int(m.group(1))
         refs = [r for r in schema.split(row.get('test-ref', '') or '', schema.test_ref_sep)
                 if schema.is_spec_derived(r)]
-        if not refs:
+        # ⚙ WIDENED FROM "has a spec-derived test-ref" TO "CLOSES" (kb/Work PB386, 2026-09-03). A row may now
+        # close on an owner-signed DERIVATION instead of a test, and the claim this check exists to hold — that a
+        # DOC row's evidence and its determination are ONE artifact — is about the closure, not about the form of
+        # the evidence. Keyed on the test-ref alone, a derivation-closed item would have been dropped from the
+        # check at the exact moment it started moving the burn-down.
+        derived = schema.derivation_stands(row)
+        if not refs and not derived:
             continue
         if n not in pinned:
-            findings.append(f'inventory {rid} closes on {refs} but CONFORMANCE.md §7 carries no row for item {n}')
+            findings.append(f'inventory {rid} closes on '
+                            f'{refs or "an owner-signed derivation"} but CONFORMANCE.md §7 carries no row for '
+                            f'item {n}')
             continue
         for r in refs:
             if r not in pinned[n]:

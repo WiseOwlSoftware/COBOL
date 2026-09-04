@@ -62,7 +62,7 @@ def main() -> int:
         row = {
             "rule-id": r["id"], "section": r["section"], "kind": r["kind"], "ordinal": r["ordinal"],
             "subject": r["subject"],
-            "verdict": "", "code-location": "", "test-ref": "", "editions": "", "notes": "",
+            "verdict": "", "code-location": "", "test-ref": "", "derivation": "", "editions": "", "notes": "",
         }
         if old := prior.get(r["id"]):
             for k in CARRIED:

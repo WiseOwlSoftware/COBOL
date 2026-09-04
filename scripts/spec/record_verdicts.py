@@ -30,7 +30,10 @@ land look exactly like reviewed work and nothing afterwards can tell them from i
 WHAT IS CHECKED HERE, AND WHAT IS NOT. This validates SHAPE only: the rule-id is real, the verdict is in the
 vocabulary, the fields that verdict requires are present, the editions are legal, the syntax of each reference
 parses, the register anchor the row's KIND computes is present, and no fragment on an `anchored-files` path is
-outside that file's anchor space. All of that is decidable from the record plus the schema, with no disk access.
+outside that file's anchor space. A record may also carry a `derivation` — §1.1's owner-signed alternative to a
+spec-derived test, for a rule with no observable obligation (kb/Work PB386) — and every one of the six bounds the
+owner set on it is checked HERE, by the same predicate `Schema.state_for` asks. All of that is decidable from the
+record, the schema, and the registers the schema names.
 Whether a `code-location` symbol still exists and whether a `test-ref` names a test that is really on disk
 is checked by the C# battery gate `SpecTraceabilityInventoryDriftTests` — deliberately NOT here. That check has to
 keep holding as the tree changes under an already-recorded row, so it belongs to something that runs every build,
@@ -137,11 +140,22 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # ⚠ Only a verdict that CLAIMS a determination owes it: `anchor_obliged` exempts the verdicts the kind
         # names in `anchor-exempt-verdicts` (a declined facility withdraws the A.1 item, so there is no §7 row).
         probe = {"rule-id": rid, "kind": catalog.get(rid, ""), "verdict": rec.get("verdict", ""),
-                 "code-location": rec.get("code-location", "")}
+                 "code-location": rec.get("code-location", ""), "test-ref": rec.get("test-ref", ""),
+                 "derivation": rec.get("derivation", "")}
         anchor = schema.anchor_for(probe)
         if schema.anchor_obliged(probe) and anchor not in locations:
             bad.append(f"{where}: kind {catalog[rid]} requires the register anchor '{anchor}' among its "
                        f"code-location(s) — it is computed from the rule-id, never chosen")
+
+        # ⛔ A DERIVATION IS THE OWNER'S ALTERNATIVE TO §1(c)'s TEST, AND IT IS CHECKED, NOT TRUSTED.
+        # kb/Work PB386 (2026-09-03) admits an owner-signed determination in docs/CONFORMANCE.md §8 in place of
+        # a spec-derived test-ref, for a rule that carries no observable obligation — and its second stated cost
+        # is that the determination be CHECKABLE, "or the GAP metric becomes cheaper to move than the work it
+        # stands for". The bounds live in ONE predicate (`Derivation.refusals`) that `Schema.state_for` also
+        # asks, so the writer and the drift gate cannot come to read one rule differently (kb/Work PB315).
+        if schema.derivation is not None:
+            for refusal in schema.derivation.refusals(probe, schema):
+                bad.append(f"{where}: [{refusal.code}] {refusal.message}")
 
         for ref in schema.split(rec.get("test-ref", ""), schema.test_ref_sep):
             scheme = ref.split(":", 1)[0]
@@ -190,6 +204,7 @@ def main() -> int:
     verdicts: Counter[str] = Counter()
     closed: Counter[str] = Counter()
     untested: list[str] = []
+    derived_closures: list[str] = []
     for _, _, rec in records:
         row = by_id[rec["rule-id"]]
         had = row.get("verdict") or ""
@@ -204,6 +219,8 @@ def main() -> int:
         verdicts[rec["verdict"]] += 1
         if row["state"] == "OK":
             closed[rec["verdict"]] += 1
+            if rec.get("derivation"):
+                derived_closures.append(rec["rule-id"])
         elif rec["verdict"] in schema.resolving:
             untested.append(rec["rule-id"])
 
@@ -223,6 +240,14 @@ def main() -> int:
         print(f"\n  ⓘ {len(untested)} CONFORMS-but-untested row(s) — verdict recorded, row still open until a"
               f" SPEC-DERIVED test covers it (a NIST golden or a *_MatchesLegacy differential does not):")
         for rid in untested[:10]:
+            print(f"       {rid}")
+    if derived_closures:
+        # ⛔ REPORTED SEPARATELY BECAUSE IT IS A DIFFERENT KIND OF CLOSURE. These rows close on an owner-signed
+        # DERIVATION rather than on a test (kb/Work PB386), so a reader comparing the GAP delta against the
+        # goldens that landed must be able to see which rows moved without one.
+        print(f"\n  ⓘ {len(derived_closures)} row(s) closed on an owner-signed DERIVATION rather than a test "
+              f"(docs/CONFORMANCE.md {schema.derivation.heading.strip('# ')}):")
+        for rid in derived_closures[:10]:
             print(f"       {rid}")
     if rewritten:
         print(f"\n  ⚠ {len(rewritten)} row(s) RE-ADJUDICATED — a prior verdict was replaced:")

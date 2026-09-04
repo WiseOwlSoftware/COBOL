@@ -989,5 +989,74 @@
         "spec-derived": true
       }
     }
+  },
+
+  "derivation": {
+    "$comment": [
+      "⛔ THE ONE ALTERNATIVE TO A SPEC-DERIVED TEST, AND THE OWNER OPENED IT — kb/Work PB386, 2026-09-03.",
+      "DESIGN-spec-conformance-review.md §1.1 is the definition; this is that definition as DATA.",
+      "",
+      "Some normative rules impose no obligation a conforming program can observe. The standard may declare the",
+      "result UNDEFINED — §4.4 2): 'Situations in which the results of executing a statement are explicitly",
+      "undefined or unpredictable are identified in A.2, Undefined language element list. A COBOL run unit that",
+      "allows these situations to happen is a conforming run unit' — or the rule's antecedent may be false for",
+      "every state this implementation can reach, or its consequent may be indistinguishable from another rule's.",
+      "For such a row §1(c) is not unmet but UNMEETABLE: a golden written for it would pin an IMPLEMENTATION",
+      "CHOICE as though it were the standard's answer, which is the exact thing `test-ref.spec-derived` exists to",
+      "prevent. The population was MEASURED before the door opened: eight rows, every CONFORMS-but-untested row",
+      "on the tree except DOC-A.1-93, which is a real defect (kb/Work PB383).",
+      "",
+      "⛔ CHECKABLE, NOT FREE TEXT. `arms` carries the three grounds the owner accepted and, per arm, the SHAPE",
+      "its `Names` cell must have plus the check that shape feeds. The A.2 arm is MECHANICAL: the checker",
+      "resolves Annex A.2 item <n>'s own trailing citation against the rule catalog (`undefined-list`, generated",
+      "by scripts/spec/extract_annex_a2.py) and requires the row's rule-id to be among the ids it covers. The",
+      "other two arms are reviewed ARGUMENTS — shape-checked here, read by the owner, whose `signature` is the",
+      "record that they were read.",
+      "",
+      "⚖ IT REPLACES §1(c) AND NOTHING ELSE. `state_for` charges a kind's anchor and observability costs FIRST",
+      "and consults a derivation exactly where it would have consulted a spec-derived test-ref, so kb/Work PB280",
+      "Q2 ('no' for a DOC row with nothing to observe) is untouched: an anchor-only DOC row still computes GAP,",
+      "derivation or not. DOC-A.1-19 closes because its determination IS stated in §7 and it names a greenfield",
+      "site — only its WITNESS is impossible.",
+      "",
+      "⛔ THE ANCHOR IS COMPUTED, NEVER CHOSEN — the same rule, and the same reason, as kinds.DOC.anchor-template",
+      "(kb/Work A11: a determination filed under a neighbouring item). The §8 register key carries the `DRV-`",
+      "prefix so it is a DIFFERENT anchor space from §7's, and audit_annex_a1.py's DOC-A.1-<n> token invariant",
+      "counts both registers rather than one."
+    ],
+    "field": "derivation",
+    "anchor-template": "docs/CONFORMANCE.md#DRV-{rule-id}",
+    "register-heading": "## 8. Rules with no observable obligation",
+    "register-header-cell": "Rule",
+    "signature": "owner: 2026-09-03",
+    "undefined-list": "tests/version-matrix/annex-a2-undefined.json",
+    "$refusals": [
+      "The bounds the owner set, encoded rather than described (record_verdicts.validate reports each by name):",
+      "1) a derivation on a row that ALREADY carries a spec-derived test-ref — that row demonstrably has an",
+      "   observable obligation, so the premise is false for it;",
+      "2) a derivation on a row whose verdict does not RESOLVE;",
+      "3) a derivation on a row of a kind that obliges a register determination docs/CONFORMANCE.md does not",
+      "   carry — the documentation obligation is not yet STATED, so there is nothing to derive about;",
+      "4) an `undefined-A.2` arm naming an item that does not resolve to this row;",
+      "5) a missing or wrong owner signature;",
+      "6) a `derivation` value that is not the COMPUTED anchor, or one docs/CONFORMANCE.md §8 has no row for."
+    ],
+    "arms": {
+      "undefined-A.2": {
+        "names-pattern": "^A\\.2 item ([0-9]+)$",
+        "check": "a2-item",
+        "meaning": "The standard's own Annex A.2 lists this rule as explicitly undefined, so every behaviour conforms and no expected value exists to derive. MECHANICAL: A.2 item <n> must resolve to this row's rule-id in `undefined-list`."
+      },
+      "unpopulatable-antecedent": {
+        "names-pattern": "^.{20,}$",
+        "check": "stated",
+        "meaning": "The rule's antecedent is false for every state this implementation can reach. A REVIEWED ARGUMENT: the Names cell must STATE the closed set that makes it unreachable — a dash, an 'n/a' or a bare word is refused, because an argument nobody can check is the free-text escape hatch this mechanism exists not to be."
+      },
+      "indistinguishable-consequent": {
+        "names-pattern": "^([A-Za-z]+-[A-Za-z0-9.]+-[A-Za-z0-9.]+)$",
+        "check": "rule-exists",
+        "meaning": "The rule's consequent is byte-identical to another rule's for every argument the two admit, so no conforming program can distinguish them. A REVIEWED ARGUMENT: the Names cell must be a rule-id that EXISTS in the catalog and is not this row's own."
+      }
+    }
   }
 }

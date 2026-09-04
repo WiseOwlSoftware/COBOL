@@ -42,10 +42,14 @@ INVENTORY_PATH = REPO / "tests" / "version-matrix" / "traceability-inventory.jso
 #: rule-id `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor.
 REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
 REGISTER_HEADING = "## 7. Annex A.1"
+#: The label in the §7 table's own header row, so the reader can tell a header from a determination.
+REGISTER_HEADER_CELL = "A.1 item"
 
 #: The adjudicated fields — the ones a re-run of build_inventory.py must carry forward, and the ones a verdict
 #: record may set. Everything else on a row is regenerated from the catalog and is not the reviewer's to write.
-ADJUDICATED = ("verdict", "code-location", "test-ref", "editions", "notes")
+#: ⚙ `derivation` is the §1.1 alternative to `test-ref` (owner decision kb/Work PB386, 2026-09-03) — see
+#: `Derivation` below.
+ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions", "notes")
 
 #: A parenthesised or semicolon-introduced clause citation inside a rule's own text — the form Annex A.1 uses to
 #: point an implementor-defined documentation obligation at the clause that creates it:
@@ -92,6 +96,28 @@ class Section7Row(NamedTuple):
     pinned: str         #: the spec-derived test-ref(s) that pin it, or '—'
 
 
+class Refusal(NamedTuple):
+    """One reason a claimed derivation does not stand — a STABLE CODE plus the sentence a reviewer reads.
+
+    The code exists so the cross-language parity fixture can compare what the two engines refused, not merely
+    THAT they refused: two evaluators that reject one row for two different reasons look identical under a
+    boolean, and that is precisely the shape kb/Work PB315's disagreement hid behind.
+    """
+
+    code: str
+    message: str
+
+
+class DerivationRow(NamedTuple):
+    """One data row of the docs/CONFORMANCE.md §8 derivation register, by cell."""
+
+    key: str        #: the derivation anchor fragment — `DRV-<rule-id>`
+    arm: str        #: which of the three §1.1 grounds this determination stands on
+    names: str      #: the arm's OBJECT — `A.2 item <n>` / the closed set / the indistinguishable rule-id
+    argument: str   #: the derivation itself, written for a reader
+    signature: str  #: the owner's signature, matched against `derivation.signature` in the schema
+
+
 def register_cells(line: str) -> list[str]:
     """A markdown row's content cells, split on UNESCAPED pipes.
 
@@ -103,28 +129,51 @@ def register_cells(line: str) -> list[str]:
     return parts[1:-1]
 
 
-def section7_rows(text: str) -> list[Section7Row]:
-    """Every data row of the §7 register table, in document order.
+def register_section(text: str, heading: str, header_cell: str) -> list[list[str]]:
+    """Every data row of ONE `docs/CONFORMANCE.md` register table, as raw cell lists, in document order.
 
-    ⛔ THE ONE PARSER, and it lives HERE rather than in `audit_annex_a1.py` where it was written, because three
-    readers now need it and a markdown table read three ways is `feedback_one_rule_one_place` waiting to happen:
+    ⛔ THE ONE PARSER, and it lives HERE rather than in `audit_annex_a1.py` where it was written, because four
+    readers now need it and a markdown table read four ways is `feedback_one_rule_one_place` waiting to happen:
     the register audit (which CHECKS the rows), `Schema.anchor_obliged` (which asks whether an item has a
-    determination at all) and `DerivedSelector` (whose `determination-prefix` arm reads what the determination
-    SAYS). The C# twin is `tests/_shared/ConformanceRegister.cs`; that pair is the same two-engines-one-artifact
-    shape as the selector evaluator, and `EveryRowState_IsDerived_NotAsserted` catches them drifting.
+    determination at all), `DerivedSelector` (whose `determination-prefix` arm reads what the determination SAYS)
+    and `Derivation` (which reads §8). The C# twin is `tests/_shared/ConformanceRegister.cs`; that pair is the
+    same two-engines-one-artifact shape as the selector evaluator, and `EveryRowState_IsDerived_NotAsserted`
+    catches them drifting.
+
+    ⛔ IT STOPS AT THE NEXT `## ` HEADING, and that is not tidiness. Until §8 existed §7 was the LAST section, so
+    reading to end-of-file was indistinguishable from reading the section — and the moment a second register was
+    appended, every §8 row would have been served to `register_determinations` as an A.1 determination keyed by
+    something that is not an A.1 item. Bounding it is what makes the NEXT section free.
     """
-    start = text.index(REGISTER_HEADING)
-    rows: list[Section7Row] = []
-    for line in text[start:].splitlines():
+    start = text.find(heading)
+    if start < 0:
+        # A body that does not carry this section has no rows of it — the same answer the C# reader gives, and
+        # the reason it is not an error is that both are driven against FABRICATED bodies carrying one section
+        # at a time. A section genuinely lost from the live document is caught by the POPULATION assertions its
+        # gates make (`filed.Count > 0`, `Derivation is not null`), never by a parser raising here.
+        return []
+    body = text[start + len(heading):]
+    if (nxt := body.find("\n## ")) >= 0:
+        body = body[:nxt]
+    rows: list[list[str]] = []
+    for line in body.splitlines():
         if not line.startswith("| "):
             continue
         cells = register_cells(line)
-        if len(cells) < 2 or cells[0] in ("A.1 item",) or set(cells[0]) <= set("-: "):
+        if len(cells) < 2 or cells[0] == header_cell or set(cells[0]) <= set("-: "):
             continue
-        rows.append(Section7Row(cells[0], cells[1],
-                                cells[2] if len(cells) > 2 else "",
-                                cells[3] if len(cells) > 3 else ""))
+        rows.append(cells)
     return rows
+
+
+def _cell(cells: list[str], i: int) -> str:
+    return cells[i] if len(cells) > i else ""
+
+
+def section7_rows(text: str) -> list[Section7Row]:
+    """Every data row of the §7 Annex A.1 register, in document order."""
+    return [Section7Row(c[0], c[1], _cell(c, 2), _cell(c, 3))
+            for c in register_section(text, REGISTER_HEADING, REGISTER_HEADER_CELL)]
 
 
 def plain(cell: str) -> str:
@@ -271,6 +320,193 @@ class DerivedSelector:
         return out
 
 
+class Derivation:
+    """`derivation` in the schema — §1.1's owner-signed ALTERNATIVE to a spec-derived test.
+
+    ⛔ THE OWNER OPENED THIS DOOR AND SET ITS BOUNDS (kb/Work PB386, 2026-09-03); the class is those bounds,
+    encoded. A rule that carries NO OBSERVABLE OBLIGATION cannot meet `DESIGN-spec-conformance-review.md` §1(c) —
+    not because nobody has written the golden but because any golden would pin an IMPLEMENTATION CHOICE as though
+    it were the standard's answer, which is precisely what `test-ref.spec-derived` exists to prevent. Such a row
+    may instead close on a DETERMINATION recorded in `docs/CONFORMANCE.md` §8, keyed by the row's own rule-id,
+    naming one of three grounds and signed by the owner.
+
+    ⛔ CHECKABLE, NOT A FREE-TEXT ESCAPE HATCH — the note's own second consequence, and the reason this is a
+    predicate rather than a convention. The `undefined-A.2` arm is MECHANICAL: Annex A.2 is the standard's own
+    list of what it declares undefined, each item ends in the standard's own citation of the rule it is about,
+    and `scripts/spec/extract_annex_a2.py` resolves those citations into rule-ids. The other two arms are
+    reviewed ARGUMENTS: their shape is checked here (the closed set must be STATED; the indistinguishable rule
+    must EXIST and not be this row), and the owner's signature is the record that the argument was read.
+
+    ⚖ IT REPLACES §1(c) AND NOTHING ELSE. `Schema.state_for` charges a kind's anchor and observability costs
+    BEFORE it consults a derivation, so kb/Work PB280 Q2 — "no" for a DOC row with nothing in the compiler to
+    observe — is untouched by this and cannot be routed around by it.
+    """
+
+    def __init__(self, raw: dict[str, Any], register: dict[str, DerivationRow] | None = None,
+                 undefined: dict[int, set[str]] | None = None) -> None:
+        self._raw = raw
+        self.field: str = raw["field"]
+        self.anchor_template: str = raw["anchor-template"]
+        self.heading: str = raw["register-heading"]
+        self.header_cell: str = raw.get("register-header-cell", "Rule")
+        self.signature: str = raw["signature"]
+        self.undefined_list: str = raw["undefined-list"]
+        self.arms: dict[str, dict[str, Any]] = {
+            name: {"names": re.compile(arm["names-pattern"]), "check": arm["check"]}
+            for name, arm in raw["arms"].items() if not name.startswith("$")
+        }
+        #: Injectable so a self-test drives the predicate against a FABRICATED register and a fabricated A.2
+        #: list — the arms cannot be falsified against today's document, where every row is correct.
+        self._register = register
+        self._undefined = undefined
+
+    def anchor_for(self, row: dict[str, Any]) -> str:
+        """The derivation anchor this row would carry — COMPUTED from its own rule-id, never chosen."""
+        return self.anchor_template.replace("{rule-id}", row.get("rule-id", ""))
+
+    def key_for(self, row: dict[str, Any]) -> str:
+        """The §8 register key for this row — the anchor's fragment, so the two cannot disagree."""
+        return self.anchor_for(row).partition("#")[2]
+
+    @property
+    def register(self) -> dict[str, DerivationRow]:
+        if self._register is None:
+            self._register = register_derivations(self.heading, header_cell=self.header_cell)
+        return self._register
+
+    @property
+    def undefined(self) -> dict[int, set[str]]:
+        """`{A.2 item -> the rule-ids it covers}` — read ONCE, from the generated artifact.
+
+        ⛔ NOT a parse of `specs/ISO_COBOL.md` here. `EveryRowState_IsDerived_NotAsserted` recomputes the state
+        of all 4,311 rows on every build, so a per-row spec read would put 1.3 MB of I/O on that path; and the
+        C# twin would need a second markdown parser, which is the duplication this module exists to prevent.
+        `extract_annex_a2.py --check` is what keeps the artifact equal to the standard.
+        """
+        if self._undefined is None:
+            path = REPO / self.undefined_list
+            if not path.exists():
+                raise SystemExit(f"{self.undefined_list} not found — "
+                                 "run: python scripts/spec/extract_annex_a2.py")
+            doc = json.loads(path.read_text(encoding="utf-8"))
+            self._undefined = {it["item"]: set(it["rule-ids"]) for it in doc["items"]}
+        return self._undefined
+
+    def refusals(self, row: dict[str, Any], schema: "Schema") -> list[Refusal]:
+        """Why this row's derivation does NOT stand — empty when it does.
+
+        ⛔ ONE PREDICATE, TWO CALLERS, and deliberately so: `record_verdicts.validate` prints these reasons at
+        record time and `state_for` merely asks whether the list is empty. Writing the bounds twice is how a
+        writer and a gate come to disagree about one rule — which is the whole content of kb/Work PB315.
+
+        ⚙ EVERY REFUSAL CARRIES A STABLE CODE, and the code is what the cross-language parity fixture compares.
+        Two engines cannot be held to the same PROSE, and asserting only "some refusal happened" would let the
+        two sides refuse a row for different reasons and still look identical — which is exactly the shape
+        PB315's disagreement hid behind (both engines derived GAP, for different reasons, for months).
+        """
+        claimed = (row.get(self.field) or "").strip()
+        if not claimed:
+            return []                      # no derivation claimed — nothing to refuse
+        out: list[Refusal] = []
+        anchor = self.anchor_for(row)
+        if claimed != anchor:
+            out.append(Refusal("not-computed-anchor",
+                               f"derivation '{claimed}' is not the anchor computed from this row's rule-id "
+                               f"('{anchor}') — it is derived, never chosen"))
+        # ⛔ REFUSAL 1 — the row demonstrably HAS an observable obligation. A derivation asserts that no
+        # spec-derived test can exist; a spec-derived test on the same row refutes that outright.
+        if any(schema.is_spec_derived(r) for r in schema.split(row.get("test-ref", ""), schema.test_ref_sep)):
+            out.append(Refusal("has-spec-derived-test",
+                               "this row already carries a SPEC-DERIVED test-ref, so it has an observable "
+                               "obligation and may not close on a derivation (design doc §1.1 refusal 1)"))
+        # ⛔ REFUSAL 2 — a derivation explains why no test can exist, never why a non-resolving verdict is fine.
+        if (row.get("verdict") or "") not in schema.resolving:
+            out.append(Refusal("verdict-does-not-resolve",
+                               f"verdict '{row.get('verdict') or ''}' does not resolve — a derivation stands in "
+                               "for the covering test, not for the verdict"))
+        # ⛔ REFUSAL 3 — a kind that owes a register determination must have STATED it first. A DOC row asks the
+        # implementor to state a choice, and "nothing to observe" about an unstated choice is unfalsifiable
+        # (kb/Work PB280 Q2); DOC-A.1-19 is admitted precisely because §7 states its determination.
+        if schema.anchor_for(row) is not None and (row.get("rule-id") or "") not in schema.register_items():
+            out.append(Refusal("determination-not-stated",
+                               f"kind {row.get('kind')} owes a determination in docs/CONFORMANCE.md and none is "
+                               f"filed for {row.get('rule-id')} — nothing yet for a derivation to be about"))
+        entry = self.register.get(self.key_for(row))
+        if entry is None:
+            out.append(Refusal("no-register-row",
+                               f"docs/CONFORMANCE.md {self.heading.strip('# ')} carries no row keyed "
+                               f"'{self.key_for(row)}'"))
+            return out
+        if entry.signature != self.signature:
+            out.append(Refusal("bad-signature",
+                               f"determination '{entry.key}' is signed '{entry.signature}', not "
+                               f"'{self.signature}' — a derivation is the OWNER's, and the signature records it"))
+        arm = self.arms.get(entry.arm)
+        if arm is None:
+            out.append(Refusal("unknown-arm",
+                               f"determination '{entry.key}' names arm '{entry.arm}', not one of "
+                               f"{sorted(self.arms)}"))
+            return out
+        m = arm["names"].match(entry.names)
+        if m is None:
+            out.append(Refusal("names-shape",
+                               f"determination '{entry.key}' arm {entry.arm}: 'Names' cell {entry.names!r} does "
+                               f"not match {arm['names'].pattern}"))
+            return out
+        out += self._arm_refusals(arm["check"], m, entry, row, schema)
+        return out
+
+    def _arm_refusals(self, check: str, m: re.Match[str], entry: DerivationRow,
+                      row: dict[str, Any], schema: "Schema") -> list[Refusal]:
+        rid = row.get("rule-id", "")
+        if check == "a2-item":
+            item = int(m.group(1))
+            covered = self.undefined.get(item)
+            if covered is None:
+                return [Refusal("a2-no-such-item",
+                                f"determination '{entry.key}': Annex A.2 has no item {item}")]
+            if rid not in covered:
+                return [Refusal("a2-does-not-cover",
+                                f"determination '{entry.key}': Annex A.2 item {item} does not cover {rid} — it "
+                                f"resolves to {sorted(covered) or 'no rule at all'} (design doc §1.1 refusal 4)")]
+            return []
+        if check == "stated":
+            return []           # the names-pattern IS the shape check for a reviewed argument
+        if check == "rule-exists":
+            named = m.group(1)
+            if named == rid:
+                return [Refusal("self-indistinguishable",
+                                f"determination '{entry.key}': a rule cannot be indistinguishable from itself")]
+            if named not in schema.rule_ids:
+                return [Refusal("unknown-rule",
+                                f"determination '{entry.key}': names '{named}', not a rule in the catalog")]
+            return []
+        return [Refusal("unknown-check",
+                        f"determination '{entry.key}': arm {entry.arm} declares check '{check}', which this "
+                        "evaluator does not implement — the schema and the writer disagree")]
+
+
+_DERIVATION_CACHE: dict[str, DerivationRow] | None = None
+
+
+def derivation_rows(text: str, heading: str, header_cell: str = "Rule") -> list[DerivationRow]:
+    """Every data row of the §8 derivation register, in document order."""
+    return [DerivationRow(c[0], c[1], _cell(c, 2), _cell(c, 3), _cell(c, 4))
+            for c in register_section(text, heading, header_cell)]
+
+
+def register_derivations(heading: str, text: str | None = None,
+                         header_cell: str = "Rule") -> dict[str, DerivationRow]:
+    """`{§8 row key -> row}` — cached when read from disk, like `register_determinations`."""
+    global _DERIVATION_CACHE
+    if text is not None:
+        return {r.key: r for r in reversed(derivation_rows(text, heading, header_cell))}
+    if _DERIVATION_CACHE is None:
+        _DERIVATION_CACHE = register_derivations(heading, REGISTER_PATH.read_text(encoding="utf-8"),
+                                                 header_cell)
+    return _DERIVATION_CACHE
+
+
 class Schema:
     """`tests/version-matrix/inventory-schema.json`, parsed."""
 
@@ -299,6 +535,20 @@ class Schema:
             for name, entry in raw.get("derived-verdicts", {}).items()
             if not name.startswith("$")
         }
+        #: §1.1's owner-signed alternative to a spec-derived test (kb/Work PB386). `None` when the schema
+        #: declares none — the door is DATA, so removing the object closes it everywhere at once.
+        self.derivation: Derivation | None = Derivation(raw["derivation"]) if "derivation" in raw else None
+        #: The catalog rule-ids, for the `indistinguishable-consequent` arm. Lazy, because only that arm needs
+        #: them and every other consumer of this class would otherwise pay a 4,311-rule parse it never reads.
+        self._rule_ids: set[str] | None = None
+        #: The §7 register, injectable — see `register_items`.
+        self._register_items: set[str] | None = None
+
+    @property
+    def rule_ids(self) -> set[str]:
+        if self._rule_ids is None:
+            self._rule_ids = {r["id"] for r in load_catalog()}
+        return self._rule_ids
 
     def locations(self, row: dict[str, Any]) -> list[str]:
         """The row's `code-location` list, split on the schema's own separator."""
@@ -349,8 +599,12 @@ class Schema:
         return (row.get("rule-id") or "") in reg
 
     def register_items(self) -> set[str]:
-        """The rule-ids docs/CONFORMANCE.md §7 carries a determination for."""
-        return set(register_determinations())
+        """The rule-ids docs/CONFORMANCE.md §7 carries a determination for.
+
+        Injectable through `_register_items` for the same reason the C# side makes it a Schema FIELD: a
+        hermetic case has to be able to drive both arms of `anchor_obliged` against a fabricated register.
+        """
+        return set(register_determinations()) if self._register_items is None else self._register_items
 
     def is_observable(self, row: dict[str, Any]) -> bool:
         """Does this row name a site in the compiler a program could observe the determination through?
@@ -391,7 +645,8 @@ class Schema:
 
     def state_for(self, row: dict[str, Any]) -> str:
         """A row is OK only when its verdict resolves, its required evidence is present, AND a SPEC-DERIVED test
-        covers it.
+        covers it — or, for a rule with no observable obligation, an owner-signed DERIVATION stands in its place
+        (§1.1, kb/Work PB386, 2026-09-03; see `derivation_stands` for why it is consulted LAST).
 
         This is the definition of DONE from `DESIGN-spec-conformance-review.md` §1, evaluated rather than
         asserted: (a) a located implementation or a recorded non-support decision, (b) a spec-verified verdict,
@@ -437,7 +692,23 @@ class Schema:
         if not self.spec_derived_required:
             return "OK" if row.get("test-ref") else "GAP"
         refs = self.split(row.get("test-ref", ""), self.test_ref_sep)
-        return "OK" if any(self.is_spec_derived(r) for r in refs) else "GAP"
+        if any(self.is_spec_derived(r) for r in refs):
+            return "OK"
+        return "OK" if self.derivation_stands(row) else "GAP"
+
+    def derivation_stands(self, row: dict[str, Any]) -> bool:
+        """Does this row carry an owner-signed DERIVATION that stands in place of §1(c)'s test?
+
+        ⛔ IT IS CONSULTED HERE AND ONLY HERE — after the verdict, after `requires`, after a kind's anchor and
+        observability costs, and exactly where a spec-derived `test-ref` would have been. That ORDER is the
+        encoding of how kb/Work PB386 and PB280 Q2 coexist: a DOC row with nothing in the compiler to observe
+        still computes GAP, with a derivation or without one, because it never reaches this line. Moving this
+        call earlier would silently reverse an owner decision.
+        """
+        d = self.derivation
+        if d is None or not (row.get(d.field) or "").strip():
+            return False
+        return not d.refusals(row, self)
 
     def split(self, value: str, sep: str) -> list[str]:
         return [p for p in (p.strip() for p in value.split(sep.strip())) if p]

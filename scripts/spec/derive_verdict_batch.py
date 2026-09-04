@@ -232,6 +232,10 @@ def main() -> int:
                 #    the edition band is the introduction record's answer and belongs to whoever writes it.
                 "code-location": schema.code_location_sep.join(locations),
                 "test-ref": row.get("test-ref", ""),
+                #  · `derivation` — carried for the same reason as `test-ref`: it is what CLOSES a row that no
+                #    test can close (kb/Work PB386), so dropping it here would silently re-open every such row
+                #    the next time a selector re-stamped its verdict.
+                "derivation": row.get("derivation", ""),
                 "editions": row.get("editions", ""),
                 "notes": row.get("notes", "") or args.notes or sel.decision,
             })
