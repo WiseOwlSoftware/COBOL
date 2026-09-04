@@ -166,17 +166,13 @@ public static partial class CobolIntrinsics
     public static string BaseConvert(string value, long fromBase, long toBase)
     {
         if (fromBase is < 2 or > 16 || toBase is < 2 or > 16)
-        {
-            Exceptions.ExceptionState.ArgumentError($"BASECONVERT base(s) {fromBase}/{toBase} out of the range 2..16 (§15.12.3 rule 1)");
-            return "";
-        }
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                $"BASECONVERT base(s) {fromBase}/{toBase} out of the range 2..16 (§15.12.3 rule 1)");
         // §15.12.3 r1 — "with UNEQUAL values": the runtime twin of the compile-time equal-literals screen
         // (PB59 / AR-15.12.3-1 leg (b)); reachable only through data-item bases the binder cannot read.
         if (fromBase == toBase)
-        {
-            Exceptions.ExceptionState.ArgumentError($"BASECONVERT argument-2 and argument-3 shall have unequal values — both are {fromBase} (§15.12.3 rule 1)");
-            return "";
-        }
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                $"BASECONVERT argument-2 and argument-3 shall have unequal values — both are {fromBase} (§15.12.3 rule 1)");
         System.Numerics.BigInteger acc = 0;
         int digitsSeen = 0;
         foreach (char ch in value.TrimEnd(' '))
@@ -184,28 +180,21 @@ public static partial class CobolIntrinsics
             int d = ch is >= '0' and <= '9' ? ch - '0'
                   : ch is >= 'A' and <= 'F' ? ch - 'A' + 10 : -1;
             if (d < 0 || d >= fromBase)
-            {
-                Exceptions.ExceptionState.ArgumentError($"BASECONVERT: '{ch}' is not a base-{fromBase} digit (§15.12.3 rule 2 — the basic-letters A to F, §8.1.3.1 Table 1)");
-                return "";
-            }
+                return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                    $"BASECONVERT: '{ch}' is not a base-{fromBase} digit (§15.12.3 rule 2 — the basic-letters A to F, §8.1.3.1 Table 1)");
             acc = acc * fromBase + d;
             digitsSeen++;
         }
         if (digitsSeen == 0)
-        {
-            Exceptions.ExceptionState.ArgumentError("BASECONVERT argument-1 contains no digits (§15.12.3 rule 2; §15.3)");
-            return "";
-        }
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                "BASECONVERT argument-1 contains no digits (§15.12.3 rule 2; §15.3)");
         if (acc == 0) return "0";
         const string digits = "0123456789ABCDEF";
         var sb = new System.Text.StringBuilder();
         for (; acc > 0; acc /= toBase) sb.Insert(0, digits[(int)(acc % toBase)]);
         if (sb.Length > 8191)
-        {
-            Exceptions.ExceptionState.ArgumentError(
-                $"BASECONVERT returned value of {sb.Length} digits exceeds the documented 8,191-position maximum (§15.4; §15.12.3 rule 3; CONFORMANCE.md item 93)");
-            return "";
-        }
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                $"BASECONVERT returned value of {sb.Length} digits exceeds the documented 8,191-position maximum (§15.4; §15.12.3 rule 3; CONFORMANCE.md row DOC-A.1-93)");
         return sb.ToString();
     }
 
@@ -400,8 +389,10 @@ public static partial class CobolIntrinsics
     {
         if (source.Length == 0 || froms.Any(f => f.Length == 0))                 // §15.87.4 rule 1
         {
-            Exceptions.ExceptionState.ArgumentError("SUBSTITUTE argument-1 or an argument-2 is of zero length (§15.87.4 rule 1)");
-            return "";
+            // §15.87.4 r1 states the result itself — "the returned value is of zero length" — so this arm does
+            // NOT rest on an implementor determination; it shares only the mechanism.
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                "SUBSTITUTE argument-1 or an argument-2 is of zero length (§15.87.4 rule 1)");
         }
         int k = froms.Length;
         // ANYCASE (rule 5) folds via LOWER-CASE (ToLowerInvariant — the implementor-defined §15.57 fold, matching
@@ -640,12 +631,35 @@ public static partial class CobolIntrinsics
     /// onto the argument side.</remarks>
     public static string BooleanOfInteger(Int128 value, long length)
     {
-        if (length < 1 || length > 8191)
-        {
-            Exceptions.ExceptionState.ArgumentError(
-                $"FUNCTION BOOLEAN-OF-INTEGER argument-2 {length} is not in 1..8191 (§15.13.3 r2; §15.4)");
-            return "0";
-        }
+        // ⛔ THREE DIFFERENT RULES, THREE ARMS — never one condition (kb/Work PB383). The three rejections below
+        // have different OWNERS and, because §15.13.4 r1 makes the returned LENGTH argument-2 itself, two
+        // different documented substituted results. A single `length < 1 || length > 8191` arm answering "0"
+        // conflated the first two and got the answer wrong for both.
+
+        // ── §15.13.3 rule 2 — an ARGUMENT rule: "Argument-2 shall be a positive nonzero integer."
+        // The rejected argument IS the one the returned length derives from, so there is no length to return at
+        // all: docs/CONFORMANCE.md row DOC-A.1-90's zero-length class (§15.3 rule 14), the same answer its
+        // FORMATTED-DATE / FORMATTED-DATETIME / FORMATTED-TIME / BASECONVERT siblings give.
+        if (length < 1)
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                $"FUNCTION BOOLEAN-OF-INTEGER argument-2 {length} shall be a positive nonzero integer (§15.13.3 r2)");
+
+        // ── §15.4 — a RETURNED-VALUE-LENGTH rule, NOT an argument rule. 8,192 *is* a positive nonzero integer,
+        // so §15.13.3 r2 is satisfied; what is violated is "the maximum length specified by the implementor for
+        // a returned value", which docs/CONFORMANCE.md row DOC-A.1-93 fixes at 8,191 character positions (the
+        // §8.3.3.4.3 SR1 boolean-literal maximum). Row 93's documented result is likewise a zero-length value,
+        // and this is the second of the two enforcement sites that row names — CobolIntrinsics.BaseConvert,
+        // whose §15.4 guard is the first, has always answered it this way.
+        if (length > 8191)
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                $"FUNCTION BOOLEAN-OF-INTEGER would return {length} boolean positions, past the documented "
+                + "8,191-position maximum returned-value length (§15.4; CONFORMANCE.md row DOC-A.1-93)");
+
+        // ── §15.13.3 rule 1 — an ARGUMENT rule about argument-1. ⚠ THE SUBSTITUTE IS DELIBERATELY NOT ZERO
+        // LENGTH: argument-2 is valid here, so the returned length is fully determined and row DOC-A.1-90's
+        // general clause applies instead of its zero-length class — "the zero value of the type the function
+        // returns", which for the §15.13.4 r1 boolean item of argument-2 positions is that many '0' positions.
+        // This arm is the discriminator the two above are measured against; do not merge it with them.
         if (value < 0)
         {
             Exceptions.ExceptionState.ArgumentError(

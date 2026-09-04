@@ -255,6 +255,36 @@ public sealed class ExceptionEngine
         return 0;
     }
 
+    /// <summary>The TEXT twin of <see cref="ArgumentError(string)"/>: raise EC-ARGUMENT-FUNCTION identically —
+    /// same fatal path, same checking gate — and, checking off, hand back a <b>zero-length value</b> as the
+    /// result of the function reference instead of the numeric zero.</summary>
+    /// <remarks><para>⛔ ONE MECHANISM, ONE PLACE (kb/Work PB383). The numeric half of "raise, then substitute"
+    /// has always lived in exactly one place — <see cref="ArgumentError(string)"/>'s own <c>return 0</c>. The
+    /// text half did not: every string-returning guard raised in one statement and wrote its own substitute in
+    /// the next, and two statements that must agree eventually do not. <c>CobolIntrinsics.BooleanOfInteger</c>
+    /// answered the one-position boolean <c>"0"</c> where its sibling <c>CobolIntrinsics.BaseConvert</c>
+    /// answered the zero-length value, for the SAME documented determination. Raise and substitute are one
+    /// expression here, so the pair cannot drift.</para>
+    /// <para>⚠ THIS METHOD DOES NOT DECIDE THAT THE ANSWER IS ZERO LENGTH — the CALL SITE's citation does, and
+    /// the two provenances are different obligations that must each be cited on their own:</para>
+    /// <list type="bullet">
+    /// <item>the STANDARD itself mandates it — §15.87.4 rule 1, "the returned value is of zero length"; or</item>
+    /// <item>the standard hands the result to the implementor (§15.3 rule 14, §15.4) and docs/CONFORMANCE.md
+    /// writes the determination down — row <c>DOC-A.1-90</c>, whose zero-length class is every function whose
+    /// returned LENGTH is itself derived from the rejected argument, and row <c>DOC-A.1-93</c>, a returned
+    /// value past the documented 8,191-position maximum.</item>
+    /// </list>
+    /// <para>So a rejected text function does NOT automatically come here. Row DOC-A.1-90 gives the fixed
+    /// one-character <c>CHAR</c> / <c>CHAR-NATIONAL</c> returns one SPACE, their length being fixed by the
+    /// function rather than by the rejected argument; and a site whose class is not yet written down anywhere
+    /// (the LOCALE-DATE / LOCALE-TIME family, whose §15.52.4 r3 length "depends on the format indicated in the
+    /// locale") deliberately keeps its own explicit substitute rather than borrowing this one's authority.</para></remarks>
+    public string ArgumentErrorZeroLength(string detail)
+    {
+        ArgumentError(detail);      // the raise, the fatal path and the checking gate stay in ONE place
+        return string.Empty;
+    }
+
     // ── EC-DATA-CONVERSION ambient statement gate (CONVERT / DISPLAY-OF / NATIONAL-OF) ────────────────────────
 
     /// <summary>True while the currently-executing statement has EC-DATA-CONVERSION checking enabled (the
@@ -1069,6 +1099,9 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.ArgumentError"/>
     public static long ArgumentError(string detail) => E.ArgumentError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.ArgumentErrorZeroLength"/>
+    public static string ArgumentErrorZeroLength(string detail) => E.ArgumentErrorZeroLength(detail);
 
     /// <inheritdoc cref="ExceptionEngine.DataConversionChecking"/>
     public static bool DataConversionChecking

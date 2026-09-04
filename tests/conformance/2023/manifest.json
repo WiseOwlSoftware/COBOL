@@ -382,6 +382,8 @@
   "l1_float_binary_default_endianness",
   "l1_formatted_current_date_accuracy",
   "l1_returned_value_length_limit",
+  "l1_returned_value_limit_boolean_repro",
+  "l1_argument_default_boolean_length",
   "l1_native_arithmetic_intermediate",
   "l1_native_arith_lane_and_rounding",
   "l1_random_seed_determination",

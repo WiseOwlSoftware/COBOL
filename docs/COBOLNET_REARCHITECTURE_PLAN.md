@@ -39,8 +39,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   undefinedness, an unpopulatable antecedent, an indistinguishable consequent) may close on a checkable
   owner-signed derivation in CONFORMANCE.md — the A.2 arm mechanical, the other two reviewed arguments,
   `Schema.state_for` + `DerivedState` in one change set, a drift test refusing a derivation on a row WITH an
-  obligation; implement it as a fix-lane item (eight rows); ④ `PB383` (BOOLEAN-OF-INTEGER returns "0" where a zero-length value is
-  documented — wrong answer) into the fix lane, `PB380` (reachability probe) and `PB382` (the reserved-word
+  obligation; implement it as a fix-lane item (eight rows); ④ ✅ **DONE 2026-09-04 — `PB383` LANDED, GAP 3022 →
+  3021** (DEVLOG 1452: BOOLEAN-OF-INTEGER's single `length < 1 || length > 8191` guard held two rules with
+  different owners — §15.13.3 r2's ARGUMENT rule and §15.4's RETURNED-VALUE-LENGTH rule, 8,192 satisfying the
+  former — and answered the one-position boolean `"0"` where rows `DOC-A.1-90`/`DOC-A.1-93` document a
+  ZERO-LENGTH value; three cited arms now, the third (argument-1 negative, argument-2 valid) deliberately NOT
+  zero length. Root cause was that raise and substitute were two statements at every string-returning guard:
+  `ExceptionState.ArgumentErrorZeroLength` makes them one expression and ten further guards moved onto it. Two
+  goldens, `DOC-A.1-93` closed); `PB380` (reachability probe) and `PB382` (the reserved-word
   funnel's recovery arm) behind it; ⑤ the ledger refresh after each landing. Owner-decision queue: only
   the `USAGE POINTER TO type-name` edition item (`A1`).
 - **▶ SESSION HANDOFF (2026-09-02 evening — superseded by the third-pause bullet above):**

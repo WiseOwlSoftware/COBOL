@@ -304,7 +304,8 @@ public static class CobolDate
     {
         var segs = Tokenize(format);
         if (segs is null)
-        { Exceptions.ExceptionState.ArgumentError($"'{format}' is not a valid ISO 1989 date/time format (§15.3)"); return ""; }
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                $"'{format}' is not a valid ISO 1989 date/time format (§15.3; CONFORMANCE.md row DOC-A.1-90)");
 
         bool isUtc = segs.Any(s => !s.IsField && s.Sep == 'Z');
         bool hasDate = segs.Any(s => s.IsField && s.Field == Fld.Year);
@@ -335,12 +336,9 @@ public static class CobolDate
             // 1600"). A rolled date outside the form is EC-ARGUMENT-FUNCTION and the §15.3 default, exactly
             // as an out-of-range argument-2 is; a TIME-ONLY format never reads the day, so it rolls freely.
             if (hasDate && day is < 1 or > 3067671)
-            {
-                Exceptions.ExceptionState.ArgumentError(
+                return Exceptions.ExceptionState.ArgumentErrorZeroLength(
                     $"the UTC adjustment (§15.40.4 r2) moves the date to integer date form {day}, outside "
                     + "1..3,067,671 (§15.5.2) — the year would leave the §15.3.1.3 range 1601..9999");
-                return "";
-            }
         }
 
         int yy = 0, mo = 0, dm = 0, doy = 0, isoY = 0, isoW = 0, isoD = 0;
@@ -392,7 +390,8 @@ public static class CobolDate
     public static string FormattedDate(string format, long integerDate)
     {
         if (integerDate is < 1 or > 3067671)
-        { Exceptions.ExceptionState.ArgumentError($"FORMATTED-DATE argument {integerDate} outside 1..3,067,671 (§15.5.2)"); return ""; }
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                $"FORMATTED-DATE argument {integerDate} outside 1..3,067,671 (§15.5.2; CONFORMANCE.md row DOC-A.1-90)");
         return EmitFormatted(format, integerDate, 0, 0, 0, false);
     }
 
@@ -456,7 +455,8 @@ public static class CobolDate
                                            long offsetMinutes, bool hasOffset, bool leapSecond = false)
     {
         if (integerDate is < 1 or > 3067671)
-        { Exceptions.ExceptionState.ArgumentError($"FORMATTED-DATETIME argument {integerDate} outside 1..3,067,671 (§15.5.2)"); return ""; }
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                $"FORMATTED-DATETIME argument {integerDate} outside 1..3,067,671 (§15.5.2; CONFORMANCE.md row DOC-A.1-90)");
         if (SecondsOutOfStandardForm("FORMATTED-DATETIME", "argument-3", secUnscaled, secScale, leapSecond)) return "";
         if (OffsetOutOfRange("FORMATTED-DATETIME", "argument-4", offsetMinutes, hasOffset, "§15.40.3 r5")) return "";
         return EmitFormatted(format, integerDate, secUnscaled, secScale, offsetMinutes, hasOffset, leapSecond);

@@ -54320,10 +54320,10 @@
   "ordinal": 90,
   "subject": "Function-identifier (result when argument rules are violated and checking for the EC-ARGUMENT-FUNCTION exception conditi",
   "verdict": "CONFORMS",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-90; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
-  "test-ref": "conformance:2023/pb65_domain_guards; conformance:2002/pb59_char_representative; conformance:2002/l1_char_national_argument_bound; conformance:2002/l1_char_national_also_positions",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-90; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ArgumentError; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ArgumentErrorZeroLength",
+  "test-ref": "conformance:2023/pb65_domain_guards; conformance:2023/l1_argument_default_boolean_length; conformance:2002/pb59_char_representative; conformance:2002/l1_char_national_argument_bound; conformance:2002/l1_char_national_also_positions",
   "editions": "",
-  "notes": "A.1 item 90 (15.3 rule 14). Documented VOLUNTARILY - A.1 exempts this element from the documentation obligation - because three different substituted values were in play across the corpus and a golden may not pin an unwritten determination. The determination is one rule for every intrinsic: the ZERO VALUE of the returned type (numeric 0; alphanumeric/national spaces; a zero-length value where the returned length derives from the rejected argument). The two new CHAR-NATIONAL goldens measure the one-space arm on OVER/ZERO/WRAP.",
+  "notes": "A.1 item 90 (15.3 rule 14). Documented VOLUNTARILY - A.1 exempts this element from the documentation obligation - because three different substituted values were in play across the corpus and a golden may not pin an unwritten determination. The determination is one rule for every intrinsic: the ZERO VALUE of the returned type (numeric 0; alphanumeric/national spaces, one space for the fixed one-character CHAR/CHAR-NATIONAL; a boolean item's zero positions; a zero-length value where the returned length derives from the rejected argument). The two CHAR-NATIONAL goldens measure the one-space arm on OVER/ZERO/WRAP. kb/Work PB383 added BOOLEAN-OF-INTEGER to both arms of that rule and its witness l1_argument_default_boolean_length: a rejected argument-2 (15.13.3 r2) is the zero-length class because 15.13.4 r1 makes argument-2 the returned LENGTH, while a rejected argument-1 with a valid argument-2 takes the general clause and returns that many zero boolean positions - the A1NEG control leg. The two mechanisms are ArgumentError (numeric zero) and ArgumentErrorZeroLength (the text zero-length), one expression each so a raise and its substitute cannot drift.",
   "state": "OK"
  },
  {
@@ -54359,11 +54359,11 @@
   "ordinal": 93,
   "subject": "Function returned values (returned value length exceeds implementor-defined limits)",
   "verdict": "CONFORMS",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-93; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BaseConvert; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BooleanOfInteger",
-  "test-ref": "",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-93; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BaseConvert; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BooleanOfInteger; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ArgumentErrorZeroLength",
+  "test-ref": "conformance:2023/l1_returned_value_length_limit; conformance:2023/l1_returned_value_limit_boolean_repro",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "A.1 item 93 (15.4). The maximum returned length is 8,191 character positions (the 8.3.3.4.3 SR1 / 8.8.3.2 SR2 literal maximum reused) and the value returned past it is the 15.3 rule 14 checking-off default, a ZERO-LENGTH value. Both enforcement sites now witness it: BaseConvert through l1_returned_value_length_limit (a receiver pre-filled with '*' returns all spaces, 14.6.8.5's zero-length fill) and BooleanOfInteger through l1_returned_value_limit_boolean_repro, whose OVER leg reads 14.9.11.4 GR1 (a zero-length operand transfers nothing) and whose OVERLEN leg reads the length out as the number 0 (15.50.4 r1). ATMAXTAIL puts 8,191 INSIDE the bound and NEG is the control: argument-1 rejected with a valid argument-2 still returns 8 real boolean positions, so the zero-length legs report THIS rule and not 'an error happened'. Closed by kb/Work PB383, which split BooleanOfInteger's single guard - it had conflated this 15.4 rule with 15.13.3 r2's ARGUMENT rule (8,192 satisfies r2) and answered both with the one-position boolean \"0\".",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-94",
