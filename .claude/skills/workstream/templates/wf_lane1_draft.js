@@ -37,6 +37,9 @@ const WRITER_OUT = {
     records: { type: 'array', description: 'record_verdicts.py records for rows that would CLOSE once the goldens are validated', items: { type: 'object', additionalProperties: { type: 'string' } } },
     defects: { type: 'array', items: { type: 'object', properties: { rule_id: { type: 'string' }, repro: { type: 'string' }, expected: { type: 'string' }, observed_or_reasoning: { type: 'string' }, clause: { type: 'string' } }, required: ['rule_id', 'repro', 'expected', 'observed_or_reasoning', 'clause'] } },
     summary: { type: 'string' },
+    // OPTIONAL. Rule-ids you did not draft because you reached the 160-turn cap — the IDS, never a count, so the
+    // registrar can dispatch exactly them and reconcile read == decided + |deferred|.
+    deferred: { type: 'array', items: { type: 'string' } },
   },
   required: ['slug', 'rows', 'manifest_entries', 'negative_manifest_entries', 'records', 'defects', 'summary'],
 }
@@ -51,12 +54,18 @@ const REFUTE_OUT = {
       kind: { type: 'string', enum: ['expected-value', 'citation', 'does-not-exercise-rule', 'editions', 'not-spec-derived', 'nondeterministic', 'convention', 'none'] },
     }, required: ['rule_id', 'upheld', 'correction', 'kind'] } },
     all_upheld_flag: { type: 'string', description: 'if every row is upheld, say what you did to try to break it' },
+    // OPTIONAL. Rule-ids you did not refute because you reached the 160-turn cap — the IDS, never a count.
+    deferred: { type: 'array', items: { type: 'string' } },
   },
   required: ['slug', 'verdicts', 'all_upheld_flag'],
 }
 const FIX_OUT = {
   type: 'object',
-  properties: { slug: { type: 'string' }, applied: { type: 'array', items: { type: 'string' } }, refused: { type: 'array', items: { type: 'string' } } },
+  properties: {
+    slug: { type: 'string' }, applied: { type: 'array', items: { type: 'string' } }, refused: { type: 'array', items: { type: 'string' } },
+    // OPTIONAL. Corrections you did not reach because of the 160-turn cap — the rule-ids, never a count.
+    deferred: { type: 'array', items: { type: 'string' } },
+  },
   required: ['slug', 'applied', 'refused'],
 }
 
@@ -70,7 +79,13 @@ THE SPEC IS THE ONLY ORACLE: specs/ISO_COBOL.md (ISO/IEC 1989:2023). Derive ever
 rule text BEFORE thinking about what the compiler does; NIST goldens, GnuCOBOL and the legacy engine are regression
 nets, never authority; a *_MatchesLegacy test or a nist: ref cannot close a row. VALIDATE EVERY CITATION:
 python scripts/spec/cite.py --check <clause> "<quoted text>"  — a citation you did not run --check on is not a
-citation, and a REAL clause that answers a DIFFERENT question is the failure mode to fear most.`
+citation, and a REAL clause that answers a DIFFERENT question is the failure mode to fear most.
+⛔ HARD CAP: 160 TURNS (read-only work; owner decision 2026-09-04). Agent cost is QUADRATIC in turns
+(tokens ~ 0.115*T + 0.00031*T^2, n=239), so the work is SPLIT, never extended. As you approach the cap: checkpoint
+everything decided to disk, then RETURN what you have. Rule-ids you did not decide go in the optional "deferred"
+array of your return — the IDS, never a count; a silent short population is the failure mode. The merge/registrar
+step reads "deferred" and dispatches a fresh agent for exactly those ids. Stopping at the cap with an honest
+deferred list is the CORRECT outcome, never a failure.`
 
 phase('Write')
 const results = await pipeline(

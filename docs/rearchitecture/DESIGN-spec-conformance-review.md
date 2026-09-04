@@ -213,6 +213,30 @@ worktree` pinned at a commit and writes verdict batch files; the fix lane edits 
 | **Fix** | defective rows (PARTIAL / NOT-IMPLEMENTED / DIVERGES) via their `kb/Work` notes | clusters by MECHANISM, not by note; the proven loop (implementer → self-review → fleet → director → lander) with the fleet sized in §5.3 | the fix + golden + re-verdict in one change set; one comprehensive battery per cluster batch |
 | **A.1 documentation** | Annex A.1 DOC rows (222; 49 now carry a verdict, 45 §7 determinations exist) | the schema's `kinds.DOC` defines what a DOC row costs (§4); then batches by statement family | a §7 determination as `code-location` + a witness golden as `test-ref` — **except** a DOC row an A.4 module the owner declined has **withdrawn**, which belongs to the **Derived verdict** lane instead and closes on that module's witness alone (A.1's preamble makes the item not required, so there is no determination to file: §4, §8.1; four rows — items 84, 85, 173, 86 — as of 2026-09-02). ⚠ A DOC row the derived lane stamps because the element is **optional and not provided** (PB280 Q1) is NOT that case: it has a determination, so it stays on this lane's evidence rules in full (items 127, 206) |
 
+⛔ **THE ADJUDICATION LANE IS VERDICT-ONLY, AND THE GOLDEN LANE STAYS A SEPARATE LANE** (owner decision,
+2026-09-04, `kb/Work/PB468` Q1). It was put to the owner as a bare question — *may the agent that assigns a row's
+verdict also author that row's witness, given a mechanically checked pre-run predicted expectation and an
+independent blind replicate?* — and the answer was **no: keep the lanes separate.** The proposal it declines is
+recorded whole, with the measurement that motivated it, in
+`docs/rearchitecture/evidence/PROCESS-REVIEW-2026-09-04.md`; that evidence is frozen and is **the analysis, not
+this document's process.**
+
+The reason is **independent derivation of the evidence.** An agent that has located and read the implementing code
+has already formed its expectation *from that code*; a witness the same agent then authors is checked against that
+one derivation, and a pre-run predicted expectation or a blind replicate checks the *record* of it rather than
+supplying a second one. Two lanes each read the standard for themselves and produce **two** derivations, and the
+second one demonstrably earns its cost: every adjudication batch so far has overturned some CONFORMS verdicts, and
+always downward. §1's definition of DONE is therefore unchanged, and so is the price it implies — the same rule is
+read twice, once to verdict it and once to witness it. That cost is accepted as the price of the guarantee; it is
+not waste, and it is not to be removed by merging the lanes. The measured consequence, recorded so nobody
+rediscovers it as a surprise: an adjudication batch on its own moves the GAP only ~8–11 %, because its CONFORMS
+rows wait for the golden lane.
+
+The same decision left **`kb/Work/PB468` open with six further questions** the owner has not yet been asked — the
+implementer cap, table tests closing many rows, effort tiers, the already-OK "shall" rows with positive-only
+evidence, Report Writer, and extending PB386's derivation arm. Three of those would change §1 or §5 if answered
+yes; none of them is in force.
+
 **Batch order in the adjudication lane** alternates a *defect-rich* batch — §14 statement groups, grouped by
 mechanism (the I/O statements together, the string statements together) so the notes it produces already cluster —
 with a *closure-rich* batch (§13, then §12, §11, §8, §7, the small clauses; §13/§12 adjudicate ~96% CONFORMS where

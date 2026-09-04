@@ -26,6 +26,9 @@ const OUT = {
       rule_ids: { type: 'array', items: { type: 'string' } },
     }, required: ['file', 'kind', 'editions_run', 'status', 'observed', 'expected', 'classification', 'repro_note', 'rule_ids'] } },
     summary: { type: 'string' },
+    // OPTIONAL. Draft files (or rule-ids) you did not validate because you reached the 160-turn cap — the NAMES,
+    // never a count, so the registrar can dispatch exactly them and reconcile read == decided + |deferred|.
+    deferred: { type: 'array', items: { type: 'string' } },
   },
   required: ['slug', 'results', 'summary'],
 }
@@ -55,6 +58,11 @@ edition band, not a pass/fail criterion unless the rule is edition-limited).
 ⛔ CHECKPOINT PER DRAFT: your checkpoint file is ${SCRATCH}/validate/${slug}.jsonl — FIRST read it if it exists and skip
 every draft file already in it; APPEND one result object (the schema's results item) the moment each draft is judged
 (python open(path,'a')); your final return is the union. A session-limit kill can come at any moment.
+⛔ HARD CAP: 160 TURNS (read-only work; owner decision 2026-09-04). Agent cost is QUADRATIC in turns
+(tokens ~ 0.115*T + 0.00031*T^2, n=239), so the work is SPLIT, never extended. As you approach the cap: finish the
+draft in hand, append it, then RETURN. Drafts you did not validate go in the optional "deferred" array of your
+return, BY NAME — never a count, and never silence; the merge/registrar step reads it and dispatches a fresh agent
+for exactly those. Stopping at the cap with an honest deferred list is the CORRECT outcome, never a failure.
 CLASSIFY every mismatch: re-read the rule text in specs/ISO_COBOL.md yourself; if the draft's expectation follows
 from the rule, classification = suspected-compiler-defect with a repro_note (minimal program, rule text quoted,
 cite.py --check line, expected vs observed); if you can show the draft misread the rule, classification =

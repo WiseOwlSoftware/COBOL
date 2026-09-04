@@ -28,18 +28,61 @@ passed explicitly as `model: 'opus'`.
 Resume via `SendMessage` only when the agent is within a step of finishing. A workflow resumes with `resumeFromRunId`,
 but design its stages to read inputs from disk (`out-<slug>.json`) so a rewritten script never re-runs completed work.
 
-## 2. Concurrency budget
+## 2. The cost law, the turn caps, and the concurrency budget
 
-**1 lander + ≤3 implementers + one 4-wide read-only chunk (≈8 agents).** Workflows take `concurrency`/
-`refuteConcurrency` args and run chunks with `parallel()` inside a loop, never a 16-wide `pipeline`. A fleet over ~40
-agents or an implementer over ~100 turns is the signal to SPLIT the work, not to wait. Stage the earliest-stage, largest
-jobs behind the near-done ones.
+⛔ **The reason is measured, not anecdotal.** An agent's token cost is QUADRATIC in its turn count:
+
+> **`tokens ≈ 0.115·T + 0.00031·T²`**  — fitted over **n = 239 agents**, refitted independently to
+> `0.1154·T + 0.000309·T²`. ⓜ **18 of those 239 ran ≥ 250 turns and burned 39 % of all 5.62 B tokens**; re-modelled
+> at a 150-turn cap the same turns cost **45 % less**.
+> (`docs/rearchitecture/evidence/PROCESS-REVIEW-2026-09-04.md`; the decisions on it are `kb/Work/PB468`.)
+
+Everything below follows from that curve. A long transcript is not "a bit more expensive" — it is the single
+largest line item in the burn-down.
+
+**Hard turn caps (owner decision, 2026-09-04).**
+
+| agent | cap | at the cap |
+|---|---|---|
+| any read-only agent — adjudicator, refuter, validator, probe, reviewer | **160 turns** | checkpoint, return what is decided, name what is not |
+| implementer | **220 turns** | checkpoint, write `STATUS.md` `NEXT`, return a report headed `SPLIT` |
+
+⛔ **A job that will not fit is SPLIT, never extended.** A fresh agent starting from the checkpoint is on the flat
+part of the curve; the killed one's continuation is on the steep part.
+
+**One mechanism per implementer.** ⓜ A mechanism costs ~150 turns and an implementer's fixed cost is only ~70, so
+the quadratic eats the amortization immediately: the **second mechanism in one transcript costs 44.6 M, more than
+a whole fresh implementer at 40.3 M**. Two only when the notes share one code site *and* one gate filter — in
+which case the register's own clustering rule says they were one mechanism to begin with.
+
+**One landing per lander transcript.** ⓜ lander-3 carried 4 landings in 794 turns for **295.9 M**; the same turns
+split into four fresh ~198-turn landers model at **140 M — 53 % less**. (What a lander may batch is *clusters
+inside one landing* — §3.)
+
+**The budget stays: 1 lander + ≤3 implementers + one 4-wide read-only chunk (≈8 agents).** It is an
+error-containment cap, and ⓜ it is TOKENS, not slots, that the weekly limit rations — so the budget is a default,
+while the caps above are what actually control spend. Workflows take `concurrency`/`refuteConcurrency` args and run
+chunks with `parallel()` inside a loop, never a 16-wide `pipeline`. A fleet over ~40 agents is the signal to SPLIT
+the work, not to wait. Stage the earliest-stage, largest jobs behind the near-done ones.
 
 ## 3. Landing order and mechanics
 
 - **Land finished work first**; read-only fleets are staged behind landings. **One lander on main at a time** (DEVLOG
-  numbering and fast-forward ordering); no lander carries more than ~3 landings in one transcript — split the queue into
-  fresh agents.
+  numbering and fast-forward ordering); **one LANDING per lander transcript** (§2) — split the queue into fresh agents.
+- ⭐ **FIVE CLUSTERS PER LANDING (target 5; 4–6 is the band).** A landing is ~90 % fixed cost — bring the work in,
+  build, gate, DEVLOG, commit, push — so ⓜ **10.4 M per cluster at k = 1 against 5.1 M at k = 5**, and 4.0 minutes
+  of lander per cluster against 9.8. The corpus proves it directly: the golden lander landed 151 rows for 52.9 M =
+  0.35 M/row; the PB383 lander landed 2 rows for 7.2 M = 3.6 M/row — **10×**. Mechanics: bring in each implementer's
+  diff in turn, **one build**, the **union** of their gate filters, **one commit per cluster inside the landing** so
+  a red bisects by cluster, one DEVLOG entry naming every cluster, one push. Past six clusters the token curve is
+  flat and the gate-attribution risk is not. Template: `templates/lander-train-brief.md`.
+- ⛔ **Never spend a lander on a 1–2 cluster landing** unless nothing else is ready — that is the k = 1 corner of the
+  table above, at twice the cost per cluster. If only one cluster is finished, hold it and dispatch the lander when
+  the train is full; a blocking fix is the exception and is landed alone on purpose, said so in the report.
+- ⭐ **A free implementer slot is filled within the TURN it frees**, from `python scripts/spec/work.py next` — never
+  at the next convenient moment. ⓜ The fix lane ran at **under 15 % utilization** of the ≤3 cap for six days
+  (~2.7 mechanisms/day delivered against ~24/day of capacity) purely because slots sat empty behind landings and
+  behind the evidence lane. Keep a standing queue of apply-ready contracts so the dispatch is one turn.
 - A worktree-isolated agent cannot run git against the shared checkout (the harness refuses `-C`, `cd`, EnterWorktree):
   landers gate in THEIR worktree, then `git fetch origin && git rebase origin/main && git push origin HEAD:main`
   (fast-forward, never `--force`); the orchestrator runs `git merge --ff-only origin/main` locally and removes dead
@@ -52,7 +95,11 @@ jobs behind the near-done ones.
   checkpoints for one path.)
 - Read-only fleets probe a **pinned worktree with its own built compiler** (`git worktree add --detach <path> <sha>`,
   build there once) so no landing swaps a binary under them.
-- One comprehensive battery per landing batch, run by the orchestrator when no fleet is live.
+- One comprehensive battery per landing batch, run by the orchestrator when no fleet is live — ⭐ **in a WORKTREE cut
+  at the batch head**, never on main. Its phase 2 (`guard-fast`) REBUILDS, so a battery on main freezes the lander
+  for ⓜ ~45 min ≈ 1.5 landings ≈ 7 clusters; run it in a detached worktree at the batch's head commit and that cost
+  is zero. The cadence does not change — ⓜ a bisect over N landings costs ⌈log₂N⌉ battery runs, and neither of the
+  last two non-green batteries needed one (both reds were attributed by inspection).
 - **The owner's ledger artifact is refreshed after EVERY landing that moves GAP / DOCUMENTED-NON-SUPPORT / the
   actionable count, and at every battery close** (owner reminder 2026-09-02): `python scripts/spec/gen_ledger.py
   --out <html> --in-flight <md>` then an `Artifact` publish to the existing URL (recorded in the orchestrator's memory
@@ -77,7 +124,9 @@ in-flight worktrees.
 
 ## 6. Templates (substitute the session's paths for `{SCRATCH}`, `{PIN}`)
 
-`templates/` beside this file: `implementer-brief.md` · `lander-brief.md` · `golden-lander-brief.md` ·
-`registrar-brief.md` · `wf_lane3_adjudicate.js` · `wf_lane3_refute.js` · `wf_lane1_draft.js` ·
-`wf_lane1_validate.js` · `merge_batch.py` · `build_lane1_inputs.py`. Each carries the checkpoint protocol already;
-dispatch by pointing the agent at the file plus the substitutions, never by pasting the brief into the prompt.
+`templates/` beside this file: `implementer-brief.md` · `lander-brief.md` (ONE cluster) ·
+**`lander-train-brief.md` (the five-cluster train — the default when more than two clusters are ready)** ·
+`golden-lander-brief.md` · `registrar-brief.md` · `wf_lane3_adjudicate.js` · `wf_lane3_refute.js` ·
+`wf_lane1_draft.js` · `wf_lane1_validate.js` · `merge_batch.py` · `build_lane1_inputs.py`. Each carries the
+checkpoint protocol and its turn cap already; dispatch by pointing the agent at the file plus the substitutions,
+never by pasting the brief into the prompt.

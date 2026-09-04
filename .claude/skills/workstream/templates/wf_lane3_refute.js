@@ -24,6 +24,9 @@ const ADJ_OUT = { type: 'object', properties: {
     repro: { type: 'string' }, expected_from_spec: { type: 'string' }, observed_or_reasoning: { type: 'string' }, code_site: { type: 'string' }, clause: { type: 'string' },
   }, required: ['mechanism', 'rule_ids', 'harm', 'repro', 'expected_from_spec', 'observed_or_reasoning', 'code_site', 'clause'] } },
   dossier_gaps: { type: 'array', items: { type: 'string' } }, citations_checked: { type: 'array', items: { type: 'string' } }, summary: { type: 'string' },
+  // OPTIONAL. Rule-ids you did not decide because you reached the 160-turn cap. Never a count — the ids, so the
+  // registrar can dispatch exactly them and reconcile read == decided + |deferred|.
+  deferred: { type: 'array', items: { type: 'string' } },
 }, required: ['slug', 'records', 'findings', 'dossier_gaps', 'citations_checked', 'summary'] }
 const REF_OUT = { type: 'object', properties: {
   slug: { type: 'string' },
@@ -31,6 +34,8 @@ const REF_OUT = { type: 'object', properties: {
     'rule-id': { type: 'string' }, upheld: { type: 'boolean' }, corrected_verdict: { type: 'string' }, why: { type: 'string' }, evidence: { type: 'string' },
   }, required: ['rule-id', 'upheld', 'corrected_verdict', 'why', 'evidence'] } },
   what_i_tried: { type: 'string' }, closing_count_read: { type: 'integer', description: 'how many CONFORMS records you read from out-<slug>.json (0 => say so; do not invent)' },
+  // OPTIONAL. Rule-ids you read but did not refute because you reached the 160-turn cap — as ids, never a count.
+  deferred: { type: 'array', items: { type: 'string' } },
 }, required: ['slug', 'verdicts', 'what_i_tried', 'closing_count_read'] }
 
 const COMMON = `
@@ -45,6 +50,13 @@ structured return is the union of the file's lines and your new ones. A session-
 file is what survives.
 THE SPEC IS THE ONLY ORACLE; NIST/GnuCOBOL/legacy are regression nets. VALIDATE EVERY CITATION with
 python ${PIN}/scripts/spec/cite.py --check <clause> "<text>". EDITIONS from the spec, never from the code under review.
+⛔ HARD CAP: 160 TURNS (read-only work; owner decision 2026-09-04). Agent cost is QUADRATIC in turns
+(tokens ~ 0.115*T + 0.00031*T^2, n=239), so a long transcript is the most expensive thing this project runs and the
+work is SPLIT, never extended. As you approach the cap: append every decided rule to your checkpoint file, then
+RETURN what you have. Rules you did not decide go in the optional "deferred" array of your return, as rule-ids —
+naming them is REQUIRED, a silent short population is the failure mode (a missing observation is not a negative
+one). The merge/registrar step reads "deferred" and dispatches a fresh agent for exactly those ids, from your
+checkpoint file. Stopping at the cap with an honest deferred list is the CORRECT outcome, never a failure.
 CONFORMS COSTS SOMETHING (unlocated => NOT-IMPLEMENTED; an unverified edge => PARTIAL; two halves one verified => PARTIAL).
 DOCUMENTED-NON-SUPPORT is never yours (owner, D13; declined modules are owned by PB260/PB261/PB281–PB283 — say so in notes).
 ONLY A SPEC-DERIVED TEST CLOSES A ROW (conformance:/unit:/conformance-test: with spec-computed expectations; nist:/

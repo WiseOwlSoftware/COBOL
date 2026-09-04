@@ -24,42 +24,29 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ THIRD PAUSE (2026-09-03 13:15 PDT — THE live resume point; owner: "approaching the weekly limit, finish up
-  and save context"):** the resumed day landed battery #42 (`ac2dadb8`, the CURRENT reference under "Gates"; PB378
-  fixed the citation corpus population), PB377 (`6ffdb5a8`, the collation cache's missing bound), PB379
-  (`d531e358`, the doc-citation audit reads both citation orders and is seated in the battery), PB371 + PB375
-  (`4cbb8f3c`, GAP 3119 → 3106) and golden-lane round 2 (`0fa1fe9e`, 49 witnesses, GAP → 3054); the
-  resume then landed lane-3 batch 2's registration (`073d764a`, 292 rows, GAP → 3022), `PB383` (`e2790667`,
-  GAP → 3021) and `PB386`'s derivation evidence kind (GAP → **3013**); CI green
-  through `b22d3b07`. ⛔ Run the probe; the worklist is `kb/Work/`, never this paragraph. **Owed on resume, in this
-  order (the orchestrator's memory `burndown-campaign-pause-2026-09-02` carries the exact paths and args):**
-  ① lane-3 batch 2 — all 20 subjects adjudicated, refute checkpoints on disk for 16 of 20 (set-p3/p4/p5 and
-  subtract were mid-chunk at the stop); resume the refute workflow with the same args and an empty
-  `adjudicateFirst`; ✅ registrar b2 LANDED 2026-09-04 (`073d764a`, 292 rows, ids PB387–PB467); ② batch 3 (17 inputs ready) on a FRESH pin
-  cut from current main and built when no fleet is live (the fleet guard refuses a build while one runs);
-  ③ ✅ **`PB386` DECIDED 2026-09-03 AND LANDED 2026-09-04 — the DERIVATION evidence kind:** a rule with no
-  observable obligation (Annex A.2 undefinedness, an unpopulatable antecedent, an indistinguishable
-  consequent) now closes on a checkable owner-signed determination in `docs/CONFORMANCE.md` **§8**, keyed
-  `DRV-<rule-id>` and carried on the row as the COMPUTED `derivation` field. The A.2 arm is mechanical
-  against `tests/version-matrix/annex-a2-undefined.json` (generated from the standard by
-  `scripts/spec/extract_annex_a2.py`); the other two arms are shape-checked reviewed arguments; six
-  refusals — including the owner's bound that a row already carrying a spec-derived test may NOT close on a
-  derivation — live in ONE predicate both engines ask. `Schema.state_for` and `DerivedState` learned it in
-  the same change set, with a 19-case cross-language parity fixture comparing state AND refusal codes, and
-  a population guard holding the door at the eight rows measured before it opened. **GAP 3021 → 3013**.
-  The eight were the WHOLE of the CONFORMS-but-untested band as measured before lane-3 batch 2 (9 rows,
-  the ninth being `PB383`, closed by ④); that band now stands at **46**, every one of them a batch-2 row
-  registered 2026-09-04 and none of the original nine; ④ ✅ **DONE 2026-09-04 — `PB383` LANDED, GAP 3022 →
-  3021** (DEVLOG 1452: BOOLEAN-OF-INTEGER's single `length < 1 || length > 8191` guard held two rules with
-  different owners — §15.13.3 r2's ARGUMENT rule and §15.4's RETURNED-VALUE-LENGTH rule, 8,192 satisfying the
-  former — and answered the one-position boolean `"0"` where rows `DOC-A.1-90`/`DOC-A.1-93` document a
-  ZERO-LENGTH value; three cited arms now, the third (argument-1 negative, argument-2 valid) deliberately NOT
-  zero length. Root cause was that raise and substitute were two statements at every string-returning guard:
-  `ExceptionState.ArgumentErrorZeroLength` makes them one expression and ten further guards moved onto it. Two
-  goldens, `DOC-A.1-93` closed); `PB380` (reachability probe) and `PB382` (the reserved-word
-  funnel's recovery arm) behind it; ⑤ the ledger refresh after each landing. Owner-decision queue: only
-  the `USAGE POINTER TO type-name` edition item (`A1`).
-- **▶ SESSION HANDOFF (2026-09-02 evening — superseded by the third-pause bullet above):**
+- **▶ LIVE STATE (2026-09-04 — the third pause of 2026-09-03 is OVER and its owed chain is LANDED):** the
+  resumed day landed lane-3 batch 2's registration (`073d764a`, 292 rows, 84 notes, ids PB387–PB467), `PB383`
+  (`e2790667`, BOOLEAN-OF-INTEGER's conflated guard split into three cited arms) and `PB386`'s DERIVATION evidence
+  kind (`6d61b95a`, eight unobservable rules closed on owner-signed determinations in `docs/CONFORMANCE.md` §8) —
+  **GAP 3054 → 3013** across the three, with the ledger refreshed after each. Before them the same window landed
+  battery #42 (`ac2dadb8`, the CURRENT reference under "Gates"), PB378, PB377 (`6ffdb5a8`), PB379 (`d531e358`),
+  PB371 + PB375 (`4cbb8f3c`) and golden-lane round 2 (`0fa1fe9e`, 49 witnesses).
+  **In flight now:** lane-3 **batch 3** (17 subjects, §13.18 data-division clauses) adjudicating read-only on the
+  pin cut at `89044aa0`; the **fix lane full at its three-implementer cap** — PB193, PB201 and PB203, each one
+  mechanism in its own worktree. ⚠ Batch 3 is also the measurement of the note-yield outside §14, which
+  `kb/Work/PB469` names as the softest number in the whole projection.
+  **Process decisions in force (2026-09-04, `kb/Work/PB468`; evidence
+  `docs/rearchitecture/evidence/PROCESS-REVIEW-2026-09-04.md`):** adjudication stays **verdict-only** and the golden
+  lane stays a **separate lane** — witness-first was declined, because two lanes derive the evidence twice and that
+  second derivation is the guarantee; every agent is **hard-capped** at 160 turns read-only / 220 for an
+  implementer, splitting rather than extending; and one lander may carry **five clusters in one landing**, one
+  commit per cluster, one landing per transcript. `.claude/skills/workstream/SKILL.md` carries the mechanics.
+  **Open owner questions:** the six from the process review live in `kb/Work/PB468` (implementer cap 3 → 6; table
+  tests closing many rows; effort tiers; the ~120 already-OK SR/AR "shall" rows with positive-only evidence; Report
+  Writer staying claimed; extending PB386's derivation arm class by class), plus the `USAGE POINTER TO type-name`
+  edition item (`A1`). ⛔ Run the probe; **the worklist is `kb/Work/` — `python scripts/spec/work.py next` — never
+  this paragraph** (rule 8).
+- **▶ SESSION HANDOFF (2026-09-02 evening — superseded by the LIVE STATE bullet above):**
   the two-lane campaign's first day ended with **GAP 3636 → 3119**, DOCUMENTED-NON-SUPPORT 36 → 340, twenty landings
   on main and **CI green on `56878ebf`** after a one-test regression from the screen-witness landing (a DISPLAY
   predicate guarding a mandatory first operand) was fixed in the last landing; the register holds 110 actionable
