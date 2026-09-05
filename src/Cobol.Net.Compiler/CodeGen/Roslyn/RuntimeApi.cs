@@ -924,6 +924,31 @@ internal static class RuntimeApi
     public static string ArgAdaptText(string args, int position, string width) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Text)}({args}, {position}, {width})";
 
+    // ── The VARIABLE-LENGTH GROUP boundary carrier (ISO §8.5.1.12; kb/Work PB204). A third crossing form
+    //    beside the native cell and the character image, because a variable-length group has neither a fixed
+    //    record window nor an invertible flat image — see CobolVarGroup.
+
+    /// <summary>The C# type of the variable-length-group boundary carrier.</summary>
+    public static string VarGroupType => nameof(CobolVarGroup);
+
+    /// <summary>The empty carrier value (an unbound formal's seed).</summary>
+    public static string VarGroupEmpty => $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.Empty)}";
+
+    /// <summary>A DETACHED variable-length carrier cell (BY CONTENT / BY VALUE, §14.2.3 GR9/GR10).</summary>
+    public static string VarGroupCell(string value) => $"ManagedPointer<{VarGroupType}>.Cell({value})";
+
+    /// <summary>An ALIASING variable-length carrier over the caller's storage (BY REFERENCE, §14.2.3 GR8).</summary>
+    public static string VarGroupOverField(string get, string set) =>
+        $"ManagedPointer<{VarGroupType}>.OverField(() => {get}, __v => {{ {set} }})";
+
+    /// <summary>A LINKAGE formal's variable-length carrier adoption — <c>CobolArgAdapt.VarGroup</c>.</summary>
+    public static string ArgAdaptVarGroup(string args, int position) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.VarGroup)}({args}, {position})";
+
+    /// <summary>The BY VALUE / BY CONTENT twin — <c>CobolArgAdapt.VarGroupValue</c> (§14.2.3 GR9/GR10).</summary>
+    public static string ArgAdaptVarGroupValue(string args, int position) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.VarGroupValue)}({args}, {position})";
+
     /// <summary>A BY VALUE numeric formal's DETACHED value-copy cell (ISO §14.2.3 GR10 — stores never reach
     /// the caller) — <c>CobolArgAdapt.NumValue&lt;T&gt;</c> over the formal's carrier (see
     /// <see cref="ArgAdaptNum"/>).</summary>

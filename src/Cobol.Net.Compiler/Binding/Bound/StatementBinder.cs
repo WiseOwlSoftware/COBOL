@@ -100,7 +100,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// the caller, or a visible COMMON program), each with its bound PD-header formals — built per unit in
     /// BinderDriver.BindUnitProcedure, after every unit's DATA has bound (the UserFunctions precedent), so
     /// GR9's the-formal-decides mode derivation is a bind-time lookup (kb/Work PB131).</summary>
-    public IReadOnlyDictionary<string, IReadOnlyList<LinkageFormal>>? NestedCallables { get; set; }
+    public IReadOnlyDictionary<string, NestedCalleeSignature>? NestedCallables { get; set; }
 
     /// <summary>The unit's RECURSIVE attribute — explicit, or inherited per §11.10.4 GR4 (kb/Work PB137:
     /// §14.9.7.3 SR1 bans COMMIT/ROLLBACK in a recursive source element). Set by BinderDriver.</summary>

@@ -157,7 +157,11 @@ internal sealed class ProgramEmitter
                     : place is not null && !CallEmitter.CallPlaceIsString(place);
                 // The numeric cell's type is the formal's OWN carrier (kb/Work R12): a wide or unsigned formal
                 // used to get a ManagedPointer<long> cell its carrier-typed reads could not compile against.
-                string carrier = isNum ? f.Item.ElementType : "string";
+                // A VARIABLE-LENGTH group formal takes the third form (kb/Work PB204): its storage has no fixed
+                // record window, so the carrier is the §8.5.1.12 component carrier, not a character image.
+                string carrier = isNum ? f.Item.ElementType
+                    : place is not null && CallEmitter.CallPlaceIsVarGroup(place) ? RuntimeApi.VarGroupType
+                    : "string";
                 return (Formal: f, Place: place, IsNum: isNum, Carrier: carrier);
             })
             .ToList();
@@ -218,11 +222,15 @@ internal sealed class ProgramEmitter
 
             new DataEmitter(Current.Ctx).Emit();
 
-            foreach (var (f, _, isNum, carrier) in formals)
+            foreach (var (f, fPlace, isNum, carrier) in formals)
             {
                 // A numeric cell defaults through the carrier's own zero (PicInfo.DefaultInitializer — 0L /
                 // 0UL / (Int128)0 / (UInt128)0), so the cell type and the seed cannot drift (kb/Work R12).
+                // A variable-length carrier seeds EMPTY — a space image of its collapsed width would be a
+                // wrong-shaped value, not a benign one (kb/Work PB204).
                 string init = isNum ? $"ManagedPointer<{carrier}>.Cell({f.Item.Pic!.DefaultInitializer})"
+                    : fPlace is not null && CallEmitter.CallPlaceIsVarGroup(fPlace)
+                        ? $"ManagedPointer<{carrier}>.Cell({RuntimeApi.VarGroupEmpty})"
                     : $"ManagedPointer<string>.Cell(new string(' ', {Math.Max(1, f.Item.ImageWidth)}))";
                 w.Line($"private ManagedPointer<{carrier}> {f.CarrierField} = {init};   "
                     + $"// LINKAGE formal #{f.Position + 1} — the caller-storage carrier (ISO §13.7.1; design D1)");
@@ -394,10 +402,17 @@ internal sealed class ProgramEmitter
                 // Boundary round-trip formal (group / redefined): adopt the carrier, copy the caller's image in.
                 // A REDEFINED fixed-point BY VALUE formal (still class numeric — SR2-legal) rides the image
                 // round trip over a DETACHED cell (§14.2.3 GR10): copy-in below, and NO copy-out at return.
+                bool varGroup = place is not null && CallEmitter.CallPlaceIsVarGroup(place);
                 w.Line(isNum
                     ? $"{f.CarrierField} = {(f.ByValue
                         ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier)
                         : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier))};"
+                    : varGroup
+                    // §8.5.1.12's component carrier, adopted whole — there is no width window to apply, because
+                    // the receiving group's own FromVarImage is what re-fits both halves (kb/Work PB204).
+                    ? $"{f.CarrierField} = {(f.ByValue
+                        ? RuntimeApi.ArgAdaptVarGroupValue("__args", f.Position)
+                        : RuntimeApi.ArgAdaptVarGroup("__args", f.Position))};"
                     : $"{f.CarrierField} = {(f.ByValue
                         ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}")
                         : RuntimeApi.ArgAdaptText("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}"))};");
@@ -405,6 +420,9 @@ internal sealed class ProgramEmitter
                 {
                     if (place is null)
                         w.Line(LoudStmt($"LINKAGE formal '{f.Item.CobolName}' is not resolvable to storage"));
+                    else if (varGroup)
+                        w.Line(PlaceRenderer.WriteVarGroupImage(place, $"{f.CarrierField}.Value",
+                            "LINKAGE formal copy-in of"));
                     else if (!isNum)
                         w.Line(CallEmitter.CallStringWrite(place, $"{f.CarrierField}.Value"));
                     else
@@ -422,10 +440,16 @@ internal sealed class ProgramEmitter
                 using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
                     w.Line(isNum
                         ? $"{f.CarrierField}.Value = {PlaceRenderer.Read(place)};"
+                        : CallEmitter.CallPlaceIsVarGroup(place)
+                        ? $"{f.CarrierField}.Value = {PlaceRenderer.VarGroupImage(place, "LINKAGE formal copy-out of")};"
                         : $"{f.CarrierField}.Value = {CallEmitter.CallStringRead(place)};");
             }
             if (_callState.ReturningPlace is { } ret)
-                w.Line(CallEmitter.CallPlaceIsString(ret)
+                // §14.8.3.2's variable-length sentence is the RETURNING half of the same admission §14.8.2.2
+                // grants arguments (kb/Work PB204) — the returning item delivers through the same carrier.
+                w.Line(CallEmitter.CallPlaceIsVarGroup(ret)
+                    ? $"{RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.VarGroupImage(ret, "RETURNING item"))};"
+                    : CallEmitter.CallPlaceIsString(ret)
                     ? $"{RuntimeApi.ArgAdaptStoreReturn("__ret", CallEmitter.CallStringRead(ret))};"
                     : $"{RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.Read(ret))};");
         }

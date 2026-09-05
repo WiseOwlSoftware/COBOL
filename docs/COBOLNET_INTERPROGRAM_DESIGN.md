@@ -102,8 +102,35 @@ The group carrier round-trips the WHOLE struct per access: get reads a copy, set
 
 **ODO full-allocation rule (§14.2.3 GR8):** an occurs-depending group crosses the CALL boundary at its FULL maximum allocation, never the §13.18.38 GR8 current-extent window — §14.2.3 GR8 says BY REFERENCE "operates as if the formal parameter occupies the same storage area as the argument", and the *storage* is the maximum allocation (the ODO window is a *sending-operand* rule for MOVE/compare/INSPECT, not a storage-aliasing rule). BY CONTENT groups follow the same full-allocation rule (GR9 — the copy is of the record). Mechanically: `CodeGen/Verbs/CallEmitter.cs::CallStringRead/CallStringWrite` are the ONE boundary read/write pair (the BY REFERENCE carrier, the BY CONTENT snapshot, the callee copy-in/copy-out, RETURNING) and bypass `OdoGroupPlace.SendingImage()`/`ReceiveInto` for the full `AsImage()`/`FromImage` forms.
 
-**Tier-C at the boundary, in BOTH halves.** A group with no character image (a pointer/object-class leaf, or a
-variable-length group per §8.5.1.12.1 — `DataItem.IsImageCapable`) stages the documented Tier-C loud rather than
+**THE VARIABLE-LENGTH CROSSING — a THIRD carrier form (§8.5.1.12; kb/Work PB204).** §14.9.4.3 SR12's flat
+prohibition is FORMAT 1's; a Format-2 CALL, a CALL RETURNING and an INVOKE are governed by SR25 → §14.8.2.2 and
+§14.8.3.2, which **admit** a variable-length group "subject to compatibility as described in 8.5.1.12". So the
+boundary carries three forms, not two:
+
+| the argument's storage | carrier | read / write |
+|---|---|---|
+| a native fixed-point leaf | `ManagedPointer<T>` over the field's own carrier type | `PlaceRenderer.Read`/`Write` |
+| any fixed-window character storage, a group included | `ManagedPointer<string>` — the record image | `CallEmitter.CallStringRead`/`CallStringWrite` |
+| a VARIABLE-LENGTH group | `ManagedPointer<CobolVarGroup>` | `PlaceRenderer.VarGroupImage`/`WriteVarGroupImage` |
+
+`CobolVarGroup` is `(string Fixed, string[] Dynamic)` and is the §8.5.1.12 model itself, not an encoding:
+`Fixed` is the group's image with every variable-length component collapsed to nothing — the exact accounting
+§8.5.1.12.3 states the relation in, which is why two COMPATIBLE groups lay it out identically — and `Dynamic`
+carries each component's current content in declaration order, which §8.5.1.12.2's positional correspondence puts
+one-for-one on both sides. A receiving dynamic-capacity table recovers its capacity by dividing its component by
+its OWN element width, legitimate because §8.5.1.12.3 admits corresponding tables only "when the byte length of
+their elements is equal". Nested variable-length groups FLATTEN into the same carrier (`CobolVarGroup.Slice`
+hands one its window back), because the relation is stated over relative byte positions and is blind to the
+declaration tree. The emitted pair is `AsVarImage()`/`FromVarImage()`, gated on `DataItem.CurrentExtentImageCapable`
+— **the same** capability the §14.9.11.4 GR7 DISPLAY format uses, so a group that displays is a group that
+crosses. The one crossing-form predicate is `CallEmitter.CallPlaceIsVarGroup` (CALL/RETURNING) and
+`OoEmitter.OoCrossingType` (the INVOKE signature, box lanes and marshaling); the ADMISSION is decided once, at
+bind, by `VariableLengthCompatibility.Mismatch` through `OoConformance.DescriptionMismatch` — the same comparator
+the argument, RETURNING and override/implements checks all read.
+
+**Tier-C at the boundary, in BOTH halves.** A group with no boundary image at all (a pointer/object-class leaf,
+or a variable-length shape outside the current-extent gate — an OCCURS DEPENDING member, a runtime-length item
+inside a table element; `DataItem.BoundaryImageCapable`) stages the documented Tier-C loud rather than
 crossing. ⛔ The WRITE half does not test that predicate itself: `CallStringWrite` hands **every** non-`RedefViewPlace`
 group to `PlaceRenderer.WriteFullGroupImage`, whose arm order owns the guard, so the read/write lockstep this
 paragraph asserts is a STRUCTURAL fact rather than a coincidence two guards have to maintain. It was not, once:

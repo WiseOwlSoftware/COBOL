@@ -306,7 +306,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // exists. Only a variable-length group or a group with a pointer/object-class leaf is still
             // genuinely imageless and stays loud (every NUMERIC leaf kind joined the image across kb/Work
             // PB164 waves 1–2 + the R40 INDEX pin) — the wording matches the predicate actually tested.
-            if (p.Item.IsGroup && !p.Item.IsImageCapable && p is not RedefViewPlace)
+            // ⛔ THE PREDICATE IS BoundaryImageCapable, NOT IsImageCapable (kb/Work PB204). §14.8.2.2 admits a
+            // VARIABLE-LENGTH group across a Format-2 boundary "subject to compatibility as described in
+            // 8.5.1.12" — an admission, checked at bind by OoConformance.DescriptionMismatch — so staging it
+            // loud here refused conforming source. Only a group with NO boundary image at all (a
+            // pointer/object-class leaf, or a variable-length shape outside the current-extent gate) is loud.
+            if (p.Item.IsGroup && !p.Item.BoundaryImageCapable && p is not RedefViewPlace)
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                     + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group"))
                     + "), 0, 0)";
@@ -330,7 +335,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // an identifier argument (a UDF BY VALUE formal, §8.4.3.2.4 GR5c): both are value snapshots at
             // call initiation; the mode rides the wire so the arg is honest about which rule produced it
             // (the BY VALUE callee re-conforms through its own NumValue cell, GR10).
-            return CallPlaceIsString(p)
+            return CallPlaceIsVarGroup(p)
+                ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, "
+                  + $"{RuntimeApi.VarGroupCell(PlaceRenderer.VarGroupImage(p, "CALL argument"))}, {digits}, {scale})"
+                : CallPlaceIsString(p)
                 ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
                 : $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<{CallNumCarrier(p)}>.Cell({PlaceRenderer.Read(p)}), {digits}, {scale})";
         }
@@ -440,7 +448,14 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <summary>An accessor carrier over a caller place — the BY REFERENCE / RETURNING aliasing form (design D1:
     /// <c>OverField</c> over the native field; a whole group crosses as its character image, distributed back
     /// through <c>FromImage</c> — the deep-dive group round-trip).</summary>
-    public string RefCarrier(Place p) => CallPlaceIsString(p)
+    public string RefCarrier(Place p) =>
+        // §14.8.2.2's variable-length sentence, realized (kb/Work PB204): the carrier is the group's
+        // current-extent components, aliased through the SAME OverField shape every other form uses.
+        CallPlaceIsVarGroup(p)
+            ? RuntimeApi.VarGroupOverField(
+                PlaceRenderer.VarGroupImage(p, "CALL argument"),
+                PlaceRenderer.WriteVarGroupImage(p, "__v", "CALL boundary copy into"))
+        : CallPlaceIsString(p)
         ? $"ManagedPointer<string>.OverField(() => {CallStringRead(p)}, __v => {{ {CallStringWrite(p, "__v")} }})"
         : $"ManagedPointer<{CallNumCarrier(p)}>.OverField(() => {PlaceRenderer.Read(p)}, __v => {{ {PlaceRenderer.Write(p, "__v")} }})";
 
@@ -457,6 +472,25 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
             or PicCategory.National or PicCategory.Boolean   // string-stored (D-N1/D-B1): both ABI sides are C# strings, char-correct
         || p.Item.Pic is { IsFloat: true };
+
+    /// <summary>True when a place crosses the activation boundary as the §8.5.1.12 VARIABLE-LENGTH carrier
+    /// (kb/Work PB204) — the THIRD crossing form beside the native cell and the flat character image. A
+    /// variable-length group has no fixed record window, so <see cref="CallStringRead"/>'s flat image is not
+    /// invertible for it; <c>CobolVarGroup</c> carries the fixed run and the ordered variable-length components
+    /// instead. Deliberately NARROWER than "is a variable-length group": it also demands
+    /// <see cref="DataItem.CurrentExtentImageCapable"/>, so a shape outside that gate (an OCCURS DEPENDING
+    /// member, an in-element runtime length) still takes the ordinary arms and still stages the documented
+    /// Tier-C loud — a residue keeps its loud rather than acquiring a half-built crossing.
+    /// <para>⛔ <see cref="CallPlaceIsString"/> deliberately still answers TRUE for such a place. Its consumers
+    /// that this mechanism did NOT convert (ReportWriterEmitter's CONTROL restore) therefore keep routing
+    /// through <see cref="CallStringRead"/>, whose group arm stages the Tier-C loud — the SAFE fallback. Making
+    /// it answer false would have sent those sites down the NATIVE arm instead, which is the wrong answer
+    /// rather than a loud one.</para></summary>
+    internal static bool CallPlaceIsVarGroup(Place p) =>
+        // CurrentExtentImageCapable ALREADY implies both `IsGroup` and `!IsImageCapable` — a variable-length
+        // group has a dynamic child whose own IsImageCapable is false, so the group's is too. The conjuncts
+        // are left out rather than restated: a redundant conjunct is a claim that can rot.
+        p is not RedefViewPlace and not RefModPlace && p.Item.CurrentExtentImageCapable;
 
     /// <summary>The C# carrier type of a native fixed-point leaf at the CALL boundary — the item's OWN
     /// <c>ElementType</c> (kb/Work R12: the cell type IS the field type, so the aliasing lambdas and the

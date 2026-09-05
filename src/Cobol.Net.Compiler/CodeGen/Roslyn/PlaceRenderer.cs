@@ -289,6 +289,29 @@ internal static class PlaceRenderer
         _ => $"{Read(group)}.AsImage()",
     };
 
+    /// <summary>⛔ THE ONE READER OF A VARIABLE-LENGTH GROUP'S ACTIVATION-BOUNDARY CARRIER (ISO §8.5.1.12;
+    /// kb/Work PB204) — the <see cref="GroupImage"/> twin for a group that has no fixed record window. Same arm
+    /// order and the same capability law: unwrap first, then the guard, so the guard fires exactly when the
+    /// struct has no <c>AsVarImage</c> (<see cref="DataItem.CurrentExtentImageCapable"/> is what
+    /// <c>RecordStructEmitter</c> emits it for), and the Tier-C loud is the ONE reason source.</summary>
+    public static string VarGroupImage(Place group, string context = "activation-boundary image of") => group switch
+    {
+        OdoGroupPlace o => VarGroupImage(o.Inner, context),
+        _ when !group.Item.CurrentExtentImageCapable =>
+            EmitText.LoudValue(RuntimeApi.VarGroupType, TierCIsland.Reason(group.Item, context)),
+        _ => $"{Read(group)}.AsVarImage()",
+    };
+
+    /// <summary>The WRITE half of <see cref="VarGroupImage"/> — the §14.2.3 GR8 copy-back at an activation
+    /// boundary, distributing the carrier's fixed run and its variable-length components back into the group's
+    /// own members.</summary>
+    public static string WriteVarGroupImage(Place group, string value, string context) => group switch
+    {
+        OdoGroupPlace o => WriteVarGroupImage(o.Inner, value, context),
+        _ when !group.Item.CurrentExtentImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
+        _ => $"{Read(group)}.FromVarImage({value});",
+    };
+
     /// <summary>⛔ THE ONE READER OF A GROUP OPERAND'S IMAGE IN A <b>SENDING</b> CONTEXT — <see cref="GroupImage"/>,
     /// except that an occurs-depending group sends only its ISO §13.18.38.4 GR8 CURRENT-count part. Both GR8 arms
     /// agree on the sending direction: GR8a (data-name-1 outside the group) and GR8b (data-name-1 inside, "and the

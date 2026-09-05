@@ -357,7 +357,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     /// <summary>The callee-side unbox: box value → a local in the FORMAL's own crossing form.</summary>
     private static string OoUnivUnbox(DataItem item, string box) =>
-        OoStringCarried(item) ? $"(string){box}!"
+        // The variable-length carrier boxes and unboxes VERBATIM — it is already the crossing form, and its
+        // descriptor (V:…) is what the GR7c check compares (kb/Work PB204). Without this arm __CobolInvoke
+        // spelled `(string)box!` into a `ref CobolVarGroup` parameter: CS1503 on a method merely DECLARED,
+        // the PB177 arm-A shape exactly.
+        OoVarGroupCarried(item) ? $"({RuntimeApi.VarGroupType}){box}!"
+        : OoStringCarried(item) ? $"(string){box}!"
         : OoUnivImageBridged(item) ? RuntimeApi.NumStoreDisplay($"(string){box}!", item.ProfileName, $"({item.ElementType})0")
         : item.Pic is { Category: PicCategory.ObjectReference } p ? $"({p.ClrType}){box}"
         : $"({item.ElementType}){box}!";
@@ -430,11 +435,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     private static string OoUnivCallerRead(Place p) =>
         p is RefModPlace ? PlaceRenderer.Read(p)
+        : CallEmitter.CallPlaceIsVarGroup(p) ? PlaceRenderer.VarGroupImage(p, "INVOKE argument")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Read(new NumericImagePlace(p))
         : PlaceRenderer.Read(p);
 
     private static string OoUnivCallerWrite(Place p, string box) =>
         p is RefModPlace ? PlaceRenderer.Write(p, $"(string){box}!")
+        : CallEmitter.CallPlaceIsVarGroup(p)
+            ? PlaceRenderer.WriteVarGroupImage(p, $"({RuntimeApi.VarGroupType}){box}!", "INVOKE copy-out into")
         : OoStringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Write(new NumericImagePlace(p), $"(string){box}!")
         : p.Item.Pic is { Category: PicCategory.ObjectReference } pic ? PlaceRenderer.Write(p, $"({pic.ClrType}){box}")
@@ -464,7 +472,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             if (m.Accessor == 'G')
                 w.Line($"public {pmods}{retType} {m.CsName}() => {subject.CsName};   // PROPERTY {m.PropertyName} GET (§13.18.42 GR1)");
             else
-                w.Line($"public {pmods}void {m.CsName}(ref {(OoStringCarried(subject) ? "string" : subject.ElementType)} __V) {{ {subject.CsName} = __V; }}   // PROPERTY {m.PropertyName} SET (GR2)");
+                w.Line($"public {pmods}void {m.CsName}(ref {OoCrossingType(subject)} __V) {{ {subject.CsName} = __V; }}   // PROPERTY {m.PropertyName} SET (GR2)");
             w.Line();
             return;
         }
@@ -542,8 +550,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     // `!formal.IsImageCapable` arm runs only when an INVOKE or an override/implements PAIR
                     // exists, so a merely-DECLARED method must not emit uncompilable C#.
                     w.Line($"{type} {root.CsName} = {init};   // LINKAGE formal {root.CobolName} (group — image crossing)");
-                    w.Line(PlaceRenderer.WriteFullGroupImage(MethodRootPlace(root), formal.ParamName,
-                        "OO method LINKAGE formal copy-in"));
+                    w.Line(OoVarGroupCarried(root)
+                        // §8.5.1.12's component carrier (kb/Work PB204) — the variable-length twin of the
+                        // image distribution, through the SAME ONE channel.
+                        ? PlaceRenderer.WriteVarGroupImage(MethodRootPlace(root), formal.ParamName,
+                            "OO method LINKAGE formal copy-in of")
+                        : PlaceRenderer.WriteFullGroupImage(MethodRootPlace(root), formal.ParamName,
+                            "OO method LINKAGE formal copy-in"));
                 }
                 else
                     w.Line($"{type} {root.CsName} = {formal.ParamName};   // LINKAGE formal {root.CobolName} (BY REFERENCE copy-in)");
@@ -627,6 +640,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             foreach (var f in m.Binding!.Formals)
             {
                 string src = fields.MethodRedefinesBackingDecl(f.Item) is { } bk ? bk.Name
+                    : OoVarGroupCarried(f.Item)
+                        ? PlaceRenderer.VarGroupImage(MethodRootPlace(f.Item), "OO method BY REFERENCE copy-out of")
                     : f.Item.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(f.Item), "OO method BY REFERENCE copy-out")
                     : f.Item.CsName;
                 w.Line($"{f.ParamName} = {src};   // BY REFERENCE copy-out (§14.2.3 GR8)");
@@ -634,6 +649,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             if (m.Binding!.Returning is { } r)
             {
                 string src = fields.MethodRedefinesBackingDecl(r) is { } bk ? bk.Name
+                    : OoVarGroupCarried(r)
+                        ? PlaceRenderer.VarGroupImage(MethodRootPlace(r), "OO method RETURNING delivery of")
                     : r.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(r), "OO method RETURNING delivery")
                     : r.CsName;
                 w.Line($"return {src};   // the invocation result (§14.9.23.4 GR8)");
@@ -652,9 +669,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// (the same reasoning as the ONE DescriptionMismatch).</summary>
     private static (string RetType, string Sig) OoSignatureOf(OoMethodSymbol m)
     {
-        string retType = m.Binding!.Returning is { } ret ? (OoStringCarried(ret) ? "string" : ret.ElementType) : "void";
-        string sig = string.Join(", ", m.Binding!.Formals.Select(f =>
-            $"ref {(OoStringCarried(f.Item) ? "string" : f.Item.ElementType)} {f.ParamName}"));
+        string retType = m.Binding!.Returning is { } ret ? OoCrossingType(ret) : "void";
+        string sig = string.Join(", ", m.Binding!.Formals.Select(f => $"ref {OoCrossingType(f.Item)} {f.ParamName}"));
         return (retType, sig);
     }
 
@@ -687,6 +703,21 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// (relocated to Binding in P6 Step 5 — the bind-phase override harmonize in <c>StorageFormPass</c> and these
     /// emit-side signature/marshaling renders must consult the SAME definition).</summary>
     private static bool OoStringCarried(DataItem item) => OoClassTable.StringCarried(item);
+
+    /// <summary>True when an OO boundary item crosses as the §8.5.1.12 VARIABLE-LENGTH carrier — the THIRD
+    /// crossing form (kb/Work PB204), the exact twin of <c>CallEmitter.CallPlaceIsVarGroup</c> at the CALL
+    /// boundary. §14.9.23.3 contains no prohibition on such an operand and §14.8.2.2 / §14.8.3.2 ADMIT it
+    /// subject to compatibility, so an INVOKE crossing one is conforming source.</summary>
+    private static bool OoVarGroupCarried(DataItem item) => item.CurrentExtentImageCapable;
+
+    /// <summary>⛔ THE ONE C# CROSSING TYPE of an OO boundary item — the dispatch every signature, property
+    /// accessor, box lane and marshaling arm reads, so the three forms cannot drift (kb/Work PB204 replaced
+    /// SIX copies of the two-way ternary <c>OoStringCarried(x) ? "string" : x.ElementType</c>; adding a form
+    /// to a ternary spelled six times is how the two-arm defect gets made).</summary>
+    private static string OoCrossingType(DataItem item) =>
+        OoVarGroupCarried(item) ? RuntimeApi.VarGroupType
+        : OoStringCarried(item) ? "string"
+        : item.ElementType;
 
 
     /// <summary>Emit one bound INVOKE (deep-dive D5/D6 — the binder already resolved the call form and
@@ -785,6 +816,16 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         ? RuntimeApi.StrStoreBoolean(bv, $"{bw}", a.Formal.Justified)
                     : RuntimeApi.StrStoreAligned(bv, $"{bw}", a.Formal.Justified)) + ";");
             }
+            else if (OoVarGroupCarried(a.Formal))
+            {
+                // §14.8.2.2's variable-length sentence at the INVOKE boundary (kb/Work PB204): the carrier is
+                // the group's §8.5.1.12 components, not a width-fitted image — there is no width to fit, and
+                // the receiving side's own FromVarImage re-fits both halves. Bind has already run the
+                // compatibility relation (OoBinder → DescriptionMismatch), so the pairing is sound here.
+                w.Line($"{RuntimeApi.VarGroupType} {tmp} = {(a.Source is { } vgp
+                    ? PlaceRenderer.VarGroupImage(vgp, "INVOKE argument")
+                    : RuntimeApi.VarGroupEmpty)};");
+            }
             else if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
             {
                 // The image crossing. BY REFERENCE allows a SMALLER formal (§14.8.2.2 rule 1 — a PREFIX of
@@ -860,7 +901,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
             if (!a.WriteBack || a.Source is not { } src) continue;
             // Copy-out to the CALLER's storage (BY REFERENCE — §14.2.3 GR8 at statement granularity).
-            if (a.Formal.IsGroup || src.Item.IsGroup)
+            if (OoVarGroupCarried(a.Formal))
+                // No prefix splice: a variable-length crossing carries whole components, so the write-back is
+                // the exact inverse of the read (kb/Work PB204).
+                post.Add(PlaceRenderer.WriteVarGroupImage(src, tmp, "INVOKE copy-out into"));
+            else if (a.Formal.IsGroup || src.Item.IsGroup)
             {
                 int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
                 // The §14.8.2.2 rule-1 prefix: splice the formal's characters back over the argument's
@@ -900,7 +945,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             bool retString = OoStringCarried(rs);
             w.Line($"var {tmp} = {call};   // INVOKE (§14.9.23; null receiver → EC-OO-NULL, GR5)");
             foreach (var pLine in post) w.Line(pLine);
-            if (rs.IsGroup || recv.Item.IsGroup)
+            if (OoVarGroupCarried(rs))
+                w.Line(PlaceRenderer.WriteVarGroupImage(inv.Returning, tmp, "INVOKE RETURNING delivery into"));
+            else if (rs.IsGroup || recv.Item.IsGroup)
                 w.Line(CallEmitter.CallStringWrite(inv.Returning, tmp));
             else if (recv is RefModPlace)
                 w.Line(PlaceRenderer.Write(recv, tmp));

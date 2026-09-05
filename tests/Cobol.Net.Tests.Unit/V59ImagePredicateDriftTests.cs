@@ -72,10 +72,22 @@ public sealed class V59ImagePredicateDriftTests
     public void CallEmitter_ReadAndWriteHalves_UseTheSamePredicate()
     {
         string src = Read("src", "Cobol.Net.Compiler", "CodeGen", "Verbs", "CallEmitter.cs");
-        int capable = CodeOccurrences(src, "IsImageCapable");
+        int capable = CodeOccurrences(src, "BoundaryImageCapable");
+        int narrow = CodeOccurrences(src, "IsImageCapable");
         int character = CodeOccurrences(src, "IsCharacterImage");
         Assert.True(capable >= 1,
-            $"Expected the CALL argument (read-half) group guard on IsImageCapable; found {capable}.");
+            $"Expected the CALL argument (read-half) group guard on BoundaryImageCapable; found {capable}.");
+        // ⛔ THE PREDICATE WIDENED AT kb/Work PB204, AND THE NARROW ONE IS NOW ITSELF THE DEFECT. V59's lesson
+        // was that guarding a CALL on IsCharacterImage rejected conforming source; PB204's is the same lesson
+        // one predicate further out. §14.8.2.2 and §14.8.3.2 ADMIT a VARIABLE-LENGTH group across a Format-2
+        // CALL / RETURNING / INVOKE boundary "subject to compatibility as described in 8.5.1.12", and
+        // IsImageCapable is false for such a group BY DEFINITION — so a guard spelled that way refused every
+        // one of them (COBOLNET1688 on legal source). BoundaryImageCapable is "fixed record window OR
+        // current-extent carrier"; the ADMISSION itself is decided at bind by VariableLengthCompatibility.
+        Assert.True(narrow == 0,
+            "CallEmitter must not guard a group crossing on IsImageCapable: a variable-length group is never "
+            + "IsImageCapable and §14.8.2.2 admits it subject to §8.5.1.12 compatibility, so that predicate "
+            + $"rejects conforming source (kb/Work PB204). Found {narrow} occurrence(s).");
         // The WRITE half delegates instead of testing: it must hand every group to the ONE writer.
         // ⛔ MEASURED WITH THE COMMENT-STRIPPER, NOT RAW TEXT. This was `Assert.Contains("WriteFullGroupImage",
         // src)` against the unstripped file, and the PB177 comment block directly above the fixed arm names the

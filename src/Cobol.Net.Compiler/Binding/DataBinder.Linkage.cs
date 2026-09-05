@@ -52,6 +52,14 @@ public sealed record CallExternalBacking(string BackingCsName, string ExternalNa
 /// diagnosed; call sites fail loud without re-reporting).</summary>
 public sealed record UserFunctionSignature(string Name, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals);
 
+/// <summary>One AS NESTED callee's activation signature (ISO §14.9.4.3 SR15; kb/Work PB131 + PB204): its
+/// positional USING formals and its PROCEDURE DIVISION RETURNING item. SR25 makes BOTH §14.8.2, Parameters and
+/// §14.8.3, Returning items apply to a Format-2 CALL, and with AS NESTED both sides of each pair are statically
+/// known — so the signature carries both halves, exactly as <see cref="UserFunctionSignature"/> does.
+/// <paramref name="Returning"/> is null when the callee's header declares no returning item, which §14.8.3.1
+/// makes a conformance fact in its own right ("if and only if").</summary>
+public sealed record NestedCalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataItem? Returning);
+
 /// <summary>
 /// The LINKAGE SECTION / EXTERNAL / GLOBAL half of the data binder (COBOLNET_INTERPROGRAM_DESIGN D1–D5).
 /// LINKAGE 01/77 items bind into the ordinary storage forest (so every verb, REDEFINES tier, level-88, and

@@ -157,6 +157,20 @@ public sealed class CobolDynTable<T>
         return sb.ToString();
     }
 
+    /// <summary>The write half of <see cref="CurrentImage"/> — distribute a carried current-extent image back
+    /// into the table (kb/Work PB204). The capacity BECOMES the number of whole
+    /// <paramref name="elementWidth"/>-wide occurrences the content holds, which is sound only because
+    /// §8.5.1.12.3 admits corresponding tables at an activation boundary only "when the byte length of their
+    /// elements is equal" — the bind-time compatibility check is what makes this division meaningful.
+    /// <paramref name="store"/> distributes one occurrence's image into a freshly seeded element, so a group
+    /// element keeps whatever storage its initializer allocated.</summary>
+    public void FromCurrentImage(string content, int elementWidth, Func<T, string, T> store)
+    {
+        var parts = CobolVarGroup.Occurrences(content, elementWidth);
+        SetCapacity(parts.Length);
+        for (int i = 0; i < parts.Length && i < _count; i++) _store[i] = store(_seedAt(i + 1), parts[i]);
+    }
+
     /// <summary>Mark the start of a SEARCH of this table (a SET Format 14 on it while active raises EC-FLOW-SEARCH,
     /// §14.9.39 GR31). Nestable (re-entrant SEARCH).</summary>
     public void EnterSearch() => _searching++;

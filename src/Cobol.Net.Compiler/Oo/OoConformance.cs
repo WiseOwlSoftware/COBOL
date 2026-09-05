@@ -159,7 +159,11 @@ public static class OoConformance
     public static string ConformanceDescriptor(DataItem item)
     {
         if (item.IsGroup)
-            return item.IsImageCapable ? $"S:{item.ImageWidth}:N" : "T:!";
+            // A VARIABLE-LENGTH group crosses as its §8.5.1.12 component carrier, so its descriptor is that
+            // layout's canonical signature (kb/Work PB204) — without it the item fell to the T:! sentinel and
+            // bind refused every universal crossing of legal source (COBOLNET0866).
+            return item.CurrentExtentImageCapable ? $"V:{VariableLengthCompatibility.Signature(item)}"
+                : item.IsImageCapable ? $"S:{item.ImageWidth}:N" : "T:!";
         if (item.Pic is not { } p) return "T:!";
         return p.Category switch
         {
@@ -214,11 +218,23 @@ public static class OoConformance
         {
             if (!(arg.IsGroup || arg.Pic?.Category is PicCategory.Alphanumeric))
                 return "a group formal requires a group or alphanumeric argument";
+            // ⛔ §14.8.2.2 / §14.8.3.2, THE VARIABLE-LENGTH SENTENCE, BEFORE the capability screens below
+            // (kb/Work PB204). "If either the formal parameter or the argument is a variable length group, the
+            // formal parameter and the argument shall be compatible, as described in 8.5.1.12" — an ADMISSION
+            // subject to a relation, not a prohibition, and §14.9.4.3 SR25 imports it into a Format-2 CALL. The
+            // Tier-C arms below used to answer this case, so every such crossing was refused at compile time
+            // (COBOLNET1688) however conforming it was; SR12 — "Identifier-2 shall not reference a
+            // variable-length group" — is FORMAT 1's rule and reaches neither AS NESTED nor INVOKE.
+            if (VariableLengthCompatibility.Mismatch(formal, arg) is { } vlWhy)
+                return vlWhy;
             // The ONE Tier-C reason source (kb/Work PB164 — a hand-rolled string here went stale twice as the
-            // island shrank; TierCIsland.Reason names the leaf kind the predicate actually tests).
-            if (arg.IsGroup && !arg.IsImageCapable)
+            // island shrank; TierCIsland.Reason names the leaf kind the predicate actually tests). The predicate
+            // is BoundaryImageCapable, not IsImageCapable: a COMPATIBLE variable-length group crosses through
+            // its current-extent codec (kb/Work PB204), so only a group with no boundary image at all — a
+            // pointer/object-class leaf, or a variable-length shape outside the current-extent gate — is loud.
+            if (arg.IsGroup && !arg.BoundaryImageCapable)
                 return TierCIsland.Reason(arg, "argument group");
-            if (!formal.IsImageCapable)
+            if (!formal.BoundaryImageCapable)
                 return TierCIsland.Reason(formal, "formal group");
             // §14.8.2.2 rule 1 (BY REFERENCE): the formal may be SMALLER than (a prefix of) the argument —
             // the callee sees the leading formal-width character positions; the tail survives write-back.
@@ -238,7 +254,11 @@ public static class OoConformance
         {
             if (f.Category is not PicCategory.Alphanumeric)
                 return "a group argument requires a group or alphanumeric formal";
-            if (!arg.IsImageCapable) return "the argument group has no character image (Tier-C)";
+            // §8.5.1.12.1: a variable-length group is compatible only with a compatible GROUP ("not equivalent
+            // to an alphanumeric data item"), so an ELEMENTARY formal — which §14.8.2.2 rule 1 admits for a
+            // fixed-length group — is a mismatch, and it is that sentence that says so, not the Tier-C island.
+            if (VariableLengthCompatibility.Mismatch(formal, arg) is { } vlWhy) return vlWhy;
+            if (!arg.BoundaryImageCapable) return "the argument group has no character image (Tier-C)";
             if (anyLengthFormal) return null;   // §14.8.2.3.2 rule d — the formal's length matches the argument's
             return byRefGroupPrefix
                 ? (f.Length > arg.ImageWidth

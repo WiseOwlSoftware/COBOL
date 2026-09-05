@@ -220,6 +220,31 @@ public static class CobolArgAdapt
         }
     }
 
+    /// <summary>Adapt argument <paramref name="i"/> to a VARIABLE-LENGTH GROUP formal (ISO §14.8.2.2's
+    /// compatibility sentence via §14.9.4.3 SR25; kb/Work PB204). The carrier IS the
+    /// <see cref="CobolVarGroup"/> the caller built, aliased whole: unlike <see cref="Text"/> there is no width
+    /// window to apply here, because the fixed run and the component list are BOTH re-fitted by the receiving
+    /// group's own emitted distributor — which knows its own geometry and is the only thing that can. A
+    /// non-var-group carrier means the sides disagreed about the crossing shape, which §8.5.1.12
+    /// compatibility is checked at bind precisely to prevent; it degrades to the omitted carrier rather than
+    /// silently reinterpreting storage.</summary>
+    public static ManagedPointer<CobolVarGroup> VarGroup(CobolArg[] args, int i)
+    {
+        if (!Present(args, i)) return Omitted<CobolVarGroup>(i);
+        return args[i].Carrier is ManagedPointer<CobolVarGroup> vp ? vp : Omitted<CobolVarGroup>(i);
+    }
+
+    /// <summary>The BY VALUE / BY CONTENT twin of <see cref="VarGroup"/> (ISO §14.2.3 GR9/GR10 — a copy
+    /// allocated by the activating element): a DETACHED cell holding the argument's carrier value, so the
+    /// callee's stores never reach the caller's storage.</summary>
+    public static ManagedPointer<CobolVarGroup> VarGroupValue(CobolArg[] args, int i)
+    {
+        if (!Present(args, i)) return Omitted<CobolVarGroup>(i);
+        return args[i].Carrier is ManagedPointer<CobolVarGroup> vp
+            ? ManagedPointer<CobolVarGroup>.Cell(vp.Value ?? CobolVarGroup.Empty)
+            : Omitted<CobolVarGroup>(i);
+    }
+
     /// <summary>Deliver a RETURNING value to the caller's RETURNING carrier (ISO §14.2.3 GR7 — at termination the
     /// returning item's value transfers to the activating element's RETURNING identifier). Null-tolerant: a CALL
     /// without RETURNING discards the value (deep-dive edge case). The overload set spans the four native
@@ -255,6 +280,13 @@ public static class CobolArgAdapt
     {
         if (ret is ManagedPointer<string> sp) sp.Value = value;
         else if (ret is ManagedPointer<long> lp && long.TryParse(value.Trim(), out long v)) lp.Value = v;
+    }
+
+    /// <summary>Variable-length-group RETURNING delivery (ISO §14.8.3.2's compatibility sentence — the
+    /// returning half of the same admission §14.8.2.2 grants arguments; kb/Work PB204).</summary>
+    public static void StoreReturn(ManagedPointer? ret, CobolVarGroup value)
+    {
+        if (ret is ManagedPointer<CobolVarGroup> vp) vp.Value = value;
     }
 
     /// <summary>Data-pointer RETURNING delivery (kb/Work PB133 wave B — §14.2.3 GR7 over a USAGE POINTER
@@ -295,7 +327,11 @@ public static class CobolArgAdapt
         {
             RunUnit.Current.Exceptions.ProgramArgOmittedError(
                 $"reference to omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12)");
-            return typeof(T) == typeof(string) ? (T)(object)"" : default!;
+            // The benign empty value per carrier shape — a REFERENCE carrier must not hand back null and
+            // turn a documented GR12 leniency into an NRE (kb/Work PB204 added the var-group carrier).
+            if (typeof(T) == typeof(string)) return (T)(object)"";
+            if (typeof(T) == typeof(CobolVarGroup)) return (T)(object)CobolVarGroup.Empty;
+            return default!;
         },
         _ => RunUnit.Current.Exceptions.ProgramArgOmittedError(
             $"store into omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12)"));

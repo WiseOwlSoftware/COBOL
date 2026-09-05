@@ -35,7 +35,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
         var parts = d.Operands.Select(o =>
             o is BoundFieldOperand { Place: { Item: { IsGroup: true, IsImageCapable: false } } vp }
                 && vp is not RedefViewPlace
-                && GroupImageCodec.CurrentExtentImageCapable(vp.Item)
+                && vp.Item.CurrentExtentImageCapable
             ? $"{PlaceRenderer.Read(vp)}.CurrentImage()"
             : OperandText.AsString(o, num)).ToList();
         string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);

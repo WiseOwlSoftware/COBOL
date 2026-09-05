@@ -426,6 +426,61 @@ public sealed class DataItem
                 || Pic is { HasImageByteForm: true }
             : IsGroup && Children.All(c => c.IsImageCapable);
 
+    /// <summary>True when this item is a VARIABLE-LENGTH GROUP (ISO §8.5.1.12.1) whose CURRENT-EXTENT image is
+    /// well defined: every member is <see cref="IsImageCapable"/>, a dynamic-length leaf (its current content IS
+    /// its image), a dynamic-capacity table of <see cref="ElementImageCapable"/> elements, or a nested SCALAR
+    /// variable-length group satisfying the same. This is the §14.9.11.4 GR7 documented DISPLAY format's gate
+    /// (kb/Work PB164 — A.1 item 57) AND the §14.8.2.2 / §14.8.3.2 activation-boundary crossing's gate
+    /// (kb/Work PB204): ONE capability, because both need exactly the same thing — every component's extent
+    /// known to the group's own struct.
+    /// <para>⚠ A runtime-length item INSIDE a table element stays OUT — deliberately the SAME boundary as the
+    /// §15.50.4 r7 LENGTH sum's named stage (<c>IntrinsicBinder.VariableLengthGroupSum</c>), so DISPLAY,
+    /// FUNCTION LENGTH and the boundary crossing agree about which groups have a defined current extent.
+    /// (Since the R40 INDEX pin no LEAF KIND excludes a group — only the shapes here do.)</para>
+    /// <para>⛔ MOVED HERE FROM <c>GroupImageCodec</c> at the PB204 landing. It was a CODEGEN predicate that a
+    /// BIND-time screen now has to ask (§14.8.2.2's compatibility sentence admits the crossing, so the binder
+    /// must know whether this compiler can carry it); a bind phase consulting a codegen class is the layering
+    /// inversion, and copying the predicate would have been the second copy this repo's two-arm-dispatch rule
+    /// forbids. It is a pure declared-shape fact, so the data model is where it belongs.</para></summary>
+    public bool CurrentExtentImageCapable =>
+        IsGroup && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(this)
+        && Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))
+            .All(c =>
+                // ⛔ An OCCURS DEPENDING on or beneath a member stays OUT (the PB164 review fleet's repro: the
+                // fixed-member lane renders an ODO table at its MAXIMUM occurrences while the §15.50.4 r4b
+                // LENGTH sum counts the CURRENT count — and the composer CANNOT take the current extent,
+                // because the composing method is a struct instance method while data-name-1 may live outside
+                // the group entirely; the LENGTH sum reads it through the operand's access path, a mechanism a
+                // struct method does not have). Loud beats a wrong width.
+                !HasOdoOnOrBeneath(c)
+                && (c.IsImageCapable
+                    || (c.IsDynamicLength && c.IsElementary)
+                    || (c.IsDynamicTable && c.ElementImageCapable)
+                    // A nested variable-length group composes ONLY as a SCALAR member. ⛔ Discriminated by
+                    // !IsDynamicTable, NOT by `Occurs is null` alone — a Format-4 DYNAMIC-capacity table
+                    // also carries Occurs == null (the PB164 fleet's CRITICAL: the first cut re-admitted
+                    // through this arm the very dynamic-table-with-runtime-length-element shape arm 3
+                    // rejects, and the emission was uncompilable C# on legal source that never referenced the
+                    // group). Under a fixed OCCURS of its own it is the in-element runtime-length shape (the
+                    // pb62 corpus case).
+                    || (c.IsGroup && !c.IsDynamicTable && c.Occurs is null && c.CurrentExtentImageCapable)));
+
+    /// <summary>⛔ THE ONE "can this item cross an activation boundary as an image?" predicate (kb/Work PB204):
+    /// a fixed-length group through its <c>AsImage</c>/<c>FromImage</c> record codec, a variable-length group
+    /// through its <c>AsVarImage</c>/<c>FromVarImage</c> current-extent codec. §14.8.2.2 / §14.8.3.2 admit BOTH
+    /// (the second subject to §8.5.1.12 compatibility — <see cref="VariableLengthCompatibility"/>), so a screen
+    /// that asks only <see cref="IsImageCapable"/> rejects legal source; every CALL / INVOKE / RETURNING screen
+    /// and emit guard asks THIS.</summary>
+    public bool BoundaryImageCapable => IsImageCapable || CurrentExtentImageCapable;
+
+    /// <summary>An OCCURS DEPENDING clause on <paramref name="c"/> itself or any subordinate — the shape the
+    /// current-extent composer must refuse (see <see cref="CurrentExtentImageCapable"/>). The sibling of
+    /// <c>IntrinsicBinder.HasOdoBeneath</c>, which tests subordinates only (its callers already hold the
+    /// operand); the composer screens MEMBERS, where the clause may sit on the member itself.</summary>
+    private static bool HasOdoOnOrBeneath(DataItem c) =>
+        c.OccursSpec?.DependingName is not null
+        || (c.IsGroup && c.Children.Any(m => m.RedefinesTargetName is null && HasOdoOnOrBeneath(m)));
+
     /// <summary>The character width of this item's image — meaningful for an <see cref="IsCharacterImage"/> item. For a
     /// group it is the sum of each child's TOTAL image contribution, i.e. the child's per-occurrence image width × its
     /// fixed-OCCURS count (every OCCURS position is part of the group image, ISO §14.9). A numeric-DISPLAY leaf's image

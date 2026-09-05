@@ -152,7 +152,16 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // A VARIABLE-LENGTH group instead carries CurrentImage() — the §14.9.11.4 GR7 documented DISPLAY
             // format (A.1 item 57; kb/Work PB164): fixed members by the ONE member-image law, dynamic members
             // at their current extent. DISPLAY-only — such a group stays out of the static record codec (D9).
-            else if (GroupImageCodec.CurrentExtentImageCapable(item)) codec.EmitCurrentImageMethod(item, w);
+            // AND the AsVarImage()/FromVarImage() pair its ACTIVATION-BOUNDARY crossing needs (§14.8.2.2 /
+            // §14.8.3.2 admit such a group subject to §8.5.1.12 compatibility; kb/Work PB204). Both come from
+            // the same capability and the same member-image law, so a group that displays is a group that
+            // crosses; it still stays out of the STATIC record codec (D9 — a record window has a fixed width
+            // and this group does not).
+            else if (item.CurrentExtentImageCapable)
+            {
+                codec.EmitCurrentImageMethod(item, w);
+                codec.EmitVarImageMethods(item, w);
+            }
         }
     }
 

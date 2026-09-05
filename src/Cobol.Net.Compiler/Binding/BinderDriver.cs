@@ -564,17 +564,22 @@ internal sealed class BinderDriver
     }
 
     /// <summary>The AS NESTED callee table for one caller (kb/Work PB131; §14.9.4.3 SR15 + §10.7.2):
-    /// name → the callee's bound PD-header formals. Directly-contained children first; a COMMON program
-    /// contained in an ancestor is visible too (nearest wins on a name clash, matching §10.7.2's scope).</summary>
-    private static Dictionary<string, IReadOnlyList<LinkageFormal>> NestedCallablesOf(BoundUnit unit)
+    /// name → the callee's bound PD-header SIGNATURE. Directly-contained children first; a COMMON program
+    /// contained in an ancestor is visible too (nearest wins on a name clash, matching §10.7.2's scope).
+    /// <para>The signature carries the RETURNING item as well as the formals (kb/Work PB204): §14.9.4.3 SR25
+    /// makes §14.8.3, Returning items apply to a Format-2 CALL exactly as §14.8.2 applies to its arguments, and
+    /// with AS NESTED both halves of that pair are statically known. Carrying only the formals is what left the
+    /// RETURNING half unchecked — the same shape as <c>UserFunctionSignature</c>, which has carried both since
+    /// it was written.</para></summary>
+    private static Dictionary<string, NestedCalleeSignature> NestedCallablesOf(BoundUnit unit)
     {
-        var map = new Dictionary<string, IReadOnlyList<LinkageFormal>>(StringComparer.OrdinalIgnoreCase);
+        var map = new Dictionary<string, NestedCalleeSignature>(StringComparer.OrdinalIgnoreCase);
         foreach (var c in unit.Children)
-            map.TryAdd(c.Name, c.Data.LinkageFormals);
+            map.TryAdd(c.Name, new NestedCalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
             foreach (var c in anc.Children)
                 if (c.Common)
-                    map.TryAdd(c.Name, c.Data.LinkageFormals);
+                    map.TryAdd(c.Name, new NestedCalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
         return map;
     }
 

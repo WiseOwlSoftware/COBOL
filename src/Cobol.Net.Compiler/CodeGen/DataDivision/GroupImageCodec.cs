@@ -136,46 +136,6 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 : $"new string(' ', {pic.Length})";
     }
 
-    /// <summary>True when <paramref name="g"/> is a VARIABLE-LENGTH group (§8.5.1.12 — a dynamic-length item
-    /// or dynamic-capacity table subordinate) whose current-extent image is well defined: every member is
-    /// image-capable, a dynamic-length leaf (its current content IS its image), a dynamic-capacity table of
-    /// image-capable elements (<see cref="DataItem.ElementImageCapable"/>), or a nested group satisfying the
-    /// same. This is the §14.9.11.4 GR7 documented-format gate (kb/Work PB164 — A.1 item 57). ⚠ A runtime-length
-    /// item INSIDE a table element stays OUT — deliberately the SAME boundary as the §15.50.4 r7 LENGTH sum's
-    /// named stage (<c>IntrinsicBinder.VariableLengthGroupSum</c>), so DISPLAY and FUNCTION LENGTH agree about
-    /// which groups have a defined current extent. (Since the R40 INDEX pin no LEAF KIND excludes a group —
-    /// only the shapes above do.)</summary>
-    public static bool CurrentExtentImageCapable(DataItem g) =>
-        g.IsGroup && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(g)
-        && g.Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))
-            .All(c =>
-                // ⛔ An OCCURS DEPENDING on or beneath a member stays OUT (the review fleet's repro: the
-                // fixed-member lane renders an ODO table at its MAXIMUM occurrences while the §15.50.4 r4b
-                // LENGTH sum counts the CURRENT count — and the composer CANNOT take the current extent,
-                // because CurrentImage() is a struct instance method while data-name-1 may live outside the
-                // group entirely; the LENGTH sum reads it through the operand's access path, a mechanism a
-                // struct method does not have). Loud beats a wrong width.
-                !HasOdoOnOrBeneath(c)
-                && (c.IsImageCapable
-                    || (c.IsDynamicLength && c.IsElementary)
-                    || (c.IsDynamicTable && c.ElementImageCapable)
-                    // A nested variable-length group composes ONLY as a SCALAR member. ⛔ Discriminated by
-                    // !IsDynamicTable, NOT by `Occurs is null` alone — a Format-4 DYNAMIC-capacity table
-                    // also carries Occurs == null (the fleet's CRITICAL: the first cut re-admitted through
-                    // this arm the very dynamic-table-with-runtime-length-element shape arm 3 rejects, and
-                    // the emission was uncompilable C# on legal source that never referenced the group).
-                    // Under a fixed OCCURS of its own it is the in-element runtime-length shape (the pb62
-                    // corpus case).
-                    || (c.IsGroup && !c.IsDynamicTable && c.Occurs is null && CurrentExtentImageCapable(c))));
-
-    /// <summary>An OCCURS DEPENDING clause on <paramref name="c"/> itself or any subordinate — the shape the
-    /// current-extent composer must refuse (see the gate's comment). The sibling of
-    /// <c>IntrinsicBinder.HasOdoBeneath</c>, which tests subordinates only (its callers already hold the
-    /// operand); the composer screens MEMBERS, where the clause may sit on the member itself.</summary>
-    private static bool HasOdoOnOrBeneath(DataItem c) =>
-        c.OccursSpec?.DependingName is not null
-        || (c.IsGroup && c.Children.Any(m => m.RedefinesTargetName is null && HasOdoOnOrBeneath(m)));
-
     /// <summary>Emit a variable-length group's <c>CurrentImage()</c> — the §14.9.11.4 GR7 implementor-defined
     /// DISPLAY format, documented as CONFORMANCE.md A.1 item 57 (kb/Work PB164): the members' images in
     /// declaration order, each FIXED member contributing exactly its <see cref="AsImageOf"/> recipe (the ONE
@@ -212,6 +172,151 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 : $"{d.CsName}.CurrentImage(static __e => __e)"
         : d.IsDynamicLength ? d.CsName   // §15.50.4 r7b — the current content at its current length
         : $"{d.CsName}.CurrentImage()";  // a nested variable-length group
+
+    // ── The VARIABLE-LENGTH GROUP's ACTIVATION-BOUNDARY codec (ISO §14.8.2.2 / §14.8.3.2 via §14.9.4.3 SR25;
+    //    kb/Work PB204) ─────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>What one member of a variable-length group contributes to its boundary carrier.</summary>
+    private enum VarPartKind
+    {
+        /// <summary>A member with a fixed image — it lands in <c>CobolVarGroup.Fixed</c> at its own offset.</summary>
+        Fixed,
+        /// <summary>A dynamic-length elementary item — ONE carried component (§8.5.1.10).</summary>
+        DynLeaf,
+        /// <summary>A dynamic-capacity table — ONE carried component, its occurrences concatenated (§8.5.1.9).</summary>
+        DynTable,
+        /// <summary>A nested SCALAR variable-length group — FLATTENED: its own fixed run joins ours and its own
+        /// components join ours in place, because §8.5.1.12 is stated over relative byte positions and is blind
+        /// to the declaration tree.</summary>
+        Nested,
+    }
+
+    private readonly record struct VarPart(
+        VarPartKind Kind, PhysicalModel.Physical Field, DataItem? Item, int FixedWidth, int DynCount);
+
+    /// <summary>A variable-length group's members classified for the boundary carrier, in PHYSICAL order — the
+    /// same <see cref="PhysicalModel.PhysicalChildrenOf"/> order and the same dynamic-member selection
+    /// <see cref="EmitCurrentImageMethod"/> uses, so the DISPLAY format and the crossing can never disagree
+    /// about what a member is.</summary>
+    private List<VarPart> VarParts(DataItem group)
+    {
+        var dyn = group.Children
+            .Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary)
+                && (c.IsDynamicTable || c.IsDynamicLength || (c.IsGroup && !c.IsImageCapable)))
+            .ToDictionary(c => c.CsName, StringComparer.Ordinal);
+        var parts = new List<VarPart>();
+        foreach (var f in phys.PhysicalChildrenOf(group))
+        {
+            if (!dyn.TryGetValue(f.Name, out var d))
+            {
+                parts.Add(new VarPart(VarPartKind.Fixed, f, null, f.Width, 0));
+                continue;
+            }
+            parts.Add(d.IsDynamicLength ? new VarPart(VarPartKind.DynLeaf, f, d, 0, 1)
+                : d.IsDynamicTable ? new VarPart(VarPartKind.DynTable, f, d, 0, 1)
+                : new VarPart(VarPartKind.Nested, f, d, VarFixedWidth(d), VarComponentCount(d)));
+        }
+        return parts;
+    }
+
+    /// <summary>The character width of a variable-length group's FIXED run — its image with every
+    /// variable-length component collapsed to nothing. This is the §8.5.1.12.3 accounting the compatibility
+    /// relation is stated in ("all dynamic-length elementary items are considered to be of zero length"),
+    /// which is exactly why two COMPATIBLE groups lay this string out the same way.</summary>
+    public int VarFixedWidth(DataItem group) => VarParts(group).Sum(p => p.FixedWidth);
+
+    /// <summary>How many variable-length components a group carries, nested groups flattened in.</summary>
+    public int VarComponentCount(DataItem group) => VarParts(group).Sum(p => p.DynCount);
+
+    /// <summary>Emit a variable-length group's <c>AsVarImage()</c> / <c>FromVarImage()</c> — the boundary codec
+    /// §14.8.2.2 and §14.8.3.2 need, the exact analogue of <c>AsImage</c>/<c>FromImage</c> for a group that has
+    /// no fixed record window. Gated on <see cref="DataItem.CurrentExtentImageCapable"/>, THE ONE capability
+    /// (kb/Work PB204): a group whose extent DISPLAY can compose is a group whose extent a crossing can carry,
+    /// and giving the crossing its own gate would be the second copy this repo's two-arm rule forbids.
+    /// <para>The fixed members ride exactly the <see cref="AsImageOf"/> / <see cref="EmitMemberFromImage"/>
+    /// member-image law the record codec uses — the ONE recipe, no second spelling — at offsets computed with
+    /// the variable-length components contributing ZERO, which is §8.5.1.12.3's own convention.</para></summary>
+    public void EmitVarImageMethods(DataItem group, CodeWriter w)
+    {
+        var parts = VarParts(group);
+        int totalFixed = parts.Sum(p => p.FixedWidth);
+        using (w.Block("public readonly CobolVarGroup AsVarImage()"))
+        {
+            var fixedParts = new List<string>();
+            var dynParts = new List<string>();
+            int n = 0;
+            foreach (var p in parts)
+            {
+                switch (p.Kind)
+                {
+                    case VarPartKind.Fixed:
+                        if (p.Field.Width > 0 || p.Field.BitRun is not null) fixedParts.Add(AsImageOf(p.Field));
+                        break;
+                    case VarPartKind.DynLeaf:
+                    case VarPartKind.DynTable:
+                        dynParts.Add(CurrentMemberImage(p.Item!));
+                        break;
+                    case VarPartKind.Nested:
+                        // The nested group's own carrier, spliced in place: its fixed run extends ours and its
+                        // components take the next p.DynCount slots (the flattening §8.5.1.12 requires).
+                        w.Line($"var __n{n} = {p.Field.Name}.AsVarImage();");
+                        fixedParts.Add($"__n{n}.Fixed");
+                        for (int k = 0; k < p.DynCount; k++) dynParts.Add($"__n{n}.Dyn({k})");
+                        n++;
+                        break;
+                }
+            }
+            w.Line($"return new CobolVarGroup({(fixedParts.Count > 0 ? string.Join(" + ", fixedParts) : "\"\"")}, "
+                + $"new string[] {{ {string.Join(", ", dynParts)} }});");
+        }
+        using (w.Block("public void FromVarImage(CobolVarGroup __v)"))
+        {
+            w.Line($"string __s = {RuntimeApi.StrStore("__v.Fixed", $"{totalFixed}")};");
+            int off = 0, dynAt = 0;
+            foreach (var p in parts)
+            {
+                switch (p.Kind)
+                {
+                    case VarPartKind.Fixed:
+                        EmitMemberFromImage(p.Field, off, w);
+                        off += p.Field.Width;
+                        break;
+                    case VarPartKind.DynLeaf:
+                        // §8.5.1.10.4 — the receiving store for a dynamic-length item: replace, truncate on the
+                        // right to the LIMIT, never pad. The component IS the item's whole current content.
+                        w.Line($"{p.Field.Name} = {RuntimeApi.DynStore($"__v.Dyn({dynAt})", $"{p.Item!.DynLengthLimit}")};");
+                        dynAt++;
+                        break;
+                    case VarPartKind.DynTable:
+                        // The capacity comes from the carried length divided by OUR element width — legitimate
+                        // because §8.5.1.12.3 admits corresponding tables only "when the byte length of their
+                        // elements is equal", which the bind-time compatibility check enforced.
+                        w.Line($"{p.Field.Name}.FromCurrentImage(__v.Dyn({dynAt}), {p.Field.Width}, "
+                            + $"{TableElementFromImage(p.Item!)});");
+                        dynAt++;
+                        break;
+                    case VarPartKind.Nested:
+                        w.Line($"{p.Field.Name}.FromVarImage(__v.Slice({off}, {p.FixedWidth}, {dynAt}, {p.DynCount}));");
+                        off += p.FixedWidth;
+                        dynAt += p.DynCount;
+                        break;
+                }
+            }
+        }
+    }
+
+    /// <summary>The inverse of <see cref="CurrentMemberImage"/>'s dynamic-table element lane, arm for arm: a
+    /// group element distributes through its own <c>FromImage</c>, a NATIVE numeric element decodes through its
+    /// byte-form lane (a float through the distinctly-named IEEE lane), a string-carried element passes
+    /// through. The seed occurrence is handed in so a group element keeps the arrays its initializer
+    /// allocated.</summary>
+    private static string TableElementFromImage(DataItem d) =>
+        d.IsGroup ? "(__e, __x) => { __e.FromImage(__x); return __e; }"
+        : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
+            ? (d.Pic.IsFloat
+                ? $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImageFloat("__x", d.ProfileName)}"
+                : $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImage("__x", d.ProfileName)}")
+            : "(__e, __x) => __x";
 
     public void EmitImageMethods(DataItem group, CodeWriter w)
     {

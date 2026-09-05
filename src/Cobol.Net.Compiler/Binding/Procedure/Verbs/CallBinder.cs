@@ -74,11 +74,15 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // the name shall be a directly-contained or visible-COMMON program; the old binder bound the flag,
         // discarded it, and let ProgramTable resolve ANY outermost program at run time).
         IReadOnlyList<LinkageFormal>? nestedFormals = null;
+        NestedCalleeSignature? nestedCallee = null;
         if (asNested && call.callTarget().literal() is { } asLit)
         {
             string nestedName = CobolLiteral.Decode(asLit.GetText());
-            if (host.NestedCallables is { } nc && nc.TryGetValue(nestedName, out var nf))
-                nestedFormals = nf;
+            if (host.NestedCallables is { } nc && nc.TryGetValue(nestedName, out var sig))
+            {
+                nestedFormals = sig.Formals;
+                nestedCallee = sig;
+            }
             else
             {
                 ctx.Edition.Error(DiagnosticCatalog.CallAsNestedScope,
@@ -393,6 +397,33 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             ScreenCallOperand(rpl, CobolPassMode.Reference, formatTwo, isReturning: true);
             returning = rpl;
         }
+        // §14.9.4.3 SR25 → §14.8.3, RETURNING ITEMS — the half that had NO home at all (kb/Work PB204). SR25
+        // makes §14.8.3's rules apply to a Format-2 CALL, and with AS NESTED the callee's PD header is bound,
+        // so §14.8.3.1's "if and only if" and §14.8.3.2/§14.8.3.3's description rules are compile-time facts
+        // rather than the run-time EC-PROGRAM-ARG-MISMATCH a dynamically-resolved callee would need. THE SAME
+        // comparator the USING loop and INVOKE use, so the three can never drift.
+        // §14.8.3.1: "The returning item in the activated element is the sending operand, the corresponding
+        // returning item in the activating element is the receiving operand" — hence the callee's item is
+        // parameter 1, which is also what the §14.8.3.3 rule-4/5 ANY LENGTH relaxation keys on. No prefix
+        // latitude: §14.8.3.2 asks for "the same length", not §14.8.2.2 rule 1's "same or smaller".
+        if (nestedCallee is { } callee)
+        {
+            if ((returning is null) != (callee.Returning is null))
+                ctx.Edition.Error(DiagnosticCatalog.CallReturningConformance,
+                    returning is null
+                        ? "CALL … AS NESTED: the activated program's procedure division header declares "
+                          + $"RETURNING '{callee.Returning!.CobolName}' but the CALL statement specifies no "
+                          + "RETURNING item (ISO §14.8.3.1 — one shall be specified if and only if the "
+                          + "activated element specifies one)"
+                        : "CALL … AS NESTED specifies a RETURNING item but the activated program's procedure "
+                          + "division header declares none (ISO §14.8.3.1)");
+            else if (returning is { } rr && callee.Returning is { } cr
+                     && CobolNet.Compiler.Oo.OoConformance.DescriptionMismatch(cr, rr.Item,
+                            anyLengthActivationRelax: true) is { } rwhy)
+                ctx.Edition.Error(DiagnosticCatalog.CallReturningConformance,
+                    $"CALL … AS NESTED RETURNING '{rr.Item.CobolName}' does not conform to the activated "
+                    + $"program's returning item '{cr.CobolName}': {rwhy} (ISO §14.8.3 via §14.9.4.3 SR25)");
+        }
 
         // ── Exception phrases — edition-gated spellings (deep-dive "Edition gating"; VERSION_CHANGE_REFERENCE
         //    row 3): [NOT] ON EXCEPTION is ANSI X3.23-1985 surface (CALL Format 2; CCVS-85 IC222A tests both
@@ -628,9 +659,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // a variable-length group subject to the §8.5.1.12 COMPATIBILITY relation rather than forbidding it,
         // with §14.9.4.4 GR3d making the verdict a RUNTIME EC-PROGRAM-ARG-MISMATCH where the callee's
         // description is not statically visible. §14.9.23.3 SR1–SR17 (INVOKE) contains no such prohibition at
-        // all; an SR12 clone there would REJECT LEGAL SOURCE. The compatibility relation itself is not yet
-        // implemented anywhere in the tree — a missing CHECK plus a genuinely missing crossing FEATURE,
-        // registered on PB177 as the one owner decision, never a widening of this gate.
+        // all; an SR12 clone there would REJECT LEGAL SOURCE. The compatibility relation itself now EXISTS —
+        // VariableLengthCompatibility, applied by OoConformance.DescriptionMismatch at all three Format-2 /
+        // INVOKE boundaries, with the crossing carried by CobolVarGroup (kb/Work PB204) — so this gate stays
+        // exactly as narrow as SR12's own sentence.
         if (!isReturning && !formatTwo && item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))
             ctx.Edition.Error(DiagnosticCatalog.CallVariableLengthGroup,
                 $"CALL … USING argument '{name}' references a variable-length group (a DYNAMIC LENGTH item or "

@@ -338,6 +338,17 @@ public static class DiagnosticCatalog
         + "the same type. The violation is EC-PROGRAM-ARG-MISMATCH at run time; with AS NESTED it is a "
         + "diagnostic at compile time.",
         "ISO §14.8.2.2 / §14.8.2.3.2");
+    public static readonly DiagnosticDescriptor CallReturningConformance = new(
+        "COBOLNET1736", "call-returning-conformance", EditionSeverity.Error,
+        "A Format-2 CALL's RETURNING item does not conform to the activated program's. ISO §14.9.4.3 syntax "
+        + "rule 25 makes \"the rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning "
+        + "items\" apply, and §14.8.3.1 requires a returning item in the activating statement \"if and only "
+        + "if a returning item is specified in the procedure division header of the activated element\". "
+        + "§14.8.3.2 then asks the two group operands for the same length, the same type when strongly typed, "
+        + "and — when either is a VARIABLE LENGTH GROUP — compatibility as described in §8.5.1.12; §14.8.3.3 "
+        + "gives the elementary rules. With AS NESTED the callee's header is known at compile time, so the "
+        + "mismatch is a diagnostic here instead of a run-time EC-PROGRAM-ARG-MISMATCH.",
+        "ISO §14.9.4.3 SR25 / §14.8.3");
     public static readonly DiagnosticDescriptor ArithmeticFormatOperand = new(
         "COBOLNET1689", "arithmetic-format-operand", EditionSeverity.Error,
         "An arithmetic statement's operand does not fit the format its phrases select. The GIVING forms of "
