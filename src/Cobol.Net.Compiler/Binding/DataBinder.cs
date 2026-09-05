@@ -1111,6 +1111,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     }
                     if (ge.GLOBAL() is not null) file.IsGlobal = true;
                 }
+            // ⛔ LAST, because it reads the RECORD, REPORT(S) and (via the SELECT) ORGANIZATION clauses: a file
+            // description entry with NO record description entries still has a record area, and it is created
+            // HERE rather than worked around at each of its consumers (kb/Work PB345).
+            if (file.Records.Count == 0) MaterializeImpliedRecord(file, name, rootNames);
         }
 
         // SD entries (ISO §13.4.6): a sort-merge file's records bind through the SAME entry path as FD records —
@@ -1130,6 +1134,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             }
             sdFile.HasFd = true;
             sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§13.4.6 SR3/SR4)
+            // ⛔ The SD arm does NOT inherit §13.4.5.3 SR3's permission to omit the record descriptions — that is a
+            // FORMATS 1 AND 2 rule, and §13.4.6.3 SR2 requires them here. Until kb/Work PB345 a record-less SD
+            // compiled and its SORT announced itself a COMPILER GAP (COBOLNET1756, "SORT 'S1' without an SD
+            // record — not implemented") before aborting the run unit: the compiler apologising for the source's
+            // error. It reads THIS entry's own records, so it needs nothing the clause loop below sets — unlike
+            // the FD arm's MaterializeImpliedRecord, which reads the RECORD and REPORT(S) clauses and runs last.
+            if (sdRecords.Count == 0)
+                Edition.Error(DiagnosticCatalog.FileDescriptionRecordRequired, $"sort-merge file description entry "
+                    + $"'{sdName}': one or more record description entries shall be associated with the sort-merge "
+                    + "file description entry (ISO §13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
+                    + "record of this file (§14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name.");
             sdFile.Records.AddRange(sdRecords);
             for (int i = 1; i < sdRecords.Count; i++)
                 sdRecords[i].RedefinesTarget ??= sdRecords[0];
@@ -1141,6 +1156,86 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // enforcement site covering FD AND SD via the shared grammar rule; P2.6 / Table-7 row 7.1.)
             }
         }
+    }
+
+    /// <summary>ISO §14.9.30.4 GR6's IMPLIED record description, made a REAL record at bind time (kb/Work PB345).
+    /// <para>§13.4.5.3 SR3 expressly contemplates a file description entry with no record description entries —
+    /// "When no record description entries are specified: a) a RECORD clause shall be specified …" — and SR7
+    /// confines the <i>one or more record description entries</i> requirement to INDEXED files, so a sequential or
+    /// relative FD written without a level-01 is legal source. GR6 then says what its record area IS: a READ INTO
+    /// on such a file "proceeds as though there were one record description entry describing an alphanumeric group
+    /// item of the maximum size established by the RECORD clause". This method materializes exactly that entry —
+    /// an unnamed level-01 group over one FILLER of the RECORD clause's maximum size.</para>
+    /// <para>⛔ IT IS SYNTHESIZED HERE, NOT WORKED AROUND AT THE CONSUMERS, and that is the whole fix. Before it,
+    /// <see cref="FileModel.AreaRecord"/> answered null and FIVE consumers each carried their own null arm:
+    /// <c>SequentialIoEmitter.EmitFileRegistration</c> registered the connector only when the FD hosted a REPORT,
+    /// <c>KeyedIoEmitter.EmitRegistration</c> returned outright, and the READ record-area store and implicit INTO
+    /// move were both guarded on it — so every I-O verb on a legal record-description-less file either aborted the
+    /// run unit ("file connector … was never registered") or, had registration alone been repaired, would have
+    /// read '00' and left identifier-1 unchanged. With the record real, registration, the area store and the INTO
+    /// move all fall out of the ordinary path, for BOTH organizations, from ONE place.</para>
+    /// <para>A GROUP and not an elementary PIC X(n): the distinction is observable. §14.9.25.4 makes a MOVE whose
+    /// sending operand is a group item a group (alphanumeric) move, so <c>READ … INTO</c> a numeric receiver copies
+    /// bytes; an elementary alphanumeric sender would instead convert. GR6 says "group item", so a group it is.</para>
+    /// <para>The record is kept OFF <see cref="ByName"/>: the entry is IMPLIED, so it has no record-name and the
+    /// program cannot reference it (which is also why §13.4.5.3 SR3 b/c require the FILE … FROM and INTO phrases on
+    /// the verbs). It IS on <see cref="Roots"/>, because it is real storage that has to emit.</para></summary>
+    private void MaterializeImpliedRecord(FileModel file, string fdName, HashSet<string> rootNames)
+    {
+        // §13.4.5.3 SR8: "No record description entries or constant entries shall be associated with the file
+        // description entry for a report file." — a report file's area is the report engine's line, and
+        // §13.18.43.3 SR1 excludes it from the RECORD-clause requirement by name. Nothing to synthesize.
+        if (file.ReportNames.Count > 0) return;
+        // §13.4.5.3 SR7 withdraws SR3's permission for an INDEXED file. Rejecting is the whole repair: a prime
+        // RECORD KEY has to be locatable in a record image (§12.4.5.12.3 SR2), which is why the emitter's
+        // fallback for an unlocatable key was a run-time abort — the compiler announcing the SOURCE's error.
+        if (file.Organization == FileOrganization.Indexed)
+        {
+            Edition.Error(DiagnosticCatalog.FileDescriptionRecordRequired, $"file description entry '{fdName}': "
+                + "for an indexed file, one or more record description entries shall be associated with the file "
+                + "description entry (ISO §13.4.5.3 SR7) — §13.4.5.3 SR3's permission to omit them is withdrawn "
+                + "here, because the prime RECORD KEY shall reference a data item within a record description "
+                + "entry associated with this file (§12.4.5.12.3 SR2).");
+            return;
+        }
+        // "the maximum size established by the RECORD clause" (§14.9.30.4 GR6): format 1's integer-1, format 3's
+        // integer-5, or format 2's integer-3. A format-2 clause with no TO phrase establishes none — §13.18.43.4
+        // GR10 defers to "the greatest number of bytes described for a record in that file" and this file
+        // describes none — and neither does an absent clause, which §13.4.5.3 SR3 a) / §13.18.43.3 SR1 forbid.
+        int? max = file.Varying?.Max ?? file.RecordContains;
+        if (max is not > 0)
+        {
+            Edition.Error(DiagnosticCatalog.RecordLessFdNoRecordSize, $"file description entry '{fdName}': it "
+                + "specifies no record description entries, so a RECORD clause establishing a maximum record size "
+                + "shall be specified (ISO §13.4.5.3 SR3 a / §13.18.43.3 SR1) — §14.9.30.4 GR6 sizes this file's "
+                + "implied record description by \"the maximum size established by the RECORD clause\", and "
+                + $"{(max is null ? "no clause here establishes one" : $"the maximum established here is {max}")}. "
+                + "Write RECORD CONTAINS n CHARACTERS, or RECORD IS VARYING IN SIZE TO n CHARACTERS.");
+            return;
+        }
+        var record = new DataItem
+        {
+            Level = 1,
+            DeclaredAt = Edition.Cursor,
+            CobolName = null,   // implied, so unnamed and unreferenceable — never RegisterName'd
+            CsName = Unique($"_impliedRecord{DataItem.Sanitize(fdName)}", rootNames),
+        };
+        record.Uid = _uidCounter++;
+        rootNames.Add(record.CsName);
+        var area = new DataItem
+        {
+            Level = 2,
+            DeclaredAt = Edition.Cursor,
+            CobolName = null,
+            CsName = $"_filler{_fillerCounter++}",
+            Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: max.Value, Digits: 0, Scale: 0,
+                Signed: false),
+            Parent = record,
+        };
+        area.Uid = _uidCounter++;
+        record.Children.Add(area);
+        _roots.Add(record);
+        file.Records.Add(record);
     }
 
     /// <summary>Bind a RECORD clause's variable-length forms into <see cref="FileModel.Varying"/> (ISO §13.18.43:

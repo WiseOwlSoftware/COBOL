@@ -40,7 +40,13 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
     /// image (§12.4.5.12 / §12.4.5.6; offsets computed against the generated codec's deterministic layout).</summary>
     public void EmitRegistration(CodeWriter w, FileModel file)
     {
-        if (file.Records.Count == 0) return;   // a SELECT with no FD — never opened with data (sequential convention)
+        // ⛔ NO RECORD-LESS EARLY RETURN HERE (kb/Work PB345). It used to read `if (file.Records.Count == 0)
+        // return; // a SELECT with no FD`, a premise the standard refutes twice: an FD with no record description
+        // entries is NOT "a SELECT with no FD", and §13.4.5.3 SR3 makes it legal on this very format — SR7 takes
+        // the permission back only for INDEXED. So a legal RELATIVE file written without a level-01 got no
+        // connector at all and every verb on it aborted the run unit. The record-less decision now belongs to the
+        // ONE caller (SequentialIoEmitter.EmitFileRegistration), above the organization split, and every FD that
+        // reaches emission carries a record area — §14.9.30.4 GR6's implied description when none was written.
         string name = FileKeyExpr(file), assign = CsLiteral(file.AssignTarget);
         int access = (int)file.AccessMode;   // FileAccessMode ordinals mirror the runtime KeyedAccess enum
         string opt = file.Optional ? "true" : "false";

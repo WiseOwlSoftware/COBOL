@@ -2173,6 +2173,43 @@ public static class DiagnosticCatalog
         + "READ overwrites — nor is that area available at all while the connector is closed (§9.1.2).",
         "ISO §12.4.5.2 SR7");
 
+    // ── The record-description-less file description entry (kb/Work PB345): §13.4.5.3 SR3 a) EXPRESSLY
+    // contemplates an FD with no record description entries, so the two rules that BOUND that shape are the only
+    // thing standing between legal source and a file connector with no record area. Two codes, not one, because
+    // the repairs are opposite — 1836 says "state the size", 1837 says "describe the record". ──
+    /// <summary>COBOLNET1836 — the size half. §14.9.30.4 GR6's implied record description is "of the maximum size
+    /// established by the RECORD clause", so a record-description-less FD whose RECORD clause establishes no
+    /// maximum has no record area at all; the connector would register a zero-width record and every READ INTO
+    /// would deliver nothing.</summary>
+    public static readonly DiagnosticDescriptor RecordLessFdNoRecordSize = new(
+        "COBOLNET1836", "record-less-fd-no-record-size", EditionSeverity.Error,
+        "ISO §13.4.5.3 syntax rule 3 a): \"When no record description entries are specified: a RECORD clause "
+        + "shall be specified in the file description entry\" — restated on the clause itself by §13.18.43.3 "
+        + "syntax rule 1, \"If no record description entries are specified in a file description entry for a file "
+        + "that is not a report file, the RECORD clause shall be specified.\" The clause has to establish a "
+        + "MAXIMUM, because §14.9.30.4 GR6 sizes the implied record description by \"the maximum size established "
+        + "by the RECORD clause\": format 1's integer-1 and format 3's integer-5 do, and so does format 2 when "
+        + "integer-3 is written, but a bare RECORD IS VARYING falls to §13.18.43.4 GR10 — \"the greatest number "
+        + "of bytes described for a record in that file\" — and this file describes none. A report file is "
+        + "exempt: §13.4.5.3 SR8 forbids it record description entries and §13.18.43.3 SR1 excludes it by name.",
+        "ISO §13.4.5.3 SR3 / §13.18.43.3 SR1");
+
+    /// <summary>COBOLNET1837 — the description half: the two entry kinds whose own syntax rules withdraw the
+    /// §13.4.5.3 SR3 permission. Both spell the SAME requirement, so they share one code and the message names
+    /// the arm that caught it.</summary>
+    public static readonly DiagnosticDescriptor FileDescriptionRecordRequired = new(
+        "COBOLNET1837", "file-description-record-required", EditionSeverity.Error,
+        "ISO §13.4.5.3 syntax rule 7 (indexed): \"For an indexed file, one or more record description entries "
+        + "shall be associated with the file description entry.\" — and §13.4.6.3 syntax rule 2 (sort-merge): "
+        + "\"One or more record description entries shall be associated with the sort-merge file description "
+        + "entry.\" §13.4.5.3 SR3's permission to omit them is a FORMATS 1 AND 2 rule and these two arms take it "
+        + "back, because both entry kinds are keyed and a key is located IN a record: §12.4.5.12.3 SR2 requires "
+        + "the RECORD KEY operand to \"reference a data item … within a record description entry associated with "
+        + "the file-name specified in this file control entry\", and §14.9.40.3 SR6 a) requires that \"the data "
+        + "items identified by key data-names shall be described in records associated with file-name-1\". "
+        + "Neither can be located in a record nothing describes.",
+        "ISO §13.4.5.3 SR7 / §13.4.6.3 SR2");
+
     public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
         "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",

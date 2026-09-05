@@ -73,13 +73,20 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         foreach (var file in ctx.Data.Files)
         {
             if (file.IsSortMerge) continue;   // an SD is the in-memory sort store (ISO §13.4.6) — never a host file
-            if (!file.IsSequential) { keyedIo.EmitRegistration(w, file); EmitSharingRegistration(w, file); continue; }   // relative/indexed connectors
+            // ⛔ THE RECORD-LESS ARM IS DECIDED ONCE, ABOVE THE ORGANIZATION SPLIT (kb/Work PB345). It used to be
+            // asked TWICE and answered differently — here it registered only a REPORT file, and
+            // KeyedIoEmitter.EmitRegistration returned outright — so a legal record-description-less FD
+            // (ISO §13.4.5.3 SR3) produced NO file connector on either arm and its first I-O verb aborted the run
+            // unit. Since PB345 every such FD carries §14.9.30.4 GR6's implied record description, synthesized at
+            // bind time (DataBinder.MaterializeImpliedRecord), so exactly TWO shapes reach here with no record:
+            //   • a REPORT FILE, which legally has none (ISO §9.1.22 / §13.18.46 / §13.4.5.3 SR8) and MUST still
+            //     register, or its OPEN falls through to the keyed registries and the report engine's writes go
+            //     into a void (the silent-OPEN-no-op hazard, COBOLNET_REPORT_WRITER_DESIGN §7); its record width
+            //     is the widest hosted report's line width;
+            //   • a SELECT with NO file description entry at all, which §13.4.5.4 GR1 leaves connector-less and
+            //     the front end has already diagnosed — there is nothing to register.
             if (file.Records.Count == 0)
             {
-                // A REPORT FILE legally has no record description (ISO §9.1.22 / §13.18.46) — it MUST still
-                // register, or its OPEN falls through to the keyed registries and the report engine's writes go
-                // into a void (the silent-OPEN-no-op hazard, COBOLNET_REPORT_WRITER_DESIGN §7). The record
-                // width is the widest hosted report's line width.
                 if (file.ReportNames.Count > 0)
                 {
                     int width = Math.Max(1, ctx.Data.Reports
@@ -89,6 +96,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 }
                 continue;
             }
+            if (!file.IsSequential) { keyedIo.EmitRegistration(w, file); EmitSharingRegistration(w, file); continue; }   // relative/indexed connectors
             bool lineSeq = file.Organization == FileOrganization.LineSequential;
             // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) — the connector
             // length-frames its records and enforces the GR14 '44' boundary checks.

@@ -52,12 +52,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                 + "description entry (ISO §14.9.40.3 SR4 — file-name-1 shall be described in an SD)");
             return new BoundNop();
         }
+        if (RecordLessSd(file)) return new BoundNop();
         if (SortRecordOf(file) is not { } record)
             // The MECHANISM is derived from the record itself (the R40 fleet: a fixed "VARIABLE-LENGTH"
             // string misdiagnosed a pointer-leafed record — the same wrong-cause defect twice removed).
-            return new BoundUnsupported(file.Records.Count > 0
-                ? TierCIsland.Reason(file.Records[0], "SORT SD record of")
-                : $"SORT '{file.CobolName}' without an SD record");
+            return new BoundUnsupported(TierCIsland.Reason(file.Records[0], "SORT SD record of"));
         int width = Model.RecordLayout.AreaWidth(record);
 
         var keys = new List<BoundSortMergeKey>();
@@ -221,6 +220,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                 + "description entry (ISO §14.9.24.3 — file-name-1 shall be described in an SD)");
             return new BoundNop();
         }
+        if (RecordLessSd(file)) return new BoundNop();
         if (SortRecordOf(file) is not { } record)
             return new BoundUnsupported($"MERGE '{file.CobolName}' without a usable SD record (Tier-C byte island, deferred)");
         int width = Model.RecordLayout.AreaWidth(record);
@@ -333,6 +333,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         // GR3 makes the record available in the WHOLE record area — resolve it through the LARGEST record's view
         // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the store (ST111A's
         // 50/75/100 SD). SortRecordOf stays the usability gate (the Tier-C byte-island fence).
+        if (RecordLessSd(file)) return new BoundNop();
         if (SortRecordOf(file) is null || file.AreaRecord is not { } areaRecord
             || ctx.Refs.ResolveItem(areaRecord) is not { } area)
             return new BoundUnsupported($"RETURN '{name}' without a usable SD record area");
@@ -352,6 +353,16 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     }
 
     // ── Shared sort-family helpers ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>⛔ An SD with NO record description entry is ILLEGAL SOURCE, not a compiler gap (kb/Work PB345).
+    /// §13.4.6.3 SR2 — "One or more record description entries shall be associated with the sort-merge file
+    /// description entry." — and <c>DataBinder.BindFileSection</c> has already rejected it, COBOLNET1837. Until
+    /// PB345 the three sort-family verbs fell into their <c>BoundUnsupported</c> arms instead, so the ONLY
+    /// diagnostic a record-less SD ever drew was <c>SORT 'S1' without an SD record — not implemented</c>
+    /// (COBOLNET1756, a WARNING): the compiler apologising for the source's error and then aborting the run unit
+    /// at the statement. The statement binds to a no-op here because the entry's own error already failed the
+    /// compile; announcing a DEFERRAL on top of it would be a second, wrong diagnosis of the same fault.</summary>
+    private static bool RecordLessSd(FileModel file) => file.Records.Count == 0;
 
     /// <summary>The SD's canonical record (the first 01 — secondary 01s share its area via the synthesized
     /// REDEFINES, ISO §9.1.2), or null when absent / not image-capable (the sort store carries record IMAGES —

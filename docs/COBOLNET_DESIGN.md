@@ -720,7 +720,11 @@ single-write-back.
 
 ### 8.1 The model
 
-The FD/SD record IS a `record struct` (the record area is a typed field, not a byte buffer). The only bytes are at
+The FD/SD record IS a `record struct` (the record area is a typed field, not a byte buffer). **Every FD has one**,
+including the entry §13.4.5.3 SR3 lets you write with NO record description entries: §14.9.30.4 GR6's implied
+"alphanumeric group item of the maximum size established by the RECORD clause" is synthesized at bind time
+(`COBOLNET_FILES_DESIGN` D18), so `FileModel.AreaRecord` is null only for a REPORT file and an FD-less SELECT. The
+only bytes are at
 the on-disk edge, produced by a compiler-GENERATED per-layout codec (`Serialize`/`Deserialize`) running only at READ
 and WRITE. **CODE-SET is one `Encoding` parameter threaded into that codec.** The proven 364-NIST legacy handlers are
 ported VERBATIM for *control logic* (open-mode tables, ISO §9.1.13 status codes, the file-position-indicator +

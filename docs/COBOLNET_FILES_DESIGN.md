@@ -7,7 +7,7 @@
 
 ## Summary
 
-Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records, clean byte boundary). Core architecture: the FD or SD record IS a .NET record struct (the record area is a typed field, not a byte buffer); the only bytes are at the on-disk edge, produced by a compiler-GENERATED per-layout codec (Serialize and Deserialize) running only at READ and WRITE. CODE-SET is one Encoding parameter threaded into that codec. The proven 364-NIST legacy handlers are ported VERBATIM for control logic (open-mode tables, ISO-cited status codes, the file-position-indicator plus key-of-reference plus duplicate-arrival state machines) but re-substrated from a byte array to a generic FileConnector plus an IRecordCodec. Covers all organizations (SEQUENTIAL, LINE SEQUENTIAL, RELATIVE, INDEXED), all access modes, OPEN CLOSE READ WRITE REWRITE DELETE START (CLOSE dispatching on the §14.9.6.4 GR2 physical-file category through Table 14 — D11), FILE STATUS as a two-char string item, variable-length records, prime and composite ALTERNATE keys, SAME RECORD AREA, SORT and MERGE, and LINAGE. Ordering and lookup keys are a typed-derived CobolKey comparable (numeric by decoded value, alphanumeric by image plus collating, composite component-wise), decoupled from the stored payload; one comparison policy shared by indexed files and SORT.
+Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records, clean byte boundary). Core architecture: the FD or SD record IS a .NET record struct (the record area is a typed field, not a byte buffer) — including for a file description entry written with NO record description entries, which §13.4.5.3 SR3 permits and which gets §14.9.30.4 GR6's implied entry synthesized at bind time (D18); the only bytes are at the on-disk edge, produced by a compiler-GENERATED per-layout codec (Serialize and Deserialize) running only at READ and WRITE. CODE-SET is one Encoding parameter threaded into that codec. The proven 364-NIST legacy handlers are ported VERBATIM for control logic (open-mode tables, ISO-cited status codes, the file-position-indicator plus key-of-reference plus duplicate-arrival state machines) but re-substrated from a byte array to a generic FileConnector plus an IRecordCodec. Covers all organizations (SEQUENTIAL, LINE SEQUENTIAL, RELATIVE, INDEXED), all access modes, OPEN CLOSE READ WRITE REWRITE DELETE START (CLOSE dispatching on the §14.9.6.4 GR2 physical-file category through Table 14 — D11), FILE STATUS as a two-char string item, variable-length records, prime and composite ALTERNATE keys, SAME RECORD AREA, SORT and MERGE, and LINAGE. Ordering and lookup keys are a typed-derived CobolKey comparable (numeric by decoded value, alphanumeric by image plus collating, composite component-wise), decoupled from the stored payload; one comparison policy shared by indexed files and SORT.
 
 ## Decisions
 
@@ -639,6 +639,43 @@ inventory rows were open for that one shape at once — this one, OPEN … WITH 
 READ direction (PB334). It cannot see a phrase the BINDER never stored, which was PB334's remaining half — now
 landed: `BoundRead` carries `ReadKind` and `InvalidKey`, so the drift test covers that arm too, and
 `previous` reaches `ReadFormat1Step` / `PeekFormat1RecordId` from BOTH emitters.
+### D18. A file description entry with NO record description entries still has a record area, and it is SYNTHESIZED AT BIND TIME — ISO §14.9.30.4 GR6's implied entry, made real — never worked around at the consumers.
+
+ISO §13.4.5.3 SR3 expressly contemplates the shape: *"When no record description entries are specified: a) a
+RECORD clause shall be specified in the file description entry, b) a FILE phrase specifying file-name-1 and the
+FROM phrase shall be specified on all WRITE and REWRITE statements associated with the file, and c) an INTO
+phrase shall be specified on all READ statements associated with the file."* SR7 confines the *one or more record
+description entries* requirement to INDEXED files, so `FD FIN RECORD CONTAINS 20 CHARACTERS.` with no level-01 is
+legal on both the sequential and the relative organizations. §14.9.30.4 GR6 then says exactly what that file's
+record area IS: a READ INTO *"proceeds as though there were one record description entry describing an
+alphanumeric group item of the maximum size established by the RECORD clause"*.
+
+**The decision:** `DataBinder.MaterializeImpliedRecord` builds that entry — an unnamed level-01 GROUP over one
+FILLER `PIC X(n)` — as the last act of binding each FD, and everything downstream sees an ordinary record.
+`FileModel.AreaRecord` is consequently non-null for every FD that can be opened with data, and is null only for a
+REPORT file (§13.4.5.3 SR8 forbids it record descriptions) and for a SELECT with no FD at all.
+
+- **A GROUP, not an elementary `PIC X(n)`,** because the distinction is observable: §14.9.25.4 makes a MOVE whose
+  sender is a group item a group (alphanumeric) move, so `READ … INTO` a numeric receiver copies bytes where an
+  elementary alphanumeric sender would convert. GR6 says "group item".
+- **Unnamed and off `ByName`,** because the entry is implied: the program cannot reference it, which is precisely
+  why SR3 b) and c) require the `FILE … FROM` and `INTO` phrases on the verbs.
+- **The size is "the maximum size established by the RECORD clause"** — format 1's integer-1, format 3's
+  integer-5, format 2's integer-3. A format-2 clause with no `TO` phrase establishes none (§13.18.43.4 GR10
+  defers to "the greatest number of bytes described for a record in that file", and none is described), and
+  neither does an absent clause, which §13.4.5.3 SR3 a) and §13.18.43.3 SR1 forbid outright: **COBOLNET1836**.
+- **The two entry kinds that take SR3's permission back are SCREENS, not fallbacks: COBOLNET1837.** §13.4.5.3 SR7
+  (INDEXED) and §13.4.6.3 SR2 (sort-merge) both require record description entries, because both are keyed and a
+  key is located IN a record (§12.4.5.12.3 SR2; §14.9.40.3 SR6 a).
+
+**Rejected alternatives.** *Register the connector and leave `AreaRecord` null* — the shape this replaced: the
+record-less arm was asked TWICE and answered differently (`SequentialIoEmitter.EmitFileRegistration` registered
+only a REPORT file; `KeyedIoEmitter.EmitRegistration` returned outright), so both organizations produced NO file
+connector and the first I-O verb aborted the run unit — and repairing registration ALONE would only have turned
+the crash into a silent no-op, because the READ record-area store and the implicit INTO move were separately
+guarded on the same null. Five null arms for one absent fact is four too many (`feedback_one_rule_one_place`).
+*Synthesize at emit time instead* — the record has to exist for the binder's own record-area resolution
+(`ReferenceResolver.ResolveItem`), not just for the registration call.
 
 ## C# mapping
 
