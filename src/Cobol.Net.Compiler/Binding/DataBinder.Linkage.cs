@@ -485,7 +485,11 @@ public sealed partial class DataBinder
 
         // The sanctioned RE-classification (see RedefinesClass.Classify): the cell re-base overrides any prior
         // stored-member verdict with the cell-backed Tier-B form (§13.18.22.4 GR5).
-        cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1)),
+        // The cell's area is the members' maximum STORAGE extent, in BYTES — §14.9.3.4 GR3's "the amount of
+        // storage to be allocated is the number of BYTES required to hold an item as described by data-name-1",
+        // and §13.18.44.4 GR1's larger-of-the-two for a multi-member class. Character positions are NOT that
+        // number for a NATIONAL leaf (two bytes per position, §13.18.60.4 GR8 / D-N1) — kb/Work PB231.
+        cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)),
             rejectReason: null);
         foreach (var member in cls.Members)
         {

@@ -984,13 +984,19 @@ both ways); negative corpus +1 (based-level-05).
   (§13.18.29) — grammar; parse error. (8) **National-form numerics / national-form boolean** (PIC 9 / PIC 1
   USAGE NATIONAL, §13.18.60.4 SR12) — direct 0899 in Analyze. (9) **FD/SD national records** (§8.1.2 +
   Latin-1 codec posture) — 0899 record gate. (10) **REDEFINES / EXTERNAL / ADDRESS-OF / BASED over national**
-  (RESIDUE-11, F10 GR20 byte arithmetic) — the ONE `DataBinder.ByteWindowResidueOf` gate rejects, and the
-  wording names the leg; the real fix = per-item byte offsets + UTF-16BE cell images, out of scope.
-  ⛔ **The "USAGE BIT in cells" half of this item is DISCHARGED** (kb/Work PB203 for the REDEFINES
-  surface, kb/Work PB231 for the EXTERNAL / ADDRESS-OF / BASED cells, 2026-09-04): a USAGE BIT run rides
-  every byte-window surface on the §8.5.1.6.3 packing the class offset walk already lays out — positive
-  witness `conformance:2002/pb231_based_bit_leaf`, drift pin `ByteWindowResidueDriftTests`. The pointer/
-  object-class leaf is the remaining third and is tracked separately (PB183 / PB231).
+  (RESIDUE-11) — ⛔ **DISCHARGED** (kb/Work PB231, 2026-09-05), and with it the "USAGE BIT in cells" half
+  discharged a day earlier (kb/Work PB203 for the REDEFINES surface, PB231 for the EXTERNAL / ADDRESS-OF /
+  BASED cells): a USAGE BIT run rides every byte-window surface on the §8.5.1.6.3 packing the class offset
+  walk already lays out, and a NATIONAL leaf rides it on its §13.18.60.4 GR8 two-bytes-per-position storage
+  extent — which is exactly the "per-item byte offsets + UTF-16BE cell images" this ledger entry named as the
+  real fix. The class walk's per-member advance became ONE authority (`DataBinder.ClassExtentBits` →
+  `BitLayout.WidthBits`), the class width and the in-class OCCURS stride became `ByteWidth`, and
+  `Place.NationalWindow` transcodes the pair through `CobolBits.NatReadWindow`/`NatWriteWindow`. Positive
+  witnesses `conformance:2002/pb231_based_bit_leaf`, `conformance:2002/pb231_based_national_leaf`,
+  `conformance:2002/pb231_national_byte_window`; drift pin `ByteWindowResidueDriftTests`. The pointer/
+  object-class leaf is the remaining third and is tracked separately (PB183 / PB231). ⚠ Item (9), the FD/SD
+  national record gate, is NOT part of this discharge: the record codec is the CHARACTER-POSITION image
+  channel, not the byte-window one — see D-N5 in `COBOLNET_DATA_MODEL_DESIGN.md`.
   (11) **STANDARD-COMPARE §15.85 / BYTE-LENGTH §15.14** — IntrinsicBind.Deferred (BYTE-LENGTH must answer 2×
   for national when it lands). *(NATIONAL-OF §15.66 / DISPLAY-OF §15.26 LANDED — P10 national wave; CHAR-NATIONAL
   §15.16 + the EC -N twins §15.29/§15.31 LANDED — P10 Step 11.)*

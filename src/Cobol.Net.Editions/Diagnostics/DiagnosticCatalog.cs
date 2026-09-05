@@ -404,19 +404,21 @@ public static class DiagnosticCatalog
         "ISO §14.9.6.3");
     public static readonly DiagnosticDescriptor BasedRecordSubstrate = new(
         "COBOLNET1695", "based-record-substrate", EditionSeverity.Error,
-        "A BASED record has a subordinate item the shared byte cell cannot carry — a NATIONAL leaf (two bytes "
-        + "per character position over a byte-addressed cell, the RESIDUE-11 layout) or a pointer-class leaf "
-        + "(POINTER/PROGRAM-POINTER/FUNCTION-POINTER/OBJECT-REFERENCE, which has no byte form at all, so "
-        + "§14.9.3.4 GR9's null-seeding has nowhere to write): the ALLOCATE/ADDRESS pointer bridge is "
-        + "recognized but not yet implemented for it. The message interpolates WHICH of the two it was — the "
-        + "residue clause the ONE gate DataBinder.ByteWindowResidueOf produced. Every NUMERIC leaf rides the "
-        + "cell on its pinned byte form — DISPLAY, BINARY, PACKED-DECIMAL, COMP-5, the IEEE float family and "
-        + "USAGE INDEX all have one — so a COMP leaf does not draw this (kb/Work PB164); and neither does a "
-        + "USAGE BIT leaf, whose §8.5.1.6.3 sub-byte packing rides every byte-window surface alike (kb/Work "
-        + "PB231 — it drew this diagnostic while the byte-identical REDEFINES spelling compiled and ran, "
-        + "because the cell gate and the REDEFINES gate were two hand-written lists that had drifted). "
-        + "Previously the class was rejected SILENTLY at bind and the program crashed at run time on its "
-        + "first ALLOCATE, while the EXTERNAL twin of the same failure always diagnosed at bind.",
+        "A BASED record has a subordinate item the shared byte cell cannot carry — today exactly ONE shape, a "
+        + "pointer-class leaf (POINTER/PROGRAM-POINTER/FUNCTION-POINTER/OBJECT-REFERENCE), which has no byte "
+        + "form at all, so §14.9.3.4 GR9's null-seeding has nowhere to write: the ALLOCATE/ADDRESS pointer "
+        + "bridge is recognized but not yet implemented for it. The message interpolates the residue clause "
+        + "the ONE gate DataBinder.ByteWindowResidueOf produced, so a future refusal names itself. Every "
+        + "NUMERIC leaf rides the cell on its pinned byte form — DISPLAY, BINARY, PACKED-DECIMAL, COMP-5, the "
+        + "IEEE float family and USAGE INDEX all have one — so a COMP leaf does not draw this (kb/Work "
+        + "PB164); neither does a USAGE BIT leaf, whose §8.5.1.6.3 sub-byte packing rides every byte-window "
+        + "surface alike (kb/Work PB231); and neither, since kb/Work PB231 discharged RESIDUE-11, does a "
+        + "NATIONAL leaf, whose §13.18.60.4 GR8 two-bytes-per-position storage extent the byte-addressed "
+        + "area now lays out and the window transcodes UTF-16BE. Both of those two drew this diagnostic while "
+        + "their byte-identical REDEFINES spelling compiled and ran, because the cell gate and the REDEFINES "
+        + "gate were two hand-written lists that had drifted. Previously the class was rejected SILENTLY at "
+        + "bind and the program crashed at run time on its first ALLOCATE, while the EXTERNAL twin of the "
+        + "same failure always diagnosed at bind.",
         "ISO §13.18.5 / §14.9.3");
     public static readonly DiagnosticDescriptor CancelTargetCategory = new(
         "COBOLNET1696", "cancel-target-category", EditionSeverity.Error,

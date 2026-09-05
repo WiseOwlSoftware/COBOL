@@ -3726,12 +3726,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // the exception is a WORKING-STORAGE/LOCAL/LINKAGE 01). Previously accepted SILENTLY — the
                 // classifier took the class-max width, giving the overlay byte-position semantics NO edition
                 // defines. The extent is the full OCCURS allocation (the "storage area required").
+                // ⛔ MEASURED IN BYTES, WHICH IS WHAT "storage area" MEANS (kb/Work PB231). SR8 compares
+                // STORAGE AREAS and §13.18.44.4 GR1 states the association in bits; character positions are the
+                // same number for every leaf kind but NATIONAL, whose §13.18.60.4 GR8 size this implementation
+                // pins at two bytes per position (D-N1). Read in positions, `01 G. 05 A PIC X(4).
+                // 05 B REDEFINES A PIC N(4).` compared 4 against 4 and was ACCEPTED while B requires eight
+                // bytes over a four-byte A — an under-rejection that then handed the class a backing half the
+                // size of one of its own views.
                 if (item.RedefinesTarget is { } tgt && tgt.Level != 1
-                    && item.ImageWidth * (item.Occurs ?? 1) > tgt.ImageWidth * (tgt.Occurs ?? 1))
+                    && item.ByteWidth * (item.Occurs ?? 1) > tgt.ByteWidth * (tgt.Occurs ?? 1))
                     Edition.Error("COBOLNET1539", $"'{item.CobolName ?? "FILLER"}' REDEFINES "
                         + $"'{tgt.CobolName ?? "FILLER"}': the redefining storage area "
-                        + $"({item.ImageWidth * (item.Occurs ?? 1)} characters) is larger than the redefined "
-                        + $"({tgt.ImageWidth * (tgt.Occurs ?? 1)}) — permitted only when the redefined item is "
+                        + $"({item.ByteWidth * (item.Occurs ?? 1)} bytes) is larger than the redefined "
+                        + $"({tgt.ByteWidth * (tgt.Occurs ?? 1)}) — permitted only when the redefined item is "
                         + "level 1 (ISO §13.18.44.3 SR8)");
             }
 
@@ -4031,8 +4038,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     reject = $"REDEFINES entry side '{m.CobolName ?? m.CsName}' is {vlShape} "
                         + "(ISO §13.18.44.3 SR17)";
                 }
-            // The width is a member table's FULL extent (every occurrence). ONE verdict application (P5.11d).
-            cls.Classify(tier, cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1)), reject);
+            // The width is a member table's FULL STORAGE extent (every occurrence) — §13.18.44.4 GR1: when the
+            // subject "requires more bits than the data item referenced by data-name-2, the storage area
+            // allocated … is the number of bits required by the data item referenced by the subject", i.e. the
+            // maximum over the members. In BYTES, never character positions (kb/Work PB231): the two differ for
+            // a NATIONAL member, whose §13.18.60.4 GR8 size is two bytes per position under D-N1, and a
+            // character-position maximum would under-size the shared backing by half of it.
+            // ONE verdict application (P5.11d).
+            cls.Classify(tier, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)), reject);
             // Each top-level member overlays the area from its start (a REDEFINES begins at the target's first
             // position, SR10); a subordinate accumulates its window offset within the member. Subordinates of any
             // member are themselves views (suppressed field, SR9).
@@ -4069,18 +4082,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static void AssignClassOffsets(DataItem item, int off, RedefinesClass cls) =>
         AssignClassOffsets(item, off * BitLayout.BitsPerCharacter, cls, item.HasBitDescendant);
 
+    /// <summary>⛔ THE ONE STORAGE EXTENT for the byte-addressed class walk: what a member ADVANCES the cursor
+    /// by, per occurrence, in the unit §13.18.44.4 GR1 states the association in ("an area sufficient to contain
+    /// the number of bits required by the data item referenced by the subject of the entry").
+    /// <para>It is <c>BitLayout.WidthBits</c> and nothing else. That method already answers the storage extent
+    /// for every shape: a bit leaf's declared boolean positions, an elementary item's
+    /// <c>ElementaryByteWidth × 8</c> — which is where the NATIONAL two-bytes-per-position lives (kb/Work PB231,
+    /// RESIDUE-11) — and a group's §8.5.1.6.3 cursor extent. The walk used to spell the byte case a SECOND way,
+    /// <c>ImageWidth × 8</c>, chosen by a <c>bitLaid</c> flag; the two agree for every leaf kind but national,
+    /// whose character-position count is HALF its storage extent, so the second spelling silently displaced
+    /// every member after a national one and under-sized the area. The flag is gone: the alignment rules below
+    /// still need to know whether sub-byte runs are in play, but the EXTENT has one authority.</para></summary>
+    private static int ClassExtentBits(DataItem c) => BitLayout.WidthBits(c) * (c.Occurs ?? 1);
+
     /// <summary>The walk proper, carrying the offset in BITS — the unit §13.18.44.4 GR1 states the storage
     /// association in ("starts at the first BIT … an area sufficient to contain the number of BITS required").
-    /// <para>⛔ <paramref name="bitLaid"/> selects between TWO SPELLINGS OF ONE LAW, not two laws (kb/Work
-    /// PB203, following the D19/PB43 discipline <see cref="DataItem.ImageWidth"/> already uses). When the
-    /// member's subtree holds no <c>USAGE BIT</c> leaf, the §8.5.1.6.3 cursor and the plain character sum agree
-    /// BY CONSTRUCTION — every item is byte-aligned and every advance is <c>ImageWidth × OCCURS</c> bytes — so
-    /// the sum is taken and the result is byte-identical for the whole bit-free corpus. When it does hold one,
-    /// the sum is WRONG in two ways at once and both are silent: two same-level bit members SHARE a byte
-    /// (§8.5.1.6.3 rule 1) so the sum hands the second its own byte, and every item after such a run is
-    /// displaced by the over-count. Measured before the fix on `01 A PIC X(1). 01 V REDEFINES A.
-    /// 05 F1 PIC 1(4) USAGE BIT. 05 F2 PIC 1(4) USAGE BIT.`: F1 read byte 0 as a character and F2 read PAST the
-    /// one-byte backing.</para></summary>
+    /// <para>⛔ <paramref name="bitLaid"/> now selects the ALIGNMENT rule only, never the extent (kb/Work PB231
+    /// collapsed the extent onto <see cref="ClassExtentBits"/>). When the member's subtree holds no
+    /// <c>USAGE BIT</c> leaf every item is byte-aligned, so §8.5.1.6.3's round-up is the identity and skipping it
+    /// is exact. When it does hold one, the round-up is what puts a bit run's successor on the next byte, and
+    /// omitting it is WRONG in two silent ways at once: two same-level bit members SHARE a byte (§8.5.1.6.3
+    /// rule 1) and every item after such a run is displaced. Measured before the PB203 fix on
+    /// `01 A PIC X(1). 01 V REDEFINES A. 05 F1 PIC 1(4) USAGE BIT. 05 F2 PIC 1(4) USAGE BIT.`: F1 read byte 0 as
+    /// a character and F2 read PAST the one-byte backing.</para></summary>
     private static void AssignClassOffsets(DataItem item, int bitOff, RedefinesClass cls, bool bitLaid)
     {
         item.ClassBitOffset = bitOff;
@@ -4108,8 +4132,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             AssignClassOffsets(c, cBit, cls, bitLaid);
             if (c.RedefinesTarget is null)
             {
-                childBit += (bitLaid ? BitLayout.WidthBits(c) : c.ImageWidth * BitLayout.BitsPerCharacter)
-                            * (c.Occurs ?? 1);
+                childBit += ClassExtentBits(c);
                 prev = c;
             }
         }
@@ -4166,11 +4189,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// and its own diagnostic. It is deliberately NOT routed here yet: folding it in would also start refusing
     /// a pointer-class leaf in a file record, a tightening kb/Work PB231 did not measure. The landing that
     /// discharges RESIDUE-11 should fold all three, and the note carries that instruction.</para></summary>
-    internal const string NationalResidue =
-        "a national leaf (the D-N1 2-byte-per-position byte-window layout is an undischarged documentation "
-        + "residue — RESIDUE-11; ISO §13.18.60.4 GR8 gives the implementor the size, and this "
-        + "implementation's national character is TWO bytes over a byte-addressed area)";
-
     internal static string? ByteWindowResidueOf(DataItem leaf)
     {
         // A pointer/object-class leaf is not a byte sequence at all — the managed pointer/reference cell has
@@ -4189,6 +4207,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (leaf.Pic is not { } p)
             return $"a leaf with no bound representation ('{leaf.CobolName ?? "FILLER"}' — the staged "
                 + "USAGE band; ISO §13.18.60)";
+        // ⛔ NATIONAL RIDES, IN BOTH ITS SPELLINGS — the PB231 arm that discharged RESIDUE-11, and asked
+        // through THE ONE national-window test rather than re-listing the population here. A national position
+        // occupies TWO bytes of the byte-addressed area (§13.18.60.4 GR8 leaves the size to the implementor —
+        // "National characters shall be represented in the storage of the computer as characters of a uniform
+        // size equal to or a multiple of the size of characters in the computer's alphanumeric character set" —
+        // and D-N1 pins two), and that is now the window's own geometry: the class walk advances by the
+        // member's STORAGE extent (ClassExtentBits → BitLayout.WidthBits → ElementaryByteWidth, already 2n for
+        // national), the class width is the members' maximum ByteWidth, and Place.NationalWindow transcodes the
+        // pair through CobolBits.NatReadWindow/NatWriteWindow — the same UTF-16BE serialization CONVERT's
+        // raw-storage channel and FUNCTION BYTE-LENGTH already answer with.
+        // ⛔ ONE PREDICATE, because the gate and the geometry must not be able to disagree about WHICH leaves
+        // are national. The two spellings are the CATEGORY (PIC N / USAGE NATIONAL) and the national-form
+        // NUMERIC (PIC 9 USAGE NATIONAL, §13.18.60.3 SR12 — staged loud earlier at COBOLNET0899, so this arm is
+        // the derived storage answer for the day that stage lifts rather than an observable one today).
+        if (NationalWindow.PositionsOf(leaf) is not null) return null;
         return p.Category switch
         {
             // One byte per character position (the documented item-209 serialization); an edited image is
@@ -4211,14 +4244,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // Every NUMERIC usage carries a pinned byte form since the Step D dissolution (kb/Work PB164) —
             // THE ONE image predicate, never a hand-rolled usage union.
             PicCategory.Numeric when p.HasImageByteForm => null,
-            // NATIONAL, by CATEGORY (PIC N / USAGE NATIONAL) or by a national-form NUMERIC (PIC 9 USAGE
-            // NATIONAL, §13.18.60.3 SR12 — staged loud earlier, screened here too so the two surfaces cannot
-            // disagree about it). ⛔ The usage is tested EXPLICITLY rather than inferred from "numeric with no
-            // byte form": that inference happens to hold today only because FLOAT-BINARY-128 and the decimal
-            // floats are rejected at ParseUsage, and a leaf mislabelled "national" in a residue message is
-            // exactly the kind of inherited half-truth CLAUDE.md rule 1 is about.
-            PicCategory.National => NationalResidue,
-            PicCategory.Numeric when p.Usage is Usage.National => NationalResidue,
             _ => $"a leaf of category {p.Category} and usage {p.Usage} with no pinned byte image "
                 + "(ISO §13.18.60.4 — no representation this model can lay out in a byte window)",
         };
@@ -4321,11 +4346,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // of 0x41 are `01000001`. Two members share one field only when they agree on the UNIT (both bit or
         // neither) and, being bit, on the boolean-position COUNT — `PIC 1(5)` and `PIC 1(8)` share a byte
         // ceiling and NOT a carrier. A mismatched pair drops to Tier B, whose windows carry the unit explicitly.
+        // ⛔ AND THE SAME UNIT FOR NATIONAL TOO (kb/Work PB231 — the PB203 defect re-run one category over, and
+        // the reason this arm is written as an agreement per UNIT rather than a bit special case). A national
+        // leaf's stored carrier is its PICTURE N(n) character positions while it OCCUPIES 2n bytes
+        // (§13.18.60.4 GR8 / D-N1), so `01 A PIC X(4). 01 B REDEFINES A PIC N(4).` matched on CLR type (string)
+        // and on ImageWidth (4) and B would have aliased A's four-CHARACTER field — reading alphanumeric
+        // characters as national ones, the exact shape `01 A PIC X(1). 01 B REDEFINES A PIC 1(8) USAGE BIT.`
+        // took. Two members share one field only when they agree on the UNIT (all three of bit, national and
+        // byte are units here) and, sharing a non-byte unit, on the POSITION COUNT. Everything else drops to
+        // Tier B, whose windows carry the unit explicitly. The extent test is ByteWidth for the same reason the
+        // class width is.
         DataItem canon = cls.Canonical;
+        static bool IsNatLeaf(DataItem d) => NationalWindow.PositionsOf(d) is not null;
         bool allAlias = canon.IsElementary && cls.Members.All(m =>
-            m.IsElementary && m.ElementType == canon.ElementType && m.ImageWidth == canon.ImageWidth
+            m.IsElementary && m.ElementType == canon.ElementType && m.ByteWidth == canon.ByteWidth
             && BitLayout.IsBitLeaf(m) == BitLayout.IsBitLeaf(canon)
-            && (!BitLayout.IsBitLeaf(m) || m.Pic!.Length == canon.Pic!.Length));
+            && (!BitLayout.IsBitLeaf(m) || m.Pic!.Length == canon.Pic!.Length)
+            && IsNatLeaf(m) == IsNatLeaf(canon)
+            && (!IsNatLeaf(m) || NationalWindow.PositionsOf(m) == NationalWindow.PositionsOf(canon)));
         if (allAlias) return RedefinesTier.Alias;
 
         // Tier B — DISPLAY-homogeneous: one string canonical of class-max width, each view an (offset,width) accessor.

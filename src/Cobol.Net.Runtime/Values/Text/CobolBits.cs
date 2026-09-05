@@ -127,8 +127,65 @@ public static class CobolBits
     /// storage-byte reductions are: the char==byte string convention is <see cref="Pack"/>'s.</summary>
     public static string NatBytes(string s)
     {
-        var image = new char[s.Length * 2];
-        for (int i = 0; i < s.Length; i++) { image[2 * i] = (char)(s[i] >> 8); image[2 * i + 1] = (char)(s[i] & 0xFF); }
+        var image = new char[s.Length * BytesPerNational];
+        for (int i = 0; i < s.Length; i++) PutNat(image, BytesPerNational * i, s[i]);
         return new string(image);
+    }
+
+    /// <summary>⛔ THE ONE national byte-order law, write side: the high-order byte of a national character
+    /// position occupies the LOWER-addressed byte (UTF-16 <b>BE</b>, D-N1). Shared by <see cref="NatBytes"/> (into
+    /// a fresh image) and <see cref="NatWriteWindow"/> (into a copy of an existing one), exactly as
+    /// <see cref="Blit"/> is shared by <see cref="Pack"/> and <see cref="WriteWindow"/>, so the two cannot
+    /// disagree about which byte comes first.</summary>
+    private static void PutNat(char[] buf, int at, char c)
+    {
+        buf[at] = (char)(c >> 8);
+        buf[at + 1] = (char)(c & 0xFF);
+    }
+
+    /// <summary>Bytes per national character position — ISO §13.18.60.4 GR8 leaves the size to the implementor
+    /// ("National characters shall be represented in the storage of the computer as characters of a uniform size
+    /// equal to or a multiple of the size of characters in the computer's alphanumeric character set. Each
+    /// implementor shall specify the size and representation of characters stored for usage NATIONAL") and
+    /// COBOL.NET pins <b>2</b> — determination D-N1/D-N3, and the answer <c>FUNCTION BYTE-LENGTH</c>, CONVERT's
+    /// raw-storage channel and CONFORMANCE.md items 33/188 already give.</summary>
+    public const int BytesPerNational = 2;
+
+    /// <summary>⛔ THE INVERSE OF <see cref="NatBytes"/>: decode <paramref name="positions"/> national character
+    /// positions from the UTF-16BE byte pairs at <paramref name="startByte"/> of a byte image (char==byte). A
+    /// pair that runs past the end of the image decodes as the national SPACE — the same benign short-window
+    /// decode <see cref="ReadWindow"/> gives a bit run, never a throw (a shared storage area may legitimately be
+    /// shorter than a view over it, §13.18.44.4 GR1's larger-of-the-two allocation notwithstanding, and a BASED
+    /// window over a hand-sized ALLOCATE is the reachable case).</summary>
+    public static string NatReadWindow(string image, int startByte, int positions)
+    {
+        var chars = new char[positions];
+        for (int i = 0; i < positions; i++)
+        {
+            int hi = startByte + BytesPerNational * i;
+            chars[i] = hi >= 0 && hi + 1 < image.Length
+                ? (char)((image[hi] << 8) | (image[hi + 1] & 0xFF))
+                : ' ';
+        }
+        return new string(chars);
+    }
+
+    /// <summary>The receiving twin of <see cref="NatReadWindow"/>: splice <paramref name="value"/>, fitted to
+    /// exactly <paramref name="positions"/> national positions, into <paramref name="image"/> as UTF-16BE byte
+    /// pairs starting at <paramref name="startByte"/>, leaving every other byte of the image untouched (ISO
+    /// §13.18.44.4 GR1 — the shared area is one storage area and a write through one view must not disturb the
+    /// bytes of another). Fitting happens in POSITIONS, before serialization: padding the BYTES with 0x20 would
+    /// manufacture U+2020 national characters instead of national spaces.</summary>
+    public static string NatWriteWindow(string image, int startByte, int positions, string value)
+    {
+        var buf = image.ToCharArray();
+        for (int i = 0; i < positions; i++)
+        {
+            int hi = startByte + BytesPerNational * i;
+            if (hi < 0) continue;
+            if (hi + 1 >= buf.Length) break;
+            PutNat(buf, hi, i < value.Length ? value[i] : ' ');
+        }
+        return new string(buf);
     }
 }

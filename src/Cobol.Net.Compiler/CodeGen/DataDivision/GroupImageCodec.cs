@@ -57,6 +57,26 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// native-field lane compose one occurrence from the same literal text (kb/Work PB208).</param>
     private string ImageInitOfOne(DataItem item, bool useValues, string? rawOverride = null)
     {
+        string image = CarrierInitOfOne(item, useValues, rawOverride);
+        // ⛔ A NATIONAL LEAF'S SEED IS ITS BYTES, NOT ITS CARRIER (kb/Work PB231). Everything this method seeds
+        // is a BYTE-ADDRESSED shared area — a Tier-B REDEFINES backing, an EXTERNAL run-unit cell, a
+        // BASED/ADDRESS-OF cell, an OO backing — and a national character position occupies TWO of those bytes
+        // (§13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two, UTF-16BE). Applied HERE, once,
+        // over whatever the carrier arms below composed, so the VALUE arm, the OPTIONS INITIALIZE fill arm and
+        // the no-clause space arm cannot each get it separately right or separately wrong — the same
+        // one-transform discipline the USAGE BIT arms use with CobolBits.Pack. MEASURED before the fix on
+        // `01 K. 05 KT PIC N(2) OCCURS 3. 01 KX REDEFINES K PIC X(12).`: KT(1)'s initial state read back as
+        // U+2020 U+2020 (two 0x20 fill BYTES paired) instead of the national spaces its struct-stored twin
+        // gets — a silent wrong answer on the first read of an uninitialized national member.
+        // A GROUP is never wrapped: PositionsOf answers null for it, and its national children were each
+        // wrapped by their own recursion through here.
+        return NationalWindow.PositionsOf(item) is not null ? RuntimeApi.NatBytes(image) : image;
+    }
+
+    /// <summary>The item's initial image in its VALUE CARRIER's own units — see <see cref="ImageInitOfOne"/>,
+    /// which applies the storage coding on top (kb/Work PB231).</summary>
+    private string CarrierInitOfOne(DataItem item, bool useValues, string? rawOverride = null)
+    {
         if (item.IsGroup)
         {
             // ⛔ A GROUP-LEVEL VALUE INITIALIZES THE AREA (ISO §13.18.63.4 GR5 — "the group area is initialized
@@ -139,8 +159,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     item.BlankWhenZero, pic.CurrencyString, ctx.Data.DecimalPointIsComma, pic.EditingRules));
             if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
-            // Boolean members of a Tier-B class contribute their zero-padded VALUE image (national never
-            // reaches a Tier-B backing — ComputeTier rejects the class; the arm is defensive).
+            // Boolean members of a Tier-B class contribute their zero-padded VALUE image.
             // ⛔ A USAGE BIT member contributes its PACKED image, not its carrier (D19/PB43): the backing is sized
             // from ImageWidth, which is now ceil(n/8), so seeding it with n carrier characters would silently
             // truncate against the backing width. Found by sweeping the OTHER image path after the AsImage/

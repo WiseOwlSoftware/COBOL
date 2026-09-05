@@ -137,42 +137,54 @@ public sealed class NationalBooleanDataTests
         EditionHarness.AssertHasDiagnostic(errors, "record");
     }
 
-    /// <summary>REDEFINES over a national item is refused LOUD (D-N2: §13.18.44 lays the shared area in
-    /// bytes; the documented 2-byte national character has no char-window overlay — Phase 4a residue #10).
-    /// The program must never run silently — the rejection surfaces either as a compile diagnostic or as the
-    /// Rejected-tier loud reference, and it names the national leg.</summary>
+    /// <summary>REDEFINES over a national item OVERLAYS ITS BYTES, and the overlay is the UTF-16BE pair
+    /// serialization (kb/Work PB231 — RESIDUE-11 discharged; these two tests USED to pin the refusal, which is
+    /// exactly the shape feedback_green_test_can_hold_a_gap_open warns about: a green test pinning a loud stage
+    /// reads as a decision).
+    /// <para>The derivation: §13.18.44.4 GR1 associates the storage of the two entries over "an area sufficient
+    /// to contain the number of bits required by the data item referenced by the subject of the entry", and
+    /// §13.18.60.4 GR8 leaves a national character's size to the implementor — COBOL.NET pins TWO bytes,
+    /// UTF-16BE (D-N1). So <c>01 A PIC N(4).</c> is an EIGHT-byte area and <c>01 B REDEFINES A PIC X(8).</c>
+    /// overlays it exactly. N"AB" is U+0041 U+0042, whose bytes are 00 41 00 42 — the high-order byte FIRST, so
+    /// B's second character is "A" and its fourth is "B". Reading them positionally is the assertion: a
+    /// little-endian pair or a one-byte-per-position layout would put "A" in position 1.</para></summary>
     [Fact]
-    public void Redefines_OverNationalItem_RefusedLoud()
+    public void Redefines_OverNationalItem_OverlaysItsUtf16BeBytes()
     {
         string src = Prog("NBDAT16", """
             01 A PIC N(4).
             01 B REDEFINES A PIC X(8).
             """, """
-            DISPLAY "B=" B.
+            MOVE N"AB" TO A
+            DISPLAY "B2=[" B(2:1) "] B4=[" B(4:1) "] LEN=" FUNCTION LENGTH(B).
             """);
-        var (ok, _, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
-        Assert.False(ok, "REDEFINES over a national item must not run silently (D-N2)");
-        Assert.True(detail.Contains("national", StringComparison.OrdinalIgnoreCase)
-            || detail.Contains("REDEFINES", StringComparison.OrdinalIgnoreCase),
-            $"the refusal must name the national/REDEFINES leg; got: {detail}");
+        var (ok, output, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
+        Assert.True(ok, $"REDEFINES over a national item is legal source — §13.18.44.3 restricts data-name-2 "
+            + $"only by class object/pointer, strong typing and variable length (SR14/SR17), never by a "
+            + $"national usage: {detail}");
+        Assert.Contains("B2=[A] B4=[B] LEN=8", output, StringComparison.Ordinal);
     }
 
-    /// <summary>An EXTERNAL group containing a national leaf is refused LOUD by the cell gate
-    /// (ForceStringCanonical — RESIDUE-11: F10 byte arithmetic vs the 2-byte national character; D-N2).
-    /// The reject wording names the residue.</summary>
+    /// <summary>An EXTERNAL group containing a national leaf is ORDINARY cell-backed storage (kb/Work PB231 —
+    /// the same discharge as the REDEFINES twin above, through the same gate: §13.18.22 conditions EXTERNAL on
+    /// nothing subordinate at all, and the run-unit cell is a byte area in which a national position takes its
+    /// two §13.18.60.4 GR8 bytes). The alphanumeric leaf after it proves the DISPLACEMENT: GX starts at byte 8,
+    /// not byte 4, so writing GN cannot disturb it.</summary>
     [Fact]
-    public void ExternalGroup_WithNationalLeaf_RefusedLoud_NamingResidue11()
+    public void ExternalGroup_WithNationalLeaf_IsCellBacked()
     {
         string src = Prog("NBDAT17", """
             01 G EXTERNAL.
                05 GN PIC N(4).
                05 GX PIC X(4).
             """, """
-            DISPLAY "GN=" GN.
+            MOVE N"WXYZ" TO GN
+            MOVE "abcd" TO GX
+            DISPLAY "GN=[" GN "] GX=[" GX "]".
             """);
-        var (ok, _, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
-        Assert.False(ok, "an EXTERNAL record with a national leaf must not run silently (D-N2/RESIDUE-11)");
-        Assert.Contains("RESIDUE-11", detail, StringComparison.OrdinalIgnoreCase);
+        var (ok, output, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
+        Assert.True(ok, $"an EXTERNAL record with a national leaf is legal source: {detail}");
+        Assert.Contains("GN=[WXYZ] GX=[abcd]", output, StringComparison.Ordinal);
     }
 
     // ── COBOLNET0844 — boolean relation misuse (ISO §8.8.4.2) ───────────────────────────────────────────────

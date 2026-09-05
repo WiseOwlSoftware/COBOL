@@ -87,13 +87,23 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
 /// </summary>
 public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int Width, DataItem ViewItem) : Place
 {
-    /// <summary>The §13.18.44.4 GR1 window expressed in BIT positions, set for — and only for — a member that is
-    /// a <c>USAGE BIT</c> item (kb/Work PB203). Null leaves the byte window above in force.
-    /// <para>⛔ Both units are one window over one backing, which is why this is a PAYLOAD rather than a second
-    /// <see cref="Place"/> subtype: every consumer that discriminates <c>is RedefViewPlace</c> is asking "is this
-    /// member's read already the value string?", and for a bit member the answer is still yes — the string is its
-    /// boolean carrier instead of its characters. Only <c>PlaceRenderer</c>'s Read/Write pair reads this.</para></summary>
-    public BitWindow? Bit { get; init; }
+    /// <summary>⛔ THE WINDOW'S CODING — how the member's VALUE CARRIER relates to the bytes of the class's one
+    /// backing. Null is the identity coding (an alphanumeric / edited / byte-form-numeric member, whose carrier
+    /// IS its bytes); <see cref="BitWindow"/> re-expresses the window in BIT positions (kb/Work PB203);
+    /// <see cref="NationalWindow"/> keeps the BYTE window and transcodes it UTF-16BE (kb/Work PB231 —
+    /// RESIDUE-11).
+    /// <para>⛔ ONE PAYLOAD, NOT ONE PER CODING, and not a second <see cref="Place"/> subtype. Every consumer
+    /// that discriminates <c>is RedefViewPlace</c> is asking "is this member's read already the value string?",
+    /// and for every coding the answer is still yes — the string is the member's boolean carrier or its national
+    /// characters instead of its bytes. Only <c>PlaceRenderer</c>'s Read/Write pair reads this, so a NEW coding
+    /// is one record here plus one arm there, and the byte-window channel cannot grow a coding that some surface
+    /// silently ignores. The WIDTH stays the member's <see cref="DataItem.ByteWidth"/> in every coding, because
+    /// the backing is byte-addressed (§13.18.44.4 GR1's "area sufficient to contain the number of bits
+    /// required").</para></summary>
+    public WindowCoding? Coding { get; init; }
+
+    /// <summary>The bit coding, or null — the discriminated read of <see cref="Coding"/>.</summary>
+    public BitWindow? Bit => Coding as BitWindow;
 
     /// <summary>⛔ THE ONE Tier-B window builder (kb/Work PB203). Three sites compose this window — the resolver
     /// (<c>ReferenceResolver.PlaceForItem</c>), the INITIALIZE receiver cursor and the MOVE CORRESPONDING leaf
@@ -114,12 +124,21 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
     public static RedefViewPlace For(AccessPath backing, DataItem item, string byteOffsetExpr,
                                      string? runtimeByteDisplacement = null, string occursBitTerms = "")
     {
-        var window = new RedefViewPlace(backing, byteOffsetExpr, item.ImageWidth, item);
+        // ⛔ THE WINDOW IS THE MEMBER'S STORAGE EXTENT, NOT ITS CHARACTER-POSITION COUNT (kb/Work PB231).
+        // §13.18.44.4 GR1 states the association over "an area sufficient to contain the number of BITS
+        // required by the data item referenced by the subject of the entry" and §14.9.3.4 GR3 the allocated
+        // area as "the number of BYTES required to hold an item as described by data-name-1" — both storage
+        // units. ByteWidth IS ImageWidth for every leaf kind but NATIONAL, whose §13.18.60.4 GR8 size this
+        // implementation pins at two bytes per position (D-N1), so this read is byte-identical everywhere
+        // else and is the whole of RESIDUE-11's geometry here.
+        var window = new RedefViewPlace(backing, byteOffsetExpr, item.ByteWidth, item);
+        if (NationalWindow.PositionsOf(item) is { } positions)
+            return window with { Coding = new NationalWindow(positions) };
         if (!BitLayout.IsBitItem(item)) return window;
         string at = runtimeByteDisplacement is null or "" or "0"
             ? $"{item.ClassBitOffset}"
             : $"{BitLayout.BitsPerCharacter} * ({runtimeByteDisplacement}) + {item.ClassBitOffset}";
-        return window with { Bit = new BitWindow(at + occursBitTerms, BitLayout.WidthBits(item)) };
+        return window with { Coding = new BitWindow(at + occursBitTerms, BitLayout.WidthBits(item)) };
     }
 
     /// <inheritdoc/>
@@ -129,10 +148,39 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
     public override DataItem Item => ViewItem;
 }
 
+/// <summary>The CODING of a <see cref="RedefViewPlace"/> window over the class's one byte backing — the relation
+/// between the member's VALUE CARRIER and the bytes it occupies. The absence of a coding (a null
+/// <see cref="RedefViewPlace.Coding"/>) is the identity: an alphanumeric, edited or byte-form-numeric member's
+/// carrier IS its bytes. Every coding keeps the window's byte geometry (<see cref="RedefViewPlace.OffsetExpr"/>
+/// and <see cref="RedefViewPlace.Width"/>, in bytes); a coding that also re-expresses the geometry in a finer
+/// unit carries it itself, as <see cref="BitWindow"/> does.</summary>
+public abstract record WindowCoding;
+
 /// <summary>A <see cref="RedefViewPlace"/>'s BIT window: the 0-based ABSOLUTE bit offset within the class's one
 /// byte backing (the D10 transitional expression string) and the member's boolean-position count
 /// (§13.18.29.4 GR1b's <c>m</c> for a bit group, the PICTURE 1(n) length for a bit leaf).</summary>
-public readonly record struct BitWindow(string OffsetExpr, int Bits);
+public sealed record BitWindow(string OffsetExpr, int Bits) : WindowCoding;
+
+/// <summary>A <see cref="RedefViewPlace"/>'s NATIONAL window (kb/Work PB231 — RESIDUE-11): the member occupies
+/// <see cref="RedefViewPlace.Width"/> bytes of the backing, two per national character position (ISO
+/// §13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two), holding the UTF-16BE serialization
+/// <c>CobolBits.NatBytes</c> already defines for every other national storage channel. <paramref name="Positions"/>
+/// is the character-position count the member's VALUE carrier holds — <c>Width / 2</c>, carried explicitly so the
+/// renderer never re-derives it.</summary>
+public sealed record NationalWindow(int Positions) : WindowCoding
+{
+    /// <summary>⛔ THE ONE test for "does this member ride the backing as national bytes?", and the position
+    /// count when it does. It is the CATEGORY plus the national-form NUMERIC (<c>PIC 9 USAGE NATIONAL</c>,
+    /// §13.18.60.3 SR12) — the same two shapes <c>DataBinder.ByteWindowResidueOf</c> used to refuse together,
+    /// so admitting them cannot drift apart from the geometry that carries them. A national GROUP is not one of
+    /// them: §13.18.29.4 GR2b makes it as-if <c>PICTURE N(m)</c> but its LAYOUT stays its children's (D20), and
+    /// each national leaf inside it gets its own window.</summary>
+    public static int? PositionsOf(DataItem item) =>
+        item.IsElementary && item.Pic is { } p
+        && (p.Category is PicCategory.National || (p.Category is PicCategory.Numeric && p.Usage is Usage.National))
+            ? p.Category is PicCategory.National ? p.Length : item.ElementaryImageWidth
+            : null;
+}
 
 /// <summary>
 /// A level-66 RENAMES place (ISO §13.18.45): ONE elementary-alphanumeric view composed over the spanned record

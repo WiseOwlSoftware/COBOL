@@ -753,7 +753,12 @@ public sealed class ReferenceResolver(DataBinder data)
             string bitTerms = "";
             for (int k = 0; k < occursLevels.Count; k++)
             {
-                offset += $" + ({indexExprs[k]} - 1) * {occursLevels[k].ImageWidth}";
+                // The BYTE stride is the level's STORAGE extent, never its character-position count (kb/Work
+                // PB231): the backing is byte-addressed and a NATIONAL element occupies two bytes per position
+                // (§13.18.60.4 GR8 / D-N1), so `05 T PIC N(2) OCCURS 3` strides FOUR bytes. ByteWidth is
+                // ImageWidth for every other leaf kind, so this is byte-identical elsewhere — the same
+                // relationship the bit twin below has to it.
+                offset += $" + ({indexExprs[k]} - 1) * {occursLevels[k].ByteWidth}";
                 bitTerms += $" + ({indexExprs[k]} - 1) * {BitLayout.WidthBits(occursLevels[k])}";
             }
             // A BASED class's window is displaced by the data-address pointer's runtime offset (ISO §13.18.5
@@ -905,7 +910,9 @@ public sealed class ReferenceResolver(DataBinder data)
             if (n.Occurs is not null) occursLevels.Add(n);
         occursLevels.Reverse();
         if (occursLevels.Count != exprs.Count) return null;   // wrong subscript count → loud
-        string disp = string.Join(" + ", occursLevels.Select((lv, k) => $"({exprs[k]} - 1) * {lv.ImageWidth}"));
+        // ByteWidth, for the same reason as the PlaceForItem twin above: the class backing is byte-addressed
+        // and a NATIONAL element strides two bytes per position (kb/Work PB231; §13.18.60.4 GR8 / D-N1).
+        string disp = string.Join(" + ", occursLevels.Select((lv, k) => $"({exprs[k]} - 1) * {lv.ByteWidth}"));
         return (item, disp);
     }
 

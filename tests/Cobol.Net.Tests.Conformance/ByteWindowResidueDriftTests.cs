@@ -27,9 +27,12 @@ namespace CobolNet.Tests.Conformance;
 /// recorded instance of this repo's two-arm-dispatch shape, and this file is what makes the tenth impossible:
 /// the four surfaces must return the SAME verdict for the same leaf, whatever that verdict is.</para>
 /// <para>The AGREEMENT half is deliberately stated without hard-coding the verdict, so the landing that
-/// discharges RESIDUE-11 (the D-N1 2-byte national byte-window layout) or the pointer-slot residue does not
-/// have to edit it. The PINNED half below states the verdicts that are settled today, so "they all agree"
-/// can never be satisfied by all four regressing together.</para>
+/// discharges a residue does not have to edit it. The PINNED half below states the verdicts that are settled
+/// today, so "they all agree" can never be satisfied by all four regressing together.</para>
+/// <para>⛔ IT WORKED AS DESIGNED. kb/Work PB231's NATIONAL third — RESIDUE-11, the D-N1 two-bytes-per-position
+/// byte-window layout — was discharged by ONE edit to the gate plus the geometry behind it, and the only change
+/// needed in this file was flipping the expectation column. One residue is left: the pointer/object-class
+/// leaf.</para>
 /// </summary>
 public sealed class ByteWindowResidueDriftTests
 {
@@ -54,10 +57,20 @@ public sealed class ByteWindowResidueDriftTests
         { "BWR06", "PIC 1(8)", 8, true },
         { "BWR07", "PIC 1(8) USAGE BIT", 1, true },
         { "BWR08", "PIC 1(4) USAGE BIT", 1, true },
-        // NATIONAL — refused on every surface alike while RESIDUE-11 (the D-N1 2-byte-per-position
-        // byte-window layout) is undischarged. §13.18.60.4 GR8 leaves the size to the implementor and this
-        // implementation's national character is TWO bytes over a byte-addressed area.
-        { "BWR09", "PIC N(4)", 8, false },
+        // NATIONAL, in BOTH its spellings — the category (PIC N / USAGE NATIONAL) and the national-form
+        // NUMERIC (PIC 9 USAGE NATIONAL, §13.18.60.3 SR12). ⛔ CARRIED since kb/Work PB231 discharged
+        // RESIDUE-11: §13.18.60.4 GR8 leaves the size to the implementor ("characters of a uniform size equal
+        // to or a multiple of the size of characters in the computer's alphanumeric character set") and D-N1
+        // pins TWO bytes, so the leaf's storage extent is 2n and the window transcodes the UTF-16BE pair
+        // (Place.NationalWindow / CobolBits.NatReadWindow). The BYTES column is what proves it: an alias of
+        // 2n is what the REDEFINES spelling needs and what §14.9.3.4 GR3 allocates.
+        { "BWR09", "PIC N(4)", 8, true },
+        // ⚠ NOT A ROW, AND THE REASON IS MEASURED, NOT DEDUCED: the gate's OTHER national spelling, a
+        // national-form NUMERIC (`PIC 9(3) USAGE NATIONAL`, §13.18.60.3 SR12), never reaches any of these four
+        // surfaces — `CheckDataAttributes` stages it loud at COBOLNET0899 ("national-form numeric data … is
+        // recognized but not yet implemented", the Phase 4a national-DIGITS residue) before storage
+        // classification runs. Its arm in ByteWindowResidueOf is the derived storage answer for the day that
+        // stage lifts, and it is carried there rather than here so the two national spellings cannot drift.
     };
 
     /// <summary>⛔ THE AGREEMENT ASSERTION: all four byte-window surfaces return the same verdict for the
@@ -98,27 +111,39 @@ public sealed class ByteWindowResidueDriftTests
                 + $"{(ok ? "carried" : "refused")} — {detail}");
     }
 
-    /// <summary>A refusal must NAME its residue, so the agreement above can never be satisfied by two
-    /// surfaces failing for two unrelated reasons (feedback_probe_the_shape_the_subject_hides).</summary>
-    [Theory]
-    [MemberData(nameof(Leaves))]
-    public void ARefusal_NamesItsResidue(string tag, string leaf, int bytes, bool carried)
+    /// <summary>A refusal must NAME its residue, so the agreement above can never be satisfied by two surfaces
+    /// failing for two unrelated reasons (feedback_probe_the_shape_the_subject_hides).
+    /// <para>⛔ IT IS A FACT OVER ONE MEASURED SHAPE, NOT A THEORY OVER THE TABLE ABOVE, and that is the honest
+    /// form after kb/Work PB231's national landing: every row of that table is now CARRIED, so a per-row
+    /// refusal assertion would assert nothing at all and pass — a green that looked at nothing
+    /// (feedback_measure_the_selectors_complement). Exactly ONE refusal still reaches the gate, and it needs a
+    /// shape the table's templates cannot express: §13.18.60.3 SR14 admits a pointer USAGE only "for an
+    /// elementary data item at level 1 or an elementary data item subordinate to a type declaration that
+    /// includes the STRONG phrase", so a `05 L USAGE POINTER` under any of the four templates is rejected
+    /// COBOLNET1724 at the DECLARATION and the compile never reaches storage classification. The level-1
+    /// elementary BASED spelling below is the reachable one — PB231's remaining pointer third — and this test
+    /// goes red the day it lands, which is correct: that landing owns this file too.</para></summary>
+    [Fact]
+    public void ARefusal_NamesItsResidue()
     {
-        if (carried) return;
-        foreach (var (surface, src) in new[]
-        {
-            ("REDEFINES", Redefines(tag + "N1", leaf, bytes)),
-            ("EXTERNAL",  External(tag + "N2", leaf)),
-            ("BASED",     Based(tag + "N3", leaf)),
-            ("ADDRESS-OF",AddressOf(tag + "N4", leaf)),
-        })
-        {
-            var (_, detail) = Run(src);
-            Assert.True(detail.Contains("RESIDUE-11", StringComparison.Ordinal)
-                || detail.Contains("pointer/object-class", StringComparison.Ordinal)
-                || detail.Contains("no pinned byte image", StringComparison.Ordinal),
-                $"{surface} over '{leaf}' refused without naming the byte-window residue: {detail}");
-        }
+        var (ok, detail) = Run("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BWRPTR1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 P USAGE POINTER BASED.
+            01 WS-P USAGE POINTER.
+            PROCEDURE DIVISION.
+            MAIN.
+                ALLOCATE P RETURNING WS-P
+                FREE WS-P
+                STOP RUN.
+            """);
+        Assert.False(ok, "the pointer-class byte-window residue is discharged — kb/Work PB231's last third has "
+            + "landed, so this test and the table above must be updated together");
+        Assert.True(detail.Contains("pointer/object-class", StringComparison.Ordinal),
+            $"the BASED surface refused a level-1 pointer item without naming the byte-window residue "
+            + $"DataBinder.ByteWindowResidueOf produced: {detail}");
     }
 
     private static (bool Ok, string Detail) Run(string src)

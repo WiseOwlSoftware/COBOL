@@ -176,6 +176,8 @@
     "l1_set_sr12a2_class_conformance",
     "l1_set_sr12c2_self_conformance",
     "pb231_based_bit_leaf",
+    "pb231_based_national_leaf",
+    "pb231_national_byte_window",
     "pb230_incompatible_sending_sweep",
     "pb230_incompatible_boolean_sending",
     "pb235_close_unit_locks",

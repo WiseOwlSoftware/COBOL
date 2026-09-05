@@ -192,12 +192,23 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 ### D8. National and boolean data ride the fixed-width STRING substrate (the full decision set D-N1..D-N4/D-B1 lives in `PHASE4_RECONCILIATION.md`).
 
-- **D-N1 national**: an elementary national item is a plain C# `string` of `Length` characters — .NET strings are
-  natively UTF-16, so "two bytes per character position" is the documented implementor choice (§13.18.60.4 GR8 +
-  §8.1.2 NOTE 2). ALL width machinery stays CHARACTER-position based; `ImageWidth` is NEVER byte-doubled.
-- **D-N2 byte≠char containment**: every byte-addressed surface REFUSES a national leaf loud (REDEFINES ComputeTier,
-  EXTERNAL/ADDRESS-OF/BASED cells via ForceStringCanonical, FD/SD records, SORT keys) until the 2-byte layout
-  residue lands (RESIDUE-11 coordination with the pointer track).
+- **D-N1 national**: an elementary national item's VALUE CARRIER is a plain C# `string` of `Length` characters —
+  .NET strings are natively UTF-16, so "two bytes per character position" is the documented implementor choice
+  (§13.18.60.4 GR8 + §8.1.2 NOTE 2). `ImageWidth` counts CHARACTER POSITIONS and is never byte-doubled;
+  `ByteWidth` counts the STORAGE the item occupies and is `2 × Length`. **The two are equal for every other leaf
+  kind, and national is the ONE place they differ — so which one a site reads is a real decision, not a style
+  choice.** A site counting what an item OCCUPIES reads `ByteWidth`; a site counting the carrier's positions
+  reads `ImageWidth`.
+- **D-N2 byte≠char containment** (NARROWED 2026-09-05, kb/Work PB231 — RESIDUE-11 DISCHARGED on the byte-window
+  channel). The BYTE-WINDOW surfaces — REDEFINES (`ComputeTier`), and the EXTERNAL / ADDRESS-OF / BASED cells
+  (`ForceStringCanonical`) — now CARRY a national leaf: the class walk advances by each member's storage extent
+  (`ClassExtentBits` → `BitLayout.WidthBits` → `ElementaryByteWidth`), the class width is the members' maximum
+  `ByteWidth`, the in-class OCCURS stride is `ByteWidth`, and `Place.NationalWindow` transcodes the window's
+  UTF-16BE pairs through `CobolBits.NatReadWindow`/`NatWriteWindow` — the same serialization `NatBytes` already
+  gave CONVERT's raw-storage channel. The §13.18.44.3 SR8 size screen and the Tier-A alias arm read `ByteWidth`
+  for the same reason. **STILL REFUSED, and each for its own reason, not this one:** an FD/SD record with a
+  national leaf (COBOLNET0899 — a DIFFERENT channel; see D-N5) and a pointer-class leaf on any byte-window
+  surface (§13.18.60.3 SR14 / PB183 — no byte image at all; PB231's remaining third).
 - **D-BW1 THE ONE BYTE-WINDOW CARRIAGE GATE** (kb/Work PB231, 2026-09-04). The question "may this LEAF ride a
   shared byte-window storage area?" has exactly ONE answer in the tree — `DataBinder.ByteWindowResidueOf`,
   which returns null when the leaf may and the residue clause naming why not when it may not. It is an
@@ -214,6 +225,24 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
   left the cell surface refusing them, so a BASED/EXTERNAL/ADDRESS-OF record rejected legal source that its
   byte-identical REDEFINES twin compiled and ran. `ByteWindowResidueDriftTests` pins all four surfaces to one
   verdict per leaf; discharging either residue is now a single edit that opens every surface at once.
+  **⛔ THAT CLAIM WAS TESTED AND HELD (2026-09-05):** discharging the NATIONAL residue was one edit to the
+  gate — two arms from a residue clause to `null` — plus the geometry behind it, and every one of the four
+  surfaces opened together. **Refused today: the pointer/object-class leaf, and nothing else.** The
+  carried population is now the character categories, every NUMERIC usage on its pinned byte form, BOOLEAN in
+  both representations, and NATIONAL in both spellings (the category, and the national-form numeric — whose
+  arm is derived but unreachable while `CheckDataAttributes` stages national DIGITS loud at COBOLNET0899).
+- **D-N5 the RECORD-IMAGE channel is NOT the byte-window channel, and it still halves a national leaf**
+  (kb/Work PB231, 2026-09-05). `GroupImageCodec.AsImageOf` composes a group's CHARACTER-POSITION image at
+  `ImageWidth` per leaf; the FD/SD record codec and DISPLAY/group-MOVE/group-ref-mod ride it, so a national
+  member contributes ONE character per position there while `FUNCTION LENGTH` counts its two (§15.50.4 r3
+  — an alphanumeric group's length is "in alphanumeric character positions", and §13.18.60.4 GR8 makes a
+  national position a MULTIPLE of one of those). CONFORMANCE.md DOC-A.1-57 records that divergence as
+  "sanctioned"; the PB231 derivation says it is a WRONG ANSWER, and closing it means byte-doubling
+  `ImageWidth` itself — which re-decides DISPLAY, group MOVE, group ref-mod, §13.18.29.4 GR2b's as-if
+  `PICTURE N(m)` and the on-disk record layout at once. That is an OWNER decision, filed rather than taken.
+  ⛔ The SEED lane is the one part of the record codec that IS byte-addressed — `ImageInitOf` seeds only
+  byte backings — and it was corrected with the rest: an uninitialized national member of a class used to
+  read back U+2020 (two 0x20 fill bytes paired) instead of national spaces.
 - **D-N3 collating**: national comparisons order by UTF-16 code-unit ordinal (the implementor default national
   sequence); the ALPHANUMERIC program collating sequence never applies (separate sequences — §8.8.4.2.9; the
   alphanumeric table is a distinct full-UTF-16-range sequence, never consulted for national comparisons and no longer `& 0xFF`-masked, post-CA26). A NON-native national sequence exists via
@@ -342,7 +371,7 @@ bits. Three consequences, each of them a rule rather than a case:
 
 | surface | rule |
 |---|---|
-| `DataItem.ClassBitOffset` | the member's in-class offset in BITS — `8 × ClassOffset` for every byte-aligned item, and different only where §8.5.1.6.3 shares a byte. `DataBinder.AssignClassOffsets` carries the bit cursor and applies rules 1–2 of the walk above, **gated on `HasBitDescendant`** exactly as `ImageWidth` is — byte-identical for every bit-free class |
+| `DataItem.ClassBitOffset` | the member's in-class offset in BITS — `8 × ClassOffset` for every byte-aligned item, and different only where §8.5.1.6.3 shares a byte. `DataBinder.AssignClassOffsets` carries the bit cursor; **`HasBitDescendant` now gates only the ALIGNMENT round-up** (a no-op in a byte-aligned class, so still byte-identical for every bit-free one), while the per-member ADVANCE has ONE authority for every shape — `DataBinder.ClassExtentBits` → `BitLayout.WidthBits`, which is where the national two-bytes-per-position extent lives (kb/Work PB231). The advance used to be spelled a second way, `ImageWidth × 8`, and that second spelling was exactly half the truth for a national member |
 | the window builder | ONE factory, `RedefViewPlace.For`. Three sites compose a Tier-B window (the resolver, the INITIALIZE receiver cursor, the MOVE CORRESPONDING leaf cursor) and each carried its own copy of the offset law, which is how the bit unit came to be missing from all three at once |
 | the subscript stride | a bit member's occurrences lie at successive BIT positions, so the stride is `BitLayout.WidthBits`, not the item's `ceil(n/8)` byte ceiling — `PIC 1(4) USAGE BIT OCCURS 6` strides 4 bits |
 
@@ -352,9 +381,10 @@ bits. Three consequences, each of them a rule rather than a case:
 01 B REDEFINES A PIC 1(8) USAGE BIT.` matched on both counts and B aliased A's one-CHARACTER field. Members share
 one field only when they agree on the UNIT (both bit or neither) and, being bit, on the boolean-position COUNT.
 
-**What is still OUT, and it is a REJECTION rather than a wrong answer:** a class containing a NATIONAL leaf stays
-Tier-D (the D-N1 2-byte-per-position overlay, RESIDUE-11). That is the only shape of §13.18.44.4 GR1 this model
-does not carry.
+**What is still OUT, and it is a REJECTION rather than a wrong answer:** a class containing a POINTER-CLASS leaf
+stays Tier-D (§13.18.60.3 SR14 / PB183 — no byte image for §14.9.3.4 GR9's null-seeding to write into). That is
+the only shape of §13.18.44.4 GR1 this model does not carry. The NATIONAL leaf joined the model on 2026-09-05
+(kb/Work PB231 — RESIDUE-11; see D-N2).
 
 ### D20. GROUP-USAGE (§13.18.29): a bit group / national group is STRUCTURALLY a group and SEMANTICALLY an elementary boolean / national item — ONE as-if PICTURE on the DataItem, consulted by every category reader; the layout stays the group's. (kb/Work PB79.)
 

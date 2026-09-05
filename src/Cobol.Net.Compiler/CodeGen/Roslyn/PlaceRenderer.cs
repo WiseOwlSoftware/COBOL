@@ -66,8 +66,16 @@ internal static class PlaceRenderer
         // the storage association in BITS and §13.18.29.4 GR1c sends a bit group's members through §8.5.1.6.3, so
         // the member's positions are bit positions and its VALUE is the boolean carrier they hold — never the
         // characters of the byte that happens to contain them.
-        RedefViewPlace { Bit: { } b } v => RuntimeApi.BitsReadWindow(
+        RedefViewPlace { Coding: BitWindow b } v => RuntimeApi.BitsReadWindow(
             RenderPath(v.Backing, AccessDir.Sending), $"(int)({b.OffsetExpr})", b.Bits.ToString()),
+        // A NATIONAL member of the class (kb/Work PB231 — RESIDUE-11): its window is still the byte window
+        // above, but a national character position occupies TWO of those bytes (ISO §13.18.60.4 GR8 leaves the
+        // size to the implementor; D-N1 pins two), so the read TRANSCODES the UTF-16BE pair back to the
+        // member's value carrier — exactly as the bit arm reads a boolean carrier rather than the characters of
+        // the byte that holds it. The offset is 0-based here (the runtime window helpers count from zero,
+        // unlike the 1-based CobolString ref-mod the identity arm below uses).
+        RedefViewPlace { Coding: NationalWindow n } v => RuntimeApi.NatReadWindow(
+            RenderPath(v.Backing, AccessDir.Sending), $"(int)({v.OffsetExpr})", n.Positions.ToString()),
         RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
@@ -142,8 +150,15 @@ internal static class PlaceRenderer
         // same-level bit members at successive bit positions of the SAME byte, so a byte-granular store through
         // either would silently clobber the other. The value is first stored to exactly the member's boolean
         // position count with §14.6.8.6's boolean-ZERO fill.
-        RedefViewPlace { Bit: { } b } v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
+        RedefViewPlace { Coding: BitWindow b } v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
             $"{RuntimeApi.BitsWriteWindow(RenderPath(v.Backing, AccessDir.Sending), $"(int)({b.OffsetExpr})", RuntimeApi.StrStoreBoolean(rhs, b.Bits.ToString(), justifiedRight: false))};",
+        // Splice the member's NATIONAL positions back into the class's ONE backing as UTF-16BE byte pairs,
+        // leaving every other byte untouched (kb/Work PB231; §13.18.44.4 GR1 — one storage area, so a write
+        // through one view must not disturb another's bytes). The receiving twin of the national read arm; the
+        // fit to exactly the member's position count happens in POSITIONS inside the runtime helper, because
+        // padding the BYTES would manufacture U+2020 characters instead of national spaces.
+        RedefViewPlace { Coding: NationalWindow n } v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
+            $"{RuntimeApi.NatWriteWindow(RenderPath(v.Backing, AccessDir.Sending), $"(int)({v.OffsetExpr})", n.Positions.ToString(), rhs)};",
         // Splice the new image back into the class's ONE backing, preserving its full width (§13.18.44).
         RedefViewPlace v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
             $"{RuntimeApi.StrSpliceInto(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString(), rhs)};",
