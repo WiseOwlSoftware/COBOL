@@ -42,7 +42,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   second derivation is the guarantee; every agent is **hard-capped** at 160 turns read-only / 220 for an
   implementer, splitting rather than extending; and one lander may carry **five clusters in one landing**, one
   commit per cluster, one landing per transcript. `.claude/skills/workstream/SKILL.md` carries the mechanics.
-  **Open owner questions:** the six from the process review live in `kb/Work/PB468` (implementer cap 3 → 6; table
+  **2026-09-05:** the implementer cap is **six** (was three; PB468 Q4) — the three-slot lane ran at full utilization
+  all morning while the lander idled half the time — and the slots are filled one item per SUBSYSTEM, never six down
+  the rank list.
+  **Open owner questions:** the five from the process review live in `kb/Work/PB468` (table
   tests closing many rows; effort tiers; the ~120 already-OK SR/AR "shall" rows with positive-only evidence; Report
   Writer staying claimed; extending PB386's derivation arm class by class), plus the `USAGE POINTER TO type-name`
   edition item (`A1`). ⛔ Run the probe; **the worklist is `kb/Work/` — `python scripts/spec/work.py next` — never

@@ -59,7 +59,13 @@ which case the register's own clustering rule says they were one mechanism to be
 split into four fresh ~198-turn landers model at **140 M — 53 % less**. (What a lander may batch is *clusters
 inside one landing* — §3.)
 
-**The budget stays: 1 lander + ≤3 implementers + one 4-wide read-only chunk (≈8 agents).** It is an
+**The budget: 1 lander + ≤6 implementers + one 4-wide read-only chunk (≈11 agents).** ⭐ The implementer cap was
+**raised from 3 to 6 by owner decision on 2026-09-05** (`kb/Work/PB468` Q4), on the measurement that the 3-slot lane ran
+at ~100 % utilization all morning while the lander sat idle half the time (≈48 min per implementer, ≈33 min per
+four-cluster landing); six implementers saturate one lander with five- or six-cluster trains, which is the band above.
+⛔ **Fill the six slots ONE ITEM PER SUBSYSTEM** (the top of `work.py next` for each of binding, codegen, frontend/grammar,
+runtime, io …), never six items down the rank list: twelve consecutive file-I/O clusters on 2026-09-05 forced serial
+branches, a six-conflict mid-flight merge (~70 turns) and measured-overlap manifests for every train. It is an
 error-containment cap, and ⓜ it is TOKENS, not slots, that the weekly limit rations — so the budget is a default,
 while the caps above are what actually control spend. Workflows take `concurrency`/`refuteConcurrency` args and run
 chunks with `parallel()` inside a loop, never a 16-wide `pipeline`. A fleet over ~40 agents is the signal to SPLIT

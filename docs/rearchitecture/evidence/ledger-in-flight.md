@@ -30,10 +30,10 @@
   </div>
   <div class="cardgrid">
     <div class="card">
-      <h3>Owner decisions open <span class="pill warn">17</span></h3>
-      <p><strong>Answered 2026-09-04:</strong> witness-first adjudication — <em>no</em>, the lanes stay separate; the 160/220 turn caps — <em>yes</em>; five-cluster landing trains — <em>yes</em>.</p>
+      <h3>Owner decisions open <span class="pill warn">16</span></h3>
+      <p><strong>Answered 2026-09-04:</strong> witness-first adjudication — <em>no</em>, the lanes stay separate; the 160/220 turn caps — <em>yes</em>; five-cluster landing trains — <em>yes</em>. <strong>Answered 2026-09-05:</strong> the implementer cap — <em>raised from three to six</em>, on the measurement that the three-slot lane ran at full utilization all morning while the lander sat idle half the time; the slots are now filled one item per subsystem rather than down the rank list.</p>
       <ul>
-        <li><strong>Six from the process review</strong>, held in PB468 and asked one at a time as each becomes relevant: raising the implementer cap; table-driven tests closing many rows on one drift test; effort tiers; the already-OK "shall" rows with positive-only evidence; whether Report Writer stays claimed; extending PB386's derivation arm class by class — PB205's §13.18.16.4 GR6 row and round 3's two Annex A.2 rows wait on exactly that.</li>
+        <li><strong>Five from the process review</strong>, held in PB468 and asked one at a time as each becomes relevant: table-driven tests closing many rows on one drift test; effort tiers; the already-OK "shall" rows with positive-only evidence; whether Report Writer stays claimed; extending PB386's derivation arm class by class — PB205's §13.18.16.4 GR6 row and round 3's two Annex A.2 rows wait on exactly that.</li>
         <li><strong>Two from the batch-3 registrar</strong> (PB579): whether the decimal-float rows convert to documented non-support on the witness already on disk, and whether a documented-non-support row stands while the decline behind it has a measured hole (VALIDATE's Format-5 <span class="mono">VALUE literal VALID</span> reaches the backend as a raw error).</li>
         <li><strong>One from the golden lane</strong> (PB592): A.1 item 206's "exactly the minimum range" determination contradicts §13.18.60.4 GR12's own asymmetric table and the compiler, which stores −128.</li>
         <li><strong>One from train 3</strong> (PB235): CLOSE's §14.9.6.4 GR1 row was closed on the same unpopulatable-antecedent derivation the owner signed for the READ rows — a class-by-class extension of PB386's arm, made before the standing answer on that class.</li>
