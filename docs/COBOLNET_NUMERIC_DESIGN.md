@@ -120,8 +120,26 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >     inapplicable to their siblings; `ExactCarrierBoundaryDriftTests` now closes the set by reflection.
 >   MEAN's one inexact division evaluates in SDIDI form (IntrinsicRenderer), making the spec's
 >   §15.4.1 NOTE-2 relation `FUNCTION MEAN(a b c) = (a+b+c)/3` TRUE. The prose-approximation family (SQRT/trig/
->   log/E/PI) has no EAE — implementor-defined in every mode (§15.4.1 last ¶), converting into expressions per
->   §8.8.1.5.2 r1. (ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION were staged loud under the standard
+>   log/E/PI) has no EAE, so its VALUE is implementor-defined in every mode (§15.4.1 last ¶) — but never its
+>   CONTAINER: under a standard mode the returned value **is itself contained in an SDIDI** (§15.4.1: "the
+>   returned value for numeric and integer functions is contained in a temporary standard data item in the
+>   intermediate form defined for the arithmetic mode in effect"; §8.8.1.5.1 makes the mode "a method of
+>   evaluating an arithmetic expression, an arithmetic statement, the SUM clause, **and certain integer and
+>   numeric functions as specified in 15.4.1**"), the binary64 approximation entering it through the §8.8.1.5.1
+>   conversion. ⛔ **kb/Work PB253 (2026-09-05): this paragraph used to read "converting into expressions per
+>   §8.8.1.5.2 r1", which describes only the OPERAND case and is what let the container rule be read as
+>   receiver-conditional.** `IntrinsicRenderer.RenderFloat` had duly tested the receiver SHAPE first, so under
+>   `ARITHMETIC IS STANDARD-DECIMAL` (and 2002's plain `STANDARD`) the SDIDI arm was unreachable for every
+>   receiver-less or float-receiver reference and the raw binary64 escaped into the item-92 text, MOVE-source,
+>   float-receiver and relation channels: `DISPLAY FUNCTION SIN(1E-20)` printed `1E-20` where the SDIDI's text
+>   is `0.00000000000000000001`, and `MOVE FUNCTION TAN(a)` / `COMPUTE r = FUNCTION TAN(a)` returned
+>   16331239353195368.96 and 16331239353195370.00 for ONE call — which §15.4.1's "the returned value is the same
+>   for all instances of a given function within a single execution of the runtime element" forbids outright.
+>   **The mode-before-D16 ordering stated above therefore binds `RenderFloat` exactly as it binds
+>   `CombineCore`, `Power` and `Landed`**; the residue it governs is the family with neither an EAE nor a
+>   `RenderDec` body — ACOS/ASIN/ATAN/COS/SIN/TAN/LOG/LOG10/RANDOM. Pinned by `pb253_prose_float_standard_container`
+>   (2002) and `pb253_prose_float_sdidi_container` (2014 + 2023).
+>   (ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION were staged loud under the standard
 >   modes — COBOLNET0899 — until their SDIDI evaluations landed with PB56; the stage is gone.)
 >   **The NUMVAL family under the standard modes (PB60, RV-15.67.4-1a / RV-15.69.4-3, 2026-08-17):** NUMVAL /
 >   NUMVAL-C / NUMVAL-F have no EAE, but their returned value is FIXED by their own rules — §15.67.4 r1 and

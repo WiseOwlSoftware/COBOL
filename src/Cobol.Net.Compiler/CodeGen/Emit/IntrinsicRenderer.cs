@@ -401,27 +401,87 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             ? string.Concat(exact.AsSpan(0, exact.Length - "Scaled".Length), "Real")
             : exact + "Real";
 
+    /// <summary>The binary64 CALL this family computes in — the argument run only, with no container or receiver
+    /// decision in it (kb/Work PB253: those belong to <see cref="RenderFloat"/> and
+    /// <see cref="RenderFloatNative"/> respectively, and mixing them is what let an arm order go wrong).</summary>
+    private string FloatBody(BoundIntrinsicCall ic, string method) => method switch
+    {
+        // RANDOM (§15.75.3): the no-argument form continues the current sequence; the seeded form restarts it.
+        "Random" when ic.Args.Count == 0 => RuntimeApi.Intrinsic(method, ""),
+        "Random" => RuntimeApi.Intrinsic(method, IntArg(ic, 0)),
+        // PRESENT-VALUE (§15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
+        "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf),
+        // A table(ALL) argument enumerates at run time (ISO §15.3; kb/Work PB62) — the list becomes ONE array.
+        _ => RuntimeApi.Intrinsic(method, ArgArray(ic, 0, "double", DblOf)
+            ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Dbl(ic, i)))),
+    };
+
     private NumX RenderFloat(BoundIntrinsicCall ic, string method)
+    {
+        string call = FloatBody(ic, method);
+        // ⛔ THE ARITHMETIC MODE IS TESTED BEFORE THE RECEIVER SHAPE, AND THE COMMENT BELOW SAYS WHY EACH ARM IS
+        // WHERE IT IS (kb/Work PB253). §15.4.1: "When standard-decimal arithmetic or standard-binary arithmetic is
+        // in effect, the returned value for numeric and integer functions is contained in a temporary standard data
+        // item in the intermediate form defined for the arithmetic mode in effect" — UNCONDITIONAL on whether the
+        // function has an equivalent arithmetic expression AND on the shape of whatever consumes the value, and
+        // §8.8.1.5.1 makes the mode "a method of evaluating an arithmetic expression, an arithmetic statement, the
+        // SUM clause, AND CERTAIN INTEGER AND NUMERIC FUNCTIONS as specified in 15.4.1" — the function itself, not
+        // only its use as an operand. The last-¶ exemption ("When a numeric or integer function does not have an
+        // equivalent arithmetic expression, its returned value is implementor-defined unless otherwise specified in
+        // the function definition") exempts the VALUE — the binary64 approximation this family computes — never the
+        // CONTAINER. This is the ordering COBOLNET_NUMERIC_DESIGN.md D3 states for the whole engine ("the mode
+        // branch runs BEFORE the D16 float branch") and that NumericRenderer.CombineCore, NumericRenderer.Power and
+        // NumericRenderer.Landed already keep; this renderer was the one place that read the receiver first, so
+        // under ARITHMETIC IS STANDARD-DECIMAL the SDIDI arm was UNREACHABLE for every receiver-less or
+        // float-receiver reference and the raw binary64 escaped. Measured before the fix, with
+        // A = 1.570796326794896619231321691639: `MOVE FUNCTION TAN(A)` landed 16331239353195368.96 (the binary64
+        // ×10^scale artifact of CobolFloat.ToScaledUnchecked) while `COMPUTE R = FUNCTION TAN(A)` landed
+        // 16331239353195370.00 — the SAME function, the SAME argument, TWO returned values in one run, which
+        // §15.4.1 forbids outright ("the returned value is the same for all instances of a given function within a
+        // single execution of the runtime element so long as the value and order of the arguments, the collating
+        // sequence, and the locale are unchanged"). The text channel diverged the same way: `DISPLAY FUNCTION
+        // SIN(0.00000000000000000001)` printed `1E-20`, CobolFloat.Display's binary64 E-notation, where the
+        // SDIDI's own item-92 text (CobolDec.ToFunctionText) is `0.00000000000000000001`.
+        // The residue this reaches is exactly the prose family with no §15.4.1 r1 equivalent arithmetic expression
+        // and no RenderDec body — ACOS, ASIN, ATAN, COS, SIN, TAN, LOG, LOG10, RANDOM: everything else with
+        // Float: true is already claimed above by RenderNum's standard-mode arm (E / PI / EXP / EXP10 by name,
+        // SQRT / FACTORIAL / ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION by RenderDec's alwaysDec).
+        //
+        // ⛔ UNDER A STANDARD MODE THE RESULT CONVERTS IN, IT DOES NOT QUANTIZE (fix-queue PB56). The prose
+        // family's returned value is an implementor-defined binary64 approximation in every mode (§15.4.1 last ¶),
+        // but under STANDARD-DECIMAL that approximation is CONTAINED IN an SDIDI (§15.4.1) — CobolDec.FromDouble,
+        // the §8.8.1.5.1 implementor-defined float→SDIDI conversion, defined here as the shortest round-trip
+        // identity — and lands at the receiver ONCE, instead of truncating to unscaled at a receiver-derived
+        // working scale first (the triage rows RV-15.8.4-1 / RV-15.10.4-1 / RV-15.11.4-1 / RV-15.35.4-1 measured
+        // the double quantization). RealResult stays inside the conversion: it is the NaN → EC-ARGUMENT-FUNCTION
+        // raise site, so the screen fires identically in every mode and every receiver shape.
+        //
+        // ⛔ AND THE ORDER IS STRUCTURAL, NOT POSITIONAL. The native arms live in <see cref="RenderFloatNative"/>,
+        // which is not given the mode and cannot test it, so an arm added there CANNOT pre-empt the container rule
+        // — the defect this shape closes was exactly an arm sitting one line too high. `num.StandardDecimal` is
+        // read HERE and nowhere below (StandardModeReturnedValueContainerDriftTests proves the property over every
+        // Float: true catalog row, so a new float function inherits it without anyone remembering to).
+        return num.StandardDecimal
+            ? new NumX(RuntimeApi.DecFromDouble(RuntimeApi.Intrinsic("RealResult", call)), 0, Dec: true)
+            : RenderFloatNative(ic, call);
+    }
+
+    /// <summary>The §15.4.1 float family under NATIVE arithmetic — the receiver-shape arms, and ONLY those.
+    /// <para>⛔ It is a separate method so the arithmetic mode is settled before any of this runs: the container
+    /// question belongs to <see cref="RenderFloat"/>, this one answers the D16 quantization question. Deliberately
+    /// mode-blind (kb/Work PB253).</para></summary>
+    private NumX RenderFloatNative(BoundIntrinsicCall ic, string call)
     {
         var sig = ic.Sig;
         // The ≥9 float floor CAPPED at the receiver's Int128 headroom — the one rule, on ReceiverContext (PB13).
         int ws = num.Receiver.FloatWorkingScale;
-        string call = method switch
-        {
-            // RANDOM (§15.75.3): the no-argument form continues the current sequence; the seeded form restarts it.
-            "Random" when ic.Args.Count == 0 => RuntimeApi.Intrinsic(method, ""),
-            "Random" => RuntimeApi.Intrinsic(method, IntArg(ic, 0)),
-            // PRESENT-VALUE (§15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
-            "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf),
-            // A table(ALL) argument enumerates at run time (ISO §15.3; kb/Work PB62) — the list becomes ONE array.
-            _ => RuntimeApi.Intrinsic(method, ArgArray(ic, 0, "double", DblOf)
-                ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Dbl(ic, i)))),
-        };
         // A float RECEIVER keeps the transcendental result in the binary64 pipeline (full precision — SQRT(2) into a
         // COMP-2 is 1.4142135623730951, not the scale-9 1.414213562); a fixed receiver quantizes through FromDouble
         // at the working scale (the established behavior the intrinsic goldens encode). (D16 review finding.)
         //
-        // ⛔ AND SO DOES A RECEIVER-LESS CONTEXT (fix-queue PB13, the half no working-scale choice can reach).
+        // ⛔ AND SO DOES A RECEIVER-LESS CONTEXT, UNDER NATIVE ARITHMETIC (fix-queue PB13, the half no
+        // working-scale choice can reach — the standard-mode arm above now owns the other modes, which is the
+        // scope this citation always had).
         // §15.4.1: "When native arithmetic is in effect, the characteristics and representation of the returned
         // value are defined by the implementor" — COBOL.NET's determination is that the §15.4.1 float family's
         // returned value IS a binary64, and the quantization exists ONLY to land it in a fixed-point receiver,
@@ -444,20 +504,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // §14.6.13.1 requires the condition be raised at all. (Found by the Phase-B §15.55 refuter.)
         if (num.Receiver.Real || num.Receiver.Receiverless)
             return new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true);
-        // ⛔ UNDER A STANDARD MODE THE RESULT CONVERTS IN, IT DOES NOT QUANTIZE (fix-queue PB56). The prose
-        // family's returned value is an implementor-defined binary64 approximation in every mode (§15.4.1
-        // last ¶), but under STANDARD-DECIMAL that approximation enters the expression as an SDIDI operand
-        // per §8.8.1.5.1 — CobolDec.FromDouble, the shortest round-trip identity — and lands at the receiver
-        // ONCE, instead of truncating to unscaled at a receiver-derived working scale first (the triage rows
-        // RV-15.8.4-1 / RV-15.10.4-1 / RV-15.11.4-1 / RV-15.35.4-1 measured the double quantization).
-        // RealResult stays inside the conversion: it is the NaN → EC-ARGUMENT-FUNCTION raise site.
-        if (num.StandardDecimal)
-            return new NumX(RuntimeApi.DecFromDouble(RuntimeApi.Intrinsic("RealResult", call)), 0, Dec: true);
         // ⛔ A BOUNDED CODOMAIN CLAMPS THE QUANTIZED VALUE (fix-queue PB65 / RV-15.75.4-1): the catalog row
         // carries the §15.x.4 bound and the quantizer refuses to round out of it — RANDOM's [0,1) reached
         // exactly 1.000000000 in a 9V9(9) receiver, ASIN(1) exceeded its closed-but-irrational π/2. The
         // rounding itself stays (it recovers the SQRT(10) ** 2 binary64 artifact); only the exit is closed.
-        // The Dec arm above needs no clamp: the un-quantized double never exits its codomain.
+        // RenderFloat's standard-mode Dec arm needs no clamp: the un-quantized double never exits its codomain.
         // The quantizer's landing form past the carrier is the STATEMENT's (kb/Work PB77): saturate under ON SIZE
         // ERROR / EC-SIZE checking (the capacity check raises), the low-order digits for the no-phrase store.
         if (sig.Codomain != IntrinsicCodomain.None)
