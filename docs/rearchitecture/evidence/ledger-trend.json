@@ -270,6 +270,15 @@
       "dns": 352,
       "label": "Train 7: DEVLOG 1498 + plan",
       "battery": null
+    },
+    {
+      "sha": "fed2fc1f",
+      "date": "2026-09-05",
+      "gap": 2830,
+      "closed": 1481,
+      "dns": 352,
+      "label": "Train 8: DEVLOG 1504 + plan",
+      "battery": null
     }
   ]
 }
