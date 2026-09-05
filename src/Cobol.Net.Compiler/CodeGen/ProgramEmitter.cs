@@ -497,8 +497,14 @@ internal sealed class ProgramEmitter
                 // a function-name is not a program-name, so CALL/CANCEL/SET TO ENTRY must not see it and a
                 // FUNCTION reference must not see a program). Program lines stay byte-identical.
                 string fnFlag = u.IsFunction ? ", isFunction: true" : "";
+                // PROGRAM-ID/FUNCTION-ID … AS literal (§11.10.4 GR1 / §11.5.4 GR1): the unit registers under BOTH
+                // names — Name for what MODULE-NAME reports (§15.65.4 r4), the externalized one for what
+                // CALL/CANCEL/ENTRY resolve (§14.9.4.4 GR3b → §8.3.2.2). OMITTED when they coincide, so every
+                // AS-less unit's Register line stays byte-identical (kb/Work PB303).
+                string extName = string.Equals(u.ExternalizedName, u.Name, StringComparison.Ordinal)
+                    ? "" : $", externalizedName: {CsLiteral(u.ExternalizedName)}";
                 w.Line($"ProgramRegistry.Register({CsLiteral(u.Path)}, {CsLiteral(u.Name)}, {parentPath}, "
-                    + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{resetNamed}{argMeta}{fnFlag});");
+                    + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{resetNamed}{argMeta}{fnFlag}{extName});");
             }
         w.Line();
         // The run-unit main is the first top-level PROGRAM unit (§8.3.1). A prototype precedes every other unit

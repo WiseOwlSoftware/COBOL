@@ -1530,8 +1530,23 @@ internal sealed class VersionConformancePass
         public override object? VisitRaisingPhrase(CobolParserCore.RaisingPhraseContext ctx)
         { _p.Check(Constructs.StatementRaising2002, "the GOBACK / EXIT … RAISING phrase"); return base.VisitChildren(ctx); }
 
+        /// <summary>The AS externalized-name phrase (ISO §8.3.2.2 2)) wherever an identification-division
+        /// paragraph prints it — PROGRAM-ID §11.10.2, FUNCTION-ID §11.5.2, CLASS-ID §11.3.2, INTERFACE-ID
+        /// §11.6.2, METHOD-ID §11.7.2 — and on §12.3.8.2's program-specifier, which shares the grammar rule.
+        /// A 2002 introduction: X3.23-1985's PROGRAM-ID paragraph has no AS phrase and AS is user-definable
+        /// there (the user-word-as-2002 twin). ONE arm for one rule, so a sixth AS site is gated by writing
+        /// `externalizedNamePhrase?` and nothing else (kb/Work PB303). The specifier's OWN
+        /// repository-program-2002 gate stands beside this one exactly as options-paragraph-2002 stands beside
+        /// arithmetic-standard-2002 — two true statements about one line of source.</summary>
+        public override object? VisitExternalizedNamePhrase(CobolParserCore.ExternalizedNamePhraseContext ctx)
+        {
+            _p.Check(Constructs.ExternalizedNameAs2002, "the AS externalized-name phrase");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>PROGRAM-ID … RECURSIVE (ISO §11.10) — a 2002 introduction. Recognized by TOKEN TYPE within
-        /// the attribute list (the END-ACCEPT scan idiom), never by word text — an AS-literal cannot collide.</summary>
+        /// the attribute list (the END-ACCEPT scan idiom), never by word text — the AS phrase is a sibling
+        /// of the attribute list, not a member of it, so it cannot collide.</summary>
         public override object? VisitProgramIdAttributes(CobolParserCore.ProgramIdAttributesContext ctx)
         {
             if (FindsToken(ctx, CobolLexer.RECURSIVE))

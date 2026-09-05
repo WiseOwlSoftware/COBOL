@@ -312,9 +312,14 @@ internal sealed class BinderDriver
         }
     }
 
-    /// <summary>Build one <see cref="BoundUnit"/> from a program unit's IDENTIFICATION DIVISION: the program name
-    /// (PROGRAM-ID / FUNCTION-ID; the <c>AS literal</c> externalized name wins, ISO §11.10.4 GR1) and the
-    /// COMMON / INITIAL / RECURSIVE attributes with their per-edition + placement gates (§11.10.3 SR4–6).</summary>
+    /// <summary>Build one <see cref="BoundUnit"/> from a program unit's IDENTIFICATION DIVISION: the DECLARED
+    /// name (program-name-1 / user-function-name-1), the EXTERNALIZED name the <c>AS</c> phrase gives it, and the
+    /// COMMON / INITIAL / RECURSIVE attributes with their per-edition + placement gates (§11.10.3 SR4–6).
+    /// <para>ISO §11.10.4 GR1 keeps the two names DISTINCT — "Program-name-1 names the program declared by this
+    /// program definition. Literal-1, if specified, is the name of the program that is externalized to the
+    /// operating environment" — and this used to collapse them onto one field (kb/Work PB303), which would have
+    /// broken §10.7.3 SR2's END PROGRAM match, §14.9.4.3 SR15's AS NESTED lookup and the §15.65.4 r4 MODULE-NAME
+    /// determination the moment the phrase parsed. They are separate fields now.</para></summary>
     private static BoundUnit MakeUnit(
         Core.ProgramUnitContext ctx, BoundUnit? parent, int index, HashSet<string> usedClassNames, EditionContext edition)
     {
@@ -335,9 +340,28 @@ internal sealed class BinderDriver
             if (cpa?.INITIAL_() is not null) initial = true;
             else if (cpa?.COMMON() is not null) common = true;
             else if (cpa?.RECURSIVE() is not null) recursive = true;
-            else if (attr.literalAttribute()?.STRINGLIT() is { } asLit
-                     && CobolLiteral.Decode(asLit.GetText()) is { Length: > 0 } asName)
-                name = asName;   // PROGRAM-ID name AS "literal" — the externalized name (ISO §11.10.4 GR1)
+        }
+
+        // §11.10.2 / §11.5.2's `[ AS literal-1 ]` — the externalized name (kb/Work PB303). Absent, §8.3.2.2 2)
+        // externalizes the user-defined word itself, so the two names coincide.
+        string externalized = name;
+        if ((pid?.externalizedNamePhrase() ?? fid?.externalizedNamePhrase()) is { } asPhrase)
+        {
+            using var _ = edition.At(asPhrase);
+            string kind = isFunction ? "FUNCTION-ID" : "PROGRAM-ID";
+            string rule = isFunction ? "ISO §11.5.3 SR1" : "ISO §11.10.3 SR1";
+            // §11.10.3 SR2 — FORMAT 1 only: "Literal-1 shall not be specified in a program that is contained
+            // within another program." §8.3.2.2 2) externalizes "program-names of OUTERMOST programs", so a
+            // containee has no externalized name for the phrase to give. §11.5.3 states no such rule (a
+            // function definition is never contained), so the gate keys on the containment, not the kind.
+            if (parent is not null)
+                edition.Error(DiagnosticCatalog.ExternalizedNameContained,
+                    $"{kind} '{name}' AS {asPhrase.literal().GetText()}: literal-1 shall not be specified in a "
+                    + "program that is contained within another program (ISO §11.10.3 SR2)");
+            else if (ExternalizedName.Screen(asPhrase.literal(), edition,
+                         DiagnosticCatalog.ExternalizedNameLiteral,
+                         $"{kind} '{name}' AS {asPhrase.literal().GetText()}", "literal-1", rule) is { } lit1)
+                externalized = lit1;
         }
 
         // program-id-recursive-2002: the pass owns the edition gate (Exec Step E).
@@ -368,7 +392,7 @@ internal sealed class BinderDriver
         for (int n = 2; !usedClassNames.Add(className); n++) className = $"{baseName}_{n}";
         return new BoundUnit
         {
-            Name = name, ClassName = className, Ctx = ctx,
+            Name = name, ExternalizedName = externalized, ClassName = className, Ctx = ctx,
             Parent = parent, Initial = initial, Common = common, Recursive = recursive,
             IsFunction = isFunction, IsPrototype = isPrototype,
         };
@@ -611,8 +635,9 @@ internal sealed class BinderDriver
     /// <para>OUTERMOST program definitions only: a contained program is part of its container's program
     /// definition, is not a compilation-group source unit (§10.6.1), and is reachable only through §14.9.4.3 SR15's
     /// AS NESTED — which has its own table. FUNCTION-ID units are excluded because §9.4 puts them in the function
-    /// namespace, and prototype units because they have no body. <c>BoundUnit.Name</c> IS the externalized name:
-    /// MakeUnit already folds <c>PROGRAM-ID … AS literal</c> into it (§11.10.4 GR1).</para>
+    /// namespace, and prototype units because they have no body. The key is <c>BoundUnit.ExternalizedName</c>
+    /// — GR10 a) says "externalized name" twice and §11.10.4 GR1 makes that the AS literal when one is written
+    /// (kb/Work PB303; before the phrase parsed, MakeUnit collapsed it onto <c>Name</c>).</para>
     /// <para>DETERMINATION on GR10 a)'s word "previously": the ORDER is not enforced. GR10 a) and c) are the two
     /// arms this implementation can reach, and for a later in-group definition both name the SAME program — c)
     /// takes "the details … from the external repository for the program with the same name", and this
@@ -624,7 +649,7 @@ internal sealed class BinderDriver
         var map = new Dictionary<string, CalleeSignature>(StringComparer.OrdinalIgnoreCase);
         foreach (var u in units)
             if (u is { IsFunction: false, IsPrototype: false, Parent: null })
-                map.TryAdd(u.Name, new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning));
+                map.TryAdd(u.ExternalizedName, new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning));
         return map;
     }
 
@@ -668,8 +693,12 @@ internal sealed class BinderDriver
             map[unit.Name] = SelfPrototype(unit);
         return map;
 
+        // The prototype NAME is the referable word (§8.4.6.8), its EXTERNALIZED name is what CallBinder
+        // emits as the activation target (§14.9.4.4 GR3 b) → §8.3.2.2) — so the two arguments are the unit's
+        // two names, never the same one twice: a `PROGRAM-ID. P AS "PX".` that CALLs itself by the word P
+        // must still activate "PX", the only name the run-unit registry holds it under (kb/Work PB303).
         static ProgramPrototype SelfPrototype(BoundUnit u) =>
-            new(u.Name, u.Name, new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning));
+            new(u.Name, u.ExternalizedName, new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning));
     }
 
     /// <summary>Build the compilation group's user-function signature table (name → bound RETURNING item +
@@ -704,7 +733,7 @@ internal sealed class BinderDriver
         // prototype supplies the signature for a separately-compiled target (:14875 / §8.4.3.2.4 GR6b :6997).
         var table = new Dictionary<string, UserFunctionSignature>(StringComparer.OrdinalIgnoreCase);
         foreach (var (name, u) in defs)
-            table[name] = new UserFunctionSignature(name, u.Data.LinkageReturning, u.Data.LinkageFormals);
+            table[name] = new UserFunctionSignature(name, u.ExternalizedName, u.Data.LinkageReturning, u.Data.LinkageFormals);
         foreach (var (name, p) in protos)
         {
             if (defs.TryGetValue(name, out var def))
@@ -718,7 +747,7 @@ internal sealed class BinderDriver
                         + "function prototype and a same-name definition shall have the same signature (ISO §10.6.2 SR3)");
                 continue;   // the definition's signature is authoritative (GR11a)
             }
-            table[name] = new UserFunctionSignature(name, p.Data.LinkageReturning, p.Data.LinkageFormals);
+            table[name] = new UserFunctionSignature(name, p.ExternalizedName, p.Data.LinkageReturning, p.Data.LinkageFormals);
         }
         return table;
     }

@@ -109,9 +109,9 @@ public static class ProgramRegistry
         Func<ICobolProgram?, ICobolProgram> factory,
         Action? staticReset = null,
         int formalCount = -1, int requiredCount = 0, bool argMismatchChecking = false,
-        bool isFunction = false)
+        bool isFunction = false, string? externalizedName = null)
         => RunUnit.Current.Programs.Register(path, name, parentPath, initial, common, recursive, factory,
-            staticReset, formalCount, requiredCount, argMismatchChecking, isFunction);
+            staticReset, formalCount, requiredCount, argMismatchChecking, isFunction, externalizedName);
 
     /// <inheritdoc cref="ProgramTable.RunMain"/>
     public static void RunMain(string path) => RunUnit.Current.Programs.RunMain(path);

@@ -14,6 +14,16 @@ public sealed record OoMethodSymbol(
     string Name, bool HasUsing, bool HasReturning,
     CobolParserCore.MethodDefinitionContext Ctx)
 {
+    /// <summary>The name this method is externalized under (ISO §11.7.4 GR1 b): "the name is
+    /// method-name-1. However, literal-1, if specified, is the name of method that is externalized to the
+    /// operating environment"). It defaults to <see cref="Name"/>, and it is the ROSTER KEY: §14.9.23.2
+    /// gives INVOKE no word form for the method at all — only literal-1 or identifier-2 — and §14.9.23.4
+    /// GR2 a) resolves that literal "as described in 8.3.2.2, User-defined words", i.e. against the
+    /// externalized name. Keying the roster here also realizes §11.7.3 SR9's "if method-name-1 OR
+    /// literal-1 is the same as a method-name inherited or implemented" without a second lookup path
+    /// (kb/Work PB303).</summary>
+    public string ExternalizedName { get; init; } = Name;
+
     /// <summary>The emitted C# method name. Starts as the sanitized-uppercase COBOL name; an OVERRIDE adopts
     /// its base slot's name verbatim (C# requires the override member name to match), and a collision with
     /// the owning class's type name (C# CS0542) or an emitted field takes a deterministic suffix — always a

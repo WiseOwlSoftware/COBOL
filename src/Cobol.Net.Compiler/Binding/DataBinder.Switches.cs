@@ -438,9 +438,13 @@ public sealed partial class DataBinder
     {
         using var _ = Edition.At(re);   // the sink stamps every report below with THIS entry's position (PB82)
         string externalized = name;   // §12.3.8.4 GR10 NOTE 1: without AS, the externalized name IS the prototype name
-        if (re.repositoryAsPhrase() is { } asPhrase)
+        if (re.externalizedNamePhrase() is { } asPhrase)
         {
-            if (ProgramSpecifierLiteral(asPhrase.literal(), name) is not { } lit3) return;
+            // §12.3.8.3 SR2 is the SAME sentence the five id paragraphs restate — one screen, kb/Work PB303.
+            string where = $"REPOSITORY PROGRAM '{name}' AS {asPhrase.literal().GetText()}";
+            if (ExternalizedName.Screen(asPhrase.literal(), Edition, DiagnosticCatalog.RepositoryProgramSpecifier,
+                    where, "literal-3", "ISO §12.3.8.3 SR2",
+                    collate: Collating, natCollate: NationalCollating) is not { } lit3) return;
             externalized = lit3;
         }
         // §12.3.8.3 SR1 — a repeated name is legal, an INCONSISTENT repeat is not. Ordinal on the externalized
@@ -458,57 +462,6 @@ public sealed partial class DataBinder
         ProgramSpecifiers[name] = new ProgramSpecifier(name, externalized);
     }
 
-    /// <summary>literal-3 of a program-specifier, screened by ISO §12.3.8.3 syntax rule 2: "Literal-1, literal-2,
-    /// literal-3, literal-4, and literal-5 shall be alphanumeric literals or national literals and shall be neither
-    /// figurative constants nor zero-length literals." A hexadecimal literal IS §8.3.3.2 Format 2 of an
-    /// alphanumeric one (the PB130 determination on the CALL twin), and a §8.8.3 concatenation expression folds
-    /// FIRST because §8.8.3.3 GR3 makes it "equivalent to a literal of the same class and value" — the fold is
-    /// collating-independent here because SR2 has already excluded the figurative constants that would consult a
-    /// PROGRAM COLLATING SEQUENCE. Reports and returns null on violation.</summary>
-    private string? ProgramSpecifierLiteral(Core.LiteralContext lit, string name)
-    {
-        string where = $"REPOSITORY PROGRAM '{name}' AS {lit.GetText()}";
-        void Reject(string why) => Edition.Error(DiagnosticCatalog.RepositoryProgramSpecifier, $"{where}: {why}");
-
-        if (lit.nonNumericLiteral() is not { } nn)
-        {
-            Reject("literal-3 shall be an alphanumeric or national literal — a numeric literal is not an "
-                   + "externalized program name (ISO §12.3.8.3 SR2)");
-            return null;
-        }
-        if (nn.figurativeConstant() is not null)
-        {
-            Reject("literal-3 shall not be a figurative constant (ISO §12.3.8.3 SR2)");
-            return null;
-        }
-        string value;
-        if (nn.concatenationExpression() is { } ce)
-        {
-            var folded = ConcatFolder.Fold(ce, Edition, Collating, NationalCollating);
-            if (folded.Category is not (PicCategory.Alphanumeric or PicCategory.National))
-            {
-                Reject($"literal-3 folds to a {folded.Category.ToString().ToLowerInvariant()} literal; ISO "
-                       + "§12.3.8.3 SR2 admits an alphanumeric or national literal");
-                return null;
-            }
-            value = folded.Value;
-        }
-        else if (nn.STRINGLIT() is { } s) value = CobolLiteral.Decode(s.GetText());
-        else if (nn.HEXLIT() is { } x) value = CobolLiteral.DecodeHex(x.GetText());
-        else if (nn.NATLIT() is { } nat) value = CobolLiteral.Decode(nat.GetText());
-        else
-        {
-            Reject("literal-3 shall be an alphanumeric or national literal — a boolean literal is not an "
-                   + "externalized program name (ISO §12.3.8.3 SR2)");
-            return null;
-        }
-        if (value.Length == 0)
-        {
-            Reject("literal-3 shall not be a zero-length literal (ISO §12.3.8.3 SR2)");
-            return null;
-        }
-        return value;
-    }
 
     /// <summary>Populate the switch registry from the SPECIAL-NAMES paragraph's switch-name clauses (ISO §12.3.7
     /// general format: <c>switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1]

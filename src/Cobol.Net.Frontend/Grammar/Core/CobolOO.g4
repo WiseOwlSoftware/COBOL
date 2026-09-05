@@ -40,8 +40,8 @@ factoryParagraph
     ;
 
 classIdParagraph
-    : CLASS_ID DOT className (IS? FINAL)? (INHERITS FROM className+)? DOT
-    ;   // [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3 GR3 — bind-gated 0839).
+    : CLASS_ID DOT className externalizedNamePhrase? (IS? FINAL)? (INHERITS FROM className+)? DOT
+    ;   // [AS literal-1] sits between object-class-name-1 and [IS FINAL] per the §11.3.2 format (kb/Work PB303); [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3 GR3 — bind-gated 0839).
         // INHERITS repetition PARSES per the §11.3.2 format (superset parse — P3 doctrine); v1 REJECTS 2+ bases
         // LOUDLY at pass-1 (COBOLNET0849; SSOT §18 #18 / A.4.10) — never a bare syntax error, never a silent drop.
 
@@ -75,6 +75,9 @@ interfaceName
 // with the class-side single-inheritance restriction, SSOT §18.18).
 interfaceDefinition
     : (IDENTIFICATION DIVISION DOT)? INTERFACE_ID DOT interfaceName
+      // The INTERFACE-ID paragraph general format (§11.6.2) prints [AS literal-1] between interface-name-1
+      // and the INHERITS clause; kb/Work PB303.
+      externalizedNamePhrase?
       (INHERITS FROM interfaceName+)? DOT
       optionsParagraph?    // §10.6.1 (kb/Work PB135; prototypes bind no bodies — the parse is the obligation)
       environmentDivision?
@@ -85,7 +88,7 @@ interfaceDefinition
 // METHOD-ID … END METHOD — a method definition (its own DATA/PROCEDURE divisions). ISO §11.7 / §12798.
 methodDefinition
     : (IDENTIFICATION DIVISION DOT)? METHOD_ID DOT
-      ( methodName | methodPropertySelector )
+      ( methodName externalizedNamePhrase? | methodPropertySelector )   // §11.7.2 prints [AS literal-1] on the method-name-1 ARM ONLY — a GET/SET PROPERTY method's name is implementor-defined (§11.7.4 GR1a), so it has none (kb/Work PB303)
       OVERRIDE? (IS? FINAL)? DOT
       optionsParagraph?    // §10.6.1 [options-paragraph] in the method skeleton (kb/Work PB135; overrides per §11.9.4 GR1)
       environmentDivision?

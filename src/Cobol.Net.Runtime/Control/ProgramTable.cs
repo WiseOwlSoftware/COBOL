@@ -22,7 +22,13 @@ public sealed class ProgramTable
     private sealed class Node
     {
         public required string Path;        // containment path id, e.g. "OUTER/INNER" (unique run-unit-wide)
-        public required string Name;        // the PROGRAM-ID name CALL/CANCEL resolve (per-outermost unique, §8.4.6.3)
+        public required string Name;        // program-name-1 / user-function-name-1 AS WRITTEN — what FUNCTION
+                                            // MODULE-NAME reports (§15.65.4 r4 determination, CONFORMANCE DOC-A.1-135)
+                                            // and what a diagnostic names. NEVER the AS literal.
+        public required string CallName;    // the name externalized to the operating environment (§8.3.2.2 2): the
+                                            // PROGRAM-ID/FUNCTION-ID `AS literal-1` when one is written, else Name.
+                                            // §14.9.4.4 GR3b routes CALL/CANCEL/ENTRY resolution through §8.3.2.2, so
+                                            // THIS is the name they match (per-outermost unique, §8.4.6.3). PB303.
         public string? ParentPath;
         public bool Initial, Common, Recursive;
         public required Func<ICobolProgram?, ICobolProgram> Factory;   // parent instance → new instance
@@ -70,17 +76,20 @@ public sealed class ProgramTable
     /// first time the function … or program … is activated in a run unit") holds even when the same loaded
     /// module serves a SECOND run unit in one process, and by <see cref="CancelNode"/> (§14.9.5 GR3 /
     /// §14.6.2.3.2 case 3).</summary>
+    /// <param name="externalizedName">The PROGRAM-ID / FUNCTION-ID <c>AS literal-1</c> value (§11.10.4 GR1 /
+    /// §11.5.4 GR1) — the name CALL, CANCEL and the program-address-identifier resolve. OMITTED (null) when the
+    /// unit wrote no AS phrase, which §8.3.2.2 2) makes the declared name itself.</param>
     public void Register(
         string path, string name, string? parentPath,
         bool initial, bool common, bool recursive,
         Func<ICobolProgram?, ICobolProgram> factory,
         Action? staticReset = null,
         int formalCount = -1, int requiredCount = 0, bool argMismatchChecking = false,
-        bool isFunction = false)
+        bool isFunction = false, string? externalizedName = null)
     {
         var node = new Node
         {
-            Path = path, Name = name, ParentPath = parentPath,
+            Path = path, Name = name, CallName = externalizedName ?? name, ParentPath = parentPath,
             Initial = initial, Common = common, Recursive = recursive, Factory = factory,
             FormalCount = formalCount, RequiredCount = requiredCount, ArgMismatchChecking = argMismatchChecking,
             StaticReset = staticReset, IsFunction = isFunction,
@@ -314,12 +323,14 @@ public sealed class ProgramTable
     /// across differently-cased ENTRY spellings.</summary>
     public ProgramPointer EntryOf(string name, out bool notFound)
     {
+        // GR1/GR2 name the EXTERNALIZED program-name explicitly, so this matches — and the pointer carries —
+        // Node.CallName (kb/Work PB303; identical to Name for a program with no AS phrase).
         string target = name?.Trim() ?? "";
         foreach (var n in _order)
-            if (n.ParentPath is null && !n.IsFunction && NameEquals(n.Name, target)) { notFound = false; return new ProgramPointer(n.Name); }
+            if (n.ParentPath is null && !n.IsFunction && NameEquals(n.CallName, target)) { notFound = false; return new ProgramPointer(n.CallName); }
         if (ProbeSiblingModule(target))
             foreach (var n in _order)
-                if (n.ParentPath is null && !n.IsFunction && NameEquals(n.Name, target)) { notFound = false; return new ProgramPointer(n.Name); }
+                if (n.ParentPath is null && !n.IsFunction && NameEquals(n.CallName, target)) { notFound = false; return new ProgramPointer(n.CallName); }
         notFound = true;
         return ProgramPointer.Null;   // §8.4.3.13 GR4 — the value is the predefined address NULL
     }
@@ -421,7 +432,11 @@ public sealed class ProgramTable
             : null;
 
     /// <summary>
-    /// Resolve a CALL/CANCEL program-name from the calling program per ISO §8.4.6.3: (1) a program DIRECTLY
+    /// Resolve a CALL/CANCEL program-name from the calling program per ISO §8.4.6.3. The name matched is the
+    /// EXTERNALIZED one (<see cref="Node.CallName"/>): §14.9.4.4 GR3b makes literal-1 "the program-name of the
+    /// program being called, as described in 8.3.2.2, User-defined words", and §8.3.2.2 2) makes an AS phrase's
+    /// literal that name (kb/Work PB303). Without an AS phrase CallName IS Name, so every AS-less program keeps
+    /// the identical behaviour. — the scope arms: (1) a program DIRECTLY
     /// contained in the caller; (2) the caller itself when RECURSIVE (self-call); (3) a COMMON program contained
     /// in a (transitive) container of the caller — except from within that COMMON program or its containees
     /// unless it is recursive; (4) an OUTERMOST program of the run unit (callable from anywhere).
@@ -439,20 +454,20 @@ public sealed class ProgramTable
         if (caller is not null)
         {
             foreach (var child in caller.Children)                                   // rule 1
-                if (child.IsFunction == wantFunction && NameEquals(child.Name, target)) return child;
-            if (caller.IsFunction == wantFunction && NameEquals(caller.Name, target) && caller.Recursive)
+                if (child.IsFunction == wantFunction && NameEquals(child.CallName, target)) return child;
+            if (caller.IsFunction == wantFunction && NameEquals(caller.CallName, target) && caller.Recursive)
                 return caller;                                                       // rule 2
             for (var anc = ParentOf(caller); anc is not null; anc = ParentOf(anc))   // rule 3 — nearest container first
                 foreach (var sib in anc.Children)
                 {
-                    if (sib.IsFunction != wantFunction || !sib.Common || !NameEquals(sib.Name, target)) continue;
+                    if (sib.IsFunction != wantFunction || !sib.Common || !NameEquals(sib.CallName, target)) continue;
                     bool onOwnChain = caller.Path.Equals(sib.Path, StringComparison.OrdinalIgnoreCase)
                         || caller.Path.StartsWith(sib.Path + "/", StringComparison.OrdinalIgnoreCase);
                     if (!onOwnChain || sib.Recursive) return sib;
                 }
         }
         foreach (var n in _order)                                                    // rule 4 — outermost programs
-            if (n.ParentPath is null && n.IsFunction == wantFunction && NameEquals(n.Name, target)) return n;
+            if (n.ParentPath is null && n.IsFunction == wantFunction && NameEquals(n.CallName, target)) return n;
 
         // Rule-4 fallthrough: the run unit may be composed of SEPARATELY COMPILED modules ("a run unit contains
         // one or more runtime modules", ISO §14.6.1; §14.9.4.4 GR3b — the runtime system "attempts to locate"
@@ -463,7 +478,7 @@ public sealed class ProgramTable
         // name per run unit.
         if (probe && ProbeSiblingModule(target))
             foreach (var n in _order)
-                if (n.ParentPath is null && n.IsFunction == wantFunction && NameEquals(n.Name, target)) return n;
+                if (n.ParentPath is null && n.IsFunction == wantFunction && NameEquals(n.CallName, target)) return n;
         return null;
     }
 

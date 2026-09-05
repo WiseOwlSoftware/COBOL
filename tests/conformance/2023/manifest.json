@@ -475,7 +475,9 @@
   "l1_usage_computational_identity",
   "l1_value_values_equivalent",
   "l1_value_thru_through_equivalent",
-  "pb639_store_landing_low_order_digits"
+  "pb639_store_landing_low_order_digits",
+  "pb303_as_module_name_and_invoke",
+  "pb303_as_class_id_zero_length_accepted"
  ],
  "pending": [
   "pb485_value_only_format1"

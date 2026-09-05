@@ -262,6 +262,31 @@ public static class DiagnosticCatalog
         + "figurative constants nor zero-length literals.\"",
         "ISO §12.3.8.3 SR1/SR2");
 
+    // ── The identification-division AS externalized-name phrase (kb/Work PB303) ─────────────────────
+    /// <summary>COBOLNET1794 — the AS-phrase literal's own syntax rule, in whichever id paragraph carries the
+    /// phrase. ONE code because it is ONE rule restated by five clauses; the message names the paragraph and
+    /// cites that clause, so a reader is never sent to the wrong one.</summary>
+    public static readonly DiagnosticDescriptor ExternalizedNameLiteral = new(
+        "COBOLNET1794", "externalized-name-literal", EditionSeverity.Error,
+        "The literal of an identification-division AS phrase. ISO §11.10.3 syntax rule 1 (PROGRAM-ID), §11.5.3 "
+        + "syntax rule 1 (FUNCTION-ID), §11.6.3 syntax rule 1 (INTERFACE-ID) and §11.7.3 syntax rule 1 "
+        + "(METHOD-ID) all read: \"Literal-1 shall be an alphanumeric literal or a national literal and shall be "
+        + "neither a figurative constant nor a zero-length literal.\" §11.3.3 syntax rule 1 (CLASS-ID) states "
+        + "the same rule WITHOUT the zero-length exclusion — \"shall be an alphanumeric literal or a national "
+        + "literal and shall not be a figurative constant\" — and that asymmetry is honoured exactly.",
+        "ISO §11.10.3 SR1 / §11.5.3 SR1 / §11.3.3 SR1 / §11.6.3 SR1 / §11.7.3 SR1");
+
+    /// <summary>COBOLNET1795 — §11.10.3 syntax rule 2, the PROGRAM-ID Format-1 placement rule. A contained
+    /// program is not externalized at all (§8.3.2.2 2) externalizes <q>program-names of outermost programs</q>), so
+    /// the phrase that names its externalized form is illegal there.</summary>
+    public static readonly DiagnosticDescriptor ExternalizedNameContained = new(
+        "COBOLNET1795", "externalized-name-contained", EditionSeverity.Error,
+        "ISO §11.10.3 syntax rule 2 (PROGRAM-ID, FORMAT 1): \"Literal-1 shall not be specified in a program "
+        + "that is contained within another program.\" §8.3.2.2 externalizes \"program-names of outermost "
+        + "programs\" only, and §8.4.6.3 scopes a contained program-name to its container, so a contained "
+        + "program has no externalized name for the AS phrase to give.",
+        "ISO §11.10.3 SR2");
+
     public static readonly DiagnosticDescriptor CallAsNestedScope = new(
         "COBOLNET1676", "call-as-nested-scope", EditionSeverity.Error,
         "CALL … AS NESTED names its program by literal-1. ISO §14.9.4.3 syntax rule 15: \"If the NESTED phrase "

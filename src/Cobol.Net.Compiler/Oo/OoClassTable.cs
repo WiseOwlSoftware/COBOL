@@ -93,6 +93,23 @@ public sealed class OoClassTable
         var table = new OoClassTable();
         var usedCsNames = new HashSet<string>(StringComparer.Ordinal);
 
+        // §11.3.3 SR1 / §11.6.3 SR1 / §11.7.3 SR1 — the AS phrase's literal, screened by the ONE screen
+        // every AS site shares (kb/Work PB303). §11.3.3 SR1 is the outlier: it omits the zero-length
+        // exclusion its four siblings carry, so CLASS-ID passes rejectZeroLength: false. Absent, or on a
+        // rejected literal, the externalized name IS the declared word (§8.3.2.2 2)).
+        string Externalized(Core.ExternalizedNamePhraseContext? phrase, string declared,
+            string kind, string rule, bool rejectZeroLength = true)
+        {
+            if (phrase is null) return declared;
+            using var _ = edition.At(phrase);
+            return ExternalizedName.Screen(phrase.literal(), edition,
+                       DiagnosticCatalog.ExternalizedNameLiteral,
+                       $"{kind} '{declared}' AS {phrase.literal().GetText()}", "literal-1", rule,
+                       rejectZeroLength)
+                   ?? declared;
+        }
+
+
         // ── INTERFACES first (§11.6) — classes' IMPLEMENTS then resolve regardless of source order ──
         foreach (var ictx in interfaces ?? [])
         {
@@ -100,7 +117,11 @@ public sealed class OoClassTable
             // COBOL-2002 introduction gate: VersionConformancePass ParseArm.VisitInterfaceDefinition (rearch 14g.3,
             // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             string icsName = DataItem.Sanitize(iname).ToUpperInvariant();
-            var isym = new OoInterfaceSymbol(iname, icsName, ictx);
+            var isym = new OoInterfaceSymbol(iname, icsName, ictx)
+            {
+                ExternalizedName = Externalized(ictx.externalizedNamePhrase(), iname,
+                    "INTERFACE-ID", "ISO §11.6.3 SR1"),
+            };
             if (table._ifaceByName.ContainsKey(iname) || table._byName.ContainsKey(iname)
                 || !usedCsNames.Add(icsName))
             {
@@ -151,7 +172,11 @@ public sealed class OoClassTable
                     HasUsing: pd?.usingClause() is not null,
                     HasReturning: pd?.returningClause() is not null,
                     m)
-                { CsName = DataItem.Sanitize(pname).ToUpperInvariant() };
+                {
+                    CsName = DataItem.Sanitize(pname).ToUpperInvariant(),
+                    ExternalizedName = Externalized(m.externalizedNamePhrase(), pname,
+                        "METHOD-ID", "ISO §11.7.3 SR1"),
+                };
                 if (!isym.TryAddPrototype(proto))
                     edition.Error("COBOLNET0840",
                         $"interface '{iname}': duplicate method prototype '{pname}' (v1 unique-name rule, D9)");
@@ -204,6 +229,9 @@ public sealed class OoClassTable
             var bases = id.className().Skip(1).Select(c => c.GetText()).ToList();
             var sym = new OoClassSymbol(name, csName, ctx)
             {
+                // §11.3.3 SR1 alone omits the zero-length exclusion (verified on the printed page).
+                ExternalizedName = Externalized(id.externalizedNamePhrase(), name,
+                    "CLASS-ID", "ISO §11.3.3 SR1", rejectZeroLength: false),
                 Bases = bases,
                 BaseName = bases.Count >= 1 ? bases[0] : null,
                 IsFinal = id.FINAL() is not null,
@@ -257,7 +285,11 @@ public sealed class OoClassTable
                     m)
                 { CsName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
                   Accessor = sel is null ? '\0' : sel.GET() is not null ? 'G' : 'S',
-                  PropertyName = sel?.propertyName().GetText() };
+                  PropertyName = sel?.propertyName().GetText(),
+                  // §11.7.2 prints [AS literal-1] on the method-name-1 arm only — a GET/SET PROPERTY
+                  // method's name is implementor-defined (§11.7.4 GR1 a), so `sel` never has one.
+                  ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
+                      "METHOD-ID", "ISO §11.7.3 SR1") };
                 // §11.7 SR6/SR7 — the accessor SHAPES: GET = no USING + exactly one RETURNING; SET = exactly
                 // one USING + no RETURNING (checked here on header presence; formal counts re-checked at
                 // data-bind when they resolve).
@@ -312,7 +344,9 @@ public sealed class OoClassTable
                 { CsName = fcs, Owner = sym, IsFactory = true,
                   HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
                   Accessor = fsel is null ? '\0' : fsel.GET() is not null ? 'G' : 'S',
-                  PropertyName = fsel?.propertyName().GetText() };
+                  PropertyName = fsel?.propertyName().GetText(),
+                  ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
+                      "METHOD-ID", "ISO §11.7.3 SR1") };
                 if (!sym.TryAddFactoryMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate factory method name '{methodName}' — method names shall "
@@ -413,7 +447,7 @@ public sealed class OoClassTable
         {
             foreach (var m in roster)
             {
-                var baseM = findInBase?.Invoke(m.Name);
+                var baseM = findInBase?.Invoke(m.ExternalizedName);   // the roster key (PB303)
                 if (baseM is null)
                 {
                     if (m.HasOverride)

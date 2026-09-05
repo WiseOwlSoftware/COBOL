@@ -171,7 +171,9 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
             return new BoundExprError($"FUNCTION {name} result temporary");
 
-        Pending.Add(new BoundCallProgram(fn.Name, null, callArgs, tempPlace, null, null) { IsFunction = true });
+        // The activation names the callee by its EXTERNALIZED name — the key ProgramRegistry holds it under
+        // (§8.3.2.2 2); ordinarily identical to fn.Name, and the AS literal when FUNCTION-ID wrote one, PB303).
+        Pending.Add(new BoundCallProgram(fn.Externalized, null, callArgs, tempPlace, null, null) { IsFunction = true });
         // The reading expression: a BoundNumRef over the temp's Place. Every general-operand chokepoint
         // (MOVE source, DISPLAY, relation operands, function arguments — IntrinsicBinder.OperandOf) maps it
         // to a BoundFieldOperand, whose Place.Item carries the cloned category into Table-16 legality, the

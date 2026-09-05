@@ -768,7 +768,15 @@
   "l1-present-when-level-01",
   "l1-present-when-level-77",
   "l1-picture-currency-not-equivalent",
-  "l1_sync_abbrev_group_below_2023"
+  "l1_sync_abbrev_group_below_2023",
+  "pb303_as_phrase_below_2002",
+  "pb303_as_literal_figurative",
+  "pb303_as_literal_zero_length",
+  "pb303_as_in_contained_program",
+  "pb303_as_function_id_literal",
+  "pb303_as_class_id_literal",
+  "pb303_as_interface_id_literal",
+  "pb303_as_method_id_literal"
  ],
  "pending": []
 }

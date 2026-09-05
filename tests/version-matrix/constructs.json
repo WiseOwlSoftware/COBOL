@@ -1550,6 +1550,19 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RIFQ1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    INTERFACE IFQX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
+   "id": "externalized-name-as-2002",
+   "status": "active",
+   "description": "The AS externalized-name phrase of an identification-division paragraph \u2014 `[ AS literal-1 ]` on PROGRAM-ID (\u00a711.10.2 Formats 1 and 2), FUNCTION-ID (\u00a711.5.2 Formats 1 and 2), CLASS-ID (\u00a711.3.2), INTERFACE-ID (\u00a711.6.2) and METHOD-ID (\u00a711.7.2). \u00a78.3.2.2 2) gives it its meaning: the literal is the name externalized to the operating environment. X3.23-1985's PROGRAM-ID paragraph has NO such phrase and AS is user-definable there (the user-word-as-2002 twin), so the whole phrase is a 2002 introduction. ONE grammar rule (externalizedNamePhrase) and ONE gate (VersionConformancePass ParseArm.VisitExternalizedNamePhrase) serve all five paragraphs; below 2002 the gate names the edition (COBOLNET0900) instead of the bare syntax error the phrase drew before kb/Work PB303. The \u00a712.3.8.2 program-specifier shares the grammar rule and carries its own repository-program-2002 row for the specifier itself.",
+   "display": "the AS externalized-name phrase of an identification-division paragraph",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO \u00a78.3.2.2 2); \u00a711.10.2 / \u00a711.5.2 / \u00a711.3.2 / \u00a711.6.2 / \u00a711.7.2 general formats",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "kb/Work PB303 \u2014 the phrase had no grammar surface at all: rejected 2002+ (COBOLNET0901, AS parsed as a user-defined word) and accepted at '85, the one edition where it does not exist",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. EXNQ1 AS \"EXNQX\".\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
    "id": "repository-program-2002",
    "status": "active",
    "description": "The REPOSITORY PROGRAM entry — §12.3.8.2's program-specifier `PROGRAM program-prototype-name-1 [AS literal-3]`, the ONE surface that declares a program-prototype-name, which a Format-2 CALL (§14.9.4.3 SR16) and a CANCEL (§14.9.5.3 SR3) then reference — introduced 2002. Introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry, beside its CLASS/INTERFACE/PROPERTY siblings; below 2002 the gate names the edition (COBOLNET0900).",

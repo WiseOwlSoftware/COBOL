@@ -13,6 +13,13 @@ namespace CobolNet.Compiler.Oo;
 public sealed class OoInterfaceSymbol(string name, string csName, CobolParserCore.InterfaceDefinitionContext ctx)
 {
     public string Name { get; } = name;
+    /// <summary>The name externalized to the operating environment (ISO §11.6.4 GR1: "literal-1, if
+    /// specified, is the name of the interface that is externalized to the operating environment"), from
+    /// the INTERFACE-ID <c>AS literal-1</c>; else <see cref="Name"/>. An interface-name is only ever
+    /// referenced by a user-defined WORD (§8.4.6.4), so nothing in COBOL resolves against this — it is
+    /// the operating-environment identity this implementation records for the definition (kb/Work
+    /// PB303).</summary>
+    public string ExternalizedName { get; init; } = name;
     public string CsName { get; } = csName;
     public CobolParserCore.InterfaceDefinitionContext Ctx { get; } = ctx;
     public List<string> InheritNames { get; } = [];
@@ -24,7 +31,7 @@ public sealed class OoInterfaceSymbol(string name, string csName, CobolParserCor
 
     internal bool TryAddPrototype(OoMethodSymbol m)
     {
-        if (!_protos.TryAdd(m.Name, m)) return false;
+        if (!_protos.TryAdd(m.ExternalizedName, m)) return false;   // the roster key (PB303)
         _protoList.Add(m);
         return true;
     }

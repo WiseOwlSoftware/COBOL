@@ -13,7 +13,23 @@ using Core = CobolParserCore;
 /// model; the emitter consumes it read-only through <see cref="BoundCompilation"/>).</para></summary>
 internal sealed class BoundUnit
 {
+    /// <summary>program-name-1 / user-function-name-1 as WRITTEN — the declared COBOL name. This is what a
+    /// reference by a user-defined WORD resolves against (§10.7.3 SR2's END PROGRAM match, §14.9.4.3 SR15's
+    /// AS NESTED literal, <c>FUNCTION user-function-name</c>) and what FUNCTION MODULE-NAME reports
+    /// (CONFORMANCE.md DOC-A.1-135, the §15.65.4 r4 determination). NEVER the AS literal.</summary>
     public required string Name;
+    /// <summary>The name externalized to the operating environment: the <c>AS</c> phrase's literal-1 when the
+    /// identification division specifies one, else <see cref="Name"/> (ISO §11.10.4 GR1 "Literal-1, if
+    /// specified, is the name of the program that is externalized to the operating environment"; §11.5.4 GR1/GR2
+    /// for a function; §8.3.2.2 2) is the rule that makes the two distinct). This is what a reference by a
+    /// LITERAL resolves against, and §8.3.2.2 makes that exhaustive: "Externalized names shall be referenced
+    /// in a source element only: 1) in the AS phrase in a repository paragraph entry, 2) in the AS phrase in
+    /// an EXTERNAL clause, 3) as program-name in a CALL statement, 4) as program-name in a CANCEL statement,
+    /// 5) as program-name in a program-address-identifier, 6) as method-name in an INVOKE statement or inline
+    /// method invocation.  All other references to names for which externalization is permitted shall be
+    /// specified using the user-defined words, as opposed to the externalized names." It is also the key of
+    /// §12.3.8.4 GR10 a)'s program-definition search. kb/Work PB303.</summary>
+    public required string ExternalizedName;
     public required string ClassName;
     public required Core.ProgramUnitContext Ctx;
     public BoundUnit? Parent;

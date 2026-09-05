@@ -135,6 +135,7 @@ public static class Constructs
     public const string ClassDefinition2002 = "class-definition-2002";
     public const string InterfaceDefinition2002 = "interface-definition-2002";
     public const string RepositoryInterface2002 = "repository-interface-2002";
+    public const string ExternalizedNameAs2002 = "externalized-name-as-2002";
     public const string RepositoryProgram2002 = "repository-program-2002";
     public const string RepositoryProperty2002 = "repository-property-2002";
     public const string PropertyClause2002 = "property-clause-2002";

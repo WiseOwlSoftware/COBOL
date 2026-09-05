@@ -102,18 +102,48 @@ identificationBody
 // body, so a caller resolves a separately-compiled definition across the run unit (M2-UDF-3). The optional tail
 // is a unique-leading-token additive change on a LOCAL rule (never a shared core), gated 2002+.
 functionIdParagraph
-    : FUNCTION_ID DOT programName (IS? PROTOTYPE)? DOT   // IS PROTOTYPE introduction-gated post-bind by VersionConformancePass.Run (bound-arm over CallUnit.IsPrototype; rearch 14g.5); position-safe (dedicated tail, programName consumes a bare name)
+    : FUNCTION_ID DOT programName externalizedNamePhrase? (IS? PROTOTYPE)? DOT   // [AS literal-1] rides BOTH formats (ISO §11.5.2 F1/F2 print it between the name and IS PROTOTYPE); IS PROTOTYPE introduction-gated post-bind by VersionConformancePass.Run (bound-arm over CallUnit.IsPrototype; rearch 14g.5); position-safe (dedicated tail, programName consumes a bare name)
+    ;
+
+// ------------------------------------------
+// The AS externalized-name phrase
+// ------------------------------------------
+
+// ISO §8.3.2.2, last paragraph: "For any externalized user-defined words for which the AS phrase is specified,
+// the content of the literal specified in that AS phrase is a name that is externalized to the operating
+// environment. The implementor defines the formation and mapping rules of these names." ONE rule for the ONE
+// phrase, because the standard prints the identical `[ AS literal-n ]` on every surface that declares or names
+// an externalized entity:
+//   the PROGRAM-ID paragraph §11.10.2 (Formats 1 and 2) · the FUNCTION-ID paragraph §11.5.2 (Formats 1 and
+//   2) · the CLASS-ID paragraph §11.3.2 · the INTERFACE-ID paragraph §11.6.2 · the METHOD-ID paragraph
+//   §11.7.2 · the REPOSITORY paragraph's program-specifier §12.3.8.2 (the REPOSITORY paragraph's class,
+//   interface, property and user-defined-function specifiers are the remaining sites — they wait on their
+//   subsystems, kb/Work PB237).
+// `literal` is deliberately wide here; each paragraph's own syntax rule (PROGRAM-ID §11.10.3 SR1,
+// FUNCTION-ID §11.5.3 SR1, CLASS-ID §11.3.3 SR1, INTERFACE-ID §11.6.3 SR1, METHOD-ID §11.7.3 SR1 and the
+// REPOSITORY paragraph §12.3.8.3 SR2 — the same sentence six times) narrows it at BIND time through the
+// single screen `ExternalizedName.Screen`, matching the cancelTarget/callTarget discipline. The COBOL-2002
+// introduction is gated post-parse by VersionConformancePass ParseArm.VisitExternalizedNamePhrase
+// (externalized-name-as-2002) — a below-2002 use names its edition instead of drawing a bare syntax error.
+externalizedNamePhrase
+    : AS literal
     ;
 
 // ------------------------------------------
 // PROGRAM-ID paragraph
 // ------------------------------------------
 
-// ISO §11.10.2: PROGRAM-ID. program-name [AS literal] [IS {COMMON|INITIAL|RECURSIVE}… PROGRAM].
+// ISO §11.10.2 Format 1: PROGRAM-ID. program-name-1 [AS literal-1] [IS {COMMON|INITIAL|RECURSIVE}… PROGRAM].
 // IS and the trailing PROGRAM are optional noise words around the attribute list (IC401M writes
 // `IC401M IS INITIAL.`); the attribute list itself stays required inside the group.
+// ⚠ `AS literal-1` is a phrase of its OWN (externalizedNamePhrase), never an attribute: the figure prints
+// it POSITIONALLY between program-name-1 and the attribute group, while the attributes are a §5.2.6.4
+// choice-indicator group (any order, each at most once). Folding it into programIdAttribute is what produced
+// kb/Work PB303's exact inversion — `AS` fell through dataReferenceAttribute → cobolWord, so 2002+ rejected
+// it with COBOLNET0901 (AS is reserved from 2002) while '85 — the ONE edition whose PROGRAM-ID paragraph has
+// no AS phrase — accepted it and folded the literal into the program name.
 programIdParagraph
-    : PROGRAM_ID DOT programName (IS? programIdAttributes PROGRAM?)? DOT
+    : PROGRAM_ID DOT programName externalizedNamePhrase? (IS? programIdAttributes PROGRAM?)? DOT
     ;
 
 programName
@@ -124,10 +154,11 @@ programIdAttributes
     : programIdAttribute+
     ;
 
+// The §11.10.2 Format 1 attribute group ONLY. `literalAttribute` / `dataReferenceAttribute` (a bare
+// STRINGLIT / INTEGERLIT / cobolWord sink) were DELETED with PB303: no clause of §11.10.2 admits either,
+// nothing but MakeUnit's AS-literal hack ever read them, and the cobolWord arm WAS the accidental '85 accept.
 programIdAttribute
     : commonProgramAttribute
-    | literalAttribute
-    | dataReferenceAttribute
     ;
 
 commonProgramAttribute
@@ -135,15 +166,6 @@ commonProgramAttribute
     | COMMON
     | RECURSIVE
     | GLOBAL
-    ;
-
-literalAttribute
-    : STRINGLIT
-    | INTEGERLIT
-    ;
-
-dataReferenceAttribute
-    : cobolWord
     ;
 
 // ------------------------------------------
@@ -364,7 +386,7 @@ repositoryEntry
     | FUNCTION functionName INTRINSIC?
     | CLASS className   // OO (2002): CLASS class-name [AS literal] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
     | INTERFACE interfaceName   // OO (2002): the interface specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
-    | PROGRAM programPrototypeName repositoryAsPhrase?   // §12.3.8.2 program-specifier (2002) — kb/Work PB237; introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry; position-safe (entry-leading keyword in a closed alt set — no configuration paragraph, section header or division header begins with the PROGRAM token)
+    | PROGRAM programPrototypeName externalizedNamePhrase?   // §12.3.8.2 program-specifier (2002) — kb/Work PB237; introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry; position-safe (entry-leading keyword in a closed alt set — no configuration paragraph, section header or division header begins with the PROGRAM token)
     | PROPERTY propertyName     // OO (2002): the property specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§8.4.3.9.3 SR1)
     ;
 
@@ -372,13 +394,9 @@ repositoryEntry
 // and AS underlined, the AS phrase bracketed). program-prototype-name-1 is a user-defined word (§8.4.6.8), so it
 // rides `cobolWord` like every sibling name rule; literal-3's §12.3.8.3 SR2 class screen (alphanumeric or national,
 // not a figurative constant, not zero-length) is a BIND-time narrowing of the deliberately wide `literal`, matching
-// the cancelTarget/callTarget discipline.
+// the cancelTarget/callTarget discipline. The phrase itself is the SHARED `externalizedNamePhrase` above.
 programPrototypeName
     : cobolWord
-    ;
-
-repositoryAsPhrase
-    : AS literal
     ;
 
 // SOURCE-COMPUTER. [computer-name-1] . (ISO §12.3.5.2 — computer-name-1 is OPTIONAL; SR1: without it the second

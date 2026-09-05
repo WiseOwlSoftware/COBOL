@@ -12,6 +12,14 @@ namespace CobolNet.Compiler.Oo;
 public sealed class OoClassSymbol(string name, string csName, CobolParserCore.ClassDefinitionContext ctx)
 {
     public string Name { get; } = name;
+    /// <summary>The name externalized to the operating environment (ISO §11.3.4 GR1: "literal-1, if
+    /// specified, is the name of the class that is externalized to the operating environment"), from the
+    /// CLASS-ID <c>AS literal-1</c>; else <see cref="Name"/>. An object-class-name is only ever referenced
+    /// by a user-defined WORD (§8.4.6.4 — the containing definition or a REPOSITORY entry), so nothing
+    /// in COBOL resolves against this, and <see cref="CsName"/> deliberately does NOT derive from it: the
+    /// emitted type name is a WIRE CONTRACT with <c>PicInfo.ClrType</c>, which maps a declared
+    /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
+    public string ExternalizedName { get; init; } = name;
     public string CsName { get; } = csName;
     public CobolParserCore.ClassDefinitionContext Ctx { get; } = ctx;
     /// <summary>The FIRST (and, in v1, only permitted) INHERITS base-class name — null for a root class.</summary>
@@ -63,14 +71,14 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
 
     internal bool TryAddMethod(OoMethodSymbol m)
     {
-        if (!_methods.TryAdd(m.Name, m)) return false;
+        if (!_methods.TryAdd(m.ExternalizedName, m)) return false;   // the roster key (PB303)
         _methodList.Add(m);
         return true;
     }
 
     internal bool TryAddFactoryMethod(OoMethodSymbol m)
     {
-        if (!_factoryMethods.TryAdd(m.Name, m)) return false;
+        if (!_factoryMethods.TryAdd(m.ExternalizedName, m)) return false;   // the roster key (PB303)
         _factoryMethodList.Add(m);
         return true;
     }

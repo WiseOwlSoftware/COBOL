@@ -50,7 +50,14 @@ public sealed record CallExternalBacking(string BackingCsName, string ExternalNa
 /// against signatures of function units defined ANYWHERE in the compilation group, including after the caller.
 /// <paramref name="Returning"/> is null only for the ill-formed no-RETURNING function (COBOLNET1507 — already
 /// diagnosed; call sites fail loud without re-reporting).</summary>
-public sealed record UserFunctionSignature(string Name, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals);
+/// <param name="Name">user-function-name-1 as written — the key every <c>FUNCTION word(…)</c> reference
+/// resolves against (ISO §8.4.6.6 / §8.4.6.7 scope the WORD, never the AS literal).</param>
+/// <param name="Externalized">The name the function is externalized under (§11.5.4 GR1: "literal-1, if
+/// specified, is the name of the function that is externalized to the operating environment"; else the word).
+/// The activation the emitter writes names the callee THIS way, because that is the key the run-unit registry
+/// holds it under — the two must not drift (kb/Work PB303).</param>
+public sealed record UserFunctionSignature(
+    string Name, string Externalized, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals);
 
 /// <summary>ONE Format-2 callee's activation signature: its positional USING formals and its PROCEDURE DIVISION
 /// RETURNING item. §14.9.4.3 SR25 makes BOTH §14.8.2, Parameters and §14.8.3, Returning items apply to a Format-2
