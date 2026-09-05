@@ -59,6 +59,55 @@ public sealed class CobolNumCompareScaledTests
         Assert.Equal((Int128)123000, CobolNum.RescaleStoreCap(123, 0, 3, CobolRounding.Truncation));
     }
 
+    /// <summary>⛔ <c>Int128.Abs</c> THROWS on <c>Int128.MinValue</c>, and both widening siblings used to call it
+    /// (kb/Work PB288's sibling sweep). The value is reachable: <c>CobolArgAdapt.ReadNumericCell</c>'s R10 bits
+    /// contract delivers a 16-byte unsigned carrier's top-half content as exactly that <c>Int128</c>, and the
+    /// CALL landing now widens through <c>RescaleStoreCap</c> on every access. The store-semantics arm must
+    /// answer the low-order digits (its magnitude's 39th digit can never survive a ≤38-digit cap, so dropping it
+    /// first is lossless); the escape arm must RAISE, because no scale-9 alignment of that magnitude exists.</summary>
+    [Fact]
+    public void BothWideningArms_SurviveInt128MinValue()
+    {
+        // |Int128.MinValue| × 10 = 1701411834604692317316873037158841057280 (40 digits); its low-order 38 are
+        // 01411834604692317316873037158841057280, sign kept.
+        Assert.Equal(Int128.Parse("-1411834604692317316873037158841057280"),
+            CobolNum.RescaleStoreCap(Int128.MinValue, 0, 1, CobolRounding.Truncation));
+        Assert.Throws<CobolSizeError>(() => CobolNum.RescaleEscape(Int128.MinValue, 0, 1, CobolRounding.Truncation));
+        // The escape arm's NEGATIVE bound is a real bound, not the positive one mirrored by Abs.
+        Assert.Equal((Int128)(-1000), CobolNum.RescaleEscape(-1, 0, 3, CobolRounding.Truncation));
+    }
+
+    /// <summary>The cap TEST changed from a digit-count loop to a power-of-ten compare when the CALL ABI put
+    /// this on a per-access path (kb/Work PB288). Equivalence is asserted against the reference meaning — the
+    /// low-order 38 digits of the exact shifted magnitude — across the whole boundary neighbourhood, so the
+    /// O(1) rewrite cannot drift by one digit at the 38-digit edge.</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(9)]
+    [InlineData(18)]
+    [InlineData(37)]
+    [InlineData(38)]
+    [InlineData(39)]
+    public void RescaleStoreCap_MatchesTheLowOrder38Digits_AtEveryShift(int shift)
+    {
+        System.Numerics.BigInteger p38 = System.Numerics.BigInteger.Pow(10, 38);
+        foreach (Int128 seed in new Int128[]
+                 {
+                     0, 1, 7, Int128.Parse("999999999999999999"),
+                     Int128.Parse("100000000000000000000000000000"),          // 10^29
+                     Int128.Parse("12345678901234567890123456789012345678"),  // 38 digits
+                     Int128.MaxValue,
+                 })
+        foreach (Int128 value in new[] { seed, -seed })
+        {
+            var big = (System.Numerics.BigInteger)value * System.Numerics.BigInteger.Pow(10, shift);
+            var expected = System.Numerics.BigInteger.Abs(big) % p38;
+            if (big < 0) expected = -expected;
+            Assert.Equal(expected.ToString(),
+                CobolNum.RescaleStoreCap(value, 0, shift, CobolRounding.Truncation).ToString());
+        }
+    }
+
     [Fact]
     public void SelectionBodies_39AlignedDigits_PickTheRightArgument()
     {

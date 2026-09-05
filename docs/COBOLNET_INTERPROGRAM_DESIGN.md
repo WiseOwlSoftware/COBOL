@@ -146,6 +146,32 @@ the omitted (loud) carrier by design: §14.8.2.3.2 requires the same category an
 pairing and §14.8.2.3.3's MOVE rules give a float sender no alphanumeric receiver, so that pairing is a
 conformance violation to report, never a crossing to invent.
 
+**THE ONE NUMERIC LANDING — `CobolArgAdapt.Land` (kb/Work PB288).** Every numeric arm of the callee-side adapter
+reaches its receiving side through a single private helper, because §14.2.3 GR9 and GR10 describe the *same*
+conversion — "if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase" into a record
+of the FORMAL's description — and GR11 ("references to data-name-1 … are resolved in accordance with their
+description in the linkage section") makes the GR8 aliasing view owe the identical value on every access. The
+landing has two halves, and each was independently missing somewhere before the extraction:
+
+1. **The scale alignment widens with STORE semantics** — `CobolNum.RescaleStoreCap`, not the unchecked
+   `CobolNum.Rescale`. A magnitude the formal cannot hold is §14.7.5 case 3 ("after radix point alignment … is
+   further from zero than permitted for the associated resultant data item"), and the no-SIZE-ERROR-phrase,
+   checking-off disposition is documented in `CONFORMANCE.md` DOC-A.1-70: the receiver takes the result's
+   LOW-ORDER digits at its own scale. It is never the two's complement of an `Int128` intermediate, which is not
+   any rule — `BY CONTENT 1000000000000000000000000000000` into a `PIC S9(9)V9(9)` formal used to arrive as
+   `873995514.006732800` because the widening formed 10³⁹ and wrapped.
+2. **The digit-capacity conformance** — `CobolNum.Store` through the formal's own `NumProfile`. Without it the
+   adapter's closing `T.CreateTruncating` is itself a BINARY truncation to the carrier, so an 18-digit argument
+   viewed through a `PIC S9(4)V99` formal arrived as `−9838.16` where the low-order digits are `5678.00`.
+
+`NumValue` had half (2) and not (1); `Num` had neither, on both the Int128 and the float lane — the two-arm shape
+the shared helper exists to make unrepeatable, pinned by
+`CallAbiNumericCarrierDriftTests.TheGr8ViewAndTheGr10Copy_LandIdentically` and by the golden
+`2023/pb288_call_argument_scale_landing`, whose rows assert that the two arms and the equivalent inline
+MOVE/COMPUTE all print the same characters. The write-back half of the GR8 view takes the same store-semantics
+widening; its receiving *capacity* stays the caller's own carrier discipline (`WriteNumericCell`), because
+`CobolArg` carries `(Digits, Scale)` and not the caller's truncation form.
+
 `CobolVarGroup` is `(string Fixed, string[] Dynamic)` and is the §8.5.1.12 model itself, not an encoding:
 `Fixed` is the group's image with every variable-length component collapsed to nothing — the exact accounting
 §8.5.1.12.3 states the relation in, which is why two COMPATIBLE groups lay it out identically — and `Dynamic`

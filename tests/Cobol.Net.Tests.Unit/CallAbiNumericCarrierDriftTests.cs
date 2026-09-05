@@ -89,4 +89,56 @@ public sealed class CallAbiNumericCarrierDriftTests
         var args = new[] { new CobolArg(CobolPassMode.Value, ManagedPointer<decimal>.Cell(1.5m), 7, 2) };
         Assert.Equal(0L, CobolArgAdapt.NumValue<long>(args, 0, Formal, 2).Value);
     }
+
+    /// <summary>The callee's profile for a <c>PIC S9(9)V9(9)</c> formal — 18 digits, scale 9 (kb/Work PB288).</summary>
+    private static NumProfile Wide => new()
+    {
+        Digits = 18,
+        FractionDigits = 9,
+        Signed = true,
+        Truncation = NumericTruncation.DigitCount,
+        ByteForm = NumericByteForm.Binary,
+    };
+
+    /// <summary>⛔ THE TWO ARMS ARE ONE RULE (kb/Work PB288). ISO §14.2.3 GR9 and GR10 describe the SAME
+    /// conversion — "if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase" into a
+    /// record of the formal's description — and GR11 resolves every reference to the formal through that same
+    /// description, so <see cref="CobolArgAdapt.Num"/>'s GR8 aliasing view and
+    /// <see cref="CobolArgAdapt.NumValue"/>'s GR10 detached copy owe the IDENTICAL value for the identical
+    /// argument. They did not: <c>Num</c> rescaled with the unchecked <c>CobolNum.Rescale</c> straight into
+    /// <c>T.CreateTruncating</c> — two binary wraps in series, no digit-capacity landing — while <c>NumValue</c>
+    /// composed with <c>CobolNum.Store</c>. 10^30 crossing to a <c>PIC S9(9)V9(9)</c> formal arrived as
+    /// 873995514006732800 through one arm and −123822295304634368 through the other; the §14.7.5 case-3
+    /// no-phrase disposition (CONFORMANCE.md DOC-A.1-70) is the result's LOW-ORDER digits, 0.
+    /// <para>PROVEN TO FAIL: reverting either <c>CobolArgAdapt.Land</c> call site to the bare
+    /// <c>CobolNum.Rescale</c> / <c>CobolFloat.ToScaledUnchecked</c> makes the matching row red.</para></summary>
+    [Theory]
+    // The 31-digit fixed-point argument (§8.3.3.3.2 admits 1 through 31 digits) at scale 0. Aligned at the
+    // formal's scale 9 the result is 10^39; the formal's 18 digit positions keep its low-order 18 — all zero.
+    [InlineData("Int128-10e30", 0L)]
+    // The binary64 nearest 10^30 is exactly 1000000000000000019884624838656; at scale 9 that is
+    // 1000000000000000019884624838656000000000, whose low-order 18 digits are 624838656000000000.
+    [InlineData("double-1e30", 624838656000000000L)]
+    // An 18-digit argument at scale 0: aligned at scale 9 it is 123456789012345678000000000 (27 digits),
+    // whose low-order 18 are 012345678000000000 — i.e. the formal shows 12345678.000000000.
+    [InlineData("Int128-18digit", 12345678000000000L)]
+    // A value the formal HOLDS — the control that keeps the landing from degenerating to a blanket zero.
+    [InlineData("Int128-inrange", 123456000000L)]
+    public void TheGr8ViewAndTheGr10Copy_LandIdentically(string shape, long expected)
+    {
+        (ManagedPointer Carrier, int Scale) arg = shape switch
+        {
+            "Int128-10e30" => (ManagedPointer<Int128>.Cell(Int128.Parse("1000000000000000000000000000000")), 0),
+            "double-1e30" => (ManagedPointer<double>.Cell(1.0e30d), 0),
+            "Int128-18digit" => (ManagedPointer<Int128>.Cell((Int128)123456789012345678L), 0),
+            "Int128-inrange" => (ManagedPointer<Int128>.Cell((Int128)123456), 3),
+            _ => throw new ArgumentOutOfRangeException(nameof(shape)),
+        };
+        var byRef = new[] { new CobolArg(CobolPassMode.Content, arg.Carrier, 38, arg.Scale) };
+        var byValue = new[] { new CobolArg(CobolPassMode.Value, arg.Carrier, 38, arg.Scale) };
+        long view = CobolArgAdapt.Num<long>(byRef, 0, Wide, 9).Value;
+        long copy = CobolArgAdapt.NumValue<long>(byValue, 0, Wide, 9).Value;
+        Assert.Equal(expected, view);
+        Assert.Equal(expected, copy);
+    }
 }

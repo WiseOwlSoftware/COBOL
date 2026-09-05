@@ -287,18 +287,15 @@ public static partial class CobolNum
     {
         if (toScale <= fromScale) return Rescale(value, fromScale, toScale, mode);
         Int128 f = Pow10Wide(toScale - fromScale);
-        if (value != 0 && Int128.Abs(value) > Int128.MaxValue / f)
+        // The bound is written on the SIGNED value rather than through Int128.Abs, which throws on
+        // Int128.MinValue — a value the R10 bits contract can deliver here (kb/Work PB288's sibling sweep).
+        // f ≥ 10 on this arm, so both quotients are representable.
+        if (value != 0 && (value > Int128.MaxValue / f || value < Int128.MinValue / f))
             throw new CobolSizeError($"scale alignment to {toScale} fraction digits exceeds the Int128 "
                 + "intermediate (ISO §8.8.1 alignment at the D1 escape boundary — EC-SIZE-OVERFLOW)");
         return value * f;
     }
 
-    /// <summary>The store-semantics widening sibling of <see cref="RescaleEscape"/>: digits a ≤38-digit store
-    /// could never use are dropped BEFORE the multiply (decimal high-order truncation — the same cap
-    /// <c>CobolDec.ToUnscaled</c>'s widening arm applies), so a receiver-bound rescale composes with the
-    /// store's own digit-capacity mod instead of wrapping in binary. Selection results landing in a KNOWN
-    /// receiver ride this (a MOVE has §14.9.25.4 GR6 truncation semantics, not raise semantics); the
-    /// receiverless lane stays loud on <see cref="RescaleEscape"/>.</summary>
     /// <summary>The low-order <paramref name="digits"/> of <paramref name="v"/>, sign preserved —
     /// §14.9.12.4 GR6c's subsidiary-quotient cap (kb/Work PB129): the quotient used to form DIVIDE's
     /// remainder has the GIVING receiver's digit count, exactly the value the §14.7.5 no-phrase store
@@ -306,27 +303,36 @@ public static partial class CobolNum
     public static Int128 CapDigits(Int128 v, int digits) =>
         digits is <= 0 or > 38 ? v : v % Pow10.AsWide(digits);
 
+    /// <summary>The store-semantics widening sibling of <see cref="RescaleEscape"/>: digits a ≤38-digit store
+    /// could never use are dropped BEFORE the multiply (decimal high-order truncation — the same cap
+    /// <c>CobolDec.ToUnscaled</c>'s widening arm applies), so a receiver-bound rescale composes with the
+    /// store's own digit-capacity mod instead of wrapping in binary. Selection results landing in a KNOWN
+    /// receiver ride this (a MOVE has §14.9.25.4 GR6 truncation semantics, not raise semantics), as does the
+    /// §14.2.3 GR9/GR10 CALL-argument landing (kb/Work PB288 — <c>CobolArgAdapt.Land</c>); the receiverless
+    /// lane stays loud on <see cref="RescaleEscape"/>.
+    /// <para>The cap test is the <c>keep</c> power-of-ten compare, not a digit-count loop: with
+    /// <c>keep = max(0, 38 − shift)</c>, "<c>mag</c> has more than <c>keep</c> digits" IS
+    /// <c>mag &gt;= 10^keep</c>, so the test is a table lookup and a compare on what is now a PER-ACCESS ABI
+    /// path (<c>CobolArgAdapt.Num</c>'s §14.2.3 GR8 view re-lands on every reference to the formal).</para></summary>
     public static Int128 RescaleStoreCap(Int128 value, int fromScale, int toScale, CobolRounding mode)
     {
         if (toScale <= fromScale) return Rescale(value, fromScale, toScale, mode);
         int shift = toScale - fromScale;
         if (value == 0) return 0;
         bool neg = value < 0;
-        Int128 mag = Int128.Abs(value);
-        if (DigitCountWide(mag) + shift > 38)
+        // ⛔ Int128.Abs THROWS on Int128.MinValue, which this path can be handed: the R10 bits contract lets a
+        // 16-byte unsigned carrier's top-half value arrive as MinValue. Its magnitude is not representable, but
+        // its low 38 digits are — and a 39-digit magnitude always takes the cap branch below anyway, so
+        // pre-reducing modulo 10^38 loses nothing the result could have used.
+        Int128 mag = value == Int128.MinValue ? -(value % Pow10Wide(38)) : Int128.Abs(value);
+        Int128 keep = Pow10Wide(Math.Max(0, 38 - shift));
+        if (mag >= keep)
         {
-            mag %= Pow10Wide(Math.Max(0, 38 - shift));
+            mag %= keep;
             if (mag == 0) return 0;
         }
         Int128 r = mag * Pow10Wide(shift);
         return neg ? -r : r;
-    }
-
-    private static int DigitCountWide(Int128 mag)
-    {
-        int n = 1;
-        while (mag >= 10) { mag /= 10; n++; }
-        return n;
     }
 
     /// <summary>Compare an unsigned wide operand against an Int128-lane operand by algebraic VALUE at their own

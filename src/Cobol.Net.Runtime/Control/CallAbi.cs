@@ -106,6 +106,41 @@ public static class CobolArgAdapt
         }
     }
 
+    /// <summary>⛔ THE ONE NUMERIC LANDING OF THIS ABI (ISO §14.2.3 GR9/GR10; kb/Work PB288). Every numeric arm
+    /// below reaches its receiving side through this: the crossing IS "a COMPUTE statement without the ROUNDED
+    /// phrase" whose receiving operand is a data item of the FORMAL's description (GR9's prototyped/NESTED
+    /// branch, GR10's allocated record), and GR11 resolves every reference to the formal through that same
+    /// linkage description — so the GR8 aliasing view owes the identical landing, one value at a time, rather
+    /// than a raw reinterpretation of the caller's bits.
+    /// <para>The landing has TWO halves and both are load-bearing. (1) The scale alignment widens with STORE
+    /// semantics (<see cref="CobolNum.RescaleStoreCap"/>): §14.7.5 case 3's overflow "after radix point
+    /// alignment" is a receiver overflow, and with no SIZE ERROR phrase and checking off its documented
+    /// disposition is the result's LOW-ORDER digits (CONFORMANCE.md DOC-A.1-70) — never the binary two's
+    /// complement of an intermediate, which is not any rule. <c>BY CONTENT 1000000000000000000000000000000</c>
+    /// into a <c>PIC S9(9)V9(9)</c> formal used to arrive as 873995514.006732800 because the unchecked
+    /// <c>Rescale</c> formed 10^39 and wrapped. (2) The digit-capacity conformance
+    /// (<see cref="CobolNum.Store"/>) then reduces to the formal's picture — WITHOUT it the
+    /// <c>T.CreateTruncating</c> below is itself a BINARY truncation to the carrier, so an 18-digit argument
+    /// viewed through a <c>PIC S9(4)V99</c> formal arrived as −9838.16 where the low-order digits are 5678.00.
+    /// The float lane's <see cref="CobolNum.Store"/> composition was already right in <see cref="NumValue"/>
+    /// and missing in <see cref="Num"/> — the two-arm shape this helper exists to make unrepeatable.</para></summary>
+    /// <remarks><paramref name="toScale"/> is the emitted formal's <c>PicInfo.Scale</c> and
+    /// <paramref name="receiver"/> is the profile emitted from the SAME <c>PicInfo</c>, whose
+    /// <c>FractionDigits</c> is that same <c>Scale</c> (<c>PicInfo.ProfileInitializer</c>) — so
+    /// <see cref="CobolNum.Store"/>'s own internal rescale is the identity here and cannot re-introduce an
+    /// unchecked widening behind this one. Keep them emitted from one <c>PicInfo</c>.</remarks>
+    private static Int128 Land(Int128 unscaled, int fromScale, int toScale, in NumProfile receiver) =>
+        CobolNum.Store(CobolNum.RescaleStoreCap(unscaled, fromScale, toScale, CobolRounding.Truncation),
+                       toScale, receiver, CobolRounding.Truncation);
+
+    /// <summary>The binary64 lane of <see cref="Land(Int128, int, int, in NumProfile)"/>: the quantization to
+    /// the receiving description's scale happens HERE (kb/Work PB238), and past the <c>Int128</c> carrier
+    /// <see cref="CobolFloat.ToScaledUnchecked"/> keeps supplying the exact expansion's low-order digits
+    /// (kb/Work PB77) for the same <see cref="CobolNum.Store"/> to reduce to the picture.</summary>
+    private static Int128 Land(double value, int toScale, in NumProfile receiver) =>
+        CobolNum.Store(CobolFloat.ToScaledUnchecked(value, toScale, CobolRounding.Truncation),
+                       toScale, receiver, CobolRounding.Truncation);
+
     /// <summary>The write half of <see cref="ReadNumericCell"/>; false when the cell is not a native numeric.</summary>
     private static bool WriteNumericCell(ManagedPointer p, Int128 v)
     {
@@ -141,24 +176,34 @@ public static class CobolArgAdapt
                 // The D5 boundary: the caller's CHARACTER storage viewed as the callee's zoned numeric — decode
                 // and re-encode through the callee's profile on each access (same storage area, §14.2.3 GR8).
                 return ManagedPointer<T>.OverField(
-                    () => T.CreateTruncating(CobolNum.ParseDisplay(sp.Value, formal)),
+                    // Through the shared Land, like every other arm: the decode is already at the formal's
+                    // scale so the rescale is the identity, but the capacity conformance must not be the one
+                    // arm that skips it (§14.2.3 GR11 — every reference resolves through the SAME description).
+                    () => T.CreateTruncating(Land(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formalScale, formal)),
                     v => sp.Value = CobolNum.FormatDisplay(Int128.CreateTruncating(v), formal));
             case { } rp when ReadRealCell(rp) is not null:
                 // A native FLOAT cell viewed through a fixed-point formal (kb/Work PB238): the same §14.2.3 GR8
                 // converting view, on the float lane, because no Int128 holds the fractional value. The scale
-                // conversion is the receiver's, in BOTH directions — read quantizes at the formal's scale
-                // (§14.6.8.2 truncation, the un-ROUNDED landing), write un-scales back into the caller's float.
+                // conversion is the receiver's, in BOTH directions — read lands through the formal's own
+                // description (§14.2.3 GR9/GR10 + GR11, the shared Land), write un-scales back into the caller's
+                // float.
                 return ManagedPointer<T>.OverField(
-                    () => T.CreateTruncating(CobolFloat.ToScaledUnchecked(ReadRealCell(rp)!.Value, formalScale, CobolRounding.Truncation)),
+                    () => T.CreateTruncating(Land(ReadRealCell(rp)!.Value, formalScale, formal)),
                     v => WriteRealCell(rp, CobolFloat.ScaledToDouble(Int128.CreateTruncating(v), formalScale)));
             case { } np when ReadNumericCell(np) is not null:
             {
                 // A native numeric cell of a DIFFERENT carrier or scale: a converting view over the caller's
-                // storage. Same-scale cross-carrier reads/writes are bit-faithful through the Int128 lane.
+                // storage, landed through the formal's description on every read (§14.2.3 GR11 — the shared
+                // Land; before kb/Work PB288 this read an UNCHECKED Rescale straight into T.CreateTruncating,
+                // so both the scale alignment and the carrier narrowing were binary wraps).
+                // Same-scale cross-carrier reads/writes are bit-faithful through the Int128 lane.
                 int callerScale = args[i].Scale;
                 return ManagedPointer<T>.OverField(
-                    () => T.CreateTruncating(CobolNum.Rescale(ReadNumericCell(np)!.Value, callerScale, formalScale, CobolRounding.Truncation)),
-                    v => WriteNumericCell(np, CobolNum.Rescale(Int128.CreateTruncating(v), formalScale, callerScale, CobolRounding.Truncation)));
+                    () => T.CreateTruncating(Land(ReadNumericCell(np)!.Value, callerScale, formalScale, formal)),
+                    // The write-back's receiving side is the CALLER's item, whose capacity discipline is its own
+                    // carrier's (WriteNumericCell); only the scale alignment is this ABI's, and it takes the same
+                    // store-semantics widening rather than the wrapping one.
+                    v => WriteNumericCell(np, CobolNum.RescaleStoreCap(Int128.CreateTruncating(v), formalScale, callerScale, CobolRounding.Truncation)));
             }
             default:
                 return Omitted<T>(i);
@@ -229,19 +274,21 @@ public static class CobolArgAdapt
                 // (kb/Work PB238): the quantization to the formal's scale happens HERE, at the receiver, and
                 // truncates — which is exactly what an un-ROUNDED COMPUTE does. The caller used to do it, at
                 // scale 0, before the value ever reached the boundary.
-                v = CobolFloat.ToScaledUnchecked(rv, formalScale, CobolRounding.Truncation);
+                v = Land(rv, formalScale, formal);
                 break;
             case { } np when ReadNumericCell(np) is { } nv:
-                v = CobolNum.Rescale(nv, args[i].Scale, formalScale, CobolRounding.Truncation);
+                v = Land(nv, args[i].Scale, formalScale, formal);
                 break;
             case ManagedPointer<string> sp:
-                v = CobolNum.ParseDisplay(sp.Value, formal);   // a character-carried argument decodes through the formal's profile
+                // A character-carried argument decodes through the formal's profile; Land is the identity
+                // rescale plus the same capacity conformance the other arms take.
+                v = Land(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formalScale, formal);
                 break;
             default:
                 return Omitted<T>(i);
         }
-        // Store's 16-byte-unsigned result is container BITS (R10); CreateTruncating reinterprets them exactly.
-        return ManagedPointer<T>.Cell(T.CreateTruncating(CobolNum.Store(v, formalScale, formal)));
+        // Land's 16-byte-unsigned result is container BITS (R10); CreateTruncating reinterprets them exactly.
+        return ManagedPointer<T>.Cell(T.CreateTruncating(v));
     }
 
     /// <summary>Adapt argument <paramref name="i"/> to a BY VALUE formal whose callee-side storage is a CHARACTER
