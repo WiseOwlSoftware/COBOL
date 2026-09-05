@@ -314,13 +314,20 @@ internal static class IntrinsicResultType
     /// PERFORM … TIMES count — kb/Work PB86).</summary>
     public static bool IsIntegerOperand(BoundOperand op) => op switch
     {
+        // §8.3.3.3.2's closing sentence IS this test: "An integer literal is a fixed-point numeric literal that
+        // contains no decimal point" (--check verified). ⚠ It is deliberately the FORM, not the value: `1.0` is
+        // not an integer literal though its value is integral, and no §8.3.3.3.3 floating-point literal can be
+        // one either — r2 requires its significand to "include a decimal point", so the test excludes the whole
+        // floating form without naming it (kb/Work PB248 re-derived this arm and left it unchanged).
         BoundNumericLiteral n => !n.Text.Contains('.') && !n.Text.Contains(','),
-        // Usage INDEX is excluded: it is class index (§13.18.60), not an integer argument, and it reaches here
-        // as a scale-0 numeric PicInfo that would otherwise answer true.
-        // Scale ≤ 0: a trailing-P picture (`PIC 9P`, scale −1) has no digit position to the right of the decimal
-        // point — it IS an integer (its value is a multiple of 10); a leading-P (`PIC P9`, scale 2) is not.
+        // ⛔ THE ONE §5.5 2)b)2. PRIMITIVE (kb/Work PB248). This arm read the SCALE alone —
+        // `{ Category: Numeric, Scale: <= 0, Usage: not Index }` — and a floating-point item is PICTURE-less, so
+        // PicInfo.FloatItem gives it Scale 0 and it answered TRUE: `PERFORM … F TIMES` over a COMP-2 holding 3.7
+        // iterated three times with no diagnostic (§14.9.28.3 SR2), and every all-integer-arguments result row
+        // selected INTEGER for a floating-point argument. The missing "fixed-point" conjunct now lives in
+        // PicInfo.IsIntegerDescription, which the §15.3 type-6 argument screen reads as its complement.
         BoundFieldOperand { Place.Item: { IsGroup: false } item } =>
-            item.Pic is { Category: PicCategory.Numeric, Scale: <= 0, Usage: not Usage.Index },
+            item.Pic is { IsIntegerDescription: true },
         // ⚠ A NESTED CALL IS ASKED FOR ITS RESOLVED TYPE, NOT ITS DECLARED ONE. Reading `ic.Sig.Type` here would
         // answer NUMERIC for `FUNCTION SUM(FUNCTION ABS(I) J)` — ABS's row DECLARES Numeric and resolves to
         // Integer only against its own argument — so the outer "all arguments integer" row would never be

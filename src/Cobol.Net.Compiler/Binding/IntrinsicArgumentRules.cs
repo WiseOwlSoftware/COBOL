@@ -1069,6 +1069,62 @@ internal static class IntrinsicArgumentRules
     /// would refuse it — the PB1 failure mode, arrived at from the opposite direction.
     /// </para>
     /// </remarks>
+    /// <summary>
+    /// ⛔ THE ONE PRIMITIVE behind every §15.3 type 6 screen: the reason this ITEM's DESCRIPTION admits a value
+    /// that is not an integer, or <see langword="null"/> when the description admits only integers (kb/Work
+    /// PB248). Every §15.3 type-6 site reads THIS — the bare-operand arm of <see cref="IntegerViolation"/>, the
+    /// additive-spine walk in <see cref="CollectAdditive"/> and the opaque-marking walk in
+    /// <see cref="NonIntegralItemsBeneath"/> — so a shape none of them can see cannot be fixed in one of the three.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⛔ THE GOVERNING TEXT IS §15.3 TYPE 6 ITSELF, and the argument is PB40's, applied to the arm PB40's own
+    /// primitive could not see. Type 6 admits exactly two things: "an arithmetic expression that will ALWAYS
+    /// result in an integer value <b>or</b> an integer data item" (--check verified). A floating-point item is
+    /// neither. It is not an always-integral arithmetic expression because §14.6.8.3 sets a floating-point
+    /// item's content to "the algebraic value of the sending operand" (--check verified) — its DECLARED value
+    /// set contains non-integers, so no reference to it is provably integral. That a particular run happens to
+    /// store 7.0 in it is the same irrelevance as a <c>PIC 9V9</c> happening to hold 7.0, which the scale arm
+    /// below has rejected since PB40. IT IS A TYPE TEST, NOT A VALUE TEST — both arms, for the same reason.
+    /// </para>
+    /// <para>
+    /// ⚠ §5.5 2)b)2. CORROBORATES AND DOES NOT GOVERN — the distinction matters, because the tempting move is
+    /// to lead with it. It defines the term for an identifier operand as "a <b>fixed-point</b> numeric data
+    /// item, other than an intrinsic function, whose description does not include any digit positions to the
+    /// right of the radix point" (--check verified), which is exactly this arm plus the scale arm in one
+    /// sentence — but §5.5 2) scopes itself to "a syntax rule", and §5.3.1 says "Except for intrinsic
+    /// functions, rules are categorized as syntax rules and general rules. Intrinsic functions have argument
+    /// rules and returned value rules INSTEAD". §15.15.3 r1 ("Argument-1 shall be an integer") is an ARGUMENT
+    /// rule, so §5.5 reaches it only as the standard's own usage of the word, never as its definition here.
+    /// </para>
+    /// <para>
+    /// ⛔ WHY THE OMISSION WAS INVISIBLE BY CONSTRUCTION. A floating-point item — §14.6.8.3, "a data item
+    /// described with the FLOAT-SHORT usage, the FLOAT-LONG usage, the FLOAT-EXTENDED usage, or any standard
+    /// floating-point usage" (--check verified), plus this implementation's COMP-1/COMP-2 synonyms — is
+    /// PICTURE-less, so <see cref="PicInfo.FloatItem"/> builds it with <c>Scale: 0</c>. It therefore passed
+    /// <c>Admissible('i') = [CobolClass.Numeric]</c> AND missed a scale-only arm, and
+    /// <c>FUNCTION TEST-DATE-YYYYMMDD(F)</c> over 20240229.9 truncated at the runtime seam and answered
+    /// "valid date". Nothing consulted <see cref="PicInfo.IsFloat"/> here.
+    /// </para>
+    /// </remarks>
+    internal static string? NonIntegralItemReason(PicInfo? pic) =>
+        // ⛔ THE PREDICATE IS PicInfo.IsIntegerDescription, NOT A SECOND COPY OF IT. This method adds only the
+        // PROSE; the decision is §5.5 2)b)2.'s conjunction, written down once. Usage INDEX cannot reach here
+        // anyway (class index, §13.18.60 — the 'i' class screen rejects it first), and the primitive excludes it.
+        pic is not { Category: PicCategory.Numeric, Usage: not Usage.Index } || pic.IsIntegerDescription ? null
+        : pic.IsFloat
+            ? "is a floating-point numeric data item (ISO §14.6.8.3), which ISO §15.3 type 6 does not admit — "
+              + "it requires an integer data item or an always-integral arithmetic expression, and a "
+              + "floating-point item's declared value set contains non-integers whatever this reference holds"
+            // §15.3 type 6 — "an integer data item". A numeric item with digits to the right of the decimal
+            // point is not one, and as an arithmetic expression it does not always result in an integer either.
+            : "is a numeric data item with digits to the right of the decimal point, which ISO §15.3 type 6 does "
+              + "not admit — it requires an integer data item or an always-integral arithmetic expression";
+
+    /// <summary>Does this item's DESCRIPTION admit a non-integral value? The boolean face of
+    /// <see cref="NonIntegralItemReason"/>, for the expression walks that need the predicate without the prose.</summary>
+    private static bool AdmitsNonIntegralValue(PicInfo? pic) => NonIntegralItemReason(pic) is not null;
+
     public static string? IntegerViolation(BoundOperand op) => op switch
     {
         // §8.4.3.2.3 SR11 — a NUMERIC function, whatever this reference would evaluate to.
@@ -1076,19 +1132,18 @@ internal static class IntrinsicArgumentRules
             when IntrinsicResultType.Resolve(ic.Sig, ic.Args) is IntrinsicType.Numeric =>
             $"is FUNCTION {ic.Sig.Name}, a numeric function, which ISO §8.4.3.2.3 SR11 bars from an integer "
             + "operand position even though a particular reference might yield an integer value",
-        // §15.3 type 6 — "an integer data item". A numeric item with digits to the right of the decimal point
-        // is not one, and as an arithmetic expression it does not always result in an integer either.
-        // (Usage INDEX is excluded: it is class index, §13.18.60, and reaches here as a scale-0 PicInfo anyway.)
+        // §15.3 type 6 — "an integer data item". The item shapes that are NOT one live in the ONE primitive
+        // (§5.5 2)b)2.'s two conditions: FIXED-POINT, and no digit positions right of the radix point).
         BoundFieldOperand { Place: not RefModPlace, Place.Item: { IsGroup: false } item }
-            when item.Pic is { Category: PicCategory.Numeric, Scale: > 0, Usage: not Usage.Index } =>
-            "is a numeric data item with digits to the right of the decimal point, which ISO §15.3 type 6 does "
-            + "not admit — it requires an integer data item or an always-integral arithmetic expression",
-        // A numeric LITERAL with a NONZERO fraction digit (kb/Work PB58): neither an integer literal (§8.3.3.3
-        // — no digits right of the decimal point) nor an arithmetic expression that always results in an integer
-        // value. "1.0" is left alone — its VALUE is integral and type 6's expression alternative admits it.
-        BoundNumericLiteral lit when HasNonZeroFraction(lit.Text) =>
-            $"is the numeric literal {lit.Text}, whose fraction is nonzero — ISO §15.3 type 6 requires an integer "
-            + "data item, an integer literal, or an always-integral arithmetic expression",
+            when NonIntegralItemReason(item.Pic) is { } why => why,
+        // A numeric LITERAL whose VALUE is not an integer (kb/Work PB58; the floating form, kb/Work PB248):
+        // neither an integer literal (§5.5 2)a) — "an integer literal, as defined in 8.3.3.3.2, Fixed-point
+        // numeric literals", which no §8.3.3.3.3 floating-point literal is) nor an arithmetic expression that
+        // always results in an integer value. "1.0" and "1.0E2" are left alone — their VALUES are integral and
+        // type 6's expression alternative admits them.
+        BoundNumericLiteral lit when HasNonIntegralValue(lit.Text) =>
+            $"is the numeric literal {lit.Text}, whose value is not an integer — ISO §15.3 type 6 requires an "
+            + "integer data item, an integer literal, or an always-integral arithmetic expression",
         // §15.3 type 6's EXPRESSION alternative — the two PROVABLY not-always-integral shapes (kb/Work PB124,
         // AR-15.3-6's remaining half). Soundness is the whole design: an arm may fire only when a witness
         // VALUATION yielding a non-integer provably exists, and the counterexample zoo that keeps everything
@@ -1112,8 +1167,12 @@ internal static class IntrinsicArgumentRules
         // divides the numerator, which a picture-ranged divisor defeats (362880 / PIC 9) — fail open there.
         if (expr is BoundBinary { Op: '/', Left: BoundNumRef { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }, Right: BoundNumLiteral d }
             && LiteralIntegerMagnitude(d.Text) is { } dv && dv > 1   // 1 always divides; 0 is the zero-divide diagnostic's business
-            && (np.Scale > 0 || System.Numerics.BigInteger.Pow(10, -np.Scale >= 0 ? -np.Scale : 0) % dv != 0))
-            return $"divides a data item of scale {np.Scale} by the literal {d.Text}, which does not always "
+            // A FLOATING-POINT numerator is finer than any fixed granularity (§14.6.8.3 — its content is the
+            // algebraic value moved into it), so no divisor > 1 always divides it (kb/Work PB248). The
+            // fixed-point arm is the granularity argument the comment above states.
+            && (np.IsFloat || np.Scale > 0 || System.Numerics.BigInteger.Pow(10, -np.Scale >= 0 ? -np.Scale : 0) % dv != 0))
+            return $"divides {(np.IsFloat ? "a floating-point numeric data item" : $"a data item of scale {np.Scale}")} "
+                + $"by the literal {d.Text}, which does not always "
                 + "result in an integer value — ISO §15.3 type 6 admits an arithmetic expression only when it "
                 + "ALWAYS results in one";
         // An additive spine (+, −, unary −) carrying a scale>0 item PURELY as its own leaves, with a net
@@ -1121,20 +1180,34 @@ internal static class IntrinsicArgumentRules
         // constant and step the item by 10^(−scale) — consecutive results are less than 1 apart, so a
         // non-integer value exists. An occurrence inside a NON-additive subtree voids the witness (the subtree
         // moves with the item — `SCALED - (SCALED * 1)` nets to zero through it), so such items are skipped.
-        var net = new Dictionary<DataItem, (int Coeff, int Scale, bool Opaque)>();
+        var net = new Dictionary<DataItem, (int Coeff, int Scale, bool Float, bool Opaque)>();
         CollectAdditive(expr, 1, net);
-        foreach (var (item, (coeff, scale, opaque)) in net)
-            if (!opaque && scale > 0 && coeff != 0
-                && System.Numerics.BigInteger.Abs(coeff) % System.Numerics.BigInteger.Pow(10, scale) != 0)
-                return $"is an arithmetic expression whose term '{item.CobolName}' has digits to the right of "
-                    + "the decimal point, so the sum does not always result in an integer value — ISO §15.3 "
-                    + "type 6 admits an arithmetic expression only when it ALWAYS results in one";
+        foreach (var (item, (coeff, scale, isFloat, opaque)) in net)
+        {
+            if (opaque || coeff == 0) continue;
+            // ⛔ THE FLOAT WITNESS NEEDS NO GRANULARITY TEST, and applying the fixed-point one to it would
+            // disarm the arm entirely (kb/Work PB248): a float item's PicInfo carries Scale 0, so
+            // `|coeff| % 10^0` is ZERO for every coefficient and the arm could never fire. Its value set is
+            // finer than any decimal granularity — for a net coefficient c ≠ 0 pick the leaf value 10^−k (or
+            // 2^−k for a binary float) with 10^k > |c|, hold every other leaf at zero, and c·10^−k is not an
+            // integer — so a nonzero net coefficient IS the witness.
+            bool witness = isFloat
+                || (scale > 0
+                    && System.Numerics.BigInteger.Abs(coeff) % System.Numerics.BigInteger.Pow(10, scale) != 0);
+            if (!witness) continue;
+            return $"is an arithmetic expression whose term '{item.CobolName}' "
+                + (isFloat ? "is a floating-point numeric data item" : "has digits to the right of the decimal point")
+                + ", so the sum does not always result in an integer value — ISO §15.3 "
+                + "type 6 admits an arithmetic expression only when it ALWAYS results in one";
+        }
         return null;
     }
 
-    /// <summary>Walk an additive spine, accumulating each scale>0 item's signed leaf count; any occurrence
-    /// under a non-additive node marks the item OPAQUE (the witness argument no longer holds for it).</summary>
-    private static void CollectAdditive(BoundExpr e, int sign, Dictionary<DataItem, (int, int, bool)> net)
+    /// <summary>Walk an additive spine, accumulating the signed leaf count of every item whose DESCRIPTION
+    /// admits a non-integral value (<see cref="NonIntegralItemReason"/> — a scale&gt;0 item OR a floating-point
+    /// one); any occurrence under a non-additive node marks the item OPAQUE (the witness argument no longer
+    /// holds for it).</summary>
+    private static void CollectAdditive(BoundExpr e, int sign, Dictionary<DataItem, (int, int, bool, bool)> net)
     {
         switch (e)
         {
@@ -1144,62 +1217,94 @@ internal static class IntrinsicArgumentRules
                 CollectAdditive(b.Left, sign, net); CollectAdditive(b.Right, -sign, net); break;
             case BoundNegate n:
                 CollectAdditive(n.Operand, -sign, net); break;
-            case BoundNumRef { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Scale: > 0 } p } and { } it }:
+            case BoundNumRef { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { } p } and { } it }
+                when AdmitsNonIntegralValue(p):
                 net[it] = net.TryGetValue(it, out var v)
-                    ? (v.Item1 + sign, p.Scale, v.Item3) : (sign, p.Scale, false);
+                    ? (v.Item1 + sign, p.Scale, p.IsFloat, v.Item4) : (sign, p.Scale, p.IsFloat, false);
                 break;
             default:
-                foreach (var it in ScaledItemsBeneath(e))
+                foreach (var it in NonIntegralItemsBeneath(e))
                     net[it.Item] = net.TryGetValue(it.Item, out var prior)
-                        ? (prior.Item1, it.Scale, true) : (0, it.Scale, true);
+                        ? (prior.Item1, it.Scale, it.Float, true) : (0, it.Scale, it.Float, true);
                 break;
         }
     }
 
-    /// <summary>Every scale>0 numeric item referenced anywhere beneath a non-additive subtree.</summary>
-    private static IEnumerable<(DataItem Item, int Scale)> ScaledItemsBeneath(BoundExpr e)
+    /// <summary>Every numeric item whose description admits a non-integral value referenced anywhere beneath a
+    /// non-additive subtree. ⛔ It MUST see exactly what <see cref="CollectAdditive"/>'s leaf arm sees — the two
+    /// halves are one rule (the same <see cref="NonIntegralItemReason"/> primitive), and a shape visible to the
+    /// leaf arm but not to this one would fire SPURIOUSLY on legal source: <c>F - (F * 1)</c> nets to zero only
+    /// because this walk marks <c>F</c> opaque (kb/Work PB248 — the float widening had to land in both).</summary>
+    private static IEnumerable<(DataItem Item, int Scale, bool Float)> NonIntegralItemsBeneath(BoundExpr e)
     {
         switch (e)
         {
-            case BoundNumRef { Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Scale: > 0 } p } and { } it }:
-                yield return (it, p.Scale); break;
+            case BoundNumRef { Place.Item: { IsGroup: false, Pic: { } p } and { } it } when AdmitsNonIntegralValue(p):
+                yield return (it, p.Scale, p.IsFloat); break;
             case BoundBinary b:
-                foreach (var x in ScaledItemsBeneath(b.Left)) yield return x;
-                foreach (var x in ScaledItemsBeneath(b.Right)) yield return x;
+                foreach (var x in NonIntegralItemsBeneath(b.Left)) yield return x;
+                foreach (var x in NonIntegralItemsBeneath(b.Right)) yield return x;
                 break;
             case BoundNegate n:
-                foreach (var x in ScaledItemsBeneath(n.Operand)) yield return x;
+                foreach (var x in NonIntegralItemsBeneath(n.Operand)) yield return x;
                 break;
             case BoundPower p2:
-                foreach (var x in ScaledItemsBeneath(p2.Base)) yield return x;
-                foreach (var x in ScaledItemsBeneath(p2.Exp)) yield return x;
+                foreach (var x in NonIntegralItemsBeneath(p2.Base)) yield return x;
+                foreach (var x in NonIntegralItemsBeneath(p2.Exp)) yield return x;
                 break;
         }
     }
 
-    /// <summary>The literal's magnitude as an integer, or null when it carries a nonzero fraction (those are
-    /// not the quotient screen's business — the item/d granularity argument needs an integral d).</summary>
-    private static System.Numerics.BigInteger? LiteralIntegerMagnitude(string text)
+    /// <summary>
+    /// ⛔ THE ONE EXACT DECODE both literal screens read — <see cref="CobolNet.Common.NumericLiteral.TryParseExact"/>,
+    /// "the ONE exact parser the binder's range checks, the standard-decimal literal operand and the VALUE
+    /// initializer share", which handles the FIXED-POINT form (§8.3.3.3.2) and the FLOATING-POINT form
+    /// (§8.3.3.3.3, whose GR5 value is "the algebraic product of the value of its significand and the quantity
+    /// derived by raising ten to the power of the exponent") alike. Returns the literal's value as an unscaled
+    /// significand and a power of ten, or <see langword="false"/> for text that is not a numeric literal.
+    /// </summary>
+    /// <remarks>⚠ The DECIMAL-POINT IS COMMA radix separator (§12.3.7.4 GR14a — "the character written in
+    /// numeric literals to represent the decimal separator shall be the comma") is folded to '.' first: the two
+    /// screens below have always treated ',' as the radix point, and §8.3.3.3.2 gives a numeric literal no
+    /// grouping separator at all ("digits '0' through '9', the plus sign, the minus sign, and the decimal
+    /// point") and at most one decimal point (r3), so the substitution cannot change a literal's value.</remarks>
+    private static bool TryLiteralValue(string text, out System.Numerics.BigInteger unscaled, out int exp10)
     {
-        string t = text.TrimStart('+', '-');
-        if (t.Contains('E') || t.Contains('e')) return null;
-        int dp = t.IndexOfAny(['.', ',']);
-        if (dp >= 0)
-        {
-            if (t.AsSpan(dp + 1).ToString().Any(c => c is >= '1' and <= '9')) return null;
-            t = t[..dp];
-        }
-        return t.Length == 0 ? null : System.Numerics.BigInteger.Parse(t);
+        unscaled = 0;
+        bool ok = CobolNet.Common.NumericLiteral.TryParseExact(text.Replace(',', '.'), out var sig, out exp10);
+        if (ok) unscaled = sig;
+        return ok;
     }
 
-    /// <summary>Does this numeric literal's text carry a nonzero digit right of its decimal separator ('.' or the
-    /// DECIMAL-POINT IS COMMA ',')? An E-form (floating-point) literal is left to the runtime.</summary>
-    private static bool HasNonZeroFraction(string text)
+    /// <summary>The literal's magnitude as an integer, or null when its VALUE is not an integer (those are
+    /// not the quotient screen's business — the item/d granularity argument needs an integral d).</summary>
+    /// <remarks>⚠ An E-form literal used to return null here unconditionally, which failed the quotient screen
+    /// OPEN for every floating-point divisor (kb/Work PB248). <c>1.0E2</c> is the integer 100 and divides
+    /// exactly as <c>100</c> does; the form of the literal was never the question, its VALUE was.</remarks>
+    private static System.Numerics.BigInteger? LiteralIntegerMagnitude(string text)
     {
-        if (text.Contains('E') || text.Contains('e')) return false;
-        int dp = text.IndexOfAny(['.', ',']);
-        return dp >= 0 && text.AsSpan(dp + 1).ToString().Any(c => c is >= '1' and <= '9');
+        if (!TryLiteralValue(text, out var sig, out int exp10)) return null;
+        var mag = System.Numerics.BigInteger.Abs(sig);
+        if (exp10 >= 0) return mag * System.Numerics.BigInteger.Pow(10, exp10);
+        var unit = System.Numerics.BigInteger.Pow(10, -exp10);
+        return mag % unit == 0 ? mag / unit : null;
     }
+
+    /// <summary>
+    /// Is this numeric literal's VALUE not an integer? §15.3 type 6 admits an integer literal (§5.5 2)a) — "an
+    /// integer literal, as defined in 8.3.3.3.2, Fixed-point numeric literals") or an arithmetic expression
+    /// that always results in an integer value, and a literal IS an arithmetic expression (§8.8.1.1), so the
+    /// question the screen must ask is about the VALUE, not the written form: <c>1.0</c> and <c>1.0E2</c> pass,
+    /// <c>1.5</c> and <c>2.02402299E7</c> do not.
+    /// </summary>
+    /// <remarks>⛔ IT USED TO OPEN <c>if (text.Contains('E')) return false;</c> — "an E-form literal is left to
+    /// the runtime" — which disarmed the arm for EVERY floating-point literal (kb/Work PB248), and the grammar
+    /// admits one directly in the argument region. <c>FUNCTION TEST-DATE-YYYYMMDD(2.02402299E7)</c> reached the
+    /// runtime's <c>TryIntegerArg</c>, was truncated to 20240229, and answered "valid date".</remarks>
+    private static bool HasNonIntegralValue(string text) =>
+        TryLiteralValue(text, out var sig, out int exp10)
+        && exp10 < 0
+        && System.Numerics.BigInteger.Abs(sig) % System.Numerics.BigInteger.Pow(10, -exp10) != 0;
 
     /// <summary>The operand's class for a diagnostic — the one it has, or the choice it offers.</summary>
     private static string Describe(CobolClass[] candidates) => candidates.Length == 1

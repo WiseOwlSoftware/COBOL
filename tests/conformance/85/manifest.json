@@ -1,5 +1,6 @@
 {
   "enabled": [
+    "pb248_integer_arg_float_admitted",
     "pb207_group_value_area_85",
     "wavef_dbg_proc",
     "phrase_order_arithmetic",

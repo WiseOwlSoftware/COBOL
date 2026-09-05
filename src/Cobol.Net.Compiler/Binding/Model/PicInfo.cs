@@ -315,6 +315,36 @@ public sealed record PicInfo(
     /// (numeric design D1 / SSOT §18 #4). ≤18 digits stay hardware-native <see cref="long"/>.</summary>
     public bool IsWide => Category is PicCategory.Numeric && !IsFloat && Digits > 18;
 
+    /// <summary>
+    /// ⛔ THE ONE "is this the description of an INTEGER DATA ITEM?" primitive (ISO §5.5 2)b)2., kb/Work PB248).
+    /// The standard's own definition of the term is a CONJUNCTION of three conditions, and every screen in this
+    /// compiler that asks the question reads THIS rather than re-deriving it: "a <b>fixed-point</b> numeric data
+    /// item, other than an intrinsic function, whose description does not include any digit positions to the
+    /// right of the radix point".
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⚠ <b>THE "FIXED-POINT" CONJUNCT IS THE ONE THAT WAS MISSING, TWICE.</b> A floating-point item
+    /// (§14.6.8.3 — "a data item described with the FLOAT-SHORT usage, the FLOAT-LONG usage, the FLOAT-EXTENDED
+    /// usage, or any standard floating-point usage", plus the COMP-1/COMP-2 synonyms) is PICTURE-less, so
+    /// <see cref="FloatItem"/> gives it <c>Scale: 0</c> and the radix-point conjunct is VACUOUSLY satisfied.
+    /// Both the §15.3 type-6 intrinsic-argument screen and <c>IntrinsicResultType.IsIntegerOperand</c> tested
+    /// the scale alone; a <c>USAGE COMP-2</c> item therefore read as an integer at both, and
+    /// <c>PERFORM … F TIMES</c> over 3.7 iterated three times with no diagnostic (§14.9.28.3 SR2). The two
+    /// screens are complements over <see cref="Scale"/> (one asks <c>&gt; 0</c>, the other <c>&lt;= 0</c>), so a
+    /// single predicate serves both and neither can grow the arm the other lacks.
+    /// </para>
+    /// <para>
+    /// <see cref="Scale"/> ≤ 0 rather than = 0: a trailing-P picture (<c>PIC 9P</c>, scale −1) has no digit
+    /// position to the right of the radix point and IS an integer item (its value is a multiple of ten); a
+    /// leading-P (<c>PIC P9</c>, scale 2) is not. USAGE INDEX is excluded because §8.5.2.1 Table 2 makes an
+    /// index data item class INDEX, never a numeric data item, though its storage <see cref="PicInfo"/> carries
+    /// category Numeric at scale 0 and would otherwise answer true (kb/Work R27).
+    /// </para>
+    /// </remarks>
+    public bool IsIntegerDescription =>
+        Category is PicCategory.Numeric && !IsFloat && Scale <= 0 && Usage is not Usage.Index;
+
     /// <summary>True for an UNSIGNED BinaryCapacity item whose 16-byte container range [0, 2^128) exceeds every
     /// signed carrier — its CLR carrier is <see cref="UInt128"/> (kb/Work R10, owner decision 2026-08-07: the item
     /// owns its full container range, ISO §13.18.60.4 GR12). Reads of such an item enter the numeric renderer on

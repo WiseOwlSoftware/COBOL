@@ -275,9 +275,23 @@ narrower than type 6 — an expression or nested function is barred outright), `
 §15.63.3 / §15.71.3 / §15.72.3 r1's "nor shall it be a strongly-typed group item"), and the zero-length-LITERAL
 clause — and the schema a `CrossArgRule` (`AllSameClass` for MAX/MIN/ORD-MAX/ORD-MIN r2/r3, `MatchArgument1` for
 FIND-STRING, NUMVAL-C/TEST-NUMVAL-C, INTEGER-OF-FORMATTED-DATE, SECONDS-FROM-FORMATTED-TIME, TEST-FORMATTED-DATETIME,
-TRIM, SUBSTITUTE). `IntegerViolation` decides §15.3 type 6 for a data item (declared scale), a nested numeric function
-(§8.4.3.2.3 SR11) and a numeric literal with a nonzero fraction; an arithmetic expression fails open ("always
-results in an integer value" is not syntactically distinguishable — §4.2.2 discretion). Rules a class kind cannot
+TRIM, SUBSTITUTE). `IntegerViolation` decides §15.3 type 6 — "an arithmetic expression that will always result in an
+integer value **or** an integer data item" — for four operand shapes: a DATA ITEM, a nested numeric function
+(§8.4.3.2.3 SR11), a numeric LITERAL, and the two provably-not-always-integral EXPRESSION shapes (a bare-item/literal
+quotient at the root, and a non-integral item appearing purely as additive leaves with an uncancelled net
+coefficient); every other expression fails open, because "always results in an integer value" is not generally
+decidable (§4.2.2 discretion). The item test is `PicInfo.IsIntegerDescription` — **the ONE primitive**, and both of
+type 6's disqualifying shapes live in it: a declared SCALE > 0, and a FLOATING-POINT usage (kb/Work PB248 — a float
+item is PICTURE-less, so it carries scale 0 and a scale-only test admitted it; §14.6.8.3 sets its content to "the
+algebraic value of the sending operand", so its declared value set contains non-integers and no reference to it is
+provably integral). `IntrinsicResultType.IsIntegerOperand`, the §15.2 type-5 classifier that also answers every
+statement rule saying "shall be an integer" (§14.9.28.3 SR2), reads the SAME primitive as its complement over the
+scale, so neither screen can grow an arm the other lacks. The literal test is on the literal's VALUE, through
+`NumericLiteral.TryParseExact` — the one exact parser — so the fixed-point form (§8.3.3.3.2) and the floating form
+(§8.3.3.3.3, whose GR5 value is the significand times ten to the exponent) are judged alike: `1.0` and `1.0E2` are
+admitted, `1.5` and `2.02402299E7` are not. ⚠ A floating-point operand at an integer position is REJECTED under
+strict and accepted with a COBOLNET1627 WARNING under `--permissive` (the documented coercion extension,
+`FloatIntegerArgumentPermissiveTests`). Rules a class kind cannot
 carry at all live beside the schema on the same axis (`StaticUsageOf` — CONCAT's §15.18.3 r2/r3 usage halves in
 `CheckConcatArgs`, BASECONVERT's and CONVERT's usage screens) or in the function's own binder (SUBSTITUTE's per-pair
 §15.87.3 r3 widths, INTEGER-OF-FORMATTED-DATE's "shall be a DATA ITEM" half of §15.48.3 r3, the date/time FORMAT

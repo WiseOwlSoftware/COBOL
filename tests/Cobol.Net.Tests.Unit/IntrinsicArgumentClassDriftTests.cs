@@ -2,6 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using CobolNet.Binding;
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Tests.Shared;
 using Xunit;
 
@@ -354,5 +356,101 @@ public sealed class IntrinsicArgumentClassDriftTests
         Assert.True(missing.Count == 0,
             $"catalogued function(s) with NO argument-rule row and NO DeliberatelyUnscreened reason: [{string.Join(", ", missing)}] — "
             + "read the function's §15.x.3 argument rule, cite it, and add its row (or its reason).");
+    }
+
+    /// <summary>A bare reference to an elementary item of <paramref name="usage"/> — the operand shape the
+    /// §15.3 type-6 screen sees for <c>FUNCTION CHAR(WS-F)</c>.</summary>
+    private static BoundFieldOperand ItemOperand(Usage usage, PicInfo pic) =>
+        new(new MemberPlace(
+            new AccessPath([new RootFieldSegment("WS_" + usage)]),
+            new DataItem { Level = 1, CobolName = "WS-" + usage, CsName = "WS_" + usage, Pic = pic }));
+
+    /// <summary>Every <see cref="Usage"/> whose synthesized profile is a FLOATING-POINT item (§14.6.8.3 plus the
+    /// COMP-1/COMP-2 synonyms), derived from <see cref="PicInfo.IsFloat"/> rather than listed — a new float
+    /// usage joins the sweep below the moment it lands.</summary>
+    public static TheoryData<Usage> FloatUsages()
+    {
+        var d = new TheoryData<Usage>();
+        foreach (var u in Enum.GetValues<Usage>())
+            if (PicInfo.FloatItem(u).IsFloat) d.Add(u);
+        return d;
+    }
+
+    /// <summary>
+    /// ⛔ EVERY 'i' ARGUMENT POSITION REJECTS A FLOATING-POINT ITEM, at every floating-point usage (kb/Work
+    /// PB248). This is the drift test the fix is paired with, and it is written over the SCHEMA TABLE rather
+    /// than over a list of functions, so a new <c>Uniform('i', …)</c> or <c>Schema(… ['i','i','i'])</c> row is
+    /// swept the day it is added and a new float <see cref="Usage"/> member the day it is modelled.
+    /// </summary>
+    /// <remarks>
+    /// ⚠ THE DEFECT IT GUARDS WAS INVISIBLE BY CONSTRUCTION, which is why the assertion is over the whole
+    /// cross-product and not over one witness. ISO §5.5 2)b)2. defines an integer operand written as an
+    /// identifier as "a <b>fixed-point</b> numeric data item … whose description does not include any digit
+    /// positions to the right of the radix point" — TWO conditions. A floating-point item is PICTURE-less, so
+    /// <see cref="PicInfo.FloatItem"/> gives it <c>Scale: 0</c> and the SECOND condition is vacuously
+    /// satisfied; the screen tested only that one, so <c>FUNCTION TEST-DATE-YYYYMMDD</c> over a COMP-2 holding
+    /// 20240229.9 compiled clean and answered "valid date". A test that named one function and one usage would
+    /// have passed while the other twenty positions and eight usages stayed open.
+    /// </remarks>
+    [Theory]
+    [MemberData(nameof(FloatUsages))]
+    public void EveryIntegerArgumentPosition_RejectsAFloatingPointItem(Usage usage)
+    {
+        var op = ItemOperand(usage, PicInfo.FloatItem(usage));
+
+        // The sibling classifier §15.2 type 5 asks the SAME question of the SAME operand and must agree —
+        // it is what enforces every statement rule that says "shall be an integer" (§14.9.28.3 SR2).
+        Assert.False(IntrinsicResultType.IsIntegerOperand(op),
+            $"IntrinsicResultType.IsIntegerOperand answers TRUE for a USAGE {usage} item — §5.5 2)b)2. requires "
+            + "a FIXED-POINT numeric data item, and a floating-point item is PICTURE-less (Scale 0), so a "
+            + "scale-only test admits it. PERFORM … TIMES over it iterates the truncated value silently.");
+
+        var positions = IntrinsicArgumentRules.Verified
+            .SelectMany(kv => kv.Value.Positions
+                .Select((r, i) => (Fn: kv.Key, Ordinal: i + 1, Rule: r))
+                .Concat(kv.Value.Tail is { } t ? [(kv.Key, kv.Value.Positions.Length + 1, t)] : []))
+            .Where(x => x.Rule.Kind == 'i')
+            .ToList();
+        Assert.True(positions.Count >= 8,
+            $"only {positions.Count} 'i' argument position(s) found in the Verified schema table — the table "
+            + "shape changed and this guard has gone blind; fix the walk, do not lower the floor.");
+
+        var admitted = positions
+            .Where(x => IntrinsicArgumentRules.Violation(x.Rule, op) is null)
+            .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}")
+            .Order()
+            .ToList();
+        Assert.True(admitted.Count == 0,
+            $"USAGE {usage} (a floating-point item, ISO §14.6.8.3) is ADMITTED at 'i' (§15.3 type 6) "
+            + $"position(s): [{string.Join("; ", admitted)}]. §15.3 type 6 requires an integer data item or an "
+            + "always-integral arithmetic expression, and §5.5 2)b)2. makes an integer data item a FIXED-POINT "
+            + "one. Fix PicInfo.IsIntegerDescription — the ONE primitive both integer screens read — never the "
+            + "individual arm.");
+    }
+
+    /// <summary>
+    /// The ADMITTED half, so the arm above cannot be "fixed" into a rejecter of legal source (the PB1 failure
+    /// mode from the opposite direction): a fixed-point integer item and a scale-0 P-scaled item stay
+    /// admissible at every 'i' position, and <c>IsIntegerOperand</c> still answers true for them.
+    /// </summary>
+    [Fact]
+    public void EveryIntegerArgumentPosition_StillAdmitsAFixedPointIntegerItem()
+    {
+        // PIC 9(4) — category numeric, scale 0, usage display: §5.5 2)b)2.'s integer data item exactly.
+        var pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 4, Digits: 4, Scale: 0, Signed: false);
+        var op = ItemOperand(Usage.Display, pic);
+        Assert.True(IntrinsicResultType.IsIntegerOperand(op));
+
+        var rejected = IntrinsicArgumentRules.Verified
+            .SelectMany(kv => kv.Value.Positions
+                .Select((r, i) => (Fn: kv.Key, Ordinal: i + 1, Rule: r))
+                .Concat(kv.Value.Tail is { } t ? [(kv.Key, kv.Value.Positions.Length + 1, t)] : []))
+            .Where(x => x.Rule.Kind == 'i' && IntrinsicArgumentRules.Violation(x.Rule, op) is { } why)
+            .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}: {IntrinsicArgumentRules.Violation(x.Rule, op)}")
+            .Order()
+            .ToList();
+        Assert.True(rejected.Count == 0,
+            $"a PIC 9(4) integer item is REJECTED at 'i' position(s): [{string.Join("; ", rejected)}] — §15.3 "
+            + "type 6 admits an integer data item, and §5.5 2)b)2. says this is one.");
     }
 }
