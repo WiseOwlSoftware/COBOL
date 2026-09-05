@@ -710,7 +710,23 @@
   "pb206-national-group-value-oversize",
   "pb206-bit-group-value-oversize",
   "pb206-group-value-national-literal",
-  "pb208-table-value-alphanumeric-on-numeric"
+  "pb208-table-value-alphanumeric-on-numeric",
+  "l1-exit-raising-level2-name",
+  "l1-exit-raising-ecuser-not-in-pd",
+  "l1-initialize-replacing-category-repeat",
+  "l1-perform-f3-sr14-file-repeat-bare",
+  "l1-perform-f3-sr14-file-repeat-cross-form",
+  "l1-perform-f3-sr14-file-repeat-same-phrase",
+  "l1-perform-f3-sr16-non-io-name",
+  "l1-perform-f3-sr16-user-name",
+  "l1-set-sr12a2-superclass-sender",
+  "l1-set-sr12c2-self-narrowing",
+  "l1-subtract-sr2-sending-alphanumeric",
+  "l1-subtract-sr2-receiver-numeric-edited",
+  "l1-subtract-sr2-format2-minuend-alphanumeric",
+  "l1-subtract-sr3-literal1-nonnumeric",
+  "l1-subtract-sr3-literal2-nonnumeric",
+  "l1-subtract-sr4-giving-alphanumeric"
  ],
  "pending": []
 }

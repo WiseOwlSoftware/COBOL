@@ -165,7 +165,11 @@
     "l1_windowing_omitted_arg3",
     "pb142_retry_open_sharing",
     "pb144_indexed_delete_record",
-    "l1_char_national_locale_tie"
+    "l1_char_national_locale_tie",
+    "l1_exit_raising_object_sending",
+    "l1_search_no_at_end_no_checking_2002",
+    "l1_set_sr12a2_class_conformance",
+    "l1_set_sr12c2_self_conformance"
   ],
   "pending": []
 }

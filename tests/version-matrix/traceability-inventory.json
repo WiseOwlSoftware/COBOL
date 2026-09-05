@@ -34195,11 +34195,11 @@
   "subject": "EVALUATE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#valueRange",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_evaluate_thru_through_equivalent",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "valueRange is `valueOperand (THRU | THROUGH) valueOperand` - one rule, two token alternatives, one parse tree, so nothing downstream can tell the spellings apart. Verified both ways: THROUGH (probe p11 THROUGH-OK) and THRU (probes p06/p16/p20). CONFORMS-but-untested: no conformance fixture writes THROUGH inside an EVALUATE (the only THROUGH in tests/conformance is the >>WHEN compiler directive in 2002/directive_expressions.cob), so a spelling regression would not be caught.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#valueRange",
-  "state": "GAP"
+  "notes": "SR1 THROUGH/THRU equivalence: paired EVALUATEs differing only in that word. The NUMERIC range is a spec obligation via 14.9.13.4 GR2 -> 14.7.8 1) (both endpoints and all algebraic values between). The alphanumeric pair's HIT is IMPLEMENTOR-DEFINED — 14.7.8 2), no IN alphabet-name phrase — and comes from this implementation's native UTF-16 collation; what SR1 mandates on that line is only that the THRU and THROUGH columns AGREE. The NOT line is GR4 a) 5.'s explicit '< left-part OR > right-part' conditional.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.13.3-2",
@@ -34475,11 +34475,11 @@
   "subject": "EXIT statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcResolveLevel3; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcCollectPdRaising",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1-exit-raising-level2-name; conformance:negative/l1-exit-raising-ecuser-not-in-pd; conformance:2023/l1_exit_raising_ecuser_listed",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "BOTH paragraphs of SR3 are enforced for the EXIT verb, with a positive control. Paragraph 1 (level-3 only): EcBindRaising funnels exception-name-1 through EcResolveLevel3, which calls EcNameResolution.TryResolve with requireLevel3: true - PROBE out-b2/probe/sr3-level2-name/p.cob (EXIT PROGRAM RAISING EXCEPTION EC-BOUND, a level-2 name) is rejected, 'error COBOLNET0710: EXIT PROGRAM RAISING: exception-name EC-BOUND is a level-2 name; only a LEVEL-3 exception-name may be raised'. Paragraph 2 (an EC-USER level-3 name shall appear in the containing element's PD-header RAISING phrase): the Level2Parent is 'EC-USER' test against ctx.EcState.PdRaising, populated by EcCollectPdRaising from the procedure division header - PROBE out-b2/probe/sr3-ecuser-not-in-pd/p.cob is rejected with COBOLNET0717, and the POSITIVE CONTROL out-b2/probe/sr3-ecuser-listed/p.cob (the same name listed as PROCEDURE DIVISION RAISING EC-USER-LISTED) compiles with only the COBOLNET0903 archaic warning - so the check is not simply refusing every EC-USER name. The RAISING phrase itself is edition-gated correctly (out-b2/probe/fmt-editions/raise85.cob: COBOLNET0878/0879/0900 at 85, clean at 2002/2014, 0903 archaic at 2023). DEFECT IN THE DIAGNOSTIC TEXT (behaviour unaffected, reported as a finding): both messages cite the wrong clause when the verb is EXIT - 0710 cites 'ISO 14.9.29.3 SR1' (the RAISE statement) and 0717 cites 'ISO 14.9.18.3 SR2' (GOBACK); for an EXIT statement the governing rule is 14.9.14.3 SR3. test-ref left empty: no existing spec-derived test asserts either rejection for the EXIT verb (the GOBACK twins are covered).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcResolveLevel3; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcCollectPdRaising",
-  "state": "GAP"
+  "notes": "Both SR3 paragraphs as rejections (level-2 EC-BOUND; EC-USER absent from the PD-header RAISING), plus the compile-only positive control that stops a refuse-every-EC-USER compiler passing.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.14.3-4",
@@ -34489,11 +34489,11 @@
   "subject": "EXIT statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1_exit_raising_object_sending",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "identifier-1 is treated purely as a source. The binder resolves it with ctx.Refs.Resolve(dref) and stores it as BoundRaising.ObjectSource; the emitter's only use is `ExceptionState.SetPropagatingObject(PlaceRenderer.Read(os))` - a READ, with no assignment anywhere on the path. Confirmed on the generated C# of PROBE out-b2/probe/sr5-positive-typed-ref/p.cob: p.g.cs holds exactly three mentions of the operand - the field declaration, the INVOKE ... NEW assignment written by the program, and `ExceptionState.SetPropagatingObject(W_E)` at the EXIT PROGRAM; nothing else writes it. The program runs and the exception object reaches the activator's USE AFTER EXCEPTION OBJECT declarative (HANDLED / AFTER-CALL). SCOPE OF THE VERIFICATION: identifier-1 has only one declaration form the compiler admits at all - USAGE OBJECT REFERENCE class-name - because SR5's interface-name and ACTIVE-CLASS forms are unimplemented (see SR-14.9.14.3-5); the sending-operand property is verified on that form. Untested by an existing spec-derived test.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage",
-  "state": "GAP"
+  "notes": "Sending-operand property observed through 14.6.13.1.5 item 1 (EXCEPTION-OBJECT set to the CONTENT of identifier-1) and item 2 (the activator's declarative runs, then the CALL resumes).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.14.3-5",
@@ -34573,11 +34573,11 @@
   "subject": "EXIT statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_exit_paragraph_unnamed_paragraph",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "CODE SITE DETAIL: no check is needed at ControlFlowBinder.cs#BindExit line 241 (see the reasoning below); the paragraph model that discharges the rule is DispatchEmitter.cs line 128 ('\"\" for the paragraph-name-OMITTED paragraph (14.4.3)'). EDITIONS NOTE: EXIT PARAGRAPH is a COBOL-2002 introduction; ConstructRegistry row exit-paragraph-2002. PREMISE CHECKED before verdict. §14.4.3 defines a paragraph as 'a paragraph-name followed by a separator period and by zero, one, or more successive sentences OR, if the paragraph-name is omitted, one or more successive sentences following the procedure division header or a section header'. Every site at which a statement may be written in the procedure division is therefore inside a paragraph, named or paragraph-name-omitted, so SR10 admits no violating program and needs no check. PROBE out-b2/probe/sr10-exit-para-in-section/p.cob puts EXIT PARAGRAPH directly under a section header with no paragraph-name — the one candidate violation — and the compiler models it exactly as §14.4.3 requires: generated p.g.cs:39 is `case 0:   // (sentences without a paragraph-name)`, and the EXIT PARAGRAPH correctly transfers to the next paragraph. Untested by design (nothing to test).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs",
-  "state": "GAP"
+  "notes": "SR10 admits no violating program (14.4.3), so the golden pins its one checkable half: EXIT PARAGRAPH accepted in the paragraph-name-omitted paragraph, behaving per 14.9.14.4 GR6.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.14.4-1",
@@ -34587,11 +34587,11 @@
   "subject": "EXIT statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/Cobol.Net.Compiler/CodeGen/StatementEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_exit_format1_common_endpoint",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Format 1 has no runtime effect: BindExit's final arm returns BoundNop and StatementEmitter's Visit(BoundNop) returns false, emitting nothing at all - so the EXIT is exactly a procedure-name anchor and 'has no other effect on the compilation or execution'. PROBE out-b2/probe/gr1-bare-exit/p.cob exercises the classic common-end-point idiom (PERFORM P1 THRU P-EXIT over P1/P2/P-EXIT, the last holding a bare EXIT reached by fall-through): spec-derived expectation a/b/c/done, observed a/b/c/done at --std 2023. The bare EXIT is also accepted unchanged at 85/2002/2014 (edition sweep out-b2/probe/fmt-editions/bare.cob: no diagnostic at any of the four). Untested by an existing spec-derived test - CONFORMS-but-untested.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/Cobol.Net.Compiler/CodeGen/StatementEmitter.cs",
-  "state": "GAP"
+  "notes": "Bare EXIT as a pure procedure-name anchor: PERFORM P1 THRU P-EXIT reached by fall-through and by GO TO, with no line and no flow change of its own.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.14.4-2",
@@ -35231,11 +35231,11 @@
   "subject": "IF statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_if_nested_else_endif_match",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Citations validated separately for both lettered items: `cite.py --check 14.9.19.3 \"any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE or has not been implicitly or explicitly terminated\"` -> OK, Syntax rules 2) a); `--check 14.9.19.3 \"any END-IF encountered is matched with the nearest preceding IF that has not been implicitly or explicitly terminated\"` -> OK, 2) b). MECHANISM (read, then measured): ANTLR enters a fresh `ifStatement` invocation per nested IF, and both `(ELSE statementBlock*)?` and `END_IF?` are greedy optional subrules, so the INNERMOST invocation that has not yet taken an ELSE / has not yet returned consumes the token -- which is precisely 'the nearest preceding IF' of 2) a) and 2) b). BindIf then partitions only the children of ITS OWN context on the ELSE terminal, so the arm split cannot leak across nesting levels. MEASURED, four adversarial shapes, each chosen so the two candidate bindings give DIFFERENT output: (1) dangling ELSE, outer TRUE / inner FALSE, no END-IF, period-terminated -- prints 'INNER-ELSE', so the ELSE bound to the INNER IF as 2) a) requires (p4-dangling-else); had it bound to the outer IF nothing would have printed. (2) inner IF explicitly closed by END-IF, then ELSE, outer TRUE -- prints 'OUTER-THEN-TAIL' and not 'OUTER-ELSE', so the terminated inner IF correctly refused the ELSE (p5-endif-match). (3) inner IF ALREADY matched with an ELSE and explicitly terminated, outer FALSE -- prints 'OUT-E', the outer ELSE (sr2b-std2023); this is the 'has not been already matched with an ELSE' half of 2) a), which (2) alone does not reach. (4) three levels deep with ELSE+END-IF at each -- prints 'L3-E' then 'L2-TAIL' only (sr2a3-std2023). The NOTE ('A nested IF statement is terminated by terminal separator period of the containing IF statement') is exercised by (1), which has no END-IF at either level. NEGATIVE side measured too: a second ELSE on one IF has no eligible unmatched IF and is rejected -- COBOL0001/COBOL0307 'unexpected ELSE' plus COBOL0306 'END-IF appears without a matching IF statement' (p10-double-else). Cross-statement nesting also holds: a nested IF inside the ON SIZE ERROR phrase of an undelimited ADD binds its own ELSE (u4-if-in-size-error). Edition-independent: the rule text is unchanged across 85/2002/2014/2023 and END-IF exists at all four; the format sweep (probe ed) is identical at every --std. TEST-REF EMPTY and that is honest, not a gap in the code: nothing in tests/ asserts a spec-computed expectation for ELSE/END-IF matching. The one file the dossier names, M413_OverlenientIfElseTests, is empty (finding IF-F2).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4:136 (ifStatement -- the greedy `(ELSE statementBlock*)?` and `END_IF?` subrules of the innermost active invocation); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:274 (BindIf splits the children on the ELSE terminal of THIS ifStatement context)",
-  "state": "GAP"
+  "notes": "Four nesting shapes chosen so the two candidate ELSE/END-IF matchings give different output, including the 'already matched with an ELSE' half of SR2 a) and the period-terminates-the-nest NOTE.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.19.3-3",
@@ -35245,11 +35245,11 @@
   "subject": "IF statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_if_else_next_sentence_omissible",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Citation validated: `cite.py --check 14.9.19.3 \"The ELSE NEXT SENTENCE phrase may be omitted if it immediately precedes the terminal separator period of the sentence\"` -> OK, Syntax rules 3) (FORMAT 2). DERIVED EXPECTATION -- and the reason this row is easy to mis-adjudicate: SR3 is a PERMISSION, not a constraint. It imposes no rejection obligation; it obliges the implementation to accept BOTH spellings in that one position and to give them the SAME meaning, because the rule declares the phrase omissible rather than merely optional. Testable content is therefore an EQUIVALENCE, and I measured both sides. Written form: `IF X = 1 DISPLAY \"THEN-BAD\" ELSE NEXT SENTENCE.` with X=0 prints only 'AFTER' (p12-sr3-else-next-sentence) -- the THEN phrase ignored per GR6, control to the implicit CONTINUE before the terminal period, which here IS the sentence end. Omitted form: the same sentence without the ELSE phrase runs GR7 and also falls to the next sentence (p8-gr1-gr2, third IF: `IF X = 1 DISPLAY \"T4\" END-IF` with X=0 prints nothing then 'AFTER'). Identical observable control flow, so the omission the rule permits is meaning-preserving in this compiler. The converse case SR3 does NOT license -- ELSE NEXT SENTENCE that is not immediately before the terminal period -- is also accepted and behaves per GR6, which SR3 does not forbid (p7-next-sentence-else: statements after the END-IF in the same sentence are correctly skipped). Edition-independent; NEXT SENTENCE is legal at all four editions and archaic only at 2023 (4.2.12: 'An implementation shall support archaic language elements of the facilities for which support is claimed'), where COBOLNET0903 fires as a WARNING only -- measured across --std 85/2002/2014/2023 (probe ed): the warning appears at 2023 and at no earlier edition, which is the 4.2.12 'shall identify' obligation discharged without breaking support. TEST-REF EMPTY -- no spec-derived test asserts the equivalence.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4:136 (ifStatement -- `(ELSE statementBlock*)?` makes the whole ELSE phrase omissible); src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:53 (EmitIf -- `if (iff.Else.Count > 0)` emits no else arm when the phrase is absent)",
-  "state": "GAP"
+  "notes": "SR3 is a permission, so the golden pins the EQUIVALENCE: written and omitted ELSE NEXT SENTENCE at both truth values, meanings computed separately from 14.9.19.4 GR3/GR6/GR7.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.19.4-1",
@@ -35259,11 +35259,11 @@
   "subject": "IF statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_if_format1_arms",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Citation validated: `cite.py --check 14.9.19.4 \"If condition-1 is true, control is transferred to the first statement of statement-1\"` -> OK, General rules 1) (FORMAT 1). MECHANISM (read, not assumed): the binder makes ONE `BoundIf(Condition, Then, Else)` and ControlFlowEmitter.EmitIf renders `if (cond) { Then } ` plus, guarded by `if (iff.Else.Count > 0)`, `else { Else }`. There is no second lowering path, so Formats 1 and 2 share it and the Format-1/Format-2 rule pairs cannot drift apart in this compiler -- which is why GR1/GR2 and GR3/GR5/GR7 are adjudicated on the same measured evidence. DERIVED EXPECTATION: condition true -> every statement of statement-1 runs in order, and the ELSE phrase is IGNORED (not merely skipped -- no part of statement-2 may execute). MEASURED (p8-gr1-gr2, first IF, X=1): `IF X = 1 DISPLAY \"T1\" DISPLAY \"T2\" ELSE DISPLAY \"E1\" END-IF` prints exactly 'T1' then 'T2' and never 'E1', so both the multi-statement 'first statement of statement-1 ... and each statement' half and the ELSE-ignored half hold. Confirmed again in Format-1 shape at every edition (probe ed, --std 85/2002/2014/2023: 'F1-THEN' only). Also holds when statement-1 ends in a conditional statement (p9-sr1-conditional: 'IMP-1','SIZE-ERR', ELSE not taken) and when statement-1 is an undelimited conditional terminated by the ELSE itself (u1-undelimited-then-else). TEST-REF EMPTY: no committed test asserts a spec-computed expectation for this rule. The nearest candidates are disqualified -- tests/Cobol.Net.Tests.Conformance/RedefinesSubscriptedViewDifferentialTests.cs routes through DifferentialGolden.Assert, whose committed golden was BAKED from the legacy engine (`bake` mode asserts cobolnet == legacy, then writes the .out), so its expectation is legacy-derived, not spec-computed; and tests/CobolSharp.Tests.Integration/* target the legacy compiler.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:53 (EmitIf); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:274 (BindIf); src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs:649 (BoundIf)",
-  "state": "GAP"
+  "notes": "Format 1 (END-IF written), condition true: both statements of statement-1 in order, and a counter proving the ignored ELSE arm did not merely stay silent but did not run.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.19.4-2",
@@ -35273,11 +35273,11 @@
   "subject": "IF statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_if_format1_arms",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Citation validated: `cite.py --check 14.9.19.4 \"If condition-1 is false, the THEN phrase is ignored. If the ELSE phrase is specified, control is transferred to the first statement of statement-2\"` -> OK, General rules 2) (FORMAT 1). MECHANISM (read, not assumed): the binder makes ONE `BoundIf(Condition, Then, Else)` and ControlFlowEmitter.EmitIf renders `if (cond) { Then } ` plus, guarded by `if (iff.Else.Count > 0)`, `else { Else }`. There is no second lowering path, so Formats 1 and 2 share it and the Format-1/Format-2 rule pairs cannot drift apart in this compiler -- which is why GR1/GR2 and GR3/GR5/GR7 are adjudicated on the same measured evidence. DERIVED EXPECTATION: condition false -> no part of statement-1 executes, and if ELSE is present every statement of statement-2 runs in order. MEASURED (p8-gr1-gr2, second IF, X=0): `IF X = 1 DISPLAY \"T3\" ELSE DISPLAY \"E2\" DISPLAY \"E3\" END-IF` prints exactly 'E2' then 'E3' and never 'T3' -- multi-statement statement-2 in order, THEN phrase ignored. Corroborated where the THEN arm carries a side effect that would be visible if wrongly entered (u2-undelimited-false: the ON SIZE ERROR inside the THEN arm does not fire; 'ELSE-RAN' only), and where statement-1 is EMPTY so only the ELSE can produce output (p2-empty-then-else: 'ELSE-RAN'). Note that p2's source is itself non-conforming input the compiler should have rejected (finding IF-F1); its value here is only that the false-path transfer is correct. TEST-REF EMPTY -- see GR-14.9.19.4-1's note for why the two candidate tests do not qualify.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:53 (EmitIf); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:274 (BindIf); src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs:649 (BoundIf)",
-  "state": "GAP"
+  "notes": "Format 1, condition false: the GR2-E1/GR2-E2/GR2-C=1 lines of the same program show statement-2 running in full and the THEN phrase leaving no trace.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.19.4-3",
@@ -35287,11 +35287,11 @@
   "subject": "IF statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_if_format2_arms",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Citation validated: `cite.py --check 14.9.19.4 \"If condition-1 is true and statement-1 is specified\"` -> OK, General rules 3) (FORMAT 2). This is the Format-2 twin of GR1; the added antecedent 'and statement-1 is specified' exists only because Format 2's THEN arm may instead hold NEXT SENTENCE (GR4). MECHANISM (read, not assumed): the binder makes ONE `BoundIf(Condition, Then, Else)` and ControlFlowEmitter.EmitIf renders `if (cond) { Then } ` plus, guarded by `if (iff.Else.Count > 0)`, `else { Else }`. There is no second lowering path, so Formats 1 and 2 share it and the Format-1/Format-2 rule pairs cannot drift apart in this compiler -- which is why GR1/GR2 and GR3/GR5/GR7 are adjudicated on the same measured evidence. MEASURED in true Format-2 shape -- period-terminated, NO END-IF, which is the only thing that distinguishes this rule from GR1: `IF X = 1 THEN DISPLAY \"T\" ELSE DISPLAY \"E\".` prints 'T' then 'AFTER', never 'E' (p13-format2-noendif); the explicit optional word THEN is accepted (5.2.3). Format-2 termination by the separator period rather than END-IF is exercised again at every edition (probe ed) and in the SR2 nesting probes that omit END-IF entirely (p4-dangling-else). TEST-REF EMPTY -- see GR-14.9.19.4-1's note.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:53 (EmitIf); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:274 (BindIf); src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs:649 (BoundIf)",
-  "state": "GAP"
+  "notes": "Format 2 (no END-IF, terminated by the sentence period), condition true: GR3-T1 and GR3-C=1, the ELSE arm ignored.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.19.4-4",
@@ -35315,11 +35315,11 @@
   "subject": "IF statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_if_format2_arms",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Citation validated: `cite.py --check 14.9.19.4 \"If condition-1 is false and statement-2 is specified, the THEN phrase is ignored\"` -> OK, General rules 5) (FORMAT 2). The Format-2 twin of GR2. MECHANISM (read, not assumed): the binder makes ONE `BoundIf(Condition, Then, Else)` and ControlFlowEmitter.EmitIf renders `if (cond) { Then } ` plus, guarded by `if (iff.Else.Count > 0)`, `else { Else }`. There is no second lowering path, so Formats 1 and 2 share it and the Format-1/Format-2 rule pairs cannot drift apart in this compiler -- which is why GR1/GR2 and GR3/GR5/GR7 are adjudicated on the same measured evidence. MEASURED in Format-2 shape (no END-IF, period-terminated) so it is not merely GR2 re-run: p4-dangling-else with the inner condition false prints 'INNER-ELSE' and no 'INNER-THEN'; sr2b-std2023 with the outer condition false prints 'OUT-E'. Also measured with END-IF present (u2-undelimited-false -> 'ELSE-RAN', the THEN arm's ON SIZE ERROR never reached) and with a multi-statement statement-2 (p8-gr1-gr2 -> 'E2','E3'). The one shape in the tree that pairs NEXT SENTENCE with a live ELSE, `IF W = 1 NEXT SENTENCE ELSE DISPLAY \"ELSE-ARM\".` at W=2 (RedefinesSubscriptedViewDifferentialTests.cs:103), is in fact an instance of THIS rule and not of GR6 -- the NEXT SENTENCE sits in the THEN phrase and is not executed. TEST-REF EMPTY: that test's expectation is legacy-baked (DifferentialGolden), so it does not close the row.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:53 (EmitIf); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:274 (BindIf); src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs:649 (BoundIf)",
-  "state": "GAP"
+  "notes": "Format 2, condition false with an ELSE: GR5-E1/GR5-E2/GR5-C=1, the THEN phrase ignored and statement-2 run through in order.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.19.4-6",
@@ -35343,11 +35343,11 @@
   "subject": "IF statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_if_format2_arms",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Citation validated: `cite.py --check 14.9.19.4 \"If condition-1 is false and the ELSE phrase is not specified, the THEN phrase is ignored.\"` -> OK, General rules 7) (FORMAT 2). DERIVED EXPECTATION: the statement is a complete no-op -- control passes to the next statement after the IF with no side effect, and in particular the THEN arm must not run and nothing may be substituted for the missing ELSE. MEASURED (p8-gr1-gr2, third IF, X=0): `IF X = 1 DISPLAY \"T4\" END-IF  DISPLAY \"AFTER\"` prints only 'AFTER' -- no 'T4', and execution continues normally into the following statement of the SAME sentence, which is the fall-through GR7 implies. Also measured in Format-2 period-terminated shape without END-IF (p12-sr3-else-next-sentence's omitted-ELSE counterpart, and u8-else-then-period). Read-confirmed rather than inferred: EmitIf's `iff.Else.Count > 0` guard means the C# `else` keyword is not emitted at all in this case, so there is no empty-else branch that a later change could accidentally populate. Edition-independent. TEST-REF EMPTY -- no spec-derived test pins the no-op case.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:58 (`if (iff.Else.Count > 0)` -- no else arm is emitted at all when the ELSE phrase is absent); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:274 (BindIf leaves Else empty when no ELSE terminal is seen among THIS context's children)",
-  "state": "GAP"
+  "notes": "Format 2, condition false with no ELSE: GR7-C=0 and no GR7-T1 line prove the complete no-op, and the following sentence proves nothing was substituted for the absent ELSE.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.20.3-1",
@@ -35427,11 +35427,11 @@
   "subject": "INITIALIZE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeReplacingUnique; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1-initialize-replacing-category-repeat",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "CONFORMS-but-untested (no spec-derived golden exists; do not read the empty test-ref as coverage). CheckInitializeReplacingUnique compares the DECODED category, not the source spelling, so it is correct across the grammar's two spellings of the same category: probe sr6-two-spellings (`REPLACING ALPHANUMERIC EDITED DATA BY … ALPHANUMERIC-EDITED DATA BY …`) is rejected COBOLNET0834, as is the plain `NUMERIC … NUMERIC` repeat, at --std 2023 AND --std 85 (REPLACING is a COBOL-85 construct). The mechanism is generic over the InitializeCategory enum, so it needs no change when FMT-14.9.20.2's missing category words land — but it can today only police the 5 categories that are spellable (10 of 13 are even modelled in the enum), which is recorded on the FMT row, not here. Cosmetic only: the message prints the C# enum name ('Numeric', 'AlphanumericEdited') rather than the COBOL word.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeReplacingUnique; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind",
-  "state": "GAP"
+  "notes": "SR6 is a syntax rule, so the witness is a REJECTION: NUMERIC repeated non-adjacently across an intervening ALPHANUMERIC phrase, every other syntax rule satisfied, COBOLNET0834 at all four editions (EditionContext.Error is unconditional).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.20.3-7",
@@ -37275,11 +37275,11 @@
   "subject": "MOVE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#moveStatement",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_move_corr_equivalence",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The equivalence is written once, at the Format-2 dispatch: `if (move.CORRESPONDING() is not null || move.CORR() is not null)` routes BOTH spellings to the same CorrespondingBinder.Bind with the same operand array, so no behaviour can differ between them - there is no second path for either token. The grammar alternative is `MOVE (CORRESPONDING | CORR) dataReference TO dataReference`, one production for both words, and both are reserved at every edition. MEASURED at 2023 and at 85: MOVE CORR G1 TO G2 and MOVE CORRESPONDING G1 TO G3 in one program produce identical results (G2=XYZ G3=XYZ). CONFORMS-but-untested: no SPEC-DERIVED test exercises the CORR spelling on MOVE. `MOVE CORR` appears in the corpus only inside NIST programs (CM101M, CM102M, CM103M, CM104M), which are a regression net and non-qualifying; CorrespondingDifferentialTests covers the CORR token for SUBTRACT (SubtractCorr_TargetMinusSource_CorrToken) but not for MOVE.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#moveStatement",
-  "state": "GAP"
+  "notes": "MOVE CORR and MOVE CORRESPONDING from one sender into two identically-described receivers produce character-identical output and compare equal; pairs per 14.7.6 rules 1/2/4, results per 14.9.25.4 GR11.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.25.3-12",
@@ -37401,11 +37401,11 @@
   "subject": "MOVE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_move_numeric_sign_rules",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Both lettered arms measured in one program (probe mvl22/l22_sign_rules, read through a PIC -999 display item so the sign is visible): (a) \"When a signed numeric item is the receiving item, the sign of the numeric value shall be represented in the receiving operand. If the sending operand is unsigned, the sign shall be positive.\" - PIC 9(3) VALUE 456 into PIC S9(3) shows \" 456\", and PIC S9(3) VALUE -123 into PIC S9(3) shows \"-123\"; (b) \"When an unsigned numeric item is the receiving item, the absolute value of the sending value is used, and no operational sign is generated\" - PIC S9(3) VALUE -123 into PIC 9(3) shows \" 123\". The rule's opening sentence is an implementor-latitude grant, not a testable requirement - \"If the sending operand is described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor specifies any exception conditions ... and, for fixed-point ... receiving data items, specifies alignment of the data by decimal point\" - and all three usages are live senders: FLOAT-SHORT, FLOAT-LONG and FLOAT-EXTENDED each carrying 12.25 land as 001225 in PIC 9(4)V99, i.e. aligned by decimal point (probe mvl22/l22_float_usages). The MOVE truncation that alignment uses is documented at MoveEmitter.ConvertSource (14.6.8.2 truncation toward zero). CONFORMS WITH AN EMPTY TEST-REF - the row is not closed. Three unit tests cite this rule in passing (tests/Cobol.Net.Tests.Unit/AlgebraicFoldContainerAgreementTests.cs:113 \"the 14.9.25.4 GR6d2b magnitude rule\", FloatImageLaneTests.cs:115, RecordImageCodecTests.cs:76) but they exercise the runtime STORE and the record-image codec rather than the MOVE channel, and two of them disagree about the rule's own number - RecordImageCodecTests calls the absolute-value rule \"ISO 14.9.25.4 GR8\" and CobolNumDifferentialTests \"ISO 14.9.25 GR8\", where GR8 is the dynamic-length rule and the magnitude rule is GR6 d)2.b. That mis-citation is worth fixing on its own account; it is not a behavior defect and I have not raised a finding for it.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource case PicCategory.Numeric -> src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#StoreExpr (the ONE numeric store, kb/Work PB84) -> src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs (the receiver-profile store that applies the magnitude rule for an unsigned NumProfile)",
-  "state": "GAP"
+  "notes": "Arms a and b through the MOVE channel, read through PIC -999 (13.18.40.5 rule 5, Table 8) and the 8.8.4.7 sign condition; the float sentence is latitude, so its arm uses an integral FLOAT-SHORT value whose result is alignment-independent.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.25.4-L2.3",
@@ -37527,11 +37527,11 @@
   "subject": "MOVE statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/Cobol.Net.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Write",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_move_overlap_same_entry",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "GR10 is a cross-reference (\"Additional rules and explanations relative to this statement are given in 14.6.10, Overlapping operands\"), so it is adjudicated on whether MOVE honors 14.6.10's two normative rules. Rule 1 - \"When the data items are not described by the same data description entry, the result of the statement is undefined\" - cannot be violated; I measured the shape anyway (a PIC X(6) item and a PIC X(4) window over it via REDEFINES: MOVE A TO B leaves \"ABABCD\", probe mvgr10/gr10_overlap) and record it as unconstrained, not as evidence. Rule 2 - \"When the data items are described by the same data description entry, the result of the statement is the same as if the data items shared no part of their respective storage areas\" - is measured correct for the elementary and the group form alike: MOVE X TO X leaves \"ABCDE\" and MOVE G TO G leaves \"PQRST\" (probe mvgr10/gr10_same_entry). The clause's closing paragraph, \"the unique data item produced by reference modification is not considered to be the same data description entry as any other ... the results of the operation are undefined\", is likewise unconstrained; it is what puts probe mvgr1/gr1_overlap_refmod out of reach as proof for GR1, and I relied on the subscript and function-identifier repros there instead. NOTE 1's two paragraphs (side effects on implicitly referenced items; multiple receiving operands sharing storage) are informative. CONFORMS WITH AN EMPTY TEST-REF: no spec-derived test in the tree exercises 14.6.10 rule 2 through MOVE, and the rule's reach for a MOVE is genuinely narrow, since GR6b already supplies a specific result for the same-data-item cases 14.6.10 would otherwise govern (which is what its \"and the rules for the statement do not provide for a specific result\" opener defers to). This row is unblocked by, and independent of, the GR1 defect: GR1 DOES provide a specific result (the temp), so 14.6.10 never rescues it.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit and #ConvertSource (the store paths whose behavior 14.6.10 constrains); src/Cobol.Net.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Write (the per-Place store)",
-  "state": "GAP"
+  "notes": "GR10's referent 14.6.10 rule 2 held through MOVE on four same-entry self-moves (elementary, group, numeric, numeric-edited) all chosen outside GR6b's two specific-result shapes and outside GR6c's reading; 14.6.10 rule 1 is unconstrained and is not claimed.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.25.4-11",
@@ -38157,11 +38157,11 @@
   "subject": "PERFORM statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_perform_test_before_default",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Measured on the ONE program shape that can tell the two apart - a condition ALREADY TRUE at entry, so TEST BEFORE runs the body zero times and TEST AFTER runs it once. Probe pf-sr1-test-default: inline `PERFORM UNTIL N > 5` with N=99 leaves N=99 (zero iterations); the same loop written `WITH TEST AFTER` leaves M=100 (one iteration); out-of-line `PERFORM ADDK UNTIL K > 5` with K=99 leaves K=99. Probe pf-sr1-varying-default: `PERFORM VARYING I FROM 9 BY 1 UNTIL I > 5` runs the body 0 times, the TEST AFTER twin runs it once. So the default is TEST BEFORE on all three carriers (inline until, out-of-line until, varying). The binder reads the flag from the parse tree rather than from a default constant, and the two arms are independently right: performUntil's AFTER token can only be the TEST AFTER one (the rule has no other AFTER), and performVarying guards with `v.TEST() is not null &&` so an AFTER-LEVEL's AFTER token - which lives in the performVaryingAfter sub-context, not in v - cannot be mistaken for TEST AFTER. NO SPEC-DERIVED TEST CLOSES THIS ROW. ControlFlowDifferentialTests.Perform_Thru_Until_RunsRangeUntilCondition cites \"GR10 (TEST BEFORE, default)\" in its comment but its expectation (009) is the SAME under TEST AFTER, so it does not discriminate; the only other coverage is NIST NC201A, which is a regression net, not authority. CONFORMS-untested.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:345-356 (BindPerformControl: `new PerformUntil(cond, u.AFTER() is not null)` - the TEST-AFTER flag defaults to false) and :363-378 (BindVarying: `new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null, checkIndexRange)`); src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4:113-116 and :118-126 (the `(WITH? TEST (BEFORE | AFTER))?` prefix is optional in both performUntil and performVarying)",
-  "state": "GAP"
+  "notes": "Omitted WITH TEST equals explicit TEST BEFORE and differs from TEST AFTER on all three carriers, on a condition already true at entry (14.9.28.4 GR10); counts 0/0/1.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.28.3-2",
@@ -38241,11 +38241,11 @@
   "subject": "PERFORM statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_perform_until_condition_forms",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "This is a PERMISSIVE rule - it grants the full 8.8.4 grammar to condition-1/-2 rather than restricting anything - so it is discharged by showing the position is not narrowed. It is not: all three UNTIL slots reference the same `condition` rule the IF statement uses, and all three bind through the same ConditionBinder entry point, so there is no PERFORM-local condition grammar that could drift. Measured across the conditional-expression forms most likely to be dropped by a narrowed slot (probes pf-sr7-conditions and pf-sr7-more): a complex condition with AND/OR and parentheses (A=3), an abbreviated combined relation `UNTIL A = 1 OR 2 OR 3` (A=1), an abbreviated combined relation carrying NOT `UNTIL A NOT < 2 AND NOT > 9` (A=2), a condition-name (1 iteration), a THRU-range condition-name negated (0 iterations), a sign condition `UNTIL S IS NEGATIVE` (0 iterations - correct, S was already -3), a class condition under NOT `UNTIL NOT (A NUMERIC)`, arithmetic expressions on both sides of a relation `UNTIL A + 1 > B - 1` (A=3), and a nested parenthesised combined condition (A=2). Every value matches the value derived from 8.8.4 by hand. NO SPEC-DERIVED TEST names this rule. CONFORMS-untested.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4:114 and :123 and :131 (every UNTIL slot - performUntil, performVarying, performVaryingAfter - is typed `condition`, the one full conditional-expression rule, not a narrowed relation rule); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:352-354 (`host.Cond.BindCondition(u.condition())`), :385-386 and :400-402 (the same BindCondition for the VARYING and AFTER levels)",
-  "state": "GAP"
+  "notes": "Ten 8.8.4 conditional-expression forms in UNTIL slots (condition-1 and condition-2), each value derived from that form's own rules.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.28.3-8",
@@ -38269,11 +38269,11 @@
   "subject": "PERFORM statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_perform_varying_six_after",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The rule is a MINIMUM-CAPACITY requirement, so the only way to discharge it is to run one. Probe pf-sr9-six-after: a VARYING level plus SIX AFTER levels, each `FROM 1 BY 1 UNTIL x > 2`, compiles, runs, and counts 128 body executions = 2^7 - the exact nesting the general rules require, so the sixth AFTER is not merely parsed but correctly nested and correctly reset. The grammar's `*` and the binder's unbounded foreach mean there is no arithmetic limit to find; the emitter produced correct code for seven levels. NO SPEC-DERIVED TEST: PerformVaryingDifferentialTests tops out at two AFTER levels and the deeper cases in the tree are NIST (NC233A, five levels), a regression net. CONFORMS-untested.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4:124 (`performVaryingAfter*` - unbounded) and :128-131 (performVaryingAfter); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:363-378 (BindVarying iterates `foreach (var a in v.performVaryingAfter())` and appends one VaryingLevel per AFTER, with no cap)",
-  "state": "GAP"
+  "notes": "Six AFTER phrases run, asserting 14.9.28.4 GR13 e)'s sequence: 128 body executions, second tuple 1111112, final tuple 3111111.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.28.3-10",
@@ -38283,11 +38283,11 @@
   "subject": "PERFORM statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_perform_thru_through_equivalent",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The equivalence is structural, not a normalisation: both words occupy one grammar alternative and the binder's single `THRU() is not null || THROUGH() is not null` test is the only place either token is read, so no downstream code can distinguish them. Measured anyway (probe pf-sr10-through): `PERFORM P1 THROUGH P3` and `PERFORM P1 THRU P3` over the same three paragraphs both give 111. The two-arm hazard is genuinely absent - I grepped for a second reader of either token and there is none. NO SPEC-DERIVED TEST: the only THROUGH coverage in the tree is NIST (DB105A), which is a regression net. CONFORMS-untested.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4:22 (`PERFORM procedureName (THRU | THROUGH) procedureName performOptions?` - ONE alternative, the two words in a single token set) and :91-93 (performTarget, same shape); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:304-311 (BindPerform tests `p.THRU() is not null || p.THROUGH() is not null` in one condition and takes the same branch for both)",
-  "state": "GAP"
+  "notes": "THRU and THROUGH give identical printed weights over a full range (0111), a range that stops short (0110) and a range under an until-phrase (0330).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.28.3-11",
@@ -38339,11 +38339,11 @@
   "subject": "PERFORM statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_perform_f3_when_file_repeat_licensed; conformance:negative/l1-perform-f3-sr14-file-repeat-bare; conformance:negative/l1-perform-f3-sr14-file-repeat-cross-form; conformance:negative/l1-perform-f3-sr14-file-repeat-same-phrase",
   "derivation": "",
-  "editions": "2014,2023",
-  "notes": "Every clause of the rule was located and measured, in both directions. The rule reads: a file-name specified more than once across the WHEN phrases is illegal UNLESS ALL such instances are paired with an exception-name. Rejects: two WHEN phrases each naming file F1 bare (probe pf-sr14-dup-file -> COBOLNET1599). Accepts: the same file named twice, both times paired with an exception-name - `WHEN EC-I-O-AT-END FILE F1 / WHEN EC-I-O-PERMANENT-ERROR FILE F1` (pf-sr14-dup-file-ok compiles clean), which is the licence the rule grants and which a naive count-only check would have broken. The two ADVERSARIAL edges the wording implies both hold: the CROSS-FORM case, where the two occurrences are a file-name-1 and a file-name-2 - `WHEN EXCEPTION F1 / WHEN EC-I-O-AT-END FILE F1` - is correctly rejected (pf-sr14-cross -> 1599), because the census keys on the file and not on which grammar arm produced it; and \"in ANY of the WHEN phrases\" is read to include one phrase against itself - `WHEN EXCEPTION F1 F1` is rejected (pf-sr14-same-phrase -> 1599). NO SPEC-DERIVED TEST closes this row: a grep for 1599 across tests/ finds only compiled binaries, and PerformFormat3Tests carries no SR14 case. CONFORMS-untested.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs:212-218 (CheckSr14Sr15's first loop: `foreach (var g in census.Where(c => c.File is not null).GroupBy(c => c.File)) if (g.Count() > 1 && g.Any(c => c.Ec is null)) ... COBOLNET1599`) fed by :141-199 (ResolveWhenOperands, which censuses BOTH operand forms - `census.Add((null, f.CobolName.ToUpperInvariant()))` for file-name-1 in the WHEN EXCEPTION list at :164, and `census.Add((info.Name.ToUpperInvariant(), f.CobolName.ToUpperInvariant()))` for the exception-name FILE file-name-2 form at :195) and :45-48 (the census is built over ALL of p.performWhenPhrase() before the check runs, so it is per-STATEMENT, not per-phrase)  || EDITIONS (verbatim from the adjudication): 2023 (Format 3 is new in 2023 - Annex E.3.3 item 36; below 2023 the whole format is rejected by COBOLNET0900, verified at --std 2014 by probe pf-f3-at-2014)",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "Licence half (a file named twice, every instance exception-name-paired, compiles and runs) plus the three prohibition readings the wording forces; editions corrected to 2023 per Annex E.3.3 item 36 - see defects.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.28.3-15",
@@ -38367,11 +38367,11 @@
   "subject": "PERFORM statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_perform_f3_when_file_ec_io_prefix; conformance:negative/l1-perform-f3-sr16-non-io-name; conformance:negative/l1-perform-f3-sr16-user-name",
   "derivation": "",
   "editions": "2023",
-  "notes": "The rule says 'shall BEGIN WITH the COBOL characters EC-I-O' and the predicate is exactly a case-insensitive StartsWith on that string - not 'is in the I-O category' and not 'is a catalogued I-O name', either of which would have been a plausible-but-different rule. That distinction is load-bearing for the OPEN exception-name families: an EC-USER-* name paired with FILE is correctly rejected (probe pf-sr16-user -> COBOLNET1601) even though the catalog cannot enumerate it, because StartsWith needs no catalog. Measured both directions: rejects `WHEN EC-BOUND-SUBSCRIPT FILE F1` (pf-sr16-bad -> 1601) and `WHEN EC-USER-MINE FILE F1` (pf-sr16-user -> 1601); accepts `WHEN EC-I-O FILE F1` (pf-sr16-ok compiles clean) and `WHEN EC-I-O-AT-END FILE F1` (inside pf-sr14-dup-file-ok). The rule's antecedent is read correctly too - it is conditioned on file-name-2, so file-name-1 in the `WHEN EXCEPTION {file-name-1}...` arm carries no exception-name and is rightly not subjected to it (pf-f3-full's `WHEN EXCEPTION F1` compiles). The same predicate serves the USE statement's parallel rule at ProcedureTableBuilder.cs:503-508 (14.9.49.3 SR13), so the two rules cannot drift. NO SPEC-DERIVED TEST closes this row: a grep for 1601 across tests/ finds only compiled binaries. CONFORMS-untested.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs:176-182 (`if (files.Length > 0 && !ExceptionCatalog.IsIoName(info.Name))` -> COBOLNET1601, applied per performWhenEcItem so it fires on the exact operand that pairs FILE); src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs:257-259 (`public static bool IsIoName(string name) => name.StartsWith(\"EC-I-O\", StringComparison.OrdinalIgnoreCase)` - the literal 'begins with the COBOL characters EC-I-O' test, not a category or catalog-membership proxy)  || EDITIONS (verbatim from the adjudication): 2023 (Format 3 is new in 2023 - Annex E.3.3 item 36)",
-  "state": "GAP"
+  "notes": "Prefix test, not a category or catalog-membership test: accepts level-2 EC-I-O and level-3 EC-I-O-AT-END with FILE, rejects EC-BOUND-SUBSCRIPT and the unenumerable open-family EC-USER-MINE.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.28.4-1",
@@ -38507,11 +38507,11 @@
   "subject": "PERFORM statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerformControl",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_perform_until_semantics",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "TEST BEFORE renders `while (!(cond)) body`, TEST AFTER `do { body } while (!(cond))` (EmitPerformLoop :262-268), with the condition rendered INLINE at each test so operand item identification is redone per test; a user-function reference in condition-1 rides UdfAttachPerEvaluation (per-evaluation activation, ControlFlowBinder :353-358). MEASURED: gr10_entry_true - inline `PERFORM UNTIL 1 = 1` runs the body 0 times and `WITH TEST AFTER` exactly once (A=00 B=01), and the same holds out-of-line (SUB1 once to make the condition true; SUB2 once under TEST AFTER even though the condition was already true). gr10_cond_ident - `PERFORM UNTIL WE(WK) = 9` with the body changing WK on the 3rd pass ends after exactly 3 passes with K=2, so the subscript in condition-1 is re-identified at every test (the rule's last sentence). No spec-derived test closes it: ControlFlowDifferentialTests' GR10 legs are AssertSameAsLegacy.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerformControl",
-  "state": "GAP"
+  "notes": "One leg per sentence: exit on first true (3), entry-true TEST BEFORE (0 inline and out-of-line), TEST AFTER (1 both), and a subscript in condition-1 re-identified at every test (2 passes, WK=3).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.28.4-11",
@@ -38759,11 +38759,11 @@
   "subject": "PERFORM statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs; src/Cobol.Net.Compiler/Binding/TurnState.cs#WithImplicitEnable; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_perform_f3_turn_after_end_perform",
   "derivation": "",
   "editions": "2023",
-  "notes": "All THREE sentences measured on the pinned compiler with a flagged fatal EC (EC-BOUND-SUBSCRIPT) violated AFTER END-PERFORM and a USE declarative + RESUME AT NEXT STATEMENT as the observable. (1) 'enabled by a TURN directive before the execution of the PERFORM statement ... remains enabled': a pre-PERFORM >>TURN ... CHECKING ON survives the exception-checking PERFORM - the post-PERFORM violation is caught (gr22_pre_turn: AFTER-PERFORM, CAUGHT=EC-BOUND-SUBSCRIPT, END). (2) 'If there is a TURN directive within the range of the PERFORM statement, the checking for that TURN directive is retained': a >>TURN ... ON written inside imperative-statement-1 is retained after END-PERFORM (gr22_turn_in_range: CAUGHT), and so is an in-range >>TURN ... OFF that overrides a pre-PERFORM ON (gr22_off_in_range: no CAUGHT) - the compile-time model gets this for free because the directive events are line-scoped over the whole source, so 'retained' is structural rather than a special case. (3) 'Otherwise, any checking for an exception condition specified in a WHEN phrase is not enabled': with no pre-PERFORM directive the GR14 implicit enable does NOT survive - the same post-PERFORM violation goes unchecked (gr22_no_pre_turn: AFTER-PERFORM, END, no CAUGHT), and a pre-PERFORM >>TURN ... OFF is likewise back in force after the PERFORM (gr22_pre_off_clean). The runtime half is covered by the same probes: the ambient XxxChecking flags are set and cleared around each CHECKED statement (EcEmitter's try/finally), so there is no PERFORM-scoped runtime checking state that could survive or be lost - the post-PERFORM statement's guard is emitted iff the compile-time fold says enabled, which is precisely GR22's condition. Format 3 is COBOL-2023 only (the construct gate COBOLNET0900 rejects it below 2023), so 2023 is the whole edition window. No spec-derived test closes this row: the Format-3 TURN tests (conformance:2023/f3_perform_handler_turn_off_all, PerformFormat3BehaviorTests, ExceptionCheckingFlagsDriftTests) all pin GR14's DURING-the-PERFORM state, not GR22's after-state.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs:83,103 (`ctx.EcState.Turn = savedTurn;` restores the BASE directive state at END-PERFORM - 'GR14's implicit POP ALL precedes END-PERFORM; GR22 governs from here'); src/Cobol.Net.Compiler/Binding/TurnState.cs#WithImplicitEnable:76-85 (the GR14 synthetic enable is spliced into an OVERLAY that is discarded, and is only added `if (!Enabled(ec, file, imp1Line))` so a pre-existing enable keeps its own settings) and #Fold:139-154 (a line-scoped fold, so a real directive written INSIDE imperative-statement-1 still governs statements after END-PERFORM); src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs:122-135,144-190 (the per-STATEMENT ambient checking flags, set/reset around each checked statement - no cross-statement runtime checking state to leak)",
-  "state": "GAP"
+  "notes": "Two of GR22's three sentences: a pre-PERFORM enable survives (arm A) and the GR14 implicit enable does not (arm C). Sentence 2 (a TURN directive within the range) is NOT exercised - §7.3.25.3 SR5 bans a TURN directive written lexically inside a Format-3 PERFORM (owner decision D20), and a TURN in a paragraph performed from imp-1 is line-scoped in source order (§7.3.25.4 GR6/GR8) so it cannot govern the statement after END-PERFORM. If the project requires a rule's whole text to be pinned before the row closes, GR-14.9.28.4-22 stays GAP pending an owner determination for sentence 2 rather than closing on this golden.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.29.3-1",
@@ -40873,11 +40873,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_when_condition_forms; conformance:2023/l1_search_when_boolean_omitted",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Citation validated: `cite.py --check 14.9.37.3 \"Condition-1 may be any conditional expression evaluated as specified in 8.8.4\"` -> OK, Syntax rules 6) (FORMAT 1). THIS RULE IS A PERMISSION, so the testable content is BREADTH: every §8.8.4 conditional-expression form must be accepted in the Format-1 WHEN and must mean there what it means anywhere else. MEASURED, not inferred from the fact that the grammar reuses `condition` -- I ran one probe per §8.8.4 sub-form over `05 E OCCURS 5 INDEXED BY IX / 10 K PIC 9(2) / 88 K-IS-SEVEN VALUE 07 / 10 V PIC X(3)` with K(3)=07 and V(3)='abc', each expected to stop the scan at occurrence 3, and every one printed HIT 03: condition-name `K-IS-SEVEN(IX)` (8.8.4.2); class `V(IX) IS ALPHABETIC AND K(IX) = 07` (8.8.4.3); sign `K(IX) IS POSITIVE AND K(IX) NOT = 00` (8.8.4.5); complex OR `K(IX) = 07 OR K(IX) = 99` (8.8.4.7); abbreviated combined relation `K(IX) = 07 OR 08` (8.8.4.8); parenthesized `(K(IX) > 06) AND (K(IX) < 08)` (8.8.4.7); negated `NOT K(IX) NOT = 07`. Probes sr6_cond88, sr6_class, sr6_sign, sr6_or, sr6_abbrev, sr6_paren, sr6_not. CONFORMS-BUT-UNTESTED (empty test-ref is expected here). No spec-derived test covers the row: tests/Cobol.Net.Tests.Conformance/SearchDifferentialTests.cs is 'Pinned to the legacy oracle' by its own class comment -- characterization, not a spec-derived expectation -- and its five facts are GR-side (scan start, AT END, first-true-wins, VARYING in step, GO TO out of a WHEN body), none of them a §8.8.4 breadth assertion. tests/CobolSharp.Tests.Unit/Overlenient/M421_OverlenientSearchTests.cs has three empty bodies. SCOPE NOTE: SR6 is FORMAT 1 only. The same general `condition` rule is wired into searchAllWhenClause (:253), where Format 2 does NOT grant this latitude -- that over-leniency is charged to FMT-14.9.37.2, not here.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4:222 `searchWhenClause : WHEN condition statementBlock*` -- the operand is the compiler's general `condition` rule, the same one IF/PERFORM UNTIL/EVALUATE use; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:60-67 binds it through host.Cond.BindCondition(wc.condition()) with no SEARCH-specific narrowing.",
-  "state": "GAP"
+  "notes": "Breadth witness for the SR6 permission: one Format-1 WHEN per 8.8.4 sub-form (8.8.4.2 relation, .4 class, .5 condition-name, .6 switch-status both ways, .7 sign, .10 negated, .11 parenthesised and precedence, .12 both omission forms), each expected occurrence derived from 14.9.37.4 GR4 + GR1a; 8.8.4.3 boolean and 8.8.4.8 omitted-argument in conformance:2023/l1_search_when_boolean_omitted, which is why the test-ref names BOTH files. The two 8.8.4.12 legs are '= 9 OR 7' -> occurrence 4 and '> 0 AND > 8' -> occurrence 5, chosen so that dropping the implied subject/operator lands on a DIFFERENT occurrence and the leg can fail.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.37.3-7",
@@ -40999,11 +40999,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_no_at_end_no_checking",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "This is GR1 b) 3. -- see finding search-p2-F3 for why it cannot currently be cited by that spelling. Measured: probe gr1b3_fallthrough runs two AT-END-less SEARCH statements with no >>TURN in force (one that exhausts the table, one whose initial index is 0) and prints AFTER-SEARCH-1 and AFTER-SEARCH-2, so control reaches the end of the SEARCH statement and execution continues in both unsuccessful shapes. The emitted code is not merely equivalent, it is byte-identical to a SEARCH with no EC involvement: the ecVar declaration, the ExceptionState.Set calls and the dispatch block are ALL gated on the Check flags (:421, :424, :461), so nothing is emitted to fall through. Edition note: the rule's premise ('the checking for those exception conditions was not enabled') is unstatable before COBOL-2002, since the EC model and the TURN directive are 2002+ additions (the compiler's own registry gates RAISE and USE AFTER EXCEPTION CONDITION at 2002 for exactly this reason); at 1985 the same fall-through happens unconditionally because no checking exists, so the observable behaviour coincides. Probes edsweep_85 and g_85 confirm the 1985 control flow is identical.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:419 (`dispatchEc = s.AtEnd is null && (s.CheckSearchIndex || s.CheckSearchNoMatch)`) with :461-468 -- with checking off both Check flags are false, no `if (__searchEc != null)` block is emitted at all, and :468 falls to `goto __searchEnd`; the flags come from ctx.EcState.Turn.Enabled at src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:73-74 and :115-116",
-  "state": "GAP"
+  "notes": "GR1b3 with the premise established from 14.6.13.1.1 ('By default, checking is not enabled'), no TURN directive and no declaratives; both GR4 unsuccessful shapes (exhausted scan, initial index zero) with no AT END, each followed by a reachable DISPLAY. The premise's second conjunct is asserted, not assumed: FUNCTION EXCEPTION-STATUS returns 31 alphanumeric spaces (15.33.3 rule 1) only because nothing was raised, so a compiler that enabled EC-RANGE checking by default fails the golden instead of passing it on the nonfatal default action. Edition twin: conformance:2002/l1_search_no_at_end_no_checking_2002.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-2",
@@ -41013,11 +41013,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_when_comparison_rules",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The WHEN comparison is not given a private comparison path: both formats hand the parse tree to the same ConditionBinder that IF/EVALUATE/PERFORM UNTIL use, so 8.8.4 holds by construction rather than by duplication. Measured: probe gr2_compound_cond (WHEN E(IX1) > 2 AND E(IX1) NOT = 4) prints HIT AT 03 -- relation, AND and NOT all evaluated per 8.8.4; probe gr2_two_key_and (Format 2, WHEN K1(KX) = 2 AND K2(KX) = 2 over a two-key table) prints HIT D AT 04; probe gr2_condition_name (Format 2, WHEN K-IS-FIVE (KX), the format's bare condition-name-1 alternative) prints HIT C AT 03. GR2 itself is satisfied. Two adjacent facts belong on the record but are NOT GR2 defects: reusing the general `condition` rule for the Format-2 WHEN also admits operators and operand shapes the Format-2 diagram does not contain (finding search-p1-F4 item iii), and the per-evaluation user-function window is attached by SearchBinder.cs:63-64/:105-106 (pinned by tests/Cobol.Net.Tests.Conformance/UdfInvocationTests.cs:171, whose own comment miscites the clause -- finding search-p2-F2). No spec-derived corpus test targets GR2 as such; the three probes above are the evidence.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:60-67 (Format 1) and :102-109 (Format 2) -- both route the WHEN through host.Cond.BindCondition, the compiler's one general conditional-expression binder; rendered per pass at src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:442-446",
-  "state": "GAP"
+  "notes": "The WHEN comparison's truth value derived from 8.8.4.2.4 (algebraic, usage- and length-independent) and 8.8.4.2.7 2) (shorter operand space-extended), in BOTH formats since GR2 is an ALL FORMATS rule.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-3",
@@ -41027,11 +41027,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_index_default",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "GR3's parent sentence and 3a measured. 3a (no VARYING -> the first or only index-name of identifier-1's INDEXED phrase): probe gr3a_multi_index over OCCURS 5 INDEXED BY IX1 IX2 IX3 with IX2/IX3 pre-set to 7/8 prints IX1=04 IX2=07 IX3=08. GR3's closing sentence ('Only the data item and indexes indicated are varied by the search operation. All other indexes associated with identifier-1 are unchanged') is measured from both directions: gr3a_multi_index leaves two sibling indexes untouched, and probe l41_same_table_ix2 (VARYING IX2, a second index OF THE SAME table) leaves IX1 at the 9 it was set to while IX2 walks 2->4. The dispatch that decides which arm applies is a single three-way test at :43-49 -- an index-NAME (IndexFieldOf, which by construction at ExpressionBinder.cs:162-164 matches only a bare, suffix-free INDEXED BY name), else a resolvable data reference, else loud -- so a qualified or subscripted identifier-2 correctly bypasses the index-name arm. The four sub-item rows (L3.1, L3.2, L4.1, L4.2) carry their own verdicts. NOT part of this row and already owned elsewhere: the missing SR5 operand-class screen (kb/Work PB211, open) and the BoundUnsupported-instead-of-diagnostic staging of the else-branch at :49 (finding search-p1-F2). The implementing comments at :18-19 and :45/:46/:48 cite GR8a/GR8b/GR8c, which are not this rule and do not exist -- finding search-p2-F2.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:38 (GR3a default) and :39-50 (the VARYING arm: IndexFieldOf -> same-table test -> SetIndexTarget / SetPlaceTarget); the 'only the indicated items are varied' half is structural -- ControlFlowEmitter.cs:448-449 touches exactly BoundSearch.IndexField and BoundSearch.AlsoVaried and nothing else",
-  "state": "GAP"
+  "notes": "GR3a's default search index and GR3's closing sentence over INDEXED BY IX1 IX2 IX3; IX2 pre-set to 5 so that mistaking it for the search index would reach AT END instead of occurrence 4.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-L3.1",
@@ -41041,11 +41041,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_varying_index_data_item",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "'Incremented by the same amount as, and at the same time as, the search index.' The 'same amount' reduces to +1 here because an index data item in this compiler holds an occurrence-number image, not a byte displacement -- Binding/Model/DataItem.cs:532 ('R40: the 8-byte occurrence-number image -- one width authority'), Model/PicInfo.cs:521 (width 8) and StorageFormPass.cs:212 (StorageForm.IndexCell) -- so incrementing by one occurrence number IS incrementing by the same amount as the search index. Measured: probe l31_index_data_item (WS-IDX USAGE IS INDEX set to 1, search index 1->4) prints IX1=04 IDX=04; probes g_85/g_2002/g_2014/g_2023 start WS-IDX at 2 and print L31 IX1=04 IDX=05 at every edition -- the delta tracks the search index's delta, not its absolute value, which is what 'the same amount' requires. 'At the same time' is structural: ControlFlowEmitter.cs:448-449 emits the two augments as adjacent statements in the same advance step, so the item cannot move on a pass where the index does not, and probes gr4_odo_bound / ec_range_search confirm the out-of-range-initial-index path jumps to AT END BEFORE the advance step, leaving identifier-2 untouched. Out of scope for this row and already owned: nothing screens identifier-2's class (kb/Work PB211, open, on §14.9.37.3 SR5), so a non-index non-integer operand reaches this same arm unchallenged.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:48 (`ctx.Refs.Resolve(v) is { } p` -> SetPlaceTarget) reached because ExpressionBinder.IndexFieldOf (:162-164) matches only INDEXED BY index-NAMES, never a USAGE INDEX data item; the augment is src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:449 -> SetEmitter.AugmentSetTarget:160-166, the index-item decode/augment/re-encode arm",
-  "state": "GAP"
+  "notes": "'The same amount' derived as one occurrence number per unsuccessful pass from GR4 plus 13.18.60's occurrence-number reading of USAGE INDEX; two legs pin the DELTA (2->5 over three passes, 1->2 over one), not the absolute value.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-L3.2",
@@ -41055,11 +41055,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_varying_integer_item",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "'Incremented by the value one at the same time as the search index is incremented.' Measured: probe l32_integer_item (WS-N PIC 99 VALUE 10, search index 1->4) prints IX1=04 N=13 -- three passes, three increments of one; probes edsweep_85/2002/2014/2023 (WS-N starting at 7, search index 1->3) all print S1 AT 03 N=09. The augment amount is a hard literal 1, not the index's delta, which is the distinction GR3b draws between b)1 and b)2 and which this compiler gets right only because an index data item also advances by one occurrence number (see the L3.1 row) -- the two arms would diverge under any other index representation, so the distinction is currently invisible rather than modelled. Adversarial edge measured: GR3b2 says only 'incremented by the value one' and SEARCH carries no ON SIZE ERROR phrase, so an increment past the receiving item's PICTURE capacity is an ordinary truncating store; probe l32_overflow (PIC 9 VALUE 8, five increments) prints S=3 -- the standard low-order-digit truncation, no exception, no silent abort of the scan. Out of scope for this row: the missing SR5 operand-class screen (kb/Work PB211, open) means a non-integer numeric operand also lands on this arm and is augmented by 1 with no complaint.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:48 (SetPlaceTarget) and src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:449 -- `set.AugmentSetTarget(also, down: false, new NumX(\"1\", 0))`, a literal one, emitted immediately after the index advance",
-  "state": "GAP"
+  "notes": "The literal one per pass: 10 -> 13 over three passes and 10 -> 11 over one, which separates GR3b2 from an assignment from the index (04) and from an increment by it (16).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-L4.1",
@@ -41069,11 +41069,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_varying_same_table_index",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "'If index-name-1 is specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1, the index referenced by index-name-1 is the search index.' Three consequences follow from 'IS the search index' and all three are measured by probe l41_same_table_ix2 (OCCURS 5 INDEXED BY IX1 IX2, IX1 pre-set to 9, IX2 pre-set to 2, SEARCH E VARYING IX2 WHEN E(IX2) = 4): the scan STARTS from index-name-1's value (GR4 reads the search index's initial setting, and 2 is where it began -- had IX1 been the search index the guard `IX1 < 1 || IX1 > 5` would have fired on 9 and gone straight to AT END), it ENDS at the matching occurrence (IX2=4), and the table's first index is NOT varied (IX1=9, untouched, per GR3's closing sentence). Probes edsweep_85/2002/2014/2023 repeat the same shape (S2 AT 05 at every edition). The membership test compares resolved index CELLS rather than spelled names, which is what makes it correct under OO scope shadowing (Symbols.IndexCellOf prefers a method-local cell -- SymbolTable.cs:100, DataBinder.Oo.cs:603) instead of matching a same-named index of a different scope. Implementing-site citation is wrong (it says GR8a) -- finding search-p2-F2.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:45 -- `if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;` REPLACES the default search index and leaves AlsoVaried null, so index-name-1 IS the search index rather than an extra varied item",
-  "state": "GAP"
+  "notes": "index-name-1 IS the search index: the scan starts from IX2's value (GR4), ends at the match (GR1a) and leaves IX1 at the decoy 5 (GR3 closing sentence); had IX1 stayed the search index the scan would have reached AT END.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-L4.2",
@@ -41083,11 +41083,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_varying_other_table_index",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "'If index-name-1 is not one of the indexes specified in the INDEXED phrase in the OCCURS clause associated with identifier-1, the search index is the same as in General rule 3a. The index referenced by index-name-1 is incremented by one occurrence number at the same time as the search index is incremented.' Measured by probe l42_other_table_ix (E OCCURS 5 INDEXED BY IX1; F OCCURS 5 INDEXED BY JX; IX1 set to 1, JX set to 3; SEARCH E VARYING JX WHEN E(IX1) = 4): prints IX1=04 JX=06 -- the search index is identifier-1's own first index and started where GR3a says, and JX moved by exactly the same three occurrence numbers rather than being reset or ignored. Probes g_85/g_2002/g_2014/g_2023 reproduce L42 IX1=04 JX=06 at all four editions. 'At the same time' is structural (the two augments are adjacent statements in the one advance step at :448-449), and the out-of-range-initial-index path jumps to AT END before that step, so index-name-1 is untouched on a search that never advances. Note JX legitimately ends at 6 on a 5-element table of its own: GR3c2 says only that it is incremented in step and imposes no range constraint on it, unlike GR9's constraint on the Format-2 SEARCH index. GR3's closing sentence ('All other indexes associated with identifier-1 are unchanged') also holds -- only searchIx and AlsoVaried are ever written. The clause is cited as GR8b at SearchBinder.cs:46 and again in tests/Cobol.Net.Tests.Conformance/SpecPinnedNistTests.cs:19,21 -- finding search-p2-F2. That NIST pin exercises this behaviour but is a characterization test and cannot close the row.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:46 -- `else also = new SetIndexTarget(vix);` (searchIx keeps the GR3a default) with the in-step augment at src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:448-449 and SetEmitter.AugmentSetTarget:157-159",
-  "state": "GAP"
+  "notes": "An index of another table varied in step: search index IX1 = 4 (GR3a default), JX = 3 + 3 = 6, IX2 unchanged at 5; JX past the table end is legal because GR3c2 imposes no range constraint and 13.18.38.4 GR2 requires the index to accept up to 2 * 5.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-4",
@@ -41125,11 +41125,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_all_unsequenced_no_match",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "GR6 governs the SEARCH ALL cases where a GR5 precondition is false, and offers the implementation a genuine choice at 6a (find one of the matching settings, OR declare NO-MATCH -- 'It is undefined which of these alternatives occurs'). This implementation always takes 6a alternative 1, which is conforming: probe gr6_unsequenced (ASCENDING KEY declared over data stored 9,7,5,3,1 -- GR5a false) prints HIT AT 04, a setting that does satisfy the WHEN. 6b (no such setting exists -> undefined final setting, NO-MATCH, GR1b) is reached through the SAME single branch at :450-454, which is the only path in the emitted scan that can end a SEARCH ALL unsuccessfully; the compiler holds NO representation of key ordering anywhere (BindSearchAll never touches the OCCURS KEY phrase -- finding search-p1-F3), so it is structurally incapable of distinguishing a GR5-satisfied run from a GR5-violated one, and measuring that branch once measures it for both. It is measured by conformance:2023/ec_range_search (ALL-NM / ALL-NM[EC-RANGE-SEARCH-NO-MATCH], with AT END taken) and again by probes gr9_nomatch_index and gr9_empty_odo. Caveat carried forward, not a GR6 defect: 6a and 6b both say the final setting is UNDEFINED, and this implementation leaves it at N+1 -- outside the table -- which GR9's own range sentence forbids (finding search-p2-F1). Edition note: the EC-setting half is 2002+; probes g_85/g_2002/g_2014/g_2023 show the control flow identical at all four. || REFUTED: CONFORMS (test-ref must be CLEARED - the row does not close) — The BEHAVIOURAL verdict survives: the implementation always takes GR6a alternative 1, which the standard permits ('It is undefined which of these alternatives occurs'), and GR6b's unsuccessful path raises EC-RANGE-SEARCH-NO-MATCH and proceeds as in GR1b. What does NOT survive is the cited test-ref. conformance:2023/ec_range_search cannot pin GR6's branch, because GR6 applies only 'If any condition specified in General rule 5 is not satisfied' and in that test GR5 IS satisfied: its Format-2 table is `05 WS-KE OCCURS 3 TIMES ASCENDING KEY IS WS-K INDEXED BY KX` and the program stores WS-K = 1, 3, 5 -- correctly ascending (GR5a holds), with WS-KE not subordinate to any OCCURS (GR5b holds). Its ALL-NM leg is therefore governed by GR9, not GR6, and it is already cited as such on the GR9 row. The record's own defence -- that the compiler cannot distinguish a GR5-satisfied run from a GR5-violated one, so measuring the branch once measures it for both -- is an argument about EQUIVALENCE, not about what the test pins; the register's rule is that only a spec-derived test that exercises THIS rule's branch closes a row. GR6's actual branch is measured only by probe (the record's gr6_unsequenced, reproduced independently as r6_fmt2.cob leg C), and a probe cannot close a row. The drift has a traceable source worth reporting: ec_range_search's own header comment says 'A scan that advances past the last occurrence with no WHEN satisfied sets NO-MATCH (GR6; SEARCH ALL GR9)' -- but that scan is the SERIAL one, which is GR4, and GR6 is Format 2 only. So the row is CONFORMS with an EMPTY test-ref, exactly as GR5, GR7 and GR8 already are.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:442-454 (the WHEN tests and the single advance-past-end branch that raises EC-RANGE-SEARCH-NO-MATCH and jumps to the shared AT-END funnel) and :427-439 (the empty-table guard); gate from src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:116",
-  "state": "GAP"
+  "notes": "GR6 b) on GR6's own branch: ASCENDING KEY declared over 09,07,05,03,01 violates GR5a (which the refuted ec_range_search leg did not), and no occurrence holds 04, so AT END is taken and EC-RANGE-SEARCH-NO-MATCH is the last exception status. GR6 a) is not asserted — the standard says it is undefined which alternative occurs. Edition twin: conformance:85/l1_search_all_unsequenced_no_match_85.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-7",
@@ -41139,11 +41139,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_all_duplicate_keys",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "GR7 gives the implementation latitude, not a requirement: with GR5 satisfied and more than one setting matching, the search 'is successful' and 'The final setting of the search index is equal to one of them, but it is undefined which one' (Annex A repeats it as undefined item 50). Measured: probe gr7_duplicate_keys over ASCENDING KEY K = 1,3,3,3,9 with WHEN K(KX) = 3 prints HIT B AT 02 -- successful, and 02 is one of the three matching settings. The obligation GR7 does impose is that the search MUST succeed in this case, and a serial probe cannot fail to find a match that exists, so the strong half is satisfied by construction rather than by luck. No spec-derived corpus test targets the duplicate-key case; the probe is the evidence.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:442-446 -- the first WHEN that renders true ends the scan, so the final setting is the LOWEST occurrence number satisfying the WHEN",
-  "state": "GAP"
+  "notes": "Three settings satisfy WHEN over keys 01,03,03,03,09; only GR7's invariants are asserted (the search succeeds, the final setting satisfies the WHEN, it lies in 2..4) and never which one, so the golden passes under every conforming choice. CODE-LOCATION restored to the adjudicated value: the input row and the live tests/version-matrix/traceability-inventory.json both carry ControlFlowEmitter.cs, and that is where the behaviour lives — SearchBinder.BindSearchAll only resolves the table and binds the WHEN conditions, while the first-true-wins WHEN loop in ControlFlowEmitter.EmitSearchScan (:441-445, reached by SEARCH ALL too, since BindSearchAll lowers to BoundSearch) is what makes the final setting one of the settings satisfying the WHEN.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-8",
@@ -41153,11 +41153,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_all_index_and_others",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Both halves measured. 'The search index is the index referenced by the first (or only) index-name specified in the INDEXED phrase' -- probe gr8_gr9_all_initial declares OCCURS 5 ... INDEXED BY KX KY and the scan moves KX. 'Any other indexes associated with identifier-1 remain unchanged by the search operation' -- the same probe pre-sets KY to 8 and prints KY=08 after a SUCCESSFUL SEARCH ALL; Format 2 has no VARYING phrase to reach a second index with, and the binder hard-codes AlsoVaried: null, so the property is structural. Note this row and GR3a state the same fact for the two formats, and the compiler does write it down twice (SearchBinder.cs:38 and :110) -- the duplication is small and both copies are correct today, but it is the shape that produced the two-arm defects finding search-p1-F1 reports at :24/:83 and finding search-p2-F1 reports in the shared emitter. The implementing sites also cite this rule's NUMBER for Format-1 behaviour it does not govern -- finding search-p2-F2.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:110 -- BindSearchAll passes ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope) as the BoundSearch index field and AlsoVaried: null (:111), so no second index can be reached",
-  "state": "GAP"
+  "notes": "INDEXED BY KX KY with a unique matching key: KX = 4 (the first index-name is the search index, and its pre-set 5 being ignored also exercises GR9), KY unchanged at 2 (no other index of identifier-1 is varied).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-9",
@@ -41615,11 +41615,11 @@
   "subject": "SET statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Oo/OoConformance.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1_set_sr12a2_class_conformance; conformance:negative/l1-set-sr12a2-superclass-sender",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "SR12 a)2. — identifier-3 described with an object-class-name and WITHOUT an ONLY phrase: identifier-4's object-class-name shall reference the SAME class or a SUBCLASS. IMPLEMENTED as ObjectRefWideningMismatch's final leg and BOTH DIRECTIONS PROBE-VERIFIED. WIDENING (legal): probe p09_sr12a2.cob `SET B TO S` with B OBJECT REFERENCE CBASE9, S OBJECT REFERENCE CSUB9 INHERITS FROM CBASE9 -> compiles and RUNS, printing APONG (the base-typed view dispatches). NARROWING (illegal): probe p10_sr12a2_neg.cob `SET S TO B` -> `error COBOLNET0867: SET 'S' TO 'B': class CBASE9 is not CSUB9 or one of its subclasses (ISO SET SR12a2 via §14.8.3.3 rule 1)`. The adversarial edge SR12's CLOSED LIST implies — an INTERFACE-typed sender into a class-typed receiver, which is in none of SR12's a)-d) alternatives — is also rejected (probe p13_iface_into_class.cob -> COBOLNET0867 \"unresolvable class in the pair (sender IIF to receiver CIF)\"; the wording is poor but the verdict is right). CONFORMS is scoped to the descriptor subset the compiler can express: the rule's own guard (\"WITHOUT an ONLY phrase\") is unimplementable today and is row L5.1's territory, but since ONLY is unwritable the guard is universally true and the unconditional application is correct for every accepted program. No spec-derived test names this rule; the OoSpineTests SR12 cases at tests/Cobol.Net.Tests.Conformance/OoSpineTests.cs:2230 cover the UNIVERSAL-into-typed leg, not the class/subclass leg — test-ref left empty.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Oo/OoConformance.cs:369-412 (ObjectRefWideningMismatch) (sendCls.ConformsTo(recvCls)), reached from OoBinder.cs:937-943 and from the SetBinder.cs:342-343 Format-5 semantic re-route",
-  "state": "GAP"
+  "notes": "SR12a2 both halves: the positive runs the subclass and same-class senders (14.9.39.4 GR9 + 14.9.23.4 GR2 derive DERIVED/BASE); the negative is the same pair reversed. Its .err asserts 'ISO SET SR12a2', a contiguous substring of OoConformance.cs:410's conformance message -- NOT the bare COBOLNET0867, which seven distinct OoBinder sites plus the unresolvable-class-pair message also emit and which a shipped negative already uses for SR10d2.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.39.3-L5.3",
@@ -41699,11 +41699,11 @@
   "subject": "SET statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1_set_sr12c2_self_conformance; conformance:negative/l1-set-sr12c2-self-narrowing",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "SR12 c)2. — with a SELF sender, \"the class containing the SET statement shall be the same class or a subclass of the class specified in the description of the data item referenced by identifier-3\". IMPLEMENTED and BOTH ARMS PROBE-VERIFIED. NEGATIVE (probe p07_sr12c2_neg.cob: the SET sits in CBASE7's instance method, receiver R described OBJECT REFERENCE CSUB7 where CSUB7 INHERITS FROM CBASE7 — a NARROWING SELF) -> `error COBOLNET0867: SET 'R' TO SELF: class 'CBASE7' is not 'CSUB7' or a subclass of it (ISO 14.9.39.3 SR12c2)`. POSITIVE (probe p08_sr12c2_pos.cob: the SET sits in CSUB8, receiver described OBJECT REFERENCE CBASE8) -> compiles and RUNS, printing SPONG through the widened base view. The identity case (same class) is the p06/p11 shape and passes the c)2. screen. Untested by any shipped spec-derived test — test-ref empty. ⚠ This row CONFORMS but its SIBLINGS c)3. and c)4. at the SAME site do not: see row L7.3 and finding M2.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs:902-911 (`if (!cur.ConformsTo(tcls)) Error(COBOLNET0867 ... SR12c2)`)",
-  "state": "GAP"
+  "notes": "SR12c2 with a SELF sender: the positive puts the SET in the same class and in a subclass (8.4.3.8.4 GR1 + 14.9.23.4 GR2 derive BASE/DERIVED); the negative puts it in the superclass. Its .err asserts 'SR12c2', contiguous in OoBinder.cs:908-909's message, so the rejection is attributable to c)2. and not to one of the six sibling COBOLNET0867 obligations.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.39.3-L7.3",
@@ -42105,11 +42105,11 @@
   "subject": "SET statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SetEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_set_format1_once_and_itemid",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "FORMAT 1, the rule head (its a)/b)/c) sub-items are part 5's GR-14.9.39.4-L2.1/L2.2/L2.3 — this record covers only the two sentences carried here). BOTH sentences hold, and both were MEASURED with the pinned compiler rather than only read. (1) \"The value of the sending operand is determined once at the beginning of the execution of the statement\" (cite.py --check 14.9.39.4 PASS): EmitSetTo renders `long __setN = (long)(<sender>);` and then loops the receivers over that temp. Probe p4_gr2_once — `01 I PIC 9 VALUE 1. 01 J PIC 9 VALUE 0.` then `SET I J TO I + 1.` — prints `I=2 J=2`; a per-receiver re-evaluation would have given J=3. (2) \"item identification of the data item referenced by identifier-1 is done immediately before the value of that data item is changed\" (cite.py PASS): StoreSetTarget emits `PlaceRenderer.Write(p, …)` inside the foreach, so a subscripted receiver's subscript is read at its own store. Probe p4_gr2_itemid — `01 I PIC 9 VALUE 1.` over `05 A PIC 9 OCCURS 3` then `SET I A(I) TO 2.` — prints `I=2 A1=0 A2=2 A3=0`: A(I) was identified AFTER I had become 2, exactly as the rule demands, where a statement-start hoist of the subscripts would have written A(1). No spec-derived test pins either sentence: tests/Cobol.Net.Tests.Conformance/SetIndexDifferentialTests.cs is the only SET Format-1/2 suite and every case routes through `DifferentialGolden.Assert` (the legacy oracle), which per the closing rule cannot close a row — test-ref left empty.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/SetEmitter.cs:25-30 (EmitSetTo — `long __setN = …;` hoisted ONCE before the receiver loop) + SetEmitter.cs:127-146 (StoreSetTarget — the receiver's Place is rendered inside the loop, so its own subscripts are evaluated at its store site) + src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs:315-352 (BindSetTo)  || EDITIONS (verbatim from the adjudication): 1985,2002,2014,2023",
-  "state": "GAP"
+  "notes": "One line per sentence on SR3/SR4-LEGAL source: sender determined once (GR2 a)1.c gives N=M=4; a re-evaluation gives M=9) and receiver item identification at its own store (GR2 c) writes T(2); a hoist writes T(1)). The program is in tests/conformance/2023 and therefore runs at --std 2023 only.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.39.4-L2.1",
@@ -44162,12 +44162,12 @@
   "ordinal": 2,
   "subject": "SUBTRACT statement",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#RefExpr; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
-  "test-ref": "",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#RefExpr; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract",
+  "test-ref": "conformance:negative/l1-subtract-sr2-sending-alphanumeric; conformance:negative/l1-subtract-sr2-receiver-numeric-edited; conformance:negative/l1-subtract-sr2-format2-minuend-alphanumeric",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "BOTH roles identifier-2 plays are screened, which is what makes this rule two-sided. SENDING (identifier-1 in F1/F2, identifier-2 in F2's FROM): the 8.8.1.1 class screen rejects a non-numeric operand - measured s1 `SUBTRACT XA FROM N` with XA PIC X(4) -> COBOLNET0844 at compile time, and s2/s4 a numeric-EDITED operand in either sending position -> COBOLNET0844 (`a numeric-edited data item is not a NUMERIC data item - 8.5.2.13 + 8.5.2.1 Table 2; de-editing is a MOVE rule`; owner decision 2026-08-02 reversing DA6). RECEIVING (identifier-2 in F1): ScreenResultant with editedOk:false -> s3 `SUBTRACT 1 FROM NE` (NE PIC ZZZ9) gives COBOLNET1675 quoting `ISO 14.9.44.3 SR2 requires an elementary numeric data item`; the same screen rejects a group item, a reference-modified slice and an index data item. Under --permissive the SENDING screen warns and digit-decodes instead (a declared dialect leniency on the strictness axis, not a conformance divergence in the default strict lane). No spec-derived SUBTRACT test exists for either half - the negative corpus has pb134-add-no-phrase but no SUBTRACT SR2 case, and the SUBTRACT entries in VerbDifferentialTests / ExpressionDifferentialTests / SignedDisplayDifferentialTests are all AssertSameAsLegacy (legacy-oracle differentials, which do not close a row).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs:505-519 RefExpr numeric-class screen (sending identifier-1, and identifier-2 in format 2); src/Cobol.Net.Compiler/Binding/Binding/IntrinsicArgumentRules.cs#IsArithmeticOperandClass; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs:733-750 ScreenResultant(editedOk:false) reached from ArithmeticBinder.cs:91 (the format-1 receiver identifier-2)",
-  "state": "GAP"
+  "notes": "SR2 heads FORMATS 1 AND 2, so its two identifiers occupy THREE positions on three binder paths, one fixture each: format-1 identifier-1 (alphanumeric, operand-list walk -> COBOLNET0844), format-1 identifier-2 (numeric-edited in-place receiver, Receivers/ScreenResultant(editedOk:false) -> COBOLNET1675 -- excluded because SR4 spells that category out and SR2 does not), and format-2 identifier-2 (the SENDING minuend, ArithmeticBinder.BindSubtract's host.Expr.BindExpr(from) -> COBOLNET0844). The third was added on refuter correction; without it the row rested on two of the three positions the rule names.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.44.3-3",
@@ -44177,11 +44177,11 @@
   "subject": "SUBTRACT statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#NumLiteral; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1-subtract-sr3-literal1-nonnumeric; conformance:negative/l1-subtract-sr3-literal2-nonnumeric",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Both literal positions the rule names are screened by the one nonNumericLiteral-in-a-numeric-context body. Measured: s5 `SUBTRACT \"12\" FROM N` (literal-1) and s6 `SUBTRACT 1 FROM \"20\" GIVING G` (literal-2) both give COBOLNET0844 at compile time citing 8.8.1.1 + 8.3.3.2.1. The one figurative the rule still admits is handled by the same body: s9 `SUBTRACT ZERO FROM N` compiles and subtracts 0 (8.8.1.1 names ZERO among an arithmetic expression's operands; 8.3.3.6.3 SR1a permits it WITHOUT the ALL phrase, and ExpressionBinder.cs:885 tests `fig.ZERO() is not null && fig.ALL() is null` so `ALL ZEROS` is correctly refused). A concatenation expression and a national/boolean literal are refused by the same body. No spec-derived SUBTRACT test: FigurativeDifferentialTests' `SUBTRACT ZERO FROM N` case is AssertSameAsLegacy and does not close the row.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs:837-839 NumLiteral; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs:857-892 NonNumericInNumericContext",
-  "state": "GAP"
+  "notes": "Both literal positions the rule names, reached by different binder paths (the operand list and format 2's FROM phrase); both COBOLNET0844. The over-rejection guard in the literal-1 header cites 8.3.3.6.3 SR1 a) ('the only figurative constant permitted is ZERO ... without the ALL phrase'), which is what actually keeps SUBTRACT ZERO FROM N legal -- 14.9.44.2 Format 1's slot is {identifier-1 | literal-1}, not an arithmetic expression, so 8.8.1.1 answers a different question and appears only as the name of the screen that reports the rejection.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.44.3-4",
@@ -44191,11 +44191,11 @@
   "subject": "SUBTRACT statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Receivers; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_subtract_giving_resultant_categories; conformance:negative/l1-subtract-sr4-giving-alphanumeric",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The GIVING resultants are screened with editedOk:true, which is exactly this rule's two-category admission and the axis that separates it from SR2's in-place receiver. Measured: s7 `SUBTRACT 1 FROM 20 GIVING XG` with XG PIC X(4) -> COBOLNET1675 `the arithmetic resultant 'XG' is of category Alphanumeric; ISO 14.9.44.3 (GIVING resultant) requires an elementary numeric or numeric-edited data item`; s8 with NE PIC ZZZ9 compiles and stores the EDITED image (`[  19]`), i.e. numeric-edited is admitted and the store goes through the mask (ArithmeticEmitter.StoreArith:385-421). ScreenResultant also refuses a group, a ref-mod slice and an index data item here. CITATION PRECISION (silent, folded into finding subtract-clause-citation-drift): this call site passes the clause string `14.9.44.3 (GIVING resultant)` where the ADD twin at ArithmeticBinder.cs:47 passes `14.9.2.3 SR4`, so the SUBTRACT diagnostic names the clause but not the rule number the reader needs. No spec-derived SUBTRACT test.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs:80 Receivers(giving.receivingArithmeticOperand(), editedOk: true, \"14.9.44.3 (GIVING resultant)\"); src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs:756-760 Receivers; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs:733-750 ScreenResultant",
-  "state": "GAP"
+  "notes": "Both admitted categories in one statement (G=0019 by 14.6.8.2 r4; NE=[  19] by 14.6.8.2 r5 into 13.18.40.5 r7 Z-suppression) plus an alphanumeric resultant outside both -> COBOLNET1675. The admitting program is in tests/conformance/2023 and runs at --std 2023 only; the negative's reject-at covers all four editions.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.44.3-5",
@@ -44205,11 +44205,11 @@
   "subject": "SUBTRACT statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindSubtractCorresponding",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_subtract_corr_word_equivalence",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The two words reach ONE bind - the binder tests both token accessors and routes both to the identical CorrespondingBinder.Bind call, so no behaviour can key on which was written. Measured on SUBTRACT specifically, both spellings, same program shape and same result: p3 `SUBTRACT CORRESPONDING SRC FROM DST` and p4/m3 `SUBTRACT CORR ...` all give DST.P = 7 from 10 - 3. The named test is spec-derived (AssertOutput with the expectation \"07\" computed from GR3/GR5, not a legacy differential) and covers the CORR spelling; the CORRESPONDING spelling on SUBTRACT is covered only by probe m3, so a golden pinning both tokens on SUBTRACT (as CorrespondingBinder's doc-comment already claims for ADD) would close the pair. || REFUTED: CONFORMS — THE VERDICT STANDS BUT THE TEST-REF DOES NOT PIN THIS RULE AND MUST BE CLEARED. Behaviour: CorrespondingBinder.BindSubtractCorresponding tests `sub.CORRESPONDING() is not null || sub.CORR() is not null` and routes BOTH to the identical Bind call, so nothing downstream can key on which word was written; I measured both spellings in ONE program over identical data (r18: SUBTRACT CORRESPONDING and SUBTRACT CORR against two identical receiving groups, both giving P=7 from 10-3 and Q=13 from 20-7). That is CONFORMS. But the attached test-ref, conformance-test:CorrespondingDifferentialTests.SubtractCorr_TargetMinusSource_CorrToken (tests/Cobol.Net.Tests.Conformance/CorrespondingDifferentialTests.cs:168-177), writes ONLY `SUBTRACT CORR SRC-G FROM DST-G` and asserts '07'. It is genuinely spec-derived (AssertOutput with a GR3/GR5-computed expectation, not AssertSameAsLegacy) and it is a VALID test-ref for GR-14.9.44.4-3, where the adjudicator also cites it. It is not one for SR5: a golden that spells one of the two words cannot distinguish 'CORR and CORRESPONDING are equivalent' from 'only CORR is implemented', which is the entire content of this rule. Its own method name says so -- _CorrToken. The adjudicator knew this (its note asks for 'a golden pinning both tokens') and attached the test-ref anyway, which would close the row on evidence that cannot contradict it. CORRECTION: record SR-14.9.44.3-5 as CONFORMS with an EMPTY test-ref (CONFORMS-untested), or write a golden that executes both spellings on SUBTRACT.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4:898 `SUBTRACT (CORRESPONDING | CORR) ...`; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs:33-37 BindSubtractCorresponding (`sub.CORRESPONDING() is not null || sub.CORR() is not null`)",
-  "state": "GAP"
+  "notes": "Both spellings executed on SUBTRACT over identically seeded groups; 14.9.44.4 GR3/GR5 derive 07 and 13 for each, so the two lines must match. Replaces the refuted CORR-only conformance-test ref, which cannot contradict this rule. Runs at --std 2023 only (directory-selected edition).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.44.3-6",
@@ -44233,11 +44233,11 @@
   "subject": "SUBTRACT statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/Cobol.Net.Compiler/CodeGen/StatementEmitter.cs#Visit; src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#Fold",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_subtract_format1_initial_evaluation; conformance:2023/l1_subtract_format1_standard_decimal",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The initial evaluation is the SUM of the sending operands, formed once (NumericRenderer.Fold folds with `+` in source order), and each identifier-2 stores `receiver - initialEvaluation` (EmitInPlace passes op \"-\" with the receiver read on the LEFT), which is the rule's `(identifier-2 - initial-evaluation)`. Measured: p1 `SUBTRACT 1 2.5 FROM A B` with A=100.00 B=200.00 gave A=96.50 B=196.50 (each receiver minus the ONE sum 3.5), and `SUBTRACT 1.6 FROM C D ROUNDED` applied each receiver's own ROUNDED phrase. The `initial evaluation ... done at the start of the execution of the statement` half (14.7.7 GR4 + NOTE 3, which this rule's wording depends on) is honoured by ArithmeticEmitter.cs:33-34 materialising the fold into a temp whenever there is more than one receiver: probe g8 `SUBTRACT A FROM A B` with A=5 B=10 gave A=0 and B=5, i.e. the second receiver still saw the ORIGINAL 5 after the first receiver stored 0 - the sender/receiver-overlap result NOTE 3 requires. Under ARITHMETIC IS STANDARD-DECIMAL the same shape holds (k1: A=96.50), with every operation evaluating in SDIDI form through CombineCore. STANDARD-BINARY IS A DECLARED NON-SUPPORT AND IS NOT MINE TO VERDICT (owner, D13): probe k3 shows `ARITHMETIC IS STANDARD-BINARY` rejected at compile time with COBOLNET0806 `a processor-dependent language element (ISO Annex A.3 item 2) for which support is not claimed (4.2.6)` plus COBOLNET0903 (obsolete as of COBOL-2023, Annex F.2 item 3). That declination is owned by the PB260/PB261/PB281-PB283 family, so this rule's standard-binary half is out of reach by owner decision rather than by a compiler defect, and it fails LOUD - no wrong answer is reachable through it. The standard-decimal half IS reachable and IS measured below. No spec-derived SUBTRACT golden pins format 1's arithmetic (the VerbDifferentialTests / ExpressionDifferentialTests SUBTRACT cases are legacy-oracle differentials); conformance:85/phrase_order_arithmetic exercises a format-1 SUBTRACT but asserts only which size-error branch ran.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs:74,86-93 BindSubtract (format 1 -> BoundSubtractFrom); src/Cobol.Net.Compiler/CodeGen/StatementEmitter.cs:218 Visit(BoundSubtractFrom); src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs:26-45 EmitInPlace; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs:428-441 Fold",
-  "state": "GAP"
+  "notes": "Four lines per program: the sum, the once-only discriminator (009 vs 008), the 14.7.7 NOTE 3 sender/receiver overlap, and the (identifier-2 - initial-evaluation) direction via SIGN LEADING SEPARATE; run under native (11.9.5.2 GR4) and standard-decimal (8.8.1.5.1), the rule's two reachable modes. BOTH PROGRAMS LIVE IN tests/conformance/2023 AND THEREFORE RUN AT --std 2023 ONLY -- no run in this batch measures 85, 2002 or 2014; the native program carries no post-85 construct, so duplicating it into tests/conformance/85/ is available to the director if the 85 edition is to be measured.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.44.4-2",
@@ -59016,12 +59016,12 @@
   "ordinal": 127,
   "subject": "OBJECT-COMPUTER paragraph (computer-name and implied equipment configuration)",
   "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-127",
-  "test-ref": "",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-127; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+  "test-ref": "conformance:2023/pb373_object_computer_name_inert",
   "derivation": "",
   "editions": "",
-  "notes": "kb/Work PB280 Q1 — OWNER DECISION 2026-09-02. An Annex A.1 item the standard marks OPTIONAL, whose docs/CONFORMANCE.md §7 determination records the element as 'Not provided.', closes as DOCUMENTED-NON-SUPPORT. Licence: A.1's own preamble, which conditions the documentation duty on provision — 'Optional: The element may be provided at the implementor's option.' and 'Documentation required: If the element is provided by the implementor, the implementor's user documentation shall document the element or shall reference other documentation that fulfills this requirement.' (both cite.py --check A.1 → OK) — plus §4.2.7 ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support', cite.py --check OK), which this verdict's own `meaning` already names as its second ground. ⛔ The §7 row STAYS and is the row's evidence: unlike an item an A.4 module WITHDREW, a not-provided optional element has a determination — the record of the non-provision — so the row carries its computed anchor and its witness is held to §7's `Pinned by` like any other.",
-  "state": "GAP"
+  "notes": "12.3.6.4 GR2's 'may provide' element is not provided, so the witness is an INVARIANCE, not a diagnostic (a diagnostic would reject legal source). CONFORMANCE.md line 1003 makes TWO claims and the file now asserts BOTH. PART 1 (claim 1 - one object computer): one compilation group, four separate outermost units - a computer-name, a DIFFERENT computer-name, the paragraph with no name (GR3), no paragraph (GR4) - each computing the same equipment-configuration signature (BYTE-LENGTH over BINARY-LONG/BINARY-DOUBLE per 13.18.60.4 GR21, ORD per 15.70.1 under GR10's native sequence, and a class condition under GR6), all SAME, with a CONTROL leg that reports DIFFER. PART 2 (claim 2 - 'the clauses that follow it (PROGRAM COLLATING SEQUENCE; CHARACTER CLASSIFICATION) behave identically with or without a name'): two further pairs of outermost units, L1OCW05/L1OCW06 writing PROGRAM COLLATING SEQUENCE IS REV with and without a computer-name (12.3.6.4 GR9/GR11 make 'A' > 'B' true under ALPHABET REV IS \"B\" \"A\" - the observable tests/conformance/2023/pb78_object_computer_optional_name already pins), and L1OCW07/L1OCW08 writing CHARACTER CLASSIFICATION IS TR with and without a name (12.3.6.4 GR5a + GR7a). The four Part-1 legs run under the DEFAULT arms GR10 and GR6, the branches that apply precisely BECAUSE no clause is written, so Part 1 alone could not assert claim 2 - that was the refuted omission. The CC pair is compared to EACH OTHER and never to a pinned Turkish code point, so 8.2.1's runtime locale availability cannot make the golden environment-dependent; CC-NONZERO guards the vacuous case. Landing this also fills CONFORMANCE.md line 1003's 'Pinned by' cell for this row. || LANDER CORRECTION (golden-lane round 3): the writer's record named ONLY the CONFORMANCE.md anchor, and a DOC row's `is_observable` predicate reads the kind's `implementation-pattern` `^src/Cobol\\.Net\\.` over the row's OWN code-location list, so the row would have stayed a GAP with its witness green on disk. The two sites the determination is observed through are now named: the grammar rule that ACCEPTS `computerName computerAttributes?` (CobolParserCore.g4#objectComputerParagraph) and the binder that walks `objectComputerParagraph` reading only its CLAUSES and never the computer-name (DataBinder.Switches.cs#SwitchBindSpecialNames) - which is exactly 12.3.6.4 GR2's 'may provide' element being not provided.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-128",

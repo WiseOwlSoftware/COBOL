@@ -19,7 +19,8 @@
     "declined_validate_words_are_user_words",
     "l1_open_not_open_statements",
     "open_fixed_attribute_conflict",
-    "pb206_value_size_alphanumeric"
+    "pb206_value_size_alphanumeric",
+    "l1_search_all_unsequenced_no_match_85"
   ],
   "pending": []
 }
