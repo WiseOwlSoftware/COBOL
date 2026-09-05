@@ -848,6 +848,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     file.LockMode = MapLockMode(lm);
                 else if (clauses.fileCollatingSequenceClause() is { } col)   // §12.4.5.7 — introduction-gated post-bind; resolved in ResolveFileCollating
                     CaptureFileCollating(file, col);
+                // RECORD DELIMITER clause (ISO §12.4.5.11) — DECLINED, ACCEPT-INERT, and diagnosed by name at
+                // EVERY edition on BOTH arms of its required choice (kb/Work PB292). STANDARD-1 is Annex A.3
+                // item 26, a processor-dependent element whose §12.4.5.11.4 GR2 medium is a tape drive; a
+                // feature-name-1 names nothing because §12.4.5.11.3 SR2's available-name set is this
+                // implementation's to specify and is EMPTY (Annex A.1 item 150 is optional — docs/CONFORMANCE.md
+                // §7). Nothing is captured on the FileModel and that is deliberate: §12.4.5.11.4 GR5's
+                // implementor method (the 4-byte length prefix) frames every variable-length record whatever the
+                // clause says, so a stored delimiter would be a field nothing reads
+                // (feedback_a_dead_lookup_is_also_unverified). §4.2.6 ¶3 makes the WARNING the obligation this
+                // discharges; §12.4.5.11.4 GR1 keeps the framing out of the record area, so the accept is inert
+                // in the program's own terms. This arm is LAST because every preceding clause has a distinct
+                // leading token and `recordKeyClause` already back-tracks past `RECORD DELIMITER`.
+                else if (clauses.recordDelimiterClause() is { } rd)
+                    Edition.Declined(DiagnosticCatalog.RecordDelimiterUnsupported,
+                        $"the RECORD DELIMITER clause on file '{name}' ({Spelled(rd)})");
             }
             // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
             // or sequential-organization file.
@@ -2353,7 +2368,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Bind one data-description entry (skips level-66 RENAMES and level-88 condition names for now).</summary>
     /// <summary>A clause's source spelling with its words SEPARATED. <c>ctx.GetText()</c> concatenates the
     /// tokens ("FORMATCHARACTERDATA"), which is unreadable in a diagnostic whose whole job is to quote back
-    /// what the user wrote — one join, at the two declined-clause sites that quote a multi-word clause.</summary>
+    /// what the user wrote — one join, at the three declined-clause sites that quote a multi-word clause
+    /// (FORMAT, SELECT WHEN, RECORD DELIMITER).</summary>
     private static string Spelled(Antlr4.Runtime.Tree.IParseTree node) =>
         string.Join(' ', Enumerable.Range(0, node.ChildCount).Select(i => node.GetChild(i).GetText()));
 

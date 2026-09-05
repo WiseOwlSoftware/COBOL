@@ -47,6 +47,7 @@ public sealed class DocumentedNonSupportWitnessTests
 {
     private const string CommitNonSupport = "COBOLNET1579";     // COMMIT/ROLLBACK — A.3 items 6-7 / §4.2.6 ¶3
     private const string ValidateNonSupport = "COBOLNET1580";   // VALIDATE — A.4.14 / §4.2.7 / F.2 item 5
+    private const string RecordDelimiterNonSupport = "COBOLNET1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
 
     /// <summary>The corpus golden's source text — the witness and the corpus run the SAME file.</summary>
     private static string Golden(string edition, string name) =>
@@ -92,4 +93,90 @@ public sealed class DocumentedNonSupportWitnessTests
     public void ValidateFacility_NamedNonSupportWarning_PinnedToSpec() =>
         AssertRecognizedAndNamed(Golden("2023", "dns_validate_picture_locale_witness"),
             ValidateNonSupport, 2002, 2014, 2023);
+
+    /// <summary>RECORD DELIMITER → COBOLNET1778, at EVERY edition (the clause is in the '85 file control entry
+    /// and every edition since), and — the point of the pair — ONCE PER ARM. §4.2.6 ¶3 compels the warning for
+    /// the STANDARD-1 arm: Annex A.3 item 26 makes it processor-dependent and §12.4.5.11.4 GR2 makes its medium
+    /// a tape drive this implementation has none of. The feature-name arm is declined on a DIFFERENT licence —
+    /// §12.4.5.11.3 SR2 leaves the available names to the implementor and Annex A.1 item 150 makes providing
+    /// them optional, and this implementation provides none (docs/CONFORMANCE.md §7) — so nothing about the
+    /// STANDARD-1 fix implies it fires.
+    /// <para>⛔ THE ASSERTION IS ON THE ARM, NOT ON THE CODE, and that is the whole design. kb/Work PB292's own
+    /// warning was that "a fix touching only the STANDARD-1 arm repeats the defect shape" — and a test that
+    /// only asked for COBOLNET1778 over a two-SELECT program would PASS with the feature-name arm still silent
+    /// (feedback_two_arm_dispatch). Each fact therefore demands the diagnostic that quotes ITS OWN clause
+    /// spelling back, which is exactly the `seen` half <see cref="CobolNet.Binding.EditionContext.Declined"/>
+    /// composes at the site.</para>
+    /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only and cannot pin the decline: §12.4.5.11.4 GR1 —
+    /// "Any method used shall not be reflected in the record area or the record size used within the function,
+    /// method, or program" — means a conforming processor honouring STANDARD-1 and this one ignoring it print
+    /// the SAME lengths. Only the compile-time name discriminates.</para></summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec(int edition) =>
+        AssertArmNamed(edition, "RECORD DELIMITER IS STANDARD-1");
+
+    /// <summary>The feature-name-1 arm of the same required choice — see the pair's rationale above.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec(int edition) =>
+        AssertArmNamed(edition, "RECORD DELIMITER IS PB292-TAPE-FORMAT");
+
+    /// <summary>The same STANDARD-1 arm written WITHOUT the optional word. §12.4.5.11.2's printed diagram
+    /// underlines RECORD, DELIMITER and STANDARD-1 and leaves IS unmarked, so `RECORD DELIMITER STANDARD-1` is
+    /// the same clause and must draw the same decline — a decline keyed on the optional word would be a
+    /// spelling test wearing a conformance test's clothes.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void RecordDelimiterOptionalWordOmitted_NamedNonSupportWarning_PinnedToSpec(int edition) =>
+        AssertArmNamed(edition, "RECORD DELIMITER STANDARD-1");
+
+    /// <summary>⛔ THE COMPLEMENT (feedback_measure_the_selectors_complement). The three facts above prove the
+    /// warning FIRES; this one proves it fires on the CLAUSE and not on the file, the file's organization or
+    /// the RECORD VARYING clause — file F4 of the same golden is variable-length, sequential and opened,
+    /// written and read exactly like the other three, and writes NO RECORD DELIMITER clause. It is also the
+    /// only file in the program under which §12.4.5.11.4 GR5 speaks at all ("If the RECORD DELIMITER clause is
+    /// not specified …"), so a warning there would contradict the determination filed as Annex A.1 item 151.
+    /// A diagnostic that cannot be silent is not evidence of anything.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void RecordDelimiterAbsent_DrawsNoWarning_AndOnlyTheThreeClausesDo(int edition)
+    {
+        string source = Golden("2023", "pb292_record_delimiter_witness");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        Assert.True(ok, $"--std {edition}: {string.Join("\n", errors)}");
+        var raised = warnings.Where(w => w.Contains(RecordDelimiterNonSupport, StringComparison.Ordinal))
+            .ToList();
+        Assert.Equal(3, raised.Count);
+        Assert.DoesNotContain(raised, w => w.Contains("on file 'F4'", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>One arm of the RECORD DELIMITER decline, at one edition: the source COMPILES (accept-inert) and
+    /// a COBOLNET1778 warning quotes back <paramref name="armSpelling"/>. Reads the corpus golden, so the
+    /// inertness half and the decline half never diverge.</summary>
+    private static void AssertArmNamed(int edition, string armSpelling)
+    {
+        string source = Golden("2023", "pb292_record_delimiter_witness");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        Assert.True(ok, $"--std {edition}: an ACCEPT-INERT declined facility must still COMPILE "
+            + $"(docs/CONFORMANCE.md §1): {string.Join("\n", errors)}");
+        var armed = warnings.Where(w => w.Contains(RecordDelimiterNonSupport, StringComparison.Ordinal)
+                                        && w.Contains(armSpelling, StringComparison.OrdinalIgnoreCase)).ToList();
+        Assert.True(armed.Count > 0, $"--std {edition}: expected a {RecordDelimiterNonSupport} warning naming "
+            + $"'{armSpelling}' (ISO §4.2.6 ¶3 — the warning mechanism is mandatory for a syntactically-"
+            + $"detectable unsupported processor-dependent element); got:\n"
+            + string.Join("\n", warnings.DefaultIfEmpty("(none)")));
+    }
 }

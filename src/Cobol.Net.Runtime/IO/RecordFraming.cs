@@ -10,8 +10,20 @@ namespace CobolNet.Runtime.IO;
 /// is a 4-byte little-endian length prefix followed by that many Latin-1 payload bytes; an EMPTY slot (relative
 /// gap) is the tag 0xFFFFFFFF with no payload. Explicit length framing carries occupancy soundly — the legacy's
 /// fixed-format all-0x00/0xFF gap HEURISTIC could vanish a legitimate all-zero binary record — and the physical
-/// format is implementor-defined by the spec (§9.1.13.6 — boundaries are "externally defined"), so only
-/// self-consistency matters: producer and consumer of a corpus chain both run on this framing.
+/// format is implementor-defined by the spec, so only self-consistency matters: producer and consumer of a
+/// corpus chain both run on this framing.
+/// <para>⛔ THE LICENCE IS §9.1.7.2, NOT §9.1.13.6, and the correction matters (kb/Work PB292). This comment
+/// cited §9.1.13.6's "externally-defined boundaries" until 2026-09-05 — a real sentence about a DIFFERENT
+/// question: it is the I-O status 34 rule for writing past a physical FILE's boundary, not a statement about
+/// record framing (feedback_a_real_clause_can_answer_a_different_question). The clause that actually grants
+/// this is §9.1.7.2: "In record sequential files the length of each record is determined by any information the
+/// implementor may add to the record on the physical storage medium (such as record length headers)" — this
+/// prefix IS that header. §12.4.5.11.4 GR5 makes the same grant for the variable-length case where no RECORD
+/// DELIMITER clause governs, which for COBOL.NET is EVERY case (the clause is declined whole — COBOLNET1778,
+/// docs/CONFORMANCE.md §2 row 26), and the determination is filed as Annex A.1 item 151 in
+/// docs/CONFORMANCE.md §7. §12.4.5.11.4 GR1 is what this framing must not violate — "Any method used shall not
+/// be reflected in the record area or the record size used within the function, method, or program" — so the
+/// prefix is stripped before the record area is filled and never enters a record size a program can read.</para>
 /// Two access shapes over the SAME byte layout:
 /// <list type="bullet">
 /// <item><b>Store-level</b> (<see cref="WriteStore"/>/<see cref="ReadStore"/>) — the whole-file rewrite/load the

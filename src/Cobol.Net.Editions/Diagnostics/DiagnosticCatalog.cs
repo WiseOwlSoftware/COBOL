@@ -1746,9 +1746,10 @@ public static class DiagnosticCatalog
     //    every site routes through `EditionContext.Declined(descriptor, seen)`, never a local strictness test
     //    and never a second helper (feedback_one_mechanism_per_job).
     //
-    //    • ACCEPT-INERT (Warning) — COBOLNET1578 / 1579 / 1580. These facilities are ADDITIVE: the
+    //    • ACCEPT-INERT (Warning) — COBOLNET1578 / 1579 / 1580 / 1778. These facilities are ADDITIVE: the
     //      program still means what it says with them absent (no message I-O, COMMIT behaves as
-    //      CONTINUE, VALIDATE validates nothing), so §4.2.6 ¶3's mandatory compile-time warning mechanism
+    //      CONTINUE, VALIDATE validates nothing, a RECORD DELIMITER selects a framing §12.4.5.11.4 GR1
+    //      forbids the program from seeing), so §4.2.6 ¶3's mandatory compile-time warning mechanism
     //      ("shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
     //      processor-dependent language elements not supported") is the whole obligation, and §14.6.13.1.1
     //      licenses raising NO exception conditions. The program COMPILES, RUNS, and the facility is inert.
@@ -1786,6 +1787,49 @@ public static class DiagnosticCatalog
         + "2002/2014/2023 (the facility exists from 2002); at --std 85 VALIDATE is a user word, not a statement. "
         + "See docs/CONFORMANCE.md §4.",
         "ISO §4.2.7 / Annex A.4.14 / §4.2.13 / Annex F.2 item 5 / §14.9.50", RecognizedNotImplemented);
+    // ⛔ ONE CODE FOR THE WHOLE CLAUSE, BOTH ARMS, and that is the point (kb/Work PB292). The general format
+    //    (§12.4.5.11.2, rendered from the printed page) is a plain required choice — `RECORD DELIMITER IS
+    //    { STANDARD-1 | feature-name-1 }` — and the two alternatives are declined on DIFFERENT grounds that
+    //    reach the SAME disposition, so splitting them into two codes would put one rule in two places
+    //    (feedback_one_rule_one_place) and invite the two-arm defect this note was opened for: before this
+    //    descriptor existed, `recordDelimiterClause` parsed and NOTHING read it, at any edition, on either arm.
+    //    · STANDARD-1 is PROCESSOR-DEPENDENT — Annex A.3 item 26, "The STANDARD-1 phrase of the RECORD
+    //      DELIMITER clause is dependent upon a reel type of device", and §12.4.5.11.4 GR2 spells the
+    //      dependency as a requirement on the run: "If STANDARD-1 is specified, the external medium shall be a
+    //      tape drive." COBOL.NET provides no reel device (docs/CONFORMANCE.md §2 rows 28-30, 33-34), so
+    //      §12.4.5.11.4 GR3's ISO/IEC 1001:2012 7.1.2 framing cannot be reached.
+    //    · feature-name-1 is IMPLEMENTOR-DEFINED and OPTIONAL — Annex A.1 item 150, "This item is optional",
+    //      whose licence is A.1's preamble ("Optional: The element may be provided at the implementor's
+    //      option"). §12.4.5.11.3 SR2 makes the available names the implementor's to specify and this
+    //      implementation specifies NONE (docs/CONFORMANCE.md §7, A.1 item 150), so §12.4.5.11.4 GR4 has no
+    //      method to associate with any spelling.
+    //    ACCEPT-INERT (Warning), not refuse, and §12.4.5.11.4 GR1 is why the accept is safe where an inert
+    //    FORMAT clause (1705) is not: "Any method used shall not be reflected in the record area or the record
+    //    size used within the function, method, or program" — the framing is invisible to the program's data,
+    //    so a declined RECORD DELIMITER leaves every program-visible value identical to the conforming one and
+    //    the file still round-trips through §12.4.5.11.4 GR5's implementor method (the 4-byte length prefix,
+    //    A.1 item 151, docs/CONFORMANCE.md §7). §4.2.6 ¶3 then makes the warning MANDATORY rather than a house
+    //    style: "An implementation shall provide a warning mechanism at compile time to indicate use of
+    //    syntactically-detectable processor-dependent language elements not supported by that implementation."
+    //    ⚠ §4.2.6 ¶3's next sentence — "it is not required to diagnose syntax errors within this unsupported
+    //    syntax" — is the express licence for NOT enforcing §12.4.5.11.3 SR1 (the clause "may be specified only
+    //    for variable-length records") inside the declined clause. That is a decision, not an omission: SR1's
+    //    own NOTE makes variable-length-ness partly an implementor determination (A.1 items 147-148, still
+    //    open), and a line-sequential file's records are variable by §9.1.7.2 with no RECORD clause at all, so
+    //    an SR1 test keyed on FileModel.Varying would REJECT LEGAL SOURCE to enforce a rule the standard
+    //    excuses.
+    public static readonly DiagnosticDescriptor RecordDelimiterUnsupported = new(
+        "COBOLNET1778", "record-delimiter-unsupported", EditionSeverity.Warning,
+        "the RECORD DELIMITER clause (ISO §12.4.5.11) selects the method of determining a variable-length "
+        + "record's length on the external medium, and neither alternative of its required choice is supported. "
+        + "STANDARD-1 is a processor-dependent element (§4.2.6; Annex A.3 item 26) whose §12.4.5.11.4 GR2 "
+        + "medium is a tape drive, and COBOL.NET provides no reel device; no feature-name is available either "
+        + "(§12.4.5.11.3 SR2 leaves the names to the implementor and Annex A.1 item 150 makes providing them "
+        + "optional — this implementation provides none). The clause is ACCEPTED and has no effect: every "
+        + "variable-length record is framed by the §12.4.5.11.4 GR5 implementor method (the 4-byte length "
+        + "prefix, Annex A.1 item 151), and §12.4.5.11.4 GR1 keeps that framing out of the record area and the "
+        + "record size, so no program-visible value changes. See docs/CONFORMANCE.md §2 row 26 and §7.",
+        "ISO §4.2.6 ¶3 / Annex A.3 item 26 / Annex A.1 items 150-151 / §12.4.5.11", RecognizedNotImplemented);
     // ── 1560 / 1705 / 1706 / 1707 — the REFUSE half of the band (see the header above). One code per A.4
     //    MODULE (A.4.2 takes two, split at the division boundary — see the header below it), not per
     //    clause: the module is the unit §4.2.7 makes the implementor document and Annex A.4 makes optional, so

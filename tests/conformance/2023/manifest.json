@@ -360,6 +360,7 @@
   "l1_test_formatted_datetime_national_format",
   "l1_trim_zero_length_result",
   "pb261_commit_facility_witness",
+  "pb292_record_delimiter_witness",
   "pb142_retry_conflict_class_ec",
   "declined_rw_present_varying_control",
   "declined_ec_flow_sibling_still_legal",

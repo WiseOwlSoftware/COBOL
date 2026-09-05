@@ -122,9 +122,17 @@ paddingCharacterClause
     : PADDING CHARACTER? IS? (literal | dataReference)
     ;
 
-// ISO §12.4.5.11 RECORD DELIMITER clause: RECORD DELIMITER IS {STANDARD-1 | feature-name-1}. Specifies
-// the method of determining the length of a variable-length record; CobolSharp length-frames variable
-// records itself (4-byte prefix), so this is parsed and ignored.
+// ISO §12.4.5.11 RECORD DELIMITER clause: RECORD DELIMITER IS {STANDARD-1 | feature-name-1}. The general
+// format (§12.4.5.11.2, verified against the printed page) underlines RECORD, DELIMITER and STANDARD-1 and
+// leaves IS unmarked, so IS is the only optional word and exactly one alternative of the brace shall be
+// written — which is this rule verbatim. `cobolWord` is feature-name-1's permissive surface.
+// ⛔ PARSED AND *DIAGNOSED*, NOT PARSED AND IGNORED (kb/Work PB292). Until 2026-09-05 nothing anywhere read
+// this rule and the clause compiled clean at every edition on BOTH arms, which left docs/CONFORMANCE.md §2
+// row 26's "Not claimed" unobservable and §4.2.6 ¶3's MANDATORY compile-time warning mechanism unbuilt. The
+// decline now lands at DataBinder.BindFileControl as COBOLNET1778 (accept-inert Warning) — Annex A.3 item 26
+// for STANDARD-1, Annex A.1 item 150 for feature-name-1. Variable-length records keep the §12.4.5.11.4 GR5
+// implementor framing (4-byte length prefix, Annex A.1 item 151), which §12.4.5.11.4 GR1 keeps invisible to
+// the record area and the record size.
 recordDelimiterClause
     : RECORD DELIMITER IS? (STANDARD_1 | cobolWord)
     ;
