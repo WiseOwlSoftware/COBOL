@@ -344,24 +344,40 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   `DataItem.OperandPic`, which is deliberately null for an alphanumeric group because §14.9.25.4 GR4 makes such a
   group a conversion-free character copy Table 16 does not describe; as the SUBJECT OF A VALUE CLAUSE the group
   has a category outright.
-  **Two structural consequences, both of them landed defects:**
-  1. `ValidateValueCategory` takes the size to measure against as an argument (`sizePositions`), not `pic.Length`.
-     SR4/SR5/SR10 each carry the size sentence TWICE — once for an elementary item ("the size indicated by an
-     explicit PICTURE clause") and once for a group ("the size of the group item") — and a **DYNAMIC LENGTH** (or
-     ANY LENGTH) subject indicates NO size at all: its picture is "one instance of the picture symbol 'N', or 'X'"
-     (§13.18.19.3 SR1) and "the picture symbol determines the class" (§13.18.19.4 GR1). Passing `pic.Length` there
-     REJECTED LEGAL SOURCE — `01 UN PIC N DYNAMIC LENGTH VALUE N"SEED".` drew COBOLNET0898 while its alphanumeric
-     twin compiled and ran (pinned by `2014/pb206_value_size_categories`).
-  2. The ALPHANUMERIC size arm had **no implementation anywhere** while its national and boolean twins had theirs,
+  **Three structural consequences, all of them landed defects:**
+  1. `ValidateValueCategory` takes the SUBJECT as a `ValueSubject` descriptor, never `pic.Length` and never a
+     size a caller computed. SR4/SR5/SR10 each carry the size sentence TWICE — once for an elementary item ("the
+     size indicated by an **explicit** PICTURE clause") and once for a group ("the size of the group item") — and
+     a **DYNAMIC LENGTH** (or ANY LENGTH) subject indicates NO size at all:
+     its picture is "one instance of the picture symbol 'N', or 'X'" (§13.18.19.3 SR1)
+     and "the picture symbol determines the class" (§13.18.19.4 GR1).
+     Passing `pic.Length` there REJECTED LEGAL SOURCE — `01 UN PIC N DYNAMIC LENGTH VALUE
+     N"SEED".` drew COBOLNET0898 while its alphanumeric twin compiled and ran (pinned by
+     `2014/pb206_value_size_categories`).
+  2. **The size belongs to the subject KIND, and there are THREE kinds, not two** (kb/Work PB598). Those size
+     sentences name an elementary item and a group item; the third subject §13.18.63.3 addresses is a
+     CONDITION-NAME (SR33 — "Formats 3 and 5 may be specified only when the level-number of the subject of the
+     entry is 88"), and it has no size sentence at all: a Format-3 entry is `88 condition-name-1 value-clause .`
+     (§13.16.2), which admits no PICTURE clause, so nothing EXPLICIT indicates a size, and §13.18.63.4 GR19 gives
+     a condition-name its conditional variable's characteristics only IMPLICITLY. While the size was an
+     `int? sizePositions` parameter the three level-88 call sites each computed the CONDITIONAL VARIABLE's size
+     and handed it over, so `01 XV PIC X. 88 XC VALUE "cd".` was COBOLNET1740 — legal source rejected, and a
+     GnuCOBOL differential flip. It is now `ValueSubject` (`Binding/ValueSubject.cs`), a descriptor built only by
+     `ForElementary` / `ForGroup` / `ForConditionName`, each stating its size rule with its citation: a fourth
+     subject kind must add a factory and cannot inherit a size by accident. The CLASS half of SR4/SR5/SR10 is
+     unaffected and still binds a condition-name.
+  3. The ALPHANUMERIC size arm had **no implementation anywhere** while its national and boolean twins had theirs,
      so BOTH of SR4's size sentences silently truncated (`PIC X(2) VALUE "ABCD"` → `AB`; a 6-character literal on
      a 4-character group → `ABCD`). It is now **COBOLNET1740**, error at every edition — Annex E.2 item 27's 2023
      size change is scoped to NUMERIC-EDITED items (COBOLNET1570), not to this. A FIGURATIVE operand is exempt by
      rule, not omission: §8.3.3.6.4 GR2 repeats it to the subject's size and truncates from the right.
   The one asymmetry is deliberate: the SR4-sentence-1 vendor leniency that stores a numeric literal's digits on an
   alphanumeric subject under `--permissive` is withheld from a group subject, because GR5's area deposit is
-  defined over the operand's CHARACTERS and a numeric literal has none (measured: the group seeded SPACES). Format
-  1 only — SR16 carries SR13 to the format 2 table VALUE, but the per-occurrence literals of a table VALUE reach
-  no literal screen at all yet (kb/Work PB208), and that funnel routes through this same method when it lands.
+  defined over the operand's CHARACTERS and a numeric literal has none (measured: the group seeded SPACES). The
+  group ARM is format 1 only, but the SCREEN is not: SR16 carries SR13 to the format 2 table VALUE and
+  `ValidateTableValues` puts every per-occurrence literal through this same funnel with a
+  `ValueSubject.ForElementary` describing the ELEMENT (kb/Work PB208, landed), so the two formats cannot disagree
+  about a category or a size.
 - ⛔ **The screen walks `DataBinder.CompositionForest`, and that distinction is a design commitment, not a
   detail.** There are TWO forests over the bound data, and a pass picks by what its rule is ABOUT.
   `ConformanceForest` is the WRITTEN-ENTRY forest — the once-per-source-entry set the per-entry data-attribute

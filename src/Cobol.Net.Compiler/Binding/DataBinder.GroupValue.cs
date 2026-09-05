@@ -125,7 +125,7 @@ public sealed partial class DataBinder
                 var subjectPic = GroupSubjectPic(item);
                 item.RawValue = ValidateValueCategory(subjectPic, literal,
                     $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item, "
-                    + "ISO §13.18.63.3 SR13)", subjectPic.Length, groupSubject: true);
+                    + "ISO §13.18.63.3 SR13)", ValueSubject.ForGroup(subjectPic.Length));
             }
 
             // SR14's usage conjunct is scoped to an ALPHANUMERIC group item — a group for which no GROUP-USAGE

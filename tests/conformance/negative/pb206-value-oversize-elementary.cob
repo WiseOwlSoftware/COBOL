@@ -6,7 +6,11 @@
       *> ELEMENTARY sentence of the same rule was unenforced too, and silently truncated - `DISPLAY E1` printed
       *> AB.  Its national (SR5 sentence 2) and boolean (SR10 sentence 2) twins were both implemented, which is
       *> the two-arm-dispatch shape with the third arm missing; all three now come from ONE screen
-      *> (DataBinder.ValidateValueCategory), measured against ONE size (its sizePositions argument).
+      *> (DataBinder.ValidateValueCategory), measured against ONE size - the one its ValueSubject
+      *> descriptor carries (kb/Work PB598).  THIS FIXTURE IS HALF THE DRIFT PROOF for that
+      *> descriptor: sentence 2 names AN ELEMENTARY ITEM, so withholding the size from a
+      *> CONDITION-NAME subject - which no sentence of SR4 names - must not withhold it here.
+      *> The other half is 85/pb598_condition_name_value_size, which must stay green.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB206N3.
        DATA DIVISION.

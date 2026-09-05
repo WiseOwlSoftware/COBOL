@@ -22,8 +22,9 @@
     "pb206_value_size_alphanumeric",
     "l1_search_all_unsequenced_no_match_85",
     "pb485_level_number_legal_forms",
-  "pb230_class_numeric_image",
-    "pb235_same_record_area_close"
+    "pb230_class_numeric_image",
+    "pb235_same_record_area_close",
+    "pb598_condition_name_value_size"
   ],
   "pending": []
 }
