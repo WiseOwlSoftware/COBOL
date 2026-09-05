@@ -150,6 +150,34 @@ public sealed class ReferenceResolver(DataBinder data)
         return temp;
     }
 
+    /// <summary>True when <paramref name="dref"/> is an OBJECT-PROPERTY reference (ISO §8.4.3.9.2 —
+    /// <c>property-name OF {class-name | identifier}</c>, textually a qualified data reference) rather than an
+    /// ordinary data reference. The ONE such test, over the SAME <see cref="OoTryBindPropertyReference"/>
+    /// resolution the committing path runs, so the two can never disagree about what a property reference is.
+    /// <para>Its caller is §14.9.4.3 SR20's carve-out (kb/Work PB238): "BY CONTENT shall not be omitted when
+    /// identifier-4 is an identifier that is permitted as a receiving operand, EXCEPT that BY CONTENT may be
+    /// omitted when identifier-4 is an object property" — a keyword-less Format-2 CALL argument that is an
+    /// object property takes §14.9.4.4 GR9 a)2's BY CONTENT (a property is not a data item defined in the
+    /// file, working-storage, local-storage or linkage section, so it never meets Syntax rule 3).</para>
+    /// <para>⛔ PURE — it runs the property resolution under <c>_probing</c>, so no temp is synthesized, no
+    /// pending §8.4.3.9.4 op is registered and no diagnostic is reported (the R30 probe contract). The
+    /// ordinary-qualification test comes FIRST for the same reason the committing path orders it that way: a
+    /// genuine qualified data reference is not a property reference, whatever a class roster holds.</para></summary>
+    public bool IsObjectPropertyReference(Core.DataReferenceContext dref)
+    {
+        if (dref.cobolWord() is not { } head) return false;
+        List<string> qualifiers = [];
+        foreach (var suffix in dref.dataReferenceSuffix())
+            if (suffix.qualification() is { } q) qualifiers.Add(q.cobolWord().Name());
+        if (qualifiers.Count != 1) return false;
+        string name = head.Name();
+        if (ResolveQualified(name, qualifiers) is not null) return false;
+        bool saved = _probing;
+        _probing = true;
+        try { return OoTryBindPropertyReference(name, qualifiers) is not null; }
+        finally { _probing = saved; }
+    }
+
     /// <summary>Resolve <paramref name="dref"/> to a <see cref="Place"/>, or <see langword="null"/> if unsupported
     /// here — the DEMANDING form: a name that identifies NO declared item reports <c>COBOLNET1639</c> (kb/Work
     /// R30 — §8.4.2.1: "a statement shall contain a reference that uniquely identifies that resource"; before

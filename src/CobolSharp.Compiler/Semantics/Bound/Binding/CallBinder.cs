@@ -158,7 +158,14 @@ internal sealed class CallBinder
                 else if (argCtx.callByValue() is { } byValue)
                 {
                     currentMode = ParameterMode.ByValue;
-                    var expr = _ctx.Expression.BindAdditiveExpression(byValue.arithmeticExpression().additiveExpression());
+                    // kb/Work PB238: `callByValue` gained the `literal` arm §14.9.4.2 Format 2 prints as
+                    // literal-2, so `arithmeticExpression()` is now nullable here. The legacy oracle binds the
+                    // new spelling through the same literal entry point its BY CONTENT arm above uses.
+                    BoundExpression? expr =
+                        byValue.arithmeticExpression() is { } vax
+                            ? _ctx.Expression.BindAdditiveExpression(vax.additiveExpression())
+                        : byValue.literal() is { } vlit ? _ctx.Expression.BindLiteral(vlit)
+                        : null;
                     if (expr != null)
                         arguments.Add(new BoundCallArgument(currentMode, expr));
                 }

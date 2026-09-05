@@ -1104,8 +1104,28 @@ callByReference
 
 // BY is an OPTIONAL word before VALUE exactly as before REFERENCE/CONTENT — only VALUE is underlined in the
 // figure (§5.2.3; kb/Work PB130: `BY VALUE` required the word and rejected `USING VALUE X` on legal source).
+// ⛔ THE OPERAND SET IS `arithmetic-expression-1 | identifier-4 | literal-2` (kb/Work PB238). §14.9.4.2
+// Format 2's printed figure gives the BY VALUE brace THREE arms, and the single `arithmeticExpression` here
+// carried only one and a half of them: the expression spine bottoms out at
+// `primaryExpression : numericLiteral | ZERO_ARITH | functionCall | dataReference | ( arithmeticExpression )`,
+// so a lone identifier-4 and a NUMERIC literal-2 were subsumed (and thereby MISCLASSIFIED — §14.9.4.4 GR8:
+// "An argument that consists merely of a single identifier or literal is regarded as an identifier or literal
+// rather than an arithmetic or boolean expression"), while a NON-numeric literal-2 could not be written at
+// all. §14.9.4.3 SR23 makes a non-numeric literal-2 illegal under BY VALUE, but a SYNTAX RULE is a
+// COMPILER'S verdict to deliver by name, not a hole in the grammar to leave the ANTLR error reporter — so
+// the alternative is admitted here and CallBinder reports SR23 with its citation.
+// ⚠ THE ORDER IS DELIBERATELY THE OPPOSITE OF `callByContent`'s, and the reason is `literal`'s reach.
+// `literal` covers `figurativeConstant`, so putting it first would take `BY VALUE ZERO` away from
+// `ZERO_ARITH` — the numeric-zero arm §8.3.3.6.3 SR1a sanctions where a literal is restricted to numeric —
+// and re-route a conforming operand through the figurative/character channel. With `arithmeticExpression`
+// first, EVERY spelling that parses today parses identically, and the `literal` arm catches exactly the
+// residue the expression spine cannot reach: a NON-numeric literal-2. Its identifier-4 and numeric-literal-2
+// arms need no alternative at all — the spine subsumes both, and CallBinder RECOVERS them before it binds
+// (the GR8 reduction, `Gr8Classify`), which is `callByContent`'s discipline rather than its alternation.
+// ⚠ ADDITIVE: `arithmeticExpression()` still exists as a generated accessor and merely returns null on the
+// new arm, which the LEGACY binder (which shares this grammar until the P15 cut-over) now tests for.
 callByValue
-    : BY? VALUE arithmeticExpression   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
+    : BY? VALUE (arithmeticExpression | literal)   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
     ;
 
 // ⛔ THE TWO FORMATS' BY CONTENT OPERAND SETS DIFFER, AND ONE RULE CANNOT BE BOTH (fix-queue PB46, CALL half).

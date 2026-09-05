@@ -80,6 +80,32 @@ public static class CobolArgAdapt
         _ => null,
     };
 
+    /// <summary>Read any NATIVE FLOATING-POINT carrier cell as its binary64 value, or null when the cell is not
+    /// one (kb/Work PB238 — the float lane joined this ABI's carrier vocabulary because a BY VALUE argument
+    /// stopped being narrowed to the exact <c>Int128</c> lane at the CALLER; §14.2.3 GR10 makes the crossing
+    /// "a COMPUTE statement without the ROUNDED phrase", and a caller-side integer cast performed a truncation
+    /// the callee's own COMPUTE was supposed to perform at the FORMAL's scale — <c>1.5</c> reached a
+    /// <c>PIC S9(3)V99</c> formal as <c>1.00</c>). It is a SECOND lane rather than a widening of
+    /// <see cref="ReadNumericCell"/>: no <c>Int128</c> holds a fractional binary64 value, so the conversion has
+    /// to happen where the destination scale is known.</summary>
+    private static double? ReadRealCell(ManagedPointer p) => p switch
+    {
+        ManagedPointer<double> x => x.Value,
+        ManagedPointer<float> x => x.Value,
+        _ => null,
+    };
+
+    /// <summary>The write half of <see cref="ReadRealCell"/>; false when the cell is not a native float.</summary>
+    private static bool WriteRealCell(ManagedPointer p, double v)
+    {
+        switch (p)
+        {
+            case ManagedPointer<double> x: x.Value = v; return true;
+            case ManagedPointer<float> x: x.Value = (float)v; return true;
+            default: return false;
+        }
+    }
+
     /// <summary>The write half of <see cref="ReadNumericCell"/>; false when the cell is not a native numeric.</summary>
     private static bool WriteNumericCell(ManagedPointer p, Int128 v)
     {
@@ -117,6 +143,14 @@ public static class CobolArgAdapt
                 return ManagedPointer<T>.OverField(
                     () => T.CreateTruncating(CobolNum.ParseDisplay(sp.Value, formal)),
                     v => sp.Value = CobolNum.FormatDisplay(Int128.CreateTruncating(v), formal));
+            case { } rp when ReadRealCell(rp) is not null:
+                // A native FLOAT cell viewed through a fixed-point formal (kb/Work PB238): the same §14.2.3 GR8
+                // converting view, on the float lane, because no Int128 holds the fractional value. The scale
+                // conversion is the receiver's, in BOTH directions — read quantizes at the formal's scale
+                // (§14.6.8.2 truncation, the un-ROUNDED landing), write un-scales back into the caller's float.
+                return ManagedPointer<T>.OverField(
+                    () => T.CreateTruncating(CobolFloat.ToScaledUnchecked(ReadRealCell(rp)!.Value, formalScale, CobolRounding.Truncation)),
+                    v => WriteRealCell(rp, CobolFloat.ScaledToDouble(Int128.CreateTruncating(v), formalScale)));
             case { } np when ReadNumericCell(np) is not null:
             {
                 // A native numeric cell of a DIFFERENT carrier or scale: a converting view over the caller's
@@ -190,6 +224,13 @@ public static class CobolArgAdapt
         Int128 v;
         switch (args[i].Carrier)
         {
+            case { } rp when ReadRealCell(rp) is { } rv:
+                // §14.2.3 GR10's "COMPUTE statement without the ROUNDED phrase" from the FLOAT lane
+                // (kb/Work PB238): the quantization to the formal's scale happens HERE, at the receiver, and
+                // truncates — which is exactly what an un-ROUNDED COMPUTE does. The caller used to do it, at
+                // scale 0, before the value ever reached the boundary.
+                v = CobolFloat.ToScaledUnchecked(rv, formalScale, CobolRounding.Truncation);
+                break;
             case { } np when ReadNumericCell(np) is { } nv:
                 v = CobolNum.Rescale(nv, args[i].Scale, formalScale, CobolRounding.Truncation);
                 break;

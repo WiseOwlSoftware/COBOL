@@ -369,7 +369,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// written where constant-name-1 is written"): the SAME bound shape the equivalent plain literal would
     /// produce (the <see cref="ConcatOperand"/> precedent). A numeric constant rides <see cref="CheckLiteral"/>
     /// so the edition digit-cap window applies to the substituted literal exactly as to a written one.</summary>
-    private BoundOperand? ConstantOperand(Core.DataReferenceContext dref) =>
+    internal BoundOperand? ConstantOperand(Core.DataReferenceContext dref) =>
         ctx.Data.ConstantOf(dref) is not { } k ? null
         : k.Category switch
         {
@@ -672,7 +672,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Data.ConstantOf(dref) is not null)
         {
             ctx.Edition.Error(DiagnosticCatalog.ConstantAsReceiver, $"constant-name '{dref.GetText()}' shall "
-                + "not be specified as a receiving operand — it substitutes a literal (ISO §13.10.3 SR2)");
+                + "not be specified as a receiving operand — it substitutes a literal (ISO §13.10.4 GR1)");
             return null;
         }
         if (dref.PAGE_COUNTER() is not null)

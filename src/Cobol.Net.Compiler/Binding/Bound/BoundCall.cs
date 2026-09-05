@@ -16,7 +16,23 @@ namespace CobolNet.Binding.Bound;
 /// <summary>One CALL USING argument: its resolved pass mode (the §14.9.4.4 GR5 transitivity already applied at
 /// bind time), and either a resolved <see cref="Place"/> (a data-reference argument) or a bound
 /// <see cref="Value"/> operand (a literal — inherently BY CONTENT — or a BY VALUE expression, §14.9.4.3 SR4).</summary>
-public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand? Value, bool Omitted = false);
+public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand? Value, bool Omitted = false)
+{
+    /// <summary>A <b>boolean-expression-1</b> argument (ISO §14.9.4.2 Format 2; kb/Work PB238) — the third of
+    /// the BY CONTENT brace's four operand shapes, and the one the BY VALUE brace deliberately does not print.
+    /// <para>It is its OWN value channel, not a spelling of <see cref="Value"/>: a boolean expression evaluates
+    /// to a '0'/'1' bit-string value (§8.8.2) whose length is fixed by §8.8.2 rule 10, never to an algebraic
+    /// value, so it can neither be rendered by the numeric renderer nor stored by the numeric store. The exact
+    /// counterpart of <c>BoundInvokeArg.ContentBool</c>, which PB46 landed on the INVOKE side of the same rule;
+    /// this slot is what closes §14.9.4.3 SR17's third channel on the CALL side.</para>
+    /// <para>BY CONTENT by construction — an expression has no storage to write back to.</para></summary>
+    public BoundBoolExpr? ContentBool { get; init; }
+
+    /// <summary>The §8.8.2 rule 10 value length of <see cref="ContentBool"/> — the largest boolean ITEM
+    /// referenced in the expression (0 when only literals are, which carry no item width, so the receiver's
+    /// own store fits the value). The same width §14.9.8.4 GR3 states for a boolean COMPUTE.</summary>
+    public int ContentBoolWidth { get; init; }
+}
 
 /// <summary><c>CALL {literal|identifier} [USING …] [RETURNING …] [ON …][NOT ON …]</c> (ISO §14.9.4 Format 1).
 /// <paramref name="LiteralName"/> is the static target (SR2 — a non-zero-length alphanumeric literal);

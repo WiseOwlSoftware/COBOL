@@ -213,21 +213,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             {
                 mode = CobolPassMode.Content;
                 // ── ONE OPERAND, THREE CHANNELS — normalized once, exactly as OoBindInvokeArg does ──
-                // The grammar parses BY CONTENT wide (both formats share this rule). A B-operator-FREE
-                // booleanExpression reduces to its bare valueOperand, so the predicate decides only which NODE
-                // an operand lands in, never what it means.
-                var cBool = byContent.booleanExpression();
-                var cArith = byContent.arithmeticExpression();
-                var cLit = byContent.literal();
-                if (cBool is not null && ConditionBinder.UnwrapBareBool(cBool) is { } cBare)
-                {
-                    cBool = null;
-                    cArith = cBare.arithmeticExpression();
-                }
-                // The grammar keeps a `dataReference` arm (legacy shares this rule), so a bare identifier lands
-                // there directly; the sole-reference reduction still covers one that arrived inside an
-                // expression node — the two paths must agree, which is why both are consulted here.
-                var cDref = byContent.dataReference() ?? ConditionBinder.SoleDataReference(cArith);
+                // The grammar parses BY CONTENT wide (both formats share this rule). The reduction is
+                // §14.9.4.4 GR8's and lives in ONE place (kb/Work PB238 — the BY VALUE arm below and both
+                // keyword-less arms read the SAME helper; the reduction used to be written out here only, so
+                // GR8 held for one spelling of an argument and not for the others).
+                var (cLit, cBareLit, cDref, cBool, cArith) = Gr8Classify(
+                    byContent.literal(), byContent.dataReference(),
+                    byContent.booleanExpression(), byContent.arithmeticExpression());
                 // §14.9.4.2 FORMAT 1's BY CONTENT IS `{ identifier-2 } …` AND NOTHING ELSE. An expression operand
                 // is legal only under Format 2, which the AS phrase selects — so accepting one here without that
                 // phrase would admit illegal source, the exact trade this item refused to make in the grammar.
@@ -252,18 +244,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 }
                 else if (cLit is { } clit)
                     args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(clit)));
+                else if (cBareLit is { } cbl && host.Expr.NonNumericLiteralOperand(cbl) is { } cblOp)
+                    args.Add(new BoundCallArg(CobolPassMode.Content, null, cblOp));
                 else if (cArith is { } cax)
                     // Format-2 arithmetic-expression-1: bind through the ONE expression path and pass its value.
                     args.Add(new BoundCallArg(CobolPassMode.Content, null,
                         IntrinsicBinder.OperandOf(host.Expr.BindExpr(cax))));
-                else if (cBool is not null)
-                {
-                    ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
-                        "CALL … USING BY CONTENT <boolean-expression>: §14.9.4.2 Format 2 admits it and the "
-                        + "boolean value channel does not yet cross a CALL boundary (the INVOKE side landed as "
-                        + "PB46's BoundInvokeArg.ContentBool; the CALL argument model has no counterpart)");
-                    return new BoundNop();
-                }
+                else if (cBool is { } cbx)
+                    args.Add(BooleanContentArg(cbx));
                 else
                     return new BoundUnsupported($"CALL USING BY CONTENT argument '{byContent.GetText()}'");
             }
@@ -282,14 +270,68 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // BY VALUE (§14.9.4) is a COBOL-2002 introduction; the edition gate moved to the post-bind
                 // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
                 mode = CobolPassMode.Value;
-                // ⛔ BindByValueExpr, NOT BindExpr — §14.9.4.3 SR22 governs a BY VALUE operand, not §8.8.1.1.
-                // The production is named arithmeticExpression and binding it as arithmetic put DA6's
-                // §8.8.1.1 screen on it, so an alphanumeric operand was refused with a message about arithmetic
-                // expressions and a "digit-decoding extension" — the right verdict quoting the wrong rule.
-                var byValueOperand = new BoundComputedOperand(
-                    host.Expr.BindByValueExpr(byValue.arithmeticExpression()));
-                CheckByValueClass(byValue, byValueOperand);
-                args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
+                // ── §14.9.4.4 GR8 APPLIES HERE TOO, AND THAT IS THE WHOLE OF kb/Work PB238 ────────────────
+                // "An argument that consists merely of a single identifier or literal is regarded as an
+                // identifier or literal rather than an arithmetic or boolean expression." The printed
+                // §14.9.4.2 Format-2 BY VALUE brace is `arithmetic-expression-1 | identifier-4 | literal-2`,
+                // and this arm used to bind ALL THREE as arithmetic-expression-1 — so identifier-4 lost its
+                // own carrier and its own PICTURE meta on the way to CallEmitter.ArgText, which then spelled
+                // the crossing `ManagedPointer<Int128>.Cell((Int128)(expr)), 38, scale`: the item's digits
+                // replaced by a constant, and a FLOAT item's fractional part TRUNCATED AWAY (measured:
+                // `01 F FLOAT-LONG VALUE 1.5` reached a `PIC S9(3)V99` BY VALUE formal as 001.00, where
+                // §14.2.3 GR10 requires "a COMPUTE statement without the ROUNDED phrase" ⇒ 001.50). The
+                // reduction is the SAME one the BY CONTENT arm runs, from the SAME helper.
+                var (vLit, vBareLit, vDref, _, vArith) = Gr8Classify(
+                    byValue.literal(), null, null, byValue.arithmeticExpression());
+                if (vLit is { } vlit)
+                {
+                    // §14.9.4.3 SR23 — reported BY NAME. The `literal` alternative exists in `callByValue`
+                    // solely so this verdict is the compiler's, with its citation, instead of a raw ANTLR
+                    // "no viable alternative" (the numeric spelling never reaches here: `arithmeticExpression`
+                    // is the earlier alternative and subsumes every numeric literal and the figurative ZERO).
+                    Sr23LiteralIsNumeric(vlit, "BY VALUE");
+                    args.Add(new BoundCallArg(CobolPassMode.Value, null, host.Expr.LiteralOperand(vlit)));
+                }
+                else if (vDref is { } vdref && ctx.Refs.Probe(vdref) is not null
+                         && ctx.Refs.Resolve(vdref) is { } vp)
+                {
+                    // identifier-4 — a SENDING operand (SR17), crossing on ITS OWN carrier and its own
+                    // Digits/Scale through the Place arm of CallEmitter.ArgText, exactly as the BY CONTENT
+                    // identifier does. Probe-to-discriminate then Resolve-to-commit, the PB221 discipline.
+                    // Resolve, never ResolveReceiving: SR17 makes it sending, so the receiving screens do
+                    // not apply and their diagnostics would be false rejections.
+                    ScreenCallOperand(vp, CobolPassMode.Value, formatTwo, isReturning: false);
+                    // §14.9.4.3 SR22 over the RESOLVED item — the same screen the keyword-less BY VALUE
+                    // argument runs. It no longer has to unwrap a BoundComputedOperand to recover the
+                    // identifier-ness GR8 says was never lost.
+                    ValueClassScreen(IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(vp)), vdref.GetText());
+                    args.Add(new BoundCallArg(CobolPassMode.Value, vp, null));
+                }
+                else if (vBareLit is not null)
+                {
+                    // A non-numeric literal-2 that reached the boolean node on a LATER argument's B-operator
+                    // is still literal-2, and §14.9.4.3 SR23 still governs it. (`callByValue` has no boolean
+                    // alternative, so this arm is reachable only through a shared reduction — which is the
+                    // argument for having one.)
+                    ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
+                        $"CALL … USING {vBareLit.GetText()} with BY VALUE: literal-2 shall be a NUMERIC "
+                        + "literal (ISO §14.9.4.3 SR23)");
+                    return new BoundNop();
+                }
+                else if (vArith is { } vax)
+                {
+                    // arithmetic-expression-1 — the genuine residue.
+                    // ⛔ BindByValueExpr, NOT BindExpr — §14.9.4.3 SR22 governs a BY VALUE operand, not
+                    // §8.8.1.1. The production is named arithmeticExpression and binding it as arithmetic put
+                    // DA6's §8.8.1.1 screen on it, so an alphanumeric operand was refused with a message about
+                    // arithmetic expressions and a "digit-decoding extension" — the right verdict quoting the
+                    // wrong rule.
+                    var byValueOperand = new BoundComputedOperand(host.Expr.BindByValueExpr(vax));
+                    CheckByValueClass(vax.GetText(), byValueOperand);
+                    args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
+                }
+                else
+                    return new BoundUnsupported($"CALL USING BY VALUE argument '{byValue.GetText()}'");
             }
             else if (a.dataReference() is { } bare)
             {
@@ -298,14 +340,48 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // takes the keyword-less identifier's mode from the CORRESPONDING FORMAL, resolved at bind
                 // through the AS NESTED callee table (the old single transitive `mode` silently passed
                 // `USING BY VALUE A B`'s B detached, losing the callee's writeback).
+                // ⛔ §14.9.4.4 GR8 FIRST: a constant-name substitutes a LITERAL — §13.10.4 GR1 ("the effect of
+                // specifying constant-name-1 in other than this entry is as if literal-1 … were written where
+                // constant-name-1 is written") with §13.10.3 SR2 admitting it "anywhere that a format
+                // specifies a literal", which the Format-2 figure's literal-2 slot does —
+                // so `CALL … AS NESTED USING K` is a bare LITERAL-2 argument, never identifier-2 — and
+                // literal-2 never meets Syntax rule 3, so GR9 a)2 assumes BY CONTENT (or GR9 b) BY VALUE).
+                // The old arm resolve-RECEIVED it and drew COBOLNET1548 "constant-name shall not be specified
+                // as a receiving operand", rejecting conforming Format-2 source (kb/Work PB238).
+                if (formatTwo && host.Expr.ConstantOperand(bare) is { } bareConst)
+                {
+                    var kMode = Gr9BareLiteralMode(calleeFormals, args.Count);
+                    if (kMode is CobolPassMode.Value) Sr23ConstantIsNumeric(bare, kMode);
+                    args.Add(new BoundCallArg(kMode, null, bareConst));
+                    continue;
+                }
                 CobolPassMode bareMode = mode;
+                bool byContentAssumed = false;
                 if (formatTwo && calleeFormals is not null)
                 {
                     int pos = args.Count;
                     bareMode = pos < calleeFormals.Count && calleeFormals[pos].ByValue
                         ? CobolPassMode.Value : CobolPassMode.Reference;
                 }
-                if (host.Expr.ResolveReceiving(bare) is not { } bp)
+                // ── §14.9.4.4 GR9 a)2 + §14.9.4.3 SR20 — the leg with no arm at all (kb/Work PB238) ────────
+                // GR9 a)'s test is SYNTAX RULE 3 ("an address-identifier or a data item defined in the file,
+                // working-storage, local-storage, or linkage section"), NOT "the receiving chokepoint accepted
+                // it": a)1 assumes BY REFERENCE only when the argument MEETS SR3, and a)2 assumes BY CONTENT
+                // when it does not. An OBJECT PROPERTY is the standard's own worked example of the second leg —
+                // it is not a data item of any of those four sections, and SR20 names it explicitly as the ONE
+                // identifier permitted as a receiving operand for which "BY CONTENT may be omitted". Binding it
+                // BY REFERENCE made §8.4.3.9.4's desugar classify the occurrence ReadWrite (BoundStores) and
+                // invoke the SET accessor on an operand SR17 calls SENDING.
+                if (formatTwo && bareMode is CobolPassMode.Reference && ctx.Refs.IsObjectPropertyReference(bare))
+                {
+                    bareMode = CobolPassMode.Content;
+                    byContentAssumed = true;
+                }
+                // A sending operand resolves through the SENDING resolver: the receiving chokepoint's screens
+                // (§13.18.15.3 SR2, the CAPACITY register, LINE-COUNTER) are receiving-operand rules and would
+                // be false rejections here.
+                if ((byContentAssumed || bareMode is CobolPassMode.Value
+                        ? ctx.Refs.Resolve(bare) : host.Expr.ResolveReceiving(bare)) is not { } bp)
                     return OperandUnresolved(bare, "USING argument");
                 ScreenCallOperand(bp, bareMode, formatTwo, isReturning: false);
                 // §14.9.4.3 SR22's OTHER arm (kb/Work PB132): "identifier-4 OR ITS CORRESPONDING FORMAL
@@ -326,16 +402,42 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (a.literal() is { } bLit)
             {
                 if (!formatTwo) { BareNeedsFormat2(bLit.GetText()); return new BoundNop(); }
-                args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(bLit)));
+                // §14.9.4.4 GR9 b) — BY VALUE is assumed when the corresponding formal is BY VALUE, and the
+                // MODE is the mechanism, not a side effect of the copy-out (kb/Work PB238: this arm hard-coded
+                // Content and the VALUE outcome happened only because a Content literal has no storage to copy
+                // back to — right by accident, and it would not have survived a change to the copy-out).
+                var bLitMode = Gr9BareLiteralMode(calleeFormals, args.Count);
+                // §14.9.4.3 SR23's SECOND subject — "or its corresponding formal parameter is specified with
+                // the BY VALUE phrase" — which had no reachable arm at all before the mode was derived here.
+                if (bLitMode is CobolPassMode.Value) Sr23LiteralIsNumeric(bLit, "a BY VALUE formal parameter");
+                args.Add(new BoundCallArg(bLitMode, null, host.Expr.LiteralOperand(bLit)));
             }
             else if (a.booleanExpression() is { } bBool)
             {
                 if (!formatTwo) { BareNeedsFormat2(bBool.GetText()); return new BoundNop(); }
-                ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
-                    "CALL … USING <boolean-expression> (§14.9.4.2 Format 2): the boolean value channel does "
-                    + "not yet cross a CALL boundary (the INVOKE side landed as PB46's ContentBool; the CALL "
-                    + "argument model has no counterpart — kb/Work PB131)");
-                return new BoundNop();
+                // §14.9.4.4 GR8's reduction applies to the bare spelling too: an operator-free
+                // booleanExpression is its bare valueOperand, and the identifier/literal it holds is
+                // identifier-4 / literal-2 — the BY CONTENT arm's own discipline, from the same helper.
+                var (nLit, nBareLit, nDref, nBool, nArith) = Gr8Classify(null, null, bBool, null);
+                if (nBool is { } nbx)
+                    // boolean-expression-1 prints ONLY in the BY CONTENT brace of §14.9.4.2 Format 2, so the
+                    // omitted phrase can only be BY CONTENT; §14.9.4.3 SR19 is then checked against the
+                    // corresponding formal by the loop below (a BY VALUE formal draws its own diagnostic).
+                    args.Add(BooleanContentArg(nbx));
+                else if (nLit is { } nlit)
+                    args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(nlit)));
+                else if (nBareLit is { } nbl && host.Expr.NonNumericLiteralOperand(nbl) is { } nblOp)
+                    args.Add(new BoundCallArg(Gr9BareLiteralMode(calleeFormals, args.Count), null, nblOp));
+                else if (nDref is { } ndref && ctx.Refs.Resolve(ndref) is { } np)
+                {
+                    ScreenCallOperand(np, CobolPassMode.Content, formatTwo, isReturning: false);
+                    args.Add(new BoundCallArg(CobolPassMode.Content, np, null));
+                }
+                else if (nArith is { } nax)
+                    args.Add(new BoundCallArg(CobolPassMode.Content, null,
+                        IntrinsicBinder.OperandOf(host.Expr.BindExpr(nax))));
+                else
+                    return new BoundUnsupported($"CALL USING argument '{bBool.GetText()}'");
             }
             else if (a.arithmeticExpression() is { } bArith)
             {
@@ -353,6 +455,31 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         IntrinsicBinder.OperandOf(host.Expr.BindExpr(bArith))));
             }
         }
+
+        // ⛔ ONE BOOLEAN VALUE CHANNEL for the CALL side, mirroring BoundInvokeArg.ContentBool exactly
+        // (kb/Work PB46 landed the INVOKE half and left this one; PB238 closes it). §14.9.4.3 SR17 makes every
+        // identifier inside boolean-expression-1 a SENDING operand, and a boolean expression evaluates to a
+        // '0'/'1' bit-string VALUE (§8.8.2) whose length is fixed by §8.8.2 rule 10 — it is neither an
+        // algebraic value nor a storage reference, so it is its own channel rather than a spelling of the
+        // arithmetic one. BY CONTENT by construction: an expression has no storage to write back to.
+        BoundCallArg BooleanContentArg(Core.BooleanExpressionContext bx)
+        {
+            var bound = host.Cond.BindBoolExpr(bx);
+            return new BoundCallArg(CobolPassMode.Content, null, null)
+            {
+                ContentBool = bound,
+                ContentBoolWidth = ConditionBinder.Gr3Width(bound),
+            };
+        }
+
+        // §14.9.4.4 GR9 for a keyword-less LITERAL-2 (or a constant-name, which substitutes one): a literal is
+        // never "a data item defined in the file, working-storage, local-storage, or linkage section", so it
+        // never meets Syntax rule 3 — GR9 a)2 gives BY CONTENT, and GR9 b) gives BY VALUE whenever the
+        // CORRESPONDING FORMAL is BY VALUE. Without a known formal (no AS NESTED — the program-prototype
+        // registry is P13) GR9 has nothing to read, and BY CONTENT is the format's own omitted-phrase default.
+        static CobolPassMode Gr9BareLiteralMode(IReadOnlyList<LinkageFormal>? formals, int pos) =>
+            formals is not null && pos < formals.Count && formals[pos].ByValue
+                ? CobolPassMode.Value : CobolPassMode.Content;
 
         void BareNeedsFormat2(string text) =>
             ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
@@ -663,7 +790,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// COBOL away, a missed one leaves a rule unenforced, and only the first is forbidden outright.
     /// </para>
     /// </remarks>
-    private void CheckByValueClass(Core.CallByValueContext byValue, BoundComputedOperand operand)
+    private void CheckByValueClass(string what, BoundComputedOperand operand)
     {
         // ⛔ CLASSIFY THE UNDERLYING REFERENCE, NOT THE WRAPPER. IntrinsicArgumentRules.ClassOf maps any
         // BoundComputedOperand to NUMERIC — correct in its own context, where a computed operand really is an
@@ -681,7 +808,79 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             BoundIndexRef => CobolClass.Index,
             _ => IntrinsicArgumentRules.ClassOf(operand),
         };
-        ValueClassScreen(actual, byValue.arithmeticExpression().GetText());
+        ValueClassScreen(actual, what);
+    }
+
+    /// <summary>ISO §14.9.4.4 GR8 — <b>the ONE reduction</b> that turns a Format-2 argument's PARSE NODE into
+    /// what the standard says the argument IS: "An argument that consists merely of a single identifier or
+    /// literal is regarded as an identifier or literal rather than an arithmetic or boolean expression."
+    /// <para>Two facts about the grammar make it necessary, and they are the same two on both the CALL and
+    /// INVOKE sides: <c>booleanExpression</c>'s leaf is <c>valueOperand</c>, so a B-operator-FREE boolean node
+    /// holds an ordinary arithmetic operand; and <c>arithmeticExpression</c> SUBSUMES <c>dataReference</c> and
+    /// every numeric literal, so a lone identifier reaches the binder inside an expression node. The predicate
+    /// therefore decides only WHICH NODE an operand lands in, never what it means.</para>
+    /// <para>⛔ IT IS SHARED BY EVERY SPELLING (kb/Work PB238). The reduction used to be written out inside the
+    /// BY CONTENT arm alone, so GR8 held for <c>BY CONTENT N</c> and not for <c>BY VALUE N</c> or for the
+    /// keyword-less <c>N</c> — one rule, four arms, one of them fixed. Pure: it reads parse contexts, resolves
+    /// nothing and reports nothing.</para></summary>
+    private static (Core.LiteralContext? Literal, Core.NonNumericLiteralContext? BareLiteral,
+                    Core.DataReferenceContext? Reference, Core.BooleanExpressionContext? Bool,
+                    Core.ArithmeticExpressionContext? Arith)
+        Gr8Classify(Core.LiteralContext? lit, Core.DataReferenceContext? dref,
+                    Core.BooleanExpressionContext? boolExpr, Core.ArithmeticExpressionContext? arith)
+    {
+        Core.NonNumericLiteralContext? bareLit = null;
+        if (boolExpr is not null && ConditionBinder.UnwrapBareBool(boolExpr) is { } bare)
+        {
+            boolExpr = null;
+            arith = bare.arithmeticExpression();
+            // ⛔ AND ITS LITERAL LEG (kb/Work PB238). `valueOperand` is `arithmeticExpression |
+            // nonNumericLiteral`, so an operand that reached the boolean node ON ANOTHER ARGUMENT'S
+            // B-OPERATOR (the predicate's scan runs to the statement's period) can be a plain literal:
+            // `CALL "S" AS NESTED USING "AB" B1 B-AND B2` put "AB" in a booleanExpression node. Recovering
+            // only the arithmetic leg left it classified as nothing at all, and the argument staged a RUN-TIME
+            // NotImplemented on conforming source. OoBindInvokeArg's reduction has always recovered both legs;
+            // this one recovered one, which is the same rule written twice and only one of them complete.
+            bareLit = bare.nonNumericLiteral();
+        }
+        // The grammar keeps a `dataReference` arm on callByContent (the legacy binder shares this rule), so a
+        // bare identifier can land there directly; the sole-reference reduction covers the one that arrived
+        // inside an expression node. The two paths must agree, which is why both are consulted.
+        return (lit, bareLit, dref ?? ConditionBinder.SoleDataReference(arith), boolExpr, arith);
+    }
+
+    /// <summary>ISO §14.9.4.3 SR23 — "If literal-2 or its corresponding formal parameter is specified with the
+    /// BY VALUE phrase, literal-2 shall be a numeric literal." Reported BY NAME (kb/Work PB238): the rule was
+    /// previously enforced only as a side effect of the grammar's expression spine, which bottoms out at
+    /// <c>numericLiteral | ZERO_ARITH | functionCall | dataReference | ( … )</c> — the right verdict, delivered
+    /// as a raw ANTLR "no viable alternative" that names no rule, and unreachable altogether for the rule's
+    /// second subject (a keyword-less literal-2 whose FORMAL carries the phrase).</summary>
+    private void Sr23LiteralIsNumeric(Core.LiteralContext lit, string subject)
+    {
+        // The figurative ZERO is a numeric literal wherever a literal is restricted to numeric (§8.3.3.6.3
+        // SR1a) — and it never reaches here under an explicit BY VALUE, where ZERO_ARITH takes the earlier
+        // `arithmeticExpression` alternative; the keyword-less arm can still spell it, so admit it by rule.
+        if (lit.numericLiteral() is not null
+            || lit.nonNumericLiteral()?.figurativeConstant()?.ZERO() is not null)
+            return;
+        ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
+            $"CALL … USING {lit.GetText()} with {subject}: literal-2 shall be a NUMERIC literal "
+            + "(ISO §14.9.4.3 SR23)");
+    }
+
+    /// <summary>The <see cref="Sr23LiteralIsNumeric"/> twin for a constant-name argument. §13.10.4 GR1 makes
+    /// it literal-2 by substitution and §13.10.4 GR2 gives it the SUBSTITUTED literal's class and category,
+    /// so SR23 is a question about that literal and never about the name (§13.10.3 SR2 is the admission —
+    /// a constant-name "may be used anywhere that a format specifies a literal of [its] class and
+    /// category" — which is why the Format-2 literal-2 slot accepts one at all).</summary>
+    private void Sr23ConstantIsNumeric(Core.DataReferenceContext dref, CobolPassMode mode)
+    {
+        if (ctx.Data.ConstantOf(dref) is not { } k || k.Category is PicCategory.Numeric) return;
+        ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
+            $"CALL … USING {dref.GetText()} with a {(mode is CobolPassMode.Value ? "BY VALUE" : "BY CONTENT")} "
+            + $"formal parameter: the constant-name substitutes the {k.Category.ToString().ToLowerInvariant()} "
+            + $"literal {k.RawText} (ISO §13.10.4 GR1/GR2), and §14.9.4.3 SR23 requires literal-2 to be a numeric "
+            + "literal when the corresponding formal parameter is specified with the BY VALUE phrase");
     }
 
     /// <summary>The §14.9.4.3 SR22 class screen, shared by the EXPLICIT BY VALUE arm and the Format-2

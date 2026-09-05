@@ -340,6 +340,18 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // and a forwarded omitted formal stays omitted (GR1c) because IsNull rides the carrier itself.
         if (a.Omitted)
             return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, ManagedPointer.Null, 0, 0)";
+        // §14.9.4.2 Format 2's boolean-expression-1 (kb/Work PB238) — FIRST, because a boolean value is
+        // string-CARRIED like an alphanumeric one and the Place/Value arms below read a place or an operand
+        // this argument does not have. §8.8.2 rule 10 fixes the value's length at the largest boolean ITEM
+        // referenced (0 = literals only, which carry no item width, so the callee's own store fits it) — the
+        // same width §14.9.8.4 GR3 states for a boolean COMPUTE, applied here exactly as EmitCompute and
+        // OoEmitter's INVOKE twin apply it. Digits/Scale are 0: this is character storage, not numeric meta.
+        if (a.ContentBool is { } cb)
+        {
+            string bv = BooleanRenderer.Render(cb, num);
+            if (a.ContentBoolWidth > 0) bv = RuntimeApi.BoolResize(bv, $"{a.ContentBoolWidth}");
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({bv}), 0, 0)";
+        }
         if (a.Place is { } p)
         {
             string digits = (p.Pic?.Digits ?? 0).ToString();
@@ -417,6 +429,18 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // through the ONE landing at the receiver-less working scale (kb/Work PB84 — `(long)(CobolDec)` was
                 // a Roslyn error on `CALL … BY VALUE A ** 2`).
                 NumX x = num.Landed(NumericRenderer.DeU(num.Render(expr.Expr, ReceiverContext.None)), ReceiverContext.None);
+                // ⛔ THE FLOAT LANE CROSSES AS A FLOAT (kb/Work PB238). `Landed` documents its own contract:
+                // "A float under NATIVE arithmetic stays binary64 — the consumer's own float arm applies", and
+                // this consumer had none, so `(Int128)(…)` TRUNCATED the fraction away: `01 F FLOAT-LONG
+                // VALUE 1.5` reached a `PIC S9(3)V99` BY VALUE formal as 001.00 (measured), where §14.2.3 GR10
+                // makes the crossing "a COMPUTE statement without the ROUNDED phrase" ⇒ 001.50. The FIX IS THE
+                // LANE'S OWN CARRIER, not a pre-rounding at some working scale the receiver never chose — the
+                // same answer PB264 gave the 19+-digit case (widen to Int128 rather than check the narrowing)
+                // and PB201 gave the position operand ("a position operand's CARRIER, not its class"). No
+                // Digits/Scale meta rides with it: a binary floating-point item has neither, and
+                // CobolArgAdapt's float arm reads the value itself.
+                if (x.Real)
+                    return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<double>.Cell((double)({x.Expr})), 0, 0)";
                 // ⛔ THE CELL IS Int128, NOT long, AND THE CONVERSION IS WIDENING (kb/Work PB264). This used to
                 // be `ManagedPointer<long>.Cell((long)(x.Expr))` — an UNCHECKED narrowing of a value that the
                 // DeU/Landed funnel above delivers on the Int128 lane, so an argument beyond 18 digits crossed
@@ -516,12 +540,22 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// crossing whose write half was NEVER implemented (the generated C# assigned a string to the native field
     /// and did not compile) and whose read half was the picture-digit image (lossy for a BinaryCapacity item's
     /// beyond-picture container values), while the CALLEE side built a <c>ManagedPointer&lt;long&gt;</c> cell
-    /// its own carrier-typed reads could not use. One predicate, both sides, native and value-exact.</summary>
+    /// its own carrier-typed reads could not use. One predicate, both sides, native and value-exact.
+    /// <para>⛔ AND THE FLOAT LEAF JOINED THEM (kb/Work PB238). R12's argument was about the four FIXED-POINT
+    /// carriers and left <c>p.Item.Pic is { IsFloat: true }</c> on the character route, where a binary64 value
+    /// decoded through the RECEIVER's zoned profile (<c>CobolArgAdapt.NumValue</c>'s string arm calls
+    /// <c>CobolNum.ParseDisplay</c>) — a numeric item read as digit characters it was never written as. The
+    /// float lane's own carrier is <c>double</c>/<c>float</c>, <c>CallNumCarrier</c> already answers with it
+    /// (<c>DataItem.ElementType</c>), and <c>CobolArgAdapt.ReadRealCell</c> is the callee half — so the same
+    /// R12 sentence now covers all six carriers rather than four. A float reaching a CHARACTER formal has no
+    /// arm on either side and takes the OMITTED (loud) carrier: §14.8.2.3.2 requires the same category and
+    /// usage for a BY REFERENCE pairing and §14.8.2.3.3's MOVE rules give a float sender no alphanumeric
+    /// receiver, so that pairing is a conformance violation to report, never a crossing to invent.</para>
+    /// </summary>
     internal static bool CallPlaceIsString(Place p) =>
         p is RedefViewPlace || p.Item.IsGroup || p.Item.StoreAsImage
         || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
-            or PicCategory.National or PicCategory.Boolean   // string-stored (D-N1/D-B1): both ABI sides are C# strings, char-correct
-        || p.Item.Pic is { IsFloat: true };
+            or PicCategory.National or PicCategory.Boolean;   // string-stored (D-N1/D-B1): both ABI sides are C# strings, char-correct
 
     /// <summary>True when a place crosses the activation boundary as the §8.5.1.12 VARIABLE-LENGTH carrier
     /// (kb/Work PB204) — the THIRD crossing form beside the native cell and the flat character image. A

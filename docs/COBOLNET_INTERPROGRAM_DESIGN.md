@@ -68,7 +68,9 @@ Decision-complete design for cross-program data + calls in COBOL.NET (COBOL→ty
 PASSING MODES — caller side:
   BY REFERENCE: CALL "INC" USING CTR.  (01 CTR PIC 9(4))  ->  _INC.Run(ManagedRef<long>.OverField(()=>CTR, v=>CTR=v));   // callee mutation visible
   BY CONTENT:   CALL "P" USING BY CONTENT CTR.            ->  _P.Run(ManagedRef<long>.Cell(CTR));                       // copy; not visible
-  BY VALUE:     CALL "P" USING BY VALUE N. (2002)         ->  new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell((long)(N)), …);   // value copy allocated at call initiation and conformed to the formal (§14.2.3 GR10)
+  BY VALUE:     CALL "P" USING BY VALUE N. (2002)         ->  new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell(N), N.Digits, N.Scale);   // §14.9.4.4 GR8: a lone N is identifier-4, so it crosses on ITS OWN carrier and its own PICTURE meta (kb/Work PB238)
+  BY VALUE expr: CALL "P" USING BY VALUE N * 2 - 3.       ->  new CobolArg(CobolPassMode.Value, ManagedPointer<Int128>.Cell((Int128)(…)), 38, scale);   // arithmetic-expression-1 — the exact lane's own carrier; a FLOAT-lane expression takes ManagedPointer<double> instead
+                                                              // both are "a value copy allocated at call initiation and conformed to the formal" (§14.2.3 GR10) — the conformance runs in the CALLEE, at the formal's scale
   subscripted:  CALL "P" USING TBL(I).   -> int _i=(int)I-1; _P.Run(ManagedRef<long>.OverField(()=>TBL[_i], v=>TBL[_i]=v));  // index captured once (GR3a)
   literal/expr: CALL "P" USING 5.        -> _P.Run(ManagedRef<long>.Cell(5L));                                          // inherently BY CONTENT
   OMITTED:      CALL "P" USING OMITTED.   -> _P.Run(ManagedRef<long>.Null);
@@ -126,8 +128,23 @@ boundary carries three forms, not two:
 | the argument's storage | carrier | read / write |
 |---|---|---|
 | a native fixed-point leaf | `ManagedPointer<T>` over the field's own carrier type | `PlaceRenderer.Read`/`Write` |
+| a native FLOATING-POINT leaf | `ManagedPointer<double>` / `<float>` — the field's own carrier (kb/Work PB238) | `PlaceRenderer.Read`/`Write` |
 | any fixed-window character storage, a group included | `ManagedPointer<string>` — the record image | `CallEmitter.CallStringRead`/`CallStringWrite` |
 | a VARIABLE-LENGTH group | `ManagedPointer<CobolVarGroup>` | `PlaceRenderer.VarGroupImage`/`WriteVarGroupImage` |
+| a boolean-expression-1 VALUE (§14.9.4.2 Format 2 BY CONTENT) | `ManagedPointer<string>` — the §8.8.2 bit-string value, resized to the rule-10 width | `BooleanRenderer.Render` (no place; `BoundCallArg.ContentBool`) |
+
+**THE FLOAT LANE (kb/Work PB238).** `CobolArg`'s `(Digits, Scale)` meta describes a FIXED-POINT picture, and the
+four integer carriers of kb/Work R12 were the whole numeric vocabulary — a float leaf was routed onto the
+character image and a computed float BY VALUE argument was narrowed to `(Int128)` **at the caller**. Both lose
+the fraction: §14.2.3 GR10 makes a BY VALUE crossing "a COMPUTE statement without the ROUNDED phrase" *into the
+formal's description*, so the quantization belongs at the RECEIVER, at the formal's own scale — a caller-side
+cast performs it at scale 0 (`01 F FLOAT-LONG VALUE 1.5` reached a `PIC S9(3)V99` formal as `001.00`). The
+carrier is therefore the lane's own: `CobolArgAdapt.ReadRealCell`/`WriteRealCell` are the callee half, and
+`Num`/`NumValue` quantize through `CobolFloat.ToScaledUnchecked(v, formalScale, Truncation)` — the un-ROUNDED
+COMPUTE, once, where the scale is known. A float reaching a CHARACTER formal has NO arm on either side and takes
+the omitted (loud) carrier by design: §14.8.2.3.2 requires the same category and usage for a BY REFERENCE
+pairing and §14.8.2.3.3's MOVE rules give a float sender no alphanumeric receiver, so that pairing is a
+conformance violation to report, never a crossing to invent.
 
 `CobolVarGroup` is `(string Fixed, string[] Dynamic)` and is the §8.5.1.12 model itself, not an encoding:
 `Fixed` is the group's image with every variable-length component collapsed to nothing — the exact accounting
@@ -185,6 +202,28 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 ## Edge cases
 
 - Transitive passing mode: at the CALL site the BY CONTENT and BY REFERENCE phrases are transitive across the following arguments until the next such phrase, defaulting to BY REFERENCE (§14.9.4.4 GR5 — a Format-1 CALL has no BY VALUE); BY VALUE (only in the Format-2 program-prototype CALL) rides the argument-correspondence BY REFERENCE/BY VALUE transitivity (§14.2.3 GR4). One CallBinder mode-threading pass threads all three, drop its byte emission.
+
+**FORMAT 2'S ARGUMENT CLASSIFICATION — ONE reduction, then the mode (§14.9.4.4 GR8 + GR9; kb/Work PB238).**
+GR8 — "An argument that consists merely of a single identifier or literal is regarded as an identifier or
+literal rather than an arithmetic or boolean expression" — is a rule about EVERY Format-2 argument, not about
+one spelling of one. Two grammar facts make it load-bearing and they are the same two INVOKE faces:
+`arithmeticExpression` subsumes `dataReference` and every numeric literal, and the `{boolExprAhead()}?`-gated
+`booleanExpression` alternative subsumes both of those in turn (its leaf is `valueOperand`, and the predicate's
+scan runs to the statement's period, so an earlier argument can land in a boolean node on a LATER argument's
+B-operator). `CallBinder.Gr8Classify` is therefore THE reduction, shared by the BY CONTENT arm, the BY VALUE
+arm and both keyword-less arms: it unwraps an operator-free boolean node to its bare `valueOperand` — **both**
+legs, `arithmeticExpression | nonNumericLiteral` — and recovers a sole `dataReference` from an expression node.
+Only the residue binds as an expression.
+
+The MODE then comes from GR9, never from the copy-out: a keyword-less argument that meets §14.9.4.3 SR3 is
+identifier-2 and takes BY REFERENCE (9a1); one that does not — a literal, a constant-name (which §13.10.4 GR1
+substitutes a literal for), an object property — takes BY CONTENT (9a2); and a BY VALUE formal makes it BY VALUE
+(9b) whatever the argument is. §14.9.4.3 SR20's carve-out is the object-property leg: "BY CONTENT may be omitted
+when identifier-4 is an object property", so a bare property reference is a SENDING occurrence (SR17) and
+`ReferenceResolver.IsObjectPropertyReference` routes it to Content — binding it BY REFERENCE made
+`BoundStores` classify the occurrence ReadWrite and invoke the §8.4.3.9.4 SET accessor. SR23 ("literal-2 shall be
+a numeric literal" when it OR ITS FORMAL carries BY VALUE) is `COBOLNET1762`, screened on both spellings and, for
+a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
 - Bare argument resolution (§14.9.4.4 GR9): a bare arg with a BY REFERENCE formal becomes BY REFERENCE if it is a valid receiving operand, else BY CONTENT (e.g. a literal/expression).
 - OMITTED / trailing-omitted argument (GR11-12): carrier = Null; omitted-argument condition = IsNull; referencing an omitted param otherwise → EC-PROGRAM-ARG-OMITTED.
 - Argument/parameter count mismatch → EC-PROGRAM-ARG-MISMATCH (when checking enabled) or diagnostic; a missing parameter behaves as omitted.

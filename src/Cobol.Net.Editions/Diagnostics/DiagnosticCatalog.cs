@@ -1191,6 +1191,27 @@ public static class DiagnosticCatalog
         + "warning. ⛔ CLASS, not category (§8.5.2.1 Table 2): a numeric-edited item is class ALPHANUMERIC when "
         + "its usage is display, so it is excluded however numeric it looks.",
         "ISO §14.9.4.3 SR22 / §8.5.2.1 Table 2");
+    /// <summary>ISO §14.9.4.3 SR23 — literal-2 shall be a NUMERIC literal when it, or its corresponding
+    /// formal parameter, carries the BY VALUE phrase (kb/Work PB238). A SEPARATE code from SR22's
+    /// COBOLNET1628 because it is a separate rule about a separate subject: SR22 screens identifier-4's CLASS,
+    /// SR23 screens literal-2's KIND, and one code reporting both would name the wrong rule for one of them.
+    /// <para>Before this, SR23 was enforced only as a side effect of the expression grammar — the spine bottoms
+    /// out at <c>numericLiteral | ZERO_ARITH | functionCall | dataReference | ( … )</c>, so a non-numeric
+    /// literal after BY VALUE could not be written at all and the standard's verdict was delivered as a raw
+    /// ANTLR "no viable alternative" naming no rule; and the rule's SECOND subject (a keyword-less literal-2
+    /// whose FORMAL carries the phrase) had no reachable arm at all.</para></summary>
+    public static readonly DiagnosticDescriptor CallByValueLiteralKind = new(
+        "COBOLNET1762", "call-by-value-literal-kind", EditionSeverity.Error,
+        "A CALL … USING literal argument is passed BY VALUE but is not a numeric literal. ISO §14.9.4.3 SR23: "
+        + "\"If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase, "
+        + "literal-2 shall be a numeric literal.\" The phrase may be WRITTEN on the argument or DERIVED from "
+        + "the corresponding formal parameter through §14.9.4.4 GR9 b), and both spellings are screened. The "
+        + "figurative ZERO is admitted: §8.3.3.6.3 SR1a makes it a numeric literal wherever a literal is "
+        + "restricted to numeric. A constant-name argument is screened on the literal it SUBSTITUTES "
+        + "(§13.10.4 GR1 — \"as if literal-1 … were written where constant-name-1 is written\" — and GR2 for "
+        + "its class and category), not on the name. Edition-invariant in substance; BY VALUE is a COBOL-2002 "
+        + "introduction, so it is unreachable below --std 2002 and needs no introduction axis of its own.",
+        "ISO §14.9.4.3 SR23 / §8.3.3.6.3 SR1a / §13.10.4 GR1");
     // 1629 — reference-modifying a FUNCTION result whose function is not alphanumeric/boolean/national (ISO
     // §8.4.3.3.3 SR2). Opened by fix-queue PB8, which made the shape PARSE for the first time: before it, every
     // ref-modified function-identifier died at COBOL0001 and the class question could not even be asked. The
