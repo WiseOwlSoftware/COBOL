@@ -19,6 +19,13 @@ public static class FileStatusCode
     public const string LineRecordTooLong = "06";
     /// <summary>05 — OPEN of an OPTIONAL file that is not present (created on OUTPUT/EXTEND/I-O, EOF on INPUT).</summary>
     public const string OptionalFileNotFound = "05";
+    /// <summary>07 — ISO §9.1.13.2 item 6: <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE
+    /// statement with the NO REWIND, REEL/UNIT, or FOR REMOVAL phrase or an OPEN statement with the NO REWIND
+    /// phrase references a physical file on a non-reel/unit medium."</i> ⛔ THIS STATUS IS THE MEDIUM
+    /// DETERMINATION MADE OBSERVABLE: it exists only for a non-reel/unit medium, so every connector that can
+    /// report it is §14.9.6.4 GR2 category (a) Non-unit (<see cref="PhysicalFileCategory"/>). It was two bare
+    /// "07" literals in <see cref="FileRegistry"/> before kb/Work PB235.</summary>
+    public const string PhraseOnNonReelMedium = "07";
     /// <summary>10 — end-of-file reached on a sequential READ (the AT END condition).</summary>
     public const string AtEnd = "10";
     /// <summary>30 — permanent I/O error with no more specific code.</summary>

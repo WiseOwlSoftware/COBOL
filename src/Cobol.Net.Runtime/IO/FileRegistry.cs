@@ -196,12 +196,74 @@ public sealed class FileRegistry
         : throw new InvalidOperationException(
             $"file connector '{name}' was never registered — a compiler defect, not a program error (kb/Work PB140)");
 
-    /// <summary>CLOSE (ISO §14.9.6). For a sharing-active connector this also deregisters it from the
-    /// physical-file registry and releases its record locks (§9.1.16 :11754).</summary>
-    public void Close(string name)
+    /// <summary>CLOSE (ISO §14.9.6) — Table 14's <c>CLOSE</c> row, symbol c. For a sharing-active connector this
+    /// also deregisters it from the physical-file registry and releases its record locks (§14.9.6.4 GR9 /
+    /// §9.1.16).</summary>
+    public void Close(string name) => CloseByFormat(name, CloseFormat.Normal);
+
+    /// <summary>⛔ THE ONE CLOSE DISPATCH — §14.9.6.4 GR3: <i>"The results of executing each type of CLOSE for
+    /// each category of physical file are summarized in Table 14, Relationship of categories of physical files
+    /// and the format of the CLOSE statement."</i> The cell is looked up in <see cref="Table14"/> from the
+    /// written form and the connector's own <see cref="FileConnector.Category"/> (§14.9.6.4 GR2), and its
+    /// symbols are then EXECUTED. Each written form used to carry a hand-copied transcription of its own
+    /// Non-unit cell, which is why the (b)/(c) columns had no representation and the category placement lived
+    /// in a doc comment (kb/Work PB235).
+    ///
+    /// <para>§14.9.6.4 GR1 is hoisted here, ahead of every symbol: <i>"The file connector referenced by
+    /// file-name-1 shall be open. If the file connector is not open, the CLOSE statement is unsuccessful and
+    /// the I-O status indicator for the file connector is set to '42'."</i> One rule, one place — and it is
+    /// what keeps <see cref="SharedClose"/>'s lock release off the unsuccessful path, where the connector holds
+    /// nothing to release and GR9's "execution of the CLOSE statement" has performed none of its actions.</para></summary>
+    private void CloseByFormat(string name, CloseFormat format)
     {
+        var c = Require(name);
+        var cell = Table14.Cell(format, c.Category);
+        // Table 14's 'N/A' cells are the non-sequential × phrase combinations §14.9.6.3 SR1 forbids at BIND
+        // time ("The NO REWIND, REEL, and UNIT phrases may be used only with files that are of sequential
+        // organization"), so reaching one is a COMPILER defect, never a program error — the old guard's
+        // pattern-match miss silently skipped the status assignment and left the FILE STATUS item stale
+        // (kb/Work PB140).
+        if (cell.HasFlag(CloseSymbol.NotApplicable))
+            throw new InvalidOperationException(
+                $"CLOSE {format} reached a {c.Category} connector '{name}' — Table 14 marks that cell N/A and "
+                + "§14.9.6.3 SR1 rejects it at bind time (kb/Work PB140/PB235)");
+        // Symbols a, b, d and f manipulate a unit, a volume pointer or a reel position. No supported medium is
+        // in category (b) or (c) (PhysicalFileCategory), so no reachable cell carries one; performing the rest
+        // of such a cell and silently dropping these would be a partial CLOSE reported as a whole one.
+        if ((cell & Table14.UnitStructuredOnly) != 0)
+            throw new InvalidOperationException(
+                $"CLOSE {format} on a {c.Category} file needs Table 14 symbols {cell & Table14.UnitStructuredOnly}, "
+                + "which require a reel/unit-structured medium — COBOL.NET supports none (docs/CONFORMANCE.md "
+                + "§7, A.1 item 24); a new medium must implement them here (kb/Work PB235)");
+        bool absent = c.OptionalNotPresent;   // read BEFORE the close (the FPI state survives it — PB140)
+        // e) Close unit, non-unit-media branch: "Execution of this statement is considered successful. The file
+        // remains in the open mode, the file position indicator is unchanged, the I-O status indicator for the
+        // file connector is set to '07', and no other action takes place." (§14.9.6.4 GR3 symbol e). "No other
+        // action" is also why this arm does NOT call SharedClose: the connector is still OPEN, so releasing the
+        // file lock GR9 gave it — or its record locks — would leave an open connector arbitrating against
+        // nothing (§14.9.6.4 GR9's release is the "Close file" symbol c's, which this cell does not contain).
+        // §14.9.6.4 GR6: for an ABSENT optional input file "no end-of-file or unit processing is performed",
+        // so the '07' that describes unit processing is not owed and the close is the plain-successful '00'.
+        if (cell.HasFlag(CloseSymbol.CloseUnit))
+        {
+            c.SetStatus(!c.IsOpen ? FileStatusCode.FileNotOpen
+                        : absent ? FileStatusCode.Success
+                        : FileStatusCode.PhraseOnNonReelMedium);
+            return;
+        }
+        // §14.9.6.4 GR1 — the not-open guard, ahead of any closing action.
+        if (!c.IsOpen) { c.SetStatus(FileStatusCode.FileNotOpen); return; }
+        // c) Close file: "Closing operations specified by the implementor are executed." COBOL.NET's are
+        // documented at docs/CONFORMANCE.md §7, A.1 item 24 (which makes them a required documented
+        // item) — flush/persist/dispose in CloseCore, plus the §14.9.6.4 GR9 lock release here.
         SharedClose(name);   // no-op for a non-sharing-active connector
-        Require(name).Close();
+        c.Close();
+        // g) Optional phrases ignored: "The CLOSE statement is executed as if none of the optional phrases were
+        // present. The I-O status indicator for the file connector is set to '07'." — §9.1.13.2 item 6's
+        // phrase-on-a-non-reel-medium warning, which rides a SUCCESSFUL close only (an unsuccessful '30' keeps
+        // its own status) and is not owed for the GR6 absent-optional case (kb/Work PB141).
+        if (cell.HasFlag(CloseSymbol.PhrasesIgnored) && !absent && c.Status[0] == '0')
+            c.SetStatus(FileStatusCode.PhraseOnNonReelMedium);
     }
 
     /// <summary>The IMPLICIT close surface (§14.9.5 GR9's "each … file connector that is open"): a closed
@@ -224,37 +286,22 @@ public sealed class FileRegistry
         if (Require(name).Status[0] == '0') _locked.Add(name);
     }
 
-    /// <summary>CLOSE … REEL/UNIT on a disk medium: a no-op that leaves the file open with status 07 (§9.1.13.2
-    /// item 6 — the file is on a non-reel/unit medium); on a not-open file it is 42 (§9.1.13.7 item 2). For an
-    /// absent OPTIONAL input file, §14.9.6.4 GR6 says NO unit processing is performed and the file position
-    /// indicator is unchanged — the CLOSE completes successfully ('00'; the '07' warning describes unit
-    /// processing that was never performed). Sequential-organization surface only — §14.9.6.3 SR1 restricts
-    /// the phrase at BIND time, so a keyed connector here is a compiler defect (the old pattern-match guard
-    /// silently skipped the status assignment and the FILE STATUS item kept its stale value).</summary>
-    public void CloseReelUnit(string name)
-    {
-        if (Require(name) is not SequentialConnector f)
-            throw new InvalidOperationException(
-                $"CLOSE REEL/UNIT reached a non-sequential connector '{name}' — §14.9.6.3 SR1 rejects this at bind time (kb/Work PB140)");
-        f.SetStatus(!f.IsOpen ? FileStatusCode.FileNotOpen : f.OptionalNotPresent ? FileStatusCode.Success : "07");
-    }
+    /// <summary>CLOSE … REEL/UNIT — Table 14's <c>CLOSE UNIT</c> row (§14.9.6.3 SR2 makes REEL and UNIT
+    /// equivalent). On the Non-unit medium COBOL.NET supports that cell is symbol e alone: the file REMAINS
+    /// OPEN with status '07' and nothing else happens. <see cref="CloseByFormat"/> executes the cell.</summary>
+    public void CloseReelUnit(string name) => CloseByFormat(name, CloseFormat.Unit);
 
-    /// <summary>CLOSE … WITH NO REWIND on a disk medium (§14.9.6.4 Table 14, Non-unit × NO REWIND = c,g): the
-    /// file IS closed exactly as if no phrase were present (symbol g), and a SUCCESSFUL close then reports
-    /// '07' — the §9.1.13.2 item 6 phrase-on-a-non-reel-medium warning. An unsuccessful close ('42'/'30')
-    /// keeps its own status (item 6 rides a successful execution), and §14.9.6.4 GR6's absent-OPTIONAL case
-    /// keeps the plain-successful '00' (no processing the '07' would describe was performed) — the same
-    /// derivation the REEL/UNIT surface uses. Sequential-organization surface only (§14.9.6.3 SR1 binds it).
-    /// Previously the NO REWIND phrase bound to a plain CLOSE and reported '00' (kb/Work PB141).</summary>
-    public void CloseNoRewind(string name)
-    {
-        if (Require(name) is not SequentialConnector f)
-            throw new InvalidOperationException(
-                $"CLOSE WITH NO REWIND reached a non-sequential connector '{name}' — §14.9.6.3 SR1 rejects this at bind time (kb/Work PB141)");
-        bool absent = f.OptionalNotPresent;   // read BEFORE the close (the FPI state survives it — PB140)
-        Close(name);
-        if (!absent && f.Status[0] == '0') f.SetStatus("07");
-    }
+    /// <summary>CLOSE … REEL/UNIT FOR REMOVAL — Table 14's <c>CLOSE UNIT FOR REMOVAL</c> row, a DIFFERENT row
+    /// from <see cref="CloseReelUnit"/> even though its Non-unit cell is the same symbol e (the (b)/(c) cells
+    /// add symbol d, unit removal). Folding the two forms into one entry was what let the FOR REMOVAL phrase
+    /// have no consumer at all (kb/Work PB235).</summary>
+    public void CloseReelUnitForRemoval(string name) => CloseByFormat(name, CloseFormat.UnitForRemoval);
+
+    /// <summary>CLOSE … WITH NO REWIND — Table 14's <c>CLOSE WITH NO REWIND</c> row, whose Non-unit cell is
+    /// c,g: the file IS closed exactly as if no phrase were present (symbol g) and a SUCCESSFUL close then
+    /// reports '07'. <see cref="CloseByFormat"/> executes the cell (kb/Work PB141 gave the phrase its own bound
+    /// kind; before that it bound to a plain CLOSE and reported '00').</summary>
+    public void CloseNoRewind(string name) => CloseByFormat(name, CloseFormat.NoRewind);
 
     /// <summary>Close every open file (run-unit termination, ISO §14.6 — flushes print streams; keyed stores
     /// persist, e.g. NIST RL208A).</summary>

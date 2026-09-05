@@ -7,7 +7,7 @@
 
 ## Summary
 
-Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records, clean byte boundary). Core architecture: the FD or SD record IS a .NET record struct (the record area is a typed field, not a byte buffer); the only bytes are at the on-disk edge, produced by a compiler-GENERATED per-layout codec (Serialize and Deserialize) running only at READ and WRITE. CODE-SET is one Encoding parameter threaded into that codec. The proven 364-NIST legacy handlers are ported VERBATIM for control logic (open-mode tables, ISO-cited status codes, the file-position-indicator plus key-of-reference plus duplicate-arrival state machines) but re-substrated from a byte array to a generic FileConnector plus an IRecordCodec. Covers all organizations (SEQUENTIAL, LINE SEQUENTIAL, RELATIVE, INDEXED), all access modes, OPEN CLOSE READ WRITE REWRITE DELETE START, FILE STATUS as a two-char string item, variable-length records, prime and composite ALTERNATE keys, SAME RECORD AREA, SORT and MERGE, and LINAGE. Ordering and lookup keys are a typed-derived CobolKey comparable (numeric by decoded value, alphanumeric by image plus collating, composite component-wise), decoupled from the stored payload; one comparison policy shared by indexed files and SORT.
+Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records, clean byte boundary). Core architecture: the FD or SD record IS a .NET record struct (the record area is a typed field, not a byte buffer); the only bytes are at the on-disk edge, produced by a compiler-GENERATED per-layout codec (Serialize and Deserialize) running only at READ and WRITE. CODE-SET is one Encoding parameter threaded into that codec. The proven 364-NIST legacy handlers are ported VERBATIM for control logic (open-mode tables, ISO-cited status codes, the file-position-indicator plus key-of-reference plus duplicate-arrival state machines) but re-substrated from a byte array to a generic FileConnector plus an IRecordCodec. Covers all organizations (SEQUENTIAL, LINE SEQUENTIAL, RELATIVE, INDEXED), all access modes, OPEN CLOSE READ WRITE REWRITE DELETE START (CLOSE dispatching on the §14.9.6.4 GR2 physical-file category through Table 14 — D11), FILE STATUS as a two-char string item, variable-length records, prime and composite ALTERNATE keys, SAME RECORD AREA, SORT and MERGE, and LINAGE. Ordering and lookup keys are a typed-derived CobolKey comparable (numeric by decoded value, alphanumeric by image plus collating, composite component-wise), decoupled from the stored payload; one comparison policy shared by indexed files and SORT.
 
 ## Decisions
 
@@ -253,6 +253,47 @@ rather than the recording: GR10's '39' answers the disagreements a re-read canno
 indexed store opened as a byte stream, a different-organization description), and the notice answers the one
 it can — a sequential record-size disagreement — on a recorded file as much as on an unrecorded one, because
 the sequential validated set stops at the organization. One job, one mechanism, on either side of that line.
+### D11. A physical file's §14.9.6.4 GR2 CATEGORY is a named property of the connector, and CLOSE executes Table 14's cell rather than a per-form transcription.
+
+**The rule.** §14.9.6.4 GR2 partitions physical files into (a) Non-unit, (b) Sequential single-unit,
+(c) Sequential multi-unit and (d) Non-sequential single/multi-unit, and GR3's **Table 14** is indexed by
+those four names crossed with the four written CLOSE forms (plain, WITH NO REWIND, UNIT, UNIT FOR REMOVAL).
+Each cell is a set of the symbols a–g GR3 defines. A conforming implementation must place every physical
+file it supports in exactly one category, and §14.9.6.4 GR3 symbol c (“closing operations specified by the
+implementor”) is a **required, required-to-be-documented** determination (Annex A.1 item 24).
+
+**The decision.** `PhysicalFileCategory` is an enum with GR2's four members and `FileConnector.Category` is
+an ABSTRACT property, so the placement is total by construction; `Table14.Cell(format, category)` returns
+the printed symbol set and `FileRegistry.CloseByFormat` is the ONE dispatch that executes it. The written
+forms (`Close`, `CloseNoRewind`, `CloseReelUnit`, `CloseReelUnitForRemoval`) are thin entries over it, and
+`CLOSE … WITH LOCK` layers the reopen prohibition over the plain form — it is not a Table 14 row.
+
+**The placement, and why it is forced.** `SequentialConnector` is (a) Non-unit; `RelativeConnector` and
+`IndexedConnector` are (d) by organization alone. (a) is not a free choice: §9.1.13.2 item 6 defines the
+`'07'` this compiler reports for the NO REWIND, REEL/UNIT and FOR REMOVAL phrases as the status of a CLOSE
+that “references a physical file on a non-reel/unit medium”, and Table 14 prints symbol g (which is what
+makes `CLOSE … WITH NO REWIND` answer `'07'`) only in the Non-unit column. The determination is documented
+for users in `docs/CONFORMANCE.md` §7 (Annex A.1 item 24) and §2 rows 28–30 / 33–34.
+
+**What it buys.** Categories (b) and (c) are unreachable today, so symbols a, b, d and f — previous units,
+no rewind of the current reel, unit removal, rewind — and symbol e's two unit-media branches are vacuous
+rather than missing, which is what `docs/CONFORMANCE.md` §8 `DRV-GR-14.9.6.4-L2.1` records. Adding a
+unit-structured medium is then a bounded change: give its connector a category and fill the cells
+`CloseByFormat`'s loud arm names. `CloseTable14Tests` is the drift test that keeps that true — it pins the
+16 cells against the printed table, asserts both enums still have exactly four members (the `_` arm C#
+requires for out-of-range casts would otherwise swallow a new one), and fails the moment any connector
+answers (b) or (c). Before this, each written form carried a hand-copied transcription of its own Non-unit
+cell, REEL/UNIT and REEL/UNIT FOR REMOVAL shared one bound kind so `FOR REMOVAL` had no consumer at all,
+and the category placement existed only as a sentence in a doc comment that `CONFORMANCE.md` contradicted
+(kb/Work PB235).
+
+**GR1 is hoisted into the dispatch.** “If the file connector is not open, the CLOSE statement is
+unsuccessful and the I-O status indicator … is set to '42'” now guards every symbol, so an unsuccessful
+CLOSE performs none of the closing actions — including §14.9.6.4 GR9's lock release, which used to run
+ahead of the connector's own `Close()` on every path. **Symbol e does not release locks either**: its
+non-unit branch is “the file remains in the open mode … and no other action takes place”, and GR9's release
+rides symbol c (“Close file”), so `CLOSE … UNIT` keeps the file lock and every record lock — pinned by
+`conformance:2002/pb235_close_unit_locks`.
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

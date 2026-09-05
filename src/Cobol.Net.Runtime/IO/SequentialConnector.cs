@@ -201,6 +201,14 @@ public sealed class SequentialConnector : FileConnector
     /// line-sequential description is exactly the idiom those statuses are for.</remarks>
     protected override string CatalogOrganization => FixedFileAttributes.Sequential;
 
+    /// <summary>§14.9.6.4 GR2 a) — <i>"A file whose input or output medium is such that the concepts of rewind
+    /// and units have no meaning."</i> A sequential connector holds one <see cref="FileConnector.HostPath"/> on
+    /// mass storage; there is no reel, unit or volume behind it. FORCED, not chosen: §9.1.13.2 item 6 defines
+    /// the '07' this connector reports for the NO REWIND and REEL/UNIT phrases as the status of a CLOSE that
+    /// <i>"references a physical file on a non-reel/unit medium"</i>, and Table 14 prints symbol g only in the
+    /// Non-unit column (kb/Work PB235; documented at `docs/CONFORMANCE.md` §7, A.1 item 24).</summary>
+    public override PhysicalFileCategory Category => PhysicalFileCategory.NonUnit;
+
     // ── OPEN / CLOSE ─────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The sequential OPEN body (ISO §14.9.25 / §9.1.13.4) — the shared preamble/guards live on

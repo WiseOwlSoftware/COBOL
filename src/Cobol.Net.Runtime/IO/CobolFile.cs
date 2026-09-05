@@ -72,11 +72,17 @@ public static class CobolFile
     /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38).</summary>
     public static void CloseWithLock(string name) => _reg.CloseWithLock(name);
 
-    /// <summary>CLOSE … REEL/UNIT on a disk medium (status 07 open / 42 closed).</summary>
+    /// <summary>CLOSE … REEL/UNIT — Table 14's <c>CLOSE UNIT</c> row (§14.9.6.4 GR3); on the Non-unit medium
+    /// symbol e, the file staying open with status 07 (42 when it was not open).</summary>
     public static void CloseReelUnit(string name) => _reg.CloseReelUnit(name);
 
-    /// <summary>CLOSE … WITH NO REWIND on a disk medium — the file IS closed and a successful close reports
-    /// '07' (Table 14 Non-unit = c,g; §9.1.13.2 item 6).</summary>
+    /// <summary>CLOSE … REEL/UNIT FOR REMOVAL — Table 14's own <c>CLOSE UNIT FOR REMOVAL</c> row; its Non-unit
+    /// cell is the same symbol e, its (b)/(c) cells add symbol d.</summary>
+    public static void CloseReelUnitForRemoval(string name) => _reg.CloseReelUnitForRemoval(name);
+
+    /// <summary>CLOSE … WITH NO REWIND — Table 14's <c>CLOSE WITH NO REWIND</c> row; on the Non-unit medium the
+    /// cell is c,g, so the file IS closed and a successful close reports '07' (§9.1.13.2 item 6). The medium
+    /// determination itself belongs to <see cref="PhysicalFileCategory"/>, not to this facade.</summary>
     public static void CloseNoRewind(string name) => _reg.CloseNoRewind(name);
 
     /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46); <paramref name="length"/> is the varying-record length

@@ -76,14 +76,14 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                     + $"the phrase may be used only with a sequential-organization file (ISO §14.9.6.3 SR1)");
                 return new BoundNop();   // reported above — not a deferral (PB236)
             }
-            // The four Table-14 forms (§14.9.6.4 GR3, Non-unit column — every file here is a disk file):
-            // REEL/UNIT [FOR REMOVAL] all map to symbol e (successful no-op, file stays open, '07' — the FOR
-            // REMOVAL variant's Non-unit cell is the SAME e, which is why opt.REMOVAL() deliberately has no
-            // consumer); WITH NO REWIND is c,g (the file IS closed and the status is '07' — it previously fell
-            // into the Normal arm and reported '00', kb/Work PB141).
+            // The WRITTEN FORM only — the four rows of Table 14 (§14.9.6.4 GR3) plus WITH LOCK. What each form
+            // DOES is the runtime's Table14 lookup against the file's §14.9.6.4 GR2 category; the binder no
+            // longer pre-resolves the Non-unit column here, which is what let REEL/UNIT and REEL/UNIT FOR
+            // REMOVAL collapse into one kind and left opt.REMOVAL() with no consumer (kb/Work PB235).
             BoundCloseKind kind = phrase.closeOption() is { } opt
                 ? opt.LOCK() is not null ? BoundCloseKind.WithLock
-                : opt.REEL() is not null || opt.UNIT() is not null ? BoundCloseKind.ReelUnit
+                : opt.REEL() is not null || opt.UNIT() is not null
+                    ? opt.REMOVAL() is not null ? BoundCloseKind.ReelUnitForRemoval : BoundCloseKind.ReelUnit
                 : opt.REWIND() is not null ? BoundCloseKind.NoRewind
                 : BoundCloseKind.Normal
                 : BoundCloseKind.Normal;

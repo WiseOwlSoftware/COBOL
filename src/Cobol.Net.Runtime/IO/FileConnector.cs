@@ -229,6 +229,13 @@ public abstract class FileConnector
     /// §14.9.27.4 GR10 validated set (<see cref="FixedFileAttributes.Conflicts"/>).</summary>
     protected abstract string CatalogOrganization { get; }
 
+    /// <summary>Which of §14.9.6.4 GR2's four categories this connector's PHYSICAL FILE falls in — the index
+    /// Table 14 (§14.9.6.4 GR3) is read by, and the ONE place COBOL.NET's medium determination is stated in
+    /// code. GR2 requires every supported physical file to be in exactly one category; making it an abstract
+    /// property makes that total by construction, where it used to be a sentence in a doc comment on one CLOSE
+    /// method (kb/Work PB235). See <see cref="PhysicalFileCategory"/> for why the answers are (a) and (d).</summary>
+    public abstract PhysicalFileCategory Category { get; }
+
     /// <summary>This connector's record keys for the catalog (§9.1.6 — prime key, alternate keys, SUPPRESS WHEN,
     /// key collating sequence): index 0 the prime key, 1.. the alternates in declaration order. Only an indexed
     /// file has any; sequential and relative files answer the shared empty list.</summary>

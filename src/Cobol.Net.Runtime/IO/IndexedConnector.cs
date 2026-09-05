@@ -78,6 +78,11 @@ public sealed class IndexedConnector : FileConnector
     /// <inheritdoc/>
     protected override string CatalogOrganization => FixedFileAttributes.Indexed;
 
+    /// <summary>§14.9.6.4 GR2 d) — <i>"A file with organization other than sequential, that resides on a mass
+    /// storage device."</i> The category is settled by the ORGANIZATION alone, so it needs no medium
+    /// determination (kb/Work PB235).</summary>
+    public override PhysicalFileCategory Category => PhysicalFileCategory.NonSequential;
+
     /// <inheritdoc/>
     /// <remarks>§9.1.6 names the prime record key, the alternate record keys, the SUPPRESS WHEN attribute and
     /// "the collating sequence of the keys for indexed files" as fixed attributes of the physical file — the

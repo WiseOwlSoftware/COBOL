@@ -1155,6 +1155,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             using var _ = Edition.At(clause);
             // Format 2 only — SAME RECORD AREA (the RECORD word distinguishes it; SORT/SORT-MERGE are Format 3).
             if (clause.sameClause() is not { } same || same.RECORD() is null) continue;
+            // ⛔ THE GROUP IS ONE STORAGE AREA FOR THE WHOLE RUNTIME ELEMENT, and that is also §14.9.6.4 GR7's
+            // answer for CLOSE. GR7: "If file-name-1 is specified in a SAME RECORD AREA clause, the record area
+            // is available to the runtime element if any of the file connectors referenced by the other
+            // file-names in that SAME RECORD AREA clause are open." The area emitted here is a live typed field
+            // of the program class, so a CLOSE of one member cannot take it away from a still-open sibling —
+            // GR7's availability branch holds STRUCTURALLY, not by omission (pinned by
+            // conformance:85/pb235_same_record_area_close). GR7's other branch — a successful CLOSE with no open
+            // member left makes the area UNAVAILABLE — carries no obligation a conforming program can observe:
+            // the standard defines nothing about referencing an unavailable record area (and Annex A.2 item 5
+            // makes the unsuccessful case outright undefined), so COBOL.NET's determination is that the storage
+            // KEEPS ITS LAST CONTENT, documented at docs/CONFORMANCE.md §7, A.1 item 24 (kb/Work PB235).
             DataItem? anchor = null;
             foreach (var fn in same.fileName())
             {

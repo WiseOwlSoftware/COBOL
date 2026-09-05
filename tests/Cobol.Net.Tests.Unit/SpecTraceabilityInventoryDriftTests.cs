@@ -908,6 +908,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
         [
             "DOC-A.1-19", "GR-14.9.11.4-11", "GR-14.9.30.4-20", "GR-14.9.30.4-23", "GR-14.9.30.4-3",
             "GR-14.9.34.4-2", "GR-14.9.5.4-11", "RV-15.50.4-9",
+            // ⚙ The NINTH, added deliberately (kb/Work PB235, 2026-09-05) — this edit is the point of the list.
+            // §14.9.6.4 GR3 symbol e's unit-media branch 1. Its antecedent needs a physical file in §14.9.6.4
+            // GR2 category (b) or (c); no connector answers either, the placement is FORCED by §9.1.13.2 item
+            // 6's non-reel/unit definition of the '07' this compiler reports, and it is documented in
+            // docs/CONFORMANCE.md §7 (Annex A.1 item 24). It joins the SAME medium determination the owner
+            // already signed for GR-14.9.30.4-20 and -23 — this is that argument reaching the CLOSE rule it
+            // was originally about, not a new ground. CloseTable14Tests reds if the placement ever changes.
+            "GR-14.9.6.4-L2.1",
         ];
 
         var s = LoadSchema();

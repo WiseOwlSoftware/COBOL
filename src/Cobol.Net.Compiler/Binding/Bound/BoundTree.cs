@@ -865,15 +865,21 @@ public sealed record BoundSearch(
 /// <summary>How a file is opened (ISO §14.9.25). Maps 1:1 to the runtime <c>FileOpenMode</c>.</summary>
 public enum BoundOpenMode { Input, Output, Extend, IO }
 
-/// <summary>How a closed file is finalized (ISO §14.9.7): a plain close, <c>WITH LOCK</c> (no reopen), or a
-/// <c>REEL/UNIT</c> phrase (a no-op on a disk medium, leaves the file open).</summary>
+/// <summary>The written form of a CLOSE statement (ISO §14.9.6) — the four rows of Table 14 (§14.9.6.4 GR3)
+/// plus <c>WITH LOCK</c>, which is not a Table 14 row but the plain form with a reopen prohibition. The runtime
+/// looks the effect up in <c>Table14</c> from the form and the file's §14.9.6.4 GR2 category; nothing here
+/// decides behaviour. (The enum's doc used to cite §14.9.7, which is the COMMIT statement — kb/Work PB235.)</summary>
 public enum BoundCloseKind
 {
     Normal,
     WithLock,
-    /// <summary>REEL/UNIT [FOR REMOVAL] — on a non-reel/unit medium the no-op '07' (Table 14 symbol e; the
-    /// FOR REMOVAL variant's Non-unit cell is the SAME symbol e, so it folds here deliberately).</summary>
+    /// <summary>REEL/UNIT — Table 14's <c>CLOSE UNIT</c> row (§14.9.6.3 SR2: "The words REEL and UNIT are
+    /// equivalent"). On the Non-unit medium the cell is symbol e, the '07' that leaves the file open.</summary>
     ReelUnit,
+    /// <summary>REEL/UNIT FOR REMOVAL — Table 14's own <c>CLOSE UNIT FOR REMOVAL</c> row. Its Non-unit cell
+    /// equals ReelUnit's, but the (b)/(c) cells add symbol d (unit removal), so the two forms stay separate
+    /// members: folding them was what left <c>opt.REMOVAL()</c> with no consumer (kb/Work PB235).</summary>
+    ReelUnitForRemoval,
     /// <summary>WITH NO REWIND — Table 14's Non-unit cell is c,g: the file IS closed AND the status is '07'
     /// (§9.1.13.2 item 6). Previously folded into Normal, reporting '00' (kb/Work PB141).</summary>
     NoRewind,

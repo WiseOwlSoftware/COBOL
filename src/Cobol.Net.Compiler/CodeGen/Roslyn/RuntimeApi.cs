@@ -840,14 +840,21 @@ internal static class RuntimeApi
             _ => nameof(CobolFile.OpenInput),
         }}({name})";
 
-    /// <summary>The kind-specific CLOSE — anchored over <c>CobolFile.Close{,WithLock,ReelUnit,NoRewind}</c>.</summary>
+    /// <summary>The written-form CLOSE entry — one per Table 14 row (§14.9.6.4 GR3) plus WITH LOCK, anchored
+    /// over <c>CobolFile.Close{,WithLock,ReelUnit,ReelUnitForRemoval,NoRewind}</c>. The runtime resolves the
+    /// row against the file's §14.9.6.4 GR2 category; the emitter names the FORM the program wrote.</summary>
     public static string FileClose(string name, Binding.Bound.BoundCloseKind kind) =>
         $"{nameof(CobolFile)}.{kind switch
         {
             Binding.Bound.BoundCloseKind.WithLock => nameof(CobolFile.CloseWithLock),
             Binding.Bound.BoundCloseKind.ReelUnit => nameof(CobolFile.CloseReelUnit),
+            Binding.Bound.BoundCloseKind.ReelUnitForRemoval => nameof(CobolFile.CloseReelUnitForRemoval),
             Binding.Bound.BoundCloseKind.NoRewind => nameof(CobolFile.CloseNoRewind),
-            _ => nameof(CobolFile.Close),
+            Binding.Bound.BoundCloseKind.Normal => nameof(CobolFile.Close),
+            // ⛔ NOT a silent fall-through to the plain CLOSE. A written form with no entry here would emit a
+            // Table 14 row the program did not write — the exact shape that let REEL/UNIT FOR REMOVAL ride
+            // REEL/UNIT's entry for two waves (kb/Work PB235). Only an out-of-range cast reaches this.
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "no CobolFile CLOSE entry for this written form"),
         }}({name})";
 
     /// <summary>UNLOCK — <c>CobolFile.Unlock</c> (records flag = UNLOCK RECORDS).</summary>

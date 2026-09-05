@@ -89,6 +89,11 @@ public sealed class RelativeConnector : FileConnector
     /// connector already reports (§9.1.13.4 item 2), not a file attribute conflict.</remarks>
     protected override string CatalogOrganization => FixedFileAttributes.Relative;
 
+    /// <summary>§14.9.6.4 GR2 d) — <i>"A file with organization other than sequential, that resides on a mass
+    /// storage device."</i> The category is settled by the ORGANIZATION alone, so it needs no medium
+    /// determination (kb/Work PB235).</summary>
+    public override PhysicalFileCategory Category => PhysicalFileCategory.NonSequential;
+
     // ── OPEN / CLOSE (ISO §14.9.27 / §14.9.6) ────────────────────────────────────────────────────────────────
 
     /// <summary>The relative OPEN body. GR14: INPUT/I-O position the FPI at 1; GR15: EXTEND positions after the
