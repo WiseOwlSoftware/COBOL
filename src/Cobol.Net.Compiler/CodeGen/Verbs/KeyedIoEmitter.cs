@@ -131,10 +131,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // lock/RETRY phrase) has its just-read status adjusted — 51 when another connector holds the record's
         // lock (unless IGNORING LOCK), else the WITH LOCK / AUTOMATIC lock is acquired. Runs BEFORE the success
         // block so a 51 denial leaves the record area untouched (the record is not made available).
-        if (SequentialIoEmitter.LockGoverned(file, rd.Lock, rd.Retry))
+        if (SequentialIoEmitter.LockGoverned(file, rd.Lock, rd.Retry, rd.IgnoringLock))
         {
             var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
-            w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), retryKind, retryAmount)};");
+            w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount)};");
         }
         using (w.Block($"if ({st}[0] == '0')"))
         {

@@ -33,14 +33,16 @@ public sealed record BoundKeyedRead(
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
     KeyedInvalidKey? InvalidKey) : BoundStatement
 {
-    /// <summary>The explicit record-lock phrase (ISO §14.9.30 — WITH LOCK / WITH NO LOCK / IGNORING LOCK), or
-    /// None; combined at runtime with the file's declared LOCK MODE (AUTOMATIC auto-locks on any READ).</summary>
+    /// <summary>The lock-RETENTION phrase — bracket 2 of §14.9.30.2 (WITH LOCK / WITH NO LOCK), or None;
+    /// combined at runtime with the file's declared LOCK MODE (AUTOMATIC auto-locks on any READ).</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
-    /// <summary>The RETRY phrase (§14.7.9): n TIMES loops the registry lock-check; SECONDS/FOREVER deadlock-bail
-    /// to status 52 in one run unit (GR4a — no external releaser).</summary>
+    /// <summary>The RETRY phrase (§14.7.9) — bracket 1: n TIMES loops the registry lock-check; SECONDS/FOREVER
+    /// deadlock-bail to status 52 in one run unit (GR4a — no external releaser).</summary>
     public RetrySpec? Retry { get; init; }
-    /// <summary>ADVANCING ON LOCK (§14.9.30 GR22, sequential NEXT/PREVIOUS only): skip-scan locked records.</summary>
+    /// <summary>ADVANCING ON LOCK (§14.9.30 GR22, Format 1 only — SR6) — bracket 1: skip-scan locked records.</summary>
     public bool AdvancingOnLock { get; init; }
+    /// <summary>IGNORING LOCK (§14.9.30 GR12) — bracket 1, INDEPENDENT of <see cref="Lock"/> (§5.2.6.1).</summary>
+    public bool IgnoringLock { get; init; }
 }
 
 /// <summary><c>WRITE record [FROM x] [INVALID KEY …]</c> on a RELATIVE or INDEXED file (ISO §14.9.51 GR29–GR33

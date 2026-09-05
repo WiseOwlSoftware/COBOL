@@ -280,21 +280,25 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         amount is null ? "0"
         : $"(int)({NumericRenderer.Align(num.Render(amount, ReceiverContext.None), 0)})";
 
-    /// <summary>Map a bound record-lock phrase to the runtime <c>FileRecordLock</c> enum member (Phase 4d).</summary>
+    /// <summary>Map a bound lock-RETENTION phrase (§14.9.30.2 bracket 2) to the runtime <c>FileRecordLock</c>
+    /// enum member (Phase 4d). IGNORING LOCK is NOT here — it is bracket 1 and travels as its own bool argument
+    /// (kb/Work PB331), because §5.2.6.1 lets a READ select from both brackets at once.</summary>
     public static string RuntimeRecordLock(BoundRecordLock l) => l switch
     {
         BoundRecordLock.WithLock => "FileRecordLock.WithLock",
         BoundRecordLock.WithNoLock => "FileRecordLock.WithNoLock",
-        BoundRecordLock.IgnoringLock => "FileRecordLock.Ignoring",
         _ => "FileRecordLock.None",
     };
 
     /// <summary>The ONE lock-relevance predicate (§9.1.16): a statement routes through the runtime's governed
-    /// verb entry when its file declares SHARING or LOCK MODE, or the statement itself carries a record-lock or
-    /// RETRY phrase. Everything else keeps the plain entry — the pre-sharing emission byte-for-byte.</summary>
-    public static bool LockGoverned(FileModel file, BoundRecordLock lockPhrase, RetrySpec? retry) =>
+    /// verb entry when its file declares SHARING or LOCK MODE, or the statement itself carries a lock-retention
+    /// phrase, an IGNORING LOCK phrase or a RETRY phrase. Everything else keeps the plain entry — the
+    /// pre-sharing emission byte-for-byte. (<paramref name="ignoringLock"/> defaults false for the verbs whose
+    /// printed formats have no such phrase — WRITE, REWRITE and DELETE.)</summary>
+    public static bool LockGoverned(FileModel file, BoundRecordLock lockPhrase, RetrySpec? retry,
+        bool ignoringLock = false) =>
         file.Sharing != SharingMode.None || file.LockMode is not null
-        || lockPhrase != BoundRecordLock.None || retry is not null;
+        || lockPhrase != BoundRecordLock.None || retry is not null || ignoringLock;
 
     public void EmitClose(BoundClose c)
     {
@@ -388,7 +392,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         var (retryKind, retryAmount) = RenderRetry(rd.Retry);
         return RuntimeApi.FileReadShared(name, RuntimeRecordLock(rd.Lock),
-            rd.AdvancingOnLock ? "true" : "false", retryKind, retryAmount, tmp);
+            rd.AdvancingOnLock ? "true" : "false", rd.IgnoringLock ? "true" : "false",
+            retryKind, retryAmount, tmp);
     }
 
     /// <summary>The record-length argument for a WRITE/REWRITE on a RECORD VARYING … DEPENDING file (ISO
@@ -430,7 +435,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // through the governed runtime entry — the next ordinal's pre-read conflict check (§14.9.30 GR9,
         // FPI unchanged on a 51 per GR10a), the GR11 lock discipline, and GR22 ADVANCING ON LOCK skip-scan.
         // Same bool contract as the plain read, so the two branches below are shared.
-        string readCall = LockGoverned(rd.File, rd.Lock, rd.Retry)
+        string readCall = LockGoverned(rd.File, rd.Lock, rd.Retry, rd.IgnoringLock)
             ? EmitReadSharedCall(rd, name, tmp)
             : RuntimeApi.FileRead(name, tmp);
         using (w.Block($"if ({readCall})"))

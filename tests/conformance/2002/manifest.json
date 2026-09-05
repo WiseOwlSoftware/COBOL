@@ -201,7 +201,8 @@
     "pb303_as_externalized_name",
     "pb303_as_self_prototype_call",
     "pb316_open_group_scope",
-    "pb319_sr8_antecedent"
+    "pb319_sr8_antecedent",
+    "pb331_read_lock_brackets"
   ],
   "pending": []
 }

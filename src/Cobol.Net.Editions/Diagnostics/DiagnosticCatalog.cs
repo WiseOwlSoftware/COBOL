@@ -444,6 +444,18 @@ public static class DiagnosticCatalog
         + "rule by naming only EXTEND as the mode that suppresses the beginning-of-file positioning the phrase "
         + "talks about. The phrase used to be parsed and dropped, so every mode accepted it silently.",
         "ISO §14.9.27.3");
+    public static readonly DiagnosticDescriptor ReadIgnoringWithLock = new(
+        "COBOLNET1818", "read-ignoring-with-lock", EditionSeverity.Error,
+        "A READ statement specifies both the IGNORING LOCK phrase and the LOCK phrase: \"The LOCK phrase shall "
+        + "not be specified in the same READ statement as the IGNORING LOCK phrase.\" The two are alternatives "
+        + "of DIFFERENT printed brackets (§14.9.30.2 prints [ADVANCING ON LOCK | IGNORING LOCK | retry-phrase] "
+        + "and [WITH LOCK | WITH NO LOCK] as two independent brackets), so nothing but this rule stops them "
+        + "combining. ⚠ WITH NO LOCK is NOT \"the LOCK phrase\" — §14.9.30.4 GR11 b) names \"the NO LOCK "
+        + "phrase\" and GR11 d) \"the LOCK phrase\" as different things in this same statement — so IGNORING "
+        + "LOCK WITH NO LOCK is legal and is accepted. Until kb/Work PB331 the forbidden pair was a raw parse "
+        + "error only because the grammar had merged the two brackets into one slot, which ALSO rejected the "
+        + "legal pair; splitting the brackets is what made this check load-bearing.",
+        "ISO §14.9.30.3");
     public static readonly DiagnosticDescriptor BasedRecordSubstrate = new(
         "COBOLNET1695", "based-record-substrate", EditionSeverity.Error,
         "A BASED record has a subordinate item the shared storage area cannot carry. ⛔ NO SUCH SHAPE EXISTS "

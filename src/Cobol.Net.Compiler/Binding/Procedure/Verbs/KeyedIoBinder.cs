@@ -35,6 +35,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     public BoundStatement BindRead(Core.ReadStatementContext r, FileModel file)
     {
         KeyedValidateFile(file);
+        // Bracket 1 of §14.9.30.2 — [ADVANCING ON LOCK | IGNORING LOCK | retry-phrase] (kb/Work PB331).
+        var contention = r.readLockContentionPhrase();
         Place? into = r.readInto()?.dataReference() is { } d ? ctx.Refs.Resolve(d) : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
@@ -56,7 +58,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         if (file.AccessMode == FileAccessMode.Random)
         {
             var present = new List<string>();
-            if (r.readAdvancingOnLock() is not null) present.Add("ADVANCING");
+            if (contention?.readAdvancingOnLock() is not null) present.Add("ADVANCING");
             if (r.readAtEnd() is { } ae6) present.Add(PhraseBlocks.StartsWithNot(ae6) ? "NOT AT END" : "AT END");
             if (next) present.Add("NEXT");
             if (previous) present.Add("PREVIOUS");
@@ -98,11 +100,16 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         }
         // READ … ADVANCING ON LOCK (§14.9.30 record-lock phrase, COBOL-2002); the edition gate moved to the
         // post-bind VersionConformancePass (Step 14c), firing on BoundKeyedRead.AdvancingOnLock.
+        // The two INDEPENDENT lock brackets of §14.9.30.2 (kb/Work PB331): bracket 2 (retention) binds first,
+        // because SR3 tests bracket 1's IGNORING LOCK against it. Same shape as SequentialIoBinder.BindRead —
+        // both READ arms, so the split cannot be half-applied (feedback_two_arm_dispatch).
+        BoundRecordLock retention = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");
         return new BoundKeyedRead(file, kind, keyIndex, into, atEnd, notAtEnd, invalid)
         {
-            Lock = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ"),
-            Retry = fileLock.BindVerbRetry(r.retryPhrase()),
-            AdvancingOnLock = r.readAdvancingOnLock() is not null,
+            Lock = retention,
+            Retry = fileLock.BindVerbRetry(contention?.retryPhrase()),
+            AdvancingOnLock = contention?.readAdvancingOnLock() is not null,
+            IgnoringLock = fileLock.CheckIgnoringLock(file, contention, retention),
         };
     }
 

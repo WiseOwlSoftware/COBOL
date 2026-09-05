@@ -44,7 +44,13 @@ public enum FileLockMode
     Automatic,
 }
 
-/// <summary>The explicit record-lock phrase on a READ/WRITE/REWRITE (ISO §14.9.30 etc.).</summary>
+/// <summary>The explicit lock-RETENTION phrase on a READ/WRITE/REWRITE — the printed
+/// <c>[ WITH LOCK | WITH NO LOCK ]</c> bracket of ISO §14.9.30.2 / §14.9.51.2 / §14.9.35.2.
+/// <para>⛔ IGNORING LOCK IS DELIBERATELY ABSENT (kb/Work PB331). It is an alternative of READ's OTHER printed
+/// bracket, which §5.2.6.1 makes an independent selection, so <c>READ … IGNORING LOCK WITH NO LOCK</c> is one
+/// legal statement that has to say BOTH things at once — a single enum member cannot. It travels beside this
+/// one as the <c>ignoringLock</c> argument of <see cref="CobolFile.ReadShared"/> /
+/// <see cref="CobolFile.ReadLockGovern"/>.</para></summary>
 public enum FileRecordLock
 {
     /// <summary>No phrase — the connector's LOCK MODE governs (AUTOMATIC auto-locks; MANUAL/None do not).</summary>
@@ -53,8 +59,6 @@ public enum FileRecordLock
     WithLock,
     /// <summary>WITH NO LOCK — do not lock the accessed record.</summary>
     WithNoLock,
-    /// <summary>IGNORING LOCK — access the record even if another connector holds its lock (§9.1.16).</summary>
-    Ignoring,
 }
 
 /// <summary>The RETRY phrase kind (ISO §14.7.9).</summary>

@@ -296,11 +296,21 @@ retryPhrase
     : RETRY (arithmeticExpression TIMES | FOR? arithmeticExpression SECONDS | FOREVER)
     ;
 
-// COBOL-2002 record-lock phrase on READ / WRITE / REWRITE (ISO §14.9.30 etc.). Order: WITH? NO LOCK before
-// WITH? LOCK so `WITH NO LOCK` is not shadowed by `WITH LOCK`.
+// ⛔ THE LOCK-RETENTION BRACKET, AND ONLY IT — `[ WITH LOCK | WITH NO LOCK ]`. Every printed general format
+// that has this phrase prints it as its OWN plain bracket of exactly two alternatives: READ (§14.9.30.2, PDF
+// p722, Format 1 y=339.26 and Format 2 y=547.48 measured with `figure_geometry.py 722`), WRITE (§14.9.51.2,
+// p815/p816) and REWRITE (§14.9.35.2, p740). `WITH` carries NO underline rule on any of those pages
+// (`figure_extract.py` reports `WITH _LOCK_` / `WITH _NO_ _LOCK_`), so it is an optional word (§5.2.3).
+// Order: WITH? NO LOCK before WITH? LOCK so `WITH NO LOCK` is not shadowed by `WITH LOCK`.
+//
+// ⛔ `IGNORING LOCK` WAS AN ALTERNATIVE HERE UNTIL kb/Work PB331, AND THAT COLLAPSE INVERTED TWO CARDINALITIES
+// AT ONCE. IGNORING LOCK belongs to READ's OTHER bracket (`readLockContentionPhrase` below), which §5.2.6.1
+// makes INDEPENDENT of this one — "a unique combination of possibilities from a series of brackets" — so the
+// merge made the legal `IGNORING LOCK WITH NO LOCK` a syntax error while leaving `ADVANCING ON LOCK RETRY 3
+// TIMES IGNORING LOCK` (three alternatives out of ONE bracket, which §5.2.6.2 admits one of) accepted. It also
+// offered IGNORING LOCK on WRITE and REWRITE, whose printed formats do not have it at all.
 recordLockPhrase
-    : IGNORING LOCK
-    | WITH? NO LOCK
+    : WITH? NO LOCK
     | WITH? LOCK
     ;
 
@@ -335,28 +345,87 @@ closeOption
 // READ (§14.9.30 — full expansion)
 // ==========================================
 
+// ⛔ THE PHRASE ORDER BELOW IS THE PRINTED ONE, AND THAT IS A NORMATIVE REQUIREMENT, NOT A STYLE CHOICE.
+// §5.2.1: "The words, phrases, clauses, punctuation, and operands in each general format shall be written in
+// the compilation group in the sequence given in the general format, unless otherwise specified by the rules of
+// that format." The printed READ formats (§14.9.30.2, PDF p722 — RENDERED, not read off the transcription) are:
+//
+//   Format 1 (sequential)  READ f { NEXT | PREVIOUS } RECORD [ INTO id ]
+//                          [ ADVANCING ON LOCK | IGNORING LOCK | retry-phrase ]
+//                          [ WITH LOCK | WITH NO LOCK ]
+//                          [| AT END … | NOT AT END … |]   [ END-READ ]
+//   Format 2 (random)      READ f RECORD [ INTO id ]
+//                          [ IGNORING LOCK | retry-phrase ]
+//                          [ WITH LOCK | WITH NO LOCK ]
+//                          [ KEY IS { data-name-1 | record-key-name-1 } ]
+//                          [| INVALID KEY … | NOT INVALID KEY … |]   [ END-READ ]
+//
+// ⛔ THE KEY PHRASE FOLLOWS THE TWO LOCK BRACKETS; IT PRECEDED THEM HERE UNTIL kb/Work PB331, AND BECAUSE
+// ANTLR takes the first matching alternative in written order, the parser had already passed the `readKey`
+// slot by the time it consumed a lock phrase — so the SPEC SPELLING `READ IXF RECORD WITH NO LOCK KEY IS
+// IX-KEY` was `error COBOL0001: no viable alternative at input 'KEY'` while the unprinted reverse compiled.
+// This rule is the superset of both formats (the format is DECIDED at bind time from the file's organization
+// and access mode — §14.9.30.3 SR6/SR8/SR9 in KeyedIoBinder.BindRead), which is why one ordering has to serve
+// both; the two formats agree on the order of every phrase they share, so the superset is unambiguous.
 readStatement
     : READ (fileName | FILE fileName)
       readDirection?
       RECORD?
       readInto?
+      readLockContentionPhrase?   // bracket 1 (§14.9.30.2) — at most ONE of ADVANCING ON LOCK / IGNORING LOCK / retry-phrase
+      recordLockPhrase?           // bracket 2 (§14.9.30.2) — at most ONE of WITH LOCK / WITH NO LOCK; INDEPENDENT of bracket 1 (§5.2.6.1)
       readKey?
-      (readAdvancingOnLock)?    // ADVANCING ON LOCK (ISO §14.9.30 fmt1) — introduction-gated at BIND time (KeyedBindRead → Check(RecordLockPhrase2002))
-      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
-      (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
       readAtEnd?
       readInvalidKey?
       END_READ?
 
     ;
 
-// COBOL-2002 READ … ADVANCING ON LOCK (ISO §14.9.30 GR22): skip-scan locked records on NEXT/PREVIOUS.
-readAdvancingOnLock
-    : ADVANCING ON LOCK
+// ⛔ BRACKET 1 OF THE READ LOCK OPTIONS — one grammar object for one printed bracket, which is what keeps
+// "at most one of these three" written down in exactly ONE place. §5.2.6.2: a plain bracket admits "the syntax
+// element contained within the brackets or one of the alternatives contained within the brackets"; the printed
+// bracket carries NO choice indicators (`figure_geometry.py 722`: Format 1 y=280.90 h=48.79 over three stacked
+// alternatives, plain stems — contrast the AT END group at y=377.08, which the same tool flags
+// `<-- CHOICE INDICATORS (5.2.6.4)`), so the three alternatives are mutually exclusive.
+//
+// SUPERSET NOTE: Format 2 prints only two alternatives (it has no ADVANCING ON LOCK). The ADVANCING arm's
+// Format-1-only restriction is §14.9.30.3 SR6, enforced at bind time (KeyedIoBinder.BindRead names ADVANCING
+// in its forbidden-phrase list for ACCESS MODE RANDOM), so the parse rule stays the union of both formats.
+readLockContentionPhrase
+    : readAdvancingOnLock
+    | readIgnoringLock
+    | retryPhrase   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002))
     ;
 
+// COBOL-2002 READ … ADVANCING ON LOCK (ISO §14.9.30 GR22): skip-scan locked records on NEXT/PREVIOUS.
+// Introduction-gated at BIND time on BoundRead/BoundKeyedRead.AdvancingOnLock (Check(RecordLockPhrase2002)).
+// `ON` is an OPTIONAL WORD: printed page 722 underlines ADVANCING and LOCK and NOT ON (`figure_extract.py 722`
+// → `_ADVANCING_ ON _LOCK_`), and §5.2.3 makes a non-underlined word one that "may be specified" — so
+// `READ … ADVANCING LOCK` is conforming source. It was rejected `error COBOL0001: missing token before 'LOCK'`
+// until kb/Work PB331 measured the page.
+readAdvancingOnLock
+    : ADVANCING ON? LOCK
+    ;
+
+// COBOL-2002 READ … IGNORING LOCK (ISO §14.9.30 GR12): make the record available even if it is locked.
+// Both words are underlined on p722 (`_IGNORING_ _LOCK_`), so both are required. Introduction-gated in the
+// VersionConformancePass parse arm (VisitReadIgnoringLock → Check(RecordLockPhrase2002)), which is where its
+// former host `recordLockPhrase` gates the retention bracket — the split must not lose the 2002 gate.
+readIgnoringLock
+    : IGNORING LOCK
+    ;
+
+// The Format-1 direction, printed as BRACES: `READ file-name-1 { NEXT | PREVIOUS } RECORD` (§14.9.30.2, PDF
+// p722). NEXT is NOT underlined there (`figure_extract.py 722`) and PREVIOUS is, so by §5.2.6.3 the NEXT
+// alternative "contains only optional words" and is "the default … selected unless another alternative is
+// explicitly specified" — which is why the whole rule is optional at the call site and why §14.9.30.3 SR8/SR9
+// say the NEXT phrase is implied.
+// ⛔ `RECORD` IS NOT PART OF THIS RULE. It is the statement's own optional word, printed ONCE after the braces,
+// and `readStatement` already carries it. Writing it here as well put ONE optional word in TWO places, and the
+// grammar then accepted it TWICE: `READ SQF NEXT RECORD RECORD … END-READ` compiled clean (kb/Work PB331's
+// sweep of §14.9.30.2 — the same figure whose lock brackets that note repaired).
 readDirection
-    : (NEXT | PREVIOUS) RECORD?
+    : NEXT | PREVIOUS
     ;
 
 readInto

@@ -206,15 +206,19 @@ public static class CobolFile
         FileRetryKind retryKind, int retryAmount, bool noRewind)
         => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, noRewind);
 
-    /// <summary>Record-lock governance for a just-completed keyed READ (§9.1.16).</summary>
+    /// <summary>Record-lock governance for a just-completed keyed READ (§9.1.16). <paramref name="phrase"/> is
+    /// the RETENTION bracket (WITH LOCK / WITH NO LOCK) and <paramref name="ignoringLock"/> the INDEPENDENT
+    /// IGNORING LOCK phrase (§14.9.30.2's other bracket, GR12).</summary>
     public static string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount)
-        => _reg.ReadLockGovern(name, statusJustRead, phrase, retryKind, retryAmount);
+        bool ignoringLock, FileRetryKind retryKind, int retryAmount)
+        => _reg.ReadLockGovern(name, statusJustRead, phrase, ignoringLock, retryKind, retryAmount);
 
-    /// <summary>Sequential-organization governed READ (§9.1.16 / §14.9.30 GR9–GR12, GR22 ADVANCING ON LOCK).</summary>
-    public static bool ReadShared(string name, FileRecordLock phrase, bool advancingOnLock,
+    /// <summary>Sequential-organization governed READ (§9.1.16 / §14.9.30 GR9–GR12, GR22 ADVANCING ON LOCK).
+    /// <paramref name="advancingOnLock"/> and <paramref name="ignoringLock"/> are two alternatives of the SAME
+    /// printed bracket, so at most one is ever true; <paramref name="phrase"/> is the other bracket.</summary>
+    public static bool ReadShared(string name, FileRecordLock phrase, bool advancingOnLock, bool ignoringLock,
         FileRetryKind retryKind, int retryAmount, out string image)
-        => _reg.ReadShared(name, phrase, advancingOnLock, retryKind, retryAmount, out image);
+        => _reg.ReadShared(name, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image);
 
     /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11).</summary>
     public static string WriteShared(string name, string image, int length, FileRecordLock phrase,

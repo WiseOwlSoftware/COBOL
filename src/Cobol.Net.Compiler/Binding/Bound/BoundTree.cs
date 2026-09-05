@@ -885,10 +885,15 @@ public enum BoundCloseKind
     NoRewind,
 }
 
-/// <summary>The record-lock phrase on a READ/WRITE/REWRITE (ISO §14.9.30 etc.): explicit WITH LOCK, WITH NO
-/// LOCK (never lock), or IGNORING LOCK (read despite another connector's lock — READ only). None = the file's
-/// effective LOCK MODE governs (AUTOMATIC locks on READ, MANUAL does not).</summary>
-public enum BoundRecordLock { None, WithLock, WithNoLock, IgnoringLock }
+/// <summary>The LOCK-RETENTION phrase on a READ/WRITE/REWRITE — the printed `[ WITH LOCK | WITH NO LOCK ]`
+/// bracket of ISO §14.9.30.2 / §14.9.51.2 / §14.9.35.2: explicit WITH LOCK, WITH NO LOCK (never lock), or None
+/// = the file's effective LOCK MODE governs (AUTOMATIC locks on READ, MANUAL does not — §14.9.30.4 GR11c/d).
+/// <para>⛔ IGNORING LOCK IS NOT A MEMBER, AND MUST NOT BECOME ONE (kb/Work PB331). It is an alternative of the
+/// OTHER, INDEPENDENT bracket — see <c>CobolIO.g4#readLockContentionPhrase</c> and
+/// <c>BoundRead.IgnoringLock</c> — and §5.2.6.1 lets a READ select from both brackets at once, so
+/// `IGNORING LOCK WITH NO LOCK` is one legal statement that a single enum cannot represent. Folding contention
+/// and retention back together is what made that spelling a syntax error.</para></summary>
+public enum BoundRecordLock { None, WithLock, WithNoLock }
 
 /// <summary>A RETRY phrase (ISO §14.7.9): retry a locked operation N TIMES, FOR N SECONDS, or FOREVER. In the
 /// single-run-unit model the n-TIMES count is a real bounded loop over the connector registry; SECONDS/FOREVER
@@ -974,13 +979,17 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From
 public sealed record BoundRead(
     FileModel File, Place? Into, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement
 {
-    /// <summary>The explicit record-lock phrase (ISO §14.9.30 Format 1 — the GR7–GR12 lock rules are ALL-FORMATS
-    /// rules, so they bind on the sequential organization too), or None.</summary>
+    /// <summary>The lock-RETENTION phrase — bracket 2 of §14.9.30.2 (WITH LOCK / WITH NO LOCK); the GR7–GR12
+    /// lock rules are ALL-FORMATS rules, so they bind on the sequential organization too. None = LOCK MODE
+    /// governs.</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
-    /// <summary>The RETRY phrase (§14.7.9 / §14.9.30 GR9), or null.</summary>
+    /// <summary>The RETRY phrase (§14.7.9 / §14.9.30 GR9) — bracket 1 of §14.9.30.2, or null.</summary>
     public RetrySpec? Retry { get; init; }
-    /// <summary>ADVANCING ON LOCK (§14.9.30 GR22): skip-scan records locked by another connector.</summary>
+    /// <summary>ADVANCING ON LOCK (§14.9.30 GR22) — bracket 1: skip-scan records locked by another connector.</summary>
     public bool AdvancingOnLock { get; init; }
+    /// <summary>IGNORING LOCK (§14.9.30 GR12) — bracket 1: "the requested record is made available, even if it
+    /// is locked". INDEPENDENT of <see cref="Lock"/> (§5.2.6.1), so `IGNORING LOCK WITH NO LOCK` sets both.</summary>
+    public bool IgnoringLock { get; init; }
 }
 
 /// <summary><c>REWRITE record [FROM x]</c> (ISO §14.9.35): replace the last-read record with the record area's image.</summary>

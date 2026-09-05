@@ -855,7 +855,7 @@ public sealed class FileRegistry
     /// (The keyed shape is post-read because a NEXT/PREVIOUS walk's record identity is only known after the read;
     /// the sequential-organization twin is <see cref="ReadShared"/>, whose next ordinal is knowable BEFORE the
     /// read, keeping the file position indicator untouched on a conflict — §14.9.30 GR10a.)</summary>
-    public string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase,
+    public string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase, bool ignoringLock,
         FileRetryKind retryKind, int retryAmount)
     {
         if (statusJustRead.Length == 0 || statusJustRead[0] != '0') return statusJustRead;   // an unsuccessful read: no locking
@@ -865,7 +865,7 @@ public sealed class FileRegistry
         if (recId.Length == 0) return statusJustRead;   // no record was identified
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
 
-        if (phrase != FileRecordLock.Ignoring)
+        if (!ignoringLock)
         {
             // Another connector's lock blocks the read (§14.9.30 GR9). RETRY re-checks; in one run unit the
             // holder cannot release mid-loop, so n TIMES exhausts to 51 and SECONDS/FOREVER bail to 52 (GR4a).
@@ -891,9 +891,15 @@ public sealed class FileRegistry
         string recId, FileRecordLock phrase)
     {
         if (!meta.Multiple) PhysicalFileTable.ReleaseAllForConnector(st, name);   // GR11a / §12.4.5.9 GR6
+        // ⛔ RETENTION IS DECIDED BY THE RETENTION BRACKET ALONE (kb/Work PB331). IGNORING LOCK says nothing
+        // about whether THIS connector keeps a lock — it is §14.9.30.4 GR12, "the requested record is made
+        // available, even if it is locked", which the caller has already applied by skipping the conflict check.
+        // It used to be a fourth member of this switch mapping to "never lock", which happened to agree with
+        // GR11d only because §14.9.30.3 SR4 bars IGNORING LOCK under automatic locking; it also made the legal
+        // `IGNORING LOCK WITH NO LOCK` unable to reach GR11b's release below. That is why this method takes no
+        // ignoring-lock argument: the phrase has no retention effect to model.
         bool wantLock = phrase switch
         {
-            FileRecordLock.Ignoring => false,
             FileRecordLock.WithNoLock => false,
             FileRecordLock.WithLock => true,
             _ => meta.LockMode == FileLockMode.Automatic,   // no phrase: AUTOMATIC auto-locks (§12.4.5.9 GR4), MANUAL does not (GR5)
@@ -929,7 +935,7 @@ public sealed class FileRegistry
     /// locked record were read and the same READ statement were executed" — with no conflict condition; reaching
     /// end-of-file is the ordinary at-end. Returns true iff a record was made available (the emitted contract of
     /// the plain <see cref="Read"/>).</summary>
-    public bool ReadShared(string name, FileRecordLock phrase, bool advancingOnLock,
+    public bool ReadShared(string name, FileRecordLock phrase, bool advancingOnLock, bool ignoringLock,
         FileRetryKind retryKind, int retryAmount, out string image)
     {
         if (!_files.TryGetValue(name, out var c) || c is not SequentialConnector f) { image = ""; return false; }
@@ -937,7 +943,7 @@ public sealed class FileRegistry
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         while (true)
         {
-            if (phrase != FileRecordLock.Ignoring && f.ReadEligible)   // a mode/position failure keeps its own status
+            if (!ignoringLock && f.ReadEligible)   // a mode/position failure keeps its own status
             {
                 string recId = f.NextReadOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 if (PhysicalFileTable.IsLockedByOther(st, name, recId))

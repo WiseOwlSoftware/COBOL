@@ -190,11 +190,16 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
         // The READ lock phrases bind on the sequential organization too — §14.9.30's GR7–GR12 lock rules are
         // ALL-FORMATS rules, and the sequential record's lock identity is its ordinal position (§9.1.16).
+        // The two INDEPENDENT lock brackets of §14.9.30.2, bound in the order the rules read them: bracket 2
+        // (retention) first, because SR3 tests bracket 1's IGNORING LOCK against it (kb/Work PB331).
+        var contention = r.readLockContentionPhrase();
+        BoundRecordLock retention = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR4 → COBOLNET1512
         return new BoundRead(file, into, atEnd, notAtEnd, UnsupportedOrg(file, "READ"))
         {
-            Lock = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ"),   // §14.9.30 SR3/SR4 → COBOLNET1512
-            Retry = fileLock.BindVerbRetry(r.retryPhrase()),                             // §14.7.9 / §14.9.30 GR9
-            AdvancingOnLock = r.readAdvancingOnLock() is not null,                       // §14.9.30 GR22
+            Lock = retention,
+            Retry = fileLock.BindVerbRetry(contention?.retryPhrase()),                    // §14.7.9 / §14.9.30 GR9
+            AdvancingOnLock = contention?.readAdvancingOnLock() is not null,              // §14.9.30 GR22
+            IgnoringLock = fileLock.CheckIgnoringLock(file, contention, retention),       // §14.9.30 GR12; SR3 → COBOLNET1818
         };
     }
 

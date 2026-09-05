@@ -1680,7 +1680,7 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>The verb record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK) on READ/WRITE/REWRITE
+        /// <summary>The verb lock-RETENTION phrase (WITH LOCK / WITH NO LOCK) on READ/WRITE/REWRITE
         /// (ISO §14.9.30/.51/.35) — a COBOL-2002 introduction. The where-string names the verb from the parent
         /// statement type (matching CheckRecordLockPhrase's <c>verb</c> argument). DISTINCT from the READ …
         /// ADVANCING ON LOCK occurrence (same constructId, a different where-string) that STAYS bound-arm — both
@@ -1694,6 +1694,18 @@ internal sealed class VersionConformancePass
                 _ => "READ",   // readStatement — the sequential (StatementBinder) and keyed (KeyedIo) READ both route here
             };
             _p.Check(Constructs.RecordLockPhrase2002, $"a record-lock phrase on {verb}");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>READ … IGNORING LOCK (ISO §14.9.30) — the SAME COBOL-2002 introduction as the retention
+        /// phrase above, and it needs its own override only because §14.9.30.2 prints the two in DIFFERENT
+        /// brackets, so kb/Work PB331 had to give them different grammar rules. ⛔ WITHOUT THIS THE SPLIT WOULD
+        /// HAVE SHIPPED `READ … IGNORING LOCK` UNGATED AT --std 85 (feedback_edition_gate_sweep): the phrase's
+        /// only edition gate was its membership of <c>recordLockPhrase</c>. Same where-string as the READ arm
+        /// above, so a program writing both phrases reports the introduction once per phrase, as it always did.</summary>
+        public override object? VisitReadIgnoringLock(CobolParserCore.ReadIgnoringLockContext ctx)
+        {
+            _p.Check(Constructs.RecordLockPhrase2002, "a record-lock phrase on READ");
             return base.VisitChildren(ctx);
         }
 

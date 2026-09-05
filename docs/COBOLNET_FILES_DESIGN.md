@@ -504,6 +504,63 @@ file's own record area is overwritten by every READ of that file.
 across every OPEN site, and misses SORT/MERGE unless each is remembered); re-resolving inside
 `FileConnector.Open` (too late — `SharedOpenAttempt` consults the physical-file table on the OLD path before
 calling it); keeping the registration-time resolve and adding a second dynamic path (two mechanisms for one job).
+### D16. The READ statement's lock options are TWO INDEPENDENT PRINTED BRACKETS, and they are two facts from the grammar through to the runtime — contention and retention — never one enum.
+
+ISO §14.9.30.2 prints the READ lock options as two plain brackets, in this order, and then the KEY phrase:
+
+    [ ADVANCING ON LOCK | IGNORING LOCK | retry-phrase ]      (Format 2 drops ADVANCING ON LOCK)
+    [ WITH LOCK | WITH NO LOCK ]
+    [ KEY IS { data-name-1 | record-key-name-1 } ]            (Format 2 only)
+
+Measured, not inherited: `clause_page.py 14.9.30.2` -> PDF page 722, and `figure_geometry.py 722` reports the
+Format-1 brackets at y=280.90 (h=48.79, three stacked alternatives) and y=339.26 (h=31.98, two), the Format-2
+brackets at y=507.57 and y=547.48 and the KEY bracket at y=589.03, all with PLAIN stems — contrast the AT END
+group at y=377.08 and the INVALID KEY group at y=634.55, which the same tool flags
+`<-- CHOICE INDICATORS (5.2.6.4)`. Three rules follow and all three are load-bearing:
+
+- **§5.2.6.2** — a bracket admits "the syntax element contained within the brackets or one of the alternatives
+  contained within the brackets", so AT MOST ONE alternative comes out of each bracket.
+- **§5.2.6.1** — an option may also be selected "by specifying a unique combination of possibilities from a
+  series of brackets", so the two brackets are INDEPENDENT: `IGNORING LOCK WITH NO LOCK` is one legal READ.
+- **§5.2.1** — the phrases "shall be written … in the sequence given in the general format", so the KEY phrase
+  FOLLOWS both brackets and the reverse spelling is not conforming.
+
+**The shape.** `CobolIO.g4#readLockContentionPhrase` is bracket 1 (`readAdvancingOnLock | readIgnoringLock |
+retryPhrase`) and `#recordLockPhrase` is bracket 2 (`WITH? NO LOCK | WITH? LOCK`) — one grammar object per
+printed bracket, which is what writes "at most one of these" down exactly once. `BoundRead` / `BoundKeyedRead`
+therefore carry FOUR fields, not one: `Lock` (the retention bracket), and `AdvancingOnLock` / `IgnoringLock` /
+`Retry` (the three alternatives of the contention bracket, at most one of which the grammar can deliver). The
+runtime mirrors it: `FileRecordLock` is the retention bracket alone, and `CobolFile.ReadShared` /
+`ReadLockGovern` take `advancingOnLock` and `ignoringLock` as their own arguments. WRITE and REWRITE reference
+`recordLockPhrase` only, because §14.9.51.2 and §14.9.35.2 print `[ retry-phrase ]` and
+`[ WITH LOCK | WITH NO LOCK ]` and no IGNORING LOCK at all.
+
+**Why it is written as a decision (kb/Work PB331).** One rule, `recordLockPhrase : IGNORING LOCK | WITH? NO
+LOCK | WITH? LOCK`, reached through three free optionals, inverted BOTH cardinalities at once: what the printed
+brackets make mutually exclusive was free (`ADVANCING ON LOCK RETRY 3 TIMES IGNORING LOCK` compiled), and what
+they make independent was exclusive (`IGNORING LOCK WITH NO LOCK` was `no viable alternative at input 'WITH'`).
+The same merge put IGNORING LOCK on WRITE and REWRITE, and — because a single enum cannot say two things — it
+kept the legal contention+retention pair out of `ApplyReadLockDiscipline`'s GR11 b) release. It also SILENTLY
+SUPPLIED §14.9.30.3 SR3: `FileLockBinder.CheckRecordLockPhrase`'s summary claimed to enforce "IGNORING LOCK and
+WITH LOCK are mutually exclusive" while its body tested only SR4's automatic-locking condition, so the
+forbidden pair was rejected by the collapse and by nothing else. Splitting the brackets without landing a real
+SR3 check in the same change set would have opened that hole; `CheckIgnoringLock` -> COBOLNET1818 is the check,
+and `negative/pb331-read-ignoring-with-lock` is its witness, paired with the permitted-pair positive
+`2002/pb331_read_lock_brackets`. ⚠ SR3's "the LOCK phrase" is WITH LOCK and NOT WITH NO LOCK: §14.9.30.4 GR11 b)
+names "the NO LOCK phrase" and GR11 d) "the LOCK phrase" as different phrases in the same statement.
+
+**One optional word came with the measurement.** Page 722 underlines ADVANCING and LOCK and NOT ON
+(`figure_extract.py 722` -> `_ADVANCING_ ON _LOCK_`), so by §5.2.3 `READ … ADVANCING LOCK` is conforming; it was
+`error COBOL0001: missing token before 'LOCK'`. The grammar now spells the phrase `ADVANCING ON? LOCK`.
+
+**And one optional word written down TWICE.** The statement's single printed `RECORD` — one word, after the
+`{NEXT | PREVIOUS}` braces — lived in BOTH `readDirection : (NEXT | PREVIOUS) RECORD?` and `readStatement`'s own
+`RECORD?`, so `READ SQF NEXT RECORD RECORD … END-READ` compiled clean. §5.2.3 makes a non-underlined word one
+that may be OMITTED, not one that may be repeated. `readDirection` is now `NEXT | PREVIOUS`, which is also what
+§5.2.6.3 describes: the NEXT alternative "contains only optional words", so it is the default and the whole rule
+is optional at the call site. Neither spelling of the word was wrong on its own; having the same optional word in
+two rules was, and no test could see it because both single-`RECORD` spellings still parsed
+(`feedback_one_rule_one_place`).
 
 ## C# mapping
 

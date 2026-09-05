@@ -213,7 +213,7 @@ public sealed class CobolFileLockTests
         CobolFile.SetRelativeKey("MA", 1);
         string st = CobolFile.ReadKeyed("MA", -1, "", out _);
         Assert.Equal(FileStatusCode.Success,
-            CobolFile.ReadLockGovern("MA", st, FileRecordLock.WithLock, FileRetryKind.None, 0));   // MA locks record 1
+            CobolFile.ReadLockGovern("MA", st, FileRecordLock.WithLock, false, FileRetryKind.None, 0));   // MA locks record 1
         CobolFile.SetRelativeKey("MB", 1);
         // §14.9.35 GR11 — the record identified for rewriting is locked by another connector → 51 (not rewritten).
         Assert.Equal(FileStatusCode.RecordLocked,
@@ -260,17 +260,82 @@ public sealed class CobolFileLockTests
         CobolFile.OpenInput("SA");
         CobolFile.OpenInput("SB");
         // SA reads ordinal 1 WITH LOCK (§9.1.16 — the sequential lock identity is the ordinal position).
-        Assert.True(CobolFile.ReadShared("SA", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out string img));
+        Assert.True(CobolFile.ReadShared("SA", FileRecordLock.WithLock, false, false, FileRetryKind.None, 0, out string img));
         Assert.Equal("AAAAA", img);
         // SB's READ of ordinal 1 conflicts BEFORE the physical read (§14.9.30 GR9; FPI unchanged, GR10a) → 51.
-        Assert.False(CobolFile.ReadShared("SB", FileRecordLock.None, false, FileRetryKind.None, 0, out _));
+        Assert.False(CobolFile.ReadShared("SB", FileRecordLock.None, false, false, FileRetryKind.None, 0, out _));
         Assert.Equal(FileStatusCode.RecordLocked, CobolFile.Status("SB"));
         // ADVANCING ON LOCK (§14.9.30 GR22) skip-scans the locked record — SB gets ordinal 2, no conflict raised.
-        Assert.True(CobolFile.ReadShared("SB", FileRecordLock.None, true, FileRetryKind.None, 0, out img));
+        Assert.True(CobolFile.ReadShared("SB", FileRecordLock.None, true, false, FileRetryKind.None, 0, out img));
         Assert.Equal("BBBBB", img);
         // IGNORING LOCK would have delivered the locked record itself (GR12) — proven by the file_sharing_seq golden.
         CobolFile.Close("SA");
         CobolFile.Close("SB");
+    }
+
+    /// <summary>
+    /// THE COMBINATION A SINGLE ENUM COULD NOT SAY (kb/Work PB331): IGNORING LOCK and WITH NO LOCK are
+    /// alternatives of two DIFFERENT printed brackets of ISO 14.9.30.2, and 5.2.6.1 selects "a unique
+    /// combination of possibilities from a series of brackets", so one READ may write both. The runtime now
+    /// takes them as two arguments, and this drives BOTH of the rules that then apply, each with the control
+    /// arm that falsifies it:
+    /// <list type="bullet">
+    /// <item>14.9.30.4 GR11 b) — under MULTIPLE record locking, "the NO LOCK phrase … and the record accessed
+    /// was already locked by that file connector … that record lock is released". CONTROL: the same
+    /// IGNORING-LOCK read with NO retention phrase must KEEP the lock, or the release assertion would pass for
+    /// a runtime that simply released everything.</item>
+    /// <item>14.9.30.4 GR12 — "If the IGNORING LOCK phrase is specified …, the requested record is made
+    /// available, even if it is locked". CONTROL: the same read WITHOUT the phrase must fail 51.</item>
+    /// </list>
+    /// <para>The two rules cannot meet on one record — GR11 b) needs THIS connector's lock and GR12 another's,
+    /// and a record carries one lock — so they are exercised in sequence on the same pair of connectors.</para>
+    /// <para>Before PB331, `IGNORING LOCK` was a member of the SAME enum as `WITH NO LOCK`, so the first half
+    /// was unreachable by construction: whichever member the phrase pair collapsed to, the other rule's test
+    /// could not fire.</para>
+    /// </summary>
+    [Fact]
+    public void ReadLockGovern_IgnoringLockWithNoLock_ReleasesThisConnectorsLock_AndReadsAnothersLockedRecord()
+    {
+        CobolFile.Init();
+        const string host = "lk-ignore-nolock.dat";
+        CobolFile.RegisterRelative("IA", host, 8, false, Random, 4);
+        CobolFile.RegisterRelative("IB", host, 8, false, Random, 4);
+        // MULTIPLE record locking, so GR11 a)'s blanket per-statement release is NOT what frees the lock below.
+        CobolFile.RegisterSharing("IA", FileSharing.AllOther, FileLockMode.Manual, true);
+        CobolFile.RegisterSharing("IB", FileSharing.AllOther, FileLockMode.Manual, true);
+        CobolFile.OpenOutput("IA");
+        CobolFile.SetRelativeKey("IA", 1);
+        Assert.Equal(FileStatusCode.Success, CobolFile.WriteKeyed("IA", "ALPHA"));
+        CobolFile.Close("IA");
+        CobolFile.OpenIO("IA");
+        CobolFile.OpenIO("IB");
+
+        string Read(string who, FileRecordLock retention, bool ignoring)
+        {
+            CobolFile.SetRelativeKey(who, 1);
+            string st = CobolFile.ReadKeyed(who, -1, "", out _);
+            return CobolFile.ReadLockGovern(who, st, retention, ignoring, FileRetryKind.None, 0);
+        }
+
+        // ── GR11 b): IA locks record 1, then re-reads it IGNORING LOCK WITH NO LOCK ──
+        Assert.Equal(FileStatusCode.Success, Read("IA", FileRecordLock.WithLock, false));
+        Assert.True(CobolFile.IsLockedByOther("IB", "1"));
+        // CONTROL — IGNORING LOCK alone sets no lock and releases none (GR11 d): the lock is still IA's.
+        Assert.Equal(FileStatusCode.Success, Read("IA", FileRecordLock.None, true));
+        Assert.True(CobolFile.IsLockedByOther("IB", "1"));
+        // SUBJECT — both brackets at once: the NO LOCK phrase releases the lock IA already held.
+        Assert.Equal(FileStatusCode.Success, Read("IA", FileRecordLock.WithNoLock, true));
+        Assert.False(CobolFile.IsLockedByOther("IB", "1"));
+
+        // ── GR12: IB locks record 1; IA reads it anyway ──
+        Assert.Equal(FileStatusCode.Success, Read("IB", FileRecordLock.WithLock, false));
+        // CONTROL — without the phrase the record is inaccessible to the other connector (GR9 -> 51).
+        Assert.Equal(FileStatusCode.RecordLocked, Read("IA", FileRecordLock.None, false));
+        // SUBJECT — IGNORING LOCK makes it available, and WITH NO LOCK rides along without disturbing IB's lock.
+        Assert.Equal(FileStatusCode.Success, Read("IA", FileRecordLock.WithNoLock, true));
+        Assert.True(CobolFile.IsLockedByOther("IA", "1"));
+        CobolFile.Close("IA");
+        CobolFile.Close("IB");
     }
 
     [Fact]

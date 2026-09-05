@@ -798,14 +798,15 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyed)}({name}, {keyIndex}, {keyImage}, out var {imgVar})";
 
     /// <summary>The §9.1.16 record-lock governance adjustment of a just-read status — <c>CobolFile.ReadLockGovern</c>.</summary>
-    public static string FileReadLockGovern(string name, string status, string lockRef, string retryKind, string retryAmount) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadLockGovern)}({name}, {status}, {lockRef}, {retryKind}, {retryAmount})";
+    public static string FileReadLockGovern(string name, string status, string lockRef, string ignoringLock,
+        string retryKind, string retryAmount) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadLockGovern)}({name}, {status}, {lockRef}, {ignoringLock}, {retryKind}, {retryAmount})";
 
     /// <summary>Sequential-organization governed READ (§9.1.16 / §14.9.30 GR9–GR12/GR22) — <c>CobolFile.ReadShared</c>
     /// (bool result, out image — the same contract as the plain <c>FileRead</c>).</summary>
-    public static string FileReadShared(string name, string lockRef, string advancingOnLock, string retryKind,
-        string retryAmount, string imgVar) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadShared)}({name}, {lockRef}, {advancingOnLock}, {retryKind}, {retryAmount}, out var {imgVar})";
+    public static string FileReadShared(string name, string lockRef, string advancingOnLock, string ignoringLock,
+        string retryKind, string retryAmount, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadShared)}({name}, {lockRef}, {advancingOnLock}, {ignoringLock}, {retryKind}, {retryAmount}, out var {imgVar})";
 
     /// <summary>Governed WRITE for a sharing-active file, any organization (§14.9.51 GR10/GR11) — <c>CobolFile.WriteShared</c>.</summary>
     public static string FileWriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount) =>
