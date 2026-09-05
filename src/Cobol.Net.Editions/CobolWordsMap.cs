@@ -92,4 +92,59 @@ public sealed class CobolWordsMap
     /// <summary>Words newly reserved for this group (RESERVE literal-6): the <see cref="ReservedWordSet"/> reserve
     /// overlay reads this so a use as a user-defined word is COBOLNET0901-rejected.</summary>
     public IReadOnlySet<string> Reserved => _reserved;
+
+    /// <summary>
+    /// The canonical COBOL word that a word WRITTEN in the source denotes under this compilation group's
+    /// directives (ISO §7.3.10.4 GR2/GR3/GR4) — <b>the ONE resolution</b> every consumer that classifies a word
+    /// BY NAME calls. The post-lex <c>CobolWordsRewriter</c> can only reach words the lexer makes a keyword
+    /// TOKEN; a word the binder classifies from its TEXT (the §15 phrase words ANYCASE/LOCALE/HEX/NAT/…, the
+    /// SET-statement LC_ categories, the ALPHABET coded-set names) is reached ONLY here, so a site that compares
+    /// raw text without calling this is inert to the directive in both directions (kb/Work PB250).
+    /// <list type="bullet">
+    /// <item><see langword="null"/> when <paramref name="written"/> was DE-RESERVED — UNDEFINE literal-3 (GR3:
+    /// the word "shall no longer be reserved or restricted in any way … and any syntax requiring the use of the
+    /// COBOL word that is the content of literal-3 shall not be available for use in this compilation group") or
+    /// SUBSTITUTE literal-4 (GR4: it "shall no longer be a reserved word, a context-sensitive word, nor an
+    /// intrinsic function name within this compilation group"). The caller must then treat the word as the
+    /// user-defined word it now is — never as the keyword it spells.</item>
+    /// <item>the CANONICAL word when <paramref name="written"/> is a synonym — EQUATE literal-2 (GR2: "may be
+    /// used in any syntax requiring the use of the reserved word, context-sensitive word, or intrinsic function
+    /// name that is the content of literal-1") or SUBSTITUTE literal-5 (GR4: "shall be used in any syntax where
+    /// the COBOL word that is the content of literal-4 is documented as required or optional").</item>
+    /// <item><paramref name="written"/> itself otherwise — including every word when <see cref="IsEmpty"/>, the
+    /// zero-overhead no-directive path.</item>
+    /// </list>
+    /// SR3 (§7.3.10.3) restricts literal-1/3/4 to a reserved word, a context-sensitive word or an
+    /// intrinsic-function name, and SR5 forbids the same COBOL word in more than one directive of a compilation
+    /// group, so the de-reserved set and the synonym keys are disjoint: the order of the two tests below is not a
+    /// precedence choice. It matches the order <c>IntrinsicBinder.BindIntrinsicCore</c> has always used
+    /// (removal tested against the ORIGINAL written name, then the synonym applied).
+    /// </summary>
+    /// <param name="written">The word as written in the source, UPPER-CASE (SR2/GR1 — case-insensitive).</param>
+    public string? Resolve(string written)
+    {
+        if (Ops.Count == 0) return written;
+        if (_deReserved.Contains(written)) return null;
+        return _synonyms.TryGetValue(written, out string? canonical) ? canonical : written;
+    }
+
+    /// <summary>
+    /// True when the word WRITTEN in the source denotes the keyword <paramref name="keyword"/> under this
+    /// group's directives — <b>the comparison every by-name classifier makes</b>, so <see cref="Resolve"/>'s
+    /// GR2/GR3/GR4 reading is applied once and no caller re-implements it. Used by the parser's text predicates
+    /// (<c>CobolParserCoreBase.Word</c>) and by every binder site that recognizes a §8.9/§8.10 word the lexer
+    /// does not tokenize — the SET-statement locale categories, the ALPHABET coded-set names, CALL … AS NESTED.
+    /// <para>Allocation-free on the no-directive path: the uppercase normalization <see cref="Resolve"/> needs
+    /// happens only when a directive is present, and these run inside ANTLR's speculative prediction.</para>
+    /// </summary>
+    /// <remarks>⛔ Give this a word AS WRITTEN, and only for a word the LEXER does not tokenize (the
+    /// §8.9/§8.10 words that arrive as bare IDENTIFIERs). For a word that may arrive as a keyword TOKEN use
+    /// <c>CobolWordsRewriter.TokenIs</c> instead: the post-lex rewriter already resolved those, and resolving
+    /// them again loses the synonym the user wrote.</remarks>
+    public bool Is(string? written, string keyword)
+        => written is not null
+           && (Ops.Count == 0
+               ? string.Equals(written, keyword, StringComparison.OrdinalIgnoreCase)
+               : Resolve(written.ToUpperInvariant()) is { } w
+                 && string.Equals(w, keyword, StringComparison.OrdinalIgnoreCase));
 }

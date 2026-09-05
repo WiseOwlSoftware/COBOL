@@ -176,7 +176,8 @@
     "pb231_based_bit_leaf",
     "pb230_incompatible_sending_sweep",
     "pb230_incompatible_boolean_sending",
-    "pb235_close_unit_locks"
+    "pb235_close_unit_locks",
+    "pb250_test_numvalc_remaining_shapes"
   ],
   "pending": []
 }

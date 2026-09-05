@@ -706,9 +706,11 @@ public sealed partial class DataBinder
 
     private LocalePhrase? ClassificationPhrase(string word, bool national)
     {
-        if (word.Equals("LOCALE", StringComparison.OrdinalIgnoreCase)) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.Current, null);
-        if (word.Equals("SYSTEM-DEFAULT", StringComparison.OrdinalIgnoreCase)) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.SystemDefault, null);
-        if (word.Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase)) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.UserDefault, null);
+        // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4; kb/Work PB250): a §8.9/§8.10 word the lexer does not
+        // tokenize is reached ONLY through the map; a raw text test here is inert to the directive both ways.
+        if (CobolWords.Is(word, "LOCALE")) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.Current, null);
+        if (CobolWords.Is(word, "SYSTEM-DEFAULT")) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.SystemDefault, null);
+        if (CobolWords.Is(word, "USER-DEFAULT")) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.UserDefault, null);
         var sym = ResolveLocaleName(word, $"CHARACTER CLASSIFICATION{(national ? " FOR NATIONAL" : "")} {word}",
             $"ISO §12.3.6.3 SR3 — locale-name-{(national ? 2 : 1)} shall be a locale name defined in the SPECIAL-NAMES paragraph");
         return sym is null ? null : new LocalePhrase(Runtime.Globalization.LocalePhraseKind.Named, sym);
@@ -890,7 +892,7 @@ public sealed partial class DataBinder
         // (kb/Work PB100 fixed the false "reserved word used as a user-defined word" it used to draw); it is a plain
         // word below 2002 (a code-name-1 there), so the phrase is 2002+ only. Since kb/Work PB101 the bare form is
         // IMPLEMENTED and the named form is refused by name until the LOCALE clause lands (design §12 T1).
-        if (Edition.DialectLevel >= 2002 && IsAlphabetLocalePhrase(def))
+        if (Edition.DialectLevel >= 2002 && IsAlphabetLocalePhrase(def, CobolWords))
         {
             // `IS LOCALE` (no locale-name-2) — the LOCALE-based collating sequence of the locale CURRENT at each use
             // (§12.3.7.4 GR7e; §12.3.6.4 GR11/GR12): the runtime LocaleCollation over the derived CLDR/UCA engine (kb/Work
@@ -922,7 +924,7 @@ public sealed partial class DataBinder
         // The ALPHANUMERIC branch (explicit FOR ALPHANUMERIC, or implied — §12.3.7.3 SR13). The national
         // coded-set names are NOT in this branch's format (§12.3.7.2 admits them only after FOR NATIONAL) —
         // intercept them rather than mis-binding their letters as literal characters.
-        if (CodeSetNameOf(def) is { } wrongBranch)
+        if (CodeSetNameOf(def, CobolWords) is { } wrongBranch)
         {
             Edition.Error("COBOLNET0898", $"ALPHABET {name} IS {wrongBranch}: the {wrongBranch} coded character "
                 + "set may be referenced only in the FOR NATIONAL branch of the ALPHABET clause "
@@ -1007,22 +1009,25 @@ public sealed partial class DataBinder
     /// <summary>The ALPHABET clause's `IS LOCALE [locale-name-2]` phrase (ISO §12.3.7.2; kb/Work PB100): the first
     /// definition entry is the bare word LOCALE, optionally followed by one bare-word entry (locale-name-2) — LOCALE is
     /// not a lexer token, so the phrase arrives as one or two code-name-shaped entries.</summary>
-    internal static bool IsAlphabetLocalePhrase(Core.AlphabetDefinitionContext def)
+    internal static bool IsAlphabetLocalePhrase(Core.AlphabetDefinitionContext def, Editions.CobolWordsMap cobolWords)
     {
         var entries = def.alphabetEntry();
         if (entries.Length is 0 or > 2) return false;
         foreach (var e in entries)
             if (e.THRU() is not null || e.THROUGH() is not null || e.ALSO().Length > 0 || e.ChildCount != 1 || e.GetChild(0) is not Core.CobolWordContext)
                 return false;
-        return string.Equals(entries[0].GetText(), "LOCALE", StringComparison.OrdinalIgnoreCase);
+        return cobolWords.Is(entries[0].GetText(), "LOCALE");
     }
 
-    private static string? CodeSetNameOf(Core.AlphabetDefinitionContext def)
+    private static string? CodeSetNameOf(Core.AlphabetDefinitionContext def, Editions.CobolWordsMap cobolWords)
     {
         if (def.alphabetEntry() is not [{ } entry]) return null;
         if (entry.THRU() is not null || entry.THROUGH() is not null || entry.ALSO().Length > 0) return null;
         if (entry.ChildCount != 1 || entry.GetChild(0) is not Core.CobolWordContext w) return null;
-        string t = w.GetText().ToUpperInvariant();
+        // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4; kb/Work PB250): a §8.9/§8.10 word the lexer does not
+        // tokenize (UCS-4 / UTF-8 / UTF-16 are §8.10 context-sensitive) is reached ONLY through the map. The
+        // CANONICAL name is what is returned, so the downstream Phrase tag never carries a user synonym.
+        string? t = cobolWords.Resolve(w.GetText().ToUpperInvariant());
         return t is "UCS-4" or "UTF-8" or "UTF-16" ? t : null;
     }
 
@@ -1051,7 +1056,7 @@ public sealed partial class DataBinder
                 + "ALPHANUMERIC branch (ISO §12.3.7.2 general format)");
             return;
         }
-        if (CodeSetNameOf(def) is { } cs)
+        if (CodeSetNameOf(def, CobolWords) is { } cs)
         {
             // UCS-4 references BOTH a coded set and a collating sequence; UTF-8/UTF-16 a coded set ONLY
             // (§12.3.7 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the

@@ -227,7 +227,10 @@ public sealed class Frontend
         // the source has no directive (byte-identical).
         CobolWordsRewriter.Rewrite(tokens, CobolWordsMap);
 
-        var parser = new CobolParserCore(tokens) { DialectLevel = DialectLevel };
+        // The parser needs the map as well as the lexer and the rewriter: its text predicates (LOCALE, ORDER,
+        // CLASSIFICATION, ATTRIBUTE, the LC_ categories) recognize §8.9/§8.10 words the lexer deliberately does
+        // not tokenize, so only CobolWordsMap.Resolve can reach them — kb/Work PB250.
+        var parser = new CobolParserCore(tokens) { DialectLevel = DialectLevel, CobolWords = CobolWordsMap };
         parser.RemoveErrorListeners();
         parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap));
 

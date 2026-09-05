@@ -102,7 +102,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// diagnostic already issued. False for a name that is neither: the ordinary paths report it.</summary>
     private bool DefinitionPermitsArguments(string name)
     {
-        if (!ctx.CobolWords.IsEmpty && ctx.CobolWords.Synonyms.TryGetValue(name, out var canonical)) name = canonical;
+        // >>COBOL-WORDS through the ONE resolution (ISO §7.3.10.4 GR2/GR3/GR4; kb/Work PB250). A name the
+        // directive REMOVED (UNDEFINE literal-3 / SUBSTITUTE literal-4) is no longer a function name, so its
+        // definition permits nothing — the '(' that follows is a ref-mod, not an argument list.
+        if (ctx.CobolWords.Resolve(name) is not { } canonical) return false;
+        name = canonical;
         if (ctx.Data.UserFunctionNames.Contains(name)
             || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase))
             return host.UserFunctions is { } fns && fns.TryGetValue(name, out var fn) && fn.Formals.Count > 0;
@@ -443,9 +447,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // intrinsic-name synonyms reach here — reserved/context synonyms were already retyped by CobolWordsRewriter.
         // `cobolWordsRemoved` tests the ORIGINAL written name, so a SUBSTITUTE (literal-4 in DeReserved AND
         // literal-5→literal-4 in Synonyms) still resolves literal-5 to the intrinsic while literal-4 is removed.
-        bool cobolWordsRemoved = !ctx.CobolWords.IsEmpty && ctx.CobolWords.DeReserved.Contains(name);
-        if (!ctx.CobolWords.IsEmpty && ctx.CobolWords.Synonyms.TryGetValue(name, out var cwCanonical))
-            name = cwCanonical;
+        // ONE RULE, ONE PLACE: CobolWordsMap.Resolve (kb/Work PB250) — this used to be an inline copy.
+        string? cwResolved = ctx.CobolWords.Resolve(name);
+        bool cobolWordsRemoved = cwResolved is null;
+        if (cwResolved is not null) name = cwResolved;
 
         // §12.3.8.2 GR12 (:14885): within the environment division's scope, a REPOSITORY-declared
         // function-prototype-name refers to the USER-DEFINED function "and not to an intrinsic function of
@@ -552,8 +557,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // NUMVAL-C / TEST-NUMVAL-C (§15.68.2 / §15.94.2) — the optional ANYCASE keyword (orthogonal to the
         // argument-2 currency; §15.94.3 r1 imports every §15.68.3 argument rule) + the §15.68.3 r3
-        // compilation-unit currency injection; bound apart from the generic argument path. The LOCALE phrase
-        // is the A.4.9 documented non-support (decision 3 — the P11 Step-8 disposition).
+        // compilation-unit currency injection; bound apart from the generic argument path. The LOCALE keyword is
+        // LIVE (kb/Work PB64 T6 — BindNumvalCFamily's r5 arm); this line used to record it as the A.4.9
+        // documented non-support, contradicting both the arm below and the accurate A.4.9 note above (PB250).
         if (sig.Name is "NUMVAL-C" or "TEST-NUMVAL-C") return BindNumvalCFamily(sig, argCtxs);
 
         // EXCEPTION-FILE / EXCEPTION-FILE-N with a file-connector-name argument (§15.28.4 r2 / §15.29.4 r2,
@@ -1552,9 +1558,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// used to say otherwise, which is wrong by the repo's own data. Not tokenizing it is a deliberate choice, not
     /// a consequence of the reservation: this detection depends on the word arriving as an ordinary argument, so a
     /// token would silently break the recognition. (fix-queue PB25.)</para>
-    /// The argument-1 exclusion avoids a false positive on a data item happening to
-    /// be named LOCALE.</summary>
-    private static bool HasLocalePhrase(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    /// The argument-1 exclusion is POSITIONAL — the format puts argument-1 there, so a bare word in slot 0 is the
+    /// operand whatever it spells. (It is not "a data item happening to be named LOCALE": §8.9 reserves the word,
+    /// so only a &gt;&gt;COBOL-WORDS UNDEFINE can free it — and then <see cref="KeywordWordOf"/> resolves it to
+    /// null and no slot sees the keyword at all. kb/Work PB250.)</summary>
+    private bool HasLocalePhrase(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         for (int i = 1; i < argCtxs.Count; i++)
             if (KeywordWordOf(argCtxs[i]) == "LOCALE") return true;
@@ -1577,8 +1585,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         string fmt = sig.Name == "NUMVAL-C" ? "15.68.2" : "15.94.2";
         // §15.68.2/§15.94.2: ( argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE] ) — a POSITIONAL walk,
         // not an order-free keyword sweep (fix-queue PB60 / FMT-15.68.2). Slot 0 is ALWAYS argument-1 and binds
-        // as an operand (ANYCASE and LOCALE are §8.10 context-sensitive — a data item so named stays legal
-        // there); ANYCASE is admitted ONCE, after the operands, and nothing may follow it. The old sweep
+        // as an operand — POSITIONALLY, because the format puts argument-1 there, not because a data item may be
+        // named ANYCASE or LOCALE: both are §8.9 RESERVED words from 2002 (reserved-words.json r2002/r2014/r2023)
+        // and NEITHER is in the §8.10 context-sensitive table, so absent a >>COBOL-WORDS UNDEFINE no data item
+        // may carry either name at all. (This comment claimed §8.10 — wrong by the repo's own data; kb/Work
+        // PB250, which is also why the words above now resolve through CobolWordsMap.) ANYCASE is admitted
+        // ONCE, after the operands, and nothing may follow it. The old sweep
         // accepted NUMVAL-C(ANYCASE WS-A "USD") and a doubled trailing ANYCASE (both measured).
         bool anycase = false, localeWritten = false;
         var locale = LocaleRef.Current;
@@ -2666,12 +2678,23 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// (<c>fnArgPhraseWord</c>) or a bare unqualified, unsubscripted name (the IDENTIFIER-shaped phrase words —
     /// ANYCASE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL). Uppercase; null when the
     /// argument is not a bare word. A word that matches no phrase keyword falls back to the ordinary operand
-    /// bind, so a data-name argument is never swallowed.</summary>
-    private static string? KeywordWordOf(Core.FunctionArgumentContext a)
+    /// bind, so a data-name argument is never swallowed.
+    /// <para>⛔ THE ONE >>COBOL-WORDS FUNNEL FOR §15 PHRASE WORDS (ISO §7.3.10.4 GR2/GR3/GR4; kb/Work PB250).
+    /// Every phrase-keyword function reads its words through here, so the directive is applied ONCE, for the
+    /// whole class, in both directions — <see cref="CobolNet.Editions.CobolWordsMap.Resolve"/> maps an EQUATE/
+    /// SUBSTITUTE synonym onto the canonical keyword (GR2/GR4) and returns null for an UNDEFINE'd/SUBSTITUTE'd-away
+    /// word (GR3/GR4), which drops the argument into the ordinary operand bind as the user-defined word it now is.
+    /// This is NOT redundant with the post-lex token retype: it is the ONLY mechanism that reaches a phrase word
+    /// the lexer does not make a keyword token (ANYCASE and LOCALE are §8.9 RESERVED words yet arrive as plain
+    /// IDENTIFIERs — <c>CobolExpressions.g4</c> functionArgument), and it is also what closes the de-reserved arm
+    /// for the words that ARE tokens: the retype turns a de-reserved LEADING into an IDENTIFIER, which would
+    /// otherwise reach the <c>cobolWord</c> branch below and be re-read as the keyword by its raw text.</para></summary>
+    private string? KeywordWordOf(Core.FunctionArgumentContext a)
     {
-        if (a.fnArgPhraseWord() is { } kw) return kw.GetText().ToUpperInvariant();
-        return SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0
-            && d.cobolWord() is { } cw ? cw.GetText().ToUpperInvariant() : null;
+        var tok = a.fnArgPhraseWord() is { } kw ? kw.Start
+            : SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0
+                && d.cobolWord() is { } cw ? cw.Start : null;
+        return CobolNet.Frontend.Parsing.CobolWordsRewriter.CanonicalWordOf(tok, ctx.CobolWords);
     }
 
     /// <summary>The argument's sole data reference — non-null when the arithmetic-expression alternative is

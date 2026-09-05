@@ -38,6 +38,14 @@ $specPath = Join-Path $repo 'specs/ISO_COBOL.md'
 $vcrPath  = Join-Path $repo 'docs/VERSION_CHANGE_REFERENCE.md'
 $csOut    = Join-Path $repo 'src/Cobol.Net.Editions/ReservedWords.Table.cs'
 $jsonOut  = Join-Path $repo 'tests/version-matrix/reserved-words.json'
+# The §8.10 CONTEXT-SENSITIVE word table (kb/Work PB250). >>COBOL-WORDS SR3 admits a context-sensitive
+# word as literal-1/3/4 and SR4 bars one as literal-2/5/6, so the compiler needs the §8.10 population as
+# well as §8.9's - it had only the words that happen to be lexer tokens, and rejected legal directives
+# naming HEX, CURRENT, LC_ALL, ANUM, BYTE, ACTIVATING, STACK, TOP-LEVEL, UCS-4, UTF-8, UTF-16, ...  The
+# directive is a 2023 introduction (cobol-words-directive-2023), so §8.10's 2023 table is exactly the
+# population its rules speak about and no per-edition flags are needed.
+$ctxCsOut   = Join-Path $repo 'src/Cobol.Net.Editions/ContextSensitiveWords.Table.cs'
+$ctxJsonOut = Join-Path $repo 'tests/version-matrix/context-sensitive-words.json'
 $cache    = Join-Path $repo '.cache/gnucobol-words'
 
 # ---- 0. Fetch the GnuCOBOL per-standard lists (cached; pinned tag first, master fallback) ----
@@ -92,12 +100,18 @@ for ($i = 0; $i -lt $lines.Count; $i++) {
     if ($start -ge 0 -and $lines[$i] -match '^#{2,}\s+8\.10\s') { $end = $i; break }
 }
 if ($start -lt 0 -or $end -lt 0) { throw "spec §8.9 section not located (start=$start end=$end)" }
+# ONE normalization for a spec word line - the list bullet, the inline-code fence that keeps Markdown from
+# eating '>' and '>>', and the &nbsp; padding of an OCR continuation fragment. Both the STEM line and the
+# CONTINUATION line must go through it (kb/Work PB250).
+function Normalize-SpecWordLine([string]$line) {
+    return ($line -replace '^\s*-\s+', '' -replace '`', '' -replace '&nbsp;', '').Trim()
+}
 $iso2023 = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
 for ($i = $start + 1; $i -lt $end; $i++) {
     # The list is a real Markdown list now (it rendered as run-on prose as bare lines), and the
     # special-character words are inline code so Markdown cannot eat them — `>` and `>>` used to VANISH into a
     # blockquote. Strip the bullet and the code fence before matching; the word regex below is unchanged.
-    $t = ($lines[$i] -replace '^\s*-\s+', '' -replace '`', '').Trim()
+    $t = Normalize-SpecWordLine $lines[$i]
     if ($t.Length -eq 0) { continue }
     $t = $t.Replace([char]0x2013, '-').Replace([char]0x2014, '-').ToUpperInvariant()
     switch ($t) {                                   # OCR remaps (DEVLOG 578 scout findings)
@@ -106,9 +120,14 @@ for ($i = $start + 1; $i -lt $end; $i++) {
     }
     # OCR line-splits: a long word wraps as 'STEM-' + an '&NBSP;&NBSP;FRAGMENT' continuation line
     # (the FLOAT-NOT-A-NUMBER-QUIET/-SIGNALING pair, DEVLOG 585) — join stem + next non-empty line.
+    # ⛔ THE CONTINUATION NEEDS THE SAME NORMALIZATION AS THE STEM (kb/Work PB250). The transcription
+    # repair that made the list a real Markdown list also bulleted and code-fenced the CONTINUATION lines
+    # ('- `&nbsp;&nbsp;QUIET`'), and this branch stripped only the entity - so the join produced
+    # 'FLOAT-NOT-A-NUMBER-- `QUIET`', the word regex dropped it, and a re-run of this generator SILENTLY
+    # un-reserved FLOAT-NOT-A-NUMBER-QUIET and -SIGNALING at 2023. Two normalizations, one shape: one place.
     if ($t.EndsWith('-')) {
         for ($j = $i + 1; $j -lt $end; $j++) {
-            $cont = ($lines[$j].Trim() -replace '&NBSP;', '' -replace '&nbsp;', '').Trim().ToUpperInvariant()
+            $cont = (Normalize-SpecWordLine $lines[$j]).ToUpperInvariant()
             if ($cont.Length -eq 0) { continue }
             $t = $t + $cont; $i = $j; break
         }
@@ -197,7 +216,7 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine('// GnuCOBOL per-standard word lists (85/2002/2014 flags; derived facts with provenance).')
 [void]$sb.AppendLine('// ReservedWordsDriftTests asserts this table equals tests/version-matrix/reserved-words.json.')
 [void]$sb.AppendLine('// </auto-generated>')
-[void]$sb.AppendLine('namespace CobolNet.Validation;')
+[void]$sb.AppendLine('namespace CobolNet.Editions;')   # must MATCH the committed table (kb/Work PB250: it said CobolNet.Validation, so a re-run broke the build)
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('public static partial class ReservedWords')
 [void]$sb.AppendLine('{')
@@ -212,6 +231,52 @@ foreach ($r in $rows) {
 [void]$sb.AppendLine('}')
 Set-Content -LiteralPath $csOut -Value $sb.ToString() -Encoding utf8
 
+# ---- 7b. Extract the 2023 §8.10 context-sensitive word list and emit its table (kb/Work PB250) ----
+$cstart = -1; $cend = -1
+for ($i = 0; $i -lt $lines.Count; $i++) {
+    if ($cstart -lt 0 -and $lines[$i] -match '^#{2,}\s+8\.10\s+Context-sensitive words') { $cstart = $i; continue }
+    if ($cstart -ge 0 -and $lines[$i] -match '^#{2,}\s+8\.11\s') { $cend = $i; break }
+}
+if ($cstart -lt 0 -or $cend -lt 0) { throw "spec §8.10 section not located (start=$cstart end=$cend)" }
+# The section is a sequence of two-column Markdown tables (the printed page breaks split it); every data row
+# is `| WORD | language construct or context |`. The repeated header rows are skipped by name.
+$ctxRows = [ordered]@{}
+for ($i = $cstart + 1; $i -lt $cend; $i++) {
+    if ($lines[$i] -match '^\|\s*\*{0,2}([A-Za-z][A-Za-z0-9_-]*)\*{0,2}\s*\|\s*(.+?)\s*\|\s*$') {
+        $w = $Matches[1].ToUpperInvariant()
+        if ($w -eq 'CONTEXT-SENSITIVE') { continue }
+        if (-not $ctxRows.Contains($w)) { $ctxRows[$w] = ($Matches[2] -replace '\*', '').Trim() }
+    }
+}
+if ($ctxRows.Count -lt 50) { throw "§8.10 extraction returned only $($ctxRows.Count) words - the table shape changed" }
+$ctxSorted = $ctxRows.Keys | Sort-Object
+$ctxJson = [ordered]@{
+    _comment = 'GENERATED by scripts/gen-reserved-words.ps1 - do not hand-edit. Source: ISO/IEC 1989:2023 §8.10 (specs/ISO_COBOL.md), the context-sensitive word table. Consumed by the >>COBOL-WORDS SR3/SR4 category validation (a 2023-only directive, so the 2023 table needs no per-edition flags). ContextSensitiveWordsDriftTests asserts this file, the C# table and the spec section all agree. CONTENT-FILTER RULE: never print this file into a conversation.'
+    words = @($ctxSorted | ForEach-Object { [pscustomobject]@{ word = $_; context = $ctxRows[$_] } })
+}
+$ctxJson | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $ctxJsonOut -Encoding utf8
+
+$cb = [System.Text.StringBuilder]::new()
+[void]$cb.AppendLine('// <auto-generated>')
+[void]$cb.AppendLine('// Generated by scripts/gen-reserved-words.ps1 — DO NOT EDIT; re-run the script.')
+[void]$cb.AppendLine('// Source: ISO/IEC 1989:2023 §8.10 Context-sensitive words (the whole table, verbatim).')
+[void]$cb.AppendLine('// ContextSensitiveWordsDriftTests asserts this table equals tests/version-matrix/context-sensitive-words.json')
+[void]$cb.AppendLine('// AND the spec section it came from.')
+[void]$cb.AppendLine('// </auto-generated>')
+[void]$cb.AppendLine('namespace CobolNet.Editions;')
+[void]$cb.AppendLine('')
+[void]$cb.AppendLine('public static partial class ContextSensitiveWords')
+[void]$cb.AppendLine('{')
+[void]$cb.AppendLine('    internal static readonly ContextSensitiveWordEntry[] Entries =')
+[void]$cb.AppendLine('    [')
+foreach ($w in $ctxSorted) {
+    $c = $ctxRows[$w].Replace('\', '\\').Replace('"', '\"')
+    [void]$cb.AppendLine("        new(""$w"", ""$c""),")
+}
+[void]$cb.AppendLine('    ];')
+[void]$cb.AppendLine('}')
+Set-Content -LiteralPath $ctxCsOut -Value $cb.ToString() -Encoding utf8
+
 # ---- 8. Report COUNTS ONLY (content-filter rule) ----
 $stats = [ordered]@{
     total = @($rows).Count; iso2023 = $iso2023.Count; gc85 = $gc85.Count; gc2002 = $gc2002.Count; gc2014 = $gc2014.Count
@@ -220,5 +285,6 @@ $stats = [ordered]@{
     removedPost85 = @($rows | Where-Object { $_.r85 -and -not $_.r2023 }).Count
     high = @($rows | Where-Object { $_.confidence -eq 'high' }).Count
     mediumIsoOnly = $mediumBuckets.isoOnly; mediumNonMonotone = $mediumBuckets.nonMonotone
+    contextSensitive = $ctxRows.Count
 }
 Write-Output ("reserved-word tables generated: " + (($stats.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ' '))

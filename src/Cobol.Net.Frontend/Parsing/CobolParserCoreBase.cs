@@ -30,6 +30,30 @@ public abstract class CobolParserCoreBase : Parser
         set => Edition = EditionInfo.Of(value, Edition.Permissive);
     }
 
+    /// <summary>
+    /// The compilation group's <c>&gt;&gt;COBOL-WORDS</c> overrides (ISO §7.3.10), set by the frontend beside
+    /// <see cref="DialectLevel"/>. <b>The parser needs it because several of its predicates classify a word by
+    /// TEXT</b> — LOCALE, ORDER, CLASSIFICATION, ATTRIBUTE and the LC_ categories are §8.9/§8.10 words that are
+    /// deliberately NOT lexer tokens, so the post-lex <c>CobolWordsRewriter</c> cannot reach them and a raw text
+    /// comparison here is inert to the directive in both directions: an EQUATEd synonym would not steer the
+    /// prediction (legal source rejected) and an UNDEFINE'd word would still steer it (the user's data-name
+    /// silently eaten). Every such comparison goes through <see cref="Canonical"/>; kb/Work PB250.
+    /// </summary>
+    public CobolWordsMap CobolWords { get; set; } = CobolWordsMap.Empty;
+
+    /// <summary>The canonical COBOL word <paramref name="written"/> denotes under this group's directives, or
+    /// null when the directive de-reserved it (ISO §7.3.10.4 GR3/GR4 — it is a user-defined word now, and no
+    /// syntax that requires the keyword may recognize it). Delegates to the ONE rule,
+    /// <see cref="CobolWordsMap.Resolve"/>. Allocation-free and branch-cheap on the overwhelmingly common
+    /// no-directive path, because these run inside ANTLR's speculative prediction.</summary>
+    /// <remarks>Takes a word the caller already knows is a plain spelling (a keyword literal passed by the
+    /// grammar, never token text) - token text goes through <see cref="Word"/>, which knows whether the
+    /// post-lex rewriter already resolved it.</remarks>
+    private string? Canonical(string? written)
+        => written is null ? null
+         : CobolWords.IsEmpty ? written
+         : CobolWords.Resolve(written.ToUpperInvariant());
+
     protected bool is85()   => Edition.Has(85);
     protected bool is2002() => Edition.Has(2002);
     protected bool is2014() => Edition.Has(2014);
@@ -58,13 +82,22 @@ public abstract class CobolParserCoreBase : Parser
     /// OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §12.3.6.2; kb/Work PB78). CLASSIFICATION is not a lexer
     /// token (a plain word at COBOL-85), so the arm is predicated on the text; every edition recognizes the shape
     /// and the binder rejects it as the A.4.9 documented non-support it is.</summary>
-    protected bool classificationAhead() =>
-        string.Equals(TokenStream.LT(1)?.Text, "CLASSIFICATION", StringComparison.OrdinalIgnoreCase);
+    protected bool classificationAhead() => Word(TokenStream.LT(1), "CLASSIFICATION");
 
     private static readonly string[] LocaleCategories =
         ["LC_ALL", "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME", "USER-DEFAULT"];
 
-    private static bool Word(IToken? t, string text) => t is not null && string.Equals(t.Text, text, StringComparison.OrdinalIgnoreCase);
+    /// <summary>⛔ THE ONE WORD-TEXT COMPARISON IN THIS CLASS (kb/Work PB250). Every predicate that recognizes a
+    /// COBOL word by its spelling calls this, so <c>&gt;&gt;COBOL-WORDS</c> is applied once, for the whole class,
+    /// in both directions: an EQUATE/SUBSTITUTE synonym resolves onto the canonical word and steers the same
+    /// prediction (§7.3.10.4 GR2/GR4), and an UNDEFINE'd word resolves to null and steers none (GR3). A new
+    /// predicate that writes its own <c>string.Equals(token.Text, …)</c> re-opens the defect.</summary>
+    private bool Word(IToken? t, string text)
+        => CobolNet.Frontend.Parsing.CobolWordsRewriter.TokenIs(t, text, CobolWords);
+
+    /// <summary>True when the token spells one of the §14.9.39 Format-11 locale-category words (LC_… /
+    /// USER-DEFAULT), through the <see cref="Word"/> funnel so the directive reaches them.</summary>
+    private bool IsLocaleCategory(IToken? t) => Array.Exists(LocaleCategories, c => Word(t, c));
 
     /// <summary>SET LOCALE {LC_… | USER-DEFAULT} TO … (ISO §14.9.39 Format 11; kb/Work PB92) — a LEFT-EDGE predicate
     /// (LT(1) is the SET token itself): true when LT(2)/LT(3) spell LOCALE and a locale category and LT(4) is TO — the
@@ -73,11 +106,11 @@ public abstract class CobolParserCoreBase : Parser
     protected bool setLocaleAhead()
     {
         if (!Word(TokenStream.LT(2), "LOCALE")) return false;
-        if (TokenStream.LT(3) is not { } cat || !Array.Exists(LocaleCategories, c => string.Equals(cat.Text, c, StringComparison.OrdinalIgnoreCase))) return false;
+        if (TokenStream.LT(3) is not { } cat || !IsLocaleCategory(cat)) return false;
         // The category operand is a SET (choice indicators): LT(3), LT(4), … are categories until the TO (bounded —
         // seven categories exist, so eight words is already malformed and the ordinary SET forms get it).
         int i = 4;
-        while (i <= 10 && TokenStream.LT(i) is { } w && Array.Exists(LocaleCategories, c => string.Equals(w.Text, c, StringComparison.OrdinalIgnoreCase))) i++;
+        while (i <= 10 && IsLocaleCategory(TokenStream.LT(i))) i++;
         if (!Word(TokenStream.LT(i), "TO")) return false;
         // ⚠ EDITION-GATED ONLY FOR THE USER-DEFAULT-FIRST SHAPE (kb/Work PB64 T1). `SET LOCALE LC_… TO x` has NO
         // COBOL-85 reading — LC_ALL … LC_TIME carry an underscore, which is not an '85 word character (§8.3.2.1;
@@ -85,6 +118,8 @@ public abstract class CobolParserCoreBase : Parser
         // (set-locale-2002, VisitSetLocaleStatement) answers below 2002 with the explanatory introduction diagnostic
         // instead of "'LOCALE' is not defined". `SET LOCALE USER-DEFAULT TO x` IS a legal '85 Format-1 statement (two
         // receivers named LOCALE and USER-DEFAULT), so that shape keeps its '85 reading below 2002.
+        // Keys on the WRITTEN spelling deliberately: the escape is about LEXICAL shape (an underscore is not an
+        // '85 word character), so a >>COBOL-WORDS synonym spelled without one correctly falls to the edition test.
         return cat.Text.StartsWith("LC_", StringComparison.OrdinalIgnoreCase) || Edition.Has(2002);
     }
 
@@ -116,8 +151,7 @@ public abstract class CobolParserCoreBase : Parser
     /// implementor-switch hazard, which does not exist inside a data description entry). Recognizing the phrase at
     /// every edition is what lets the ONE construct gate (<c>picture-locale-format2-2002</c>) answer below 2002
     /// with the explanatory introduction diagnostic instead of a raw ANTLR error at SIZE.</para></summary>
-    protected bool pictureLocaleAhead() =>
-        string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase);
+    protected bool pictureLocaleAhead() => Word(TokenStream.LT(1), "LOCALE");
 
     /// <summary>The SPECIAL-NAMES <c>ORDER TABLE ordering-name-1 IS literal-9</c> clause (ISO §12.3.7.2 — the last
     /// item of the paragraph's general format; kb/Work PB101). ORDER is not a lexer token (the same choice the
@@ -132,8 +166,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <c>order-table-2002</c> introduction diagnostic below 2002 instead of a raw parse error at TABLE
     /// (superset-parse / bind-narrow, and the two-obligation rule's diagnostic half).</para></summary>
     protected bool orderTableAhead() =>
-        string.Equals(TokenStream.LT(1)?.Text, "ORDER", StringComparison.OrdinalIgnoreCase)
-        && TokenStream.LT(2)?.Type == CobolLexer.TABLE;
+        Word(TokenStream.LT(1), "ORDER") && TokenStream.LT(2)?.Type == CobolLexer.TABLE;
 
     /// <summary>SET screen-name-1 ATTRIBUTE … (ISO §14.9.39.2 Format 6 — Annex A.4.2 item 24; kb/Work PB260) —
     /// a LEFT-EDGE predicate (LT(1) is the SET token itself): true when the word ATTRIBUTE stands somewhere in
@@ -179,7 +212,7 @@ public abstract class CobolParserCoreBase : Parser
 
     protected bool localeClauseAhead()
     {
-        if (!string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase)) return false;
+        if (!Word(TokenStream.LT(1), "LOCALE")) return false;
         // LOCALE <locale-name> [IS] <external-locale-name | literal> — the second token is the locale-name, a WORD,
         // so the '85 implementor-switch shapes `LOCALE IS x` / `LOCALE ON|OFF STATUS …` (IS/ON/OFF are tokens) are
         // excluded. ⚠ NOT edition-gated since kb/Work PB64 T1 (it was, because "SPECIAL-NAMES. LOCALE IS FOO." is a
@@ -190,7 +223,7 @@ public abstract class CobolParserCoreBase : Parser
         return TokenStream.LT(2) is { } second
             && second.Type != CobolLexer.IS && second.Type != CobolLexer.ON && second.Type != CobolLexer.OFF
             && second.Type != CobolLexer.DOT && second.Type != TokenConstants.EOF
-            && !string.Equals(second.Text, "IS", StringComparison.OrdinalIgnoreCase);
+            && !Word(second, "IS");
     }
 
     /// <summary>
@@ -218,15 +251,18 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>True when <paramref name="keyword"/> is a §8.9 reserved word at the compile edition — the
     /// cobolWord exclusion predicate (kb/Work PB137): a word the edition reserves cannot be a user-defined
     /// word, so the alternative that would absorb it into an operand list must not match.</summary>
+    /// <para>Through the &gt;&gt;COBOL-WORDS resolution (kb/Work PB250): an UNDEFINE'd word is not reserved
+    /// here at any edition (§7.3.10.4 GR3), and an EQUATEd synonym is reserved exactly where its canonical
+    /// word is (GR2).</para>
     protected bool reservedHere(string keyword)
-        => ReservedWords.Find(keyword)?.IsReservedAt(Edition.Year) ?? false;
+        => Canonical(keyword) is { } w && (ReservedWords.Find(w)?.IsReservedAt(Edition.Year) ?? false);
 
     protected bool facilityWord(string keyword)
     {
         var t = CurrentToken;
         if (t is null) return false;
-        if (!string.Equals(t.Text, keyword, StringComparison.OrdinalIgnoreCase)) return false;
-        return ReservedWords.Find(keyword)?.IsReservedAt(Edition.Year) ?? false;
+        if (!Word(t, keyword)) return false;
+        return reservedHere(keyword);
     }
 
     protected CobolParserCoreBase(ITokenStream input) : base(input) { }

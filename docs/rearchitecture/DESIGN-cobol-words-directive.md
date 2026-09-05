@@ -59,9 +59,56 @@ substitution and faithfully realizes all four options **without** per-group gram
 | RESERVE lit6 | — (lit6 stays `IDENTIFIER`) | add lit6 as high-confidence reserved-at-edition ⇒ `RejectsAt(lit6)=true` | — |
 
 The rewriter operates on **token TYPE** (keyword→identifier) and **token TEXT** (identifier→keyword), which are
-disjoint sets, so within a directive order is irrelevant; across directives SR5 forbids overlap. A word with
-**no keyword token type** (a pure intrinsic-function-name, or an unknown SR3 violation) is simply skipped by the
-rewriter and handled by the Compiler layer — the layers compose cleanly.
+disjoint sets, so within a directive order is irrelevant; across directives SR5 forbids overlap. The
+keyword→identifier direction matches on the token's TEXT as well as its type, because one token type can carry
+several COBOL words (`ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'`, `PIC : 'PICTURE' | 'PIC'`) while SR3 names exactly
+one.
+
+### §2.1 The rewriter is HALF the mechanism — the name-level resolution is the other half
+
+⛔ **This section was wrong until kb/Work PB250, and the wrong version cost a silent defect.** It read: "A word
+with **no keyword token type** (a pure intrinsic-function-name, or an unknown SR3 violation) is simply skipped by
+the rewriter and handled by the Compiler layer — the layers compose cleanly." The premise — that the only words
+without a keyword token type are intrinsic names — is false, and nothing measured it. **Measured against ISO
+§8.9 ∪ §8.10 (552 words): 447 are keyword tokens the rewriter can reach; 17 more ARE lexed but publish no ANTLR
+literal NAME (a multi-spelling rule), so the token map built from those names could not see them; and 88 are no
+token at all** — ANYCASE, LOCALE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL, the LC_
+categories, UCS-4/UTF-8/UTF-16 and the rest, deliberately left as bare `IDENTIFIER`s so the §15 phrase words
+parse as ordinary space-separated arguments. For every one of those the retype is a **silent no-op in both
+directions**: an EQUATEd synonym never became the keyword (legal source rejected) and an UNDEFINE'd word was
+still read as one (a wrong answer with no diagnostic).
+
+The design is therefore **two mechanisms over one rule**:
+
+| | reaches | how |
+|---|---|---|
+| **token retype** — `CobolWordsRewriter.Rewrite` | a word the lexer makes a keyword TOKEN | retype + re-spell canonically, before parsing |
+| **name resolution** — `CobolWordsMap.Resolve` / `.Is` | a word that lexes as a bare `IDENTIFIER` | at each point that classifies a word BY NAME |
+
+`CobolWordsMap.Resolve` is the ONE reading of GR2/GR3/GR4 (canonical for a synonym, `null` for a de-reserved
+word, the word itself otherwise) and both mechanisms call it. `CobolKeywordTokens` decides which mechanism owns
+a word, and answers mechanically — the ANTLR vocabulary as the fast path, then a **lex probe** (run the real
+lexer over the word and read the type it produces) for the multi-spelling rules the vocabulary hides. No
+hand-maintained list, so the next such rule is covered automatically.
+
+⛔ **The directive is applied to a word EXACTLY ONCE.** The retype already re-spells what it reaches, so text
+taken from a non-`IDENTIFIER` token has been resolved and must be compared RAW; resolving it again reads a
+SUBSTITUTE'd literal-4 — canonical and de-reserved at once — as "not a keyword" and loses the synonym the user
+wrote. `CobolWordsRewriter.CanonicalWordOf` / `.TokenIs` are the token-aware pair that knows this;
+`CobolWordsMap.Is` takes a word as WRITTEN and is for the words the lexer does not tokenize.
+
+**Where the name resolution is called** (each is a §8.9/§8.10 word the lexer does not tokenize):
+`IntrinsicBinder.KeywordWordOf` — the single funnel every §15 phrase word is read through, so TRIM, FIND-STRING,
+SUBSTITUTE, CONVERT, MODULE-NAME, LENGTH and NUMVAL-C/TEST-NUMVAL-C are covered by one call;
+`CobolParserCoreBase.Word` — the single text comparison behind every parser predicate (LOCALE, ORDER,
+CLASSIFICATION, ATTRIBUTE, the LC_ categories); `SetBinder` (SET LOCALE categories and USER-DEFAULT/
+SYSTEM-DEFAULT); `DataBinder.Switches` (the SPECIAL-NAMES LOCALE clause, the ALPHABET LOCALE phrase and the
+UCS-4/UTF-8/UTF-16 coded-set names); `CallBinder` and `VersionConformancePass` (`CALL … AS NESTED`, both arms).
+A new site that writes its own `string.Equals(text, "KEYWORD")` re-opens the defect.
+
+`CobolWordsReachDriftTests` measures all of this: every lexed §8.9/§8.10 word resolves to a token type, the lex
+probe agrees with the vocabulary wherever both answer, the multi-spelling words are reached ONLY by the probe,
+the population really is partitioned between the two mechanisms, and `Resolve` implements GR2–GR5.
 
 **Why not text substitution?** Text renaming cannot make a reserved word *stop* being a keyword (UNDEFINE /
 SUBSTITUTE lit4) and cannot distinguish keyword vs user-word uses; the token rewriter does both by construction.
@@ -120,11 +167,20 @@ is the user-word token type.
 - **SR5 (a word in ≤1 directive's literals)** — Frontend: a group-wide multiset of every literal's content;
   a repeat ⇒ COBOLNET1623 (SR5). (Both the modified word and its substitute count, per D.12.1.)
 - **SR3 (lit1/3/4 = reserved OR context OR intrinsic; not special-character)** — Compiler: reserved via
-  `ReservedWords.Find`, context via `DefaultVocabulary` (a keyword token exists), intrinsic via
-  `IntrinsicCatalog.TryGet`. None ⇒ COBOLNET1623 (SR3).
+  `ReservedWords.Find` (the generated §8.9 table), **context via `ContextSensitiveWords.Contains` (the
+  generated §8.10 table)**, intrinsic via `IntrinsicCatalog.TryGet`. None ⇒ COBOLNET1623 (SR3).
+  ⛔ This used to read "context via `DefaultVocabulary` (a keyword token exists)", which answers a DIFFERENT
+  question — the vocabulary knows only the context words this compiler happens to tokenize, so SR3 rejected
+  every legal directive naming one of the 31 that it does not (HEX, CURRENT, LC_ALL, ANUM, BYTE, ACTIVATING,
+  STACK, TOP-LEVEL, UCS-4, UTF-8, UTF-16, …) and no directive could name them at all (kb/Work PB250). §8.10's
+  own NOTE points the other way: "Words can be added or deleted from this list for a specific compilation
+  group by use of the COBOL-WORDS directive." The §8.10 table is generated from the spec section by
+  `scripts/gen-reserved-words.ps1` and drift-tested against it; it needs no per-edition flags because the
+  directive is a COBOL-2023 introduction, so 2023 is the only edition at which SR3/SR4 are ever asked.
 - **SR4 (lit2/5/6 NOT reserved/context/intrinsic; a valid user-defined word §8.3.2.2)** — Compiler: reject if
-  the word is reserved/context/intrinsic; the §8.3.2.2 well-formedness (letters/digits/hyphens, not all-digits,
-  no leading/trailing hyphen) is a cheap Frontend check at parse time.
+  the word is reserved (high-confidence, at-edition) / context-sensitive (§8.10 table) / intrinsic; the
+  §8.3.2.2 well-formedness (letters/digits/hyphens, not all-digits, no leading/trailing hyphen) is a cheap
+  Frontend check at parse time.
 
 ## §6 Hazards & resolutions
 
@@ -180,6 +236,18 @@ gate) → commit + push + a DEVLOG entry.
 - **Conformance negative** `tests/conformance/negative/cobol_words_*.cob` (+ `.err`) — below-2023 (0900),
   RESERVE-used-as-user-word (0901), SR violations (1623) — listed in `negative/manifest.json`.
 - **Version matrix** — the `cobol-words-directive-2023` row drives `VersionMatrixTests` + `ConstructRegistryDriftTests`.
+- **Reach drift** `tests/Cobol.Net.Tests.Unit/CobolWordsReachDriftTests.cs` — the §2.1 invariant, measured: every
+  lexed §8.9/§8.10 word resolves to a token type; the lex probe agrees with the vocabulary wherever both answer;
+  the multi-spelling keywords are reached ONLY by the probe (so removing it fails here, not silently in a user's
+  program); the population really is partitioned between the two mechanisms; `Resolve` implements GR2–GR5; and
+  `TokenIs` does not re-resolve a word the retype already resolved.
+- **§8.10 table drift** `tests/Cobol.Net.Tests.Unit/ContextSensitiveWordsDriftTests.cs` — the generated table
+  equals its JSON AND the spec section, and no word is in both §8.9-at-2023 and §8.10.
+- **Conformance, the name-level half** `tests/conformance/2023/pb250_cobol_words_phrase_word_{equate,undefine}.cob`
+  (a §15 phrase word the lexer does not tokenize, both directions),
+  `tests/conformance/2023/pb250_cobol_words_multi_spelling.cob` (UNDEFINE "ZERO" leaves ZEROS/ZEROES reserved),
+  and `tests/conformance/negative/pb250-cobol-words-undefined-keyword-syntax-withdrawn.cob` (GR3: the withdrawn
+  syntax is not available).
 
 > **Not conflated:** `tests/version-matrix/cobol-words.json` + `scripts/gen-cobol-words.ps1` are the STATIC
 > context-sensitive word-set single-source (the `cobolWord` rule + `_dataNameTokens`); they are unrelated to

@@ -88,7 +88,7 @@ internal sealed class VersionConformancePass
         //    (absorbs the former EditionValidator). Recognition-based so a below-edition construct that ALSO
         //    has a semantic error still names its edition — the bound node it would have produced may be
         //    dropped (BoundUnsupported/BoundNop), but its parse node is always present (DEVLOG 724). ──
-        new ParseArm(pass, reservedWords).VisitPositioned(group.Tree);
+        new ParseArm(pass, reservedWords, group.Session.CobolWords).VisitPositioned(group.Tree);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
@@ -134,14 +134,25 @@ internal sealed class VersionConformancePass
     }
 
     /// <summary>SR3 membership — broad (accept on any signal): a lexer keyword/context token, an intrinsic-function
-    /// name, or ANY §8.9 table entry.</summary>
+    /// name, ANY §8.9 table entry, or any §8.10 context-sensitive word.
+    /// <para>⛔ THE §8.10 ARM IS WHAT THE LEXER VOCABULARY CANNOT SUPPLY (kb/Work PB250).
+    /// <see cref="CobolKeywordTokens"/> knows only the context words this compiler TOKENIZES; the other 31 —
+    /// HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, STACK, TOP-LEVEL, the LC_ categories, UCS-4/UTF-8/UTF-16 and
+    /// the rest — arrive as bare IDENTIFIERs, so SR3 rejected the perfectly legal
+    /// <c>&gt;&gt;COBOL-WORDS EQUATE "HEX" WITH …</c> with COBOLNET1623 and no directive could name them at all.
+    /// §8.10's own NOTE is the counter-evidence: "Words can be added or deleted from this list for a specific
+    /// compilation group by use of the COBOL-WORDS directive."</para></summary>
     private static bool IsExistingWordCategory(string w) =>
-        CobolKeywordTokens.IsKeyword(w) || IntrinsicCatalog.TryGet(w, out _) || ReservedWords.Find(w) is not null;
+        CobolKeywordTokens.IsKeyword(w) || IntrinsicCatalog.TryGet(w, out _) || ReservedWords.Find(w) is not null
+        || ContextSensitiveWords.Contains(w);
 
     /// <summary>SR4 membership — narrow (reject only when certain): a lexer keyword/context token, an
-    /// intrinsic-function name, or a HIGH-CONFIDENCE reserved-at-edition table entry.</summary>
+    /// intrinsic-function name, a §8.10 context-sensitive word, or a HIGH-CONFIDENCE reserved-at-edition table
+    /// entry. The §8.10 arm is CERTAIN despite carrying no per-edition flags: the directive is a COBOL-2023
+    /// introduction (<c>cobol-words-directive-2023</c>; §7.3.10, Annex E.3.3 item 12), so 2023 is the only
+    /// edition at which this question is ever asked and the table transcribes exactly that edition.</summary>
     private static bool IsReservedCategory(string w, EditionInfo edition) =>
-        CobolKeywordTokens.IsKeyword(w) || IntrinsicCatalog.TryGet(w, out _)
+        CobolKeywordTokens.IsKeyword(w) || IntrinsicCatalog.TryGet(w, out _) || ContextSensitiveWords.Contains(w)
         || (ReservedWords.Find(w) is { Confidence: "high" } r && r.IsReservedAt(edition.Year));
 
     private static void ReportCobolWordsInvalid(IDiagnosticSink sink, string message) =>
@@ -468,7 +479,7 @@ internal sealed class VersionConformancePass
     /// dropped the pre-bind fail-fast), so a below-edition construct surfaces BOTH its edition diagnostic and
     /// its bind diagnostics — intended (both are true; the tests are contains-based).
     /// </summary>
-    private sealed class ParseArm(VersionConformancePass p, ReservedWordSet reservedWords)
+    private sealed class ParseArm(VersionConformancePass p, ReservedWordSet reservedWords, CobolWordsMap cobolWords)
         : CursorFollowingVisitor(p._sink)   // the cursor follows the walk (kb/Work PB82)
     {
         private readonly VersionConformancePass _p = p;
@@ -476,6 +487,10 @@ internal sealed class VersionConformancePass
         // composed with the 2023 >>COBOL-WORDS overlay (RESERVE/UNDEFINE/SUBSTITUTE); ReservedWordSet.Default when
         // the group has no directive (byte-identical).
         private readonly ReservedWordSet _reservedWords = reservedWords;
+        // The group's >>COBOL-WORDS overrides. The reserved-word SET above answers "is this word reserved";
+        // this answers "which keyword does this written word denote" - the question every TEXT-recognized
+        // §8.9/§8.10 word below asks, and the one a raw string comparison gets wrong (kb/Work PB250).
+        private readonly CobolWordsMap _cobolWords = cobolWords;
         // One COBOLNET0901 per distinct word per compilation (P2.4) — not one per occurrence.
         private HashSet<string>? _flaggedWords;
         // One COBOLNET1567 per distinct over-long word per compilation (the §8.3.2.1 length ceiling).
@@ -1118,12 +1133,12 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
             if (ctx.alphabetDefinition() is { } def && def.alphabetEntry() is [{ ChildCount: 1 } entry]
                 && entry.GetChild(0) is CobolParserCore.CobolWordContext w
-                && w.GetText().ToUpperInvariant() is "UCS-4" or "UTF-8" or "UTF-16")
+                && _cobolWords.Resolve(w.GetText().ToUpperInvariant()) is "UCS-4" or "UTF-8" or "UTF-16")
                 _p.Check(Constructs.AlphabetNational2002, $"the ALPHABET {w.GetText().ToUpperInvariant()} phrase");
             // `IS LOCALE [locale-name-2]` (§12.3.7.2, either branch) — the locale facility's collating sequence, a 2002
             // introduction (Annex A.4.9 item 10; kb/Work PB101). LOCALE is a plain word below 2002 (a code-name there),
             // so the phrase is recognized by SHAPE, the same test the binder applies (DataBinder.IsAlphabetLocalePhrase).
-            if (ctx.alphabetDefinition() is { } ldef && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(ldef))
+            if (ctx.alphabetDefinition() is { } ldef && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(ldef, _cobolWords))
                 _p.Check(Constructs.AlphabetLocale2002, "the ALPHABET LOCALE phrase");
             return base.VisitChildren(ctx);
         }
@@ -2026,7 +2041,7 @@ internal sealed class VersionConformancePass
             // program-prototype-name-1 is declared in the REPOSITORY paragraph (§14.9.4.3 SR16), so a reserved
             // word written there is a real §8.9 violation and must keep reaching the funnel.
             if (ctx.Parent is CobolParserCore.CallAsPhraseContext
-                && string.Equals(ctx.Start.Text, "NESTED", StringComparison.OrdinalIgnoreCase))
+                && _cobolWords.Is(ctx.Start.Text, "NESTED"))
                 return base.VisitChildren(ctx);
             if (ctx.Parent is CobolParserCore.LocaleClauseContext locale
                 && locale.cobolWord() is { Length: > 1 } localeWords
@@ -2050,7 +2065,7 @@ internal sealed class VersionConformancePass
             // REFERENCE to a SPECIAL-NAMES locale-name (LIVE since PB64 T1/T3 — the named IS LOCALE alphabet). The PB27 shape.
             if (ctx.Parent is CobolParserCore.AlphabetEntryContext ae
                 && ae.Parent is CobolParserCore.AlphabetDefinitionContext adef
-                && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(adef))
+                && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(adef, _cobolWords))
                 return base.VisitChildren(ctx);
             // PICTURE Format 2's `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2; kb/Work PB100, LIVE
             // since PB64 T6): LOCALE is the phrase's own keyword (a use OF the reserved word — exempt) and

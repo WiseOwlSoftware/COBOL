@@ -446,7 +446,10 @@
   "pb373_object_computer_name_inert",
   "pb485_constant_entry_spelling",
   "pb485_entry_format_legal_forms",
-  "pb230_incompatible_corresponding"
+  "pb230_incompatible_corresponding",
+  "pb250_cobol_words_phrase_word_equate",
+  "pb250_cobol_words_phrase_word_undefine",
+  "pb250_cobol_words_multi_spelling"
  ],
  "pending": [
   "pb485_value_only_format1"

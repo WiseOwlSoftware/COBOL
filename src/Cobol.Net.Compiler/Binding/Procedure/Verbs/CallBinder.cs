@@ -45,7 +45,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         if (call.callAsPhrase() is { } asPhrase)
         {
             string asWord = asPhrase.cobolWord().GetText();
-            asNested = string.Equals(asWord, "NESTED", StringComparison.OrdinalIgnoreCase);
+            // >>COBOL-WORDS (ISO §7.3.10.4; kb/Work PB250): NESTED is §8.9-reserved but is no lexer token, so an
+            // EQUATEd synonym reaches this arm and an UNDEFINE'd NESTED must fall to the prototype-name arm.
+            asNested = ctx.CobolWords.Is(asWord, "NESTED");
             if (!asNested)
             {
                 // §14.9.4.3 SR16: "Program-prototype-name-1 shall be specified in a program-specifier in the

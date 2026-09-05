@@ -85,7 +85,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var words = sl.cobolWord();                 // [0] = LOCALE, [1..] = categories | USER-DEFAULT
         bool setsUserDefault = false;
         var categories = LocaleCategorySet.None;
-        if (words[1].GetText().Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase))
+        // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4; kb/Work PB250): USER-DEFAULT and the LC_ categories are
+        // §8.9/§8.10 words the lexer does not tokenize, so the map reaches them only here.
+        if (ctx.CobolWords.Is(words[1].GetText(), "USER-DEFAULT"))
         {
             setsUserDefault = true;
             if (words.Length > 2)
@@ -99,7 +101,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             for (int i = 1; i < words.Length; i++)
             {
-                string w = words[i].GetText().ToUpperInvariant();
+                string written = words[i].GetText().ToUpperInvariant();
+                // The CANONICAL word decides the category (GR2/GR4); a de-reserved word resolves to null and
+                // is not a category at all (GR3) - the diagnostic below then names it, as it should.
+                string w = ctx.CobolWords.Resolve(written) ?? "";
                 LocaleCategorySet cat = w switch
                 {
                     "LC_ALL" => LocaleCategorySet.All,
@@ -121,7 +126,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 // §5.2.6.4 — "any single alternative shall be specified only once": the SAME word twice is the violation
                 // (LC_ALL beside LC_TIME is two different alternatives — redundant, legal).
                 bool duplicate = false;
-                for (int j = 1; j < i; j++) if (words[j].GetText().Equals(w, StringComparison.OrdinalIgnoreCase)) duplicate = true;
+                for (int j = 1; j < i; j++) if (ctx.CobolWords.Is(words[j].GetText(), w)) duplicate = true;
                 if (duplicate)
                 {
                     ctx.Edition.Error("COBOLNET1666", $"SET LOCALE … {w}: the category {w} is specified more than once — each alternative "
@@ -135,9 +140,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var to = sl.dataReference();
         string toText = to.GetText();
         string first = setsUserDefault ? "SET LOCALE USER-DEFAULT" : $"SET LOCALE {string.Join(' ', words.Skip(1).Select(x => x.GetText()))}";
-        if (toText.Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase) || toText.Equals("SYSTEM-DEFAULT", StringComparison.OrdinalIgnoreCase))
+        if (ctx.CobolWords.Is(toText, "USER-DEFAULT") || ctx.CobolWords.Is(toText, "SYSTEM-DEFAULT"))
         {
-            bool user = toText.Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase);
+            bool user = ctx.CobolWords.Is(toText, "USER-DEFAULT");
             if (setsUserDefault)
             {
                 ctx.Edition.Error("COBOLNET1667", $"{first} TO {toText.ToUpperInvariant()}: if USER-DEFAULT is specified as the first operand, "
@@ -176,7 +181,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// are LOCALE and LC_ALL (GR26) or USER-DEFAULT (GR27) — the predicate admitted exactly those.</summary>
     private BoundStatement BindSaveLocale(Core.SetLocaleStatementContext sl)
     {
-        bool userDefault = sl.cobolWord(1).GetText().Equals("USER-DEFAULT", StringComparison.OrdinalIgnoreCase);
+        bool userDefault = ctx.CobolWords.Is(sl.cobolWord(1).GetText(), "USER-DEFAULT");
         var target = sl.dataReference();
         if (ctx.Refs.Resolve(target) is not { } place || place.Item.Pic?.Category is not PicCategory.Pointer)
         {
