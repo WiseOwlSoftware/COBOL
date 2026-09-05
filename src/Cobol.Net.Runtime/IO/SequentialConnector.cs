@@ -101,15 +101,14 @@ public sealed class SequentialConnector : FileConnector
     // The LINAGE feature is COUNTER-ONLY on the physical stream: each logical page is contiguous to the next
     // with no additional spacing (§13.18.34 GR8 — no margin blank lines, nothing emitted at page wrap), so the
     // connector adds only the counter machine + the end-of-page flag over the unchanged pending-advance stream.
-    // The evaluator closure is the ONE mechanism for both operand forms (GR6a literals are constant lambdas;
-    // GR6b data-names defer the field reads to the evaluation points).
-    private Func<(int Body, int Footing, int Top, int Bottom)>? _linageEval;
+    // ⛔ THE OPERAND VALUES ARRIVE WITH THE STATEMENT (a LinagePage?, null = the file has no LINAGE clause), and
+    // ONE argument serves both operand forms — a literal operand renders a constant, a data-name operand renders
+    // the EXECUTING element's field read (§13.18.34 GR6a/GR6b). What the connector keeps is the page MODEL most
+    // recently determined, because GR6 says "the value applies to the next logical page"; it keeps no source, or
+    // a shared connector would answer with whichever element/activation installed one last (kb/Work PB673).
     private int _pageBody;      // page size — the writable page-body line count (GR2)
     private int _footing;       // footing start (GR3 — footing area = [footing, page size] inclusive); 0 = none
     private int _top, _bottom;  // top/bottom margins (GR4/GR5) — counted into the logical page (GR1), unprinted
-
-    /// <summary>True when the FD carries a LINAGE clause (the registration installed an evaluator).</summary>
-    public bool HasLinage => _linageEval is not null;
 
     /// <summary>The LINAGE-COUNTER register (ISO §8.4.3.14): the line number at which the device is positioned
     /// within the current page body (§13.18.34 GR7). Only this connector (the I-O control system) modifies it (GR7b).</summary>
@@ -119,17 +118,24 @@ public sealed class SequentialConnector : FileConnector
     /// printing/spacing within the footing area (GR26b). Reset at the start of every counter-advancing write.</summary>
     public bool EndOfPage { get; private set; }
 
-    /// <summary>Install the LINAGE evaluator (emitted right after registration for a LINAGE FD).</summary>
-    public void SetLinage(Func<(int Body, int Footing, int Top, int Bottom)> eval) => _linageEval = eval;
+    /// <summary>ISO §13.18.34 GR6 b) 1 — establish the logical page model <i>"at the completion of an OPEN
+    /// statement with the OUTPUT phrase"</i>, plus GR7 d)'s counter reset. Called by the registry after a
+    /// SUCCESSFUL OPEN OUTPUT, with the page the EXECUTING element's own LINAGE clause evaluates to.</summary>
+    public void BeginLinagePage(LinagePage page)
+    {
+        EvaluateLinage(page);
+        LinageCounter = 1;   // GR7d — the counter is set to one at OPEN OUTPUT
+        EndOfPage = false;
+    }
 
-    /// <summary>Evaluate the LINAGE operand values for the (next) logical page (ISO §13.18.34 GR6: at OPEN OUTPUT
+    /// <summary>Adopt the LINAGE operand values for the (next) logical page (ISO §13.18.34 GR6: at OPEN OUTPUT
     /// completion, during WRITE ADVANCING PAGE, and during a page-overflow WRITE — "the value applies to the next
     /// logical page"). GR6's value rules (page size &gt; 0; 0 &lt; footing ≤ page size — footing 0 here = the phrase
     /// is absent, GR1) violated ⇒ the EC-I-O-LINAGE exception condition (§13.18.34 GR6) — the EC subsystem is a
     /// later slice, so the seam fails LOUD (COBOLNET_DESIGN §1.4), never a silent bad page model.</summary>
-    private void EvaluateLinage()
+    private void EvaluateLinage(LinagePage page)
     {
-        var (body, footing, top, bottom) = _linageEval!();
+        var (body, footing, top, bottom) = page;
         if (body <= 0 || footing < 0 || footing > body)
             throw new InvalidOperationException(
                 $"EC-I-O-LINAGE: LINAGE values page-size={body}, footing={footing} violate ISO §13.18.34 GR6 "
@@ -156,7 +162,7 @@ public sealed class SequentialConnector : FileConnector
     /// The caller invokes this AFTER the physical write — the AT END-OF-PAGE branch then observes the
     /// post-advance counter (SQ201M's footing lines print the triggering write's line number).
     /// </summary>
-    private void AdvanceLinageCounter(int lines)
+    private void AdvanceLinageCounter(int lines, LinagePage page)
     {
         EndOfPage = false;   // reset at the start of every counter-advancing write (the legacy entry reset)
         if (_pageBody <= 0) return;
@@ -164,7 +170,7 @@ public sealed class SequentialConnector : FileConnector
         {
             // ADVANCING PAGE: the counter resets to one on the new page (§13.18.34 GR7c1).
             LinageCounter = 1;
-            EvaluateLinage();   // GR6b2 — values for the NEXT logical page
+            EvaluateLinage(page);   // GR6b2 — values for the NEXT logical page
             return;
         }
         // ADVANCING n (n >= 0) or plain WRITE (n = 1): the counter is incremented (GR7c2/c3).
@@ -175,7 +181,7 @@ public sealed class SequentialConnector : FileConnector
             // to the first writable line of the succeeding page and the counter resets to 1 (GR7c4).
             LinageCounter = 1;
             EndOfPage = true;
-            EvaluateLinage();   // GR6b3 — after the overflow decision against the OLD body; next-page values
+            EvaluateLinage(page);   // GR6b3 — after the overflow decision against the OLD body; next-page values
         }
         else if (_footing > 0 && LinageCounter >= _footing)
         {
@@ -293,12 +299,10 @@ public sealed class SequentialConnector : FileConnector
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
             }
-            if (mode == FileOpenMode.Output && _linageEval is not null)
-            {
-                EvaluateLinage();    // ISO §13.18.34 GR6b1 — values read at the completion of an OPEN OUTPUT
-                LinageCounter = 1;   // GR7d — the counter is set to one at OPEN OUTPUT
-                EndOfPage = false;
-            }
+            // ISO §13.18.34 GR6 b) 1 reads the operand values "at the COMPLETION of an OPEN statement with the
+            // OUTPUT phrase", so the page model is established by the registry's OPEN dispatch once this body has
+            // succeeded (FileRegistry.SharedOpenAttempt → BeginLinagePage) — with the page the EXECUTING element's
+            // LINAGE clause evaluates to, which is why it cannot be read from connector state here (PB673).
             return FileStatusCode.Success;
         }
     }
@@ -357,7 +361,7 @@ public sealed class SequentialConnector : FileConnector
     /// <paramref name="length"/> bytes (the DEPENDING item's content, §13.18.43 GR13a) or the image's own length
     /// (GR13b/c), failing with '44' outside the declared bounds (GR14). Valid only when open OUTPUT/EXTEND
     /// (else 48).</summary>
-    public string Write(string image, int length = -1)
+    public string Write(string image, int length, LinagePage? page)
     {
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
@@ -367,7 +371,7 @@ public sealed class SequentialConnector : FileConnector
         // ADVANCING phrase still line-advances (a raw fixed-width block would weld onto the previous line). In
         // the pending-advance stream model (each AFTER-write leads with its newline; CLOSE supplies the final
         // one), the write-then-advance shape reproduces the print stream the golden corpus encodes.
-        if ((_afterAdvancing || HasLinage) && !_lineSequential) return WriteAdvancing(image, 1, before: true);
+        if ((_afterAdvancing || page is not null) && !_lineSequential) return WriteAdvancing(image, 1, before: true, page);
         if (IsVarying)
         {
             int len = length >= 0 ? length : image.Length;
@@ -382,14 +386,14 @@ public sealed class SequentialConnector : FileConnector
         _afterAdvancing = false;
         // GR7c3 (§13.18.34): a plain WRITE to a LINAGE file advances the counter by one. Only the
         // line-sequential/varying shapes reach here (the record-sequential LINAGE write rerouted above).
-        if (_linageEval is not null) AdvanceLinageCounter(1);
+        if (page is { } pg) AdvanceLinageCounter(1, pg);
         return Status = FileStatusCode.Success;
     }
 
     /// <summary>Print-control <c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c> (ISO §14.9.46 GR): for
     /// AFTER, advance then write the trimmed image; for BEFORE, write then advance. <paramref name="lines"/> = -1
     /// means ADVANCING PAGE (a form feed). The leading/trailing newline structure matches the legacy print stream.</summary>
-    public string WriteAdvancing(string image, int lines, bool before)
+    public string WriteAdvancing(string image, int lines, bool before, LinagePage? page)
     {
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
@@ -400,7 +404,7 @@ public sealed class SequentialConnector : FileConnector
         // The LINAGE counter advances as part of the write, AFTER the physical presentation (the legacy
         // ordering): an AT END-OF-PAGE branch then reads the POST-advance counter of the triggering write
         // (§13.18.34 GR7c; SQ201M's footing lines print line 45).
-        if (_linageEval is not null) AdvanceLinageCounter(lines);
+        if (page is { } pg) AdvanceLinageCounter(lines, pg);
         return Status = FileStatusCode.Success;
     }
 
@@ -421,7 +425,7 @@ public sealed class SequentialConnector : FileConnector
     /// COBOL-2023): present the trimmed image at the CURRENT line, then advance by the BEFORE amount and by the AFTER
     /// amount — both after presentation (SR17 forbids PAGE, so neither is a form feed). LINAGE-COUNTER increments by
     /// n+m.</summary>
-    public string WriteBeforeAndAfter(string image, int beforeLines, int afterLines)
+    public string WriteBeforeAndAfter(string image, int beforeLines, int afterLines, LinagePage? page)
     {
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
@@ -431,9 +435,9 @@ public sealed class SequentialConnector : FileConnector
         // crossing WITHIN the BEFORE advance is handled by its own §14.9.51 GR26/GR7c overflow logic before the
         // AFTER advance runs (a single combined increment would mis-handle a boundary between the two).
         Advance(beforeLines);
-        if (_linageEval is not null) AdvanceLinageCounter(beforeLines);
+        if (page is { } pg) AdvanceLinageCounter(beforeLines, pg);
         Advance(afterLines);
-        if (_linageEval is not null) AdvanceLinageCounter(afterLines);
+        if (page is { } pg2) AdvanceLinageCounter(afterLines, pg2);
         return Status = FileStatusCode.Success;
     }
 

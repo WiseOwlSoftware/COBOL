@@ -57,17 +57,32 @@ public static class CobolFile
     public static void AddAlternateKey(string name, int offset, int length, bool duplicates, CobolCollation? collation = null, string? suppress = null)
         => _reg.AddAlternateKey(name, offset, length, duplicates, collation, suppress);
 
-    public static void OpenInput(string name) => _reg.Open(name, FileOpenMode.Input);
-    public static void OpenOutput(string name) => _reg.Open(name, FileOpenMode.Output);
-    public static void OpenExtend(string name) => _reg.Open(name, FileOpenMode.Extend);
-    public static void OpenIO(string name) => _reg.Open(name, FileOpenMode.IO);
+    // ⛔ EVERY OPEN ENTRY CARRIES THE EXECUTING ELEMENT'S OWN ASSIGN SPECIFICATION AND LINAGE PAGE, and none of
+    // the three parameters has a default: ISO §12.4.5.3 GR3 a)/b) and §13.18.34 GR6 b) both name the runtime
+    // element that EXECUTES the statement, and one file connector can be described by several of them (an
+    // EXTERNAL file connector is ONE object per run unit, §13.18.22.4 GR4 a; a RECURSIVE unit's is unit-scoped
+    // across activations, §8.6.4). Requiring the arguments makes an emitter path that forgets them a COMPILE
+    // error rather than a silent wrong file / wrong page — the shape that replaced the connector-held
+    // SetAssignUsing/SetLinage closures (kb/Work PB673; kb/Work PB168 is why they could not simply be guarded).
+    //   assign        — data-name-1's CONTENT when assignDynamic, else literal-1 / device-name-1's value.
+    //   assignDynamic — the executing element's file control entry writes the USING phrase (GR3 b).
+    //   page          — the executing element's LINAGE operand values, or null when its FD has no LINAGE clause.
+    public static void OpenInput(string name, string assign, bool assignDynamic, LinagePage? page)
+        => _reg.Open(name, FileOpenMode.Input, assign, assignDynamic, page);
+    public static void OpenOutput(string name, string assign, bool assignDynamic, LinagePage? page)
+        => _reg.Open(name, FileOpenMode.Output, assign, assignDynamic, page);
+    public static void OpenExtend(string name, string assign, bool assignDynamic, LinagePage? page)
+        => _reg.Open(name, FileOpenMode.Extend, assign, assignDynamic, page);
+    public static void OpenIO(string name, string assign, bool assignDynamic, LinagePage? page)
+        => _reg.Open(name, FileOpenMode.IO, assign, assignDynamic, page);
 
     /// <summary>OPEN … WITH NO REWIND (ISO §14.9.27) — the OPEN twin of <see cref="CloseNoRewind"/>. It takes
     /// the mode rather than splitting into four mode-specific entries because §14.9.27.3 SR6 admits only INPUT
     /// and OUTPUT and the phrase's effect (§14.9.27.4 GR11) does not depend on which of them was written; the
     /// medium determination itself belongs to <see cref="PhysicalFileCategory"/>, not to this facade
     /// (kb/Work PB317).</summary>
-    public static void OpenNoRewind(string name, FileOpenMode mode) => _reg.OpenNoRewind(name, mode);
+    public static void OpenNoRewind(string name, FileOpenMode mode, string assign, bool assignDynamic, LinagePage? page)
+        => _reg.OpenNoRewind(name, mode, assign, assignDynamic, page);
 
     /// <summary>CLOSE the file (emitted for each closed file-name).</summary>
     public static void Close(string name) => _reg.Close(name);
@@ -92,25 +107,23 @@ public static class CobolFile
     /// determination itself belongs to <see cref="PhysicalFileCategory"/>, not to this facade.</summary>
     public static void CloseNoRewind(string name) => _reg.CloseNoRewind(name);
 
+    // ⛔ AND EVERY WRITE ENTRY CARRIES THE EXECUTING ELEMENT'S LINAGE PAGE, for the same reason and with the same
+    // no-default discipline: §13.18.34 GR6 b) 2 and 3 read the operand values DURING a WRITE statement — the
+    // ADVANCING PAGE one and the one that causes a page overflow — so the values belong to the element executing
+    // that WRITE. `null` says the FD referenced by this statement has no LINAGE clause at all (kb/Work PB673).
+
     /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46); <paramref name="length"/> is the varying-record length
     /// (ISO §13.18.43 GR13a), -1 = the record's own size.</summary>
-    public static void Write(string name, string image, int length = -1) => _reg.Write(name, image, length);
+    public static void Write(string name, string image, int length, LinagePage? page)
+        => _reg.Write(name, image, length, page);
 
     /// <summary><c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c>; <paramref name="lines"/> = -1 is PAGE.</summary>
-    public static void WriteAdvancing(string name, string image, int lines, bool before)
-        => _reg.WriteAdvancing(name, image, lines, before);
+    public static void WriteAdvancing(string name, string image, int lines, bool before, LinagePage? page)
+        => _reg.WriteAdvancing(name, image, lines, before, page);
 
     /// <summary>COBOL-2023 combined <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/f).</summary>
-    public static void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines)
-        => _reg.WriteBeforeAndAfter(name, image, beforeLines, afterLines);
-
-    /// <summary>Install a LINAGE file's logical-page evaluator (ISO §13.18.34 GR6).</summary>
-    public static void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
-        => _reg.SetLinage(name, eval);
-
-    /// <summary>Install a file's ASSIGN … USING dynamic-assignment source (ISO §12.4.5.3 GR3 b / §9.1.21) — the
-    /// closure that reads the CURRENT content of data-name-1, consulted at every OPEN/SORT/MERGE.</summary>
-    public static void SetAssignUsing(string name, Func<string> source) => _reg.SetAssignUsing(name, source);
+    public static void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines, LinagePage? page)
+        => _reg.WriteBeforeAndAfter(name, image, beforeLines, afterLines, page);
 
     /// <summary>The file's LINAGE-COUNTER register (ISO §8.4.3.14 / §13.18.34 GR7).</summary>
     public static long LinageCounter(string name) => _reg.LinageCounter(name);
@@ -203,8 +216,9 @@ public static class CobolFile
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27). <paramref name="noRewind"/>
     /// carries the independent WITH NO REWIND phrase, which a sharing-phrase OPEN may also write.</summary>
     public static void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
-        FileRetryKind retryKind, int retryAmount, bool noRewind)
-        => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, noRewind);
+        FileRetryKind retryKind, int retryAmount, bool noRewind, string assign, bool assignDynamic, LinagePage? page)
+        => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, noRewind,
+            assign, assignDynamic, page);
 
     /// <summary>Record-lock governance for a just-completed FORMAT-2 (random) keyed READ (§9.1.16).
     /// <paramref name="phrase"/> is the RETENTION bracket (WITH LOCK / WITH NO LOCK) and
@@ -225,8 +239,8 @@ public static class CobolFile
 
     /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11).</summary>
     public static string WriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount)
-        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount);
+        FileRetryKind retryKind, int retryAmount, LinagePage? page)
+        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page);
 
     /// <summary>Governed REWRITE for a sharing-active connector, any organization (§14.9.35 GR11/GR12).</summary>
     public static string RewriteShared(string name, string image, int length, FileRecordLock phrase,

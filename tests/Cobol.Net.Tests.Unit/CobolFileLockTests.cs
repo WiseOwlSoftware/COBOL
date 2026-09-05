@@ -196,12 +196,12 @@ public sealed class CobolFileLockTests
     private static void TwoOpenSharers(string a, string b, string host)
     {
         TwoConnectorsOneFile(a, b, host);
-        CobolFile.OpenOutput(a);
+        CobolFile.OpenOutput(a, host, assignDynamic: false, page: null);
         CobolFile.SetRelativeKey(a, 1);
         Assert.Equal(FileStatusCode.Success, CobolFile.WriteKeyed(a, "AAAAA"));
         CobolFile.Close(a);
-        CobolFile.OpenIO(a);
-        CobolFile.OpenIO(b);
+        CobolFile.OpenIO(a, host, assignDynamic: false, page: null);
+        CobolFile.OpenIO(b, host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.Success, CobolFile.Status(a));
         Assert.Equal(FileStatusCode.Success, CobolFile.Status(b));
     }
@@ -234,12 +234,12 @@ public sealed class CobolFileLockTests
         CobolFile.SetRelativeKey("WA", 2);
         // §14.9.51 GR11 — WITH LOCK locks the record written.
         Assert.Equal(FileStatusCode.Success,
-            CobolFile.WriteShared("WA", "BBBBB", -1, FileRecordLock.WithLock, FileRetryKind.None, 0));
+            CobolFile.WriteShared("WA", "BBBBB", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));
         Assert.True(CobolFile.IsLockedByOther("WB", "2"));
         // §14.9.51 GR10 / §12.4.5.9 GR6 — single locking: the next WRITE releases the prior lock.
         CobolFile.SetRelativeKey("WA", 3);
         Assert.Equal(FileStatusCode.Success,
-            CobolFile.WriteShared("WA", "CCCCC", -1, FileRecordLock.None, FileRetryKind.None, 0));
+            CobolFile.WriteShared("WA", "CCCCC", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
         Assert.False(CobolFile.IsLockedByOther("WB", "2"));
     }
 
@@ -252,13 +252,13 @@ public sealed class CobolFileLockTests
         CobolFile.Register("SB", host, 5, false, false);
         CobolFile.RegisterSharing("SA", FileSharing.AllOther, FileLockMode.Manual, false);
         CobolFile.RegisterSharing("SB", FileSharing.AllOther, FileLockMode.Manual, false);
-        CobolFile.OpenOutput("SA");
-        CobolFile.Write("SA", "AAAAA");
-        CobolFile.Write("SA", "BBBBB");
-        CobolFile.Write("SA", "CCCCC");
+        CobolFile.OpenOutput("SA", host, assignDynamic: false, page: null);
+        CobolFile.Write("SA", "AAAAA", -1, page: null);
+        CobolFile.Write("SA", "BBBBB", -1, page: null);
+        CobolFile.Write("SA", "CCCCC", -1, page: null);
         CobolFile.Close("SA");
-        CobolFile.OpenInput("SA");
-        CobolFile.OpenInput("SB");
+        CobolFile.OpenInput("SA", host, assignDynamic: false, page: null);
+        CobolFile.OpenInput("SB", host, assignDynamic: false, page: null);
         // SA reads ordinal 1 WITH LOCK (§9.1.16 — the sequential lock identity is the ordinal position).
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadShared("SA", false, FileRecordLock.WithLock, false, false, FileRetryKind.None, 0, out string img));
@@ -300,7 +300,7 @@ public sealed class CobolFileLockTests
             else CobolFile.RegisterRelative(n, host, width, false, access, 4);
         }
         Register("SEED", Random);
-        CobolFile.OpenOutput("SEED");
+        CobolFile.OpenOutput("SEED", host, assignDynamic: false, page: null);
         for (int i = 0; i < recs.Length; i++)
         {
             if (!indexed) CobolFile.SetRelativeKey("SEED", i + 1);
@@ -311,7 +311,7 @@ public sealed class CobolFileLockTests
         {
             Register(n, Dynamic);
             CobolFile.RegisterSharing(n, FileSharing.AllOther, FileLockMode.Manual, false);
-            CobolFile.OpenIO(n);
+            CobolFile.OpenIO(n, host, assignDynamic: false, page: null);
         }
         // KA takes the first record WITH LOCK (§14.9.30.4 GR11 d) — manual locking sets it only on request).
         Assert.Equal(FileStatusCode.Success,
@@ -358,12 +358,12 @@ public sealed class CobolFileLockTests
         // MULTIPLE record locking, so GR11 a)'s blanket per-statement release is NOT what frees the lock below.
         CobolFile.RegisterSharing("IA", FileSharing.AllOther, FileLockMode.Manual, true);
         CobolFile.RegisterSharing("IB", FileSharing.AllOther, FileLockMode.Manual, true);
-        CobolFile.OpenOutput("IA");
+        CobolFile.OpenOutput("IA", host, assignDynamic: false, page: null);
         CobolFile.SetRelativeKey("IA", 1);
         Assert.Equal(FileStatusCode.Success, CobolFile.WriteKeyed("IA", "ALPHA"));
         CobolFile.Close("IA");
-        CobolFile.OpenIO("IA");
-        CobolFile.OpenIO("IB");
+        CobolFile.OpenIO("IA", host, assignDynamic: false, page: null);
+        CobolFile.OpenIO("IB", host, assignDynamic: false, page: null);
 
         string Read(string who, FileRecordLock retention, bool ignoring)
         {
@@ -400,8 +400,8 @@ public sealed class CobolFileLockTests
         const string host = "lk-dfs.dat";
         CobolFile.Register("DA", host, 5, false, false);
         CobolFile.Register("DB", host, 5, false, false);
-        CobolFile.OpenOutput("DA");
-        CobolFile.Write("DA", "HELLO");
+        CobolFile.OpenOutput("DA", host, assignDynamic: false, page: null);
+        CobolFile.Write("DA", "HELLO", -1, page: null);
         // §9.1.13.9 item 2 / §14.9.10 GR15 — the physical file is open by ANOTHER connector → 62 (not deleted).
         // EVERY retry form exhausts to 62: §14.7.9.3's closing paragraph lands the conflict's own §9.1.13 status
         // and §9.1.13.9 defines no deadlock value for a FILE SHARING conflict (kb/Work PB142).

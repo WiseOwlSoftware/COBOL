@@ -153,11 +153,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         using (w.Block($"public {csName}()"))
         {
             U.SeqIo.EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
-            // ISO §12.4.5.3 GR3 b — dynamic file assignment is the object's too (§9.1.21, and Annex D.19.9.2's own
-            // worked example is an instance file: "SELECT EMPLOYEE-FILE ASSIGN USING FILE-REF"). The source closes
-            // over THIS object's data item, so it installs in the ctor beside the registration — the second arm of
-            // the registration dispatch, which the program path reaches through DispatchEmitter.__Activate.
-            U.SeqIo.EmitAssignSources(w);
+            // ⛔ Nothing else installs here. Dynamic file assignment (ISO §12.4.5.3 GR3 b / §9.1.21 — Annex
+            // D.19.9.2's own worked example is an instance file, "SELECT EMPLOYEE-FILE ASSIGN USING FILE-REF")
+            // and the LINAGE operand values (§13.18.34 GR6 b) now travel with the OPEN/WRITE statements that read
+            // them, so this ctor and DispatchEmitter.__Activate cannot drift apart on them: the LINAGE half used
+            // to be installed ONLY on the program path, leaving a class's LINAGE FD with no page model at all
+            // (kb/Work PB673 — the second arm of this registration dispatch).
             // A REPORT SECTION in this object/factory (Report Writer is a complete subsystem — the class emit path
             // just has to CALL it, the same class-emit-gap shape as inc 3/5): the engines construct AFTER their FDs
             // register (COBOLNET_REPORT_WRITER_DESIGN §4). Early-returns when Reports.Count == 0.

@@ -110,7 +110,7 @@ public sealed class CloseTable14Tests
         try
         {
             reg.Register("S", Path.Combine(dir, "s.dat"), 8, lineSequential: false, optional: false, -1, -1);
-            reg.Open("S", FileOpenMode.Output);
+            reg.OpenStatic("S", FileOpenMode.Output);
 
             reg.CloseReelUnit("S");                     // Non-unit × CLOSE UNIT = e
             Assert.Equal(FileStatusCode.PhraseOnNonReelMedium, reg.Status("S"));
@@ -155,20 +155,20 @@ public sealed class CloseTable14Tests
             reg.Register("S", Path.Combine(dir, "s.dat"), 8, lineSequential: false, optional: false, -1, -1);
 
             // (a) Non-unit × OPEN … WITH NO REWIND = §14.9.27.4 GR11: successful, and '07' (§9.1.13.2 item 6).
-            reg.OpenNoRewind("S", FileOpenMode.Output);
+            reg.OpenNoRewindStatic("S", FileOpenMode.Output);
             Assert.Equal(FileStatusCode.PhraseOnNonReelMedium, reg.Status("S"));
 
             // §14.9.27.4 GR25 a) — an UNSUCCESSFUL open keeps the value naming why it failed; GR11's warning is
             // an overlay on a successful open, never a replacement for a diagnosis. Here the connector is
             // already open, so GR2 owes '41' and the phrase must not overwrite it.
-            reg.OpenNoRewind("S", FileOpenMode.Input);
+            reg.OpenNoRewindStatic("S", FileOpenMode.Input);
             Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.Status("S"));
             reg.Close("S");
 
             // (d) Non-sequential: §14.9.27.3 SR5 rejects the phrase at bind time (COBOLNET1802), so the runtime
             // arm behind it is loud — the OPEN twin of the CLOSE N/A cells asserted above.
             reg.RegisterRelative("R", Path.Combine(dir, "r.dat"), 8, false, 0, 4, -1, -1);
-            Assert.Throws<InvalidOperationException>(() => reg.OpenNoRewind("R", FileOpenMode.Input));
+            Assert.Throws<InvalidOperationException>(() => reg.OpenNoRewindStatic("R", FileOpenMode.Input));
         }
         finally { try { Directory.Delete(dir, recursive: true); } catch { } }
     }

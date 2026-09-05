@@ -133,7 +133,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     {
         if (Refused() is not { } witness) return;
         var reg = Register(organization, witness, optional);
-        reg.Open("F", FileOpenMode.Input);
+        reg.OpenStatic("F", FileOpenMode.Input);
         Assert.Equal("37", reg.Status("F"));
     }
 
@@ -149,7 +149,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     {
         if (Refused() is not { } witness) return;
         var reg = Register("seq", witness, optional);
-        reg.Open("F", mode);
+        reg.OpenStatic("F", mode);
         Assert.Equal("37", reg.Status("F"));
     }
 
@@ -165,7 +165,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         string fresh = Path.Combine(_root, "locked", "brand-new.dat");
         if (!RawCreateSucceeds(fresh)) return;   // a host that refuses creation too has no case to guard here
         var reg = Register("seq", fresh, optional: false);
-        reg.Open("F", FileOpenMode.Output);
+        reg.OpenStatic("F", FileOpenMode.Output);
         Assert.Equal("00", reg.Status("F"));
         reg.Close("F");
     }
@@ -178,7 +178,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     {
         if (Refused() is not { } witness) return;
         var reg = Register("seq", witness, optional: false);
-        reg.Open("F", FileOpenMode.Output);
+        reg.OpenStatic("F", FileOpenMode.Output);
         Assert.Equal("37", reg.Status("F"));
     }
 
@@ -211,7 +211,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     {
         if (NotWritable() is not { } witness) return;
         var reg = Register(organization, witness, optional: false);
-        reg.Open("F", mode);
+        reg.OpenStatic("F", mode);
         Assert.Equal("37", reg.Status("F"));
     }
 
@@ -226,7 +226,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     {
         if (NotWritable() is not { } witness) return;
         var reg = Register(organization, witness, optional: true);
-        reg.Open("F", FileOpenMode.IO);
+        reg.OpenStatic("F", FileOpenMode.IO);
         Assert.Equal("37", reg.Status("F"));
     }
 
@@ -241,7 +241,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         byte[] before = File.ReadAllBytes(witness);
         DateTime stamp = File.GetLastWriteTimeUtc(witness);
         var reg = Register("idx", witness, optional: false);
-        reg.Open("F", FileOpenMode.IO);
+        reg.OpenStatic("F", FileOpenMode.IO);
         Assert.Equal("37", reg.Status("F"));
         Assert.Equal(before, File.ReadAllBytes(witness));
         Assert.Equal(stamp, File.GetLastWriteTimeUtc(witness));
@@ -259,7 +259,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     {
         if (NotWritable() is not { } witness) return;
         var reg = Register(organization, witness, optional: false);
-        reg.Open("F", FileOpenMode.Input);
+        reg.OpenStatic("F", FileOpenMode.Input);
         Assert.Equal("00", reg.Status("F"));
         reg.Close("F");
     }
@@ -274,12 +274,12 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     {
         string p = Path.Combine(_root, $"writable-{organization}.dat");
         var make = Register(organization, p, optional: false);
-        make.Open("F", FileOpenMode.Output);
+        make.OpenStatic("F", FileOpenMode.Output);
         Assert.Equal("00", make.Status("F"));
         make.Close("F");
 
         var reg = Register(organization, p, optional: false);
-        reg.Open("F", FileOpenMode.IO);
+        reg.OpenStatic("F", FileOpenMode.IO);
         Assert.Equal("00", reg.Status("F"));
         reg.Close("F");
     }
@@ -323,7 +323,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         if (NotReadable() is not { } witness) return;
         Assert.Equal(FilePresence.Present, HostFile.Probe(witness));   // not GR3's arm: the file IS observable
         var reg = Register(organization, witness, optional: false);
-        reg.Open("F", FileOpenMode.Input);
+        reg.OpenStatic("F", FileOpenMode.Input);
         Assert.Equal("37", reg.Status("F"));
     }
 
@@ -345,7 +345,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
             "The premise of this test is a file the WRITE probe accepts; if it does not, the '37' below could "
             + "be the write half answering and GR16's read half would still be unmeasured.");
         var reg = Register(organization, witness, optional: false);
-        reg.Open("F", FileOpenMode.IO);
+        reg.OpenStatic("F", FileOpenMode.IO);
         Assert.Equal("37", reg.Status("F"));
     }
 

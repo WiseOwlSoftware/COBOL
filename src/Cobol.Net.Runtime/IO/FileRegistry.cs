@@ -189,15 +189,16 @@ public sealed class FileRegistry
     /// <summary>OPEN in <paramref name="mode"/> (ISO §14.9.27), with no sharing or retry phrase on the statement
     /// — <see cref="OpenCore"/> arbitrates it against the physical-file registry exactly like the phrase-bearing
     /// <see cref="OpenShared"/>, one polymorphic dispatch for all three organizations.</summary>
-    public void Open(string name, FileOpenMode mode) => OpenCore(name, mode, null, FileRetryKind.None, 0, false);
+    public void Open(string name, FileOpenMode mode, string assign, bool assignDynamic, LinagePage? page)
+        => OpenCore(name, mode, null, FileRetryKind.None, 0, false, assign, assignDynamic, page);
 
     /// <summary>OPEN … WITH NO REWIND (ISO §14.9.27) — the same arbitrated <see cref="OpenCore"/> with the
     /// phrase's flag set, so the '07' overlay is the ONE effect site whichever entry point the emitter picks.
     /// The OPEN twin of <see cref="CloseNoRewind"/>: the same phrase, the same medium model, the same '07'
     /// (§9.1.13.2 item 6). Before kb/Work PB317 the phrase was parsed and dropped, so an OPEN … WITH NO REWIND
     /// reported '00' while its CLOSE spelling reported '07'.</summary>
-    public void OpenNoRewind(string name, FileOpenMode mode)
-        => OpenCore(name, mode, null, FileRetryKind.None, 0, true);
+    public void OpenNoRewind(string name, FileOpenMode mode, string assign, bool assignDynamic, LinagePage? page)
+        => OpenCore(name, mode, null, FileRetryKind.None, 0, true, assign, assignDynamic, page);
 
     /// <summary>⛔ THE ONE SITE for the OPEN statement's NO REWIND phrase — §14.9.27.4 GR11 and GR12, keyed on
     /// the SAME medium model the CLOSE arm's Table 14 is keyed on (<see cref="PhysicalFileCategory"/>), so the
@@ -384,41 +385,38 @@ public sealed class FileRegistry
 
     /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46); <paramref name="length"/> is the varying-record length
     /// (§13.18.43 GR13a), -1 = the record's own size.</summary>
-    public void Write(string name, string image, int length)
-    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.Write(image, length); }
+    public void Write(string name, string image, int length, LinagePage? page)
+    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.Write(image, length, page); }
 
     /// <summary><c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c>; <paramref name="lines"/> = -1 is PAGE.</summary>
-    public void WriteAdvancing(string name, string image, int lines, bool before)
-    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteAdvancing(image, lines, before); }
+    public void WriteAdvancing(string name, string image, int lines, bool before, LinagePage? page)
+    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteAdvancing(image, lines, before, page); }
 
     /// <summary>COBOL-2023 combined <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/f).</summary>
-    public void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines)
-    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteBeforeAndAfter(image, beforeLines, afterLines); }
-
-    /// <summary>Install a LINAGE file's logical-page evaluator (ISO §13.18.34 GR6).</summary>
-    public void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
-    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.SetLinage(eval); }
-
-    /// <summary>Install a file's ASSIGN … USING dynamic-assignment source (ISO §12.4.5.3 GR3 b / §9.1.21). Applies to
-    /// EVERY organization — the ASSIGN clause is common to all four SELECT formats — so it is deliberately NOT
-    /// narrowed to a connector kind the way <see cref="SetLinage"/> is.</summary>
-    public void SetAssignUsing(string name, Func<string> source)
-    { if (_files.TryGetValue(name, out var c)) c.SetAssignUsing(source); }
+    public void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines, LinagePage? page)
+    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteBeforeAndAfter(image, beforeLines, afterLines, page); }
 
     /// <summary>
     /// ISO §12.4.5.3 GR3, reached from §14.9.27.4 GR26 — THE ONE PLACE a statement establishes the connector's
-    /// association with a physical file, called from the OPEN entries (<see cref="Open"/>, <see cref="OpenShared"/> —
-    /// which the emitted SORT/MERGE implicit opens also reach, §14.9.40.4 GR12a/GR15a, §14.9.24.4 GR7a) and from
-    /// <see cref="DeleteFile"/>. Returns false when the association could not be made: the connector then carries the
+    /// association with a physical file, with EXACTLY ONE caller — <see cref="OpenCore"/>, the single OPEN dispatch
+    /// that <see cref="Open"/>, <see cref="OpenNoRewind"/>, <see cref="OpenShared"/> and the emitted SORT/MERGE
+    /// implicit opens (§14.9.40.4 GR12a/GR15a, §14.9.24.4 GR7a) all funnel through. <see cref="DeleteFile"/> does NOT
+    /// associate: §12.4.5.3 GR3's list of associating statements is closed (OPEN, SORT, MERGE), so it reads the
+    /// standing association and takes §14.9.10.4 GR14's '05' when there is none. Returns false when the association
+    /// could not be made: the connector then carries the
     /// §9.1.13.6 item 2 '31' status and the statement does NOT proceed — GR3's closing sentence, "the OPEN, SORT, or
     /// MERGE statement is unsuccessful".
     /// <para>An unregistered name falls through to the caller's own <see cref="Require"/>, which reports the compiler
     /// defect loudly (kb/Work PB140); this method never invents a status for one.</para>
+    /// <para>⛔ The specification is the STATEMENT'S argument, rendered by the emitter from the file control entry of
+    /// the runtime element executing this OPEN — never connector state. GR3 a) and b) both name that element, and one
+    /// file connector can be described by several of them (§13.18.22.4 GR4 a: an EXTERNAL file connector is ONE object
+    /// per run unit); a connector-held source answered with whichever element installed it last (kb/Work PB673).</para>
     /// </summary>
-    private bool Associate(string name)
+    private bool Associate(string name, string assign, bool assignDynamic)
     {
         if (!_files.TryGetValue(name, out var c)) return true;
-        if (c.Associate() is not { } failed) return true;
+        if (c.Associate(assign, assignDynamic) is not { } failed) return true;
         c.SetStatus(failed);   // '31' — the status assignment is also the §15.28.4 r2a access record (PB63)
         return false;
     }
@@ -734,14 +732,15 @@ public sealed class FileRegistry
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
-        FileRetryKind retryKind, int retryAmount, bool noRewind)
+        FileRetryKind retryKind, int retryAmount, bool noRewind, string assign, bool assignDynamic, LinagePage? page)
     {
         // A sharing/retry phrase on the OPEN makes the connector a record-locking participant even without a
         // SELECT clause. Its SHARING MODE is still whatever §9.1.15 gives it: the phrase's mode when a SHARING
         // phrase is written, otherwise the undetermined implementor default — never a hard-coded ALL OTHER.
         if (!_connectorShares.ContainsKey(name))
             RegisterSharing(name, ImplementorDefaultSharing, FileLockMode.None, false);
-        OpenCore(name, mode, hasSharingOverride ? sharingOverride : null, retryKind, retryAmount, noRewind);
+        OpenCore(name, mode, hasSharingOverride ? sharingOverride : null, retryKind, retryAmount, noRewind,
+            assign, assignDynamic, page);
     }
 
     /// <summary>⛔ THE ONE OPEN DISPATCH (ISO §14.9.27). Every OPEN — phrase-bearing or plain — arbitrates against
@@ -763,7 +762,7 @@ public sealed class FileRegistry
     /// (kb/Work PB317). The overlay is self-guarding: §14.9.27.4 GR25 a) owns an unsuccessful open's status, so
     /// <see cref="NoRewindPhraseEffect"/> writes '07' only over a status whose first digit is '0'.</para></summary>
     private void OpenCore(string name, FileOpenMode mode, FileSharing? sharingOverride,
-        FileRetryKind retryKind, int retryAmount, bool noRewind)
+        FileRetryKind retryKind, int retryAmount, bool noRewind, string assign, bool assignDynamic, LinagePage? page)
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
         // §14.9.27.4 GR26 → §12.4.5.3 GR3, and BEFORE the Table-19 arbitration: a sharing conflict is defined
@@ -772,19 +771,19 @@ public sealed class FileRegistry
         // loop: data-name-1's content is read once per OPEN statement (GR3 b), not once per retry attempt.
         // ⛔ ONE call site for BOTH entry points — the plain Open and OpenShared both funnel through here
         // (kb/Work PB324 landed on top of PB321's unified dispatch).
-        if (!Associate(name)) return;
+        if (!Associate(name, assign, assignDynamic)) return;
         // SharedOpenAttempt sets the connector status on the terminal attempt, and RetryLoop lands an exhausted
         // retry on the CONFLICT'S OWN status (§14.7.9.3 closing paragraph → §9.1.13.9 item 1 = '61'), so there is
         // nothing left to override afterwards — the former `if (status == Deadlock) SetStatusOf(…)` line existed
         // only to re-assert the '52' RetryLoop used to manufacture (kb/Work PB142).
-        _ = RetryLoop(() => SharedOpenAttempt(name, mode, sharingOverride), retryKind, retryAmount);
+        _ = RetryLoop(() => SharedOpenAttempt(name, mode, sharingOverride, page), retryKind, retryAmount);
         // The WITH NO REWIND phrase's own effect — the ONE effect site, never a second copy (kb/Work PB317).
         if (noRewind) NoRewindPhraseEffect(name);
     }
 
     /// <summary>The arbitrated OPEN body. Returns the resulting I-O status; on a Table-19 conflict returns 61
     /// without opening the connector, leaving the file <i>"not affected"</i> (§14.9.27.4 GR25).</summary>
-    private string SharedOpenAttempt(string name, FileOpenMode mode, FileSharing? sharingOverride)
+    private string SharedOpenAttempt(string name, FileOpenMode mode, FileSharing? sharingOverride, LinagePage? page)
     {
         var c = Require(name);   // an unregistered name is a COMPILER defect and LOUD (kb/Work PB140)
         if (_locked.Contains(name)) { c.SetStatus(FileStatusCode.FileLocked); return FileStatusCode.FileLocked; }  // ≤2014 CLOSE WITH LOCK
@@ -815,6 +814,10 @@ public sealed class FileRegistry
             // only for a connector with a SHARING/LOCK MODE clause, so unshared sequential I/O is untouched by
             // the lock subsystem even though it now takes part in the Table-19 arbitration.
             if (c is SequentialConnector f && _connectorShares.ContainsKey(name)) f.SeedSharedWriteBase();
+            // ISO §13.18.34 GR6 b) 1 — the LINAGE operand values are read "at the completion of an OPEN statement
+            // with the OUTPUT phrase", so the page model is established HERE, with the page the EXECUTING element's
+            // own LINAGE clause evaluated to (kb/Work PB673), and only for an open that actually succeeded.
+            if (mode == FileOpenMode.Output && page is { } pg && c is SequentialConnector sq) sq.BeginLinagePage(pg);
         }
         return status;
     }
@@ -1033,11 +1036,11 @@ public sealed class FileRegistry
     /// GR16's RETRY governs implementor "resources … locked by another run unit", which cannot arise in-process,
     /// so the first attempt decides. Returns the I-O status.</summary>
     public string WriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount)
+        FileRetryKind retryKind, int retryAmount, LinagePage? page)
     {
         _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
-        if (!_connectorShares.TryGetValue(name, out var meta)) return WriteAnyOrg(c, image, length);
+        if (!_connectorShares.TryGetValue(name, out var meta)) return WriteAnyOrg(c, image, length, page);
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         if (!meta.Multiple) PhysicalFileTable.ReleaseAllForConnector(st, name);   // GR10 / §12.4.5.9 GR6
         bool wantLock = phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name);   // GR11
@@ -1046,7 +1049,7 @@ public sealed class FileRegistry
             string pf = _physical.PreflightNewLock(st, name);   // §12.4.5.9 GR7 — the statement fails BEFORE the write (§14.9.51 GR15)
             if (pf != FileStatusCode.Success) { c.SetStatus(pf); return pf; }
         }
-        string status = WriteAnyOrg(c, image, length);
+        string status = WriteAnyOrg(c, image, length, page);
         if (wantLock && status.Length > 0 && status[0] == '0' && c.LastWrittenRecordId is { Length: > 0 } recId)
             _physical.LockRecord(st, name, recId);   // GR11 — the just-released record's lock is set
         return status;
@@ -1122,9 +1125,9 @@ public sealed class FileRegistry
 
     /// <summary>The plain WRITE body over any organization (one polymorphic dispatch — the governed entry's
     /// operation half; the sequential arm is the same connector call the ungoverned <see cref="Write"/> makes).</summary>
-    private static string WriteAnyOrg(FileConnector c, string image, int length) => c switch
+    private static string WriteAnyOrg(FileConnector c, string image, int length, LinagePage? page) => c switch
     {
-        SequentialConnector f => f.Write(image, length),
+        SequentialConnector f => f.Write(image, length, page),
         RelativeConnector r => r.Write(image, length),
         IndexedConnector ix => ix.Write(image, length),
         _ => FileStatusCode.PermanentError,
@@ -1238,7 +1241,11 @@ public sealed class FileRegistry
 
     // ── Internals ────────────────────────────────────────────────────────────────────────────────────────────
 
-    private string HostPathOf(string name) => _files.TryGetValue(name, out var c) ? c.HostPath : name;
+    /// <summary>The connector's LIVE §12.4.5.3 GR3 association — the resolved host path it is associated with
+    /// right now (an unknown name answers with the key itself, which the physical-file table treats as its own
+    /// bucket). Public because the association is a queryable property of the connector, not registry-private
+    /// state: it changes at every OPEN/SORT/MERGE, so nothing may cache it.</summary>
+    public string HostPathOf(string name) => _files.TryGetValue(name, out var c) ? c.HostPath : name;
 
     private void SetStatusOf(string name, string status)
     {

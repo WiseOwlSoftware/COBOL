@@ -214,7 +214,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         {
             var (retryKind, retryAmount) = SeqIo.RenderRetry(wr.Retry);
             string lenArg = SeqIo.VaryingLengthArg(file) ?? "-1";
-            w.Line($"var {st} = {RuntimeApi.FileWriteShared(name, wimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(wr.Lock), retryKind, retryAmount)};");
+            // The LINAGE page rides the governed entry through the SAME helper the sequential surface uses; for a
+            // keyed FD it renders `null` because ISO §13.4.5.2 Format 2 (relative-or-indexed) carries no
+            // linage-clause — derived from the file model, never a hand-written null here (kb/Work PB673).
+            w.Line($"var {st} = {RuntimeApi.FileWriteShared(name, wimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(wr.Lock), retryKind, retryAmount, SeqIo.LinageArg(file))};");
         }
         else
             w.Line($"var {st} = {RuntimeApi.FileWriteKeyed(name, wimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a when varying

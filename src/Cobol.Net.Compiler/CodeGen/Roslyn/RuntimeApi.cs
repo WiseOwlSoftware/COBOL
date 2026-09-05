@@ -816,9 +816,10 @@ internal static class RuntimeApi
         string ignoringLock, string retryKind, string retryAmount, string imgVar) =>
         $"{FileReadShared(name, previous, lockRef, advancingOnLock, ignoringLock, retryKind, retryAmount, imgVar)}[0] == '0'";
 
-    /// <summary>Governed WRITE for a sharing-active file, any organization (§14.9.51 GR10/GR11) — <c>CobolFile.WriteShared</c>.</summary>
-    public static string FileWriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount})";
+    /// <summary>Governed WRITE for a sharing-active file, any organization (§14.9.51 GR10/GR11) — <c>CobolFile.WriteShared</c>.
+    /// <paramref name="pageArg"/> is the executing element's LINAGE page (§13.18.34 GR6 b) — see <see cref="LinagePageExpr"/>.</summary>
+    public static string FileWriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount, string pageArg) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount}, {pageArg})";
 
     /// <summary>Governed REWRITE for a sharing-active file, any organization (§14.9.35 GR11/GR12) — <c>CobolFile.RewriteShared</c>.</summary>
     public static string FileRewriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount) =>
@@ -865,13 +866,16 @@ internal static class RuntimeApi
     public static string FileStartIndexed(string name, int keyIndex, string opLiteral, string operandImage, string len) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.StartIndexed)}({name}, {keyIndex}, {opLiteral}, {operandImage}, {len})";
 
-    /// <summary>Implicit OPEN INPUT (SORT GR12a / MERGE GR7a) — <c>CobolFile.OpenInput</c>.</summary>
-    public static string FileOpenInput(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenInput)}({name})";
+    /// <summary>Implicit OPEN INPUT (SORT GR12a / MERGE GR7a) — <c>CobolFile.OpenInput</c>.
+    /// <paramref name="elementArgs"/> is the <c>assign, assignDynamic, page</c> triple of the runtime element
+    /// executing the SORT/MERGE (§12.4.5.3 GR3 names it explicitly for SORT and MERGE too — see
+    /// <see cref="ExecutingElementArgs"/>).</summary>
+    public static string FileOpenInput(string name, string elementArgs) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenInput)}({name}, {elementArgs})";
 
     /// <summary>Implicit OPEN OUTPUT (SORT GR15a) — <c>CobolFile.OpenOutput</c>.</summary>
-    public static string FileOpenOutput(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenOutput)}({name})";
+    public static string FileOpenOutput(string name, string elementArgs) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenOutput)}({name}, {elementArgs})";
 
     /// <summary>CLOSE a connector — <c>CobolFile.Close</c>.</summary>
     public static string FileClose(string name) =>
@@ -885,23 +889,31 @@ internal static class RuntimeApi
     public static string FileRead(string name, string imgVar) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.Read)}({name}, out var {imgVar})";
 
-    /// <summary>Sequential WRITE without optional phrases (the implicit GIVING loop shape) — <c>CobolFile.Write</c>.</summary>
-    public static string FileWrite(string name, string image, string? lenArg = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Write)}({name}, {image}{(lenArg is null ? "" : $", {lenArg}")})";
+    /// <summary>Sequential WRITE without optional phrases (the implicit GIVING loop shape) — <c>CobolFile.Write</c>.
+    /// <paramref name="lenArg"/> = the §13.18.43 GR13a varying-length argument (null renders the fixed-record -1);
+    /// <paramref name="pageArg"/> = the executing element's LINAGE page (<see cref="LinagePageExpr"/>).</summary>
+    public static string FileWrite(string name, string image, string? lenArg, string pageArg) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Write)}({name}, {image}, {lenArg ?? "-1"}, {pageArg})";
 
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment.</summary>
     public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, string varyArgs = "", string? selectName = null) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs}{SelectNameArg(selectName)})";
 
-    /// <summary>Register a LINAGE file's logical-page evaluator closure (§13.18.34 GR6) — <c>CobolFile.SetLinage</c>.</summary>
-    public static string FileSetLinage(string name, string closure) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.SetLinage)}({name}, {closure})";
+    /// <summary>⛔ THE PER-STATEMENT OPERANDS OF THE RUNTIME ELEMENT EXECUTING A FILE STATEMENT — the
+    /// <c>assign, assignDynamic, page</c> argument triple every OPEN entry takes (kb/Work PB673). ISO
+    /// §12.4.5.3 GR3 a)/b) associate the connector using the specification "in the source unit that specifies" /
+    /// "in the runtime element that executes" the OPEN, SORT or MERGE, and §13.18.34 GR6 b) 1 reads the LINAGE
+    /// operands at the completion of an OPEN OUTPUT — so these are the STATEMENT'S arguments, never state
+    /// installed on a connector that a whole run unit may share (§13.18.22.4 GR4 a).</summary>
+    public static string ExecutingElementArgs(string assign, bool assignDynamic, string pageArg) =>
+        $"{assign}, {(assignDynamic ? "true" : "false")}, {pageArg}";
 
-    /// <summary>Install a file's ASSIGN … USING dynamic-assignment source closure (§12.4.5.3 GR3 b / §9.1.21) —
-    /// <c>CobolFile.SetAssignUsing</c>.</summary>
-    public static string FileSetAssignUsing(string name, string closure) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.SetAssignUsing)}({name}, {closure})";
+    /// <summary>The executing element's LINAGE operand values as a <c>LinagePage</c> (§13.18.34 GR6: page size,
+    /// footing start, top margin, bottom margin — a literal operand renders a constant per GR6 a), a data-name
+    /// operand the element's own field read per GR6 b)). <c>null</c> when the FD carries no LINAGE clause.</summary>
+    public static string LinagePageExpr(string body, string footing, string top, string bottom) =>
+        $"new {nameof(LinagePage)}({body}, {footing}, {top}, {bottom})";
 
     /// <summary>Mark a connector sharing-active (Phase 4d M2-FILE-1) — <c>CobolFile.RegisterSharing</c>.</summary>
     public static string FileRegisterSharing(string name, string argsFragment) =>
@@ -916,17 +928,17 @@ internal static class RuntimeApi
     /// to the ONE written-form entry <c>CobolFile.OpenNoRewind</c> instead (§14.9.27.4 GR11 — the runtime owns
     /// the medium test, exactly as it owns Table 14's for CLOSE). §14.9.27.3 SR6 confines the phrase to INPUT
     /// and OUTPUT, so the mode still travels and the runtime never has to re-derive it (kb/Work PB317).</para></summary>
-    public static string FileOpen(string name, Binding.Bound.BoundOpenMode mode, bool noRewind)
+    public static string FileOpen(string name, Binding.Bound.BoundOpenMode mode, bool noRewind, string elementArgs)
     {
         if (noRewind)
-            return $"{nameof(CobolFile)}.{nameof(CobolFile.OpenNoRewind)}({name}, {FileOpenModeExpr(mode)})";
+            return $"{nameof(CobolFile)}.{nameof(CobolFile.OpenNoRewind)}({name}, {FileOpenModeExpr(mode)}, {elementArgs})";
         return $"{nameof(CobolFile)}.{mode switch
         {
             Binding.Bound.BoundOpenMode.Output => nameof(CobolFile.OpenOutput),
             Binding.Bound.BoundOpenMode.Extend => nameof(CobolFile.OpenExtend),
             Binding.Bound.BoundOpenMode.IO => nameof(CobolFile.OpenIO),
             _ => nameof(CobolFile.OpenInput),
-        }}({name})";
+        }}({name}, {elementArgs})";
     }
 
     /// <summary>⛔ THE ONE rendering of a bound open mode as the runtime <c>FileOpenMode</c> member — the
@@ -962,13 +974,14 @@ internal static class RuntimeApi
     public static string FileUnlock(string name, string records) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.Unlock)}({name}, {records})";
 
-    /// <summary>WRITE … ADVANCING — <c>CobolFile.WriteAdvancing</c>.</summary>
-    public static string FileWriteAdvancing(string name, string image, string lines, string before) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteAdvancing)}({name}, {image}, {lines}, {before})";
+    /// <summary>WRITE … ADVANCING — <c>CobolFile.WriteAdvancing</c>; <paramref name="pageArg"/> is the executing
+    /// element's LINAGE page (§13.18.34 GR6 b) 2/3 read the operands DURING the WRITE).</summary>
+    public static string FileWriteAdvancing(string name, string image, string lines, string before, string pageArg) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteAdvancing)}({name}, {image}, {lines}, {before}, {pageArg})";
 
     /// <summary>WRITE … BEFORE ADVANCING n AFTER ADVANCING m (ISO §14.9.51, 2023) — <c>CobolFile.WriteBeforeAndAfter</c>.</summary>
-    public static string FileWriteBeforeAndAfter(string name, string image, string beforeLines, string afterLines) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteBeforeAndAfter)}({name}, {image}, {beforeLines}, {afterLines})";
+    public static string FileWriteBeforeAndAfter(string name, string image, string beforeLines, string afterLines, string pageArg) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteBeforeAndAfter)}({name}, {image}, {beforeLines}, {afterLines}, {pageArg})";
 
     /// <summary>The LINAGE end-of-page probe (§13.18.34) — <c>CobolFile.EndOfPage</c>.</summary>
     public static string FileEndOfPage(string name) =>

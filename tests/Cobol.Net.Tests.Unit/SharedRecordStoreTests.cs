@@ -28,15 +28,15 @@ public sealed class SharedRecordStoreTests
         string host = Tmp("two");
         reg.RegisterRelative("A", host, 8, false, Random, 4, -1, -1);
         reg.RegisterRelative("B", host, 8, false, Random, 4, -1, -1);
-        reg.Open("A", FileOpenMode.Output);
+        reg.OpenStatic("A", FileOpenMode.Output);
         for (int i = 0; i < records.Length; i++)
         {
             reg.SetRelativeKey("A", i + 1);
             reg.WriteKeyed("A", records[i].PadRight(8), -1);
         }
         reg.Close("A");
-        reg.Open("A", FileOpenMode.IO);
-        reg.Open("B", FileOpenMode.IO);
+        reg.OpenStatic("A", FileOpenMode.IO);
+        reg.OpenStatic("B", FileOpenMode.IO);
         return (reg, host);
     }
 
@@ -88,7 +88,7 @@ public sealed class SharedRecordStoreTests
             Assert.Equal("00", reg.WriteKeyed("A", "GAMMA".PadRight(8), -1));   // A writes slot 3
             reg.Close("A");                                       // the order that USED to resurrect slot 1
             reg.Close("B");
-            reg.Open("A", FileOpenMode.Input);                    // last detach dropped the store — reloads disk
+            reg.OpenStatic("A", FileOpenMode.Input);                    // last detach dropped the store — reloads disk
             reg.SetRelativeKey("A", 1);
             Assert.Equal(FileStatusCode.RecordNotFound, reg.ReadKeyed("A", 0, "", out _));
             reg.SetRelativeKey("A", 3);
@@ -110,10 +110,10 @@ public sealed class SharedRecordStoreTests
         reg.RegisterIndexed("B", host, 8, false, Random, 0, 2, -1, -1);
         try
         {
-            reg.Open("A", FileOpenMode.Output);
+            reg.OpenStatic("A", FileOpenMode.Output);
             reg.Close("A");
-            reg.Open("A", FileOpenMode.IO);
-            reg.Open("B", FileOpenMode.IO);
+            reg.OpenStatic("A", FileOpenMode.IO);
+            reg.OpenStatic("B", FileOpenMode.IO);
             Assert.Equal("00", reg.WriteKeyed("A", "K1AAAAAA", -1));
             Assert.Equal("00", reg.WriteKeyed("B", "K2BBBBBB", -1));
             // A sees B's record at once (no reopen).
@@ -121,7 +121,7 @@ public sealed class SharedRecordStoreTests
             Assert.Equal("K2BBBBBB", img);
             reg.Close("A");
             reg.Close("B");
-            reg.Open("B", FileOpenMode.Input);
+            reg.OpenStatic("B", FileOpenMode.Input);
             Assert.Equal("00", reg.ReadKeyed("B", -1, "K1".PadRight(8), out _));
             Assert.Equal("00", reg.ReadKeyed("B", -1, "K2".PadRight(8), out _));
             reg.Close("B");

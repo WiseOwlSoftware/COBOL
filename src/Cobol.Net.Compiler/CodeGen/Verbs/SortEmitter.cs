@@ -93,7 +93,9 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         var w = ctx.Writer;
         string f = FileKeyExpr(input);
         string tmp = $"__srt{ctx.Names.NextSort()}";
-        w.Line($"{RuntimeApi.FileOpenInput(f)};   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
+        // §12.4.5.3 GR3 names SORT and MERGE beside OPEN, so the implicit open associates with the file the
+        // ELEMENT EXECUTING THE SORT/MERGE names — its own ASSIGN specification and LINAGE operands (PB673).
+        w.Line($"{RuntimeApi.FileOpenInput(f, seqIo.ExecutingElementArgs(input))};   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
         seqIo.EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
         using (w.Block($"while ({RuntimeApi.FileRead(f, tmp)})"))
         {
@@ -122,10 +124,10 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         string f = FileKeyExpr(output);
         string tmp = $"__srt{ctx.Names.NextSort()}";
         w.Line($"{RuntimeApi.SortRewind(sdLit)};   // each GIVING file receives the FULL result (GR15 / MERGE GR12)");
-        w.Line($"{RuntimeApi.FileOpenOutput(f)};   // implicit OPEN OUTPUT (GR15a)");
+        w.Line($"{RuntimeApi.FileOpenOutput(f, seqIo.ExecutingElementArgs(output))};   // implicit OPEN OUTPUT (GR15a)");
         seqIo.EmitUseHook(output);   // a failed implicit OPEN reaches a USE declarative (GR15a)
         using (w.Block($"while ({RuntimeApi.SortReturn(sdLit, tmp)})"))
-            w.Line($"{RuntimeApi.FileWrite(f, tmp)};   // implicit WRITE without optional phrases (GR15b)");
+            w.Line($"{RuntimeApi.FileWrite(f, tmp, null, seqIo.LinageArg(output))};   // implicit WRITE without optional phrases (GR15b)");
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
         seqIo.EmitStoreFileStatus(output);
         seqIo.EmitUseHook(output);

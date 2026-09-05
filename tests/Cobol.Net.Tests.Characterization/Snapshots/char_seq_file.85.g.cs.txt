@@ -48,9 +48,9 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
-                    CobolFile.OpenOutput("CHAR-SEQ-FILE::OUT-FILE");
+                    CobolFile.OpenOutput("CHAR-SEQ-FILE::OUT-FILE", "char-seq.dat", false, null);
                     OUT_REC = CobolString.Store("LINE-ONE", 10);
-                    CobolFile.Write("CHAR-SEQ-FILE::OUT-FILE", OUT_REC);
+                    CobolFile.Write("CHAR-SEQ-FILE::OUT-FILE", OUT_REC, -1, null);
                     CobolFile.Close("CHAR-SEQ-FILE::OUT-FILE");
                     throw new StopRun();
                 }

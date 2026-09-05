@@ -37,7 +37,7 @@ public sealed class Table20WriteOpenModeTests
         var reg = new FileRegistry();
         string host = Tmp("rel");
         reg.RegisterRelative("F", host, 8, false, access, 4, -1, -1);
-        reg.Open("F", FileOpenMode.Output);
+        reg.OpenStatic("F", FileOpenMode.Output);
         reg.SetRelativeKey("F", 1);
         Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "AAAAAAAA", -1));
         reg.Close("F");
@@ -50,7 +50,7 @@ public sealed class Table20WriteOpenModeTests
         var reg = new FileRegistry();
         string host = Tmp("idx");
         reg.RegisterIndexed("F", host, 8, false, access, 0, 4, -1, -1);
-        reg.Open("F", FileOpenMode.Output);
+        reg.OpenStatic("F", FileOpenMode.Output);
         Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "K001AAAA", -1));
         reg.Close("F");
         return (reg, host);
@@ -61,7 +61,7 @@ public sealed class Table20WriteOpenModeTests
     {
         var reg = new FileRegistry();
         reg.RegisterRelative("C", host, 8, false, SeqAccess, 4, -1, -1);
-        reg.Open("C", FileOpenMode.Input);
+        reg.OpenStatic("C", FileOpenMode.Input);
         int n = 0;
         while (reg.ReadKeyedNext("C", out _) == FileStatusCode.Success) n++;
         reg.Close("C");
@@ -72,7 +72,7 @@ public sealed class Table20WriteOpenModeTests
     {
         var reg = new FileRegistry();
         reg.RegisterIndexed("C", host, 8, false, SeqAccess, 0, 4, -1, -1);
-        reg.Open("C", FileOpenMode.Input);
+        reg.OpenStatic("C", FileOpenMode.Input);
         int n = 0;
         while (reg.ReadKeyedNext("C", out _) == FileStatusCode.Success) n++;
         reg.Close("C");
@@ -89,7 +89,7 @@ public sealed class Table20WriteOpenModeTests
         var (reg, host) = SeededRelative(access);
         try
         {
-            reg.Open("F", FileOpenMode.Extend);
+            reg.OpenStatic("F", FileOpenMode.Extend);
             Assert.Equal(FileStatusCode.Success, reg.Status("F"));   // the OPEN itself is not what item 8 screens
             reg.SetRelativeKey("F", 9);
             Assert.Equal(FileStatusCode.WriteNotOpenForOutput, reg.WriteKeyed("F", "BBBBBBBB", -1));
@@ -107,7 +107,7 @@ public sealed class Table20WriteOpenModeTests
         var (reg, host) = SeededIndexed(access);
         try
         {
-            reg.Open("F", FileOpenMode.Extend);
+            reg.OpenStatic("F", FileOpenMode.Extend);
             Assert.Equal(FileStatusCode.Success, reg.Status("F"));
             Assert.Equal(FileStatusCode.WriteNotOpenForOutput, reg.WriteKeyed("F", "K009BBBB", -1));
             reg.Close("F");
@@ -124,7 +124,7 @@ public sealed class Table20WriteOpenModeTests
         var (reg, host) = SeededRelative(SeqAccess);
         try
         {
-            reg.Open("F", FileOpenMode.Extend);
+            reg.OpenStatic("F", FileOpenMode.Extend);
             Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "BBBBBBBB", -1));
             reg.Close("F");
             Assert.Equal(2, CountRelative(host));
@@ -138,7 +138,7 @@ public sealed class Table20WriteOpenModeTests
         var (reg, host) = SeededIndexed(SeqAccess);
         try
         {
-            reg.Open("F", FileOpenMode.Extend);
+            reg.OpenStatic("F", FileOpenMode.Extend);
             Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "K009BBBB", -1));
             reg.Close("F");
             Assert.Equal(2, CountIndexed(host));
@@ -156,7 +156,7 @@ public sealed class Table20WriteOpenModeTests
         var (reg, host) = SeededRelative(access);
         try
         {
-            reg.Open("F", FileOpenMode.IO);
+            reg.OpenStatic("F", FileOpenMode.IO);
             reg.SetRelativeKey("F", 9);
             Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "BBBBBBBB", -1));
             reg.Close("F");
@@ -173,7 +173,7 @@ public sealed class Table20WriteOpenModeTests
         var (reg, host) = SeededIndexed(access);
         try
         {
-            reg.Open("F", FileOpenMode.IO);
+            reg.OpenStatic("F", FileOpenMode.IO);
             Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "K009BBBB", -1));
             reg.Close("F");
             Assert.Equal(2, CountIndexed(host));
@@ -190,7 +190,7 @@ public sealed class Table20WriteOpenModeTests
         var (reg, host) = SeededRelative(SeqAccess);
         try
         {
-            reg.Open("F", FileOpenMode.IO);
+            reg.OpenStatic("F", FileOpenMode.IO);
             Assert.Equal(FileStatusCode.WriteNotOpenForOutput, reg.WriteKeyed("F", "BBBBBBBB", -1));
             reg.Close("F");
             Assert.Equal(1, CountRelative(host));
@@ -204,7 +204,7 @@ public sealed class Table20WriteOpenModeTests
         var (reg, host) = SeededIndexed(SeqAccess);
         try
         {
-            reg.Open("F", FileOpenMode.IO);
+            reg.OpenStatic("F", FileOpenMode.IO);
             Assert.Equal(FileStatusCode.WriteNotOpenForOutput, reg.WriteKeyed("F", "K009BBBB", -1));
             reg.Close("F");
             Assert.Equal(1, CountIndexed(host));

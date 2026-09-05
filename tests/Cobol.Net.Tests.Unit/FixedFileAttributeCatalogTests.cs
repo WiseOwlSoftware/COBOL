@@ -40,7 +40,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
     {
         CobolFile.Init();
         CobolFile.RegisterRelative("MK", host, 10, false, 0, 0);
-        CobolFile.OpenOutput("MK");
+        CobolFile.OpenOutput("MK", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("MK"));
         CobolFile.Close("MK");
     }
@@ -51,8 +51,8 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
     {
         CobolFile.Init();
         CobolFile.Register("MK", host, 20, lineSequential: false, optional: false);
-        CobolFile.OpenOutput("MK");
-        CobolFile.Write("MK", "ABCDEFGHIJKLMNOPQRST");
+        CobolFile.OpenOutput("MK", host, assignDynamic: false, page: null);
+        CobolFile.Write("MK", "ABCDEFGHIJKLMNOPQRST", -1, page: null);
         CobolFile.Close("MK");
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("MK"));
     }
@@ -69,7 +69,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
     {
         CobolFile.Init();   // ⛔ a NEW registry: no connector, no catalog and no status survives from above
         CobolFile.Register("RD", host, 40, lineSequential: false, optional: false);
-        CobolFile.OpenInput("RD");
+        CobolFile.OpenInput("RD", host, assignDynamic: false, page: null);
         return CobolFile.Status("RD");
     }
 
@@ -98,7 +98,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         MakeRelativeTenByteFile(host);
         CobolFile.Init();
         CobolFile.RegisterRelative("RD", host, 10, false, 0, 0);
-        CobolFile.OpenInput("RD");
+        CobolFile.OpenInput("RD", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("RD"));   // the check rejects only real conflicts
         CobolFile.Close("RD");
     }
@@ -182,7 +182,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         MakeRelativeTenByteFile(host);
         CobolFile.Init();
         CobolFile.RegisterRelative("DK", host, 10, false, 0, 0);
-        CobolFile.OpenInput("DK");
+        CobolFile.OpenInput("DK", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.FileAlreadyOpen, CobolFile.DeleteFile("DK"));        // '41' GR13
         Assert.True(File.Exists(host));
         Assert.True(File.Exists(FixedFileAttributes.SidecarPath(host)));
@@ -216,7 +216,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
 
         CobolFile.Init();
         CobolFile.Register("RD", host, width, lineSequential, optional: false);
-        CobolFile.OpenInput("RD");
+        CobolFile.OpenInput("RD", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("RD"));
         CobolFile.Close("RD");
     }
@@ -232,7 +232,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
 
         CobolFile.Init();
         CobolFile.RegisterRelative("RD", host, 20, false, 0, 0);
-        CobolFile.OpenInput("RD");
+        CobolFile.OpenInput("RD", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.FixedAttributeConflict, CobolFile.Status("RD"));
     }
 
@@ -247,7 +247,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
 
         CobolFile.Init();
         CobolFile.RegisterRelative("RD", host, 40, false, 0, 0);
-        CobolFile.OpenInput("RD");
+        CobolFile.OpenInput("RD", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.FixedAttributeConflict, CobolFile.Status("RD"));
     }
 
@@ -288,7 +288,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         // against the previous file's attributes; it replaces them.
         CobolFile.Init();
         CobolFile.Register("WR", host, 40, lineSequential: false, optional: false);
-        CobolFile.OpenOutput("WR");
+        CobolFile.OpenOutput("WR", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("WR"));
         CobolFile.Close("WR");
 
@@ -300,7 +300,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         // ... and the connector that matched before now conflicts.
         CobolFile.Init();
         CobolFile.RegisterRelative("RD", host, 10, false, 0, 0);
-        CobolFile.OpenInput("RD");
+        CobolFile.OpenInput("RD", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.FixedAttributeConflict, CobolFile.Status("RD"));
     }
 
@@ -312,7 +312,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         string host = Host("ffa-optional.dat");
         CobolFile.Init();
         CobolFile.Register("OP", host, 12, lineSequential: false, optional: true);
-        CobolFile.OpenExtend("OP");
+        CobolFile.OpenExtend("OP", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.OptionalFileNotFound, CobolFile.Status("OP"));   // '05' GR17
         CobolFile.Close("OP");
 
@@ -327,7 +327,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         // nothing about GR17. The organization is validated for every organization, so that is the probe.
         CobolFile.Init();
         CobolFile.RegisterRelative("RD", host, 12, false, 0, 0);
-        CobolFile.OpenInput("RD");
+        CobolFile.OpenInput("RD", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.FixedAttributeConflict, CobolFile.Status("RD"));
     }
 
@@ -339,7 +339,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         string host = Host("ffa-absent.dat");
         CobolFile.Init();
         CobolFile.Register("AB", host, 12, lineSequential: false, optional: true);
-        CobolFile.OpenInput("AB");
+        CobolFile.OpenInput("AB", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.OptionalFileNotFound, CobolFile.Status("AB"));
         CobolFile.Close("AB");
         Assert.False(File.Exists(FixedFileAttributes.SidecarPath(host)));
@@ -352,7 +352,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         CobolFile.Init();
         CobolFile.RegisterIndexed("IX", host, 20, false, 0, primeOffset: 0, primeLength: 4);
         CobolFile.AddAlternateKey("IX", 4, 5, duplicates: true, suppress: "ZZZZZ");
-        CobolFile.OpenOutput("IX");
+        CobolFile.OpenOutput("IX", host, assignDynamic: false, page: null);
         CobolFile.Close("IX");
 
         var recorded = FixedFileAttributes.Load(host);
@@ -373,7 +373,7 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
         CobolFile.Init();
         CobolFile.RegisterIndexed("IX", host, 12, false, 0, primeOffset: 0, primeLength: 4);
         CobolFile.AddAlternateKey("IX", 4, 4, duplicates: false, suppress: "a,\r\nb");
-        CobolFile.OpenOutput("IX");
+        CobolFile.OpenOutput("IX", host, assignDynamic: false, page: null);
         CobolFile.Close("IX");
 
         var recorded = FixedFileAttributes.Load(host);

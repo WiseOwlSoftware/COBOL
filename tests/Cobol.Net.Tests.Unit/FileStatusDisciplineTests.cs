@@ -28,10 +28,10 @@ public sealed class FileStatusDisciplineTests
         var reg = new FileRegistry();
         string host = Tmp("rel");
         reg.RegisterRelative("F", host, 8, false, SeqAccess, 4, -1, -1);
-        reg.Open("F", FileOpenMode.Output);
+        reg.OpenStatic("F", FileOpenMode.Output);
         foreach (string r in records) reg.WriteKeyed("F", r.PadRight(8), -1);
         reg.Close("F");
-        reg.Open("F", FileOpenMode.IO);
+        reg.OpenStatic("F", FileOpenMode.IO);
         return (reg, host);
     }
 
@@ -65,7 +65,7 @@ public sealed class FileStatusDisciplineTests
         try
         {
             Assert.Equal("00", reg.ReadKeyedNext("F", out _));
-            reg.Open("F", FileOpenMode.IO);
+            reg.OpenStatic("F", FileOpenMode.IO);
             Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.Status("F"));
             Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, reg.DeleteRecord("F", ""));
         }
@@ -98,11 +98,11 @@ public sealed class FileStatusDisciplineTests
         {
             reg.CloseWithLock("S");
             Assert.Equal(FileStatusCode.FileNotOpen, reg.Status("S"));
-            reg.Open("S", FileOpenMode.Output);
+            reg.OpenStatic("S", FileOpenMode.Output);
             Assert.Equal(FileStatusCode.Success, reg.Status("S"));   // NOT '38'
             reg.CloseWithLock("S");                                  // the successful close DOES lock
             Assert.Equal(FileStatusCode.Success, reg.Status("S"));
-            reg.Open("S", FileOpenMode.Input);
+            reg.OpenStatic("S", FileOpenMode.Input);
             Assert.Equal(FileStatusCode.FileLocked, reg.Status("S"));
         }
         finally { try { File.Delete(host); } catch { } }
@@ -117,7 +117,7 @@ public sealed class FileStatusDisciplineTests
         var reg = new FileRegistry();
         string host = Tmp("opt");
         reg.Register("O", host, 8, lineSequential: false, optional: true, -1, -1);
-        reg.Open("O", FileOpenMode.Input);
+        reg.OpenStatic("O", FileOpenMode.Input);
         Assert.Equal(FileStatusCode.OptionalFileNotFound, reg.Status("O"));   // '05' — open, not present
         reg.CloseReelUnit("O");
         Assert.Equal(FileStatusCode.Success, reg.Status("O"));                // GR6 — no '07'
@@ -173,7 +173,7 @@ public sealed class FileStatusDisciplineTests
         try
         {
             reg.Close("F");
-            reg.Open("F", FileOpenMode.Input);
+            reg.OpenStatic("F", FileOpenMode.Input);
             Assert.Equal(FileStatusCode.DeleteRewriteNotOpenForIO, reg.DeleteRecord("F", ""));
         }
         finally { try { File.Delete(host); } catch { } }
@@ -188,9 +188,9 @@ public sealed class FileStatusDisciplineTests
         reg.RegisterRelative("F", host, 8, false, 1 /* Random */, 4, -1, -1);
         try
         {
-            reg.Open("F", FileOpenMode.Output);
+            reg.OpenStatic("F", FileOpenMode.Output);
             reg.Close("F");
-            reg.Open("F", FileOpenMode.IO);
+            reg.OpenStatic("F", FileOpenMode.IO);
             reg.SetRelativeKey("F", 5);
             Assert.Equal(FileStatusCode.RecordNotFound, reg.DeleteRecord("F", ""));
         }
@@ -207,12 +207,12 @@ public sealed class FileStatusDisciplineTests
         reg.Register("S", host, 8, lineSequential: false, optional: false, -1, -1);
         try
         {
-            reg.Open("S", FileOpenMode.Output);
+            reg.OpenStatic("S", FileOpenMode.Output);
             reg.Close("S");
             Assert.Equal(FileStatusCode.Success, reg.Status("S"));
             reg.Close("S");
             Assert.Equal(FileStatusCode.FileNotOpen, reg.Status("S"));
-            reg.Open("S", FileOpenMode.Input);
+            reg.OpenStatic("S", FileOpenMode.Input);
             Assert.Equal(FileStatusCode.Success, reg.Status("S"));
         }
         finally { try { File.Delete(host); } catch { } }

@@ -560,7 +560,12 @@ public sealed class CobolReport(
     private void AdvancePage()
     {
         if (_pageFooting is not null) PresentPageFooting();                  // GR6a
-        CobolFile.WriteAdvancing(_fileName, "", -1, before: false);          // GR6b — form feed
+        // ⛔ page: null. A REPORT file has NO LINAGE clause to supply one — ISO §13.4.5.2 Format 3 (report) is
+        // the file description entry format for a file with a REPORT clause and its clause list carries no
+        // linage-clause at all (only Format 1, sequential, does). The Report Writer owns this file's page model
+        // through the RD PAGE clause instead (§13.16 / PAGE-COUNTER + LINE-COUNTER above), so there is nothing
+        // for §13.18.34 GR6 to evaluate here (kb/Work PB673).
+        CobolFile.WriteAdvancing(_fileName, "", -1, before: false, page: null);   // GR6b — form feed
         _physLine = 0;
         PageCounter += 1;                                                    // GR6d
         LineCounter = 0;                                                     // GR6e
@@ -664,7 +669,7 @@ public sealed class CobolReport(
         }
         int advance = (int)(target - _physLine);
         if (advance < 1) advance = 1;             // EC-REPORT-LINE-OVERLAP seam (§13.18.35.4 GR3)
-        CobolFile.WriteAdvancing(_fileName, image, advance, before: false);
+        CobolFile.WriteAdvancing(_fileName, image, advance, before: false, page: null);   // no LINAGE on a report FD (§13.4.5.2 Format 3)
         _physLine = (int)target;
     }
 

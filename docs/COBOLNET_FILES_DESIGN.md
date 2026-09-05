@@ -465,16 +465,30 @@ statement.**"* §9.1.21 (Dynamic file assignment) is the concepts clause that na
 D.19.9.2's NOTE states the consequence outright: *"The MOVE statements only have an effect on the dynamic assignment
 when a subsequent OPEN statement for the file connector is executed."*
 
-**The shape.** `FileConnector.HostPath` is a settable property whose ONE writer is `FileConnector.Associate()`, and
-`FileRegistry` calls it from exactly three places: `Open`, `OpenShared` (which the emitted SORT/MERGE implicit opens
-also reach — §14.9.40.4 GR12a/GR15a, §14.9.24.4 GR7a) and `DeleteFile`'s unassociated screen. `Associate` is a no-op
-for the GR3 a) form — its association is static and fixed at registration — so both arms of GR3 run through one
-entry point rather than a register-time mechanism for TO and an open-time mechanism for USING. The emitter's part is
-to install a SOURCE, never a path: `SequentialIoEmitter.EmitAssignSources` writes one
-`CobolFile.SetAssignUsing(key, () => <data-name-1>)` per USING file, UNGUARDED on every activation, beside the LINAGE
-evaluator and for the same kb/Work PB168 reason (the closure must read THIS activation's instance). Both registration
-arms carry it: `DispatchEmitter.__Activate` for a program, the class constructor in `OoEmitter.EmitFileMembers` for an
-object — Annex D.19.9.2's own worked example is an instance file.
+**The shape — THE OPERANDS TRAVEL WITH THE STATEMENT.** `FileConnector.HostPath` is a settable property whose ONE
+writer is `FileConnector.Associate(spec, dynamic)`, and `FileRegistry.OpenCore` — the one OPEN dispatch that the plain
+`Open`, `OpenNoRewind`, `OpenShared` and the emitted SORT/MERGE implicit opens (§14.9.40.4 GR12a/GR15a, §14.9.24.4
+GR7a) all funnel through — is its only caller. `spec` is the EXECUTING element's own ASSIGN specification, rendered at
+the statement by `SequentialIoEmitter.ExecutingElementArgs(file)` and passed as an argument of the OPEN call; `dynamic`
+selects GR3 b)'s content rules over GR3 a)'s plain literal, so both arms of GR3 run through one entry point rather than
+a register-time mechanism for TO and an open-time mechanism for USING.
+
+**⛔ Why the source is an ARGUMENT and never state on the connector (kb/Work PB673).** Both arms of GR3 name the
+element that runs the statement — a) *"in the source unit that specifies the OPEN, SORT, or MERGE statement"*, b)
+*"in the runtime element that executes the OPEN, SORT, or MERGE statement"* — and a file connector is neither
+per-element nor per-activation. An EXTERNAL file connector is ONE object per run unit shared by every describing
+element (§13.18.22.4 GR4 a), whose entries §12.4.5.3 GR1 b) requires only to be CONSISTENT — unlike GR1 i), which
+makes FILE STATUS *the same* external item — so two programs may legally hold separate storage for data-name-1
+(COBOL.NET's GR1 b) consistency rule is textual sameness of the clause: `docs/CONFORMANCE.md` §7, `DOC-A.1-72`). A
+RECURSIVE non-INITIAL unit's internal connector is unit-scoped last-used state across activations (§8.6.4,
+§14.6.2.3.3) while its LOCAL-STORAGE is per-activation. An installed closure therefore answers with whichever
+element/activation installed it LAST, which is the executing one only by accident: the earlier
+`CobolFile.SetAssignUsing(key, () => <data-name-1>)` install (unguarded, for the kb/Work PB168 reason) opened the
+wrong physical file with status '00'. Rendering the operand at the statement makes the right answer structural —
+the emitting unit IS the executing element and the emitted expression reads the LIVE activation's storage — and the
+runtime entry points take the operands with NO DEFAULT, so an emitter path that forgets them is a compile error.
+Both emit paths get it from the same helper: the statement emitters for a program, and the same ones inside
+`OoEmitter`'s class bodies for an object — Annex D.19.9.2's own worked example is an instance file.
 
 **Why the sharing registry stopped caching the host path.** `ConnectorShare` used to hold a `Host` copy taken at
 `RegisterSharing` time, and every physical-file-table lookup (`ReadLockGovern`, `ReadShared`, `WriteShared`,
@@ -658,7 +672,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
 - CODE-SET translates only character (alphanumeric and DISPLAY-numeric digit) bytes, not COMP or COMP-3 binary fields (13.18.13); the default is the native ASCII set.
 - LINAGE:
   - **Counter-only physical model** (13.18.34 GR8 — "each logical page is contiguous to the next with no additional spacing"): the connector's pending-advance print stream is UNTOUCHED (no margin blank lines, nothing at page wrap; ADVANCING PAGE stays one `\f`); the whole feature is `SequentialFile`'s counter machine + `EndOfPage` flag + the LINAGE-COUNTER register. An ADVANCING or LINAGE file is forced to line-oriented output (a LINAGE file's plain WRITE reroutes to the advance-1 print path from its FIRST write — 14.9.51 GR25 / 13.18.34 GR7c3).
-  - **One evaluator closure for both operand forms** (13.18.34 GR6): the emitter registers `CobolFile.SetLinage(name, () => (body, footing, top, bottom))` right after `Register` — literals are constant lambdas (GR6a); data-names read their program fields at call time (GR6b). The connector invokes it at OPEN OUTPUT (GR6b1, with counter := 1 per GR7d) and at the two page transitions — the ADVANCING-PAGE reset (GR6b2) and the overflow wrap (GR6b3), AFTER the overflow decision against the OLD body, because "the value applies to the next logical page". Evaluating data-names at these page transitions (not only at OPEN) is required by GR6b2/GR6b3 — evaluating solely at OPEN is a conformance hole (SQ208M/SQ210M).
+  - **One statement-supplied operand set for both forms** (13.18.34 GR6): every OPEN and every sequential WRITE entry takes a `LinagePage?` — `SequentialIoEmitter.LinageArg(file)` renders `new LinagePage(body, footing, top, bottom)` from the file model (literals fold to constants, GR6a; data-names render the EXECUTING element's field reads, GR6b) or `null` for an FD with no LINAGE clause. The runtime adopts the values at OPEN OUTPUT (GR6b1, with counter := 1 per GR7d — `FileRegistry.SharedOpenAttempt` → `SequentialConnector.BeginLinagePage`, at the COMPLETION of a successful open as GR6b1 says) and at the two page transitions — the ADVANCING-PAGE reset (GR6b2) and the overflow wrap (GR6b3), AFTER the overflow decision against the OLD body, because "the value applies to the next logical page". Evaluating data-names at these page transitions (not only at OPEN) is required by GR6b2/GR6b3 — evaluating solely at OPEN is a conformance hole (SQ208M/SQ210M). **⛔ The page model is connector state; the operand SOURCE is not** (kb/Work PB673): a connector-held evaluator closure belonged to whichever activation installed it last, which for a RECURSIVE unit with a LOCAL-STORAGE operand is a RETURNED activation's dead storage — and it was installed on the program path only, so a class's LINAGE FD (`OoEmitter`) had no page model at all. `HasLinage` is gone with it: "this FD has a LINAGE clause" is now exactly "the statement supplied a page".
   - **GR26 operational mapping** (the legacy `AdvanceLinageCounter` ported verbatim, proven over the SQ goldens): with post-advance counter c, body B, footing F — `c > B` ⇒ overflow end-of-page, counter := 1 (GR26a + GR7c4; the reposition lands on line 1, never a modulo carry); else `F > 0 ∧ c ≥ F` ⇒ footing end-of-page (GR26b; the footing area is [F, B] INCLUSIVE per GR3, so c == B is FOOTING, and overflow fires only when positioning passes the body). ADVANCING PAGE: counter := 1, no observable EOP (SR18 bars PAGE+EOP). The counter advances in the CONNECTOR as part of EVERY write (EOP phrase or not), after the physical presentation — an AT branch reads the post-advance counter.
   - **LINAGE-COUNTER register** (8.4.3.14): runtime-sourced (`BoundLinageCounterRef` → `CobolFile.LinageCounter(name)`), never a synthesized storage item (only the IOCS modifies it, GR7b); qualified `OF/IN file-name` resolves via the grammar's dedicated alternative, unqualified requires exactly one LINAGE file (SR3/8.4.2.2, ambiguity is a bind-time diagnostic). `ReferenceResolver.Resolve` returns null for the register early (the qualified form's cobolWord is the FILE-name).
   - **END-OF-PAGE phrases** branch on `CobolFile.EndOfPage(name)` read in the `if` HEADER (a branch body may WRITE the same file — SQ208M); EOP is a SUCCESSFUL write (GR27a — status 00, no USE hook competition). Bind-time diagnostics: SR19 (EOP without LINAGE — the old silent-drop), SR18 (PAGE+EOP), SR13 (mnemonic ADVANCING on a LINAGE file).

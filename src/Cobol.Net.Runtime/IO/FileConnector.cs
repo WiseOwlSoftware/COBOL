@@ -30,17 +30,6 @@ public abstract class FileConnector
     /// caller — GR3's "the association occurs at the time of execution of an OPEN, SORT, or MERGE statement".</summary>
     public string HostPath { get; private set; }
 
-    /// <summary>The ASSIGN … USING dynamic-assignment source (ISO §12.4.5.3 GR3 b — the emitted closure that reads
-    /// the CURRENT content of data-name-1 in the runtime element executing the statement; §9.1.21, Dynamic file
-    /// assignment). Null for a file whose ASSIGN clause has no USING phrase, whose association is the static GR3 a
-    /// one fixed at registration.</summary>
-    private Func<string>? _assignUsing;
-
-    /// <summary>Install the §12.4.5.3 GR3 b dynamic-assignment source. Emitted UNGUARDED at every activation (the
-    /// LINAGE-evaluator discipline, kb/Work PB168): the closure reads THIS activation's instance, so a run-unit-scoped
-    /// connector must never keep a dead activation's capture.</summary>
-    public void SetAssignUsing(Func<string> source) => _assignUsing = source;
-
     /// <summary>
     /// ISO §12.4.5.3 GR3, reached from §14.9.27.4 GR26 — establish the connector-to-physical-file association.
     /// <para>GR3's lead sentence fixes the TIMING: <i>"The association occurs at the time of execution of an OPEN,
@@ -50,9 +39,19 @@ public abstract class FileConnector
     /// that executes the OPEN, SORT, or MERGE statement."</i> So this runs at every OPEN/SORT/MERGE, never once at
     /// registration — §9.1.21 exists to let one connector reach different physical files during a run unit, and the
     /// standard's own concepts annex states the consequence (D.19.9.2 NOTE: <i>"The MOVE statements only have an
-    /// effect on the dynamic assignment when a subsequent OPEN statement for the file connector is executed."</i>).
-    /// The GR3 a) (TO/literal) association is static, so this is a no-op for a file with no USING phrase — one entry
-    /// point for both arms, never a second mechanism.</para>
+    /// effect on the dynamic assignment when a subsequent OPEN statement for the file connector is executed."</i>).</para>
+    /// <para>⛔ THE ASSOCIATION VALUE IS AN ARGUMENT OF THE STATEMENT, NEVER STATE ON THIS OBJECT (kb/Work PB673).
+    /// BOTH arms of GR3 name the element that runs the statement, not the one that registered the connector —
+    /// a) <i>"identified by the specification of device-name-1 or the value of literal-1 <b>in the source unit that
+    /// specifies</b> the OPEN, SORT, or MERGE statement"</i>, b) <i>"identified by the content of the data item
+    /// referenced by data-name-1 <b>in the runtime element that executes</b> the OPEN, SORT, or MERGE
+    /// statement"</i> — and one file connector may be described by MANY such elements: an EXTERNAL file connector
+    /// is one object per run unit shared by every describing element (§13.18.22.4 GR4 a), whose file control
+    /// entries §12.4.5.3 GR1 b requires only to be CONSISTENT (unlike GR1 i's FILE STATUS, which must name the
+    /// same external item). So the emitter renders the EXECUTING element's own ASSIGN specification at the
+    /// OPEN/SORT/MERGE site and passes it here; a connector-held source answered with the LAST installer's.</para>
+    /// <para>One entry point for both arms, never a second mechanism: <paramref name="dynamic"/> selects GR3 b's
+    /// content rules (the implementor's §12.4.5.3 GR4 determination, below) over GR3 a's plain literal.</para>
     /// <para>An OPEN of an ALREADY-OPEN connector is unsuccessful at §14.9.27.4 GR2's '41' and GR25's "the file is
     /// not affected", so the association is left standing: re-pointing an open connector would strand its streams
     /// and its physical-file-table registration on the old path.</para>
@@ -66,11 +65,24 @@ public abstract class FileConnector
     /// referenced by the data-name specified in the USING phrase of the file control entry is not consistent with
     /// the specification for the device-name or literal in the ASSIGN clause of that file control entry").</para>
     /// </summary>
-    public string? Associate()
+    /// <param name="spec">The EXECUTING element's ASSIGN specification: the content of data-name-1 when
+    /// <paramref name="dynamic"/> (GR3 b), else the value of literal-1 / device-name-1 (GR3 a).</param>
+    /// <param name="dynamic">True when the file control entry in the executing element writes the USING phrase.</param>
+    public string? Associate(string spec, bool dynamic)
     {
-        if (_assignUsing is not { } source) return null;   // GR3 a) — a static association, fixed at registration
         if (IsOpen) return null;                           // §14.9.27.4 GR2/GR25 — an already-open connector is untouched
-        string target = source().Trim(' ');
+        if (!dynamic)
+        {
+            // GR3 a) — literal-1/device-name-1 identify the physical file directly. The value is a source-text
+            // constant, so re-resolving it at every OPEN is idempotent for the single-describer case and is what
+            // makes the MULTI-describer case right: an EXTERNAL connector registered by one element must still be
+            // associated with the file the EXECUTING element's own entry names. §12.4.5.2 SR4 already bars a
+            // zero-length literal, so an empty spec here can only be the bare `ASSIGN USING` shape's placeholder —
+            // it identifies nothing and leaves the registration's unassociated (empty) host path standing.
+            if (spec.Length != 0) HostPath = CobolFile.ResolveHostPath(spec);
+            return null;
+        }
+        string target = spec.Trim(' ');
         foreach (char ch in target)
             if (ch < ' ') return FileStatusCode.AssignNotConsistent;   // '31' §9.1.13.6 item 2
         if (target.Length == 0) return FileStatusCode.AssignNotConsistent;
