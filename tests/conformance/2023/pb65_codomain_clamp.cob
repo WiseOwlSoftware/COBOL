@@ -7,6 +7,15 @@
       *> ATAN's ±π/2 is OPEN. FRACTION-PART's |v| < 1 follows from its §15.42.4 r1 EAE. SQRT has NO
       *> stated bound: a SQRT that quantizes to 1.000000000 is a legal §15.4.1 approximation and stays —
       *> the contrast line proving the clamp is per-rule, not a blanket rounding change.
+      *> ⛔ RE-BASELINED AGAIN 2026-09-05 (kb/Work PB647): the NO-PHRASE legs now TRUNCATE at the resultant
+      *> identifier's scale, because that is what §14.7.4.3 rule 2 ("If the ROUNDED phrase is not specified,
+      *> execution is as if ROUNDED MODE IS TRUNCATION had been specified") and §14.7.4.1 ("truncation is
+      *> relative to the size provided for the resultant identifier") require, and what the MOVE channel has
+      *> always done (§14.6.8.2 rule 4) — one returned value, one landing, §15.4.1. So ASINH moved 776 -> 775
+      *> and SQRTD 1000000000 -> 0999999999, both RE-DERIVED from the exact binary64 expansions below, not
+      *> re-observed. Truncation can never leave a codomain the value is already inside, so the clamp this
+      *> program exists for is now exercised by the ROUNDED legs (RASIN1/RASINM/RACOSM/RFRACP) instead —
+      *> each of which would read one ulp OUTSIDE its §15.x.4 bound if the clamp were removed.
       *> ⛔ SQRTC RE-BASELINED 2026-09-05 (kb/Work PB623): it read +1000000000 while the landing formed
       *> v × 10^9 in binary64 first. sqrt(0.999999999) is the double 0.9999999995, whose EXACT value at
       *> scale 9 is 999999999.4999999586298145004548132419586181640625 — BELOW the midpoint, so
@@ -42,6 +51,26 @@
            DISPLAY "SQRTC =" W9
            COMPUTE W9 = FUNCTION SQRT(0.9999999999)
            DISPLAY "SQRTD =" W9
+      *> The ROUNDED legs are where the clamp is REACHABLE at all (kb/Work PB647): a no-phrase COMPUTE now
+      *> TRUNCATES the returned value at the resultant identifier's scale, exactly as the MOVE channel does
+      *> (§14.7.4.3 rule 2 / §14.6.8.2 rule 4), and truncation can never leave a codomain the double is
+      *> already inside. ROUNDED (bare = NEAREST-AWAY-FROM-ZERO, §14.7.4.3 rule 4) is what rounds the top
+      *> half-ulp OUT, so these four lines are the ones §15.10.4 r1 / §15.8.4 r1 / §15.42.4 r1 hold in.
+           COMPUTE W9 ROUNDED = FUNCTION ASIN(1)
+           DISPLAY "RASIN1=" W9
+           COMPUTE W9 ROUNDED = FUNCTION ASIN(-1)
+           DISPLAY "RASINM=" W9
+           COMPUTE W9 ROUNDED = FUNCTION ACOS(-1)
+           DISPLAY "RACOSM=" W9
+           COMPUTE W9 ROUNDED = FUNCTION FRACTION-PART(FSRC)
+           DISPLAY "RFRACP=" W9
+      *> ... and the UNBOUNDED contrast, which the truncating SQRTD line above can no longer carry: SQRT has
+      *> no §15.x.4 bound, so a returned value that ROUNDS to 1.000000000 is a legal §15.4.1 approximation
+      *> and STAYS there, where ASIN/ACOS's stated bounds clamp. The clamp is per-rule, not a rounding change.
+           COMPUTE W9 ROUNDED = FUNCTION SQRT(0.9999999999)
+           DISPLAY "RSQRTD=" W9
+           COMPUTE W9 ROUNDED = FUNCTION ASIN(0.5)
+           DISPLAY "RASINH=" W9
            COMPUTE RND = FUNCTION RANDOM(1)
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > 20000
                COMPUTE RND = FUNCTION RANDOM

@@ -95,11 +95,11 @@ public sealed class CarrierLandingFormTests
     [Fact]
     public void FromDouble_PastTheCarrier_FollowsTheLanding()
     {
-        Assert.Equal(Int128.MaxValue, CobolIntrinsics.FromDouble(1.0e40, 9, checkedLanding: true));
-        Assert.Equal(Int128.Parse("303786028427003666890752") * 1_000_000_000 % Ten38, CobolIntrinsics.FromDouble(1.0e40, 9) % Ten38);
-        Assert.Equal(Int128.Zero, CobolIntrinsics.FromDouble(double.PositiveInfinity, 9));
-        Assert.Equal(Int128.MaxValue, CobolIntrinsics.FromDouble(double.PositiveInfinity, 9, checkedLanding: true));
-        Assert.Equal(CobolIntrinsics.FromDouble(2.5, 0), CobolIntrinsics.FromDouble(2.5, 0, checkedLanding: true));   // inside: one function
+        Assert.Equal(Int128.MaxValue, CobolIntrinsics.FromDouble(1.0e40, 9, CobolRounding.NearestAwayFromZero, checkedLanding: true));
+        Assert.Equal(Int128.Parse("303786028427003666890752") * 1_000_000_000 % Ten38, CobolIntrinsics.FromDouble(1.0e40, 9, CobolRounding.NearestAwayFromZero) % Ten38);
+        Assert.Equal(Int128.Zero, CobolIntrinsics.FromDouble(double.PositiveInfinity, 9, CobolRounding.NearestAwayFromZero));
+        Assert.Equal(Int128.MaxValue, CobolIntrinsics.FromDouble(double.PositiveInfinity, 9, CobolRounding.NearestAwayFromZero, checkedLanding: true));
+        Assert.Equal(CobolIntrinsics.FromDouble(2.5, 0, CobolRounding.Truncation), CobolIntrinsics.FromDouble(2.5, 0, CobolRounding.Truncation, checkedLanding: true));   // inside: one function
     }
 
     // ── the native exact family's two landings ───────────────────────────────────────────────────────────────
@@ -371,9 +371,18 @@ public sealed class CarrierLandingFormTests
     [InlineData(-0.3, 12)]
     [InlineData(1.0e25, 3)]
     [InlineData(1.0e9, -2)]
-    public void FromDouble_IsTheSameLandingAsTheMove(double v, int scale) =>
-        Assert.Equal(CobolFloat.ToScaledUnchecked(v, scale, CobolRounding.NearestAwayFromZero),
-                     CobolIntrinsics.FromDouble(v, scale));
+    public void FromDouble_IsTheSameLandingAsTheMove(double v, int scale)
+    {
+        // ⛔ AND THE MODE IS NOW PART OF WHAT "THE SAME LANDING" MEANS (kb/Work PB647). Before it, this assertion
+        // could only be written at ONE mode, because the arithmetic quantizer hard-coded NEAREST-AWAY-FROM-ZERO
+        // while the MOVE landing took the receiver's — so the two channels agreed on the VALUE and disagreed on
+        // the ANSWER (`MOVE FUNCTION SQRT(3) TO S` 1.732050807 against `COMPUTE S = FUNCTION SQRT(3)`
+        // 1.732050808 in one PIC 9V9(9)). Sweeping every mode is the drift test: a mode re-introduced inside
+        // either landing fails here rather than in a golden six months later.
+        foreach (CobolRounding mode in System.Enum.GetValues<CobolRounding>())
+            Assert.Equal(CobolFloat.ToScaledUnchecked(v, scale, mode),
+                         CobolIntrinsics.FromDouble(v, scale, mode));
+    }
 
     /// <summary>THE DRIFT TEST for the carrier fast path (kb/Work PB623). <see cref="ExactOracle"/> below is a
     /// deliberately separate, unoptimized <see cref="System.Numerics.BigInteger"/> implementation of "this

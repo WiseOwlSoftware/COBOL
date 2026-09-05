@@ -15,9 +15,12 @@ namespace CobolNet.CodeGen.Emit;
 /// DESIGN-codegen-backend §2.5). Three §15.2-type shapes (deep-dive D1):
 /// <list type="bullet">
 ///   <item><b>floating-math</b> (Float rows, §15.4.1 native-arithmetic license) — compute in double; a
-///         FIXED-POINT receiver then quantizes through the ONE <c>CobolIntrinsics.FromDouble</c> at
-///         <see cref="ReceiverContext.FloatWorkingScale"/> (the ≥9 float floor CAPPED at the receiver's Int128
-///         headroom, so a saturation can never store silently — PB13), while a FLOAT receiver and a
+///         FIXED-POINT receiver then quantizes through the ONE <c>CobolIntrinsics.FromDouble</c> at the landing
+///         <see cref="ReceiverContext.FloatLanding"/> chooses (the resultant identifier's scale + the statement's
+///         ROUNDED mode when this value IS the transfer — so the arithmetic channel and the MOVE channel land one
+///         returned value identically, §15.4.1 / kb/Work PB647; otherwise the ≥9 float floor CAPPED at the
+///         receiver's Int128 headroom, with TRUNCATION, so a saturation can never store silently — PB13), while a
+///         FLOAT receiver and a
 ///         RECEIVER-LESS context both keep the binary64 value: §15.4.1 leaves the returned value's
 ///         representation to the implementor, and with no receiver there is no scale to quantize TO
 ///         (P7.3 <c>ReceiverContext.None</c> — IF conditions / EVALUATE subjects / DISPLAY operands);</item>
@@ -519,11 +522,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX RenderFloatNative(BoundIntrinsicCall ic, string call)
     {
         var sig = ic.Sig;
-        // The ≥9 float floor CAPPED at the receiver's Int128 headroom — the one rule, on ReceiverContext (PB13).
-        int ws = num.Receiver.FloatWorkingScale;
+        // ⛔ THE LANDING'S SCALE AND ITS ROUNDING MODE ARE ONE DECISION, TAKEN ONCE, ON ReceiverContext
+        // (kb/Work PB647 — ReceiverContext.FloatLanding carries the derivation): the FINAL TRANSFER lands at the
+        // resultant identifier's scale with the statement's ROUNDED mode (§14.7.4.1 — "truncation is relative to
+        // the size provided for the resultant identifier"; §14.7.4.3 rule 2 — no ROUNDED phrase IS
+        // ROUNDED MODE IS TRUNCATION), which is exactly the landing `MOVE FUNCTION SQRT(3) TO S` performs
+        // (§14.6.8.2 rule 4), so §15.4.1's one-returned-value identity holds across the two channels; a NESTED
+        // intermediate lands at the ≥9 float floor CAPPED at the receiver's Int128 headroom (PB13) with
+        // TRUNCATION, never the receiver's mode — the rule Align and Divide's nested arm already state.
+        var (ws, mode) = num.Receiver.FloatLanding(num.Outermost);
         // A float RECEIVER keeps the transcendental result in the binary64 pipeline (full precision — SQRT(2) into a
         // COMP-2 is 1.4142135623730951, not the scale-9 1.414213562); a fixed receiver quantizes through FromDouble
-        // at the working scale (the established behavior the intrinsic goldens encode). (D16 review finding.)
+        // at the landing chosen just above. (D16 review finding.)
         //
         // ⛔ AND SO DOES A RECEIVER-LESS CONTEXT, UNDER NATIVE ARITHMETIC (fix-queue PB13, the half no
         // working-scale choice can reach — the standard-mode arm above now owns the other modes, which is the
@@ -557,10 +567,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // RenderFloat's standard-mode Dec arm needs no clamp: the un-quantized double never exits its codomain.
         // The quantizer's landing form past the carrier is the STATEMENT's (kb/Work PB77): saturate under ON SIZE
         // ERROR / EC-SIZE checking (the capacity check raises), the low-order digits for the no-phrase store.
+        // ⛔ AND THE CLAMP IS NOW ONLY LIVE UNDER AN EXPLICIT ROUNDING MODE (kb/Work PB647): a TRUNCATING landing
+        // can never leave a codomain the double is already inside, so the no-phrase COMPUTE and the MOVE agree by
+        // construction; a ROUNDED one still needs the clamp, which is the case PB65 measured.
         if (sig.Codomain != IntrinsicCodomain.None)
             return new NumX(RuntimeApi.Intrinsic("FromDoubleBounded",
-                $"{call}, {ws}, {RuntimeApi.CodomainConst(sig.Codomain)}{CheckedFlag}"), ws);
-        return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}{CheckedFlag}"), ws);
+                $"{call}, {ws}, {RuntimeApi.RoundingText(mode)}, {RuntimeApi.CodomainConst(sig.Codomain)}{CheckedFlag}"), ws);
+        return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}, {RuntimeApi.RoundingText(mode)}{CheckedFlag}"), ws);
     }
 
     // ── Argument rendering (the ONE NumericRenderer for every numeric-kind argument) ────────────────────────

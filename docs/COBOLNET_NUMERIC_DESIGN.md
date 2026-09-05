@@ -427,6 +427,75 @@ at either quantize site — a mistake no runtime test can see, since it is corre
 Goldens: `pb13_float_quantize_headroom` (the two cases the queue carried) and `pb13_float_quantize_siblings` (the
 four the sibling sweep found, `**` included — it reaches the same quantizer and carried the identical defect).
 
+### D20. A float returned value entering fixed-point arithmetic takes the STATEMENT's rounding decision, ONCE, at the scale where it is made (`ReceiverContext.FloatLanding(finalTransfer)`).
+
+**Decision.** The float→fixed quantizer's SCALE and its ROUNDING MODE are one decision, taken in one place:
+
+- **The final transfer** — the quantized value IS the value transferred to a single resultant identifier
+  (`NumericRenderer.Outermost`, the same question `Divide` asks) — lands at **the resultant identifier's scale
+  with the statement's own ROUNDED mode**. §14.7.4.1: "If, after decimal point alignment, the number of places in
+  the fractional part of the result of an arithmetic operation is greater than the number of places provided for
+  the fraction of the resultant identifier, truncation is relative to the size provided for the resultant
+  identifier." §14.7.4.3 rule 2: "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS
+  TRUNCATION had been specified." Landing AT that scale also makes the store's rescale the identity, so no second
+  rounding can contradict the first.
+- **A nested intermediate** lands at the capped working scale (D18) with **TRUNCATION, never the receiver's
+  mode** — the rule `Align` and `Divide`'s nested arm already state, because §14.7.4.3's per-mode rules each bind
+  to "the resultant identifier" and the single receiver store performs that rounding.
+- A **floating-point numeric-edited** resultant (`FloatEdited`, data-model design D21 / kb/Work PB66) is never a final transfer for this
+  purpose: it has no fixed fraction scale to round at, so it keeps the working scale and truncates.
+
+Two consumers, one rule: `IntrinsicRenderer.RenderFloatNative` (the §15.4.1 float family) and
+`NumericRenderer.Power` (native `**`). `CobolIntrinsics.FromDouble`/`FromDoubleBounded` take the mode as a
+REQUIRED parameter — no default — so a new call site must decide rather than inherit.
+
+**Rationale (kb/Work PB647).** The quantizer hard-coded `NearestAwayFromZero` at a working scale in BOTH
+positions while the MOVE channel (`CobolFloat.ToScaledUnchecked`) had always taken the receiver's mode at the
+receiver's scale. PB623 had just made the two channels compute the SAME exact binary64 expansion, so what
+remained was purely a mode difference — and it was a wrong answer: with `S PIC 9V9(9)`,
+`MOVE FUNCTION SQRT(3) TO S` gave 1.732050807 (§14.6.8.2 rule 4) and `COMPUTE S = FUNCTION SQRT(3)` gave
+1.732050808, one returned value landing two ways in one receiver, which §15.4.1 forbids ("the returned value is
+the same for all instances of a given function within a single execution of the runtime element so long as the
+value and order of the arguments, the collating sequence, and the locale are unchanged").
+`FUNCTION SQRT(0.9999999999)` into `PIC 9V9` split across a whole tenth, 0.9 against 1.0. The same hard-coding
+made the ROUNDED phrase a **no-op** on the entire family — `COMPUTE S ROUNDED` and no-phrase `COMPUTE S` both
+answered 1.732050808. A COMP-2 item holding the identical binary64 was already correct in all four positions,
+which is what identified this as the codebase's recurring two-arm shape with one arm fixed.
+
+**Hazard H2 is RETIRED.** `FromDouble`'s "rounding is strictly the better approximation" rationale (truncation
+turns the double artifact `LOG10(1000) = 2.9999999999999996` into 2.999999999) is a statement about the returned
+VALUE, which §15.4.1's last paragraph does leave to the implementor. The rounding of the TRANSFER into a resultant
+identifier is not left to the implementor: §14.7.4.1 and §14.7.4.3 fix it, and §8.8.1.3's native latitude ("Native
+arithmetic is an implementor-defined method of evaluating an arithmetic expression, an arithmetic statement, the
+SUM clause, and all integer and numeric functions") reaches the INTERMEDIATE, not that transfer. When the two
+readings collide, §15.4.1's identity sentence outranks the approximation preference — and a program that wants the
+rounded landing now writes ROUNDED and gets it.
+
+**ROUNDED MODE IS PROHIBITED moved with the decision.** §14.7.4.3 rule 7's raise now lives in `FromDouble`, gated
+on `checkedLanding` (the ON SIZE ERROR / EC-SIZE scope the emitter's own float-source gate uses). It has to: a
+final transfer lands AT the resultant identifier's scale, so the store's rescale is the identity and its own
+PROHIBITED test can no longer see the discarded fraction. Before the move,
+`COMPUTE S ROUNDED MODE IS PROHIBITED = FUNCTION SQRT(3) ... ON SIZE ERROR` into `PIC 9V9(9)` stored silently
+while the same statement into `PIC 9V9` raised — the condition depending on the receiver's scale rather than on
+the transfer's exactness.
+
+**Blast radius, measured.** The whole Conformance corpus moved exactly ONE golden,
+`2023/pb65_codomain_clamp`, in two lines (`ASINH` 0.523598776 → 0.523598775, `SQRTD` 1.000000000 →
+0.999999999), both re-derived from the exact binary64 expansions. That golden gained six ROUNDED legs, because
+truncation can never leave a codomain the double is already inside — so PB65's clamp is now reachable only under
+an explicit rounding mode, and would have gone unexercised by a green test.
+
+**Guard.** `FloatLandingModeDriftTests` proves all four invariants over every legal (integer-digits, scale) pair
+crossed with every one of the eight modes, and asserts the runtime quantizer names no rounding mode of its own;
+`CarrierLandingFormTests.FromDouble_IsTheSameLandingAsTheMove` sweeps every mode instead of the one both channels
+used to hard-code. Goldens: `pb647_float_landing_mode` at 2002/2014/2023.
+
+**Known residue, outside this decision.** A nested float operand still quantizes at `max(receiverScale, 9)` with
+no guard digits, so at a receiver scale ≥ 9 an expression built on one is a digit adrift of the same expression
+built on a COMP-2 holding the identical value: `COMPUTE R = FUNCTION SQRT(3) * 2` into `PIC 9V9(9)` gives
+3.464101614 where `C2 * 2` gives the correct 3.464101615. That is a working-SCALE (guard-digit) question, not a
+mode one — D2's `DIV_GUARD_DIGITS` is the shape it wants — and it is filed separately.
+
 ## C# mapping
 
 DATA-DIVISION → CLR storage type:

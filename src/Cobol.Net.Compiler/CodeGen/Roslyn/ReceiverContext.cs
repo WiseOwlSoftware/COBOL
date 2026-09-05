@@ -41,9 +41,16 @@ namespace CobolNet.CodeGen;
 /// The float family itself does not consult it — its value HAS no exact form, so its MOVE landing is binary64
 /// through <c>CobolFloat.ToScaled</c> either way.
 /// </param>
+/// <param name="FloatEdited">
+/// True when the resultant identifier is a FLOATING-POINT numeric-edited item (data-model design D21 /
+/// kb/Work PB66). Such a receiver has NO fixed fraction scale for the ROUNDED transfer — the result normalizes
+/// into the mask and its significand is truncated to the mask's digits — so <see cref="Scale"/> carries the
+/// mask's significand scale only as a working-scale hint (<c>RuntimeApi.ReceiverScaleOf</c>) and is NOT the
+/// scale a final transfer rounds at. <see cref="FloatLanding"/> is the one reader.
+/// </param>
 internal readonly record struct ReceiverContext(
     int Scale, bool Real, CobolRounding Rounding, bool InSizeError, int IntegerDigits = 0,
-    bool Receiverless = false, bool MoveSender = false)
+    bool Receiverless = false, bool MoveSender = false, bool FloatEdited = false)
 {
     /// <summary>The receiver-less context: scale 0, no capacity, not floating, TRUNCATION, no size-error checking.</summary>
     public static readonly ReceiverContext None =
@@ -128,4 +135,53 @@ internal readonly record struct ReceiverContext(
         int headroom = IntermediateDigits - Math.Clamp(IntegerDigits, 0, IntermediateDigits);
         return Math.Max(0, Math.Min(want, headroom));
     }
+
+    /// <summary>
+    /// ⛔ THE ONE PLACE a float→fixed quantization's SCALE **and** its ROUNDING MODE are decided together
+    /// (kb/Work PB647) — the §15.4.1 float-intrinsic family (<c>IntrinsicRenderer.RenderFloatNative</c>) and
+    /// native <c>**</c> (<c>NumericRenderer.Power</c>) are its two consumers, and they must agree because one
+    /// returned value must not land two ways.
+    /// <para>
+    /// <paramref name="finalTransfer"/> is the caller's <c>NumericRenderer.Outermost</c> — TRUE exactly when the
+    /// quantized value IS the value transferred to a single resultant identifier, which is the same question
+    /// <c>NumericRenderer.Divide</c> already asks and answers the same way:
+    /// <list type="bullet">
+    ///   <item><b>The final transfer</b> lands AT the resultant identifier's scale with the statement's own
+    ///     ROUNDED mode. §14.7.4.1: "If, after decimal point alignment, the number of places in the fractional
+    ///     part of the result of an arithmetic operation is greater than the number of places provided for the
+    ///     fraction of the resultant identifier, truncation is relative to the size provided for the resultant
+    ///     identifier" (cite.py-verified) — the decision is made ONCE, at the receiver's scale. The store's
+    ///     rescale is then the identity, so no second rounding can contradict it.</item>
+    ///   <item><b>A nested intermediate</b> lands at the float working scale with TRUNCATION, never the
+    ///     receiver's mode: the rounding belongs to the transfer into the resultant identifier
+    ///     (§14.7.4.3 rules 3–10 each speak of "the resultant identifier"), and the single receiver store
+    ///     performs it. This is the rule <c>NumericRenderer.Align</c> and <c>Divide</c>'s nested arm already
+    ///     state for every OTHER float→fixed intermediate.</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// ⛔ WHY THIS EXISTS AT ALL (the defect it closes). The quantizer hard-coded
+    /// <see cref="CobolRounding.NearestAwayFromZero"/> at the working scale in BOTH positions, so with
+    /// <c>S PIC 9V9(9)</c>, <c>MOVE FUNCTION SQRT(3) TO S</c> gave 1.732050807 (§14.6.8.2 rule 4 —
+    /// "the data is aligned by decimal point and is transferred to the receiving digits with zero fill or
+    /// truncation on either end") while <c>COMPUTE S = FUNCTION SQRT(3)</c> gave 1.732050808, and
+    /// <c>SQRT(0.9999999999)</c> into <c>PIC 9V9</c> split across a whole tenth (0.9 against 1.0). ONE returned
+    /// value, two landings — which §15.4.1 forbids outright ("the returned value is the same for all instances
+    /// of a given function within a single execution of the runtime element so long as the value and order of
+    /// the arguments, the collating sequence, and the locale are unchanged"). The same hard-coding made the
+    /// ROUNDED phrase a NO-OP on this family: <c>COMPUTE S ROUNDED</c> and the no-phrase <c>COMPUTE S</c> both
+    /// answered 1.732050808, where §14.7.4.3 rule 2 says "If the ROUNDED phrase is not specified, execution is
+    /// as if ROUNDED MODE IS TRUNCATION had been specified". §8.8.1.3's native latitude ("Native arithmetic is
+    /// an implementor-defined method of evaluating an arithmetic expression, an arithmetic statement, the SUM
+    /// clause, and all integer and numeric functions") covers the INTERMEDIATE's precision, not the rounding of
+    /// the transfer into the resultant identifier, which §14.7.4.1/§14.7.4.3 fix.
+    /// </para>
+    /// <para>A FLOATING-POINT numeric-edited resultant (<see cref="FloatEdited"/>) is never a final transfer for
+    /// this purpose: it has no fixed fraction scale to round at, so it keeps the working scale + truncation and
+    /// the mask's own normalization does the rest.</para>
+    /// </summary>
+    public (int Scale, CobolRounding Mode) FloatLanding(bool finalTransfer) =>
+        finalTransfer && !FloatEdited
+            ? (Scale, Rounding)
+            : (FloatWorkingScale, CobolRounding.Truncation);
 }

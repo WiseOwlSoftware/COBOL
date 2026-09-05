@@ -16,11 +16,21 @@ public static partial class CobolIntrinsics
 {
     /// <summary>
     /// THE one canonical double → scaled-long quantization (every floating-point intrinsic result funnels through
-    /// here — singular-pattern rule). <paramref name="scale"/> is the working fraction-digit count the emitter
-    /// chose (≥ 9 for float functions — hazard H1's scale floor). Rounds (never truncates) at the quantization
-    /// point: ISO §15.4.1 makes the returned value an implementor-defined APPROXIMATION of the equivalent
-    /// arithmetic expression, and rounding is strictly the better approximation (hazard H2 — truncation turns the
-    /// double artifact LOG10(1000) = 2.9999999999999996 into 2.999999999). NaN (ACOS of |x|&gt;1, SQRT of a negative)
+    /// here — singular-pattern rule). <paramref name="scale"/> and <paramref name="mode"/> are the landing the
+    /// emitter chose, together, at <c>ReceiverContext.FloatLanding</c> — the resultant identifier's scale and the
+    /// statement's ROUNDED mode for a FINAL TRANSFER, the ≥ 9 working scale (hazard H1's floor) with TRUNCATION
+    /// for a nested intermediate.
+    /// <para>⛔ IT USED TO ROUND NEAREST-AWAY-FROM-ZERO UNCONDITIONALLY, ON THE RATIONALE THAT ROUNDING IS THE
+    /// BETTER APPROXIMATION (numeric-design hazard H2 — truncation turns the double artifact
+    /// LOG10(1000) = 2.9999999999999996 into 2.999999999). THAT RATIONALE IS RETIRED (kb/Work PB647). It is a
+    /// statement about the returned VALUE, which §15.4.1's last paragraph does leave to the implementor; the
+    /// rounding of the TRANSFER into a resultant identifier is not left to the implementor — §14.7.4.1 puts it
+    /// "relative to the size provided for the resultant identifier" and §14.7.4.3 rule 2 makes a no-phrase store
+    /// TRUNCATION. Preferring the better approximation here meant `MOVE FUNCTION LOG10(1000) TO R` and
+    /// `COMPUTE R = FUNCTION LOG10(1000)` disagreed about ONE returned value, which §15.4.1's identity sentence
+    /// forbids; when the two readings collide, the identity outranks the approximation, and a program that wants
+    /// the rounded landing writes ROUNDED — which on this family now actually does something.</para>
+    /// NaN (ACOS of |x|&gt;1, SQRT of a negative)
     /// maps to the EC-ARGUMENT-FUNCTION default result 0 — §15.3: "the implementor defines the result of the function
     /// reference" while EC checking is disabled. ±∞ SATURATES to long.Max/MinValue: it is NOT necessarily a domain
     /// error — a LEGAL class-numeric argument whose e**x / 10**x result merely overflows binary64 (EXP(710) ≈ 2.25e308
@@ -181,21 +191,26 @@ public static partial class CobolIntrinsics
     public static readonly Int128 CodomainPi37 = Int128.Parse("31415926535897932384626433832795028841");
 
     /// <summary>
-    /// ⛔ THE BOUNDED-CODOMAIN QUANTIZER (fix-queue PB65 / RV-15.75.4-1). <see cref="FromDouble"/>'s
-    /// away-from-zero rounding exists to absorb binary64 artifacts (SQRT(10) ** 2 → 10, NIST IF136A) and must
-    /// stay — but for a function whose §15.x.4 rule bounds the returned value, the top half-ulp of the codomain
-    /// rounds OUT of it: RANDOM's [0, 1) produced exactly 1.000000000 in a PIC 9V9(9) receiver (§15.75.4 r1's
+    /// ⛔ THE BOUNDED-CODOMAIN QUANTIZER (fix-queue PB65 / RV-15.75.4-1). When <see cref="FromDouble"/> ROUNDS —
+    /// which since kb/Work PB647 is when the statement asked it to, not unconditionally — the top half-ulp of a
+    /// codomain whose §15.x.4 rule bounds the returned value rounds OUT of it: RANDOM's [0, 1) produced exactly
+    /// 1.000000000 in a PIC 9V9(9) receiver under NEAREST-AWAY-FROM-ZERO (§15.75.4 r1's
     /// "less than one" is strict), and ASIN(1) at scale 9 rounded to 1.570796327 &gt; π/2 — outside §15.10.4 r1's
     /// CLOSED bound, because the bound is irrational and the nearest scaled value above it is not "equal to π/2".
     /// The DOUBLE never exits the codomain (Math.PI/2 &lt; π/2; NextDouble() &lt; 1); only the quantization does,
     /// which is why the clamp acts on the QUANTIZED value. The clamp is symmetric in magnitude — every family
     /// member's codomain is symmetric or zero-anchored on the safe side (ACOS ≥ 0, RANDOM ≥ 0 hold in double
     /// already). The limit divides exactly from the scale-37 constant; <paramref name="scale"/> ≤ 31 always
-    /// (a working scale is capped at the receiver's Int128 headroom and a PICTURE at 31 digits, §13.18.40.3 SR14).
+    /// (a working scale is capped at the receiver's Int128 headroom and a PICTURE at 31 digits, §13.18.40.3 SR14 —
+    /// and a FINAL-TRANSFER scale is a PICTURE's own, so the same bound holds).
+    /// <para>⛔ IT IS A NO-OP UNDER TRUNCATION, AND THAT IS NOT A REASON TO DELETE IT (kb/Work PB647). A truncating
+    /// landing cannot leave a codomain the double is already inside, so the no-phrase COMPUTE — now the common
+    /// case — never reaches the clamp; an explicit ROUNDED still does, and `2023/pb65_codomain_clamp` carries
+    /// ROUNDED legs precisely so this stays a MEASURED rule rather than a green test proving nothing.</para>
     /// </summary>
-    public static Int128 FromDoubleBounded(double d, int scale, Int128 max37, bool checkedLanding = false)
+    public static Int128 FromDoubleBounded(double d, int scale, CobolRounding mode, Int128 max37, bool checkedLanding = false)
     {
-        Int128 q = FromDouble(d, scale, checkedLanding);
+        Int128 q = FromDouble(d, scale, mode, checkedLanding);
         Int128 limit = max37 / Pow10.AsWide(37 - scale);
         return q > limit ? limit : q < -limit ? -limit : q;
     }
@@ -207,8 +222,23 @@ public static partial class CobolIntrinsics
     /// receiver's capacity); <c>false</c> for the no-phrase store (§14.6.13.1.3 item 8 — the receiver takes the
     /// LOW-ORDER digits of the result, the documented disposition), where the sentinel had no check to expose it and
     /// its low digits were stored as the answer (<c>COMPUTE X = FUNCTION EXP10(40)</c> stored 03715 in PIC 9(5)). An
-    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does.</param>
-    public static Int128 FromDouble(double d, int scale, bool checkedLanding = false)
+    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does. Since kb/Work PB647 moved the
+    /// FINAL TRANSFER's rounding decision into this method, it is also the gate on the §14.7.4.3 rule 7
+    /// PROHIBITED raise below — the same condition the emitter's own float-source gate uses (an ON SIZE ERROR /
+    /// EC-SIZE statement), so the two channels agree on when the condition is raised.</param>
+    /// <param name="mode">⛔ THE STATEMENT'S ROUNDING DECISION, AND IT HAS NO DEFAULT ON PURPOSE (kb/Work PB647).
+    /// This quantizer is the ARITHMETIC channel's float→fixed landing; <c>CobolFloat.ToScaledUnchecked</c> is the
+    /// MOVE channel's, and it has always taken the receiver's mode. While this one hard-coded
+    /// <see cref="CobolRounding.NearestAwayFromZero"/>, ONE returned value landed TWO ways in ONE receiver —
+    /// <c>MOVE FUNCTION SQRT(3) TO S</c> gave 1.732050807 into <c>PIC 9V9(9)</c> and
+    /// <c>COMPUTE S = FUNCTION SQRT(3)</c> gave 1.732050808 — which §15.4.1 forbids ("the returned value is the
+    /// same for all instances of a given function within a single execution of the runtime element so long as the
+    /// value and order of the arguments, the collating sequence, and the locale are unchanged", cite.py-verified),
+    /// and the ROUNDED phrase was a no-op on the whole family. <c>ReceiverContext.FloatLanding</c> is the ONE
+    /// emitter-side rule that chooses it: the resultant identifier's own mode for a final transfer
+    /// (§14.7.4.3 rule 2 — "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION
+    /// had been specified"), TRUNCATION for a nested intermediate. A new call site must decide, not inherit.</param>
+    public static Int128 FromDouble(double d, int scale, CobolRounding mode, bool checkedLanding = false)
     {
         // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.6 — the exception-condition table gives it Fatal): the
         // §15.3 default 0 when checking is off, the raise (throw) when the statement carries enabled checking (the
@@ -222,10 +252,25 @@ public static partial class CobolIntrinsics
         // binary64 the ONE returned value §15.4.1 promises landed as two different numbers (16331239353195368.96
         // against 16331239353195369.92, the exact value being 16331239353195370). CobolFloat.TryExactScaled is
         // now the single definition of "this double at this scale"; only the past-the-carrier FORM is this
-        // landing's own (kb/Work PB77), and NEAREST-AWAY-FROM-ZERO is its own working-scale rounding mode.
-        if (CobolFloat.TryExactScaled(d, scale, CobolRounding.NearestAwayFromZero, out Int128 landed)) return landed;
+        // landing's own (kb/Work PB77), and since kb/Work PB647 the MODE is the statement's, exactly as the MOVE
+        // landing's is — the last thing that still made one returned value land two ways.
+        //
+        // ⛔ ROUNDING MODE IS PROHIBITED, AT THE ONE PLACE THE TRANSFER'S ROUNDING NOW HAPPENS (§14.7.4.3 rule 7:
+        // "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the
+        // resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error
+        // condition exists", cite.py-verified — the receiver is left unchanged, which the caller's catch does).
+        // It has to be HERE and not at the store: a final transfer lands AT the resultant identifier's scale, so
+        // the store's rescale is the identity and its own PROHIBITED test can no longer see the discarded
+        // fraction. TryExactScaled documents that PROHIBITED itself lands truncated, so the raise must precede
+        // it. Gated on checkedLanding — the same ON SIZE ERROR / EC-SIZE scope the emitter's float-source gate
+        // has; without the phrase the no-phrase store's silent disposition stands, unchanged.
+        if (mode == CobolRounding.Prohibited && checkedLanding && CobolFloat.InexactAtScale(d, scale))
+            throw new CobolSizeError(
+                "ROUNDED MODE IS PROHIBITED on an inexact float-to-fixed arithmetic transfer "
+                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
+        if (CobolFloat.TryExactScaled(d, scale, mode, out Int128 landed)) return landed;
         return checkedLanding ? (d > 0 ? Int128.MaxValue : Int128.MinValue)
-             : CobolFloat.LowOrderDigits(d, scale, CobolRounding.NearestAwayFromZero);   // the same rounding as above
+             : CobolFloat.LowOrderDigits(d, scale, mode);   // the same rounding as above
     }
 
 }

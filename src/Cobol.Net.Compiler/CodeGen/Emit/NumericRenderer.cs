@@ -78,6 +78,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
     internal ReceiverContext Receiver => _rcv;
 
+    /// <summary>Whether the value now being rendered IS the value transferred to a single resultant identifier —
+    /// <see cref="_outermost"/>, read by the mutually-recursive <see cref="IntrinsicRenderer"/> (kb/Work PB647:
+    /// a float returned value's quantization is the final transfer's rounding exactly when this is true, and
+    /// <see cref="ReceiverContext.FloatLanding"/> is the one place that decides what follows from it).</summary>
+    internal bool Outermost => _outermost;
+
     /// <summary>Render a bound numeric expression as a scaled long, computed FOR <paramref name="rcv"/>.
     /// Save/restore makes every public entry RE-ENTRANT (P7 Step 12): the instance string channel renders an
     /// intrinsic's numeric arguments under <see cref="ReceiverContext.None"/> MID-render, and the outer render
@@ -739,7 +745,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     /// <summary>Exponentiation (ISO §8.8.1.2: a native-arithmetic exponentiation whose result has no exact
     /// representation is an IMPLEMENTOR-DEFINED approximation): computed in double, quantized through the ONE
-    /// <c>CobolIntrinsics.FromDouble</c> (rounding) at <c>max(Receiver.Scale, 9)</c> fraction digits. The previous
+    /// <c>CobolIntrinsics.FromDouble</c> at the landing <see cref="ReceiverContext.FloatLanding"/> chooses — the
+    /// resultant identifier's scale + the statement's ROUNDED mode when the power IS the transfer, the
+    /// <c>max(Receiver.Scale, 9)</c> working scale with TRUNCATION when it is a nested intermediate (kb/Work
+    /// PB647: this arm carried the float family's hard-coded NEAREST-AWAY-FROM-ZERO and its defect with it, so
+    /// <c>COMPUTE A = 3 ** 0.5</c> rounded where a no-phrase store must truncate). The previous
     /// scale-0 <c>(long)</c> truncation lost every fractional power result and turned the double artifact in
     /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25); the 9-digit floor mirrors the float-intrinsic
     /// working scale (a receiver-less context renders at scale 0 — the P7.3 <see cref="ReceiverContext.None"/>).</summary>
@@ -808,12 +818,15 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // SDIDI one, which `CobolDec.Pow` above has always honoured while every native arm ignored it.
         if (b.Real || e.Real || _rcv.Real || _rcv.Receiverless)
             return new NumX(RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}"), 0, Real: true);
-        // ⛔ THE SAME QUANTIZER, SO THE SAME CAP (PB13's sibling — feedback_scan_all_similar). A flat
+        // ⛔ THE SAME QUANTIZER, SO THE SAME LANDING DECISION (PB13's sibling — feedback_scan_all_similar). A flat
         // max(Scale, 9) here silently saturated `COMPUTE R = 10 ** 30` into a PIC 9(31) exactly as it did for the
-        // float-intrinsic family; ReceiverContext.FloatWorkingScale is the one rule both consume.
-        int ws = _rcv.FloatWorkingScale;
+        // float-intrinsic family, and the hard-coded NEAREST-AWAY-FROM-ZERO mode made `COMPUTE A = 3 ** 0.5` round
+        // where §14.7.4.3 rule 2 makes a no-phrase store TRUNCATE, exactly as it did there (kb/Work PB647).
+        // ReceiverContext.FloatLanding is the one rule both consume: the resultant identifier's scale + the
+        // statement's mode for the final transfer, the capped working scale + truncation for a nested intermediate.
+        var (ws, qmode) = _rcv.FloatLanding(_outermost);
         return new NumX(RuntimeApi.Intrinsic("FromDouble",
-            $"{RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}")}, {ws}{CheckedFlag}"), ws);
+            $"{RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}")}, {ws}, {RuntimeApi.RoundingText(qmode)}{CheckedFlag}"), ws);
     }
 
     private static NumX Negate(NumX x) =>

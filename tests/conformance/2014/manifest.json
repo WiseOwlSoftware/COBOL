@@ -3,6 +3,7 @@
   "enabled": [
     "pb253_prose_float_sdidi_container",
     "pb623_float_landing_exact",
+    "pb647_float_landing_mode",
     "pb121_test_numval_f_capacity",
     "pb125_factorial_standard_decimal",
     "pb129_store_discipline",

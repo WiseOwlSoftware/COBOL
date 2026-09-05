@@ -250,8 +250,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
 
     /// <summary>The <see cref="ReceiverContext"/> for receiver <paramref name="r"/> (P7 Step 3 — the pure
     /// factory replacing the mutable <c>SetTarget</c> context writes).</summary>
+    /// <remarks>⛔ <c>FloatEdited</c> is carried because <see cref="ScaleOf"/> gives a FLOATING-POINT
+    /// numeric-edited receiver its mask's SIGNIFICAND scale — a working-scale hint, not a scale the ROUNDED
+    /// transfer rounds at (that resultant normalizes into the mask instead, D21/PB66). Only
+    /// <see cref="ReceiverContext.FloatLanding"/> reads it (kb/Work PB647).</remarks>
     public ReceiverContext RcvFor(Receiver r, bool inSizeError) =>
-        new(ScaleOf(r.Place), r.Place.Item.Pic is { IsFloat: true }, r.Rounding, inSizeError, IntDigitsOf(r.Place));
+        new(ScaleOf(r.Place), r.Place.Item.Pic is { IsFloat: true }, r.Rounding, inSizeError, IntDigitsOf(r.Place),
+            FloatEdited: r.Place.Item.Pic is { IsFloatEdited: true });
 
     /// <summary>The optional <c>blankWhenZero</c> argument text for a numeric-edited store when the receiver
     /// carries BLANK WHEN ZERO (ISO §13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
