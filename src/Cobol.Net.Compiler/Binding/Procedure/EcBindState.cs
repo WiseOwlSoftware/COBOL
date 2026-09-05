@@ -10,8 +10,7 @@ namespace CobolNet.Binding.Procedure;
 /// mutable state the <c>EcBinder</c> members and the Declaratives half share, hoisted off the god class.
 /// <see cref="Turn"/>/<see cref="ProgramName"/> are configured per bound unit (ConfigureEc);
 /// <see cref="PdRaising"/>/<see cref="PdRaisingClasses"/> hold the PROCEDURE DIVISION header RAISING lists
-/// (§14.2.1/§14.2.2 — per-method reset via EcLoadPdRaising); <see cref="DeclEcPairs"/> the USE F3 SR14
-/// cross-USE (ec,file) pairs (per division); the seven bits accumulate the emitter's
+/// (§14.2.1/§14.2.2 — per-method reset via EcLoadPdRaising); the seven bits accumulate the emitter's
 /// <see cref="EcFeatures"/> gating summary in ctor order.
 /// </summary>
 internal sealed class EcBindState
@@ -27,9 +26,6 @@ internal sealed class EcBindState
 
     /// <summary>PD-header RAISING class names (§14.2.2 SR8; the SR4a check).</summary>
     public HashSet<string> PdRaisingClasses { get; } = new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>USE F3 SR14 cross-USE (ec,file) pairs — the set spans sections, per division.</summary>
-    public HashSet<string> DeclEcPairs { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>True while binding imperative-statement-2/3/4 of an exception-checking PERFORM (a WHEN / WHEN
     /// OTHER / WHEN COMMON body). Relaxes RESUME's SR1 "declarative only" gate (RESUME NEXT STATEMENT is legal

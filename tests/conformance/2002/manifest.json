@@ -210,7 +210,9 @@
     "pb354_start_generic_key_ok",
     "pb340_advancing_on_lock_relative",
     "pb340_advancing_on_lock_indexed",
-    "pb334_read_previous_sequential"
+    "pb334_read_previous_sequential",
+    "l1_use_sr14_pair_twice_one_statement",
+    "l1_use_sr14_bare_name_repeated"
   ],
   "pending": []
 }

@@ -1091,12 +1091,48 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023), "COBOLNET0715");
 
-    [Fact]   // §14.9.49.3 SR14: the same (exception-name, file) pair in two USE statements of one procedure
-             // division is rejected.
+    // ── §14.9.49.3 SR7/SR8/SR9/SR14: the STATEMENT is the boundary (kb/Work PB364) ───────────────────────────
+    // Four rules share one sentence — "the same X shall not be … in more than one USE statement within the same
+    // procedure division" — and the compiler enforces all four through the ONE UseOperandRegister. These tests
+    // hold BOTH arms of that boundary: a repeat ACROSS statements is the violation, and a repeat INSIDE one
+    // statement is legal source that must compile. The accepting arms are the drift guard — a screen that
+    // regresses to per-operand registration turns them red at once.
+
+    [Fact]   // §14.9.49.3 SR14: the same PAIR of exception-name-2 and file-name-2 in two USE statements of one
+             // procedure division is rejected. The pair is the rule's key, so the FILE phrase is essential to
+             // the test: two BARE names are exception-name-1 and outside SR14 (see the accepting arm below).
     public void UseF3_DuplicatePairAcrossSections_Diagnosed()
-        => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
+        => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics($"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. ECT037.
+            {IoEnv}
+            DATA DIVISION.
+            FILE SECTION.
+            {IoFd}
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            H1 SECTION. USE AFTER EXCEPTION CONDITION EC-I-O-AT-END FILE TF.
+            H1-P.
+                CONTINUE.
+            H2 SECTION. USE AFTER EXCEPTION CONDITION EC-I-O-AT-END FILE TF.
+            H2-P.
+                CONTINUE.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                STOP RUN.
+            """, 2023), "COBOLNET0716");
+
+    [Theory]   // §14.9.49.3 SR14 is scoped to PAIRS. A bare exception-name in a Format-3 USE is
+    [InlineData(2002)]   // exception-name-1 (§14.9.49.2's figure puts exception-name-2 only in the FILE
+    [InlineData(2014)]   // alternative; §14.9.49.4 GR3 c)/d) against e)/f)/g) split on the same axis), so
+    [InlineData(2023)]   // repeating it across USE statements is legal — GR3 gives it its outcome (the FIRST
+                         // declarative runs) instead of forbidding it. Every edition that HAS Format 3.
+    public void UseF3_RepeatedBareExceptionName_IsAccepted(int edition)
+    {
+        var (ok, diagnostics) = EditionHarness.Compile($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT037B.
             PROCEDURE DIVISION.
             DECLARATIVES.
             H1 SECTION. USE AFTER EXCEPTION CONDITION EC-USER-D.
@@ -1109,7 +1145,89 @@ public sealed class ExceptionConditionConformanceTests
             MAIN SECTION.
             MAIN-PARA.
                 STOP RUN.
-            """, 2023), "COBOLNET0716");
+            """, edition);
+        Assert.True(ok, $"[--std {edition}] a repeated exception-name-1 is legal: {string.Join("\n", diagnostics)}");
+    }
+
+    [Theory]   // §14.9.49.3 SR14 forbids the pair in "more than one USE statement"; ONE statement writing it
+    [InlineData(2002)]   // twice is not more than one, and §14.9.49.2's inner `{ FILE file-name-2 } …` ellipsis
+    [InlineData(2014)]   // permits the repetition outright.
+    [InlineData(2023)]
+    public void UseF3_SamePairTwiceInOneStatement_IsAccepted(int edition)
+    {
+        var (ok, diagnostics) = EditionHarness.Compile($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT037C.
+            {IoEnv}
+            DATA DIVISION.
+            FILE SECTION.
+            {IoFd}
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            H1 SECTION. USE AFTER EXCEPTION CONDITION EC-I-O-AT-END FILE TF FILE TF.
+            H1-P.
+                CONTINUE.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                STOP RUN.
+            """, edition);
+        Assert.True(ok, $"[--std {edition}] one statement is not more than one: {string.Join("\n", diagnostics)}");
+    }
+
+    [Theory]   // §14.9.49.3 SR8: "The same file-name shall not appear in more than one USE AFTER EXCEPTION
+    [InlineData(85)]     // statement within the same procedure division." Format 1 exists at every edition, so
+    [InlineData(2002)]   // the rejection must hold at all four — and so must its complement below.
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void UseF1_SameFileInTwoStatements_Diagnosed(int edition)
+        => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT037D.
+            {IoEnv}
+            DATA DIVISION.
+            FILE SECTION.
+            {IoFd}
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            H1 SECTION. USE AFTER STANDARD ERROR PROCEDURE ON TF.
+            H1-P.
+                CONTINUE.
+            H2 SECTION. USE AFTER STANDARD ERROR PROCEDURE ON TF.
+            H2-P.
+                CONTINUE.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                STOP RUN.
+            """, edition), "COBOLNET0897");
+
+    [Theory]   // §14.9.49.3 SR8's complement: ONE Format-1 USE naming the same file twice. The figure writes
+    [InlineData(85)]     // `{ file-name-1 } …` with nothing making the repetition illegal, and §14.9.49.4
+    [InlineData(2002)]   // GR6 a) associates the one procedure with the file however often it is written.
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void UseF1_SameFileTwiceInOneStatement_IsAccepted(int edition)
+    {
+        var (ok, diagnostics) = EditionHarness.Compile($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT037E.
+            {IoEnv}
+            DATA DIVISION.
+            FILE SECTION.
+            {IoFd}
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            H1 SECTION. USE AFTER STANDARD ERROR PROCEDURE ON TF TF.
+            H1-P.
+                CONTINUE.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                STOP RUN.
+            """, edition);
+        Assert.True(ok, $"[--std {edition}] one statement is not more than one: {string.Join("\n", diagnostics)}");
+    }
 
     [Fact]   // §14.9.18.3 SR2 (¶27403): an EC-USER exception-name in GOBACK/EXIT RAISING shall be specified in
              // the RAISING phrase of the procedure division header.

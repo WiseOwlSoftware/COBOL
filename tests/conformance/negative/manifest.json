@@ -823,7 +823,9 @@
   "pb334-read-previous-85",
   "pb334-read-previous-line-sequential",
   "pb334-read-key-sequential-org",
-  "pb334-read-not-invalid-key-sequential-org"
+  "pb334-read-not-invalid-key-sequential-org",
+  "l1-use-sr8-file-in-two-statements",
+  "l1-use-sr14-pair-in-two-statements"
  ],
  "pending": []
 }
