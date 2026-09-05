@@ -29,11 +29,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   (`e2790667`, BOOLEAN-OF-INTEGER's conflated guard split into three cited arms) and `PB386`'s DERIVATION evidence
   kind (`6d61b95a`, eight unobservable rules closed on owner-signed determinations in `docs/CONFORMANCE.md` §8) —
   **GAP 3054 → 3013** across the three, with the ledger refreshed after each. Before them the same window landed
-  battery #42 (`ac2dadb8`, the CURRENT reference under "Gates"), PB378, PB377 (`6ffdb5a8`), PB379 (`d531e358`),
+  battery #42 (`ac2dadb8`, the reference until battery #43 — see "Gates"), PB378, PB377 (`6ffdb5a8`), PB379 (`d531e358`),
   PB371 + PB375 (`4cbb8f3c`) and golden-lane round 2 (`0fa1fe9e`, 49 witnesses).
-  **In flight now:** lane-3 **batch 3** (17 subjects, §13.18 data-division clauses) adjudicating read-only on the
-  pin cut at `89044aa0`; the **fix lane full at its three-implementer cap** — PB193, PB201 and PB203, each one
-  mechanism in its own worktree. ⚠ Batch 3 is also the measurement of the note-yield outside §14, which
+  **In flight now (fifth resume, 2026-09-04 21:00 PDT — every stream FRESH from its disk checkpoint):** **battery #43** ran in a worktree cut at `d908a749` and is **GREEN ON THE COMPILER** — its one NIST red, `IF141A`, is the guard's own compare arm scoring a lost observation as a regression (`kb/Work/PB473`, the artifact is byte-identical to the golden; the "Gates" bullet carries the numbers); lane-3 **batch 3** part B refuting read-only on the pin cut at `89044aa0` (part A done: CONFORMS 13/65); golden-lane **round 3** resumed from the two finished writers; the **fix lane at its three-implementer cap** — PB201 and PB193 finishing from their checkpoints, PB470 fresh — with PB203 finished and holding for the first five-cluster landing train. ⚠ Batch 3 is also the measurement of the note-yield outside §14, which
   `kb/Work/PB469` names as the softest number in the whole projection.
   **Process decisions in force (2026-09-04, `kb/Work/PB468`; evidence
   `docs/rearchitecture/evidence/PROCESS-REVIEW-2026-09-04.md`):** adjudication stays **verdict-only** and the golden
@@ -2043,8 +2041,9 @@ result. Run the long legs ONE AT A TIME.
   `negative/pb260-accept-screen-at-phrase`: it IS rejected at 2002/2014/2023, but only by a generic parse error,
   which `docs/CONFORMANCE.md` §4 records as PB260's debt rather than as the conforming posture; enabling it would
   pin the debt. `kb/Work/PB260` carries the substring to record when the named diagnostic lands.
-- **⛔ BATTERY REFERENCE — CURRENT, the TWO-LANE BURN-DOWN CAMPAIGN's first day (twenty landings, DEVLOG
-  1423–1443: clusters C/D/E/F, the Annex A.1 DOC rows, the derived-verdict selectors, the golden lane, witness
+- **⛔ BATTERY REFERENCE — CURRENT: battery #43, 2026-09-04, on `d908a749` — the resume day's chain (batch-2 registrar, PB383, PB386, the process review; DEVLOG 1449–1454) — run in a DETACHED WORKTREE cut at the batch head (the first battery not to freeze the lander).**
+  ✅ **Every compiler leg GREEN; the single red line is a HARNESS defect, attributed and registered as `kb/Work/PB473`.** Measured: FULL greenfield Conformance **5577 / 5577** (11 m 30 s) · Unit **5303 / 5303** (2 m 21 s) · characterization **33 / 33** · code citations **0** · doc citations **0 misfiled** · GnuCOBOL differential **1323 cases, `=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`** (totals 578/468/213/64, unchanged) · NIST **352 MATCH / 1 REGRESSION (`IF141A`)**, audit `unexpected=1` naming the same program. The regression is FALSE: battery #43's own compiled `IF141A.dll` (surviving in `tests/nist/output/`) produces a 2001-byte report byte-identical to `tests/nist/valid/IF141A.txt` (65/65 runs, 64 of them at `-P32`), and the guard's group loop reproduces the false `DIFF — REGRESSION!` at 1-in-640 under the battery's fan-out — `scripts/guard-run-group.sh` :100-117 reads every non-zero `diff <(normalize …)` exit, an absent report, or `rrc≠0` with an EMPTY stderr as a regression, the very shape plan §11 A12b hardened the compile and run arms against and never applied to the compare arm. PB383 is excluded structurally (`Cobol.Net.Runtime.dll` is not in the legacy CLI's closure) and by subject (no NIST program references an intrinsic it touched); the golden is right by §15.98.4 r1 c). ⛔ Until PB473 lands, a NIST `DIFF — REGRESSION!` with no `(run exited N)` suffix is re-observed before it is believed.
+- **BATTERY REFERENCE — PREVIOUS (#42, superseded by #43 above), the TWO-LANE BURN-DOWN CAMPAIGN's first day (twenty landings, DEVLOG 1423–1443: clusters C/D/E/F, the Annex A.1 DOC rows, the derived-verdict selectors, the golden lane, witness
   clusters A/B1/B2, the citation-repair sweep, the batch-1 registrar, PB280), battery #42, 2026-09-03.**
   ✅ **Every test leg GREEN on ONE tree, in ONE run — `80b4f1e6` (HEAD, clean); the two red lines were both
   ATTRIBUTED: one is a deliberate rebaseline, the other a stale gitignored generation.**
