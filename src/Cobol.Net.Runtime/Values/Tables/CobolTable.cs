@@ -48,7 +48,33 @@ public static class CobolTable
     public static long Occ(long value) => value;
 
     /// <inheritdoc cref="Occ(long)"/>
-    public static long Occ(string image) => (long)CobolNum.FromAlphanumeric(image);
+    public static long Occ(string image) => CobolNum.Position(CobolNum.FromAlphanumeric(image));
+
+    /// <summary>⛔ THE WIDE AND UNSIGNED CARRIERS, AND THEY ARE NOT OPTIONAL (kb/Work PB201). The bet above
+    /// — name the field, let C# overload resolution supply the conversion — is only good for carriers
+    /// this method DECLARES a parameter for, and <c>PicInfo.ClrType</c> also produces <c>Int128</c> (the 19-31
+    /// digit 2002+ tier), <c>ulong</c> and <c>UInt128</c> (an unsigned BINARY-CAPACITY container owning its
+    /// container's full range, §13.18.60.4 GR12). Without these three the emitted C# did not COMPILE, in the
+    /// default strict lane, at BOTH emitters: <c>MOVE E(W-BIG) ...</c> with <c>W-BIG PIC 9(20) COMP</c> (a
+    /// subscript, §8.8.1.1 + §8.4.2.3.2 — legal source), and the OCCURS DEPENDING current-count read
+    /// <c>RuntimeApi.TableOcc</c> for <c>MOVE &lt;odo-group&gt; TO X</c> whose data-name-1 is such an item
+    /// (§13.18.38.3 SR17 requires only that data-name-1 "shall describe an integer" — 20 digits is one).
+    /// The subscript emitter can decline a carrier it cannot name and re-route to the D18 materializer; the
+    /// current-count emitter renders at CODEGEN time and has no such route, so the capability has to be here.
+    /// <para>Narrowing goes through <see cref="CobolNum.Position(Int128)"/>, which SATURATES: an occurrence
+    /// number past <c>long.MaxValue</c> is out of range for every table and must stay out of range, or
+    /// §8.4.2.3.4 GR2's condition is lost to a wrap.</para>
+    /// <para>⚠ The FLOAT carriers are deliberately absent. A <c>double</c> operand can be fractional,
+    /// and §8.4.2.3.4 GR1b sets EC-BOUND-SUBSCRIPT when the expression "does not result in an integer" — a
+    /// test the scale-less overloads do not perform. A float subscript therefore keeps routing to the D18
+    /// §15.4 temp, where the integrality rule is applied exactly once, to the result.</para></summary>
+    public static long Occ(Int128 value) => CobolNum.Position(value);
+
+    /// <inheritdoc cref="Occ(Int128)"/>
+    public static long Occ(ulong value) => CobolNum.Position((Int128)value);
+
+    /// <inheritdoc cref="Occ(Int128)"/>
+    public static long Occ(UInt128 value) => CobolNum.Position(value);
 
     /// <summary>A SCALED subscript expression's occurrence number (ISO §8.4.2.3.4 GR1b; fix-queue PB41): "the
     /// subscript is the result of the evaluation of arithmetic-expression-1. If the evaluation of

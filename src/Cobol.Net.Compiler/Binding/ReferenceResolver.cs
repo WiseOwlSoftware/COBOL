@@ -1425,8 +1425,19 @@ public sealed class ReferenceResolver(DataBinder data)
     /// (kb/Work PB220).</para></summary>
     private void ScreenPositionOperandClass(DataItem item, string name, SegmentPosition position)
     {
-        string what = item.IsGroup ? $"group item '{name}' (class alphanumeric, ISO §8.5)"
-            : item.Pic is { Usage: Usage.Index }
+        // ⛔ NO GROUP / POINTER / OBJECT-REFERENCE ARM, AND THAT IS A REACHABILITY FACT, NOT AN OMISSION
+        // (kb/Work PB201). This method runs only when the fast path COMMITS to rendering the segment, and
+        // <see cref="HasPositionOverload"/> lets it commit only for a carrier <c>CobolTable.Occ</c> declares a
+        // parameter for — <c>long</c>, <c>string</c>, <c>Int128</c>, <c>ulong</c>, <c>UInt128</c>. A group's
+        // carrier is its per-program <c>record struct</c> and a pointer's is <c>ManagedPointer</c>, so
+        // both now route to D18 and are screened by <c>ExpressionBinder.OperandRef</c> instead — the same
+        // COBOLNET0844 over the same §8.8.1.1, minus this method's position phrase.
+        // ⚠ THE INTERSECTION IS NARROWER THAN THAT LIST, and it is the second precondition that narrows it: only
+        // an item <c>IntrinsicArgumentRules.IsArithmeticOperandClass</c> REJECTED is ever queued, and the three
+        // wide/unsigned carriers belong to class NUMERIC items, which it accepts. So what reaches HERE is
+        // exactly: an index DATA item (an <c>IndexCell</c> is a <c>long</c>) and the string-carrier categories
+        // — alphanumeric, national, boolean, numeric-edited and their edited forms.
+        string what = item.Pic is { Usage: Usage.Index }
                 ? $"item '{name}', an index data item (class index, ISO §8.5.2.1 Table 2; §13.18.60.3 SR10 admits "
                   + "an index data item only in SEARCH/SET, a relation condition, or an intrinsic argument)"
             : $"item '{name}' of class "
@@ -1467,13 +1478,80 @@ public sealed class ReferenceResolver(DataBinder data)
     /// rendering moves to the renderer with the rest of it.</para></summary>
     private string? PositionRead(DataItem item, SegmentPosition position)
     {
-        if (AccessPath(item, []) is not { } path) return null;
         // Scale 0 — an integer item — has no integrality question to answer, so neither position can raise and the
         // position kind is irrelevant: keep the ONE historical text unchanged for both.
         int scale = item.Pic?.Scale ?? 0;
+        // ⛔ THE BET ON OVERLOAD RESOLUTION IS ONLY GOOD FOR THE CARRIERS THAT HAVE AN OVERLOAD (kb/Work PB201).
+        if (!HasPositionOverload(item, scale)) return null;
+        if (AccessPath(item, []) is not { } path) return null;
         if (scale <= 0) return $"CobolTable.Occ({path})";
         return position == SegmentPosition.Subscript
             ? $"CobolTable.Occ({path}, {scale})"
             : $"CobolString.RefModPosition({path}, {scale})";
     }
+
+    /// <summary>⛔ THE FAST PATH'S ADMISSION TEST (kb/Work PB201): can the C# text <see cref="PositionRead"/> is
+    /// about to emit actually BIND against the operand's generated field? The bind-time renderer names the field
+    /// and lets C# overload resolution supply the conversion — the deliberate design that lets ONE text serve a
+    /// carrier the post-bind whole-group analysis has not chosen yet — but that bet is good ONLY for the carrier
+    /// types the emitted helper declares a parameter for.
+    /// <para><b>The overload sets are the whole rule.</b> <c>CobolTable.Occ</c> takes
+    /// <c>long | string | Int128 | ulong | UInt128</c> unscaled and <c>long | string | Int128</c> with a scale;
+    /// <c>CobolString.RefModPosition</c> takes the scaled three. The remaining carriers
+    /// <see cref="DataItem.ElementType"/> can produce — <c>double</c>/<c>float</c> (a COMP-1/COMP-2
+    /// leaf), <c>ManagedPointer</c>/<c>ProgramPointer</c>, an object reference, and a GROUP's <c>record struct</c>
+    /// name — have none, and the emitted text was therefore not C# that compiles.
+    /// ⚠ The FLOAT exclusion is a RULE, not a missing overload: a <c>double</c> operand can be
+    /// fractional and §8.4.2.3.4 GR1b sets EC-BOUND-SUBSCRIPT when the expression "does not result in an
+    /// integer", a test the scale-less overload does not perform — so a float belongs on the D18
+    /// route, where the §15.4 temp applies the rule once, to the result. The unsigned-binary carriers are
+    /// admitted UNSCALED only for the same reason from the other side: there is no scaled overload for them, and
+    /// a scaled one has an integrality question to answer.
+    /// MEASURED, six shapes, before this fix: <c>TE(FD1)</c> with <c>FD1 USAGE COMP-2</c>,
+    /// <c>TE(BIG)</c> with <c>BIG PIC 9(20) COMP</c> and <c>TE(W-U)</c> with
+    /// <c>W-U USAGE BINARY-DOUBLE UNSIGNED</c> each failed the BACKEND with
+    /// <c>CS1503 cannot convert from 'double'/'System.Int128'/'ulong' to 'long'</c> — in the DEFAULT lane, on source
+    /// §8.8.1.1 and §8.4.2.3.4 GR1b make perfectly legal — <c>W(FD1:2)</c> the same at a ref-mod bound, and a
+    /// GROUP subscript under <c>--permissive</c> emitted the record struct (<c>CS1503 '_T_0' to 'long'</c>) or, for
+    /// a class-tier BASED group, a name with no C# field at all (<c>CS0103</c>).</para>
+    /// <para><b>Why a route and not only wider overloads.</b> The three INTEGER carriers above genuinely were
+    /// missing overloads and got them (they are also needed by the second emitter, <c>RuntimeApi.TableOcc</c>,
+    /// which renders the OCCURS DEPENDING current count at CODEGEN time and has no route to fall back to). But
+    /// overloads alone can never close this: a group's carrier can never have a runtime overload, being a
+    /// per-program generated type, and a pointer has no numeric value to convert at all. The
+    /// route already exists and is the documented posture: <see cref="RenderSegment"/> is "an optimization over
+    /// that route, never the arbiter of what is legal in the position", so an operand it cannot render is
+    /// <see cref="MaterializeViaFragment"/>'s, where <c>ExpressionBinder</c> screens it under §8.8.1.1 and
+    /// <c>NumericRenderer.FieldNum</c> — THE ONE numeric read — supplies the carrier-correct decode (the float
+    /// sending check, the wide tier, and a group's §8.5.2.1 alphanumeric IMAGE, which is exactly the digit decode
+    /// the <c>--permissive</c> message promises and the fast path never performed).</para>
+    /// <para>⚠ Returning FALSE is always sound and never a verdict: the segment reroutes to D18, whose loud
+    /// posture on failure is the caller's pre-existing one. The pre-promotion reading of <c>ElementType</c> is
+    /// likewise safe in the one direction it can be wrong — promotion only ever moves a leaf TO
+    /// <c>CharImage</c>/<c>string</c>, which is in the set, so a leaf admitted here stays admitted.</para></summary>
+    private static bool HasPositionOverload(DataItem item, int scale)
+    {
+        string carrier = item.ElementType;
+        foreach (string admitted in scale > 0 ? ScaledPositionCarriers : UnscaledPositionCarriers)
+            if (admitted == carrier) return true;
+        return false;
+    }
+
+    /// <summary>The carrier types <c>CobolTable.Occ(<i>x</i>)</c> declares a parameter for — the ONE list
+    /// <see cref="HasPositionOverload"/> reads for a scale-0 operand, exposed so
+    /// <c>PositionCarrierOverloadDriftTests</c> can compare it
+    /// to the runtime method's ACTUAL overloads by reflection. Adding an overload without widening this list
+    /// leaves the fast path routing a carrier it could now render; widening this list without the overload puts
+    /// the CS1503 back. The test fails on either.</summary>
+    internal static readonly string[] UnscaledPositionCarriers =
+        ["long", "string", "Int128", "ulong", "UInt128"];
+
+    /// <summary>The carrier types <c>CobolTable.Occ(<i>x</i>, int)</c> and
+    /// <c>CobolString.RefModPosition(<i>x</i>, int)</c> declare a parameter for. It is NOT a superset of the
+    /// unscaled list: the unsigned-binary carriers have no scaled overload (a scaled operand has an integrality
+    /// question, so D18 is the right route for them), while <c>Int128</c> must be here because the D18 §15.4
+    /// segment temp is a 30-digit / scale-9 item — the wide tier — and
+    /// <see cref="MaterializeViaFragment"/> reads it back through <see cref="PositionRead"/>, so dropping it
+    /// would break the very route this guard sends work to.</summary>
+    internal static readonly string[] ScaledPositionCarriers = ["long", "string", "Int128"];
 }

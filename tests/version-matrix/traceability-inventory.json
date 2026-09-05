@@ -5255,13 +5255,13 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Subscripts",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ResolveSubscriptName; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#PositionRead; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#MaterializeViaFragment; src/Cobol.Net.Runtime/Values/Tables/CobolTable.cs#OccScaled",
+  "test-ref": "conformance:2023/pb62_all_subscript_runtime_ranges; conformance:2023/pb136_subscript_expressions; conformance:2023/pb41_position_not_integer; conformance:2023/pb201_position_operand_carriers; conformance:2023/pb170_position_operand_legal_shapes; conformance:2023/pb50_figurative_zero_position_expressions; conformance:85/index_name_r7_windows; unit:PositionCarrierOverloadDriftTests.UnscaledCarriers_AreExactlyTheOneArgumentOccOverloads",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB201 (2026-09-04) closes the last unevidenced arm. All THREE determinations of GR1 are pinned separately. a) ALL - pb62 covers all three ranges GR1a defers to (a fixed OCCURS count, an OCCURS DEPENDING object, a dynamic-capacity current capacity) and the multi-dimension rightmost-varies-fastest order; the arm is vacuous at 85, which has no functions for which the subscript ALL is allowed. b) arithmetic-expression-1 - pb136 (compound expressions), pb41 (the integrality condition itself: a non-integer result raises EC-BOUND-SUBSCRIPT under checking ON, via CobolTable.OccScaled/CobolNum.HasFraction), and pb201_position_operand_carriers (the CARRIER axis - FLOAT-LONG, FLOAT-SHORT, PIC 9(20) COMP and BINARY-DOUBLE UNSIGNED operands each select their occurrence; every one emitted uncompilable C# before PB201). c) index-name-1 [+/- integer-1] - pb170 (E(IX)), pb50 (E(IX + 1)) and 85/index_name_r7_windows (T(IX + 1) at the 85 edition). The implementor-defined index-to-occurrence mapping GR1c reserves is the identity (an IndexCell holds the occurrence number). The renderer is not the adjudicator: any operand PositionRead cannot render routes to the D18 materializer, whose arithmetic-expression grammar decides admissibility - so a shape 8.8.1.1 does not admit cannot parse, and the drift test pins the carrier set to the runtime overload set in both directions.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.2.3.4-2",
@@ -5269,13 +5269,13 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Subscripts",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Tables/CobolTable.cs#At; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#Position; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#SubscriptError",
+  "test-ref": "conformance:2023/ec_bound_subscript; conformance:2023/pb201_position_operand_carriers; unit:PositionCarrierOverloadDriftTests.NoFloatCarrier_AtEitherArity",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB201 (2026-09-04). CobolTable.At is the ONE occurrence-number to element mapping and it is edition-independent - no edition branch - so the 1..n bound holds identically at every edition; ec_bound_subscript pins the NAMED condition under >>TURN EC-BOUND-SUBSCRIPT CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative and RESUME AT NEXT STATEMENT. With checking OFF the reference continues into a re-defaulted scratch slot, the implementor choice 13.18.38.4 GR7 leaves open by making out-of-bounds occurrence content undefined, and the only posture COBOL-85 can take since it has no exception conditions. PB201 added the piece that was missing on the way IN: every wide carrier (an Int128 >18-digit item, an unsigned BINARY-CAPACITY container, and an alphanumeric image FromAlphanumeric decodes to up to 38 digits) now narrows through CobolNum.Position, which SATURATES. A plain (long) cast wraps, and a wrapped position can land back inside 1..n - turning a condition this rule requires to be detected into a silent wrong answer.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.1.3-1",
@@ -5815,13 +5815,13 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "Reference-modification",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ScreenPositionOperandClass; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#IndexNameInPositionError; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#PositionRead; src/Cobol.Net.Runtime/Values/Text/CobolString.cs#RefModPosition",
+  "test-ref": "conformance:2023/pb201_position_operand_carriers; conformance:2023/pb8_refmod_function_result; conformance:2023/pb50_figurative_zero_position_expressions; conformance:negative/pb201-refmod-group-bound; conformance:negative/pb170-refmod-alphanumeric-bound; conformance:negative/pb170-refmod-index-name; unit:PositionCarrierOverloadDriftTests.SubscriptAndRefModArms_AdmitTheSameScaledCarriers",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB201 (2026-09-04), completing kb/Work PB170/PB219. SR4 carries 8.8.1.1 to BOTH reference-modification bounds exactly as 8.4.2.3.2 carries it to a subscript, so the rule is enforced as one screen shared with the subscript arm rather than a second copy. ACCEPTED side: a compound arithmetic expression in either bound (pb8 - FUNCTION UPPER-CASE(...)(IX + 1:3); pb50 - (ZERO + 2:3)) and every legal numeric CARRIER in the position (pb201 - a FLOAT-LONG and a PIC 9(20) COMP leftmost-position, each of which emitted CS1503 before PB201). REJECTED side: an alphanumeric GROUP bound and an alphanumeric item bound (not an identifier referencing a numeric data item, 8.8.1.1 + 8.5.2.1) and an index-name bound (13.18.38.3 r7 does not list a reference-modification position among its five contexts), COBOLNET0844 for the two class rejections and COBOLNET1637 for the index-name one, at every edition - 8.8.1.1 has no introduction axis, so no edition gate. The two arms are held on one admission list and the drift test fails if CobolTable.Occ and CobolString.RefModPosition stop admitting the same scaled carriers.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.3.3-5",
@@ -22321,13 +22321,13 @@
   "kind": "SR",
   "ordinal": 17,
   "subject": "OCCURS clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Odo.cs#OdoResolve; src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#TableOcc; src/Cobol.Net.Runtime/Values/Tables/CobolTable.cs#Occ",
+  "test-ref": "conformance:2023/pb201_odo_count_carriers; conformance:negative/pb201-odo-depending-not-integer; conformance:2023/pb80_based_odo_group",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB201 (2026-09-04). REJECTED side: DataBinder.Odo screens data-name-1 as Category Numeric, IsFloat false, Scale 0 and raises COBOLNET0852 otherwise - a PIC 9V9 control item is rejected at every edition (pb201-odo-depending-not-integer; OCCURS DEPENDING is COBOL-85 and rule 17 has no introduction axis). ACCEPTED side: rule 17 asks for an INTEGER and nothing narrower, so a 20-digit COMP item and an unsigned BINARY-DOUBLE are both legal control items; pb201_odo_count_carriers exercises both and asserts the 13.18.38.4 GR8a current-count part each one sends. That golden is what proved the SECOND emitter of the position-carrier defect: RuntimeApi.TableOcc renders the current-count read at CODEGEN time from a Place and cannot decline a carrier and re-route the way the subscript renderer can, so MOVE <odo-group> TO X failed the backend with four CS1503s (System.Int128 and ulong to long) in the DEFAULT strict lane. Rule 17 is exactly what bounds that emitter's carrier universe to long/Int128/ulong/UInt128 plus the promoted string image - all five of which CobolTable.Occ now declares a parameter for - which is why the rejection has its own negative golden rather than resting on the accept side.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.38.3-18",

@@ -126,6 +126,48 @@ public sealed class ArithmeticOperandClassTests
         Assert.Equal("SUB=B\nREFMOD=BC", output.Trim().Replace("\r\n", "\n"));
     }
 
+    /// <summary>⛔ THE GROUP CARRIER AT A POSITION OPERAND (kb/Work PB201) — the shape the sibling test
+    /// above could not reach, because a group is not a <c>string</c> field. The <c>--permissive</c> message
+    /// promises to decode "its digit characters as an unsigned integer"; the emitted C# handed
+    /// <c>CobolTable.Occ</c> the group's per-program <c>record struct</c> instead (backend CS1503) and, for a
+    /// class-tier BASED group, a bare COBOL word that is not a C# name at all (CS0103) — so the promise was
+    /// never kept and the two shapes DIVERGED, which is the half of the defect a reject-only fixture cannot
+    /// express. They agree now because neither is rendered by the fast path any more: both route to D18, where
+    /// <c>NumericRenderer.FieldNum</c> reads the group's §8.5.2.1 alphanumeric IMAGE through the ONE sending
+    /// reader.
+    /// <para>Expected values, computed from the images: <c>WG</c> is "02" → occurrence 2 of "ABCD" = 'B';
+    /// the BASED <c>BG</c> is the same "02" → 'B' (the convergence); the occurs-depending <c>OG</c> sends
+    /// only its §13.18.38.4 GR8 CURRENT-count part, "00" + one occurrence "3" = "003" → occurrence 3 =
+    /// 'C' (the MAXIMUM image would be "0030 0" and a different number, so this line also pins GR8 reaching the
+    /// subscript path); and <c>W(WG:2)</c> is "ABCDE"(2:2) = "BC".</para>
+    /// <para>The STRICT half is pinned at every edition by <c>pb201-subscript-group-item</c>,
+    /// <c>pb201-refmod-group-bound</c> and <c>pb201-subscript-based-group</c>.</para></summary>
+    [Fact]
+    public void Permissive_GroupPositionOperands_DecodeTheirImageAndAgree()
+    {
+        const string ws = "       01 NN PIC 9 VALUE 1.\n"
+            + "       01 WG.\n          05 WF1 PIC 9(2) VALUE 2.\n"
+            + "       01 BG BASED.\n          05 BF1 PIC 9(2).\n"
+            + "       01 OG BASED.\n          05 OF1 PIC 9(2).\n"
+            + "          05 OT PIC 9 OCCURS 1 TO 3 TIMES DEPENDING ON NN.\n"
+            + "       01 W PIC X(5) VALUE \"ABCDE\".\n"
+            + "       01 R PIC X.\n       01 R2 PIC X(2).\n"
+            + "       01 T.\n          05 E PIC X OCCURS 4 TIMES.";
+        const string body = "           MOVE \"ABCD\" TO T.\n"
+            + "           ALLOCATE BG.\n           MOVE 2 TO BF1.\n"
+            + "           ALLOCATE OG.\n           MOVE 0 TO OF1.\n           MOVE 3 TO OT(1).\n"
+            + "           MOVE E(WG) TO R.\n           DISPLAY \"WS=\" R.\n"
+            + "           MOVE E(BG) TO R.\n           DISPLAY \"BASED=\" R.\n"
+            + "           MOVE E(OG) TO R.\n           DISPLAY \"ODO=\" R.\n"
+            + "           MOVE W(WG:2) TO R2.\n           DISPLAY \"REFMOD=\" R2.";
+        var (ok, output, detail) = EditionHarness.CompileAndRun(Program(ws, body), 2023, permissive: true);
+        Assert.True(ok, $"--permissive must ACCEPT *and compile* a group position operand: {detail}");
+        string got = output.Trim().Replace("\r\n", "\n");
+        Assert.Equal("WS=B\nBASED=B\nODO=C\nREFMOD=BC", got);
+        // The convergence the note demands in its own words: "the two shapes must not diverge".
+        Assert.Equal(got.Split('\n')[0]["WS=".Length..], got.Split('\n')[1]["BASED=".Length..]);
+    }
+
     /// <summary>The index DATA item, the arm the private category switch never had (kb/Work PB170). §8.5.2.1
     /// Table 2 puts it in class INDEX and §13.18.60.3 SR10's closed reference list — "a SEARCH or SET statement,
     /// a relation condition, an intrinsic function argument" — has no arithmetic-operand and no subscript entry,

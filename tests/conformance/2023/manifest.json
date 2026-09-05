@@ -15,6 +15,8 @@
   "pb271_float_receiver_overflow",
   "pb169_status_operand_shapes",
   "pb170_position_operand_legal_shapes",
+  "pb201_position_operand_carriers",
+  "pb201_odo_count_carriers",
   "pb171_sign_condition_operands",
   "pb172_sole_function_operand",
   "pb172_numeric_function_window_operand",

@@ -421,7 +421,24 @@ public static partial class CobolNum
     /// condition for a fractional value (<see cref="HasFraction"/>); with that condition's checking OFF the
     /// truncated position is the lenient continue, matching the surrounding out-of-range scratch policy.</summary>
     public static long PositionOf(Int128 unscaled, int scale) =>
-        (long)(scale > 0 ? unscaled / Pow10Wide(scale) : unscaled);
+        Position(scale > 0 ? unscaled / Pow10Wide(scale) : unscaled);
+
+    /// <summary>⛔ THE ONE NARROWING of a wide position value to the <c>long</c> every table/ref-mod accessor
+    /// takes, and it SATURATES rather than wraps. ISO §8.4.2.3.4 GR2: "If the value of the subscript is not a
+    /// positive integer or is less than one or is greater than the highest permissible occurrence number, the
+    /// EC-BOUND-SUBSCRIPT exception condition is set to exist" — so an out-of-range position MUST stay
+    /// out of range on the way in. A plain <c>(long)</c> cast is the opposite: it wraps, and a wrapped value can
+    /// land back INSIDE 1..n, converting a condition the standard requires to be detected into a silent wrong
+    /// answer. (The same reasoning the D18 §15.4 segment temp is sized by: "high-order truncation could WRAP an
+    /// out-of-range subscript into an in-range one".) Reachable from every wide carrier — a &gt;18-digit
+    /// item, an unsigned BINARY-CAPACITY container, and an alphanumeric image decoded by
+    /// <see cref="FromAlphanumeric"/>, which returns up to 38 digits.</summary>
+    public static long Position(Int128 value) =>
+        value > long.MaxValue ? long.MaxValue : value < long.MinValue ? long.MinValue : (long)value;
+
+    /// <inheritdoc cref="Position(Int128)"/>
+    public static long Position(UInt128 value) =>
+        value > (UInt128)long.MaxValue ? long.MaxValue : (long)value;
 
     /// <summary>An unscaled/scale pair rendered as its plain decimal VALUE — for the diagnostic text of the two
     /// position conditions, so the message names the value the program computed (2.5) and never its storage (25).</summary>
