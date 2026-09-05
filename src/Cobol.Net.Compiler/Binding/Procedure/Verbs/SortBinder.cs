@@ -286,12 +286,20 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         if (rel.dataReference() is not { } rn || ctx.Refs.Resolve(rn) is not { } record)
             return new BoundUnsupported($"RELEASE record '{rel.dataReference()?.GetText()}' (unresolvable record-name)");
         // ⛔ SR1 IS A SYNTAX RULE AND IS DECIDED HERE, NOT AT RUN TIME (kb/Work PB236, row SR-14.9.32.3-1).
-        // The predicate and the citation were already right; the STAGE was not, and the cost was measured: with
-        // the statement on a path the flow GO TOs past, the program compiled clean AND ran to normal completion
-        // with no message at any stage — illegal source shipped in silence. ISO §4.2.2 ¶2 makes the
-        // compile-time mechanism mandatory for "the general formats and the explicit syntax rules".
-        var file = seqIo.FileOfRecord(record);
-        if (!ctx.Validation.CheckReleaseRecord(file, rn.GetText()) || file is null) return new BoundNop();
+        // The STAGE was the wrong one, and the cost was measured: with the statement on a path the flow GO TOs
+        // past, the program compiled clean AND ran to normal completion with no message at any stage — illegal
+        // source shipped in silence. ISO §4.2.2 ¶2 makes the compile-time mechanism mandatory for "the general
+        // formats and the explicit syntax rules".
+        // ⛔ AND THE PREDICATE WAS NOT THE RULE EITHER (kb/Work PB347). SR1 has two halves and they now sit in
+        // two places, each shared with whoever else is under it: "the name of a logical record" is
+        // ResolveRecordName's, held in common with WRITE §14.9.51.3 SR5 and REWRITE §14.9.35.3 SR1 (and it is
+        // what rejects `RELEASE SR-DATA` and `RELEASE SRT-REC(1:3)`); "in a SORT-MERGE file description entry"
+        // is RELEASE's alone, and CheckReleaseRecord asks it of a reference that already IS a logical record.
+        if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "RELEASE",
+                "record-name-1 \"shall be the name of a logical record in a sort-merge file description entry "
+                + "and it may be qualified\" (ISO §14.9.32.3 SR1)", out var file))
+            return new BoundNop();
+        if (!ctx.Validation.CheckReleaseRecord(file, rn.GetText())) return new BoundNop();
         BoundOperand? from = null;
         if (rel.releaseFrom() is { } rf)
         {

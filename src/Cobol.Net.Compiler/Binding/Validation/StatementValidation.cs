@@ -87,18 +87,106 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>ISO §14.9.32.3 SR1 — "Record-name-1 shall be the name of a logical record in a sort-merge file
-    /// description entry and it may be qualified." The predicate and the citation were already right at
-    /// <c>SortBinder.BindRelease</c>; only the STAGE was wrong (kb/Work PB236), and on a path the flow skipped
-    /// the program compiled AND ran to normal completion with no message at any time.</summary>
-    public bool CheckReleaseRecord(FileModel? file, string refText)
+    /// <summary>⛔ THE ONE <c>record-name-1</c> OPERAND RULE, shared by the three statements whose general
+    /// format prints that operand: WRITE (ISO §14.9.51.3 SR5), REWRITE (§14.9.35.3 SR1) and RELEASE
+    /// (§14.9.32.3 SR1). All three say the same thing — the operand shall be "the name of a logical record" in
+    /// a file description entry, and it "may be qualified". Returns the owning file, or false HAVING REPORTED;
+    /// the shape is <see cref="ResolveFile"/>'s, so a fourth verb naming a record inherits the rule instead of
+    /// re-deriving it.
+    /// <para>⛔ THE PREDICATE IS IDENTITY, NOT CONTAINMENT (kb/Work PB347). What this replaced —
+    /// <c>SequentialIoBinder.FileOfRecord</c> — walked the reference's data item UP to its top-level 01
+    /// (<c>while (root.Parent is { } p) root = p;</c>) and asked whether THAT ROOT was one of a file's records,
+    /// so the predicate actually enforced was <i>the reference lies somewhere INSIDE a record</i>. Every
+    /// subordinate item of a record passed it, at all three verbs, silently: on an 8-byte SD whose record is
+    /// <c>05 SR-KEY PIC X(3) / 05 SR-DATA PIC X(5)</c>, <c>RELEASE SR-DATA</c> compiled with no diagnostic at
+    /// any <c>--std</c> and injected SR-DATA's 5-byte image, space-extended to the SD's 8, into the sorted
+    /// result as a record the program never released — the released width is taken from the REFERENCE, so a
+    /// wrong operand produces a wrong-WIDTH record rather than anything loud. The upward walk survives here as
+    /// the EXPLANATION rather than the verdict: naming the record the operand is subordinate to is the one
+    /// thing that tells the user what to write instead.</para>
+    /// <para>⛔ AND record-name-1 IS NOT AN IDENTIFIER, so it is not reference-modifiable. A record-name is a
+    /// user-defined word (§8.3.2.2.25, "A record-name identifies a record described in a record description
+    /// entry"), and §5.2.4's operand table gives that operand type — "User-defined word, including
+    /// qualification and subscripting if needed" — qualification and subscripting, and nothing else.
+    /// §8.4.3.3.3 SR5 permits reference modification only "anywhere an identifier referencing a data item of
+    /// class alphanumeric, boolean, or national is permitted", and its NOTE spells the consequence out:
+    /// "Because the references to data items are restricted to identifiers, where data-name-n is used in a
+    /// general format or syntax rule, then reference-modification is not permitted." The printed RELEASE format
+    /// (rendered from the PDF, not read from the OCR) writes <c>record-name-1</c>, not <c>identifier-1</c>.
+    /// A reference modifier rides on the <see cref="RefModPlace"/> DECORATOR and leaves <see cref="Place.Item"/>
+    /// untouched, which is precisely why the containment test could not see it: <c>RELEASE SRT-REC(1:3)</c>
+    /// released a 3-byte record into an 8-byte sort file.</para>
+    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.StatementOperandRule"/> (COBOLNET1757)
+    /// and no new code: that descriptor's own contract is that "the CODE is the identity of the MECHANISM (a
+    /// bind-time operand refusal), the MESSAGE carries the rule", and this IS that mechanism. ISO §4.2.2 ¶2
+    /// puts the indication at compile time; before this, WRITE and REWRITE staged it to
+    /// <c>BoundUnsupported</c>, so <c>WRITE WS-REC</c> got a COBOLNET1756 deferral WARNING — the compiler's own
+    /// gap — for what is the source's error.</para></summary>
+    /// <param name="record">The resolved operand.</param>
+    /// <param name="refText">The operand as written, for the message.</param>
+    /// <param name="verb">WRITE | REWRITE | RELEASE.</param>
+    /// <param name="rule">The caller's own syntax rule, quoted verbatim with its citation.</param>
+    /// <param name="file">The owning file when this returns true.</param>
+    /// <returns>true when the reference IS a logical record of a file description entry.</returns>
+    public bool ResolveRecordName(Place record, string refText, string verb, string rule,
+                                  [NotNullWhen(true)] out FileModel? file)
     {
-        if (file is { IsSortMerge: true }) return true;
+        file = null;
+        for (Place p = record; p is PlaceDecorator d; p = d.Inner)
+            if (d is RefModPlace)
+            {
+                data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                    $"{verb} '{refText}' — record-name-1 is a record-name, not an identifier, so it shall not "
+                    + "be reference-modified: ISO §5.2.4 gives a \"User-defined word, including qualification "
+                    + "and subscripting if needed\" those two decorations and no other, and §8.4.3.3.3 SR5 "
+                    + "permits reference modification only \"anywhere an identifier referencing a data item of "
+                    + $"class alphanumeric, boolean, or national is permitted\". {rule}. Write the record-name "
+                    + "alone; to send part of a record, use the FROM phrase or a MOVE.");
+                return false;
+            }
+        if (FileWhoseRecordIs(record.Item) is { } owner) { file = owner; return true; }
+        DataItem root = record.Item;
+        while (root.Parent is { } up) root = up;
+        data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+            $"{verb} '{refText}' — {rule}"
+            + (!ReferenceEquals(root, record.Item) && FileWhoseRecordIs(root) is { } containing
+                ? $"; '{refText}' is subordinate to '{root.CobolName}', which is the logical record of "
+                  + $"'{containing.CobolName}' — name that record, not one of its items"
+                : $"; '{refText}' is not a logical record of any file description entry"));
+        return false;
+    }
+
+    /// <summary>The file whose <see cref="FileModel.Records"/> contain this item — the IDENTITY test behind
+    /// <see cref="ResolveRecordName"/>, asked of the reference's own item and (for the message only) of its
+    /// top-level record. The second sweep is an inherited GLOBAL FD's record (ISO §13.18.30 — the record-names
+    /// of a GLOBAL FD are GLOBAL names): the owning file is a CONTAINER's <see cref="FileModel"/>, present in
+    /// this unit only through the <c>FilesByName</c> merge (<c>CallBindUnit</c>), so a contained program's
+    /// WRITE/REWRITE of the owner's record resolves to the owner's ONE connector (IC233A's family; never a
+    /// second mapping mechanism).</summary>
+    private FileModel? FileWhoseRecordIs(DataItem item)
+    {
+        foreach (var f in data.Files)
+            if (f.Records.Contains(item)) return f;
+        foreach (var f in data.FilesByName.Values)
+            if (f.Records.Contains(item)) return f;
+        return null;
+    }
+
+    /// <summary>ISO §14.9.32.3 SR1's SECOND half — "…in a SORT-MERGE file description entry". The first half
+    /// ("shall be the name of a logical record", and its no-reference-modification corollary) is
+    /// <see cref="ResolveRecordName"/>'s, shared with WRITE and REWRITE; this is the part RELEASE alone has,
+    /// and it is asked only of a reference that already IS a logical record — so <paramref name="file"/> is
+    /// never null and the old "this name is not a record of any file description entry" arm has moved to the
+    /// one place that can also say WHICH record the operand was subordinate to (kb/Work PB347). Only the STAGE
+    /// was ever wrong here (kb/Work PB236): on a path the flow skipped, the program compiled AND ran to normal
+    /// completion with no message at any time.</summary>
+    public bool CheckReleaseRecord(FileModel file, string refText)
+    {
+        if (file.IsSortMerge) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
             $"RELEASE '{refText}' — record-name-1 shall be the name of a logical record in a sort-merge (SD) "
-            + "file description entry (ISO §14.9.32.3 SR1)"
-            + (file is null ? "; this name is not a record of any file description entry"
-                            : $"; '{refText}' is a record of '{file.CobolName}', which is described by an FD"));
+            + $"file description entry (ISO §14.9.32.3 SR1); '{refText}' is a record of '{file.CobolName}', "
+            + "which is described by an FD");
         return false;
     }
 

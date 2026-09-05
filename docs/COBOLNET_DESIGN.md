@@ -781,7 +781,10 @@ cross-describer check is §14.8.4 EC-band work (documented-deferred). GLOBAL FD 
 (IC233A/IC234A; §13.18.30)**: ancestors' GLOBAL FileModels merge into a contained unit's `FilesByName`
 ONLY (never `Files` — no re-registration/re-qualification/CANCEL-close; the shared FileModel reference keys the
 child's verbs to the owner's connector), the GLOBAL FD's records join `CallGlobalRoots` (record-names are global
-names → the standard `__outer` ref-bridges), `FileOfRecord` resolves a contained WRITE/REWRITE of the owner's
+names → the standard `__outer` ref-bridges), `StatementValidation.ResolveRecordName` — the ONE `record-name-1`
+operand rule, shared by WRITE §14.9.51.3 SR5, REWRITE §14.9.35.3 SR1 and RELEASE §14.9.32.3 SR1, and the
+successor to `SequentialIoBinder.FileOfRecord`, which tested CONTAINMENT where the rule says IDENTITY
+(`COBOLNET_FILES_DESIGN.md` §"The `record-name-1` operand") — resolves a contained WRITE/REWRITE of the owner's
 record through the merge, and the I-O status routes to the owner's local status item (§12.4.5.8.4 GR1 NOTE 1);
 OPTIONAL files (OPEN INPUT missing → 05 + EOF; non-optional missing → 35);
 sequential RELATIVE WRITE assigns the next slot and MOVEs it into the RELATIVE KEY field; LINAGE (LINAGE-COUNTER,

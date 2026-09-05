@@ -732,6 +732,57 @@ alternative of `{ record-name-1 | FILE file-name-1 }` is declined. `tests/confor
 optional word `RECORD` of §14.9.35.2 (not underlined in the printed format, therefore optional) which this
 grammar did not accept at all before 2026-09-02.
 
+## The `record-name-1` operand — ONE rule for WRITE, REWRITE and RELEASE
+
+Three statements print `record-name-1` in their general format, and all three say the same thing about it:
+
+- WRITE §14.9.51.3 SR5 — *"Record-name-1 is the name of a logical record in the file section of the data
+  division and may be qualified."*
+- REWRITE §14.9.35.3 SR1 — the identical sentence.
+- RELEASE §14.9.32.3 SR1 — *"Record-name-1 shall be the name of a logical record in a sort-merge file
+  description entry and it may be qualified."*
+
+**The rule has ONE home: `StatementValidation.ResolveRecordName`**, which returns the owning `FileModel` or
+false having reported (COBOLNET1757), in `ResolveFile`'s shape. It enforces two things:
+
+1. **Identity, not containment.** The reference shall BE one of the file's `Records`. Its predecessor,
+   `SequentialIoBinder.FileOfRecord`, walked the reference's `DataItem` up to its top-level 01 and tested THAT
+   root, so what it enforced was *the reference lies somewhere inside a record* — and every subordinate item
+   passed, at all three verbs, with no diagnostic at any `--std`. The released/written width is taken from the
+   REFERENCE, so the wrong operand produced a wrong-**width** record rather than anything loud: `RELEASE
+   SR-DATA` on an 8-byte SD injected a 5-byte image, space-extended to 8, as a record the program never
+   released. The upward walk survives as the message's explanation — naming the record the operand is
+   subordinate to is the repair.
+2. **No reference modification.** A record-name is a user-defined word (§8.3.2.2.25); §5.2.4's operand table
+   gives that operand type *"User-defined word, including qualification and subscripting if needed"* and
+   nothing further, and §8.4.3.3.3 SR5 permits reference modification only *"anywhere an identifier referencing
+   a data item of class alphanumeric, boolean, or national is permitted"* (its NOTE: *"where data-name-n is
+   used in a general format or syntax rule, then reference-modification is not permitted"*). The printed
+   RELEASE format writes `record-name-1`, not `identifier-1`. A reference modifier rides on the `RefModPlace`
+   DECORATOR and leaves `Place.Item` untouched, which is exactly why a containment test could not see it.
+
+RELEASE's second half — *"in a **sort-merge** file description entry"* — is RELEASE's alone and stays in
+`CheckReleaseRecord`, which is now asked only of a reference that already IS a logical record and so takes a
+non-null `FileModel`.
+
+**Grammar unchanged.** `releaseStatement : RELEASE dataReference` and `recordName : dataReference` stay
+general. Both halves of one syntax rule belong in one place, and the subordinate-item half cannot be decided by
+a grammar at all; narrowing `recordName` would also turn a citable diagnosis into a parse error.
+
+**Staging.** ISO §4.2.2 ¶2 makes the compile-time indication mandatory for *"violations of the general formats
+and the explicit syntax rules of standard COBOL"*. WRITE and REWRITE previously staged an unresolvable record
+to `BoundUnsupported`, so `WRITE WS-REC` drew only the COBOLNET1756 **deferral warning** — the compiler
+announcing ITS OWN gap for what is the source's error. The two arms are now separate: a name that resolves to
+nothing already has COBOLNET1639 (§8.4.2.1) from the resolver and stays a deferral; a reference that resolves
+but is not a logical record is refused at bind.
+
+**Edition posture.** Edition-INVARIANT — the rule is written identically in 1985, 2002 and 2014, so there is no
+gate and no `constructs.json` row. Witnesses: `tests/conformance/negative/pb347-*` (seven cases, three verbs ×
+the subordinate / reference-modified / not-a-file-record faults, each `*> reject-at: 85 2002 2014 2023`) and
+the acceptance twins `tests/conformance/2023/pb347_record_name_identity` and
+`tests/conformance/85/pb347_record_name_identity_85`, which pin that the qualified `OF` form still binds at all
+three verbs and that a SORT returns exactly the records RELEASE named. (kb/Work PB347)
+
 ## ISO citations
 
 - ISO/IEC 1989:2023 section 9.1.13 I-O status: two-character codes; first digit 1 at-end, 2 invalid-key, 3 4 7 9 fatal or exception; subsections 9.1.13.2 through 9.1.13.11 enumerate every code (00 02 04 05 06 07 09 10 14 21 22 23 24 30 34 35 37 39 41 42 43 44 46 47 48 49).

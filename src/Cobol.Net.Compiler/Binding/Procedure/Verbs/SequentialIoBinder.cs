@@ -140,15 +140,21 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     {
         if (DeclinedFilePhrase(w.fileName(), "WRITE"))                      // Annex A.4.13 item 2) — COBOLNET1706
             return new BoundNop();   // Declined REPORTED it; a declined element is not an unbuilt one (PB236)
-        Place? record = null;
-        FileModel? file = null;
-        if (w.recordName()?.dataReference() is { } rn && ctx.Refs.Resolve(rn) is { } place)
-        {
-            record = place;
-            file = FileOfRecord(place);
-        }
-        if (file is null || record is null)
+        // ⛔ THE record-name-1 IDENTITY RULE IS THE SHARED ONE (kb/Work PB347) — §14.9.51.3 SR5 is RELEASE's
+        // §14.9.32.3 SR1 and REWRITE's §14.9.35.3 SR1 written a third time, so all three ask
+        // StatementValidation.ResolveRecordName. Its two arms are DIFFERENT diagnoses and are kept apart: a
+        // name that resolves to nothing already had COBOLNET1639 (§8.4.2.1) from the resolver and stays a
+        // deferral here, while a reference that resolves but is not a logical record is the SOURCE's error and
+        // is refused at bind (§4.2.2 ¶2). Conflated, `WRITE WS-REC` drew only the COBOLNET1756 deferral
+        // warning — the compiler announcing ITS gap for what is the program's mistake.
+        // The call sits BEFORE the `file.IsSequential` reroute below, so the RELATIVE and INDEXED arms are under
+        // the rule too and not just this file's sequential one (feedback_two_arm_dispatch).
+        if (w.recordName()?.dataReference() is not { } rn || ctx.Refs.Resolve(rn) is not { } record)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText()}' not resolvable to a file");
+        if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "WRITE",
+                "record-name-1 \"is the name of a logical record in the file section of the data division and "
+                + "may be qualified\" (ISO §14.9.51.3 SR5)", out var file))
+            return new BoundNop();   // ResolveRecordName REPORTED; a refused operand is not an unbuilt one
         // The WRITE lock/RETRY phrases (§14.9.51 Format 1/2 — [retry-phrase] [WITH LOCK | WITH NO LOCK]) bind
         // for EVERY organization; the emitter routes a lock-relevant statement through the governed runtime entry.
         BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
@@ -207,10 +213,16 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     {
         if (DeclinedFilePhrase(rw.fileName(), "REWRITE"))                    // Annex A.4.13 item 1) — COBOLNET1706
             return new BoundNop();   // Declined REPORTED it; a declined element is not an unbuilt one (PB236)
-        Place? record = rw.recordName()?.dataReference() is { } rn ? ctx.Refs.Resolve(rn) : null;
-        FileModel? file = record is not null ? FileOfRecord(record) : null;
-        if (file is null || record is null)
+        // §14.9.35.3 SR1 is WRITE's §14.9.51.3 SR5 word for word — but they are two rules that happen to share a
+        // sentence, not one rule, so each site quotes its OWN clause and the shared MECHANISM is the helper, not
+        // the message (kb/Work PB347). Placed, like WRITE's, BEFORE the `file.IsSequential` reroute, so the
+        // relative and indexed arms are under the rule too (feedback_two_arm_dispatch).
+        if (rw.recordName()?.dataReference() is not { } rn || ctx.Refs.Resolve(rn) is not { } record)
             return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
+        if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "REWRITE",
+                "record-name-1 \"is the name of a logical record in the file section of the data division and "
+                + "may be qualified\" (ISO §14.9.35.3 SR1)", out var file))
+            return new BoundNop();   // ResolveRecordName REPORTED; a refused operand is not an unbuilt one
         BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
         RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryPhrase());                                      // §14.7.9 / §14.9.35 GR11
         if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
@@ -292,22 +304,11 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         : m.I_O() is not null ? BoundOpenMode.IO
         : BoundOpenMode.Input;
 
-    /// <summary>The owning <see cref="FileModel"/> of a record reference: the file whose records include the
-    /// reference's top-level (01) record. Null if the reference is not an FD record.</summary>
-    public FileModel? FileOfRecord(Place record)
-    {
-        DataItem root = record.Item;
-        while (root.Parent is { } p) root = p;
-        foreach (var f in ctx.Data.Files)
-            if (f.Records.Contains(root)) return f;
-        // An inherited GLOBAL FD's record (ISO §13.18.30 — the record-names of a GLOBAL FD are GLOBAL names):
-        // the owning file is a CONTAINER's FileModel, present in this unit only through the FilesByName merge
-        // (CallBindUnit) — a contained program's WRITE/REWRITE of the owner's record resolves to the owner's
-        // ONE connector (IC233A's family; never a second mapping mechanism).
-        foreach (var f in ctx.Data.FilesByName.Values)
-            if (f.Records.Contains(root)) return f;
-        return null;
-    }
+    // ⛔ `FileOfRecord` LIVED HERE AND IS GONE (kb/Work PB347). It answered "which file owns the record
+    // CONTAINING this reference" while all three of its callers — WRITE, REWRITE and RELEASE — asked "which
+    // file has this reference AS a record", so a subordinate item or a reference-modified record passed at
+    // every one of them. The rule now has ONE home in the syntax-rule catalog,
+    // `StatementValidation.ResolveRecordName`, which owns both the identity test and the diagnosis.
 
     /// <summary>The §13.4.6.3 SR3/SR4 sort-merge screen (a BIND-TIME error, kb/Work PB140 — routed through the
     /// ONE <c>StatementValidation.ScreenSortMergeFile</c>), returning the message the verb's bound node keeps

@@ -2099,21 +2099,29 @@ public static class DiagnosticCatalog
     /// identifier-4 shall specify group data items and shall not be reference-modified"), ADD §14.9.2.3 SR6 and
     /// SUBTRACT §14.9.44.3 SR6 ("Identifier-4 and identifier-5 shall be alphanumeric group items, national group
     /// items, variable-length groups, or strongly-typed group items and shall not be described with
-    /// level-number 66") — RELEASE §14.9.32.3 SR1 ("Record-name-1 shall be the name of a logical record in a
-    /// sort-merge file description entry"), RETURN §14.9.34.3 SR1 ("File-name-1 shall be described by a
+    /// level-number 66") — the record-name-1 operand rule in its three spellings, RELEASE §14.9.32.3 SR1
+    /// ("Record-name-1 shall be the name of a logical record in a sort-merge file description entry"), WRITE
+    /// §14.9.51.3 SR5 and REWRITE §14.9.35.3 SR1 ("Record-name-1 is the name of a logical record in the file
+    /// section of the data division"), together with its corollary that a record-name is a user-defined word
+    /// (§8.3.2.2.25) whose §5.2.4 operand type admits qualification and subscripting but never reference
+    /// modification (§8.4.3.3.3 SR5) — RETURN §14.9.34.3 SR1 ("File-name-1 shall be described by a
     /// sort-merge file description entry in the data division"), and MERGE's §14.9.24.2 general format
     /// (at least two USING file-names; one of OUTPUT PROCEDURE or GIVING) with SORT's table-key rules
     /// (§14.9.40.3). The multi-rule shape follows COBOLNET1651's precedent: the CODE is the identity of the
-    /// MECHANISM (a bind-time operand refusal), the MESSAGE carries the rule.</summary>
+    /// MECHANISM (a bind-time operand refusal), the MESSAGE carries the rule — which is why kb/Work PB347
+    /// brought WRITE's and REWRITE's record-name-1 here rather than claiming a code of its own.</summary>
     public static readonly DiagnosticDescriptor StatementOperandRule = new(
         "COBOLNET1757", "statement-operand-rule", EditionSeverity.Error,
         "A statement operand is one the statement's own syntax rules or general format do not admit, so the "
         + "statement has no meaning: a CORRESPONDING operand that is not a group item or is a level-66 RENAMES "
-        + "entry (ISO §14.9.25.3 SR12 / §14.9.2.3 SR6 / §14.9.44.3 SR6), a RELEASE record-name that is not a "
-        + "logical record of a sort-merge description entry (§14.9.32.3 SR1), a RETURN file-name not described "
-        + "by an SD (§14.9.34.3 SR1), or a SORT/MERGE operand list the general format does not print "
-        + "(§14.9.24.2 / §14.9.40.3). Rejected at bind — the statement is not run.",
-        "ISO §14.9.2.3 / §14.9.25.3 / §14.9.32.3 / §14.9.34.3 / §14.9.44.3");
+        + "entry (ISO §14.9.25.3 SR12 / §14.9.2.3 SR6 / §14.9.44.3 SR6), a WRITE, REWRITE or RELEASE "
+        + "record-name-1 that is not a logical record of a file description entry — a subordinate item of one, "
+        + "or a reference-modified record, is not a record-name (§14.9.51.3 SR5 / §14.9.35.3 SR1 / §14.9.32.3 "
+        + "SR1, with §5.2.4 and §8.4.3.3.3 SR5) — a RELEASE record-name whose file is described by an FD rather "
+        + "than an SD (§14.9.32.3 SR1), a RETURN file-name not described by an SD (§14.9.34.3 SR1), or a "
+        + "SORT/MERGE operand list the general format does not print (§14.9.24.2 / §14.9.40.3). Rejected at "
+        + "bind — the statement is not run.",
+        "ISO §14.9.2.3 / §14.9.25.3 / §14.9.32.3 / §14.9.34.3 / §14.9.35.3 / §14.9.44.3 / §14.9.51.3");
     /// <summary>COBOLNET1756 — the DEFERRAL announcing itself. A statement the grammar accepted but this
     /// compiler binds to <c>BoundUnsupported</c> is staged to a loud run-time refusal (COBOLNET_DESIGN §1.4);
     /// before kb/Work PB236 that staging was invisible at compile time, so a program carrying an unimplemented
