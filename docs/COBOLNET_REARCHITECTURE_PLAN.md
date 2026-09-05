@@ -24,14 +24,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ LIVE STATE (2026-09-04 — the third pause of 2026-09-03 is OVER and its owed chain is LANDED):** the
+- **▶ LIVE STATE (2026-09-04 — the third pause of 2026-09-03 is OVER and its owed chain is LANDED):** **landing train 1 carried PB203 + PB201 + PB470 + PB193 onto main in ONE landing (four cluster commits plus the prose, DEVLOG 1460) — GAP 3013 → 3005**, PB201's four rows and PB193's four being disjoint. Before it the
   resumed day landed lane-3 batch 2's registration (`073d764a`, 292 rows, 84 notes, ids PB387–PB467), `PB383`
   (`e2790667`, BOOLEAN-OF-INTEGER's conflated guard split into three cited arms) and `PB386`'s DERIVATION evidence
   kind (`6d61b95a`, eight unobservable rules closed on owner-signed determinations in `docs/CONFORMANCE.md` §8) —
   **GAP 3054 → 3013** across the three, with the ledger refreshed after each. Before them the same window landed
   battery #42 (`ac2dadb8`, the reference until battery #43 — see "Gates"), PB378, PB377 (`6ffdb5a8`), PB379 (`d531e358`),
   PB371 + PB375 (`4cbb8f3c`) and golden-lane round 2 (`0fa1fe9e`, 49 witnesses).
-  **In flight now (fifth resume, 2026-09-04 21:00 PDT — every stream FRESH from its disk checkpoint):** **battery #43** ran in a worktree cut at `d908a749` and is **GREEN ON THE COMPILER** — its one NIST red, `IF141A`, is the guard's own compare arm scoring a lost observation as a regression (`kb/Work/PB473`, the artifact is byte-identical to the golden; the "Gates" bullet carries the numbers); lane-3 **batch 3** part B refuting read-only on the pin cut at `89044aa0` (part A done: CONFORMS 13/65); golden-lane **round 3** resumed from the two finished writers; the **fix lane at its three-implementer cap** — PB201 and PB193 finishing from their checkpoints, PB470 fresh — with PB203 finished and holding for the first five-cluster landing train. ⚠ Batch 3 is also the measurement of the note-yield outside §14, which
+  **In flight now (fifth resume, 2026-09-04 21:00 PDT — every stream FRESH from its disk checkpoint):** **battery #43** ran in a worktree cut at `d908a749` and is **GREEN ON THE COMPILER** — its one NIST red, `IF141A`, is the guard's own compare arm scoring a lost observation as a regression (`kb/Work/PB473`, the artifact is byte-identical to the golden; the "Gates" bullet carries the numbers); lane-3 **batch 3** part B refuting read-only on the pin cut at `89044aa0` (part A done: CONFORMS 13/65); golden-lane **round 3** resumed from the two finished writers; the **fix lane at its three-implementer cap** — PB473, PB204 and PB205, whose five clusters form the NEXT landing train (train 1's four — PB203, PB201, PB470, PB193 — are landed). ⚠ Batch 3 is also the measurement of the note-yield outside §14, which
   `kb/Work/PB469` names as the softest number in the whole projection.
   **Process decisions in force (2026-09-04, `kb/Work/PB468`; evidence
   `docs/rearchitecture/evidence/PROCESS-REVIEW-2026-09-04.md`):** adjudication stays **verdict-only** and the golden
