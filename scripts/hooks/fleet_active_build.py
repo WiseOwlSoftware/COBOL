@@ -274,6 +274,25 @@ def agents_sharing_tree(caller_cwd: str, foreign: list) -> tuple[list, "pathlib.
     return sharing, caller_tree
 
 
+# Git Bash / MSYS spell a Windows drive path as `/e/CobolSharp/…` (or `/cygdrive/e/…`). On Windows `pathlib`
+# calls that path ROOTED but not ABSOLUTE (it has no drive), so `Path(cwd) / p` yields `E:\e\CobolSharp\…` — a
+# directory that does not exist and whose ancestors carry no `.git`. The caller's tree then became UNKNOWN and
+# the guard reverted to the session-wide rule: every foreign live agent denied, in EVERY worktree, for the whole
+# fleet window (2026-09-04, `kb/Work/PB474` — the fourth time this guard failed closed). The single letter must
+# be followed by `/` or the end, so a POSIX path such as `/tmp/x` is left alone.
+MSYS_DRIVE_RE = re.compile(r"^/(?:cygdrive/)?([A-Za-z])(?=/|$)(.*)$")
+
+
+def native_path(target: str) -> str:
+    """A `cd` target as the OS spells it: MSYS `/e/x` → `E:/x` on Windows; anything else unchanged."""
+    if os.name != "nt":
+        return target
+    m = MSYS_DRIVE_RE.match(target)
+    if not m:
+        return target
+    return f"{m.group(1).upper()}:{m.group(2) or '/'}"
+
+
 def effective_cwd(data: dict) -> str:
     """Where the build will actually run: a leading `cd <dir>` in the command, else the payload's `cwd`.
 
@@ -294,7 +313,7 @@ def effective_cwd(data: dict) -> str:
     if m:
         target = next((g for g in m.groups() if g), "")
         try:
-            p = pathlib.Path(target)
+            p = pathlib.Path(native_path(target))
             cwd = str(p if p.is_absolute() else pathlib.Path(cwd) / p)
         except (OSError, ValueError):
             pass
@@ -473,6 +492,19 @@ def self_test() -> int:
             effective_cwd({"cwd": str(fx["wtA"]), "tool_input": {"command": "dotnet build CobolSharp.sln"}}),
             str(fx["wtA"]),
         )
+
+        # PB474: a Git-Bash `cd /e/…` target must land on the worktree, not on `E:\e\…` and thence UNKNOWN.
+        if os.name == "nt":
+            wt = fx["wtA"]
+            drive, rest = os.path.splitdrive(str(wt))
+            msys = "/" + drive[0].lower() + rest.replace("\\", "/")
+            for spelled in (msys, "/cygdrive" + msys):
+                got = effective_cwd({"cwd": str(fx["main"]), "tool_input": {"command": f"cd {spelled} && dotnet build"}})
+                check(f"scope: MSYS `cd {spelled[:14]}…` resolves to the worktree (PB474)", same_path(got, wt), True)
+                sharing, tree = agents_sharing_tree(got, [t("main1")])
+                check("scope: …and a main-tree fleet then does NOT deny that worktree build", (len(sharing), tree), (0, wt))
+        check("scope: a POSIX path that is not a drive is left alone", native_path("/tmp/x"), "/tmp/x")
+        check("scope: a bare drive `/e` maps to the drive root", native_path("/e"), "E:/")
 
         # The DENY message must name the agents AND the shared tree (it named `subagents` for every one).
         sharing, tree = agents_sharing_tree(str(fx["main"]), [t("main1"), t("main2")])
