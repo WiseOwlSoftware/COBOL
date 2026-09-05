@@ -14,8 +14,11 @@
       *> THE WITNESSES are all conforming: §8.3.3.3.2 requires fixed-point numeric literals of 1
       *> through 31 digits to be accepted, so T3's 19-digit literal is legal source; an integer data item of
       *> 19 and of 31 digits; the arithmetic-expression form (§15.3 argument type 6) that PB22
-      *> documents reaching the intake intact; and a floating-point item, which §15.3 type 6 does not
-      *> describe but the binder admits because integer-ness is a VALUE property (PB21).
+      *> documents reaching the intake intact.  The FLOATING-POINT carrier is deliberately NOT here:
+      *> §15.3 type 6 admits "an integer data item or an always-integral arithmetic expression" and a
+      *> floating-point item is neither, so kb/Work PB248 refuses it under strict (COBOLNET1627).  The float
+      *> twins are reachable only under --permissive, and their r1a verdict is witnessed there, in
+      *> FloatIntegerArgumentPermissiveTests (the home PB248 made for exactly this).
       *>
       *> ARMED, NOT ASSUMED. A checking-ON leg proves nothing if the directive is inert, so ARMED
       *> deliberately raises the condition from a function whose argument rules DO bound the value —
@@ -31,7 +34,6 @@
        01 B31   PIC 9(31) VALUE
            1234567890123456789012345678901.
        01 P18   PIC 9(18) VALUE 184467440737115466.
-       01 FL    USAGE FLOAT-LONG.
        01 ES    PIC X(20).
        PROCEDURE DIVISION.
        DECLARATIVES.
@@ -71,10 +73,6 @@
       *> 18 446 744 073 711 546 662 = 2**64 + 1 995 046, PB22's own documented shape → 1.
            COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(P18 * 100 + 62)
            DISPLAY "T6=" R2
-      *> T7: the binary64 carrier — 1.0E19 is above 99 999 999 → 1.
-           COMPUTE FL = 1.0E19
-           COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(FL)
-           DISPLAY "T7=" R2
       *> ── §15.91.4 r1a, the UPPER half ──────────────────────────────────────────────
       *> U1: 10 000 000 is greater than 9 999 999 → 1.
            COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(10000000)
@@ -91,7 +89,5 @@
            DISPLAY "U5=" R2
            COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(P18 * 100 + 62)
            DISPLAY "U6=" R2
-           COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(FL)
-           DISPLAY "U7=" R2
            STOP RUN.
        END PROGRAM PB254TOT.

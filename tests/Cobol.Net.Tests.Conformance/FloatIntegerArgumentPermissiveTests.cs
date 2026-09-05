@@ -140,4 +140,64 @@ public sealed class FloatIntegerArgumentPermissiveTests
         Assert.True(ranOk, detail);
         Assert.Equal("2", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
     }
+
+    /// <summary>kb/Work PB254’s float lane, which is the WRONG-ANSWER half of that defect and, after
+    /// PB248, is reachable only here. §15.90.3 r1 / §15.91.3 r1 constrain nothing but integer-ness and
+    /// §15.90.4 r1a / §15.91.4 r1a are CATCH-ALLS, so 1.0E19 — eleven orders of magnitude above the
+    /// windows — owes the verdict <b>1</b> ("the date is not valid"). The shipped body answered <b>0</b>,
+    /// which is §15.90.4 r1d / §15.91.4 r1c "The date is valid", because <c>TryIntegerArg(…) ? body : 0</c>
+    /// used a literal 0 as its domain-guard tail — and 0 is a VERDICT here, not a sentinel.</summary>
+    private const string Pb254TotalDateProgram = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB254FLOATPERMISSIVE.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 FBIG  USAGE COMP-2.
+       01 FOK   USAGE COMP-2 VALUE 19950215.
+       01 R2    PIC 9(2).
+       PROCEDURE DIVISION.
+           COMPUTE FBIG = 1.0E19
+           COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(FBIG)
+           DISPLAY "F1=" R2
+           COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(FBIG)
+           DISPLAY "F2=" R2
+           COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(FOK)
+           DISPLAY "F3=" R2
+           STOP RUN.
+       """;
+
+    /// <summary>
+    /// ⛔ 0 IS A VERDICT, NOT A SENTINEL, AND THAT IS WHY THIS FACT EXISTS. Under <c>--permissive</c> the
+    /// float twins run, and the two out-of-window references must answer <c>01</c>; <c>F3</c> is the
+    /// in-program control — a date INSIDE the window on the same carrier, which owes <c>00</c>, so a body
+    /// that simply returned 1 for everything would fail here too.
+    /// </summary>
+    [Fact]
+    public void Pb254TotalDateValidators_UnderPermissive_AnswerR1aAndNotTheValidVerdict()
+    {
+        var (ok, _, warnings) = EditionHarness.CompileFull(Pb254TotalDateProgram, 2023, permissive: true);
+        Assert.True(ok, "--permissive must accept the coercion");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb254TotalDateProgram, 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(
+            new[]
+            {
+                "F1=01", // §15.90.4 r1a — 1.0E19 is greater than 99 999 999
+                "F2=01", // §15.91.4 r1a — and greater than 9 999 999
+                "F3=00", // §15.90.4 r1d — 19950215 IS a valid date: the control
+            },
+            stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
+    }
+
+    /// <summary>Strict refuses this program too, on the same §15.3 type-6 screen — the verdict pair is
+    /// readable in one place, as it is for PB21 and PB2 above.</summary>
+    [Fact]
+    public void Pb254TotalDateValidators_AreRejectedUnderStrict()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Pb254TotalDateProgram, 2023);
+        Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
+    }
 }

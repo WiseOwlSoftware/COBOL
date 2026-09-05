@@ -271,6 +271,12 @@ A body's `…Real` twin owes the same totality, and owes it WITHOUT a second cop
 verdict-preserving, because a catch-all arm depends on being outside the window and not on how far — so the
 window itself stays written in exactly one body. It must NOT route to `TryIntegerArg`, whose false arm is a
 literal verdict; that literal was §15.90.4 r1d, "the date is valid".
+⚠ Since kb/Work PB248 a floating-point operand at a §15.3 type-6 position is REFUSED under strict
+(COBOLNET1627 — type 6 admits "an integer data item or an always-integral arithmetic expression", and a
+floating-point item is neither), so the `…Real` twins are reached only under `--permissive`. That is where
+their totality is witnessed: `tests/Cobol.Net.Tests.Conformance/FloatIntegerArgumentPermissiveTests.cs`,
+the one home for the coercion lane. The twins are still live code and still owe the rule — the lane
+changed, the obligation did not.
 
 ### 2.8 Namespace / assembly rename (G8)
 Assembly is already `Cobol.Net.Runtime`. At G8, `RootNamespace` `CobolNet.Runtime` → **`Cobol.Net.Runtime`** and the
