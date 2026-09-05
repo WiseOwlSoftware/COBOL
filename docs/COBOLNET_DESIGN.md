@@ -728,7 +728,7 @@ only bytes are at
 the on-disk edge, produced by a compiler-GENERATED per-layout codec (`Serialize`/`Deserialize`) running only at READ
 and WRITE. **CODE-SET is one `Encoding` parameter threaded into that codec.** The proven 364-NIST legacy handlers are
 ported VERBATIM for *control logic* (open-mode tables, ISO §9.1.13 status codes, the file-position-indicator +
-key-of-reference + duplicate-arrival state machines) but re-substrated from a byte array to a generic
+key-of-reference + duplicate-ordering state machines) but re-substrated from a byte array to a generic
 `FileConnector<TRec>` + an `IRecordCodec`.
 
 ```
@@ -749,9 +749,18 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   trick — silently mis-orders COMP/COMP-3/signed keys, whose on-disk image is not order-preserving.)*
 - **Stores:** sequential = `StreamReader/Writer` (line-sequential) or `FileStream` + a 4-byte little-endian length
   prefix (varying); relative = sorted dict `int slot → byte image` with `0xFF` gaps; indexed = sorted dict
-  `CobolKey → byte image` (sole source of truth, alternates derived on demand + an arrival map for duplicate
-  ordering). The in-memory PAYLOAD is the serialized image (exactly the form persisted on CLOSE; bounded memory),
-  deserialized to the typed record only on hand-back. *(This is owner-flagged — §15 Q-file-2.)*
+  `CobolKey → byte image` (sole source of truth, alternates derived on demand + a PER-KEY release ordinal for
+  duplicate ordering). The in-memory PAYLOAD is the serialized image (exactly the form persisted on CLOSE; bounded
+  memory), deserialized to the typed record only on hand-back. *(This is owner-flagged — §15 Q-file-2.)*
+- **The indexed duplicate order is per KEY OF REFERENCE, and the file position indicator is a KEY VALUE.** ISO
+  §14.9.30.4 GR26 scopes the release order to "an alternate record key that is the key of reference" and
+  §14.9.35.4 GR24 a) freezes an untouched key's order across a REWRITE, so the release ordinal is a VECTOR — one
+  slot per key, slot 0 the prime (assigned at release, never re-stamped, so it doubles as the record's physical
+  release order). §14.9.41.4 GR17 e) 1. puts only a KEY VALUE in the file position indicator, so a START-seeded
+  walk enters a duplicate set at the end GR26 names for its direction; the duplicate-set position of a prior READ
+  is separate connector state, which is what §14.9.30.4 GR21 rules e)/f) name instead of the FPI. CLOSE persists a
+  topological order of the per-key duplicate orders so a reload — which can only give every key the file's own
+  order — reproduces all of them (kb/Work PB341, PB342).
 - **Multiple 01s under one FD (and SAME RECORD AREA) = a discriminated record-area wrapper:** READ deserializes the
   raw bytes into EVERY 01 view; WRITE serializes the named view. This is the file-edge analogue of REDEFINES (ISO
   §9.1.2 NOTE / §13.18.33 GR3).

@@ -27,7 +27,7 @@ namespace CobolNet.Runtime.IO;
 /// Two access shapes over the SAME byte layout:
 /// <list type="bullet">
 /// <item><b>Store-level</b> (<see cref="WriteStore"/>/<see cref="ReadStore"/>) — the whole-file rewrite/load the
-/// keyed connectors use (relative slots + indexed arrival order).</item>
+/// keyed connectors use (relative slots + the indexed persist order — IndexedConnector.PersistOrder).</item>
 /// <item><b>Stream-level</b> (<see cref="WritePrefix"/>/<see cref="PrefixLength"/>) — the incremental
 /// prefix-per-record shape the sequential connector streams through its Latin-1 reader/writer (chars 0–255 map
 /// 1:1 to bytes under Latin-1, so the char-shaped prefix is byte-identical to the store-level one).</item>

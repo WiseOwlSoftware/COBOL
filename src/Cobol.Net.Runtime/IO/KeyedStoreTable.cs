@@ -69,19 +69,29 @@ internal sealed class RelativeStore
     public readonly SortedDictionary<long, string> Slots = new();
 }
 
-/// <summary>One stored indexed record: its character image and its arrival sequence (write order) — lifted out
-/// of <see cref="IndexedConnector"/> when the store became shared (kb/Work PB143).</summary>
+/// <summary>One stored indexed record: its character image and its PER-KEY release ordinals — lifted out of
+/// <see cref="IndexedConnector"/> when the store became shared (kb/Work PB143).
+/// <para>⛔ THE RELEASE ORDINAL IS PER KEY OF REFERENCE, NOT PER RECORD (kb/Work PB341). ISO §14.9.30.4 GR26
+/// names the retrieval order of duplicates under "an alternate record key that IS THE KEY OF REFERENCE", and
+/// §14.9.35.4 GR24 a) — "When the value of a specific alternate record key is not changed, the order of
+/// retrieval when that key is the key of reference remains unchanged" — makes each key's order independent of
+/// every other key's: a REWRITE repositions the record ONLY in the duplicate sets of the keys it actually
+/// changed (GR24 b). One number per record could not express that, so a REWRITE that changed one alternate key
+/// silently reordered every OTHER alternate key's duplicate sequence. <see cref="Ordinals"/> is therefore a
+/// VECTOR: slot 0 the prime key (assigned once at release and never re-stamped — a prime key value cannot
+/// change, §14.9.35.4 GR22/GR23 identify the record BY it — so it doubles as the record's release order in the
+/// physical file), slot <c>i + 1</c> the i-th alternate key.</para></summary>
 internal sealed class KeyedRec
 {
     public string Image = "";
-    public long Arrival;
+    public long[] Ordinals = [];
 }
 
-/// <summary>The shared INDEXED record store: the records in arrival order plus the arrival mint — shared so a
-/// WRITE through one connector takes the next GLOBAL arrival number and §14.9.30 GR26's duplicate-alternate
-/// retrieval order holds across connectors.</summary>
+/// <summary>The shared INDEXED record store: the records plus the release-ordinal mint — shared so a WRITE
+/// through one connector takes the next GLOBAL ordinal and §14.9.30.4 GR26's duplicate-alternate retrieval
+/// order holds across connectors.</summary>
 internal sealed class IndexedStore
 {
     public readonly List<KeyedRec> Recs = [];
-    public long NextArrival = 1;
+    public long NextOrdinal = 1;
 }
