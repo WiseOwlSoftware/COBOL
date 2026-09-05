@@ -748,7 +748,11 @@
   "pb236-unlock-undeclared-file-unreached",
   "pb236-start-relative-no-relative-key",
   "pb236-add-giving-alphanumeric",
-  "pb236-add-giving-reference-modified"
+  "pb236-add-giving-reference-modified",
+  "pb237-cancel-prototype-undeclared",
+  "pb237-repository-program-literal-class",
+  "pb237-repository-program-inconsistent",
+  "pb237-call-prototype-argument-count"
  ],
  "pending": []
 }

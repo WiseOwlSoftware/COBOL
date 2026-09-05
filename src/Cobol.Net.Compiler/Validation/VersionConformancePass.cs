@@ -1261,18 +1261,23 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        // ── Step 14g.5: the REPOSITORY OO-specifier gates ─────────────────────────────────────────────────────
-        /// <summary>A REPOSITORY CLASS / INTERFACE / PROPERTY specifier (ISO §12.3.8, OO) — a COBOL-2002 introduction.
-        /// Parse-arm (recognition): the entry is one <c>repositoryEntry</c> node, mirroring the binder's
-        /// PROPERTY→INTERFACE→CLASS <c>else if</c> order and its name-embedding where-strings. The FUNCTION-intrinsic
-        /// alternatives are version-invariant (ungated). ⚠ Like the SPECIAL-NAMES / file-control gates, REPOSITORY is
-        /// in the CONFIGURATION SECTION, so for a CLASS the former per-scope binder gated it 0/1/2× (the flagged
-        /// OO-env double/zero-bind, DEVLOG 738); the parse-arm fires the spec-correct ONCE. The property NAME still
-        /// registers for reference resolution in <c>DataBinder</c>.</summary>
+        // ── Step 14g.5: the REPOSITORY specifier gates ────────────────────────────────────────────────────────
+        /// <summary>A REPOSITORY CLASS / INTERFACE / PROPERTY / PROGRAM specifier (ISO §12.3.8) — each a COBOL-2002
+        /// introduction. Parse-arm (recognition): the entry is one <c>repositoryEntry</c> node, mirroring the binder's
+        /// PROPERTY→PROGRAM→INTERFACE→CLASS <c>else if</c> order and its name-embedding where-strings. The
+        /// FUNCTION-intrinsic alternatives are version-invariant (ungated). ⚠ Like the SPECIAL-NAMES / file-control
+        /// gates, REPOSITORY is in the CONFIGURATION SECTION, so for a CLASS the former per-scope binder gated it
+        /// 0/1/2× (the flagged OO-env double/zero-bind, DEVLOG 738); the parse-arm fires the spec-correct ONCE. The
+        /// property and program-prototype NAMES still register for reference resolution in <c>DataBinder</c>.</summary>
         public override object? VisitRepositoryEntry(CobolParserCore.RepositoryEntryContext ctx)
         {
             if (ctx.PROPERTY() is not null && ctx.propertyName() is { } pn)
                 _p.Check(Constructs.RepositoryProperty2002, $"REPOSITORY PROPERTY '{pn.GetText()}'");
+            // §12.3.8.2's program-specifier (kb/Work PB237) — the ONE surface that declares a program-prototype-name.
+            // The whole program-prototype facility is 2002 (the '85 CALL general format has Format 1 only), so the
+            // declaration gate and the Format-2 CALL / prototype CANCEL gates all key on the same edition.
+            else if (ctx.PROGRAM() is not null && ctx.programPrototypeName() is { } ppn)
+                _p.Check(Constructs.RepositoryProgram2002, $"REPOSITORY PROGRAM '{ppn.GetText()}'");
             else if (ctx.INTERFACE() is not null && ctx.interfaceName() is { } ifn)
                 _p.Check(Constructs.RepositoryInterface2002, $"REPOSITORY INTERFACE '{ifn.GetText()}'");
             else if (ctx.CLASS() is not null && ctx.className() is { } cn)

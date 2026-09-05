@@ -293,6 +293,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// object-property references (case-insensitive per §8.3.2).</summary>
     internal HashSet<string> OoRepositoryProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>The unit's REPOSITORY PROGRAM specifiers (ISO §12.3.8.2's program-specifier, <c>PROGRAM
+    /// program-prototype-name-1 [AS literal-3]</c>) keyed by program-prototype-name — the ONE declaration surface
+    /// for a program-prototype-name, and therefore the §14.9.4.3 SR16 / §14.9.5.3 SR3 precondition for every
+    /// Format-2 CALL and prototype CANCEL (kb/Work PB237). §8.3.2 case-insensitive. The SPECIFIER is collected
+    /// here (syntax); §12.3.8.3 SR15's self/containing-program ignore and §12.3.8.4 GR10's resolution against the
+    /// compilation group need the unit's identity and its siblings, so they run in
+    /// <c>BinderDriver.ProgramPrototypesOf</c>, exactly as the function twin resolves in BuildUserFunctionTable.</summary>
+    internal Dictionary<string, ProgramSpecifier> ProgramSpecifiers { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>The unit's REPOSITORY user-function specifiers (§12.3.8 — <c>FUNCTION function-prototype-name</c>
     /// WITHOUT the INTRINSIC phrase): the precondition for a user-function reference, and per §12.3.8.2 GR12
     /// (:14885) the declaration that makes the name refer to the USER-DEFINED function "and not to an intrinsic
@@ -383,6 +392,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // them), so they no longer need a branch.
             if (re.PROPERTY() is not null && re.propertyName() is { } pn)
                 OoRepositoryProperties.Add(pn.GetText());
+            // §12.3.8.2's program-specifier (kb/Work PB237): `PROGRAM program-prototype-name-1 [AS literal-3]`.
+            else if (re.PROGRAM() is not null && re.programPrototypeName() is { } ppn)
+                BindProgramSpecifier(re, ppn.GetText());
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is { } fn)
                 UserFunctionNames.Add(fn.GetText());
             // FUNCTION … INTRINSIC (§12.3.8): `ALL` (GR14) or a named intrinsic — the §8.4.3.2 SR2 keyword-

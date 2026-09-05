@@ -27,13 +27,21 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind <c>CALL</c> (ISO §14.9.4 Format 1; design D2 — the uniform opaque ABI call).</summary>
     public BoundStatement BindCall(Core.CallStatementContext call)
     {
-        // ── §14.9.4.2 FORMAT 2: the AS phrase (fix-queue PB46, CALL half) ────────────────────────────────────
-        // `CALL {identifier-1 | literal-1} AS {NESTED | program-prototype-name-1}`. The presence of AS is what
-        // selects Format 2 — a SYNTACTIC discriminator, contrary to this item's own note, which had concluded the
-        // formats were indistinguishable at parse time and the whole half therefore blocked on P13.
-        // The brace has TWO arms with DIFFERENT dependencies, and only one of them needs the prototype registry.
-        bool formatTwo = call.callAsPhrase() is not null;
+        // ── §14.9.4.2 FORMAT 2 (fix-queue PB46 · kb/Work PB131 · PB237) ───────────────────────────────────────
+        // The RENDERED general format (PDF page 619) is
+        //     CALL ⎡{ identifier-1 | literal-1 } AS⎤ { NESTED | program-prototype-name-1 }
+        // — the optional bracket encloses the target brace AND the word AS, and the outer brace is NOT optional.
+        // So Format 2 has TWO spellings, and the compiler must recognize both:
+        //   (a) `… AS NESTED` / `… AS program-prototype-name-1` — a SYNTACTIC discriminator (Format 1 has no AS
+        //       phrase at all), which is what refuted PB46's "the formats are indistinguishable at parse time";
+        //   (b) the bracket omitted whole: `CALL program-prototype-name-1`, spelled EXACTLY like Format 1's
+        //       `CALL identifier-1`. That one IS semantic, and §14.9.4.4 GR3 b) is written for it ("If neither
+        //       identifier-1 nor literal-1 is specified, program-prototype-name-1 determines the externalized
+        //       program-name of the program being called").
+        // Spelling (b) is resolved AFTER the data-reference attempt, below, so no program that binds today
+        // changes meaning: a word that names a data item stays identifier-1.
         bool asNested = false;
+        ProgramPrototype? prototype = null;
         if (call.callAsPhrase() is { } asPhrase)
         {
             string asWord = asPhrase.cobolWord().GetText();
@@ -41,48 +49,48 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (!asNested)
             {
                 // §14.9.4.3 SR16: "Program-prototype-name-1 shall be specified in a program-specifier in the
-                // REPOSITORY paragraph." The REPOSITORY grammar has no `PROGRAM program-prototype-name` entry
-                // (§12.3.8.2's program-specifier), so no source can declare one — this arm is genuinely blocked
-                // on the P13 prototype registry, and says so by name instead of failing as an unresolved call.
-                ctx.Edition.Error(DiagnosticCatalog.CallAsPrototypeName,
-                    $"CALL … AS {asWord}: a program-prototype-name shall be declared by a PROGRAM specifier in "
-                    + "the REPOSITORY paragraph (ISO §14.9.4.3 SR16 / §12.3.8.2), which this compiler does not "
-                    + "yet accept — the program-prototype registry is P13. `AS NESTED` is supported.");
-                return new BoundNop();
+                // REPOSITORY paragraph." ONE lookup answers it, because ProgramPrototypesOf also registers
+                // §8.4.6.8's no-specifier spelling (a containing program definition's program-name).
+                if (ResolvePrototype(asWord, "CALL … AS") is not { } proto) return new BoundNop();
+                prototype = proto;
             }
-            // §14.9.4.3 SR13: "The NESTED phrase may be specified only in a program definition" — a
-            // function or method definition contains no programs (kb/Work PB132; the capability was one
-            // property access away and BindCall never read it).
-            if (asNested && (host.InMethod || host.UdfSelfName is not null))
+            else
             {
-                ctx.Edition.Error(DiagnosticCatalog.CallAsNestedContext,
-                    $"CALL … AS NESTED inside a {(host.InMethod ? "method" : "function")} definition: the "
-                    + "NESTED phrase may be specified only in a program definition (ISO §14.9.4.3 SR13)");
-                return new BoundNop();
-            }
-            // §14.9.4.3 SR15: literal-1 shall be specified, and shall name a COMMON program or a program
-            // directly contained in the calling program.
-            if (call.callTarget().literal() is null)
-            {
-                ctx.Edition.Error(DiagnosticCatalog.CallAsNestedScope,
-                    "CALL … AS NESTED: literal-1 shall be specified — the NESTED phrase names a contained or "
-                    + "COMMON program by its PROGRAM-ID literal, not through an identifier (ISO §14.9.4.3 SR15)");
-                return new BoundNop();
+                // §14.9.4.3 SR13: "The NESTED phrase may be specified only in a program definition" — a
+                // function or method definition contains no programs (kb/Work PB132; the capability was one
+                // property access away and BindCall never read it).
+                if (host.InMethod || host.UdfSelfName is not null)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CallAsNestedContext,
+                        $"CALL … AS NESTED inside a {(host.InMethod ? "method" : "function")} definition: the "
+                        + "NESTED phrase may be specified only in a program definition (ISO §14.9.4.3 SR13)");
+                    return new BoundNop();
+                }
+                // §14.9.4.3 SR15: literal-1 shall be specified, and shall name a COMMON program or a program
+                // directly contained in the calling program.
+                if (call.callTarget()?.literal() is null)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CallAsNestedScope,
+                        "CALL … AS NESTED: literal-1 shall be specified — the NESTED phrase names a contained or "
+                        + "COMMON program by its PROGRAM-ID literal, not through an identifier (ISO §14.9.4.3 SR15)");
+                    return new BoundNop();
+                }
             }
         }
+        // ⛔ ONE Format-2 callee signature, TWO producers (kb/Work PB237). Everything downstream — GR9's
+        // formal-decides mode derivation, SR19/SR21's explicit-phrase agreement, SR24's OPTIONAL correspondence,
+        // §14.8.2's argument conformance and SR25→§14.8.3's returning conformance — reads `calleeFormals` /
+        // `callee`, never "was this AS NESTED". Wiring the prototype producer therefore delivered the whole
+        // §14.8.2/§14.8.3 regime to prototype calls in one assignment rather than by copying seven checks.
+        CalleeSignature? callee = null;
         // kb/Work PB131 — the AS NESTED callee's bound formals (§14.9.4.3 SR15 sentence 2 enforced here:
         // the name shall be a directly-contained or visible-COMMON program; the old binder bound the flag,
         // discarded it, and let ProgramTable resolve ANY outermost program at run time).
-        IReadOnlyList<LinkageFormal>? nestedFormals = null;
-        NestedCalleeSignature? nestedCallee = null;
-        if (asNested && call.callTarget().literal() is { } asLit)
+        if (asNested && call.callTarget()?.literal() is { } asLit)
         {
             string nestedName = CobolLiteral.Decode(asLit.GetText());
             if (host.NestedCallables is { } nc && nc.TryGetValue(nestedName, out var sig))
-            {
-                nestedFormals = sig.Formals;
-                nestedCallee = sig;
-            }
+                callee = sig;
             else
             {
                 ctx.Edition.Error(DiagnosticCatalog.CallAsNestedScope,
@@ -97,7 +105,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         BoundOperand? dynamicName = null;
         bool isPointerTarget = false;   // identifier-1 is a PROGRAM-POINTER item (§14.9.4.3 SR1; P10 Step 7)
         var target = call.callTarget();
-        if (target.literal() is { } lit)
+        if (target?.literal() is { } lit)
         {
             // kb/Work PB130: through the ONE program-name-literal reader — SR2 admits alphanumeric AND
             // national literals (a hexadecimal literal IS §8.3.3.2 Format 2 of an alphanumeric one), and the
@@ -105,28 +113,68 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (ProgramNameLiteral(lit, "CALL", "§14.9.4.3 SR2") is not { } pn) return new BoundNop();
             literalName = pn;
         }
-        else if (target.dataReference() is { } dref)
+        else if (target?.dataReference() is { } dref)
         {
-            if (ctx.Refs.Resolve(dref) is not { } place)
+            // §14.9.4.2 Format 2 spelling (b), kb/Work PB237: with the whole `⎡{identifier-1|literal-1} AS⎤`
+            // bracket omitted, the operand IS program-prototype-name-1 and is spelled exactly like identifier-1.
+            // The DATA REFERENCE is tried first, and through Probe rather than Resolve because an unresolved
+            // Probe reports nothing — so a word that names a data item stays identifier-1 and no program that
+            // binds today changes meaning. When the AS phrase already named a prototype, identifier-1 IS
+            // specified and GR3 b)'s FIRST bullet governs: the item's content is the program-name and the
+            // prototype only supplies the characteristics (GR7) — hence the `prototype is null` guard.
+            if (prototype is null && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } bareWord
+                && host.ProgramPrototypes?.GetValueOrDefault(bareWord) is { } bareProto)
+                // GR3 b) third bullet: "If neither identifier-1 nor literal-1 is specified,
+                // program-prototype-name-1 determines the externalized program-name of the program being
+                // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
+                prototype = bareProto;
+            else if (ctx.Refs.Resolve(dref) is not { } place)
                 return new BoundUnsupported($"CALL target '{dref.GetText()}'");
-            dynamicName = new BoundFieldOperand(place);
-            // §14.9.4.3 SR1: "Identifier-1 shall be defined as an alphanumeric, national, or program-pointer
-            // data item" — a program-pointer target activates the HELD program (ProgramRegistry.CallPointer,
-            // P10 Step 7); any OTHER class is rejected here (kb/Work PB132 — the old arm read the category
-            // only to set the pointer flag, and a numeric or boolean target fell through to a garbage
-            // name-string read at run time).
-            if (place.Item.Pic?.Category is PicCategory.ProgramPointer) isPointerTarget = true;
-            else if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place))
-                     is { } tCls and not (CobolClass.Alphanumeric or CobolClass.National))
+            else
             {
-                ctx.Edition.Error(DiagnosticCatalog.CallTargetCategory,
-                    $"CALL target '{dref.GetText()}' is of class {tCls.ToString().ToLowerInvariant()}; ISO "
-                    + "§14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
-                return new BoundNop();
+                dynamicName = new BoundFieldOperand(place);
+                // §14.9.4.3 SR1: "Identifier-1 shall be defined as an alphanumeric, national, or program-pointer
+                // data item" — a program-pointer target activates the HELD program (ProgramRegistry.CallPointer,
+                // P10 Step 7); any OTHER class is rejected here (kb/Work PB132 — the old arm read the category
+                // only to set the pointer flag, and a numeric or boolean target fell through to a garbage
+                // name-string read at run time).
+                if (place.Item.Pic?.Category is PicCategory.ProgramPointer) isPointerTarget = true;
+                else if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place))
+                         is { } tCls and not (CobolClass.Alphanumeric or CobolClass.National))
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CallTargetCategory,
+                        $"CALL target '{dref.GetText()}' is of class {tCls.ToString().ToLowerInvariant()}; ISO "
+                        + "§14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
+                    return new BoundNop();
+                }
             }
         }
-        else
+        else if (prototype is null)
+            // The bracket may be omitted only in Format 2, where the outer brace then supplies the operand. With
+            // neither a target nor a prototype there is nothing to activate.
             return new BoundUnsupported("CALL target form");
+
+        // §14.9.4.4 GR7: "If the NESTED phrase is not specified, program-prototype-name-1 is used to determine
+        // the characteristics of the called program." Its externalized name is the program-name whenever
+        // identifier-1/literal-1 was not written (GR3 b)), and its signature — when §12.3.8.4 GR10 a) found the
+        // definition in this compilation group — is the ONE callee signature every §14.8.2/§14.8.3 check below
+        // reads. A GR10 c) prototype (a separately-compiled program) legally carries none; the locate and the
+        // EC-PROGRAM-ARG-MISMATCH conformance check then happen at activation, per GR3 b) and GR3 d).
+        if (prototype is { } proto2)
+        {
+            if (literalName is null && dynamicName is null) literalName = proto2.ExternalizedName;
+            callee ??= proto2.Signature;
+        }
+        // Format 2 is selected by the AS phrase OR by a bare program-prototype-name operand (the two spellings of
+        // §14.9.4.2 Format 2). Every narrowing below that reads `formatTwo` — Format 1's ban on BY VALUE, on a
+        // BY CONTENT literal and on bare non-identifier arguments — therefore relaxes for both.
+        bool formatTwo = call.callAsPhrase() is not null || prototype is not null;
+        IReadOnlyList<LinkageFormal>? calleeFormals = callee?.Formals;
+        // How the shared §14.8.2/§14.8.3 messages below name the callee they resolved. One string, because the
+        // CHECKS are one set: only the provenance of the signature differs.
+        string calleeWhere = asNested
+            ? "CALL … AS NESTED"
+            : $"CALL … program-prototype '{prototype?.Name}'";
 
         // ── USING arguments — the §14.9.4.4 GR5 TRANSITIVE pass mode: BY REFERENCE is assumed before the
         //    first phrase; each explicit BY REFERENCE / BY CONTENT / BY VALUE phrase applies to every following
@@ -251,10 +299,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // through the AS NESTED callee table (the old single transitive `mode` silently passed
                 // `USING BY VALUE A B`'s B detached, losing the callee's writeback).
                 CobolPassMode bareMode = mode;
-                if (formatTwo && nestedFormals is not null)
+                if (formatTwo && calleeFormals is not null)
                 {
                     int pos = args.Count;
-                    bareMode = pos < nestedFormals.Count && nestedFormals[pos].ByValue
+                    bareMode = pos < calleeFormals.Count && calleeFormals[pos].ByValue
                         ? CobolPassMode.Value : CobolPassMode.Reference;
                 }
                 if (host.Expr.ResolveReceiving(bare) is not { } bp)
@@ -312,23 +360,24 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 + "program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects — Format 1's "
                 + "bare argument is identifier-2 only");
 
-        // §14.8.2.1 + §14.9.4.3 SR24 (kb/Work PB133 wave C): with the AS NESTED callee's formals known at
-        // BIND time, the argument COUNT (equality, except trailing OPTIONAL formals omitted) and each written
-        // OMITTED's OPTIONAL correspondence are compile-time checks — the design doc's "or diagnostic" lane;
-        // the dynamic Format-1 count check (EC-PROGRAM-ARG-MISMATCH at activation) rides wave C2.
-        if (nestedFormals is not null)
+        // §14.8.2.1 + §14.9.4.3 SR24 (kb/Work PB133 wave C, generalized by PB237): with the Format-2 callee's
+        // formals known at BIND time — from the AS NESTED containment table or from the program prototype's
+        // §12.3.8.4 GR10 a) definition — the argument COUNT (equality, except trailing OPTIONAL formals omitted)
+        // and each written OMITTED's OPTIONAL correspondence are compile-time checks — the design doc's "or
+        // diagnostic" lane; the dynamic Format-1 count check (EC-PROGRAM-ARG-MISMATCH at activation) rides wave C2.
+        if (calleeFormals is not null)
         {
-            bool countBad = args.Count > nestedFormals.Count;
-            for (int i = args.Count; !countBad && i < nestedFormals.Count; i++)
-                if (!nestedFormals[i].Optional) countBad = true;
+            bool countBad = args.Count > calleeFormals.Count;
+            for (int i = args.Count; !countBad && i < calleeFormals.Count; i++)
+                if (!calleeFormals[i].Optional) countBad = true;
             if (countBad)
                 ctx.Edition.Error(DiagnosticCatalog.CallArgumentCount,
-                    $"CALL … AS NESTED supplies {args.Count} argument(s) where the program declares "
-                    + $"{nestedFormals.Count} formal parameter(s); ISO §14.8.2.1 requires the counts to be "
+                    $"{calleeWhere} supplies {args.Count} argument(s) where the program declares "
+                    + $"{calleeFormals.Count} formal parameter(s); ISO §14.8.2.1 requires the counts to be "
                     + "equal, except for trailing formal parameters declared OPTIONAL and omitted");
-            for (int i = 0; i < args.Count && i < nestedFormals.Count; i++)
+            for (int i = 0; i < args.Count && i < calleeFormals.Count; i++)
             {
-                var f = nestedFormals[i];
+                var f = calleeFormals[i];
                 var arg = args[i];
                 if (arg.Omitted)
                 {
@@ -359,7 +408,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                          && CobolNet.Compiler.Oo.OoConformance.DescriptionMismatch(f.Item, ap.Item,
                                 byRefGroupPrefix: true) is { } why)
                     ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
-                        $"CALL … AS NESTED argument {i + 1} ('{ap.Item.CobolName}') does not conform to formal "
+                        $"{calleeWhere} argument {i + 1} ('{ap.Item.CobolName}') does not conform to formal "
                         + $"parameter '{f.Item.CobolName}': {why} (ISO §14.8.2)");
 
                 // §14.8.2.3.2, last sentence of the class-pointer rule: "If either is a restricted pointer, both
@@ -370,7 +419,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // StrongTypeModel's type equivalence is name-based within an element and explicitly DEFERS
                 // cross-program EXTERNAL equivalence, so applying this to a separately-compiled callee would
                 // over-reject on the deferred axis — rejecting legal source, the worse failure.
-                if (arg.Mode is CobolPassMode.Reference && arg.Place is { } restrictedArg)
+                // ⚠ kb/Work PB237 kept the `asNested` guard when the enclosing loop was generalized to every
+                // Format-2 callee: a program prototype's §12.3.8.4 GR10 a) definition is a SEPARATE outermost
+                // source element (it does not inherit the caller's GLOBAL TYPEDEFs the way a contained program
+                // does), so it is exactly the deferred axis this comment excludes.
+                if (asNested && arg.Mode is CobolPassMode.Reference && arg.Place is { } restrictedArg)
                 {
                     string? argR = StrongTypeModel.PointerRestriction(restrictedArg.Item);
                     string? formalR = StrongTypeModel.PointerRestriction(f.Item);
@@ -398,30 +451,31 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             returning = rpl;
         }
         // §14.9.4.3 SR25 → §14.8.3, RETURNING ITEMS — the half that had NO home at all (kb/Work PB204). SR25
-        // makes §14.8.3's rules apply to a Format-2 CALL, and with AS NESTED the callee's PD header is bound,
-        // so §14.8.3.1's "if and only if" and §14.8.3.2/§14.8.3.3's description rules are compile-time facts
+        // makes §14.8.3's rules apply to a Format-2 CALL, and wherever the callee's PD header is bound — the
+        // AS NESTED containment table, or a program prototype's §12.3.8.4 GR10 a) definition (PB237) —
+        // §14.8.3.1's "if and only if" and §14.8.3.2/§14.8.3.3's description rules are compile-time facts
         // rather than the run-time EC-PROGRAM-ARG-MISMATCH a dynamically-resolved callee would need. THE SAME
         // comparator the USING loop and INVOKE use, so the three can never drift.
         // §14.8.3.1: "The returning item in the activated element is the sending operand, the corresponding
         // returning item in the activating element is the receiving operand" — hence the callee's item is
         // parameter 1, which is also what the §14.8.3.3 rule-4/5 ANY LENGTH relaxation keys on. No prefix
         // latitude: §14.8.3.2 asks for "the same length", not §14.8.2.2 rule 1's "same or smaller".
-        if (nestedCallee is { } callee)
+        if (callee is { } calleeSig)
         {
-            if ((returning is null) != (callee.Returning is null))
+            if ((returning is null) != (calleeSig.Returning is null))
                 ctx.Edition.Error(DiagnosticCatalog.CallReturningConformance,
                     returning is null
-                        ? "CALL … AS NESTED: the activated program's procedure division header declares "
-                          + $"RETURNING '{callee.Returning!.CobolName}' but the CALL statement specifies no "
+                        ? $"{calleeWhere}: the activated program's procedure division header declares "
+                          + $"RETURNING '{calleeSig.Returning!.CobolName}' but the CALL statement specifies no "
                           + "RETURNING item (ISO §14.8.3.1 — one shall be specified if and only if the "
                           + "activated element specifies one)"
-                        : "CALL … AS NESTED specifies a RETURNING item but the activated program's procedure "
+                        : $"{calleeWhere} specifies a RETURNING item but the activated program's procedure "
                           + "division header declares none (ISO §14.8.3.1)");
-            else if (returning is { } rr && callee.Returning is { } cr
+            else if (returning is { } rr && calleeSig.Returning is { } cr
                      && CobolNet.Compiler.Oo.OoConformance.DescriptionMismatch(cr, rr.Item,
                             anyLengthActivationRelax: true) is { } rwhy)
                 ctx.Edition.Error(DiagnosticCatalog.CallReturningConformance,
-                    $"CALL … AS NESTED RETURNING '{rr.Item.CobolName}' does not conform to the activated "
+                    $"{calleeWhere} RETURNING '{rr.Item.CobolName}' does not conform to the activated "
                     + $"program's returning item '{cr.CobolName}': {rwhy} (ISO §14.8.3 via §14.9.4.3 SR25)");
         }
 
@@ -476,6 +530,32 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
+    /// <summary>THE program-prototype-name lookup (kb/Work PB237) — ONE place, because §14.9.4.3 syntax rule 16
+    /// ("Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph") and
+    /// §14.9.5.3 syntax rule 3 ("Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY
+    /// paragraph") state the SAME obligation about the same subject, and §8.4.6.8 adds the one further spelling
+    /// they both inherit — "the program-name of a containing program definition". The table
+    /// (<c>BinderDriver.ProgramPrototypesOf</c>) carries all of it, so both verbs ask this one question. Reports
+    /// COBOLNET1760 and returns null when the name is not a program prototype here.</summary>
+    private ProgramPrototype? ResolvePrototype(string name, string verb, string alsoNot = "")
+    {
+        if (host.ProgramPrototypes?.GetValueOrDefault(name) is { } proto) return proto;
+        ctx.Edition.Error(DiagnosticCatalog.ProgramPrototypeUndeclared,
+            $"{verb} {name}: '{name}' is not a program prototype — it is neither declared by a PROGRAM specifier "
+            + "in the REPOSITORY paragraph (ISO §12.3.8.2) nor the program-name of a containing program "
+            + $"definition (§8.4.6.8){alsoNot}");
+        return null;
+    }
+
+    /// <summary>The BARE user-defined word a data reference spells, or null when it is qualified, subscripted,
+    /// reference-modified, or one of the special registers the rule lists first. A program-prototype-name is a
+    /// plain word (§8.4.6.8 — it names a source unit, so it takes no qualification and no subscript), so this is
+    /// the SHAPE test that decides whether an operand written like identifier-1 can be read as
+    /// program-prototype-name-1 at all (kb/Work PB237). Used by both reference sites, so CALL and CANCEL cannot
+    /// disagree about what a prototype operand looks like.</summary>
+    private static string? BarePrototypeWord(Core.DataReferenceContext dref) =>
+        dref.cobolWord() is { } w && dref.dataReferenceSuffix().Length == 0 ? w.GetText() : null;
+
     public BoundStatement BindCancel(Core.CancelStatementContext cancel)
     {
         var targets = new List<(string?, BoundOperand?)>();
@@ -491,6 +571,30 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else if (t.dataReference() is { } dref)
             {
+                // §14.9.5.2's THIRD brace alternative — program-prototype-name-1 (kb/Work PB237). It has no
+                // production of its own because it is spelled exactly like identifier-1, so the discrimination is
+                // semantic and takes the SAME order the CALL twin takes: Probe the data reference first (Probe,
+                // not Resolve — an unresolved Probe reports nothing), and only a word that is NOT a data item is
+                // read as a prototype. §14.9.5.4 GR1 c) then makes the prototype the identification of the program
+                // to be canceled, and §12.3.8.4 GR10 NOTE 1 says which name that is — literal-3 if the specifier
+                // wrote AS, otherwise the prototype name. A prototype cancel is therefore a STATIC-name cancel,
+                // the same bound shape literal-1 produces (GR1 b)); the run-time locate is GR2's.
+                if (ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } cWord)
+                {
+                    if (host.ProgramPrototypes?.GetValueOrDefault(cWord) is { } cProto)
+                    {
+                        targets.Add((cProto.ExternalizedName, null));
+                        continue;
+                    }
+                    // §14.9.5.3 SR1 and SR3 together: the word is neither an alphanumeric/national data item nor a
+                    // program prototype, so NEITHER identifier-shaped alternative of §14.9.5.2's operand brace is
+                    // available. The resolver's §8.4.2.1 "not defined" report names only the data reading, which
+                    // would leave SR3's obligation invisible on the one operand that can violate it.
+                    ResolvePrototype(cWord, "CANCEL",
+                        ", and no data item of that name is defined either — §14.9.5.2's operand brace is "
+                        + "identifier-1, literal-1 or program-prototype-name-1");
+                    continue;
+                }
                 if (ctx.Refs.Resolve(dref) is { } p)
                 {
                     // §14.9.5.3 SR1 (kb/Work PB154): "Identifier-1 shall be defined as an alphanumeric or

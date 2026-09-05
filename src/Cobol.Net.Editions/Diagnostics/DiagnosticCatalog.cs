@@ -180,18 +180,10 @@ public static class DiagnosticCatalog
         + "byte-width authority lands ONCE, with it (the singular-pattern rule).", "ISO §13.10.4 GR5 / §15.14",
         RecognizedNotImplemented);
 
-    // ── COBOLNET0899 — the CALL Format-2 legs (fix-queue PB46, CALL half) ────────────────────────────────
-    // §14.9.4.2 Format 2 is `CALL {identifier-1|literal-1} AS {NESTED | program-prototype-name-1}`. The AS brace
-    // has TWO arms with different dependencies: NESTED is supported, the prototype-name arm is not, and a reader
-    // who hits the wall needs to be told WHICH half is missing rather than seeing an unresolved call.
-    public static readonly DiagnosticDescriptor CallAsPrototypeName = new(
-        NotImplemented, "call-as-prototype-name", EditionSeverity.Error,
-        "CALL … AS program-prototype-name requires the program-prototype registry. ISO §14.9.4.3 syntax rule 16 "
-        + "makes program-prototype-name-1 a name \"specified in a program-specifier in the REPOSITORY "
-        + "paragraph\", and §12.3.8.2's program-specifier (PROGRAM program-prototype-name-1 [AS literal-3]) has "
-        + "no repositoryEntry alternative, so no source can declare one. The sibling arm, CALL … AS NESTED, is "
-        + "supported. Tracked as the P13 prototype registry.",
-        "ISO §14.9.4.3 SR16 / §12.3.8.2", RecognizedNotImplemented);
+    // ⛔ The 0899-staged CallAsPrototypeName is GONE (kb/Work PB237). It said "§12.3.8.2's program-specifier has no
+    // repositoryEntry alternative, so no source can declare one"; the alternative now exists, the registry resolves,
+    // and a prototype-name that is not declared is a permanent §14.9.4.3 SR16 conformance rejection — COBOLNET1760
+    // below — not recognized-not-implemented debt. Same retirement shape as CallAsNestedNeedsLiteral before it.
     // The ONE §14.9.4.3 SR15 diagnostic (kb/Work PB131) — both sentences: literal-1 required, and the name
     // resolved at BIND time against the containment tree (a directly contained program, or a visible common
     // program per §8.4.6.3). Replaced the 0899-staged CallAsNestedNeedsLiteral: this is a permanent
@@ -246,6 +238,29 @@ public static class DiagnosticCatalog
         + "\"a group item whose data description has at least one dynamic-length elementary item or "
         + "dynamic-capacity table as a subordinate item\" (ISO §8.5.1.12.1).",
         "ISO §13.18.44.3 SR17");
+
+    // ── The program-prototype registry's two conformance rejections (kb/Work PB237; §12.3.8.2 program-specifier) ──
+    // ONE code per rule FAMILY, message-differentiated, the COBOLNET1720/1707 shape: 1760 answers "is this word a
+    // declared program-prototype-name?" for every reference site (CALL Format 2, CANCEL), 1761 screens the
+    // DECLARATION itself (§12.3.8.3's ALL-SPECIFIERS rules 1 and 2, restricted to the program-specifier).
+    public static readonly DiagnosticDescriptor ProgramPrototypeUndeclared = new(
+        "COBOLNET1760", "program-prototype-undeclared", EditionSeverity.Error,
+        "A program-prototype-name shall be declared by a program-specifier in the REPOSITORY paragraph "
+        + "(ISO §12.3.8.2: \"PROGRAM program-prototype-name-1 [AS literal-3]\"). §14.9.4.3 syntax rule 16: "
+        + "\"Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph.\" "
+        + "§14.9.5.3 syntax rule 3: \"Program-prototype-name-1 shall be a program prototype specified in the "
+        + "REPOSITORY paragraph.\" §8.4.6.8 admits one further spelling — the program-name of a CONTAINING "
+        + "program definition — and this check accepts that too.",
+        "ISO §14.9.4.3 SR16 / §14.9.5.3 SR3 / §12.3.8.2 / §8.4.6.8");
+    public static readonly DiagnosticDescriptor RepositoryProgramSpecifier = new(
+        "COBOLNET1761", "repository-program-specifier", EditionSeverity.Error,
+        "The REPOSITORY program-specifier's own declaration rules (ISO §12.3.8.3, ALL SPECIFIERS). Rule 1: \"If "
+        + "any object-class-name-1, interface-name-2, program-prototype-name-1, function-prototype-name-1, "
+        + "intrinsic-function-name-1 or property-name-1 is specified more than once in the REPOSITORY paragraph, "
+        + "all the specifications for that name shall be identical.\" Rule 2: \"Literal-1, literal-2, literal-3, "
+        + "literal-4, and literal-5 shall be alphanumeric literals or national literals and shall be neither "
+        + "figurative constants nor zero-length literals.\"",
+        "ISO §12.3.8.3 SR1/SR2");
 
     public static readonly DiagnosticDescriptor CallAsNestedScope = new(
         "COBOLNET1676", "call-as-nested-scope", EditionSeverity.Error,

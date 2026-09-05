@@ -100,7 +100,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// the caller, or a visible COMMON program), each with its bound PD-header formals — built per unit in
     /// BinderDriver.BindUnitProcedure, after every unit's DATA has bound (the UserFunctions precedent), so
     /// GR9's the-formal-decides mode derivation is a bind-time lookup (kb/Work PB131).</summary>
-    public IReadOnlyDictionary<string, NestedCalleeSignature>? NestedCallables { get; set; }
+    public IReadOnlyDictionary<string, CalleeSignature>? NestedCallables { get; set; }
+
+    /// <summary>The program prototypes THIS unit may name (kb/Work PB237): every §12.3.8.2 program-specifier
+    /// visible here, resolved through §12.3.8.4 GR10 against the compilation group, plus the §8.4.6.8 spelling
+    /// that needs no specifier at all — "the program-name of a containing program definition". Keyed by
+    /// program-prototype-name (§8.3.2 case-insensitive). It is the §14.9.4.3 SR16 / §14.9.5.3 SR3 lookup, and its
+    /// hit's <c>Signature</c> is what §14.9.4.4 GR7 means by "program-prototype-name-1 is used to determine the
+    /// characteristics of the called program". Built per unit in BinderDriver.BindUnitProcedure, the
+    /// NestedCallables precedent; null in unit-test direct construction and in class-unit binders.</summary>
+    public IReadOnlyDictionary<string, ProgramPrototype>? ProgramPrototypes { get; set; }
 
     /// <summary>The unit's RECURSIVE attribute — explicit, or inherited per §11.10.4 GR4 (kb/Work PB137:
     /// §14.9.7.3 SR1 bans COMMIT/ROLLBACK in a recursive source element). Set by BinderDriver.</summary>

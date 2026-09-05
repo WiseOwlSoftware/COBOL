@@ -536,7 +536,10 @@ internal sealed class BinderDriver
     internal static void BindProcedures(GroupBindContext ctx)
     {
         var userFunctions = BuildUserFunctionTable(ctx.Units, ctx.Session.Edition);
-        foreach (var unit in ctx.Units) BindUnitProcedure(unit, userFunctions, ctx.Session);
+        // kb/Work PB237 — the compilation group's program definitions by EXTERNALIZED name, the search space
+        // §12.3.8.4 GR10 a) names. Built once for the whole group, exactly like the user-function table beside it.
+        var programDefinitions = BuildProgramDefinitionTable(ctx.Units);
+        foreach (var unit in ctx.Units) BindUnitProcedure(unit, userFunctions, programDefinitions, ctx.Session);
     }
 
     /// <summary>The PROCEDURE half of unit binding (phase 2): every unit's DATA is already bound
@@ -544,7 +547,8 @@ internal sealed class BinderDriver
     /// <c>FUNCTION user-name(args)</c> reference resolves its callee's RETURNING/USING descriptions
     /// regardless of unit order in the source (§8.4.3.2.4 GR1).</summary>
     private static void BindUnitProcedure(BoundUnit unit,
-        IReadOnlyDictionary<string, UserFunctionSignature> userFunctions, BindSession session)
+        IReadOnlyDictionary<string, UserFunctionSignature> userFunctions,
+        IReadOnlyDictionary<string, CalleeSignature> programDefinitions, BindSession session)
     {
         var data = unit.Data;
         var binder = new StatementBinder(data, unit.Refs)
@@ -561,6 +565,9 @@ internal sealed class BinderDriver
             // visibility the runtime ResolveVisible applies, computed statically so GR9's formal-mode
             // lookup and SR15's scope check both happen at BIND time.
             NestedCallables = NestedCallablesOf(unit),
+            // kb/Work PB237 — the unit's visible program prototypes (§12.3.8.2 specifiers resolved through
+            // §12.3.8.4 GR10, plus §8.4.6.8's containing-program spelling).
+            ProgramPrototypes = ProgramPrototypesOf(unit, programDefinitions),
             UnitRecursive = unit.Recursive,   // §14.9.7.3 SR1 / §14.9.36.3 SR1 (kb/Work PB137)
         };
         binder.ConfigureEc(session.Turn, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
@@ -580,16 +587,89 @@ internal sealed class BinderDriver
     /// with AS NESTED both halves of that pair are statically known. Carrying only the formals is what left the
     /// RETURNING half unchecked — the same shape as <c>UserFunctionSignature</c>, which has carried both since
     /// it was written.</para></summary>
-    private static Dictionary<string, NestedCalleeSignature> NestedCallablesOf(BoundUnit unit)
+    private static Dictionary<string, CalleeSignature> NestedCallablesOf(BoundUnit unit)
     {
-        var map = new Dictionary<string, NestedCalleeSignature>(StringComparer.OrdinalIgnoreCase);
+        var map = new Dictionary<string, CalleeSignature>(StringComparer.OrdinalIgnoreCase);
         foreach (var c in unit.Children)
-            map.TryAdd(c.Name, new NestedCalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
+            map.TryAdd(c.Name, new CalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
             foreach (var c in anc.Children)
                 if (c.Common)
-                    map.TryAdd(c.Name, new NestedCalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
+                    map.TryAdd(c.Name, new CalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
         return map;
+    }
+
+    // ── The program-prototype registry (kb/Work PB237; ISO §12.3.8.2 program-specifier → §12.3.8.4 GR10) ──────
+    // The PROGRAM twin of BuildUserFunctionTable below: GR10 a)/b)/c) has the identical shape to GR11 a)/b)/c),
+    // and the two tables are built at the same point for the same reason — every unit's DATA has bound, so a
+    // callee's PD-header signature is a fact no matter where in the group its definition sits.
+
+    /// <summary>The compilation group's program definitions by EXTERNALIZED name — the search space of ISO
+    /// §12.3.8.4 general rule 10 a): "if the externalized name of the program prototype is the externalized name
+    /// of a program definition specified previously in the same compilation group, the details are taken from that
+    /// program definition, which is the program that will be called".
+    /// <para>OUTERMOST program definitions only: a contained program is part of its container's program
+    /// definition, is not a compilation-group source unit (§10.6.1), and is reachable only through §14.9.4.3 SR15's
+    /// AS NESTED — which has its own table. FUNCTION-ID units are excluded because §9.4 puts them in the function
+    /// namespace, and prototype units because they have no body. <c>BoundUnit.Name</c> IS the externalized name:
+    /// MakeUnit already folds <c>PROGRAM-ID … AS literal</c> into it (§11.10.4 GR1).</para>
+    /// <para>DETERMINATION on GR10 a)'s word "previously": the ORDER is not enforced. GR10 a) and c) are the two
+    /// arms this implementation can reach, and for a later in-group definition both name the SAME program — c)
+    /// takes "the details … from the external repository for the program with the same name", and this
+    /// implementation's external repository is the run unit's program registry, which the later definition is in.
+    /// Enforcing the order would therefore reject nothing illegal and would only DOWNGRADE a later definition's
+    /// signature from a compile-time §14.8.2 check to a run-time EC-PROGRAM-ARG-MISMATCH.</para></summary>
+    private static Dictionary<string, CalleeSignature> BuildProgramDefinitionTable(IReadOnlyList<BoundUnit> units)
+    {
+        var map = new Dictionary<string, CalleeSignature>(StringComparer.OrdinalIgnoreCase);
+        foreach (var u in units)
+            if (u is { IsFunction: false, IsPrototype: false, Parent: null })
+                map.TryAdd(u.Name, new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning));
+        return map;
+    }
+
+    /// <summary>The program prototypes ONE unit may name (ISO §8.4.6.8, Scope of program-prototype-names:
+    /// "Program-prototype-names referenced within a source element shall be either the program-name of a
+    /// containing program definition or a program-prototype-name declared in the REPOSITORY paragraph").
+    /// Both spellings register here, so §14.9.4.3 SR16 and §14.9.5.3 SR3 are ONE lookup:
+    /// <list type="number">
+    /// <item>every §12.3.8.2 program-specifier visible to the unit (<c>DataBinder.ProgramSpecifiers</c>, which
+    /// already inherits its container's — §12.3.8.4 GR10's "scope of the containing environment division"),
+    /// resolved through GR10 against <paramref name="programDefinitions"/>;</item>
+    /// <item>the unit's own name and every containing program definition's name, which §8.4.6.8 admits with no
+    /// specifier at all — and which is also exactly what §12.3.8.3 syntax rule 15 means by "references to
+    /// program-prototype-name-1 are to the named program definition and this program-specifier is ignored": a
+    /// self- or container-named specifier resolves to that definition, so registering the definition LAST and
+    /// letting it overwrite realizes SR15 without a second code path.</item>
+    /// </list></summary>
+    private static Dictionary<string, ProgramPrototype> ProgramPrototypesOf(
+        BoundUnit unit, IReadOnlyDictionary<string, CalleeSignature> programDefinitions)
+    {
+        var map = new Dictionary<string, ProgramPrototype>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, spec) in unit.Data.ProgramSpecifiers)
+            // GR10 a): the in-group definition supplies the details. Otherwise GR10 c) — the external repository,
+            // i.e. this implementation's run-unit program registry, resolved at execution (§14.9.4.4 GR3 b)) — so
+            // the prototype is legal and simply carries no compile-time signature. (GR10 b), an in-group program
+            // PROTOTYPE DEFINITION, needs §11.10.2 Format 2's `PROGRAM-ID … IS PROTOTYPE` source-unit kind, which
+            // this compiler does not yet accept; when it lands it slots in between these two arms.)
+            map[name] = new ProgramPrototype(name, spec.ExternalizedName,
+                programDefinitions.GetValueOrDefault(spec.ExternalizedName));
+        // §8.4.6.8's second spelling: "the program-name of a containing program definition" is a referable
+        // program-prototype-name with NO specifier at all. It also subsumes §12.3.8.3 SR15's containing-program
+        // half — a specifier naming a container is "ignored" and references go to that definition, which is
+        // precisely what overwriting the specifier's entry with the definition does.
+        for (var u = unit.Parent; u is not null; u = u.Parent)
+            if (!u.IsFunction) map[u.Name] = SelfPrototype(u);
+        // §12.3.8.3 SR15's OTHER half — "the name of the program definition in which this REPOSITORY paragraph is
+        // specified". Scoped to a WRITTEN specifier, because SR15 is a rule about a specifier and §8.4.6.8's
+        // no-specifier spelling says "containing", never "this". (§11.10.4 GR4's RECURSIVE attribute is what makes
+        // such a self-call reachable at run time; without it §14.9.4.4 GR3 f) raises EC-PROGRAM-RECURSIVE-CALL.)
+        if (!unit.IsFunction && unit.Data.ProgramSpecifiers.ContainsKey(unit.Name))
+            map[unit.Name] = SelfPrototype(unit);
+        return map;
+
+        static ProgramPrototype SelfPrototype(BoundUnit u) =>
+            new(u.Name, u.Name, new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning));
     }
 
     /// <summary>Build the compilation group's user-function signature table (name → bound RETURNING item +

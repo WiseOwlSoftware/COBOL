@@ -346,12 +346,15 @@ configurationParagraph
     | vendorConfigurationParagraph
     ;
 
-// REPOSITORY paragraph (COBOL-2002, ISO §12.3.8) — declares the functions a source element references. Accepted
-// (parsed) but its specifiers are not yet bound: `FUNCTION ALL INTRINSIC` and user-function declarations are a
-// WS-2002-UDF follow-up (the function-prototype binding + `FUNCTION user-name(args)` invocation). Each entry
-// starts with the FUNCTION specifier keyword, so the rule cannot over-run into the next section; an optional
-// period after each entry tolerates both the one-period-per-paragraph and period-per-entry styles. The `AS
-// external-name` phrase is deferred (avoids reserving AS as a keyword).
+// REPOSITORY paragraph (COBOL-2002, ISO §12.3.8) — declares the program prototypes, function prototypes, classes,
+// interfaces and properties a source element references, plus the intrinsic-function-names usable without the word
+// FUNCTION. Each entry starts with its specifier keyword, so the rule cannot over-run into the next section; an
+// optional period after each entry tolerates both the one-period-per-paragraph and period-per-entry styles.
+// ⚠ The `AS literal` phrase is carried by the PROGRAM specifier ONLY, because that is the only specifier whose
+// externalized name this compiler BINDS (kb/Work PB237). §12.3.8.2 prints `[AS literal-n]` on the class, interface,
+// property and user-defined-function specifiers too; parsing those without binding literal-1/2/4/5 would silently
+// DISCARD the externalized name §12.3.8.4 GR2 assigns — a silent wrong answer, strictly worse than the parse error.
+// They land with their own subsystems (the OO wave and the UDF prototype wave).
 repositoryParagraph
     : REPOSITORY DOT (repositoryEntry DOT?)*
     ;
@@ -361,7 +364,21 @@ repositoryEntry
     | FUNCTION functionName INTRINSIC?
     | CLASS className   // OO (2002): CLASS class-name [AS literal] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
     | INTERFACE interfaceName   // OO (2002): the interface specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
+    | PROGRAM programPrototypeName repositoryAsPhrase?   // §12.3.8.2 program-specifier (2002) — kb/Work PB237; introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry; position-safe (entry-leading keyword in a closed alt set — no configuration paragraph, section header or division header begins with the PROGRAM token)
     | PROPERTY propertyName     // OO (2002): the property specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§8.4.3.9.3 SR1)
+    ;
+
+// §12.3.8.2 program-specifier: `PROGRAM program-prototype-name-1 [ AS literal-3 ]` (PDF page 334 rendered — PROGRAM
+// and AS underlined, the AS phrase bracketed). program-prototype-name-1 is a user-defined word (§8.4.6.8), so it
+// rides `cobolWord` like every sibling name rule; literal-3's §12.3.8.3 SR2 class screen (alphanumeric or national,
+// not a figurative constant, not zero-length) is a BIND-time narrowing of the deliberately wide `literal`, matching
+// the cancelTarget/callTarget discipline.
+programPrototypeName
+    : cobolWord
+    ;
+
+repositoryAsPhrase
+    : AS literal
     ;
 
 // SOURCE-COMPUTER. [computer-name-1] . (ISO §12.3.5.2 — computer-name-1 is OPTIONAL; SR1: without it the second
@@ -1022,12 +1039,17 @@ moveReceivingPhrase
 // CALL (§14.9.4)
 // ==========================================
 
-// ⛔ THE `AS` PHRASE IS WHAT SELECTS FORMAT 2, AND ITS ABSENCE IS WHY FORMAT 2 WAS UNREACHABLE (fix-queue PB46,
-// CALL half). §14.9.4.2 Format 2 prints `CALL { identifier-1 | literal-1 } AS { NESTED | program-prototype-name-1 }`
-// — a SYNTACTIC discriminator. PB46's note asserted the opposite ("the formats are NOT distinguishable at parse
-// time … what selects Format 2 is whether the called name resolves to a program-prototype — a SEMANTIC
-// question") and concluded the whole CALL half was blocked on the P13 prototype registry. Reading the rendered
-// general format refutes that: Format 1 has no AS phrase at all.
+// §14.9.4.2 Format 2 prints `CALL ⎡{ identifier-1 | literal-1 } AS⎤ { NESTED | program-prototype-name-1 }` — the
+// OPTIONAL BRACKET encloses the target brace AND the word AS (PDF page 619 rendered, kb/Work PB237; the earlier
+// comment here paraphrased it with the bracket dropped, which is why this rule was believed to need a required
+// target). Two consequences:
+//   • `CALL … AS …` IS a syntactic Format-2 discriminator when it is written — PB46's "the formats are NOT
+//     distinguishable at parse time" is refuted for that spelling, since Format 1 has no AS phrase at all.
+//   • but the bracket may be omitted whole, so `CALL <program-prototype-name-1>` — no target operand, no AS — is
+//     ALSO Format 2, and it is spelled exactly like Format 1's `CALL identifier-1`. That arm is genuinely
+//     SEMANTIC: the binder selects it when the bare word names a program-prototype declared by the REPOSITORY
+//     paragraph's program-specifier (§12.3.8.2) and does not resolve as a data item (CallBinder.BindCall). No
+//     grammar change is needed for it — `callTarget → dataReference` already carries the word.
 callStatement
     : CALL callTarget
       callAsPhrase?

@@ -1,13 +1,13 @@
       *> reject-at: 2002 2014 2023
-      *> ISO 14.9.4.3 SR16: "Program-prototype-name-1 shall be specified in a
-      *> program-specifier in the REPOSITORY paragraph." 12.3.8.2's
-      *> program-specifier is `PROGRAM program-prototype-name-1 [AS literal-3]`,
-      *> and repositoryEntry has no such alternative - so no source can declare
-      *> one and this arm is genuinely blocked on the P13 prototype registry.
+      *> ISO 1989:2023 14.9.4.3 syntax rule 16: "Program-prototype-name-1 shall be
+      *> specified in a program-specifier in the REPOSITORY paragraph." This source
+      *> writes `AS MY-PROTO` with no REPOSITORY paragraph at all, so MY-PROTO is
+      *> neither a 12.3.8.2 program-specifier name nor - 8.4.6.8's only other
+      *> spelling - the program-name of a containing program definition.
       *>
-      *> It is pinned as a NAMED diagnostic rather than left to fail as an
-      *> unresolved call: the other arm of the same brace (AS NESTED) is
-      *> supported, so a reader needs to be told which half is missing and why.
+      *> It is a PERMANENT conformance rejection, not staged non-support: the
+      *> program-specifier is accepted (kb/Work PB237) and the registry resolves it,
+      *> so a name that is absent from it is a syntax-rule violation.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB46ASPROTO.
        DATA DIVISION.

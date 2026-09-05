@@ -52,13 +52,37 @@ public sealed record CallExternalBacking(string BackingCsName, string ExternalNa
 /// diagnosed; call sites fail loud without re-reporting).</summary>
 public sealed record UserFunctionSignature(string Name, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals);
 
-/// <summary>One AS NESTED callee's activation signature (ISO §14.9.4.3 SR15; kb/Work PB131 + PB204): its
-/// positional USING formals and its PROCEDURE DIVISION RETURNING item. SR25 makes BOTH §14.8.2, Parameters and
-/// §14.8.3, Returning items apply to a Format-2 CALL, and with AS NESTED both sides of each pair are statically
-/// known — so the signature carries both halves, exactly as <see cref="UserFunctionSignature"/> does.
+/// <summary>ONE Format-2 callee's activation signature: its positional USING formals and its PROCEDURE DIVISION
+/// RETURNING item. §14.9.4.3 SR25 makes BOTH §14.8.2, Parameters and §14.8.3, Returning items apply to a Format-2
+/// CALL, so wherever the callee is statically known the whole conformance regime is a BIND-time check — and the
+/// signature carries both halves, exactly as <see cref="UserFunctionSignature"/> does.
+/// <para>TWO producers reach the same shape, which is why this type is not named for either of them (kb/Work
+/// PB237): <c>AS NESTED</c> resolves its callee through the containment tree (§14.9.4.3 SR15, PB131 + PB204), and
+/// <c>program-prototype-name-1</c> resolves it through the REPOSITORY program-specifier and §12.3.8.4 GR10's
+/// search of the compilation group. Every §14.8.2/§14.8.3 check in <c>CallBinder.BindCall</c> reads THIS record,
+/// so the prototype arm inherited the whole set the day it was wired in.</para>
 /// <paramref name="Returning"/> is null when the callee's header declares no returning item, which §14.8.3.1
 /// makes a conformance fact in its own right ("if and only if").</summary>
-public sealed record NestedCalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataItem? Returning);
+public sealed record CalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataItem? Returning);
+
+/// <summary>One §12.3.8.2 program-specifier as WRITTEN — <c>PROGRAM program-prototype-name-1 [AS literal-3]</c>
+/// (kb/Work PB237). <paramref name="ExternalizedName"/> is literal-3 when the AS phrase is present and the
+/// prototype name itself otherwise; §12.3.8.4 GR10 NOTE 1 states that identity outright ("Literal-3, if specified,
+/// is the externalized name of the program prototype; otherwise, the externalized name is
+/// program-prototype-name-1"). Collected by <c>DataBinder.BindProgramSpecifier</c>; RESOLVED by
+/// <c>BinderDriver.ProgramPrototypesOf</c>.</summary>
+public sealed record ProgramSpecifier(string Name, string ExternalizedName);
+
+/// <summary>One RESOLVED program prototype, as §12.3.8.4 GR10 defines it: the declared program-prototype-name, the
+/// externalized name that identifies the program to be called, and — when GR10 a) found a program definition in
+/// this compilation group — that definition's <see cref="CalleeSignature"/> (kb/Work PB237).
+/// <para><paramref name="Signature"/> is null when the details come from GR10 c), "the external repository for the
+/// program with the same name as the externalized name of the program prototype": this implementation's external
+/// repository is the RUN UNIT's program registry, resolved at execution (§14.9.4.4 GR3 b), with
+/// EC-PROGRAM-NOT-FOUND when the locate fails), so a separately-compiled callee is legal and simply carries no
+/// compile-time signature for §14.8.2/§14.8.3 to check. That is the ONE difference between a prototype call and an
+/// AS NESTED call, and it is the difference the standard itself draws.</para></summary>
+public sealed record ProgramPrototype(string Name, string ExternalizedName, CalleeSignature? Signature);
 
 /// <summary>
 /// The LINKAGE SECTION / EXTERNAL / GLOBAL half of the data binder (COBOLNET_INTERPROGRAM_DESIGN D1–D5).
