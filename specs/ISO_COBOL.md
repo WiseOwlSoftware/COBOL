@@ -5497,15 +5497,15 @@ NOTE 2 For example, when the figurative constant appears in a DISPLAY, STOP, STR
 
 c) The length of the string is the length of literal-1.
 
-## FORMAT 1
+FORMAT 1
 
 4\) The zero format represents the numeric value '0', one or more of the boolean character '0', or one or more of the character '0' in the computer's runtime coded character set, depending on context.
 
-## FORMAT 2
+FORMAT 2
 
 5\) The space format represents one or more of the character space in the computer's runtime coded character set.
 
-## FORMAT 3
+FORMAT 3
 
 6\) At compile time and when referenced in the SPECIAL-NAMES paragraph, the high-value format represents the character, or multiple-character combination, that has the highest ordinal position in the collating sequence used during compilation.
 
@@ -5515,7 +5515,7 @@ When locale category LC_COLLATE is in effect for the program collating sequence,
 
 If the context of the figurative constant requires national characters, the national program collating sequence is used; otherwise, the alphanumeric program collating sequence is used.
 
-## FORMAT 4
+FORMAT 4
 
 7\) At compile time and when referenced in the SPECIAL-NAMES paragraph, the low-value format represents the character, or multiple-character combination, that has the lowest ordinal position in the collating sequence used during compilation.
 
@@ -17604,7 +17604,7 @@ If no STEP phrase is specified, the vertical or horizontal interval between succ
 
 13\) If the DEPENDING phrase is specified, the value of data-name-1 is evaluated just before the processing for the first LINE clause of the report group. If the value of data-name-1 is not in the range integer-1 to (integer-2 - 1), the report group is processed as though the OCCURS clause had been written without the TO and DEPENDING phrases. If the value of data-name-1 is in the range integer-1 to (integer-2 - 1), the OCCURS clause has the same effect as an OCCURS clause with no TO or DEPENDING phrases and with an integer-2 equal to the current value of data-name-1. This same principle is used in the computing of the trial sum used in performing the page fit test. (See 13.18.35, LINE clause, General rule 4c.)
 
-## FORMAT 4
+FORMAT 4
 
 14\) Format 4 defines a dynamic-capacity table. Other rules and restrictions concerning dynamic-capacity tables are specified in 8.5.1.9, Dynamic-capacity tables.
 
@@ -22376,7 +22376,7 @@ FORMAT 2
 
 12\) DAY-OF-WEEK behaves as if it had been described as an unsigned elementary numeric integer data item one digit in length and of usage display. In DAY-OF-WEEK, the value 1 represents Monday, 2 represents Tuesday, 3 represents Wednesday, … , 7 represents Sunday.
 
-## FORMAT 3
+FORMAT 3
 
 13\) Identifiers specified in FROM or USING clauses or literals specified in FROM or VALUE clauses provide the initial values displayed for the associated screen item during execution of an ACCEPT screen statement. For elementary screen items that have no FROM, USING, or VALUE clause, the initial value is as if a MOVE statement were executed with the screen item as the receiving field. The sending item of the MOVE statement is a figurative constant that depends on the category of the screen item as follows.
 
@@ -24841,11 +24841,11 @@ d) When the adjective FIRST is specified, the leftmost occurrence of literal-1, 
 
 18\) If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See 14.6.10, Overlapping operands.)
 
-## FORMAT 3
+FORMAT 3
 
 19\) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements specifying the same identifier-1 had been written with one statement being a format 1 statement with TALLYING phrases identical to those specified in the format 3 statement, and the other statement being a format 2 statement with REPLACING phrases identical to those specified in the format 3 statement. The general rules given for matching and counting apply to the format 1 statement and the general rules given for matching and replacing apply to the format 2 statement. Item identification of any identifier in the format 2 statement is done only once before executing the format 1 statement.
 
-## FORMAT 4
+FORMAT 4
 
 20\) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement specifying the same identifier-1 had been written with a series of ALL phrases, one for each character of literal-4. The effect is as if each of these ALL phrases referenced, as literal-1, a single character of literal-4 and referenced, as literal-3, the corresponding single character of literal-5. Correspondence between the characters of literal-4 and the characters of literal-5 is by ordinal position within the data item.
 
@@ -29356,7 +29356,7 @@ NOTE 3 Logical records in relative and sequential files can have a length of zer
 
 16\) The RETRY phrase is used to control the behavior of the WRITE statement for files opened for file sharing for the case where resources needed to write a record are locked by another run unit. The I-O status is set in accordance with the rules in 14.7.9, RETRY phrase.
 
-## SEQUENTIAL FILES
+SEQUENTIAL FILES
 
 17\) The successor relationship of a sequential file is established by the order of execution of WRITE statements when the physical file is created. The relationship does not change except when records are added to the end of a physical file.
 

@@ -66,6 +66,27 @@ FURNITURE = re.compile(
     r"|(?:\d+\s+)?(?:©|\(c\))?\s*ISO/IEC\s+2023"        # copyright footer
     r"|Licensed to .*"                                    # licence footer
     r")\s*$", re.I)
+# ⛔ THE IN-CLAUSE GROUP LABEL — the standard's run-in sub-heading INSIDE a rule list ("SEQUENTIAL FILES",
+# "RELATIVE FILES", "FORMAT 3", "ALL FORMATS", "FORMATS 1, 2 AND 4", "CLASS SPECIFIER"). It scopes the rules that
+# follow it and is NEITHER a heading NOR rule prose, which is exactly the pair of mistakes this project made with
+# it (fix-queue PB689):
+#   · read as a HEADING it TRUNCATES the block. `specs/ISO_COBOL.md` rendered nine of them as `## FORMAT n` /
+#     `## SEQUENTIAL FILES`; the block scan closes at any heading, so §14.9.51.4 (WRITE) contributed 16 of its 42
+#     general rules and the traceability inventory's denominator — the number v1.0 is defined against (D13) —
+#     was silently short by 60 rows across five clauses. GR-14.9.51.4-23, the line-sequential '71' status, was
+#     one of the rules that had no row to verdict.
+#   · read as PROSE it CONTAMINATES the preceding rule: seven catalog rows ended "... is set to '44'. RELATIVE
+#     FILES" — the same splicing FURNITURE above exists to prevent.
+# THE PRINTED PAGE SETTLES WHAT IT IS. Measured in the PDF text layer on pp146, 463, 609, 680 and 820: every one
+# is Cambria 10.7pt flags=4 at the rule-number margin — byte-identical typography to the rule text around it —
+# where a real clause heading is Cambria,Bold 11.7pt flags=20 ("14.9.51.4  General rules", p817). So the standard
+# prints no heading here, and the transcription's own convention agrees: 209 of the 218 labels are plain lines.
+# ⛔ KEYED ON SHAPE, NOT ON A VOCABULARY. A list of label spellings is the hand-maintained-list anti-pattern and
+# would have to grow for every new one; the shape was DERIVED by measurement instead — 301 all-caps standalone
+# lines inside rule blocks, 37 distinct, and every single one is a group label (zero false positives). The
+# optional `#` prefix is matched so a transcription that heading-ifies one is absorbed rather than obeyed; those
+# are reported as transcription defects to repair (see `heading_labels` below), never silently tolerated.
+GROUP_LABEL = re.compile(r"^(?:#{1,6}\s+)?(?P<label>[A-Z][A-Z0-9 \-/&,]*)\s*$")
 # A top-level rule ordinal at the start of a line. The transcription uses BOTH "1)" and "1." — an earlier version
 # matched only "1)" and silently dropped every rule in §8.8.3.2, §11.9.11.2, §13.18.24.3 and §14.9.30.3. The
 # completeness self-check is what surfaced it; without it the denominator would have been quietly short.
@@ -330,6 +351,9 @@ def main() -> int:
     cur_sublist = 1
     cur_kinds: dict[str, str] | None = None      # per-sublist kind map for a MIXED-kind admitted block
     unexplained: list[tuple[str, int, str]] = []   # (section, ordinal, why)
+    #: In-clause group labels the TRANSCRIPTION rendered as markdown headings — absorbed here so they cannot
+    #: truncate a block, and reported so the transcription gets repaired rather than quietly worked around.
+    heading_labels: list[tuple[str, str]] = []     # (section, label)
     # The page a rule STARTS on. flush() runs when the NEXT ordinal or heading arrives, by which time a
     # "## Page N" marker may already have advanced `page` — so flushing with the live value mis-attributes the
     # last rule of every block that ends near a page boundary (verified against the rendered PDF: GR-7.3.12.4-6
@@ -426,6 +450,14 @@ def main() -> int:
         # A block that never ends is as wrong as a block never seen, and inflates the denominator instead of
         # shortening it, which is the more dangerous direction because it looks like thoroughness.
         if RUNNING_HEADER.match(line) or FURNITURE.match(line):
+            continue
+        # ⛔ AN IN-CLAUSE GROUP LABEL IS NOT A BLOCK BOUNDARY AND IS NOT RULE TEXT (fix-queue PB689). It is
+        # skipped in ONE place, before both the heading branch and the buffering branch, so the truncation and
+        # the contamination cannot come back independently. Only inside an open block: outside one, an all-caps
+        # heading is a document division ("## BIBLIOGRAPHY") and must keep terminating nothing.
+        if cur is not None and (gl := GROUP_LABEL.match(line)):
+            if line.lstrip().startswith("#"):
+                heading_labels.append((cur[0], gl.group("label")))
             continue
         if ANY_HEADING.match(line) and not HEADING.match(line):
             flush()
@@ -652,6 +684,17 @@ def main() -> int:
             print(f"      §{sec} rule {n}: {why}")
         print("   Read the clause (and the printed page) and extend the segmentation evidence; do not ship these ids.")
 
+    # ⛔ THE TRANSCRIPTION DEFECT PB689 WAS BUILT ON, REPORTED RATHER THAN ABSORBED IN SILENCE. The extractor no
+    # longer LOSES rules to a heading-ified group label, but a transcription that prints one is still wrong
+    # against the page (body type, not a heading) and still misleads every human reader and every other tool
+    # that keys on headings. Demote it to a plain line in specs/ISO_COBOL.md.
+    if heading_labels:
+        print(f"\n⛔ {len(heading_labels)} in-clause GROUP LABEL(S) transcribed as a markdown HEADING — the shape")
+        print("   that cost 60 rules in five clauses (PB689). The printed standard sets these in BODY type;")
+        print("   demote each to a plain line in the transcription:")
+        for sec, label in heading_labels:
+            print(f"      §{sec}  '{label}'")
+
     by_kind = Counter(r["kind"] for r in rules)
     top = Counter(r["section"].split(".")[0] for r in rules)
 
@@ -733,7 +776,8 @@ def main() -> int:
         print("      ✓ matches the committed manifest exactly — no clause has silently left the denominator")
 
     if args.check:
-        return 1 if (gaps or unrecognised or added or removed or changed or unexplained) else 0
+        return 1 if (gaps or unrecognised or added or removed or changed or unexplained
+                     or heading_labels) else 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
