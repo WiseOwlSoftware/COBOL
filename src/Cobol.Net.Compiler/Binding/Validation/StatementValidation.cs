@@ -342,8 +342,28 @@ internal sealed class StatementValidation(DataBinder data)
         return true;
     }
 
+    /// <summary>⛔ THE ONE AND ONLY ENFORCEMENT OF ISO §14.9.27.3 SR8 — "When file-name-1 is not subject to an
+    /// APPLY COMMIT clause, then if the sharing phrase is omitted from the OPEN statement and the ALL phrase is
+    /// specified in the SHARING clause of the file control entry for file-name-1 or if the ALL phrase is
+    /// specified on the OPEN statement, the LOCK MODE clause shall be specified in the file control entry for
+    /// file-name-1." The rule is a SYNTAX RULE OF THE OPEN STATEMENT about file-name-1, so the OPEN binder is
+    /// its only possible home; a second copy at the file control entry (deleted, kb/Work PB319) had to drop the
+    /// antecedent — the antecedent names an OPEN statement the SELECT cannot see, and its leading conjunct names
+    /// an I-O-CONTROL clause bound later — and so rejected legal source while double-reporting the violations.
+    /// <para>THE ANTECEDENT IS WRITTEN OUT IN FULL, IN THE RULE'S OWN ORDER. (1) The leading conjunct: a file
+    /// subject to an APPLY COMMIT clause is EXEMPT, and the exemption is load-bearing rather than decorative
+    /// because §12.4.5.9.3 SR1 forbids writing a LOCK MODE clause "for a file that is the subject of an APPLY
+    /// COMMIT clause" — without the exemption the two rules would make such a file unwritable. It is reachable
+    /// today: COBOLNET1709 declines the clause but is <c>PermissiveInert</c>, so <c>--permissive</c> compiles the
+    /// program. (2) The two disjuncts collapse to ONE test on the EFFECTIVE sharing mode, which is what the
+    /// caller passes: <c>sharing ?? file.Sharing</c> is the ALL phrase when the OPEN group wrote one and the
+    /// file control entry's clause when it did not (§14.9.27.4 GR23), which is exactly "[ALL on the OPEN]" OR
+    /// "[phrase omitted AND the SELECT says ALL]". A phrase that is present and is NOT ALL satisfies neither
+    /// disjunct, and a file with no OPEN statement is never asked at all — both are legal.</para>
+    /// <para>Pure: returns false when the rule is violated so a call site reads as a screen.</para></summary>
     public bool CheckOpenSharingAllOther(FileModel file, SharingMode? effectiveSharing)
     {
+        if (file.SubjectToApplyCommit) return true;   // SR8's leading conjunct — cf. §12.4.5.9.3 SR1
         if (!(effectiveSharing is SharingMode.AllOther && file.LockMode is null)) return true;
         data.Edition.Error("COBOLNET1512", $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
             + "requires the file to have a LOCK MODE clause (ISO §14.9.27.3 SR8)");

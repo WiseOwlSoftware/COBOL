@@ -192,7 +192,8 @@
     "pb639_store_landing_low_order_digits",
     "pb303_as_externalized_name",
     "pb303_as_self_prototype_call",
-    "pb316_open_group_scope"
+    "pb316_open_group_scope",
+    "pb319_sr8_antecedent"
   ],
   "pending": []
 }

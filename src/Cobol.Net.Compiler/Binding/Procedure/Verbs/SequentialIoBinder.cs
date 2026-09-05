@@ -37,7 +37,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // The 2002 EDITION gate is elsewhere: the post-bind VersionConformancePass (Step 14c) recognizes
             // the SHARING phrase on the parse tree; the binder just records it.
             SharingMode? sharing = clause.sharingPhrase() is { } sp && sp.sharingMode() is { } sm
-                ? MapSharingMode(sm)
+                ? DataBinder.MapSharing(sm)   // ONE mapper for both writers of the `sharingMode` production
                 : null;
             RetrySpec? retry = clause.retryPhrase() is { } rp ? host.BindRetry(rp) : null;
             foreach (var spec in clause.openFileSpec())
@@ -45,23 +45,18 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 string name = spec.dataReference().GetText();
                 // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
                 if (!ctx.Validation.ResolveFile(name, "OPEN", out var file)) return new BoundNop();
-                // §14.9.27.3 SR8: OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.
-                // The effective mode is THIS group's phrase over the file-control clause — §14.9.27.4 GR23:
-                // "If there is no SHARING phrase on the OPEN statement, then file sharing is completely
-                // specified in the file control entry."
+                // §14.9.27.3 SR8: OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause,
+                // unless file-name-1 is subject to an APPLY COMMIT clause. The effective mode is THIS group's
+                // phrase over the file-control clause — §14.9.27.4 GR23: "If there is no SHARING phrase on the
+                // OPEN statement, then file sharing is completely specified in the file control entry."
+                // ⛔ THIS IS SR8's ONLY SITE (kb/Work PB319): the rule speaks about the OPEN statement's
+                // operand, so a file control entry cannot host it. The full antecedent lives in the callee.
                 ctx.Validation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing);   // SR8 — pure check
                 opens.Add(new BoundOpenFile(file, mode, sharing, retry, UnsupportedOrg(file, "OPEN")));
             }
         }
         return new BoundOpen(opens);
     }
-
-    /// <summary>Map a SHARING mode context (ISO §12.4.5.15) at the binder layer (the DataBinder twin serves the
-    /// SELECT clause).</summary>
-    private static SharingMode MapSharingMode(Core.SharingModeContext m) =>
-        m.READ() is not null ? SharingMode.ReadOnly
-        : m.NO() is not null ? SharingMode.NoOther
-        : SharingMode.AllOther;
 
     public BoundStatement BindClose(Core.CloseStatementContext c)
     {

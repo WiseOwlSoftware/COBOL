@@ -175,6 +175,21 @@ public sealed class FileModel
     /// default is no record locking).</summary>
     public LockModeInfo? LockMode { get; set; }
 
+    /// <summary>Whether an I-O-CONTROL APPLY COMMIT clause (ISO §12.4.6.3) names this file — the STATIC,
+    /// source-level property the standard calls "subject to an APPLY COMMIT clause", as distinct from
+    /// §12.4.6.3.4 GR5's runtime notion of a clause being <i>active</i>. Set by
+    /// <c>DataBinder.BindIoControl</c>, which runs after the file control entries are bound (the clause is in a
+    /// different paragraph, so this fact is NOT knowable while a SELECT is being bound).
+    /// <para>⛔ IT IS A LIVE FACT, NOT A PLACEHOLDER FOR THE DAY A.4.3 IS CLAIMED. COBOLNET1709 declines the
+    /// clause, but its descriptor is <c>PermissiveInert: true</c>, so under <c>--permissive</c> the clause is
+    /// accepted with a warning and the program compiles — and a syntax rule that keys on subject-hood
+    /// (§14.9.27.3 SR8's leading conjunct, read at <c>StatementValidation.CheckOpenSharingAllOther</c>) then has
+    /// a program to speak about. Measured, not deduced: before this field existed, an APPLY COMMIT file with
+    /// <c>SHARING WITH ALL OTHER</c> and no LOCK MODE clause was rejected COBOLNET1512 under
+    /// <c>--std 2023 --permissive</c>, where SR8 exempts it and §12.4.5.9.3 SR1 forbids writing the very LOCK
+    /// MODE clause the rejection demands (kb/Work PB319).</para></summary>
+    public bool SubjectToApplyCommit { get; set; }
+
     /// <summary>The LINAGE clause's logical-page model (ISO §13.18.34), or null when the FD has no LINAGE clause.
     /// Its presence generates the file's LINAGE-COUNTER register (§8.4.3.14 / §13.18.34 GR7a) and enables the
     /// WRITE END-OF-PAGE phrases (§14.9.51 SR19). Data-name operands resolve post-build in

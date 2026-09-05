@@ -871,11 +871,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     || file.Organization is FileOrganization.Sequential or FileOrganization.LineSequential))
                 Edition.Error("COBOLNET1512", $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
                     + "not be specified for a sequential-access or sequential-organization file (ISO §12.4.5.9 SR2)");
-            // §14.9.27.3 SR8: a file described SHARING WITH ALL OTHER (whether via the SELECT clause here or the
-            // OPEN phrase, which BindOpen also checks) shall be described with a LOCK MODE clause.
-            if (file.Sharing == SharingMode.AllOther && file.LockMode is null)
-                Edition.Error("COBOLNET1512", $"file '{name}': SHARING WITH ALL OTHER requires the file to have a "
-                    + "LOCK MODE clause (ISO §14.9.27.3 SR8)");
+            // ⛔ §14.9.27.3 SR8 IS **NOT** CHECKED HERE, AND MUST NEVER BE RE-ADDED. It is a syntax rule of the
+            // OPEN STATEMENT about file-name-1, which §14.9.27.2's general format defines as the OPEN
+            // statement's operand: BOTH disjuncts of its antecedent presuppose an OPEN ("if the sharing phrase
+            // is omitted from the OPEN statement and the ALL phrase is specified in the SHARING clause of the
+            // file control entry for file-name-1 or if the ALL phrase is specified on the OPEN statement"), and
+            // its leading conjunct ("When file-name-1 is not subject to an APPLY COMMIT clause") keys on the
+            // I-O-CONTROL paragraph, which is bound LATER — so this site could not evaluate the antecedent even
+            // if the rule reached it. The SHARING clause's own clause imposes nothing of the kind: §12.4.5.15.3
+            // has exactly ONE general rule ("The SHARING clause specifies the sharing mode to be used for the
+            // file unless it is overridden by the SHARING phrase of the OPEN statement") and NO syntax rules, so
+            // §14.9.27.3 SR8 is the standard's only source of a LOCK MODE requirement anywhere.
+            // A second copy here dropped the antecedent and rejected legal source — a file whose OPEN supplies
+            // its own non-ALL sharing phrase, and a file never opened at all — while duplicating the diagnostic
+            // for programs that DO violate it. THE ONE HOME IS StatementValidation.CheckOpenSharingAllOther,
+            // called from SequentialIoBinder.BindOpen per file-name (kb/Work PB319, feedback_one_rule_one_place;
+            // conformance:OpenSharingLockModeTests pins the single-diagnostic count).
             _files.Add(file);
             ScreenRepositoryIntrinsicName(name, "file-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
             FilesByName[name] = file;
@@ -987,8 +998,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return null;
     }
 
-    /// <summary>Map the SHARING clause / phrase mode (ISO §12.4.5.15).</summary>
-    private static SharingMode MapSharing(Core.SharingModeContext m) =>
+    /// <summary>Map the <c>sharingMode</c> production to the model enum. ONE mapper for BOTH of its writers —
+    /// the file control entry's SHARING clause (ISO §12.4.5.15) and the OPEN statement's sharing phrase
+    /// (§14.9.27.2), which are the same grammar production and therefore the same three words. It was written
+    /// twice, byte-identically, until kb/Work PB319 pulled the second copy out of
+    /// <c>SequentialIoBinder</c> (feedback_one_rule_one_place): a fourth mode word would otherwise have to be
+    /// added in two places, and only one of them would have been.</summary>
+    internal static SharingMode MapSharing(Core.SharingModeContext m) =>
         m.READ() is not null ? SharingMode.ReadOnly
         : m.NO() is not null ? SharingMode.NoOther
         : SharingMode.AllOther;   // ALL OTHER
@@ -1165,7 +1181,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note), and so is the
     /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
     /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) —
-    /// both skip through the non-SAME `continue` below by design. The SR2–SR11 static
+    /// both skip through the non-SAME `continue` below by design. The APPLY COMMIT clause (§12.4.6.3) is the one
+    /// other arm that is not a no-op here: the facility is declined (COBOLNET1709) but the clause still records
+    /// WHICH FILES the source made "subject to an APPLY COMMIT clause" on <see cref="FileModel.SubjectToApplyCommit"/>,
+    /// because §14.9.27.3 SR8's leading conjunct keys on exactly that and is reachable under <c>--permissive</c>
+    /// (kb/Work PB319). The SR2–SR11 static
     /// legality checks (report/sort/file-area cross-membership consistency) are the diagnose-correctly track —
     /// staged with the version-conformance pass phase, not silently absent by oversight.</summary>
     private void BindIoControl(Core.ProgramUnitContext program)
@@ -1180,6 +1200,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var clause in io.ioControlClause())
         {
             using var _ = Edition.At(clause);
+            // The APPLY COMMIT clause (ISO §12.4.6.3) — the facility is DECLINED by name (COBOLNET1709,
+            // DeclinedFacilityPass), but the clause still tells the binder WHICH FILES the source made "subject
+            // to an APPLY COMMIT clause", and two syntax rules key on exactly that: §14.9.27.3 SR8's leading
+            // conjunct (enforced at StatementValidation.CheckOpenSharingAllOther) and §12.4.5.9.3 SR1. The fact
+            // is LIVE, not speculative: COBOLNET1709 is PermissiveInert, so under --permissive the clause is
+            // accepted with a warning and the program compiles (kb/Work PB319). §12.4.6.3.2's operand list is a
+            // repetition of an all-optional [file-name-1][identifier-1] pair, so a name that resolves to a file
+            // IS file-name-1 and anything else is identifier-1 — the symbol table is the only discriminator.
+            if (clause.applyCommitClause() is { } apply)
+            {
+                foreach (var operand in apply.dataReference())
+                    if (FilesByName.TryGetValue(operand.GetText(), out var subject))
+                        subject.SubjectToApplyCommit = true;
+                continue;
+            }
             // Format 2 only — SAME RECORD AREA (the RECORD word distinguishes it; SORT/SORT-MERGE are Format 3).
             if (clause.sameClause() is not { } same || same.RECORD() is null) continue;
             // ⛔ THE GROUP IS ONE STORAGE AREA FOR THE WHOLE RUNTIME ELEMENT, and that is also §14.9.6.4 GR7's

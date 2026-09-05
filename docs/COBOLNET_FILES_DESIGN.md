@@ -328,6 +328,44 @@ to agree, so the test asserts GR20 itself rather than any implementor-defined de
 **This is the carrier the rest of the OPEN work needs.** The NO REWIND phrase (§14.9.27.4 GR11/GR12) and the
 per-file syntax rules §14.9.27.3 SR1/SR2/SR5/SR6 are all written per file-name-1, and each adds a field or a
 screen to `BoundOpenFile` rather than a second statement-level property.
+
+### D13. A syntax rule of the OPEN statement is enforced ONLY in the OPEN binder, with its FULL antecedent — never a second time at the file control entry.
+
+**The rule.** §14.9.27.3 SR8: *"When file-name-1 is not subject to an APPLY COMMIT clause, then if the sharing
+phrase is omitted from the OPEN statement and the ALL phrase is specified in the SHARING clause of the file
+control entry for file-name-1 or if the ALL phrase is specified on the OPEN statement, the LOCK MODE clause
+shall be specified in the file control entry for file-name-1."* It is a rule about **file-name-1**, which
+§14.9.27.2's general format defines as the OPEN statement's operand, and every branch of its antecedent
+presupposes an OPEN statement. The SHARING clause's own clause imposes nothing of the kind: §12.4.5.15.3 has
+exactly ONE general rule — *"The SHARING clause specifies the sharing mode to be used for the file unless it is
+overridden by the SHARING phrase of the OPEN statement"* — and **no syntax rules**, so §14.9.27.3 SR8 is the
+standard's only source of a LOCK MODE requirement anywhere.
+
+**The design.** `StatementValidation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing)`, called from
+`BindOpen` once per file-name, is SR8's only site. Its two disjuncts collapse onto the EFFECTIVE sharing mode —
+the group's phrase when one is written, the file control entry's clause when none is (§14.9.27.4 GR23) — which
+is exactly *[ALL on the OPEN]* OR *[phrase omitted AND the SELECT says ALL]*; the leading conjunct reads
+`FileModel.SubjectToApplyCommit`, set by `DataBinder.BindIoControl` from the I-O-CONTROL APPLY COMMIT clause
+(§12.4.6.3). The exemption is load-bearing rather than decorative: §12.4.5.9.3 SR1 forbids writing a LOCK MODE
+clause *"for a file that is the subject of an APPLY COMMIT clause"*, so without it SR8 would demand the one
+clause another rule forbids and such a program could not be written at all. It is reachable today — COBOLNET1709
+declines the clause but is `PermissiveInert`, so `--permissive` compiles the program.
+
+**Why the file control entry cannot host it.** A second copy lived in `DataBinder.BindFileControl` and had to
+drop the antecedent, because a SELECT sees no OPEN statement and the I-O-CONTROL paragraph is not bound until
+after the file control entries are. It cost both harms at once: legal source rejected (a file whose OPEN
+supplies its own non-ALL sharing phrase; a file declared `SHARING WITH ALL OTHER` and never opened) and, for a
+program that really does violate SR8, the same rule reported TWICE in two different spellings. The general
+shape: **a syntax rule listed under a statement's clause belongs to that statement's binder; a declaration-time
+copy of it can only be a paraphrase, because a declaration cannot see the statement the rule quantifies over.**
+
+`conformance:2002/pb319_sr8_antecedent` pins the antecedent falsified in both compilable ways;
+`conformance:negative/sharing-all-no-lockmode` (disjunct 1) and
+`conformance:negative/pb316-open-sharing-all-no-lockmode` (disjunct 2) pin it holding.
+`conformance:OpenSharingLockModeTests` carries the two assertions no `.cob` corpus can make — that ONE violation
+draws exactly ONE diagnostic (a substring-matching `.err` is blind to a duplicate, which is how the second copy
+survived), and the APPLY COMMIT exemption, which needs the permissive axis.
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /
