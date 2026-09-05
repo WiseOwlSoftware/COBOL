@@ -24,6 +24,7 @@
     "pb64t1_set_locale_categories",
     "pb64t1_save_restore_locale",
     "pb64t1_ec_locale_missing",
+    "pb470_locale_argument_substitute_2002",
     "pb64t1_sort_locale_snapshot",
     "pb64t1_locale_scope_and_return",
     "pb64t5_character_classification",

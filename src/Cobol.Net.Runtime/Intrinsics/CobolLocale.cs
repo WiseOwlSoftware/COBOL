@@ -24,6 +24,32 @@ namespace CobolNet.Runtime;
 /// </summary>
 public static class CobolLocale
 {
+    /// <summary>⛔ THE SUBSTITUTED RESULT OF A REJECTED <c>LOCALE-DATE</c> / <c>LOCALE-TIME</c> /
+    /// <c>LOCALE-TIME-FROM-SECONDS</c> IS <b>ONE SPACE</b>, NOT A ZERO-LENGTH VALUE (kb/Work PB470) — the number
+    /// of character positions the three §15.3 rule 14 guards below hand back when EC-ARGUMENT-FUNCTION checking
+    /// is off. The class and the length are decided HERE, once, and the guards cite this member.
+    /// <para>⚖ The derivation, from docs/CONFORMANCE.md row <c>DOC-A.1-90</c>, which settles the class by asking
+    /// what determines the returned item's LENGTH. For these three functions §15.52.4 / §15.53.4 / §15.54.4 rule
+    /// 3 answer it identically — "The length of the returned value depends on the format indicated in the
+    /// locale" — so the length derives from the LOCALE, which rejecting argument-1 leaves entirely intact. The
+    /// row's zero-length class is every function whose returned length derives from the REJECTED argument, and
+    /// by its own words it therefore does not reach here; the row's general clause does, and for an alphanumeric
+    /// result (§15.52.1 / §15.53.1 / §15.54.1: "The function type is alphanumeric") that is SPACES.</para>
+    /// <para>⚖ Why ONE space rather than the width the locale would have produced: DETERMINATION L10 renders
+    /// d_fmt / t_fmt as the culture's own patterns (<c>LocaleFacts.DateFormat</c>, <c>LocaleFacts.TimeFormat</c>),
+    /// whose rendered width varies with the VALUE as well as with the format — under <c>fr-FR</c>'s
+    /// <c>dd/MM/yyyy</c> it is 10, under <c>en-US</c>'s <c>M/d/yyyy</c> it is 8 for 1 February and 10 for
+    /// 31 December — so once the value is rejected the format alone fixes no width to fill. The standard answers
+    /// exactly that shape itself, at §15.30.3 rule 1 for EXCEPTION-LOCATION — an alphanumeric function whose
+    /// length is "based on its contents" (rule 2) returns "one alphanumeric space character" when the contents
+    /// are absent — and the row adopts that answer here.</para>
+    /// <para>⛔ Do NOT "simplify" this back to <c>return "";</c>. Zero length and one space are INDISTINGUISHABLE
+    /// through a MOVE (§14.6.8.5 space-fills the receiver from a zero-length sender), which is why the defect
+    /// survived from PB64 T4 to PB470 behind a green golden; they differ under DISPLAY (§14.9.11.4 GR1 transfers
+    /// nothing for a zero-length operand) and under FUNCTION LENGTH (§15.50.4 r3), and
+    /// <c>2014/pb470_locale_argument_substitute</c> measures both.</para></summary>
+    private const int LocaleSubstitutePositions = 1;
+
     /// <summary>LOCALE-COMPARE (§15.51): '&lt;' / '=' / '&gt;' (r5; length 1, r6) for argument-1 against argument-2
     /// under the named (else current LC_COLLATE) locale's cultural ordering (r3/r4). Both arguments are UTF-16 text
     /// — r1's national conversion is the repertoire identity here.</summary>
@@ -36,8 +62,9 @@ public static class CobolLocale
 
     /// <summary>LOCALE-DATE (§15.52): argument-1 — a date in CURRENT-DATE positions 1–8 form (YYYYMMDD, r1/r2; valid
     /// per §15.21's definition: a Gregorian date of year 1601 through 9999) — formatted per the locale's
-    /// <c>d_fmt</c> (r2; L10: the culture's short date pattern). An invalid argument is EC-ARGUMENT-FUNCTION (the
-    /// §15.3 default — the empty string — when checking is off). The length depends on the locale (r3).</summary>
+    /// <c>d_fmt</c> (r2; L10: the culture's short date pattern). An invalid argument is EC-ARGUMENT-FUNCTION, and
+    /// checking off the substituted result is ONE SPACE — see <see cref="LocaleSubstitutePositions"/>. The length
+    /// depends on the locale (r3).</summary>
     public static string Date(string? argument, string? localeTag)
     {
         string s = (argument ?? "").TrimEnd(' ');
@@ -45,8 +72,9 @@ public static class CobolLocale
             || !TryDate(int.Parse(s.AsSpan(0, 4), CultureInfo.InvariantCulture), int.Parse(s.AsSpan(4, 2), CultureInfo.InvariantCulture),
                 int.Parse(s.AsSpan(6, 2), CultureInfo.InvariantCulture), out var date))
         {
-            ExceptionState.ArgumentError($"LOCALE-DATE argument-1 '{argument}' is not a valid date in CURRENT-DATE positions 1-8 form, YYYYMMDD (ISO §15.52.3 r1/r2)");
-            return "";
+            return ExceptionState.ArgumentErrorSpaces(
+                $"LOCALE-DATE argument-1 '{argument}' is not a valid date in CURRENT-DATE positions 1-8 form, YYYYMMDD (ISO §15.52.3 r1/r2)",
+                LocaleSubstitutePositions);
         }
         var facts = Facts(localeTag, LocaleCategory.Time, "LOCALE-DATE");
         return date.ToString(facts.DateFormat, facts.DateTimeFormat);
@@ -55,20 +83,23 @@ public static class CobolLocale
     /// <summary>LOCALE-TIME (§15.53): argument-1 — a time in CURRENT-DATE positions 9–14 form (HHMMSS, r1/r2) with
     /// THIS clause's own ranges (r3: hours 00–24, seconds 00–99 — wider than CURRENT-DATE's, so not its validator)
     /// — formatted per the locale's <c>t_fmt</c> (r2; L10: the culture's long time pattern, hours + minutes +
-    /// seconds). An invalid argument is EC-ARGUMENT-FUNCTION.</summary>
+    /// seconds). An invalid argument is EC-ARGUMENT-FUNCTION, and checking off the substituted result is ONE SPACE
+    /// — see <see cref="LocaleSubstitutePositions"/>.</summary>
     public static string Time(string? argument, string? localeTag)
     {
         string s = (argument ?? "").TrimEnd(' ');
         if (s.Length != 6 || !IsDigits(s))
         {
-            ExceptionState.ArgumentError($"LOCALE-TIME argument-1 '{argument}' is not a time in CURRENT-DATE positions 9-14 form, HHMMSS (ISO §15.53.3 r1/r2)");
-            return "";
+            return ExceptionState.ArgumentErrorSpaces(
+                $"LOCALE-TIME argument-1 '{argument}' is not a time in CURRENT-DATE positions 9-14 form, HHMMSS (ISO §15.53.3 r1/r2)",
+                LocaleSubstitutePositions);
         }
         int hh = int.Parse(s.AsSpan(0, 2), CultureInfo.InvariantCulture), mm = int.Parse(s.AsSpan(2, 2), CultureInfo.InvariantCulture), ss = int.Parse(s.AsSpan(4, 2), CultureInfo.InvariantCulture);
         if (hh > 24 || mm > 59 || ss > 99)
         {
-            ExceptionState.ArgumentError($"LOCALE-TIME argument-1 '{argument}': hours shall be 00 through 24, minutes 00 through 59, seconds 00 through 99 (ISO §15.53.3 r3)");
-            return "";
+            return ExceptionState.ArgumentErrorSpaces(
+                $"LOCALE-TIME argument-1 '{argument}': hours shall be 00 through 24, minutes 00 through 59, seconds 00 through 99 (ISO §15.53.3 r3)",
+                LocaleSubstitutePositions);
         }
         var facts = Facts(localeTag, LocaleCategory.Time, "LOCALE-TIME");
         return FormatTime(facts, hh, mm, ss, fraction: null);
@@ -80,7 +111,10 @@ public static class CobolLocale
     /// nanosecond note — a determination, D being informative), trimmed to the argument's scale.</summary>
     public static string TimeFromSeconds(Int128 secUnscaled, int secScale, string? localeTag, bool leapSecond = false)
     {
-        if (CobolDate.SecondsOutOfStandardFormFor("LOCALE-TIME-FROM-SECONDS", secUnscaled, secScale, leapSecond)) return "";
+        // The predicate has already raised EC-ARGUMENT-FUNCTION (§15.54.3 r1 through §7.3.17.4); this arm owes only
+        // the substituted result, and it reads the CLASS rather than spelling a literal (see LocaleSubstitutePositions).
+        if (CobolDate.SecondsOutOfStandardFormFor("LOCALE-TIME-FROM-SECONDS", secUnscaled, secScale, leapSecond))
+            return ArgumentSubstitute.Spaces(LocaleSubstitutePositions);
         Int128 pow = Pow10.AsWide(secScale);
         long whole = (long)(secUnscaled / pow);
         Int128 frac = secUnscaled % pow;

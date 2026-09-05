@@ -402,7 +402,10 @@ public static class CobolDate
                                        bool leapSecond = false)
         => SecondsOutOfStandardForm("FORMATTED-TIME", "argument-2", secUnscaled, secScale, leapSecond)
            || OffsetOutOfRange("FORMATTED-TIME", "argument-3", offsetMinutes, hasOffset, "§15.41.3 r4")
-            ? ""
+            // The predicate raised; this arm owes only the substituted result, and it READS the class rather
+            // than spelling a literal (CONFORMANCE.md row DOC-A.1-90's zero-length class — the row names
+            // FORMATTED-TIME in it; kb/Work PB383, PB470).
+            ? Exceptions.ArgumentSubstitute.ZeroLength
             : EmitFormatted(format, 1, secUnscaled, secScale, offsetMinutes, hasOffset, leapSecond);
 
     /// <summary>§15.41.3 r3 / §15.40.3 r4: the seconds argument "shall be a value in STANDARD NUMERIC TIME FORM".
@@ -457,8 +460,10 @@ public static class CobolDate
         if (integerDate is < 1 or > 3067671)
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
                 $"FORMATTED-DATETIME argument {integerDate} outside 1..3,067,671 (§15.5.2; CONFORMANCE.md row DOC-A.1-90)");
-        if (SecondsOutOfStandardForm("FORMATTED-DATETIME", "argument-3", secUnscaled, secScale, leapSecond)) return "";
-        if (OffsetOutOfRange("FORMATTED-DATETIME", "argument-4", offsetMinutes, hasOffset, "§15.40.3 r5")) return "";
+        // Both predicates have already raised; these arms owe only the substituted result, and they READ row
+        // DOC-A.1-90's zero-length class rather than spelling a literal (kb/Work PB383, PB470).
+        if (SecondsOutOfStandardForm("FORMATTED-DATETIME", "argument-3", secUnscaled, secScale, leapSecond)) return Exceptions.ArgumentSubstitute.ZeroLength;
+        if (OffsetOutOfRange("FORMATTED-DATETIME", "argument-4", offsetMinutes, hasOffset, "§15.40.3 r5")) return Exceptions.ArgumentSubstitute.ZeroLength;
         return EmitFormatted(format, integerDate, secUnscaled, secScale, offsetMinutes, hasOffset, leapSecond);
     }
 

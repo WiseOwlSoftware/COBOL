@@ -803,6 +803,20 @@ Three consequences the design must carry:
    receiving context governs: a MOVE truncates/pads per §14.9.25, and a reference-modification of the result
    is bounded at run time. This is the constraint inventory rows `RV-15.52.4-3`, `RV-15.53.4-3` and
    `RV-15.54.4-3` each recorded independently; it is satisfied once, here.
+4. **A rejected argument-1 substitutes ONE SPACE, not a zero-length value** (kb/Work PB470). The three
+   functions' argument rules can fail at run time (an invalid date, a malformed or out-of-range time, a
+   value outside standard numeric time form), and §15.3 rule 14 hands the result of the reference to
+   the implementor when EC-ARGUMENT-FUNCTION checking is off. **The determination is not made here** —
+   it is `docs/CONFORMANCE.md` row `DOC-A.1-90`, which settles the class by asking what determines the
+   returned LENGTH. Consequence 3 above is exactly why these three are NOT in that row's zero-length
+   class: the length depends on the LOCALE (§15.52.4 / §15.53.4 / §15.54.4 r3), which the
+   rejection of argument-1 leaves intact, so the row's general "spaces" clause governs — one space,
+   on §15.30.3 r1's answer for an alphanumeric function whose length is content-derived and whose
+   content is absent, since L10's culture patterns fix no width once the value is gone. The four guards
+   read `CobolLocale.LocaleSubstitutePositions` and raise-and-substitute in one expression
+   (`ExceptionState.ArgumentErrorSpaces`); `2014/pb470_locale_argument_substitute` and its 2002 twin are
+   the witnesses, and they read the reference DIRECTLY because §14.6.8.5 makes a MOVE unable to tell
+   the two answers apart — which is how the wrong one survived from T4's landing to 2026-09-04.
 
 **⚖ DETERMINATION L10 — `d_fmt` and `t_fmt`.** ISO 9945's `d_fmt` is the culture's short date and `t_fmt` its
 `%H:%M:%S` time. COBOL.NET maps `d_fmt` → `CultureInfo.DateTimeFormat.ShortDatePattern` and `t_fmt` →

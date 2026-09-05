@@ -274,15 +274,43 @@ public sealed class ExceptionEngine
     /// returned LENGTH is itself derived from the rejected argument, and row <c>DOC-A.1-93</c>, a returned
     /// value past the documented 8,191-position maximum.</item>
     /// </list>
-    /// <para>So a rejected text function does NOT automatically come here. Row DOC-A.1-90 gives the fixed
-    /// one-character <c>CHAR</c> / <c>CHAR-NATIONAL</c> returns one SPACE, their length being fixed by the
-    /// function rather than by the rejected argument; and a site whose class is not yet written down anywhere
-    /// (the LOCALE-DATE / LOCALE-TIME family, whose §15.52.4 r3 length "depends on the format indicated in the
-    /// locale") deliberately keeps its own explicit substitute rather than borrowing this one's authority.</para></remarks>
+    /// <para>So a rejected text function does NOT automatically come here. Its sibling
+    /// <see cref="ArgumentErrorSpaces(string, int)"/> carries row DOC-A.1-90's OTHER text class — the general
+    /// alphanumeric/national "spaces" clause, for a function whose returned length is fixed by something that
+    /// SURVIVES the rejection (the function itself for <c>CHAR</c> / <c>CHAR-NATIONAL</c>, the locale for the
+    /// <c>LOCALE-DATE</c> / <c>LOCALE-TIME</c> family).</para></remarks>
     public string ArgumentErrorZeroLength(string detail)
     {
         ArgumentError(detail);      // the raise, the fatal path and the checking gate stay in ONE place
-        return string.Empty;
+        return ArgumentSubstitute.ZeroLength;
+    }
+
+    /// <summary>The OTHER text twin of <see cref="ArgumentError(string)"/>: raise EC-ARGUMENT-FUNCTION
+    /// identically — same fatal path, same checking gate — and, checking off, hand back
+    /// <paramref name="positions"/> <b>SPACES</b>, docs/CONFORMANCE.md row <c>DOC-A.1-90</c>'s general clause
+    /// for an alphanumeric or national result ("the zero value of the type the function returns").</summary>
+    /// <remarks><para>⚠ THIS METHOD DOES NOT DECIDE EITHER THE CLASS OR THE LENGTH — the CALL SITE's citation
+    /// does, which is why <paramref name="positions"/> has no default. Row DOC-A.1-90 settles the class by
+    /// asking what determines the returned item's LENGTH:</para>
+    /// <list type="bullet">
+    /// <item>the REJECTED argument determines it — nothing survives, so the answer is the zero-length value and
+    /// the site belongs at <see cref="ArgumentErrorZeroLength(string)"/> instead;</item>
+    /// <item>the FUNCTION fixes it — <c>CHAR</c> / <c>CHAR-NATIONAL</c> return exactly one character position
+    /// (§15.15.4 / §15.16.4), so one space;</item>
+    /// <item>something else that SURVIVES the rejection fixes it — the LOCALE, for <c>LOCALE-DATE</c>,
+    /// <c>LOCALE-TIME</c> and <c>LOCALE-TIME-FROM-SECONDS</c> (§15.52.4 / §15.53.4 / §15.54.4 rule 3, "the
+    /// length of the returned value depends on the format indicated in the locale"). Rejecting argument-1 does
+    /// not disturb the locale, so the zero-length class does not reach these and the general clause does. The
+    /// locale's format is a culture pattern (DETERMINATION L10) whose rendered width varies with the VALUE as
+    /// well as the format, so no single "the length the locale would have produced" exists once the value is
+    /// rejected; the standard's own answer for an alphanumeric function whose length is content-derived and
+    /// whose content is absent is <b>one alphanumeric space character</b> (§15.30.3 rule 1), and row DOC-A.1-90
+    /// adopts it here (kb/Work PB470).</item>
+    /// </list></remarks>
+    public string ArgumentErrorSpaces(string detail, int positions)
+    {
+        ArgumentError(detail);      // the raise, the fatal path and the checking gate stay in ONE place
+        return ArgumentSubstitute.Spaces(positions);
     }
 
     // ── EC-DATA-CONVERSION ambient statement gate (CONVERT / DISPLAY-OF / NATIONAL-OF) ────────────────────────
@@ -864,6 +892,36 @@ public sealed class ExceptionEngine
 }
 
 /// <summary>
+/// ⛔ THE TWO SUBSTITUTED TEXT RESULTS OF A REJECTED FUNCTION REFERENCE, EACH WRITTEN DOWN EXACTLY ONCE
+/// (kb/Work PB383, PB470). §15.3 rule 14 hands the result of a function reference whose argument rules were
+/// violated to the implementor when EC-ARGUMENT-FUNCTION checking is off, and docs/CONFORMANCE.md row
+/// <c>DOC-A.1-90</c> states the determination. Its NUMERIC half is
+/// <see cref="ExceptionEngine.ArgumentError(string)"/>'s own <c>return 0</c>; its TEXT half is these two class
+/// values, and <see cref="ExceptionEngine.ArgumentErrorZeroLength(string)"/> /
+/// <see cref="ExceptionEngine.ArgumentErrorSpaces(string, int)"/> are the raise-and-substitute expressions
+/// built over them.
+/// <para>⚠ A GUARD NEVER SPELLS ITS OWN SUBSTITUTE. That is not style: while raise and substitute were two
+/// statements, <c>BooleanOfInteger</c> answered <c>"0"</c> where <c>BaseConvert</c> answered the zero-length
+/// value for the SAME determination (PB383), and the three LOCALE functions answered a zero-length value where
+/// row DOC-A.1-90's own words give spaces (PB470) — both silent, both in a user's program. The two members
+/// below exist so a site that has ALREADY raised (a <c>bool</c> screening predicate whose callers substitute
+/// differently by return type — <c>CobolDate.SecondsOutOfStandardForm</c>, <c>CobolDate.OffsetOutOfRange</c>)
+/// still reads the class rather than writing a literal. <c>ArgumentSubstituteDriftTests</c> keeps it true.</para>
+/// </summary>
+public static class ArgumentSubstitute
+{
+    /// <summary>Row DOC-A.1-90's zero-length class: the returned LENGTH is itself derived from the rejected
+    /// argument, so nothing survives the rejection to size a result. Also the value §15.87.4 rule 1 states
+    /// outright for SUBSTITUTE — that site shares the mechanism, not the determination.</summary>
+    public static string ZeroLength => string.Empty;
+
+    /// <summary>Row DOC-A.1-90's general alphanumeric/national clause — "the zero value of the type the
+    /// function returns" — at the <paramref name="positions"/> the CALL SITE derives (see
+    /// <see cref="ExceptionEngine.ArgumentErrorSpaces(string, int)"/>; one position for every site today).</summary>
+    public static string Spaces(int positions) => positions == 1 ? " " : new string(' ', positions);
+}
+
+/// <summary>
 /// The static facade over the run unit's <see cref="ExceptionEngine"/> (the emitted surface — generated raise
 /// sites and the EXCEPTION-* function plumbing call these; kept name-stable pre-G8, DESIGN-runtime-library §2.1).
 /// Every member forwards to <c>RunUnit.Current.Exceptions</c>.
@@ -1102,6 +1160,9 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.ArgumentErrorZeroLength"/>
     public static string ArgumentErrorZeroLength(string detail) => E.ArgumentErrorZeroLength(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.ArgumentErrorSpaces"/>
+    public static string ArgumentErrorSpaces(string detail, int positions) => E.ArgumentErrorSpaces(detail, positions);
 
     /// <inheritdoc cref="ExceptionEngine.DataConversionChecking"/>
     public static bool DataConversionChecking

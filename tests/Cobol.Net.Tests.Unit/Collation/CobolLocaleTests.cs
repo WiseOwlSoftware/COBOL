@@ -49,9 +49,17 @@ public sealed class CobolLocaleTests
             Assert.Equal("08/19/2026", CobolLocale.Date("20260819", null));     // the root: invariant d_fmt
             Assert.Equal(new DateTime(2026, 8, 19).ToString(CultureInfo.GetCultureInfo("fr-FR").DateTimeFormat.ShortDatePattern, CultureInfo.GetCultureInfo("fr-FR")),
                 CobolLocale.Date("20260819", "fr-FR"));
-            Assert.Equal("", CobolLocale.Date("20261399", null));               // EC-ARGUMENT-FUNCTION off: the §15.3 default
-            Assert.Equal("", CobolLocale.Date("2026081", null));
-            Assert.Equal("", CobolLocale.Date("16000101", null));               // year < 1601 — not a CURRENT-DATE value
+            // ⛔ EC-ARGUMENT-FUNCTION checking OFF: the §15.3 rule 14 substituted result is ONE
+            // SPACE, not a zero-length value (kb/Work PB470). §15.52.4 r3 makes the returned length
+            // depend on the LOCALE, which rejecting argument-1 leaves intact, so docs/CONFORMANCE.md row
+            // DOC-A.1-90's zero-length class (a length derived from the REJECTED argument) does not reach
+            // here and its general "spaces" clause does — one position, on §15.30.3 r1's own
+            // answer for an alphanumeric function whose contents are absent. These asserts read the value
+            // DIRECTLY because §14.6.8.5 space-fills a receiver from a zero-length sender, so a MOVE
+            // cannot tell the two apart — which is how "" survived here for a year.
+            Assert.Equal(" ", CobolLocale.Date("20261399", null));              // §15.52.3 r2 — month 13
+            Assert.Equal(" ", CobolLocale.Date("2026081", null));               // r1 — 7 positions
+            Assert.Equal(" ", CobolLocale.Date("16000101", null));              // year < 1601 — not a CURRENT-DATE value
             ExceptionState.ArgumentFunctionChecking = true;
             try
             {
@@ -71,9 +79,13 @@ public sealed class CobolLocaleTests
             Assert.Equal("13:05:09", CobolLocale.Time("130509", null));
             Assert.Equal("24:00:00", CobolLocale.Time("240000", null));          // §15.53.3 r3a — hour 24 is legal
             Assert.Equal("23:59:99", CobolLocale.Time("235999", null));          // r3b — seconds to 99
-            Assert.Equal("", CobolLocale.Time("250000", null));                  // hour 25 is not
-            Assert.Equal("", CobolLocale.Time("126000", null));                  // minute 60 is not
-            Assert.Equal("", CobolLocale.Time("12345", null));
+            // The §15.3 rule 14 substituted result — ONE SPACE, per row DOC-A.1-90 over
+            // §15.53.4 r3 (see the LOCALE-DATE test above; kb/Work PB470). Both guards are read:
+            // the r3 RANGE screen and the r1/r2 FORM screen were separate arms, each with its own
+            // substitute, before they were moved onto the one rule table.
+            Assert.Equal(" ", CobolLocale.Time("250000", null));                 // r3a — hour 25 is not
+            Assert.Equal(" ", CobolLocale.Time("126000", null));                 // minute 60 is not
+            Assert.Equal(" ", CobolLocale.Time("12345", null));                  // r1 — 5 positions
             var us = CultureInfo.GetCultureInfo("en-US");
             if (us.DateTimeFormat.LongTimePattern.Contains('t'))
                 Assert.EndsWith(us.DateTimeFormat.PMDesignator, CobolLocale.Time("130509", "en-US"));
@@ -90,9 +102,12 @@ public sealed class CobolLocaleTests
             Assert.Equal("13:05:09.25", CobolLocale.TimeFromSeconds(4710925, 2, null));
             Assert.Equal("00:00:00", CobolLocale.TimeFromSeconds(0, 0, null));
             Assert.Equal("23:59:59", CobolLocale.TimeFromSeconds(86399, 0, null));
-            Assert.Equal("", CobolLocale.TimeFromSeconds(86400, 0, null));       // §7.3.17.4 GR5 — not standard form
+            // ONE SPACE again (row DOC-A.1-90 over §15.54.4 r3; kb/Work PB470) — and this guard
+            // reaches it through a bool screening predicate that raised on its own, so the caller reads
+            // ArgumentSubstitute.Spaces rather than spelling a literal.
+            Assert.Equal(" ", CobolLocale.TimeFromSeconds(86400, 0, null));      // §7.3.17.4 GR5 — not standard form
             Assert.Equal("24:00:00", CobolLocale.TimeFromSeconds(86400, 0, null, leapSecond: true));   // GR4 (LEAP-SECOND ON)
-            Assert.Equal("", CobolLocale.TimeFromSeconds(-1, 0, null));
+            Assert.Equal(" ", CobolLocale.TimeFromSeconds(-1, 0, null));         // GR5 — negative
             var fr = CultureInfo.GetCultureInfo("fr-FR");
             Assert.Equal("13:05:09" + fr.NumberFormat.NumberDecimalSeparator + "250", CobolLocale.TimeFromSeconds(47109250, 3, "fr-FR"));
         });

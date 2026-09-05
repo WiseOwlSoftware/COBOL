@@ -15,6 +15,14 @@ namespace CobolNet.Runtime;
 /// </summary>
 public static partial class CobolIntrinsics
 {
+    /// <summary>The returned length of <c>CHAR</c> and <c>CHAR-NATIONAL</c> — ONE character position, fixed by
+    /// the FUNCTION (§15.15.4 / §15.16.4 each return "the character in ordinal position argument-1"), never by
+    /// the argument. That is what puts a rejected CHAR / CHAR-NATIONAL in docs/CONFORMANCE.md row
+    /// <c>DOC-A.1-90</c>'s general "spaces" clause rather than in its zero-length class, and it is the length
+    /// the four §15.15.3 / §15.16.3 guards hand to <see cref="Exceptions.ExceptionEngine.ArgumentErrorSpaces"/>
+    /// (kb/Work PB470 — before it those guards spelled <c>" "</c> themselves).</summary>
+    private const int CharPositions = 1;
+
     /// <summary>CHAR (§15.15.4): the character in ORDINAL position <paramref name="n"/> (1-based) of the
     /// alphanumeric program collating sequence — native sequence: position n is char code n−1 (IF105A asserts
     /// CHAR(37) = '$', ASCII 36). Out-of-range ordinal → EC-ARGUMENT default one-space result (§15.3).</summary>
@@ -23,10 +31,12 @@ public static partial class CobolIntrinsics
         long c = n - 1;
         if (c is < 0 or > 0xFFFF)
         {
-            // EC-ARGUMENT-FUNCTION raise point (the string-result twin of the long sites): the §15.3
-            // default one-space result when checking is off; the raise when enabled.
-            Exceptions.ExceptionState.ArgumentError($"CHAR argument {n} outside the collating sequence (§15.15.3 rule 1)");
-            return " ";
+            // EC-ARGUMENT-FUNCTION raise point (the string-result twin of the long sites): the raise when
+            // checking is on; otherwise docs/CONFORMANCE.md row DOC-A.1-90's GENERAL clause, ONE SPACE — CHAR's
+            // returned length is fixed by the FUNCTION at one character position (§15.15.4), not by the rejected
+            // argument, so the row's zero-length class does not reach here (kb/Work PB383, PB470).
+            return Exceptions.ExceptionState.ArgumentErrorSpaces(
+                $"CHAR argument {n} outside the collating sequence (§15.15.3 rule 1)", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -49,9 +59,9 @@ public static partial class CobolIntrinsics
         int c = collation.CharAt(n - 1);
         if (c < 0)
         {
-            Exceptions.ExceptionState.ArgumentError($"CHAR argument {n} outside the collating sequence of "
-                + $"{collation.PositionCount} positions (§15.15.3 rule 2)");
-            return " ";                                      // EC default (§15.3)
+            return Exceptions.ExceptionState.ArgumentErrorSpaces(     // row DOC-A.1-90's general clause — §15.15.4 fixes the length at 1
+                $"CHAR argument {n} outside the collating sequence of "
+                + $"{collation.PositionCount} positions (§15.15.3 rule 2)", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -69,8 +79,8 @@ public static partial class CobolIntrinsics
         long c = n - 1;
         if (c is < 0 or > 0xFFFF)
         {
-            Exceptions.ExceptionState.ArgumentError($"CHAR-NATIONAL argument {n} outside the national collating sequence (§15.16.3 rule 2)");
-            return " ";
+            return Exceptions.ExceptionState.ArgumentErrorSpaces(     // row DOC-A.1-90's general clause — §15.16.4 fixes the length at 1
+                $"CHAR-NATIONAL argument {n} outside the national collating sequence (§15.16.3 rule 2)", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -83,8 +93,8 @@ public static partial class CobolIntrinsics
         int c = national.CharAt(n - 1);
         if (c < 0)
         {
-            Exceptions.ExceptionState.ArgumentError($"CHAR-NATIONAL argument {n} outside the national collating sequence (§15.16.3 rule 2)");
-            return " ";
+            return Exceptions.ExceptionState.ArgumentErrorSpaces(     // row DOC-A.1-90's general clause — §15.16.4 fixes the length at 1
+                $"CHAR-NATIONAL argument {n} outside the national collating sequence (§15.16.3 rule 2)", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -231,8 +241,10 @@ public static partial class CobolIntrinsics
         // …) are only visible here. EC-ARGUMENT-FUNCTION + the §15.3 default, the Substitute shape.
         if (arg.Length == 0)
         {
-            Exceptions.ExceptionState.ArgumentError("FUNCTION CONVERT argument-1 is of zero length (§15.19.3 rule 1)");
-            return "";
+            // Row DOC-A.1-90's ZERO-LENGTH class: §15.19.4 builds the returned value out of argument-1, so the
+            // returned length derives from the very argument being rejected and nothing survives to size it.
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                "FUNCTION CONVERT argument-1 is of zero length (§15.19.3 rule 1)");
         }
 
         // Character translation (§15.19.4 r1/r3): both sides character, no HEX — the ONE item-33 correspondence
@@ -447,8 +459,13 @@ public static partial class CobolIntrinsics
         foreach (var p in parts) n += p.Length;
         if (n % 2 != 0)
         {
-            Exceptions.ExceptionState.ArgumentError("SUBSTITUTE: the enumerated argument-2 / argument-3 list has an odd number of elements — every argument-2 needs its argument-3 (ISO §15.87.2 over §15.3)");
-            return "";
+            // Row DOC-A.1-90's ZERO-LENGTH class for all three shape screens here: §15.87.4 r3 populates the
+            // returned value by copying argument-1 THROUGH the argument-2 / argument-3 pairing, so it is the
+            // pairing that determines the returned length — and the pairing is exactly what is rejected. (r1
+            // states zero length outright, but only for a zero-length argument-1 / argument-2; these three rest
+            // on the row.) The value is unchanged from before kb/Work PB470 — only its authority is now cited.
+            return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                "SUBSTITUTE: the enumerated argument-2 / argument-3 list has an odd number of elements — every argument-2 needs its argument-3 (ISO §15.87.2 over §15.3)");
         }
         var froms = new string[n / 2];
         var tos = new string[n / 2];
@@ -461,20 +478,16 @@ public static partial class CobolIntrinsics
                 if ((at & 1) == 0)
                 {
                     if ((flag & 3) == 3)
-                    {
-                        Exceptions.ExceptionState.ArgumentError("SUBSTITUTE: FIRST and LAST are specified for one argument-2 / argument-3 pair (ISO §15.87.2)");
-                        return "";
-                    }
+                        return Exceptions.ExceptionState.ArgumentErrorZeroLength(   // row DOC-A.1-90 zero-length class, as above
+                            "SUBSTITUTE: FIRST and LAST are specified for one argument-2 / argument-3 pair (ISO §15.87.2)");
                     froms[at / 2] = parts[p][e];
                     modes[at / 2] = flag;
                 }
                 else
                 {
                     if (flag != 0)
-                    {
-                        Exceptions.ExceptionState.ArgumentError("SUBSTITUTE: an ANYCASE / FIRST / LAST keyword precedes an argument-3 element — the keywords precede argument-2 (ISO §15.87.2)");
-                        return "";
-                    }
+                        return Exceptions.ExceptionState.ArgumentErrorZeroLength(   // row DOC-A.1-90 zero-length class, as above
+                            "SUBSTITUTE: an ANYCASE / FIRST / LAST keyword precedes an argument-3 element — the keywords precede argument-2 (ISO §15.87.2)");
                     tos[at / 2] = parts[p][e];
                 }
             }
