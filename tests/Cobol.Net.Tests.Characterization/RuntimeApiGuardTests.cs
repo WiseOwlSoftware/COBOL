@@ -36,9 +36,14 @@ public sealed class RuntimeApiGuardTests
     /// consolidation); every other CodeGen file is at ZERO and stays there.</summary>
     private static readonly Dictionary<string, int> Baseline = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Emit/NumericRenderer.cs"] = 17,     // routes at P9 (ExpressionRenderer under Roslyn/)
+        // ⛔ RATCHET DISCIPLINE: these are MEASURED counts, not budgets. Landing train 7 (2026-09-05) found
+        // NumericRenderer and OperandText standing ABOVE their true counts — neither file is touched by that
+        // train, so the slack was inherited from earlier landings that shrank them without ratcheting, and for
+        // that whole time the guard could not have caught a new bare access in either file. Re-measure with
+        // this test's own rule after any landing that touches CodeGen, and lower the entry.
+        ["Emit/NumericRenderer.cs"] = 16,     // routes at P9 (ExpressionRenderer under Roslyn/); 17 → 16 measured
         ["Emit/ConditionRenderer.cs"] = 16,   // routes at P9 (17 → 16: PB297 routed the figurative relation's compare)
-        ["Emit/OperandText.cs"] = 7,          // routes at P9
+        ["Emit/OperandText.cs"] = 4,          // routes at P9; 7 → 4 measured
     };
 
     [Fact]
