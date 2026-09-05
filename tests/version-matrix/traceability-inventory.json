@@ -15573,13 +15573,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "\"The RECORD DELIMITER clause may be specified only for variable-length records\" is NOT enforced, and the licence is express rather than inferred. §4.2.6 ¶3, second sentence: \"Although this warning mechanism shall identify processor-dependent elements that are not supported, it is not required to diagnose syntax errors within this unsupported syntax\" (cite.py --check OK). The clause is unsupported whole — docs/CONFORMANCE.md §2 row 26 for the STANDARD-1 arm (Annex A.3 item 26) and §7 A.1 item 150 for the feature-name arm — and COBOLNET1778 names it at every edition, which is the obligation §4.2.6 ¶3 does impose. Enforcing SR1 anyway was considered and REJECTED as a rejects-legal-source risk, not skipped: SR1's own NOTE makes variable-length-ness partly an implementor determination (A.1 items 147-148, both still open), and §9.1.7.2 makes a LINE SEQUENTIAL file's records variable with no RECORD clause written at all, so a test keyed on FileModel.Varying would refuse legal source in order to enforce a rule the standard excuses. The golden's four files are all SR1-legal (RECORD IS VARYING), so nothing here depends on the unenforced case.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.11.3-2",
@@ -15587,13 +15587,13 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "\"The implementor shall specify the names available for use as feature-name-1\" is DISCHARGED, and discharged in the negative: the set specified is EMPTY, filed as docs/CONFORMANCE.md §7 Annex A.1 item 150. That is a specification and not an omission — A.1's preamble classes item 150 as optional and defines the class as \"Optional: The element may be provided at the implementor's option\" (cite.py --check A.1 OK). The compiler agrees with the register: every spelling written in the feature-name-1 position draws COBOLNET1778 naming the clause as unsupported, so no word is silently accepted as a delimiter selector and §12.4.5.11.4 GR4 never has a method to look up. The DOC row for the same obligation is DOC-A.1-150, whose verdict differs by design — that row asks whether the OPTIONAL ELEMENT is provided (it is not), this row asks whether the implementor answered the question (it did).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.11.4-1",
@@ -15601,13 +15601,13 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/RecordFraming.cs#WritePrefix; src/Cobol.Net.Runtime/IO/RecordFraming.cs#PrefixLength; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Read",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "\"Any method used shall not be reflected in the record area or the record size used within the function, method, or program\" is the rule that makes this implementation's method admissible, and the golden measures it directly. Records of 3 and 8 bytes are written to four variable-length files and read back; §13.18.43.4 GR15 stores the byte count of the record just read into the DEPENDING item, and the count read back is 03 then 08 on every file — the 4-byte little-endian length prefix (Annex A.1 item 151) is stripped before the record area is filled and never enters a record size the program can see. The DEPENDING item is deliberately forced to 99 before each READ so the measurement is GR15's stored count and not the leftover MOVE that sized the WRITE, and the displayed text is reference-modified to the reported length so nothing depends on what a short READ leaves in the tail of the area.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.11.4-2",
@@ -15615,13 +15615,13 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterOptionalWordOmitted_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "\"If STANDARD-1 is specified, the external medium shall be a tape drive\" is unsatisfiable here and the non-support is documented: docs/CONFORMANCE.md §2 row 26, whose ground is Annex A.3 item 26 — \"The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device\" — and §4.2.6, which makes the decision to claim a processor-dependent element the implementor's, requires the absence to be specified in user documentation (this row), and adds that \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\" (all cite.py --check OK). COBOL.NET provides no reel device at all — the same determination §2 rows 28-30 and 33-34 already record for CLOSE REEL/UNIT and OPEN WITH NO REWIND. The row closes on a DIAGNOSIS, not on silence: COBOLNET1778 is raised at bind for every occurrence at 85/2002/2014/2023, in both the IS and the optional-word-omitted spelling.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.11.4-3",
@@ -15629,13 +15629,13 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterOptionalWordOmitted_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "\"If STANDARD-1 is specified, the method used for determining the length of a variable-length record shall be that specified in ISO/IEC 1001:2012, 7.1.2\" rides GR2's decline: the method is the tape-interchange framing of a standard this implementation neither implements nor could exercise, having no reel device (docs/CONFORMANCE.md §2 row 26, Annex A.3 item 26). §4.2.6's \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\" is the carry-over licence — the §4.2.6 analogue of Annex A.4.1's second paragraph, and it is what reaches from item 26's PHRASE to this rule. What happens instead is §12.4.5.11.4 GR5's implementor method, documented as Annex A.1 item 151 in §7. Witnessed by the named decline at every edition rather than by silence.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.11.4-4",
@@ -15643,13 +15643,13 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "\"If feature-name-1 is specified, the method used for determining the length of a variable-length record is that associated with feature-name-1 by the implementor\" has an EMPTY domain here, and that is a documented posture rather than a gap. The licence is NOT Annex A.3 — item 26 reaches only the STANDARD-1 phrase — but Annex A.1 item 150, which the standard classes as optional (\"This item is optional\"), read with A.1's preamble (\"Optional: The element may be provided at the implementor's option\") and §4.2.7's obligation to identify what is claimed. docs/CONFORMANCE.md §7 A.1 item 150 records the determination as \"Not provided.\", which is exactly the shape owner decision kb/Work PB280 Q1 (2026-09-02) closes as DOCUMENTED-NON-SUPPORT through the `a1-optional-not-provided` selector. The row closes on a diagnosis: a feature-name written anyway draws COBOLNET1778 by name at every edition.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.11.4-5",
@@ -15657,13 +15657,13 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/RecordFraming.cs#WritePrefix; src/Cobol.Net.Runtime/IO/RecordFraming.cs#PrefixLength; src/Cobol.Net.Runtime/IO/RecordFraming.cs#WriteStore",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterAbsent_DrawsNoWarning_AndOnlyTheThreeClausesDo",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "\"If the RECORD DELIMITER clause is not specified, the method used for determining the length of a variable-length record is specified by the implementor\" — specified, and now documented, as Annex A.1 item 151 in docs/CONFORMANCE.md §7: a 4-byte little-endian binary length prefix per record for record sequential, relative and indexed files (one implementation, RecordFraming, shared by every organization), and the line delimiter for LINE SEQUENTIAL, which is §9.1.7.2's own rule. The licence to add a header at all is §9.1.7.2 (\"In record sequential files the length of each record is determined by any information the implementor may add to the record on the physical storage medium (such as record length headers)\"); the §9.1.13.6 \"externally-defined boundaries\" sentence that RecordFraming's header used to cite is the I-O status 34 rule about writing past a FILE's end and was corrected in this change set. GR5's ANTECEDENT is witnessed directly: golden file F4 writes no RECORD DELIMITER clause, draws no diagnostic (asserted as the complement) and reads its 3- and 8-byte records back at those lengths.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.11.4-6",
@@ -15671,13 +15671,13 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/Cobol.Net.Compiler/Binding/EditionContext.cs#Declined; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "\"At the time of a successful execution of an OPEN statement, the record delimiter is the one specified in the RECORD DELIMITER clause in the file control entry associated with the file-name specified in the OPEN statement\" — no delimiter is established at OPEN, because neither alternative of the clause is supported (GR2/GR3 by Annex A.3 item 26 and §4.2.6; GR4 by Annex A.1 item 150 and §4.2.7). §4.2.6's \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\" carries the decline to this rule. What the OPEN does establish is §12.4.5.11.4 GR5's implementor method, and the golden shows it holding across an OPEN OUTPUT / CLOSE / OPEN INPUT round trip on all four files — identically whether the clause was written or not, which is what §12.4.5.11.4 GR1 guarantees a program can see. Nothing is captured on FileModel for this clause, deliberately: a stored delimiter nothing reads would be a lookup no test could ever contradict.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.12.3-1",
@@ -29391,12 +29391,12 @@
   "kind": "GR",
   "ordinal": 9,
   "subject": "Procedure division structure",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/Control/CallAbi.cs#Land; src/Cobol.Net.Runtime/Control/CallAbi.cs#Num",
+  "test-ref": "conformance:2023/pb288_call_argument_scale_landing; unit:CallAbiNumericCarrierDriftTests.TheGr8ViewAndTheGr10Copy_LandIdentically",
   "derivation": "",
-  "editions": "",
-  "notes": "",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB640. VERIFIED: the NESTED/prototyped branch's 'otherwise' leg (a record with the formal's description and byte count) and its NUMERIC conversion leg - 'a COMPUTE statement without the ROUNDED phrase' - including the 14.7.5 case-3 no-phrase disposition (CONFORMANCE.md DOC-A.1-70: the result's low-order digits at the receiver's scale), which used to be a binary wrap of the Int128 intermediate. NOT YET VERIFIED, hence PARTIAL: the non-prototyped/non-NESTED branch (same length as the argument, moved without conversion), the ANY LENGTH and elementary DYNAMIC LENGTH legs, and the SET (index/object/pointer) and MOVE conversion legs.",
   "state": "GAP"
  },
  {
@@ -29405,12 +29405,12 @@
   "kind": "GR",
   "ordinal": 10,
   "subject": "Procedure division structure",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/Control/CallAbi.cs#Land; src/Cobol.Net.Runtime/Control/CallAbi.cs#NumValue",
+  "test-ref": "conformance:2023/pb288_call_argument_scale_landing; unit:CallAbiNumericCarrierDriftTests.TheGr8ViewAndTheGr10Copy_LandIdentically",
   "derivation": "",
-  "editions": "",
-  "notes": "",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB640. VERIFIED: the allocated record is a data item of the formal's own description, and the NUMERIC conversion leg is 'a COMPUTE statement without the ROUNDED phrase' - the same landing as GR9's, now literally the same code path, so the two arms can no longer disagree (they used to answer 873995514006732800 and -123822295304634368 for the same 10**30 argument). NOT YET VERIFIED, hence PARTIAL: the class-object / class-pointer SET leg, which DataBinder.Linkage rejects at bind time with COBOLNET's BY VALUE formal-carrier diagnostic.",
   "state": "GAP"
  },
  {
@@ -48236,11 +48236,11 @@
   "ordinal": 2,
   "subject": "FIND-STRING function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#FindString; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsInt; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#IntegerArg",
-  "test-ref": "conformance:2023/find_string_skip_domain",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#FindString",
+  "test-ref": "conformance:2023/find_string_skip_domain; conformance:2023/find_string",
   "derivation": "",
   "editions": "2023",
-  "notes": "r2 sets no ceiling and §15.37.3 r3 gives argument-3 the whole integer domain, so over {1,4,7} the golden pins in-range (0->1, 2->7), exhausted (3->0 via r3), the LAST direction (LAST 2->1, LAST 3->0) and beyond 32 bits (2**32 and the 18-digit ceiling as display items, 2**32+1 in a COMP-5 carrier, 2**32 as a literal). The COMP-5 value is 2**32+1, not 2**32+3: low 32 bits of 3 would already exhaust three occurrences and answer 0 under a narrowed reading too, so it would have discriminated nothing. The reach above 2**63 is legal, is NOT written here and has NOT been measured; no claim is made about it.",
+  "notes": "EVIDENCE STRENGTHENED, verdict unchanged (kb/Work PB254). Citation re-derived: cite.py --check 15.37.4 \"argument-3 represents the number of matches to ignore\" -> OK (15.37.4 rule 2); --check 15.37.3 \"argument-3 shall be an integer data item or integer literal\" -> OK (15.37.3 rule 3). r3 places NO constraint on argument-3's value, so rule 2 has to answer for EVERY integer, and this row was CONFORMS with its widest half unmeasured: find_string_skip_domain stops at PIC 9(18) VALUE 999999999999999999, one order of magnitude BELOW long.MaxValue, which is exactly where the defect lived. Measured on this tree before the fix: FUNCTION FIND-STRING(hay ndl START AFTER 9999999999999999999) over a hay with three matches returned 1, and the LAST form returned 10 - the FIRST/LAST match position where rule 2 leaves no match and rule 3 requires zero - because the renderer sent argument-3 through CobolIntrinsics.IntegerArg, the 15.3 landing for the BOUNDED integer functions, which substituted its checking-off default 0, i.e. 'ignore no matches'; under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON the same call terminated the run unit on conforming source. FIXED by giving FindString's skip parameter the Int128 carrier and the renderer arm the wide intake (IntArgWide), the declared-carrier pairing that IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake now holds. kb/Work R08 had already removed an (int) narrowing INSIDE this body and left the Int128->long one at the intake - the same rule, one level up. conformance:2023/find_string now carries EXHAUST3 (the in-range boundary: three matches, ignore three, none left), WIDESKIP (a 19-digit literal) and WIDELASTSKIP (a PIC 9(19) item under LAST), all 0.",
   "state": "OK"
  },
  {
@@ -48254,7 +48254,7 @@
   "test-ref": "conformance:2023/find_string",
   "derivation": "",
   "editions": "2023",
-  "notes": "The one branch pinned by two roads: NONE=0 (\"ZZZ\" is no substring of \"ABCABCABC\") and CASED=0 (\"WORLD\" is no substring of \"Hello World\" when ANYCASE is absent and §15.37.4 r4's fold therefore does not apply).",
+  "notes": "EVIDENCE STRENGTHENED, verdict unchanged (kb/Work PB254). Citation re-derived: cite.py --check 15.37.4 \"If no match is found, the function shall return zero\" -> OK (15.37.4 rule 3). The rule's NONE case (no occurrence at all) was pinned; its OTHER case - rule 2 ignoring every occurrence there is, which is equally 'no match is found' - was pinned only for values inside long. Before this landing FUNCTION FIND-STRING(hay ndl START AFTER 9999999999999999999) returned 1 instead of zero (10 under LAST), because the 15.3 narrowing landing substituted 0 for the ARGUMENT. Now pinned by conformance:2023/find_string legs EXHAUST3 = 0, WIDESKIP = 0 and WIDELASTSKIP = 0 alongside the existing NONE = 0.",
   "state": "OK"
  },
  {
@@ -52029,13 +52029,13 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "TAN function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Tan",
+  "test-ref": "conformance:2014/pb253_prose_float_sdidi_container; conformance:2023/pb253_prose_float_sdidi_container; conformance:2002/pb253_prose_float_standard_container",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "cite.py --check 15.89.4 \"The returned value is the approximation of the tangent of argument-1.\" => OK §15.89.4 1) (Returned value rule). BODY: CobolIntrinsics.Float.cs:27 `public static double Tan(double x) => Math.Tan(x);   // §15.89`. Math.Tan takes RADIANS, which is what §15.89.1 requires (\"the tangent of an angle or arc, expressed in radians, that is specified by argument-1\") — the units half of the rule, checked rather than assumed. §15.89.4 states a PROSE approximation, not an equivalent arithmetic expression, so §15.4.1's last paragraph makes the value implementor-defined in every arithmetic mode and a binary64 Math.Tan satisfies it. ALL THREE RECEIVER LANES READ, NOT SAMPLED (IntrinsicRenderer.RenderFloat, lines 390–452; TAN routes here because the catalog row's Float flag is true — dispatched at line 109 `if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod)`). (a) Float or receiver-less: `RealResult(Tan(…))` — stays binary64 at full precision, and RealResult is retained precisely so the NaN => EC-ARGUMENT-FUNCTION raise site is not skipped when the value is not quantized. (b) STANDARD-DECIMAL: `CobolDec.FromDouble(RealResult(Tan(…)))` — the approximation enters as an SDIDI operand per §8.8.1.5.1 and lands ONCE, rather than truncating at a receiver-derived working scale first (PB56). (c) Fixed receiver: `CobolIntrinsics.FromDouble(Tan(…), ws)` with ws = ReceiverContext.FloatWorkingScale. THE CODOMAIN COLUMN IS CORRECTLY EMPTY: the row omits Codomain, so IntrinsicCodomain.None and RenderFloat line 449 takes the unclamped FromDouble arm — right, because the tangent is UNBOUNDED and IntrinsicCodomain exists only for a §15.x.4 rule that STATES a bound (RANDOM's open [0,1), ASIN/ATAN's ±π/2, ACOS's π). Clamping TAN would be the defect here, not the fix. QUANTIZER CHECKED FOR THE SATURATION SHAPE the batch's rule 5 names: I read ReceiverContext.WorkingScale (ReceiverContext.cs:110–116, ws = clamp(max(Scale, 9)) capped at IntermediateDigits − IntegerDigits) and CobolIntrinsics.FromDouble (CobolIntrinsics.cs:211–226). The cap's stated invariant — a value that fits the receiver never saturates, and a value that does not always descales to a sentinel above the receiver's capacity — is what matters for TAN, whose values near π/2 are legitimately huge (Math.Tan(Math.PI/2) ≈ 1.633e16; at ws 9 that is 1.633e25, far inside Int128's 1.7e38, and a receiver too small for it raises the size error per §14.7.5 case 5 rather than silently storing low-order digits). No 9.2e9-class long-carrier saturation exists on this path. ARGUMENT CONVERSION CHECKED: IntrinsicRenderer.Dbl (line 712) => NumericRenderer.Real (NumericRenderer.cs:697–700), which divides the unscaled carrier by 10^scale, with Pow10D handling a NEGATIVE scale (a PICTURE-P trailing-scaled operand), so a scaled argument such as TAN(.001) reaches Math.Tan as 0.001 and not as 1. ONE EDGE NOTED, NOT A DOWNGRADE: an infinite argument (only reachable from a float item holding ±∞, which is outside the standard's data model) makes Math.Tan return NaN, which FromDouble reports as EC-ARGUMENT-FUNCTION \"argument out of domain\" — arguably over-attributed, since §15.89.3 states no value restriction, but the input is unrepresentable in conforming COBOL so no conforming program can observe it. MISSING: no spec-derived test. The only exercise of TAN's value is tests/nist/programs/IF139A.cob (nist:, excluded by rule 3) and the legacy-engine unit test IntrinsicFunctionTests.Tan_Zero_ReturnsZero over CobolSharp.Runtime.Intrinsics.IntrinsicFunctions, which is not this runtime. Row stays test-needed. Editions: batch default; §15.89.4's wording is unchanged across the four editions and TAN dates from the 1989 Intrinsic Function Module amendment. || REFUTED: CONFORMS => PARTIAL. THE STANDARD-DECIMAL HALF OF THE RETURNED-VALUE DELIVERY IS IMPLEMENTED FOR ONE RECEIVER SHAPE ONLY, AND THE ADJUDICATOR'S LANE (b) IS PRE-EMPTED FOR THE OTHERS. The three arms inside RenderFloat are tested in this order (IntrinsicRenderer.cs, RenderFloat tail): `if (num.Receiver.Real || num.Receiver.Receiverless) return RealResult(call) [Real:true];` THEN `if (num.StandardDecimal) return DecFromDouble(RealResult(call)) [Dec:true];` THEN the FromDouble/FromDoubleBounded quantizer. The receiverless/float test runs FIRST and is NOT mode-conditional, so under `ARITHMETIC IS STANDARD-DECIMAL` (and the obsolete plain STANDARD — NumericRenderer.StandardDecimal is `Arithmetic is StandardDecimal or Standard`, NumericRenderer.cs:394) arm (b) is unreachable for every receiverless or float-receiver TAN reference; the returned value stays a raw binary64. The adjudicator's note asserts \"(b) STANDARD-DECIMAL: CobolDec.FromDouble(RealResult(Tan(…))) — the approximation enters as an SDIDI operand per §8.8.1.5.1\" as if that lane covered the mode. It covers only the FIXED-POINT-RECEIVER context. SPEC BASIS, RE-DERIVED AND MECHANICALLY CHECKED, NOT INHERITED: `cite.py --check 15.4.1 \"contained in a temporary standard data item in the intermediate form defined for the arithmetic mode in effect\"` => OK §15.4.1 — \"When standard-decimal arithmetic or standard-binary arithmetic is in effect, the returned value for numeric and integer functions is contained in a temporary standard data item in the intermediate form defined for the arithmetic mode in effect.\" That sentence is UNCONDITIONAL on whether an equivalent arithmetic expression exists. The exemption the code and the adjudicator both lean on is §15.4.1's last paragraph — `cite.py --check 15.4.1 \"When a numeric or integer function does not have an equivalent arithmetic expression, its returned value is implementor-defined unless otherwise specified in the function definition.\"` => OK §15.4.1 2) — and it exempts the VALUE, not the CONTAINER; the other clause the receiverless arm's own comment block quotes to justify itself is `cite.py --check 15.4.1 \"When native arithmetic is in effect, the characteristics and representation of the returned value are defined by the implementor.\"` => OK §15.4.1, which is a NATIVE-mode sentence being used to license an arm that runs in EVERY mode. That is the a_real_clause_can_answer_a_different_question shape: the citation is real, and it is about a different question. OBSERVABLE, not theoretical: the text channel keeps the binary64 — OperandText.NumericExprText renders with ReceiverContext.None (Receiverless) and then `x.Real ? RuntimeApi.FloatDisplay(x.Expr)`, i.e. CobolFloat.Display => `double.ToString(InvariantCulture)` (CobolFloat.cs:25), which emits .NET shortest-round-trip form INCLUDING EXPONENTIAL NOTATION for large magnitudes, so under STANDARD-DECIMAL `DISPLAY FUNCTION TAN(1.5707963267948966)` prints 1.633123935319537E+16 where an SDIDI-carried returned value's item-92 text is plain digits. TAN is exactly the function that reaches those magnitudes (unbounded codomain, values near π/2), so this is not a corner the function cannot occupy. SCOPE OF THE GAP MEASURED, NOT GUESSED: the RELATION channel does recover — ConditionRenderer.cs:185 skips the native double compare when num.StandardDecimal and falls to `CobolDec.Compare(DecOperand(l), DecOperand(rr))`, lifting the float per §8.8.1.5.1 — so the divergence is confined to the receiverless TEXT/MOVE-source contexts and the float-receiver context; the arithmetic-receiver context is correct. NOT A KNOWN-LANDED ITEM: kb/Work greps show `Receiverless` only in PB13, PB60, PB91 and `RealResult` in none; PB13 (landed) is the working-scale cap and the receiverless-binary64 determination under NATIVE, PB56 (landed) added the StandardDecimal arm and never mentions receiverless — so the ORDERING between them is unaddressed by any landed note, and this is not a re-report of a fixed defect. STANDARD-BINARY, which the same §15.4.1 sentence names, is out of scope here for a separate reason I verified rather than assumed: DataBinder.cs:318 rejects `ARITHMETIC IS STANDARD-BINARY` outright with COBOLNET0806, so no TAN ever renders under it. WHAT SURVIVES: the tangent itself, its radian units, the argument conversion (including negative PICTURE-P scale), the empty-Codomain decision and the whole native-mode quantizer path are all confirmed exactly as the adjudicator described — I re-read CobolIntrinsics.Float.cs:27, NumericRenderer.Real (697–700), ReceiverContext.WorkingScale and CobolIntrinsics.FromDouble/FromDoubleBounded independently. PARTIAL is the rule-5 verdict for a rule whose delivery has two arithmetic-mode halves with one verified. code-location moved from the runtime body to IntrinsicRenderer.cs#RenderFloat because that is where the unimplemented half lives; the tangent body remains src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Tan. test-ref stays empty — no spec-derived test exists, and none would have caught this since the corpus has no STANDARD-DECIMAL TAN program at all.",
-  "state": "GAP"
+  "notes": "PB253 LANDED 2026-09-05: RenderFloat now tests the ARITHMETIC MODE before the RECEIVER SHAPE, so the standard-mode SDIDI arm is reachable from every reference context. PRIOR (PARTIAL): the receiver-less/float test ran first and unconditionally, so under ARITHMETIC IS STANDARD-DECIMAL (and 2002's plain STANDARD, which NumericRenderer.StandardDecimal also selects) the SDIDI arm was UNREACHABLE for every receiver-less or float-receiver reference and the raw binary64 escaped. SPEC BASIS, mechanically re-checked here and not inherited: cite.py --check 15.4.1 \"contained in a temporary standard data item in the intermediate form defined for the arithmetic mode in effect\" -> OK; cite.py --check 8.8.1.5.1 \"Standard-decimal arithmetic is a method of evaluating an arithmetic expression, an arithmetic statement, the SUM clause, and certain integer and numeric functions as specified in 15.4.1\" -> OK, which settles that the FUNCTION itself is evaluated under the mode and not merely its use as an operand; cite.py --check 15.4.1 \"When a numeric or integer function does not have an equivalent arithmetic expression, its returned value is implementor-defined unless otherwise specified in the function definition\" -> OK, the exemption that covers the VALUE (the binary64 approximation) and never the CONTAINER. MEASURED BEFORE AND AFTER on the worktree's own cobol.exe, with A = 1.570796326794896619231321691639 and TINY = 1E-20: DISPLAY FUNCTION SIN(TINY) printed 1E-20 (CobolFloat.Display's binary64 E-notation) and now prints 0.00000000000000000001 (the SDIDI's item-92 text); MOVE FUNCTION TAN(A) landed 16331239353195368.96 while COMPUTE r = FUNCTION TAN(A) landed 16331239353195370.00 for the SAME call, and both now land 16331239353195370.00 — the divergence 15.4.1 forbids outright (\"the returned value is the same for all instances of a given function within a single execution of the runtime element so long as the value and order of the arguments, the collating sequence, and the locale are unchanged\"); MOVE FUNCTION RANDOM(7) and COMPUTE r = FUNCTION RANDOM(7) returned 0.3832204692918902784 and 0.38322046929189024 and now agree. SWEEP: the mechanism is the ORDER, and the fix is at the ONE place all of it renders, so the whole residue moves together — ACOS, ASIN, ATAN, COS, SIN, TAN, LOG, LOG10, RANDOM, i.e. every catalog row with Float: true that RenderNum's standard-mode arm has not already claimed (E / PI / EXP / EXP10 by name; SQRT / FACTORIAL / ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION through RenderDec's alwaysDec list). The sibling receiver-shape-first test at IntrinsicRenderer's NumvalF arm was read and is NOT live: NUMVAL-F is in that same alwaysDec list, so the standard-mode arm claims it before the switch is reached. NumericRenderer.CombineCore, NumericRenderer.Power and NumericRenderer.Landed were each re-read and already test the mode first — RenderFloat was the single outlier from the ordering COBOLNET_NUMERIC_DESIGN.md D3 states (\"the mode branch runs BEFORE the D16 float branch\"), and that doc's prose-family paragraph, which described the container rule as an operand-conversion only, was corrected in the same change set. NATIVE arithmetic is unchanged (re-measured: the binary64 determination of PB13 still holds in every channel). STANDARD-BINARY remains out of scope for the reason the prior adjudication verified: DataBinder rejects ARITHMETIC IS STANDARD-BINARY with COBOLNET0806, so no function renders under it. The three goldens FAIL against the pre-fix compiler (measured by restoring the pre-fix IntrinsicRenderer.cs, rebuilding and running them) and pass after, so they are evidence rather than decoration. What the prior adjudication established and this landing re-confirms: Math.Tan takes radians per 15.89.1, the argument conversion handles a negative PICTURE-P scale, the empty Codomain column is correct because the tangent is unbounded, and the native quantizer path has no saturation defect.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.90.3-1",
@@ -52057,13 +52057,13 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "TEST-DATE-YYYYMMDD function",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#TestDateYyyymmdd",
-  "test-ref": "conformance:2002/intrinsics_test_validators",
+  "test-ref": "conformance:2002/pb254_total_integer_arguments; conformance:2002/intrinsics_test_validators; unit:IntrinsicCarrierAgreementDriftTests.TheTotalArguments_AnswerPastLong_AndRaiseNothingUnderChecking; unit:IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "cite.py --check 15.90.4 \"The month is not within the range 1 through 12\" => OK (§15.90.4 1) b), Returned value rule) — anchored on NOTE 2 because leg b's own wording is generic. READ: CobolDate.cs#TestDateYyyymmdd (line 180): `if (date is < 16010000 or > 99999999) return 1; long mmdd = date % 10000; if (mmdd is < 100 or > 1299) return 2; long day = date % 100; if (day < 1 || day > DateTime.DaysInMonth((int)(date / 10000), (int)(mmdd / 100))) return 3; return 0;`. Leg-by-leg against the rule text: (a) \"less than 16 010 000 or greater than 99 999 999\" -> `< 16010000 or > 99999999`, both bounds EXCLUSIVE-of-the-endpoint exactly as written, verdict 1; (b) \"FUNCTION MOD (argument-1 10000) less than 100 or greater than 1299\" -> `mmdd is < 100 or > 1299`, verdict 2 — note the spec's ceiling is 1299 not 1231, so MMDD=1299 (month 12, day 99) correctly FALLS THROUGH to leg c and answers 3, which the code reproduces; (c) \"FUNCTION MOD (argument-1 100) less than 1 or greater than the number of days in the month determined by FUNCTION INTEGER (FUNCTION MOD (argument-1 10000) / 100) of the year determined by FUNCTION INTEGER (argument-1 / 10000)\" -> `day < 1 || day > DaysInMonth(date / 10000, mmdd / 100)`, verdict 3 — C# integer division equals FUNCTION INTEGER (floor) here because leg a has already forced date positive; (d) otherwise 0. The if/else-if CHAIN order (year, then month, then day) is the rule's own \"Otherwise, if\" cascade, so 16000230 answers 1 and not 2. TWO LATENT HAZARDS CHECKED AND CLEAN: (1) C#'s `%` is remainder (sign of the dividend) whereas COBOL's FUNCTION MOD follows the divisor's sign, but the divergence is UNREACHABLE — every negative argument is < 16010000 and returns 1 at leg a before any `%` executes; (2) DateTime.DaysInMonth throws ArgumentOutOfRangeException outside year 1..9999 / month 1..12, and legs a and b guarantee year in 1601..9999 and month in 1..12 before it is called, so no exception is reachable. Calendar: .NET DateTime is proleptic Gregorian, matching §15.90.1 \"a valid date in the Gregorian calendar\", and the 1601 floor puts the whole domain after the Julian transition — 1700/1800/1900 Feb = 28, 2000 Feb = 29. Verdict codes corroborated by informative D.31.3.8 (line 42650). GOLDEN conformance:2002/intrinsics_test_validators (registered tests/conformance/2002/manifest.json line 70, ConformanceTests.cs:179) exercises all four legs and the chain precedence, and its .out pins values I re-derived independently from the rule text: D1 20240229=00 (leg d, leap Feb), D2 16001231=01 (leg a low bound), D3 20241301=02 (leg b, MMDD 1301 > 1299), D4 20240001=02 (leg b, MMDD 1 < 100), D5 20230229=03 (leg c, non-leap Feb), D6 20240431=03 (leg c, April 31), D7 16000230=01 (chain precedence — year before month). NOT pinned by the golden but present and correct in the implementation: the > 99 999 999 upper bound and the `day < 1` half of leg c (e.g. 20240100). Out-of-scope note recorded so a refuter does not mistake it for a divergence: the float overload TestDateYyyymmddReal returns 0 after raising EC-ARGUMENT-FUNCTION on an unrepresentable argument, which §15.3 rule 14 (cite.py --check 15.3 \"the implementor defines the result of the function reference\" => OK) and Annex A.1 item 90 (cite.py --check A.1 \"result when argument rules are violated\" => OK) make implementor-defined and undocumentable — §15.90.4 governs conforming arguments only. || REFUTED: CONFORMS -> PARTIAL. THE ADJUDICATOR READ ONE OF TWO BODIES. Everything it says about CobolDate.cs#TestDateYyyymmdd is correct — I re-derived all four legs against the rule text independently and confirmed the 1299 ceiling, the chain order, the unreachable `%` sign divergence and the unreachable DaysInMonth throw. But CobolDate.TestDateYyyymmdd takes a `long`, and the ONLY way an argument reaches it is through a NARROWING the adjudicator never opened. The note itself flags the exposure and then dismisses it: \"NOT pinned by the golden but present and correct in the implementation: the > 99 999 999 upper bound\". It is not correct there. || THE MECHANICAL CHAIN, read end to end, no output sampling (rule 5): (1) IntrinsicCatalog.cs:274 — IntrinsicBind.Runtime, RuntimeMethod \"TestDateYyyymmdd\", kind 'i'; `grep TEST-DATE IntrinsicBinder.cs` is EMPTY, so there is no bespoke bind. (2) BOTH RENDER LANES CHECKED, because they diverge for other functions and this is the five-time two-arm defect shape: `RenderDec` (IntrinsicRenderer.cs:627) has NO \"TestDateYyyymmdd\" case and TestDateYyyymmdd is not in its `alwaysDec` list, so it returns null under `--arithmetic standard` (line 100) AND under the native SDIDI-argument path (line 107); `sig.Float` is false in the catalog row (line 109 not taken). BOTH lanes therefore fall through to the SAME arm, IntrinsicRenderer.cs:276 `case \"TestDateYyyymmdd\" or \"TestDayYyyyddd\": return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArg(ic, 0)), 0);`. (3) `IntArg` (line 716) = `AsInt(RawArg(ic, i))`, and AsInt (line 734) emits `RuntimeApi.IntegerArg(...)` on EVERY arm — the Dec arm at line 741 and the scale-0 arm at line 742 alike. (4) `RuntimeApi.IntegerArg` = `CobolIntrinsics.IntegerArg`, whose body (src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs:139) is `public static long IntegerArg(Int128 v) => v >= long.MinValue && v <= long.MaxValue ? (long)v : Exceptions.ExceptionState.ArgumentError(\"the intrinsic integer argument {v} is outside the range the function can represent (ISO §15.3)\")`. (5) `ExceptionState.ArgumentError` (ExceptionState.cs:248) throws CobolFatalException when EC-ARGUMENT-FUNCTION checking is ENABLED and otherwise `return 0;`. || THE DEFECT: for any argument-1 whose value exceeds long.MaxValue (9 223 372 036 854 775 807), CobolDate.TestDateYyyymmdd IS NEVER CALLED and the returned value is 0 — which is §15.90.4 r1d, NOTE 4 \"The date is valid\" — where r1a requires 1, NOTE 1 \"The year is not within the range 1601 to 9999\". The compiler answers VALID on a value ten-plus orders of magnitude outside the range whose violation the function exists to report. With checking enabled it instead terminates fatally on conforming source. || THE ARGUMENT IS CONFORMING, so no §15.3 latitude covers this — this is NOT the float case the adjudicator correctly excluded. §15.90.3 r1 requires only \"an integer\", and every witness below is one: (i) an integer LITERAL — cite.py --check 8.3.3.3.2 \"The implementor shall allow for fixed-point numeric literals of 1 through 31 digits in length\" => OK, so a 20-digit literal such as 99999999999999999999 is required to be accepted; (ii) an integer DATA ITEM of 19..31 digits; (iii) an integer arithmetic EXPRESSION — and the repo documents this exact witness reaching IntegerArg intact, in CobolIntrinsics.cs:129 (the PB22 remarks): `FUNCTION INTEGER-OF-DAY(P * 100 + 62)` with `P PIC 9(18) VALUE 184467440737115466` evaluates 18446744073711546662. Substituting TEST-DATE-YYYYMMDD for INTEGER-OF-DAY changes nothing in the chain — the two share renderer line 276/302's identical `DateFn(..., IntArg(ic, 0))` shape. §8.8.1's native composite limit (\"the composite of operands shall not contain more than 31 digits\") is not exceeded at 20 digits. And §15.3 rule 14 (re-checked, verbatim) sets EC-ARGUMENT-FUNCTION only when evaluation \"results in an incorrect value for that argument OR FOR THE RETURNED VALUE according to the rules specified in the function definition\" — §15.90.4 is TOTAL over the integers and defines a returned value (1) for every one of these, so nothing here is an incorrect value and there is no latitude to raise on. || WHY THE GOLDEN DID NOT CATCH IT (rule 3 / measure-the-selector's-complement): I read tests/conformance/2002/intrinsics_test_validators.cob line by line. All seven TEST-DATE cases are 8-digit literals (20240229, 16001231, 20241301, 20240001, 20230229, 20240431, 16000230). NOT ONE argument exceeds 99 999 999. Leg a's UPPER half has zero coverage, and it is precisely where the defect lives — the adjudicator named the gap and then asserted correctness across it from a body read that stopped one call short. || ROOT CAUSE, for the follow-on kb/Work note: the PB22 landing is a SHARED narrowing over \"seven renderer arms across eleven functions\", and it is RIGHT for INTEGER-OF-DATE / INTEGER-OF-DAY / DATE-OF-INTEGER, whose §15.5.2 domains genuinely are bounded so an out-of-domain value has no defined result. It is WRONG for the two TEST- validators, whose whole contract is to REPORT an out-of-range date as a verdict code rather than to raise on it — a total function was swept into a partial function's landing. The fix is at the validators (widen the intake to Int128, or range-test before narrowing), never at the shared IntegerArg. SIBLING (every bug is a pattern): TEST-DAY-YYYYDDD is the identical shape on the identical renderer line 276 — §15.91.4 r1a requires 1 outside 1 601 000..9 999 999 and CobolDate.TestDayYyyyddd is reached through the same IntArg, so §15.91 carries the same defect and should be swept in the same change set. || GRADE: PARTIAL, not DIVERGES, per rule 5's \"a rule with two halves where one was verified => PARTIAL, always\" — legs b, c, d and leg a's lower bound are verified correct and golden-pinned; leg a's upper half is correct only within the long window and INVERTS to 0 outside it. Flags: wrong-answer, silent, under-reports. test-ref retained because the golden qualifies as spec-derived evidence for the verified legs, but it does NOT close the row: closing it needs a golden case above 99 999 999 and one above long.MaxValue.",
-  "state": "GAP"
+  "notes": "LANDED (kb/Work PB254). The PARTIAL was leg a's UPPER half, defeated above 2**63 by the intake, not by the body. CITATIONS RE-DERIVED MECHANICALLY, none inherited: cite.py --check 15.90.4 \"less than 16 010 000 or greater than 99 999 999\" -> OK (15.90.4 1) a)); --check 15.90.4 \"The year is not within the range 1601 to 9999\" -> OK (1) a) NOTE 1); --check 15.90.4 \"The date is valid\" -> OK (1) d) NOTE 4); --check 15.90.3 \"Argument-1 shall be an integer\" -> OK (15.90.3 rule 1); --check 15.3 \"results in an incorrect value for that argument\" -> OK (15.3 rule 14); --check 8.3.3.3.2 \"fixed-point numeric literals of 1 through 31 digits\" -> OK. THE DERIVATION. 15.90.3 r1 is the WHOLE argument rule and constrains nothing but integer-ness; 15.90.4 r1a is a CATCH-ALL over both directions, so the function is TOTAL over the integers and every integer argument has a defined verdict. 15.3 rule 14 sets EC-ARGUMENT-FUNCTION only when evaluation 'results in an incorrect value for that argument or for the returned value according to the rules specified in the function definition' - there is no such value here, so a conforming program may pass any integer and must receive a verdict, never an abort. THE DEFECT, re-probed on this tree before the fix, not inherited from the note: (a) FLOAT lane - 01 FBIG USAGE COMP-2, COMPUTE FBIG = 1.0E19, FUNCTION TEST-DATE-YYYYMMDD(FBIG) printed 00, i.e. 1) d) 'The date is valid', where r1a requires 1; the body was CobolIntrinsics.RealArgs.cs#TestDateYyyymmddReal = 'TryIntegerArg(...) ? CobolDate.TestDateYyyymmdd(n) : 0' and the literal ': 0' tail is the verdict for VALID. (b) CHECKING-ON lane - '>>TURN EC-ARGUMENT-FUNCTION CHECKING ON' with 01 BIG19 PIC 9(19) VALUE 9999999999999999999 terminated the run unit: 'abnormal run-unit termination: EC-ARGUMENT-FUNCTION (fatal): the intrinsic integer argument 9999999999999999999 is outside the range the function can represent (ISO 15.3)' - on CONFORMING source. (c) NATIVE/Dec lane printed 01, the right code by COINCIDENCE ONLY: CobolIntrinsics.IntegerArg substituted the checking-off default 0 for the ARGUMENT and 0 lands in the same r1a arm (0 < 16 010 000); the coincidence evaporates under checking, which is lane (b). THE FIX is at the validator, never at the shared narrowing: CobolDate.TestDateYyyymmdd now takes Int128 and answers r1a before any conversion (past the guard the value is eight digits, so the int narrowing is exact); IntrinsicRenderer's 'case \"TestDateYyyymmdd\" or \"TestDayYyyyddd\"' arm takes the WIDE intake IntArgWide -> AsIntWide, which has no raise point and, unlike AsInt, carries the U (UInt128) carrier arm as well; TestDateYyyymmddReal classifies by r1a on the VALUE, so +/-infinity and every magnitude past the window answer 1 without narrowing, and the one input that is the value of no integer (a NaN) routes to the shared 15.3 raise site and substitutes the documented implementor-defined result 1, never the 0 that would call a non-date a valid date. STRUCTURE, so the next case is automatic: the intake width is now derived from the runtime body's DECLARED carrier (Int128 = total, long = bounded), and IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake re-derives that pairing by reflection and fails when an arm and its body disagree. The guard was proven RED IN BOTH DIRECTIONS on the shipped renderer before being trusted: reverting this arm produced 'TestDateYyyymmdd: body declares Int128 ... but the arm narrows' plus its sibling, and a stray widening of the DateOfInteger/DayOfInteger/IntegerOfDate/IntegerOfDay arm (whose 15.5.2 domain IS bounded, so the 15.3 landing is right there) produced the opposite four. THE GOLDEN that closes the row is conformance:2002/pb254_total_integer_arguments, which pins r1a's UPPER half on every carrier an integer argument can arrive on - T1 100000000 -> 1; T2 99999999 -> 2, proving the bound is EXCLUSIVE and that r1a did not swallow the boundary (MOD(99999999 10000) = 9999 > 1299, so r1b fires); T3 a 19-digit LITERAL (8.3.3.3.2 requires 1..31 digits be accepted) -> 1; T4 a PIC 9(19) item -> 1; T5 a PIC 9(31) item -> 1; T6 the 15.3 type-6 arithmetic-expression witness P18 * 100 + 62 = 2**64 + 1 995 046 -> 1; T7 a FLOAT-LONG item holding 1.0E19 -> 1 - and it runs the whole program under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON with an ARMED CONTROL, because a checking-ON leg proves nothing if the directive is inert: leg ARMED raises the condition deliberately from FUNCTION INTEGER-OF-DAY, whose 15.5.2 argument form IS bounded, and the USE AFTER EXCEPTION CONDITION declarative reports 'ARMED=EC-ARGUMENT-FUNCTION' before RESUME AT NEXT STATEMENT leaves the receiver at its 99 preset. Every T value above was derived from the rule text first and then observed.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.91.3-1",
@@ -52085,13 +52085,13 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "TEST-DAY-YYYYDDD function",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#TestDayYyyyddd",
-  "test-ref": "conformance:2002/intrinsics_test_validators",
+  "test-ref": "conformance:2002/pb254_total_integer_arguments; conformance:2002/intrinsics_test_validators; unit:IntrinsicCarrierAgreementDriftTests.TheTotalArguments_AnswerPastLong_AndRaiseNothingUnderChecking; unit:IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "CITATION RE-DERIVED: cite.py --check 15.91.4 \"the number of days in the year determined by FUNCTION INTEGER\" -> OK, 15.91.4 1) b) Returned value rule (the b) leg anchors the marker; a) and c) read at specs/ISO_COBOL.md 15.91.4). READ CobolDate.cs#TestDayYyyyddd in full: 'if (day is < 1601000 or > 9999999) return 1; long ddd = day % 1000; if (ddd < 1 || ddd > (DateTime.IsLeapYear((int)(day / 1000)) ? 366 : 365)) return 2; return 0;'. Leg-by-leg against the rule text: (a) the window is literally 1 601 000..9 999 999 and it is tested FIRST, so a negative or short argument answers 1; (b) FUNCTION MOD(argument-1 1000) == day % 1000 because control only reaches it with day >= 1601000 > 0 (C# % and the 15.68-style MOD agree on positives), and FUNCTION INTEGER(argument-1 / 1000) == day / 1000 because integer division IS floor for positives, giving a year in 1601..9999 so DateTime.IsLeapYear can never throw and applies the proleptic Gregorian rule 15.91.1 names; (c) 0 otherwise. No spurious code 3 (D.31.3.9 --checked: zero / 1 / 2 only). TEST: tests/conformance/2002/intrinsics_test_validators.cob J1-J6 with golden .out J1=00 (2024366, leap, valid), J2=02 (2023366, common year), J3=02 (1900366, century non-leap), J4=00 (2000366, /400 leap), J5=01 (1600100, below the year window), J6=02 (2024000, day 0) - all three legs exercised, spec-derived (values hand-derived from 15.91.4, registered in 2002/manifest.json). WHY PARTIAL - LEG (a)'s UPPER HALF IS DEFEATED ABOVE 2^63: CodeGen/Emit/IntrinsicRenderer.cs case \"TestDateYyyymmdd\" or \"TestDayYyyyddd\" renders RuntimeApi.DateFn(method, IntArg(ic,0)); IntArg -> AsInt -> RuntimeApi.IntegerArg -> CobolIntrinsics.cs#IntegerArg(Int128), which for a value outside long range does NOT call the function at all but calls ExceptionState.ArgumentError, i.e. throws EC-ARGUMENT-FUNCTION when checking is on and RETURNS 0 when it is off (ExceptionState.cs#ArgumentError: 'return 0, the 15.3 default-result convention'). 0 is TEST-DAY-YYYYDDD's 'the date is valid' answer, so FUNCTION TEST-DAY-YYYYDDD(P) with 01 P PIC 9(19) VALUE 9999999999999999999 reports a VALID date where 15.91.4 r1 a) requires 1 - and the operand really does arrive as Int128, since PicInfo.cs:371 types a field 'Digits > 18 ? \"Int128\" : \"long\"'. Reachable by PB22's own documented repro shape too (FUNCTION ...(P * 100 + 62) with P PIC 9(18)). 15.3 rule 14 (--checked: 'The rules for a function may place constraints on the permissible values for arguments ... If the evaluation of an argument results in an incorrect value for that argument ... the EC-ARGUMENT-FUNCTION exception condition is set to exist') does NOT authorise this: 15.91 places no constraint on argument-1's VALUE at all - every integer has a defined answer, and classifying an out-of-window value is the function's whole purpose - so the PB22 landing ('a value the receiving body cannot represent is an incorrect argument'), correct for INTEGER-OF-DAY and its range-guarded siblings, is the wrong shape for the two TEST-* date validators, which should saturate to their r1 a) verdict instead of erroring. kb/Work/PB22.md names neither TEST-DAY-YYYYDDD nor TEST-DATE-YYYYMMDD, so this is residue of a landed fix, not a re-report; TEST-DATE-YYYYMMDD (RV-15.90.4-1) shares the identical renderer arm and has the identical hole. The FLOAT lane is sound in principle - RealMethod() maps to CobolIntrinsics.RealArgs.cs#TestDayYyyydddReal, which exists - but carries the same defect at +/-9.2e18 via TryIntegerArg. REFUTED: VERDICT UPHELD at PARTIAL, but the note's TEST CLAIM IS OVERSTATED and TWO further lanes were checked that the adjudicator did not name. (1) CORRECTION - 'all three legs exercised' is not true of the golden, and the untested half is exactly the broken one. Leg a) is a TWO-sided window ('less than 1 601 000 OR greater than 9 999 999', cite.py --check 15.91.4 \"If the value of argument-1 is less than 1 601 000 or greater than 9 999 999\" -> OK, 15.91.4 1) a)). Of J1-J6 only J5 (1600100) is a leg-a) case and it is the LOWER bound; NO case in intrinsics_test_validators.cob passes an argument greater than 9 999 999. The golden therefore covers a)-lower, b) (both the leap and non-leap sides, plus ddd = 0) and c), and leaves a)-upper - the half the IntegerArg landing defeats - with no test at all. The cited golden is kept (it is spec-derived and registered, and this row is not closed anyway at PARTIAL), but it does not reach the defect. (2) THE DEFECT WAS RE-DERIVED, NOT INHERITED: CobolIntrinsics.cs:139-143 IntegerArg(Int128) returns ArgumentError for |v| > long range; ExceptionState.cs:248-256 ArgumentError throws CobolFatalException under ArgumentFunctionChecking and otherwise 'return 0'. Both dispositions are wrong for this function - 0 is the 'valid date' verdict and a fatal raise is not a verdict at all - where r1 a) requires 1. (3) THE STANDARD-DECIMAL LANE WAS OPENED (the two-arm shape): IntrinsicRenderer.RenderDec (627-688) has NO arm for \"TestDayYyyyddd\" and alwaysDec does not list it, so under --arithmetic standard-decimal the call falls through to the same native switch arm at 276 and, for an SDIDI-carried argument, through AsInt's Dec arm (741) into the SAME IntegerArg landing. The hole is carrier-independent, not native-only. (4) THE FLOAT LANE WAS OPENED TOO and is value-correct where it works: RenderFloat (390-453) wraps TestDayYyyydddReal's long verdict through RealResult (receiverless/float receiver), DecFromDouble (standard-decimal) or FromDouble at FloatWorkingScale (fixed receiver); 0/1/2 survive every one of those exactly, so the only float-lane defect is the TryIntegerArg cut at +/-9.2e18 the adjudicator named. (5) A THIRD UN-SWEPT CARRIER, recorded but NOT the basis of the verdict: IntrinsicRenderer.AsInt (734-743) has arms for Real, Dec and exact Int128 and NONE for the U (UInt128) carrier NumericRenderer.cs:303 emits for an unsigned 16-byte BinaryCapacity item - note the deliberate contrast with line 307, where the 8-byte unsigned item IS lifted with '(Int128)(...)' at the read site. C# defines no implicit UInt128 -> Int128 conversion, so CobolIntrinsics.IntegerArg(Int128) would be handed a UInt128 and the user would see a raw Roslyn CS1503 - the same missing-carrier shape PB2 closed for float and PB32/PB14 closed for Dec. It is NOT counted against this ISO row because PicInfo.cs:269/473 make that shape reachable only through USAGE COMP-5 with a 19+ digit unsigned picture, and COMP-5 is a vendor extension with no ISO clause (PictureAnalyzer.cs:523 accepts it ungated); I could not measure it read-only, so it is logged as an observation for the AsInt landing, not as a conformance finding.",
-  "state": "GAP"
+  "notes": "LANDED (kb/Work PB254) - the identical arm, the identical hole, closed in the same change set, as both rows' refuters demanded. CITATIONS RE-DERIVED MECHANICALLY: cite.py --check 15.91.4 \"less than 1 601 000 or greater than 9 999 999\" -> OK (15.91.4 1) a)); --check 15.91.4 \"The year is not within the range 1601 to 9999\" -> OK (1) a) NOTE 1); --check 15.91.4 \"The date is valid\" -> OK (1) c) NOTE 3); --check 15.91.3 \"Argument-1 shall be an integer\" -> OK (15.91.3 rule 1); --check 15.3 \"results in an incorrect value for that argument\" -> OK (15.3 rule 14). THE DERIVATION is 15.90.4's word for word: 15.91.3 r1 constrains nothing but integer-ness, 15.91.4 r1a is a CATCH-ALL, so the function is TOTAL and 15.3 rule 14 has no incorrect value to key on. RE-PROBED BEFORE THE FIX on this tree: FUNCTION TEST-DAY-YYYYDDD over a COMP-2 holding 1.0E19 printed 00 - 15.91.4 1) c) 'The date is valid' - where r1a requires 1; under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON a PIC 9(19) argument terminated the run unit fatally on conforming source; the native and standard-decimal lanes printed 01, the right code only because CobolIntrinsics.IntegerArg's checking-off default 0 falls in the same r1a arm. THE FIX: CobolDate.TestDayYyyyddd takes Int128 and answers r1a before any conversion (past the guard the value is seven digits, so the int narrowing is exact); the renderer arm - the SAME 'case \"TestDateYyyymmdd\" or \"TestDayYyyyddd\"' line - takes the wide intake; CobolIntrinsics.TestDayYyyydddReal classifies by r1a on the VALUE. THE GOLDEN conformance:2002/pb254_total_integer_arguments pins r1a's upper half on every carrier: U1 10000000 -> 1; U2 9999999 -> 2, the EXCLUSIVE bound proved by falling through to r1b (MOD(9999999 1000) = 999, and 9999 is not divisible by 4 so the year has 365 days); U3 a 19-digit literal -> 1; U4 a PIC 9(19) item -> 1; U5 a PIC 9(31) item -> 1; U6 the arithmetic-expression witness 2**64 + 1 995 046 -> 1; U7 a FLOAT-LONG item at 1.0E19 -> 1 - the whole program under armed EC-ARGUMENT-FUNCTION checking, with the ARMED control leg proving the directive is live. There is no code 3 for this function (informative D.31.3.9), and no leg produces one. The intake width is now derived from the runtime body's declared carrier and held there by IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake, proven red in both directions before being trusted.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.92.3-1",
@@ -53989,13 +53989,13 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "RECORD DELIMITER clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterOptionalWordOmitted_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The general format is implemented EXACTLY as printed, and the printed page was rendered rather than inherited from the transcription (kb/Work PB292): RECORD, DELIMITER and STANDARD-1 are underlined (required words), IS is not (an optional word), feature-name-1 is a user-defined word, and the braces are a plain required choice of exactly one alternative with no choice indicators. `recordDelimiterClause : RECORD DELIMITER IS? (STANDARD_1 | cobolWord)` is that diagram one-for-one. All FOUR legal spellings are exercised by the golden and each draws the clause's named decline: STANDARD-1 with IS (file F1), feature-name-1 with IS (F2), STANDARD-1 with the optional word omitted (F3); the complement, a file with no clause at all (F4), draws none. The format row is CONFORMS rather than DOCUMENTED-NON-SUPPORT because the syntax IS accepted here — §4.2.6 licenses accepting a declined processor-dependent element and only compels the warning, unlike Annex A.4.1, which forbids accepting an unclaimed OPTIONAL element's syntax (the A.4.8 FORMAT rows are DOCUMENTED-NON-SUPPORT for that reason).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-12.4.5.12.2",
@@ -59337,13 +59337,13 @@
   "kind": "DOC",
   "ordinal": 150,
   "subject": "RECORD DELIMITER clause (feature-name and associated method for determining length of variable-length records)",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-150; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "A.1 item 150 — \"RECORD DELIMITER clause (feature-name and associated method for determining length of variable-length records). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (12.4.5.11, RECORD DELIMITER clause, Syntax rule 2 and General rule 4)\" (cite.py --check A.1 OK). docs/CONFORMANCE.md §7's determination opens \"Not provided.\" — no name is available for use as feature-name-1 — which is precisely the class owner decision kb/Work PB280 Q1 (2026-09-02) answers once for every A.1-OPTIONAL item, applied through the `a1-optional-not-provided` derived selector: A.1's preamble conditions the documentation duty on provision and defines the optional class as \"The element may be provided at the implementor's option\", and §4.2.7 obliges the implementor to identify what IS claimed. The posture is observable rather than merely asserted: a feature-name written anyway compiles, runs unchanged, and draws COBOLNET1778 naming the clause at 85/2002/2014/2023.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-151",
@@ -59351,13 +59351,13 @@
   "kind": "DOC",
   "ordinal": 151,
   "subject": "RECORD DELIMITER clause (if not specified, method for determining length of variable-length records)",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-151; src/Cobol.Net.Runtime/IO/RecordFraming.cs#WritePrefix; src/Cobol.Net.Runtime/IO/RecordFraming.cs#PrefixLength; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Read",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "A.1 item 151 — \"RECORD DELIMITER clause (if not specified, method for determining length of variable-length records). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5.11, RECORD DELIMITER clause, General rule 5)\" (cite.py --check A.1 OK). The determination is filed in docs/CONFORMANCE.md §7 and the compiler does what it says: a 4-byte little-endian length prefix per record for record sequential, relative and indexed files, the line delimiter for LINE SEQUENTIAL. It governs EVERY variable-length file this implementation writes, including one that does write a RECORD DELIMITER clause, because that clause is declined whole (§2 row 26, COBOLNET1778) — which is why the item is discharged rather than withdrawn: the clause's non-support makes GR5's method universal, not unreachable. Witnessed by golden file F4, the one file in it with no clause, whose 3- and 8-byte records read back at those lengths.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-152",
