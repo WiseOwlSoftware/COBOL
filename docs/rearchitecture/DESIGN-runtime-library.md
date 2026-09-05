@@ -145,9 +145,9 @@ public abstract class FileConnector
     public int  OpenModeView { get; protected set; } = -1;    // §14.9.49 GR6 USE-declarative mode scoping
     public int  LastReadLength { get; protected set; }
 
-    public void Open(FileOpenMode mode);                       // shared preamble → OpenCore
-    public void Close();                                       // shared → CloseCore
-    protected abstract void OpenCore(FileOpenMode mode);
+    public string Open(FileOpenMode mode);                     // shared preamble → OpenCore; returns the status
+    public string Close();                                     // shared → CloseCore
+    protected abstract string OpenCore(FileOpenMode mode, FilePresence presence);   // takes the ONE probe
     protected abstract bool ReadNext(out string image);        // sequential retrieval
     protected abstract void WriteRecord(string image, int length);
     // Keyed subclasses add: ReadByKey / Start / Delete / Rewrite; sequential adds ADVANCING / LINAGE.
@@ -161,6 +161,21 @@ public sealed class IndexedConnector    : FileConnector { … }  // was IndexedF
 /// file-name; dispatch is polymorphic on FileConnector — no Sequential-first/Keyed-fallthrough split.
 public sealed class FileRegistry { … Register/Open/Close/Read/Write/Status/CloseAll … }
 ```
+**One presence probe, three answers (`HostFile.Probe` → `FilePresence`, in `IO/FileSupport.cs`).** "Is the
+physical file there?" is asked in exactly ONE place in the runtime, and its answer has **three** states —
+`Absent` · `Present` · `Unauthorized` — because the standard prices two of them differently: §9.1.13.6 item 5
+sets '35' when *"the physical file is not present"*, while §14.9.27.4 GR3 sets '37' when *"the file … is present
+and insufficient authority exists to open the file"*. `File.Exists` cannot express that — it swallows every
+access error and answers `false` — so it is **banned** everywhere under `Runtime/IO` (drift-guarded by
+`FileExistenceProbeDriftTests`, which also bans `FileInfo.Exists` and the raw `File.GetAttributes` the probe is
+built from). `FileConnector.Open` takes the probe once per OPEN, answers GR3 there and hands the result to
+`OpenCore(mode, presence)`, so an organization body sees only the two-state Table-18 question it is entitled to
+and no two probes in one statement can disagree; `FileRegistry.DeleteFile` takes the same probe for §14.9.10.4
+GR14/GR16. GR3's short-circuit deliberately **excludes OUTPUT**: GR18 makes OUTPUT a creation that never
+consults presence, and a directory the process may write but not list legitimately accepts a new file, so an
+OUTPUT authority failure comes from the creating stream and the shared `catch` instead. (kb/Work PB323 — the
+OPEN arm of the sweep PB140 had done only for DELETE FILE.)
+
 The static `CobolFile` facade (kept for the emitted surface) becomes a pure delegator to `RunUnit.Current.Files`.
 The `Keyed*` static methods at `IndexedFile.cs:570-707` are **deleted**; their callers in `CobolFile.cs` collapse to a
 single `Files[name]` polymorphic call. `RecordFraming` (today `KeyedFrames`) becomes the ONE framing helper used by all

@@ -157,16 +157,19 @@ public sealed class IndexedConnector : FileConnector
     /// and the PRIME key becomes the key of reference; GR15: EXTEND positions after the highest prime key
     /// (seeding the GR38 ascending-sequence check). An absent NON-optional file on INPUT/I-O/EXTEND is '35'
     /// (§9.1.13.6 item 5) — pinned to the spec; the legacy created a missing file on I-O with '00' (brief §2.3
-    /// #3, version-invariant). The '41' guard, mode bookkeeping, position reset, and '37'/'30' exception mapping
-    /// live on <see cref="FileConnector.Open"/>.</summary>
-    protected override string OpenCore(FileOpenMode mode)
+    /// #3, version-invariant). The '41' guard, mode bookkeeping, position reset, the ONE presence probe behind
+    /// <paramref name="presence"/>, GR3's authority '37' and the '37'/'30' exception mapping live on
+    /// <see cref="FileConnector.Open"/>.</summary>
+    protected override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         _refKey = -1;                                                       // §14.9.27 GR14 — prime key of reference
         _fpiKey = ""; _fpiArrival = 0; _inclusive = true; _positioner = 'O';
         _lastWrittenPrime = null;
         _lastReadPrime = null;
         _lastWrittenPrimeId = null;
-        bool exists = File.Exists(HostPath);
+        // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
+        // a refusal can never be read here as "unavailable" (kb/Work PB323).
+        bool exists = presence is FilePresence.Present;
         string status = FileStatusCode.Success;
         switch (mode)
         {
@@ -568,7 +571,12 @@ public sealed class IndexedConnector : FileConnector
     {
         into.Recs.Clear();
         into.NextArrival = 1;
-        if (!File.Exists(HostPath)) return;   // an absent file loads empty (OPEN OUTPUT / absent-optional attach, PB143)
+        // An ABSENT file loads empty (OPEN OUTPUT / absent-optional attach, PB143). ONLY absent: a refused
+        // probe must not be read as "no records" (kb/Work PB323). Unauthorized reaches here from OPEN OUTPUT
+        // alone — §14.9.27.4 GR3 answers every other mode '37' before OpenCore runs — and GR18 makes OUTPUT a
+        // creation that discards whatever the file held, so an empty load is what OUTPUT wanted anyway; the
+        // WriteStore that follows raises the authority failure itself, and the base maps it to '37'.
+        if (HostFile.Probe(HostPath) is not FilePresence.Present) return;
         // A varying file's frames keep their exact stored lengths (§13.18.43 GR15 reports them on READ);
         // fixed frames normalize to the record width.
         foreach (string? frame in RecordFraming.ReadStore(HostPath))

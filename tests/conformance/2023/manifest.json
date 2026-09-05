@@ -479,7 +479,8 @@
   "pb639_store_landing_low_order_digits",
   "pb303_as_module_name_and_invoke",
   "pb303_as_class_id_zero_length_accepted",
-  "pb317_open_no_rewind"
+  "pb317_open_no_rewind",
+  "pb323_open_presence_arms"
  ],
  "pending": [
   "pb485_value_only_format1"

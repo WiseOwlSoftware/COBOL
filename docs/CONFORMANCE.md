@@ -75,7 +75,7 @@ of an unsupported facility.
 | 8 | CONTINUE AFTER precision greater than .99 | 14.9.9 | Not claimed | Implementor m = 0 (integer seconds); a fractional interval truncates (§14.9.9.4 GR1) |
 | 9 | DEFAULT ROUNDED clause | 11.9 | **Claimed** | The §14.7.4 rounding modes are provided (incl. PROHIBITED, TRUNCATION, NEAREST-*) |
 | 10 | INTERMEDIATE ROUNDING clause | 11.9 | **Claimed** | Provided for the standard-decimal intermediate model |
-| 11 | I-O status '37' for insufficient authority on OPEN | 9.1.13 | **Claimed** | `FileConnector` maps `UnauthorizedAccessException` → '37' |
+| 11 | I-O status '37' for insufficient authority on OPEN | 9.1.13 | **Claimed** | TWO routes, both required. `FileConnector.Open` probes presence ONCE through `HostFile.Probe`, whose three-state answer distinguishes §9.1.13.6 item 5's ABSENT from §14.9.27.4 GR3's PRESENT-and-refused, and returns '37' for the latter on INPUT/I-O/EXTEND; an OUTPUT refusal (and any refusal the probe could not see) surfaces as `UnauthorizedAccessException` from the stream and maps to '37' in the same method's `catch`. The mapping alone was NOT enough: until kb/Work PB323 every `OpenCore` decided presence with `File.Exists`, which swallows the access error, so a refused file was reported '35' — or, when OPTIONAL, a successful '05' over an invented empty file |
 | 12 | FLOAT-BINARY clause | 11.9.8 | Partial | BOTH phrases provided (HIGH-ORDER-LEFT / HIGH-ORDER-RIGHT), honored per item on the emitted numeric profile; the no-clause default is the DOCUMENTED HIGH-ORDER-LEFT of A.1 item 48, not the native platform's order. A.3 item 12 also requires this support be consistent with the USAGE clause's endianness-phrase — it is: one grammar rule and one binder mapping serve both (item 18). Partial only because binary128 is not provided (item 17) |
 | 13 | FLOAT-DECIMAL clause | 11.9.9 | Not claimed | Standard decimal floating-point usages are not provided (item 19) |
 | 14 | MODE phrase (ROUNDED) | 14.7.4 | **Claimed** | NEAREST-AWAY-FROM-ZERO / NEAREST-EVEN / PROHIBITED / TRUNCATION provided |
@@ -135,9 +135,19 @@ of an unsupported facility.
   would have carried is not lost: the first READ of an absent optional file is the at-end '10' (§9.1.13.4 item
   1 c). Golden `2023/pb317_open_no_rewind` (`OPT-ABSENT=07`).
 - **I-O status '37' insufficient authority on OPEN/DELETE FILE (§9.1.13.6 item 6b; E.2 item 18)**: emitted at all
-  editions (mapped from .NET `UnauthorizedAccessException`). The spec permits it ("may") and marks detection
-  processor-dependent; E.2 item 18 is a clarification that it is allowed, not a 2023 introduction — so it is NOT
-  gated/suppressed below 2023.
+  editions. The spec permits it ("may") and marks detection processor-dependent; E.2 item 18 is a clarification
+  that it is allowed, not a 2023 introduction — so it is NOT gated/suppressed below 2023. **Detection is a
+  three-state presence probe, not an exception map alone.** `HostFile.Probe` (`Runtime/IO/FileSupport.cs`) asks
+  the host with `File.GetAttributes`, whose failures distinguish a missing file
+  (`FileNotFoundException`/`DirectoryNotFoundException` → §9.1.13.6 item 5's '35') from a refused one
+  (`UnauthorizedAccessException` → GR3's '37'); `File.Exists` collapses both to `false` and is banned throughout
+  `Runtime/IO` for that reason (`FileExistenceProbeDriftTests`). `FileConnector.Open` answers GR3 from the probe
+  for INPUT/I-O/EXTEND — OUTPUT is excluded because GR18 makes it a creation that never consults presence, so a
+  writable-but-unlistable directory still accepts a new file — and `FileRegistry.DeleteFile` takes the same probe
+  for §14.9.10.4 GR14/GR16. Any refusal the probe cannot see still maps from `UnauthorizedAccessException` in
+  `Open`'s `catch`. Witnesses: `unit:FileAuthorityPresenceTests` (a real DACL/mode denial — the corpus runner has
+  no way to express the precondition) and `conformance:2023/pb323_open_presence_arms` for the probe's other two
+  answers (kb/Work PB323).
 - **I-O status '39' (fixed-file-attribute conflict, §9.1.13.6 item 7; E.3.3 item 35) — TWO DIFFERENT CASES, and
   only one of them is a gap.** '39' is not produced on either statement, but the reasons are not the same and
   collapsing them (as this bullet did until 2026-08-31) hid a conforming determination inside a deferral.

@@ -565,20 +565,36 @@ public sealed class FileRegistry
             status = conflict;                                             // '39' GR18 — see the method
         else if (sharing != FileStatusCode.Success)
             status = sharing;   // '62' GR15/§9.1.13.9 item 2 — the file is not deleted, under every retry form
+        // GR14's '05' is only for a file that is ABSENT, and GR16's '37' is for one that is there but refused —
+        // so the presence question has THREE answers, and it is asked through the ONE shared probe
+        // (HostFile.Probe): File.Exists swallows every access error and answers false, classifying a
+        // PRESENT-but-unobservable file as gone. This statement's twin — the OPEN presence decision in all
+        // three connectors — carried exactly that bug until kb/Work PB323 brought both onto the shared probe;
+        // the DELETE FILE arm has been right since PB140, and now the rule is written down only once.
         else
-            try
+            switch (HostFile.Probe(c.HostPath))
             {
-                // GR14's '05' is only for a file that is ABSENT. File.Exists swallows every access error and
-                // answers false, classifying a PRESENT-but-unobservable file as gone — GR16 requires '37'
-                // there — so the probe is File.GetAttributes, whose failures DISTINGUISH the two (PB140).
-                File.GetAttributes(c.HostPath);
-                File.Delete(c.HostPath);
-                status = FileStatusCode.Success;
+                case FilePresence.Absent:
+                    status = FileStatusCode.OptionalFileNotFound;   // '05' GR14 — a SUCCESSFUL completion
+                    break;
+                case FilePresence.Unauthorized:
+                    status = FileStatusCode.PermissionDenied;       // '37' GR16
+                    break;
+                default:
+                    // Present at the probe. The catches remain: the file can still vanish or be locked down
+                    // between the probe and the delete, and File.Delete has its own refusal (a read-only file,
+                    // a write-protected medium) that no presence probe can see.
+                    try
+                    {
+                        File.Delete(c.HostPath);
+                        status = FileStatusCode.Success;
+                    }
+                    catch (FileNotFoundException) { status = FileStatusCode.OptionalFileNotFound; }      // '05' GR14
+                    catch (DirectoryNotFoundException) { status = FileStatusCode.OptionalFileNotFound; } // '05' GR14
+                    catch (UnauthorizedAccessException) { status = FileStatusCode.PermissionDenied; }    // '37' GR16
+                    catch (IOException ex) { status = FileStatusCode.ForDeleteFileFailure(ex); }         // '37' GR17 / '30'
+                    break;
             }
-            catch (FileNotFoundException) { status = FileStatusCode.OptionalFileNotFound; }      // '05' GR14 — successful
-            catch (DirectoryNotFoundException) { status = FileStatusCode.OptionalFileNotFound; } // '05' GR14
-            catch (UnauthorizedAccessException) { status = FileStatusCode.PermissionDenied; }    // '37' GR16
-            catch (IOException ex) { status = FileStatusCode.ForDeleteFileFailure(ex); }         // '37' GR17 / '30'
         // The physical file is gone, so its §9.1.6 fixed file attributes are gone with it: drop the catalog
         // sidecar too, or it would outlive the file and be compared (§14.9.27.4 GR10) against a DIFFERENT file
         // later created at the same path by something other than a COBOL.NET OPEN OUTPUT — which is exactly the

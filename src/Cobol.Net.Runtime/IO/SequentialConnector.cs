@@ -81,7 +81,11 @@ public sealed class SequentialConnector : FileConnector
     {
         _writeBase = 0;
         _writesDone = 0;
-        if (Mode != FileOpenMode.Extend || !File.Exists(HostPath)) return;
+        // Only an EXTEND over a file that is actually THERE has a pre-existing record count to continue from;
+        // a refused probe is not evidence of an empty file (kb/Work PB323). Unreachable with a refusal in
+        // practice — the registry calls this only after a SUCCESSFUL shared open — but the probe is the one
+        // shape the runtime asks presence with, so a future caller cannot inherit File.Exists's false "no".
+        if (Mode != FileOpenMode.Extend || HostFile.Probe(HostPath) is not FilePresence.Present) return;
         if (IsVarying) _writeBase = RecordFraming.ReadStore(HostPath).Count;
         else if (_lineSequential) _writeBase = File.ReadLines(HostPath).Count();
         else _writeBase = RecordWidth > 0 ? new FileInfo(HostPath).Length / RecordWidth : 0;
@@ -211,9 +215,10 @@ public sealed class SequentialConnector : FileConnector
 
     // ── OPEN / CLOSE ─────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The sequential OPEN body (ISO §14.9.25 / §9.1.13.4) — the shared preamble/guards live on
+    /// <summary>The sequential OPEN body (ISO §14.9.25 / §9.1.13.4) — the shared preamble/guards, the ONE
+    /// presence probe behind <paramref name="presence"/>, and §14.9.27.4 GR3's '37' all live on
     /// <see cref="FileConnector.Open"/>.</summary>
-    protected override string OpenCore(FileOpenMode mode)
+    protected override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         _afterAdvancing = false;
         _lastReadBlockStart = -1;
@@ -226,7 +231,10 @@ public sealed class SequentialConnector : FileConnector
         _readOrdinal = 0;
         _writeBase = -1;   // unshared default; the registry seeds a sharing-active connector (§9.1.16)
         _writesDone = 0;
-        bool exists = File.Exists(HostPath);
+        // Table 18's "file is available" / "file is unavailable" axis. The base has already answered
+        // §14.9.27.4 GR3, so on every mode that consults this an Unauthorized probe has become '37' and can
+        // never be read here as "unavailable" (kb/Work PB323).
+        bool exists = presence is FilePresence.Present;
         {
             switch (mode)
             {
@@ -308,10 +316,14 @@ public sealed class SequentialConnector : FileConnector
         if (_lineSequential || IsVarying) return;
         try
         {
-            var info = new FileInfo(HostPath);
-            if (info.Exists) RecordLayoutNotice.CheckFixedLengthFile(HostPath, info.Length, RecordWidth);
+            // No existence test at all — not FileInfo.Exists (which swallows an access error into "no file"
+            // exactly as File.Exists does, kb/Work PB323) and not HostFile.Probe (a second syscall for an
+            // answer the very next one already gives). FileInfo.Length raises FileNotFoundException for an
+            // absent file and UnauthorizedAccessException for a refused one, and BOTH catches below mean the
+            // same thing here: no notice. A notice is never worth failing an OPEN over.
+            RecordLayoutNotice.CheckFixedLengthFile(HostPath, new FileInfo(HostPath).Length, RecordWidth);
         }
-        catch (IOException) { }              // a notice is never worth failing an OPEN over
+        catch (IOException) { }              // absent, or unreadable — either way, nothing to report
         catch (UnauthorizedAccessException) { }
     }
 

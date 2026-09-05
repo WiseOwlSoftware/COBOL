@@ -225,9 +225,13 @@ public sealed record FixedFileAttributes(
         string[] lines;
         try
         {
-            string sidecar = SidecarPath(hostPath);
-            if (!File.Exists(sidecar)) return null;
-            lines = File.ReadAllLines(sidecar);
+            // No File.Exists pre-check: it was pure duplication of the catches below — ReadAllLines answers a
+            // missing sidecar with FileNotFoundException and a missing directory with DirectoryNotFoundException,
+            // both IOException, both already null here. Dropping it also keeps the subsystem's ONE presence
+            // probe genuinely one (kb/Work PB323). This path is deliberately NOT HostFile.Probe: the sidecar is
+            // an implementor artifact, not the §9.1.6 physical file, and an unreadable one is "attributes not
+            // recorded" (null) rather than a §14.9.27.4 GR3 authority failure over the COBOL file.
+            lines = File.ReadAllLines(SidecarPath(hostPath));
         }
         catch (IOException) { return null; }
         catch (UnauthorizedAccessException) { return null; }

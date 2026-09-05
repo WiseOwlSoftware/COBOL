@@ -167,7 +167,8 @@ public abstract class FileConnector
     // ── OPEN / CLOSE (the shared preamble; ISO §14.9.27 / §14.9.6) ───────────────────────────────────────────
 
     /// <summary>OPEN the file in <paramref name="mode"/> (ISO §14.9.27 / §9.1.13.4): the already-open guard
-    /// ('41', §9.1.13.7 item 1), the attempted-mode bookkeeping (GR6b), the read-position reset, then the
+    /// ('41', §9.1.13.7 item 1), the attempted-mode bookkeeping (GR6b), the read-position reset, the ONE
+    /// presence probe, the GR3 authority answer ('37') and the GR10 attribute comparison ('39'), then the
     /// organization's <see cref="OpenCore"/> under the shared permission/I-O failure mapping ('37'/'30').
     /// Sets and returns the status.</summary>
     public string Open(FileOpenMode mode)
@@ -177,23 +178,51 @@ public abstract class FileConnector
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         OptionalAbsent = false;
         LastReadUnsuccessful = false;   // OPEN is a reposition; the '43' gate drops in the Status setter
-        // §14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
-        // execution of the OPEN statement when the file connector is matched with the file and the file exists,
-        // the attributes of the file connector as specified in the file control paragraph and the file
-        // description entry are compared with the fixed file attributes of the file. If the attributes don't
-        // match, a file attribute conflict condition occurs, the execution of the OPEN statement is
-        // unsuccessful, and the I-O status associated with file-name-1 is set to '39'." An UNSUCCESSFUL OPEN
-        // leaves the file unaffected (GR25), so the check has to precede OpenCore, whose OUTPUT/creation arms
-        // truncate. OUTPUT is excluded because GR18 makes it a CREATION ("If the OUTPUT phrase is specified, the
-        // successful execution of the OPEN statement creates the file"), and §9.1.6 fixes a file's attributes at
-        // creation — so an OPEN OUTPUT ESTABLISHES them (below) rather than being judged against the previous
-        // file's. A file with no recorded attributes compares against nothing (FixedFileAttributes.Load).
-        bool existed = File.Exists(HostPath);
-        if (mode is not FileOpenMode.Output && existed
-            && FixedFileAttributes.Load(HostPath) is { } recorded && recorded.Conflicts(DeclaredAttributes))
-            return Status = FileStatusCode.FixedAttributeConflict;   // '39' §9.1.13.6 item 7
+        // ⛔ ONE presence probe per OPEN, taken HERE and handed down to OpenCore (kb/Work PB323). Two things
+        // hang on it — GR3's authority answer and GR10's "the file exists" precondition — and every
+        // organization's OpenCore needs it again for Table 18, so asking the host once and passing the answer
+        // is both the single rule site and the only way the two questions cannot disagree across a racing
+        // filesystem. It is HostFile.Probe, not File.Exists: see FilePresence for why two states are not enough.
+        // Absent is the pre-probe default only to satisfy definite assignment on the throwing path, where
+        // _openMode is false and nothing below reads it.
+        var presence = FilePresence.Absent;
         string s;
-        try { s = OpenCore(mode); }
+        try
+        {
+            presence = HostFile.Probe(HostPath);
+            // §14.9.27.4 GR3 — "If the file associated with file-name-1 is present and insufficient authority
+            // exists to open the file, the execution of the OPEN statement is unsuccessful, and the I-O status
+            // value in the file connector referenced by file-name-1 is set to '37'." (§9.1.13.6 item 6 b)
+            // restates it for OPEN and DELETE FILE and adds "The ability to detect this is processor
+            // dependent".) THE RULE LIVES HERE, ONCE, ABOVE THE ORGANIZATIONS: a refusal is not evidence of
+            // absence, so it must never reach OpenCore's Table-18 arms, which would read it as '35' — or, for
+            // an OPTIONAL file, as GR13's successful open over a file that is not there.
+            // OUTPUT is excluded, and that exclusion is REQUIRED, not a convenience: GR18 makes OUTPUT a
+            // CREATION that never consults presence, §9.1.13.6 item 5's '35' is defined only "for an OPEN
+            // statement with the INPUT, I-O, or EXTEND phrase", and a directory the process may write but not
+            // list legitimately accepts a new file — probing it answers Unauthorized while the OPEN OUTPUT
+            // genuinely succeeds. When an OUTPUT target IS present-and-refused, the creating stream itself
+            // raises UnauthorizedAccessException and the catch below returns the same '37'.
+            if (presence is FilePresence.Unauthorized && mode is not FileOpenMode.Output)
+                return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR3 / §9.1.13.6 item 6 b)
+            // §14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
+            // execution of the OPEN statement when the file connector is matched with the file and the file
+            // exists, the attributes of the file connector as specified in the file control paragraph and the
+            // file description entry are compared with the fixed file attributes of the file. If the attributes
+            // don't match, a file attribute conflict condition occurs, the execution of the OPEN statement is
+            // unsuccessful, and the I-O status associated with file-name-1 is set to '39'." An UNSUCCESSFUL
+            // OPEN leaves the file unaffected (GR25), so the check has to precede OpenCore, whose
+            // OUTPUT/creation arms truncate. OUTPUT is excluded because GR18 makes it a CREATION ("If the OUTPUT
+            // phrase is specified, the successful execution of the OPEN statement creates the file"), and §9.1.6
+            // fixes a file's attributes at creation — so an OPEN OUTPUT ESTABLISHES them (below) rather than
+            // being judged against the previous file's. GR10's own precondition is "the file EXISTS", which is
+            // Present and nothing else; a file with no recorded attributes compares against nothing
+            // (FixedFileAttributes.Load).
+            if (mode is not FileOpenMode.Output && presence is FilePresence.Present
+                && FixedFileAttributes.Load(HostPath) is { } recorded && recorded.Conflicts(DeclaredAttributes))
+                return Status = FileStatusCode.FixedAttributeConflict;   // '39' §9.1.13.6 item 7
+            s = OpenCore(mode, presence);
+        }
         catch (UnauthorizedAccessException) { s = FileStatusCode.PermissionDenied; }
         catch (IOException) { s = FileStatusCode.PermanentError; }
         _openMode = s[0] == '0';   // a success-family OPEN ('00'/'05'/'07') puts the connector in its open mode
@@ -201,7 +230,11 @@ public abstract class FileConnector
         // creates the file in exactly two cases, and this condition is those two: GR18 (OUTPUT always creates)
         // and GR17 (an absent OPTIONAL file opened I-O or EXTEND is created "as if OPEN OUTPUT / CLOSE"). An
         // absent OPTIONAL file opened INPUT is NOT created (Table 18) and is deliberately outside the condition.
-        if (_openMode && (mode is FileOpenMode.Output || (!existed && mode is FileOpenMode.IO or FileOpenMode.Extend)))
+        // GR17's own precondition is "If the file is NOT PRESENT", which is Absent and nothing else — an
+        // unauthorized I-O/EXTEND target never gets here (it returned '37' above), and an unauthorized OUTPUT
+        // target that created successfully is covered by the first disjunct, GR18's creation.
+        if (_openMode && (mode is FileOpenMode.Output
+            || (presence is FilePresence.Absent && mode is FileOpenMode.IO or FileOpenMode.Extend)))
             FixedFileAttributes.Store(HostPath, DeclaredAttributes);
         return Status = s;
     }
@@ -258,10 +291,16 @@ public abstract class FileConnector
         return Status = s;
     }
 
-    /// <summary>The organization-specific OPEN body: reset org state, probe/create/load the physical store, and
+    /// <summary>The organization-specific OPEN body: reset org state, create/load the physical store, and
     /// return the resulting status. Runs under the base's '37'/'30' exception mapping; the base has already
-    /// recorded the attempted mode and reset the shared position state.</summary>
-    protected abstract string OpenCore(FileOpenMode mode);
+    /// recorded the attempted mode, reset the shared position state, and answered §14.9.27.4 GR3 and GR10.
+    /// <para><paramref name="presence"/> is the base's ONE <see cref="HostFile.Probe"/> answer — an
+    /// implementation must never re-ask the host, and must never call <c>File.Exists</c>, whose two-valued
+    /// answer is what kb/Work PB323 was. For every mode but OUTPUT it is <see cref="FilePresence.Present"/> or
+    /// <see cref="FilePresence.Absent"/> only: GR3 has already turned <see cref="FilePresence.Unauthorized"/>
+    /// into '37' above, so a Table-18 arm may read it as a plain two-state answer. OUTPUT can still see
+    /// Unauthorized, and ignores it — GR18 makes OUTPUT a creation that does not consult presence.</para></summary>
+    protected abstract string OpenCore(FileOpenMode mode, FilePresence presence);
 
     /// <summary>The organization-specific CLOSE body (flush/persist/dispose); returns the resulting status.
     /// A successful close must clear <see cref="ModeKnown"/> (§9.1.4 — the file is then in no open mode).</summary>

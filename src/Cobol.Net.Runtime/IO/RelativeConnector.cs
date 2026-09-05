@@ -99,14 +99,16 @@ public sealed class RelativeConnector : FileConnector
     /// <summary>The relative OPEN body. GR14: INPUT/I-O position the FPI at 1; GR15: EXTEND positions after the
     /// highest existing RRN; GR17: an absent OPTIONAL file on I-O/EXTEND is created ('05'); §9.1.13.6 item 5: an
     /// absent NON-optional file on INPUT/I-O/EXTEND is '35' — the already-open '41' guard, the attempted-mode
-    /// bookkeeping, the position reset, and the '37'/'30' exception mapping live on
-    /// <see cref="FileConnector.Open"/>.</summary>
-    protected override string OpenCore(FileOpenMode mode)
+    /// bookkeeping, the position reset, the ONE presence probe behind <paramref name="presence"/>, GR3's
+    /// authority '37' and the '37'/'30' exception mapping live on <see cref="FileConnector.Open"/>.</summary>
+    protected override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         _pendingKey = 0;
         _lastSlot = 0;
         _positioner = 'O';
-        bool exists = File.Exists(HostPath);
+        // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
+        // a refusal can never be read here as "unavailable" (kb/Work PB323).
+        bool exists = presence is FilePresence.Present;
         string status = FileStatusCode.Success;
         switch (mode)
         {
@@ -396,7 +398,12 @@ public sealed class RelativeConnector : FileConnector
     private void Load(RelativeStore into)
     {
         into.Slots.Clear();
-        if (!File.Exists(HostPath)) return;   // an absent file loads empty (OPEN OUTPUT / absent-optional attach, PB143)
+        // An ABSENT file loads empty (OPEN OUTPUT / absent-optional attach, PB143). ONLY absent: a refused
+        // probe must not be read as "no records" (kb/Work PB323). Unauthorized reaches here from OPEN OUTPUT
+        // alone — §14.9.27.4 GR3 answers every other mode '37' before OpenCore runs — and GR18 makes OUTPUT a
+        // creation that discards whatever the file held, so an empty load is what OUTPUT wanted anyway; the
+        // WriteStore that follows raises the authority failure itself, and the base maps it to '37'.
+        if (HostFile.Probe(HostPath) is not FilePresence.Present) return;
         var frames = RecordFraming.ReadStore(HostPath);
         for (int i = 0; i < frames.Count; i++)
             if (frames[i] is { } rec)

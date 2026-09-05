@@ -76,3 +76,74 @@ public enum FileRetryKind
     /// implementation detects ('52'; A.1 item 109). See <c>FileRegistry.ExhaustionStatus</c>.</summary>
     Forever,
 }
+
+/// <summary>What an honest probe of a physical file's presence can answer — <b>three</b> states, not two.
+/// <para>ISO/IEC 1989:2023 draws the distinction and prices it in two different I-O status values: §9.1.13.6
+/// item 5 sets '35' because <i>"an OPEN statement with the INPUT, I-O, or EXTEND phrase is attempted on a file
+/// that is not described as optional and the physical file is not present"</i>, while §14.9.27.4 GR3 sets '37'
+/// because <i>"the file associated with file-name-1 is present and insufficient authority exists to open the
+/// file"</i> — restated as §9.1.13.6 item 6 b), which adds <i>"The ability to detect this is processor
+/// dependent"</i>. A BOOLEAN probe cannot express the difference, so it has to invent one of the two answers,
+/// and <c>File.Exists</c> invents the wrong one: it swallows every access error and returns false. A present
+/// file the process may not observe is then reported to the COBOL program as ABSENT — '35' where the standard
+/// requires '37', and for an OPTIONAL file a <i>successful</i> open over an invented empty file (kb/Work PB323;
+/// the DELETE FILE twin of the same defect was kb/Work PB140).</para></summary>
+public enum FilePresence
+{
+    /// <summary>The physical file is not present — §9.1.13.6 item 5's '35' for a non-optional INPUT/I-O/EXTEND,
+    /// and the condition §14.9.27.4 GR13 and GR17 both open with (<i>"If the file is not present"</i>) for the
+    /// OPTIONAL at-end and creation arms.</summary>
+    Absent,
+    /// <summary>The physical file is present and observable.</summary>
+    Present,
+    /// <summary>The process was refused the authority even to observe whether the file is there. §14.9.27.4 GR3
+    /// and §9.1.13.6 item 6 b) make this '37' — never '35', and never an OPTIONAL file's invented empty one:
+    /// a refusal is not evidence of absence.</summary>
+    Unauthorized,
+}
+
+/// <summary>Host-filesystem probes shared by every file organization. ⛔ <b>THIS IS THE ONE PLACE THE RUNTIME
+/// ASKS WHETHER A PHYSICAL FILE IS PRESENT</b> — <see cref="FileConnector.Open"/> takes the answer once per OPEN
+/// and hands it to the organization's <c>OpenCore</c>, and <c>FileRegistry.DeleteFile</c> takes it for
+/// §14.9.10.4 GR14/GR16. <c>FileExistenceProbeDriftTests</c> keeps it that way: <c>File.Exists</c>,
+/// <c>FileInfo.Exists</c> and <c>File.GetAttributes</c> are forbidden everywhere else under
+/// <c>Cobol.Net.Runtime/IO</c>, because every hand-written probe is another chance to answer "absent" to a
+/// question the operating environment refused to answer at all.</summary>
+public static class HostFile
+{
+    /// <summary>Probe the physical file at <paramref name="hostPath"/>, distinguishing §9.1.13.6 item 5's
+    /// ABSENT from §14.9.27.4 GR3's PRESENT-but-unauthorized. Never throws for either of those two.
+    /// <para>The probe is <c>File.GetAttributes</c> rather than <c>File.Exists</c> precisely because its
+    /// FAILURES carry the distinction: a missing file or directory raises
+    /// <see cref="FileNotFoundException"/>/<see cref="DirectoryNotFoundException"/>, while a refused one raises
+    /// <see cref="UnauthorizedAccessException"/>. <c>File.Exists</c> collapses both to <c>false</c>.</para>
+    /// <para>A DIRECTORY at the path answers <see cref="FilePresence.Absent"/>: §9.1.6's fixed file attributes
+    /// describe a <i>physical file</i>, and a directory of that name is not one — so "the physical file is not
+    /// present" (§9.1.13.6 item 5) is the true statement about it. That is also the answer <c>File.Exists</c>
+    /// gave, so the OPEN path is unchanged; DELETE FILE on a directory moves from a factually wrong '37'
+    /// ("insufficient authority") to §14.9.10.4 GR14's '05', the successful completion for a file that is not
+    /// there.</para>
+    /// <para>A path the host will not accept as a file name at all — too long for it
+    /// (<see cref="PathTooLongException"/>), or malformed (<see cref="ArgumentException"/>,
+    /// <see cref="NotSupportedException"/>) — likewise names no present file. That is a statement about the
+    /// PATH, not an input-output failure, so it belongs with Absent rather than with '30'; it is also the
+    /// reading <c>FixedFileAttributes.Load</c> already takes, and the answer <c>File.Exists</c> gave.</para>
+    /// <para>Every OTHER <see cref="IOException"/> PROPAGATES on purpose: §9.1.13.6 item 1's '30' (<i>"A
+    /// permanent error exists and no further information is available concerning the input-output
+    /// operation"</i>) is mapped in exactly ONE place — <see cref="FileConnector.Open"/>'s catch — and a probe
+    /// that swallowed it here would have to guess between '35' and '37' for a file it never reached.</para></summary>
+    public static FilePresence Probe(string hostPath)
+    {
+        try
+        {
+            return File.GetAttributes(hostPath).HasFlag(FileAttributes.Directory)
+                ? FilePresence.Absent : FilePresence.Present;
+        }
+        catch (FileNotFoundException) { return FilePresence.Absent; }              // §9.1.13.6 item 5
+        catch (DirectoryNotFoundException) { return FilePresence.Absent; }         // §9.1.13.6 item 5
+        catch (UnauthorizedAccessException) { return FilePresence.Unauthorized; }  // §14.9.27.4 GR3 / item 6 b)
+        catch (PathTooLongException) { return FilePresence.Absent; }               // a path shape, not an I/O failure
+        catch (ArgumentException) { return FilePresence.Absent; }                  // not a file name the host takes
+        catch (NotSupportedException) { return FilePresence.Absent; }
+    }
+}
