@@ -131,6 +131,48 @@ public sealed class CloseTable14Tests
         finally { try { Directory.Delete(dir, recursive: true); } catch { } }
     }
 
+    /// <summary>The SAME medium determination read from the OPEN side (kb/Work PB317). §14.9.27.4 GR11 —
+    /// <i>"The NO REWIND phrase will be ignored if it does not apply to the storage medium on which the file
+    /// resides. If the NO REWIND phrase is ignored, the OPEN statement is successful and the I-O status
+    /// associated with file-name-1 is set to '07'."</i> — and §14.9.27.4 GR12, its complement for a medium that
+    /// permits rewinding, partition the media between them, so the '07' the CLOSE arm reports and the '07' the
+    /// OPEN arm reports are the SAME determination and cannot be allowed to drift apart.
+    ///
+    /// <para>⛔ THIS IS THE DRIFT TEST FOR GR12'S VACUITY. GR12 is unreachable only while every connector a
+    /// sequential OPEN can name answers (a) <see cref="PhysicalFileCategory.NonUnit"/>. The moment one answers
+    /// (b) or (c) — a medium that DOES permit rewinding — the first assertion below throws instead of reporting
+    /// '07', because <c>FileRegistry.NoRewindPhraseEffect</c> refuses a category it has no rule for; the row
+    /// must then be re-adjudicated rather than inherit its closure, exactly as
+    /// <c>DRV-GR-14.9.6.4-L2.1</c> says for the CLOSE twin.</para></summary>
+    [Fact]
+    public void OpenNoRewind_IsTheCloseArmsTwinOnTheSameMedium()
+    {
+        var reg = new FileRegistry();
+        string dir = Path.Combine(Path.GetTempPath(), $"pb317-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            reg.Register("S", Path.Combine(dir, "s.dat"), 8, lineSequential: false, optional: false, -1, -1);
+
+            // (a) Non-unit × OPEN … WITH NO REWIND = §14.9.27.4 GR11: successful, and '07' (§9.1.13.2 item 6).
+            reg.OpenNoRewind("S", FileOpenMode.Output);
+            Assert.Equal(FileStatusCode.PhraseOnNonReelMedium, reg.Status("S"));
+
+            // §14.9.27.4 GR25 a) — an UNSUCCESSFUL open keeps the value naming why it failed; GR11's warning is
+            // an overlay on a successful open, never a replacement for a diagnosis. Here the connector is
+            // already open, so GR2 owes '41' and the phrase must not overwrite it.
+            reg.OpenNoRewind("S", FileOpenMode.Input);
+            Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.Status("S"));
+            reg.Close("S");
+
+            // (d) Non-sequential: §14.9.27.3 SR5 rejects the phrase at bind time (COBOLNET1802), so the runtime
+            // arm behind it is loud — the OPEN twin of the CLOSE N/A cells asserted above.
+            reg.RegisterRelative("R", Path.Combine(dir, "r.dat"), 8, false, 0, 4, -1, -1);
+            Assert.Throws<InvalidOperationException>(() => reg.OpenNoRewind("R", FileOpenMode.Input));
+        }
+        finally { try { Directory.Delete(dir, recursive: true); } catch { } }
+    }
+
     /// <summary>The determination's consequence, stated as the invariant the dispatch relies on: no category a
     /// connector can report carries a symbol that needs a reel/unit-structured medium (a, b, d or f), so
     /// <c>FileRegistry.CloseByFormat</c>'s loud arm for those is genuinely unreachable today.</summary>

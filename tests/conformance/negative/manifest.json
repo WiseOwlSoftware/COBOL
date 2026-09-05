@@ -779,7 +779,9 @@
   "pb303_as_function_id_literal",
   "pb303_as_class_id_literal",
   "pb303_as_interface_id_literal",
-  "pb303_as_method_id_literal"
+  "pb303_as_method_id_literal",
+  "pb317-open-norewind-relative",
+  "pb317-open-norewind-extend"
  ],
  "pending": []
 }

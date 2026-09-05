@@ -881,15 +881,35 @@ internal static class RuntimeApi
     public static string FileOpenShared(string name, string argsFragment) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenShared)}({name}, {argsFragment})";
 
-    /// <summary>The mode-specific plain OPEN — anchored over <c>CobolFile.Open{Input,Output,Extend,IO}</c>.</summary>
-    public static string FileOpen(string name, Binding.Bound.BoundOpenMode mode) =>
-        $"{nameof(CobolFile)}.{mode switch
+    /// <summary>The mode-specific plain OPEN — anchored over <c>CobolFile.Open{Input,Output,Extend,IO}</c>.
+    /// <para><paramref name="noRewind"/> = the file-name carried the <c>WITH NO REWIND</c> phrase, which routes
+    /// to the ONE written-form entry <c>CobolFile.OpenNoRewind</c> instead (§14.9.27.4 GR11 — the runtime owns
+    /// the medium test, exactly as it owns Table 14's for CLOSE). §14.9.27.3 SR6 confines the phrase to INPUT
+    /// and OUTPUT, so the mode still travels and the runtime never has to re-derive it (kb/Work PB317).</para></summary>
+    public static string FileOpen(string name, Binding.Bound.BoundOpenMode mode, bool noRewind)
+    {
+        if (noRewind)
+            return $"{nameof(CobolFile)}.{nameof(CobolFile.OpenNoRewind)}({name}, {FileOpenModeExpr(mode)})";
+        return $"{nameof(CobolFile)}.{mode switch
         {
             Binding.Bound.BoundOpenMode.Output => nameof(CobolFile.OpenOutput),
             Binding.Bound.BoundOpenMode.Extend => nameof(CobolFile.OpenExtend),
             Binding.Bound.BoundOpenMode.IO => nameof(CobolFile.OpenIO),
             _ => nameof(CobolFile.OpenInput),
         }}({name})";
+    }
+
+    /// <summary>⛔ THE ONE rendering of a bound open mode as the runtime <c>FileOpenMode</c> member — the
+    /// sharing entry, the NO REWIND entry and any future one share it, so a new mode cannot reach one caller
+    /// and miss another (the emitter used to carry its own copy of this switch inline).</summary>
+    public static string FileOpenModeExpr(Binding.Bound.BoundOpenMode mode) =>
+        $"{nameof(FileOpenMode)}.{mode switch
+        {
+            Binding.Bound.BoundOpenMode.Output => nameof(FileOpenMode.Output),
+            Binding.Bound.BoundOpenMode.Extend => nameof(FileOpenMode.Extend),
+            Binding.Bound.BoundOpenMode.IO => nameof(FileOpenMode.IO),
+            _ => nameof(FileOpenMode.Input),
+        }}";
 
     /// <summary>The written-form CLOSE entry — one per Table 14 row (§14.9.6.4 GR3) plus WITH LOCK, anchored
     /// over <c>CobolFile.Close{,WithLock,ReelUnit,ReelUnitForRemoval,NoRewind}</c>. The runtime resolves the

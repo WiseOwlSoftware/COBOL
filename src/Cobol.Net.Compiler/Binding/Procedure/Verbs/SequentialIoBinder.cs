@@ -52,7 +52,21 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 // ⛔ THIS IS SR8's ONLY SITE (kb/Work PB319): the rule speaks about the OPEN statement's
                 // operand, so a file control entry cannot host it. The full antecedent lives in the callee.
                 ctx.Validation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing);   // SR8 — pure check
-                opens.Add(new BoundOpenFile(file, mode, sharing, retry, UnsupportedOrg(file, "OPEN")));
+                // The per-file-name tape phrase (§14.9.27.2 `{ file-name-1 [ WITH NO REWIND ] } …`). The
+                // grammar's other alternative, REVERSED, is the obsolete '85 phrase the VersionConformancePass
+                // gates out post-85 (`open-reversed-removed-2002`); NO REWIND survives into 2023 and is bound
+                // here. Reading `spec.REWIND()` — not `spec.NO()` — keeps this keyed on the phrase's own
+                // required word rather than on a word the grammar shares with other phrases.
+                bool noRewind = spec.REWIND() is not null;
+                // §14.9.27.3 SR5 + SR6, the two syntax rules that constrain the phrase. Both are screens, not
+                // branches: a violation is REPORTED and the statement still binds with the phrase DROPPED, so
+                // the run-time NoRewindPhraseEffect only ever sees the medium/mode combinations §14.9.27.4
+                // GR11 defines (kb/Work PB317; the rows are PB318's SR-14.9.27.3-5/-6). Screening here is what
+                // makes GR11's "does not apply to the storage medium" answerable — the CLOSE twin of SR5
+                // (§14.9.6.3 SR1) plays exactly this role for Table 14's N/A cells.
+                if (noRewind && !ctx.Validation.CheckOpenNoRewindOrganization(file)) noRewind = false;
+                if (noRewind && !ctx.Validation.CheckOpenNoRewindOpenMode(file, mode)) noRewind = false;
+                opens.Add(new BoundOpenFile(file, mode, sharing, retry, noRewind, UnsupportedOrg(file, "OPEN")));
             }
         }
         return new BoundOpen(opens);

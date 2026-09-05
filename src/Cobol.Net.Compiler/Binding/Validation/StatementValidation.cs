@@ -370,6 +370,39 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>§14.9.27.3 SR5 — <i>"The NO REWIND phrase may be specified only for sequential files."</i>
+    /// The EXACT twin of the CLOSE rule §14.9.6.3 SR1 that <c>SequentialIoBinder.BindClose</c> already enforces
+    /// (COBOLNET1693), which is why the phrase's OPEN half went unchecked for so long: one rule written in the
+    /// standard twice, once per statement, and only the CLOSE spelling had a screen (kb/Work PB317/PB318).
+    /// <para>The predicate is ORGANIZATION, not access mode — §9.1.7.2 puts record sequential and line
+    /// sequential both under sequential organization, and <see cref="FileModel.IsSequential"/> is the same
+    /// predicate the CLOSE arm tests, so the two arms cannot drift apart.</para>
+    /// <para>It is also what makes §14.9.27.4 GR11 answerable: GR11 keys on the storage medium, the medium is
+    /// <c>PhysicalFileCategory</c>, and a relative or indexed file is category (d) Non-sequential — a category
+    /// for which neither GR11 nor GR12 defines a NO REWIND effect. Rejecting the source is the standard's own
+    /// answer, not a deferral.</para></summary>
+    public bool CheckOpenNoRewindOrganization(FileModel file)
+    {
+        if (file.IsSequential) return true;
+        data.Edition.Error(DiagnosticCatalog.OpenNoRewindOrganization,
+            $"OPEN '{file.CobolName}' WITH NO REWIND — the phrase may be specified only for sequential files "
+            + "(ISO §14.9.27.3 SR5)");
+        return false;
+    }
+
+    /// <summary>§14.9.27.3 SR6 — <i>"The NO REWIND phrase may be specified only when the INPUT or OUTPUT phrase
+    /// is specified."</i> The rule pairs the phrase with the open mode of its own group, and §14.9.27.4 GR12 a)
+    /// corroborates it by naming only EXTEND as the mode that suppresses the beginning-of-file positioning the
+    /// phrase talks about: I-O and EXTEND have no rewind semantics to decline (kb/Work PB317/PB318).</summary>
+    public bool CheckOpenNoRewindOpenMode(FileModel file, BoundOpenMode mode)
+    {
+        if (mode is BoundOpenMode.Input or BoundOpenMode.Output) return true;
+        data.Edition.Error(DiagnosticCatalog.OpenNoRewindOpenMode,
+            $"OPEN {(mode is BoundOpenMode.IO ? "I-O" : "EXTEND")} '{file.CobolName}' WITH NO REWIND — the "
+            + "phrase may be specified only when the INPUT or OUTPUT phrase is specified (ISO §14.9.27.3 SR6)");
+        return false;
+    }
+
     /// <summary>§14.9.51 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
     /// a LINAGE clause in the file's file description entry.</summary>
     public bool CheckWriteEopLinage(FileModel file)

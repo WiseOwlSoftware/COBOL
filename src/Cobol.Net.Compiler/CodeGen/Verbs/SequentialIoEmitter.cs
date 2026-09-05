@@ -158,7 +158,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitOpen(BoundOpen o)
     {
         var w = ctx.Writer;
-        foreach (var (file, mode, sharing, retry, unsupported) in o.Files)
+        foreach (var (file, mode, sharing, retry, noRewind, unsupported) in o.Files)
         {
             if (unsupported is { } u) { w.Line(LoudStmt(u)); continue; }
             // ⛔ PER FILE, NOT PER STATEMENT. §14.9.27.4 GR20 makes a multi-group OPEN equal to one separate
@@ -171,21 +171,20 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             bool shared = sharing is not null || retry is not null;
             if (shared)
             {
-                string modeEnum = mode switch
-                {
-                    BoundOpenMode.Output => "FileOpenMode.Output",
-                    BoundOpenMode.Extend => "FileOpenMode.Extend",
-                    BoundOpenMode.IO => "FileOpenMode.IO",
-                    _ => "FileOpenMode.Input",
-                };
+                string modeEnum = RuntimeApi.FileOpenModeExpr(mode);
                 var (retryKind, retryAmount) = RenderRetry(retry);
                 string shHas = sharing is not null ? "true" : "false";
                 string shVal = sharing is { } sm ? RuntimeSharing(sm) : "FileSharing.AllOther";
-                w.Line($"{RuntimeApi.FileOpenShared(FileKeyExpr(file), $"{modeEnum}, {shHas}, {shVal}, {retryKind}, {retryAmount}")};");
+                // ⛔ THE NO REWIND PHRASE TRAVELS ON BOTH ARMS. SHARING/RETRY and NO REWIND are independent
+                // phrases of one general format (§14.9.27.2), so an OPEN may carry both; a phrase honoured on
+                // only the plain arm would report '07' for `OPEN INPUT F WITH NO REWIND` and '00' for the same
+                // statement once a SHARING phrase was added — the two-arm dispatch this whole item is an
+                // instance of (kb/Work PB317).
+                w.Line($"{RuntimeApi.FileOpenShared(FileKeyExpr(file), $"{modeEnum}, {shHas}, {shVal}, {retryKind}, {retryAmount}, {(noRewind ? "true" : "false")}")};");
             }
             else
             {
-                w.Line($"{RuntimeApi.FileOpen(FileKeyExpr(file), mode)};");
+                w.Line($"{RuntimeApi.FileOpen(FileKeyExpr(file), mode, noRewind)};");
             }
             EmitStoreFileStatus(file);
             EmitUseHook(file);   // a failed OPEN reaches a mode-scoped USE via the being-opened mode (GR6b)

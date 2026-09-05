@@ -275,14 +275,33 @@ that “references a physical file on a non-reel/unit medium”, and Table 14 pr
 makes `CLOSE … WITH NO REWIND` answer `'07'`) only in the Non-unit column. The determination is documented
 for users in `docs/CONFORMANCE.md` §7 (Annex A.1 item 24) and §2 rows 28–30 / 33–34.
 
+**⛔ THE SAME DETERMINATION GOVERNS THE OPEN STATEMENT'S NO REWIND PHRASE, AND ONE SITE OWNS IT.** §9.1.13.2
+item 6 names *“an OPEN statement with the NO REWIND phrase”* in the same sentence as the three CLOSE phrases,
+so the OPEN half of the phrase is the same medium question, not a second one. §14.9.27.4 **GR11** — *“The NO
+REWIND phrase will be ignored if it does not apply to the storage medium on which the file resides. If the NO
+REWIND phrase is ignored, the OPEN statement is successful and the I-O status associated with file-name-1 is
+set to '07'.”* — and **GR12**, its complement *“If the storage medium for the file permits rewinding …”*,
+partition the media between them, so choosing category (a) chooses GR11 and makes GR12 vacuous. The phrase
+rides `BoundOpenFile.NoRewind` (per FILE-NAME, as §14.9.27.4 GR20 requires — the mode, SHARING and RETRY are
+the GROUP's, the REWIND phrase is the file-name's own), both emitter arms carry it (the plain `FileOpen` and
+the sharing-aware `FileOpenShared`, since the phrases are independent), and `FileRegistry.NoRewindPhraseEffect`
+is the ONE place the rule is written: it refuses any category but (a) LOUDLY, and overlays '07' on a status
+whose first digit is '0' — GR25 a) reserves an unsuccessful open's own diagnosis. §14.9.27.3 SR5 and SR6 —
+the phrase is for sequential files, under INPUT or OUTPUT only — are screened at bind (COBOLNET1802/1803),
+which is what keeps categories (b), (c) and (d) off the runtime path in the first place; SR5 is the exact twin
+of the CLOSE rule §14.9.6.3 SR1, and until kb/Work PB317 only the CLOSE spelling had a screen while the OPEN
+phrase parsed and was silently dropped.
+
 **What it buys.** Categories (b) and (c) are unreachable today, so symbols a, b, d and f — previous units,
 no rewind of the current reel, unit removal, rewind — and symbol e's two unit-media branches are vacuous
 rather than missing, which is what `docs/CONFORMANCE.md` §8 `DRV-GR-14.9.6.4-L2.1` records. Adding a
-unit-structured medium is then a bounded change: give its connector a category and fill the cells
-`CloseByFormat`'s loud arm names. `CloseTable14Tests` is the drift test that keeps that true — it pins the
+unit-structured medium is then a bounded change: give its connector a category, fill the cells
+`CloseByFormat`'s loud arm names, and implement §14.9.27.4 GR12 b) where `NoRewindPhraseEffect` refuses.
+`CloseTable14Tests` is the drift test that keeps that true — it pins the
 16 cells against the printed table, asserts both enums still have exactly four members (the `_` arm C#
 requires for out-of-range casts would otherwise swallow a new one), and fails the moment any connector
-answers (b) or (c). Before this, each written form carried a hand-copied transcription of its own Non-unit
+answers (b) or (c), on the OPEN side (`OpenNoRewind_IsTheCloseArmsTwinOnTheSameMedium`) as well as the CLOSE
+side. Before this, each written form carried a hand-copied transcription of its own Non-unit
 cell, REEL/UNIT and REEL/UNIT FOR REMOVAL shared one bound kind so `FOR REMOVAL` had no consumer at all,
 and the category placement existed only as a sentence in a doc comment that `CONFORMANCE.md` contradicted
 (kb/Work PB235).

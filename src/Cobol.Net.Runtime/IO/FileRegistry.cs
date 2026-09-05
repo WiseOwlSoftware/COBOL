@@ -179,6 +179,56 @@ public sealed class FileRegistry
         else Require(name).Open(mode);
     }
 
+    /// <summary>OPEN … WITH NO REWIND (ISO §14.9.27) — the plain OPEN followed by the phrase's own effect. The
+    /// OPEN twin of <see cref="CloseNoRewind"/>: the same phrase, the same medium model, the same '07'
+    /// (§9.1.13.2 item 6). Before kb/Work PB317 the phrase was parsed and dropped, so an OPEN … WITH NO REWIND
+    /// reported '00' while its CLOSE spelling reported '07'.</summary>
+    public void OpenNoRewind(string name, FileOpenMode mode)
+    {
+        Open(name, mode);
+        NoRewindPhraseEffect(name);
+    }
+
+    /// <summary>⛔ THE ONE SITE for the OPEN statement's NO REWIND phrase — §14.9.27.4 GR11 and GR12, keyed on
+    /// the SAME medium model the CLOSE arm's Table 14 is keyed on (<see cref="PhysicalFileCategory"/>), so the
+    /// two statements cannot hold different positions on one phrase. Both open entry points call it, because
+    /// SHARING/RETRY and NO REWIND are independent phrases of one general format and a statement may write both.
+    ///
+    /// <para>GR11: <i>"The NO REWIND phrase will be ignored if it does not apply to the storage medium on which
+    /// the file resides. If the NO REWIND phrase is ignored, the OPEN statement is successful and the I-O status
+    /// associated with file-name-1 is set to '07'."</i> §9.1.13.2 item 6 fixes what "does not apply to the
+    /// storage medium" means — '07' is <i>"An OPEN or CLOSE statement … successfully executed but … an OPEN
+    /// statement with the NO REWIND phrase references a physical file on a non-reel/unit medium"</i> — so the
+    /// medium the phrase does not apply to is exactly category (a) <see cref="PhysicalFileCategory.NonUnit"/>,
+    /// the only category any supported connector reports for a sequential file.</para>
+    ///
+    /// <para>GR12 governs the OTHER medium: <i>"If the storage medium for the file permits rewinding …"</i>,
+    /// i.e. the unit-structured categories (b)/(c). No supported medium is in either — the same closure
+    /// <c>CloseByFormat</c>'s <c>UnitStructuredOnly</c> guard rests on — so reaching GR12 b) here would mean a
+    /// new medium had been added without implementing its suppress-the-repositioning arm, and that is LOUD
+    /// rather than a silent plain open. Category (d) is unreachable from the other side: §14.9.27.3 SR5 rejects
+    /// the phrase on a non-sequential file at bind time (COBOLNET1802).</para>
+    ///
+    /// <para>The '07' rides a SUCCESSFUL open only. §14.9.27.4 GR25 a) makes an unsuccessful OPEN place "a
+    /// value … to indicate the condition that caused the OPEN statement to be unsuccessful", which GR11's
+    /// warning must not displace — hence the '0' first-digit test, the same guard the CLOSE arm's symbol g
+    /// carries. Within the successful values it DOES displace: §9.1.13.2 item 4 a)'s '05' (an OPTIONAL INPUT
+    /// file that is not present) is a description in the status-value clause, while GR11 is an explicit
+    /// assignment in the statement's own general rules, and §14.9.27.4 assigns '05' only in GR17, whose EXTEND/
+    /// I-O modes SR6 excludes from carrying the phrase at all. The determination is recorded in
+    /// docs/CONFORMANCE.md §3.</para></summary>
+    private void NoRewindPhraseEffect(string name)
+    {
+        var c = Require(name);
+        if (c.Category is not PhysicalFileCategory.NonUnit)
+            throw new InvalidOperationException(
+                $"OPEN … WITH NO REWIND reached a {c.Category} connector '{name}' — §14.9.27.4 GR11 answers only "
+                + "for a non-reel/unit medium (§9.1.13.2 item 6) and GR12 b)'s suppress-the-repositioning arm is "
+                + "unimplemented because no supported medium permits rewinding (docs/CONFORMANCE.md §7, A.1 "
+                + "item 24); a new medium must implement it here (kb/Work PB317)");
+        if (c.Status[0] == '0') c.SetStatus(FileStatusCode.PhraseOnNonReelMedium);
+    }
+
     /// <summary>A keyed verb reached a connector of the wrong organization — the binder screens
     /// organizations at bind time (§14.9.10.3 SR2, §13.4.6.3 SR3 …), so this is a compiler defect and LOUD.
     /// The old '30'-without-SetStatus fall-throughs left the FILE STATUS item reading its STALE value while
@@ -591,7 +641,7 @@ public sealed class FileRegistry
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
-        FileRetryKind retryKind, int retryAmount)
+        FileRetryKind retryKind, int retryAmount, bool noRewind)
     {
         // A sharing/retry phrase on the OPEN makes the connector sharing-active even without a SELECT clause.
         if (!_connectorShares.ContainsKey(name))
@@ -602,6 +652,9 @@ public sealed class FileRegistry
         // so there is nothing left to override here — the former `if (status == Deadlock) SetStatusOf(…)`
         // line existed only to re-assert the '52' RetryLoop used to manufacture (kb/Work PB142).
         _ = RetryLoop(() => SharedOpenAttempt(name, mode, ov), retryKind, retryAmount);
+        // The WITH NO REWIND phrase is independent of SHARING/RETRY (§14.9.27.2 writes all three in one
+        // format), so it applies here too — the ONE effect site, never a second copy (kb/Work PB317).
+        if (noRewind) NoRewindPhraseEffect(name);
     }
 
     /// <summary>The sharing-aware OPEN body. Returns the resulting I-O status; on a Table-19 conflict returns 61

@@ -62,6 +62,13 @@ public static class CobolFile
     public static void OpenExtend(string name) => _reg.Open(name, FileOpenMode.Extend);
     public static void OpenIO(string name) => _reg.Open(name, FileOpenMode.IO);
 
+    /// <summary>OPEN … WITH NO REWIND (ISO §14.9.27) — the OPEN twin of <see cref="CloseNoRewind"/>. It takes
+    /// the mode rather than splitting into four mode-specific entries because §14.9.27.3 SR6 admits only INPUT
+    /// and OUTPUT and the phrase's effect (§14.9.27.4 GR11) does not depend on which of them was written; the
+    /// medium determination itself belongs to <see cref="PhysicalFileCategory"/>, not to this facade
+    /// (kb/Work PB317).</summary>
+    public static void OpenNoRewind(string name, FileOpenMode mode) => _reg.OpenNoRewind(name, mode);
+
     /// <summary>CLOSE the file (emitted for each closed file-name).</summary>
     public static void Close(string name) => _reg.Close(name);
 
@@ -178,10 +185,11 @@ public static class CobolFile
     public static void RegisterSharing(string name, FileSharing sharing, FileLockMode lockMode, bool multiple)
         => _reg.RegisterSharing(name, sharing, lockMode, multiple);
 
-    /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27).</summary>
+    /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27). <paramref name="noRewind"/>
+    /// carries the independent WITH NO REWIND phrase, which a sharing-phrase OPEN may also write.</summary>
     public static void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
-        FileRetryKind retryKind, int retryAmount)
-        => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount);
+        FileRetryKind retryKind, int retryAmount, bool noRewind)
+        => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, noRewind);
 
     /// <summary>Record-lock governance for a just-completed keyed READ (§9.1.16).</summary>
     public static string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase,

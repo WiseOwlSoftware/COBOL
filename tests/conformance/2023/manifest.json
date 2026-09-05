@@ -477,7 +477,8 @@
   "l1_value_thru_through_equivalent",
   "pb639_store_landing_low_order_digits",
   "pb303_as_module_name_and_invoke",
-  "pb303_as_class_id_zero_length_accepted"
+  "pb303_as_class_id_zero_length_accepted",
+  "pb317_open_no_rewind"
  ],
  "pending": [
   "pb485_value_only_format1"

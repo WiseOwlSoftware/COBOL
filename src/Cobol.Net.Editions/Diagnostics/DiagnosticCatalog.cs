@@ -425,8 +425,25 @@ public static class DiagnosticCatalog
         "A CLOSE statement's NO REWIND, REEL, or UNIT phrase on a file whose organization is not sequential: "
         + "\"The NO REWIND, REEL, and UNIT phrases may be used only with files that are of sequential "
         + "organization.\" The WITH LOCK phrase is not organization-restricted. The old acceptance degraded at "
-        + "run time to a stale FILE STATUS value with no defined meaning.",
+        + "run time to a stale FILE STATUS value with no defined meaning. Its OPEN twin — the identically "
+        + "worded ISO §14.9.27.3 SR5 — is open-norewind-organization.",
         "ISO §14.9.6.3");
+    public static readonly DiagnosticDescriptor OpenNoRewindOrganization = new(
+        "COBOLNET1802", "open-norewind-organization", EditionSeverity.Error,
+        "An OPEN statement's WITH NO REWIND phrase on a file whose organization is not sequential: \"The NO "
+        + "REWIND phrase may be specified only for sequential files.\" The EXACT twin of the CLOSE rule "
+        + "close-phrase-organization reports (ISO §14.9.6.3 SR1) — one rule the standard writes once per "
+        + "statement, of which only the CLOSE spelling had a screen. It is also what keeps §14.9.27.4 GR11 "
+        + "answerable: GR11 keys on the storage medium, and a relative or indexed file is §14.9.6.4 GR2 "
+        + "category (d), for which neither GR11 nor GR12 defines a NO REWIND effect.",
+        "ISO §14.9.27.3");
+    public static readonly DiagnosticDescriptor OpenNoRewindOpenMode = new(
+        "COBOLNET1803", "open-norewind-open-mode", EditionSeverity.Error,
+        "An OPEN statement's WITH NO REWIND phrase in an I-O or EXTEND group: \"The NO REWIND phrase may be "
+        + "specified only when the INPUT or OUTPUT phrase is specified.\" §14.9.27.4 GR12 a) corroborates the "
+        + "rule by naming only EXTEND as the mode that suppresses the beginning-of-file positioning the phrase "
+        + "talks about. The phrase used to be parsed and dropped, so every mode accepted it silently.",
+        "ISO §14.9.27.3");
     public static readonly DiagnosticDescriptor BasedRecordSubstrate = new(
         "COBOLNET1695", "based-record-substrate", EditionSeverity.Error,
         "A BASED record has a subordinate item the shared storage area cannot carry. ⛔ NO SUCH SHAPE EXISTS "

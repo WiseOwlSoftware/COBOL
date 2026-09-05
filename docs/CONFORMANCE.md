@@ -94,7 +94,7 @@ of an unsupported facility.
 | 28–30 | CLOSE REEL/UNIT, FOR REMOVAL, WITH NO REWIND | 14.9.6 | Partial | **No reel/unit device is provided**, so every physical file is §14.9.6.4 GR2 category (a) Non-unit (sequential) or (d) Non-sequential — the determination and the closing operations it settles are §7's A.1 item 24 row. All three phrases are ACCEPTED and execute their Non-unit Table 14 cell exactly: REEL/UNIT [FOR REMOVAL] is symbol e (successful, the file stays open, `'07'`), WITH NO REWIND is c,g (the file IS closed and a successful close reports `'07'`). What is not provided is the unit-media behaviour of columns (b)/(c) — unit swaps, volume pointers, rewind |
 | 31 | DELETE statement | 14.9.10 | **Claimed** | Mass-storage DELETE (record) + DELETE FILE (2023) |
 | 32 | OPEN I-O phrase | 14.9.27 | **Claimed** | Mass-storage I-O open |
-| 33–34 | OPEN WITH NO REWIND / EXTEND | 14.9.27 | Partial | EXTEND claimed; WITH NO REWIND has no reel to rewind — the same category (a) Non-unit determination as rows 28–30 (§7's A.1 item 24 row), which is also what makes §9.1.13.2 item 6's `'07'` the right status for the phrase rather than a silent `'00'` |
+| 33–34 | OPEN WITH NO REWIND / EXTEND | 14.9.27 | Partial | EXTEND claimed; WITH NO REWIND has no reel to rewind — the same category (a) Non-unit determination as rows 28–30 (§7's A.1 item 24 row), which is what makes §9.1.13.2 item 6's `'07'` the right status for the phrase rather than a silent `'00'`. The phrase is **ACCEPTED and executes §14.9.27.4 GR11 exactly**: it is ignored (the OPEN behaves as though it were not written — GR14 still sets the file position indicator to 1, GR18 still creates an empty file) and the successful open reports `'07'`. GR12, the complement for a medium that permits rewinding, is unreachable here for the same reason Table 14's (b)/(c) columns are. §14.9.27.3 SR5 (sequential files only) and SR6 (INPUT or OUTPUT only) are enforced — COBOLNET1802 / COBOLNET1803. What is not provided is the unit-media behaviour: an actual reel to leave unrewound. Witnesses `conformance:2023/pb317_open_no_rewind`; `conformance:85/pb317_open_no_rewind_85`; `conformance:negative/pb317-open-norewind-relative`; `conformance:negative/pb317-open-norewind-extend`; `unit:CloseTable14Tests.OpenNoRewind_IsTheCloseArmsTwinOnTheSameMedium`. *(The phrase was parsed and DROPPED until 2026-09-05, so an `OPEN … WITH NO REWIND` reported `'00'` while its CLOSE spelling reported `'07'` — kb/Work PB317.)* |
 | 35 | REWRITE statement | 14.9.35 | **Claimed** | Mass-storage rewrite |
 | 36 | USE … I-O phrase | 14.9.49 | **Claimed** | Declarative on the mass-storage I-O mode |
 | 37 | WRITE BEFORE / AFTER ADVANCING (each separately) | 14.9.51 | **Claimed** | Print-control advancing incl. the 2023 combined BEFORE AND AFTER form |
@@ -119,8 +119,21 @@ of an unsupported facility.
   with trailing spaces — its '06' write path remains unimplemented). The value is version-invariant — the E.2
   item 15 2023 delta only clarifies *when* it is set.
 - **I-O status '07' restricted to OPEN/CLOSE (§9.1.13.2 item 6; E.2 item 16)**: already met at all editions — the
-  only '07' setter is CLOSE REEL/UNIT on a non-reel medium (`FileRegistry.CloseReelUnit`); no READ/WRITE/START/
-  REWRITE/DELETE path sets it. The 2023 restriction holds without a `DialectLevel` gate.
+  '07' setters are exactly the three phrases item 6 names on the two statements it names, all reaching
+  `FileStatusCode.PhraseOnNonReelMedium` on a non-reel/unit medium: `CLOSE … REEL/UNIT [FOR REMOVAL]` and
+  `CLOSE … WITH NO REWIND` through `FileRegistry.CloseByFormat`, and `OPEN … WITH NO REWIND` through
+  `FileRegistry.NoRewindPhraseEffect`. No READ/WRITE/START/REWRITE/DELETE path sets it. The 2023 restriction
+  holds without a `DialectLevel` gate. *(This bullet claimed until 2026-09-05 that CLOSE REEL/UNIT was the ONLY
+  setter — untrue since kb/Work PB141 added the CLOSE NO REWIND arm, and doubly so since PB317 added the OPEN
+  one; a determination that undercounts its own sites cannot be checked against the code.)*
+- **I-O status '07' vs '05' on one OPEN (§14.9.27.4 GR11 against §9.1.13.2 item 4 a; kb/Work PB317)**: an
+  `OPEN INPUT` of an OPTIONAL file that is not present, written `WITH NO REWIND`, reports **'07'**. Both values
+  describe a successful open and the standard does not rank them, so this is a determination: GR11 is an explicit
+  ASSIGNMENT in the statement's own general rules (*"the I-O status associated with file-name-1 is set to
+  '07'"*), whereas item 4 a) is a DESCRIPTION in the status-value clause, and §14.9.27.4 assigns '05' only in
+  GR17 — whose EXTEND and I-O modes §14.9.27.3 SR6 bars from carrying the phrase at all. The information '05'
+  would have carried is not lost: the first READ of an absent optional file is the at-end '10' (§9.1.13.4 item
+  1 c). Golden `2023/pb317_open_no_rewind` (`OPT-ABSENT=07`).
 - **I-O status '37' insufficient authority on OPEN/DELETE FILE (§9.1.13.6 item 6b; E.2 item 18)**: emitted at all
   editions (mapped from .NET `UnauthorizedAccessException`). The spec permits it ("may") and marks detection
   processor-dependent; E.2 item 18 is a clarification that it is allowed, not a 2023 introduction — so it is NOT
