@@ -369,7 +369,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 : value.Dec ? (checkedPath ? RuntimeApi.DecToUnscaledChecked(value.Expr, $"{ls}", mode)
                                            : RuntimeApi.DecToUnscaled(value.Expr, $"{ls}", mode))
                 : value.Scale == ls ? value.Expr
-                : RuntimeApi.NumRescale(value.Expr, $"{value.Scale}", $"{ls}", mode, checkedPath);
+                : RuntimeApi.NumRescaleStore(value.Expr, $"{value.Scale}", $"{ls}", mode, checkedPath);
             string lcfg = BwzFlag(target.Item);   // no EditCfg, no EditsArg — a locale item takes neither
             if (ecState.SizeErrVar is { } lflag)
             {
@@ -402,7 +402,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 : value.Dec ? (checkedPath ? RuntimeApi.DecToUnscaledChecked(value.Expr, $"{ms}", mode)
                                            : RuntimeApi.DecToUnscaled(value.Expr, $"{ms}", mode))
                 : value.Scale == ms ? value.Expr
-                : RuntimeApi.NumRescale(value.Expr, $"{value.Scale}", $"{ms}", mode, checkedPath);
+                : RuntimeApi.NumRescaleStore(value.Expr, $"{value.Scale}", $"{ms}", mode, checkedPath);
             // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule
             // 2): an aligned |value| exceeding the mask's digit positions sets the flag and leaves the receiver
             // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§14.9.25).

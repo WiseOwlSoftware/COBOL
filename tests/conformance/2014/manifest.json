@@ -53,7 +53,8 @@
     "l1_repository_bare_intrinsic_names",
     "l1_trim_zero_length_result_2014",
     "pb206_value_size_categories",
-    "pb252_mod_rem_standard_decimal"
+    "pb252_mod_rem_standard_decimal",
+    "pb639_store_landing_low_order_digits"
   ],
   "pending": []
 }

@@ -46,6 +46,67 @@ public sealed class SizeErrorDispositionTests
         finally { CutRunner.TryDelete(dir); }
     }
 
+    /// <summary>The NATIVE-arithmetic twin (kb/Work PB639): the size error is on the RESULT's transfer into the
+    /// receiver (§14.7.5 case 3), not on an intermediate, so the receiver is a fixed-point picture the aligned
+    /// value cannot hold rather than a decimal128 escape.</summary>
+    private static string ProgNative(string turn, string body) => $$"""
+        {{turn}}
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PB639DISP.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 WC PIC S9(9)V9(9) VALUE 7.
+               PROCEDURE DIVISION.
+               MAIN-P.
+                   DISPLAY "BEFORE".
+                   {{body}}
+                   DISPLAY "AFTER".
+                   STOP RUN.
+        """;
+
+    /// <summary>kb/Work PB639 — §14.7.5 NO-PHRASE RULE 4 over the RESULT: "if the result of the arithmetic
+    /// statement is a value further from zero than permitted for the associated resultant data item, the
+    /// EC-SIZE-TRUNCATION exception condition is set to exist", disposed by §14.6.13.1.3 #7 (checking enabled,
+    /// nothing resumes) — the run unit terminates abnormally NAMING that condition, never EC-SIZE-OVERFLOW (which
+    /// is the INTERMEDIATE's condition, no-phrase rule 3) and never silence.
+    /// <para>⛔ The second row is the discriminator. 340282366920938463463374607432 is a legal 30-digit literal
+    /// (§8.3.3.3.2) equal to ceil(2^128 / 10^9), so aligning it at the receiver's scale 9 WRAPS to 231788544 —
+    /// well inside <c>PIC S9(9)V9(9)</c>. The store's capacity check looked at that wrap, found it fitting, and
+    /// the program ran to "AFTER" with no exception at all: an exception condition the source asked to be told
+    /// about, silently absent. Both rows are checked so a fix that only handles the obvious magnitude is
+    /// visible.</para></summary>
+    [Theory]
+    [InlineData("COMPUTE WC = 1000000000000000000000000000000.")]
+    [InlineData("COMPUTE WC = 340282366920938463463374607432.")]
+    [InlineData("MULTIPLY 1000000000000000000000 BY 1000000000 GIVING WC.")]
+    public void NoPhraseResultOverflow_UnderChecking_TerminatesNamingEcSizeTruncation(string body)
+    {
+        var (exit, stdout, stderr) = Run(ProgNative(">>TURN EC-SIZE CHECKING ON", body));
+        Assert.Equal(1, exit);
+        Assert.Contains("BEFORE", stdout);
+        Assert.DoesNotContain("AFTER", stdout);
+        Assert.Contains("EC-SIZE-TRUNCATION", stderr);
+        Assert.DoesNotContain("Unhandled exception", stderr);
+        Assert.DoesNotContain("   at ", stderr);   // no CLR stack trace
+    }
+
+    /// <summary>The same two results with checking NOT enabled: §14.6.13.1.3 #8 hands the disposition to the
+    /// implementor and CONFORMANCE.md DOC-A.1-70 documents it as "execution continues and the resultant
+    /// identifier receives the LOW-ORDER digits of the result aligned at its scale" — so the program MUST reach
+    /// "AFTER" and exit 0. This is the other half of the same rule: rule 4 sets the condition in both cases; only
+    /// the disposition differs. (The stored digits themselves are pinned by the golden
+    /// <c>pb639_store_landing_low_order_digits</c>.)</summary>
+    [Theory]
+    [InlineData("COMPUTE WC = 1000000000000000000000000000000.")]
+    [InlineData("COMPUTE WC = 340282366920938463463374607432.")]
+    public void NoPhraseResultOverflow_CheckingOff_ContinuesPerTheDocumentedDetermination(string body)
+    {
+        var (exit, stdout, stderr) = Run(ProgNative("", body));
+        Assert.Equal(0, exit);
+        Assert.Contains("AFTER", stdout);
+        Assert.DoesNotContain("EC-SIZE", stderr);
+    }
+
     /// <summary>§14.6.13.1.3 #8 — checking NOT enabled: the SDIDI range overflow in a CONDITION reaches the run-unit
     /// boundary and terminates loudly (this implementation's documented choice) — the abnormal-termination surface
     /// names the condition, exit 1; never a .NET stack trace / exit 127.</summary>

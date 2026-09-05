@@ -374,8 +374,24 @@ internal static class RuntimeApi
         _ => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CodomainPi37)}",
     };
 
-    public static string NumRescale(string value, string fromScale, string toScale, CobolRounding mode, bool checkedPath = false) =>
-        $"{nameof(CobolNum)}.{(checkedPath ? nameof(CobolNum.RescaleChecked) : nameof(CobolNum.Rescale))}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
+    /// <summary>A VALUE-SEMANTICS rescale — <c>CobolNum.Rescale</c>. ⛔ Every render of this today NARROWS to
+    /// scale 0 (an integer intrinsic argument, a LINAGE line number, an unstringing pointer), where the plain
+    /// rescale is exact. It is NOT a landing into a receiver: a receiver-bound alignment takes
+    /// <see cref="NumRescaleStore"/>, whose two forms are the ones DOC-A.1-70 and §14.7.5 name (kb/Work PB639 —
+    /// this helper carried a <c>checkedPath = false</c> DEFAULT, and the arithmetic store's edited landing took
+    /// it, so a widening past the carrier wrapped in binary).</summary>
+    public static string NumRescale(string value, string fromScale, string toScale, CobolRounding mode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Rescale)}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
+
+    /// <summary>The receiver-bound STORE alignment, in the landing's own form and with NO default — the caller
+    /// says which store it is, exactly as <see cref="FloatToScaled"/> does for the float carrier (kb/Work PB77).
+    /// The UNCHECKED landing is <c>CobolNum.RescaleStoreCap</c>: the LOW-ORDER digits of the result aligned at
+    /// the receiver's scale, which is the determination <c>CONFORMANCE.md</c> DOC-A.1-70 documents for the
+    /// §14.7.5 no-phrase rule-4 size error (§14.6.13.1.3 item 8). The CHECKED landing is
+    /// <c>CobolNum.RescaleChecked</c>, which raises the §14.7.5 case-3 size error for the statement's
+    /// ON SIZE ERROR / EC-SIZE machinery so storing rule 2 leaves the receiver unchanged.</summary>
+    public static string NumRescaleStore(string value, string fromScale, string toScale, CobolRounding mode, bool checkedPath) =>
+        $"{nameof(CobolNum)}.{(checkedPath ? nameof(CobolNum.RescaleChecked) : nameof(CobolNum.RescaleStoreCap))}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
 
     /// <summary>The §14.9.12 GR6c/GR7 scaled division — <c>CobolNum.Divide</c>, or the size-error-throwing
     /// <c>CobolNum.DivideOrThrow</c> under a checked context.</summary>

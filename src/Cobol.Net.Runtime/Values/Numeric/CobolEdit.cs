@@ -113,7 +113,11 @@ public static partial class CobolEdit
 
         // Align the operand to the mask's scale (truncation — §14.9.25 GR: excess fraction digits truncate) and
         // render the absolute digit string at the mask's capacity (excess INTEGER digits truncate high-order).
-        Int128 scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
+        // ⛔ The widening is the STORE-CAP form (kb/Work PB639): the digits this mask could never show are
+        // dropped decimally BEFORE the multiply, so the high-order truncation two lines below is the LOW-ORDER
+        // digits of the true value (§14.6.8.2 r4 "zero fill or truncation on either end"), not the low-order
+        // digits of an Int128 wrap. MOVE 10^30 TO PIC Z(8)9.9(9) showed 123822295.304634368 for 0.000000000.
+        Int128 scaled = CobolNum.RescaleStoreCap(value, valueScale, fracDigits, CobolRounding.Truncation);
         string digits = Int128.Abs(scaled).ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (digits.Length < effectiveDigitCount) digits = digits.PadLeft(effectiveDigitCount, '0');
         else if (digits.Length > effectiveDigitCount) digits = digits[^effectiveDigitCount..];
@@ -336,6 +340,10 @@ public static partial class CobolEdit
         string? currencyString = null)
     {
         var (capacity, fracDigits) = MaskCapacity(picture, currency, commaMode);
+        // ⛔ The capacity test may never look at a WRAPPED alignment (kb/Work PB639): a widening the Int128
+        // carrier cannot form is further from zero than any mask can show (§14.7.5 case 3), and the wrap can
+        // land back inside `capacity` — a guard that silently passes exactly the magnitudes it exists to catch.
+        if (!CobolNum.WideningFits(value, fracDigits - valueScale)) { image = string.Empty; return false; }
         Int128 scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
         if (Int128.Abs(scaled) >= CobolNum.Pow10Wide(capacity)) { image = string.Empty; return false; }
         image = Format(value, valueScale, picture, blankWhenZero, currency, commaMode, edits, currencyString);

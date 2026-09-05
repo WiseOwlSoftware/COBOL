@@ -30764,11 +30764,11 @@
   "ordinal": 3,
   "subject": "Common phrases and features for statements",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#TryFormatFloat; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#TryFormat; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#TryStore",
-  "test-ref": "conformance:2023/pb66_float_edited_picture; conformance:2023/pb74_sdidi_store_size_error; conformance:2023/pb91_native_overflow_outside_arithmetic",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#TryStore; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#WideningFits; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#TryFormat; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#TryFormatFloat",
+  "test-ref": "conformance:2023/pb66_float_edited_picture; conformance:2023/pb74_sdidi_store_size_error; conformance:2023/pb91_native_overflow_outside_arithmetic; conformance:2023/pb639_store_landing_low_order_digits; unit:CarrierLandingFormTests.TryStore_AWideningThatWrapsBackIntoCapacity_IsStillASizeError",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The size error condition when the result is further from zero than the resultant permits: the numeric (CobolNum.TryStore) and fixed-point edited (CobolEdit.TryFormat) checked stores are long-standing (pb74 / pb91 goldens); the floating-point numeric-edited resultant (kb/Work PB66, 2026-08-18) takes TryFormatFloat — COMPUTE E3 = 1.0E+12 into 9.99E+9 under ON SIZE ERROR leaves E3 unchanged and runs the phrase; without the phrase or EC-SIZE checking the MOVE disposition (the pinned saturated image) stands.",
+  "notes": "The size error condition when the result is further from zero than the resultant permits: the numeric (CobolNum.TryStore) and fixed-point edited (CobolEdit.TryFormat) checked stores refuse and leave the receiver unchanged; the float-edited receiver has its own TryFormatFloat. EVIDENCE REFRESHED 2026-09-05 (kb/Work PB639): the row was CONFORMS on the strength of capacity checks that ran on a WRAPPED alignment. Case 3 is a fact about the result after radix point alignment, so the alignment itself must be formable: CobolNum.WideningFits is asked BEFORE the multiply by TryStore, RescaleChecked, RescaleEscape and CobolEdit.TryFormat, because a value the Int128 carrier cannot align at the receiver's scale is further from zero than any fixed-point receiver permits. The added golden's SIZE row and the added unit fact are the discriminators - both are red on the pre-fix runtime and the previous test-refs were not.",
   "state": "OK"
  },
  {
@@ -30931,13 +30931,13 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Common phrases and features for statements",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#TryStore; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#Store; src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+  "test-ref": "conformance:2023/pb639_store_landing_low_order_digits; conformance:2002/pb639_store_landing_low_order_digits; conformance-test:SizeErrorDispositionTests.NoPhraseResultOverflow_UnderChecking_TerminatesNamingEcSizeTruncation; conformance-test:SizeErrorDispositionTests.NoPhraseResultOverflow_CheckingOff_ContinuesPerTheDocumentedDetermination",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-09-05 (kb/Work PB639). No-phrase rule 4 over the RESULT (the case-3 receiver overflow), as distinct from rule 3's INTERMEDIATE overflow (L3.3, PB75): with EC-SIZE checking on the store sets EC-SIZE-TRUNCATION and 14.6.13.1.3 #7 terminates the run unit naming it; with checking off #8 hands the disposition to the implementor and CONFORMANCE.md DOC-A.1-70 documents it as the result's LOW-ORDER digits aligned at the receiver's scale. Both halves are now measured. Before this landing the condition was DETECTED on a WRAPPED alignment: the widening multiply into the Int128 carrier wrapped, and a wrap that landed back inside the picture read as fitting, so COMPUTE WC = 340282366920938463463374607432 (a legal 30-digit literal, ceil(2^128/10^9)) into PIC S9(9)V9(9) set no condition at all under CHECKING ON and stored +0.231788544 with a SIZE ERROR phrase. CobolNum.WideningFits is now asked BEFORE the multiply by every widening sibling. The 85 edition is excluded: the EC-SIZE-TRUNCATION exception-condition name is a 2002 addition.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.5-L3.5",

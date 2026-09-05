@@ -124,7 +124,149 @@ public sealed class CarrierLandingFormTests
             CobolIntrinsics.NumvalCDec("$1234567890123456789012345678901", "$").ToUnscaled(0, CobolRounding.Truncation));
     }
 
+    // ── the NATIVE Int128 carrier's two landings (kb/Work PB639) ─────────────────────────────────────────────
+
+    private static NumProfile Pic(int digits, int scale, bool signed = true,
+        NumericTruncation truncation = NumericTruncation.DigitCount, int storage = 0) => new()
+        {
+            Digits = digits, FractionDigits = scale, Signed = signed, SignKind = NumericSign.TrailingOverpunch,
+            Truncation = truncation, ByteForm = NumericByteForm.Zoned,
+            StorageLength = storage == 0 ? digits : storage,
+        };
+
+    /// <summary>The Int128 lane had a low-order landing (<c>RescaleStoreCap</c>) and a loud one
+    /// (<c>RescaleEscape</c>) but its CHECKED landing was the plain wrapping <c>Rescale</c> with only a
+    /// PROHIBITED test bolted on — so the carrier's own binary wrap reached both the store's capacity check and
+    /// the edit's. This pins all three forms of the ONE alignment.</summary>
+    [Fact]
+    public void NativeCarrier_HasThreeLandings_AndOnlyOneOfThemWraps()
+    {
+        Int128 v = Int128.Parse("1000000000000000000000000000000");      // 10^30, 31 digits (ISO §8.3.3.3.2)
+        // UNCHECKED: the low-order digits of 10^39 — §14.6.13.1.3 item 8 / DOC-A.1-70.
+        Assert.Equal(Int128.Zero, CobolNum.RescaleStoreCap(v, 0, 9, CobolRounding.Truncation));
+        // CHECKED: the §14.7.5 case-3 size error, so the receiver can be left unchanged.
+        Assert.Throws<CobolSizeError>(() => CobolNum.RescaleChecked(v, 0, 9, CobolRounding.Truncation));
+        // LOUD (a value-semantics alignment, §14.7.5 case 5).
+        Assert.Throws<CobolSizeError>(() => CobolNum.RescaleEscape(v, 0, 9, CobolRounding.Truncation));
+        // Inside the carrier all three are ONE function.
+        foreach (CobolRounding mode in Enum.GetValues<CobolRounding>())
+        {
+            Assert.Equal(CobolNum.Rescale(123456, 2, 9, mode), CobolNum.RescaleStoreCap(123456, 2, 9, mode));
+            Assert.Equal(CobolNum.Rescale(123456, 2, 9, mode), CobolNum.RescaleChecked(123456, 2, 9, mode));
+        }
+    }
+
+    /// <summary>The store's unchecked landing IS the low-order digits at the receiver's scale, for the
+    /// arithmetic store and the MOVE alike (they are the same call). Derived, not observed: 10^30 aligned at
+    /// scale 9 is 10^39, whose low-order 18 digits are all zero.</summary>
+    [Fact]
+    public void Store_PastTheCarrier_KeepsTheLowOrderDigits()
+    {
+        Int128 v = Int128.Parse("1000000000000000000000000000000");
+        Assert.Equal(Int128.Zero, CobolNum.Store(v, 0, Pic(18, 9)));
+        // 123456789012345678 × 10^2 = 12345678901234567800; PIC S9(4)V99's low-order 6 digits are 567800.
+        Assert.Equal((Int128)567800, CobolNum.Store(Int128.Parse("123456789012345678"), 0, Pic(6, 2)));
+        // A BinaryCapacity receiver's low-order digits are the CONTAINER's residue: 10^39 mod 2^64.
+        Assert.Equal((Int128)6873995514006732800,
+            CobolNum.Store(v, 0, Pic(18, 9, truncation: NumericTruncation.BinaryCapacity, storage: 8)));
+        // In-carrier stores are untouched by the split.
+        Assert.Equal((Int128)123456000000, CobolNum.Store(123456, 3, Pic(18, 9)));
+    }
+
+    /// <summary>⛔ THE CHECKED ARM'S DISCRIMINATOR. ceil(2^128 / 10^9) aligned at scale 9 WRAPS to 231788544 —
+    /// which fits <c>PIC S9(9)V9(9)</c> — so the capacity check passed and the store committed, where §14.7.5
+    /// storing rule 2 requires the receiver unchanged. A capacity test may only ever see an alignment the
+    /// carrier actually formed.</summary>
+    [Fact]
+    public void TryStore_AWideningThatWrapsBackIntoCapacity_IsStillASizeError()
+    {
+        Int128 v = Int128.Parse("340282366920938463463374607432");
+        Assert.Equal((Int128)231788544, unchecked(v * 1_000_000_000));           // the wrap this guard must not see
+        Assert.False(CobolNum.TryStore(v, 0, Pic(18, 9), CobolRounding.Truncation, out Int128 stored));
+        Assert.Equal(Int128.Zero, stored);
+        Assert.False(CobolNum.TryStore(v, 0, Pic(18, 9, truncation: NumericTruncation.BinaryCapacity, storage: 8),
+            CobolRounding.Truncation, out _));
+        Assert.False(CobolNum.TryStore(Int128.Parse("1000000000000000000000000000000"), 0, Pic(18, 9),
+            CobolRounding.Truncation, out _));                                   // the control that always worked
+        Assert.True(CobolNum.TryStore(123456, 3, Pic(18, 9), CobolRounding.Truncation, out stored));
+        Assert.Equal((Int128)123456000000, stored);                              // an in-capacity store still stores
+    }
+
+    /// <summary>The ONE widening predicate the three siblings share, at its boundary and at Int128.MinValue
+    /// (which <c>Int128.Abs</c> throws on — the R10 bits contract can deliver it, kb/Work PB288).</summary>
+    [Fact]
+    public void WideningFits_IsExactAtTheBoundary_AndSurvivesMinValue()
+    {
+        Assert.True(CobolNum.WideningFits(Int128.MaxValue / 10, 1));
+        Assert.False(CobolNum.WideningFits(Int128.MaxValue / 10 + 1, 1));
+        Assert.True(CobolNum.WideningFits(Int128.MinValue / 10, 1));
+        Assert.False(CobolNum.WideningFits(Int128.MinValue / 10 - 1, 1));
+        Assert.True(CobolNum.WideningFits(Int128.MinValue, 0));      // no widening: always representable
+        Assert.False(CobolNum.WideningFits(Int128.MinValue, 1));
+        Assert.True(CobolNum.WideningFits(0, 100));                  // zero never overflows
+        Assert.False(CobolNum.WideningFits(1, 39));                  // past the decimal reach of the carrier
+        // The three siblings answer the same question, so MinValue never reaches an Int128.Abs.
+        Assert.Equal(Int128.Zero, CobolNum.RescaleStoreCap(Int128.MinValue, 0, 9, CobolRounding.Truncation) % 1_000_000_000);
+        Assert.Throws<CobolSizeError>(() => CobolNum.RescaleEscape(Int128.MinValue, 0, 9, CobolRounding.Truncation));
+        Assert.False(CobolNum.TryStore(Int128.MinValue, 0, Pic(18, 9), CobolRounding.Truncation, out _));
+    }
+
+    /// <summary>The EDITED receiver is the same store with an edit applied, so its two landings must agree with
+    /// the numeric ones: <c>Format</c> keeps the low-order digits, <c>TryFormat</c> refuses a widening the
+    /// carrier cannot form (before PB639 it capacity-checked the WRAP and reported "fits").</summary>
+    [Fact]
+    public void EditedReceiver_FollowsTheSameTwoLandings()
+    {
+        Int128 v = Int128.Parse("1000000000000000000000000000000");
+        Assert.Equal("        0.000000000", CobolEdit.Format(v, 0, "ZZZZZZZZ9.999999999"));
+        Assert.False(CobolEdit.TryFormat(Int128.Parse("340282366920938463463374607432"), 0,
+            "ZZZZZZZZ9.999999999", out _));
+        Assert.False(CobolEdit.TryFormat(v, 0, "ZZZZZZZZ9.999999999", out _));      // the control
+        Assert.True(CobolEdit.TryFormat(123456, 3, "ZZZZZZZZ9.999999999", out string ok));
+        Assert.Equal("      123.456000000", ok);
+    }
+
     // ── the emitter names the landing at every site ─────────────────────────────────────────────────────────
+
+    /// <summary>A RECEIVER-BOUND alignment has its own spelling with NO default form — <c>NumRescaleStore</c>,
+    /// whose two arms are <c>RescaleStoreCap</c> and <c>RescaleChecked</c> — and <c>ArithmeticEmitter</c> renders
+    /// nothing else. <c>RuntimeApi.NumRescale</c> (the plain wrapping <c>CobolNum.Rescale</c>) carried a
+    /// <c>checkedPath = false</c> DEFAULT, the arithmetic store's edited landing took it, and a widening past the
+    /// carrier wrapped in binary before any capacity rule ran (kb/Work PB639). This is the same guard shape
+    /// <see cref="FloatToScaled_TakesTheLandingForm_WithNoDefault"/> puts on the float carrier.</summary>
+    [Fact]
+    public void EveryReceiverBoundAlignment_NamesItsLandingForm()
+    {
+        string api = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Roslyn", "RuntimeApi.cs"));
+        Assert.Matches(new Regex(@"public static string NumRescaleStore\(string value, string fromScale, "
+            + @"string toScale, CobolRounding mode, bool checkedPath\)"), api);
+        Assert.Contains("nameof(CobolNum.RescaleStoreCap)", api);
+        // …and the plain rescale may never regrow a landing-form default.
+        Assert.Matches(new Regex(@"public static string NumRescale\(string value, string fromScale, "
+            + @"string toScale, CobolRounding mode\)"), api);
+        Assert.DoesNotContain("bool checkedPath = ", api);
+
+        string ae = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", "ArithmeticEmitter.cs"));
+        Assert.DoesNotContain("RuntimeApi.NumRescale(", ae);
+        Assert.Equal(2, Regex.Matches(ae, @"RuntimeApi\.NumRescaleStore\(").Count);
+    }
+
+    /// <summary>Every fixed-point numeric store in the compiler funnels through the ONE landing
+    /// (<c>NumericRenderer.StoreArgs</c> → <c>CobolNum.Store</c>/<c>TryStore</c>/<c>StoreU</c>/<c>TryStoreU</c>),
+    /// so fixing the landing fixes the arithmetic store, the MOVE and the INVOKE BY CONTENT expression at once
+    /// (kb/Work PB84). A site that spelled its own <c>CobolNum.Store</c> would be a second copy of the
+    /// determination — the shape PB639 had to repair in four places because the EDITED landing was a second copy.
+    /// </summary>
+    [Fact]
+    public void NoEmitterSpellsItsOwnNumericStore()
+    {
+        foreach (string file in new[] { "ArithmeticEmitter.cs", "MoveEmitter.cs", "OoEmitter.cs", "StringEmitter.cs" })
+        {
+            string src = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", file));
+            Assert.DoesNotContain("nameof(CobolNum.Store)", src);
+            Assert.DoesNotContain("CobolNum.Rescale(", src);
+        }
+    }
 
     /// <summary>The float landing has NO default form: <c>RuntimeApi.FloatToScaled</c> takes the landing as a
     /// required argument, so a new site must say which store it is — the compiler enforces it. This pins the

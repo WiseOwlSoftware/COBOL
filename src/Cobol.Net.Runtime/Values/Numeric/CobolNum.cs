@@ -35,17 +35,57 @@ public static partial class CobolNum
         return RoundDiv(value, Pow10Wide(fromScale - toScale), mode);
     }
 
+    /// <summary>Whether the EXACT widening <paramref name="value"/> × 10^<paramref name="up"/> is representable
+    /// in the Int128 carrier — the ONE test the three widening siblings share
+    /// (<see cref="RescaleEscape"/>, <see cref="RescaleChecked"/>, <see cref="TryStore(Int128, int, in NumProfile, CobolRounding, out Int128)"/>).
+    /// <para>⛔ kb/Work PB639: it is also the test that decides whether a CHECKED store may look at the aligned
+    /// value at all. <see cref="Rescale"/>'s widening multiply wraps in the carrier, and a wrap can land back
+    /// INSIDE the receiver's capacity — <c>COMPUTE WC = 340282366920938463463374607432 ON SIZE ERROR</c> into
+    /// <c>PIC S9(9)V9(9)</c> (a legal 30-digit literal, §8.3.3.3.2) wrapped to 0.231788544, passed the capacity
+    /// check, ran NOT ON SIZE ERROR and overwrote the receiver where §14.7.5 storing rule 2 requires it
+    /// unchanged. The size error condition is a fact about the ALGEBRAIC result ("further from zero than
+    /// permitted for the associated resultant data item", §14.7.5 case 3), never about a wrapped carrier.</para>
+    /// <para>Returning false is a size error for every receiver whose capacity the carrier can express: the
+    /// widest decimal capacity is 10^38 − 1 and every binary container up to a SIGNED 16-byte one is inside
+    /// <see cref="Int128"/>, so a value the carrier cannot form at <paramref name="up"/> exceeds them all.
+    /// (The same argument <c>CobolDec.ToUnscaledChecked</c> makes for the SDIDI lane, kb/Work PB74.) The one
+    /// container reaching past the carrier is an UNSIGNED 16-byte <c>COMP-5</c>, whose top half lies above the
+    /// documented native intermediate (<c>CONFORMANCE.md</c> DOC-A.1-123: a scaled <see cref="Int128"/>,
+    /// magnitude bound ≈ 1.7 × 10^38). An alignment landing there is the §14.7.5 case-5 INTERMEDIATE range
+    /// condition that item 179 (1) already documents as CHECKED, so false is the right answer there too — and
+    /// it is the answer <see cref="RescaleEscape"/> gives on the value-semantics side. What it must never be is
+    /// a wrap: before kb/Work PB639 such a store kept |value − 2^128|, silently.</para>
+    /// <para>MinValue-safe by construction: the bound is written on the SIGNED value, never through
+    /// <c>Int128.Abs</c>, which throws on <see cref="Int128.MinValue"/>.</para></summary>
+    internal static bool WideningFits(Int128 value, int up)
+    {
+        if (up <= 0 || value == 0) return true;
+        if (up > 38) return false;                       // 10^39 is past the carrier for every nonzero value
+        Int128 f = Pow10Wide(up);                        // f ≥ 10, so both quotients are representable
+        return value <= Int128.MaxValue / f && value >= Int128.MinValue / f;
+    }
+
     /// <summary>The size-error-CHECKED sibling of <see cref="Rescale"/> for a numeric-EDITED receiver's final
-    /// transfer (ISO §14.7.4.3 r7): under <see cref="CobolRounding.Prohibited"/> an inexact narrowing throws
-    /// <see cref="CobolSizeError"/> — the caller's ON SIZE ERROR / EC-SIZE machinery catches it and leaves the
-    /// receiver UNCHANGED. Mirror of the numeric path's <see cref="TryStore"/> Prohibited check and the
-    /// standard-decimal <c>CobolDec.ToUnscaled</c> throw, so all three receiver categories agree. Every other
-    /// mode rescales normally (a rounding mode is never a size error by rescale).</summary>
+    /// transfer: under <see cref="CobolRounding.Prohibited"/> an inexact narrowing throws
+    /// <see cref="CobolSizeError"/> (ISO §14.7.4.3 r7), and a WIDENING the carrier cannot form throws the
+    /// §14.7.5 case-3 size error ("if, after radix point alignment and any applicable rounding specifications,
+    /// the result of an arithmetic statement is further from zero than permitted for the associated resultant
+    /// data item") — the caller's ON SIZE ERROR / EC-SIZE machinery catches either and leaves the receiver
+    /// UNCHANGED. Mirror of the numeric path's <see cref="TryStore(Int128, int, in NumProfile, CobolRounding, out Int128)"/>
+    /// and the standard-decimal <c>CobolDec.ToUnscaledChecked</c>, so all three receiver categories agree.
+    /// Every other mode rescales normally (a rounding mode is never a size error by rescale).
+    /// <para>⛔ kb/Work PB639: the widening arm was the plain <see cref="Rescale"/>, so the alignment wrapped and
+    /// <c>CobolEdit.TryFormat</c> then capacity-checked the WRAPPED value — a no-op guard on exactly the
+    /// magnitudes it exists to catch.</para></summary>
     public static Int128 RescaleChecked(Int128 value, int fromScale, int toScale, CobolRounding mode)
     {
         if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, fromScale, toScale))
             throw new CobolSizeError("ROUNDED MODE IS PROHIBITED on an inexact transfer to an edited receiver "
                 + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
+        if (!WideningFits(value, toScale - fromScale))
+            throw new CobolSizeError($"radix point alignment to {toScale} fraction digits is further from zero "
+                + "than permitted for the receiving data item (ISO §14.7.5 case 3 — EC-SIZE-TRUNCATION; the "
+                + "receiver is left unchanged)", "EC-SIZE-TRUNCATION");
         return Rescale(value, fromScale, toScale, mode);
     }
 
@@ -54,13 +94,32 @@ public static partial class CobolNum
     /// into the receiver: rescale to the receiver's scale (rounding with <paramref name="mode"/>), drop any
     /// high-order digits beyond the picture (the no-ON-SIZE-ERROR behavior), and apply the unsigned-magnitude rule
     /// for an unsigned receiver (ISO §14.9.25.4 GR6d2b). Returns the receiver's stored unscaled integer.
+    /// <para>This IS the determination <c>CONFORMANCE.md</c> DOC-A.1-70 documents for a §14.7.5 case-3 size error
+    /// with no SIZE ERROR phrase and EC-SIZE checking off (§14.7.5 no-phrase rule 4 names the condition;
+    /// §14.6.13.1.3 item 8 hands the disposition to the implementor): "execution continues and the resultant
+    /// identifier receives the LOW-ORDER digits of the result aligned at its scale". It is the same rule for a
+    /// MOVE, whose §14.6.8.2 r4 alignment is "transferred to the receiving digits with zero fill or truncation on
+    /// either end".</para>
+    /// <para>⛔ kb/Work PB639 — WHY THE WIDENING IS SPLIT BY CAPACITY DISCIPLINE. "Low-order digits" is a DECIMAL
+    /// statement for a DISPLAY/COMP/PACKED receiver and the container's two's-complement residue for a
+    /// BinaryCapacity one; neither is "the Int128 carrier's binary wrap, then a decimal mod". Aligning through the
+    /// plain <see cref="Rescale"/> and only THEN taking the decimal mod composed the two:
+    /// <c>COMPUTE WC = 1000000000000000000000000000000</c> into <c>PIC S9(9)V9(9)</c> stored
+    /// −123822295.304634368 — the low digits of 10^39 wrapped modulo 2^128 — where the result's low-order 18
+    /// digits are all zero. <see cref="RescaleStoreCap"/> drops the digits a ≤38-digit store could never use
+    /// BEFORE the multiply, so the composition is exact: 10^D divides 10^38 for every D ≤ 38, hence
+    /// (v·10^s mod 10^38) mod 10^D = v·10^s mod 10^D. The BinaryCapacity arm keeps <see cref="Rescale"/>, whose
+    /// carrier wrap IS modulo 2^128 and therefore already exact modulo the container's 2^bits.
+    /// (<see cref="StoreU"/> has had this split — its cap argument — since R10; this was the unfixed arm.)</para>
     /// </summary>
     public static Int128 Store(Int128 value, int valueScale, in NumProfile receiver,
         CobolRounding mode = CobolRounding.Truncation)
     {
-        Int128 v = Rescale(value, valueScale, receiver.FractionScale, mode);
         if (receiver.Truncation == NumericTruncation.BinaryCapacity)
-            return WrapBinary(v, receiver);   // native two's-complement width (COMP-5 / BINARY-CHAR family)
+            // Native two's-complement width (COMP-5 / BINARY-CHAR family): 2^bits divides the carrier's own
+            // 2^128 wrap, so the aligned residue is exact without a decimal cap.
+            return WrapBinary(Rescale(value, valueScale, receiver.FractionScale, mode), receiver);
+        Int128 v = RescaleStoreCap(value, valueScale, receiver.FractionScale, mode);
         v %= Pow10Wide(receiver.Digits);      // high-order digit truncation (DISPLAY / COMP / BINARY)
         return receiver.Signed ? v : Int128.Abs(v);
     }
@@ -74,6 +133,10 @@ public static partial class CobolNum
     /// inexact (a nonzero fraction would be dropped, §14.7.4.3 r7). Otherwise stores the value (unsigned-magnitude
     /// rule applied, §14.9.25.4 GR6d2b) and returns <c>true</c>. This is the checked sibling of <see cref="Store"/>, used
     /// only when an ON SIZE ERROR phrase is present.
+    /// <para>⛔ kb/Work PB639: the capacity check must never look at a WRAPPED alignment. The widening multiply
+    /// in <see cref="Rescale"/> wraps in the carrier, and a wrap can land back inside the receiver's capacity, so
+    /// the guard silently passed exactly the magnitudes it exists to catch — see <see cref="WideningFits"/>,
+    /// which is now consulted first.</para>
     /// </summary>
     public static bool TryStore(Int128 value, int valueScale, in NumProfile receiver, CobolRounding mode, out Int128 stored)
     {
@@ -81,6 +144,10 @@ public static partial class CobolNum
         // PROHIBITED: an inexact rescale is a size error regardless of capacity (§14.7.4.3 r7) — receiver unchanged.
         if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, valueScale, receiver.FractionScale))
             return false;
+
+        // §14.7.5 case 3 on the ALIGNMENT itself: a widening the Int128 carrier cannot form is further from zero
+        // than ANY fixed-point receiver permits (kb/Work PB639) — storing rule 2 leaves the receiver unchanged.
+        if (!WideningFits(value, receiver.FractionScale - valueScale)) return false;
 
         Int128 v = Rescale(value, valueScale, receiver.FractionScale, mode);
 
@@ -285,15 +352,14 @@ public static partial class CobolNum
     /// <see cref="Rescale"/>'s documented wrap-without-phrase determination (CONFORMANCE.md §7 item 179).</summary>
     public static Int128 RescaleEscape(Int128 value, int fromScale, int toScale, CobolRounding mode)
     {
-        if (toScale <= fromScale) return Rescale(value, fromScale, toScale, mode);
-        Int128 f = Pow10Wide(toScale - fromScale);
-        // The bound is written on the SIGNED value rather than through Int128.Abs, which throws on
-        // Int128.MinValue — a value the R10 bits contract can deliver here (kb/Work PB288's sibling sweep).
-        // f ≥ 10 on this arm, so both quotients are representable.
-        if (value != 0 && (value > Int128.MaxValue / f || value < Int128.MinValue / f))
+        // The bound is the shared WideningFits predicate (kb/Work PB639) — written on the SIGNED value rather
+        // than through Int128.Abs, which throws on Int128.MinValue, a value the R10 bits contract can deliver
+        // here (kb/Work PB288's sibling sweep). One rule, one place: this arm, RescaleChecked and TryStore all
+        // ask the same question and differ only in what they do with the answer.
+        if (!WideningFits(value, toScale - fromScale))
             throw new CobolSizeError($"scale alignment to {toScale} fraction digits exceeds the Int128 "
                 + "intermediate (ISO §8.8.1 alignment at the D1 escape boundary — EC-SIZE-OVERFLOW)");
-        return value * f;
+        return Rescale(value, fromScale, toScale, mode);
     }
 
     /// <summary>The low-order <paramref name="digits"/> of <paramref name="v"/>, sign preserved —

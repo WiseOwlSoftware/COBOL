@@ -472,7 +472,8 @@
   "l1_sync_file_record",
   "l1_usage_computational_identity",
   "l1_value_values_equivalent",
-  "l1_value_thru_through_equivalent"
+  "l1_value_thru_through_equivalent",
+  "pb639_store_landing_low_order_digits"
  ],
  "pending": [
   "pb485_value_only_format1"

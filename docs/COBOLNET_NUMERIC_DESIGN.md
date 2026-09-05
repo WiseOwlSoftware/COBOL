@@ -720,6 +720,41 @@ does not permit. It also read a negative scale as 10^0 (`Pow10.AsDouble`'s out-o
 trailing-P receiver stored a value 10^|scale| too large and then capacity-truncated it to zeros. `Pow10` no longer
 has a `double` view at all — that table existed only for this multiply.
 
+**⛔ THE NATIVE `Int128` LANE'S THIRD FORM IS THE RECEIVER-BOUND ALIGNMENT, AND ITS UNCHECKED ARM IS SPLIT BY THE
+RECEIVER'S CAPACITY DISCIPLINE (kb/Work PB639, 2026-09-05).** PB77 gave the SDIDI, exact-family and float carriers
+their two landings; the plain scaled-`Int128` lane — the one every fixed-point arithmetic store and numeric MOVE
+actually rides — kept a low-order form (`RescaleStoreCap`) and a loud one (`RescaleEscape`) but its CHECKED form
+was the wrapping `Rescale` with only a PROHIBITED test bolted on. Three consequences, all measured:
+(1) `CobolNum.Store` aligned through `Rescale` and only THEN took the decimal capacity mod, composing a BINARY
+wrap with a DECIMAL truncation — `COMPUTE WC = 1000000000000000000000000000000` into `PIC S9(9)V9(9)` stored
+−123822295.304634368 where DOC-A.1-70 promises 10^39's low-order 18 digits, all zero; `CobolEdit.Format` had the
+same composition for an edited receiver, and the MOVE rides both.
+(2) `CobolNum.TryStore` and `CobolEdit.TryFormat` capacity-checked the WRAPPED alignment, so a wrap that landed
+back inside the picture read as fitting: `COMPUTE WS = 340282366920938463463374607432 ON SIZE ERROR` — a legal
+30-digit literal (§8.3.3.3.2) that is ceil(2^128 / 10^9) — ran NOT ON SIZE ERROR and stored +0.231788544, where
+§14.7.5 storing rule 2 requires the receiver unchanged; under `>>TURN EC-SIZE CHECKING ON` it raised nothing.
+(3) The rule "does the exact widening fit the carrier" was written three times.
+
+The shape now: **`CobolNum.WideningFits(value, up)` is the one predicate**, asked BEFORE any multiply by
+`RescaleEscape` (which throws the case-5 EC-SIZE-OVERFLOW), `RescaleChecked` (which throws the case-3
+EC-SIZE-TRUNCATION so storing rule 2 can leave the receiver unchanged), `TryStore` (which returns false) and
+`CobolEdit.TryFormat` (which returns false) — a value the carrier cannot align at the receiver's scale is further
+from zero than ANY fixed-point receiver permits, because the widest decimal capacity is 10^38 − 1 and the widest
+binary container is `Int128` itself. It is MinValue-safe by construction (the bound is written on the signed
+value, never through `Int128.Abs`, which throws on `Int128.MinValue` — reachable through the R10 bits contract).
+**The UNCHECKED store then splits on the receiver's capacity discipline, because "the low-order digits" means two
+different things:** a DISPLAY / COMP / PACKED receiver takes the DECIMAL low-order digits, so the widening is
+`RescaleStoreCap` (the ≤38-digit cap applied BEFORE the multiply — exact, since 10^D divides 10^38 for every
+D ≤ 38, hence (v·10^s mod 10^38) mod 10^D = v·10^s mod 10^D); a BinaryCapacity receiver (COMP-5 / the BINARY-CHAR
+family, §13.18.60.4 GR12) takes the CONTAINER's two's-complement residue, and there the carrier's own wrap IS
+modulo 2^128, which 2^bits divides — so that arm keeps `Rescale` and is exact as it stands. `StoreU` has had this
+split since R10 (its cap argument is the binary modulus or the decimal one); `Store` was the unfixed arm — the
+[[two_arm_dispatch]] shape again. The emitter names this landing too: `RuntimeApi.NumRescaleStore(…, bool
+checkedPath)` has NO default, `RuntimeApi.NumRescale` is now only the value-semantics narrowing helper, and
+`CarrierLandingFormTests.EveryReceiverBoundAlignment_NamesItsLandingForm` greps the sites. Goldens
+`pb639_store_landing_low_order_digits` at 2002 / 2014 / 2023 (eight rows; six are red on the pre-fix compiler and
+the two that are not are the COMP-5 pin and the in-capacity control).
+
 **A size error that ESCAPES an arithmetic statement is a fatal exception condition, not a crash (kb/Work PB75,
 2026-08-18).** Every `CobolSizeError` raise site — the SDIDI decimal128 range check (`CobolDec.Clamp`, §8.8.1.5.2
 r2), `CobolDec.Pow`'s bounds, the PROHIBITED-inexact intermediate, `CobolNum.RescaleEscape`'s Int128 escape
