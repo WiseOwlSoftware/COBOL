@@ -46,6 +46,15 @@ internal sealed class BinderDriver
         var flagEvents = directives.FlagEvents;
         var cobolWordsMap = directives.CobolWordsMap;
 
+        // The LEVEL-NUMBER screen (ISO §13.18.33.3) — run FIRST, before any binding. It is a pure SYNTAX rule
+        // (a token plus the entry's section ancestry) and needs nothing the binder produces, while a level-number
+        // outside its section's permitted set makes the storage tree it heads meaningless: `78 K VALUE 5.` used to
+        // bind as a memberless group nested under the preceding entry and survive to a RUN-time abort. Screening
+        // first means the user sees the level-number error instead of that cascade, and no bind-time failure on the
+        // malformed structure can preempt it. The three sibling passes further down run POST-bind only because they
+        // consume the bound model; this one has no such reason to wait. kb/Work PB485.
+        global::CobolNet.Validation.LevelNumberPass.Run(tree, edition);
+
         // The group's compile-time TurnState (ISO §7.3.25; deep-dive D10) — built BEFORE binding so every unit's
         // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
         // group). Name/edition validation happens here (SR2 + the 2023-only families).

@@ -630,6 +630,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 BindConstantEntry(entry, constBody);
                 continue;
             }
+            // The level-number arrives PRE-SCREENED: LevelNumberPass ran over the whole parse tree before any
+            // binding and rejected every value outside the set §13.18.33.3 permits for this entry's section, so
+            // `lvl` here is 1–49, 66, 77 or 88 and the TryParse cannot fail in a compile that reaches emit. Do
+            // NOT re-decide the set here — there are four grammar arms that spell a level-number and only one of
+            // them is this one (kb/Work PB485; LevelNumberArmDriftTests holds the list honest).
             int.TryParse(entry.levelNumber().GetText(), out int lvl);
             // A level-88 entry is a condition-name on the immediately superior item — not a node in the tree.
             if (lvl == 88)

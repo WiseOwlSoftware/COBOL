@@ -189,17 +189,45 @@ parse-tree arm on the RETRY phrase's recognition (`VisitRetryPhrase` → `Check(
   identical — only the repository-resolved name set separates them — so it fires at bind, on recognition, before
   operand binding.
 
-#### 2.4.1 The post-bind SIBLING passes — what does NOT belong in VersionConformancePass
+#### 2.4.1 The SIBLING passes — what does NOT belong in VersionConformancePass
 
 `VersionConformancePass` owns **edition gating**, and its charter ("the two arms are disjoint: a `Check` for any one
-construct fires from EXACTLY one arm") describes construct edition checks. Two sibling passes run right after it in
-`BinderDriver`, each on an axis orthogonal to editions. Neither is a bolt-on, and the reason is the same both
-times: folding an orthogonal rule into the edition pass silently widens a charter that other decisions depend on.
+construct fires from EXACTLY one arm") describes construct edition checks. Four sibling passes run in
+`BinderDriver`, each on an axis orthogonal to editions. None is a bolt-on, and the reason is the same every time:
+folding an orthogonal rule into the edition pass silently widens a charter that other decisions depend on.
 
-| Pass | Axis | Severity | Keyed on |
-|---|---|---|---|
-| `FlagConformancePass` | migration flagging (§7.3.14 FLAG-02 / §7.3.15 FLAG-14) | always Warning | the user's `>>FLAG` directive state, regardless of `--std` |
-| `ExpressionFormationPass` | non-edition SYNTAX-RULE conformance (§8.8.1.2 Table 3, §8.8.2 Table 4) | Error | the parse tree alone — no edition, no directive state |
+| Pass | Axis | Severity | Keyed on | Runs |
+|---|---|---|---|---|
+| `FlagConformancePass` | migration flagging (§7.3.14 FLAG-02 / §7.3.15 FLAG-14) | always Warning | the user's `>>FLAG` directive state, regardless of `--std` | post-bind |
+| `ExpressionFormationPass` | non-edition SYNTAX-RULE conformance (§8.8.1.2 Table 3, §8.8.2 Table 4) | Error | the parse tree alone — no edition, no directive state | post-bind |
+| `DeclinedFacilityPass` | Annex A.4 optional elements this implementation does not claim | Error | the claim register (`docs/CONFORMANCE.md` §5), not the edition | post-bind |
+| `LevelNumberPass` | the level-number's own syntax rules (§13.18.33.3 SR2/4/5/6, §13.18.33.4 GR2, §13.16.3 SR1/SR2) | Error | the parse tree alone — the entry's SECTION ancestry and its BODY | **pre-bind** |
+
+**`LevelNumberPass` is the one that runs FIRST, and deliberately.** The other three consume the bound model or sit
+with the edition pass by convention; this one reads a token, the section the entry is in, and the shape of the
+entry body, and needs nothing binding produces. Screening before the binder matters because a level-number outside
+its permitted set makes the storage tree it heads meaningless: `78 K VALUE 5.` bound as a memberless GROUP nested
+under whatever entry preceded it, so every later reference mis-qualified and the real fault surfaced as a RUN-time
+`NotImplementedCobolFeatureException`. Running first replaces that cascade with one diagnostic at the entry, and
+makes it impossible for a bind-time failure on the malformed structure to preempt the diagnostic that explains it.
+
+**Two axes, one pass, two codes.** A level-number is constrained twice over and the constraints are independent:
+by the SECTION its entry lives in (§13.18.33.3 — four *different* sets; 77 is legal in working-storage and illegal
+in a record area) and by the general FORMAT the entry is written in (§13.18.33.4 GR2's "may be used only as
+described by …" plus §13.16.3 SR1/SR2). `COBOLNET1746` reports the first, `COBOLNET1747` the second, because the
+user action differs: one says the level-number may not appear here at all, the other says the level-number is fine
+but the entry under it is not the format it requires. The FORMAT is read from the entry BODY and never from the
+level-number — deciding it from the level would make GR2b and GR2c vacuous — so the level-number selects which
+check runs and the body only answers it. `05 R RENAMES A THRU B.` is the case the format axis catches and the
+section axis cannot: its level is perfectly in range, and before the pass it reached the EMITTER and produced
+uncompilable C#.
+
+**The arm list is DERIVED, not remembered.** Four grammar rules spell a `levelNumber` — `dataDescriptionEntry`,
+`linkageProcedureParameter`, `reportGroupEntry`, `screenDescriptionEntry` — and they reach three different binders
+plus, for the procedure-parameter form, none at all. A per-binder check would have been four copies of one rule
+with a fifth site guaranteed to be forgotten. `LevelNumberArmDriftTests` reads the `.g4` files and fails until
+`LevelNumberRules.Classify` names every rule that spells a level-number and every section that hosts a data
+description entry (kb/Work PB485).
 
 **Why the formation tables cannot be edition-gated.** They have no `introducedIn`: the (unary, unary) and
 (B-NOT, B-NOT) pairs are invalid in 1985, 2002, 2014 and 2023 alike. There is no `constructs.json` row to write and

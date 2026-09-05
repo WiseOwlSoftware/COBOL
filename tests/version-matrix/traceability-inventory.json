@@ -17533,13 +17533,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "Data description entry",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#levelNumber; src/Cobol.Net.Frontend/Cst/DataDescriptionCst.cs#Level; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntries; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+  "test-ref": "conformance:negative/pb485-level-66-not-renames; conformance:negative/pb485-level-88-not-condition-name; conformance:negative/pb485-level-78-working-storage; conformance:2023/pb485_entry_format_legal_forms",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB485 — NO LEVEL-NUMBER RANGE CHECK EXISTS ANYWHERE. The grammar is `levelNumber : INTEGERLIT` (any integer); DataDescriptionCst.Level is a bare `int.TryParse`; BindEntries special-cases only 88 (condition-name) and 66 (RENAMES) and BindEntry only `level is 66 or 88`. Every other integer binds as an ordinary Format-1 entry. Probed clean at --std 2023 AND --std 85: `00 A PIC X(3).`, `50 A PIC X(3).`, `67 A PIC X(3).`, `78 A PIC X(3).`, `99 A PIC X(3).` (probes sr1_level00/50/67/78/99, q_level50_85). The harm is not only acceptance: BindEntries nests on the raw number (`while stack.Peek().Level >= nestLevel`), so an out-of-range level is attached under whatever precedes it. `01 G. 05 A PIC X(3). 50 B PIC X(3).` makes B a 'child' of the ELEMENTARY item A; the emitter drops it, and `MOVE 'abc' TO B` then leaves the compiler reporting a raw Roslyn `CS1061: 'string' does not contain a definition for 'B'` against generated C# instead of a named COBOL diagnostic (probe h_level50_nest; identical for 99). `78 MAX-N VALUE 10.` -- the vendor constant-name level a migrating program is most likely to carry -- binds as a storage item and its reference leaks `CS0103` (probe h_level78_const). There is no COBOLNET code allocated for the rule.",
-  "state": "GAP"
+  "notes": "Format 1's level-number domain, enforced as the intersection of two independent screens rather than a fourth copy of a set: the 13.18.33.3 section screen bounds the VALUE, and the 13.18.33.4 GR2b/GR2c format arms remove 66 and 88 from any entry that is not written in the renames or condition-name format. What is left for a format-1 entry is exactly 77 or 1 through 49. The 2023 positive is the over-rejection guard proving the legal 66, 77 and 88 shapes still compile.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-2",
@@ -17547,13 +17547,13 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "Data description entry",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+  "test-ref": "conformance:negative/pb485-level-77-filler; conformance:negative/pb485-level-77-unnamed; conformance:2023/pb485_entry_format_legal_forms",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB485 — BindEntry derives `isFiller = cobolName is null || cobolName == \"FILLER\"` and renames the item `_filler{n}` with no level-77 guard anywhere; nothing else in the binder asks whether a 77 entry is named. Probed clean at --std 2023 and --std 85: `77 PIC X(3).` (omitted entry-name clause, which §13.18.20.3 SR2 makes the FILLER format) and `77 FILLER PIC X(3).` (probes sr2_77_filler_implicit, sr2_77_filler_explicit, q_77_noname_85); two such entries plus a named 77 coexist in one program (probe h_77_filler_two). The rule wants the data-name FORMAT of the entry-name clause, so both spellings are violations. Cheap to enforce and adjacent to the SR1 hole -- the same level-number screen serves both.",
-  "state": "GAP"
+  "notes": "Both spellings of the failure are witnessed, because SR4 makes them one rule: an explicit FILLER at level 77, and an OMITTED entry-name, which SR4 says is 'as though the filler format of the entry-name clause were specified'. A screen testing only for the literal word FILLER would pass the second.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-3",
@@ -21159,13 +21159,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "Level-number",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/Cobol.Net.Frontend/Grammar/Core/CobolScreen.g4#screenDescriptionEntry",
+  "test-ref": "conformance:negative/pb485-level-number-missing",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "Enforced STRUCTURALLY: every grammar rule that spells an entry opens with a mandatory levelNumber (dataDescriptionEntry, linkageProcedureParameter, reportGroupEntry, screenDescriptionEntry), so an entry with no level-number cannot parse. Witnessed because a rule enforced by the grammar's shape has no code site to point at, and an unwitnessed structural claim is indistinguishable from an unchecked one.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.33.3-2",
@@ -21173,13 +21173,13 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "Level-number",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Validation/LevelNumberPass.cs#Classify",
+  "test-ref": "conformance:negative/pb485-level-77-file-section; unit:LevelNumberArmDriftTests.EverySectionHostingADataDescriptionEntry_IsClassifiedByThePass",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The FileRecord arm: an entry subordinate to an FD or SD takes {66, 88, 1-49} and NOT 77, which SR5 admits. The witness is a 77 under an FD -- the case a flat section-blind range test accepts, and the reason the screen classifies from the entry's section ancestry. kb/Work PB485.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.33.3-3",
@@ -21187,13 +21187,13 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "Level-number",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
+  "test-ref": "conformance:85/pb485_level_number_legal_forms",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "A spelling permission, not a set: the screen parses the level-number TEXT to its VALUE and tests the value, so 01 through 09 and the bare 1 through 9 are the same level and both pass. The positive golden writes all of 01..09 plus a bare 1 and must still compile.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.33.3-4",
@@ -21201,13 +21201,13 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "Level-number",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Validation/LevelNumberPass.cs#Classify",
+  "test-ref": "conformance:negative/pb485-level-66-report-group; unit:LevelNumberArmDriftTests.EveryLevelNumberBearingRule_IsClassifiedByThePass",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The ReportGroup arm: a report group description entry subordinate to an RD takes 1-49 and no special level at all. reportGroupEntry is a distinct grammar rule reaching a distinct binder, which is why the screen sits on the shared levelNumber node instead of in each binder. kb/Work PB485.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.33.3-5",
@@ -21215,13 +21215,13 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "Level-number",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Validation/LevelNumberPass.cs#Classify",
+  "test-ref": "conformance:negative/pb485-level-78-working-storage; conformance:negative/pb485-level-50-linkage; conformance:negative/pb485-level-number-unparseable; conformance:85/pb485_level_number_legal_forms",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The NoncontiguousCapable arm: working-storage, local-storage and linkage take {66, 77, 88, 1-49}. Witnessed three ways -- the MicroFocus/GnuCOBOL 78 constant (which ISO does not define; the conforming spelling is the 13.10 CONSTANT entry), an ordinary out-of-range 50, and a twelve-digit level that used to become a silent lvl = 0 in DataBinder -- plus the positive over-rejection guard proving 66, 77, 88 and 1-49 still compile. kb/Work PB485.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.33.3-6",
@@ -21257,13 +21257,13 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Level-number",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+  "test-ref": "conformance:negative/pb485-level-77-renames; conformance:negative/pb485-level-66-not-renames; conformance:negative/pb485-renames-not-level-66; conformance:negative/pb485-level-88-not-condition-name; conformance:2023/pb485_entry_format_legal_forms",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "All three special-level assignments, each with its own witness: GR2a (77 may be used only as described by the data description format) by a 77 written as a renames entry; GR2b (66 only as the renames format) in BOTH directions -- a 66 with no RENAMES clause and a RENAMES body at another level, the latter of which reached the emitter and produced uncompilable C# before this screen; GR2c (88 only as the condition-name or validation format) by an 88 carrying a PICTURE. The format is read from the entry BODY and never from the level-number, or every one of these rules would be vacuous. kb/Work PB485.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.33.4-3",

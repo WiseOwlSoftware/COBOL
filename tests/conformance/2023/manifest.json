@@ -441,7 +441,11 @@
   "l1_subtract_corr_word_equivalence",
   "l1_subtract_format1_initial_evaluation",
   "l1_subtract_format1_standard_decimal",
-  "pb373_object_computer_name_inert"
+  "pb373_object_computer_name_inert",
+  "pb485_constant_entry_spelling",
+  "pb485_entry_format_legal_forms"
  ],
- "pending": []
+ "pending": [
+  "pb485_value_only_format1"
+ ]
 }

@@ -726,7 +726,20 @@
   "l1-subtract-sr2-format2-minuend-alphanumeric",
   "l1-subtract-sr3-literal1-nonnumeric",
   "l1-subtract-sr3-literal2-nonnumeric",
-  "l1-subtract-sr4-giving-alphanumeric"
+  "l1-subtract-sr4-giving-alphanumeric",
+  "pb485-level-78-working-storage",
+  "pb485-level-50-linkage",
+  "pb485-level-77-file-section",
+  "pb485-level-66-report-group",
+  "pb485-level-77-screen-section",
+  "pb485-level-number-unparseable",
+  "pb485-level-number-missing",
+  "pb485-level-66-not-renames",
+  "pb485-level-88-not-condition-name",
+  "pb485-renames-not-level-66",
+  "pb485-level-77-filler",
+  "pb485-level-77-unnamed",
+  "pb485-level-77-renames"
  ],
  "pending": []
 }

@@ -900,6 +900,50 @@ public static class DiagnosticCatalog
         + "so a sign written against the digits belongs to the literal and forms the PERMISSIBLE (unary, literal) "
         + "pair instead.",
         "ISO §8.8.1.2 Table 3 / §8.8.2 Table 4");
+    // ⛔ THE LEVEL-NUMBER SETS (kb/Work PB485). §13.18.33.3 states FOUR sets, one per DATA DIVISION section, and
+    // they are NOT the same set: 77 is legal in working-storage/local-storage/linkage (SR5) and illegal in a
+    // record area (SR2), and the report (SR4) and screen (SR6) arms admit no special level at all. ONE code for
+    // the family — the shape COBOLNET1720 and COBOLNET1707 already use — because it is one rule ("a level-number
+    // outside the set its section permits") over four sections; the MESSAGE names the section, its permitted set
+    // and its syntax-rule number, so the four arms stay distinguishable without four codes. Not edition-gated
+    // (the sets are identical in 1985/2002/2014/2023) and not dialect-gated (a level ISO never defined is not a
+    // ConstructAvailability.Removed construct, so --permissive has no arm for it).
+    public static readonly DiagnosticDescriptor LevelNumberOutOfRange = new(
+        "COBOLNET1746", "level-number-out-of-range", EditionSeverity.Error,
+        "ISO §13.18.33.1: \"Level numbers 1 through 49 indicate the position of a data item or screen item within "
+        + "the hierarchical structure described by a data description entry, a report group description entry, or "
+        + "a screen description entry. In addition, level numbers 66, 77, and 88 are used to identify special "
+        + "entries.\" §13.18.33.3 then bounds the permitted set PER SECTION: SR2, entries subordinate to an FD or "
+        + "SD entry, \"66, 88, or 1 through 49\"; SR4, report group description entries subordinate to an RD "
+        + "entry, \"1 through 49\"; SR5, entries in the working-storage, local-storage and linkage sections, "
+        + "\"66, 77, 88, or 1 through 49\"; SR6, screen description entries, \"1 through 49\". SR3 (\"A "
+        + "level-number in the range of 1 through 9 may be specified as 01 through 09\") is a spelling permission, "
+        + "so the screen tests the VALUE and the 01–09 forms pass. §4.2.2 is why this is a COMPILE-time "
+        + "diagnostic: an implementation \"shall provide a warning mechanism that optionally may be invoked by the "
+        + "user at compile time to indicate violations of the general formats and the explicit syntax rules\". "
+        + "The common cause is the MicroFocus/GnuCOBOL level-78 constant, which ISO does not define — the "
+        + "conforming spelling is the §13.10 CONSTANT entry, `01 name CONSTANT AS literal.`",
+        "ISO §13.18.33.3");
+    // The SECOND level-number axis: the entry FORMAT. §13.18.33.3 above bounds the level-number by the SECTION;
+    // §13.18.33.4 GR2 and §13.16.3 bound it by the general format the entry is WRITTEN in, and the two are
+    // independent — 78 in working-storage is a section violation, `05 R RENAMES A THRU B.` is a format one and its
+    // level is perfectly in range. Kept a separate code because the user action differs: 1746 says "this
+    // level-number may not appear here at all", 1747 says "this level-number is fine, but the entry under it is
+    // not the format it requires". The format axis was the one that reached the EMITTER: a renames body at level
+    // 05 produced uncompilable C# rather than any diagnostic (kb/Work PB485).
+    public static readonly DiagnosticDescriptor LevelNumberEntryFormat = new(
+        "COBOLNET1747", "level-number-entry-format", EditionSeverity.Error,
+        "ISO §13.18.33.4 GR2 assigns the special level-numbers to particular general formats and permits them "
+        + "nowhere else: (b) \"Level-number 66 is assigned to identify RENAMES entries and may be used only as "
+        + "described by the renames format of the data description entry\"; (c) \"Level-number 88 may be used only "
+        + "as described by the condition-name format or the validation format of the data description entry\". "
+        + "§13.16.2 gives those formats their shapes — format 2 is `66 data-name-1 RENAMES …`, formats 3 and 4 "
+        + "are `88 [condition-name] value-clause .` — and §13.16.3 SR1 closes the set for everything else: "
+        + "\"Level-number may be 77 or 1 through 49.\" §13.16.3 SR2 adds the one obligation that runs the other "
+        + "way: \"The data-name format of the entry-name clause shall be specified if level-number is 77\", which "
+        + "SR4 extends to an OMITTED entry-name (\"it is as though the filler format … were specified\"). This is "
+        + "the FORMAT axis; COBOLNET1746 is the SECTION axis, and a level-number can violate either alone.",
+        "ISO §13.18.33.4 GR2 / §13.16.3");
     // §13.18.57.3 SR10 governs the whole WRITTEN reference, not just its name (kb/Work PB205): the operand
     // "may be qualified and reference-modified", the ref-mod's positions "shall be integer literals", and the
     // reference "shall be the same as one of the operands of the CONTROL clause" — so CX(4:3) is not CX(1:3),
