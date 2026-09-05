@@ -262,7 +262,21 @@ public sealed class ProgramTable
         // (the cross-activation GR1 "in range" reading is a documented STAGED item). TrimPerformTo on return also
         // balances the stack if the callee unwound abnormally past its own pops.
         int savedPerformDepth = exc.PerformDepth;
-        try { inst.Call(args, returning); }
+        // §14.9.4.4 GR3e→GR3g — the ACTIVATION BOUNDARY, and the one place that knows which side of it a
+        // failure came from. GR3e's external-conformance check is an activation-attempt step ("the program
+        // call is not successful"), so it runs HERE, before the transfer, and its raise stays attributable to
+        // this CALL's GR3h. Everything inside inst.Call is GR3g's "control is transferred to the called
+        // program", so a CobolCallException escaping it is marked: GR3i then makes every enclosing CALL site
+        // ignore its own ON EXCEPTION phrase and leave the condition to §14.6.13.1 (kb/Work PB233 — before
+        // this, a callee's unhandled failure ran the ACTIVATOR's imperative-statement-1 and was swallowed).
+        bool transferred = false;
+        try
+        {
+            inst.DescribeExternals();   // GR3e — pre-transfer; inside the try so the finally still balances
+            transferred = true;         // GR3g — control is transferred to the called program
+            inst.Call(args, returning);
+        }
+        catch (CobolCallException cx) when (transferred) { cx.ControlTransferred = true; throw; }   // GR3i
         finally
         {
             n.Active--; _owner.Modules.Pop();

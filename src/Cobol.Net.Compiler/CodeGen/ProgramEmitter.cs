@@ -241,8 +241,9 @@ internal sealed class ProgramEmitter
             if (OoEmitter.WantsExternalDescribes(data))
             {
                 // §14.8.4: the main-program activation registers its external descriptions too (the ACTIVATOR
-                // mask is zero there — store-only; a CALLed activation registers via the Call() entry below).
-                w.Line("void ICobolProgram.Activate() { __DescribeExternals(); __Activate(); }");
+                // mask is zero there — store-only). A CALLed activation gets it from the activation BOUNDARY,
+                // which calls DescribeExternals() before Call() (§14.9.4.4 GR3e precedes GR3g — kb/Work PB233).
+                w.Line("void ICobolProgram.Activate() { DescribeExternals(); __Activate(); }");
                 _oo.EmitExternalDescribes(data, unit.Path, w);
             }
             else
@@ -351,11 +352,12 @@ internal sealed class ProgramEmitter
     {
         using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
         {
-            // §14.9.4.4 GR3e: the external-conformance check runs FIRST at the CALLed activation entry — before
-            // LOCAL-STORAGE re-initialization and formal adoption — so a raised EC-EXTERNAL condition unwinds to
-            // the CALL site ("the program call is not successful") before any effect of the activation.
-            if (OoEmitter.WantsExternalDescribes(unit.Data))
-                w.Line("__DescribeExternals();");
+            // §14.9.4.4 GR3e runs OUTSIDE this method: the external-conformance check is an activation-ATTEMPT
+            // step that precedes GR3g's transfer of control, so the activation boundary calls
+            // ICobolProgram.DescribeExternals() before Call() (kb/Work PB233). Keeping it here made every
+            // EC-EXTERNAL raise indistinguishable from an exception escaping the callee's BODY, which is the
+            // fact GR3i turns on — the ordering guarantee (before LOCAL-STORAGE re-initialization and formal
+            // adoption) is strictly stronger now, not weaker.
             // LOCAL-STORAGE is AUTOMATIC data (ISO §13.6.4 GR1): "placed in the initial state every time the
             // … program … is activated" (§14.6.2.3.2) — for an INITIAL or RECURSIVE unit the fresh instance
             // per activation already IS that state, but a cached-singleton unit (neither attribute) re-enters

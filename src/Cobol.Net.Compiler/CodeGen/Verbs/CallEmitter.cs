@@ -72,10 +72,21 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         int siteExternalMask = ecProg.Sum(ExternalBit);
         if (siteExternalMask != 0)
             w.Line($"ExceptionState.ExternalCheckMask = {siteExternalMask};   // §14.8.4.1 — this CALL's EC-EXTERNAL enablement (the activating element)");
-        bool hasPhrase = c.OnException is not null || c.NotOnException is not null;
-        if (!hasPhrase && ecProg.Count == 0)
+        // ── §14.9.4.4 GR3h/GR3i: the CALL statement's exception partition (kb/Work PB233) ────────────────────
+        // ON EXCEPTION is the ONLY phrase that diverts a failed activation. GR3h item 1 names it explicitly,
+        // and §14.6.13.1.3 #1 admits only "a conditional phrase WITHOUT the NOT phrase" — so a CALL written
+        // with only NOT ON EXCEPTION behaves exactly like a CALL with no phrase at all (item 2 or item 3
+        // governs). Keying the catch on "either phrase" let a NOT-ON-only CALL SWALLOW a failed activation.
+        bool hasOn = c.OnException is not null;
+        bool hasPhrase = hasOn || c.NotOnException is not null;
+        var ecOther = EnabledOtherCallNames();
+        if (!hasOn && ecProg.Count == 0 && ecOther.Count == 0)
         {
+            // Nothing catches: the condition leaves the statement and takes §14.6.13.1 (item 3 → #8, this
+            // implementation's loud abnormal termination). A NOT ON phrase can only be reached by a normal
+            // return, so it needs no guard here — GR3i.
             w.Line(invocation);
+            if (c.NotOnException is { } notBare) Statements.EmitStatementList(notBare);   // GR3i — a non-exception return
             EmitPropagationPickup();
             return false;
         }
@@ -83,10 +94,24 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         if (hasPhrase) w.Line($"bool __callErr{id} = false;");
         using (w.Block("try"))
             w.Line(invocation);
-        if (ecProg.Count > 0)
-            EmitProgramEcCatch(ecProg, hasPhrase, hasPhrase ? $"__callErr{id}" : null);
-        if (hasPhrase)
-            w.Line($"catch (CobolCallException) {{ __callErr{id} = true; }}   // CALL exception condition → the ON phrase (ISO §14.9.4.4 GR3h)");
+        // The arms, in the ONE order that keeps each reachable (a narrower filter must precede a broader one):
+        //   1. enabled EC-PROGRAM-*/EC-EXTERNAL-*  → status set, then the phrase (item 1) or the declaratives (item 2)
+        //   2. enabled non-EC-PROGRAM carriers     → status set, then the declaratives ALWAYS (item 2, 2nd disjunct)
+        //   3. UNenabled EC-PROGRAM-*/EC-EXTERNAL-* → the phrase only (item 1 carries no checking-enabled qualifier),
+        //      with NO status set (§14.6.13.1.1 sets an indicator only when checking is enabled).
+        // Anything else — a name no arm claims, or ANY condition that escaped the CALLED program's execution —
+        // falls through to §14.6.13.1, because §14.9.4.4 GR3i says that once the program "was successfully
+        // called" the ON EXCEPTION phrase is ignored.
+        string? flag = hasPhrase ? $"__callErr{id}" : null;
+        if (ecProg.Count > 0) EmitCallEcCatch(ecProg, byPhrase: hasOn, flag);
+        if (ecOther.Count > 0) EmitCallEcCatch(ecOther, byPhrase: false, flag);
+        if (hasOn)
+        {
+            int pid = ctx.Names.NextEc();
+            w.Line($"catch (CobolCallException __cp{pid}) when (!__cp{pid}.ControlTransferred "
+                + $"&& {RuntimeApi.CallEcIsProgramOrExternalText($"__cp{pid}.EcName")}) {{ {flag} = true; }}"
+                + "   // §14.9.4.4 GR3h item 1 (checking not enabled → no status is set) / GR3i");
+        }
         if (c.OnException is { } on)
         {
             using (w.Block($"if (__callErr{id})")) Statements.EmitStatementList(on);
@@ -194,14 +219,32 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         + $"{ArgsArrayText(c)}, {(c.Returning is { } rp ? RefCarrier(rp) : "null")}, "
         + "notFoundEc: \"EC-FUNCTION-NOT-FOUND\");";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
 
-    /// <summary>The enabled EC-PROGRAM-* / EC-EXTERNAL-* names of the current statement (empty when none / no
-    /// wrapper) — the two families a CALL raises through <see cref="CobolCallException"/> (ISO §14.9.4.4
-    /// GR3b–f: locate/recursion/argument failures; GR3e: the §14.8.4 external-conformance trio). Both take the
-    /// same catch arm: all are Table 13 Fatal and GR3h #1 gives the ON EXCEPTION phrase both families.</summary>
+    /// <summary>The current statement's enabled level-3 names that a <see cref="CobolCallException"/> can
+    /// actually carry (empty when none / no wrapper). ONE filter, asked once and split two ways below: an
+    /// enabled name outside <see cref="CobolCallException.CarriedNames"/> — EC-PROGRAM-RESOURCES and
+    /// EC-PROGRAM-ARG-OMITTED are the live examples, the latter having left this carrier at kb/Work PB133 —
+    /// has no raise site to match, so naming it in a catch filter emits a disjunct that can never be true, and
+    /// a <c>&gt;&gt;TURN EC-ALL CHECKING ON</c> unit would emit a two-hundred-way one on every CALL.</summary>
+    private List<string> EnabledCallNames() =>
+        ecState.Info?.Enabled.Select(p => p.Ec).Where(RuntimeApi.CallEcIsCarried).ToList() ?? [];
+
+    /// <summary>The enabled EC-PROGRAM-* / EC-EXTERNAL-* names of the current statement — the two families a
+    /// CALL raises through <see cref="CobolCallException"/> (ISO §14.9.4.4 GR3b–f: locate/recursion/argument
+    /// failures; GR3e: the §14.8.4 external-conformance trio). All are Table 13 Fatal and GR3h item 1 gives the
+    /// ON EXCEPTION phrase both families, so they share one catch arm. The partition itself is
+    /// <see cref="CobolCallException.IsProgramOrExternal"/> — written down ONCE, next to the carrier, so this
+    /// compile-time split and the emitted runtime filter cannot drift apart. Also the source of this CALL's
+    /// §14.8.4.1 EC-EXTERNAL site mask and of GR3d's ACTIVATING-half argument-checking flag.</summary>
     private List<string> EnabledProgramNames() =>
-        ecState.Info?.Enabled.Where(p => p.Ec.StartsWith("EC-PROGRAM-", StringComparison.Ordinal)
-            || p.Ec.StartsWith("EC-EXTERNAL-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
-        ?? [];
+        EnabledCallNames().Where(RuntimeApi.CallEcIsProgramOrExternal).ToList();
+
+    /// <summary>The complement: enabled carriable names NOT in GR3h item 1's two families (today only
+    /// EC-FUNCTION-NOT-FOUND — §8.4.3.2.4 GR6b, a user-defined-function locate miss). These take ISO §14.9.4.4
+    /// GR3h item 2's SECOND disjunct — "or if the exception condition is not one of the EC-PROGRAM exception
+    /// conditions, any applicable exception processing statements are executed" — with NO ON EXCEPTION escape,
+    /// which is why they need an arm of their own rather than a share of the family arm.</summary>
+    private List<string> EnabledOtherCallNames() =>
+        EnabledCallNames().Where(n => !RuntimeApi.CallEcIsProgramOrExternal(n)).ToList();
 
     /// <summary>The <see cref="ExternalChecks"/> bit of one EC-EXTERNAL level-3 name (0 for any other name) —
     /// the emitted CALL-site mask is the OR over the statement's enabled set.</summary>
@@ -213,25 +256,32 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         _ => 0,
     };
 
-    /// <summary>Emit the name-filtered <c>catch (CobolCallException)</c> arm of a CALL/CANCEL under enabled
-    /// EC-PROGRAM checking (§9.1.13-style bridge for the inter-program family: the runtime latched the Table 13
-    /// level-3 name in <see cref="CobolCallException.EcName"/>): set the last exception status (§14.6.13.1.1),
-    /// then either flag the statement's own ON EXCEPTION phrase (it wins — §14.6.13.1.3 #1 / §14.9.4.4 GR3h) or
-    /// run the §14.9.49 F3 selection with the fatal default (every EC-PROGRAM-* is fatal, Table 13). A
-    /// CobolCallException whose name is NOT enabled falls through to the next catch arm / propagates — the
-    /// checking-off behavior unchanged.</summary>
-    private void EmitProgramEcCatch(List<string> ecProg, bool hasPhrase, string? phraseFlag)
+    /// <summary>Emit ONE name-filtered <c>catch (CobolCallException)</c> arm of a CALL under enabled checking
+    /// (§9.1.13-style bridge for the inter-program family: the runtime latched the Table 13 level-3 name in
+    /// <see cref="CobolCallException.EcName"/>): set the last exception status (§14.6.13.1.1), flag the
+    /// statement as failed (so GR3i's NOT ON phrase cannot run over a failed activation), then either leave it
+    /// to the statement's own ON EXCEPTION phrase — <paramref name="byPhrase"/>, §14.6.13.1.3 #1 / §14.9.4.4
+    /// GR3h item 1 — or run the §14.9.49 F3 selection with the fatal default (every name reachable here is
+    /// Table 13 Fatal: the EC-PROGRAM-*/EC-EXTERNAL-* families and EC-FUNCTION-NOT-FOUND).
+    /// <para><c>!ControlTransferred</c> is the GR3h/GR3i boundary: GR3h speaks only of a program that "was not
+    /// successfully called", so an exception raised INSIDE the called program's execution is none of this
+    /// statement's business (GR3i) and must fall through to §14.6.13.1. A CobolCallException whose name is not
+    /// enabled likewise falls through to the next arm / propagates — the checking-off behavior unchanged.</para>
+    /// </summary>
+    private void EmitCallEcCatch(List<string> ecNames, bool byPhrase, string? phraseFlag)
     {
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
-        string nameTest = string.Join(" || ", ecProg.Select(n => $"__ce{id}.EcName == {CsLiteral(n)}"));
-        using (w.Block($"catch (CobolCallException __ce{id}) when ({nameTest})"))
+        string nameTest = string.Join(" || ", ecNames.Select(n => $"__ce{id}.EcName == {CsLiteral(n)}"));
+        using (w.Block($"catch (CobolCallException __ce{id}) when (!__ce{id}.ControlTransferred && ({nameTest}))"))
         {
             // The §15.32.3 r2 pair rides the CALL statement's ambient context (kb/Work R14) — the callee's own
             // contexts were restored on unwind, so this Set attributes the CALL, not the callee's last statement.
-            w.Line($"ExceptionState.Set(__ce{id}.EcName, true);   // §14.6.13.1.1 — all EC-PROGRAM-* are fatal (Table 13)");
-            if (hasPhrase)
-                w.Line($"{phraseFlag} = true;   // the statement's ON EXCEPTION phrase handles it (§14.6.13.1.3 #1; §14.9.4.4 GR3h)");
+            w.Line($"ExceptionState.Set(__ce{id}.EcName, true);   // §14.6.13.1.1 — every name reachable here is fatal (Table 13)");
+            if (phraseFlag is not null)
+                w.Line($"{phraseFlag} = true;   // the activation failed — GR3i's NOT ON phrase shall not run");
+            if (byPhrase)
+                w.Line("// the statement's ON EXCEPTION phrase handles it (§14.6.13.1.3 #1; §14.9.4.4 GR3h item 1)");
             else
             {
                 w.Line($"int __r{id} = {ec.EcDispatchExpr($"__ce{id}.EcName", "\"\"")};");
@@ -587,7 +637,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             }
             using (w.Block("try"))
                 w.Line(call);
-            EmitProgramEcCatch(ecProg, hasPhrase: false, phraseFlag: null);
+            // §14.9.5.2 gives CANCEL no conditional phrase at all, so the arm is always the §14.6.13.1.3
+            // sequence; and every name it can raise (EC-PROGRAM-CANCEL-ACTIVE) is raised OUTSIDE any
+            // activation, so the shared arm's !ControlTransferred filter is vacuously true here.
+            EmitCallEcCatch(ecProg, byPhrase: false, phraseFlag: null);
         }
     }
 

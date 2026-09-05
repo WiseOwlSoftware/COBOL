@@ -21,6 +21,25 @@ internal static class RuntimeApi
     // ── Type-name anchors (each is a compile-time reference to the runtime type). ──
     public static string Bool => nameof(CobolBool);
 
+    // ── The CALL-site exception carrier (ISO §14.9.4.4 GR3h/GR3i; kb/Work PB233). Its two classification
+    //    predicates are asked in BOTH directions, and both route here so the runtime member is named once:
+    //    at COMPILE time to split the statement's enabled name set into catch arms, and as EMITTED TEXT in the
+    //    arm that must test the raised name at run time. ──
+
+    /// <summary>ISO §14.9.4.4 GR3h item 1's family partition — "if the exception condition is any of the
+    /// EC-PROGRAM or EC-EXTERNAL exception conditions" — asked at COMPILE time over one enabled name.</summary>
+    public static bool CallEcIsProgramOrExternal(string ec) => CobolCallException.IsProgramOrExternal(ec);
+
+    /// <summary>The EMITTED form of the same predicate, over a caught exception's <c>EcName</c> — the arm that
+    /// takes item 1's families when checking for the raised name is NOT enabled.</summary>
+    public static string CallEcIsProgramOrExternalText(string ecNameExpr) =>
+        $"{nameof(CobolCallException)}.{nameof(CobolCallException.IsProgramOrExternal)}({ecNameExpr})";
+
+    /// <summary>Can a <see cref="CobolCallException"/> actually raise <paramref name="ec"/>? A COMPILE-time
+    /// question: an enabled name with no raise site on this carrier would contribute a catch-filter disjunct
+    /// that can never be true (<see cref="CobolCallException.CarriedNames"/>).</summary>
+    public static bool CallEcIsCarried(string ec) => CobolCallException.CanCarry(ec);
+
     /// <summary>Boolean NOT — ISO §8.8.4.5 boolean expressions (the D-B1 '0'/'1' string substrate).</summary>
     public static string BoolNot(string operand) => $"{nameof(CobolBool)}.{nameof(CobolBool.Not)}({operand})";
 

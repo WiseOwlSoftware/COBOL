@@ -567,6 +567,175 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-PROGRAM-PTR-NULL", "BEFORE");
 
+    // ── §14.9.4.4 GR3h's three-way partition and GR3i's "the phrase is ignored" (kb/Work PB233) ──────────────
+    // GR3h routes a FAILED ACTIVATION three ways, and each arm below pins one of them. The three facts the arms
+    // turn on are exactly the three the emitted catch used to conflate: WHICH phrase is written (only ON
+    // EXCEPTION diverts), WHICH family the condition belongs to (only EC-PROGRAM/EC-EXTERNAL reach
+    // imperative-statement-1), and WHETHER control had already been transferred (GR3i).
+
+    [Fact]   // §14.9.4.4 GR3h item 1 admits imperative-statement-1 only when "an ON EXCEPTION phrase is
+             // specified in the CALL statement", and §14.6.13.1.3 #1 says the same from the other side — only
+             // "a conditional phrase without the NOT phrase" processes a fatal condition. So a CALL carrying
+             // ONLY NOT ON EXCEPTION is governed by item 2 or item 3 exactly as a phrase-free CALL is; checking
+             // is off here, so item 3 → §14.6.13.1.3 #8, this implementation's abnormal termination. Before
+             // PB233 the mere presence of the NOT phrase emitted an unconditional catch and the program ran to
+             // completion with the failed activation discarded.
+    public void CallNotOnExceptionOnly_ActivationFails_TerminatesLikeAPhraselessCall()
+        => AssertFatal("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT233A.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "BEFORE".
+                CALL "NOSUCHPROG"
+                    NOT ON EXCEPTION DISPLAY "NEVER"
+                END-CALL.
+                DISPLAY "ALSO-NEVER".
+                STOP RUN.
+            """, "EC-PROGRAM-NOT-FOUND", "BEFORE");
+
+    [Fact]   // §14.9.4.4 GR3h item 2, FIRST disjunct: checking enabled, an EC-PROGRAM condition, "and an ON
+             // EXCEPTION phrase is not specified" — the applicable exception processing statements run. "If
+             // control is returned from these statements, control is then transferred to the end of the CALL
+             // statement", so the NOT ON EXCEPTION phrase does NOT run: GR3i gives imperative-statement-2 only
+             // a program that "was successfully called". Before PB233 the NOT phrase captured the failure and
+             // the declarative never ran at all.
+    public void CallNotOnExceptionOnly_Enabled_RunsTheDeclarativeAndSkipsTheNotPhrase()
+        => AssertSpec(Prog("ECT233B", ">>TURN EC-PROGRAM CHECKING ON", "", "", """
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-PROGRAM-NOT-FOUND.
+            EC-H-P.
+                DISPLAY "H: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            """, """
+                CALL "NOSUCHPROG"
+                    NOT ON EXCEPTION DISPLAY "NEVER"
+                END-CALL.
+                DISPLAY "SURVIVED".
+                STOP RUN.
+            """), "H: EC-PROGRAM-NOT-FOUND\nSURVIVED");
+
+    [Fact]   // §14.9.4.4 GR3i: "If the program was successfully called, after control is returned from the
+             // called program the ON EXCEPTION phrase, if specified, is ignored." ECT233CM IS successfully
+             // called — it displays before it fails — so the outer CALL's phrase is not a party to its inner
+             // CALL's failure, which (no phrase, checking off) takes GR3h item 3 → §14.6.13.1.3 #8. Before
+             // PB233 the outer catch spanned the whole activation, so ANY unhandled failure inside a callee
+             // ran the ACTIVATOR's imperative-statement-1 and the run unit continued as if nothing was wrong.
+    public void CallOnException_IsIgnoredWhenTheFailureIsTheCalleesOwn()
+        => AssertFatal("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT233C.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "MAIN-BEFORE".
+                CALL "ECT233CM"
+                    ON EXCEPTION DISPLAY "NEVER"
+                END-CALL.
+                DISPLAY "ALSO-NEVER".
+                STOP RUN.
+
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT233CM.
+            PROCEDURE DIVISION.
+            MID-PARA.
+                DISPLAY "MID-BEFORE".
+                CALL "NOSUCHPROG".
+                DISPLAY "MID-NEVER".
+                GOBACK.
+            END PROGRAM ECT233CM.
+            """, "EC-PROGRAM-NOT-FOUND", "MAIN-BEFORE\nMID-BEFORE");
+
+    [Fact]   // §14.9.4.4 GR3h item 1's FAMILY restriction: imperative-statement-1 takes "any of the EC-PROGRAM
+             // or EC-EXTERNAL exception conditions" and nothing else. EC-FUNCTION-NOT-FOUND (§8.4.3.2.4 GR6b —
+             // a user-defined-function locate miss) is neither, so with checking off it takes GR3h item 3 →
+             // §14.6.13.1.3 #8. The unfiltered catch used to route it into the phrase.
+    public void CallOnException_IsNotEnteredByFunctionNotFound()
+        => AssertFatal("""
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. ECT233FN IS PROTOTYPE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-A PIC 9(4).
+            01 L-R PIC 9(4).
+            PROCEDURE DIVISION USING L-A RETURNING L-R.
+            END FUNCTION ECT233FN.
+
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT233D.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION ECT233FN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 W-X PIC 9(4) VALUE 5.
+            01 W-R PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "MAIN-BEFORE".
+                CALL "ECT233DM"
+                    ON EXCEPTION DISPLAY "NEVER"
+                END-CALL.
+                DISPLAY "ALSO-NEVER".
+                STOP RUN.
+
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT233DM.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 M-X PIC 9(4) VALUE 5.
+            01 M-R PIC 9(4).
+            PROCEDURE DIVISION.
+            MID-PARA.
+                DISPLAY "MID-BEFORE".
+                MOVE FUNCTION ECT233FN(M-X) TO M-R.
+                DISPLAY "MID-NEVER".
+                GOBACK.
+            END PROGRAM ECT233DM.
+            END PROGRAM ECT233D.
+            """, "EC-FUNCTION-NOT-FOUND", "MAIN-BEFORE\nMID-BEFORE");
+
+    [Fact]   // §14.9.4.4 GR3h item 2's SECOND disjunct — "or if the exception condition is not one of the
+             // EC-PROGRAM exception conditions, any applicable exception processing statements are executed" —
+             // and the general §14.6.13.1.3 #5 that stands behind it. EC-FUNCTION-NOT-FOUND had NO handling arm
+             // of any kind before PB233: the CALL emitter's enabled-name filter selected only the
+             // EC-PROGRAM/EC-EXTERNAL families, so an enabled EC-FUNCTION-NOT-FOUND could reach no declarative.
+             // RESUME AT NEXT STATEMENT suppresses the fatal default, exactly as it does for an EC-PROGRAM name.
+    public void FunctionNotFound_Enabled_RunsTheDeclarative()
+        => AssertSpec("""
+            >>TURN EC-FUNCTION-NOT-FOUND CHECKING ON
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. ECT233GN IS PROTOTYPE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-A PIC 9(4).
+            01 L-R PIC 9(4).
+            PROCEDURE DIVISION USING L-A RETURNING L-R.
+            END FUNCTION ECT233GN.
+
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT233E.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION ECT233GN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 W-X PIC 9(4) VALUE 5.
+            01 W-R PIC 9(4).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-FUNCTION-NOT-FOUND.
+            EC-H-P.
+                DISPLAY "H: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                MOVE FUNCTION ECT233GN(W-X) TO W-R.
+                DISPLAY "SURVIVED".
+                STOP RUN.
+            """, "H: EC-FUNCTION-NOT-FOUND\nSURVIVED");
+
     [Fact]   // §14.9.18.4 GR1b is CONDITIONAL: "If the RAISING phrase is specified, an exception condition is
              // raised in the activating runtime element IF CHECKING FOR THAT EXCEPTION CONDITION IS ENABLED in
              // the activating runtime element". V58MAIN enables none, so the callee's GOBACK RAISING raises

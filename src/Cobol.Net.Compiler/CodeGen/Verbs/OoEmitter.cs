@@ -74,26 +74,28 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         }
     }
 
-    /// <summary>True when this unit must emit a <c>__DescribeExternals()</c> activation-entry registration
+    /// <summary>True when this unit must emit a <c>DescribeExternals()</c> activation-entry registration
     /// (ISO §14.8.4): the compilation group has an enabling EC-EXTERNAL <c>&gt;&gt;TURN</c> somewhere AND the
     /// unit describes any external record or external file connector. False keeps the generated source
     /// byte-identical to a pre-VCR-15 build (zero-scaffolding).</summary>
     public static bool WantsExternalDescribes(DataBinder data) =>
         data.ExternalDescribe && (data.CallExternalBackings.Count > 0 || data.Files.Any(f => f.IsExternal));
 
-    /// <summary>Emit the <c>__DescribeExternals()</c> method — one <c>ExternalStore.Describe</c> per external
+    /// <summary>Emit the <c>DescribeExternals()</c> ABI method — one <c>ExternalStore.Describe</c> per external
     /// record (§14.8.4.3 / §13.18.22 GR6 facts: byte count, record-name VALUE clause spec, strong TYPE name,
     /// CONSTANT RECORD presence) and per external file connector (§14.8.4.2 file-referencing control-item
     /// identities + the §12.4.5.3 GR1 a–m entry fingerprint), each carrying the unit's before-Environment-
-    /// division mask (§14.8.4.1). Called FIRST at every activation entry (<c>Call</c> and <c>Activate</c>) —
-    /// the §14.9.4.4 GR3e check precedes execution; a raise unwinds to the CALL site before any statement or
-    /// formal adoption runs. A complete-record REDEFINES contributes nothing (GR6's explicit exemption — the
-    /// descriptor is built from the base record only). RECORD DELIMITER / RESERVE / COLLATING SEQUENCE are not
-    /// modeled by <see cref="FileModel"/>, so they are identical by construction and absent from the
-    /// fingerprint.</summary>
+    /// division mask (§14.8.4.1). It is an <see cref="ICobolProgram"/> member, not a private callee-body step:
+    /// the §14.9.4.4 GR3e check is part of the ACTIVATION ATTEMPT and precedes GR3g's transfer of control, so
+    /// the boundary (<c>ProgramTable.CallProgram</c>) calls it before <c>Call</c> — which is what makes
+    /// "escaped from <c>Call</c>" an exact test for GR3i's "the program was successfully called" (kb/Work
+    /// PB233). The main-program entry (<c>Activate</c>) calls it itself. A complete-record REDEFINES
+    /// contributes nothing (GR6's explicit exemption — the descriptor is built from the base record only).
+    /// RECORD DELIMITER / RESERVE / COLLATING SEQUENCE are not modeled by <see cref="FileModel"/>, so they are
+    /// identical by construction and absent from the fingerprint.</summary>
     public void EmitExternalDescribes(DataBinder data, string unitPath, CodeWriter w)
     {
-        using (w.Block("private void __DescribeExternals()"))
+        using (w.Block("public void DescribeExternals()"))
         {
             foreach (var ext in data.CallExternalBackings)
             {

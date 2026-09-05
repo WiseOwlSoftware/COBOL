@@ -95,6 +95,7 @@
   "ec_flow_search_set_capacity",
   "ec_oo_null_invoke",
   "ec_oo_universal_both",
+  "pb233_call_exception_partition",
   "ec_program_ptr_null",
   "ec_range_invalid",
   "ec_range_perform_varying",

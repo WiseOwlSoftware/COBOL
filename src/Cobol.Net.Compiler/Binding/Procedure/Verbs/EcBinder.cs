@@ -298,6 +298,17 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         "EC-PROGRAM-PTR-NULL",
     ];
 
+    /// <summary>The condition a USER-FUNCTION activation raises through <c>CobolCallException</c> that a CALL
+    /// statement does not: ISO §8.4.3.2.4 GR6b — "If the function is not found, the EC-FUNCTION-NOT-FOUND
+    /// exception condition is set to exist, the function is not activated, and execution continues as specified
+    /// in General rule 6f", and GR6f runs "any declarative … associated with that exception condition".
+    /// Queried only for a <c>BoundCallProgram</c> with <c>IsFunction</c> — the hoisted activation of a
+    /// function-identifier — because that is the only node whose emitted invocation passes
+    /// <c>notFoundEc: "EC-FUNCTION-NOT-FOUND"</c>. (EC-FUNCTION-PTR-NULL / EC-FUNCTION-ARG-OMITTED, GR6c/GR8,
+    /// have no raise site yet and so are not named here: an unraisable name in this list would make every
+    /// activation report as checkable and emit a dead catch arm.)</summary>
+    private static readonly string[] FunctionActivationNames = ["EC-FUNCTION-NOT-FOUND"];
+
     /// <summary>The EC-EXTERNAL family a CALL raises through <c>CobolCallException</c> when the activated
     /// element's external descriptions do not conform (ISO §14.8.4 / §14.9.4.4 GR3e; the checkable trio —
     /// EC-EXTERNAL-IMP has no raise site, this implementation defines no implementor-specific external checks).
@@ -392,9 +403,15 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundContinueAfter:
                     Query(["EC-CONTINUE-LESS-THAN-ZERO"]);
                     break;
-                case BoundCallProgram:
+                case BoundCallProgram call:
                     Query(ProgramNames);
                     Query(ExternalNames);   // §14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point (§14.8.4)
+                    // A USER-FUNCTION activation is a DIFFERENT raise: a locate miss is EC-FUNCTION-NOT-FOUND
+                    // (§8.4.3.2.4 GR6b), not EC-PROGRAM-NOT-FOUND, and GR6f sends it to "any declarative … that
+                    // is associated with that exception condition". Without this Query the name never entered
+                    // the statement's enabled set, so >>TURN EC-FUNCTION-NOT-FOUND CHECKING ON wrapped nothing
+                    // and the condition could reach no declarative at all (kb/Work PB233).
+                    if (call.IsFunction) Query(FunctionActivationNames);
                     break;
                 case BoundCancel:
                     Query(ProgramNames);    // CANCEL raises no EC-EXTERNAL — external state persists (§14.9.5 GR8)

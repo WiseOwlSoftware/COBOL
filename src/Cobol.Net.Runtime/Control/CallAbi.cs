@@ -40,6 +40,15 @@ public interface ICobolProgram
     /// <summary>Activate as the run-unit's main program (no arguments; LINKAGE unbound, ISO §13.7.4 GR3).</summary>
     void Activate();
 
+    /// <summary>Register this element's external descriptions and run the §14.8.4 conformance check
+    /// (ISO §14.9.4.4 GR3e). It is an ACTIVATION-ATTEMPT step, not part of the activated element's execution:
+    /// GR3e precedes GR3g's "control is transferred to the called program", and a violation makes "the program
+    /// call ... not successful" — so the activation boundary calls it BEFORE <see cref="Call"/>, which is what
+    /// lets the boundary mark everything escaping <see cref="Call"/> as post-transfer (GR3i). A unit with no
+    /// external record or file connector, or with no enabling EC-EXTERNAL &gt;&gt;TURN in the group, emits no
+    /// override and takes this no-op (zero scaffolding).</summary>
+    void DescribeExternals() { }
+
     /// <summary>Close every file connector this program owns (CANCEL GR9 / run-unit termination §14.6.11).</summary>
     void CloseFiles();
 }
