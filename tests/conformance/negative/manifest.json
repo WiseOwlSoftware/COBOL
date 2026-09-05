@@ -797,7 +797,9 @@
   "pb331-read-ignoring-with-lock",
   "pb331-write-ignoring-lock",
   "pb331-rewrite-ignoring-lock",
-  "pb331-read-record-word-twice"
+  "pb331-read-record-word-twice",
+  "pb340-advancing-on-lock-keyed-85",
+  "pb340-advancing-on-lock-sequential-85"
  ],
  "pending": []
 }

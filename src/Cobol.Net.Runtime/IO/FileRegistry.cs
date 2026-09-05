@@ -850,11 +850,15 @@ public sealed class FileRegistry
         return true;
     }
 
-    /// <summary>Record-lock governance for a just-completed keyed READ (§9.1.16; called right after the physical
-    /// read for any sharing-active file). Returns the effective status (and stores it on the connector).
-    /// (The keyed shape is post-read because a NEXT/PREVIOUS walk's record identity is only known after the read;
-    /// the sequential-organization twin is <see cref="ReadShared"/>, whose next ordinal is knowable BEFORE the
-    /// read, keeping the file position indicator untouched on a conflict — §14.9.30 GR10a.)</summary>
+    /// <summary>Record-lock governance for a just-completed FORMAT-2 (random) keyed READ (§9.1.16; called right
+    /// after the physical read for any sharing-active file). Returns the effective status (and stores it on the
+    /// connector).
+    /// <para>FORMAT 1 — every organization's NEXT/PREVIOUS walk — does NOT come here: it runs the whole read
+    /// inside <see cref="ReadShared"/>, which owns the §14.9.30.4 GR22 skip-scan. A Format-2 read has no next
+    /// record to advance to and ADVANCING ON LOCK is not in the Format-2 general format at all (§14.9.30.2), so
+    /// this entry carries no advancing-on-lock argument.</para>
+    /// <para>⚠ The post-read shape leaves the file position indicator advanced on a '51', which §14.9.30.4
+    /// GR10 a) forbids — kb/Work PB338 owns that half and the peek-then-commit split it needs.</para></summary>
     public string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase, bool ignoringLock,
         FileRetryKind retryKind, int retryAmount)
     {
@@ -864,21 +868,28 @@ public sealed class FileRegistry
         string recId = c.LastReadRecordId;
         if (recId.Length == 0) return statusJustRead;   // no record was identified
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
-
-        if (!ignoringLock)
-        {
-            // Another connector's lock blocks the read (§14.9.30 GR9). RETRY re-checks; in one run unit the
-            // holder cannot release mid-loop, so n TIMES exhausts to 51 and SECONDS/FOREVER bail to 52 (GR4a).
-            string conflict = RetryLoop(
-                () => PhysicalFileTable.IsLockedByOther(st, name, recId) ? FileStatusCode.RecordLocked : FileStatusCode.Success,
-                retryKind, retryAmount);
-            if (conflict != FileStatusCode.Success)
-            {
-                SetStatusOf(name, conflict);   // the status assignment drops the '43' gate (PB140); FPI kept (GR10a)
-                return conflict;
-            }
-        }
+        if (ConflictOnLockedRecord(name, st, recId, ignoringLock, retryKind, retryAmount) is { } conflict)
+            return conflict;
         return ApplyReadLockDiscipline(meta, st, name, recId, phrase) is { } denied ? denied : statusJustRead;
+    }
+
+    /// <summary>⛔ THE ONE §14.9.30.4 GR9 RECORD-OPERATION-CONFLICT CHECK, shared by both READ formats and all
+    /// three organizations: is the record identified for access locked by ANOTHER file connector? RETRY
+    /// re-checks (§14.7.9); in one run unit the holder cannot release mid-loop, so n TIMES exhausts to '51' and
+    /// SECONDS/FOREVER bail to '52' (GR4a). Returns the conflict status — already stored on the connector — or
+    /// null when the read may proceed. IGNORING LOCK short-circuits it: GR12 makes "the requested record …
+    /// available, even if it is locked".</summary>
+    private string? ConflictOnLockedRecord(string name, PhysicalFileTable.State st, string recId,
+        bool ignoringLock, FileRetryKind retryKind, int retryAmount)
+    {
+        if (ignoringLock) return null;                                       // §14.9.30.4 GR12
+        if (!PhysicalFileTable.IsLockedByOther(st, name, recId)) return null;
+        string conflict = RetryLoop(
+            () => PhysicalFileTable.IsLockedByOther(st, name, recId) ? FileStatusCode.RecordLocked : FileStatusCode.Success,
+            retryKind, retryAmount);
+        if (conflict == FileStatusCode.Success) return null;
+        SetStatusOf(name, conflict);   // the status assignment drops the '43' gate (PB140); FPI kept where GR10a applies
+        return conflict;
     }
 
     /// <summary>The §14.9.30 GR11 post-read lock actions, shared by the keyed and sequential read paths:
@@ -927,53 +938,94 @@ public sealed class FileRegistry
         return true;
     }
 
-    /// <summary>Sequential-organization governed READ (§9.1.16 on sequential files — the READ lock rules
-    /// §14.9.30 GR7–GR12 are ALL-FORMATS rules). The next record's ordinal is knowable BEFORE the read, so the
-    /// conflict check precedes the physical read: on a record-operation conflict the file position indicator is
-    /// UNCHANGED (GR10a) and the record area untouched (GR10c refined to "unchanged", the documented COBOL.NET
-    /// refinement). ADVANCING ON LOCK (GR22) skip-scans locked records — each is read-and-discarded "as if the
-    /// locked record were read and the same READ statement were executed" — with no conflict condition; reaching
-    /// end-of-file is the ordinary at-end. Returns true iff a record was made available (the emitted contract of
-    /// the plain <see cref="Read"/>).</summary>
-    public bool ReadShared(string name, FileRecordLock phrase, bool advancingOnLock, bool ignoringLock,
-        FileRetryKind retryKind, int retryAmount, out string image)
+    /// <summary>⛔ THE ONE GOVERNED FORMAT-1 (sequential-access) READ — sequential, relative AND indexed
+    /// organization (§9.1.16; the READ lock rules §14.9.30.4 GR7–GR12 are ALL-FORMATS rules, and GR22 is a
+    /// Format-1 rule because ADVANCING appears only in the Format-1 general format and §14.9.30.3 SR6 bars it
+    /// under ACCESS MODE RANDOM). Returns the I-O status; a record was made available iff it begins '0'.
+    /// <para>Where the organization can NAME the record a read would deliver before delivering it — only the
+    /// sequential walk, see <see cref="PeekFormat1RecordId"/> — the GR9 conflict check precedes the physical
+    /// read, so on a record operation conflict the file position indicator is UNCHANGED (GR10 a) and the record
+    /// area untouched (GR10 c) refined to "unchanged", the documented COBOL.NET refinement). A keyed walk
+    /// cannot, so its '51' leaves the position advanced — kb/Work PB338 owns that.</para>
+    /// <para><b>ADVANCING ON LOCK (GR22) needs no such peek on ANY organization</b>, which is why the skip-scan
+    /// is written ONCE here rather than per-arm: the rule's own model IS post-read — "as if the locked record
+    /// were read and then the same READ statement were executed", repeated "until either an unlocked record is
+    /// read or the end of the file is encountered if NEXT is specified or implied, or the beginning of file is
+    /// encountered if PREVIOUS is specified" — and "A record operation conflict condition does not exist", so
+    /// GR10 a) never applies to it. While the loop lived on the sequential arm alone a relative or indexed READ
+    /// ADVANCING ON LOCK answered '51', precisely the status GR22 says cannot arise (kb/Work PB340).</para>
+    /// </summary>
+    public string ReadShared(string name, bool previous, FileRecordLock phrase, bool advancingOnLock,
+        bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
     {
-        if (!_files.TryGetValue(name, out var c) || c is not SequentialConnector f) { image = ""; return false; }
-        if (!_connectorShares.TryGetValue(name, out var meta)) return f.Read(out image);   // not sharing-active — phrases inert (§12.4.5.9 GR1)
+        image = "";
+        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        if (!_connectorShares.TryGetValue(name, out var meta))
+            return ReadFormat1Step(name, c, previous, out image);   // not sharing-active — the phrases are inert (§12.4.5.9 GR1)
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         while (true)
         {
-            if (!ignoringLock && f.ReadEligible)   // a mode/position failure keeps its own status
+            // The GR9 pre-read leg. ADVANCING ON LOCK skips it: GR22 rules the conflict condition out, and its
+            // skip-scan below is post-read on every organization.
+            string peek = advancingOnLock ? "" : PeekFormat1RecordId(c);
+            if (peek.Length > 0
+                && ConflictOnLockedRecord(name, st, peek, ignoringLock, retryKind, retryAmount) is { } pre)
             {
-                string recId = f.NextReadOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                if (PhysicalFileTable.IsLockedByOther(st, name, recId))
-                {
-                    if (advancingOnLock)
-                    {
-                        // §14.9.30 GR22 — skip the locked record (read + discard) and repeat; no conflict raised.
-                        if (!f.Read(out image)) return false;   // end of file → at end ('10'), GR22 tail
-                        continue;
-                    }
-                    string conflict = RetryLoop(
-                        () => PhysicalFileTable.IsLockedByOther(st, name, recId) ? FileStatusCode.RecordLocked : FileStatusCode.Success,
-                        retryKind, retryAmount);
-                    if (conflict != FileStatusCode.Success)
-                    {
-                        f.SetStatus(conflict);   // the status assignment drops the '43' gate (PB140); FPI kept (GR10a)
-                        image = "";
-                        return false;
-                    }
-                }
+                image = "";
+                return pre;
             }
-            bool ok = f.Read(out image);
-            if (ok && ApplyReadLockDiscipline(meta, st, name, f.LastReadRecordId, phrase) is not null)
+            string status = ReadFormat1Step(name, c, previous, out image);
+            if (status.Length == 0 || status[0] != '0') return status;   // at end (GR24) or a mode/position failure
+            string recId = c.LastReadRecordId;
+            if (recId.Length == 0) return status;                        // no record identity to govern
+            // ⛔ §14.9.30.4 GR22 — THE ONE ADVANCING ON LOCK SKIP-SCAN, reached by all three organizations. The
+            // locked record HAS been read, so the file position indicator has advanced, which is exactly what
+            // "as if the locked record were read" requires; the same READ statement then runs again.
+            if (advancingOnLock && !ignoringLock && PhysicalFileTable.IsLockedByOther(st, name, recId)) continue;
+            // The post-read GR9 leg, for an organization with no pre-read identity (a keyed walk); when the
+            // pre-read leg ran it already cleared this same record.
+            if (peek.Length == 0
+                && ConflictOnLockedRecord(name, st, recId, ignoringLock, retryKind, retryAmount) is { } post)
+            {
+                image = "";
+                return post;
+            }
+            if (ApplyReadLockDiscipline(meta, st, name, recId, phrase) is { } denied)
             {
                 image = "";   // a 53/54 lock-denial is an unsuccessful READ (§12.4.5.9 GR7) — no record available
-                return false;
+                return denied;
             }
-            return ok;
+            return status;
         }
     }
+
+    /// <summary>ONE physical Format-1 (sequential-access) retrieval step on ANY organization — the step
+    /// §14.9.30.4 GR22's skip-scan repeats. Returns the I-O status the connector assigned.
+    /// (READ PREVIOUS on the sequential ORGANIZATION is kb/Work PB334 — <c>BoundRead</c> carries no direction
+    /// yet, so <paramref name="previous"/> reaches that arm only as <see langword="false"/>.)</summary>
+    private static string ReadFormat1Step(string name, FileConnector c, bool previous, out string image)
+    {
+        image = "";
+        switch (c)
+        {
+            case SequentialConnector f: f.Read(out image); return f.Status;
+            case RelativeConnector r: return previous ? r.ReadPrevious(out image) : r.ReadNext(out image);
+            case IndexedConnector ix: return previous ? ix.ReadPrevious(out image) : ix.ReadNext(out image);
+            default: throw MisroutedVerb("governed READ (Format 1)", name, c);
+        }
+    }
+
+    /// <summary>The lock identity of the record a Format-1 read would make available NEXT, when the organization
+    /// can know it BEFORE the physical read — §14.9.30.4 GR9's pre-read conflict target, which is what keeps the
+    /// file position indicator unchanged on a '51' (GR10 a). "" when it cannot be known: a relative or indexed
+    /// NEXT/PREVIOUS walk selects "the first existing record … greater than the file position indicator"
+    /// (§14.9.30.4 GR21), and which slot/key that is, is learned only by reading it. Also "" when a read now
+    /// would fail before the physical stage, so a mode/position failure keeps its own status ('47'/'46'/'10')
+    /// rather than a premature '51'.</summary>
+    private static string PeekFormat1RecordId(FileConnector c) =>
+        c is SequentialConnector { ReadEligible: true } f
+            ? f.NextReadOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : "";
 
     /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11 + §14.7.9).
     /// No record-operation conflict is defined for WRITE — §9.1.13.8's 51 covers "an attempt to ACCESS a record",

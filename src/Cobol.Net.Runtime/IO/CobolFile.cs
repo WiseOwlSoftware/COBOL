@@ -206,19 +206,22 @@ public static class CobolFile
         FileRetryKind retryKind, int retryAmount, bool noRewind)
         => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, noRewind);
 
-    /// <summary>Record-lock governance for a just-completed keyed READ (§9.1.16). <paramref name="phrase"/> is
-    /// the RETENTION bracket (WITH LOCK / WITH NO LOCK) and <paramref name="ignoringLock"/> the INDEPENDENT
-    /// IGNORING LOCK phrase (§14.9.30.2's other bracket, GR12).</summary>
+    /// <summary>Record-lock governance for a just-completed FORMAT-2 (random) keyed READ (§9.1.16).
+    /// <paramref name="phrase"/> is the RETENTION bracket (WITH LOCK / WITH NO LOCK) and
+    /// <paramref name="ignoringLock"/> the INDEPENDENT IGNORING LOCK phrase (§14.9.30.2's other bracket, GR12).
+    /// A Format-1 read of any organization uses <see cref="ReadShared"/> instead.</summary>
     public static string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase,
         bool ignoringLock, FileRetryKind retryKind, int retryAmount)
         => _reg.ReadLockGovern(name, statusJustRead, phrase, ignoringLock, retryKind, retryAmount);
 
-    /// <summary>Sequential-organization governed READ (§9.1.16 / §14.9.30 GR9–GR12, GR22 ADVANCING ON LOCK).
+    /// <summary>The ONE governed FORMAT-1 READ — sequential, relative and indexed (§9.1.16 / §14.9.30.4 GR9–GR12
+    /// and the GR22 ADVANCING ON LOCK skip-scan). Returns the I-O status; a record was made available iff it
+    /// begins '0'. <paramref name="previous"/> is the READ's PREVIOUS direction (§14.9.30.2 Format 1);
     /// <paramref name="advancingOnLock"/> and <paramref name="ignoringLock"/> are two alternatives of the SAME
     /// printed bracket, so at most one is ever true; <paramref name="phrase"/> is the other bracket.</summary>
-    public static bool ReadShared(string name, FileRecordLock phrase, bool advancingOnLock, bool ignoringLock,
-        FileRetryKind retryKind, int retryAmount, out string image)
-        => _reg.ReadShared(name, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image);
+    public static string ReadShared(string name, bool previous, FileRecordLock phrase, bool advancingOnLock,
+        bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
+        => _reg.ReadShared(name, previous, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image);
 
     /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11).</summary>
     public static string WriteShared(string name, string image, int length, FileRecordLock phrase,

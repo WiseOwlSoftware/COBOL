@@ -69,11 +69,16 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         KeyedReadKind kind = file.AccessMode switch
         {
             FileAccessMode.Random => KeyedReadKind.Random,
-            // §14.9.30 SR9 — dynamic: NEXT implied only when an AT END / NOT AT END phrase is present; a bare
-            // READ under dynamic access is the Format-2 random read.
+            // §14.9.30.3 SR9 — dynamic: "the NEXT phrase is implied if any of the following phrases is
+            // specified: ADVANCING, AT END, or NOT AT END". ⛔ ALL THREE, not two: while ADVANCING was missing
+            // from this test, `READ f ADVANCING ON LOCK` on a DYNAMIC file bound as the Format-2 random read,
+            // where ADVANCING ON LOCK is not even in the general format — so the GR22 skip-scan could not run
+            // for the one spelling SR9 exists to name (kb/Work PB340). A bare READ under dynamic access, with
+            // none of the three, stays the Format-2 random read.
             FileAccessMode.Dynamic => previous ? KeyedReadKind.Previous
-                : next || r.readAtEnd() is not null ? KeyedReadKind.Next
-                : KeyedReadKind.Random,
+                : next || contention?.readAdvancingOnLock() is not null || r.readAtEnd() is not null
+                    ? KeyedReadKind.Next
+                    : KeyedReadKind.Random,
             // §14.9.30 SR8 — sequential access: NEXT implied.
             _ => previous ? KeyedReadKind.Previous : KeyedReadKind.Next,
         };

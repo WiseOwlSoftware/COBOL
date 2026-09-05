@@ -112,29 +112,43 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             }
             w.Line($"{RuntimeApi.FileSetRelativeKey(name, rrn)};");
         }
+        // §9.1.16 record-lock governance (Phase 4d): a sharing-active file (or a READ carrying an explicit
+        // lock/RETRY phrase) has its read governed — 51 when another connector holds the record's lock (unless
+        // IGNORING LOCK), else the WITH LOCK / AUTOMATIC lock is acquired. It lands BEFORE the success block so
+        // a 51 denial leaves the record area untouched (the record is not made available).
+        // ⛔ THE GOVERNED SHAPE IS PER FORMAT, NOT PER ORGANIZATION (kb/Work PB340). A Format-1 NEXT/PREVIOUS
+        // walk routes through the ONE governed Format-1 read the sequential emitter also renders, because
+        // §14.9.30.4 GR22's ADVANCING ON LOCK skip-scan RE-EXECUTES the read and so has to own the read itself;
+        // the loop used to exist only on the sequential arm and `rd.AdvancingOnLock` was simply dropped here.
+        // A Format-2 random read has no next record to advance to and no ADVANCING phrase in its general
+        // format (§14.9.30.2), so it keeps the post-read adjustment.
+        bool governed = SequentialIoEmitter.LockGoverned(file, rd.Lock, rd.Retry, rd.IgnoringLock);
         switch (rd.Kind)
         {
             case KeyedReadKind.Next:
-                w.Line($"var {st} = {RuntimeApi.FileReadKeyedNext(name, img)};");
-                break;
             case KeyedReadKind.Previous:
-                w.Line($"var {st} = {RuntimeApi.FileReadKeyedPrevious(name, img)};");
+                string prev = rd.Kind == KeyedReadKind.Previous ? "true" : "false";
+                if (governed)
+                {
+                    var (rk, ra) = SeqIo.RenderRetry(rd.Retry);
+                    w.Line($"var {st} = {RuntimeApi.FileReadShared(name, prev, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.AdvancingOnLock ? "true" : "false", rd.IgnoringLock ? "true" : "false", rk, ra, img)};");
+                }
+                else if (rd.Kind == KeyedReadKind.Previous)
+                    w.Line($"var {st} = {RuntimeApi.FileReadKeyedPrevious(name, img)};");
+                else
+                    w.Line($"var {st} = {RuntimeApi.FileReadKeyedNext(name, img)};");
                 break;
             default:
                 // Indexed Format 2: the key VALUE is the key field's current content in the record area
                 // (§14.9.30 GR32) — pass the area image; the connector slices the key-of-reference range.
                 string keyImage = area is not null ? OperandText.RecordAreaImage(area) : "\"\"";
                 w.Line($"var {st} = {RuntimeApi.FileReadKeyed(name, rd.KeyIndex, keyImage, img)};");
+                if (governed)
+                {
+                    var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
+                    w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount)};");
+                }
                 break;
-        }
-        // §9.1.16 record-lock governance (Phase 4d): a sharing-active file (or a READ carrying an explicit
-        // lock/RETRY phrase) has its just-read status adjusted — 51 when another connector holds the record's
-        // lock (unless IGNORING LOCK), else the WITH LOCK / AUTOMATIC lock is acquired. Runs BEFORE the success
-        // block so a 51 denial leaves the record area untouched (the record is not made available).
-        if (SequentialIoEmitter.LockGoverned(file, rd.Lock, rd.Retry, rd.IgnoringLock))
-        {
-            var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
-            w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount)};");
         }
         using (w.Block($"if ({st}[0] == '0')"))
         {

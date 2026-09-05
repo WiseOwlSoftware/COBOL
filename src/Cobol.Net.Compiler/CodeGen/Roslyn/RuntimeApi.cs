@@ -802,11 +802,19 @@ internal static class RuntimeApi
         string retryKind, string retryAmount) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.ReadLockGovern)}({name}, {status}, {lockRef}, {ignoringLock}, {retryKind}, {retryAmount})";
 
-    /// <summary>Sequential-organization governed READ (§9.1.16 / §14.9.30 GR9–GR12/GR22) — <c>CobolFile.ReadShared</c>
-    /// (bool result, out image — the same contract as the plain <c>FileRead</c>).</summary>
-    public static string FileReadShared(string name, string lockRef, string advancingOnLock, string ignoringLock,
-        string retryKind, string retryAmount, string imgVar) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadShared)}({name}, {lockRef}, {advancingOnLock}, {ignoringLock}, {retryKind}, {retryAmount}, out var {imgVar})";
+    /// <summary>The ONE governed FORMAT-1 READ, every organization (§9.1.16 / §14.9.30.4 GR9–GR12 + the GR22
+    /// ADVANCING ON LOCK skip-scan) — <c>CobolFile.ReadShared</c> (I-O status result, out image). Both READ
+    /// emitters render this call: the keyed one takes the status straight, the sequential one wraps it in
+    /// <see cref="FileReadSharedOk"/> for its bool contract.</summary>
+    public static string FileReadShared(string name, string previous, string lockRef, string advancingOnLock,
+        string ignoringLock, string retryKind, string retryAmount, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadShared)}({name}, {previous}, {lockRef}, {advancingOnLock}, {ignoringLock}, {retryKind}, {retryAmount}, out var {imgVar})";
+
+    /// <summary>The governed Format-1 READ as a BOOL — "a record was made available" is the I-O status's first
+    /// character being '0' (§9.1.13.4), the same contract as the plain <c>FileRead</c>.</summary>
+    public static string FileReadSharedOk(string name, string previous, string lockRef, string advancingOnLock,
+        string ignoringLock, string retryKind, string retryAmount, string imgVar) =>
+        $"{FileReadShared(name, previous, lockRef, advancingOnLock, ignoringLock, retryKind, retryAmount, imgVar)}[0] == '0'";
 
     /// <summary>Governed WRITE for a sharing-active file, any organization (§14.9.51 GR10/GR11) — <c>CobolFile.WriteShared</c>.</summary>
     public static string FileWriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount) =>

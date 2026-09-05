@@ -530,8 +530,9 @@ retryPhrase`) and `#recordLockPhrase` is bracket 2 (`WITH? NO LOCK | WITH? LOCK`
 printed bracket, which is what writes "at most one of these" down exactly once. `BoundRead` / `BoundKeyedRead`
 therefore carry FOUR fields, not one: `Lock` (the retention bracket), and `AdvancingOnLock` / `IgnoringLock` /
 `Retry` (the three alternatives of the contention bracket, at most one of which the grammar can deliver). The
-runtime mirrors it: `FileRecordLock` is the retention bracket alone, and `CobolFile.ReadShared` /
-`ReadLockGovern` take `advancingOnLock` and `ignoringLock` as their own arguments. WRITE and REWRITE reference
+runtime mirrors it: `FileRecordLock` is the retention bracket alone, `CobolFile.ReadShared` takes
+`advancingOnLock` and `ignoringLock` as their own arguments, and the Format-2 `ReadLockGovern` takes
+`ignoringLock` (ADVANCING ON LOCK is not in the Format-2 general format — D17). WRITE and REWRITE reference
 `recordLockPhrase` only, because §14.9.51.2 and §14.9.35.2 print `[ retry-phrase ]` and
 `[ WITH LOCK | WITH NO LOCK ]` and no IGNORING LOCK at all.
 
@@ -561,6 +562,54 @@ that may be OMITTED, not one that may be repeated. `readDirection` is now `NEXT 
 is optional at the call site. Neither spelling of the word was wrong on its own; having the same optional word in
 two rules was, and no test could see it because both single-`RECORD` spellings still parsed
 (`feedback_one_rule_one_place`).
+
+### D17. Record-lock governance on a READ is split by FORMAT, not by ORGANIZATION: one governed Format-1 read serves sequential, relative and indexed, and it owns the GR22 skip-scan.
+
+**The rule shape.** ISO §14.9.30.4 GR7–GR12 are ALL-FORMATS rules; GR22 is not. ADVANCING ON LOCK appears only
+in the **Format-1** general format (§14.9.30.2) and §14.9.30.3 SR6 bars it under ACCESS MODE RANDOM, so it is a
+phrase of the sequential-ACCESS read on **every organization** — sequential, relative and indexed alike. The
+compiler had split the governance the other way, by organization: `FileRegistry.ReadShared` (which carried the
+skip-scan) began `if (… c is not SequentialConnector) return false;`, and the keyed emitter called the post-read
+`ReadLockGovern`, which has no advancing-on-lock parameter at all. `BoundKeyedRead.AdvancingOnLock` was set by
+the binder, edition-gated by `VersionConformancePass`, and read by nothing: a relative or indexed
+`READ … ADVANCING ON LOCK` answered `'51'`, the one status GR22 rules out (kb/Work PB340).
+
+**Why GR22 needs no pre-read peek, on any organization.** The obvious repair — give the keyed read the
+sequential arm's PRE-read governed entry — is the wrong half of the truth. A pre-read conflict check exists for
+one reason: GR10 a) requires the file position indicator to be UNCHANGED when the record operation conflict
+condition arises, and only the sequential walk can name the record it is about to deliver (its next ordinal) —
+a relative or indexed walk selects "the first existing record … greater than the file position indicator"
+(GR21) and learns which that is by reading it. But GR22 states the conflict condition **does not exist**, and
+its model is explicitly post-read: *"as if the locked record were read and then the same READ statement were
+executed"*. The locked record IS read and the position DOES advance; that is the rule, not a compromise. So the
+skip is one `continue` after the physical step, shared by all three organizations.
+
+**The shape.** `FileRegistry.ReadShared(name, previous, phrase, advancingOnLock, ignoringLock, retry…, out image)`
+is the ONE governed Format-1 read and returns the **I-O status** (a record was made available iff it begins
+`'0'`), which is the more general of the two contracts the emitters need. Three collaborators, each the single
+place its rule is written:
+
+| member | rule |
+|---|---|
+| `ReadFormat1Step` | ONE physical NEXT/PREVIOUS retrieval on any organization — the step GR22 repeats |
+| `PeekFormat1RecordId` | GR9's pre-read conflict target where GR10 a) can be honoured; `""` where it cannot |
+| `ConflictOnLockedRecord` | GR9 + §14.7.9's RETRY, shared with the Format-2 `ReadLockGovern` |
+
+`SequentialIoEmitter` renders it through `RuntimeApi.FileReadSharedOk`, which wraps the call in `[0] == '0'` so
+its bool contract is unchanged; `KeyedIoEmitter` renders `KeyedReadKind.Next`/`Previous` through the same entry
+and keeps `ReadLockGovern` for the **Format-2** random read, where it is right: there is no next record to
+advance to and no ADVANCING phrase in that format. (The Format-2 post-read `'51'` still leaves the position
+advanced against GR10 a) — that is kb/Work PB338, untouched here and unaffected by this split.)
+
+**The binder half came with it.** §14.9.30.3 SR9 implies NEXT under ACCESS DYNAMIC "if any of the following
+phrases is specified: **ADVANCING**, AT END, or NOT AT END", and `KeyedIoBinder.BindRead` tested two of the
+three, so `READ f ADVANCING ON LOCK` bound as a Format-2 random read — the GR22 loop was unreachable for the one
+spelling SR9 exists to name (kb/Work PB335).
+
+**The drift test that generalises it.** `BoundIoPhraseConsumptionDriftTests` asserts that every phrase property
+declared by a bound I-O node is READ by its emitter, over all eight READ/WRITE/REWRITE/DELETE/START nodes. Three
+inventory rows were open for that one shape at once — this one, OPEN … WITH NO REWIND (PB317) and the sequential
+READ direction (PB334). It cannot see a phrase the BINDER never stored, which is PB334's remaining half.
 
 ## C# mapping
 

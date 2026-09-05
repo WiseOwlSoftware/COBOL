@@ -387,11 +387,14 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         }
     }
 
-    /// <summary>Render the governed sequential-READ call (§14.9.30 GR9–GR12/GR22 over the ordinal lock identity).</summary>
+    /// <summary>Render the governed sequential-organization READ call (§14.9.30.4 GR9–GR12 over the ordinal lock
+    /// identity, plus the GR22 skip-scan) as the plain read's BOOL. The runtime entry is the ONE governed
+    /// Format-1 read shared with the keyed emitter, so <c>previous</c> is passed explicitly — always false here,
+    /// because <see cref="BoundRead"/> carries no direction yet (kb/Work PB334).</summary>
     private string EmitReadSharedCall(BoundRead rd, string name, string tmp)
     {
         var (retryKind, retryAmount) = RenderRetry(rd.Retry);
-        return RuntimeApi.FileReadShared(name, RuntimeRecordLock(rd.Lock),
+        return RuntimeApi.FileReadSharedOk(name, "false", RuntimeRecordLock(rd.Lock),
             rd.AdvancingOnLock ? "true" : "false", rd.IgnoringLock ? "true" : "false",
             retryKind, retryAmount, tmp);
     }
