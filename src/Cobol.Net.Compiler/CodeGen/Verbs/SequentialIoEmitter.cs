@@ -150,10 +150,28 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// long the physical record was — so it, not the emitter, must know which space to use. The area is national
     /// exactly when its OPERAND category is (an elementary national record, or a GROUP-USAGE NATIONAL group,
     /// §13.18.29.4 GR2b) — THE ONE category reader, never a re-derivation from the leaves. Emitted only for a
-    /// national area, so every other program's registration is unchanged byte for byte.</summary>
+    /// national area, so every other program's registration is unchanged byte for byte.
+    /// <para>⛔ ANY record description of the FD, not merely the WIDEST one (kb/Work PB329). §13.18.33.4 GR3 —
+    /// "Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same
+    /// area" (§9.1.2's NOTE says the same) — makes every record description of an FD describe the SAME record
+    /// area, so an area one of them declares national IS "specified … as national"; and §14.9.51.4 GR21/GR22 —
+    /// the trailing-space rule <c>TrimRecordEnd</c>
+    /// implements — key on <i>record-name-1</i>, so a WRITE naming the national record must shed national
+    /// spaces whatever the sibling descriptions say. Keying on <see cref="FileModel.AreaRecord"/> alone read the
+    /// category off whichever description happened to be widest: <c>01 L-REC PIC N(4). 01 L-BYTES PIC X(8).</c>
+    /// (the shape of golden <c>2002/pb327_national_line_sequential_fill</c>) registered NOTHING, so that file's
+    /// line-sequential WRITE shed one 0x20 with <c>string.TrimEnd</c> and left a SEVEN-byte line ending in half
+    /// a national position — the exact trap PB327's own header describes — and the READ then re-padded it
+    /// alphanumerically back to the same eight bytes, so the defect was invisible in the golden's output.
+    /// It became visible the moment §14.9.51.4 GR23's character-set test needed the same flag.</para>
+    /// <para>⚠ RESIDUAL, and deliberately not modelled here: the flag is per-CONNECTOR while GR21/GR22 are per
+    /// record-name-1, so an FD carrying BOTH a national and an alphanumeric record description answers national
+    /// for both. Distinguishing them means carrying the category on the statement; no corpus program writes the
+    /// alphanumeric sibling of a national area, and inventing a second national axis to say so would be the
+    /// two-mechanism anti-pattern.</para></summary>
     internal static void EmitNationalAreaRegistration(CodeWriter w, FileModel file)
     {
-        if (file.AreaRecord is { } area && area.OperandPic is { Category: PicCategory.National })
+        if (file.Records.Any(r => r.OperandPic is { Category: PicCategory.National }))
             w.Line($"{RuntimeApi.FileRegisterNationalArea(FileKeyExpr(file))};");
     }
 

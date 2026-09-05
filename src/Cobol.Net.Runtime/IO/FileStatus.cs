@@ -17,6 +17,15 @@ public static class FileStatusCode
     /// right, the READ is SUCCESSFUL, and the file position indicator references the next unread character in the
     /// record so the following READ continues the remainder (ISO §14.9.30.4 GR15 + NOTE 3; §9.1.13.2 item 5).</summary>
     public const string LineRecordTooLong = "06";
+    /// <summary>09 — a LINE SEQUENTIAL READ completed SUCCESSFULLY but the record area it delivered holds one or
+    /// more characters outside the implementor-defined line sequential character set (ISO §14.9.30.4 GR16;
+    /// §9.1.13.2 item 7). The record IS delivered — the first digit '0' makes this a successful completion, so
+    /// the only exception condition it raises is the continuable EC-I-O-WARNING. The set is
+    /// <see cref="LineSequentialCharacterSet"/> (Annex A.1 item 115; docs/CONFORMANCE.md DOC-A.1-115), the SAME
+    /// set the '71' WRITE/REWRITE rules below use. ⛔ GR16 is stated AFTER GR15 and its only condition is "the
+    /// execution of the READ statement is successful", so it also lands on a truncated ('06') read: '09' is the
+    /// status a bad character produces whether or not the line was over-length (kb/Work PB329).</summary>
+    public const string LineRecordInvalidCharRead = "09";
     /// <summary>05 — OPEN of an OPTIONAL file that is not present (created on OUTPUT/EXTEND/I-O, EOF on INPUT).</summary>
     public const string OptionalFileNotFound = "05";
     /// <summary>07 — ISO §9.1.13.2 item 6: <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE
@@ -80,9 +89,13 @@ public static class FileStatusCode
     /// the record being replaced (§14.9.35 GR16).</summary>
     public const string RecordSizeViolation = "44";
 
-    /// <summary>71 — a line-sequential REWRITE whose new record contains a character outside the implementor-defined
-    /// line character set (ISO §14.9.35.4 GR17d); here a record carrying a line delimiter (CR/LF) that would corrupt
-    /// the line structure.</summary>
+    /// <summary>71 — a line-sequential WRITE (ISO §14.9.51.4 GR23) or REWRITE (§14.9.35.4 GR17 d) whose record area
+    /// contains a character outside the implementor-defined line sequential character set. The statement is
+    /// UNSUCCESSFUL and, per §9.1.13.10 item 1, "the record area remains unchanged" — nothing reaches the medium.
+    /// The set is <see cref="LineSequentialCharacterSet"/> (Annex A.1 item 115; docs/CONFORMANCE.md DOC-A.1-115),
+    /// the SAME set <see cref="LineRecordInvalidCharRead"/> ('09') applies on the READ side. ⛔ '7' is a FATAL
+    /// first digit (§9.1.13.1 — EC-I-O-RECORD-CONTENT), so a program without a FILE STATUS item or a USE
+    /// declarative terminates here rather than writing a corrupt line.</summary>
     public const string LineRecordInvalidChar = "71";
 
     /// <summary>02 — successful completion; a duplicate alternate record key was detected (ISO §9.1.13.2 item 2).</summary>
