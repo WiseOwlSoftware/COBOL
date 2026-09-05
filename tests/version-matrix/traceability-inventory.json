@@ -3995,13 +3995,13 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "COBOL words",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/ProgramTable.cs#ResolveVisible",
+  "test-ref": "conformance:2002/pb303_as_externalized_name; conformance:2014/pb303_as_externalized_name_2014",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "An externalized name may be referenced as program-name in a CALL statement: every arm of the 8.4.6.3 scope search matches Node.CallName, the externalized name, per 14.9.4.4 GR3 b)'s routing through 8.3.2.2. Identical to Node.Name for a program with no AS phrase. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.2.2-L3.4",
@@ -4009,13 +4009,13 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "COBOL words",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/ProgramTable.cs#ResolveVisible",
+  "test-ref": "conformance:2002/pb303_as_externalized_name; conformance:2014/pb303_as_externalized_name_2014",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The CANCEL half of the same reference site: ProgramTable.Cancel resolves through the identical ResolveVisible, so CANCEL matches the externalized name for the same reason and by the same code. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.2.2-L3.5",
@@ -4023,13 +4023,13 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "COBOL words",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/ProgramTable.cs#EntryOf",
+  "test-ref": "conformance:2002/pb303_as_externalized_name; conformance:2014/pb303_as_externalized_name_2014",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The program-address-identifier's ENTRY operand: 8.4.3.13 GR1/GR2 already say 'the outermost program identified by the externalized program-name', and EntryOf now matches - and the returned ProgramPointer now carries - Node.CallName. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.2.2-L3.6",
@@ -4037,13 +4037,13 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "COBOL words",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoClassSymbol.cs#FindMethod",
+  "test-ref": "conformance:2023/pb303_as_module_name_and_invoke",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "An externalized name may be referenced as method-name in an INVOKE statement. 14.9.23.2 gives INVOKE no word form for the method at all - only literal-1 or identifier-2 - and 14.9.23.4 GR2 a) routes that literal through 8.3.2.2, so the method roster is keyed on OoMethodSymbol.ExternalizedName. The golden invokes by the AS literal and reaches the method; the declared method-name does not resolve, which is what this rule requires. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.3.2.2-L4.1",
@@ -11219,13 +11219,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "CLASS-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ExternalizedName.cs#Screen",
+  "test-ref": "conformance:negative/pb303_as_class_id_literal; conformance:2023/pb303_as_class_id_zero_length_accepted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "11.3.3 SR1 is the one clause of the six that omits the zero-length exclusion while keeping the figurative-constant one - verified against the printed page, not the transcription - and the shared screen honours that through its rejectZeroLength parameter. Both sides are pinned: the negative rejects a figurative constant, the positive golden ACCEPTS the zero-length literal that PROGRAM-ID rejects. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.3.3-2",
@@ -11345,13 +11345,13 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "CLASS-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build",
+  "test-ref": "conformance:2023/pb303_as_class_id_zero_length_accepted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "Object-class-name-1 names the class and literal-1 externalizes it. The observable half is that the WORD keeps naming the class while an AS phrase is written - the golden's REPOSITORY CLASS entry and its USAGE OBJECT REFERENCE clause both resolve on the declared word - which is also why OoClassSymbol.CsName is deliberately NOT derived from the externalized name (the emitted type name is a wire contract with PicInfo.ClrType). 8.3.2.2 lists no reference form that takes a class's externalized name. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.3.4-2",
@@ -11485,13 +11485,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "FUNCTION-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ExternalizedName.cs#Screen",
+  "test-ref": "conformance:negative/pb303_as_function_id_literal",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The FUNCTION-ID arm of the shared AS-literal screen; the FUNCTION-ID paragraph is itself a 2002 introduction. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.5.4-1",
@@ -11499,13 +11499,13 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "FUNCTION-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/BinderDriver.cs#MakeUnit",
+  "test-ref": "conformance:2002/pb303_as_externalized_name; conformance:2014/pb303_as_externalized_name_2014",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "User-function-name-1 names the function and literal-1 externalizes it: FUNCTION user-function-name activates the definition through the declared WORD (8.4.6.6 / 8.4.6.7) while the unit registers in the run unit under its externalized name, which UserFunctionSignature.Externalized carries to the emitted activation so the two cannot drift. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.5.4-2",
@@ -11527,13 +11527,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "INTERFACE-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ExternalizedName.cs#Screen",
+  "test-ref": "conformance:negative/pb303_as_interface_id_literal",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The INTERFACE-ID arm of the shared AS-literal screen. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.6.3-2",
@@ -11681,13 +11681,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "METHOD-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ExternalizedName.cs#Screen",
+  "test-ref": "conformance:negative/pb303_as_method_id_literal",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The METHOD-ID arm of the shared AS-literal screen. 11.7.2 prints [AS literal-1] on the method-name-1 arm only, so a GET/SET PROPERTY method never reaches it (11.7.4 GR1 a makes that name implementor-defined). kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.7.3-2",
@@ -12423,13 +12423,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "PROGRAM-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ExternalizedName.cs#Screen",
+  "test-ref": "conformance:negative/pb303_as_literal_figurative; conformance:negative/pb303_as_literal_zero_length",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The AS phrase's literal-1 class screen for PROGRAM-ID. ONE screen serves all five identification-division paragraphs plus the REPOSITORY program-specifier, because the six clauses state one rule. The phrase is a 2002 introduction (constructs.json externalized-name-as-2002), so 85 is out of scope for this rule and negative/pb303_as_phrase_below_2002 pins the gate instead. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.10.3-2",
@@ -12437,13 +12437,13 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "PROGRAM-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/BinderDriver.cs#MakeUnit",
+  "test-ref": "conformance:negative/pb303_as_in_contained_program",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "Literal-1 shall not be specified in a program contained within another program: MakeUnit knows the container (the unit's parent) at the point the phrase is read, so the check sits with the phrase rather than in a later pass. COBOLNET1795. kb/Work PB303.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.10.3-3",
@@ -12507,13 +12507,13 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "PROGRAM-ID paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/BinderDriver.cs#MakeUnit",
+  "test-ref": "conformance:2002/pb303_as_externalized_name; conformance:2014/pb303_as_externalized_name_2014; conformance:2023/pb303_as_module_name_and_invoke",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "Program-name-1 and literal-1 are separate fields (BoundUnit.Name / BoundUnit.ExternalizedName), and 8.3.2.2 makes the split observable in both directions: CALL by the AS literal reaches the program while END PROGRAM names the declared word, and FUNCTION MODULE-NAME reports the declared word (docs/CONFORMANCE.md DOC-A.1-135). Before kb/Work PB303 the two were one field AND the phrase had no grammar surface.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.10.4-2",
@@ -38057,13 +38057,13 @@
   "kind": "GR",
   "ordinal": 20,
   "subject": "OPEN statement",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundOpen; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenSharingAllOther",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundOpenFile; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundOpen; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenSharingAllOther",
+  "test-ref": "conformance:2002/pb316_open_group_scope; conformance:negative/pb316-open-sharing-all-no-lockmode",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB316. RULE: 'If more than one file-name is specified in an OPEN statement, the result of executing this OPEN statement is the same as if a separate OPEN statement had been written for each file-name in the same order as specified in the OPEN statement. These separate OPEN statements would each have the same open mode specification, the sharing-phrase, retry-phrase, and REWIND phrase as specified in the OPEN statement. If an implicit OPEN statement results in the execution of a declarative procedure that executes a RESUME statement with the NEXT STATEMENT phrase, processing resumes at the next implicit OPEN statement, if any.' cite.py --check 14.9.27.4: OK (§14.9.27.4 20)). READING: 'as specified in the OPEN statement' is PER FILE-NAME, i.e. per repetition group. §14.9.27.2's general format has an OUTER brace pair with its own trailing ellipsis around the whole '{open-mode} [sharing-phrase] [retry-phrase] {file-name-1 [WITH NO REWIND]}…' group, so one OPEN carries several groups each with its own mode AND its own phrases; §14.9.27.4 GR23 ('The SHARING phrase overrides any SHARING clause in the file control entry of FILE-NAME-1' — cite.py --check 14.9.27.4: OK (§14.9.27.4 23)) and §14.9.27.3 SR8 are both written per file-name-1. The code itself agrees for the MODE (each openClause's mode is attached to its own files) and disagrees for the phrases. DEFECT — the phrases are STATEMENT-scoped, not group-scoped. BindOpen declares 'SharingMode? sharing = null' and 'RetrySpec? retry = null' OUTSIDE the foreach over o.openClause(), assigns them whenever any clause carries the phrase, never resets them, and folds ONE value each into BoundOpen; BoundOpen's own doc comment states the wrong model outright ('Applies to every file in the statement'); EmitOpen computes 'bool shared = o.SharingOverride is not null || o.Retry is not null' ONCE and routes EVERY file through FileOpenShared with that one SharingOverride. REPRO A (rejects legal source) — out-b1/probe/openmulti/OPMUL01.cob: FA has LOCK MODE IS MANUAL, FB has neither a SHARING clause nor a phrase; 'OPEN OUTPUT SHARING WITH ALL OTHER FA OUTPUT FB.' Expected: compiles (SR8 applies to FA, which HAS the LOCK MODE clause; FB's group carries no sharing phrase so SR8's antecedent is false for it). Observed: 'error COBOLNET1512: OPEN of file FB with SHARING WITH ALL OTHER requires the file to have a LOCK MODE clause (ISO 14.9.27 SR8)' — legal source refused. REPRO B (wrong answer at run time) — out-b1/probe/openmulti/OPMUL03.cob vs the identical OPMUL04.cob control: FB and FC both ASSIGN to opmul03b.dat, FC has LOCK MODE IS MANUAL; 'OPEN OUTPUT SHARING WITH NO OTHER FA OUTPUT FB.' then 'OPEN INPUT FC.'. Expected per GR20 + GR23: FB's group has no sharing phrase, so FB takes the GR23 implementor default (here: not sharing-active) and FC's OPEN is '00' — exactly what the control prints. Observed with the phrase present: FSC = '61' (§9.1.13.9 1 file sharing conflict). FileRegistry.OpenShared also makes FB PERMANENTLY sharing-active for the rest of the run ('if (!_connectorShares.ContainsKey(name)) RegisterSharing(name, FileSharing.AllOther, …)'), changing its OS FileShare posture too. The RETRY phrase leaks identically — same variable, same BoundOpen field, same EmitOpen switch. VERIFIED-CONFORMING HALVES: the per-file decomposition in source order (BindOpen appends one (file, mode) tuple per openFileSpec in order; EmitOpen emits one FileOpen + status store + USE hook per tuple) and the RESUME NEXT STATEMENT sentence — PROBE out-b1/probe/openresume/OPRES01.cob: 'OPEN INPUT F1 OUTPUT F2 OUTPUT F3.' with F1 absent and a USE AFTER STANDARD ERROR ON F1 declarative that does RESUME AT NEXT STATEMENT prints 'DECLARATIVE HIT:35' once and then 'FS1:35 FS2:00 FS3:00 HITS:1' — processing resumed at the next implicit OPEN, as the rule requires. The REWIND-phrase half of the same sentence is vacuous here only because the phrase is discarded outright (GR11). FINDING: open-phrases-statement-scoped. Test-needed. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023 (the per-file decomposition is 1985+; the sharing-phrase and retry-phrase halves are the COBOL-2002 file-sharing introduction — A.4.7, claimed in docs/CONFORMANCE.md §5 — and the RESUME NEXT STATEMENT sentence is 2002+, A.4.12)",
-  "state": "GAP"
+  "notes": "kb/Work PB316 LANDED. GR20's normal form is now the bound tree's shape rather than a property of it: BindOpen flattens the repeated groups into one BoundOpenFile per file-name, in source order, each carrying its OWN group's open mode, sharing-phrase and retry-phrase - which is literally 'a separate OPEN statement ... for each file-name in the same order as specified in the OPEN statement ... each hav[ing] the same open mode specification, the sharing-phrase, retry-phrase, and REWIND phrase as specified in the OPEN statement' (cite.py --check 14.9.27.4, both sentences: OK). The statement node carries NO phrase state at all, so no consumer can re-broaden a phrase's scope; EmitOpen decides its sharing-aware routing per file from that file's own entry, where it previously computed one 'bool shared' for the whole statement. The two leaks the row recorded are gone and both were re-probed on today's tree first: REPRO A (rejects legal source) - 'OPEN OUTPUT SHARING WITH ALL OTHER F1 OUTPUT F2', F2 with neither a SHARING clause nor a LOCK MODE clause, was rejected COBOLNET1512 naming F2 while the same two groups in the other order compiled clean; both orderings now compile, and the complement (the ALL phrase on F2's OWN group) still rejects - conformance:negative/pb316-open-sharing-all-no-lockmode. REPRO B (wrong answer) - a second group's SHARING phrase destroyed the first group's file-control sharing at run time; conformance:2002/pb316_open_group_scope writes that arbitration twice, once as separate OPEN statements and once as one two-group statement, and requires the two to print the same I-O statuses (Table 19, row SHARING WITH ALL OTHER / INPUT against column 'sharing with no other' = Unsuccessful open = '61', 9.1.13.9 item 1). The RETRY phrase is pinned the same way, through its own observable: a file in a phrase-less group is no longer made a sharing participant, so a LATER open arbitrates against the same set it does in the reference form. The row's previously VERIFIED-CONFORMING halves (per-file decomposition in source order; the RESUME NEXT STATEMENT sentence, probe openresume/OPRES01) are untouched. The REWIND-phrase half of GR20's second sentence remains vacuous because the phrase is still discarded - that is kb/Work PB317's GR-14.9.27.4-11/-12, not this row.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-21",
@@ -38104,7 +38104,7 @@
   "test-ref": "",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB316. THREE SENTENCES, TWO BROKEN. (1) 'The SHARING phrase overrides any SHARING clause in the file control entry of file-name-1' — file-name-1 is the file list of the phrase's OWN openClause. The binder hoists the phrase to statement scope (see GR-14.9.27.4-22), so a SHARING phrase written on the second mode group also overrides the FIRST group's file-control clause. Proved in out-b1/probe/open-sharing-scope: FA's declared SHARING WITH NO OTHER is replaced by FB's clause-2 ALL OTHER override, and the '61' the control run produces becomes '00'. (2) 'If there is no SHARING phrase on the OPEN statement, then file sharing is completely specified in the file control entry' — honoured for a connector that HAS a clause (EmitSharingRegistration emits RegisterSharing only when `file.Sharing != None || file.LockMode is not null`). (3) 'If neither a SHARING phrase on the OPEN statement nor a SHARING clause in the file control entry is specified, the implementor shall define the sharing mode that is established for each file connector' — the definition is MISSING from the user documentation and the code contradicts the only place it is written down. Annex A.1 item 77 ('File sharing (default mode when unspecified). This item is required. This item shall be documented in the implementor's user documentation. (9.1.3 ...; 9.1.15 ...; 14.9.27, OPEN statement, General rule 23)') and item 131 ('OPEN statement without the SHARING phrase and no SHARING clause in the file control entry (definition of sharing mode established for each file connector). This item is required ...') both validate with cite.py --check A.1; docs/CONFORMANCE.md — the §4.2 user-documentation face, whose §5 lists A.4.7 as Claimed — has no row for either. docs/PHASE4_RECONCILIATION.md:1523 does state a choice ('our documented choice = default sharing NO OTHER (exclusive, record locks ignored per GR3)'), but the shipped code implements something else: FileSupport.cs's own summary says 'The implementor default for a connector without any SHARING/LOCK-MODE clause is outside the sharing subsystem entirely', and FileRegistry.Open bypasses SharedOpenAttempt for such a connector. PROBE (out-b1/probe/open-default-sharing): two plain SELECTs on \"shr3.dat\" — OPEN INPUT FA '00', OPEN INPUT FB '00' (under the documented NO OTHER default FB must be '61'), and OPEN OUTPUT FB over an open FA gives '30', an OS sharing violation leaking into the I-O status where the documented default requires '61'. || EDITIONS AS ADJUDICATED: 2002 / 2014 / 2023 (Annex A.4.7; gated at 2002). Not applicable at 1985.",
+  "notes": "THREE SENTENCES; TWO NOW CONFORM, ONE REMAINS - and the remaining one is kb/Work PB322's mechanism (determination A, 'File sharing - the default mode when unspecified'), which is why this row moved from PB316's inventory_rows to PB322's. (1) 'The SHARING phrase overrides any SHARING clause in the file control entry of file-name-1' - FIXED by PB316: file-name-1 is the file list of the phrase's OWN repeated group, and the binder no longer hoists the phrase to statement scope, so a phrase on the second mode group no longer overrides the first group's file-control clause. The open-sharing-scope probe that showed FA's declared SHARING WITH NO OTHER being replaced by a sibling group's ALL OTHER now reproduces the control run, and conformance:2002/pb316_open_group_scope pins it. (2) 'If there is no SHARING phrase on the OPEN statement, then file sharing is completely specified in the file control entry' - now honoured for BOTH arms, not just the clause-carrying one: a file whose group carries no phrase is emitted through the plain entry point, so it keeps whatever its file control entry gives it instead of being routed through the sharing facade with a sibling group's override and made permanently sharing-active. (3) STILL DEFECTIVE - 'If neither a SHARING phrase on the OPEN statement nor a SHARING clause in the file control entry is specified, the implementor shall define the sharing mode that is established for each file connector.' No sharing mode is established at all: FileRegistry.Open bypasses SharedOpenAttempt for such a connector, so it is outside the sharing subsystem rather than in one of 9.1.15's three modes, and the determination is absent from docs/CONFORMANCE.md (Annex A.1 items 77 and 131, both required + documented) while docs/PHASE4_RECONCILIATION.md:1523 records a choice - 'default sharing NO OTHER' - the code does not implement. Re-probed 2026-09-05 on today's tree: two clause-less connectors on one physical file both OPEN INPUT successfully ('00'/'00'), but OPEN INPUT then OPEN OUTPUT gives '30', an OS sharing violation leaking into the I-O status where any of the three sharing modes would give Table 19's '61' (9.1.13.9 item 1). || EDITIONS AS ADJUDICATED: 2002 / 2014 / 2023 (Annex A.4.7; gated at 2002). Not applicable at 1985.",
   "state": "GAP"
  },
  {
@@ -48194,11 +48194,11 @@
   "ordinal": 2,
   "subject": "FIND-STRING function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
-  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb58_argument_predicates_legal",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb58_argument_predicates_legal; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2023",
-  "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). FIND-STRING's Schema carries CrossArgRule.MatchArgument1 for §15.37.3 r2: an alphanumeric argument-1 with a national argument-2 is rejected (negative pb58-findstr-cross); same-class lists bind (golden FIND legs).",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. r2's own witness. FUNCTION FIND-STRING(<PIC ZZ9> \"5\") returns 3 — §15.37.4 r1's first occurrence within the three characters \"  5\" a PIC ZZ9 holds after MOVE 5 — and is written in both argument orders.",
   "state": "OK"
  },
  {
@@ -48908,11 +48908,11 @@
   "ordinal": 3,
   "subject": "INTEGER-OF-FORMATTED-DATE function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb58_argument_predicates_legal",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb58_argument_predicates_legal; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.48.3 r3 'Argument-2 shall be a data item of the same type as argument-1' — THREE halves, all closed: class (the 's' row), TYPE agreement (CrossArgRule.MatchArgument1 — a national argument-2 against an alphanumeric format is rejected, negative pb58-iofd-national) and 'shall be a DATA ITEM' (a literal argument-2 is rejected — negative pb58-iofd-literal — which the corpus's own two shipped tests had done: formatted_datetime and pb23_week_date_beyond_integer_date_form now carry the date in a data item, outputs unchanged). Golden IOFD binds a data-item argument-2.",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. \"a data item of the same type as argument-1\", read as the class: a PIC ZZZZZZZ9 holding \"20210616\" is class alphanumeric and agrees with the alphanumeric format literal.",
   "state": "OK"
  },
  {
@@ -49790,11 +49790,11 @@
   "ordinal": 2,
   "subject": "MAX function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
-  "test-ref": "conformance:negative/pb31-max-mixed-argument-classes; conformance:2023/pb58_argument_predicates_legal",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock",
+  "test-ref": "conformance:negative/pb31-max-mixed-argument-classes; conformance:2023/pb58_argument_predicates_legal; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.59.3 r2 — CrossArgRule.AllSameClass on the MAX row (PB31), pinned by pb31-max-mixed-argument-classes; MAX over an ordinary group + a literal (both alphanumeric) binds (golden MAXG).",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. The AllSameClass arm, which PB305's note did not name and which refused the mixed pairing just as widely. Also exercised at COBOL-85 by conformance:85/pb305_cross_argument_numeric_edited_85, where MAX/MIN/ORD-MAX/ORD-MIN are the cross-argument family available and the Table-2 class column is edition-invariant.",
   "state": "OK"
  },
  {
@@ -49986,11 +49986,11 @@
   "ordinal": 2,
   "subject": "MIN function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
-  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.63.3 r2 (all the same class) — CrossArgRule.AllSameClass on the MIN row (PB31); pinned now by negative pb58-min-cross (MIN(1 \"A\")).",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. The MIN twin of §15.59.3 r2; same AllSameClass arm, same counter-example. Also exercised at COBOL-85 by conformance:85/pb305_cross_argument_numeric_edited_85.",
   "state": "OK"
  },
  {
@@ -50462,11 +50462,11 @@
   "ordinal": 2,
   "subject": "NUMVAL-C function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#InvalidCurrency",
-  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#InvalidCurrency; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-09 (PB60), all four halves. (a) the same-class half had landed with the 15.3 schema row (COBOLNET1627, measured). (b)-(d) the CONTENT halves land twice per the two-stage discipline: a LITERAL argument-2 screens at bind (at least one non-space character after the rule's own edge-space trim; none of the digits 0-9 or the characters * + - , . - named outright, the comma/period ban does not flex with DECIMAL-POINT IS COMMA; no CR/DB pair in any case - negative pb60-numvalc-currency-content), and a DATA-ITEM argument-2 has the runtime InvalidCurrency twin in NumvalC (EC-ARGUMENT-FUNCTION + the 15.3 default 0 - a digit-bearing currency could consume argument-1 digits as 'the currency' and value a wrong number silently) and in TEST-NUMVAL-C (EC + the r1c LENGTH+1 leg, chosen because 0 would falsely certify conformance and no character OF ARGUMENT-1 is in error; documented at the guard).",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. The sharpest row in the family, because §15.68.3 asks BOTH questions of one operand: r1 is CATEGORY-worded and r2 CLASS-worded, and §8.5.2.1's closing sentence keeps them apart. The numeric-edited item is admitted by r2's class test and refused by r1's category test, and the refusal is the one that must survive — conformance:negative/pb305-numval-c-edited-category is exactly that witness. Before the fix the program drew TWO diagnostics, one correct on the category and one on a class disagreement Table 2 says does not exist; only the correct one remains.",
   "state": "OK"
  },
  {
@@ -50868,11 +50868,11 @@
   "ordinal": 3,
   "subject": "ORD-MAX function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
-  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb58_argument_predicates_legal",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb58_argument_predicates_legal; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). ORD-MAX's row now carries CrossArgRule.AllSameClass for §15.71.3 r3 — the rule MAX and MIN had and ORD-MAX/ORD-MIN never did (the two-arm-dispatch scar): a numeric+alphanumeric list is rejected (negative pb58-ordmax-cross); a same-class list binds (golden ORDMAX = 2).",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. The ORD-MAX twin; the ordinal result makes the assertion collating-sequence-free. Also exercised at COBOL-85 by conformance:85/pb305_cross_argument_numeric_edited_85.",
   "state": "OK"
  },
  {
@@ -50952,11 +50952,11 @@
   "ordinal": 3,
   "subject": "ORD-MIN function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
-  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb58_argument_predicates_legal",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb58_argument_predicates_legal; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). ORD-MIN — CrossArgRule.AllSameClass for §15.72.3 r3 (negative pb58-ordmin-cross); golden ORDMIN = 2 over a numeric list.",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. The ORD-MIN twin. Also exercised at COBOL-85 by conformance:85/pb305_cross_argument_numeric_edited_85.",
   "state": "OK"
  },
  {
@@ -51330,11 +51330,11 @@
   "ordinal": 3,
   "subject": "SECONDS-FROM-FORMATTED-TIME function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
-  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). SECONDS-FROM-FORMATTED-TIME is a Schema(['s','s']) with CrossArgRule.MatchArgument1 for §15.79.3 r3 'the same type as argument-1' (the class reading): a national argument-2 against an alphanumeric format literal is rejected (negative pb58-sfft-national).",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. \"the same type as argument-1\": a PIC ZZZZZ9 holding \"123456\" against the \"hhmmss\" format literal returns 45296, which is §15.79.4 r1's own arithmetic (12*3600 + 34*60 + 56).",
   "state": "OK"
  },
  {
@@ -51890,11 +51890,11 @@
   "ordinal": 2,
   "subject": "SUBSTITUTE function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#MatchedPositions",
-  "test-ref": "conformance:negative/pb118-substitute-tail-class",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#MatchedPositions; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
+  "test-ref": "conformance:negative/pb118-substitute-tail-class; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2023",
-  "notes": "LANDED (kb/Work PB118): MatchedPositions(argCount) extends the MatchArgument1 governed set over the variadic TAIL whenever the tail's kind matches position 0's - 15.87.3 r2 governs EVERY (argument-2, argument-3) pair, and the screen stopped at the three declared positions. The negative pins the SECOND pair's national-vs-alphanumeric mismatch (COBOLNET1627 with the r2 citation); a matched all-national pair list still binds (verified). The extension is generic: any tail-bearing MatchArgument1 schema is covered the same way.",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. SUBSTITUTE's argument-2/argument-3 pair against argument-1, written in both orders (the edited item as argument-1, and a one-position PIC Z as the argument-2 of an alphanumeric argument-1).",
   "state": "OK"
  },
  {
@@ -52114,11 +52114,11 @@
   "ordinal": 2,
   "subject": "TEST-FORMATTED-DATETIME function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
-  "test-ref": "conformance:2014/formatted_datetime",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation",
+  "test-ref": "conformance:2014/formatted_datetime; conformance:2023/pb305_cross_argument_numeric_edited; conformance:negative/pb305-cross-class-national-mixed; conformance:negative/pb305-numval-c-edited-category",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "Rule 2 admits a date format, a time format OR a combined format - the widest of the seven, and the one that caught the set-not-value error: the existing corpus program 2014/formatted_datetime uses TEST-FORMATTED-DATETIME(\"YYYYMMDD\"), which the first implementation rejected. That program is spec-derived and is the covering test for the date arm.",
+  "notes": "kb/Work PB305 (landed): this rule was recorded CONFORMS while the compiler REJECTED LEGAL SOURCE under it. §8.5.2.1 Table 2 puts category numeric-edited (usage display) in class ALPHANUMERIC and §8.4.3.3.4 GR6 c) says it in words (\"...otherwise they are considered class and category alphanumeric\" — --check OK), but CrossViolation normalized its candidate sets with a hand-written ONE-CASE fold (Alphabetic -> Alphanumeric) where the Table-2 class PROJECTION belongs, so CobolClass.NumericEditedDeEditing stayed in a block of its own and intersected EMPTY against an ordinary alphanumeric operand. Measured on the pre-fix build, every one of the TWELVE catalogued cross rules refused the mixed pairing; written with the edited item second the diagnostic even named the class it was refusing (\"argument-2 is of class alphanumeric (numeric-edited), which cannot agree with argument-1\"). The prior evidence could not see it: the existing FIND-STRING witness paired numeric-edited WITH numeric-edited, so the two candidate sets intersected non-empty (feedback_probe_the_shape_the_subject_hides). FIXED by IntrinsicArgumentRules.TableTwoClass (the §8.5.2.1 Table-2 class column, the one reader of \"what class is this operand for a class rule\") composed into CrossBlock, which projects FIRST and only then merges alphabetic with alphanumeric — the rule-level exception §15.59.3 r2 states outright. Admissible's class-worded arms are now ByClass-derived from the same projection, so a future refined class member joins every class-worded set and every cross rule at once. NEW EVIDENCE: conformance:2023/pb305_cross_argument_numeric_edited asserts, for this rule, that the numeric-edited operand and the BYTE-IDENTICAL PIC X twin built from it by MOVE give the same answer — the equivalence Table 2 itself states, which carries no dependence on the runtime collating sequence — and prints the shared value so it cannot pass vacuously; conformance:negative/pb305-cross-class-national-mixed is the over-merge witness (a national argument-2 beside a numeric-edited argument-1 is still refused); conformance:negative/pb305-numval-c-edited-category is the category witness (§15.68.3 r1 is CATEGORY-worded and still refuses the same item). Drift: IntrinsicArgumentClassDriftTests.EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class walks the whole schema table against a witness per CobolClass member and fails if any cross screen SPLITS a Table-2 class; EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class holds the ByClass derivation. Both were run RED against the pre-fix fold before the fix was restored. \"Argument-2 shall be of the same type as argument-1\": the same PIC ZZZZZZZ9 date returns 0, §15.92.4 r1's \"no format problems or range problems\" answer.",
   "state": "OK"
  },
  {
@@ -55585,13 +55585,13 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "OPEN statement",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#openStatement; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#openClause; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#openFileSpec; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#openMode; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#sharingPhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
-  "test-ref": "conformance:negative/open-reversed; conformance:negative/pb236-open-undeclared-file",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#openStatement; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#openClause; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#openFileSpec; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#openMode; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#sharingPhrase; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundOpenFile; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
+  "test-ref": "conformance:2002/pb316_open_group_scope; conformance:negative/open-reversed; conformance:negative/pb236-open-undeclared-file; conformance:negative/pb316-open-sharing-group-below-2002",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB316 (OPEN) after kb/Work PB236 (landed). SHAPE: correct -- the grammar is the printed format's exact image, and REVERSED is edition-gated out at >=2002 (pinned by conformance:negative/open-reversed). DEFECT (b) IS FIXED. The format writes the operand as file-name-1, and cite.py --check 8.4.2.1 'In order to use a resource, a statement shall contain a reference that uniquely identifies that resource.' -> OK; `OPEN INPUT NOSUCH` and `OPEN OUTPUT WS-X` used to compile clean and abort the run unit with a message calling the SOURCE's error a COMPILER limitation. Resolution now runs through StatementValidation.ResolveFile -- the ONE step shared by all seven binder sites that name a file (UNLOCK, OPEN, CLOSE, READ, DELETE, DELETE FILE, START), each of which had its own copy of FilesByName.TryGetValue and its own unreported BoundUnsupported -- and it reports the EXISTING undefined-reference descriptor (COBOLNET1639) rather than an eighth spelling of 'not defined', because that is ONE rule. Measured: `error COBOLNET1639: 'NOSUCH' is not defined as a file -- OPEN names file-name-1 in its general format ... (ISO 8.4.2.1 ...)`. Witness: conformance:negative/pb236-open-undeclared-file. STILL PARTIAL for defect (a), which is PB316's and untouched here: the repeated group's SCOPE is discarded at bind. sharing-phrase and retry-phrase sit INSIDE the outer repeatable group next to the file-names they govern, and 14.9.27.4 GR20 confirms the per-group reading, but BindOpen declares `sharing` and `retry` OUTSIDE the openClause loop and hands ONE statement-wide value to BoundOpen, so leak2.cob (two groups in one statement) prints A=00 B=61 where the GR20-equivalent two-statement form prints A=00 B=00.",
-  "state": "GAP"
+  "notes": "kb/Work PB316 (LANDED) after kb/Work PB236 (landed). The general format's OUTER brace pair, with its own trailing ellipsis, encloses the whole group '{open-mode} [sharing-phrase] [retry-phrase] {file-name-1 [WITH NO REWIND]}' - re-verified this session by RENDERING the printed page (PDF p.705) rather than reading the transcription, and the transcription's figure note matches it. The grammar was already that format's exact image (openStatement: OPEN openClause+; openClause: openMode (sharingPhrase)? (retryPhrase)? openFileSpec+), and REVERSED is edition-gated out at >=2002 (conformance:negative/open-reversed). Defect (b), file-name-1 resolution, was fixed by PB236 (COBOLNET1639; conformance:negative/pb236-open-undeclared-file). Defect (a) - the repeated group's SCOPE discarded at bind - is FIXED HERE: the binder no longer hoists the two phrases out of the openClause loop, and the bound tree carries the format's own shape as BoundOpenFile(File, Mode, Sharing, Retry, Unsupported), one entry per file-name, which is 14.9.27.4 GR20's normal form. The two-group probes that motivated the row now agree with their GR20 reference forms: 'OPEN INPUT FA INPUT SHARING WITH NO OTHER FB' prints A=00 B=00, the same as the two-statement form (it printed A=00 B=61 before), and 'OPEN OUTPUT SHARING WITH ALL OTHER F1 OUTPUT F2' with an unlocked F2 now compiles, as its reverse ordering always did. Witness: conformance:2002/pb316_open_group_scope pins both orderings and both phrases; conformance:negative/pb316-open-sharing-group-below-2002 pins the 2002 introduction gate on a phrase written on a group OTHER than the first.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-14.9.28.2",
