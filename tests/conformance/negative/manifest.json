@@ -760,7 +760,11 @@
   "pb237-repository-program-inconsistent",
   "pb237-call-prototype-argument-count",
   "pb250-cobol-words-undefined-keyword-syntax-withdrawn",
-  "pb250-test-numvalc-locale-and-argument2-are-alternatives"
+  "pb250-test-numvalc-locale-and-argument2-are-alternatives",
+  "l1-present-when-level-01",
+  "l1-present-when-level-77",
+  "l1-picture-currency-not-equivalent",
+  "l1_sync_abbrev_group_below_2023"
  ],
  "pending": []
 }

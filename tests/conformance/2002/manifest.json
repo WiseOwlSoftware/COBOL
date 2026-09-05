@@ -178,7 +178,9 @@
     "pb230_incompatible_boolean_sending",
     "pb235_close_unit_locks",
     "pb250_test_numvalc_remaining_shapes",
-    "pb252_native_carrier_boundary"
+    "pb252_native_carrier_boundary",
+    "l1_picture_currency_equivalent_2002",
+    "l1_value_values_equivalent_2002"
   ],
   "pending": []
 }

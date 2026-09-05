@@ -451,7 +451,24 @@
   "pb230_incompatible_corresponding",
   "pb250_cobol_words_phrase_word_equate",
   "pb250_cobol_words_phrase_word_undefine",
-  "pb250_cobol_words_multi_spelling"
+  "pb250_cobol_words_multi_spelling",
+  "l1_renames_through_thru",
+  "l1_linage_zero_margins",
+  "l1_picture_abbreviation",
+  "l1_picture_currency_equivalent",
+  "l1_picture_alphabetic_only_a",
+  "l1_picture_special_insertion",
+  "l1_search_all_gr5_preconditions",
+  "l1_sign_elementary_overrides_group",
+  "l1_sign_signed_item_conversion",
+  "l1_sync_abbreviation",
+  "l1_sync_size_unchanged",
+  "l1_sync_sign_position",
+  "l1_sync_occurs_and_no_auto_align",
+  "l1_sync_file_record",
+  "l1_usage_computational_identity",
+  "l1_value_values_equivalent",
+  "l1_value_thru_through_equivalent"
  ],
  "pending": [
   "pb485_value_only_format1"

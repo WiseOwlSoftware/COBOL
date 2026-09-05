@@ -17801,11 +17801,11 @@
   "subject": "Data description entry",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause; src/Cobol.Net.Frontend/Grammar/Core/CobolDeclined.g4#validationClause",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1-present-when-level-01; conformance:negative/l1-present-when-level-77",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "VACUOUSLY SATISFIED BY A NAMED REFUSAL -- the shape the owner settled in kb/Work PB371 (2026-09-02: a rule whose antecedent can only be created by a NOT-CLAIMED module records CONFORMS, witnessed by a test pinning that the antecedent is rejected). The PRESENT WHEN clause of the §13.16.2 validation-clauses group is an item of Annex A.4.14, whose support this implementation does not claim (docs/CONFORMANCE.md §5); DeclinedFacilityPass.VisitValidationClause refuses it BY NAME with COBOLNET1708 in every data description entry, so no entry -- at level 1, at 77, or at any other level -- can carry it and the prohibition cannot be violated. Probed at all three applicable editions and at both sides of the rule's own level test: level 01 and level 05 at 2023 (sr20_present_when_01, sr20_present_when_05), level 05 at 2002 and 2014 (q_present_2002, q_present_2014), level 77 at 2023 (q_present_77) -- COBOLNET1708 every time. At COBOL-85 the clause does not exist (the grammar arm is `{is2002()}? validationClause`), so the rule has no 85 leg. NOT OVER-REJECTED: the SHARED spelling that IS claimed -- PRESENT WHEN format 1 in a report group description entry (§13.18.41, Annex A.4.11) -- still compiles, because it has its own grammar rule and never reaches this pass (probe z_rw_present). The A.4.14 declined posture itself is owned by kb/Work PB283 (open); DOCUMENTED-NON-SUPPORT is the owner's verdict, not this adjudication's, and it is not what this row needs -- the rule is a prohibition that holds. || REFUTED: CONFORMS with test-ref CLEARED to \"\" (CONFORMS-but-untested; the row does NOT close and stays a GAP) — THE BEHAVIOUR SURVIVES EVERYTHING I THREW AT IT -- I could not make the compiler accept PRESENT WHEN in a data description entry at level 1 or 77 anywhere. I extended the adjudicator's five probes to twelve: level 01 and level 77 at 2002, 2014 AND 2023; the single-digit `1` spelling; and the antecedent in WORKING-STORAGE, under an FD, under an SD, in the LINKAGE SECTION and in LOCAL-STORAGE -- COBOLNET1708 every time. The mechanism is why: DeclinedFacilityPass.VisitValidationClause is a PARSE-TREE VISITOR, so unlike SR15's binder-walk check it is structurally level-independent -- I proved that rather than assumed it by firing it from the very level-88 pre-filter that defeats SR15 (u1_present_on_88 -> COBOLNET1708). The vacuity argument also holds on the spec: 13.16.2 Format 1's `[ validation-clauses ]` group is the only place a 13.16 data description entry can carry PRESENT WHEN, 13.18.41 Format 2 (validation) is Annex A.4.14 item 5, and A.4.14 is not claimed -- so the antecedent is unsatisfiable, which is exactly PB371's landed CONFORMS family. And it does NOT over-reject the shared spelling: report-writer PRESENT WHEN (A.4.11 item 14, 13.15) still compiles at level 10 AND at level 01 (r18), the level-01 case being the one 13.18.41.4 GR2b explicitly contemplates. WHAT IS WRONG IS THE CLOSER. The cited witness `conformance:negative/declined-validate-present-when` is `05 WS-A PIC X(4) PRESENT WHEN WS-F = 1.` -- LEVEL 05, which is precisely the region SR-13.16.3-20 PERMITS. It pins the A.4.14 decline; it never writes this rule's forbidden construct. That is the exact shape PB371 named as its load-bearing half and refused: 'Each row got its OWN fixture rather than sharing `declined-apply-commit` ... A witness that only wrote APPLY COMMIT alone would keep passing the day A.4.3 is claimed, leaving seven CONFORMS verdicts standing on an antecedent that had become reachable. Each fixture writes the rule's own forbidden construct ... so it stops failing exactly when the row needs re-adjudicating.' PB283 (A.4.14's posture) is OPEN, so that day is live: if VALIDATE is claimed, the level-05 fixture is rewritten for the decline's own sake and SR20's obligation -- refuse PRESENT WHEN at level 1 and 77 -- will never once have been pinned. The verdict CONFORMS stands on measured behaviour; the test-ref must be cleared, which moves the row from closed to GAP. The closer PB371's shape requires is a two-case negative golden writing `01 ... PRESENT WHEN ...` and `77 ... PRESENT WHEN ...`, expected COBOLNET1708, beside a positive control keeping report-writer PRESENT WHEN compiling. DOCUMENTED-NON-SUPPORT is not mine to record here and is not what the row needs -- the A.4.14 posture is owned by kb/Work PB283 (open); this row is a prohibition that holds.",
-  "state": "GAP"
+  "notes": "SR20's antecedent is unsatisfiable (PRESENT WHEN is Annex A.4.14 item 5, unclaimed, refused by name with COBOLNET1708 at every level), so the witness writes the rule's OWN forbidden construct at level 1 and at 77 — PB371's shape; the level-05 fixture that was cleared could not.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-21",
@@ -17829,11 +17829,11 @@
   "subject": "Data description entry",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindRenames",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_renames_through_thru",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The two words are one alternative in the grammar and are OR-ed into a single boolean in the binder; nothing downstream can see which was written. Verified observationally: `66 R1 RENAMES A THRU B.` and `66 R2 RENAMES A THROUGH B.` over the same operands both DISPLAY `[ABCD]` (probe p_sr22_thru.cob). test-ref left EMPTY deliberately — every RENAMES witness in tests/conformance and tests/Cobol.Net.Tests.* spells THRU; not one exercises THROUGH, so no existing spec-derived test closes this row. || code sites, verbatim from the adjudication: src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#renamesClause:603-605 (`RENAMES dataReference ((THRU | THROUGH) dataReference)?`); src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindRenames:2076 (`bool thru = rc.THRU() is not null || rc.THROUGH() is not null;` at :2080 — one flag, both spellings)",
-  "state": "GAP"
+  "notes": "SR22 is a FORMAT 2 (renames) rule; the golden writes both spellings over the same operands and shows one storage area via §13.18.45.4 GR2 (same content, write-through, and the area concluding at WS-B).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-23",
@@ -21329,11 +21329,11 @@
   "subject": "LINAGE clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_linage_zero_margins",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "A PERMISSION, AND IT IS HONOURED. <lane3 scratch>/out-b3/probe/linage/p8_sr4.cob (`LINAGE IS 5 LINES WITH FOOTING AT 4 LINES AT TOP 0 LINES AT BOTTOM 0`) compiles and runs clean; nothing anywhere rejects a zero integer-3/integer-4, and EvaluateLinage (SequentialConnector.cs:129-132) constrains only body and footing, never top/bottom. COST DISCLOSURE: the row is satisfied VACUOUSLY - since the top and bottom margin values are discarded unread (see GR-13.18.34.4-4/-5), zero and non-zero margins are physically indistinguishable, so 'accepts zero' is true but says nothing about the feature around it. No test exercises a zero margin. || code sites, verbatim from the adjudication: src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4:162-168 (integerLiteral admits 0); src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs:145-156 (LinageOpExpr emits the literal verbatim)",
-  "state": "GAP"
+  "notes": "Zero margins are accepted (the permission — tested by the fixture compiling at all) and, per §13.18.34.4 GR1, must behave as an omitted phrase: LINAGE-COUNTER steps 1,2,3,4 identically on the explicit-zero file and the phrase-less control (GR7d, GR7c3). The columns pin GR7, NOT margin handling — a zero margin is the identity, so column equality is blind to how a margin is treated. Every WRITE is preceded by its own MOVE because §14.9.51.4 GR4 empties the record area on each successful WRITE.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.34.4-1",
@@ -22953,11 +22953,11 @@
   "subject": "PICTURE clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_picture_abbreviation",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The abbreviation is a lexer-level identity, so PIC and PICTURE are indistinguishable downstream -- there is no second code path to drift. MEASURED (probe sr5a/sr5c): `PIC X(4)`, `PICTURE X(4)`, `PIC IS X(4)` and `PICTURE IS X(4)` all bind; the adversarial control `PICT X(4)` is rejected (COBOL0307), i.e. the abbreviation is exactly PIC, not any prefix. 5.2.2/5.2.3 make PICTURE a required word with PIC its required-minimum abbreviation -- the 13.18.40.2 figure underlines both, and the grammar admits exactly the two. CONFORMS-but-untested: no spec-derived test asserts the pair, and none is needed to close it under this lane's rule (a golden is not written here). || code sites, verbatim from the adjudication: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4:622 -- `PIC : ('PIC' | 'PICTURE') -> pushMode(PICMODE) ;` (ONE token for both spellings); src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4:365-370 `pictureClause : PIC PIC_STRING editingPhrase* pictureLocalePhrase? ;` || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (ALL FORMATS)",
-  "state": "GAP"
+  "notes": "PIC and PICTURE, with and without IS, over the same character-strings: identical size (§13.18.40.4 GR4), identical alphanumeric alignment (§14.6.8.5) and identical edited image (§14.6.8.2 rule 5 + editing rule 7a).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-6",
@@ -23275,11 +23275,11 @@
   "subject": "PICTURE clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_picture_currency_equivalent; conformance:2002/l1_picture_currency_equivalent_2002; conformance:negative/l1-picture-currency-not-equivalent",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Both directions measured against a program declaring CURRENCY SIGN IS \"W\" WITH PICTURE SYMBOL \"W\" (which leaves '$' implied by 12.3.7.3 SR25). NON-equivalent: `01 W1 PIC $$W9.` -> COBOLNET0808 naming both symbols (probe sr28a2). EQUIVALENT: `01 W1 PIC wwW9.` binds and MOVE 12 renders [ W12], byte-identical to the all-uppercase `PIC WWW9` (probes sr28b2 / sr28c2) -- the floating W string of three gives two digit positions plus the '9', the leading zero is suppressed and the W floats, which is the correct floating-insertion image. The equivalence used is SR3's (see that row): correct for repertoire characters, undocumented implementor latitude for a non-repertoire currency symbol -- that gap is charged to SR-13.18.40.3-3, not here. One scope note: the 0808 rejection is a SUPERSET of SR28, firing for two different currency symbols in FIXED insertion too. That is right per SR24 ('only one currency symbol ... may be used'), but SR24 is not in this part; if the 13.18.40.6 Table 10 adjudication ever finds a legal two-currency-symbol picture, this check would become a legal-source rejection. CONFORMS-but-untested: no spec-derived test asserts either direction. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:71-86 -- the currency-symbol scan folds each picture character with char.ToUpperInvariant, looks it up in the unit's CURRENCY SIGN SET, and emits COBOLNET0808 ('it uses two different currency symbols') the moment a second, non-equivalent member appears; the equivalent case falls through `if (cs == up) continue;` || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (FORMAT 1). A second currency SYMBOL requires a CURRENCY SIGN clause, and CURRENCY SIGN ... WITH PICTURE SYMBOL is a 2002 introduction (VCR row 7.3), so the reject leg is exercisable 2002+.",
-  "state": "GAP"
+  "notes": "Equivalent occurrences (PIC wwW9, case-folded per §12.3.7.3 SR20 -> §8.1.3.2 GR3) form one floating string and render [ W12] identically to PIC WWW9; non-equivalent ones (PIC $$W9 with '$' implied by §12.3.7.3 SR25) are rejected COBOLNET0808. The 85 leg is vacuous — only '$' exists there.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-29",
@@ -23471,11 +23471,11 @@
   "subject": "PICTURE clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Table16Operand",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_picture_alphabetic_only_a",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "`IsAlphabetic = expanded.All(c => c is 'A')` is exactly GR5's 'only one or more occurrences of the symbol A', and because it is an ONLY-test it cannot over-apply: PIC AAZZ and PIC AAA9 come out non-alphabetic, PIC A / PIC AAA alphabetic (probe p5: LENGTH 1 / 3). The flag is what every category-alphabetic consumer reads (Table 16's alphabetic row and column via MoveTable16, the section 15 argument class screen, INITIALIZE ALPHABETIC), so the category is modelled behaviourally even though PicCategory has no separate member. CONFORMS-but-untested: no spec-derived test asserts the alphabetic classification itself; the Table-16 alphabetic rows exercised by the MOVE tests belong to 14.9.25's rows. || editions, verbatim from the adjudication: 85/2002/2014/2023",
-  "state": "GAP"
+  "notes": "INITIALIZE REPLACING ALPHABETIC / ALPHANUMERIC (§14.9.20.4 GR5c2, GR6b) reads the category back: PIC AAA and PIC A are written by the first arm, PIC AA9 and PIC XXX only by the second — GR5's ONLY test in both directions.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.40.4-6",
@@ -23723,11 +23723,11 @@
   "subject": "PICTURE clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#Format",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_picture_special_insertion",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Pass 1's `case '.': output[i] = '.'` puts the period character at the symbol's own position, and the same symbol anchors the mask's fraction scale (FractionDigits) and terminates zero suppression (pass 2's `case '.': suppressing = false`), which is the alignment role GR14 gives it. Probes: PIC ZZZ.ZZ MOVE 0 -> six spaces; PIC $$$.$$ MOVE 0.05 -> '  $.05'; PIC ***.** MOVE 0 -> '***.**' (rule 7b's 'the decimal separator ... will appear in the item'); PIC +9.9(3)E+99 -> '+1.500E+00'. Under DECIMAL-POINT IS COMMA the mask is canonicalized, edited, and the rendered separators swapped back (SwapSeparators), so the special insertion symbol becomes the comma exactly as 13.18.40.3 SR13 requires. CONFORMS-but-untested: the only tests over this path are the legacy differential (NumericEditedDifferentialTests, DecimalPointDifferentialTests), which are regression nets and cannot close the row. || code sites, verbatim from the adjudication: src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#CobolEdit.Format || editions, verbatim from the adjudication: 85/2002/2014/2023",
-  "state": "GAP"
+  "notes": "Three masks whose '.' sits at positions 5, 2 and 4; each edited image is displayed with the three-character window around that position, including the ***.** zero case where editing rule 7b keeps the separator amid full asterisk replacement.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.40.5-5",
@@ -25683,11 +25683,11 @@
   "subject": "SIGN clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_sign_elementary_overrides_group",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "MEASURED. `01 G SIGN IS LEADING SEPARATE. 05 A PIC S9(3) SIGN IS TRAILING SEPARATE VALUE -12. 05 B PIC S9(3) VALUE -12.` gives `A=[012-]`, `B=[-012]` and `G=[012--012]` (probe sg_gr3_elem): the elementary entry's own clause wins for THAT ENTRY while the group's clause still governs its sibling. Two mechanisms cooperate and neither can be lost to pass ordering -- the elementary clause is baked into the item's PicInfo at entry bind, and the post-build inheritance pass's `OwnSign is null` guard is what refuses to overwrite it. CONFORMS but UNTESTED (no corpus test pairs a group SIGN with an overriding elementary SIGN). || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs:3440-3443 (the `item.OwnSign is null` guard in InheritSignClauses); the elementary clause itself is consumed at entry bind, DataBinder.cs:2378 -> PicInfo.SignKindFor (PicInfo.cs:593-599)",
-  "state": "GAP"
+  "notes": "13.18.52.4 GR3 + GR1: the elementary SEPARATE clause wins for its own entry while the group's still reaches its sibling; images derived from GR6 a/b so no implementor determination is pinned.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.52.4-4",
@@ -25739,11 +25739,11 @@
   "subject": "SIGN clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_sign_signed_item_conversion",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "MEASURED, AND STRUCTURALLY GUARANTEED. Every picture containing 'S' is a signed item at every usage (PicInfo.Signed, set by PictureAnalyzer from the symbol alone). Two items holding the same value in DIFFERENT sign representations compare equal and combine arithmetically with no source-level conversion: `01 A PIC S9(3) SIGN IS LEADING SEPARATE VALUE -12.` against `01 B PIC S9(3) SIGN IS TRAILING VALUE -12.` gives `A = B` true, `A < 0` true, and `COMPUTE C = A + B` into a `PIC S9(4) USAGE COMP` receiver gives -0024 (probe sg_gr7_conv). The rule is satisfied structurally rather than by a conversion step: in the typed-native model the stored value IS a native signed integer, so no representation exists at a computation or comparison site to convert -- the over-punch / separate-character form is materialized only at the character-image boundary (a group MOVE, a record image, DISPLAY). CONFORMS but UNTESTED -- no corpus test compares two items with differing SIGN clauses. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs:414-424 (ClrType -- a fixed-point numeric IS a native integer holding the UNSCALED value, the sign carried by the integer) and PicInfo.cs:210/593-599 (Signed / SignKind are description metadata only); the sole representation boundary is src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs:559-581 / :663-699",
-  "state": "GAP"
+  "notes": "Two SEPARATE layouts (13.18.52.4 GR6 a/b) holding -12 compare equal and sum into a third, per 8.8.4.2.4's algebraic-value comparison; the NEG leg pins GR7's signed-item sentence.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.53.3-1",
@@ -26243,11 +26243,11 @@
   "subject": "SYNCHRONIZED clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4; src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_sync_abbreviation; conformance:negative/l1_sync_abbrev_group_below_2023",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "The abbreviation is structural, not a table entry: the two tokens are one grammar alternative feeding one binder action, so no behaviour can diverge between them - the strongest available form of this rule. Measured at all four editions in both spellings, on elementary items (sy_elem_*, sy_elem_right_*), on 77 levels (sy_77_*), on group items at 2023 (sy_group_2023 uses SYNC, the shipped witness negative/sync_group_below_2023 uses SYNCHRONIZED), and with each of LEFT / RIGHT / neither (sy_elem_left_*, sy_elem_right_*, sy_layout). TEST-REF DELIBERATELY EMPTY: no shipped spec-derived test writes the abbreviation - tests/conformance/2002/l1_byte_length_implicit_filler.cob and tests/conformance/negative/sync_group_below_2023.cob both spell SYNCHRONIZED in full (the `SYNC` matches in the corpus grep are the golden's DISPLAY literal \"SYNC=\", not the clause). A one-line addition to either witness would close this row on a shipped test. || code sites, verbatim from the adjudication: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4:686-687 (`SYNC : 'SYNC' ;` / `SYNCHRONIZED : 'SYNCHRONIZED' ;`); src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4:656-658 folds them into ONE alternative, and src/Cobol.Net.Compiler/Binding/DataBinder.cs:2308-2309 has ONE action for it - there is no second path either spelling can take || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 - both spellings are reserved words at every edition and the abbreviation is accepted wherever the full word is (probes sy_elem_* use SYNC, sy_elem_right_* use SYNCHRONIZED, at all four editions)",
-  "state": "GAP"
+  "notes": "Five paired positions (77, elementary, LEFT, RIGHT, group) answer identically in both spellings, and the negative proves SYNC meets the same 2023 group gate (COBOLNET0900) as SYNCHRONIZED.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.55.4-1",
@@ -26327,11 +26327,11 @@
   "subject": "SYNCHRONIZED clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Model/DataItem.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_sync_size_unchanged",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Measured on three carriers in two probes. Binary: probe sy_layout, FUNCTION LENGTH of the SYNCHRONIZED `PIC S9(4) COMP` is ELEM=0002 and of the identical unsynchronized item ELEMP=0002. Signed display: probe sy_sign, `PIC S9(4) SIGN IS LEADING SEPARATE SYNC` is L1=0005 and the same item without the clause L4=0005 (the SEPARATE position is not disturbed). Inside a table: probe sy_occurs, one occurrence of `10 A PIC X. 10 B PIC S9(4) COMP SYNC.` is E1=0003. National and alphanumeric: probe syp_defaultsign, `PIC N(3) SYNC` is N1=0003 and `PIC X(3) SYNC` is X1=0003. TEST-REF EMPTY deliberately: the shipped golden measures the GROUP's byte length around a synchronized item (GR9 b)), never the synchronized ITEM's own length, which is what GR6 is about. || code sites, verbatim from the adjudication: By construction: DataItem.Synchronized (src/Cobol.Net.Compiler/Binding/Model/DataItem.cs:249-253) is written at DataBinder.cs:2308-2309 and read only at DataBinder.cs:725 (13.16.3 SR13), DataBinder.cs:1705 (clone), DataBinder.cs:3318 (the 2023 group gate) and DataBinder.GroupValue.cs:136 (13.18.63.3 SR14) - no width or offset computation reads it, so no adjustment can affect the item's size || editions, verbatim from the adjudication: 85, 2002, 2014, 2023",
-  "state": "GAP"
+  "notes": "BYTE-LENGTH of the synchronized ELEMENTARY item equals its clause-free twin on four carriers (COMP, SIGN SEPARATE display, alphanumeric, LEFT/RIGHT) - the item's own size, which the GR9 b) golden never measured. The SEPARATE legs pin 13.18.52.4 GR6 a), not GR5 a).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.55.4-7",
@@ -26341,11 +26341,11 @@
   "subject": "SYNCHRONIZED clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_sync_sign_position",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "All four sign positions exercised WITH the clause, and each matched against the same item without it. Probe sy_sign at --std 2023: `PIC S9(4) SIGN IS LEADING SEPARATE SYNC VALUE -42` displays S1[-0042]; `SIGN IS TRAILING SEPARATE SYNC` displays S2[0042-]; `SIGN IS LEADING SYNC` (embedded) displays S3[}042], the negative overpunch on the LEADING digit; and the control `SIGN IS LEADING SEPARATE` without SYNC displays S4[-0042], identical to S1. Probe syp_defaultsign adds the implicit position (no SIGN clause = trailing embedded, 13.18.52.4 GR5): `PIC S9(4) SYNC VALUE -42` displays D1[004K] and the unsynchronized twin D2[004K]. So the sign appears in the position the SIGN clause specifies explicitly or implicitly, in every form, with any form of SYNCHRONIZED present. TEST-REF EMPTY: no shipped spec-derived test combines a SIGN clause with SYNCHRONIZED. || code sites, verbatim from the adjudication: By construction and by ORDERING: the sign position is decided entirely by PicInfo.SignKindFor / InheritSignClauses (src/Cobol.Net.Compiler/Binding/DataBinder.cs:3437-3447) from the SIGN clause (13.18.52), and DataItem.Synchronized is not an input to it - the SYNCHRONIZED flag is set at DataBinder.cs:2308-2309 and read by none of the four sign/width sites || editions, verbatim from the adjudication: 85, 2002, 2014, 2023",
-  "state": "GAP"
+  "notes": "Explicit arm pinned character-exact from 13.18.52.4 GR6 a/b across all three SYNCHRONIZED forms; the implicit arm is the GROUP-INHERITED clause (13.18.52.4 GR1), printed character-exact because inheritance of a SEPARATE clause is fully spec-defined, plus a written-but-not-SEPARATE arm asserted as an image EQUALITY so the undocumented GR5 b) representation is never pinned. ROUND-4 REWRITE: the first draft's no-SIGN-clause leg did not exercise GR7 at all, because 13.18.52.4 GR4 disapplies GR5 and GR6 to such items and leaves GR7's consequent no referent.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.55.4-8",
@@ -26355,11 +26355,11 @@
   "subject": "SYNCHRONIZED clause",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_sync_occurs_and_no_auto_align",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "a) 'applies to each occurrence' and b) 'per-occurrence implicit FILLER' are both discharged by the no-alignment determination: with zero filler generated anywhere, an occurrence carrying the clause is laid out exactly like one that does not, so applying the clause to every occurrence and to none are the same program. Measured - probe sy_occurs at --std 2023: `05 E1 OCCURS 3 TIMES.` over `10 A PIC X.` + `10 B PIC S9(4) COMP SYNC.` gives T1=0009 with one occurrence E1=0003, and the identical table without the clause gives T2=0009. An implementation that aligned B and applied it per occurrence would answer 12; one that applied it to the first occurrence only would answer 10 - so the leg does discriminate the shape, even though it cannot discriminate a) from a vacuous a). The vacuity itself is earned by the golden's SYNC=3 leg, which rules out a 2-byte alignment. TEST-REF EMPTY: the shipped golden has no OCCURS leg. || code sites, verbatim from the adjudication: docs/CONFORMANCE.md DOC-A.1-195 ('GR8 b)'s per-occurrence FILLER is vacuous inside a table'); by construction in the table layout path, which computes an occurrence's extent without reading DataItem.Synchronized (the four readers are DataBinder.cs:725, 1705, 3318 and DataBinder.GroupValue.cs:136) || editions, verbatim from the adjudication: 85, 2002, 2014, 2023",
-  "state": "GAP"
+  "notes": "Both GR8 entry points measured against clause-free twins (SUBORD 9, ONOCCURS 7, ONE 3 = 9/3), pinning the DOC-A.1-195 determination; the header states plainly that GR8 a) is vacuous under it and what each leg does discriminate. ROUND-4: the ONOCCURS tables gained a one-byte prefix (6 6 -> 7 7) because without it the occurrences already sat on even offsets and an aligning implementation answered 6 too.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.55.4-9",
@@ -26383,11 +26383,11 @@
   "subject": "SYNCHRONIZED clause",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_sync_occurs_and_no_auto_align",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "GR10 is permissive ('An implementor MAY optionally specify automatic alignment'), and Annex A.1 item 7 confirms the documentation obligation is optional ('This item is optional. This item, if provided by the implementor, shall be documented'). COBOL.NET specifies none, which is a conforming choice and is stated in DOC-A.1-195. Measured - probe sy_layout: the UNSYNCHRONIZED control `01 G4. 05 A4 PIC X. 05 B4 PIC S9(4) COMP. 05 C4 PIC X.` is PLAIN=0004, i.e. B4 sits at offset 1, not at an automatically aligned offset 2 (an implementation that had elected automatic alignment for binary would answer 5). GR10's exclusions (bit data items, and within a record usage display or national) are therefore moot, and its second sentence ('A record itself may be automatically synchronized') is likewise declined. TEST-REF EMPTY: the golden's only unsynchronized numeric control is inside the same group as its synchronized item, not a separate no-clause leg. || code sites, verbatim from the adjudication: docs/CONFORMANCE.md DOC-A.1-195 (\"GR10's optional automatic alignment is not specified, so nothing is aligned without the clause either\"); by construction - there is no alignment pass to exclude bit/display/national from || editions, verbatim from the adjudication: 85, 2002, 2014, 2023",
-  "state": "GAP"
+  "notes": "The declined option measured on unexcluded carriers with NO clause present: AUTO=4 (binary) and AUTO8=10 (BINARY-DOUBLE) carry GR10's FIRST sentence; A.1 item 7 makes the documentation optional and DOC-A.1-195 states the declination. ROUND-4: the REC=3 leg's claim to test GR10's SECOND sentence is WITHDRAWN - record synchronization is a placement and 13.18.55.4 GR6 keeps the size at 3 under either election, so the header now says the leg makes no claim about it and points at l1_sync_file_record's 4/4 legs instead.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.55.4-11",
@@ -26397,11 +26397,11 @@
   "subject": "SYNCHRONIZED clause",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_sync_file_record",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "GR11 requires the implementor to specify any file-record synchronization rules; Annex A.1 item 196 makes documenting them optional ('This item is optional'), and COBOL.NET's stated rule is that there are none - the file record is laid out exactly as the equivalent WORKING-STORAGE group. Measured: probe syq_gr9a_media writes a record whose member carries SYNCHRONIZED and one that does not, through two SEQUENTIAL files, and the two files are byte-identical (41 00 01 5a each, 4 bytes); probe syp_fd_reclen gives RECLEN=0004 for the FD record `05 RA PIC X. 05 RB PIC 9(4) COMP SYNC. 05 RC PIC X.`, the unsynchronized number. Note for the registrar: docs/CONFORMANCE.md carries no DOC-A.1-196 row of its own (nor DOC-A.1-197); both items live only inside the DOC-A.1-195 paragraph - see GR-13.18.55.4-3's note. || code sites, verbatim from the adjudication: docs/CONFORMANCE.md DOC-A.1-195 ('GR11 adds no file-level synchronization'); by construction in the record-image path, which is the same one WORKING-STORAGE uses and reads no SYNCHRONIZED flag || editions, verbatim from the adjudication: 85, 2002, 2014, 2023",
-  "state": "GAP"
+  "notes": "A record WRITTEN through the synchronized FD description and READ back through the unsynchronized one on the same external file decodes intact, and both record lengths are 4 - DOC-A.1-195's 'GR11 adds no file-level synchronization' (A.1 item 196 is optional documentation).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.56.3-1",
@@ -27348,12 +27348,12 @@
   "ordinal": 6,
   "subject": "USAGE clause",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#Truncation; docs/CONFORMANCE.md#DOC-A.1-208",
-  "test-ref": "",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#StorageWidth",
+  "test-ref": "conformance:2023/l1_usage_computational_identity",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "THE RULE GIVES THE IMPLEMENTOR THREE CHOICES AND ALL THREE ARE MADE, DOCUMENTED AND MEASURED. (1) \"a radix and format specified by the implementor\" plus (2) \"the alignment and representation ... including the representation of any algebraic sign\" - COBOL.NET chooses COMPUTATIONAL IDENTICAL TO BINARY, and that identity is measured rather than asserted: probe q4 (--std 2023) stores -258 in four leaves declared `PIC S9(4)` at USAGE COMPUTATIONAL, BINARY, COMP and COMP-4 and reads each enclosing group's image - all four give 0xFE 0xFE, the 16-bit two's complement of -258 big-endian, and all four report FUNCTION BYTE-LENGTH 2. ParseUsage reaches that by normalizing COMPUTATIONAL to COMP before the switch, so COMPUTATIONAL, COMP (SR6's abbreviation) and the vendor synonym COMP-4 cannot drift apart - one arm, not three. (3) \"and upon the range of values that the data item may hold\" - the range is the PICTURE's digit count, measured at the boundary: probe q5 stores 9999 in `PIC S9(4) COMPUTATIONAL` successfully and `COMPUTE A = 9999 + 1` takes the ON SIZE ERROR branch, so the item does NOT quietly hold its container's wider range (COMP-5's BinaryCapacity discipline is a DIFFERENT usage and is not 13.18.60.2's word at all). The determination is docs/CONFORMANCE.md DOC-A.1-208, the A.1 item 208 the rule requires (\"208) USAGE COMPUTATIONAL clause (alignment and representation of data) ... General rule 6\"), and it states exactly this: identical to BINARY, the item-205 width ladder and byte order, the same digit-count truncation. TEST-REF LEFT EMPTY DELIBERATELY, and this is the row's one soft spot: NO positive conformance golden in the corpus writes the word USAGE COMPUTATIONAL at all (the only three files containing it are negatives - ca35_comp_alpha_picture, pb184-group-value-non-display, pb184-group-value-type-reference), conformance:2023/l1_usage_binary_storage writes BINARY throughout, and DOC-A.1-208's own witnesses (stepd_mixed_usage_redefines, highest_algebraic_comp5_unsigned) measure COMP-5's container range, which is a different claim. CONFORMS-but-untested is the honest state; the closing witness would be a golden that puts the same picture at COMPUTATIONAL and BINARY and compares images and SIZE ERROR boundaries, i.e. probe q4+q5 written down. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage (the `keyword.Replace(\"COMPUTATIONAL\",\"COMP\")` normalization, then `case \"COMP\" or \"COMP-4\" or \"BINARY\": return Usage.Binary`); src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.ByteForm; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.StorageWidth; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.Truncation (NumericTruncation.DigitCount); docs/CONFORMANCE.md#DOC-A.1-208 || editions, verbatim from the adjudication: 85,2002,2014,2023 (USAGE COMPUTATIONAL and its COMP abbreviation - 13.18.60.3 SR6 - are COBOL-85 elements; probe q63 compiles `PIC S9(4) COMPUTATIONAL` at --std 85)",
-  "state": "GAP"
+  "notes": "GR6's three determinations each get a leg group: W=2 2 2 (radix/format at COMPUTATIONAL, COMP and BINARY, DOC-A.1-208 + DOC-A.1-205), BE=252 47 with IDENT=YES (the algebraic-sign representation, two's complement most-significant-byte-first, identical bytes at all three spellings), and HOLD=YES / SIZE=YES / KEEP=YES (the PICTURE-digit range, 14.7.5 case 3 and rule 2). PROGRAM-ID L1UCMP01. PROVENANCE: the writer report reached the fixer truncated inside this record's code-location ('PicInfo.cs#S'); the tail was resolved to #StorageWidth (PicInfo.cs:549, the only S-named member at that path) and this note was rebuilt from the writer's intact derivation text - the registrar should sanity-check the code-location before recording.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.60.4-7",
@@ -28245,11 +28245,11 @@
   "subject": "VALUE clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4; src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_value_values_equivalent; conformance:2002/l1_value_values_equivalent_2002",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "EQUIVALENCE MEASURED IN BOTH DIRECTIONS ON THE SAME PROGRAM SHAPE, not merely one spelling exercised. `01 T PIC X(2) OCCURS 3 VALUES ARE \"AB\" FROM (1) TO (3).` DISPLAYs [ABABAB] (probe sr17_values_are_table) and `... VALUE IS \"AB\" FROM (1) TO (3).` DISPLAYs [ABABAB] (e_sr17_value_is), as does the connective-less `VALUE \"AB\" FROM (1) TO (3)` (d_sr18_same_entry_ok) -- three spellings, one result. Through SR24 the same holds on a condition-name: `88 C VALUES ARE 1 2 3.` compiles and the condition takes its true branch for CV = 2 (sr24_values_88). The equivalence is structural, not a table: the alternation is in the token position itself, so there is no place for the two spellings to drift apart, which is why the empty test-ref is not a risk. RECORDED AGAINST THE FMT ROW, NOT THIS ONE: `(IS | ARE)?` also admits `VALUE ARE` and `VALUES IS`, which the figures' `VALUE IS` / `VALUES ARE` required choice does not (probe sr17_value_are_mixed) -- a superset, harmless to SR17's own obligation. Editions: SR17 is a Format-2 rule and Format 2 is gated at 2002 by VersionConformancePass.ParseArm.VisitValueClause; through SR24 the same equivalence applies to Format 3 at every edition. || code sites, verbatim from the adjudication: src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4:620 and :621 -- `(VALUE | VALUES) (IS | ARE)?` heads BOTH valueClause arms, so the two words are the same token position and no downstream reader can tell them apart; src/Cobol.Net.Compiler/Binding/DataBinder.cs:2365 (BuildTableValueSpecs) and #BindCondition (:2110-2112) both read `value.valueClauseTablePhrase()` / `value.valueItem()` and never the keyword",
-  "state": "GAP"
+  "notes": "VALUE and VALUES asserted EQUAL on one entry shape - Format 2 single literal and reused two-literal list, plus Format 3 via SR24; values derived from 13.18.63.4 GR12/GR13 and 8.8.4.5.3 GR3, both spellings printing the shared result.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-18",
@@ -28399,11 +28399,11 @@
   "subject": "VALUE clause",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4; src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_value_thru_through_equivalent; conformance:85/l1_value_thru_through_equivalent_85",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "MEASURED: `01 X PIC 9 VALUE 3. 88 C VALUE 1 THROUGH 5.` and the same entry spelled `1 THRU 5` both evaluate the condition TRUE (v28a / v28b), byte-identical output. 5.2.2/5.2.3 make THRU the required-minimum abbreviation of THROUGH and the printed 13.18.63.2 Format 3 figure underlines both (PDF p.546, rendered: `{ THROUGH / THRU }` is a plain required choice), so the grammar admits exactly the two words the standard prints. CONFORMS-BUT-UNTESTED: no spec-derived test pins the EQUIVALENCE -- tests/CobolSharp.Tests.Integration/DataDivisionSpecTests.cs Level88_MixedSingleAndThruValues exercises the THRU spelling only, so naming it here would be a witness for one half of a two-word rule. test-ref left empty; a golden is not written in this lane. || code sites, verbatim from the adjudication: src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4:42-45 -- `valueClauseRange : valueClauseOperand (THRU | THROUGH) valueClauseOperand ;`. ONE production with the two words as alternatives in a single token position, so no downstream consumer can distinguish them: src/Cobol.Net.Compiler/Binding/DataBinder.cs:2116-2146 reads only `range.valueClauseOperand(0)` and `(1)`. || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 -- the production carries no version predicate, so the equivalence is edition-invariant BY CONSTRUCTION (there is no second code path in which the two spellings could drift). MEASURED at 2023; a THRU range binds identically at 85/2002/2014 (e_sr33_range01_*).",
-  "state": "GAP"
+  "notes": "THROUGH and THRU asserted EQUAL on one level-88 shape over CV = 0..9, single range and two-range list; membership derived from 13.18.63.4 GR18 -> 14.7.8 rule 1 and 8.8.4.5.3 GR1 (ends included).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-29",
@@ -41111,11 +41111,11 @@
   "subject": "SEARCH statement",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1_search_all_gr5_preconditions",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "GR5 states two conditions that 'shall be true' of the PROGRAM at the start of a SEARCH ALL; it places no obligation on the implementation, because GR6 exists precisely to define what happens when they are false. So the adjudicable question is whether the implementation's behaviour is defined under BOTH the satisfied and the violated case, and it is -- measured both ways. GR5a satisfied, ASCENDING: probe gr8_gr9_all_initial finds occurrence 2 of 5. GR5a satisfied, DESCENDING KEY correctly ordered: probe gr5_descending prints HIT D AT 04 (this implementation's probe is direction-agnostic, so a DESCENDING declaration costs nothing). GR5a VIOLATED (ASCENDING KEY declared, data stored 9,7,5,3,1): probe gr6_unsequenced still prints HIT AT 04, which is GR6a alternative 1 and is permitted. GR5b (identifier-1 subordinate to an OCCURS; the WHEN's superordinate subscripts equal at each level): probe gr1_all_nested does SEARCH ALL INR (OX) with WHEN K(OX IX) = 4 and prints HIT AT 02 with OX unchanged at 02. This row also answers the part-boundary question search-statement-p1 left open: p1 observed that BindSearchAll's doc comment defends its scan technique as 'conformant since Format 2 requires the table ordered by its OCCURS KEYs (SR7)', and that SR7 is unenforced. The premise is not needed. A serial probe of every occurrence is permitted outright by GR9 ('A non serial type of search operation MAY take place ... in a manner specified by the implementor'), and when GR5a is false the result lands on GR6a alternative 1, which the standard allows explicitly. The comment's argument is nonetheless wrong on its own terms -- see finding search-p2-F4. Nothing in the compiler models the KEY phrase at all (finding search-p1-F3), which is why the implementation cannot be sensitive to GR5 in either direction.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:81-117 (BindSearchAll -- it reads table.IndexNames and table.Occurs and NOTHING key-related, so it neither depends on nor asserts the GR5 preconditions) and src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:407-455 (the shared scan, entered with FromStart)",
-  "state": "GAP"
+  "notes": "GR5 satisfied on both legs: an ASCENDING two-key table nested under an OCCURS (GR5b, both WHEN conditions naming the same superordinate index, data laid out so ignoring it gives a different answer) and a flat DESCENDING table; outcome defined by GR9 + GR1a, superordinate index unchanged per GR1/GR8. GR5a is satisfied PER KEY, not merely on the composite — both the WS-K1 and the WS-K2 column ascend in each outer occurrence, so the fixture stays off GR6's undefined branch under either reading of §13.18.38.4 GR3.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.37.4-6",
