@@ -43,9 +43,33 @@ public sealed class FileModel
     /// <c>#N</c> — are an emit-side namespace).</summary>
     public string SelectName { get; init; } = "";
 
-    /// <summary>The ASSIGN target text — a literal's decoded value or a data-name; resolved to a host path at run
-    /// time by <c>CobolFile.ResolveHostPath</c>. Defaults to the file-name when no ASSIGN clause is present.</summary>
+    /// <summary>The ASSIGN clause's TO-phrase target text — literal-1's decoded value or device-name-1 (ISO
+    /// §12.4.5.3 GR3 a); resolved to a host path at run time by <c>CobolFile.ResolveHostPath</c>. Defaults to the
+    /// file-name when no ASSIGN clause is present. ⛔ EMPTY for the bare <c>ASSIGN USING data-name-1</c> form, which
+    /// specifies no device-name-1/literal-1 at all: the connector then registers UNASSOCIATED and
+    /// <see cref="AssignUsingName"/>'s content associates it at each OPEN/SORT/MERGE (GR3 b). Defaulting it to the
+    /// file-name there is what made a bare-USING file's records land in <c>&lt;file-name&gt;.txt</c>.</summary>
     public string AssignTarget { get; set; } = "";
+
+    /// <summary>The ASSIGN clause's USING data-name-1 as written (ISO §12.4.5.3 GR3 b — dynamic file assignment,
+    /// §9.1.21), resolved post-build to <see cref="AssignUsingItem"/>; null when the clause has no USING phrase.
+    /// Present on BOTH general-format arms: <c>ASSIGN TO device-name-1 … USING data-name-1</c> and the bare
+    /// <c>ASSIGN USING data-name-1</c> — GR3 b applies "when the USING phrase … is specified", with no condition on
+    /// the TO phrase, so the USING content wins over literal-1 whenever both are written.</summary>
+    public string? AssignUsingName { get; set; }
+
+    /// <summary>The USING data-name-1 reference's IN/OF qualifier words, written order (innermost first); empty when
+    /// unqualified. §12.4.5.2 SR7 lets data-name-1 be any alphanumeric item outside this file's FD, so it can need
+    /// qualification exactly as a RECORD KEY reference can (§8.4.2.2).</summary>
+    public IReadOnlyList<string> AssignUsingQualifiers { get; set; } = [];
+
+    /// <summary>The resolved ASSIGN … USING data item (set post-build, the <see cref="FileStatusItem"/> pattern);
+    /// null when the clause has no USING phrase or the name resolves to nothing.</summary>
+    public DataItem? AssignUsingItem { get; set; }
+
+    /// <summary>The source position of the USING data-name-1 reference — the cursor §12.4.5.2 SR7's diagnostics
+    /// report at, since the rule can only be checked once the data forest is indexed (post-build).</summary>
+    public CobolNet.Editions.DiagnosticCursor AssignUsingAt { get; set; }
 
     /// <summary>The file organization (default SEQUENTIAL).</summary>
     public FileOrganization Organization { get; set; } = FileOrganization.Sequential;

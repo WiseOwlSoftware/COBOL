@@ -823,8 +823,25 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             var file = new FileModel { CobolName = name, SelectName = name, AssignTarget = name, Optional = grp.OPTIONAL() is not null };
             foreach (var clauses in grp.fileControlClauses())
             {
-                if (clauses.assignClause()?.assignTarget() is { } tgt)
-                    file.AssignTarget = tgt.STRINGLIT() is { } s ? CobolLiteral.Decode(s.GetText()) : tgt.GetText();
+                // ISO §12.4.5.3 GR3 — BOTH phrases of the ASSIGN clause, on both general-format arms
+                // (`ASSIGN TO? assignTarget (USING dataReference)?` and the bare `ASSIGN USING dataReference`).
+                // GR3 a is the static TO-phrase association; GR3 b is dynamic file assignment (§9.1.21) and applies
+                // "when the USING phrase of the ASSIGN clause is specified" with NO condition on the TO phrase, so
+                // both are captured and the runtime lets the USING content win at each OPEN/SORT/MERGE. Reading only
+                // assignTarget() dropped the USING operand entirely AND left a bare-USING file's target defaulted to
+                // the FILE-NAME, so its records landed in `<file-name>.txt` (kb/Work PB324).
+                if (clauses.assignClause() is { } asg)
+                {
+                    file.AssignTarget = asg.assignTarget() is { } tgt
+                        ? (tgt.STRINGLIT() is { } s ? CobolLiteral.Decode(s.GetText()) : tgt.GetText())
+                        : "";   // bare `ASSIGN USING …`: no device-name-1/literal-1 exists — UNASSOCIATED until an OPEN
+                    if (asg.dataReference() is { } dyn)
+                    {
+                        (file.AssignUsingName, file.AssignUsingQualifiers) = KeyReference(dyn);
+                        using var __ = Edition.At(dyn);
+                        file.AssignUsingAt = Edition.Cursor;   // §12.4.5.2 SR7 reports here, from ResolveFiles
+                    }
+                }
                 else if (clauses.organizationClause() is { } org) file.Organization = MapOrganization(org);
                 else if (clauses.accessModeClause() is { } acc) file.AccessMode = MapAccessMode(acc);
                 // The BASE word only: an OF/IN-qualified status name (`SQ-FS4-STATUS OF STATUS-GROUP`, SQ133A)
@@ -1260,6 +1277,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ResolveFileCollating(file);   // §12.4.5.7 — per-key collating weights (needs the resolved keys)
             if (file.RelativeKeyName is { } rl && ByName.TryGetValue(rl, out var rlist) && rlist.Count > 0)
                 file.RelativeKeyItem = rlist[0];
+            ResolveAssignUsing(file);   // §12.4.5.3 GR3 b + §12.4.5.2 SR7
             // RECORD VARYING … DEPENDING ON names an integer item outside the record (ISO §13.18.43 SR — the
             // length register WRITE/REWRITE/RELEASE read per GR13a and READ/RETURN set per GR15).
             if (file.Varying?.DependingName is { } vn && ByName.TryGetValue(vn, out var vlist) && vlist.Count > 0)
@@ -1272,6 +1290,61 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         op.Item = llist[0];
         }
     }
+
+    /// <summary>
+    /// Resolve the ASSIGN … USING data-name-1 (ISO §12.4.5.3 GR3 b — dynamic file assignment, §9.1.21) and enforce
+    /// §12.4.5.2 SR7, <i>"Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the
+    /// file description entry for file-name-1."</i> Both halves are checked, and the SECOND is the one a program can
+    /// silently lose to: an operand inside the file's own record area is overwritten by every READ, so its content at
+    /// the next OPEN would be file data rather than a file name.
+    /// <para>Category: §9.1.21 says the same thing in the concepts ("The USING phrase references an alphanumeric data
+    /// item"). An ALPHANUMERIC GROUP item qualifies — §13.18.29.4 GR3 makes a group with no GROUP-USAGE clause "an
+    /// alphanumeric group item" — while a bit or national group does not, and neither does a category-ALPHABETIC
+    /// (PIC A) item, which §8.8.4.2.4 keeps a class of its own ("A class alphabetic operand shall be treated as
+    /// though it were an operand of class alphanumeric" is a COMPARISON rule, not a category identity).</para>
+    /// </summary>
+    private void ResolveAssignUsing(FileModel file)
+    {
+        if (file.AssignUsingName is not { } dynName) return;
+        using var _ = Edition.At(file.AssignUsingAt);
+        DataItem? item = ByName.TryGetValue(dynName, out var list)
+            ? list.FirstOrDefault(i => QualifiersMatch(i, file.AssignUsingQualifiers))
+            : null;
+        if (item is null || !IsAlphanumericDataItem(item))
+        {
+            Edition.Error(DiagnosticCatalog.AssignUsingNotAlphanumeric,
+                $"file '{file.SelectName}': ASSIGN … USING '{dynName}' shall reference an alphanumeric data item "
+                + (item is null ? "and no such data item is described" : $"— '{dynName}' is {CategoryFace(item)}")
+                + " (ISO §12.4.5.2 SR7)");
+            return;
+        }
+        // "shall not be subordinate to the file description entry for file-name-1" — subordinate means anywhere
+        // under one of THIS file's record descriptions (a record description entry is subordinate to the FD).
+        for (DataItem? a = item; a is not null; a = a.Parent)
+            if (file.Records.Any(r => ReferenceEquals(r, a)))
+            {
+                Edition.Error(DiagnosticCatalog.AssignUsingInOwnRecord,
+                    $"file '{file.SelectName}': ASSIGN … USING '{dynName}' shall not be subordinate to the file "
+                    + $"description entry for '{file.SelectName}' (ISO §12.4.5.2 SR7)");
+                return;
+            }
+        file.AssignUsingItem = item;
+    }
+
+    /// <summary>Category ALPHANUMERIC for §12.4.5.2 SR7 / §9.1.21: an elementary <c>PIC X</c> item, or a group with no
+    /// GROUP-USAGE clause (§13.18.29.4 GR3, "an alphanumeric group item"). Alphabetic (<c>PIC A</c>) is excluded —
+    /// it is its own category — as are numeric, edited, national, boolean and the PICTURE-less pointer/reference
+    /// usages, none of which can carry a file name.</summary>
+    private static bool IsAlphanumericDataItem(DataItem item) =>
+        item.Pic is { } pic ? pic.Category is PicCategory.Alphanumeric && !pic.IsAlphabetic
+        : item.IsGroup && item.GroupUsage is GroupUsage.None;
+
+    /// <summary>A short category face for a §12.4.5.2 SR7 diagnostic — what the operand IS, so the message names the
+    /// reason rather than restating the rule.</summary>
+    private static string CategoryFace(DataItem item) =>
+        item.Pic is { } pic ? (pic.IsAlphabetic ? "a category-alphabetic item" : $"a category-{pic.Category.ToString().ToLowerInvariant()} item")
+        : item.GroupUsage is GroupUsage.None ? "not an elementary or group data item"
+        : $"a {item.GroupUsage.ToString().ToLowerInvariant()} group item";
 
     private static FileOrganization MapOrganization(Core.OrganizationClauseContext org)
     {
@@ -4549,18 +4622,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// their qualifiers (IX215A's three same-named keys).</summary>
     private static DataItem? FindQualified(DataItem root, string name, IReadOnlyList<string> quals)
     {
-        if (string.Equals(root.CobolName, name, StringComparison.OrdinalIgnoreCase) && QualsMatch(root, quals))
+        if (string.Equals(root.CobolName, name, StringComparison.OrdinalIgnoreCase) && QualifiersMatch(root, quals))
             return root;
         foreach (var c in root.Children)
             if (FindQualified(c, name, quals) is { } f) return f;
         return null;
+    }
 
-        static bool QualsMatch(DataItem item, IReadOnlyList<string> quals)
-        {
-            int qi = 0;
-            for (DataItem? a = item.Parent; a is not null && qi < quals.Count; a = a.Parent)
-                if (string.Equals(a.CobolName, quals[qi], StringComparison.OrdinalIgnoreCase)) qi++;
-            return qi == quals.Count;
-        }
+    /// <summary>ISO §8.4.2.2 — does <paramref name="item"/> satisfy the IN/OF qualifier chain <paramref name="quals"/>
+    /// (innermost first, matched against successive ancestors, gaps allowed)? Lifted out of
+    /// <see cref="FindQualified"/> so the forest-wide lookups (ASSIGN … USING) and the record-scoped ones (RECORD KEY
+    /// / ALTERNATE RECORD KEY) apply ONE qualification rule rather than a copy each.</summary>
+    private static bool QualifiersMatch(DataItem item, IReadOnlyList<string> quals)
+    {
+        int qi = 0;
+        for (DataItem? a = item.Parent; a is not null && qi < quals.Count; a = a.Parent)
+            if (string.Equals(a.CobolName, quals[qi], StringComparison.OrdinalIgnoreCase)) qi++;
+        return qi == quals.Count;
     }
 }

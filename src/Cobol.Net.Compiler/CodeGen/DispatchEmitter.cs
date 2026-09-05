@@ -87,6 +87,9 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                         reportWriter.EmitReportConstruction(bound, w);
                     }
                 seqIo.EmitLinageEvaluators(w);
+                // ISO §12.4.5.3 GR3 b — the ASSIGN … USING source, installed on the SAME unguarded terms as the
+                // LINAGE evaluator and for the same PB168 reason: it closes over THIS activation's data item.
+                seqIo.EmitAssignSources(w);
             }
             // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
             // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM/GO TO (SR4).

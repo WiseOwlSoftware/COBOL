@@ -21,8 +21,62 @@ public abstract class FileConnector
         VaryMax = varyMax;
     }
 
-    /// <summary>The resolved host path of the physical file (for DELETE FILE, ISO §14.9.10 Format 2).</summary>
-    public string HostPath { get; }
+    /// <summary>The resolved host path of the physical file this connector is ASSOCIATED with — the connector's
+    /// half of ISO §12.4.5.3 GR3 ("The ASSIGN clause specifies the association of the file connector referenced by
+    /// file-name-1 to a physical file identified by device-name-1, literal-1, or the content of the data item
+    /// referenced by data-name-1"). Empty = NOT YET ASSOCIATED, which only a bare <c>ASSIGN USING data-name-1</c>
+    /// file can be: it carries no device-name/literal, so nothing identifies a physical file until the first
+    /// OPEN/SORT/MERGE runs <see cref="Associate"/>. The setter is private and <see cref="Associate"/> is its ONE
+    /// caller — GR3's "the association occurs at the time of execution of an OPEN, SORT, or MERGE statement".</summary>
+    public string HostPath { get; private set; }
+
+    /// <summary>The ASSIGN … USING dynamic-assignment source (ISO §12.4.5.3 GR3 b — the emitted closure that reads
+    /// the CURRENT content of data-name-1 in the runtime element executing the statement; §9.1.21, Dynamic file
+    /// assignment). Null for a file whose ASSIGN clause has no USING phrase, whose association is the static GR3 a
+    /// one fixed at registration.</summary>
+    private Func<string>? _assignUsing;
+
+    /// <summary>Install the §12.4.5.3 GR3 b dynamic-assignment source. Emitted UNGUARDED at every activation (the
+    /// LINAGE-evaluator discipline, kb/Work PB168): the closure reads THIS activation's instance, so a run-unit-scoped
+    /// connector must never keep a dead activation's capture.</summary>
+    public void SetAssignUsing(Func<string> source) => _assignUsing = source;
+
+    /// <summary>
+    /// ISO §12.4.5.3 GR3, reached from §14.9.27.4 GR26 — establish the connector-to-physical-file association.
+    /// <para>GR3's lead sentence fixes the TIMING: <i>"The association occurs at the time of execution of an OPEN,
+    /// SORT, or MERGE statement that referenced file-name-1"</i>, and GR3 b) fixes the VALUE: <i>"When the USING
+    /// phrase of the ASSIGN clause is specified, the file connector referenced by file-name-1 is associated with a
+    /// physical file identified by the content of the data item referenced by data-name-1 in the runtime element
+    /// that executes the OPEN, SORT, or MERGE statement."</i> So this runs at every OPEN/SORT/MERGE, never once at
+    /// registration — §9.1.21 exists to let one connector reach different physical files during a run unit, and the
+    /// standard's own concepts annex states the consequence (D.19.9.2 NOTE: <i>"The MOVE statements only have an
+    /// effect on the dynamic assignment when a subsequent OPEN statement for the file connector is executed."</i>).
+    /// The GR3 a) (TO/literal) association is static, so this is a no-op for a file with no USING phrase — one entry
+    /// point for both arms, never a second mechanism.</para>
+    /// <para>An OPEN of an ALREADY-OPEN connector is unsuccessful at §14.9.27.4 GR2's '41' and GR25's "the file is
+    /// not affected", so the association is left standing: re-pointing an open connector would strand its streams
+    /// and its physical-file-table registration on the old path.</para>
+    /// <para>Returns null when the association stands, or the I-O status of a failed one. The allowable CONTENT of
+    /// data-name-1 and the consistency rules are the implementor's (§12.4.5.3 GR4; Annex A.1 items 10 and 73) —
+    /// COBOL.NET's determination is in docs/CONFORMANCE.md §7 (DOC-A.1-73): the content with leading and trailing
+    /// SPACES removed is the assign target and is then mapped to a host path exactly as literal-1 would be; content
+    /// that is empty after that removal, or that carries a control character, names no physical file, so the
+    /// association cannot be made and §9.1.13.6 item 2's '31' is the status the standard reserves for exactly this
+    /// ("A permanent error exists during execution of an OPEN statement because the content of the data item
+    /// referenced by the data-name specified in the USING phrase of the file control entry is not consistent with
+    /// the specification for the device-name or literal in the ASSIGN clause of that file control entry").</para>
+    /// </summary>
+    public string? Associate()
+    {
+        if (_assignUsing is not { } source) return null;   // GR3 a) — a static association, fixed at registration
+        if (IsOpen) return null;                           // §14.9.27.4 GR2/GR25 — an already-open connector is untouched
+        string target = source().Trim(' ');
+        foreach (char ch in target)
+            if (ch < ' ') return FileStatusCode.AssignNotConsistent;   // '31' §9.1.13.6 item 2
+        if (target.Length == 0) return FileStatusCode.AssignNotConsistent;
+        HostPath = CobolFile.ResolveHostPath(target);
+        return null;
+    }
 
     /// <summary>The record area's width in character positions.</summary>
     protected readonly int RecordWidth;
@@ -225,6 +279,14 @@ public abstract class FileConnector
         }
         catch (UnauthorizedAccessException) { s = FileStatusCode.PermissionDenied; }
         catch (IOException) { s = FileStatusCode.PermanentError; }
+        // §9.1.13.6 item 1's '30' — "a permanent error exists and no further information is available". Since
+        // §12.4.5.3 GR3 b) made the host path a RUNTIME VALUE (the content of data-name-1), an arbitrary string can
+        // now reach the .NET path APIs, and the shapes they reject outside the IOException family — an embedded
+        // separator the platform forbids, a form the platform does not support — must be an I-O status like every
+        // other open failure, never an escaping exception. Associate() already screens the empty and control-
+        // character content ('31'); this is the residue only the operating environment can judge.
+        catch (ArgumentException) { s = FileStatusCode.PermanentError; }
+        catch (NotSupportedException) { s = FileStatusCode.PermanentError; }
         _openMode = s[0] == '0';   // a success-family OPEN ('00'/'05'/'07') puts the connector in its open mode
         // §9.1.6: the fixed file attributes "apply to the file at the time it is created". The OPEN statement
         // creates the file in exactly two cases, and this condition is those two: GR18 (OUTPUT always creates)

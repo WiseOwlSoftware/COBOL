@@ -113,6 +113,28 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 w.Line($"{RuntimeApi.FileSetLinage(FileKeyExpr(file), $"() => ({LinageOpExpr(lin.Body)}, {LinageOpExpr(lin.Footing)}, {LinageOpExpr(lin.Top)}, {LinageOpExpr(lin.Bottom)})")};");
     }
 
+    /// <summary>Install every ASSIGN … USING file's dynamic-assignment source (ISO §12.4.5.3 GR3 b — the connector is
+    /// associated with "a physical file identified by the content of the data item referenced by data-name-1 in the
+    /// runtime element that executes the OPEN, SORT, or MERGE statement"; §9.1.21, Dynamic file assignment). ONE
+    /// closure per file, read by the runtime at every OPEN/SORT/MERGE — the association is a per-statement act, not a
+    /// registration-time one, so the emitter installs a SOURCE and never a resolved path.
+    /// <para>Emitted UNGUARDED beside <see cref="EmitLinageEvaluators"/>, for the same reason (kb/Work PB168): the
+    /// closure captures THIS activation's instance, and a run-unit-scoped (RECURSIVE / UnitStaticFiles) connector
+    /// registers only once, so a guarded install would leave a dead activation's data item naming the file.</para>
+    /// <para>Every organization, SD excepted — an SD is the in-memory sort store with no host file, which is also
+    /// why <see cref="EmitFileRegistration"/> skips it.</para></summary>
+    public void EmitAssignSources(CodeWriter w)
+    {
+        foreach (var file in ctx.Data.Files)
+        {
+            if (file.IsSortMerge || file.AssignUsingItem is not { } item) continue;
+            if (refs.ResolveItem(item) is not { } p) continue;   // unresolvable storage: COBOLNET1810 already fired
+            // OperandText.FieldImage is THE operand-to-character-image renderer for every shape — an elementary
+            // alphanumeric leaf reads its carrier, an alphanumeric group its generated AsImage(). No second arm.
+            w.Line($"{RuntimeApi.FileSetAssignUsing(FileKeyExpr(file), $"() => {OperandText.FieldImage(p)}")};");
+        }
+    }
+
     /// <summary>Emit the RECORD-LOCKING registration for a file that declares a SHARING and/or LOCK MODE clause
     /// (Phase 4d M2-FILE-1) — it routes the file's READs through record-lock governance (§9.1.16) and records the
     /// SHARING clause's mode. Files with neither clause emit nothing: they have no LOCK MODE, so §12.4.5.9 GR1

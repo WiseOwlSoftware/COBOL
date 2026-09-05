@@ -27,8 +27,13 @@ public sealed class FileRegistry
     /// <summary>A connector's declared sharing posture (from its SELECT's SHARING / LOCK MODE clauses).
     /// <see cref="Sharing"/> is NULL when the connector carries a LOCK MODE clause but no SHARING clause — a LOCK
     /// MODE clause is not a sharing specification, so such a connector's sharing mode is the same undetermined
-    /// implementor default a clause-less connector has (<see cref="ImplementorDefaultSharing"/>).</summary>
-    private readonly record struct ConnectorShare(string Host, FileSharing? Sharing, FileLockMode LockMode, bool Multiple);
+    /// implementor default a clause-less connector has (<see cref="ImplementorDefaultSharing"/>).
+    /// <para>⛔ It holds NO host path. It used to cache one, taken at RegisterSharing time, and every
+    /// physical-file-table lookup below read that copy — which was only ever right because the host path could
+    /// not change. ISO §12.4.5.3 GR3 makes it change at every OPEN (dynamic file assignment, §9.1.21), so the
+    /// connector's own <see cref="FileConnector.HostPath"/> is now the ONE answer and the cache is gone
+    /// (kb/Work PB324).</para></summary>
+    private readonly record struct ConnectorShare(FileSharing? Sharing, FileLockMode LockMode, bool Multiple);
 
     /// <summary>The per-connector declared sharing/lock metadata (a connector is "sharing-active" iff present).</summary>
     private readonly Dictionary<string, ConnectorShare> _connectorShares = new(StringComparer.OrdinalIgnoreCase);
@@ -394,6 +399,30 @@ public sealed class FileRegistry
     public void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
     { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.SetLinage(eval); }
 
+    /// <summary>Install a file's ASSIGN … USING dynamic-assignment source (ISO §12.4.5.3 GR3 b / §9.1.21). Applies to
+    /// EVERY organization — the ASSIGN clause is common to all four SELECT formats — so it is deliberately NOT
+    /// narrowed to a connector kind the way <see cref="SetLinage"/> is.</summary>
+    public void SetAssignUsing(string name, Func<string> source)
+    { if (_files.TryGetValue(name, out var c)) c.SetAssignUsing(source); }
+
+    /// <summary>
+    /// ISO §12.4.5.3 GR3, reached from §14.9.27.4 GR26 — THE ONE PLACE a statement establishes the connector's
+    /// association with a physical file, called from the OPEN entries (<see cref="Open"/>, <see cref="OpenShared"/> —
+    /// which the emitted SORT/MERGE implicit opens also reach, §14.9.40.4 GR12a/GR15a, §14.9.24.4 GR7a) and from
+    /// <see cref="DeleteFile"/>. Returns false when the association could not be made: the connector then carries the
+    /// §9.1.13.6 item 2 '31' status and the statement does NOT proceed — GR3's closing sentence, "the OPEN, SORT, or
+    /// MERGE statement is unsuccessful".
+    /// <para>An unregistered name falls through to the caller's own <see cref="Require"/>, which reports the compiler
+    /// defect loudly (kb/Work PB140); this method never invents a status for one.</para>
+    /// </summary>
+    private bool Associate(string name)
+    {
+        if (!_files.TryGetValue(name, out var c)) return true;
+        if (c.Associate() is not { } failed) return true;
+        c.SetStatus(failed);   // '31' — the status assignment is also the §15.28.4 r2a access record (PB63)
+        return false;
+    }
+
     /// <summary>The file's LINAGE-COUNTER register (ISO §8.4.3.14 / §13.18.34 GR7).</summary>
     public long LinageCounter(string name) =>
         _files.TryGetValue(name, out var c) && c is SequentialConnector f ? f.LinageCounter : 0;
@@ -557,6 +586,16 @@ public sealed class FileRegistry
         var c = Require(name);
         // (a DELETE FILE accesses the connector — FUNCTION EXCEPTION-FILE r2a, §15.28.4 — recorded by the status
         // assignment below, the ONE access-recording path)
+        // §14.9.10.4 GR14 — "If the file associated with file-name-1 is not present, the execution of the DELETE FILE
+        // statement is successful and the I-O status value in the file connector referenced by file-name-1 is set to
+        // '05'." A bare `ASSIGN USING data-name-1` connector has NO associated file until one runs: §12.4.5.3 GR3
+        // establishes the association at an OPEN, SORT or MERGE and at no other statement, so before the first of
+        // those there is no physical file for this statement to find, and GR14 is its own answer. ⛔ The alternative
+        // — re-resolving data-name-1 here — would be an implementor EXTENSION to GR3's closed list of associating
+        // statements, on the one verb where guessing wrong DESTROYS DATA; and the old behaviour was worse still,
+        // deleting the registration-default `<file-name>.txt` the program never named. GR13's '41' is not skipped by
+        // ordering: an unassociated connector cannot be open, because Open associates before it opens.
+        if (c.HostPath.Length == 0) { c.SetStatus(FileStatusCode.OptionalFileNotFound); return FileStatusCode.OptionalFileNotFound; }
         string status;
         string sharing = RetryLoop(() => OpenByAnotherConnector(name, c.HostPath)
             ? FileStatusCode.DeleteFileSharing : FileStatusCode.Success, retryKind, retryAmount);
@@ -672,7 +711,7 @@ public sealed class FileRegistry
     /// <see cref="SharedOpenAttempt"/>.</summary>
     public void RegisterSharing(string name, FileSharing? sharing, FileLockMode lockMode, bool multiple)
     {
-        _connectorShares[name] = new ConnectorShare(HostPathOf(name), sharing, lockMode, multiple);
+        _connectorShares[name] = new ConnectorShare(sharing, lockMode, multiple);
         // A sharing participant's physical streams must admit the other connectors' handles (§9.1.15) — the
         // Table-19 registry, not the OS handle, arbitrates; unshared connectors keep the exclusive OS posture.
         if (_files.TryGetValue(name, out var c)) c.SharedStreams = true;
@@ -713,6 +752,13 @@ public sealed class FileRegistry
         FileRetryKind retryKind, int retryAmount, bool noRewind)
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
+        // §14.9.27.4 GR26 → §12.4.5.3 GR3, and BEFORE the Table-19 arbitration: a sharing conflict is defined
+        // over "another file connector" holding THE PHYSICAL FILE this OPEN names (§9.1.13.9), so the association
+        // this statement establishes has to stand before the physical-file table is consulted. OUTSIDE the RETRY
+        // loop: data-name-1's content is read once per OPEN statement (GR3 b), not once per retry attempt.
+        // ⛔ ONE call site for BOTH entry points — the plain Open and OpenShared both funnel through here
+        // (kb/Work PB324 landed on top of PB321's unified dispatch).
+        if (!Associate(name)) return;
         // SharedOpenAttempt sets the connector status on the terminal attempt, and RetryLoop lands an exhausted
         // retry on the CONFLICT'S OWN status (§14.7.9.3 closing paragraph → §9.1.13.9 item 1 = '61'), so there is
         // nothing left to override afterwards — the former `if (status == Deadlock) SetStatusOf(…)` line existed
@@ -803,7 +849,7 @@ public sealed class FileRegistry
         if (!_files.TryGetValue(name, out var c)) return statusJustRead;
         string recId = c.LastReadRecordId;
         if (recId.Length == 0) return statusJustRead;   // no record was identified
-        var st = _physical.For(meta.Host);
+        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
 
         if (phrase != FileRecordLock.Ignoring)
         {
@@ -874,7 +920,7 @@ public sealed class FileRegistry
     {
         if (!_files.TryGetValue(name, out var c) || c is not SequentialConnector f) { image = ""; return false; }
         if (!_connectorShares.TryGetValue(name, out var meta)) return f.Read(out image);   // not sharing-active — phrases inert (§12.4.5.9 GR1)
-        var st = _physical.For(meta.Host);
+        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         while (true)
         {
             if (phrase != FileRecordLock.Ignoring && f.ReadEligible)   // a mode/position failure keeps its own status
@@ -920,7 +966,7 @@ public sealed class FileRegistry
         _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
         if (!_connectorShares.TryGetValue(name, out var meta)) return WriteAnyOrg(c, image, length);
-        var st = _physical.For(meta.Host);
+        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         if (!meta.Multiple) PhysicalFileTable.ReleaseAllForConnector(st, name);   // GR10 / §12.4.5.9 GR6
         bool wantLock = phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name);   // GR11
         if (wantLock)
@@ -943,7 +989,7 @@ public sealed class FileRegistry
     {
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
         if (!_connectorShares.TryGetValue(name, out var meta)) return RewriteAnyOrg(c, image, length);
-        var st = _physical.For(meta.Host);
+        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         string target = c.MutationTargetRecordId(image);
         if (!meta.Multiple) PhysicalFileTable.ReleaseAllExcept(st, name, target);   // GR12a2 — released at the beginning
         if (target.Length > 0)
@@ -986,7 +1032,7 @@ public sealed class FileRegistry
     {
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
         if (!_connectorShares.TryGetValue(name, out var meta)) return DeleteRecord(name, keyedRecordImage);
-        var st = _physical.For(meta.Host);
+        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         string target = c.MutationTargetRecordId(keyedRecordImage);
         if (!meta.Multiple) PhysicalFileTable.ReleaseAllExcept(st, name, target);   // GR7a2 — released at the beginning
         if (target.Length > 0)

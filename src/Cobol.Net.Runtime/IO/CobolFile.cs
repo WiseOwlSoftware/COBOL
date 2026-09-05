@@ -108,6 +108,10 @@ public static class CobolFile
     public static void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
         => _reg.SetLinage(name, eval);
 
+    /// <summary>Install a file's ASSIGN … USING dynamic-assignment source (ISO §12.4.5.3 GR3 b / §9.1.21) — the
+    /// closure that reads the CURRENT content of data-name-1, consulted at every OPEN/SORT/MERGE.</summary>
+    public static void SetAssignUsing(string name, Func<string> source) => _reg.SetAssignUsing(name, source);
+
     /// <summary>The file's LINAGE-COUNTER register (ISO §8.4.3.14 / §13.18.34 GR7).</summary>
     public static long LinageCounter(string name) => _reg.LinageCounter(name);
 
@@ -252,6 +256,11 @@ public static class CobolFile
     /// current directory — the convention the legacy oracle uses, so the differential corpus finds the same file.</summary>
     public static string ResolveHostPath(string assignTarget)
     {
+        // An EMPTY target identifies NO physical file, and the empty host path is exactly how a connector says
+        // "not yet associated" (FileConnector.HostPath). A bare `ASSIGN USING data-name-1` file registers with one,
+        // because §12.4.5.3 GR3 gives it no device-name-1/literal-1 to be associated with until an OPEN/SORT/MERGE
+        // runs FileConnector.Associate. (Without this the empty target became the literal file ".txt".)
+        if (assignTarget.Length == 0) return "";
         if (assignTarget.Contains('.') || assignTarget.Contains('/') || assignTarget.Contains('\\')) return assignTarget;
         return assignTarget.ToLowerInvariant() + ".txt";
     }

@@ -30,6 +30,13 @@ public static class FileStatusCode
     public const string AtEnd = "10";
     /// <summary>30 — permanent I/O error with no more specific code.</summary>
     public const string PermanentError = "30";
+    /// <summary>31 — ISO §9.1.13.6 item 2: "A permanent error exists during execution of an OPEN statement because
+    /// the content of the data item referenced by the data-name specified in the USING phrase of the file control
+    /// entry is not consistent with the specification for the device-name or literal in the ASSIGN clause of that
+    /// file control entry." The status of §12.4.5.3 GR3's closing sentence — the OPEN/SORT/MERGE whose dynamic
+    /// association cannot be made. Raised by <see cref="FileConnector.Associate"/>; the consistency rule it applies
+    /// is the implementor's (§12.4.5.3 GR4, Annex A.1 items 10/73 — docs/CONFORMANCE.md §7, DOC-A.1-73).</summary>
+    public const string AssignNotConsistent = "31";
     /// <summary>35 — OPEN INPUT/I-O/EXTEND on a non-optional file that is not present.</summary>
     public const string FileNotFound = "35";
     /// <summary>37 — OPEN failed: insufficient access permission.</summary>

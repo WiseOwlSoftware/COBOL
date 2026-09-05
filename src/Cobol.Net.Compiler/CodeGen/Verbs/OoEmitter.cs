@@ -122,7 +122,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         ? $"={op.Literal}"
                         : BinderDriver.ExternalItemIdentity(op.Item) ?? "!")));
                 string fingerprint = CsLiteral(
-                    $"OPT={f.Optional}|ASSIGN={f.AssignTarget.ToUpperInvariant()}|ORG={f.Organization}|ACC={f.AccessMode}"
+                    // §12.4.5.3 GR1 b requires "A consistent specification for data-name-1, device-name-1, and
+                    // literal-1 in the ASSIGN clause" — all THREE operands, so the USING data-name is part of the
+                    // identity, not just the TO target. Consistency rule (the implementor's, GR1 b's second
+                    // sentence): the same data-name spelling, qualifiers included.
+                    $"OPT={f.Optional}|ASSIGN={f.AssignTarget.ToUpperInvariant()}"
+                    + $"|USING={string.Join(" OF ", new[] { f.AssignUsingName ?? "" }.Concat(f.AssignUsingQualifiers)).ToUpperInvariant()}"
+                    + $"|ORG={f.Organization}|ACC={f.AccessMode}"
                     + $"|KEY={(f.RecordKeyName?.ToUpperInvariant() ?? "")}"
                     + $"|ALT={string.Join(",", f.AlternateKeyNames.Select(a => $"{a.Name.ToUpperInvariant()}:{a.Duplicates}"))}"
                     + $"|SHARE={f.Sharing}|LOCK={(f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : "")}");
@@ -147,6 +153,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         using (w.Block($"public {csName}()"))
         {
             U.SeqIo.EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
+            // ISO §12.4.5.3 GR3 b — dynamic file assignment is the object's too (§9.1.21, and Annex D.19.9.2's own
+            // worked example is an instance file: "SELECT EMPLOYEE-FILE ASSIGN USING FILE-REF"). The source closes
+            // over THIS object's data item, so it installs in the ctor beside the registration — the second arm of
+            // the registration dispatch, which the program path reaches through DispatchEmitter.__Activate.
+            U.SeqIo.EmitAssignSources(w);
             // A REPORT SECTION in this object/factory (Report Writer is a complete subsystem — the class emit path
             // just has to CALL it, the same class-emit-gap shape as inc 3/5): the engines construct AFTER their FDs
             // register (COBOLNET_REPORT_WRITER_DESIGN §4). Early-returns when Reports.Count == 0.

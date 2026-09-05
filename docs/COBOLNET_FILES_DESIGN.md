@@ -451,6 +451,60 @@ answers `'61'` where the OS accident answered `'30'`. Table 19 rides Annex A.4.7
 whether a pre-2002 edition may report a value from the 2002 5x/6x family is a determination in A.1 item 77's
 family; nothing in the corpus exercises it.
 
+### D15. The connector-to-physical-file ASSOCIATION is a per-statement act with ONE entry point, `FileConnector.Associate`, and the connector's `HostPath` is its only answer — nothing caches a resolved path.
+
+**The rule.** §14.9.27.4 GR26 routes the OPEN statement to §12.4.5.3 GR3/GR4, and GR3 is written as a timing rule
+first and a value rule second: *"The ASSIGN clause specifies the association of the file connector referenced by
+file-name-1 to a physical file identified by device-name-1, literal-1, or the content of the data item referenced by
+data-name-1. **The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced
+file-name-1**, according to the following rules: a) When the TO phrase … is specified and the USING phrase is
+omitted, … identified by the specification of device-name-1 or the value of literal-1 …; b) **When the USING phrase
+of the ASSIGN clause is specified, the file connector … is associated with a physical file identified by the content
+of the data item referenced by data-name-1 in the runtime element that executes the OPEN, SORT, or MERGE
+statement.**"* §9.1.21 (Dynamic file assignment) is the concepts clause that names the whole facility, and Annex
+D.19.9.2's NOTE states the consequence outright: *"The MOVE statements only have an effect on the dynamic assignment
+when a subsequent OPEN statement for the file connector is executed."*
+
+**The shape.** `FileConnector.HostPath` is a settable property whose ONE writer is `FileConnector.Associate()`, and
+`FileRegistry` calls it from exactly three places: `Open`, `OpenShared` (which the emitted SORT/MERGE implicit opens
+also reach — §14.9.40.4 GR12a/GR15a, §14.9.24.4 GR7a) and `DeleteFile`'s unassociated screen. `Associate` is a no-op
+for the GR3 a) form — its association is static and fixed at registration — so both arms of GR3 run through one
+entry point rather than a register-time mechanism for TO and an open-time mechanism for USING. The emitter's part is
+to install a SOURCE, never a path: `SequentialIoEmitter.EmitAssignSources` writes one
+`CobolFile.SetAssignUsing(key, () => <data-name-1>)` per USING file, UNGUARDED on every activation, beside the LINAGE
+evaluator and for the same kb/Work PB168 reason (the closure must read THIS activation's instance). Both registration
+arms carry it: `DispatchEmitter.__Activate` for a program, the class constructor in `OoEmitter.EmitFileMembers` for an
+object — Annex D.19.9.2's own worked example is an instance file.
+
+**Why the sharing registry stopped caching the host path.** `ConnectorShare` used to hold a `Host` copy taken at
+`RegisterSharing` time, and every physical-file-table lookup (`ReadLockGovern`, `ReadShared`, `WriteShared`,
+`RewriteShared`, `DeleteShared`, `SharedClose`) read that copy. It was only ever right because the path could not
+change; a mutable association makes it a stale key that would arbitrate §9.1.15 sharing over the file the connector
+used to be associated with. The field is gone and the lookups read `c.HostPath` (or `HostPathOf(name)`).
+
+**The failure status is the standard's own.** GR3's closing sentence — *"If the association cannot be made because
+the content of the data item referenced by data-name-1 is not consistent with the specification for device-name-1 or
+literal-1, the OPEN, SORT, or MERGE statement is unsuccessful"* — has a dedicated I-O status, §9.1.13.6 item 2's
+**'31'**, and `Associate` returns it. The CONTENT rules it applies are the implementor's (§12.4.5.3 GR4, Annex A.1
+items 10 and 73) and are stated in `docs/CONFORMANCE.md` §7 under `DOC-A.1-73`.
+
+**An unassociated connector is a real state, not an error.** A bare `ASSIGN USING data-name-1` names no
+device-name-1/literal-1 at all, so nothing identifies a physical file until the first OPEN/SORT/MERGE. It registers
+with an EMPTY `HostPath`, and `DELETE FILE` on one takes §14.9.10.4 GR14 — *"If the file associated with file-name-1
+is not present, the execution of the DELETE FILE statement is successful and the I-O status value … is set to
+'05'"* — rather than re-resolving data-name-1, which would be an implementor extension to GR3's closed list of
+associating statements on the one verb where guessing wrong destroys data.
+
+**§12.4.5.2 SR7 is enforced at bind time**, once the data forest is indexed (`DataBinder.ResolveAssignUsing`):
+data-name-1 shall reference an alphanumeric data item (`COBOLNET1810`) and shall not be subordinate to the file
+description entry for file-name-1 (`COBOLNET1811`). The second half is the dangerous one — an operand inside the
+file's own record area is overwritten by every READ of that file.
+
+**Rejected alternatives.** Emitting a `CobolFile.Assign(key, expr)` statement before every OPEN (spreads one rule
+across every OPEN site, and misses SORT/MERGE unless each is remembered); re-resolving inside
+`FileConnector.Open` (too late — `SharedOpenAttempt` consults the physical-file table on the OLD path before
+calling it); keeping the registration-time resolve and adding a second dynamic path (two mechanisms for one job).
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

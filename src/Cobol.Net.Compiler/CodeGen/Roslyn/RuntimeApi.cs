@@ -873,6 +873,11 @@ internal static class RuntimeApi
     public static string FileSetLinage(string name, string closure) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.SetLinage)}({name}, {closure})";
 
+    /// <summary>Install a file's ASSIGN … USING dynamic-assignment source closure (§12.4.5.3 GR3 b / §9.1.21) —
+    /// <c>CobolFile.SetAssignUsing</c>.</summary>
+    public static string FileSetAssignUsing(string name, string closure) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.SetAssignUsing)}({name}, {closure})";
+
     /// <summary>Mark a connector sharing-active (Phase 4d M2-FILE-1) — <c>CobolFile.RegisterSharing</c>.</summary>
     public static string FileRegisterSharing(string name, string argsFragment) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterSharing)}({name}, {argsFragment})";

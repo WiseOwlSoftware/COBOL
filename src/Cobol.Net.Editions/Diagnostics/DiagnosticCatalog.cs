@@ -2114,6 +2114,34 @@ public static class DiagnosticCatalog
         + "one aborts the run unit with NotImplementedCobolFeatureException. This is a gap in COBOL.NET, not an "
         + "error in the source — the warning exists so the gap is visible before the program is run.",
         "COBOLNET_DESIGN §1.4", "statement-not-implemented");
+    // ── The ASSIGN … USING operand screens (kb/Work PB324): §12.4.5.2 SR7's two halves, checked post-build once
+    // the data forest is indexed. Two codes, not one, because the halves have different causes and different
+    // repairs — a wrong category is a declaration to change, a subordinate operand is a whole design to move. ──
+    /// <summary>COBOLNET1810 — the CATEGORY half of §12.4.5.2 SR7. Also fires when data-name-1 names nothing:
+    /// a reference that resolves to no data item cannot reference an alphanumeric one, and staying silent would
+    /// leave the connector permanently unassociated (its OPENs failing '31' with no compile-time reason given).</summary>
+    public static readonly DiagnosticDescriptor AssignUsingNotAlphanumeric = new(
+        "COBOLNET1810", "assign-using-not-alphanumeric", EditionSeverity.Error,
+        "ISO §12.4.5.2 syntax rule 7, first half: \"Data-name-1 shall reference an alphanumeric data item…\" — "
+        + "data-name-1 is the operand of the ASSIGN clause's USING phrase, whose content identifies the physical "
+        + "file at every OPEN, SORT or MERGE (§12.4.5.3 GR3 b; §9.1.21, Dynamic file assignment, states the same "
+        + "requirement in the concepts: \"The USING phrase references an alphanumeric data item whose content at "
+        + "the time an OPEN, SORT, or MERGE statement for that file is executed uniquely identifies the specific "
+        + "physical file to be accessed\"). An alphanumeric GROUP item qualifies (§13.18.29.4 GR3); a "
+        + "category-alphabetic, numeric, edited, national, boolean or pointer item does not.",
+        "ISO §12.4.5.2 SR7");
+
+    /// <summary>COBOLNET1811 — the SUBORDINATION half of §12.4.5.2 SR7. The dangerous half: an operand inside the
+    /// file's own record area is overwritten by every READ of that file, so the name the next OPEN would read is
+    /// file data.</summary>
+    public static readonly DiagnosticDescriptor AssignUsingInOwnRecord = new(
+        "COBOLNET1811", "assign-using-in-own-record", EditionSeverity.Error,
+        "ISO §12.4.5.2 syntax rule 7, second half: \"…and shall not be subordinate to the file description entry "
+        + "for file-name-1.\" The ASSIGN … USING operand names the physical file the connector is associated with "
+        + "at each OPEN, SORT or MERGE (§12.4.5.3 GR3 b), so it cannot live in the record area that file's own "
+        + "READ overwrites — nor is that area available at all while the connector is closed (§9.1.2).",
+        "ISO §12.4.5.2 SR7");
+
     public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
         "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",
