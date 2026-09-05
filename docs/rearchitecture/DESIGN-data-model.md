@@ -197,6 +197,19 @@ build; there was a predicate that stopped short.
 
 - Tier classification produces `StorageForm` for each member: Tier-A view → the canonical's form; Tier-B view →
   `TierBWindow`; Tier-D → a rejection diagnostic (no form emitted).
+- **Tier A means ONE FIELD SERVES EVERY MEMBER, so the members must agree on the UNIT** (kb/Work PB203). The arm
+  compared CLR carrier type and `ImageWidth`, and neither says what the field HOLDS: a `USAGE BIT` leaf's carrier
+  is its PICTURE 1(n) boolean positions while its `ImageWidth` is the `ceil(n/8)` bytes it occupies, so
+  `01 A PIC X(1). 01 B REDEFINES A PIC 1(8) USAGE BIT.` matched on both and aliased A's one CHARACTER. The arm now
+  also requires bit-ness agreement and, between two bit leaves, an equal boolean-position count.
+- **A Tier-B member that is a BIT item takes a BIT window, not a byte one** (kb/Work PB203; §13.18.44.4 GR1 states
+  the association in BITS and §14.6.8.6's NOTE says a usage-bit item "need not occupy an integral number of
+  bytes"). `RedefViewPlace.Bit` carries the absolute bit offset + boolean-position count and
+  `CobolBits.ReadWindow`/`WriteWindow` touch only those bits, which is what makes two same-level bit members that
+  SHARE a byte independent receivers. The offsets come from `DataItem.ClassBitOffset`, and every window — in the
+  resolver, the INITIALIZE cursor and the MOVE CORRESPONDING cursor — is built by the ONE factory
+  `RedefViewPlace.For`; those three each had their own copy of the offset law, which is how the bit unit came to
+  be missing from all three at once. Full derivation in `docs/COBOLNET_DATA_MODEL_DESIGN.md` D19.
 - `RedefinesClass.Tier`/`.Width` become **init-only**, set once by `RedefinesClassifier` (§2.5) — no set-then-overwrite.
 - **Tier-C decision — AS BUILT (Step D, LANDED):** there is no Tier C. A genuine mixed-USAGE REDEFINES pun is
   ADMITTED as Tier B, and `ComputeTier`'s remaining reason arms carry only the boundaries that survive — the

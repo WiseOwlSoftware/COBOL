@@ -87,12 +87,52 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
 /// </summary>
 public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int Width, DataItem ViewItem) : Place
 {
+    /// <summary>The §13.18.44.4 GR1 window expressed in BIT positions, set for — and only for — a member that is
+    /// a <c>USAGE BIT</c> item (kb/Work PB203). Null leaves the byte window above in force.
+    /// <para>⛔ Both units are one window over one backing, which is why this is a PAYLOAD rather than a second
+    /// <see cref="Place"/> subtype: every consumer that discriminates <c>is RedefViewPlace</c> is asking "is this
+    /// member's read already the value string?", and for a bit member the answer is still yes — the string is its
+    /// boolean carrier instead of its characters. Only <c>PlaceRenderer</c>'s Read/Write pair reads this.</para></summary>
+    public BitWindow? Bit { get; init; }
+
+    /// <summary>⛔ THE ONE Tier-B window builder (kb/Work PB203). Three sites compose this window — the resolver
+    /// (<c>ReferenceResolver.PlaceForItem</c>), the INITIALIZE receiver cursor and the MOVE CORRESPONDING leaf
+    /// cursor — and before this factory each carried its own copy of the offset law, which is exactly how the BIT
+    /// unit came to be missing from all three at once.
+    /// <para>The law: a member's window starts at <paramref name="byteOffsetExpr"/> characters into the class
+    /// backing, or — when the member is a bit item, whose positions §13.18.44.4 GR1 and §8.5.1.6.3 both count in
+    /// BITS — at <c>8 × (the caller's RUNTIME byte displacement) + <see cref="DataItem.ClassBitOffset"/> +
+    /// Σ (index − 1) × the per-occurrence bit extent</c>. The displacement is passed separately from the byte
+    /// expression because the item's own in-class position is already carried in bits by
+    /// <see cref="DataItem.ClassBitOffset"/> — re-deriving it from the byte expression would round a sub-byte
+    /// member down to its containing byte.</para></summary>
+    /// <param name="runtimeByteDisplacement">The part of <paramref name="byteOffsetExpr"/> that is NOT the item's
+    /// own static in-class offset — a BASED class's pointer displacement, or an enclosing cursor's hoisted
+    /// offset. Null/empty/"0" when the window is at a compile-time-known position.</param>
+    /// <param name="occursBitTerms">The <c> + (index − 1) * bits</c> terms for each OCCURS level crossed WITHIN
+    /// the class, already in bit units (<see cref="BitLayout.WidthBits"/> per level). Empty when none.</param>
+    public static RedefViewPlace For(AccessPath backing, DataItem item, string byteOffsetExpr,
+                                     string? runtimeByteDisplacement = null, string occursBitTerms = "")
+    {
+        var window = new RedefViewPlace(backing, byteOffsetExpr, item.ImageWidth, item);
+        if (!BitLayout.IsBitItem(item)) return window;
+        string at = runtimeByteDisplacement is null or "" or "0"
+            ? $"{item.ClassBitOffset}"
+            : $"{BitLayout.BitsPerCharacter} * ({runtimeByteDisplacement}) + {item.ClassBitOffset}";
+        return window with { Bit = new BitWindow(at + occursBitTerms, BitLayout.WidthBits(item)) };
+    }
+
     /// <inheritdoc/>
     public override PicInfo? Pic => ViewItem.Pic;
 
     /// <inheritdoc/>
     public override DataItem Item => ViewItem;
 }
+
+/// <summary>A <see cref="RedefViewPlace"/>'s BIT window: the 0-based ABSOLUTE bit offset within the class's one
+/// byte backing (the D10 transitional expression string) and the member's boolean-position count
+/// (§13.18.29.4 GR1b's <c>m</c> for a bit group, the PICTURE 1(n) length for a bit leaf).</summary>
+public readonly record struct BitWindow(string OffsetExpr, int Bits);
 
 /// <summary>
 /// A level-66 RENAMES place (ISO §13.18.45): ONE elementary-alphanumeric view composed over the spanned record

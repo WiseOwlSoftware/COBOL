@@ -519,6 +519,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         + $"// LINKAGE Tier-B REDEFINES backing for {root.CobolName}");
                     continue;
                 }
+                // A NON-canonical Tier-B member is a WINDOW over that backing, never a second storage — the same
+                // skip ProgramEmitter's LOCAL-STORAGE loop has carried since M2-OO-1h and this arm did not
+                // (kb/Work PB203's sibling sweep: one rule, three loops, one of them missing it — the two-arm
+                // dispatch shape again). Without it a method-scoped view root declared its OWN local, splitting
+                // one §13.18.44 storage area in two; and now that a collapsed GROUP emits no record-struct type
+                // at all it would be a CS0246 on legal source.
+                if (root.Class is { Tier: RedefinesTier.StringCanonical }) continue;
                 var (type, init) = fields.RootDecl(root);
                 var formal = m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
                 if (formal is null)
@@ -549,6 +556,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     w.Line($"string {bkl.Name} = {bkl.Init};   // LOCAL-STORAGE Tier-B REDEFINES backing for {root.CobolName} (§14.5.3)");
                     continue;
                 }
+                if (root.Class is { Tier: RedefinesTier.StringCanonical }) continue;   // a view — a window over the backing, no local (kb/Work PB203)
                 var (type, init) = fields.RootDecl(root);
                 w.Line($"{type} {root.CsName} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§14.5.3)");
             }

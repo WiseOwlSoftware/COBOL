@@ -44,28 +44,73 @@ public static class CobolBits
 
     public static string Pack(string bits, int count)
     {
-        int bytes = (count + BitsPerByte - 1) / BitsPerByte;
-        var image = new char[bytes];
-        for (int i = 0; i < count; i++)
-        {
-            if (i >= bits.Length || bits[i] != '1') continue;
-            image[i / BitsPerByte] |= (char)(1 << (BitsPerByte - 1 - i % BitsPerByte));
-        }
+        // ⛔ ONE bit-order law, and no extra allocation to get it: the fresh image is all-zero, so blitting only
+        // the '1' positions reproduces Pack's contract exactly ("any character other than '1' reads as zero",
+        // trailing filler zero) while sharing the high-order-first arithmetic with WriteWindow. Going through
+        // WriteWindow itself would have cost a throwaway zero STRING plus its ToCharArray on a path every
+        // whole-group image of a bit run takes.
+        var image = new char[(count + BitsPerByte - 1) / BitsPerByte];
+        Blit(image, 0, bits, System.Math.Min(count, bits.Length));
         return new string(image);
     }
 
     /// <summary>Unpack <paramref name="count"/> boolean positions from a record image back into the
     /// <c>'0'</c>/<c>'1'</c> carrier — the exact inverse of <see cref="Pack"/>. A short image (the pad a short
     /// record legitimately deposits) yields <c>'0'</c> for the missing positions.</summary>
-    public static string Unpack(string image, int count)
+    public static string Unpack(string image, int count) => ReadWindow(image, 0, count);
+
+    /// <summary>
+    /// Read <paramref name="count"/> boolean positions starting at ABSOLUTE bit position
+    /// <paramref name="startBit"/> of a byte image — the §13.18.44.4 GR1 storage association read for a bit
+    /// item that shares its storage area with other data descriptions ("Storage association for the subject of
+    /// the entry starts at the first BIT of the data item referenced by data-name-2 and continues over an area
+    /// sufficient to contain the number of BITS required"). <see cref="Unpack"/> is the
+    /// <paramref name="startBit"/> = 0 case.
+    /// <para>A position past the end of the image yields <c>'0'</c>, the same benign decode a short record's
+    /// pad gets — §13.18.63's all-zero boolean initial state rather than a throw.</para>
+    /// </summary>
+    public static string ReadWindow(string image, int startBit, int count)
     {
         var bits = new char[count];
         for (int i = 0; i < count; i++)
         {
-            int b = i / BitsPerByte;
-            bits[i] = b < image.Length && (image[b] & (1 << (BitsPerByte - 1 - i % BitsPerByte))) != 0 ? '1' : '0';
+            int p = startBit + i, b = p / BitsPerByte;
+            bits[i] = b >= 0 && b < image.Length
+                      && (image[b] & (1 << (BitsPerByte - 1 - p % BitsPerByte))) != 0 ? '1' : '0';
         }
         return new string(bits);
+    }
+
+    /// <summary>
+    /// Splice <paramref name="bits"/> into <paramref name="image"/> starting at ABSOLUTE bit position
+    /// <paramref name="startBit"/>, returning the new image and leaving EVERY OTHER BIT of it untouched — the
+    /// receiving twin of <see cref="ReadWindow"/>, and the reason a sub-byte bit item can share a byte with its
+    /// siblings (§8.5.1.6.3: "an elementary bit data item immediately following an elementary bit data item or
+    /// bit group item of the same level" is placed "at the next bit position in storage"). A write that would
+    /// run past the image stops at its end — the same truncation a short window gets everywhere else.
+    /// </summary>
+    public static string WriteWindow(string image, int startBit, string bits)
+    {
+        var buf = image.ToCharArray();
+        Blit(buf, startBit, bits, bits.Length);
+        return new string(buf);
+    }
+
+    /// <summary>⛔ THE ONE WRITE-SIDE bit-order law: set/clear <paramref name="count"/> boolean positions of
+    /// <paramref name="buf"/> starting at bit <paramref name="startBit"/>, high-order bit of each byte first.
+    /// Shared by <see cref="Pack"/> (into a fresh all-zero image) and <see cref="WriteWindow"/> (into a copy of
+    /// an existing one) so the two cannot disagree about which bit is position 1. A position past the end of the
+    /// buffer is dropped — the same truncation a short window gets everywhere else.</summary>
+    private static void Blit(char[] buf, int startBit, string bits, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            int p = startBit + i, b = p / BitsPerByte;
+            if (b < 0) continue;
+            if (b >= buf.Length) break;
+            int mask = 1 << (BitsPerByte - 1 - p % BitsPerByte);
+            buf[b] = (char)(bits[i] == '1' ? buf[b] | mask : buf[b] & ~mask);
+        }
     }
 
     /// <summary>The slice of a run's unpacked carrier belonging to one item — the emitter distributes a shared

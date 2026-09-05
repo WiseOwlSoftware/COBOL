@@ -261,8 +261,12 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             // offset; the group's subscript displacement (already inside the hoisted value) applies to both
             // identically (ISO §13.18.44 — a redefined table lays its occurrences end-to-end in the one backing).
             if (!ReferenceEquals(leaf.Class, _groupItem.Class)) return null;
-            return new RedefViewPlace(_backing!,
-                $"{Hoist(isRef: false)} - {_groupItem.ClassOffset} + {leaf.ClassOffset}", leaf.ImageWidth, leaf);
+            // ⛔ THROUGH THE ONE WINDOW BUILDER (kb/Work PB203): `hoist - groupItem.ClassOffset` is precisely the
+            // group's RUNTIME displacement (its subscript/BASED part, with the static in-class offset removed),
+            // which is what a BIT member's window needs — its own position is carried in BITS by ClassBitOffset.
+            string displacement = $"{Hoist(isRef: false)} - {_groupItem.ClassOffset}";
+            return RedefViewPlace.For(_backing!, leaf,
+                $"{displacement} + {leaf.ClassOffset}", displacement);
         }
 
         /// <summary>Record the anchor hoist on first use and return its local name.</summary>

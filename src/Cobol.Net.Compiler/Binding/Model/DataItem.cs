@@ -319,6 +319,14 @@ public sealed class DataItem
     /// (P5.11d; init-only inexpressible, the walk runs after construction — the P5.10 <c>Storage</c> pattern).</summary>
     public int ClassOffset { get; internal set; }
 
+    /// <summary>The start of this view's window within its class's shared area expressed in BITS — the unit
+    /// §13.18.44.4 GR1 itself uses ("Storage association … starts at the first BIT of the data item referenced by
+    /// data-name-2 and continues over an area sufficient to contain the number of BITS required"). For every
+    /// byte-aligned item it is simply <c>8 × <see cref="ClassOffset"/></c>; it DIFFERS only for a
+    /// <c>USAGE BIT</c> member that §8.5.1.6.3 places at a bit position inside a shared byte (kb/Work PB203).
+    /// Same single writer and same meaningfulness condition as <see cref="ClassOffset"/>.</summary>
+    public int ClassBitOffset { get; internal set; }
+
     /// <summary>The canonical storage representation of this ELEMENTARY item (null for a group — a group emits as a
     /// record struct and answers its image facts recursively over children). Computed ONCE by
     /// <see cref="Passes.StorageFormPass"/> after all facts are known (rearchitecture PHASE 05; DESIGN-data-model

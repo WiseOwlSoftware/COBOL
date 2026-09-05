@@ -286,7 +286,9 @@ internal sealed class ProgramEmitter
     private static Place? PrefixPlace(Place p, string prefix) => p switch
     {
         MemberPlace m => new MemberPlace(m.Path.Reroot(prefix), m.MemberItem),
-        RedefViewPlace r => new RedefViewPlace(r.Backing.Reroot(prefix), r.OffsetExpr, r.Width, r.ViewItem),
+        // `with` rather than a fresh construction: the window's BIT payload (kb/Work PB203) is part of the place's
+        // identity and re-anchoring changes only where the backing lives, never which positions the member holds.
+        RedefViewPlace r => r with { Backing = r.Backing.Reroot(prefix) },
         _ => null,
     };
 

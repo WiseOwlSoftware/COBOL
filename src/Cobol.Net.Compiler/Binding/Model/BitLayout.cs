@@ -38,8 +38,14 @@ internal static class BitLayout
     public static bool IsBitItem(DataItem item) => IsBitLeaf(item) || item.GroupUsage is GroupUsage.Bit;
 
     /// <summary>The bit positions a §8.5.1.6.3 run MEMBER contributes — a bit leaf's declared boolean positions, a
-    /// bit group's exact extent (its as-if PICTURE 1(m) length), times its OCCURS (D20/PB79).</summary>
-    public static int RunBits(DataItem m) => (m.IsGroup ? m.AsIfPic!.Length : m.Pic!.Length) * (m.Occurs ?? 1);
+    /// bit group's exact extent (its as-if PICTURE 1(m) length), times its OCCURS (D20/PB79).
+    /// <para>⛔ Expressed through <see cref="WidthBits"/> rather than re-reading <c>Pic</c>/<c>AsIfPic</c>: for a
+    /// bit item the two spellings are the SAME number by construction (that method's first arm is the bit leaf's
+    /// PICTURE length and its group arm is <see cref="ExtentBits"/>, which is exactly what
+    /// <see cref="DataItem.AsIfPic"/> reports as §13.18.29.4 GR1b's <c>m</c>), and one spelling means the
+    /// per-occurrence extent used as a WIDTH (the Tier-B bit window, kb/Work PB203) and the one used as a STRIDE
+    /// (a subscripted bit member) cannot drift apart.</para></summary>
+    public static int RunBits(DataItem m) => WidthBits(m) * (m.Occurs ?? 1);
 
     /// <summary>The bit extent of one item PER OCCURRENCE — a bit leaf's declared boolean-position count, else the
     /// item's byte extent expressed in bits. A group defers to <see cref="ExtentBits"/> so a nested bit run is laid

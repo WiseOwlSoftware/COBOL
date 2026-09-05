@@ -361,19 +361,30 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// (ISO §13.18.44 — a redefined table lays its occurrences end-to-end in the one backing; the same arithmetic
     /// as <c>ReferenceResolver.PlaceForItem</c>).</summary>
     private sealed record InitializeViewCursor(
-        AccessPath Backing, string BaseExpr, int BaseOffset, DataItem Item, string OccursTerms) : InitializeCursor(Item)
+        AccessPath Backing, string BaseExpr, int BaseOffset, DataItem Item, string OccursTerms,
+        string OccursBitTerms = "") : InitializeCursor(Item)
     {
         public override InitializeCursor? Child(DataItem child) =>
             ReferenceEquals(child.Class, Item.Class) ? this with { Item = child } : null;
 
-        public override InitializeCursor Indexed(string indexVar) =>
-            this with { OccursTerms = $"{OccursTerms} + ({indexVar} - 1) * {Item.ImageWidth}" };
+        // The byte stride and its BIT twin, accumulated together so a USAGE BIT receiver's occurrences are
+        // displaced by §8.5.1.6.3's "next bit position" rather than by its byte ceiling (kb/Work PB203).
+        public override InitializeCursor Indexed(string indexVar) => this with
+        {
+            OccursTerms = $"{OccursTerms} + ({indexVar} - 1) * {Item.ImageWidth}",
+            OccursBitTerms = $"{OccursBitTerms} + ({indexVar} - 1) * {BitLayout.WidthBits(Item)}",
+        };
 
         public override Place ToPlace()
         {
             int delta = Item.ClassOffset - BaseOffset;
-            return new RedefViewPlace(Backing,
-                $"{BaseExpr}{(delta != 0 ? $" + {delta}" : "")}{OccursTerms}", Item.ImageWidth, Item);
+            // ⛔ THROUGH THE ONE WINDOW BUILDER (kb/Work PB203). `BaseExpr - BaseOffset` is the entry place's
+            // RUNTIME displacement with its static in-class offset removed — exactly what the builder needs,
+            // because a bit member's own position is already carried in BITS by DataItem.ClassBitOffset and
+            // re-deriving it from a byte expression would round a sub-byte member down to its containing byte.
+            return RedefViewPlace.For(Backing, Item,
+                $"{BaseExpr}{(delta != 0 ? $" + {delta}" : "")}{OccursTerms}",
+                BaseExpr == BaseOffset.ToString() ? null : $"{BaseExpr} - {BaseOffset}", OccursBitTerms);
         }
     }
 }

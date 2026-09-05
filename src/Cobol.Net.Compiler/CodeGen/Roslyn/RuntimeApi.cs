@@ -995,6 +995,20 @@ internal static class RuntimeApi
     public static string NatBytes(string expr) =>
         $"{nameof(CobolBits)}.{nameof(CobolBits.NatBytes)}({expr})";
 
+    /// <summary>Read a Tier-B REDEFINES member's BIT window out of the class's ONE byte backing —
+    /// <c>CobolBits.ReadWindow</c>. The §13.18.44.4 GR1 storage association is stated in BITS, and
+    /// §13.18.29.4 GR1c sends a bit group's members through §8.5.1.6.3, so a bit member of a redefines class
+    /// is located at a BIT offset in the shared area, not a byte one (kb/Work PB203).</summary>
+    public static string BitsReadWindow(string imageExpr, string startBitExpr, string countExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.ReadWindow)}({imageExpr}, {startBitExpr}, {countExpr})";
+
+    /// <summary>Splice a Tier-B REDEFINES member's BIT window back into the class's ONE byte backing, leaving
+    /// every other bit of it untouched — <c>CobolBits.WriteWindow</c>, the receiving twin of
+    /// <see cref="BitsReadWindow"/> (kb/Work PB203). Leaving the neighbouring bits alone is what makes two
+    /// same-level bit members that SHARE a byte (§8.5.1.6.3) independent receivers.</summary>
+    public static string BitsWriteWindow(string imageExpr, string startBitExpr, string bitsExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.WriteWindow)}({imageExpr}, {startBitExpr}, {bitsExpr})";
+
     /// <summary>One member's slice of an unpacked run carrier — <c>CobolBits.Slice</c>.</summary>
     public static string BitsSlice(string carrierExpr, string offsetExpr, string countExpr) =>
         $"{nameof(CobolBits)}.{nameof(CobolBits.Slice)}({carrierExpr}, {offsetExpr}, {countExpr})";

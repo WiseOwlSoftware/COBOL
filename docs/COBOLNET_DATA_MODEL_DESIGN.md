@@ -300,9 +300,43 @@ majority and includes the entire existing corpus. (The same discipline as PB41's
 
 **IN:** the layout function, the sizing surfaces above, `FUNCTION LENGTH`/`BYTE-LENGTH`, and the record image
 codec packing a bit run into its bytes.
-**OUT, and each is loud rather than silently wrong:** `GROUP-USAGE BIT` (§13.18.29) — modelled by **D20** (kb/Work
-PB79); and a sub-byte `REDEFINES` overlay (a redefiner starting mid-byte) is refused rather than given a rounded
-offset (recorded on [[PB43]]).
+**OUT:** `GROUP-USAGE BIT` (§13.18.29) — modelled by **D20** (kb/Work PB79).
+
+#### The REDEFINES bit window — IN, and the scope boundary that said otherwise was wrong twice (kb/Work PB203)
+
+This section used to read "a sub-byte `REDEFINES` overlay (a redefiner starting mid-byte) is **refused** rather
+than given a rounded offset". ⛔ **Both halves were false, and neither had ever been measured.** Nothing refused
+anything: `01 A PIC X(1). 01 V REDEFINES A. 05 F1 PIC 1(4) USAGE BIT. 05 F2 PIC 1(4) USAGE BIT.` compiled clean
+and answered `F1` = the raw character of byte 0 and `F2` = a space read past the one-byte backing. And the bit
+GROUP shapes did not even reach a rounded offset — they failed BACKEND compilation with four CS0103.
+
+**The standard settles the direction, so there was never a rejection to design.** §13.18.44.4 GR1 states the
+association in BITS — "Storage association for the subject of the entry starts at the first bit of the data item
+referenced by data-name-2 and continues over an area sufficient to contain the number of bits required by the data
+item referenced by the subject of the entry" — §13.18.29.4 GR1 c) sends a bit group's members through §8.5.1.6.3,
+and §14.6.8.6's NOTE says it outright: "When an item is of usage bit, the item is not necessarily aligned on a
+byte boundary and the item need not occupy an integral number of bytes."
+
+**As built.** A Tier-B member that is a bit item (a `USAGE BIT` leaf or a `GROUP-USAGE BIT` group, `BitLayout.IsBitItem`)
+carries a `RedefViewPlace.Bit` payload — the ABSOLUTE bit offset within the class's ONE byte backing and its
+boolean-position count — and reads/writes through `CobolBits.ReadWindow`/`WriteWindow`, which touch only those
+bits. Three consequences, each of them a rule rather than a case:
+
+| surface | rule |
+|---|---|
+| `DataItem.ClassBitOffset` | the member's in-class offset in BITS — `8 × ClassOffset` for every byte-aligned item, and different only where §8.5.1.6.3 shares a byte. `DataBinder.AssignClassOffsets` carries the bit cursor and applies rules 1–2 of the walk above, **gated on `HasBitDescendant`** exactly as `ImageWidth` is — byte-identical for every bit-free class |
+| the window builder | ONE factory, `RedefViewPlace.For`. Three sites compose a Tier-B window (the resolver, the INITIALIZE receiver cursor, the MOVE CORRESPONDING leaf cursor) and each carried its own copy of the offset law, which is how the bit unit came to be missing from all three at once |
+| the subscript stride | a bit member's occurrences lie at successive BIT positions, so the stride is `BitLayout.WidthBits`, not the item's `ceil(n/8)` byte ceiling — `PIC 1(4) USAGE BIT OCCURS 6` strides 4 bits |
+
+**And Tier A gained the unit test it always needed.** `ComputeTier`'s alias arm compared CLR carrier type and
+`ImageWidth`, which does NOT prove one field serves both members: a `USAGE BIT` leaf's carrier holds its PICTURE
+1(n) boolean positions while its `ImageWidth` is the `ceil(n/8)` bytes it occupies, so `01 A PIC X(1).
+01 B REDEFINES A PIC 1(8) USAGE BIT.` matched on both counts and B aliased A's one-CHARACTER field. Members share
+one field only when they agree on the UNIT (both bit or neither) and, being bit, on the boolean-position COUNT.
+
+**What is still OUT, and it is a REJECTION rather than a wrong answer:** a class containing a NATIONAL leaf stays
+Tier-D (the D-N1 2-byte-per-position overlay, RESIDUE-11). That is the only shape of §13.18.44.4 GR1 this model
+does not carry.
 
 ### D20. GROUP-USAGE (§13.18.29): a bit group / national group is STRUCTURALLY a group and SEMANTICALLY an elementary boolean / national item — ONE as-if PICTURE on the DataItem, consulted by every category reader; the layout stays the group's. (kb/Work PB79.)
 

@@ -425,6 +425,13 @@ public sealed class ReferenceResolver(DataBinder data)
             // §13.18.29.4 GR2b's as-if PICTURE N(m) is in NATIONAL positions and DataItem.IsCharacterImage
             // guarantees a national leaf contributes ImageWidth = Length character positions, "never
             // byte-doubled", so its AsImage() IS its national-position string.
+            // ⛔ A TIER-B WINDOW NEEDS NO WRAP IN EITHER UNIT, and for the BIT one that is now a derived fact
+            // rather than an untested omission (kb/Work PB203 closing PB173's open "RELATED" question): a
+            // RedefViewPlace over a bit member reads its BOOLEAN CARRIER — CobolBits.ReadWindow over the class
+            // backing — so the RefModPlace built below slices §8.4.3.3.4 GR5a's bit positions structurally,
+            // exactly as BitImagePlace's AsBits() does for a struct-stored bit group. Measured: with
+            // `01 A PIC X(2). 01 BV REDEFINES A GROUP-USAGE BIT. 05 BV1 PIC 1(8). 05 BV2 PIC 1(8).` holding
+            // B"0100100001001001", `BV(1:3)` is B"010" and `MOVE ALL B"0" TO BV(2:3)` zeroes positions 2-4.
             if (inner is not RedefViewPlace)
                 inner = item.IsAsIfElementary && item.GroupUsage is GroupUsage.Bit
                     ? new BitImagePlace(inner)
@@ -582,19 +589,32 @@ public sealed class ReferenceResolver(DataBinder data)
             occursLevels.Reverse();
             if (occursLevels.Count != indexExprs.Count) return null;   // wrong subscript count → loud
             string offset = item.ClassOffset.ToString();
+            // The BIT twin of the same displacement, for a USAGE BIT member (kb/Work PB203): a bit item's
+            // occurrences lie at successive BIT positions (§8.5.1.6.3's "next bit position in storage"; the same
+            // stride GroupImageCodec.EmitRunMemberFromBits distributes a run's occurrences at), so the per-level
+            // stride is its bit extent — `PIC 1(4) USAGE BIT OCCURS 6` strides 4 bits, not the 1 byte its
+            // ImageWidth ceiling reports.
+            string bitTerms = "";
             for (int k = 0; k < occursLevels.Count; k++)
+            {
                 offset += $" + ({indexExprs[k]} - 1) * {occursLevels[k].ImageWidth}";
+                bitTerms += $" + ({indexExprs[k]} - 1) * {BitLayout.WidthBits(occursLevels[k])}";
+            }
             // A BASED class's window is displaced by the data-address pointer's runtime offset (ISO §13.18.5
             // — the view addresses wherever the pointer currently points; Phase-4b increment 2). The backing
             // property renders FIRST in both Read and Write, so the Deref null/bounds traps (GR3/GR4) fire
             // before the null-lenient OffsetOf.
+            string? based = null;
             if (sc.BasedPointerField is { } addr)
-                offset = $"CobolPtr.OffsetOf({addr}) + {offset}";
+            {
+                based = $"CobolPtr.OffsetOf({addr})";
+                offset = $"{based} + {offset}";
+            }
             // (whole-group image analysis moved OUT of resolve to the post-bind UsageCollectionPass, PHASE-05 Step 5)
             // A class-tier GROUP holding an occurs-depending table is an ODO operand exactly like a struct group
             // (kb/Work PB80: a BASED record — string-canonical — sent its MAXIMUM image; §13.18.38.4 GR8 does not
             // care how the group is stored). ONE wrap rule for both storage shapes.
-            return WrapIfOdoGroup(new RedefViewPlace(backing, offset, item.ImageWidth, item), item);
+            return WrapIfOdoGroup(RedefViewPlace.For(backing, item, offset, based, bitTerms), item);
         }
         // A Tier-A view forwards to the canonical (a numeric view reinterprets the shared unscaled value via its own
         // scale, for free). A not-yet-wired (Tier-C) / Rejected view is loud.

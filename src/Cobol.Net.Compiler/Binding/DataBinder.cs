@@ -3861,18 +3861,52 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// that itself REDEFINES a prior sibling takes the TARGET's offset (redefinition begins at the redefined item's
     /// first position, ISO §13.18.44 GR1) and contributes NO width of its own. Every subordinate of a class member
     /// is itself a view (its stored field is suppressed — SR9).</summary>
-    private static void AssignClassOffsets(DataItem item, int off, RedefinesClass cls)
+    private static void AssignClassOffsets(DataItem item, int off, RedefinesClass cls) =>
+        AssignClassOffsets(item, off * BitLayout.BitsPerCharacter, cls, item.HasBitDescendant);
+
+    /// <summary>The walk proper, carrying the offset in BITS — the unit §13.18.44.4 GR1 states the storage
+    /// association in ("starts at the first BIT … an area sufficient to contain the number of BITS required").
+    /// <para>⛔ <paramref name="bitLaid"/> selects between TWO SPELLINGS OF ONE LAW, not two laws (kb/Work
+    /// PB203, following the D19/PB43 discipline <see cref="DataItem.ImageWidth"/> already uses). When the
+    /// member's subtree holds no <c>USAGE BIT</c> leaf, the §8.5.1.6.3 cursor and the plain character sum agree
+    /// BY CONSTRUCTION — every item is byte-aligned and every advance is <c>ImageWidth × OCCURS</c> bytes — so
+    /// the sum is taken and the result is byte-identical for the whole bit-free corpus. When it does hold one,
+    /// the sum is WRONG in two ways at once and both are silent: two same-level bit members SHARE a byte
+    /// (§8.5.1.6.3 rule 1) so the sum hands the second its own byte, and every item after such a run is
+    /// displaced by the over-count. Measured before the fix on `01 A PIC X(1). 01 V REDEFINES A.
+    /// 05 F1 PIC 1(4) USAGE BIT. 05 F2 PIC 1(4) USAGE BIT.`: F1 read byte 0 as a character and F2 read PAST the
+    /// one-byte backing.</para></summary>
+    private static void AssignClassOffsets(DataItem item, int bitOff, RedefinesClass cls, bool bitLaid)
     {
-        item.ClassOffset = off;
+        item.ClassBitOffset = bitOff;
+        item.ClassOffset = bitOff / BitLayout.BitsPerCharacter;
         item.Class = cls;
-        int childOff = off;
+        int childBit = bitOff;
+        DataItem? prev = null;
         foreach (var c in item.Children)
         {
             c.IsCanonical = false;
             // The inner-REDEFINES target is a PRIOR sibling, so its offset is already assigned this walk.
-            int cOff = c.RedefinesTarget is { } target ? target.ClassOffset : childOff;
-            AssignClassOffsets(c, cOff, cls);
-            if (c.RedefinesTarget is null) childOff += c.ImageWidth * (c.Occurs ?? 1);
+            int cBit;
+            if (c.RedefinesTarget is { } target) cBit = target.ClassBitOffset;
+            else
+            {
+                // §8.5.1.6.3 rules 1 and 2, the SAME pair BitLayout.ExtentBits walks: a bit item immediately
+                // following a bit item OF THE SAME LEVEL takes the next bit position — the only case that shares
+                // a byte; every other item starts at the first bit position of the first available byte.
+                if (bitLaid && !(BitLayout.IsBitItem(c) && prev is not null && BitLayout.IsBitItem(prev)
+                                 && prev.Level == c.Level))
+                    childBit = (childBit + BitLayout.BitsPerCharacter - 1)
+                               / BitLayout.BitsPerCharacter * BitLayout.BitsPerCharacter;
+                cBit = childBit;
+            }
+            AssignClassOffsets(c, cBit, cls, bitLaid);
+            if (c.RedefinesTarget is null)
+            {
+                childBit += (bitLaid ? BitLayout.WidthBits(c) : c.ImageWidth * BitLayout.BitsPerCharacter)
+                            * (c.Occurs ?? 1);
+                prev = c;
+            }
         }
     }
 
@@ -3999,9 +4033,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // Tier A — every member is an elementary item sharing the canonical's CLR storage type AND its image width:
         // one stored field, the rest pass-throughs (a numeric view reinterprets the shared value via its own scale).
+        // ⛔ AND THE SAME STORAGE UNIT (kb/Work PB203). CLR type + image width is not enough to prove ONE FIELD
+        // SERVES BOTH: a `USAGE BIT` leaf's stored carrier is its PICTURE 1(n) boolean positions while its
+        // ImageWidth is the ceil(n/8) BYTES it occupies (§13.18.60.4 GR5 — "bits shall be used"; D19/PB43), so
+        // `01 A PIC X(1). 01 B REDEFINES A PIC 1(8) USAGE BIT.` matched on both counts (string, width 1) and B
+        // aliased A's one-CHARACTER field — measured: `DISPLAY B` printed `A` where the eight boolean positions
+        // of 0x41 are `01000001`. Two members share one field only when they agree on the UNIT (both bit or
+        // neither) and, being bit, on the boolean-position COUNT — `PIC 1(5)` and `PIC 1(8)` share a byte
+        // ceiling and NOT a carrier. A mismatched pair drops to Tier B, whose windows carry the unit explicitly.
         DataItem canon = cls.Canonical;
         bool allAlias = canon.IsElementary && cls.Members.All(m =>
-            m.IsElementary && m.ElementType == canon.ElementType && m.ImageWidth == canon.ImageWidth);
+            m.IsElementary && m.ElementType == canon.ElementType && m.ImageWidth == canon.ImageWidth
+            && BitLayout.IsBitLeaf(m) == BitLayout.IsBitLeaf(canon)
+            && (!BitLayout.IsBitLeaf(m) || m.Pic!.Length == canon.Pic!.Length));
         if (allAlias) return RedefinesTier.Alias;
 
         // Tier B — DISPLAY-homogeneous: one string canonical of class-max width, each view an (offset,width) accessor.

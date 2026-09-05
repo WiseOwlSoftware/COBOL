@@ -61,7 +61,13 @@ internal static class PlaceRenderer
         MemberPlace m => RenderPath(m.Path, AccessDir.Sending),
         // A subscripted OCCURS DYNAMIC element read — the trailing DynTableSegment renders RefSending (§8.5.1.9.2).
         DynTablePlace d => RenderPath(d.Path, AccessDir.Sending),
-        // A Tier-B REDEFINES view (§13.18.44): the (offset, width) character window over the class's ONE backing.
+        // A Tier-B REDEFINES view (§13.18.44): the (offset, width) character window over the class's ONE backing —
+        // or, for a USAGE BIT member, its BIT window over the same backing (kb/Work PB203): §13.18.44.4 GR1 states
+        // the storage association in BITS and §13.18.29.4 GR1c sends a bit group's members through §8.5.1.6.3, so
+        // the member's positions are bit positions and its VALUE is the boolean carrier they hold — never the
+        // characters of the byte that happens to contain them.
+        RedefViewPlace { Bit: { } b } v => RuntimeApi.BitsReadWindow(
+            RenderPath(v.Backing, AccessDir.Sending), $"(int)({b.OffsetExpr})", b.Bits.ToString()),
         RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
@@ -131,6 +137,13 @@ internal static class PlaceRenderer
         MemberPlace m => $"{RenderPath(m.Path, AccessDir.Sending)} = {rhs};",
         // A dynamic-table store uses RefReceiving, which grows-and-seeds past the current capacity (§8.5.1.9.3).
         DynTablePlace d => $"{RenderPath(d.Path, AccessDir.Receiving)} = {rhs};",
+        // Splice the member's BOOLEAN positions back into the class's ONE backing, leaving every other bit of it
+        // untouched (kb/Work PB203). ⛔ Bit-granular splicing is REQUIRED, not an optimization: §8.5.1.6.3 puts two
+        // same-level bit members at successive bit positions of the SAME byte, so a byte-granular store through
+        // either would silently clobber the other. The value is first stored to exactly the member's boolean
+        // position count with §14.6.8.6's boolean-ZERO fill.
+        RedefViewPlace { Bit: { } b } v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
+            $"{RuntimeApi.BitsWriteWindow(RenderPath(v.Backing, AccessDir.Sending), $"(int)({b.OffsetExpr})", RuntimeApi.StrStoreBoolean(rhs, b.Bits.ToString(), justifiedRight: false))};",
         // Splice the new image back into the class's ONE backing, preserving its full width (§13.18.44).
         RedefViewPlace v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
             $"{RuntimeApi.StrSpliceInto(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString(), rhs)};",

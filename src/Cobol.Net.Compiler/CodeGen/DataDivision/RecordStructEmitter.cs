@@ -120,6 +120,16 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     private void EmitStructTypeDecls(DataItem item, CodeWriter w)
     {
         if (!item.IsGroup) return;
+        // ⛔ A GROUP COLLAPSED INTO A TIER-B REDEFINES BACKING HAS NO TYPE, because it has no FIELD: the whole
+        // class is ONE string backing and every member — the canonical included — is a window over it
+        // (COBOLNET_DESIGN §4.2; PhysicalModel.BuildPhysicals). Emitting a type anyway was the CRASH half of
+        // kb/Work PB203: the type's members come from the PHYSICAL model (empty for a collapsed group) while
+        // GroupImageCodec.EmitBitMethods composes AsBits()/FromBits() from group.Children, so a GROUP-USAGE BIT
+        // member of a redefines class emitted `AsBits() => BV1 + BV2` over fields that do not exist — four
+        // CS0103 on legal source. The two arms are reconciled by not emitting the dead type at all: its
+        // AsImage()/AsBits() could only ever have been "", which is a FALSE contract for a group that occupies
+        // storage, and PlaceRenderer never calls them for a view (a RedefViewPlace's Read is its window).
+        if (item.Class is { Tier: RedefinesTier.StringCanonical }) return;
         foreach (var child in item.Children) EmitStructTypeDecls(child, w);   // nested types first (any order is fine)
         using (w.Block($"private record struct {item.StructName}"))
         {
