@@ -40,6 +40,13 @@ public static class FileStatusCode
     /// 2002 5x/6x file-sharing family — that construct is COBOLNET0902-rejected at 2023 via the
     /// close-with-lock-removed-2023 gate, so 38 stays only for the still-legal ≤2014 path).</summary>
     public const string FileLocked = "38";
+    /// <summary>39 — the file attribute conflict condition (ISO §9.1.13.6 item 7): an OPEN or DELETE FILE is
+    /// unsuccessful because a conflict was detected between the physical file's fixed file attributes (§9.1.6)
+    /// and the attributes specified for the file in the source unit. Produced by <c>FileConnector.Open</c> from
+    /// §14.9.27.4 GR10's comparison against the persisted <see cref="FixedFileAttributes"/> catalog — which also
+    /// carries the Annex A.1 item 129 determination of WHICH attributes are validated. DELETE FILE's own §14.9.10.4
+    /// GR18 leg is separately (and emptily) defined at <c>FileRegistry.ValidateFixedFileAttributes</c>.</summary>
+    public const string FixedAttributeConflict = "39";
     /// <summary>41 — OPEN attempted on an already-open file.</summary>
     public const string FileAlreadyOpen = "41";
     /// <summary>42 — CLOSE attempted on a file that is not open.</summary>

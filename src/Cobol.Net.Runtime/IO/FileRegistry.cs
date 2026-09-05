@@ -474,6 +474,15 @@ public sealed class FileRegistry
             catch (DirectoryNotFoundException) { status = FileStatusCode.OptionalFileNotFound; } // '05' GR14
             catch (UnauthorizedAccessException) { status = FileStatusCode.PermissionDenied; }    // '37' GR16
             catch (IOException ex) { status = FileStatusCode.ForDeleteFileFailure(ex); }         // '37' GR17 / '30'
+        // The physical file is gone, so its §9.1.6 fixed file attributes are gone with it: drop the catalog
+        // sidecar too, or it would outlive the file and be compared (§14.9.27.4 GR10) against a DIFFERENT file
+        // later created at the same path by something other than a COBOL.NET OPEN OUTPUT — which is exactly the
+        // "attributes not recorded" state FixedFileAttributes.Load answers null for. This is the ONE place a
+        // data file is deleted in the runtime (swept). The condition is the whole SUCCESS FAMILY, not just
+        // '00': GR14 makes '05' — the file was already absent — a SUCCESSFUL completion, and a sidecar left
+        // beside an already-absent file is the same stale catalog by another route. '37', '39', '41', '62' and
+        // '30' all leave the file in place, so they leave its attributes in place too.
+        if (status[0] == '0') FixedFileAttributes.Remove(c.HostPath);
         c.SetStatus(status);
         return status;
     }

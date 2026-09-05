@@ -15027,13 +15027,13 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "ALTERNATE RECORD KEY clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#CatalogKeys; src/Cobol.Net.Runtime/IO/FixedFileAttributes.cs#Conflicts",
+  "test-ref": "conformance:2023/open_fixed_attribute_conflict_ix; unit:FixedFileAttributeCatalogTests.IndexedKeyGeometryRoundTripsThroughTheCatalog",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "GAP -> CONFORMS (kb/Work PB193) - the ALTERNATE-key twin of GR-12.4.5.12.4-3, and it carries a SECOND requirement that one does not: 'The number of alternate record keys for the file shall also be the same as that used when the physical file was created.' Both halves are now recorded and compared. IndexedConnector.CatalogKeys writes every alternate key's window, DUPLICATES phrase, 12.4.5.6.4 GR6 SUPPRESS WHEN value and collating sequence into the catalog in declaration order (the order key numbers are assigned in), and FixedFileAttributes.Conflicts compares the key COUNT before the descriptors, so an added or missing alternate index is itself the 14.9.27.4 GR10 file attribute conflict condition and the OPEN is unsuccessful with '39'. The descriptor's scope and its derivation are the same as GR-12.4.5.12.4-3's. Pinned by open_fixed_attribute_conflict_ix step I3: a connector whose prime key agrees but which declares an ALTERNATE RECORD KEY the file was never built with gives '39'.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.6.4-4",
@@ -15783,13 +15783,13 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "RECORD KEY clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#CatalogKeys; src/Cobol.Net.Runtime/IO/FixedFileAttributes.cs#Conflicts",
+  "test-ref": "conformance:2023/open_fixed_attribute_conflict_ix; unit:FixedFileAttributeCatalogTests.IndexedKeyGeometryRoundTripsThroughTheCatalog",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "GAP -> CONFORMS (kb/Work PB193). The rule - 'The data description of data-name-1 or data-name-2 as well as their relative location within a record shall be the same as that used when the file was created' - states a requirement and no consequence where it is written; 14.9.27.4 GR10's file attribute conflict condition is the mechanism that detects a violation, and until the persisted fixed-file-attribute catalog landed there was nothing recorded to compare against, so the rule had no effect at all. NOW: IndexedConnector.CatalogKeys puts the prime key's byte window into the catalog written when the OPEN statement creates the file (GR18 / GR17), FixedFileAttributes.Conflicts compares it on every later OPEN, and a mismatch is the unsuccessful OPEN with I-O status '39' (9.1.13.6 item 7). THE RECORDED DESCRIPTOR IS THE KEY'S WINDOW PLUS ITS COLLATING SEQUENCE, and that is the whole of 'the data description ... as well as their relative location' this implementation can act on: 12.4.5.12.3 SR2 confines a record key to category alphanumeric or category national, 12.4.5.12.4 GR1 makes key equality a relation condition under the file's collating sequence (recorded, by weights - FixedFileAttributes.Fingerprint), and both native sequences are one code-unit ordinal over the UTF-16 substrate (CONFORMANCE.md DOC-A.1-33 / DOC-A.1-188), so two descriptions sharing a window and a sequence order every key value identically whatever their category. Pinned by open_fixed_attribute_conflict_ix step I2: a six-byte prime key window over a file created with a four-byte one gives '39'.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.12.4-4",
@@ -37917,13 +37917,13 @@
   "kind": "GR",
   "ordinal": 10,
   "subject": "OPEN statement",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Open; src/Cobol.Net.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/Cobol.Net.Runtime/IO/FixedFileAttributes.cs#MediumFixesRecordLayout",
+  "test-ref": "conformance:85/open_fixed_attribute_conflict; conformance:2023/open_fixed_attribute_conflict_ix; unit:FixedFileAttributeCatalogTests.CatalogIsOnDisk_SoTheAttributesOutliveTheProcessThatWroteThem",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB329. RULE: '… the attributes of the file connector as specified in the file control paragraph and the file description entry are compared with the fixed file attributes of the file. If the attributes don\\'t match, a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful, and the I-O status associated with file-name-1 is set to \\'39\\'. The implementor defines which of the fixed-file attributes are validated …' cite.py --check 14.9.27.4 on the rule text: OK (§14.9.27.4 10)). cite.py --check A.1 'OPEN statement (validation of fixed file attributes). This item is required. This item shall be documented in the implementor\\'s user documentation.': OK (§A.1 129)). CODE: NONE. Searched src/Cobol.Net.Runtime/IO for '39' — FileStatus.cs has no '39' constant at all (the codes present are 00/02/04/05/06/10/14/21/22/23/24/30/34/35/37/38/41/42/43/44/46/47/48/49/51/52/53/54/61/62/71), and no connector OpenCore (SequentialConnector / RelativeConnector / IndexedConnector) reads a persisted physical-attribute catalog. The §9.1.6 fixed attributes (organization, key geometry, code set, min/max record size, record type, key collating sequence, record delimiter) are simply not carried by the host-file model, so the validated set is EMPTY and '39' is unreachable. PROBE (out-b1/probe/attr39): ATTRW01.cob writes attr39.dat as ORGANIZATION IS RELATIVE with 10-byte records; ATTRR01.cob then SELECTs the SAME host path as ORGANIZATION IS SEQUENTIAL with a 20-byte record and OPENs it INPUT. Spec-derived expected (GR10 + §9.1.13.6 7) 'I-O status = 39. The OPEN or DELETE FILE statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the source unit'): '39', OPEN unsuccessful. Observed: '00', the OPEN succeeds and the first READ delivers 20 bytes of the relative store's framing plus record data ('   RELATIVE01    RE') — a silent wrong answer. OWNED BY kb/Work PB193 (status open), and docs/CONFORMANCE.md line 126 already records it as 'OPEN — a genuine unimplemented gap … A.1 item 129 is therefore still undischarged and OPEN never returns 39'. NOT re-filed as a finding. Where the code WOULD live: SequentialConnector.OpenCore / RelativeConnector.OpenCore / IndexedConnector.OpenCore, after the File.Exists probe and before the stream/store attach. NOT a NEEDS-OWNER-DECISION: DOCUMENTED-NON-SUPPORT is not available here — A.1 item 129 is 'required', docs/CONFORMANCE.md §4 does not list OPEN attribute validation among the non-support facilities and §5 lists no A.4 module covering it, and PB193 already records the owner's position that the empty set is not dischargeable for OPEN (unlike DELETE FILE §14.9.10.4 GR19, A.1 item 50, where it is). || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
-  "state": "GAP"
+  "notes": "NOT-IMPLEMENTED -> CONFORMS (kb/Work PB193; PB329 Part 1). Before: FileStatus.cs had no '39' constant and no connector read a persisted physical-attribute catalog, so the validated set was empty BY OMISSION and a program that opened a file under a contradicting FD read silently wrong data. WHAT LANDED: FixedFileAttributes is the persisted catalog - a sidecar beside the data file (<file>.cbattr) holding the 9.1.6 attributes COBOL.NET records - written at the two moments 14.9.27.4 makes the OPEN statement CREATE the file (GR18's OUTPUT; GR17's absent OPTIONAL I-O/EXTEND), which is where 9.1.6 fixes them, and removed with the file by DELETE FILE across the whole success family. FileConnector.Open performs GR10's comparison BEFORE OpenCore (an unsuccessful OPEN leaves the file unaffected, GR25) and returns FileStatusCode.FixedAttributeConflict '39' (9.1.13.6 item 7) on a mismatch; both OPEN dispatch arms reach it (the plain registry Open and the sharing-active SharedOpenAttempt). THE VALIDATED SET VARIES BY ORGANIZATION, which GR10 says in so many words that it may: 'The implementor defines which of the fixed-file attributes are validated during the execution of the OPEN statement. The validation of fixed-file attributes may vary depending on the organization or storage medium of the file.' COBOL.NET validates exactly what the file's own storage FIXES - for EVERY organization the ORGANIZATION itself (9.1.6's primary attribute, of which 9.1.6 names exactly three: sequential, relative and indexed); for RELATIVE and INDEXED additionally the record type, the minimum and maximum logical record size and (indexed) the key count and each key's window, DUPLICATES, SUPPRESS WHEN value and collating sequence, because those stores' structure IS those attributes; for SEQUENTIAL nothing further, because 9.1.7.2 puts a sequential file's record lengths in the data and in the reading program ('In record sequential files the length of each record is determined by any information the implementor may add to the record on the physical storage medium (such as record length headers)' - COBOL.NET adds none to a fixed-length one) and 9.1.13.2 items 3, 5 and 7 answer the resulting disagreement with the SUCCESSFUL '04', '06' and '09' rather than a refused OPEN. A UNIFORM set was implemented first and MEASURED WRONG: it rejected legal source on this repository's own corpus - 2002/io_status_04, 2002/rw_suppress, 2002/rw_suppress_bare, 2002/rw_present_when, 2002/oo_object_report and 2023/declined_rw_present_varying_control all went red, every one the write-a-file-then-read-it-back idiom, and rw_suppress degraded into an infinite READ loop - and it was a second mechanism for the job RecordLayoutNotice already does. A file whose attributes are NOT recorded supplies nothing to compare and opens normally. Probe before: OPEN INPUT of a RELATIVE 10-byte file through a LINE SEQUENTIAL 40-byte FD gave '00' and an empty record; after: '39'.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-11",
@@ -59043,13 +59043,13 @@
   "kind": "DOC",
   "ordinal": 129,
   "subject": "OPEN statement (validation of fixed file attributes)",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-129; src/Cobol.Net.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/Cobol.Net.Runtime/IO/FixedFileAttributes.cs#MediumFixesRecordLayout",
+  "test-ref": "conformance:85/open_fixed_attribute_conflict; conformance:2023/open_fixed_attribute_conflict_ix",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "The A.1 item 129 determination is made and documented (kb/Work PB193). THE VALIDATED SET VARIES BY ORGANIZATION, using the permission GR10 grants in its own third sentence: 'The validation of fixed-file attributes may vary depending on the organization or storage medium of the file.' For every organization the ORGANIZATION itself is validated - 9.1.6's primary attribute, of which 9.1.6 names exactly three ('There are three organizations: sequential, relative, and indexed'), so the recorded value is SEQUENTIAL, RELATIVE or INDEXED and 9.1.7.2's record-sequential / line-sequential distinction is NOT part of it. For RELATIVE and INDEXED the record type, the minimum and maximum logical record size and (indexed) the number of record keys and each key's window, DUPLICATES phrase, SUPPRESS WHEN value and collating sequence are validated as well, because those two organizations live in an implementor-defined store whose structure IS those attributes. For SEQUENTIAL nothing further is validated: 9.1.7.2 makes a sequential file's record lengths a property of the data and of the reading program rather than of the file, and 9.1.13.2 items 3, 5 and 7 answer the disagreement with the successful '04', '06' and '09' - writing a print, report or extract file and reading it back under a different record description is the idiom those statuses exist for, so a '39' there would reject legal source and would duplicate RecordLayoutNotice's job. The set is deliberately NOT the empty set item 50 answers for DELETE FILE: a DELETE FILE destroys the file so nothing downstream depends on the description having been right, while a relative or indexed store's structure is read back through it. The three 9.1.6 attributes outside the set for every organization are excluded because this processor cannot give them two different values, not because checking was skipped - the code set (13.18.13.4 GR7 makes it the native character set when no CODE-SET clause is written and GR2/GR6 make it the named alphabet's when one is; COBOLNET1672 refuses every alphabet whose implementor correspondence is not the identity, the A.3 item 27 non-support), the minimum and maximum physical record size (no blocking; BLOCK CONTAINS is inert under A.3 item 5), and the record delimiter (RECORD DELIMITER as a clause has no compiler surface, and the delimiter distinction that IS realized is a sequential-organization attribute, outside the set for the reason above). 9.1.6's own last sentence - whether the ability to share a physical file is a fixed file attribute - is answered NO: a sharing mode is established per file connector (14.9.27.4 GR21-GR23) and arbitrated live (9.1.15 Table 19), so it is not carried by the physical file between run units.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-130",

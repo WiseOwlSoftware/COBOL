@@ -161,6 +161,98 @@ one read individually: `CM*` COMMUNICATION SECTION parse errors and `DB*` `COBOL
 and **zero** new ones — every one of those 343 phrase sites is on an organization/access mode where the phrase is
 LEGAL. The harness was proved able to surface `COBOLNET1720` as a failure before that zero was trusted.
 
+### D10. A physical file's §9.1.6 FIXED FILE ATTRIBUTES are persisted in a SIDECAR beside the data file, and OPEN compares against it (§14.9.27.4 GR10 → '39').
+
+**The rule.** §9.1.6: a physical file's organization, key geometry, code set, logical record sizes, record type,
+key collating sequence, physical record sizes and record delimiter "apply to the file at the time it is created
+and cannot be changed throughout the lifetime of the file". §14.9.27.4 GR10 makes the OPEN statement compare the
+connector's declared attributes with the file's and set I-O status **'39'** (§9.1.13.6 item 7) when they differ,
+and delegates WHICH attributes are validated to the implementor — a **required, required-to-be-documented**
+determination (Annex A.1 item 129).
+
+**What was wrong.** The host-file model carried no record of a file's attributes at all, so the validated set was
+empty *by omission*: a program that opened a file under a contradicting FD read **silently wrong data** with
+status '00' (measured — a RELATIVE file of 10-byte records reopened INPUT through a LINE SEQUENTIAL 40-byte FD
+delivered an empty record). That is the opposite of D-E's DELETE FILE answer, and deliberately so: a DELETE FILE
+destroys the file, so validating nothing costs the program nothing (A.1 item 50's set IS empty, by definition —
+`FileRegistry.ValidateFixedFileAttributes`), whereas everything after an OPEN — record length, key structure,
+code set — is read back *through* the description being validated.
+
+**The validated set VARIES BY ORGANIZATION — GR10's third sentence says it may.** "The implementor defines
+which of the fixed-file attributes are validated during the execution of the OPEN statement. The validation of
+fixed-file attributes may vary depending on the organization or storage medium of the file." COBOL.NET
+validates exactly what the file's own storage FIXES — the attributes a disagreeing file description could not
+read the file back through.
+
+- **Every organization — the ORGANIZATION itself.** §9.1.6's "primary attribute", of which §9.1.6 names
+  exactly three: "There are three organizations: sequential, relative, and indexed". So the recorded value is
+  SEQUENTIAL, RELATIVE or INDEXED and nothing else, and §9.1.7.2's record-sequential/line-sequential
+  distinction is NOT a fourth organization — it is §9.1.6's separately listed *record delimiter*.
+- **RELATIVE and INDEXED — additionally the record type, the minimum and maximum logical record size, and
+  (indexed) the key descriptors.** Those two organizations live in an implementor-defined store —
+  `RecordFraming`'s framed whole-store layout, addressed by relative record number or by key value — whose
+  STRUCTURE is those attributes; a description that disagrees cannot interpret the store at all.
+- **SEQUENTIAL — nothing further, and that is a determination, not an omission.** §9.1.7.2 puts a sequential
+  file's record lengths in the DATA and in the READING program, not in the file: "In record sequential files
+  the length of each record is determined by any information the implementor may add to the record on the
+  physical storage medium (such as record length headers)" — and COBOL.NET adds none to a fixed-length record
+  sequential file, which is plain bytes — while "In line sequential files the length of each record is
+  determined by the number of characters between the preceding line delimiter and the following line delimiter
+  or the end of file if no line delimiter is present". The standard then answers every disagreement such a
+  re-read can produce with a SUCCESSFUL completion rather than a refused OPEN: §9.1.13.2 item 3's '04', item
+  5's '06' and item 7's '09'. Writing a print, report or extract file and reading it back under a different
+  record description is the idiom those three statuses exist for — measured on this corpus, a uniform set
+  broke six conforming programs, one of them into an infinite READ loop — so a '39' there would reject legal
+  source, and it would also be a SECOND MECHANISM for the job `RecordLayoutNotice` already does.
+
+**A sidecar, not a header.** `FixedFileAttributes.SidecarPath(host)` is the data file's own path with `.cbattr`
+appended. A header inside the data file was rejected on two counts: line-sequential files would stop being plain
+text (the interchange property that shape exists for), and every data file written by an earlier build would
+become unreadable. The sidecar is additive, travels with the file, and is removed with it — `FileRegistry`'s
+DELETE FILE drops it, so a catalog can never outlive its file and judge a different one later created at the same
+path. Its format is a versioned `key=value` text file; an unknown key is ignored, so a later build may record a
+new attribute without making its files unreadable to an older one.
+
+**For indexed files the key half is not latitude at all.** §12.4.5.12.4 GR3 requires a prime key's data
+description and its relative location within the record to "be the same as that used when the file was
+created", and §12.4.5.6.4 GR3 says the same of every alternate key and of the NUMBER of alternate keys.
+Neither states a consequence where it is written — GR10's conflict condition is the mechanism that detects a
+violation — so recording the key descriptors is what gives those two rules an effect at all. The recorded
+descriptor is the key's byte window plus its collating sequence, and that is the whole of "the data
+description … as well as their relative location" this implementation can act on: §12.4.5.12.3 SR2 confines
+a record key to category alphanumeric or category national, §12.4.5.12.4 GR1 makes key equality a relation
+condition under the file's collating sequence (recorded, by weights), and both native sequences are one
+code-unit ordinal over the UTF-16 substrate — so two descriptions sharing a window and a sequence order every
+key value identically whatever their category.
+
+**Where the two halves live, each in ONE place.** `FileConnector.Open` performs GR10's comparison — before
+`OpenCore`, because GR25 leaves an unsuccessful OPEN's file unaffected and the OUTPUT/creation arms truncate —
+and both OPEN dispatch arms reach it (the plain `FileRegistry.Open` and the sharing-active
+`SharedOpenAttempt`). `FixedFileAttributes.Conflicts`, with `FixedFileAttributes.MediumFixesRecordLayout` — the one place GR10's
+"may vary depending on the organization or storage medium" is exercised — is the whole definition of the
+validated set, the twin of `ValidateFixedFileAttributes` for GR19, and the thing `docs/CONFORMANCE.md` row
+`DOC-A.1-129` documents.
+`FileConnector.DeclaredAttributes` assembles a connector's declared set ONCE for every organization (record type
+and record-size bounds from the RECORD clause); the organizations supply only `CatalogOrganization` and, for
+indexed, `CatalogKeys`.
+
+**When the attributes are established** is exactly the two cases the OPEN statement CREATES the file: GR18 ("If
+the OUTPUT phrase is specified, the successful execution of the OPEN statement creates the file") and GR17 (an
+absent OPTIONAL file opened I-O or EXTEND is created as if OPEN OUTPUT / CLOSE). So an **OPEN OUTPUT is never
+judged against the previous file's attributes — it replaces them**, which is what §9.1.6's "at the time it is
+created" means and what the surveyed implementations do. An absent OPTIONAL file opened INPUT is *not* created
+(Table 18) and records nothing.
+
+**A file with no recorded attributes is not a conflict, and must never become one.** GR10 compares against "the
+fixed file attributes of the file"; a file written by an external tool, or by a build older than the catalog,
+states none, so nothing about it is validated. Rejecting it would turn a missing implementor artifact into a
+rejection of legal programs. `RecordLayoutNotice` stays the arithmetic fallback for exactly that file — a stderr
+notice when a fixed-length record-sequential file's byte length is not a whole multiple of its record length,
+leaving the I-O status alone. The two are complementary, not duplicates, and the boundary is the ORGANIZATION
+rather than the recording: GR10's '39' answers the disagreements a re-read cannot recover from (a relative or
+indexed store opened as a byte stream, a different-organization description), and the notice answers the one
+it can — a sequential record-size disagreement — on a recorded file as much as on an unrecorded one, because
+the sequential validated set stops at the organization. One job, one mechanism, on either side of that line.
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /
@@ -321,6 +413,7 @@ grammar did not accept at all before 2026-09-02.
 - Section 9.1.2 record area plus its NOTE: all 01s under an FD or SD implicitly redefine the same storage area per 13.18.33 GR3.
 - Section 9.1.1: CODE-SET or FORMAT translation occurs only when a logical record transfers to or from the physical unit; padding is added or deleted as necessary.
 - Sections 13.18.13 CODE-SET, 13.18.34 LINAGE, 13.18.43 RECORD VARYING DEPENDING ON, 13.18.41 implicit default record.
+- Section 9.1.6 fixed file attributes (the attributes fixed when a physical file is created), with 14.9.27.4 GR10 (the OPEN statement's comparison against them and its '39'), GR17 and GR18 (the two cases in which the OPEN statement CREATES the file), 9.1.13.6 item 7 (the '39' status itself) and Annex A.1 items 50 and 129 (the two required, required-to-be-documented validated-set determinations — DELETE FILE's and OPEN's, which are not the same answer). See D10.
 - Sections 14.9.30 READ, 14.9.35 REWRITE, 14.9.41 START, 14.9.51 WRITE, 14.9.10 DELETE and DELETE FILE, 14.9.40 and 14.9.24 SORT and MERGE, 8.8.4.2.4 numeric-key value compare, 8.8.4.2.7 alphanumeric compare with shorter-operand space-extension, 14.9.49 USE statement (declarative).
 - Section 4.2.7 optional language elements and Annex A.4 (A.4.1 general + NOTE 1, A.4.8 items 1–2, A.4.13 items 1–2) — the declined-element section above; §13.18.24 FORMAT clause and §13.18.51 SELECT WHEN clause are the two A.4.8 clauses, §14.9.51.2 / §14.9.35.2 carry the A.4.13 FILE phrase.
 

@@ -190,6 +190,17 @@ public sealed class SequentialConnector : FileConnector
         _lineSequential = lineSequential;
     }
 
+    /// <inheritdoc/>
+    /// <remarks>Both §9.1.7.2 types of sequential file — record sequential and line sequential — record this
+    /// ONE organization, because §9.1.6 names exactly three ("There are three organizations: sequential,
+    /// relative, and indexed") and the delimiter that separates the two types is §9.1.6's SEPARATELY listed
+    /// <i>record delimiter</i>, not a fourth organization. The delimiter is deliberately outside the
+    /// §14.9.27.4 GR10 validated set — see <see cref="FixedFileAttributes.Conflicts"/>: on a sequential medium
+    /// the standard answers a delimiter or record-length disagreement with a SUCCESSFUL completion (§9.1.13.2
+    /// item 5's '06', item 3's '04'), not with a refused OPEN, and re-reading a print or report file under a
+    /// line-sequential description is exactly the idiom those statuses are for.</remarks>
+    protected override string CatalogOrganization => FixedFileAttributes.Sequential;
+
     // ── OPEN / CLOSE ─────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The sequential OPEN body (ISO §14.9.25 / §9.1.13.4) — the shared preamble/guards live on

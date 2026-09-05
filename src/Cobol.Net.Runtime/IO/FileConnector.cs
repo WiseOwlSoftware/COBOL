@@ -177,13 +177,62 @@ public abstract class FileConnector
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         OptionalAbsent = false;
         LastReadUnsuccessful = false;   // OPEN is a reposition; the '43' gate drops in the Status setter
+        // §14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
+        // execution of the OPEN statement when the file connector is matched with the file and the file exists,
+        // the attributes of the file connector as specified in the file control paragraph and the file
+        // description entry are compared with the fixed file attributes of the file. If the attributes don't
+        // match, a file attribute conflict condition occurs, the execution of the OPEN statement is
+        // unsuccessful, and the I-O status associated with file-name-1 is set to '39'." An UNSUCCESSFUL OPEN
+        // leaves the file unaffected (GR25), so the check has to precede OpenCore, whose OUTPUT/creation arms
+        // truncate. OUTPUT is excluded because GR18 makes it a CREATION ("If the OUTPUT phrase is specified, the
+        // successful execution of the OPEN statement creates the file"), and §9.1.6 fixes a file's attributes at
+        // creation — so an OPEN OUTPUT ESTABLISHES them (below) rather than being judged against the previous
+        // file's. A file with no recorded attributes compares against nothing (FixedFileAttributes.Load).
+        bool existed = File.Exists(HostPath);
+        if (mode is not FileOpenMode.Output && existed
+            && FixedFileAttributes.Load(HostPath) is { } recorded && recorded.Conflicts(DeclaredAttributes))
+            return Status = FileStatusCode.FixedAttributeConflict;   // '39' §9.1.13.6 item 7
         string s;
         try { s = OpenCore(mode); }
         catch (UnauthorizedAccessException) { s = FileStatusCode.PermissionDenied; }
         catch (IOException) { s = FileStatusCode.PermanentError; }
         _openMode = s[0] == '0';   // a success-family OPEN ('00'/'05'/'07') puts the connector in its open mode
+        // §9.1.6: the fixed file attributes "apply to the file at the time it is created". The OPEN statement
+        // creates the file in exactly two cases, and this condition is those two: GR18 (OUTPUT always creates)
+        // and GR17 (an absent OPTIONAL file opened I-O or EXTEND is created "as if OPEN OUTPUT / CLOSE"). An
+        // absent OPTIONAL file opened INPUT is NOT created (Table 18) and is deliberately outside the condition.
+        if (_openMode && (mode is FileOpenMode.Output || (!existed && mode is FileOpenMode.IO or FileOpenMode.Extend)))
+            FixedFileAttributes.Store(HostPath, DeclaredAttributes);
         return Status = s;
     }
+
+    // ── The connector's declared fixed file attributes (ISO §9.1.6) ──────────────────────────────────────────
+
+    /// <summary>This connector's fixed file attributes AS DECLARED — §14.9.27.4 GR10's "the attributes of the
+    /// file connector as specified in the file control paragraph and the file description entry". Assembled
+    /// HERE, once, for every organization: the record type and the minimum/maximum logical record size are the
+    /// RECORD clause's (§13.18.43 GR9/GR10 for a varying file; a fixed file's single record width for both
+    /// bounds). Organizations contribute only what is theirs — <see cref="CatalogOrganization"/> and, for an
+    /// indexed file, <see cref="CatalogKeys"/>.</summary>
+    public FixedFileAttributes DeclaredAttributes => new(
+        CatalogOrganization,
+        IsVarying,
+        IsVarying ? VaryMin : RecordWidth,
+        IsVarying ? VaryMax : RecordWidth,
+        CatalogKeys);
+
+    /// <summary>This organization's name in the persisted catalog — §9.1.6's primary attribute and nothing
+    /// else, so one of the three values §9.1.6 names ("There are three organizations: sequential, relative, and
+    /// indexed"): <see cref="FixedFileAttributes.Sequential"/>, <see cref="FixedFileAttributes.Relative"/> or
+    /// <see cref="FixedFileAttributes.Indexed"/>. §9.1.7.2's record-sequential / line-sequential distinction is
+    /// §9.1.6's separately listed <i>record delimiter</i>, not a fourth organization, and it is outside the
+    /// §14.9.27.4 GR10 validated set (<see cref="FixedFileAttributes.Conflicts"/>).</summary>
+    protected abstract string CatalogOrganization { get; }
+
+    /// <summary>This connector's record keys for the catalog (§9.1.6 — prime key, alternate keys, SUPPRESS WHEN,
+    /// key collating sequence): index 0 the prime key, 1.. the alternates in declaration order. Only an indexed
+    /// file has any; sequential and relative files answer the shared empty list.</summary>
+    protected virtual IReadOnlyList<FixedFileAttributes.KeyDescriptor> CatalogKeys => [];
 
     /// <summary>CLOSE the file (ISO §14.9.6): the not-open guard ('42', §9.1.13.7 item 2), then the
     /// organization's <see cref="CloseCore"/> under the OPEN twin's exception mapping — an OS-level close

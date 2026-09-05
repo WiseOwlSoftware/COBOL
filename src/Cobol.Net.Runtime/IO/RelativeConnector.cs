@@ -81,6 +81,14 @@ public sealed class RelativeConnector : FileConnector
         _keyDigits = relativeKeyDigits;
     }
 
+    /// <inheritdoc/>
+    /// <remarks>The RELATIVE KEY item's digit count is deliberately NOT a catalog attribute: §12.4.5.13.3
+    /// SR3 puts that item OUTSIDE the record ("shall not be defined in a record description entry
+    /// subordinate to the associated file-name"), it is a property of the referencing program rather than of the
+    /// physical file, and §9.1.6's list does not name it. A too-small RELATIVE KEY item is the '14' the
+    /// connector already reports (§9.1.13.4 item 2), not a file attribute conflict.</remarks>
+    protected override string CatalogOrganization => FixedFileAttributes.Relative;
+
     // ── OPEN / CLOSE (ISO §14.9.27 / §14.9.6) ────────────────────────────────────────────────────────────────
 
     /// <summary>The relative OPEN body. GR14: INPUT/I-O position the FPI at 1; GR15: EXTEND positions after the

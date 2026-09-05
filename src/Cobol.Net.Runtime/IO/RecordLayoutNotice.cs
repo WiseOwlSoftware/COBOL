@@ -6,14 +6,26 @@ namespace CobolNet.Runtime.IO;
 /// The RUNTIME notice channel for a file whose bytes are PROVABLY inconsistent with the record description that
 /// is about to read them — the support half of the V59 representation change (COBOLNET_DESIGN §14.4).
 /// <para>
-/// Why this exists: a fixed-length record-sequential file carries NO self-description. If the record description
-/// says 5 bytes and the file holds 8-byte records — the shape a data file written by a build before V59 has, when
-/// a BINARY or PACKED field was stored as its zoned digits — every read after the first is misaligned and the
-/// program computes on rubbish. The standard's own detection (§14.9.30.4 GR14: a record whose byte count is
-/// outside the description's min/max is a SUCCESSFUL read with I-O status '04') fires only on the trailing
-/// partial record, only if the total length is not a multiple, and only if the program inspects FILE STATUS.
-/// That is too late and too quiet for a layout migration, so the arithmetic fact — a file length that is not a
-/// whole multiple of the fixed record length — is reported at OPEN, before a single record is misread.
+/// Why this exists: a fixed-length record-sequential file carries NO self-description IN ITS BYTES. If the record
+/// description says 5 bytes and the file holds 8-byte records — the shape a data file written by a build before
+/// V59 has, when a BINARY or PACKED field was stored as its zoned digits — every read after the first is
+/// misaligned and the program computes on rubbish. The standard's own detection (§14.9.30.4 GR14: a record whose
+/// byte count is outside the description's min/max is a SUCCESSFUL read with I-O status '04') fires only on the
+/// trailing partial record, only if the total length is not a multiple, and only if the program inspects FILE
+/// STATUS. That is too late and too quiet for a layout migration, so the arithmetic fact — a file length that is
+/// not a whole multiple of the fixed record length — is reported at OPEN, before a single record is misread.
+/// </para>
+/// <para>
+/// ⛔ THIS IS THE ONLY MECHANISM FOR A SEQUENTIAL RECORD-SIZE DISAGREEMENT, and it is not in competition with
+/// the OPEN statement's attribute check. A file COBOL.NET created carries its §9.1.6 fixed file attributes in a
+/// <see cref="FixedFileAttributes"/> catalog beside it, but the §14.9.27.4 GR10 validated set that catalog
+/// defines deliberately EXCLUDES the record sizes of a SEQUENTIAL file (see
+/// <see cref="FixedFileAttributes.Conflicts"/>): §9.1.7.2 makes those lengths a property of the data and of the
+/// reading program, and §9.1.13.2 item 3 answers a disagreement with a successful '04' rather than a refused
+/// OPEN — so GR10's '39' never fires here and never preempts this notice. GR10 covers the disagreements a
+/// sequential re-read CANNOT recover from (a relative or indexed store opened as a byte stream, a
+/// different-organization description); this notice covers the one it can, on both a recorded and an
+/// unrecorded file. One job, one mechanism, on either side of the organization boundary.
 /// </para>
 /// <para>
 /// It is a NOTICE, not a status change: OPEN still succeeds and the I-O status is untouched, because the standard

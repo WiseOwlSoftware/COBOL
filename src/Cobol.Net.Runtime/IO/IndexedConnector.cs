@@ -75,6 +75,44 @@ public sealed class IndexedConnector : FileConnector
     public void AddAlternateKey(int offset, int length, bool duplicates, CobolCollation? collation = null, string? suppress = null) =>
         _alts.Add((offset, length, duplicates, collation, suppress));
 
+    /// <inheritdoc/>
+    protected override string CatalogOrganization => FixedFileAttributes.Indexed;
+
+    /// <inheritdoc/>
+    /// <remarks>§9.1.6 names the prime record key, the alternate record keys, the SUPPRESS WHEN attribute and
+    /// "the collating sequence of the keys for indexed files" as fixed attributes of the physical file — the
+    /// index structure this connector builds and persists is exactly those. Index 0 is the prime key; the
+    /// alternates follow in declaration order, which is the order their key numbers are assigned in, and
+    /// §12.4.5.6.4 GR6's key suppression value is an ALTERNATE key's attribute only.
+    /// <para>⛔ FOR INDEXED FILES THIS IS NOT ONLY IMPLEMENTOR LATITUDE. §12.4.5.12.4 GR3: "The data description
+    /// of data-name-1 or data-name-2 as well as their relative location within a record shall be the same as
+    /// that used when the file was created", and §12.4.5.6.4 GR3 says the same of every alternate key AND that
+    /// "The number of alternate record keys for the file shall also be the same as that used when the physical
+    /// file was created". Those are normative requirements with no consequence stated where they are written;
+    /// §14.9.27.4 GR10's file attribute conflict condition is the mechanism that detects a violation, so
+    /// putting the key descriptors in the validated set is what gives those two rules an effect.</para>
+    /// <para>The recorded descriptor is the key's BYTE WINDOW plus its collating sequence, and that is the whole
+    /// of "the data description … as well as their relative location" this implementation can act on:
+    /// §12.4.5.12.3 SR2 confines a record key to category alphanumeric or category national,
+    /// §12.4.5.12.4 GR1 makes key equality a
+    /// relation condition under the file's collating sequence (recorded, via
+    /// <see cref="FixedFileAttributes.Fingerprint"/>), and both native sequences are one code-unit ordinal over
+    /// the UTF-16 substrate (CONFORMANCE.md DOC-A.1-33/188) — so two descriptions with the same window and the
+    /// same sequence order every key value identically, whatever their category.</para></remarks>
+    protected override IReadOnlyList<FixedFileAttributes.KeyDescriptor> CatalogKeys
+    {
+        get
+        {
+            var keys = new List<FixedFileAttributes.KeyDescriptor>(_alts.Count + 1)
+            {
+                new(_primeOff, _primeLen, false, null, FixedFileAttributes.Fingerprint(_primeCollation)),
+            };
+            foreach (var (off, len, dups, collation, suppress) in _alts)
+                keys.Add(new(off, len, dups, suppress, FixedFileAttributes.Fingerprint(collation)));
+            return keys;
+        }
+    }
+
     /// <summary>True when this record's <paramref name="keyIndex"/> alternate key equals that key's SUPPRESS WHEN
     /// value (ISO §12.4.5.6.4 GR6): the alternate access path to the record is NOT provided under this key, and
     /// the record "is not considered to exist" for READ/START (the GR6 NOTE). The comparison is the §14.9.51 GR35

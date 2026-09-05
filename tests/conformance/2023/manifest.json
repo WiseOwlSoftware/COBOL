@@ -397,7 +397,8 @@
   "l1_usage_fixed_width_lengths",
   "l1_usage_display_character_size",
   "l1_usage_packed_decimal_storage",
-  "l1_random_unseeded_first_reference"
+  "l1_random_unseeded_first_reference",
+  "open_fixed_attribute_conflict_ix"
  ],
  "pending": []
 }
