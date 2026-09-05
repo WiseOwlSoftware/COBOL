@@ -287,13 +287,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}"), 0);
 
             // The §15.90/§15.91 date validators — integer verdict chains (year → month → day), scale 0.
+            // ⛔ THE WIDE INTAKE, because the two functions are TOTAL (kb/Work PB254 — see IntArgWide):
+            // §15.90.3 r1 / §15.91.3 r1 constrain nothing but integer-ness and r1a is a CATCH-ALL.
             case "TestDateYyyymmdd" or "TestDayYyyyddd":
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArg(ic, 0)), 0);
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArgWide(ic, 0)), 0);
 
             case "FindString":                                                  // §15.37 FIND-STRING (2023) — 1-based position of argument-2 in argument-1
+                // Argument-3 also takes the WIDE intake: §15.37.3 r3 places no value constraint and
+                // §15.37.4 r2/r3 answer for every integer — ignore that many matches, else 0 (PB254).
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {(ic.FindLast ? "true" : "false")}, "
-                    + $"{(ic.Args.Count > 2 ? IntArg(ic, 2) : "0")}, {(ic.Anycase ? "true" : "false")}"), 0);
+                    + $"{(ic.Args.Count > 2 ? IntArgWide(ic, 2) : "0")}, {(ic.Anycase ? "true" : "false")}"), 0);
             case "Ord":                                                         // §15.70 — PCS-relative ordinal (H5: weights only when flagged)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{Collate(ic)}"), 0);
             case "Length":                                                      // §15.50 runtime shapes (kb/Work PB61)
@@ -311,7 +315,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                     return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, OperandText.AsStorageImage(bp)), 0);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);
 
-            // Date/time conversions (§15.22/24/46/47; integer date form §15.5.2).
+            // Date/time conversions (§15.22/24/46/47; integer date form §15.5.2). These four keep the NARROW
+            // §15.3 landing: §15.5.2 BOUNDS the integer date form (1601-01-01 onward), so an argument the body
+            // cannot represent really is an incorrect value and EC-ARGUMENT-FUNCTION is the standard's answer —
+            // the exact opposite of the TEST- validators above (kb/Work PB22 / PB254).
             case "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay":
                 return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArg(ic, 0)), 0);
 
@@ -913,8 +920,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>An integer-kind argument as a C# <c>long</c> (truncated to scale 0 when the operand carries a
     /// fraction — integer arguments "shall be integers", §15.3; a fractional value is the program's EC latitude).</summary>
-    /// <remarks>INTAKE(INTEGRAL) — rescaled to scale 0 with TRUNCATION — the §15.3 integer positions, where the argument is required to be an integer already.</remarks>
+    /// <remarks>INTAKE(INTEGRAL) — rescaled to scale 0 with TRUNCATION — the §15.3 integer positions, where the argument is required to be an integer already.
+    /// ⛔ FOR A <b>PARTIAL</b> FUNCTION ONLY — see <see cref="AsInt"/>, and use
+    /// <see cref="IntArgWide"/> when the argument is total.</remarks>
     private string IntArg(BoundIntrinsicCall ic, int i) => AsInt(RawArg(ic, i));   // an integer lands at scale 0 directly — never through a working scale that eats headroom (kb/Work PB69)
+
+    /// <summary>The WIDE twin of <see cref="IntArg"/> on the NUMERIC channel — the intake for a §15 integer
+    /// argument that is <b>TOTAL</b>. <see cref="AsIntWide"/> states the rule and names the drift test that
+    /// holds the renderer's intake to the runtime body's declared carrier.</summary>
+    /// <remarks>INTAKE(INTEGRAL) — the §15.3 type-6 argument class, on the Int128 carrier — the same scale-0 truncation <see cref="IntArg"/> applies, on a carrier wide enough for a TOTAL argument.</remarks>
+    private string IntArgWide(BoundIntrinsicCall ic, int i) => AsIntWide(RawArg(ic, i));
 
     /// <summary>
     /// ⛔ THE ONE NARROWING, AND IT RAISES RATHER THAN WRAPS (fix-queue PB22). This emitted a bare
@@ -928,6 +943,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// funnel here, so ONE change covers seven renderer arms over eleven functions — which is the point: a value
     /// the receiving body cannot represent is an incorrect argument (§15.3), and the place to say so is where
     /// the narrowing happens, not eleven times downstream.</para>
+    /// <para>⛔ IT IS THE LANDING FOR A <b>PARTIAL</b> FUNCTION AND ONLY FOR ONE (kb/Work PB254). PB22 swept
+    /// EVERY integer arm into it, including arms whose function is TOTAL — §15.90/§15.91's date validators and
+    /// FIND-STRING's argument-3 — and for those the raise is manufactured: their argument rules constrain
+    /// nothing but integer-ness, so §15.3 has no "incorrect value … according to the rules specified in the
+    /// function definition" to key on. A total argument takes <see cref="AsIntWide"/>, which states the rule
+    /// and names the drift test that keeps the two in step.</para>
     /// <para>The <c>Real</c> arm takes the double-typed twin by NAME rather than by overload: an integer literal
     /// converts implicitly to both <c>Int128</c> and <c>double</c>, and an overload pair would turn
     /// <c>FUNCTION FACTORIAL(5)</c> into a CS0121 ambiguity — the collision that broke six corpus programs when
@@ -1271,17 +1292,40 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <remarks>INTAKE(INTEGRAL) — the STRING channel's integer intake — the same scale-0 truncation <see cref="IntArg"/> applies.</remarks>
     private string ArgInt(BoundOperand op) => AsInt(ArgNum(op));
 
-    /// <summary>The WIDE integer-argument bridge — the Int128-carrier twin of <see cref="ArgInt"/>, for the ONE
-    /// §15 integer argument whose domain exceeds <c>long</c>: BOOLEAN-OF-INTEGER's argument-1 (§15.13.3 r1 —
-    /// any positive integer; §15.13.4 r1's bit configuration is mathematical, so 2⁶³ and up are legal values
-    /// the <see cref="AsInt"/> narrowing EC'd to the checking-off default 0 — fix-queue PB65 / RV-15.13.4-1 D1).
-    /// Every legal fixed-point value rides Int128 exactly, so a scale-0 operand passes through RAW — there is
-    /// no narrowing and therefore no PB22 raise point; the carrier arms mirror <see cref="AsInt"/> exactly
-    /// (Dec BEFORE the scale test — a Dec NumX carries Scale 0 by convention, the PB14/PB32 lesson; the
-    /// unsigned-wide lane narrows through the R10 <c>CobolNum.Widen</c> funnel, loud past the intermediate).</summary>
+    /// <summary>The WIDE integer-argument bridge on the STRING channel — the Int128-carrier twin of
+    /// <see cref="ArgInt"/>. <see cref="AsIntWide"/> carries the rule.</summary>
     /// <remarks>INTAKE(INTEGRAL) — the STRING channel's WIDE integer intake — scale-0 truncation on the <c>Int128</c> carrier.</remarks>
     private string ArgIntWide(BoundOperand op) => AsIntWide(ArgNum(op));
 
+    /// <summary>
+    /// ⛔ THE INTAKE FOR A <b>TOTAL</b> §15 INTEGER ARGUMENT — no narrowing, therefore no raise point.
+    /// </summary>
+    /// <remarks>
+    /// <para>THE RULE, and it is a property of the ARGUMENT, never of the arm that happens to render it: a §15
+    /// integer argument whose function definition places <b>no constraint on its VALUE</b> is total — the
+    /// returned-value rule answers for every integer — so §15.3's closing paragraph has nothing to fire on
+    /// ("the evaluation of an argument results in an incorrect value for that argument or for the returned
+    /// value <i>according to the rules specified in the function definition</i>"), and putting
+    /// <see cref="AsInt"/>'s §15.3 landing in front of it manufactures an exception condition the standard
+    /// does not define. Members today:</para>
+    /// <list type="bullet">
+    /// <item>BOOLEAN-OF-INTEGER argument-1 — §15.13.3 r1 constrains the SIGN only; §15.13.4 r1's bit
+    /// configuration is mathematical, so 2⁶³ and up are legal (fix-queue PB65 / RV-15.13.4-1 D1).</item>
+    /// <item>TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD argument-1 — §15.90.3 r1 / §15.91.3 r1 say only "shall be
+    /// an integer" and r1a is a CATCH-ALL (kb/Work PB254 / RV-15.90.4-1 / RV-15.91.4-1).</item>
+    /// <item>FIND-STRING argument-3 — §15.37.3 r3 places no value constraint; §15.37.4 r2/r3 answer for every
+    /// integer (kb/Work PB254).</item>
+    /// </list>
+    /// <para>⚠ THE SET IS NOT MAINTAINED HERE. The runtime body's declared parameter carrier IS the totality
+    /// claim — <c>Int128</c> for a total argument, <c>long</c> for one the argument rules bound — and
+    /// <c>IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake</c> re-derives the
+    /// pairing from the runtime signatures and fails when an arm and its body disagree. Widening a body is
+    /// therefore enough; forgetting the arm is red, not silent.</para>
+    /// <para>Every legal fixed-point value rides Int128 exactly, so a scale-0 operand passes through RAW; the
+    /// carrier arms mirror <see cref="AsInt"/> exactly (Dec BEFORE the scale test — a Dec NumX carries Scale 0
+    /// by convention, the PB14/PB32 lesson; the unsigned-wide lane narrows through the R10
+    /// <c>CobolNum.Widen</c> funnel, loud past the intermediate).</para>
+    /// </remarks>
     private static string AsIntWide(NumX a) =>
         a.Real ? RuntimeApi.IntegerArgWide(a.Expr)
         : a.Dec ? RuntimeApi.DecToUnscaledIntermediate(a.Expr, "0", CobolRounding.Truncation)

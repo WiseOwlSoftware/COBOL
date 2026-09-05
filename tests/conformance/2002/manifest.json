@@ -3,6 +3,7 @@
   "enabled": [
     "pb248_year_to_yyyy_arg1_domain",
     "pb253_prose_float_standard_container",
+    "pb254_total_integer_arguments",
     "pb598_condition_name_value_size_national_bit",
     "pb237_program_prototype",
     "pb119_windowing_float_args",

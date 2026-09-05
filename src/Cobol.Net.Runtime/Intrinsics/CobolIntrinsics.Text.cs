@@ -502,7 +502,16 @@ public static partial class CobolIntrinsics
     /// argument-2 (rule 5), or no remaining match (rule 3), returns 0. An OCCURRENCE is any character position at
     /// which argument-2 matches a substring of argument-1 (§15.37.4 rule 1 — a plain substring match, OVERLAPPING
     /// occurrences included; §15.37 defines no consumption/advance and never references INSPECT's scanning).</summary>
-    public static long FindString(string hay, string needle, bool last, long skip, bool anycase)
+    /// <remarks>⛔ <paramref name="skip"/> IS <c>Int128</c> BECAUSE ARGUMENT-3 IS TOTAL (kb/Work PB254).
+    /// §15.37.3 r3 is the whole argument rule — "argument-3 shall be an integer data item or integer literal" —
+    /// and places no constraint on the value, while §15.37.4 r2/r3 answer for every integer: ignore that many
+    /// matches, and return 0 when none is left. So argument-3 must NOT cross <c>CobolIntrinsics.IntegerArg</c>,
+    /// the §15.3 landing for the PARTIAL integer functions — that landing answered an argument past
+    /// <c>long</c> with the checking-off default 0, i.e. "ignore no matches", and returned the FIRST match
+    /// where rule 3 requires zero; under <c>&gt;&gt;TURN EC-ARGUMENT-FUNCTION CHECKING ON</c> it terminated the
+    /// run unit on conforming source. kb/Work R08 removed the same narrowing ONE LEVEL DOWN (an <c>(int)</c>
+    /// cast inside this body) and left the <c>Int128</c>→<c>long</c> one at the intake.</remarks>
+    public static long FindString(string hay, string needle, bool last, Int128 skip, bool anycase)
     {
         if (hay.Length == 0 || needle.Length == 0) return 0;                     // §15.37.4 rule 5
         string h = anycase ? hay.ToLowerInvariant() : hay;                       // rule 4 — the LOWER-CASE fold
@@ -512,12 +521,13 @@ public static partial class CobolIntrinsics
             positions.Add(i + 1);                                                // 1-based character position
         if (positions.Count == 0) return 0;                                      // rule 3 — no match
         if (skip < 0) skip = 0;
-        // kb/Work R08: the comparison stays in the LONG domain — an unchecked (int) narrowing let any
-        // argument-3 whose LOW 32 BITS fell in 0..Count-1 return a match position where rule 2 leaves no
-        // matches and rule 3 requires zero (2^32 reproduced; 2^31 and 2^32-1 missed it by luck).
+        // kb/Work R08 + PB254: the comparison stays in the WIDEST domain the argument can arrive on — an
+        // unchecked (int) narrowing let any argument-3 whose LOW 32 BITS fell in 0..Count-1 return a match
+        // position where rule 2 leaves no matches and rule 3 requires zero (2^32 reproduced; 2^31 and 2^32-1
+        // missed it by luck), and the Int128→long narrowing at the INTAKE did the same thing one level up.
         if (skip >= positions.Count) return 0;                                   // rule 2 exhausts the matches → 0 (rule 3)
-        long idx = last ? positions.Count - 1 - skip : skip;                     // rule 1 (first/LAST) + rule 2 (ignore skip)
-        return idx >= 0 ? positions[(int)idx] : 0;                               // LAST with skip ≥ count → 0 (rule 3)
+        int s = (int)skip;                                                       // exact — 0 ≤ skip < positions.Count
+        return positions[last ? positions.Count - 1 - s : s];                    // rule 1 (first/LAST) + rule 2 (ignore skip)
     }
 
     /// <summary>TRIM (§15.96.4): the argument with LEADING (<paramref name="mode"/> 1), TRAILING (2), or BOTH

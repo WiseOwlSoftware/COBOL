@@ -10,6 +10,7 @@
        01 WS-NDL  PIC X(3)  VALUE "ABC".
        01 WS-TXT  PIC X(11) VALUE "Hello World".
        01 WS-P    PIC 9.
+       01 WS-BIG  PIC 9(19) VALUE 9999999999999999999.
        PROCEDURE DIVISION.
        MAIN.
            MOVE FUNCTION FIND-STRING(WS-HAY WS-NDL) TO WS-P.
@@ -26,5 +27,25 @@
            DISPLAY "CASED=" WS-P.
            MOVE FUNCTION FIND-STRING(WS-HAY "ZZZ") TO WS-P.
            DISPLAY "NONE=" WS-P.
+      *> ARGUMENT-3 IS TOTAL (kb/Work PB254). ISO §15.37.3 r3 is the whole argument rule —
+      *> "argument-3 shall be an integer data item or integer literal" — and places NO
+      *> constraint on the value, while §15.37.4 r2/r3 answer for every integer: ignore that
+      *> many matches, and if none is left return zero. So a value beyond the long the body
+      *> once took is CONFORMING source and must reach rule 2 intact.
+      *> EXHAUST3 — the in-range boundary: HAY has matches at 1, 4 and 7, so ignoring 3 of
+      *> them leaves none and rule 3 answers 0.
+           MOVE FUNCTION FIND-STRING(WS-HAY WS-NDL START AFTER 3)
+               TO WS-P.
+           DISPLAY "EXHAUST3=" WS-P.
+      *> WIDESKIP / WIDELASTSKIP — a 19-digit LITERAL and a 19-digit DATA ITEM, both above
+      *> 9 223 372 036 854 775 807. Rule 2 ignores every match, rule 3 returns 0. Before
+      *> PB254 the §15.3 narrowing landing substituted its checking-off default 0 for the
+      *> ARGUMENT — "ignore no matches" — and the function answered 1, and 7 under LAST.
+           MOVE FUNCTION FIND-STRING(WS-HAY WS-NDL START AFTER
+               9999999999999999999) TO WS-P.
+           DISPLAY "WIDESKIP=" WS-P.
+           MOVE FUNCTION FIND-STRING(WS-HAY WS-NDL LAST START AFTER
+               WS-BIG) TO WS-P.
+           DISPLAY "WIDELASTSKIP=" WS-P.
            STOP RUN.
        END PROGRAM INTRFIND.

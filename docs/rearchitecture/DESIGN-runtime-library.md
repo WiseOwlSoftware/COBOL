@@ -242,6 +242,36 @@ offset is assumed). The only direct `DateTime[Offset].Now` reads are `SystemCloc
 `IntrinsicBinder.CompileClock`'s default (WHEN-COMPILED is the compilation timestamp, §15.99.3 r2);
 `ClockSeamDriftTests` is the source-form guard that keeps it that way.
 
+**THE §15.3 INTEGER-ARGUMENT INTAKE IS A CONTRACT WITH THE RENDERER, AND THE BODY'S PARAMETER TYPE IS ITS ONLY
+STATEMENT (kb/Work PB22 + PB65 + PB254).** A §15 integer argument reaches a runtime body through exactly one of
+two intakes, and which one is not a property of the renderer arm — it is a property of the ARGUMENT's own rule:
+
+- **BOUNDED** — the function definition constrains the argument's VALUE (§15.5.2's integer date form for
+  `INTEGER-OF-DATE`/`DAY-OF-INTEGER`/…, §15.23.3 r1's "less than 1 000 000", §15.36.3 r1's "greater than or
+  equal to zero" together with a codomain `Int128` cannot hold). A value the body cannot represent then really
+  "results in an incorrect value for that argument or for the returned value according to the rules specified in
+  the function definition" (§15.3 rule 14), so the argument crosses `CobolIntrinsics.IntegerArg`, the ONE
+  narrowing, which RAISES EC-ARGUMENT-FUNCTION instead of wrapping. **The body's parameter is `long`.**
+- **TOTAL** — the definition constrains nothing but integer-ness, so the returned-value rule answers for every
+  integer and §15.3 rule 14 has nothing to fire on. Putting the narrowing in front of such a body manufactures
+  an exception condition the standard does not define: fatal under checking, and with checking off it
+  substitutes 0 *for the argument*, which is how `TEST-DATE-YYYYMMDD(1.0E19)` once answered "the date is
+  valid" (§15.90.4 r1d) and `FIND-STRING(… START AFTER 9999999999999999999)` once answered a match position
+  where §15.37.4 r3 requires zero. **The body's parameter is `Int128`, and the renderer's intake is the wide
+  one** (`IntrinsicRenderer.IntArgWide` / `ArgIntWide` → `AsIntWide`, which has no raise point). Members today:
+  BOOLEAN-OF-INTEGER argument-1 (§15.13.3 r1), TEST-DATE-YYYYMMDD and TEST-DAY-YYYYDDD argument-1 (§15.90.3 r1
+  / §15.91.3 r1), FIND-STRING argument-3 (§15.37.3 r3).
+
+⚠ **The membership is not a maintained list anywhere.** Declaring the body's carrier IS the claim, and
+`IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake` re-derives the pairing by
+reflection over the shipped signatures and fails when an arm and its body disagree — in either direction. A new
+total function therefore needs one act, widening its body; forgetting its renderer arm is red, not silent.
+A body's `…Real` twin owes the same totality, and owes it WITHOUT a second copy of the rule: it routes through
+`TryTotalIntegerArg`, which saturates a magnitude past `Int128` (±∞ included) to the corresponding extreme —
+verdict-preserving, because a catch-all arm depends on being outside the window and not on how far — so the
+window itself stays written in exactly one body. It must NOT route to `TryIntegerArg`, whose false arm is a
+literal verdict; that literal was §15.90.4 r1d, "the date is valid".
+
 ### 2.8 Namespace / assembly rename (G8)
 Assembly is already `Cobol.Net.Runtime`. At G8, `RootNamespace` `CobolNet.Runtime` → **`Cobol.Net.Runtime`** and the
 sub-namespaces above become real. This is a single coordinated change with the compiler's `RuntimeApi` façade (one

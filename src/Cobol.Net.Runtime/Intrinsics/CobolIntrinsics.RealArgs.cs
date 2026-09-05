@@ -87,10 +87,60 @@ public static partial class CobolIntrinsics
     public static long IntegerOfDateReal(double v) => TryIntegerArg(v, "INTEGER-OF-DATE", out long n) ? CobolDate.IntegerOfDate(n) : 0;
     /// <summary>§15.47 INTEGER-OF-DAY with a floating-point argument.</summary>
     public static long IntegerOfDayReal(double v) => TryIntegerArg(v, "INTEGER-OF-DAY", out long n) ? CobolDate.IntegerOfDay(n) : 0;
-    /// <summary>§15.90 TEST-DATE-YYYYMMDD with a floating-point argument.</summary>
-    public static long TestDateYyyymmddReal(double v) => TryIntegerArg(v, "TEST-DATE-YYYYMMDD", out long n) ? CobolDate.TestDateYyyymmdd(n) : 0;
-    /// <summary>§15.91 TEST-DAY-YYYYDDD with a floating-point argument.</summary>
-    public static long TestDayYyyydddReal(double v) => TryIntegerArg(v, "TEST-DAY-YYYYDDD", out long n) ? CobolDate.TestDayYyyyddd(n) : 0;
+    // ── The two TOTAL date validators (§15.90 / §15.91) — NOT members of the family above ──────────────────────
+    // ⛔ THESE TWO MUST NOT USE TryIntegerArg (kb/Work PB254). Every OTHER function in this file is PARTIAL: its
+    // argument rules bound the value (§15.5.2's date forms, §15.23.3 r1's "< 1 000 000", §15.100.3 r1/r4's
+    // windows), so an argument the body cannot represent genuinely "results in an incorrect value … according to
+    // the rules specified in the function definition" (§15.3) and the shared raise site is right. The TEST-
+    // validators are TOTAL — §15.90.3 r1 / §15.91.3 r1 constrain nothing but integer-ness and r1a is a
+    // CATCH-ALL — so `TryIntegerArg(…) ? body : 0` answered **0, "the date is valid"**, for every argument past
+    // ±9.2e18: a COMP-2 holding 1.0E19 probed as VALID where §15.90.4 r1a requires 1. The literal `: 0` tail is
+    // the PB32 defect shape wearing the shared raise site as camouflage — routing to the site is not enough when
+    // the function has no incorrect argument to raise on in the first place.
+
+    /// <summary>§15.90 TEST-DATE-YYYYMMDD with a floating-point argument — TOTAL, like its exact twin.</summary>
+    public static long TestDateYyyymmddReal(double v) =>
+        TryTotalIntegerArg(v, out Int128 n) ? CobolDate.TestDateYyyymmdd(n)
+                                            : NotAnIntegerDateArgument(v, "TEST-DATE-YYYYMMDD");
+
+    /// <summary>§15.91 TEST-DAY-YYYYDDD with a floating-point argument — TOTAL.</summary>
+    public static long TestDayYyyydddReal(double v) =>
+        TryTotalIntegerArg(v, out Int128 n) ? CobolDate.TestDayYyyyddd(n)
+                                            : NotAnIntegerDateArgument(v, "TEST-DAY-YYYYDDD");
+
+    /// <summary>The binary64 argument of a TOTAL integer function, as the <c>Int128</c> its ONE body takes.
+    /// False only for a NaN.</summary>
+    /// <remarks>
+    /// ⛔ IT DOES NOT RE-DECIDE THE VERDICT. The §15.90.4 / §15.91.4 r1a windows live in <c>CobolDate</c> and
+    /// NOWHERE ELSE — a rule written once per carrier is exactly the drift PB32 was opened for, and this file
+    /// is where that drift happened. A finite magnitude inside <c>Int128</c> converts exactly (truncated —
+    /// §15.3's integer-argument latitude, the same latitude <see cref="TryIntegerArg"/> takes); a larger one,
+    /// ±∞ included, SATURATES to the corresponding extreme, which is verdict-preserving because both extremes
+    /// lie outside both r1a windows and r1a is a CATCH-ALL: the returned value depends on being outside, never
+    /// on how far outside. The 1.7e38 bound is <c>FromDouble</c>'s saturation constant, below
+    /// <c>Int128.MaxValue</c>, so the boundary value cannot slip through the cast.
+    /// </remarks>
+    private static bool TryTotalIntegerArg(double v, out Int128 n)
+    {
+        if (double.IsNaN(v)) { n = Int128.Zero; return false; }
+        n = v >= 1.7e38 ? Int128.MaxValue
+          : v <= -1.7e38 ? Int128.MinValue
+          : (Int128)Math.Truncate(v);
+        return true;
+    }
+
+    /// <summary>The ONE input to a §15.90/§15.91 argument that is the value of NO integer: a NaN. §15.3 sets
+    /// EC-ARGUMENT-FUNCTION (the shared raise site, fatal under checking); with checking disabled §15.3's
+    /// closing sentence makes the result implementor-defined, and COBOL.NET defines it as the r1a verdict
+    /// <b>1</b> — "the date is not valid" — never the 0 that would report a non-date as a VALID date.
+    /// <para>±∞ is deliberately NOT routed here: infinity saturates into the body and r1a answers it, so there
+    /// is nothing to raise on.</para></summary>
+    private static long NotAnIntegerDateArgument(double v, string fn)
+    {
+        Exceptions.ExceptionState.ArgumentError(
+            $"{fn}: the floating-point argument {v} is not the value of any integer (ISO §15.3)");
+        return 1;                                                               // the implementor-defined result (§15.3)
+    }
 
     // The Y2K windowing trio (§15.23 / §15.25 / §15.100) — the optional argument-2/argument-3 keep the SAME
     // C#-optional defaults the exact bodies use (50 / the argument-3 = 0 execution-year sentinel), because the

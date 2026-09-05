@@ -177,13 +177,32 @@ public static class CobolDate
     /// 1601..9999 (r1a); (2) else MOD(argument-1, 10000) outside 100..1299 — the month is not 1..12 (r1b);
     /// (3) else the day subfield is not valid for the month of the year, Gregorian leap rules (r1c);
     /// (0) else valid (r1d). Codes confirmed by the informative D.31.3.8.</summary>
-    public static long TestDateYyyymmdd(long date)
+    /// <remarks>
+    /// ⛔ <b>THE PARAMETER IS <c>Int128</c> BECAUSE THIS FUNCTION IS TOTAL OVER THE INTEGERS</b> (kb/Work
+    /// PB254). §15.90.3 r1 is the WHOLE argument rule — "Argument-1 shall be an integer" — and it places no
+    /// constraint on the VALUE; r1a is a CATCH-ALL ("less than 16 010 000 or greater than 99 999 999"), so
+    /// every integer, however large, has a defined verdict. §15.3's closing paragraph sets
+    /// EC-ARGUMENT-FUNCTION only when "the evaluation of an argument results in an incorrect value for that
+    /// argument or for the returned value according to the rules specified in the function definition", and
+    /// no integer is an incorrect value here — classifying an out-of-window one is the function's entire
+    /// purpose.
+    /// <para>So this body must NEVER sit behind <c>CobolIntrinsics.IntegerArg</c>, the §15.3 landing for the
+    /// PARTIAL integer functions (§15.5.2's date forms, FACTORIAL's unrepresentable results): the landing
+    /// answers an out-of-<c>long</c> argument with the checking-off default 0 — which lands right back in
+    /// r1a's lower half and gave the RIGHT code 1 by pure coincidence — and under
+    /// <c>&gt;&gt;TURN EC-ARGUMENT-FUNCTION CHECKING ON</c> terminates the run unit on CONFORMING source.
+    /// The declared carrier IS the totality claim; <c>IntrinsicCarrierAgreementDriftTests</c> holds the
+    /// renderer's intake to it.</para>
+    /// <para>Past the r1a guard the value is eight digits, so the <c>int</c> narrowing below is exact.</para>
+    /// </remarks>
+    public static long TestDateYyyymmdd(Int128 date)
     {
-        if (date is < 16010000 or > 99999999) return 1;                       // r1a — year
-        long mmdd = date % 10000;
+        if (date < 16010000 || date > 99999999) return 1;                     // r1a — year (the CATCH-ALL arm)
+        int d = (int)date;                                                    // exact — r1a bounds d to 16010000..99999999
+        int mmdd = d % 10000;
         if (mmdd is < 100 or > 1299) return 2;                                // r1b — month
-        long day = date % 100;
-        if (day < 1 || day > DateTime.DaysInMonth((int)(date / 10000), (int)(mmdd / 100)))
+        int day = d % 100;
+        if (day < 1 || day > DateTime.DaysInMonth(d / 10000, mmdd / 100))
             return 3;                                                         // r1c — day
         return 0;                                                             // r1d
     }
@@ -192,11 +211,15 @@ public static class CobolDate
     /// (1) argument-1 outside 1 601 000..9 999 999 — the year is not 1601..9999 (r1a); (2) else the ordinal
     /// day is not 1..365/366 for the year, Gregorian leap rules (r1b); (0) else valid (r1c). Codes confirmed
     /// by the informative D.31.3.9.</summary>
-    public static long TestDayYyyyddd(long day)
+    /// <remarks>⛔ <c>Int128</c> for the same reason as <see cref="TestDateYyyymmdd"/>: §15.91.3 r1 constrains
+    /// nothing but integer-ness and §15.91.4 r1a is the catch-all, so the function is TOTAL and a narrowing
+    /// intake in front of it is a defect (kb/Work PB254). Past r1a the value is seven digits.</remarks>
+    public static long TestDayYyyyddd(Int128 day)
     {
-        if (day is < 1601000 or > 9999999) return 1;                          // r1a — year
-        long ddd = day % 1000;
-        if (ddd < 1 || ddd > (DateTime.IsLeapYear((int)(day / 1000)) ? 366 : 365))
+        if (day < 1601000 || day > 9999999) return 1;                         // r1a — year (the CATCH-ALL arm)
+        int v = (int)day;                                                     // exact — r1a bounds v to 1601000..9999999
+        int ddd = v % 1000;
+        if (ddd < 1 || ddd > (DateTime.IsLeapYear(v / 1000) ? 366 : 365))
             return 2;                                                         // r1b — day-of-year
         return 0;                                                             // r1c
     }
