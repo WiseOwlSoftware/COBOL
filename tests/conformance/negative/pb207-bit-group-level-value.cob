@@ -1,27 +1,28 @@
-      *> reject-at: 2023
-      *> STAGED LOUD (COBOLNET0899), kb/Work PB207: the 13.18.63.4 GR5 area deposit for a BIT-PACKED group.
-      *> GR5 initializes "the group area"; for a group with a USAGE BIT item subordinate to it that area is
-      *> ceil(bits/8) PACKED characters laid out by the 8.5.1.6.3 bit walk, and the members do NOT tile it -
-      *> BG below is 4 bits = 1 character while B1 and B2 occupy ceil(2/8) = 1 character each.  So the
-      *> positional CHARACTER slice both initializer lanes implement has no meaning over this group.
-      *> ⛔ WHAT THIS FIXTURE PINS IS THAT THE COMPILER NO LONGER CRASHES.  MEASURED on 8ca74a3d and again on
-      *> the PB184 tree: this exact program raised an unhandled System.ArgumentOutOfRangeException out of
-      *> GroupValueSlicer.SliceInit (Substring past the end of a 1-character area) - a compiler crash, not the
-      *> silent mis-seed PB207 was filed as.  MEASURED on the single-member shape
-      *> `01 BG GROUP-USAGE BIT VALUE B"1010". 05 B1 PIC 1(4).`: it did not crash and stored ONE boolean
-      *> position where the literal has four, so that half was a silent wrong answer.  Neither is acceptable;
-      *> a named refusal is, until PB207 lands the boolean-position area rule for both lanes.
-      *> The predicate is DataItem.HasBitDescendant - the fact that switches ImageWidth to the bit walk - not
-      *> GROUP-USAGE BIT, which is only the commonest way to acquire it (sweep note: the codec lane's guard
-      *> keyed the narrower one).
+      *> reject-at: 85 2002 2014 2023
+      *> ISO 13.18.63.3 SR14: "If a VALUE clause is specified at the group level, subordinate items within that
+      *> group shall not be described with a JUSTIFIED or SYNCHRONIZED clause, and all data items subordinate to
+      *> an alphanumeric group item shall be explicitly or implicitly described with usage DISPLAY."
+      *> G carries no GROUP-USAGE clause, is not strongly typed and is not a variable-length group, so it IS an
+      *> alphanumeric group item (13.18.29.4 GR3), and B1 is USAGE BIT - 13.18.60.4 GR5: "The USAGE BIT clause
+      *> specifies that bits shall be used to represent a boolean data item."  Not DISPLAY, so not conforming.
+      *> ⛔ WHAT THIS FIXTURE PINS IS THE ATTRIBUTION.  Until kb/Work PB207 landed, this program was rejected
+      *> with COBOLNET0899 - "the 13.18.63.4 GR5 area deposit for a bit-packed group is not yet implemented" -
+      *> because the PB207 staging screened on DataItem.HasBitDescendant and sat in FRONT of the SR14 arm.  The
+      *> program is not a compiler gap; it is non-conforming source, and telling a programmer otherwise sends
+      *> them to wait for a feature instead of to their own declaration.  The CONFORMING half of that same
+      *> screen - a GROUP-USAGE BIT group, whose members ARE usage bit by 13.18.29.3 SR2 and which SR14's
+      *> alphanumeric scoping therefore does not reach - is implemented and pinned by the positive golden
+      *> tests/conformance/2023/pb207_bit_group_value.cob.
+      *> MEASURED AT ALL FOUR EDITIONS: COBOLNET1702 is reported at every one.  At --std 85 the boolean-data
+      *> gate COBOLNET0900 is reported ALONGSIDE it, not instead of it - a syntax rule the standard has
+      *> carried since 1985 does not stop applying because the item's usage is a later introduction.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB207N1.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 BG GROUP-USAGE BIT VALUE B"1010".
-          05 B1 PIC 1(2).
-          05 B2 PIC 1(2).
+       01 G VALUE "AB".
+          05 B1 PIC 1(8) USAGE BIT.
        PROCEDURE DIVISION.
        MAIN.
-           DISPLAY "UNREACHABLE"
+           DISPLAY B1
            STOP RUN.

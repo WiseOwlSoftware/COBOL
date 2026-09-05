@@ -7,21 +7,34 @@ using CobolNet.CodeGen.Emit;
 
 namespace CobolNet.CodeGen;
 
+/// <summary>⛔ THE §13.18.63.4 GR5 GROUP-VALUE AREA, <b>IN THE UNIT THE GROUP'S OWN STORAGE IS MEASURED IN</b> —
+/// <paramref name="Text"/> is the area's contents and <paramref name="Bits"/> says whether those are BOOLEAN
+/// POSITIONS (a bit group, §13.18.29.4 GR1b) or CHARACTER positions (every other group).
+///
+/// <para>The unit travels WITH the area rather than being re-derived by each consumer, because the two consumers
+/// — the record-struct lane (<see cref="GroupValueSlicer.ComposedInit"/>) and the character-image lane
+/// (<see cref="GroupImageCodec.ImageInitOf"/>) — must never disagree about it. Restating "is this a bit group?"
+/// at a call site is how <c>GroupImageCodec.ImageInitOfOne</c> came to carry a NARROWER copy of the previous
+/// exclusion (kb/Work PB207); one producer, one answer.</para></summary>
+internal readonly record struct GroupArea(string Text, bool Bits);
+
 /// <summary>The group-VALUE positional distributor (P7 Step 9l; ISO §13.18.63): a GROUP-level VALUE
-/// initializes the whole area as ONE alphanumeric value, sliced positionally over the (distributable)
-/// subtree at compile time; otherwise the member-wise composed initializer. Wired by <see cref="DataEmitter"/>.</summary>
+/// initializes the whole area as ONE value of the group's own category, sliced positionally over the
+/// (distributable) subtree at compile time; otherwise the member-wise composed initializer. Wired by
+/// <see cref="DataEmitter"/>.</summary>
 internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
 {
     public string ComposedInit(DataItem group)
     {
         // A GROUP-level VALUE initializes the whole AREA (ISO §13.18.63.4 GR5) — the ONE area rule lives in
-        // AreaTextOf; here the area text distributes over the subordinate items POSITIONALLY at compile time
-        // (NC104A `01 MOVE29A VALUE "$123.45". 02 MOVE30 PIC $999.99.`). Distribution requires every leaf
-        // string-stored and no shared-storage member in the subtree; anything else keeps the member-wise
-        // default (a SHARED-STORAGE subtree is not a loss — its Tier-B / EXTERNAL / BASED backing is seeded
-        // by GroupImageCodec.ImageInitOf, which applies the SAME AreaTextOf rule to the same group).
-        if (AreaTextOf(group, ctx) is { } text && DistributableSubtree(group))
-            return SliceInit(group, text);
+        // AreaOf, which also says which UNIT the area is measured in; here it distributes over the subordinate
+        // items POSITIONALLY at compile time (NC104A `01 MOVE29A VALUE "$123.45". 02 MOVE30 PIC $999.99.`).
+        // Distribution requires every leaf string-stored and no shared-storage member in the subtree; anything
+        // else keeps the member-wise default (a SHARED-STORAGE subtree is not a loss — its Tier-B / EXTERNAL /
+        // BASED backing is seeded by GroupImageCodec.ImageInitOf, which applies the SAME AreaOf rule to the
+        // same group).
+        if (AreaOf(group, ctx) is { } area && DistributableSubtree(group))
+            return area.Bits ? SliceBitInit(group, area.Text) : SliceInit(group, area.Text);
         var parts = phys.PhysicalChildrenOf(group).Select(f => $"{f.Name} = {f.Init}");
         return $"new {group.StructName} {{ {string.Join(", ", parts)} }}";
     }
@@ -29,17 +42,29 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     /// <summary>⛔ THE §13.18.63.4 GR5 GROUP-VALUE AREA RULE — the one place that says what a group-level VALUE
     /// puts in the group's storage, ridden by BOTH initializer lanes: this slicer (the typed-native record-struct
     /// fields) and <see cref="GroupImageCodec.ImageInitOf"/> (the character-image backings — Tier-B REDEFINES,
-    /// EXTERNAL cells, BASED records, OO cells). Returns the area's CHARACTERS, space-padded / right-truncated
-    /// to the group's image width per GR7 (§14.6.8 alphanumeric alignment — left-justified, space fill; no
-    /// editing, and JUSTIFIED has no effect on initialization), or null when the entry carries no VALUE or an
-    /// operand form that is not an area fill.
+    /// EXTERNAL cells, BASED records, OO cells). Returns the area's contents PLUS its unit
+    /// (<see cref="GroupArea"/>), padded / right-truncated to the group's own width per GR7, or null when the
+    /// entry carries no VALUE or an operand form that is not an area fill.
     ///
     /// <para>GR5 is "the group area is initialized without consideration for the individual elementary or group
     /// items contained within this group" — so the deposit is positional and the members are whatever their own
-    /// descriptions make of the characters underneath them. That reading is exact because §13.18.63.3 SR14
-    /// requires every data item subordinate to an alphanumeric group item carrying a VALUE to be usage DISPLAY
-    /// (screened by <c>DataBinder.CheckGroupValueDeclarations</c>, COBOLNET1702): the character image IS the
-    /// byte image for that whole population, so there is no character/byte width question to answer here.</para>
+    /// descriptions make of the positions underneath them. For an ALPHANUMERIC group that reading needs no
+    /// character/byte reconciliation, because §13.18.63.3 SR14 requires every data item subordinate to an
+    /// alphanumeric group item carrying a VALUE to be usage DISPLAY (screened by
+    /// <c>DataBinder.CheckGroupValueDeclarations</c>, COBOLNET1702): the character image IS the byte image for
+    /// that whole population.</para>
+    ///
+    /// <para><b>⛔ TWO UNITS, because a BIT GROUP's area is not made of characters.</b> §13.18.29.4 GR1a makes a
+    /// GROUP-USAGE BIT group "a bit group and also a bit data item; its class and category are boolean", and GR1b
+    /// describes it "as though it were an elementary data item of usage bit and class and category boolean
+    /// described with PICTURE 1(m), where m is the bit length of the group" — so its area is <b>m boolean
+    /// positions</b> laid out by the §8.5.1.6.3 walk, NOT the <c>ceil(m/8)</c> characters
+    /// <see cref="DataItem.ImageWidth"/> reports. The two are different numbers and the members do not tile the
+    /// character count: <c>01 BG GROUP-USAGE BIT VALUE B"1010". 05 B1 PIC 1(2). 05 B2 PIC 1(2).</c> is 4 bits =
+    /// ONE character while B1 and B2 occupy <c>ceil(2/8)</c> = one character EACH. A positional CHARACTER slice
+    /// over that group ran off the end of the area (an unhandled <c>ArgumentOutOfRangeException</c> out of
+    /// <see cref="SliceInit"/>) and its single-member twin stored ONE boolean position where the literal has
+    /// four — kb/Work PB207, which this method now answers instead of refusing.</para>
     ///
     /// <para><b>THREE operand forms, all of them area fills</b> (kb/Work PB184's sweep — the figurative arm was
     /// MISSING and it was a live silent wrong answer: `01 GZ VALUE ZEROS. 05 Z1 PIC X(2). 05 Z2 PIC X(2).`
@@ -57,20 +82,27 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     ///     that category"). The fill character comes from the ONE figurative service, with the group's own
     ///     category so a national / bit group reads ITS anchor rather than the alphanumeric PCS.</item>
     ///   <item><c>ALL "literal"</c> — literal-1 repeated to the width (§8.3.3.6.4 GR2, the same rule).</item>
-    ///   <item>a quoted literal — its characters, decoded.</item>
+    ///   <item>a quoted literal — its characters (or, for a bit group, its BOOLEAN POSITIONS — <c>B"1010"</c> /
+    ///     <c>BX"A"</c>, §8.3.3.4), decoded.</item>
     /// </list></summary>
-    internal static string? AreaTextOf(DataItem group, EmitContext ctx)
+    internal static GroupArea? AreaOf(DataItem group, EmitContext ctx)
     {
         if (group.RawValue is not { } raw) return null;
-        // ⛔ A BIT-PACKED group has no character area for GR5 to deposit into: its width is ceil(bits/8) laid
-        // out by the §8.5.1.6.3 walk and the members do not tile it, so a positional CHARACTER slice would seed
-        // the wrong bit run (it crashed the slicer on a multi-member bit group and stored one boolean position
-        // on a single-member one — kb/Work PB207, which carries the boolean-position area rule). The predicate
-        // is HasBitDescendant, the FACT that switches DataItem.ImageWidth to the bit walk — not GROUP-USAGE BIT,
-        // which is only the commonest way to acquire it. ONE exclusion here, for BOTH lanes; the binder rejects
-        // the shape first (DiagnosticCatalog.BitGroupLevelValue) and this keeps the emitter total regardless.
-        if (group.HasBitDescendant) return null;
-        int width = group.ImageWidth;
+        // ⛔ THE UNIT AND THE WIDTH, in one place. A GROUP-USAGE BIT group's area is its §13.18.29.4 GR1b
+        // as-if PICTURE 1(m) — m BOOLEAN POSITIONS from the §8.5.1.6.3 walk; every other group's is its
+        // ImageWidth CHARACTER positions.
+        bool bits = group.GroupUsage is GroupUsage.Bit;
+        // ⛔ A group that is NOT a bit group but carries a USAGE BIT descendant is measured by the bit walk
+        // (DataItem.ImageWidth switches on HasBitDescendant, D19/PB43) while its AREA is a character run, so
+        // neither unit describes it — and no such entry is conforming source: §13.18.63.3 SR14 requires every
+        // data item subordinate to an ALPHANUMERIC group item carrying a VALUE to be explicitly or implicitly
+        // usage DISPLAY, and a USAGE BIT leaf (or a nested GROUP-USAGE BIT group) is not
+        // (DataBinder.CheckGroupValueDeclarations rejects it, COBOLNET1702); under a NATIONAL group
+        // §13.18.29.3 SR3 requires usage national of every subordinate elementary item. Returning null keeps
+        // BOTH lanes total over that non-conforming residue rather than slicing a width the members do not
+        // tile — never a substitute for the diagnostic, which is stated where the rule is.
+        if (!bits && group.HasBitDescendant) return null;
+        int width = bits ? group.AsIfPic!.Length : group.ImageWidth;
         if (width <= 0) return null;
         string? text =
             ValueInitializer.FigurativeKind(raw) is { } kind
@@ -80,7 +112,13 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
             : CobolLiteral.IsStringLiteral(raw) ? CobolLiteral.Decode(raw)
             : null;
         if (text is null) return null;
-        return text.Length >= width ? text[..width] : text.PadRight(width);
+        // GR7 sends the literal through §14.6.8, whose arm is chosen by the RECEIVING item's category: a
+        // category-boolean area is filled "into the corresponding boolean positions … with ZERO fill or
+        // truncation to the right" (§14.6.8.6 — the boolean zero, not the space that would not be a boolean
+        // position at all), every other category with space fill (§14.6.8.5). GR7's own exception applies to
+        // both: initialization is not affected by JUSTIFIED and no editing takes place.
+        char pad = bits ? '0' : ' ';
+        return new GroupArea(text.Length >= width ? text[..width] : text.PadRight(width, pad), bits);
     }
 
     /// <summary>Whether the group's subtree can take the area text as a compile-time POSITIONAL slice per
@@ -94,7 +132,11 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     /// answering about a population the binder has already screened, and it is kept as the defensive statement
     /// of what a positional character slice can mean. The <c>Class is null</c> arm is the live one: a
     /// shared-storage (REDEFINES-class) subtree is seeded through its BACKING by
-    /// <see cref="GroupImageCodec.ImageInitOf"/> instead, from the same <see cref="AreaTextOf"/> rule.</para></summary>
+    /// <see cref="GroupImageCodec.ImageInitOf"/> instead, from the same <see cref="AreaOf"/> rule.</para>
+    /// <para>A BIT group passes on its <c>Boolean</c> arm and takes <see cref="SliceBitInit"/> rather than
+    /// <see cref="SliceInit"/>: every member of a bit group is a bit leaf or a nested bit group
+    /// (§13.18.29.3 SR2), so each one's slice IS its own boolean carrier — the same property in the other
+    /// unit.</para></summary>
     private static bool DistributableSubtree(DataItem item) =>
         item.Class is null && (item.IsGroup
             ? item.Children.All(DistributableSubtree)
@@ -134,4 +176,51 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
         return $"new {item.StructName} {{ {string.Join(", ", parts)} }}";
     }
 
+    /// <summary>Build the composed initializer of a BIT group from its §13.18.63.4 GR5 area — the group's m
+    /// boolean positions — by giving each member the positions §8.5.1.6.3 places it at. The bit twin of
+    /// <see cref="SliceInit"/>, and it is a separate walk for exactly one reason: the offsets are BIT offsets
+    /// and they are not a running sum of the members' widths.
+    ///
+    /// <para>⛔ The placement comes from <see cref="BitLayout.StartBitWithin"/>, THE one §8.5.1.6.3 walk. A
+    /// private cursor here would be another copy of the placement law and would silently disagree with it
+    /// wherever two members are NOT adjacent — a member whose LEVEL NUMBER differs from its predecessor's is
+    /// not "immediately following … an item of the same level", so it starts at "the first bit position of the
+    /// first available byte" and the bits between are implicit filler, which a sum cannot express (this is the
+    /// same reason <see cref="BitLayout.ExtentBits"/> is a cursor walk and not a sum).</para>
+    ///
+    /// <para>A redefining member overlays its target and occupies no positions of its own (§13.18.44), so it
+    /// takes no slice; <see cref="DistributableSubtree"/> has already excluded any subtree that has one, and
+    /// skipping it here states the rule rather than relying on that.</para></summary>
+    private static string SliceBitInit(DataItem item, string area)
+    {
+        if (!item.IsGroup) return EmitText.CsLiteral(area);
+        var parts = new List<string>();
+        foreach (var c in item.Children)
+        {
+            if (c.RedefinesTargetName is not null) continue;
+            int at = BitLayout.StartBitWithin(item, c);
+            if (at < 0) continue;      // an unmodelled overlay chain — StartBitWithin's documented -1
+            int per = BitLayout.WidthBits(c);
+            if (c.Occurs is { } n)
+            {
+                // ISO §13.18.63.4 GR9 gives EVERY occurrence the value at its own position; the stride is the
+                // per-occurrence BIT extent, which is what makes a `PIC 1(4) OCCURS 6` table six sub-byte
+                // windows rather than six bytes.
+                var elems = new List<string>();
+                for (int k = 0; k < n; k++) elems.Add(SliceBitInit(c, BitWindow(area, at + k * per, per)));
+                parts.Add($"{c.CsName} = new {c.ElementType}[] {{ {string.Join(", ", elems)} }}");
+            }
+            else parts.Add($"{c.CsName} = {SliceBitInit(c, BitWindow(area, at, per))}");
+        }
+        return $"new {item.StructName} {{ {string.Join(", ", parts)} }}";
+    }
+
+    /// <summary>One member's window of the area's boolean positions, ZERO-filled past the area's end — the
+    /// compile-time twin of <c>CobolBits.Slice</c>, and the same §14.6.8.6 boolean-zero pad
+    /// <see cref="AreaOf"/> uses. A window can run past the area only when the group's own extent exceeds the
+    /// positions the walk assigns (implicit filler, §8.5.1.6.3), so the fill is filler bits, which
+    /// §13.18.63's all-zero boolean initial state makes zeros.</summary>
+    private static string BitWindow(string area, int at, int count) =>
+        at >= area.Length ? new string('0', count)
+        : area.Substring(at, Math.Min(count, area.Length - at)).PadRight(count, '0');
 }

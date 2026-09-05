@@ -97,12 +97,16 @@ public sealed partial class DataBinder
             // one verdict — the outer subject's walk reaches the whole subtree.
             if (AncestorIsGroupValueSubject(item)) continue;
 
-            // The count of ERRORS already recorded, so the PB207 not-yet-implemented refusal below can be
-            // withheld from source that is not conforming in the first place: a syntax-rule violation names its
-            // OWN rule, and "recognized but not implemented" on top of it would be noise pointing at the wrong
-            // remedy. (Edition.Diagnostics is the error list; Edition.Warnings is separate, so a --permissive
-            // downgrade correctly leaves the refusal in place — the emitter still has to be kept off the shape.)
-            int errorsBefore = Edition.Diagnostics.Count;
+            // ⛔ NO BIT-PACKED REFUSAL HERE ANY MORE (kb/Work PB207, landed). A group with a USAGE BIT
+            // descendant used to be rejected by name, COBOLNET0899, on the ground that §13.18.63.4 GR5 had no
+            // area to deposit into. It has one, in the OTHER UNIT: §13.18.29.4 GR1b makes a bit group an as-if
+            // `PICTURE 1(m)` item, so its area is m BOOLEAN POSITIONS from the §8.5.1.6.3 walk, and
+            // GroupValueSlicer.AreaOf now composes it for both initializer lanes.
+            // ⚠ AND THE REFUSAL SAT IN FRONT OF THE RULE THAT ACTUALLY GOVERNED THE OTHER HALF OF ITS
+            // POPULATION: `01 G VALUE "AB". 05 B1 PIC 1(8) USAGE BIT.` is an ALPHANUMERIC group item with a
+            // subordinate that is not usage DISPLAY — an SR14 violation, reported below — and it was told
+            // instead that the compiler had not implemented something. Non-conforming source named as a
+            // compiler gap is the worse of the two errors; the SR14 arm now sees it.
 
             // ── §13.18.63.3 SR13 sentence 1 + SR4/SR5/SR10 (their group sentences) — the LITERAL, screened
             //    against the SUBJECT'S OWN category and size (kb/Work PB206). A group HAS both: §8.5.2.1 gives
@@ -174,32 +178,6 @@ public sealed partial class DataBinder
                     + $"described with usage {UsageWord(usage)} — all data items subordinate to an alphanumeric "
                     + "group item shall be explicitly or implicitly described with usage DISPLAY "
                     + "(ISO §13.18.63.3 SR14)");
-            }
-
-            // ⛔ PB207: a group whose area is BIT-PACKED has no character area for §13.18.63.4 GR5 to deposit
-            // into — its width is ceil(bits/8) laid out by the §8.5.1.6.3 walk, and the members do not tile it.
-            // Staged LOUD here rather than left to the emitter, which crashed on the multi-member shape and
-            // silently stored one boolean position on the single-member one. The predicate is HasBitDescendant
-            // — the FACT that switches DataItem.ImageWidth to the bit walk — not GROUP-USAGE BIT, which is only
-            // the commonest way to acquire it.
-            //
-            // ⛔ IT RUNS LAST, AND ONLY OVER SOURCE THE SYNTAX RULES ACCEPTED (kb/Work PB206). It used to run
-            // first and `continue`, which made it answer for two populations it does not govern: a group-level
-            // VALUE literal that violates SR13/SR4/SR5/SR10 was told the AREA RULE is unimplemented instead of
-            // that its literal is illegal (so §13.18.63.3 SR10's group sentence — "Boolean literals in the VALUE
-            // clause of a bit group item shall not exceed the size of the group item" — was unreachable), and a
-            // group with NO GROUP-USAGE clause but a USAGE BIT subordinate is an alphanumeric group item
-            // (§13.18.29.4 GR3) whose bit leaf violates SR14's usage conjunct — a rule with a remedy, reported
-            // as a compiler limitation. A refusal is what is left when the source is conforming and we cannot
-            // compile it, never the first thing said about source that is not.
-            if (item.HasBitDescendant && Edition.Diagnostics.Count == errorsBefore)
-            {
-                using var _ = Edition.At(item);
-                Edition.Error(DiagnosticCatalog.BitGroupLevelValue, $"data item '{subject}' specifies a "
-                    + "group-level VALUE clause and has a USAGE BIT item subordinate to it, so its area is "
-                    + "bit-packed (ceil(bits/8) characters, ISO §8.5.1.6.3) rather than a character run — "
-                    + "the §13.18.63.4 GR5 area deposit for a bit-packed group is not yet implemented "
-                    + "(kb/Work PB207)");
             }
         }
     }

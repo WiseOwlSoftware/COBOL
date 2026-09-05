@@ -52,13 +52,32 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // (The seventh instance of the two-arm-dispatch shape: the slicer's arm was written, the codec's
             // was not, and only the slicer's lane was ever tested.)
             //
-            // ⛔ The BIT-PACKED exclusion is NOT restated here. It used to be, keyed on GROUP-USAGE BIT — a
-            // predicate NARROWER than the fact it protects: what switches DataItem.ImageWidth from a character
-            // sum to the §8.5.1.6.3 bit walk is HasBitDescendant (D19/PB43), which GROUP-USAGE BIT is only the
-            // commonest way to acquire. The exclusion now lives once, inside AreaTextOf, so both lanes inherit
-            // the same predicate and no future lane can pick up the narrow one (kb/Work PB207).
-            if (useValues && GroupValueSlicer.AreaTextOf(item, ctx) is { } area)
-                return EmitText.CsLiteral(area);
+            // ⛔ The UNIT is not restated here. It used to be an exclusion keyed on GROUP-USAGE BIT — a
+            // predicate NARROWER than the fact it protects — and then, once the exclusion moved into the area
+            // rule, a refusal. Neither is here now: GroupValueSlicer.AreaOf answers with the area AND its unit,
+            // so this lane cannot disagree with the record-struct lane about what a bit group's area is
+            // (kb/Work PB207).
+            if (useValues && GroupValueSlicer.AreaOf(item, ctx) is { } area)
+                // A bit group's area is m BOOLEAN POSITIONS (§13.18.29.4 GR1b); its IMAGE is those positions
+                // PACKED — ceil(m/8) characters through CobolBits.Pack, the ONE bit-order law (D19/PB43), never
+                // a second packer written here. The count is asked of ExtentBits, not taken from the area's own
+                // Length: the two are equal by AreaOf's contract, and asking the LAYOUT keeps the image the
+                // group's full width even if a future area were handed back short (Pack zero-fills the rest).
+                return area.Bits
+                    ? RuntimeApi.BitsPack(EmitText.CsLiteral(area.Text), $"{BitLayout.ExtentBits(item)}")
+                    : EmitText.CsLiteral(area.Text);
+
+            // ⛔ A BIT GROUP'S IMAGE IS ITS PACKED AREA, NOT ITS MEMBERS' IMAGES CONCATENATED. Each bit member
+            // images as its own ceil(n/8) characters, and §8.5.1.6.3 makes same-level bit members SHARE bytes —
+            // so the concatenation is wider than the group. MEASURED at 62a36759 on
+            // `01 K GROUP-USAGE BIT. 05 K1 PIC 1(2) VALUE B"11". 05 K2 PIC 1(2) VALUE B"01".
+            //  01 KV REDEFINES K PIC X(1).`: K2 read back as `00` and the backing byte was 0xC0, because the
+            // 2-character composition was truncated to the group's 1-character width and K2's byte fell off.
+            // The composition is BitAreaOf's — the same §8.5.1.6.3 placement the VALUE arm above and
+            // AsBits()/FromBits use.
+            if (item.GroupUsage is GroupUsage.Bit)
+                return RuntimeApi.BitsPack(BitAreaOf(item, m => InitialBitCarrierOf(m, useValues)),
+                                           $"{BitLayout.ExtentBits(item)}");
 
             // Redefining children overlay storage already composed by their targets — never part of the image.
             var parts = item.Children.Where(c => (c.IsGroup || c.IsElementary) && c.RedefinesTargetName is null)
@@ -336,26 +355,90 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     }
 
     /// <summary>A BIT GROUP's elementary face (§13.18.29.4 GR1b — "treated as though it were an elementary data item
-    /// … PICTURE 1(m)"; D20/PB79): <c>AsBits()</c> is the group's boolean-position string — its members' bit
-    /// carriers concatenated in declaration order (every member is a bit leaf or a bit group, SR2, and same-level
-    /// bit items sit at successive positions with no filler, §8.5.1.6.3) — and <c>FromBits</c> distributes a
-    /// boolean string back to the members. The packed byte form stays <c>AsImage()</c>/<c>FromImage()</c> (the
-    /// record / REDEFINES / file image); the two agree because both pack the same run.</summary>
+    /// … PICTURE 1(m), where m is the bit length of the group"; D20/PB79): <c>AsBits()</c> is the group's m
+    /// boolean positions and <c>FromBits</c> distributes m boolean positions back to the members. The packed byte
+    /// form stays <c>AsImage()</c>/<c>FromImage()</c> (the record / REDEFINES / file image); the two agree because
+    /// both compose the same area.
+    ///
+    /// <para>⛔ BOTH DIRECTIONS PLACE THE MEMBERS BY <see cref="BitLayout.StartBitWithin"/>, and the width is
+    /// <see cref="BitLayout.ExtentBits"/> — not a sum of the members' <see cref="BitLayout.RunBits"/>, which is
+    /// what both halves used to do. A sum is only right while every member is "immediately following … an item of
+    /// the SAME LEVEL" (§8.5.1.6.3's one byte-sharing case); a member at a different level number starts at "the
+    /// first bit position of the first available byte" and the skipped bits are implicit filler. MEASURED at
+    /// 62a36759 on `01 BG GROUP-USAGE BIT. 05 B1 PIC 1(2) VALUE B"11". 03 B2 PIC 1(2) VALUE B"11".`:
+    /// <c>DISPLAY BG</c> printed FOUR boolean positions while <c>FUNCTION LENGTH(BG)</c> — which reads the same
+    /// walk through <c>AsIfPic</c> — answered TEN. The elementary face and the length disagreed about the same
+    /// group.</para></summary>
     private static void EmitBitMethods(DataItem group, CodeWriter w)
     {
-        var members = group.Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary)).ToList();
-        w.Line($"public readonly string AsBits() => {(members.Count > 0 ? string.Join(" + ", members.Select(BitCarrierOf)) : "\"\"")};");
+        w.Line($"public readonly string AsBits() => {BitAreaOf(group, BitCarrierOf)};");
         using (w.Block("public void FromBits(string __b)"))
         {
-            int total = members.Sum(BitLayout.RunBits);
-            w.Line($"__b = {RuntimeApi.StrStoreBoolean("__b", $"{total}", justifiedRight: false)};");   // pad with boolean zeros / truncate to m
-            int at = 0;
-            foreach (var m in members)
+            // pad with boolean zeros / truncate to m (§14.6.8.6)
+            w.Line($"__b = {RuntimeApi.StrStoreBoolean("__b", $"{BitLayout.ExtentBits(group)}", justifiedRight: false)};");
+            foreach (var m in BitMembers(group))
             {
-                EmitRunMemberFromBits(m, "__b", at, w);
-                at += BitLayout.RunBits(m);
+                int at = BitLayout.StartBitWithin(group, m);
+                EmitRunMemberFromBits(m, "__b", at < 0 ? 0 : at, w);
             }
         }
+    }
+
+    /// <summary>The members of <paramref name="group"/> that OCCUPY storage — a redefining child overlays its
+    /// target and adds none (§13.18.44), and a non-data child (a condition-name entry) is not a member at all.
+    /// The one member list for every bit composition below, so they cannot walk different populations.</summary>
+    private static IEnumerable<DataItem> BitMembers(DataItem group) =>
+        group.Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary));
+
+    /// <summary>⛔ THE ONE §8.5.1.6.3 AREA COMPOSITION for a bit group: each member's boolean carrier placed at
+    /// the bit position the walk gives it, with the implicit-filler zeros between and after them, for the
+    /// group's whole <see cref="BitLayout.ExtentBits"/> — §13.18.29.4 GR1b's "PICTURE 1(m), where m is the bit
+    /// length of the group". <paramref name="carrierOf"/> is what a member contributes: its FIELD for the
+    /// emitted <c>AsBits()</c> face, its INITIAL value for the compile-time image seed, and the two therefore
+    /// cannot place the same member at two different positions.
+    ///
+    /// <para>The filler positions are §8.5.1.6.3's — "implicit filler bit positions are generated … as needed to
+    /// advance alignment to a required natural boundary for the next item within that group" and, at the end,
+    /// "as needed to increase the number of bits to fill an integral number of characters". They are ZEROS
+    /// because that is the boolean initial state §13.18.63 gives a position no VALUE reaches, and
+    /// <c>CobolBits.Pack</c>'s own contract already zero-fills a trailing partial byte.</para></summary>
+    private static string BitAreaOf(DataItem group, Func<DataItem, string> carrierOf)
+    {
+        var parts = new List<string>();
+        int at = 0;
+        foreach (var m in BitMembers(group))
+        {
+            int start = BitLayout.StartBitWithin(group, m);
+            if (start < 0) start = at;      // an unmodelled overlay chain — keep the composition total
+            if (start > at) parts.Add(EmitText.CsLiteral(new string('0', start - at)));
+            parts.Add(carrierOf(m));
+            at = start + BitLayout.RunBits(m);
+        }
+        int total = BitLayout.ExtentBits(group);
+        if (total > at) parts.Add(EmitText.CsLiteral(new string('0', total - at)));
+        return parts.Count > 0 ? string.Join(" + ", parts) : "\"\"";
+    }
+
+    /// <summary>One bit member's INITIAL boolean carrier — the compile-time twin of <see cref="BitCarrierOf"/>,
+    /// for the image seed: a nested bit group composes its own area (the same <see cref="BitAreaOf"/> walk, so
+    /// §8.5.1.6.3 applies "within that group" at every level), a bit leaf stores its VALUE into its declared
+    /// boolean positions (§14.6.8.6 — zero pad, truncate right) or takes the all-zero boolean initial state, and
+    /// a fixed-OCCURS member repeats that for every occurrence (§13.18.63.4 GR9).</summary>
+    private string InitialBitCarrierOf(DataItem m, bool useValues)
+    {
+        string one =
+            m.IsGroup ? BitAreaOf(m, c => InitialBitCarrierOf(c, useValues))
+            // A member the binder failed to describe still has to occupy its positions, or every member after
+            // it is displaced; WidthBits is asked ONLY here, because for a group it is a whole ExtentBits walk.
+            : m.Pic is not { } pic ? EmitText.CsLiteral(new string('0', BitLayout.WidthBits(m)))
+            : !useValues || m.RawValue is not { } raw ? EmitText.CsLiteral(new string('0', pic.Length))
+            // A FIGURATIVE operand is its one character repeated to the item's boolean positions
+            // (§8.3.3.6.4 GR2; GR4 makes the ZERO format "one or more of the boolean character '0'"). Asked of
+            // the ONE figurative service so the bit lane cannot disagree with every other VALUE lane about it.
+            : vals.FigurativeInitializer(raw, pic)
+              ?? RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
+                                            justifiedRight: false);
+        return m.Occurs is { } n and > 1 ? RuntimeApi.StrRepeat(one, $"{n}") : one;
     }
 
     /// <summary>Distribute one run member's slice of an unpacked bit carrier — THE one distributor, ridden by

@@ -390,9 +390,16 @@ comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
 - **Storage is unchanged.** A national group's record image is the concatenation of its national subordinates
   (already what `AsImage()` yields); a bit group's image is the packed bit run `BitLayout` already lays out for a
   USAGE-BIT-descendant group, minus rule 4's trailing filler (`ExtentBits(group, trailingFiller: !isBitGroup)`).
-  The value a bit group presents as an OPERAND is its bit string (`PICTURE 1(m)`): a new `AsBits()` on the record
-  struct (the concatenation of subordinate bit strings — the SAME concatenation `AsImage()` packs) is what the
-  boolean MOVE / compare / INSPECT paths read; the packed image stays the file/REDEFINES form. A national group's
+  The value a bit group presents as an OPERAND is its bit string (`PICTURE 1(m)`): `AsBits()` on the record
+  struct is what the boolean MOVE / compare / INSPECT paths read; the packed image stays the file/REDEFINES form.
+  ⛔ **`AsBits()` is a PLACEMENT, not a concatenation** (`GroupImageCodec.BitAreaOf`, kb/Work PB207): each member
+  sits at `BitLayout.StartBitWithin`, with §8.5.1.6.3's implicit-filler zeros between and after, for the group's
+  whole `ExtentBits`. Concatenating the subordinate bit strings — and taking their SUM as the width — is right
+  only while every member is "immediately following … an item of the same level"; a member whose LEVEL NUMBER
+  differs starts at the next byte, and `01 BG GROUP-USAGE BIT. 05 B1 PIC 1(2). 03 B2 PIC 1(2).` measured
+  `DISPLAY BG` = four positions against `FUNCTION LENGTH(BG)` = ten, the two reading the same group through
+  different laws. The compile-time image seed (`GroupImageCodec.ImageInitOf`) rides the same composition, which
+  is what makes a bit group's REDEFINES backing agree with its own `AsImage()`. A national group's
   operand value IS its `AsImage()` (UTF-16 national positions).
 
 **Diagnostics (next free codes from session-probe):** SR1 — the clause on a non-group, a strongly-typed group, or
@@ -449,7 +456,8 @@ elementary face is `AsBits()` / `FromBits()` (`GroupImageCodec.EmitBitMethods`; 
 arm and `BooleanRenderer`, stored through `PlaceRenderer.Write`'s as-if arm — the ONE place a MemberPlace that is
 an as-if group receives), the packed image stays `AsImage()`/`FromImage()`, and a bit group is a §8.5.1.6.3 RUN
 MEMBER inside an alphanumeric group (`PhysicalModel`: run members are bit items; a group member's carrier is
-`X.AsBits()`, its distribution `X.FromBits(slice)`, `BitLayout.RunBits` its width). A national group's face is its
+`X.AsBits()`, its distribution `X.FromBits(slice)`, `BitLayout.RunBits` its width as a RUN MEMBER — while its
+own internal composition is `BitLayout.ExtentBits`, see the placement note above). A national group's face is its
 character image, stored by `WriteGroupImage`. The MOVE dispatch: `MoveClassifier.Kind` sends an as-if receiver
 down the Convert path over `OperandPic` (`ConvertSource` reads `target.OperandPic`), and `IsGroupSender` excludes
 an as-if sender. Diagnostics: COBOLNET1653 (`GroupUsageRule`) for SR1 + SR2/SR3's explicit-USAGE and

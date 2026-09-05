@@ -758,18 +758,14 @@ public static class DiagnosticCatalog
         + "a variable-length group.\" (A variable-length group is §8.5.1.12.1's — a group with a dynamic-length "
         + "elementary item or a dynamic-capacity table subordinate to it.)",
         "ISO §13.18.63.3 SR1");
-    // A group-level VALUE whose area is BIT-PACKED (kb/Work PB207). §13.18.63.4 GR5 initializes "the group
-    // area"; for a group with a USAGE BIT descendant that area is ceil(bits/8) PACKED bytes laid out by the
-    // §8.5.1.6.3 walk, not a character run, so the positional CHARACTER slice both initializer lanes implement
-    // has no meaning over it. Measured on 8ca74a3d and unchanged by PB184's widening: the multi-member shape
-    // `01 BG GROUP-USAGE BIT VALUE B"1010". 05 B1 PIC 1(2). 05 B2 PIC 1(2).` CRASHED the emitter with an
-    // unhandled ArgumentOutOfRangeException, and the single-member shape silently stored ONE boolean position
-    // where the literal has four. Staged LOUD rather than either: a wrong answer that compiles is worse than a
-    // named refusal, and PB207 carries the real fix (a boolean-position area rule for both lanes).
-    public static readonly DiagnosticDescriptor BitGroupLevelValue = new(
-        NotImplemented, "bit-group-level-value", EditionSeverity.Error,
-        "A group-level VALUE clause on a group whose area is bit-packed (a USAGE BIT item is subordinate to it) "
-        + "is recognized but not yet implemented.", "ISO §13.18.63.4 GR5 / §8.5.1.6.3", RecognizedNotImplemented);
+    // ⛔ NO `BitGroupLevelValue` DESCRIPTOR ANY MORE (kb/Work PB207, landed). A group-level VALUE on a group
+    // with a USAGE BIT descendant was staged loud here as recognized-not-implemented, on the ground that
+    // §13.18.63.4 GR5 had no area to deposit into. It has one, in the OTHER UNIT: §13.18.29.4 GR1b makes a bit
+    // group an as-if `PICTURE 1(m)` item, so its area is m BOOLEAN POSITIONS from the §8.5.1.6.3 walk, and
+    // GroupValueSlicer.AreaOf composes it for both initializer lanes. The other half of the refused population
+    // — an ALPHANUMERIC group with a USAGE BIT subordinate — was never a compiler gap either: it violates
+    // §13.18.63.3 SR14 and is reported as GroupValueSubordinate (COBOLNET1702) now that this descriptor no
+    // longer sits in front of that rule. Do not reintroduce the name.
     // ⛔ THE TERMINATION-STATUS PHRASE HAS ITS OWN SYNTAX RULES, and none of them existed (kb/Work PB169). The
     // operand was bound through the ARITHMETIC funnel, so §8.8.1.1 — a rule that does not govern this position —
     // rejected the two shapes the position's own rules explicitly admit: measured on 9a89fbd1, both

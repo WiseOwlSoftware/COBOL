@@ -278,28 +278,38 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   items contained within this group" — so the operand's characters are deposited positionally across the group's
   storage (GR7 aligns them per §14.6.8: left-justified, space fill, no editing, JUSTIFIED inert) and each
   subordinate is then whatever its own description makes of the characters under it. That rule is
-  **`GroupValueSlicer.AreaTextOf`**, and it covers all three operand forms — a quoted literal, `ALL "literal"`,
+  **`GroupValueSlicer.AreaOf`**, and it covers all three operand forms — a quoted literal, `ALL "literal"`,
   and a **figurative constant word** — under ONE rule, **§8.3.3.6.4 GR2**: it is the branch for the case "the
   length of the string is specified in the rules for the context", it names the VALUE clause explicitly, and it
   carries both the repeat-to-width and the truncate-from-the-right. (GR3 is the complementary branch — the length
   *not* specified — and its sub-rule a is scoped to a concatenation expression, which is `ConcatFolder`'s rule and
   not this one. §13.18.63.4 GR5 makes the group area the receiving field, so the length is always specified here.
   The fill CHARACTER is GR1's, with the per-format GR4–GR8 identities.)
-  TWO lanes consume it and neither may re-derive it: `GroupValueSlicer.ComposedInit` distributes the area text into
+  TWO lanes consume it and neither may re-derive it: `GroupValueSlicer.ComposedInit` distributes the area into
   the typed-native record-struct fields, and **`GroupImageCodec.ImageInitOf`** — THE seeder for every
   character-image backing (Tier-B REDEFINES, EXTERNAL run-unit cells, BASED/ADDRESS-OF cells, OO backings) —
-  emits it as the backing's initial image. A **BIT-PACKED** group is the one declared exclusion: its width is
-  `ceil(bits/8)` characters laid out by the §8.5.1.6.3 walk and its members do not tile it, so a positional
-  character slice has no meaning over it. The exclusion lives ONCE, inside `AreaTextOf`, keyed on
-  `DataItem.HasBitDescendant` — the fact that switches `ImageWidth` to the bit walk, not `GROUP-USAGE BIT`, which
-  is only the commonest way to acquire it; the binder rejects the shape first with a staged loud (kb/Work PB207,
-  which carries the boolean-position area rule that will replace it). ⛔ **That staged loud runs LAST in
-  `CheckGroupValueDeclarations`, and only over an entry the syntax rules ACCEPTED** (kb/Work PB206): a
-  "recognized but not implemented" refusal is what is left when the source is conforming and we cannot compile
-  it, never the first thing said about source that is not. Running it first made it answer for two populations it
-  does not govern — a bit group whose VALUE literal violates SR10's own size sentence (which was therefore
-  unreachable), and a group with no GROUP-USAGE clause but a USAGE BIT subordinate, which is an alphanumeric group
-  item (§13.18.29.4 GR3) whose bit leaf violates SR14's usage conjunct.
+  emits it as the backing's initial image.
+- **The area has TWO UNITS, and the rule reports which one** (`GroupArea(Text, Bits)`; kb/Work PB207). A
+  **BIT GROUP**'s area is not made of characters: §13.18.29.4 GR1a makes a `GROUP-USAGE BIT` group "a bit group
+  and also a bit data item; its class and category are boolean", and GR1b describes it "as though it were an
+  elementary data item of usage bit … described with PICTURE 1(m), where m is the bit length of the group" — so
+  GR5 deposits **m boolean positions** laid out by the §8.5.1.6.3 walk, where `DataItem.ImageWidth` reports the
+  `ceil(m/8)` characters it OCCUPIES. The two are different numbers and the members do not tile the character
+  count (two `PIC 1(2)` members are one character between them and `ceil(2/8)` = one character *each*), which is
+  why a positional character slice over such a group crashed the slicer. GR7's §14.6.8 arm follows the unit:
+  §14.6.8.6 for a boolean area — "with **zero fill** or truncation to the right" — and §14.6.8.5's space fill for
+  every other category. The record-struct lane takes `SliceBitInit` (members placed by
+  `BitLayout.StartBitWithin`) and the image lane packs the same area through `CobolBits.Pack`. A group that is
+  NOT a bit group but has a `USAGE BIT` descendant returns no area at all: it is never conforming source
+  (§13.18.63.3 SR14 requires usage DISPLAY of every item subordinate to an alphanumeric group item carrying a
+  VALUE — COBOLNET1702; §13.18.29.3 SR3 requires usage national under a national group), and both lanes stay
+  total over that residue.
+- **A bit group's IMAGE is its packed area, never its members' images concatenated**
+  (`GroupImageCodec.BitAreaOf` — ONE composition, ridden by the generated `AsBits()`/`FromBits`, by the
+  compile-time image seed, and by the GR5 arm above). Each member sits where `BitLayout.StartBitWithin` puts it,
+  with §8.5.1.6.3's implicit-filler zeros between and after; the width is `BitLayout.ExtentBits`, never a sum of
+  the members' widths — a member whose LEVEL NUMBER differs from its predecessor's is not "of the same level" and
+  starts at the next byte.
 - **The group-level VALUE SYNTAX rules are screened at bind time, in one place**
   (`DataBinder.CheckGroupValueDeclarations` → COBOLNET1702 / COBOLNET1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
   SR16 extends SR13/SR14 to the format 2 table VALUE). SR1 bars a strongly-typed group item or a variable-length
@@ -353,11 +363,14 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   clean on the screen's first landing while its byte-identical inline spelling was rejected. Provenance keeps the
   verdict count honest: `DataItem.ValueIsCopied` marks a VALUE this entry only ASSUMED (§13.18.57.4 GR1 /
   §13.18.49 GR1), so the screen answers once per WRITTEN VALUE clause rather than once per reference site.
-- **A staged loud beats a silent wrong answer, and a crash is neither.** The one shape the area rule cannot yet
-  express — a bit-packed group's VALUE — is refused by name (COBOLNET0899, `bit-group-level-value`) rather than
-  answered wrongly. Measured before the refusal: the multi-member shape raised an unhandled
-  `ArgumentOutOfRangeException` out of `GroupValueSlicer.SliceInit`, and the single-member shape stored ONE
-  boolean position where the literal has four.
+- **A staged loud beats a silent wrong answer, and a crash is neither — and a refusal is retired the moment the
+  rule is expressible.** The bit-packed group VALUE was the standing example: before it was refused, the
+  multi-member shape raised an unhandled `ArgumentOutOfRangeException` out of `GroupValueSlicer.SliceInit` and
+  the single-member shape stored ONE boolean position where the literal has four, so it was refused by name
+  (COBOLNET0899, `bit-group-level-value`) instead. That area rule is now EXPRESSED — in boolean positions, the
+  two bullets above — so the refusal and its descriptor are DELETED (kb/Work PB207); COBOLNET0899 keeps its
+  other populations and `bit-group-level-value` is gone. A staged loud is a debt with a name, not a resting
+  state: it is removed in the change set that implements the rule, never left standing beside it.
 - **`ByName` becomes a MULTIMAP** (`Dictionary<string,List<DataItem>>`) — COBOL permits duplicate names disambiguated
   only by qualification; the current single-value Dictionary silently overwrites (latent wrong-item bug).
 - **SYNCHRONIZED is a no-op for in-memory typed data** (the CLR aligns a `long` naturally); honored only at the
