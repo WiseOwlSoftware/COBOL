@@ -81,12 +81,20 @@ internal static class RecordFraming
     /// This is the positioning index a §14.9.30.4 GR21 BACKWARD sequential READ needs on a RECORD VARYING file,
     /// whose frames are not uniformly wide the way a fixed record-sequential file's blocks are. Only the length
     /// prefixes are read — each payload is SEEKED over, never materialized — so the index costs one pass and no
-    /// record storage. A torn tail ends the store, the same rule <see cref="ReadStore"/> applies.</summary>
-    public static List<long> FrameStarts(string path)
+    /// record storage. A torn tail ends the store, the same rule <see cref="ReadStore"/> applies.
+    /// <para>⛔ IT INDEXES THE CONNECTOR'S OWN OPEN STREAM, NOT A PATH. Only a backward READ on an ALREADY-OPEN
+    /// varying file asks for this index, so the presence question is already answered and asking the host again
+    /// would be a second answer to it: <see cref="HostFile.Probe"/> is the ONE place the runtime asks the
+    /// operating environment about a physical file and it is asked once per OPEN by <c>FileConnector.Open</c>,
+    /// never by an organization body (<c>HostFileProbeDriftTests</c>, kb/Work PB323). Re-opening by path would
+    /// also take a SECOND handle on a file the connector may hold under a deny-share mode, and could index a
+    /// different file than the one the connector is reading. The walk moves the stream position and leaves it
+    /// where it stops; every caller reaches <c>SequentialConnector.SeekToRecord</c> immediately afterwards,
+    /// which seeks and discards the reader's buffer.</para></summary>
+    public static List<long> FrameStarts(Stream fs)
     {
         var starts = new List<long>();
-        if (!File.Exists(path)) return starts;
-        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+        fs.Seek(0, SeekOrigin.Begin);
         var len = new byte[4];
         while (true)
         {

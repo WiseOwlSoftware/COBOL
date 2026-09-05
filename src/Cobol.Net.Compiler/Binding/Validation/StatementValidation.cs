@@ -555,7 +555,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckWriteAdvancingMnemonic(FileModel file, bool advancingNamesMnemonic)
     {
         if (!(file.Linage is not null && advancingNamesMnemonic)) return true;
-        data.Edition.Error("COBOLNET0862", $"WRITE … ADVANCING mnemonic-name on file '{file.CobolName}', whose "
+        data.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"WRITE … ADVANCING mnemonic-name on file '{file.CobolName}', whose "
             + "file description entry contains a LINAGE clause (ISO §14.9.51 SR13)");
         return false;
     }

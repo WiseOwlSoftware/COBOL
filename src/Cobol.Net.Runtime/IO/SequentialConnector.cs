@@ -597,7 +597,7 @@ public sealed class SequentialConnector : FileConnector
         long start;
         if (IsVarying)
         {
-            _varyingStarts ??= RecordFraming.FrameStarts(HostPath);
+            _varyingStarts ??= RecordFraming.FrameStarts(stream);
             // A target past the last frame is NOT a positioning failure — it is §14.9.30.4 GR21 e), "no record
             // is found that satisfies the above rules", and the read body reports it as the ordinary at-end
             // once positioned at the end of data. (Reachable: a PREVIOUS on a freshly opened EMPTY varying

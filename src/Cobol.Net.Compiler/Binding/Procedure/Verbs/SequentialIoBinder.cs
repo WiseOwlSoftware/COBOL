@@ -320,7 +320,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         var afterP = phrases.FirstOrDefault(p => p.AFTER() is not null);
         if (beforeP is null || afterP is null || AnyAdvancePage(wba))
         {
-            ctx.Edition.Error("COBOLNET0862", "the combined WRITE … BEFORE ADVANCING … AFTER ADVANCING form "
+            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, "the combined WRITE … BEFORE ADVANCING … AFTER ADVANCING form "
                 + "(ISO §14.9.51 SR17) shall specify one BEFORE and one AFTER phrase and shall not specify PAGE");
             return (BindAdvancing(phrases[0]), null);
         }

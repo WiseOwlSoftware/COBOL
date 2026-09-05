@@ -2210,6 +2210,40 @@ public static class DiagnosticCatalog
         + "Neither can be located in a record nothing describes.",
         "ISO §13.4.5.3 SR7 / §13.4.6.3 SR2");
 
+    /// <summary>COBOLNET0862 — the I-O STATEMENT OPERAND/PHRASE band: a START or WRITE statement writes an
+    /// operand or a phrase its own syntax rules do not admit. Covers ISO §14.9.41.3 (START — the access mode,
+    /// the relational operator, the WITH LENGTH phrase, the FIRST/LAST requirement on a sequential-organization
+    /// file, and what data-name-1 may name on each organization) and §14.9.51.3 with §14.9.51.4 (WRITE — the
+    /// ADVANCING phrase's operand and the malformed BEFORE/AFTER pair). Two statements, one shape: the operand
+    /// or phrase is syntactically present and semantically inadmissible, so the diagnosis is a rule name.</summary>
+    public static readonly DiagnosticDescriptor IoStatementOperandRule = new(
+        "COBOLNET0862", "io-statement-operand-rule", EditionSeverity.Error,
+        "A START or WRITE statement writes an operand or a phrase its own syntax rules do not admit — START's "
+        + "access mode, relational operator, WITH LENGTH phrase, the FIRST/LAST requirement §14.9.41.3 syntax "
+        + "rule 2 puts on a sequential-organization file (\"If the organization of the file referenced by "
+        + "file-name-1 is sequential, either the FIRST or the LAST phrase shall be specified.\"), and what "
+        + "data-name-1 may name on each organization; or WRITE's ADVANCING operand and its malformed "
+        + "BEFORE/AFTER pair (§14.9.51.3 / §14.9.51.4). The site names the rule it caught.",
+        "ISO §14.9.41.3 / §14.9.51.3 / §14.9.51.4");
+
+    /// <summary>COBOLNET0863 — the FILE-CONTROL KEY-CLAUSE band: a RECORD KEY, ALTERNATE RECORD KEY or RELATIVE
+    /// KEY clause (or the LINAGE-COUNTER qualifier that reads one of the same file description entries) violates
+    /// its own rule. Covers ISO §12.4.5.1 (the file control entry's required clauses), §12.4.5.12.3 (RECORD KEY),
+    /// §12.4.5.6.3 (ALTERNATE RECORD KEY), §12.4.5.13 and §12.4.5.13.3 (RELATIVE KEY) and §8.4.3.14 / §13.18.34
+    /// GR7 a) (LINAGE-COUNTER). The three key clauses state the SAME OCCURS ban in the same words, which is why
+    /// they share one code: a rule set with one member written down is where the missing members hide
+    /// (kb/Work PB354).</summary>
+    public static readonly DiagnosticDescriptor FileKeyClauseRule = new(
+        "COBOLNET0863", "file-key-clause-rule", EditionSeverity.Error,
+        "A file control entry's key clause — RECORD KEY (ISO §12.4.5.12.3), ALTERNATE RECORD KEY (§12.4.5.6.3) "
+        + "or RELATIVE KEY (§12.4.5.13 / §12.4.5.13.3) — is absent where the organization or access mode requires "
+        + "it (§12.4.5.1), or its operand breaks one of the clause's own syntax rules: all three state \"Data-name-1 "
+        + "and data-name-2 shall not be subject to any OCCURS clauses\" (§12.4.5.12.3 syntax rule 1 and its twins), "
+        + "and RELATIVE KEY adds the unsigned-integer and not-in-a-record-of-this-file rules. The LINAGE-COUNTER "
+        + "qualifier (§8.4.3.14 / §13.18.34 GR7 a) names a file description entry the same way and lands here too. "
+        + "The site names the rule it caught.",
+        "ISO §12.4.5.1 / §12.4.5.12.3 / §12.4.5.6.3 / §12.4.5.13.3 / §8.4.3.14 / §13.18.34");
+
     public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
         "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",

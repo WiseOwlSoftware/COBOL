@@ -607,7 +607,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (dref.cobolWord() is { } q)   // qualified: LINAGE-COUNTER OF/IN file-name
         {
             if (ctx.Data.FilesByName.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
-            ctx.Edition.Error("COBOLNET0863", $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
+            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
                 + "file whose file description entry contains a LINAGE clause (ISO §8.4.3.14 / §13.18.34 GR7a)");
             return null;
         }

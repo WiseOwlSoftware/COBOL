@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -257,7 +258,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return new BoundNop();   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         KeyedValidateFile(file);
         if (file.AccessMode == FileAccessMode.Random)
-            ctx.Edition.Error("COBOLNET0862", $"START on '{name}': the access mode shall be sequential or "
+            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the access mode shall be sequential or "
                 + "dynamic (ISO §14.9.41 SR1)");
         KeyedInvalidKey? invalid =
             st.startInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
@@ -283,7 +284,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         string op = kp?.comparisonOperator() is { } oc ? ConditionBinder.MapOperator(oc.GetText()) : "==";   // GR8/GR15 — EQUAL
         if (op == "!=")
         {
-            ctx.Edition.Error("COBOLNET0862", $"START on '{name}': the relational operator shall not be "
+            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the relational operator shall not be "
                 + "'IS NOT EQUAL TO' (ISO §14.9.41 SR3)");
             op = "==";
         }
@@ -292,7 +293,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // the PHRASE against the ORGANIZATION and needs no operand, so it is screened before the operand resolves.
         BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? host.Expr.BindExpr(le) : null;
         if (length is not null && file.Organization != FileOrganization.Indexed)
-            ctx.Edition.Error("COBOLNET0862", $"START … WITH LENGTH on '{name}': the LENGTH phrase requires "
+            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START … WITH LENGTH on '{name}': the LENGTH phrase requires "
                 + "indexed organization (ISO §14.9.41 SR8)");
         Place? operand = kp?.dataReference() is { } dref ? ctx.Refs.Resolve(dref) : null;
         if (kp is not null && operand is null)
@@ -305,7 +306,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // leftmost position — and the relative arm, which never calls OffsetOf, did not reject it at all.
         bool operandUnderOccurs = operand is not null && Model.RecordLayout.IsSubjectToOccurs(operand.Item);
         if (operandUnderOccurs)
-            ctx.Edition.Error("COBOLNET0862", $"START on '{name}': '{operand!.Item.CobolName}' is subject to an "
+            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{operand!.Item.CobolName}' is subject to an "
                 + "OCCURS clause; data-name-1 shall not be (ISO §14.9.41.3 SR4)");
 
         // §14.9.41.3 SR2 — "If the organization of the file referenced by file-name-1 is sequential, either the
@@ -315,7 +316,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // ill-formed statement, never a refusal of the organization: the FIRST/LAST arm above accepts it.
         if (file.IsSequential)
         {
-            ctx.Edition.Error("COBOLNET0862", $"START on sequential-organization file '{name}': either the "
+            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on sequential-organization file '{name}': either the "
                 + "FIRST or the LAST phrase shall be specified (ISO §14.9.41.3 SR2)");
             return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
@@ -326,7 +327,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         if (file.Organization == FileOrganization.Relative)
         {
             if (operand is not null && !ReferenceEquals(operand.Item, file.RelativeKeyItem))
-                ctx.Edition.Error("COBOLNET0862", $"START on '{name}': data-name-1 shall be the RELATIVE KEY "
+                ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': data-name-1 shall be the RELATIVE KEY "
                     + $"item '{file.RelativeKeyItem?.CobolName ?? "(none)"}' (ISO §14.9.41 SR5)");
             operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.ResolveItem(rk) : null;
             // ⛔ GR8's SUBSTITUTION HAS NO OPERAND, SO THE STATEMENT HAS NO MEANING (kb/Work PB236, row
@@ -342,7 +343,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // no longer as a silent compile followed by a run-time abort.
             if (operand is null)
             {
-                ctx.Edition.Error("COBOLNET0862", $"START on '{name}': the KEY phrase is omitted, so ISO "
+                ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the KEY phrase is omitted, so ISO "
                     + "§14.9.41.4 GR8 substitutes KEY IS EQUAL TO the RELATIVE KEY item — but this file control "
                     + "entry has no RELATIVE KEY clause, so there is no key to compare. Add a RELATIVE KEY "
                     + "clause to the SELECT, or write an explicit KEY phrase.");
@@ -361,7 +362,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             if ((Model.RecordLayout.KeyIndexOfKeyItem(file, operand.Item)
                  ?? Model.RecordLayout.GenericKeyIndex(file, operand.Item)) is not { } ki)
             {
-                ctx.Edition.Error("COBOLNET0862", $"START on '{name}': '{operand.Item.CobolName}' is neither a "
+                ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{operand.Item.CobolName}' is neither a "
                     + "record key of the file nor an item that begins at the leftmost character position of one "
                     + "within a record of that file, has the same class, category and usage as that key, and is "
                     + "no longer than it (ISO §14.9.41.3 SR6)");
@@ -406,7 +407,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         if (!_keyedCheckedFiles.Add(file)) return;
         if (file.Organization == FileOrganization.Indexed && file.HasFd && file.RecordKeyItem is null)
-            ctx.Edition.Error("COBOLNET0863", $"indexed file '{file.CobolName}' has no RECORD KEY clause "
+            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"indexed file '{file.CobolName}' has no RECORD KEY clause "
                 + "(ISO §12.4.5.1 Format 1 — RECORD KEY is required for ORGANIZATION INDEXED)");
         // §12.4.5.12.3 SR1 and §12.4.5.6.3 SR1 — the RECORD KEY and ALTERNATE RECORD KEY twins of
         // §12.4.5.13.3 SR1 below, word for word: "Data-name-1 and data-name-2 shall not be subject to any
@@ -415,27 +416,27 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // hardest to see. (data-name-2 is the SOURCE phrase's operand — not claimed, Annex A.3 item 40 — so
         // data-name-1 is the whole of what a key clause can carry here.)
         if (file.RecordKeyItem is { } pk && Model.RecordLayout.IsSubjectToOccurs(pk))
-            ctx.Edition.Error("COBOLNET0863", $"RECORD KEY '{pk.CobolName}' is subject to an OCCURS clause; "
+            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"RECORD KEY '{pk.CobolName}' is subject to an OCCURS clause; "
                 + "data-name-1 shall not be (ISO §12.4.5.12.3 SR1)");
         foreach (var (alt, _, _) in file.AlternateKeys)
             if (Model.RecordLayout.IsSubjectToOccurs(alt))
-                ctx.Edition.Error("COBOLNET0863", $"ALTERNATE RECORD KEY '{alt.CobolName}' is subject to an "
+                ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"ALTERNATE RECORD KEY '{alt.CobolName}' is subject to an "
                     + "OCCURS clause; data-name-1 shall not be (ISO §12.4.5.6.3 SR1)");
         if (file.Organization != FileOrganization.Relative) return;
         if (file.RelativeKeyItem is null && file.AccessMode != FileAccessMode.Sequential)
-            ctx.Edition.Error("COBOLNET0863", $"relative file '{file.CobolName}' is ACCESS {file.AccessMode} "
+            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"relative file '{file.CobolName}' is ACCESS {file.AccessMode} "
                 + "but has no RELATIVE KEY clause (ISO §12.4.5.13 — required for random/dynamic access)");
         if (file.RelativeKeyItem is not { } rk) return;
         if (Model.RecordLayout.IsSubjectToOccurs(rk))
-            ctx.Edition.Error("COBOLNET0863", $"RELATIVE KEY '{rk.CobolName}' is subject to an OCCURS clause; "
+            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"RELATIVE KEY '{rk.CobolName}' is subject to an OCCURS clause; "
                 + "data-name-1 shall not be (ISO §12.4.5.13.3 SR1)");
         if (rk.Pic is not { Category: PicCategory.Numeric, Scale: 0, Signed: false })
-            ctx.Edition.Error("COBOLNET0863", $"RELATIVE KEY '{rk.CobolName}' shall be an unsigned integer "
+            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"RELATIVE KEY '{rk.CobolName}' shall be an unsigned integer "
                 + "without the symbol 'P' (ISO §12.4.5.13 SR2)");
         DataItem root = rk;
         while (root.Parent is { } p) root = p;
         if (file.Records.Contains(root))
-            ctx.Edition.Error("COBOLNET0863", $"RELATIVE KEY '{rk.CobolName}' shall not be defined within a "
+            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"RELATIVE KEY '{rk.CobolName}' shall not be defined within a "
                 + $"record description of file '{file.CobolName}' (ISO §12.4.5.13 SR3)");
     }
 }
