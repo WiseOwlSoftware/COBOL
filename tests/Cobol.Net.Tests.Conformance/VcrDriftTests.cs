@@ -47,7 +47,13 @@ public sealed class VcrDriftTests
     }
 
     private static readonly Regex AnchorRx = new(@"<!--\s*((?:gate:[^\s>]+\s*)+)-->", RegexOptions.Compiled);
-    private static readonly Regex RowNumRx = new(@"^\|\s*([0-9]+[a-z]?)\s*\|", RegexOptions.Compiled);
+    // A VCR row number is `28`, `130e` (Tables 1–6) or `7.20` / `7.20a` (Table 7's dotted per-table numbering).
+    // ⛔ The dotted form was NOT matched until kb/Work PB300, so every gate anchor on a Table 7 row was DEAD
+    // MARKUP: invisible to the generated status index AND to EveryGateAnchor_ResolvesToARealConstruct, which
+    // means a Table 7 anchor naming a construct that does not exist would never have been caught
+    // (feedback_a_dead_lookup_is_also_unverified). Table 7 is where every pre-2023 delta lives, so this was the
+    // half of the doc the forward-coverage check could not see.
+    private static readonly Regex RowNumRx = new(@"^\|\s*([0-9]+(?:\.[0-9]+)?[a-z]?)\s*\|", RegexOptions.Compiled);
 
     /// <summary>Every VCR <c>gate:</c> anchor with the change row's number that carries it.</summary>
     private static List<(string Row, string[] Ids)> GateAnchors(string[] lines)

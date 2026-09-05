@@ -25,7 +25,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class CobolWordsDriftTests
 {
-    private sealed record WordRow(string Token, bool NameSlot, bool SubscriptTrigger);
+    private sealed record WordRow(string Token, bool NameSlot, bool SubscriptTrigger, bool ReservationGated);
 
     // token -> COBOL word spelling: ANTLR '_' becomes '-'; a trailing '_' is a generator-clash guard (FULL_ = "FULL").
     private static string ToWord(string token) => token.Replace('_', '-').TrimEnd('-');
@@ -39,7 +39,8 @@ public sealed class CobolWordsDriftTests
             .Select(e => new WordRow(
                 e.GetProperty("token").GetString()!,
                 e.GetProperty("nameSlot").GetBoolean(),
-                e.GetProperty("subscriptTrigger").GetBoolean()))
+                e.GetProperty("subscriptTrigger").GetBoolean(),
+                e.TryGetProperty("reservationGated", out var g) && g.GetBoolean()))
             .ToList();
     }
 
@@ -54,6 +55,51 @@ public sealed class CobolWordsDriftTests
         var onlyG4 = g4.Where(w => !json.Contains(w)).Take(5).ToList();
         Assert.True(onlyJson.Count == 0 && onlyG4.Count == 0,
             $"cobolWord drift: json={json.Count} g4={g4.Count} json-only=[{string.Join(",", onlyJson)}] g4-only=[{string.Join(",", onlyG4)}]");
+    }
+
+    /// <summary>⛔ THE BOTH-HALVES PIN (kb/Work PB300). A <c>reservationGated</c> row must appear in the generated
+    /// grammar TWICE and with OPPOSITE predicates: in <c>cobolWord</c> under <c>{!reservedHere("W")}?</c> (the
+    /// word is a user word exactly where §8.9 leaves it) and in <c>reservedGatedWord</c> under
+    /// <c>{reservedHere("W")}?</c> (a DECLARATION of it still parses where §8.9 reserves it, so the funnel's
+    /// targeted COBOLNET0901 names the word instead of a raw COBOL0001).
+    /// <para>The second half used to be a HAND-WRITTEN list of two words inside <c>CobolData.g4</c>'s
+    /// <c>dataName</c>, and it had already rotted: CRT and CURSOR were reservation-gated by kb/Work PB301 and
+    /// never added, so <c>01 CRT PIC X.</c> at <c>--std 2002</c> answered "no viable alternative". Generating both
+    /// halves from the ONE flag is the structural cure (CLAUDE.md rule 5); THIS test is what keeps "automatic"
+    /// true — set-equality in BOTH directions, so neither a JSON row without a rule alternative nor a rule
+    /// alternative without a JSON row survives.</para></summary>
+    [Fact]
+    public void CobolWordsG4_ReservedGatedWord_Matches_Json_ReservationGated()
+    {
+        var json = LoadJsonWords().Where(w => w.ReservationGated).Select(w => w.Token).ToHashSet(StringComparer.Ordinal);
+        Assert.NotEmpty(json);   // dataName references the rule; an empty one is invalid ANTLR
+
+        var g4 = ParseGatedAlternatives("reservedGatedWord", negatedGate: false);
+        var onlyJson = json.Where(w => !g4.Contains(w)).Take(5).ToList();
+        var onlyG4 = g4.Where(w => !json.Contains(w)).Take(5).ToList();
+        Assert.True(onlyJson.Count == 0 && onlyG4.Count == 0,
+            $"reservedGatedWord drift: json={json.Count} g4={g4.Count} json-only=[{string.Join(",", onlyJson)}] "
+            + $"g4-only=[{string.Join(",", onlyG4)}] — re-run scripts/gen-cobol-words.ps1");
+
+        // The other half, and the reason the two are asserted together: the SAME rows carry the INVERTED gate in
+        // cobolWord. A row gated in one rule and ungated (or absent) in the other is the desync this pins.
+        var cobolWordGated = ParseGatedAlternatives("cobolWord", negatedGate: true);
+        Assert.True(json.SetEquals(cobolWordGated),
+            $"cobolWord's !reservedHere gates ({cobolWordGated.Count}) do not equal the reservationGated rows "
+            + $"({json.Count}) — the two halves of the gate must name the same words");
+
+        // Every gated word must be a REAL §8.9 word with a per-edition split, or the gate is a no-op in one
+        // direction: reserved at every edition ⇒ cobolWord never admits it; reserved at none ⇒ reservedGatedWord
+        // never fires. Both would be silent (feedback_a_dead_lookup_is_also_unverified).
+        var reserved = LoadReservedIntervals();
+        foreach (string t in json.OrderBy(w => w, StringComparer.Ordinal))
+        {
+            Assert.True(reserved.TryGetValue(ToWord(t), out var flags),
+                $"reservationGated word '{t}' has no reserved-words.json row — reservedHere() answers false everywhere");
+            Assert.True(flags.Contains(true) && flags.Contains(false),
+                $"reservationGated word '{t}' is reserved at {(flags[0] ? "every" : "no")} edition, so one half of "
+                + "its gate can never fire — reservation gating only means something across a §8.9 boundary");
+        }
     }
 
     /// <summary>The lexer's runtime <c>_dataNameTokens</c> set equals the JSON <c>subscriptTrigger=true</c> tokens.
@@ -138,6 +184,44 @@ public sealed class CobolWordsDriftTests
             if (m.Success) alts.Add(m.Groups[1].Value);
         }
         return alts;
+    }
+
+    /// <summary>The tokens of one generated rule's GATED alternatives — <c>| {reservedHere("X")}? X</c> when
+    /// <paramref name="negatedGate"/> is false, <c>| {!reservedHere("X")}? X</c> when it is true. Ungated
+    /// alternatives are ignored, so this reads the gate itself rather than the rule's membership.</summary>
+    private static HashSet<string> ParseGatedAlternatives(string ruleName, bool negatedGate)
+    {
+        string path = TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolWords.g4");
+        Assert.True(File.Exists(path), $"generated grammar missing: {path} — run scripts/gen-cobol-words.ps1");
+        var pattern = new Regex(@"^[:|]\s*\{(!?)reservedHere\(""([A-Z][A-Z0-9_]*)""\)\}\?\s*([A-Z][A-Z0-9_]*)\s*$");
+        var alts = new HashSet<string>(StringComparer.Ordinal);
+        bool inRule = false;
+        foreach (var raw in File.ReadAllLines(path))
+        {
+            string line = raw.Trim();
+            if (line == ruleName) { inRule = true; continue; }
+            if (!inRule) continue;
+            if (line == ";") break;
+            if (pattern.Match(line) is not { Success: true } m) continue;
+            if ((m.Groups[1].Value == "!") != negatedGate) continue;
+            Assert.Equal(m.Groups[2].Value, m.Groups[3].Value);   // the gate names the token it guards
+            alts.Add(m.Groups[3].Value);
+        }
+        Assert.True(inRule, $"rule '{ruleName}' not found in {path} — run scripts/gen-cobol-words.ps1");
+        return alts;
+    }
+
+    /// <summary>word → its four §8.9 reservation flags, in edition order {85, 2002, 2014, 2023}.</summary>
+    private static Dictionary<string, bool[]> LoadReservedIntervals()
+    {
+        string path = TestRepo.VersionMatrix("reserved-words.json");
+        Assert.True(File.Exists(path), $"reserved-words.json missing: {path}");
+        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        return doc.RootElement.GetProperty("words").EnumerateArray()
+            .ToDictionary(e => e.GetProperty("word").GetString()!,
+                          e => new[] { e.GetProperty("r85").GetBoolean(), e.GetProperty("r2002").GetBoolean(),
+                                       e.GetProperty("r2014").GetBoolean(), e.GetProperty("r2023").GetBoolean() },
+                          StringComparer.Ordinal);
     }
 
     private static Dictionary<string, bool> LoadReserved2023()

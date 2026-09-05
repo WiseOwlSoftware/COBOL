@@ -110,14 +110,22 @@ fileReserveClause
     : RESERVE integerLiteral (AREA | AREAS)?
     ;
 
-// PADDING CHARACTER: PADDING [CHARACTER] IS {data-name-1 | literal-1}. ⛔ THE STANDARD HAS NO SUCH
-// CLAUSE — the file control entry's clauses are §12.4.5.4–§12.4.5.15 and none of them is PADDING
-// (§12.4.5.9, which this comment used to cite, is the LOCK MODE clause; kb/Work PB159). A pre-2002
-// legacy surface accepted leniently, with no effect on CobolSharp's record model — parsed and ignored.
-// ⛔ OPEN DEFECT, kb/Work PB300, and it has TWO arms: the clause is ungated (accepted even at
-// --std 2023, where the doctrine says every leniency is dialect-gated), AND because PADDING is a lexer
-// token that cobolWord does not admit, `01 PADDING PIC X.` is a PARSE ERROR at 2014/2023 — editions at
-// which §8.9 does not reserve the word, so that declaration is legal COBOL (the PB301 shape).
+// PADDING CHARACTER: PADDING [CHARACTER] IS {data-name-1 | literal-1} — the ANSI X3.23-1985 Sequential I-O
+// block-fill character. THE 2023 STANDARD HAS NO SUCH CLAUSE: the file control entry's clauses are
+// §12.4.5.4–§12.4.5.15 and none of them is PADDING (§12.4.5.9, which this comment once cited, is the LOCK MODE
+// clause; kb/Work PB159), and the word occurs NOWHERE in the 2023 text — §8.9's list runs PACKED-DECIMAL → PAGE.
+// SUPERSET PARSE at every edition, gated post-bind from 2014 by VersionConformancePass ParseArm
+// .VisitPaddingCharacterClause (registry row `padding-character-removed-2014`, COBOLNET0902 — an error under
+// strict, a warning with the pre-removal no-op reading under --permissive). Deleting the rule was MEASURED and
+// rejected: NIST SQ216A writes `PADDING CHARACTER IS "9"` and SQ217A the operand form `PADDING PADDING-CHARACTER`
+// (both compiled at --std 85), so the 85/2002 reading has to stay. Nothing is captured on the FileModel and that
+// is deliberate — COBOL.NET has no blocking model, so a stored padding character would be a field nothing reads
+// (feedback_a_dead_lookup_is_also_unverified); the clause is inert in the program's own terms, which is what
+// makes the --permissive migration reading honest.
+// ⛔ TWO ARMS, ONE TOKEN (kb/Work PB300 — the second arm is why a decline may not cost the user the WORD):
+// PADDING is also a `reservationGated` row in tests/version-matrix/cobol-words.json, so `01 PADDING PIC X.` is a
+// legal declaration exactly at 2014/2023, where §8.9 does not reserve the word, and draws a targeted
+// COBOLNET0901 at 85/2002 through dataName's generated `reservedGatedWord` alternative.
 paddingCharacterClause
     : PADDING CHARACTER? IS? (literal | dataReference)
     ;

@@ -156,6 +156,8 @@ public static class Constructs
     public const string FixedFormWordContinuationRemoved2023 = "fixed-form-word-continuation-removed-2023";
     public const string CopyReplacingNonPseudoTextRemoved2023 = "copy-replacing-non-pseudo-text-removed-2023";
     public const string Col7ContinuationObsolete2023 = "col7-continuation-obsolete-2023";
+    public const string PaddingCharacterRemoved2014 = "padding-character-removed-2014";
+    public const string UserWordPadding2014 = "user-word-padding-2014";
     public const string RerunRemoved2002 = "rerun-removed-2002";
     public const string EnterRemoved2002 = "enter-removed-2002";
     public const string UseForDebuggingRemoved2002 = "use-for-debugging-removed-2002";

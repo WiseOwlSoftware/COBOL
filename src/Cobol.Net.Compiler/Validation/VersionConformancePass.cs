@@ -541,6 +541,20 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>PADDING CHARACTER (file control entry) — the ANSI X3.23-1985 Sequential I-O block-fill
+        /// character, DELETED from the standard: the 2023 file control entry's clauses are §12.4.5.4–§12.4.5.15
+        /// and none is PADDING, and the word appears nowhere in the 2023 text (§8.9's list runs PACKED-DECIMAL →
+        /// PAGE). Parsed-and-ignored at 85/2002 (a compiler with no blocking model has nothing to pad — the
+        /// MULTIPLE FILE / RERUN posture, and NIST SQ216A/SQ217A both write the clause), gated here from 2014.
+        /// <para>⛔ THE ABSENCE OF THIS ARM WAS THE DEFECT (kb/Work PB300): the clause parsed at EVERY edition
+        /// with nothing reading the rule, so `--std 2023` accepted a clause the targeted standard does not
+        /// contain and said nothing — the one leniency in the compiler that was on neither dialect axis.</para></summary>
+        public override object? VisitPaddingCharacterClause(CobolParserCore.PaddingCharacterClauseContext ctx)
+        {
+            _p.Check(Constructs.PaddingCharacterRemoved2014, "the SELECT PADDING CHARACTER clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The SOURCE-/OBJECT-COMPUTER attribute SINK (the grammar swallows the obsolete '85 clauses as
         /// raw tokens — <c>~(DOT|PROGRAM)+</c>), so the deleted elements hiding in it are gated by TOKEN-TEXT scan
         /// (P2.6): MEMORY SIZE, SEGMENT-LIMIT, WITH DEBUGGING MODE — each its own registry row/VCR item.</summary>
@@ -2125,36 +2139,45 @@ internal sealed class VersionConformancePass
             // resolves it to a DebugRegisterPlace, so ACCEPT it here (no §8.9 violation, no not-implemented note).
             if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
                 return base.VisitChildren(ctx);
-            if (_reservedWords.RejectsAt(word, _p._edition.Year) && (_flaggedWords ??= []).Add(word))
-            {
-                // The §8.9 reserved-word severity routes through the ONE policy — and the VERDICT is COMPUTED
-                // from the word's own reservation interval, never asserted here. Hard-coding `Removed` made
-                // --permissive accept a RE-RESERVED word (RECEIVE, END-RECEIVE) as a user-defined word at
-                // COBOL-85, where the '85 communication module reserves it and no conforming '85 program could
-                // contain one — a not-yet-introduced construct getting the migration mode's leniency (CA14's
-                // policy; these two were found by the introduction-axis theory the fix added).
-                _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                    EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
-                    "edition-reserved-word",
-                    $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
-                    + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
-            }
+            FlagReservedUserWord(word);
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>kb/Work PB137: dataName's reservation-gated direct-token alternatives (COMMIT/ROLLBACK)
-        /// keep DECLARATIONS parseable at 2023 precisely so this funnel can NAME the reserved word — they
-        /// bypass cobolWord entirely, so the §8.9 check must meet them here with the SAME one-per-word
-        /// report the cobolWord walk emits.</summary>
+        /// <summary>⛔ THE ONE §8.9 reserved-word report — both walks that can reach a user-defined-word
+        /// position call it, so the message, the code, the once-per-word suppression and the severity have a
+        /// single definition (<c>feedback_one_rule_one_place</c>; it was written out twice, and the second copy
+        /// is exactly where a fix would have been forgotten).
+        /// <para>The severity routes through the ONE policy and the VERDICT is COMPUTED from the word's own
+        /// reservation interval, never asserted here. Hard-coding <c>Removed</c> made <c>--permissive</c> accept
+        /// a RE-RESERVED word (RECEIVE, END-RECEIVE) as a user-defined word at COBOL-85, where the '85
+        /// communication module reserves it and no conforming '85 program could contain one — a
+        /// not-yet-introduced construct getting the migration mode's leniency (CA14's policy; these two were
+        /// found by the introduction-axis theory the fix added).</para></summary>
+        private void FlagReservedUserWord(string word)
+        {
+            if (!_reservedWords.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
+            _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
+                EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
+                "edition-reserved-word",
+                $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
+                + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
+        }
+
+        /// <summary>kb/Work PB137/PB300: dataName's <c>reservedGatedWord</c> alternative keeps a DECLARATION of a
+        /// reservation-gated word parseable at the editions where §8.9 reserves it, precisely so this funnel can
+        /// NAME the word — it bypasses cobolWord entirely, so the §8.9 check must meet it here.
+        /// <para>⛔ WORD-LIST-FREE BY CONSTRUCTION. This used to read
+        /// <c>ctx.COMMIT() is not null ? "COMMIT" : ctx.ROLLBACK() is not null ? "ROLLBACK" : null</c> — a second
+        /// hand-maintained copy of the grammar's own list, and it was already stale: CRT and CURSOR were
+        /// reservation-gated by PB301 and neither this arm nor the grammar's arm was extended, so a declaration
+        /// of either answered a raw parse error. Every <c>reservedGatedWord</c> alternative is a SINGLE token, so
+        /// the subrule's own text IS the word and a new gated row needs no edit here (CLAUDE.md rule 5).</para>
+        /// <para>PROCEDURE and FILLER are deliberately NOT reached: PROCEDURE is §8.9-reserved at every edition
+        /// and NC205A legally names a data item with it, and FILLER is not a user-defined word at all.</para></summary>
         public override object? VisitDataName(CobolParserCore.DataNameContext ctx)
         {
-            string? word = ctx.COMMIT() is not null ? "COMMIT" : ctx.ROLLBACK() is not null ? "ROLLBACK" : null;
-            if (word is not null && _reservedWords.RejectsAt(word, _p._edition.Year) && (_flaggedWords ??= []).Add(word))
-                _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                    EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
-                    "edition-reserved-word",
-                    $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
-                    + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
+            if (ctx.reservedGatedWord() is { } gated)
+                FlagReservedUserWord(gated.GetText().ToUpperInvariant());
             return base.VisitChildren(ctx);
         }
     }

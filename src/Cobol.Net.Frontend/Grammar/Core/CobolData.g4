@@ -221,11 +221,18 @@ dataName
     : cobolWord
     | FILLER
     | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
-    // kb/Work PB137: the reservation-gated facility words leave cobolWord at 2023 (so operand lists cannot
-    // absorb the bare verbs), but a DECLARATION naming one must still PARSE so the §8.9 funnel's targeted
-    // COBOLNET0901 can NAME the reserved word instead of a generic parse error (the user-word-commit pin).
-    | {reservedHere("COMMIT")}? COMMIT
-    | {reservedHere("ROLLBACK")}? ROLLBACK
+    // kb/Work PB137: the reservation-gated words leave cobolWord exactly where §8.9 reserves them (so operand
+    // lists cannot absorb the bare facility verbs), but a DECLARATION naming one must still PARSE so the §8.9
+    // funnel's targeted COBOLNET0901 can NAME the reserved word instead of a generic parse error (the
+    // user-word-commit pin). ⛔ THIS WAS A HAND-WRITTEN LIST OF TWO WORDS (COMMIT/ROLLBACK) and it silently
+    // rotted: CRT and CURSOR became reservation-gated with kb/Work PB301 and were never added here, so
+    // `01 CRT PIC X.` at --std 2002 answered COBOL0001 "no viable alternative" instead of naming §8.9.
+    // `reservedGatedWord` is GENERATED from the SAME cobol-words.json `reservationGated` flag that generates
+    // the cobolWord gates (kb/Work PB300, CLAUDE.md rule 5), so the two halves cannot drift apart and the next
+    // gated word is automatic; CobolWordsDriftTests pins both directions. PROCEDURE stays a separate
+    // alternative on purpose — it is reserved at EVERY edition and NC205A must keep compiling, so it must NOT
+    // reach the funnel.
+    | reservedGatedWord
     ;
 
 dataDescriptionBody

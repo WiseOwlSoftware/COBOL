@@ -319,15 +319,37 @@ from it:
    `dotnet clean` keeps it) carrying the subscript-trigger set; a partial `.cs` is the minimal buildable form
    because ANTLR has no portable `@members` text-include and the set references token-type `int` constants on
    the generated lexer.
-2. `Grammar/Core/CobolWords.g4` — a generated parser fragment holding the `cobolWord` alternative list,
-   imported by `CobolParserCore.g4`.
+2. `Grammar/Core/CobolWords.g4` — a generated parser fragment holding TWO rules, `cobolWord` and
+   `reservedGatedWord`, imported by `CobolParserCore.g4`.
 3. It cross-checks against `reserved-words.json` (RW-1: a subscript-trigger-only word must be 2023-reserved,
    with exact reconciliation pins on both asymmetry sides) so the two sources cannot silently disagree; a
    violation fails generation (fail-hard, like the existing drift test).
 
-A `CobolWordsDriftTests` unit test asserts the generated grammar fragments match the JSON (parallel to the
-existing `ReservedWordsDriftTests`). Result: adding a context-sensitive keyword is a **one-line JSON edit**;
-the lexer HashSet, the parser rule, and the reserved-word funnel can no longer silently disagree.
+**Reservation gating has TWO halves, and BOTH are generated from the one `reservationGated` flag.** A word whose
+§8.9 reservation *changes across editions* (COMMIT, ROLLBACK, CRT, CURSOR, PADDING) cannot simply be a
+`cobolWord` alternative: at the editions that reserve it, admitting it in every name slot lets an operand list
+absorb the bare facility verb. So the generator emits it twice, with opposite predicates:
+
+- in `cobolWord` as `{!reservedHere("W")}? W` — the word is a user word exactly where §8.9 leaves it free; and
+- in `reservedGatedWord` as `{reservedHere("W")}? W`, an alternative of `dataName`, so a DECLARATION naming the
+  word still PARSES where §8.9 reserves it and `VersionConformancePass`'s funnel answers with the targeted
+  COBOLNET0901 ("'W' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 "no viable alternative".
+
+⛔ **Why this is generated and not written by hand (kb/Work PB300, CLAUDE.md rule 5).** The second half used to be
+a hand-written list of two words inside `CobolData.g4`'s `dataName`, paired with a hand-written
+`ctx.COMMIT() ?? ctx.ROLLBACK()` extraction in the funnel — three places naming the same set. It had already
+rotted: CRT and CURSOR were reservation-gated by kb/Work PB301 and added to neither, so `01 CRT PIC X.` at
+`--std 2002` answered a parse error that never named §8.9. `reservedGatedWord`'s alternatives are all single
+tokens, so the funnel reads the subrule's own text and needs no list either. `PROCEDURE` stays a hand-written
+`dataName` alternative ON PURPOSE — it is reserved at *every* edition and NC205A legally names a data item with
+it, so it must never reach the funnel.
+
+`CobolWordsDriftTests` asserts the generated grammar fragments match the JSON (parallel to the existing
+`ReservedWordsDriftTests`), including set-equality in BOTH directions for `reservedGatedWord` and the pin that
+each gated word's two halves name the same words and that the word actually straddles a §8.9 boundary (reserved
+at every edition, or at none, would make one half unreachable). Result: adding a context-sensitive keyword — a
+reservation-gated one included — is a **one-line JSON edit**; the lexer HashSet, the two parser rules, and the
+reserved-word funnel can no longer silently disagree.
 
 **3.3b SUBSCRIPT-mode vocabulary (D9 partial).** The SUBSCRIPT mode stays (the `x(i)` vs `(a+b)`
 disambiguation genuinely needs lexer-mode context and cannot be cleanly expressed in the parser given

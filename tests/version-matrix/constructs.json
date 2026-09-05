@@ -1811,6 +1811,30 @@
    "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. VMLC1.\n000300 DATA DIVISION.\n000400 WORKING-STORAGE SECTION.\n000500 01 W-TXT PIC X(20) VALUE \"AAAAAAAAAA\n000600-    \"BBBBBBBBBB\".\n000700 PROCEDURE DIVISION.\n000800 MAIN.\n000900     DISPLAY W-TXT.\n001000     STOP RUN.\n"
   },
   {
+   "id": "padding-character-removed-2014",
+   "description": "PADDING CHARACTER clause (file control entry) - the ANSI X3.23-1985 Sequential I-O block-fill character (PADDING [CHARACTER] IS {data-name-1 | literal-1}); no program-visible effect in a model with no blocking, so parsed-and-ignored at 85/2002 (the MULTIPLE FILE / RERUN posture). DELETED from the standard: the 2023 file control entry's clauses are 12.4.5.4 through 12.4.5.15 and none is PADDING, and the word appears NOWHERE in the 2023 text, 8.9 included. THE REMOVAL EDGE IS DERIVED, NOT QUOTED, and the derivation is stated so it can be overturned in one line: the repo holds no 2002 or 2014 text (ratified decision #1), and the only per-edition datum is reserved-words.json, which keeps PADDING reserved at 2002 and NOT at 2014. A clause whose leading word is not a reserved word cannot be written, so the clause is gone BY 2014; and gating it exactly where reservedHere() stops reserving the word is what keeps this row and the user-word-padding-2014 row from contradicting each other. kb/Work PB300.",
+   "display": "the PADDING CHARACTER clause (file control entry)",
+   "diagnosticCode": "COBOLNET0902",
+   "citation": "absent from the whole ISO 2023 text; the file control entry's clauses are ISO §12.4.5.4-§12.4.5.15 (§12.4.5) and none is PADDING; §8.9 absence (the list runs PACKED-DECIMAL -> PAGE); VCR Table 7 row 7.20",
+   "introducedIn": 85,
+   "removedIn": 2014,
+   "expectDiagnostic": "COBOLNET0902",
+   "vcr": "VCR Table 7 row 7.20; reserved-words.json row PADDING (r2014/r2023 false)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPADC.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmpadc\" ORGANIZATION IS SEQUENTIAL\n        PADDING CHARACTER IS SPACE.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"PAD\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+  },
+  {
+   "id": "user-word-padding-2014",
+   "description": "The word PADDING as a user-defined word - the 8.9 interval read in the OTHER direction from the user-word-commit family: PADDING is reserved at 85 and 2002 (the PADDING CHARACTER clause's own word) and reserved at NEITHER 2014 nor 2023, so `01 PADDING PIC 9.` is legal COBOL exactly from 2014 - an INTRODUCTION of user-word space, not a removal. Probed on the DECLARATION screen (the user-word-commit shape): the reference position is structurally unparseable at 85/2002, where the reservation-gated cobolWord withholds the word, so dataName's generated reservedGatedWord alternative plus the VisitDataName funnel arm carry the targeted 0901. kb/Work PB300.",
+   "display": "the word PADDING as a user-defined word",
+   "diagnosticCode": "COBOLNET0901",
+   "citation": "§8.9 interval encoding: reserved at 85/2002, user-definable from 2014 (the §8.9 list runs PACKED-DECIMAL -> PAGE with no PADDING, and the word is absent from the whole 2023 text); reserved-words.json row PADDING",
+   "introducedIn": 2014,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0901",
+   "vcr": "VCR Table 7 row 7.20; reserved-words.json row PADDING",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWPAD1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PADDING PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"X\".\n    STOP RUN.\n"
+  },
+  {
    "id": "rerun-removed-2002",
    "description": "RERUN clause (I-O-CONTROL) - the '85 checkpoint hint (RERUN [ON file/implementor-name] EVERY {[END OF] REEL/UNIT OF f | n RECORDS [OF f] | n CLOCK-UNITS | condition-name}); no program-visible effect, parsed-and-ignored at 85 (a null rerun facility is conforming); deleted by ISO 2002 (absent from the whole 2023 text, 8.9 included).",
    "display": "the RERUN clause (I-O-CONTROL)",

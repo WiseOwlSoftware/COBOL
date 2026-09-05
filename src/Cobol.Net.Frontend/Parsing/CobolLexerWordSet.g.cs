@@ -77,6 +77,7 @@ public partial class CobolLexer
         NUMBERS,
         ONLY,
         OVERRIDE,
+        PADDING,
         PARSE,
         PRESENT,
         PROCEDURES,

@@ -425,6 +425,13 @@
    "note": "the METHOD-ID attribute slot (11.7, 2002+): a user word at 85, funnel-0901'd >=2002"
   },
   {
+   "token": "PADDING",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the file-control PADDING CHARACTER clause word (ANSI X3.23-1985 Sequential I-O; deleted post-2002 - VCR Table 7 row 7.20). ISO 8.9 does NOT reserve PADDING at 2014 or 2023 (reserved-words.json r2014/r2023 false; the 2023 list runs PACKED-DECIMAL to PAGE with no PADDING, and the word appears NOWHERE in the 2023 text), so `01 PADDING PIC X.` is legal COBOL at both editions - yet the lexer tokenizes the word and cobolWord did not admit it, so the declaration was a parse error at EVERY edition. RESERVATION-GATED (the COMMIT/ROLLBACK precedent, kb/Work PB137; the CRT/CURSOR precedent, kb/Work PB301): admitted only where 8.9 does not reserve it, so the clause still parses at 85/2002 where the word IS reserved. kb/Work PB300.",
+   "reservationGated": true
+  },
+  {
    "token": "PARSE",
    "nameSlot": true,
    "subscriptTrigger": true,
