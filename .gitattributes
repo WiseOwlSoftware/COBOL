@@ -2,6 +2,7 @@
 # permission layer refuses a script containing control characters — CR is one — so a CRLF'd script cannot be
 # launched at all. The failure message ("script contains control characters") does not name the cause.
 .claude/workflows/*.js text eol=lf
+.claude/skills/workstream/templates/*.js text eol=lf
 
 # DEVLOG.md is the ONE tracked file stored with CRLF in the object database (every other text file normalizes to
 # LF under core.autocrlf). That was implicit — no attribute governed it — and the log's append discipline depends
