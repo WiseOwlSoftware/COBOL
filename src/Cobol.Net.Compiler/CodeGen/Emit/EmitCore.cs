@@ -120,15 +120,14 @@ internal static class EmitText
     /// a fixed-length receiver / a compared-with operand; ISO §8.3.3.6.4 GR2): the literal is repeated character by
     /// character until its length is ≥ <paramref name="width"/>, then truncated from the right to <paramref
     /// name="width"/> (or 1, whichever is greater). An empty literal yields spaces. (A length-UNSPECIFIED context —
-    /// DISPLAY / STOP / STRING — uses the literal once per GR3c, NOT this.)</summary>
-    public static string RepeatToWidth(string literal, int width)
-    {
-        int w = Math.Max(width, 1);
-        if (literal.Length == 0) return new string(' ', w);
-        var sb = new System.Text.StringBuilder(w + literal.Length);
-        while (sb.Length < w) sb.Append(literal);
-        return sb.ToString()[..w];
-    }
+    /// DISPLAY / STOP / STRING — uses the literal once per GR3c, NOT this.)
+    /// <para>⛔ THE RULE ITSELF LIVES IN THE RUNTIME (<c>CobolString.FigToWidth</c>, kb/Work PB297) — a relation
+    /// condition sizes the same figurative at RUNTIME (the associated operand may be a reference-modified or
+    /// function-result item whose character-position count is not a compile-time property), and the constant fold
+    /// must not be a second copy of GR2 that can drift from it. The call goes through
+    /// <see cref="RuntimeApi.FigToWidthFold"/> rather than naming the runtime type here, because the P7 Step 4b
+    /// ratchet makes <c>RuntimeApi</c> the ONE CodeGen file that names the runtime.</para></summary>
+    public static string RepeatToWidth(string literal, int width) => RuntimeApi.FigToWidthFold(literal, width);
 
     /// <summary>Thin forward to the one codec — see <see cref="CobolNet.Common.CobolLiteral.AllLiteralText"/>
     /// (the ALL literal-1 figurative form, ISO §8.3.3.6.2 Format 6 / §8.3.3.6.4 GR9; the delimiters are

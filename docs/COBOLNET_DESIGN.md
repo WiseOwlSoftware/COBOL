@@ -1005,8 +1005,14 @@ result does not feed it — decision 20.
 
 ### 12.3 Smaller surfaces
 
-- **Figurative constants** = context-materialized sentinels resolved at each use site against receiver category+width
-  (§8.3.3.6); HIGH/LOW-VALUE per §14.9.
+- **Figurative constants** = context-materialized sentinels resolved at each use site against the ASSOCIATED
+  operand's category+width (§8.3.3.6.4 GR2, whose NOTE 1 makes a comparison an association exactly as a MOVE is;
+  GR3 b/c is the complementary length-unspecified branch — one character, or literal-1's length); HIGH/LOW-VALUE
+  per §14.9. The sizing itself is ONE function, `CobolString.FigToWidth`: the VALUE-clause and fixed-receiver
+  sites fold it at compile time through `EmitText.RepeatToWidth`, and a RELATION CONDITION calls it at runtime
+  through `CobolString.CompareFig`, because there the associated operand may be a reference-modified item
+  (§8.4.3.3.4 GR5 — the unique data item's own positions) or a function result, whose character-position count is
+  not a compile-time property of any PICTURE (kb/Work PB297).
 - **INITIALIZE** = a compile-time tree-walk to per-elementary typed stores (default/VALUE/REPLACING; FILLER skipped;
   OCCURS → a for-loop).
 - **SET** = dispatch by target kind (index→long, pointer→`ManagedPointer`/NULL, switch→bool, cond-name TO TRUE→store

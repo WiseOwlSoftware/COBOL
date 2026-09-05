@@ -217,7 +217,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// operand's category and width (ISO §8.3.3.6.4 r2 sizes it from the associated operand; §8.8.4.2.1
     /// treats a group anchor as an elementary alphanumeric item — kb/Work PB182 corrected the phantom
     /// §8.8.4.1.1 this used to cite): a numeric anchor → ZERO is 0; an alphanumeric/group anchor →
-    /// the figurative is a string of the anchor's width.</summary>
+    /// the figurative is a string as long as the anchor's own value is.
+    /// <para>⛔ THE WIDTH IS THE ANCHOR'S OWN RUNTIME LENGTH, NEVER A COMPILE-TIME TABLE (kb/Work PB297).
+    /// This site used to carry an <c>AnchorWidth</c> switch over operand KINDS, and every arm that was not an
+    /// unmodified elementary field was wrong: a <c>RefModPlace</c> field reported the BASE item's width where
+    /// §8.4.3.3.4 GR5 makes the slice "a unique data item" of the ref-mod's own length (so <c>X(1:1) =
+    /// LOW-VALUE</c> over <c>PIC X(2)</c> compared <c>"\0\0"</c> with <c>"\0"</c> → space-padded → FALSE), a
+    /// computed operand fell through to the <c>_ =&gt; 1</c> default (so <c>FUNCTION UPPER-CASE(A) = ALL "AB"</c>
+    /// compared one character), and with figuratives on BOTH sides each was sized to the OTHER's length instead
+    /// of the §8.3.3.6.4 GR3 b/c length of its own. A ref-mod with computed bounds has no compile-time width at
+    /// all, which is why no table could have been completed: the sizing belongs where the length is known, in
+    /// <c>CobolString.CompareFig</c>.</para></summary>
     private string RenderFigurativeRelational(BoundRelational r)
     {
         static bool IsFig(BoundOperand o) => o is BoundFigurative or BoundAllLiteral;
@@ -228,8 +238,16 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         BoundOperand anchor = IsFig(r.Left) ? r.Right : r.Left;
         if (IsFig(anchor) || OperandText.IsString(anchor) || NonNumericFig(r.Left) || NonNumericFig(r.Right))
         {
-            int width = AnchorWidth(anchor);
-            var anchorCat = StringCategoryOf(anchor);
+            // The category that decides BOTH the figurative's fill and the collating sequence is the CONTEXT's,
+            // not the anchor slot's: §8.3.3.6.4 GR1 — "When a figurative constant is used in a context requiring
+            // national characters, the figurative constant represents a national character value" — and GR6/GR7
+            // — "If the context of the figurative constant requires national characters, the national program
+            // collating sequence is used". With figuratives on BOTH sides the anchor slot holds a figurative,
+            // which has no category of its own, so the context can only come from the other side: §8.3.3.6.3 SR2
+            // gives ALL literal-1 its literal's class ("Literal-1 shall be an alphanumeric, boolean, or national
+            // literal"). Reading only the anchor made `IF ALL N"Z" = LOW-VALUE` take the ALPHANUMERIC program
+            // collating sequence and answer the OPPOSITE of the same test written over a national ITEM.
+            var anchorCat = StringCategoryOf(anchor) ?? (IsFig(anchor) ? StringCategoryOf(r.Left) : null);
             // A boolean/national anchor exempts the ALPHANUMERIC program collating sequence: boolean
             // comparisons are value comparisons (§8.8.4.2.8; only ZERO reaches here — the class mix is
             // bind-rejected 0844) and national comparisons order under the NATIONAL sequence (§8.8.4.2.9 —
@@ -243,7 +261,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // HIGH/LOW-VALUE = the category's own sequence — the explicit national PCS extremes when one is
             // declared, else the D-N3 pin — never the alphanumeric PCS extreme).
             string pad = anchorCat is PicCategory.Boolean ? ", pad: '0'" : "";
-            return $"CobolString.Compare({FigOrString(r.Left, width, anchorCat)}, {FigOrString(r.Right, width, anchorCat)}{pad}{collate}) {r.Op} 0";
+            // BOTH sides figurative — there is no associated data item, so §8.3.3.6.4 GR2 does not apply and
+            // GR3 gives each operand its OWN length: one character for a plain figurative word (GR3 b) and
+            // literal-1's length for ALL literal-1 (GR3 c). That is exactly each side's SEED, unrepeated.
+            if (IsFig(r.Left) && IsFig(r.Right))
+                return $"{RuntimeApi.StrCompare(FigSeed(r.Left, anchorCat), FigSeed(r.Right, anchorCat), pad + collate)} {r.Op} 0";
+            // Exactly one side figurative — GR2 repeats its seed to the ASSOCIATED operand's own character-position
+            // count, which the runtime reads off that operand's rendered value (§8.4.3.3.4 GR5: a ref-modified
+            // operand's positions are the slice's, and with computed bounds they exist only at runtime).
+            bool figLeft = IsFig(r.Left);
+            string fig = FigSeed(figLeft ? r.Left : r.Right, anchorCat),
+                   other = OperandText.AsString(anchor, num);
+            return $"{RuntimeApi.StrCompareFig(figLeft ? fig : other, figLeft ? other : fig, figLeft, pad + collate)} {r.Op} 0";
         }
         NumX l = FigOrNum(r.Left), rr = FigOrNum(r.Right);
         if (l.Real || rr.Real)   // a float vs ZERO figurative — native IEEE compare (D16, §8.8.4.2.4)
@@ -288,21 +317,20 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         _ => EmitText.LoudValue("string", $"boolean relation operand '{o.GetType().Name}'"),
     };
 
-    private static int AnchorWidth(BoundOperand op) => op switch
+    /// <summary>A figurative operand's SEED — the string §8.3.3.6.4 GR2 repeats to the associated operand's
+    /// character-position count, and (unrepeated) the whole of its GR3 b/c value when nothing sizes it: ONE fill
+    /// character for a figurative word, literal-1 for <c>ALL literal-1</c>. PCS-aware for alphanumeric anchors —
+    /// HIGH-/LOW-VALUE are the program sequence's extreme characters (§8.3.3.6.4 GR6/GR7) — while a
+    /// national/boolean anchor reads its OWN sequence (the D-N3 pin), through the ONE fill service.
+    /// ⛔ No width here by construction: sizing is <c>CobolString.CompareFig</c>'s (kb/Work PB297).</summary>
+    private string FigSeed(BoundOperand op, PicCategory? anchorCat) => op switch
     {
-        BoundFieldOperand f => f.Place.Item.OperandPic?.Length ?? f.Place.Item.ImageWidth,   // a bit group: its boolean positions (D20)
-        BoundStringLiteral s => Math.Max(s.Value.Length, 1),
-        BoundAllLiteral a => Math.Max(a.Literal.Length, 1),
-        _ => 1,
-    };
-
-    private string FigOrString(BoundOperand op, int width, PicCategory? anchorCat = null) => op switch
-    {
-        // PCS-aware for alphanumeric anchors: HIGH-/LOW-VALUE materialize as the program sequence's extreme
-        // characters (§8.3.3.6 GR6/7); a national/boolean anchor uses the D-N3 pin (FigFill's category arm).
-        BoundFigurative f => $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating, anchorCat, ctx.Data.NationalCollating)}, {width})",
-        BoundAllLiteral a => EmitText.CsLiteral(EmitText.RepeatToWidth(a.Literal, width)),   // ALL "literal" → repeated to width (GR2)
-        _ => OperandText.AsString(op, num),
+        BoundFigurative f => FigurativeConstants.FillText(f.Kind, ctx.Data.Collating, anchorCat, ctx.Data.NationalCollating),
+        BoundAllLiteral a => EmitText.CsLiteral(a.Literal),
+        // Unreachable by construction — both call sites select an operand that already satisfied IsFig. Loud
+        // rather than a silent fall-through to the operand's own text, which would look like a working
+        // comparison while sizing nothing (the failure shape this whole change exists to remove).
+        _ => EmitText.LoudValue("string", $"figurative seed for '{op.GetType().Name}'"),
     };
 
     private NumX FigOrNum(BoundOperand op) => op switch

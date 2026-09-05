@@ -87,4 +87,16 @@ internal static class FigurativeConstants
             _ => "' '",
         };
     }
+
+    /// <summary>The C# <c>string</c>-literal FRAGMENT holding ONE occurrence of a figurative kind's fill
+    /// character — the SEED a §8.3.3.6.4 GR2 sizing repeats (kb/Work PB297). Same fill computation as
+    /// <see cref="FillChar"/>, rendered as a string rather than a char, so the relation renderer can hand the
+    /// figurative to <c>CobolString.CompareFig</c> without knowing its length: GR3 b) already makes ONE
+    /// character the figurative's own length wherever no associated data item sizes it, so this fragment is
+    /// both the seed and the length-unspecified value. Rendered through
+    /// <see cref="SymbolDisplay.FormatLiteral(string, bool)"/>, which escapes the control characters the
+    /// HIGH-/LOW-VALUE pins are (a raw NUL in emitted C# is the DEVLOG 788/790 hazard).</summary>
+    public static string FillText(char kind, AlphabetDef? collate, PicCategory? cat = null,
+        NationalAlphabetDef? natCollate = null) =>
+        SymbolDisplay.FormatLiteral(FillChar(kind, collate, cat, natCollate).ToString(), quote: true);
 }

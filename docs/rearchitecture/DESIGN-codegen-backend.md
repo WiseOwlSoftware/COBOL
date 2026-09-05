@@ -343,7 +343,7 @@ call is re-entrant), and `NumStatic/NumStaticExpr/StaticAdditive/StaticMul` are 
 | `ConditionRenderer` | `IBoundConditionVisitor<string>` |
 | `IntrinsicRenderer` | §15 FUNCTION dispatch — single channel |
 | `PlaceRenderer` | `Place`+`AccessSegment` → C# read/write |
-| `FigurativeConstants` | ONE figurative service (word/kind + PicCategory + collate → {runtime char, C# literal}) |
+| `FigurativeConstants` | ONE figurative service (word/kind + PicCategory + collate → {runtime char, C# char literal, C# string literal}) — the string form is the SEED an ISO §8.3.3.6.4 GR2 sizing repeats; it carries no width, because a figurative's width is the associated operand's and belongs to `CobolString.FigToWidth`/`CompareFig` at runtime (kb/Work PB297) |
 | `RuntimeApi` | typed façade over the runtime API (§3) |
 | `NameAllocator` | C#-identifier generation (SSOT §2 — already planned) |
 

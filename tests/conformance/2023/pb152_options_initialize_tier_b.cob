@@ -19,9 +19,9 @@
       *> The carrier bytes are asserted with FUNCTION ORD, not with a comparison against LOW-VALUES. 15.70.1:
       *> "The ORD function returns an integer value that is the ordinal position of argument-1 in the program
       *> collating sequence. The lowest ordinal position is 1." - so ORD of the low value is 1, exactly. The
-      *> comparison spelling is avoided DELIBERATELY: kb/Work PB297 records that a reference-modified operand
-      *> compared against the figurative LOW-VALUE/HIGH-VALUE answers WRONG whenever the ref-mod length differs
-      *> from the base item's width, and a golden must not be written on top of a known-defective construct.
+      *> comparison spelling was avoided DELIBERATELY while kb/Work PB297 was open: a reference-modified operand
+      *> compared against the figurative LOW-VALUE/HIGH-VALUE answered WRONG whenever the ref-mod length differed
+      *> from the base item's width.  PB297 is FIXED; ORD is kept here as an INDEPENDENT second channel.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB152TIERB.
        OPTIONS.

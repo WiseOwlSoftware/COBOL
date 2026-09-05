@@ -10,8 +10,9 @@
       *>
       *> Each subprogram lays its fill over a VALUE-LESS PIC X(4) (14.6.2.3.2 action 1) and compares the whole
       *> item against the figurative constant the rule names. Comparisons are on the WHOLE item, never on a
-      *> reference modification: kb/Work PB297 records that a ref-mod compared against LOW-VALUE/HIGH-VALUE
-      *> answers wrong when the ref-mod length differs from the base width.
+      *> reference modification.  That was because kb/Work PB297 was open - a ref-mod compared against
+      *> LOW-VALUE/HIGH-VALUE answered wrong when the lengths differed.  PB297 is FIXED; the whole-item
+      *> spelling stays because it is what 8.3.3.6.4 GR2 is being asserted over here.
       *>
       *> BINARY ZEROES and LOW-VALUES coincide for this compiler: the alphanumeric low value of the UTF-16
       *> repertoire IS U+0000, which is also the binary zero. The two arms are still written separately - they

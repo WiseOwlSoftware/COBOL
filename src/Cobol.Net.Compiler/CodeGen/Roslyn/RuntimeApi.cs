@@ -670,6 +670,22 @@ internal static class RuntimeApi
     public static string StrCompare(string a, string b, string weightsArg) =>
         $"{nameof(CobolString)}.{nameof(CobolString.Compare)}({a}, {b}{weightsArg})";
 
+    /// <summary>⚠ NOT a text fragment — the COMPILE-TIME FOLD of ISO §8.3.3.6.4 GR2, evaluated by calling the very
+    /// function the emitted code would call (<c>CobolString.FigToWidth</c>). A figurative sized against a VALUE
+    /// clause or a fixed-width receiver folds to a constant at compile time while a relation condition sizes it at
+    /// runtime (kb/Work PB297); those two answers must be the same answer, and one implementation is how that is
+    /// guaranteed rather than asserted. It lives HERE, in the one CodeGen file the P7 Step 4b ratchet lets name the
+    /// runtime, for the reason the façade exists at all: a runtime rename breaks exactly this file.</summary>
+    public static string FigToWidthFold(string seed, int width) => CobolString.FigToWidth(seed, width);
+
+    /// <summary>The three-way comparison of a relation whose <paramref name="figIsLeft"/> side is a FIGURATIVE
+    /// SEED — <c>CobolString.CompareFig</c> sizes it to the OTHER operand's own runtime character-position count
+    /// (ISO §8.3.3.6.4 GR2 over §8.4.3.3.4 GR5; kb/Work PB297). <paramref name="weightsArg"/> is the trailing
+    /// pad/collation argument (", pad: '0'" or ", __COLLATE"), possibly empty.</summary>
+    public static string StrCompareFig(string a, string b, bool figIsLeft, string weightsArg) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.CompareFig)}({a}, {b}, "
+        + $"figIsLeft: {(figIsLeft ? "true" : "false")}{weightsArg})";
+
     /// <summary>An OCCURS-DEPENDING current count read — <c>CobolTable.Occ</c>.</summary>
     public static string TableOcc(string expr) => $"{nameof(CobolTable)}.{nameof(CobolTable.Occ)}({expr})";
 

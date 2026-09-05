@@ -37,6 +37,30 @@ public static class CobolString
     /// GR9). n ≤ 1 returns the image unchanged.</summary>
     public static string Repeat(string s, int n) => n <= 1 ? s : string.Concat(Enumerable.Repeat(s, n));
 
+    /// <summary>
+    /// ⛔ THE ONE §8.3.3.6.4 GR2 SIZING of a figurative constant against an associated operand (kb/Work PB297).
+    /// The rule, verbatim: "the string of characters is repeated character by character until the size of the
+    /// resultant string is greater than or equal to the number of character positions in the associated data
+    /// item, literal, or intermediate result. This resultant string is then truncated from the right until the
+    /// number of character positions remaining is equal either to 1 or to the number of character positions in
+    /// the associated data item, literal, or intermediate result, whichever is greater."
+    /// <para><paramref name="seed"/> is the figurative's own string — one fill character for a plain figurative
+    /// word, literal-1 for <c>ALL literal-1</c>. An EMPTY seed yields spaces (nothing to repeat). The compiler's
+    /// COMPILE-TIME fold (<c>EmitText.RepeatToWidth</c>, used where the associated width is a static property of
+    /// a VALUE clause or a fixed receiver) forwards HERE, so the constant-folded and the runtime-sized forms can
+    /// never drift apart.</para>
+    /// </summary>
+    public static string FigToWidth(string seed, int width)
+    {
+        int w = Math.Max(width, 1);                    // GR2's "equal either to 1 or to … whichever is greater"
+        if (seed.Length == 0) return new string(' ', w);
+        if (seed.Length == w) return seed;             // already the associated operand's size — no allocation
+        if (seed.Length == 1) return new string(seed[0], w);
+        var sb = new System.Text.StringBuilder(w + seed.Length);
+        while (sb.Length < w) sb.Append(seed);
+        return sb.ToString()[..w];
+    }
+
     /// <summary>The OMITTED reference-modification length sentinel — the <c>identifier(leftmost:)</c> "to the end"
     /// form (ISO §8.4.3.3.4: "If length is not specified … to the end"). A distinct sentinel (NOT −1) so that a
     /// SPECIFIED length that evaluates negative at runtime is DISTINGUISHABLE from the omitted form and can raise
@@ -171,6 +195,35 @@ public static class CobolString
     /// sequence is the two-argument overload above. Returns &lt;0, 0, or &gt;0.
     /// </summary>
     public static int Compare(string? left, string? right, CobolCollation collation) => collation.Compare(left, right);
+
+    /// <summary>
+    /// A relation condition in which EXACTLY ONE operand is a figurative constant or <c>ALL literal-1</c>
+    /// (kb/Work PB297). ISO §8.3.3.6.4 GR2 with its NOTE 1 — "A figurative constant is associated with a data
+    /// item or literal when, for example, the figurative constant is moved to it, COMPARED WITH IT, or paired
+    /// with it in a binary operation" — sizes the figurative to "the number of character positions in the
+    /// ASSOCIATED data item", and §8.8.4.2.7 then compares the two.
+    /// <para>⛔ THE ASSOCIATED OPERAND'S CHARACTER-POSITION COUNT IS ITS OWN RUNTIME LENGTH, WHICH IS WHY THIS
+    /// SIZING IS A RUNTIME ONE. §8.4.3.3.4 GR5 makes a reference-modified operand "a unique data item" whose
+    /// positions are the ref-mod's, not the base item's — and with a computed leftmost-position/length that
+    /// count does not exist at compile time at all. The compiler previously tabulated the width per operand
+    /// KIND, which silently answered every <c>X(1:1) = LOW-VALUE</c> over a wider X with FALSE (the pad in
+    /// §8.8.4.2.7 rule 2 is a SPACE, so only SPACE-valued tests came out right).</para>
+    /// <para><paramref name="figIsLeft"/> says which side carries the figurative SEED (one fill character, or
+    /// literal-1); the other side is the associated operand, rendered once by the caller. Both figurative and
+    /// both non-figurative relations use plain <see cref="Compare(string?,string?,char)"/> instead — with two
+    /// figuratives there is no associated data item and §8.3.3.6.4 GR3 b/c gives each its OWN length.</para>
+    /// </summary>
+    public static int CompareFig(string? left, string? right, bool figIsLeft, char pad = ' ') =>
+        figIsLeft ? Compare(FigToWidth(left ?? "", (right ?? "").Length), right, pad)
+                  : Compare(left, FigToWidth(right ?? "", (left ?? "").Length), pad);
+
+    /// <inheritdoc cref="CompareFig(string?,string?,bool,char)"/>
+    /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
+    /// sequence — the ONE <see cref="CobolCollation"/> carrier): GR2 materializes the figurative FIRST, exactly
+    /// as the native overload does, and the sequence's own operand rule then applies to the sized pair.</remarks>
+    public static int CompareFig(string? left, string? right, bool figIsLeft, CobolCollation collation) =>
+        figIsLeft ? collation.Compare(FigToWidth(left ?? "", (right ?? "").Length), right)
+                  : collation.Compare(left, FigToWidth(right ?? "", (left ?? "").Length));
 
     /// <summary>Membership of <paramref name="read"/> in the alphanumeric/national THROUGH range
     /// [<paramref name="lo"/>, <paramref name="hi"/>] under the effective collating sequence (ISO §14.7.8; a level-88

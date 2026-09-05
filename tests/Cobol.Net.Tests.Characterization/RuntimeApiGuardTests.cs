@@ -37,7 +37,7 @@ public sealed class RuntimeApiGuardTests
     private static readonly Dictionary<string, int> Baseline = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Emit/NumericRenderer.cs"] = 17,     // routes at P9 (ExpressionRenderer under Roslyn/)
-        ["Emit/ConditionRenderer.cs"] = 17,   // routes at P9
+        ["Emit/ConditionRenderer.cs"] = 16,   // routes at P9 (17 → 16: PB297 routed the figurative relation's compare)
         ["Emit/OperandText.cs"] = 7,          // routes at P9
     };
 

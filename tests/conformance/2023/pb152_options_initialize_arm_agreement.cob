@@ -15,10 +15,10 @@
       *>
       *> EXPECTED: WS=1 IMG=00256 ALLOC=1 - every arm fills with the alphanumeric high value.
       *>
-      *> The IMAGE arm is asserted with FUNCTION ORD rather than a comparison because the natural spelling
-      *> `IF R(1:3) = HIGH-VALUES` runs into kb/Work PB297 - a reference-modified operand compared against the
-      *> figurative HIGH-VALUE/LOW-VALUE answers wrong when the ref-mod length differs from the base item's
-      *> width - which is a defect of the comparison, not of this fill. 15.70.1: "The ORD function returns an
+      *> The IMAGE arm is asserted with FUNCTION ORD rather than a comparison because, when it was written,
+      *> `IF R(1:3) = HIGH-VALUES` ran into kb/Work PB297 - a reference-modified operand compared against the
+      *> figurative HIGH-VALUE/LOW-VALUE answered wrong when the ref-mod length differed from the base item's
+      *> width.  PB297 is FIXED; ORD stays as an independent channel. 15.70.1: "The ORD function returns an
       *> integer value that is the ordinal position of argument-1 in the program collating sequence. The lowest
       *> ordinal position is 1." Under the native sequence the ordinal is the character's position + 1, so the
       *> alphanumeric high value U+00FF is ordinal 256.
