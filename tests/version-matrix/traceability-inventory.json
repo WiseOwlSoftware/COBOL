@@ -7495,13 +7495,13 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Variable-length groups",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/VariableLengthCompatibility.cs#Walk",
+  "test-ref": "conformance:2023/pb204_vlg_boundary; conformance:negative/pb204-nested-vlg-table-correspondence",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "Condition 1 of the compatibility determination - 'For each dynamic-capacity table in either group there is a corresponding table in the other group as specified in 8.5.1.12.2, Positional correspondence' - is the dynamic-capacity arm of the ONE positional walk (kb/Work PB204). Correspondence is 8.5.1.12.2 sentence 2's 'at least one of them is a dynamic-capacity table and they occupy the same relative byte positions within their groups', computed over DataItem.ByteWidth, which already carries 8.5.1.12.3's two collapse conventions by construction (a dynamic-length item is zero bytes; a dynamic-capacity table carries no Occurs so a parent sums one element). The relation is CONSULTED at the activation boundary 14.8.2.2 / 14.8.3.2 name, through OoConformance.DescriptionMismatch - the one comparator shared by the Format-2 CALL, CALL RETURNING and INVOKE. POSITIVE: pb204_vlg_boundary crosses a matched dynamic-capacity pair at position 3 and the callee's growth returns to the caller. NEGATIVE: pb204-nested-vlg-table-correspondence puts a dynamic-capacity table opposite a non-table at the same position and is rejected naming this rule. 8.5.1.12.2's last-sentence latitude (a dynamic-capacity table beyond the shorter group's last character corresponds to a space-filled fixed-length table) is implemented in VariableLengthCompatibility.Tail.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.5.1.12.1-2",
@@ -7509,13 +7509,13 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Variable-length groups",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/VariableLengthCompatibility.cs#Walk",
+  "test-ref": "conformance:2023/pb204_vlg_boundary; conformance:negative/pb204-nested-vlg-element-width",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "Condition 2 - 'For each pair of corresponding tables, these tables match, as specified in 8.5.1.12.3, Matching' - is the same walk's matching arm: 8.5.1.12.3 sentence 2's 'the byte length of their elements is equal and their elements are compatible', the second conjunct RECURSING into the same relation (VariableLengthCompatibility.Elements) because a table of variable-length groups is exactly the shape the condition exists for. Sentence 3's 'the dynamic-capacity table is considered to be the same length as the corresponding table' when only one side is dynamic, and sentence 4's single-element length when both are, are applied as the pair's position advance - a fact about a PAIR, which is why it cannot live on either item. POSITIVE: pb204_vlg_boundary's 3-byte elements match and the crossing recovers the callee's capacity by dividing the carried content by that element width. NEGATIVE: pb204-nested-vlg-element-width corresponds two tables of 3- and 4-byte elements and is rejected naming this rule.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.5.1.12.1-3",
@@ -7523,13 +7523,13 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "Variable-length groups",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/VariableLengthCompatibility.cs#Walk",
+  "test-ref": "conformance:2023/pb204_vlg_boundary; conformance:2023/pb204_vlg_invoke; conformance:negative/pb204-nested-vlg-position; conformance:negative/pb204-nested-returning-incompatible",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "Condition 3 - 'For each dynamic-length elementary item in either group there is a corresponding dynamic-length elementary item in the other group as specified in 8.5.1.12.2' - with 8.5.1.12.2 sentence 1's 'start at the same relative byte positions within their groups' as the correspondence and 8.5.1.12.3 sentence 1's 'Two dynamic-length elementary items always match, regardless of their definitions' as the matching. POSITIVE: pb204_vlg_boundary and pb204_vlg_invoke each pair a dynamic-length item across the boundary against a group whose FIXED members are split differently (1+2 against X(3), and 2+1 against X(3)), so the rule is observed to key on byte position and not on the declaration tree. NEGATIVE: pb204-nested-vlg-position (an argument/formal pair) and pb204-nested-returning-incompatible (a RETURNING pair, through 14.8.3.2) each displace the item by one byte and are rejected naming this rule.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.5.2.3-1",
@@ -19507,13 +19507,13 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlClause",
+  "test-ref": "conformance:2002/rw_suppress; conformance:2023/pb205_control_ref_mod",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The one grammar rule accepts both spellings - (CONTROL IS? | CONTROLS ARE?) - and nothing downstream can tell them apart, so they are synonyms by construction. Witnessed both ways: rw_suppress writes CONTROL IS, pb205_control_ref_mod writes CONTROLS ARE.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.16.3-2",
@@ -19521,13 +19521,13 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#IsReportSectionOnlyName",
+  "test-ref": "conformance:negative/pb205-control-operand-report-section",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB205. Previously rejected as a side effect under the WRONG rule: report-section names are not in the storage forest, so the operand failed ordinary name resolution and drew the 8.4.2.1 unresolved-operand diagnostic. SR2 now has its own arm on COBOLNET1699, asked only AFTER resolution fails - a name also declared in ordinary storage resolves there (8.4.2.1) and is not an SR2 reference, which is the 13.15.3 SR16 scan's own reasoning; both consumers share the one report-section-exclusive name set.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.16.3-3",
@@ -19535,13 +19535,13 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlOperandShapeViolation; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef",
+  "test-ref": "conformance:negative/pb177-control-occurs; conformance:negative/pb205-control-operand-subscripted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The shape arm (kb/Work PB177 arm C) rejects an operand subject to any OCCURS clause, recognised with DataItem.IsTable so both dynamic-capacity shapes are covered. kb/Work PB205 added the WRITTEN half: a subscript on the operand was dropped at capture, and since SR3 bars the OCCURS case and 8.4.2.3.3 SR2 bars a subscript on an item without one, no subscripted control operand is legal - it is now rejected on the spelling, not only on the item.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.16.3-4",
@@ -19549,13 +19549,13 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ReadOperandSuffixes; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ResolveItemRefMod",
+  "test-ref": "conformance:2023/pb205_control_ref_mod; conformance:negative/pb205-control-ref-mod-not-literal",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB205 - both halves of SR4. The PERMISSION: a reference-modified operand now binds as its slice, because the capture keeps the ref-mod (ReadOperandSuffixes reads both source carriers lexically) and the emitter builds the 8.4.3.3.4 GR5 unique data item through the one ref-mod view builder (ResolveItemRefMod over RefModView), so 13.18.16.4 GR3's prior control is the slice; before this the ref-mod was dropped and CONTROL IS CX(1:3) broke on all six characters, a silent wrong answer. The RESTRICTION: a leftmost-position or length that is not an integer literal is rejected (COBOLNET1699) - unscreenable while the ref-mod never reached the binder. The omitted length CX(4:) is 8.4.3.3.2's bracketed form and runs to the rightmost position (GR5c).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.16.3-5",
@@ -19563,13 +19563,13 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlOperandShapeViolation",
+  "test-ref": "conformance:negative/pb177-control-occurs-depending",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB177 arm C: OdoModel.TableUnder finds an occurs-depending table anywhere under the operand. It is a separate arm from SR7 on purpose - an occurs-depending table does NOT make a group variable-length (8.5.1.12 defines that over dynamic-length elementary items and dynamic-capacity tables), so SR7 cannot reach this shape.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.16.3-6",
@@ -19577,13 +19577,13 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+  "test-ref": "conformance:negative/pb205-control-operand-not-unique; conformance:2023/pb205_control_ref_mod",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB205. Uniqueness is of the WRITTEN reference (ReportControlRef.SameOperandAs over name + qualifiers + ref-mod), which is what SR6's own second sentence forces: two operands may 'refer to the same physical data item or to overlapping data items', so the referenced item cannot be what distinguishes them - and 13.18.57.3 SR10 could not name a level unambiguously if it were. The positive golden is the legal shape the second sentence permits (CONTROLS ARE CX(1:3) CX(4:)); the negative is the same reference twice.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.16.3-7",
@@ -19591,13 +19591,13 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlOperandShapeViolation; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#HasVariableLengthSubordinate",
+  "test-ref": "conformance:negative/pb177-control-variable-length-group",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB177 arm C: the variable-length-group test is 8.5.1.12's - a dynamic-length elementary item or a dynamic-capacity table subordinate to the group - read through the one predicate the reference resolver already uses for 8.4.3.3.3 SR1.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.16.4-1",
@@ -19605,13 +19605,13 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses; src/Cobol.Net.Runtime/IO/ReportWriter.cs#AddControl",
+  "test-ref": "conformance:2023/pb205_control_ref_mod",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The operands are captured in written order into ReportModel.Controls and emitted in that order as AddControl calls, so index 0 is the major control and the last is the minor. The golden proves the ordering behaviourally: its first operand CX(1:3) is the level whose footing prints last at a break and whose SUM covers both minor groups, while its second operand CX(4:) breaks on its own.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.16.4-2",
@@ -19633,13 +19633,13 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "test-ref": "conformance:2023/pb205_control_ref_mod; conformance:2002/rw_suppress",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The prior control is a saved character image per control operand (the emitted get/set pair over the operand's place); the chronologically first GENERATE saves without testing, later ones test major to minor and stop at the first change, and break processing runs for that level and every lower one. kb/Work PB205 made the SAVED item the right one for a reference-modified operand: GR3 gives the prior control 'the same data description as the corresponding data item', which for such an operand is the 8.4.3.3.4 GR5 unique data item - the slice - and the golden's two overlapping-item controls could not be told apart otherwise.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.16.4-4",
@@ -19661,13 +19661,13 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "CONTROL clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Terminate",
+  "test-ref": "conformance:2023/pb205_control_ref_mod; conformance:2002/rw_suppress",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "TERMINATE runs the same control-break processing as a highest-level break, so every defined control footing prints minor to major. The golden's last two printed lines are exactly that pair (MIN=070 RUN=070 then MAJ=070) with no further detail.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.16.4-6",
@@ -26017,13 +26017,13 @@
   "kind": "SR",
   "ordinal": 8,
   "subject": "SUM clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlLevelOf; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef",
+  "test-ref": "conformance:2023/pb205_control_ref_mod; conformance:negative/pb205-sum-reset-operand-other-slice",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB205 - SR8 is SR10's twin over the same written reference, and it is screened by the same two helpers: data-name-3 may be qualified and reference-modified, its ref-mod positions shall be integer literals, and it shall be an operand of the CONTROL clause of the current report description. The golden's minor control footing carries SUM ... RESET ON CX(1:3) - the major level - which is also SR8's last sentence, the printing footing's level being lower than data-name-3's.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.54.3-9",
@@ -26605,13 +26605,13 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "TYPE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlLevelOf; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef",
+  "test-ref": "conformance:2023/pb205_control_ref_mod; conformance:negative/pb205-type-control-operand-other-slice",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB205. All three of SR10's sentences: the TYPE CH/CF operand may be qualified and reference-modified (the capture keeps both), its ref-mod positions shall be integer literals (screened at the capture with the clause's own citation), and it 'shall be the same as one of the operands of the CONTROL clause' - one comparison over the whole written reference, shared with 13.18.54.3 SR8. Before this the operand kept only its base word and matched by name, so CX(4:3) selected the CX(1:3) level and the minor footing printed at the major level.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.57.3-11",
@@ -28034,11 +28034,11 @@
   "ordinal": 2,
   "subject": "VALUE clause",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue",
-  "test-ref": "conformance:negative/pb94-value-alphanumeric-on-numeric; conformance:negative/pb94-value-nonnumeric-on-numeric; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenValueLiteral; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateTableValues",
+  "test-ref": "conformance:negative/pb94-value-alphanumeric-on-numeric; conformance:negative/pb94-value-nonnumeric-on-numeric; conformance:negative/pb208-table-value-alphanumeric-on-numeric; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive; conformance-test:ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike; conformance-test:ValueFormat2Tests.Format2Sr2Screen_FiresAtEveryEdition",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (kb/Work PB94). The CLASS half — 'all literals in the VALUE clause shall be numeric' — is COBOLNET1657 for an alphanumeric literal, ALL literal or character figurative on a numeric subject (an ALL FORMATS rule: the item VALUE and the condition-name VALUEs share the funnel); error strict, the representable vendor leniency (a digits-only literal is the number, ALL digits repeat to the digit width, a character figurative is ZERO) is a --permissive warning; a non-numeric content is an error on both axes. The RANGE / exact-representation half was already COBOLNET1625 (ValidateNumericValue); the float legs (a/b) are the float items' own.",
+  "notes": "RE-VERDICTED 2026-09-04 (kb/Work PB208). The claim this row carried since 2026-08-18 - that SR2's ALL FORMATS reach was covered because 'the item VALUE and the condition-name VALUEs share the funnel' - named only TWO of the three literal carriers. The FORMAT 2 (table) literals of BuildTableValueSpecs reached the emitter through NO screen at all, so `05 B PIC 9(4) COMP OCCURS 2 VALUE \"0012\" FROM (1) TO (2).` compiled clean at strict 2023 while its format-1 twin was COBOLNET1657. The four inline checks at the format-1 call site are now ONE funnel, ScreenValueLiteral (class + range/sign + the two numeric-edited version gates), and ValidateTableValues calls it per occurrence-literal, storing the text it returns so the --permissive numeric rewrite reaches the per-occurrence override exactly as it reaches item.RawValue. Format1AndFormat2_ScreenTheSameLiteralAlike compares the two lanes' VERDICTS over nine literal/picture pairs on both the strict and the permissive axis, so a rule wired into only one lane reds there rather than shipping. The CLASS half is COBOLNET1657, the RANGE/exact-representation half COBOLNET1625; the float legs (a/b) are the float items' own.",
   "state": "OK"
  },
  {
@@ -28062,11 +28062,11 @@
   "ordinal": 4,
   "subject": "VALUE clause",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory",
-  "test-ref": "conformance:negative/pb94-value-numeric-on-alphanumeric; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs#CheckGroupValueDeclarations",
+  "test-ref": "conformance:negative/pb94-value-numeric-on-alphanumeric; conformance:negative/pb206-value-oversize-elementary; conformance:negative/pb206-group-value-oversize; conformance:negative/pb206-group-value-numeric-literal; conformance:85/pb206_value_size_alphanumeric; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (PB94). A numeric literal on an alphabetic / alphanumeric / alphanumeric-edited subject is COBOLNET1657 (error strict; the characters as MOVE would store them, with a warning, under --permissive); a national / boolean literal on those subjects is the pre-catalog COBOLNET0898 leg. The alphanumeric-literal SIZE halves ('shall not exceed the size indicated by an explicit PICTURE clause') keep the historical truncating store for alphanumeric receivers (documented on ValidateValueCategory) — the numeric-edited size leg is COBOLNET1570 at 2023 (VCR 34).",
+  "notes": "RE-RECORDED 2026-09-04 (kb/Work PB206) - this row was closed CONFORMS on 2026-08-18 (PB94) against SR4's FIRST SENTENCE ONLY. SR4 has three: the category sentence, then 'Alphanumeric literals in the VALUE clause of an elementary item shall not exceed the size indicated by an explicit PICTURE clause' and 'Alphanumeric literals in the VALUE clause of an alphanumeric group item shall not exceed the size of the group item'. NEITHER size sentence had an implementation anywhere while the national (SR5) and boolean (SR10) twins had theirs, and both silently TRUNCATED: measured on 1d949007, `01 E1 PIC X(2) VALUE \"ABCD\".` displayed AB and `01 GZ VALUE \"ABCDEF\". 05 O1 PIC X(2). 05 O2 PIC X(2).` displayed ABCD, neither with a diagnostic. Both are now COBOLNET1740 from ONE arm of the ONE screen, measured against the subject's own size (ValidateValueCategory's sizePositions). The GROUP subject reaches the same screen through its 8.5.2.1 category picture (GroupSubjectPic), which is what closes the third sentence and SR13's first. Error at every edition: Annex E.2 item 27's 2023 size change is scoped to numeric-edited items (COBOLNET1570). A FIGURATIVE operand is exempt BY RULE (8.3.3.6.4 GR2 repeats it to the subject's size and truncates from the right) and the 85 golden pins that acceptance alongside the exact-fit boundary, so an over-rejecting screen fails it.",
   "state": "OK"
  },
  {
@@ -28075,13 +28075,13 @@
   "kind": "SR",
   "ordinal": 5,
   "subject": "VALUE clause",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs#CheckGroupValueDeclarations",
+  "test-ref": "conformance:negative/pb206-national-group-value-oversize; conformance:negative/pb206-group-value-national-literal; conformance:2014/pb206_value_size_categories; conformance-test:NationalBooleanDataTests.IllegalValueShape_Rejects0898",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB206 — THREE SENTENCES, TWO ENFORCED. s1 (literals shall be national): MEASURED -- `01 N1 PIC N(3) VALUE \"AB\".` is rejected COBOLNET0898 citing SR5 (v5b); the legal control `VALUE N\"AB\"` binds and displays [AB ] (v5e). s2 (elementary size): MEASURED -- `PIC N(3) VALUE N\"ABCD\"` rejected COBOLNET0898 \"exceeds the item's 3 national positions\" (v5a, and identically at --std 2002/2014). s3 (a NATIONAL GROUP item's literal shall not exceed the group size): NOT ENFORCED -- `01 NG GROUP-USAGE NATIONAL VALUE N\"ABCDEF\". 05 A PIC N(2).` compiles CLEAN at STRICT 2023 and silently truncates to A=[AB] (probe v5c; the legal control v5f gives the same [AB]), so the over-size and the exactly-fitting sources are indistinguishable. ⚠ THAT LEG IS ALREADY OWNED BY AN OPEN REGISTER NOTE -- kb/Work PB206 (\"the SR4/SR5/SR10 group-SIZE limit silently TRUNCATES\"), status open; do not re-file it. The national-EDITED half of s1 is unreachable: `01 NE PIC NNBNN VALUE N\"ABCD\".` is refused COBOLNET0899 (national-edited data, Phase 4a residue) before any VALUE check (v5d). PARTIAL: two sentences verified, one unenforced and one unreachable. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs:1252-1336 ValidateValueCategory -- the National arm at :1314-1318 (literal class) and :1319-1322 (elementary PICTURE size); src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:191-192 (a national-EDITED picture never reaches the check -- it is refused as Constructs.NationalEdited2002); NO group-size screen anywhere (DataBinder.GroupValue.cs enforces SR1/SR13/SR14 only). || editions, verbatim from the adjudication: 2002, 2014, 2023. The rule's antecedent is category national / national-edited; this edition's Annex E carries no 2023 item touching SR5, so the text is unchanged at 2023. The introduction edition of the national category is NOT derivable from this spec (Annex E covers 2023-vs-2014 only) -- MEASURED identical at 2002, 2014 and 2023 (e_sr5_natover_2002/_2014, v5a).",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-04 (kb/Work PB206). All three sentences. The category sentence and the elementary size sentence were already the COBOLNET0898 band; this landing added the NATIONAL GROUP sentence - 'National literals in the VALUE clause of a national group item shall not exceed the size of the group item' - which no group VALUE could reach because the elementary funnel is guarded `pic is not null` and a group has no PICTURE. A national group HAS a category and a size: 8.5.2.1 - 'a national group item has class and category national' - and 13.18.29.4 GR2b's as-if PICTURE N(m) over its national positions. Measured on 1d949007: `01 GD GROUP-USAGE NATIONAL VALUE N\"ABCDEF\". 05 P1 PIC N(2). 05 P2 PIC N(2).` compiled clean and silently dropped the literal's tail. ALSO FIXED HERE, and it was a rejection of LEGAL source: the elementary size arm measured against pic.Length, so `01 UN PIC N DYNAMIC LENGTH VALUE N\"SEED\".` drew COBOLNET0898 ('exceeds the item's 1 national positions') while its alphanumeric twin compiled and ran - 13.18.19.3 SR1 makes a dynamic-length item's picture 'one instance of the picture symbol' and 13.18.19.4 GR1 makes that symbol determine the CLASS, not a size. The 2014 golden pins both spellings binding, and their FUNCTION LENGTH per 15.50.4 r6 (bytes for a dynamic-length item). GROUP-USAGE is COBOL-2002, hence the edition band.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-6",
@@ -28145,13 +28145,13 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "VALUE clause",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs",
-  "test-ref": "conformance-test:NationalBooleanDataTests.IllegalValueShape_Rejects0898; conformance:negative/level88-alnum-value-boolean",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs#CheckGroupValueDeclarations",
+  "test-ref": "conformance:negative/pb206-bit-group-value-oversize; conformance:2014/pb206_value_size_categories; conformance-test:NationalBooleanDataTests.IllegalValueShape_Rejects0898",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB505 — THREE OBLIGATIONS; ONE AND A HALF LAND. (a) LITERALS SHALL BE BOOLEAN LITERALS -- enforced, both directions. MEASURED: `01 B PIC 1(4) USAGE BIT VALUE \"AB\".` draws COBOLNET0898 (probe sr10_bool_alnum_lit), so does the level-88 form via SR24 (sr10_88_bool_alnum), and the conforming `VALUE B\"1010\"` compiles and DISPLAYs 1010 (sr10_bool_ok). (b) ELEMENTARY SIZE LIMIT -- enforced: `PIC 1(2) VALUE B\"1010\"` draws COBOLNET0898 (sr10_bool_oversize) and the condition-name form does too (c_sr10_88_oversize). The rule scopes the limit to \"the size indicated by an EXPLICIT PICTURE clause\"; there is no unexplicit population, because a USAGE BIT elementary with no PICTURE is already refused (COBOLNET0881, probe c_sr10_no_pic_msg). (c) BIT GROUP ITEM SIZE LIMIT -- NOT IMPLEMENTED. The entire population is refused by name first: `01 G GROUP-USAGE BIT VALUE B\"101010\". 05 A PIC 1(4) USAGE BIT.` draws COBOLNET0899 (b_sr10_bitgroup_oversize, sr10_bitgroup_value), the open kb/Work PB207 stage -- so the rule's third sentence has no reachable obligation and no witness. AND THE SR16 CARRIER BYPASSES THE RULE ENTIRELY: `01 B PIC 1(4) USAGE BIT OCCURS 3 VALUE \"AB\" FROM (1) TO (3).` compiles CLEAN at STRICT --std 2023 and seeds the boolean item with \"AB00\" (probe b_sr16_bool_table_run displays [AB00|AB00|AB00]) where the conforming spelling gives [1010|1010|1010] (b_sr16_bool_table_ok). That is a wrong ANSWER out of source the standard does not permit, with no diagnostic. See findings value-clause-p1/F7. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory (:1332-1341 -- the two PicCategory.Boolean arms: the literal-class arm and the `CobolLiteral.Decode(raw).Length > pic.Length` size arm, both COBOLNET0898), called from the item-VALUE funnel and from #BindCondition (:2152-2155) for the level-88 set; NO SITE for the bit GROUP arm -- src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs:100-110 refuses the whole bit-group-level VALUE population by name (DiagnosticCatalog.BitGroupLevelValue, COBOLNET0899) before any size test; NO SITE for the SR16 (Format 2) carrier -- DataBinder.cs#ValidateTableValues (:3205-3243) checks subscript geometry only and never calls ValidateValueCategory",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-04 (kb/Work PB206). All three sentences of SR10, which is SR5's boolean twin written for boolean positions. The category and elementary-size sentences were the COBOLNET0898 band (NBDAT08/NBDAT10); this landing added the BIT GROUP sentence - 'Boolean literals in the VALUE clause of a bit group item shall not exceed the size of the group item' - over 8.5.2.1's 'a bit group item has class and category boolean' and 13.18.29.4 GR1b's as-if PICTURE 1(m), m being the 8.5.1.6.3 bit extent. THE ARM WAS UNREACHABLE, not merely unwritten: kb/Work PB207's staged-loud refusal of a bit-packed group VALUE (COBOLNET0899 - the 13.18.63.4 GR5 area deposit over boolean positions is unimplemented) ran FIRST and skipped every syntax rule, so a non-conforming bit-group literal was told the area rule is unimplemented. The refusal now runs LAST and only over an entry the syntax rules accepted; pb206-bit-group-value-oversize is the witness that it reports COBOLNET0898 and not COBOLNET0899. ⚠ SCOPE OF THIS VERDICT: SR10 is a syntax rule, and every shape it forbids is now rejected and evidenced. The ACCEPTANCE of a conforming bit-group VALUE is still refused by that 0899 stage - that obligation is 13.18.63.4 GR5's row, and PB207 carries it.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-11",
@@ -28187,13 +28187,13 @@
   "kind": "SR",
   "ordinal": 13,
   "subject": "VALUE clause",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs",
-  "test-ref": "conformance:negative/pb184-group-value-subordinate-value",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs#CheckGroupValueDeclarations; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory",
+  "test-ref": "conformance:negative/pb206-group-value-numeric-literal; conformance:negative/pb206-group-value-national-literal; conformance:negative/pb184-group-value-subordinate-value; conformance:85/pb206_value_size_alphanumeric",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB206 — SENTENCE 2 CONFORMS, SENTENCE 1 IS ABSENT -- the OPEN kb/Work PB206 (\"SR13 sentence 1 accepts a numeric literal on an alphanumeric group\"), whose measured symptom this adjudication reproduces and EXTENDS in two ways. SENTENCE 2 MEASURED: `01 G VALUE \"ABCD\". 05 A PIC X(2) VALUE \"ZZ\". 05 B PIC X(2).` draws COBOLNET1702 (probe sr13_s2_sub_value), and so does the SR16 Format-2 carrier `01 G OCCURS 2 VALUE \"AB\" FROM (1) TO (2). 05 A PIC X(2) VALUE \"ZZ\".` (sr16_table_group_sub_value); the walk is the whole subtree and reports once per offending entry, the outer subject's walk suppressing a nested subject's re-walk. SENTENCE 1 MEASURED, all clean at STRICT --std 2023: (a) `01 G VALUE 12345. 05 A PIC X(5).` compiles and DISPLAYs FIVE SPACES -- the numeric literal is silently DROPPED, not stored (sr13_s1_numeric_on_alnum_group); (b) `01 G VALUE 1234. 05 A PIC 9(4).` DISPLAYs [0000], likewise dropped (c_sr13_num_group_run); (c) NEW, the direction PB206 does not name -- `01 G GROUP-USAGE NATIONAL VALUE \"ABCD\". 05 A PIC N(2). 05 B PIC N(2).` compiles and distributes the ALPHANUMERIC literal across a NATIONAL group as A=[AB], B=[CD] (c_sr13_nat_group_alnum_run), where SR13 s1 requires literal-1 to be of the same category as the group item; (d) the mirror, `01 G VALUE N\"ABCD\". 05 A PIC X(4).` seeds an alphanumeric group from a national literal (c_sr13_alnum_group_nat_lit). The legal figurative case is accepted correctly: `01 G VALUE SPACES. 05 A PIC X(5).` (sr13_s1_figurative_ok). PB206's second half -- the SR4/SR5/SR10 group-SIZE limit -- also reproduces: `01 G VALUE \"ABCDEF\". 05 A PIC X(4).` silently TRUNCATES to [ABCD] (sr13_s1_oversize). INTERPRETATION RECORDED, not filed: the screen deliberately skips level-88 entries (a condition-name is not a node in the composition forest), so `01 G VALUE \"ABCD\". 05 A PIC X(2). 88 F VALUE \"ZZ\".` compiles (sr13_s2_sub_88) -- the permissive reading, on which SR13 s2's \"VALUE clause\" is the format-1 initializing one; SR24 does not pull SR13 into format 3, which supports it. See findings value-clause-p1/F6. || code sites, verbatim from the adjudication: SENTENCE 2 (no VALUE at subordinate levels): src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs:145-151 (the `sub.RawValue is not null || sub.TableValues is not null` arm -> DiagnosticCatalog.GroupValueSubordinate, COBOLNET1702), inside #CheckGroupValueDeclarations. SENTENCE 1 (literal-1's category): NO SITE -- ValidateValueCategory (DataBinder.cs:1249+) is keyed on `pic.Category` and a GROUP has no PicInfo, so the group-VALUE literal never enters that funnel at all; GroupValueSlicer (CodeGen/DataDivision/GroupValueSlicer.cs) distributes whatever text arrived",
-  "state": "GAP"
+  "notes": "COMPLETE 2026-09-04 (kb/Work PB206; sentence 2 landed 2026-08-31 with PB184). SENTENCE 1 - 'literal-1 shall be of the same category as the group item or shall be a figurative constant that is permitted in a MOVE statement to a receiving item of that category' - was enforced NOWHERE: the elementary category funnel is guarded `pic is not null` and a group has no PICTURE, so the whole category axis was unscreened for group subjects. Measured on 1d949007, all compiling CLEAN: `01 GN VALUE 1234.` seeded SPACES (the literal lost entirely), `01 GE VALUE N\"AB\".` deposited national characters into an alphanumeric area, `01 GF VALUE B\"1010\".` stored the literal's text. It is now the SAME screen every elementary subject uses, entered with the subject's 8.5.2.1 category picture, because SR4/SR5/SR10's first sentences say 'the item' / 'the subject of the entry' and 8.5.2.1 gives a group a category outright - SR13 sentence 1 is those rules restated for a group subject. The figurative-constant allowance is already in that screen per category and the 85 golden pins it (ALL \"XYZ\" and ZEROS over a group are conforming). ONE deliberate asymmetry: the SR4-sentence-1 --permissive leniency that stores a numeric literal's digits is withheld from a group subject, because 13.18.63.4 GR5's deposit is over the operand's CHARACTERS and a numeric literal has none. FORMAT 1 only - SR16 carries SR13 to the format 2 table VALUE, whose per-occurrence literals reach no literal screen at all (kb/Work PB208).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-14",
@@ -28621,13 +28621,13 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "VALUE clause",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs; src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs; src/Cobol.Net.Compiler/Binding/Passes/BindPipeline.cs",
-  "test-ref": "conformance:2023/pb184_group_value_area",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#AreaOf; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#SliceInit; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#SliceBitInit; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOf; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#BitAreaOf",
+  "test-ref": "conformance:85/pb207_group_value_area_85; conformance:2023/pb184_group_value_area; conformance:2023/pb207_bit_group_value; conformance:negative/pb184-group-value-non-display; conformance:negative/pb207-bit-group-level-value",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB207 — THE AREA RULE IS LIVE FOR THE POPULATION 13.18.63.3 SR14 ADMITS, AND REFUSED BY NAME OUTSIDE IT. MEASURED (probe gr5area, gr5edge, ed*): plain distribution A=[AB]/B=[CDE]; a NESTED group `01 H VALUE \"ABCDE\". 05 S. 10 C PIC X(2). 10 D PIC X(3).` gives C=[AB] D=[CDE] S=[ABCDE]; a FIGURATIVE group VALUE `01 G VALUE ALL \"*\".` fills the whole area (A=[**] B=[***]) -- the leg PB184 recorded as a live silent wrong answer, now correct; a subordinate OCCURS TILES the area (`01 J VALUE \"ABCDEF\". 05 E PIC X(2) OCCURS 3.` gives E1=[AB] E2=[CD] E3=[EF]), which is GR5 winning over any per-occurrence reading; a NUMERIC DISPLAY subordinate takes the characters under it WITHOUT conversion (`01 H VALUE \"12ABC\". 05 N PIC 99. 05 C PIC X(3).` gives N=[12], and ADD 1 TO N then gives 13 -- the area really is the storage, not a re-interpretation). WHY PARTIAL: one leg of GR5's own population is refused by name rather than implemented -- probe gr5bit, `01 BG GROUP-USAGE BIT VALUE B\"1010\". 05 A PIC 1(2) USAGE BIT. 05 B PIC 1(2) USAGE BIT.` draws COBOLNET0899 \"the 13.18.63.4 GR5 area deposit for a bit-packed group is not yet implemented (kb/Work PB207)\". THAT LEG IS ALREADY OWNED BY AN OPEN REGISTER NOTE -- kb/Work PB207, status open, spec-refs 13.18.63.3 + 13.18.63.4 -- do NOT re-file it; this row's PARTIAL is the inventory face of that note. The covering golden conformance:2023/pb184_group_value_area quotes GR5 verbatim and computes its expectations from the clause. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs:10-17 (\"A GROUP-level VALUE initializes the whole AREA (ISO 13.18.63.4 GR5) -- the ONE area rule lives in ...\"), the positional distributor; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs (the ONE Tier-B image seeder it feeds); src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs:10-24 (the 13.18.63.3 SR1/SR13/SR14 screen that bounds GR5's population, wired at src/Cobol.Net.Compiler/Binding/Passes/BindPipeline.cs:43). NOT-IMPLEMENTED leg: the bit-packed-group refusal, DiagnosticCatalog COBOLNET0899 id bit-group-level-value, iso \"ISO 13.18.63.4 GR5 / 8.5.1.6.3\". || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 -- MEASURED byte-identical at all four (probe ed85/ed2002/ed2014/ed2023: `01 G VALUE \"ABCDE\". 05 A PIC X(2). 05 B PIC X(3).` gives A=[AB] B=[CDE] at every edition). GroupValueSlicer carries no version predicate. Annex E carries no 2023 item touching GR5. The NOT-IMPLEMENTED bit-packed leg needs USAGE BIT / GROUP-USAGE BIT, a post-85 facility this compiler edition-gates.",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-04 (PB207; PB184 landed the alphanumeric half). ONE area rule, GroupValueSlicer.AreaOf, ridden by BOTH initializer lanes - the typed-native record-struct fields and GroupImageCodec.ImageInitOf, the seeder for every character-image backing (Tier-B REDEFINES, EXTERNAL cells, BASED/ADDRESS-OF cells, OO backings) - so the deposit cannot differ between them. The area is composed in the unit the GROUP's own storage is measured in and the rule reports which: m BOOLEAN POSITIONS for a bit group (13.18.29.4 GR1 b) makes it an as-if PICTURE 1(m) item and GR1 c) lays its members out per 8.5.1.6.3), ImageWidth CHARACTER positions otherwise. GR7's 14.6.8 arm follows the receiving CATEGORY: 14.6.8.6 zero fill / right truncation for a boolean area, 14.6.8.5 space fill for alphanumeric and national. All three operand forms are area fills under 8.3.3.6.4 GR2 (quoted literal, ALL literal-1, figurative word). The complement of GR5's conforming population is diagnosed, not silently deposited: 13.18.63.3 SR14 (COBOLNET1702) refuses a non-DISPLAY subordinate under an alphanumeric group item carrying a VALUE, which is why a positional deposit needs no character/byte reconciliation there. EDITIONS: GR5's text is edition-invariant; the 85 witness is conformance:85/pb207_group_value_area_85 (neither 2002+ pin can stand at 85 - one writes TYPEDEF/TYPE, the other GROUP-USAGE), and the bit and national arms are gated by their own 2002 constructs (COBOLNET0900).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.63.4-6",
@@ -28719,13 +28719,13 @@
   "kind": "GR",
   "ordinal": 12,
   "subject": "VALUE clause",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "conformance-test:ValueFormat2Tests.FixedTable_ExplicitRange",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#ResolveTableValueMap; src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#TableValueInit; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOf",
+  "test-ref": "conformance:2023/pb208_table_value_image_seed; conformance:2023/pb188_table_value_image_width; conformance-test:ValueFormat2Tests.FixedTable_NumericElement; conformance-test:ValueFormat2Tests.ImageStoredLeaf_TakesItsTableValue",
   "derivation": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB500 — The IMPLEMENTED half is right. MEASURED (probe gr12_basic): `05 E PIC X(2) OCCURS 5 VALUES ARE \"AA\" \"BB\" \"CC\" FROM (1).` gives AA BB CC AA BB — consecutive elements take successive literals from subscript-1, then GR14/GR13 carry the fill to the maximum. probe gr12_outside: occurrences outside every FROM..TO range hold the element default (00), which the standard leaves undefined, so nothing is asserted there. The MISSING half is GR12's own last two sentences — the odometer. `ResolveTableValueMap` reads only `From[0]`/`To[0]`; there is no \"set this subscript to 1 and increment the next most inclusive dimension\" anywhere in the tree. Rather than mis-fill, DataBinder.ValidateTableValues refuses the shape: probe gr12_multidim (`10 CELL PIC X OCCURS 3` inside `05 ROW OCCURS 2`, `VALUES ARE \"A\" \"B\" \"C\" \"D\" FROM (1 1) TO (2 3)`) draws COBOLNET0899 \"recognized but currently supported only on a single-dimension table's own OCCURS entry\". So does the OTHER legal shape — a VALUE on an item SUBORDINATE to the OCCURS entry (probe gr12_subordinate). Both are legal source: §13.18.63.3 SR18 says the entry \"shall contain an OCCURS clause OR be subordinate to a data description entry that contains an OCCURS clause\", and SR20/SR21 say \"there shall be one subscript-1 [subscript-2] specified for each OCCURS clause for the subject of the entry or superordinate to that entry\" — the multi-subscript form is what those rules exist to govern. HARM: rejects-legal-source, loud (exit 70), so no wrong answer. conformance-test:ValueFormat2Tests.MultiDimension_StagedGap0899 is a GREEN test PINNING the gap — the feedback_green_test_can_hold_a_gap_open shape; it should flip to the conforming expectation when the odometer lands. A THIRD, silent hole in this same rule (the image-storage lane drops a table VALUE entirely) is already owned by kb/Work PB208 (OPEN). || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs:79-90 (ResolveTableValueMap — `int from = spec.From[0]; int to = spec.To?[0] ?? fillMax;`, a ONE-DIMENSIONAL walk over subscript index 0) and src/Cobol.Net.Compiler/Binding/DataBinder.cs:3205-3222 (ValidateTableValues stages every other shape loud) || editions, verbatim from the adjudication: FORMAT 2 — COBOL-2002+ (COBOLNET0900 at --std 85, measured). Same behaviour at 2002/2014/2023.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-09-04 (kb/Work PB208 half 2). 'A format 2 VALUE clause initializes a table element to the value of literal-1' on BOTH storage lanes. The native-field lane (ValueInitializer.TableValueInit) already did; the CHARACTER-IMAGE lane did not - GroupImageCodec.ImageInitOf read only item.RawValue, which is null for a table VALUE, and repeated ONE VALUE-less occurrence image Occurs times, so the table VALUE was silently DISCARDED for every image-stored leaf (a Tier-B REDEFINES member, an EXTERNAL cell, a BASED record, an OO backing). It now composes per-occurrence images from the SAME ResolveTableValueMap, through an ImageInitOfOne rawOverride mirroring InitializerFor's. Both lanes guard the shape with the same !IsGroup predicate. The golden pins it byte-level through a REDEFINES X view with FUNCTION ORD plus the FOLLOWING member's offset, and reds in four places when the arm is reverted.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.63.4-13",
@@ -28733,13 +28733,13 @@
   "kind": "GR",
   "ordinal": 13,
   "subject": "VALUE clause",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs",
-  "test-ref": "conformance-test:ValueFormat2Tests.FixedTable_NoTo_CyclicFill",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#ResolveTableValueMap",
+  "test-ref": "conformance:2023/pb208_table_value_image_seed; conformance:2023/pb188_table_value_image_width; conformance-test:ValueFormat2Tests.FixedTable_ExplicitRange; conformance-test:ValueFormat2Tests.FixedTable_NoTo_CyclicFill",
   "derivation": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB500 — MEASURED (probe gr13_cyclic): `05 E PIC X OCCURS 7 VALUES ARE \"A\" \"B\" FROM (2) TO (7).` gives [ ABABAB] — occurrence 1 untouched, then the two literals reused in the order specified until the element identified by subscript-2 (7) is initialized. The dynamic-table lane reuses identically (probe gr16_dyn_to: FROM (1) TO (6) with \"A\" \"B\" gives [ABABAB]). ⛔ SCOPE, not a second defect: the reuse can only be exercised on the shapes GR12's row says the compiler accepts — a single-dimension table on its own OCCURS entry. A multi-dimension or subordinate-item table VALUE never reaches this loop because DataBinder.ValidateTableValues refuses it first (COBOLNET0899); that gap is charged ONCE, on GR-13.18.63.4-12, so it is not double-counted here. || REFUTED: PARTIAL — Two defects. (a) SCOPE: GR13 (cite.py OK) makes the cyclic reuse happen 'during the initialization described in General rule 12' and continue 'until the table element identified by subscript-2 is initialized'. GR12's initialization is the multi-dimension odometer, and SR18 + SR20 (both cite.py OK) make a subordinate-item VALUE and a multi-subscript FROM/TO LEGAL COBOL. The compiler REJECTS both: DataBinder.ValidateTableValues (DataBinder.cs:3204-3205, reached from :2806) raises COBOLNET0899, whose own message calls it a 'P14 GAP'. ValueInitializer.ResolveTableValueMap is structurally single-dimension (Dictionary<int,string> keyed on one occurrence; spec.From[0] / spec.To?[0]), so GR13's reuse across a dimension wrap is not merely untested -- it cannot be expressed. The adjudicator's 'charged ONCE on GR12, so not double-counted here' is a bookkeeping convention, not a spec reading: the inventory row asserts THIS rule is delivered, and a CONFORMS here would tell whoever closes the 0899 gap that GR13 needs no revisiting. Two halves, one verified => PARTIAL. (b) TEST-REF PINS THE WRONG BRANCH: GR13 is conditioned 'If the TO phrase is specified', but the cited conformance-test:ValueFormat2Tests.FixedTable_NoTo_CyclicFill has NO TO phrase (VALUES ARE \"AAA\" \"BBB\" FROM (1)). The test that does pin GR13's branch is conformance-test:ValueFormat2Tests.FixedTable_ExplicitRange ('\"AA\",\"BB\" FROM (2) TO (4)' => [AABBAA]); both are spec-derived (expectations computed from GR12-GR16, not captured from output). || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs:86-87 — `for (int occ = from, k = 0; occ <= to; occ++, k++) map[occ] = spec.Literals[k % spec.Literals.Count];` (the modulo IS the reuse) || editions, verbatim from the adjudication: FORMAT 2 — COBOL-2002+ (COBOLNET0900 at --std 85, measured). Same behaviour at 2002/2014/2023.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-09-04 (kb/Work PB208). Cyclic reuse under TO - `for (occ = from, k = 0; occ <= to; occ++, k++) map[occ] = spec.Literals[k % spec.Literals.Count]` - one map read by BOTH the native-field lane and (as of PB208) the character-image lane, so the two cannot answer differently. The golden's GA group is four occurrences over the two literals ab/cd under TO (4), pinned through the REDEFINES view as <<abcdabcd>>.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.63.4-14",
@@ -28747,13 +28747,13 @@
   "kind": "GR",
   "ordinal": 14,
   "subject": "VALUE clause",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs",
-  "test-ref": "conformance-test:ValueFormat2Tests.FixedTable_NoTo_CyclicFill",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#ResolveTableValueMap",
+  "test-ref": "conformance:2023/pb208_table_value_image_seed; conformance-test:ValueFormat2Tests.FixedTable_NoTo_CyclicFill",
   "derivation": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB500 — MEASURED, both arms of \"the maximum number of occurrences, or, in the case of a dynamic-capacity table, the expected number of occurrences\". FIXED table (probe gr14_noto): `05 E PIC X OCCURS 6 VALUES ARE \"X\" \"Y\" FROM (3).` gives [  XYXY] — subscript-2 defaulted to 6 and the literals cycled to the end. DYNAMIC table (probe gr16_dyn_noto): `OCCURS DYNAMIC FROM 2 TO 7` with `VALUES ARE \"A\" \"B\" FROM (1)` fills all seven, [ABABABA], i.e. subscript-2 defaulted to the EXPECTED capacity (7), not the minimum (2) — the dynamic arm of the rule, correctly distinguished. ADVERSARIAL EDGE: a dynamic table with NO expected capacity has no value for GR14 to default to, and §13.18.63.3 SR22 forbids the combination outright — DataBinder.cs:3240 raises COBOLNET1588 for it, so the `fillMax = 0` degenerate path in ResolveTableValueMap is unreachable from legal source. SCOPE note as on GR13: only single-dimension tables reach this code, the multi-dimension gap being charged on GR-13.18.63.4-12. || REFUTED: PARTIAL — GR14's own words are per-dimension and I validated them verbatim: 'it is as if the TO phrase were specified with EACH subscript-2 as the maximum number of occurrences, or, in the case of a dynamic-capacity table, the expected number of occurrences, of the table associated with EACH CORRESPONDING subscript-1' (cite.py --check 13.18.63.4 => OK, General rules 14). The implementation defaults exactly ONE subscript: ValueInitializer.cs:56 'int fillMax = item.Occurs ?? s?.ExpectedMax ?? 0;' and :85 'int to = spec.To?[0] ?? fillMax;' -- the literal [0] IS the missing multi-dimension half, and any source needing it is refused first by DataBinder.ValidateTableValues with COBOLNET0899, even though SR20 (cite.py OK) says 'there shall be one subscript-1 specified for each OCCURS clause for the subject of the entry OR SUPERORDINATE to that entry'. This is the textually strongest of the three Format-2 refutations: the rule names a SET of subscripts and the code holds a scalar (the model_the_rule_shape_not_one_case shape). Two halves, one verified => PARTIAL. UPHELD parts: the cited test-ref conformance-test:ValueFormat2Tests.FixedTable_NoTo_CyclicFill DOES pin GR14's branch (no TO, six occurrences, two literals => AAABBBAAABBBAAABBB) and is spec-derived; and the adjudicator's SR22 citation for the degenerate 'fillMax = 0' path is CORRECT -- SR22 reads 'A VALUE clause without the TO phrase shall not be specified in the same entry as an OCCURS clause with a DYNAMIC phrase but no TO phrase, or in any entry subordinate to such an OCCURS clause', so a dynamic table with no expected capacity really is unreachable from legal no-TO source. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs:56 (`int fillMax = item.Occurs ?? s?.ExpectedMax ?? 0;` — the GR14 no-TO fill maximum) and :85 (`int to = spec.To?[0] ?? fillMax;`) || editions, verbatim from the adjudication: FORMAT 2 — COBOL-2002+ (COBOLNET0900 at --std 85, measured). Same behaviour at 2002/2014/2023.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-09-04 (kb/Work PB208). A phrase with no TO behaves as if subscript-2 were the maximum number of occurrences (the expected capacity for a dynamic-capacity table): `int to = spec.To?[0] ?? fillMax`, where fillMax is item.Occurs ?? OccursSpec.ExpectedMax. Pinned on the image lane by the golden's GB group - one literal, three occurrences, no TO - as <<xyxyxy>>.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.63.4-15",
@@ -28761,13 +28761,13 @@
   "kind": "GR",
   "ordinal": 15,
   "subject": "VALUE clause",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "conformance-test:ValueFormat2Tests.FixedTable_LastFromWins",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#ResolveTableValueMap",
+  "test-ref": "conformance:2023/pb208_table_value_image_seed; conformance-test:ValueFormat2Tests.FixedTable_LastFromWins",
   "derivation": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB500 — MEASURED (probe gr15_lastwins): `05 E PIC X OCCURS 5 VALUES ARE \"A\" FROM (1) TO (5) \"B\" FROM (2) TO (3).` gives [ABBAA] — occurrences 2 and 3, referenced by both FROM phrases, take the LAST specified phrase's value; 1, 4 and 5 keep the first phrase's. The ordering carrier is real, not incidental: BuildTableValueSpecs stamps each phrase with its source index and ResolveTableValueMap orders on it before the dictionary assignment, so the last write wins by construction rather than by dictionary iteration order. SCOPE note as on GR13/GR14 — only single-dimension tables reach this loop (charged on GR-13.18.63.4-12). || REFUTED: PARTIAL — GR15 (cite.py OK) resolves overlap by 'the same TABLE ELEMENT'. In a multi-dimension table a table element is identified by a subscript TUPLE; ValueInitializer.ResolveTableValueMap keys Dictionary<int,string> on a single occurrence and reads only spec.From[0] / spec.To?[0], so the rule's element identity cannot be represented for the shapes SR18 / SR20 (both cite.py OK) make legal, and DataBinder.ValidateTableValues refuses those shapes outright (COBOLNET0899, self-described 'P14 GAP'). The 'charged once on GR12' objection is answered as on GR13: a CONFORMS row would hide the work from whoever closes the gap. This is the WEAKEST of my three Format-2 refutations -- GR15's sentence is the least explicitly dimensional -- so I record it as PARTIAL under 'default to refuted when uncertain', with that caveat stated plainly. UPHELD: the ordering carrier is real (DataBinder.cs:3196 stamps the written index, ValueInitializer.cs:82 orders on it before the dictionary assignment, so last-wins is by construction, not by iteration order); the cited test-ref conformance-test:ValueFormat2Tests.FixedTable_LastFromWins pins exactly this branch ('\"A\" FROM (1) TO (4) \"Z\" FROM (2) TO (3)' => [AZZA]) and its expectation is spec-derived; and the single-dimension behaviour survived every attack I made on it. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs:82 (`foreach (var spec in item.TableValues!.OrderBy(sp => sp.Ordinal))`) with :87 (`map[occ] = ...` — a later phrase overwrites) and src/Cobol.Net.Compiler/Binding/DataBinder.cs:3196 (`new TableValueSpec(literals, from, to, i)` — `i` is the written order) || editions, verbatim from the adjudication: FORMAT 2 — COBOL-2002+ (COBOLNET0900 at --std 85, measured). Same behaviour at 2002/2014/2023.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-09-04 (kb/Work PB208). Last-FROM-wins on overlap - the phrases are walked in OrderBy(Ordinal) and a later one overwrites the map entry a former wrote. Pinned on the image lane by the golden's GC group: 'A' over 1..4 then 'Z' over 2..3, which is <<AZZA>>.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.63.4-16",
@@ -32459,10 +32459,10 @@
   "subject": "CALL statement",
   "verdict": "PARTIAL",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
-  "test-ref": "conformance:negative/pb133-arg-conformance; conformance:negative/pb133-arg-count",
+  "test-ref": "conformance:negative/pb133-arg-conformance; conformance:negative/pb133-arg-count; conformance:2023/pb204_vlg_boundary; conformance:negative/pb204-nested-returning-incompatible; conformance:negative/pb204-nested-vlg-position",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "PARTIALLY LANDED (kb/Work PB133 waves C1+C2a): of the 14.8.2/14.8.3 conformance obligations this row imports, the AS NESTED bind lane now enforces - the 14.8.2.1 COUNT rule (COBOLNET1684, trailing OPTIONAL omission respected), and the 14.8.2.3.2/14.8.2.2 BY REFERENCE description conformance through THE one comparator (OoConformance.DescriptionMismatch, previously INVOKE-only; COBOLNET1688 citing the mismatch). REMAINING, why not CONFORMS: (a) the BY CONTENT / BY VALUE legs ride 14.8.2.3.3's MOVE/SET-validity regime, not yet checked; (b) 14.8.3's RETURNING conformance is unchecked (the identical-description case works, a mismatch is undiagnosed); (c) the DYNAMIC Format-1 lane has no runtime EC-PROGRAM-ARG-MISMATCH - the count/description facts are not yet registered with the runtime program table; (d) the prototype lane is P13.",
+  "notes": "PARTIALLY LANDED (kb/Work PB133 waves C1+C2a, then PB204): of the 14.8.2/14.8.3 conformance obligations this row imports, the AS NESTED bind lane now enforces - the 14.8.2.1 COUNT rule (COBOLNET1684, trailing OPTIONAL omission respected); the 14.8.2.3.2/14.8.2.2 BY REFERENCE description conformance through THE one comparator (OoConformance.DescriptionMismatch, COBOLNET1688), INCLUDING 14.8.2.2's variable-length sentence, which now applies the real 8.5.1.12 compatibility relation instead of refusing every such crossing; and 14.8.3's RETURNING conformance - both 14.8.3.1's 'if and only if' presence rule and the 14.8.3.2/14.8.3.3 description rules - as COBOLNET1736, which had no home at all before PB204 (the callee signature carried only its formals). REMAINING, why not CONFORMS: (a) the BY CONTENT / BY VALUE legs ride 14.8.2.3.3's MOVE/SET-validity regime, still unchecked at the CALL boundary (INVOKE checks them; a Format-2 CALL does not); (b) the DYNAMIC Format-1 lane has no runtime EC-PROGRAM-ARG-MISMATCH - the count/description facts are not yet registered with the runtime program table; (c) the prototype lane is P13.",
   "state": "GAP"
  },
  {
