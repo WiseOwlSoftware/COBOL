@@ -44,6 +44,19 @@ internal enum SegmentPosition
     RefMod,
 }
 
+/// <summary>What ONE data reference carries after its base word, read lexically by
+/// <see cref="ReferenceResolver.ReadOperandSuffixes"/> for the DATA-DIVISION clauses (kb/Work PB205).</summary>
+/// <param name="RefMods">How many reference-modification carriers are written. More than one violates ISO
+/// §8.4.3.3.3 SR3 ("Identifier-1 shall not be a reference-modification format identifier").</param>
+/// <param name="Subscripts">How many subscript carriers are written.</param>
+/// <param name="Start">The leftmost-position integer literal, when exactly one ref-mod is written and both its
+/// segments are integer literals; null otherwise.</param>
+/// <param name="Length">The length integer literal — null both for "no readable ref-mod" and for §8.4.3.3.2's
+/// omitted, bracketed length, which <see cref="RefMods"/> and <see cref="Start"/> tell apart.</param>
+/// <param name="NonLiteral">Exactly one ref-mod is written and a segment of it is NOT an integer literal — the
+/// shape §13.18.16.3 SR4 / §13.18.54.3 SR8 / §13.18.57.3 SR10 each reject.</param>
+internal readonly record struct RefModSuffixes(int RefMods, int Subscripts, int? Start, int? Length, bool NonLiteral);
+
 public sealed class ReferenceResolver(DataBinder data)
 {
     /// <summary>The D18 hook that MATERIALIZES a subscript / ref-mod segment the token renderer cannot render
@@ -406,6 +419,21 @@ public sealed class ReferenceResolver(DataBinder data)
                     $"'{dref.GetText()}': reference modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
             return null;
         }
+        return (cleanRef is not null ? ReadRefMod(cleanRef) : ReadRefMod(refCtx!)) is { } spec
+            ? RefModView(item, inner, spec)
+            : null;
+    }
+
+    /// <summary>⛔ THE ONE REFERENCE-MODIFICATION VIEW BUILDER (kb/Work PB205): the SUBSTRATE wrap that turns an
+    /// item's place into the §8.4.3.3.4 GR5 unique data item, written down once for BOTH the syntactic path
+    /// (<see cref="Resolve"/>, where the positions come off the source) and the DATA-DIVISION path
+    /// (<see cref="ResolveItemRefMod"/>, where a clause carries integer literals). Before this factoring the wrap
+    /// lived INSIDE the parse-context-keyed path, so the CONTROL clause — which §13.18.16.3 SR4 expressly permits
+    /// to be reference-modified — could not reach it and silently bound the WHOLE item instead.
+    /// <para>Callers screen §8.4.3.3.3 SR1 (<see cref="RefModExclusion"/>) first; a null here is an item whose
+    /// substrate this backend cannot slice (a numeric item that is not usage DISPLAY), never a rule violation.</para></summary>
+    private Place? RefModView(DataItem item, Place inner, RefModSpec spec)
+    {
         // Reference modification is over a character string. A GROUP (SR1 — "an alphanumeric group item" / "a group
         // item that is neither a strongly-typed group nor a variable-length group") is viewed through its character
         // IMAGE — the unique data item is an elementary alphanumeric item over the group's positions (§8.4.3.3.4
@@ -447,14 +475,22 @@ public sealed class ReferenceResolver(DataBinder data)
         // National/boolean items reference-modify in their OWN character positions (§8.4.3.3 GR1/GR5a — a
         // national position is one UTF-16 char, a bit position one '0'/'1' char, under D-N1/D-B1); alphanumeric,
         // alphabetic, alphanumeric-edited and numeric-edited items are character strings already.
-        if (cleanRef is not null)
-            return ReadRefMod(cleanRef) is { } cs
-                ? new RefModPlace(inner, cs.Start, cs.Length) { AllowZeroLength = cs.AllowZeroLength }
-                : null;
-        return ReadRefMod(refCtx!) is { } ss
-            ? new RefModPlace(inner, ss.Start, ss.Length) { AllowZeroLength = ss.AllowZeroLength }
-            : null;
+        return new RefModPlace(inner, spec.Start, spec.Length) { AllowZeroLength = spec.AllowZeroLength };
     }
+
+    /// <summary>A ref-mod view of an ALREADY-RESOLVED item whose leftmost-position and length are COMPILE-TIME
+    /// INTEGERS — the DATA-DIVISION form. The three data-division clauses that admit a reference-modified operand
+    /// all restrict it to integer literals for the same reason (ISO §13.18.16.3 SR4 "Data-name-1 may be
+    /// reference-modified. If it is, leftmost-position and length shall be integer literals."; §13.18.54.3 SR8;
+    /// §13.18.57.3 SR10), so there is no expression to evaluate and no statement context to evaluate it in — the
+    /// view is the SAME <see cref="RefModView"/> the procedure division builds, reached without a parse context.
+    /// <para><paramref name="length"/> null is §8.4.3.3.2's bracketed, omitted length — the slice runs to the
+    /// rightmost position (§8.4.3.3.4 GR5c last sentence). Null return: the item has no place, or §8.4.3.3.3 SR1
+    /// does not admit it (the CALLER rejects that at bind with COBOLNET1647 — this is the backstop).</para></summary>
+    public Place? ResolveItemRefMod(DataItem item, int start, int? length, bool allowZeroLength = false) =>
+        RefModExclusion(item) is null && PlaceForItem(item, []) is { } inner
+            ? RefModView(item, inner, new RefModSpec(start.ToString(), length?.ToString(), allowZeroLength))
+            : null;
 
     /// <summary>ISO §8.4.3.3.3 SR1, read as an EXCLUSION test: the reason <paramref name="item"/> may NOT be
     /// identifier-1 of a reference modification, or null when it may. Admitted: a boolean, national, alphanumeric or
@@ -546,6 +582,98 @@ public sealed class ReferenceResolver(DataBinder data)
         return rm is { Count: > 0 }
             ? new RefModSpec(rm[0], rm.Count > 1 ? rm[1] : null, data.RefModZeroLength.IsOnAt(group.Start.Line))
             : null;
+    }
+
+    /// <summary>The suffixes written on ONE data reference, read LEXICALLY — how many subscript and
+    /// reference-modification carriers it carries, and, for a single ref-mod whose two segments are INTEGER
+    /// LITERALS, their values.
+    /// <para>⛔ THE CARRIER KNOWLEDGE LIVES HERE, beside the two <see cref="ReadRefMod"/> overloads, because a
+    /// ref-mod reaches the binder through TWO source carriers frozen at lex time — the DEFAULT-mode parsed
+    /// <c>refModPart</c> and the SUBSCRIPT-mode captured token group — and a clause that walked only one of them
+    /// would drop the other SILENTLY (kb/Work PB4's one-rule-two-places defect, and PB205's dropped ref-mod).</para>
+    /// <para>This is the DATA-DIVISION read: the clauses that admit a reference-modified operand all restrict it
+    /// to integer literals (ISO §13.18.16.3 SR4, §13.18.54.3 SR8, §13.18.57.3 SR10), so no expression renderer and
+    /// no procedure-phase state are involved. A segment that is anything else — a data-name, an arithmetic
+    /// expression, a figurative constant — comes back <see cref="RefModSuffixes.NonLiteral"/>, for the CLAUSE's own
+    /// syntax rule to reject with its own diagnostic.</para></summary>
+    internal static RefModSuffixes ReadOperandSuffixes(Core.DataReferenceContext dref)
+    {
+        int refMods = 0, subscripts = 0;
+        Core.SubscriptOrRefModContext? captured = null;
+        Core.RefModPartContext? parsed = null;
+
+        void TakeSubscriptPart(Core.SubscriptPartContext sp)
+        {
+            if (sp.subscriptOrRefMod() is not { } s) return;
+            if (HasDepth0Colon(s)) { refMods++; captured ??= s; } else subscripts++;
+        }
+
+        foreach (var suffix in dref.dataReferenceSuffix())
+        {
+            // A qualification carries its OWN (subscriptPart | refModPart)* tail — `C IN G (1:3)` hangs the
+            // ref-mod off the qualification, not off the base word.
+            if (suffix.qualification() is { } q)
+            {
+                foreach (var sp in q.subscriptPart()) TakeSubscriptPart(sp);
+                foreach (var rp in q.refModPart()) { refMods++; parsed ??= rp; }
+            }
+            else if (suffix.refModPart() is { } rmp) { refMods++; parsed ??= rmp; }
+            else if (suffix.subscriptPart() is { } sp2) TakeSubscriptPart(sp2);
+        }
+        if (refMods != 1) return new RefModSuffixes(refMods, subscripts, null, null, false);
+
+        var (start, length, ok) = parsed is not null ? ReadParsedLiterals(parsed) : ReadCapturedLiterals(captured!);
+        return new RefModSuffixes(refMods, subscripts, ok ? start : null, ok ? length : null, !ok);
+    }
+
+    /// <summary>The DEFAULT-mode <c>refModPart</c> as integer literals: each arithmetic-expression segment shall be
+    /// ONE integer literal (§13.18.16.3 SR4 and its twins), so its whole text is the value or the read fails.</summary>
+    private static (int Start, int? Length, bool Ok) ReadParsedLiterals(Core.RefModPartContext rmp)
+    {
+        var exprs = rmp.refModSpec().arithmeticExpression();
+        if (exprs.Length == 0 || !int.TryParse(exprs[0].GetText(), out int start)) return (0, null, false);
+        if (exprs.Length == 1) return (start, null, true);
+        return int.TryParse(exprs[1].GetText(), out int len) ? (start, len, true) : (0, null, false);
+    }
+
+    /// <summary>The SUBSCRIPT-mode captured group as integer literals: split at the depth-0 colon and require each
+    /// side (whitespace apart) to be exactly ONE integer-literal token. An omitted length — §8.4.3.3.2's bracketed
+    /// form — is the empty right side, and is the only empty side permitted.</summary>
+    private static (int Start, int? Length, bool Ok) ReadCapturedLiterals(Core.SubscriptOrRefModContext group)
+    {
+        var tokens = new List<IToken>();
+        CollectLeafTokens(group, tokens);
+        int colon = -1;
+        for (int i = 0, d = 0; i < tokens.Count; i++)
+        {
+            int tt = tokens[i].Type;
+            if (tt == Core.SUB_LPAREN) d++;
+            else if (tt == Core.SUB_RPAREN) { if (d > 0) d--; }
+            else if (tt == Core.SUB_COLON && d == 0) { colon = i; break; }
+        }
+        if (colon < 0) return (0, null, false);
+        if (SoleIntegerLiteral(tokens, 0, colon) is not { } start) return (0, null, false);
+        int after = colon + 1;
+        bool empty = true;
+        for (int i = after; i < tokens.Count; i++) if (tokens[i].Type != Core.SUB_WS) { empty = false; break; }
+        if (empty) return (start, null, true);
+        return SoleIntegerLiteral(tokens, after, tokens.Count) is { } len ? (start, len, true) : (0, null, false);
+    }
+
+    /// <summary>The one integer-literal token in <c>tokens[from, to)</c>, whitespace ignored; null when the range
+    /// holds anything else (a data-name, an operator, more than one token) — i.e. not an integer literal.</summary>
+    private static int? SoleIntegerLiteral(List<IToken> tokens, int from, int to)
+    {
+        IToken? only = null;
+        for (int i = from; i < to; i++)
+        {
+            if (tokens[i].Type == Core.SUB_WS) continue;
+            if (only is not null) return null;
+            only = tokens[i];
+        }
+        return only is not null
+            && only.Type is Core.SUB_INTEGERLIT or Core.SIGNED_INTEGERLIT or Core.INTEGERLIT
+            && int.TryParse(only.Text, out int v) ? v : null;
     }
 
     /// <summary>

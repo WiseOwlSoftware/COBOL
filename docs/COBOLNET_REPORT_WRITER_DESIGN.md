@@ -95,6 +95,22 @@ off-by-one through every later counter check.
   clause OPENS a new report line (**LINE is legal at ANY level** — RW101A puts `LINE PLUS 1` on an 03; a
   binder that reads LINE only at the 01 produces a lineless group and a never-moving LINE-COUNTER); an entry
   with a COLUMN clause appends a printable field to the CURRENT line. TYPE abbreviations per §13.18.57.3 SR9.
+- **A CONTROL-clause OPERAND is a written reference, and there is ONE of it** (`ReportControlRef` — name +
+  IN/OF qualifiers + the reference modification, captured by the one helper `ControlOperandRef`). THREE clauses
+  write such an operand and all three permit the ref-mod with the same integer-literal restriction: the CONTROL
+  clause (§13.18.16.3 SR4), a TYPE CH/CF operand (§13.18.57.3 SR10) and `SUM … RESET ON` (§13.18.54.3 SR8). SR10
+  and SR8 then ask the SAME question — "the same as one of the operands of the CONTROL clause" — which is
+  `ControlLevelOf`, one comparison over the whole written reference. It has to be the written reference and not
+  the resolved item, because §13.18.16.3 SR6's second sentence lets two operands "refer to the same physical data
+  item or to overlapping data items"; `CONTROLS ARE CX(1:3) CX(4:3)` is the legal shape that proves it.
+  A ref-modded operand is emitted through `ReferenceResolver.ResolveItemRefMod` — the SAME ref-mod view builder
+  the procedure division uses (`RefModView`), reached by item instead of by parse context — so §13.18.16.4 GR3's
+  prior control is the §8.4.3.3.4 GR5 unique data item, the SLICE. §13.18.16.3's operand rules are all screened
+  in one place: SR2 (asked only after resolution fails — a name also in ordinary storage resolves there), SR3,
+  SR4, SR5, SR6, SR7 and the subscript that SR3 + §8.4.2.3.3 SR2 leave no legal spelling for; §8.4.3.3.3 SR1 on a
+  ref-modded operand reuses `RefModExclusion`, the one SR1 reader. (kb/Work PB205 — before it, `KeyReference`
+  kept only the qualification suffix and TYPE/RESET kept only the base word, so `CX(1:3)` and `CX(4:3)` were one
+  operand and every report broke on the whole item.)
 - **The FD side**: `FileModel.ReportNames` (the §13.18.46 REPORT clause, captured in `BindFileSection`);
   a report file is an FD with a non-empty list — legally record-less (§9.1.22). `FileModel.RecordContains`
   captures the fixed Format-1 RECORD CONTAINS for the line width; otherwise the width is the widest field
@@ -157,7 +173,9 @@ off-by-one through every later counter check.
 **Implemented:** PAGE LIMIT geometry + GR3 defaults; RH/PH/CH/DE/CF/PF/RF groups; absolute + relative LINE
 (any level); COLUMN/PIC/SOURCE/VALUE/JUSTIFIED/BLANK WHEN ZERO/SIGN printable items; SOURCE
 LINE-/PAGE-COUNTER; CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composition, TERMINATE final
-break); SUM + UPON + RESET; GROUP INDICATE; summary `GENERATE report-name`; multi-name INITIATE/TERMINATE;
+break) **and REFERENCE-MODIFIED control operands** (§13.18.16.3 SR4 — the break is sensed on the slice, and the
+TYPE CH/CF and SUM RESET ON operands that name the level carry the same ref-mod, §13.18.57.3 SR10 /
+§13.18.54.3 SR8); SUM + UPON + RESET; GROUP INDICATE; summary `GENERATE report-name`; multi-name INITIATE/TERMINATE;
 **SUPPRESS PRINTING** (§14.9.45 — inhibit the current instance's printing/advance/NEXT GROUP/LINE-COUNTER,
 NOT the sum accumulation or end-of-group reset; SR1/GR1 bind-resolve the enclosing USE BEFORE REPORTING group,
 COBOLNET1581 on a misplaced SUPPRESS); PD counter references incl. qualified; USE BEFORE REPORTING (Format 2

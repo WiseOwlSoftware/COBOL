@@ -400,7 +400,8 @@
   "l1_usage_display_character_size",
   "l1_usage_packed_decimal_storage",
   "l1_random_unseeded_first_reference",
-  "open_fixed_attribute_conflict_ix"
+  "open_fixed_attribute_conflict_ix",
+  "pb205_control_ref_mod"
  ],
  "pending": []
 }

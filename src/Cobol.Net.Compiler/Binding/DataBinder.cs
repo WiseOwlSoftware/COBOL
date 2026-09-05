@@ -969,7 +969,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>A FILE-CONTROL key reference: the base word plus its IN/OF qualifier words in written order
     /// (innermost first, ISO §8.4.2.2). A raw <c>GetText()</c> would glue qualifiers into the lookup key
     /// (<c>IX-FD3-KEYINIX-FD3-RECKEY-AREA</c>) and the name could never resolve — the FILE STATUS / RENAMES
-    /// capture pattern, applied to keys.</summary>
+    /// capture pattern, applied to keys.
+    /// <para>⛔ IT KEEPS THE QUALIFICATION AND DROPS EVERYTHING ELSE — a subscript or a reference modification
+    /// written on the operand is DISCARDED here, silently (kb/Work PB205). That is admissible only where the
+    /// clause's own rules make those spellings illegal, and §8.4.3.3.3's NOTE is what makes them so for the
+    /// data-name clauses: "Because the references to data items are restricted to identifiers, where data-name-n
+    /// is used in a general format or syntax rule, then reference-modification is not permitted." A clause that
+    /// EXPRESSLY permits the ref-mod — §13.18.16.3 SR4's CONTROL operand and its §13.18.57.3 SR10 / §13.18.54.3
+    /// SR8 twins — must NOT use this helper alone: it binds as if the operand were unmodified, which is a silent
+    /// wrong answer. Those three go through <c>DataBinder.Reports.ControlOperandRef</c>, which keeps the whole
+    /// written reference. Where the ref-mod is illegal, dropping it still ACCEPTS illegal source instead of
+    /// rejecting it (measured on a reference-modified RECORD KEY) — a screen those clauses still owe.</para></summary>
     private static (string Base, IReadOnlyList<string> Quals) KeyReference(Core.DataReferenceContext dref)
     {
         string baseWord = dref.cobolWord()?.GetText() ?? dref.GetText();

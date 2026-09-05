@@ -235,15 +235,24 @@ internal sealed class ReportWriterEmitter(
                 //     RESTORE half has no float arm — CallStringWrite falls to `_GF = __v;`, a string→double
                 //     CS0029 — so unguarding it turns a runtime loud into a BACKEND CRASH. The prior-control
                 //     restore channel is what is missing, not the image.
-                if (ctl.Item is not { } item || refs.ResolveItem(item) is not { } place)
+                // ⛔ A REFERENCE-MODIFIED OPERAND IS SAVED AND COMPARED AS ITS SLICE, NOT AS THE WHOLE ITEM
+                // (kb/Work PB205). §13.18.16.3 SR4 expressly permits the ref-mod and §13.18.16.4 GR3 then defines
+                // the prior control as having "the same data description as the corresponding data item" — which
+                // for a reference-modified operand is the §8.4.3.3.4 GR5 unique data item, the slice. The
+                // positions are integer literals (SR4), so the view needs no expression machinery: it is the ONE
+                // ref-mod view builder, reached by item instead of by parse context.
+                if (ctl.Item is not { } item
+                    || (ctl.Operand?.RefModStart is { } start
+                            ? refs.ResolveItemRefMod(item, start, ctl.Operand.RefModLength)
+                            : refs.ResolveItem(item)) is not { } place)
                 {
-                    w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Name}' does not resolve to a place "
+                    w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Display}' does not resolve to a place "
                         + "this backend can save and restore as the prior control value (ISO §13.18.16.4 GR3)"));
                     continue;
                 }
                 if (place.Item.Pic is { IsFloat: true })
                 {
-                    w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Name}' is a floating-point item, "
+                    w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Display}' is a floating-point item, "
                         + "which has no prior-control RESTORE channel in this backend (ISO §13.18.16.4 GR3)"));
                     continue;
                 }

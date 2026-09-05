@@ -697,7 +697,13 @@
   "l1-use-format3-names-sort-file",
   "l1-use-input-phrase-twice",
   "l1-display-upon-input-only-device",
-  "l1-time-fraction-past-max"
+  "l1-time-fraction-past-max",
+  "pb205-control-ref-mod-not-literal",
+  "pb205-control-operand-not-unique",
+  "pb205-control-operand-report-section",
+  "pb205-control-operand-subscripted",
+  "pb205-type-control-operand-other-slice",
+  "pb205-sum-reset-operand-other-slice"
  ],
  "pending": []
 }

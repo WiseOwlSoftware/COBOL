@@ -672,18 +672,27 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportControlOperandUnresolved = new(
         NotImplemented, "report-control-operand-unresolved", EditionSeverity.Error,
         "A CONTROL operand does not resolve to a data item.", "ISO §8.4.2.1");
-    // The §13.18.16.3 CONTROL-operand SYNTAX RULES over the SHAPE of data-name-1 (kb/Work PB177 arm C) —
+    // The §13.18.16.3 CONTROL-operand SYNTAX RULES over data-name-1 (kb/Work PB177 arm C, extended by PB205) —
     // ONE screen, one arm per rule, so the next rule on this clause drops in beside them instead of
-    // becoming a fourth place the clause is enforced. All three were unscreened and MEASURED so: SR3 (an
+    // becoming a fourth place the clause is enforced. Every arm was unscreened and MEASURED so: SR3 (an
     // operand subject to an OCCURS clause) and SR5 (an operand with an occurs-depending table subordinate)
     // compiled and ran silently; SR7 (a variable-length group) compiled and staged a RUNTIME Tier-C loud,
-    // where a SYNTAX rule requires a compile-time rejection.
+    // where a SYNTAX rule requires a compile-time rejection. PB205 added the rules about the WRITTEN
+    // REFERENCE rather than about the item's shape — SR2 (rejected, but as an unresolved name under §8.4.2.1:
+    // a real clause answering a different question), SR4's integer-literal restriction and SR6's uniqueness,
+    // the last two unscreenable while the capture dropped the reference modification they are about — plus
+    // the subscript for which SR3 and §8.4.2.3.3 SR2 between them leave no legal spelling.
     public static readonly DiagnosticDescriptor ReportControlOperandShape = new(
         "COBOLNET1699", "report-control-operand-shape", EditionSeverity.Error,
-        "ISO §13.18.16.3 syntax rule 3: \"Data-name-1 shall not be subject to any OCCURS clauses.\"; "
-        + "syntax rule 5: \"The entry specified by data-name-1 shall not have an occurs-depending table "
-        + "subordinate to it.\"; syntax rule 7: \"Data-name-1 shall not reference a variable-length group.\"",
-        "ISO §13.18.16.3 SR3/SR5/SR7");
+        "ISO §13.18.16.3 syntax rule 2: \"Data-name-1 shall not be defined in the report section.\"; "
+        + "syntax rule 3: \"Data-name-1 shall not be subject to any OCCURS clauses.\" (with §8.4.2.3.3 SR2, "
+        + "which bars a subscript on an item having no OCCURS clause, so no subscripted control operand is "
+        + "legal); syntax rule 4: \"Data-name-1 may be reference-modified. If it is, leftmost-position and "
+        + "length shall be integer literals.\"; syntax rule 5: \"The entry specified by data-name-1 shall not "
+        + "have an occurs-depending table subordinate to it.\"; syntax rule 6: \"Data-name-1 shall be unique "
+        + "in any given CONTROL clause.\"; syntax rule 7: \"Data-name-1 shall not reference a variable-length "
+        + "group.\"",
+        "ISO §13.18.16.3 SR2/SR3/SR4/SR5/SR6/SR7");
     // An INDEX CONTROL operand is illegal for a reason that lives OUTSIDE §13.18.16.3, which is why it gets its
     // own code rather than riding COBOLNET1699's clause list (kb/Work PB177 arm C follow-up): §13.18.60.3 SR10
     // closes the set of contexts in which an index data item may be referenced explicitly, and §8.4.5 makes a
@@ -890,18 +899,27 @@ public static class DiagnosticCatalog
         + "so a sign written against the digits belongs to the literal and forms the PERMISSIBLE (unary, literal) "
         + "pair instead.",
         "ISO §8.8.1.2 Table 3 / §8.8.2 Table 4");
+    // §13.18.57.3 SR10 governs the whole WRITTEN reference, not just its name (kb/Work PB205): the operand
+    // "may be qualified and reference-modified", the ref-mod's positions "shall be integer literals", and the
+    // reference "shall be the same as one of the operands of the CONTROL clause" — so CX(4:3) is not CX(1:3),
+    // which a name-only comparison could not see.
     public static readonly DiagnosticDescriptor ReportControlTypeOperand = new(
         NotImplemented, "report-control-type-operand", EditionSeverity.Error,
-        "A TYPE CH/CF operand is not an operand of the CONTROL clause.", "ISO §13.18.57.3 SR10/SR11");
+        "A TYPE CH/CF operand is not the same as one of the operands of the CONTROL clause, or its reference "
+        + "modification is not written with integer literals.", "ISO §13.18.57.3 SR10/SR11");
     public static readonly DiagnosticDescriptor ReportSourceOperandUnresolved = new(
         NotImplemented, "report-source-operand-unresolved", EditionSeverity.Error,
         "A SOURCE operand does not resolve to a data item.", "ISO §13.18.53.3 SR4");
     public static readonly DiagnosticDescriptor ReportSumAddendUnresolved = new(
         NotImplemented, "report-sum-addend-unresolved", EditionSeverity.Error,
         "A SUM addend does not resolve to a data item outside the report section.", "ISO §13.18.54.3 SR5");
+    // §13.18.54.3 SR8 is §13.18.57.3 SR10's twin over the SAME written reference (kb/Work PB205): data-name-3
+    // "may be qualified and reference-modified", "shall be an operand of the CONTROL clause of the current
+    // report description", and its ref-mod positions "shall be integer literals".
     public static readonly DiagnosticDescriptor ReportResetNotControlOperand = new(
         NotImplemented, "report-reset-not-control-operand", EditionSeverity.Error,
-        "A RESET ON operand is not an operand of the CONTROL clause.", "ISO §13.18.54.3 SR8");
+        "A RESET ON operand is not an operand of the CONTROL clause, or its reference modification is not "
+        + "written with integer literals.", "ISO §13.18.54.3 SR8");
     public static readonly DiagnosticDescriptor ReportLineCounterReceiving = new(
         NotImplemented, "report-line-counter-receiving", EditionSeverity.Error,
         "LINE-COUNTER shall not be referenced as a receiving operand.", "ISO §8.4.3.15.3 SR3");

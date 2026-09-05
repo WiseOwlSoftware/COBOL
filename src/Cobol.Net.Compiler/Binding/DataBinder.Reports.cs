@@ -67,9 +67,63 @@ public sealed class ReportModel
 public sealed class ReportControlModel
 {
     public bool IsFinal { get; init; }
-    public string? Name { get; init; }
-    public IReadOnlyList<string> Qualifiers { get; init; } = [];
+    public ReportControlRef? Operand { get; init; }
     public DataItem? Item { get; set; }
+
+    /// <summary>The operand as written, for diagnostics and emitted comments (FINAL has no data reference).</summary>
+    public string Display => IsFinal ? "FINAL" : Operand?.ToString() ?? "?";
+}
+
+/// <summary>
+/// ONE operand of the CONTROL clause AS WRITTEN (ISO §13.18.16.3): the data-name, its IN/OF qualifier words in
+/// written order (§8.4.2.2), and — SR4 — the optional reference modification, whose leftmost-position and length
+/// are integer literals.
+/// <para>⛔ THE SAME WRITTEN REFERENCE IS HOW TWO OTHER CLAUSES NAME A CONTROL LEVEL, so the "is this one of the
+/// CONTROL clause's operands" test is written down ONCE, here (kb/Work PB205): §13.18.57.3 SR10 — "Data-name-1
+/// and data-name-2 may be qualified and reference-modified. If data-name-1 or data-name-2 is reference-modified,
+/// leftmost-position and length shall be integer literals. Each data-name-1, data-name-2, and FINAL, if
+/// specified, shall be the same as one of the operands of the CONTROL clause of the corresponding report
+/// description entry." — and §13.18.54.3 SR8, the same sentence for SUM … RESET ON data-name-3. All three sites
+/// previously kept only the base word (TYPE, RESET) or the base word plus qualifiers (CONTROL) and compared by
+/// NAME, so <c>CX(1:3)</c> and <c>CX(4:3)</c> were the same operand and the minor control footing silently bound
+/// to the major level — the three-arm form of this repo's two-arm-dispatch defect.</para>
+/// <para>Equality is over the WRITTEN reference, which is what SR6 makes unique ("Data-name-1 shall be unique in
+/// any given CONTROL clause") — and unique it must be TEXTUALLY, because SR6's own second sentence permits two
+/// operands to "refer to the same physical data item or to overlapping data items", so the referenced item
+/// cannot be what distinguishes them.</para>
+/// </summary>
+/// <param name="Name">The base data-name.</param>
+/// <param name="Qualifiers">The IN/OF qualifier words, innermost first (§8.4.2.2).</param>
+/// <param name="RefModStart">The reference modification's leftmost-position integer literal; null when the
+/// operand is not reference-modified.</param>
+/// <param name="RefModLength">Its length integer literal; null both when there is no ref-mod and for
+/// §8.4.3.3.2's omitted, bracketed length (the slice then runs to the rightmost position, §8.4.3.3.4 GR5c).</param>
+public sealed record ReportControlRef(
+    string Name, IReadOnlyList<string> Qualifiers, int? RefModStart, int? RefModLength)
+{
+    /// <summary>The identity ISO §13.18.57.3 SR10 requires — "the same as one of the operands of the CONTROL
+    /// clause" — which §13.18.54.3 SR8 asks of its own operand in its own words ("Data-name-3 or FINAL shall be
+    /// an operand of the CONTROL clause of the current report description"). The record's synthesized equality
+    /// cannot serve — <see cref="Qualifiers"/> is a list, compared by reference — and COBOL words are
+    /// case-insensitive (§8.2), so the test is spelled out.</summary>
+    public bool SameOperandAs(ReportControlRef other)
+    {
+        if (!Name.Equals(other.Name, StringComparison.OrdinalIgnoreCase)) return false;
+        if (RefModStart != other.RefModStart || RefModLength != other.RefModLength) return false;
+        if (Qualifiers.Count != other.Qualifiers.Count) return false;
+        for (int i = 0; i < Qualifiers.Count; i++)
+            if (!Qualifiers[i].Equals(other.Qualifiers[i], StringComparison.OrdinalIgnoreCase)) return false;
+        return true;
+    }
+
+    /// <summary>The operand as written — the form every diagnostic about it quotes.</summary>
+    public override string ToString()
+    {
+        var sb = new System.Text.StringBuilder(Name);
+        foreach (var q in Qualifiers) sb.Append(" OF ").Append(q);
+        if (RefModStart is { } s) sb.Append('(').Append(s).Append(':').Append(RefModLength?.ToString() ?? "").Append(')');
+        return sb.ToString();
+    }
 }
 
 /// <summary>A report group's TYPE (ISO §13.18.57 Format 2).</summary>
@@ -82,9 +136,10 @@ public sealed class ReportGroupModel
     public string? Name { get; set; }
     public ReportGroupKindModel Kind { get; set; } = ReportGroupKindModel.Detail;
 
-    /// <summary>The CH/CF control operand as written (data-name or FINAL); null when omitted (legal only with a
-    /// one-operand CONTROL clause, §13.18.57.3 SR11) or for non-control groups.</summary>
-    public string? ControlName { get; set; }
+    /// <summary>The CH/CF control operand as written (§13.18.57.3 SR10 — qualifiable AND reference-modifiable);
+    /// null when omitted (legal only with a one-operand CONTROL clause, SR11), for FINAL, or for a non-control
+    /// group.</summary>
+    public ReportControlRef? ControlOperand { get; set; }
     public bool ControlFinal { get; set; }
 
     /// <summary>The resolved control LEVEL (the index into <see cref="ReportModel.Controls"/>); −1 until
@@ -191,7 +246,11 @@ public sealed class ReportSumModel
     public List<(string Name, IReadOnlyList<string> Qualifiers)> AddendNames { get; } = [];
     public List<DataItem> Addends { get; } = [];
     public List<string> UponDetails { get; } = [];
-    public string? ResetName { get; set; }
+
+    /// <summary>The RESET ON operand as written (§13.18.54.3 SR8 — data-name-3 "may be qualified and
+    /// reference-modified"; it "shall be an operand of the CONTROL clause of the current report description").
+    /// Null for RESET ON FINAL and for no RESET phrase.</summary>
+    public ReportControlRef? ResetOperand { get; set; }
     public bool ResetFinal { get; set; }
     /// <summary>The resolved RESET control level; −1 = no RESET phrase (reset where printed, GR2).</summary>
     public int ResetLevel { get; set; } = -1;
@@ -266,10 +325,29 @@ public sealed partial class DataBinder
                             model.Controls.Add(new ReportControlModel { IsFinal = true });
                             break;
                         case Core.DataReferenceContext dref:
-                            var (b, q) = KeyReference(dref);
-                            model.Controls.Add(new ReportControlModel { Name = b, Qualifiers = q });
+                            model.Controls.Add(new ReportControlModel
+                            {
+                                Operand = ControlOperandRef(dref, DiagnosticCatalog.ReportControlOperandShape,
+                                    $"RD '{model.Name}': CONTROL operand", "ISO §13.18.16.3 SR4"),
+                            });
                             break;
                     }
+                // §13.18.16.3 SR6 — "Data-name-1 shall be unique in any given CONTROL clause." Uniqueness is of
+                // the WRITTEN reference: SR6's own second sentence permits two operands to "refer to the same
+                // physical data item or to overlapping data items", so the referenced ITEM cannot be what
+                // distinguishes them, and SR10/SR8 could not name a level unambiguously if it were.
+                for (int i = 1; i < model.Controls.Count; i++)
+                    if (model.Controls[i].Operand is { } later)
+                        for (int j = 0; j < i; j++)
+                            if (model.Controls[j].Operand is { } earlier && earlier.SameOperandAs(later))
+                            {
+                                Edition.Error(DiagnosticCatalog.ReportControlOperandShape, $"RD '{model.Name}': CONTROL operand "
+                                    + $"'{later}' appears twice: data-name-1 shall be unique in any given CONTROL "
+                                    + "clause (ISO §13.18.16.3 SR6). Two operands may refer to the same item or to "
+                                    + "overlapping data — write them as distinct references (a qualification or a "
+                                    + "reference modification), never as the same one twice.");
+                                break;
+                            }
             }
             else if (clause.reportPageClause() is { } page)
             {
@@ -606,7 +684,10 @@ public sealed partial class DataBinder
         if (group.Kind is ReportGroupKindModel.ControlHeading or ReportGroupKindModel.ControlFooting)
         {
             if (t.FINAL() is not null) group.ControlFinal = true;
-            else if (t.dataReference() is { } dref) group.ControlName = dref.cobolWord()?.GetText() ?? dref.GetText();
+            else if (t.dataReference() is { } dref)
+                group.ControlOperand = ControlOperandRef(dref, DiagnosticCatalog.ReportControlTypeOperand,
+                    $"RD '{model.Name}': TYPE {(group.Kind == ReportGroupKindModel.ControlHeading ? "CH" : "CF")} operand",
+                    "ISO §13.18.57.3 SR10");
             // Omitted operand: legal only with a one-operand CONTROL clause (§13.18.57.3 SR11) — resolved later.
         }
         // PH/PF require a PAGE clause (§13.18.57.3 SR12).
@@ -675,7 +756,9 @@ public sealed partial class DataBinder
         if (sm.reportSumReset() is { } reset)
         {
             if (reset.FINAL() is not null) sum.ResetFinal = true;
-            else if (reset.dataReference() is { } rref) sum.ResetName = rref.cobolWord()?.GetText() ?? rref.GetText();
+            else if (reset.dataReference() is { } rref)
+                sum.ResetOperand = ControlOperandRef(rref, DiagnosticCatalog.ReportResetNotControlOperand,
+                    $"RD '{model.Name}': SUM … RESET ON operand", "ISO §13.18.54.3 SR8");
         }
         model.Sums.Add(sum);
         return sum;
@@ -700,14 +783,36 @@ public sealed partial class DataBinder
                     + "(REPORTS ARE …, ISO §13.18.46) are not yet implemented");
 
             foreach (var ctl in model.Controls)
-                if (!ctl.IsFinal && ctl.Name is { } cn)
+                if (!ctl.IsFinal && ctl.Operand is { } op)
                 {
-                    ctl.Item = LookupQualified(cn, ctl.Qualifiers);
+                    ctl.Item = LookupQualified(op.Name, op.Qualifiers);
                     if (ctl.Item is null)
-                        Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{cn}' does not "
-                            + "resolve to a data item (ISO §8.4.2.1)");
+                    {
+                        // §13.18.16.3 SR2 — "Data-name-1 shall not be defined in the report section." The report
+                        // section's own names never enter ByName, so such an operand FAILS RESOLUTION: the right
+                        // verdict under the wrong rule, and it would change meaning the day those names join
+                        // ByName. This arm gives SR2 its own rejection, asked only AFTER resolution failed —
+                        // a name declared in ordinary storage TOO resolves there (§8.4.2.1) and is not an SR2
+                        // reference, which is the §13.15.3 SR16 scan's own reasoning.
+                        if (IsReportSectionOnlyName(op.Name))
+                            Edition.Error(DiagnosticCatalog.ReportControlOperandShape, $"RD '{model.Name}': CONTROL operand '{op}' names a "
+                                + "report section data item: data-name-1 shall not be defined in the report "
+                                + "section (ISO §13.18.16.3 SR2)");
+                        else
+                            Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{op}' does not "
+                                + "resolve to a data item (ISO §8.4.2.1)");
+                    }
                     else if (ControlOperandShapeViolation(ctl.Item) is { } shape)
-                        Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{cn}' {shape.Clause}");
+                        Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{op}' {shape.Clause}");
+                    // §8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
+                    // it is read through the ONE exclusion test so the two paths cannot drift (kb/Work PB205).
+                    // The BOUNDS are deliberately NOT screened here: §8.4.3.3.4 item 5c defines an out-of-range
+                    // slice as the EC-BOUND-REF-MOD condition, and the emitted RefModPlace raises it — a general
+                    // rule, not a syntax rule, so a compile-time rejection would be this compiler's invention.
+                    else if (op.RefModStart is not null
+                             && ReferenceResolver.RefModExclusion(ctl.Item) is { } why)
+                        Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted, $"RD '{model.Name}': CONTROL operand '{op}': reference "
+                            + $"modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
                 }
 
             foreach (var group in model.Groups)
@@ -718,12 +823,13 @@ public sealed partial class DataBinder
                 {
                     group.ControlLevel = group.ControlFinal
                         ? model.Controls.FindIndex(c => c.IsFinal)
-                        : group.ControlName is { } gcn
-                            ? model.Controls.FindIndex(c => gcn.Equals(c.Name, StringComparison.OrdinalIgnoreCase))
+                        : group.ControlOperand is { } gcn
+                            ? ControlLevelOf(model, gcn)
                             : model.Controls.Count == 1 ? 0 : -1;
                     if (group.ControlLevel < 0)
                         Edition.Error(DiagnosticCatalog.ReportControlTypeOperand, $"RD '{model.Name}': the TYPE C{(group.Kind == ReportGroupKindModel.ControlHeading ? "H" : "F")} operand "
-                            + "shall be an operand of the CONTROL clause (ISO §13.18.57.3 SR10/SR11)");
+                            + $"{(group.ControlOperand is { } d ? $"'{d}' " : "")}shall be the same as one of the "
+                            + "operands of the CONTROL clause (ISO §13.18.57.3 SR10/SR11)");
                 }
                 foreach (var ln in group.Lines)
                     foreach (var f in ln.Fields)
@@ -753,10 +859,10 @@ public sealed partial class DataBinder
                 }
                 if (sum.ResetFinal)
                     sum.ResetLevel = model.Controls.FindIndex(c => c.IsFinal);
-                else if (sum.ResetName is { } rn)
-                    sum.ResetLevel = model.Controls.FindIndex(c => rn.Equals(c.Name, StringComparison.OrdinalIgnoreCase));
-                if ((sum.ResetFinal || sum.ResetName is not null) && sum.ResetLevel < 0)
-                    Edition.Error(DiagnosticCatalog.ReportResetNotControlOperand, $"RD '{model.Name}': RESET ON '{sum.ResetName ?? "FINAL"}' is "
+                else if (sum.ResetOperand is { } rn)
+                    sum.ResetLevel = ControlLevelOf(model, rn);
+                if ((sum.ResetFinal || sum.ResetOperand is not null) && sum.ResetLevel < 0)
+                    Edition.Error(DiagnosticCatalog.ReportResetNotControlOperand, $"RD '{model.Name}': RESET ON '{sum.ResetOperand?.ToString() ?? "FINAL"}' is "
                         + "not an operand of the CONTROL clause (ISO §13.18.54.3 SR8)");
             }
 
@@ -814,16 +920,9 @@ public sealed partial class DataBinder
         if (conds.Count == 0) return;
 
         // A name also declared in ordinary storage resolves THERE (never to the report item), so it is not an
-        // SR16 reference — only report-section-exclusive names are scanned (no textual false positives).
-        var names = new List<string>();
-        foreach (var g in model.Groups)
-        {
-            if (g.Name is { } gn && !ByName.ContainsKey(gn)) names.Add(gn);
-            foreach (var ln in g.Lines)
-                foreach (var f in ln.Fields)
-                    if (f.PrintItem.CobolName is { } fn && !ByName.ContainsKey(fn)) names.Add(fn);
-        }
-        foreach (var s in model.Sums) if (!ByName.ContainsKey(s.Id)) names.Add(s.Id);
+        // SR16 reference — only report-section-exclusive names are scanned (no textual false positives). The SAME
+        // set answers §13.18.16.3 SR2 for a CONTROL operand, so it is built in ONE place (kb/Work PB205).
+        var names = ReportSectionOnlyNames(model);
 
         foreach (var cond in conds)
         {
@@ -838,6 +937,83 @@ public sealed partial class DataBinder
                     break;
                 }
         }
+    }
+
+    /// <summary>⛔ THE ONE "is this one of the CONTROL clause's operands" TEST (kb/Work PB205) — the level of the
+    /// CONTROL operand <paramref name="operand"/> names, or −1. Both clauses that name a control level ask this
+    /// question in the same words: §13.18.57.3 SR10 ("shall be the same as one of the operands of the CONTROL
+    /// clause of the corresponding report description entry") and §13.18.54.3 SR8 ("shall be an operand of the
+    /// CONTROL clause of the current report description"), so one comparison serves both — over the WRITTEN
+    /// reference, ref-mod included, which is what §13.18.16.3 SR6 makes unique.</summary>
+    private static int ControlLevelOf(ReportModel model, ReportControlRef operand)
+    {
+        for (int i = 0; i < model.Controls.Count; i++)
+            if (model.Controls[i].Operand is { } c && c.SameOperandAs(operand)) return i;
+        return -1;
+    }
+
+    /// <summary>True when <paramref name="name"/> is defined in the report section AND NOWHERE ELSE — the test
+    /// §13.18.16.3 SR2 needs of a CONTROL operand and §13.15.3 SR16 needs of a PRESENT WHEN condition. A name
+    /// also declared in ordinary storage resolves THERE (§8.4.2.1), so it is not a report-section reference; the
+    /// set is therefore "report-section-exclusive", never "every report-section name".</summary>
+    private bool IsReportSectionOnlyName(string name)
+    {
+        foreach (var r in Reports)
+            foreach (var n in ReportSectionOnlyNames(r))
+                if (n.Equals(name, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
+
+    /// <summary>The report-section-exclusive names of one report: its group names, its printable entries' names
+    /// and its sum counters, each only when <see cref="ByName"/> does not also carry it (see
+    /// <see cref="IsReportSectionOnlyName"/> for why).</summary>
+    private List<string> ReportSectionOnlyNames(ReportModel model)
+    {
+        var names = new List<string>();
+        foreach (var g in model.Groups)
+        {
+            if (g.Name is { } gn && !ByName.ContainsKey(gn)) names.Add(gn);
+            foreach (var ln in g.Lines)
+                foreach (var f in ln.Fields)
+                    if (f.PrintItem.CobolName is { } fn && !ByName.ContainsKey(fn)) names.Add(fn);
+        }
+        foreach (var s in model.Sums) if (!ByName.ContainsKey(s.Id)) names.Add(s.Id);
+        return names;
+    }
+
+    /// <summary>⛔ THE ONE CAPTURE OF A CONTROL-CLAUSE OPERAND REFERENCE, shared by the THREE clauses that write
+    /// one (kb/Work PB205): the CONTROL clause itself (§13.18.16.3), a TYPE CH/CF operand (§13.18.57.3 SR10) and a
+    /// SUM … RESET ON operand (§13.18.54.3 SR8). It keeps the WHOLE written reference — base word, IN/OF
+    /// qualifiers AND reference modification — because all three clauses expressly permit the ref-mod and all
+    /// three identify a control level BY the written form. Before this, all three kept only part of it
+    /// (<c>KeyReference</c> drops <c>refModPart</c>; TYPE and RESET kept the bare <c>cobolWord</c>) and compared
+    /// by NAME, so <c>CX(1:3)</c> and <c>CX(4:3)</c> were one operand.
+    /// <para>The rule the three clauses SHARE is screened here, once — "If [data-name-1] is reference-modified,
+    /// leftmost-position and length shall be integer literals" (§13.18.16.3 SR4, and word-for-word in SR8 and
+    /// SR10) — with the CALLING clause's own <paramref name="code"/> and <paramref name="rule"/> in the message,
+    /// so each site keeps its own citation. Two ref-mods are §8.4.3.3.3 SR3 (the existing COBOLNET1630). A
+    /// SUBSCRIPT is rejected outright: §13.18.16.3 SR3 bars an operand subject to an OCCURS clause and
+    /// §8.4.2.3.3 SR2 bars a subscript on an item that has none, so no legal subscripted spelling exists — and it
+    /// was being dropped on the floor exactly as the ref-mod was.</para></summary>
+    private ReportControlRef ControlOperandRef(
+        Core.DataReferenceContext dref, DiagnosticDescriptor code, string where, string rule)
+    {
+        var (name, quals) = KeyReference(dref);
+        var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
+        if (sfx.Subscripts > 0)
+            Edition.Error(code, $"{where} '{dref.GetText()}' is subscripted. A control operand may not be subject "
+                + "to an OCCURS clause (ISO §13.18.16.3 SR3), and a subscript may be written only for an item that "
+                + "has one (§8.4.2.3.3 SR2), so a subscripted control operand is never legal.");
+        if (sfx.RefMods > 1)
+            Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{dref.GetText()}' carries {sfx.RefMods} reference "
+                + "modifications; a reference-modified item cannot itself be reference-modified (ISO §8.4.3.3.3 "
+                + "SR3). Compose the positions into one modifier instead.");
+        else if (sfx.NonLiteral)
+            Edition.Error(code, $"{where} '{dref.GetText()}' is reference-modified with a leftmost-position or "
+                + $"length that is not an integer literal. The operand may be reference-modified, but if it is, "
+                + $"leftmost-position and length shall be integer literals ({rule}) — the prior control has the "
+                + "same data description as the slice (§13.18.16.4 GR3), so its extent is fixed at compile time.");
+        return new ReportControlRef(name, quals, sfx.Start, sfx.Length);
     }
 
     /// <summary>⛔ THE ONE SHAPE SCREEN FOR A CONTROL OPERAND — the syntax rules over data-name-1, one arm per
