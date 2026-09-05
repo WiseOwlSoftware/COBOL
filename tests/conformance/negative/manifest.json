@@ -4,6 +4,8 @@
   "pb635-find-string-float-skip",
   "pb300-padding-clause-dataname",
   "pb248-integer-arg-float-item",
+  "pb305-cross-class-national-mixed",
+  "pb305-numval-c-edited-category",
   "pb248-integer-arg-float-literal",
   "pb248-integer-expr-float-term",
   "pb248-perform-times-float",

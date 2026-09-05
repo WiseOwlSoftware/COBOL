@@ -275,7 +275,32 @@ narrower than type 6 — an expression or nested function is barred outright), `
 §15.63.3 / §15.71.3 / §15.72.3 r1's "nor shall it be a strongly-typed group item"), and the zero-length-LITERAL
 clause — and the schema a `CrossArgRule` (`AllSameClass` for MAX/MIN/ORD-MAX/ORD-MIN r2/r3, `MatchArgument1` for
 FIND-STRING, NUMVAL-C/TEST-NUMVAL-C, INTEGER-OF-FORMATTED-DATE, SECONDS-FROM-FORMATTED-TIME, TEST-FORMATTED-DATETIME,
-TRIM, SUBSTITUTE). `IntegerViolation` decides §15.3 type 6 — "an arithmetic expression that will always result in an
+TRIM, SUBSTITUTE).
+
+**The class lattice is FINER than §8.5.2.1 Table 2's class column, and the difference is projected in exactly one
+place** (kb/Work PB305). `CobolClass` carries one member finer than the class it belongs to —
+`NumericEditedDeEditing`, category numeric-edited, whose CLASS is alphanumeric — kept apart so a CATEGORY-worded
+rule can see the category Table 2 folds away. §15.68.3 is why both readings are needed of one operand: r1 is
+category-worded ("Argument-1 shall be of category alphanumeric or national") and r2 is class-worded ("shall be of
+the same class as argument-1"), and §8.5.2.1's closing sentence ("refers to the category unless class is
+specifically indicated") is what keeps them apart. `IntrinsicArgumentRules.TableTwoClass` is the ONE reader of
+"what class is this operand, for a rule that says CLASS"; `ByClass(...)` derives every CLASS-worded `Admissible`
+arm from it (`'n'`, `'i'`, `'b'`, `'s'`, `'c'` — so a refined member is admitted by its class, never by being
+remembered in the list), while the single CATEGORY-worded arm `'t'` keeps a literal member list because it
+enumerates categories the class column cannot derive. `CrossBlock` composes the projection with the cross rules'
+own alphabetic|alphanumeric merge — **projecting FIRST and merging SECOND**, because the projection is a class
+fact and the merge is a rule-level exception §15.59.3 r2 states outright ("with the exception that mixing of
+arguments of alphabetic and alphanumeric classes is allowed"). ⚠ EVERY cross clause in the catalogue is
+class-worded, which is why `CrossViolation` needs no per-rule axis flag. The order was the defect: a one-case fold
+(Alphabetic → Alphanumeric) applied to the UNPROJECTED member left numeric-edited in a block of its own, and all
+twelve cross-rule functions rejected `FUNCTION MAX(<PIC ZZ9 item> "A")` and its siblings — legal source, on rules
+eleven of whose inventory rows read CONFORMS. `IntrinsicArgumentClassDriftTests` holds both halves: no cross screen
+may SPLIT a Table-2 class, and every class-worded kind's admissible set stays closed under its class.
+`ClassOfCategory` maps category numeric-edited to the refined member unconditionally; §8.4.3.3.4 GR6 c)'s national
+half is unreachable while `PIC ZZ9 USAGE NATIONAL` is refused at COBOLNET0899 (kb/Work PB646), whose landing owns
+the usage-keyed arm in `ClassOfItem` beside `Usage.Index`'s.
+
+`IntegerViolation` decides §15.3 type 6 — "an arithmetic expression that will always result in an
 integer value **or** an integer data item" — for four operand shapes: a DATA ITEM, a nested numeric function
 (§8.4.3.2.3 SR11), a numeric LITERAL, and the two provably-not-always-integral EXPRESSION shapes (a bare-item/literal
 quotient at the root, and a non-integral item appearing purely as additive leaves with an uncancelled net

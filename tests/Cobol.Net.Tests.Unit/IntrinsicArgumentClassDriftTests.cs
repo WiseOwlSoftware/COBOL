@@ -453,4 +453,169 @@ public sealed class IntrinsicArgumentClassDriftTests
             $"a PIC 9(4) integer item is REJECTED at 'i' position(s): [{string.Join("; ", rejected)}] — §15.3 "
             + "type 6 admits an integer data item, and §5.5 2)b)2. says this is one.");
     }
+
+    /// <summary>One data-item witness per <see cref="CobolClass"/> member a PICTURE can present, with the
+    /// member each is BUILT to present — the bank the two cross-argument facts below are written over, so a new
+    /// lattice member joins them the day it is modelled rather than the day someone remembers it.</summary>
+    /// <remarks>⚠ Each witness is checked against <c>ClassOf</c> before it is used: a bank that silently stopped
+    /// presenting the class it names would turn both facts green for the wrong reason
+    /// (<c>feedback_green_gates_arent_evidence</c>).</remarks>
+    private static List<(CobolClass Class, BoundFieldOperand Op)> ClassWitnesses()
+    {
+        (CobolClass Cls, PicInfo Pic)[] bank =
+        [
+            (CobolClass.Alphanumeric, new PicInfo(PicCategory.Alphanumeric, Usage.Display, 4, 0, 0, false)),
+            (CobolClass.Alphabetic,
+                new PicInfo(PicCategory.Alphanumeric, Usage.Display, 4, 0, 0, false) { IsAlphabetic = true }),
+            // PIC ZZ9 — category numeric-edited, usage display: §8.5.2.1 Table 2 class ALPHANUMERIC, and the
+            // refined member the lattice reports for it. THIS is the witness kb/Work PB305 turns on.
+            (CobolClass.NumericEditedDeEditing, new PicInfo(PicCategory.NumericEdited, Usage.Display, 3, 3, 0, false)),
+            (CobolClass.National, new PicInfo(PicCategory.National, Usage.National, 4, 0, 0, false)),
+            (CobolClass.Numeric, new PicInfo(PicCategory.Numeric, Usage.Display, 4, 4, 0, false)),
+            (CobolClass.Boolean, new PicInfo(PicCategory.Boolean, Usage.Bit, 8, 0, 0, false)),
+            (CobolClass.Object, new PicInfo(PicCategory.ObjectReference, Usage.ObjectReference, 8, 0, 0, false)),
+            (CobolClass.Pointer, new PicInfo(PicCategory.Pointer, Usage.Pointer, 8, 0, 0, false)),
+            (CobolClass.Index, new PicInfo(PicCategory.Numeric, Usage.Index, 8, 9, 0, false)),
+        ];
+        var built = new List<(CobolClass, BoundFieldOperand)>();
+        foreach (var (cls, pic) in bank)
+        {
+            var op = ItemOperand(pic.Usage, pic);
+            Assert.True(IntrinsicArgumentRules.ClassOf(op) == cls,
+                $"the {cls} witness classifies as {IntrinsicArgumentRules.ClassOf(op)?.ToString() ?? "<undecidable>"} "
+                + "— the bank has rotted and every fact written over it is green for the wrong reason; fix the "
+                + "witness, never the assertion.");
+            built.Add((cls, op));
+        }
+        // Every member of the lattice is represented, so "swept the whole enum" is a fact and not a hope.
+        foreach (var m in Enum.GetValues<CobolClass>())
+            Assert.Contains(m, built.Select(b => b.Item1));
+        return built;
+    }
+
+    /// <summary>The rule governing argument position <paramref name="i"/> of a schema (its own row, or the
+    /// variadic tail).</summary>
+    private static ArgRule? RuleAt(ArgSchema s, int i) =>
+        i < s.Positions.Length ? s.Positions[i] : s.Tail;
+
+    /// <summary>
+    /// ⛔ EVERY CROSS-ARGUMENT RULE ACCEPTS TWO OPERANDS OF ONE §8.5.2.1 TABLE-2 CLASS (kb/Work PB305). This is
+    /// the drift test the fix is paired with, and it is written over the SCHEMA TABLE and the whole
+    /// <see cref="CobolClass"/> lattice rather than over a list of functions, so a new cross rule is swept the
+    /// day its row is added and a new refined class member the day it is modelled.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⛔ EVERY cross clause in the catalogue is CLASS-worded, which is what makes this assertion total rather
+    /// than per-function: §15.37.3 r2 makes argument-2 "a data item or literal of either class alphabetic or
+    /// alphanumeric", §15.96.3 r2 makes it "a single character that is either class alphabetic or class
+    /// alphanumeric", §15.87.3 r2 says it per argument-2/argument-3 pair, §15.59.3 r2 / §15.63.3 r2 / §15.71.3 r3 /
+    /// §15.72.3 r3 say "All arguments shall be of the same class", §15.68.3 r2 says "of the same class as
+    /// argument-1" — even though its own r1 is category-worded — and §15.48.3 r3 / §15.79.3 r3 / §15.92.3 r2's
+    /// "the same type as argument-1" is read as the class. So a screen may MERGE two Table-2 classes (§15.59.3
+    /// r2's own alphabetic/alphanumeric exception) but may never SPLIT one.
+    /// </para>
+    /// <para>
+    /// ⚠ THE DEFECT IT GUARDS WAS SELF-REFUTING AND STILL SHIPPED. <c>CrossViolation</c> normalized candidates
+    /// with a hand-written one-case fold (Alphabetic → Alphanumeric) instead of the Table-2 class projection, so
+    /// <c>CobolClass.NumericEditedDeEditing</c> — whose own doc comment reads "Anywhere a rule says 'shall be of
+    /// CLASS alphanumeric', this counts as alphanumeric" — stayed in a block of its own and intersected empty
+    /// against an ordinary alphanumeric operand. TEN catalogued functions rejected legal source, and written as
+    /// <c>FUNCTION FIND-STRING("ABC" &lt;PIC ZZ9&gt;)</c> the message said it outright: "argument-2 is of class
+    /// alphanumeric (numeric-edited), which cannot agree with argument-1". A test naming one function and one
+    /// class would have passed while the other nine stayed open.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void EveryCrossArgumentRule_AcceptsTwoOperandsOfOneTable2Class()
+    {
+        var witnesses = ClassWitnesses();
+        var crossSchemas = IntrinsicArgumentRules.Verified.Where(kv => kv.Value.Cross != CrossArgRule.None).ToList();
+        Assert.True(crossSchemas.Count >= 10,
+            $"only {crossSchemas.Count} schema(s) carry a cross-argument rule — the table shape changed and this "
+            + "guard has gone blind; fix the walk, do not lower the floor.");
+
+        var rejected = new List<string>();
+        int exercised = 0;
+        foreach (var (fn, schema) in crossSchemas.Select(kv => (kv.Key, kv.Value)))
+        {
+            foreach (var (ca, opA) in witnesses)
+            {
+                foreach (var (cb, opB) in witnesses)
+                {
+                    // Only pairs Table 2 puts in ONE class: a cross rule is free to reject anything else.
+                    if (IntrinsicArgumentRules.TableTwoClass(ca) != IntrinsicArgumentRules.TableTwoClass(cb)) continue;
+                    // …and only pairs the PER-POSITION screen already admits, so this fact measures the cross
+                    // screen alone and never re-litigates §15.x.3 r1.
+                    if (RuleAt(schema, 0) is not { } r0 || IntrinsicArgumentRules.Violation(r0, opA) is not null) continue;
+                    if (RuleAt(schema, 1) is not { } r1 || IntrinsicArgumentRules.Violation(r1, opB) is not null) continue;
+                    exercised++;
+                    if (IntrinsicArgumentRules.CrossViolation(schema, [opA, opB]) is { } why)
+                        rejected.Add($"FUNCTION {fn}({ca} {cb}): {why}");
+                }
+            }
+        }
+        Assert.True(exercised >= 20,
+            $"only {exercised} admissible same-class pair(s) reached CrossViolation — the witness bank or the "
+            + "per-position filter has gone blind; fix the walk, do not lower the floor.");
+        Assert.True(rejected.Count == 0,
+            "a cross-argument rule REJECTED two operands of one §8.5.2.1 Table-2 class — it is SPLITTING a class "
+            + $"the standard does not split (kb/Work PB305):{Environment.NewLine}"
+            + string.Join(Environment.NewLine, rejected.Order()));
+    }
+
+    /// <summary>
+    /// ⛔ EVERY CLASS-WORDED ARGUMENT KIND'S ADMISSIBLE SET IS CLOSED UNDER ITS §8.5.2.1 TABLE-2 CLASS: if it
+    /// admits a class, it admits every lattice member of that class. This is what keeps
+    /// <c>IntrinsicArgumentRules.ByClass</c> honest — a hand-edit back to a literal member list fails here.
+    /// </summary>
+    /// <remarks>
+    /// ⚠ THE CATEGORY-WORDED KINDS ARE DECLARED, NOT DERIVED, and the declaration lives HERE rather than in the
+    /// compiler because the screen does not need the axis — only this fact does. A kind is exempt only when its
+    /// §15 clauses say CATEGORY: 't' is the NUMVAL/FORMATTED-* family, whose rules read "Argument-1 shall be of
+    /// category alphanumeric or national" (§15.68.3 r1) and, at §15.67.3 r1, "Argument-1 shall be an alphanumeric
+    /// or national literal or an alphanumeric or national data item" — which §8.5.2.1's closing sentence
+    /// ("refers to the category unless class is specifically indicated") resolves to the CATEGORY column. A new
+    /// class-worded kind with a literal member list turns this red; adding a category-worded one costs a row
+    /// here with the clause that justifies it.
+    /// </remarks>
+    [Fact]
+    public void EveryClassWordedArgumentKind_IsClosedUnderItsTable2Class()
+    {
+        var categoryWorded = new Dictionary<char, string>
+        {
+            ['t'] = "§15.67.3 r1 / §15.68.3 r1 and the FORMATTED-* family — worded \"of CATEGORY alphanumeric or "
+                + "national\", so its membership is a category set the Table-2 class column cannot derive",
+        };
+
+        var kinds = IntrinsicArgumentRules.Verified.Values
+            .SelectMany(s => s.Positions.Select(p => p.Kind).Concat(s.Tail is { } t ? [t.Kind] : []))
+            .Distinct()
+            .Where(k => IntrinsicArgumentRules.Admissible(k) is not null)
+            .Order()
+            .ToList();
+        Assert.True(kinds.Count >= 5,
+            $"only {kinds.Count} screened kind code(s) found in the Verified schema table — the table shape "
+            + "changed and this guard has gone blind; fix the walk, do not lower the floor.");
+
+        var open = new List<string>();
+        foreach (char k in kinds.Where(k => !categoryWorded.ContainsKey(k)))
+        {
+            var ok = IntrinsicArgumentRules.Admissible(k)!;
+            foreach (var admitted in ok)
+                foreach (var m in Enum.GetValues<CobolClass>())
+                    if (IntrinsicArgumentRules.TableTwoClass(m) == IntrinsicArgumentRules.TableTwoClass(admitted)
+                        && !ok.Contains(m))
+                        open.Add($"kind '{k}' admits {admitted} but not {m}, which §8.5.2.1 Table 2 puts in the "
+                            + $"same class ({IntrinsicArgumentRules.TableTwoClass(m)})");
+        }
+        Assert.True(open.Count == 0,
+            "a CLASS-worded argument kind admits only part of a §8.5.2.1 Table-2 class — state it with "
+            + $"IntrinsicArgumentRules.ByClass, or declare the kind category-worded above with its clause:"
+            + $"{Environment.NewLine}{string.Join(Environment.NewLine, open.Distinct().Order())}");
+
+        // The exemption cannot rot into a blanket: every declared kind must still be a kind the table uses.
+        foreach (var (k, why) in categoryWorded)
+            Assert.True(kinds.Contains(k), $"kind '{k}' is declared category-worded ({why}) but no schema uses it");
+    }
 }

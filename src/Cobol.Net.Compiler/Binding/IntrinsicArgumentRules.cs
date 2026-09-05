@@ -461,8 +461,13 @@ internal static class IntrinsicArgumentRules
     {
         PicCategory.Alphanumeric => CobolClass.Alphanumeric,
         // ⛔ NumericEdited sits under ALPHANUMERIC in Table 2 when its usage is display — which is why it is not
-        // a legal argument to a rule demanding CLASS NUMERIC (ABS). It is reported as its own member so a rule
-        // demanding §15.3's INTEGER TYPE can still admit it, since it de-edits to a numeric value.
+        // a legal argument to a rule demanding CLASS NUMERIC (ABS). It is reported as its own REFINED member so
+        // that a CATEGORY-worded rule can still see the category Table 2 folds away (§15.68.3 r1, "shall be of
+        // category alphanumeric or national"); every CLASS-worded rule reads it through TableTwoClass.
+        // ⚠ THE JUSTIFICATION THAT STOOD HERE WAS THE OVERTURNED ONE ("so a rule demanding §15.3's INTEGER TYPE
+        // can still admit it, since it de-edits to a numeric value") — owner decision 2026-08-02 refuted exactly
+        // that reading, and the member's own doc comment has said so since; this was the second copy that did
+        // not get the correction (kb/Work PB305).
         PicCategory.NumericEdited => CobolClass.NumericEditedDeEditing,
         PicCategory.National => CobolClass.National,
         PicCategory.Numeric => CobolClass.Numeric,
@@ -476,6 +481,64 @@ internal static class IntrinsicArgumentRules
         PicCategory.Pointer or PicCategory.ProgramPointer => CobolClass.Pointer,
         _ => null,                                          // Group is handled by the caller
     };
+
+    /// <summary>
+    /// ISO §8.5.2.1 Table 2's CLASS column, read over THIS LATTICE'S REFINED MEMBERS — the ONE answer to
+    /// "what class is this operand, for a rule that says CLASS".
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⛔ <see cref="CobolClass"/> IS NOT THE CLASS COLUMN. One of its members is FINER than the class it
+    /// belongs to, kept apart on purpose so a CATEGORY-worded rule can see the category Table 2 folds away:
+    /// <see cref="CobolClass.NumericEditedDeEditing"/> is category numeric-edited, whose CLASS is alphanumeric.
+    /// §8.4.3.3.4 GR6 c) says it in words — "the categories numeric and numeric-edited are considered class and
+    /// category national if the usage is national; otherwise they are considered class and category
+    /// alphanumeric" — and §8.5.2.1's own closing sentence is why the distinction has to exist at all: "Use of
+    /// the name of a data class or data category in the rules of COBOL refers to the category unless class is
+    /// specifically indicated." §15.68.3 is the proof that BOTH readings are needed of the same operand: r1 is
+    /// category-worded ("shall be of category alphanumeric or national") and r2 is class-worded ("shall be of
+    /// the same class as argument-1").
+    /// <para>⚠ <see cref="CobolClass.Alphabetic"/> is NOT such a member and must not be folded here — Table 2
+    /// gives category alphabetic its own CLASS row. Cross rules merge it with alphanumeric by a rule-level
+    /// exception they each state (see <see cref="CrossBlock"/>), which is a different fact.</para>
+    /// </para>
+    /// <para>
+    /// ⛔ IT IS A PROJECTION AND NOT A FOLD, and that distinction is the whole of kb/Work PB305.
+    /// <see cref="CrossViolation"/> carried a hand-written ONE-CASE fold (Alphabetic → Alphanumeric) in the place
+    /// this projection belongs, so <c>FUNCTION FIND-STRING(&lt;PIC ZZ9 item&gt; "5")</c> — legal under §15.37.3
+    /// r2, which admits "a data item or literal of either class alphabetic or alphanumeric" — was rejected
+    /// COBOLNET1627 by a message that NAMED the operand's class "alphanumeric (numeric-edited)" in the same
+    /// sentence in which it refused it for not being alphanumeric. TEN catalogued functions inherited it, because
+    /// every cross rule intersects these same candidate sets. A class the lattice refines is un-refined ONCE,
+    /// here, never remembered at each screen.
+    /// </para>
+    /// <para>
+    /// ⚠ THE NATIONAL HALF OF GR6 c) IS UNREACHABLE and is deliberately not written here: a national-form
+    /// numeric-edited item (<c>PIC ZZ9 USAGE NATIONAL</c>) is refused by name at COBOLNET0899 before any screen
+    /// sees it (kb/Work PB646), so an arm for it would be a lookup nothing can reach — and a dead lookup is also
+    /// an unverified one. PB646's landing owns the usage-keyed arm, beside <see cref="Usage.Index"/>'s in
+    /// <see cref="ClassOfItem"/>; this projection needs no change when it lands, because the classifier will
+    /// then report <see cref="CobolClass.National"/> and never reach the refined member.
+    /// </para>
+    /// </remarks>
+    public static CobolClass TableTwoClass(CobolClass c) => c switch
+    {
+        CobolClass.NumericEditedDeEditing => CobolClass.Alphanumeric,
+        _ => c,
+    };
+
+    /// <summary>Every lattice member whose §8.5.2.1 Table-2 CLASS is one of <paramref name="classes"/>, in the
+    /// rule's own wording order with each class's refinements following it — how a CLASS-worded §15 argument rule
+    /// states its admissible set, so a refined member is admitted BY ITS CLASS and never by being remembered in
+    /// the list.</summary>
+    /// <remarks>⛔ THE LITERAL LISTS IT REPLACES WERE THE HAND-MAINTAINED FORM OF <see cref="TableTwoClass"/>
+    /// (kb/Work PB305; CLAUDE.md rule 5 — "never a hand-maintained list where a structure belongs"). The 's',
+    /// 'c', 'n', 'i' and 'b' arms each spelled out which refined members their class admits, so the NEXT refined
+    /// member would have to be remembered at five sites plus <see cref="CrossViolation"/> — and the sixth site
+    /// had already been forgotten. The one CATEGORY-worded kind ('t') keeps a literal list on purpose: it
+    /// enumerates CATEGORIES, which the class column cannot derive, and that is now visible in the shape.</remarks>
+    private static CobolClass[] ByClass(params CobolClass[] classes) =>
+        [.. classes.SelectMany(cls => Enum.GetValues<CobolClass>().Where(m => TableTwoClass(m) == cls)).Distinct()];
 
     /// <summary>The static storage REPRESENTATION of an intrinsic argument, as a <see cref="Usage"/> — the axis
     /// the keyword-keyed §15.19.3 argument rules key on, and the one <see cref="IntrinsicArgumentRules.ClassOfCategory"/>
@@ -958,8 +1021,33 @@ internal static class IntrinsicArgumentRules
         return true;
     }
 
+    /// <summary>§15's "shall be of class NUMERIC" rows ('n' and 'i') — <see cref="ByClass"/>-derived, so
+    /// numeric-edited stays excluded BY ITS CLASS (Table 2 puts it under alphanumeric) rather than by absence,
+    /// which is what preserves the 2026-08-02 owner decision by construction.</summary>
+    private static readonly CobolClass[] ClassNumeric = ByClass(CobolClass.Numeric);
+
+    /// <summary>§15.45.3 r1's "shall be of class BOOLEAN" row ('b').</summary>
+    private static readonly CobolClass[] ClassBoolean = ByClass(CobolClass.Boolean);
+
+    /// <summary>The CLASS-worded string rows ('s') — "class alphabetic, alphanumeric, or national".</summary>
+    private static readonly CobolClass[] ClassStringRules =
+        ByClass(CobolClass.Alphabetic, CobolClass.Alphanumeric, CobolClass.National);
+
+    /// <summary>CONCAT's row ('c', §15.18.3 r1) — "class alphabetic, alphanumeric, boolean, numeric or
+    /// national": everything Table 2 names but index, object and pointer.</summary>
+    private static readonly CobolClass[] ClassConcat = ByClass(
+        CobolClass.Alphabetic, CobolClass.Alphanumeric, CobolClass.National, CobolClass.Numeric,
+        CobolClass.Boolean);
+
+    /// <summary>The CATEGORY-worded string rows ('t') — the ONE set stated as categories rather than derived
+    /// from the class column, because that is how its clauses are worded (kb/Work PB305).</summary>
+    private static readonly CobolClass[] CategoryStringRules =
+        [CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing, CobolClass.National];
+
     /// <summary>The classes a verified class code admits, or <see langword="null"/> for "no general screen" —
     /// the function's rule is a NEGATIVE list and its own arm owns it.</summary>
+    /// <remarks>⚠ Every arm returns a SHARED, PRE-COMPUTED array: a <see cref="ByClass"/>-derived set must be
+    /// computed once, and the screen runs per argument of every intrinsic call in the compilation unit.</remarks>
     public static CobolClass[]? Admissible(char kind) => kind switch
     {
         // ⛔ 'n' is for a rule that says CLASS NUMERIC in those words — §15.7.3 r1 (ABS), §15.9.3 r1, §15.74.3 r1,
@@ -973,7 +1061,7 @@ internal static class IntrinsicArgumentRules
         // a numeric literal, the figurative constant ZERO …" (--check verified). A numeric-edited item is
         // category numeric-edited and class alphanumeric — not a numeric data item — so it is neither of type
         // 10's two alternatives. The exclusion is correct and `pb1-numeric-arg-numeric-edited` pins it.
-        'n' => [CobolClass.Numeric],
+        'n' => ClassNumeric,
         // ⛔ 'b' — class BOOLEAN, and §15.45.3 r1 (INTEGER-OF-BOOLEAN) is the only rule in the catalogue that
         // names it. There was no arm able to express this at all before PB19, which is why the function was
         // unscreened rather than merely unlisted: a screen cannot reject what its vocabulary cannot describe.
@@ -982,7 +1070,7 @@ internal static class IntrinsicArgumentRules
         // Under the pre-PB20 rule, which typed EVERY ref-mod result class alphanumeric on the authority of a
         // clause that does not exist, this arm would have rejected that example. Adding the row before fixing
         // the class rule would have shipped a screen that rejects the specification's own sample program.
-        'b' => [CobolClass.Boolean],
+        'b' => ClassBoolean,
         // ⛔ 'i' SCREENS EXACTLY AS 'n' DOES (owner decision 2026-08-02). The comment that stood here argued the
         // opposite — that §15.3 type 6 "admits an ARITHMETIC EXPRESSION — and a numeric-edited item is a legal
         // arithmetic operand, because it DE-EDITS to a defined numeric value" — and cited DA6's screen, a corpus
@@ -998,27 +1086,30 @@ internal static class IntrinsicArgumentRules
         //     grant that would be unnecessary if de-editing were generally available.
         // So `FUNCTION CHAR(WS-ED)` over a `PIC Z9` is NOT conforming. The distinction between a CLASS rule and
         // §15.3's integer TYPE is still real — it is just not a distinction about numeric-edited.
-        'i' => [CobolClass.Numeric],
+        'i' => ClassNumeric,
         // The CLASS-worded string rows (kb/Work PB124 wave 5 split the old union): "class alphabetic,
         // alphanumeric, or national" — UPPER-CASE §15.97.3 r1, LOWER-CASE §15.57.3 r1, TRIM §15.96.3 r1,
         // SUBSTITUTE §15.87.3 r1, ORD §15.70.3 r1, REVERSE §15.78.3 r1, FIND-STRING §15.37.3, STANDARD-COMPARE
         // §15.85.3, LOCALE-COMPARE §15.51.3 — Table 21's cells all print Alph1. Table 2 makes numeric-edited
-        // (display) class ALPHANUMERIC, so a class rule admits it as such.
-        's' => [CobolClass.Alphabetic, CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing,
-                CobolClass.National],
+        // (display) class ALPHANUMERIC, so a class rule admits it as such — and it is ByClass that says so now,
+        // not a remembered member (kb/Work PB305).
+        's' => ClassStringRules,
         // The CATEGORY-worded string rows — "of category alphanumeric or national" / "an alphanumeric or
         // national literal or data item" (NUMVAL §15.67.3 r1, NUMVAL-F §15.69.3 r1, NUMVAL-C §15.68.3 r1 and
         // the TEST- twins, the FORMATTED-* date/time family, LOCALE-DATE §15.52.3 r1, LOCALE-TIME §15.53.3 r1)
         // — Table 2's closing sentence ("refers to the CATEGORY unless class is specifically indicated")
         // settles them against a PIC A item, and Table 21 prints no Alph in any of their cells; the old single
         // union admitted PIC A at every one of these positions (AR-15.3-1's measured over-admission).
-        't' => [CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing, CobolClass.National],
+        // ⛔ THE ONE LITERAL LIST LEFT, AND DELIBERATELY SO (kb/Work PB305): this row enumerates CATEGORIES, and
+        // the Table-2 CLASS column cannot derive a category set — ByClass would silently widen it to every
+        // member of class alphanumeric. Its membership is a reading of each clause's own wording, so it is
+        // written out and the drift test declares it category-worded rather than deriving it.
+        't' => CategoryStringRules,
         // 'c' — CONCAT (§15.18.3 r1): "class alphabetic, alphanumeric, boolean, numeric or national" — everything
         // Table 2 names but index, object and pointer (kb/Work PB58; the r2/r3 USAGE halves are
         // IntrinsicBinder.CheckConcatArgs' — a class kind cannot carry them). Alphabetic joined when the class
         // gained its member (PB124 wave 5) — the rule always named it; the fold made it unreachable.
-        'c' => [CobolClass.Alphabetic, CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing,
-                CobolClass.National, CobolClass.Numeric, CobolClass.Boolean],
+        'c' => ClassConcat,
         // 'p' — MAX/MIN/ORD-MAX/ORD-MIN, whose rule (§15.71.3 r1 and siblings) is a NEGATIVE list. An
         // admissible-set cannot express it without also excluding classes the rule permits.
         _ => null,
@@ -1387,12 +1478,11 @@ internal static class IntrinsicArgumentRules
             if (i >= args.Count) continue;
             var cs = CandidateClasses(args[i]);
             if (cs.Length == 0) continue;                       // not statically decidable — contributes nothing
-            // Alphabetic and alphanumeric are ONE block for every cross rule (kb/Work PB124 wave 5):
-            // §15.59.3 r2 writes the exception outright ("All arguments shall be of the same class with the
-            // exception that mixing of arguments of alphabetic and alphanumeric classes is allowed"), and
-            // §15.87.3 r2 / §15.96.3 r2 spell the same two blocks per pair ("class alphabetic or class
-            // alphanumeric" | national). Normalizing the candidate keeps the intersection model intact.
-            cs = [.. cs.Select(c => c == CobolClass.Alphabetic ? CobolClass.Alphanumeric : c).Distinct()];
+            // ⛔ TWO NORMALIZATIONS, AND THEY ARE DIFFERENT THINGS — conflating them into the one-case fold that
+            // stood here is the whole of kb/Work PB305, and ten catalogued functions inherited it. See
+            // CrossBlock: the §8.5.2.1 Table-2 CLASS projection runs FIRST, the cross rules' own
+            // alphabetic|alphanumeric merge SECOND. Normalizing the candidate keeps the intersection model intact.
+            cs = [.. cs.Select(CrossBlock).Distinct()];
             common = common is null ? cs : [.. common.Intersect(cs)];
             if (common.Length == 0)
                 return schema.Cross == CrossArgRule.AllSameClass
@@ -1403,6 +1493,37 @@ internal static class IntrinsicArgumentRules
         }
         return null;
     }
+
+    /// <summary>
+    /// The BLOCK a candidate class occupies for a CROSS-argument rule: its §8.5.2.1 Table-2 class
+    /// (<see cref="TableTwoClass"/>), with class alphabetic and class alphanumeric then merged.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⛔ THE ORDER IS LOAD-BEARING — project FIRST, merge SECOND — because the two steps rest on different
+    /// authorities. The projection is a CLASS FACT: EVERY cross clause in the catalogue is class-worded, so the
+    /// operand must be read through Table 2's class column before anything else happens to it. §15.37.3 r2 makes
+    /// argument-2 "a data item or literal of either class alphabetic or alphanumeric"; §15.96.3 r2 makes it "a
+    /// single character that is either class alphabetic or class alphanumeric"; §15.87.3 r2 says it per
+    /// argument-2/argument-3 pair; §15.59.3 r2, §15.63.3 r2, §15.71.3 r3 and §15.72.3 r3 say "All arguments
+    /// shall be of the same class"; §15.68.3 r2 says "of the same class as argument-1" even though its own r1 is
+    /// category-worded; and §15.48.3 r3 / §15.79.3 r3 / §15.92.3 r2's "the same type as argument-1" is read as
+    /// the class (each schema row cites it). The merge is a RULE-LEVEL EXCEPTION, not a class fact: §15.59.3 r2
+    /// writes it outright — "with the exception that mixing of arguments of alphabetic and alphanumeric classes
+    /// is allowed" — and §15.87.3 r2 / §15.96.3 r2 spell the same two blocks per pair. Alphabetic IS its own
+    /// Table-2 class; numeric-edited is NOT.
+    /// </para>
+    /// <para>
+    /// ⚠ A merge that ran on the UNPROJECTED member — the one-case fold this replaced — left
+    /// <see cref="CobolClass.NumericEditedDeEditing"/> alone in a block of its own, which is how a screen that
+    /// had already been told "Table 2 makes numeric-edited (display) class ALPHANUMERIC" (the 's' arm's own
+    /// comment, and the member's own doc) came to reject an alphanumeric literal standing beside it. Written the
+    /// other way round the message even said so: "argument-2 is of class alphanumeric (numeric-edited), which
+    /// cannot agree with argument-1" (kb/Work PB305 — <c>feedback_two_arm_dispatch</c>).
+    /// </para>
+    /// </remarks>
+    private static CobolClass CrossBlock(CobolClass c) =>
+        TableTwoClass(c) is var cls && cls == CobolClass.Alphabetic ? CobolClass.Alphanumeric : cls;
 
     private static string Name(CobolClass c) => c switch
     {
