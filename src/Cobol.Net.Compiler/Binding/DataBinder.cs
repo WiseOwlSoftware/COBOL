@@ -871,11 +871,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     || file.Organization is FileOrganization.Sequential or FileOrganization.LineSequential))
                 Edition.Error("COBOLNET1512", $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
                     + "not be specified for a sequential-access or sequential-organization file (ISO §12.4.5.9 SR2)");
-            // §14.9.27 SR8: a file described SHARING WITH ALL OTHER (whether via the SELECT clause here or the
+            // §14.9.27.3 SR8: a file described SHARING WITH ALL OTHER (whether via the SELECT clause here or the
             // OPEN phrase, which BindOpen also checks) shall be described with a LOCK MODE clause.
             if (file.Sharing == SharingMode.AllOther && file.LockMode is null)
                 Edition.Error("COBOLNET1512", $"file '{name}': SHARING WITH ALL OTHER requires the file to have a "
-                    + "LOCK MODE clause (ISO §14.9.27 SR8)");
+                    + "LOCK MODE clause (ISO §14.9.27.3 SR8)");
             _files.Add(file);
             ScreenRepositoryIntrinsicName(name, "file-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
             FilesByName[name] = file;

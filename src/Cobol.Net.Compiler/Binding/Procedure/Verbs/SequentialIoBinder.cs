@@ -21,30 +21,39 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 {
     public BoundStatement BindOpen(Core.OpenStatementContext o)
     {
-        var opens = new List<(FileModel, BoundOpenMode, string?)>();
-        SharingMode? sharing = null;
-        RetrySpec? retry = null;
+        var opens = new List<BoundOpenFile>();
         foreach (var clause in o.openClause())
         {
             BoundOpenMode mode = MapOpenMode(clause.openMode());
-            // OPEN SHARING phrase (ISO §14.9.27) overrides the SELECT SHARING clause for this OPEN; the RETRY
-            // phrase (ISO §14.7.9) governs a locked-file re-attempt. Both are per-statement.
-            // OPEN SHARING phrase (§14.9.27) — COBOL-2002. The edition gate moved to the post-bind
-            // VersionConformancePass (Step 14c), firing on BoundOpen.SharingOverride; the binder just records it.
-            if (clause.sharingPhrase() is { } sp && sp.sharingMode() is { } sm)
-                sharing = MapSharingMode(sm);
-            if (clause.retryPhrase() is { } rp) retry = host.BindRetry(rp);
+            // ⛔ THE PHRASES ARE SCOPED TO THIS GROUP, WHICH IS WHY THEY ARE DECLARED INSIDE THIS LOOP.
+            // §14.9.27.2's general format nests [sharing-phrase] and [retry-phrase] INSIDE the outer repeated
+            // group, beside the open mode and the file-names they govern; the outer group carries the trailing
+            // ellipsis. §14.9.27.4 GR20 then lists all four together — "These separate OPEN statements would
+            // each have the same open mode specification, the sharing-phrase, retry-phrase, and REWIND phrase
+            // as specified in the OPEN statement" — and the open mode is unarguably per-group, so the phrases
+            // beside it are too. Hoisting either to statement scope let one group's phrase govern every file
+            // in the statement, which both destroyed a sibling file's file-control sharing at run time and
+            // rejected legal source at SR8 (kb/Work PB316).
+            // The 2002 EDITION gate is elsewhere: the post-bind VersionConformancePass (Step 14c) recognizes
+            // the SHARING phrase on the parse tree; the binder just records it.
+            SharingMode? sharing = clause.sharingPhrase() is { } sp && sp.sharingMode() is { } sm
+                ? MapSharingMode(sm)
+                : null;
+            RetrySpec? retry = clause.retryPhrase() is { } rp ? host.BindRetry(rp) : null;
             foreach (var spec in clause.openFileSpec())
             {
                 string name = spec.dataReference().GetText();
                 // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
                 if (!ctx.Validation.ResolveFile(name, "OPEN", out var file)) return new BoundNop();
-                // §14.9.27 SR8: OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.
-                ctx.Validation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing);   // §14.9.27 SR8 — pure check
-                opens.Add((file, mode, UnsupportedOrg(file, "OPEN")));
+                // §14.9.27.3 SR8: OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.
+                // The effective mode is THIS group's phrase over the file-control clause — §14.9.27.4 GR23:
+                // "If there is no SHARING phrase on the OPEN statement, then file sharing is completely
+                // specified in the file control entry."
+                ctx.Validation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing);   // SR8 — pure check
+                opens.Add(new BoundOpenFile(file, mode, sharing, retry, UnsupportedOrg(file, "OPEN")));
             }
         }
-        return new BoundOpen(opens) { SharingOverride = sharing, Retry = retry };
+        return new BoundOpen(opens);
     }
 
     /// <summary>Map a SHARING mode context (ISO §12.4.5.15) at the binder layer (the DataBinder twin serves the

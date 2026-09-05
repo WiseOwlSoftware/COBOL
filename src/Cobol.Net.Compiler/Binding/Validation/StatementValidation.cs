@@ -297,7 +297,7 @@ internal sealed class StatementValidation(DataBinder data)
 
     // ── Sequential file I/O (ISO §14.9.27 / §14.9.51) — lifted at 10h ───────────────────────────────────────
 
-    /// <summary>§14.9.27 SR8 — OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.</summary>
+    /// <summary>§14.9.27.3 SR8 — OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.</summary>
     /// <summary>§13.4.6.3 SR3/SR4 — a sort-merge (SD) file-name may be referenced ONLY by SORT / MERGE /
     /// RELEASE / RETURN (and a SORT/MERGE USING/GIVING). Every other input-output statement rejects at BIND
     /// time; the old posture was a patchwork — a bind error at UNLOCK, a runtime loud stage at
@@ -346,7 +346,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!(effectiveSharing is SharingMode.AllOther && file.LockMode is null)) return true;
         data.Edition.Error("COBOLNET1512", $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
-            + "requires the file to have a LOCK MODE clause (ISO §14.9.27 SR8)");
+            + "requires the file to have a LOCK MODE clause (ISO §14.9.27.3 SR8)");
         return false;
     }
 

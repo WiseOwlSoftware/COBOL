@@ -900,19 +900,32 @@ public sealed record RetrySpec(RetryKind Kind, BoundExpr? Amount);
 /// file; always succeeds when the file is open (else I-O status 42).</summary>
 public sealed record BoundUnlock(FileModel File, bool Records) : BoundStatement;
 
-/// <summary><c>OPEN {INPUT|OUTPUT|I-O|EXTEND} file …</c> — each opened file with its mode (ISO §14.9.25). An
-/// unsupported organization (relative/indexed in the sequential slice) carries a loud <paramref name="Unsupported"/>
-/// reason so the file opens to a runtime not-implemented guard.</summary>
-public sealed record BoundOpen(IReadOnlyList<(FileModel File, BoundOpenMode Mode, string? Unsupported)> Files) : BoundStatement
-{
-    /// <summary>An OPEN SHARING phrase (ISO §14.9.27), overriding each file's SELECT SHARING clause for this
-    /// OPEN; null = use the file-control clause. Applies to every file in the statement.</summary>
-    public SharingMode? SharingOverride { get; init; }
+/// <summary>ONE file-name of an OPEN statement, carrying the mode and phrases of the repeated group it was
+/// written in (ISO §14.9.27.2). The general format's OUTER braces enclose
+/// <c>{open-mode} [sharing-phrase] [retry-phrase] {file-name-1 [WITH NO REWIND]} …</c> and carry the trailing
+/// ellipsis — verified against the printed page — so the two phrases are scoped to their group beside the mode,
+/// never to the statement. This record IS §14.9.27.4 GR20's own normal form: "If more than one file-name is
+/// specified in an OPEN statement, the result of executing this OPEN statement is the same as if a separate
+/// OPEN statement had been written for each file-name in the same order as specified in the OPEN statement.
+/// These separate OPEN statements would each have the same open mode specification, the sharing-phrase,
+/// retry-phrase, and REWIND phrase as specified in the OPEN statement." — the binder flattens the groups into
+/// exactly the separate OPENs the rule names, so no consumer can re-broaden a phrase's scope (kb/Work PB316).
+/// <para><see cref="Sharing"/> is this group's OPEN SHARING phrase or null; null means §14.9.27.4 GR23's other
+/// arm — "If there is no SHARING phrase on the OPEN statement, then file sharing is completely specified in the
+/// file control entry" — so a null here shall reach the runtime as the file-control clause, NOT as a sibling
+/// group's phrase. <see cref="Retry"/> is this group's RETRY phrase (§14.7.9) or null. An unsupported
+/// organization carries a loud <see cref="Unsupported"/> reason so the file opens to a runtime
+/// not-implemented guard.</para>
+/// <para>A <c>readonly record struct</c>, not a class: it is the per-file-name PAYLOAD of one statement node,
+/// never a polymorphic bound node, and it replaced a <c>ValueTuple</c> in the same list — so the value shape
+/// keeps the binder's allocation profile at one list rather than one object per opened file-name.</para></summary>
+public readonly record struct BoundOpenFile(FileModel File, BoundOpenMode Mode, SharingMode? Sharing,
+    RetrySpec? Retry, string? Unsupported);
 
-    /// <summary>An OPEN RETRY phrase (ISO §14.7.9), or null. The n-TIMES count bounds a re-attempt loop over
-    /// the connector registry; SECONDS/FOREVER are single-run-unit no-ops (residue).</summary>
-    public RetrySpec? Retry { get; init; }
-}
+/// <summary><c>OPEN {INPUT|OUTPUT|I-O|EXTEND} [sharing] [retry] file … …</c> (ISO §14.9.27) — the statement's
+/// repeated groups flattened to §14.9.27.4 GR20's per-file-name normal form. The statement itself carries NO
+/// phrase state: every phrase lives on the <see cref="BoundOpenFile"/> whose group wrote it.</summary>
+public sealed record BoundOpen(IReadOnlyList<BoundOpenFile> Files) : BoundStatement;
 
 /// <summary><c>CLOSE file [WITH LOCK | REEL/UNIT] …</c> (ISO §14.9.7).</summary>
 public sealed record BoundClose(IReadOnlyList<(FileModel File, BoundCloseKind Kind)> Files) : BoundStatement

@@ -294,6 +294,40 @@ ahead of the connector's own `Close()` on every path. **Symbol e does not releas
 non-unit branch is “the file remains in the open mode … and no other action takes place”, and GR9's release
 rides symbol c (“Close file”), so `CLOSE … UNIT` keeps the file lock and every record lock — pinned by
 `conformance:2002/pb235_close_unit_locks`.
+
+### D12. The OPEN statement's REPEATED GROUP is the bound tree's shape: one `BoundOpenFile` per file-name, carrying its OWN group's mode and phrases. The statement node holds no phrase state.
+
+**The rule.** §14.9.27.2's general format has two nested brace pairs, and the OUTER pair — verified by
+rendering the printed page, not by reading the transcription — encloses the whole group
+`{open-mode} [sharing-phrase] [retry-phrase] {file-name-1 [WITH NO REWIND]} …` and carries its own trailing
+ellipsis. Both phrases therefore sit INSIDE the repeated group, beside the open mode and the file-names they
+govern. §14.9.27.4 GR20 settles what that means: *"If more than one file-name is specified in an OPEN
+statement, the result of executing this OPEN statement is the same as if a separate OPEN statement had been
+written for each file-name in the same order as specified in the OPEN statement. These separate OPEN
+statements would each have the same open mode specification, the sharing-phrase, retry-phrase, and REWIND
+phrase as specified in the OPEN statement."* The open mode is in that list and is unarguably per group — a
+multi-group OPEN exists to open files in differing modes — so the phrases listed beside it are per group too.
+§14.9.27.4 GR23 bounds the other side: *"If there is no SHARING phrase on the OPEN statement, then file
+sharing is completely specified in the file control entry."*
+
+**The design.** `BoundOpenFile(FileModel File, BoundOpenMode Mode, SharingMode? Sharing, RetrySpec? Retry,
+string? Unsupported)` is GR20's normal form written down: `BindOpen` flattens the groups into exactly the
+separate OPENs the rule names, in source order, and `BoundOpen` is nothing but that list. The statement node
+carries **no** phrase property, so a consumer cannot re-broaden a phrase's scope — the previous shape put
+`SharingOverride` and `Retry` on the statement, and both the binder (a `sharing` local hoisted out of the
+`openClause` loop) and the emitter (one `bool shared` computed before the per-file loop) then leaked one
+group's phrase over every file. The two leaks had different fingerprints, which is the signature of a scalar
+standing in for a per-group value: the bind leak was forward-only (a later group inherited an earlier
+group's phrase, so `OPEN OUTPUT SHARING WITH ALL OTHER F1 OUTPUT F2` rejected legal source at §14.9.27.3
+SR8 while its reverse ordering compiled), the emit leak order-independent (a file written BEFORE the phrase
+was routed through the sharing facade too, and `FileRegistry.OpenShared` then made it a sharing participant
+for the rest of the run). Pinned by `conformance:2002/pb316_open_group_scope`, which writes every arbitration
+twice — once as separate OPEN statements, once as one statement with the same groups — and requires the two
+to agree, so the test asserts GR20 itself rather than any implementor-defined default.
+
+**This is the carrier the rest of the OPEN work needs.** The NO REWIND phrase (§14.9.27.4 GR11/GR12) and the
+per-file syntax rules §14.9.27.3 SR1/SR2/SR5/SR6 are all written per file-name-1, and each adds a field or a
+screen to `BoundOpenFile` rather than a second statement-level property.
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

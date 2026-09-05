@@ -1359,7 +1359,9 @@ internal sealed class VersionConformancePass
         // STOP RUN … STATUS gate rides the existing VisitStopStatement above.
 
         /// <summary>OPEN … SHARING (ISO §14.9.27) — a COBOL-2002 introduction. Fires ONCE per OPEN even when several
-        /// openClauses carry SHARING (BindOpen collapses them to one BoundOpen.SharingOverride).</summary>
+        /// openClauses carry SHARING: the gate answers "does this statement use a post-85 construct", one edition
+        /// diagnostic per statement, so the Any-over-the-groups is deliberate. It is NOT a claim that the phrase is
+        /// statement-scoped — since kb/Work PB316 each group's phrase binds to its own <c>BoundOpenFile</c>.</summary>
         public override object? VisitOpenStatement(CobolParserCore.OpenStatementContext ctx)
         {
             if (ctx.openClause().Any(c => c.sharingPhrase() is not null))

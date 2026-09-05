@@ -158,12 +158,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitOpen(BoundOpen o)
     {
         var w = ctx.Writer;
-        // A SHARING override or RETRY phrase on the OPEN (ISO §14.9.27, COBOL-2002) routes every file in the
-        // statement's mode group through the sharing-aware facade; a plain OPEN keeps the direct entry points.
-        bool shared = o.SharingOverride is not null || o.Retry is not null;
-        foreach (var (file, mode, unsupported) in o.Files)
+        foreach (var (file, mode, sharing, retry, unsupported) in o.Files)
         {
             if (unsupported is { } u) { w.Line(LoudStmt(u)); continue; }
+            // ⛔ PER FILE, NOT PER STATEMENT. §14.9.27.4 GR20 makes a multi-group OPEN equal to one separate
+            // OPEN statement per file-name, "each hav[ing] the same open mode specification, the
+            // sharing-phrase, retry-phrase, and REWIND phrase as specified in the OPEN statement" — i.e. the
+            // phrases of ITS OWN group (§14.9.27.2 nests both inside the repeated group). A file whose group
+            // carries neither phrase keeps the direct entry points, because routing it through the
+            // sharing-aware facade would make it sharing-active for the rest of the run and so contradict
+            // GR23's "file sharing is completely specified in the file control entry" (kb/Work PB316).
+            bool shared = sharing is not null || retry is not null;
             if (shared)
             {
                 string modeEnum = mode switch
@@ -173,9 +178,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                     BoundOpenMode.IO => "FileOpenMode.IO",
                     _ => "FileOpenMode.Input",
                 };
-                var (retryKind, retryAmount) = RenderRetry(o.Retry);
-                string shHas = o.SharingOverride is not null ? "true" : "false";
-                string shVal = o.SharingOverride is { } sm ? RuntimeSharing(sm) : "FileSharing.AllOther";
+                var (retryKind, retryAmount) = RenderRetry(retry);
+                string shHas = sharing is not null ? "true" : "false";
+                string shVal = sharing is { } sm ? RuntimeSharing(sm) : "FileSharing.AllOther";
                 w.Line($"{RuntimeApi.FileOpenShared(FileKeyExpr(file), $"{modeEnum}, {shHas}, {shVal}, {retryKind}, {retryAmount}")};");
             }
             else

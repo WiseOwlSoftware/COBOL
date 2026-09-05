@@ -361,7 +361,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     Query(["EC-OVERFLOW-UNSTRING"]);
                     break;
                 case BoundOpen o:
-                    foreach (var (file, _, _) in o.Files) Query(IoNames, file);
+                    foreach (var f in o.Files) Query(IoNames, f.File);
                     break;
                 case BoundClose c:
                     foreach (var (file, _) in c.Files) Query(IoNames, file);
