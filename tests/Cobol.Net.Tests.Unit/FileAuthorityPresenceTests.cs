@@ -182,6 +182,190 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal("37", reg.Status("F"));
     }
 
+    // ── GR16's write capability: the SAME file, the SAME answer, every organization (kb/Work PB328) ──────────
+
+    /// <summary>⛔ THE NINE CELLS. §14.9.27.4 GR16 — <i>"If the I-O phrase is specified, the file shall support
+    /// the input and output statements that are permitted for the organization of that file when opened in the
+    /// I-O mode. If the file does not support those statements, the I-O status value for file-name-1 is set to
+    /// '37' and the execution of the OPEN statement is unsuccessful."</i> §9.1.13.6 item 6 a) prices the other
+    /// two write modes identically: 1. <i>"the EXTEND or OUTPUT phrase is specified but the file will not
+    /// support write operations"</i>, 2. the I-O restatement of GR16.
+    /// <para>Neither rule names an organization, and Table 20 is why they cannot: REWRITE sits under the I-O
+    /// column for sequential, random AND dynamic access, so "supports the statements permitted in the I-O mode"
+    /// entails write capability whatever the organization. kb/Work PB328 was the three organizations
+    /// disagreeing about that on ONE file — the sequential arm answered '37' because its I-O and EXTEND streams
+    /// happen to be write opens, while the relative and indexed arms only read their store and answered '00',
+    /// after which READ and REWRITE both reported '00' and the loss surfaced as a '30' at CLOSE on a file that
+    /// was byte-for-byte unchanged.</para></summary>
+    [Theory]
+    [InlineData("seq", FileOpenMode.IO)]
+    [InlineData("seq", FileOpenMode.Extend)]
+    [InlineData("seq", FileOpenMode.Output)]
+    [InlineData("rel", FileOpenMode.IO)]
+    [InlineData("rel", FileOpenMode.Extend)]
+    [InlineData("rel", FileOpenMode.Output)]
+    [InlineData("idx", FileOpenMode.IO)]
+    [InlineData("idx", FileOpenMode.Extend)]
+    [InlineData("idx", FileOpenMode.Output)]
+    public void OpenAWriteMode_PresentButNotWritable_Is37(string organization, FileOpenMode mode)
+    {
+        if (NotWritable() is not { } witness) return;
+        var reg = Register(organization, witness, optional: false);
+        reg.Open("F", mode);
+        Assert.Equal("37", reg.Status("F"));
+    }
+
+    /// <summary>The OPTIONAL clause does not enter GR16 or §9.1.13.6 item 6 a) at all, and that is the silent
+    /// half: GR17's creation arm opens with <i>"If the file is NOT present"</i>, so a file that IS present and
+    /// merely unwritable must never be treated as one to create.</summary>
+    [Theory]
+    [InlineData("seq")]
+    [InlineData("rel")]
+    [InlineData("idx")]
+    public void OpenIo_PresentButNotWritable_OptionalFile_IsStill37(string organization)
+    {
+        if (NotWritable() is not { } witness) return;
+        var reg = Register(organization, witness, optional: true);
+        reg.Open("F", FileOpenMode.IO);
+        Assert.Equal("37", reg.Status("F"));
+    }
+
+    /// <summary>§14.9.27.4 GR25 — <i>"If the execution of the OPEN statement is unsuccessful, the file is not
+    /// affected"</i>. The capability answer is obtained by really asking the host for a writable handle, so the
+    /// probe itself has to be provably inert: <c>FileMode.Open</c> with no bytes written leaves content AND
+    /// last-write time exactly as they were.</summary>
+    [Fact]
+    public void TheRefusedOpenLeavesTheFileUnaffected()
+    {
+        if (NotWritable() is not { } witness) return;
+        byte[] before = File.ReadAllBytes(witness);
+        DateTime stamp = File.GetLastWriteTimeUtc(witness);
+        var reg = Register("idx", witness, optional: false);
+        reg.Open("F", FileOpenMode.IO);
+        Assert.Equal("37", reg.Status("F"));
+        Assert.Equal(before, File.ReadAllBytes(witness));
+        Assert.Equal(stamp, File.GetLastWriteTimeUtc(witness));
+    }
+
+    /// <summary>⛔ THE OVER-FIRE GUARD. A read-only file supports every statement Table 20 permits in the INPUT
+    /// mode, and §9.1.13.6 item 6 a) 3. asks only whether <i>"the file will not support read operations"</i>.
+    /// Probing WRITE capability for an INPUT open would refuse an OPEN the operating environment carries out
+    /// perfectly — and reading a write-protected master file is one of the oldest idioms there is.</summary>
+    [Theory]
+    [InlineData("seq")]
+    [InlineData("rel")]
+    [InlineData("idx")]
+    public void OpenInput_PresentButNotWritable_StillOpens(string organization)
+    {
+        if (NotWritable() is not { } witness) return;
+        var reg = Register(organization, witness, optional: false);
+        reg.Open("F", FileOpenMode.Input);
+        Assert.Equal("00", reg.Status("F"));
+        reg.Close("F");
+    }
+
+    /// <summary>The complement that keeps the '37' above from being unconditional: the same organization, the
+    /// same mode, a file this process CAN write, still opens normally (Table 18, "file is available").</summary>
+    [Theory]
+    [InlineData("seq")]
+    [InlineData("rel")]
+    [InlineData("idx")]
+    public void OpenIo_PresentAndWritable_StillOpens(string organization)
+    {
+        string p = Path.Combine(_root, $"writable-{organization}.dat");
+        var make = Register(organization, p, optional: false);
+        make.Open("F", FileOpenMode.Output);
+        Assert.Equal("00", make.Status("F"));
+        make.Close("F");
+
+        var reg = Register(organization, p, optional: false);
+        reg.Open("F", FileOpenMode.IO);
+        Assert.Equal("00", reg.Status("F"));
+        reg.Close("F");
+    }
+
+    /// <summary>The write-capability probe against the PRESENCE probe, on one file: they are different
+    /// questions and the file answers them differently. This is the assertion that states what the fix is
+    /// discriminating against — before kb/Work PB328 the keyed OPEN arms had only the presence answer, which
+    /// says "Present" here, and read it as permission to proceed.</summary>
+    [Fact]
+    public void PermitsWrite_SeesWhatThePresenceProbeCannot()
+    {
+        if (NotWritable() is not { } witness) return;
+        Assert.Equal(FilePresence.Present, HostFile.Probe(witness));   // present, and observable
+        Assert.False(HostFile.PermitsWrite(witness));                  // and still not writable
+    }
+
+    [Fact]
+    public void PermitsWrite_AnOrdinaryFile_IsTrue()
+    {
+        string p = Path.Combine(_root, "ordinary.dat");
+        File.WriteAllText(p, "HELLO-RECORD-0001");
+        Assert.True(HostFile.PermitsWrite(p));
+    }
+
+    /// <summary>§9.1.13.6 item 6 a) 3. — <i>"the INPUT phrase is specified but the file will not support read
+    /// operations"</i>, the third face of the same '37'. Its answer is NOT the write probe (which excludes
+    /// INPUT on purpose) and NOT GR3's presence short-circuit (the file here is fully observable: the
+    /// DIRECTORY is readable and only the FILE is refused, so <c>HostFile.Probe</c> says Present). It is the
+    /// organization's own eager read — the sequential <c>StreamReader</c>, the keyed <c>Attach()</c> — whose
+    /// <c>UnauthorizedAccessException</c> reaches the same '37' through <c>FileConnector.Open</c>'s catch.
+    /// <para>⛔ ASSERTED BECAUSE IT WAS ASSUMED. <c>FileConnector.Open</c>'s GR16 comment justifies excluding
+    /// INPUT from the write probe by claiming item 6 a) 3. is already answered; an exclusion resting on an
+    /// unmeasured claim is how a gap ships. All three organizations were measured before the claim was
+    /// written (feedback: reachability_is_measured_not_deduced).</para></summary>
+    [Theory]
+    [InlineData("seq")]
+    [InlineData("rel")]
+    [InlineData("idx")]
+    public void OpenInput_PresentAndObservableButNotReadable_Is37(string organization)
+    {
+        if (NotReadable() is not { } witness) return;
+        Assert.Equal(FilePresence.Present, HostFile.Probe(witness));   // not GR3's arm: the file IS observable
+        var reg = Register(organization, witness, optional: false);
+        reg.Open("F", FileOpenMode.Input);
+        Assert.Equal("37", reg.Status("F"));
+    }
+
+    /// <summary>⛔ GR16'S OTHER HALF, AND THE ANSWER TO "WHICH ARM DID YOU FIX?". §14.9.27.4 GR16 requires the
+    /// file to support <i>"the input AND output statements that are permitted for the organization of that
+    /// file when opened in the I-O mode"</i> — Table 20 lists READ under the I-O column alongside REWRITE — so
+    /// a file this process may WRITE but not READ is '37' on OPEN I-O just as surely as a read-only one is.
+    /// The write probe passes on this file by construction; the '37' therefore comes from the organization's
+    /// own eager read, on every organization, and the two halves together cover the rule rather than the half
+    /// that happened to be the defect.</summary>
+    [Theory]
+    [InlineData("seq")]
+    [InlineData("rel")]
+    [InlineData("idx")]
+    public void OpenIo_PresentAndWritableButNotReadable_Is37(string organization)
+    {
+        if (NotReadable() is not { } witness) return;
+        Assert.True(HostFile.PermitsWrite(witness),
+            "The premise of this test is a file the WRITE probe accepts; if it does not, the '37' below could "
+            + "be the write half answering and GR16's read half would still be unmeasured.");
+        var reg = Register(organization, witness, optional: false);
+        reg.Open("F", FileOpenMode.IO);
+        Assert.Equal("37", reg.Status("F"));
+    }
+
+    /// <summary>The escape hatch for the read-only helper, made visible exactly as
+    /// <see cref="TheDenyHelperWorksOnThisHost"/> is: on a host where this process cannot be denied write, the
+    /// nine cells above assert nothing, and that has to go RED on an ordinary account rather than pass
+    /// quietly.</summary>
+    [Fact]
+    public void TheCapabilityHelpersWorkOnThisHost()
+    {
+        bool bypass = BypassesFilePermissions();
+        Assert.True(NotWritable() is not null || bypass,
+            "The read-only helper could not make a file unwritable, and this process is NOT running with a "
+            + "permission bypass — so the helper is broken, not the environment, and every §14.9.27.4 GR16 "
+            + "assertion in this class is currently proving nothing.");
+        Assert.True(NotReadable() is not null || bypass,
+            "The unreadable-file helper could not refuse this process a read, and this process is NOT running "
+            + "with a permission bypass — so §9.1.13.6 item 6 a) 3.'s assertions are currently proving nothing.");
+    }
+
     // ── The DELETE FILE twin, now on the same probe (§14.9.10.4 GR14/GR16) ───────────────────────────────────
 
     /// <summary>§14.9.10.4 GR16's '37'. Correct since kb/Work PB140; pinned here because PB323 moved it onto
@@ -243,6 +427,56 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         return null;
     }
 
+    /// <summary>Create <c>readonly.dat</c>, make it unwritable to this process while leaving it PRESENT and
+    /// fully observable, and return its path — the precondition of §14.9.27.4 GR16 and §9.1.13.6 item 6 a),
+    /// actually established — or <c>null</c> when this host cannot deny writing to this process.
+    /// <para>This is deliberately NOT <see cref="Refused"/>'s directory denial: that one hides the file from
+    /// the presence probe, which is GR3's precondition and a different rule. GR16's file is one the process can
+    /// see, stat and read perfectly — the '37' has to come from the write capability alone, so the two probes
+    /// must give different answers on it. The denial is verified with a RAW write open, never with
+    /// <c>HostFile.PermitsWrite</c>: checking the precondition with the subject under test would let a broken
+    /// subject certify its own premise. A <c>null</c> return is asserted about, not assumed — see
+    /// <see cref="TheReadOnlyHelperWorksOnThisHost"/>.</para></summary>
+    private string? NotWritable()
+    {
+        string witness = Path.Combine(_root, "readonly.dat");
+        if (!File.Exists(witness)) File.WriteAllText(witness, "HELLO-RECORD-0001");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) File.SetAttributes(witness, FileAttributes.ReadOnly);
+        else File.SetUnixFileMode(witness, UnixFileMode.UserRead);
+
+        try { using (new FileStream(witness, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) { } }
+        catch (UnauthorizedAccessException) { return witness; }
+        catch (IOException) { }
+        return null;
+    }
+
+    /// <summary>Create <c>unreadable.dat</c> as a WRITE-ONLY file — refused read, still writable, and with its
+    /// directory listable so the presence probe answers <c>Present</c>. It is the exact complement of
+    /// <see cref="NotWritable"/>, and having both is what keeps §14.9.27.4 GR16's two halves separable: GR16
+    /// requires the file to support <i>"the input AND output statements"</i> the I-O mode permits, so a file
+    /// that fails EITHER half is '37' and a probe that only asked about writing would answer half a rule.
+    /// <para>Deliberately not <see cref="Refused"/>'s shape: there the DIRECTORY is denied, so the file is
+    /// invisible and the answer comes from GR3's presence short-circuit. Here <c>File.GetAttributes</c>
+    /// succeeds, so the '37' can only come from the organization's own read. On Windows the deny ACE is
+    /// <c>(RD)</c> — read DATA only; a blanket <c>(R)</c> takes the synchronize/read-control rights a write
+    /// open also needs and would silently make the file unwritable too, collapsing the complement. Verified
+    /// with a raw <c>File.OpenRead</c> and a raw write open, never with the subject under test. Returns
+    /// <c>null</c> when this host cannot deny reading to this process.</para></summary>
+    private string? NotReadable()
+    {
+        string witness = Path.Combine(_root, "unreadable.dat");
+        if (!File.Exists(witness)) File.WriteAllText(witness, "HELLO-RECORD-0001");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            Icacls(witness, "/deny", $"{Environment.UserDomainName}\\{Environment.UserName}:(RD)");
+        else
+            File.SetUnixFileMode(witness, UnixFileMode.UserWrite);
+
+        try { using (File.OpenRead(witness)) { } }
+        catch (UnauthorizedAccessException) { return witness; }
+        catch (IOException) { }
+        return null;
+    }
+
     /// <summary>Whether this process bypasses file permissions outright — root on Unix, where mode bits do not
     /// apply at all. (A merely ELEVATED Windows token does not bypass an explicit deny ACE for its own SID, so
     /// Windows has no bypass case here.)</summary>
@@ -281,6 +515,22 @@ public sealed class FileAuthorityPresenceTests : IDisposable
 
     private static void Restore(string root)
     {
+        // The GR16 witness is read-only, and a read-only file defeats the recursive Directory.Delete below on
+        // Windows — the temp tree would then leak one directory per run.
+        string ro = Path.Combine(root, "readonly.dat");
+        if (File.Exists(ro))
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) File.SetAttributes(ro, FileAttributes.Normal);
+            else File.SetUnixFileMode(ro, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        }
+        string nr = Path.Combine(root, "unreadable.dat");
+        if (File.Exists(nr))
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Icacls(nr, "/remove:d", $"{Environment.UserDomainName}\\{Environment.UserName}");
+            else
+                File.SetUnixFileMode(nr, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        }
         string dir = Path.Combine(root, "locked");
         if (!Directory.Exists(dir)) return;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

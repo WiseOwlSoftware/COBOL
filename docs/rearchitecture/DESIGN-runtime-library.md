@@ -153,7 +153,8 @@ public abstract class FileConnector
     protected string? ReadOpenModeGuard();
     protected string? SequentialReadGuard();
     protected string? RandomReadAbsentOptionalGuard();
-    protected abstract string OpenCore(FileOpenMode mode, FilePresence presence);   // takes the ONE probe
+    protected abstract string OpenCore(FileOpenMode mode, FilePresence presence);   // takes the ONE presence probe
+    //   (Open also answers GR3/'37', GR10/'39' and GR16's write capability/'37' before OpenCore is reached)
     protected abstract bool ReadNext(out string image);        // sequential retrieval
     protected abstract void WriteRecord(string image, int length);
     // Keyed subclasses add: ReadByKey / Start / Delete / Rewrite; sequential adds ADVANCING / LINAGE.
@@ -173,7 +174,7 @@ physical file there?" is asked in exactly ONE place in the runtime, and its answ
 sets '35' when *"the physical file is not present"*, while §14.9.27.4 GR3 sets '37' when *"the file … is present
 and insufficient authority exists to open the file"*. `File.Exists` cannot express that — it swallows every
 access error and answers `false` — so it is **banned** everywhere under `Runtime/IO` (drift-guarded by
-`FileExistenceProbeDriftTests`, which also bans `FileInfo.Exists` and the raw `File.GetAttributes` the probe is
+`HostFileProbeDriftTests`, which also bans `FileInfo.Exists` and the raw `File.GetAttributes` the probe is
 built from). `FileConnector.Open` takes the probe once per OPEN, answers GR3 there and hands the result to
 `OpenCore(mode, presence)`, so an organization body sees only the two-state Table-18 question it is entitled to
 and no two probes in one statement can disagree; `FileRegistry.DeleteFile` takes the same probe for §14.9.10.4
@@ -181,6 +182,27 @@ GR14/GR16. GR3's short-circuit deliberately **excludes OUTPUT**: GR18 makes OUTP
 consults presence, and a directory the process may write but not list legitimately accepts a new file, so an
 OUTPUT authority failure comes from the creating stream and the shared `catch` instead. (kb/Work PB323 — the
 OPEN arm of the sweep PB140 had done only for DELETE FILE.)
+
+**One write-capability probe, asked in the OPEN contract (`HostFile.PermitsWrite`, same file).** Presence is not
+capability: a read-only file is `Present` and perfectly observable, and §14.9.27.4 GR16 still requires '37' —
+*"If the I-O phrase is specified, the file shall support the input and output statements that are permitted for
+the organization of that file when opened in the I-O mode"* — as does §9.1.13.6 item 6 a) 1. for EXTEND and
+OUTPUT. **Neither rule names an organization**, and Table 20 is why they cannot: REWRITE sits under the I-O
+column for sequential, random *and* dynamic access. So `FileConnector.Open` asks the question ONCE, for
+I-O/EXTEND/OUTPUT on a `Present` file, immediately before `OpenCore` — the second half of the same contract
+that already owns GR3 and GR10 — and an organization added later inherits the answer instead of re-earning it.
+The probe is a real write open (`FileMode.Open` + `FileAccess.Write` + `FileShare.ReadWrite`, nothing written),
+because a read-only attribute, a Unix mode bit and a deny-write ACE are three mechanisms with one consequence
+and only the host can rank them; opening without writing leaves content and last-write time untouched, which is
+what GR25 (*"the file is not affected"*) requires of the open that is about to fail. Only
+`UnauthorizedAccessException` is an answer — every other `IOException` propagates to the same single '30'
+mapping as `Probe`'s. INPUT is excluded and the exclusion is load-bearing: a read-only file supports everything
+Table 20 permits in the input mode, and item 6 a) 3.'s read-capability question is already answered eagerly by
+the sequential reader and the keyed `Attach()`. `HostFileProbeDriftTests` bans `PermitsWrite` outside
+`FileConnector` and pins the call count at one. (kb/Work PB328 — the sequential arm asked the question by
+accident, since its I-O and EXTEND streams *are* write opens, while the relative and indexed arms only read
+their store: the same read-only file answered '37' sequentially and '00' keyed, then '00' for READ and REWRITE,
+and the loss surfaced as a '30' at CLOSE on a byte-identical file. The two-arm dispatch again, one arm fixed.)
 
 The static `CobolFile` facade (kept for the emitted surface) becomes a pure delegator to `RunUnit.Current.Files`.
 The `Keyed*` static methods at `IndexedFile.cs:570-707` are **deleted**; their callers in `CobolFile.cs` collapse to a

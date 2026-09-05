@@ -282,9 +282,9 @@ public abstract class FileConnector
 
     /// <summary>OPEN the file in <paramref name="mode"/> (ISO §14.9.27 / §9.1.13.4): the already-open guard
     /// ('41', §9.1.13.7 item 1), the attempted-mode bookkeeping (GR6b), the read-position reset, the ONE
-    /// presence probe, the GR3 authority answer ('37') and the GR10 attribute comparison ('39'), then the
-    /// organization's <see cref="OpenCore"/> under the shared permission/I-O failure mapping ('37'/'30').
-    /// Sets and returns the status.</summary>
+    /// presence probe, the GR3 authority answer ('37'), the GR10 attribute comparison ('39') and the GR16 write
+    /// capability answer ('37'), then the organization's <see cref="OpenCore"/> under the shared permission/I-O
+    /// failure mapping ('37'/'30'). Sets and returns the status.</summary>
     public string Open(FileOpenMode mode)
     {
         if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen;
@@ -335,6 +335,34 @@ public abstract class FileConnector
             if (mode is not FileOpenMode.Output && presence is FilePresence.Present
                 && FixedFileAttributes.Load(HostPath) is { } recorded && recorded.Conflicts(DeclaredAttributes))
                 return Status = FileStatusCode.FixedAttributeConflict;   // '39' §9.1.13.6 item 7
+            // §14.9.27.4 GR16 — "If the I-O phrase is specified, the file shall support the input and output
+            // statements that are permitted for the organization of that file when opened in the I-O mode. If
+            // the file does not support those statements, the I-O status value for file-name-1 is set to '37'
+            // and the execution of the OPEN statement is unsuccessful." §9.1.13.6 item 6 a) prices the other
+            // write mode the same way: 1. "the EXTEND or OUTPUT phrase is specified but the file will not
+            // support write operations", 2. the I-O restatement of GR16.
+            // ⛔ THE WRITE CAPABILITY IS AN OPEN-CONTRACT QUESTION, ASKED HERE, ONCE, FOR EVERY ORGANIZATION —
+            // never inside whichever arm happens to touch a stream. GR16 names no organization, and Table 20
+            // makes it organization-independent: REWRITE sits under the I-O column for sequential, random AND
+            // dynamic access, so "supports the statements permitted in the I-O mode" entails write capability
+            // for every organization there is. Asking it in the arms is what kb/Work PB328 was — the sequential
+            // arm asked it by accident (its I-O and EXTEND streams ARE write opens, so the shared catch below
+            // turned a refusal into '37'), while the relative and indexed arms only read their store, so the
+            // SAME read-only file answered '37' sequentially and '00' keyed, and the loss surfaced as a '30' at
+            // CLOSE on a byte-identical file after READ and REWRITE had both reported success. Asked here, an
+            // organization added later inherits the answer instead of re-earning it.
+            // INPUT is excluded and the exclusion is REQUIRED, not an optimization: a read-only file supports
+            // every statement Table 20 permits in the input mode, so probing write for it would refuse an OPEN
+            // the operating environment carries out perfectly. §9.1.13.6 item 6 a) 3. ("the INPUT phrase is
+            // specified but the file will not support read operations") is the input mode's own question, and
+            // it is already answered eagerly by every organization — the sequential reader and the keyed
+            // Attach() both open/read the store, and their UnauthorizedAccessException reaches the same '37'
+            // through the catch below.
+            // The Present guard is likewise required: an ABSENT target has no capability to probe, and the two
+            // modes that reach OpenCore absent both CREATE (GR17's optional I-O/EXTEND, GR18's OUTPUT), where
+            // the creating stream's own refusal is the authority answer.
+            if (presence is FilePresence.Present && mode is not FileOpenMode.Input && !HostFile.PermitsWrite(HostPath))
+                return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR16 / §9.1.13.6 item 6 a)
             s = OpenCore(mode, presence);
         }
         catch (UnauthorizedAccessException) { s = FileStatusCode.PermissionDenied; }

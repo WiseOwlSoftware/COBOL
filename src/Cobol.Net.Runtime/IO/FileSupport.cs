@@ -107,12 +107,16 @@ public enum FilePresence
 }
 
 /// <summary>Host-filesystem probes shared by every file organization. ⛔ <b>THIS IS THE ONE PLACE THE RUNTIME
-/// ASKS WHETHER A PHYSICAL FILE IS PRESENT</b> — <see cref="FileConnector.Open"/> takes the answer once per OPEN
-/// and hands it to the organization's <c>OpenCore</c>, and <c>FileRegistry.DeleteFile</c> takes it for
-/// §14.9.10.4 GR14/GR16. <c>FileExistenceProbeDriftTests</c> keeps it that way: <c>File.Exists</c>,
+/// ASKS THE OPERATING ENVIRONMENT ABOUT A PHYSICAL FILE</b> — two questions, each asked once per OPEN by
+/// <see cref="FileConnector.Open"/> and never by an organization body: <see cref="Probe"/> ("is it there, and
+/// may this process observe it?", handed down to <c>OpenCore</c>; <c>FileRegistry.DeleteFile</c> takes the same
+/// answer for §14.9.10.4 GR14/GR16) and <see cref="PermitsWrite"/> ("may this process WRITE it?", §14.9.27.4
+/// GR16 / §9.1.13.6 item 6 a)). <c>HostFileProbeDriftTests</c> keeps it that way: <c>File.Exists</c>,
 /// <c>FileInfo.Exists</c> and <c>File.GetAttributes</c> are forbidden everywhere else under
 /// <c>Cobol.Net.Runtime/IO</c>, because every hand-written probe is another chance to answer "absent" to a
-/// question the operating environment refused to answer at all.</summary>
+/// question the operating environment refused to answer at all — and <see cref="PermitsWrite"/> may be CALLED
+/// only from <see cref="FileConnector"/>, because a capability asked inside one organization's arm is a
+/// capability the other organizations do not ask (kb/Work PB328).</summary>
 public static class HostFile
 {
     /// <summary>Probe the physical file at <paramref name="hostPath"/>, distinguishing §9.1.13.6 item 5's
@@ -149,5 +153,34 @@ public static class HostFile
         catch (PathTooLongException) { return FilePresence.Absent; }               // a path shape, not an I/O failure
         catch (ArgumentException) { return FilePresence.Absent; }                  // not a file name the host takes
         catch (NotSupportedException) { return FilePresence.Absent; }
+    }
+
+    /// <summary>Whether the operating environment permits WRITE operations on the PRESENT physical file at
+    /// <paramref name="hostPath"/> — the question §14.9.27.4 GR16 and §9.1.13.6 item 6 a) price at '37'.
+    /// <para>⛔ THE PROBE IS A REAL WRITE OPEN, because nothing weaker answers the question the standard asks.
+    /// A read-only ATTRIBUTE, a mode bit and a deny-write ACE are three different mechanisms with the same
+    /// consequence, and a host may add a fourth; asking the host to hand over a writable handle asks about the
+    /// consequence rather than about any one mechanism. <c>FileMode.Open</c> (never <c>Create</c>/<c>Truncate</c>)
+    /// with no bytes written leaves the file byte-for-byte and timestamp-for-timestamp as it was, which
+    /// §14.9.27.4 GR25 requires of an OPEN that is about to be unsuccessful (<i>"If the execution of the OPEN
+    /// statement is unsuccessful, the file is not affected"</i>) and which the SUCCESSFUL path needs just as
+    /// much — the probe closes before the organization's own stream opens. <c>FileShare.ReadWrite</c> is the
+    /// most permissive request there is, so the probe itself never manufactures a sharing failure that the
+    /// organization's own open would not have hit.</para>
+    /// <para>ONLY <see cref="UnauthorizedAccessException"/> is an answer. Every other
+    /// <see cref="IOException"/> PROPAGATES on purpose, exactly as <see cref="Probe"/>'s do: §9.1.13.6 item 1's
+    /// '30' (<i>"A permanent error exists and no further information is available concerning the input-output
+    /// operation"</i>) is mapped in ONE place — <see cref="FileConnector.Open"/>'s catch — and a probe that
+    /// swallowed a host refusal here would have to invent "writable" for a file it never reached. That is also
+    /// what the sequential organization has always done, since its I-O/EXTEND streams are themselves write
+    /// opens; the probe makes the keyed organizations answer the same way (kb/Work PB328).</para></summary>
+    public static bool PermitsWrite(string hostPath)
+    {
+        try
+        {
+            using var _ = new FileStream(hostPath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+            return true;
+        }
+        catch (UnauthorizedAccessException) { return false; }   // §9.1.13.6 item 6 a) — '37'
     }
 }
