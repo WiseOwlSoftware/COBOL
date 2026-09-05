@@ -451,10 +451,7 @@ public sealed class SequentialConnector : FileConnector
     public bool Read(out string image)
     {
         image = new string(' ', RecordWidth);
-        if (!IsOpen) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
-        if (Mode is FileOpenMode.Output or FileOpenMode.Extend) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
-        if (OptionalAbsent) { LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
-        if (LastReadUnsuccessful) { Status = FileStatusCode.NoValidNextRecord; return false; }
+        if (SequentialReadGuard() is { } guard) { Status = guard; return false; }   // '47'/'46'/'10' — FileConnector
         if (_reader is null) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
 
         // §14.9.30 GR14 (READ) / §9.1.13.2 item 3: a RECORD-sequential physical record whose length is outside the file's

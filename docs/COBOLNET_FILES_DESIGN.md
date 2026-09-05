@@ -631,6 +631,21 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   registry (a focused unit test) keeps a private store.
 - I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOLNET1692/1693); `FileConnector.Close` maps OS failures to '30' (§9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close.
 - Keyed-verb branch discipline (kb/Work PB325): the ACCESS MODE is the SOLE discriminator of a keyed verb's branch, and it lives in ONE place — `KeyedConnector.Access`, the abstract base `RelativeConnector` and `IndexedConnector` share. Every branch the standard draws inside a keyed verb is drawn on it (§14.9.51.4 GR29 a)/b), GR38/GR39; §14.9.35.4 GR5 vs. GR21/GR22/GR23; §14.9.10.4 GR2 vs. GR3/GR4), and the OPEN MODE enters only as the permission test that FOLLOWS — Table 20 (§14.9.27.4 GR8), whose unsuccessful cells §9.1.13.7 items 8 and 9 name. ⛔ An open mode in a branch PREDICATE inverts that dependency: `_access == Sequential || Mode == Extend` made the runtime's answer depend on an unenforced bind-time screen (§14.9.27.3 SR2) and turned Table 20's blank Random/Dynamic × WRITE × Extend cell into a successful append instead of item 8 b)'s '48'. The whole table is walked by conformance:2023/l1_table20_seq_relative + l1_table20_indexed and, for the cell conforming source cannot reach, unit:Table20WriteOpenModeTests.
+- READ preconditions live in the BASE, once, in the standard's own order (kb/Work PB336). `FileConnector` owns
+  the three of them and every organization's READ entry delegates: `ReadOpenModeGuard` (§14.9.30.4 GR2 /
+  §9.1.13.7 item 7 → '47'), `SequentialReadGuard` (GR2, then GR21's "if the previous READ or START statement for
+  the file connector was unsuccessful … the I-O status is set to '46'", then §9.1.13.4 item 1 c)'s '10'), and
+  `RandomReadAbsentOptionalGuard` (§9.1.13.5 item 3 b) → '23'). **The ORDER inside `SequentialReadGuard` is
+  itself the rule**: the absent-OPTIONAL arm is an unsuccessful READ that arms the '46' poison, which is exactly
+  what makes '10' apply only to a READ "attempted for the first time" — write the arms the other way and the
+  '46' branch below is unreachable for the life of the open mode. Three private copies of this chain, all three
+  in the wrong order, is what PB336 was; the goldens are `tests/conformance/{2023,85}/pb336_optional_absent_read_46*`
+  and the structural gate is `ReadPreconditionOrderDriftTests`. The random-side guard is deliberately NOT the
+  sequential one: GR21 opens "For a sequential READ statement" so a random READ never yields '46', and item 3 b)
+  has no "first time" qualifier so every random READ on an absent optional file is '23' — but the failed random
+  READ still arms the poison, because §9.1.13.7 item 6 b) ("The preceding READ statement …") is not restricted to
+  sequential reads. START's own absent-optional rule (§14.9.41 GR5) is a different statement's rule and stays in
+  the keyed connectors.
 - SAME AREA buffer-only and SAME SORT-MERGE AREA are no-ops in a managed runtime (pure memory-layout optimizations with no observable behavior).
 
 ## Per-edition gating (G1 — four compilers in one `cobol.exe`)

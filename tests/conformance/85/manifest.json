@@ -2,6 +2,7 @@
   "enabled": [
     "pb324_assign_using_85",
     "pb326_flow_report_unconditional",
+    "pb336_optional_absent_read_46_85",
     "pb248_integer_arg_float_admitted",
     "pb207_group_value_area_85",
     "wavef_dbg_proc",

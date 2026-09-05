@@ -147,6 +147,12 @@ public abstract class FileConnector
 
     public string Open(FileOpenMode mode);                     // shared preamble → OpenCore; returns the status
     public string Close();                                     // shared → CloseCore
+    // The READ preconditions, written ONCE for every organization (kb/Work PB336). Order IS the rule inside
+    // SequentialReadGuard: §14.9.30.4 GR2 '47', then GR21's '46' poison, then §9.1.13.4 1c's '10' — which is
+    // "first time" only BECAUSE its own arm arms the poison. Random side: §9.1.13.5 3b's '23', never '46'.
+    protected string? ReadOpenModeGuard();
+    protected string? SequentialReadGuard();
+    protected string? RandomReadAbsentOptionalGuard();
     protected abstract string OpenCore(FileOpenMode mode, FilePresence presence);   // takes the ONE probe
     protected abstract bool ReadNext(out string image);        // sequential retrieval
     protected abstract void WriteRecord(string image, int length);

@@ -204,6 +204,57 @@ public abstract class FileConnector
     /// for an absent optional file.</summary>
     internal bool OptionalNotPresent => OptionalAbsent;
 
+    // ── READ preconditions (ISO §14.9.30.4) ─────────────────────────────────────────────────────────────────
+    //
+    // ⛔ ONE COPY OF EACH READ PRECONDITION, FOR ALL FIVE READ ENTRIES (kb/Work PB336). The open-mode guard,
+    // the '46' poison and the absent-OPTIONAL arm are ALL-FORMATS rules of the READ statement, so they belong
+    // to the connector base and not to each organization. Written out per connector they were three copies of
+    // one rule (SequentialConnector.Read · RelativeConnector.ReadSequential · IndexedConnector.ReadSequential),
+    // and all three carried the SAME ordering defect: the absent-OPTIONAL arm was tested BEFORE GR21's '46',
+    // so every sequential READ after the first on an absent optional file re-reported '10' — although the arm
+    // itself had already armed the '46' the next READ owed. Order here is the rules' own order.
+
+    /// <summary>The open-mode precondition every READ shares (ISO §14.9.30.4 GR2: "The open mode of the file
+    /// connector referenced by file-name-1 shall be input or I-O. If it is any other value, the execution of the
+    /// READ statement is unsuccessful and the I-O status value for file-name-1 is set to '47'."; §9.1.13.7 item
+    /// 7). Returns the failing status, or <see langword="null"/> when the READ may proceed. Assigns nothing —
+    /// the caller owns the single <see cref="Status"/> assignment, so the '43' gate drops exactly once.</summary>
+    protected string? ReadOpenModeGuard() =>
+        !IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend ? FileStatusCode.ReadNotOpenForInput : null;
+
+    /// <summary>The preconditions of a SEQUENTIAL READ, in the standard's own order: GR2's open mode ('47');
+    /// then ISO §14.9.30.4 GR21's first sentence — "For a sequential READ statement, if the previous READ or
+    /// START statement for the file connector was unsuccessful, then the READ statement is unsuccessful and the
+    /// I-O status is set to '46'" (§9.1.13.7 item 6) — then the absent-OPTIONAL arm, which §9.1.13.4 item 1 c)
+    /// scopes to "a sequential READ statement … attempted FOR THE FIRST TIME on a file described as optional and
+    /// the physical file is not present" ('10'). GR21 shall be tested FIRST: it is what makes '10' first-time-
+    /// only, because the '10' arm is itself an unsuccessful READ and arms the poison for its successor.
+    /// Returns the failing status, or <see langword="null"/> when the READ may proceed.</summary>
+    protected string? SequentialReadGuard()
+    {
+        if (ReadOpenModeGuard() is { } notOpen) return notOpen;                     // '47' GR2
+        if (LastReadUnsuccessful) return FileStatusCode.NoValidNextRecord;          // '46' GR21 / §9.1.13.7 6
+        // This READ is itself unsuccessful, so it arms GR21 for its successor — that is what makes '10'
+        // first-time-only, and why the two arms shall be written in this order.
+        if (OptionalAbsent) { LastReadUnsuccessful = true; return FileStatusCode.AtEnd; }   // '10' §9.1.13.4 1 c)
+        return null;
+    }
+
+    /// <summary>The absent-OPTIONAL arm of a RANDOM (format-2) READ — ISO §9.1.13.5 item 3 b), "a START or
+    /// random READ statement is attempted on a file described as optional and the physical file is not present"
+    /// → '23'. TWO deliberate differences from <see cref="SequentialReadGuard"/>, both read off the rule texts:
+    /// §14.9.30.4 GR21 opens "For a sequential READ statement", so a random READ never yields '46'; and 3 b)
+    /// carries no "first time" qualifier, so an absent optional file answers '23' to EVERY random READ. The
+    /// unsuccessful read still arms the poison — §9.1.13.7 item 6 b) ("The preceding READ statement referencing
+    /// that file connector was unsuccessful") is not restricted to sequential reads, so the next SEQUENTIAL READ
+    /// on a dynamic-access connector is GR21's '46'. Kept separate from <see cref="ReadOpenModeGuard"/> because
+    /// the indexed connector establishes its key of reference (GR30/GR31) between the two.</summary>
+    protected string? RandomReadAbsentOptionalGuard()
+    {
+        if (OptionalAbsent) { LastReadUnsuccessful = true; return FileStatusCode.RecordNotFound; }   // '23' 3 b)
+        return null;
+    }
+
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15 — the frame length on a varying
     /// file, the record width on a fixed one; the RECORD VARYING DEPENDING item receives it after a READ).</summary>
     public int LastReadLength { get; protected set; }

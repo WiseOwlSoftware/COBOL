@@ -275,10 +275,7 @@ public sealed class IndexedConnector : KeyedConnector
     private string ReadSequential(out string image, bool previous)
     {
         image = new string(' ', RecordWidth);
-        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
-            return Status = FileStatusCode.ReadNotOpenForInput;            // '47' §9.1.13.7 item 7
-        if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.AtEnd; }
-        if (LastReadUnsuccessful) return Status = FileStatusCode.NoValidNextRecord;   // '46' GR21
+        if (SequentialReadGuard() is { } pre) return Status = pre;   // '47'/'46'/'10' — FileConnector
         if (!_fpiValid) return Status = FileStatusCode.NoValidNextRecord;
 
         var seq = Ordered(_refKey);
@@ -350,10 +347,9 @@ public sealed class IndexedConnector : KeyedConnector
     public string ReadRandom(int keyIndex, string keyedRecordImage, out string image)
     {
         image = new string(' ', RecordWidth);
-        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
-            return Status = FileStatusCode.ReadNotOpenForInput;
+        if (ReadOpenModeGuard() is { } notOpen) return Status = notOpen;                  // '47' §14.9.30.4 GR2
         _refKey = keyIndex;                                                // GR30/GR31
-        if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.RecordNotFound; }
+        if (RandomReadAbsentOptionalGuard() is { } absent) return Status = absent;        // '23' §9.1.13.5 3 b)
         string value = KeyOf(Fit(keyedRecordImage), keyIndex);
         KeyedRec? found = null;
         foreach (var rec in _recs)
