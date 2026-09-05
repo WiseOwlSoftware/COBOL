@@ -113,12 +113,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 w.Line($"{RuntimeApi.FileSetLinage(FileKeyExpr(file), $"() => ({LinageOpExpr(lin.Body)}, {LinageOpExpr(lin.Footing)}, {LinageOpExpr(lin.Top)}, {LinageOpExpr(lin.Bottom)})")};");
     }
 
-    /// <summary>Emit the sharing registration for a file that declares a SHARING and/or LOCK MODE
-    /// clause (Phase 4d M2-FILE-1) — this marks the connector "sharing-active" so its OPEN routes through the
-    /// physical-file registry (Table-19 → 61) and its READs through record-lock governance. Files without either
-    /// clause emit nothing and keep the legacy exclusive path byte-for-byte (ISO §14.9.27 GR23 implementor
-    /// default). A LOCK-MODE-only file has no sharing conflict posture, so its sharing maps to the neutral
-    /// ALL OTHER (record locking observable, no spurious 61).</summary>
+    /// <summary>Emit the RECORD-LOCKING registration for a file that declares a SHARING and/or LOCK MODE clause
+    /// (Phase 4d M2-FILE-1) — it routes the file's READs through record-lock governance (§9.1.16) and records the
+    /// SHARING clause's mode. Files with neither clause emit nothing: they have no LOCK MODE, so §12.4.5.9 GR1
+    /// sets no record locks for them. They are NOT outside the sharing arbitration — every OPEN is arbitrated
+    /// against ISO §14.9.27.4 Table 19 by <c>FileRegistry.SharedOpenAttempt</c> whether this call is emitted or
+    /// not (kb/Work PB321).
+    /// <para>⛔ A LOCK-MODE-ONLY FILE HAS NO SHARING MODE OF ITS OWN, so it registers <c>null</c> — the
+    /// UNDETERMINED implementor default of §9.1.15 (<i>"If no specification is made in either location, the
+    /// implementor defines the sharing mode in which the file is opened"</i>; a LOCK MODE clause is not such a
+    /// specification). It used to register ALL OTHER, which answered kb/Work PB322's owner determination here, in
+    /// the emitter, for one file shape only — while a clause-less file's default stayed undecided.</para></summary>
     private void EmitSharingRegistration(CodeWriter w, FileModel file)
     {
         if (file.Sharing == SharingMode.None && file.LockMode is null) return;
@@ -126,7 +131,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         {
             SharingMode.NoOther => "FileSharing.NoOther",
             SharingMode.ReadOnly => "FileSharing.ReadOnly",
-            _ => "FileSharing.AllOther",   // AllOther, or None (LOCK-MODE-only) → neutral default
+            SharingMode.AllOther => "FileSharing.AllOther",
+            // SharingMode.None (LOCK-MODE-only): the undetermined implementor default — §9.1.15 / kb/Work PB322.
+            _ => "(FileSharing?)null",
         };
         string lockMode = (file.LockMode?.Kind ?? LockKind.None) switch
         {
@@ -165,9 +172,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // OPEN statement per file-name, "each hav[ing] the same open mode specification, the
             // sharing-phrase, retry-phrase, and REWIND phrase as specified in the OPEN statement" — i.e. the
             // phrases of ITS OWN group (§14.9.27.2 nests both inside the repeated group). A file whose group
-            // carries neither phrase keeps the direct entry points, because routing it through the
-            // sharing-aware facade would make it sharing-active for the rest of the run and so contradict
-            // GR23's "file sharing is completely specified in the file control entry" (kb/Work PB316).
+            // carries neither phrase keeps the direct entry points, because the phrase-bearing facade REGISTERS
+            // an unregistered connector's record-locking posture (§9.1.15's undetermined implementor default)
+            // for the rest of the run, and doing that for a phrase-less file would contradict GR23's "file
+            // sharing is completely specified in the file control entry" (kb/Work PB316). Both arms are
+            // arbitrated against §14.9.27.4 Table 19 either way — that is not what distinguishes them
+            // (kb/Work PB321).
             bool shared = sharing is not null || retry is not null;
             if (shared)
             {

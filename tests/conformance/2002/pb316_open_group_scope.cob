@@ -29,6 +29,29 @@
       *> once as one statement with the same groups - and the two forms
       *> shall print the same statuses. That is GR20 asserted directly,
       *> and it does not depend on any implementor-defined default.
+      *>
+      *> RE-TRUED BY kb/Work PB321 (landing train 9). REF-A / ONE-A read
+      *> '00' when this golden was written, because an OPEN of a file
+      *> carrying no SHARING and no LOCK MODE clause was not arbitrated
+      *> against the physical-file registry at all - so F-SEED, open on
+      *> pb316grp.dat, was INVISIBLE to F-A's arbitration. PB321 made
+      *> 14.9.27.4 Table 19 arbitrate EVERY open, and 9.1.15 is explicit
+      *> for the sharing-with-no-other row: "Associating this file
+      *> connector with the physical file will be unsuccessful if the
+      *> physical file is currently open through other file connectors."
+      *> F-A declares SHARING WITH NO OTHER and F-SEED holds the physical
+      *> file open, so '61' (9.1.13.9 item 1) is the conforming answer and
+      *> the old '00' was the hole. GR20's assertion is untouched: the two
+      *> forms still agree, now at '61'.
+      *>
+      *> KNOWN WEAKENING, recorded rather than hidden: with every open
+      *> arbitrated, parts (1) and (2) no longer DISCRIMINATE a leak of
+      *> F-E's RETRY phrase into F-SEED's group. A leaked retry would
+      *> route F-SEED through the phrase-bearing entry, which registers it
+      *> with the same UNDETERMINED sharing mode an unregistered connector
+      *> already arbitrates under, so no printed status moves. Parts (3)
+      *> and (4) (the SHARING phrase) and part (5) (SR8, at compile time)
+      *> still discriminate their leaks.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.

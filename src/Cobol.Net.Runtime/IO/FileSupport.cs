@@ -16,10 +16,13 @@ public enum FileOpenMode
 }
 
 /// <summary>The file-sharing mode of a connector (ISO/IEC 1989:2023 §9.1.15; the SHARING clause §12.4.5.15 / the
-/// OPEN SHARING phrase §14.9.27). Governs whether OTHER connectors may open the same physical file (Table 19 →
-/// status 61). The implementor default for a connector without any SHARING/LOCK-MODE clause is <b>outside</b> the
-/// sharing subsystem entirely (legacy exclusive behavior — no physical-registry participation, so the existing
-/// corpus is byte-invariant); <see cref="AllOther"/> is the neutral in-subsystem default.</summary>
+/// OPEN SHARING phrase §14.9.27). Governs whether OTHER connectors may open the same physical file (§14.9.27.4
+/// <see cref="Table19"/> → status '61'). These three members are the whole of what §9.1.15 specifies — <i>"The
+/// sharing with no other mode …"</i>, <i>"The sharing with read only mode …"</i>, <i>"The sharing with all other
+/// mode …"</i> — so there is deliberately no fourth "default" member: a connector that writes NEITHER a SHARING
+/// clause nor an OPEN SHARING phrase carries the UNDETERMINED implementor default, represented as a null
+/// <c>FileSharing?</c> (see <see cref="FileRegistry.ImplementorDefaultSharing"/>, kb/Work PB322). Every connector
+/// takes part in the Table-19 arbitration whatever it declared (kb/Work PB321).</summary>
 public enum FileSharing
 {
     /// <summary>SHARING WITH NO OTHER — exclusive; no other connector may open the file (record locks ignored, GR3).</summary>

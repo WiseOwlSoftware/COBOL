@@ -98,17 +98,12 @@ public sealed class CobolFileLockTests
         Assert.Equal(FileStatusCode.RunUnitLockLimit, CobolFile.LockRecord("COVER", "1"));   // 53
     }
 
-    [Theory]
-    // Table-19 open-conflict matrix (§9.1.13.9 sub-cases a–e): existing (sharing,mode) vs incoming (sharing,mode).
-    [InlineData(FileSharing.NoOther, FileOpenMode.Input, FileSharing.AllOther, FileOpenMode.Input, true)]   // (a) existing exclusive
-    [InlineData(FileSharing.AllOther, FileOpenMode.IO, FileSharing.NoOther, FileOpenMode.Input, true)]      // (b) incoming exclusive
-    [InlineData(FileSharing.ReadOnly, FileOpenMode.Input, FileSharing.AllOther, FileOpenMode.IO, true)]     // (c) READ-ONLY sharer, non-INPUT opener
-    [InlineData(FileSharing.AllOther, FileOpenMode.IO, FileSharing.ReadOnly, FileOpenMode.Input, true)]     // (d) incoming READ-ONLY, non-INPUT existing
-    [InlineData(FileSharing.AllOther, FileOpenMode.IO, FileSharing.AllOther, FileOpenMode.IO, false)]       // (e) ALL OTHER both — no conflict
-    [InlineData(FileSharing.ReadOnly, FileOpenMode.Input, FileSharing.ReadOnly, FileOpenMode.Input, false)] // two READ-ONLY INPUT sharers — no conflict
-    public void Conflicts_ClassifiesTable19(FileSharing exShare, FileOpenMode exMode,
-        FileSharing inShare, FileOpenMode inMode, bool conflict) =>
-        Assert.Equal(conflict, CobolFile.Conflicts((exShare, exMode), (inShare, inMode)));
+    // ⛔ The Table-19 open-conflict matrix is NOT tested here any more. It used to be a six-row [InlineData]
+    // theory labelled '(a)'–'(e)' against a table of 35 cells, with NO row whose incoming mode was OUTPUT —
+    // so §9.1.13.9 1) e) had neither an implementation nor a failing test, and the theory was GREEN while an
+    // incoming OPEN OUTPUT truncated files another connector held open (kb/Work PB321). Its replacement is
+    // `OpenTable19Tests`, which transcribes all 35 printed cells and enumerates all 144 connector pairs, so
+    // it cannot be green for want of a row. The facade delegation is exercised there through FileRegistry.
 
     [Fact]
     public void RetryLoop_TimesExhausts_ForeverDeadlockBails_SuccessShortCircuits()

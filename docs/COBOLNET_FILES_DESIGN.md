@@ -384,6 +384,72 @@ copy of it can only be a paraphrase, because a declaration cannot see the statem
 `conformance:OpenSharingLockModeTests` carries the two assertions no `.cob` corpus can make — that ONE violation
 draws exactly ONE diagnostic (a substring-matching `.err` is blind to a duplicate, which is how the second copy
 survived), and the APPLY COMMIT exemption, which needs the permissive axis.
+### D14. ISO §14.9.27.4 Table 19 is a STRUCTURE, and it arbitrates EVERY OPEN — not only the connectors that declared a SHARING clause.
+
+**The rule.** §9.1.15 puts the gate on the physical file, not on the connectors that opted in: *"Before access
+to a shared physical file is allowed through an OPEN statement, the sharing mode and the open mode of that OPEN
+statement shall be allowed by all other file connectors that are currently associated with the physical file,
+as described in 9.1.13, I-O status; 14.9.27, OPEN statement; and Table 19"*. **Table 19** is that decision
+table: 7 *Open request* rows × 5 *Most restrictive existing sharing mode and open mode* columns = 35 cells,
+each *Normal open* or *Unsuccessful open*, and §9.1.13.9 item 1 supplies the status the unsuccessful cell
+reports (`'61'`) while §14.9.27.4 GR25 supplies its effect (*"the file is not affected"*).
+
+**The decision.** `OpenRequestRow` and `ExistingSharingColumn` are enums with the printed row and column groups
+as their members, `Table19.Cell(row, column)` is an exhaustive switch over all 35 printed cells, and
+`FileRegistry.Conflicts` is a lookup into it and nothing else. `FileRegistry.OpenCore` is the ONE OPEN
+dispatch — the plain `Open` and the phrase-bearing `OpenShared` are entries over it — so every connector is
+arbitrated whether or not it wrote a SHARING or LOCK MODE clause. That also covers the opens §14.9.27.4 names
+without a statement of their own: Table 19 shows the results of opening files currently open by another
+connector *"including those implicitly opened by the SORT and MERGE statements"*, and those route through
+`CobolFile.OpenInput`/`OpenOutput` → `Open` → `OpenCore` with no arm of their own. Because every successful OPEN registers in `PhysicalFileTable`, every close
+path releases: `SharedClose` (from the Table-14 CLOSE dispatch), `CloseDisplaced`, `CloseAll` and
+`CloseAndDrop`. The registration is gated on the OPEN's STATUS, not on `IsOpen`, so a re-OPEN of an already-open
+connector — `'41'`, which leaves the connector in its ORIGINAL mode — no longer re-registers it under the failed
+request's mode.
+
+**⛔ The PRINTED TABLE is the arbiter, not §9.1.13.9's five sub-cases, and the difference is four cells.**
+§9.1.13.9 item 1 enumerates five *"possible violations"* (a)–(e). Sub-cases (c) and (d) are written over
+*"I-O or extend"*, but Table 19's existing-side column groups are `extend I-O output` — so a literal reading of
+the five sub-cases answers *Normal open* in four combinations the table marks *Unsuccessful open* (an incoming
+SHARING WITH READ ONLY request, in the EXTEND/I-O or INPUT mode, against a connector open in the OUTPUT mode).
+§9.1.15 rule 2 resolves it in the table's favour in so many words — *"unsuccessful if the physical file is
+associated with another file connector whose open mode is other than input"* and *"subsequent requests to open
+the physical file through other file connectors in a mode other than input … will be unsuccessful"* — and
+OUTPUT is a mode other than input. `OpenTable19Tests` pins both readings: the 35 cells one by one against the
+**rendered PDF page**, and the §9.1.15 prose over all 144 (sharing, mode)² connector pairs, asserting that the
+sub-case reading disagrees in exactly four. The finding is an assertion, not a comment, so it cannot rot.
+
+**⛔ The implementor default is UNDETERMINED, and the arbitration decides nothing about it.** §9.1.15: *"If no
+specification is made in either location, the implementor defines the sharing mode in which the file is
+opened"*. `FileRegistry.ImplementorDefaultSharing` is the ONE place that default is named and it is `null`;
+choosing its value is the owner determination tracked as `kb/Work` **PB322** (Annex A.1 items 77 and 131). A
+`FileSharing?` therefore threads through `ConnectorShare`, `PhysicalFileTable.State.Open` and `Conflicts`, and
+`Conflicts` arbitrates an undetermined mode **universally**: a conflict only where EVERY candidate mode gives
+*Unsuccessful open*. No `'61'` this compiler answers today can be contradicted by PB322's answer, and when
+PB322 lands, replacing the `null` collapses the quantifier to a plain lookup. With BOTH connectors undetermined
+that leaves exactly §9.1.13.9 1) e) — *"An attempt is made to open a physical file in the output mode and the
+physical file is currently open by another file connector"* — the sub-case that names no sharing mode at all,
+which is what makes a second OPEN OUTPUT deterministic instead of an OS sharing violation leaking `'30'` into
+the I-O status. The quantifier is extensionally identical to substituting ALL OTHER, because ALL OTHER is
+Table 19's least restrictive row AND its least restrictive column group; that is a property of the printed
+table rather than a choice, and it is asserted so a PB322 landing fails a test instead of drifting.
+
+**What it buys, and what it cost before.** `Conflicts` used to be a four-test predicate chain whose final
+`return false;` carried the comment `// (e) ALL OTHER` — the letter of a sub-case it had never implemented —
+so every incoming OPEN OUTPUT was permitted and truncated a file another connector held open; and
+`FileRegistry.Open` consulted the table only `if (IsSharingActive(name))`, while `RegisterSharing` set
+`FileConnector.SharedStreams` (an OS handle opened `FileShare.ReadWrite`). Together those made a file declared
+`SHARING WITH NO OTHER` strictly LESS protected than one declaring nothing: the clause dropped the OS exclusion
+and handed arbitration to a table that could not see the plain connector coming. The guarding test was six
+`InlineData` rows against 35 cells with no row whose incoming mode was OUTPUT (kb/Work PB321). Two silent
+defaults went with it — the emitter registered a LOCK-MODE-only file as ALL OTHER, and a RETRY-phrase-only OPEN
+registered ALL OTHER here — three arms of one determination, two of which had already answered it.
+
+**Residue (reported, not fixed):** the runtime has no edition, so the arbitration also runs at `--std 85`. No
+SHARING clause is accepted there, so the only conflict reachable is sub-case (e), and a second OPEN OUTPUT
+answers `'61'` where the OS accident answered `'30'`. Table 19 rides Annex A.4.7, a COBOL-2002 introduction, so
+whether a pre-2002 edition may report a value from the 2002 5x/6x family is a determination in A.1 item 77's
+family; nothing in the corpus exercises it.
 
 ## C# mapping
 

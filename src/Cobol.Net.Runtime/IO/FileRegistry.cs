@@ -24,8 +24,11 @@ public sealed class FileRegistry
     // GC-deferred close.
     private readonly System.Collections.Concurrent.ConcurrentQueue<string> _pendingObjectClose = new();
 
-    /// <summary>A connector's declared sharing posture (from its SELECT's SHARING / LOCK MODE clauses).</summary>
-    private readonly record struct ConnectorShare(string Host, FileSharing Sharing, FileLockMode LockMode, bool Multiple);
+    /// <summary>A connector's declared sharing posture (from its SELECT's SHARING / LOCK MODE clauses).
+    /// <see cref="Sharing"/> is NULL when the connector carries a LOCK MODE clause but no SHARING clause — a LOCK
+    /// MODE clause is not a sharing specification, so such a connector's sharing mode is the same undetermined
+    /// implementor default a clause-less connector has (<see cref="ImplementorDefaultSharing"/>).</summary>
+    private readonly record struct ConnectorShare(string Host, FileSharing? Sharing, FileLockMode LockMode, bool Multiple);
 
     /// <summary>The per-connector declared sharing/lock metadata (a connector is "sharing-active" iff present).</summary>
     private readonly Dictionary<string, ConnectorShare> _connectorShares = new(StringComparer.OrdinalIgnoreCase);
@@ -81,9 +84,10 @@ public sealed class FileRegistry
     /// drops the connector from the registry.</summary>
     public void CloseAndDrop(string key)
     {
-        Close(key);
+        Close(key);                     // deregisters from the physical-file table (SharedClose) while _files still holds it
         _files.Remove(key);
         _locked.Remove(key);
+        _connectorShares.Remove(key);   // the posture belonged to the dropped connector, not to its key
     }
 
     // ── Registration ─────────────────────────────────────────────────────────────────────────────────────────
@@ -111,10 +115,19 @@ public sealed class FileRegistry
     /// CANCEL closes before its post-CANCEL re-registration — so an open one here was abandoned by an
     /// abnormally-ended activation. Closing flushes its buffered writes and frees the OS handle instead of
     /// leaking both. The status result is deliberately dropped: this is registry hygiene, not a COBOL CLOSE
-    /// — there is no statement to report to.</summary>
+    /// — there is no statement to report to.
+    /// <para>The displaced connector is also dropped from the physical-file table and from the declared-posture
+    /// map: a replacement is a NEW file connector (possibly on another host path and with other clauses), so
+    /// leaving the old one arbitrating (§9.1.15) or its LOCK MODE in force would make the replacement inherit a
+    /// posture no SELECT wrote — the same "the table outlived the connector" shape as kb/Work PB321.</para></summary>
     private void CloseDisplaced(string cobolName)
     {
-        if (_files.TryGetValue(cobolName, out var old) && old.IsOpen) old.Close();
+        if (_files.TryGetValue(cobolName, out var old))
+        {
+            if (old.IsOpen) old.Close();
+            DeregisterFromPhysical(cobolName, old);
+        }
+        _connectorShares.Remove(cobolName);
     }
 
     /// <summary>The SELECT-spelled name of a registered connector (ISO §15.28.4 r1c/r2b — kb/Work PB63); for a key
@@ -168,26 +181,18 @@ public sealed class FileRegistry
 
     // ── OPEN / CLOSE ─────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>OPEN in <paramref name="mode"/> (ISO §14.9.27): a sharing-active connector routes through the
-    /// physical-file registry (Table-19 → 61); every other connector keeps the exclusive path (GR23 implementor
-    /// default) — one polymorphic dispatch for all three organizations.</summary>
-    public void Open(string name, FileOpenMode mode)
-    {
-        DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
-        if (IsSharingActive(name)) { SharedOpenAttempt(name, mode, null); return; }
-        if (_locked.Contains(name)) Require(name).SetStatus(FileStatusCode.FileLocked);
-        else Require(name).Open(mode);
-    }
+    /// <summary>OPEN in <paramref name="mode"/> (ISO §14.9.27), with no sharing or retry phrase on the statement
+    /// — <see cref="OpenCore"/> arbitrates it against the physical-file registry exactly like the phrase-bearing
+    /// <see cref="OpenShared"/>, one polymorphic dispatch for all three organizations.</summary>
+    public void Open(string name, FileOpenMode mode) => OpenCore(name, mode, null, FileRetryKind.None, 0, false);
 
-    /// <summary>OPEN … WITH NO REWIND (ISO §14.9.27) — the plain OPEN followed by the phrase's own effect. The
-    /// OPEN twin of <see cref="CloseNoRewind"/>: the same phrase, the same medium model, the same '07'
+    /// <summary>OPEN … WITH NO REWIND (ISO §14.9.27) — the same arbitrated <see cref="OpenCore"/> with the
+    /// phrase's flag set, so the '07' overlay is the ONE effect site whichever entry point the emitter picks.
+    /// The OPEN twin of <see cref="CloseNoRewind"/>: the same phrase, the same medium model, the same '07'
     /// (§9.1.13.2 item 6). Before kb/Work PB317 the phrase was parsed and dropped, so an OPEN … WITH NO REWIND
     /// reported '00' while its CLOSE spelling reported '07'.</summary>
     public void OpenNoRewind(string name, FileOpenMode mode)
-    {
-        Open(name, mode);
-        NoRewindPhraseEffect(name);
-    }
+        => OpenCore(name, mode, null, FileRetryKind.None, 0, true);
 
     /// <summary>⛔ THE ONE SITE for the OPEN statement's NO REWIND phrase — §14.9.27.4 GR11 and GR12, keyed on
     /// the SAME medium model the CLOSE arm's Table 14 is keyed on (<see cref="PhysicalFileCategory"/>), so the
@@ -358,12 +363,15 @@ public sealed class FileRegistry
     public void CloseAll()
     {
         DrainPendingObjectCloses();
-        foreach (var c in _files.Values)
+        foreach (var (name, c) in _files)
         {
             // The pre-registry semantics, preserved exactly: sequential connectors close unconditionally
             // (a closed one just re-reports '42' into a cleared registry); keyed connectors close only if open.
             if (c is SequentialConnector s) s.Close();
             else if (c.IsOpen) c.Close();
+            // §9.1.15 — an implicit CLOSE removes the file lock too, so the arbitration entry goes with it
+            // (kb/Work PB321: every successful OPEN registers, so every close path must deregister).
+            DeregisterFromPhysical(name, c);
         }
     }
 
@@ -624,10 +632,29 @@ public sealed class FileRegistry
     // external releaser exists), so an unsatisfiable conflict lands on the conflict's OWN §9.1.13 status —
     // never a sleep, and never a manufactured one. See D8 in docs/COBOLNET_FILES_DESIGN.md and ExhaustionStatus.
 
+    /// <summary>⛔ THE ONE PLACE COBOL.NET'S IMPLEMENTOR-DEFAULT SHARING MODE IS NAMED (ISO §9.1.15:
+    /// <i>"If no specification is made in either location, the implementor defines the sharing mode in which the
+    /// file is opened; the implementor-defined sharing mode may be one of the modes specified in this Working
+    /// Draft International Standard or may be a mode completely specified by the implementor."</i>).
+    /// <para>It is <c>null</c> — <b>UNDETERMINED</b>, not "none" and not a fourth mode. Choosing the value is an
+    /// owner-facing determination tracked as kb/Work <b>PB322</b>, and until it lands <see cref="Conflicts"/>
+    /// arbitrates an undetermined mode by the rule that decides nothing: a conflict is reported only where EVERY
+    /// candidate the standard offers yields Table 19's <i>Unsuccessful open</i>, so no '61' this compiler answers
+    /// today can be contradicted by PB322's answer. When PB322 lands, replacing this <c>null</c> with the chosen
+    /// <see cref="FileSharing"/> collapses the quantifier to a plain Table-19 lookup and nothing else changes.
+    /// </para>
+    /// <para>⛔ DO NOT hard-code a mode at a call site instead. Two call sites used to: a LOCK-MODE-only SELECT
+    /// was registered as ALL OTHER by the emitter and a RETRY-phrase-only OPEN was registered as ALL OTHER here,
+    /// while a clause-less file was not registered at all — three arms of one determination, two of which had
+    /// silently answered it (kb/Work PB321).</para></summary>
+    public static readonly FileSharing? ImplementorDefaultSharing = null;
+
     /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (emitted right after registration, only
-    /// for a file that carries either clause). Marks the connector sharing-active so its OPEN routes through the
-    /// physical-file registry.</summary>
-    public void RegisterSharing(string name, FileSharing sharing, FileLockMode lockMode, bool multiple)
+    /// for a file that carries either clause). <paramref name="sharing"/> is null for a file with a LOCK MODE
+    /// clause and no SHARING clause — see <see cref="ImplementorDefaultSharing"/>. This is the RECORD-LOCKING
+    /// posture only; every connector, registered here or not, is arbitrated against Table 19 by
+    /// <see cref="SharedOpenAttempt"/>.</summary>
+    public void RegisterSharing(string name, FileSharing? sharing, FileLockMode lockMode, bool multiple)
     {
         _connectorShares[name] = new ConnectorShare(HostPathOf(name), sharing, lockMode, multiple);
         // A sharing participant's physical streams must admit the other connectors' handles (§9.1.15) — the
@@ -635,64 +662,116 @@ public sealed class FileRegistry
         if (_files.TryGetValue(name, out var c)) c.SharedStreams = true;
     }
 
-    /// <summary>True when <paramref name="name"/> participates in the sharing subsystem.</summary>
-    private bool IsSharingActive(string name) => _connectorShares.ContainsKey(name);
-
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
         FileRetryKind retryKind, int retryAmount, bool noRewind)
     {
-        // A sharing/retry phrase on the OPEN makes the connector sharing-active even without a SELECT clause.
+        // A sharing/retry phrase on the OPEN makes the connector a record-locking participant even without a
+        // SELECT clause. Its SHARING MODE is still whatever §9.1.15 gives it: the phrase's mode when a SHARING
+        // phrase is written, otherwise the undetermined implementor default — never a hard-coded ALL OTHER.
         if (!_connectorShares.ContainsKey(name))
-            RegisterSharing(name, FileSharing.AllOther, FileLockMode.None, false);
-        FileSharing? ov = hasSharingOverride ? sharingOverride : null;
-        // SharedOpenAttempt sets the connector status on the terminal attempt, and RetryLoop now lands an
-        // exhausted retry on the CONFLICT'S OWN status (§14.7.9.3 closing paragraph → §9.1.13.9 item 1 = '61'),
-        // so there is nothing left to override here — the former `if (status == Deadlock) SetStatusOf(…)`
-        // line existed only to re-assert the '52' RetryLoop used to manufacture (kb/Work PB142).
-        _ = RetryLoop(() => SharedOpenAttempt(name, mode, ov), retryKind, retryAmount);
-        // The WITH NO REWIND phrase is independent of SHARING/RETRY (§14.9.27.2 writes all three in one
-        // format), so it applies here too — the ONE effect site, never a second copy (kb/Work PB317).
+            RegisterSharing(name, ImplementorDefaultSharing, FileLockMode.None, false);
+        OpenCore(name, mode, hasSharingOverride ? sharingOverride : null, retryKind, retryAmount, noRewind);
+    }
+
+    /// <summary>⛔ THE ONE OPEN DISPATCH (ISO §14.9.27). Every OPEN — phrase-bearing or plain — arbitrates against
+    /// the physical-file registry, because §9.1.15's gate is written over the physical file and not over the
+    /// connectors that opted in: <i>"Before access to a shared physical file is allowed through an OPEN statement,
+    /// the sharing mode and the open mode of that OPEN statement shall be allowed by ALL OTHER FILE CONNECTORS
+    /// that are currently associated with the physical file"</i>. When the table was an opt-in overlay consulted
+    /// only for connectors carrying a SHARING/LOCK MODE clause, declaring <c>SHARING WITH NO OTHER</c> made a file
+    /// strictly LESS protected than declaring nothing — the clause turned the connector's OS handle shareable and
+    /// then handed arbitration to a table that could not see the plain connector coming (kb/Work PB321).
+    /// <para>The RETRY discipline wraps the whole attempt (§14.7.9.3): with no RETRY phrase GR4a makes no further
+    /// attempt, so the plain <see cref="Open"/> is the same code path with <see cref="FileRetryKind.None"/>. The
+    /// GC-deferred per-object close drains first, on this (mutator) thread, for both entries — it used to drain
+    /// only for the plain one.</para>
+    /// <para><paramref name="noRewind"/> is the statement's WITH NO REWIND phrase, applied by
+    /// <see cref="NoRewindPhraseEffect"/> AFTER the arbitrated open. It rides here rather than at either entry
+    /// point because SHARING/RETRY and NO REWIND are independent phrases of one general format (§14.9.27.2), so
+    /// an OPEN may write both and the '07' overlay has to reach the arbitrated path as well as the plain one
+    /// (kb/Work PB317). The overlay is self-guarding: §14.9.27.4 GR25 a) owns an unsuccessful open's status, so
+    /// <see cref="NoRewindPhraseEffect"/> writes '07' only over a status whose first digit is '0'.</para></summary>
+    private void OpenCore(string name, FileOpenMode mode, FileSharing? sharingOverride,
+        FileRetryKind retryKind, int retryAmount, bool noRewind)
+    {
+        DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
+        // SharedOpenAttempt sets the connector status on the terminal attempt, and RetryLoop lands an exhausted
+        // retry on the CONFLICT'S OWN status (§14.7.9.3 closing paragraph → §9.1.13.9 item 1 = '61'), so there is
+        // nothing left to override afterwards — the former `if (status == Deadlock) SetStatusOf(…)` line existed
+        // only to re-assert the '52' RetryLoop used to manufacture (kb/Work PB142).
+        _ = RetryLoop(() => SharedOpenAttempt(name, mode, sharingOverride), retryKind, retryAmount);
+        // The WITH NO REWIND phrase's own effect — the ONE effect site, never a second copy (kb/Work PB317).
         if (noRewind) NoRewindPhraseEffect(name);
     }
 
-    /// <summary>The sharing-aware OPEN body. Returns the resulting I-O status; on a Table-19 conflict returns 61
-    /// without opening the connector.</summary>
+    /// <summary>The arbitrated OPEN body. Returns the resulting I-O status; on a Table-19 conflict returns 61
+    /// without opening the connector, leaving the file <i>"not affected"</i> (§14.9.27.4 GR25).</summary>
     private string SharedOpenAttempt(string name, FileOpenMode mode, FileSharing? sharingOverride)
     {
-        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        var c = Require(name);   // an unregistered name is a COMPILER defect and LOUD (kb/Work PB140)
         if (_locked.Contains(name)) { c.SetStatus(FileStatusCode.FileLocked); return FileStatusCode.FileLocked; }  // ≤2014 CLOSE WITH LOCK
-        FileSharing sharing = sharingOverride ?? _connectorShares[name].Sharing;
+        // §9.1.15: the OPEN's SHARING phrase overrides the file control entry's SHARING clause; with neither, the
+        // implementor default — which for this compiler is UNDETERMINED (see ImplementorDefaultSharing).
+        FileSharing? sharing = sharingOverride
+            ?? (_connectorShares.TryGetValue(name, out var meta) ? meta.Sharing : ImplementorDefaultSharing);
         var st = _physical.For(c.HostPath);
         foreach (var (other, existing) in st.Open)
         {
             if (string.Equals(other, name, StringComparison.OrdinalIgnoreCase)) continue;
             if (Conflicts(existing, (sharing, mode)))
             {
-                c.SetStatus(FileStatusCode.FileSharingConflict);   // 61 — §9.1.13.9
+                c.SetStatus(FileStatusCode.FileSharingConflict);   // 61 — §9.1.13.9 item 1
                 return FileStatusCode.FileSharingConflict;
             }
         }
-        c.Open(mode);
-        if (c.IsOpen)
+        // ⛔ The registration is gated on the STATUS, not on `IsOpen`. A re-OPEN of a connector that is already
+        // open is unsuccessful with '41' (§9.1.13.7 item 1) and FileConnector.Open leaves the connector in its
+        // ORIGINAL mode — but `IsOpen` is true throughout, so gating on it re-registered the connector under the
+        // mode and sharing of the FAILED request and every later arbitration used them (kb/Work PB321).
+        string status = c.Open(mode);
+        if (status[0] == '0')   // the success family '00'/'05'/'07' — §9.1.13.2
         {
             st.Open[name] = (sharing, mode);   // register only a successful open
-            // A sharing-active SEQUENTIAL connector needs its write-ordinal base (§9.1.16 lock identity for
-            // records it releases; §14.9.51 GR18 — EXTEND appends continue the existing numbering). Seeded here,
-            // never for an unshared connector, so unshared sequential I/O is untouched by the lock subsystem.
-            if (c is SequentialConnector f) f.SeedSharedWriteBase();
+            // A record-locking participant that is SEQUENTIAL needs its write-ordinal base (§9.1.16 lock identity
+            // for records it releases; §14.9.51 GR18 — EXTEND appends continue the existing numbering). Seeded
+            // only for a connector with a SHARING/LOCK MODE clause, so unshared sequential I/O is untouched by
+            // the lock subsystem even though it now takes part in the Table-19 arbitration.
+            if (c is SequentialConnector f && _connectorShares.ContainsKey(name)) f.SeedSharedWriteBase();
         }
-        return c.Status;
+        return status;
     }
 
-    /// <summary>Table-19 open-conflict classification (§9.1.13.9 sub-cases a–e).</summary>
-    public static bool Conflicts((FileSharing Sharing, FileOpenMode Mode) ex, (FileSharing Sharing, FileOpenMode Mode) inc)
+    /// <summary>ISO §14.9.27.4 <b>Table 19</b> — is an OPEN request unsuccessful against ONE connector already
+    /// open on the same physical file? The cells are <see cref="Table19"/>; this method is only the quantifier
+    /// over an UNDETERMINED sharing mode.
+    /// <para>A <c>null</c> sharing mode is the implementor default this compiler has not yet defined
+    /// (<see cref="ImplementorDefaultSharing"/>, kb/Work PB322). The rule is <b>universal</b>: a conflict is
+    /// reported only when Table 19 says <i>Unsuccessful open</i> for EVERY candidate mode the undetermined side
+    /// could turn out to be, so the answer is one the standard already settles whatever PB322 decides. §9.1.13.9
+    /// item 1 e) — <i>"An attempt is made to open a physical file in the output mode and the physical file is
+    /// currently open by another file connector"</i> — is the sub-case that names no sharing mode at all, and it
+    /// is what makes an incoming OPEN OUTPUT unsuccessful against ANY existing connector, determined or not.</para>
+    /// <para>(As it happens the quantifier is today extensionally equal to substituting
+    /// <see cref="FileSharing.AllOther"/> on both axes, because ALL OTHER is Table 19's least restrictive row AND
+    /// its least restrictive column group; that is a property of the printed table, not a choice made here, and
+    /// it is why the change costs no existing behaviour where the table permits the open. `OpenTable19Tests`
+    /// pins it, so a PB322 landing that picks a different mode fails that test rather than drifting.)</para>
+    /// </summary>
+    public static bool Conflicts((FileSharing? Sharing, FileOpenMode Mode) ex, (FileSharing? Sharing, FileOpenMode Mode) inc)
     {
-        if (ex.Sharing == FileSharing.NoOther || inc.Sharing == FileSharing.NoOther) return true;       // (a)/(b)
-        if (ex.Sharing == FileSharing.ReadOnly && inc.Mode != FileOpenMode.Input) return true;          // (c)
-        if (inc.Sharing == FileSharing.ReadOnly && ex.Mode != FileOpenMode.Input) return true;          // (d)
-        return false;                                                                                    // (e) ALL OTHER
+        foreach (var incSharing in Table19.StandardModes)
+        {
+            if (inc.Sharing is { } knownInc && knownInc != incSharing) continue;
+            foreach (var exSharing in Table19.StandardModes)
+            {
+                if (ex.Sharing is { } knownEx && knownEx != exSharing) continue;
+                if (Table19.Cell(incSharing, inc.Mode, exSharing, ex.Mode) == OpenSharingOutcome.NormalOpen)
+                    return false;   // one candidate the table permits ⇒ the conflict is not settled by the standard
+            }
+        }
+        return true;
     }
 
     /// <summary>Record-lock governance for a just-completed keyed READ (§9.1.16; called right after the physical
@@ -1032,15 +1111,30 @@ public sealed class FileRegistry
         if (_files.TryGetValue(name, out var c)) c.SetStatus(status);
     }
 
-    /// <summary>Deregister a connector's open entry on CLOSE and release its record locks (the sharing-registry
-    /// side of CLOSE; no-op for a non-sharing-active connector).</summary>
+    /// <summary>Deregister a connector's open entry on CLOSE and release its record locks (§9.1.15's <i>"The file
+    /// lock is removed by an explicit or implicit CLOSE statement executed for that file connector"</i> /
+    /// §14.9.6.4 GR9). ⛔ UNCONDITIONAL: every successful OPEN registers, so every CLOSE must deregister — while
+    /// this was gated on <c>_connectorShares</c> a plain connector could not have been registered in the first
+    /// place, and making the registration total without making the release total would have left a closed
+    /// connector arbitrating forever (kb/Work PB321).</summary>
     private void SharedClose(string name)
     {
-        if (!_connectorShares.TryGetValue(name, out var meta)) return;
-        if (_physical.TryGet(meta.Host, out var st))
-        {
-            st.Open.Remove(name);
-            PhysicalFileTable.ReleaseAllForConnector(st, name);
-        }
+        if (_files.TryGetValue(name, out var c)) DeregisterFromPhysical(name, c);
+    }
+
+    /// <summary>Drop <paramref name="name"/>'s entry in the physical-file table for the connector object
+    /// <paramref name="c"/> and release the record locks it holds. Takes the connector rather than looking it up
+    /// so a DISPLACED registration is deregistered under its OWN host path, not its replacement's.</summary>
+    private void DeregisterFromPhysical(string name, FileConnector c)
+    {
+        if (!_physical.TryGet(c.HostPath, out var st)) return;
+        st.Open.Remove(name);
+        // The lock release is guarded on there being locks at all: this now runs on EVERY close of EVERY file,
+        // and ReleaseAllForConnector's Where/Select/ToList would otherwise allocate a closure and an empty list
+        // per CLOSE for the overwhelming majority of connectors, which set no record locks — §12.4.5.9.4 GR1a,
+        // "If there is a SHARING clause in that file control entry, no record locks are set by the execution of
+        // I-O statements through the associated file connector" (the general rules of the LOCK MODE clause are
+        // §12.4.5.9.4; the older comments in this file cite the parent §12.4.5.9).
+        if (st.RecordLocks.Count > 0) PhysicalFileTable.ReleaseAllForConnector(st, name);
     }
 }

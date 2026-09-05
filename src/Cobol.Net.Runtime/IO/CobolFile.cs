@@ -181,8 +181,10 @@ public static class CobolFile
     /// SELECT-spelled name, or two spaces when never opened/attempted/accessed.</summary>
     public static string ExceptionFile(string name) => _reg.ExceptionFile(name);
 
-    /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (§12.4.5.15/§12.4.5.9).</summary>
-    public static void RegisterSharing(string name, FileSharing sharing, FileLockMode lockMode, bool multiple)
+    /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (§12.4.5.15/§12.4.5.9). A null
+    /// <paramref name="sharing"/> is the UNDETERMINED implementor default — a LOCK MODE clause is not a sharing
+    /// specification (§9.1.15) — see <see cref="FileRegistry.ImplementorDefaultSharing"/> (kb/Work PB321/PB322).</summary>
+    public static void RegisterSharing(string name, FileSharing? sharing, FileLockMode lockMode, bool multiple)
         => _reg.RegisterSharing(name, sharing, lockMode, multiple);
 
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27). <paramref name="noRewind"/>
@@ -239,8 +241,10 @@ public static class CobolFile
     public static string RetryLoop(Func<string> attempt, FileRetryKind kind, int amount)
         => FileRegistry.RetryLoop(attempt, kind, amount);
 
-    /// <summary>Table-19 open-conflict classification (§9.1.13.9 sub-cases a–e).</summary>
-    public static bool Conflicts((FileSharing Sharing, FileOpenMode Mode) ex, (FileSharing Sharing, FileOpenMode Mode) inc)
+    /// <summary>ISO §14.9.27.4 Table 19 — is an OPEN request unsuccessful against ONE connector already open on
+    /// the same physical file? A null sharing mode is the undetermined implementor default (kb/Work PB322), and
+    /// is arbitrated as a conflict only where every candidate mode agrees.</summary>
+    public static bool Conflicts((FileSharing? Sharing, FileOpenMode Mode) ex, (FileSharing? Sharing, FileOpenMode Mode) inc)
         => FileRegistry.Conflicts(ex, inc);
 
     /// <summary>Resolve an ASSIGN target to a host file path: a target that already looks like a path (has a
