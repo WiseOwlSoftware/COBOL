@@ -279,6 +279,15 @@
       "dns": 352,
       "label": "Train 8: DEVLOG 1504 + plan",
       "battery": null
+    },
+    {
+      "sha": "601664d0",
+      "date": "2026-09-05",
+      "gap": 2821,
+      "closed": 1490,
+      "dns": 352,
+      "label": "Train 9: inventory + DIAGNOS",
+      "battery": null
     }
   ]
 }
