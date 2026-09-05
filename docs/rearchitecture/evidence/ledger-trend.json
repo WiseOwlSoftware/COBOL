@@ -297,6 +297,15 @@
       "dns": 352,
       "label": "Train 10: inventory + DIAGNO",
       "battery": null
+    },
+    {
+      "sha": "ee29d1d1",
+      "date": "2026-09-05",
+      "gap": 2802,
+      "closed": 1509,
+      "dns": 352,
+      "label": "Train 11: inventory (GAP 281",
+      "battery": null
     }
   ]
 }
