@@ -443,6 +443,40 @@ keeps the exact Int128 selection (`MaxAt` / `MinAt`, PB65's D1). The arithmetic 
 RANGE / MIDRANGE — genuine equivalent arithmetic expressions) keeps the D16 native float lane a float operand
 selects. Golden `pb65_selection_mixed_carriers`.
 
+### The binary64 lane is entered on the ARGUMENT RUN, not on one argument (PB635).
+
+`RenderFloat`'s body converts **every** argument through one binary64 conversion, so the lane is only enterable
+when every argument HAS a binary64 value. §15.3 says which positions do: type 6 ("An arithmetic expression that
+will always result in an integer value or an integer data item shall be specified") and type 10 ("Numeric. An
+arithmetic expression or a numeric data item shall be specified"). Types 1/2/9, 3, 5, 11 and 13 name character,
+bit and reference operands and have none. The dispatch nevertheless asked only `AnyRealArgument` — "is ANY
+argument floating" — and for the one catalogued function that mixes the two, that moved the whole call:
+`FIND-STRING` takes two string operands (§15.37.3 r1/r2) and an integer argument-3 (r3), so
+`FIND-STRING(H ND START AFTER <COMP-2>)` converted `H` and `ND` to `double`, dropped LAST/ANYCASE, and named a
+`FindStringReal` body that does not exist — **Roslyn CS0117 on the generated C#**, an internal failure escaping at
+the wrong stage. It should not exist: §15.37.4's returned value is a character POSITION with no equivalent
+arithmetic expression, so §15.4.1's "implementor-defined approximation of the value of that expression" — the
+whole licence the lane rests on — is not granted for it.
+
+**The rule now:** `IntrinsicArgumentRules.ArgumentRunIsAllNumeric` derives the precondition from the SPEC-VERIFIED
+`Verified` schema (`Admissible(kind) is [Numeric]`, i.e. §15.3 types 6 and 10) and **fails open** — an unscreened
+function, an undeclared position and the `'p'` negative-list kind all answer *yes*, so it can only ever take a
+call OUT of the lane on the authority of a cited §15.x.3 rule. ⛔ It is a question about the POSITION and
+deliberately not about the operand's class: under `--permissive` the DA6 leniency admits an alphanumeric operand
+at a numeric position and digit-decodes it, so `MOD(<PIC X item> <COMP-2>)` must keep the lane, and reading the
+operand would have reopened PB2's CS1503. The `Factorial` exclusion is a separate, CODOMAIN question — 33! is
+~8.7e36, which no `FromDouble` tail can carry — and is now the declared set `IntrinsicRenderer.FloatLaneExempt`
+rather than an inline `!= "Factorial"`.
+
+The defect was reachable only under `--permissive` (PB248's §15.3 type-6 screen rejects a floating-point item at
+an integer position under strict, COBOLNET1627), and the sweep measured **ten** functions crashing that way, not
+one: FIND-STRING, ORD, INTEGER-OF-BOOLEAN, NUMVAL-F, TEST-NUMVAL, TEST-NUMVAL-C, TEST-NUMVAL-F,
+INTEGER-OF-FORMATTED-DATE, SECONDS-FROM-FORMATTED-TIME and TEST-FORMATTED-DATETIME. Pinned by
+`IntrinsicFloatLaneArgumentRunDriftTests` (the population is derived from the schema, and the probe is the emitted
+C#), by `FloatIntegerArgumentPermissiveTests.Pb635FindString_UnderPermissive_KeepsItsOwnLaneAndItsPhrases` (the
+four LAST × ANYCASE combinations over one float argument-3, plus the fixed-point control), and by the negative
+`pb635-find-string-float-skip`.
+
 ### An intrinsic-function-name the REPOSITORY identifies is not a user-defined word (PB65, §8.3.2.1 rule 5).
 
 §8.3.2.1 rule 5: intrinsic-function-names may be user-defined words "except for … intrinsic function names

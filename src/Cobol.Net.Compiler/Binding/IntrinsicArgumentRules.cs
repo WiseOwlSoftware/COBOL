@@ -910,6 +910,54 @@ internal static class IntrinsicArgumentRules
                 + "operand list, so no class screen applies to it",
         };
 
+    /// <summary>
+    /// Is EVERY operand position of <paramref name="functionName"/>'s argument run — <paramref name="argCount"/>
+    /// operands — a §15.3 <b>numeric</b> position, i.e. one whose declared argument type is 6 (Integer) or 10
+    /// (Numeric)? This is the precondition for rendering a WHOLE call in binary64, and it is a question about
+    /// the POSITION, never about the operand that was written.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⛔ WHY THE RENDERER ASKS THE ARGUMENT-RULE TABLE (kb/Work PB635). <c>IntrinsicRenderer.RenderNum</c>'s
+    /// float dispatch asked only "is ANY argument floating", and its lane
+    /// (<c>IntrinsicRenderer.FloatBody</c>) renders EVERY argument through one binary64 conversion. Those two
+    /// facts are only compatible when every position HAS a binary64 value. §15.3 says which do: type 6
+    /// ("An arithmetic expression that will always result in an integer value or an integer data item shall be
+    /// specified") and type 10 ("Numeric. An arithmetic expression or a numeric data item shall be specified")
+    /// are the numeric types; types 1/2/9 (alphabetic / alphanumeric / national), 3 (boolean), 5 (index),
+    /// 11 (object) and 13 (pointer) name character, bit and reference operands, which have no numeric value at
+    /// all. A function mixing the two — FIND-STRING, whose §15.37.3 r1 argument-1 is "a data item or literal of
+    /// class alphabetic, alphanumeric, or national" and whose r3 argument-3 "shall be an integer data item or
+    /// integer literal" — was therefore moved WHOLE to the float lane by a single float argument-3: the two
+    /// string operands were converted to <c>double</c>, the LAST/ANYCASE phrases were dropped, and the emitted
+    /// call named a <c>FindStringReal</c> body that does not and should not exist (Roslyn CS0117).
+    /// </para>
+    /// <para>
+    /// ⛔ IT IS ALSO WHY THE ANSWER IS NOT "are the OPERANDS class numeric". Under <c>--permissive</c> the DA6
+    /// leniency admits an ALPHANUMERIC operand at a NUMERIC position and digit-decodes it, so
+    /// <c>FUNCTION MOD(&lt;PIC X item&gt; &lt;COMP-2&gt;)</c> has a non-numeric OPERAND at a position that is
+    /// numeric and must keep riding the float lane. Reading the operand's class would have routed it to the
+    /// exact <c>Int128</c> arm and handed Roslyn a <c>double</c> — the CS1503 fix-queue PB2 closed, reopened.
+    /// </para>
+    /// <para>
+    /// <b>Fail OPEN, in the same direction and for the same reason as the screen above.</b> A function absent
+    /// from <see cref="Verified"/> (the <see cref="DeliberatelyUnscreened"/> rows), a position the schema does
+    /// not describe, and a kind whose <see cref="Admissible"/> set is <see langword="null"/> (<c>'p'</c> — the
+    /// MAX/MIN family's NEGATIVE list) all answer <see langword="true"/>, so this can only ever REMOVE a call
+    /// from the float lane on the authority of a cited §15.x.3 rule, never add one. That is what makes landing
+    /// it incapable of regressing a function whose rule has not been read.
+    /// </para>
+    /// </remarks>
+    public static bool ArgumentRunIsAllNumeric(string functionName, int argCount)
+    {
+        if (!Verified.TryGetValue(functionName, out var schema)) return true;    // unscreened — fail open
+        for (int i = 0; i < argCount; i++)
+            if (schema.At(i) is { } rule && Admissible(rule.Kind) is { } classes
+                && classes is not [CobolClass.Numeric])
+                return false;
+        return true;
+    }
+
     /// <summary>The classes a verified class code admits, or <see langword="null"/> for "no general screen" —
     /// the function's rule is a NEGATIVE list and its own arm owns it.</summary>
     public static CobolClass[]? Admissible(char kind) => kind switch

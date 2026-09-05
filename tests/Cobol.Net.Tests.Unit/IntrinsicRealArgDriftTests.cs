@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using CobolNet.Binding;
+using CobolNet.CodeGen.Emit;
 using CobolNet.Tests.Shared;
 using Xunit;
 
@@ -88,16 +90,24 @@ public sealed class IntrinsicRealArgDriftTests
     /// exempted the group it happened in.
     /// </para>
     /// <para>
-    /// The genuinely exempt kinds are the ones whose admissible set EXCLUDES class numeric: <c>'s'</c> (the string
-    /// family — alphanumeric / numeric-edited / national) and <c>'b'</c> (boolean, PB19). Those reject a float at
-    /// bind time, so no <c>…Real</c> body can be reached. That is why <c>IntegerOfBooleanReal</c> is deliberately
-    /// NOT written: PB19's §15.45.3 r1 screen made it unreachable, and an unreachable body reads as coverage.
+    /// The kinds whose admissible set EXCLUDES class numeric — <c>'s'</c> (the string family — alphanumeric /
+    /// numeric-edited / national) and <c>'b'</c> (boolean, PB19) — used to be exempted here on the reasoning that
+    /// they "reject a float at bind time, so no <c>…Real</c> body can be reached". <b>⛔ THAT PREMISE HELD ONLY
+    /// UNDER STRICT CONFORMANCE (kb/Work PB635).</b> <c>CheckArgumentClasses</c> WARNS under <c>--permissive</c>
+    /// and binds the call anyway, so those functions reached the renderer with a float after all and the float
+    /// dispatch named bodies that do not exist: <c>OrdReal</c>, <c>TestNumvalReal</c>,
+    /// <c>IntegerOfBooleanReal</c>, <c>FindStringReal</c> — four measured CS0117s the exemption made invisible.
+    /// The exemption is now a DERIVATION rather than a claim about the binder:
+    /// <c>IntrinsicArgumentRules.ArgumentRunIsAllNumeric</c> is the precondition the renderer's float dispatch
+    /// itself tests, so a function it excludes cannot reach the lane in ANY mode and genuinely owes no
+    /// <c>…Real</c> body. <c>IntegerOfBooleanReal</c> stays unwritten for that reason, and
+    /// <c>IntrinsicFloatLaneArgumentRunDriftTests</c> holds the renderer to it from the other side.
     /// </para>
     /// </remarks>
     private static HashSet<string> NumericArgumentMethods()
     {
         string catalog = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "Binding", "IntrinsicCatalog.cs"));
-        var rx = new Regex("Add\\(new\\(\"[A-Z0-9-]+\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.\\w+,"
+        var rx = new Regex("Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.\\w+,"
                            + "\\s*[-\\w]+,\\s*(?<max>[-\\w]+),\\s*\"(?<k>[a-z ]*)\",\\s*\"(?<rm>\\w*)\"");
         return [.. rx.Matches(catalog)
             // A zero-argument function can never receive a float — SECONDS-PAST-MIDNIGHT is 0/0 and its empty
@@ -106,6 +116,13 @@ public sealed class IntrinsicRealArgDriftTests
             // 'n' AND 'i' — both resolve to Admissible == [CobolClass.Numeric], which admits a float item.
             .Where(m => m.Groups["k"].Value.Contains('n') || m.Groups["k"].Value.Contains('i')
                      || m.Groups["k"].Value.Length == 0)
+            // …and the float LANE has to be reachable for the row at all: a function with a non-numeric §15.3
+            // argument position renders on its own arm whatever its operands are (PB635), so it owes no …Real
+            // body. This is the SAME predicate the renderer dispatches on, so the two cannot disagree about who
+            // is in the set — which is precisely how FIND-STRING slipped through a hand-written `EndsWith
+            // ("String")` filter that stood here with no reason attached.
+            .Where(m => IntrinsicArgumentRules.ArgumentRunIsAllNumeric(m.Groups["n"].Value,
+                        IntrinsicFloatLaneArgumentRunDriftTests.PastEveryDeclaredPosition))
             .Select(m => m.Groups["rm"].Value)
             .Where(s => s.Length > 0)];
     }
@@ -129,9 +146,11 @@ public sealed class IntrinsicRealArgDriftTests
             // dispatch for it by name. Writing FactorialReal to satisfy the pattern would have meant returning a
             // double and losing exactness past 2^53 — the same argument-shape dependence PB13 closed.
             // ⚠ This exemption is NOT a free pass: the assertion below still fails if the RENDERER stops
-            // skipping it, because then the missing body becomes reachable again.
-            .Where(m => m != "Factorial" || !RendererSource().Contains("sig.RuntimeMethod != \"Factorial\""))
-            .Where(m => !m.EndsWith("String", StringComparison.Ordinal))
+            // skipping it, because then the missing body becomes reachable again. ⛔ It reads the renderer's
+            // DECLARED set rather than an inline `!= "Factorial"` spelling (kb/Work PB635) — a second exempt
+            // function is then one line there and needs no edit here.
+            .Where(m => !IntrinsicRenderer.FloatLaneExempt.Contains(m)
+                        || !RendererSource().Contains("FloatLaneExempt.Contains(sig.RuntimeMethod)"))
             .Where(m => !real.Contains(RealName(m)))
             .Order()
             .ToList();

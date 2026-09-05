@@ -288,6 +288,17 @@ their totality is witnessed: `tests/Cobol.Net.Tests.Conformance/FloatIntegerArgu
 the one home for the coercion lane. The twins are still live code and still owe the rule — the lane
 changed, the obligation did not.
 
+⛔ **WHICH bodies owe a `…Real` twin is likewise derived, and FIND-STRING owes none (kb/Work PB635).** The
+binary64 lane renders every argument through one `double` conversion, so it is enterable only for a call whose
+whole §15.3 argument run is numeric (types 6 and 10) — `IntrinsicArgumentRules.ArgumentRunIsAllNumeric`, the
+predicate `IntrinsicRenderer.RenderNum`'s float dispatch now tests. A function with a string, boolean or
+reference position renders on its own arm whatever its operands are, so `FindStringReal`, `OrdReal`,
+`TestNumvalReal` and `IntegerOfBooleanReal` must not be written; they were all four emitted, and all four failed
+Roslyn with CS0117, while the dispatch asked only whether SOME argument was floating.
+`IntrinsicRealArgDriftTests` scopes itself on that same predicate rather than on the old
+"'s' and 'b' reject a float at bind time" reasoning, which held under strict conformance only —
+`CheckArgumentClasses` warns and binds under `--permissive`, which is exactly the lane these bodies live in.
+
 ### 2.8 Namespace / assembly rename (G8)
 Assembly is already `Cobol.Net.Runtime`. At G8, `RootNamespace` `CobolNet.Runtime` → **`Cobol.Net.Runtime`** and the
 sub-namespaces above become real. This is a single coordinated change with the compiler's `RuntimeApi` façade (one

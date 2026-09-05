@@ -132,14 +132,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         else if (AnyDecRaw(ic) && RenderDec(ic) is { } decNative)
             return decNative;
         if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
-        // ⛔ FACTORIAL IS ROUTED TO ITS EXACT ARM EVEN WITH A FLOAT ARGUMENT (PB21), and it is the only one.
-        // RenderFloat wraps every result in FromDouble(double, ws), so a ...Real body must return something a
-        // double can carry — and §15.36's result cannot be: 33! is ~8.7e36, which is why the exact body returns
-        // Int128. The exact arm consumes its argument through IntArg, whose (long)(double) conversion handles a
-        // float operand correctly, so the float case needs no separate body at all. Writing FactorialReal to
-        // satisfy the pattern would have meant returning a double and silently losing exactness past 2^53 — a
-        // function answering differently because of how its ARGUMENT was stored, which is the shape-dependence
-        // defect PB13 closed. IntrinsicRealArgDriftTests carries the matching exemption with this reason.
+        // (The float lane's two preconditions are <see cref="FloatLaneExempt"/> — a numeric argument run whose
+        // RESULT binary64 cannot carry — and IntrinsicArgumentRules.ArgumentRunIsAllNumeric — an argument run
+        // binary64 cannot carry. Both ride the dispatch below; each states its own rule at its own declaration.)
         // MAX / MIN / ORD-MAX / ORD-MIN — and MEDIAN over an odd count — are pure SELECTION: §15.59.4 r1 /
         // §15.63.4 r1 "the returned value is the CONTENT of the argument-1 having the greatest [least] value",
         // §15.61.4 r1 "the content of the argument-1 that is the middle value", each compared "according to the
@@ -156,7 +151,23 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (sig.RuntimeMethod is "MaxScaled" or "MinScaled" or "OrdMax" or "OrdMin" or "MedianScaled"
             && AnyRealArgument(ic) && !AllRealArguments(ic) && RenderDec(ic) is { } decSelection)
             return decSelection;
-        if (AnyRealArgument(ic) && sig.RuntimeMethod != "Factorial")
+        // ⛔ AND THE LANE IS A FACT ABOUT THE ARGUMENT RUN, NOT ABOUT ONE ARGUMENT (kb/Work PB635).
+        // `AnyRealArgument` answers "is any argument floating"; the question this dispatch has to answer is "does
+        // the WHOLE argument run render in binary64", because FloatBody converts EVERY argument through Dbl. For
+        // a function whose §15.3 argument types are all numeric (type 6 "an integer data item", type 10 "a
+        // numeric data item") those are the same question. For one that MIXES them they are not, and the gap was
+        // a crash on conforming-shaped source: FIND-STRING takes two string operands (§15.37.3 r1 — "class
+        // alphabetic, alphanumeric, or national") and an integer argument-3 (r3), so
+        // `FIND-STRING(HAY NDL START AFTER <COMP-2>)` moved the whole call to the float lane — the two strings
+        // became `(double)CobolNum.FromAlphanumeric(…)`, LAST/ANYCASE were dropped, and the emitted call named
+        // `FindStringReal`, which the runtime does not contain (Roslyn CS0117). It should not: §15.37.4's
+        // returned value is a character POSITION with no equivalent arithmetic expression, so §15.4.1's
+        // "implementor-defined approximation of the value of that expression" — the whole licence the binary64
+        // lane rests on — is not granted for it at all, and there is no binary64 carrier anywhere in the call.
+        // IntrinsicArgumentRules.ArgumentRunIsAllNumeric derives the precondition from the SPEC-VERIFIED
+        // argument table and fails open, so it can only ever take a call OUT of the lane on a cited rule.
+        if (AnyRealArgument(ic) && !FloatLaneExempt.Contains(sig.RuntimeMethod)
+            && IntrinsicArgumentRules.ArgumentRunIsAllNumeric(sig.Name, ic.Args.Count))
             return RenderFloat(ic, RealMethod(sig.RuntimeMethod));
 
         switch (sig.RuntimeMethod)
@@ -403,6 +414,34 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// ambiguity and broke six corpus programs that never touched a float. <c>IntrinsicRealArgDriftTests</c>
     /// asserts the counterpart exists for every exact method reachable with a real argument.
     /// </remarks>
+    /// <summary>
+    /// The exact-family runtime methods that stay on their <b>exact</b> arm even with a floating-point argument,
+    /// because <see cref="RenderFloat"/>'s tail wraps every result in <c>FromDouble(double, ws)</c> and their
+    /// RESULT is not a value binary64 can carry. The argument run is numeric — so
+    /// <see cref="IntrinsicArgumentRules.ArgumentRunIsAllNumeric"/> admits it — and the exclusion is about the
+    /// CODOMAIN instead.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    ///   <item><c>Factorial</c> (fix-queue PB21) — §15.36's result cannot ride a double: 33! is ~8.7e36, which is
+    ///         why the exact body returns <c>Int128</c>. Its arm consumes the argument through
+    ///         <see cref="IntArg"/>, whose <c>(long)(double)</c> conversion handles a float operand correctly, so
+    ///         the float case needs no separate body at all. Writing <c>FactorialReal</c> to satisfy the naming
+    ///         convention would have meant returning a double and silently losing exactness past 2⁵³ — a function
+    ///         answering differently because of how its ARGUMENT was stored, the shape-dependence defect PB13
+    ///         closed.</item>
+    /// </list>
+    /// <para>⛔ IT IS A DECLARED SET AND NOT AN INLINE <c>!= "Factorial"</c> (kb/Work PB635). The literal sat
+    /// inside the dispatch's boolean expression with its reason eight lines away and a drift test matching on
+    /// that exact spelling, so a second member could only be added by copying the shape. Here a second member is
+    /// one line with its own citation, and <c>IntrinsicRealArgDriftTests</c> reads the set rather than a
+    /// sentence.</para>
+    /// </remarks>
+    internal static readonly FrozenSet<string> FloatLaneExempt = new[]
+    {
+        "Factorial",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     internal static string RealMethod(string exact) =>
         exact.EndsWith("Scaled", StringComparison.Ordinal)
             ? string.Concat(exact.AsSpan(0, exact.Length - "Scaled".Length), "Real")

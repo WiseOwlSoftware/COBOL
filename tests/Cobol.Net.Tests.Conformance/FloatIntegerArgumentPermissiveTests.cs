@@ -200,4 +200,85 @@ public sealed class FloatIntegerArgumentPermissiveTests
         Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
     }
+
+    /// <summary>
+    /// kb/Work PB635 — the MIXED-CLASS member of this lane, and the one whose failure was a CRASH rather than a
+    /// value. FIND-STRING is the only catalogued function that puts a §15.3 type-6 INTEGER position beside two
+    /// STRING ones (§15.37.3 r1/r2 "class alphabetic, alphanumeric, or national"; r3 "argument-3 shall be an
+    /// integer data item or integer literal"), so a float argument-3 asked the emitter's float dispatch a
+    /// question it could not answer: it read "is ANY argument floating", moved the WHOLE call to the binary64
+    /// lane, converted <c>H</c> and <c>ND</c> to <c>double</c>, dropped LAST and ANYCASE, and named a
+    /// <c>FindStringReal</c> body that does not exist — <c>error CS0117: 'CobolIntrinsics' does not contain a
+    /// definition for 'FindStringReal'</c>, Roslyn refusing the generated C# on source the front end accepted.
+    /// <para>⛔ THE PHRASES ARE THE ASSERTION, not merely the compile. §15.4.1 grants the binary64 lane its
+    /// licence for "an equivalent arithmetic expression", and §15.37.4 specifies none — the returned value is a
+    /// character POSITION — so there is no binary64 anything in this call and every phrase has to survive.
+    /// F1..F4 are the four (LAST × ANYCASE) combinations over the SAME float argument-3, and they answer four
+    /// values that a body ignoring either phrase could not produce; F5 is the fixed-point control, the same
+    /// reference with an integer literal argument-3, which owes F4's value exactly.</para>
+    /// </summary>
+    private const string Pb635FindStringProgram = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB635FINDSTRINGPERMISSIVE.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 H     PIC X(12) VALUE "abcABCabcABC".
+       01 ND    PIC X(3)  VALUE "ABC".
+       01 FSK   USAGE COMP-2.
+       01 P     PIC 9(4).
+       PROCEDURE DIVISION.
+           COMPUTE FSK = 1.0E0
+           MOVE FUNCTION FIND-STRING(H ND START AFTER FSK) TO P
+           DISPLAY "F1=" P
+           MOVE FUNCTION FIND-STRING(H ND START AFTER FSK ANYCASE) TO P
+           DISPLAY "F2=" P
+           MOVE FUNCTION FIND-STRING(H ND LAST START AFTER FSK) TO P
+           DISPLAY "F3=" P
+           MOVE FUNCTION FIND-STRING(H ND LAST START AFTER FSK ANYCASE) TO P
+           DISPLAY "F4=" P
+           MOVE FUNCTION FIND-STRING(H ND LAST START AFTER 1 ANYCASE) TO P
+           DISPLAY "F5=" P
+           STOP RUN.
+       """;
+
+    /// <summary>
+    /// H = "abcABCabcABC". Case-sensitively, ND = "ABC" occurs at {4, 10}; under ANYCASE (§15.37.4 r4 — "as if
+    /// all uppercase letters in both argument-1 and argument-2 were replaced by their corresponding lowercase
+    /// letters") at {1, 4, 7, 10}. §15.37.4 r2: "argument-3 represents the number of matches to ignore before
+    /// determining the character position that shall be returned", so argument-3 = 1 drops one occurrence from
+    /// the head, or from the tail under LAST (§15.37.4 r1). Hence 10, 4, 4, 7 — and 7 again from the integer
+    /// literal, because the value of a function may not depend on how its argument was stored.
+    /// </summary>
+    [Fact]
+    public void Pb635FindString_UnderPermissive_KeepsItsOwnLaneAndItsPhrases()
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Pb635FindStringProgram, 2023, permissive: true);
+        Assert.True(ok, $"--permissive must accept the coercion: {string.Join("\n", errors)}");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb635FindStringProgram, 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(
+            new[]
+            {
+                "F1=0010", // {4,10}, ignore 1 from the head
+                "F2=0004", // ANYCASE {1,4,7,10}, ignore 1 from the head
+                "F3=0004", // LAST over {4,10}, ignore 1 from the tail
+                "F4=0007", // LAST + ANYCASE over {1,4,7,10}, ignore 1 from the tail
+                "F5=0007", // the FIXED-POINT control: an integer literal argument-3, same answer
+            },
+            stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
+    }
+
+    /// <summary>Strict refuses it on the §15.3 type-6 screen, as it does every other program in this file —
+    /// and the negative corpus pins the same verdict per function at
+    /// <c>tests/conformance/negative/pb635-find-string-float-skip</c>.</summary>
+    [Fact]
+    public void Pb635FindString_IsRejectedUnderStrict()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Pb635FindStringProgram, 2023);
+        Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(errors, "FUNCTION FIND-STRING argument-3");
+    }
 }
