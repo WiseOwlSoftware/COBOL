@@ -709,7 +709,8 @@
   "pb206-value-oversize-elementary",
   "pb206-national-group-value-oversize",
   "pb206-bit-group-value-oversize",
-  "pb206-group-value-national-literal"
+  "pb206-group-value-national-literal",
+  "pb208-table-value-alphanumeric-on-numeric"
  ],
  "pending": []
 }

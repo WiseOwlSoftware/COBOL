@@ -269,7 +269,16 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
 - **VALUE init** is one recursive object-initializer composed from the leaves, emitted in the static field decl
   (program) or the instance ctor (OO). Extensions: group VALUE, OCCURS VALUE (`Tbl = [.. n elements]`), figurative
   constants (§11), and the **Format 2 (table) VALUE** (§13.18.63.2 — literals keyed to occurrence ranges by a
-  mandatory `FROM (subscript)` phrase; per-occurrence emission via `ValueInitializer.TableValueInit`). The Format-1
+  mandatory `FROM (subscript)` phrase). Its per-occurrence map (GR12 sequential fill, GR13 cyclic reuse under TO,
+  GR14 no-TO = fill to the maximum, GR15 later-FROM-wins) is **`ValueInitializer.ResolveTableValueMap`, and BOTH
+  storage lanes read it**: `ValueInitializer.TableValueInit` builds the record-struct array literal and
+  `GroupImageCodec.ImageInitOf` composes the per-occurrence character images (kb/Work PB208 — the image lane read
+  only `item.RawValue`, which is null for a table VALUE, and repeated ONE occurrence image, so a format-2 VALUE was
+  silently discarded for every image-stored leaf). Both lanes guard the shape with the same `!IsGroup` predicate.
+  **Its literals ride the same screen as a format-1 one**: §13.18.63.3 SR2 is an ALL FORMATS rule and SR16 carries
+  SRs 10–15 into format 2, so `DataBinder.ValidateTableValues` calls `DataBinder.ScreenValueLiteral` per
+  occurrence-literal and stores the text it returns (the `--permissive` numeric rewrite therefore reaches the
+  emitter's per-occurrence override exactly as it reaches `item.RawValue`). The Format-1
   glued-multi-literal defect is fixed: `DataBinder.ExtractValue` GLUES a bare multi-operand list via `GetText` over
   the collapsed `valueItem` (not "first-only") — a data-item VALUE with >1 operand and no FROM is now rejected
   (COBOLNET1585); 88s bind through `BindCondition`'s own per-operand loop (never `ExtractValue`).

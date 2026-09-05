@@ -119,6 +119,15 @@ public sealed class DataItem
     /// per-occurrence emitter map after the forest is built (dimensions / dynamic expected capacity are known then).</summary>
     public IReadOnlyList<TableValueSpec>? TableValues { get; set; }
 
+    /// <summary>⛔ THE ONE PREDICATE FOR "this entry's format 2 (table) VALUE is one an emitter implements"
+    /// (kb/Work PB208): a table VALUE survived <c>DataBinder.ValidateTableValues</c>' staging AND the subject is
+    /// ELEMENTARY. A GROUP entry's table VALUE is a group-level VALUE — §13.18.63.3 SR16 carries SR13/SR14 onto
+    /// it and §13.18.63.4 GR5 initializes the AREA — so it belongs to <c>GroupValueSlicer.AreaTextOf</c>, which
+    /// composes no per-occurrence text. It lives HERE because BOTH emit lanes ask it and they may not answer
+    /// differently: <see cref="CobolNet.CodeGen.ValueInitializer.FieldInit"/> (the record-struct array literal)
+    /// and <see cref="CobolNet.CodeGen.GroupImageCodec.ImageInitOf"/> (the character-image backings).</summary>
+    public bool HasElementaryTableValue => TableValues is { Count: > 0 } && !IsGroup;
+
     /// <summary>True when this entry's <see cref="RawValue"/> was TRANSPLANTED from another entry's data
     /// description rather than written in this entry's own — a TYPE template's VALUE assumed by its reference
     /// site (ISO §13.18.57.4 GR1; GR3 gives the subject's OWN VALUE precedence, hence <c>??=</c>), a SAME AS

@@ -402,7 +402,8 @@
   "l1_usage_packed_decimal_storage",
   "l1_random_unseeded_first_reference",
   "open_fixed_attribute_conflict_ix",
-  "pb205_control_ref_mod"
+  "pb205_control_ref_mod",
+  "pb208_table_value_image_seed"
  ],
  "pending": []
 }

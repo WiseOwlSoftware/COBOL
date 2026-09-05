@@ -1269,6 +1269,57 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static int? ValueSizePositions(PicInfo pic, bool isDynamicLength, bool isAnyLength) =>
         isDynamicLength || isAnyLength ? null : pic.Length;
 
+    /// <summary>⛔ THE ONE VALUE-CLAUSE LITERAL SCREEN — every literal of every VALUE format passes through here,
+    /// and the raw text it returns is what gets STORED (unchanged, or the --permissive rewrite of a class-mismatched
+    /// literal on a numeric subject).
+    /// <para>ISO §13.18.63.3 SR2 ("If the category of the subject of the entry is numeric, all literals in the VALUE
+    /// clause shall be numeric and shall be permissible values within the range indicated by the PICTURE clause or
+    /// the USAGE clause") is an <b>ALL FORMATS</b> rule, and SR16 carries SRs 10–15 into FORMAT 2 as well
+    /// ("Syntax rules 10, 11,12,13,14,and 15 above apply") — so the format-2 (table) literals are governed exactly
+    /// as the format-1 one is. They were not: the four checks below sat INLINE at the format-1 call site, and
+    /// <see cref="BuildTableValueSpecs"/>' per-occurrence literals reached the emitter unscreened, so
+    /// <c>05 B PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2)</c> compiled clean at strict 2023 where its
+    /// format-1 twin is COBOLNET1657. The <c>feedback_two_arm_dispatch</c> shape on the VALUE clause's own formats;
+    /// extracting the screen is the fix, so a rule added here reaches every format BY CONSTRUCTION (kb/Work PB208).</para></summary>
+    private string ScreenValueLiteral(PicInfo pic, string raw, string where, int? sizePositions)
+    {
+        // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
+        // SR5 national / SR10 boolean — the 0898 band, both directions) and SR2's CLASS half.
+        raw = ValidateValueCategory(pic, raw, where, sizePositions);
+        // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §13.18.63.3 SR2/SR3): a numeric
+        // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
+        // leading/trailing nonzero digit (SR2), and a negative literal requires a signed subject (SR3). The
+        // initializer path (ValueInitializer → EmitText.UnscaledAtScale) does NO high-order modulo and NO
+        // unsigned-magnitude, so absent this bind-time gate an out-of-range / wrong-sign VALUE silently seeds an
+        // out-of-range native field (COBOLNET1625). A NUMERIC-EDITED subject's numeric literal rides the same check
+        // (SR6 — converted per the MOVE rules "such that no truncation of digits or sign is required"; kb/Work PB97).
+        if (pic is { Category: PicCategory.Numeric, IsFloat: false } or { Category: PicCategory.NumericEdited })
+            ValidateNumericValue(pic, raw, where);
+        // (§13.18.63.3 SR6's literal-FORM rule for numeric-edited subjects — both forms, both directions — is
+        // ValidateValueCategory's, above, the item-VALUE + level-88 funnel; D21/PB66, kb/Work PB97.)
+        // VCR 86 (ISO §13.18.63 SR6; Annex E.3.3 item 43): a NON-ZERO numeric literal VALUE for a numeric-edited
+        // item is a COBOL-2023 capability — below 2023 a numeric-edited VALUE required an alphanumeric edited-image
+        // literal. SR6 exempts "the integer and decimal forms of the literal zero" (and the figurative ZERO — VCR
+        // 35) at ALL editions, so only a non-zero numeric literal is gated. Scoped to the ITEM VALUE (not level-88).
+        // SR6 names "formats 1, 2, and 4", so the format-2 occurrence literals are gated by the same call.
+        if (pic is { Category: PicCategory.NumericEdited } && IsNonZeroNumericLiteral(raw))
+            ConstructRegistry.Check(Edition.Edition, Edition.Sink,
+                Constructs.ValueNumericLiteralNumericEdited2023, where);
+        // VCR 34 (ISO §13.18.63 SR4/SR5; Annex E.2 item 27): at >=2023 an alphanumeric edited-image literal VALUE on
+        // a numeric-edited item is checked against the PICTURE size — a literal LONGER than the edited width is
+        // rejected (below 2023 it was stored truncated — the "unclear value"). Under --permissive the check
+        // downgrades to a warning (a removed-capability posture). The national-class-mismatch leg is already
+        // COBOLNET0898 (ValidateValueCategory); only a plain alphanumeric literal (leading '"') reaches this size check.
+        if (pic is { Category: PicCategory.NumericEdited } && Edition.DialectLevel >= 2023
+            && raw.StartsWith('"') && CobolLiteral.Decode(raw).Length > pic.Length)
+            Edition.Sink.Report(new EditionDiagnostic("COBOLNET1570",
+                EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), "value-numeric-edited-oversize",
+                $"{where}: the VALUE literal ({CobolLiteral.Decode(raw).Length} characters) exceeds the "
+                + $"numeric-edited item's {pic.Length}-character edited size (ISO §13.18.63 SR4/SR5; COBOL-2023, "
+                + "Annex E.2 item 27)", where, "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"));
+        return raw;
+    }
+
     /// <summary>⛔ THE §13.18.63.3 VALUE-OPERAND SCREEN — the ONE place that decides whether a VALUE clause's
     /// literal may seed its subject, for EVERY subject the rules name: an elementary item, a condition-name's
     /// conditional variable, and (kb/Work PB206) a GROUP carrying a group-level VALUE. Returns the raw VALUE text
@@ -1283,7 +1334,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// category and a size exactly as an elementary item is, and SR13 sentence 1 — "If the VALUE clause is
     /// specified at the group level, literal-1 shall be of the same category as the group item or shall be a
     /// figurative constant that is permitted in a MOVE statement to a receiving item of that category" — is
-    /// those same three rules restated for it. Writing it twice is how the two answers drift.</para></summary>
+    /// those same three rules restated for it. Writing it twice is how the two answers drift.</para>
+    ///
+    /// <para>⚠ <b>Reached through <see cref="ScreenValueLiteral"/></b> for the item VALUE of EVERY
+    /// format (kb/Work PB208), and directly by exactly two other kinds of site: the level-88 arms, and
+    /// the group-level VALUE (<c>DataBinder.GroupValue</c>). A NEW direct caller inherits only ONE of SR2's
+    /// two halves — the CLASS half here, never the RANGE half <see cref="ValidateNumericValue"/> carries —
+    /// so route it through the funnel unless its subject cannot be of category numeric at all, which is the
+    /// group arm's standing reason (§8.5.2.1 gives a group item category alphanumeric, national or
+    /// boolean, never numeric).</para></summary>
     /// <param name="sizePositions">The number of positions §13.18.63.3 SR4/SR5/SR10 measure the literal against —
     /// "the size indicated by an explicit PICTURE clause" for an elementary subject, "the size of the group item"
     /// for a group one — or <see langword="null"/> when the entry indicates NO size. ⛔ The null case is REAL and
@@ -1302,8 +1361,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// SPACES). A warning plus the wrong area is worse than the rejection SR13 asks for, so the group arm is an
     /// error on both dialect axes.</param>
     private string ValidateValueCategory(PicInfo pic, string raw, string where, int? sizePositions,
-        bool groupSubject = false)
-    {
+        bool groupSubject = false)    {
         // ⛔ THE LITERAL'S CLASS COMES FROM THE ONE CLASSIFIER (CobolLiteral.ClassOf — kb/Work PB71): the former
         // raw-text tests (`raw[1] is '"'`) refused the Format-2 hexadecimal spellings NX"…" / BX"…" (§8.3.3.5.2 /
         // §8.3.3.4.2 — the SAME class as N"…" / B"…") and every `ALL literal` figurative, whose class is
@@ -2771,40 +2829,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Edition.Error(DiagnosticCatalog.SignClauseWithLocalePicture, $"{entryWhere}: the SIGN clause shall not be "
                 + "specified when the LOCALE phrase of the PICTURE clause is specified (ISO §13.16.3 SR19)");
 
-        // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
-        // SR5 national / SR10 boolean — the 0898 band, both directions).
+        // THE VALUE-CLAUSE LITERAL SCREEN — one funnel, every format (see ScreenValueLiteral). The format-2
+        // (table) literals ride the SAME call from ValidateTableValues, per occurrence (kb/Work PB208), and the
+        // SIZE the SR4/SR5/SR10 sentences measure against travels with the literal (kb/Work PB206) — null for a
+        // DYNAMIC LENGTH / ANY LENGTH subject, whose PICTURE indicates a class and no size.
         if (rawValue is { } rv && pic is not null)
-            rawValue = ValidateValueCategory(pic, rv, entryWhere, ValueSizePositions(pic, isDynamicLength, isAnyLength));
-        // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §13.18.63.3 SR2/SR3): a numeric
-        // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
-        // leading/trailing nonzero digit (SR2), and a negative literal requires a signed subject (SR3). The
-        // initializer path (ValueInitializer → EmitText.UnscaledAtScale) does NO high-order modulo and NO
-        // unsigned-magnitude, so absent this bind-time gate an out-of-range / wrong-sign VALUE silently seeds an
-        // out-of-range native field (COBOLNET1625). A NUMERIC-EDITED subject's numeric literal rides the same check
-        // (SR6 — converted per the MOVE rules "such that no truncation of digits or sign is required"; kb/Work PB97).
-        if (rawValue is { } rvNum && pic is { Category: PicCategory.Numeric, IsFloat: false } or { Category: PicCategory.NumericEdited })
-            ValidateNumericValue(pic, rvNum, entryWhere);
-        // (§13.18.63.3 SR6's literal-FORM rule for numeric-edited subjects — both forms, both directions — is
-        // ValidateValueCategory's, above, the item-VALUE + level-88 funnel; D21/PB66, kb/Work PB97.)
-        // VCR 86 (ISO §13.18.63 SR6; Annex E.3.3 item 43): a NON-ZERO numeric literal VALUE for a numeric-edited
-        // item is a COBOL-2023 capability — below 2023 a numeric-edited VALUE required an alphanumeric edited-image
-        // literal. SR6 exempts "the integer and decimal forms of the literal zero" (and the figurative ZERO — VCR
-        // 35) at ALL editions, so only a non-zero numeric literal is gated. Scoped to the ITEM VALUE (not level-88).
-        if (rawValue is { } nrv && pic is { Category: PicCategory.NumericEdited } && IsNonZeroNumericLiteral(nrv))
-            ConstructRegistry.Check(Edition.Edition, Edition.Sink,
-                Constructs.ValueNumericLiteralNumericEdited2023, entryWhere);
-        // VCR 34 (ISO §13.18.63 SR4/SR5; Annex E.2 item 27): at >=2023 an alphanumeric edited-image literal VALUE on
-        // a numeric-edited item is checked against the PICTURE size — a literal LONGER than the edited width is
-        // rejected (below 2023 it was stored truncated — the "unclear value"). Under --permissive the check
-        // downgrades to a warning (a removed-capability posture). The national-class-mismatch leg is already
-        // COBOLNET0898 (ValidateValueCategory); only a plain alphanumeric literal (leading '"') reaches this size check.
-        if (rawValue is { } arv && pic is { Category: PicCategory.NumericEdited } && Edition.DialectLevel >= 2023
-            && arv.StartsWith('"') && CobolLiteral.Decode(arv).Length > pic.Length)
-            Edition.Sink.Report(new EditionDiagnostic("COBOLNET1570",
-                EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), "value-numeric-edited-oversize",
-                $"{entryWhere}: the VALUE literal ({CobolLiteral.Decode(arv).Length} characters) exceeds the "
-                + $"numeric-edited item's {pic.Length}-character edited size (ISO §13.18.63 SR4/SR5; COBOL-2023, "
-                + "Annex E.2 item 27)", entryWhere, "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"));
+            rawValue = ScreenValueLiteral(pic, rv, entryWhere, ValueSizePositions(pic, isDynamicLength, isAnyLength));
         // An EXTERNAL type declaration (ISO §13.18.22 SR1 — EXTERNAL is legal on a level-1 type declaration;
         // the level-1 shape is §13.18.58.3 SR3, already enforced by RegisterTypeDecl's 1529). The declaration
         // itself has no storage (§13.18.58.4 GR2); the effect lands on its REFERENCES — §13.18.22 GR2 (a data
@@ -3292,10 +3322,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return list;
     }
 
-    /// <summary>Validate a Format 2 (table) VALUE (ISO §13.18.63.3 SR18–SR22). LANDABLE scope: a SINGLE-dimension
-    /// table VALUE on the SAME entry that carries the OCCURS clause (fixed or dynamic). A multi-dimension odometer or
-    /// a table VALUE on an item SUBORDINATE to the OCCURS is recognized but its per-occurrence path threading is not
-    /// yet implemented — staged loud (COBOLNET0899, P14 GAP), TableValues cleared so the emitter skips it.</summary>
+    /// <summary>Validate a Format 2 (table) VALUE (ISO §13.18.63.3 SR18–SR22, plus the ALL-FORMATS literal screen
+    /// SR16 carries in). LANDABLE scope: a SINGLE-dimension table VALUE on the SAME entry that carries the OCCURS
+    /// clause (fixed or dynamic). A multi-dimension odometer or a table VALUE on an item SUBORDINATE to the OCCURS
+    /// is recognized but its per-occurrence path threading is not yet implemented — staged loud (COBOLNET0899, P14
+    /// GAP), TableValues cleared so the emitter skips it.
+    /// <para>⚠ Runs at ENTRY BIND, so <see cref="DataItem.Children"/> is still empty and
+    /// <see cref="DataItem.IsGroup"/> is FALSE for every subject — the elementary-vs-group discrimination cannot be
+    /// made here (measured: adding the conjunct changed nothing). A GROUP entry's format-2 VALUE is a group-level
+    /// VALUE, and §13.18.63.3 SR16 carries SR13/SR14 onto it; its subject screen is
+    /// <c>CheckGroupValueDeclarations</c>, which already reads BOTH VALUE carriers, and its area deposit is
+    /// <c>GroupValueSlicer.AreaTextOf</c> (§13.18.63.4 GR5). Both emit lanes guard the shape with the SAME
+    /// <c>!IsGroup</c> predicate at a point where the forest exists (<see cref="ValueInitializer.FieldInit"/>,
+    /// <see cref="GroupImageCodec.ImageInitOf"/>).</para></summary>
     private void ValidateTableValues(DataItem item, string where)
     {
         if (item.TableValues is not { Count: > 0 } specs) return;
@@ -3335,6 +3374,37 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET1588", $"{where}: a Format 2 VALUE with no TO phrase is not permitted on an "
                     + "OCCURS DYNAMIC table declared without an OCCURS TO (expected) capacity (ISO §13.18.63.3 SR22)");
         }
+
+        // ⛔ THE ALL-FORMATS LITERAL SCREEN, ONE OCCURRENCE-LITERAL AT A TIME (kb/Work PB208). §13.18.63.3 SR2 —
+        // "If the category of the subject of the entry is numeric, all literals in the VALUE clause shall be
+        // numeric and shall be permissible values within the range indicated by the PICTURE clause or the USAGE
+        // clause" — is an ALL FORMATS rule, and SR16 carries SRs 10–15 in as well, so a format-2 literal is
+        // governed exactly as the format-1 one. It was not: BuildTableValueSpecs' literals went straight to the
+        // emitter, so `05 B PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2).` compiled clean at strict 2023
+        // where its format-1 twin is COBOLNET1657. Routing through the SAME funnel the format-1 RawValue takes
+        // (ScreenValueLiteral) makes the two formats answer alike BY CONSTRUCTION, and the text it returns is
+        // what gets stored — including the --permissive numeric rewrite of a class-mismatched literal, so the
+        // emitter's per-occurrence rawOverride carries a screened literal exactly as item.RawValue does.
+        if (item.Pic is not { } subject) return;
+        // The size §13.18.63.3 SR4/SR5/SR10 measure each occurrence-literal against is the ELEMENT's
+        // (kb/Work PB206) — computed once, exactly as the format-1 call site computes it, so the two formats
+        // cannot disagree about a size any more than they can about a category.
+        int? elementSize = ValueSizePositions(subject, item.IsDynamicLength, item.IsAnyLength);
+        var screened = new List<TableValueSpec>(specs.Count);
+        bool rewritten = false;
+        foreach (var s in specs)
+        {
+            var lits = new List<string>(s.Literals.Count);
+            foreach (string lit in s.Literals)
+            {
+                string kept = ScreenValueLiteral(subject, lit, $"{where}, Format 2 VALUE FROM ({s.From[0]})",
+                    elementSize);
+                rewritten |= !string.Equals(kept, lit, StringComparison.Ordinal);
+                lits.Add(kept);
+            }
+            screened.Add(s with { Literals = lits });
+        }
+        if (rewritten) item.TableValues = screened;
     }
 
     /// <summary>THE usage-inheritance pass (P5.11e, DESIGN-data-model §2.7 — the former

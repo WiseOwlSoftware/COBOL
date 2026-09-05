@@ -26,7 +26,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     {
         // A Format 2 (table) VALUE (ISO §13.18.63.2, COBOL-2002): per-occurrence initialization. LANDABLE scope is an
         // elementary single-dimension table on its own OCCURS entry (DataBinder.ValidateTableValues staged the rest).
-        if (item.TableValues is { Count: > 0 } && !item.IsGroup)
+        if (item.HasElementaryTableValue)
             return TableValueInit(item);
 
         // A DYNAMIC-capacity table (§13.18.38 Format 4, D9): an out-of-line CobolDynTable seeded per occurrence with
@@ -75,8 +75,11 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
     /// <summary>Resolve occurrence → literal text (ISO §13.18.63.4 GR12 sequential fill, GR13 cyclic reuse under TO,
     /// GR14 no-TO = fill to the maximum, GR15 later FROM wins on overlap). Occurrences outside every FROM..TO range
-    /// are absent (they take the element default — NOT asserted as a spec-guaranteed space/zero, §13.18.63.4).</summary>
-    private static Dictionary<int, string> ResolveTableValueMap(DataItem item, int fillMax)
+    /// are absent (they take the element default — NOT asserted as a spec-guaranteed space/zero, §13.18.63.4).
+    /// <para>⛔ THE ONE MAP, shared with <see cref="GroupImageCodec.ImageInitOf"/> (kb/Work PB208): the image lane
+    /// used to ignore <see cref="DataItem.TableValues"/> altogether and repeat ONE occurrence image, so a format-2
+    /// VALUE was silently dropped for every image-stored leaf. The two lanes now read GR12–GR15 from here, once.</para></summary>
+    internal static Dictionary<int, string> ResolveTableValueMap(DataItem item, int fillMax)
     {
         var map = new Dictionary<int, string>();
         foreach (var spec in item.TableValues!.OrderBy(sp => sp.Ordinal))

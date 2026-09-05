@@ -27,11 +27,35 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// predated the byte forms); one seeder, one flag (kb/Work PB164 — one-mechanism-per-job).</para></summary>
     public string ImageInitOf(DataItem item, bool useValues = true)
     {
+        // ⛔ A FORMAT 2 (table) VALUE GIVES EACH OCCURRENCE ITS OWN IMAGE — §13.18.63.4 GR12 ("A format 2 VALUE
+        // clause initializes a table element to the value of literal-1"), GR13 (cyclic reuse under TO), GR14
+        // (no TO = fill to the maximum), GR15 (a later FROM wins on overlap). This method read only
+        // item.RawValue, which is null for a table VALUE (the two carriers are mutually exclusive on DataItem),
+        // and the StrRepeat below then seeded EVERY occurrence with the same VALUE-less default: the table
+        // VALUE was silently DISCARDED for every image-stored leaf — a Tier-B REDEFINES member, an EXTERNAL
+        // cell, a BASED record, an OO backing. Measured on 3324d794 with
+        // `05 B PIC 9(4) COMP OCCURS 2 VALUE 12 FROM (1) TO (2).` inside a REDEFINES-aliased group: the group
+        // image came back `65 65 00 00 00 00 67 67`, the seed simply absent (kb/Work PB208).
+        // ONE map for both lanes — ValueInitializer.ResolveTableValueMap, which the record-struct lane's
+        // TableValueInit already used; an occurrence outside every FROM..TO range takes the same VALUE-less
+        // image it takes today (null override ⇒ the background/default seed below).
+        // ⚠ ELEMENTARY ONLY, the same predicate ValueInitializer.FieldInit guards with: a GROUP entry's
+        // format-2 VALUE is a group-level VALUE (§13.18.63.3 SR16 carries SR13 in) and belongs to the
+        // group-area lane (GroupValueSlicer.AreaTextOf), which composes no per-occurrence text.
+        if (useValues && item.HasElementaryTableValue && item.Occurs is { } occ and > 0)
+        {
+            var map = ValueInitializer.ResolveTableValueMap(item, occ);
+            return "(" + string.Join(" + ", Enumerable.Range(1, occ)
+                .Select(o => ImageInitOfOne(item, useValues, map.GetValueOrDefault(o)))) + ")";
+        }
         string one = ImageInitOfOne(item, useValues);
         return item.Occurs is { } n and > 1 ? RuntimeApi.StrRepeat(one, $"{n}") : one;
     }
 
-    private string ImageInitOfOne(DataItem item, bool useValues)
+    /// <param name="rawOverride">The literal for THIS occurrence of a format 2 (table) VALUE — the twin of
+    /// <see cref="ValueInitializer.InitializerFor"/>'s parameter of the same name, so the image lane and the
+    /// native-field lane compose one occurrence from the same literal text (kb/Work PB208).</param>
+    private string ImageInitOfOne(DataItem item, bool useValues, string? rawOverride = null)
     {
         if (item.IsGroup)
         {
@@ -85,7 +109,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return item.Children.Count > 0 ? "(" + string.Join(" + ", parts) + ")" : "\"\"";
         }
         var pic = item.Pic!;
-        if (useValues && item.RawValue is { } raw)
+        // A format 2 (table) VALUE supplies THIS occurrence's literal; otherwise the item's own format 1 VALUE.
+        // (Exactly ValueInitializer.InitializerFor's `effRaw = rawOverride ?? item.RawValue` — one recipe, both lanes.)
+        string? effRaw = rawOverride ?? item.RawValue;
+        if (useValues && effRaw is { } raw)
         {
             if (vals.FigurativeInitializer(raw, pic) is { } fig && pic.Category is not PicCategory.Numeric) return fig;
             // A NUMERIC member contributes the BYTES of its VALUE through its own pinned byte form — zoned
@@ -132,7 +159,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // literal through the ONE recipe, else the zero encoding.
         if (pic.Category is PicCategory.Numeric && pic.IsFloat)
             return RuntimeApi.NumFormatImageFloat(
-                useValues && item.RawValue is { } fraw && !fraw.StartsWith('"')
+                useValues && effRaw is { } fraw && !fraw.StartsWith('"')
                     && vals.FigurativeInitializer(fraw, pic) is null
                     ? ValueInitializer.RawValueAsFloat(fraw, pic) : "0d",
                 item.ProfileName);

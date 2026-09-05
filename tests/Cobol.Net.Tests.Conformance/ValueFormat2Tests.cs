@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -158,5 +159,99 @@ public sealed class ValueFormat2Tests
             Prog("01 T-GRP.\n   03 E PIC X(3) OCCURS 6 VALUES ARE \"AAA\" \"BBB\" FROM (1).", "    DISPLAY \"X\"."), 85);
         Assert.False(ok, "the Format 2 table VALUE must be rejected at COBOL-85 (introduced 2002)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+    }
+
+    // ── The ALL-FORMATS literal screen (kb/Work PB208) ──
+
+    private static string Format1(string pic, string literal) => Prog($"01 W {pic} VALUE {literal}.", "    DISPLAY \"X\".");
+
+    private static string Format2(string pic, string literal) =>
+        Prog($"01 T-GRP.\n   03 W {pic} OCCURS 2 VALUE {literal} FROM (1) TO (2).", "    DISPLAY \"X\".");
+
+    private static IReadOnlyList<string> Codes(IEnumerable<string> diagnostics) =>
+        [.. diagnostics.SelectMany(d => Regex.Matches(d, @"COBOLNET\d{4}").Select(m => m.Value)).Distinct().Order()];
+
+    /// <summary>⛔ THE DRIFT TEST FOR "ONE SCREEN, EVERY FORMAT" (kb/Work PB208). §13.18.63.3 SR2 is an ALL FORMATS
+    /// rule — "If the category of the subject of the entry is numeric, all literals in the VALUE clause shall be
+    /// numeric and shall be permissible values within the range indicated by the PICTURE clause or the USAGE
+    /// clause" — and SR16 carries SRs 10–15 into format 2 as well, so a literal FORMAT 1 rejects, FORMAT 2 shall
+    /// reject, with the same verdict. The two lanes used to disagree completely: the format-1 literal went through
+    /// DataBinder's screen and BuildTableValueSpecs' per-occurrence literals went straight to the emitter, so
+    /// <c>PIC 9(4) COMP VALUE "0012"</c> was COBOLNET1657 while
+    /// <c>PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2)</c> compiled CLEAN at strict 2023 and seeded zeros.
+    /// <para>This compares the two lanes' VERDICTS rather than asserting one code, which is the point: a rule added
+    /// to the funnel (<c>DataBinder.ScreenValueLiteral</c>) reaches both formats by construction, and a future rule
+    /// wired into only one of them reds HERE without anyone having to remember to extend a list. Both the strict
+    /// and the --permissive axis are compared — the permissive REWRITE (a class-mismatched literal stored as the
+    /// number) has to reach the emitter's per-occurrence override exactly as it reaches item.RawValue.</para></summary>
+    [Theory]
+    [InlineData("PIC 9(4) COMP", "\"0012\"")]   // SR2 class — an alphanumeric literal on a numeric item (byte form)
+    [InlineData("PIC 99", "\"7\"")]             // SR2 class — the same on a zoned DISPLAY item
+    [InlineData("PIC 99", "12345")]             // SR2 range — not representable without truncating nonzero digits
+    [InlineData("PIC 9(4)", "-1")]              // SR3 — a signed literal on an unsigned subject
+    [InlineData("PIC XX", "42")]                // SR4 — a numeric literal on an alphanumeric item
+    [InlineData("PIC 99", "SPACE")]             // SR2 — a character figurative on a numeric item
+    [InlineData("PIC 99", "12")]                // legal on BOTH — the screen must not over-fire
+    [InlineData("PIC XX", "\"AB\"")]            // legal on BOTH
+    [InlineData("PIC 99", "ZERO")]              // legal on BOTH — the figurative ZERO is numeric
+    public void Format1AndFormat2_ScreenTheSameLiteralAlike(string pic, string literal)
+    {
+        var strict1 = Codes(EditionHarness.GetDiagnostics(Format1(pic, literal), 2023));
+        var strict2 = Codes(EditionHarness.GetDiagnostics(Format2(pic, literal), 2023));
+        Assert.Equal(strict1, strict2);
+
+        var perm1 = EditionHarness.CompileFull(Format1(pic, literal), 2023, permissive: true);
+        var perm2 = EditionHarness.CompileFull(Format2(pic, literal), 2023, permissive: true);
+        Assert.Equal(Codes([.. perm1.Errors, .. perm1.Warnings]), Codes([.. perm2.Errors, .. perm2.Warnings]));
+        Assert.Equal(perm1.Ok, perm2.Ok);
+    }
+
+    /// <summary>SR2 is EDITION-INDEPENDENT, so the format-2 screen fires at all four (§13.18.63.3 SR2 carries no
+    /// version proviso). At COBOL-85 the COBOLNET0900 introduction gate fires as well — both, not either.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void Format2Sr2Screen_FiresAtEveryEdition(int edition)
+    {
+        var (ok, diag) = EditionHarness.Compile(Format2("PIC 9(4) COMP", "\"0012\""), edition);
+        Assert.False(ok, "an alphanumeric literal on a numeric item is a §13.18.63.3 SR2 violation at every edition");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1657");
+        if (edition == 85) EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+    }
+
+    /// <summary>⛔ THE FORMAT 2 VALUE ON THE CHARACTER-IMAGE STORAGE LANE (kb/Work PB208 half 2), in the fast gate;
+    /// the byte-level pin is <c>conformance:2023/pb208_table_value_image_seed</c>. GroupImageCodec.ImageInitOf —
+    /// THE seeder for every image-stored backing since the PB164 consolidation — read only <c>item.RawValue</c>,
+    /// which is null for a table VALUE, and its <c>StrRepeat(one, Occurs)</c> then seeded every occurrence with the
+    /// VALUE-LESS default, DISCARDING the table VALUE. The REDEFINES alias is what puts B on that lane
+    /// (§13.18.63.3 SR12 bars a VALUE in the redefinING entry, never in the redefined one, so this is conforming).
+    /// §13.18.63.4 GR12 initializes occurrence 1 to literal-1 and GR13 reuses it for occurrence 2.</summary>
+    [Fact]
+    public void ImageStoredLeaf_TakesItsTableValue()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 G.\n   05 A PIC X(2) VALUE \"AA\".\n"
+               + "   05 B PIC 9(4) COMP OCCURS 2 VALUE 12 FROM (1) TO (2).\n"
+               + "   05 C PIC X(2) VALUE \"CC\".\n01 R REDEFINES G PIC X(8).",
+                 "    DISPLAY \"[\" B(1) \"][\" B(2) \"][\" R(7:2) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("[0012][0012][CC]", stdout);
+    }
+
+    /// <summary>The --permissive REWRITE reaches the emitter's PER-OCCURRENCE override, not just item.RawValue: a
+    /// digits-only alphanumeric literal on a numeric item is read AS the numeric literal SR2 asked for (the CCVS
+    /// leniency), so the image-stored table seeds the NUMBER — and warns rather than errors.</summary>
+    [Fact]
+    public void ImageStoredLeaf_PermissiveRewriteReachesEveryOccurrence()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 G.\n   05 A PIC X(2) VALUE \"AA\".\n"
+               + "   05 B PIC 9(4) COMP OCCURS 2 VALUE \"0012\" FROM (1) TO (2).\n"
+               + "   05 C PIC X(2) VALUE \"CC\".\n01 R REDEFINES G PIC X(8).",
+                 "    DISPLAY \"[\" B(1) \"][\" B(2) \"][\" R(7:2) \"]\"."), 2023, permissive: true);
+        Assert.True(ok, detail);
+        Assert.Contains("[0012][0012][CC]", stdout);
     }
 }
