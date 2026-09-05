@@ -1,0 +1,12 @@
+L0 valid content
+   BB=[1010] RB=[10100000]
+L1 DISPLAY (character channel)
+CAUGHT=EC-DATA-INCOMPATIBLE           
+L2 COMPUTE (value channel)
+CAUGHT=EC-DATA-INCOMPATIBLE           
+   RB=[10100000]
+L3 B-NOT of the same operand
+CAUGHT=EC-DATA-INCOMPATIBLE           
+   RB=[10100000]
+L4 zero-length operand is not incompatible
+   RB=[00000000]

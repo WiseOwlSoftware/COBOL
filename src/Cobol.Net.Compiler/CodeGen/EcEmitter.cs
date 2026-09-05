@@ -147,7 +147,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-BOUND-REF-MOD", "BoundRefModChecking"),            // §8.4.3.3.4 — ref-mod out of range / zero-length
         ("EC-DATA-NOT-FINITE", "FloatNotFiniteChecking"),       // §14.6.13.2 item 3 — NaN/±Inf float sending operand
         ("EC-DATA-OVERFLOW", "FloatOverflowChecking"),          // §14.9.25.4 GR6 d)4.a — MOVE overflows a float receiver / a floating-point edited one (D21/PB66)
-        ("EC-DATA-INCOMPATIBLE", "DataIncompatibleChecking"),   // §14.6.13.2 rule 4 — a de-editing MOVE from impossible edited content (D21/PB66)
+        ("EC-DATA-INCOMPATIBLE", "DataIncompatibleChecking"),   // §14.6.13.2 rule 2 — a fixed-point numeric sending item whose content fails its numeric class condition (PB230); rule 4 — a de-editing MOVE from impossible edited content (D21/PB66)
         ("EC-RANGE-PERFORM-VARYING", "PerformVaryingChecking"), // §14.9.28.4 GR3 — index-name varied from a non-positive item
         ("EC-DATA-PTR-NULL", "DataPtrNullChecking"),            // §13.18.5.4 GR3 / §14.9.39 F10 GR18 — NULL data-address
         ("EC-BOUND-PTR", "BoundPtrChecking"),                   // §13.18.5.4 GR4 — address neither NULL nor valid
@@ -270,6 +270,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             : $"throw new ResumeSignal({r.TargetPc});   // RESUME AT procedure-name ≡ GO TO (§14.9.33.4 GR3)");
 
     // ── The EC-SIZE family over the checked-arithmetic shape (§14.7.5 ↔ Table 13) ───────────────────────────
+
+    /// <summary>Is <paramref name="ec"/> enabled for the statement being emitted? The general form of
+    /// <see cref="EnabledSizeNames"/> — an emitter needs it whenever a rule's SHAPE (not merely a raise) depends
+    /// on checking being on, so that the checking-off output stays byte-identical. §14.7.6's CORRESPONDING
+    /// deferral region is the first such caller (kb/Work PB230).</summary>
+    public bool Enabled(string ec) =>
+        ecState.Info?.Enabled.Any(p => string.Equals(p.Ec, ec, StringComparison.Ordinal)) ?? false;
 
     /// <summary>The EC-SIZE-* names the current statement has enabled (empty list when none / no wrapper).</summary>
     public List<string> EnabledSizeNames() =>

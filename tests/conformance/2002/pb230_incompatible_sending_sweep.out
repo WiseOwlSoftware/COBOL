@@ -1,0 +1,29 @@
+L1 ADD
+CAUGHT=EC-DATA-INCOMPATIBLE           
+L2 COMPUTE
+CAUGHT=EC-DATA-INCOMPATIBLE           
+   R=00000
+L3 SUBTRACT
+CAUGHT=EC-DATA-INCOMPATIBLE           
+L4 MULTIPLY
+CAUGHT=EC-DATA-INCOMPATIBLE           
+   R=00000
+L5 DIVIDE
+CAUGHT=EC-DATA-INCOMPATIBLE           
+   R=00000
+L6 relation
+CAUGHT=EC-DATA-INCOMPATIBLE           
+L7 DISPLAY
+CAUGHT=EC-DATA-INCOMPATIBLE           
+L8 MOVE
+CAUGHT=EC-DATA-INCOMPATIBLE           
+   R=00000
+L9 class condition (exempt)
+   not numeric
+L10 sign condition (not exempt)
+CAUGHT=EC-DATA-INCOMPATIBLE           
+L11 compatible content
+   [043]
+L12 table SORT key (through the framework comparer)
+CAUGHT=EC-DATA-INCOMPATIBLE           
+   sorted

@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime;
 
 /// <summary>
@@ -153,6 +155,157 @@ public static partial class CobolNum
         NumericByteForm.Packed or NumericByteForm.PackedNoSign => ParsePackedImage(image, item),
         _ => throw NoByteImage(item),
     };
+
+    // ── §14.6.13.2 rule 2 — the CHECKED sending read of a FIXED-POINT numeric item ─────────────────────────────
+    //
+    // ⛔ THIS IS RULE 3's TWIN, AND IT WAS THE MISSING HALF OF A TWO-ARM DISPATCH (kb/Work PB230). §14.6.13.2
+    // states five sibling conditions over the SAME subject — the content of a sending operand that is not valid:
+    //   rule 1  a BOOLEAN sending item that would evaluate false in a boolean class condition  → EC-DATA-INCOMPATIBLE
+    //   rule 2  a NUMERIC sending item that is NOT standard floating-point and would evaluate  → EC-DATA-INCOMPATIBLE
+    //           false in a numeric class condition
+    //   rule 3  a STANDARD FLOATING-POINT sending operand that is ±Inf / NaN                   → EC-DATA-NOT-FINITE
+    //   rule 4  the numeric-edited sender of a DE-EDITING MOVE holding a non-editing-result    → EC-DATA-INCOMPATIBLE
+    // Rule 3 was wired end to end (CobolFloat.Sending at the two float sending-read chokepoints) and rule 4 was
+    // wired for the de-edit (CobolEdit.DeEditFloat / DeEdit). Rule 2 — the BROAD one, the one that covers every
+    // arithmetic statement's operands — had NO raise site at all, so `ADD 1 TO N` over a DISPLAY window holding
+    // "AB1" fabricated a value in silence under `>>TURN EC-DATA-INCOMPATIBLE CHECKING ON`. This is that site.
+    //
+    // WHERE IT CAN FIRE. Only a numeric leaf whose storage is a CHARACTER WINDOW (a Tier-B REDEFINES view, or a
+    // whole-group-aliased StoreAsImage leaf) can hold content that fails its own class condition — the typed-native
+    // model stores every other numeric leaf in a native carrier that can only hold digits, which is exactly why
+    // ConditionRenderer folds `IS NUMERIC` on such a leaf to the compile-time constant `true` (§8.8.4.4.4 GR3 n)1).
+    // So the check rides the windowed decode, which is already the slow path, and a native-carrier read pays
+    // nothing — not even a branch.
+
+    /// <summary>The checked read of a FIXED-POINT numeric SENDING operand stored as its character image
+    /// (ISO §14.6.13.2 rule 2): return the decoded value, but when EC-DATA-INCOMPATIBLE checking is enabled and
+    /// the content "would evaluate to false in a numeric class condition" — <see cref="IsNumericImage"/>, the ONE
+    /// §8.8.4.4.4 GR3 n)1 predicate — raise the fatal EC-DATA-INCOMPATIBLE (via
+    /// <see cref="ExceptionState.DataIncompatibleError"/>). The twin of <see cref="CobolFloat.Sending(double)"/>,
+    /// emitted at the same two sending-read chokepoints (the numeric-value read and the string-image read).
+    /// <para>Rule 2's exemption list is EXACTLY TWO entries — "a sending item is referenced in a class condition"
+    /// and "a sending item is processed in a VALIDATE statement" — where rule 3's is four (it adds a sign
+    /// condition and a same-usage MOVE). The two lists are carried by the compiler's <c>SendingRef</c> and
+    /// realized as a RAW <see cref="ParseImage"/> at the exempt sites, so this wrap never appears there.</para>
+    /// <para>With checking OFF the flag test short-circuits before the O(digits) scan and the caller's tolerant
+    /// value stands — byte-behaviour-identical to a pre-slice build, which is conformant because the standard
+    /// makes the result of the reference UNDEFINED in exactly this case.</para></summary>
+    public static Int128 ParseImageSending(string image, in NumProfile item)
+    {
+        if (ExceptionState.DataIncompatibleChecking && !IsNumericImage(image, item))
+            ExceptionState.DataIncompatibleError(Rule2Detail);
+        return ParseImage(image, item);
+    }
+
+    /// <summary>The one wording for rule 2's condition detail — both checked reads report the same thing, and
+    /// two copies of it would be two things to keep in step for no reason.</summary>
+    private const string Rule2Detail =
+        "the content of a numeric sending item is not valid for its data description "
+        + "(ISO §14.6.13.2 rule 2 — it would evaluate to false in a numeric class condition)";
+
+    /// <inheritdoc cref="ParseImageSending(string, in NumProfile)"/>
+    public static UInt128 ParseImageU128Sending(string image, in NumProfile item) =>
+        unchecked((UInt128)ParseImageSending(image, item));
+
+    /// <summary>The rule-2 checked sending read on the STRING channel — a ZONED window whose stored image IS its
+    /// text, so it is handed on verbatim rather than decoded (<c>OperandText.FieldAsString</c>: a decode-and-
+    /// reformat round trip would silently turn the incompatible content into zeros, which is the very content
+    /// this condition exists to report). §14.6.13.2 rule 2 speaks of the content being "referenced during the
+    /// execution of a statement" with no numeric-context qualification, so <c>DISPLAY N</c> and
+    /// <c>MOVE N TO alphanumeric-item</c> reference it exactly as <c>ADD 1 TO N</c> does — the same two
+    /// exemptions, the same raise, the same verbatim value once it has been reported.</summary>
+    public static string SendingImage(string image, in NumProfile item)
+    {
+        if (ExceptionState.DataIncompatibleChecking && !IsNumericImage(image, item))
+            ExceptionState.DataIncompatibleError(Rule2Detail);
+        return image;
+    }
+
+    /// <summary>
+    /// ⛔ THE ONE NUMERIC CLASS CONDITION over a numeric item's STORED IMAGE (ISO §8.8.4.4.4 GR3 n)1) — "the content
+    /// of a data item … consists entirely of a valid representation for the usage". Two callers need this exact
+    /// question and writing it twice would guarantee drift: the class condition itself (<c>IF W IS NUMERIC</c> over
+    /// a REDEFINES window) and §14.6.13.2 rule 2's checked sending read above, whose test the standard defines BY
+    /// REFERENCE to the class condition ("would evaluate to false in a numeric class condition"). One rule, one
+    /// place.
+    /// <para><b>Keyed on the BYTE FORM, because that is what "a valid representation for the usage" means</b>
+    /// (§13.18.60.4 GR7/GR11/GR12 leave each representation to the implementor and <see cref="NumericByteForm"/>
+    /// is COBOL.NET's documentation of ours):</para>
+    /// <list type="bullet">
+    /// <item>ZONED — GR3 n)1.a exactly: "the presence or absence of an operational sign … is in agreement with
+    /// the data description … and … the content, except for the operational sign, consists entirely of the
+    /// characters 0, 1, 2, …, 9". Delegated to the same <see cref="CobolClass.IsNumericZoned"/> /
+    /// <see cref="CobolClass.IsNumeric"/> the class condition already emitted for this case.</item>
+    /// <item>PACKED / PACKED-DECIMAL WITH NO SIGN — GR3 n)1.c: every digit nibble is 0–9, and for the signed form
+    /// the trailing nibble is a SIGN nibble (0xA–0xF), never a digit. A window shorter than the pinned width is
+    /// not a representation of the item at all.</item>
+    /// <item>BINARY — GR3 n)1.c's second half. Every two's-complement byte pattern IS a valid representation, so
+    /// the only test left is the range one: "if a PICTURE clause is specified, the numeric value is within the
+    /// range of values implied by the PICTURE clause". That range is the item's own capacity discipline
+    /// (<see cref="NumProfile.Truncation"/> — the SAME discipline <c>TryStore</c> bounds a store by, never a
+    /// second opinion): 10^Digits for <see cref="NumericTruncation.DigitCount"/>/<see cref="NumericTruncation.PackedDecimal"/>,
+    /// and for <see cref="NumericTruncation.BinaryCapacity"/> the CONTAINER range — a COMP-5 / BINARY-* item's
+    /// value range is its storage, so testing it against a picture would condemn values the item legitimately
+    /// holds.</item>
+    /// <item>Standard floating-point — NOT this predicate's question. GR3 n)1.b is finiteness and §14.6.13.2
+    /// rule 3 owns it as EC-DATA-NOT-FINITE (<see cref="CobolFloat.Sending(double)"/>); answering <c>true</c>
+    /// here keeps the fixed-point raise off a float operand rather than double-reporting it.</item>
+    /// </list>
+    /// </summary>
+    public static bool IsNumericImage(string? image, in NumProfile item) => item.ByteForm switch
+    {
+        NumericByteForm.Zoned => IsNumericZonedImage(image, item),
+        NumericByteForm.Packed or NumericByteForm.PackedNoSign => IsNumericPackedImage(image, item),
+        NumericByteForm.Binary => image is not null && image.Length >= Width(item)
+                                  && InPictureRange(ParseBinaryImage(image, item), item),
+        // Ieee32/Ieee64 (rule 3's subject) and None (a construction bug the codec's own guard catches) are not
+        // this rule's question — never claim incompatibility we have not tested for.
+        _ => true,
+    };
+
+    /// <summary>§8.8.4.4.4 GR3 n)1.a over a ZONED image — the class condition's own predicates, picked by the
+    /// item's <see cref="NumProfile.SignKind"/> so the "in agreement with the data description" half is the
+    /// item's declared sign presentation and not a guess. <see cref="NumericSign.BinaryMinus"/> on a zoned item
+    /// is the leading-<c>-</c>-only form <see cref="ParseDisplay"/> decodes, so it is tested as written: an
+    /// optional leading minus over an otherwise all-digit run.</summary>
+    private static bool IsNumericZonedImage(string? image, in NumProfile item)
+    {
+        if (!item.Signed) return CobolClass.IsNumeric(image);
+        return item.SignKind switch
+        {
+            NumericSign.LeadingSeparate => CobolClass.IsNumericZoned(image, 2, leading: true),
+            NumericSign.TrailingSeparate => CobolClass.IsNumericZoned(image, 2, leading: false),
+            NumericSign.LeadingOverpunch => CobolClass.IsNumericZoned(image, 1, leading: true),
+            NumericSign.BinaryMinus => !string.IsNullOrEmpty(image)
+                && CobolClass.IsNumeric(image[0] == '-' ? image[1..] : image),
+            _ => CobolClass.IsNumericZoned(image, 1, leading: false),   // TrailingOverpunch — the DISPLAY default
+        };
+    }
+
+    /// <summary>§8.8.4.4.4 GR3 n)1.c over a PACKED image: every digit nibble is 0–9, the signed form's trailing
+    /// nibble is a sign nibble (0xA–0xF — a digit there is not a representation of any sign), and the decoded
+    /// value is within the picture's range. The nibble layout is <see cref="ParsePackedImage"/>'s, read the same
+    /// way in both directions.</summary>
+    private static bool IsNumericPackedImage(string? image, in NumProfile item)
+    {
+        int n = Width(item);
+        if (image is null || image.Length < n) return false;
+        bool hasSignNibble = item.ByteForm is NumericByteForm.Packed;
+        int digitNibbles = 2 * n - (hasSignNibble ? 1 : 0);
+        for (int i = 0; i < digitNibbles; i++)
+            if (((i % 2 == 0 ? image[i / 2] >> 4 : image[i / 2]) & 0x0F) > 9) return false;
+        if (hasSignNibble && (image[n - 1] & 0x0F) < 0x0A) return false;
+        return InPictureRange(ParsePackedImage(image, item), item);
+    }
+
+    /// <summary>§8.8.4.4.4 GR3 n)1.c's range half — "the numeric value is within the range of values implied by the
+    /// PICTURE clause" — expressed as the item's OWN capacity discipline, the same one
+    /// <see cref="CobolNum.TryStore"/> bounds a store by. A <see cref="NumericTruncation.BinaryCapacity"/> item
+    /// (COMP-5 / BINARY-CHAR..DOUBLE) takes its value range from its storage, not from a picture
+    /// (§13.18.60.4 GR12 — "the implementor may allow a wider range"), so every container value is in range.</summary>
+    private static bool InPictureRange(Int128 unscaled, in NumProfile item) =>
+        item.Truncation == NumericTruncation.BinaryCapacity
+        || Int128.Abs(unscaled) < Pow10Wide(item.Digits);
 
     /// <summary>An item with no byte representation (<see cref="NumericByteForm.None"/> — no shipping
     /// numeric usage since the R40 INDEX pin; the guard for an unstated future usage) reached a byte boundary. That is a

@@ -1,0 +1,8 @@
+zoned 123 YES
+zoned AB1 NO
+signed -12 YES
+signed 1AB NO
+packed 123 YES
+packed ZZ NO
+binary 123 YES
+binary ZZ NO

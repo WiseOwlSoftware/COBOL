@@ -45,7 +45,7 @@ public sealed class ClassConditionDifferentialTests
     public void ClassConditions(string ws, string proc) => AssertSameAsLegacy(Program(ws, proc));
 
     [Theory]
-    // SPEC-ANCHORED — ISO §8.8.4.4 rule 2: IS NUMERIC over an alphanumeric (non-numeric category) operand is true
+    // SPEC-ANCHORED — ISO §8.8.4.4.4 GR3 n)2: IS NUMERIC over an alphanumeric (non-numeric category) operand is true
     // ONLY if the content consists ENTIRELY of the digits 0–9; an operational sign is NOT a valid character. So
     // "+1234" / "12-" are NOT NUMERIC (the NC211A GF-48 CLASS-1 case). Result derived from the spec, cross-checked
     // against the legacy oracle.
@@ -58,7 +58,7 @@ public sealed class ClassConditionDifferentialTests
         string want = CutRunner.Normalize(expected);
         var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
         Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(want, cout);                       // primary: ISO §8.8.4.4 rule 2
+        Assert.Equal(want, cout);                       // primary: ISO §8.8.4.4.4 GR3 n)2
         var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
         Assert.True(lok, $"legacy oracle failed: {ldetail}");
         Assert.Equal(want, lout);                       // cross-check: the oracle agrees with the spec value

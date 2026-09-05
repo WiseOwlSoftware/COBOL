@@ -781,25 +781,63 @@ public sealed class ExceptionEngine
         }
     }
 
-    // ── EC-DATA-INCOMPATIBLE ambient statement gate (a de-editing MOVE from incompatible edited content) ─────────
+    // ── EC-DATA-INCOMPATIBLE ambient statement gate (an invalid sending-operand content, §14.6.13.2) ─────────────
 
     /// <summary>True while the currently-executing statement has EC-DATA-INCOMPATIBLE checking enabled (fatal,
-    /// Table 13). The floating-point numeric-edited de-edit (<see cref="CobolEdit.DeEditFloat"/>) consults it
-    /// (kb/Work PB66); the fixed-point de-edit's twin is a documented follow-on.</summary>
+    /// Table 13). Three raise sites consult it: the FIXED-POINT numeric sending read
+    /// (<see cref="CobolNum.ParseImageSending"/> / <see cref="CobolNum.SendingImage"/>, §14.6.13.2 rule 2 —
+    /// kb/Work PB230) and the numeric-edited de-edits (<see cref="CobolEdit.DeEdit"/> /
+    /// <see cref="CobolEdit.DeEditFloat"/>, rule 4 — kb/Work PB66).</summary>
     public bool DataIncompatibleChecking
     {
         get => _checking.DataIncompatible;
         set => _checking.DataIncompatible = value;
     }
 
-    /// <summary>Raise EC-DATA-INCOMPATIBLE when a de-editing MOVE's numeric-edited sender holds content that is not
-    /// a possible result of any editing operation in that item (ISO §14.6.13.2 rule 4; Table 13 Fatal) — the same
-    /// fatal throw/dispatch contract as <see cref="FloatOverflowError"/>; with checking off the caller's tolerant
-    /// value stands.</summary>
+    // ── §14.7.6 last paragraph — the CORRESPONDING DEFERRAL ────────────────────────────────────────────────────
+    // "For any statement with the CORRESPONDING phrase, if any of the implied statements would set the
+    // EC-DATA-INCOMPATIBLE exception condition to exist, the EC-DATA-INCOMPATIBLE exception condition is set to
+    // exist AFTER ALL OF THE IMPLIED STATEMENTS ARE COMPLETED." A fatal raise inside pair 1 would abandon pairs
+    // 2..n, which is precisely what that sentence forbids — so inside the region the raise is LATCHED instead,
+    // the implied statements all run (with the undefined results §14.6.13.2 rule 2 permits), and the emitter
+    // raises once on the way out. This is the same discipline §14.7.6's SIZE ERROR paragraph already gets from
+    // ArithmeticEmitter's latching __sizeErr flag; one shape for both of the clause's aggregation sentences.
+    // A flat flag suffices because the implied statements of a CORRESPONDING are simple MOVE/ADD/SUBTRACT — the
+    // syntax admits no nested CORRESPONDING — and nothing inside the region can raise, so no declarative can run
+    // re-entrantly during it.
+    private bool _dataIncompatibleDeferring;
+    private string? _dataIncompatiblePending;
+
+    /// <summary>Enter the §14.7.6 CORRESPONDING deferral region: an EC-DATA-INCOMPATIBLE that an implied
+    /// statement would raise is latched rather than thrown.</summary>
+    public void DataIncompatibleDeferBegin()
+    {
+        _dataIncompatibleDeferring = true;
+        _dataIncompatiblePending = null;
+    }
+
+    /// <summary>Leave the region (always, including on an unrelated fatal), returning the latched detail — null
+    /// when no implied statement would have set the condition. The caller raises it OUTSIDE its <c>finally</c>,
+    /// so a different exception already in flight is never displaced by this one.</summary>
+    public string? DataIncompatibleDeferEnd()
+    {
+        _dataIncompatibleDeferring = false;
+        string? pending = _dataIncompatiblePending;
+        _dataIncompatiblePending = null;
+        return pending;
+    }
+
+    /// <summary>Raise EC-DATA-INCOMPATIBLE for a sending operand whose content is not valid — a fixed-point
+    /// numeric item that "would evaluate to false in a numeric class condition" (ISO §14.6.13.2 rule 2), or a
+    /// de-editing MOVE's numeric-edited sender holding content that is not a possible result of any editing
+    /// operation in that item (rule 4). Table 13 Fatal, with the same throw/dispatch contract as
+    /// <see cref="FloatOverflowError"/>; with checking off the caller's tolerant value stands. Inside a §14.7.6
+    /// CORRESPONDING region the FIRST such detail is latched and the caller continues.</summary>
     public void DataIncompatibleError(string detail)
     {
         if (DataIncompatibleChecking)
         {
+            if (_dataIncompatibleDeferring) { _dataIncompatiblePending ??= detail; return; }
             Set("EC-DATA-INCOMPATIBLE", fatal: true);
             throw new CobolFatalException("EC-DATA-INCOMPATIBLE", detail);
         }
@@ -1223,6 +1261,12 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.DataIncompatibleError"/>
     public static void DataIncompatibleError(string detail) => E.DataIncompatibleError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.DataIncompatibleDeferBegin"/>
+    public static void DataIncompatibleDeferBegin() => E.DataIncompatibleDeferBegin();
+
+    /// <inheritdoc cref="ExceptionEngine.DataIncompatibleDeferEnd"/>
+    public static string? DataIncompatibleDeferEnd() => E.DataIncompatibleDeferEnd();
 
     /// <inheritdoc cref="ExceptionEngine.FloatOverflowChecking"/>
     public static bool FloatOverflowChecking

@@ -15,16 +15,33 @@ namespace CobolNet.CodeGen.Emit;
 /// </summary>
 internal static class BooleanRenderer
 {
-    public static string Render(BoundBoolExpr e, NumericRenderer num) => e.Accept(new RenderVisitor(num));
+    /// <param name="sending">The §14.6.13.2 exempt context of the reads in this expression
+    /// (<see cref="SendingRef"/>). Rule 1's checked boolean read is emitted unless the context is one of that
+    /// rule's TWO exemptions — a class condition or VALIDATE.</param>
+    public static string Render(BoundBoolExpr e, NumericRenderer num, SendingRef sending = SendingRef.Normal) =>
+        e.Accept(new RenderVisitor(num, sending));
 
     // Dispatch through the generated exhaustive IBoundBoolExprVisitor (PHASE-07 Step 6): a new BoundBoolExpr leaf
     // is a COMPILE error here (the loud `_ =>` is gone). The visitor carries the NumericRenderer for shift counts.
-    private sealed class RenderVisitor(NumericRenderer num) : IBoundBoolExprVisitor<string>
+    private sealed class RenderVisitor(NumericRenderer num, SendingRef sending) : IBoundBoolExprVisitor<string>
     {
         public string Visit(BoundBoolLiteral n) => EmitText.CsLiteral(n.Bits);
-        // A category-boolean item IS a '0'/'1' string; a bit GROUP's is its AsBits() (the OperandText as-if arm — D20/PB79).
-        public string Visit(BoundBoolRef n) => n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place);
-        public string Visit(BoundBoolCall n) => OperandText.AsString(new BoundComputedOperand(n.Call), num);   // the boolean function's '0'/'1' image (kb/Work PB68)
+        // ⛔ THE BOOLEAN SENDING-READ CHOKEPOINT — the third of §14.6.13.2's three, beside the fixed-point one in
+        // NumericRenderer.FieldNumCore and the float one beside it (kb/Work PB230). A category-boolean item IS a
+        // '0'/'1' string (D-B1 — USAGE BIT takes the same character storage, §13.18.40.4 GR14's representation
+        // license), and a REDEFINES window over it can therefore deposit a character that is not a boolean value:
+        // `MOVE "1Q01" TO <X(4) window>` then `COMPUTE R = B` propagated the Q straight into the boolean RESULT.
+        // Rule 1 makes that EC-DATA-INCOMPATIBLE under checking; with checking off CobolBool's operators keep
+        // treating a foreign position as boolean zero, which is what "the result of the reference is undefined"
+        // licenses. BOTH arms are wrapped — the bit-GROUP arm derives its string from bits and so can only ever
+        // pass the test, but arm-specific cleverness here is exactly the shape that left rule 2 unwired.
+        public string Visit(BoundBoolRef n) => sending.FixedPointChecked()
+            ? RuntimeApi.BoolSending(n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place))
+            : n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place);
+        // A boolean FUNCTION's returned value lives in a fresh temporary (§15.4), not a stored item a window could
+        // have corrupted, so it carries no rule-1 wrap — the same reasoning OperandText applies to a numeric
+        // intrinsic's text.
+        public string Visit(BoundBoolCall n) => OperandText.AsString(new BoundComputedOperand(n.Call), num, sending: sending);   // the boolean function's '0'/'1' image (kb/Work PB68)
         public string Visit(BoundBoolAll n) => EmitText.CsLiteral(n.Bits);     // materialized at the combine site (…All forms)
         public string Visit(BoundBoolNot n) => RenderNot(n.Operand);
         public string Visit(BoundBoolBinary n) => RenderBinary(n);
@@ -51,9 +68,10 @@ internal static class BooleanRenderer
             // The count is a numeric operand rendered as an integer (m=0 implementor choice — a fractional count
             // truncates, ISO §8.8.2 rule 8 "repeat until iterations == K"); the runtime kernel guards k ≤ 0 / k ≥ N.
             RuntimeApi.BoolShift(s.Kind, s.Operand.Accept(this),
-                $"(long)({NumericRenderer.Align(num.Render(s.Count, ReceiverContext.None), 0)})");
+                $"(long)({NumericRenderer.Align(num.Render(s.Count, ReceiverContext.None, sending), 0)})");
     }
 
     /// <summary>A boolean value expression as read for a relation operand — the same '0'/'1' string form.</summary>
-    public static string BoolRead(BoundBoolExpr e, NumericRenderer num) => Render(e, num);
+    public static string BoolRead(BoundBoolExpr e, NumericRenderer num, SendingRef sending = SendingRef.Normal) =>
+        Render(e, num, sending);
 }

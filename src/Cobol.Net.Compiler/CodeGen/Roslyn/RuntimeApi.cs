@@ -103,9 +103,42 @@ internal static class RuntimeApi
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImage)}({value}, {profile})";
 
     /// <summary>Decode an item's record-image bytes back to its unscaled value — <c>CobolNum.ParseImage</c>, the
-    /// inverse of <see cref="NumFormatImage"/>.</summary>
-    public static string NumParseImage(string image, string profile) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImage)}({image}, {profile})";
+    /// inverse of <see cref="NumFormatImage"/>.
+    /// <para>⛔ <paramref name="sending"/> HAS NO DEFAULT, deliberately (the "caller names the landing" shape
+    /// <see cref="FloatToScaled"/> uses): a windowed decode is either a SENDING reference of the item's content,
+    /// which ISO §14.6.13.2 rule 2 makes EC-DATA-INCOMPATIBLE-checkable, or it is not — and a new call site that
+    /// silently inherited "not" is precisely how rule 2 came to have no raise site at all (kb/Work PB230).
+    /// <c>true</c> emits <c>CobolNum.ParseImageSending</c>, which tests the content against the numeric class
+    /// condition under checking and is otherwise identical.</para></summary>
+    public static string NumParseImage(string image, string profile, bool sending) =>
+        $"{nameof(CobolNum)}.{(sending ? nameof(CobolNum.ParseImageSending) : nameof(CobolNum.ParseImage))}({image}, {profile})";
+
+    /// <summary>The table SORT (ISO §14.9.40 Format 2) — <c>CobolTable.Sorted(elements, comparison)</c>: the
+    /// stable <c>OrderBy</c> §14.9.40.4 GR19c/GR3c want, with the framework array sort's comparer-exception
+    /// wrapper undone so a key comparison's fatal COBOL exception condition still reaches the statement guard
+    /// (kb/Work PB230).</summary>
+    public static string TableSorted(string elements, string comparison) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.Sorted)}({elements}, {comparison})";
+
+    /// <summary>The checked read of a BOOLEAN sending operand — <c>CobolBool.Sending(value)</c>: raises the fatal
+    /// EC-DATA-INCOMPATIBLE for content that is not all <c>'0'</c>/<c>'1'</c> under checking (ISO §14.6.13.2
+    /// rule 1), else returns the value. The boolean twin of <see cref="FloatSending"/>.</summary>
+    public static string BoolSending(string value) =>
+        $"{nameof(CobolBool)}.{nameof(CobolBool.Sending)}({value})";
+
+    /// <summary>⛔ THE ONE NUMERIC CLASS CONDITION over a numeric item's stored image —
+    /// <c>CobolNum.IsNumericImage</c> (ISO §8.8.4.4.4 GR3 n)1, keyed on the item's byte form). Emitted by the class
+    /// condition itself, and called from inside <see cref="NumParseImage"/>'s checked lane, because §14.6.13.2
+    /// rule 2 defines its own test BY REFERENCE to this one — one rule, one place (kb/Work PB230).</summary>
+    public static string NumIsNumericImage(string image, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.IsNumericImage)}({image}, {profile})";
+
+    /// <summary>The rule-2 checked sending read on the STRING channel — <c>CobolNum.SendingImage</c>: a ZONED
+    /// window is handed on VERBATIM (its stored image is its text), having first been tested against the numeric
+    /// class condition under checking. <paramref name="sending"/> false is the raw read, for an exempt context
+    /// (§14.6.13.2 rule 2's class-condition and VALIDATE dashes — <see cref="Emit.SendingRef"/>).</summary>
+    public static string NumSendingImage(string image, string profile, bool sending) =>
+        sending ? $"{nameof(CobolNum)}.{nameof(CobolNum.SendingImage)}({image}, {profile})" : image;
 
     /// <summary>The FLOAT decode lane (kb/Work PB164 wave 2) — <c>CobolNum.ParseImageFloat</c>, the IEEE bit
     /// reinterpretation (the Int128 lane would numerically CONVERT).</summary>
@@ -123,8 +156,10 @@ internal static class RuntimeApi
         $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageU)}({image}, {profile})";
 
     /// <inheritdoc cref="NumParseImageU"/>
-    public static string NumParseImageU128(string image, string profile) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageU128)}({image}, {profile})";
+    /// <param name="sending">As <see cref="NumParseImage"/> — no default, so a new site states whether it is a
+    /// §14.6.13.2 rule 2 sending reference.</param>
+    public static string NumParseImageU128(string image, string profile, bool sending) =>
+        $"{nameof(CobolNum)}.{(sending ? nameof(CobolNum.ParseImageU128Sending) : nameof(CobolNum.ParseImageU128))}({image}, {profile})";
 
     /// <summary>The FLOAT encode lane (kb/Work PB164 wave 2) — <c>CobolNum.FormatImageFloat</c>, distinctly
     /// named because FormatImage overloads on a float would make integer call sites ambiguous.</summary>

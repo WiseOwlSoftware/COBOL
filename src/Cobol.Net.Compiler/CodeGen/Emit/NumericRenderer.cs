@@ -48,13 +48,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // generated visitor.) ──
     private ReceiverContext _rcv = ReceiverContext.None;
 
-    /// <summary>True while rendering the operand sub-tree of an EC-DATA-NOT-FINITE-EXEMPT context (a sign condition
-    /// §14.6.13.2 dash-2, or the same-usage MOVE source dash-3): the float read chokepoint (<see cref="FieldNumCore"/>
-    /// line 140) then emits the RAW <c>(double)(Read(p))</c> instead of the checked <c>CobolFloat.Sending(…)</c> wrap.
-    /// Re-entrant save/restore (like <see cref="_rcv"/>): propagates through the direct <c>.Accept</c> recursion of the
-    /// exempt operand, and resets at a fresh <see cref="Render"/>/<see cref="AsNum"/> entry (an intrinsic argument read
-    /// is a non-exempt reference — the narrow reading of the dash-2/dash-3 exemption).</summary>
-    private bool _floatSendingExempt = false;
+    /// <summary>The §14.6.13.2 EXEMPT-CONTEXT of the sending reads in the sub-tree being rendered
+    /// (<see cref="SendingRef"/> — the clause's exemption table as a value, kb/Work PB230). The two sending-read
+    /// chokepoints in <see cref="FieldNumCore"/> ask it per rule: a float read emits the raw
+    /// <c>(double)(Read(p))</c> instead of <c>CobolFloat.Sending(…)</c> when the context is exempt from rule 3
+    /// (class/sign condition, same-usage MOVE, VALIDATE), and a FIXED-POINT windowed read emits the raw
+    /// <c>ParseImage</c> instead of <c>ParseImageSending</c> when it is exempt from rule 2 (class condition,
+    /// VALIDATE — a sign condition and a same-usage MOVE are NOT exempt there).
+    /// <para>Re-entrant save/restore (like <see cref="_rcv"/>): propagates through the direct <c>.Accept</c>
+    /// recursion of the exempt operand, and resets to <see cref="SendingRef.Normal"/> at a fresh
+    /// <see cref="Render"/>/<see cref="AsNum"/> entry (an intrinsic argument read is a non-exempt reference —
+    /// the narrow reading of the exemptions).</para></summary>
+    private SendingRef _sending = SendingRef.Normal;
 
     /// <summary>True while rendering a division node whose quotient is transferred DIRECTLY to a single resultant
     /// identifier — the "final transfer" of §14.7.7 rule 3 NOTE 1. Set by the emit sites that own that transfer
@@ -77,16 +82,16 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// Save/restore makes every public entry RE-ENTRANT (P7 Step 12): the instance string channel renders an
     /// intrinsic's numeric arguments under <see cref="ReceiverContext.None"/> MID-render, and the outer render
     /// must resume under its own receiver — the H1 staleness class stays closed by construction.</summary>
-    public NumX Render(BoundExpr e, in ReceiverContext rcv, bool floatSendingExempt = false, bool outermost = false)
+    public NumX Render(BoundExpr e, in ReceiverContext rcv, SendingRef sending = SendingRef.Normal, bool outermost = false)
     {
         var saved = _rcv;
-        var savedEx = _floatSendingExempt;
+        var savedEx = _sending;
         var savedOut = _outermost;
         _rcv = rcv;
-        _floatSendingExempt = floatSendingExempt;
+        _sending = sending;
         _outermost = outermost;
         try { return e.Accept(this); }
-        finally { _rcv = saved; _floatSendingExempt = savedEx; _outermost = savedOut; }
+        finally { _rcv = saved; _sending = savedEx; _outermost = savedOut; }
     }
 
     /// <summary>Render a bound expression that the FORMAT admits only as an OPERAND — PERFORM VARYING's FROM / BY
@@ -100,18 +105,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     public NumX RenderOperandLike(BoundExpr e) => Render(e, ReceiverContext.None);
 
     /// <summary>Render a bound operand as a scaled native-integer value, computed FOR <paramref name="rcv"/>
-    /// (re-entrant — see <see cref="Render"/>). <paramref name="floatSendingExempt"/> suppresses the float
-    /// finiteness wrap for an EC-DATA-NOT-FINITE-exempt operand (a same-usage MOVE source).</summary>
-    public NumX AsNum(BoundOperand op, in ReceiverContext rcv, bool floatSendingExempt = false, bool outermost = false)
+    /// (re-entrant — see <see cref="Render"/>). <paramref name="sending"/> names the §14.6.13.2 exempt context,
+    /// which suppresses whichever rule's checked read that context exempts.</summary>
+    public NumX AsNum(BoundOperand op, in ReceiverContext rcv, SendingRef sending = SendingRef.Normal, bool outermost = false)
     {
         var saved = _rcv;
-        var savedEx = _floatSendingExempt;
+        var savedEx = _sending;
         var savedOut = _outermost;
         _rcv = rcv;
-        _floatSendingExempt = floatSendingExempt;
+        _sending = sending;
         _outermost = outermost;
         try { return op.Accept(this); }
-        finally { _rcv = saved; _floatSendingExempt = savedEx; _outermost = savedOut; }
+        finally { _rcv = saved; _sending = savedEx; _outermost = savedOut; }
     }
 
     // ── IBoundExprVisitor<NumX> ──────────────────────────────────────────────────────────────────────────────
@@ -317,14 +322,17 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }
         ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfg(p.Item.Pic)}{RuntimeApi.EditsArg(p.Item.Pic!.EditingRules)}{(p.Item.BlankWhenZero ? ", blankWhenZero: true" : "")})",
             CobolNet.Runtime.CobolEdit.MaskScale(dem, '$', ctx.Data.DecimalPointIsComma))
-        : FieldNumCore(p, floatCheck: !_floatSendingExempt);
+        : FieldNumCore(p, _sending);
 
     /// <summary>The context-free numeric read of a place (every branch of <see cref="FieldNum"/> except the
     /// numeric-edited de-edit, which stays loud here — it requires the instance emission config).
-    /// <paramref name="floatCheck"/> (default on) wraps a float sending read in the checked
-    /// <see cref="CobolNet.Runtime.CobolFloat.Sending(double)"/>; the exempt callers (sign condition, same-usage MOVE)
-    /// pass <c>false</c>. The static string-channel intrinsic-arg reuse keeps the default (a non-exempt reference).</summary>
-    internal static NumX FieldNumCore(Place p, bool floatCheck = true) => p is TableAllPlace all ? FieldNumCore(all.Element, floatCheck) : p is RefModPlace
+    /// <paramref name="sending"/> names the §14.6.13.2 exempt context of this reference
+    /// (<see cref="SendingRef"/>): rule 3's checked float read (<see cref="CobolNet.Runtime.CobolFloat.Sending(double)"/>)
+    /// and rule 2's checked FIXED-POINT windowed read (<see cref="CobolNet.Runtime.CobolNum.ParseImageSending"/>)
+    /// each consult their OWN exemption list off it, which is why this is not a bool — a sign condition and a
+    /// same-usage MOVE are exempt from rule 3 and NOT from rule 2 (kb/Work PB230). The static string-channel
+    /// intrinsic-arg reuse keeps <see cref="SendingRef.Normal"/> (a non-exempt reference).</summary>
+    internal static NumX FieldNumCore(Place p, SendingRef sending = SendingRef.Normal) => p is TableAllPlace all ? FieldNumCore(all.Element, sending) : p is RefModPlace
         // A reference-modified result is ALPHANUMERIC (ISO §8.4.3.3.4 GR6) — in a numeric context it decodes as an
         // unsigned integer exactly like an alphanumeric field (§14.9.25.3 Table 16).
         ? new NumX($"CobolNum.FromAlphanumeric({PlaceRenderer.Read(p)})", 0)
@@ -366,17 +374,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native
         // IEEE double — NOT truncated to (long) at scale 0 (the pre-D16 stub that silently dropped the fraction). The
         // sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking, §14.6.13.2
-        // item 3) UNLESS this is an exempt context (sign condition / same-usage MOVE — floatCheck false = raw read).
+        // item 3) UNLESS this is an exempt context (sign condition / same-usage MOVE — SendingRef.FloatChecked()
+        // false = raw read; note rule 2's arm below reads its OWN, shorter exemption list off the same value).
         // ⛔ THE WINDOWED-FLOAT ARM PRECEDES THE NATIVE FLOAT ARM (the Step D arm-1 dissolution — the design
         // scout's pre-loaded CS0030: with the order reversed, a Tier-B float view rendered
         // `(double)(<string window>)`). The window's IEEE bytes decode through the distinctly-named lane.
         { IsFloat: true } when p.Item.StoreAsImage => new NumX(
-            floatCheck
+            sending.FloatChecked()
                 ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName))
                 : RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName),
             0, Real: true),
         { IsFloat: true } => new NumX(
-            floatCheck ? RuntimeApi.FloatSending($"(double)({PlaceRenderer.Read(p)})") : $"(double)({PlaceRenderer.Read(p)})",
+            sending.FloatChecked() ? RuntimeApi.FloatSending($"(double)({PlaceRenderer.Read(p)})") : $"(double)({PlaceRenderer.Read(p)})",
             0, Real: true),
         // The windowed 16-byte UNSIGNED arm precedes the signed decode (the scout's silent-wrong-answer: a
         // wide unsigned COMP-5 window decoded SIGNED above Int128.MaxValue's bit pattern) — ParseImageU128
@@ -387,12 +396,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // ulong value fits Int128 — so the generic StoreAsImage arm below decodes a `PIC 9(10..18) COMP-5`
         // window identically. Only the 16-byte range genuinely exceeds the signed carrier.
         { IsUnsignedWideBinary: true } pic when p.Item.StoreAsImage =>
-            new NumX(RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName), pic.Scale, U: true),
-        // A numeric leaf stored as its character image (whole-group-aliased / Tier-B): decode the STORED BYTES to
-        // its unscaled value for numeric use — zoned digits for DISPLAY, radix-2 / BCD for BINARY / PACKED (V59;
-        // ISO §14.6.13.2 — incompatible content decodes deterministically).
+            new NumX(RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), pic.Scale, U: true),
+        // ⛔ THE FIXED-POINT SENDING-READ CHOKEPOINT — the twin of the float arms above, and the arm that had no
+        // check at all until kb/Work PB230. A numeric leaf stored as its character image (whole-group-aliased /
+        // Tier-B) decodes the STORED BYTES to its unscaled value for numeric use — zoned digits for DISPLAY,
+        // radix-2 / BCD for BINARY / PACKED (V59). Only such a WINDOWED leaf can hold content that fails its own
+        // numeric class condition (a native-carrier leaf can only hold digits, which is exactly why
+        // ConditionRenderer folds `IS NUMERIC` on one to the constant true), so this is where ISO §14.6.13.2
+        // rule 2's EC-DATA-INCOMPATIBLE can arise: under checking ParseImageSending raises for content that
+        // "would evaluate to false in a numeric class condition"; with checking off, or in an exempt context,
+        // the decode stays the tolerant deterministic one the standard's "undefined" permits.
         { } pic when p.Item.StoreAsImage =>
-            new NumX($"CobolNum.ParseImage({PlaceRenderer.Read(p)}, {p.Item.ProfileName})", pic.Scale),
+            new NumX(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), pic.Scale),
         // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
         // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant). A NATIONAL
         // operand decodes identically (GR6d3 — its digit characters are the Latin-1 digits under D-N4);

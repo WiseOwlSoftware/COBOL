@@ -5,16 +5,21 @@ namespace CobolNet.Runtime;
 /// <summary>
 /// Class-condition predicates over a value's character image (ISO §8.8.4.4). ALPHABETIC is the closed Latin set
 /// {A–Z, a–z, space} — NOT <c>char.IsLetter</c> (COBOLNET_DESIGN §11.2); NUMERIC over an alphanumeric operand is the
-/// digits 0–9 only (no operational sign — §8.8.4.4 rule 2).
+/// digits 0–9 only (no operational sign — §8.8.4.4.4 GR3 n)2).
 /// </summary>
 public static class CobolClass
 {
     /// <summary>
-    /// The NUMERIC class test for the content that reaches this runtime check (ISO §8.8.4.4 GR2): true iff the value
-    /// consists ENTIRELY of the digits 0–9. An operational sign is NOT a valid character here — rule 2 governs a
-    /// NON-numeric (alphanumeric / edited) operand, the only kind that reaches this method (a numeric-category COBOL.NET
-    /// field IS NUMERIC folds to <c>true</c> at compile time, GR1). So <c>"+1234"</c> and <c>"12A"</c> are both
-    /// non-numeric; an all-spaces / empty value is non-numeric.
+    /// The NUMERIC class test of a NON-NUMERIC-category operand (ISO §8.8.4.4.4 GR3 n)2 — "If the category of the
+    /// data item referenced by identifier-1 is not numeric, the condition is true if the content of the data item
+    /// referenced by identifier-1 consists entirely of the characters 0, 1, 2, 3, …, 9"): true iff the value
+    /// consists ENTIRELY of those digits. An operational sign is NOT a valid character here — n)2 admits none. So
+    /// <c>"+1234"</c> and <c>"12A"</c> are both non-numeric; an empty value is non-numeric (GR1 — every class
+    /// condition on a zero-length item is false).
+    /// <para>A NUMERIC-category operand takes n)1 instead, which is keyed on the item's USAGE and lives in
+    /// <see cref="CobolNum.IsNumericImage"/>; for the common native-carrier leaf the compiler folds it to the
+    /// constant <c>true</c>, since such a leaf can only hold digits. This method is reached for a numeric-category
+    /// item only as n)1.a's zoned delegate.</para>
     /// </summary>
     public static bool IsNumeric(string? s)
     {
@@ -22,6 +27,29 @@ public static class CobolClass
         foreach (char c in s)
             if (c is < '0' or > '9') return false;
         return true;
+    }
+
+    /// <summary>The BOOLEAN class test (ISO §8.8.4.4.4 GR3 e): "the condition is true if the content of the data
+    /// item referenced by identifier-1 consists entirely of the boolean values '0' and '1'". A zero-length operand
+    /// is FALSE, like every other class condition (§8.8.4.4.4 GR1).
+    /// <para>⛔ THE ZERO-LENGTH ANSWER IS WHY <see cref="HasNonBooleanPosition"/> EXISTS BESIDE THIS. §14.6.13.2
+    /// rule 1 asks a NEARLY identical question of a boolean SENDING operand — but the two differ exactly at zero
+    /// length, where the class condition is false while rule 1 has no content to call invalid (the clause's closing
+    /// paragraph: "If the content of a sending operand is not referenced by a given execution of a statement, any
+    /// incompatible data in that operand is not detected"), and a zero-length boolean operand is ordinary
+    /// (§8.5.4; §8.8.2 NOTE 2 combines two of them into a zero-length result). So the SCAN is written once and the
+    /// two callers put their own zero-length answer on it, rather than one of them inheriting the other's.</para></summary>
+    public static bool IsBoolean(string? s) => !string.IsNullOrEmpty(s) && !HasNonBooleanPosition(s);
+
+    /// <summary>Does the value carry a position that is neither <c>'0'</c> nor <c>'1'</c>? The scan behind
+    /// <see cref="IsBoolean"/> and behind <see cref="CobolBool.Sending"/>'s §14.6.13.2 rule 1 test — see the
+    /// zero-length note there. A null value has no positions.</summary>
+    public static bool HasNonBooleanPosition(string? s)
+    {
+        if (s is null) return false;
+        foreach (char c in s)
+            if (c is not ('0' or '1')) return true;
+        return false;
     }
 
     /// <summary>ALPHABETIC under a CHARACTER CLASSIFICATION locale (ISO §8.8.4.4.4 GR3 b1 — "consists only of characters
@@ -134,8 +162,9 @@ public static class CobolClass
         return true;
     }
 
-    /// <summary>The NUMERIC class test of a SIGNED zoned item's character image (ISO §8.8.4.4 rule 3 — the
-    /// content must be numeric with a valid operational sign). <paramref name="signMode"/> 1 = overpunch (the
+    /// <summary>The NUMERIC class test of a SIGNED zoned item's character image (ISO §8.8.4.4.4 GR3 n)1.a — "the
+    /// presence or absence of an operational sign … is in agreement with the data description … and … the content,
+    /// except for the operational sign, consists entirely of the characters 0, 1, 2, 3, …, 9"). <paramref name="signMode"/> 1 = overpunch (the
     /// sign zone shares the digit position: a plain digit, or the ASCII zoned overpunch sets <c>{A–I</c> for
     /// +0..+9 / <c>}J–R</c> for −0..−9); 2 = SEPARATE (a leading/trailing <c>+</c>/<c>-</c> character position,
     /// §13.18.49). Every other position must be a digit.</summary>

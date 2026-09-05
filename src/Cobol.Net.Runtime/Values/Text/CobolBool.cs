@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime;
 
 /// <summary>
@@ -17,12 +19,35 @@ namespace CobolNet.Runtime;
 /// the length of the LARGER operand referenced in that operation (rule 10; <see cref="Not"/> preserves its
 /// operand's length). Two zero-length operands combine to a zero-length result (NOTE 2).</para>
 /// <para><b>Content.</b> The operators combine per-position with the natural bit logic; a position outside
-/// {'0','1'} is undefined-result territory (§14.6.13.2) and is treated as boolean zero here — the
-/// EC-DATA-INCOMPATIBLE bridge is named residue.</para>
+/// {'0','1'} is undefined-result territory (§14.6.13.2 rule 1) and is treated as boolean zero here — which is
+/// what "the result of the reference is undefined" licenses while checking is OFF. Under checking the condition
+/// is raised at the SENDING READ instead, by <see cref="Sending"/> (kb/Work PB230).</para>
 /// </remarks>
 public static class CobolBool
 {
     private static char Bit(string s, int i) => i < s.Length && s[i] == '1' ? '1' : '0';
+
+    /// <summary>The checked read of a BOOLEAN SENDING operand (ISO §14.6.13.2 rule 1): "When the content of a
+    /// boolean sending item is referenced during the execution of a statement and the content of that sending
+    /// operand would evaluate to false in a boolean class condition, the result of the reference is undefined and
+    /// an EC-DATA-INCOMPATIBLE exception condition is set to exist" — with the same TWO exemptions rule 2 has
+    /// (a class condition, and VALIDATE), realized as a raw read at those sites via the compiler's
+    /// <c>SendingRef</c>. The fixed-point twin is <see cref="CobolNum.ParseImageSending"/> and the float sibling
+    /// (rule 3, EC-DATA-NOT-FINITE) is <see cref="CobolFloat.Sending(double)"/>; all three are always-emitted at
+    /// their chokepoint, so a directive-free run pays one bool read and is byte-behaviour-identical.
+    /// <para>A ZERO-LENGTH operand is NOT incompatible even though its class condition is false (§8.8.4.4.4 GR1):
+    /// it has no content for the rule to call invalid, and §14.6.13.2's closing paragraph says unreferenced
+    /// content is not detected. Zero-length boolean operands are ordinary here — §8.8.2 NOTE 2 combines two of
+    /// them into a zero-length result — so raising on one would reject working programs.
+    /// See <see cref="CobolClass.IsBoolean"/> for the other half of that split.</para></summary>
+    public static string Sending(string? v)
+    {
+        if (ExceptionState.DataIncompatibleChecking && CobolClass.HasNonBooleanPosition(v))
+            ExceptionState.DataIncompatibleError(
+                "the content of a boolean sending item is not valid for its data description "
+                + "(ISO §14.6.13.2 rule 1 — it would evaluate to false in a boolean class condition)");
+        return v ?? "";
+    }
 
     /// <summary>Conjunction (ISO §8.7.2 B-AND): positionwise AND, shorter operand right-zero-extended, result
     /// length = max (rules 9/10). Example (Annex A Table A.2): <c>1100 B-AND 0101 = 0100</c>.</summary>

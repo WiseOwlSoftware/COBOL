@@ -355,13 +355,15 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// group element distributes through its own <c>FromImage</c>, a NATIVE numeric element decodes through its
     /// byte-form lane (a float through the distinctly-named IEEE lane), a string-carried element passes
     /// through. The seed occurrence is handed in so a group element keeps the arrays its initializer
-    /// allocated.</summary>
+    /// allocated. <c>sending: false</c> for the same reason the two <c>FromImage</c> sites below use it
+    /// (kb/Work PB230): this is the RECEIVING side of a group decode — the program-visible sending
+    /// reference was the write that produced the image, not this redistribution of it into members.</summary>
     private static string TableElementFromImage(DataItem d) =>
         d.IsGroup ? "(__e, __x) => { __e.FromImage(__x); return __e; }"
         : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
             ? (d.Pic.IsFloat
                 ? $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImageFloat("__x", d.ProfileName)}"
-                : $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImage("__x", d.ProfileName)}")
+                : $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImage("__x", d.ProfileName, sending: false)}")
             : "(__e, __x) => __x";
 
     public void EmitImageMethods(DataItem group, CodeWriter w)
@@ -571,7 +573,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 // would numerically CONVERT the parsed integer (kb/Work PB164 wave 2).
                 ? $"{f.Name} = ({leaf.Pic!.ClrType}){(leaf.Pic!.IsFloat
                         ? RuntimeApi.NumParseImageFloat($"__s.Substring({off}, {f.Width})", leaf.ProfileName)
-                        : RuntimeApi.NumParseImage($"__s.Substring({off}, {f.Width})", leaf.ProfileName))};"
+                        : RuntimeApi.NumParseImage($"__s.Substring({off}, {f.Width})", leaf.ProfileName, sending: false))};"
                 : $"{f.Name} = __s.Substring({off}, {f.Width});");
             return;
         }
@@ -582,7 +584,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 : f.NumLeaf is { } l
                 ? $"{f.Name}[__i] = ({l.Pic!.ClrType}){(l.Pic!.IsFloat
                         ? RuntimeApi.NumParseImageFloat($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName)
-                        : RuntimeApi.NumParseImage($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName))};"
+                        : RuntimeApi.NumParseImage($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName, sending: false))};"
                 : $"{f.Name}[__i] = __s.Substring({off} + __i * {elem}, {elem});");
     }
 }

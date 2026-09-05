@@ -61,7 +61,7 @@ internal sealed class UnitEmitters
         AcceptDisplay = new AcceptDisplayEmitter(Ctx, Num);
         Evaluate = new EvaluateEmitter(Ctx, Cond);
         Initialize = new InitializeEmitter(Ctx, Move);
-        Corresponding = new CorrespondingEmitter(Ctx, Num, Move, Arith);
+        Corresponding = new CorrespondingEmitter(Ctx, Num, Move, Arith, Ec);
         Inspect = new InspectEmitter(Ctx, Num, Arith);
         Strings = new StringEmitter(Ctx, Num, Arith, Ec);
         Ptr = new PtrEmitter(Ctx, Num, ecState, Ec);

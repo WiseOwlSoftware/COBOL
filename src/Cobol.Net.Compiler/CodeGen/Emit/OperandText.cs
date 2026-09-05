@@ -20,25 +20,40 @@ internal static class OperandText
     /// intrinsic operand (ISO §15.2 type 1 — the one case that lets MOVE-to-alphanumeric, string comparisons,
     /// and group moves take FUNCTION operands) renders through its INSTANCE intrinsic channel (P7 Step 12 —
     /// the context-free static channel is deleted); deSign is a no-op for it (no operational sign).</summary>
-    // Two cached operand-visitor instances (deSign on/off) render the image with zero per-call allocation; a single
-    // cached IsString visitor answers the text-comparison predicate. The generated IBoundOperandVisitor makes both
+    // The cached operand-visitors render the image with zero per-call allocation; a single cached IsString
+    // visitor answers the text-comparison predicate. The generated IBoundOperandVisitor makes both
     // exhaustive (PHASE-07 Step 6f) — a new BoundOperand leaf is a COMPILE error, the loud `_ =>` defaults are gone.
     // The intrinsic-operand case is intercepted at the entry (it needs the PER-UNIT renderer, which the cached
     // static visitors cannot hold); the visitor's computed arm keeps the loud non-intrinsic case.
-    // Four cached instances = deSign × floatCheck (both flags carried on the instance so every call is
-    // allocation-free). floatCheck on (the default) wraps a float sending read in CobolFloat.Sending
-    // (EC-DATA-NOT-FINITE, §14.6.13.2 item 3); the exempt callers (class condition, future VALIDATE) pass false.
-    private static readonly AsStringVisitor _asStringPlain = new(deSign: false, floatCheck: true);
-    private static readonly AsStringVisitor _asStringDeSign = new(deSign: true, floatCheck: true);
-    private static readonly AsStringVisitor _asStringPlainNoCheck = new(deSign: false, floatCheck: false);
-    private static readonly AsStringVisitor _asStringDeSignNoCheck = new(deSign: true, floatCheck: false);
+    // One cached instance per (deSign × SendingRef) pair — both carried on the instance so every call is
+    // allocation-free. SendingRef names the §14.6.13.2 EXEMPT CONTEXT of the reads in this operand (see that
+    // type): rule 3's float wrap (CobolFloat.Sending, EC-DATA-NOT-FINITE) and rule 2's fixed-point windowed wrap
+    // (CobolNum.ParseImageSending / CobolNum.SendingImage, EC-DATA-INCOMPATIBLE) each read their OWN exemption
+    // list off it. The table is INDEXED, not a hand-written ladder: a SendingRef member added tomorrow gets its
+    // pair by construction rather than by somebody remembering to extend a switch (kb/Work PB230).
+    private static readonly AsStringVisitor[] _asString = BuildVisitors();
+
+    /// <summary>One visitor per (<c>deSign</c> × <see cref="SendingRef"/>) pair, indexed by the enum's VALUE.
+    /// Written as an explicit fill rather than a <c>SelectMany</c> over <c>GetValues</c> so the contiguity it
+    /// needs is CHECKED: a <see cref="SendingRef"/> whose values stopped being <c>0..n-1</c> throws here at type
+    /// initialization instead of silently handing one context another's visitor.</summary>
+    private static AsStringVisitor[] BuildVisitors()
+    {
+        var values = Enum.GetValues<SendingRef>();
+        var a = new AsStringVisitor[values.Length * 2];
+        foreach (var s in values)
+        {
+            a[(int)s * 2] = new AsStringVisitor(deSign: false, s);
+            a[((int)s * 2) + 1] = new AsStringVisitor(deSign: true, s);
+        }
+        return a;
+    }
     private static readonly IsStringVisitor _isString = new();
 
-    private static AsStringVisitor Visitor(bool deSign, bool floatCheck) =>
-        floatCheck ? (deSign ? _asStringDeSign : _asStringPlain)
-                   : (deSign ? _asStringDeSignNoCheck : _asStringPlainNoCheck);
+    private static AsStringVisitor Visitor(bool deSign, SendingRef sending) =>
+        _asString[((int)sending * 2) + (deSign ? 1 : 0)];
 
-    public static string AsString(BoundOperand op, NumericRenderer num, bool deSign = false, bool floatCheck = true) =>
+    public static string AsString(BoundOperand op, NumericRenderer num, bool deSign = false, SendingRef sending = SendingRef.Normal) =>
         op is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } ic }
             ? num.Intrinsics.RenderString(ic)
         // A NUMERIC-result intrinsic in a string context — DISPLAY FUNCTION ORD(C), MOVE FUNCTION MAX(…) TO a
@@ -67,8 +82,8 @@ internal static class OperandText
         // — a legal intrinsic argument, §8.4.3.2.3 SR8, and any other string position a boolean expression reaches);
         // intercepted at the ENTRY because the renderer needs the per-unit NumericRenderer (shift counts).
         : op is BoundBoolOperand bo
-            ? BooleanRenderer.Render(bo.Expr, num)
-            : op.Accept(Visitor(deSign, floatCheck));
+            ? BooleanRenderer.Render(bo.Expr, num, sending)
+            : op.Accept(Visitor(deSign, sending));
 
     /// <summary>The text image of a NUMERIC-result intrinsic (DA2), across all three shapes a numeric
     /// intermediate can take. A FLOAT-valued function renders through the same <c>CobolFloat.Display</c> a float
@@ -103,7 +118,7 @@ internal static class OperandText
     /// <summary>A data item's character image directly from its <see cref="Place"/> — the num-free entry for
     /// callers that hold a Place (a FIELD can never be an intrinsic operand, so no per-unit renderer is
     /// needed). Same rendering as <see cref="AsString"/> over a field operand.</summary>
-    public static string FieldImage(Place p, bool deSign = false, bool floatCheck = true) => FieldAsString(p, deSign, floatCheck);
+    public static string FieldImage(Place p, bool deSign = false, SendingRef sending = SendingRef.Normal) => FieldAsString(p, deSign, sending);
 
     /// <summary>The RAW-STORAGE byte image of a field — CONVERT's ANY source channel (§15.19.3 r7: "argument-1
     /// shall be of any usage … It is not necessary for the contents to be valid according to the usage" — the
@@ -204,7 +219,7 @@ internal static class OperandText
     /// <c>Int128.MaxValue</c>'s bit pattern), then the signed Int128 lane every other form rides. An 8-byte
     /// UNSIGNED window needs no twin: <c>ParseImage</c> already returns its full [0, 2^64) range as an
     /// Int128.</para></summary>
-    private static string? NonTextBytes(Place p, bool deSign, bool floatCheck)
+    private static string? NonTextBytes(Place p, bool deSign, SendingRef sending)
     {
         if (p.Item.Pic is not { Category: PicCategory.Numeric } pic
             || pic.ByteForm is NumericByteForm.Zoned or NumericByteForm.None) return null;
@@ -216,19 +231,19 @@ internal static class OperandText
         if (pic.IsFloat)
         {
             string dec = RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName);
-            return RuntimeApi.FloatDisplay(floatCheck ? RuntimeApi.FloatSending(dec) : dec);
+            return RuntimeApi.FloatDisplay(sending.FloatChecked() ? RuntimeApi.FloatSending(dec) : dec);
         }
         // A 16-byte UNSIGNED BinaryCapacity window (UInt128 carrier, kb/Work R10): the unsigned parse twin
         // reinterprets the signed lane's Int128 bit-identically, and the U-named format lane keeps the full
         // [0, 2^128) range — picked by NAME, never by overload (see CobolNum.FormatDisplayU).
         if (pic.IsUnsignedWideBinary)
         {
-            string uv = RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName);
+            string uv = RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked());
             return deSign
                 ? PExpand($"CobolNum.FormatUnsignedDisplayU({uv}, {pic.Digits})", pic)
                 : RuntimeApi.NumFormatDisplay(uv, p.Item.ProfileName, u: true);
         }
-        string value = RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName);
+        string value = RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked());
         // GR6a: an alphanumeric move/compare drops the operational sign — the magnitude digits, never the
         // BinaryMinus form (which is VARIABLE width and would shift a fixed receiver).
         return deSign
@@ -236,7 +251,35 @@ internal static class OperandText
             : RuntimeApi.NumFormatDisplay(value, p.Item.ProfileName);
     }
 
-    private static string FieldAsString(Place p, bool deSign = false, bool floatCheck = true)
+    /// <summary>
+    /// ⛔ THE VERBATIM CHARACTER READ of a place whose STORED IMAGE IS ITS VALUE — checked per ISO §14.6.13.2
+    /// for the item's CATEGORY, which is the one thing the three verbatim-return sites in
+    /// <see cref="FieldAsString"/> must not each decide for themselves. They used to: the REDEFINES-view return,
+    /// the <c>StoreAsImage</c> return and the elementary switch all spelled a bare <c>PlaceRenderer.Read(p)</c>,
+    /// and a rule that applies to one CATEGORY across all three of them has no place to live in that shape. It is
+    /// written here once (kb/Work PB230).
+    /// </summary>
+    /// <list type="bullet">
+    /// <item>NUMERIC — rule 2, via <c>CobolNum.SendingImage</c>. The window goes on VERBATIM: its stored image
+    /// IS its text, and a decode-and-reformat round trip would silently turn the very incompatible content the
+    /// rule exists to report into zeros.</item>
+    /// <item>BOOLEAN — rule 1, via <c>CobolBool.Sending</c>. The string half of the boolean chokepoint pair
+    /// (<c>BooleanRenderer</c>'s <c>BoundBoolRef</c> is the value half): <c>DISPLAY B</c> references a boolean
+    /// item's content exactly as <c>COMPUTE R = B</c> does.</item>
+    /// <item>Alphanumeric / numeric-edited / national — not subjects of the clause (its rules name a boolean
+    /// sending item, a numeric one, and a de-editing MOVE's numeric-edited SENDER, which is the de-edit's own
+    /// site and not this text read), so they read RAW.</item>
+    /// </list>
+    private static string SendingVerbatim(Place p, SendingRef sending) =>
+        !sending.FixedPointChecked() ? PlaceRenderer.Read(p)
+        : p.Item.Pic?.Category switch
+        {
+            PicCategory.Numeric => RuntimeApi.NumSendingImage(PlaceRenderer.Read(p), p.Item.ProfileName, true),
+            PicCategory.Boolean => RuntimeApi.BoolSending(PlaceRenderer.Read(p)),
+            _ => PlaceRenderer.Read(p),
+        };
+
+    private static string FieldAsString(Place p, bool deSign = false, SendingRef sending = SendingRef.Normal)
     {
         // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
         // category (ISO §8.4.3.3.4 GR6) — its Read() is already the character slice (a numeric inner goes through
@@ -250,10 +293,11 @@ internal static class OperandText
         // and a signed zoned view that is the de-signed source of an alphanumeric move/compare re-emits its
         // magnitude digits (ISO §14.9.25.4 GR6a) exactly as the StoreAsImage branch below does.
         if (p is RedefViewPlace)
-            return NonTextBytes(p, deSign, floatCheck) is { } rvBytes ? rvBytes
+            return NonTextBytes(p, deSign, sending) is { } rvBytes ? rvBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
-                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName), rvp.Digits), rvp)
-                : PlaceRenderer.Read(p);
+                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), rvp.Digits), rvp)
+                // The zoned window goes through VERBATIM, checked on the way — see SendingVerbatim.
+                : SendingVerbatim(p, sending);
         // A group operand's character image is the generated AsImage(): each string-stored leaf contributes its
         // characters; a DISPLAY leaf its zoned digits; and a BINARY/PACKED leaf ⛔ ITS TRUE BYTES — radix-2
         // two's complement of StorageWidth, or BCD with a trailing sign nibble (V59). Implementor-defined
@@ -290,10 +334,11 @@ internal static class OperandText
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)
-            return NonTextBytes(p, deSign, floatCheck) is { } siBytes ? siBytes
+            return NonTextBytes(p, deSign, sending) is { } siBytes ? siBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
-                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName), sip.Digits), sip)
-                : PlaceRenderer.Read(p);
+                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), sip.Digits), sip)
+                // The StoreAsImage twin of the RedefViewPlace arm above — same rule, same one reader.
+                : SendingVerbatim(p, sending);
         return p.Item.Pic switch
         {
             // ISO §14.9.25.4 GR6a: a signed numeric moved to / compared as an alphanumeric item drops its operational
@@ -310,13 +355,23 @@ internal static class OperandText
             // A float item (COMP-1/2/FLOAT-*, D16): DISPLAY renders the algebraic value via CobolFloat.Display
             // (invariant-culture shortest round-trip, §14.9.11 GR1 implementor-defined) — never a bare .ToString().
             // The sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking,
-            // §14.6.13.2 item 3) UNLESS this is an exempt context (class condition / VALIDATE — floatCheck false).
-            { Category: PicCategory.Numeric } => floatCheck
+            // §14.6.13.2 item 3) UNLESS this is an exempt context — SendingRef.FloatChecked() false.
+            { Category: PicCategory.Numeric } => sending.FloatChecked()
                 ? RuntimeApi.FloatDisplay(RuntimeApi.FloatSending(PlaceRenderer.Read(p)))
                 : RuntimeApi.FloatDisplay(PlaceRenderer.Read(p)),
-            // National and boolean items are string-stored (D-N1/D-B1) — the value IS the character image.
+            // ⛔ THE BOOLEAN ARM IS SPLIT OUT, and the reason is the defect this whole change is about: it used to
+            // ride the alphanumeric/national arm, and a shared arm cannot carry a rule that applies to only one of
+            // its categories. §14.6.13.2 rule 1 makes a boolean sending item whose content is not all '0'/'1'
+            // EC-DATA-INCOMPATIBLE, and `DISPLAY B` references that content exactly as `COMPUTE R = B` does — this
+            // is the STRING half of the boolean chokepoint pair, the twin of BooleanRenderer's numeric-channel half
+            // (kb/Work PB230). Fixing one channel and not the other is the two-arm shape, again.
+            { Category: PicCategory.Boolean } => SendingVerbatim(p, sending),
+            // National items are string-stored (D-N1) — the value IS the character image; an alphanumeric or
+            // numeric-edited item is its own storage. None of the three is a subject of §14.6.13.2 (its rules name
+            // a BOOLEAN sending item, a NUMERIC one, and a de-editing MOVE's numeric-edited SENDER — the last of
+            // which is the de-edit's own site, not this text read).
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
-                or PicCategory.National or PicCategory.Boolean } => PlaceRenderer.Read(p),
+                or PicCategory.National } => PlaceRenderer.Read(p),
             _ => $"{PlaceRenderer.Read(p)}.ToString()",
         };
     }
@@ -337,11 +392,11 @@ internal static class OperandText
     /// <summary>The operand→DISPLAY-image dispatch (PHASE-07 Step 6f). <paramref name="deSign"/> carried on the
     /// instance so the two cached instances need no per-call allocation. Each Visit is the former <c>AsString</c>
     /// switch arm verbatim.</summary>
-    private sealed class AsStringVisitor(bool deSign, bool floatCheck) : IBoundOperandVisitor<string>
+    private sealed class AsStringVisitor(bool deSign, SendingRef sending) : IBoundOperandVisitor<string>
     {
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
         public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(n.Text);
-        public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign, floatCheck);
+        public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign, sending);
         // A bare figurative is intercepted PCS-aware at AsString's ENTRY (the collating context lives on the
         // renderer, not this visitor); this arm is the unreachable native-pin fallback the visitor interface requires.
         public string Visit(BoundFigurative n) => $"new string({FigurativeConstants.Fill(n.Kind, null)}, 1)";   // DISPLAY shows one occurrence (GR3)

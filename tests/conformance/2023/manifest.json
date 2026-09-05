@@ -443,7 +443,8 @@
   "l1_subtract_format1_standard_decimal",
   "pb373_object_computer_name_inert",
   "pb485_constant_entry_spelling",
-  "pb485_entry_format_legal_forms"
+  "pb485_entry_format_legal_forms",
+  "pb230_incompatible_corresponding"
  ],
  "pending": [
   "pb485_value_only_format1"

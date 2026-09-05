@@ -85,8 +85,8 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
 - **EcWrap's relevant-family rule (the unimplemented-raise license).** A statement wraps only for names its kind
   can actually raise here: EC-SIZE-* (arithmetic), EC-I-O-* per referenced file, EC-OVERFLOW-STRING/-UNSTRING,
   EC-PROGRAM-* (CALL/CANCEL), EC-ARGUMENT-FUNCTION (intrinsic-bearing statements), EC-BOUND-REF-MOD/-OVERFLOW +
-  EC-DATA-NOT-FINITE (any statement — ambient gates, below) and EC-DATA-OVERFLOW (a MOVE), EC-STORAGE-NOT-AVAIL
-  (SET SIZE). A name this implementation still cannot raise binds no wrapper — §14.6.13.1.1 sets an indicator only
+  EC-DATA-NOT-FINITE and EC-DATA-INCOMPATIBLE (any statement — ambient gates, below) and EC-DATA-OVERFLOW (a
+  MOVE), EC-STORAGE-NOT-AVAIL (SET SIZE). A name this implementation still cannot raise binds no wrapper — §14.6.13.1.1 sets an indicator only
   "when the associated exception occurs".
 - **The EC-ARGUMENT-FUNCTION ambient statement gate.** Intrinsics render inline inside arbitrary expressions;
   threading a checked-mask through every runtime signature would fork each intrinsic into twins. Instead the guard
@@ -94,6 +94,73 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   EVERY §15.3 default-result site in the intrinsic runtime routes through `ExceptionState.ArgumentError` (raise
   when enabled, the documented default — 0 / one space — when off): `FromDouble` NaN/∞, FACTORIAL, MOD/REM zero
   divisor, NUMVAL/NUMVAL-C malformed, the CobolDate range checks, CHAR/ORD out-of-domain.
+- **The §14.6.13.2 EXEMPTION TABLE IS A STRUCTURE, not a per-rule flag (`CodeGen/Emit/SendingRef.cs`).** The
+  clause states five sibling conditions over ONE subject — the content of a sending operand that is not valid —
+  and each carries its own list of contexts in which the reference is exempt. `SendingRef` names the context ONCE
+  at the reference site (`Normal` · `ClassCondition` · `SignCondition` · `SameUsageMove` · `Validate`) and each
+  rule reads its own list off it: `FixedPointChecked()` is rule 2's TWO exemptions (class condition, VALIDATE),
+  `FloatChecked()` is rule 3's FOUR (those two plus a sign condition and a same-usage MOVE). **A boolean could not
+  carry both**, which is why the retired `floatCheck` / `floatSendingExempt` pair could only ever serve rule 3 —
+  and did, leaving rule 2 with no wiring at all until kb/Work PB230. The asymmetry is the standard's own:
+  §8.8.4.7.4 GR2 gives a float sign test a defined answer for NaN (it reads the IEEE sign bit) and §14.9.25.4 GR6c
+  makes a same-usage MOVE a verbatim transfer, and fixed-point has neither rule, so neither exemption. It is
+  threaded through both sending-read channels — `NumericRenderer` (re-entrant `_sending`, saved/restored at every
+  public entry) and `OperandText` (one cached visitor per `deSign` × `SendingRef` pair, indexed rather than laddered
+  so a new member is covered by construction).
+- **The EC-DATA-INCOMPATIBLE ambient statement gate (§14.6.13.2 rules 1 and 2).** Rule 1 is rule 2's BOOLEAN
+  sibling — same condition, same fatal disposition, the SAME two-entry exemption list — and it is wired at the
+  same time and in the same shape, because fixing one and leaving the other is the two-arm defect this whole
+  change exists to retire. A category-boolean item's storage is one character per boolean position
+  (§13.18.40.4 GR14's representation license, D-B1; `USAGE BIT` takes the same carrier), so a REDEFINES window
+  can deposit a character that is no boolean value, and rule 1 makes referencing it EC-DATA-INCOMPATIBLE —
+  measured, not assumed: `MOVE "1Q01"` into the window then `COMPUTE R = B` propagated the `Q` straight into the
+  boolean RESULT. **`CobolBool.Sending`** raises it, at BOTH boolean sending-read channels: the value channel
+  (`BooleanRenderer`'s `BoundBoolRef`) and the character channel (`OperandText.SendingVerbatim`, which is also
+  the one place the three verbatim-read returns in `FieldAsString` now decide the category question — they each
+  spelled a bare `PlaceRenderer.Read(p)` before, which is a shape a per-category rule cannot live in).
+  **`CobolClass.IsBoolean`** is §8.8.4.4.4 GR3 e's predicate for the class condition; rule 1's test differs from it
+  at exactly ZERO LENGTH — the class condition is false there (§8.8.4.4.4 GR1) while rule 1 has no content to
+  call invalid (the clause's closing paragraph), and zero-length boolean operands are ordinary (§8.8.2 NOTE 2) —
+  so the SCAN is shared (`HasNonBooleanPosition`) and each caller puts its own zero-length answer on it. Golden
+  `2002/pb230_incompatible_boolean_sending` (both channels, B-NOT, and the zero-length non-raise).
+  ⚠ The BOOLEAN **class condition** itself is not implemented (the parser rejects `IS BOOLEAN` and
+  `ConditionRenderer.RenderClass` has no `'B'` arm), so rule 1's class-condition exemption has no site to reach
+  yet; `SendingRef.ClassCondition` is threaded to where that arm will be.
+- **The fixed-point half of the same gate (§14.6.13.2 rule 2).** Rule 2 makes the condition
+  exist whenever "the content of a numeric sending item that is not described with a standard floating-point usage
+  is referenced during the execution of a statement and the content of that sending operand would evaluate to false
+  in a numeric class condition". It is **not statement-specific** (rule 4 is — it names a de-editing MOVE), so the
+  gate is ambient like its float twin, and the raise rides the sending READ: only a numeric leaf whose storage is a
+  CHARACTER WINDOW (a Tier-B REDEFINES view, or a whole-group-aliased `StoreAsImage` leaf) can hold content that
+  fails its own class condition — a native-carrier leaf can only hold digits, which is exactly why
+  `ConditionRenderer` folds `IS NUMERIC` on one to the compile-time constant `true`. The two chokepoints mirror the
+  float pair one for one: the numeric-value read (`NumericRenderer.FieldNumCore`'s `StoreAsImage` arm →
+  `CobolNum.ParseImageSending`) and the string-image read (`OperandText.FieldAsString` / `NonTextBytes` →
+  `CobolNum.SendingImage` for the ZONED pass-through, whose stored image IS its text and must NOT be
+  decode-and-reformatted — that would silently turn the incompatible content into zeros). So ADD, SUBTRACT,
+  MULTIPLY, DIVIDE, COMPUTE, relation and sign conditions, DISPLAY, STRING, a SORT key compare and a numeric MOVE
+  all raise — rule 2 is the BROAD one, and the node-kind test that used to gate this family (`node is BoundMove`,
+  scoping it to rule 4's de-editing MOVE) is why none of them did. ⛔ **A raise site is not enough where the
+  comparison runs inside a FRAMEWORK-OWNED comparer**: the table SORT (§14.9.40 Format 2) hands a
+  `Comparison<T>` to the runtime's array sort, which catches whatever a comparer throws and re-throws it as
+  `InvalidOperationException` — so the fatal EC never matched the statement guard and the run unit died
+  unhandled instead of running the program's own USE declarative. `CobolTable.Sorted` undoes that wrapper with
+  `ExceptionDispatchInfo` at the ONE place a COBOL comparer meets the framework, covering any future comparer
+  raise by construction. Measured, not deduced; pinned as the sweep golden's L12; with checking OFF the flag test short-circuits before the O(digits) scan and the decode stays the
+  tolerant deterministic one the standard's "undefined" permits, byte-identical to a pre-slice build.
+  **`CobolNum.IsNumericImage` is the ONE §8.8.4.4.4 GR3 n)1 predicate** — keyed on the item's `NumericByteForm`
+  (zoned digits + declared sign presentation for n)1.a; valid BCD nibbles + a sign nibble for packed, and the
+  PICTURE-range test for binary, both n)1.c; a `BinaryCapacity` item takes its range from its container per
+  §13.18.60.4 GR12) — and the CLASS CONDITION calls the same predicate over the same RAW window, because the
+  standard defines rule 2's test by reference to the class condition's. **§14.7.6's CORRESPONDING deferral**:
+  "if any of the implied statements would set the EC-DATA-INCOMPATIBLE exception condition to exist, [it] is set to
+  exist after all of the implied statements are completed" — a fatal raise at pair 1 would abandon pairs 2..n, so
+  `CorrespondingEmitter.Deferred` opens a runtime latch region (`DataIncompatibleDeferBegin` / `DeferEnd`, left in a
+  `finally`, raised after the `try` so it never displaces an exception already in flight) around the pairs, emitted
+  only when the family is enabled. It is the same one-latch-one-dispatch shape the clause's SIZE ERROR paragraph
+  already gets from `ArithmeticEmitter`'s `__sizeErr`. Goldens `2002/pb230_incompatible_sending_sweep` (every
+  statement class, both exemption halves), `2023/pb230_incompatible_corresponding` (the §14.7.6 deferral, ADD and
+  MOVE), `85/pb230_class_numeric_image` (the shared predicate over zoned / signed / packed / binary windows).
 - **The float EC-DATA ambient statement gates (EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW).** A float item's value is
   read inline in expressions, so — exactly like EC-ARGUMENT-FUNCTION / EC-BOUND-REF-MOD — the guard wraps the
   STATEMENT (`FloatNotFiniteChecking` / `FloatOverflowChecking` set/reset via `FatalAmbientGates` + the try/catch F3
@@ -104,11 +171,12 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   string-image read (`OperandText.FieldAsString` float arm → `RuntimeApi.FloatSending`) — so DISPLAY, STRING,
   MOVE-to-alphanumeric/group, arithmetic, relations, level-88, intrinsic args, and a different-usage float MOVE
   source all raise for a NaN/±Inf content. **`CobolFloat.Sending`** raises the fatal EC. The **four exemptions** are
-  realized as a RAW (unwrapped) read at exactly the exempt sites: a **class condition** and a **sign condition** pass
-  `floatCheck:false` (a sign operand's whole sub-tree, via the re-entrant `NumericRenderer._floatSendingExempt`), a
-  **same-usage MOVE** (source and receiver share the same `Usage` — endianness is a separate phrase, not a Usage
-  value) passes the exempt flag, and **VALIDATE** will pass `floatCheck:false` once its emitter lands (documented
-  no-op today). **EC-DATA-OVERFLOW (§14.9.25.4 GR6 d)4.a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
+  realized as a RAW (unwrapped) read at exactly the exempt sites, named by `SendingRef` (above): a **class
+  condition** and a **sign condition** pass `ClassCondition` / `SignCondition` (a sign operand's whole sub-tree, via
+  the re-entrant `NumericRenderer._sending`), a **same-usage MOVE** (source and receiver share the same `Usage` —
+  endianness is a separate phrase, not a Usage value) passes `SameUsageMove`, and **VALIDATE** will pass `Validate`
+  once its emitter lands (documented no-op today). Note the two lists differ — `SignCondition` and `SameUsageMove`
+  suppress rule 3's wrap and NOT rule 2's. **EC-DATA-OVERFLOW (§14.9.25.4 GR6 d)4.a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
   single-precision-float MOVE receiver raises when a FINITE source casts to ±Inf (cast-based, `double.IsFinite(src)
   && float.IsInfinity((float)src)` — never a MaxValue compare, since a double in `(float.MaxValue, ~3.4028e38]`
   rounds to a finite `float.MaxValue`). An arithmetic ±Inf store (`ArithmeticEmitter.StoreArith`) stays a bare cast
@@ -395,7 +463,7 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - NEXT SENTENCE (obsolete) is NOT CONTINUE: it jumps past the next period, so it lowers via a labeled sentence block + goto, unlike a plain if-fall-through (COBOLNET0701).
 - ALPHABETIC is the closed set {A-Z,a-z,space} only (ISO §8.8.4.4) — must NOT use char.IsLetter (rejects accented/Unicode letters); legacy comment line 2436.
 - IS NUMERIC on a signed numeric-DISPLAY item accepts the overpunch sign ({,A-I positive; },J-R negative) or separate sign (+/-) at the sign position; spaces are NOT digits so a field with embedded/trailing spaces is NOT NUMERIC.
-- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOLNET0706): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime CobolClass check (CobolClass.IsNumeric, §8.8.4.4 GR1/GR2).
+- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOLNET0706): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime byte-form-keyed check (CobolNum.IsNumericImage, §8.8.4.4.4 GR3 n)1; CobolClass.IsNumeric is n)2's non-numeric-category arm and n)1.a's zoned delegate).
 - NOT POSITIVE means ≤ 0 (includes zero), which is NOT the same as NEGATIVE — the !(>0) wrap gets it right.
 - Figurative ZERO compared with a numeric value is the numeric 0 (ISO §8.3.3.6.4 r4), not the character '0'.
 - Literal-vs-literal comparisons constant-fold at emit time to true/false (clean output, matches mainstream compilers).

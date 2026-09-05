@@ -359,6 +359,26 @@ of an unsupported facility.
   mode in effect (binary64 natively — an exponent of three or four digits — or decimal128 under STANDARD-DECIMAL)
   is COBOLNET1660 at the function reference (§15.43.4 r1 / §15.58.4 r1).
 
+- **Incompatible data in a fixed-point numeric sending operand (§14.6.13.2 rule 2).** The standard makes the
+  RESULT OF THE REFERENCE undefined — "the result of the reference is undefined and an EC-DATA-INCOMPATIBLE
+  exception condition is set to exist" — so what happens to the value is an implementor determination.
+  COBOL.NET: **under EC-DATA-INCOMPATIBLE checking the exception is fatal at the SENDING READ** (a USE declarative
+  may RESUME, in which case the raising statement is abandoned and every receiver it had not yet stored is
+  unchanged); **with checking off the content decodes DETERMINISTICALLY** — a zoned position that is not a digit
+  contributes no digit and an all-non-digit image is zero, a packed nibble above 9 contributes none, a binary
+  window is read as its two's-complement value — never arbitrary content and never a trap. Only a numeric leaf
+  whose storage is a character window (a REDEFINES view, or a leaf under a group used as a whole operand —
+  §14.9.25.4 GR4 fills such a group "without consideration for the individual elementary items") can hold such
+  content at all; a native-carrier leaf can only hold digits, so `IS NUMERIC` on one is the constant true
+  (§8.8.4.4.4 GR3 n)1). The test itself is the standard's own — "would evaluate to false in a numeric class
+  condition" — evaluated over the item's byte representation: n)1.a's digits-plus-declared-sign for DISPLAY,
+  n)1.c's "valid representation for the usage" for packed (decimal nibbles, and a sign nibble where the usage
+  reserves one), and n)1.c's picture-range half for binary, where a `COMP-5` / `BINARY-*` item's range is its
+  CONTAINER rather than a picture (§13.18.60.4 GR12 — "the implementor may allow a wider range"). For a
+  CORRESPONDING statement the condition is deferred and set once after every implied statement completes, as
+  §14.7.6's last paragraph requires. Pinned by `2002/pb230_incompatible_sending_sweep`,
+  `2023/pb230_incompatible_corresponding` and `85/pb230_class_numeric_image`.
+
 - **USAGE BIT — alignment and representation of data (§13.18.60.4 GR5 · §8.5.1.6.3).** Annex A.1 has NO item for USAGE BIT — it runs 208 (COMPUTATIONAL, GR6) straight to 209 (DISPLAY, GR7), and §8.5.1.6.3 is cross-referenced only by item 195 (SYNCHRONIZED) — so this determination is recorded here under §4.2.6 rather than in the A.1 register, where it sat under item 209’s number until 2026-09-03. A `USAGE BIT` item **occupies bits**, as GR5 requires. Bits per character position is **8** — §8.1.2 leaves it implementor-specified, and 8 is what makes it agree with DISPLAY's one byte per character position. Alignment follows §8.5.1.6.3 exactly: a bit item immediately following an elementary bit item **of the same level** takes the next bit position (they share a byte); any other bit item starts at the first bit of the next available byte; implicit filler advances to the next item's natural boundary and fills a trailing partial byte to an integral number of characters, and §15.50.4 r5 counts that filler. In a record image a bit run is **packed high-order bit first** — §8.5.1.6.3 numbers positions from "the first bit position" — with trailing filler bits zero. ⚠ The item's VALUE CARRIER is a `'0'`/`'1'` string, which is not observable to a COBOL program and is not a conformance claim; what is claimed is the SIZE, ALIGNMENT and IMAGE above. A boolean item with **no** USAGE clause is a different case: §13.18.60.3 SR13(b) implies DISPLAY and GR7 makes it one alphanumeric character per boolean position.
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)

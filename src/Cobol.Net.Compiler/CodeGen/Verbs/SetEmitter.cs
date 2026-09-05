@@ -160,8 +160,10 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
                 // The windowed twin of the StoreSetTarget arm (Step D): decode → augment → re-encode.
                 ctx.Writer.Line(PlaceRenderer.Write(p, p.Item.StoreAsImage
+                    // sending: false — an INDEX data item's class and category are INDEX, not numeric
+                    // (§13.18.60.4 GR10), so §14.6.13.2 rule 2 ("a numeric sending item") is not about it.
                     ? RuntimeApi.NumFormatImage(
-                        $"(long)({RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName)} {op} {NumericRenderer.Align(amount, 0)})",
+                        $"(long)({RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending: false)} {op} {NumericRenderer.Align(amount, 0)})",
                         p.Item.ProfileName)
                     : $"(long)({PlaceRenderer.Read(p)} {op} {NumericRenderer.Align(amount, 0)})"));
                 break;

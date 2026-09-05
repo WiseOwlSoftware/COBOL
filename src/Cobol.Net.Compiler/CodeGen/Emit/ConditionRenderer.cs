@@ -82,13 +82,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     };
     // A user-defined class (§8.8.4.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
-        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})"
-        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})";
+        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition)}, {EmitText.CsLiteral(n.Members)})"
+        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition)}, {EmitText.CsLiteral(n.Members)})";
     // An alphabet-name class (§8.8.4.4.4 GR3 a; kb/Work PB109): membership of the alphabet's coded character set
     // (routed through the RuntimeApi façade — the P7 Step 4b ratchet forbids NEW bare runtime accesses here).
     public string Visit(BoundCodedSetClassCondition n) => n.Negated
-        ? $"!{RuntimeApi.ClassInCodedSet(OperandText.AsString(n.Operand, num, floatCheck: false), n.Kind)}"
-        : RuntimeApi.ClassInCodedSet(OperandText.AsString(n.Operand, num, floatCheck: false), n.Kind);
+        ? $"!{RuntimeApi.ClassInCodedSet(OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition), n.Kind)}"
+        : RuntimeApi.ClassInCodedSet(OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition), n.Kind);
     public string Visit(BoundConditionError n) => EmitText.LoudValue("bool", n.Feature);
     // A per-evaluation user-function window (ISO §8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2): the activations run each
     // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a
@@ -314,10 +314,16 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     private string RenderSign(BoundSignCondition s)
     {
-        // §14.6.13.2 dash-2: a float sending item referenced in a SIGN condition is EXEMPT from EC-DATA-NOT-FINITE —
-        // render the whole operand sub-tree with the finiteness wrap suppressed (a NaN/±Inf sign test is well-defined:
-        // NaN is neither >0, <0, nor ==0, so a compound sibling like `AND Y > 0.0` still raises on its own read).
-        NumX v = num.Render(s.Expr, ReceiverContext.None, floatSendingExempt: true);
+        // §14.6.13.2 rule 3 dash-2: a float sending item referenced in a SIGN condition is EXEMPT from
+        // EC-DATA-NOT-FINITE — render the whole operand sub-tree with the finiteness wrap suppressed (a NaN/±Inf
+        // sign test is well-defined: NaN is neither >0, <0, nor ==0, so a compound sibling like `AND Y > 0.0`
+        // still raises on its own read).
+        // ⛔ RULE 2 HAS NO SUCH DASH, and SendingRef is what lets the two lists differ (kb/Work PB230): a
+        // FIXED-POINT sending item in a sign condition IS still checked for EC-DATA-INCOMPATIBLE. The asymmetry
+        // is the standard's own — §8.8.4.7.4 GR2 gives a float sign test a defined answer for NaN by reading the
+        // IEEE sign bit, and there is no corresponding rule making `IF N IS POSITIVE` meaningful over digits that
+        // are not digits.
+        NumX v = num.Render(s.Expr, ReceiverContext.None, SendingRef.SignCondition);
         // §8.8.4.7.4 GR2 (Format 2 — a bare standard-float name): POSITIVE/NEGATIVE test the IEEE sign BIT, not the
         // algebraic value, "regardless of whether the content would evaluate to true in a NUMERIC class test or a
         // ZERO sign test" — so +0.0 IS POSITIVE and −0.0 IS NEGATIVE. double.IsNegative reads the sign bit (true for
@@ -346,18 +352,41 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// <summary>A class condition (ISO §8.8.4.4). A typed-numeric operand IS NUMERIC folds to <c>true</c> ONLY
     /// when its storage is the native long/Int128 (it can only hold digits — COBOLNET_DESIGN §6.6); a numeric item
     /// whose storage is a CHARACTER window (a REDEFINES view, or a whole-group-aliased StoreAsImage leaf) can hold
-    /// arbitrary characters and tests its image at run time — sign-aware for a signed zoned item (§8.8.4.4 r3,
-    /// NC174A CLASS-TEST-GF-8/10: S9(18) REDEFINES X(18) holding letters is NOT numeric).</summary>
+    /// arbitrary characters and tests its image at run time — sign-aware for a signed zoned item (§8.8.4.4.4 GR3 n)1.a,
+    /// NC174A CLASS-TEST-GF-8/10: S9(18) REDEFINES X(18) holding letters is NOT numeric).
+    /// <para>⛔ A WINDOWED numeric leaf tests through <c>CobolNum.IsNumericImage</c> over its RAW WINDOW — the ONE
+    /// §8.8.4.4.4 GR3 n)1 predicate, which §14.6.13.2 rule 2's checked sending read also calls, because the standard
+    /// defines rule 2's test BY REFERENCE to this one ("would evaluate to false in a numeric class condition").
+    /// Writing that rule twice is how the two answers drift, so it is written once (kb/Work PB230).</para>
+    /// <para>THE RAW WINDOW IS THE POINT, and it is what the previous form could not reach: <c>arg</c> is
+    /// <c>OperandText.AsString</c>, which for a NON-ZONED window DECODES the bytes and re-renders them as a
+    /// DISPLAY image — so <c>IsNumeric(arg)</c> was asking whether a reformatted image is all digits, which it
+    /// always is. A packed window with a non-decimal nibble, and a binary window whose value exceeds its
+    /// PICTURE's range, were both reported NUMERIC; GR3 n)1.c asks instead for "a valid representation for the
+    /// usage" and "the numeric value is within the range of values implied by the PICTURE clause", and only the
+    /// undecoded bytes can answer either. The ZONED case is unchanged in behaviour: there the window IS its text,
+    /// and the predicate delegates straight back to the same two <c>CobolClass</c> helpers this arm used to
+    /// spell inline — so the sign-aware answer NC174A pins is the same code it always was.</para>
+    /// <para>A REF-MOD operand is excluded: its result is an elementary ALPHANUMERIC item whatever the underlying
+    /// item's category (§8.4.3.3.4 GR6), so GR3 n)2's plain all-digits test governs it, not n)1.</para></summary>
     private string RenderClass(BoundClassCondition c)
     {
         var fld = c.Operand as BoundFieldOperand;
         bool numericCategory = fld?.Place.Item.Pic?.Category is PicCategory.Numeric;
         bool numericField = numericCategory && fld!.Place is not RedefViewPlace && !fld.Place.Item.StoreAsImage;
-        // §14.6.13.2 dash-1: a float sending item referenced in a CLASS condition is EXEMPT from EC-DATA-NOT-FINITE —
-        // the class test inspects the content precisely to categorize it, so a NaN/±Inf operand must not raise.
-        string arg = OperandText.AsString(c.Operand, num, floatCheck: false);
-        string numericTest = numericCategory && fld!.Place.Item.Pic is { Signed: true } sp
+        // The complement, minus the ref-mod shape: a numeric leaf whose storage IS a character window.
+        bool windowedNumeric = numericCategory && fld!.Place is not (RefModPlace or TableAllPlace)
+            && (fld.Place is RedefViewPlace || fld.Place.Item.StoreAsImage);
+        // §14.6.13.2 dash-1 of rules 1, 2 AND 3: a sending item referenced in a CLASS condition is EXEMPT from
+        // every one of them — the class test inspects the content precisely in order to CATEGORIZE it, so raising
+        // on the very content it was asked to report would leave it unable to answer.
+        string arg = OperandText.AsString(c.Operand, num, sending: SendingRef.ClassCondition);
+        string numericTest = windowedNumeric
+            ? RuntimeApi.NumIsNumericImage(PlaceRenderer.Read(fld!.Place), fld.Place.Item.ProfileName)
+            : numericCategory && fld!.Place.Item.Pic is { Signed: true } sp
             ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")})"
+            // §8.8.4.4.4 GR3 n)2 — a NON-numeric-category operand (alphanumeric / edited / national) is numeric iff
+            // its content "consists entirely of the characters 0, 1, 2, …, 9", with no operational sign admitted.
             : $"CobolClass.IsNumeric({arg})";
         // ALPHABETIC / -UPPER / -LOWER under a CHARACTER CLASSIFICATION (ISO §8.8.4.4.4 GR3 b1/c1/d1 — the classification
         // locale's LC_CTYPE, resolved at the module's activation into __CLASSIFY; kb/Work PB64 T5); without one the

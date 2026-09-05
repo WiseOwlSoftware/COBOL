@@ -190,4 +190,37 @@ public static class CobolTable
     /// intrinsic renderers use it when a body needs the SAME enumerated list twice — MEAN's sum and its count, a
     /// leading positional argument and the tail — so a runtime table(ALL) enumeration is evaluated exactly once.</summary>
     public static R With<T, R>(T value, Func<T, R> body) => body(value);
+
+    /// <summary>
+    /// ⛔ THE TABLE SORT (ISO §14.9.40 Format 2), run so that a COBOL EXCEPTION CONDITION RAISED BY THE KEY
+    /// COMPARISON STILL REACHES THE STATEMENT GUARD.
+    /// </summary>
+    /// <remarks>
+    /// <para>The sort is <c>OrderBy</c> with a <see cref="Comparison{T}"/> — stable, which is what §14.9.40.4
+    /// GR19c/GR3c require of equal keys. But the framework's array sort CATCHES anything a comparer throws and
+    /// re-throws it as <see cref="InvalidOperationException"/> "Failed to compare two elements in the array",
+    /// on the assumption that a throwing comparer is an inconsistent one. A COBOL comparer is not: §14.9.40.4
+    /// GR8 makes a key comparison follow the relation-condition rules, and §14.6.13.2 rule 2 makes REFERENCING a
+    /// numeric key whose content is not valid set the fatal EC-DATA-INCOMPATIBLE. Wrapped, that fatal never
+    /// matched the emitted statement guard's <c>catch (CobolFatalException)</c>, so a program with a USE
+    /// declarative for the condition died with an unhandled .NET exception instead of running its declarative.
+    /// MEASURED, not deduced (kb/Work PB230): a group MOVE plants "AB1" in a key, and the run unit aborted with
+    /// <c>System.InvalidOperationException: Failed to compare two elements in the array</c>.</para>
+    /// <para>So the wrapper is undone here, at the ONE place a COBOL comparer is handed to the framework, and the
+    /// original is re-thrown with its stack intact (<see cref="ExceptionDispatchInfo"/>, never a bare
+    /// <c>throw f</c>, which would reset it). Any future comparer raise — a float key's EC-DATA-NOT-FINITE, a
+    /// locale collation condition — is covered by construction rather than by remembering to add an arm.</para>
+    /// </remarks>
+    public static T[] Sorted<T>(T[] elements, Comparison<T> compare)
+    {
+        try
+        {
+            return [.. elements.OrderBy(e => e, Comparer<T>.Create(compare))];
+        }
+        catch (InvalidOperationException ex) when (ex.InnerException is CobolFatalException fatal)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(fatal).Throw();
+            throw;   // unreachable — Throw() does not return; present because the compiler cannot know that
+        }
+    }
 }

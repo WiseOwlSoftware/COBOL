@@ -385,7 +385,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 {
                     bool sameUsage = source is BoundFieldOperand fsrc
                         && fsrc.Place.Item.Pic is { IsFloat: true } sp && sp.Usage == pic.Usage;
-                    NumX fsrcNum = num.AsNum(source, ReceiverContext.None, floatSendingExempt: sameUsage);
+                    NumX fsrcNum = num.AsNum(source, ReceiverContext.None, sameUsage ? SendingRef.SameUsageMove : SendingRef.Normal);
                     // §14.9.25.4 GR6 d)4.a: "If the algebraic value of the sending operand is farther from zero than
                     // is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW
                     // exception condition is set to exist" — a FATAL condition (Table 13), MOVE-only, armed by

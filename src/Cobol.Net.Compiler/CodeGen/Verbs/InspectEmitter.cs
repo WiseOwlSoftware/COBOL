@@ -131,8 +131,12 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 // its sign, re-encode the replaced magnitude with that sign in the item's sign convention (GR4d).
                 string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
                 w.Line($"Int128 {mag} = {RuntimeApi.NumFromAlphanumeric(img)};");
+                // sending: false — this decode is the STORE side re-deriving the ORIGINAL's sign so the replaced
+                // magnitude keeps it (GR4d), not INSPECT's sending read of the operand. §14.6.13.2 rule 2 attaches to
+                // the reference of the content, which is the image read above; checking it twice inside one statement
+                // would report one reference as two.
                 w.Line(PlaceRenderer.Write(p, RuntimeApi.NumFormatImage(
-                    $"{RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
+                    $"{RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending: false)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
                 return;
             }
         }

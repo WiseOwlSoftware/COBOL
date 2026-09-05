@@ -206,8 +206,10 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
         w.Line("return 0;   // GR19c — equal on every key; OrderBy stability keeps the pre-sort order (GR3c)");
         w.Outdent();
         w.Line("};");
-        w.Line($"var __ts{id} = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.OrderBy("
-            + $"__ta{id}, __e => __e, System.Collections.Generic.Comparer<{elem}>.Create(__tc{id})));");
+        // Through CobolTable.Sorted, never a bare Enumerable.OrderBy: the framework's array sort re-throws a
+        // comparer's exception as InvalidOperationException, which would hide a key comparison's fatal COBOL
+        // exception condition from the statement guard (kb/Work PB230 — measured, not deduced).
+        w.Line($"var __ts{id} = {RuntimeApi.TableSorted($"__ta{id}", $"__tc{id}")};");
         w.Line($"System.Array.Copy(__ts{id}, __ta{id}, __ts{id}.Length);   // GR24 — placed back in data-name-2");
     }
 
@@ -241,8 +243,10 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
                 : LoudValue("int", TierCIsland.Reason($"table-sort key '{k.CobolName}' over a mixed-usage group"));
         return k.Pic switch
         {
+            // sending: true — a key comparison REFERENCES the content of both operands, so §14.6.13.2 rule 2
+            // applies to a windowed numeric key exactly as it does to an arithmetic operand (kb/Work PB230).
             { Category: PicCategory.Numeric, IsFloat: false } when k.StoreAsImage =>
-                $"{RuntimeApi.NumParseImage(pa, k.ProfileName)}.CompareTo({RuntimeApi.NumParseImage(pb, k.ProfileName)})",
+                $"{RuntimeApi.NumParseImage(pa, k.ProfileName, sending: true)}.CompareTo({RuntimeApi.NumParseImage(pb, k.ProfileName, sending: true)})",
             { Category: PicCategory.Numeric, IsFloat: false } => $"({pa}).CompareTo({pb})",
             { Category: PicCategory.Numeric } => $"({pa}).CompareTo({pb})",   // COMP-1/2 — IEEE value order
             _ => RuntimeApi.StrCompare(pa, pb, weightsArg),

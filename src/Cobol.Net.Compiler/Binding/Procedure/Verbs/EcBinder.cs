@@ -525,9 +525,23 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // which this sees through the BoundSequence recursion.
             if (node is BoundMove && ctx.EcState.Turn.Enabled("EC-DATA-OVERFLOW", null, line))
                 enabled.Add(("EC-DATA-OVERFLOW", null));
-            // EC-DATA-INCOMPATIBLE (fatal, §14.6.13.2 rule 4): a de-editing MOVE whose numeric-edited sender holds content
-            // no editing operation could have produced — the floating-point edited de-edit consults it (D21/PB66).
-            if (node is BoundMove && ctx.EcState.Turn.Enabled("EC-DATA-INCOMPATIBLE", null, line))
+            // EC-DATA-INCOMPATIBLE (fatal, §14.6.13.2) rides an AMBIENT per-statement gate, exactly like its own
+            // sibling EC-DATA-NOT-FINITE above — the two are rules 3 and 2/4 of ONE clause about one subject, the
+            // content of a sending operand that is not valid, and they get one shape.
+            // ⛔ THIS USED TO READ `node is BoundMove &&`, AND THAT NODE-KIND TEST WAS THE WHOLE DEFECT
+            // (kb/Work PB230). It scoped the family to rule 4 — "a numeric-edited data item is the sending operand
+            // of a de-editing MOVE" — while rule 2 is not MOVE-specific at all: "When the content of a numeric
+            // sending item that is not described with a standard floating-point usage is REFERENCED DURING THE
+            // EXECUTION OF A STATEMENT and the content of that sending operand would evaluate to false in a
+            // numeric class condition … an EC-DATA-INCOMPATIBLE exception condition is set to exist". So ADD,
+            // SUBTRACT, MULTIPLY, DIVIDE, COMPUTE, every CORRESPONDING form (§14.7.6's last paragraph aggregates
+            // the implied statements' condition), every comparison, DISPLAY, STRING, SORT — and a plain numeric
+            // MOVE — were not even made CHECKABLE, so a program that explicitly asked to be checked was not.
+            // A node-kind list is what produced that, so there is no node-kind list any more: the raise fires
+            // only at an actual windowed sending read (CobolNum.ParseImageSending / SendingImage, and
+            // CobolEdit.DeEdit for rule 4), so the guard around a statement with no such read is a no-op —
+            // the same conservative-wrap argument every ambient family above rests on.
+            if (ctx.EcState.Turn.Enabled("EC-DATA-INCOMPATIBLE", null, line))
                 enabled.Add(("EC-DATA-INCOMPATIBLE", null));
         }
         QueryFor(bound);

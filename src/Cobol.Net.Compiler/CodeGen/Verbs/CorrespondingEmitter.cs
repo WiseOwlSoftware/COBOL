@@ -7,7 +7,7 @@ namespace CobolNet.CodeGen;
 
 /// <summary>The MOVE/ADD/SUBTRACT CORRESPONDING emitter (P7 Step 9c — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name).</summary>
-internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num, MoveEmitter move, ArithmeticEmitter arith)
+internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num, MoveEmitter move, ArithmeticEmitter arith, EcEmitter ec)
 {
     /// <summary>
     /// MOVE/ADD/SUBTRACT CORRESPONDING (ISO §14.7.6): render the bind-time-expanded pairs as the per-pair implied
@@ -23,8 +23,11 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
         if (c.Verb is CorrVerb.Move)
         {
             EmitHoists(c.Hoists);
-            foreach (var p in c.Pairs)
-                move.Emit(new BoundMove(new BoundFieldOperand(p.Source), [p.Target]));
+            Deferred(() =>
+            {
+                foreach (var p in c.Pairs)
+                    move.Emit(new BoundMove(new BoundFieldOperand(p.Source), [p.Target]));
+            });
             return;
         }
         // ADD GR3 (§14.9.2.4): target ← target + source. SUBTRACT GR3 (§14.9.44.4): "data items in identifier-4
@@ -35,15 +38,43 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
         arith.EmitArith(c.SizeError, ise =>
         {
             EmitHoists(c.Hoists);
-            foreach (var p in c.Pairs)
+            Deferred(() =>
             {
-                // ONE rounded-phrase mode for every pair (§14.7.4).
-                var rcv = arith.RcvFor(new Receiver(p.Target, c.Rounding), ise);
-                arith.StoreArith(p.Target,
-                    num.Combine(num.FieldNum(p.Target), op, num.FieldNum(p.Source), rcv),
-                    c.Rounding);
-            }
+                foreach (var p in c.Pairs)
+                {
+                    // ONE rounded-phrase mode for every pair (§14.7.4).
+                    var rcv = arith.RcvFor(new Receiver(p.Target, c.Rounding), ise);
+                    arith.StoreArith(p.Target,
+                        num.Combine(num.FieldNum(p.Target), op, num.FieldNum(p.Source), rcv),
+                        c.Rounding);
+                }
+            });
         });
+    }
+
+    /// <summary>
+    /// Run the implied statements inside the §14.7.6 EC-DATA-INCOMPATIBLE DEFERRAL region: "For any statement
+    /// with the CORRESPONDING phrase, if any of the implied statements would set the EC-DATA-INCOMPATIBLE
+    /// exception condition to exist, the EC-DATA-INCOMPATIBLE exception condition is set to exist AFTER ALL OF
+    /// THE IMPLIED STATEMENTS ARE COMPLETED."
+    /// <para>Without the region a pair-1 raise would abandon pairs 2..n — exactly what that sentence forbids —
+    /// because EC-DATA-INCOMPATIBLE is fatal (Table 13) and the per-pair sending reads raise inline. The runtime
+    /// LATCHES the first detail instead; the region is left in a <c>finally</c> so an unrelated fatal still exits
+    /// it, and the deferred raise is emitted AFTER the try so it can never displace an exception already in
+    /// flight. The shape is §14.7.6's SIZE ERROR paragraph's: one latching flag, one dispatch after all pairs.</para>
+    /// <para>Emitted only when EC-DATA-INCOMPATIBLE checking is enabled for this statement — with checking off
+    /// no pair can raise, so the region would be pure overhead and the output stays byte-identical.</para>
+    /// </summary>
+    private void Deferred(Action emitPairs)
+    {
+        if (!ec.Enabled("EC-DATA-INCOMPATIBLE")) { emitPairs(); return; }
+        var w = ctx.Writer;
+        string pending = $"__corrInc{ctx.Names.NextEc()}";
+        w.Line($"string? {pending} = null;");
+        w.Line("ExceptionState.DataIncompatibleDeferBegin();");
+        using (w.Block("try")) emitPairs();
+        w.Line($"finally {{ {pending} = ExceptionState.DataIncompatibleDeferEnd(); }}");
+        w.Line($"if ({pending} is not null) ExceptionState.DataIncompatibleError({pending});");
     }
 
     /// <summary>Anchor each group operand ONCE before the first pair (§14.7.6 — all item identification, including
