@@ -1230,8 +1230,16 @@ believed.** No compiler behaviour changed; every change is to a gate, a guard or
 — that row is NOT closed**, and the honest reason is in it. New: **A13** (battery concurrency; half done). The rule now written down once and
 implemented everywhere is **DESIGN-test-build-ci.md §3.10, the VERDICT-EVIDENCE INVARIANT**: a verdict about the
 compiler is produced ONLY from an observation actually made — accept needs its artifact, reject needs its
-diagnostic, MATCH/DIFF needs a run that finished — and anything else is a LOUD `NO-VERDICT`, never a silent pass
-and never a manufactured failure. Every iterating harness also asserts that its results are a **PARTITION of its
+diagnostic, MATCH/DIFF needs a run that finished **and a comparison that completed over output that exists** —
+and anything else is a LOUD `NO-VERDICT`, never a silent pass and never a manufactured failure.
+⚠ **THAT THIRD ARM IS AN AMENDMENT OF 2026-09-04, and the wave shipped without it** (`kb/Work/PB473`). This wave
+hardened the COMPILE and RUN arms of the NIST guards and left the COMPARE arm reading every non-zero `diff` exit
+as "not this file", so an absent report, a `diff` that could not tell, or a process substitution that delivered
+short data all landed on `DIFF — REGRESSION!` beside a genuine wrong answer. Battery #43's only red, `IF141A`,
+was manufactured exactly that way over a report byte-identical to its golden. Two arms fixed and one left is
+this repository's most reproducible defect shape — **when a rule has arms, count them.** The rules now live in
+ONE file (`scripts/guard-verdict.sh`) that both guards source, the comparison reads real files instead of
+`<(…)` plumbing it cannot check, and `guard-verify.sh` carries 21 witnesses that assert what each verdict MEANS. Every iterating harness also asserts that its results are a **PARTITION of its
 declared population**, compared against a COMMITTED MANIFEST rather than a remembered number.
 ⭐ **Two things that generalise beyond this wave.**
 · **The same fifteen lines existed SEVEN times** (start `dotnet`, wait N s, return whatever came back) across five

@@ -7,23 +7,17 @@
 #   $3 = ordered, space-separated test names that must share a dir + run order (a producer/consumer chain, or a
 #        single self-contained test)
 #
-# Mirrors scripts/guard.sh's per-test run+compare logic EXACTLY (same normalize, same outfile/print-file/stdout
-# resolution, same FAIL*/footer rules) so a verdict here is identical to the serial guard's — only the working
-# directory differs. The dir starts clean (mktemp) and is NOT cleaned between tests within the group, so a chain's
-# shared TF### data files accumulate in declaration order exactly as they do in the serial guard's shared dir.
+# Mirrors scripts/guard.sh's per-test run+compare logic EXACTLY (same outfile/print-file/stdout resolution, same
+# FAIL*/footer rules) so a verdict here is identical to the serial guard's — only the working directory differs.
+# ⭐ THAT IS NO LONGER A PROMISE KEPT BY HAND: both guards call scripts/guard-verdict.sh, the ONE implementation
+# of the evidence rules (`feedback_one_rule_one_place`). The prose used to say the two blocks were kept
+# "character-for-character in step", and they had already drifted (this file's normalize() carried a `[ -f ]`
+# guard guard.sh's did not) while sharing every hole kb/Work/PB473 found.
+# The dir starts clean (mktemp) and is NOT cleaned between tests within the group, so a chain's shared TF### data
+# files accumulate in declaration order exactly as they do in the serial guard's shared dir.
 #
-# ⛔ THE EVIDENCE RULES (plan §11 A12b/A12d; DESIGN-test-build-ci.md §3.10). A verdict about the COMPILER is
-# produced ONLY from an observation this script actually made. The defect these close is one sentence:
-# A MISSING OBSERVATION WAS BEING READ AS A NEGATIVE OBSERVATION.
-#   · COMPILE — a missing .dll used to BE the verdict "COMPILE FAILED". It is not: at -P32 a transient (host
-#     startup, memory pressure, a file lock) leaves no .dll and is indistinguishable from a real syntax error,
-#     and the compiler's own diagnostics — which settle it instantly — were being sent to /dev/null. A compile
-#     is now FAILED only with a non-zero rc AND diagnostic text; anything else is COMPILE NO-VERDICT.
-#   · RUN — the run's exit status was discarded by `|| true`, so a program killed or timed out mid-write left a
-#     TRUNCATED report that was then scored `DIFF — REGRESSION!`. That manufactures a regression out of a lost
-#     result. A non-match is now scored only when the process RAN TO COMPLETION; otherwise RUN NO-VERDICT.
-# A NO-VERDICT is never MATCH and never REGRESSION — it is an explicit failure of the run to observe anything,
-# and scripts/guard-nist-audit.sh treats it as a finding.
+# ⛔ THE EVIDENCE RULES (plan §11 A12b/A12d; DESIGN-test-build-ci.md §3.10) live in scripts/guard-verdict.sh and
+# cover all THREE arms — compile, run and compare. Read that file's header for what each one requires and why.
 set -u
 
 ROOT="$1"; GROUP="$2"; TESTS="$3"
@@ -35,36 +29,26 @@ RUNTIME="$ROOT/src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll"
 # conservative direction — and it is loud, so it gets read rather than absorbed.
 RUN_TIMEOUT="${GUARD_RUN_TIMEOUT:-120}"
 
+# THE evidence rules (compile · run · compare), shared with scripts/guard.sh.
+. "$(cd "$(dirname "$0")" && pwd)/guard-verdict.sh"
+
 WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
+# The comparison's scratch — DELIBERATELY OUTSIDE $WORK. The normalized copies must never become inputs to the
+# next test in a chain (a group's dir is shared by design and IX216A/IX217A are canaries for any stray file).
+CMP="$WORK.cmp"
+mkdir -p "$CMP"
+trap 'rm -rf "$WORK" "$CMP"' EXIT
 cp "$RUNTIME" "$WORK/"
 export COBOL_SWITCH_1=ON
-
-# tr -d '\r' FIRST (CRLF golden vs LF program output on Linux); must precede 's/ *$//' which is a no-op while a
-# trailing \r remains. Idempotent on Windows. See the matching note in scripts/guard.sh.
-# ⚠ The `[ -f ]` guard is load-bearing, not defensive tidiness. The fallback candidates (print-file.txt, the
-# lowercase report) legitimately do not exist for most tests, and `tr < "$1" 2>/dev/null` does NOT suppress the
-# resulting message: bash applies the INPUT redirection before `2>/dev/null` takes effect, so the shell's "No
-# such file or directory" escapes to stderr. That was invisible while the group runner's stderr went to
-# /dev/null; now that guard-fast CAPTURES that channel (so a group dying can never again be silent), the noise
-# would drown the signal — and a channel people learn to ignore is no better than one nobody reads.
-normalize() { [ -f "$1" ] || return 0; tr -d '\r' < "$1" | sed 's/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/'; }
 
 for test in $TESTS; do
     dll="$OUT/$test.dll"
     if [ ! -f "$dll" ]; then
-        # EVIDENCE RULE (compile): "no .dll" is not a compiler verdict on its own — see the header.
+        # EVIDENCE RULE (compile): "no .dll" is not a compiler verdict on its own — see guard-verdict.sh.
         clog="$OUT/$test.compile.log"
         crc="$(cat "$OUT/$test.compile.rc" 2>/dev/null || echo "")"
-        if [ -n "$crc" ] && [ "$crc" != "0" ] && [ -s "$clog" ]; then
-            echo "$test: COMPILE FAILED — REGRESSION! (rc=$crc: $(head -1 "$clog" | tr -d '\r' | cut -c1-110))"
-        elif [ -z "$crc" ]; then
-            echo "$test: COMPILE NO-VERDICT (the compile never reported an exit status) — NOT SCORED"
-        elif [ "$crc" = "0" ]; then
-            echo "$test: COMPILE NO-VERDICT (rc=0 but no .dll — contradictory evidence) — NOT SCORED"
-        else
-            echo "$test: COMPILE NO-VERDICT (rc=$crc with NO diagnostic — a rejection with no reason is a lost result) — NOT SCORED"
-        fi
+        guard_compile_verdict "$test" "$crc" "$clog"
+        echo "$test: $GUARD_VERDICT"
         continue
     fi
     cp "$dll" "$WORK/"
@@ -97,34 +81,14 @@ for test in $TESTS; do
         continue ;;
     esac
 
-    actual=""
-    if   diff <(normalize "$validfile") <(normalize "$WORK/$outfile")        >/dev/null 2>&1; then actual="$WORK/$outfile"
-    elif diff <(normalize "$validfile") <(normalize "$WORK/print-file.txt")  >/dev/null 2>&1; then actual="$WORK/print-file.txt"
-    elif diff <(normalize "$validfile") <(normalize "$stdoutfile")           >/dev/null 2>&1; then actual="$stdoutfile"
-    fi
-
-    if [ -z "$actual" ]; then
-        # Nothing matched. Before calling that a REGRESSION, ask whether the program actually ran — a killed or
-        # timed-out process leaves a TRUNCATED report that diffs exactly like a wrong answer does.
-        if [ "$rrc" -eq 124 ] || [ "$rrc" -eq 137 ]; then
-            echo "$test: RUN NO-VERDICT (timeout/kill after ${RUN_TIMEOUT}s, rc=$rrc) — NOT SCORED"
-        elif [ "$rrc" -gt 128 ]; then
-            echo "$test: RUN NO-VERDICT (killed by signal $((rrc - 128))) — NOT SCORED"
-        elif [ "$rrc" -ne 0 ]; then
-            echo "$test: DIFF — REGRESSION! (run exited $rrc: $(head -1 "$errfile" 2>/dev/null | tr -d '\r' | cut -c1-110))"
-        else
-            echo "$test: DIFF — REGRESSION!"
-        fi
-        continue
-    fi
-
-    fc=$(grep -c "FAIL\*" "$actual" 2>/dev/null || true); fc=${fc:-0}
-    ff=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$actual" 2>/dev/null | grep -oE "^[0-9]+" | head -1); ff=${ff:-0}
-    if [ "$ff" -gt 0 ] 2>/dev/null; then
-        echo "$test: FOOTER ${ff} TEST(S) FAILED — REGRESSION!"
-    elif [ "$fc" -gt 0 ] 2>/dev/null; then
-        echo "$test: MATCH (${fc} FAIL*)"
-    else
-        echo "$test: MATCH"
+    # RUN + COMPARE arms, scored by the shared evidence rules (candidates in preference order).
+    guard_output_verdict "$test" "$validfile" "$rrc" "$errfile" "$RUN_TIMEOUT" "$CMP" \
+        "$WORK/$outfile" "$WORK/print-file.txt" "$stdoutfile"
+    echo "$test: $GUARD_VERDICT"
+    if [ "$GUARD_CLASS" != "match" ]; then
+        # Anything but a MATCH is worth a post-mortem, and this dir dies with the group. Keep the evidence.
+        guard_preserve "$test" "$GUARD_VERDICT" \
+            "$WORK/$outfile" "$WORK/print-file.txt" "$stdoutfile" "$errfile" \
+            "$CMP/expected.norm" "$CMP/actual.norm"
     fi
 done

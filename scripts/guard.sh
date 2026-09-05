@@ -172,12 +172,19 @@ export COBOL_SWITCH_1=ON
 #                      only at OPEN, so mid-run MOVEs to the LINAGE data-names never took effect (page stuck at 66).
 LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M ST146A SQ101M SQ208M SQ210M"
 
-# ⛔ THE EVIDENCE RULES + THE VERDICT AUDIT (plan §11 A12b/A12c; DESIGN-test-build-ci.md §3.10) — kept
-# CHARACTER-FOR-CHARACTER in step with scripts/guard-run-group.sh, because guard-verify.sh proves the two
-# guards equivalent by DIFFING these very lines. A verdict is produced only from an observation actually made:
-# a compile is FAILED only with a non-zero rc AND diagnostic text; a non-matching run is a DIFF only if the
-# process RAN TO COMPLETION. Anything else is a NO-VERDICT — never MATCH, never REGRESSION.
+# ⛔ THE EVIDENCE RULES + THE VERDICT AUDIT (plan §11 A12b/A12c; DESIGN-test-build-ci.md §3.10). A verdict is
+# produced only from an observation actually made: a compile is FAILED only with a non-zero rc AND diagnostic
+# text; a non-matching run is a DIFF only if the process RAN TO COMPLETION and the COMPARISON itself completed
+# over output that exists. Anything else is a NO-VERDICT — never MATCH, never REGRESSION.
+# ⭐ THE RULES LIVE IN ONE PLACE: scripts/guard-verdict.sh, sourced by this guard AND by guard-run-group.sh. The
+# comment here used to say the two blocks were kept "character-for-character in step" by hand; they had already
+# drifted, and both carried the compare-arm hole kb/Work/PB473 found in battery #43.
+# A non-MATCH's evidence outlives $GUARD_WORK, which the EXIT trap deletes (PB473 item 4). Set BEFORE the
+# source: guard-verdict.sh installs its own standalone default, and `:-` would then keep that one.
+GUARD_FORENSICS="${GUARD_FORENSICS:-${TMPDIR:-/tmp}/nist-forensics.$$}"
+. "$(dirname "$0")/guard-verdict.sh"
 RUN_TIMEOUT="${GUARD_RUN_TIMEOUT:-120}"
+CMPDIR="$GUARD_WORK/compare"
 VERDICTS="$GUARD_WORK/verdicts.txt"; : > "$VERDICTS"
 v() { echo "  $1: $2"; echo "$1: $2" >> "$VERDICTS"; }     # one verdict line, echoed AND recorded
 
@@ -198,14 +205,9 @@ for test in $NIST_TESTS; do
     crc=0
     dotnet "$CLI" --nist "$NIST_PROGS/$test.cob" -o "$NIST_OUT/$test.dll" > "$clog" 2>&1 || crc=$?
     if [ "$crc" -ne 0 ] || [ ! -f "$NIST_OUT/$test.dll" ]; then
-        if [ "$crc" -ne 0 ] && [ -s "$clog" ]; then
-            v "$test" "COMPILE FAILED — REGRESSION! (rc=$crc: $(head -1 "$clog" | tr -d '\r' | cut -c1-110))"
-            FAILURES=$((FAILURES + 1))
-        elif [ "$crc" -eq 0 ]; then
-            v "$test" "COMPILE NO-VERDICT (rc=0 but no .dll — contradictory evidence) — NOT SCORED"
-        else
-            v "$test" "COMPILE NO-VERDICT (rc=$crc with NO diagnostic — a rejection with no reason is a lost result) — NOT SCORED"
-        fi
+        guard_compile_verdict "$test" "$crc" "$clog"
+        v "$test" "$GUARD_VERDICT"
+        if [ "$GUARD_CLASS" = "regression" ]; then FAILURES=$((FAILURES + 1)); fi
         continue
     fi
 
@@ -239,57 +241,16 @@ for test in $NIST_TESTS; do
         continue ;;
     esac
 
-    # Normalize: strip CR (CRLF->LF), then trailing spaces, then time-dependent COMPUTED values.
-    # tr -d '\r' must come FIRST: the golden $NIST_VALID/*.txt are CRLF; a compiled program's DISPLAY uses
-    # Console.WriteLine = platform newline (\r\n on Windows, \n on Linux/CI), so on Linux the actual output is
-    # LF. Order matters — 's/ *$//' is a no-op while a trailing \r still sits at end-of-line, so squeezing spaces
-    # before stripping CR would leave the two sides unequal (a false REGRESSION). Idempotent on Windows.
-    normalize() { tr -d '\r' < "$1" 2>/dev/null | sed 's/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/'; }
-
-    # Find the actual output file (outfile, print-file, or stdout)
-    actual=""
-    if diff <(normalize "$validfile") <(normalize "$NIST_OUT/$outfile") > /dev/null 2>&1; then
-        actual="$NIST_OUT/$outfile"
-    elif diff <(normalize "$validfile") <(normalize "$NIST_OUT/print-file.txt") > /dev/null 2>&1; then
-        actual="$NIST_OUT/print-file.txt"
-    elif diff <(normalize "$validfile") <(normalize "$stdoutfile") > /dev/null 2>&1; then
-        actual="$stdoutfile"
-    fi
-
-    if [ -z "$actual" ]; then
-        # Nothing matched — but a killed or timed-out process leaves a TRUNCATED report that diffs exactly
-        # like a wrong answer does. Score a regression only where the run actually finished.
-        if [ "$rrc" -eq 124 ] || [ "$rrc" -eq 137 ]; then
-            v "$test" "RUN NO-VERDICT (timeout/kill after ${RUN_TIMEOUT}s, rc=$rrc) — NOT SCORED"
-        elif [ "$rrc" -gt 128 ]; then
-            v "$test" "RUN NO-VERDICT (killed by signal $((rrc - 128))) — NOT SCORED"
-        elif [ "$rrc" -ne 0 ]; then
-            v "$test" "DIFF — REGRESSION! (run exited $rrc: $(head -1 "$errfile" 2>/dev/null | tr -d '\r' | cut -c1-110))"
-            FAILURES=$((FAILURES + 1))
-        else
-            v "$test" "DIFF — REGRESSION!"
-            FAILURES=$((FAILURES + 1))
-        fi
-        continue
-    fi
-
-    # Check for FAIL* in output — these are real test failures, not acceptable baselines
-    fail_count=$(grep -c "FAIL\*" "$actual" 2>/dev/null || true)
-    fail_count=${fail_count:-0}
-    # Footer-total check: the AUTHORITATIVE CCVS pass/fail signal is the report footer
-    # "NNN TEST(S) FAILED" total, not just the per-paragraph FAIL* detail lines. A test can
-    # fail-to-execute (e.g. "000 OF 001 EXECUTED" + "001 TEST(S) FAILED") with ZERO FAIL* detail
-    # lines, which the FAIL*-grep alone would pass as MATCH (the IX108A false-green). "NO TEST(S)
-    # FAILED" does not match [0-9]+ so it is treated as zero.
-    footer_failed=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$actual" 2>/dev/null | grep -oE "^[0-9]+" | head -1)
-    footer_failed=${footer_failed:-0}
-    if [ "$footer_failed" -gt 0 ] 2>/dev/null; then
-        v "$test" "FOOTER ${footer_failed} TEST(S) FAILED — REGRESSION!"
-        FAILURES=$((FAILURES + 1))
-    elif [ "$fail_count" -gt 0 ] 2>/dev/null; then
-        v "$test" "MATCH (${fail_count} FAIL*)"
-    else
-        v "$test" "MATCH"
+    # RUN + COMPARE arms — normalization, candidate resolution (outfile, print-file, stdout), the FAIL*/footer
+    # rules and the evidence rules all live in scripts/guard-verdict.sh, which guard-run-group.sh calls too.
+    guard_output_verdict "$test" "$validfile" "$rrc" "$errfile" "$RUN_TIMEOUT" "$CMPDIR" \
+        "$NIST_OUT/$outfile" "$NIST_OUT/print-file.txt" "$stdoutfile"
+    v "$test" "$GUARD_VERDICT"
+    if [ "$GUARD_CLASS" = "regression" ]; then FAILURES=$((FAILURES + 1)); fi
+    if [ "$GUARD_CLASS" != "match" ]; then
+        guard_preserve "$test" "$GUARD_VERDICT" \
+            "$NIST_OUT/$outfile" "$NIST_OUT/print-file.txt" "$stdoutfile" "$errfile" \
+            "$CMPDIR/expected.norm" "$CMPDIR/actual.norm"
     fi
 done
 
@@ -302,6 +263,10 @@ bash "$(dirname "$0")/guard-nist-audit.sh" "$VERDICTS" "$GUARD_WORK/population.t
 
 if [ $FAILURES -gt 0 ] || [ $NIST_AUDIT -ne 0 ]; then
     echo "=== $FAILURES NIST REGRESSION(S), audit rc=$NIST_AUDIT ==="
+    if [ -d "$GUARD_FORENSICS" ]; then
+        echo "=== EVIDENCE for every non-MATCH (report, stdout, stderr, both normalized sides): $GUARD_FORENSICS ==="
+        ls "$GUARD_FORENSICS"
+    fi
     exit 1
 fi
 

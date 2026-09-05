@@ -59,6 +59,13 @@ INT=$!
 el "=== NIST: parallel compile + grouped parallel run (JOBS=$JOBS compile=$CJOBS run=$RJOBS) ==="
 # Authoritative test list — extracted from guard.sh's NIST_TESTS so the two never drift.
 TESTS=$(sed -n '/^NIST_TESTS="/,/^"/p' scripts/guard.sh | grep -vE '^NIST_TESTS=|^"$' | tr '\n' ' ')
+# GUARD_TESTS overrides the population with a subset — the SAME override guard.sh honours, so a subset can be
+# driven through BOTH guards (guard-verify.sh does exactly that). The audit still applies in full: it takes the
+# population as an argument. ⚠ A subset run is NOT the regression gate; it proves the loop, not the corpus.
+if [ -n "${GUARD_TESTS:-}" ]; then
+    el "  ⚠ GUARD_TESTS override in effect — running a SUBSET, not the regression gate: $GUARD_TESTS"
+    TESTS="$GUARD_TESTS"
+fi
 # The POPULATION, written down so the audit can assert against it rather than against a remembered count.
 POP="$TMP/gf_population.txt"
 echo "$TESTS" | tr ' ' '\n' | grep . | sort > "$POP"
@@ -150,6 +157,12 @@ el "=== NIST: $(wc -l < "$SPEC") isolated groups from the declared chain graph (
 # take its programs' verdict lines with it in total silence — the mechanism behind the SQ135A false green.
 RESULTS="$TMP/gf_results.txt"
 GROUPERR="$TMP/gf_group_stderr.txt"
+# ⛔ A NON-MATCH'S EVIDENCE OUTLIVES ITS GROUP (kb/Work/PB473 item 4). Every group's work dir is a mktemp the
+# group's own EXIT trap deletes, so battery #43's one red had nothing left to examine and attributing it took
+# hours. Run-scoped, and written to ONLY when a group scores something other than MATCH.
+GUARD_FORENSICS="${GUARD_FORENSICS:-$TMP/gf_forensics}"
+export GUARD_FORENSICS
+rm -rf "$GUARD_FORENSICS"
 xargs -P"$RJOBS" -a "$SPEC" -I LINE bash -c \
   'line="LINE"; bash "$ROOT/scripts/guard-run-group.sh" "$ROOT" "${line%%|*}" "${line#*|}"' \
   > "$RESULTS" 2>"$GROUPERR"
@@ -171,7 +184,12 @@ fi
 # because it re-ran only the programs that had SAID "NO-VERDICT". The population minus the observed programs is
 # the other half of "lost", and it is re-taken by the same serial mechanism (a clean serial re-run is what a
 # lost result needs; the audit still fails on anything unobserved after that).
-LOST=$( { grep -E "NO-VERDICT" "$RESULTS" | sed 's/:.*//'; comm -23 "$POP" <(sed 's/:.*//' "$RESULTS" | sort -u); } | sort -u | tr '\n' ' ')
+# ⚠ NO PROCESS SUBSTITUTION HERE. `comm -23 "$POP" <(…)` reads one side through /dev/fd/N, and a short delivery
+# there would silently shrink the "lost" set — the same plumbing that manufactured battery #43's false
+# regression (kb/Work/PB473). Both sides are real files whose writes have completed.
+REPORTED="$TMP/gf_reported.txt"
+sed 's/:.*//' "$RESULTS" | sort -u > "$REPORTED"
+LOST=$( { grep -E "NO-VERDICT" "$RESULTS" | sed 's/:.*//'; comm -23 "$POP" "$REPORTED"; } | sort -u | tr '\n' ' ')
 if [ -n "${LOST// /}" ]; then
     el "=== NIST: re-observing $(echo "$LOST" | wc -w) lost result(s) SERIALLY: $LOST ==="
     RETRY_SPEC="$TMP/gf_retry.txt"; : > "$RETRY_SPEC"
@@ -236,4 +254,8 @@ if [ "$NIST_FAILS" -eq 0 ] && [ "$NIST_AUDIT" -eq 0 ] && [ "$UNIT_RC" -eq 0 ] &&
     exit 0
 fi
 echo "=== FAILURES: nist=$NIST_FAILS audit=$NIST_AUDIT unit_rc=$UNIT_RC int_rc=$INT_RC baselines=$BASE_FAILS ==="
+if [ -d "$GUARD_FORENSICS" ]; then
+    echo "=== EVIDENCE for every non-MATCH (report, stdout, stderr, both normalized sides): $GUARD_FORENSICS ==="
+    ls "$GUARD_FORENSICS"
+fi
 exit 1
