@@ -1,6 +1,46 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime.IO;
+
+/// <summary>
+/// The run unit's USE BEFORE REPORTING RANGE (ISO/IEC 1989:2023 §14.9.49.4 GR10): "If a GENERATE, INITIATE,
+/// or TERMINATE statement is executed within the range of a declarative procedure whose USE statement contains
+/// the BEFORE REPORTING phrase, the EC-FLOW-REPORT exception condition is set to exist, the result of the
+/// execution of the GENERATE, INITIATE, or TERMINATE statement is unsuccessful, and the state of the report is
+/// unchanged."
+///
+/// <para>⛔ THE RANGE IS THE RUN UNIT'S — not one report's, and not one program's. It is DYNAMIC (the standard's
+/// other flow rules read the same way: §14.9.32.4 GR1 makes a RELEASE legal only "within the range of an input
+/// procedure being executed by a SORT statement"), and GR10 attaches NO element qualifier where its nearest
+/// neighbour §14.9.18.4 GR6 attaches one explicitly for EC-FLOW-GLOBAL-GOBACK ("… and that USE statement is
+/// specified in the same program as the GOBACK statement"). The standard says "the same program" when it means
+/// it; GR10 does not. So a declarative on report R-1 that reaches a GENERATE of a SECOND report — or, through a
+/// CALL, a report of another runtime element — is still inside the range, and a per-<see cref="CobolReport"/>
+/// flag would be exactly the one-arm-of-two dispatch this project keeps rediscovering.</para>
+///
+/// <para>A DEPTH rather than a bool: §14.9.49.4 GR2's re-entrancy guard blocks re-invocation of an ACTIVE use
+/// procedure, but two DIFFERENT groups' declaratives nest routinely (a control footing presented from inside a
+/// detail group's presentation), and only a counter survives that.</para>
+/// </summary>
+public sealed class ReportFlowState
+{
+    private int _depth;
+
+    /// <summary>True while control is anywhere inside a USE BEFORE REPORTING declarative procedure.</summary>
+    public bool InBeforeReporting => _depth > 0;
+
+    /// <summary>Enter a USE BEFORE REPORTING declarative (§14.9.49.4 GR8 — just before the group is produced).</summary>
+    public void Enter() => _depth++;
+
+    /// <summary>Leave a USE BEFORE REPORTING declarative. Called from a <c>finally</c>, so a fatal EC thrown out
+    /// of the declarative cannot leave the run unit permanently inside the range.</summary>
+    public void Exit()
+    {
+        if (_depth > 0) _depth--;
+    }
+}
 
 /// <summary>The seven report group types (ISO/IEC 1989:2023 §13.18.57 TYPE clause Format 2). DETAIL,
 /// CONTROL HEADING and CONTROL FOOTING are the BODY groups (§13.18.57.3 SR15) — the page-fit machinery applies
@@ -188,12 +228,43 @@ public sealed class CobolReport(
 
     /// <summary>INITIATE this report (ISO §14.9.21.4 GR1): sum counters ← 0 (GR1a; size-error indicators are the
     /// EC-REPORT-SUM-SIZE seam — checking default-off, COBOLNET_DESIGN §18.16), LINE-COUNTER ← 0 (GR1b),
-    /// PAGE-COUNTER ← 1 (GR1c); the report becomes active (GR4). GR2: INITIATE of an ACTIVE report has no other
-    /// effect (EC-REPORT-ACTIVE seam). GR3: the file is NOT opened here — it must already be open OUTPUT/EXTEND
-    /// (EC-REPORT-FILE-MODE seam; an unopened connector's writes set its FILE STATUS, never crash).</summary>
+    /// PAGE-COUNTER ← 1 (GR1c); the report becomes active (GR4). GR2: an INITIATE of an ACTIVE report raises
+    /// EC-REPORT-ACTIVE and has no other effect. GR3: the file is NOT opened here — it must ALREADY be open in the
+    /// output or the extend mode, and when it is not, EC-REPORT-FILE-MODE is raised and no action is taken on the
+    /// report. §14.9.49.4 GR10 outranks both: inside a USE BEFORE REPORTING range the statement is unsuccessful
+    /// (EC-FLOW-REPORT) and the report's state is unchanged. All three raises are >>TURN-gated; all three RETURNS
+    /// are unconditional, because the standard states each lenient outcome outright (kb/Work PB326).</summary>
     public void Initiate()
     {
-        if (_active) return;   // §14.9.21.4 GR2 — EC-REPORT-ACTIVE seam (default-off), no other effect
+        // §14.9.49.4 GR10 — inside a USE BEFORE REPORTING range the statement is unsuccessful and the state of
+        // the report is unchanged. The RETURN is UNCONDITIONAL: GR10 states that outcome outright, so it holds
+        // whether or not EC-FLOW-REPORT checking is enabled; only the RAISE is gated (§14.6.13.1.1).
+        if (RunUnit.Current.ReportFlow.InBeforeReporting)
+        {
+            ExceptionState.FlowReportError($"INITIATE {Name}: executed within the range of a USE BEFORE "
+                + "REPORTING declarative procedure (ISO §14.9.49.4 GR10)");
+            return;
+        }
+        if (_active)   // §14.9.21.4 GR2 — "the execution of the INITIATE statement has no other effect"
+        {
+            ExceptionState.ReportActiveError($"INITIATE {Name}: the report is already in the active state "
+                + "(ISO §14.9.21.4 GR2)");
+            return;
+        }
+        // §14.9.21.4 GR3 — "the INITIATE statement may be executed only if the corresponding file connector is
+        // open in the extend mode or the output mode. If the file connector is not open in the output or extend
+        // mode, the EC-REPORT-FILE-MODE exception condition is set to exist and no action is taken on the
+        // report." This is the DETECTION half of §14.9.27.4 GR7 ("The OPEN statement for a report file connector
+        // shall be executed before the execution of an INITIATE statement that references a report-name that is
+        // associated with file-name-1"); the other half — that nothing opens a report file connector implicitly
+        // — holds by construction. OpenModeIfOpen, NOT OpenModeOf: the §14.9.49.4 GR6b view also answers with the
+        // ATTEMPTED mode of a FAILED open, and an INITIATE after an unsuccessful OPEN OUTPUT must not proceed.
+        if (CobolFile.OpenModeIfOpen(_fileName) is not (FileOpenMode.Output or FileOpenMode.Extend))
+        {
+            ExceptionState.ReportFileModeError($"INITIATE {Name}: the report's file connector is not open in "
+                + "the output or the extend mode (ISO §14.9.21.4 GR3 / §14.9.27.4 GR7)");
+            return;   // "no action is taken on the report" — no counter resets, no activation
+        }
         foreach (var s in _sums.Values) s.Value = 0;   // GR1a
         LineCounter = 0;                               // GR1b
         PageCounter = 1;                               // GR1c
@@ -214,10 +285,27 @@ public sealed class CobolReport(
     /// same processing with no detail printed). First GENERATE (GR4): RH once → PH → CHs major→minor → detail.
     /// Subsequent (GR5): on a control break, CFs minor→break then CHs break→minor (GR5a / §13.18.16.4 GR4), then
     /// the detail. Body groups page-fit per §13.18.35.4 GR4 (the chronologically first since INITIATE exempt);
-    /// an unsuccessful fit page-advances per GR6 (PF → physical advance → PAGE-COUNTER → LINE-COUNTER ← 0 → PH).</summary>
+    /// an unsuccessful fit page-advances per GR6 (PF → physical advance → PAGE-COUNTER → LINE-COUNTER ← 0 → PH).
+    /// GR7: a GENERATE for an INACTIVE report raises EC-REPORT-INACTIVE and does nothing; §14.9.49.4 GR10: one
+    /// executed inside a USE BEFORE REPORTING range raises EC-FLOW-REPORT, is unsuccessful, and leaves the state
+    /// of the report unchanged (kb/Work PB326).</summary>
     public void Generate(string? detailName)
     {
-        if (!_active) return;   // §14.9.16.4 GR7 — EC-REPORT-INACTIVE seam (checking default-off, §18.16)
+        // §14.9.49.4 GR10 — see Initiate: unsuccessful, report state unchanged, the raise gated by checking.
+        if (RunUnit.Current.ReportFlow.InBeforeReporting)
+        {
+            ExceptionState.FlowReportError($"GENERATE for report {Name}: executed within the range of a USE "
+                + "BEFORE REPORTING declarative procedure (ISO §14.9.49.4 GR10)");
+            return;
+        }
+        // §14.9.16.4 GR7 — "shall be in the active state. If it is not, the EC-REPORT-INACTIVE exception
+        // condition is set to exist, if it is enabled."
+        if (!_active)
+        {
+            ExceptionState.ReportInactiveError($"GENERATE for report {Name}: the report is not in the active "
+                + "state (ISO §14.9.16.4 GR7)");
+            return;
+        }
         if (!_started)
         {
             _started = true;
@@ -283,7 +371,9 @@ public sealed class CobolReport(
 
     // ── TERMINATE (ISO §14.9.46.4) ────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>TERMINATE this report (ISO §14.9.46.4). GR1: inactive → EC-REPORT-INACTIVE seam, no effect.
+    /// <summary>TERMINATE this report (ISO §14.9.46.4). GR1: inactive → EC-REPORT-INACTIVE, the statement is
+    /// unsuccessful. §14.9.49.4 GR10: inside a USE BEFORE REPORTING range → EC-FLOW-REPORT, unsuccessful, the
+    /// state of the report unchanged (kb/Work PB326).
     /// GR2: with NO GENERATE since INITIATE, no report group is processed at all — the sole effect is
     /// active→inactive. GR3: otherwise the control items revert to their prior values (GR3a), each control
     /// footing prints minor→major as though a most-major break occurred (GR3b), the page footing of the last
@@ -291,7 +381,19 @@ public sealed class CobolReport(
     /// the report footing prints (GR3c), and the control items are restored (GR3d). GR6: the file is NOT closed.</summary>
     public void Terminate()
     {
-        if (!_active) return;   // GR1 — EC-REPORT-INACTIVE seam (default-off)
+        // §14.9.49.4 GR10 — see Initiate: unsuccessful, report state unchanged, the raise gated by checking.
+        if (RunUnit.Current.ReportFlow.InBeforeReporting)
+        {
+            ExceptionState.FlowReportError($"TERMINATE {Name}: executed within the range of a USE BEFORE "
+                + "REPORTING declarative procedure (ISO §14.9.49.4 GR10)");
+            return;
+        }
+        if (!_active)   // GR1 — "the execution of the statement is unsuccessful"
+        {
+            ExceptionState.ReportInactiveError($"TERMINATE {Name}: the report is not in the active state "
+                + "(ISO §14.9.46.4 GR1)");
+            return;
+        }
         if (_started)           // GR2 — no GENERATE ⇒ no group processing of any kind
         {
             if (_controls.Count > 0 && _controls[0].Prior is not null)
@@ -333,7 +435,17 @@ public sealed class CobolReport(
     /// end-of-group sum reset (§13.18.54.4 GR2) — is NOT skipped.</summary>
     private bool RunBeforeReporting(ReportGroup group)
     {
-        group.BeforeReporting?.Invoke();
+        if (group.BeforeReporting is { } hook)
+        {
+            // §14.9.49.4 GR10 — THE ONE PLACE the BEFORE REPORTING range is entered. Every presentation path
+            // (PresentBody / PresentPageHeading / PresentPageFooting / PresentHeadingFooting) funnels through
+            // this method, so the range cannot be half-tracked. try/finally: the declarative can throw a fatal
+            // EC out of the hook.
+            var flow = RunUnit.Current.ReportFlow;
+            flow.Enter();
+            try { hook(); }
+            finally { flow.Exit(); }
+        }
         if (!_suppressCurrent) return false;
         _suppressCurrent = false;
         return true;

@@ -553,6 +553,90 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ──── THE REPORT WRITER's four statement-precondition conditions (kb/Work PB326) ───────────────
+    //
+    // All four are Table 13 FATAL and all four are LENIENT with checking off, and -- as with EC-FLOW-SEARCH above
+    // -- the standard states the lenient outcome outright, so the caller needs no second decision: §14.9.49.4
+    // GR10 ends "the result of the execution of the GENERATE, INITIATE, or TERMINATE statement is unsuccessful,
+    // and the state of the report is unchanged"; §14.9.21.4 GR2 "the execution of the INITIATE statement has no
+    // other effect"; GR3 "no action is taken on the report"; §14.9.46.4 GR1 "the execution of the statement is
+    // unsuccessful". The RWCS engine therefore returns without performing the statement WHETHER OR NOT checking
+    // is enabled, and these helpers only decide whether the condition is also RAISED (§14.6.13.1.1).
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-REPORT checking enabled (fatal).</summary>
+    public bool FlowReportChecking
+    {
+        get => _checking.FlowReport;
+        set => _checking.FlowReport = value;
+    }
+
+    /// <summary>Raise EC-FLOW-REPORT (§14.9.49.4 GR10; Table 13 Fatal) when checking is enabled; otherwise
+    /// return, and the caller leaves the GENERATE / INITIATE / TERMINATE unexecuted exactly as GR10 requires.</summary>
+    public void FlowReportError(string detail)
+    {
+        if (FlowReportChecking)
+        {
+            Set("EC-FLOW-REPORT", fatal: true);
+            throw new CobolFatalException("EC-FLOW-REPORT", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-REPORT-ACTIVE checking enabled (fatal).</summary>
+    public bool ReportActiveChecking
+    {
+        get => _checking.ReportActive;
+        set => _checking.ReportActive = value;
+    }
+
+    /// <summary>Raise EC-REPORT-ACTIVE (§14.9.21.4 GR2; Table 13 Fatal) when checking is enabled; otherwise
+    /// return, and the INITIATE "has no other effect" exactly as GR2 requires.</summary>
+    public void ReportActiveError(string detail)
+    {
+        if (ReportActiveChecking)
+        {
+            Set("EC-REPORT-ACTIVE", fatal: true);
+            throw new CobolFatalException("EC-REPORT-ACTIVE", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-REPORT-INACTIVE checking enabled (fatal).</summary>
+    public bool ReportInactiveChecking
+    {
+        get => _checking.ReportInactive;
+        set => _checking.ReportInactive = value;
+    }
+
+    /// <summary>Raise EC-REPORT-INACTIVE (§14.9.16.4 GR7 / §14.9.46.4 GR1; Table 13 Fatal) when checking is
+    /// enabled; otherwise return, and the GENERATE / TERMINATE is unsuccessful exactly as those rules require.</summary>
+    public void ReportInactiveError(string detail)
+    {
+        if (ReportInactiveChecking)
+        {
+            Set("EC-REPORT-INACTIVE", fatal: true);
+            throw new CobolFatalException("EC-REPORT-INACTIVE", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-REPORT-FILE-MODE checking enabled (fatal).</summary>
+    public bool ReportFileModeChecking
+    {
+        get => _checking.ReportFileMode;
+        set => _checking.ReportFileMode = value;
+    }
+
+    /// <summary>Raise EC-REPORT-FILE-MODE (§14.9.21.4 GR3, the detection half of §14.9.27.4 GR7's
+    /// "the OPEN statement for a report file connector shall be executed before the execution of an INITIATE
+    /// statement"; Table 13 Fatal) when checking is enabled; otherwise return, and "no action is taken on the
+    /// report" exactly as GR3 requires.</summary>
+    public void ReportFileModeError(string detail)
+    {
+        if (ReportFileModeChecking)
+        {
+            Set("EC-REPORT-FILE-MODE", fatal: true);
+            throw new CobolFatalException("EC-REPORT-FILE-MODE", detail);
+        }
+    }
+
     /// <summary>True while the currently-executing statement has EC-BOUND-TABLE-LIMIT checking enabled (fatal).</summary>
     public bool BoundTableLimitChecking
     {
@@ -1109,6 +1193,46 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.FlowSearchError"/>
     public static void FlowSearchError(string detail) => E.FlowSearchError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FlowReportChecking"/>
+    public static bool FlowReportChecking
+    {
+        get => E.FlowReportChecking;
+        set => E.FlowReportChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowReportError"/>
+    public static void FlowReportError(string detail) => E.FlowReportError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.ReportActiveChecking"/>
+    public static bool ReportActiveChecking
+    {
+        get => E.ReportActiveChecking;
+        set => E.ReportActiveChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.ReportActiveError"/>
+    public static void ReportActiveError(string detail) => E.ReportActiveError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.ReportInactiveChecking"/>
+    public static bool ReportInactiveChecking
+    {
+        get => E.ReportInactiveChecking;
+        set => E.ReportInactiveChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.ReportInactiveError"/>
+    public static void ReportInactiveError(string detail) => E.ReportInactiveError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.ReportFileModeChecking"/>
+    public static bool ReportFileModeChecking
+    {
+        get => E.ReportFileModeChecking;
+        set => E.ReportFileModeChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.ReportFileModeError"/>
+    public static void ReportFileModeError(string detail) => E.ReportFileModeError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.BoundTableLimitChecking"/>
     public static bool BoundTableLimitChecking

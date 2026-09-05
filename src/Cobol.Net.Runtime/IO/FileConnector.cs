@@ -162,6 +162,15 @@ public abstract class FileConnector
     /// mode while open OR the ATTEMPTED mode of a failed OPEN; −1 after a successful CLOSE / before any OPEN.</summary>
     public int OpenModeView => ModeKnown ? (int)Mode : -1;
 
+    /// <summary>The open mode while the connector IS OPEN (ISO §9.1.4), null otherwise.
+    /// ⛔ DELIBERATELY NOT <see cref="OpenModeView"/>: that view also answers with the ATTEMPTED mode of a
+    /// FAILED open (§14.9.49.4 GR6b's "in the process of being opened"), which is what USE-declarative mode
+    /// scoping needs and is WRONG for any rule that asks whether the connector IS OPEN in a given mode.
+    /// §14.9.21.4 GR3 is such a rule -- "the INITIATE statement may be executed only if the corresponding
+    /// file connector is open in the extend mode or the output mode" -- and after an UNSUCCESSFUL OPEN OUTPUT the
+    /// GR6b view still answers "output", which would let an INITIATE proceed into a connector that is not open.</summary>
+    public FileOpenMode? OpenModeIfOpen => _openMode ? Mode : null;
+
     /// <summary>OPEN INPUT/I-O of an absent OPTIONAL file: the connector is open but no physical store exists
     /// (positioned at EOF / "not present", ISO §14.9.27 GR13; §9.1.13.2 item 5).</summary>
     protected bool OptionalAbsent;

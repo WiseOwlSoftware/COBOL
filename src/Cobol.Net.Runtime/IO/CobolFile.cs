@@ -133,6 +133,11 @@ public static class CobolFile
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §14.9.49.4 GR6b–e).</summary>
     public static int OpenModeOf(string name) => _reg.OpenModeOf(name);
 
+    /// <summary>The open mode of a connector that IS OPEN, null otherwise (ISO §9.1.4) -- the
+    /// §14.9.21.4 GR3 report-file-mode test. See <see cref="FileConnector.OpenModeIfOpen"/> for why this is
+    /// not <see cref="OpenModeOf"/>.</summary>
+    public static FileOpenMode? OpenModeIfOpen(string name) => _reg.OpenModeIfOpen(name);
+
     /// <summary>The AT END condition for a file (status 10).</summary>
     public static bool AtEnd(string name) => _reg.AtEnd(name);
 

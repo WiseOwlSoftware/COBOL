@@ -62,20 +62,33 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 
 | Operation | Rules encoded (all cited in code) |
 |---|---|
-| `Initiate` | §14.9.21.4 GR1a–c (sums←0, LC←0, PC←1), GR2 (active re-INITIATE = EC-REPORT-ACTIVE seam, no effect), GR3 (file NOT opened — EC-REPORT-FILE-MODE seam), GR4 (→active) |
-| `Generate(detail?)` | GR4 first-GENERATE sequence (RH once → PH → CHs major→minor → detail); GR5 subsequent (break: CFs minor→break with PRIOR control values per §13.18.16.4 GR4a, then CHs break→minor); GR2 summary (null detail); GR7 inactive = EC-REPORT-INACTIVE seam; SUM accumulation per §13.18.54.4 GR7c (after break processing) |
+| `Initiate` | §14.9.21.4 GR1a–c (sums←0, LC←0, PC←1), GR2 (active re-INITIATE **raises EC-REPORT-ACTIVE**, no other effect), GR3 (the file is NOT opened here — it shall ALREADY be open OUTPUT/EXTEND, else **EC-REPORT-FILE-MODE** and no action is taken on the report; the detection half of §14.9.27.4 GR7), GR4 (→active). §14.9.49.4 GR10 outranks all three — see the RANGE row |
+| `Generate(detail?)` | GR4 first-GENERATE sequence (RH once → PH → CHs major→minor → detail); GR5 subsequent (break: CFs minor→break with PRIOR control values per §13.18.16.4 GR4a, then CHs break→minor); GR2 summary (null detail); GR7 inactive **raises EC-REPORT-INACTIVE** and does nothing; SUM accumulation per §13.18.54.4 GR7c (after break processing) |
 | page fit | §13.18.35.4 GR4b absolute (integer-1 > LC) / GR4c relative (trial = LC + Σ relative values ≤ the §13.18.57.4 GR8 lower limit: DE→LAST DETAIL, CH→LAST CH, CF→FOOTING); the chronologically FIRST body group since INITIATE is exempt (GR4); only body groups test (§13.18.57.3 SR15) |
 | page advance | §14.9.16.4 GR6 in order: PF → physical advance (form feed) → CODE re-eval (staged) → PC+1 → LC←0 → PH |
 | line placement | §13.18.35.4 GR5a (absolute → integer-1), GR5b1 RH (HEADING+n−1), GR5b2 PH (RH-on-page aware), **GR5b3 body (FIRST body group on page → FIRST DETAIL, relative value IGNORED; else LC+n)**, GR5b4 PF (FOOTING+n), GR5b5 RF (PF-on-page aware), GR7 subsequent lines, GR6 LC-before-compose, GR8 final LC = last line printed |
-| `Terminate` | §14.9.46.4 GR1 (inactive seam), **GR2 (no GENERATE ⇒ NO groups print — only →inactive)**, GR3a–d (controls→prior, CFs minor→major, restore), §13.18.57.4 GR6f (final-page PF, "immediately followed by" the RF), GR3c (RF), GR6 (file NOT closed) |
+| `Terminate` | §14.9.46.4 GR1 (inactive → **EC-REPORT-INACTIVE**, the statement is unsuccessful), **GR2 (no GENERATE ⇒ NO groups print — only →inactive)**, GR3a–d (controls→prior, CFs minor→major, restore), §13.18.57.4 GR6f (final-page PF, "immediately followed by" the RF), GR3c (RF), GR6 (file NOT closed) |
 | controls | §13.18.16.4 GR1 (operand order = hierarchy), GR2 (FINAL highest, never breaks mid-report), GR3 (first GENERATE saves priors; major→minor compare), GR4a (CF composes under restored prior values), GR5 (TERMINATE = most-major break). Break key = the item's CHARACTER IMAGE via generated get/set delegates (representation-faithful for every category; restore decodes via `CobolNum.StoreDisplay` for native numeric leaves) |
 | SUM | §13.18.54.4 GR1 (counter scale from the entry's PICTURE), GR2 (reset where printed / RESET ON level), GR4 (the counter is the printable entry's source item — `BoundReportSumRef`), GR7c1/c2 (accumulate per GENERATE / UPON detail filter), GR9 (multi-addend) |
 | GROUP INDICATE | §13.18.28 — indicated items print on the first presentation after INITIATE / page advance / control break, blanked otherwise (engine-side, post-compose); one blank span per ABSOLUTE COLUMN operand |
 | USE BEFORE REPORTING | §14.9.49 Format 2 GR8/SR9 — the declarative section binds to the named group (`BoundDeclarative.ReportGroup`) and runs via the group's `BeforeReporting` hook (a `__RunUse` bounded dispatch) just before the group is produced |
+| the BEFORE REPORTING RANGE | §14.9.49.4 GR10 — a GENERATE, INITIATE or TERMINATE executed **within the range of** a USE BEFORE REPORTING declarative sets EC-FLOW-REPORT, is **unsuccessful**, and leaves **the state of the report unchanged**. `RunBeforeReporting` — the ONE funnel every presentation path uses — brackets `group.BeforeReporting` with `RunUnit.ReportFlow.Enter()/Exit()` (a `finally`, so a fatal EC out of the declarative cannot latch the range), and the three verbs consult `InBeforeReporting` first. ⛔ **The range is the RUN UNIT's, not one report's and not one program's**: GR10 attaches no element qualifier where §14.9.18.4 GR6 attaches one explicitly for EC-FLOW-GLOBAL-GOBACK ("… in the same program as the GOBACK statement"), and the standard's other flow rules read the same way (§14.9.32.4 GR1's "within the range of an input procedure"). A per-`CobolReport` flag would pass `2002/pb326_flow_report_cross_report` while being wrong. A DEPTH, not a bool — two different groups' declaratives nest |
 | SUPPRESS | §14.9.45 — `SUPPRESS PRINTING` sets the engine's one-shot `_suppressCurrent` flag (`__RPT_n.SuppressPrinting()`); `RunBeforeReporting` consumes it on the presentation whose GR8 hook set it (GR2 — current instance only). The target group is the lexically-enclosing USE BEFORE REPORTING group, resolved at bind from `BindCursor` ∈ the declarative's pc range (GR1); a SUPPRESS outside such a procedure is COBOLNET1581 (SR1). GR3 a–d inhibit printing / page advance / NEXT GROUP / LINE-COUNTER, but NOT sum accumulation (GR7, already done in Generate) nor the end-of-group sum reset (GR2) — so a suppressed control footing's totals stay correct (only PRESENT WHEN / ODO absence skips the reset, GR10). Body groups run `EndOfGroupSumReset` on the suppressed path; heading/footing groups (no reset) return after the hook |
 | PRESENT WHEN | §13.18.41 Format 1 — `EvaluatePresent` evaluates every line's condition chain ONCE per presentation, BEFORE any LINE processing (GR2, after the `BeforeReporting` hook); an absent line is SKIPPED so the next relative line re-anchors on LINE-COUNTER (GR2b — the line collapse); the fit-test form, the trial sum, and the GR5 first-line placement key on the first PRESENT line (§13.18.35.4 GR4/GR5; absent relative lines excluded from the trial, §13.18.41.4 GR3d); ALL lines absent ⇒ return-before-flags, as though the whole description were omitted (GR2b — no counters, no fit, no sum reset); an absent SUM entry is neither printed (the compose guard) nor reset (`EndOfGroupSumReset` consults `SumEntry.Present` — GR3g/§13.18.54.4 GR10); absent printable items place nothing and never advance the horizontal counter (GR3e/GR3f) |
 | VARYING | §13.18.64 — per-repetition counters over the multiple-COLUMN repetition vehicle (SR1): compose-local `long`s, first occurrence ← FROM (default 1, GR3a — re-evaluated per presentation), += BY per repetition (default 1, GR3b); each value persists through its occurrence (GR4 — `SOURCE IS counter` renders it, GR4 NOTE); a noninteger FROM/BY truncates via `Rescale` (the GR5 EC-REPORT-VARYING seam, checking default-off §18.16) |
 | multiple/relative COLUMN | §13.18.14 F1 — a multiple COLUMN clause defines one printable item per operand (GR12); relative (PLUS) operands place at `horizontal counter + integer-2` (GR8) with the counter starting at 0 (GR7) and set to each placed item's rightmost column (GR9) |
+
+**The four statement-precondition conditions, and what `>>TURN` does and does not gate.** EC-FLOW-REPORT
+(§14.9.49.4 GR10), EC-REPORT-ACTIVE (§14.9.21.4 GR2), EC-REPORT-FILE-MODE (§14.9.21.4 GR3) and
+EC-REPORT-INACTIVE (§14.9.16.4 GR7 / §14.9.46.4 GR1) are Table 13 **Fatal**, and each rule states its LENIENT
+outcome outright — "no other effect", "no action is taken on the report", "the execution of the statement is
+unsuccessful", "the state of the report is unchanged". So the engine's **return is unconditional** and only the
+**raise** is gated by checking (§14.6.13.1.1), exactly as for EC-FLOW-SEARCH / EC-BOUND-TABLE-LIMIT. The raise
+channel is the ordinary one: `EcBinder` binds a PRECISE `BoundEcChecked` wrapper on `BoundInitiate` /
+`BoundGenerate` / `BoundTerminate`, `EcEmitter.FatalAmbientGates` sets the `ExceptionState.…Checking` flag
+around the statement, and `CobolReport` calls the matching `ExceptionState.…Error` helper — which raises a
+`CobolFatalException` the statement guard catches for USE-F3 dispatch / RESUME. All four were catalogue rows
+with no raise site anywhere in `src` before kb/Work PB326.
 
 **The GR4c trial-sum ambiguity (decided):** the 2023 wording "incremented by integer-2 for each *subsequent*
 LINE clause" is ambiguous for the FIRST relative line's integer-2. The NIST goldens + the legacy resolve it
@@ -176,6 +189,9 @@ LINE-/PAGE-COUNTER; CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composi
 break) **and REFERENCE-MODIFIED control operands** (§13.18.16.3 SR4 — the break is sensed on the slice, and the
 TYPE CH/CF and SUM RESET ON operands that name the level carry the same ref-mod, §13.18.57.3 SR10 /
 §13.18.54.3 SR8); SUM + UPON + RESET; GROUP INDICATE; summary `GENERATE report-name`; multi-name INITIATE/TERMINATE;
+**the four RWCS statement-precondition exception conditions** (EC-FLOW-REPORT §14.9.49.4 GR10,
+EC-REPORT-ACTIVE §14.9.21.4 GR2, EC-REPORT-FILE-MODE §14.9.21.4 GR3 / §14.9.27.4 GR7, EC-REPORT-INACTIVE
+§14.9.16.4 GR7 and §14.9.46.4 GR1 — the unsuccessful/state-unchanged half unconditional, the raise `>>TURN`-gated);
 **SUPPRESS PRINTING** (§14.9.45 — inhibit the current instance's printing/advance/NEXT GROUP/LINE-COUNTER,
 NOT the sum accumulation or end-of-group reset; SR1/GR1 bind-resolve the enclosing USE BEFORE REPORTING group,
 COBOLNET1581 on a misplaced SUPPRESS); PD counter references incl. qualified; USE BEFORE REPORTING (Format 2
@@ -200,7 +216,12 @@ cross-report SUM (`SUM x OF report`); non-DISPLAY printable items; PAGE-COUNTER 
 phrase (§13.18.14 F1 — the SR9 LEFT default is what the grammar parses)** have no grammar surface. The §13.18.14.3 SR4/SR5 IS/ARE-spelling pairings and the
 SR7/SR8/SR10b operand-order-vs-PRESENT-WHEN arrangement rules are not enforced (over-acceptance; the runtime
 overlap seams are EC-REPORT-COLUMN-OVERLAP/-LINE-OVERLAP, default-off). EC-REPORT-* checking is default-off
-(SSOT §18.16) — cited seam comments at every raise point.
+(SSOT §18.16). The CONTENT/GEOMETRY conditions are still seams with no raise site —
+EC-REPORT-COLUMN-OVERLAP (§13.18.14.4 GR4), EC-REPORT-PAGE-WIDTH (§13.18.14.4 GR5), EC-REPORT-PAGE-LIMIT
+(§13.18.35.4 GR2), EC-REPORT-LINE-OVERLAP (§13.18.35.4 GR3), EC-REPORT-SUM-SIZE (§13.18.54.4 GR3),
+EC-REPORT-VARYING (§13.18.64.4 GR5) — each with a cited seam comment at the
+point that would raise it; they need per-line/per-item state the engine does not yet carry, which is a different
+mechanism from the four statement preconditions PB326 closed.
 
 ## 6. Design authority (this doc + the cited GRs, not the legacy)
 
@@ -234,6 +255,15 @@ deep-dive table points here.
   (GR6a/GR6f/GR3c); TERMINATE-without-GENERATE (GR2); control-break prior/new values (GR4a); SUM
   accumulate/reset/UPON (GR2/GR7); USE BEFORE REPORTING (GR8); LINE-COUNTER receiving rejection (SR3);
   the §13.18.41.4 GR3g absent-SUM neither-prints-nor-resets pin (at `--std 2002`).
+- Corpus goldens for the four statement-precondition conditions (kb/Work PB326), all byte-exact and verified by
+  RUNNING: `85/pb326_flow_report_unconditional` (the §14.9.49.4 GR10 *unsuccessful / state unchanged* half at the
+  edition that has no `>>TURN` at all — the nested GENERATE produces nothing); `2002/pb326_ec_flow_report` (its
+  checked twin — the F3 declarative sees EC-FLOW-REPORT and RESUMEs); `2002/pb326_flow_report_cross_report` (the
+  range is the RUN UNIT's — a GENERATE of a SECOND report from inside report R-A's declarative is refused, and
+  the same GENERATE succeeds once MAIN has left the range); `2002/pb326_ec_report_file_mode` (three arms — not
+  open, open INPUT, and the two modes §14.9.21.4 GR3 permits — with the follow-on EC-REPORT-INACTIVE proving that
+  GR3's "no action is taken" left the report inactive); `2002/pb326_ec_report_active_inactive` (GR2's "no other
+  effect" witnessed by a SUM counter that keeps its total across a refused second INITIATE).
 - Corpus golden `tests/conformance/2002/rw_present_when.cob` (+`.out`, byte-exact, verified by RUNNING): the
   PRESENT WHEN line collapse across a present and an absent presentation (the relative TAIL line re-anchors on
   LINE-COUNTER, §13.18.41.4 GR2b), field-level suppression within a present line, and `COLUMNS ARE 12 16 20 …

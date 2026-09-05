@@ -81,6 +81,22 @@ public struct CheckingFlags
     /// <summary>EC-FLOW-SEARCH — a capacity SET during a SEARCH of that same table (§14.9.39.4 GR31).</summary>
     public bool FlowSearch;
 
+    /// <summary>EC-FLOW-REPORT — a GENERATE, INITIATE or TERMINATE executed within the range of a USE
+    /// BEFORE REPORTING declarative procedure (§14.9.49.4 GR10).</summary>
+    public bool FlowReport;
+
+    /// <summary>EC-REPORT-ACTIVE — an INITIATE of a report that is already in the active state
+    /// (§14.9.21.4 GR2).</summary>
+    public bool ReportActive;
+
+    /// <summary>EC-REPORT-INACTIVE — a GENERATE (§14.9.16.4 GR7) or TERMINATE (§14.9.46.4 GR1) of a report
+    /// that is not in the active state.</summary>
+    public bool ReportInactive;
+
+    /// <summary>EC-REPORT-FILE-MODE — an INITIATE whose report file connector is not open in the output or
+    /// the extend mode (§14.9.21.4 GR3).</summary>
+    public bool ReportFileMode;
+
     /// <summary>EC-ORDER-NOT-SUPPORTED — FUNCTION STANDARD-COMPARE naming a cultural ordering table this
     /// processor does not provide, or an ordering level the table does not define (§15.85.4 r2).</summary>
     public bool OrderNotSupported;

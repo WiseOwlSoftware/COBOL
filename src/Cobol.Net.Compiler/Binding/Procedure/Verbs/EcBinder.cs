@@ -283,6 +283,19 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// PRECISE: the only statement that can raise it is the capacity SET itself.</summary>
     private static readonly string[] FlowSearchNames = ["EC-FLOW-SEARCH"];
 
+    /// <summary>The conditions an INITIATE raises (ISO §14.9.21.4 GR2 EC-REPORT-ACTIVE, GR3 EC-REPORT-FILE-MODE
+    /// — GR3 being the detection half of §14.9.27.4 GR7 — and §14.9.49.4 GR10 EC-FLOW-REPORT). PRECISE: the raise
+    /// sites are <c>CobolReport.Initiate</c>'s three preconditions, reached from exactly this bound node.</summary>
+    private static readonly string[] InitiateNames = ["EC-REPORT-ACTIVE", "EC-REPORT-FILE-MODE", "EC-FLOW-REPORT"];
+
+    /// <summary>The conditions a GENERATE raises (ISO §14.9.16.4 GR7 EC-REPORT-INACTIVE, §14.9.49.4 GR10
+    /// EC-FLOW-REPORT). PRECISE, as <see cref="InitiateNames"/>.</summary>
+    private static readonly string[] GenerateNames = ["EC-REPORT-INACTIVE", "EC-FLOW-REPORT"];
+
+    /// <summary>The conditions a TERMINATE raises (ISO §14.9.46.4 GR1 EC-REPORT-INACTIVE, §14.9.49.4 GR10
+    /// EC-FLOW-REPORT). PRECISE, as <see cref="InitiateNames"/>.</summary>
+    private static readonly string[] TerminateNames = ["EC-REPORT-INACTIVE", "EC-FLOW-REPORT"];
+
     /// <summary>The EC-PROGRAM family a CALL/CANCEL raises through <c>CobolCallException</c>.</summary>
     private static readonly string[] ProgramNames =
     [
@@ -388,6 +401,20 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 // takes the ambient tail gate below. The two are deliberately not merged.
                 case BoundSetCapacity:
                     Query(FlowSearchNames);
+                    break;
+                // The three Report Writer verbs (kb/Work PB326). PRECISE like BoundSetCapacity: each condition's
+                // ONLY raise site is a precondition of the engine call this node emits, so the guard binds
+                // exactly here. Without these arms >>TURN EC-FLOW-REPORT / EC-REPORT-FILE-MODE / -ACTIVE /
+                // -INACTIVE CHECKING ON wrapped nothing, the runtime's ...Checking flag stayed false, and the
+                // condition could reach no declarative at all.
+                case BoundInitiate:
+                    Query(InitiateNames);
+                    break;
+                case BoundGenerate:
+                    Query(GenerateNames);
+                    break;
+                case BoundTerminate:
+                    Query(TerminateNames);
                     break;
                 // The SEARCH range conditions (§14.9.37.4 GR4/GR6/GR9) RAISE via BoundSearch's own bound
                 // Check* flags — this arm exists so the statement carries the wrapper's AMBIENT context

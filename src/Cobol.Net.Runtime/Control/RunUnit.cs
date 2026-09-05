@@ -55,6 +55,10 @@ public sealed class RunUnit
     /// <summary>The run-unit file-connector registry (§9.1; owns the physical-file sharing table).</summary>
     public FileRegistry Files { get; } = new();
 
+    /// <summary>The run unit's Report Writer control-flow state: the USE BEFORE REPORTING range
+    /// (ISO §14.9.49.4 GR10 — <see cref="ReportFlowState"/> records why the range is the RUN UNIT's).</summary>
+    public ReportFlowState ReportFlow { get; } = new();
+
     /// <summary>The run unit's clock (ISO §14.9.1.4 GR7; injectable — a test may set a fixed clock).</summary>
     public IClock Clock { get; set; } = SystemClock.Instance;
 

@@ -476,6 +476,12 @@ public sealed class FileRegistry
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §14.9.49.4 GR6b–e); −1 unknown/closed.</summary>
     public int OpenModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenModeView : -1;
 
+    /// <summary>The open mode of a connector that IS OPEN (ISO §9.1.4), null when it is not open, when a
+    /// failed OPEN merely recorded an attempted mode, or when no connector of that name is registered
+    /// (<see cref="FileConnector.OpenModeIfOpen"/>). The §14.9.21.4 GR3 report-file-mode test reads this.</summary>
+    public FileOpenMode? OpenModeIfOpen(string name) =>
+        _files.TryGetValue(name, out var c) ? c.OpenModeIfOpen : null;
+
     // ── Keyed verbs (ISO §14.9.51 / §14.9.35 / §14.9.30 / §14.9.41 / §14.9.10) ───────────────────────────────
 
     /// <summary>Stage the RELATIVE KEY item's value for the next keyed verb.</summary>

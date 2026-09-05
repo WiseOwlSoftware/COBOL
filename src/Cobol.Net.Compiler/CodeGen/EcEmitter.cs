@@ -168,6 +168,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // synchronously inside the guard. The method's half is a compile-time literal (OoEmitter.OoUnivStop).
         ("EC-OO-UNIVERSAL", "OoUniversalChecking"),             // §14.9.23.4 GR7c — universal-INVOKE conformance
         ("EC-FLOW-SEARCH", "FlowSearchChecking"),               // §14.9.39.4 GR31 — capacity SET during a SEARCH
+        // The Report Writer's four statement-precondition conditions (kb/Work PB326). Each rides a flag its
+        // runtime raise site in CobolReport consults; each is Table 13 Fatal, and each leaves the verb
+        // unexecuted whether or not the raise happens (the standard states every lenient outcome outright).
+        ("EC-FLOW-REPORT", "FlowReportChecking"),               // §14.9.49.4 GR10 — RWCS verb inside a BEFORE REPORTING range
+        ("EC-REPORT-ACTIVE", "ReportActiveChecking"),           // §14.9.21.4 GR2  — INITIATE of an active report
+        ("EC-REPORT-INACTIVE", "ReportInactiveChecking"),       // §14.9.16.4 GR7 / §14.9.46.4 GR1 — GENERATE/TERMINATE of an inactive report
+        ("EC-REPORT-FILE-MODE", "ReportFileModeChecking"),      // §14.9.21.4 GR3  — INITIATE with the connector not open OUTPUT/EXTEND
         ("EC-BOUND-TABLE-LIMIT", "BoundTableLimitChecking"),    // §14.9.39.4 GR30 — growth past the implementor max
         ("EC-ORDER-NOT-SUPPORTED", "OrderNotSupportedChecking"),// §15.85.4 r2 — STANDARD-COMPARE's ordering table / level unavailable
         ("EC-LOCALE-MISSING", "LocaleMissingChecking"),        // §14.9.39.4 GR24 / §8.2.1 — a locale not available (SET LOCALE; a named IS LOCALE sequence at use)
