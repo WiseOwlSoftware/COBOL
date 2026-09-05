@@ -252,6 +252,15 @@
       "dns": 346,
       "label": "Golden-lane round 4: 19 spec",
       "battery": null
+    },
+    {
+      "sha": "092f07f1",
+      "date": "2026-09-05",
+      "gap": 2850,
+      "closed": 1461,
+      "dns": 352,
+      "label": "Train 6: DEVLOG 1491 + plan",
+      "battery": null
     }
   ]
 }
