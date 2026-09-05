@@ -225,6 +225,15 @@
       "dns": 346,
       "label": "PB594: spec_refs + the natio",
       "battery": null
+    },
+    {
+      "sha": "4af4132c",
+      "date": "2026-09-05",
+      "gap": 2893,
+      "closed": 1418,
+      "dns": 346,
+      "label": "Train 4: inventory + DEVLOG",
+      "battery": null
     }
   ]
 }
