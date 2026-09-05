@@ -234,6 +234,15 @@
       "dns": 346,
       "label": "Train 4: inventory + DEVLOG",
       "battery": null
+    },
+    {
+      "sha": "919df18c",
+      "date": "2026-09-05",
+      "gap": 2883,
+      "closed": 1428,
+      "dns": 346,
+      "label": "PB252: the exact Int128 carr",
+      "battery": null
     }
   ]
 }
