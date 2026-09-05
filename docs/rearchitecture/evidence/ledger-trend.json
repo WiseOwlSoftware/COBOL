@@ -243,6 +243,15 @@
       "dns": 346,
       "label": "PB252: the exact Int128 carr",
       "battery": null
+    },
+    {
+      "sha": "63236244",
+      "date": "2026-09-05",
+      "gap": 2864,
+      "closed": 1447,
+      "dns": 346,
+      "label": "Golden-lane round 4: 19 spec",
+      "battery": null
     }
   ]
 }
