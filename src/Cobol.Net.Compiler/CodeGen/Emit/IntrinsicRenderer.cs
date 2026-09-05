@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Frozen;
+
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Bound;
@@ -211,12 +213,23 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod is "MaxScaled" ? "MaxAt" : "MinAt",
                     $"{to}, {(store ? "true" : "false")}, {vals}, {scales}"), to);
             }
-            // SUM/RANGE genuinely ADD, so they keep aligned arguments — now escape-CHECKED (Align emits
-            // RescaleEscape): an alignment past the Int128 intermediate is the size-error condition, never a wrap.
-            case "SumScaled" or "RangeScaled":                                  // §15.88/76 — result at the common scale
+            // SUM/RANGE genuinely ADD, so they keep aligned arguments — escape-CHECKED both at the per-argument
+            // alignment (Align emits RescaleEscape) AND across the accumulation itself (CobolIntrinsics.SizeEscape,
+            // kb/Work PB252): every step past the Int128 intermediate is the size-error condition, never a wrap.
+            // ⛔ Both of these reach here ONLY under NATIVE arithmetic — CrossAlignedNativeArms routes them to
+            // SumDec/RangeDec under a standard mode, where §15.4.1 r1 admits no approximation at all.
+            case "SumScaled":                                                   // §15.88 — Σ at the common scale
             {
                 var (argList, s) = AlignedArgs(ic);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, argList), s);
+                // SumScaled is the ONE exact body serving two §15.4.1 EAEs — §15.88.4's Σ and §15.60.4's
+                // numerator — so it is told which function it is evaluating, for the D1 size-error message. A
+                // body serving exactly one function (RangeScaled, MedianScaled, …) names itself instead.
+                return new NumX(RuntimeApi.Intrinsic("SumScaled", $"\"{sig.Name}\", {argList}"), s);
+            }
+            case "RangeScaled":                                                 // §15.76 — MAX − MIN at the common scale
+            {
+                var (argList, s) = AlignedArgs(ic);
+                return new NumX(RuntimeApi.Intrinsic("RangeScaled", argList), s);
             }
             case "MedianScaled" or "MidrangeScaled":                            // §15.61/62 — the /2 is exact at scale s+1 (×10/2)
             {
@@ -225,7 +238,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             }
             case "MeanScaled":                                                  // §15.60 — Σ/n with the ÷ discipline of §8.8.1
             {
-                // (Under a STANDARD mode MEAN never reaches here — RenderDec's alwaysDec family evaluates the
+                // (Under a STANDARD mode MEAN never reaches here — it is a CrossAlignedNativeArms member, so RenderDec evaluates the
                 // §15.60.4 equivalent arithmetic expression on the SDIDI carrier, kb/Work PB62 / RV-15.60.4-1.)
                 var (argList, s, _) = AlignedArgsEx(ic);
                 // Quotient quantized at ws = max(Receiver.Scale, s+1, 6): the receiver's scale when known, never
@@ -238,11 +251,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 // ranges over a runtime count (ISO §15.3; kb/Work PB62), in which case the enumerated list is
                 // bound ONCE (CobolTable.With) and both the sum and the count read it.
                 if (StaticArgCount(ic) is { } n)
-                    return new NumX(RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", argList),
+                    return new NumX(RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", $"\"{sig.Name}\", {argList}"),
                         s.ToString(), n.ToString(), "0", ws.ToString(), mode), ws);
                 string xs = NextWithVar();
                 return new NumX(RuntimeApi.With(argList, xs,
-                    RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", xs), s.ToString(), $"{xs}.Length", "0", ws.ToString(), mode)), ws);
+                    RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", $"\"{sig.Name}\", {xs}"), s.ToString(), $"{xs}.Length", "0", ws.ToString(), mode)), ws);
             }
             case "OrdMax" or "OrdMin":                                          // §15.71/72 — 1-based ordinal, tie = first
             {
@@ -661,19 +674,88 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private bool AnyDecRaw(BoundIntrinsicCall ic) => ic.Args.Any(a => num.AsNum(a, num.Receiver).Dec);
 
     /// <summary>
+    /// ⛔ THE FIRST HALF OF THE ALWAYS-SDIDI SET, AND THE ONLY HALF WITH A STRUCTURAL DEFINITION: the native-switch
+    /// arms in <see cref="RenderNum"/> that CROSS-ALIGN their arguments to one common scale before evaluating.
+    /// </summary>
+    /// <remarks>
+    /// <para>Under a standard mode §15.4.1 r1 makes each of these equal its equivalent arithmetic expression
+    /// (§15.60.4 MEAN, §15.61.4 MEDIAN, §15.62.4 MIDRANGE, §15.64.4 MOD, §15.76.4 RANGE, §15.77.4 REM,
+    /// §15.88.4 SUM), and each argument converts to the SDIDI INDIVIDUALLY (§8.8.1.5.2 r1) — so no common scale is
+    /// ever formed. The NATIVE arms instead align first, on the Int128 carrier, and alignment MULTIPLIES: a
+    /// 31-digit integer beside a scale-18 item needs 49 digits, so <c>NumericRenderer.Align</c>'s per-argument
+    /// escape raises EC-SIZE-OVERFLOW where the SDIDI holds the answer exactly. That makes "does this arm
+    /// cross-align?" the exact test for "must this arm be on the Dec lane under a standard mode".</para>
+    /// <para>⛔ It was built one arm at a time and each pass believed itself complete: PB62 added the summing
+    /// family for MEAN's <c>MEAN(10³⁰, 2.0)</c>; PB252 found MOD and REM still missing — the SAME clause, the SAME
+    /// mechanism, the arm nobody swept (feedback_two_arm_dispatch). It is a SET rather than an <c>is … or …</c>
+    /// pattern so that <c>CrossAlignedArmsDriftTests</c> can hold it against the switch itself: the test reads
+    /// <c>IntrinsicRenderer.cs</c>, collects the case labels of every arm whose body calls
+    /// <see cref="AlignedArgs"/> / <see cref="AlignedArgsEx"/> or <c>NumericRenderer.Align(x, s)</c> against a
+    /// COMMON scale, and fails if any of them is missing here. A new aligning arm is therefore routed
+    /// automatically or the build goes red — it can no longer be forgotten.</para>
+    /// <para>MAX / MIN / ORD-MAX / ORD-MIN are deliberately ABSENT: <see cref="RawArgPairs"/> aligns each argument
+    /// to its OWN scale (an identity rescale), because §15.59.4 / §15.63.4 / §15.71.4 / §15.72.4 return the
+    /// CONTENT or the ORDINAL of an argument — pure selection, no cross-argument arithmetic, no common scale to
+    /// escape (kb/Work PB65).</para>
+    /// </remarks>
+    internal static readonly FrozenSet<string> CrossAlignedNativeArms = new[]
+    {
+        "ModScaled", "RemScaled",                                   // §15.64.4 / §15.77.4 — Align(a, s), Align(b, s)
+        "SumScaled", "RangeScaled",                                 // §15.88.4 / §15.76.4 — AlignedArgs
+        "MedianScaled", "MidrangeScaled",                           // §15.61.4 / §15.62.4 — AlignedArgs
+        "MeanScaled",                                               // §15.60.4 — AlignedArgsEx
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The second half of the always-SDIDI set: functions whose standard-mode returned value a RULE fixes
+    /// outright, so the argument carrier cannot matter. Unlike <see cref="CrossAlignedNativeArms"/> this half has
+    /// no structural derivation — each member is here for its own cited reason and is listed one by one.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    ///   <item><c>Sqrt</c> — §15.84.4 r2 fixes the 34-digit correctly-rounded root; without this the early-out
+    ///         returned null for a plain-operand call and SQRT fell to binary64 (kb/Work PB116). The arm's own
+    ///         <c>when num.StandardDecimal</c> guard keeps a NATIVE call on the float lane.</item>
+    ///   <item><c>Factorial</c> — §15.36.4 r1c on the SDIDI, where 34! is exact against the native lane's
+    ///         documented 33 cap (kb/Work PB125); same <c>when</c> guard, same reason.</item>
+    ///   <item><c>Annuity</c> / <c>PresentValue</c> / <c>Variance</c> / <c>StandardDeviation</c> — the four
+    ///         INEXACT-EAE functions: their equivalent arithmetic expressions DIVIDE, so even an all-fixed-point
+    ///         argument list must evaluate in SDIDI form. This is what removed their COBOLNET0899 stage.</item>
+    ///   <item><c>Numval</c> / <c>NumvalC</c> / <c>NumvalF</c> — §15.67.4 r1 / §15.68.4 r1 / §15.69.4 r3 name the
+    ///         returned value outright ("the numeric value represented by argument-1"; NUMVAL-F's r2/r3 pair
+    ///         grants NATIVE arithmetic the approximation and STANDARD-DECIMAL none) and §15.4.1 places it in an
+    ///         SDIDI. Their argument is a string, so the carrier question never arises; before this arm the
+    ///         standard-mode value rode the native Int128 projection at the item-92 working scale
+    ///         (fix-queue PB60, RV-15.67.4-1a). ⛔ For NUMVAL and NUMVAL-C the MODE is not part of the
+    ///         question at all (kb/Work PB251): <see cref="ValueFixedByDefinition"/> routes them to
+    ///         <see cref="RenderDec"/> BEFORE the arithmetic-mode dispatch, so that arm precedes this
+    ///         set; they are listed here because a string argument makes <c>AnyDecOrRealRaw</c> false
+    ///         and the early-out would otherwise return null under native. NUMVAL-F is standard-mode
+    ///         only — §15.69.4 r2 grants IT, and only it, the native approximation.</item>
+    /// </list>
+    /// </remarks>
+    private static readonly FrozenSet<string> StandardValueFixedByRule = new[]
+    {
+        "Sqrt", "Factorial",
+        "Annuity", "PresentValue", "Variance", "StandardDeviation",
+        "Numval", "NumvalC", "NumvalF",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>
     /// Under a standard arithmetic mode, evaluate a §15.4.1 r1 function's equivalent arithmetic expression ON
     /// the SDIDI carrier (<c>CobolIntrinsics.*Dec</c>) and return the result as a Dec-valued <see cref="NumX"/>
     /// that lands at the receiver ONCE — the PB56 Dec-carrier body, replacing the interim per-argument
     /// unscaled landing whose fixed working scale truncated sub-microscale operands to zero.
     /// </summary>
     /// <remarks>
-    /// <para>Routing: the exact-EAE family routes here only when a RAW argument is Dec or float — an
-    /// all-fixed-point list stays on the exact Int128 family, whose every EAE step is digit-identical to the
-    /// SDIDI evaluation (documented equivalence, <c>COBOLNET_NUMERIC_DESIGN.md</c> D3; the >34-digit exact
-    /// residue keeps MORE precision than per-op rounding would). The four inexact-EAE financial/statistical
-    /// functions route here for EVERY argument shape — their EAEs divide, so even all-fixed lists must
-    /// evaluate in SDIDI form; this is what removes their COBOLNET0899 stage. Returns null for functions
-    /// with no Dec body (the prose family converts its binary64 result in <see cref="RenderFloat"/>).</para>
+    /// <para>Routing, in ONE line: <c>CrossAlignedNativeArms ∪ StandardValueFixedByRule</c> route here for EVERY
+    /// argument shape, and everything else routes here only when a RAW argument is Dec or float. The NON-aligning
+    /// exact-EAE functions with an all-fixed-point list stay on the exact Int128 family, whose every EAE step is
+    /// then digit-identical to the SDIDI evaluation (documented equivalence, <c>COBOLNET_NUMERIC_DESIGN.md</c> D3;
+    /// the &gt;34-digit exact residue keeps MORE precision than per-op rounding would) — that equivalence is what
+    /// ALIGNMENT breaks, which is exactly why the aligning arms are unconditional (see
+    /// <see cref="CrossAlignedNativeArms"/>). Returns null for functions with no Dec body (the prose family
+    /// converts its binary64 result in <see cref="RenderFloat"/>).</para>
     /// <para>Result carriers: SIGN / ORD-MAX / ORD-MIN return INTEGERS (scale-0 exact); everything else
     /// returns the SDIDI itself (<c>Dec: true</c>), the same channel the R18 constant arms and MEAN's
     /// existing SDIDI division already prove end-to-end.</para>
@@ -681,33 +763,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX? RenderDec(BoundIntrinsicCall ic)
     {
         string m = ic.Sig.RuntimeMethod;
-        // Functions whose standard-mode value is FIXED for EVERY argument shape route here unconditionally: the
-        // four inexact-EAE financial/statistical functions (their EAEs divide, so even all-fixed lists must
-        // evaluate in SDIDI form), and the NUMVAL family — §15.67.4 r1 / §15.68.4 r1 / §15.69.4 r3 name the
-        // returned value outright ("the numeric value represented by argument-1"; NUMVAL-F's r2/r3 pair grants
-        // NATIVE arithmetic the approximation and STANDARD-DECIMAL none), and §15.4.1 places it in an SDIDI. Their
-        // argument is a string, so the carrier question never arises; before this arm the standard-mode value
-        // rode the native Int128 projection at the item-92 working scale (fix-queue PB60, RV-15.67.4-1a).
-        // ⛔ FOR NUMVAL AND NUMVAL-C THE MODE IS NOT PART OF THE QUESTION AT ALL (kb/Work PB251): RenderNum calls
-        // this method for them BEFORE the arithmetic-mode dispatch, because r1's "the returned value is the
-        // numeric value represented by argument-1" carries no mode qualification and §15.4.1's implementor
-        // latitude reaches only a function whose definition does NOT otherwise specify the value.
-        // … and the SUMMING statistical family (kb/Work PB62 / RV-15.60.4-1): under a standard mode §15.4.1 r1
-        // makes MEAN/SUM/RANGE/MEDIAN/MIDRANGE equal their §15.60.4 / §15.88.4 / … equivalent arithmetic
-        // expressions evaluated in SDIDI form, and each argument converts to the SDIDI INDIVIDUALLY (§8.8.1.5.2 r1).
-        // The native arms first ALIGN every argument to the list's maximum scale on the Int128 carrier, so a
-        // 31-digit integer beside a scale-18 item needed 49 digits and RescaleEscape raised a size error where the
-        // SDIDI holds the 30-digit answer exactly (MEAN(10³⁰, 2.0) = 500000000000000000000000000001).
-        bool alwaysDec = m is "Sqrt" or "Factorial"   // Factorial: §15.36.4 r1c on the SDIDI (kb/Work PB125),
-                           // same shape as Sqrt — the arm's `when num.StandardDecimal` guard keeps the
-                           // native Int128 lane (and its documented 33 cap) untouched.   // §15.84.4 r2 (PB116): every standard-mode SQRT must reach the SqrtDec arm —
-                           // without this the early-out below returned null for a plain-operand call and it
-                           // fell to binary64; the arm's own `when num.StandardDecimal` guard keeps a NATIVE
-                           // call (which reaches RenderDec only with a float/Dec argument) on the float lane.
-                           or "Annuity" or "PresentValue" or "Variance" or "StandardDeviation"
-                           or "Numval" or "NumvalC" or "NumvalF"
-                           or "SumScaled" or "RangeScaled" or "MeanScaled" or "MedianScaled" or "MidrangeScaled";
-        if (!alwaysDec && !AnyDecOrRealRaw(ic)) return null;
+        // ⛔ TWO SETS, ONE DECISION (kb/Work PB252): CrossAlignedNativeArms is STRUCTURAL (the native arm
+        // cross-aligns, so alignment can need more digits than the Int128 carrier holds) and
+        // StandardValueFixedByRule is the cited-exception half. Between them they replace the inline
+        // `alwaysDec` name chain, and ExactCarrierBoundaryDriftTests derives the first from this switch.
+        // ⛔ AND THE NUMVAL PAIR REACHES HERE IN EVERY MODE (kb/Work PB251): RenderNum consults RenderDec for
+        // Numval/NumvalC through ValueFixedByDefinition BEFORE the arithmetic-mode dispatch, because
+        // §15.67.4 r1 / §15.68.4 r1 name the returned value with no mode qualification and §15.4.1's
+        // implementor latitude reaches only a function whose definition does NOT otherwise specify it. That
+        // arm precedes this set; the pair is listed below anyway because their argument is a STRING, so
+        // AnyDecOrRealRaw is false and without the membership this early-out would return null under native.
+        bool alwaysSdidi = CrossAlignedNativeArms.Contains(m) || StandardValueFixedByRule.Contains(m);
+        if (!alwaysSdidi && !AnyDecOrRealRaw(ic)) return null;
 
         string mode = num.IntermediateMode;
         return m switch
@@ -721,7 +788,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // verdict and the value agree on the same number. NUMVAL-F alone stays standard-mode-only here: its
             // §15.69.4 r2 grants native arithmetic an approximation, which RenderNum's float arm delivers.
             "Numval" => Dec(RuntimeApi.Intrinsic("NumvalDec", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
-            // The alwaysDec list makes this the path for EVERY NUMVAL-C in EVERY arithmetic mode (PB251) — the
+            // StandardValueFixedByRule keeps this the path for EVERY NUMVAL-C under a standard arithmetic
+            // mode, and RenderNum's ValueFixedByDefinition arm reaches it under NATIVE too (PB251) — the
             // LOCALE arm is needed HERE too or --arithmetic standard is silently wrong (indexing the absent
             // ic.Args[1] — no argument-2 is injected under LOCALE; PB64 T6).
             "NumvalC" when ic.LocaleWritten => Dec(RuntimeApi.Intrinsic("NumvalCLocaleDec",

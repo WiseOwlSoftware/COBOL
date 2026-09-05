@@ -416,12 +416,14 @@ keywords precede argument-2), `SubstituteFlat = true` — and `IntrinsicRenderer
 element, and decides the §15.87.2 shapes only a count can decide (an odd element count, a keyword on an
 argument-3 element, FIRST with LAST) as EC-ARGUMENT-FUNCTION with the zero-length default, then runs the ONE
 `Substitute` kernel. Written-only calls keep the bind-time pairing byte-for-byte (`SubstituteModes` per pair).
-The staged `substitute-all-subscript-argument` descriptor is retired. Golden `pb81_substitute_table_all`. Under a STANDARD arithmetic mode the summing
-family (SUM/RANGE/MEAN/MEDIAN/MIDRANGE) now always evaluates on the SDIDI carrier (`RenderDec`'s `alwaysDec` —
-RV-15.60.4-1: the native arms aligned every argument to the list's maximum scale on Int128 first, so
-`MEAN(10³⁰, 2.0)` raised a size error where the SDIDI holds 500000000000000000000000000001 exactly). Pinned by
-`pb62_all_subscript_runtime_ranges` (every range and shape, values derived in its header),
-`pb62_standard_decimal_summing_family`, and the `pb62-all-subscript-*` negatives.
+The staged `substitute-all-subscript-argument` descriptor is retired. Golden `pb81_substitute_table_all`. ### Under a STANDARD arithmetic mode, EVERY CROSS-ALIGNING ARM evaluates on the SDIDI — and that set is DERIVED (PB62, PB252).
+
+§15.4.1 r1 leaves no latitude under STANDARD-DECIMAL / STANDARD-BINARY ("the returned value shall equal the value of the equivalent arithmetic expression") and §8.8.1.5.2 r1 converts **each operand** to the SDIDI individually, so a standard mode never forms a common scale at all. The NATIVE arms align first, on the Int128 carrier, and **alignment multiplies**: a 31-digit integer beside a scale-18 operand needs 49 digits, so `NumericRenderer.Align`'s per-argument escape raises EC-SIZE-OVERFLOW where the SDIDI holds the answer exactly (`MEAN(10³⁰, 2.0)` = 500000000000000000000000000001; `REM(10³¹−2, 1.5)` = 0.5). **"Does this arm cross-align?" is therefore the exact test for "must it be on the Dec lane under a standard mode"** — the routing is a property of the switch, not a taste.
+
+⛔ It was nevertheless built one arm at a time, and each pass believed itself complete: PB62 moved the summing family (SUM/RANGE/MEAN/MEDIAN/MIDRANGE) for MEAN's witness; PB252 found **MOD and REM still on the Int128 lane** — the same clause, the same mechanism, the arm nobody swept. The set is now two NAMED collections instead of an inline `is … or …` chain: `IntrinsicRenderer.CrossAlignedNativeArms` (MOD · REM · SUM · RANGE · MEAN · MEDIAN · MIDRANGE — the structural half) and `StandardValueFixedByRule` (SQRT · FACTORIAL · the four inexact-EAE financial/statistical functions · the NUMVAL family — each for its own cited reason). `ExactCarrierBoundaryDriftTests.EveryCrossAligningNativeArm_IsRoutedToTheSdidiUnderAStandardMode` reads the native switch, collects the case labels of every arm calling `AlignedArgs`/`AlignedArgsEx` or `NumericRenderer.Align(x, s)`, and fails if one is missing — so a new aligning arm is routed automatically or the build goes red. MAX/MIN/ORD-MAX/ORD-MIN stay OUT by the complementary test: `RawArgPairs` rescales each argument to its OWN scale, so they form no common scale (PB65).
+
+Pinned by `pb62_all_subscript_runtime_ranges` (every range and shape, values derived in its header),
+`pb62_standard_decimal_summing_family`, `pb252_mod_rem_standard_decimal` (REM's exact 0.5 across the 49-digit alignment, plus the §15.64.4 NOTE sign table on the SDIDI carrier), and the `pb62-all-subscript-*` negatives.
 
 ### A SELECTION function delivers the selected argument's CONTENT from its own carrier (PB65, RV-15.59.4-1 D2).
 

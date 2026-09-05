@@ -111,7 +111,13 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   · **MEDIAN and MIDRANGE wrapped on the EXACT path**, at one fifth the magnitude of MAX/MIN/SUM/RANGE,
 >     because returning at scale common+1 spends a decimal digit of carrier headroom that its siblings do not.
 >     **Now `EC-SIZE-OVERFLOW`** per the substrate paragraph's escape-boundary policy, which the code had simply
->     never implemented (`CobolIntrinsics.ScaleForHalving`).
+>     never implemented (`CobolIntrinsics.ExactMul`).
+>   · **SUM and RANGE wrapped the same way and were NOT reached by that pass** (PB252): `SumScaled` was
+>     `Int128 s = 0; foreach (var x in xs) s += x;` and `RangeScaled` was `MaxScaled(xs) - MinScaled(xs)`, both
+>     in an unchecked context, while the per-argument `RescaleEscape` bounds each ALIGNED ARGUMENT and says
+>     nothing about their sum. The helpers are now named for the OPERATION they guard — `ExactAdd` / `ExactSub` /
+>     `ExactMul` over the one `SizeEscape` — rather than for MEDIAN's halving, which is what made them look
+>     inapplicable to their siblings; `ExactCarrierBoundaryDriftTests` now closes the set by reflection.
 >   MEAN's one inexact division evaluates in SDIDI form (IntrinsicRenderer), making the spec's
 >   §15.4.1 NOTE-2 relation `FUNCTION MEAN(a b c) = (a+b+c)/3` TRUE. The prose-approximation family (SQRT/trig/
 >   log/E/PI) has no EAE — implementor-defined in every mode (§15.4.1 last ¶), converting into expressions per
@@ -492,9 +498,15 @@ if (CobolNum.IsNumericClass(rawImageOrValue, P_X)) ...
 
 ## Hard problems
 
-### Int128 escape boundary: a single MULTIPLY of two ≥19-digit operands (or a deep COMPUTE product) exceeds Int128's ~38-digit range; COMPUTE expressions have NO composite-of-operands limit (§8.8.1.2 rule 7).
+### Int128 escape boundary: EVERY arithmetic operation on the intermediate, not only MULTIPLY (§14.7.5 rule 5).
 
-Statement arithmetic (ADD/SUB/MUL/DIV with GIVING) enforces the 31-digit composite-of-operands limit at COMPILE time (ISO rule 2, p595) → guaranteed to fit Int128, no runtime check needed. COMPUTE expressions: compute in Int128; before each Mul, if both operand digit-counts sum > 38, raise EC-SIZE-OVERFLOW (the documented escape boundary). Document this as the native-arithmetic range limit (§8.8.1.3 permits implementor-defined range). A future >38-digit need is the only thing that would force a wider carrier — explicitly out of v1 scope and flagged.
+**The governing rule.** §8.8.1.3 makes native arithmetic implementor-defined; this design defines the intermediate as unscaled `Int128` and declares its range **CHECKED**, which is precisely the precondition of §14.7.5 rule 5 — *"if native arithmetic is in effect and the implementor defines that the range of values allowed for the intermediate data item is to be checked, when an arithmetic operation on the intermediate data item would cause the new value to be outside of the allowed range"*. So **any** step that leaves the carrier is the size error condition: it lands on `ON SIZE ERROR` leaving the receiver unchanged (§14.7.5 rule 1), or terminates the run unit when neither the phrase nor EC-SIZE checking is present. **A wrap is never an answer** — §15.4.1 asks at worst for "an implementor-defined approximation", and a sign-flipped value approximates nothing.
+
+⛔ **This section said MULTIPLY, and that omission shipped twice.** Written for products only, it left the intrinsic family's ADD and SUBTRACT unguarded: PB32 found MEDIAN/MIDRANGE wrapping, and PB252 found SUM's `s += x` and RANGE's `max - min` still wrapping eight months later — `FUNCTION SUM` stored a sign-flipped value through an `ON SIZE ERROR` phrase that was NOT taken, and `FUNCTION RANGE` returned a NEGATIVE range, a value §15.76.4 r1 cannot produce. The policy is per-OPERATION and the code now says so: `CobolIntrinsics.Exact.cs#SizeEscape` is the one raise site, with `ExactAdd` / `ExactSub` / `ExactMul` beside it, and `ExactCarrierBoundaryDriftTests` closes the exact-carrier entry-point set by reflection so a new function is guarded or explicitly exempted before it can ship.
+
+⚠ It is per-site `checked`, deliberately NOT `<CheckForOverflowUnderflow>` on the Runtime project: binary-field stores and truncation paths wrap MODULARLY on purpose (§13.18.40, §14.9.25.4 GR6) and a project-wide switch would turn every one of those conforming wraps into an exception.
+
+Statement arithmetic (ADD/SUB/MUL/DIV with GIVING) enforces the 31-digit composite-of-operands limit at COMPILE time (§14.7.7 rule 2) → guaranteed to fit Int128, no runtime check needed. COMPUTE expressions have NO composite-of-operands limit (§8.8.1.2 rule 7 — that clause is about the composite limit and nothing else; it is **not** the escape boundary's citation, which is how a wrong § reached user-visible message text and was corrected by PB252): compute in Int128; before each Mul, if both operand digit-counts sum > 38, raise EC-SIZE-OVERFLOW. A future >38-digit need is the only thing that would force a wider carrier — explicitly out of v1 scope and flagged.
 
 ### DIVIDE intermediate/quotient scale — the one scale `decimal` auto-picked that Int128 forces explicit.
 
@@ -544,6 +556,9 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 
 ## ISO citations
 
+- §14.7.5 rule 5 — **the escape boundary's governing rule**: with native arithmetic in effect and the implementor's intermediate range declared CHECKED, an arithmetic operation that takes the intermediate outside that range IS the size error condition
+- §14.7.5 rule 3 — a result further from zero than the resultant data item permits is the size error condition regardless of the carrier (no implementor latitude)
+- §14.7.5 rule 1 — under the SIZE ERROR phrase, every resultant data item keeps the value it had at the start of the statement
 - §8.8.1.1 General — evaluation rules depend on the mode of arithmetic in effect
 - §8.8.1.2 rule 7 — arithmetic expressions allow combining operations WITHOUT the composite-of-operands and receiving-item restrictions (so COMPUTE has no 31-digit limit; ADD/SUB/MUL/DIV statements do)
 - §8.8.1.2 rule 6 — exponentiation rules (0**0 / negative base / both-roots → positive)

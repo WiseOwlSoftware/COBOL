@@ -177,7 +177,8 @@
     "pb230_incompatible_sending_sweep",
     "pb230_incompatible_boolean_sending",
     "pb235_close_unit_locks",
-    "pb250_test_numvalc_remaining_shapes"
+    "pb250_test_numvalc_remaining_shapes",
+    "pb252_native_carrier_boundary"
   ],
   "pending": []
 }

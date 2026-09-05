@@ -20,15 +20,23 @@ namespace CobolNet.Runtime;
 /// </para>
 /// <para><b>Standard arithmetic (ISO §15.4.1 r1 / §8.8.1.5, P10 Step 12).</b> Under ARITHMETIC IS STANDARD /
 /// STANDARD-DECIMAL a function with an equivalent arithmetic expression must return EXACTLY that expression's
-/// SDIDI-evaluated value. This family already satisfies it, so the mode needs no routing here: every EAE step of
-/// MOD/REM (a − b×q with |b×q| ≤ |a|, ≤31 digits), MAX/MIN/RANGE (compare/subtract), SUM (≤32-digit sums per
-/// step), MEDIAN/MIDRANGE (the ×10/×5 halving trick keeps the /2 exact), ABS/SIGN/INTEGER/INTEGER-PART/
-/// FRACTION-PART is EXACT here AND exact in a 34-digit SDIDI (§8.8.1.5.2 — an exact ≤34-digit result never
-/// rounds), so the two evaluations are digit-identical. The ONE recorded residue: a result whose exact form
-/// exceeds 34 significant digits (FACTORIAL of 31–33; a SUM chain past 34 digits) stays exact-Int128 here where
-/// the SDIDI evaluation would round each step to 34 digits — a divergence in the direction of MORE precision,
-/// undetectable at bind time (argument values are runtime data) and recorded in COBOLNET_NUMERIC_DESIGN §D3
-/// rather than staged. MEAN's inexact division is evaluated in SDIDI form by the emitter (IntrinsicRenderer).</para>
+/// SDIDI-evaluated value. Where the two carriers agree they agree DIGIT-FOR-DIGIT (§8.8.1.5.2 — an exact ≤34-digit
+/// result never rounds), which covers ABS/SIGN/INTEGER/INTEGER-PART/FRACTION-PART and the pure-SELECTION
+/// MAX/MIN/ORD-MAX/ORD-MIN outright.
+/// <para>⛔ <b>They do NOT agree wherever the emitter first ALIGNS the arguments to one common scale</b>, and an
+/// earlier revision of this paragraph asserted they did — "MOD/REM … ≤31 digits", "SUM (≤32-digit sums per step)".
+/// Both bounds are the UNALIGNED ones. Alignment multiplies: a 31-digit integer beside a scale-18 operand needs 49
+/// digits, past this carrier entirely, and three aligned 38-digit SUM arguments exceed it while each one passes the
+/// per-argument escape. That false premise is precisely why the always-SDIDI routing was built one arm at a time
+/// (kb/Work PB62, then PB252). The rule is now structural and lives in ONE place — <c>IntrinsicRenderer</c>'s
+/// <c>CrossAlignedNativeArms</c>: <b>every native arm that cross-aligns (MOD · REM · SUM · RANGE · MEAN · MEDIAN ·
+/// MIDRANGE) routes to its <c>…Dec</c> body under a standard mode</b>, so §15.4.1 r1 is satisfied by the SDIDI and
+/// not by a bound on this carrier. Under NATIVE arithmetic these bodies keep the exact-Int128 lane and reaching the
+/// D1 boundary is the §14.7.5 SIZE ERROR condition, never a wrap (see <c>SizeEscape</c>).</para>
+/// <para>The ONE recorded residue: a result whose exact form exceeds 34 significant digits (FACTORIAL of 31–33)
+/// stays exact-Int128 here where the SDIDI evaluation would round each step to 34 digits — a divergence in the
+/// direction of MORE precision, undetectable at bind time (argument values are runtime data) and recorded in
+/// COBOLNET_NUMERIC_DESIGN §D3 rather than staged.</para>
 /// </summary>
 public static partial class CobolIntrinsics
 {
@@ -115,7 +123,13 @@ public static partial class CobolIntrinsics
         if (b == 0) return ModZeroDivisor();                 // the ONE §15.64.3 r2 raise site (both carriers)
         Int128 q = a / b;                                    // truncating quotient of the ALIGNED values
         if (a % b != 0 && (a < 0) != (b < 0)) q -= 1;        // → floor (FUNCTION INTEGER of the true ratio)
-        return a - b * q;
+        // §15.64.3 r1 makes both arguments INTEGERS, so on conforming source the common scale is 0, no alignment
+        // happens and |b×q| ≤ |a| ≤ 10³¹ — the D1 boundary is unreachable. It IS reachable under --permissive,
+        // whose coercion extension admits a scaled operand and so a nonzero common scale: the floor adjustment
+        // then lets |b×q| reach |a|+|b|, and with two aligned near-carrier operands that product wraps. Loud, by
+        // the same policy as every other exact-carrier step (see SizeEscape; kb/Work PB252).
+        try { return checked(a - b * q); }
+        catch (OverflowException) { return SizeEscape("MOD"); }
     }
 
     /// <summary>REM (§15.77.4): <c>a − b × FUNCTION INTEGER-PART(a / b)</c> — the truncated remainder (sign follows
@@ -142,19 +156,35 @@ public static partial class CobolIntrinsics
         return m;
     }
 
-    /// <summary>SUM (§15.88.4): Σ arguments, at the common scale (exact in Int128).</summary>
-    public static Int128 SumScaled(params Int128[] xs)
+    /// <summary>SUM (§15.88.4): Σ arguments, at the common scale, EXACT in Int128 or not at all —
+    /// <paramref name="fn"/> names the COBOL function whose equivalent arithmetic expression is being evaluated,
+    /// because this body serves TWO of them: §15.88.4's own Σ and the numerator of §15.60.4's <c>Σ / n</c>
+    /// (the renderer emits <c>SumScaled("MEAN", …)</c> for MEAN — <c>IntrinsicRenderer</c>'s MeanScaled arm).</summary>
+    /// <remarks>The accumulator is <c>checked</c> under ONE try for the whole loop (entering a try region is free;
+    /// a per-iteration guard would not be). §15.88.3 r1 admits any class-numeric argument list, so the aligned
+    /// values are bounded only by <see cref="NumericRenderer"/>'s PER-ARGUMENT escape — which says nothing about
+    /// their SUM: three aligned 38-digit arguments exceed the carrier while each one passes. See
+    /// <see cref="SizeEscape"/> for why a wrap is never the answer (kb/Work PB252).</remarks>
+    public static Int128 SumScaled(string fn, params Int128[] xs)
     {
-        Int128 s = 0;
-        foreach (var x in xs) s += x;
-        return s;
+        try
+        {
+            Int128 s = 0;
+            foreach (var x in xs) s = checked(s + x);
+            return s;
+        }
+        catch (OverflowException) { return SizeEscape(fn); }
     }
 
-    /// <summary>RANGE (§15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale.</summary>
-    public static Int128 RangeScaled(params Int128[] xs) => MaxScaled(xs) - MinScaled(xs);
+    /// <summary>RANGE (§15.76.4 r1): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale. The SUBTRACTION is
+    /// the escape: both operands are argument CONTENTS that individually passed the per-argument escape, and their
+    /// difference is up to twice the larger — a positive maximum less a negative minimum wrapped to a NEGATIVE
+    /// range, a value §15.76.4 r1 cannot produce (kb/Work PB252).</summary>
+    public static Int128 RangeScaled(params Int128[] xs) => ExactSub(MaxScaled(xs), MinScaled(xs), "RANGE");
 
     /// <summary>
-    /// ⛔ THE EXACT CARRIER'S ESCAPE BOUNDARY, WRITTEN ONCE (fix-queue PB32).
+    /// ⛔ THE EXACT CARRIER'S ESCAPE BOUNDARY, WRITTEN ONCE (fix-queue PB32; generalized to the whole exact
+    /// family by kb/Work PB252).
     /// </summary>
     /// <remarks>
     /// MEDIAN and MIDRANGE return at scale common+1 so that their halving is EXACT (odd: ×10; even/midrange: ×5).
@@ -171,47 +201,80 @@ public static partial class CobolIntrinsics
     /// (~38 digits) → EC-SIZE-OVERFLOW". A wrap is never a conforming answer — §15.4.1 asks at worst for "an
     /// implementor-defined approximation", and a value 3.2× out with its top thirty digits wrong approximates
     /// nothing. <see cref="CobolSizeError"/> is the runtime's own carrier for that condition and lands on the
-    /// statement's ON SIZE ERROR arm through the existing <c>ArithmeticEmitter</c> handler.</para>
+    /// statement's ON SIZE ERROR arm through the existing <c>ArithmeticEmitter</c> handler, leaving the receiver
+    /// unchanged (§14.7.5 rule 1 under the SIZE ERROR phrase).</para>
+    /// <para>⛔ The GOVERNING clause is <b>§14.7.5 rule 5</b>: "if native arithmetic is in effect and the
+    /// implementor defines that the range of values allowed for the intermediate data item is to be checked, when
+    /// an arithmetic operation on the intermediate data item would cause the new value to be outside of the
+    /// allowed range". §8.8.1.3 makes native arithmetic implementor-defined, D1 defines the intermediate as
+    /// Int128 and declares its range CHECKED, and r5 then makes each step past it the size error condition
+    /// exactly. PB32's original message cited "§8.8.1.2 rule 7" — a REAL clause answering a DIFFERENT question
+    /// (arithmetic expressions are exempt from the composite-of-operands limit; every other citation of r7 in the
+    /// tree uses it correctly for that). Corrected by kb/Work PB252; it had been user-visible text.</para>
+    /// <para>Left-to-right accumulation is normative (§8.8.1.2 rule 3), so a partial sum that escapes the carrier
+    /// IS an r5 size error even when later terms would bring the total back inside — the modular cancellation the
+    /// old unchecked <c>s += x</c> happened to deliver for such a list was never the standard's answer, it was
+    /// two's complement's.</para>
+    /// <para>⛔ PB32 wrote the policy for MEDIAN/MIDRANGE only, and the names said so (<c>ScaleForHalving</c>,
+    /// <c>AddForHalving</c>) — so SUM's and RANGE's identical accumulators sat unguarded for another eight months
+    /// (kb/Work PB252, the same two-arm shape PB62 left on the renderer's side). The policy is the FILE's, not
+    /// MEDIAN's, so the primitives are now named for the OPERATION they guard and every arithmetic step on the
+    /// exact carrier goes through one of them or an inline <c>checked</c> block —
+    /// <c>ExactCarrierBoundaryDriftTests</c> holds that closed by REFLECTION over the whole entry-point set, so a
+    /// new exact function is guarded or explicitly exempted before it can ship.</para>
+    /// <para>Note this is deliberately per-site <c>checked</c> and NOT
+    /// <c>&lt;CheckForOverflowUnderflow&gt;</c> on the project: the runtime's binary-field stores and truncation
+    /// paths wrap MODULARLY on purpose (§13.18.40, §14.9.25.4 GR6), and a project-wide switch would turn every one
+    /// of those conforming wraps into an exception.</para>
     /// </remarks>
-    private static Int128 ScaleForHalving(Int128 v, int factor, string fn) =>
-        Int128.Abs(v) <= Int128.MaxValue / factor
-            ? v * factor
-            : throw new CobolSizeError(
-                $"FUNCTION {fn}: the exact result exceeds the Int128 intermediate carrier "
-                + "(COBOLNET_NUMERIC_DESIGN.md D1; ISO §8.8.1.2 rule 7)", "EC-SIZE-OVERFLOW");
+    private static Int128 SizeEscape(string fn) =>
+        throw new CobolSizeError(
+            $"FUNCTION {fn}: an arithmetic operation took the intermediate outside the Int128 carrier's range "
+            + "(COBOLNET_NUMERIC_DESIGN.md D1; ISO §14.7.5 rule 5)", "EC-SIZE-OVERFLOW");
 
-    /// <summary>The sum of two aligned unscaled operands at the exact carrier's boundary — the ADD that precedes
-    /// every ×5 halving. Guarded for the same reason and by the same policy as <see cref="ScaleForHalving"/>.</summary>
-    private static Int128 AddForHalving(Int128 a, Int128 b, string fn)
+    /// <summary>The sum of two aligned unscaled operands at the exact carrier's boundary
+    /// (see <see cref="SizeEscape"/>).</summary>
+    private static Int128 ExactAdd(Int128 a, Int128 b, string fn)
     {
         try { return checked(a + b); }
-        catch (OverflowException)
-        {
-            throw new CobolSizeError(
-                $"FUNCTION {fn}: the exact result exceeds the Int128 intermediate carrier "
-                + "(COBOLNET_NUMERIC_DESIGN.md D1; ISO §8.8.1.2 rule 7)", "EC-SIZE-OVERFLOW");
-        }
+        catch (OverflowException) { return SizeEscape(fn); }
+    }
+
+    /// <summary>The difference of two aligned unscaled operands at the exact carrier's boundary
+    /// (see <see cref="SizeEscape"/>).</summary>
+    private static Int128 ExactSub(Int128 a, Int128 b, string fn)
+    {
+        try { return checked(a - b); }
+        catch (OverflowException) { return SizeEscape(fn); }
+    }
+
+    /// <summary>The product of two unscaled operands at the exact carrier's boundary — the ×10 / ×5 that makes
+    /// MEDIAN's and MIDRANGE's halving exact (see <see cref="SizeEscape"/>).</summary>
+    private static Int128 ExactMul(Int128 a, Int128 b, string fn)
+    {
+        try { return checked(a * b); }
+        catch (OverflowException) { return SizeEscape(fn); }
     }
 
     /// <summary>MEDIAN (§15.61.4): odd count ⇒ the middle of the sorted arguments (rule 1); even count ⇒ the mean
     /// of the two middles, <c>(b + c) / 2</c> (rule 2). Returned at scale common+1 — the ×10 makes the halving
     /// EXACT in both branches (odd: middle × 10; even: (b + c) × 5), so no rounding decision is buried here.
     /// The scale bump costs a decimal digit of carrier headroom, which is why both branches go through
-    /// <see cref="ScaleForHalving"/> rather than multiplying raw (fix-queue PB32).</summary>
+    /// <see cref="ExactMul"/> rather than multiplying raw (fix-queue PB32).</summary>
     public static Int128 MedianScaled(params Int128[] xs)
     {
         var sorted = (Int128[])xs.Clone();
         Array.Sort(sorted);
         int mid = sorted.Length / 2;
         return sorted.Length % 2 != 0
-            ? ScaleForHalving(sorted[mid], 10, "MEDIAN")
-            : ScaleForHalving(AddForHalving(sorted[mid - 1], sorted[mid], "MEDIAN"), 5, "MEDIAN");
+            ? ExactMul(sorted[mid], 10, "MEDIAN")
+            : ExactMul(ExactAdd(sorted[mid - 1], sorted[mid], "MEDIAN"), 5, "MEDIAN");
     }
 
     /// <summary>MIDRANGE (§15.62.4): <c>(MAX + MIN) / 2</c> — returned at scale common+1 ((max+min) × 5, exact),
-    /// through <see cref="ScaleForHalving"/> for the headroom reason documented there (fix-queue PB32).</summary>
+    /// through <see cref="ExactMul"/> for the headroom reason documented there (fix-queue PB32).</summary>
     public static Int128 MidrangeScaled(params Int128[] xs) =>
-        ScaleForHalving(AddForHalving(MaxScaled(xs), MinScaled(xs), "MIDRANGE"), 5, "MIDRANGE");
+        ExactMul(ExactAdd(MaxScaled(xs), MinScaled(xs), "MIDRANGE"), 5, "MIDRANGE");
 
     /// <summary>ORD-MAX (§15.71.4): the 1-based ordinal position of the greatest argument; ties take the FIRST
     /// occurrence (strictly-greater update — the legacy-proven rule the NIST goldens encode).</summary>
