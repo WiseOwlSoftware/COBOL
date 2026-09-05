@@ -57,8 +57,21 @@ internal readonly record struct ReceiverContext(
     /// least 9 fraction digits, which is what makes <c>SQRT(2)</c> useful at scale 0 (deep-dive D1).</summary>
     public const int FloatScaleFloor = 9;
 
-    /// <summary>The NUMVAL family's floor (§15.67/§15.68/§15.69): 6 fraction digits, the NUMVAL rule.</summary>
-    public const int NumvalScaleFloor = 6;
+    /// <summary>
+    /// The floor <c>NumericRenderer.Landed</c> uses when it lands an SDIDI intermediate into the exact
+    /// <c>Int128</c> lane for a VALUE-SEMANTICS consumer that supplies no scale of its own (an intrinsic argument,
+    /// a CALL BY VALUE arithmetic-expression argument, a SET pointer UP/DOWN BY amount, an ALLOCATE character
+    /// count): 6 fraction digits. It is the ONLY consumer of the constant.
+    /// <para>⛔ IT IS NOT A NUMVAL RULE, AND CALLING IT ONE HELD A WRONG ANSWER OPEN (kb/Work PB251). Named
+    /// <c>NumvalScaleFloor</c>, it read as though §15.67/§15.68/§15.69 prescribed a 6-digit working scale. They
+    /// prescribe no working scale at all: §15.67.4 r1 / §15.68.4 r1 fix the returned value as "the numeric value
+    /// represented by argument-1" with no arithmetic-mode qualification, so NUMVAL and NUMVAL-C render on the
+    /// SDIDI carrier in every mode and never consult this constant; §15.69.4 r2's approximation licence puts
+    /// NUMVAL-F on the float lane, whose floor is <see cref="FloatScaleFloor"/>. What remains is an IMPLEMENTOR
+    /// choice for the one landing with no receiver to derive a scale from — the <see cref="WorkingScale"/> CAP
+    /// above it is a correctness requirement, this floor is not.</para>
+    /// </summary>
+    public const int SdidiLandingScaleFloor = 6;
 
     /// <summary>
     /// The WORKING SCALE a float→fixed quantization (<c>CobolIntrinsics.FromDouble</c>) uses for this receiver —
@@ -98,12 +111,16 @@ internal readonly record struct ReceiverContext(
 
     /// <summary>
     /// <see cref="FloatWorkingScale"/> generalised by the family's own fraction-digit FLOOR — the float family
-    /// uses <see cref="FloatScaleFloor"/>, the NUMVAL family <see cref="NumvalScaleFloor"/>. The floor is the
-    /// only thing that differs between them; the CAP is the same Int128-headroom argument, because the defect
-    /// is a property of the working-scale-then-rescale shape and not of which function produced the value.
-    /// Keeping them one method is what stopped the NUMVAL family being swept a second time — PB5 fixed the float
-    /// clamp and left <c>Numval</c>/<c>NumvalF</c> clamping at <c>long.MaxValue</c>, so
+    /// uses <see cref="FloatScaleFloor"/>, the SDIDI value-semantics landing <see cref="SdidiLandingScaleFloor"/>.
+    /// The floor is the only thing that differs between them; the CAP is the same Int128-headroom argument, because
+    /// the defect is a property of the working-scale-then-rescale shape and not of which function produced the
+    /// value. Keeping them one method is what stopped the NUMVAL family being swept a second time — PB5 fixed the
+    /// float clamp and left <c>Numval</c>/<c>NumvalF</c> clamping at <c>long.MaxValue</c>, so
     /// <c>FUNCTION NUMVAL-F("1E+20")</c> returned 9223372036.
+    /// <para>⛔ A FLOOR IS A CHOICE AND MUST NEVER BE READ AS A FUNCTION'S RULE (kb/Work PB251): the NUMVAL floor
+    /// that used to be listed here was never §15.67's — the family has no working scale at all — and the name
+    /// alone kept a truncating native lane looking spec-derived. Every floor passed here is an implementor choice
+    /// under §8.8.1.2 / §15.4.1; the cap is the only part the standard forces.</para>
     /// </summary>
     public int WorkingScale(int floor)
     {

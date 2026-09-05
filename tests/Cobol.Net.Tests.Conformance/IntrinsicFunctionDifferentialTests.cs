@@ -410,7 +410,14 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (okP, output, detailP) = EditionHarness.CompileAndRun(
             Program("01 T PIC X(8).", "    MOVE FUNCTION NUMVAL(\"1\") TO T.\n    DISPLAY T."), 2023, permissive: true);
         Assert.True(okP, detailP);
-        Assert.Equal("1.000000", output.Trim());
+        // ⛔ "1", NOT "1.000000" (kb/Work PB251). The permissive text is the item-92 LITERAL form of the value,
+        // and NUMVAL's value is now the parsed value at its OWN scale in every arithmetic mode — §15.67.4 r1
+        // fixes it ("The returned value is the numeric value represented by argument-1") with no mode
+        // qualification, and §15.4.1's implementor latitude reaches only a function whose definition does NOT
+        // otherwise specify the value. "1" has no fraction digits, so the value has scale 0 and the literal form
+        // carries none. The old six were the native working scale's floor showing through the text — the same
+        // floor that printed 0.123456 for FUNCTION NUMVAL("0.1234567").
+        Assert.Equal("1", output.Trim());
     }
 
     // ── 2023 string intrinsics (Phase 5, DEVLOG 628): CONCAT §15.18, BASECONVERT §15.12 ─────────────────────

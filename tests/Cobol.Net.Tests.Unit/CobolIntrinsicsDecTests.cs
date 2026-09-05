@@ -136,7 +136,10 @@ public sealed class CobolIntrinsicsDecTests
         AssertDec(D(1500, 3), CobolIntrinsics.NumvalDec("1.500"));           // trailing zeros keep their scale
         // A 34-digit argument is legal under the standard-decimal cap (§15.67.3 r4) and exact (§8.8.1.5.2's
         // 34 digits) — the native projection saturated its Int128 rescale on this input.
-        var n34 = CobolIntrinsics.NumvalDec("1234567890123456789012345678901234");
+        // ⛔ The cap is passed EXPLICITLY because the family's one convention is that the OMITTED default is the
+        // NATIVE §15.67.3 r3 cap of 31 (kb/Work PB251 — these bodies now serve native arithmetic too, and the
+        // emitter names the cap exactly when the mode's cap differs).
+        var n34 = CobolIntrinsics.NumvalDec("1234567890123456789012345678901234", digitCap: 34);
         Assert.Equal(System.Int128.Parse("1234567890123456789012345678901234"), n34.Sig);
         Assert.Equal(0, n34.Exp);
         AssertDec(D(125, 1), CobolIntrinsics.NumvalDec("12,5", commaMode: true));   // §15.67.3 r5
@@ -175,8 +178,11 @@ public sealed class CobolIntrinsicsDecTests
     [InlineData(" + 7 ")]
     public void NumvalFamily_DecAgreesWithNative_OnTheSharedDomain(string text)
     {
-        Assert.Equal(CobolIntrinsics.Numval(text, 6), CobolIntrinsics.NumvalDec(text).ToUnscaled(6, CobolRounding.Truncation));
-        Assert.Equal(CobolIntrinsics.NumvalC(text, "$", 6), CobolIntrinsics.NumvalCDec(text, "$").ToUnscaled(6, CobolRounding.Truncation));
+        // ⛔ NUMVAL AND NUMVAL-C NO LONGER HAVE A NATIVE TWIN TO AGREE WITH (kb/Work PB251): §15.67.4 r1 /
+        // §15.68.4 r1 fix the returned value with no arithmetic-mode qualification, so ONE projection serves every
+        // mode and the agreement question is answered by construction. What is still worth asserting of it is
+        // that the value is the parsed one at its OWN scale — no working scale, no receiver.
+        AssertDec(CobolIntrinsics.NumvalDec(text), CobolIntrinsics.NumvalCDec(text, "¤"));
         if (!text.Contains("CR"))   // NUMVAL-F has no CR form (§15.69.3 r1)
             Assert.Equal(CobolIntrinsics.NumvalF(text, 9), CobolIntrinsics.NumvalFDec(Nafz, text).ToUnscaled(9, CobolRounding.Truncation));
     }
@@ -189,8 +195,8 @@ public sealed class CobolIntrinsicsDecTests
     [InlineData("")]                                         // r1c — no digit anywhere
     public void NumvalFamily_RejectProjection_IsSharedAcrossModes(string text)
     {
-        Assert.Equal((System.Int128)0, CobolIntrinsics.Numval(text, 6, digitCap: 34));
-        AssertDec(D(0, 0), CobolIntrinsics.NumvalDec(text));
+        AssertDec(D(0, 0), CobolIntrinsics.NumvalDec(text, digitCap: 34));
+        AssertDec(D(0, 0), CobolIntrinsics.NumvalCDec(text, "¤", digitCap: 34));
         Assert.Equal((System.Int128)0, CobolIntrinsics.NumvalF(text, 9, digitCap: 34));
         AssertDec(D(0, 0), CobolIntrinsics.NumvalFDec(Nafz, text));
     }

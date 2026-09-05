@@ -13,6 +13,14 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class NumvalCLocaleScanTests
 {
+    /// <summary>The LOCALE value at two fraction digits. ⛔ THE FUNCTION HAS ONE VALUE PROJECTION, AND IT CARRIES
+    /// ITS OWN SCALE (kb/Work PB251): §15.68.4 r1 fixes the returned value with no arithmetic-mode qualification,
+    /// so the SDIDI is the value in every mode and the scale-2 rendering is this TEST's convenience — it used to
+    /// be a scaled-<c>Int128</c> twin of the same rule, and a twin only one caller reaches is a copy nothing
+    /// contradicts.</summary>
+    private static Int128 Scaled2(string text, string tag = "") =>
+        CobolIntrinsics.NumvalCLocaleDec(text, tag).ToUnscaled(2, CobolRounding.Truncation);
+
     [Theory]
     // The default path IS the parentheses convention: §15.68.4 r3 with the derived n_sign_posn 0.
     [InlineData("(¤1,234.56)", 0)]
@@ -61,13 +69,13 @@ public sealed class NumvalCLocaleScanTests
     {
         // §15.68.4 r3 — negative iff the NEGATIVE convention matched; the parenthesized form IS the negative
         // convention under the invariant locale.
-        Assert.Equal((Int128)(-123456), CobolIntrinsics.NumvalCLocale("(¤1,234.56)", "", scale: 2));
-        Assert.Equal((Int128)123456, CobolIntrinsics.NumvalCLocale("¤1,234.56", "", scale: 2));
-        Assert.Equal((Int128)123456, CobolIntrinsics.NumvalCLocale("+¤1,234.56", "", scale: 2));
+        Assert.Equal((Int128)(-123456), Scaled2("(¤1,234.56)"));
+        Assert.Equal((Int128)123456, Scaled2("¤1,234.56"));
+        Assert.Equal((Int128)123456, Scaled2("+¤1,234.56"));
         // Negative zero evaluates to zero — COBOL numeric has no signed zero.
-        Assert.Equal((Int128)0, CobolIntrinsics.NumvalCLocale("(¤0.00)", "", scale: 2));
+        Assert.Equal((Int128)0, Scaled2("(¤0.00)"));
         // §15.68.4 r2 — grouping separators preceding the decimal separator are ignored in the value.
-        Assert.Equal((Int128)123450, CobolIntrinsics.NumvalCLocale("1,2,3,4.5", "", scale: 2));
+        Assert.Equal((Int128)123450, Scaled2("1,2,3,4.5"));
     }
 
     [Fact]
@@ -84,7 +92,7 @@ public sealed class NumvalCLocaleScanTests
             long verdict = CobolIntrinsics.TestNumvalCLocale(probe, "");
             if (verdict == 0)
                 // A conforming probe must parse to SOME value without tripping the scan again.
-                _ = CobolIntrinsics.NumvalCLocale(probe, "", scale: 2);
+                _ = CobolIntrinsics.NumvalCLocaleDec(probe, "");
             else
                 Assert.NotEqual(0, verdict);
         }
@@ -120,7 +128,7 @@ public sealed class NumvalCLocaleScanTests
         // appended space is never required. en-US: ISOCurrencySymbol "USD".
         Assert.Equal(0, CobolIntrinsics.TestNumvalCLocale("USD1,234.56", "en-US"));
         Assert.Equal(0, CobolIntrinsics.TestNumvalCLocale("USD 1,234.56", "en-US"));
-        Assert.Equal((Int128)123456, CobolIntrinsics.NumvalCLocale("USD1,234.56", "en-US", scale: 2));
+        Assert.Equal((Int128)123456, Scaled2("USD1,234.56", "en-US"));
         // The INVARIANT locale has no region ⇒ no int_curr_symbol ⇒ "USD" can never match (a determination).
         Assert.NotEqual(0, CobolIntrinsics.TestNumvalCLocale("USD1,234.56", ""));
     }

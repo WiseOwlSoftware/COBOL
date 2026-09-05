@@ -55,6 +55,6 @@ public sealed class TestNumvalScannerTests
         Assert.Equal(1, CobolIntrinsics.TestNumvalC("usd 12", "USD"));
         Assert.Equal(0, CobolIntrinsics.TestNumvalC("usd 12", "USD", anycase: true));
         // The value parser mirrors the fold (§15.94.1 — TEST verifies what NUMVAL-C would accept).
-        Assert.Equal(12_000_000, CobolIntrinsics.NumvalC("usd 12", "USD", 6, anycase: true));
+        Assert.Equal((Int128)12, CobolIntrinsics.NumvalCDec("usd 12", "USD", anycase: true).ToUnscaled(0, CobolRounding.Truncation));
     }
 }

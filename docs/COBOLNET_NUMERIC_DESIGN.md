@@ -635,7 +635,9 @@ CONTENT arithmetic-expression (`CobolNum.Store(ex.Expr, ex.Scale, …)`); the sa
 every arithmetic expression under STANDARD-DECIMAL. The two-arm-dispatch shape again: the relation renderer, the
 arithmetic store and the MOVE store each had the `Dec` arm, these did not. The rule is now written once:
 `NumericRenderer.Landed(x, rcv)` is THE landing of an intermediate into the Int128 lane at the receiver's working
-scale (`WorkingScale(NumvalScaleFloor)`, checked — moved out of `IntrinsicRenderer`, which delegates); `FixedLane`
+scale (`WorkingScale(SdidiLandingScaleFloor)`, checked — moved out of `IntrinsicRenderer`, which delegates; the
+constant was called `NumvalScaleFloor` until kb/Work PB251 showed the name was a fiction — §15.67 prescribes no
+working scale, so the floor is an implementor choice for THIS landing and nothing else); `FixedLane`
 is the same for a consumer with no float arm of its own (the DIVIDE … REMAINDER kernel — a FLOAT-LONG sender was
 snapshotted `Int128 t = double`, PB85 — a native float lands truncated at `FloatWorkingScale`); the sign condition
 tests `Int128.Sign(dec.Sig)` (`RuntimeApi.DecSign` — exact at every exponent, never a landing);

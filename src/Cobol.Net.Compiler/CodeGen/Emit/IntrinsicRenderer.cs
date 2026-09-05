@@ -54,6 +54,33 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             return new NumX(RuntimeApi.NumFromAlphanumeric(RenderString(ic)), 0);
 
+        // ⛔ THE §15.4.1 NATIVE LATITUDE IS WITHDRAWN WHERE THE FUNCTION DEFINITION FIXES THE VALUE — SO THIS ARM
+        // RUNS BEFORE THE ARITHMETIC-MODE DISPATCH, NOT INSIDE ITS STANDARD BRANCH (kb/Work PB251, rows
+        // RV-15.4.1-2 / RV-15.4.1-L2.2). §15.4.1's closing sentence is a CONDITIONAL — "When a numeric or integer
+        // function does not have an equivalent arithmetic expression, its returned value is implementor-defined
+        // unless otherwise specified in the function definition" — and §15.67.4 r1 / §15.68.4 r1 are exactly such
+        // a specification, stated once for every arithmetic mode with no qualification: "The returned value is the
+        // numeric value represented by argument-1". NUMVAL and NUMVAL-C have no equivalent arithmetic expression,
+        // so the latitude the sentence grants is REMOVED for them and their value is the parsed value EXACTLY —
+        // under NATIVE arithmetic too. Only the REPRESENTATION stays the implementor's ("When native arithmetic is
+        // in effect, the characteristics and representation of the returned value are defined by the implementor"),
+        // and the SDIDI is the ONE representation that holds every conforming argument: §15.67.3 r3 admits 31
+        // total digits under native and r4 admits 34 under a standard mode, both of which the SDIDI's runtime
+        // exponent carries without a working scale at all.
+        // ⛔ NO COMPILE-TIME WORKING SCALE CAN DO THIS, WHICH IS WHY THE FIX IS THE CARRIER AND NOT A BIGGER FLOOR.
+        // A scaled Int128 temporary holds i + ws digits for an argument with i integer digits, and §15.67.3 r3
+        // permits i = 31, so the only ws safe for EVERY conforming argument is 7 — while `NUMVAL("0.123456789")`
+        // needs 9. The former arms took ws = max(receiver scale, 6), which made a function's value depend on the
+        // SHAPE of its receiver and truncated in every channel with no receiver scale to inherit: measured at HEAD
+        // before this landed, `DISPLAY FUNCTION NUMVAL("0.1234567")` printed 0.123456, and — a real receiver being
+        // no protection, because the receiver bounds the STATEMENT's result and not an OPERAND's precision —
+        // `COMPUTE R = FUNCTION NUMVAL("0.1234567") * 10000000` stored 1234560 into PIC 9(9) where r1 owes
+        // 1234567. NUMVAL-F is NOT here and must not be: §15.69.4 r2 grants native arithmetic "an approximation of
+        // the numeric value represented by argument-1", so its native lane keeps the float family's determination
+        // (CONFORMANCE.md item 92, PB60/RV-15.69.4-2) — the r2/r3 split is the standard drawing this exact line.
+        if (ValueFixedByDefinition(sig.RuntimeMethod) && RenderDec(ic) is { } fixedByDefinition)
+            return fixedByDefinition;
+
         // ⛔ ROUTE ON THE ARGUMENT'S TYPE, NOT ONLY THE FUNCTION'S FAMILY (fix-queue PB2). The exact family
         // computes over scale-aligned Int128, which is right (deep-dive D1) — but a FLOATING-POINT argument is
         // legal for all of it (§15.7.3 r1 and siblings require class NUMERIC, and a COMP-2 item is class
@@ -228,31 +255,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "OrdMaxString" or "OrdMinString":                              // all-string form (PCS via CollatePrefix, CA23)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)), 0);
 
-            // NUMVAL / NUMVAL-C (§15.67/§15.68) under NATIVE arithmetic (the standard-mode value is RenderDec's
-            // exact SDIDI arm — §15.4.1; PB60): parse to (unscaled, actual scale), rescaled to the compile-time
-            // working scale — the ≥6 floor is the NUMVAL rule (the receiver scale is stale in IF conditions; the
-            // suite's deepest literal fraction is 5 digits, so 6 is lossless), CAPPED at the receiver's Int128
-            // headroom by the same PB13 argument the float family uses (the CONFORMANCE.md item-92 native
-            // working-scale determination). These carried the defect too: the runtime clamped the parsed value at
-            // long.MaxValue, so a 20-digit NUMVAL string at ws = 6 needs 26 digits and silently became
-            // 9223372036.854775807.
-            case "Numval":
-            {
-                int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}{CheckedFlag}"), ws);
-            }
-            case "NumvalC":
-            {
-                int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
-                // The LOCALE arm (§15.68.3 r5; kb/Work PB64 T6) — a DIFFERENT accepted language, selected on the
-                // phrase-written flag (Locale alone cannot tell a bare LOCALE from no phrase): the locale scan,
-                // NO argument-2 (none was injected) and NO commaMode (§15.68.3 r4 is not inherited).
-                if (ic.LocaleWritten)
-                    return new NumX(RuntimeApi.Intrinsic("NumvalCLocale",
-                        $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}, {ws}{AnycaseFlag(ic)}{DigitCapFlag}{CheckedFlag}"), ws);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
-                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{CheckedFlag}"), ws);
-            }
+            // (NUMVAL / NUMVAL-C have NO arm here in ANY arithmetic mode — §15.67.4 r1 / §15.68.4 r1 fix their
+            // value, so RenderNum's §15.4.1 arm routes both to the SDIDI projection before the mode dispatch
+            // and no compile-time working scale exists for them to be wrong about; kb/Work PB251.)
 
             // The §15.93/§15.94 TEST validators — 0 / first-error position / LENGTH+1, scale 0. The digit-cap
             // sub-notes are ARITHMETIC-MODE dependent (§15.93.4 r1b notes 2/4): 31 native, 34 under the SDIDI
@@ -449,7 +454,27 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     }
 
     // ── Argument rendering (the ONE NumericRenderer for every numeric-kind argument) ────────────────────────
+    //
+    // ⛔ THERE IS ONE ENTRY — `num.AsNum(operand, receiver)` — AND SEVERAL INTAKES OVER IT, WITH DIFFERENT VALUE
+    // SEMANTICS. Every intake below therefore DECLARES its contract as `INTAKE(<class>)` in its doc comment, and
+    // `IntrinsicArgumentIntakeContractDriftTests` fails if a member that calls `num.AsNum(` does not declare one.
+    // The classes are exhaustive and mean exactly this — what the intake does to the argument's VALUE:
+    //
+    //   EXACT        the operand on its own carrier at its own scale; nothing is rescaled or converted.
+    //   LIFTED       lifted to the SDIDI; the VALUE is preserved (a float converts in per §8.8.1.5.1).
+    //   ALIGNED      rescaled UP to the argument list's common maximum scale; no digit lost, headroom spent.
+    //   LANDED       landed into the exact Int128 lane at the RECEIVER's working scale — TRUNCATES past it.
+    //   INTEGRAL     rescaled to scale 0 with truncation (the §15.3 integer positions).
+    //   APPROXIMATED converted to binary64; exactness past 2^53 is surrendered.
+    //   PREDICATE    rendered only to ask a question; the text is discarded, so no value semantics apply.
+    //
+    // ⛔ THE VOCABULARY EXISTS BECAUSE A ROW ABOUT "WHAT HAPPENS TO AN ARGUMENT" WAS VERIFIED FROM ONE OF THEM
+    // (kb/Work PB251, row RV-15.4.1-2). The adjudication rested on "Arg/RawArg/DecArg is the ONE argument intake
+    // for the numeric channel", and the file carried several with different semantics — so a claim true of
+    // `RawArg` (it renders an argument without redefining its value) was recorded against `Arg`, which is the one
+    // intake that CAN redefine it. Reading a class name off the member is now the whole check.
 
+    /// <remarks>INTAKE(LANDED) — an SDIDI operand (and, under a standard mode, a float) is LANDED into the exact <c>Int128</c> lane at the receiver's working scale, truncating past it — the one intake that can change the argument's VALUE, which is why no function whose definition FIXES its value may consume its argument through it (kb/Work PB251).</remarks>
     private NumX Arg(BoundIntrinsicCall ic, int i) => Landed(num.AsNum(ic.Args[i], num.Receiver));
 
     /// <summary>
@@ -470,15 +495,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// early also gives the SDIDI a compile-time <c>Scale</c>, so it participates in
     /// <see cref="AlignedArgsEx"/>'s common-scale maximum instead of contributing the placeholder 0 and dragging
     /// the whole argument list down to integer alignment.</para>
-    /// <para>⚠ THE SCALE IS A CHOICE, AND IT IS THE FAMILY-FLOOR RULE, NOT A NEW ONE. An SDIDI carries its
-    /// exponent at RUN time, so there is no compile-time scale to preserve; the value lands through the same
-    /// <c>WorkingScale(floor)</c> discipline the NUMVAL and float families use — the receiver's scale, never below
-    /// the §15.67 fraction floor, capped at the receiver's <c>Int128</c> headroom by the PB13 argument.
+    /// <para>⚠ THE SCALE IS A CHOICE, AND IT IS AN IMPLEMENTOR'S CHOICE — NO CLAUSE PRESCRIBES IT. An SDIDI carries
+    /// its exponent at RUN time, so there is no compile-time scale to preserve; the value lands through the same
+    /// <c>WorkingScale(floor)</c> discipline the float family uses — the receiver's scale, never below
+    /// <see cref="ReceiverContext.SdidiLandingScaleFloor"/>, capped at the receiver's <c>Int128</c> headroom by the
+    /// PB13 argument. ⛔ THAT FLOOR IS NOT A NUMVAL RULE AND MUST NOT BE DESCRIBED AS ONE (kb/Work PB251): the
+    /// sentence here used to read "never below the §15.67 fraction floor", and §15.67 prescribes no working scale
+    /// at all — the family's value is fixed by §15.67.4 r1 and now renders on the SDIDI carrier in every mode.
     /// ⛔ THE §15.4.1 r1 FAMILY NO LONGER PASSES THROUGH HERE (fix-queue PB56): under a standard mode a
     /// Dec/float-bearing exact-family call routes to <see cref="RenderDec"/> BEFORE any landing, so this
-    /// truncation now serves only the residual non-EAE consumers (NUMVAL's compile-scale materialization until
-    /// PB60's parser rewrite, integer-argument intake via <c>AsInt</c>) — where scale-0/format semantics make
-    /// the landing the defined behavior rather than an approximation.</para>
+    /// truncation now serves only the residual non-EAE consumers (the integer-argument intake via
+    /// <c>AsInt</c>, and the arms with no Dec body) — where scale-0/format semantics make the landing the
+    /// defined behavior rather than an approximation.</para>
     /// </remarks>
     /// <remarks>
     /// ⛔ <b>AND A FLOAT OPERAND LANDS THE SAME WAY UNDER A STANDARD ARITHMETIC MODE (fix-queue PB38).</b> This is
@@ -501,23 +529,51 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private NumX Landed(NumX x) => num.Landed(x, num.Receiver);   // the ONE landing (NumericRenderer.Landed — kb/Work PB84)
 
+    /// <summary>
+    /// The functions whose DEFINITION fixes the returned value in EVERY arithmetic mode, so §15.4.1's
+    /// implementor latitude never reaches them and no working scale may be imposed (kb/Work PB251). Asked by
+    /// <see cref="RenderNum"/> BEFORE the arithmetic-mode dispatch.
+    /// </summary>
+    /// <remarks>
+    /// <para>⛔ THE SET IS TWO, AND IT WAS DERIVED BY SWEEPING CLAUSE 15 RATHER THAN BY RECALL — the refuted
+    /// adjudication's screen ("standard-decimal arithmetic is in effect" + "34 digits") could only find
+    /// MODE-CONDITIONED specifications and so missed the one function that states its value unconditionally.
+    /// The sound screen is: a §15.x "Returned value rule(s)" clause that mentions NEITHER an arithmetic mode,
+    /// NOR "implementor", NOR "approximation", NOR an equivalent arithmetic expression. Over clause 15 that
+    /// yields 38 functions, and every one but these two returns an INTEGER, a STRING, or a selected argument's
+    /// own content — shapes no fraction-digit working scale can damage. E (§15.27.3 r1), PI (§15.73.3 r1),
+    /// SQRT (§15.84.4 r4) and NUMVAL-F (§15.69.4 r2) each say "native … implementor-defined approximation" in
+    /// so many words, which is why they keep the float lane and are NOT here.</para>
+    /// <para>The members: NUMVAL §15.67.4 r1 and NUMVAL-C §15.68.4 r1, both "The returned value is the numeric
+    /// value represented by argument-1". <see cref="RenderDec"/> holds their SDIDI arms (its <c>alwaysDec</c>
+    /// list already named them), so this predicate only decides WHEN that lane is taken, never what it does.
+    /// If it ever returned <c>null</c> here the switch's <c>default</c> stages LOUD — never a quiet fallback to
+    /// a working-scale render.</para>
+    /// </remarks>
+    private static bool ValueFixedByDefinition(string runtimeMethod) => runtimeMethod is "Numval" or "NumvalC";
+
     // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
 
     /// <summary>An argument as rendered, WITHOUT the unscaled landing — the SDIDI lane's input.</summary>
+    /// <remarks>INTAKE(EXACT) — the operand on its OWN carrier at its OWN scale — nothing rescaled, converted or truncated.</remarks>
     private NumX RawArg(BoundIntrinsicCall ic, int i) => num.AsNum(ic.Args[i], num.Receiver);
 
     /// <summary>An argument lifted to a <c>CobolDec</c> expression from its RAW carrier: a Dec operand passes
     /// through, a float converts per §8.8.1.5.1, a fixed-point operand lifts exactly — never quantized.</summary>
+    /// <remarks>INTAKE(LIFTED) — lifted to the SDIDI from the RAW carrier — exact for a fixed-point operand, §8.8.1.5.1 for a float; the value is preserved, the carrier is not.</remarks>
     private string DecArg(BoundIntrinsicCall ic, int i) => num.DecOperand(RawArg(ic, i));
 
+    /// <remarks>INTAKE(LIFTED) — the variadic form of <see cref="DecArg"/> — same contract, per element.</remarks>
     private string DecArgList(BoundIntrinsicCall ic) =>
         ArgArray(ic, 0, "CobolDec", DecOf) ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => DecArg(ic, i)));
 
     /// <summary>One operand lifted to a <c>CobolDec</c> from its RAW carrier — the per-operand form of <see cref="DecArg"/>
     /// (a table(ALL) element renders here inside its enumeration lambda).</summary>
+    /// <remarks>INTAKE(LIFTED) — the per-operand form of <see cref="DecArg"/> — same contract.</remarks>
     private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, num.Receiver));
 
     /// <summary>One operand as a C# double from its RAW carrier — the per-operand form of <see cref="Dbl"/>.</summary>
+    /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier — exactness past 2^53 is surrendered. §15.4.1's native latitude permits that for an equivalent-arithmetic-expression function; a standard mode and a value-fixing definition do not.</remarks>
     private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, num.Receiver));
 
     // ── table(ALL) arguments — the enumeration seam (ISO §15.3; kb/Work PB62) ─────────────────────────────
@@ -596,10 +652,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private int _withSerial;
 
     /// <summary>Does any argument arrive as a Dec (SDIDI) or float carrier, before any landing?</summary>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question; the rendered text is discarded, so no value semantics apply.</remarks>
     private bool AnyDecOrRealRaw(BoundIntrinsicCall ic) =>
         ic.Args.Any(a => { var x = num.AsNum(a, num.Receiver); return x.Dec || x.Real; });
 
     /// <summary>Does any argument arrive on the SDIDI carrier (a native integer power — kb/Work PB69)?</summary>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question; the rendered text is discarded.</remarks>
     private bool AnyDecRaw(BoundIntrinsicCall ic) => ic.Args.Any(a => num.AsNum(a, num.Receiver).Dec);
 
     /// <summary>
@@ -630,6 +688,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // NATIVE arithmetic the approximation and STANDARD-DECIMAL none), and §15.4.1 places it in an SDIDI. Their
         // argument is a string, so the carrier question never arises; before this arm the standard-mode value
         // rode the native Int128 projection at the item-92 working scale (fix-queue PB60, RV-15.67.4-1a).
+        // ⛔ FOR NUMVAL AND NUMVAL-C THE MODE IS NOT PART OF THE QUESTION AT ALL (kb/Work PB251): RenderNum calls
+        // this method for them BEFORE the arithmetic-mode dispatch, because r1's "the returned value is the
+        // numeric value represented by argument-1" carries no mode qualification and §15.4.1's implementor
+        // latitude reaches only a function whose definition does NOT otherwise specify the value.
         // … and the SUMMING statistical family (kb/Work PB62 / RV-15.60.4-1): under a standard mode §15.4.1 r1
         // makes MEAN/SUM/RANGE/MEDIAN/MIDRANGE equal their §15.60.4 / §15.88.4 / … equivalent arithmetic
         // expressions evaluated in SDIDI form, and each argument converts to the SDIDI INDIVIDUALLY (§8.8.1.5.2 r1).
@@ -651,11 +713,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         return m switch
         {
             // The NUMVAL family: the ONE positional scan's (sign, unscaled, frac[, exp]) lifted to the SDIDI exactly
-            // at the parsed scale — no working scale, no receiver. The digit cap is 34 here by construction (this
-            // arm runs only under the standard modes) and is still passed explicitly, exactly as the TEST- twins
-            // receive it, so the scan's r1b sub-note-4 verdict and the value agree on the same number.
+            // at the parsed scale — no working scale, no receiver. ⛔ NUMVAL and NUMVAL-C reach these arms in EVERY
+            // arithmetic mode (kb/Work PB251 — §15.67.4 r1 / §15.68.4 r1 fix the value with no mode qualification,
+            // and §15.4.1's "unless otherwise specified in the function definition" is what makes that binding
+            // under native too), so the digit cap is 31 or 34 by the MODE and is passed explicitly whenever it is
+            // not the family's default — exactly as the TEST- twins receive it, so the scan's r1b sub-note-4
+            // verdict and the value agree on the same number. NUMVAL-F alone stays standard-mode-only here: its
+            // §15.69.4 r2 grants native arithmetic an approximation, which RenderNum's float arm delivers.
             "Numval" => Dec(RuntimeApi.Intrinsic("NumvalDec", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
-            // The alwaysDec list makes this the path for EVERY NUMVAL-C under a standard arithmetic mode — the
+            // The alwaysDec list makes this the path for EVERY NUMVAL-C in EVERY arithmetic mode (PB251) — the
             // LOCALE arm is needed HERE too or --arithmetic standard is silently wrong (indexing the absent
             // ic.Args[1] — no argument-2 is injected under LOCALE; PB64 T6).
             "NumvalC" when ic.LocaleWritten => Dec(RuntimeApi.Intrinsic("NumvalCLocaleDec",
@@ -708,11 +774,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// this dispatch must not route the call to the binary64 body. Reading the RAW operand here would reinstate
     /// the exact defect the landing exists to remove, with the landing silently doing nothing — the two must ask
     /// the same question of the same value.</remarks>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the LANDED operand, deliberately (see the remark above).</remarks>
     private bool AnyRealArgument(BoundIntrinsicCall ic) =>
         ic.Args.Any(a => Landed(num.AsNum(a, num.Receiver)).Real);
 
     /// <summary>Does EVERY argument render as floating? (An all-float selection list stays in the float lane —
     /// each argument's content is its double; a mixed list rides the SDIDI, kb/Work PB65 RV-15.59.4-1 D2.)</summary>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the LANDED operand, as its sibling does.</remarks>
     private bool AllRealArguments(BoundIntrinsicCall ic) =>
         ic.Args.All(a => Landed(num.AsNum(a, num.Receiver)).Real);
 
@@ -721,10 +789,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// sub-working-scale Dec operand to ZERO before the double conversion — SQRT(4e-18) probed as 0 where the
     /// approximation of 2e-9 is required — and <see cref="NumericRenderer.Real"/> carries its own exact arm
     /// for every carrier (a Dec operand converts via <c>ToDouble</c>, a float passes through).</summary>
+    /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier — the indexed form of <see cref="DblOf"/>.</remarks>
     private string Dbl(BoundIntrinsicCall ic, int i) => NumericRenderer.Real(RawArg(ic, i));
 
     /// <summary>An integer-kind argument as a C# <c>long</c> (truncated to scale 0 when the operand carries a
     /// fraction — integer arguments "shall be integers", §15.3; a fractional value is the program's EC latitude).</summary>
+    /// <remarks>INTAKE(INTEGRAL) — rescaled to scale 0 with TRUNCATION — the §15.3 integer positions, where the argument is required to be an integer already.</remarks>
     private string IntArg(BoundIntrinsicCall ic, int i) => AsInt(RawArg(ic, i));   // an integer lands at scale 0 directly — never through a working scale that eats headroom (kb/Work PB69)
 
     /// <summary>
@@ -756,6 +826,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>The variadic arguments aligned to their common scale (ISO §8.8.1 — alignment makes unscaled
     /// comparison/arithmetic equal value comparison/arithmetic), as a C# argument list + that scale.</summary>
+    /// <remarks>INTAKE(ALIGNED) — every argument rescaled UP to the argument list's common maximum scale on the <c>Int128</c> carrier — no digit is lost, but the list's headroom is.</remarks>
     private (string ArgList, int Scale) AlignedArgs(BoundIntrinsicCall ic)
     {
         var (argList, s, _) = AlignedArgsEx(ic);
@@ -765,6 +836,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <summary>As <see cref="AlignedArgs"/>, also reporting whether any argument rendered FLOATING (Real) —
     /// the MEAN standard-arithmetic branch keys on it (a float statistics argument keeps the pre-existing
     /// native rendering).</summary>
+    /// <remarks>INTAKE(ALIGNED) — as <see cref="AlignedArgs"/> — same contract.</remarks>
     private (string ArgList, int Scale, bool AnyReal) AlignedArgsEx(BoundIntrinsicCall ic)
     {
         // A table(ALL) operand renders as its ELEMENT here (the index variable inside) — right for the scale and
@@ -780,6 +852,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// (fix-queue PB65). Each argument renders at its OWN scale (<c>Align(x, x.Scale)</c> is the identity for
     /// an exact operand and the standard carrier conversion for Real/Dec/U), so no widening ever happens on
     /// intake; the common scale is reported for the result's compile-time <see cref="NumX"/>.</summary>
+    /// <remarks>INTAKE(EXACT) — each argument at its OWN scale with that scale carried beside it — the selection family's intake, where no common alignment may be imposed (kb/Work PB65).</remarks>
     private (string Vals, string Scales, int Scale) RawArgPairs(BoundIntrinsicCall ic)
     {
         var xs = ic.Args.Select(a => num.AsNum(a, num.Receiver)).ToList();
@@ -1071,10 +1144,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <see cref="NumericRenderer"/> under <see cref="ReceiverContext.None"/> — a string-channel render has no
     /// numeric receiver, exactly the Step-3 default-receiver convention (DESIGN-codegen-backend §2.5). The
     /// renderer's public entries save/restore the ambient receiver, so this re-entrant call cannot go stale.</summary>
+    /// <remarks>INTAKE(EXACT) — the STRING channel's numeric intake, under <see cref="ReceiverContext.None"/> — a text context has no numeric receiver to derive a landing from.</remarks>
     private NumX ArgNum(BoundOperand op) => num.AsNum(op, ReceiverContext.None);
 
     /// <summary>An integer-kind argument inside the STRING channel (CHAR / BASE-CONVERT / the formatted
     /// date-time offsets) — the same (long) truncation the numeric channel's <see cref="IntArg"/> applies.</summary>
+    /// <remarks>INTAKE(INTEGRAL) — the STRING channel's integer intake — the same scale-0 truncation <see cref="IntArg"/> applies.</remarks>
     private string ArgInt(BoundOperand op) => AsInt(ArgNum(op));
 
     /// <summary>The WIDE integer-argument bridge — the Int128-carrier twin of <see cref="ArgInt"/>, for the ONE
@@ -1085,6 +1160,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// no narrowing and therefore no PB22 raise point; the carrier arms mirror <see cref="AsInt"/> exactly
     /// (Dec BEFORE the scale test — a Dec NumX carries Scale 0 by convention, the PB14/PB32 lesson; the
     /// unsigned-wide lane narrows through the R10 <c>CobolNum.Widen</c> funnel, loud past the intermediate).</summary>
+    /// <remarks>INTAKE(INTEGRAL) — the STRING channel's WIDE integer intake — scale-0 truncation on the <c>Int128</c> carrier.</remarks>
     private string ArgIntWide(BoundOperand op) => AsIntWide(ArgNum(op));
 
     private static string AsIntWide(NumX a) =>

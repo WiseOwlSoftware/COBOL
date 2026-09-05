@@ -834,7 +834,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// BY VALUE arithmetic-expression argument, a SET pointer UP/DOWN BY amount, an ALLOCATE character count. A
     /// native intermediate is already there; an SDIDI (<c>Dec</c>) intermediate — every arithmetic expression under
     /// a standard mode, and under NATIVE arithmetic an integer power (kb/Work PB69) — lands CHECKED at
-    /// <c>rcv.WorkingScale(NumvalScaleFloor)</c> (EC-SIZE-OVERFLOW past the carrier — §14.7.5 case 5, A.1 item 179
+    /// <c>rcv.WorkingScale(SdidiLandingScaleFloor)</c> (EC-SIZE-OVERFLOW past the carrier — §14.7.5 case 5, A.1 item 179
     /// "checked" — never the modular low-order digits a STORE may use, because a value-semantics consumer has no
     /// capacity check downstream); a float under a STANDARD mode is converted in first (§8.8.1.5.1 — the mode
     /// beats the float branch, COBOLNET_NUMERIC_DESIGN.md D3) and lands the same way. A float under NATIVE
@@ -852,7 +852,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         if (x.Real && StandardDecimal)
             x = new NumX(DecOperand(x), 0, Dec: true);
         if (!x.Dec) return x;
-        int ws = rcv.WorkingScale(ReceiverContext.NumvalScaleFloor);
+        int ws = rcv.WorkingScale(ReceiverContext.SdidiLandingScaleFloor);
         return new NumX(RuntimeApi.DecToUnscaledIntermediate(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
     }
 

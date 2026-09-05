@@ -187,6 +187,8 @@
   "pb5_float_quantize_range",
   "pb60_numval_one_scan",
   "pb60_numval_standard_decimal",
+  "pb251_numval_native_value_fixed",
+  "pb251_implementor_defined_argument",
   "pb61_length_byte_length_rule_branches",
   "pb62_all_subscript_runtime_ranges",
   "pb62_standard_decimal_summing_family",

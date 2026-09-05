@@ -145,11 +145,11 @@ public sealed class FloatQuantizeHeadroomDriftTests
     [MemberData(nameof(LegalPictureShapes))]
     public void TheNumvalFamilyShares_TheSameCap_AtItsOwnFloor(int intDigits, int scale)
     {
-        int ws = Rcv(intDigits, scale).WorkingScale(ReceiverContext.NumvalScaleFloor);
+        int ws = Rcv(intDigits, scale).WorkingScale(ReceiverContext.SdidiLandingScaleFloor);
         Assert.True(intDigits + ws <= ReceiverContext.IntermediateDigits,
             $"NUMVAL at {intDigits} integer digits / scale {scale} uses ws={ws} — past the Int128 carrier.");
         Assert.True(ws >= scale, $"NUMVAL ws={ws} falls below the receiver's own scale {scale}.");
-        if (intDigits <= ReceiverContext.IntermediateDigits - ReceiverContext.NumvalScaleFloor)
-            Assert.Equal(Math.Max(scale, ReceiverContext.NumvalScaleFloor), ws);
+        if (intDigits <= ReceiverContext.IntermediateDigits - ReceiverContext.SdidiLandingScaleFloor)
+            Assert.Equal(Math.Max(scale, ReceiverContext.SdidiLandingScaleFloor), ws);
     }
 }

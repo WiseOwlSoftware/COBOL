@@ -297,27 +297,6 @@ public static partial class CobolIntrinsics
             $"{fn}: argument-1 has more than {cap} digits ({digits} so far), which the arithmetic mode in "
             + $"effect does not permit ({clause})");
 
-    /// <param name="digitCap">The §15.67.3 r3/r4 cap — 31 native, 34 standard-decimal; supplied by the emitter's
-    /// <c>DigitCapFlag</c>, the same one the TEST- twins already received.</param>
-    /// <remarks>⛔ ONE SCAN, TWO PROJECTIONS (fix-queue PB60): the value is a projection of the SAME positional
-    /// <see cref="NvScan"/> that answers §15.93 TEST-NUMVAL, so the value path can never accept what the
-    /// validator rejects. The old body pre-normalized with .NET <c>Trim()</c> (the whole IsWhiteSpace set,
-    /// where §15.67.3 r2's ignorable character is the SPACE only — a TAB-led argument valued clean) and
-    /// double-stripped BOTH sign positions with a toggle (<c>"-12-"</c> valued POSITIVE where the string
-    /// conforms to neither r1 format) — the remove-then-scan shape, retired here. Rescaling: widening is
-    /// exact; narrowing truncates (the requested scale carries the ≥6 working floor; the receiver's store
-    /// rounds/truncates once more); Int128 saturation per <see cref="Rescaled"/> (PB13's sweep).</remarks>
-    /// <param name="checkedLanding">The landing's form past the carrier — see <see cref="Rescaled"/> (kb/Work PB77):
-    /// the emitter passes <c>true</c> under ON SIZE ERROR / EC-SIZE checking; a MOVE sender and the no-phrase store
-    /// take the low-order digits.</param>
-    public static Int128 Numval(string text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false)
-    {
-        NvParse p = NvScan(text, commaMode, "", false, digitCap, allowGroup: false);
-        if (p.ErrPos != 0) return NumvalReject(p, text, digitCap);
-        Int128 r = Rescaled(p.Unscaled, scale - p.Frac, checkedLanding);
-        return p.Neg ? -r : r;
-    }
-
     /// <summary>The §15.67 reject projection of a non-conforming scan — ONE message per family, shared by the
     /// native (Int128) and standard-decimal (<see cref="NumvalDec"/>) value projections so the two arithmetic
     /// modes cannot drift apart on what they say about the same malformed argument. Returns the §15.3
@@ -329,7 +308,7 @@ public static partial class CobolIntrinsics
                 $"NUMVAL argument-1 \"{text}\" does not conform to the §15.67.3 formats (first character "
                 + $"in error at position {p.ErrPos}; §15.93 TEST-NUMVAL reports the same position)");
 
-    // ── The STANDARD-DECIMAL projections of the same scans (fix-queue PB60, RV-15.67.4-1a) ────────────────────
+    // ── The SDIDI projections of the same scans (fix-queue PB60, RV-15.67.4-1a; kb/Work PB251) ────────────────
     // §15.4.1: under a standard arithmetic mode "the returned value for numeric and integer functions is
     // contained in a temporary standard data item in the intermediate form defined for the arithmetic mode in
     // effect" — the SDIDI (§8.8.1.5.2, 34 digits). §15.67.4 r1 / §15.68.4 r1 fix that value with no latitude
@@ -343,20 +322,34 @@ public static partial class CobolIntrinsics
     // (170141183460469231731687303715884.105727) as if it were the value. The digit cap keeps the significand
     // ≤34 digits, which Int128 carries exactly, so the lift itself never rounds; NUMVAL-F's E-exponent can reach
     // past decimal128's range and passes through the ONE §8.8.1.5.2 r2 range check (CobolDec.FromParsed).
+    //
+    // ⛔ NUMVAL AND NUMVAL-C REACH HERE UNDER **NATIVE** ARITHMETIC TOO (kb/Work PB251). §15.4.1's closing
+    // sentence withdraws the implementor latitude "unless otherwise specified in the function definition", and
+    // §15.67.4 r1 / §15.68.4 r1 specify it — with no arithmetic-mode qualification — so their native value is the
+    // parsed value exactly, and only the REPRESENTATION is the implementor's. NUMVAL-F is the one that does NOT:
+    // §15.69.4 r2 grants native and standard-binary "an approximation", which is why r3 has to state the
+    // standard-decimal value separately and why NumvalFDec is a standard-mode-only body.
+    //
+    // ⛔ ONE digitCap CONVENTION FOR THE WHOLE FAMILY: the omitted default is the NATIVE cap 31 (§15.67.3 r3), and
+    // the emitter NAMES the cap exactly when the mode's cap differs (IntrinsicRenderer.DigitCapFlag, keyed on
+    // ArithmeticModes.NumvalDigitCap against its DefaultDigitCap = 31). These four bodies defaulted to 34 while
+    // every Int128 body and every TEST- validator defaulted to 31 — harmless only while they were standard-only,
+    // and a silent 34-digit native admission the moment PB251 routed native NUMVAL here.
 
-    /// <summary>NUMVAL under STANDARD-DECIMAL arithmetic — the §15.67.4 r1 value as an SDIDI, exact at the parsed
-    /// scale (see the family comment above). Same <see cref="NvScan"/>, same reject projection as the native twin.</summary>
-    public static CobolDec NumvalDec(string text, bool commaMode = false, int digitCap = 34)
+    /// <summary>NUMVAL's §15.67.4 r1 value as an SDIDI, exact at the parsed scale — the projection EVERY
+    /// arithmetic mode uses (see the family comment above). Same <see cref="NvScan"/>, same reject projection as
+    /// the TEST- validator, so the value can never accept what the validator rejects.</summary>
+    public static CobolDec NumvalDec(string text, bool commaMode = false, int digitCap = 31)
     {
         NvParse p = NvScan(text, commaMode, "", false, digitCap, allowGroup: false);
         if (p.ErrPos != 0) return CobolDec.From(NumvalReject(p, text, digitCap), 0);
         return CobolDec.From(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac);
     }
 
-    /// <summary>NUMVAL-C under STANDARD-DECIMAL arithmetic — the §15.68.4 r1 value as an SDIDI, exact at the
-    /// parsed scale; the currency and grouping rules are the one scan's (see <see cref="NumvalC"/>).</summary>
+    /// <summary>NUMVAL-C's §15.68.4 r1 value as an SDIDI, exact at the parsed scale — the projection EVERY
+    /// arithmetic mode uses; the currency and grouping rules are the one scan's.</summary>
     public static CobolDec NumvalCDec(string text, string currency, bool commaMode = false, bool anycase = false,
-                                      int digitCap = 34)
+                                      int digitCap = 31)
     {
         if (InvalidCurrency(currency)) return CobolDec.From(NumvalCInvalidCurrency(currency), 0);
         NvParse p = NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true);
@@ -369,7 +362,7 @@ public static partial class CobolIntrinsics
     /// E-exponent can exceed decimal128's ±6144 adjusted exponent — EC-SIZE-OVERFLOW / UNDERFLOW, the same
     /// disposition every SDIDI operation result gets). <paramref name="mode"/> is the INTERMEDIATE ROUNDING
     /// mode (§11.9.11) the range check's subnormal re-round uses.</summary>
-    public static CobolDec NumvalFDec(CobolRounding mode, string text, bool commaMode = false, int digitCap = 34)
+    public static CobolDec NumvalFDec(CobolRounding mode, string text, bool commaMode = false, int digitCap = 31)
     {
         NvfParse p = NvfScan(text, commaMode, digitCap);
         if (p.ErrPos != 0) return CobolDec.From(NumvalFReject(p, text, digitCap), 0);
@@ -472,40 +465,6 @@ public static partial class CobolIntrinsics
         // flag — TEST-NUMVAL-F reports it; the value twins do not (their own range check disposes).
         NvfParse p = NvfScan(text, commaMode, digitCap);
         return p.ErrPos != 0 ? p.ErrPos : p.CapPos;
-    }
-
-    /// <summary>
-    /// NUMVAL-C (§15.68): like NUMVAL with a currency string and grouping separators. The currency string —
-    /// argument-2, or the SPECIAL-NAMES / default currency the BINDER injected when argument-2 is omitted
-    /// (§15.68.3 rule 3) — is consumed at its ONE §15.68.3 r4a position (leading/trailing spaces of argument-2
-    /// ignored, rule 2); grouping separators (',' normally; '.' under DECIMAL-POINT IS COMMA, rule 4d) are
-    /// ignored where they precede the decimal separator (§15.68.4 rule 2); sign / CR / DB per rule 3.
-    /// </summary>
-    /// <param name="digitCap">§15.68.3 r6/r7 — enforced by the delegated <see cref="Numval"/> parse, so the
-    /// rule has ONE implementation for both functions rather than a copy per twin (fix-queue PB33).</param>
-    /// <param name="checkedLanding">The landing's form past the carrier — see <see cref="Rescaled"/> (kb/Work PB77).</param>
-    public static Int128 NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false,
-                                 int digitCap = 31, bool checkedLanding = false)
-    {
-        // ⛔ ONE SCAN, TWO PROJECTIONS (fix-queue PB60, completing PB33's validate-first half). The prior body
-        // validated through TestNumvalC and then STILL valued through `text.Replace(cur, "")` + a grouping
-        // Replace + a Numval re-parse — an unanchored, uncounted removal running before any sign scan, i.e. a
-        // SECOND format model beside the validator's. Its measured cost: NUMVAL-C("R123.45CR", "R") removed
-        // BOTH the leading currency and the R of the trailing CR, leaving "123.45C" for Numval to reject — a
-        // conforming argument valued 0 (RV-15.68.4-1/-3) — and any currency occurrence the r4a position rules
-        // forbid was erased rather than diagnosed (RV-15.68.4-2). Now the SAME NvScan that answers §15.94
-        // consumes the currency AT ITS ONE r4a POSITION and accumulates the value in the same pass; the two
-        // projections cannot disagree. ANYCASE (r4f): the currency match is case-folded per LOWER-CASE — an
-        // ordinal-ignore-case span match realizes that correspondence for the invariant set. §15.3: with
-        // checking off the ArgumentError 0 return supplies the implementor-defined result.
-        // §15.68.3 r2's content halves, the RUNTIME twin of the bind-time literal screen — a data-item
-        // argument-2's content is only visible here. A digit-bearing or separator-bearing currency could
-        // otherwise consume argument-1 digits as "the currency" and value a wrong number silently.
-        if (InvalidCurrency(currency)) return NumvalCInvalidCurrency(currency);
-        NvParse p = NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true);
-        if (p.ErrPos != 0) return NumvalCReject(p, text, digitCap);
-        Int128 r = Rescaled(p.Unscaled, scale - p.Frac, checkedLanding);
-        return p.Neg ? -r : r;
     }
 
     /// <summary>The §15.68.3 r2 runtime reject of an invalid argument-2 — shared by <see cref="NumvalC"/> and

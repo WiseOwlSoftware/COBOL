@@ -28,24 +28,10 @@ namespace CobolNet.Runtime;
 /// </summary>
 public static partial class CobolIntrinsics
 {
-    /// <summary>NUMVAL-C with the LOCALE keyword (§15.68.3 r5, §15.68.4 r1–r3): the value of argument-1 read
-    /// under the named-else-current LC_MONETARY locale (r5a; EC-LOCALE-MISSING / EC-LOCALE-INVALID through the
-    /// one §8.2.1 gate). Non-conforming content is EC-ARGUMENT-FUNCTION (§15.3 — the implementor-defined result
-    /// 0 with checking off), exactly as the non-LOCALE arms; the sign follows §15.68.4 r3 (negative iff the
-    /// NEGATIVE convention matched — with n_sign_posn 0 the parentheses ARE the convention, and CR/DB/a bare
-    /// '-' have no privileged meaning).</summary>
-    public static Int128 NumvalCLocale(string text, string? localeTag, int scale, bool anycase = false,
-        int digitCap = 31, bool checkedLanding = false)
-    {
-        NvParse p = NvScanLocale(text, localeTag, anycase, digitCap, "NUMVAL-C");
-        if (p.ErrPos != 0) return NumvalCLocaleReject(p, text, digitCap);
-        Int128 r = Rescaled(p.Unscaled, scale - p.Frac, checkedLanding);
-        return p.Neg ? -r : r;
-    }
-
-    /// <summary>NUMVAL-C LOCALE under STANDARD-DECIMAL arithmetic — the §15.68.4 r1 value as an SDIDI, exact at
-    /// the parsed scale (the same lift as <see cref="NumvalCDec"/>).</summary>
-    public static CobolDec NumvalCLocaleDec(string text, string? localeTag, bool anycase = false, int digitCap = 34)
+    /// <summary>NUMVAL-C LOCALE's §15.68.4 r1 value as an SDIDI, exact at the parsed scale (the same lift as
+    /// <see cref="NumvalCDec"/>) — the projection EVERY arithmetic mode uses (kb/Work PB251); the omitted
+    /// <paramref name="digitCap"/> is the family's one convention, the NATIVE §15.67.3 r3 cap.</summary>
+    public static CobolDec NumvalCLocaleDec(string text, string? localeTag, bool anycase = false, int digitCap = 31)
     {
         NvParse p = NvScanLocale(text, localeTag, anycase, digitCap, "NUMVAL-C");
         if (p.ErrPos != 0) return CobolDec.From(NumvalCLocaleReject(p, text, digitCap), 0);
