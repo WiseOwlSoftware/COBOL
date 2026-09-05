@@ -746,6 +746,31 @@ A process-wide registry keyed by external name (with an Area discriminator for r
 - Sequential RELATIVE WRITE assigns the next slot and MOVEs it into the typed RELATIVE KEY field; READ NEXT exposes CurrentSlot for the same MOVE-back (14.9.51 sequential).
 - Random RELATIVE: key below 1 gives 34, an occupied slot gives 22 (INVALID KEY), an absent slot gives 23; sequential digit overflow gives 24, sequential READ digit overflow gives 14.
 - Indexed: ascending-order WRITE in ACCESS SEQUENTIAL gives 21 on a non-increasing key; a duplicate prime or alt-without-duplicates gives 22; alt-with-duplicates gives 02; START supports a generic partial or prefix key compare (14.9.41) and positions inclusively so the next READ NEXT returns the matched record.
+- **START is a THREE-organization verb** (kb/Work PB352). 14.9.41 writes its general rules three times, once
+  per organization heading — GR11/GR12 for RELATIVE, GR18/GR19 for INDEXED, GR20/GR21 for SEQUENTIAL — and
+  14.9.41.3 SR2 makes FIRST or LAST the REQUIRED phrase on a sequential-organization file, so the sequential
+  arm is not an extension but the only shape a conforming START on one can have. `SequentialConnector`
+  answers it over the ONE framing walk (`NextFrame`, extracted out of `Read` so START's record scan cannot
+  become a second copy of the line/varying/fixed framing rules): FIRST rewinds to record 1, LAST scans to the
+  last frame, each repositions the reader through `SeekToRecord` (which discards the buffered data and resets
+  the derived read state — the byte anchors, the GR15 unread remainder, the 9.1.16 record ordinal), and
+  positioning is INCLUSIVE per 14.9.30.4 GR21's sequential arm b). Every failure arm — an empty file, a
+  non-seekable stream, an absent OPTIONAL file — is '23' (9.1.13.5 item 3 b)/d)), never an abort; a wrong open
+  mode is '47' (9.1.13.7 item 7, Table 20's blank Output/Extend cells); an unsuccessful START arms 9.1.13.7
+  item 6 a)'s '46' on the next sequential READ. Goldens: `conformance:2002/pb352_start_sequential_first_last`
+  and the Sequential-row START cells of `conformance:2023/l1_table20_seq_relative`.
+- **The START key operand is screened by TWO rules with one home each** (kb/Work PB354).
+  `RecordLayout.KeyIndexOfKeyItem` answers "this IS a record key of the file" — by reference identity, or by
+  12.4.5.12.4 GR4's identical BYTE POSITIONS in another record description entry of the SAME file (hence
+  equal widths, never a prefix) — and it is what 14.9.30.3 SR11 (`READ … KEY`, which has no generic arm at
+  all) and 14.9.41.3 SR6 a) ask. `RecordLayout.GenericKeyIndex` answers SR6 b) alone, and enforces all three
+  of its conditions: leftmost-coincident *within a record of the file* (b 1.), the same class, category and
+  usage as that key (b 2. — via the ONE 8.5.2.1 Table-2 classifier), and no longer than it (b 3.). SR4's
+  "shall not be subject to any OCCURS clauses" is its OWN named check on BOTH organization arms, through
+  `RecordLayout.IsSubjectToOccurs`, ahead of the position walk — it used to be a side effect of the offset
+  walk bailing out, reported under SR6's message, and the relative arm had no such check at all. The same
+  predicate supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
+  ALTERNATE RECORD KEY, 12.4.5.13.3 SR1 RELATIVE KEY) in `KeyedIoBinder.KeyedValidateFile`.
 - READ INTO and WRITE FROM lower to the verb plus a typed group MOVE (receiving uses the MAX length for ODO records, the ST146A lesson).
 - Record length mismatch on READ (a fixed file whose physical record differs from the FD size) gives status 04; add for conformance since the legacy pads silently.
 - LINE SEQUENTIAL: newline-framed, TrimEnd on WRITE, pad or truncate on READ, LastRecordLength is the line length; status **06 and 09 are both implemented** — 06 is the GR15 over-length truncation (the file position indicator keeps the unread remainder, NOTE 3), 09 the GR16 character-set warning below. LINE SEQUENTIAL itself is not COBOL-85; see Per-edition gating.
@@ -789,8 +814,17 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   sequential one: GR21 opens "For a sequential READ statement" so a random READ never yields '46', and item 3 b)
   has no "first time" qualifier so every random READ on an absent optional file is '23' — but the failed random
   READ still arms the poison, because §9.1.13.7 item 6 b) ("The preceding READ statement …") is not restricted to
-  sequential reads. START's own absent-optional rule (§14.9.41 GR5) is a different statement's rule and stays in
-  the keyed connectors.
+  sequential reads. START's own absent-optional rule (§14.9.41 GR5) is a different statement's rule and lives in
+  each connector's own START body.
+- **START's preconditions live in the same base, for the same reason** (kb/Work PB352). `FileConnector` owns
+  `StartOpenModeGuard` — 14.9.41.4 GR1's "input or I-O" test, whose unsuccessful value is 9.1.13.7 item 7's
+  '47' and whose blank cells are Table 20's — and the virtual `InvalidateFilePosition`, which is GR7 ("the file
+  position indicator is set to indicate that no valid record position has been established"). The guard applies
+  GR7 on the way out, because a refused START is an unsuccessful one: GR1's test had been written out FIVE
+  times (twice in each keyed connector, once in the sequential arm) and every copy returned '47' leaving the
+  indicator alone. A keyed connector overrides `InvalidateFilePosition` to clear its FPI VALIDITY BIT as well —
+  its indicator is a key value plus a bit, where the sequential connector's is the stream position — and each
+  connector's `StartFail` is that invalidation plus the invalid key condition's '23'.
 - SAME AREA buffer-only and SAME SORT-MERGE AREA are no-ops in a managed runtime (pure memory-layout optimizations with no observable behavior).
 
 ## Per-edition gating (G1 — four compilers in one `cobol.exe`)

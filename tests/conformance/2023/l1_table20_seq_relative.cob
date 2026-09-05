@@ -17,9 +17,15 @@
       *> UNREACHABLE from legal source — §14.9.27.3 SR2 confines EXTEND
       *> to sequential access — so it is pinned at the runtime instead,
       *> by unit:Table20WriteOpenModeTests (kb/Work PB325).
-      *> START is absent for sequential ORGANIZATION and, for the
-      *> Random row, is blank in every column: §14.9.41.3 SR1 rejects it
-      *> at compile time (see conformance:negative/pb325-start-random-access).
+      *> Table 20's rows are keyed on the ACCESS MODE, not on the
+      *> organization, so the Sequential row's START cells govern a
+      *> sequential-ORGANIZATION file too — the FIRST/LAST form
+      *> §14.9.41.3 SR2 requires there. They are walked on QS below
+      *> (kb/Work PB352; until it landed the statement never reached a
+      *> bound node on this organization and the cells were unwalkable).
+      *> The Random row's START is blank in every column: §14.9.41.3
+      *> SR1 rejects it at compile time (see
+      *> conformance:negative/pb325-start-random-access).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1TB20A.
        ENVIRONMENT DIVISION.
@@ -77,6 +83,11 @@
            DISPLAY "QS-O-R=" ST-Q
            REWRITE Q-REC
            DISPLAY "QS-O-RW=" ST-Q
+           START QS FIRST
+               INVALID KEY CONTINUE
+               NOT INVALID KEY CONTINUE
+           END-START
+           DISPLAY "QS-O-ST=" ST-Q
            CLOSE QS
            OPEN INPUT QS
            DISPLAY "QS-I-OPEN=" ST-Q
@@ -86,6 +97,11 @@
            DISPLAY "QS-I-W=" ST-Q
            REWRITE Q-REC
            DISPLAY "QS-I-RW=" ST-Q
+           START QS FIRST
+               INVALID KEY CONTINUE
+               NOT INVALID KEY CONTINUE
+           END-START
+           DISPLAY "QS-I-ST=" ST-Q
            CLOSE QS
            OPEN I-O QS
            DISPLAY "QS-IO-OPEN=" ST-Q
@@ -95,6 +111,11 @@
            DISPLAY "QS-IO-RW=" ST-Q
            WRITE Q-REC
            DISPLAY "QS-IO-W=" ST-Q
+           START QS LAST
+               INVALID KEY CONTINUE
+               NOT INVALID KEY CONTINUE
+           END-START
+           DISPLAY "QS-IO-ST=" ST-Q
            CLOSE QS
            OPEN EXTEND QS
            DISPLAY "QS-E-OPEN=" ST-Q
@@ -105,6 +126,11 @@
            DISPLAY "QS-E-R=" ST-Q
            REWRITE Q-REC
            DISPLAY "QS-E-RW=" ST-Q
+           START QS LAST
+               INVALID KEY CONTINUE
+               NOT INVALID KEY CONTINUE
+           END-START
+           DISPLAY "QS-E-ST=" ST-Q
            CLOSE QS
       *> ================= RELATIVE organization, ACCESS SEQUENTIAL
            OPEN OUTPUT RS

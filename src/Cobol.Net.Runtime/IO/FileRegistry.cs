@@ -566,11 +566,17 @@ public sealed class FileRegistry
         Require(name) is IndexedConnector ix ? ix.Start(keyIndex, op, operand, compareLength)
         : throw MisroutedVerb("START (indexed)", name, Require(name));
 
-    /// <summary>START FIRST/LAST (COBOL-2002+; §14.9.41 GR11/GR12), either keyed organization.</summary>
+    /// <summary>START FIRST/LAST (COBOL-2002+), on EVERY organization — the standard writes the rule three
+    /// times, once per organization heading: §14.9.41.4 GR11/GR12 (RELATIVE FILES), GR18/GR19 (INDEXED FILES)
+    /// and GR20/GR21 (SEQUENTIAL FILES). The sequential arm is not an extension: §14.9.41.3 SR2 makes FIRST or
+    /// LAST the REQUIRED phrase on a sequential-organization file, so this is the only shape a conforming START
+    /// on one can have, and leaving the arm out made the statement the standard requires the one this switch
+    /// threw on (kb/Work PB352).</summary>
     public string StartFirstLast(string name, bool last) => Require(name) switch
     {
         RelativeConnector r => r.StartFirstLast(last),
         IndexedConnector ix => ix.StartFirstLast(last),
+        SequentialConnector s => s.StartFirstLast(last),
         var other => throw MisroutedVerb("START FIRST/LAST", name, other),
     };
 

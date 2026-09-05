@@ -493,8 +493,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// key of reference undefined (GR7).</summary>
     public string Start(int keyIndex, string op, string operand, int compareLength)
     {
-        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
-            return Status = FileStatusCode.ReadNotOpenForInput;            // '47' §14.9.41 GR1
+        if (StartOpenModeGuard() is { } notOpen) return Status = notOpen;   // '47' §14.9.41.4 GR1 + GR7
         if (OptionalAbsent) return StartFail();                           // '23' GR5
         int keyLength = keyIndex < 0 ? _primeLen : _alts[keyIndex].Len;
         if (compareLength < 1 || compareLength > keyLength) return StartFail();   // '23' GR14
@@ -532,8 +531,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// reference (the prime key after OPEN, §14.9.27 GR14); an empty or absent-optional file → invalid key.</summary>
     public string StartFirstLast(bool last)
     {
-        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
-            return Status = FileStatusCode.ReadNotOpenForInput;
+        if (StartOpenModeGuard() is { } notOpen) return Status = notOpen;   // '47' §14.9.41.4 GR1 + GR7
         if (OptionalAbsent || _recs.Count == 0) return StartFail();
         var seq = Ordered(_refKey);
         var rec = last ? seq[^1] : seq[0];
@@ -544,10 +542,19 @@ public sealed class IndexedConnector : KeyedConnector
         return Status = FileStatusCode.Success;
     }
 
+    /// <inheritdoc/>  (a keyed FPI is a key VALUE plus a validity bit; §14.9.41.4 GR7 clears the bit too,
+    /// and its second sentence leaves the key of reference undefined, so _refKey needs no reset)
+    protected override void InvalidateFilePosition()
+    {
+        _fpiValid = false;
+        base.InvalidateFilePosition();   // → '46' on the next sequential READ (§9.1.13.7 item 6 a))
+    }
+
+    /// <summary>An unsuccessful START whose status is the invalid key condition's '23'
+    /// (§9.1.13.5 item 3): §14.9.41.4 GR7's invalidation plus that value.</summary>
     private string StartFail()
     {
-        _fpiValid = false;                  // §14.9.41 GR7 — no valid position; key of reference undefined
-        LastReadUnsuccessful = true;       // → '46' on the next sequential READ (§9.1.13.7 6a)
+        InvalidateFilePosition();
         return Status = FileStatusCode.RecordNotFound;
     }
 

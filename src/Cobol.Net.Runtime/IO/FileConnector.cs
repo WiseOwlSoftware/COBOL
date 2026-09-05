@@ -252,6 +252,34 @@ public abstract class FileConnector
         return null;
     }
 
+    // ── START preconditions (ISO §14.9.41.4) ────────────────────────────────────────────────────────────────
+    //
+    // ⛔ ONE COPY, FOR ALL THREE ORGANIZATIONS, exactly as the READ preconditions above (kb/Work PB336's
+    // lesson, applied to START by PB352). GR1's open-mode test was written out five times — twice in each keyed
+    // connector and once more when the sequential arm landed — and every copy carried the SAME omission: it
+    // returned '47' WITHOUT invalidating the file position indicator, although §14.9.41.4 GR7 applies to EVERY
+    // unsuccessful START and a '47' START is unsuccessful.
+
+    /// <summary>ISO §14.9.41.4 GR7 — <i>"Following the unsuccessful execution of a START statement, the file
+    /// position indicator is set to indicate that no valid record position has been established."</i> On this
+    /// base that state is the '46' poison §9.1.13.7 item 6 a) reads back on the next sequential READ; a keyed
+    /// connector, whose FPI is a key VALUE plus a validity bit, overrides to clear the bit as well.</summary>
+    protected virtual void InvalidateFilePosition() => LastReadUnsuccessful = true;
+
+    /// <summary>The START statement's open-mode precondition (ISO §14.9.41.4 GR1: <i>"The open mode of the file
+    /// connector referenced by file-name-1 shall be input or I-O."</i>; §9.1.13.7 item 7 — <i>"The execution of a
+    /// READ or START statement is attempted referencing a file connector that is not open in the input or I-O
+    /// mode"</i> → '47'; Table 20's blank Output/Extend cells). Applies GR7 on the way out, because the refused
+    /// START is an unsuccessful one. Returns the failing status, or <see langword="null"/> when the START may
+    /// proceed. Assigns nothing — the caller owns the single <see cref="Status"/> assignment, so the '43' gate
+    /// drops exactly once.</summary>
+    protected string? StartOpenModeGuard()
+    {
+        if (IsOpen && Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return null;
+        InvalidateFilePosition();
+        return FileStatusCode.ReadNotOpenForInput;
+    }
+
     /// <summary>The absent-OPTIONAL arm of a RANDOM (format-2) READ — ISO §9.1.13.5 item 3 b), "a START or
     /// random READ statement is attempted on a file described as optional and the physical file is not present"
     /// → '23'. TWO deliberate differences from <see cref="SequentialReadGuard"/>, both read off the rule texts:

@@ -167,24 +167,115 @@ internal static class RecordLayout
         }
     }
 
-    /// <summary>Resolve a key-of-reference operand to its key index by BYTE POSITION (−1 = prime, i = the i-th
-    /// alternate, null = no match): the operand qualifies when its leftmost character position within the record
-    /// area coincides with the key's leftmost position and it is no longer than the key (ISO §14.9.41.3 SR6 /
-    /// §14.9.30 SR11; §12.4.5.12.4 GR4 — the identical byte positions in ANY record description entry are
-    /// implicitly keys for all record descriptions of the file, so a REDEFINES of the key or a same-position item
-    /// in another 01 matches by position, never by name). Positions are the PHYSICAL codec layout via
-    /// <see cref="OffsetOf"/>. (SR6b.2's same-class/category/usage check is a pre-existing looseness kept as-is;
-    /// the width-≤ rule is SR6b.3.)</summary>
-    public static int? KeyIndexByPosition(FileModel file, DataItem operand)
+    // ── Key-of-reference operand screens (ISO §14.9.41.3 SR6 · §14.9.30.3 SR11 · §12.4.5.12.4 GR4) ─────────────
+    //
+    // ⛔ TWO RULES, TWO ENTRY POINTS (kb/Work PB354). One method used to answer both, with the SR6 b) test —
+    // "leftmost position coincides AND no longer than the key" — standing in for BOTH the "this IS a record key"
+    // question READ asks and the "this is a legal GENERIC key" question START asks. That conflation is what let
+    // §14.9.41.3 SR6 b) 2.'s class/category/usage condition sit unimplemented behind a doc comment (it has no
+    // meaning for READ, so it could not be added to the shared body), and it made READ's §14.9.30.3 SR11 — which
+    // carries NO generic-key arm at all — accept a short item where the rule names the key itself. The two rules
+    // now have one method each, and each names the clause it enforces.
+
+    /// <summary>ISO §14.9.41.3 SR6 a) / §14.9.30.3 SR11 — the operand IS a prime or alternate record key of
+    /// <paramref name="file"/> (−1 = prime, i = the i-th alternate, null = it is not a key of this file): the
+    /// declared key item itself, or the item occupying the IDENTICAL byte positions in another record
+    /// description entry of the same file. §12.4.5.12.4 GR4 — <i>"the identical byte positions … in any one
+    /// record description entry are implicitly referenced as keys for all other record description entries"</i>
+    /// — is what makes the second form a key, and it is why the positional arm demands the SAME byte width
+    /// rather than a smaller one: GR4 promotes the key's whole span, never a prefix of it. A prefix is SR6 b)'s
+    /// generic key, which START admits and READ does not (see <see cref="GenericKeyIndex"/>).</summary>
+    public static int? KeyIndexOfKeyItem(FileModel file, DataItem operand)
     {
-        if (OffsetOf(operand) is not { } off) return null;
-        if (file.RecordKeyItem is { } pk && OffsetOf(pk) == off && operand.ByteWidth <= pk.ByteWidth)
-            return -1;
+        if (file.RecordKeyItem is { } prime && ReferenceEquals(prime, operand)) return -1;
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
+            if (ReferenceEquals(file.AlternateKeys[i].Item, operand)) return i;
+        // §12.4.5.12.4 GR4's implicit keys — the same byte window in ANOTHER record description of the file
+        // (a REDEFINES of the key, or a same-position item in a secondary 01). The operand shall live in a
+        // record description entry OF THIS FILE: GR4 speaks of the file's own record description entries, and
+        // without that test offset 0 in ANY 01 anywhere — WORKING-STORAGE included — collided with offset 0 in
+        // the record (kb/Work PB354 part 1).
+        if (!InRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;
+        return KeyIndexAtOffset(file, off, key => key.ByteWidth == operand.ByteWidth);
+    }
+
+    /// <summary>ISO §14.9.41.3 SR6 b) — START's GENERIC key: a data item that is not itself a record key but
+    /// <b>b) 1.</b> whose leftmost character position <i>within a record of the file</i> corresponds to a record
+    /// key's leftmost character position, <b>b) 2.</b> which has the same class, category and usage as that
+    /// record key, and <b>b) 3.</b> whose length is not greater than that key's. All three conditions are
+    /// conjunctive; b) 2. used to be omitted by an explicit doc-comment note, which let a
+    /// <c>PIC 9(4) COMP-3</c> item stand in for an <c>X(6)</c> key and be compared on an incommensurable basis
+    /// (kb/Work PB354 part 4 — the catalog rows are <c>SR-14.9.41.3-L2.2</c> and <c>-L2.3</c>).
+    /// <para>b) 1. also requires the key to be <i>"defined without the SOURCE phrase"</i>; the RECORD KEY /
+    /// ALTERNATE RECORD KEY SOURCE phrase is not implemented (Annex A.3 item 40 — <c>FileModel</c> has no SOURCE
+    /// carrier), so every key reaching here satisfies that half by construction.</para></summary>
+    public static int? GenericKeyIndex(FileModel file, DataItem operand)
+    {
+        if (!InRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;   // b) 1.
+        return KeyIndexAtOffset(file, off,
+            key => SameClassCategoryUsage(operand, key)                                        // b) 2.
+                && operand.ByteWidth <= key.ByteWidth);                                        // b) 3.
+    }
+
+    /// <summary>True when the item is <i>subject to an OCCURS clause</i> — it or any ancestor carries one. THE
+    /// ONE predicate for that phrase (ISO §14.9.41.3 SR4 <i>"Data-name-1 or record-key-name-1 shall not be
+    /// subject to any OCCURS clauses"</i>; §12.4.5.13.3 SR1, the RELATIVE KEY twin). Kept apart from
+    /// <see cref="OffsetOf"/>'s own OCCURS bail, which answers a different question ("this item has no single
+    /// fixed position") — folding the two is what made an SR4 violation report itself as an SR6 failure under a
+    /// sentence that was FALSE of the operand (kb/Work PB354 part 2).</summary>
+    public static bool IsSubjectToOccurs(DataItem item)
+    {
+        for (var p = item; p is not null; p = p.Parent)
+            if (p.Occurs is not null) return true;
+        return false;
+    }
+
+    /// <summary>The item's 01 record description entry is one of <paramref name="file"/>'s records — ISO
+    /// §14.9.41.3 SR6 b) 1.'s <i>"within a record of the file"</i>.</summary>
+    private static bool InRecordOfFile(FileModel file, DataItem item)
+    {
+        DataItem root = item;
+        while (root.Parent is { } p) root = p;
+        return file.Records.Contains(root);
+    }
+
+    /// <summary>The index of the record key whose leftmost byte position is <paramref name="off"/> and which
+    /// satisfies the caller's rule (−1 = prime, i = the i-th alternate, null = none). Positions are the PHYSICAL
+    /// codec layout via <see cref="OffsetOf"/> — the basis §12.4.5.12.4 GR4 states the correspondence on.</summary>
+    private static int? KeyIndexAtOffset(FileModel file, int off, Func<DataItem, bool> admits)
+    {
+        if (file.RecordKeyItem is { } prime && OffsetOf(prime) == off && admits(prime)) return -1;
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var alt = file.AlternateKeys[i].Item;
-            if (OffsetOf(alt) == off && operand.ByteWidth <= alt.ByteWidth) return i;
+            if (OffsetOf(alt) == off && admits(alt)) return i;
         }
         return null;
     }
+
+    /// <summary>ISO §14.9.41.3 SR6 b) 2. — <i>"It has the same class, category, and usage as that record key."</i>
+    /// Class comes from the ONE §8.5.2.1 Table-2 classifier (<see cref="IntrinsicArgumentRules.ClassOfItem"/>),
+    /// never a second copy of that table. Where the model cannot tell two categories apart (it folds
+    /// alphanumeric-edited into alphanumeric) the test passes — this screen exists to reject what the rule names,
+    /// never what this compiler cannot classify.</summary>
+    private static bool SameClassCategoryUsage(DataItem operand, DataItem key) =>
+        IntrinsicArgumentRules.ClassOfItem(operand) == IntrinsicArgumentRules.ClassOfItem(key)
+        && CategoryOfItem(operand) == CategoryOfItem(key)
+        && UsageOfItem(operand) == UsageOfItem(key);
+
+    /// <summary>The item's category: its PICTURE's (or a bit/national group's as-if PICTURE's), else — for an
+    /// ordinary group, which has no PICTURE at all — category alphanumeric (§13.18.29.4 GR3, "an alphanumeric
+    /// group item"). A group key with an elementary operand at its leftmost position is exactly the generic-key
+    /// shape SR6 b) is written for, so the group arm may not answer "no category".
+    /// <para>⚠ NOT <see cref="Place.CategoryOf"/>, which looks similar and answers a DIFFERENT question: that is
+    /// §8.4.3.3.3 GR6's rule for the category a REFERENCE-MODIFIED view takes (numeric becomes alphanumeric, and
+    /// so on). SR6 b) 2. compares the items' OWN categories, so folding the two would import a rule about
+    /// reference modification into a rule about record keys.</para></summary>
+    private static PicCategory CategoryOfItem(DataItem item) =>
+        item.OperandPic?.Category ?? PicCategory.Alphanumeric;
+
+    /// <summary>The item's USAGE (ISO §13.18.60): the PICTURE's resolved usage, else this entry's own USAGE
+    /// keyword, else DISPLAY — GR2's standard data format, the usage an entry with no clause has.</summary>
+    private static Usage UsageOfItem(DataItem item) =>
+        item.OperandPic?.Usage ?? item.OwnUsage ?? Usage.Display;
 }

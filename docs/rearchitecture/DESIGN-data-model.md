@@ -430,7 +430,13 @@ width/offset/form reads). This is where "implicit pass-ordering" — the prime s
 
 New `Binding/Model/RecordLayout.cs`: the single owner of character offset/width geometry over the record tree, reading
 `StorageForm.ImageWidth`. Exposes `ImageWidth(item)`, `PhysicalWidth(group)` (tier-aware), `OffsetOf(leaf)`,
-`KeyIndexByPosition(...)`. Delete the four independent copies: `DataItem.ImageWidth` recursion (`:283`),
+and the two key-operand rules — `KeyIndexOfKeyItem(...)` (ISO §12.4.5.12.4 GR4's identical-byte-position
+correspondence, which answers §14.9.30.3 SR11 and §14.9.41.3 SR6 a)) and `GenericKeyIndex(...)`
+(§14.9.41.3 SR6 b)'s three conditions), plus `IsSubjectToOccurs(item)`, the one predicate for the
+"shall not be subject to any OCCURS clauses" rules. Those two rules were ONE method until kb/Work PB354:
+the conflation is what kept SR6 b) 2.'s class/category/usage condition unwritable (it has no meaning for
+READ) and let SR11 accept a short item where the rule names the key itself.
+Delete the four independent copies: `DataItem.ImageWidth` recursion (`:283`),
 `OdoModel.PhysicalWidth` (`:155`), `Sort` geometry (`Sort.cs:483-540`), `KeyedIo` geometry (`KeyedIo.cs:335-375`).
 `FieldEmitter` and the codec consume `RecordLayout` so they cannot drift.
 

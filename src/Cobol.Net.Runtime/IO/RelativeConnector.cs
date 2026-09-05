@@ -345,8 +345,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// key '23' with the FPI invalidated (GR7/GR9c). Open mode must be input or I-O (GR1 → '47').</summary>
     public string Start(string op, long operand)
     {
-        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
-            return Status = FileStatusCode.ReadNotOpenForInput;
+        if (StartOpenModeGuard() is { } notOpen) return Status = notOpen;   // '47' §14.9.41.4 GR1 + GR7
         if (OptionalAbsent) return StartFail();                           // '23' §14.9.41 GR5
         long? found = null;
         switch (op)
@@ -364,8 +363,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// (or absent optional) file → invalid key '23'.</summary>
     public string StartFirstLast(bool last)
     {
-        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
-            return Status = FileStatusCode.ReadNotOpenForInput;
+        if (StartOpenModeGuard() is { } notOpen) return Status = notOpen;   // '47' §14.9.41.4 GR1 + GR7
         if (OptionalAbsent || _slots.Count == 0) return StartFail();
         return StartAt(last ? _slots.Keys.Max() : _slots.Keys.Min());
     }
@@ -377,10 +375,18 @@ public sealed class RelativeConnector : KeyedConnector
         return Status = FileStatusCode.Success;
     }
 
+    /// <inheritdoc/>  (a keyed FPI is a key VALUE plus a validity bit; §14.9.41.4 GR7 clears the bit too)
+    protected override void InvalidateFilePosition()
+    {
+        _fpiValid = false;
+        base.InvalidateFilePosition();   // → '46' on the next sequential READ (§9.1.13.7 item 6 a))
+    }
+
+    /// <summary>An unsuccessful START whose status is the invalid key condition's '23'
+    /// (§9.1.13.5 item 3): §14.9.41.4 GR7's invalidation plus that value.</summary>
     private string StartFail()
     {
-        _fpiValid = false;                  // §14.9.41 GR7 — no valid record position established
-        LastReadUnsuccessful = true;       // → '46' on the next sequential READ (§9.1.13.7 6a)
+        InvalidateFilePosition();
         return Status = FileStatusCode.RecordNotFound;
     }
 
