@@ -181,13 +181,23 @@ Values/                         namespace Cobol.Net.Runtime.Values
 internal static class Pow10 {
     private static readonly long[]   L = BuildLong();   // 10^0..10^18
     private static readonly Int128[] W = BuildWide();   // 10^0..10^38
+    private static readonly Int128[] F = BuildFive();   // 5^0..5^54 — 10^n's ODD COFACTOR (kb/Work PB623)
     public static long   AsLong(int n) => L[n];         // callers already bound n ≤ 18 / ≤ 38 by design
     public static Int128 AsWide(int n) => W[n];
-    public static double AsDouble(int n) => n < L.Length ? L[n] : Math.Pow(10, n);
+    public static Int128 FiveAsWide(int n) => F[n];     // the exact binary64 expansion's multiplier
 }
 ```
 `CobolNum.Pow10/Pow10Wide`, `CobolDec.Pow10`, `CobolDate.Pow10`, `CobolIntrinsics.Pow10I/Pow10D` all delegate to it,
 then are deleted. Pure win, no behavior change (identical values, table-driven).
+
+⛔ **There is deliberately NO `double` view (kb/Work PB623, 2026-09-05).** The 10^n-as-double table existed for
+exactly one purpose — scaling a binary64 before landing it in a fixed-point receiver — and that multiply was the
+defect: past 2^53 the product is itself rounded, so the landing answered with a value the sender never held, and a
+negative scale fell out of the table into a loop that returns 1 (a trailing-P receiver stored 10^|scale| too much).
+`CobolFloat.TryExactScaled` now lands the EXACT expansion using 5^scale and a shift, which is why the five table
+replaced the double one rather than joining it. A future caller wanting 10^n as a double is either converting a
+scaled value — `CobolFloat.ScaledToDouble`, whose own exact-power table stops at 10^22 for the same reason — or
+reintroducing PB623.
 
 The numeric value types (`CobolNum` scaled long/Int128 kernel · `CobolDec` decimal128 · `CobolFloat` float/double ·
 `CobolEdit` PIC editing) are **coherent as-is** — keep the type set and their internal design; only the folder path and

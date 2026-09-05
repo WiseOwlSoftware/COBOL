@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Numerics;
 using System.Text.RegularExpressions;
 using CobolNet.Runtime;
 using CobolNet.Tests.Shared;
@@ -173,4 +174,157 @@ public sealed class CarrierLandingFormTests
         foreach (string name in new[] { "Numval", "NumvalC" })
             Assert.DoesNotContain($"case \"{name}\":", ir, StringComparison.Ordinal);
     }
+
+    // ── ONE binary64, ONE landing: the EXACT value (kb/Work PB623) ───────────────────────────────────────────
+
+    /// <summary>⛔ THE LANDING IS THE EXACT VALUE OF THE BINARY64, never a binary64 product of it (kb/Work PB623).
+    /// ISO §14.6.8.2 rule 1 — "If the sending operand is an intermediate data item or a data item described with a
+    /// standard floating-point usage, the value is treated as if it had been converted to a fixed-point value" —
+    /// and rule 4's "truncation on either end" of THAT value. Both entry points answer with it, which is what
+    /// §15.4.1 ("the returned value is the same for all instances of a given function within a single execution of
+    /// the runtime element") requires of the MOVE channel and the arithmetic channel: <c>MOVE FUNCTION TAN(x)</c>
+    /// used to store 16331239353195368.96 where <c>COMPUTE</c> of the same call stored 16331239353195369.92,
+    /// because each formed <c>v × 10^scale</c> in binary64 first and past 2^53 that product is itself rounded.
+    /// <para>Every expectation is the EXACT expansion of the sending double, computed offline by exact decimal
+    /// arithmetic over its significand, never observed:
+    /// 1.633123935319537E+16 is exactly 16331239353195370 (= 8165619676597685 × 2);
+    /// 0.1 is 0.1000000000000000055511151231257827021181583404541015625;
+    /// 8.2 is 8.199999999999999289457264239899814128875732421875;
+    /// 0.3 is 0.299999999999999988897769753748434595763683319091796875;
+    /// 1.0E+9 at the NEGATIVE scale of a trailing-P receiver is 10000000 × 10^2.</para></summary>
+    [Theory]
+    [InlineData(1.633123935319537e16, 2, "1633123935319537000")]
+    [InlineData(0.1, 19, "1000000000000000055")]
+    [InlineData(0.1, 1, "1")]
+    [InlineData(0.1, 9, "100000000")]
+    [InlineData(-0.1, 9, "-100000000")]
+    [InlineData(8.2, 1, "81")]
+    [InlineData(0.3, 1, "2")]
+    [InlineData(1.15, 2, "114")]
+    [InlineData(1.0e25, 0, "10000000000000000905969664")]
+    [InlineData(1.0e30, 8, "100000000000000001988462483865600000000")]
+    [InlineData(1.0e9, -2, "10000000")]          // a trailing-P receiver: 10^scale is a DIVISOR, not 10^0
+    [InlineData(1.5, 1, "15")]
+    public void BothLandings_AreTheExactValue_AtEveryScale(double v, int scale, string expected)
+    {
+        Int128 want = Int128.Parse(expected);
+        Assert.Equal(want, CobolFloat.ToScaled(v, scale, CobolRounding.Truncation));
+        Assert.Equal(want, CobolFloat.ToScaledUnchecked(v, scale, CobolRounding.Truncation));
+    }
+
+    /// <summary>The arithmetic channel's quantizer is the SAME landing (kb/Work PB623): <c>CobolIntrinsics.FromDouble</c>
+    /// is where <c>COMPUTE r = FUNCTION …</c> lands its working scale, and it held its own <c>d × 10^scale</c>
+    /// product until this. Its own mode is NEAREST-AWAY-FROM-ZERO (the working-scale rounding), so that is what it
+    /// has to agree with — the VALUE is shared, only the mode and the past-carrier form are its own.
+    /// <para>⚠ WHAT THIS DOES AND DOES NOT PROVE, measured rather than assumed: run against the PRE-FIX runtime it
+    /// PASSES, because both entry points then held the SAME wrong formula and so agreed at any one scale. What
+    /// actually diverged in a program is that the two channels land at DIFFERENT scales — the MOVE at the
+    /// receiver's, the COMPUTE at a working scale it then rescales from — so the shared product's rounding error
+    /// differed. That end-to-end invariant is pinned by the goldens (<c>pb623_float_landing_exact</c> legs A1/A2 in
+    /// 2002/2014/2023), and this is the STRUCTURAL pin that keeps a second formula from coming back.</para></summary>
+    [Theory]
+    [InlineData(1.633123935319537e16, 2)]
+    [InlineData(0.1, 19)]
+    [InlineData(8.2, 9)]
+    [InlineData(-0.3, 12)]
+    [InlineData(1.0e25, 3)]
+    [InlineData(1.0e9, -2)]
+    public void FromDouble_IsTheSameLandingAsTheMove(double v, int scale) =>
+        Assert.Equal(CobolFloat.ToScaledUnchecked(v, scale, CobolRounding.NearestAwayFromZero),
+                     CobolIntrinsics.FromDouble(v, scale));
+
+    /// <summary>THE DRIFT TEST for the carrier fast path (kb/Work PB623). <see cref="ExactOracle"/> below is a
+    /// deliberately separate, unoptimized <see cref="System.Numerics.BigInteger"/> implementation of "this
+    /// double's exact value at this scale", so the sweep is a DIFFERENTIAL against the definition and not the
+    /// landing agreeing with itself: the landing answers from an <see cref="Int128"/> multiply-and-shift whenever
+    /// man·5^scale fits the carrier, and this is what proves that bound. The magnitudes straddle 2^53 (where the
+    /// old binary64 product started rounding), the 10^22 largest exactly-representable power of ten, and the
+    /// Int128 carrier itself — where the two LANDING FORMS diverge and are checked apart (kb/Work PB77: checked
+    /// saturates, unchecked keeps the low-order digits).</summary>
+    [Fact]
+    public void EveryLanding_MatchesAnIndependentExactOracle_AcrossTheCarrierBoundaries()
+    {
+        double[] values =
+        [
+            0.1, 0.3, 1.5, 2.5, 8.2, 1.15, 123456.789, 9007199254740991.0, 9007199254740992.0,
+            1.633123935319537e16, 1.0e22, 1.0e23, 1.0e25, 1.0e30, 1.0e37, 5.0e37, 1.7e38, 1.0e40,
+            double.Epsilon, 1.0e-300, 0.0, -0.0,
+        ];
+        int checkedRows = 0, uncheckedRows = 0;
+        foreach (double mag in values)
+        {
+            foreach (double v in new[] { mag, -mag })
+            {
+                for (int scale = -3; scale <= 34; scale++)
+                {
+                    foreach (var mode in new[] { CobolRounding.Truncation, CobolRounding.NearestAwayFromZero })
+                    {
+                        BigInteger exact = ExactOracle(v, scale, mode);
+                        string why = $"v={v:R} scale={scale} mode={mode}";
+                        if (exact >= (BigInteger)Int128.MinValue && exact <= (BigInteger)Int128.MaxValue)
+                        {
+                            Assert.True((Int128)exact == CobolFloat.ToScaled(v, scale, mode), "checked landing: " + why);
+                            Assert.True((Int128)exact == CobolFloat.ToScaledUnchecked(v, scale, mode), "unchecked landing: " + why);
+                            checkedRows++;
+                        }
+                        else
+                        {
+                            // Past the carrier the LANDING FORM decides, and the two forms are different answers.
+                            Assert.True((exact > 0 ? Int128.MaxValue : Int128.MinValue) == CobolFloat.ToScaled(v, scale, mode),
+                                "past-carrier saturation: " + why);
+                            Assert.True((Int128)(exact % BigInteger.Pow(10, 38)) == CobolFloat.ToScaledUnchecked(v, scale, mode),
+                                "past-carrier low-order digits: " + why);
+                            uncheckedRows++;
+                        }
+                    }
+                }
+            }
+        }
+        // A run asserts its own population: both regimes have to be exercised, or the sweep proved half a rule.
+        Assert.True(checkedRows > 1000, $"in-carrier rows: {checkedRows}");
+        Assert.True(uncheckedRows > 100, $"past-carrier rows: {uncheckedRows}");
+    }
+
+    /// <summary>The exact value of a finite binary64 at a decimal scale, rounded per mode — written here a SECOND
+    /// time, plainly and always over <see cref="System.Numerics.BigInteger"/>, so the sweep above tests the
+    /// runtime's carrier fast path against the definition rather than against itself. A double is ±man·2^exp
+    /// exactly, so v·10^scale = ±man·5^scale·2^(exp+scale).</summary>
+    private static BigInteger ExactOracle(double v, int scale, CobolRounding mode)
+    {
+        long bits = BitConverter.DoubleToInt64Bits(v);
+        int biased = (int)((bits >> 52) & 0x7FF);
+        BigInteger man = bits & 0xF_FFFF_FFFF_FFFFL;
+        if (biased == 0) biased = 1; else man += BigInteger.One << 52;
+        int exp = biased - 1075;
+        BigInteger num = man, den = BigInteger.One;
+        if (scale >= 0) num *= BigInteger.Pow(5, scale); else den = BigInteger.Pow(5, -scale);
+        if (exp + scale >= 0) num <<= exp + scale; else den <<= -(exp + scale);
+        BigInteger q = BigInteger.DivRem(num, den, out BigInteger rem);
+        if (!rem.IsZero && mode == CobolRounding.NearestAwayFromZero && rem * 2 >= den) q += 1;
+        return bits < 0 ? -q : q;                                   // magnitude-then-sign: truncation is toward zero
+    }
+
+    /// <summary>The ROUNDED MODE PROHIBITED gate asks the SAME exact value the landing rounds (kb/Work PB623;
+    /// ISO §14.7.4.3 item 7 — "If the PROHIBITED phrase is specified, and the arithmetic value cannot be
+    /// represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to
+    /// exist … and the content of the resultant identifier is unchanged"). The old product test could not:
+    /// <c>0.1 * 10.0</c> is exactly 1.0 in binary64, so it called a value with 55 fraction digits representable in
+    /// ONE — a gate saying "exact" over a landing that then truncates 54 digits away.
+    /// <para>The exact expansions decide every row: 0.1 has 55 fraction digits, 8.2 has 48, 0.3 has 54, 1.5 has
+    /// one, and 1.0E+25 and 2.0 are integers.</para></summary>
+    [Theory]
+    [InlineData(0.1, 1, true)]
+    [InlineData(0.1, 54, true)]
+    [InlineData(0.1, 55, false)]
+    [InlineData(8.2, 1, true)]
+    [InlineData(8.2, 47, true)]
+    [InlineData(8.2, 48, false)]
+    [InlineData(0.3, 54, false)]
+    [InlineData(1.5, 1, false)]
+    [InlineData(1.5, 0, true)]
+    [InlineData(2.0, 0, false)]
+    [InlineData(1.0e25, 0, false)]
+    [InlineData(0.0, 0, false)]
+    public void InexactAtScale_AsksTheExactValue_NotABinary64Product(double v, int scale, bool inexact) =>
+        Assert.Equal(inexact, CobolFloat.InexactAtScale(v, scale));
 }

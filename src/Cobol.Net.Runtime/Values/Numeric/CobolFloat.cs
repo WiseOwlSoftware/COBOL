@@ -128,122 +128,199 @@ public static class CobolFloat
         return r;
     }
 
+    // ── THE ONE binary64 → scaled-integer landing (kb/Work PB623) ────────────────────────────────────────────
+
+    /// <summary>The EXACT value of a finite binary64 at <paramref name="scale"/> fraction digits, rounded per
+    /// <paramref name="mode"/>, WHEN that value fits the <see cref="Int128"/> carrier — the ONE landing every
+    /// float→fixed transfer is defined by (kb/Work PB623). ISO §14.6.8.2 rule 1 makes it a rule and not a
+    /// latitude: "If the sending operand is an intermediate data item or a data item described with a standard
+    /// floating-point usage, the value is treated as if it had been converted to a fixed-point value"
+    /// (cite.py-verified) — THE VALUE, which for a binary64 is the exact ±man·2^exp it holds and always a
+    /// terminating decimal, never a re-rounded surrogate for it. Rule 2 leaves a FLOAT-SHORT/-LONG/-EXTENDED
+    /// sender's conversion to the implementor ("the implementor defines the manner in which the value is
+    /// converted to a fixed-point value", cite.py-verified) and COBOL.NET's determination is that SAME exact
+    /// conversion — one rule for every float sender rather than two regimes.
+    /// <para>⛔ WHY NOT <c>v * 10^scale</c> IN BINARY64, which is what this replaced. That product is ITSELF a
+    /// rounded double once |v|·10^scale passes 2^53, so the landing answered with a value the sender never held —
+    /// and the two entry points rounded that surrogate at different scales, which is how ONE returned value
+    /// reached two receivers differently: <c>MOVE FUNCTION TAN(x) TO PIC S9(28)V99</c> stored 16331239353195368.96
+    /// where <c>COMPUTE</c> of the same call stored 16331239353195369.92 and the returned value is exactly
+    /// 16331239353195370. §15.4.1 — "the returned value is the same for all instances of a given function within a
+    /// single execution of the runtime element so long as the value and order of the arguments, the collating
+    /// sequence, and the locale are unchanged" (cite.py-verified) — cannot survive two transfers that disagree,
+    /// and its NATIVE latitude is over "the characteristics and representation of the returned value", not over
+    /// two different transfers of one representation into one receiver.</para>
+    /// <para>THE FAST PATH IS A PREDICATE WITH A PROOF, not a magnitude guess. A finite double is ±man·2^exp
+    /// exactly with man &lt; 2^53 (<see cref="Decompose"/>), so v·10^scale = ±man·5^scale·2^(exp+scale): ONE
+    /// integer multiply and ONE shift, both exact in the carrier whenever man·5^scale fits it. man &lt; 2^53 and
+    /// 5^31 &lt; 2^72 give man·5^scale &lt; 2^125 &lt; 2^127 for every scale ≤ 31 — which covers every PICTURE
+    /// fraction, since §13.18.40.3 rule 14 caps a PICTURE at 31 digit positions ("For data items of category
+    /// numeric, and for fixed-point data items of category numeric-edited, the number of digit positions described
+    /// by character-string-1 shall range from 1 through 31", cite.py-verified). A wider scale, a shift
+    /// past the carrier, or a negative scale (a trailing-P receiver, whose 5^|scale| is a DIVISOR) falls to the
+    /// same expansion over <see cref="BigInteger"/>. No binary64 multiply is left anywhere in the landing.</para>
+    /// <para>ROUNDING MODE PROHIBITED lands here TRUNCATED (<c>RoundDiv</c>'s truncation arm); the emitter gates
+    /// the STORE with <see cref="InexactAtScale"/> so an inexact float→fixed transfer raises SIZE ERROR and leaves
+    /// the receiver unchanged (§14.7.4.3 item 7) before this is reached.</para></summary>
+    /// <returns><c>true</c> with the landed value; <c>false</c> when <paramref name="v"/> is not finite or its
+    /// exact expansion does not fit the carrier — the caller then applies ITS landing form (kb/Work PB77: the
+    /// CHECKED landing saturates so the store's capacity check raises the size error; the UNCHECKED one keeps the
+    /// LOW-ORDER digits, which have no sentinel to truncate).</returns>
+    public static bool TryExactScaled(double v, int scale, CobolRounding mode, out Int128 landed)
+    {
+        landed = Int128.Zero;
+        if (!double.IsFinite(v)) return false;
+        var (man, exp, neg) = Decompose(v);
+        if (man == 0) return true;                                  // ±0 lands zero at every scale and every mode
+        if ((uint)scale <= FastScaleMax)
+        {
+            Int128 p = (Int128)man * Pow10.FiveAsWide(scale);       // exact: man < 2^53 and 5^31 < 2^72
+            int e2 = exp + scale;
+            if (e2 >= 0)
+            {
+                // p·2^e2 is an INTEGER — every rounding mode agrees on it; it either fits the carrier or the
+                // caller's landing form answers.
+                if (e2 > 126 || p > Int128.MaxValue >> e2) return false;
+                p <<= e2;
+                landed = neg ? -p : p;
+                return true;
+            }
+            if (e2 >= -126)                                          // 2^-e2 is representable as the divisor
+            {
+                landed = CobolNum.RoundDiv(neg ? -p : p, Int128.One << -e2, mode);
+                return true;
+            }
+        }
+        BigInteger exact = ExactScaled(v, scale, mode);
+        if (exact < MinWide || exact > MaxWide) return false;
+        landed = (Int128)exact;
+        return true;
+    }
+
+    /// <summary>The widest scale <see cref="TryExactScaled"/>'s carrier fast path is PROVEN exact for: 5^31 &lt;
+    /// 2^72 and a significand below 2^53 put man·5^scale below 2^125. Raising it needs the proof re-run, not a
+    /// bigger number.</summary>
+    private const uint FastScaleMax = 31;
+
+    private static readonly BigInteger MaxWide = (BigInteger)Int128.MaxValue;
+    private static readonly BigInteger MinWide = (BigInteger)Int128.MinValue;
+    private static readonly BigInteger Pow10Big38 = BigInteger.Pow(10, 38);
+
+    /// <summary>The EXACT decomposition of a finite binary64: <c>v = (neg ? −1 : +1) × man × 2^exp</c>, with the
+    /// significand's trailing zero bits shifted into the exponent so <c>man</c> is ODD (or zero, for ±0). Every
+    /// exact statement about a double's value in this file is built from this ONE decomposition — the landing, its
+    /// residue past the carrier, and the PROHIBITED gate's divisibility question.</summary>
+    private static (long man, int exp, bool neg) Decompose(double v)
+    {
+        long bits = BitConverter.DoubleToInt64Bits(v);
+        bool neg = bits < 0;
+        int biased = (int)((bits >> 52) & 0x7FF);
+        long man = bits & 0xF_FFFF_FFFF_FFFFL;
+        if (biased == 0) biased = 1; else man |= 1L << 52;          // subnormal / normal significand
+        if (man == 0) return (0, 0, neg);
+        int tz = System.Numerics.BitOperations.TrailingZeroCount(man);
+        return (man >> tz, biased - 1075 + tz, neg);
+    }
+
+    /// <summary>The EXACT value of a finite binary64 at <paramref name="scale"/> fraction digits as a signed
+    /// numerator over a POSITIVE denominator: <c>v·10^scale = ±man·5^scale·2^(exp+scale)</c>, with a negative
+    /// scale's 5^|scale| and a negative exp+scale's 2^|exp+scale| joining the denominator. ⛔ THE ONE PLACE the
+    /// exact value of a binary64 at a decimal scale is written down — the landing ROUNDS this ratio, the
+    /// PROHIBITED gate asks whether it DIVIDES. <see cref="Decompose"/> leaves the numerator odd in its factor 2,
+    /// so the ratio is already in lowest terms as to 2 and "the denominator is 1" is exactly "the value has no
+    /// digits past this scale".</summary>
+    private static (BigInteger num, BigInteger den) ExactRatio(double v, int scale)
+    {
+        var (man, exp, neg) = Decompose(v);
+        BigInteger num = neg ? -man : man, den = BigInteger.One;
+        if (scale >= 0) num *= BigInteger.Pow(5, scale); else den = BigInteger.Pow(5, -scale);
+        int e2 = exp + scale;
+        if (e2 >= 0) num <<= e2; else den <<= -e2;
+        return (num, den);
+    }
+
+    /// <summary>The EXACT value of a finite binary64 at <paramref name="scale"/> fraction digits, rounded per
+    /// <paramref name="mode"/>, over arbitrary precision — the DEFINITION that <see cref="TryExactScaled"/>'s
+    /// carrier arm is an allocation-free optimization of, and the residue path for a value the carrier cannot
+    /// hold. The quotient rounds through the ONE <c>CobolNum.RoundDiv</c> kernel (its divisor is positive by
+    /// construction), so a mode is never re-implemented here. Cold by construction: the fast path answers every
+    /// PICTURE-shaped scale inside the carrier.</summary>
+    private static BigInteger ExactScaled(double v, int scale, CobolRounding mode)
+    {
+        var (num, den) = ExactRatio(v, scale);
+        return den.IsOne ? num : CobolNum.RoundDiv(num, den, mode);
+    }
+
     /// <summary>Convert a native double to an UNSCALED <see cref="Int128"/> at <paramref name="scale"/> fraction
-    /// digits, rounded per <paramref name="mode"/> — the double→scaled-integer landing for a store INTO a fixed-point
-    /// receiver (D16). The result then flows through the existing <c>CobolNum.Store</c>/<c>TryStore</c> funnel (whose
-    /// rescale is identity, since we land AT the receiver scale — no double-rounding), which applies the digit
-    /// capacity + SIZE ERROR check. NaN → 0 (implementor-defined; the resulting 0 is in range and exact, so the
-    /// store commits it silently — NO SIZE ERROR / EC-SIZE is raised for a NaN source). ±Infinity and any magnitude
-    /// beyond the wide engine SATURATE to <see cref="Int128.MaxValue"/>/<see cref="Int128.MinValue"/> so that
-    /// capacity check fires SIZE ERROR reliably — never a silent-wrong store.
+    /// digits, rounded per <paramref name="mode"/> — the CHECKED double→scaled-integer landing for a store INTO a
+    /// fixed-point receiver (D16). The result then flows through the existing <c>CobolNum.Store</c>/<c>TryStore</c>
+    /// funnel (whose rescale is identity, since we land AT the receiver scale — no double-rounding), which applies
+    /// the digit capacity + SIZE ERROR check. NaN → 0 (implementor-defined; the resulting 0 is in range and exact,
+    /// so the store commits it silently — NO SIZE ERROR / EC-SIZE is raised for a NaN source). ±Infinity and any
+    /// magnitude beyond the wide engine SATURATE to <see cref="Int128.MaxValue"/>/<see cref="Int128.MinValue"/> so
+    /// that capacity check fires SIZE ERROR reliably — never a silent-wrong store.
     /// <para>⛔ THIS IS THE CHECKED LANDING (kb/Work PB77) — the form for a store whose capacity check RAISES: an
     /// arithmetic statement under ON SIZE ERROR / EC-SIZE checking (§14.7.5 case 3), and every intermediate consumer
     /// with no capacity check downstream (an alignment, an argument), where a huge sentinel is the loud answer. A
     /// TRUNCATING landing — a MOVE (§14.6.8.2 r4: "truncation on either end"), the no-phrase arithmetic store
-    /// (§14.6.13.1.3 item 8 — the documented low-order-digits disposition), INVOKE BY CONTENT — takes
-    /// <see cref="ToScaledUnchecked"/> instead: it has no check to see the sentinel, and truncating a sentinel stores
-    /// garbage (<c>MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9(9)</c> stored 884105727, the low digits of
+    /// (§14.6.13.1.3 item 8 — "the implementor defines … how any receiving operands are affected", and COBOL.NET's
+    /// documented disposition is the low-order digits), INVOKE BY CONTENT — takes <see cref="ToScaledUnchecked"/>
+    /// instead: it has no check to see the sentinel, and truncating a sentinel stores garbage
+    /// (<c>MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9(9)</c> stored 884105727, the low digits of
     /// <c>Int128.MaxValue</c>). The SDIDI carrier's <c>CobolDec.ToUnscaledChecked</c> / <c>ToUnscaled</c> pair is the
-    /// same two-form rule (PB74).</para></summary>
+    /// same two-form rule (PB74). The two forms differ ONLY in what they do with a value the carrier cannot hold:
+    /// the VALUE itself is <see cref="TryExactScaled"/> for both (kb/Work PB623).</para></summary>
     public static Int128 ToScaled(double v, int scale, CobolRounding mode)
     {
         if (double.IsNaN(v)) return Int128.Zero;
-        double scaled = v * Pow10.AsDouble(scale);
-        // Int128.MaxValue ≈ 1.7014e38 — saturate at/above it (and ±Inf) before the (Int128) cast, whose behavior
-        // is otherwise undefined for an out-of-range double.
-        if (scaled >= 1.7014118e38) return Int128.MaxValue;
-        if (scaled <= -1.7014118e38) return Int128.MinValue;
-        return RoundScaled(scaled, mode);
+        if (TryExactScaled(v, scale, mode, out Int128 landed)) return landed;
+        return v > 0 ? Int128.MaxValue : Int128.MinValue;           // ±Infinity, and every magnitude past the carrier
     }
 
     /// <summary>The UNCHECKED landing of a binary64 into a fixed-point receiver (kb/Work PB77) — a MOVE (§14.6.8.2
     /// r1/r2/r4: the value converted to fixed point, aligned by decimal point, "zero fill or truncation on either
     /// end"), the no-phrase arithmetic store, INVOKE BY CONTENT. Within the Int128 carrier it is <see cref="ToScaled"/>
-    /// exactly (the same binary64 product, the same rounding); beyond it the value's exact decimal expansion keeps
-    /// supplying the LOW-ORDER digits (<see cref="LowOrderDigits"/>) — never a saturation sentinel, which has no
-    /// capacity check downstream to expose it. A non-finite value (NaN, ±Infinity — EC-DATA-NOT-FINITE at the
-    /// sending read under checking, §14.6.13.2 item 3; with checking off the receiving operand's disposition is the
-    /// implementor's, §14.6.13.1.3 item 8) lands as ZERO: not a number, no digits — the disposition
-    /// <see cref="ToScaled"/> already gave NaN.</summary>
+    /// exactly (ONE <see cref="TryExactScaled"/> call, so there is no second rounding rule to diverge); beyond it the
+    /// value's exact decimal expansion keeps supplying the LOW-ORDER digits (<see cref="LowOrderDigits"/>) — never a
+    /// saturation sentinel, which has no capacity check downstream to expose it. A non-finite value (NaN, ±Infinity —
+    /// EC-DATA-NOT-FINITE at the sending read under checking, §14.6.13.2 item 3; with checking off the receiving
+    /// operand's disposition is the implementor's, §14.6.13.1.3 item 8) lands as ZERO: not a number, no digits — the
+    /// disposition <see cref="ToScaled"/> already gave NaN.</summary>
     public static Int128 ToScaledUnchecked(double v, int scale, CobolRounding mode)
     {
         if (!double.IsFinite(v)) return Int128.Zero;
-        double scaled = v * Pow10.AsDouble(scale);
-        if (scaled > -1.7014118e38 && scaled < 1.7014118e38) return RoundScaled(scaled, mode);
-        return LowOrderDigits(v, scale, mode);
+        return TryExactScaled(v, scale, mode, out Int128 landed) ? landed : LowOrderDigits(v, scale, mode);
     }
-
-    private static readonly BigInteger Pow10Big38 = BigInteger.Pow(10, 38);
 
     /// <summary>The 38 LOW-ORDER digits, sign kept, of a finite binary64's EXACT value at <paramref name="scale"/>
     /// fraction digits, rounded per <paramref name="mode"/> (kb/Work PB77) — the digits a truncating landing keeps of a
     /// value the Int128 carrier cannot hold (the receiver's own store then keeps ITS low-order digits of these, so the
     /// composition is exact whenever the receiver's digit positions fit under 38 minus the landing's excess scale —
-    /// which <c>ReceiverContext.WorkingScale</c>'s cap guarantees). A double is ±m·2^e exactly (m &lt; 2^53), so
-    /// v·10^scale = ±m·5^scale·2^(e+scale): an integer when e+scale ≥ 0, otherwise a quotient rounded by the ONE
-    /// <c>CobolNum.RoundDiv</c> kernel. Cold path — a magnitude at or past 1.7×10^38 at the landing scale — so the
-    /// expansion rides <see cref="BigInteger"/> (as BASECONVERT's digit accumulation does); the engine's hot paths
-    /// stay native (<c>CobolNum</c>'s design note). Correct for EVERY finite double, so a determination that lands
-    /// the exact expansion inside the carrier as well needs only the caller's carrier test removed.</summary>
-    public static Int128 LowOrderDigits(double v, int scale, CobolRounding mode)
-    {
-        long bits = BitConverter.DoubleToInt64Bits(v);
-        bool neg = bits < 0;
-        int exp = (int)((bits >> 52) & 0x7FF);
-        long man = bits & 0xF_FFFF_FFFF_FFFFL;
-        if (exp == 0) exp = 1; else man |= 1L << 52;          // subnormal / normal significand
-        exp -= 1075;                                          // v = ±man × 2^exp
-        BigInteger scaled = new BigInteger(man) * BigInteger.Pow(5, scale);
-        if (neg) scaled = -scaled;
-        int e2 = exp + scale;
-        scaled = e2 >= 0 ? scaled << e2 : CobolNum.RoundDiv(scaled, BigInteger.One << -e2, mode);
-        return (Int128)(scaled % Pow10Big38);                 // sign-preserving remainder — the low-order digits
-    }
-
-    /// <summary>The in-carrier rounding of a binary64 product to an <see cref="Int128"/> per a COBOL ROUNDED mode —
-    /// shared by <see cref="ToScaled"/> and <see cref="ToScaledUnchecked"/> (kb/Work PB77: the two landings differ
-    /// ONLY past the carrier).</summary>
-    private static Int128 RoundScaled(double scaled, CobolRounding mode)
-    {
-        double r = mode switch
-        {
-            CobolRounding.Truncation        => Math.Truncate(scaled),
-            CobolRounding.NearestAwayFromZero => Math.Round(scaled, MidpointRounding.AwayFromZero),
-            CobolRounding.AwayFromZero      => scaled < 0 ? Math.Floor(scaled) : Math.Ceiling(scaled),
-            CobolRounding.NearestEven       => Math.Round(scaled, MidpointRounding.ToEven),
-            // NEAREST-TOWARD-ZERO (§14.9.4 GR6): round to the NEAREST value; break an EXACT tie toward zero. NOT
-            // MidpointRounding.ToZero — that is DIRECTED rounding (plain truncation of every value: 2.7→2 wrong).
-            CobolRounding.NearestTowardZero => NearestTowardZero(scaled),
-            CobolRounding.TowardGreater     => Math.Ceiling(scaled),
-            CobolRounding.TowardLesser      => Math.Floor(scaled),
-            // PROHIBITED: the value is landed truncated here; the emitter gates the STORE with InexactAtScale so an
-            // inexact float→fixed transfer raises SIZE ERROR + leaves the receiver unchanged (§14.7.5 r7) before
-            // this lands — see CobolFloat.InexactAtScale + the size-error branch in CSharpEmitter.StoreArith.
-            CobolRounding.Prohibited        => Math.Truncate(scaled),
-            _                               => Math.Truncate(scaled),
-        };
-        return (Int128)r;
-    }
-
-    /// <summary>Round <paramref name="x"/> to the NEAREST integer, breaking an EXACT half tie TOWARD ZERO (COBOL
-    /// ROUNDED MODE NEAREST-TOWARD-ZERO, §14.9.4 GR6). A fraction &gt; ½ rounds away from zero; &lt; ½ or an exact ½
-    /// truncates toward zero. (.NET's <c>MidpointRounding.ToZero</c> is DIRECTED rounding — it truncates every value,
-    /// not just ties — so it is wrong for this mode.)</summary>
-    private static double NearestTowardZero(double x)
-    {
-        double t = Math.Truncate(x);
-        return Math.Abs(x - t) > 0.5 ? t + Math.Sign(x) : t;
-    }
+    /// which <c>ReceiverContext.WorkingScale</c>'s cap guarantees). It is <see cref="ExactScaled"/> — the same exact
+    /// expansion the in-carrier landing uses (kb/Work PB623) — taken modulo 10^38, so "past the carrier" changes only
+    /// WHICH digits survive, never WHAT the value is. Cold path: a magnitude at or past 1.7×10^38 at the landing
+    /// scale, so it rides <see cref="BigInteger"/> (as BASECONVERT's digit accumulation does) while the engine's hot
+    /// paths stay native (<c>CobolNum</c>'s design note). Its callers guard non-finite before calling.</summary>
+    public static Int128 LowOrderDigits(double v, int scale, CobolRounding mode) =>
+        (Int128)(ExactScaled(v, scale, mode) % Pow10Big38);         // sign-preserving remainder — the low-order digits
 
     /// <summary>True when <paramref name="v"/> carries a nonzero fraction beyond <paramref name="scale"/> digits — an
     /// INEXACT float→fixed transfer that ROUNDED MODE PROHIBITED must reject with SIZE ERROR / EC-SIZE-TRUNCATION,
-    /// leaving the receiver unchanged (ISO §14.7.5 r7). Judged at the double level (a double's fraction can extend
-    /// past any fixed decimal guard count). NaN/±Inf are handled by the store's saturation path, not here.</summary>
+    /// leaving the receiver unchanged (ISO §14.7.4.3 item 7: "If the PROHIBITED phrase is specified, and the
+    /// arithmetic value cannot be represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception
+    /// condition is set to exist, the size error condition exists, and the content of the resultant identifier is
+    /// unchanged" — cite.py-verified).
+    /// <para>⛔ THE QUESTION IS ASKED OF THE EXACT VALUE, and it is the SAME ratio the landing rounds
+    /// (<see cref="ExactRatio"/>, kb/Work PB623) — never of a binary64 product, which cannot answer it: the double
+    /// nearest 0.1 is 0.1000000000000000055511151231257827…, so it does NOT fit one fraction digit, yet
+    /// <c>0.1 * 10.0</c> is exactly 1.0 in binary64 and the old product test called it exact. A gate that says
+    /// "representable" where the landing then truncates digits away is the two-arm defect in one statement.</para>
+    /// <para>NaN/±Infinity are handled by the store's saturation path, not here.</para></summary>
     public static bool InexactAtScale(double v, int scale)
     {
-        if (double.IsNaN(v) || double.IsInfinity(v)) return false;
-        double s = v * Pow10.AsDouble(scale);
-        return s != Math.Truncate(s);
+        if (!double.IsFinite(v)) return false;
+        var (num, den) = ExactRatio(v, scale);
+        return !BigInteger.Remainder(num, den).IsZero;
     }
 
 }

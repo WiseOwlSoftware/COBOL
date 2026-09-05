@@ -322,22 +322,29 @@ of an unsupported facility.
   implementor for a FLOAT-SHORT/-LONG/-EXTENDED sending item, and r1 treats an intermediate or standard-float
   sender "as if it had been converted to a fixed-point value"; COBOL.NET's FLOAT-LONG and FLOAT-BINARY-64 are the
   same `double` (item 22), and a §15.4.1 float-family returned value IS a binary64 (item 92), so ONE conversion
-  serves all three: **the binary64's algebraic value, aligned by decimal point and truncated (or rounded, under a
-  ROUNDED phrase) at the receiver's scale.** Inside the Int128 carrier the product v × 10^scale is formed in
-  binary64 and rounded (`CobolFloat.ToScaled` — the double's own rounding of that product is part of the manner:
-  a COMP-2 holding 8.2 moves 8.2 into PIC 9V9, a COMP-2 holding 1.15 moves 1.14 into PIC 9V99, exactly as the
-  §14.6.8.2 r4 truncation of 1.1499999999999999 reads); **past the carrier the value's EXACT decimal expansion
-  keeps supplying the low-order digits** (`CobolFloat.LowOrderDigits` — a COMP-2 holding 1.0E+40, whose exact
-  value is 10000000000000000303786028427003666890752, moves 90752 into PIC 9(5); an in-carrier 1.0E+25 has always
-  moved its exact 69664) — never a saturation sentinel, which has no capacity check downstream in a MOVE and used
-  to store ITS low digits (884105727 / 03715). A non-finite value reaching a fixed-point landing with checking off
-  (NaN, ±Infinity — EC-DATA-NOT-FINITE at the sending read under checking, §14.6.13.2 item 3) lands ZERO. The
-  CHECKED landing (an arithmetic store under ON SIZE ERROR / EC-SIZE checking) keeps saturating so the receiver's
-  capacity check raises the size error (item 179). Pinned by `2023/pb77_move_past_the_carrier` and
-  `CarrierLandingFormTests`. ⚠ The in-carrier binary64 product is a rounding step a purely exact conversion would
-  not take (8.2 → 8.2 rather than the exact 8.1); whether the manner should be the exact expansion at every
-  magnitude, or the shortest-round-trip decimal, is kb/Work PB90 — a survey of GnuCOBOL's `cob_decimal_set_double`
-  first, per the follow-GnuCOBOL-on-split-latitude decision.
+  serves all three: **the binary64's EXACT algebraic value, aligned by decimal point and truncated (or rounded,
+  under a ROUNDED phrase) at the receiver's scale — at every magnitude** (`CobolFloat.TryExactScaled`; kb/Work
+  PB623, 2026-09-05, which ANSWERED kb/Work PB90's three-way choice). A double is ±man·2^exp exactly and therefore
+  always a terminating decimal, so "the value" is never in doubt: a COMP-2 holding 8.2 holds
+  8.199999999999999289457264239899814128875732421875 and moves **8.1** into PIC 9V9; one holding 1.15 moves 1.14
+  into PIC 9V99; one holding 0.1 moves .1000000000000000055 into PIC V9(19); **past the carrier the same expansion
+  keeps supplying the low-order digits** (`CobolFloat.LowOrderDigits` — a COMP-2 holding 1.0E+40, whose exact value
+  is 10000000000000000303786028427003666890752, moves 90752 into PIC 9(5); an in-carrier 1.0E+25 moves its exact
+  69664) — never a saturation sentinel, which has no capacity check downstream in a MOVE and used to store ITS low
+  digits (884105727 / 03715). A non-finite value reaching a fixed-point landing with checking off (NaN, ±Infinity —
+  EC-DATA-NOT-FINITE at the sending read under checking, §14.6.13.2 item 3) lands ZERO. The CHECKED landing (an
+  arithmetic store under ON SIZE ERROR / EC-SIZE checking) keeps saturating so the receiver's capacity check raises
+  the size error (item 179).
+  **Why the exact expansion and not the shortest-round-trip decimal (PB90's option b) — the choice is not free.**
+  r2's latitude covers a FLOAT-SHORT/-LONG/-EXTENDED sending ITEM only; r1 governs a standard-float item and an
+  intermediate with no latitude at all ("the value is treated as if it had been converted to a fixed-point value"),
+  and `COMPUTE r = <any float>` lands through an intermediate. So a different manner for COMP-2 would make
+  `MOVE c2 TO r` disagree with `COMPUTE r = c2` for one value — the split PB623 exists to remove. The same
+  expansion answers the ROUNDED MODE PROHIBITED question (§14.7.4.3 item 7): the double nearest 0.1 is NOT
+  representable in one fraction digit, so `COMPUTE r ROUNDED MODE IS PROHIBITED = <COMP-2 0.1>` raises
+  EC-SIZE-TRUNCATION and leaves the receiver unchanged, where a binary64 product test called it exact
+  (`0.1 * 10.0` is exactly 1.0). Pinned by `2002|2014|2023/pb623_float_landing_exact`,
+  `2023/pb77_move_past_the_carrier` and `CarrierLandingFormTests`.
 - **Floating-point numeric-edited receiver — the overflow, underflow, size-error and incompatible-content
   dispositions (§14.9.25.4 GR6 item 4; §14.7.5 items 3/4; §14.6.13.2 rule 4; kb/Work PB66, 2026-08-18).**
   §14.9.25.4 GR6 item 4a says a MOVE whose sending value is farther from zero than the picture permits sets

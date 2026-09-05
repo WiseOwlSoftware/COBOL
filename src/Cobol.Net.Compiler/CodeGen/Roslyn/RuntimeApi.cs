@@ -470,8 +470,8 @@ internal static class RuntimeApi
         $"{nameof(CobolDec)}.{nameof(CobolDec.Div)}({nameof(CobolDec)}.{nameof(CobolDec.From)}({numerator}, "
         + $"{numeratorScale}), {nameof(CobolDec)}.{nameof(CobolDec.From)}({denominator}, 0), {mode})";
 
-    /// <summary>A float value's inexactness probe at a fraction scale (the ROUNDED PROHIBITED gate, §14.7.5 r7)
-    /// — <c>CobolFloat.InexactAtScale</c>.</summary>
+    /// <summary>A float value's inexactness probe at a fraction scale (the ROUNDED PROHIBITED gate, §14.7.4.3
+    /// item 7) — <c>CobolFloat.InexactAtScale</c>.</summary>
     public static string FloatInexactAtScale(string value, string scale) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.InexactAtScale)}({value}, {scale})";
 

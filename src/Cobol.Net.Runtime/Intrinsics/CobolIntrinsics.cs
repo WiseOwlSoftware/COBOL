@@ -216,11 +216,16 @@ public static partial class CobolIntrinsics
         // value (the receiver store size-truncates).
         if (double.IsNaN(d)) return Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)");
         if (double.IsInfinity(d)) return !checkedLanding ? Int128.Zero : d > 0 ? Int128.MaxValue : Int128.MinValue;
-        double scaled = d * Pow10.AsDouble(scale);
-        if (scaled >= 1.7e38 || scaled <= -1.7e38)
-            return checkedLanding ? (scaled > 0 ? Int128.MaxValue : Int128.MinValue)
-                 : CobolFloat.LowOrderDigits(d, scale, CobolRounding.NearestAwayFromZero);   // the same rounding as below
-        return (Int128)Math.Round(scaled, MidpointRounding.AwayFromZero);
+        // ⛔ THE SAME LANDING AS A MOVE'S, BY CONSTRUCTION (kb/Work PB623). This is the ARITHMETIC channel's
+        // quantizer — `COMPUTE r = FUNCTION TAN(x)` reaches the receiver through here where `MOVE FUNCTION TAN(x)
+        // TO r` reaches it through CobolFloat.ToScaledUnchecked — and while each held its own `d * 10^scale` in
+        // binary64 the ONE returned value §15.4.1 promises landed as two different numbers (16331239353195368.96
+        // against 16331239353195369.92, the exact value being 16331239353195370). CobolFloat.TryExactScaled is
+        // now the single definition of "this double at this scale"; only the past-the-carrier FORM is this
+        // landing's own (kb/Work PB77), and NEAREST-AWAY-FROM-ZERO is its own working-scale rounding mode.
+        if (CobolFloat.TryExactScaled(d, scale, CobolRounding.NearestAwayFromZero, out Int128 landed)) return landed;
+        return checkedLanding ? (d > 0 ? Int128.MaxValue : Int128.MinValue)
+             : CobolFloat.LowOrderDigits(d, scale, CobolRounding.NearestAwayFromZero);   // the same rounding as above
     }
 
 }

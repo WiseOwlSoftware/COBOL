@@ -318,8 +318,10 @@ PB264 (BY VALUE: the fraction digits truncated away).
 
 **Float-integration edge cases.** The Real integration covers these paths: a float source/result into a
 NUMERIC-EDITED receiver (MOVE + COMPUTE) lands via `ToScaled` at the MASK scale (`CobolEdit.MaskScale`, NOT
-`pic.Scale`, which is 0 for an edited item); NEAREST-TOWARD-ZERO uses an explicit nearest-tie-toward-zero (not
-`MidpointRounding.ToZero`, which is DIRECTED and would truncate all values); a fractional level-88 VALUE on a float
+`pic.Scale`, which is 0 for an edited item); every ROUNDED mode — NEAREST-TOWARD-ZERO included, where
+`MidpointRounding.ToZero` would have been wrong because it is DIRECTED and truncates all values, not just ties —
+comes from the ONE `CobolNum.RoundDiv` kernel over the exact expansion, so the float lane has no rounding rule of
+its own (kb/Work PB623 deleted the `RoundScaled`/`NearestTowardZero` pair); a fractional level-88 VALUE on a float
 uses a native-double membership branch (exact-inverse membership, not a scale-0 truncation); a fixed-only expression
 into a float receiver uses a `TargetReal` flag that makes the whole RHS Real when every target is float (so `10/3`
 evaluates in binary64, not at receiver-scale 0; reset at the condition-render entry, the H1 staleness discipline);
@@ -691,16 +693,32 @@ truncating a sentinel stores garbage: `MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9
 forms since PB74 (`CobolDec.ToUnscaledChecked` / `ToUnscaled`); the pair now exists for the native exact family
 (`CobolIntrinsics.Rescaled(…, checkedLanding)` — the unchecked arm is `CobolNum.RescaleStoreCap`, digits a ≤38-digit
 store could never use dropped BEFORE the multiply) and the float family (`CobolFloat.ToScaled` checked /
-`ToScaledUnchecked` unchecked — inside the carrier ONE function, `RoundScaled`; past it `CobolFloat.LowOrderDigits`,
-the double's exact ±m·2^e expansion at the landing scale rounded by the ONE `CobolNum.RoundDiv` kernel over
-`BigInteger`, the runtime's second and last cold BigInteger path; `CobolIntrinsics.FromDouble(…, checkedLanding)`
-likewise). The emitter NAMES the landing at every site — `RuntimeApi.FloatToScaled(…, bool checkedLanding)` has no
+`ToScaledUnchecked` unchecked — inside the carrier ONE function, `CobolFloat.TryExactScaled`; past it
+`CobolFloat.LowOrderDigits`, the SAME exact expansion taken modulo 10^38, rounded by the ONE `CobolNum.RoundDiv`
+kernel; `CobolIntrinsics.FromDouble(…, checkedLanding)` likewise). The emitter NAMES the landing at every site —
+`RuntimeApi.FloatToScaled(…, bool checkedLanding)` has no
 default; `NumericRenderer.StoreArgs(…, checkedLanding)` takes it from `ecState.SizeErrVar` (arithmetic) or `false`
 (`StoreExpr`: MOVE, INVOKE); the quantizer / NUMVAL-family renders carry the ONE `NumericRenderer.CheckedFlag`
 (`, checkedLanding: true` under `ReceiverContext.InSizeError`). `CarrierLandingFormTests` pins the kernels and
-greps the sites; golden `pb77_move_past_the_carrier` pins sixteen spec-derived rows. **In-carrier landings did not
-move** — the in-carrier binary64 product's own rounding is the documented conversion manner (CONFORMANCE.md §3),
-and whether it should become the exact expansion everywhere is kb/Work PB90.
+greps the sites; golden `pb77_move_past_the_carrier` pins sixteen spec-derived rows.
+
+**THE VALUE IS THE SAME AT EVERY MAGNITUDE — the landing is the binary64's EXACT value, and the carrier decides only
+the FORM (kb/Work PB623, 2026-09-05; it answered PB90).** `CobolFloat.TryExactScaled(v, scale, mode, out landed)` is
+the ONE definition: a finite double is ±man·2^exp exactly, so v·10^scale = ±man·5^scale·2^(exp+scale) — one
+`Int128` multiply (`Pow10.FiveAsWide`, 10^n's odd cofactor) and one shift or one `RoundDiv`, allocation-free and
+PROVABLY exact for every scale ≤ 31 (man < 2^53 and 5^31 < 2^72 put the product below 2^125), with the same
+expansion over `BigInteger` for a wider scale, a negative one (a trailing-P receiver, whose 5^|scale| is a divisor)
+or a magnitude past the carrier — the runtime's second and last cold `BigInteger` path. `ExactRatio` is the one
+place a double's exact value at a decimal scale is written down, and `InexactAtScale` (the ROUNDED MODE PROHIBITED
+gate, §14.7.4.3 item 7) asks THAT ratio whether it divides rather than testing a product. **What this replaced**
+was `v * Pow10.AsDouble(scale)` formed in binary64 at each of three sites: past 2^53 the product is itself rounded,
+so the landing answered with a value the sender never held, and because the MOVE channel lands at the RECEIVER's
+scale while the arithmetic channel lands at a WORKING scale, one returned value became two receiver contents
+(16331239353195368.96 against 16331239353195369.92, the value being 16331239353195370) — which §15.4.1's "the
+returned value is the same for all instances of a given function within a single execution of the runtime element"
+does not permit. It also read a negative scale as 10^0 (`Pow10.AsDouble`'s out-of-table loop returns 1), so a
+trailing-P receiver stored a value 10^|scale| too large and then capacity-truncated it to zeros. `Pow10` no longer
+has a `double` view at all — that table existed only for this multiply.
 
 **A size error that ESCAPES an arithmetic statement is a fatal exception condition, not a crash (kb/Work PB75,
 2026-08-18).** Every `CobolSizeError` raise site — the SDIDI decimal128 range check (`CobolDec.Clamp`, §8.8.1.5.2

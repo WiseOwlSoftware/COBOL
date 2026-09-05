@@ -3,6 +3,7 @@
  "enabled": [
   "pb253_prose_float_sdidi_container",
   "pb288_call_argument_scale_landing",
+  "pb623_float_landing_exact",
   "pb238_call_sr20_object_property",
   "pb238_call_format2_operands",
   "pb204_vlg_invoke",

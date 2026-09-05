@@ -458,8 +458,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // "significant digits truncated in store"; the §14.7.5 size error on the final transfer).
             string onFail = ecState.SizeErrEcVar is { } ecn2 ? $"{{ {flag} = true; {ecn2} = \"EC-SIZE-TRUNCATION\"; }}" : $"{flag} = true;";
             // A float (Real) source under ROUNDED MODE PROHIBITED: an inexact transfer is a size error and leaves the
-            // receiver UNCHANGED (§14.7.5 r7). ToScaled already truncated the fraction, so the store's own PROHIBITED
-            // check cannot see it — gate on InexactAtScale first (D16 review finding).
+            // receiver UNCHANGED (§14.7.4.3 item 7 — NOT §14.7.5, which this cited until kb/Work PB623 re-derived it;
+            // §14.7.5 is the SIZE ERROR phrase, §14.7.4.3 is the ROUNDED phrase's per-mode general rules). ToScaled
+            // already truncated the fraction, so the store's own PROHIBITED check cannot see it — gate on
+            // InexactAtScale first (D16 review finding).
             if (value.Real && mode == CobolRounding.Prohibited)
             {
                 w.Line($"if ({RuntimeApi.FloatInexactAtScale(value.Expr, $"{recvScale}")}) {onFail}");
