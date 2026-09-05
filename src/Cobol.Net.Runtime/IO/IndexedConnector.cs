@@ -14,9 +14,8 @@ namespace CobolNet.Runtime.IO;
 /// (§12.4.5.12 SR2), for which ordinal IS the native collating sequence — correct for COBOL-85 NIST; the file-level
 /// COLLATING SEQUENCE clause (§12.4.5.7, WRITE GR35/GR42) is the SPECIAL-NAMES/alphabet subsystem's seam.
 /// </summary>
-public sealed class IndexedConnector : FileConnector
+public sealed class IndexedConnector : KeyedConnector
 {
-    private readonly KeyedAccess _access;
     private readonly int _primeOff, _primeLen;
     private readonly CobolCollation? _primeCollation;   // §12.4.5.7 prime-key collating sequence (the CobolCollation carrier); null = native ordinal
     private readonly List<(int Off, int Len, bool Dups, CobolCollation? Collation, string? Suppress)> _alts = [];
@@ -46,9 +45,10 @@ public sealed class IndexedConnector : FileConnector
     /// <inheritdoc/>
     public override string LastReadRecordId => _lastReadPrime ?? "";
 
-    /// <inheritdoc/>  (sequential access targets the last-read record, §14.9.35 GR22 / §14.9.10 GR2;
-    /// random/dynamic the record whose prime key is the record area's key slice, §14.9.35 GR23 / §14.9.10 GR3)
-    public override string MutationTargetRecordId(string recordImage) => _access == KeyedAccess.Sequential
+    /// <inheritdoc/>  (sequential access targets the last-read record, §14.9.35.4 GR22 / §14.9.10.4 GR2;
+    /// random/dynamic the record whose prime key is the record area's key slice, §14.9.35.4 GR23 /
+    /// §14.9.10.4 GR3 — the ACCESS MODE alone selects the target, see <see cref="KeyedConnector"/>)
+    public override string MutationTargetRecordId(string recordImage) => Access == KeyedAccess.Sequential
         ? LastReadRecordId
         : KeyOf(Fit(recordImage), -1);
 
@@ -61,9 +61,8 @@ public sealed class IndexedConnector : FileConnector
 
     public IndexedConnector(string hostPath, int recordWidth, KeyedAccess access, int primeOffset, int primeLength,
         int varyMin = -1, int varyMax = -1, CobolCollation? primeCollation = null)
-        : base(hostPath, recordWidth, varyMin, varyMax)
+        : base(hostPath, recordWidth, access, varyMin, varyMax)
     {
-        _access = access;
         _primeOff = primeOffset;
         _primeLen = primeLength;
         _primeCollation = primeCollation;
@@ -385,16 +384,25 @@ public sealed class IndexedConnector : FileConnector
         if (Stored(image, length) is not { } stored)
             return Status = FileStatusCode.RecordSizeViolation;            // '44' §13.18.43 GR14a
         image = Fit(image);   // key slices come from the record-area image (KeyOf pads on demand)
-        bool sequential = _access == KeyedAccess.Sequential || Mode == FileOpenMode.Extend;
-        if (sequential)
+        // §14.9.51.4 GR38 "If the access mode of the write file connector is sequential, records shall be
+        // released … in ascending order of prime record key values" vs. GR39 "If the access mode … is random
+        // or dynamic, WRITE statements may release records … in any order": the ACCESS MODE alone selects the
+        // ordering rule (the open mode only seeds GR38's first key — the highest existing one under extend).
+        // ⛔ The open mode is NOT a disjunct here (kb/Work PB325): a random- or dynamic-access connector open
+        // in the extend mode is illegal source (§14.9.27.3 SR2) but a REACHABLE runtime state, and Table 20
+        // leaves its WRITE cell blank — item 8 b) is what it must answer, not GR38's append.
+        bool sequentialRelease = Access == KeyedAccess.Sequential;
+        if (sequentialRelease)
         {
             if (!IsOpen || Mode is not (FileOpenMode.Output or FileOpenMode.Extend))
-                return Status = FileStatusCode.WriteNotOpenForOutput;      // '48' 8a
+                return Status = FileStatusCode.WriteNotOpenForOutput;      // '48' §9.1.13.7 8a
         }
+        // §9.1.13.7 8 b) — "If the access mode is dynamic or random, the file connector is not open in the
+        // I-O or output mode"; Table 20's Random/Extend and Dynamic/Extend WRITE cells are blank.
         else if (!IsOpen || Mode is not (FileOpenMode.IO or FileOpenMode.Output))
-            return Status = FileStatusCode.WriteNotOpenForOutput;          // '48' 8b
+            return Status = FileStatusCode.WriteNotOpenForOutput;          // '48' §9.1.13.7 8b
         string prime = KeyOf(image, -1);
-        if (sequential && _lastWrittenPrime is { } lastPrime && KeyCompare(prime, lastPrime, -1) <= 0)
+        if (sequentialRelease && _lastWrittenPrime is { } lastPrime && KeyCompare(prime, lastPrime, -1) <= 0)
             return Status = FileStatusCode.SequenceError;                  // '21' GR38/GR42a
         if (_recs.Any(r => KeyEq(KeyOf(r.Image, -1), prime, -1)))
             return Status = FileStatusCode.DuplicateKey;                   // '22' GR36/GR42b
@@ -408,7 +416,7 @@ public sealed class IndexedConnector : FileConnector
             if (exists) duplicateAlt = true;
         }
         _recs.Add(new KeyedRec { Image = stored, Arrival = _nextArrival++ });
-        if (sequential) _lastWrittenPrime = prime;
+        if (sequentialRelease) _lastWrittenPrime = prime;   // GR38's running "highest … written" — sequential access only
         _lastWrittenPrimeId = prime;   // §9.1.16 lock identity of the record just released (§14.9.51 GR11)
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
     }
@@ -427,7 +435,7 @@ public sealed class IndexedConnector : FileConnector
             return Status = FileStatusCode.RecordSizeViolation;                                 // '44' GR20
         image = Fit(image);
         string prime = KeyOf(image, -1);
-        if (_access == KeyedAccess.Sequential)
+        if (Access == KeyedAccess.Sequential)   // §14.9.35.4 GR22 vs. GR23 — the ACCESS MODE alone
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43' GR5
             // '21' §14.9.35 GR22 — the prime key of the replaced record must EQUAL that of the last record read;
@@ -465,7 +473,7 @@ public sealed class IndexedConnector : FileConnector
         bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         string prime;
-        if (_access == KeyedAccess.Sequential)
+        if (Access == KeyedAccess.Sequential)   // §14.9.10.4 GR2 vs. GR3 — the ACCESS MODE alone
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
             prime = _lastReadPrime ?? "";

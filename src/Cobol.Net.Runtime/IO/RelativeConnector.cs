@@ -3,18 +3,6 @@
 
 namespace CobolNet.Runtime.IO;
 
-/// <summary>The access mode of a keyed file connector (ISO/IEC 1989:2023 §12.4.5.5 ACCESS MODE clause). The
-/// ordinals mirror the compiler's <c>FileAccessMode</c> enum — registration passes the raw int.</summary>
-public enum KeyedAccess
-{
-    /// <summary>ACCESS SEQUENTIAL — records in ascending RRN / key-of-reference order (§12.4.5.5 GR2).</summary>
-    Sequential = 0,
-    /// <summary>ACCESS RANDOM — records selected by key value (§9.1.8.3).</summary>
-    Random = 1,
-    /// <summary>ACCESS DYNAMIC — both, chosen per statement form (§9.1.8.4).</summary>
-    Dynamic = 2,
-}
-
 /// <summary>
 /// A typed-native RELATIVE-organization file connector (ISO/IEC 1989:2023 §9.1.7.3): a sparse 1-based slot model —
 /// each record is identified by its relative record number (RRN); slots between records "do not exist" for READ.
@@ -24,9 +12,8 @@ public enum KeyedAccess
 /// §9.1.13.7 item 6), and the '43' previous-op-was-READ rule for sequential-access REWRITE/DELETE (§14.9.35 GR5 /
 /// §14.9.10 GR2). Records cross this boundary as their character image (a <see cref="string"/>).
 /// </summary>
-public sealed class RelativeConnector : FileConnector
+public sealed class RelativeConnector : KeyedConnector
 {
-    private readonly KeyedAccess _access;
     private readonly int _keyDigits;   // RELATIVE KEY digit capacity (0 = no RELATIVE KEY clause)
 
     /// <summary>The attached PER-PHYSICAL-FILE store (kb/Work PB143): every connector over one host path sees
@@ -60,9 +47,10 @@ public sealed class RelativeConnector : FileConnector
     public override string LastReadRecordId =>
         _lastSlot > 0 ? _lastSlot.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
-    /// <inheritdoc/>  (sequential access targets the last-read slot, §14.9.35 GR19 / §14.9.10 GR2;
-    /// random/dynamic the slot named by the RELATIVE KEY item, §14.9.35 GR21 / §14.9.10 GR4)
-    public override string MutationTargetRecordId(string recordImage) => _access == KeyedAccess.Sequential
+    /// <inheritdoc/>  (sequential access targets the last-read slot, §14.9.35.4 GR5 / §14.9.10.4 GR2;
+    /// random/dynamic the slot named by the RELATIVE KEY item, §14.9.35.4 GR21 / §14.9.10.4 GR4 — the
+    /// ACCESS MODE alone selects the target, see <see cref="KeyedConnector"/>)
+    public override string MutationTargetRecordId(string recordImage) => Access == KeyedAccess.Sequential
         ? LastReadRecordId
         : _pendingKey > 0 ? _pendingKey.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
@@ -75,9 +63,8 @@ public sealed class RelativeConnector : FileConnector
 
     public RelativeConnector(string hostPath, int recordWidth, KeyedAccess access, int relativeKeyDigits,
         int varyMin = -1, int varyMax = -1)
-        : base(hostPath, recordWidth, varyMin, varyMax)
+        : base(hostPath, recordWidth, access, varyMin, varyMax)
     {
-        _access = access;
         _keyDigits = relativeKeyDigits;
     }
 
@@ -273,14 +260,20 @@ public sealed class RelativeConnector : FileConnector
 
     // ── WRITE / REWRITE / DELETE (ISO §14.9.51 / §14.9.35 / §14.9.10) ───────────────────────────────────────
 
-    /// <summary>WRITE (§14.9.51 GR29): sequential access releases consecutive RRNs (OUTPUT from 1, EXTEND from
+    /// <summary>WRITE (§14.9.51.4 GR29): sequential access releases consecutive RRNs (OUTPUT from 1, EXTEND from
     /// highest+1); RRN digit overflow of the key item → invalid key '24' (GR29a/GR33c). Random/dynamic writes the
     /// slot staged in the key item: occupied → '22' (GR33a), key &lt; 1 → permanent error '34' (GR29b). Open-mode
     /// legality per §9.1.13.7 item 8 ('48').</summary>
     public string Write(string image, int length = -1)
     {
-        bool sequential = _access == KeyedAccess.Sequential || Mode == FileOpenMode.Extend;
-        if (sequential)
+        // §14.9.51.4 GR29 a) "If the access mode of the write file connector is sequential…" vs. GR29 b)
+        // "If the access mode … is random or dynamic…": the ACCESS MODE alone selects the release rule
+        // (the open mode only picks the STARTING RRN inside GR29 a) — 1 for output, highest+1 for extend).
+        // ⛔ The open mode is NOT a disjunct here (kb/Work PB325): a random- or dynamic-access connector open
+        // in the extend mode is illegal source (§14.9.27.3 SR2) but a REACHABLE runtime state, and Table 20
+        // leaves its WRITE cell blank — item 8 b) below is what it must answer, not GR29 a)'s append.
+        bool sequentialRelease = Access == KeyedAccess.Sequential;
+        if (sequentialRelease)
         {
             if (!IsOpen || Mode is not (FileOpenMode.Output or FileOpenMode.Extend))
                 return Status = FileStatusCode.WriteNotOpenForOutput;      // '48' §9.1.13.7 8a
@@ -294,6 +287,8 @@ public sealed class RelativeConnector : FileConnector
             _lastSlot = slot;                                              // GR29a — MOVEd back into the key item
             return Status = FileStatusCode.Success;
         }
+        // §9.1.13.7 8 b) — "If the access mode is dynamic or random, the file connector is not open in the
+        // I-O or output mode"; Table 20's Random/Extend and Dynamic/Extend WRITE cells are blank.
         if (!IsOpen || Mode is not (FileOpenMode.IO or FileOpenMode.Output))
             return Status = FileStatusCode.WriteNotOpenForOutput;          // '48' §9.1.13.7 8b
         long key = _pendingKey;
@@ -314,7 +309,7 @@ public sealed class RelativeConnector : FileConnector
         bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         // §14.9.35 GR18 — a relative record's size MAY differ from the replaced record's; GR20 still bounds it.
-        if (_access == KeyedAccess.Sequential)
+        if (Access == KeyedAccess.Sequential)   // §14.9.35.4 GR5 vs. GR21 — the ACCESS MODE alone
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43'
             if (Stored(image, length) is not { } seqRec)
@@ -336,7 +331,7 @@ public sealed class RelativeConnector : FileConnector
     {
         bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
-        if (_access == KeyedAccess.Sequential)
+        if (Access == KeyedAccess.Sequential)   // §14.9.10.4 GR2 vs. GR4 — the ACCESS MODE alone
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
             _slots.Remove(_lastSlot);

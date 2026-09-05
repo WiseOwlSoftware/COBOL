@@ -783,7 +783,8 @@
   "pb303_as_interface_id_literal",
   "pb303_as_method_id_literal",
   "pb317-open-norewind-relative",
-  "pb317-open-norewind-extend"
+  "pb317-open-norewind-extend",
+  "pb325-start-random-access"
  ],
  "pending": []
 }

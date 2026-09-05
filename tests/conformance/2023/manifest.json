@@ -481,7 +481,9 @@
   "pb303_as_module_name_and_invoke",
   "pb303_as_class_id_zero_length_accepted",
   "pb317_open_no_rewind",
-  "pb323_open_presence_arms"
+  "pb323_open_presence_arms",
+  "l1_table20_seq_relative",
+  "l1_table20_indexed"
  ],
  "pending": [
   "pb485_value_only_format1"
