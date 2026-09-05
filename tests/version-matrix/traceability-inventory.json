@@ -34865,13 +34865,13 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "GENERATE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Generate; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError",
+  "test-ref": "conformance:2002/pb326_ec_report_active_inactive",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB326, landed. 'The report … shall be in the active state. If it is not, the EC-REPORT-INACTIVE exception condition is set to exist, if it is enabled.' CobolReport.Generate calls ExceptionState.ReportInactiveError and returns, adding no line. The golden GENERATEs after a successful TERMINATE and sees the condition handled with no further detail line in the report file. The rule's own 'if it is enabled' is the >>TURN gate, which is what the raise helper implements.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.16.4-8",
@@ -35747,13 +35747,13 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "INITIATE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Initiate; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ReportActiveError",
+  "test-ref": "conformance:2002/pb326_ec_report_active_inactive",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB326, landed. An INITIATE of an ACTIVE report calls ExceptionState.ReportActiveError (raise gated by >>TURN) and returns; 'the execution of the INITIATE statement has no other effect' is unconditional, so GR1a-c do not re-run. The golden witnesses exactly that with a SUM counter: the refused second INITIATE does not re-zero it, so the control footing prints S=008 (4+4) rather than S=004. At COBOL-85 there is no >>TURN directive at all, so only the lenient half is observable there — and it is the half that was already correct; what this landing adds is the named condition and the chance to handle it.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.21.4-3",
@@ -35761,13 +35761,13 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "INITIATE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Initiate; src/Cobol.Net.Runtime/IO/FileConnector.cs#OpenModeIfOpen; src/Cobol.Net.Runtime/IO/FileRegistry.cs#OpenModeIfOpen; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ReportFileModeError",
+  "test-ref": "conformance:2002/pb326_ec_report_file_mode",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB326, landed. The detection rule itself, and the DETECTION half of GR-14.9.27.4-7: 'the INITIATE statement may be executed only if the corresponding file connector is open in the extend mode or the output mode. If the file connector is not open in the output or extend mode, the EC-REPORT-FILE-MODE exception condition is set to exist and no action is taken on the report.' Both permitted modes are pinned (output and extend), and so is the arm an is-open-only test would pass: a connector open in the INPUT mode. 'No action is taken' is witnessed indirectly but decisively — the report is never placed in the active state (GR4), so the TERMINATE that follows the refused INITIATE is itself unsuccessful with EC-REPORT-INACTIVE.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.21.4-4",
@@ -37819,13 +37819,13 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "OPEN statement",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Open; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileSupport.cs#Probe; src/Cobol.Net.Runtime/IO/FileConnector.cs#Open; src/Cobol.Net.Runtime/IO/FileStatus.cs#PermissionDenied",
+  "test-ref": "unit:FileAuthorityPresenceTests.OpenInput_PresentButRefused_Is37; unit:FileAuthorityPresenceTests.OpenIoOrExtend_PresentButRefused_Is37; unit:FileAuthorityPresenceTests.Probe_PresentButRefused_IsUnauthorized_WhereFileExistsSaysAbsent; unit:FileExistenceProbeDriftTests.OnlyHostFileProbe_AsksWhetherAPhysicalFileIsPresent; conformance:2023/pb323_open_presence_arms",
   "derivation": "",
-  "editions": "85,2002,2014",
-  "notes": "kb/Work PB323. RULE (cite.py --check 14.9.27.4 OK, 3)): 'If the file associated with file-name-1 is present and insufficient authority exists to open the file, the execution of the OPEN statement is unsuccessful, and the I-O status value in the file connector referenced by file-name-1 is set to \\'37\\''. CODE: FileConnector.Open wraps OpenCore in `catch (UnauthorizedAccessException) { s = FileStatusCode.PermissionDenied; }` (= '37'), which IS correct for the path where the stream constructor itself is refused. BUT every OpenCore decides PRESENCE with `bool exists = File.Exists(HostPath)` (SequentialConnector.cs:210, RelativeConnector.cs:96, IndexedConnector.cs:126), and File.Exists swallows every access error and answers false — so a file that IS present but whose attributes the process may not read classifies as ABSENT and never reaches the '37' mapping. This is the EXACT probe the PB140 sweep already replaced in the DELETE FILE twin: FileRegistry.cs:462-465 carries the comment 'File.Exists swallows every access error and answers false, classifying a PRESENT-but-unobservable file as gone — GR16 requires \\'37\\' there — so the probe is File.GetAttributes, whose failures DISTINGUISH the two (PB140)'. The OPEN arm of that same sweep was never done (feedback_two_arm_dispatch). PROBE (out-b1/probe/gr3-authority): a present file under a directory whose DACL denies the running user (icacls /deny :(RX)); .NET reports File.Exists = False while File.GetAttributes THROWS. `SELECT FP ASSIGN TO \"locked/secret.dat\"` → OPEN INPUT gives '35'; `SELECT OPTIONAL FQ` over the same path → OPEN INPUT gives '05' (a SUCCESSFUL open) and the first READ reports AT END '10'. SPEC-DERIVED EXPECTED: '37' and an unsuccessful open in both cases. The OPTIONAL leg is the silent one — the program is told a file it has no authority to read simply does not exist. No spec-derived test drives an authority failure on OPEN (FileStatusDisciplineTests.DeleteFileFailure_MediumRefusalIs37_OtherIs30 tests only the DELETE FILE twin), so test-ref is empty. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023. GR3's explicit '37' sentence is the 2023 clarification (Annex E.2 item 18, 'The OPEN statement may return a file status \\'37\\' for insufficient authority to open a file'); docs/CONFORMANCE.md §3 determines it is emitted at EVERY edition and not gated, so the rule is adjudicated at all four.",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB323, LANDED. RULE (cite.py --check 14.9.27.4 'insufficient authority exists to open the file': OK, 3)): 'If the file associated with file-name-1 is present and insufficient authority exists to open the file, the execution of the OPEN statement is unsuccessful, and the I-O status value in the file connector referenced by file-name-1 is set to \\'37\\''. The status is §9.1.13.6 6) b) (cite.py --check 9.1.13.6 'insufficient authority exists to access the file': OK) — 'A permanent error exists because an OPEN statement or DELETE FILE statement is attempted on a file and insufficient authority exists to access the file. The ability to detect this is processor dependent.' WAS: every OpenCore decided presence with File.Exists, which swallows every access error and answers false, so a PRESENT-but-refused file classified as ABSENT and never reached the '37' mapping. Probed on a worktree build at 000b6242 (a file under a directory whose DACL denies the running user, icacls /deny :(RX)): non-optional sequential OPEN INPUT = '35'; SELECT OPTIONAL over the same path = '05' — a SUCCESSFUL open — with the first READ reporting AT END '10'; relative and indexed non-optional OPEN INPUT = '35'. NOW: the presence question has ONE site and THREE answers — HostFile.Probe (IO/FileSupport.cs) returns FilePresence.Absent / Present / Unauthorized from File.GetAttributes, whose FAILURES distinguish a missing file (FileNotFoundException / DirectoryNotFoundException → §9.1.13.6 5)'s '35') from a refused one (UnauthorizedAccessException → GR3's '37'); every other IOException propagates so §9.1.13.6 1)'s '30' stays mapped in one place. FileConnector.Open takes that probe ONCE per OPEN, answers GR3 from it, and hands the result to OpenCore(mode, presence), so no organization re-asks the host and no two probes in one statement can disagree. The same probe now serves §14.9.10.4 GR14/GR16 in FileRegistry.DeleteFile, which had carried the only correct copy of the rule since kb/Work PB140 (this row was the OPEN arm of that two-arm dispatch, unfixed for five months). RE-PROBED after the fix on the same denied path: sequential non-optional '37', sequential OPTIONAL '37', relative non-optional '37', indexed non-optional '37'; a genuinely ABSENT file inside the same denied directory still answers '35', so the probe does not over-fire. OUTPUT IS DELIBERATELY OUTSIDE THE SHORT-CIRCUIT and that is required, not a convenience: GR18 makes OUTPUT a creation that never consults presence, §9.1.13.6 5) is defined only 'for an OPEN statement with the INPUT, I-O, or EXTEND phrase', and a directory the process may write but not list legitimately accepts a NEW file (measured: create OK, truncate-existing UnauthorizedAccessException) — so a blanket '37' would reject an OPEN OUTPUT the operating environment carries out. An OUTPUT over a present-and-refused file still reaches '37' through the creating stream's own exception and Open's catch. COVERING TESTS: unit:FileAuthorityPresenceTests establishes the GR3 precondition for real (a DACL deny ACE on Windows, mode 000 on Unix) and verifies the denial with a raw File.OpenRead rather than with the subject under test — the conformance runner compiles a .cob and compares output with nowhere to express 'first make this file unreadable', so no golden can reach this arm; its GR3 assertions were shown to FAIL (8 of them) with the short-circuit disabled. conformance:2023/pb323_open_presence_arms pins the probe's OTHER two answers — Absent and Present across all three organizations and both OPTIONAL states, expected values derived from §9.1.13.6 5) ('35'), §14.9.27.4 13) + Table 18 ('05' then §9.1.13.4 1)'s at-end '10') and §14.9.27.4 17) (an absent OPTIONAL EXTEND is created, '05') — because a refactor that got Absent wrong would be louder than the defect it fixed. unit:FileExistenceProbeDriftTests keeps the probe singular: File.Exists, .Exists and File.GetAttributes are banned everywhere under Runtime/IO but FileSupport.cs (it flags all 10 pre-fix sites at 000b6242, including the var-named FileInfo the first draft of its regex missed). || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023 — GR3's explicit '37' sentence is the 2023 clarification (Annex E.2 item 18, 'The OPEN statement may return a file status \\'37\\' for insufficient authority to open a file'), and docs/CONFORMANCE.md §3 determines it is emitted at EVERY edition and not gated, so the rule is adjudicated at all four. (The row previously carried editions '85,2002,2014' while its own notes adjudicated all four; corrected here.)",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-4",
@@ -37875,13 +37875,13 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "OPEN statement",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Initiate; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#ReportWriterEmitter; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#ExceptionCatalog",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Initiate; src/Cobol.Net.Runtime/IO/FileConnector.cs#OpenModeIfOpen; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ReportFileModeError",
+  "test-ref": "conformance:2002/pb326_ec_report_file_mode",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB326. VERIFIED HALF: nothing opens a report file connector implicitly, so the OPEN really must precede the INITIATE. ReportWriter.Initiate performs only the §14.9.21.4 GR1a-c resets and GR4's activation, and its own summary records 'GR3: the file is NOT opened here — it must already be open OUTPUT/EXTEND'; the connector is registered from EmitFileRegistration even for a record-description-less report file so its writes cannot fall into a void. UNVERIFIED/UNIMPLEMENTED HALF: the violation is never detected. §14.9.21.4 GR3 (cite.py --check 14.9.21.4 OK, 3)) requires that 'If the file connector is not open in the output or extend mode, the EC-REPORT-FILE-MODE exception condition is set to exist and no action is taken on the report' — EC-REPORT-FILE-MODE exists only as a catalogue row (ExceptionCatalog.cs:171, L3 Fatal) and is raised nowhere in src; Initiate() takes the action anyway (counters reset, `_active = true`) and the subsequent GENERATEs write into a not-open connector, each stamping '48'. Two halves, one verified → PARTIAL. Cross-part note: the detection obligation is textually §14.9.21.4 GR3's, not this rule's, but GR7 is the rule that establishes the ordering requirement and is unenforceable without it. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023 — Report Writer is Annex A.4.11, disposition Partial in docs/CONFORMANCE.md §5, so the rule is in scope. EC-REPORT-FILE-MODE (the detection half) is a 2002 exception-condition-facility introduction.",
-  "state": "GAP"
+  "notes": "kb/Work PB326, landed. BOTH halves now hold. (a) Nothing opens a report file connector implicitly — the OPEN really must precede the INITIATE. (b) The violation is DETECTED: §14.9.21.4 GR3 is the detection half of this rule, and CobolReport.Initiate now tests CobolFile.OpenModeIfOpen(_fileName) against {Output, Extend} and, when it fails, calls ExceptionState.ReportFileModeError (raise gated by >>TURN per §14.6.13.1.1) and RETURNS without taking any action on the report — GR3's 'no action is taken on the report', which is unconditional. OpenModeIfOpen was added rather than reusing OpenModeOf because the §14.9.49.4 GR6b view also answers with the ATTEMPTED mode of a FAILED open, so an INITIATE after an unsuccessful OPEN OUTPUT would have proceeded. The golden's three arms are: never opened; open in the INPUT mode (the arm an is-open-only test passes); and the two modes GR3 permits, output and extend. Before this landing EC-REPORT-FILE-MODE was a catalogue row (ExceptionCatalog.cs, L3 Fatal) with no raise site anywhere in src.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-8",
@@ -37889,13 +37889,13 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "OPEN statement",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Write; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Read; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedIoBinder",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/KeyedConnector.cs#Access; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Write; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Read; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+  "test-ref": "conformance:2023/l1_table20_seq_relative; conformance:2023/l1_table20_indexed; conformance:negative/pb325-start-random-access; unit:Table20WriteOpenModeTests.RelativeWrite_ExtendModeAtNonSequentialAccess_Is48_AndReleasesNothing; unit:Table20WriteOpenModeTests.IndexedWrite_ExtendModeAtNonSequentialAccess_Is48_AndReleasesNothing; unit:Table20WriteOpenModeTests.RelativeWrite_IoModeAtSequentialAccess_Is48",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB325. Most of Table 20 CONFORMS and was probed (out-b1/probe/open-modes-status): sequential-access WRITE in the input mode → '48', REWRITE in the input mode → '49', READ before any OPEN → '47'. The guards are in place for every organization — sequential READ refuses Output/Extend ('47'); sequential WRITE requires Output or Extend ('48'); REWRITE and DELETE RECORD require I-O ('49', §9.1.13.7 item 9, pinned by unit:FileStatusDisciplineTests.Delete_OpenInput_Is49); the blank Random×START row is enforced one level up, at bind, by KeyedIoBinder's §14.9.41.3 SR1 screen ('the access mode ... shall be either sequential or dynamic'). ONE CELL DIVERGES. RelativeConnector.Write and IndexedConnector.Write both open with `bool sequential = _access == KeyedAccess.Sequential || Mode == FileOpenMode.Extend;` — the `|| Mode == Extend` disjunct routes a RANDOM- or DYNAMIC-access connector opened EXTEND into the SEQUENTIAL WRITE branch, which then only checks 'Output or Extend' and accepts the write. Table 20 gives no X at Random×WRITE×Extend and §9.1.13.7 item 8b names the status: 'If the access mode is dynamic or random, the file connector is not open in the I-O or output mode' → '48'. PROBE (out-b1/probe/table20-random-extend): ORGANIZATION RELATIVE, ACCESS MODE IS RANDOM, OPEN EXTEND → '00', WRITE → '00'. SPEC-DERIVED EXPECTED: the WRITE is '48'. The state is reachable only because §14.9.27.3 SR2 ('The EXTEND phrase shall be specified only if the access mode ... is sequential and the LINAGE clause is not specified') is enforced nowhere in src — SR2 belongs to a SIBLING PART of this subject (14.9.27.3) and is not adjudicated here, but it is the reachability premise, and kb/Work A2 (SR-ENFORCEMENT CENSUS, open) is the note that owns unenforced syntax rules as a class. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023 — Table 20 is version-invariant except that DELETE RECORD for a sequentially-accessed relative/indexed file and the dynamic access mode ride the sequential/relative/indexed I-O modules present at every edition adjudicated here.",
-  "state": "GAP"
+  "notes": "kb/Work PB325 (landed). RULE (--check 14.9.27.4 \"'X' at an intersection indicates that the specified statement, used in the access mode given for that row, may be used with the open mode given at the top of the column\"): Table 20 licenses each (statement, access mode, open mode) triple; every BLANK cell is an unsuccessful execution whose status 9.1.13.7 names -- item 7 '47' for READ/START not open input or I-O, item 8 '48' for WRITE (a: access sequential and not open extend/output; b: access random or dynamic and not open I-O/output), item 9 '49' for REWRITE/DELETE RECORD not open I-O. Table 20 was read from the PDF (page 709) as well as the transcription, because the load-bearing signal here is a BLANK CELL and the OCR of a blank is not self-evident: Random x WRITE and Dynamic x WRITE carry X under Output and I-O only, and the Extend column of both rows is empty.\nIMPLEMENTATION. The ACCESS MODE is the sole branch discriminator and lives in ONE place, KeyedConnector.Access (the abstract base RelativeConnector and IndexedConnector now share); the open mode is only ever the screen that follows. Each connector's Write opens with 'bool sequentialRelease = Access == KeyedAccess.Sequential', takes item 8 a)'s arm when true and item 8 b)'s when false; SequentialConnector.Write carries item 8 a) directly (12.4.5.5.2 SR2 admits only ACCESS SEQUENTIAL for a sequential file); READ/START answer item 7 and REWRITE/DELETE item 9 in both keyed connectors and in SequentialConnector; the blank Random x START row is enforced one level up, at bind, by KeyedIoBinder.BindStart's 14.9.41.3 SR1 screen (COBOLNET0862).\nEVIDENCE. conformance:2023/l1_table20_seq_relative and conformance:2023/l1_table20_indexed walk EVERY cell of Table 20 that conforming source can reach -- 4 open modes x {READ, WRITE, REWRITE, START, DELETE RECORD} over sequential, relative and indexed organizations at all three access modes, 139 observations, each expected value derived from Table 20 plus 9.1.13.7 items 7/8/9 and every one observed. conformance:negative/pb325-start-random-access pins the blank Random x START row on BOTH keyed organizations at all four editions. The Random/Dynamic x WRITE x Extend cell is UNREACHABLE from conforming source -- 14.9.27.3 SR2 confines the EXTEND phrase to sequential access -- so it is pinned at the runtime by unit:Table20WriteOpenModeTests, whose four defect facts go RED if the open mode is put back into the branch predicate (measured) while its eight control facts stay green.\nWHAT WAS FIXED. RelativeConnector.Write and IndexedConnector.Write selected the branch with '_access == KeyedAccess.Sequential || Mode == FileOpenMode.Extend'; the disjunct routed a random- or dynamic-access connector opened EXTEND into the sequential-release branch, whose own screen accepts extend, so the WRITE appended a record and reported '00' where item 8 b) requires '48'. That made a run-time answer depend on a bind-time syntax rule (SR2) that is enforced nowhere -- kb/Work PB318 -- so the runtime is now correct independently of it.\nEDITIONS: Table 20 is version-invariant; the DELETE RECORD row for a sequentially-accessed relative/indexed file and the dynamic access mode ride the relative/indexed I-O modules present at every edition adjudicated here, and the negative fixture was observed rejecting at 85, 2002, 2014 and 2023.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.27.4-9",
@@ -38141,13 +38141,13 @@
   "kind": "GR",
   "ordinal": 26,
   "subject": "OPEN statement",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#AssignTarget; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Register; src/Cobol.Net.Runtime/IO/CobolFile.cs#ResolveHostPath",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveAssignUsing; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitAssignSources; src/Cobol.Net.Runtime/IO/FileConnector.cs#Associate; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Associate",
+  "test-ref": "conformance:2023/pb324_assign_using_dynamic; conformance:85/pb324_assign_using_85; conformance:negative/pb324-assign-using-not-alphanumeric; conformance:negative/pb324-assign-using-in-own-record",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB324. This rule is a pointer: 'Additional rules affecting the execution of the OPEN statement are given in 12.4.5, File control entry, General rules 3 and 4' (cite.py --check 14.9.27.4 OK, 26)). Both referred rules are broken. §12.4.5.3 GR3b (cite.py --check 12.4.5.3 OK, 3) b)): 'When the USING phrase of the ASSIGN clause is specified, the file connector referenced by file-name-1 is associated with a physical file identified by the content of the data item referenced by data-name-1 in the runtime element that executes the OPEN, SORT, or MERGE statement.' The grammar parses both USING forms (CobolIO.g4:37-38, `ASSIGN TO? assignTarget (USING dataReference)?` and `ASSIGN USING dataReference`), but DataBinder.BindFileControl reads only `clauses.assignClause()?.assignTarget()`; the `USING dataReference` child is read NOWHERE in src (grep 'assignClause' across the greenfield returns exactly that one site). With the bare `ASSIGN USING data-name` form there is no assignTarget at all, so FileModel.AssignTarget keeps its constructor default — the FILE-NAME. PROBE (out-b1/probe/assign-using): `SELECT FU ASSIGN USING WS-NAME` with `01 WS-NAME PIC X(11) VALUE \"target1.dat\"` compiles clean, OPEN OUTPUT reports '00', and the records land in **fu.txt**; target1.dat is never created. SPEC-DERIVED EXPECTED: the connector is associated with target1.dat. This is a silent wrong-FILE defect, not a diagnosed gap. §12.4.5.3 GR3's opening sentence is broken independently: 'The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced file-name-1' — CobolFile.ResolveHostPath is called from FileRegistry.Register at unit ACTIVATION and its result is stored in the connector's get-only HostPath, so no OPEN ever re-resolves; the standard's own concepts annex underlines the intended timing ('NOTE The MOVE statements only have an effect on the dynamic assignment when a subsequent OPEN statement for the file connector is executed'). GR4's implementor obligations (the meaning and allowable content of data-name-1's value; the consistency rules between it and device-name-1/literal-1) are consequently undefined and undocumented in docs/CONFORMANCE.md. kb/Work A2 (open) already names 'ASSIGN USING' among the proved silently-unenforced class, but as a SYNTAX-rule census item; the defect here is a GENERAL-rule semantic drop and needs its own note. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023 — §12.4.5.3 GR3/GR4 govern the ASSIGN clause at every edition; the ASSIGN ... USING form is the later (2002+) addition, and the grammar accepts it at all editions.",
-  "state": "GAP"
+  "notes": "kb/Work PB324 (landed). This rule is a pointer -- 'Additional rules affecting the execution of the OPEN statement are given in 12.4.5, File control entry, General rules 3 and 4' (cite.py --check 14.9.27.4 OK, 26) -- and both referred rules now hold. GR3 b) (cite.py --check 12.4.5.3 OK, 3) b)): 'When the USING phrase of the ASSIGN clause is specified, the file connector referenced by file-name-1 is associated with a physical file identified by the content of the data item referenced by data-name-1 in the runtime element that executes the OPEN, SORT, or MERGE statement.' GR3's lead sentence fixes the timing (cite.py --check 12.4.5.3 OK, 3): 'The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced file-name-1.' PREVIOUSLY DIVERGES on both halves: DataBinder.BindFileControl read only assignClause().assignTarget(), so the USING dataReference was read nowhere in src and a bare `ASSIGN USING data-name-1` file kept FileModel.AssignTarget's file-name default -- the records landed in `<file-name>.txt` with no diagnostic -- while CobolFile.ResolveHostPath ran once from FileRegistry.Register at unit activation into a get-only HostPath, so no OPEN ever re-resolved. FIX: the binder captures BOTH phrases on both general-format arms; the emitter installs one dynamic-assignment SOURCE per USING file (SequentialIoEmitter.EmitAssignSources, unguarded on every activation like the LINAGE evaluator -- kb/Work PB168 -- and on BOTH registration arms, DispatchEmitter.__Activate and OoEmitter's class ctor); FileConnector.Associate is the ONE writer of HostPath and FileRegistry calls it from Open, OpenShared (which the emitted SORT/MERGE implicit opens reach -- 14.9.40.4 GR12a/GR15a, 14.9.24.4 GR7a) and DeleteFile's unassociated screen. A bare-USING connector registers UNASSOCIATED (empty host path) and a DELETE FILE before the first OPEN takes 14.9.10.4 GR14's successful '05' (cite.py --check 14.9.10.4 OK, 14) rather than deleting a file the program never named. GR3's closing sentence gets the status the standard reserves for it: 9.1.13.6 item 2's '31' (cite.py --check 9.1.13.6 OK, 2). GR4's implementor obligations (allowable content; consistency rules) are now stated -- docs/CONFORMANCE.md section 7, DOC-A.1-73 and DOC-A.1-10. SIBLING SWEPT: FileRegistry's ConnectorShare cached a host path taken at RegisterSharing time and six physical-file-table lookups read that copy; a mutable association makes it a stale sharing key, so the field is gone and every lookup reads the connector's own HostPath. 12.4.5.2 SR7 is enforced at bind time (COBOLNET1810 category, COBOLNET1811 subordinate-to-own-FD). PROBE (before): `SELECT FU ASSIGN USING WS-NAME` with two OPEN OUTPUTs and a MOVE between them wrote both records to fu.txt and created neither target file. PROBE (after): target1.dat holds AAAA, target2.dat holds BBBB, fu.txt does not exist. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023 -- 12.4.5.3 GR3/GR4 govern the ASSIGN clause at every edition and no edition gate exists for the USING phrase, which conformance:85/pb324_assign_using_85 pins at the oldest supported edition.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.28.3-1",
@@ -44413,13 +44413,13 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "TERMINATE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Terminate; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError",
+  "test-ref": "conformance:2002/pb326_ec_report_active_inactive; conformance:2002/pb326_ec_report_file_mode",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB326, landed. 'The TERMINATE statement may be executed only for a report that is in the active state. If the report is not in the active state, the EC-REPORT-INACTIVE exception condition is set to exist and the execution of the statement is unsuccessful.' Two goldens reach it from two directions: a second TERMINATE after a successful one, and a TERMINATE after an INITIATE that §14.9.21.4 GR3 refused (which is also the witness that GR3 took no action on the report).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.46.4-2",
@@ -45323,13 +45323,13 @@
   "kind": "GR",
   "ordinal": 10,
   "subject": "USE statement",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Generate; src/Cobol.Net.Runtime/IO/ReportWriter.cs#Initiate; src/Cobol.Net.Runtime/IO/ReportWriter.cs#Terminate; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#ReportFlowState; src/Cobol.Net.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/Cobol.Net.Runtime/IO/ReportWriter.cs#Initiate; src/Cobol.Net.Runtime/IO/ReportWriter.cs#Generate; src/Cobol.Net.Runtime/IO/ReportWriter.cs#Terminate; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#FlowReportError",
+  "test-ref": "conformance:85/pb326_flow_report_unconditional; conformance:2002/pb326_ec_flow_report; conformance:2002/pb326_flow_report_cross_report",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB326. Rule text (cite.py --check 14.9.49.4 \"the EC-FLOW-REPORT exception condition is set to exist\" -> OK, GR 10). Nothing implements any of the three effects. The name exists only as a catalog row; Generate/Initiate/Terminate carry no in-declarative guard, and the report engine has no notion of being inside a BEFORE REPORTING range. MEASURED (out-b1/probe/gr10-flow-report/p1.cob): a `USE BEFORE REPORTING DET-1` declarative PERFORMs GEN-P, a paragraph in a SECOND declarative section (legal - SR10 forbids GENERATE only in a paragraph within the BEFORE REPORTING procedure, cite.py --check 14.9.49.3 \"The GENERATE, INITIATE, or TERMINATE statements shall not appear in a paragraph within a USE BEFORE REPORTING procedure\" -> OK, SR 10; SR4 permits the cross-section PERFORM). Observed `N=1 / LINE:DE 1 / LINE:DE 1` - the nested GENERATE succeeded and produced a second detail line. Spec-derived expected: the nested GENERATE is unsuccessful and the state of the report is unchanged, so exactly one line is produced (`N=1 / LINE:DE 1`), and EC-FLOW-REPORT is set to exist (Fatal, Table 13) when checking is enabled. See finding [ec-flow-report-never-set]. || EDITIONS AS ADJUDICATED: 1985/2002/2014/2023 for the 'unsuccessful, state unchanged' half (FORMAT 2); the EC-FLOW-REPORT name itself requires the 2002+ exception-name model. No Annex E entry touches it.",
-  "state": "GAP"
+  "notes": "kb/Work PB326, landed. All three effects. RunBeforeReporting — the ONE funnel all seven presentation paths use — brackets the declarative invocation with RunUnit.ReportFlow.Enter()/Exit() in a finally, and Initiate/Generate/Terminate consult InBeforeReporting FIRST: the statement returns having done nothing ('unsuccessful … the state of the report is unchanged', which the rule states outright and therefore holds at every edition and every checking setting) and ExceptionState.FlowReportError raises EC-FLOW-REPORT only where >>TURN enabled it (§14.6.13.1.1). THE RANGE IS THE RUN UNIT'S: GR10 attaches no element qualifier where §14.9.18.4 GR6 attaches one explicitly for EC-FLOW-GLOBAL-GOBACK ('and that USE statement is specified in the same program as the GOBACK statement'), and the standard's other flow rules are dynamic in the same way (§14.9.32.4 GR1's 'within the range of an input procedure'). conformance:2002/pb326_flow_report_cross_report is the arm a per-report flag would fail — a GENERATE of a SECOND report from inside report R-A's BEFORE REPORTING declarative — and it also proves the bracket is left (the same GENERATE succeeds once MAIN is outside the range). Measured before the fix on this tree: the nested GENERATE produced a second detail line.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.49.4-11",
@@ -57377,13 +57377,13 @@
   "kind": "DOC",
   "ordinal": 10,
   "subject": "ASSIGN clause, USING phrase (meaning and rules for operands; consistency rules)",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-10; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl; src/Cobol.Net.Runtime/IO/FileConnector.cs#Associate",
+  "test-ref": "conformance:2023/pb324_assign_using_dynamic",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB324. A.1 item 10 -- 'ASSIGN clause, USING phrase (meaning and rules for operands; consistency rules). This item is optional...' -- the CONSISTENCY half of 12.4.5.3 GR4, whose second sentence asks for 'The consistency rules, if any, that apply between the content of the data item referenced by data-name-1 and either the specification of device-name-1 or the value of literal-1' (cite.py --check 12.4.5.3 OK, 4). The determination is that there are NONE, and 'if any' makes the empty set a complete answer: where a file control entry writes both phrases, GR3 b) applies 'when the USING phrase of the ASSIGN clause is specified' with no condition on the TO phrase, so the content wins outright and literal-1 is never used to identify a file. Pinned by the MIX connector leg of the 2023 golden -- `SELECT MIX ASSIGN TO \"pb324mix.dat\" USING WS-NAME` writes to pb324e.dat while an OPTIONAL connector over pb324mix.dat opens '05', proving the literal was never used and the unrelated content was not diagnosed. The item is OPTIONAL and IS provided, so A.1's preamble makes documenting it a duty rather than a courtesy.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-11",
@@ -58259,13 +58259,13 @@
   "kind": "DOC",
   "ordinal": 73,
   "subject": "FILE-CONTROL entry, ASSIGN clause (USING phrase meaning and rules)",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-73; src/Cobol.Net.Runtime/IO/FileConnector.cs#Associate; src/Cobol.Net.Runtime/IO/CobolFile.cs#ResolveHostPath",
+  "test-ref": "conformance:2023/pb324_assign_using_dynamic; conformance:85/pb324_assign_using_85",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB324. A.1 item 73 -- 'FILE-CONTROL entry, ASSIGN clause (USING phrase meaning and rules). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5, File control entry, General rule 4)'. The determination is filed in docs/CONFORMANCE.md section 7 and STATES THE VALUE (PB280 Q3): the content of data-name-1 with leading and trailing spaces removed IS the assign target, mapped to a host path by exactly the literal-1 rule (CobolFile.ResolveHostPath); the association is made at every OPEN/SORT/MERGE and at no other statement; content empty after the space removal, or carrying a character below U+0020, names no physical file and the statement is unsuccessful with 9.1.13.6 item 2's '31'. Pinned by the 2023 golden (BLANK=31 for an all-space content; '  pad.dat  '-style trimming and the two-file re-association) and the 85 golden (the same determination at the oldest edition).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-74",
