@@ -45,7 +45,16 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// concatenated carriers, and the remaining fields carry <c>Width = 0</c> and contribute nothing — so the
     /// group's image width still falls out of a plain sum and no caller needs to know runs exist. Null on every
     /// non-bit field and on the continuation fields of a run.</param>
-    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null);
+    /// <param name="NatLeaf">⛔ Set on a NATIONAL leaf, and it is what makes the field's slice of the group
+    /// image its UTF-16BE BYTES rather than its carrier characters (kb/Work PB327; ISO §13.18.60.4 GR8 leaves the
+    /// size of a national character to the implementor and D-N1 pins two bytes, high-order first). The predicate is
+    /// <see cref="NationalWindow.PositionsOf"/> — THE ONE national test, shared with the byte-window carriage gate
+    /// (<c>DataBinder.ByteWindowResidueOf</c>) and with the Tier-B window geometry, so the codec cannot disagree
+    /// with them about which leaves are national. Mutually exclusive with <paramref name="NumLeaf"/>: the only
+    /// national leaf with a NUMERIC category is the national-form numeric of §13.18.60.3 SR12, staged loud at
+    /// <c>PictureAnalyzer</c> (COBOLNET0899) and therefore never reaching emit, so this arm is written for the
+    /// category-national leaf whose carrier is a <c>string</c>. Null on every other field.</param>
+    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).</summary>
     public IReadOnlyList<Physical> PhysicalChildrenOf(DataItem owner)
@@ -107,7 +116,13 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // For a group child, use its PHYSICAL image width (skips its own redefines views, counts a contained
             // backing once) — the raw DataItem.ImageWidth over-counts a group that contains a redefines class. A fixed
             // OCCURS table contributes its per-occurrence image width × the count to the group image (ISO §14.9).
-            int elemWidth = c.IsGroup ? PhysicalImageWidth(c) : c.ImageWidth;
+            // ⛔ BYTES, NOT CARRIER POSITIONS (kb/Work PB327): AsImage()/FromImage() is the STORAGE face of a
+            // group — a numeric leaf contributes its radix-2 / BCD / IEEE bytes, a USAGE BIT run its packed bytes —
+            // and a NATIONAL position occupies TWO of those bytes (ISO §13.18.60.4 GR8 leaves the size to the
+            // implementor; D-N1 pins two, UTF-16BE). ByteWidth IS ImageWidth for every other leaf kind, so this is
+            // byte-identical for national-free programs. The CARRIER face of a national group is AsNat()
+            // (§13.18.29.4 GR2b), exactly as a bit group's carrier face is AsBits().
+            int elemWidth = c.IsGroup ? PhysicalImageWidth(c) : c.ByteWidth;
             int occurs = c.Occurs ?? 0;
             int width = occurs > 0 ? elemWidth * occurs : elemWidth;
             // A NATIVE fixed-point numeric field (the ElementType test excludes the string-stored shapes —
@@ -121,7 +136,10 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // BINARY-DOUBLE leaf carries ulong/UInt128, got NumLeaf null, and the codec emitted
             // string-member code over a ulong field — uncompilable generated C#). StoreAsImage leaves are
             // string-stored and take the pass-through arm.
-            DataItem? numLeaf = !c.IsGroup && !c.StoreAsImage && c.Pic is { HasImageByteForm: true }
+            // ⛔ A NATIONAL LEAF'S SLICE IS ITS BYTES (kb/Work PB327) — THE ONE national test, so the codec, the
+            // byte-window gate and the Tier-B window geometry share one answer about which leaves are national.
+            DataItem? natLeaf = !c.IsGroup && NationalWindow.PositionsOf(c) is not null ? c : null;
+            DataItem? numLeaf = natLeaf is null && !c.IsGroup && !c.StoreAsImage && c.Pic is { HasImageByteForm: true }
                 ? c : null;
             // D19/PB43 — a USAGE BIT leaf's image is the PACKED run it belongs to, not its own carrier. The run's
             // leader carries the whole run's byte width; a continuation carries 0, so the group's image width is
@@ -136,13 +154,13 @@ internal sealed class PhysicalModel(EmitContext ctx)
                     c.IsGroup, Values.FieldInit(c), comment, occurs, null, run);
                 continue;
             }
-            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c), comment, occurs, numLeaf);
+            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c), comment, occurs, numLeaf, null, natLeaf);
         }
     }
 
     /// <summary>The emitted character-image width of an item: a leaf's own width; a group's = the sum of its physical
     /// fields (a contained REDEFINES class contributes its single backing width once, its views nothing).</summary>
     private int PhysicalImageWidth(DataItem item) =>
-        item.IsGroup ? PhysicalChildrenOf(item).Sum(f => f.Width) : item.ImageWidth;
+        item.IsGroup ? PhysicalChildrenOf(item).Sum(f => f.Width) : item.ByteWidth;
 
 }

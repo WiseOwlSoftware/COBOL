@@ -373,11 +373,11 @@ public sealed class SequentialConnector : FileConnector
             int len = length >= 0 ? length : image.Length;
             if (len < VaryMin || len > VaryMax)
                 return Status = FileStatusCode.RecordSizeViolation;   // '44' §13.18.43 GR14a
-            if (_lineSequential) _writer.WriteLine(Fit(image, len).TrimEnd());
-            else { RecordFraming.WritePrefix(_writer, len); _writer.Write(Fit(image, len)); }
+            if (_lineSequential) _writer.WriteLine(TrimRecordEnd(FitRecord(image, len)));
+            else { RecordFraming.WritePrefix(_writer, len); _writer.Write(FitRecord(image, len)); }
         }
-        else if (_lineSequential) _writer.WriteLine(image.TrimEnd());
-        else _writer.Write(Fit(image, RecordWidth));
+        else if (_lineSequential) _writer.WriteLine(TrimRecordEnd(image));
+        else _writer.Write(Fit(image));
         _writesDone++;   // the record just released is ordinal base+N (§9.1.16 lock identity; §14.9.51 GR11)
         _afterAdvancing = false;
         // GR7c3 (§13.18.34): a plain WRITE to a LINAGE file advances the counter by one. Only the
@@ -394,7 +394,7 @@ public sealed class SequentialConnector : FileConnector
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         _afterAdvancing = true;
-        string text = PrintSafe(image.TrimEnd());
+        string text = PrintSafe(TrimRecordEnd(image));
         if (before) { _writer.Write(text); Advance(lines); }
         else { Advance(lines); _writer.Write(text); }
         // The LINAGE counter advances as part of the write, AFTER the physical presentation (the legacy
@@ -426,7 +426,7 @@ public sealed class SequentialConnector : FileConnector
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         _afterAdvancing = true;
-        _writer.Write(PrintSafe(image.TrimEnd()));
+        _writer.Write(PrintSafe(TrimRecordEnd(image)));
         // Two DISTINCT advancing operations (GR25e then GR25f): advance and count each SEPARATELY so a page-boundary
         // crossing WITHIN the BEFORE advance is handled by its own §14.9.51 GR26/GR7c overflow logic before the
         // AFTER advance runs (a single combined increment would mis-handle a boundary between the two).
@@ -491,7 +491,7 @@ public sealed class SequentialConnector : FileConnector
                 LastReadLength = RecordWidth;
                 lineTooLong = true;
             }
-            else { LastReadLength = line.Length; image = Fit(line, RecordWidth); }
+            else { LastReadLength = line.Length; image = Fit(line); }   // §14.9.30.4 GR15 fill — national-aware (kb/Work PB327)
         }
         else if (IsVarying)
         {
@@ -504,7 +504,7 @@ public sealed class SequentialConnector : FileConnector
             _lastReadBlockStart = _reader.BaseStream.CanSeek ? _readOffset + 4 : -1;
             _readOffset += 4 + n;
             LastReadLength = n;
-            image = new string(buf, 0, n).PadRight(RecordWidth, ' ');
+            image = Fit(new string(buf, 0, n));   // §14.9.30.4 GR14/GR15 fill — national-aware (kb/Work PB327)
             if (n < VaryMin || n > VaryMax) shortLong = true;   // outside the varying record min/max (§14.9.30 GR14)
         }
         else
@@ -518,7 +518,7 @@ public sealed class SequentialConnector : FileConnector
             _lastReadBlockStart = _reader.BaseStream.CanSeek ? _readOffset : -1;
             _readOffset += n;
             LastReadLength = n;
-            image = new string(buf, 0, n).PadRight(RecordWidth, ' ');
+            image = Fit(new string(buf, 0, n));   // §14.9.30.4 GR14 fill — national-aware (kb/Work PB327)
             // Fixed-length record sequential: min == max == RecordWidth, so a partial (short) final record is '04'.
             // A longer-than-max record cannot occur (the buffer is read in RecordWidth chunks). n == 0 is EOF above.
             if (n < RecordWidth) shortLong = true;
@@ -590,7 +590,7 @@ public sealed class SequentialConnector : FileConnector
         {
             long resume = stream.Position;
             stream.Seek(_lastReadBlockStart, SeekOrigin.Begin);
-            byte[] bytes = Encoding.Latin1.GetBytes(Fit(image, len));
+            byte[] bytes = Encoding.Latin1.GetBytes(FitRecord(image, len));
             stream.Write(bytes, 0, bytes.Length);
             stream.Flush();
             stream.Seek(resume, SeekOrigin.Begin);
@@ -604,11 +604,11 @@ public sealed class SequentialConnector : FileConnector
             // in place ⇒ '00'. Padding to _lastLineBytes keeps the physical byte span (and the delimiter position)
             // invariant, so the overwrite is exact; the trimmed length matches the line-sequential WRITE model.
             if (_lastReadLinePartial) return Status = FileStatusCode.RecordSizeViolation;                // '44' GR17a / §9.1.13.7 item 4d
-            string content = Fit(image, RecordWidth).TrimEnd();
+            string content = TrimRecordEnd(Fit(image));
             if (content.IndexOf('\n') >= 0 || content.IndexOf('\r') >= 0)
                 return Status = FileStatusCode.LineRecordInvalidChar;                                    // '71' GR17d
             if (content.Length > _lastLineBytes) return Status = FileStatusCode.RecordSizeViolation;     // '44' GR17b
-            content = content.PadRight(_lastLineBytes);                                                  // '00' GR17c (span-invariant)
+            content = FitRecord(content, _lastLineBytes);                                                // '00' GR17c (span-invariant)
             long resume = lstream.Position;
             lstream.Seek(_lastLineStart, SeekOrigin.Begin);
             byte[] bytes = Encoding.Latin1.GetBytes(content);

@@ -190,6 +190,10 @@ public static class CobolFile
     /// SELECT-spelled name, or two spaces when never opened/attempted/accessed.</summary>
     public static string ExceptionFile(string name) => _reg.ExceptionFile(name);
 
+    /// <summary>Declare a SELECTed file's record area NATIONAL (§14.9.30.4 GR15 — the short-record fill is then
+    /// the national space character; kb/Work PB327).</summary>
+    public static void RegisterNationalArea(string name) => _reg.RegisterNationalArea(name);
+
     /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (§12.4.5.15/§12.4.5.9). A null
     /// <paramref name="sharing"/> is the UNDETERMINED implementor default — a LOCK MODE clause is not a sharing
     /// specification (§9.1.15) — see <see cref="FileRegistry.ImplementorDefaultSharing"/> (kb/Work PB321/PB322).</summary>

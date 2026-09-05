@@ -20,7 +20,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// IS the GR11/GR14 compiler-inserted return mechanism. Format 2 sorts the typed element array in place with a
 /// typed comparer (COBOLNET_DESIGN §8.2).
 /// </summary>
-internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, DispatchState dispatch,
+internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     SequentialIoEmitter seqIo, MoveEmitter move, ArithmeticEmitter arith)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the RETURN AT END /
@@ -141,7 +141,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
         var w = ctx.Writer;
         if (rl.From is { } from) move.Emit(new BoundMove(from, [rl.Record]));   // GR4a: MOVE x TO record-name-1
         string sd = FileKeyExpr(rl.File);
-        string image = OperandText.AsString(new BoundFieldOperand(rl.Record), num);
+        string image = OperandText.RecordAreaImage(rl.Record);   // THE ONE record-area channel (kb/Work PB327)
         if (rl.Varying is { Depending: { } dep })
         {
             // §13.18.43 GR13a: the released record's length = the RECORD VARYING DEPENDING ON item's current value.

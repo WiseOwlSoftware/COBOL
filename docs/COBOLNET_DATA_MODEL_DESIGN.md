@@ -206,9 +206,10 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
   `ByteWidth`, the in-class OCCURS stride is `ByteWidth`, and `Place.NationalWindow` transcodes the window's
   UTF-16BE pairs through `CobolBits.NatReadWindow`/`NatWriteWindow` — the same serialization `NatBytes` already
   gave CONVERT's raw-storage channel. The §13.18.44.3 SR8 size screen and the Tier-A alias arm read `ByteWidth`
-  for the same reason. **STILL REFUSED, and for its own reason, not this one:** an FD/SD record with a
-  national leaf (COBOLNET0899 — a DIFFERENT channel; see D-N5). A pointer-class leaf is no longer refused
-  anywhere — see D-SLOT.
+  for the same reason. **WIDENED AGAIN 2026-09-05, kb/Work PB327:** the FD/SD RECORD is the same channel after all — see D-N5, now
+  discharged — and its gate is the same predicate (`DataBinder.GateFileRecordByteSurface`). **STILL REFUSED:**
+  a pointer-class leaf on any byte-window surface, the file record included (§13.18.60.3 SR14 / PB183 — no byte
+  image at all; PB231's remaining third).
 - **D-BW1 THE ONE BYTE-WINDOW CARRIAGE GATE** (kb/Work PB231, 2026-09-04). The question "may this LEAF ride a
   shared byte-window storage area?" has exactly ONE answer in the tree — `DataBinder.ByteWindowResidueOf`,
   which returns null when the leaf may and the residue clause naming why not when it may not. It is an
@@ -261,15 +262,27 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
     NONCONFORMING shapes for the wrong reason and opening the gate would have made them compile clean:
     **COBOLNET1797** (§13.18.5.3 SR1 — a BASED subject of class object) and **COBOLNET1796** (§13.18.22.3 SR4
     — an EXTERNAL item of class object or pointer). The asymmetry is the standard's own.
-- **D-N5 the RECORD-IMAGE channel is NOT the byte-window channel, and it still halves a national leaf**
-  (kb/Work PB231, 2026-09-05). `GroupImageCodec.AsImageOf` composes a group's CHARACTER-POSITION image at
-  `ImageWidth` per leaf; the FD/SD record codec and DISPLAY/group-MOVE/group-ref-mod ride it, so a national
-  member contributes ONE character per position there while `FUNCTION LENGTH` counts its two (§15.50.4 r3
-  — an alphanumeric group's length is "in alphanumeric character positions", and §13.18.60.4 GR8 makes a
-  national position a MULTIPLE of one of those). CONFORMANCE.md DOC-A.1-57 records that divergence as
-  "sanctioned"; the PB231 derivation says it is a WRONG ANSWER, and closing it means byte-doubling
-  `ImageWidth` itself — which re-decides DISPLAY, group MOVE, group ref-mod, §13.18.29.4 GR2b's as-if
-  `PICTURE N(m)` and the on-disk record layout at once. That is an OWNER decision, filed rather than taken.
+- **D-N5 the RECORD-IMAGE channel IS the byte channel — DISCHARGED 2026-09-05, kb/Work PB327.**
+  `GroupImageCodec.AsImage()`/`FromImage()` is a group's **STORAGE** face: a numeric leaf already contributed
+  its radix-2 / BCD / IEEE bytes and a `USAGE BIT` run its §8.5.1.6.3 packing, and NATIONAL was the last leaf
+  kind whose carrier was shipped instead of its bytes. It now contributes its two UTF-16BE bytes per position,
+  through the same `CobolBits.NatBytes` / `NatReadWindow` pair the Tier-B window and the cell seed ride.
+  **The width authority moved with it:** `RecordLayout.PhysicalWidth`/`OffsetOf` and
+  `PhysicalModel.BuildPhysicals` read `ByteWidth`, which IS `ImageWidth` for every other leaf kind — so the
+  change is byte-identical for national-free programs, and `ImageWidth` stays the CARRIER authority
+  (`StorageFormPass`'s form widths, §13.18.29.4 GR2b's as-if `PICTURE N(m)` length).
+  <br>⛔ **`ImageWidth` was NOT byte-doubled**, which is what kept the blast radius bounded: the four decisions
+  PB231 said would move together did not all move. What DID move is the ALPHANUMERIC group's operand value —
+  DISPLAY, group MOVE, group comparison and group ref-mod now see the bytes — and that is the answer
+  §13.18.29.4 GR2's own NOTE predicts ("Without the GROUP-USAGE NATIONAL clause, the content of such a group
+  item would be treated as category alphanumeric, possibly leading to corruption or invalid handling of
+  data"). It also removed a real disagreement: `FUNCTION LENGTH(G)` answered 8 for
+  `01 G. 05 A PIC X(2). 05 N PIC N(3).` while `MOVE G TO R` moved 5 characters.
+  <br>A **national group** keeps its character alphabet through a second generated face, `AsNat()`/`FromNat()`,
+  exactly as a bit group keeps its boolean alphabet through `AsBits()`/`FromBits()` — §13.18.29.4 GR2b's as-if
+  `PICTURE N(m)`, reached by `Place.NatImagePlace` / `PlaceRenderer.SendingNat`. CONFORMANCE.md DOC-A.1-57's
+  "one sanctioned width divergence" is gone with the same edit: the displayed width of a variable-length group
+  now EQUALS `FUNCTION LENGTH`.
   ⛔ The SEED lane is the one part of the record codec that IS byte-addressed — `ImageInitOf` seeds only
   byte backings — and it was corrected with the rest: an uninitialized national member of a class used to
   read back U+2020 (two 0x20 fill bytes paired) instead of national spaces.

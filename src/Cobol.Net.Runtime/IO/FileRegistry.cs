@@ -723,6 +723,14 @@ public sealed class FileRegistry
         if (_files.TryGetValue(name, out var c)) c.SharedStreams = true;
     }
 
+    /// <summary>Declare a SELECTed file's record area NATIONAL (§14.9.30.4 GR15; emitted right after
+    /// registration, only for a file whose record area is of category national — kb/Work PB327). It changes the
+    /// short-record pad from the alphanumeric space to the national one.</summary>
+    public void RegisterNationalArea(string name)
+    {
+        if (_files.TryGetValue(name, out var c)) c.NationalRecordArea = true;
+    }
+
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,

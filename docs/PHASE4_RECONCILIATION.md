@@ -1002,9 +1002,13 @@ both ways); negative corpus +1 (based-level-05).
   null-seeding is satisfied by construction (an unwritten slot reads null). Positive witness
   `conformance:2002/pb231_based_pointer_leaf`; the two NONCONFORMING shapes the residue diagnostic used to
   reject for the wrong reason now draw their own rules (COBOLNET1797 = §13.18.5.3 SR1, COBOLNET1796 =
-  §13.18.22.3 SR4). **The byte-window carriage gate has no residue left.** ⚠ Item (9), the FD/SD
-  national record gate, is NOT part of this discharge: the record codec is the CHARACTER-POSITION image
-  channel, not the byte-window one — see D-N5 in `COBOLNET_DATA_MODEL_DESIGN.md`.
+  §13.18.22.3 SR4). **The byte-window carriage gate has no residue left.** ✅ Item (9), the FD/SD
+  national record gate, was discharged next, by kb/Work PB327 (2026-09-05): the record codec IS the byte
+  channel — `AsImage()`/`FromImage()` ships a national leaf's two UTF-16BE bytes, `GateNationalRecords` became
+  `GateFileRecordByteSurface` asking the ONE byte-window predicate, and D-N5 in
+  `COBOLNET_DATA_MODEL_DESIGN.md` records the discharge. Witnesses
+  `conformance:2002/pb327_national_fd_record`, `conformance:2002/pb327_national_line_sequential_fill`,
+  `conformance:2002/pb327_national_record_key`.
   (11) **STANDARD-COMPARE §15.85 / BYTE-LENGTH §15.14** — IntrinsicBind.Deferred (BYTE-LENGTH must answer 2×
   for national when it lands). *(NATIONAL-OF §15.66 / DISPLAY-OF §15.26 LANDED — P10 national wave; CHAR-NATIONAL
   §15.16 + the EC -N twins §15.29/§15.31 LANDED — P10 Step 11.)*

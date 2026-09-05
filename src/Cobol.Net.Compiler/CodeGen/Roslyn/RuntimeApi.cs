@@ -748,6 +748,22 @@ internal static class RuntimeApi
     public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs, string? selectName = null) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs}{SelectNameArg(selectName)})";
 
+    /// <summary>Bytes per national character position — <c>CobolBits.BytesPerNational</c> (ISO §13.18.60.4 GR8
+    /// leaves a national character's storage size to the implementor; D-N1 pins TWO, UTF-16BE). Re-exported
+    /// through the façade for the same reason every emitted fragment routes here (the P7 Step 4b ratchet,
+    /// <c>RuntimeApiGuardTests</c>): an emitter that needs the SIZE must not name the runtime member itself, or
+    /// a rename stops breaking exactly one file. Used where a national POSITION count and a BYTE count meet —
+    /// the §14.9.41.4 GR13 START length, the national group's ODO extent, the record codec's per-occurrence
+    /// stride (kb/Work PB327).</summary>
+    public const int BytesPerNational = CobolBits.BytesPerNational;
+
+    /// <summary>Declare the connector's record area NATIONAL — <c>CobolFile.RegisterNationalArea</c>, emitted
+    /// right after the registration (the <see cref="FileRegisterSharing"/> pattern) for exactly the files whose
+    /// record area is of category national, so §14.9.30.4 GR15's short-record fill is the NATIONAL space
+    /// (kb/Work PB327).</summary>
+    public static string FileRegisterNationalArea(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterNationalArea)}({name})";
+
     /// <summary>The SELECT-spelled file-name (ISO §15.28.4 r1c/r2b — kb/Work PB63) as the registration's trailing
     /// named argument; empty when the caller has none.</summary>
     private static string SelectNameArg(string? selectName) => selectName is null ? "" : $", selectName: {selectName}";

@@ -51,6 +51,10 @@ internal static class PlaceRenderer
         // absent: §13.18.29.3 SR1 bars a variable-length group from GROUP-USAGE and SR2 forces every subordinate
         // elementary item to be usage bit / category boolean, so a bit group is always image-capable.
         BitImagePlace b => SendingBits(b.Inner),
+        // A NATIONAL GROUP reference-modified in NATIONAL POSITIONS (§8.4.3.3.4 GR5a's "otherwise … character
+        // positions" — the item's OWN characters; §13.18.29.4 GR2b's as-if PICTURE N(m)) — kb/Work PB327. The
+        // national twin of the bit arm above, through THE ONE national reader.
+        NatImagePlace n => SendingNat(n.Inner),
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' character images.
         RenamesPlace n => n.Leaves.Count == 1
             ? Read(n.Leaves[0])
@@ -138,11 +142,17 @@ internal static class PlaceRenderer
         // bit-group receiver, now reached through the ref-mod slice as well). ⛔ THROUGH THE ONE BIT WRITER,
         // which carries §13.18.38.4 GR8's DependingInside direction split exactly as WriteGroupImage does.
         BitImagePlace b => WriteBits(b.Inner, rhs),
+        // The spliced NATIONAL string goes back through the generated FromNat (kb/Work PB327 — the receiving twin
+        // of the NatImagePlace read arm, and the national twin of the bit arm above).
+        NatImagePlace n => WriteNat(n.Inner, rhs),
         RenamesPlace n => WriteRenames(n, rhs),
         // A WHOLE bit-group receiver that also carries an occurs-depending table takes GR8's direction split
         // through the ONE bit writer — this arm must precede the plain ODO unwrap below, which would otherwise
         // hand the MemberPlace arm the MAXIMUM length for a GR8a (depending-outside) receiver (kb/Work PB173).
         OdoGroupPlace { Item: { IsAsIfElementary: true, GroupUsage: GroupUsage.Bit } } o => WriteBits(o, rhs),
+        // The national twin, same reason: the ODO direction split belongs to the NATIONAL writer, not to the
+        // byte-image one (kb/Work PB327).
+        OdoGroupPlace { Item: { IsAsIfElementary: true, GroupUsage: GroupUsage.National } } o => WriteNat(o, rhs),
         OdoGroupPlace o => Write(o.Inner, rhs),
         // A bit / national GROUP receiving as an ELEMENTARY item (§13.18.29.4 GR1b/GR2b; D20/PB79): the value is
         // its as-if picture's string — the bit string for a bit group (the ONE bit writer's FromBits distributes
@@ -150,7 +160,9 @@ internal static class PlaceRenderer
         // group-image store).
         MemberPlace { Item.IsAsIfElementary: true } m => m.Item.GroupUsage is GroupUsage.Bit
             ? WriteBits(m, rhs)
-            : WriteGroupImage(m, rhs, "national group receiver"),
+            // ⛔ THE NATIONAL WRITER, not the byte-image one (kb/Work PB327): a national group's as-if PICTURE
+            // N(m) value is m NATIONAL POSITIONS, and its image is the 2m BYTES they occupy.
+            : WriteNat(m, rhs),
         // A member/fixed-table store — the structural path as an assignment target.
         MemberPlace m => $"{RenderPath(m.Path, AccessDir.Sending)} = {rhs};",
         // A dynamic-table store uses RefReceiving, which grows-and-seeds past the current capacity (§8.5.1.9.3).
@@ -388,6 +400,36 @@ internal static class PlaceRenderer
         group is OdoGroupPlace { DependingInside: false } o
             ? $"{Read(o.Inner)}.FromBits({RuntimeApi.StrSpliceInto($"{Read(o.Inner)}.AsBits()", "1", LengthExpr(o), bits, "'0'", allowZeroLength: true)});"
             : $"{Read(group)}.FromBits({bits});";
+
+    /// <summary>⛔ THE ONE READER OF A NATIONAL GROUP'S OPERAND VALUE (ISO §13.18.29.4 GR2b — "a national group is
+    /// treated as though it were an elementary data item of usage national … described with PICTURE N(m), where m
+    /// is the length of the group"): the generated <c>AsNat()</c> national-position string, with §13.18.38.4 GR8a's
+    /// CURRENT-extent truncation when an occurs-depending table lies beneath it. The national twin of
+    /// <see cref="SendingBits"/>, and it exists for the same reason: <c>AsImage()</c> speaks BYTES (two per
+    /// national position since kb/Work PB327 admitted a national leaf to the byte-addressed record codec) while
+    /// this face speaks national positions, so a consumer reaching for the image reader on a national group would
+    /// compare UTF-16BE bytes against national literals.
+    /// <para>The ODO extent arrives in BYTES (<see cref="CharLengthExpr"/> slices the AsImage channel), so the
+    /// national-position count is that extent over <c>CobolBits.BytesPerNational</c> — the ONE pinned size
+    /// (§13.18.60.4 GR8 leaves it to the implementor; D-N1 pins two), never a literal 2 written here.</para></summary>
+    public static string SendingNat(Place group) =>
+        group is OdoGroupPlace o
+            ? $"{Read(o.Inner)}.AsNat().Substring(0, {NatLengthExpr(o)})"
+            : $"{Read(group)}.AsNat()";
+
+    /// <summary>⛔ THE ONE WRITER of a national group's national-position string — <c>FromNat</c> re-serializes it
+    /// to the group's byte image and distributes it. GR8a (data-name-1 OUTSIDE an occurs-depending table beneath
+    /// the group) modifies only the current extent; GR8b keeps the maximum length, the plain arm — exactly
+    /// <see cref="WriteBits"/>'s split.</summary>
+    public static string WriteNat(Place group, string value) =>
+        group is OdoGroupPlace { DependingInside: false } o
+            ? $"{Read(o.Inner)}.FromNat({RuntimeApi.StrSpliceInto($"{Read(o.Inner)}.AsNat()", "1", NatLengthExpr(o), value, null, allowZeroLength: true)});"
+            : $"{Read(group)}.FromNat({value});";
+
+    /// <summary>An occurs-depending NATIONAL group's current extent in NATIONAL POSITIONS: the byte extent the
+    /// AsImage channel slices at, divided by the pinned bytes-per-national-position (kb/Work PB327).</summary>
+    private static string NatLengthExpr(OdoGroupPlace p) =>
+        $"({CharLengthExpr(p)}) / {RuntimeApi.BytesPerNational}";
 
     /// <summary>A receiving store over an occurs-depending GROUP operand's CURRENT extent (GR8a — depending-outside):
     /// splice the stored prefix over the live image, leaving positions past the count unmodified. <c>allowZeroLength</c>

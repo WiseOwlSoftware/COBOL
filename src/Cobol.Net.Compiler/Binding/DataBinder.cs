@@ -4296,11 +4296,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para>The ALLOW-list direction is deliberate and must stay: a category added to the model with no
     /// pinned byte image has to be DENIED by default, never silently laid out as a zero-width alias.
     /// <c>ByteWindowResidueDriftTests</c> pins that both callers route through here.</para>
-    /// <para>⚠ THE THIRD CALLER-TO-BE is <see cref="GateNationalRecords"/> — the FD/SD record gate, which asks
-    /// the same question of a file record area and today screens the NATIONAL half only, with its own message
-    /// and its own diagnostic. It is deliberately NOT routed here yet: folding it in would also start refusing
-    /// a pointer-class leaf in a file record, a tightening kb/Work PB231 did not measure. The landing that
-    /// discharges RESIDUE-11 should fold all three, and the note carries that instruction.</para></summary>
+    /// <para>⛔ THE THIRD CALLER IS <see cref="GateFileRecordByteSurface"/> — the FD/SD record gate, folded in at
+    /// kb/Work PB327 as PB231's paragraph here instructed. It used to screen the NATIONAL half only, with its own
+    /// message and its own hand-written population; national now RIDES (the record codec lays a national position
+    /// out as its two UTF-16BE bytes), and the pointer-class tightening the fold carries is a strict improvement
+    /// on what a pointer leaf in a file record did before — the record was not image-capable, so every WRITE and
+    /// READ of it was already the Tier-C runtime loud; the fold moves that to a bind diagnostic that names the
+    /// leaf. Three callers, ONE predicate.</para></summary>
     internal static string? ByteWindowResidueOf(DataItem leaf)
     {
         // ⛔ A POINTER-CLASS LEAF RIDES — kb/Work PB231's pointer third, the LAST residue of this gate. Its
@@ -4510,21 +4512,33 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return RedefinesTier.StringCanonical;
     }
 
-    /// <summary>The D-N2 byte-surface gate for FILE records: the record codec reads/writes single-byte
-    /// characters (Latin-1, <c>SequentialFile</c>), and a national leaf occupies TWO bytes per position under
-    /// the documented D-N1 representation — a national leaf in an FD/SD record would silently halve its
-    /// positions on disk. Recognized, staged loud (Phase 4a residue: the 2-byte national record layout).
-    /// Boolean leaves flow — one '0'/'1' character IS one byte (D-B1).</summary>
-    internal void GateNationalRecords()
+    /// <summary>The byte-surface gate for FILE records — the THIRD caller of <see cref="ByteWindowResidueOf"/>
+    /// (kb/Work PB327, folding in the instruction PB231 left on that predicate). An FD/SD record area is written
+    /// to and read from a physical file as a run of BYTES (ISO §14.9.30.4 GR14/GR15 state the short/long-record
+    /// rules over "the number of bytes in the record"), and the generated <c>AsImage()</c>/<c>FromImage()</c> pair
+    /// IS that byte layout — so the question "can this leaf be laid out in a byte window?" is literally the one
+    /// the REDEFINES classifier and the EXTERNAL/BASED cell forcer ask, and asking it in a second hand-written
+    /// form is how the national half came to be screened here while bit and pointer were not.
+    /// <para>⚠ AS OF PB231's POINTER THIRD (landed the same day, D-SLOT) THE PREDICATE REFUSES NOTHING, so this
+    /// gate is currently VACUOUS — and it stays, for the reason the predicate's ALLOW-list direction exists: a
+    /// category added to the model with no pinned representation must be refused BY NAME on every byte surface,
+    /// this one included, rather than laid out as a zero-width alias. A pointer/object leaf in a FILE record is a
+    /// separate question this gate deliberately does not answer: the RECORD image is a byte string with no
+    /// managed-slot half, so such a record is not <c>IsImageCapable</c> and every WRITE/READ of it is the record
+    /// codec's own Tier-C loud (<c>TierCIsland.Reason</c>) — unchanged by this fold.</para>
+    /// <para>NATIONAL now RIDES: a national character position occupies two bytes, high-order first
+    /// (§13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two), which the codec composes through
+    /// <c>CobolBits.NatBytes</c> and decodes through <c>CobolBits.NatReadWindow</c>. What the fold refuses is what
+    /// the predicate refuses everywhere else: a pointer/object-class leaf, and a leaf with no bound
+    /// representation.</para></summary>
+    internal void GateFileRecordByteSurface()
     {
         foreach (var f in Files)
             foreach (var rec in f.Records)
                 foreach (var leaf in LeavesOf(rec))
-                    if (leaf.Pic is { Category: PicCategory.National })
-                        Edition.Error(DiagnosticCatalog.NationalData, $"national data in a file record (data item "
-                            + $"'{leaf.CobolName ?? "FILLER"}' of record '{rec.CobolName}') is recognized but "
-                            + "not yet implemented — the record codec is single-byte and the national "
-                            + "character is two bytes (Phase 4a residue; ISO §8.1.2 / §13.18.60.4 GR8)");
+                    if (ByteWindowResidueOf(leaf) is { } residue)
+                        Edition.Error(DiagnosticCatalog.NationalData, $"a file record cannot be laid out — record "
+                            + $"'{rec.CobolName}' has {residue} — recognized but not yet implemented");
     }
 
     /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>

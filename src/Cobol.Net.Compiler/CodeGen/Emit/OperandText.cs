@@ -133,7 +133,21 @@ internal static class OperandText
     /// (<c>CobolNum.FormatImageFloat</c> — kb/Work PB164 wave 2); an INDEX leaf its 8-byte occurrence-number
     /// bytes (R40). Only a VARIABLE-LENGTH group stages LOUD rather than returning a plausible wrong image;
     /// pointer/object shapes are unreachable — the §15.19.3 r7 bind screen rejected them.</summary>
-    public static string AsStorageImage(Place p)
+    /// <summary>⛔ THE RECORD-AREA IMAGE — what a WRITE / REWRITE / RELEASE sends to a connector and what a
+    /// READ / RETURN distributes back (kb/Work PB327). It IS <see cref="AsStorageImage"/>, because a file record
+    /// is the record area's STORAGE: ISO §14.9.30.4 GR14/GR15 state the short/long-record rules over "the number
+    /// of BYTES in the record" and §9.1.6 records the record size as a fixed file attribute in bytes. These sites
+    /// used to send <see cref="AsString"/> — the OPERAND text — which agreed with storage for every leaf shape
+    /// except the ones whose carrier is not their bytes: a NATIONAL record area wrote one byte per position
+    /// (measured: `01 L-REC PIC N(5).` holding N"AB" wrote `41 42` where D-N1's representation is
+    /// `00 41 00 42`), and a USAGE BIT one wrote its '0'/'1' carrier into a ceil(n/8)-byte record. A GROUP record
+    /// took the same string either way, which is exactly why the elementary half went unnoticed.</summary>
+    public static string RecordAreaImage(Place record) => AsStorageImage(record, "record-area image of");
+
+    /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
+    /// <c>PlaceRenderer.GroupImage</c> carries, so a caller can route through THE ONE storage channel and keep
+    /// its own site-specific reason (kb/Work PB178's law, PB327's second caller).</param>
+    public static string AsStorageImage(Place p, string context = "raw-storage image (CONVERT ANY) of")
     {
         // §8.4.3.3.4 GR6 — a ref-mod view is an elementary item over the underlying item's characters; its
         // storage is the slice's characters (a NATIONAL slice keeps category national, so its bytes are UTF-16BE).
@@ -163,7 +177,7 @@ internal static class OperandText
         // `CobolStr.RefMod(...).AsImage()` was a backend CS1061. `SendingGroupImage` owns all four arms —
         // the RedefViewPlace window, the OdoGroupPlace §13.18.38 GR8 current-extent slice (the arm this site
         // used to spell itself, one line above), the capability guard, and the plain struct image.
-        if (p.Item.IsGroup) return PlaceRenderer.SendingGroupImage(p, "raw-storage image (CONVERT ANY) of");
+        if (p.Item.IsGroup) return PlaceRenderer.SendingGroupImage(p, context);
         return p.Item.Pic switch
         {
             { Category: PicCategory.National } => RuntimeApi.NatBytes(PlaceRenderer.Read(p)),
@@ -189,7 +203,7 @@ internal static class OperandText
                 RuntimeApi.NumFormatImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName),
             { HasImageByteForm: true } =>
                 RuntimeApi.NumFormatImage(PlaceRenderer.Read(p), p.Item.ProfileName),
-            _ => EmitText.LoudValue("string", TierCIsland.Reason(p.Item, "raw-storage image (CONVERT ANY) of")),
+            _ => EmitText.LoudValue("string", TierCIsland.Reason(p.Item, context)),
         };
     }
 
@@ -328,6 +342,11 @@ internal static class OperandText
         // operand rendered as the EMPTY string. `SendingBits` is the ONE bit reader and carries the GR8a
         // current-extent arm itself, so the ODO shape is served here rather than routed past.
         if (p.Item.IsAsIfElementary && p.Item.GroupUsage is GroupUsage.Bit) return PlaceRenderer.SendingBits(p);
+        // ⛔ THE NATIONAL TWIN, AND IT IS THE SAME DEFECT SHAPE ONE CATEGORY OVER (kb/Work PB327). A national
+        // group operates as an elementary NATIONAL item of PICTURE N(m) (§13.18.29.4 GR2b), so its operand value
+        // is its m national CHARACTER positions — never AsImage()'s 2m UTF-16BE bytes, which is what AsImage()
+        // became when a national leaf was admitted to the byte-addressed record codec.
+        if (p.Item.IsAsIfElementary && p.Item.GroupUsage is GroupUsage.National) return PlaceRenderer.SendingNat(p);
         // An occurs-depending GROUP operand SENDS only the current-count part (ISO §13.18.38 GR8 — "that part of the
         // table area specified by data-name-1 at the start of the operation"); a zero count with no fixed prefix is
         // the zero-length item of §8.5.4. This is the read side of every quadrant (MOVE/compare/INSPECT/STRING/

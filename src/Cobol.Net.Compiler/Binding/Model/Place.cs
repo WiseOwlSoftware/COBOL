@@ -390,17 +390,43 @@ public sealed record GroupImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// (ceil(m/8) characters), so <c>MOVE B"11" TO G(1:2)</c> spliced two characters at BYTE offsets of the packed
 /// image and <c>FromImage</c> redistributed the corruption — a silent wrong answer. Do not "simplify" the split
 /// back.</para>
-/// <para>⛔ A NATIONAL GROUP DELIBERATELY KEEPS <see cref="GroupImagePlace"/>. §13.18.29.4 GR2b makes it as-if
-/// <c>PICTURE N(m)</c> in NATIONAL POSITIONS, and <c>DataItem.IsCharacterImage</c>'s contract guarantees a
-/// national leaf contributes CHARACTER positions with <c>ImageWidth = Length</c>, "never byte-doubled" — so its
-/// <c>AsImage()</c> ALREADY IS its national-position string and the shared wrap is correct for it. The asymmetry
-/// is load-bearing; it is written down here so a later reader does not generalize the bit fix onto it.</para>
+/// <para>⛔ A NATIONAL GROUP TAKES <see cref="NatImagePlace"/>, THE SAME SHAPE. This paragraph used to say the
+/// opposite — that a national group "deliberately keeps <c>GroupImagePlace</c>" because a national leaf's
+/// <c>AsImage()</c> contribution "ALREADY IS its national-position string" — and that premise DIED with kb/Work
+/// PB327: <c>AsImage()</c> is the group's BYTE image, and a national position occupies two of those bytes
+/// (§13.18.60.4 GR8 / D-N1), which is what admits a national leaf to a file record at all. The bit case and the
+/// national case are now one shape read twice: the as-if elementary item's own alphabet gets its own place over
+/// the generated carrier face (<c>AsBits()</c> / <c>AsNat()</c>), and <see cref="GroupImagePlace"/> keeps the
+/// bytes.</para>
 /// <para>Rendered by <c>CodeGen.PlaceRenderer</c> through the generated <c>AsBits()</c> / <c>FromBits(string)</c>
 /// pair, which <c>GroupImageCodec.EmitBitMethods</c> already emits for every bit group — no new runtime code.
 /// Because <see cref="RefModPlace"/> sits OVER this place, its start/length then index the boolean string
 /// directly and GR5a is satisfied structurally.</para>
 /// </summary>
 public sealed record BitImagePlace(Place Inner) : PlaceDecorator(Inner);
+
+/// <summary>
+/// A NATIONAL GROUP viewed as its NATIONAL-CHARACTER string, for reference modification and for every operand
+/// context (kb/Work PB327 — the national twin of <see cref="BitImagePlace"/>, and for the same reason).
+/// <para><b>The derivation.</b> §13.18.29.4 GR2b: "a national group is treated as though it were an elementary
+/// data item of usage national and class and category national described with PICTURE N(m), where m is the length
+/// of the group". §8.4.3.3.3 SR1's last sentence: "For reference modification, bit group items and national group
+/// items are treated as elementary data items". §8.4.3.3.4 GR5a: positions are BIT positions only when the usage
+/// is bit, "otherwise, positions used in evaluation are character positions" — and a national item's character
+/// positions are its NATIONAL positions, one UTF-16 code unit each (D-N1), not the two BYTES each occupies.</para>
+/// <para>⛔ WHY IT EXISTS AT ALL, given that a national group once rode <see cref="GroupImagePlace"/>: because
+/// <c>AsImage()</c> is the group's STORAGE image and a national position takes two bytes of it (§13.18.60.4 GR8;
+/// D-N1 pins two, UTF-16BE). While national leaves were barred from every byte-addressed surface the two
+/// coincided, which is exactly how the asymmetry looked derived rather than accidental. It is the SAME
+/// two-alphabet split <see cref="BitImagePlace"/> carries — <c>AsImage()</c> speaks bytes, <c>AsNat()</c> speaks
+/// national positions — so a consumer reaching for the image reader on a national group compares UTF-16BE bytes
+/// against national literals.</para>
+/// <para>Rendered by <c>CodeGen.PlaceRenderer</c> through the generated <c>AsNat()</c> / <c>FromNat(string)</c>
+/// pair (<c>GroupImageCodec.EmitNatMethods</c>, emitted for every national group). Because
+/// <see cref="RefModPlace"/> sits OVER this place, its start/length index the national string directly and
+/// GR5a is satisfied structurally.</para>
+/// </summary>
+public sealed record NatImagePlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
 /// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §13.18.38 GR15 / §8.5.1.9.1; data-model D9):

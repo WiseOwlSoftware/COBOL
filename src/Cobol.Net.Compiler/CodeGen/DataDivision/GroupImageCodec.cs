@@ -411,6 +411,31 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             }
         }
         if (group.GroupUsage is GroupUsage.Bit) EmitBitMethods(group, w);
+        if (group.GroupUsage is GroupUsage.National) EmitNatMethods(group, w);
+    }
+
+    /// <summary>A NATIONAL GROUP's elementary face (ISO §13.18.29.4 GR2b — "a national group is treated as though
+    /// it were an elementary data item of usage national and class and category national described with PICTURE
+    /// N(m), where m is the length of the group"; D20/PB79, kb/Work PB327): <c>AsNat()</c> is the group's m
+    /// national CHARACTER positions and <c>FromNat</c> stores m of them back. The BYTE form stays
+    /// <c>AsImage()</c>/<c>FromImage()</c> (the record / REDEFINES / file image), exactly as it does for a bit
+    /// group — two faces of ONE composition, so they cannot disagree.
+    /// <para>⛔ DERIVED FROM THE IMAGE, never a second walk over the children: §13.18.29.3 SR3 requires that "all
+    /// elementary items subordinate to the subject of the entry shall be explicitly or implicitly described as
+    /// usage national", so every byte pair of a national group's image IS a national character position and the
+    /// two faces are exactly <c>CobolBits.NatBytes</c> and its inverse. That is why this needs no <c>BitAreaOf</c>
+    /// analogue: the bit face exists because §8.5.1.6.3 lets same-level bit items SHARE a byte, and national
+    /// positions never share one.</para>
+    /// <para>The receiving side fits in POSITIONS before serializing (<c>CobolString.Store</c> then
+    /// <c>NatBytes</c>): padding the BYTES with 0x20 would manufacture U+2020 characters instead of the national
+    /// spaces §14.9.25.4's national move requires — the identical trap <c>CobolBits.NatWriteWindow</c> documents.</para></summary>
+    private static void EmitNatMethods(DataItem group, CodeWriter w)
+    {
+        // m — the as-if PICTURE N(m) length, THE ONE reader of it (DataItem.AsIfPic reads the same ImageWidth,
+        // which stays the CARRIER width: national leaves contribute character positions to it, never bytes).
+        int m = group.ImageWidth;
+        w.Line($"public readonly string AsNat() => {RuntimeApi.NatReadWindow("AsImage()", "0", $"{m}")};");
+        w.Line($"public void FromNat(string __n) => FromImage({RuntimeApi.NatBytes(RuntimeApi.StrStore("__n", $"{m}"))});");
     }
 
     /// <summary>A BIT GROUP's elementary face (§13.18.29.4 GR1b — "treated as though it were an elementary data item
@@ -546,6 +571,13 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             ? RuntimeApi.BitsPack(string.Join(" + ", run.Select(BitCarrierOf)),
                                   $"{run.Sum(BitLayout.RunBits)}")
         : f.Width == 0 ? "\"\""
+        // ⛔ A NATIONAL LEAF IMAGES AS ITS BYTES (kb/Work PB327): two per character position, high-order first
+        // (ISO §13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two, UTF-16BE), through the ONE
+        // serializer CobolBits.NatBytes that the Tier-B window, the EXTERNAL/BASED cell seed and CONVERT's
+        // raw-storage channel already ride. Concatenating the occurrences BEFORE serializing is the same string
+        // as serializing each and concatenating, so the OCCURS arm needs no separate spelling.
+        : f.NatLeaf is not null
+            ? RuntimeApi.NatBytes(f.Occurs == 0 ? f.Name : $"string.Concat({f.Name})")
         : f.Occurs == 0
             ? (f.IsGroupStruct ? $"{f.Name}.AsImage()"
                // A FLOAT leaf encodes through the IEEE lane (kb/Work PB164 wave 2 — distinctly named so
@@ -594,6 +626,23 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         if (f.Width == 0) return;   // a run continuation — its value came from the leader's unpack
+        // ⛔ THE INVERSE OF AsImageOf's national arm (kb/Work PB327): decode the UTF-16BE byte pairs back to the
+        // leaf's character positions through CobolBits.NatReadWindow — the inverse CobolBits.NatBytes names, never
+        // a second decoder. A pair the image is too short to hold decodes as the NATIONAL space, which is exactly
+        // §14.9.30.4 GR15's fill for a national record area ("a trailing space is defined to be the national space
+        // character") — the connector's byte-level pad and this decode agree on it by construction.
+        if (f.NatLeaf is { } nat)
+        {
+            int pos = NationalWindow.PositionsOf(nat)!.Value;
+            if (f.Occurs == 0)
+            {
+                w.Line($"{f.Name} = {RuntimeApi.NatReadWindow("__s", $"{off}", $"{pos}")};");
+                return;
+            }
+            using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
+                w.Line($"{f.Name}[__i] = {RuntimeApi.NatReadWindow("__s", $"{off} + __i * {RuntimeApi.BytesPerNational * pos}", $"{pos}")};");
+            return;
+        }
         if (f.Occurs == 0)
         {
             w.Line(f.IsGroupStruct

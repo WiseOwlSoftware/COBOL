@@ -379,13 +379,58 @@ public abstract class FileConnector
 
     // ── Record-area shaping ──────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Pad (right) or truncate <paramref name="s"/> to exactly <paramref name="width"/> characters.</summary>
+    /// <summary>⛔ §14.9.30.4 GR15's RECORD-AREA CATEGORY — true when the record area is "specified implicitly or
+    /// explicitly as national", set by the emitter right after registration for exactly those files (kb/Work
+    /// PB327). It decides which SPACE the short-record pad below uses, and nothing else. It is a property of the
+    /// FD's record description, not of the physical file, so it is declared once per connector rather than
+    /// re-derived per read.</summary>
+    public bool NationalRecordArea { get; internal set; }
+
+    /// <summary>Pad (right) or truncate <paramref name="s"/> to exactly <paramref name="width"/> characters —
+    /// the ALPHANUMERIC fill (§14.9.30.4 GR15: "a trailing space is defined to be the alphanumeric space
+    /// character"). One char is one byte on this channel.</summary>
     protected static string Fit(string s, int width) =>
         s.Length == width ? s : s.Length > width ? s[..width] : s.PadRight(width, ' ');
 
     /// <summary>Pad/truncate to the record width — the record-AREA image a READ makes available (a shorter
-    /// varying record space-fills the area; its true length is <see cref="LastReadLength"/>).</summary>
-    protected string Fit(string s) => Fit(s, RecordWidth);
+    /// varying record space-fills the area; its true length is <see cref="LastReadLength"/>).
+    /// <para>⛔ A NATIONAL RECORD AREA PADS WITH THE NATIONAL SPACE (ISO §14.9.30.4 GR15 — "If the record-area
+    /// associated with file-name-1 is specified implicitly or explicitly as national, a trailing space is defined
+    /// to be the national space character"; kb/Work PB327). This channel carries one CHARACTER per BYTE, and a
+    /// national space is the two bytes 0x00 0x20 (§13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins
+    /// two, UTF-16BE), so the pad is written as the pair, aligned to the AREA's own even byte boundary: the
+    /// national positions of the area start at even offsets, and an odd short read leaves a half position whose
+    /// content §14.9.30.4 GR14/GR15 do not define. Padding the bytes with 0x20 instead would have manufactured
+    /// U+2020 characters — the identical trap <c>CobolBits.NatWriteWindow</c> documents on the write side.</para></summary>
+    protected string Fit(string s) => FitRecord(s, RecordWidth);
+
+    /// <summary>⛔ THE ONE RECORD-AREA FIT (kb/Work PB327): <see cref="Fit(string,int)"/>'s alphanumeric fill, or
+    /// GR15's national one when <see cref="NationalRecordArea"/> — every site that pads a record image to a
+    /// declared span routes here, so the two fills cannot diverge. Truncation is identical in both (GR15's
+    /// over-length arm truncates "on the right to the maximum size", in bytes).</summary>
+    protected string FitRecord(string s, int width)
+    {
+        if (!NationalRecordArea || s.Length >= width) return Fit(s, width);
+        var buf = new char[width];
+        s.CopyTo(0, buf, 0, s.Length);
+        for (int i = s.Length; i < width; i++) buf[i] = (i & 1) == 0 ? '\0' : ' ';
+        return new string(buf);
+    }
+
+    /// <summary>⛔ THE ONE TRAILING-SPACE TRIM of a record image on the way OUT to a line-oriented stream — the
+    /// inverse of <see cref="FitRecord"/>'s pad, and it has to shed the SAME space (kb/Work PB327). A national
+    /// record area's trailing space is the national space, the two bytes 0x00 0x20 (§14.9.30.4 GR15;
+    /// §13.18.60.4 GR8 / D-N1), so it sheds in PAIRS from the area's own even byte boundary: a plain
+    /// <c>TrimEnd()</c> removed only the 0x20 of the last pair and stopped at its 0x00, leaving an odd-length
+    /// record with half a national position on disk (measured: `01 L-REC PIC N(5).` holding N"AB" wrote nine
+    /// bytes, `00 41 00 42 00 20 00 20 00`).</summary>
+    protected string TrimRecordEnd(string image)
+    {
+        if (!NationalRecordArea) return image.TrimEnd();
+        int n = image.Length & ~1;                                  // whole national positions only
+        while (n >= 2 && image[n - 2] == '\0' && image[n - 1] == ' ') n -= 2;
+        return image[..n];
+    }
 
     /// <summary>The stored image of a record being written: a varying record keeps exactly its declared length
     /// (ISO §13.18.43 GR13 — truncate/pad the area image to it); a fixed record fills the record width. Returns

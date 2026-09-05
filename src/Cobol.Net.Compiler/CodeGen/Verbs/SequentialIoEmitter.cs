@@ -94,6 +94,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // length-frames its records and enforces the GR14 '44' boundary checks.
             string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
             w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", vary, CsLiteral(file.SelectName))};");
+            EmitNationalAreaRegistration(w, file);
             EmitSharingRegistration(w, file);
         }
     }
@@ -133,6 +134,21 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // alphanumeric leaf reads its carrier, an alphanumeric group its generated AsImage(). No second arm.
             w.Line($"{RuntimeApi.FileSetAssignUsing(FileKeyExpr(file), $"() => {OperandText.FieldImage(p)}")};");
         }
+    }
+
+    /// <summary>⛔ §14.9.30.4 GR15's RECORD-AREA CATEGORY, told to the connector (kb/Work PB327): "If the
+    /// record-area associated with file-name-1 is specified implicitly or explicitly as ALPHANUMERIC, a trailing
+    /// space is defined to be the alphanumeric space character. If the record-area associated with file-name-1 is
+    /// specified implicitly or explicitly as NATIONAL, a trailing space is defined to be the national space
+    /// character." The connector pads a short record to the record width, and it is the only place that knows how
+    /// long the physical record was — so it, not the emitter, must know which space to use. The area is national
+    /// exactly when its OPERAND category is (an elementary national record, or a GROUP-USAGE NATIONAL group,
+    /// §13.18.29.4 GR2b) — THE ONE category reader, never a re-derivation from the leaves. Emitted only for a
+    /// national area, so every other program's registration is unchanged byte for byte.</summary>
+    internal static void EmitNationalAreaRegistration(CodeWriter w, FileModel file)
+    {
+        if (file.AreaRecord is { } area && area.OperandPic is { Category: PicCategory.National })
+            w.Line($"{RuntimeApi.FileRegisterNationalArea(FileKeyExpr(file))};");
     }
 
     /// <summary>Emit the RECORD-LOCKING registration for a file that declares a SHARING and/or LOCK MODE clause
@@ -324,7 +340,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         if (wr.From is { } from) move.Emit(new BoundMove(from, [wr.Record]));
         string name = FileKeyExpr(wr.File);
-        string image = OperandText.AsString(new BoundFieldOperand(wr.Record), num);
+        string image = OperandText.RecordAreaImage(wr.Record);   // THE ONE record-area channel (kb/Work PB327)
         if (wr.AfterAdvancing is { } aft && wr.Advancing is { } bfr)
         {
             // COBOL-2023 combined BEFORE AND AFTER ADVANCING (§14.9.51 GR25e/GR25f): present the line at the current
@@ -447,7 +463,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         var w = ctx.Writer;
         if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         if (rw.From is { } from) move.Emit(new BoundMove(from, [rw.Record]));
-        string image = OperandText.AsString(new BoundFieldOperand(rw.Record), num);
+        string image = OperandText.RecordAreaImage(rw.Record);   // THE ONE record-area channel (kb/Work PB327)
         // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): a lock-relevant sequential REWRITE routes through the
         // governed runtime entry — the pre-operation conflict check on the last-read record (51 leaves the
         // record unrewritten) and the GR12 lock discipline. The status lands on the connector either way.
@@ -479,8 +495,22 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // ONE full-image store. A mixed-usage record area distributes through the generated FromImage (its
             // BINARY/PACKED/COMP-5/float leaves decode their byte slices — COBOLNET_DESIGN §14.4/§8.2); a
             // record that is variable-length or pointer/object-leafed is the loud Tier-C island inside the helper (§1.4; kb/Work PB164 + R40).
-            w.Line(PlaceRenderer.WriteFullGroupImage(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.ImageWidth}"),
+            // ⛔ THE FIT WIDTH IS THE RECORD'S BYTE EXTENT (kb/Work PB327) — §14.9.30.4 GR14/GR15 measure a
+            // record in BYTES, and FromImage distributes a byte image. ByteWidth IS ImageWidth for every leaf
+            // kind but NATIONAL, so this is byte-identical for national-free records.
+            w.Line(PlaceRenderer.WriteFullGroupImage(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.ByteWidth}"),
                 $"record area '{record.Item.CobolName}' read"));
+            return;
+        }
+        // ⛔ AN ELEMENTARY NATIONAL RECORD AREA DECODES ITS BYTE PAIRS (kb/Work PB327) — the receiving twin of
+        // OperandText.RecordAreaImage's national arm, through the ONE inverse CobolBits.NatReadWindow. It is NOT
+        // fitted to the byte width first: NatReadWindow fills a position the image is too short to hold with the
+        // NATIONAL space, which is precisely §14.9.30.4 GR15's "If the record-area associated with file-name-1 is
+        // specified implicitly or explicitly as national, a trailing space is defined to be the national space
+        // character" — a byte-level space pad would have manufactured U+2020 instead.
+        if (Binding.Model.NationalWindow.PositionsOf(record.Item) is { } natPositions)
+        {
+            w.Line(PlaceRenderer.Write(record, RuntimeApi.NatReadWindow(imageExpr, "0", $"{natPositions}")));
             return;
         }
         w.Line(PlaceRenderer.Write(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.Pic?.Length ?? record.Item.ImageWidth}")));

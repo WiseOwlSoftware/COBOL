@@ -108,11 +108,16 @@ public sealed class NationalBooleanDataTests
         }
     }
 
-    /// <summary>An FD record with a national leaf is staged loud (direct 0899): the record codec is Latin-1
-    /// single-byte, and the documented 2-byte national character (D-N1/D-N2, §13.18.60.4 GR8 + §8.1.2) has no
-    /// byte-record layout yet — Phase 4a residue #9.</summary>
+    /// <summary>An FD record with a national leaf COMPILES AND ROUND-TRIPS, and its disk image is the UTF-16BE
+    /// pair serialization (kb/Work PB327 — this test USED to pin the refusal, the shape
+    /// feedback_green_test_can_hold_a_gap_open warns about: a green test pinning a loud stage reads as a
+    /// decision). §13.18.60.4 GR8 leaves a national character's storage size to the implementor and D-N1 pins
+    /// TWO bytes, high-order first, so `05 F-N PIC N(4). 05 F-X PIC X(4).` is a TWELVE-byte record — the same
+    /// geometry §14.9.30.4 GR14/GR15 count in bytes and §12.4.5.12.4 GR4 places keys in. The assertion reads the
+    /// record back through the alphanumeric member and through a REDEFINES of the national one, so a
+    /// one-byte-per-position layout (F-X would land at byte 4) is excluded by position, not by width.</summary>
     [Fact]
-    public void FdRecord_WithNationalLeaf_Rejects0899()
+    public void FdRecord_WithNationalLeaf_RoundTripsAsUtf16BePairs()
     {
         const string src = """
             IDENTIFICATION DIVISION.
@@ -127,14 +132,35 @@ public sealed class NationalBooleanDataTests
             01 F-REC.
                05 F-N PIC N(4).
                05 F-X PIC X(4).
+            WORKING-STORAGE SECTION.
+            01 W-N PIC N(4).
+            01 W-B PIC X(8).
+            01 W-O PIC 9(3).
             PROCEDURE DIVISION.
             MAIN.
+                OPEN OUTPUT F.
+                MOVE N"WXYZ" TO F-N.
+                MOVE "pqrs" TO F-X.
+                WRITE F-REC.
+                CLOSE F.
+                OPEN INPUT F.
+                READ F AT END DISPLAY "EOF".
+                DISPLAY "N=[" F-N "] X=[" F-X "]".
+                MOVE F-N TO W-N.
+                MOVE FUNCTION CONVERT(W-N ANY ANUM HEX) TO W-B.
+                DISPLAY "HEX=" W-B.
+                CLOSE F.
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok, "a national leaf in a file record must be staged loud (D-N2; Phase 4a residue)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0899");
-        EditionHarness.AssertHasDiagnostic(errors, "record");
+        // 2023, not 2002: the observation uses FUNCTION CONVERT (§15.19, introduced by ISO/IEC 1989:2023 —
+        // COBOLNET1502). The SUBJECT is edition-independent (national data is 2002), and the 2002 arm of the
+        // record layout is covered by `conformance:2002/pb327_national_fd_record`.
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        // The record is 4 national positions (8 bytes) + 4 alphanumeric (4 bytes) = 12 bytes; F-X therefore
+        // starts at byte 8, and reading "pqrs" back proves it. HEX is the UTF-16BE serialization of N"WXYZ":
+        // U+0057 U+0058 U+0059 U+005A → 00570058 0059005A (§15.19.4 r4 hexes the source's own bits).
+        Assert.Equal("N=[WXYZ] X=[pqrs]\nHEX=00570058", stdout);
     }
 
     /// <summary>REDEFINES over a national item OVERLAYS ITS BYTES, and the overlay is the UTF-16BE pair
@@ -274,29 +300,47 @@ public sealed class NationalBooleanDataTests
         Assert.Equal("EQ=YES\nLT=YES\nGT=YES", stdout);
     }
 
-    /// <summary>A group containing national and boolean leaves keeps the CHARACTER IMAGE (D-N1/D-B1: both
-    /// categories are string-stored, so IsCharacterImage holds): the group DISPLAYs as the concatenated char
-    /// image (§14.9.11 GR6) and group-MOVEs verbatim to an alphanumeric receiver (§14.9.25 GR6b — a group
-    /// move is a move without conversion).</summary>
+    /// <summary>An ALPHANUMERIC group containing a national leaf carries that leaf's STORAGE BYTES — two per
+    /// character position, high-order first (§13.18.60.4 GR8; D-N1) — so its image is 2n wide, not n
+    /// (kb/Work PB327; this test used to assert one character per position, and that assertion is what kept
+    /// `FUNCTION LENGTH(G)` and the group's own image disagreeing: measured before the fix,
+    /// `01 G. 05 A PIC X(2). 05 N PIC N(3).` answered LENGTH 8 while `MOVE G TO R` moved 5 characters).
+    /// <para>The standard states the consequence itself, at §13.18.29.4 GR2's NOTE: "Without the GROUP-USAGE
+    /// NATIONAL clause, the content of such a group item would be treated as category alphanumeric, possibly
+    /// leading to corruption or invalid handling of data." The remedy it names — GROUP-USAGE NATIONAL — is the
+    /// AsNat() carrier face, exercised by `pb79_group_usage_national`. A DISPLAY-form boolean leaf is one
+    /// character per boolean position either way (§13.18.60.4 GR7 / D-B1), which is why GB is unchanged.</para>
+    /// <para>Observed through CONVERT … HEX rather than raw, because the UTF-16BE high bytes of Latin characters
+    /// are NUL and no golden in this corpus carries one (a NUL in expected output would poison the
+    /// scripted-write corruption check).</para></summary>
     [Fact]
-    public void GroupWithNationalAndBooleanLeaves_MovesAndDisplaysAsCharImage()
+    public void GroupWithNationalLeaf_ImagesItsUtf16BeBytes()
     {
         string src = Prog("NBDAT23", """
             01 G.
                05 GN PIC N(3).
                05 GB PIC 1(3).
                05 GX PIC X(2).
-            01 H PIC X(8).
+            01 H PIC X(11).
+            01 L PIC 9(3).
+            01 HX PIC X(22).
             """, """
             MOVE N"AB" TO GN.
             MOVE B"101" TO GB.
             MOVE "ZZ" TO GX.
-            DISPLAY "G=" G.
+            MOVE FUNCTION LENGTH(G) TO L.
+            DISPLAY "L=" L.
             MOVE G TO H.
-            DISPLAY "H=" H.
+            MOVE FUNCTION CONVERT(H ANY ANUM HEX) TO HX.
+            DISPLAY "H=" HX.
             """);
-        var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
+        // 2023 for FUNCTION CONVERT (§15.19; COBOLNET1502) — see the sibling test above.
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
         Assert.True(ok, detail);
-        Assert.Equal("G=AB 101ZZ\nH=AB 101ZZ", stdout);
+        // G is 3 national positions (6 bytes) + 3 DISPLAY boolean positions (3 bytes) + 2 alphanumeric = 11
+        // bytes, and FUNCTION LENGTH — which has always counted a national position as its two bytes — agrees.
+        // The image: N"AB" padded to three national positions is U+0041 U+0042 U+0020 → 00 41 00 42 00 20;
+        // B"101" is the three characters '1','0','1' → 31 30 31; "ZZ" → 5A 5A.
+        Assert.Equal("L=011\nH=0041004200203130315A5A", stdout);
     }
 }

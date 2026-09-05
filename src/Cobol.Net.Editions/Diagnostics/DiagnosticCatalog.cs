@@ -584,8 +584,12 @@ public static class DiagnosticCatalog
     // ── COBOLNET0899 — national data (category not yet implemented) ──────────────────────────────────
     public static readonly DiagnosticDescriptor NationalData = new(
         NotImplemented, "national-data", EditionSeverity.Error,
-        "National-category data (PIC N / USAGE NATIONAL, national numeric/boolean, national keys) is recognized "
-        + "but not yet implemented.", "ISO §8.5 / §13.18.60", RecognizedNotImplemented);
+        "National-category data whose SHAPE is still staged: a national-form numeric or boolean item (PIC 9 / "
+        + "PIC 1 with USAGE NATIONAL, §13.18.60.3 SR12), a national-edited item, and a national key of a TABLE "
+        + "SORT (§14.9.40 GR5b's collating leg). A national leaf in an FD/SD record, an EXTERNAL/BASED/"
+        + "ADDRESS-OF cell, a REDEFINES overlay and an INDEXED record key all RIDE (kb/Work PB231 + PB327 — the "
+        + "record codec lays a national position out as its two UTF-16BE bytes, §13.18.60.4 GR8 / D-N1).",
+        "ISO §8.5 / §13.18.60", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor NationalThroughRange = new(
         NotImplemented, "national-through-range", EditionSeverity.Error,
         "A condition-name THROUGH range over a national conditional variable is not yet implemented.",

@@ -477,10 +477,13 @@ public sealed class ReferenceResolver(DataBinder data)
             // as its UNPACKED boolean string, never as AsImage()'s ceil(m/8) packed characters — the units the
             // boolean channel already counts (ConditionBinder's widths read OperandPic.Length, which is
             // ExtentBits) and the units RefModPlace.Category already reports.
-            // A NATIONAL group keeps GroupImagePlace, and that asymmetry is DERIVED, not an oversight:
-            // §13.18.29.4 GR2b's as-if PICTURE N(m) is in NATIONAL positions and DataItem.IsCharacterImage
-            // guarantees a national leaf contributes ImageWidth = Length character positions, "never
-            // byte-doubled", so its AsImage() IS its national-position string.
+            // ⛔ A NATIONAL GROUP TAKES ITS OWN NATIONAL POSITIONS, THE SAME WAY (kb/Work PB327). It used to
+            // keep GroupImagePlace on the premise that "a national leaf contributes ImageWidth = Length
+            // character positions, never byte-doubled, so its AsImage() IS its national-position string". That
+            // premise died when AsImage() became the BYTE image so a national leaf could ride a file record:
+            // §13.18.60.4 GR8 leaves the size of a national character to the implementor and D-N1 pins TWO
+            // bytes, UTF-16BE. §8.4.3.3.4 GR5a's "otherwise, positions used in evaluation are character
+            // positions" means the item's OWN characters, so a national group wraps as its AsNat() string.
             // ⛔ A TIER-B WINDOW NEEDS NO WRAP IN EITHER UNIT, and for the BIT one that is now a derived fact
             // rather than an untested omission (kb/Work PB203 closing PB173's open "RELATED" question): a
             // RedefViewPlace over a bit member reads its BOOLEAN CARRIER — CobolBits.ReadWindow over the class
@@ -489,9 +492,9 @@ public sealed class ReferenceResolver(DataBinder data)
             // `01 A PIC X(2). 01 BV REDEFINES A GROUP-USAGE BIT. 05 BV1 PIC 1(8). 05 BV2 PIC 1(8).` holding
             // B"0100100001001001", `BV(1:3)` is B"010" and `MOVE ALL B"0" TO BV(2:3)` zeroes positions 2-4.
             if (inner is not RedefViewPlace)
-                inner = item.IsAsIfElementary && item.GroupUsage is GroupUsage.Bit
-                    ? new BitImagePlace(inner)
-                    : new GroupImagePlace(inner);
+                inner = !item.IsAsIfElementary ? new GroupImagePlace(inner)
+                    : item.GroupUsage is GroupUsage.Bit ? new BitImagePlace(inner)
+                    : new NatImagePlace(inner);
         }
         else if (item.Pic?.Category is PicCategory.Numeric)
         {
@@ -532,8 +535,10 @@ public sealed class ReferenceResolver(DataBinder data)
     /// PB79 landed 2026-08-18 (DEVLOG 1317): <c>AsIfPic</c> / <c>OperandPic</c> / <c>IsAsIfElementary</c> carry the
     /// as-if description, so this predicate's group bullet admits them for the right reason. Their SUBSTRATE then
     /// differs by usage: a bit group wraps as a <c>BitImagePlace</c> over its unpacked boolean string, because
-    /// §8.4.3.3.4 GR5a evaluates a bit item's positions as BIT positions (kb/Work PB173), while a national group
-    /// keeps <c>GroupImagePlace</c> — §13.18.29.4 GR2b's as-if PICTURE N(m) is already in national positions.</summary>
+    /// §8.4.3.3.4 GR5a evaluates a bit item's positions as BIT positions (kb/Work PB173), and a national group
+    /// wraps as a <c>NatImagePlace</c> over its <c>AsNat()</c> national-position string — §13.18.29.4 GR2b's as-if
+    /// PICTURE N(m) counts national positions, which since kb/Work PB327 are no longer the same string as the
+    /// group's byte image.</summary>
     internal static string? RefModExclusion(DataItem item)
     {
         if (item.IsGroup)

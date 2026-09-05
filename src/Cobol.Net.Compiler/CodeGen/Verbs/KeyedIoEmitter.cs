@@ -51,6 +51,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         {
             int digits = file.RelativeKeyItem?.Pic?.Digits ?? 0;
             w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary, CsLiteral(file.SelectName))};");
+            SequentialIoEmitter.EmitNationalAreaRegistration(w, file);   // §14.9.30.4 GR15 (kb/Work PB327)
             return;
         }
         if (file.RecordKeyItem is not { } pk || Binding.Model.RecordLayout.OffsetOf(pk) is not { } pkOff)
@@ -59,7 +60,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 + "image (ISO §12.4.5.12)"));
             return;
         }
-        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ImageWidth, vary, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
+        // ⛔ THE KEY WINDOW IS IN BYTES (kb/Work PB327): §12.4.5.12.4 GR4 states key correspondence over "the
+        // identical BYTE POSITIONS", and RecordLayout.OffsetOf above is already a byte offset — so the WIDTH must
+        // be the key's byte extent too, which for a national key (PIC N(n)) is 2n, not n (§13.18.60.4 GR8; D-N1).
+        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ByteWidth, vary, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var (alt, dups, suppress) = file.AlternateKeys[i];
@@ -71,8 +75,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             }
             var altCollation = i < file.AlternateKeyCollations.Count ? file.AlternateKeyCollations[i] : null;
             string sup = suppress is null ? "null" : CsLiteral(suppress);
-            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ImageWidth, dups ? "true" : "false", CollationLit(altCollation), sup)};");
+            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ByteWidth, dups ? "true" : "false", CollationLit(altCollation), sup)};");   // bytes — see the prime key above (kb/Work PB327)
         }
+        SequentialIoEmitter.EmitNationalAreaRegistration(w, file);   // §14.9.30.4 GR15 (kb/Work PB327)
     }
 
     /// <summary>The §12.4.5.7 key collating sequence as a runtime <c>CobolCollation</c> expression — the program's
@@ -118,7 +123,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             default:
                 // Indexed Format 2: the key VALUE is the key field's current content in the record area
                 // (§14.9.30 GR32) — pass the area image; the connector slices the key-of-reference range.
-                string keyImage = area is not null ? OperandText.AsString(new BoundFieldOperand(area), num) : "\"\"";
+                string keyImage = area is not null ? OperandText.RecordAreaImage(area) : "\"\"";
                 w.Line($"var {st} = {RuntimeApi.FileReadKeyed(name, rd.KeyIndex, keyImage, img)};");
                 break;
         }
@@ -188,7 +193,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
-        string wimg = OperandText.AsString(new BoundFieldOperand(wr.Record), num);
+        string wimg = OperandText.RecordAreaImage(wr.Record);   // THE ONE record-area channel (kb/Work PB327)
         // §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): a lock-relevant WRITE routes through the governed entry —
         // single locking releases the connector's prior lock, WITH LOCK locks the record written.
         if (SequentialIoEmitter.LockGoverned(file, wr.Lock, wr.Retry))
@@ -230,7 +235,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
-        string rimg = OperandText.AsString(new BoundFieldOperand(rw.Record), num);
+        string rimg = OperandText.RecordAreaImage(rw.Record);   // THE ONE record-area channel (kb/Work PB327)
         // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): a lock-relevant REWRITE routes through the governed entry —
         // another connector's lock on the target blocks it (RETRY re-checks, else 51; the record is unrewritten).
         if (SequentialIoEmitter.LockGoverned(file, rw.Lock, rw.Retry))
@@ -269,7 +274,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = file.AreaRecord is { } ar ? refs.ResolveItem(ar) : null;
-        string image = area is not null ? OperandText.AsString(new BoundFieldOperand(area), num) : "\"\"";
+        string image = area is not null ? OperandText.RecordAreaImage(area) : "\"\"";
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         // §9.1.16/§14.9.10 GR6-GR7 (P10 Step 8): a lock-relevant DELETE routes through the governed entry —
@@ -351,10 +356,21 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             // characters (the WITH LENGTH count, else the operand's own length — a generic key compares short).
             // The key comparison collates NATIVE at COBOL-85 (§12.4.5.7 file collating; the program collating
             // sequence does NOT silently apply to keys — brief risk note).
+            // ⛔ §14.9.41.4 GR13 COUNTS THE OPERAND'S OWN CHARACTER POSITIONS, AND THE CONNECTOR SLICES BYTES
+            // (kb/Work PB327): "If data-name-1 or record-key-name-1 is of class alphanumeric,
+            // arithmetic-expression-1 is the number of alphanumeric character positions; if data-name-1 or
+            // record-key-name-1 is of class national, arithmetic-expression-1 is the number of national character
+            // positions." A national position is TWO bytes (§13.18.60.4 GR8; D-N1), so the count is scaled here,
+            // once, at the one place the two units meet — and the key VALUE goes through THE ONE storage channel,
+            // never its carrier, or the connector would compare one byte per position against a two-byte window.
+            // GR17e's comparison per §8.8.4.2.9 is satisfied by the byte compare: UTF-16BE pair order IS code-unit
+            // order over the BMP repertoire §8.5.1.4 admits (CONFORMANCE.md items 33/188).
+            int natBytes = NationalWindow.PositionsOf(sta.Operand!.Item) is not null
+                ? RuntimeApi.BytesPerNational : 1;
             string len = sta.Length is { } le
-                ? $"(int)({NumericRenderer.Align(num.Render(le, ReceiverContext.None), 0)})"
-                : sta.Operand!.Item.ImageWidth.ToString();
-            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), OperandText.AsString(new BoundFieldOperand(sta.Operand!), num), len)};");
+                ? $"{natBytes} * (int)({NumericRenderer.Align(num.Render(le, ReceiverContext.None), 0)})"
+                : sta.Operand!.Item.ByteWidth.ToString();
+            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), OperandText.AsStorageImage(sta.Operand!, "START key operand"), len)};");
         }
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);

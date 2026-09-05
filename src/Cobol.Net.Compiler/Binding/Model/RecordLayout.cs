@@ -48,7 +48,15 @@ internal static class RecordLayout
     /// redefines class whose redefiner is wider than the redefined item.</summary>
     public static int PhysicalWidth(DataItem item)
     {
-        if (!item.IsGroup) return ImageWidth(item);
+        // ⛔ THE CODEC BASIS IS BYTES, NOT CARRIER POSITIONS (kb/Work PB327). This walk is the record/frame
+        // geometry — §12.4.5.12.4 GR4 states key correspondence over "the identical BYTE POSITIONS", §14.9.30.4
+        // GR14/GR15 state the short/long-record rules over "the number of BYTES in the record", and
+        // §14.9.3.4 GR3 allocates "the number of BYTES required to hold an item". ByteWidth IS ImageWidth for
+        // every leaf kind but NATIONAL, whose §13.18.60.4 GR8 size this implementation pins at two bytes per
+        // position (D-N1) — so this read is byte-identical everywhere else and is the whole of the geometry
+        // change that admits a national leaf to a file record. <see cref="ImageWidth"/> stays the CARRIER
+        // authority (StorageFormPass's form widths, the §13.18.29.4 GR2b as-if PICTURE N(m) length).
+        if (!item.IsGroup) return item.ByteWidth;
         // D19/PB43 — a bit-bearing subtree's extent comes from the §8.5.1.6.3 walk. A REDEFINES class inside such
         // a group is not reachable here: D-N2's byte≠char containment already refuses a sub-byte overlay, and
         // PB43 records the sub-byte redefiner as explicitly OUT of scope and loud rather than rounded.
@@ -69,7 +77,7 @@ internal static class RecordLayout
             }
             if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
                 continue;   // a forwarded view
-            w += (c.IsGroup ? PhysicalWidth(c) : ImageWidth(c)) * (c.Occurs ?? 1);
+            w += (c.IsGroup ? PhysicalWidth(c) : c.ByteWidth) * (c.Occurs ?? 1);
         }
         return w;
     }
@@ -116,7 +124,7 @@ internal static class RecordLayout
                 if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
                     continue;                                             // a forwarded view
                 if (c.RedefinesTargetName is not null) continue;          // overlays its target — no advance
-                running += (c.IsGroup ? PhysicalWidth(c) : ImageWidth(c)) * (c.Occurs ?? 1);
+                running += (c.IsGroup ? PhysicalWidth(c) : c.ByteWidth) * (c.Occurs ?? 1);
             }
         }
     }
@@ -170,12 +178,12 @@ internal static class RecordLayout
     public static int? KeyIndexByPosition(FileModel file, DataItem operand)
     {
         if (OffsetOf(operand) is not { } off) return null;
-        if (file.RecordKeyItem is { } pk && OffsetOf(pk) == off && operand.ImageWidth <= pk.ImageWidth)
+        if (file.RecordKeyItem is { } pk && OffsetOf(pk) == off && operand.ByteWidth <= pk.ByteWidth)
             return -1;
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var alt = file.AlternateKeys[i].Item;
-            if (OffsetOf(alt) == off && operand.ImageWidth <= alt.ImageWidth) return i;
+            if (OffsetOf(alt) == off && operand.ByteWidth <= alt.ByteWidth) return i;
         }
         return null;
     }
