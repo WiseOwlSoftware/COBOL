@@ -216,6 +216,15 @@
       "dns": 346,
       "label": "Golden lane round 3: 59 gold",
       "battery": null
+    },
+    {
+      "sha": "dbdcb0d2",
+      "date": "2026-09-05",
+      "gap": 2906,
+      "closed": 1405,
+      "dns": 346,
+      "label": "PB594: spec_refs + the natio",
+      "battery": null
     }
   ]
 }
