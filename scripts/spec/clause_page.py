@@ -18,6 +18,12 @@ plainly exists is the same defect this repo keeps closing: a missing observation
 
 Reuses `render_figure.headings()` rather than re-implementing the bold-numbered-heading test (one rule, one
 place); the folio is the PDF page number minus the 30 pages of front matter, which plan §0 records.
+
+`index()` is the primitive and `resolve()` a filter over it: ONE pass of the document yields every numbered
+clause heading in READING ORDER, so a caller can ask not only "what page is clause C on" but "what comes next" —
+which is what bounds a general format's extent on the page. `audit_grammar_optional_words.py` needs exactly that
+and had grown its own private locator keyed on markdown `#page-N` anchors; de-paging deleted the anchors and the
+audit went silently green over 572 parser rules (kb/Work PB332). One locator, one place.
 """
 from __future__ import annotations
 
@@ -25,6 +31,7 @@ import argparse
 import pathlib
 import re
 import sys
+from typing import NamedTuple
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -47,27 +54,60 @@ def clause_key(c: str) -> tuple:
     return tuple(int(p) if p.isdigit() else 0 for p in c.split("."))
 
 
-def resolve(clauses: list[str]) -> dict[str, tuple[int, int, str]]:
-    """clause -> (pdf_page, folio, the heading text found). Missing clauses are simply absent from the result."""
-    import fitz                                                    # PyMuPDF, as the sibling tools use it
+class Heading(NamedTuple):
+    """One numbered clause heading as PRINTED: where it starts, and how far down the page."""
+    clause: str
+    text: str
+    page: int                                                      # 1-based PDF page
+    y: float                                                       # top of the heading line, PDF points
+
+    @property
+    def folio(self) -> int:
+        return self.page - FRONT_MATTER
+
+
+#: A heading line begins with its clause number. `render_figure.CLAUSE_HEADING` has already established that the
+#: line IS a heading (bold, ≥11 pt, inside the body band); this only splits the number off the title. The title
+#: is OPTIONAL: 87 second-level headings print the number alone on its line and lay the title out separately.
+_LEADING_NUMBER = re.compile(r"^(\d+(?:\.\d+)+)(?:\s+(\S.*))?$")
+
+
+def index(doc=None) -> list[Heading]:
+    """EVERY numbered clause heading in the printed body, in reading order — the primitive `resolve` filters.
+
+    Reading order is load-bearing: the extent of a clause on the page is "from its own heading to the NEXT
+    heading", and only a document-ordered index can answer that. One pass over the 1261-page PDF, ~2 s.
+    """
     import render_figure                                           # noqa: E402  (path injected above)
 
-    doc = fitz.open(find_pdf())
-    wanted = {c: re.compile(rf"^{re.escape(c)}(?:\s|$)") for c in clauses}
+    own = doc is None
+    if own:
+        import fitz                                                # PyMuPDF, as the sibling tools use it
+        doc = fitz.open(find_pdf())
+    out: list[Heading] = []
+    try:
+        for pno in range(doc.page_count):
+            try:
+                heads = render_figure.headings(doc[pno])
+            except Exception:                                      # noqa: BLE001 — a page we cannot parse is not fatal
+                continue
+            for y, text in heads:
+                m = _LEADING_NUMBER.match(text)
+                if m:
+                    out.append(Heading(m.group(1), m.group(2) or "", pno + 1, y))
+    finally:
+        if own:
+            doc.close()
+    return out
+
+
+def resolve(clauses: list[str], doc=None) -> dict[str, tuple[int, int, str]]:
+    """clause -> (pdf_page, folio, the heading text found). Missing clauses are simply absent from the result."""
+    wanted = set(clauses)
     found: dict[str, tuple[int, int, str]] = {}
-    for pno in range(doc.page_count):
-        if len(found) == len(wanted):
-            break
-        page = doc[pno]
-        try:
-            heads = render_figure.headings(page)
-        except Exception:                                          # noqa: BLE001 — a page we cannot parse is not fatal
-            continue
-        for _y, text in heads:
-            for c, pat in wanted.items():
-                if c not in found and pat.match(text):
-                    found[c] = (pno + 1, pno + 1 - FRONT_MATTER, text)
-    doc.close()
+    for h in index(doc):
+        if h.clause in wanted and h.clause not in found:
+            found[h.clause] = (h.page, h.folio, f"{h.clause} {h.text}")
     return found
 
 

@@ -270,23 +270,39 @@ alterEntry
 // USE (§14.9.49, declaratives)
 // ==========================================
 
+// ⛔ THE OPTIONAL WORDS OF A FORMAT ARE A PROPERTY OF THE FORMAT, not of what the witness corpus happens to
+// spell. §14.9.49.2 was measured off the PDF's vector rectangles (`figure_extract.py 804`, confirmed on the
+// 600 dpi render of PDF page 804 / printed folio 774, and the transcription's own figure notes agree): in
+// Format 1 `USE`, `GLOBAL`, `EXCEPTION`, `ERROR`, `INPUT`, `OUTPUT`, `I-O` and `EXTEND` are underlined while
+// `AFTER`, `STANDARD`, `PROCEDURE` and `ON` are NOT; in Formats 3 and 4 only `USE` and the bracketed keywords
+// are underlined, and `AFTER` is not. §5.2.3 and §8.3.2.4.3 make every non-underlined uppercase word an
+// OPTIONAL word "specified at the user's option with no effect on the semantics of the format", so all five
+// are omittable. Until kb/Work PB332 this rule required AFTER and PROCEDURE and relaxed only STANDARD and ON —
+// the two words the CCVS witnesses happened to omit. The corpus is a regression net, never the authority.
+//
+// ⛔ FORMAT ORDER IS LOAD-BEARING, and only because AFTER became optional. `useOnTarget`'s `fileName+` arm
+// accepts any cobolWord, and CONDITION / EC / OBJECT / EO are context-sensitive words — §8.10 lists them and
+// makes such a word "reserved in the specified language construct or context … otherwise it is treated as a
+// user-defined word", which is exactly what `cobolWord` admits — so `USE EXCEPTION CONDITION EC-ALL` can be
+// read as Format 1 over two file-names. The
+// specific formats are therefore listed FIRST and ANTLR's first-match-wins prediction settles it; Format 1
+// still claims `USE EXCEPTION F1` unambiguously, because Formats 3 and 4 demand CONDITION/EC/OBJECT/EO right
+// after EXCEPTION and Format 3 demands at least one entry after them.
 useStatement
     // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1
     : USE GLOBAL? BEFORE REPORTING procedureName
-    // Format 1: USE [GLOBAL] AFTER [STANDARD] {EXCEPTION | ERROR} PROCEDURE [ON] {file-name+ | INPUT | OUTPUT | I-O | EXTEND}
-    // STANDARD and ON are accepted as optional words: the CCVS suite and mainstream compilers write
-    // both "USE GLOBAL AFTER ERROR PROCEDURE ON INPUT" and "USE AFTER STANDARD ERROR PROCEDURE OUTPUT".
-    | USE GLOBAL? AFTER STANDARD? (EXCEPTION | ERROR) PROCEDURE ON? useOnTarget
-    // Format 3 (exception-name, EC model 2002+ — binder-gated): USE AFTER {EXCEPTION CONDITION | EC}
+    // Format 3 (exception-name, EC model 2002+ — binder-gated): USE [AFTER] {EXCEPTION CONDITION | EC}
     // {exception-name-1 | exception-name-2 {FILE file-name-2}…}… (ISO §14.9.49.2; SR12: EC ≡ EXCEPTION
     // CONDITION). Exception-names are cobolWords — an OPEN set (EC-USER-*, §14.6.13.1.1 / §7.3.25.3 SR2), so
     // name validation (and SR13/SR14) is the binder's, never a token enumeration. (§7.3.25.3 is the TURN
     // compiler directive's syntax rules, which is where the EC-USER-* name shape is fixed.)
-    | USE AFTER (EXCEPTION CONDITION | EC) useEcEntry+
-    // Format 4 (ISO §14.9.49.2 — USE AFTER {EXCEPTION OBJECT | EO} {class-name | interface-name}, ONE
+    | USE AFTER? (EXCEPTION CONDITION | EC) useEcEntry+
+    // Format 4 (ISO §14.9.49.2 — USE [AFTER] {EXCEPTION OBJECT | EO} {class-name | interface-name}, ONE
     // operand; SR15: EO ≡ EXCEPTION OBJECT): the exception-OBJECT declarative selector (GR14 — class-or-
     // subclass / IMPLEMENTS match; GR3: F4 REPLACES the F1/F3 tiers for object raises). EC-OO wave.
-    | USE AFTER (EXCEPTION OBJECT | EO) cobolWord
+    | USE AFTER? (EXCEPTION OBJECT | EO) cobolWord
+    // Format 1: USE [GLOBAL] [AFTER] [STANDARD] {EXCEPTION | ERROR} [PROCEDURE] [ON] {file-name+ | INPUT | OUTPUT | I-O | EXTEND}
+    | USE GLOBAL? AFTER? STANDARD? (EXCEPTION | ERROR) PROCEDURE? ON? useOnTarget
     // X3.23-1985 debug-module format (obsolete '85 element DELETED by ISO 2002 — the whole facility,
     // DEBUG-* registers included, is absent from the 2023 text): USE FOR DEBUGGING ON {cd-name-1 |
     // [ALL REFERENCES OF] identifier-1 | file-name-1 | procedure-name-1 | ALL PROCEDURES}… .

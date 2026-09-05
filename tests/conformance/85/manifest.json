@@ -1,6 +1,7 @@
 {
   "enabled": [
   "pb345_record_less_fd_area",
+    "pb332_use_optional_words",
     "pb347_record_name_identity_85",
     "pb324_assign_using_85",
     "pb326_flow_report_unconditional",

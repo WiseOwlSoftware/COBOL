@@ -569,7 +569,12 @@ def build(page, lo, hi, extract, classify_page):
 # Note that font SIZE is not usable as the signal, tempting though it looks: figure text is 9.7 pt on page 784
 # and 10.7 pt — indistinguishable from the prose beside it — on pages 632 and 607. Each figure is set to fit.
 BODY_TOP, BODY_BOTTOM = 60.0, 730.0     # inside the running header and the folio / licence footer
-CLAUSE_HEADING = re.compile(r"^\d+(?:\.\d+)+\s+\S")
+# A clause heading is its NUMBER, optionally followed by its title. The title is usually on the same line, but
+# 87 second-level headings (`4.1`, `5.2`, `6.3`, …) are typeset with the number alone on its line and the title
+# laid out separately, and requiring a title on the line dropped every one of them — including `5.2 General
+# formats`, the clause that DEFINES underlining. Measured over the whole standard: 87 such lines, all genuine
+# clause headings, none a numbered list item or a table cell (kb/Work PB332).
+CLAUSE_HEADING = re.compile(r"^\d+(?:\.\d+)+(?:\s+\S|$)")
 GENERAL_FORMAT = re.compile(r"general\s+formats?$", re.I)
 FORMAT_LABEL = re.compile(r"^Formats?\s+\d+\b")
 PAD_ABOVE, PAD_BELOW = 6.0, 14.0        # a band must reach the bracket feet below its last row of text
@@ -580,6 +585,11 @@ def headings(page):
 
     The numbering test earns its place: bold also marks emphasis inside prose, and the running header is bold
     11.7 pt exactly like a heading (the body band already excludes it, but the check costs nothing).
+
+    ⚠ THE BOLD TEST IGNORES SPANS THAT CARRY NO LETTERS OR DIGITS. Two headings — `7.3.23 REF-MOD-ZERO-LENGTH
+    directive` and `15.78.2 General format` — end in a Symbol-font glyph that is not bold, and requiring EVERY
+    span to be bold silently dropped both. `15.78.2` is a general format, so the drop was invisible right up to
+    the point where an audit asserted its own population (kb/Work PB332).
     """
     out = []
     for blk in page.get_text("dict")["blocks"]:
@@ -590,7 +600,10 @@ def headings(page):
             spans = [s for s in line["spans"] if s["text"].strip()]
             if not (BODY_TOP <= y <= BODY_BOTTOM) or not spans:
                 continue
-            if not all("bold" in s["font"].lower() for s in spans) or max(s["size"] for s in spans) < 11.0:
+            worded = [s for s in spans if re.search(r"[A-Za-z0-9]", s["text"])]
+            if not worded or not all("bold" in s["font"].lower() for s in worded):
+                continue
+            if max(s["size"] for s in spans) < 11.0:
                 continue
             text = re.sub(r"\s+", " ", "".join(s["text"] for s in spans)).strip()
             if CLAUSE_HEADING.match(text):

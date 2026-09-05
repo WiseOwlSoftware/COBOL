@@ -1533,7 +1533,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
      make **UNDERLINING** the test; bracketing marks whether a PHRASE may be omitted, not whether a WORD must be
      written. One wrong criterion, five sites. Landed so far: `ON` in SIZE ERROR / ON EXCEPTION, `FROM` on
      RECEIVE, `TO` on SEND, `AT` in SEARCH's AT END, `PRINTING` after SUPPRESS — all legal COBOL the parser
-     rejected. `scripts/spec/audit_grammar_optional_words.py` automates the search (11 grammar files, 529 rules).
+     rejected. `scripts/spec/audit_grammar_optional_words.py` automates the search (12 grammar files, 596 parser rules, all 320 printed general formats measured; 45 candidates open for confirmation). ⛔ It was SILENTLY GREEN from de-paging until 2026-09-05 — its page locator read the deleted `#page-N` anchors, so it located 0 formats, printed `0 candidate(s)` and exited 0; it now asserts its own population and exits non-zero on a shortfall (kb/Work PB332).
    - **Three standing cautions, each earned:** a word measured un-underlined on ONE page is not enough — p634 and
      p732 CONTRADICT each other about `AFTER`/`SECONDS`, and the DEFINING clause wins (that check reverted a wrong
      change before it landed). `KEY`, `ON`, `RECORD` and `WITH` measure SPLIT and need per-site judgement. And the
