@@ -206,9 +206,9 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
   `ByteWidth`, the in-class OCCURS stride is `ByteWidth`, and `Place.NationalWindow` transcodes the window's
   UTF-16BE pairs through `CobolBits.NatReadWindow`/`NatWriteWindow` — the same serialization `NatBytes` already
   gave CONVERT's raw-storage channel. The §13.18.44.3 SR8 size screen and the Tier-A alias arm read `ByteWidth`
-  for the same reason. **STILL REFUSED, and each for its own reason, not this one:** an FD/SD record with a
-  national leaf (COBOLNET0899 — a DIFFERENT channel; see D-N5) and a pointer-class leaf on any byte-window
-  surface (§13.18.60.3 SR14 / PB183 — no byte image at all; PB231's remaining third).
+  for the same reason. **STILL REFUSED, and for its own reason, not this one:** an FD/SD record with a
+  national leaf (COBOLNET0899 — a DIFFERENT channel; see D-N5). A pointer-class leaf is no longer refused
+  anywhere — see D-SLOT.
 - **D-BW1 THE ONE BYTE-WINDOW CARRIAGE GATE** (kb/Work PB231, 2026-09-04). The question "may this LEAF ride a
   shared byte-window storage area?" has exactly ONE answer in the tree — `DataBinder.ByteWindowResidueOf`,
   which returns null when the leaf may and the residue clause naming why not when it may not. It is an
@@ -217,20 +217,50 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
   position, item 209); every NUMERIC usage on its pinned byte form (D19/PB164 — THE ONE image predicate
   `HasImageByteForm`); and BOOLEAN in **both** representations — a DISPLAY boolean as one '0'/'1' character
   (D-B1) and a **USAGE BIT run as the §13.18.60.4 GR5 sub-byte packing** laid out by the §8.5.1.6.3 cursor
-  (§13.18.29.4 GR1c for a bit group) and windowed by `CobolBits.ReadWindow`/`WriteWindow`. **Refused, each
-  its own named residue:** a NATIONAL leaf (D-N2 above / RESIDUE-11) and a pointer/object-class leaf
-  (§13.18.60.3 SR14 / PB183 — no byte image at all, so §14.9.3.4 GR9's null-seeding has nowhere to write).
+  (§13.18.29.4 GR1c for a bit group) and windowed by `CobolBits.ReadWindow`/`WriteWindow`; NATIONAL in both
+  spellings (D-N2 / RESIDUE-11); and the POINTER family, which rides the area's MANAGED SLOTS rather than its
+  bytes (D-SLOT). **Refused: nothing — the gate has no residue left.** Its default arm is kept as the loud
+  guard for a category added to the model with no pinned representation, which is what the ALLOW-list
+  direction is for.
   ⛔ It replaced TWO hand-written lists — `ComputeTier`'s deny-list and `ForceStringCanonical`'s allow-list —
   which drifted the moment only one was widened: PB203 opened the REDEFINES surface to USAGE BIT leaves and
   left the cell surface refusing them, so a BASED/EXTERNAL/ADDRESS-OF record rejected legal source that its
   byte-identical REDEFINES twin compiled and ran. `ByteWindowResidueDriftTests` pins all four surfaces to one
   verdict per leaf; discharging either residue is now a single edit that opens every surface at once.
-  **⛔ THAT CLAIM WAS TESTED AND HELD (2026-09-05):** discharging the NATIONAL residue was one edit to the
-  gate — two arms from a residue clause to `null` — plus the geometry behind it, and every one of the four
-  surfaces opened together. **Refused today: the pointer/object-class leaf, and nothing else.** The
+  **⛔ THAT CLAIM WAS TESTED AND HELD, TWICE (2026-09-05):** discharging the NATIONAL residue was one edit to
+  the gate — two arms from a residue clause to `null` — plus the geometry behind it, and every one of the four
+  surfaces opened together; the POINTER residue then cost one more arm plus the slot carriage (D-SLOT). The
   carried population is now the character categories, every NUMERIC usage on its pinned byte form, BOOLEAN in
-  both representations, and NATIONAL in both spellings (the category, and the national-form numeric — whose
-  arm is derived but unreachable while `CheckDataAttributes` stages national DIGITS loud at COBOLNET0899).
+  both representations, NATIONAL in both spellings (the category, and the national-form numeric — whose arm is
+  derived but unreachable while `CheckDataAttributes` stages national DIGITS loud at COBOLNET0899), and the
+  POINTER family. **Nothing is refused today.**
+- **D-SLOT the MANAGED SLOTS of a shared storage area** (kb/Work PB231, 2026-09-05 — the pointer third). A
+  data item of class pointer or class object holds a MANAGED REFERENCE, which is not a byte sequence, so it is
+  the one leaf kind a byte window genuinely cannot express. It does not ride the area's bytes: **`StorageCell`
+  carries MANAGED SLOTS keyed by BYTE OFFSET beside its byte image**, the member's bytes there are RESERVED
+  placeholder positions of its `ByteWidth` (8 — §13.18.60.4 GR23 leaves the size to the implementor), and
+  `Place.SlotWindow` — the third `WindowCoding`, beside `BitWindow` and `NationalWindow` — reads and writes
+  the slot at the same byte offset the byte window would have used, through `CobolPtr.SlotRead`/`SlotWrite`.
+  Reserving the bytes is what keeps §14.9.3.4 GR3's byte quantity and every following member's class offset
+  exactly what a byte-addressed area says they are.
+  - **§14.9.3.4 GR9 is satisfied BY CONSTRUCTION**: an unwritten slot reads null, so "data items of class
+    object or class pointer in the allocated storage are initialized to null" holds for every allocation path
+    that exists or will exist, and the read renders the item's own `PicInfo.DefaultInitializer` as the null
+    state — the same expression an ordinary declared pointer field is seeded from. FREE drops the slots with
+    the image (§14.9.15.4 GR1a); they are one storage area.
+  - **The slots belong to the CELL, never to the item**, and that is the whole point: EXTERNAL sharing,
+    ADDRESS OF aliasing and `SET ADDRESS OF` re-pointing all mean "two descriptions of ONE storage area", so a
+    pointer member re-pointed through one description is visible through every other. Each cell surface now
+    emits `StorageCell {RedefinesClass.BackingCellCsName}` FIRST and defines the `ref string` backing as
+    `ref {cell}.Ref`, so the two halves being one area is an identity, not a coincidence.
+  - **A REDEFINES class has no cell, and that is a CARRIER question, asked once** — in `ComputeTier`, not in
+    the shared gate. It is unreachable on conforming source: §13.18.44.3 SR12/SR14 bar a class-object /
+    message-tag / pointer item and a strongly-typed group from either side of a REDEFINES entry, and
+    §13.18.60.3 SR14 admits a pointer USAGE only at level 1 or under a STRONG type declaration.
+  - **Two SCREENS landed with it**, because the residue diagnostic COBOLNET1695 had been rejecting two
+    NONCONFORMING shapes for the wrong reason and opening the gate would have made them compile clean:
+    **COBOLNET1797** (§13.18.5.3 SR1 — a BASED subject of class object) and **COBOLNET1796** (§13.18.22.3 SR4
+    — an EXTERNAL item of class object or pointer). The asymmetry is the standard's own.
 - **D-N5 the RECORD-IMAGE channel is NOT the byte-window channel, and it still halves a national leaf**
   (kb/Work PB231, 2026-09-05). `GroupImageCodec.AsImageOf` composes a group's CHARACTER-POSITION image at
   `ImageWidth` per leaf; the FD/SD record codec and DISPLAY/group-MOVE/group-ref-mod ride it, so a national

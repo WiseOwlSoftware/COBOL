@@ -105,6 +105,14 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
     /// <summary>The bit coding, or null — the discriminated read of <see cref="Coding"/>.</summary>
     public BitWindow? Bit => Coding as BitWindow;
 
+    /// <summary>⛔ TRUE WHEN THIS VIEW'S <c>Read()</c> IS A CHARACTER STRING — the ONE test for the assumption
+    /// the wrapping consumers make about a Tier-B view ("its read is already the value image, use it
+    /// verbatim"). It holds for the identity coding, for <see cref="BitWindow"/> (the boolean carrier) and for
+    /// <see cref="NationalWindow"/> (the transcoded national characters), and it does NOT hold for
+    /// <see cref="SlotWindow"/>, whose read is a managed pointer/object reference (kb/Work PB231). Stated once,
+    /// here, so a fourth coding cannot silently inherit the wrong half of the assumption.</summary>
+    public bool ReadsCharacterImage => Coding is not SlotWindow;
+
     /// <summary>⛔ THE ONE Tier-B window builder (kb/Work PB203). Three sites compose this window — the resolver
     /// (<c>ReferenceResolver.PlaceForItem</c>), the INITIALIZE receiver cursor and the MOVE CORRESPONDING leaf
     /// cursor — and before this factory each carried its own copy of the offset law, which is exactly how the BIT
@@ -121,8 +129,14 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
     /// offset. Null/empty/"0" when the window is at a compile-time-known position.</param>
     /// <param name="occursBitTerms">The <c> + (index − 1) * bits</c> terms for each OCCURS level crossed WITHIN
     /// the class, already in bit units (<see cref="BitLayout.WidthBits"/> per level). Empty when none.</param>
+    /// <param name="cell">The structural path to the class's backing <c>StorageCell</c> — supplied only by the
+    /// three CELL-BACKED surfaces (BASED, EXTERNAL, ADDRESS OF; <c>RedefinesClass.BackingCellCsName</c>) and
+    /// null for a REDEFINES class, whose backing is a plain stored string field. It is what a
+    /// <see cref="SlotWindow"/> member needs (kb/Work PB231); see <see cref="SlotWindow.CarriedBySlot"/> for
+    /// why a REDEFINES class can never hold one.</param>
     public static RedefViewPlace For(AccessPath backing, DataItem item, string byteOffsetExpr,
-                                     string? runtimeByteDisplacement = null, string occursBitTerms = "")
+                                     string? runtimeByteDisplacement = null, string occursBitTerms = "",
+                                     AccessPath? cell = null)
     {
         // ⛔ THE WINDOW IS THE MEMBER'S STORAGE EXTENT, NOT ITS CHARACTER-POSITION COUNT (kb/Work PB231).
         // §13.18.44.4 GR1 states the association over "an area sufficient to contain the number of BITS
@@ -132,6 +146,20 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
         // implementation pins at two bytes per position (D-N1), so this read is byte-identical everywhere
         // else and is the whole of RESIDUE-11's geometry here.
         var window = new RedefViewPlace(backing, byteOffsetExpr, item.ByteWidth, item);
+        // ⛔ A POINTER-CLASS MEMBER'S VALUE IS NOT IN THE BYTES (kb/Work PB231 — the pointer third): it is the
+        // managed slot of the SAME area at the SAME byte offset, so its bytes stay reserved (§14.9.3.4 GR3's
+        // byte quantity, and every following member's offset, are unaffected) and its value rides
+        // StorageCell.SlotAt. `cell` is null exactly for a REDEFINES class, which cannot hold such a member on
+        // conforming source — see SlotWindow.CarriedBySlot — and its class is Rejected before any place is
+        // built for it. Falling through to the plain byte window would alias the member onto its own reserved
+        // placeholder characters, silently; this backstop makes that a compile-time internal error instead.
+        if (SlotWindow.CarriedBySlot(item))
+            return cell is not null
+                ? window with { Coding = new SlotWindow(cell) }
+                : throw new System.InvalidOperationException(
+                    $"'{item.CobolName ?? item.CsName}' is of a pointer class and its storage class has no "
+                    + "backing StorageCell — a managed slot has nowhere to live (ISO §14.9.3.4 GR9; kb/Work "
+                    + "PB231). Such a class must be Rejected at classification, never given a byte window.");
         if (NationalWindow.PositionsOf(item) is { } positions)
             return window with { Coding = new NationalWindow(positions) };
         if (!BitLayout.IsBitItem(item)) return window;
@@ -180,6 +208,42 @@ public sealed record NationalWindow(int Positions) : WindowCoding
         && (p.Category is PicCategory.National || (p.Category is PicCategory.Numeric && p.Usage is Usage.National))
             ? p.Category is PicCategory.National ? p.Length : item.ElementaryImageWidth
             : null;
+}
+
+/// <summary>A <see cref="RedefViewPlace"/>'s MANAGED-SLOT window (kb/Work PB231 — the pointer third): the member
+/// is of a pointer class, whose value is a managed reference and therefore has no byte image at all. Its bytes in
+/// the class backing are RESERVED placeholder positions — <see cref="RedefViewPlace.Width"/> of them, the item's
+/// <see cref="DataItem.ByteWidth"/> — so §14.9.3.4 GR3's "the amount of storage to be allocated is the number of
+/// bytes required to hold an item as described by data-name-1" and every following member's offset are exactly
+/// what a byte-addressed area says; the VALUE rides <c>StorageCell.SlotAt</c> at that same byte offset, through
+/// <c>CobolPtr.SlotRead</c>/<c>SlotWrite</c>.
+/// <para><paramref name="Cell"/> is the structural path to the class's backing <c>StorageCell</c> — a SECOND path
+/// beside <see cref="RedefViewPlace.Backing"/> because the slots and the byte image are two halves of ONE storage
+/// area and only the cell holds both. It is available exactly on the three CELL-BACKED surfaces (BASED, EXTERNAL,
+/// ADDRESS OF).</para>
+/// <para>⛔ GR9 IS SATISFIED BY CONSTRUCTION, NOT BY A SEEDING LOOP: an unwritten slot reads null, so "data items
+/// of class object or class pointer in the allocated storage are initialized to null" holds for every allocation
+/// path that exists or will exist, and the read renders the item's own <c>PicInfo.DefaultInitializer</c> as the
+/// null state — the SAME expression an ordinary declared pointer field is seeded from.</para></summary>
+public sealed record SlotWindow(AccessPath Cell) : WindowCoding
+{
+    /// <summary>⛔ THE ONE test for "does this member ride the area's managed slots rather than its bytes?" (the
+    /// <see cref="NationalWindow.PositionsOf"/> model — the gate and the geometry must not be able to disagree
+    /// about the population). It is the three pointer/object PICTURE categories the model gives a managed
+    /// carrier: data-pointer, program-pointer and object reference. USAGE FUNCTION-POINTER and USAGE MESSAGE-TAG
+    /// are NOT here because they gain no <c>PicInfo</c> at all (the staged §13.18.60 USAGE band, COBOLNET0899);
+    /// they reach <c>DataBinder.ByteWindowResidueOf</c>'s "no bound representation" arm instead, and the day
+    /// their stage lifts this predicate is where they join.
+    /// <para>⚠ A REDEFINES class can never contain such a member on conforming source, which is why
+    /// <see cref="RedefViewPlace.For"/> may treat a missing cell as an internal error: §13.18.44.3 SR12 bars the
+    /// REDEFINES subject from being "of class object, message-tag, or pointer or a strongly-typed group item",
+    /// SR14 bars data-name-2 from the same list plus "an item subordinate to a strongly-typed group item", and
+    /// §13.18.60.3 SR14 admits a pointer USAGE "only for an elementary data item at level 1 or an elementary
+    /// data item subordinate to a type declaration that includes the STRONG phrase" — so a pointer member of a
+    /// REDEFINES class is barred at the entry by the first two rules or at the declaration by the third.</para></summary>
+    public static bool CarriedBySlot(DataItem item) =>
+        item.IsElementary && item.Pic is
+            { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.ObjectReference };
 }
 
 /// <summary>

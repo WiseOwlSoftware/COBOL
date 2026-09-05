@@ -57,6 +57,17 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// native-field lane compose one occurrence from the same literal text (kb/Work PB208).</param>
     private string ImageInitOfOne(DataItem item, bool useValues, string? rawOverride = null)
     {
+        // ⛔ A POINTER-CLASS LEAF CONTRIBUTES RESERVED BYTES AND NO IMAGE (kb/Work PB231 — the pointer third).
+        // Its value is a managed reference held in the area's MANAGED SLOT (Place.SlotWindow / StorageCell.SlotAt),
+        // whose unwritten state IS null — §14.9.3.4 GR9's "data items of class object or class pointer in the
+        // allocated storage are initialized to null" and §13.18.63.4's "data items of class message-tag, class
+        // object, and class pointer are initialized to null" both hold with no seeding here. What the BYTE image
+        // owes the shared area is exactly the item's storage extent of placeholder positions, so §14.9.3.4 GR3's
+        // byte quantity and every FOLLOWING member's class offset are what a byte-addressed area says they are —
+        // without this the pointer contributed its PICTURE-less zero-width nothing and displaced the rest.
+        // Placed beside the national coding below because it is the same kind of decision: how the member's
+        // value carrier relates to the bytes it occupies.
+        if (SlotWindow.CarriedBySlot(item)) return $"new string(' ', {item.ByteWidth})";
         string image = CarrierInitOfOne(item, useValues, rawOverride);
         // ⛔ A NATIONAL LEAF'S SEED IS ITS BYTES, NOT ITS CARRIER (kb/Work PB231). Everything this method seeds
         // is a BYTE-ADDRESSED shared area — a Tier-B REDEFINES backing, an EXTERNAL run-unit cell, a

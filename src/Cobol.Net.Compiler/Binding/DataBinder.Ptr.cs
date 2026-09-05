@@ -34,8 +34,8 @@ public sealed partial class DataBinder
     /// (<c>private ManagedPointer {AddrField} = ManagedPointer.Null;</c> — initially NULL, §13.18.5 GR2) +
     /// the deref bridge (<c>private ref string {Backing} =&gt; ref CobolPtr.Deref({AddrField}, {Width}).Ref;</c>
     /// — GR3/GR4 loud at every reference). (READ-ONLY view — P6 Step 5.)</summary>
-    internal IReadOnlyList<(string Backing, string AddrField, int Width)> PtrBasedBridges => _ptrBasedBridges;
-    private readonly List<(string Backing, string AddrField, int Width)> _ptrBasedBridges = [];
+    internal IReadOnlyList<(string Backing, string CellProp, string AddrField, int Width)> PtrBasedBridges => _ptrBasedBridges;
+    private readonly List<(string Backing, string CellProp, string AddrField, int Width)> _ptrBasedBridges = [];
 
     /// <summary>ADDRESS-OF-forced classes → their cell FIELD name (the emitter's
     /// <c>ManagedPointer.At({cell}, {offset})</c> source; bind-time validation checks membership).
@@ -82,7 +82,7 @@ public sealed partial class DataBinder
             }
             string addr = "__addr_" + DataItem.Sanitize(root.CobolName ?? root.CsName).ToUpperInvariant();
             cls.BasedPointerField = addr;
-            _ptrBasedBridges.Add((cls.BackingCsName, addr, cls.Width));
+            _ptrBasedBridges.Add((cls.BackingCsName, cls.BackingCellCsName, addr, cls.Width));
         }
 
         foreach (var (name, quals) in PtrScanAddressOfTargets(program))
@@ -103,7 +103,11 @@ public sealed partial class DataBinder
                 && CallExternalBackings.Any(b => b.BackingCsName == ext.BackingCsName))
                 continue;                               // EXTERNAL — already cell-backed (ExternalStore); At() takes it directly
             if (ForceStringCanonical(root, "ADDRESS OF target record") is not { } cls) continue;   // rejected → loud
-            string cell = "_cell_" + DataItem.Sanitize(root.CobolName ?? root.CsName).ToUpperInvariant();
+            // ⛔ THE CLASS NAMES ITS OWN CELL (kb/Work PB231): the field used to carry an ad-hoc `_cell_{NAME}`
+            // spelling that only this list knew, so a place builder could not reach the cell to address the
+            // area's MANAGED SLOTS. It is now RedefinesClass.BackingCellCsName, the ONE name every cell surface
+            // uses and ReferenceResolver.BuildCellPath resolves.
+            string cell = cls.BackingCellCsName;
             _ptrAddressableCellOf[cls] = cell;
             _ptrAddressableBackings.Add((cls.BackingCsName, cell, cls.Canonical, cls.Width));
         }

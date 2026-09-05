@@ -41,7 +41,12 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 /// initialized at initial state "except for those with the CONSTANT RECORD clause"). ⛔ There is no precomputed
 /// InitImage field any more: it was a SECOND seeder, hand-rolled in the binder from a char-fill model that
 /// predated the pinned byte forms (kb/Work PB164).</summary>
-public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, DataItem Record);
+/// <param name="CellCsName">The <c>StorageCell</c> property the backing is defined over
+/// (<c>RedefinesClass.BackingCellCsName</c>) — the cell holds BOTH halves of the one shared area, its byte image
+/// and its MANAGED SLOTS, so a pointer-class member of an external record addresses the same storage every other
+/// describer does (kb/Work PB231).</param>
+public sealed record CallExternalBacking(string BackingCsName, string CellCsName, string ExternalName, int Width,
+                                         DataItem Record);
 
 /// <summary>One FUNCTION-ID unit's activation signature (ISO §9.4 user-defined functions; M2-UDF-1): the
 /// registered function name, its PROCEDURE DIVISION RETURNING item (whose description the caller-side result
@@ -448,7 +453,8 @@ public sealed partial class DataBinder
             return;
         }
         _callExternalBackings.Add(new CallExternalBacking(
-            cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width, item));
+            cls.BackingCsName, cls.BackingCellCsName, externalName ?? item.CobolName!.ToUpperInvariant(),
+            cls.Width, item));
     }
 
     /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
@@ -498,6 +504,12 @@ public sealed partial class DataBinder
         // number for a NATIONAL leaf (two bytes per position, §13.18.60.4 GR8 / D-N1) — kb/Work PB231.
         cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)),
             rejectReason: null);
+        // ⛔ THE CELL CLAIM, made HERE because this method IS the one cell-backing forcer and its three callers
+        // ARE the three cell surfaces: from now on the class has a StorageCell behind its backing
+        // (RedefinesClass.BackingCellCsName), which is what a pointer-class member's MANAGED SLOT addresses
+        // (kb/Work PB231 — the pointer third; §14.9.3.4 GR9). A REDEFINES class never reaches this line and
+        // never gets one, which is exactly why ComputeTier still refuses a pointer leaf.
+        cls.IsCellBacked = true;
         foreach (var member in cls.Members)
         {
             AssignClassOffsets(member, 0, cls);

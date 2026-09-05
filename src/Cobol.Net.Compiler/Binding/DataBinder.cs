@@ -4158,9 +4158,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// produce exactly those classes) and a second hand-written list would drift the moment MESSAGE-TAG or
     /// FUNCTION-POINTER gains a model. A unit pin asserts the identity. ⛔ CLASS INDEX IS NOT HERE and must
     /// never be added: §13.18.60.3 SR4 is the rule whose list includes INDEX, and it has its own predicate.
-    /// </para></summary>
-    private static bool PointerObjectClass(DataItem d) =>
-        d.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.ObjectReference;
+    /// </para>
+    /// <para>⛔ AND IT IS NOW THE STORAGE PREDICATE TOO. <see cref="SlotWindow.CarriedBySlot"/> — "does this
+    /// member ride the storage area's MANAGED SLOTS rather than its bytes?" (kb/Work PB231, the pointer third)
+    /// — is the same population for the same reason: a class object/pointer item holds a managed reference and
+    /// no bytes. It is the DEFINITION and this is the delegation, so the third spelling cannot drift from the
+    /// first two either.</para></summary>
+    private static bool PointerObjectClass(DataItem d) => SlotWindow.CarriedBySlot(d);
 
     /// <summary>⛔ THE ONE BYTE-WINDOW CARRIAGE GATE — the single answer to "may this LEAF ride a shared
     /// byte-window storage area?", returning null when it may and the residue clause naming why not when it
@@ -4191,17 +4195,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// discharges RESIDUE-11 should fold all three, and the note carries that instruction.</para></summary>
     internal static string? ByteWindowResidueOf(DataItem leaf)
     {
-        // A pointer/object-class leaf is not a byte sequence at all — the managed pointer/reference cell has
-        // no byte-window overlay. §13.18.60.3 SR14 already makes the nested DECLARATION nonconforming (a USAGE
-        // clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER or PROGRAM-POINTER phrase
-        // "may be specified only for an elementary data item at level 1 or an elementary data item subordinate
-        // to a type declaration that includes the STRONG phrase" — CheckUsageDeclarations / COBOLNET1724,
-        // kb/Work PB183), so on conforming source this arm is reached only through the level-1 and STRONG
-        // shapes it does NOT bar; those are the pointer half of kb/Work PB231, which needs a parallel
-        // object-slot in the storage area before §14.9.3.4 GR9's null-seeding has anywhere to write.
-        if (PointerObjectClass(leaf))
-            return "a pointer/object-class leaf (a managed pointer/reference cell has no byte-window overlay "
-                + "— ISO §13.18.60.3 SR14 / kb/Work PB183, PB231)";
+        // ⛔ A POINTER-CLASS LEAF RIDES — kb/Work PB231's pointer third, the LAST residue of this gate. Its
+        // value is a managed reference and has no byte image, so it does not ride the BYTES: it rides the SAME
+        // storage area's MANAGED SLOTS, keyed by the very byte offset its reserved bytes occupy
+        // (Place.SlotWindow → StorageCell.SlotAt / CobolPtr.SlotRead). The area's byte quantity is unchanged —
+        // §14.9.3.4 GR3's "the amount of storage to be allocated is the number of bytes required to hold an
+        // item as described by data-name-1" is satisfied by the item's own 8-byte managed-carrier width — and
+        // GR9's "data items of class object or class pointer in the allocated storage are initialized to null"
+        // holds by construction, since an unwritten slot reads null.
+        // ⚠ THE CARRIER IS A SECOND, DIFFERENT QUESTION, and it is NOT asked here: the slots live on a
+        // StorageCell, which the three CELL surfaces have and a REDEFINES class's stored string backing does
+        // not. ComputeTier asks it, once, and §13.18.44.3 SR12/SR14 plus §13.18.60.3 SR14 make its refusal
+        // unreachable on conforming source (see Place.SlotWindow.CarriedBySlot for the three-rule derivation).
         // A USAGE FUNCTION-POINTER entry is staged at declaration (the P13 band) and never gains a PicInfo;
         // an elementary item with no bound representation has no image to window.
         if (leaf.Pic is not { } p)
@@ -4222,6 +4227,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // NUMERIC (PIC 9 USAGE NATIONAL, §13.18.60.3 SR12 — staged loud earlier at COBOLNET0899, so this arm is
         // the derived storage answer for the day that stage lifts rather than an observable one today).
         if (NationalWindow.PositionsOf(leaf) is not null) return null;
+        // ⛔ THE POINTER FAMILY RIDES THE SLOTS — asked through THE ONE population test, never re-listed here,
+        // for the same reason the national arm above is (kb/Work PB231): the gate and the geometry that carries
+        // it must not be able to disagree about WHICH leaves are which.
+        if (SlotWindow.CarriedBySlot(leaf)) return null;
         return p.Category switch
         {
             // One byte per character position (the documented item-209 serialization); an edited image is
@@ -4333,6 +4342,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null) is { } residue)
         {
             reject = $"{residue} under REDEFINES of '{cls.Canonical.CobolName}' — not yet implemented";
+            return RedefinesTier.Rejected;
+        }
+
+        // ⛔ THE SECOND, DIFFERENT QUESTION — THE CARRIER (kb/Work PB231, the pointer third). ByteWindowResidueOf
+        // answers "may this leaf ride a shared byte-window area?", and since PB231 a pointer-class leaf may: its
+        // bytes are reserved and its VALUE rides the area's MANAGED SLOTS (Place.SlotWindow). Those slots live on
+        // a StorageCell, which the three CELL surfaces have (RedefinesClass.IsCellBacked, set by the ONE forcer
+        // ForceStringCanonical) and a REDEFINES class's plain stored string backing does NOT. That is a property
+        // of the CARRIER, not of the leaf, so it is asked here rather than smuggled back into the shared gate —
+        // which would re-create the very two-arm divergence PB231's collapse removed.
+        // ⚠ UNREACHABLE ON CONFORMING SOURCE, by three rules that were re-derived rather than inherited:
+        // §13.18.44.3 SR12 — "The REDEFINES clause shall not be specified for a data item of class object,
+        // message-tag, or pointer or a strongly-typed group item"; SR14 — "Data-name-2 shall not be of class
+        // object, message-tag, or pointer, a strongly-typed group item, or an item subordinate to a strongly-
+        // typed group item"; and §13.18.60.3 SR14, which admits a pointer USAGE "only for an elementary data
+        // item at level 1 or an elementary data item subordinate to a type declaration that includes the STRONG
+        // phrase". So such a member is barred at the entry by the first two or at the declaration by the third,
+        // and this arm is the loud guard for the recovery paths — never a silent alias of reserved bytes.
+        if (!cls.IsCellBacked && leaves.FirstOrDefault(SlotWindow.CarriedBySlot) is { } managed)
+        {
+            reject = $"'{managed.CobolName ?? "FILLER"}' is of a pointer class, whose value rides the storage "
+                + "area's managed slots (ISO §14.9.3.4 GR9), and a REDEFINES class's stored backing has none "
+                + $"— under REDEFINES of '{cls.Canonical.CobolName}'";
             return RedefinesTier.Rejected;
         }
 

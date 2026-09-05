@@ -283,7 +283,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             // which is what a BIT member's window needs — its own position is carried in BITS by ClassBitOffset.
             string displacement = $"{Hoist(isRef: false)} - {_groupItem.ClassOffset}";
             return RedefViewPlace.For(_backing!, leaf,
-                $"{displacement} + {leaf.ClassOffset}", displacement);
+                $"{displacement} + {leaf.ClassOffset}", displacement,
+                cell: ReferenceResolver.BuildCellPath(_groupItem.Class));
         }
 
         /// <summary>Record the anchor hoist on first use and return its local name.</summary>

@@ -76,6 +76,16 @@ internal static class PlaceRenderer
         // unlike the 1-based CobolString ref-mod the identity arm below uses).
         RedefViewPlace { Coding: NationalWindow n } v => RuntimeApi.NatReadWindow(
             RenderPath(v.Backing, AccessDir.Sending), $"(int)({v.OffsetExpr})", n.Positions.ToString()),
+        // A POINTER-CLASS member of the class (kb/Work PB231 — the pointer third): its value is a MANAGED
+        // REFERENCE, not bytes, so it rides the same storage area's SLOT at the same byte offset its reserved
+        // bytes occupy. The null state is the item's own DefaultInitializer, which is how §14.9.3.4 GR9's
+        // "data items of class object or class pointer in the allocated storage are initialized to null"
+        // becomes a property of an unwritten slot rather than of a seeding loop. Reading the CELL (not the
+        // backing string) is what makes the two halves provably one area — and it goes through the SAME cell
+        // property whose GR3/GR4 deref guard the byte half already fires.
+        RedefViewPlace { Coding: SlotWindow s } v => RuntimeApi.PtrSlotRead(
+            RenderPath(s.Cell, AccessDir.Sending), $"(int)({v.OffsetExpr})",
+            v.ViewItem.ElementType, v.ViewItem.Pic!.DefaultInitializer),
         RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
@@ -159,6 +169,12 @@ internal static class PlaceRenderer
         // padding the BYTES would manufacture U+2020 characters instead of national spaces.
         RedefViewPlace { Coding: NationalWindow n } v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
             $"{RuntimeApi.NatWriteWindow(RenderPath(v.Backing, AccessDir.Sending), $"(int)({v.OffsetExpr})", n.Positions.ToString(), rhs)};",
+        // Store a POINTER-CLASS member into the area's MANAGED SLOT (kb/Work PB231) — the receiving twin of the
+        // slot read. The BYTE image is deliberately untouched: the member's bytes there are reserved
+        // placeholders, so a write through one description cannot disturb another view's characters
+        // (§13.18.44.4 GR1 — one storage area, and every other member's positions are its own).
+        RedefViewPlace { Coding: SlotWindow s } v =>
+            $"{RuntimeApi.PtrSlotWrite(RenderPath(s.Cell, AccessDir.Sending), $"(int)({v.OffsetExpr})", rhs)};",
         // Splice the new image back into the class's ONE backing, preserving its full width (§13.18.44).
         RedefViewPlace v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
             $"{RuntimeApi.StrSpliceInto(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString(), rhs)};",

@@ -211,13 +211,17 @@ internal sealed class ProgramEmitter
                 w.Line($"private readonly StorageCell {cellField} = new StorageCell {{ Ref = {seed} }};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
                 w.Line($"private ref string {backing} => ref {cellField}.Ref;");
             }
-            foreach (var (backing, addrField, width) in data.PtrBasedBridges)
+            foreach (var (backing, cellProp, addrField, width) in data.PtrBasedBridges)
             {
                 // A RECURSIVE unit's static-WS based root emits its bridge STATIC (§13.5.4 GR1 — one copy on
                 // the class), reset to NULL by __ResetStatics (§14.6.2.3.2 action 5; kb/Work PB154).
                 string mod = data.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
                 w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5 GR2 — initially NULL)");
-                w.Line($"{mod} ref string {backing} => ref {RuntimeApi.PtrDeref(addrField, $"{width}")}.Ref;   // BASED deref bridge (GR3/GR4 loud)");
+                // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the addressed area's
+                // MANAGED SLOTS are two halves of ONE StorageCell, and the GR3/GR4 loud deref happens once, on
+                // the cell, so both halves see the same null/bounds verdict.
+                w.Line($"{mod} StorageCell {cellProp} => {RuntimeApi.PtrDeref(addrField, $"{width}")};   // BASED deref bridge (GR3/GR4 loud)");
+                w.Line($"{mod} ref string {backing} => ref {cellProp}.Ref;");
             }
 
             new DataEmitter(Current.Ctx).Emit();
@@ -295,9 +299,21 @@ internal sealed class ProgramEmitter
     private static Place? PrefixPlace(Place p, string prefix) => p switch
     {
         MemberPlace m => new MemberPlace(m.Path.Reroot(prefix), m.MemberItem),
-        // `with` rather than a fresh construction: the window's BIT payload (kb/Work PB203) is part of the place's
-        // identity and re-anchoring changes only where the backing lives, never which positions the member holds.
-        RedefViewPlace r => r with { Backing = r.Backing.Reroot(prefix) },
+        // `with` rather than a fresh construction: the window's CODING (kb/Work PB203, PB231) is part of the
+        // place's identity and re-anchoring changes only WHERE the storage lives, never which positions the
+        // member holds.
+        // ⛔ EVERY PATH THE PLACE CARRIES IS RE-ANCHORED, NOT JUST THE BACKING. A SlotWindow coding carries a
+        // SECOND structural path — the class's StorageCell, which holds the area's managed slots beside its byte
+        // image (kb/Work PB231) — and re-anchoring one path and not the other would name storage in two
+        // different classes. It is the same re-anchoring, so it is applied by the same expression; a coding that
+        // carries no path is unaffected. (Unreachable today: this method exists for a container-resolved FILE
+        // STATUS item, which §12.4.5.8.3 SR1 makes a two-character alphanumeric item — never a pointer. Written
+        // as the rule anyway, because the next caller of PrefixPlace will not know that.)
+        RedefViewPlace r => r with
+        {
+            Backing = r.Backing.Reroot(prefix),
+            Coding = r.Coding is SlotWindow s ? new SlotWindow(s.Cell.Reroot(prefix)) : r.Coding,
+        },
         _ => null,
     };
 

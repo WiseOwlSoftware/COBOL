@@ -429,21 +429,21 @@ public static class DiagnosticCatalog
         "ISO §14.9.6.3");
     public static readonly DiagnosticDescriptor BasedRecordSubstrate = new(
         "COBOLNET1695", "based-record-substrate", EditionSeverity.Error,
-        "A BASED record has a subordinate item the shared byte cell cannot carry — today exactly ONE shape, a "
-        + "pointer-class leaf (POINTER/PROGRAM-POINTER/FUNCTION-POINTER/OBJECT-REFERENCE), which has no byte "
-        + "form at all, so §14.9.3.4 GR9's null-seeding has nowhere to write: the ALLOCATE/ADDRESS pointer "
-        + "bridge is recognized but not yet implemented for it. The message interpolates the residue clause "
-        + "the ONE gate DataBinder.ByteWindowResidueOf produced, so a future refusal names itself. Every "
-        + "NUMERIC leaf rides the cell on its pinned byte form — DISPLAY, BINARY, PACKED-DECIMAL, COMP-5, the "
-        + "IEEE float family and USAGE INDEX all have one — so a COMP leaf does not draw this (kb/Work "
-        + "PB164); neither does a USAGE BIT leaf, whose §8.5.1.6.3 sub-byte packing rides every byte-window "
-        + "surface alike (kb/Work PB231); and neither, since kb/Work PB231 discharged RESIDUE-11, does a "
-        + "NATIONAL leaf, whose §13.18.60.4 GR8 two-bytes-per-position storage extent the byte-addressed "
-        + "area now lays out and the window transcodes UTF-16BE. Both of those two drew this diagnostic while "
-        + "their byte-identical REDEFINES spelling compiled and ran, because the cell gate and the REDEFINES "
-        + "gate were two hand-written lists that had drifted. Previously the class was rejected SILENTLY at "
-        + "bind and the program crashed at run time on its first ALLOCATE, while the EXTERNAL twin of the "
-        + "same failure always diagnosed at bind.",
+        "A BASED record has a subordinate item the shared storage area cannot carry. ⛔ NO SUCH SHAPE EXISTS "
+        + "TODAY: this is the loud DEFAULT of the ALLOW-list gate DataBinder.ByteWindowResidueOf, kept so that "
+        + "a data category added to the model with no pinned representation is REFUSED by name instead of "
+        + "silently laid out as a zero-width alias. Every leaf kind it once refused now rides the area — every "
+        + "NUMERIC usage on its pinned byte form (DISPLAY, BINARY, PACKED-DECIMAL, COMP-5, the IEEE float "
+        + "family, USAGE INDEX; kb/Work PB164); a USAGE BIT run on its §8.5.1.6.3 sub-byte packing; a NATIONAL "
+        + "leaf on its §13.18.60.4 GR8 two-bytes-per-position extent, transcoded UTF-16BE (RESIDUE-11); and a "
+        + "POINTER-CLASS leaf on the area's MANAGED SLOT at the byte offset its reserved bytes occupy, which "
+        + "is where §14.9.3.4 GR9's null-seeding writes — the three thirds of kb/Work PB231. Each of those "
+        + "drew this diagnostic while its byte-identical REDEFINES spelling compiled and ran, because the cell "
+        + "gate and the REDEFINES gate were two hand-written lists that had drifted; they are ONE predicate "
+        + "now. The message interpolates the residue clause that gate produced, so a future refusal names "
+        + "itself. ⚠ The two NONCONFORMING shapes this diagnostic used to reject for the wrong reason now draw "
+        + "the rules that actually bar them: COBOLNET1797 (§13.18.5.3 SR1, a BASED subject of class object) "
+        + "and COBOLNET1796 (§13.18.22.3 SR4, an EXTERNAL item of class object or pointer).",
         "ISO §13.18.5 / §14.9.3");
     public static readonly DiagnosticDescriptor CancelTargetCategory = new(
         "COBOLNET1696", "cancel-target-category", EditionSeverity.Error,
@@ -869,6 +869,26 @@ public static class DiagnosticCatalog
         + "RECORD clause, or in any item subordinate to a data item described with the CONSTANT RECORD "
         + "clause.\" (SIX phrases — INDEX is in THIS rule's list and NOT in SR14's.)",
         "ISO §13.18.60.3 SR4");
+    // ⛔ THE TWO SCREENS THE POINTER-CLASS STORAGE LANDING MADE NECESSARY (kb/Work PB231). Until it, a
+    // pointer-class leaf under BASED / EXTERNAL / ADDRESS OF drew the byte-window residue diagnostic
+    // COBOLNET1695 ("recognized but not yet implemented"), which happened to reject these two NONCONFORMING
+    // shapes as well — for the wrong reason. Opening the gate would therefore have turned each into a silent
+    // UNDER-REJECTION, so the rules that actually bar them are enforced in the same change set.
+    public static readonly DiagnosticDescriptor ExternalPointerOrObjectItem = new(
+        "COBOLNET1796", "external-pointer-or-object-item", EditionSeverity.Error,
+        "ISO §13.18.22.3 syntax rule 4: \"The EXTERNAL clause shall not be specified for a data item of class "
+        + "object or pointer.\" (The rule names the ITEM's own class, so a strongly-typed EXTERNAL group with a "
+        + "pointer MEMBER is not barred by it — that group is class alphanumeric, and §13.18.22.3 SR5 requires "
+        + "only that its type declaration also be external. Class pointer covers the data-pointer and "
+        + "program-pointer categories; class object is the object-reference category.)",
+        "ISO §13.18.22.3 SR4");
+    public static readonly DiagnosticDescriptor BasedSubjectOfClassObject = new(
+        "COBOLNET1797", "based-subject-of-class-object", EditionSeverity.Error,
+        "ISO §13.18.5.3 syntax rule 1: \"The subject of the entry shall not be of class object.\" (Only class "
+        + "OBJECT — a BASED data-pointer or program-pointer entry is class POINTER and is legal, which is the "
+        + "asymmetry with the EXTERNAL clause's §13.18.22.3 SR4, whose list carries both classes. SR2's shapes, "
+        + "a dynamic-length elementary item and a variable-length group, have their own screens.)",
+        "ISO §13.18.5.3 SR1");
     // The OPTIONS INITIALIZE clause's ONE syntax rule (kb/Work PB152). ⛔ "hexadecimal-alphanumeric literal" is a
     // DEFINED TERM, not loose wording for "alphanumeric or hex": §8.3.3.2.2 gives the alphanumeric literal exactly
     // two formats — format 1 `"…"` / `'…'` and format 2 `X"…"` / `X'…'` — and "hexadecimal-alphanumeric" names
@@ -1068,8 +1088,12 @@ public static class DiagnosticCatalog
     // ── COBOLNET0899 — miscellaneous deferrals ───────────────────────────────────────────────────────
     public static readonly DiagnosticDescriptor ExternalRecordNotCellBacked = new(
         NotImplemented, "external-record-not-cell-backed", EditionSeverity.Error,
-        "An EXTERNAL record cannot be cell-backed (a restriction of the current EXTERNAL model).",
-        "ISO §13.18.24", RecognizedNotImplemented);
+        "An EXTERNAL record cannot be cell-backed. ⛔ NO SUCH SHAPE EXISTS TODAY — the EXTERNAL twin of "
+        + "COBOLNET1695, kept for the same reason: both route through the ONE allow-list gate "
+        + "DataBinder.ByteWindowResidueOf, so a category added to the model with no pinned representation is "
+        + "refused by name on BOTH surfaces rather than on one (kb/Work PB231's collapse). A nonconforming "
+        + "EXTERNAL pointer/object item is COBOLNET1796's (§13.18.22.3 SR4), not this.",
+        "ISO §13.18.22", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor RecursiveContainedWs = new(
         NotImplemented, "recursive-contained-working-storage", EditionSeverity.Error,
         "A RECURSIVE program that directly contains programs and declares WORKING-STORAGE or a FILE SECTION "

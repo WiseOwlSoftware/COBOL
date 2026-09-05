@@ -174,9 +174,29 @@ public static class CobolPtr
         {
             w.Cell.Freed = true;   // GR1a — released; dangling aliases trip Deref loud
             w.Cell.Ref = "";
+            w.Cell.ClearSlots();   // GR1a — the managed slots are the SAME storage area (kb/Work PB231)
             return ManagedPointer.Null;
         }
         notAlloc = true;           // GR1c — not the start of an allocation
         return p;
     }
+
+    /// <summary>⛔ READ A MANAGED SLOT of a shared storage area (kb/Work PB231 — the pointer third): the value
+    /// of a class-pointer / class-object member of a BASED, EXTERNAL or ADDRESS-OF-taken record, which lives
+    /// in <see cref="StorageCell.SlotAt"/> rather than in the cell's byte image because a managed reference is
+    /// not a byte sequence. <paramref name="nullState"/> is the item's COBOL NULL state — the value an
+    /// unwritten slot has, which realizes ISO §14.9.3.4 GR9 ("data items of class object or class pointer in
+    /// the allocated storage are initialized to null") and §13.18.63.4's "data items of class message-tag,
+    /// class object, and class pointer are initialized to null" with ONE expression, the same
+    /// <c>PicInfo.DefaultInitializer</c> an ordinary declared field is seeded from.
+    /// <para>The window's byte geometry is unchanged and unused here — the slot is keyed by the SAME byte
+    /// offset the byte window would have had, so the two halves of the area cannot disagree about where a
+    /// member sits.</para></summary>
+    public static T SlotRead<T>(StorageCell cell, int byteOffset, T nullState) =>
+        cell.SlotAt(byteOffset) is T v ? v : nullState;
+
+    /// <summary>Store a managed slot — the receiving twin of <see cref="SlotRead{T}"/>. Returns the value so
+    /// the emitted store is an expression statement of the same shape the byte-window codings use.</summary>
+    public static void SlotWrite(StorageCell cell, int byteOffset, object? value) =>
+        cell.SetSlotAt(byteOffset, value);
 }

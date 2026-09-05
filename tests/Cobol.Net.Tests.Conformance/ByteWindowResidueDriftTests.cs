@@ -29,10 +29,12 @@ namespace CobolNet.Tests.Conformance;
 /// <para>The AGREEMENT half is deliberately stated without hard-coding the verdict, so the landing that
 /// discharges a residue does not have to edit it. The PINNED half below states the verdicts that are settled
 /// today, so "they all agree" can never be satisfied by all four regressing together.</para>
-/// <para>⛔ IT WORKED AS DESIGNED. kb/Work PB231's NATIONAL third — RESIDUE-11, the D-N1 two-bytes-per-position
-/// byte-window layout — was discharged by ONE edit to the gate plus the geometry behind it, and the only change
-/// needed in this file was flipping the expectation column. One residue is left: the pointer/object-class
-/// leaf.</para>
+/// <para>⛔ IT WORKED AS DESIGNED, TWICE. kb/Work PB231's NATIONAL third — RESIDUE-11, the D-N1
+/// two-bytes-per-position byte-window layout — was discharged by ONE edit to the gate plus the geometry behind
+/// it, and the only change needed in this file was flipping the expectation column. The POINTER third then
+/// emptied the gate entirely: a pointer-class leaf's value rides the area's MANAGED SLOT at the byte offset its
+/// reserved bytes occupy, so <b>no leaf kind is refused any more</b> and the refusal fact below had to be
+/// replaced rather than flipped.</para>
 /// </summary>
 public sealed class ByteWindowResidueDriftTests
 {
@@ -111,22 +113,29 @@ public sealed class ByteWindowResidueDriftTests
                 + $"{(ok ? "carried" : "refused")} — {detail}");
     }
 
-    /// <summary>A refusal must NAME its residue, so the agreement above can never be satisfied by two surfaces
-    /// failing for two unrelated reasons (feedback_probe_the_shape_the_subject_hides).
-    /// <para>⛔ IT IS A FACT OVER ONE MEASURED SHAPE, NOT A THEORY OVER THE TABLE ABOVE, and that is the honest
-    /// form after kb/Work PB231's national landing: every row of that table is now CARRIED, so a per-row
-    /// refusal assertion would assert nothing at all and pass — a green that looked at nothing
-    /// (feedback_measure_the_selectors_complement). Exactly ONE refusal still reaches the gate, and it needs a
-    /// shape the table's templates cannot express: §13.18.60.3 SR14 admits a pointer USAGE only "for an
-    /// elementary data item at level 1 or an elementary data item subordinate to a type declaration that
-    /// includes the STRONG phrase", so a `05 L USAGE POINTER` under any of the four templates is rejected
-    /// COBOLNET1724 at the DECLARATION and the compile never reaches storage classification. The level-1
-    /// elementary BASED spelling below is the reachable one — PB231's remaining pointer third — and this test
-    /// goes red the day it lands, which is correct: that landing owns this file too.</para></summary>
+    /// <summary>⛔ THE GATE HAS NO RESIDUE LEFT, AND WHAT REPLACED ITS LAST REFUSALS ARE CONFORMANCE SCREENS
+    /// (kb/Work PB231, the pointer third). This test is the successor of <c>ARefusal_NamesItsResidue</c>, and
+    /// the replacement is forced rather than stylistic: that test asserted a refusal, every leaf kind the gate
+    /// can see is now carried, and an assertion with no true instance left is not a test
+    /// (feedback_measure_the_selectors_complement — a green that looked at nothing).
+    /// <para>What must stay true is a THREE-PART fact, and each part fails independently:</para>
+    /// <list type="number">
+    /// <item>the level-1 <c>USAGE POINTER BASED</c> shape — §13.18.60.3 SR14's first arm, the one PB231's
+    /// pointer third implements — COMPILES AND RUNS, and reads NULL after a plain ALLOCATE (§14.9.3.4 GR9);</item>
+    /// <item><c>USAGE OBJECT REFERENCE BASED</c> is REFUSED, by §13.18.5.3 SR1 ("The subject of the entry shall
+    /// not be of class object") — COBOLNET1797, not a residue;</item>
+    /// <item><c>USAGE POINTER EXTERNAL</c> is REFUSED, by §13.18.22.3 SR4 ("The EXTERNAL clause shall not be
+    /// specified for a data item of class object or pointer") — COBOLNET1796.</item>
+    /// </list>
+    /// <para>Parts 2 and 3 are the ones the landing could most easily have broken: both shapes used to be
+    /// rejected by the residue diagnostic COBOLNET1695, so opening the gate without them would have turned two
+    /// NONCONFORMING programs into clean compiles — an under-rejection created by a fix. The asymmetry between
+    /// them (BASED bars only class object; EXTERNAL bars class object AND class pointer) is the standard's own,
+    /// and asserting BOTH is what keeps a future "simplification" from unifying the two lists.</para></summary>
     [Fact]
-    public void ARefusal_NamesItsResidue()
+    public void ThePointerClassLeafRides_AndTheTwoNonconformingShapesAreRefusedByTheirOwnRules()
     {
-        var (ok, detail) = Run("""
+        var (carried, carriedOut) = RunOut("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. BWRPTR1.
             DATA DIVISION.
@@ -136,20 +145,55 @@ public sealed class ByteWindowResidueDriftTests
             PROCEDURE DIVISION.
             MAIN.
                 ALLOCATE P RETURNING WS-P
+                IF P = NULL DISPLAY "NULL" ELSE DISPLAY "SET" END-IF
                 FREE WS-P
                 STOP RUN.
             """);
-        Assert.False(ok, "the pointer-class byte-window residue is discharged — kb/Work PB231's last third has "
-            + "landed, so this test and the table above must be updated together");
-        Assert.True(detail.Contains("pointer/object-class", StringComparison.Ordinal),
-            $"the BASED surface refused a level-1 pointer item without naming the byte-window residue "
-            + $"DataBinder.ByteWindowResidueOf produced: {detail}");
+        Assert.True(carried, "a level-1 USAGE POINTER BASED item is legal source — §13.18.5.3 SR1 bars only "
+            + "class OBJECT from a BASED entry, and §14.9.3.3 SR1 asks only for the BASED clause. It rides the "
+            + $"storage area's managed slot (kb/Work PB231): {carriedOut}");
+        Assert.Contains("NULL", carriedOut, StringComparison.Ordinal);   // §14.9.3.4 GR9
+
+        var (objOk, objDetail) = Run("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BWRPTR2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 O USAGE OBJECT REFERENCE BASED.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            """);
+        Assert.False(objOk, "§13.18.5.3 SR1: the subject of a BASED entry shall not be of class object");
+        Assert.Contains("COBOLNET1797", objDetail, StringComparison.Ordinal);
+
+        var (extOk, extDetail) = Run("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BWRPTR3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 EP USAGE POINTER EXTERNAL.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            """);
+        Assert.False(extOk, "§13.18.22.3 SR4: the EXTERNAL clause shall not be specified for a data item of "
+            + "class object or pointer");
+        Assert.Contains("COBOLNET1796", extDetail, StringComparison.Ordinal);
     }
 
     private static (bool Ok, string Detail) Run(string src)
     {
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
         return (ok, detail);
+    }
+
+    /// <summary>The run's STDOUT — for the one assertion that needs the program's own output rather than the
+    /// compiler's verdict text (§14.9.3.4 GR9's null seeding, observed).</summary>
+    private static (bool Ok, string Out) RunOut(string src)
+    {
+        var (ok, stdout, _) = new CobolNetCompiler(2023).CompileAndRun(src);
+        return (ok, stdout);
     }
 
     // ── The four spellings of one record ────────────────────────────────────────────────────────────────

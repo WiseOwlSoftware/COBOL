@@ -292,7 +292,14 @@ internal static class OperandText
         // (§13.18.44.4 GR1 — one storage, two descriptions). The zoned case falls through to the window verbatim,
         // and a signed zoned view that is the de-signed source of an alphanumeric move/compare re-emits its
         // magnitude digits (ISO §14.9.25.4 GR6a) exactly as the StoreAsImage branch below does.
-        if (p is RedefViewPlace)
+        // ⛔ "A Tier-B view's Read() is its character image" IS THE ARM'S PREMISE, so it is asked rather than
+        // assumed (kb/Work PB231). It holds for the identity coding, for a BIT window (the boolean carrier) and
+        // for a NATIONAL window (the transcoded characters) — and NOT for a SlotWindow, whose read is a managed
+        // pointer/object reference and not a string. A SlotWindow member therefore falls THROUGH to the
+        // category switch below, where a class-pointer operand meets exactly the same arm its non-cell-backed
+        // twin meets: `01 P USAGE POINTER BASED.` and `01 P USAGE POINTER.` must produce the same text for the
+        // same statement, whatever that text is. `RedefViewPlace.ReadsCharacterImage` states the premise once.
+        if (p is RedefViewPlace { ReadsCharacterImage: true })
             return NonTextBytes(p, deSign, sending) is { } rvBytes ? rvBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
                 ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), rvp.Digits), rvp)

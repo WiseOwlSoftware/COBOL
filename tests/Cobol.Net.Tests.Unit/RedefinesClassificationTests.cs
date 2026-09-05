@@ -178,15 +178,24 @@ public sealed class RedefinesClassificationTests
     }
 
     /// <summary>A pointer leaf NESTED inside a redefining group is NOT SR12/SR14's letter (those bar the
-    /// entry-level items) — it takes the staged-loud Tier-D arm: Rejected with the byte-window-overlay
-    /// mechanism named, never a silent zero-width Tier-B alias.</summary>
+    /// entry-level items) — it takes the staged-loud Tier-D arm: Rejected, never a silent zero-width Tier-B
+    /// alias.
+    /// <para>⛔ THE REASON CHANGED WITH kb/Work PB231's pointer third, and the assertion follows the reason
+    /// rather than the wording. It is no longer "no byte-window overlay": a pointer-class leaf DOES ride a
+    /// shared storage area now, on that area's MANAGED SLOTS (Place.SlotWindow / StorageCell.SlotAt), which is
+    /// where §14.9.3.4 GR9's null-seeding writes. What a REDEFINES class lacks is the CARRIER — the slots live
+    /// on a StorageCell, which the three cell surfaces (EXTERNAL, ADDRESS OF, BASED) have and a stored string
+    /// backing does not. That is a property of the carrier, not of the leaf, so it is a SECOND question asked
+    /// in ComputeTier rather than a residue in the shared gate DataBinder.ByteWindowResidueOf, which now
+    /// refuses nothing.</para></summary>
     [Fact]
     public void TierD_NestedPointerLeaf_StagedLoud()
     {
         var d = Bind("01 WS-A PIC X(8).\n01 WS-G REDEFINES WS-A.\n   05 WS-G-X PIC X(3).\n   05 WS-G-P USAGE POINTER.");
         var g = Item(d, "WS-G");
         Assert.Equal(RedefinesTier.Rejected, g.Class!.Tier);
-        Assert.Contains("byte-window overlay", g.Class.RejectReason);
+        Assert.Contains("managed slots", g.Class.RejectReason);
+        Assert.Contains("14.9.3.4 GR9", g.Class.RejectReason);
     }
 
     [Fact]

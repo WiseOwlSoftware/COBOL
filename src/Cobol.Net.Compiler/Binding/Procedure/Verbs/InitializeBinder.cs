@@ -124,7 +124,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         InitializeCursor? cursor = place switch
         {
             MemberPlace mp => new InitializeMemberCursor(mp.Path, mp.MemberItem),
-            RedefViewPlace rv => new InitializeViewCursor(rv.Backing, rv.OffsetExpr, rv.ViewItem.ClassOffset, rv.ViewItem, ""),
+            // The cell path rides along so a pointer-class receiver inside the class reaches the area's managed
+            // slots (kb/Work PB231) — ALLOCATE … INITIALIZED lowers to exactly this expansion (§14.9.3.4 GR7).
+            RedefViewPlace rv => new InitializeViewCursor(rv.Backing, rv.OffsetExpr, rv.ViewItem.ClassOffset, rv.ViewItem, "",
+                Cell: ReferenceResolver.BuildCellPath(rv.ViewItem.Class)),
             _ => null,
         };
         if (cursor is null)
@@ -324,7 +327,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             {
                 if (cls.Tier == RedefinesTier.StringCanonical && child.IsCanonical)
                     return new InitializeViewCursor(Path.Add(new MemberSegment(cls.BackingCsName)),
-                        child.ClassOffset.ToString(), child.ClassOffset, child, "");
+                        child.ClassOffset.ToString(), child.ClassOffset, child, "",
+                        Cell: ReferenceResolver.BuildCellPath(cls));
                 if (cls.Tier != RedefinesTier.Alias || !child.IsCanonical) return null;
             }
             return new InitializeMemberCursor(Path.Add(new MemberSegment(child.CsName)), child);
@@ -360,9 +364,12 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// in-class offset − the entry item's) + Σ (indexVar − 1) × per-occurrence width for each OCCURS level crossed
     /// (ISO §13.18.44 — a redefined table lays its occurrences end-to-end in the one backing; the same arithmetic
     /// as <c>ReferenceResolver.PlaceForItem</c>).</summary>
+    /// <param name="Cell">The class's backing <c>StorageCell</c> path, for the three cell-backed surfaces — what a
+    /// pointer-class receiver's managed slot addresses (kb/Work PB231; <see cref="SlotWindow"/>). Null for a plain
+    /// REDEFINES class, which cannot hold such a member.</param>
     private sealed record InitializeViewCursor(
         AccessPath Backing, string BaseExpr, int BaseOffset, DataItem Item, string OccursTerms,
-        string OccursBitTerms = "") : InitializeCursor(Item)
+        string OccursBitTerms = "", AccessPath? Cell = null) : InitializeCursor(Item)
     {
         public override InitializeCursor? Child(DataItem child) =>
             ReferenceEquals(child.Class, Item.Class) ? this with { Item = child } : null;
@@ -384,7 +391,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // re-deriving it from a byte expression would round a sub-byte member down to its containing byte.
             return RedefViewPlace.For(Backing, Item,
                 $"{BaseExpr}{(delta != 0 ? $" + {delta}" : "")}{OccursTerms}",
-                BaseExpr == BaseOffset.ToString() ? null : $"{BaseExpr} - {BaseOffset}", OccursBitTerms);
+                BaseExpr == BaseOffset.ToString() ? null : $"{BaseExpr} - {BaseOffset}", OccursBitTerms, Cell);
         }
     }
 }

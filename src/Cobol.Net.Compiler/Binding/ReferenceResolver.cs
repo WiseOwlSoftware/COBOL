@@ -775,7 +775,7 @@ public sealed class ReferenceResolver(DataBinder data)
             // A class-tier GROUP holding an occurs-depending table is an ODO operand exactly like a struct group
             // (kb/Work PB80: a BASED record — string-canonical — sent its MAXIMUM image; §13.18.38.4 GR8 does not
             // care how the group is stored). ONE wrap rule for both storage shapes.
-            return WrapIfOdoGroup(RedefViewPlace.For(backing, item, offset, based, bitTerms), item);
+            return WrapIfOdoGroup(RedefViewPlace.For(backing, item, offset, based, bitTerms, BuildCellPath(sc)), item);
         }
         // A Tier-A view forwards to the canonical (a numeric view reinterprets the shared unscaled value via its own
         // scale, for free). A not-yet-wired (Tier-C) / Rejected view is loud.
@@ -925,6 +925,19 @@ public sealed class ReferenceResolver(DataBinder data)
         cls.Canonical.Parent is not { } parent
             ? new AccessPath([new RootFieldSegment(cls.BackingCsName)])
             : BuildAccessPath(parent, []) is { } parentPath ? parentPath.Add(new MemberSegment(cls.BackingCsName)) : null;
+
+    /// <summary>The STRUCTURAL access path to the <c>StorageCell</c> behind a CELL-BACKED class's backing —
+    /// the second half of the one storage area, holding the MANAGED SLOTS a pointer-class member rides
+    /// (kb/Work PB231; <see cref="SlotWindow"/>). Null for a plain REDEFINES class, which has no cell.
+    /// <para>Always a bare root field: the three cell surfaces (EXTERNAL, ADDRESS OF, BASED) all force a
+    /// LEVEL-1 record — §13.18.22.3 SR1 puts EXTERNAL only on "level 1 data description entries", the
+    /// ADDRESS-OF forcer walks to the root before forcing, and a BASED entry is a 01/77 — so there is no
+    /// containing struct to reach through, and a canonical with a parent would mean the cell property was
+    /// never emitted.</para></summary>
+    internal static AccessPath? BuildCellPath(RedefinesClass? cls) =>
+        cls is { IsCellBacked: true, Canonical.Parent: null }
+            ? new AccessPath([new RootFieldSegment(cls.BackingCellCsName)])
+            : null;
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 

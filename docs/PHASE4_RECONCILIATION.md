@@ -993,8 +993,16 @@ both ways); negative corpus +1 (based-level-05).
   `BitLayout.WidthBits`), the class width and the in-class OCCURS stride became `ByteWidth`, and
   `Place.NationalWindow` transcodes the pair through `CobolBits.NatReadWindow`/`NatWriteWindow`. Positive
   witnesses `conformance:2002/pb231_based_bit_leaf`, `conformance:2002/pb231_based_national_leaf`,
-  `conformance:2002/pb231_national_byte_window`; drift pin `ByteWindowResidueDriftTests`. The pointer/
-  object-class leaf is the remaining third and is tracked separately (PB183 / PB231). ⚠ Item (9), the FD/SD
+  `conformance:2002/pb231_national_byte_window`; drift pin `ByteWindowResidueDriftTests`. ⛔ The pointer/
+  object-class leaf — the third and last — is **DISCHARGED TOO** (kb/Work PB231, 2026-09-05): it is the one
+  leaf kind a byte window cannot express at all, so the shared area grew a second half. `StorageCell` carries
+  MANAGED SLOTS keyed by byte offset beside its byte image, the member's bytes there are reserved placeholders
+  of its `ByteWidth`, and `Place.SlotWindow` (the third `WindowCoding`) reads/writes the slot through
+  `CobolPtr.SlotRead`/`SlotWrite` — see **D-SLOT** in `COBOLNET_DATA_MODEL_DESIGN.md`. §14.9.3.4 GR9's
+  null-seeding is satisfied by construction (an unwritten slot reads null). Positive witness
+  `conformance:2002/pb231_based_pointer_leaf`; the two NONCONFORMING shapes the residue diagnostic used to
+  reject for the wrong reason now draw their own rules (COBOLNET1797 = §13.18.5.3 SR1, COBOLNET1796 =
+  §13.18.22.3 SR4). **The byte-window carriage gate has no residue left.** ⚠ Item (9), the FD/SD
   national record gate, is NOT part of this discharge: the record codec is the CHARACTER-POSITION image
   channel, not the byte-window one — see D-N5 in `COBOLNET_DATA_MODEL_DESIGN.md`.
   (11) **STANDARD-COMPARE §15.85 / BYTE-LENGTH §15.14** — IntrinsicBind.Deferred (BYTE-LENGTH must answer 2×

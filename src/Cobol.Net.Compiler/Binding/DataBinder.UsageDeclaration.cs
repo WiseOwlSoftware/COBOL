@@ -124,6 +124,40 @@ public sealed partial class DataBinder
                 continue;
             }
 
+            // ── §13.18.22.3 SR4 ──────────────────────────────────────────────────────────────────────────
+            // "The EXTERNAL clause shall not be specified for a data item of class object or pointer."
+            // ⛔ WHY IT IS HERE AND WHY NOW (kb/Work PB231, the pointer third). Until the pointer-class storage
+            // landing, `01 P USAGE POINTER EXTERNAL.` was rejected — but by the byte-window RESIDUE diagnostic
+            // (COBOLNET1695 / the EXTERNAL twin), i.e. "recognized but not yet implemented", which is a
+            // different verdict about a different thing. Opening the byte-window gate to pointer-class leaves
+            // would have made this NONCONFORMING shape compile clean: an under-rejection created by a fix. The
+            // rule that actually bars it is enforced in the same change set, and it is the ITEM's own class the
+            // rule names — a strongly-typed EXTERNAL group holding a pointer MEMBER is class alphanumeric and
+            // stays legal (SR5 only requires its type declaration to be external too).
+            if (item.HasExternalClause && SlotWindow.CarriedBySlot(item))
+            {
+                Edition.Error(DiagnosticCatalog.ExternalPointerOrObjectItem, $"data item '{name}' is described "
+                    + $"with USAGE {Sr14PhraseNameOf(item)} — of class "
+                    + $"{(item.Pic!.Category is PicCategory.ObjectReference ? "object" : "pointer")} — and with "
+                    + "the EXTERNAL clause; the EXTERNAL clause shall not be specified for a data item of class "
+                    + "object or pointer (ISO §13.18.22.3 SR4)");
+                continue;
+            }
+
+            // ── §13.18.5.3 SR1 ───────────────────────────────────────────────────────────────────────────
+            // "The subject of the entry shall not be of class object." The EXTERNAL twin's other half, and the
+            // asymmetry is the rule's own: the BASED rule names ONLY class object, so `01 P USAGE POINTER
+            // BASED.` — class POINTER — is legal source and is exactly what kb/Work PB231's pointer third
+            // implements. Same reason for the timing as SR4 above: COBOLNET1695 used to reject both, and this
+            // one must keep being rejected after the gate opens.
+            if (item.IsBased && item.Pic is { Category: PicCategory.ObjectReference })
+            {
+                Edition.Error(DiagnosticCatalog.BasedSubjectOfClassObject, $"data item '{name}' is described "
+                    + "with USAGE OBJECT REFERENCE — of class object — and with the BASED clause; the subject "
+                    + "of a BASED entry shall not be of class object (ISO §13.18.5.3 SR1)");
+                continue;
+            }
+
             // ── §13.18.60.3 SR14 ─────────────────────────────────────────────────────────────────────────
             // ARM A — a GROUP entry that WROTE one of the five phrases. §13.18.60.4 GR1: the clause "applies
             // only to each elementary item in the group", and every such item is subordinate to this group, so

@@ -69,8 +69,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // (§14.6.2.3.3 leaves it undefined), so this is a consistency fix, not a corrected answer — but two
             // seeders composing different bytes for one cell is exactly how the next one becomes wrong.
             string init = new DataEmitter(Ctx).ExternalCellSeed(ext);
-            w.Line($"private ref string {ext.BackingCsName} => ref ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
-                + $"{init}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+            // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the area's MANAGED SLOTS
+            // are two halves of ONE StorageCell, so naming the cell once and defining the backing as `ref
+            // {cell}.Ref` makes that an identity rather than two expressions that happen to agree.
+            w.Line($"private StorageCell {ext.CellCsName} => ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
+                + $"{init});   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+            w.Line($"private ref string {ext.BackingCsName} => ref {ext.CellCsName}.Ref;");
         }
     }
 

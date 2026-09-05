@@ -1082,6 +1082,21 @@ internal static class RuntimeApi
     public static string PtrDeref(string ptr, string classWidth) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.Deref)}({ptr}, {classWidth})";
 
+    /// <summary>Read a pointer-class member's MANAGED SLOT of a shared storage area — <c>CobolPtr.SlotRead</c>
+    /// (kb/Work PB231 — the pointer third). A class-pointer / class-object member holds a managed reference and
+    /// has no byte image, so its value rides the cell's slot at the same byte offset its RESERVED bytes occupy;
+    /// <paramref name="nullStateExpr"/> is the item's own <c>PicInfo.DefaultInitializer</c>, which makes ISO
+    /// §14.9.3.4 GR9's "data items of class object or class pointer in the allocated storage are initialized to
+    /// null" the value an unwritten slot simply has. The pointer counterpart of <see cref="NatReadWindow"/>.</summary>
+    public static string PtrSlotRead(string cellExpr, string byteOffsetExpr, string carrierType, string nullStateExpr) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.SlotRead)}<{carrierType}>({cellExpr}, {byteOffsetExpr}, {nullStateExpr})";
+
+    /// <summary>Store a pointer-class member's MANAGED SLOT — <c>CobolPtr.SlotWrite</c>, the receiving twin of
+    /// <see cref="PtrSlotRead"/> (kb/Work PB231). The byte image is left untouched: the member's bytes there are
+    /// reserved placeholders, so a write through one description cannot disturb another's characters.</summary>
+    public static string PtrSlotWrite(string cellExpr, string byteOffsetExpr, string valueExpr) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.SlotWrite)}({cellExpr}, {byteOffsetExpr}, {valueExpr})";
+
     /// <summary>The INVOKE null-receiver guard (EC-OO-NULL, §14.9.23.4 GR5) — <c>CobolObject.RequireNonNull</c>.</summary>
     public static string ObjRequireNonNull(string receiver) =>
         $"{nameof(CobolObject)}.{nameof(CobolObject.RequireNonNull)}({receiver})";

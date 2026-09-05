@@ -119,6 +119,20 @@ public sealed class RedefinesClass
     /// <summary>The C# name of the single stored backing field for a Tier-B (byte-window) class.</summary>
     public string BackingCsName => "_redef_" + Canonical.CsName;
 
+    /// <summary>The C# name of the <c>StorageCell</c> BEHIND the backing, for the three CELL-BACKED surfaces —
+    /// EXTERNAL (the run-unit <c>ExternalStore</c> cell), ADDRESS OF (the per-instance cell) and BASED (the
+    /// pointer-deref bridge). The emitters define it and then define <see cref="BackingCsName"/> as
+    /// <c>ref {cell}.Ref</c>, so the byte image and the cell's MANAGED SLOTS (kb/Work PB231 — the pointer third)
+    /// are provably the same storage area rather than two expressions that happen to agree. It is
+    /// <see cref="IsCellBacked"/> that says whether this name is emitted; a plain REDEFINES class's backing is a
+    /// stored string field with no cell behind it.</summary>
+    public string BackingCellCsName => "_scell_" + Canonical.CsName;
+
+    /// <summary>True once one of the three cell surfaces has claimed this class, i.e.
+    /// <see cref="BackingCellCsName"/> is emitted and a <c>SlotWindow</c> member may address it (kb/Work PB231).
+    /// Set by <c>DataBinder.ForceStringCanonical</c>'s callers, which are the only sites that create a cell.</summary>
+    public bool IsCellBacked { get; set; }
+
     /// <summary>For a BASED class (Phase-4b increment 2, ISO §13.18.5): the C# name of the implicit
     /// data-address pointer field (<c>__addr_X</c>). The backing "field" is then a deref bridge property
     /// (<c>ref CobolPtr.Deref(__addr_X, width).Ref</c>) and every view's window offset is displaced by the
