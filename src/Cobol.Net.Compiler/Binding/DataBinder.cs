@@ -1257,9 +1257,52 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return digit;
     }
 
-    /// <summary>Returns the raw VALUE text to STORE — the input unchanged, or (kb/Work PB94, --permissive only) the
-    /// representable numeric rewrite of a class-mismatched literal on a numeric subject.</summary>
-    private string ValidateValueCategory(PicInfo pic, string raw, string where)
+    /// <summary>The size §13.18.63.3 SR4/SR5/SR10 measure a VALUE literal against for an ELEMENTARY subject —
+    /// "the size indicated by an explicit PICTURE clause" — or <see langword="null"/> when the entry indicates
+    /// none. ⛔ The null arm is not a defensive nicety: for a DYNAMIC LENGTH item, §13.18.19.3 SR1 — "The
+    /// character-string specified in that PICTURE clause shall be one instance of the picture symbol 'N', or
+    /// 'X'" — and §13.18.19.4 GR1 — "The picture symbol determines the class." That one symbol indicates a CLASS,
+    /// never a size: its maximum is the LIMIT phrase's, or implementor-defined (GR2), never the picture's
+    /// one position. ANY LENGTH (§13.18.2) is the same shape. The GROUP subject's size is its own
+    /// (<c>DataBinder.GroupValue</c>'s <c>GroupSubjectPic</c>), and a group whose subordinate is dynamic-length is
+    /// a variable-length group, which §13.18.63.3 SR1 already bars from being a VALUE subject at all.</summary>
+    private static int? ValueSizePositions(PicInfo pic, bool isDynamicLength, bool isAnyLength) =>
+        isDynamicLength || isAnyLength ? null : pic.Length;
+
+    /// <summary>⛔ THE §13.18.63.3 VALUE-OPERAND SCREEN — the ONE place that decides whether a VALUE clause's
+    /// literal may seed its subject, for EVERY subject the rules name: an elementary item, a condition-name's
+    /// conditional variable, and (kb/Work PB206) a GROUP carrying a group-level VALUE. Returns the raw VALUE text
+    /// to STORE — the input unchanged, or (kb/Work PB94, --permissive only) the representable numeric rewrite of a
+    /// class-mismatched literal on a numeric subject.
+    ///
+    /// <para><b>Why a group subject enters HERE rather than a second screen.</b> SR4, SR5 and SR10 each say "the
+    /// item" / "the subject of the entry", never "the elementary item": §8.5.2.1 gives a group a class and a
+    /// category of its own ("an alphanumeric group item has class and category alphanumeric"; "a bit group item
+    /// has class and category boolean"; "a national group item has class and category national"), and
+    /// §13.18.29.4 GR1b/GR2b give a bit / national group an as-if PICTURE. So the group is a subject with a
+    /// category and a size exactly as an elementary item is, and SR13 sentence 1 — "If the VALUE clause is
+    /// specified at the group level, literal-1 shall be of the same category as the group item or shall be a
+    /// figurative constant that is permitted in a MOVE statement to a receiving item of that category" — is
+    /// those same three rules restated for it. Writing it twice is how the two answers drift.</para></summary>
+    /// <param name="sizePositions">The number of positions §13.18.63.3 SR4/SR5/SR10 measure the literal against —
+    /// "the size indicated by an explicit PICTURE clause" for an elementary subject, "the size of the group item"
+    /// for a group one — or <see langword="null"/> when the entry indicates NO size. ⛔ The null case is REAL and
+    /// was a measured rejection of legal source: for a DYNAMIC LENGTH (or ANY LENGTH) item, §13.18.19.3 SR1 —
+    /// "The character-string specified in that PICTURE clause shall be one instance of the picture symbol 'N', or
+    /// 'X'" — and §13.18.19.4 GR1 — "The picture symbol determines the class." It indicates no size at all, the
+    /// maximum being the LIMIT phrase's or implementor-defined
+    /// (GR2). `01 UN PIC N DYNAMIC LENGTH VALUE N"SEED".` was rejected as exceeding "the item's 1 national
+    /// positions" while its alphanumeric twin `01 UD PIC X DYNAMIC LENGTH VALUE "SEED".` was accepted and ran —
+    /// the [[two_arm_dispatch]] shape, one arm sized and one not.</param>
+    /// <param name="groupSubject">True when the subject is a GROUP carrying a group-level VALUE (§13.18.63.3 SR13
+    /// sentence 1). It withholds ONE thing: the SR4-sentence-1 vendor leniency that stores a numeric literal's
+    /// digits on an alphanumeric subject. That leniency is a statement about a store the compiler can perform —
+    /// for a group the store is §13.18.63.4 GR5's area deposit, which is defined over the operand's CHARACTERS,
+    /// and a numeric literal has none (measured: `01 GN VALUE 1234. 05 N1 PIC X(2). 05 N2 PIC X(2).` seeded
+    /// SPACES). A warning plus the wrong area is worse than the rejection SR13 asks for, so the group arm is an
+    /// error on both dialect axes.</param>
+    private string ValidateValueCategory(PicInfo pic, string raw, string where, int? sizePositions,
+        bool groupSubject = false)
     {
         // ⛔ THE LITERAL'S CLASS COMES FROM THE ONE CLASSIFIER (CobolLiteral.ClassOf — kb/Work PB71): the former
         // raw-text tests (`raw[1] is '"'`) refused the Format-2 hexadecimal spellings NX"…" / BX"…" (§8.3.3.5.2 /
@@ -1326,9 +1369,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE of a national data item shall be a national "
                     + "literal (N\"…\") or a figurative constant (ISO §13.18.63 SR5)");
                 break;
-            case PicCategory.National when lit is LiteralClass.National && CobolLiteral.Decode(raw).Length > pic.Length:
+            // SR5 sentences 2 and 3 — ONE sentence pair, ONE arm: "National literals in the VALUE clause of an
+            // elementary item shall not exceed the size indicated by an explicit PICTURE clause. National
+            // literals in the VALUE clause of a national group item shall not exceed the size of the group item."
+            // The limit is the SUBJECT's (sizePositions), never pic.Length: a DYNAMIC LENGTH item's picture
+            // indicates no size (see the parameter's remarks — this was a live rejection of legal source).
+            case PicCategory.National when lit is LiteralClass.National
+                    && sizePositions is { } natLimit && CobolLiteral.Decode(raw).Length > natLimit:
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE national literal exceeds the item's "
-                    + $"{pic.Length} national positions (ISO §13.18.63 SR5)");
+                    + $"{sizePositions} national positions (ISO §13.18.63.3 SR5)");
                 break;
             // Boolean: a B"…" literal or figurative ZERO (incl. ALL ZEROS) — no boolean SPACE/QUOTE/HIGH/LOW
             // exists (§14.9.25.3 SR7 posture).
@@ -1336,9 +1385,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE of a boolean data item shall be a boolean "
                     + "literal (B\"…\") or the figurative constant ZERO (ISO §13.18.63 SR10)");
                 break;
-            case PicCategory.Boolean when lit is LiteralClass.Boolean && CobolLiteral.Decode(raw).Length > pic.Length:
+            // SR10 sentences 2 and 3 — the same sentence pair as SR5's, over boolean positions: an elementary
+            // item's explicit PICTURE, or "the size of the group item" for a bit group item (whose positions are
+            // §8.5.1.6.3's bit extent, DataItem.AsIfPic).
+            case PicCategory.Boolean when lit is LiteralClass.Boolean
+                    && sizePositions is { } boolLimit && CobolLiteral.Decode(raw).Length > boolLimit:
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE boolean literal exceeds the item's "
-                    + $"{pic.Length} boolean positions (ISO §13.18.63 SR10)");
+                    + $"{sizePositions} boolean positions (ISO §13.18.63.3 SR10)");
                 break;
             case not (PicCategory.National or PicCategory.Boolean) when isNatLit || isBoolLit:
                 Edition.Error("COBOLNET0898", $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
@@ -1377,14 +1430,42 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "§13.18.63.3 SR2); under --permissive the item is initialized to ZERO (a native numeric item "
                     + "holds no character fill)");
                 return Edition.Permissive ? "0" : raw;
-            // ── SR4: an alphabetic / alphanumeric / alphanumeric-edited subject takes alphanumeric literals only —
-            //    a numeric literal is the vendor leniency (the digits, left-justified, as MOVE would store them):
-            //    error strict, warning + that store under --permissive.
+            // ── SR4 sentence 1: an alphabetic / alphanumeric / alphanumeric-edited subject takes alphanumeric
+            //    literals only. On an ELEMENTARY subject a numeric literal is the vendor leniency (the digits,
+            //    left-justified, as MOVE would store them): error strict, warning + that store under --permissive.
+            //    On a GROUP subject there is no such store — §13.18.63.4 GR5 deposits the operand's CHARACTERS
+            //    over the group area and a numeric literal has none, so SR13 sentence 1's "shall be of the same
+            //    category as the group item" is an error on both axes (kb/Work PB206; measured on 1d949007:
+            //    `01 GN VALUE 1234. 05 N1 PIC X(2). 05 N2 PIC X(2).` compiled clean and seeded SPACES).
+            case PicCategory.Alphanumeric when isNumeric && IsNumericLiteralForm(raw) && groupSubject:
+                Edition.Error(DiagnosticCatalog.ValueLiteralClass, $"{where}: the VALUE literal {raw} is numeric "
+                    + "but the subject is an alphanumeric group item — a group-level VALUE literal shall be of the "
+                    + "same category as the group item, or a figurative constant permitted in a MOVE statement to "
+                    + "a receiving item of that category (ISO §13.18.63.3 SR13; §8.5.2.1 — an alphanumeric group "
+                    + "item has class and category alphanumeric)");
+                break;
             case PicCategory.Alphanumeric when isNumeric && IsNumericLiteralForm(raw):
                 Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal {raw} is "
                     + "numeric but the item is alphabetic / alphanumeric / alphanumeric-edited — its VALUE literals "
                     + "shall be alphanumeric (ISO §13.18.63.3 SR4); under --permissive the literal's characters are "
                     + "stored as MOVE would store them");
+                break;
+            // ── SR4 sentences 2 and 3 — THE THIRD ARM of the size rule, which had no implementation at all while
+            //    its national (SR5) and boolean (SR10) twins had theirs above: "Alphanumeric literals in the VALUE
+            //    clause of an elementary item shall not exceed the size indicated by an explicit PICTURE clause.
+            //    Alphanumeric literals in the VALUE clause of an alphanumeric group item shall not exceed the size
+            //    of the group item." Measured on 1d949007, both silently TRUNCATED: `01 E1 PIC X(2) VALUE "ABCD".`
+            //    displayed `AB`, and `01 GZ VALUE "ABCDEF". 05 O1 PIC X(2). 05 O2 PIC X(2).` displayed `ABCD`
+            //    (kb/Work PB206). Scoped to a plain alphanumeric literal: a FIGURATIVE constant is repeated and
+            //    truncated to the subject's size BY RULE (§8.3.3.6.4 GR2, which names the VALUE clause), so
+            //    `01 GH VALUE ALL "XYZ".` over four positions is conforming source seeding `XYZX`.
+            case PicCategory.Alphanumeric when lit is LiteralClass.Alphanumeric
+                    && sizePositions is { } alnumLimit && CobolLiteral.Decode(raw).Length > alnumLimit:
+                Edition.Error(DiagnosticCatalog.ValueLiteralOversize, $"{where}: the VALUE alphanumeric literal "
+                    + $"({CobolLiteral.Decode(raw).Length} characters) exceeds the "
+                    + $"{(groupSubject ? $"group item's {sizePositions} character positions"
+                                       : $"item's {sizePositions} character positions indicated by its PICTURE clause")}"
+                    + " (ISO §13.18.63.3 SR4)");
                 break;
         }
         return raw;
@@ -2144,8 +2225,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             {
                                 // §13.18.63 SR4/SR5/SR24→SR10: the VALUE literals' category must match the
                                 // conditional variable's — the SAME funnel the item-entry VALUE uses.
-                                rawLo = ValidateValueCategory(rp, rawLo, $"condition-name '{name}'");
-                                rawHi = ValidateValueCategory(rp, rawHi, $"condition-name '{name}'");
+                                int? rangeSize = ValueSizePositions(rp, parent.IsDynamicLength, parent.IsAnyLength);
+                                rawLo = ValidateValueCategory(rp, rawLo, $"condition-name '{name}'", rangeSize);
+                                rawHi = ValidateValueCategory(rp, rawHi, $"condition-name '{name}'", rangeSize);
                             }
                             cond.Values.Add((rawLo, rawHi));
                         }
@@ -2160,7 +2242,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 // check and the stored value share one text without double diagnostics.
                                 string raw = RawValueOperandText(op);
                                 if (parent.Pic is { } sp)
-                                    raw = ValidateValueCategory(sp, raw, $"condition-name '{name}'");
+                                    raw = ValidateValueCategory(sp, raw, $"condition-name '{name}'",
+                                        ValueSizePositions(sp, parent.IsDynamicLength, parent.IsAnyLength));
                                 cond.Values.Add((raw, null));
                             }
                     }
@@ -2690,7 +2773,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
-        if (rawValue is { } rv && pic is not null) rawValue = ValidateValueCategory(pic, rv, entryWhere);
+        if (rawValue is { } rv && pic is not null)
+            rawValue = ValidateValueCategory(pic, rv, entryWhere, ValueSizePositions(pic, isDynamicLength, isAnyLength));
         // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §13.18.63.3 SR2/SR3): a numeric
         // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
         // leading/trailing nonzero digit (SR2), and a negative literal requires a signed subject (SR3). The

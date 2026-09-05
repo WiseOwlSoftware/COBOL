@@ -49,7 +49,8 @@
     "l1_iofd_national_literal_arg1",
     "l1_iofd_two_argument_format",
     "l1_repository_bare_intrinsic_names",
-    "l1_trim_zero_length_result_2014"
+    "l1_trim_zero_length_result_2014",
+    "pb206_value_size_categories"
   ],
   "pending": []
 }

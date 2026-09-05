@@ -703,7 +703,13 @@
   "pb205-control-operand-report-section",
   "pb205-control-operand-subscripted",
   "pb205-type-control-operand-other-slice",
-  "pb205-sum-reset-operand-other-slice"
+  "pb205-sum-reset-operand-other-slice",
+  "pb206-group-value-numeric-literal",
+  "pb206-group-value-oversize",
+  "pb206-value-oversize-elementary",
+  "pb206-national-group-value-oversize",
+  "pb206-bit-group-value-oversize",
+  "pb206-group-value-national-literal"
  ],
  "pending": []
 }

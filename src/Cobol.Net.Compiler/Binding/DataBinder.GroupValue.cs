@@ -97,21 +97,31 @@ public sealed partial class DataBinder
             // one verdict — the outer subject's walk reaches the whole subtree.
             if (AncestorIsGroupValueSubject(item)) continue;
 
-            // ⛔ PB207: a group whose area is BIT-PACKED has no character area for §13.18.63.4 GR5 to deposit
-            // into — its width is ceil(bits/8) laid out by the §8.5.1.6.3 walk, and the members do not tile it.
-            // Staged LOUD here rather than left to the emitter, which crashed on the multi-member shape and
-            // silently stored one boolean position on the single-member one. The predicate is HasBitDescendant
-            // — the FACT that switches DataItem.ImageWidth to the bit walk — not GROUP-USAGE BIT, which is only
-            // the commonest way to acquire it.
-            if (item.HasBitDescendant)
+            // The count of ERRORS already recorded, so the PB207 not-yet-implemented refusal below can be
+            // withheld from source that is not conforming in the first place: a syntax-rule violation names its
+            // OWN rule, and "recognized but not implemented" on top of it would be noise pointing at the wrong
+            // remedy. (Edition.Diagnostics is the error list; Edition.Warnings is separate, so a --permissive
+            // downgrade correctly leaves the refusal in place — the emitter still has to be kept off the shape.)
+            int errorsBefore = Edition.Diagnostics.Count;
+
+            // ── §13.18.63.3 SR13 sentence 1 + SR4/SR5/SR10 (their group sentences) — the LITERAL, screened
+            //    against the SUBJECT'S OWN category and size (kb/Work PB206). A group HAS both: §8.5.2.1 gives
+            //    it class and category, §13.18.29.4 GR1b/GR2b give a bit / national group its as-if PICTURE, and
+            //    SR13 sentence 1 says "literal-1 shall be of the same category as the group item or shall be a
+            //    figurative constant that is permitted in a MOVE statement to a receiving item of that
+            //    category". That is the SAME question ValidateValueCategory already answers for every elementary
+            //    subject, so the group asks IT rather than carrying a second copy of the answer.
+            //    ⚠ FORMAT 1 ONLY. SR16 extends SR13 to the format 2 (table) VALUE, but the per-occurrence
+            //    literals of a table VALUE reach no literal screen at all today — that whole funnel
+            //    (BuildTableValueSpecs → ValidateTableValues) is kb/Work PB208's mechanism, and when it lands it
+            //    routes through this same method rather than growing an arm here.
+            if (item.RawValue is { } literal)
             {
                 using var _ = Edition.At(item);
-                Edition.Error(DiagnosticCatalog.BitGroupLevelValue, $"data item '{subject}' specifies a "
-                    + "group-level VALUE clause and has a USAGE BIT item subordinate to it, so its area is "
-                    + "bit-packed (ceil(bits/8) characters, ISO §8.5.1.6.3) rather than a character run — "
-                    + "the §13.18.63.4 GR5 area deposit for a bit-packed group is not yet implemented "
-                    + "(kb/Work PB207)");
-                continue;
+                var subjectPic = GroupSubjectPic(item);
+                item.RawValue = ValidateValueCategory(subjectPic, literal,
+                    $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item, "
+                    + "ISO §13.18.63.3 SR13)", subjectPic.Length, groupSubject: true);
             }
 
             // SR14's usage conjunct is scoped to an ALPHANUMERIC group item — a group for which no GROUP-USAGE
@@ -165,8 +175,62 @@ public sealed partial class DataBinder
                     + "group item shall be explicitly or implicitly described with usage DISPLAY "
                     + "(ISO §13.18.63.3 SR14)");
             }
+
+            // ⛔ PB207: a group whose area is BIT-PACKED has no character area for §13.18.63.4 GR5 to deposit
+            // into — its width is ceil(bits/8) laid out by the §8.5.1.6.3 walk, and the members do not tile it.
+            // Staged LOUD here rather than left to the emitter, which crashed on the multi-member shape and
+            // silently stored one boolean position on the single-member one. The predicate is HasBitDescendant
+            // — the FACT that switches DataItem.ImageWidth to the bit walk — not GROUP-USAGE BIT, which is only
+            // the commonest way to acquire it.
+            //
+            // ⛔ IT RUNS LAST, AND ONLY OVER SOURCE THE SYNTAX RULES ACCEPTED (kb/Work PB206). It used to run
+            // first and `continue`, which made it answer for two populations it does not govern: a group-level
+            // VALUE literal that violates SR13/SR4/SR5/SR10 was told the AREA RULE is unimplemented instead of
+            // that its literal is illegal (so §13.18.63.3 SR10's group sentence — "Boolean literals in the VALUE
+            // clause of a bit group item shall not exceed the size of the group item" — was unreachable), and a
+            // group with NO GROUP-USAGE clause but a USAGE BIT subordinate is an alphanumeric group item
+            // (§13.18.29.4 GR3) whose bit leaf violates SR14's usage conjunct — a rule with a remedy, reported
+            // as a compiler limitation. A refusal is what is left when the source is conforming and we cannot
+            // compile it, never the first thing said about source that is not.
+            if (item.HasBitDescendant && Edition.Diagnostics.Count == errorsBefore)
+            {
+                using var _ = Edition.At(item);
+                Edition.Error(DiagnosticCatalog.BitGroupLevelValue, $"data item '{subject}' specifies a "
+                    + "group-level VALUE clause and has a USAGE BIT item subordinate to it, so its area is "
+                    + "bit-packed (ceil(bits/8) characters, ISO §8.5.1.6.3) rather than a character run — "
+                    + "the §13.18.63.4 GR5 area deposit for a bit-packed group is not yet implemented "
+                    + "(kb/Work PB207)");
+            }
         }
     }
+
+    /// <summary>The §13.18.63.3 VALUE-clause SUBJECT picture of a GROUP item: its §8.5.2.1 class-and-category and
+    /// the size the rules measure a literal against.
+    ///
+    /// <para>⛔ NOT <see cref="DataItem.OperandPic"/>, which is deliberately null for an alphanumeric group
+    /// because such a group is not an elementary OPERAND — §14.9.25.4 GR4 makes a MOVE across it a conversion-free
+    /// character copy that Table 16 does not describe. Here the group is the SUBJECT OF A VALUE CLAUSE, a position
+    /// in which §8.5.2.1 gives it a category outright ("an alphanumeric group item has class and category
+    /// alphanumeric"; "a bit group item has class and category boolean"; "a national group item has class and
+    /// category national") and §13.18.63.3 SR4/SR5/SR10 give it a size ("the size of the group item"). The bit and
+    /// national arms are §13.18.29.4 GR1b/GR2b's as-if PICTURE, already derived once on the model
+    /// (<see cref="DataItem.AsIfPic"/>) — boolean positions for a bit group, national positions for a national
+    /// one; the alphanumeric arm is GR3's residue, its character positions being
+    /// <see cref="DataItem.ImageWidth"/> and its usage display (§8.5.2 — "An alphanumeric group item is treated as
+    /// though it had a usage of display").</para></summary>
+    private static PicInfo GroupSubjectPic(DataItem group) =>
+        group.AsIfPic
+        ?? new PicInfo(PicCategory.Alphanumeric, Usage.Display, group.ImageWidth, Digits: 0, Scale: 0, Signed: false);
+
+    /// <summary>The §8.5.2.1 name of a group item's category, for the SR13 diagnostic's subject description —
+    /// the words the standard uses for the three kinds of group item, so the message names the rule's own
+    /// vocabulary rather than an enum member.</summary>
+    private static string GroupCategoryWord(PicCategory category) => category switch
+    {
+        PicCategory.Boolean => "a bit",
+        PicCategory.National => "a national",
+        _ => "an alphanumeric",
+    };
 
     /// <summary>The subject of §13.18.63.3 SR1/SR13/SR14: a GROUP entry that WROTE a VALUE clause — format 1
     /// (<see cref="DataItem.RawValue"/>) or, per SR16, format 2 (<see cref="DataItem.TableValues"/>). A VALUE

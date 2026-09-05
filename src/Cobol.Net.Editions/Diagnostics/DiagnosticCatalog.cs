@@ -1003,6 +1003,23 @@ public static class DiagnosticCatalog
         + "root's data lives in its allocated cell and its data-address pointer is a static bridge field "
         + "that CANCEL resets to NULL (§14.6.2.3.2 action 5).",
         "ISO §13.5.4 GR1 / §14.6.2.3.2 #5", RecognizedNotImplemented);
+    // kb/Work PB206 — the THIRD ARM of §13.18.63.3's VALUE-literal SIZE rule. SR4, SR5 and SR10 are the same
+    // sentence pair written once per category ("… shall not exceed the size indicated by an explicit PICTURE
+    // clause" for an elementary item; "… shall not exceed the size of the group item" for a group one); the
+    // national and boolean arms were implemented (the COBOLNET0898 band) and the ALPHANUMERIC arm had no
+    // implementation anywhere, so both of its sentences silently TRUNCATED. Measured on 1d949007:
+    // `01 E1 PIC X(2) VALUE "ABCD".` displayed `AB` and `01 GZ VALUE "ABCDEF". 05 O1 PIC X(2). 05 O2 PIC X(2).`
+    // displayed `ABCD`, neither with a diagnostic. Not dialect-gated — SR4 carries this sentence at every
+    // edition, and Annex E.2 item 27's 2023 change is scoped to NUMERIC-EDITED items (COBOLNET1570), not to this.
+    // A FIGURATIVE constant is exempt by rule, not by omission: §8.3.3.6.4 GR2 repeats it to the subject's size
+    // and truncates from the right, naming the VALUE clause as the context that specifies the length.
+    public static readonly DiagnosticDescriptor ValueLiteralOversize = new(
+        "COBOLNET1740", "value-literal-oversize", EditionSeverity.Error,
+        "ISO §13.18.63.3 syntax rule 4: \"Alphanumeric literals in the VALUE clause of an elementary item shall "
+        + "not exceed the size indicated by an explicit PICTURE clause. Alphanumeric literals in the VALUE clause "
+        + "of an alphanumeric group item shall not exceed the size of the group item.\" (The national and boolean "
+        + "twins of the same sentence pair — SR5 and SR10 — report in the COBOLNET0898 band.)",
+        "ISO §13.18.63.3 SR4");
     public static readonly DiagnosticDescriptor ValueNumericEditedOversize = new(
         "COBOLNET1570", "value-numeric-edited-oversize", EditionSeverity.Error,
         "At COBOL-2023 an alphanumeric edited-image literal in the VALUE clause of a numeric-edited item is checked "
@@ -1388,8 +1405,11 @@ public static class DiagnosticCatalog
         "A VALUE clause literal's class does not match the subject's category: a numeric item takes numeric literals "
         + "(or figurative ZERO) only (ISO §13.18.63.3 SR2); an alphabetic, alphanumeric or alphanumeric-edited item "
         + "takes alphanumeric literals only (SR4). Under --permissive a representable value is stored with this "
-        + "warning; a value no numeric item can hold is an error on both axes.",
-        "ISO §13.18.63.3 SR2 / SR4");
+        + "warning; a value no numeric item can hold is an error on both axes. So is a numeric literal on a GROUP "
+        + "subject (SR13 sentence 1 — kb/Work PB206): the leniency promises the literal's digits are stored as MOVE "
+        + "would store them, and §13.18.63.4 GR5's area deposit is over the operand's CHARACTERS, which a numeric "
+        + "literal has none of — the measured result was a group seeded with SPACES.",
+        "ISO §13.18.63.3 SR2 / SR4 / SR13");
     // kb/Work PB66 (data-model design D21): the floating-point numeric-edited PICTURE (the symbol E) — its syntax rules.
     public static readonly DiagnosticDescriptor PictureFloatEdited = new(
         "COBOLNET1658", "picture-float-edited", EditionSeverity.Error,

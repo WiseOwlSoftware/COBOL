@@ -293,7 +293,13 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   character slice has no meaning over it. The exclusion lives ONCE, inside `AreaTextOf`, keyed on
   `DataItem.HasBitDescendant` — the fact that switches `ImageWidth` to the bit walk, not `GROUP-USAGE BIT`, which
   is only the commonest way to acquire it; the binder rejects the shape first with a staged loud (kb/Work PB207,
-  which carries the boolean-position area rule that will replace it).
+  which carries the boolean-position area rule that will replace it). ⛔ **That staged loud runs LAST in
+  `CheckGroupValueDeclarations`, and only over an entry the syntax rules ACCEPTED** (kb/Work PB206): a
+  "recognized but not implemented" refusal is what is left when the source is conforming and we cannot compile
+  it, never the first thing said about source that is not. Running it first made it answer for two populations it
+  does not govern — a bit group whose VALUE literal violates SR10's own size sentence (which was therefore
+  unreachable), and a group with no GROUP-USAGE clause but a USAGE BIT subordinate, which is an alphanumeric group
+  item (§13.18.29.4 GR3) whose bit leaf violates SR14's usage conjunct.
 - **The group-level VALUE SYNTAX rules are screened at bind time, in one place**
   (`DataBinder.CheckGroupValueDeclarations` → COBOLNET1702 / COBOLNET1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
   SR16 extends SR13/SR14 to the format 2 table VALUE). SR1 bars a strongly-typed group item or a variable-length
@@ -307,6 +313,36 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   NATIONAL-usage leaf under a group VALUE is NOT conforming source and is rejected — it is not a distribution case
   (kb/Work PB184, which was registered on the opposite premise). The pass runs after `UsageInheritancePass` so
   "implicitly" sees an inherited group USAGE.
+- ⛔ **The group-level VALUE's LITERAL is screened by the SAME method every elementary subject uses —
+  `DataBinder.ValidateValueCategory` — because the rules are the same rules** (kb/Work PB206). SR4, SR5 and SR10
+  say "the item" / "the subject of the entry", never "the elementary item", and §8.5.2.1 gives a group a class and
+  category of its own ("an alphanumeric group item has class and category alphanumeric"; "a bit group item …
+  boolean"; "a national group item … national"); §13.18.63.3 SR13 sentence 1 — "literal-1 shall be of the same
+  category as the group item or shall be a figurative constant that is permitted in a MOVE statement to a
+  receiving item of that category" — is those rules restated for a group subject. So the screen takes the
+  subject's category PICTURE (`GroupSubjectPic` — §13.18.29.4 GR1b/GR2b's as-if picture for a bit / national
+  group, GR3's alphanumeric residue at `ImageWidth` otherwise) and asks the one method. It is NOT
+  `DataItem.OperandPic`, which is deliberately null for an alphanumeric group because §14.9.25.4 GR4 makes such a
+  group a conversion-free character copy Table 16 does not describe; as the SUBJECT OF A VALUE CLAUSE the group
+  has a category outright.
+  **Two structural consequences, both of them landed defects:**
+  1. `ValidateValueCategory` takes the size to measure against as an argument (`sizePositions`), not `pic.Length`.
+     SR4/SR5/SR10 each carry the size sentence TWICE — once for an elementary item ("the size indicated by an
+     explicit PICTURE clause") and once for a group ("the size of the group item") — and a **DYNAMIC LENGTH** (or
+     ANY LENGTH) subject indicates NO size at all: its picture is "one instance of the picture symbol 'N', or 'X'"
+     (§13.18.19.3 SR1) and "the picture symbol determines the class" (§13.18.19.4 GR1). Passing `pic.Length` there
+     REJECTED LEGAL SOURCE — `01 UN PIC N DYNAMIC LENGTH VALUE N"SEED".` drew COBOLNET0898 while its alphanumeric
+     twin compiled and ran (pinned by `2014/pb206_value_size_categories`).
+  2. The ALPHANUMERIC size arm had **no implementation anywhere** while its national and boolean twins had theirs,
+     so BOTH of SR4's size sentences silently truncated (`PIC X(2) VALUE "ABCD"` → `AB`; a 6-character literal on
+     a 4-character group → `ABCD`). It is now **COBOLNET1740**, error at every edition — Annex E.2 item 27's 2023
+     size change is scoped to NUMERIC-EDITED items (COBOLNET1570), not to this. A FIGURATIVE operand is exempt by
+     rule, not omission: §8.3.3.6.4 GR2 repeats it to the subject's size and truncates from the right.
+  The one asymmetry is deliberate: the SR4-sentence-1 vendor leniency that stores a numeric literal's digits on an
+  alphanumeric subject under `--permissive` is withheld from a group subject, because GR5's area deposit is
+  defined over the operand's CHARACTERS and a numeric literal has none (measured: the group seeded SPACES). Format
+  1 only — SR16 carries SR13 to the format 2 table VALUE, but the per-occurrence literals of a table VALUE reach
+  no literal screen at all yet (kb/Work PB208), and that funnel routes through this same method when it lands.
 - ⛔ **The screen walks `DataBinder.CompositionForest`, and that distinction is a design commitment, not a
   detail.** There are TWO forests over the bound data, and a pass picks by what its rule is ABOUT.
   `ConformanceForest` is the WRITTEN-ENTRY forest — the once-per-source-entry set the per-entry data-attribute
