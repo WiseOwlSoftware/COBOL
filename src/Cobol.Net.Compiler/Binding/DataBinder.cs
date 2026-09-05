@@ -4098,6 +4098,91 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static bool PointerObjectClass(DataItem d) =>
         d.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.ObjectReference;
 
+    /// <summary>⛔ THE ONE BYTE-WINDOW CARRIAGE GATE — the single answer to "may this LEAF ride a shared
+    /// byte-window storage area?", returning null when it may and the residue clause naming why not when it
+    /// may not. Both surfaces that ask the question ask it here: <see cref="ComputeTier"/> (a REDEFINES class
+    /// over one string canonical, §13.18.44.4 GR1 — "Storage association for the subject of the entry starts
+    /// at the first bit of the data item referenced by data-name-2 and continues over an area sufficient to
+    /// contain the number of bits required") and <c>ForceStringCanonical</c> (the EXTERNAL run-unit cell, the
+    /// ADDRESS-OF-taken per-instance cell, and the BASED pointer-deref bridge whose area ALLOCATE obtains,
+    /// §14.9.3.4 GR3 — "the amount of storage to be allocated is the number of bytes required to hold an item
+    /// as described by data-name-1").
+    /// <para>⛔ IT IS ONE PREDICATE BECAUSE IT WAS TWO, AND THEY DRIFTED (kb/Work PB231). ComputeTier was a
+    /// DENY-list and the cell forcer's local <c>CellCapable</c> an ALLOW-list, and PB203 opened only the
+    /// REDEFINES one to USAGE BIT leaves — the ninth instance of this repo's two-arm dispatch shape. The
+    /// consequence was rejects-legal-source: `01 R BASED. 05 B PIC 1(8) USAGE BIT.` drew COBOLNET1695 at bind
+    /// while the byte-identical REDEFINES spelling compiled and ran, even though §13.18.5.3 SR1/SR2 restrict a
+    /// BASED subject to exactly "shall not be of class object" and "shall not be a dynamic-length elementary
+    /// item or a variable-length group" and §14.9.3.3 SR1 asks only for the BASED clause — no rule anywhere
+    /// conditions BASED, EXTERNAL or ADDRESS OF on a subordinate's USAGE. Two smaller divergences went with it
+    /// and are closed by the same collapse: a Pic-less leaf and a NATIONAL-usage numeric were denied by the
+    /// cell and admitted by REDEFINES.</para>
+    /// <para>The ALLOW-list direction is deliberate and must stay: a category added to the model with no
+    /// pinned byte image has to be DENIED by default, never silently laid out as a zero-width alias.
+    /// <c>ByteWindowResidueDriftTests</c> pins that both callers route through here.</para>
+    /// <para>⚠ THE THIRD CALLER-TO-BE is <see cref="GateNationalRecords"/> — the FD/SD record gate, which asks
+    /// the same question of a file record area and today screens the NATIONAL half only, with its own message
+    /// and its own diagnostic. It is deliberately NOT routed here yet: folding it in would also start refusing
+    /// a pointer-class leaf in a file record, a tightening kb/Work PB231 did not measure. The landing that
+    /// discharges RESIDUE-11 should fold all three, and the note carries that instruction.</para></summary>
+    internal const string NationalResidue =
+        "a national leaf (the D-N1 2-byte-per-position byte-window layout is an undischarged documentation "
+        + "residue — RESIDUE-11; ISO §13.18.60.4 GR8 gives the implementor the size, and this "
+        + "implementation's national character is TWO bytes over a byte-addressed area)";
+
+    internal static string? ByteWindowResidueOf(DataItem leaf)
+    {
+        // A pointer/object-class leaf is not a byte sequence at all — the managed pointer/reference cell has
+        // no byte-window overlay. §13.18.60.3 SR14 already makes the nested DECLARATION nonconforming (a USAGE
+        // clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER or PROGRAM-POINTER phrase
+        // "may be specified only for an elementary data item at level 1 or an elementary data item subordinate
+        // to a type declaration that includes the STRONG phrase" — CheckUsageDeclarations / COBOLNET1724,
+        // kb/Work PB183), so on conforming source this arm is reached only through the level-1 and STRONG
+        // shapes it does NOT bar; those are the pointer half of kb/Work PB231, which needs a parallel
+        // object-slot in the storage area before §14.9.3.4 GR9's null-seeding has anywhere to write.
+        if (PointerObjectClass(leaf))
+            return "a pointer/object-class leaf (a managed pointer/reference cell has no byte-window overlay "
+                + "— ISO §13.18.60.3 SR14 / kb/Work PB183, PB231)";
+        // A USAGE FUNCTION-POINTER entry is staged at declaration (the P13 band) and never gains a PicInfo;
+        // an elementary item with no bound representation has no image to window.
+        if (leaf.Pic is not { } p)
+            return $"a leaf with no bound representation ('{leaf.CobolName ?? "FILLER"}' — the staged "
+                + "USAGE band; ISO §13.18.60)";
+        return p.Category switch
+        {
+            // One byte per character position (the documented item-209 serialization); an edited image is
+            // its own characters.
+            PicCategory.Alphanumeric or PicCategory.NumericEdited => null,
+            // ⛔ BOOLEAN RIDES, IN BOTH ITS REPRESENTATIONS — the PB231 arm. A DISPLAY boolean is one
+            // '0'/'1' character per position and byte==char holds (D-B1). A USAGE BIT run is a SUB-BYTE
+            // packing, and that packing is already laid out and windowed: §13.18.60.4 GR5 ("The USAGE BIT
+            // clause specifies that bits shall be used to represent a boolean data item"), §8.5.1.6.3's
+            // cursor ("an elementary bit data item immediately following an elementary bit data item or bit
+            // group item of the same level" takes the next bit position, everything else the first bit of
+            // the first available byte) and §13.18.29.4 GR1c ("Data items contained within a bit group are
+            // allocated in storage in accordance with the rules specified in 8.5.1.6.3") are walked by
+            // AssignClassOffsets' bit-laid arm — the SAME walk this predicate's two callers share — and the
+            // resulting window is read/written by CobolBits.ReadWindow/WriteWindow over the class backing
+            // (D19/PB43 for the layout, PB203 for the window). DataItem.ImageWidth is already the
+            // ceil(bits/8) byte extent, so the area a cell allocates for such a record is GR3's byte
+            // quantity by construction.
+            PicCategory.Boolean => null,
+            // Every NUMERIC usage carries a pinned byte form since the Step D dissolution (kb/Work PB164) —
+            // THE ONE image predicate, never a hand-rolled usage union.
+            PicCategory.Numeric when p.HasImageByteForm => null,
+            // NATIONAL, by CATEGORY (PIC N / USAGE NATIONAL) or by a national-form NUMERIC (PIC 9 USAGE
+            // NATIONAL, §13.18.60.3 SR12 — staged loud earlier, screened here too so the two surfaces cannot
+            // disagree about it). ⛔ The usage is tested EXPLICITLY rather than inferred from "numeric with no
+            // byte form": that inference happens to hold today only because FLOAT-BINARY-128 and the decimal
+            // floats are rejected at ParseUsage, and a leaf mislabelled "national" in a residue message is
+            // exactly the kind of inherited half-truth CLAUDE.md rule 1 is about.
+            PicCategory.National => NationalResidue,
+            PicCategory.Numeric when p.Usage is Usage.National => NationalResidue,
+            _ => $"a leaf of category {p.Category} and usage {p.Usage} with no pinned byte image "
+                + "(ISO §13.18.60.4 — no representation this model can lay out in a byte window)",
+        };
+    }
+
     /// <summary>ONE §13.18.44.3 SR12/SR14 verdict per WRITTEN entry — <paramref name="subject"/> is the item
     /// carrying the REDEFINES clause, <paramref name="target"/> its DIRECT data-name-2 (never the chained
     /// anchor). Returns the violation text (the diagnostic message AND the class RejectReason), or null.
@@ -4171,27 +4256,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // deleted: it remains the loud guard for the recovery paths and for any future mode that admits a
         // nonconforming declaration, and without it such a leaf would reach the byte-window machinery as a
         // silent zero-width Tier-B alias. Never that.
-        if (leaves.Any(PointerObjectClass))
+        //
+        // ⛔ Tier D IS NOW ONE CALL — ByteWindowResidueOf, the SHARED gate this screen and the cell forcer
+        // (ForceStringCanonical) both route through. It used to be two hand-written lists, one per surface,
+        // and they drifted: PB203 admitted USAGE BIT leaves HERE and nowhere else, so the byte-identical
+        // BASED / EXTERNAL / ADDRESS-OF spelling of a conforming record still drew a bind-time reject
+        // (kb/Work PB231). The residue clauses — the pointer/object backstop and the RESIDUE-11 national
+        // layout — now live once, so the landing that discharges either one opens BOTH surfaces in a single
+        // edit. ByteWindowResidueDriftTests pins the routing.
+        if (leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null) is { } residue)
         {
-            reject = $"a pointer/object-class leaf under REDEFINES of '{cls.Canonical.CobolName}' (a managed "
-                + "pointer/reference cell has no byte-window overlay; the declaration itself is "
-                + "§13.18.60.3 SR14-nonconforming — kb/Work PB183)";
-            return RedefinesTier.Rejected;
-        }
-
-
-        // A NATIONAL leaf: §13.18.44 lays the shared area in BYTES, and the documented 2-byte national
-        // character (D-N1/D-N2) has no char-window overlay over the single-byte members — recognized, staged
-        // loud (Phase 4a residue: per-item byte offsets + UTF-16LE class images). BOOLEAN leaves fall through
-        // legitimately (one '0'/'1' char = one byte, D-B1).
-        if (leaves.Any(l => l.Pic is { Category: PicCategory.National }))
-        {
-            // Reason CORRECTED with the Step D dissolution (the old "no single-byte char-window overlay"
-            // premise dissolved under byte-form windows): the honest residue is D-N1's 2-byte-per-position
-            // REDEFINES layout — its own undischarged A.1 obligation (RESIDUE-11).
-            reject = $"REDEFINES over national data in '{cls.Canonical.CobolName}' (the D-N1 2-byte-per-"
-                + "position REDEFINES layout is an undischarged documentation residue — RESIDUE-11) "
-                + "not yet implemented";
+            reject = $"{residue} under REDEFINES of '{cls.Canonical.CobolName}' — not yet implemented";
             return RedefinesTier.Rejected;
         }
 

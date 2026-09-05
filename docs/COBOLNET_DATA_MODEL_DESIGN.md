@@ -196,6 +196,22 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 - **D-N2 byte≠char containment**: every byte-addressed surface REFUSES a national leaf loud (REDEFINES ComputeTier,
   EXTERNAL/ADDRESS-OF/BASED cells via ForceStringCanonical, FD/SD records, SORT keys) until the 2-byte layout
   residue lands (RESIDUE-11 coordination with the pointer track).
+- **D-BW1 THE ONE BYTE-WINDOW CARRIAGE GATE** (kb/Work PB231, 2026-09-04). The question "may this LEAF ride a
+  shared byte-window storage area?" has exactly ONE answer in the tree — `DataBinder.ByteWindowResidueOf`,
+  which returns null when the leaf may and the residue clause naming why not when it may not. It is an
+  ALLOW-list, deliberately: a category added to the model with no pinned byte image must be DENIED by default
+  rather than silently laid out as a zero-width alias. **Carried:** the character categories (one byte per
+  position, item 209); every NUMERIC usage on its pinned byte form (D19/PB164 — THE ONE image predicate
+  `HasImageByteForm`); and BOOLEAN in **both** representations — a DISPLAY boolean as one '0'/'1' character
+  (D-B1) and a **USAGE BIT run as the §13.18.60.4 GR5 sub-byte packing** laid out by the §8.5.1.6.3 cursor
+  (§13.18.29.4 GR1c for a bit group) and windowed by `CobolBits.ReadWindow`/`WriteWindow`. **Refused, each
+  its own named residue:** a NATIONAL leaf (D-N2 above / RESIDUE-11) and a pointer/object-class leaf
+  (§13.18.60.3 SR14 / PB183 — no byte image at all, so §14.9.3.4 GR9's null-seeding has nowhere to write).
+  ⛔ It replaced TWO hand-written lists — `ComputeTier`'s deny-list and `ForceStringCanonical`'s allow-list —
+  which drifted the moment only one was widened: PB203 opened the REDEFINES surface to USAGE BIT leaves and
+  left the cell surface refusing them, so a BASED/EXTERNAL/ADDRESS-OF record rejected legal source that its
+  byte-identical REDEFINES twin compiled and ran. `ByteWindowResidueDriftTests` pins all four surfaces to one
+  verdict per leaf; discharging either residue is now a single edit that opens every surface at once.
 - **D-N3 collating**: national comparisons order by UTF-16 code-unit ordinal (the implementor default national
   sequence); the ALPHANUMERIC program collating sequence never applies (separate sequences — §8.8.4.2.9; the
   alphanumeric table is a distinct full-UTF-16-range sequence, never consulted for national comparisons and no longer `& 0xFF`-masked, post-CA26). A NON-native national sequence exists via

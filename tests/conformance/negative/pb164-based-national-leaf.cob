@@ -12,6 +12,12 @@
       *> bridge stays a named, recognized-but-unimplemented residue rather
       *> than inventing a layout. Without this fixture the diagnostic had
       *> NO witness at all and the residue boundary could move unobserved.
+      *> NARROWED AGAIN BY kb/Work PB231: a USAGE BIT leaf USED to draw
+      *> this same diagnostic and no longer does - the 8.5.1.6.3 packing
+      *> the REDEFINES surface had carried since PB203 now rides the cell
+      *> too (2002/pb231_based_bit_leaf is that positive witness). What
+      *> is left here is the NATIONAL leaf and, separately, a pointer-
+      *> class leaf; both refusals now name their own residue.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB164N1.
        DATA DIVISION.

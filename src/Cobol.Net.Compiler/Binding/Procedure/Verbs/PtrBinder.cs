@@ -106,10 +106,12 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// pass (or be an EXTERNAL record — already cell-backed). A qualified operand resolves through the ONE
     /// §8.4.2.2 qualification machinery; a subscripted operand addresses THE OCCURRENCE (GR1) — the resolver
     /// returns its in-class occurrence displacement (<c>ReferenceResolver.ResolveForAddressOf</c>). Un-forcible
-    /// shapes (a class rejected for a national/bit/pointer-class leaf, an OCCURS-resident anchor, a
+    /// shapes (a class rejected for a national or pointer-class leaf, an OCCURS-resident anchor, a
     /// carrier-resident LINKAGE formal) and reference-modified operands stage LOUD — never a pointer to the
-    /// wrong storage. A COMP/float/INDEX leaf is NOT un-forcible any more: every numeric byte form rides the
-    /// cell (kb/Work PB164).</summary>
+    /// wrong storage, and the diagnostic INTERPOLATES the class's own RejectReason rather than listing the
+    /// reasons it might have been (kb/Work PB231). A COMP/float/INDEX leaf is NOT un-forcible any more:
+    /// every numeric byte form rides the cell (kb/Work PB164), and neither is a USAGE BIT leaf: the
+    /// §8.5.1.6.3 packing rides it too (kb/Work PB231).</summary>
     private BoundAddressOf? PtrBindAddressOf(Core.DataReferenceContext addrRef)
     {
         if (ctx.Refs.ResolveForAddressOf(addrRef) is not { } r)
@@ -129,10 +131,19 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 || ctx.Data.CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName));
         if (!cellBacked)
         {
+            // ⛔ NAME THE ACTUAL REASON. The cell forcer already recorded WHY it refused — the residue clause
+            // ByteWindowResidueOf produced, carried on the class as its RejectReason (kb/Work PB231) — and
+            // this site used to print a HAND-WRITTEN LIST of every reason it might have been instead, so the
+            // one surface that could not say what was wrong was the one the user reads. Its two siblings
+            // (CallMakeExternal, PtrBindBasedAndAddressables) had always interpolated it; this was the third
+            // arm of that dispatch. The list survives only as the fallback for the shapes that never reach
+            // the forcer at all: an OCCURS-resident anchor, a carrier-resident LINKAGE formal.
+            string why = root.Class is { Tier: RedefinesTier.Rejected, RejectReason: { } reason }
+                ? reason
+                : "an OCCURS-resident anchor or a carrier-resident LINKAGE formal — named increment residue";
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"ADDRESS OF '{addrRef.GetText()}': the operand's record could not be placed on addressable "
-                + "cell storage (a national/bit/pointer-class leaf, an OCCURS-resident anchor, or a "
-                + "carrier-resident LINKAGE formal — named increment residue; ISO §8.4.3.11)");
+                + $"cell storage ({why}; ISO §8.4.3.11)");
             return null;
         }
         return new BoundAddressOf(item, occursDisp);

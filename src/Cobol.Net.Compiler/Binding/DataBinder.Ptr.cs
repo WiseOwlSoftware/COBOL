@@ -69,8 +69,9 @@ public sealed partial class DataBinder
             // (kb/Work PB151): the bare continue left BasedPointerField null and every ALLOCATE/ADDRESS
             // reference crashed at RUN time on a program that compiled clean, while the EXTERNAL twin
             // (CallMakeExternal) always diagnosed the identical failure at bind — the two-arm shape. What the
-            // shared byte cell still cannot carry is a national, USAGE BIT or pointer-class leaf; every numeric
-            // byte form rides it (kb/Work PB164 — the interpolated RejectReason names the actual leaf).
+            // shared byte cell still cannot carry is a national or pointer-class leaf; every numeric byte form
+            // rides it (kb/Work PB164) and so does every boolean position, USAGE BIT packing included
+            // (kb/Work PB231 — the interpolated RejectReason names the actual leaf).
             if (ForceStringCanonical(root, "BASED item") is not { } cls)
             {
                 Edition.Error(DiagnosticCatalog.BasedRecordSubstrate,

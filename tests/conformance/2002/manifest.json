@@ -169,7 +169,8 @@
     "l1_exit_raising_object_sending",
     "l1_search_no_at_end_no_checking_2002",
     "l1_set_sr12a2_class_conformance",
-    "l1_set_sr12c2_self_conformance"
+    "l1_set_sr12c2_self_conformance",
+    "pb231_based_bit_leaf"
   ],
   "pending": []
 }

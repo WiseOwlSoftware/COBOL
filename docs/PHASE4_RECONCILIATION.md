@@ -983,9 +983,14 @@ both ways); negative corpus +1 (based-level-05).
   permanently optional under D-B1 (R14); revisit only with GROUP-USAGE BIT. (7) **GROUP-USAGE BIT/NATIONAL**
   (§13.18.29) — grammar; parse error. (8) **National-form numerics / national-form boolean** (PIC 9 / PIC 1
   USAGE NATIONAL, §13.18.60.4 SR12) — direct 0899 in Analyze. (9) **FD/SD national records** (§8.1.2 +
-  Latin-1 codec posture) — 0899 record gate. (10) **REDEFINES / EXTERNAL / ADDRESS-OF / BASED over national;
-  USAGE BIT in cells** (RESIDUE-11, F10 GR20 byte arithmetic) — ComputeTier reject + ForceStringCanonical
-  reject, wording names the leg; the real fix = per-item byte offsets + UTF-16LE cell images, out of scope.
+  Latin-1 codec posture) — 0899 record gate. (10) **REDEFINES / EXTERNAL / ADDRESS-OF / BASED over national**
+  (RESIDUE-11, F10 GR20 byte arithmetic) — the ONE `DataBinder.ByteWindowResidueOf` gate rejects, and the
+  wording names the leg; the real fix = per-item byte offsets + UTF-16BE cell images, out of scope.
+  ⛔ **The "USAGE BIT in cells" half of this item is DISCHARGED** (kb/Work PB203 for the REDEFINES
+  surface, kb/Work PB231 for the EXTERNAL / ADDRESS-OF / BASED cells, 2026-09-04): a USAGE BIT run rides
+  every byte-window surface on the §8.5.1.6.3 packing the class offset walk already lays out — positive
+  witness `conformance:2002/pb231_based_bit_leaf`, drift pin `ByteWindowResidueDriftTests`. The pointer/
+  object-class leaf is the remaining third and is tracked separately (PB183 / PB231).
   (11) **STANDARD-COMPARE §15.85 / BYTE-LENGTH §15.14** — IntrinsicBind.Deferred (BYTE-LENGTH must answer 2×
   for national when it lands). *(NATIONAL-OF §15.66 / DISPLAY-OF §15.26 LANDED — P10 national wave; CHAR-NATIONAL
   §15.16 + the EC -N twins §15.29/§15.31 LANDED — P10 Step 11.)*

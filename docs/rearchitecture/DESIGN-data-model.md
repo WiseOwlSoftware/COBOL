@@ -300,6 +300,14 @@ build; there was a predicate that stopped short.
      the same wave or record its narrower posture as an explicit staged residue — never leave the pair
      silently divergent. The UDF RETURNING screen (`UdfBinder`, COBOLNET1510) and the
      `{ Category: Numeric, IsFloat: false }` copies the scout catalogued are the same sweep.
+     ⛔ **AS BUILT, THE PAIR NO LONGER EXISTS** (kb/Work PB231, 2026-09-04). "Widen it in the same wave"
+     was the right instruction and it was still not enough — PB203 widened `ComputeTier` to USAGE BIT
+     leaves and the cell gate stayed narrow, the NINTH instance of the same shape on the same pair. The
+     structural answer replaced both hand-written lists with ONE allow-list predicate,
+     `DataBinder.ByteWindowResidueOf` (data-model design **D-BW1**), which each caller wraps in its own
+     surface phrasing; `ByteWindowResidueDriftTests` pins the four surfaces — REDEFINES, EXTERNAL,
+     BASED+ALLOCATE, ADDRESS OF — to one verdict per leaf. A future widening is one edit by construction,
+     which is the point: prefer the shape that makes the NEXT case automatic.
   5. **NATIONAL stays rejected THIS wave, with the reason corrected**: the old premise ("no single-byte
      char-window overlay") dissolves under byte-form windows, but D-N1's 2-byte-per-position REDEFINES
      layout is an undischarged A.1 obligation of its own — reject with the honest reason, tracked residue.

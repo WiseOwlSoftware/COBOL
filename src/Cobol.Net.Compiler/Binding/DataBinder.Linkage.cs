@@ -400,9 +400,10 @@ public sealed partial class DataBinder
     /// <summary>Re-base one EXTERNAL record onto the run-unit external cell (see
     /// <see cref="CallBindExternalAndGlobal"/>). <paramref name="externalName"/> overrides the cell key (the
     /// FD-record case keys by the FILE's externalized name, §13.18.22.4 GR5; a WS record keys by its own name).
-    /// A record with a national, USAGE BIT or pointer-class leaf cannot be carried by the shared byte cell —
-    /// rejected loud, conformant-but-unimplemented. Every NUMERIC leaf rides it on its pinned byte form
-    /// (kb/Work PB164).</summary>
+    /// A record with a national or pointer-class leaf cannot be carried by the shared byte cell — rejected
+    /// loud, conformant-but-unimplemented. Every NUMERIC leaf rides it on its pinned byte form (kb/Work
+    /// PB164) and every BOOLEAN leaf, USAGE BIT included, rides it on the §8.5.1.6.3 packing (kb/Work
+    /// PB231). The population is <see cref="ByteWindowResidueOf"/>'s, never a second list.</summary>
     private void CallMakeExternal(DataItem item, string? externalName = null)
     {
         if (ForceStringCanonical(item, "EXTERNAL record") is not { } cls)
@@ -425,8 +426,10 @@ public sealed partial class DataBinder
     /// can supply the storage (EXTERNAL records → the run-unit <c>ExternalStore</c> cell; ADDRESS-OF-taken items →
     /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). Every byte-form numeric
     /// leaf rides the cell since the Step D arm-1 dissolution (the gate reads THE ONE image predicate);
-    /// a national/bit/pointer-class leaf fails it — the class goes Rejected and every reference fails loud
-    /// (the caller skips its bridge registration). Returns the forced class, or null on rejection.</summary>
+    /// a national or pointer-class leaf fails it — the class goes Rejected and every reference fails loud
+    /// (the caller skips its bridge registration). Returns the forced class, or null on rejection.
+    /// <para>The admitted/refused population is <see cref="ByteWindowResidueOf"/>'s — THE ONE byte-window
+    /// carriage gate, shared with the REDEFINES classifier (kb/Work PB231).</para></summary>
     internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
     {
         var cls = item.Class;
@@ -438,25 +441,21 @@ public sealed partial class DataBinder
         }
 
         var leaves = cls.Members.SelectMany(LeavesOf).ToList();
-        // ⛔ THE SAME predicate as the main classifier (the Step D arm-1 dissolution widened this SECOND gate
-        // in the same wave — it was the eighth two-arm instance: ComputeTier admitted COMP/PACKED while this
-        // cell-backed gate refused every non-DISPLAY leaf, so an EXTERNAL/BASED/ADDRESS-OF record with a COMP
-        // member rejected where its plain sibling worked). A leaf rides the cell when its bytes are pinned:
-        // character categories, display-form BOOLEAN ('0'/'1' char == byte, D-B1), and every numeric with a
-        // byte form (HasImageByteForm — DISPLAY/BINARY/PACKED/COMP-5/float/INDEX; the byte-window lanes are
-        // backing-residence-agnostic). STILL OUT, each its own recorded residue: NATIONAL (two bytes per
-        // position over a byte-addressed cell — RESIDUE-11), USAGE BIT (the packing residue), and the
-        // pointer/object classes (no bytes — kb/Work PB179/PB183).
-        static bool CellCapable(DataItem l) => l.Pic is { } p
-            && (p.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
-                || (p.Category is PicCategory.Boolean && p.Usage is not Usage.Bit)
-                || p is { Category: PicCategory.Numeric, HasImageByteForm: true });
-        if (leaves.Any(l => !CellCapable(l)))
+        // ⛔ THE SAME gate as the main classifier — literally, now: ByteWindowResidueOf, ONE predicate for
+        // both surfaces (kb/Work PB231). This site was a hand-written ALLOW-list facing ComputeTier's
+        // hand-written DENY-list, and every widening had to be applied twice. It was not: the Step D arm-1
+        // dissolution widened both (the eighth two-arm instance — ComputeTier admitted COMP/PACKED while this
+        // gate refused every non-DISPLAY leaf), but PB203's USAGE BIT widening reached only ComputeTier, so a
+        // BASED / EXTERNAL / ADDRESS-OF record with a bit leaf still rejected while its REDEFINES twin ran.
+        // §13.18.5.3 SR1/SR2 restrict a BASED subject to "shall not be of class object" and "shall not be a
+        // dynamic-length elementary item or a variable-length group"; §14.9.3.3 SR1 asks only for the BASED
+        // clause; §13.18.22 conditions EXTERNAL on nothing subordinate at all. A bit leaf is admitted by all
+        // three, so the reject was rejects-legal-source — the same argument that retired the negative fixture
+        // pb151-based-comp-leaf at the PB164 landing. Its residue clause now names the ACTUAL leaf.
+        if (leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null) is { } residue)
         {
             cls.Classify(RedefinesTier.Rejected, cls.Width,
-                $"{what} '{item.CobolName}' has a national/bit/pointer-class leaf — the shared byte cell "
-                + "cannot carry it (the RESIDUE-11 2-byte national layout / the bit-packing residue / "
-                + "no byte form, deferred)");
+                $"{what} '{item.CobolName}' has {residue} — the shared byte cell cannot carry it");
             return null;
         }
 
