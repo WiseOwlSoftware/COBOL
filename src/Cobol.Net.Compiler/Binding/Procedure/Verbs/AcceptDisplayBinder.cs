@@ -68,7 +68,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             ctx.Edition.Error("COBOLNET1637", $"ACCEPT receiver '{dref.GetText()}' is an index-name — an "
                 + "index-name is not an identifier (ISO §8.4.3.1.2) and ACCEPT is not among the contexts that "
                 + "may reference one (§13.18.38.3 r7); SET a data item to it first (§14.9.39)");
-            return new BoundUnsupported($"ACCEPT into index-name '{dref.GetText()}'");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         if (ctx.Refs.Resolve(ac.dataReference()) is not { } target)
@@ -96,7 +96,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
                 + (temporal ? "the temporal format excludes (ISO §14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §14.9.25.3 SR2 via §14.9.1.4 GR6" : "") + ")"
                             : "the device format excludes (ISO §14.9.1.3 SR1)"));
-            return new BoundUnsupported($"ACCEPT into {excluded} '{rItem.CobolName}'");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         // §14.9.1.4 GR6: the temporal value stores "according to the rules for the MOVE statement" — the
@@ -108,7 +108,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         {
             ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
                 + $"stores by the MOVE rules (ISO §14.9.1.4 GR6 / §14.9.1.3 SR3) and this move is invalid — {refusal}");
-            return new BoundUnsupported($"ACCEPT temporal into '{rItem.CobolName}'");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§8.5.1.12 —
@@ -118,7 +118,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             ctx.Edition.Error(DiagnosticCatalog.AcceptVariableLengthGroup, $"ACCEPT receiver '{rItem.CobolName}' references a "
                 + "variable-length group (a DYNAMIC LENGTH item or dynamic-capacity table is subordinate to "
                 + "it) — ISO §14.9.1.3 SR6");
-            return new BoundUnsupported($"ACCEPT into variable-length group '{rItem.CobolName}'");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         if (ac.acceptSource() is not { } src)
@@ -152,13 +152,13 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             ctx.Edition.Error("COBOLNET0817", $"ACCEPT FROM '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
                 + "(ISO §14.9.1.3 SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
                 + "§12.3.7 Format 4 'device-name-1 IS mnemonic-name-3')");
-            return new BoundUnsupported($"ACCEPT FROM undeclared mnemonic '{name}'");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
         if (!AcceptInputDevices.Contains(device))
         {
             ctx.Edition.Error("COBOLNET0817", $"ACCEPT FROM '{name}': device '{device}' is not capable of input "
                 + "(ISO §14.9.1.3 SR2; the input-capable implementor device-names are CONSOLE and SYSIN, §12.3.7.3)");
-            return new BoundUnsupported($"ACCEPT FROM non-input device mnemonic '{name}'");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
         return new BoundAccept(target, AcceptKind.Device);
     }

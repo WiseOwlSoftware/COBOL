@@ -92,7 +92,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             {
                 ctx.Edition.Error("COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                     + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30 SR11)");
-                return new BoundUnsupported($"READ KEY '{keyRef.GetText()}' (no matching key of reference)");
+                return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
             }
             else keyIndex = ki;
         }
@@ -161,17 +161,17 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     public BoundStatement BindDelete(Core.DeleteStatementContext del)
     {
         string name = del.fileName().GetText();
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
-            return new BoundUnsupported($"DELETE of undeclared file '{name}'");
+        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+        if (!ctx.Validation.ResolveFile(name, "DELETE", out var file)) return new BoundNop();
         // §13.4.6.3 SR3: an SD file (its SELECT may even carry ORGANIZATION RELATIVE/INDEXED) previously bound
         // and ran against an unregistered connector — the fail-open status read '00' (kb/Work PB140).
-        if (ctx.Validation.ScreenSortMergeFile(file, "DELETE") is { } sd)
-            return new BoundUnsupported(sd);
+        if (ctx.Validation.ScreenSortMergeFile(file, "DELETE") is not null)
+            return new BoundNop();   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.IsSequential)
         {
             ctx.Edition.Error("COBOLNET0865", $"DELETE RECORD shall not be specified for sequential-organization "
                 + $"file '{name}' (ISO §14.9.10 SR1)");
-            return new BoundUnsupported($"DELETE on sequential file '{name}'");
+            return new BoundNop();   // reported above — not a deferral (PB236)
         }
         KeyedValidateFile(file);
         // §14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD
@@ -205,18 +205,14 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         foreach (var fn in df.fileName())
         {
             string name = fn.GetText();
-            if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
-            {
-                steps.Add(new BoundUnsupported($"DELETE FILE of undeclared file '{name}'"));
-                continue;
-            }
+            // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639). GR12's as-if
+            // duplication means each name is its own statement, so a bad one drops its own element and the
+            // others still bind.
+            if (!ctx.Validation.ResolveFile(name, "DELETE FILE", out var file)) continue;
             // §14.9.10.3 SR3 / §13.4.6.3 SR3: DELETE FILE of the sort-merge file rejects at bind time —
             // it previously compiled and the statement's TWO status channels answered oppositely (kb/Work PB140).
-            if (ctx.Validation.ScreenSortMergeFile(file, "DELETE FILE") is { } sd)
-            {
-                steps.Add(new BoundUnsupported(sd));
-                continue;
-            }
+            if (ctx.Validation.ScreenSortMergeFile(file, "DELETE FILE") is not null)
+                continue;   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
             List<BoundStatement>? on = null, notOn = null;
             if (df.deleteFileOnException() is { } ex)
                 (on, notOn) = PhraseBlocks.Split(ex.statementBlock(), PhraseBlocks.StartsWithNot(ex), b => host.BindBlocks([b]));
@@ -238,8 +234,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     public BoundStatement BindStart(Core.StartStatementContext st)
     {
         string name = st.fileName().GetText();
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
-            return new BoundUnsupported($"START of undeclared file '{name}'");
+        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+        if (!ctx.Validation.ResolveFile(name, "START", out var file)) return new BoundNop();
         if (file.IsSequential)
             return new BoundUnsupported($"START on sequential-organization file '{name}' "
                 + "(ISO §14.9.41 SR2 FIRST/LAST positioning — a later slice)");
@@ -283,8 +279,25 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 ctx.Edition.Error("COBOLNET0862", $"START on '{name}': data-name-1 shall be the RELATIVE KEY "
                     + $"item '{file.RelativeKeyItem?.CobolName ?? "(none)"}' (ISO §14.9.41 SR5)");
             operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.ResolveItem(rk) : null;
+            // ⛔ GR8's SUBSTITUTION HAS NO OPERAND, SO THE STATEMENT HAS NO MEANING (kb/Work PB236, row
+            // GR-14.9.41.4-8). §14.9.41.4 GR8: "If the KEY phrase is omitted, the START statement behaves as
+            // though KEY IS EQUAL TO data-name-1 had been specified, where data-name-1 is the name of the key
+            // specified in the RELATIVE KEY clause associated with file-name-1." A relative file in ACCESS
+            // SEQUENTIAL may legally omit the RELATIVE KEY clause (§12.4.5.13 imposes no requirement to write
+            // it, and KeyedValidateFile only requires it for random/dynamic), so this program is syntactically
+            // legal and semantically empty: there is no data-name-1 to substitute. §4.2.2 ¶4 leaves flagging a
+            // general rule to the implementor ("An implementation may, but is not required to, flag violations
+            // of such rules"), and the alternative to flagging is emitting code that cannot work — so this
+            // rejects, in the SAME COBOLNET0862 channel this method already uses for SR1/SR3/SR5/SR6/SR8, and
+            // no longer as a silent compile followed by a run-time abort.
             if (operand is null)
-                return new BoundUnsupported($"START on '{name}' with no resolvable RELATIVE KEY item");
+            {
+                ctx.Edition.Error("COBOLNET0862", $"START on '{name}': the KEY phrase is omitted, so ISO "
+                    + "§14.9.41.4 GR8 substitutes KEY IS EQUAL TO the RELATIVE KEY item — but this file control "
+                    + "entry has no RELATIVE KEY clause, so there is no key to compare. Add a RELATIVE KEY "
+                    + "clause to the SELECT, or write an explicit KEY phrase.");
+                return new BoundNop();
+            }
             return new BoundKeyedStart(file, KeyedStartMode.Key, op, -1, operand, null, invalid);
         }
 
@@ -296,7 +309,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 ctx.Edition.Error("COBOLNET0862", $"START on '{name}': '{operand.Item.CobolName}' neither names "
                     + "a record key nor begins at the leftmost character position of one with a length not "
                     + "greater than that key (ISO §14.9.41 SR6)");
-                return new BoundUnsupported($"START KEY operand '{operand.Item.CobolName}' (not a key of '{name}')");
+                return new BoundNop();   // reported above — not a deferral (PB236)
             }
             keyIndex = ki;
         }

@@ -120,7 +120,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSuppressContext,
                 "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");
-            return new BoundUnsupported("SUPPRESS outside a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
         var report = ctx.Data.Reports.First(r => r.Groups.Contains(group));
         return new BoundSuppress(report);

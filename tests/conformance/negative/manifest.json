@@ -739,7 +739,16 @@
   "pb485-renames-not-level-66",
   "pb485-level-77-filler",
   "pb485-level-77-unnamed",
-  "pb485-level-77-renames"
+  "pb485-level-77-renames",
+  "pb236-add-corr-elementary",
+  "pb236-add-corr-level-66",
+  "pb236-release-record-not-sd",
+  "pb236-return-file-not-sd",
+  "pb236-open-undeclared-file",
+  "pb236-unlock-undeclared-file-unreached",
+  "pb236-start-relative-no-relative-key",
+  "pb236-add-giving-alphanumeric",
+  "pb236-add-giving-reference-modified"
  ],
  "pending": []
 }

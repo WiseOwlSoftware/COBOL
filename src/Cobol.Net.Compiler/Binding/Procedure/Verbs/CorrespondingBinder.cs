@@ -56,14 +56,31 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             return new BoundUnsupported($"{verbName} CORRESPONDING source group '{groups[0].GetText()}'");
         if (ctx.Refs.Resolve(groups[1]) is not { } dst)
             return new BoundUnsupported($"{verbName} CORRESPONDING receiving group '{groups[1].GetText()}'");
-        // Both operands shall be GROUP items (MOVE §14.9.25.3 SR12; ADD §14.9.2.3 SR6; SUBTRACT §14.9.44.3 SR6).
-        // SR12's "not reference-modified" and SR6's "not level-66" hold structurally here: reference modification
-        // resolves only over elementary character items (never a group), and RENAMES entries are not data-tree
-        // members — both shapes already failed the resolves above.
-        if (!src.Item.IsGroup || !dst.Item.IsGroup)
-            return new BoundUnsupported($"{verbName} CORRESPONDING over an elementary operand "
-                + $"'{(src.Item.IsGroup ? dst.Item.CobolName : src.Item.CobolName)}' "
-                + "(group items required — ISO §14.9.25.3 SR12 / §14.9.2.3 SR6 / §14.9.44.3 SR6)");
+        // ⛔ BOTH OPERANDS SHALL BE GROUP ITEMS, AND THAT IS A SYNTAX RULE, SO IT IS DECIDED AT BIND TIME
+        // (kb/Work PB236, row SR-14.9.2.3-6). MOVE §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall
+        // specify group data items and shall not be reference-modified" — and ADD §14.9.2.3 SR6 / SUBTRACT
+        // §14.9.44.3 SR6 — "Identifier-4 and identifier-5 shall be alphanumeric group items, national group
+        // items, variable-length groups, or strongly-typed group items and shall not be described with
+        // level-number 66". The predicate and the citation were already right here; the STAGE was not: the old
+        // BoundUnsupported made `ADD CORR ELEM TO GRP` compile clean and throw NotImplementedCobolFeatureException
+        // only if the statement was reached, where ISO §4.2.2 ¶2 requires a compile-time mechanism.
+        // ⛔ AND THE LEVEL-66 CLAIM THAT USED TO STAND HERE WAS FALSE. This comment said a RENAMES entry
+        // "already failed the resolves above"; it does not. DataBinder.BindRenames builds it with Pic null and
+        // no Children into `_lastRoot.Renames66`, so DataItem.IsGroup is false for it and it landed in the
+        // elementary-operand arm — rejected for a reason the rule does not give. SR6 excludes it BY NAME, and
+        // StatementValidation now says so. (SR12's "not reference-modified" DOES hold structurally: reference
+        // modification resolves only over elementary character items, never a group.)
+        string rule = verb switch
+        {
+            CorrVerb.Move => "§14.9.25.3 SR12",
+            CorrVerb.Add => "§14.9.2.3 SR6",
+            _ => "§14.9.44.3 SR6",
+        };
+        // Both operands are screened before the verdict — a statement with two bad operands reports two
+        // diagnostics, not the first one only (a short-circuit here would hide the second).
+        bool srcOk = ctx.Validation.CheckCorrespondingGroupOperand(src.Item, groups[0].GetText(), verbName, rule);
+        bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst.Item, groups[1].GetText(), verbName, rule);
+        if (!srcOk || !dstOk) return new BoundNop();
 
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();

@@ -1918,6 +1918,54 @@ public static class DiagnosticCatalog
     /// have. Covers ISO §13.18.58 (the TYPEDEF clause), §13.18.57.3 (the TYPE clause's syntax rules) and
     /// §8.5.3.1 / §8.5.3.3 (type declarations and strong typing — including SR1's prohibition on an
     /// ELEMENTARY type definition carrying the STRONG phrase).</summary>
+    // ── THE THREE JOBS OF THE OLD `BoundUnsupported` CARRIER (kb/Work PB236) ──────────────────────────────
+    //    One bound node used to answer three different questions — "COBOL.NET has not built this" (a DEFERRAL),
+    //    "your OPERAND is ill-formed" and "this statement is ILLEGAL HERE" — and StatementEmitter rendered all
+    //    three as the same run-time `NotImplemented.Run(...)`. The two user-error jobs therefore reached the
+    //    programmer as a claim that THE COMPILER is incomplete when in fact THE SOURCE is wrong, at run time,
+    //    and on an unexecuted path not at all: `RELEASE <non-SD record>` behind a GO TO compiled clean AND ran
+    //    to normal completion with no message at any time. ISO §4.2.2 ¶2: "An implementation shall provide a
+    //    warning mechanism that optionally may be invoked by the user at compile time to indicate violations of
+    //    the general formats and the explicit syntax rules of standard COBOL." These two descriptors are the
+    //    separation: 1757 is where a violated syntax rule / general format now lands, and 1756 is the DEFERRAL
+    //    announcing ITSELF at compile time so the carrier's one remaining job can never again be silent.
+    /// <summary>COBOLNET1757 — an operand a statement's own syntax rules or general format do not admit,
+    /// refused at BIND time. The rules that reach it today (each named in full by the site's message): the
+    /// CORRESPONDING group-operand rule in its three spellings — MOVE §14.9.25.3 SR12 ("Identifier-3 and
+    /// identifier-4 shall specify group data items and shall not be reference-modified"), ADD §14.9.2.3 SR6 and
+    /// SUBTRACT §14.9.44.3 SR6 ("Identifier-4 and identifier-5 shall be alphanumeric group items, national group
+    /// items, variable-length groups, or strongly-typed group items and shall not be described with
+    /// level-number 66") — RELEASE §14.9.32.3 SR1 ("Record-name-1 shall be the name of a logical record in a
+    /// sort-merge file description entry"), RETURN §14.9.34.3 SR1 ("File-name-1 shall be described by a
+    /// sort-merge file description entry in the data division"), and MERGE's §14.9.24.2 general format
+    /// (at least two USING file-names; one of OUTPUT PROCEDURE or GIVING) with SORT's table-key rules
+    /// (§14.9.40.3). The multi-rule shape follows COBOLNET1651's precedent: the CODE is the identity of the
+    /// MECHANISM (a bind-time operand refusal), the MESSAGE carries the rule.</summary>
+    public static readonly DiagnosticDescriptor StatementOperandRule = new(
+        "COBOLNET1757", "statement-operand-rule", EditionSeverity.Error,
+        "A statement operand is one the statement's own syntax rules or general format do not admit, so the "
+        + "statement has no meaning: a CORRESPONDING operand that is not a group item or is a level-66 RENAMES "
+        + "entry (ISO §14.9.25.3 SR12 / §14.9.2.3 SR6 / §14.9.44.3 SR6), a RELEASE record-name that is not a "
+        + "logical record of a sort-merge description entry (§14.9.32.3 SR1), a RETURN file-name not described "
+        + "by an SD (§14.9.34.3 SR1), or a SORT/MERGE operand list the general format does not print "
+        + "(§14.9.24.2 / §14.9.40.3). Rejected at bind — the statement is not run.",
+        "ISO §14.9.2.3 / §14.9.25.3 / §14.9.32.3 / §14.9.34.3 / §14.9.44.3");
+    /// <summary>COBOLNET1756 — the DEFERRAL announcing itself. A statement the grammar accepted but this
+    /// compiler binds to <c>BoundUnsupported</c> is staged to a loud run-time refusal (COBOLNET_DESIGN §1.4);
+    /// before kb/Work PB236 that staging was invisible at compile time, so a program carrying an unimplemented
+    /// statement on an unexecuted path looked identical to one that compiled cleanly. The
+    /// <see cref="EditionSeverity.Warning"/> severity is the point: the deferral is the COMPILER's gap and not
+    /// the source's error, so it must not fail a compile that the standard gives a meaning — it must only stop
+    /// being silent. Reported ONCE per statement from the single <c>StatementBinder.BindStatement</c> funnel,
+    /// which already positions the diagnostic cursor (kb/Work PB82), so no construction site can forget it and
+    /// every future one inherits it.</summary>
+    public static readonly DiagnosticDescriptor StatementNotImplemented = new(
+        "COBOLNET1756", "statement-not-implemented", EditionSeverity.Warning,
+        "A statement this compiler has not implemented was accepted and staged to a loud run-time refusal "
+        + "(COBOLNET_DESIGN §1.4): the compilation succeeds and every other statement runs, but reaching this "
+        + "one aborts the run unit with NotImplementedCobolFeatureException. This is a gap in COBOL.NET, not an "
+        + "error in the source — the warning exists so the gap is visible before the program is run.",
+        "COBOLNET_DESIGN §1.4", "statement-not-implemented");
     public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
         "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",

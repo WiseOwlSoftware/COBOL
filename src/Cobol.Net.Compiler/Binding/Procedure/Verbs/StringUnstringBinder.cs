@@ -92,8 +92,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 $"STRING INTO '{st.stringIntoPhrase().dataReference().GetText()}' is an elementary item of USAGE "
                 + $"{ip.Usage}, which has no character image; SR1 requires every identifier except the POINTER to be "
                 + "usage display or national (ISO §14.9.43.3 SR1)");
-            return new BoundUnsupported(
-                $"STRING INTO receiver of USAGE {ip.Usage} (ISO §14.9.43.3 SR1 — usage display or national only)");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         Place? pointer = null;
@@ -173,10 +172,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                         $"UNSTRING INTO '{drefs[0].GetText()}' requires a usage-display alphabetic/alphanumeric/"
                         + "numeric or usage-national national/numeric receiver; edited, COMP, packed, index and "
                         + "float receivers have no character image (ISO §14.9.48.3 SR4)");
-                    return new BoundUnsupported(
-                        $"UNSTRING INTO '{drefs[0].GetText()}' — a usage-display alphabetic/alphanumeric/numeric or " +
-                        "usage-national national/numeric receiver is required; edited, COMP, packed, index, and float " +
-                        "receivers are not permitted (ISO §14.9.48.3 SR4)");
+                    return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
                 }
                 bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
                 if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
@@ -323,7 +319,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     private BoundStatement Reject(string message)
     {
         ctx.Edition.Error(DiagnosticCatalog.StringUnstringOperandRule, message);
-        return new BoundUnsupported(message);
+        return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
     }
 
     private static bool StrUnstrIsInteger(Place p) =>

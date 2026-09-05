@@ -37,8 +37,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             foreach (var spec in clause.openFileSpec())
             {
                 string name = spec.dataReference().GetText();
-                if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
-                    return new BoundUnsupported($"OPEN of undeclared file '{name}'");
+                // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+                if (!ctx.Validation.ResolveFile(name, "OPEN", out var file)) return new BoundNop();
                 // §14.9.27 SR8: OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.
                 ctx.Validation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing);   // §14.9.27 SR8 — pure check
                 opens.Add((file, mode, UnsupportedOrg(file, "OPEN")));
@@ -60,12 +60,12 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         foreach (var phrase in c.closeFilePhrase())
         {
             string name = phrase.fileName().GetText();
-            if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
-                return new BoundUnsupported($"CLOSE of undeclared file '{name}'");
+            // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+            if (!ctx.Validation.ResolveFile(name, "CLOSE", out var file)) return new BoundNop();
             // §13.4.6.3 SR3: an SD file-name in a CLOSE — the statement previously compiled and ran against an
             // unregistered connector whose fail-open status read '00' (kb/Work PB140).
-            if (ctx.Validation.ScreenSortMergeFile(file, "CLOSE") is { } sd)
-                return new BoundUnsupported(sd);
+            if (ctx.Validation.ScreenSortMergeFile(file, "CLOSE") is not null)
+                return new BoundNop();   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
             // §14.9.6.3 SR1: "The NO REWIND, REEL, and UNIT phrases may be used only with files that are of
             // sequential organization" (record and line sequential both, §9.1.7.2). WITH LOCK is not
             // organization-restricted. The old acceptance degraded to a stale FILE STATUS value at run time.
@@ -74,7 +74,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 ctx.Edition.Error(DiagnosticCatalog.ClosePhraseOrganization,
                     $"CLOSE '{name}' with the {(o.REWIND() is not null ? "NO REWIND" : "REEL/UNIT")} phrase — "
                     + $"the phrase may be used only with a sequential-organization file (ISO §14.9.6.3 SR1)");
-                return new BoundUnsupported($"CLOSE phrase on non-sequential file '{name}'");
+                return new BoundNop();   // reported above — not a deferral (PB236)
             }
             // The four Table-14 forms (§14.9.6.4 GR3, Non-unit column — every file here is a disk file):
             // REEL/UNIT [FOR REMOVAL] all map to symbol e (successful no-op, file stays open, '07' — the FOR
@@ -121,7 +121,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     public BoundStatement BindWrite(Core.WriteStatementContext w)
     {
         if (DeclinedFilePhrase(w.fileName(), "WRITE"))                      // Annex A.4.13 item 2) — COBOLNET1706
-            return new BoundUnsupported("WRITE FILE (ISO §14.9.51 FILE phrase) — Annex A.4.13, not claimed");
+            return new BoundNop();   // Declined REPORTED it; a declined element is not an unbuilt one (PB236)
         Place? record = null;
         FileModel? file = null;
         if (w.recordName()?.dataReference() is { } rn && ctx.Refs.Resolve(rn) is { } place)
@@ -163,8 +163,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     public BoundStatement BindRead(Core.ReadStatementContext r)
     {
         string name = r.fileName().GetText();
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
-            return new BoundUnsupported($"READ of undeclared file '{name}'");
+        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+        if (!ctx.Validation.ResolveFile(name, "READ", out var file)) return new BoundNop();
         if (!file.IsSequential) return keyedIo.BindRead(r, file);   // relative/indexed READ F1/F2 (ISO 14.9.30; KeyedIo partial)
         Place? into = r.readInto()?.dataReference() is { } d ? ctx.Refs.Resolve(d) : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
@@ -183,7 +183,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     public BoundStatement BindRewrite(Core.RewriteStatementContext rw)
     {
         if (DeclinedFilePhrase(rw.fileName(), "REWRITE"))                    // Annex A.4.13 item 1) — COBOLNET1706
-            return new BoundUnsupported("REWRITE FILE (ISO §14.9.35 FILE phrase) — Annex A.4.13, not claimed");
+            return new BoundNop();   // Declined REPORTED it; a declined element is not an unbuilt one (PB236)
         Place? record = rw.recordName()?.dataReference() is { } rn ? ctx.Refs.Resolve(rn) : null;
         FileModel? file = record is not null ? FileOfRecord(record) : null;
         if (file is null || record is null)

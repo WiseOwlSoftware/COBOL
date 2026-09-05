@@ -28,8 +28,9 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
         // gate moved to the post-bind VersionConformancePass (rearch PHASE-03 Step 14b) — it fires on the
         // self-identifying BoundUnlock node this method produces, so the binder is edition-agnostic here.
         string name = ul.fileName().GetText();
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
-            return new BoundUnsupported($"UNLOCK of undeclared file '{name}'");
+        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639); the old
+        // BoundUnsupported staged an UNDECLARED file-name to a run-time loud with no compile-time word.
+        if (!ctx.Validation.ResolveFile(name, "UNLOCK", out var file)) return new BoundNop();
         if (file.IsSortMerge)
             ctx.Edition.Error("COBOLNET1512", $"UNLOCK may not name the sort/merge file '{name}' "
                 + "(ISO §14.9.47 SR1)");

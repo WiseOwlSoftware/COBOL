@@ -532,7 +532,17 @@ public sealed record BoundUdfEvaluated(IReadOnlyList<BoundStatement> Activations
 [BoundNode]
 public abstract record BoundStatement;
 
-/// <summary>An unsupported / unresolved statement — the backend emits a loud runtime guard (§1.4).</summary>
+/// <summary>⛔ A DEFERRAL, AND NOTHING ELSE: a statement whose construct COBOL.NET HAS NOT BUILT. The backend
+/// emits a loud runtime guard (§1.4) and <see cref="StatementBinder.BindStatement"/> reports COBOLNET1756 at
+/// compile time, so the gap is visible before the program is run.
+/// <para>⛔ IT IS NOT THE CARRIER FOR AN ILL-FORMED OPERAND OR AN ILLEGAL PLACEMENT (kb/Work PB236). It used to
+/// be all three, and the emitter could not tell them apart, so a violated syntax rule reached the programmer as
+/// a claim that THE COMPILER is incomplete when in fact THE SOURCE was wrong — at run time, and on an
+/// unexecuted path not at all. A statement whose operand or position the standard forbids reports its own
+/// diagnostic (<see cref="Editions.Diagnostics.DiagnosticCatalog.StatementOperandRule"/> or the rule's own
+/// descriptor, per ISO §4.2.2 ¶2's compile-time mechanism) and binds to <see cref="BoundNop"/>; it does NOT
+/// come here. If you are about to construct one of these while holding a §/SR citation for why the SOURCE is
+/// wrong, that citation is telling you this is the wrong node.</para></summary>
 public sealed record BoundUnsupported(string Feature) : BoundStatement;
 
 /// <summary>The STOP RUN / GOBACK termination status phrase (ISO §14.9.42 / §14.9.18.2 — COBOL-2002 on STOP,

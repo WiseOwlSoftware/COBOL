@@ -55,8 +55,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                         : "REPLACES characters in it (ISO §14.9.22.2 Format 2/3, §14.9.22.4 GR7)")
                     + " — a receiving operand, which ISO §8.4.3.2.3 SR1 bars a function-identifier from. A "
                     + "function-identifier IS legal as INSPECT identifier-1 in Format 1 (TALLYING only)");
-                return new BoundUnsupported(
-                    $"INSPECT REPLACING/CONVERTING over the function-identifier '{spelling}' (ISO §8.4.3.2.3 SR1)");
+                return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
             }
             // Format 1: identifier-1 is only READ. It binds as an ordinary sending operand and flows to the
             // emitter's AsString read; nothing stores back, so no Place is needed. SR1's usage constraint is
@@ -79,7 +78,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 $"INSPECT identifier-1 is the index-name '{ins.dataReference().GetText()}', which is not an "
                 + "identifier (ISO §8.4.3.1.2); §13.18.38.3 r7 admits an index-name only as a subscript, in "
                 + "PERFORM/SEARCH VARYING, in SET, or in a relation condition");
-            return new BoundUnsupported($"INSPECT of the index-name '{ins.dataReference().GetText()}' (ISO §13.18.38.3 r7)");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
         if (ctx.Refs.Resolve(ins.dataReference()) is not { } target)
             return new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
@@ -102,8 +101,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 $"INSPECT identifier-1 '{target.Item.CobolName}' is an elementary item of USAGE {tp.Usage}, which "
                 + "has no character image; SR1 admits an alphanumeric/national GROUP item or an ELEMENTARY item of "
                 + "usage display or national (ISO §14.9.22.3 SR1)");
-            return new BoundUnsupported(
-                $"INSPECT identifier-1 '{target.Item.CobolName}' of USAGE {tp.Usage} (ISO §14.9.22.3 SR1 — usage display or national only)");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         return BindPhrases(new BoundFieldOperand(target), ins);

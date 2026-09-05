@@ -342,6 +342,24 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         int udfMark = Udf.PendingCount;
         int mark = data.OoPendingPropertyOps.Count;
         var core = BindStatementCore(s);
+        // ⛔ THE DEFERRAL ANNOUNCES ITSELF (kb/Work PB236). `BoundUnsupported` was the carrier for three
+        // incompatible jobs — a feature COBOL.NET has not built, an ill-formed OPERAND, and an illegal
+        // PLACEMENT — and the emitter rendered all three as the same run-time `NotImplemented.Run(...)`. The two
+        // user-error jobs have moved to bind-time diagnostics at their own sites; what is left here is job ONE,
+        // and it is reported so it can never again be invisible: before this, a program carrying an
+        // unimplemented statement on a path the flow skipped compiled clean, ran to normal completion and said
+        // NOTHING, at any stage, ever.
+        // ⛔ THIS IS THE INVARIANT, AND IT IS HERE BECAUSE HERE IS THE ONLY PLACE IT CANNOT BE FORGOTTEN. Every
+        // statement the grammar accepted funnels through this method, which already positions the diagnostic
+        // cursor (kb/Work PB82), so a NEW `BoundUnsupported` written anywhere in any verb binder inherits the
+        // report by construction — never a per-site habit, which is exactly what produced the asymmetry PB236
+        // measured (two of START's five refusals carried a diagnostic and three did not). A WARNING, not an
+        // error: the gap is the COMPILER's, so it must not fail a compile the standard gives a meaning to —
+        // §1.4's staged-loud posture is unchanged, it merely stopped being silent.
+        if (core is BoundUnsupported unsupported)
+            data.Edition.Warning(DiagnosticCatalog.StatementNotImplemented,
+                $"{unsupported.Feature} — not implemented; reaching this statement aborts the run unit "
+                + "(COBOLNET_DESIGN §1.4)");
         core = Udf.UdfWrapCalls(core, udfMark);
         core = Oo.OoWrapPropertyOps(core, mark);
         return Ec.EcWrap(s, core);

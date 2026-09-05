@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Diagnostics.CodeAnalysis;
+
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
@@ -17,6 +19,114 @@ namespace CobolNet.Binding.Validation;
 /// </summary>
 internal sealed class StatementValidation(DataBinder data)
 {
+    // ── THE STATEMENT-OPERAND SCREENS THAT USED TO BE RUN-TIME LOUDS (kb/Work PB236) ─────────────────────────
+    //    `BoundUnsupported` was the carrier for THREE incompatible jobs — a genuine feature DEFERRAL, an
+    //    ill-formed OPERAND, and an illegal PLACEMENT — and StatementEmitter rendered all three as the same
+    //    `NotImplemented.Run(...)`. The two user-error jobs belong at COMPILE time, per ISO §4.2.2 ¶2 ("An
+    //    implementation shall provide a warning mechanism that optionally may be invoked by the user at compile
+    //    time to indicate violations of the general formats and the explicit syntax rules of standard COBOL"),
+    //    and they belong HERE, in the one syntax-rule check catalog, not at each verb binder.
+
+    /// <summary>⛔ THE ONE file-name → <see cref="FileModel"/> resolution for a STATEMENT operand (kb/Work
+    /// PB236). Seven binder sites — UNLOCK, OPEN, CLOSE, READ, DELETE, DELETE FILE and START — each wrote its
+    /// own <c>FilesByName.TryGetValue</c> and its own unreported <c>BoundUnsupported</c>, so a word naming no
+    /// file connector compiled clean at every edition and either aborted the run unit or, on an unexecuted
+    /// path, said nothing at all. Each of those statements' general formats writes the operand as
+    /// <c>file-name-1</c>, and ISO §8.4.2.1 fixes what a name must do: "In order to use a resource, a statement
+    /// shall contain a reference that uniquely identifies that resource." A word that identifies no file
+    /// connector identifies no resource.
+    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.UndefinedReference"/> (COBOLNET1639),
+    /// not a new code: "this source element defines no such name" is ONE rule, and the file-name space was
+    /// simply missing from the place that already reports it for data-names (feedback_one_rule_one_place). A
+    /// new statement that names a file gets the diagnostic by calling this, not by remembering to write
+    /// one.</para></summary>
+    /// <param name="name">The file-name as written.</param>
+    /// <param name="verb">The statement, for the message, e.g. "OPEN".</param>
+    /// <param name="file">The resolved model when this returns true.</param>
+    /// <returns>true when the name identifies a file connector; false after reporting.</returns>
+    public bool ResolveFile(string name, string verb, [NotNullWhen(true)] out FileModel? file)
+    {
+        if (data.FilesByName.TryGetValue(name, out file)) return true;
+        data.Edition.Error(DiagnosticCatalog.UndefinedReference,
+            $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
+            + "or file description entry in this source element gives that name, so the statement's reference "
+            + "identifies no resource (ISO §8.4.2.1: \"a statement shall contain a reference that uniquely "
+            + "identifies that resource\"). Check the spelling, or add the file to the FILE-CONTROL paragraph.");
+        return false;
+    }
+
+    /// <summary>The CORRESPONDING group-operand rule, ONE screen for its three spellings (kb/Work PB236):
+    /// MOVE §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall not be
+    /// reference-modified" — and ADD §14.9.2.3 SR6 / SUBTRACT §14.9.44.3 SR6 — "Identifier-4 and identifier-5
+    /// shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group
+    /// items and shall not be described with level-number 66." The two spellings differ (only the arithmetic
+    /// ones exclude level-66 and enumerate the admitted group kinds), so the message names the rule the CALLER
+    /// is under rather than reciting all three at everyone.
+    /// <para>⛔ THE LEVEL-66 CASE GETS ITS OWN REASON. A RENAMES entry has <c>Pic</c> null and no
+    /// <c>Children</c>, so <see cref="DataItem.IsGroup"/> is false for it and it used to be reported as an
+    /// "elementary operand" — rejected for a reason the rule does not give. It is excluded BY NAME, and the
+    /// message says so.</para></summary>
+    /// <param name="item">The resolved operand.</param>
+    /// <param name="refText">The operand as written, for the message.</param>
+    /// <param name="verb">MOVE | ADD | SUBTRACT.</param>
+    /// <param name="clause">The caller's own rule, e.g. "§14.9.2.3 SR6".</param>
+    /// <returns>true when the operand is admitted.</returns>
+    public bool CheckCorrespondingGroupOperand(DataItem item, string refText, string verb, string clause)
+    {
+        if (item.Renames is not null)
+        {
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                $"{verb} CORRESPONDING operand '{refText}' is described with level-number 66 — the operands "
+                + $"\"shall not be described with level-number 66\" (ISO {clause})");
+            return false;
+        }
+        if (item.IsGroup) return true;
+        data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+            $"{verb} CORRESPONDING operand '{refText}' is an elementary item — both operands shall be group "
+            + $"items (ISO {clause})");
+        return false;
+    }
+
+    /// <summary>ISO §14.9.32.3 SR1 — "Record-name-1 shall be the name of a logical record in a sort-merge file
+    /// description entry and it may be qualified." The predicate and the citation were already right at
+    /// <c>SortBinder.BindRelease</c>; only the STAGE was wrong (kb/Work PB236), and on a path the flow skipped
+    /// the program compiled AND ran to normal completion with no message at any time.</summary>
+    public bool CheckReleaseRecord(FileModel? file, string refText)
+    {
+        if (file is { IsSortMerge: true }) return true;
+        data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+            $"RELEASE '{refText}' — record-name-1 shall be the name of a logical record in a sort-merge (SD) "
+            + "file description entry (ISO §14.9.32.3 SR1)"
+            + (file is null ? "; this name is not a record of any file description entry"
+                            : $"; '{refText}' is a record of '{file.CobolName}', which is described by an FD"));
+        return false;
+    }
+
+    /// <summary>ISO §14.9.34.3 SR1 — "File-name-1 shall be described by a sort-merge file description entry in
+    /// the data division." The RETURN twin of <see cref="CheckReleaseRecord"/> (kb/Work PB236). The
+    /// "not declared at all" case is NOT this rule and never reaches here: it is
+    /// <see cref="ResolveFile"/>'s §8.4.2.1 verdict, and conflating the two told a user whose file simply had
+    /// an FD that the name was undefined.</summary>
+    public bool CheckReturnFile(FileModel file)
+    {
+        if (file.IsSortMerge) return true;
+        data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+            $"RETURN '{file.CobolName}' — file-name-1 shall be described by a sort-merge (SD) file description "
+            + "entry in the data division (ISO §14.9.34.3 SR1); this file is described by an FD");
+        return false;
+    }
+
+    /// <summary>A SORT/MERGE operand list the statement's GENERAL FORMAT does not print (kb/Work PB236) —
+    /// §14.9.24.2's MERGE format prints <c>USING file-name-2 {file-name-3}…</c> (two names minimum) and
+    /// requires one of <c>OUTPUT PROCEDURE</c> or <c>GIVING</c>; §14.9.40.3's table-sort rules fix what a key
+    /// may be. ISO §4.2.2 ¶2 puts violations of "the general formats and the explicit syntax rules" in the
+    /// compile-time warning mechanism, and these used to be run-time louds.</summary>
+    public bool RejectStatementOperand(string message)
+    {
+        data.Edition.Error(DiagnosticCatalog.StatementOperandRule, message);
+        return false;
+    }
+
     // ── INSPECT (ISO §14.9.22.3) — lifted at 10c ─────────────────────────────────────────────────────────────
 
     /// <summary>SR5 — a TALLYING counter shall be an elementary numeric data item.</summary>

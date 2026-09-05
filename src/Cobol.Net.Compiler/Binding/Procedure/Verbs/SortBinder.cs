@@ -45,9 +45,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     /// the general format requires one of each pair).</summary>
     private BoundStatement SortBindFile(Core.SortStatementContext s, FileModel file)
     {
+        // SR4 is a SYNTAX RULE, so it is decided here and not by a run-time loud (kb/Work PB236).
         if (!file.IsSortMerge)
-            return new BoundUnsupported($"SORT file '{file.CobolName}' is not described in a sort-merge description "
-                + "entry (ISO §14.9.40.3 SR4 — file-name-1 shall be described in an SD)");
+        {
+            ctx.Validation.RejectStatementOperand($"SORT file '{file.CobolName}' is not described in a sort-merge "
+                + "description entry (ISO §14.9.40.3 SR4 — file-name-1 shall be described in an SD)");
+            return new BoundNop();
+        }
         if (SortRecordOf(file) is not { } record)
             // The MECHANISM is derived from the record itself (the R40 fleet: a fixed "VARIABLE-LENGTH"
             // string misdiagnosed a pointer-leafed record — the same wrong-cause defect twice removed).
@@ -59,7 +63,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         var keys = new List<BoundSortMergeKey>();
         foreach (var phrase in s.sortKeyPhrase())
             if (SortAddFileKeys(phrase.DESCENDING() is not null, phrase.dataReferenceList(), file, keys) is { } err)
-                return new BoundUnsupported(err);
+            {
+                ctx.Validation.RejectStatementOperand(err);   // PB236
+                return new BoundNop();
+            }
 
         var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase());
         if (collErr is { } ce) return ce;
@@ -67,28 +74,37 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         // Release phase source (ISO §14.9.40 GR9a): USING file list or INPUT PROCEDURE pc range.
         var usingFiles = new List<FileModel>();
         if (s.sortUsingPhrase() is { } up && SortMapIoFiles(up.dataReferenceList(), usingFiles) is { } uerr)
-            return new BoundUnsupported(uerr);
+        {
+            ctx.Validation.RejectStatementOperand(uerr);   // PB236
+            return new BoundNop();
+        }
         (int, int)? inputProc = null;
         if (s.sortInputProcedurePhrase() is { } ipp)
         {
             if (SortRange(ipp.procedureName()) is not { } ipr)
-                return new BoundUnsupported($"SORT INPUT PROCEDURE '{ipp.procedureName(0).GetText()}' (unknown procedure)");
+                return RejectUnknownProcedure("SORT INPUT PROCEDURE", ipp.procedureName(0).GetText());   // PB236
             inputProc = ipr;
         }
         // Return phase target (GR9c): GIVING file list or OUTPUT PROCEDURE pc range.
         var givingFiles = new List<FileModel>();
         if (s.sortGivingPhrase() is { } gp && SortMapIoFiles(gp.dataReferenceList(), givingFiles) is { } gerr)
-            return new BoundUnsupported(gerr);
+        {
+            ctx.Validation.RejectStatementOperand(gerr);   // PB236
+            return new BoundNop();
+        }
         (int, int)? outputProc = null;
         if (s.sortOutputProcedurePhrase() is { } opp)
         {
             if (SortRange(opp.procedureName()) is not { } opr)
-                return new BoundUnsupported($"SORT OUTPUT PROCEDURE '{opp.procedureName(0).GetText()}' (unknown procedure)");
+                return RejectUnknownProcedure("SORT OUTPUT PROCEDURE", opp.procedureName(0).GetText());   // PB236
             outputProc = opr;
         }
         if ((usingFiles.Count == 0 && inputProc is null) || (givingFiles.Count == 0 && outputProc is null))
-            return new BoundUnsupported("SORT Format 1 requires {INPUT PROCEDURE | USING} and "
-                + "{OUTPUT PROCEDURE | GIVING} (ISO §14.9.40.2 general format)");
+        {
+            ctx.Validation.RejectStatementOperand("SORT Format 1 requires {INPUT PROCEDURE | USING} and "
+                + "{OUTPUT PROCEDURE | GIVING} (ISO §14.9.40.2 general format)");   // PB236
+            return new BoundNop();
+        }
 
         return new BoundSort(file, width, keys, s.sortDuplicatesPhrase() is not null, collating,
             usingFiles, inputProc, givingFiles, outputProc, SortVaryingOf(file));
@@ -104,14 +120,21 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         // Format 2 has NO USING/GIVING/procedure phrases (ISO §14.9.40.2 — the in-place table sort).
         if (s.sortUsingPhrase() is not null || s.sortGivingPhrase() is not null
             || s.sortInputProcedurePhrase() is not null || s.sortOutputProcedurePhrase() is not null)
-            return new BoundUnsupported($"SORT of '{name}': USING/GIVING/INPUT/OUTPUT PROCEDURE apply only to a "
-                + "sort-merge FILE operand (ISO §14.9.40.2 — Format 2 sorts the table in place)");
+        {
+            ctx.Validation.RejectStatementOperand($"SORT of '{name}': USING/GIVING/INPUT/OUTPUT PROCEDURE apply "
+                + "only to a sort-merge FILE operand (ISO §14.9.40.2 — Format 2 sorts the table in place)");   // PB236
+            return new BoundNop();
+        }
 
         // SR13: data-name-2 shall have an OCCURS clause. Resolve like SEARCH does: the named table item.
         if (!ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var candidates)
             || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
-            return new BoundUnsupported($"SORT of '{name}' — neither a SELECTed/SD file nor an OCCURS table "
-                + "(ISO §14.9.40.3 SR4/SR13)");
+        {
+            ctx.Validation.RejectStatementOperand($"SORT of '{name}' — neither a SELECTed/SD file nor an OCCURS "
+                + "table: file-name-1 shall be described in an SD (ISO §14.9.40.3 SR4) and data-name-2 shall be "
+                + "described with an OCCURS clause (SR13)");   // PB236
+            return new BoundNop();
+        }
         if (table.Class is not null)
             return new BoundUnsupported($"SORT of table '{name}' inside a REDEFINES class (typed-array Format-2 "
                 + "sort over a shared-storage view — deferred)");
@@ -135,8 +158,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                 DataItem? key = string.Equals(kn, name, StringComparison.OrdinalIgnoreCase)
                     ? table : SortFindUnder(table, kn);
                 if (key is null)
-                    return new BoundUnsupported($"SORT table key '{kn}' is not data-name-2 or subordinate to it "
-                        + "(ISO §14.9.40.3 SR14a)");
+                {
+                    ctx.Validation.RejectStatementOperand($"SORT table key '{kn}' is not data-name-2 nor "
+                        + "subordinate to it (ISO §14.9.40.3 SR14a)");   // PB236
+                    return new BoundNop();
+                }
                 if (SortMemberPath(table, key) is not { } path)
                     return new BoundUnsupported($"SORT table key '{kn}' — keys shall not be described with / "
                         + "subordinate to an inner OCCURS (ISO §14.9.40.3 SR14e), and a REDEFINES-view key in the "
@@ -162,6 +188,20 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         return new BoundTableSort(arrayPath, table, keys, s.sortDuplicatesPhrase() is not null, collating);
     }
 
+    /// <summary>A procedure-name in a SORT/MERGE INPUT/OUTPUT PROCEDURE phrase that names no procedure in this
+    /// source element (kb/Work PB236). ISO §8.4.2.1 — "In order to use a resource, a statement shall contain a
+    /// reference that uniquely identifies that resource" — so this is the SAME verdict a misspelled data-name
+    /// draws, and it rides the SAME descriptor (COBOLNET1639) rather than a second spelling of "not defined".
+    /// It used to be an unreported <c>BoundUnsupported</c>: the program compiled, and the sort aborted the run
+    /// unit if it was ever reached.</summary>
+    private BoundStatement RejectUnknownProcedure(string phrase, string name)
+    {
+        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
+            $"{phrase} '{name}' is not defined — no section or paragraph in this source element carries that "
+            + "name, so the phrase identifies no procedure to execute (ISO §8.4.2.1)");
+        return new BoundNop();
+    }
+
     // ── MERGE (ISO §14.9.24) ───────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Bind MERGE (ISO §14.9.24): SD operand (SR — file-name-1 shall be described in an SD), keys
@@ -172,9 +212,15 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     {
         var operand = m.mergeFileName().dataReference();
         string name = operand.cobolWord()?.GetText() ?? operand.GetText();
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file) || !file.IsSortMerge)
-            return new BoundUnsupported($"MERGE file '{name}' is not described in a sort-merge description entry "
-                + "(ISO §14.9.24.3 — file-name-1 shall be described in an SD)");
+        // TWO verdicts, not one (kb/Work PB236): "no such file-name" is §8.4.2.1, "declared but under an FD"
+        // is §14.9.24.3 — and both used to be answered by the same run-time loud.
+        if (!ctx.Validation.ResolveFile(name, "MERGE", out var file)) return new BoundNop();
+        if (!file.IsSortMerge)
+        {
+            ctx.Validation.RejectStatementOperand($"MERGE file '{name}' is not described in a sort-merge "
+                + "description entry (ISO §14.9.24.3 — file-name-1 shall be described in an SD)");
+            return new BoundNop();
+        }
         if (SortRecordOf(file) is not { } record)
             return new BoundUnsupported($"MERGE '{file.CobolName}' without a usable SD record (Tier-C byte island, deferred)");
         int width = Model.RecordLayout.AreaWidth(record);
@@ -182,30 +228,46 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         var keys = new List<BoundSortMergeKey>();
         foreach (var phrase in m.mergeKeyPhrase())
             if (SortAddFileKeys(phrase.DESCENDING() is not null, phrase.dataReferenceList(), file, keys) is { } err)
-                return new BoundUnsupported(err);
+            {
+                ctx.Validation.RejectStatementOperand(err);   // PB236
+                return new BoundNop();
+            }
 
         var (collating, collErr) = SortBindCollating(m.sortCollatingPhrase());
         if (collErr is { } ce) return ce;
 
         var usingFiles = new List<FileModel>();
         if (SortMapIoFiles(m.mergeUsingPhrase().dataReferenceList(), usingFiles) is { } uerr)
-            return new BoundUnsupported(uerr);
+        {
+            ctx.Validation.RejectStatementOperand(uerr);   // PB236
+            return new BoundNop();
+        }
         if (usingFiles.Count < 2)
-            return new BoundUnsupported("MERGE requires at least two USING files (ISO §14.9.24.2 general format — "
-                + "USING file-name-2 {file-name-3}…)");
+        {
+            ctx.Validation.RejectStatementOperand("MERGE requires at least two USING files (ISO §14.9.24.2 "
+                + "general format — USING file-name-2 {file-name-3}…)");   // PB236
+            return new BoundNop();
+        }
 
         var givingFiles = new List<FileModel>();
         if (m.mergeGivingPhrase() is { } gp && SortMapIoFiles(gp.dataReferenceList(), givingFiles) is { } gerr)
-            return new BoundUnsupported(gerr);
+        {
+            ctx.Validation.RejectStatementOperand(gerr);   // PB236
+            return new BoundNop();
+        }
         (int, int)? outputProc = null;
         if (m.mergeOutputProcedurePhrase() is { } opp)
         {
             if (SortRange(opp.procedureName()) is not { } opr)
-                return new BoundUnsupported($"MERGE OUTPUT PROCEDURE '{opp.procedureName(0).GetText()}' (unknown procedure)");
+                return RejectUnknownProcedure("MERGE OUTPUT PROCEDURE", opp.procedureName(0).GetText());   // PB236
             outputProc = opr;
         }
         if (givingFiles.Count == 0 && outputProc is null)
-            return new BoundUnsupported("MERGE requires {OUTPUT PROCEDURE | GIVING} (ISO §14.9.24.2 general format)");
+        {
+            ctx.Validation.RejectStatementOperand("MERGE requires {OUTPUT PROCEDURE | GIVING} "
+                + "(ISO §14.9.24.2 general format)");   // PB236
+            return new BoundNop();
+        }
         // VCR 27 (2014→2023): a MERGE newly PROHIBITED inside another MERGE's output procedure / a file-SORT's input
         // or output procedure (§14.9.24; Annex E.2 item 20) is the ≥2023 static diagnostic COBOLNET1572 — a
         // procedure-range cross-pass in VersionConformancePass.GateMergeInSortMergeProc (the paragraph-pc ranges are
@@ -223,9 +285,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     {
         if (rel.dataReference() is not { } rn || ctx.Refs.Resolve(rn) is not { } record)
             return new BoundUnsupported($"RELEASE record '{rel.dataReference()?.GetText()}' (unresolvable record-name)");
-        if (seqIo.FileOfRecord(record) is not { } file || !file.IsSortMerge)
-            return new BoundUnsupported($"RELEASE record '{rn.GetText()}' is not a record of a sort-merge "
-                + "description entry (ISO §14.9.32.3 SR1)");
+        // ⛔ SR1 IS A SYNTAX RULE AND IS DECIDED HERE, NOT AT RUN TIME (kb/Work PB236, row SR-14.9.32.3-1).
+        // The predicate and the citation were already right; the STAGE was not, and the cost was measured: with
+        // the statement on a path the flow GO TOs past, the program compiled clean AND ran to normal completion
+        // with no message at any stage — illegal source shipped in silence. ISO §4.2.2 ¶2 makes the
+        // compile-time mechanism mandatory for "the general formats and the explicit syntax rules".
+        var file = seqIo.FileOfRecord(record);
+        if (!ctx.Validation.CheckReleaseRecord(file, rn.GetText()) || file is null) return new BoundNop();
         BoundOperand? from = null;
         if (rel.releaseFrom() is { } rf)
         {
@@ -249,9 +315,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     public BoundStatement BindReturn(Core.ReturnStatementContext r)
     {
         string name = r.fileName().GetText();
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file) || !file.IsSortMerge)
-            return new BoundUnsupported($"RETURN file '{name}' is not described by a sort-merge description entry "
-                + "(ISO §14.9.34.3 SR1)");
+        // ⛔ TWO VERDICTS, NOT ONE (kb/Work PB236, row SR-14.9.34.3-1). This test used to conflate "no such
+        // file-name exists" — a §8.4.2.1 name-resolution failure — with "the file exists but is described by an
+        // FD", which is §14.9.34.3 SR1, and answered both with a run-time loud. They are different diagnoses and
+        // the user needs the right one: telling someone whose file has an FD that the name is undefined sends
+        // them hunting for a declaration that is right there.
+        if (!ctx.Validation.ResolveFile(name, "RETURN", out var file)) return new BoundNop();
+        if (!ctx.Validation.CheckReturnFile(file)) return new BoundNop();
         // GR3 makes the record available in the WHOLE record area — resolve it through the LARGEST record's view
         // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the store (ST111A's
         // 50/75/100 SD). SortRecordOf stays the usability gate (the Tier-C byte-island fence).
@@ -394,8 +464,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                     + "sequence — this alphabet is defined FOR NATIONAL (ISO §14.9.40.3 SR2)");
                 return (null, null);
             }
-            return (null, new BoundUnsupported($"SORT/MERGE COLLATING SEQUENCE '{alnumName}' is not an alphabet-name "
-                + "declared in SPECIAL-NAMES (ISO §14.9.40.3 SR1 / §12.3.7)"));
+            ctx.Edition.Error("COBOLNET0898", $"SORT/MERGE COLLATING SEQUENCE '{alnumName}' is not an "
+                + "alphabet-name declared in SPECIAL-NAMES (ISO §14.9.40.3 SR1 / §12.3.7)");   // PB236
+            return (null, new BoundNop());
         }
         return (alnumDef.IsIdentity ? null : alnumDef, null);   // GR5a — the statement's own sequence (an identity alphabet ⇒ native)
     }
