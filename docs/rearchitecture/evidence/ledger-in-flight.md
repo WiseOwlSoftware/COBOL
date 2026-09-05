@@ -30,7 +30,7 @@
   </div>
   <div class="cardgrid">
     <div class="card">
-      <h3>Owner decisions open <span class="pill warn">16</span></h3>
+      <h3>Owner decisions open <span class="pill warn">17</span></h3>
       <p><strong>Answered 2026-09-04:</strong> witness-first adjudication — <em>no</em>, the lanes stay separate; the 160/220 turn caps — <em>yes</em>; five-cluster landing trains — <em>yes</em>.</p>
       <ul>
         <li><strong>Six from the process review</strong>, held in PB468 and asked one at a time as each becomes relevant: raising the implementer cap; table-driven tests closing many rows on one drift test; effort tiers; the already-OK "shall" rows with positive-only evidence; whether Report Writer stays claimed; extending PB386's derivation arm class by class — PB205's §13.18.16.4 GR6 row and round 3's two Annex A.2 rows wait on exactly that.</li>
@@ -43,6 +43,7 @@
         <li><strong>One from train 7</strong> (PB546, re-measured by PB231's NATIONAL third): should a group containing a NATIONAL member present its national characters as two alphanumeric positions each in every character-position channel — DISPLAY, group MOVE, reference modification, the FD/SD record area — as §15.50.4 r3 with §13.18.60.4 GR8 derives, overturning the conformance document's "one sanctioned width divergence", or does the divergence stand as an owner-signed determination? The byte-addressed shapes already answer six bytes where the group image answers four.</li>
         <li><strong>One owner-visible change from train 7</strong> (PB623): <span class="mono">MOVE &lt;COMP-2 8.2&gt; TO PIC 9V9</span> now stores 8.1, because the float-to-fixed transfer is the binary64's exact value at every magnitude (§14.6.8.2 r1, no latitude) and rule 4 truncates; <span class="mono">ROUNDED</span> still gives 8.2. The question if the owner wants it reversed: should a FLOAT-LONG sending item convert by its shortest round-trip decimal instead, accepting that a MOVE and a COMPUTE of the same item then disagree?</li>
         <li><strong>One from train 9</strong> (PB317): sign the drafted §8 derivation row for §14.9.27.4 GR12 — GR11 and GR12 partition the storage media between them, and the non-unit placement that makes every '07' this compiler reports correct empties GR12 on both arms, so the row can close only on the owner's signature. A determination the implementer recorded is also for the owner's eye: an absent OPTIONAL input file opened WITH NO REWIND reports '07' (GR11's assignment) rather than '05'.</li>
+        <li><strong>One more from train 9</strong> (PB670, PB322's family): now that Table 19 arbitrates every OPEN, two clause-less connectors opening one file in conflicting modes answer '61' at COBOL-85 too, where the file-sharing statuses do not exist — permit the open as 1985's silence allows, refuse it with the operating system's '30' as before, or keep the deterministic '61'? The runtime has no edition, so any answer but the last needs a new seam.</li>
         <li><strong>Still open, and not yet a bare question:</strong> the introducing edition of <span class="mono">USAGE POINTER TO type-name</span>.</li>
       </ul>
     </div>
