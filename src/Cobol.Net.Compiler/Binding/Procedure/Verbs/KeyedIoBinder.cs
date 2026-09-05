@@ -47,61 +47,55 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         bool next = r.readDirection()?.NEXT() is not null;
         bool previous = r.readDirection()?.PREVIOUS() is not null;
         // READ PREVIOUS (§14.9.30 Format 1) is a COBOL-2002 introduction; the edition gate moved to the post-bind
-        // VersionConformancePass (Step 14c), firing on BoundKeyedRead.Kind == Previous.
+        // VersionConformancePass (Step 14c), firing on the IBoundRead.Kind both READ nodes now share.
 
-        // §14.9.30.3 SR6 — "None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be
-        // specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1." Gated through
-        // the ONE severity seam (kb/Work PB144): an error under strict, a warning under --permissive with the
-        // bind UNCHANGED, because the CCVS-85 corpus is lenient about phrase placement (the L1–L3 family) and
-        // the emitter's status-first branches make a phrase that cannot fire ('1x' on a random read) simply
-        // dead, never silently rerouted. SR10/SR11 (the KEY phrase) are hard errors below and always were.
-        if (file.AccessMode == FileAccessMode.Random)
+        // §14.9.30.3 SR6 — the ONE check, shared with the sequential arm (kb/Work PB334). Gated through the ONE
+        // severity seam (kb/Work PB144): an error under strict, a warning under --permissive with the bind
+        // UNCHANGED, because the CCVS-85 corpus is lenient about phrase placement (the L1–L3 family) and the
+        // emitter's status-first branches make a phrase that cannot fire ('1x' on a random read) simply dead,
+        // never silently rerouted. SR10/SR11 (the KEY phrase) are hard errors below and always were.
+        ctx.Validation.CheckReadRandomAccessPhrases(file, contention?.readAdvancingOnLock() is not null,
+            atEnd is not null, notAtEnd is not null, next, previous);
+        ReadKind kind = file.AccessMode switch
         {
-            var present = new List<string>();
-            if (contention?.readAdvancingOnLock() is not null) present.Add("ADVANCING");
-            if (r.readAtEnd() is { } ae6) present.Add(PhraseBlocks.StartsWithNot(ae6) ? "NOT AT END" : "AT END");
-            if (next) present.Add("NEXT");
-            if (previous) present.Add("PREVIOUS");
-            if (present.Count > 0)
-                ctx.Validation.ScreenForbiddenPhrase(true, string.Join(" / ", present), "READ",
-                    "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §14.9.30.3 SR6");
-        }
-        KeyedReadKind kind = file.AccessMode switch
-        {
-            FileAccessMode.Random => KeyedReadKind.Random,
+            FileAccessMode.Random => ReadKind.Random,
             // §14.9.30.3 SR9 — dynamic: "the NEXT phrase is implied if any of the following phrases is
             // specified: ADVANCING, AT END, or NOT AT END". ⛔ ALL THREE, not two: while ADVANCING was missing
             // from this test, `READ f ADVANCING ON LOCK` on a DYNAMIC file bound as the Format-2 random read,
             // where ADVANCING ON LOCK is not even in the general format — so the GR22 skip-scan could not run
             // for the one spelling SR9 exists to name (kb/Work PB340). A bare READ under dynamic access, with
             // none of the three, stays the Format-2 random read.
-            FileAccessMode.Dynamic => previous ? KeyedReadKind.Previous
+            FileAccessMode.Dynamic => previous ? ReadKind.Previous
                 : next || contention?.readAdvancingOnLock() is not null || r.readAtEnd() is not null
-                    ? KeyedReadKind.Next
-                    : KeyedReadKind.Random,
+                    ? ReadKind.Next
+                    : ReadKind.Random,
             // §14.9.30 SR8 — sequential access: NEXT implied.
-            _ => previous ? KeyedReadKind.Previous : KeyedReadKind.Next,
+            _ => previous ? ReadKind.Previous : ReadKind.Next,
         };
 
         int keyIndex = -1;   // the prime record key (GR31) / the relative key item (GR29) when no KEY phrase
         if (r.readKey()?.dataReference() is { } keyRef)
         {
-            // SR10: the KEY phrase only for indexed organization; SR11: it names a declared (prime or alternate)
-            // key — matched by STORAGE POSITION, not name (§12.4.5.12 GR4: the key's character positions are
-            // implicitly keys in EVERY record description of the file; covers REDEFINES and duplicate names).
-            if (file.Organization != FileOrganization.Indexed)
-                ctx.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}': the KEY phrase may be "
-                    + "specified only when ORGANIZATION IS INDEXED (ISO §14.9.30 SR10)");
-            else if (kind != KeyedReadKind.Random)
-                ctx.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}' is a Format-2 phrase and "
-                    + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
-            else if (ctx.Refs.Resolve(keyRef) is not { } keyPlace || Model.RecordLayout.KeyIndexByPosition(file, keyPlace.Item) is not { } ki)
+            // SR10 — ⛔ NOT WRITTEN HERE: `StatementValidation.CheckReadKeyOrganization` is the ONE site, so the
+            // sequential arm enforces the SAME rule with the SAME diagnostic (kb/Work PB334). A violation is
+            // REPORTED and the bind continues with the default key of reference (kb/Work PB236); SR11 below is
+            // then not asked, because a file that is not INDEXED has no RECORD KEY for it to name.
+            // SR11: the operand names a declared (prime or alternate) key — matched by STORAGE POSITION, not
+            // name (§12.4.5.12 GR4: the key's character positions are implicitly keys in EVERY record
+            // description of the file; covers REDEFINES and duplicate names).
+            if (ctx.Validation.CheckReadKeyOrganization(file))
             {
-                ctx.Edition.Error("COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
-                    + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30 SR11)");
-                return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+                if (kind != ReadKind.Random)
+                    ctx.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}' is a Format-2 phrase and "
+                        + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
+                else if (ctx.Refs.Resolve(keyRef) is not { } keyPlace || Model.RecordLayout.KeyIndexByPosition(file, keyPlace.Item) is not { } ki)
+                {
+                    ctx.Edition.Error("COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
+                        + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30 SR11)");
+                    return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+                }
+                else keyIndex = ki;
             }
-            else keyIndex = ki;
         }
         // READ … ADVANCING ON LOCK (§14.9.30 record-lock phrase, COBOL-2002); the edition gate moved to the
         // post-bind VersionConformancePass (Step 14c), firing on BoundKeyedRead.AdvancingOnLock.
@@ -336,7 +330,13 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
     /// <summary>Build the INVALID/NOT INVALID pair from the phrase's statement blocks — the shared two-branch
     /// shape via the ONE <see cref="PhraseBlocks.Split"/> extractor (P7 Step 10b).</summary>
-    private KeyedInvalidKey KeyedInvalidPhrase(Core.StatementBlockContext[] blocks, bool notFirst)
+    /// <summary>Split an <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> bracket into its two imperatives
+    /// (§14.9.30.2 / §14.9.51.2 / §14.9.35.2 / §14.9.10.2 / §14.9.41.2 — a §5.2.6.4 choice-indicator group, so
+    /// either order). Public because <c>SequentialIoBinder.BindRead</c> binds the phrase too: Format 1 has no
+    /// INVALID KEY phrase, but the report routes through <c>EditionContext.Removed</c>, which under
+    /// <c>--permissive</c> leaves the bind standing — and a standing bind needs the SAME splitter, not a second
+    /// spelling of it (kb/Work PB334).</summary>
+    public KeyedInvalidKey KeyedInvalidPhrase(Core.StatementBlockContext[] blocks, bool notFirst)
     {
         var (inv, not) = PhraseBlocks.Split(blocks, notFirst, b => host.BindBlocks([b]));
         return new KeyedInvalidKey(inv, not);

@@ -259,17 +259,17 @@ internal sealed class VersionConformancePass
                 Check(Constructs.Invoke2002, "the INVOKE statement"); break;
             case BoundMove mv:
                 GateMove(mv); break;
-            case BoundKeyedRead kr:
+            // ⛔ ONE ARM FOR BOTH READ NODES (kb/Work PB334). This was TWO arms — `case BoundKeyedRead`
+            // gating PREVIOUS and ADVANCING ON LOCK, `case BoundRead` beside it gating only ADVANCING ON LOCK —
+            // and the missing half was not a typo but the shape: the sequential node had no direction member at
+            // all, so `READ SQF PREVIOUS RECORD` compiled clean at `--std 85` while the keyed arm rejected the
+            // identical phrase. Gating over IBoundRead means a rule written on the read's direction cannot be
+            // written for one organization only (feedback_two_arm_dispatch).
+            case IBoundRead rd:
                 // Two independent 2002 phrases on one READ; both gate, in the binder's order (§14.9.30).
-                if (kr.Kind == KeyedReadKind.Previous)
+                if (rd.Kind == ReadKind.Previous)
                     Check(Constructs.ReadPrevious2002, "READ … PREVIOUS");
-                if (kr.AdvancingOnLock)
-                    Check(Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
-                break;
-            case BoundRead sr:
-                // The sequential-organization READ binds the same §14.9.30 GR22 phrase (P10 Step 8 — it was
-                // previously dropped at bind, so this arm is the phrase's first sequential-leg gate).
-                if (sr.AdvancingOnLock)
+                if (rd.AdvancingOnLock)
                     Check(Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
                 break;
             case BoundKeyedStart ks:

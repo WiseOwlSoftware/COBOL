@@ -209,10 +209,17 @@ public static class DiagnosticCatalog
         + "organization or a file with relative organization and sequential access mode.\" ISO §14.9.30.3 "
         + "syntax rule 6: \"None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be "
         + "specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1.\" "
+        + "ISO §14.9.30.3 syntax rule 7: \"The phrase PREVIOUS shall not be specified if FILE ORGANIZATION "
+        + "LINE SEQUENTIAL is specified in the file control entry for file-name-1.\" And the READ general "
+        + "format itself: §14.9.30.2 Format 1 has no INVALID KEY bracket, and §12.4.5.5.2 SR2 + §14.9.30.3 SR8 "
+        + "+ §14.9.30.4 GR19 make every READ of a sequential-organization file a Format-1 read, so the phrase "
+        + "has no format to belong to there. "
         + "Under --permissive the phrase is tolerated and bound with its pre-gate semantics (it is dead in the "
         + "status-first branches, never silently rerouted), which is the documented dialect leniency the "
-        + "CCVS-85 corpus depends on.",
-        "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6");
+        + "CCVS-85 corpus depends on. The one phrase that is NOT dead under that leniency is READ's NOT INVALID "
+        + "KEY on a sequential file — §14.9.30.4 GR13c transfers control to it on a successful read, so it is "
+        + "bound and rendered rather than dropped (kb/Work PB334).",
+        "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6 · §14.9.30.3 SR7 · §14.9.30.2 Format 1");
 
     public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
         "COBOLNET1697", "redefines-pointer-object", EditionSeverity.Error,

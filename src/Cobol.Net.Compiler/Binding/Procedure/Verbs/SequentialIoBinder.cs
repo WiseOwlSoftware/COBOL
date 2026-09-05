@@ -200,8 +200,51 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // (retention) first, because SR3 tests bracket 1's IGNORING LOCK against it (kb/Work PB331).
         var contention = r.readLockContentionPhrase();
         BoundRecordLock retention = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR4 → COBOLNET1512
+
+        // ── The three phrases this arm PARSED AND DROPPED until kb/Work PB334 ──────────────────────────────
+        // §14.9.30.4 GR19 is the rule that decides a READ's format: "An implicit or explicit NEXT phrase or a
+        // PREVIOUS phrase results in a sequential read: otherwise, the read is a random read and the rules for
+        // format 2 apply." On THIS arm that decision is unconditional — §12.4.5.5.2 SR2 bars ACCESS MODE
+        // RANDOM/DYNAMIC on a sequential file, so §14.9.30.3 SR8 implies NEXT whenever no direction is written
+        // and every READ here is a Format-1 read. That is why the KEY and INVALID KEY phrases below are
+        // screened outright rather than conditioned on an access mode.
+        bool previous = r.readDirection()?.PREVIOUS() is not null;
+        // §14.9.30.3 SR6 — the ONE check, shared with KeyedIoBinder.BindRead. Reachable here only while
+        // §12.4.5.5.2 SR2 goes unenforced at the file control entry; the phrases are forbidden either way.
+        ctx.Validation.CheckReadRandomAccessPhrases(file, contention?.readAdvancingOnLock() is not null,
+            atEnd is not null, notAtEnd is not null, r.readDirection()?.NEXT() is not null, previous);
+        // §14.9.30.3 SR7 — "The phrase PREVIOUS shall not be specified if FILE ORGANIZATION LINE SEQUENTIAL is
+        // specified in the file control entry for file-name-1." ⛔ THIS IS SR7's ONLY POSSIBLE SITE, and it had
+        // none at all before: the rule pairs an ORGANIZATION with a READ DIRECTION, and the direction did not
+        // exist below the parse tree on the one arm every LINE SEQUENTIAL file takes. A line-sequential
+        // `READ … PREVIOUS` was accepted and read FORWARD (kb/Work PB334).
+        ctx.Validation.ScreenForbiddenPhrase(previous && file.Organization == FileOrganization.LineSequential,
+            "PREVIOUS", "READ", "a file with line sequential organization", "ISO §14.9.30.3 SR7");
+        // §14.9.30.3 SR10 — the ONE check, shared with the keyed arm. A SEQUENTIAL or LINE SEQUENTIAL file is
+        // never INDEXED, so the phrase is always forbidden here; the keyed arm reached only RELATIVE files,
+        // which is why the diagnostic LOOKED present (the two-arm dispatch — feedback_two_arm_dispatch).
+        if (r.readKey() is not null) ctx.Validation.CheckReadKeyOrganization(file);
+        // The INVALID KEY bracket is a FORMAT-2 phrase (§14.9.30.2) and every READ on this arm is Format 1 by
+        // GR19, so writing it is never conforming source. The screen routes through EditionContext.Removed, so
+        // under --permissive it WARNS and the bind stands — which is why the phrase is bound rather than
+        // dropped: §14.9.30.4 GR13c gives it its only possible meaning, "control is transferred … if the NOT AT
+        // END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2", i.e. the NOT INVALID
+        // KEY imperative runs on a successful read. The INVALID arm is never rendered — a sequential READ
+        // raises no '2x' status (§9.1.13.5), so the invalid key condition cannot exist for it. Dropping the
+        // whole bracket, as this arm did, compiled a NOT INVALID KEY block away in silence (kb/Work PB334).
+        KeyedInvalidKey? invalid = null;
+        if (r.readInvalidKey() is { } ik)
+        {
+            ctx.Validation.ScreenForbiddenPhrase(true,
+                PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "READ",
+                "a file with sequential organization, whose READ is a Format-1 sequential read",
+                "ISO §14.9.30.2 Format 1 · §14.9.30.4 GR19");
+            invalid = keyedIo.KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
+        }
         return new BoundRead(file, into, atEnd, notAtEnd, UnsupportedOrg(file, "READ"))
         {
+            Kind = previous ? ReadKind.Previous : ReadKind.Next,                          // §14.9.30.4 GR19; SR8
+            InvalidKey = invalid,                                                         // §14.9.30.4 GR13c (permissive only)
             Lock = retention,
             Retry = fileLock.BindVerbRetry(contention?.retryPhrase()),                    // §14.7.9 / §14.9.30 GR9
             AdvancingOnLock = contention?.readAdvancingOnLock() is not null,              // §14.9.30 GR22

@@ -132,7 +132,7 @@ public static class CobolFile
     public static bool EndOfPage(string name) => _reg.EndOfPage(name);
 
     /// <summary>Sequential <c>READ … NEXT</c> — the record image and whether a record was obtained.</summary>
-    public static bool Read(string name, out string image) => _reg.Read(name, out image);
+    public static bool Read(string name, bool previous, out string image) => _reg.Read(name, previous, out image);
 
     /// <summary>Sequential <c>REWRITE record</c> (ISO §14.9.35).</summary>
     public static void Rewrite(string name, string image, int length = -1) => _reg.Rewrite(name, image, length);

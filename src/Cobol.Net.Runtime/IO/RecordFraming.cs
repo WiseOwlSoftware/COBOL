@@ -77,6 +77,32 @@ internal static class RecordFraming
         return frames;
     }
 
+    /// <summary>The byte offset of every frame in a framed physical file, in order (index = ordinal − 1).
+    /// This is the positioning index a §14.9.30.4 GR21 BACKWARD sequential READ needs on a RECORD VARYING file,
+    /// whose frames are not uniformly wide the way a fixed record-sequential file's blocks are. Only the length
+    /// prefixes are read — each payload is SEEKED over, never materialized — so the index costs one pass and no
+    /// record storage. A torn tail ends the store, the same rule <see cref="ReadStore"/> applies.</summary>
+    public static List<long> FrameStarts(string path)
+    {
+        var starts = new List<long>();
+        if (!File.Exists(path)) return starts;
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+        var len = new byte[4];
+        while (true)
+        {
+            long at = fs.Position;
+            if (!FillExactly(fs, len, 4)) break;
+            uint n = BinaryPrimitives.ReadUInt32LittleEndian(len);
+            if (n != GapTag)
+            {
+                if (fs.Position + n > fs.Length) break;   // a torn tail ends the store
+                fs.Seek(n, SeekOrigin.Current);
+            }
+            starts.Add(at);
+        }
+        return starts;
+    }
+
     private static bool FillExactly(Stream s, byte[] buf, int count)
     {
         int got = 0;

@@ -973,12 +973,31 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From
     public BoundAdvancing? AfterAdvancing { get; init; }
 }
 
-/// <summary><c>READ file [NEXT] [INTO x] [AT END …][NOT AT END …]</c> (ISO §14.9.30): a sequential read that
-/// distributes the record image into the FD record (and, with INTO, MOVEs it to <paramref name="Into"/>). The AT END
-/// / NOT AT END imperatives branch on the at-end condition.</summary>
+/// <summary><c>READ file [NEXT|PREVIOUS] [INTO x] [AT END …][NOT AT END …]</c> on a SEQUENTIAL or LINE
+/// SEQUENTIAL file (ISO §14.9.30 Format 1): a sequential read that distributes the record image into the FD
+/// record (and, with INTO, MOVEs it to <paramref name="Into"/>). The AT END / NOT AT END imperatives branch on
+/// the at-end condition.
+/// <para>⛔ EVERY PHRASE <c>readStatement</c> CAN PRODUCE HAS A MEMBER HERE. Three of them did not, and the
+/// binder therefore never called their accessors: the record carried no direction (so <c>READ … PREVIOUS</c>
+/// was a forward read at every edition AND skipped its 2002 gate), no KEY phrase (so §14.9.30.3 SR10 was
+/// enforced on the keyed arm only) and no INVALID KEY phrase (so a <c>NOT INVALID KEY</c> block was compiled
+/// away) — kb/Work PB334. The drift test that keeps this true for the next phrase is PB340.</para></summary>
 public sealed record BoundRead(
-    FileModel File, Place? Into, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement
+    FileModel File, Place? Into, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundRead
 {
+    /// <summary>The §14.9.30.4 GR19 read kind — <see cref="ReadKind.Next"/> (written or implied by §14.9.30.3
+    /// SR8) or <see cref="ReadKind.Previous"/>. <see cref="ReadKind.Random"/> cannot occur here: §12.4.5.5.2 SR2
+    /// bars ACCESS MODE RANDOM/DYNAMIC on a sequential file, so SR8 always implies NEXT when no direction is
+    /// written, and GR19 therefore always yields a Format-1 read on this arm.</summary>
+    public ReadKind Kind { get; init; } = ReadKind.Next;
+    /// <summary>The INVALID KEY / NOT INVALID KEY phrase, or null. ⛔ Format 1 HAS NO SUCH PHRASE
+    /// (§14.9.30.2), so on this arm it is never conforming source and <c>SequentialIoBinder.BindRead</c>
+    /// reports COBOLNET1720 for it; the carrier exists because that report routes through
+    /// <c>EditionContext.Removed</c>, which under <c>--permissive</c> WARNS and leaves the bind in place. The
+    /// phrase then has to MEAN something, and §14.9.30.4 GR13c is what it means — a successful READ transfers
+    /// control to the NOT INVALID KEY imperative. The INVALID arm stays unrendered: a sequential-organization
+    /// READ raises no '2x' status (§9.1.13.5), so the invalid key condition cannot exist for it.</summary>
+    public KeyedInvalidKey? InvalidKey { get; init; }
     /// <summary>The lock-RETENTION phrase — bracket 2 of §14.9.30.2 (WITH LOCK / WITH NO LOCK); the GR7–GR12
     /// lock rules are ALL-FORMATS rules, so they bind on the sequential organization too. None = LOCK MODE
     /// governs.</summary>

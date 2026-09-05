@@ -885,9 +885,10 @@ internal static class RuntimeApi
     public static string FileCloseIfOpen(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.CloseIfOpen)}({name})";
 
-    /// <summary>Sequential READ into an out-image (the implicit USING loop shape) — <c>CobolFile.Read</c>.</summary>
-    public static string FileRead(string name, string imgVar) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Read)}({name}, out var {imgVar})";
+    /// <summary>Sequential READ into an out-image — <c>CobolFile.Read</c>. <paramref name="previous"/> is
+    /// §14.9.30.4 GR19's read kind rendered as a bool literal; the implicit SORT USING loop passes "false".</summary>
+    public static string FileRead(string name, string previous, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Read)}({name}, {previous}, out var {imgVar})";
 
     /// <summary>Sequential WRITE without optional phrases (the implicit GIVING loop shape) — <c>CobolFile.Write</c>.
     /// <paramref name="lenArg"/> = the §13.18.43 GR13a varying-length argument (null renders the fixed-record -1);

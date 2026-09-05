@@ -430,9 +430,9 @@ public sealed class FileRegistry
         _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.EndOfPage;
 
     /// <summary>Sequential <c>READ … NEXT</c> — the record image and whether a record was obtained.</summary>
-    public bool Read(string name, out string image)
+    public bool Read(string name, bool previous, out string image)
     {
-        if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) return f.Read(out image);
+        if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) return f.Read(previous, out image);
         image = "";
         return false;
     }
@@ -970,7 +970,7 @@ public sealed class FileRegistry
         {
             // The GR9 pre-read leg. ADVANCING ON LOCK skips it: GR22 rules the conflict condition out, and its
             // skip-scan below is post-read on every organization.
-            string peek = advancingOnLock ? "" : PeekFormat1RecordId(c);
+            string peek = advancingOnLock ? "" : PeekFormat1RecordId(c, previous);
             if (peek.Length > 0
                 && ConflictOnLockedRecord(name, st, peek, ignoringLock, retryKind, retryAmount) is { } pre)
             {
@@ -1004,14 +1004,14 @@ public sealed class FileRegistry
 
     /// <summary>ONE physical Format-1 (sequential-access) retrieval step on ANY organization — the step
     /// §14.9.30.4 GR22's skip-scan repeats. Returns the I-O status the connector assigned.
-    /// (READ PREVIOUS on the sequential ORGANIZATION is kb/Work PB334 — <c>BoundRead</c> carries no direction
-    /// yet, so <paramref name="previous"/> reaches that arm only as <see langword="false"/>.)</summary>
+    /// (<paramref name="previous"/> is §14.9.30.2 Format 1's direction phrase on EVERY organization; the
+    /// sequential arm carries it since kb/Work PB334 gave <c>BoundRead</c> a <c>ReadKind</c>.)</summary>
     private static string ReadFormat1Step(string name, FileConnector c, bool previous, out string image)
     {
         image = "";
         switch (c)
         {
-            case SequentialConnector f: f.Read(out image); return f.Status;
+            case SequentialConnector f: f.Read(previous, out image); return f.Status;
             case RelativeConnector r: return previous ? r.ReadPrevious(out image) : r.ReadNext(out image);
             case IndexedConnector ix: return previous ? ix.ReadPrevious(out image) : ix.ReadNext(out image);
             default: throw MisroutedVerb("governed READ (Format 1)", name, c);
@@ -1020,14 +1020,17 @@ public sealed class FileRegistry
 
     /// <summary>The lock identity of the record a Format-1 read would make available NEXT, when the organization
     /// can know it BEFORE the physical read — §14.9.30.4 GR9's pre-read conflict target, which is what keeps the
-    /// file position indicator unchanged on a '51' (GR10 a). "" when it cannot be known: a relative or indexed
+    /// file position indicator unchanged on a '51' (GR10 a). The target is direction-sensitive: GR21 b)/c) select
+    /// the record "greater than" the file position indicator under NEXT and "less than" it under PREVIOUS, which
+    /// is exactly what <c>SequentialConnector.TargetReadOrdinal</c> answers (kb/Work PB334). "" when it cannot be
+    /// known: a relative or indexed
     /// NEXT/PREVIOUS walk selects "the first existing record … greater than the file position indicator"
     /// (§14.9.30.4 GR21), and which slot/key that is, is learned only by reading it. Also "" when a read now
     /// would fail before the physical stage, so a mode/position failure keeps its own status ('47'/'46'/'10')
     /// rather than a premature '51'.</summary>
-    private static string PeekFormat1RecordId(FileConnector c) =>
+    private static string PeekFormat1RecordId(FileConnector c, bool previous) =>
         c is SequentialConnector { ReadEligible: true } f
-            ? f.NextReadOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            ? f.TargetReadOrdinal(previous).ToString(System.Globalization.CultureInfo.InvariantCulture)
             : "";
 
     /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11 + §14.7.9).

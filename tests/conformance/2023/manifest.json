@@ -488,7 +488,8 @@
   "pb317_open_no_rewind",
   "pb323_open_presence_arms",
   "l1_table20_seq_relative",
-  "l1_table20_indexed"
+  "l1_table20_indexed",
+  "pb334_read_previous_sequential"
  ],
  "pending": [
   "pb485_value_only_format1"

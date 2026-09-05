@@ -15,9 +15,35 @@ namespace CobolNet.Binding.Bound;
 public sealed record KeyedInvalidKey(
     IReadOnlyList<BoundStatement>? Invalid, IReadOnlyList<BoundStatement>? NotInvalid);
 
-/// <summary>How a keyed READ retrieves its record (ISO §14.9.30 GR19): a sequential Format-1 NEXT/PREVIOUS walk,
-/// or the Format-2 random retrieval by key value.</summary>
-public enum KeyedReadKind { Next, Previous, Random }
+/// <summary>How a READ retrieves its record — ISO §14.9.30.4 GR19, the ONE rule that decides it: "An implicit
+/// or explicit NEXT phrase or a PREVIOUS phrase results in a sequential read: otherwise, the read is a random
+/// read and the rules for format 2 apply." The direction phrase and the FORMAT are one fact, and this enum is
+/// that fact: a Format-1 forward walk, a Format-1 backward walk, or the Format-2 random retrieval by key value.
+/// <para>⛔ ONE ENUM FOR BOTH READ NODES. It was <c>KeyedReadKind</c>, reachable only from
+/// <see cref="BoundKeyedRead"/>, while the sequential-organization <c>BoundRead</c> had no direction member at
+/// all — so <c>READ … PREVIOUS</c> on a SEQUENTIAL file bound as a forward read and the COBOLNET0900 edition
+/// gate, which keys on this enum, never fired (kb/Work PB334). Both nodes carry it now and both are reached
+/// through <see cref="IBoundRead"/>, so a rule written on the direction cannot be written for one organization
+/// only.</para>
+/// <para><see cref="Random"/> is unreachable on a sequential-organization file: §12.4.5.5.2 SR2 ("The DYNAMIC
+/// and RANDOM phrases shall not be specified for a sequential file") leaves only ACCESS MODE SEQUENTIAL, and
+/// §14.9.30.3 SR8 then implies the NEXT phrase.</para></summary>
+public enum ReadKind { Next, Previous, Random }
+
+/// <summary>The two READ bound nodes (ISO §14.9.30 Formats 1 and 2, every organization) seen through the state
+/// whose rules are ORGANIZATION-INDEPENDENT: the GR19 read kind and the GR22 ADVANCING ON LOCK phrase. Both are
+/// edition-gated constructs (<c>read-previous-2002</c>, <c>record-lock-phrase-2002</c>), and
+/// <c>VersionConformancePass.GateStatement</c> now gates them from ONE arm over this interface instead of one
+/// arm per node — which is exactly the shape kb/Work PB334 reported: the <c>BoundKeyedRead</c> arm gated
+/// PREVIOUS, the <c>BoundRead</c> arm beside it gated only ADVANCING ON LOCK, and a sequential
+/// <c>READ … PREVIOUS</c> compiled clean at <c>--std 85</c> (feedback_two_arm_dispatch).</summary>
+public interface IBoundRead
+{
+    /// <summary>The §14.9.30.4 GR19 read kind — the direction phrase and the format, one fact.</summary>
+    ReadKind Kind { get; }
+    /// <summary>ADVANCING ON LOCK (§14.9.30.4 GR22) — bracket 1 of §14.9.30.2, a COBOL-2002 introduction.</summary>
+    bool AdvancingOnLock { get; }
+}
 
 /// <summary>The positioning basis of a START (ISO §14.9.41 general format): FIRST / LAST (2002+), or the KEY
 /// relational phrase (the COBOL-85 form; KEY omitted ⇒ EQUAL on the relative key / prime key, GR8/GR15).</summary>
@@ -29,9 +55,9 @@ public enum KeyedStartMode { First, Last, Key }
 /// SSOT status-first shape (COBOLNET_DESIGN §8.3): store the status, branch AT END on <c>'1'</c> (10/14,
 /// §9.1.13.4), INVALID KEY on <c>'2'</c> (§9.1.13.5), success phrases on <c>'0'</c>.</summary>
 public sealed record BoundKeyedRead(
-    FileModel File, KeyedReadKind Kind, int KeyIndex, Place? Into,
+    FileModel File, ReadKind Kind, int KeyIndex, Place? Into,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
-    KeyedInvalidKey? InvalidKey) : BoundStatement
+    KeyedInvalidKey? InvalidKey) : BoundStatement, IBoundRead
 {
     /// <summary>The lock-RETENTION phrase — bracket 2 of §14.9.30.2 (WITH LOCK / WITH NO LOCK), or None;
     /// combined at runtime with the file's declared LOCK MODE (AUTOMATIC auto-locks on any READ).</summary>

@@ -97,7 +97,10 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         // ELEMENT EXECUTING THE SORT/MERGE names — its own ASSIGN specification and LINAGE operands (PB673).
         w.Line($"{RuntimeApi.FileOpenInput(f, seqIo.ExecutingElementArgs(input))};   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
         seqIo.EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
-        using (w.Block($"while ({RuntimeApi.FileRead(f, tmp)})"))
+        // "false" = §14.9.30.4 GR19's NEXT: the implicit SORT/MERGE USING retrieval is the forward walk of
+        // §14.9.43.4 ("the records … are transferred … in the order in which they are made available"), never a
+        // statement-written direction — this loop renders no READ statement of the program's.
+        using (w.Block($"while ({RuntimeApi.FileRead(f, "false", tmp)})"))
         {
             // GR12b: a record larger/smaller than the SD's record range ⇒ EC-SORT-MERGE-RELEASE (checking OFF,
             // §18.16). Fixed SD: the short record space-fills right to the fixed length (GR7c/MERGE GR2c — the

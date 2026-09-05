@@ -430,6 +430,46 @@ internal sealed class StatementValidation(DataBinder data)
         return true;
     }
 
+    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §14.9.30.3 SR6 — "None of the phrases ADVANCING, AT END, NEXT,
+    /// NOT AT END, or PREVIOUS shall be specified if ACCESS MODE RANDOM is specified in the file control entry
+    /// for file-name-1." Both READ binder arms call THIS: the rule is about the file control entry's access
+    /// mode, which every organization has, and a copy per arm is how §14.9.30.3's other phrase rules came to be
+    /// enforced on one arm only (kb/Work PB334). Reachable on the sequential-organization arm because
+    /// §12.4.5.5.2 SR2 ("The DYNAMIC and RANDOM phrases shall not be specified for a sequential file") has no
+    /// enforcement at the file control entry yet; the READ phrases are forbidden either way.
+    /// <para>The message names EVERY phrase the statement actually wrote — the at-end bracket carries choice
+    /// indicators (§5.2.6.4), so AT END and NOT AT END can both be present and both are named.</para></summary>
+    public bool CheckReadRandomAccessPhrases(FileModel file, bool advancing, bool atEnd, bool notAtEnd,
+        bool next, bool previous)
+    {
+        if (file.AccessMode != FileAccessMode.Random) return true;
+        var present = new List<string>();
+        if (advancing) present.Add("ADVANCING");
+        if (atEnd) present.Add("AT END");
+        if (notAtEnd) present.Add("NOT AT END");
+        if (next) present.Add("NEXT");
+        if (previous) present.Add("PREVIOUS");
+        if (present.Count == 0) return true;
+        ScreenForbiddenPhrase(true, string.Join(" / ", present), "READ",
+            "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §14.9.30.3 SR6");
+        return false;
+    }
+
+    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §14.9.30.3 SR10 — "The KEY phrase may be specified only if
+    /// ORGANIZATION IS INDEXED is specified in the file control entry for file-name-1." The rule names an
+    /// ORGANIZATION, so it cannot live on one organization's binder arm: it was enforced only in
+    /// <c>KeyedIoBinder.BindRead</c> (which reaches RELATIVE) while <c>SequentialIoBinder.BindRead</c> — the arm
+    /// every SEQUENTIAL and LINE SEQUENTIAL file takes — never called <c>readKey()</c> at all, so the phrase was
+    /// parsed and dropped without a word (kb/Work PB334). Returns true when the organization admits the
+    /// phrase.</summary>
+    public bool CheckReadKeyOrganization(FileModel file)
+    {
+        if (file.Organization == FileOrganization.Indexed) return true;
+        data.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}': the KEY phrase may be "
+            + "specified only when ORGANIZATION IS INDEXED (ISO §14.9.30.3 SR10)");
+        return false;
+    }
+
     /// <summary>⛔ THE ONE AND ONLY ENFORCEMENT OF ISO §14.9.27.3 SR8 — "When file-name-1 is not subject to an
     /// APPLY COMMIT clause, then if the sharing phrase is omitted from the OPEN statement and the ALL phrase is
     /// specified in the SHARING clause of the file control entry for file-name-1 or if the ALL phrase is

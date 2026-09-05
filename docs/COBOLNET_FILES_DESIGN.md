@@ -128,6 +128,8 @@ or access mode:
 | §14.9.10.3 SR2 | INVALID KEY / NOT INVALID KEY | a DELETE RECORD referencing a file **in sequential access mode** |
 | §14.9.35.3 SR2 | INVALID KEY / NOT INVALID KEY | a REWRITE referencing **a file with sequential organization**, *or* a file with **relative organization and sequential access mode** |
 | §14.9.30.3 SR6 | ADVANCING / AT END / NEXT / NOT AT END / PREVIOUS | a READ whose file control entry specifies **ACCESS MODE RANDOM** |
+| §14.9.30.3 SR7 | PREVIOUS | a READ referencing a file with **LINE SEQUENTIAL organization** |
+| §14.9.30.2 Format 1 | INVALID KEY / NOT INVALID KEY | a READ referencing a file with **sequential organization** — every such READ is a Format-1 read (§12.4.5.5.2 SR2 → §14.9.30.3 SR8 → §14.9.30.4 GR19), and Format 1 has no INVALID KEY bracket |
 
 **What was wrong.** All three were bound unconditionally with a "tolerated in the default (CCVS-lenient) mode"
 comment and **no strict arm**, so at `--std 2023` strict the compiler accepted source the standard forbids and
@@ -147,7 +149,18 @@ under `--permissive`. Never a local `Permissive` test, never a parallel `Lenient
 branches make a phrase that cannot fire simply dead — a `'2x'` invalid-key branch on a sequential-access DELETE,
 a `'1x'` at-end branch on a random READ — never silently rerouted. That is what the CCVS-85 corpus depends on.
 
-**One code, three rules.** `COBOLNET1720` serves all three, on the `COBOLNET1694` precedent: the *shape* is one
+**The last two rows are kb/Work PB334, and they arrived the same way SR2's sequential arm did.** SR7 pairs an
+ORGANIZATION with a read DIRECTION, and `SequentialIoBinder.BindRead` never called `readDirection()` at all — so
+SR7 had **no attachment point anywhere in the compiler**, and a line-sequential `READ … PREVIOUS` was accepted and
+read FORWARD. §14.9.30.3 SR10 (the KEY phrase, a hard `COBOLNET0864`) and the Format-1 membership rule were the
+same omission on the same arm. All three now read their phrase; §14.9.30.3 SR6 and SR10 live in
+`StatementValidation` as ONE check each, called by BOTH READ binder arms, because a per-arm copy is precisely how
+they came to be enforced on one organization only. ⚠ READ's NOT INVALID KEY is the ONE phrase on this seam that is
+**not** dead under `--permissive`: §14.9.30.4 GR13c transfers control to it on a successful read, so
+`BoundRead.InvalidKey` carries it and `SequentialIoEmitter` renders the NOT arm (never the INVALID arm — a
+sequential READ raises no `'2x'` status).
+
+**One code, five rules.** `COBOLNET1720` serves all five, on the `COBOLNET1694` precedent: the *shape* is one
 rule ("a phrase is written where this statement's syntax rules forbid it") and each site's message quotes its own
 §/SR. §14.9.10.3 **SR1** (DELETE RECORD on a sequential-organization file) is deliberately **not** on this seam —
 it is a hard `COBOLNET0865` error at every edition and strictness, because it is not a documented leniency.
@@ -610,7 +623,7 @@ place its rule is written:
 | `ConflictOnLockedRecord` | GR9 + §14.7.9's RETRY, shared with the Format-2 `ReadLockGovern` |
 
 `SequentialIoEmitter` renders it through `RuntimeApi.FileReadSharedOk`, which wraps the call in `[0] == '0'` so
-its bool contract is unchanged; `KeyedIoEmitter` renders `KeyedReadKind.Next`/`Previous` through the same entry
+its bool contract is unchanged; `KeyedIoEmitter` renders `ReadKind.Next`/`Previous` through the same entry
 and keeps `ReadLockGovern` for the **Format-2** random read, where it is right: there is no next record to
 advance to and no ADVANCING phrase in that format. (The Format-2 post-read `'51'` still leaves the position
 advanced against GR10 a) — that is kb/Work PB338, untouched here and unaffected by this split.)
@@ -623,7 +636,9 @@ spelling SR9 exists to name (kb/Work PB335).
 **The drift test that generalises it.** `BoundIoPhraseConsumptionDriftTests` asserts that every phrase property
 declared by a bound I-O node is READ by its emitter, over all eight READ/WRITE/REWRITE/DELETE/START nodes. Three
 inventory rows were open for that one shape at once — this one, OPEN … WITH NO REWIND (PB317) and the sequential
-READ direction (PB334). It cannot see a phrase the BINDER never stored, which is PB334's remaining half.
+READ direction (PB334). It cannot see a phrase the BINDER never stored, which was PB334's remaining half — now
+landed: `BoundRead` carries `ReadKind` and `InvalidKey`, so the drift test covers that arm too, and
+`previous` reaches `ReadFormat1Step` / `PeekFormat1RecordId` from BOTH emitters.
 
 ## C# mapping
 
@@ -655,6 +670,34 @@ For a record-sequential file the connector remembers the last-read frame start a
 ### Read-position state machine: a sequential READ (NEXT or PREVIOUS) issued after a prior unsuccessful sequential READ is 46; a sequential REWRITE or DELETE without a preceding successful READ is 43; START establishes an inclusive file-position indicator.
 
 Port the proven per-connector last-read-unsuccessful, past-end, prev-op-was-successful-read, and read-next-inclusive flags. An at-end READ is itself an unsuccessful READ (14.9.30 GR24 — "when the at end condition exists, execution of the READ statement is unsuccessful"), so once the last-read-unsuccessful flag is set the NEXT sequential READ — whether READ NEXT or READ PREVIOUS — is unsuccessful with status 46 (14.9.30 GR21); it does NOT re-expose the last record. A sequential REWRITE or DELETE with no immediately preceding successful READ is status 43 (14.9.35 GR5).
+
+### The READ DIRECTION is one fact on both bound READ nodes, and a backward sequential read is a REPOSITION feeding the same physical read body.
+
+§14.9.30.4 GR19 — "An implicit or explicit NEXT phrase or a PREVIOUS phrase results in a sequential read:
+otherwise, the read is a random read and the rules for format 2 apply" — makes the direction phrase and the
+FORMAT one fact, so ONE enum carries it: `ReadKind { Next, Previous, Random }`, on `BoundRead` and
+`BoundKeyedRead` alike, reached through `IBoundRead`. `VersionConformancePass.GateStatement` has ONE arm over
+that interface. (It was `KeyedReadKind`, reachable only from the keyed node; the sequential node had no direction
+member, so `READ … PREVIOUS` on a SEQUENTIAL file bound as a forward read AND skipped its COBOLNET0900 2002 gate
+— kb/Work PB334.)
+
+`SequentialConnector.Read(previous, out image)` implements GR21's "When the file is a sequential file" block
+directly: rule b) — the file position indicator established by a prior OPEN selects "the first existing record …
+regardless of whether NEXT or PREVIOUS is specified", so both directions target ordinal 1; rule c) — after a
+successful READ the target is one greater (NEXT) or one less (PREVIOUS); rule e) — no such record is the at end
+condition ('10' + the AT END imperative, GR24). `TargetReadOrdinal(previous)` is that arithmetic in one place, and
+it is also the §14.9.30.4 GR9 pre-read conflict target the sharing registry checks, so `ADVANCING ON LOCK`
+skip-scans in the statement's own direction — GR22 ends the scan at "the end of the file … if NEXT is specified or
+implied, or the beginning of file … if PREVIOUS is specified".
+
+A backward read is a **reposition**, not a second reader: `SeekToOrdinal` positions the stream at the record's
+first character and the ordinary read body then delivers it, which is what keeps `_lastReadBlockStart` (the
+in-place REWRITE anchor, §14.9.35.4 GR5) correct after a PREVIOUS. The offset is arithmetic on a fixed-width
+record-sequential file; on a RECORD VARYING file it comes from `RecordFraming.FrameStarts`, a prefix-only scan
+built **lazily on the first backward read**, so a forward READ walk pays nothing for a facility it never uses.
+LINE SEQUENTIAL has no backward walk and needs none — §14.9.30.3 SR7 forbids the phrase there — and a stream that
+cannot seek is not §14.9.30.4 GR20's "single reel/unit mass storage file", which the connector reports as the '30'
+permanent error rather than silently reading something else.
 
 ### EXTERNAL files shared across programs plus GLOBAL FD inheritance in nested programs, with matching layouts.
 
@@ -725,10 +768,18 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
 - **DELETE FILE (14.9.10 Format 2) is NEW in 2023** (rows 58/78; E.3.3 items 15/35): rejected with a
   not-yet-introduced diagnostic under `--std` 85/2002/2014; its statuses 05/37/39/41/62 from DELETE FILE exist only
   at 2023. (Format-1 record DELETE is 85.)
-- **READ PREVIOUS is not COBOL-85** (a 2002 introduction — derive from the 2002 standard): rejected at 85. Its
-  behavior ALSO changed 2014→2023 (row 29): READ PREVIOUS immediately after OPEN retrieves the first record at 2014
-  but raises the at-end condition at 2023 — the connector's read-position state machine must take the target
-  edition. FLAG-14 flags every READ PREVIOUS (row 108).
+- **READ PREVIOUS is not COBOL-85** (a 2002 introduction — derive from the 2002 standard): rejected at 85 on
+  EVERY organization (the gate is one `IBoundRead` arm in the VersionConformancePass; it used to be two arms and
+  the sequential one did not carry it — kb/Work PB334). FLAG-14 flags every READ PREVIOUS (row 108).
+  ⚠ **The 2014→2023 after-OPEN change (row 29) is the INDEXED leg only.** Annex E.2 item 22 ("READ PREVIOUS
+  statement following an OPEN statement. Ensure that an at end condition occurs.") is INFORMATIVE and names the
+  rule it amended: §14.9.30.4 GR21's indexed sub-rule d.3, which in the 2023 text reads "If no such record is
+  found or PREVIOUS is specified and the previous operation on the file was an OPEN statement, the at end
+  condition exists." The RELATIVE and SEQUENTIAL sub-rule blocks print rule b) unamended — "the first existing
+  record that is selected is made available, regardless of whether NEXT or PREVIOUS is specified" — so on those
+  two organizations the after-OPEN behaviour is **identical at 2002, 2014 and 2023** and the connector takes no
+  edition parameter for it. The sequential leg is asserted at all three editions by
+  `conformance:{2002,2014,2023}/pb334_read_previous_sequential`; the relative leg is kb/Work PB343.
 - **ORGANIZATION LINE SEQUENTIAL is not a COBOL-85 organization**: rejected at 85. The exact introduction edition is
   not derivable from the 2023 spec (no ledger row; the ledger has no 85→2002 row set) — derive it from the 2002
   standard before gating.

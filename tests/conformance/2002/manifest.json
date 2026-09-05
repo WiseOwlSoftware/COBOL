@@ -206,7 +206,8 @@
     "pb319_sr8_antecedent",
     "pb331_read_lock_brackets",
     "pb340_advancing_on_lock_relative",
-    "pb340_advancing_on_lock_indexed"
+    "pb340_advancing_on_lock_indexed",
+    "pb334_read_previous_sequential"
   ],
   "pending": []
 }

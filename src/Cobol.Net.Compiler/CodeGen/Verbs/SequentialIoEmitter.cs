@@ -413,12 +413,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
 
     /// <summary>Render the governed sequential-organization READ call (§14.9.30.4 GR9–GR12 over the ordinal lock
     /// identity, plus the GR22 skip-scan) as the plain read's BOOL. The runtime entry is the ONE governed
-    /// Format-1 read shared with the keyed emitter, so <c>previous</c> is passed explicitly — always false here,
-    /// because <see cref="BoundRead"/> carries no direction yet (kb/Work PB334).</summary>
+    /// Format-1 read shared with the keyed emitter, so <c>previous</c> is passed explicitly — taken from the
+    /// <see cref="BoundRead.Kind"/> §14.9.30.4 GR19 carries (kb/Work PB334).</summary>
     private string EmitReadSharedCall(BoundRead rd, string name, string tmp)
     {
         var (retryKind, retryAmount) = RenderRetry(rd.Retry);
-        return RuntimeApi.FileReadSharedOk(name, "false", RuntimeRecordLock(rd.Lock),
+        return RuntimeApi.FileReadSharedOk(name, rd.Kind == ReadKind.Previous ? "true" : "false", RuntimeRecordLock(rd.Lock),
             rd.AdvancingOnLock ? "true" : "false", rd.IgnoringLock ? "true" : "false",
             retryKind, retryAmount, tmp);
     }
@@ -462,9 +462,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // through the governed runtime entry — the next ordinal's pre-read conflict check (§14.9.30 GR9,
         // FPI unchanged on a 51 per GR10a), the GR11 lock discipline, and GR22 ADVANCING ON LOCK skip-scan.
         // Same bool contract as the plain read, so the two branches below are shared.
+        // §14.9.30.4 GR19's read kind reaches the connector as the direction of the retrieval; GR21's
+        // sequential-file rules b)/c) then select the record NUMBER from it. Rendered on BOTH call shapes —
+        // dropping it on either one is how `READ … PREVIOUS` became a forward read (kb/Work PB334).
+        string previous = rd.Kind == ReadKind.Previous ? "true" : "false";
         string readCall = LockGoverned(rd.File, rd.Lock, rd.Retry, rd.IgnoringLock)
             ? EmitReadSharedCall(rd, name, tmp)
-            : RuntimeApi.FileRead(name, tmp);
+            : RuntimeApi.FileRead(name, previous, tmp);
         using (w.Block($"if ({readCall})"))
         {
             if (area is not null) EmitImageInto(area, tmp);
@@ -477,6 +481,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             if (rd.Into is { } into && area is not null)
                 move.Emit(new BoundMove(new BoundFieldOperand(area), [into]));
             if (rd.NotAtEnd is { } not) Statements.EmitStatementList(not);
+            // §14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
+            // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
+            // The phrase is never conforming source on this arm (Format 1 has no INVALID KEY bracket — the
+            // binder reports COBOLNET1720), so this renders only under --permissive, where the bind stands and
+            // the block has to MEAN something rather than vanish. There is deliberately NO invalid-key arm: a
+            // sequential-organization READ raises no '2x' status (§9.1.13.5), so the condition cannot exist.
+            if (rd.InvalidKey?.NotInvalid is { } notInvalid) Statements.EmitStatementList(notInvalid);
         }
         using (w.Block("else"))
         {
