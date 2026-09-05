@@ -207,6 +207,15 @@
       "dns": 346,
       "label": "Train: DEVLOG 1468 + plan §0",
       "battery": null
+    },
+    {
+      "sha": "03b59a1d",
+      "date": "2026-09-05",
+      "gap": 2925,
+      "closed": 1386,
+      "dns": 346,
+      "label": "Golden lane round 3: 59 gold",
+      "battery": null
     }
   ]
 }
