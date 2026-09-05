@@ -13,10 +13,35 @@ import json, pathlib, sys, collections, re
 sys.stdout.reconfigure(encoding="utf-8")
 out = pathlib.Path(sys.argv[1]); label = sys.argv[2]
 
+#: A refuter telling the registrar that the row is NOT this lane's to record — the inventory already
+#: carries an OWNER verdict (DOCUMENTED-NON-SUPPORT, D13) and re-recording it would OVERWRITE that
+#: verdict with an adjudicator's. Lane-3 batch b3 produced three of these (SR-13.18.63.3-36/-38/-39,
+#: all "DOCUMENTED-NON-SUPPORT (unchanged -- the existing inventory row stands; do NOT record
+#: CONFORMS)"): the vocabulary scan below would have taken them for PARTIAL and DOWNGRADED a closed
+#: owner row. A refuter that names an owner verdict, or that says the existing row stands, EXCLUDES.
+OWNER_ROW = re.compile(
+    r"(?:DOCUMENTED[- ]NON[- ]SUPPORT"
+    r"|\bexisting inventory row stands\b"
+    r"|\bdo\s+NOT\s+record\b)", re.I)
+
 #: A refuter telling the registrar to drop the cited evidence. Either order, within one sentence.
 TESTREF_CLEARED = re.compile(
     r"(?:test-?ref[^.\n]{0,120}\b(?:WITHDRAWN|CLEARED?|EMPTY)\b"
     r"|\b(?:WITHDRAWN|CLEARED?|EMPTY)\b[^.\n]{0,120}test-?ref)", re.I)
+
+#: ⛔ AN OWNER VERDICT IS NOT AN AGENT'S TO REPLACE — IN EITHER DIRECTION. D13 reserves
+#: DOCUMENTED-NON-SUPPORT to the owner, and lane-3 b3's refuters caught three rows where an adjudicator
+#: would have overwritten one with CONFORMS. The SAME batch then carried a FOURTH, which no refuter saw
+#: because that row was never adjudicated CONFORMS: GR-13.18.63.4-24, DOCUMENTED-NON-SUPPORT → DIVERGES.
+#: Downgrading looks harmless — it does not fake a closure — but it still moves the burn-down denominator
+#: on an agent's say-so and detaches the row from the notes that own the declined modules (PB260/PB261/
+#: PB281-PB283). So the rule is structural, read from the inventory rather than hand-listed: a record whose
+#: row ALREADY carries an owner verdict is EXCLUDED and raised as an owner question. The measurement is not
+#: lost — it lands as a kb/Work note that claims the row.
+OWNER_VERDICTS = {"DOCUMENTED-NON-SUPPORT"}
+_inv = pathlib.Path("tests/version-matrix/traceability-inventory.json")
+OWNED_ROWS = ({r["rule-id"] for r in json.loads(_inv.read_text(encoding="utf-8"))
+               if r.get("verdict") in OWNER_VERDICTS} if _inv.exists() else set())
 
 records, digest, unrefuted, skipped = [], collections.OrderedDict(), [], []
 for f in sorted(out.glob("out-*.json")) + sorted(out.glob("adjudicate-*.jsonl")):
@@ -47,6 +72,8 @@ for f in sorted(out.glob("out-*.json")) + sorted(out.glob("adjudicate-*.jsonl"))
                     # test-ref WITHDRAWN …", "CONFORMS (test-ref amended: add conformance:2002/x …)"). Take the word;
                     # apply the two instruction shapes the refuters actually write; anything else is PARTIAL.
                     cv = v.get("corrected_verdict") or ""
+                    if OWNER_ROW.search(cv):
+                        skipped.append((rid, "owner-verdict-stands")); continue
                     word = next((w for w in ("CONFORMS", "PARTIAL", "DIVERGES", "NOT-IMPLEMENTED", "NEEDS-OWNER-DECISION") if cv.upper().startswith(w)), "PARTIAL")
                     r["verdict"] = word
                     # ⛔ THE CLEARING INSTRUCTION IS NOT ALWAYS IN `corrected_verdict`, AND IT IS NOT ALWAYS
@@ -66,6 +93,8 @@ for f in sorted(out.glob("out-*.json")) + sorted(out.glob("adjudicate-*.jsonl"))
                 unrefuted.append(rid); continue
         if r["verdict"] == "NEEDS-OWNER-DECISION":
             skipped.append((rid, "owner")); continue
+        if rid in OWNED_ROWS and r["verdict"] not in OWNER_VERDICTS:
+            skipped.append((rid, "owner-verdict-stands")); continue
         if r["verdict"] in ("PARTIAL", "NOT-IMPLEMENTED", "DIVERGES") and "@@NOTE@@" not in r.get("notes", ""):
             r["notes"] = "@@NOTE@@ " + r.get("notes", "")
         records.append(r)
