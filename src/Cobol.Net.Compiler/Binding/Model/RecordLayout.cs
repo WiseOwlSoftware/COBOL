@@ -205,7 +205,8 @@ internal static class RecordLayout
     /// record key, and <b>b) 3.</b> whose length is not greater than that key's. All three conditions are
     /// conjunctive; b) 2. used to be omitted by an explicit doc-comment note, which let a
     /// <c>PIC 9(4) COMP-3</c> item stand in for an <c>X(6)</c> key and be compared on an incommensurable basis
-    /// (kb/Work PB354 part 4 — the catalog rows are <c>SR-14.9.41.3-L2.2</c> and <c>-L2.3</c>).
+    /// (kb/Work PB354 part 4; b) 2. and b) 3. are addressed by their printed path on <c>SR-14.9.41.3-6</c> since the
+    /// PB698 transcription repair returned them to their printed level).
     /// <para>b) 1. also requires the key to be <i>"defined without the SOURCE phrase"</i>; the RECORD KEY /
     /// ALTERNATE RECORD KEY SOURCE phrase is not implemented (Annex A.3 item 40 — <c>FileModel</c> has no SOURCE
     /// carrier), so every key reaching here satisfies that half by construction.</para></summary>

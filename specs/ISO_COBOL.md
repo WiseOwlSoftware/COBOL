@@ -6858,7 +6858,7 @@ When a source element, source element B, is directly contained within another so
    1\. The item in source element A if the name is declared in source element A.
 
 
-2. The item in the containing source element if the name is not declared in source element A and is declared in the source element containing source element A. This rule is applied to further containing source elements until a single valid name has been found.
+   2\. The item in the containing source element if the name is not declared in source element A and is declared in the source element containing source element A. This rule is applied to further containing source elements until a single valid name has been found.
 
 <a id="section-8-4-6-2-2"></a>
 ###### 8.4.6.2.2 Scope of condition-names, constant-names, data-names, file-names, record-names, report-names, screen-names, and type-names
@@ -10634,9 +10634,9 @@ For a method invocation to match the method resolution signature of a method, th
    3\. If the parameter in the invoked method is described with an object-class-name, the corresponding parameter in the invocation is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both descriptions.
 
 
-4. If the parameter in the invoked method is described with the ACTIVE-CLASS phrase and FACTORY phrase is not specified, the corresponding parameter shall evaluate to an object reference of the same class specified in the invocation.
+   4\. If the parameter in the invoked method is described with the ACTIVE-CLASS phrase and FACTORY phrase is not specified, the corresponding parameter shall evaluate to an object reference of the same class specified in the invocation.
 
-5. If the parameter in the invoked method is described with the ACTIVE-CLASS and FACTORY phrases, the corresponding parameter shall evaluate to an object reference to the factory of the class specified in the invocation.
+   5\. If the parameter in the invoked method is described with the ACTIVE-CLASS and FACTORY phrases, the corresponding parameter shall evaluate to an object reference to the factory of the class specified in the invocation.
 
 e) If the parameter in the invoked method is not an object reference, the corresponding parameter has the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following additional constraints:
 
@@ -12719,7 +12719,7 @@ a. The ordinal number of a character within the native character set, if the lit
 
 b. Otherwise, the actual character within the native character set. If the value of the literal contains multiple characters, each character in the literal, starting with the leftmost character, is assigned successive ascending positions in the collating sequence being specified.
 
-2. The order in which the literals appear in the ALPHABET clause specifies, in ascending sequence, the ordinal number of the character within the collating sequence being specified.
+   2\. The order in which the literals appear in the ALPHABET clause specifies, in ascending sequence, the ordinal number of the character within the collating sequence being specified.
 
 3. Any characters of the native collating sequence that are not specified in the literal phrase shall assume a position in the collating sequence that is greater than that of the highest character specified in this literal phrase. The relative order within the set of these unspecified characters is unchanged from the native collating sequence.
 
@@ -19387,7 +19387,7 @@ g) If data-name-1 specifies an entry in a different report description, there ar
 
 
 
-2. If an UPON phrase is specified, whenever any GENERATE statement is executed for a detail referenced by the UPON phrase.
+   2\. If an UPON phrase is specified, whenever any GENERATE statement is executed for a detail referenced by the UPON phrase.
 
 If two or more instances of data-name-1 or identifier-1 specify the same data item, this data item is added into the sum counter as many times as data-name-1 or identifier-1 is referenced in the SUM clause. It is permissible for the UPON phrase to contain two or more instances of data-name-2 that specify the same detail. When a GENERATE statement for such a detail is executed, the adding takes place as many times as data-name-2 appears in the UPON phrase.
 
@@ -23326,7 +23326,7 @@ FORMAT 1
    1\. A lock held by that file connector on the deleted record is released at the completion of the successful execution of the DELETE RECORD statement.
 
 
-2. A lock held by that file connector on another record is released at the beginning of the execution of the DELETE RECORD statement.
+   2\. A lock held by that file connector on another record is released at the beginning of the execution of the DELETE RECORD statement.
 
 b) If multiple record locking is specified for the file connector associated with file-name-1, all locks held on the deleted record are released at the completion of the successful execution of the DELETE RECORD statement.
 
@@ -23871,9 +23871,9 @@ A space indicates an invalid combination.
    3\. If the selection object is condition-2, the selection subject is either TRUE or FALSE. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false.
 
 
-4. If the selection object is either TRUE or FALSE, the selection subject is condition-1. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false.
+   4\. If the selection object is either TRUE or FALSE, the selection subject is condition-1. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false.
 
-5. If the selection object is a range-expression, the pair is considered to be a conditional expression of one of the following forms:
+   5\. If the selection object is a range-expression, the pair is considered to be a conditional expression of one of the following forms:
 
    when 'NOT' is not specified in the selection object;
 
@@ -23885,7 +23885,7 @@ A space indicates an invalid combination.
 
    where left-part is identifier-3, literal-3, or arithmetic-expression-3 and right-part is identifier-4, literal-4, or arithmetic-expression-4. The result of the analysis is the truth value of the resulting conditional expression.
 
-6. If the selection object is identifier-2, literal-2, arithmetic-expression-2, or boolean-expression-2, the pair is considered to be a conditional expression of the following form:
+   6\. If the selection object is identifier-2, literal-2, arithmetic-expression-2, or boolean-expression-2, the pair is considered to be a conditional expression of the following form:
 
       selection-subject [NOT] = selection-object
 
@@ -24512,11 +24512,11 @@ Otherwise, the implicit statement is:
          c. A table format VALUE clause is specified in the data description entry of the elementary item and that VALUE clause specifies a value for the particular occurrence of the elementary data item.
 
 
-2. The REPLACING phrase is specified and the category of the elementary data item is one of the categories specified in the REPLACING phrase; or
+   2\. The REPLACING phrase is specified and the category of the elementary data item is one of the categories specified in the REPLACING phrase; or
 
-3. The DEFAULT phrase is specified; or
+   3\. The DEFAULT phrase is specified; or
 
-4. Neither the REPLACING phrase nor the VALUE phrase is specified.
+   4\. Neither the REPLACING phrase nor the VALUE phrase is specified.
 
 6\) The sending-operand in each implicit MOVE and SET statement is determined as follows:
 
@@ -25356,7 +25356,7 @@ d) When a numeric or numeric-edited item is the receiving item, and General rule
 
 Otherwise, if the content of the sending operand would result in a false value in a numeric class condition, the EC-DATA-INCOMPATIBLE exception condition is set to exist, and the results of the execution of the MOVE statement are undefined.
 
-2. When the sending operand is numeric, or is the numeric value produced by de-editing:
+   2\. When the sending operand is numeric, or is the numeric value produced by de-editing:
 
    If the sending operand is described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor specifies any exception conditions that might be set to exist during data conversion, and, for fixed-point numeric and fixed-point numeric-edited receiving data items, specifies alignment of the data by decimal point.
 
@@ -25364,7 +25364,7 @@ Otherwise, if the content of the sending operand would result in a false value i
 
    b. When an unsigned numeric item is the receiving item, the absolute value of the sending value is used, and no operational sign is generated for the receiving item.
 
-3. When the sending operand is described as alphanumeric or national, the sending operand is treated as if it were an unsigned integer of category numeric with the following characteristics:
+   3\. When the sending operand is described as alphanumeric or national, the sending operand is treated as if it were an unsigned integer of category numeric with the following characteristics:
 
    a. If the sending operand is a data item, the number of digits is the number of character positions in the sending data item unless the number of character positions is greater than 31, in which case the rightmost 31 character positions are used.
 
@@ -25372,7 +25372,7 @@ Otherwise, if the content of the sending operand would result in a false value i
 
    c. If the sending operand is an alphanumeric or national literal, the number of digits is the same as the number of characters in the literal. If the number of characters exceeds 31, the size of the sending operand is 31 digits and only the rightmost 31 characters in the literal are used.
 
-4. If the receiving data item is described with a standard floating-point usage or is a floating-point numeric-edited item:
+   4\. If the receiving data item is described with a standard floating-point usage or is a floating-point numeric-edited item:
 
    a. If the algebraic value of the sending operand is farther from zero than is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW exception condition is set to exist, and the content of the receiving data item is undefined.
 
@@ -26563,7 +26563,7 @@ The RESUME statement transfers control to a procedure-name or to the statement f
 
 
 
-3. If the statement is contained in other statements, the applicable statement is the lowest level statement, not the containing statement.
+   3\. If the statement is contained in other statements, the applicable statement is the lowest level statement, not the containing statement.
 
 b) If the declarative was not executed because of an exception condition but was executed instead by a PERFORM statement in the nondeclarative portion of the source element that referenced the declarative procedure, the implicit CONTINUE statement immediately follows the last statement of the terminating procedure referenced in that PERFORM statement.
 
@@ -27031,7 +27031,7 @@ ALL FORMATS
    2\. If the AT END phrase is not specified and either the EC-RANGE-SEARCH-INDEX or EC-RANGE-SEARCH-NO-MATCH exception condition was raised during the execution of the SEARCH statement and an applicable exception processing statement associated with that exception condition exists, control is transferred according to the rules for that statement, and if control is returned from that statement, control is transferred to the end of the SEARCH statement.
 
 
-3. If the AT END phrase is not specified and neither exception condition was raised because the checking for those exception conditions was not enabled, control is transferred to the end of the SEARCH statement.
+   3\. If the AT END phrase is not specified and neither exception condition was raised because the checking for those exception conditions was not enabled, control is transferred to the end of the SEARCH statement.
 
 2\) The comparison associated with each WHEN phrase is executed in accordance with the rules specified for conditional expressions. (See 8.8.4, Conditional expressions.)
 
@@ -28150,9 +28150,9 @@ The START statement provides a basis for logical positioning within a file, for 
 
 
 
-2. It has the same class, category, and usage as that record key.
+   2\. It has the same class, category, and usage as that record key.
 
-3. Its length is not greater than the length of that record key.
+   3\. Its length is not greater than the length of that record key.
 
 7\) Record-key-name-1 shall be specified with the SOURCE phrase in the RECORD KEY clause or in the ALTERNATE RECORD KEY clause in the file control entry for file-name-1.
 
@@ -31050,7 +31050,7 @@ The type of the function is alphanumeric.
 
 c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character.
 
-3. An implementor-defined identifier of the source line that contains the beginning of the statement is then appended.
+   3\. An implementor-defined identifier of the source line that contains the beginning of the statement is then appended.
 
 NOTE The user cannot rely on the value returned being consistent from one compilation of the same compilation unit to the next.
 
@@ -31094,7 +31094,7 @@ The type of the function is national.
 
 c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character.
 
-3. An implementor-defined identifier of the source line that contains the beginning of the statement is then appended.
+   3\. An implementor-defined identifier of the source line that contains the beginning of the statement is then appended.
 
 NOTE The user cannot rely on the value returned being consistent from one compilation of the same compilation unit to the next.
 
@@ -33838,9 +33838,9 @@ The type of this function is integer.
    4\. If standard-decimal arithmetic is in effect, the argument contains a significand longer than 34 digits, and no prior error in the argument has been found, the returned value is the position of the 35th digit of the significand because the character in error for a significand longer than 34 digits is the 35th digit.
 
 
-5. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the exponent in the argument contains more than four significant digits, the returned value is the position of the fifth digit of the exponent.
+   5\. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the exponent in the argument contains more than four significant digits, the returned value is the position of the fifth digit of the exponent.
 
-6. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the magnitude of the numeric value in the argument exceeds the capacity of the standard intermediate data item used for that mode of arithmetic, the returned value is the position of the first digit of the exponent.
+   6\. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the magnitude of the numeric value in the argument exceeds the capacity of the standard intermediate data item used for that mode of arithmetic, the returned value is the position of the first digit of the exponent.
 
 c) Otherwise,
 

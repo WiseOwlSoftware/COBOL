@@ -28,18 +28,40 @@ Row schema (one per rule):
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib
 import json
+import re
 import sys
 from collections import Counter
 
 from inventory_schema import (ADJUDICATED as CARRIED, CATALOG_PATH as CATALOG,
                               INVENTORY_PATH as INVENTORY, REPO, load_schema, write_inventory)
 
+#: Whitespace and the transcription's markdown escapes are not content — two texts that differ only there are the
+#: same rule, and a digest that said otherwise would cry wolf on every re-transcription.
+_SQUASH = re.compile(r"\s+")
+
+
+def rule_digest(text: str) -> str:
+    """A short content fingerprint of a rule's catalog text, REGENERATED every rebuild and never carried.
+
+    ⛔ WHY A ROW NEEDS ONE (kb/Work PB698). `prior` is keyed by rule-id and the adjudicated fields are carried
+    across a rebuild by that key alone, so the rebuild is only safe while an id names the same RULE it named
+    last time. It does not: a sub-list id is POSITIONAL (`…-L<sublist>.<n>`), so when a sub-list above it stops
+    existing — as it does whenever a nested list's transcription is re-levelled — every id below SHIFTS DOWN and
+    silently inherits a verdict that was adjudicated against different text. PB698's repair moved six such rows
+    at once, and nothing in this script could see it: `added`/`removed` compare ids, and `subject` is the rule
+    BLOCK's subject, identical for every row of the block. The digest is the missing observation.
+    """
+    return hashlib.sha1(_SQUASH.sub(" ", text.replace("\\", "")).strip().encode("utf-8")).hexdigest()[:12]
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--stats", action="store_true", help="report only; write nothing")
+    ap.add_argument("--check", action="store_true",
+                    help="report only; exit 1 if a carried verdict landed on CHANGED rule text")
     args = ap.parse_args()
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -62,6 +84,7 @@ def main() -> int:
         row = {
             "rule-id": r["id"], "section": r["section"], "kind": r["kind"], "ordinal": r["ordinal"],
             "subject": r["subject"],
+            "rule-digest": rule_digest(r["text"]),
             "verdict": "", "code-location": "", "test-ref": "", "derivation": "", "editions": "", "notes": "",
         }
         if old := prior.get(r["id"]):
@@ -88,6 +111,24 @@ def main() -> int:
             print(f"  ⚠ REMOVED      : {len(removed)} rows no longer in the spec — verdicts dropped:")
             for rid in removed[:10]:
                 print(f"       {rid}")
+
+    # ⛔ THE CARRY IS ONLY SAFE WHILE AN ID NAMES THE SAME RULE. Compare each carried row's stored digest with the
+    # one the catalog yields now: a difference means the verdict was adjudicated against text that is no longer
+    # there. `added`/`removed` cannot see this — the id is in both lists — and it is not a theoretical shape:
+    # PB698's re-levelling shifted six positional sub-list ids under live verdicts. A row with no stored digest is
+    # a pre-guard row and reports nothing (it has nothing to be compared with), which is why this landing states
+    # its own migration explicitly instead of relying on the guard it installs.
+    drifted = [r["rule-id"] for r in out
+               if (p := prior.get(r["rule-id"])) and p.get("rule-digest")
+               and p["rule-digest"] != r["rule-digest"] and any(r[k] for k in CARRIED)]
+    if drifted:
+        print(f"\n⛔ {len(drifted)} CARRIED VERDICT(S) LANDED ON CHANGED RULE TEXT — re-adjudicate each through a")
+        print("   record_verdicts batch, or move it to the id that now carries its text (kb/Work PB698):")
+        for rid in drifted:
+            print(f"       {rid}")
+
+    if args.check:
+        return 1 if drifted else 0
 
     by_clause = Counter(r["section"].split(".")[0] for r in out)
     print("\n  GAP by top-level clause (the P14 work map):")

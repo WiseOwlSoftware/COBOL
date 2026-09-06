@@ -101,12 +101,35 @@ GROUP_LABEL = re.compile(r"^(?:#{1,6}\s+)?(?P<label>[A-Z][A-Z0-9 \-/&,]*)\s*$")
 # separates them. DEVLOG 1167 proved every ordinal-only heuristic wrong on that clause.
 ORDINAL = re.compile(r"^(?P<n>\d+)\\?(?P<form>[.)])\s+(?P<text>.*)$")
 
-# An INDENTED numbered item inside a rule's body — the standard's nested lists ("GR 4 a) 1. 2. 3. …"). These stay
-# with their parent rule's text, but they are EVIDENCE the segmenter needs: the transcription flattens the TAIL
-# of some nested lists onto column 0 (§14.9.13.4 GR4a is transcribed with items 1-3 indented and items 4-6 at
-# column 0), and a column-0 ordinal that CONTINUES the most recent indented run is that nested list's tail — not
-# a top-level rule. §15.30.3 / §15.31.3 / §15.95.4 each carried such a tail filed as a top-level rule; §15.95.4's
-# own heading ("Returned value rule", singular) says the clause has exactly ONE.
+# An INDENTED numbered item inside a rule's body — the standard's nested lists ("GR 4 a) 1. 2. 3. …").
+#
+# ⛔ THE ROW SHAPE, DECIDED FOR THE WHOLE CATALOG BY THE OWNER (kb/Work PB55, 2026-08-08, "THE RULE IS THE
+# UNIT"): **one row per TOP-LEVEL numbered rule of a rule block; every sub-item — lettered `a)`, or numbered
+# under one, at any depth — is FOLDED into its parent rule's text and is addressed by CITATION PATH, never by a
+# row of its own.** ⚠ That decision's WAVE (absorbing the 200-odd remaining `L` rows of lists the transcription
+# flattened whole) is owner-scheduled for AFTER the defect burn-down, and this file does not run it: what is
+# enforced here is only that an indentation ACCIDENT can no longer decide the shape (kb/Work PB698). Three
+# independent things said the same as the owner and the extractor was the only dissenter:
+#   · the standard's own cross-references address a sub-item as a PATH ON ITS PARENT — "General rule 12c)",
+#     "General rule 4b)", 21 such citations — and never renumber one into the top-level sequence;
+#   · `scripts/spec/cite.py` resolves that path (`--check 14.9.41.3 "…"` → `6) b) 2.`), so folding costs a
+#     sub-item NOTHING in citability;
+#   · `scripts/spec/audit_catalog_coverage.py` states the invariant outright in `printed_ordinals`: "Sub-items
+#     ('a)', indented '1.') are not column-0 and are not counted; they are part of their parent rule."
+# A row whose text cannot be read without its parent is not a rule but a FRAGMENT — the row once at
+# `SR-14.9.41.3-L2.2` read "It has the same class, category, and usage as that record key.", whose subject and
+# referent both live in the item above it. That is the same silent-false-confidence class as PB689's
+# contamination, in the other direction.
+#
+# The transcription flattened the TAIL of some nested lists onto column 0 at a PAGE BREAK (§14.9.41.3 SR6 b) 2.
+# and 3. are printed indented under b) on PDF page 785 / folio 755 — the ordinal glyph measured at x0 115.05 on
+# a page whose body margin is 80.04 — and were transcribed at column 0). All 23 such items, in 14 clauses, were
+# measured on the PDF and REPAIRED in the transcription by PB698, so this arm catches nothing today and is a
+# net for the next one. Such a tail is EVIDENCE the segmenter needs: a column-0 ordinal that CONTINUES
+# the most recent indented run, and does NOT continue the innermost open level, is that nested list's tail, so it
+# is buffered into the parent rule exactly as its indented siblings are — the indentation accident can no longer
+# decide what a row IS. Every one is REPORTED (fatal under `--check`) so the transcription gets repaired rather
+# than quietly worked around, which is the same posture `heading_labels` takes for PB689's group labels.
 INDENTED_ORDINAL = re.compile(r"^\s+(?P<n>\d+)\\?[.)]\s")
 
 # The rule-block kinds the standard uses. Intrinsic functions use argument/returned-value rules instead of SR/GR.
@@ -341,6 +364,10 @@ def main() -> int:
     #     level regardless of form, preferring a form-matched level when two continue with the same n (§9.3.6);
     #   · EXCEPT that a column-0 ordinal continuing the most recent INDENTED run is the flattened TAIL of that
     #     nested list, not a rule (§14.9.13.4 GR4a: `1\.-3\.` indented, `4.-6.` at column 0; §15.30.3 GR2b).
+    #     ⛔ That case never reaches `place()` any more — it is decided in the scan loop by `flattened_tail`
+    #     and BUFFERED INTO THE PARENT RULE (fix-queue PB698). It used to open a sub-list here, which gave 27
+    #     sub-item FRAGMENTS rows of their own across 14 clauses while every other sub-item in the standard was
+    #     folded, so an indentation accident at a page break was deciding what a row IS.
     # A stack of open levels [form, sublist-index, last-ordinal] implements this; `levels[0]` is the block's top
     # level (sublist 1, plain ids). Anything the four cases above cannot place is counted in `unexplained` and
     # FAILS --check: an unexplained ordinal is a new segmentation shape, and silently guessing at it is how the
@@ -354,11 +381,28 @@ def main() -> int:
     #: In-clause group labels the TRANSCRIPTION rendered as markdown headings — absorbed here so they cannot
     #: truncate a block, and reported so the transcription gets repaired rather than quietly worked around.
     heading_labels: list[tuple[str, str]] = []     # (section, label)
+    #: Nested-list tails the TRANSCRIPTION flattened onto column 0 — folded into their parent rule here so the
+    #: row shape is indentation-independent, and reported so the transcription gets repaired (fix-queue PB698).
+    flattened_tails: list[tuple[str, int, int, str]] = []   # (section, line-number, ordinal, text)
     # The page a rule STARTS on. flush() runs when the NEXT ordinal or heading arrives, by which time a
     # "## Page N" marker may already have advanced `page` — so flushing with the live value mis-attributes the
     # last rule of every block that ends near a page boundary (verified against the rendered PDF: GR-7.3.12.4-6
     # is printed on page 95 and was recorded as 96).
     rule_page = 0
+
+    def flattened_tail(n: int, form: str) -> bool:
+        """Is this column-0 ordinal the flattened TAIL of the nested list currently open in the rule's body?
+
+        The precedence is `place()`'s, unchanged: a strict same-form continuation of the innermost open level is
+        a real rule and wins outright (that is what keeps `GR3` with an indented `1.` to `3.` list from
+        swallowing `4)`), and only then does an ordinal that continues the indented run count as the tail.
+        """
+        if not levels or not last_indented:
+            return False
+        form0, _sublist, last = levels[-1]
+        if form == form0 and n == last + 1:
+            return False
+        return n == last_indented + 1
 
     def place(n: int, form: str) -> int:
         """File a column-0 ordinal on the level stack; returns the sub-list index for its id."""
@@ -373,12 +417,8 @@ def main() -> int:
             top[2] = n
             last_indented = 0
             return top[1]
-        # 2. the flattened tail of an indented nested list (subsequent tail items arrive via case 1)
-        if last_indented and n == last_indented + 1:
-            levels.append([form, next_sublist, n])
-            next_sublist += 1
-            last_indented = n
-            return levels[-1][1]
+        # 2. (was: the flattened tail of an indented nested list — now handled by `flattened_tail` in the scan
+        #    loop, which folds it into the parent rule instead of giving the fragment a row. PB698.)
         # 3. a same-form restart — a new sub-list, nested on the stack so its parent's run stays open
         if form == top[0] and n <= top[2]:
             levels.append([form, next_sublist, n])
@@ -440,7 +480,7 @@ def main() -> int:
             blocks_with_rules.add(cur)
         buf, ordinal = [], 0
 
-    for line in lines:
+    for line_no, line in enumerate(lines, start=1):
         if m := PAGE.match(line):
             page = int(m.group(1))
             continue
@@ -490,8 +530,15 @@ def main() -> int:
         if cur is None:
             continue
         if m := ORDINAL.match(line):
-            flush()
             n = int(m.group("n"))
+            # ⛔ A FLATTENED NESTED-LIST TAIL IS PART OF ITS PARENT RULE, NOT A ROW (PB698). Decided BEFORE the
+            # flush, because flushing is what would have ended the parent rule and started a new one.
+            if ordinal and flattened_tail(n, m.group("form")):
+                flattened_tails.append((cur[0], line_no, n, m.group("text")[:80]))
+                last_indented = n
+                buf.append(line)
+                continue
+            flush()
             cur_sublist = place(n, m.group("form"))
             ordinal = n
             rule_page = page
@@ -695,6 +742,17 @@ def main() -> int:
         for sec, label in heading_labels:
             print(f"      §{sec}  '{label}'")
 
+    # ⛔ THE SAME POSTURE FOR PB698's DEFECT: the extractor no longer lets a flattened nested-list tail become a
+    # row, but a transcription that outdents one still makes `cite.py` report the WRONG printed path (§14.9.41.3
+    # SR6 b) 2. and 3. both resolved to "6) b) 1." while the printed page indents them under b)), and a wrong
+    # citation path is the one thing CLAUDE.md rule 1 exists to prevent. Repair the indentation on the page.
+    if flattened_tails:
+        print(f"\n⛔ {len(flattened_tails)} nested-list TAIL item(s) transcribed at COLUMN 0 — folded into the")
+        print("   parent rule here, but `cite.py` still mis-reports their printed path (PB698). Indent each to")
+        print("   its printed level in specs/ISO_COBOL.md (measure the page: the item's x0 against the body margin):")
+        for sec, ln, n, text in flattened_tails:
+            print(f"      §{sec}  line {ln}  '{n}. {text}'")
+
     by_kind = Counter(r["kind"] for r in rules)
     top = Counter(r["section"].split(".")[0] for r in rules)
 
@@ -777,7 +835,7 @@ def main() -> int:
 
     if args.check:
         return 1 if (gaps or unrecognised or added or removed or changed or unexplained
-                     or heading_labels) else 0
+                     or heading_labels or flattened_tails) else 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({

@@ -1,6 +1,6 @@
 {
  "generated_from": "specs\\ISO_COBOL.md",
- "rule_count": 4371,
+ "rule_count": 4348,
  "blocks": 702,
  "parse_gaps": [],
  "rules": [
@@ -4673,16 +4673,7 @@
    "ordinal": 3,
    "sublist": 1,
    "subject": "Local and global names",
-   "text": "If more than one item is identified, no more than one of them may have a name local to source element B. If zero or one of the items has a name local to source element B, the following rules apply: a) If the name is declared in source element B, the item in source element B is the referenced item. b) Otherwise, if source element A is contained within another source element, the referenced item is: 1\\. The item in source element A if the name is declared in source element A."
-  },
-  {
-   "id": "GR-8.4.6.2.1-L2.2",
-   "section": "8.4.6.2.1",
-   "kind": "GR",
-   "ordinal": 2,
-   "sublist": 2,
-   "subject": "Local and global names",
-   "text": "The item in the containing source element if the name is not declared in source element A and is declared in the source element containing source element A. This rule is applied to further containing source elements until a single valid name has been found."
+   "text": "If more than one item is identified, no more than one of them may have a name local to source element B. If zero or one of the items has a name local to source element B, the following rules apply: a) If the name is declared in source element B, the item in source element B is the referenced item. b) Otherwise, if source element A is contained within another source element, the referenced item is: 1\\. The item in source element A if the name is declared in source element A. 2\\. The item in the containing source element if the name is not declared in source element A and is declared in the source element containing source element A. This rule is applied to further containing source elements until a single valid name has been found."
   },
   {
    "id": "SR-8.4.6.3-1",
@@ -6914,50 +6905,32 @@
    "ordinal": 3,
    "sublist": 3,
    "subject": "Objects",
-   "text": "For each parameter of the invocation that is passed by reference there shall be a corresponding parameter in the invoked method that: a) is specified with the BY REFERENCE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly. c) is the same class and category d) if the parameter in the invoked method is an object reference, the corresponding parameter shall follow these rules: 1\\. If the parameter in the invoked method is a universal object reference, the corresponding parameter in the invocation is a universal object reference. 2\\. If the parameter in the invoked method is described with an interface-name, the corresponding parameter is described with the same interface- name. 3\\. If the parameter in the invoked method is described with an object-class-name, the corresponding parameter in the invocation is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both descriptions."
+   "text": "For each parameter of the invocation that is passed by reference there shall be a corresponding parameter in the invoked method that: a) is specified with the BY REFERENCE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly. c) is the same class and category d) if the parameter in the invoked method is an object reference, the corresponding parameter shall follow these rules: 1\\. If the parameter in the invoked method is a universal object reference, the corresponding parameter in the invocation is a universal object reference. 2\\. If the parameter in the invoked method is described with an interface-name, the corresponding parameter is described with the same interface- name. 3\\. If the parameter in the invoked method is described with an object-class-name, the corresponding parameter in the invocation is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both descriptions. 4\\. If the parameter in the invoked method is described with the ACTIVE-CLASS phrase and FACTORY phrase is not specified, the corresponding parameter shall evaluate to an object reference of the same class specified in the invocation. 5\\. If the parameter in the invoked method is described with the ACTIVE-CLASS and FACTORY phrases, the corresponding parameter shall evaluate to an object reference to the factory of the class specified in the invocation. e) If the parameter in the invoked method is not an object reference, the corresponding parameter has the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following additional constraints:"
   },
   {
-   "id": "GR-9.3.6-L4.4",
-   "section": "9.3.6",
-   "kind": "GR",
-   "ordinal": 4,
-   "sublist": 4,
-   "subject": "Objects",
-   "text": "If the parameter in the invoked method is described with the ACTIVE-CLASS phrase and FACTORY phrase is not specified, the corresponding parameter shall evaluate to an object reference of the same class specified in the invocation."
-  },
-  {
-   "id": "GR-9.3.6-L4.5",
-   "section": "9.3.6",
-   "kind": "GR",
-   "ordinal": 5,
-   "sublist": 4,
-   "subject": "Objects",
-   "text": "If the parameter in the invoked method is described with the ACTIVE-CLASS and FACTORY phrases, the corresponding parameter shall evaluate to an object reference to the factory of the class specified in the invocation. e) If the parameter in the invoked method is not an object reference, the corresponding parameter has the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following additional constraints:"
-  },
-  {
-   "id": "GR-9.3.6-L5.1",
+   "id": "GR-9.3.6-L4.1",
    "section": "9.3.6",
    "kind": "GR",
    "ordinal": 1,
-   "sublist": 5,
+   "sublist": 4,
    "subject": "Objects",
    "text": "Currency symbols match if and only if the corresponding currency strings are the same."
   },
   {
-   "id": "GR-9.3.6-L5.2",
+   "id": "GR-9.3.6-L4.2",
    "section": "9.3.6",
    "kind": "GR",
    "ordinal": 2,
-   "sublist": 5,
+   "sublist": 4,
    "subject": "Objects",
    "text": "Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces."
   },
   {
-   "id": "GR-9.3.6-L5.3",
+   "id": "GR-9.3.6-L4.3",
    "section": "9.3.6",
    "kind": "GR",
    "ordinal": 3,
-   "sublist": 5,
+   "sublist": 4,
    "subject": "Objects",
    "text": "Locale specifications in the PICTURE clauses match if and only if: a. both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and b. both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with the locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph."
   },
@@ -6998,29 +6971,29 @@
    "text": "If the invocation specifies a returning item and the returning item is not usage OBJECT REFERENCE, POINTER or INDEX, there shall be a corresponding specification in the invoked method that may be a sending item in a MOVE statement with the returning item as the receiving item. Additionally, for each parameter that is passed by value or by content, and for the returning item, the following criteria are considered an exact match:"
   },
   {
-   "id": "GR-9.3.6-L6.1",
+   "id": "GR-9.3.6-L5.1",
    "section": "9.3.6",
    "kind": "GR",
    "ordinal": 1,
-   "sublist": 6,
+   "sublist": 5,
    "subject": "Objects",
    "text": "the parameter or returning item in the invocation and the corresponding parameter or returning item in the invoked method are the same class and category."
   },
   {
-   "id": "GR-9.3.6-L6.2",
+   "id": "GR-9.3.6-L5.2",
    "section": "9.3.6",
    "kind": "GR",
    "ordinal": 2,
-   "sublist": 6,
+   "sublist": 5,
    "subject": "Objects",
    "text": "if the parameter or returning item in the invoked method is an object reference, the corresponding parameter or returning item shall follow these rules: a) If the parameter or returning item in the invoked method is a universal object reference, the corresponding parameter or returning item in the invocation is a universal object reference. b) If the parameter or returning item in the invoked method is described with an interface-name, the corresponding parameter or returning item in is described with the same interface- name. c) If the parameter or returning item in the invoked method is described with an object-class-name, the corresponding parameter or returning item in the invocation is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both descriptions. d) If the parameter in the invoked method is described with the ACTIVE-CLASS phrase and FACTORY phrase is not specified, the corresponding parameter shall evaluate to an object reference of the same class specified in the invocation. e) If the parameter in the invoked method is described with the ACTIVE-CLASS and FACTORY phrases, the corresponding parameter shall evaluate to an object reference to the factory of the class specified in the invocation."
   },
   {
-   "id": "GR-9.3.6-L6.3",
+   "id": "GR-9.3.6-L5.3",
    "section": "9.3.6",
    "kind": "GR",
    "ordinal": 3,
-   "sublist": 6,
+   "sublist": 5,
    "subject": "Objects",
    "text": "if the parameter or returning item in the invoked method is not an object reference, the corresponding parameter or returning item has the same ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following additional constraints: a) Currency symbols match if and only if the corresponding currency strings are the same. b) Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. c) Locale specifications in the PICTURE clauses match if and only if: 1\\. both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and 2\\. both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with the locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph. For the purpose of determining an exact match, an alphanumeric, boolean, or national literal is considered to be equivalent to a data item with no PICTURE clause and a VALUE clause that specifies that literal. If the literal is a numeric literal: the implied usage is DISPLAY; the implied picture clause consists of the same number of picture symbol characters '9' as there are digits in the literal; the presence or absence of signs is the same; the decimal separator is the same; and the decimal separator is in the same position within the picture character-string as in the literal. All parameters passed by reference are exact matches. A method invocation is considered to match exactly if all parameters match exactly. If two or more methods in a class match, preference is given to the method that has the greatest number of parameters that match exactly. If the number of parameters that match exactly are equal, preference is given first to the methods with the least number of exact matches due to omitted optional parameters, second to those methods where the returning item is an exact match, and then to the first method defined in the class or interface."
   },
@@ -8948,50 +8921,41 @@
    "ordinal": 2,
    "sublist": 2,
    "subject": "SPECIAL-NAMES paragraph",
-   "text": "If the NATIONAL phrase is specified, the native national coded character set and native national collating sequence are referenced. e) When the LOCALE phrase is specified, the collating sequence identified is defined by the locale referenced by locale-name-2 when specified, otherwise by the locale that is current at the time the collating sequence is used at runtime. When LOCALE is specified in the ALPHANUMERIC phrase, an alphanumeric collating sequence is identified; when specified in the NATIONAL phrase, a national collating sequence is identified. f) When the UCS-4 phrase is specified, the coded character set referenced shall be as specified in ISO/IEC 10646 as UTF-32. Each character of UTF-32 is associated with a corresponding character of the native national character set. The implementor shall specify the correspondence between the characters of UTF-32 and the characters of the native national character set. The collating sequence referenced by the UCS-4 phrase shall be defined by the order in which characters appear in ISO/IEC 10646. g) When the UTF-8 phrase is specified, the coded character set referenced shall be as specified in ISO/IEC 10646 as UTF-8. Each character of ISO/IEC 10646 UTF-32 shall be associated with a corresponding character of the native national character set. The association is the same as the association for the UCS-32 character from which the UTF-8 character was transformed. h) When the UTF-16 phrase is specified, the coded character set referenced shall be as specified in ISO/IEC 10646 as UTF-16. Each character of ISO/IEC 10646 UTF-16 shall be associated with a corresponding character of the native national character set. The association is the same as the association for the UTF-32 character from which the UTF-16 character was transformed. i) When code-name-1 is specified, the alphanumeric coded character set and collating sequence referenced are defined by the implementor. The implementor shall specify the ordinal number of each character for use when code-name-1 references a coded character set and the collating position of each character for use when code-name-1 references a collating sequence. The implementor also shall specify the correspondence between characters of the alphanumeric coded character set specified by code-name-1 and the characters of the native alphanumeric coded character set. The coded character set referenced by code-name-1 is statically defined. j) When code-name-2 is specified, the national coded character set and collating sequence referenced are defined by the implementor. The implementor shall specify the ordinal number of each character for use when code-name-2 references a coded character set and the collating position of each character for use when code-name-2 references a collating sequence. The implementor also shall specify the correspondence between characters of the national coded character set specified by code-name-2 and the characters of the native national coded character set. The coded character set referenced by code-name-2 is statically defined. k) When literal-phrase is specified, the coded character set and collating sequence are defined according to the following rules, where the native coded character set is the type of coded character set or collating sequence being defined, either alphanumeric or national: 1\\. The value of each literal specifies: a. The ordinal number of a character within the native character set, if the literal is numeric. This value shall not exceed the value that represents the number of characters in the native character set. b. Otherwise, the actual character within the native character set. If the value of the literal contains multiple characters, each character in the literal, starting with the leftmost character, is assigned successive ascending positions in the collating sequence being specified."
+   "text": "If the NATIONAL phrase is specified, the native national coded character set and native national collating sequence are referenced. e) When the LOCALE phrase is specified, the collating sequence identified is defined by the locale referenced by locale-name-2 when specified, otherwise by the locale that is current at the time the collating sequence is used at runtime. When LOCALE is specified in the ALPHANUMERIC phrase, an alphanumeric collating sequence is identified; when specified in the NATIONAL phrase, a national collating sequence is identified. f) When the UCS-4 phrase is specified, the coded character set referenced shall be as specified in ISO/IEC 10646 as UTF-32. Each character of UTF-32 is associated with a corresponding character of the native national character set. The implementor shall specify the correspondence between the characters of UTF-32 and the characters of the native national character set. The collating sequence referenced by the UCS-4 phrase shall be defined by the order in which characters appear in ISO/IEC 10646. g) When the UTF-8 phrase is specified, the coded character set referenced shall be as specified in ISO/IEC 10646 as UTF-8. Each character of ISO/IEC 10646 UTF-32 shall be associated with a corresponding character of the native national character set. The association is the same as the association for the UCS-32 character from which the UTF-8 character was transformed. h) When the UTF-16 phrase is specified, the coded character set referenced shall be as specified in ISO/IEC 10646 as UTF-16. Each character of ISO/IEC 10646 UTF-16 shall be associated with a corresponding character of the native national character set. The association is the same as the association for the UTF-32 character from which the UTF-16 character was transformed. i) When code-name-1 is specified, the alphanumeric coded character set and collating sequence referenced are defined by the implementor. The implementor shall specify the ordinal number of each character for use when code-name-1 references a coded character set and the collating position of each character for use when code-name-1 references a collating sequence. The implementor also shall specify the correspondence between characters of the alphanumeric coded character set specified by code-name-1 and the characters of the native alphanumeric coded character set. The coded character set referenced by code-name-1 is statically defined. j) When code-name-2 is specified, the national coded character set and collating sequence referenced are defined by the implementor. The implementor shall specify the ordinal number of each character for use when code-name-2 references a coded character set and the collating position of each character for use when code-name-2 references a collating sequence. The implementor also shall specify the correspondence between characters of the national coded character set specified by code-name-2 and the characters of the native national coded character set. The coded character set referenced by code-name-2 is statically defined. k) When literal-phrase is specified, the coded character set and collating sequence are defined according to the following rules, where the native coded character set is the type of coded character set or collating sequence being defined, either alphanumeric or national: 1\\. The value of each literal specifies: a. The ordinal number of a character within the native character set, if the literal is numeric. This value shall not exceed the value that represents the number of characters in the native character set. b. Otherwise, the actual character within the native character set. If the value of the literal contains multiple characters, each character in the literal, starting with the leftmost character, is assigned successive ascending positions in the collating sequence being specified. 2\\. The order in which the literals appear in the ALPHABET clause specifies, in ascending sequence, the ordinal number of the character within the collating sequence being specified."
   },
   {
-   "id": "GR-12.3.7.4-L3.2",
-   "section": "12.3.7.4",
-   "kind": "GR",
-   "ordinal": 2,
-   "sublist": 3,
-   "subject": "SPECIAL-NAMES paragraph",
-   "text": "The order in which the literals appear in the ALPHABET clause specifies, in ascending sequence, the ordinal number of the character within the collating sequence being specified."
-  },
-  {
-   "id": "GR-12.3.7.4-L3.3",
+   "id": "GR-12.3.7.4-L2.3",
    "section": "12.3.7.4",
    "kind": "GR",
    "ordinal": 3,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "SPECIAL-NAMES paragraph",
    "text": "Any characters of the native collating sequence that are not specified in the literal phrase shall assume a position in the collating sequence that is greater than that of the highest character specified in this literal phrase. The relative order within the set of these unspecified characters is unchanged from the native collating sequence."
   },
   {
-   "id": "GR-12.3.7.4-L3.4",
+   "id": "GR-12.3.7.4-L2.4",
    "section": "12.3.7.4",
    "kind": "GR",
    "ordinal": 4,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "SPECIAL-NAMES paragraph",
    "text": "If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase."
   },
   {
-   "id": "GR-12.3.7.4-L3.5",
+   "id": "GR-12.3.7.4-L2.5",
    "section": "12.3.7.4",
    "kind": "GR",
    "ordinal": 5,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "SPECIAL-NAMES paragraph",
    "text": "If the THROUGH phrase is specified, the set of consecutive characters in the native character set beginning with the character specified by the value of literal-1, and ending with the character specified by the value of literal-2, is assigned a successive ascending position in the collating sequence being specified. In addition, the set of consecutive characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence."
   },
   {
-   "id": "GR-12.3.7.4-L3.6",
+   "id": "GR-12.3.7.4-L2.6",
    "section": "12.3.7.4",
    "kind": "GR",
    "ordinal": 6,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "SPECIAL-NAMES paragraph",
    "text": "If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data. Literal-1 is the first character in the sequence of multiple characters defined at that ordinal position. If alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set."
   },
@@ -16913,16 +16877,7 @@
    "ordinal": 7,
    "sublist": 1,
    "subject": "SUM clause",
-   "text": "The times at which addition takes place are defined as follows: a) If data-name-1 is the name of an entry in a different report group description, adding takes place when the report group description containing data-name-1 is processed. b) If data-name-1 is the name of an entry in the current report group description, adding takes place during the processing of the current report group before any of the report group's lines are printed. c) If the addend is identifier-1 or arithmetic-expression-1, adding takes place either: 1\\. if no UPON phrase is specified, whenever any GENERATE statement is executed for the current report or any detail defined for the current report, or"
-  },
-  {
-   "id": "GR-13.18.54.4-L2.2",
-   "section": "13.18.54.4",
-   "kind": "GR",
-   "ordinal": 2,
-   "sublist": 2,
-   "subject": "SUM clause",
-   "text": "If an UPON phrase is specified, whenever any GENERATE statement is executed for a detail referenced by the UPON phrase. If two or more instances of data-name-1 or identifier-1 specify the same data item, this data item is added into the sum counter as many times as data-name-1 or identifier-1 is referenced in the SUM clause. It is permissible for the UPON phrase to contain two or more instances of data-name-2 that specify the same detail. When a GENERATE statement for such a detail is executed, the adding takes place as many times as data-name-2 appears in the UPON phrase."
+   "text": "The times at which addition takes place are defined as follows: a) If data-name-1 is the name of an entry in a different report group description, adding takes place when the report group description containing data-name-1 is processed. b) If data-name-1 is the name of an entry in the current report group description, adding takes place during the processing of the current report group before any of the report group's lines are printed. c) If the addend is identifier-1 or arithmetic-expression-1, adding takes place either: 1\\. if no UPON phrase is specified, whenever any GENERATE statement is executed for the current report or any detail defined for the current report, or 2\\. If an UPON phrase is specified, whenever any GENERATE statement is executed for a detail referenced by the UPON phrase. If two or more instances of data-name-1 or identifier-1 specify the same data item, this data item is added into the sum counter as many times as data-name-1 or identifier-1 is referenced in the SUM clause. It is permissible for the UPON phrase to contain two or more instances of data-name-2 that specify the same detail. When a GENERATE statement for such a detail is executed, the adding takes place as many times as data-name-2 appears in the UPON phrase."
   },
   {
    "id": "GR-13.18.54.4-8",
@@ -21791,16 +21746,7 @@
    "ordinal": 7,
    "sublist": 1,
    "subject": "DELETE statement",
-   "text": "If record locks are in effect and the file is not subject to an active APPLY COMMIT clause, the following actions take place: a) If single record locking is specified for the file connector associated with filename-1: 1\\. A lock held by that file connector on the deleted record is released at the completion of the successful execution of the DELETE RECORD statement."
-  },
-  {
-   "id": "GR-14.9.10.4-L2.2",
-   "section": "14.9.10.4",
-   "kind": "GR",
-   "ordinal": 2,
-   "sublist": 2,
-   "subject": "DELETE statement",
-   "text": "A lock held by that file connector on another record is released at the beginning of the execution of the DELETE RECORD statement. b) If multiple record locking is specified for the file connector associated with file-name-1, all locks held on the deleted record are released at the completion of the successful execution of the DELETE RECORD statement."
+   "text": "If record locks are in effect and the file is not subject to an active APPLY COMMIT clause, the following actions take place: a) If single record locking is specified for the file connector associated with filename-1: 1\\. A lock held by that file connector on the deleted record is released at the completion of the successful execution of the DELETE RECORD statement. 2\\. A lock held by that file connector on another record is released at the beginning of the execution of the DELETE RECORD statement. b) If multiple record locking is specified for the file connector associated with file-name-1, all locks held on the deleted record are released at the completion of the successful execution of the DELETE RECORD statement."
   },
   {
    "id": "GR-14.9.10.4-8",
@@ -22367,34 +22313,7 @@
    "ordinal": 4,
    "sublist": 1,
    "subject": "EVALUATE statement",
-   "text": "The execution of the EVALUATE statement proceeds by processing each WHEN phrase from left to right in the following manner: a) Each selection object within the set of selection objects for each WHEN phrase is paired with the selection subject having the same ordinal position within the set of selection subjects. The result of the analysis of this set of selection subjects and objects is either true or false as follows: 1\\. If the selection object is the word ANY, the result is true. 2\\. If the selection object is partial-expression-1, the selection subject is placed to the left of the leading relational operator and the resulting conditional expression is evaluated. The result of the evaluation is the truth value of the expression. 3\\. If the selection object is condition-2, the selection subject is either TRUE or FALSE. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false."
-  },
-  {
-   "id": "GR-14.9.13.4-L2.4",
-   "section": "14.9.13.4",
-   "kind": "GR",
-   "ordinal": 4,
-   "sublist": 2,
-   "subject": "EVALUATE statement",
-   "text": "If the selection object is either TRUE or FALSE, the selection subject is condition-1. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false."
-  },
-  {
-   "id": "GR-14.9.13.4-L2.5",
-   "section": "14.9.13.4",
-   "kind": "GR",
-   "ordinal": 5,
-   "sublist": 2,
-   "subject": "EVALUATE statement",
-   "text": "If the selection object is a range-expression, the pair is considered to be a conditional expression of one of the following forms: when 'NOT' is not specified in the selection object; selection-subject >= left-part AND selection-subject <= right-part when 'NOT' is specified in the selection object selection-subject < left-part OR selection-subject > right-part where left-part is identifier-3, literal-3, or arithmetic-expression-3 and right-part is identifier-4, literal-4, or arithmetic-expression-4. The result of the analysis is the truth value of the resulting conditional expression."
-  },
-  {
-   "id": "GR-14.9.13.4-L2.6",
-   "section": "14.9.13.4",
-   "kind": "GR",
-   "ordinal": 6,
-   "sublist": 2,
-   "subject": "EVALUATE statement",
-   "text": "If the selection object is identifier-2, literal-2, arithmetic-expression-2, or boolean-expression-2, the pair is considered to be a conditional expression of the following form: selection-subject [NOT] = selection-object where 'NOT' is present if it is present in the selection object. The result of the analysis is the truth value of the resulting conditional expression. b) If the result of the analysis is true for every pair in a WHEN phrase, that WHEN phrase satisfies the set of selection subjects and no more WHEN phrases are analyzed. c) If the result of the analysis is false for any pair in a WHEN phrase, no more pairs in that WHEN phrase are evaluated and the WHEN phrase does not match the set of selection subjects. d) This procedure is repeated for subsequent WHEN phrases, in the order of their appearance in the source element, until either a WHEN phrase satisfying the set of selection subjects is selected or until all sets of selection objects are exhausted."
+   "text": "The execution of the EVALUATE statement proceeds by processing each WHEN phrase from left to right in the following manner: a) Each selection object within the set of selection objects for each WHEN phrase is paired with the selection subject having the same ordinal position within the set of selection subjects. The result of the analysis of this set of selection subjects and objects is either true or false as follows: 1\\. If the selection object is the word ANY, the result is true. 2\\. If the selection object is partial-expression-1, the selection subject is placed to the left of the leading relational operator and the resulting conditional expression is evaluated. The result of the evaluation is the truth value of the expression. 3\\. If the selection object is condition-2, the selection subject is either TRUE or FALSE. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false. 4\\. If the selection object is either TRUE or FALSE, the selection subject is condition-1. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false. 5\\. If the selection object is a range-expression, the pair is considered to be a conditional expression of one of the following forms: when 'NOT' is not specified in the selection object; selection-subject >= left-part AND selection-subject <= right-part when 'NOT' is specified in the selection object selection-subject < left-part OR selection-subject > right-part where left-part is identifier-3, literal-3, or arithmetic-expression-3 and right-part is identifier-4, literal-4, or arithmetic-expression-4. The result of the analysis is the truth value of the resulting conditional expression. 6\\. If the selection object is identifier-2, literal-2, arithmetic-expression-2, or boolean-expression-2, the pair is considered to be a conditional expression of the following form: selection-subject [NOT] = selection-object where 'NOT' is present if it is present in the selection object. The result of the analysis is the truth value of the resulting conditional expression. b) If the result of the analysis is true for every pair in a WHEN phrase, that WHEN phrase satisfies the set of selection subjects and no more WHEN phrases are analyzed. c) If the result of the analysis is false for any pair in a WHEN phrase, no more pairs in that WHEN phrase are evaluated and the WHEN phrase does not match the set of selection subjects. d) This procedure is repeated for subsequent WHEN phrases, in the order of their appearance in the source element, until either a WHEN phrase satisfying the set of selection subjects is selected or until all sets of selection objects are exhausted."
   },
   {
    "id": "GR-14.9.13.4-5",
@@ -23105,34 +23024,7 @@
    "ordinal": 5,
    "sublist": 1,
    "subject": "INITIALIZE statement",
-   "text": "The receiving-operand in each implicit MOVE or SET statement is determined by applying the following steps in order: a) First, the following data items are excluded as receiving-operands: 1\\. Any identifiers that are not valid receiving operands of a MOVE statement, except data items of category data-message-tag, pointer, object-reference, or program-pointer. 2\\. If the FILLER phrase is not specified, elementary data items with an explicit or implicit FILLER clause. 3\\. Any elementary data item subordinate to identifier-1 whose data description entry contains a REDEFINES or RENAMES clause or is subordinate to a data item whose data description entry contains a REDEFINES clause. However, identifier-1 may itself have a REDEFINES clause or be subordinate to a data item with a REDEFINES clause. b) Second, an elementary data item is a possible receiving item if: 1\\. It is explicitly referenced by identifier-1; or 2\\. It is contained within the group data item referenced by identifier-1. If the elementary data item is a table element, each occurrence of the elementary data item is a possible receiving-operand. c) Finally, each possible receiving-operand is a receiving-operand if at least one of the following is true: 1\\. The VALUE phrase is specified, the category of the elementary data item is one of the categories specified or implied in the VALUE phrase, and one of the following is true: a. Either the category of the elementary data item is data-pointer, message-tag, object-reference, or program-pointer, or b. A data-item format VALUE clause is specified in the data description entry of the elementary data item. c. A table format VALUE clause is specified in the data description entry of the elementary item and that VALUE clause specifies a value for the particular occurrence of the elementary data item."
-  },
-  {
-   "id": "GR-14.9.20.4-L2.2",
-   "section": "14.9.20.4",
-   "kind": "GR",
-   "ordinal": 2,
-   "sublist": 2,
-   "subject": "INITIALIZE statement",
-   "text": "The REPLACING phrase is specified and the category of the elementary data item is one of the categories specified in the REPLACING phrase; or"
-  },
-  {
-   "id": "GR-14.9.20.4-L2.3",
-   "section": "14.9.20.4",
-   "kind": "GR",
-   "ordinal": 3,
-   "sublist": 2,
-   "subject": "INITIALIZE statement",
-   "text": "The DEFAULT phrase is specified; or"
-  },
-  {
-   "id": "GR-14.9.20.4-L2.4",
-   "section": "14.9.20.4",
-   "kind": "GR",
-   "ordinal": 4,
-   "sublist": 2,
-   "subject": "INITIALIZE statement",
-   "text": "Neither the REPLACING phrase nor the VALUE phrase is specified."
+   "text": "The receiving-operand in each implicit MOVE or SET statement is determined by applying the following steps in order: a) First, the following data items are excluded as receiving-operands: 1\\. Any identifiers that are not valid receiving operands of a MOVE statement, except data items of category data-message-tag, pointer, object-reference, or program-pointer. 2\\. If the FILLER phrase is not specified, elementary data items with an explicit or implicit FILLER clause. 3\\. Any elementary data item subordinate to identifier-1 whose data description entry contains a REDEFINES or RENAMES clause or is subordinate to a data item whose data description entry contains a REDEFINES clause. However, identifier-1 may itself have a REDEFINES clause or be subordinate to a data item with a REDEFINES clause. b) Second, an elementary data item is a possible receiving item if: 1\\. It is explicitly referenced by identifier-1; or 2\\. It is contained within the group data item referenced by identifier-1. If the elementary data item is a table element, each occurrence of the elementary data item is a possible receiving-operand. c) Finally, each possible receiving-operand is a receiving-operand if at least one of the following is true: 1\\. The VALUE phrase is specified, the category of the elementary data item is one of the categories specified or implied in the VALUE phrase, and one of the following is true: a. Either the category of the elementary data item is data-pointer, message-tag, object-reference, or program-pointer, or b. A data-item format VALUE clause is specified in the data description entry of the elementary data item. c. A table format VALUE clause is specified in the data description entry of the elementary item and that VALUE clause specifies a value for the particular occurrence of the elementary data item. 2\\. The REPLACING phrase is specified and the category of the elementary data item is one of the categories specified in the REPLACING phrase; or 3\\. The DEFAULT phrase is specified; or 4\\. Neither the REPLACING phrase nor the VALUE phrase is specified."
   },
   {
    "id": "GR-14.9.20.4-6",
@@ -23144,29 +23036,29 @@
    "text": "The sending-operand in each implicit MOVE and SET statement is determined as follows: a) If the data item qualifies as a receiving-operand because of the VALUE phrase:"
   },
   {
-   "id": "GR-14.9.20.4-L3.1",
+   "id": "GR-14.9.20.4-L2.1",
    "section": "14.9.20.4",
    "kind": "GR",
    "ordinal": 1,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "INITIALIZE statement",
    "text": "If the category of the receiving-operand is data-pointer, function-pointer, message-tag, or program-pointer, the sending-operand is the predefined address NULL;"
   },
   {
-   "id": "GR-14.9.20.4-L3.2",
+   "id": "GR-14.9.20.4-L2.2",
    "section": "14.9.20.4",
    "kind": "GR",
    "ordinal": 2,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "INITIALIZE statement",
    "text": "If the category of the receiving-operand is object-reference, the sending-operand is the predefined object reference NULL;"
   },
   {
-   "id": "GR-14.9.20.4-L3.3",
+   "id": "GR-14.9.20.4-L2.3",
    "section": "14.9.20.4",
    "kind": "GR",
    "ordinal": 3,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "INITIALIZE statement",
    "text": "Otherwise, the sending-operand is determined by the literal in the VALUE clause specified in the data description entry of the data item. If the data item is a table element, the literal in the VALUE clause that corresponds to the occurrence being initialized determines the sending-operand. The actual sending-operand is a literal that, when moved to the receiving-operand with a MOVE statement, produces the same result as the initial value of the data item as produced by the application of the VALUE clause. b) If the data item does not qualify as a receiving-operand because of the VALUE phrase, but does qualify because of the REPLACING phrase, the sending-operand is the literal-1 or identifier-2 associated with the category specified in the REPLACING phrase. c) If the data item does not qualify in accordance with General rules 6a and 6b, the sending-operand used depends on the category of the receiving-operand as follows: | Receiving operand | Figurative constant | |---|---| | Alphabetic | Figurative constant alphanumeric SPACES | | Alphanumeric | Figurative constant alphanumeric SPACES | | Alphanumeric-edited | Figurative constant alphanumeric SPACES | | Boolean | Figurative constant ZEROES | | Data-pointer | Predefined address NULL | | Function-pointer | Predefined address NULL | | Message-tag | Predefined content NULL | | National | Figurative constant national SPACES | | National-edited | Figurative constant national SPACES | | Numeric | Figurative constant ZEROES | | Numeric-edited | Figurative constant ZEROES | | Object-reference | Predefined object reference NULL | | Program-pointer | Predefined address NULL |"
   },
@@ -24347,34 +24239,7 @@
    "ordinal": 6,
    "sublist": 1,
    "subject": "MOVE statement",
-   "text": "Any necessary conversion of data from one form of internal representation to another takes place during valid elementary moves, along with any editing specified for, or de-editing implied by, the receiving data item. When a national group item is referenced in a MOVE statement, no editing or de-editing takes place. NOTE 1 Bit group items and national group items are treated as elementary items in the MOVE statement. Any necessary conversion from alphanumeric character to national character representation shall be performed, before any alignment, in accordance with a correspondence defined by the implementor. If no correspondence exists for any given alphanumeric character in the sending item, an implementor-defined substitution character is used as the corresponding national character in the receiving item and the EC-DATA-CONVERSION exception condition is set to exist. The following rules apply: a) When an alphanumeric, alphanumeric-edited, national, or national-edited data item is a receiving operand, alignment and any necessary space filling shall take place as defined in 14.6.8, Alignment and transfer of data into data items. If the sending operand is described as being signed numeric, the operational sign is not moved; if the operational sign occupies a separate character position, that character is not moved and the size of the sending operand is considered to be one less than its actual size. (See 13.18.52, SIGN clause.) If the usage of the sending operand is different from that of the receiving operand, conversion of the sending operand to the internal representation of the receiving operand takes place. If the sending operand is numeric and contains the picture symbol 'P', all digit positions specified with this symbol are considered to have the value zero and are counted in the size of the sending operand. If the sending item is of class boolean, its boolean value shall be moved. NOTE 2 When the runtime coded character set is the UTF-16 format of the UCS, the COBOL system does not detect truncation that bisects the two halves of a surrogate pair. b) When the sending operand and a receiving operand are identified as referencing the same data item, then: 1\\. If the category of the operand is alphanumeric-edited or national-edited, the result of execution of the statement is undefined. 2\\. If the operand is a variable-length data item, the result of execution of the statement is the same as if the content of the sending operand had been moved to a temporary fixed-length data item of the same class, category and length as the sending operand, and the content of that temporary data item were then moved to the receiving operand. c) When the receiving data item is described with the same usage specification as the sending operand, the data in the sending operand is transferred to the receiving data item without change. When the usage specifications of the receiving data item differ from those of the sending operand only in endianness specifications, the data in the sending operand is transferred to the receiving data item in the endianness of the receiving operand, but without any other change to the data. NOTE 3 These provisions allow the preservation of the exact contents of sending operands, such as NaN representations and infinity representations, as well as finite numeric values, in either the same endianness as, or a different endianness from, the sending operand. d) When a numeric or numeric-edited item is the receiving item, and General rule 6c does not apply: 1\\. If the category of the sending operand is numeric-edited, the content of the sending operand shall be as specified in 14.6.13.2, Incompatible data, and de-editing establishes the operand's numeric value, which may be signed. Otherwise, if the content of the sending operand would result in a false value in a numeric class condition, the EC-DATA-INCOMPATIBLE exception condition is set to exist, and the results of the execution of the MOVE statement are undefined."
-  },
-  {
-   "id": "GR-14.9.25.4-L2.2",
-   "section": "14.9.25.4",
-   "kind": "GR",
-   "ordinal": 2,
-   "sublist": 2,
-   "subject": "MOVE statement",
-   "text": "When the sending operand is numeric, or is the numeric value produced by de-editing: If the sending operand is described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor specifies any exception conditions that might be set to exist during data conversion, and, for fixed-point numeric and fixed-point numeric-edited receiving data items, specifies alignment of the data by decimal point. a. When a signed numeric item is the receiving item, the sign of the numeric value shall be represented in the receiving operand. If the sending operand is unsigned, the sign shall be positive. b. When an unsigned numeric item is the receiving item, the absolute value of the sending value is used, and no operational sign is generated for the receiving item."
-  },
-  {
-   "id": "GR-14.9.25.4-L2.3",
-   "section": "14.9.25.4",
-   "kind": "GR",
-   "ordinal": 3,
-   "sublist": 2,
-   "subject": "MOVE statement",
-   "text": "When the sending operand is described as alphanumeric or national, the sending operand is treated as if it were an unsigned integer of category numeric with the following characteristics: a. If the sending operand is a data item, the number of digits is the number of character positions in the sending data item unless the number of character positions is greater than 31, in which case the rightmost 31 character positions are used. b. If the sending operand is a figurative constant, the number of digits is the same as the number of digits in the receiving operand and the figurative constant is replicated in this item, from left to right, as described in the rules for figurative constants. If the receiving item is not an integer, the number of digits includes both those to the right and the left of the decimal point. c. If the sending operand is an alphanumeric or national literal, the number of digits is the same as the number of characters in the literal. If the number of characters exceeds 31, the size of the sending operand is 31 digits and only the rightmost 31 characters in the literal are used."
-  },
-  {
-   "id": "GR-14.9.25.4-L2.4",
-   "section": "14.9.25.4",
-   "kind": "GR",
-   "ordinal": 4,
-   "sublist": 2,
-   "subject": "MOVE statement",
-   "text": "If the receiving data item is described with a standard floating-point usage or is a floating-point numeric-edited item: a. If the algebraic value of the sending operand is farther from zero than is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW exception condition is set to exist, and the content of the receiving data item is undefined. b. If the algebraic value of the sending operand is nearer to zero than is permitted by the data description of the receiving operand, the numeric value is treated as zero. Alignment of the numeric value by decimal point, any necessary zero filling, any truncation of digits, and transfer of the algebraic data into the receiving data item, take place as defined in 14.6.8, Alignment and transfer of data into data items."
+   "text": "Any necessary conversion of data from one form of internal representation to another takes place during valid elementary moves, along with any editing specified for, or de-editing implied by, the receiving data item. When a national group item is referenced in a MOVE statement, no editing or de-editing takes place. NOTE 1 Bit group items and national group items are treated as elementary items in the MOVE statement. Any necessary conversion from alphanumeric character to national character representation shall be performed, before any alignment, in accordance with a correspondence defined by the implementor. If no correspondence exists for any given alphanumeric character in the sending item, an implementor-defined substitution character is used as the corresponding national character in the receiving item and the EC-DATA-CONVERSION exception condition is set to exist. The following rules apply: a) When an alphanumeric, alphanumeric-edited, national, or national-edited data item is a receiving operand, alignment and any necessary space filling shall take place as defined in 14.6.8, Alignment and transfer of data into data items. If the sending operand is described as being signed numeric, the operational sign is not moved; if the operational sign occupies a separate character position, that character is not moved and the size of the sending operand is considered to be one less than its actual size. (See 13.18.52, SIGN clause.) If the usage of the sending operand is different from that of the receiving operand, conversion of the sending operand to the internal representation of the receiving operand takes place. If the sending operand is numeric and contains the picture symbol 'P', all digit positions specified with this symbol are considered to have the value zero and are counted in the size of the sending operand. If the sending item is of class boolean, its boolean value shall be moved. NOTE 2 When the runtime coded character set is the UTF-16 format of the UCS, the COBOL system does not detect truncation that bisects the two halves of a surrogate pair. b) When the sending operand and a receiving operand are identified as referencing the same data item, then: 1\\. If the category of the operand is alphanumeric-edited or national-edited, the result of execution of the statement is undefined. 2\\. If the operand is a variable-length data item, the result of execution of the statement is the same as if the content of the sending operand had been moved to a temporary fixed-length data item of the same class, category and length as the sending operand, and the content of that temporary data item were then moved to the receiving operand. c) When the receiving data item is described with the same usage specification as the sending operand, the data in the sending operand is transferred to the receiving data item without change. When the usage specifications of the receiving data item differ from those of the sending operand only in endianness specifications, the data in the sending operand is transferred to the receiving data item in the endianness of the receiving operand, but without any other change to the data. NOTE 3 These provisions allow the preservation of the exact contents of sending operands, such as NaN representations and infinity representations, as well as finite numeric values, in either the same endianness as, or a different endianness from, the sending operand. d) When a numeric or numeric-edited item is the receiving item, and General rule 6c does not apply: 1\\. If the category of the sending operand is numeric-edited, the content of the sending operand shall be as specified in 14.6.13.2, Incompatible data, and de-editing establishes the operand's numeric value, which may be signed. Otherwise, if the content of the sending operand would result in a false value in a numeric class condition, the EC-DATA-INCOMPATIBLE exception condition is set to exist, and the results of the execution of the MOVE statement are undefined. 2\\. When the sending operand is numeric, or is the numeric value produced by de-editing: If the sending operand is described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor specifies any exception conditions that might be set to exist during data conversion, and, for fixed-point numeric and fixed-point numeric-edited receiving data items, specifies alignment of the data by decimal point. a. When a signed numeric item is the receiving item, the sign of the numeric value shall be represented in the receiving operand. If the sending operand is unsigned, the sign shall be positive. b. When an unsigned numeric item is the receiving item, the absolute value of the sending value is used, and no operational sign is generated for the receiving item. 3\\. When the sending operand is described as alphanumeric or national, the sending operand is treated as if it were an unsigned integer of category numeric with the following characteristics: a. If the sending operand is a data item, the number of digits is the number of character positions in the sending data item unless the number of character positions is greater than 31, in which case the rightmost 31 character positions are used. b. If the sending operand is a figurative constant, the number of digits is the same as the number of digits in the receiving operand and the figurative constant is replicated in this item, from left to right, as described in the rules for figurative constants. If the receiving item is not an integer, the number of digits includes both those to the right and the left of the decimal point. c. If the sending operand is an alphanumeric or national literal, the number of digits is the same as the number of characters in the literal. If the number of characters exceeds 31, the size of the sending operand is 31 digits and only the rightmost 31 characters in the literal are used. 4\\. If the receiving data item is described with a standard floating-point usage or is a floating-point numeric-edited item: a. If the algebraic value of the sending operand is farther from zero than is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW exception condition is set to exist, and the content of the receiving data item is undefined. b. If the algebraic value of the sending operand is nearer to zero than is permitted by the data description of the receiving operand, the numeric value is treated as zero. Alignment of the numeric value by decimal point, any necessary zero filling, any truncation of digits, and transfer of the algebraic data into the receiving data item, take place as defined in 14.6.8, Alignment and transfer of data into data items."
   },
   {
    "id": "GR-14.9.25.4-7",
@@ -24404,29 +24269,29 @@
    "text": "If both the sending operand and the receiving data item are group items and one or both is a variable-length group, the following rules apply: a) If the groups are of equal length: The content of each character position that is not occupied by a corresponding table is moved to the corresponding character position in the receiving group. Where two tables correspond, as specified in 8.5.1.12.2, Positional correspondence, the table in the sending group is moved to the corresponding table in the receiving group, as specified in 14.6.9.2, Moving a table. b) If the groups are of unequal length: If the sending group is longer than the receiving group, the character positions that occupy the excess part are ignored by the operation. If the sending group is shorter than the receiving group, each location that occupies the excess part is space filled, according to the following recursive procedure:"
   },
   {
-   "id": "GR-14.9.25.4-L3.1",
+   "id": "GR-14.9.25.4-L2.1",
    "section": "14.9.25.4",
    "kind": "GR",
    "ordinal": 1,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "MOVE statement",
    "text": "If the data item to be space-filled is a dynamic-length elementary item, the length of the receiving operand is set to zero."
   },
   {
-   "id": "GR-14.9.25.4-L3.2",
+   "id": "GR-14.9.25.4-L2.2",
    "section": "14.9.25.4",
    "kind": "GR",
    "ordinal": 2,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "MOVE statement",
    "text": "If the data item to be space filled is a dynamic-capacity table, it is space filled according to 14.6.9.4, Space filling a dynamic table."
   },
   {
-   "id": "GR-14.9.25.4-L3.3",
+   "id": "GR-14.9.25.4-L2.3",
    "section": "14.9.25.4",
    "kind": "GR",
    "ordinal": 3,
-   "sublist": 3,
+   "sublist": 2,
    "subject": "MOVE statement",
    "text": "All other character positions are filled with space characters. The common part of the variable-length groups is now moved according to the rules for variable-length groups of equal length, as defined in General rule 9a above. NOTE 4 If the receiving table is an occurs-depending table, it is the programmer's responsibility to store an appropriate value in the data item associated with the DEPENDING phrase independently of the MOVE statement, because this data item is not changed by the operation."
   },
@@ -25967,16 +25832,7 @@
    "ordinal": 2,
    "sublist": 1,
    "subject": "RESUME statement",
-   "text": "If the NEXT STATEMENT phrase is specified, control is transferred to an implicit CONTINUE statement that is determined as follows: a) When an exception condition caused an exception processing procedure to be executed, the implicit CONTINUE statement immediately follows the end of the statement that was executing when control was transferred to the exception processing procedure unless general rules associated with the applicable statement specify otherwise. The applicable statement is one of the following: 1\\. If the exception condition was raised within a statement within the runtime entity and was not a propagated exception condition, the applicable statement is the one in which the exception condition was raised. 2\\. If the exception condition was propagated from an activated runtime entity, the applicable statement is the CALL or INVOKE statement that activated the entity, or, for an inline invocation or a function invocation, it is the statement in which the inline invocation or function invocation was specified."
-  },
-  {
-   "id": "GR-14.9.33.4-L2.3",
-   "section": "14.9.33.4",
-   "kind": "GR",
-   "ordinal": 3,
-   "sublist": 2,
-   "subject": "RESUME statement",
-   "text": "If the statement is contained in other statements, the applicable statement is the lowest level statement, not the containing statement. b) If the declarative was not executed because of an exception condition but was executed instead by a PERFORM statement in the nondeclarative portion of the source element that referenced the declarative procedure, the implicit CONTINUE statement immediately follows the last statement of the terminating procedure referenced in that PERFORM statement. NOTE 1 Use of NEXT STATEMENT may cause a transfer of control to a statement that in the normal course of events would not be executed. For example IF a GO TO x ELSE GO TO y END-IF. If an exception condition was raised during the evaluation of 'a', transfer would be after the END-IF even though control normally would never be passed there."
+   "text": "If the NEXT STATEMENT phrase is specified, control is transferred to an implicit CONTINUE statement that is determined as follows: a) When an exception condition caused an exception processing procedure to be executed, the implicit CONTINUE statement immediately follows the end of the statement that was executing when control was transferred to the exception processing procedure unless general rules associated with the applicable statement specify otherwise. The applicable statement is one of the following: 1\\. If the exception condition was raised within a statement within the runtime entity and was not a propagated exception condition, the applicable statement is the one in which the exception condition was raised. 2\\. If the exception condition was propagated from an activated runtime entity, the applicable statement is the CALL or INVOKE statement that activated the entity, or, for an inline invocation or a function invocation, it is the statement in which the inline invocation or function invocation was specified. 3\\. If the statement is contained in other statements, the applicable statement is the lowest level statement, not the containing statement. b) If the declarative was not executed because of an exception condition but was executed instead by a PERFORM statement in the nondeclarative portion of the source element that referenced the declarative procedure, the implicit CONTINUE statement immediately follows the last statement of the terminating procedure referenced in that PERFORM statement. NOTE 1 Use of NEXT STATEMENT may cause a transfer of control to a statement that in the normal course of events would not be executed. For example IF a GO TO x ELSE GO TO y END-IF. If an exception condition was raised during the evaluation of 'a', transfer would be after the END-IF even though control normally would never be passed there."
   },
   {
    "id": "GR-14.9.33.4-3",
@@ -26660,16 +26516,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "SEARCH statement",
-   "text": "The SEARCH statement automatically varies the first or only index associated with identifier-1 and tests conditions specified in WHEN phrases in the SEARCH statement to determine whether a table element satisfies these conditions. Any subscripting specified in a WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated. For Format 1, an additional index or data item may be varied. If identifier-1 references a data item that is subordinate to a data item whose data description entry contains an OCCURS clause, only the setting of an index associated with identifier-1 (and any data item referenced by identifier-2 or any index referenced by index-name-1, if specified) is modified by the execution of the SEARCH statement. The subscript that is used to determine the occurrence of each superordinate table to search is specified by the user in the WHEN phrases. Therefore, each appropriate subscript shall be set to the desired value before the SEARCH statement is executed. Upon completion of the search operation, one of the following occurs: a) If the search operation is successful according to the general rules that follow, then: the search operation is terminated immediately; the index being varied by the search operation remains set at the occurrence number that caused a WHEN condition to be satisfied; if the WHEN phrase contains the NEXT SENTENCE phrase, control is transferred to an implicit CONTINUE statement immediately preceding the next separator period; if the WHEN phrase contains imperative-statement-2, control is transferred to that imperative-statement-2 and execution continues according to the rules for each statement specified in that imperative-statement-2. If the execution of a procedure branching or conditional statement results in an explicit transfer of control, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of that imperative-statement-2, control is transferred to the end of the SEARCH statement. b) If the search operation is unsuccessful according to the general rules that follow, then: 1\\. If the AT END phrase is specified, control is transferred to imperative-statement-1 and execution continues according to the rules for each statement specified in imperative-statement-1. If the execution of a procedure branching or conditional statement results in an explicit transfer of control, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the SEARCH statement. 2\\. If the AT END phrase is not specified and either the EC-RANGE-SEARCH-INDEX or EC-RANGE-SEARCH-NO-MATCH exception condition was raised during the execution of the SEARCH statement and an applicable exception processing statement associated with that exception condition exists, control is transferred according to the rules for that statement, and if control is returned from that statement, control is transferred to the end of the SEARCH statement."
-  },
-  {
-   "id": "GR-14.9.37.4-L2.3",
-   "section": "14.9.37.4",
-   "kind": "GR",
-   "ordinal": 3,
-   "sublist": 2,
-   "subject": "SEARCH statement",
-   "text": "If the AT END phrase is not specified and neither exception condition was raised because the checking for those exception conditions was not enabled, control is transferred to the end of the SEARCH statement."
+   "text": "The SEARCH statement automatically varies the first or only index associated with identifier-1 and tests conditions specified in WHEN phrases in the SEARCH statement to determine whether a table element satisfies these conditions. Any subscripting specified in a WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated. For Format 1, an additional index or data item may be varied. If identifier-1 references a data item that is subordinate to a data item whose data description entry contains an OCCURS clause, only the setting of an index associated with identifier-1 (and any data item referenced by identifier-2 or any index referenced by index-name-1, if specified) is modified by the execution of the SEARCH statement. The subscript that is used to determine the occurrence of each superordinate table to search is specified by the user in the WHEN phrases. Therefore, each appropriate subscript shall be set to the desired value before the SEARCH statement is executed. Upon completion of the search operation, one of the following occurs: a) If the search operation is successful according to the general rules that follow, then: the search operation is terminated immediately; the index being varied by the search operation remains set at the occurrence number that caused a WHEN condition to be satisfied; if the WHEN phrase contains the NEXT SENTENCE phrase, control is transferred to an implicit CONTINUE statement immediately preceding the next separator period; if the WHEN phrase contains imperative-statement-2, control is transferred to that imperative-statement-2 and execution continues according to the rules for each statement specified in that imperative-statement-2. If the execution of a procedure branching or conditional statement results in an explicit transfer of control, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of that imperative-statement-2, control is transferred to the end of the SEARCH statement. b) If the search operation is unsuccessful according to the general rules that follow, then: 1\\. If the AT END phrase is specified, control is transferred to imperative-statement-1 and execution continues according to the rules for each statement specified in imperative-statement-1. If the execution of a procedure branching or conditional statement results in an explicit transfer of control, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the SEARCH statement. 2\\. If the AT END phrase is not specified and either the EC-RANGE-SEARCH-INDEX or EC-RANGE-SEARCH-NO-MATCH exception condition was raised during the execution of the SEARCH statement and an applicable exception processing statement associated with that exception condition exists, control is transferred according to the rules for that statement, and if control is returned from that statement, control is transferred to the end of the SEARCH statement. 3\\. If the AT END phrase is not specified and neither exception condition was raised because the checking for those exception conditions was not enabled, control is transferred to the end of the SEARCH statement."
   },
   {
    "id": "GR-14.9.37.4-2",
@@ -26690,13 +26537,31 @@
    "text": "The index to be varied by the search operation is referred to as the search index and it is determined as follows: a) If the VARYING phrase is not specified, the search index is the index referenced by the first (or only) index-name specified in the INDEXED phrase in the OCCURS clause associated with identifier-1. b) If the VARYING identifier-2 phrase is specified, the search index is the same as in General rule 3a and the following also applies:"
   },
   {
+   "id": "GR-14.9.37.4-L2.1",
+   "section": "14.9.37.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "SEARCH statement",
+   "text": "If identifier-2 references an index data item, that data item is incremented by the same amount as, and at the same time as, the search index."
+  },
+  {
+   "id": "GR-14.9.37.4-L2.2",
+   "section": "14.9.37.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "SEARCH statement",
+   "text": "If identifier-2 references an integer data item, that data item is incremented by the value one at the same time as the search index is incremented. c) If the VARYING index-name-1 phrase is specified, the search index depends on the following:"
+  },
+  {
    "id": "GR-14.9.37.4-L3.1",
    "section": "14.9.37.4",
    "kind": "GR",
    "ordinal": 1,
    "sublist": 3,
    "subject": "SEARCH statement",
-   "text": "If identifier-2 references an index data item, that data item is incremented by the same amount as, and at the same time as, the search index."
+   "text": "If index-name-1 is specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1, the index referenced by index-name-1 is the search index."
   },
   {
    "id": "GR-14.9.37.4-L3.2",
@@ -26704,24 +26569,6 @@
    "kind": "GR",
    "ordinal": 2,
    "sublist": 3,
-   "subject": "SEARCH statement",
-   "text": "If identifier-2 references an integer data item, that data item is incremented by the value one at the same time as the search index is incremented. c) If the VARYING index-name-1 phrase is specified, the search index depends on the following:"
-  },
-  {
-   "id": "GR-14.9.37.4-L4.1",
-   "section": "14.9.37.4",
-   "kind": "GR",
-   "ordinal": 1,
-   "sublist": 4,
-   "subject": "SEARCH statement",
-   "text": "If index-name-1 is specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1, the index referenced by index-name-1 is the search index."
-  },
-  {
-   "id": "GR-14.9.37.4-L4.2",
-   "section": "14.9.37.4",
-   "kind": "GR",
-   "ordinal": 2,
-   "sublist": 4,
    "subject": "SEARCH statement",
    "text": "If index-name-1 is not one of the indexes specified in the INDEXED phrase in the OCCURS clause associated with identifier-1, the search index is the same as in General rule 3a. The index referenced by index-name-1 is incremented by one occurrence number at the same time as the search index is incremented. Only the data item and indexes indicated are varied by the search operation. All other indexes associated with identifier-1 are unchanged by the search operation."
   },
@@ -28163,25 +28010,7 @@
    "ordinal": 6,
    "sublist": 1,
    "subject": "START statement",
-   "text": "For indexed files, data-name-1, if specified, shall reference either: a) A data item specified as a prime or alternate record key associated with file-name-1, or b) A data item with the following characteristics: 1\\. Its leftmost character position within a record of the file corresponds to the leftmost character position of a prime or alternate record key that is associated with file-name-1 and that is defined without the SOURCE phrase in the RECORD KEY clause or ALTERNATE RECORD KEY clause."
-  },
-  {
-   "id": "SR-14.9.41.3-L2.2",
-   "section": "14.9.41.3",
-   "kind": "SR",
-   "ordinal": 2,
-   "sublist": 2,
-   "subject": "START statement",
-   "text": "It has the same class, category, and usage as that record key."
-  },
-  {
-   "id": "SR-14.9.41.3-L2.3",
-   "section": "14.9.41.3",
-   "kind": "SR",
-   "ordinal": 3,
-   "sublist": 2,
-   "subject": "START statement",
-   "text": "Its length is not greater than the length of that record key."
+   "text": "For indexed files, data-name-1, if specified, shall reference either: a) A data item specified as a prime or alternate record key associated with file-name-1, or b) A data item with the following characteristics: 1\\. Its leftmost character position within a record of the file corresponds to the leftmost character position of a prime or alternate record key that is associated with file-name-1 and that is defined without the SOURCE phrase in the RECORD KEY clause or ALTERNATE RECORD KEY clause. 2\\. It has the same class, category, and usage as that record key. 3\\. Its length is not greater than the length of that record key."
   },
   {
    "id": "SR-14.9.41.3-7",
@@ -31385,16 +31214,7 @@
    "ordinal": 2,
    "sublist": 1,
    "subject": "EXCEPTION-LOCATION function",
-   "text": "If the LOCATION option of the associated TURN directive or PERFORM statement was specified, the returned value is an alphanumeric character string that has a length that is based on its contents and the contents are as follows: a) If the last exception status indicates that no exception condition was raised, the returned value is one alphanumeric space character. b) Otherwise, the returned value is a character string that is as long as is needed to contain the location information. All of the names are exactly as specified in the source element containing the statement and they are converted at runtime to the runtime alphanumeric character set. The character string is composed of three parts as follows: 1\\. The name of the runtime element as specified in the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function, method, or program containing the statement. In the case of a propagated exception condition, the name is that of the function, method, or program in which the exception condition that was propagated actually occurred. The name is immediately followed by a semicolon and a space character. 2\\. The procedure-name of the procedure that contains the statement as follows: a. If there is no paragraph-name or section-name in the source element, a semicolon and a space character are appended. b. If there is a paragraph-name, the paragraph-name is appended and, if the paragraph is within a section, the section-name of the section containing the paragraph is appended prefixed by the alphanumeric characters ' OF '. This is followed by a semicolon and a space character. c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character."
-  },
-  {
-   "id": "RV-15.30.3-L2.3",
-   "section": "15.30.3",
-   "kind": "RV",
-   "ordinal": 3,
-   "sublist": 2,
-   "subject": "EXCEPTION-LOCATION function",
-   "text": "An implementor-defined identifier of the source line that contains the beginning of the statement is then appended. NOTE The user cannot rely on the value returned being consistent from one compilation of the same compilation unit to the next."
+   "text": "If the LOCATION option of the associated TURN directive or PERFORM statement was specified, the returned value is an alphanumeric character string that has a length that is based on its contents and the contents are as follows: a) If the last exception status indicates that no exception condition was raised, the returned value is one alphanumeric space character. b) Otherwise, the returned value is a character string that is as long as is needed to contain the location information. All of the names are exactly as specified in the source element containing the statement and they are converted at runtime to the runtime alphanumeric character set. The character string is composed of three parts as follows: 1\\. The name of the runtime element as specified in the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function, method, or program containing the statement. In the case of a propagated exception condition, the name is that of the function, method, or program in which the exception condition that was propagated actually occurred. The name is immediately followed by a semicolon and a space character. 2\\. The procedure-name of the procedure that contains the statement as follows: a. If there is no paragraph-name or section-name in the source element, a semicolon and a space character are appended. b. If there is a paragraph-name, the paragraph-name is appended and, if the paragraph is within a section, the section-name of the section containing the paragraph is appended prefixed by the alphanumeric characters ' OF '. This is followed by a semicolon and a space character. c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character. 3\\. An implementor-defined identifier of the source line that contains the beginning of the statement is then appended. NOTE The user cannot rely on the value returned being consistent from one compilation of the same compilation unit to the next."
   },
   {
    "id": "RV-15.31.3-1",
@@ -31412,16 +31232,7 @@
    "ordinal": 2,
    "sublist": 1,
    "subject": "EXCEPTION-LOCATION-N function",
-   "text": "If the LOCATION option of the associated TURN directive or PERFORM statement was specified, the returned value is a national character string that has a length that is based on its contents and the contents are as follows: a) If the last exception status indicates that no exception condition was raised, the returned value is one national space character. b) Otherwise, the returned value is a character string that is as long as is needed to contain the location information. All of the names are exactly as specified in the source element containing the statement and they are converted at runtime to the runtime national character set. The character string is composed of three parts as follows: 1\\. The name of the runtime element as specified in the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function, method, or program containing the statement. In the case of a propagated exception condition, the name is that of the function, method, or program in which the exception condition that was propagated actually occurred. The name is immediately followed by a semicolon and a national space character. 2\\. The procedure-name of the procedure that contains the statement as follows: a. If there is no paragraph-name or section-name in the source element, a semicolon and a space character are appended. b. If there is a paragraph-name, the paragraph-name is appended and, if the paragraph is within a section, the section-name of the section containing the paragraph is appended prefixed by the national characters ' OF '. This is followed by a semicolon and a space character. c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character."
-  },
-  {
-   "id": "RV-15.31.3-L2.3",
-   "section": "15.31.3",
-   "kind": "RV",
-   "ordinal": 3,
-   "sublist": 2,
-   "subject": "EXCEPTION-LOCATION-N function",
-   "text": "An implementor-defined identifier of the source line that contains the beginning of the statement is then appended. NOTE The user cannot rely on the value returned being consistent from one compilation of the same compilation unit to the next."
+   "text": "If the LOCATION option of the associated TURN directive or PERFORM statement was specified, the returned value is a national character string that has a length that is based on its contents and the contents are as follows: a) If the last exception status indicates that no exception condition was raised, the returned value is one national space character. b) Otherwise, the returned value is a character string that is as long as is needed to contain the location information. All of the names are exactly as specified in the source element containing the statement and they are converted at runtime to the runtime national character set. The character string is composed of three parts as follows: 1\\. The name of the runtime element as specified in the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function, method, or program containing the statement. In the case of a propagated exception condition, the name is that of the function, method, or program in which the exception condition that was propagated actually occurred. The name is immediately followed by a semicolon and a national space character. 2\\. The procedure-name of the procedure that contains the statement as follows: a. If there is no paragraph-name or section-name in the source element, a semicolon and a space character are appended. b. If there is a paragraph-name, the paragraph-name is appended and, if the paragraph is within a section, the section-name of the section containing the paragraph is appended prefixed by the national characters ' OF '. This is followed by a semicolon and a space character. c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character. 3\\. An implementor-defined identifier of the source line that contains the beginning of the statement is then appended. NOTE The user cannot rely on the value returned being consistent from one compilation of the same compilation unit to the next."
   },
   {
    "id": "RV-15.32.3-1",
@@ -34148,25 +33959,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "TEST-NUMVAL-F function",
-   "text": "The returned value is: a) If the content of argument-1 conforms to the argument rules for the NUMVAL-F function, (0) b) Otherwise, if one or more characters are in error, the position of the first character in error, 1\\. Because one or more spaces following one or more digits is valid, if one or more spaces are embedded within a string of numeric characters, the returned value is the position of the first non-space character following the spaces. If argument-1 is '0 1E+2', the returned value will be 3. 2\\. If native arithmetic is in effect, the argument contains a significand longer than 31 digits, and no prior error in the argument has been found, the returned value is the position of the 32nd digit of the significand because the character in error for the significand of an argument that is greater than 31 digits is the 32nd digit. 3\\. If standard-binary arithmetic is in effect, the argument contains a significand longer than 35 digits, and no prior error in the argument has been found, the returned value is the position of the 36th digit of the significand because the character in error for a significand longer than 35 digits is the 36th digit. 4\\. If standard-decimal arithmetic is in effect, the argument contains a significand longer than 34 digits, and no prior error in the argument has been found, the returned value is the position of the 35th digit of the significand because the character in error for a significand longer than 34 digits is the 35th digit."
-  },
-  {
-   "id": "RV-15.95.4-L2.5",
-   "section": "15.95.4",
-   "kind": "RV",
-   "ordinal": 5,
-   "sublist": 2,
-   "subject": "TEST-NUMVAL-F function",
-   "text": "If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the exponent in the argument contains more than four significant digits, the returned value is the position of the fifth digit of the exponent."
-  },
-  {
-   "id": "RV-15.95.4-L2.6",
-   "section": "15.95.4",
-   "kind": "RV",
-   "ordinal": 6,
-   "sublist": 2,
-   "subject": "TEST-NUMVAL-F function",
-   "text": "If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the magnitude of the numeric value in the argument exceeds the capacity of the standard intermediate data item used for that mode of arithmetic, the returned value is the position of the first digit of the exponent. c) Otherwise, (FUNCTION LENGTH (argument-1) + 1)**.** NOTE These errors include, but are not limited to: - argument-1 is zero-length, - argument-1 contains only spaces, - argument-1 contains valid characters but is incomplete, such as the string ' +.'."
+   "text": "The returned value is: a) If the content of argument-1 conforms to the argument rules for the NUMVAL-F function, (0) b) Otherwise, if one or more characters are in error, the position of the first character in error, 1\\. Because one or more spaces following one or more digits is valid, if one or more spaces are embedded within a string of numeric characters, the returned value is the position of the first non-space character following the spaces. If argument-1 is '0 1E+2', the returned value will be 3. 2\\. If native arithmetic is in effect, the argument contains a significand longer than 31 digits, and no prior error in the argument has been found, the returned value is the position of the 32nd digit of the significand because the character in error for the significand of an argument that is greater than 31 digits is the 32nd digit. 3\\. If standard-binary arithmetic is in effect, the argument contains a significand longer than 35 digits, and no prior error in the argument has been found, the returned value is the position of the 36th digit of the significand because the character in error for a significand longer than 35 digits is the 36th digit. 4\\. If standard-decimal arithmetic is in effect, the argument contains a significand longer than 34 digits, and no prior error in the argument has been found, the returned value is the position of the 35th digit of the significand because the character in error for a significand longer than 34 digits is the 35th digit. 5\\. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the exponent in the argument contains more than four significant digits, the returned value is the position of the fifth digit of the exponent. 6\\. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the magnitude of the numeric value in the argument exceeds the capacity of the standard intermediate data item used for that mode of arithmetic, the returned value is the position of the first digit of the exponent. c) Otherwise, (FUNCTION LENGTH (argument-1) + 1)**.** NOTE These errors include, but are not limited to: - argument-1 is zero-length, - argument-1 contains only spaces, - argument-1 contains valid characters but is incomplete, such as the string ' +.'."
   },
   {
    "id": "AR-15.96.3-1",

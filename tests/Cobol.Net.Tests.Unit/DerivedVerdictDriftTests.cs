@@ -450,9 +450,9 @@ public sealed class DerivedVerdictDriftTests
         Assert.DoesNotContain("FMT-11.3.2", ids);
         Assert.DoesNotContain("FMT-11.6.2", ids);
         // Mixed blocks keep their own verdicts: SR-11.3.3-6's second sentence has a satisfiable antecedent in a
-        // LINEAR chain, and GR-9.3.6-L6.3 absorbs the overload tie-break — the sharpest trap for a widening.
+        // LINEAR chain, and GR-9.3.6-L5.3 absorbs the overload tie-break — the sharpest trap for a widening.
         Assert.DoesNotContain("SR-11.3.3-6", ids);
-        Assert.DoesNotContain("GR-9.3.6-L6.3", ids);
+        Assert.DoesNotContain("GR-9.3.6-L5.3", ids);
         // The pattern is anchored to "in an INHERITS clause"; an unanchored "appear more than once" draft
         // dragged in the SUM clause and the procedure division header. Measured, not imagined.
         Assert.DoesNotContain("SR-13.18.54.3-1", ids);
