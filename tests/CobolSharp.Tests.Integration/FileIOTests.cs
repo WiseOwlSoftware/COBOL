@@ -533,7 +533,7 @@ public class FileIOTests : EndToEndTestBase
                 CLOSE IX-FILE.
                 OPEN INPUT IX-FILE.
                 MOVE "BBB" TO IX-KEY.
-                START IX-FILE KEY IS IX-KEY.
+                START IX-FILE KEY IS EQUAL TO IX-KEY.
                 DISPLAY WS-FS.
                 READ IX-FILE NEXT RECORD.
                 DISPLAY IX-KEY IX-VAL.
