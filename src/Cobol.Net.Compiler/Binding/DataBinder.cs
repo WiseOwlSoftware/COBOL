@@ -821,6 +821,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             using var _ = Edition.At(grp);
             if (grp.fileName()?.GetText() is not { } name) continue;
             var file = new FileModel { CobolName = name, SelectName = name, AssignTarget = name, Optional = grp.OPTIONAL() is not null };
+            Core.AccessModeClauseContext? accessAt = null;   // the ACCESS MODE clause cursor for §12.4.5.5.2 SR2, below
+            bool wroteOrganization = false;                  // false = the clause was OMITTED (§12.4.5.10.3 GR6 default)
             foreach (var clauses in grp.fileControlClauses())
             {
                 // ISO §12.4.5.3 GR3 — BOTH phrases of the ASSIGN clause, on both general-format arms
@@ -842,8 +844,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         file.AssignUsingAt = Edition.Cursor;   // §12.4.5.2 SR7 reports here, from ResolveFiles
                     }
                 }
-                else if (clauses.organizationClause() is { } org) file.Organization = MapOrganization(org);
-                else if (clauses.accessModeClause() is { } acc) file.AccessMode = MapAccessMode(acc);
+                else if (clauses.organizationClause() is { } org) { file.Organization = MapOrganization(org); wroteOrganization = true; }
+                else if (clauses.accessModeClause() is { } acc) { file.AccessMode = MapAccessMode(acc); accessAt = acc; }
                 // The BASE word only: an OF/IN-qualified status name (`SQ-FS4-STATUS OF STATUS-GROUP`, SQ133A)
                 // would otherwise glue its qualifier into the lookup key (the RENAMES capture pattern).
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs)
@@ -881,11 +883,48 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     Edition.Declined(DiagnosticCatalog.RecordDelimiterUnsupported,
                         $"the RECORD DELIMITER clause on file '{name}' ({Spelled(rd)})");
             }
+            // §12.4.5.5.2 SR2 — "The DYNAMIC and RANDOM phrases shall not be specified for a sequential file."
+            // A FILE CONTROL ENTRY rule, so it belongs HERE, beside the clauses it relates, and not on any verb:
+            // it constrains the ENTRY whether or not the file is ever read, written or started (kb/Work PB692).
+            // The general format says the same thing structurally — Format 3 (sequential) admits only
+            // `[ ACCESS MODE IS SEQUENTIAL ]` — but a format is not a check, and nothing screened this.
+            // ⛔ THE ORGANIZATION MAY BE UNWRITTEN. §12.4.5.10.3 GR6: "When the ORGANIZATION clause is not
+            // specified, sequential organization with the RECORD SEQUENTIAL phrase is implied", so the bare
+            // `SELECT F ASSIGN … ACCESS MODE IS RANDOM.` is under this rule too and is the shape a screen keyed
+            // on a written clause would miss; `FileModel.Organization` already defaults to Sequential, so
+            // `IsSequential` covers the omitted clause, RECORD SEQUENTIAL and LINE SEQUENTIAL in one predicate.
+            // That LINE SEQUENTIAL is under "a sequential file" is DERIVED, not assumed: §12.4.5.10.3 GR2/GR3
+            // put both sequential phrases in the ORGANIZATION clause, that clause is written only in the
+            // Format-3 file control entry, and §12.4.5.2 SR11 says "Format 3 shall be specified only for a
+            // sequential file or a report file".
+            // Edition-invariant (all four): no `docs/VERSION_CHANGE_REFERENCE.md` row touches §12.4.5.5, and the
+            // 1985 sequential-I-O file control entry likewise offered no ACCESS MODE but SEQUENTIAL.
+            // WHY THIS MATTERS DOWNSTREAM: without it, `IsSequential && AccessMode != Sequential` is a REACHABLE
+            // state, and the verbs then read a file that has no keys through their keyed rules — §14.9.30.3
+            // SR8/SR9 imply no NEXT under RANDOM, so §14.9.30.4 GR19 turns the READ into a Format-2 random read
+            // on a keyless connector. Every statement-level screen that tests `AccessMode == Random` on a
+            // SEQUENTIAL-organization file is defence-in-depth from here on, never the only guard.
+            // The predicate NAMES THE TWO PHRASES the rule names, rather than negating SEQUENTIAL: the rule is
+            // "DYNAMIC and RANDOM shall not be specified", not "only SEQUENTIAL may be", and a mode the standard
+            // adds later would then be screened by a rule that does not mention it.
+            if (file.IsSequential && file.AccessMode is FileAccessMode.Random or FileAccessMode.Dynamic)
+            {
+                using var acc2 = Edition.At(accessAt);   // the ACCESS MODE clause itself (null ⇒ the entry cursor)
+                Edition.Error(DiagnosticCatalog.AccessModeNotSequentialOnSequentialFile,
+                    $"file '{name}': ACCESS MODE IS {file.AccessMode.ToString().ToUpperInvariant()} may not be "
+                    + $"specified for a sequential file — this entry's organization is "
+                    + (wroteOrganization
+                        ? file.Organization is FileOrganization.LineSequential ? "LINE SEQUENTIAL" : "sequential"
+                        : "record sequential by default, the ORGANIZATION clause being omitted (ISO §12.4.5.10.3 GR6)")
+                    + " (ISO §12.4.5.5.2 SR2)");
+            }
             // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
-            // or sequential-organization file.
+            // or sequential-organization file. The organization half is `FileModel.IsSequential` — the ONE
+            // spelling of "this file has sequential organization" (§12.4.5.10.3 GR2/GR3/GR6), shared with the
+            // §12.4.5.5.2 SR2 screen above and with every verb-side reroute, rather than a second open-coded
+            // copy of the enum pair that a future organization would have to be added to twice.
             if (file.LockMode is { Multiple: true }
-                && (file.AccessMode is FileAccessMode.Sequential
-                    || file.Organization is FileOrganization.Sequential or FileOrganization.LineSequential))
+                && (file.AccessMode is FileAccessMode.Sequential || file.IsSequential))
                 Edition.Error("COBOLNET1512", $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
                     + "not be specified for a sequential-access or sequential-organization file (ISO §12.4.5.9 SR2)");
             // ⛔ §14.9.27.3 SR8 IS **NOT** CHECKED HERE, AND MUST NEVER BE RE-ADDED. It is a syntax rule of the

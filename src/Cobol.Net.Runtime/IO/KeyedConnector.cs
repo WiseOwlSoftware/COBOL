@@ -19,6 +19,11 @@ public enum KeyedAccess
 /// every keyed verb branches on: the connector's ACCESS MODE. A sequential-organization connector has no access
 /// mode to carry (§12.4.5.5.2 SR2 — <i>"The DYNAMIC and RANDOM phrases shall not be specified for a
 /// sequential file"</i>), which is why this sits below <see cref="FileConnector"/> rather than on it.
+/// That premise is now ENFORCED rather than assumed: until kb/Work PB692 the rule had no check anywhere and
+/// <c>ORGANIZATION IS SEQUENTIAL ACCESS MODE IS RANDOM</c> compiled and ran, so this class's reason for
+/// existing was a comment about source the compiler accepted. <c>DataBinder.BindFileControl</c> screens it on
+/// the file control entry (COBOLNET1858, every edition), which is what makes "a sequential-organization
+/// connector has no access mode" a fact about every program that reaches the runtime.
 ///
 /// ⛔ INVARIANT (kb/Work PB325) — <b>the OPEN MODE never SELECTS a keyed verb's branch; it is only ever
 /// SCREENED.</b> Every branch the standard draws inside a keyed verb is drawn on the ACCESS MODE:

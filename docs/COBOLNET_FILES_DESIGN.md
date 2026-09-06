@@ -677,6 +677,66 @@ guarded on the same null. Five null arms for one absent fact is four too many (`
 *Synthesize at emit time instead* — the record has to exist for the binder's own record-area resolution
 (`ReferenceResolver.ResolveItem`), not just for the registration call.
 
+### D19. A syntax rule of a FILE CONTROL ENTRY clause is enforced ON THE ENTRY, in `DataBinder.BindFileControl` — never on a verb. It is the converse of D13, and the two together decide where every I-O syntax rule goes.
+
+**The rule.** §12.4.5.5.2 SR2: *"The DYNAMIC and RANDOM phrases shall not be specified for a sequential file."*
+The general format says the same thing structurally — Format 3, the sequential file control entry, admits only
+`[ ACCESS MODE IS SEQUENTIAL ]` — but a format is not a check, and nothing screened it: `SELECT F ASSIGN TO "f"
+ORGANIZATION IS SEQUENTIAL ACCESS MODE IS RANDOM.` compiled and ran clean (kb/Work PB692).
+
+**Where it lives.** `DataBinder.BindFileControl`, immediately after the clause loop, beside the §12.4.5.9 SR2
+screen already there: `file.IsSequential && file.AccessMode is Random or Dynamic` — the predicate NAMES the
+two phrases SR2 names rather than negating SEQUENTIAL → **COBOLNET1858**,
+positioned at the ACCESS MODE clause itself. Both banned phrases go through one screen and one descriptor,
+because SR2 is one prohibition with two spellings.
+
+**Which files are "sequential".** `FileModel.IsSequential` — the ONE spelling of sequential organization, now
+shared by both entry screens rather than each open-coding the enum pair. It answers three source shapes:
+an explicit `ORGANIZATION IS SEQUENTIAL`; `LINE SEQUENTIAL` (§12.4.5.10.3 GR2 puts the phrase in the ORGANIZATION
+clause, that clause is written only in the Format-3 entry, and §12.4.5.2 SR11 says *"Format 3 shall be specified
+only for a sequential file or a report file"*); and the **omitted** clause, which §12.4.5.10.3 GR6 makes
+*"sequential organization with the RECORD SEQUENTIAL phrase"*. The omitted clause is the shape a screen keyed on
+a written clause would miss, and it is the shape a user is most likely to write.
+
+**Why a verb cannot host it.** D13's converse, and for the mirror-image reason. §12.4.5.5.2 SR2 quantifies over
+the ENTRY, not over a statement: a program that declares the combination and never opens the file has already
+violated it. Screening it at READ (or WRITE, or START) would leave every unread file unchecked, would report the
+one entry error once per statement in programs that do use the file, and would state a declaration rule in the
+vocabulary of a statement that does not appear in it. **A syntax rule listed under a file control entry clause
+belongs to the entry binder; a syntax rule listed under a statement belongs to that statement's binder (D13).
+Neither is a place to put the other.**
+
+**What this makes unreachable, deliberately.** From here on `IsSequential && AccessMode != Sequential` cannot
+hold, so every statement-level screen that tests `AccessMode == Random` on a **sequential-organization** file is
+defence-in-depth — kept (it is the statement's own rule, and it costs one comparison), never the only guard.
+§14.9.30.3 SR6's screen in `KeyedIoBinder` is unaffected: RANDOM is legal for relative and indexed files, which
+is the only path that reaches it.
+
+**Edition-invariance was derived, not assumed.** No `docs/VERSION_CHANGE_REFERENCE.md` row touches §12.4.5.5, and
+ANSI X3.23-1985's sequential-I-O file control entry likewise offered no ACCESS MODE but SEQUENTIAL, so the screen
+is unconditional and three of the four negatives assert `COBOLNET1858` at 85/2002/2014/2023. The LINE SEQUENTIAL
+negative names 2002/2014/2023 only — 1985 has no line sequential organization at all, so its 1985 verdict belongs
+to that organization's edition gate (kb/Work PB688), not to this rule.
+
+**The complement was measured, not assumed.** A screen is evidence about what it REJECTED, never about what it
+let through. A static scan of all 1483 SELECT entries under `tests/` reports every cell this screen rejects
+EMPTY — no corpus program declares the combination, so the change cannot over-reject anything the suite already
+compiles — and every legal (organization × access) cell populated **except** LINE SEQUENTIAL with an explicit
+`ACCESS MODE IS SEQUENTIAL`, which had zero witnesses. `conformance:2002/pb692_line_sequential_access_sequential`
+is that missing positive; `conformance:2023/l1_open_mixed_org_access` already pins RELATIVE/RANDOM and
+INDEXED/DYNAMIC.
+
+**Still homeless, and NOT closed by this** (measured over the entry-rule family while here):
+§12.4.5.5.2 **SR1** (RANDOM banned on a file named in a SORT/MERGE USING or GIVING phrase — a statement-context
+rule, so D13 puts it in the SORT/MERGE binder, not here); §12.4.5.2 SR8/SR9/SR11/SR13 (format ↔ organization /
+SD consistency); §12.4.5.2 SR12 (LINE SEQUENTIAL excludes RESERVE). The **key** entry rules
+(§12.4.5.6.3 SR1, §12.4.5.12.3 SR1, §12.4.5.13.3 SR1 — no key under OCCURS) are kb/Work PB699, which is this
+same decision applied to `KeyedIoBinder.KeyedValidateFile`: an entry rule that waits for a verb.
+§12.4.5.2 **SR10** — *"The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS
+clause is specified"* — belongs with them: its substance IS enforced by `KeyedValidateFile`, but cited there as
+§12.4.5.13, which carries no such requirement, and being verb-driven it misses a relative file that is declared
+RANDOM and never referenced.
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

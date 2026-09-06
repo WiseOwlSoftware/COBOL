@@ -2276,6 +2276,22 @@ public static class DiagnosticCatalog
         + "The site names the rule it caught.",
         "ISO §12.4.5.1 / §12.4.5.12.3 / §12.4.5.6.3 / §12.4.5.13.3 / §8.4.3.14 / §13.18.34");
 
+    /// <summary>COBOLNET1858 — §12.4.5.5.2 SR2, the ACCESS MODE clause's own organization rule, checked on the
+    /// FILE CONTROL ENTRY (kb/Work PB692). One descriptor, not one per phrase: DYNAMIC and RANDOM are two
+    /// spellings of a single prohibition and the message names the one that was written.</summary>
+    public static readonly DiagnosticDescriptor AccessModeNotSequentialOnSequentialFile = new(
+        "COBOLNET1858", "access-mode-not-sequential-on-sequential-file", EditionSeverity.Error,
+        "ISO §12.4.5.5.2 syntax rule 2: \"The DYNAMIC and RANDOM phrases shall not be specified for a sequential "
+        + "file.\" The general format says the same structurally — the Format-3 (sequential) file control entry "
+        + "admits only [ ACCESS MODE IS SEQUENTIAL ]. A file is sequential when its ORGANIZATION clause says "
+        + "RECORD SEQUENTIAL or LINE SEQUENTIAL — §12.4.5.10.3 GR2/GR3 put both phrases in that clause and "
+        + "§12.4.5.2 SR11 makes the Format-3 entry carrying it one \"for a sequential file or a report file\" — "
+        + "and ALSO when the clause is omitted, because §12.4.5.10.3 GR6 implies \"sequential organization with "
+        + "the RECORD SEQUENTIAL phrase\". Accepting the combination "
+        + "makes a keyless connector reachable under the keyed access rules: with no NEXT implied (§14.9.30.3 "
+        + "SR8/SR9), §14.9.30.4 GR19 reads the file as a Format-2 random read on a file that has no keys.",
+        "ISO §12.4.5.5.2 SR2");
+
     public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
         "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",

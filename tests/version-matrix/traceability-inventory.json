@@ -14929,13 +14929,13 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "General",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl",
+  "test-ref": "conformance:negative/pb692-access-random-organization-sequential; conformance:negative/pb692-access-dynamic-organization-sequential; conformance:negative/pb692-access-dynamic-organization-omitted; conformance:negative/pb692-access-random-line-sequential; conformance:2002/pb692_line_sequential_access_sequential",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB692. \"The DYNAMIC and RANDOM phrases shall not be specified for a sequential file\" is a FILE CONTROL ENTRY rule, so it is enforced on the entry, in DataBinder.BindFileControl beside the clauses it relates, and not on any verb: it constrains the entry whether or not the file is ever read, written or started. Before this it had no enforcement anywhere (grep for the section number returned only generated-parser noise) and `SELECT F ASSIGN TO \"f\" ORGANIZATION IS SEQUENTIAL ACCESS MODE IS RANDOM.` compiled and ran clean. BOTH PHRASES are screened, not just the one the repro wrote (negatives pb692-access-random-organization-sequential and pb692-access-dynamic-organization-sequential are the same entry with RANDOM and with DYNAMIC). ALL THREE SEQUENTIAL SPELLINGS are under it: an explicit ORGANIZATION IS SEQUENTIAL, LINE SEQUENTIAL (12.4.5.10.3 GR2 puts the phrase in the ORGANIZATION clause, that clause is written only in the Format 3 entry, and 12.4.5.2 SR11 says \"Format 3 shall be specified only for a sequential file or a report file\"), and the OMITTED clause, which 12.4.5.10.3 GR6 makes \"sequential organization with the RECORD SEQUENTIAL phrase\" - the omitted case is the shape a screen keyed on a written clause would miss, and negative pb692-access-dynamic-organization-omitted pins it. The predicate is FileModel.IsSequential, the one spelling of sequential organization, shared with the 12.4.5.9 SR2 screen beside it. Edition-invariant: no docs/VERSION_CHANGE_REFERENCE.md row touches 12.4.5.5, ANSI X3.23-1985's sequential I-O file control entry likewise offered no ACCESS MODE but SEQUENTIAL, and each 4-edition negative asserts COBOLNET1858 at 85/2002/2014/2023 (the LINE SEQUENTIAL negative names 2002/2014/2023 because 1985 has no line sequential organization at all - its 1985 verdict belongs to kb/Work PB688's organization gate, not to this rule). The COMPLEMENT was measured, not assumed: a static scan of all 1483 SELECT entries under tests/ found the four cells this screen rejects EMPTY and every legal cell populated except LINE SEQUENTIAL with an explicit ACCESS MODE IS SEQUENTIAL, which had zero witnesses - conformance:2002/pb692_line_sequential_access_sequential is that missing positive. Harm closed: without the entry rule, `IsSequential && AccessMode != Sequential` was reachable and 14.9.30.3 SR8/SR9 imply no NEXT under RANDOM, so 14.9.30.4 GR19 made the READ a format 2 random read on a connector that has no keys.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.5.3-1",
