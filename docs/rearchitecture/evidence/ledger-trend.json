@@ -369,6 +369,15 @@
       "dns": 364,
       "label": "Battery #59 at 1e7b5085: eve",
       "battery": null
+    },
+    {
+      "sha": "61d13d3e",
+      "date": "2026-09-06",
+      "gap": 2777,
+      "closed": 1571,
+      "dns": 364,
+      "label": "Notes 8-9: PB767-PB769 + PB7",
+      "battery": null
     }
   ]
 }
