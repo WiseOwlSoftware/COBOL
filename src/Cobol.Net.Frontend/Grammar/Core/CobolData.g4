@@ -662,7 +662,7 @@ valueClause
       // and an `IN?` would be a DEAD branch. That residue is reported, not papered over with unreachable
       // grammar (kb/Work PB695 family 2 report).
       (IN IDENTIFIER)?
-      (WHEN? SET? TO? FALSE_ IS? literal)?
+      valueClauseFalsePhrase?
       // Format 5 (content-validation-entry, ISO §13.18.63.2) — the DECLINED A.4.14 tail
       // `[IS|ARE] {INVALID|VALID} [WHEN condition-1]`, refused by name with COBOLNET1708 at bind. Written as
       // a tail of the condition-name arm because formats 3 and 5 share their literal/THRU list; the printed
@@ -670,6 +670,19 @@ valueClause
       // `(IS|ARE)?` already tolerates as a superset. {is2002()}? at the left edge of the optional block: VALID
       // is a user-defined word at COBOL-85 (§8.9).
       ({is2002()}? validateValidPhrase)?
+    ;
+
+// Format 3's SECOND literal position: `[ WHEN SET TO FALSE IS literal-4 ]` (ISO §13.18.63.2 format 3 — the
+// bracket printed on the line after the IN phrase; WHEN/SET/TO/IS are optional words, see the valueClause
+// comment above for the measurement).
+// ⛔ THE OPERAND IS `valueClauseOperand`, NOT `literal` (kb/Work PB732). literal-4 is a literal POSITION like
+// every other operand of the clause, so §13.10.3 SR2 ("constant-name-1 may be used anywhere that a format
+// specifies a literal") and §8.3.3.6.2 format 7 (symbolic-character-1) both reach it — and the narrower
+// `literal` rule REJECTED both, with COBOL0001 + COBOL0309 "A literal value is expected here, not a data-name"
+// on the conforming `88 CN VALUE 1 WHEN SET TO FALSE IS K`. Its own rule (rather than an inline group) so the
+// binder can NAME the node it screens instead of relying on "the only direct valueClauseOperand child".
+valueClauseFalsePhrase
+    : WHEN? SET? TO? FALSE_ IS? valueClauseOperand
     ;
 
 // One Format-2 table phrase: a literal list, then FROM (subscript-1 …) [TO (subscript-2 …)]. The subscripts are

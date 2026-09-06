@@ -515,7 +515,10 @@ public sealed partial class DataBinder
                     staysLoud = true;
                 }
                 else if (clause.valueClause() is { } value)
-                    rawValue = ExtractValue(value);
+                    // Format 4 (report-section), ISO §13.18.63.2 — `{literal-1}…`; the same ONE literal-position
+                    // reader as Format 1, so a non-literal operand is reported here too (kb/Work PB732: an
+                    // undefined word used to be written into the report as its own spelling, exit 0).
+                    rawValue = ExtractValue(value, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");
             }
 
             // GROUP INDICATE shall not share an entry with PRESENT WHEN (ISO §13.15.3 SR17 — GROUP INDICATE IS

@@ -2576,6 +2576,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
                 if (clause.valueClause() is { } value)
+                {
                     foreach (var vi in value.valueItem())
                     {
                         // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a).
@@ -2619,8 +2620,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                     + "specified when the conditional variable is boolean (ISO §13.18.63 SR29)");
                             // Fold ONCE per operand (a §8.8.3 concat folds here; RawValueOperandText) so the
                             // category check and the stored value see the same text without double diagnostics.
-                            string rawLo = RawValueOperandText(range.valueClauseOperand(0));
-                            string rawHi = RawValueOperandText(range.valueClauseOperand(1));
+                            // NULL = the operand is not a literal position at all and has been reported
+                            // (kb/Work PB732); the range binds nothing rather than storing a raw word.
+                            string? rawLo = RawValueOperandText(range.valueClauseOperand(0), $"condition-name '{name}'");
+                            string? rawHi = RawValueOperandText(range.valueClauseOperand(1), $"condition-name '{name}'");
+                            if (rawLo is null || rawHi is null) continue;
                             // ⛔ NATIONAL IS NOT EXCLUDED FROM THE CATEGORY FUNNEL, and that is half of PB761's
                             // discharge rather than an afterthought: while the stage above refused every national
                             // range, no national range ever reached this screen, so dropping the stage alone
@@ -2654,13 +2658,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 // literal already satisfies.
                                 // Fold ONCE (a §8.8.3 concat folds in RawValueOperandText) so the category
                                 // check and the stored value share one text without double diagnostics.
-                                string raw = RawValueOperandText(op);
+                                // NULL = a non-literal operand, already reported (kb/Work PB732).
+                                if (RawValueOperandText(op, $"condition-name '{name}'") is not { } raw) continue;
                                 if (parent.OperandPic is { } sp)
                                     raw = ValidateValueCategory(sp, raw, $"condition-name '{name}'",
                                         ValueSubject.ForConditionName());
                                 cond.Values.Add((raw, null));
                             }
                     }
+                    // literal-4 LAST, because the phrase is written last (§13.18.63.2 format 3 prints
+                    // `[ WHEN SET TO FALSE IS literal-4 ]` on the line after the operand list), so the
+                    // diagnostics a malformed entry produces come out in source order.
+                    ScreenFalsePhraseOperand(value, parent, name);
+                }
 
         parent.Own88s.Add(cond);   // the item owns its 88s (source of truth; lets CloneItem carry a TYPEDEF's 88s)
         if (registerGlobal)
@@ -2669,6 +2679,34 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (!Conditions.TryGetValue(name, out var list)) Conditions[name] = list = [];
             list.Add(cond);
         }
+    }
+
+    /// <summary>Screen <c>[ WHEN SET TO FALSE IS literal-4 ]</c> — Format 3's SECOND literal position (ISO
+    /// §13.18.63.2 format 3) — through THE SAME literal-position chokepoint every other VALUE operand takes
+    /// (kb/Work PB732).
+    /// <para>The grammar used to write this operand as <c>literal</c>, which rejected the two word spellings a
+    /// literal position admits: <c>88 CN VALUE 1 WHEN SET TO FALSE IS K</c> with K a constant-name (§13.10.3 SR2
+    /// — "constant-name-1 may be used anywhere that a format specifies a literal") and the
+    /// symbolic-character-1 figurative (§8.3.3.6.2 format 7) both died COBOL0001 + COBOL0309. Widening the
+    /// operand to <c>valueClauseOperand</c> without this screen would have re-opened PB732's sink on literal-4,
+    /// so the widening and the screen are ONE change.</para>
+    /// <para>The CATEGORY screen is the ALL-FORMATS one, and it reaches literal-4 by its own words: §13.18.63.3
+    /// SR2/SR4/SR5 speak of "all literals in the VALUE clause" / "literals in the VALUE clause", not of
+    /// literal-1 or literal-2, so literal-4 takes the conditional variable's category exactly as literal-2 does.
+    /// The subject is <c>ValueSubject.ForConditionName()</c> for the same reason (kb/Work PB598): those rules'
+    /// SIZE sentences name an elementary or group item as the VALUE bearer and do not reach a Format-3
+    /// subject.</para>
+    /// <para>⛔ The screened value is deliberately NOT stored. <c>SET condition-name TO FALSE</c> (§14.9.39 SR7)
+    /// is an unimplemented feature that declines LOUDLY at its own statement (COBOLNET1756 + a runtime abort),
+    /// so a field here would be a lookup nothing reads. A syntax rule applies to source as WRITTEN whether or
+    /// not the semantics behind it are implemented, which is why the screen runs anyway.</para></summary>
+    private void ScreenFalsePhraseOperand(Core.ValueClauseContext value, DataItem parent, string name)
+    {
+        if (value.valueClauseFalsePhrase()?.valueClauseOperand() is not { } falseOp) return;
+        string where = $"condition-name '{name}' (WHEN SET TO FALSE)";
+        // NULL = not a literal position at all, already reported at the ONE report (kb/Work PB732).
+        if (RawValueOperandText(falseOp, where) is not { } raw) return;
+        if (parent.OperandPic is { } fp) ValidateValueCategory(fp, raw, where, ValueSubject.ForConditionName());
     }
 
     /// <summary>Make <paramref name="name"/> unique within a C# name scope, appending <c>_2</c>, <c>_3</c>, … on collision.</summary>
@@ -2690,6 +2728,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (FORMAT, SELECT WHEN, RECORD DELIMITER).</summary>
     private static string Spelled(Antlr4.Runtime.Tree.IParseTree node) =>
         string.Join(' ', Enumerable.Range(0, node.ChildCount).Select(i => node.GetChild(i).GetText()));
+
+    /// <summary>A construct's text AS WRITTEN — the source char-stream slice, spacing intact (the
+    /// <c>IntrinsicBinder.ReparseArgs</c> precedent) — for a diagnostic that quotes back a DEEP node, where
+    /// <see cref="Spelled"/>'s direct-children join still glues (<c>FUNCTION LENGTH(X)</c> has ONE child).
+    /// Falls back to the glued spelling when the node carries no input stream (a synthesized token).</summary>
+    private static string AsWritten(Antlr4.Runtime.ParserRuleContext node) =>
+        node.Start?.InputStream is { } chars && node.Stop is { } stop
+            ? chars.GetText(new Antlr4.Runtime.Misc.Interval(node.Start.StartIndex, stop.StopIndex))
+            : Spelled(node);
 
     private DataItem? BindEntry(Core.DataDescriptionEntryContext entry)
     {
@@ -2869,11 +2916,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     redefinesTargetName = redefTarget;
                 else if (clause.Context.valueClause() is { } value)
                 {
+                    string valueWhere = $"data item '{cobolName ?? "FILLER"}'";
                     if (value.valueClauseTablePhrase() is { Length: > 0 } tphrases)
-                        tableValues = BuildTableValueSpecs(tphrases);   // Format 2 (table) — §13.18.63.2
+                        tableValues = BuildTableValueSpecs(tphrases, valueWhere);   // Format 2 (table) — §13.18.63.2
                     else
                     {
-                        rawValue = ExtractValue(value);
+                        rawValue = ExtractValue(value, valueWhere);
                         // Format 1 takes EXACTLY ONE literal (§13.18.63.2); a bare multi-literal list (no FROM) is
                         // Format 2 or (report section) Format 4, never a Format-1 data item — ExtractValue GLUES it
                         // today (GetText over the collapsed valueItem). Flag it for a loud reject once entryWhere exists.
@@ -3455,23 +3503,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// 88-levels are later. The emitter (<c>FieldEmitter</c>) interprets the text — including figurative constants
     /// such as ZERO/SPACE — against the item's category and width. A numeric literal is normalized to the
     /// canonical dot-decimal form (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a).</summary>
-    private string? ExtractValue(Core.ValueClauseContext value)
+    private string? ExtractValue(Core.ValueClauseContext value, string where)
     {
         var item = value.valueItem().FirstOrDefault();
         if (item is null) return null;
-        // §8.8.3.3 GR3: a concatenation-expression VALUE operand folds to its equivalent single literal's
-        // RAW text (GetText would glue the operand tokens — `"AB" & "CD"` → `"AB"&"CD"` — and the emitter's
-        // decode would then mis-read the value). The fold happens HERE, once, so the whole raw-text VALUE
-        // pipeline (ValidateValueCategory, FieldEmitter, ValueInitializer) sees an ordinary literal. A
-        // constant-name operand substitutes its literal the same way (ISO §13.10.3 SR2 / §13.10.4 GR1 — "as if
-        // [the] literal were written"; DataBinder.Constants.ConstantValueRawText).
-        if (item.valueClauseOperand().FirstOrDefault() is { } op0
-            && (op0.nonNumericLiteral()?.concatenationExpression() is not null
-                || op0.nonNumericLiteral()?.figurativeConstant()?.allLiteral() is { } al0 && al0.allLiteralOperand().Length > 1   // ALL over a concatenated literal-1 (PB71)
-                || op0.nonNumericLiteral()?.figurativeConstant()?.cobolWord() is not null   // ALL symbolic-character-1 (PB110)
-                || SymbolicValueRawText(op0) is not null
-                || ConstantValueRawText(op0) is not null))
-            return RawValueOperandText(op0);
+        // ONE operand — the Format 1 / Format 4 literal-1 — goes through the ONE reader, which screens the
+        // literal position (§13.18.63.2) and then folds: §8.8.3.3 GR3 a concatenation expression to its
+        // equivalent single literal's RAW text (GetText would glue the operand tokens — `"AB" & "CD"` →
+        // `"AB"&"CD"` — and the emitter's decode would mis-read the value), §13.10.3 SR2 / §13.10.4 GR1 a
+        // constant-name to its literal, §12.3.7.4 GR11 a symbolic-character to its ALL literal. The fold
+        // happens HERE, once, so the whole raw-text VALUE pipeline (ValidateValueCategory, FieldEmitter,
+        // ValueInitializer) sees an ordinary literal. kb/Work PB732 replaced this method's five-way
+        // "does the operand need folding" test — a second copy of the reader's own chain — with the call.
+        var ops = item.valueClauseOperand();
+        if (ops.Length == 1) return RawValueOperandText(ops[0], where);
+        // NOT a Format-1 single literal: a bare multi-literal list (the caller's COBOLNET1585 glued-list
+        // reject; the Format-4 report list) or a THRU range. Every operand is still a literal position, so
+        // each is screened — a non-literal there was silent until kb/Work PB732 — and the item's raw text is
+        // withheld when any operand failed, so no glued spelling reaches the emitter.
+        bool ok = true;
+        foreach (var op in ops.Concat(item.valueClauseRange()?.valueClauseOperand() ?? []))
+            if (!IsLiteralValueOperand(op)) { ReportNonLiteralValueOperand(op, where); ok = false; }
+        if (!ok) return null;
         return item.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
     }
 
@@ -3570,9 +3623,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// time): a §8.8.3 concatenation expression folds to its equivalent literal's raw text (§8.8.3.3 GR3); a
     /// constant-name substitutes its literal's raw text (§13.10.3 SR2 / §13.10.4 GR1 — a VALUE operand is a
     /// literal position); any other operand keeps its source text, numeric literals normalized to dot-decimal
-    /// (ISO §12.3.7 GR14a).</summary>
-    private string RawValueOperandText(Core.ValueClauseOperandContext op) =>
-        op.nonNumericLiteral()?.concatenationExpression() is { } ce
+    /// (ISO §12.3.7 GR14a).
+    /// <para>NULL when the operand is NOT a literal position at all (<see cref="IsLiteralValueOperand"/> said
+    /// so and <see cref="ReportNonLiteralValueOperand"/> has reported it) — the caller stores no value, so the
+    /// unreadable operand never reaches the emitter. kb/Work PB732: this method's last arm used to be an
+    /// unconditional <c>op.GetText()</c>, which promoted an UNDEFINED WORD to an alphanumeric literal of its
+    /// own spelling (a silent wrong answer on an alphanumeric subject) or handed the C# backend an identifier
+    /// that does not exist (CS0103, exit 70, on a numeric one).</para></summary>
+    private string? RawValueOperandText(Core.ValueClauseOperandContext op, string where)
+    {
+        // THE literal-position screen (§13.18.63.2 — every format writes literal-n), asked BEFORE any folding so
+        // a rejected operand draws exactly one diagnostic and the ConcatFolder is never entered for it.
+        if (!IsLiteralValueOperand(op)) { ReportNonLiteralValueOperand(op, where); return null; }
+        return op.nonNumericLiteral()?.concatenationExpression() is { } ce
             ? ConcatFolder.Fold(ce, Edition, Collating, NationalCollating).RawText
             // ALL over a concatenated literal-1 (§8.3.3.6.3 SR2 — kb/Work PB71): `ALL` + the folded literal re-quoted,
             // so the raw-text ALL reader (CobolLiteral.AllLiteralRaw) sees ONE literal of the right class.
@@ -3585,16 +3648,127 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : SymbolicValueRawText(op) is { } rawBare ? rawBare
             : ConstantValueRawText(op) is { } konst ? konst
             : NormalizeIfNumericLiteral(op.GetText());
+    }
 
-    /// <summary>The raw <c>ALL"c"</c> text a symbolic-character VALUE operand substitutes (bare-word form), or
-    /// null when the operand names no symbolic character (kb/Work PB110; the ConstantValueRawText shape).</summary>
-    private string? SymbolicValueRawText(Core.ValueClauseOperandContext op)
+    /// <summary>THE literal-position predicate for a VALUE operand (kb/Work PB732), PURE — no folding, no
+    /// diagnostics, so a caller may ask about an operand it will not read.
+    /// <para>Every format of the VALUE clause writes <i>literal-n</i> in every operand position (ISO
+    /// §13.18.63.2, verified against the printed general-format figures: Format 1 <c>literal-1</c>, Format 2
+    /// <c>{literal-1}…</c>, Format 3 <c>literal-2 [THROUGH literal-3]</c>, Format 4 <c>{literal-1}…</c>,
+    /// Format 5 <c>literal-5 [THROUGH literal-6]</c> — no format admits an identifier, a data-name or an
+    /// expression). The spellings a literal position accepts are therefore exactly: a literal; a figurative
+    /// constant (§8.3.3.6.3 SR1 — "A figurative constant may be used whenever 'literal' appears in a format");
+    /// the ALL symbolic-character-1 figurative, whose word §8.3.3.6.3 SR4 requires to be a SYMBOLIC CHARACTERS
+    /// name; a bare symbolic-character; and a constant-name (§13.10.3 SR2 — "constant-name-1 may be used
+    /// anywhere that a format specifies a literal"). Anything else is a word — or a shape — that names no
+    /// literal.</para>
+    /// <para>The <c>valueClauseOperand : unaryExpression | nonNumericLiteral</c> grammar is a deliberate
+    /// superset (a constant-name and a symbolic-character are spelled as ordinary words, and only the symbol
+    /// tables tell them from a data-name), so this is a BIND rule, never a grammar screen.</para></summary>
+    private bool IsLiteralValueOperand(Core.ValueClauseOperandContext op)
+    {
+        if (op.nonNumericLiteral() is { } nn)
+            // ALL cobolWord is the ONE word-bearing figurative alternative (§8.3.3.6.2 Format 7); SR4 requires the
+            // word to be declared in SYMBOLIC CHARACTERS. Every other alternative — STRINGLIT / NATLIT / BOOLLIT /
+            // HEXLIT, a concatenation expression, ALL literal-1, and the keyword figuratives ZERO / SPACE /
+            // HIGH-VALUE / LOW-VALUE / QUOTE / NULL — is a literal by shape.
+            return nn.figurativeConstant()?.cobolWord() is not { } symWord || SymbolicOf(symWord.GetText()) is not null;
+        // §8.3.3.3.2 rule 2 makes a written sign part of the numeric literal, so strip the unary arms before
+        // asking what the primary is (`VALUE -9999` is literal-1, not an arithmetic expression).
+        var u = op.unaryExpression();
+        while (u?.unaryExpression() is { } signed) u = signed;
+        var p = u?.primaryExpression();
+        if (p?.numericLiteral() is not null || p?.ZERO_ARITH() is not null) return true;
+        // A word: the only names a literal position admits are a constant-name (§13.10.3 SR2) and a
+        // symbolic-character (§8.3.3.6.2 Format 7). ⛔ The lookup takes the operand through
+        // BareValueOperandWord — the SAME accessor the two substituting readers use — so the predicate and the
+        // readers cannot diverge. That is load-bearing for the SIGNED shape: rule 2's sign belongs to a NUMERIC
+        // LITERAL, so `VALUE -K` (K a constant-name) is a sign applied to a NAME and is no literal at all; a
+        // sign-stripping lookup here would have called it a literal while ConstantValueRawText, which does not
+        // strip, still fell through — re-opening the very sink PB732 closed, on `-K` instead of `K`.
+        return BareValueOperandWord(op) is { } dref
+            && (ConstantOf(dref) is not null || SymbolicOf(dref) is not null);
+    }
+
+    /// <summary>The BARE (unqualified, unsubscripted, UNSIGNED) word reference a VALUE operand reduces to, or
+    /// null — the ONE accessor for "which word does this operand name", shared by
+    /// <see cref="IsLiteralValueOperand"/>, <see cref="ReportNonLiteralValueOperand"/>,
+    /// <see cref="SymbolicValueRawText"/> and <c>ConstantValueRawText</c> (kb/Work PB732; it was the same
+    /// sole-child walk written out twice). Any operator or suffix on the way down makes the operand a
+    /// non-constant, non-symbolic shape, which is exactly what a null says.</summary>
+    private static Core.DataReferenceContext? BareValueOperandWord(Core.ValueClauseOperandContext op)
     {
         Antlr4.Runtime.Tree.IParseTree? n = op.unaryExpression();
         while (n is not null and not Core.DataReferenceContext)
             n = n.ChildCount == 1 ? n.GetChild(0) : null;
-        return n is Core.DataReferenceContext dref && SymbolicOf(dref) is { } sym ? SymbolicRaw(dref.GetText()) : null;
+        return n as Core.DataReferenceContext;
     }
+
+    /// <summary>The VALUE operands this binder has already diagnosed — one report per source operand even when
+    /// two callers read the same node (<see cref="ExtractValue"/> screens a THRU range or a glued literal list
+    /// that <see cref="RawValueOperandText"/> may also visit). The <c>ReferenceResolver._diagnosed</c>
+    /// shape.</summary>
+    private readonly HashSet<Core.ValueClauseOperandContext> _valueOperandDiagnosed = [];
+
+    /// <summary>THE report for a VALUE operand that occupies a literal position and is not a literal (kb/Work
+    /// PB732) — the data-division arm of the R30 "a word that names nothing" chokepoint, which
+    /// <c>ReferenceResolver.Resolve</c> closes for the PROCEDURE DIVISION and which the VALUE clause never
+    /// entered because it resolves its own operands.
+    /// <list type="bullet">
+    /// <item>A BARE word (including the <c>ALL symbolic-character-1</c> figurative) draws
+    /// <c>COBOLNET1639</c>: the position admits a constant-name or a symbolic-character, and the word is
+    /// neither, so "a statement shall contain a reference that uniquely identifies that resource" (ISO
+    /// §8.4.2.1) is violated.</item>
+    /// <item>Any other non-literal shape — a qualified / subscripted / reference-modified reference, a
+    /// function-identifier, a parenthesized arithmetic expression — draws <c>COBOLNET1902</c>: nothing is
+    /// undefined, the general format simply writes literal-n (ISO §13.18.63.2).</item>
+    /// </list>
+    /// §4.2.2 is the obligation to indicate both ("An implementation shall provide a warning mechanism …
+    /// to indicate violations of the general formats and the explicit syntax rules of standard COBOL").</summary>
+    private void ReportNonLiteralValueOperand(Core.ValueClauseOperandContext op, string where)
+    {
+        if (!_valueOperandDiagnosed.Add(op)) return;
+        using var _ = Edition.At(op);
+        if (op.nonNumericLiteral()?.figurativeConstant()?.cobolWord() is { } symWord)
+        {
+            Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: the VALUE operand "
+                + $"'ALL {symWord.GetText()}' names no symbolic character — symbolic-character-1 shall be "
+                + "specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph (ISO §8.3.3.6.3 "
+                + "SR4), and no other word is a figurative constant, so the operand identifies no resource "
+                + "(ISO §8.4.2.1).");
+            return;
+        }
+        // The BARE-word arm only (the SAME accessor the predicate used): a SIGNED or suffixed operand is not a
+        // word in a literal position at all — §8.3.3.3.2 rule 2's sign belongs to a numeric literal — so it
+        // falls to the general-format verdict below, which quotes the operand as written.
+        if (BareValueOperandWord(op) is { } dref && dref.dataReferenceSuffix().Length == 0
+            && dref.cobolWord()?.GetText() is { } word)
+        {
+            // A POSITIVE hint only: ByName carries the data items bound SO FAR, so its silence is not evidence
+            // that the name is undeclared (a later sibling is not registered yet) — the verdict above never
+            // depends on it (feedback_verdict_evidence_invariant).
+            string hint = ByName.ContainsKey(word)
+                ? $" ('{word}' is declared as a data item; a data item is not a literal.)" : "";
+            Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: the VALUE operand '{word}' is not a "
+                + "literal — every format of the VALUE clause writes literal-n (ISO §13.18.63.2), and the only "
+                + "words a literal position admits are a constant-name (ISO §13.10.3 SR2) and a "
+                + "symbolic-character (ISO §8.3.3.6.2 Format 7). '" + word + "' is neither, so the operand "
+                + "identifies no resource (ISO §8.4.2.1: \"a statement shall contain a reference that uniquely "
+                + $"identifies that resource\"). Check the spelling, or define the constant.{hint}");
+            return;
+        }
+        Edition.Error(DiagnosticCatalog.ValueOperandNotALiteral, $"{where}: the VALUE operand "
+            + $"'{AsWritten(op)}' is not a literal — every format of the VALUE clause writes literal-n (ISO "
+            + "§13.18.63.2). A figurative constant (ISO §8.3.3.6.3 SR1), a constant-name (ISO §13.10.3 SR2) "
+            + "and a symbolic-character (ISO §8.3.3.6.2 Format 7) stand where a literal stands, each written "
+            + "as a BARE word; an arithmetic expression, a function-identifier and a qualified, subscripted or "
+            + "reference-modified reference do not.");
+    }
+
+    /// <summary>The raw <c>ALL"c"</c> text a symbolic-character VALUE operand substitutes (bare-word form), or
+    /// null when the operand names no symbolic character (kb/Work PB110; the ConstantValueRawText shape).</summary>
+    private string? SymbolicValueRawText(Core.ValueClauseOperandContext op) =>
+        BareValueOperandWord(op) is { } dref && SymbolicOf(dref) is not null ? SymbolicRaw(dref.GetText()) : null;
 
     /// <summary>The raw ALL-literal text of the symbolic character named <paramref name="word"/>, or null: the
     /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §8.3.3.2.3 r3).</summary>
@@ -3660,14 +3834,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Build the <see cref="TableValueSpec"/> list for a Format 2 (table) VALUE clause (ISO §13.18.63.2):
     /// each phrase's literal list (raw operand text, concat/constant folded — the Format-1 currency) plus its FROM
     /// (subscript-1 …) and optional TO (subscript-2 …) integer subscripts. The subscripts are split by the TO
-    /// token's position (FROM's precede it, TO's follow).</summary>
-    private List<TableValueSpec> BuildTableValueSpecs(Core.ValueClauseTablePhraseContext[] phrases)
+    /// token's position (FROM's precede it, TO's follow).
+    /// <para>NULL when any operand is not a literal position: it has been reported (kb/Work PB732 — the table
+    /// arm was the same silent sink as Format 1) and the whole clause binds nothing, because dropping one
+    /// literal from a phrase would shift its §13.18.63.3 SR19–SR22 subscript correspondence.</para></summary>
+    private List<TableValueSpec>? BuildTableValueSpecs(Core.ValueClauseTablePhraseContext[] phrases, string where)
     {
         var list = new List<TableValueSpec>(phrases.Length);
+        bool ok = true;
         for (int i = 0; i < phrases.Length; i++)
         {
             var ph = phrases[i];
-            var literals = ph.valueClauseOperand().Select(RawValueOperandText).ToList();
+            // Every phrase is screened even after one has failed, so a clause with two bad operands names both.
+            var raws = ph.valueClauseOperand().Select(op => RawValueOperandText(op, where)).ToList();
+            if (raws.Any(r => r is null)) { ok = false; continue; }
+            var literals = raws.Select(r => r!).ToList();
             int toIdx = ph.TO()?.Symbol.TokenIndex ?? int.MaxValue;
             var from = new List<int>();
             List<int>? to = ph.TO() is not null ? [] : null;
@@ -3678,7 +3859,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             }
             list.Add(new TableValueSpec(literals, from, to, i));
         }
-        return list;
+        return ok ? list : null;
     }
 
     /// <summary>Validate a Format 2 (table) VALUE (ISO §13.18.63.3 SR18–SR22, plus the ALL-FORMATS literal screen

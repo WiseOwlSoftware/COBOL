@@ -1869,10 +1869,14 @@ public static class DiagnosticCatalog
         "ISO §7.2.3.4 GR10 / GR12");
     public static readonly DiagnosticDescriptor UndefinedReference = new(
         "COBOLNET1639", "undefined-reference", EditionSeverity.Error,
-        "A statement references a name that no declaration in the source element defines, or that the written "
-        + "qualifiers (or an unqualified ambiguity) leave unidentified. ISO §8.4.2.1: \"In order to use a "
-        + "resource, a statement shall contain a reference that uniquely identifies that resource\"; §8.4.2.2 "
-        + "requires qualification to establish uniqueness when spellings collide.",
+        "A statement or clause references a name that no declaration in the source element defines, or that the "
+        + "written qualifiers (or an unqualified ambiguity) leave unidentified. ISO §8.4.2.1: \"In order to use "
+        + "a resource, a statement shall contain a reference that uniquely identifies that resource\"; §8.4.2.2 "
+        + "requires qualification to establish uniqueness when spellings collide. Two sites report it: the ONE "
+        + "procedure-division chokepoint (ReferenceResolver.Resolve — kb/Work R30), and the VALUE clause's "
+        + "literal-position screen, where the only names the position admits are a constant-name (§13.10.3 SR2) "
+        + "and a symbolic-character (§8.3.3.6.2 Format 7), so a word that is neither identifies no resource "
+        + "(kb/Work PB732).",
         "ISO §8.4.2.1 / §8.4.2.2");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
@@ -2446,6 +2450,23 @@ public static class DiagnosticCatalog
         + "— ALPHABET A IS ASCII built an alphabet whose first four positions were A, S, C, I — which every "
         + "downstream reference then read (kb/Work PB770 leg e). CONFORMANCE.md carries the SR15 statement.",
         "ISO §12.3.7.3 SR15");
+
+    // kb/Work PB732. The VALUE clause resolves its own operands and never enters the R30 chokepoint
+    // (ReferenceResolver.Resolve), so its literal-position screen is DataBinder.IsLiteralValueOperand. A word
+    // there draws COBOLNET1639 (the position admits a constant-name or a symbolic-character, and it named
+    // neither — §8.4.2.1); a shape that is not a word and not a literal draws THIS code, because nothing is
+    // undefined and the violation is the general format itself.
+    public static readonly DiagnosticDescriptor ValueOperandNotALiteral = new(
+        "COBOLNET1902", "value-operand-not-a-literal", EditionSeverity.Error,
+        "A VALUE clause operand is not a literal. Every general format of the VALUE clause (ISO §13.18.63.2) "
+        + "writes literal-n in every operand position — Format 1 literal-1, Format 2 {literal-1}…, Format 3 "
+        + "literal-2 [THROUGH literal-3] and its second position [WHEN SET TO FALSE IS literal-4], Format 4 "
+        + "{literal-1}…, Format 5 literal-5 [THROUGH literal-6] — and "
+        + "no format admits an identifier or an expression. A figurative constant (§8.3.3.6.3 SR1), a "
+        + "constant-name (§13.10.3 SR2) and a symbolic-character (§8.3.3.6.2 Format 7) stand where a literal "
+        + "stands, each written as a BARE word; an arithmetic expression, a function-identifier, and a "
+        + "qualified, subscripted or reference-modified reference do not.",
+        "ISO §13.18.63.2 / §4.2.2");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

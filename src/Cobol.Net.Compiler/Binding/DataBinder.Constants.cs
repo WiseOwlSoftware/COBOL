@@ -368,14 +368,10 @@ public sealed partial class DataBinder
     /// operand is not a bare constant-name reference. The raw-text form feeds the existing VALUE data path
     /// (ValidateValueCategory → FieldEmitter → ValueInitializer), which stores raw literal text and decodes at
     /// emit time — the ConcatFolder RawText precedent.</summary>
-    private string? ConstantValueRawText(Core.ValueClauseOperandContext op)
-    {
-        // A word operand parses through the unaryExpression spine to a bare dataReference; walk the
-        // sole-child chain (any operator or suffix makes the operand a non-constant shape).
-        IParseTree? n = op.unaryExpression();
-        while (n is not null and not Core.DataReferenceContext)
-            n = n.ChildCount == 1 ? n.GetChild(0) : null;
-        if (n is not Core.DataReferenceContext dref) return null;
-        return ConstantOf(dref)?.RawText;
-    }
+    private string? ConstantValueRawText(Core.ValueClauseOperandContext op) =>
+        // A word operand parses through the unaryExpression spine to a bare dataReference —
+        // DataBinder.BareValueOperandWord is the ONE walk (any operator or suffix makes the operand a
+        // non-constant shape, and returns null); it is the SAME accessor IsLiteralValueOperand's word arm
+        // consults, so the screen and this substitution cannot disagree (kb/Work PB732).
+        BareValueOperandWord(op) is { } dref ? ConstantOf(dref)?.RawText : null;
 }
