@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using CobolNet.Runtime.IO;
 using CobolNet.Tests.Shared;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CobolNet.Tests.Unit;
 
@@ -22,13 +23,19 @@ namespace CobolNet.Tests.Unit;
 /// <para>The denial itself is real, not simulated: a DACL deny ACE on Windows, mode 000 on Unix. The helper
 /// PROVES the denial took — with a raw <c>File.OpenRead</c>, never with <see cref="HostFile.Probe"/>, because
 /// checking a precondition with the subject under test lets a broken subject certify its own premise.</para>
-/// <para>⛔ THE ONE ESCAPE HATCH, AND WHY IT CANNOT ROT INTO A SILENT GREEN. A process running as root cannot
-/// be denied by mode bits at all, so on such a host these assertions have nothing to assert. That case is not
-/// waved through: when the denial fails, the helper asserts POSITIVELY that this process is permission-
-/// bypassing, so a deny helper that simply stopped working goes RED on every ordinary account instead of
-/// quietly passing (feedback: green_gates_arent_evidence). <see cref="TheDenyHelperWorksOnThisHost"/> reports
-/// the classification as a test of its own, so the hatch is visible in the run rather than buried in a
-/// branch.</para>
+/// <para>⛔ THE ONE ESCAPE HATCH, AND WHY IT MAY NOT BE A PREDICTION (kb/Work PB795). A process running as root
+/// cannot be denied by mode bits at all, so on such a host these assertions have nothing to assert. The hatch
+/// therefore has to answer <i>"can THIS host refuse THIS process?"</i>, and for two days it answered from a
+/// hard-coded sentence instead — <i>"a merely elevated Windows token does not bypass an explicit deny ACE for
+/// its own SID, so Windows has no bypass case here"</i>. On the GitHub Windows runner the precondition was not
+/// established and that sentence turned the guard red with <i>"the helper is broken"</i>, about a host the test
+/// had never looked at.</para>
+/// <para>So every precondition is now CLASSIFIED from measurements — see <see cref="HostCapability"/>. The
+/// denial is applied, the host's own tool is asked whether it took, and the access is then really attempted;
+/// <i>the tool failed</i>, <i>the host granted it anyway</i> and <i>the host refused it</i> are three different
+/// answers with three different consequences. And a test whose precondition was not established no longer
+/// returns silently: <see cref="NoPrecondition"/> turns it RED with that evidence unless the bypass is MEASURED
+/// (feedback: green_gates_arent_evidence, reachability_is_measured_not_deduced).</para>
 /// </summary>
 public sealed class FileAuthorityPresenceTests : IDisposable
 {
@@ -37,7 +44,34 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     private readonly string _root =
         Path.Combine(Path.GetTempPath(), $"pb323-{Guid.NewGuid():N}");
 
-    public FileAuthorityPresenceTests() => Directory.CreateDirectory(_root);
+    /// <summary>Where a measured host fact is recorded even when nothing fails — the classification of a host
+    /// that BYPASSES file permissions is the one outcome that cannot be an assertion (there is nothing left to
+    /// assert), so it is written into the run's result instead of being dropped on the floor.</summary>
+    private readonly ITestOutputHelper _log;
+
+    /// <summary>The classification of the LAST precondition this test attempted to establish — measured, with
+    /// the host's own evidence attached (<see cref="HostCapability.Classify"/>).</summary>
+    private HostCapability.Denial _denial;
+
+    public FileAuthorityPresenceTests(ITestOutputHelper log)
+    {
+        _log = log;
+        Directory.CreateDirectory(_root);
+    }
+
+    /// <summary>⛔ THE PRECONDITION WAS NOT ESTABLISHED, AND THAT IS NOT ALLOWED TO BE SILENT (kb/Work PB795).
+    /// <para>Every one of these sites used to be a bare <c>return</c>. A host on which the deny helper failed
+    /// therefore turned twenty §14.9.27.4 GR3 assertions into vacuous passes and exactly ONE test red — and
+    /// that one test named the helper as the cause from a claim about the platform, not from anything it had
+    /// measured. Both halves of that are the defect: the twenty silent passes AND the unmeasured verdict.</para>
+    /// <para>A test that could not establish its precondition now goes RED here, carrying the host's own
+    /// evidence, unless this process is MEASURED to bypass file permissions on this host — the single case in
+    /// which there is genuinely nothing to assert, and which is then recorded rather than hidden.</para></summary>
+    private void NoPrecondition()
+    {
+        _log.WriteLine(_denial.Because);
+        Assert.True(_denial.Verdict == HostCapability.DenialVerdict.BypassedByThisIdentity, _denial.Because);
+    }
 
     public void Dispose()
     {
@@ -98,22 +132,29 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [Fact]
     public void Probe_PresentButRefused_IsUnauthorized_WhereFileExistsSaysAbsent()
     {
-        if (Refused() is not { } witness) return;
+        if (Refused() is not { } witness) { NoPrecondition(); return; }
         Assert.False(File.Exists(witness));                                  // the two-valued probe's lie
         Assert.Equal(FilePresence.Unauthorized, HostFile.Probe(witness));    // the three-valued truth
     }
 
-    /// <summary>The escape hatch, made visible. On an ordinary account this asserts that the deny helper
-    /// really can establish the GR3 precondition — so a helper that silently stopped denying turns THIS test
-    /// red rather than turning every GR3 test into a vacuous pass.</summary>
+    /// <summary>The escape hatch, made visible AND made a measurement. This test is red for exactly one
+    /// reason — the denial could not be APPLIED, which is the helper being broken and nothing else — and its
+    /// message then carries the host tool's own exit codes and output. A host that applied the denial and
+    /// granted the access anyway is a statement about the HOST: the classification names the token identity the
+    /// access was granted to and is written into the run's output, and every GR3 test in this class states the
+    /// same thing for itself through <see cref="NoPrecondition"/> rather than passing vacuously.
+    /// <para>⚠ It can no longer be red merely because a host defeated one particular denial mechanism: that was
+    /// kb/Work PB795, where the GR3 witness was refused only as a SIDE EFFECT of
+    /// <c>icacls /inheritance:r</c> emptying the child's DACL — measured on 2026-09-06, a directory-scoped deny
+    /// ACE alone leaves <c>File.OpenRead</c> of the child SUCCEEDING, because opening a child by full path
+    /// consults the parent for FILE_TRAVERSE and "Bypass traverse checking" is granted to Everyone by
+    /// default.</para></summary>
     [Fact]
     public void TheDenyHelperWorksOnThisHost()
     {
-        bool refused = Refused() is not null;
-        Assert.True(refused || BypassesFilePermissions(),
-            "The deny helper could not make a file unreadable, and this process is NOT running with a "
-            + "permission bypass — so the helper is broken, not the environment, and every §14.9.27.4 GR3 "
-            + "assertion in this class is currently proving nothing.");
+        Refused();
+        _log.WriteLine(_denial.Because);
+        Assert.False(_denial.Verdict == HostCapability.DenialVerdict.ToolFailed, _denial.Because);
     }
 
     // ── GR3 on the OPEN statement, every organization, OPTIONAL and not ──────────────────────────────────────
@@ -131,7 +172,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx", true)]
     public void OpenInput_PresentButRefused_Is37(string organization, bool optional)
     {
-        if (Refused() is not { } witness) return;
+        if (Refused() is not { } witness) { NoPrecondition(); return; }
         var reg = Register(organization, witness, optional);
         reg.OpenStatic("F", FileOpenMode.Input);
         Assert.Equal("37", reg.Status("F"));
@@ -147,7 +188,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData(FileOpenMode.Extend, true)]
     public void OpenIoOrExtend_PresentButRefused_Is37(FileOpenMode mode, bool optional)
     {
-        if (Refused() is not { } witness) return;
+        if (Refused() is not { } witness) { NoPrecondition(); return; }
         var reg = Register("seq", witness, optional);
         reg.OpenStatic("F", mode);
         Assert.Equal("37", reg.Status("F"));
@@ -161,7 +202,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [Fact]
     public void OpenOutput_NewFileUnderARefusedDirectory_StillSucceeds()
     {
-        if (Refused() is null) return;
+        if (Refused() is null) { NoPrecondition(); return; }
         string fresh = Path.Combine(_root, "locked", "brand-new.dat");
         if (!RawCreateSucceeds(fresh)) return;   // a host that refuses creation too has no case to guard here
         var reg = Register("seq", fresh, optional: false);
@@ -176,7 +217,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [Fact]
     public void OpenOutput_OverAPresentRefusedFile_Is37()
     {
-        if (Refused() is not { } witness) return;
+        if (Refused() is not { } witness) { NoPrecondition(); return; }
         var reg = Register("seq", witness, optional: false);
         reg.OpenStatic("F", FileOpenMode.Output);
         Assert.Equal("37", reg.Status("F"));
@@ -209,7 +250,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx", FileOpenMode.Output)]
     public void OpenAWriteMode_PresentButNotWritable_Is37(string organization, FileOpenMode mode)
     {
-        if (NotWritable() is not { } witness) return;
+        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
         var reg = Register(organization, witness, optional: false);
         reg.OpenStatic("F", mode);
         Assert.Equal("37", reg.Status("F"));
@@ -224,7 +265,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx")]
     public void OpenIo_PresentButNotWritable_OptionalFile_IsStill37(string organization)
     {
-        if (NotWritable() is not { } witness) return;
+        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
         var reg = Register(organization, witness, optional: true);
         reg.OpenStatic("F", FileOpenMode.IO);
         Assert.Equal("37", reg.Status("F"));
@@ -237,7 +278,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [Fact]
     public void TheRefusedOpenLeavesTheFileUnaffected()
     {
-        if (NotWritable() is not { } witness) return;
+        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
         byte[] before = File.ReadAllBytes(witness);
         DateTime stamp = File.GetLastWriteTimeUtc(witness);
         var reg = Register("idx", witness, optional: false);
@@ -257,7 +298,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx")]
     public void OpenInput_PresentButNotWritable_StillOpens(string organization)
     {
-        if (NotWritable() is not { } witness) return;
+        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
         var reg = Register(organization, witness, optional: false);
         reg.OpenStatic("F", FileOpenMode.Input);
         Assert.Equal("00", reg.Status("F"));
@@ -291,7 +332,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [Fact]
     public void PermitsWrite_SeesWhatThePresenceProbeCannot()
     {
-        if (NotWritable() is not { } witness) return;
+        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
         Assert.Equal(FilePresence.Present, HostFile.Probe(witness));   // present, and observable
         Assert.False(HostFile.PermitsWrite(witness));                  // and still not writable
     }
@@ -320,7 +361,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx")]
     public void OpenInput_PresentAndObservableButNotReadable_Is37(string organization)
     {
-        if (NotReadable() is not { } witness) return;
+        if (NotReadable() is not { } witness) { NoPrecondition(); return; }
         Assert.Equal(FilePresence.Present, HostFile.Probe(witness));   // not GR3's arm: the file IS observable
         var reg = Register(organization, witness, optional: false);
         reg.OpenStatic("F", FileOpenMode.Input);
@@ -340,7 +381,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx")]
     public void OpenIo_PresentAndWritableButNotReadable_Is37(string organization)
     {
-        if (NotReadable() is not { } witness) return;
+        if (NotReadable() is not { } witness) { NoPrecondition(); return; }
         Assert.True(HostFile.PermitsWrite(witness),
             "The premise of this test is a file the WRITE probe accepts; if it does not, the '37' below could "
             + "be the write half answering and GR16's read half would still be unmeasured.");
@@ -349,21 +390,22 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal("37", reg.Status("F"));
     }
 
-    /// <summary>The escape hatch for the read-only helper, made visible exactly as
-    /// <see cref="TheDenyHelperWorksOnThisHost"/> is: on a host where this process cannot be denied write, the
-    /// nine cells above assert nothing, and that has to go RED on an ordinary account rather than pass
-    /// quietly.</summary>
+    /// <summary>The escape hatch for the two capability helpers, classified exactly as
+    /// <see cref="TheDenyHelperWorksOnThisHost"/> is. Each is measured separately, because they establish
+    /// different preconditions through different mechanisms — a read-only attribute or mode bit for GR16's
+    /// unwritable file, a deny-read ACE or a write-only mode for §9.1.13.6 item 6 a) 3.'s unreadable one — and
+    /// a host may defeat either one alone.</summary>
     [Fact]
     public void TheCapabilityHelpersWorkOnThisHost()
     {
-        bool bypass = BypassesFilePermissions();
-        Assert.True(NotWritable() is not null || bypass,
-            "The read-only helper could not make a file unwritable, and this process is NOT running with a "
-            + "permission bypass — so the helper is broken, not the environment, and every §14.9.27.4 GR16 "
-            + "assertion in this class is currently proving nothing.");
-        Assert.True(NotReadable() is not null || bypass,
-            "The unreadable-file helper could not refuse this process a read, and this process is NOT running "
-            + "with a permission bypass — so §9.1.13.6 item 6 a) 3.'s assertions are currently proving nothing.");
+        NotWritable();
+        var write = _denial;
+        NotReadable();
+        var read = _denial;
+        _log.WriteLine(write.Because);
+        _log.WriteLine(read.Because);
+        Assert.False(write.Verdict == HostCapability.DenialVerdict.ToolFailed, write.Because);
+        Assert.False(read.Verdict == HostCapability.DenialVerdict.ToolFailed, read.Because);
     }
 
     // ── The DELETE FILE twin, now on the same probe (§14.9.10.4 GR14/GR16) ───────────────────────────────────
@@ -373,7 +415,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [Fact]
     public void DeleteFile_PresentButRefused_Is37()
     {
-        if (Refused() is not { } witness) return;
+        if (Refused() is not { } witness) { NoPrecondition(); return; }
         var reg = Register("seq", witness, optional: false);
         Assert.Equal("37", reg.DeleteFile("F"));
     }
@@ -406,48 +448,119 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         return reg;
     }
 
-    /// <summary>Create <c>locked/secret.dat</c>, make its directory unreadable to this process, and return the
-    /// file's path — the "present and insufficient authority" precondition of GR3, actually established — or
-    /// <c>null</c> when this host cannot deny anything to this process.
+    /// <summary>Establish §14.9.27.4 GR3's precondition on <c>locked/secret.dat</c> — a file that IS present
+    /// and that this process may not read — and return the file's path, or <c>null</c> when this host did not
+    /// refuse the read. Either way <see cref="_denial"/> carries the CLASSIFICATION (kb/Work PB795): the denial
+    /// was applied and worked, was applied and the host granted the access anyway, or was never applied at all.
     /// <para>The denial is verified with a RAW <c>File.OpenRead</c>, never with <see cref="HostFile.Probe"/>:
     /// checking the precondition with the subject under test would let a broken subject certify its own
-    /// premise. A <c>null</c> return is asserted about, not assumed — see
-    /// <see cref="TheDenyHelperWorksOnThisHost"/>.</para></summary>
+    /// premise. A <c>null</c> return is asserted about, not assumed — see <see cref="NoPrecondition"/>.</para>
+    /// </summary>
     private string? Refused()
     {
         string dir = Path.Combine(_root, "locked");
         Directory.CreateDirectory(dir);
         string witness = Path.Combine(dir, "secret.dat");
         if (!File.Exists(witness)) File.WriteAllText(witness, "HELLO-RECORD-0001");
-        Deny(dir);
+        (bool applied, string detail) = DenyPresence(dir, witness);
 
+        bool refused = false;
         try { using (File.OpenRead(witness)) { } }
-        catch (UnauthorizedAccessException) { return witness; }
+        catch (UnauthorizedAccessException) { refused = true; }
         catch (IOException) { }
-        return null;
+        _denial = HostCapability.Classify(refused, applied, $"GR3's present-but-refused witness {witness}", detail);
+        return refused ? witness : null;
+    }
+
+    /// <summary>⛔ THE DENIAL IS EXPLICIT ON BOTH OBJECTS, AND THAT IS THE kb/Work PB795 FIX. GR3's witness has
+    /// to be a file this process can neither open NOR observe — <c>HostFile.Probe</c> must answer
+    /// <c>Unauthorized</c> and <c>File.Exists</c> must answer <c>false</c> — which on Windows takes TWO deny
+    /// ACEs, because the two questions are answered by two different objects:
+    /// <list type="bullet">
+    /// <item><description>the FILE's own <c>(RX)</c> deny takes FILE_READ_DATA <i>and</i> FILE_READ_ATTRIBUTES,
+    /// which is what makes <c>File.GetAttributes</c> raise <see cref="UnauthorizedAccessException"/>;</description></item>
+    /// <item><description>the DIRECTORY's <c>(RX)</c> deny takes FILE_LIST_DIRECTORY, which is what removes the
+    /// implicit FILE_READ_ATTRIBUTES a caller gets on a child of a directory it may list.</description></item>
+    /// </list>
+    /// <para>Measured on 2026-09-06, each alone is insufficient: a directory-scoped deny leaves
+    /// <c>File.OpenRead</c> of the child SUCCEEDING (opening a child by full path consults the parent only for
+    /// FILE_TRAVERSE, and "Bypass traverse checking" is granted to Everyone by default), and a file-scoped deny
+    /// alone leaves <c>File.GetAttributes</c> SUCCEEDING. Until PB795 only the directory was denied, and the
+    /// refusal came from a SIDE EFFECT of <c>/inheritance:r</c> — it stops the directory propagating inheritable
+    /// ACEs, so the child's DACL, which held nothing else, was left empty. A precondition resting on an
+    /// inheritance side effect is a precondition that a host can silently not have, and the GitHub Windows
+    /// runner is a host that did not (while the file-scoped deny in <see cref="NotReadable"/> worked there in
+    /// the same run — that is what narrowed it). The <c>/inheritance:r /grant:r</c> pair stays because it makes
+    /// the directory's own DACL deterministic; nothing now DEPENDS on what it propagates.</para>
+    /// <para>The file must be denied FIRST: once the directory refuses this process, <c>icacls</c> can no longer
+    /// reach the child to set anything on it.</para>
+    /// <para><c>Applied</c> is what separates "the host bypassed the denial" from "the denial was never made" —
+    /// the host's own tool reporting success, or the mode reading back as it was set. It is deliberately NOT the
+    /// same measurement as the refusal itself (feedback: verdict_evidence_invariant).</para></summary>
+    private static (bool Applied, string Detail) DenyPresence(string dir, string witness)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            string who = $"{Environment.UserDomainName}\\{Environment.UserName}";
+            ProcessObservation[] runs =
+            [
+                Icacls(witness, "/deny", $"{who}:(RX)"),
+                Icacls(dir, "/inheritance:r", "/grant:r", $"{who}:(F)"),
+                Icacls(dir, "/deny", $"{who}:(RX)"),
+            ];
+            return (runs.All(r => r.Completed && r.ExitCode == 0),
+                $"deny (RX) for {who} on the file then on its directory — icacls: "
+                + string.Join(" | ", runs.Select(Describe)));
+        }
+
+        // Mode 000 on the file AND on its directory. Unix has no bypass-traverse equivalent, so the directory
+        // alone would do — the file is denied too so that both platforms establish the precondition explicitly
+        // rather than one of them relying on a property of the other object. The file's mode is read back
+        // BEFORE the directory is closed off, because afterwards it cannot be stat'd at all.
+        File.SetUnixFileMode(witness, UnixFileMode.None);
+        bool fileSet = File.GetUnixFileMode(witness) == UnixFileMode.None;
+        File.SetUnixFileMode(dir, UnixFileMode.None);
+        bool dirSet = File.GetUnixFileMode(dir) == UnixFileMode.None;
+        return (fileSet && dirSet,
+            $"chmod 000 on {witness} (read back: {fileSet}) and on {dir} (read back: {dirSet}).");
     }
 
     /// <summary>Create <c>readonly.dat</c>, make it unwritable to this process while leaving it PRESENT and
     /// fully observable, and return its path — the precondition of §14.9.27.4 GR16 and §9.1.13.6 item 6 a),
-    /// actually established — or <c>null</c> when this host cannot deny writing to this process.
-    /// <para>This is deliberately NOT <see cref="Refused"/>'s directory denial: that one hides the file from
-    /// the presence probe, which is GR3's precondition and a different rule. GR16's file is one the process can
-    /// see, stat and read perfectly — the '37' has to come from the write capability alone, so the two probes
-    /// must give different answers on it. The denial is verified with a RAW write open, never with
+    /// actually established — or <c>null</c> when this host did not refuse the write. <see cref="_denial"/>
+    /// carries the classification either way.
+    /// <para>This is deliberately NOT <see cref="Refused"/>'s denial: that one hides the file from the presence
+    /// probe, which is GR3's precondition and a different rule. GR16's file is one the process can see, stat
+    /// and read perfectly — the '37' has to come from the write capability alone, so the two probes must give
+    /// different answers on it. The denial is verified with a RAW write open, never with
     /// <c>HostFile.PermitsWrite</c>: checking the precondition with the subject under test would let a broken
     /// subject certify its own premise. A <c>null</c> return is asserted about, not assumed — see
-    /// <see cref="TheReadOnlyHelperWorksOnThisHost"/>.</para></summary>
+    /// <see cref="NoPrecondition"/> and <see cref="TheCapabilityHelpersWorkOnThisHost"/>.</para></summary>
     private string? NotWritable()
     {
         string witness = Path.Combine(_root, "readonly.dat");
         if (!File.Exists(witness)) File.WriteAllText(witness, "HELLO-RECORD-0001");
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) File.SetAttributes(witness, FileAttributes.ReadOnly);
-        else File.SetUnixFileMode(witness, UnixFileMode.UserRead);
+        bool applied;
+        string detail;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            File.SetAttributes(witness, FileAttributes.ReadOnly);
+            applied = File.GetAttributes(witness).HasFlag(FileAttributes.ReadOnly);
+            detail = $"FileAttributes.ReadOnly on {witness} (read back: {applied}).";
+        }
+        else
+        {
+            File.SetUnixFileMode(witness, UnixFileMode.UserRead);
+            applied = File.GetUnixFileMode(witness) == UnixFileMode.UserRead;
+            detail = $"chmod 400 on {witness} (read back: {applied}).";
+        }
 
+        bool refused = false;
         try { using (new FileStream(witness, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) { } }
-        catch (UnauthorizedAccessException) { return witness; }
+        catch (UnauthorizedAccessException) { refused = true; }
         catch (IOException) { }
-        return null;
+        _denial = HostCapability.Classify(refused, applied, $"GR16's present-but-unwritable witness {witness}", detail);
+        return refused ? witness : null;
     }
 
     /// <summary>Create <c>unreadable.dat</c> as a WRITE-ONLY file — refused read, still writable, and with its
@@ -455,34 +568,40 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     /// <see cref="NotWritable"/>, and having both is what keeps §14.9.27.4 GR16's two halves separable: GR16
     /// requires the file to support <i>"the input AND output statements"</i> the I-O mode permits, so a file
     /// that fails EITHER half is '37' and a probe that only asked about writing would answer half a rule.
-    /// <para>Deliberately not <see cref="Refused"/>'s shape: there the DIRECTORY is denied, so the file is
-    /// invisible and the answer comes from GR3's presence short-circuit. Here <c>File.GetAttributes</c>
-    /// succeeds, so the '37' can only come from the organization's own read. On Windows the deny ACE is
-    /// <c>(RD)</c> — read DATA only; a blanket <c>(R)</c> takes the synchronize/read-control rights a write
-    /// open also needs and would silently make the file unwritable too, collapsing the complement. Verified
-    /// with a raw <c>File.OpenRead</c> and a raw write open, never with the subject under test. Returns
-    /// <c>null</c> when this host cannot deny reading to this process.</para></summary>
+    /// <para>Deliberately not <see cref="Refused"/>'s shape: there the file is denied its ATTRIBUTES too and
+    /// the answer comes from GR3's presence short-circuit. Here <c>File.GetAttributes</c> succeeds, so the '37'
+    /// can only come from the organization's own read. On Windows the deny ACE is <c>(RD)</c> — read DATA only;
+    /// a blanket <c>(R)</c> takes the synchronize/read-control rights a write open also needs and would
+    /// silently make the file unwritable too, collapsing the complement. Verified with a raw
+    /// <c>File.OpenRead</c>, never with the subject under test. Returns <c>null</c> when this host did not
+    /// refuse the read; <see cref="_denial"/> carries the classification.</para></summary>
     private string? NotReadable()
     {
         string witness = Path.Combine(_root, "unreadable.dat");
         if (!File.Exists(witness)) File.WriteAllText(witness, "HELLO-RECORD-0001");
+        bool applied;
+        string detail;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            Icacls(witness, "/deny", $"{Environment.UserDomainName}\\{Environment.UserName}:(RD)");
+        {
+            string who = $"{Environment.UserDomainName}\\{Environment.UserName}";
+            var run = Icacls(witness, "/deny", $"{who}:(RD)");
+            applied = run.Completed && run.ExitCode == 0;
+            detail = $"deny (RD) for {who} on {witness} — icacls: {Describe(run)}";
+        }
         else
+        {
             File.SetUnixFileMode(witness, UnixFileMode.UserWrite);
+            applied = File.GetUnixFileMode(witness) == UnixFileMode.UserWrite;
+            detail = $"chmod 200 on {witness} (read back: {applied}).";
+        }
 
+        bool refused = false;
         try { using (File.OpenRead(witness)) { } }
-        catch (UnauthorizedAccessException) { return witness; }
+        catch (UnauthorizedAccessException) { refused = true; }
         catch (IOException) { }
-        return null;
+        _denial = HostCapability.Classify(refused, applied, $"item 6 a) 3.'s present-but-unreadable witness {witness}", detail);
+        return refused ? witness : null;
     }
-
-    /// <summary>Whether this process bypasses file permissions outright — root on Unix, where mode bits do not
-    /// apply at all. (A merely ELEVATED Windows token does not bypass an explicit deny ACE for its own SID, so
-    /// Windows has no bypass case here.)</summary>
-    private static bool BypassesFilePermissions() =>
-        !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        && string.Equals(Environment.UserName, "root", StringComparison.Ordinal);
 
     /// <summary>Whether the host really does allow creating a NEW file under the refused directory — the
     /// premise of the OPEN OUTPUT guard. Unix mode 000 removes write along with read, so only the Windows
@@ -499,20 +618,6 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         catch (IOException) { return false; }
     }
 
-    private static void Deny(string dir)
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            string who = $"{Environment.UserDomainName}\\{Environment.UserName}";
-            Icacls(dir, "/inheritance:r", "/grant:r", $"{who}:(F)");
-            Icacls(dir, "/deny", $"{who}:(RX)");
-        }
-        else
-        {
-            File.SetUnixFileMode(dir, UnixFileMode.None);
-        }
-    }
-
     private static void Restore(string root)
     {
         // The GR16 witness is read-only, and a read-only file defeats the recursive Directory.Delete below on
@@ -526,17 +631,17 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         string nr = Path.Combine(root, "unreadable.dat");
         if (File.Exists(nr))
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                Icacls(nr, "/remove:d", $"{Environment.UserDomainName}\\{Environment.UserName}");
-            else
-                File.SetUnixFileMode(nr, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) RestoreWindowsAccess(nr);
+            else File.SetUnixFileMode(nr, UnixFileMode.UserRead | UnixFileMode.UserWrite);
         }
         string dir = Path.Combine(root, "locked");
         if (!Directory.Exists(dir)) return;
+        // ⛔ THE DIRECTORY FIRST, THEN THE FILE INSIDE IT. The GR3 witness carries its own deny ACE (or mode
+        // 000), and while the directory still refuses this process nothing inside it can be reached to undo
+        // that — icacls answers "Access is denied" and the temp tree leaks one directory per run.
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            string who = $"{Environment.UserDomainName}\\{Environment.UserName}";
-            Icacls(dir, "/remove:d", who);
+            RestoreWindowsAccess(dir);
             Icacls(dir, "/inheritance:e");
         }
         else
@@ -544,15 +649,37 @@ public sealed class FileAuthorityPresenceTests : IDisposable
             File.SetUnixFileMode(dir,
                 UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
         }
+        string secret = Path.Combine(dir, "secret.dat");
+        if (!File.Exists(secret)) return;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) RestoreWindowsAccess(secret);
+        else File.SetUnixFileMode(secret, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+    }
+
+    /// <summary>⛔ UNDOING AN <c>icacls /deny</c> TAKES TWO STEPS, AND ONLY ONE OF THEM WAS EVER DONE. Its
+    /// documented behaviour is <i>"an explicit deny ACE is added for the stated permissions AND the same
+    /// permissions in any explicit grant are removed"</i> — so <c>/remove:d</c>, which deletes the deny ACE,
+    /// leaves the grant with a hole in it. Measured on 2026-09-06: after
+    /// <c>/inheritance:r /grant:r who:(F)</c> + <c>/deny who:(RX)</c> + <c>/remove:d who</c>, the directory's
+    /// DACL reads <c>who:(W,D,WDAC,WO,DC)</c> — Full minus read and execute — so the recursive
+    /// <c>Directory.Delete</c> in <see cref="Dispose"/> cannot enumerate it and the temp tree leaks one
+    /// permanently undeletable directory per test-class instance, on every Windows run there has ever been.
+    /// Re-granting is what actually restores it.</summary>
+    private static void RestoreWindowsAccess(string target)
+    {
+        string who = $"{Environment.UserDomainName}\\{Environment.UserName}";
+        Icacls(target, "/remove:d", who);
+        Icacls(target, "/grant", $"{who}:(F)");
     }
 
     /// <summary>Run <c>icacls</c> through <see cref="ProcessObserver"/> — the ONE child-process seam
     /// (<c>ProcessObservationDriftTests</c>). A private <c>WaitForExit(n)</c> here would report a contention
     /// timeout as a silently-unchanged DACL, and the tests above would then read the missing denial as a
-    /// conforming '35'. The observer's budget applies; the exit code is deliberately not asserted, because
-    /// whether the denial actually took is settled by a raw <c>File.OpenRead</c> in <see cref="Refused"/> and
-    /// not by what icacls said about it.</summary>
-    private static void Icacls(string target, params string[] args)
+    /// conforming '35'. The observer's budget applies.
+    /// <para>⛔ THE OBSERVATION IS RETURNED, AND SINCE kb/Work PB795 IT IS READ. Whether the denial WORKED is
+    /// still settled by a raw open and never by what icacls said — but whether it was APPLIED can only be
+    /// answered by the tool that applied it, and those are two different questions. Conflating them is what let
+    /// a host that defeated one denial mechanism be reported as a broken helper.</para></summary>
+    private static ProcessObservation Icacls(string target, params string[] args)
     {
         var psi = new ProcessStartInfo("icacls")
         {
@@ -562,6 +689,17 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         };
         psi.ArgumentList.Add(target);
         foreach (string a in args) psi.ArgumentList.Add(a);
-        ProcessObserver.ObserveOrThrow(psi);
+        return ProcessObserver.ObserveOrThrow(psi);
     }
+
+    /// <summary>One child-process observation, collapsed to a single line a CI log can carry.</summary>
+    private static string Describe(ProcessObservation run)
+    {
+        string text = Collapse(run.Stdout);
+        string err = Collapse(run.Stderr);
+        return $"[exit {run.ExitCode}] {text}" + (err.Length == 0 ? "" : $" stderr: {err}");
+    }
+
+    private static string Collapse(string text) =>
+        string.Join(" ", text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 }

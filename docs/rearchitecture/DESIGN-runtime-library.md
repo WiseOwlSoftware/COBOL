@@ -303,6 +303,32 @@ host, the second OPEN answering '30' — a status no Table 19 row and no §9.1.1
 measured across processes, had a `SHARING WITH NO OTHER` connector admit a foreign append to a file the program
 had declared exclusive.)
 
+**⛔ DETERMINATION — THE FILE LOCK IS ONLY EVER AS STRONG AS THE HOST'S SHARE MODES, AND ON A HOST WITH ADVISORY
+LOCKS §9.1.15 2) HAS NO EXPRESSION AT ALL (kb/Work PB795).** Windows share modes are mandatory and per-access, so
+the three rules above are enforced there exactly as written. .NET reaches the same API on Unix through an
+advisory `flock` with **two** states — `FileShare.None` takes `LOCK_EX`, every other value takes `LOCK_SH` — and
+that has three consequences a user of this compiler on Linux or macOS is entitled to know:
+
+- **Rule 2 cannot be enforced.** *"restricts concurrent access to a physical file through file connectors other
+  than this one, to input mode"* needs a lock that admits a reader and refuses a writer, and `LOCK_SH` admits
+  both. So `SHARING WITH READ ONLY` — and the undetermined implementor default, which shares its posture — gets
+  the protection of rule 3's *"allows concurrent access to a physical file through other file connectors"*
+  instead. **The posture is deliberately NOT widened to `FileShare.None` to compensate:** that would refuse the
+  reader rule 2 explicitly admits, trading an under-refusal for an over-refusal of access the standard grants.
+  Degrading toward rule 3 is the direction that never denies conforming access.
+- **Rule 1 survives, but only against cooperating processes.** `LOCK_EX` is the one thing a binary advisory lock
+  can say, so `SHARING WITH NO OTHER` still excludes an outside reader and an outside writer — from any process
+  that also takes the lock. A process that simply `open(2)`s the path is not bound by an advisory lock, so the
+  exclusion is not the operating environment's own.
+- **It is measured, not predicted.** `HostCapability.Sharing` (tests/_shared) establishes real handles on a real
+  file and reports what this host did; `FileLockPostureDriftTests.TheHostsShareModeSemanticsAreTheDocumentedOnes`
+  asserts that measurement against this determination, and `ExpectedOutsideWriter` is the single place the
+  standard's answer is translated through it. Measured 2026-09-06 — Linux: *FileShare.Read admits an outside
+  reader=True, refuses an outside writer=**False***; Windows: the same field **True**. If either moves, the gate
+  goes red naming this section, because the runtime's guarantee moved and this text has to be re-derived rather
+  than the assertion adjusted.
+
+
 **The rule generalizes, and that is why it is written here rather than in the sequential connector.** Each
 organization spells it in its own terms and each must read the shared medium at the release, never a base
 captured at OPEN:
