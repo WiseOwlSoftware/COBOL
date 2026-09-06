@@ -257,6 +257,47 @@ public abstract class CobolParserCoreBase : Parser
     protected bool reservedHere(string keyword)
         => Canonical(keyword) is { } w && (ReservedWords.Find(w)?.IsReservedAt(Edition.Year) ?? false);
 
+    /// <summary>⛔ THE RESERVATION GATE ON THE USER-DEFINED-WORD SLOT (kb/Work PB693) — true when this compile
+    /// ADMITS <paramref name="keyword"/> to <c>cobolWord</c>. The generated <c>cobolWord</c> alternatives carry
+    /// <c>{userWordHere("W")}?</c> and their <c>reservedGatedWord</c> twins the exact inverse, for every name-slot
+    /// word ISO §8.9 reserves at some edition (§8.3.2.1 rule 1: "Reserved words shall not be used as user-defined
+    /// words or system-names").
+    /// <para>It is <see cref="reservedHere"/> plus ONE thing: the MIGRATION MODE. <c>--permissive</c> "accepts
+    /// constructs the targeted edition removed, warning instead of rejecting", and a word the edition added to
+    /// §8.9 is precisely such a removal — the funnel computes <c>ConstructAvailability.Removed</c> for it and
+    /// <see cref="EditionSeverityPolicy"/> downgrades the COBOLNET0901 to a warning. A permissive compile must
+    /// therefore keep PARSING the word as a user-defined word, or the whole class becomes a parse error that no
+    /// severity policy can downgrade and the migration mode is defeated for all 61 gated words. So the gate is
+    /// STRICT-ONLY, and under <c>--permissive</c> the pre-reservation reading (the word is an ordinary user word,
+    /// operand lists absorb it) is restored ON PURPOSE — that IS the pre-removal semantics the mode promises.</para>
+    /// <para>A SEPARATE predicate from <see cref="reservedHere"/> rather than a permissive clause inside it:
+    /// <see cref="facilityWord"/> and the SPECIAL-NAMES CRT/CURSOR clause guards ask the OTHER question — "is this
+    /// token the reserved keyword here" — and must keep recognizing their clauses under <c>--permissive</c>.</para></summary>
+    protected bool userWordHere(string keyword) => Edition.Permissive || !reservedHere(keyword);
+
+    /// <summary>The §8.9 message for a syntax error whose offending token is a RESERVATION-GATED word, or null
+    /// when the error is about something else (kb/Work PB693).
+    /// <para>The gate removes such a word from <c>cobolWord</c> at the editions §8.9 reserves it, which is right —
+    /// nothing may absorb it into an operand list — but it also means a REFERENCE to the word has no alternative
+    /// left to match, and the bound-tree funnel never runs on a source that failed to parse. Without this the
+    /// user's answer to <c>DISPLAY CONSTANT.</c> at <c>--std 2002</c> degrades from "'CONSTANT' is a reserved word
+    /// in COBOL-2002" to "no viable alternative at input 'CONSTANT'" — the cause named, then unnamed.</para>
+    /// <para>Narrow by construction: the token type must be in the GENERATED gate set (so an ordinary syntax error
+    /// on any other reserved keyword keeps its own message), and the word must still <c>RejectsAt</c> the compile
+    /// edition — the same conservative high-confidence predicate the funnel reports on, composed with this
+    /// group's <c>&gt;&gt;COBOL-WORDS</c> overlay. Permissive compiles never reach here: the gate does not fire.</para></summary>
+    internal string? ReservedUserWordViolation(IToken? offendingSymbol)
+    {
+        if (offendingSymbol is null || !CobolLexer.IsReservationGated(offendingSymbol.Type)) return null;
+        string? w = Canonical(offendingSymbol.Text);
+        // ReservedWordSet.Default is the generated §8.9 table with no >>COBOL-WORDS overlay — the right set here:
+        // Canonical() has ALREADY applied this group's directive (an UNDEFINE'd word returns null, an EQUATEd
+        // synonym its canonical spelling), so composing the overlay twice would double-count it.
+        return w is not null && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
+            ? ReservedWordSet.UserWordViolationMessage(w, Edition.Year)
+            : null;
+    }
+
     protected bool facilityWord(string keyword)
     {
         var t = CurrentToken;

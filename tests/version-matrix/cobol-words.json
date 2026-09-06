@@ -1,5 +1,5 @@
 {
- "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4 (cobolWord) + src/Cobol.Net.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
+ "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4 (cobolWord) + src/Cobol.Net.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). The RESERVATION GATE IS DERIVED, NEVER DECLARED HERE (kb/Work PB693): a nameSlot word that ISO 8.9 reserves at any edition gets `{!reservedHere(...)}?` on its cobolWord alternative plus the inverse-gated reservedGatedWord twin, computed by the generator from reserved-words.json - there is no per-row flag to forget, and 8.3.2.1 rule 1 (reserved words shall not be used as user-defined words) therefore holds by construction. CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
  "words": [
   {
    "token": "APPLY",
@@ -119,8 +119,7 @@
    "token": "COMMIT",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOLNET0901) still NAMES the word; the negative fixture tests/conformance/negative/user-word-commit.cob pins the declaration screen.",
-   "reservationGated": true
+   "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOLNET0901) still NAMES the word; the negative fixture tests/conformance/negative/user-word-commit.cob pins the declaration screen."
   },
   {
    "token": "CONDITION",
@@ -138,15 +137,13 @@
    "token": "CRT",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "the SPECIAL-NAMES CRT STATUS clause word. ISO 8.9 reserves CRT from 2002 ONLY (reserved-words.json r85 false), so at --std 85 it is an ordinary user word and `01 CRT PIC X.` is legal COBOL-85 - the lexer tokenizes it and cobolWord did not admit it, so the 85 declaration was a parse error. RESERVATION-GATED (the COMMIT/ROLLBACK precedent, kb/Work PB137): admitted only where 8.9 does not reserve it. kb/Work PB301.",
-   "reservationGated": true
+   "note": "the SPECIAL-NAMES CRT STATUS clause word. ISO 8.9 reserves CRT from 2002 ONLY (reserved-words.json r85 false), so at --std 85 it is an ordinary user word and `01 CRT PIC X.` is legal COBOL-85 - the lexer tokenizes it and cobolWord did not admit it, so the 85 declaration was a parse error. RESERVATION-GATED (the COMMIT/ROLLBACK precedent, kb/Work PB137): admitted only where 8.9 does not reserve it. kb/Work PB301."
   },
   {
    "token": "CURSOR",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "the SPECIAL-NAMES CURSOR clause word - the CRT twin, same 8.9 2002-only reservation and the same reservation gate. kb/Work PB301.",
-   "reservationGated": true
+   "note": "the SPECIAL-NAMES CURSOR clause word - the CRT twin, same 8.9 2002-only reservation and the same reservation gate. kb/Work PB301."
   },
   {
    "token": "DEBUGGING",
@@ -428,8 +425,7 @@
    "token": "PADDING",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "the file-control PADDING CHARACTER clause word (ANSI X3.23-1985 Sequential I-O; deleted post-2002 - VCR Table 7 row 7.20). ISO 8.9 does NOT reserve PADDING at 2014 or 2023 (reserved-words.json r2014/r2023 false; the 2023 list runs PACKED-DECIMAL to PAGE with no PADDING, and the word appears NOWHERE in the 2023 text), so `01 PADDING PIC X.` is legal COBOL at both editions - yet the lexer tokenizes the word and cobolWord did not admit it, so the declaration was a parse error at EVERY edition. RESERVATION-GATED (the COMMIT/ROLLBACK precedent, kb/Work PB137; the CRT/CURSOR precedent, kb/Work PB301): admitted only where 8.9 does not reserve it, so the clause still parses at 85/2002 where the word IS reserved. kb/Work PB300.",
-   "reservationGated": true
+   "note": "the file-control PADDING CHARACTER clause word (ANSI X3.23-1985 Sequential I-O; deleted post-2002 - VCR Table 7 row 7.20). ISO 8.9 does NOT reserve PADDING at 2014 or 2023 (reserved-words.json r2014/r2023 false; the 2023 list runs PACKED-DECIMAL to PAGE with no PADDING, and the word appears NOWHERE in the 2023 text), so `01 PADDING PIC X.` is legal COBOL at both editions - yet the lexer tokenizes the word and cobolWord did not admit it, so the declaration was a parse error at EVERY edition. RESERVATION-GATED (the COMMIT/ROLLBACK precedent, kb/Work PB137; the CRT/CURSOR precedent, kb/Work PB301): admitted only where 8.9 does not reserve it, so the clause still parses at 85/2002 where the word IS reserved. kb/Work PB300."
   },
   {
    "token": "PARSE",
@@ -537,8 +533,7 @@
    "token": "ROLLBACK",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOLNET0901) still NAMES the word; the negative fixture tests/conformance/negative/user-word-commit.cob pins the declaration screen.",
-   "reservationGated": true
+   "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOLNET0901) still NAMES the word; the negative fixture tests/conformance/negative/user-word-commit.cob pins the declaration screen."
   },
   {
    "token": "ROUNDING",

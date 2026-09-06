@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Conformance;
 /// DEFAULT, LENGTH, NATIONAL are the table-backed ones) rejects with COBOLNET0901 (ISO §8.3.2.1 rule 1 /
 /// §8.3.2.1 r1: "Reserved words shall not be used as user-defined words or system-names") ONLY when it occupies a provable
 /// user-word position — the data entry-name slot (§13.16), a paragraph/section definition (§14.4.2/§14.4.3),
-/// the SELECT file-name (§12.4.5.1), a program-name site (§11.4.2). KEYWORD occurrences that the permissive
+/// the SELECT file-name (§12.4.5.1), a program-name site (§11.10.2). KEYWORD occurrences that the permissive
 /// grammar binds into optional entry-name slots — the report-group COLUMN clause (§13.18.14), the RW104A
 /// false-reject the former blanket token-type exclusion parked — stay unflagged at every edition. Severity
 /// routes through <c>EditionContext.Removed</c>: error strict / warning permissive (the 0901 band contract).
@@ -266,5 +266,81 @@ public sealed class ReservedWordPositionConformanceTests
         var (ok02, diags02) = EditionHarness.Compile(source, 2002);
         Assert.False(ok02, "--std 2002 strict must reject a section named BIT");
         EditionHarness.AssertHasDiagnostic(diags02, "COBOLNET0901");
+    }
+
+    // ── The KEYWORD slot that BORROWS cobolWord (kb/Work PB693) ─────────────────────────
+
+    /// <summary>The VALIDATE-STATUS clause's ON phrase (ISO §13.18.62.2). FORMAT, CONTENT and RELATION are
+    /// UNDERLINED in the printed general format — KEYWORDS (§5.2.2), not user-defined words — inside a CHOICE
+    /// INDICATOR group (§5.2.6.4: one or more, each at most once, any order), so all three may be written.</summary>
+    private const string ValidateStatusOnPhraseProgram = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. RWPVSON.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 WS-REC.
+           05 WS-A PIC X(4).
+        01 WS-MSG PIC X(30) VALIDATE-STATUS IS "ERR" WHEN NO ERROR
+           ON FORMAT CONTENT RELATION FOR WS-A.
+        PROCEDURE DIVISION.
+            DISPLAY "UNREACHABLE".
+            STOP RUN.
+        """;
+
+    /// <summary>⛔ THE POSITION DISTINCTION THE §8.9 RESERVATION GATE MUST RESPECT. FORMAT is §8.9-reserved
+    /// from 2002 AND has a lexer token, so the gate removes its <c>cobolWord</c> alternative there; the ON-phrase
+    /// slot borrowed <c>cobolWord</c> to match it, which turned this legal clause into a parse error carrying a
+    /// FALSE "'FORMAT' … cannot be used as a user-defined word". The word is a KEYWORD here, so the answer is
+    /// the declined-facility COBOLNET1708 (Annex A.4.14 — the VALIDATE facility's support is not claimed) and
+    /// NO §8.9 diagnostic at all. The <c>declined-validate-status</c> negative case is the corpus twin.</summary>
+    [Theory]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void ValidateStatusOnPhrase_FormatIsAKeywordUse_DeclinedNever0901(int edition)
+    {
+        var (ok, diags) = EditionHarness.Compile(ValidateStatusOnPhraseProgram, edition);
+        Assert.False(ok, $"--std {edition} must decline the VALIDATE-STATUS clause");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET1708");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOLNET0901");
+    }
+
+    /// <summary>The same clause under <c>--permissive</c>: the gate is strict-only, so the pre-reservation
+    /// reading was never broken there — the decline stays a warning and the program compiles.</summary>
+    [Fact]
+    public void ValidateStatusOnPhrase_2002Permissive_WarnsAndCompiles()
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull(ValidateStatusOnPhraseProgram, 2002, permissive: true);
+        Assert.True(ok, $"--std 2002 --permissive: {string.Join("; ", errors)}");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1708");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0901");
+    }
+
+    /// <summary>ONE occurrence of the word, ONE report (kb/Work PB693). A REFERENCE to a reservation-gated
+    /// word cannot parse, so the §8.9 answer comes from <c>CobolErrorListener</c>'s re-code rather than the
+    /// bound-tree funnel — and ANTLR raises TWO syntax errors on the one offending token (the prediction
+    /// failure and <c>CobolErrorStrategy</c>'s recovery message). Re-coding both printed the identical
+    /// sentence twice; §8.3.2.1 rule 1 is violated once by one occurrence, and it is reported once.</summary>
+    [Theory]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void ReservedWordReference_IsNamedExactlyOnce(int edition)
+    {
+        var (ok, diags) = EditionHarness.Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWPONCE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FORMAT PIC X(4) VALUE "ABCD".
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY FORMAT.
+                STOP RUN.
+            """, edition);
+        Assert.False(ok, $"--std {edition} strict must reject a reference to the reserved word FORMAT");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0901");
+        Assert.Equal(1, diags.Count(d => d.Contains("COBOLNET0901", StringComparison.Ordinal)
+                                         && d.Contains("'FORMAT'", StringComparison.Ordinal)));
     }
 }

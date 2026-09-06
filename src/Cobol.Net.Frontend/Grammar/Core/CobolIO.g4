@@ -27,8 +27,15 @@ fileControlParagraph
 
 // ISO §12.4.5.2 SR1: SELECT comes first; all following clauses (including ASSIGN) may appear in
 // ANY ORDER. So ASSIGN is just one of the order-free fileControlClauses, not a fixed-position slot.
+// The SELECT file-name is the file's DEFINITION (§12.4.5.1 general format `SELECT [OPTIONAL] file-name-1`) and
+// the third IsProvableUserWordPosition slot. `reservedGatedWord` is the declaration re-admission the reservation
+// gate needs (kb/Work PB693, the dataName/programName precedent): a §8.9-reserved word is gated OUT of cobolWord
+// at the editions that reserve it, so without this alternative `SELECT DEFAULT …` at --std 2002 answers a raw
+// COBOL0001 instead of the targeted COBOLNET0901. It sits HERE and not in `fileName`, which every REFERENCE uses
+// — OPEN/CLOSE take file-name LISTS, and re-admitting the word there would let a list absorb the next
+// statement's leading keyword again (the PB693 defect). DataBinder reads `grp.fileName()` null-safely.
 fileControlClauseGroup
-    : SELECT OPTIONAL? fileName
+    : SELECT OPTIONAL? (fileName | reservedGatedWord)
       fileControlClauses*
       DOT
     ;

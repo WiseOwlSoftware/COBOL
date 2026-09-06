@@ -146,8 +146,16 @@ programIdParagraph
     : PROGRAM_ID DOT programName externalizedNamePhrase? (IS? programIdAttributes PROGRAM?)? DOT
     ;
 
+// §11.10.2 program-name-1 is a user-defined word (§8.3.2.2). The `reservedGatedWord` alternative is the
+// DECLARATION re-admission the reservation gate needs (kb/Work PB693, the dataName precedent): a §8.9-reserved
+// word is gated OUT of cobolWord at the editions that reserve it, so without this `PROGRAM-ID. UNLOCK.` at
+// --std 2002 answers a raw COBOL0001 "no viable alternative" instead of the targeted COBOLNET0901 that names
+// §8.9 — and this slot is one of the four IsProvableUserWordPosition definition slots the funnel screens.
+// The two alternatives carry EXACTLY INVERSE predicates, so at most one can match: no ambiguity, and the
+// slot's grammar (PROGRAM-ID DOT <word>) admits no competing production.
 programName
     : cobolWord
+    | reservedGatedWord
     ;
 
 programIdAttributes
@@ -661,8 +669,18 @@ sectionDefinition
       paragraphDefinition*
     ;
 
+// §14.4.2/§14.4.3 section-name-1 / paragraph-name-1 are user-defined words (§8.3.2.2), and BOTH are DEFINITION
+// slots — the two IsProvableUserWordPosition procedure-name positions. The `reservedGatedWord` alternative is
+// the declaration re-admission the reservation gate needs (kb/Work PB693, the dataName precedent): a
+// §8.9-reserved word is gated OUT of cobolWord at the editions that reserve it, so without this `BIT SECTION.`
+// at --std 2002 answers a raw COBOL0001 instead of the targeted COBOLNET0901 that names §8.9.
+// ⛔ IT SITS ON THE DEFINITION WRAPPERS, NOT ON `procedureName`: procedureName is shared with every REFERENCE
+// (GO TO … DEPENDING's procedure-name LIST above all), and re-admitting the word there would let that list
+// absorb the next statement's leading keyword again — the very defect PB693 fixes. Consumers read these
+// contexts with GetText(), so the alternative costs no binder change.
 sectionName
     : procedureName
+    | reservedGatedWord
     ;
 
 paragraphDefinition
@@ -671,6 +689,7 @@ paragraphDefinition
 
 paragraphName
     : {IsAtLineStart()}? procedureName
+    | {IsAtLineStart()}? reservedGatedWord
     ;
 
 procedureName

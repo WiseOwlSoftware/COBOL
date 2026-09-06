@@ -157,11 +157,28 @@ validateVaryingSpec
 
 // ISO §13.18.62.2 — { VALIDATE-STATUS | VAL-STATUS } IS { identifier-1 | literal-1 }
 //                   WHEN { ERROR | NO ERROR } [ ON { |FORMAT| |CONTENT| |RELATION| } ] FOR { identifier-2 } …
-// §13.18.62.3 SR9: the two leading words are EQUIVALENT. The printed ON group carries CHOICE INDICATORS
-// (§5.2.6.4 — one or more, each at most once, in any order), which is why the stage list is a repetition
-// rather than a single alternation. FORMAT and RELATION need no dedicated tokens: FORMAT is §8.9-reserved
-// from 2002 but has no lexer token, RELATION is §8.10 context-sensitive ("VALIDATE-STATUS clause"), so both
-// arrive as cobolWord; CONTENT already has one. The loop terminates on FOR, a hard token.
+// §13.18.62.3 SR9: the two leading words are EQUIVALENT ("The words VAL-STATUS and VALIDATE-STATUS are
+// equivalent"). The printed ON group carries CHOICE INDICATORS (§5.2.6.4 — "one or more of the alternatives
+// contained within the choice indicators shall be specified, but any single alternative shall be specified
+// only once", "in any order"), which is why the stage list is a repetition rather than a single alternation.
+// The loop terminates on FOR, a hard token.
+//
+// ⛔ FORMAT, CONTENT and RELATION ARE KEYWORDS HERE — all three are UNDERLINED in §13.18.62.2's printed
+// diagram (KEYWORDS, §5.2.2 — "shown in uppercase and underlined"), NOT user-defined words — so each
+// needs an arm that survives the §8.9 RESERVATION GATE on cobolWord (kb/Work PB693). That gate enforces
+// §8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names") by removing a
+// reserved word's cobolWord alternative at the editions that reserve it — so a KEYWORD slot that borrows
+// cobolWord is broken by construction there. FORMAT is §8.9-reserved from 2002 and DOES have a lexer
+// token (CobolLexer.g4 FORMAT, serving the FD FORMAT clause §13.18.24) — the comment that stood here
+// claimed it had none, and that false premise is exactly what left it riding cobolWord and made
+// `ON FORMAT …` a parse error at 2002+ (with a FALSE
+// "'FORMAT' is a reserved word … cannot be used as a user-defined word" from the error listener) instead of
+// the declined-facility COBOLNET1708. It gets its own arm, the CONTENT precedent in this rule and the
+// validateClassOperand precedent above. RELATION keeps the cobolWord sink: §8.10 makes it CONTEXT-SENSITIVE
+// ("VALIDATE-STATUS clause"), so it is reserved at no edition, has no lexer token, arrives as IDENTIFIER and
+// no gate can reach it. Leaving that arm a word SINK rather than a text predicate is this file's declared
+// posture (permissive INSIDE the declined construct, exact at its edges — §4.2.7): the clause is refused as
+// a whole whichever arm matched, so no operand distinction is observable.
 validateStatusClause
     : (VALIDATE_STATUS | VAL_STATUS) IS? (literal | dataReference)
       WHEN NO? ERROR (ON validateStatusStage+)? FOR dataReference+
@@ -169,7 +186,8 @@ validateStatusClause
 
 validateStatusStage
     : CONTENT
-    | cobolWord
+    | FORMAT
+    | cobolWord      // RELATION (§8.10 context-sensitive — no token, arrives as IDENTIFIER)
     ;
 
 // ISO §13.18.63.2 FORMAT 5 (content-validation-entry) — the tail that turns a level-88 VALUE list into a

@@ -462,7 +462,7 @@ internal sealed class VersionConformancePass
         // mandatory and directly follows SELECT [OPTIONAL], before any file-control clause keyword — the slot
         // is always the file being DEFINED. FD/statement file-name REFERENCES stay unchecked.
         CobolParserCore.FileNameContext { Parent: CobolParserCore.FileControlClauseGroupContext } => true,
-        // The PROGRAM-ID / FUNCTION-ID / END-marker program-name (§11.4.2 / §11.5 / §10.6.1): program-names
+        // The PROGRAM-ID / FUNCTION-ID / END-marker program-name (§11.10.2 / §11.5 / §10.6.1): program-names
         // are user-defined words (§8.3.2.2) and every programName site names the source unit itself, directly
         // after a dedicated header token — no keyword can occupy the slot.
         CobolParserCore.ProgramNameContext => true,
@@ -2210,25 +2210,26 @@ internal sealed class VersionConformancePass
             _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
                 EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
                 "edition-reserved-word",
-                $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
-                + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
+                ReservedWordSet.UserWordViolationMessage(word, _p._edition.Year), "", "ISO §8.9"));
         }
 
-        /// <summary>kb/Work PB137/PB300: dataName's <c>reservedGatedWord</c> alternative keeps a DECLARATION of a
-        /// reservation-gated word parseable at the editions where §8.9 reserves it, precisely so this funnel can
+        /// <summary>kb/Work PB137/PB300/PB693: the generated <c>reservedGatedWord</c> rule keeps a DECLARATION of
+        /// a reservation-gated word parseable at the editions where §8.9 reserves it, precisely so this funnel can
         /// NAME the word — it bypasses cobolWord entirely, so the §8.9 check must meet it here.
-        /// <para>⛔ WORD-LIST-FREE BY CONSTRUCTION. This used to read
-        /// <c>ctx.COMMIT() is not null ? "COMMIT" : ctx.ROLLBACK() is not null ? "ROLLBACK" : null</c> — a second
-        /// hand-maintained copy of the grammar's own list, and it was already stale: CRT and CURSOR were
-        /// reservation-gated by PB301 and neither this arm nor the grammar's arm was extended, so a declaration
-        /// of either answered a raw parse error. Every <c>reservedGatedWord</c> alternative is a SINGLE token, so
-        /// the subrule's own text IS the word and a new gated row needs no edit here (CLAUDE.md rule 5).</para>
-        /// <para>PROCEDURE and FILLER are deliberately NOT reached: PROCEDURE is §8.9-reserved at every edition
-        /// and NC205A legally names a data item with it, and FILLER is not a user-defined word at all.</para></summary>
-        public override object? VisitDataName(CobolParserCore.DataNameContext ctx)
+        /// <para>⛔ SLOT-LIST-FREE AND WORD-LIST-FREE BY CONSTRUCTION. The arm hangs on the SHARED RULE, not on
+        /// the slots that use it: every use of <c>reservedGatedWord</c> is a definition slot by construction (the
+        /// rule exists only to re-admit a word §8.9 forbids as a user-defined word, so its presence in the tree IS
+        /// the §8.3.2.1 rule-1 violation), which is why <c>dataName</c> and <c>programName</c> both get their 0901
+        /// with no second override — and why the NEXT definition slot needs no C# at all (CLAUDE.md rule 5). It
+        /// was <c>VisitDataName</c>, reading <c>ctx.reservedGatedWord()</c>, and before that a hand-written
+        /// <c>ctx.COMMIT() is not null ? "COMMIT" : …</c> word list that had already gone stale (CRT/CURSOR).
+        /// Every alternative of the rule is a SINGLE token, so the subrule's own text IS the word.</para>
+        /// <para>PROCEDURE and FILLER are deliberately NOT reached: they are separate <c>dataName</c>
+        /// alternatives — PROCEDURE is §8.9-reserved at every edition and NC205A legally names a data item with
+        /// it, and FILLER is not a user-defined word at all.</para></summary>
+        public override object? VisitReservedGatedWord(CobolParserCore.ReservedGatedWordContext ctx)
         {
-            if (ctx.reservedGatedWord() is { } gated)
-                FlagReservedUserWord(gated.GetText().ToUpperInvariant());
+            FlagReservedUserWord(ctx.GetText().ToUpperInvariant());
             return base.VisitChildren(ctx);
         }
     }

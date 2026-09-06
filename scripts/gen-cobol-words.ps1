@@ -16,7 +16,9 @@
 #
 # Inputs (in-repo):
 #   tests/version-matrix/cobol-words.json    — the single declarative source (token / nameSlot / subscriptTrigger / note).
-#   tests/version-matrix/reserved-words.json — the §8.9 per-edition reserved-word flags (cross-check only; gen-reserved-words.ps1 owns it).
+#   tests/version-matrix/reserved-words.json — the §8.9 per-edition reserved-word flags. Cross-check (RW-1/RW-2)
+#                                              AND, since kb/Work PB693, the SOURCE of the reservation gate:
+#                                              step 4b derives it here instead of reading a per-row flag.
 #   src/Cobol.Net.Frontend/Cobol.Net.Frontend.csproj — the <AntlrNamespace> property (single source of the generated-lexer namespace).
 #
 # Outputs (BOTH committed; CobolWordsDriftTests asserts they agree with the JSON, both directions):
@@ -59,6 +61,12 @@ foreach ($r in $rows) {
     if ($r.subscriptTrigger -isnot [bool]) { throw "token $($r.token): subscriptTrigger is not a boolean" }
     if (-not $r.nameSlot -and -not $r.subscriptTrigger) { throw "token $($r.token): in NEITHER set (a word must be in >=1 set)" }
     if (-not $seen.Add($r.token)) { throw "duplicate token: $($r.token)" }
+    # kb/Work PB693: the reservation gate is DERIVED below, never declared per row. A leftover flag is a second
+    # copy of data reserved-words.json already owns, and a per-row flag is exactly what rotted for UNLOCK and 50
+    # siblings — reject it rather than let the two sources disagree silently.
+    if ($r.PSObject.Properties['reservationGated']) {
+        throw "token $($r.token): 'reservationGated' is no longer a JSON field (kb/Work PB693) — the gate is DERIVED from reserved-words.json; delete the flag"
+    }
 }
 # IDENTIFIER is the base user-defined word — it MUST be in both sets or every name/subscript breaks.
 $ident = $rows | Where-Object { $_.token -eq 'IDENTIFIER' }
@@ -144,6 +152,56 @@ $nameSlotReservedAll4 = @($nameSlotTokens | Where-Object {
     $e = $rwMap[(To-Word $_)]; $e -and $e.r85 -and $e.r2002 -and $e.r2014 -and $e.r2023
 })
 
+# ---- 4b. DERIVE THE RESERVATION GATE (kb/Work PB693 — CLAUDE.md rule 5: never a hand-maintained list where a
+#          structure belongs). ISO 8.3.2.1 rule 1: "Reserved words shall not be used as user-defined words or
+#          system-names." cobolWord IS the user-defined-word slot, so a nameSlot word that ISO 8.9 reserves at
+#          edition E must not be admitted there at E — otherwise an operand list absorbs the word and the
+#          statement it begins vanishes (UNLOCK: `MOVE "ZZ" TO FS` + a period-less `UNLOCK F1` became a
+#          three-receiver MOVE, and legal 2002+ source was rejected).
+#          The gate USED to be a per-row `reservationGated` flag, added by hand for five words; fifty-one
+#          siblings with the same 8.9 straddle were never flagged and nothing could see it. Deriving the set
+#          from the SAME reserved-words.json the funnel and reservedHere() read makes the next word automatic
+#          and leaves nothing to forget. IDENTIFIER is excluded structurally (it is the base user word, never
+#          a keyword token).
+#          ⛔ ONE EXCLUSION, AND IT IS DERIVED TOO: the §15 INTRINSIC FUNCTION NAMES that collide with a reserved
+#          word (the `functionName` rule in Grammar/Core/CobolExpressions.g4 — LENGTH, NATIONAL, BIT are the ones
+#          that are also nameSlot rows). A cobolWord occurrence of one of these is the KEYWORD-OMITTED function
+#          reference §15 permits (`COMPUTE N = LENGTH(A)` parses the name through cobolWord, not through a
+#          FUNCTION-led rule), i.e. a use OF the reserved word rather than a user-defined-word use — the same
+#          distinction VersionConformancePass.IsBareFunctionArgumentWord draws for §15 phrase words. Gating them
+#          made five conforming 2023 goldens COBOL0001. They also carry NO swallow risk: a function name leads no
+#          statement and no clause, so no operand list can absorb a construct through it.
+$functionNameG4 = Join-Path $repo 'src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4'
+if (-not (Test-Path $functionNameG4)) { throw "missing input: $functionNameG4 (the functionName rule is the gate's exclusion source)" }
+$fnLines = Get-Content -LiteralPath $functionNameG4
+$fnStart = [Array]::FindIndex([string[]]$fnLines, [Predicate[string]]{ param($l) $l.Trim() -eq 'functionName' })
+if ($fnStart -lt 0) { throw "no 'functionName' rule in $functionNameG4 — the gate's exclusion source moved" }
+$functionNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+for ($i = $fnStart + 1; $i -lt $fnLines.Count; $i++) {
+    $l = $fnLines[$i].Trim()
+    if ($l -eq ';') { break }
+    if ($l -match '^[:|]\s*([A-Z][A-Z0-9_]*)\s*$') { [void]$functionNames.Add($Matches[1]) }
+}
+if ($functionNames.Count -lt 2) { throw "the functionName rule yielded $($functionNames.Count) tokens — the parse broke" }
+
+$gatedTokenSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+$lowConfidence = @()
+foreach ($t in $nameSlotTokens) {
+    if ($t -eq 'IDENTIFIER') { continue }
+    if ($functionNames.Contains($t)) { continue }                    # a §15 function name: a keyword use, see above
+    $e = $rwMap[(To-Word $t)]
+    if ($null -eq $e) { continue }                                   # a §8.10 context-sensitive word: never reserved
+    if (-not ($e.r85 -or $e.r2002 -or $e.r2014 -or $e.r2023)) { continue }
+    # The grammar gate keys on userWordHere() = !IsReservedAt (confidence-blind), while the §8.9 funnel only
+    # REPORTS high-confidence rows (ReservedWordSet.RejectsAt). Gating a lower-confidence word would reject the
+    # declaration with a bare parse error and NO COBOLNET0901 to explain it — fail hard instead of shipping that.
+    if ($e.confidence -ne 'high') { $lowConfidence += "$t($($e.confidence))" ; continue }
+    [void]$gatedTokenSet.Add($t)
+}
+if ($lowConfidence.Count -gt 0) {
+    throw "RW-3: nameSlot word(s) reserved at some edition but NOT high-confidence [$($lowConfidence -join ', ')] — the derived gate would reject them with no COBOLNET0901 (the funnel only reports high-confidence rows); raise the confidence or drop the nameSlot admission"
+}
+
 # ---- 5. Emit CobolWords.g4 (the generated cobolWord parser fragment) ----
 $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine('// <auto-generated> by scripts/gen-cobol-words.ps1 — DO NOT EDIT; re-run the script.')
@@ -156,37 +214,40 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine('options { tokenVocab = CobolLexer; }')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('cobolWord')
-$gated = [System.Collections.Generic.HashSet[string]]::new([string[]]@($rows | Where-Object { $_.PSObject.Properties['reservationGated'] -and $_.reservationGated } | ForEach-Object { $_.token }), [System.StringComparer]::Ordinal)
+$gated = $gatedTokenSet
 for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
     $sep = if ($i -eq 0) { ':' } else { '|' }
     $tok = $nameSlotTokens[$i]
-    # kb/Work PB137: a reservationGated word leaves the user-word space exactly where 8.9 reserves it,
-    # so no operand list absorbs the bare facility verb at 2023 while pre-2023 user-word use survives.
-    if ($gated.Contains($tok)) { [void]$sb.AppendLine("    $sep {!reservedHere(`"$tok`")}? $tok") }
+    # kb/Work PB137/PB693: a reservation-gated word leaves the user-word space exactly where 8.9 reserves it,
+    # so no operand list absorbs the bare keyword there while user-word use at the other editions survives.
+    if ($gated.Contains($tok)) { [void]$sb.AppendLine("    $sep {userWordHere(`"$tok`")}? $tok") }
     else { [void]$sb.AppendLine("    $sep $tok") }
 }
 [void]$sb.AppendLine('    ;')
-# ---- 5b. Emit reservedGatedWord — the SAME reservationGated rows, gate INVERTED (kb/Work PB300) ----
-# A reservationGated word leaves cobolWord exactly where §8.9 reserves it (step 5). That is right for every
-# REFERENCE slot, but a DECLARATION naming the word must still PARSE at those editions, or the §8.9 funnel's
-# targeted COBOLNET0901 ("'X' is a reserved word in COBOL-nnnn") degrades to a raw COBOL0001 parse error that
-# never names the cause. dataName therefore re-admits the same words under the INVERSE predicate. That
-# re-admission used to be a HAND-WRITTEN list of two words in CobolData.g4 (COMMIT/ROLLBACK) — so CRT and
-# CURSOR, gated by kb/Work PB301, never got their 0901 and nobody noticed. Generating BOTH halves from the ONE
-# `reservationGated` flag makes the next gated word automatic (CLAUDE.md rule 5); CobolWordsDriftTests pins it.
+# ---- 5b. Emit reservedGatedWord — the SAME derived gate set, predicate INVERTED (kb/Work PB300/PB693) ----
+# A gated word leaves cobolWord exactly where §8.9 reserves it (step 5). That is right for every REFERENCE
+# slot, but a DECLARATION naming the word must still PARSE at those editions, or the §8.9 funnel's targeted
+# COBOLNET0901 ("'X' is a reserved word in COBOL-nnnn") degrades to a raw COBOL0001 parse error that never
+# names the cause. dataName and programName therefore re-admit the same words under the INVERSE predicate.
+# That re-admission used to be a HAND-WRITTEN list of two words in CobolData.g4 (COMMIT/ROLLBACK) — so CRT and
+# CURSOR, gated by kb/Work PB301, never got their 0901 and nobody noticed; then the GATE ITSELF was a
+# hand-set flag and fifty-one §8.9-straddling words never got one (PB693). Deriving BOTH halves from the ONE
+# reserved-words.json makes the next gated word automatic (CLAUDE.md rule 5); CobolWordsDriftTests pins it.
 $gatedTokens = [System.Collections.Generic.List[string]]::new([string[]]$gated)
 $gatedTokens.Sort([System.StringComparer]::Ordinal)
 if ($gatedTokens.Count -lt 1) {
-    throw "no reservationGated rows: dataName references reservedGatedWord, and an empty rule is invalid ANTLR"
+    throw "the derived gate set is empty: dataName references reservedGatedWord, and an empty rule is invalid ANTLR"
 }
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('// The DECLARATION-position twin of the gated cobolWord alternatives (kb/Work PB300/PB137): the SAME')
-[void]$sb.AppendLine('// reservationGated rows under the INVERSE predicate, so `01 <word> PIC X.` still PARSES where §8.9')
-[void]$sb.AppendLine('// reserves the word and the funnel answers with a targeted COBOLNET0901 instead of a parse error.')
+[void]$sb.AppendLine('// The DECLARATION-position twin of the gated cobolWord alternatives (kb/Work PB300/PB137/PB693): the')
+[void]$sb.AppendLine('// SAME derived rows under the INVERSE predicate, so `01 <word> PIC X.` and `PROGRAM-ID. <word>.`')
+[void]$sb.AppendLine('// still PARSE where §8.9 reserves the word and the funnel answers with a targeted COBOLNET0901')
+[void]$sb.AppendLine('// instead of a parse error. VersionConformancePass.VisitReservedGatedWord is the ONE funnel arm:')
+[void]$sb.AppendLine('// every use of this rule is a definition slot, so a new slot needs no new C# (kb/Work PB693).')
 [void]$sb.AppendLine('reservedGatedWord')
 for ($i = 0; $i -lt $gatedTokens.Count; $i++) {
     $sep = if ($i -eq 0) { ':' } else { '|' }
-    [void]$sb.AppendLine("    $sep {reservedHere(`"$($gatedTokens[$i])`")}? $($gatedTokens[$i])")
+    [void]$sb.AppendLine("    $sep {!userWordHere(`"$($gatedTokens[$i])`")}? $($gatedTokens[$i])")
 }
 [void]$sb.AppendLine('    ;')
 Set-Content -LiteralPath $g4Out -Value $sb.ToString().TrimEnd() -Encoding utf8
@@ -194,7 +255,8 @@ Set-Content -LiteralPath $g4Out -Value $sb.ToString().TrimEnd() -Encoding utf8
 # ---- 6. Emit CobolLexerWordSet.g.cs (the generated `partial class CobolLexer` holding _dataNameTokens) ----
 $cs = [System.Text.StringBuilder]::new()
 [void]$cs.AppendLine('// <auto-generated> by scripts/gen-cobol-words.ps1 — DO NOT EDIT; re-run the script.')
-[void]$cs.AppendLine('// Source: tests/version-matrix/cobol-words.json (subscriptTrigger=true rows). CobolWordsDriftTests asserts agreement.')
+[void]$cs.AppendLine('// Source: tests/version-matrix/cobol-words.json (subscriptTrigger=true rows) plus the DERIVED reservation-gate')
+[void]$cs.AppendLine('// set of step 4b (kb/Work PB693). CobolWordsDriftTests asserts agreement with both.')
 [void]$cs.AppendLine('// This committed partial (NOT under Generated/, so `dotnet clean` keeps it) extends the ANTLR-generated')
 [void]$cs.AppendLine('// CobolLexer with the subscript-trigger set. A ''('' after one of these tokens enters SUBSCRIPT mode')
 [void]$cs.AppendLine('// (PreviousTokenCouldBeDataName in CobolLexer.g4 @members). Token-type constants resolve unqualified.')
@@ -205,6 +267,18 @@ $cs = [System.Text.StringBuilder]::new()
 [void]$cs.AppendLine('    private static readonly System.Collections.Generic.HashSet<int> _dataNameTokens = new()')
 [void]$cs.AppendLine('    {')
 foreach ($t in $subTrigTokens) { [void]$cs.AppendLine("        $t,") }
+[void]$cs.AppendLine('    };')
+[void]$cs.AppendLine('')
+[void]$cs.AppendLine('    /// <summary>The RESERVATION-GATED token types (kb/Work PB693) — the same derived set step 4b')
+[void]$cs.AppendLine('    /// puts behind {userWordHere("W")}? in cobolWord. A parse error ON one of these is the §8.9')
+[void]$cs.AppendLine('    /// violation itself (the gate is why no name-slot alternative matched), so CobolErrorListener')
+[void]$cs.AppendLine('    /// answers with the targeted COBOLNET0901 instead of a raw COBOL0001 that never names the cause.')
+[void]$cs.AppendLine('    /// Generated, so a newly gated word needs no edit anywhere.</summary>')
+[void]$cs.AppendLine('    internal static bool IsReservationGated(int tokenType) => _reservationGatedTokens.Contains(tokenType);')
+[void]$cs.AppendLine('')
+[void]$cs.AppendLine('    private static readonly System.Collections.Generic.HashSet<int> _reservationGatedTokens = new()')
+[void]$cs.AppendLine('    {')
+foreach ($t in $gatedTokens) { [void]$cs.AppendLine("        $t,") }
 [void]$cs.AppendLine('    };')
 [void]$cs.AppendLine('}')
 Set-Content -LiteralPath $csOut -Value $cs.ToString().TrimEnd() -Encoding utf8
@@ -217,6 +291,8 @@ $stats = [ordered]@{
     nameSlotOnly     = $nameSlotOnly.Count       # documented FU-1 latent asymmetry (BIT)
     subscriptTrigOnly = $subTrigOnly.Count        # functionName collisions
     nameSlotReservedAll4 = $nameSlotReservedAll4.Count   # RW-2: §8.9-funnel-gated name-slot admissions
+    reservationGated = $gatedTokens.Count                # 4b: DERIVED — nameSlot words §8.9 reserves at >=1 edition
+    functionNameExempt = @($nameSlotTokens | Where-Object { $functionNames.Contains($_) }).Count   # 4b exclusion
     namespace        = $antlrNamespace
 }
 Write-Output ("cobol-words generated: " + (($stats.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ' '))

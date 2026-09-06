@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Unit;
 /// reserved word (ISO §8.3.2.1 rule 1 / §8.3.2.4.1) ONLY when its <c>cobolWord</c> occurrence sits in a
 /// grammar position that is unambiguously a user-defined-word use (§8.3.2.2) — the data/parameter entry-name
 /// slot (§13.16), a paragraph/section definition (§14.4.2/§14.4.3), the SELECT file-name (§12.4.5.1), and the
-/// program-name sites (§11.4.2/§11.5/§10.6.1). Mis-parse-prone optional entry-name slots (the RW104A hazard:
+/// program-name sites (§11.10.2/§11.5/§10.6.1). Mis-parse-prone optional entry-name slots (the RW104A hazard:
 /// the report-group COLUMN clause keyword, §13.18.14, binds into the <c>reportGroupName?</c> slot under the
 /// permissive grammar) and every reference position classify FALSE. Each fact feeds REAL parse trees through
 /// the frontend — no hand-built contexts.
@@ -168,7 +168,7 @@ public sealed class ReservedWordPositionTests : CobolNetTestBase
                 { Parent: CobolParserCore.FileControlClauseGroupContext })));
     }
 
-    [Fact]   // §11.4.2/§10.6.1: every programName site (PROGRAM-ID header, END PROGRAM marker) names the
+    [Fact]   // §11.10.2/§10.6.1: every programName site (PROGRAM-ID header, END PROGRAM marker) names the
              // source unit itself — classifies true (here via the ordinary IDENTIFIER program name; the slot
              // matters for band tokens, which occupy the identical context).
     public void ProgramName_IsProvableUserWordPosition()

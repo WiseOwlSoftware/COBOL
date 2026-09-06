@@ -354,29 +354,82 @@ from it:
    with exact reconciliation pins on both asymmetry sides) so the two sources cannot silently disagree; a
    violation fails generation (fail-hard, like the existing drift test).
 
-**Reservation gating has TWO halves, and BOTH are generated from the one `reservationGated` flag.** A word whose
-§8.9 reservation *changes across editions* (COMMIT, ROLLBACK, CRT, CURSOR, PADDING) cannot simply be a
-`cobolWord` alternative: at the editions that reserve it, admitting it in every name slot lets an operand list
-absorb the bare facility verb. So the generator emits it twice, with opposite predicates:
+**Reservation gating has TWO halves, and the gate set itself is DERIVED — there is no flag (kb/Work PB693).**
+ISO §8.3.2.1 rule 1 is the whole rule: *"Reserved words shall not be used as user-defined words or
+system-names."* `cobolWord` IS the user-defined-word slot, so **every** name-slot word that §8.9 reserves at some
+edition must leave that slot at those editions — otherwise an operand list absorbs the word and the construct it
+begins vanishes. Step 4b of `gen-cobol-words.ps1` therefore computes the gate set from `reserved-words.json`:
+a `nameSlot` row whose word is reserved at >=1 edition is gated, full stop. The generator emits each gated word
+twice, with opposite predicates:
 
-- in `cobolWord` as `{!reservedHere("W")}? W` — the word is a user word exactly where §8.9 leaves it free; and
-- in `reservedGatedWord` as `{reservedHere("W")}? W`, an alternative of `dataName`, so a DECLARATION naming the
-  word still PARSES where §8.9 reserves it and `VersionConformancePass`'s funnel answers with the targeted
-  COBOLNET0901 ("'W' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 "no viable alternative".
+- in `cobolWord` as `{userWordHere("W")}? W` — the word is a user word exactly where §8.9 leaves it free; and
+- in `reservedGatedWord` as `{!userWordHere("W")}? W` — an alternative of the DEFINITION slots `dataName`,
+  `programName`, `sectionName`, `paragraphName` and the SELECT file-name, so a DECLARATION naming the word still
+  PARSES where §8.9 reserves it and `VersionConformancePass`'s funnel answers with the targeted COBOLNET0901
+  ("'W' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 "no viable alternative". The funnel arm
+  hangs on `VisitReservedGatedWord`, the RULE — so a NEW definition slot needs no C# at all.
+
+**`userWordHere` is `reservedHere` plus the migration mode.** `--permissive` accepts what the edition removed,
+and a word §8.9 took away is exactly that (`ConstructAvailability.Removed`), so under `--permissive` the gate does
+not fire, the pre-reservation reading is restored and the 0901 comes back as a WARNING on a program that runs. A
+gate that ignored the permissive axis would turn the whole class into parse errors no severity policy can
+downgrade. `reservedHere` keeps its own meaning ("is this token the reserved keyword here") for `facilityWord`
+and the SPECIAL-NAMES CRT/CURSOR clause guards, which must keep recognizing their clauses under `--permissive`.
+
+**The gate has exactly ONE exclusion, and it is derived too: the §15 intrinsic function names that collide with a
+reserved word** (the `functionName` rule in `Grammar/Core/CobolExpressions.g4` — of the name-slot rows, LENGTH,
+NATIONAL and BIT). A `cobolWord` occurrence of one of these is the KEYWORD-OMITTED function reference §15 permits
+(`COMPUTE N = LENGTH(A)` reaches the name through `cobolWord`, not through a FUNCTION-led rule) — a use OF the
+reserved word, the same distinction `IsBareFunctionArgumentWord` draws for §15 phrase words. Gating them turned
+five conforming 2023 goldens into COBOL0001. They also carry no swallow risk: a function name leads no statement
+and no clause.
+
+⛔ **A KEYWORD SLOT MAY NOT BORROW `cobolWord` (kb/Work PB693).** The gate gives `cobolWord` one meaning —
+*user-defined word* — so a rule that used it to match a reserved KEYWORD that happens to carry a lexer token is
+broken at exactly the editions §8.9 reserves that word, and the parse-error path below then prints a FALSE
+"'W' … cannot be used as a user-defined word" over a slot where the program never used it as a name. One rule
+did: `validateStatusStage` (`Grammar/Core/CobolDeclined.g4`), the VALIDATE-STATUS clause's ON phrase, whose three
+choice indicators FORMAT / CONTENT / RELATION are all UNDERLINED in §13.18.62.2 — keywords (§5.2.2), not names.
+FORMAT is §8.9-reserved from 2002 and does have a token (the FD FORMAT clause, §13.18.24), so `ON FORMAT …`
+became a parse error at 2002+ instead of the declined-facility COBOLNET1708. **The fix is a token arm in the
+BORROWING rule, never an exclusion from the gate** — the word is reserved, and every other slot must keep
+rejecting it. The sweep behind that: FORMAT is the ONLY §8.9-reserved word carrying a lexer token that any rule
+expects `cobolWord` to match as a keyword. Every other keyword the grammar routes through `cobolWord` — LOCALE,
+ORDER, CLASSIFICATION, ATTRIBUTE, UCS-4/UTF-8/UTF-16, RELATION, NONE, RECEIVED, COBOL — is §8.10
+context-sensitive or unclassified by the standard, has NO lexer token, arrives as IDENTIFIER, and no gate can
+reach it. `computerAttributes`, the other word sink, is a raw `~(DOT | PROGRAM | CHARACTER)+` token loop and
+never enters `cobolWord` at all.
+**A REFERENCE to a gated word is answered by the parse-error path.** The gate leaves no name-slot alternative for
+`DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So
+`CobolErrorListener` asks the parser whether the offending token is reservation-gated (the generated
+`CobolLexer.IsReservationGated` set) and still rejects at this edition, and re-codes the diagnostic to
+COBOLNET0901 with the ONE message `ReservedWordSet.UserWordViolationMessage` owns. The cause is named in every
+position — reference slots included, which the funnel deliberately never screened. It is named ONCE per
+occurrence of the word: ANTLR raises TWO syntax errors on one offending token (the prediction failure and
+`CobolErrorStrategy`'s recovery message), which read as two different sentences before the re-code and as the
+same sentence twice after it — and §8.3.2.1 rule 1 is broken once by one occurrence.
 
 ⛔ **Why this is generated and not written by hand (kb/Work PB300, CLAUDE.md rule 5).** The second half used to be
 a hand-written list of two words inside `CobolData.g4`'s `dataName`, paired with a hand-written
 `ctx.COMMIT() ?? ctx.ROLLBACK()` extraction in the funnel — three places naming the same set. It had already
 rotted: CRT and CURSOR were reservation-gated by kb/Work PB301 and added to neither, so `01 CRT PIC X.` at
-`--std 2002` answered a parse error that never named §8.9. `reservedGatedWord`'s alternatives are all single
+`--std 2002` answered a parse error that never named §8.9. Then the GATE SET itself was a hand-set
+`reservationGated` row property, and **fifty-one further §8.9-straddling words never got one** — UNLOCK among
+them, so a period-less `UNLOCK F1` after a `MOVE` was swallowed as two more receivers and legal COBOL-2002 source
+was rejected (kb/Work PB693). Deriving the set killed the flag: `gen-cobol-words.ps1` now THROWS if a
+`reservationGated` property reappears in the JSON. `reservedGatedWord`'s alternatives are all single
 tokens, so the funnel reads the subrule's own text and needs no list either. `PROCEDURE` stays a hand-written
 `dataName` alternative ON PURPOSE — it is reserved at *every* edition and NC205A legally names a data item with
 it, so it must never reach the funnel.
 
 `CobolWordsDriftTests` asserts the generated grammar fragments match the JSON (parallel to the existing
-`ReservedWordsDriftTests`), including set-equality in BOTH directions for `reservedGatedWord` and the pin that
-each gated word's two halves name the same words and that the word actually straddles a §8.9 boundary (reserved
-at every edition, or at none, would make one half unreachable). Result: adding a context-sensitive keyword — a
+`ReservedWordsDriftTests`), and `CobolWordsG4_ReservationGate_Is_Derived_From_Section89` RECOMPUTES the step-4b
+derivation independently — from `reserved-words.json` and the `functionName` rule, never from the grammar it is
+checking — then pins set-equality in BOTH directions against the emitted `cobolWord` and `reservedGatedWord`
+gates, plus the confidence alignment the generator throws on (a gated word must be a high-confidence row, or the
+grammar would reject where the conservative funnel stays silent). A word reserved at EVERY edition is gated too:
+its `cobolWord` half is then unreachable by design — §8.9 never leaves it free — and the declaration half carries
+the whole job. Result: adding a context-sensitive keyword — a
 reservation-gated one included — is a **one-line JSON edit**; the lexer HashSet, the two parser rules, and the
 reserved-word funnel can no longer silently disagree.
 

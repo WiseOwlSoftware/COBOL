@@ -11,7 +11,7 @@ cobolWord
     : IDENTIFIER
     | APPLY
     | ARITHMETIC
-    | AS
+    | {userWordHere("AS")}? AS
     | AUTO
     | AUTOMATIC
     | BACKGROUND_COLOR
@@ -19,106 +19,161 @@ cobolWord
     | BINARY_ENCODING
     | BIT
     | BLINK
-    | B_AND
-    | B_NOT
-    | B_OR
-    | B_XOR
-    | CLOCK_UNITS
-    | COL
-    | COLS
-    | COLUMN
-    | COLUMNS
-    | {!reservedHere("COMMIT")}? COMMIT
-    | CONDITION
-    | CONSTANT
-    | {!reservedHere("CRT")}? CRT
-    | {!reservedHere("CURSOR")}? CURSOR
-    | DEBUGGING
+    | {userWordHere("B_AND")}? B_AND
+    | {userWordHere("B_NOT")}? B_NOT
+    | {userWordHere("B_OR")}? B_OR
+    | {userWordHere("B_XOR")}? B_XOR
+    | {userWordHere("CLOCK_UNITS")}? CLOCK_UNITS
+    | {userWordHere("COL")}? COL
+    | {userWordHere("COLS")}? COLS
+    | {userWordHere("COLUMN")}? COLUMN
+    | {userWordHere("COLUMNS")}? COLUMNS
+    | {userWordHere("COMMIT")}? COMMIT
+    | {userWordHere("CONDITION")}? CONDITION
+    | {userWordHere("CONSTANT")}? CONSTANT
+    | {userWordHere("CRT")}? CRT
+    | {userWordHere("CURSOR")}? CURSOR
+    | {userWordHere("DEBUGGING")}? DEBUGGING
     | DECIMAL_ENCODING
-    | DEFAULT
-    | DESTINATION
-    | EC
-    | EDITING
-    | END_RECEIVE
-    | END_SEND
-    | ENTER
+    | {userWordHere("DEFAULT")}? DEFAULT
+    | {userWordHere("DESTINATION")}? DESTINATION
+    | {userWordHere("EC")}? EC
+    | {userWordHere("EDITING")}? EDITING
+    | {userWordHere("END_RECEIVE")}? END_RECEIVE
+    | {userWordHere("END_SEND")}? END_SEND
+    | {userWordHere("ENTER")}? ENTER
     | ENTRY_CONVENTION
-    | EO
+    | {userWordHere("EO")}? EO
     | EOL
     | EOS
     | ERASE
-    | EVERY
-    | EXCLUSIVE_OR
-    | FACTORY
+    | {userWordHere("EVERY")}? EVERY
+    | {userWordHere("EXCLUSIVE_OR")}? EXCLUSIVE_OR
+    | {userWordHere("FACTORY")}? FACTORY
     | FLOAT_BINARY
     | FLOAT_DECIMAL
     | FOREGROUND_COLOR
     | FOREVER
-    | FORMAT
+    | {userWordHere("FORMAT")}? FORMAT
     | FULL_
-    | FUNCTION_POINTER
-    | GET
-    | GROUP_USAGE
+    | {userWordHere("FUNCTION_POINTER")}? FUNCTION_POINTER
+    | {userWordHere("GET")}? GET
+    | {userWordHere("GROUP_USAGE")}? GROUP_USAGE
     | HIGHLIGHT
     | HIGH_ORDER_LEFT
     | HIGH_ORDER_RIGHT
     | IGNORING
     | IMPLEMENTS
-    | INTERFACE
+    | {userWordHere("INTERFACE")}? INTERFACE
     | INTERMEDIATE
     | LENGTH
-    | LOCATION
+    | {userWordHere("LOCATION")}? LOCATION
     | LOWLIGHT
     | MANUAL
-    | MESSAGE
+    | {userWordHere("MESSAGE")}? MESSAGE
     | NATIONAL
     | NORMAL
     | NUMBERS
     | ONLY
-    | OVERRIDE
-    | {!reservedHere("PADDING")}? PADDING
+    | {userWordHere("OVERRIDE")}? OVERRIDE
+    | {userWordHere("PADDING")}? PADDING
     | PARSE
-    | PRESENT
-    | PROCEDURES
+    | {userWordHere("PRESENT")}? PRESENT
+    | {userWordHere("PROCEDURES")}? PROCEDURES
     | PROCESSING
-    | PROGRAM_POINTER
-    | PROPERTY
-    | PROTOTYPE
-    | RAISE
-    | RAISING
-    | RECEIVE
-    | REFERENCES
+    | {userWordHere("PROGRAM_POINTER")}? PROGRAM_POINTER
+    | {userWordHere("PROPERTY")}? PROPERTY
+    | {userWordHere("PROTOTYPE")}? PROTOTYPE
+    | {userWordHere("RAISE")}? RAISE
+    | {userWordHere("RAISING")}? RAISING
+    | {userWordHere("RECEIVE")}? RECEIVE
+    | {userWordHere("REFERENCES")}? REFERENCES
     | REQUIRED
-    | RERUN
-    | RESUME
-    | RETRY
+    | {userWordHere("RERUN")}? RERUN
+    | {userWordHere("RESUME")}? RESUME
+    | {userWordHere("RETRY")}? RETRY
     | REVERSE_VIDEO
-    | {!reservedHere("ROLLBACK")}? ROLLBACK
+    | {userWordHere("ROLLBACK")}? ROLLBACK
     | ROUNDING
-    | SCREEN
+    | {userWordHere("SCREEN")}? SCREEN
     | SECONDS
     | SECURE
-    | SEND
-    | SHARING
+    | {userWordHere("SEND")}? SEND
+    | {userWordHere("SHARING")}? SHARING
     | STANDARD_BINARY
     | STANDARD_DECIMAL
     | STATEMENT
     | UNDERLINE_
-    | UNLOCK
-    | VALID
-    | VALIDATE
-    | VALIDATE_STATUS
-    | VAL_STATUS
-    | XOR
+    | {userWordHere("UNLOCK")}? UNLOCK
+    | {userWordHere("VALID")}? VALID
+    | {userWordHere("VALIDATE")}? VALIDATE
+    | {userWordHere("VALIDATE_STATUS")}? VALIDATE_STATUS
+    | {userWordHere("VAL_STATUS")}? VAL_STATUS
+    | {userWordHere("XOR")}? XOR
     ;
 
-// The DECLARATION-position twin of the gated cobolWord alternatives (kb/Work PB300/PB137): the SAME
-// reservationGated rows under the INVERSE predicate, so `01 <word> PIC X.` still PARSES where §8.9
-// reserves the word and the funnel answers with a targeted COBOLNET0901 instead of a parse error.
+// The DECLARATION-position twin of the gated cobolWord alternatives (kb/Work PB300/PB137/PB693): the
+// SAME derived rows under the INVERSE predicate, so `01 <word> PIC X.` and `PROGRAM-ID. <word>.`
+// still PARSE where §8.9 reserves the word and the funnel answers with a targeted COBOLNET0901
+// instead of a parse error. VersionConformancePass.VisitReservedGatedWord is the ONE funnel arm:
+// every use of this rule is a definition slot, so a new slot needs no new C# (kb/Work PB693).
 reservedGatedWord
-    : {reservedHere("COMMIT")}? COMMIT
-    | {reservedHere("CRT")}? CRT
-    | {reservedHere("CURSOR")}? CURSOR
-    | {reservedHere("PADDING")}? PADDING
-    | {reservedHere("ROLLBACK")}? ROLLBACK
+    : {!userWordHere("AS")}? AS
+    | {!userWordHere("B_AND")}? B_AND
+    | {!userWordHere("B_NOT")}? B_NOT
+    | {!userWordHere("B_OR")}? B_OR
+    | {!userWordHere("B_XOR")}? B_XOR
+    | {!userWordHere("CLOCK_UNITS")}? CLOCK_UNITS
+    | {!userWordHere("COL")}? COL
+    | {!userWordHere("COLS")}? COLS
+    | {!userWordHere("COLUMN")}? COLUMN
+    | {!userWordHere("COLUMNS")}? COLUMNS
+    | {!userWordHere("COMMIT")}? COMMIT
+    | {!userWordHere("CONDITION")}? CONDITION
+    | {!userWordHere("CONSTANT")}? CONSTANT
+    | {!userWordHere("CRT")}? CRT
+    | {!userWordHere("CURSOR")}? CURSOR
+    | {!userWordHere("DEBUGGING")}? DEBUGGING
+    | {!userWordHere("DEFAULT")}? DEFAULT
+    | {!userWordHere("DESTINATION")}? DESTINATION
+    | {!userWordHere("EC")}? EC
+    | {!userWordHere("EDITING")}? EDITING
+    | {!userWordHere("END_RECEIVE")}? END_RECEIVE
+    | {!userWordHere("END_SEND")}? END_SEND
+    | {!userWordHere("ENTER")}? ENTER
+    | {!userWordHere("EO")}? EO
+    | {!userWordHere("EVERY")}? EVERY
+    | {!userWordHere("EXCLUSIVE_OR")}? EXCLUSIVE_OR
+    | {!userWordHere("FACTORY")}? FACTORY
+    | {!userWordHere("FORMAT")}? FORMAT
+    | {!userWordHere("FUNCTION_POINTER")}? FUNCTION_POINTER
+    | {!userWordHere("GET")}? GET
+    | {!userWordHere("GROUP_USAGE")}? GROUP_USAGE
+    | {!userWordHere("INTERFACE")}? INTERFACE
+    | {!userWordHere("LOCATION")}? LOCATION
+    | {!userWordHere("MESSAGE")}? MESSAGE
+    | {!userWordHere("OVERRIDE")}? OVERRIDE
+    | {!userWordHere("PADDING")}? PADDING
+    | {!userWordHere("PRESENT")}? PRESENT
+    | {!userWordHere("PROCEDURES")}? PROCEDURES
+    | {!userWordHere("PROGRAM_POINTER")}? PROGRAM_POINTER
+    | {!userWordHere("PROPERTY")}? PROPERTY
+    | {!userWordHere("PROTOTYPE")}? PROTOTYPE
+    | {!userWordHere("RAISE")}? RAISE
+    | {!userWordHere("RAISING")}? RAISING
+    | {!userWordHere("RECEIVE")}? RECEIVE
+    | {!userWordHere("REFERENCES")}? REFERENCES
+    | {!userWordHere("RERUN")}? RERUN
+    | {!userWordHere("RESUME")}? RESUME
+    | {!userWordHere("RETRY")}? RETRY
+    | {!userWordHere("ROLLBACK")}? ROLLBACK
+    | {!userWordHere("SCREEN")}? SCREEN
+    | {!userWordHere("SEND")}? SEND
+    | {!userWordHere("SHARING")}? SHARING
+    | {!userWordHere("UNLOCK")}? UNLOCK
+    | {!userWordHere("VALID")}? VALID
+    | {!userWordHere("VALIDATE")}? VALIDATE
+    | {!userWordHere("VALIDATE_STATUS")}? VALIDATE_STATUS
+    | {!userWordHere("VAL_STATUS")}? VAL_STATUS
+    | {!userWordHere("XOR")}? XOR
     ;

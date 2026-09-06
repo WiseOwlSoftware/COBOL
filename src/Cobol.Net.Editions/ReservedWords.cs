@@ -109,4 +109,14 @@ public sealed class ReservedWordSet
             if (!e.IsReservedAt(older)) return ConstructAvailability.Removed;
         return ConstructAvailability.NotYetIntroduced;
     }
+
+    /// <summary>⛔ THE ONE §8.9 user-word-violation SENTENCE (kb/Work PB693). TWO stages report it and they must
+    /// say the same thing: the bound-tree funnel (<c>VersionConformancePass.FlagReservedUserWord</c>), and the
+    /// PARSER's error listener for the occurrences the reservation gate makes unparseable — a REFERENCE to the
+    /// word, where no name-slot alternative can match and a raw COBOL0001 would never name §8.9. It lives here,
+    /// in the assembly both stages already reference, so the wording, the code and the clause have one
+    /// definition (<c>feedback_one_rule_one_place</c>).</summary>
+    public static string UserWordViolationMessage(string upperWord, int edition)
+        => $"'{upperWord}' is a reserved word in COBOL-{edition} and cannot be used as a "
+           + "user-defined word (ISO §8.9)";
 }

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Generated;
 using CobolNet.Frontend.Diagnostics;
 
 namespace CobolNet.Frontend.Parsing;
@@ -22,6 +23,14 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
 
     private int _errorCount;
 
+    /// <summary>Start offsets of the offending tokens already re-coded to COBOLNET0901 (kb/Work PB693).
+    /// ANTLR raises TWO syntax errors on one offending token — the prediction failure and
+    /// <c>CobolErrorStrategy</c>'s recovery message — which used to render as two DIFFERENT sentences. The
+    /// §8.9 re-code below rewrites BOTH to the same one, so without this the user is told twice that the
+    /// word is reserved. ISO §8.3.2.1 rule 1 is violated ONCE by one occurrence of the word, and that is how
+    /// often it is reported; bounded by <see cref="MaxErrors"/>.</summary>
+    private readonly HashSet<int> _reservedWordReported = [];
+
     public override void SyntaxError(
         TextWriter output,
         IRecognizer recognizer,
@@ -32,6 +41,19 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
         RecognitionException e)
     {
         if (_errorCount >= MaxErrors)
+            return;
+
+        // ⛔ THE §8.9 ARM (kb/Work PB693). A syntax error ON a reservation-gated word IS the §8.9 violation: the
+        // gate is precisely why no user-defined-word alternative could match, and a REFERENCE to the word never
+        // reaches the bound-tree funnel because the source did not parse. Report the targeted COBOLNET0901 so the
+        // cause is NAMED, rather than "no viable alternative at input 'X'". The parser owns the test (it holds the
+        // edition, the >>COBOL-WORDS overlay and the generated gate set); this stage only re-codes the
+        // diagnostic, and the message has ONE definition in ReservedWordSet. Computed BEFORE the error is
+        // counted so a suppressed duplicate does not eat a slot of the MaxErrors budget.
+        string? reservedWordMessage = recognizer is CobolParserCoreBase parser
+            ? parser.ReservedUserWordViolation(offendingSymbol)
+            : null;
+        if (reservedWordMessage is not null && !_reservedWordReported.Add(offendingSymbol.StartIndex))
             return;
 
         _errorCount++;
@@ -47,6 +69,12 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
                 code = msg[1..closeBracket];
                 message = msg[(closeBracket + 1)..].TrimStart();
             }
+        }
+
+        if (reservedWordMessage is not null)
+        {
+            code = CobolNet.Editions.EditionCodes.ReservedWord;
+            message = reservedWordMessage;
         }
 
         // ANTLR's `line` is 1-based and counts the RESULTANT text (after COPY / REPLACE / continuation joins);

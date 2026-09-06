@@ -230,7 +230,17 @@ public sealed class Frontend
         // The parser needs the map as well as the lexer and the rewriter: its text predicates (LOCALE, ORDER,
         // CLASSIFICATION, ATTRIBUTE, the LC_ categories) recognize §8.9/§8.10 words the lexer deliberately does
         // not tokenize, so only CobolWordsMap.Resolve can reach them — kb/Work PB250.
-        var parser = new CobolParserCore(tokens) { DialectLevel = DialectLevel, CobolWords = CobolWordsMap };
+        // ⛔ BOTH AXES, not just the year (kb/Work PB693). The parser's <c>Edition</c> is the single source its
+        // predicates read, and the reservation gate <c>userWordHere</c> asks the PERMISSIVE axis: the migration
+        // mode must keep a §8.9-reserved word parseable as a user-defined word so the funnel can WARN instead of
+        // the parse dying. Setting only DialectLevel left Permissive false for every real compile, so
+        // `--permissive` could not save a program that names a reservation-gated word — the one thing the mode
+        // exists for. Every other stage of this pipeline is already handed `Permissive`; the parser was the gap.
+        var parser = new CobolParserCore(tokens)
+        {
+            Edition = EditionInfo.Of(DialectLevel, Permissive),
+            CobolWords = CobolWordsMap,
+        };
         parser.RemoveErrorListeners();
         parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap));
 
