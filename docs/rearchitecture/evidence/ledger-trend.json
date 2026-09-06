@@ -324,6 +324,15 @@
       "dns": 364,
       "label": "PB689: the denominator was s",
       "battery": null
+    },
+    {
+      "sha": "4aa88ead",
+      "date": "2026-09-05",
+      "gap": 2820,
+      "closed": 1551,
+      "dns": 364,
+      "label": "Train 13 narrative (plan §0",
+      "battery": null
     }
   ]
 }
