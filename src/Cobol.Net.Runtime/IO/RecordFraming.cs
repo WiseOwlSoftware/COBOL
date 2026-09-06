@@ -40,10 +40,15 @@ internal static class RecordFraming
 
     // ── Store-level (byte) shape — the keyed connectors' whole-store persist/load ───────────────────────────
 
-    /// <summary>Write the whole store: one frame per ordinal position; null = an empty (gap) slot.</summary>
+    /// <summary>Write the whole store: one frame per ordinal position; null = an empty (gap) slot.
+    /// <para>The stream is <see cref="HostFile.OpenAuxiliary"/>, share <see cref="FileShare.ReadWrite"/>: this
+    /// is a bookkeeping handle on a path another file connector of the SAME run unit may hold open under
+    /// §9.1.15 sharing, and it used to be the three-argument <c>FileStream</c> whose default is
+    /// <see cref="FileShare.None"/> — the strictest form of kb/Work PB713's defect, forbidding every other
+    /// handle rather than merely being forbidden by one.</para></summary>
     public static void WriteStore(string path, IReadOnlyList<string?> frames)
     {
-        using var fs = new FileStream(path, FileMode.Create, FileAccess.Write);
+        using var fs = HostFile.OpenAuxiliary(path, FileMode.Create, FileAccess.Write);
         Span<byte> len = stackalloc byte[4];
         foreach (string? frame in frames)
         {
@@ -60,11 +65,15 @@ internal static class RecordFraming
         }
     }
 
-    /// <summary>Read the whole store back: one entry per frame, null for a gap. A torn tail ends the store.</summary>
+    /// <summary>Read the whole store back: one entry per frame, null for a gap. A torn tail ends the store.
+    /// <para>The stream is <see cref="HostFile.OpenAuxiliary"/> for the reason <see cref="WriteStore"/> gives;
+    /// here the three-argument <c>FileStream</c>'s default was <see cref="FileShare.Read"/>, which is the exact
+    /// share mode that refused kb/Work PB713's varying-framing arm against the connector's own EXTEND writer.
+    /// </para></summary>
     public static List<string?> ReadStore(string path)
     {
         var frames = new List<string?>();
-        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+        using var fs = HostFile.OpenAuxiliary(path, FileMode.Open, FileAccess.Read);
         var len = new byte[4];
         while (FillExactly(fs, len, 4))
         {

@@ -225,13 +225,22 @@ public sealed record FixedFileAttributes(
         string[] lines;
         try
         {
-            // No File.Exists pre-check: it was pure duplication of the catches below — ReadAllLines answers a
+            // No File.Exists pre-check: it was pure duplication of the catches below — the open answers a
             // missing sidecar with FileNotFoundException and a missing directory with DirectoryNotFoundException,
             // both IOException, both already null here. Dropping it also keeps the subsystem's ONE presence
             // probe genuinely one (kb/Work PB323). This path is deliberately NOT HostFile.Probe: the sidecar is
             // an implementor artifact, not the §9.1.6 physical file, and an unreadable one is "attributes not
             // recorded" (null) rather than a §14.9.27.4 GR3 authority failure over the COBOL file.
-            lines = File.ReadAllLines(SidecarPath(hostPath));
+            // The stream is HostFile.OpenAuxiliary (share ReadWrite), not File.ReadAllLines (share Read):
+            // §9.1.15 puts "runtime elements in different run units" on one physical file, so a sidecar being
+            // WRITTEN by a concurrent run unit's Store would otherwise refuse this read and the refusal would
+            // be indistinguishable from "attributes not recorded" — GR10's '39' comparison silently skipped
+            // (kb/Work PB713's share-mode assumption, in its SILENT rather than its crashing form).
+            using var fs = HostFile.OpenAuxiliary(SidecarPath(hostPath), FileMode.Open, FileAccess.Read);
+            using var reader = new StreamReader(fs);
+            var read = new List<string>();
+            while (reader.ReadLine() is { } l) read.Add(l);
+            lines = [.. read];
         }
         catch (IOException) { return null; }
         catch (UnauthorizedAccessException) { return null; }
@@ -288,7 +297,14 @@ public sealed record FixedFileAttributes(
         sb.Append("record-min=").Append(attributes.MinRecordSize.ToString(CultureInfo.InvariantCulture)).Append('\n');
         sb.Append("record-max=").Append(attributes.MaxRecordSize.ToString(CultureInfo.InvariantCulture)).Append('\n');
         foreach (var k in attributes.Keys) sb.Append("key=").Append(FormatKey(k)).Append('\n');
-        try { File.WriteAllText(SidecarPath(hostPath), sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)); }
+        // HostFile.OpenAuxiliary (share ReadWrite) for the reason Load gives — the sidecar of a physical file
+        // §9.1.15 lets a second run unit hold open. UTF-8 with no BOM, exactly as File.WriteAllText wrote it.
+        try
+        {
+            using var fs = HostFile.OpenAuxiliary(SidecarPath(hostPath), FileMode.Create, FileAccess.Write);
+            using var w = new StreamWriter(fs, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            w.Write(sb.ToString());
+        }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
         catch (ArgumentException) { }

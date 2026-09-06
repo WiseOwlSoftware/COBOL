@@ -98,22 +98,51 @@ public sealed class SequentialConnector : FileConnector
     public override string LastWrittenRecordId => _writeBase >= 0 && _writesDone > 0
         ? (_writeBase + _writesDone).ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
-    /// <summary>Seed the write-ordinal base for a SHARING-active connector (called by the registry after a
-    /// successful shared OPEN): OUTPUT starts a fresh file at 0; EXTEND continues the existing numbering
-    /// (§14.9.51 GR18 — appended records succeed the records present at OPEN), so the pre-existing record
-    /// count is derived from the physical shape (frames / lines / fixed-width blocks).</summary>
-    internal void SeedSharedWriteBase()
+    /// <summary>The count of records ALREADY IN the physical file, in the framing this connector reads — the
+    /// write-ordinal base a sharing-active <c>OPEN EXTEND</c> continues from (§14.9.51.4 GR18: <i>"If there are
+    /// records in the physical file, the first record written after the execution of the OPEN statement with
+    /// the EXTEND phrase is the successor of the last record in the physical file"</i>; GR19 fixes the
+    /// measurement POINT for the shared case: <i>"the added records follow the records present in the physical
+    /// file when it was opened"</i>).
+    /// <para>⛔ IT IS MEASURED BEFORE THIS OPEN'S OWN WRITER EXISTS, and that ordering is the fix for kb/Work
+    /// PB713, not an optimization. The measurement used to run from <c>FileRegistry.SharedOpenAttempt</c> AFTER
+    /// <c>FileConnector.Open</c> returned, so it took a SECOND handle on a path this connector already held for
+    /// WRITE: the line-sequential arm's <c>File.ReadLines</c> and the varying arm's three-argument
+    /// <c>FileStream</c> both request <see cref="FileShare.Read"/>, which does not admit the outstanding Write
+    /// access, so the operating environment refused — and, being outside <c>FileConnector.Open</c>'s try, the
+    /// refusal escaped the run unit as an unhandled <c>IOException</c> rather than as an I-O status. Both halves
+    /// are addressed here: the measurement happens where no second handle exists, and it happens INSIDE the
+    /// OPEN body, where §14.9.27.4 GR25's <i>"the file is not affected"</i> and §9.1.13.6 item 1's '30' are the
+    /// only outcomes an unreadable file can have. GR19 permits the earlier point because an <c>OPEN EXTEND</c>
+    /// writes nothing: the record count at the writer's creation and at the OPEN's completion are the same
+    /// number.</para>
+    /// <para>The stream is <see cref="HostFile.OpenAuxiliary"/> — the ONE role for a bookkeeping handle, share
+    /// <see cref="FileShare.ReadWrite"/> — so the ordering above is belt AND braces: a sibling connector of this
+    /// run unit holding the same physical file under §9.1.15 sharing cannot refuse it either.</para></summary>
+    private long ExistingRecordCount()
     {
-        _writeBase = 0;
-        _writesDone = 0;
-        // Only an EXTEND over a file that is actually THERE has a pre-existing record count to continue from;
-        // a refused probe is not evidence of an empty file (kb/Work PB323). Unreachable with a refusal in
-        // practice — the registry calls this only after a SUCCESSFUL shared open — but the probe is the one
-        // shape the runtime asks presence with, so a future caller cannot inherit File.Exists's false "no".
-        if (Mode != FileOpenMode.Extend || HostFile.Probe(HostPath) is not FilePresence.Present) return;
-        if (IsVarying) _writeBase = RecordFraming.ReadStore(HostPath).Count;
-        else if (_lineSequential) _writeBase = File.ReadLines(HostPath).Count();
-        else _writeBase = RecordWidth > 0 ? new FileInfo(HostPath).Length / RecordWidth : 0;
+        if (IsVarying)
+        {
+            // The frame WALK, not ReadStore: FrameStarts seeks over every payload instead of materializing it,
+            // so counting an existing file costs one pass and no record storage (ReadStore allocated a string
+            // per record purely to take .Count of the list).
+            using var fs = HostFile.OpenAuxiliary(HostPath, FileMode.Open, FileAccess.Read);
+            return RecordFraming.FrameStarts(fs).Count;
+        }
+        if (_lineSequential)
+        {
+            // Counted through the connector's OWN encoding (Latin1 — one byte per character), the same reader
+            // shape OpenCore's INPUT arm builds, so "record" here means exactly what a READ of this file would
+            // deliver. File.ReadLines would have decoded UTF-8 and allocated a string per line to discard it.
+            using var fs = HostFile.OpenAuxiliary(HostPath, FileMode.Open, FileAccess.Read);
+            using var r = new StreamReader(fs, Encoding.Latin1);
+            long n = 0;
+            while (r.ReadLine() is not null) n++;
+            return n;
+        }
+        // Fixed-width record-sequential: arithmetic over the file's length. No handle at all, which is why this
+        // arm never showed PB713 (FileInfo.Length is metadata).
+        return RecordWidth > 0 ? new FileInfo(HostPath).Length / RecordWidth : 0;
     }
 
     // A varying file's records are length-framed on disk (the ONE RecordFraming 4-byte little-endian length
@@ -280,7 +309,13 @@ public sealed class SequentialConnector : FileConnector
         _lastReadLinePartial = false;
         _readOrdinal = 0;
         _varyingStarts = null;   // rebuilt on demand against THIS open's physical file
-        _writeBase = -1;   // unshared default; the registry seeds a sharing-active connector (§9.1.16)
+        // §9.1.16 record-lock identity: a SHARING participant numbers its writes from a base, an unshared
+        // connector never consults one (−1 = not seeded). OUTPUT/I-O/INPUT start at 0; only the EXTEND arm
+        // below raises the base, and only over a file that is actually there (§14.9.51.4 GR18's "If there are
+        // records in the physical file"). The bit is SharedStreams — the connector's own §9.1.15-participation
+        // flag, the same one every stream below reads — because a second gate is a second rule (the registry
+        // used to hold it, and holding it there is what put the measurement outside the OPEN body, PB713).
+        _writeBase = SharedStreams ? 0 : -1;
         _writesDone = 0;
         // Table 18's "file is available" / "file is unavailable" axis. The base has already answered
         // §14.9.27.4 GR3, so on every mode that consults this an Unauthorized probe has become '37' and can
@@ -298,18 +333,16 @@ public sealed class SequentialConnector : FileConnector
                     }
                     // A SHARING-active connector's stream permits other connectors' handles (§9.1.15 — the
                     // Table-19 registry is the sharing arbiter, not the OS handle); unshared keeps the default.
-                    _reader = SharedStreams
-                        ? new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
-                            Encoding.Latin1)
-                        : new StreamReader(HostPath, Encoding.Latin1);
+                    // The posture ternary lives in HostFile.OpenConnectorStream, once (kb/Work PB713).
+                    _reader = new StreamReader(HostFile.OpenConnectorStream(HostPath, FileMode.Open,
+                        FileAccess.Read, SharedStreams, FileOptions.SequentialScan), Encoding.Latin1);
                     NoticeIfLayoutDisagrees();
                     break;
 
                 case FileOpenMode.Output:
-                    _writer = SharedStreams
-                        ? new StreamWriter(new FileStream(HostPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite),
-                            Encoding.Latin1) { NewLine = "\r\n" }
-                        : new StreamWriter(HostPath, append: false, Encoding.Latin1) { NewLine = "\r\n" };
+                    _writer = new StreamWriter(HostFile.OpenConnectorStream(HostPath, FileMode.Create,
+                        FileAccess.Write, SharedStreams, FileOptions.SequentialScan), Encoding.Latin1)
+                        { NewLine = "\r\n" };
                     break;
 
                 case FileOpenMode.Extend:
@@ -318,10 +351,15 @@ public sealed class SequentialConnector : FileConnector
                     // program that APPENDS to a file whose existing layout disagrees writes a file interleaving
                     // two record layouts, which is permanent corruption rather than a wrong computation.
                     NoticeIfLayoutDisagrees();
-                    _writer = SharedStreams
-                        ? new StreamWriter(new FileStream(HostPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite),
-                            Encoding.Latin1) { NewLine = "\r\n" }
-                        : new StreamWriter(HostPath, append: true, Encoding.Latin1) { NewLine = "\r\n" };
+                    // ⛔ THE WRITE-ORDINAL BASE IS MEASURED HERE, BEFORE THE WRITER HANDLE EXISTS (kb/Work
+                    // PB713). §14.9.51.4 GR19 — "the added records follow the records present in the physical
+                    // file when it was opened" — is what makes this point the right one, and an OPEN EXTEND
+                    // writes nothing, so the count is the same number the completed OPEN would have seen. See
+                    // ExistingRecordCount for why the ORDER, not merely the share mode, is the fix.
+                    if (SharedStreams && exists) _writeBase = ExistingRecordCount();
+                    _writer = new StreamWriter(HostFile.OpenConnectorStream(HostPath, FileMode.Append,
+                        FileAccess.Write, SharedStreams, FileOptions.SequentialScan), Encoding.Latin1)
+                        { NewLine = "\r\n" };
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
 
@@ -337,9 +375,13 @@ public sealed class SequentialConnector : FileConnector
                     // NOT '47' (which is only for a connector not open in input/I-O, §9.1.13.7 item 7). OPEN still
                     // returns '05'. No OptionalAbsent needed — the file now physically exists (empty).
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
-                    if (!exists) using (new StreamWriter(HostPath, append: false, Encoding.Latin1)) { }   // create empty, then close
-                    _reader = new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.ReadWrite,
-                        SharedStreams ? FileShare.ReadWrite : FileShare.Read), Encoding.Latin1);
+                    // create empty, then close — an auxiliary handle, not the connector's stream
+                    if (!exists) using (HostFile.OpenAuxiliary(HostPath, FileMode.Create, FileAccess.Write)) { }
+                    // No FileOptions.SequentialScan: this reader SEEKS (the §14.9.35 REWRITE writes through
+                    // its BaseStream), and the sequential-access hint asks the host to evict what a seek comes
+                    // back for.
+                    _reader = new StreamReader(HostFile.OpenConnectorStream(HostPath, FileMode.Open,
+                        FileAccess.ReadWrite, SharedStreams), Encoding.Latin1);
                     NoticeIfLayoutDisagrees();
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;

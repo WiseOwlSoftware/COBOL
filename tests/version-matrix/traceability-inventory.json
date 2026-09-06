@@ -49701,13 +49701,13 @@
   "ordinal": 18,
   "subject": "WRITE statement",
   "rule-digest": "d5f574690a46",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ExistingRecordCount",
+  "test-ref": "conformance:2023/pb713_shared_extend_open; conformance:2002/pb713_shared_extend_open; conformance:2023/l1_open_extend_position; unit:SharedExtendOpenDriftTests.SharedExtend_OpensAndAppends_ForEverySequentialFraming",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The EXTEND write-ordinal base is the record count present at OPEN, measured before this OPEN's own writer exists (kb/Work PB713); the goldens read the appended record back as the successor of the existing one on every organization and framing.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-19",

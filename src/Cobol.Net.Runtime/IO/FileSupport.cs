@@ -154,7 +154,19 @@ public enum FilePresence
 /// <c>Cobol.Net.Runtime/IO</c>, because every hand-written probe is another chance to answer "absent" to a
 /// question the operating environment refused to answer at all — and <see cref="PermitsWrite"/> may be CALLED
 /// only from <see cref="FileConnector"/>, because a capability asked inside one organization's arm is a
-/// capability the other organizations do not ask (kb/Work PB328).</summary>
+/// capability the other organizations do not ask (kb/Work PB328).
+/// <para>⛔ IT IS ALSO THE ONE PLACE A HOST-PATH <b>STREAM</b> IS OPENED — <see cref="OpenConnectorStream"/>
+/// (a connector's own long-lived handle) and <see cref="OpenAuxiliary"/> (a short-lived handle the runtime
+/// takes for its own bookkeeping over a path a connector of THIS run unit may already hold). The share mode is
+/// derived here from the role, never spelled at a call site, because a call site that omits it inherits the
+/// .NET constructor default and the default is WRONG in both directions: <c>new FileStream(p, m, a)</c> is
+/// <c>FileShare.Read</c> and <c>new FileStream(p, m)</c> is <c>FileShare.None</c>, so a bookkeeping read of a
+/// file the connector holds open for WRITE is refused by the operating environment and the refusal escapes an
+/// OPEN that §9.1.15 and Table 19 had already ALLOWED (kb/Work PB713 — <c>OPEN EXTEND</c> on a sharing-active
+/// LINE SEQUENTIAL file killed the run unit with an unhandled <c>IOException</c> naming "another process" that
+/// was the program itself). <c>HostFileProbeDriftTests</c> forbids every other stream/content open under
+/// <c>Cobol.Net.Runtime/IO</c> for the same reason it forbids <c>File.Exists</c>: the mistake is invisible in
+/// review and costs a crash, so the guard is structural.</para></summary>
 public static class HostFile
 {
     /// <summary>Probe the physical file at <paramref name="hostPath"/>, distinguishing §9.1.13.6 item 5's
@@ -221,4 +233,34 @@ public static class HostFile
         }
         catch (UnauthorizedAccessException) { return false; }   // §9.1.13.6 item 6 a) — '37'
     }
+
+    // ── The third question: what may OTHER handles do while this one is open? ───────────────────────────────
+
+    /// <summary>A file connector's OWN long-lived stream on its physical file. <paramref name="sharedConnector"/>
+    /// is <see cref="FileConnector.SharedStreams"/> — §9.1.15 participation — and it, alone, chooses the share
+    /// posture: a sharing participant's handle admits every other handle (<see cref="FileShare.ReadWrite"/>)
+    /// because §9.1.15 puts the gate on the file connectors and Table 19, not on the operating environment's
+    /// handle (<i>"Before access to a shared physical file is allowed through an OPEN statement, the sharing
+    /// mode and the open mode of that OPEN statement shall be allowed by all other file connectors that are
+    /// currently associated with the physical file"</i>), while a non-participant keeps the exclusive-writer
+    /// posture the .NET path constructors give (<see cref="FileShare.Read"/>), byte for byte.
+    /// <para>⛔ THE TERNARY LIVES HERE AND NOWHERE ELSE. It used to be written out at each of the four
+    /// <c>SequentialConnector</c> stream sites, which is four chances to write it once too narrowly and no
+    /// place at all for the fifth organization to inherit it.</para></summary>
+    public static FileStream OpenConnectorStream(string hostPath, FileMode mode, FileAccess access,
+        bool sharedConnector, FileOptions options = FileOptions.None) =>
+        new(hostPath, mode, access, sharedConnector ? FileShare.ReadWrite : FileShare.Read, 4096, options);
+
+    /// <summary>A SHORT-LIVED stream the runtime opens for its own bookkeeping over a host path — the write-base
+    /// measurement of a shared <c>OPEN EXTEND</c>, a keyed store's whole-file load/persist, the fixed-attribute
+    /// sidecar. It is <b>always</b> <see cref="FileShare.ReadWrite"/>, and the reason is not permissiveness for
+    /// its own sake: the path may already be held open by a file connector OF THIS RUN UNIT, and a handle's
+    /// share mode has to admit the access every outstanding handle already holds or the operating environment
+    /// refuses it. A refusal here is a failure the COBOL statement never asked for — §9.1.15 and §14.9.27.4
+    /// Table 19 had already ALLOWED the open, and the standard's only outcomes for an OPEN are an I-O status
+    /// (§14.9.27.4 GR25 / §9.1.13.6) — so it must never be manufactured by the runtime's own second handle
+    /// (kb/Work PB713). <see cref="FileOptions.SequentialScan"/> because every one of these is a single
+    /// forward pass over the whole file.</summary>
+    public static FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access) =>
+        new(hostPath, mode, access, FileShare.ReadWrite, 4096, FileOptions.SequentialScan);
 }

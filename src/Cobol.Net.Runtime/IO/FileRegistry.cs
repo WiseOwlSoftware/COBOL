@@ -703,13 +703,16 @@ public sealed class FileRegistry
     /// clause and no SHARING clause — see <see cref="ImplementorDefaultSharing"/>. This is the RECORD-LOCKING
     /// posture only; every connector, registered here or not, is arbitrated against Table 19 by
     /// <see cref="SharedOpenAttempt"/>.</summary>
-    public void RegisterSharing(string name, FileSharing? sharing, FileLockMode lockMode, bool multiple)
-    {
+    public void RegisterSharing(string name, FileSharing? sharing, FileLockMode lockMode, bool multiple) =>
+        // ⛔ THE POSTURE IS RECORDED HERE AND DERIVED AT THE OPEN, never written to the connector here as well.
+        // A sharing participant's physical streams must admit the other connectors' handles (§9.1.15 — the
+        // Table-19 registry, not the OS handle, arbitrates), and `FileConnector.SharedStreams` says so — but it
+        // used to be SET here, behind a `_files.TryGetValue`, so this map and that bit were two independently
+        // maintained answers to one question and a registration that ran before its connector existed would
+        // have left them disagreeing silently. `SharedOpenAttempt` now reads the bit off this map immediately
+        // before `c.Open(mode)`, which is the ONLY caller of it (kb/Work PB713 moved the write-ordinal seeding
+        // onto the same bit, which is what made a second answer worth removing).
         _connectorShares[name] = new ConnectorShare(sharing, lockMode, multiple);
-        // A sharing participant's physical streams must admit the other connectors' handles (§9.1.15) — the
-        // Table-19 registry, not the OS handle, arbitrates; unshared connectors keep the exclusive OS posture.
-        if (_files.TryGetValue(name, out var c)) c.SharedStreams = true;
-    }
 
     /// <summary>Declare a SELECTed file's record area NATIONAL (§14.9.30.4 GR15; emitted right after
     /// registration, only for a file whose record area is of category national — kb/Work PB327). It changes the
@@ -795,15 +798,23 @@ public sealed class FileRegistry
         // open is unsuccessful with '41' (§9.1.13.7 item 1) and FileConnector.Open leaves the connector in its
         // ORIGINAL mode — but `IsOpen` is true throughout, so gating on it re-registered the connector under the
         // mode and sharing of the FAILED request and every later arbitration used them (kb/Work PB321).
+        // §9.1.15 participation, derived from the ONE register that records it, at the one moment it is read.
+        // OpenCore consults it for every stream it opens and for the write-ordinal base (kb/Work PB713), and
+        // this line is the connector bit's only writer — so the bit cannot outlive, or lag, the posture map.
+        c.SharedStreams = _connectorShares.ContainsKey(name);
         string status = c.Open(mode);
         if (status[0] == '0')   // the success family '00'/'05'/'07' — §9.1.13.2
         {
             st.Open[name] = (sharing, mode);   // register only a successful open
-            // A record-locking participant that is SEQUENTIAL needs its write-ordinal base (§9.1.16 lock identity
-            // for records it releases; §14.9.51 GR18 — EXTEND appends continue the existing numbering). Seeded
-            // only for a connector with a SHARING/LOCK MODE clause, so unshared sequential I/O is untouched by
-            // the lock subsystem even though it now takes part in the Table-19 arbitration.
-            if (c is SequentialConnector f && _connectorShares.ContainsKey(name)) f.SeedSharedWriteBase();
+            // ⛔ NOTHING AFTER c.Open(mode) MAY TOUCH THE PHYSICAL FILE (kb/Work PB713). A record-locking
+            // participant that is SEQUENTIAL needs its write-ordinal base (§9.1.16 lock identity for the records
+            // it releases; §14.9.51.4 GR18/GR19 — EXTEND appends continue the numbering the file had "when it
+            // was opened"), and that base used to be measured HERE, from a second handle on a path the connector
+            // had just opened for WRITE. The measurement was refused by the operating environment, and because
+            // this line is OUTSIDE FileConnector.Open's try the refusal escaped the run unit as an unhandled
+            // IOException instead of as §9.1.13.6 item 1's '30'. It now lives in SequentialConnector.OpenCore,
+            // before that connector's own writer exists; the ONLY work left after a successful open is
+            // arbitration bookkeeping and the LINAGE page model, neither of which reads a byte off the host.
             // ISO §13.18.34 GR6 b) 1 — the LINAGE operand values are read "at the completion of an OPEN statement
             // with the OUTPUT phrase", so the page model is established HERE, with the page the EXECUTING element's
             // own LINAGE clause evaluated to (kb/Work PB673), and only for an open that actually succeeded.

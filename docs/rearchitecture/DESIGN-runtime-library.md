@@ -204,6 +204,29 @@ accident, since its I-O and EXTEND streams *are* write opens, while the relative
 their store: the same read-only file answered '37' sequentially and '00' keyed, then '00' for READ and REWRITE,
 and the loss surfaced as a '30' at CLOSE on a byte-identical file. The two-arm dispatch again, one arm fixed.)
 
+**One host-path OPEN, two named roles (`HostFile.OpenConnectorStream` / `HostFile.OpenAuxiliary`, same file).**
+The third question `HostFile` owns is *"what may the other file connectors of this run unit do while this handle
+is open?"*, and it is not a per-call-site decision: §9.1.15 puts that gate on the file connectors and §14.9.27.4
+Table 19 — *"Before access to a shared physical file is allowed through an OPEN statement, the sharing mode and
+the open mode of that OPEN statement shall be allowed by all other file connectors that are currently associated
+with the physical file"* — never on the operating environment's handle. So the share mode is derived HERE, from
+the role. `OpenConnectorStream(path, mode, access, sharedConnector, options)` is a connector's own long-lived
+stream and carries the §9.1.15 posture (`FileShare.ReadWrite` for a sharing participant, the exclusive
+`FileShare.Read` of the .NET path constructors otherwise); `OpenAuxiliary(path, mode, access)` is a short-lived
+bookkeeping handle over a path a connector may already hold — the shared `OPEN EXTEND` write-base measurement,
+`RecordFraming`'s whole-store load/persist, the fixed-attribute sidecar — and is **always**
+`FileShare.ReadWrite`, because a handle's share mode has to admit the access every outstanding handle already
+holds or the host refuses it. `SharedExtendOpenDriftTests` bans every other host-path open under `Runtime/IO`
+and pins both roles to this file. (kb/Work PB713 — a sharing-active `OPEN EXTEND` measured its write-ordinal
+base from a SECOND handle on the path it had just opened for WRITE: `File.ReadLines` for the line-sequential
+framing, a three-argument `FileStream` for the varying one, both `FileShare.Read`, both refused. The refusal ran
+from `FileRegistry.SharedOpenAttempt` — *after* `FileConnector.Open` returned, outside its try — so it left the
+run unit as an unhandled `IOException` naming "another process" that was the program itself, where §14.9.27.4
+GR1 admits only an I-O status. Fixed the way GR3 and GR16 were: the measurement moved INTO
+`SequentialConnector.OpenCore`, before the writer exists, where the '30' mapping already lives, and the
+duplicate `HostFile.Probe` it carried against PB323's one-probe rule went with it. The fixed-width framing read
+`FileInfo.Length`, took no handle, and passed — one dispatch, three arms, one arm tested.)
+
 The static `CobolFile` facade (kept for the emitted surface) becomes a pure delegator to `RunUnit.Current.Files`.
 The `Keyed*` static methods at `IndexedFile.cs:570-707` are **deleted**; their callers in `CobolFile.cs` collapse to a
 single `Files[name]` polymorphic call. `RecordFraming` (today `KeyedFrames`) becomes the ONE framing helper used by all
