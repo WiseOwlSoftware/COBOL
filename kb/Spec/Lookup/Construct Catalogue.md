@@ -154,7 +154,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | start-first-last-2002 | START … FIRST/LAST positioning | §14.9.41 | 2002 | | 0900 | active |
 | start-with-length-2002 | START KEY … WITH LENGTH (partial-key) | §14.9.41 | 2002 | | 0900 | active |
 | delete-file-2023 | DELETE FILE (physical file deletion) | §14.9.10 Fmt 2 | 2023 | | 0900 | active |
-| write-before-and-after-advancing-2023 | WRITE BEFORE AND AFTER ADVANCING | §14.9.51 SR17 | 2023 | | 0900 | active |
+| write-before-and-after-advancing-2023 | WRITE BEFORE AFTER ADVANCING | §14.9.51.2 Format 1 / E.3.3 item 2 | 2023 | | 0900 | active |
 | file-sharing-clause-2002 | SHARING clause / OPEN SHARING | §12.4.5.15 | 2002 | | 0900 | active |
 | lock-mode-clause-2002 | LOCK MODE clause (MANUAL/AUTOMATIC) | §12.4.5.9 | 2002 | | 0900 | active |
 | file-collating-clause-2002 | File-control COLLATING SEQUENCE (indexed keys) | §12.4.5.7 | 2002 | | 0900 | active |

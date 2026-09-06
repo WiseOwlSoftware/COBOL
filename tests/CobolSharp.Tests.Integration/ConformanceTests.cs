@@ -410,7 +410,7 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2023", "cobol_words_undefine"),   // UNDEFINE MOVE, used as a subscripted data-name (§7.3.10.4 GR3)
         ("2023", "cobol_words_intrinsic"),  // EQUATE MAX WITH LARGEST — an intrinsic-function-name synonym (§7.3.10.4 GR2)
         ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
-        ("2023", "write_before_and_after"), // WRITE … BEFORE ADVANCING … AFTER ADVANCING … (§14.9.51 SR17)
+        ("2023", "write_before_and_after"), // WRITE … BEFORE AFTER ADVANCING … — ONE advance, both words (§14.9.51.2 Format 1 / GR25 e-f; kb/Work PB712)
         // PHASE-13 Wave G — numeric-edited VALUE 2023 rework (§13.18.63 SR6/SR11; VCR 35 + 86): a figurative ZERO
         // on a numeric-edited item edits per PICTURE (was the left-justified "0000000"), BLANK WHEN ZERO effects
         // init, and a non-zero numeric literal VALUE is permitted. The frozen legacy engine produces the pre-2023

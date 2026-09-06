@@ -35,12 +35,15 @@ internal sealed class FileIoBinder
         int? advancingLines = null;
         bool isAfterAdvancing = true;
         BoundExpression? advancingExpression = null;
-        // The shared grammar wraps the advancing phrase in writeAdvancePhrase (COBOL-2023 allows two — BEFORE AND
-        // AFTER — in the greenfield compiler; this frozen legacy oracle consumes only the first/single phrase).
-        var advCtx = ctx.writeBeforeAfter()?.writeAdvancePhrase(0);
+        // The shared grammar spells ONE advancing phrase — ISO §14.9.51.2 Format 1's choice indicators enclose the
+        // two WORDS and there is one ADVANCING operand (kb/Work PB712, which deleted the `writeAdvancePhrase`
+        // repetition this line used to index into).
+        var advCtx = ctx.writeBeforeAfter();
         if (advCtx != null)
         {
-            isAfterAdvancing = advCtx.GetChild(0).GetText().Equals("AFTER", StringComparison.OrdinalIgnoreCase);
+            // §14.9.51.4 GR25 e)/f): BEFORE — alone, or together with AFTER — presents the line and THEN advances;
+            // only a lone AFTER advances first.
+            isAfterAdvancing = advCtx.BEFORE() == null;
             // Parse the advancing value — integer literal, PAGE, or identifier
             if (advCtx.PAGE() != null)
             {

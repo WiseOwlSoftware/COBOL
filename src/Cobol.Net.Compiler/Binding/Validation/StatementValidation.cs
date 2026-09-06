@@ -590,6 +590,21 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>§14.9.51.3 SR17 — <i>"The BEFORE and AFTER phrases shall not both be specified if the PAGE
+    /// phrase is specified."</i> The pair itself is a COBOL-2023 addition (Annex §E.3.3 item 2, gated in
+    /// <c>VersionConformancePass</c>); this is the one SYNTAX rule that narrows it, and it lives here beside
+    /// SR18 and SR19 rather than inside the WRITE binder's operand plumbing (kb/Work PB712 — the old
+    /// two-ADVANCING-phrase grammar checked SR17 as one arm of a malformed-pair test that also caught shapes
+    /// §14.9.51.2 Format 1 cannot print).</summary>
+    public bool CheckWriteBeforeAfterPage(bool bothWords, bool advancingPage)
+    {
+        if (!(bothWords && advancingPage)) return true;
+        data.Edition.Error(DiagnosticCatalog.WriteBeforeAfterAdvancingPage,
+            "WRITE … BEFORE AFTER ADVANCING PAGE: the BEFORE and AFTER phrases shall not both be specified if "
+            + "the PAGE phrase is specified (ISO §14.9.51.3 SR17)");
+        return false;
+    }
+
     /// <summary>§14.9.51 SR13 — with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES
     /// mnemonic (the caller resolves the mnemonic test through the per-unit registry).</summary>
     public bool CheckWriteAdvancingMnemonic(FileModel file, bool advancingNamesMnemonic)

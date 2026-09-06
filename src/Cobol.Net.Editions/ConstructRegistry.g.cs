@@ -56,7 +56,7 @@ public static partial class ConstructRegistry
         new("exception-file-n-argument-2023", "FUNCTION EXCEPTION-FILE-N(file-connector-name)", 2023, null, null, "COBOLNET0900", "ISO §15.29.3 / §15.29.4 r2; Annex E.3.3 item 26"),
         new("merge-in-sort-merge-proc-removed-2023", "MERGE in a SORT/MERGE input or output procedure", 85, 2023, null, "COBOLNET1572", "ISO §14.9.24; Annex E.2 item 20"),
         new("boolean-shift-operators-2023", "boolean shift operators B-SHIFT-L/R/LC/RC", 2023, null, null, "COBOLNET0900", "ISO §8.8.2 rule 8 / Table 4; Annex E.2 (reserved-word additions)"),
-        new("write-before-and-after-advancing-2023", "WRITE BEFORE AND AFTER ADVANCING", 2023, null, null, "COBOLNET0900", "ISO §14.9.51 SR17 / GR25e-f; Annex E.3.3 item 2"),
+        new("write-before-and-after-advancing-2023", "WRITE BEFORE AFTER ADVANCING", 2023, null, null, "COBOLNET0900", "ISO §14.9.51.2 Format 1 / §14.9.51.4 GR25e-f; Annex E.3.3 item 2 (SR17 forbids PAGE with the pair)"),
         new("based-clause-2002", "BASED clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.5"),
         new("any-length-clause-2002", "ANY LENGTH clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.2"),
         new("group-usage-clause-2002", "GROUP-USAGE clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.29"),

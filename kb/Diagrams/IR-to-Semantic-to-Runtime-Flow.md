@@ -272,7 +272,7 @@ BoundOpen         --[ OPEN modes §14.9.27 / SHARING §14.9.27 ]--> registry.Ope
 BoundClose        --[ CLOSE §14.9.6 / WITH LOCK ]-------------->  registry.Close/CloseWithLock  (FileConnector.Close)
 BoundRead         --[ seq READ §14.9.30, AT END '1x' ]-------->  registry.ReadKeyedNext/seq     (SequentialConnector)
 BoundKeyedRead    --[ NEXT/PREV/random §14.9.30 GR19 ]--------->  ReadNext/ReadPrevious/ReadRandom (Relative/IndexedConnector)
-BoundWrite+Adv    --[ WRITE ADVANCING §14.9.51 GR25 ]---------->  Write/WriteAdvancing/BeforeAndAfter (SequentialConnector)
+BoundWrite+Adv    --[ WRITE ADVANCING §14.9.51 GR25 ]---------->  Write/WriteAdvancing (SequentialConnector; GR25 e/f place ONE advance)
 BoundKeyedWrite   --[ keyed WRITE §14.9.51 GR29–42, INVALID KEY ]--> registry.WriteKeyed        (Relative/IndexedConnector.Write)
 BoundRewrite      --[ REWRITE §14.9.35, last-read ]------------>  registry.RewriteKeyed / Rewrite (connector.Rewrite)
 BoundKeyedRewrite --[ keyed REWRITE §14.9.35 GR18–25 ]--------->  registry.RewriteKeyed         (Relative/IndexedConnector.Rewrite)

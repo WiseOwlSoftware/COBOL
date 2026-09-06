@@ -397,7 +397,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             using (w.Block($"if ({st}[0] == '0')")) Statements.EmitStatementList(not);
     }
 
-    /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §14.9.46): a FROM operand first MOVEs into the record area,
+    /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §14.9.51): a FROM operand first MOVEs into the record area,
     /// then the record's character image is written (plain, or with print-control advancing).</summary>
     public void EmitWrite(BoundWrite wr)
     {
@@ -458,19 +458,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (wst is not null) EmitInvalid(wst, wr.InvalidKey);
     }
 
-    /// <summary>The ADVANCING phrases of ONE WRITE statement as the runtime's <c>WriteAdvance</c> descriptor
-    /// (ISO §14.9.51.2 Format 1 — the print-control bracket). Three shapes, one argument: no phrase; a single
-    /// BEFORE/AFTER phrase, whose <c>-1</c> line count is ADVANCING PAGE; and COBOL-2023's combined
-    /// <c>BEFORE ADVANCING n AFTER ADVANCING m</c> (§14.9.51.4 GR25 e/f), where the record is presented once at
-    /// the current line and the medium then advances by both amounts (SR17 forbids PAGE there, so neither is a
-    /// form feed) and LINAGE-COUNTER increments by n+m.</summary>
+    /// <summary>The ADVANCING phrase of ONE WRITE statement as the runtime's <c>WriteAdvance</c> descriptor
+    /// (ISO §14.9.51.2 Format 1 — the print-control bracket). TWO shapes, one argument: no phrase; or the one
+    /// phrase, whose <c>-1</c> line count is ADVANCING PAGE and whose kind is the §14.9.51.4 GR25 e)/f)
+    /// PLACEMENT the binder already decided. ⛔ There was a third arm for COBOL-2023's combined form carrying a
+    /// SECOND amount; §14.9.51.2 prints one operand and GR25 a) defines one advance, so the combination is a
+    /// placement (present, then advance) and renders through the Before arm (kb/Work PB712).</summary>
     private string AdvanceArg(BoundWrite wr)
     {
-        if (wr.AfterAdvancing is { } aft && wr.Advancing is { } bfr)
-            return $"new WriteAdvance(WriteAdvanceKind.BeforeAndAfter, {LinesExpr(bfr.Lines!)}, {LinesExpr(aft.Lines!)})";
         if (wr.Advancing is { } adv)
             return $"new WriteAdvance(WriteAdvanceKind.{(adv.Before ? "Before" : "After")}, "
-                + $"{(adv.Page ? "-1" : LinesExpr(adv.Lines!))}, 0)";
+                + $"{(adv.Page ? "-1" : LinesExpr(adv.Lines!))})";
         return "WriteAdvance.None";
     }
 

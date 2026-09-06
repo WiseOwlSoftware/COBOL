@@ -964,17 +964,33 @@ dictionary probe per record verb on the non-sharing path, replacing a compile-ti
 answer only when the SELECT happened to mention sharing.
 
 **A verb's SHAPE rides as DATA, for the same reason.** WRITE had three renderers — plain, `WriteAdvancing` and
-the COBOL-2023 `WriteBeforeAndAfter` — and only the plain one was governed. §14.9.51.4 GR10 and GR11 are **ALL
+a COBOL-2023 `WriteBeforeAndAfter` — and only the plain one was governed. §14.9.51.4 GR10 and GR11 are **ALL
 FILES** rules, and §14.9.51.2 Format 1 prints the ADVANCING phrase, the `retry-phrase` and the
 `WITH LOCK / WITH NO LOCK` bracket together, so `WRITE R AFTER ADVANCING 1 LINE WITH LOCK RETRY 5 TIMES` is one
 legal statement — whose lock and RETRY phrases the two print-control entries, having no such parameters, dropped
-on the floor. The ADVANCING phrases now travel INTO `WriteShared` as a `WriteAdvance` descriptor
-(`WriteAdvanceKind` × lines × after-lines) and `WriteAnyOrg` dispatches the physical shape inside the governed
-body. `SequentialConnector.WriteAdvancing` and `WriteBeforeAndAfter` count the record they release (§14.9.51.4
-GR12) so GR11 has an identity to lock, exactly as the plain arm does.
+on the floor. The ADVANCING phrase now travels INTO `WriteShared` as a `WriteAdvance` descriptor
+(`WriteAdvanceKind` × lines) and `WriteAnyOrg` dispatches the physical shape inside the governed body.
+`SequentialConnector.WriteAdvancing` counts the record it releases (§14.9.51.4 GR12) so GR11 has an identity to
+lock, exactly as the plain arm does.
+
+**⛔ THE PRINT-CONTROL SHAPES ARE TWO, NOT THREE, AND THE REASON IS THE PRINTED FORMAT** (kb/Work PB712).
+`WriteBeforeAndAfter` — a third entry taking a BEFORE amount AND an AFTER amount — existed because the grammar
+spelled §14.9.51.2 Format 1's print-control bracket as the whole phrase REPEATED. It is not: measured off the
+PDF (page 815, printed folio 785), the bracket's choice indicators (`|` bars, enclosed by braces) enclose ONLY
+the words `BEFORE` and `AFTER`; `ADVANCING` and the operand group sit outside them, ONCE. §5.2.6.4 then reads
+"one or more … each at most once … in any order", so the legal spellings are `BEFORE …`, `AFTER …`,
+`BEFORE AFTER …` and `AFTER BEFORE …` — always one operand. §14.9.51.4 GR25 a)–d) define ONE advance from that
+operand and GR25 e)–h) only PLACE it: e) presents the line first when BEFORE is used, f)'s second sentence puts
+the PAIR on e)'s side ("the printed page is advanced … after the line was presented as specified in General rule
+25e"), and g)/h) place the PAGE operand "depending on the phrase used" — which the pair leaves unanswered, and
+which is why SR17 forbids exactly that combination. **So the binder decides the placement once, from the words,
+and the runtime has exactly the two presentation shapes the standard has.** The end-of-page condition the second
+`AdvanceLinageCounter` call used to erase (the kb/Work PB686 observation) cannot arise: there is one call.
 
 **Why this is the shape that makes the next case automatic.** Adding a WRITE shape now means adding a
-`WriteAdvanceKind` member and one `switch` arm inside the governed body; it cannot produce a new ungoverned path,
+`WriteAdvanceKind` member and one arm to `WriteAnyOrg`'s sequential dispatch inside the governed body (two
+presentation shapes today, so that dispatch is a conditional rather than a switch); it cannot produce a new
+ungoverned path,
 because there is no ungoverned entry to reach. `BoundIoPhraseConsumptionDriftTests` keeps the other half honest:
 every phrase a bound I-O node declares must be READ by its emitter.
 
@@ -1182,7 +1198,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
 - READ INTO lowers to the verb plus a typed MOVE whose SENDER is the current record, WRITE FROM to an ordinary typed MOVE plus the verb (D21; receiving uses the MAX length for ODO records, the ST146A lesson).
 - Record length mismatch on READ (a fixed file whose physical record differs from the FD size) gives status 04; add for conformance since the legacy pads silently.
 - LINE SEQUENTIAL: newline-framed, TrimEnd on WRITE, pad or truncate on READ, LastRecordLength is the line length; status **06 and 09 are both implemented** — 06 is the GR15 over-length truncation (the file position indicator keeps the unread remainder, NOTE 3), 09 the GR16 character-set warning below. LINE SEQUENTIAL itself is a COBOL-2023 introduction; see Per-edition gating.
-- **The LINE SEQUENTIAL CHARACTER SET is ONE set behind FOUR rules** (`LineSequentialCharacterSet`, kb/Work PB329). Annex A.1 item 115 makes the set a REQUIRED, documented determination and the standard names it from four places: 14.9.30.4 GR16 / 9.1.13.2 item 7 (a SUCCESSFUL READ whose record area holds a non-member ⇒ '09', the record still delivered), 14.9.51.4 GR23 (WRITE ⇒ unsuccessful, '71'), 14.9.35.4 GR17 d) (REWRITE ⇒ unsuccessful, '71') and 9.1.13.10 item 1 (both write directions leave the record area — and the medium — unchanged). **The determination is: every character at code point U+0020 or above is a member; the C0 controls below it are not** (derivation and the GnuCOBOL survey at `docs/CONFORMANCE.md` DOC-A.1-115). Design consequences: (a) the set lives in ONE type and the connector reaches it through ONE predicate, `SequentialConnector.RecordAreaOutsideLineCharacterSet`, so the read arm and all THREE write entry points (`Write`, `WriteAdvancing`, `WriteBeforeAndAfter`) cannot diverge — before PB329 only REWRITE had an arm and it carried a private CR/LF test; (b) the subject is the RECORD AREA, tested CHARACTER-wise, so a national record area is read two bytes at a time as UTF-16BE exactly as `FitRecord`/`TrimRecordEnd` pad and trim it (a byte-wise test would refuse every national line sequential record); (c) GR16 is stated after GR15 and asks only that the read be successful, so '09' is the status that lands even on a truncated ('06') read.
+- **The LINE SEQUENTIAL CHARACTER SET is ONE set behind FOUR rules** (`LineSequentialCharacterSet`, kb/Work PB329). Annex A.1 item 115 makes the set a REQUIRED, documented determination and the standard names it from four places: 14.9.30.4 GR16 / 9.1.13.2 item 7 (a SUCCESSFUL READ whose record area holds a non-member ⇒ '09', the record still delivered), 14.9.51.4 GR23 (WRITE ⇒ unsuccessful, '71'), 14.9.35.4 GR17 d) (REWRITE ⇒ unsuccessful, '71') and 9.1.13.10 item 1 (both write directions leave the record area — and the medium — unchanged). **The determination is: every character at code point U+0020 or above is a member; the C0 controls below it are not** (derivation and the GnuCOBOL survey at `docs/CONFORMANCE.md` DOC-A.1-115). Design consequences: (a) the set lives in ONE type and the connector reaches it through ONE predicate, `SequentialConnector.RecordAreaOutsideLineCharacterSet`, so the read arm and both write entry points (`Write`, `WriteAdvancing`) cannot diverge — before PB329 only REWRITE had an arm and it carried a private CR/LF test; (b) the subject is the RECORD AREA, tested CHARACTER-wise, so a national record area is read two bytes at a time as UTF-16BE exactly as `FitRecord`/`TrimRecordEnd` pad and trim it (a byte-wise test would refuse every national line sequential record); (c) GR16 is stated after GR15 and asks only that the read be successful, so '09' is the status that lands even on a truncated ('06') read.
 - **The RECORD-AREA CATEGORY flag (`NationalRecordArea`) is set from ANY of the FD's record descriptions, not from the widest one.** 13.18.33.4 GR3 — "Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area" — makes them all descriptions of ONE area, and 14.9.51.4 GR21/GR22 key the trailing-space rule on *record-name-1*, so a WRITE naming the national record must shed national spaces whatever a sibling description says. Keying on the widest description alone (the original PB327 selector) silently answered "alphanumeric" for `01 R PIC N(4). 01 B PIC X(8).`, so that FD's WRITE shed one 0x20 with `string.TrimEnd` and left a seven-byte line ending in half a national position; the READ then re-padded alphanumerically to the same eight bytes, so the golden that was meant to pin the national fill never exercised it. ⚠ The flag is per-CONNECTOR while GR21/GR22 are per record-name-1; an FD carrying both a national and an alphanumeric record description answers national for both. Carrying the category on the statement is the shape that would separate them, and it is deliberately not built while no corpus program writes the alphanumeric sibling of a national area — a second national axis to say so would be the two-mechanism anti-pattern.
 - CODE-SET translates only character (alphanumeric and DISPLAY-numeric digit) bytes, not COMP or COMP-3 binary fields (13.18.13); the default is the native ASCII set.
 - LINAGE:

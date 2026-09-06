@@ -389,7 +389,7 @@ public sealed class FileRegistry
 
     // ── Sequential-surface verbs (keyed connectors are reached via the keyed entries below) ─────────────────
 
-    /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46); <paramref name="length"/> is the varying-record length
+    /// <summary>Plain <c>WRITE record</c> (ISO §14.9.51); <paramref name="length"/> is the varying-record length
     /// (§13.18.43 GR13a), -1 = the record's own size.</summary>
     public void Write(string name, string image, int length, LinagePage? page)
     { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.Write(image, length, page); }
@@ -1303,12 +1303,12 @@ public sealed class FileRegistry
     private static string WriteAnyOrg(FileConnector c, string image, int length, LinagePage? page,
         WriteAdvance advance) => c switch
     {
-        SequentialConnector f => advance.Kind switch
-        {
-            WriteAdvanceKind.None => f.Write(image, length, page),
-            WriteAdvanceKind.BeforeAndAfter => f.WriteBeforeAndAfter(image, advance.Lines, advance.AfterLines, page),
-            _ => f.WriteAdvancing(image, advance.Lines, advance.Kind == WriteAdvanceKind.Before, page),
-        },
+        SequentialConnector f => advance.Kind is WriteAdvanceKind.None
+            ? f.Write(image, length, page)
+            // §14.9.51.4 GR25 e)/f) — ONE advance, placed by the statement's words; the combined COBOL-2023
+            // BEFORE AFTER form arrives as Before, because GR25 f) puts its advance after the presentation
+            // exactly as GR25 e) does (kb/Work PB712 deleted the third, two-amount arm).
+            : f.WriteAdvancing(image, advance.Lines, advance.Kind == WriteAdvanceKind.Before, page),
         RelativeConnector r => r.Write(image, length),
         IndexedConnector ix => ix.Write(image, length),
         _ => FileStatusCode.PermanentError,

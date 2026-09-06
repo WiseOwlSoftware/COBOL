@@ -646,13 +646,16 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>WRITE … BEFORE ADVANCING … AFTER ADVANCING … (ISO §14.9.51 SR17) — specifying BOTH advancing
-        /// phrases on one WRITE is a COBOL-2023 addition. Gate on the CO-OCCURRENCE (two writeAdvancePhrase children),
-        /// not on ADVANCING itself — a single BEFORE or AFTER is edition-invariant. Recognition-based (DEVLOG 724).</summary>
+        /// <summary>WRITE … BEFORE AFTER ADVANCING … (ISO Annex §E.3.3 item 2 — <i>"Both BEFORE and AFTER are
+        /// allowed together in WRITE ADVANCING"</i>) — specifying BOTH words on one WRITE is a COBOL-2023 addition.
+        /// Gate on the CO-OCCURRENCE OF THE TWO WORDS, not on ADVANCING itself — a single BEFORE or AFTER is
+        /// edition-invariant. ⛔ This used to read <c>writeAdvancePhrase().Length == 2</c>, gating on a SECOND
+        /// ADVANCING PHRASE that §14.9.51.2 Format 1 never prints (kb/Work PB712): the phrase's choice indicators
+        /// enclose the two WORDS and there is exactly one <c>ADVANCING</c> operand. Recognition-based (DEVLOG 724).</summary>
         public override object? VisitWriteBeforeAfter(CobolParserCore.WriteBeforeAfterContext ctx)
         {
-            if (ctx.writeAdvancePhrase().Length == 2)
-                _p.Check(Constructs.WriteBeforeAndAfterAdvancing2023, "the combined WRITE BEFORE AND AFTER ADVANCING phrases");
+            if (ctx.BEFORE() is not null && ctx.AFTER() is not null)
+                _p.Check(Constructs.WriteBeforeAndAfterAdvancing2023, "the combined WRITE BEFORE AFTER ADVANCING phrase");
             return base.VisitChildren(ctx);
         }
 

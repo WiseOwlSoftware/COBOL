@@ -82,18 +82,20 @@ public enum WriteAdvanceKind : byte
     Before,
     /// <summary>AFTER ADVANCING — the medium advances, then the record is presented.</summary>
     After,
-    /// <summary>COBOL-2023's combined <c>BEFORE ADVANCING n AFTER ADVANCING m</c> (§14.9.51.4 GR25 e/f): the
-    /// record is presented once at the current line and the medium then advances by both amounts.</summary>
-    BeforeAndAfter,
+    // ⛔ A `BeforeAndAfter` MEMBER LIVED HERE AND IS GONE (kb/Work PB712). It carried a SECOND advance amount for
+    // `WRITE … BEFORE ADVANCING n AFTER ADVANCING m` — a spelling §14.9.51.2 Format 1 never prints. The printed
+    // phrase has ONE `ADVANCING` operand and §14.9.51.4 GR25 a) advances the page "the number of lines equal to
+    // that value", once; the two WORDS only place that one advance (GR25 e)/f)), and the combined form places it
+    // exactly where BEFORE does. There are TWO presentation shapes, which is what this enum now spells.
 }
 
-/// <summary>The ADVANCING phrases of ONE WRITE statement, as data — see <see cref="WriteAdvanceKind"/> for why
+/// <summary>The ADVANCING phrase of ONE WRITE statement, as data — see <see cref="WriteAdvanceKind"/> for why
 /// this travels as an argument of the governed WRITE rather than as a choice of runtime entry.</summary>
-/// <param name="Kind">Which phrases the statement wrote.</param>
-/// <param name="Lines">The single phrase's line count, or the BEFORE amount of the combined form; <c>-1</c> is
-/// ADVANCING PAGE, which §14.9.51.3 SR17 permits only in the single-phrase form.</param>
-/// <param name="AfterLines">The AFTER amount of the combined form; unused otherwise.</param>
-public readonly record struct WriteAdvance(WriteAdvanceKind Kind, int Lines, int AfterLines)
+/// <param name="Kind">The §14.9.51.4 GR25 e)/f) placement of the advance, decided in the binder from the
+/// statement's BEFORE/AFTER words.</param>
+/// <param name="Lines">The phrase's single line count (§14.9.51.4 GR25 a)–d)); <c>-1</c> is ADVANCING PAGE,
+/// which §14.9.51.3 SR17 forbids when both words are written.</param>
+public readonly record struct WriteAdvance(WriteAdvanceKind Kind, int Lines)
 {
     /// <summary>A WRITE with no ADVANCING phrase.</summary>
     public static WriteAdvance None => default;

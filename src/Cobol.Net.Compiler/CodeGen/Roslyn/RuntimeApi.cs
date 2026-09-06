@@ -797,10 +797,11 @@ internal static class RuntimeApi
     // another connector had locked with '00' where §14.9.30.4 GR9/GR10 b) require '51'. The governed entries all
     // fall through to the identical plain body on a `_connectorShares` miss, so there is nothing to choose:
     // render the governed one and let the runtime, one layer down, decide where the OPEN is visible.
-    // ⛔ The same rule holds for a verb's SHAPE: the ADVANCING phrases ride INSIDE FileWriteShared as a
+    // ⛔ The same rule holds for a verb's SHAPE: the ADVANCING phrase rides INSIDE FileWriteShared as a
     // `WriteAdvance` argument. FileWriteAdvancing/FileWriteBeforeAndAfter existed as separate renderers, and
     // because neither entry has a lock or RETRY parameter, `WRITE R AFTER ADVANCING 1 LINE WITH LOCK` — one
-    // legal statement of §14.9.51.2 Format 1 — silently lost both phrases.
+    // legal statement of §14.9.51.2 Format 1 — silently lost both phrases. (The descriptor carries ONE amount
+    // and the GR25 e)/f) placement: §14.9.51.2 prints one ADVANCING operand — kb/Work PB712.)
 
     /// <summary>The ONE governed FORMAT-2 (random) keyed READ (§9.1.16 / §14.9.30.4 GR9–GR12) —
     /// <c>CobolFile.ReadKeyedShared</c> (I-O status result, out image). It OWNS the physical retrieval, so

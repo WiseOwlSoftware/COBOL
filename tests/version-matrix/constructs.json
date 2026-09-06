@@ -569,15 +569,15 @@
   },
   {
    "id": "write-before-and-after-advancing-2023",
-   "description": "WRITE … BEFORE ADVANCING … AFTER ADVANCING … (ISO §14.9.51 SR17/GR25e/GR25f) — specifying BOTH advancing phrases on one WRITE is a COBOL-2023 addition (the record is presented once at the current line, then advanced by both amounts; PAGE forbidden, SR17). A single BEFORE or AFTER phrase is edition-invariant. Recognition gate on the co-occurrence (two writeAdvancePhrase children).",
-   "display": "WRITE BEFORE AND AFTER ADVANCING",
+   "description": "WRITE … BEFORE AFTER ADVANCING … (ISO §14.9.51.2 Format 1; Annex §E.3.3 item 2) — specifying BOTH WORDS on one WRITE is a COBOL-2023 addition. The printed format's choice indicators enclose only BEFORE and AFTER; ADVANCING and its operand sit outside them, ONCE, so there is one advance (§14.9.51.4 GR25 a)) and the words only place it (GR25 e)/f) — the pair presents the record and then advances, exactly as BEFORE alone does). PAGE forbidden with the pair (SR17, COBOLNET1910). A single BEFORE or AFTER is edition-invariant. Recognition gate on the co-occurrence of the two WORDS.",
+   "display": "WRITE BEFORE AFTER ADVANCING",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §14.9.51 SR17 / GR25e-f; Annex E.3.3 item 2",
+   "citation": "ISO §14.9.51.2 Format 1 / §14.9.51.4 GR25e-f; Annex E.3.3 item 2 (SR17 forbids PAGE with the pair)",
    "introducedIn": 2023,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
-   "vcr": "VCR row 45 (WRITE BEFORE AND AFTER — 2023 introduction)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WBA.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRTF ASSIGN TO \"vmwba.prt\".\nDATA DIVISION.\nFILE SECTION.\nFD PRTF.\n01 P-REC PIC X(6).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRTF.\n    MOVE \"AAA\" TO P-REC.\n    WRITE P-REC BEFORE ADVANCING 1 AFTER ADVANCING 2.\n    CLOSE PRTF.\n    STOP RUN.\n"
+   "vcr": "VCR row 45 (WRITE BEFORE AFTER — 2023 introduction)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WBA.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRTF ASSIGN TO \"vmwba.prt\".\nDATA DIVISION.\nFILE SECTION.\nFD PRTF.\n01 P-REC PIC X(6).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRTF.\n    MOVE \"AAA\" TO P-REC.\n    WRITE P-REC BEFORE AFTER ADVANCING 2 LINES.\n    CLOSE PRTF.\n    STOP RUN.\n"
   },
   {
    "id": "based-clause-2002",

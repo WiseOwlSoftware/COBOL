@@ -2373,6 +2373,23 @@ public static class DiagnosticCatalog
         + "SR8/SR9), §14.9.30.4 GR19 reads the file as a Format-2 random read on a file that has no keys.",
         "ISO §12.4.5.5.2 SR2");
 
+    /// <summary>COBOLNET1910 — §14.9.51.3 SR17, the ONE rule that restricts the COBOL-2023 combined
+    /// <c>BEFORE AFTER ADVANCING</c> phrase (kb/Work PB712). The pair itself is legal (Annex §E.3.3 item 2);
+    /// what SR17 forbids is the pair TOGETHER WITH the PAGE operand, and §14.9.51.4 GR25 g)/h) say why — they
+    /// place the record "before or after (depending on the phrase used) the device is repositioned", which has
+    /// no answer when both words are written. Every other malformed shape the old two-phrase grammar could
+    /// build (two BEFOREs, two AFTERs, two ADVANCING operands) is now unspellable: §5.2.6.4 lets each
+    /// choice-indicator alternative appear only once and Format 1 prints one operand.</summary>
+    public static readonly DiagnosticDescriptor WriteBeforeAfterAdvancingPage = new(
+        "COBOLNET1910", "write-before-after-advancing-page", EditionSeverity.Error,
+        "ISO §14.9.51.3 syntax rule 17: \"The BEFORE and AFTER phrases shall not both be specified if the PAGE "
+        + "phrase is specified.\" The combined form is otherwise legal from COBOL-2023 (Annex §E.3.3 item 2), and "
+        + "§14.9.51.4 GR25 f) gives it a defined advance — the page is advanced after the record was presented. "
+        + "PAGE is the one operand it cannot carry: GR25 g) and h) position the record \"before or after "
+        + "(depending on the phrase used)\" the device is repositioned to the next page, and with both words "
+        + "written there is no phrase to depend on.",
+        "ISO §14.9.51.3 SR17");
+
     public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
         "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",

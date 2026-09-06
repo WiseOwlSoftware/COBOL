@@ -638,7 +638,8 @@ public sealed class SequentialConnector : FileConnector
         return Status = FileStatusCode.Success;
     }
 
-    /// <summary>Print-control <c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c> (ISO §14.9.46 GR): for
+    /// <summary>Print-control <c>WRITE record [BEFORE] [AFTER] ADVANCING {n LINES | PAGE}</c> (ISO §14.9.51.4
+    /// GR25): for
     /// AFTER, advance then write the trimmed image; for BEFORE, write then advance. <paramref name="lines"/> = -1
     /// means ADVANCING PAGE (a form feed). The leading/trailing newline structure matches the legacy print stream.</summary>
     public string WriteAdvancing(string image, int lines, bool before, LinagePage? page)
@@ -657,7 +658,8 @@ public sealed class SequentialConnector : FileConnector
         // operating environment" — is an ALL FILES rule, so a print-control WRITE releases an ordinal-identified
         // record exactly as the plain one does, and GR11's WITH LOCK needs that identity. Released HERE and not
         // in Write(), which delegates to this method for a print/LINAGE file (kb/Work PB683, which added the
-        // count; kb/Work PB739 made it a RELEASE — the flush and the shared mint — in all three arms).
+        // count; kb/Work PB739 made it a RELEASE — the flush and the shared mint — in every write arm:
+        // three of them then, TWO since kb/Work PB712 deleted `WriteBeforeAndAfter`).
         ReleaseRecord();
         // The LINAGE counter advances as part of the write, AFTER the physical presentation (the legacy
         // ordering): an AT END-OF-PAGE branch then reads the POST-advance counter of the triggering write
@@ -679,29 +681,13 @@ public sealed class SequentialConnector : FileConnector
         return new string(a);
     }
 
-    /// <summary>Print-control <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/GR25f,
-    /// COBOL-2023): present the trimmed image at the CURRENT line, then advance by the BEFORE amount and by the AFTER
-    /// amount — both after presentation (SR17 forbids PAGE, so neither is a form feed). LINAGE-COUNTER increments by
-    /// n+m.</summary>
-    public string WriteBeforeAndAfter(string image, int beforeLines, int afterLines, LinagePage? page)
-    {
-        if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
-        if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
-        if (RecordAreaOutsideLineCharacterSet(image)) return Status = FileStatusCode.LineRecordInvalidChar;   // '71' §14.9.51.4 GR23 — the THIRD WRITE ARM
-        _afterAdvancing = true;
-        _writer.Write(PrintSafe(TrimRecordEnd(image)));
-        // Two DISTINCT advancing operations (GR25e then GR25f): advance and count each SEPARATELY so a page-boundary
-        // crossing WITHIN the BEFORE advance is handled by its own §14.9.51 GR26/GR7c overflow logic before the
-        // AFTER advance runs (a single combined increment would mis-handle a boundary between the two).
-        Advance(beforeLines);
-        if (page is { } pg) AdvanceLinageCounter(beforeLines, pg);
-        Advance(afterLines);
-        if (page is { } pg2) AdvanceLinageCounter(afterLines, pg2);
-        ReleaseRecord();   // §14.9.51.4 GR12 — the THIRD write arm releases a record too (kb/Work PB683,
-                           // PB739)
-        return Status = FileStatusCode.Success;
-    }
-
+    // ⛔ `WriteBeforeAndAfter` LIVED HERE AND IS GONE (kb/Work PB712). It was the THIRD write arm, taking a
+    // BEFORE amount AND an AFTER amount and advancing — and counting LINAGE — twice, because the grammar spelled
+    // the ADVANCING phrase twice. §14.9.51.2 Format 1 prints ONE `ADVANCING` operand (the choice indicators
+    // enclose only the words BEFORE and AFTER) and §14.9.51.4 GR25 a) advances the page "the number of lines
+    // equal to that value" — one advance, whose PLACEMENT GR25 e)/f) decide. The combined COBOL-2023 form is
+    // therefore `WriteAdvancing(…, before: true, …)`, and the end-of-page condition the second
+    // `AdvanceLinageCounter` call used to erase (PB686's observation) cannot arise: there is one call.
     private void Advance(int lines)
     {
         if (lines < 0) { _writer!.Write('\f'); return; }   // ADVANCING PAGE

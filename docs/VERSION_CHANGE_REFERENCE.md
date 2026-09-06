@@ -106,6 +106,7 @@ names), or if a spec LINE number reappears anywhere in this file — so the ledg
 | ref-mod-zero-length-2023 | 2023 | — | COBOLNET0900 | done | 11 |
 | sync-on-group-2023 | 2023 | — | COBOLNET0900 | done | 43 |
 | user-word-padding-2014 | 2014 | — | COBOLNET0901 | done | 7.20a |
+| write-before-and-after-advancing-2023 | 2023 | — | COBOLNET0900 | done | 45 |
 <!-- GEN:VCR-STATUS END -->
 
 ---
@@ -174,7 +175,7 @@ names), or if a spec LINE number reappears anywhere in this file — so the ledg
 | # | Change (title) | § | Edition delta | Old → New behavior | Affects existing? | Compiler gating action |
 |---|---|---|---|---|---|---|
 | 44 | NUMVAL-C ANYCASE keyword clarified | E.3.3 item 1 | 2014→2023 | **Old:** ANYCASE of NUMVAL-C specified inconsistently. **New:** clarified to be consistent. | No | none <!-- ref-only --> |
-| 45 | BEFORE and AFTER both allowed in WRITE ADVANCING | E.3.3 item 2 | 2014→2023 | **Old:** BEFORE and AFTER could not both be specified. **New:** both allowed together. | No | new-feature-gate <!-- todo --> |
+| 45 | BEFORE and AFTER both allowed in WRITE ADVANCING | E.3.3 item 2 | 2014→2023 | **Old:** BEFORE and AFTER could not both be specified. **New:** both allowed together — `WRITE r BEFORE AFTER ADVANCING n LINES`, in either word order (§5.2.6.4). The format still prints ONE `ADVANCING` and ONE operand, so the pair is a PLACEMENT, not a second advance: §14.9.51.4 GR25 a) gives one advance and GR25 f) puts it after the presentation, exactly where a lone BEFORE puts it. §14.9.51.3 SR17 forbids PAGE with the pair (COBOLNET1910). | No | new-feature-gate <!-- gate:write-before-and-after-advancing-2023 --> |
 | 46 | Binary operators B-SHIFT-L / B-SHIFT-LC / B-SHIFT-R / B-SHIFT-RC | E.3.3 item 3 | 2014→2023 | **Old:** no standard binary bit-shift operators; words not reserved. **New:** B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC added. | No | flag-new-reserved-word <!-- todo --> |
 | 47 | Characters CHANGED to be permitted as the first character of a user-defined word (Unicode reclassification) | E.3.3 item 4 | 2014→2023 | **Old:** listed code points not allowed as first char. **New:** now allowed as first char across scripts — Armenian (0559); Common (00B5, 02BB-02C1, 02D0-02D1, 02EE, 2102, 2107, 210A-2113, 2115, 2119-211D, 2124, 2128, 212C-212D, 212F-2131, 2133-2139, 3006); Greek (1FBE, 2126); Han (3005, 3007, 3021-3029, 3038-303A); Latin (02B0-02B8, 02E0-02E4, 212A-212B, 2160-2183); Tamil (0B83). | No | new-feature-gate <!-- todo --> |
 | 48 | Characters ADDED as permitted in user-defined words (large Unicode block additions) | E.3.3 item 5 | 2014→2023 | **Old:** listed code points not permitted. **New:** a large set of Unicode ranges across ~120 scripts (Adlam … Zanabazar_Square) added. (Scope-level entry; full per-script tables not enumerated — see §E.3.3 item 5.) | No | new-feature-gate <!-- todo --> |

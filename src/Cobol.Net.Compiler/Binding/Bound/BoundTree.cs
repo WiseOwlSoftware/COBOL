@@ -987,12 +987,18 @@ public sealed record BoundClose(IReadOnlyList<(FileModel File, BoundCloseKind Ki
     public bool ReportNotTerminatedCheck { get; init; }
 }
 
-/// <summary>A <c>WRITE … {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c> phrase (ISO §14.9.46): print-control output.
-/// <paramref name="Page"/> = ADVANCING PAGE (a form feed); otherwise <paramref name="Lines"/> is the line count
-/// (a literal or data-name, default 1). <paramref name="Before"/> distinguishes BEFORE from AFTER.</summary>
+/// <summary>The ONE <c>[BEFORE] [AFTER] ADVANCING {n LINES | PAGE}</c> phrase of a WRITE (ISO §14.9.51.2
+/// Format 1): print-control output. <paramref name="Page"/> = ADVANCING PAGE (a form feed); otherwise
+/// <paramref name="Lines"/> is the line count (a literal or data-name, default 1) — ONE amount, because the
+/// printed format carries ONE operand however many of the two words precede it.
+/// <para><paramref name="Before"/> is the §14.9.51.4 GR25 e)/f) PLACEMENT of that one advance: true = the record
+/// is presented and the medium then advances (the BEFORE phrase, alone or together with AFTER — GR25 f) puts the
+/// combined form's advance "after the line was presented as specified in General rule 25e"); false = the medium
+/// advances and the record is then presented (a lone AFTER). The binder decides it once, from the source words,
+/// so no backend re-derives it (kb/Work PB712).</para></summary>
 public sealed record BoundAdvancing(bool Before, bool Page, BoundOperand? Lines);
 
-/// <summary><c>WRITE record [FROM x] [ADVANCING …]</c> (ISO §14.9.46): <paramref name="Record"/> is the record area
+/// <summary><c>WRITE record [FROM x] [ADVANCING …]</c> (ISO §14.9.51): <paramref name="Record"/> is the record area
 /// place (its image is written); a FROM operand first MOVEs into the record. <paramref name="Advancing"/> null = a
 /// plain (data) WRITE. <paramref name="Unsupported"/> set (loud) when the owning file's organization is unsupported.
 /// <paramref name="AtEop"/>/<paramref name="NotAtEop"/> are the END-OF-PAGE / NOT END-OF-PAGE imperatives (ISO
@@ -1007,11 +1013,10 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
     /// <summary>The RETRY phrase (§14.7.9 / §14.9.51 GR16), or null.</summary>
     public RetrySpec? Retry { get; init; }
-    /// <summary>The AFTER-ADVANCING phrase of a COBOL-2023 combined <c>WRITE … BEFORE ADVANCING … AFTER ADVANCING …</c>
-    /// (ISO §14.9.51 GR25e/GR25f): when non-null, <see cref="Advancing"/> holds the BEFORE phrase and this holds the
-    /// AFTER phrase, and the record is presented once at the current line then advanced by BOTH amounts (both after
-    /// presentation). PAGE is forbidden in the combined form (SR17). Null = the classic single-phrase WRITE.</summary>
-    public BoundAdvancing? AfterAdvancing { get; init; }
+    // ⛔ `AfterAdvancing` LIVED HERE AND IS GONE (kb/Work PB712). It held the SECOND ADVANCING phrase of a
+    // `WRITE … BEFORE ADVANCING n AFTER ADVANCING m`, a spelling §14.9.51.2 Format 1 never prints: the printed
+    // phrase's choice indicators enclose the two WORDS and there is ONE `ADVANCING` with ONE operand. The pair of
+    // words is a placement, not a second amount (§14.9.51.4 GR25 e)/f)), and `Advancing.Before` now carries it.
     /// <summary>The <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> pair, which ISO §14.9.51.3 SR2 FORBIDS on a
     /// sequential-organization WRITE ("If the organization of the write file is sequential, format 1 shall be
     /// specified", and Format 1 of §14.9.51.2 carries no INVALID KEY bracket) — so it is non-null ONLY under

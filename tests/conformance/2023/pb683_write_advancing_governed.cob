@@ -106,11 +106,14 @@
            READ BR END-READ.
            DISPLAY "B-R=" BR-ST.
            CLOSE BW. CLOSE BR.
-      *> LEG C — COBOL-2023's combined form (§14.9.51.4 GR25 e/f; SR17
-      *> forbids PAGE in it, so both amounts are line counts).
+      *> LEG C — COBOL-2023's combined form, in the ONE spelling §14.9.51.2
+      *> Format 1 prints: both WORDS, one ADVANCING, one operand (the choice
+      *> indicators enclose the words only — kb/Work PB712 corrected this leg,
+      *> which used to carry two ADVANCING operands). §14.9.51.4 GR25 e)/f)
+      *> place the single advance after the presentation; SR17 forbids PAGE.
            OPEN OUTPUT CW.
            MOVE "ALPHA" TO CW-REC.
-           WRITE CW-REC BEFORE ADVANCING 1 LINE AFTER ADVANCING 1 LINE
+           WRITE CW-REC BEFORE AFTER ADVANCING 1 LINE
                WITH LOCK.
            DISPLAY "C-W=" CW-ST.
            OPEN INPUT CR.

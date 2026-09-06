@@ -542,14 +542,35 @@ writeFrom
     : FROM (functionCall | dataReference | literal)
     ;
 
-// ISO §14.9.51: one or (COBOL-2023, SR17) BOTH of BEFORE/AFTER ADVANCING. The combined form is introduction-gated
-// at 2023 and rejects PAGE (SR17); a single phrase is edition-invariant (85+).
+// ⛔ THIS RULE READ `writeAdvancePhrase writeAdvancePhrase?` — THE WHOLE PHRASE REPEATED — UNTIL kb/Work PB712,
+// and it was wrong in BOTH directions: it REJECTED the only spelling §14.9.51.2 prints for the combination
+// (`WRITE R BEFORE AFTER ADVANCING 4 LINES` → COBOL0001 "no viable alternative at input 'AFTER'") and ACCEPTED
+// a two-ADVANCING-operand form the standard never prints and its general rules cannot interpret
+// (`WRITE R BEFORE ADVANCING 4 LINES AFTER ADVANCING 0 LINES`). The 2023 introduction gate fired correctly on
+// the second phrase, which is exactly what kept the over-acceptance invisible: the EDITION was checked, so the
+// SPELLING never was.
+//
+// MEASURED off the canonical PDF, not read from the transcription (`python scripts/spec/clause_page.py
+// 14.9.51.2` → PDF page 815, printed folio 785; `python scripts/render-spec-page.py 815`). Format 1's
+// print-control phrase is ONE optional bracket:
+//
+//     [  { | BEFORE | }  ADVANCING  { { identifier-2 | integer-1 } [ LINE | LINES ] } ]
+//        { |  AFTER | }             { { mnemonic-name-1 | PAGE }                    }
+//
+// The choice indicators — the `|` bars — enclose ONLY the two WORDS. `ADVANCING` and the whole operand group sit
+// OUTSIDE them, inside the single bracket, ONCE. ISO §5.2.6.4: "When enclosed by braces, one or more of the
+// alternatives contained within the choice indicators shall be specified, but any single alternative shall be
+// specified only once. … The alternatives may be specified in any order." So the four printed spellings are
+// `BEFORE ADVANCING …`, `AFTER ADVANCING …`, `BEFORE AFTER ADVANCING …` and `AFTER BEFORE ADVANCING …` —
+// always ONE `ADVANCING`, ONE operand. `ADVANCING`, `LINE` and `LINES` are NOT underlined: optional words.
+//
+// The combined form is a COBOL-2023 addition (Annex §E.3.3 item 2, "Both BEFORE and AFTER are allowed together
+// in WRITE ADVANCING") and is introduction-gated on the CO-OCCURRENCE OF THE TWO WORDS in
+// VersionConformancePass.VisitWriteBeforeAfter — never on a second phrase, which no longer exists. §14.9.51.3
+// SR17 then forbids PAGE with the pair (StatementValidation.CheckWriteBeforeAfterPage). A single BEFORE or a
+// single AFTER is edition-invariant (85+).
 writeBeforeAfter
-    : writeAdvancePhrase writeAdvancePhrase?
-    ;
-
-writeAdvancePhrase
-    : (BEFORE | AFTER) ADVANCING?
+    : (BEFORE AFTER? | AFTER BEFORE?) ADVANCING?
       ( PAGE
       | (dataReference | integerLiteral | literal) (LINE | LINES)?
       )

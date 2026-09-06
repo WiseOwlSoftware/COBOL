@@ -112,7 +112,7 @@ public static class CobolFile
     // ADVANCING PAGE one and the one that causes a page overflow — so the values belong to the element executing
     // that WRITE. `null` says the FD referenced by this statement has no LINAGE clause at all (kb/Work PB673).
 
-    /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46); <paramref name="length"/> is the varying-record length
+    /// <summary>Plain <c>WRITE record</c> (ISO §14.9.51); <paramref name="length"/> is the varying-record length
     /// (ISO §13.18.43 GR13a), -1 = the record's own size.</summary>
     public static void Write(string name, string image, int length, LinagePage? page)
         => _reg.Write(name, image, length, page);

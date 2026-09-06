@@ -174,6 +174,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // specified in the NOT INVALID KEY phrase if it is specified"). The INVALID arm is provably dead on this
         // organization — every invalid-key status (§9.1.13.5 items 1–4, '21'–'24') names a relative or indexed
         // file — so the emitter renders it as a status-first branch that simply never fires, never a reroute.
+        // The ONE print-control phrase (§14.9.51.2 Format 1 prints one bracket, one `ADVANCING`, one operand),
+        // read once: SR13, SR17, SR18 and the bind all ask about the SAME phrase.
+        Core.WriteBeforeAfterContext? adv = w.writeBeforeAfter();
         KeyedInvalidKey? winvalid = null;
         if (w.writeInvalidKey() is { } wik)
         {
@@ -192,18 +195,22 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // SR19 (the silent-drop bug class): the END-OF-PAGE / NOT END-OF-PAGE phrase requires a LINAGE clause
             // in the file's file description entry — a bind-time rejection, never a dropped branch.
             ctx.Validation.CheckWriteEopLinage(file);                                     // SR19 — pure check
-            ctx.Validation.CheckWriteEopAdvancingPage(AnyAdvancePage(w.writeBeforeAfter()));   // SR18 — pure check
+            ctx.Validation.CheckWriteEopAdvancingPage(AnyAdvancePage(adv));   // SR18 — pure check
             (atEop, notAtEop) = PhraseBlocks.Split(eop.statementBlock(), PhraseBlocks.StartsWithNot(eop), b => host.BindBlocks([b]));
         }
         // SR13: with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES mnemonic (the
         // implementor positioning rules and the logical-page model are mutually exclusive).
-        ctx.Validation.CheckWriteAdvancingMnemonic(file, w.writeBeforeAfter()?.writeAdvancePhrase()
-            .Any(p => p.dataReference() is { } mref && ctx.Mnemonics.Of(p).ContainsKey(mref.GetText())) ?? false);   // SR13 — pure check
+        ctx.Validation.CheckWriteAdvancingMnemonic(file, adv is not null
+            && adv.dataReference() is { } mref && ctx.Mnemonics.Of(adv).ContainsKey(mref.GetText()));   // SR13 — pure check
+        // SR17: the COBOL-2023 pair of words may not carry the PAGE operand (GR25 g)/h) place the record
+        // "depending on the phrase used", which the pair leaves unanswered).
+        ctx.Validation.CheckWriteBeforeAfterPage(
+            adv is not null && adv.BEFORE() is not null && adv.AFTER() is not null,
+            AnyAdvancePage(adv));   // SR17 — pure check
 
-        var (beforeAdv, afterAdv) = BindAdvancingPair(w.writeBeforeAfter());
         return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal(), w.writeFrom()?.functionCall()),
-            beforeAdv, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
-        { Lock = wlock, Retry = wretry, AfterAdvancing = afterAdv, InvalidKey = winvalid };
+            BindAdvancing(adv), UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
+        { Lock = wlock, Retry = wretry, InvalidKey = winvalid };
     }
 
     public BoundStatement BindRead(Core.ReadStatementContext r)
@@ -330,38 +337,31 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         : lit is not null ? host.Expr.LiteralOperand(lit)
         : dref is not null ? host.Expr.FieldOperand(dref) : null;
 
-    /// <summary>Bind the <c>{BEFORE|AFTER} ADVANCING …</c> phrase (ISO §14.9.46), or null for a plain WRITE.
-    /// An ADVANCING operand naming a SPECIAL-NAMES mnemonic (<c>XXXXX073 IS MNEMONIC-NAME</c>, SQ207M) positions
-    /// per the IMPLEMENTOR's rules for the associated feature (§14.9.46 GR — mnemonic-name-1); this
-    /// implementation's rule, inherited from the legacy oracle and encoded by the NIST goldens, is a ZERO-line
-    /// advance (the write lands on the current line).</summary>
-    private static bool AnyAdvancePage(Core.WriteBeforeAfterContext? wba) =>
-        wba?.writeAdvancePhrase().Any(p => p.PAGE() is not null) ?? false;
+    /// <summary>The §14.9.51.3 SR18 test — does this WRITE's print-control phrase name the PAGE operand?
+    /// One operand per statement (§14.9.51.2 Format 1 prints one), so this is one nullable check.</summary>
+    private static bool AnyAdvancePage(Core.WriteBeforeAfterContext? wba) => wba?.PAGE() is not null;
 
-    /// <summary>Bind the ADVANCING phrase(s) of a WRITE (ISO §14.9.51). One phrase → (that, null); the COBOL-2023
-    /// combined form → (the BEFORE phrase, the AFTER phrase). SR17: the combined form may not carry PAGE and shall
-    /// be one BEFORE + one AFTER; a malformed pair (two BEFOREs / two AFTERs / PAGE) is rejected COBOLNET0862.</summary>
-    private (BoundAdvancing? Before, BoundAdvancing? After) BindAdvancingPair(Core.WriteBeforeAfterContext? wba)
-    {
-        if (wba is null) return (null, null);
-        var phrases = wba.writeAdvancePhrase();
-        if (phrases.Length == 1) return (BindAdvancing(phrases[0]), null);
-        // Combined BEFORE AND AFTER (SR17): exactly one BEFORE and one AFTER, neither PAGE.
-        var beforeP = phrases.FirstOrDefault(p => p.BEFORE() is not null);
-        var afterP = phrases.FirstOrDefault(p => p.AFTER() is not null);
-        if (beforeP is null || afterP is null || AnyAdvancePage(wba))
-        {
-            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, "the combined WRITE … BEFORE ADVANCING … AFTER ADVANCING form "
-                + "(ISO §14.9.51 SR17) shall specify one BEFORE and one AFTER phrase and shall not specify PAGE");
-            return (BindAdvancing(phrases[0]), null);
-        }
-        return (BindAdvancing(beforeP), BindAdvancing(afterP));
-    }
-
-    private BoundAdvancing? BindAdvancing(Core.WriteAdvancePhraseContext? wba)
+    /// <summary>Bind the ONE <c>[BEFORE] [AFTER] ADVANCING …</c> phrase of a WRITE (ISO §14.9.51.2 Format 1), or
+    /// null for a plain WRITE. An ADVANCING operand naming a SPECIAL-NAMES mnemonic (<c>XXXXX073 IS
+    /// MNEMONIC-NAME</c>, SQ207M) positions per the IMPLEMENTOR's rules for the associated feature (§14.9.51.4
+    /// GR25 d)); this implementation's rule, inherited from the legacy oracle and encoded by the NIST goldens, is
+    /// a ZERO-line advance (the write lands on the current line).
+    /// <para>⛔ THE PHRASE IS ONE ADVANCE, NOT ONE PER WORD, AND THE TWO WORDS ONLY PLACE IT (kb/Work PB712).
+    /// §14.9.51.4 GR25 a)–d) fix the AMOUNT from the single printed operand — a) says the page "is advanced the
+    /// number of lines equal to that value", once. GR25 e)–h) then say WHERE that one advance goes relative to
+    /// the presentation: e) <i>"If the BEFORE phrase is used, the line is presented before the … page is advanced
+    /// according to General rule 25a, 25b, 25c, and 25d"</i>; f) <i>"If the AFTER phrase is used and the BEFORE
+    /// phrase is not used, the line is presented after …[;] If the AFTER phrase is used and the BEFORE phrase is
+    /// also used, the printed page is advanced … AFTER THE LINE WAS PRESENTED as specified in General rule
+    /// 25e."</i> So BEFORE and BEFORE-AFTER bind IDENTICALLY — present, then advance once — and only a lone
+    /// AFTER advances first. (g)/h) place the PAGE operand "depending on the phrase used", which the pair leaves
+    /// unanswered — which is exactly what SR17 removes.) This binder therefore emits ONE
+    /// <see cref="BoundAdvancing"/> whose <c>Before</c> IS that placement decision; the tree carries no second
+    /// amount, because the format prints no second operand.</para></summary>
+    private BoundAdvancing? BindAdvancing(Core.WriteBeforeAfterContext? wba)
     {
         if (wba is null) return null;
-        bool before = wba.BEFORE() is not null;
+        bool before = wba.BEFORE() is not null;   // §14.9.51.4 GR25 e)/f): BEFORE, alone or with AFTER, presents first
         if (wba.PAGE() is not null) return new BoundAdvancing(before, true, null);
         BoundOperand lines =
             wba.integerLiteral() is { } il ? new BoundNumericLiteral(il.GetText())
