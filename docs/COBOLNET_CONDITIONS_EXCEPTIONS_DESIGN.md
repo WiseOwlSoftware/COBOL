@@ -88,6 +88,19 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   EC-DATA-NOT-FINITE and EC-DATA-INCOMPATIBLE (any statement — ambient gates, below) and EC-DATA-OVERFLOW (a
   MOVE), EC-STORAGE-NOT-AVAIL (SET SIZE). A name this implementation still cannot raise binds no wrapper — §14.6.13.1.1 sets an indicator only
   "when the associated exception occurs".
+- **THE RAISE RULE IS WRITTEN ONCE (`ExceptionEngine.FatalIfEnabled` / `NonfatalIfEnabled`; kb/Work PB676).**
+  §14.6.13.1.1 is ONE sentence — "if checking for an exception that occurs is not enabled, no exception condition
+  is raised" — applied once per (ambient checking flag, exception-name) pair, and that PAIR is declared in exactly
+  one place: `EcEmitter`'s `FatalAmbientGates` / `NonfatalAmbientGates`, which say which flag the statement guard
+  sets when a TURN enables the name. Every `ExceptionEngine.…Error` helper is therefore ONE expression naming its
+  pair — `public void SubscriptError(string detail) => FatalIfEnabled(BoundSubscriptChecking, "EC-BOUND-SUBSCRIPT",
+  detail);` — and never a hand-written copy of the gate/`Set`/throw shape (it was copied twenty-two times, and a
+  copy carrying a NEIGHBOUR's flag or the wrong `fatal:` argument read exactly like its siblings).
+  `ExceptionRaiseHelperDriftTests` proves the pairing BEHAVIOURALLY — invoke each helper with every flag on EXCEPT
+  the one the emitter pairs to the name it raises, and it must raise nothing — and checks the recorded fatality
+  against `ExceptionCatalog`'s Table 13 row, so neither mistake can reach a user's program. **Adding a condition**
+  = a `CheckingFlags` field + a delegating engine property (+ its static shim forwarder) + a gate-table row + a
+  one-line helper. Nothing else, and the drift tests fail if any of the five is missing.
 - **The EC-ARGUMENT-FUNCTION ambient statement gate.** Intrinsics render inline inside arbitrary expressions;
   threading a checked-mask through every runtime signature would fork each intrinsic into twins. Instead the guard
   wraps the STATEMENT (`ExceptionState.ArgumentFunctionChecking` set/reset + try/catch for the F3 dispatch), and

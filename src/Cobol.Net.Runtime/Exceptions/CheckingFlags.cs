@@ -15,9 +15,14 @@ namespace CobolNet.Runtime.Exceptions;
 /// failing and no diagnostic. Holding the flags in one value makes PUSH ALL a struct copy and TURN OFF ALL a
 /// <c>default</c>, so a new condition is covered by construction the moment its field exists here.</para>
 ///
-/// <para><b>Adding a condition:</b> add a field here and a delegating property on <see cref="ExceptionEngine"/>
-/// (plus the static shim forwarder). Nothing else has to know. <c>ExceptionCheckingFlagsDriftTests</c> fails if
-/// an engine flag is ever declared outside this struct, so the invariant is enforced rather than remembered.</para>
+/// <para><b>Adding a condition</b> is five declarations and no prose: a field HERE, a delegating property on
+/// <see cref="ExceptionEngine"/>, its static shim forwarder, the (exception-name → this flag) row in
+/// <c>EcEmitter</c>'s gate table, and a ONE-LINE raise helper
+/// (<c>… => FatalIfEnabled(&lt;flag&gt;, "&lt;EC&gt;", detail)</c> — kb/Work PB676). Nothing else has to know.
+/// <c>ExceptionCheckingFlagsDriftTests</c> fails if an engine flag is ever declared outside this struct, so GR14's
+/// PUSH ALL cannot be escaped; <c>ExceptionRaiseHelperDriftTests</c> fails if a helper reads a flag other than the
+/// one the emitter pairs to the name it raises, or records a fatality Table 13 does not carry. Both invariants are
+/// enforced rather than remembered.</para>
 /// </summary>
 public struct CheckingFlags
 {
@@ -33,13 +38,19 @@ public struct CheckingFlags
     /// <summary>EC-BOUND-REF-MOD — an out-of-range reference modification (§8.4.3.3.4).</summary>
     public bool BoundRefMod;
 
-    /// <summary>EC-PERFORM-VARYING — a VARYING/AFTER control-variable violation (§14.9.28).</summary>
+    /// <summary>EC-RANGE-PERFORM-VARYING — a PERFORM VARYING/AFTER that initializes an index-name from a data
+    /// item whose value is not positive (§14.9.28.4 GR3). The field name is the emitter's flag stem, not the
+    /// exception-name; the two are paired in <c>EcEmitter</c>'s gate table and the pairing is asserted by
+    /// <c>ExceptionRaiseHelperDriftTests</c>.</summary>
     public bool PerformVarying;
 
     /// <summary>EC-DATA-NOT-FINITE — a NaN/±Inf standard-float sending operand (§14.6.13.2 item 3).</summary>
     public bool FloatNotFinite;
 
-    /// <summary>EC-SIZE-OVERFLOW on a floating-point target — an IEEE overflow to ±Inf.</summary>
+    /// <summary>EC-DATA-OVERFLOW — a MOVE whose finite sending algebraic value is farther from zero than a
+    /// standard-float receiver's usage can represent — "the algebraic value of the sending operand is farther from
+    /// zero than is permitted by the usage specifications of the receiving data item" (§14.9.25.4 GR6 d)4.a, which
+    /// is MOVE-specific). NOT EC-SIZE-OVERFLOW, which this doc named until kb/Work PB676.</summary>
     public bool FloatOverflow;
 
     /// <summary>EC-DATA-INCOMPATIBLE — a de-editing MOVE whose numeric-edited sender holds content that is not a

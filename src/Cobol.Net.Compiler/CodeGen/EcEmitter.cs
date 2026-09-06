@@ -76,7 +76,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// catch, no throw — nonfatal ⇒ the raise only records the last exception status). Fixed order for
     /// byte-stability of the generated wrapper (a statement enabling one emits exactly the pre-generalization
     /// output). The fatal twins (EC-ARGUMENT-FUNCTION) stay in <see cref="EmitArgOrPlain"/> — they need a catch.</summary>
-    private static readonly (string Ec, string Flag)[] NonfatalAmbientGates =
+    internal static readonly (string Ec, string Flag)[] NonfatalAmbientGates =
     [
         ("EC-DATA-CONVERSION", "DataConversionChecking"),   // §15.19.4 r1/r3 — CONVERT / DISPLAY-OF / NATIONAL-OF
         ("EC-BOUND-OVERFLOW", "BoundOverflowChecking"),     // §8.5.1.9.6 GR1 — OCCURS DYNAMIC implicit growth
@@ -134,14 +134,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         return EmitArgOrPlain(ec);
     }
 
-    /// <summary>The inner EC dispatch of a checked statement: the EC-ARGUMENT-FUNCTION fatal ambient gate (with
-    /// USE F3 dispatch on the raise) or, when that condition is not enabled, a plain statement emission. Wrapped by
-    /// <see cref="EcEmitChecked"/> with the nonfatal EC-DATA-CONVERSION gate when needed.</summary>
     /// <summary>The FATAL ambient per-statement EC gates — each rides an <c>ExceptionState.XxxChecking</c> flag its
     /// runtime raise site consults; a raise throws <see cref="Runtime.Exceptions.CobolFatalException"/> which the
     /// statement guard catches for USE F3 dispatch (RESUME) else re-throws to terminate. Fixed order for
-    /// byte-stability. (Nonfatal twins live in <see cref="EmitChecked"/>'s set/reset wrapper — they need no catch.)</summary>
-    private static readonly (string Ec, string? Flag)[] FatalAmbientGates =
+    /// byte-stability. (Nonfatal twins live in <see cref="EmitGatesOrInner"/>'s set/reset wrapper — they need no
+    /// catch.) <c>ExceptionRaiseHelperDriftTests</c> reads BOTH tables: the flag named here for an exception-name
+    /// is asserted to be the flag the runtime helper that raises that name actually reads (kb/Work PB676).</summary>
+    internal static readonly (string Ec, string? Flag)[] FatalAmbientGates =
     [
         ("EC-ARGUMENT-FUNCTION", "ArgumentFunctionChecking"),   // §15.3 — intrinsic argument/domain error
         ("EC-BOUND-REF-MOD", "BoundRefModChecking"),            // §8.4.3.3.4 — ref-mod out of range / zero-length
@@ -196,6 +195,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-SIZE-TRUNCATION", null),                           // §14.7.4.3 r7 / §11.9.11.2 r3d — a PROHIBITED-inexact intermediate
     ];
 
+    /// <summary>The inner EC dispatch of a checked statement: the fatal ambient gates enabled at it (with USE F3
+    /// dispatch on the raise) or, when none is enabled, a plain statement emission. Wrapped by
+    /// <see cref="EmitGatesOrInner"/> with the nonfatal gates when needed.</summary>
     private bool EmitArgOrPlain(BoundEcChecked ec)
     {
         // The fatal ambient gates enabled at this statement: intrinsic calls / ref-mod render inline inside

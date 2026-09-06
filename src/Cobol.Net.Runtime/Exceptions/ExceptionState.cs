@@ -227,6 +227,47 @@ public sealed class ExceptionEngine
     /// <see cref="PushAllCheckingOff"/>.</summary>
     public void PopAllChecking(CheckingFlags saved) => _checking = saved;
 
+    // ── §14.6.13.1.1's RAISE RULE, WRITTEN ONCE ───────────────────────────────────────────────────────────────
+    //
+    // "If checking for an exception condition is enabled and an exception status indicator is set as a result of an
+    // exception detected during the execution of a statement, the associated exception condition is raised, the
+    // last exception status is updated …" (§14.6.13.1.1) — and, the same clause's contrapositive, "if checking for
+    // an exception that occurs is not enabled, no exception condition is raised". Every per-condition helper below
+    // is THAT ONE rule applied to ONE (ambient checking flag, exception-name) pair, so the rule lives here and each
+    // helper is a single expression naming its pair.
+    //
+    // ⛔ WHY THIS IS A METHOD AND NOT A SHAPE TO COPY (kb/Work PB676). The rule used to be transcribed by hand once
+    // per condition — twenty-two fatal copies of the identical five-line
+    // `if (<X>Checking) { Set("<EC>", fatal: true); throw new CobolFatalException("<EC>", detail); }` plus two
+    // nonfatal ones. A copy written with the wrong `fatal:` argument, a missing `Set`, or a NEIGHBOUR's checking
+    // flag reads exactly like its twenty-one siblings, and the last of those is silent in BOTH directions: the
+    // condition never raises where the emitter enabled it, and raises where the emitter did not.
+    // `ExceptionRaiseHelperDriftTests` proves, per helper and behaviourally, that the flag a helper READS is the
+    // flag `EcEmitter`'s gate table SETS for the name that helper raises, and that the fatality it records is the
+    // one ExceptionCatalog carries from Table 13.
+
+    /// <summary>Raise a Table 13 FATAL exception condition when <paramref name="enabled"/> — checking for it at this
+    /// statement (§14.6.13.1.1) — is true: record the last exception status and throw
+    /// <see cref="CobolFatalException"/>, which the emitted statement guard catches for the §14.6.13.1.3 #4/#5
+    /// dispatch (a USE declarative, an exception-checking PERFORM's WHEN) and otherwise carries to the run-unit
+    /// boundary for #7's abnormal termination. When it is false this RETURNS and the caller's documented lenient
+    /// outcome stands — "no exception condition is raised", so nothing is recorded either.</summary>
+    private void FatalIfEnabled(bool enabled, string ec, string detail)
+    {
+        if (!enabled) return;
+        Set(ec, fatal: true);
+        throw new CobolFatalException(ec, detail);
+    }
+
+    /// <summary>Record a Table 13 NONFATAL exception condition when <paramref name="enabled"/> is true: the last
+    /// exception status is set and execution continues (§14.6.13.1.4), so there is no throw and the caller's own
+    /// outcome is the same either way — which is why there is no <c>detail</c> operand here, a nonfatal condition
+    /// having no exception to carry one. Nothing is recorded when checking is off (§14.6.13.1.1).</summary>
+    private void NonfatalIfEnabled(bool enabled, string ec)
+    {
+        if (enabled) Set(ec, fatal: false);
+    }
+
     // ── EC-ARGUMENT-FUNCTION ambient statement gate ───────────────────────────────────────────────────────────
 
     /// <summary>True while the currently-executing statement has EC-ARGUMENT-FUNCTION checking enabled (set and
@@ -247,11 +288,7 @@ public sealed class ExceptionEngine
     /// default-result convention.</summary>
     public long ArgumentError(string detail)
     {
-        if (ArgumentFunctionChecking)
-        {
-            Set("EC-ARGUMENT-FUNCTION", fatal: true);
-            throw new CobolFatalException("EC-ARGUMENT-FUNCTION", detail);
-        }
+        FatalIfEnabled(ArgumentFunctionChecking, "EC-ARGUMENT-FUNCTION", detail);
         return 0;
     }
 
@@ -327,10 +364,7 @@ public sealed class ExceptionEngine
     /// and the argument-2-unspecified DISPLAY-OF/NATIONAL-OF forms (§15.26.4 r3 / §15.66.4 r3). Nonfatal
     /// (Table 13), so it never throws; it only sets the last exception status, and only while checking for the
     /// condition is enabled (§14.6.13.1.1). The substitution character is applied by the caller regardless.</summary>
-    public void DataConversionError(string detail)
-    {
-        if (DataConversionChecking) Set("EC-DATA-CONVERSION", fatal: false);
-    }
+    public void DataConversionError(string detail) => NonfatalIfEnabled(DataConversionChecking, "EC-DATA-CONVERSION");
 
     // ── EC-BOUND-OVERFLOW ambient statement gate (OCCURS DYNAMIC implicit growth past expected capacity) ───────
 
@@ -347,10 +381,7 @@ public sealed class ExceptionEngine
     /// first exceeds its expected capacity (§8.5.1.9.6 GR1 — the FIRST crossing only; an already-exceeded
     /// implicit grow raises nothing). Nonfatal (Table 13), so it never throws; it sets the last exception status
     /// only while checking is enabled (§14.6.13.1.1). The growth proceeds regardless.</summary>
-    public void BoundOverflowError(string detail)
-    {
-        if (BoundOverflowChecking) Set("EC-BOUND-OVERFLOW", fatal: false);
-    }
+    public void BoundOverflowError(string detail) => NonfatalIfEnabled(BoundOverflowChecking, "EC-BOUND-OVERFLOW");
 
     // ── EC-BOUND-REF-MOD ambient statement gate (reference modification out of bounds / zero-length) ───────────
 
@@ -369,14 +400,7 @@ public sealed class ExceptionEngine
     /// enabled it throws <see cref="CobolFatalException"/> (caught by the statement guard for USE F3 dispatch, else
     /// terminating the run unit per §14.6.13.1.3 #5/#7); when checking is OFF it returns and the caller's lenient
     /// clamp/space-pad default stands (byte-identical to a pre-slice build).</summary>
-    public void RefModError(string detail)
-    {
-        if (BoundRefModChecking)
-        {
-            Set("EC-BOUND-REF-MOD", fatal: true);
-            throw new CobolFatalException("EC-BOUND-REF-MOD", detail);
-        }
-    }
+    public void RefModError(string detail) => FatalIfEnabled(BoundRefModChecking, "EC-BOUND-REF-MOD", detail);
 
     // ── The pointer fatal ECs (CA9): EC-DATA-PTR-NULL / EC-BOUND-PTR / EC-SIZE-ADDRESS ────────────────────────
     //
@@ -401,14 +425,7 @@ public sealed class ExceptionEngine
     /// <summary>Raise EC-DATA-PTR-NULL (§13.18.5.4 GR3 / §14.9.39 Format 10 GR18; Table 13 Fatal) when checking
     /// is enabled. When it is OFF this RETURNS and the caller applies GR19's unchanged-operand outcome — used by
     /// the SET UP/DOWN BY sites only; a dereference never routes through here (see the note above).</summary>
-    public void DataPtrNullError(string detail)
-    {
-        if (DataPtrNullChecking)
-        {
-            Set("EC-DATA-PTR-NULL", fatal: true);
-            throw new CobolFatalException("EC-DATA-PTR-NULL", detail);
-        }
-    }
+    public void DataPtrNullError(string detail) => FatalIfEnabled(DataPtrNullChecking, "EC-DATA-PTR-NULL", detail);
 
     /// <summary>True while the currently-executing statement has EC-BOUND-PTR checking enabled (fatal).</summary>
     public bool BoundPtrChecking
@@ -419,14 +436,7 @@ public sealed class ExceptionEngine
 
     /// <summary>Raise EC-BOUND-PTR (§13.18.5.4 GR4; Table 13 Fatal) when checking is enabled; otherwise return
     /// and let the caller apply its unchanged-operand outcome.</summary>
-    public void BoundPtrError(string detail)
-    {
-        if (BoundPtrChecking)
-        {
-            Set("EC-BOUND-PTR", fatal: true);
-            throw new CobolFatalException("EC-BOUND-PTR", detail);
-        }
-    }
+    public void BoundPtrError(string detail) => FatalIfEnabled(BoundPtrChecking, "EC-BOUND-PTR", detail);
 
     /// <summary>True while the currently-executing statement has EC-SIZE-ADDRESS checking enabled (fatal).</summary>
     public bool SizeAddressChecking
@@ -438,14 +448,7 @@ public sealed class ExceptionEngine
     /// <summary>Raise EC-SIZE-ADDRESS for a non-integer SET pointer UP/DOWN BY amount (§14.9.39 Format 10 GR19;
     /// Table 13 Fatal) when checking is enabled; otherwise return, and GR19's "the execution of the SET statement
     /// is unsuccessful, and the content of identifier-9 is unchanged" stands.</summary>
-    public void SizeAddressError(string detail)
-    {
-        if (SizeAddressChecking)
-        {
-            Set("EC-SIZE-ADDRESS", fatal: true);
-            throw new CobolFatalException("EC-SIZE-ADDRESS", detail);
-        }
-    }
+    public void SizeAddressError(string detail) => FatalIfEnabled(SizeAddressChecking, "EC-SIZE-ADDRESS", detail);
 
     // ── The table-bound fatal ECs (CA10): EC-BOUND-SUBSCRIPT / EC-BOUND-ODO ───────────────────────────────────
     // Checking-OFF stays LENIENT for both, per the owner's rule, and here the standard supplies the outcome to
@@ -464,14 +467,7 @@ public sealed class ExceptionEngine
     /// integer or is less than one or is greater than the highest permissible occurrence number, the
     /// EC-BOUND-SUBSCRIPT exception condition is set to exist"; Table 13 Fatal) when checking is enabled;
     /// otherwise return and the caller's scratch-slot read stands, byte-identical to a pre-EC build.</summary>
-    public void SubscriptError(string detail)
-    {
-        if (BoundSubscriptChecking)
-        {
-            Set("EC-BOUND-SUBSCRIPT", fatal: true);
-            throw new CobolFatalException("EC-BOUND-SUBSCRIPT", detail);
-        }
-    }
+    public void SubscriptError(string detail) => FatalIfEnabled(BoundSubscriptChecking, "EC-BOUND-SUBSCRIPT", detail);
 
     /// <summary>True while the currently-executing statement has EC-BOUND-ODO checking enabled (fatal).</summary>
     public bool BoundOdoChecking
@@ -483,14 +479,7 @@ public sealed class ExceptionEngine
     /// <summary>Raise EC-BOUND-ODO (§13.18.38.4 GR7: the value of the data item referenced by data-name-1
     /// "shall fall within the bounds from integer-1 through integer-2"; Table 13 Fatal) when checking is
     /// enabled; otherwise return and the caller's clamp stands.</summary>
-    public void OdoError(string detail)
-    {
-        if (BoundOdoChecking)
-        {
-            Set("EC-BOUND-ODO", fatal: true);
-            throw new CobolFatalException("EC-BOUND-ODO", detail);
-        }
-    }
+    public void OdoError(string detail) => FatalIfEnabled(BoundOdoChecking, "EC-BOUND-ODO", detail);
 
     /// <summary>True while EC-PROGRAM-ARG-OMITTED checking is enabled (fatal).</summary>
     public bool ProgramArgOmittedChecking
@@ -504,13 +493,7 @@ public sealed class ExceptionEngine
     /// Fatal) when checking is enabled; otherwise return and the carrier's lenient benign value stands
     /// (kb/Work PB133 wave C — the CA10 posture).</summary>
     public void ProgramArgOmittedError(string detail)
-    {
-        if (ProgramArgOmittedChecking)
-        {
-            Set("EC-PROGRAM-ARG-OMITTED", fatal: true);
-            throw new CobolFatalException("EC-PROGRAM-ARG-OMITTED", detail);
-        }
-    }
+        => FatalIfEnabled(ProgramArgOmittedChecking, "EC-PROGRAM-ARG-OMITTED", detail);
 
     // ── EC-OO-UNIVERSAL: the ACTIVATOR half of the §14.9.23.4 GR7c "enabled in both" gate ─────────────────────
 
@@ -544,14 +527,7 @@ public sealed class ExceptionEngine
 
     /// <summary>Raise EC-FLOW-SEARCH (§14.9.39.4 GR31; Table 13 Fatal) when checking is enabled; otherwise
     /// return, and the caller leaves the SET unexecuted exactly as GR31 requires.</summary>
-    public void FlowSearchError(string detail)
-    {
-        if (FlowSearchChecking)
-        {
-            Set("EC-FLOW-SEARCH", fatal: true);
-            throw new CobolFatalException("EC-FLOW-SEARCH", detail);
-        }
-    }
+    public void FlowSearchError(string detail) => FatalIfEnabled(FlowSearchChecking, "EC-FLOW-SEARCH", detail);
 
     // ──── THE REPORT WRITER's four statement-precondition conditions (kb/Work PB326) ───────────────
     //
@@ -572,14 +548,7 @@ public sealed class ExceptionEngine
 
     /// <summary>Raise EC-FLOW-REPORT (§14.9.49.4 GR10; Table 13 Fatal) when checking is enabled; otherwise
     /// return, and the caller leaves the GENERATE / INITIATE / TERMINATE unexecuted exactly as GR10 requires.</summary>
-    public void FlowReportError(string detail)
-    {
-        if (FlowReportChecking)
-        {
-            Set("EC-FLOW-REPORT", fatal: true);
-            throw new CobolFatalException("EC-FLOW-REPORT", detail);
-        }
-    }
+    public void FlowReportError(string detail) => FatalIfEnabled(FlowReportChecking, "EC-FLOW-REPORT", detail);
 
     /// <summary>True while the currently-executing statement has EC-REPORT-ACTIVE checking enabled (fatal).</summary>
     public bool ReportActiveChecking
@@ -590,14 +559,7 @@ public sealed class ExceptionEngine
 
     /// <summary>Raise EC-REPORT-ACTIVE (§14.9.21.4 GR2; Table 13 Fatal) when checking is enabled; otherwise
     /// return, and the INITIATE "has no other effect" exactly as GR2 requires.</summary>
-    public void ReportActiveError(string detail)
-    {
-        if (ReportActiveChecking)
-        {
-            Set("EC-REPORT-ACTIVE", fatal: true);
-            throw new CobolFatalException("EC-REPORT-ACTIVE", detail);
-        }
-    }
+    public void ReportActiveError(string detail) => FatalIfEnabled(ReportActiveChecking, "EC-REPORT-ACTIVE", detail);
 
     /// <summary>True while the currently-executing statement has EC-REPORT-INACTIVE checking enabled (fatal).</summary>
     public bool ReportInactiveChecking
@@ -609,13 +571,7 @@ public sealed class ExceptionEngine
     /// <summary>Raise EC-REPORT-INACTIVE (§14.9.16.4 GR7 / §14.9.46.4 GR1; Table 13 Fatal) when checking is
     /// enabled; otherwise return, and the GENERATE / TERMINATE is unsuccessful exactly as those rules require.</summary>
     public void ReportInactiveError(string detail)
-    {
-        if (ReportInactiveChecking)
-        {
-            Set("EC-REPORT-INACTIVE", fatal: true);
-            throw new CobolFatalException("EC-REPORT-INACTIVE", detail);
-        }
-    }
+        => FatalIfEnabled(ReportInactiveChecking, "EC-REPORT-INACTIVE", detail);
 
     /// <summary>True while the currently-executing statement has EC-REPORT-FILE-MODE checking enabled (fatal).</summary>
     public bool ReportFileModeChecking
@@ -629,13 +585,7 @@ public sealed class ExceptionEngine
     /// statement"; Table 13 Fatal) when checking is enabled; otherwise return, and "no action is taken on the
     /// report" exactly as GR3 requires.</summary>
     public void ReportFileModeError(string detail)
-    {
-        if (ReportFileModeChecking)
-        {
-            Set("EC-REPORT-FILE-MODE", fatal: true);
-            throw new CobolFatalException("EC-REPORT-FILE-MODE", detail);
-        }
-    }
+        => FatalIfEnabled(ReportFileModeChecking, "EC-REPORT-FILE-MODE", detail);
 
     /// <summary>True while the currently-executing statement has EC-BOUND-TABLE-LIMIT checking enabled (fatal).</summary>
     public bool BoundTableLimitChecking
@@ -647,13 +597,7 @@ public sealed class ExceptionEngine
     /// <summary>Raise EC-BOUND-TABLE-LIMIT (§14.9.39.4 GR30; Table 13 Fatal) when checking is enabled; otherwise
     /// return, and the caller leaves the capacity unchanged exactly as GR30 requires.</summary>
     public void BoundTableLimitError(string detail)
-    {
-        if (BoundTableLimitChecking)
-        {
-            Set("EC-BOUND-TABLE-LIMIT", fatal: true);
-            throw new CobolFatalException("EC-BOUND-TABLE-LIMIT", detail);
-        }
-    }
+        => FatalIfEnabled(BoundTableLimitChecking, "EC-BOUND-TABLE-LIMIT", detail);
 
     // ── EC-ORDER-NOT-SUPPORTED ambient statement gate (FUNCTION STANDARD-COMPARE, §15.85.4 r2) ────────────────
     //
@@ -676,13 +620,7 @@ public sealed class ExceptionEngine
     /// result stands (§14.6.13.1.3 #8). ⚠ Nothing is recorded when checking is off — §14.6.13.1.1: "if checking
     /// for an exception that occurs is not enabled, no exception condition is raised".</summary>
     public void OrderNotSupportedError(string detail)
-    {
-        if (OrderNotSupportedChecking)
-        {
-            Set("EC-ORDER-NOT-SUPPORTED", fatal: true);
-            throw new CobolFatalException("EC-ORDER-NOT-SUPPORTED", detail);
-        }
-    }
+        => FatalIfEnabled(OrderNotSupportedChecking, "EC-ORDER-NOT-SUPPORTED", detail);
 
     // ── The EC-LOCALE ambient statement gates (kb/Work PB64 T1; DESIGN-locale-facility §4.10) ─────────────────
     //
@@ -702,14 +640,7 @@ public sealed class ExceptionEngine
     /// <summary>Raise EC-LOCALE-MISSING (§14.9.39.4 GR24: "If the locale specified by locale-name-1 is not available, the
     /// EC-LOCALE-MISSING exception condition is set to exist"; §8.2.1; Table 13 Fatal) when checking is enabled;
     /// otherwise return and the caller leaves the state unchanged / answers the root order.</summary>
-    public void LocaleMissingError(string detail)
-    {
-        if (LocaleMissingChecking)
-        {
-            Set("EC-LOCALE-MISSING", fatal: true);
-            throw new CobolFatalException("EC-LOCALE-MISSING", detail);
-        }
-    }
+    public void LocaleMissingError(string detail) => FatalIfEnabled(LocaleMissingChecking, "EC-LOCALE-MISSING", detail);
 
     /// <summary>True while the currently-executing statement has EC-LOCALE-INVALID-PTR checking enabled (fatal).</summary>
     public bool LocaleInvalidPtrChecking
@@ -723,13 +654,7 @@ public sealed class ExceptionEngine
     /// condition is set to exist and the SET statement is unsuccessful"; Table 13 Fatal) when checking is enabled;
     /// otherwise return and the caller leaves the state unchanged.</summary>
     public void LocaleInvalidPtrError(string detail)
-    {
-        if (LocaleInvalidPtrChecking)
-        {
-            Set("EC-LOCALE-INVALID-PTR", fatal: true);
-            throw new CobolFatalException("EC-LOCALE-INVALID-PTR", detail);
-        }
-    }
+        => FatalIfEnabled(LocaleInvalidPtrChecking, "EC-LOCALE-INVALID-PTR", detail);
 
     /// <summary>True while the currently-executing statement has EC-LOCALE-INCOMPATIBLE checking enabled (fatal).</summary>
     public bool LocaleIncompatibleChecking
@@ -742,13 +667,7 @@ public sealed class ExceptionEngine
     /// characters of the operands"; DETERMINATION L6: an ill-formed UTF-16 operand; Table 13 Fatal) when checking is
     /// enabled; otherwise return and the comparison answers its deterministic order.</summary>
     public void LocaleIncompatibleError(string detail)
-    {
-        if (LocaleIncompatibleChecking)
-        {
-            Set("EC-LOCALE-INCOMPATIBLE", fatal: true);
-            throw new CobolFatalException("EC-LOCALE-INCOMPATIBLE", detail);
-        }
-    }
+        => FatalIfEnabled(LocaleIncompatibleChecking, "EC-LOCALE-INCOMPATIBLE", detail);
 
     /// <summary>True while the currently-executing statement has EC-LOCALE-INVALID checking enabled (fatal).</summary>
     public bool LocaleInvalidChecking
@@ -761,14 +680,7 @@ public sealed class ExceptionEngine
     /// using a locale, the EC-LOCALE-INVALID exception condition is set to exist and the operation is unsuccessful";
     /// Table 13 Fatal) when checking is enabled; otherwise return and the caller's documented stand-in (the
     /// invariant culture's content) answers.</summary>
-    public void LocaleInvalidError(string detail)
-    {
-        if (LocaleInvalidChecking)
-        {
-            Set("EC-LOCALE-INVALID", fatal: true);
-            throw new CobolFatalException("EC-LOCALE-INVALID", detail);
-        }
-    }
+    public void LocaleInvalidError(string detail) => FatalIfEnabled(LocaleInvalidChecking, "EC-LOCALE-INVALID", detail);
 
     /// <summary>True while the currently-executing statement has EC-LOCALE-SIZE checking enabled (fatal).</summary>
     public bool LocaleSizeChecking
@@ -782,14 +694,7 @@ public sealed class ExceptionEngine
     /// zero"; Table 13 Fatal; the ONE raise site is <c>CobolLocaleEdit.Format</c>, kb/Work PB64 T6) when checking
     /// is enabled; otherwise return — the item holds the truncated content, exactly as r14 b's own text stores it,
     /// and execution continues.</summary>
-    public void LocaleSizeError(string detail)
-    {
-        if (LocaleSizeChecking)
-        {
-            Set("EC-LOCALE-SIZE", fatal: true);
-            throw new CobolFatalException("EC-LOCALE-SIZE", detail);
-        }
-    }
+    public void LocaleSizeError(string detail) => FatalIfEnabled(LocaleSizeChecking, "EC-LOCALE-SIZE", detail);
 
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
@@ -806,13 +711,7 @@ public sealed class ExceptionEngine
     /// spec :29222; Table 13 Fatal). The <paramref name="value"/> is the DATA ITEM's value (GR3 tests the data item,
     /// not the post-conversion index). Same fatal throw/dispatch contract as <see cref="RefModError"/>.</summary>
     public void PerformVaryingIndexError(long value, string detail)
-    {
-        if (PerformVaryingChecking && value <= 0)
-        {
-            Set("EC-RANGE-PERFORM-VARYING", fatal: true);
-            throw new CobolFatalException("EC-RANGE-PERFORM-VARYING", detail);
-        }
-    }
+        => FatalIfEnabled(PerformVaryingChecking && value <= 0, "EC-RANGE-PERFORM-VARYING", detail);
 
     // ── EC-DATA-NOT-FINITE ambient statement gate (a non-finite standard-float sending operand referenced) ──────
 
@@ -832,13 +731,7 @@ public sealed class ExceptionEngine
     /// by the statement guard for USE F3 dispatch, else terminating the run unit per §14.6.13.1.3 #5/#7); when checking
     /// is OFF it returns and the caller's value stands (byte-identical to a pre-slice build).</summary>
     public void FloatNotFiniteError(string detail)
-    {
-        if (FloatNotFiniteChecking)
-        {
-            Set("EC-DATA-NOT-FINITE", fatal: true);
-            throw new CobolFatalException("EC-DATA-NOT-FINITE", detail);
-        }
-    }
+        => FatalIfEnabled(FloatNotFiniteChecking, "EC-DATA-NOT-FINITE", detail);
 
     // ── EC-DATA-OVERFLOW ambient statement gate (a MOVE algebraic value overflows a standard-float receiver) ─────
 
@@ -853,17 +746,11 @@ public sealed class ExceptionEngine
 
     /// <summary>Raise EC-DATA-OVERFLOW when a MOVE's finite sending algebraic value is farther from zero than the
     /// standard-float receiver's usage can represent — an exponent overflow to ±Infinity (ISO §14.9.25.4 GR6 d)4.a,
-    /// spec :28634; Table 13 Fatal). Distinct from an arithmetic ±Inf result (a valid §14.6.8.3 GR1 value, never this
-    /// EC) and from a NaN/±Inf SOURCE (that is EC-DATA-NOT-FINITE). Same fatal throw/dispatch contract as
+    /// spec :28634; Table 13 Fatal). GR6 d)4.a is MOVE-specific, so an arithmetic ±Inf result is never this EC (a
+    /// standard-float conversion follows ISO/IEC 60559 — §14.6.8.3 rule 2), and neither is a NaN/±Inf SOURCE (that
+    /// is EC-DATA-NOT-FINITE). Same fatal throw/dispatch contract as
     /// <see cref="FloatNotFiniteError"/>.</summary>
-    public void FloatOverflowError(string detail)
-    {
-        if (FloatOverflowChecking)
-        {
-            Set("EC-DATA-OVERFLOW", fatal: true);
-            throw new CobolFatalException("EC-DATA-OVERFLOW", detail);
-        }
-    }
+    public void FloatOverflowError(string detail) => FatalIfEnabled(FloatOverflowChecking, "EC-DATA-OVERFLOW", detail);
 
     // ── EC-DATA-INCOMPATIBLE ambient statement gate (an invalid sending-operand content, §14.6.13.2) ─────────────
 
@@ -919,12 +806,10 @@ public sealed class ExceptionEngine
     /// CORRESPONDING region the FIRST such detail is latched and the caller continues.</summary>
     public void DataIncompatibleError(string detail)
     {
-        if (DataIncompatibleChecking)
-        {
-            if (_dataIncompatibleDeferring) { _dataIncompatiblePending ??= detail; return; }
-            Set("EC-DATA-INCOMPATIBLE", fatal: true);
-            throw new CobolFatalException("EC-DATA-INCOMPATIBLE", detail);
-        }
+        // §14.7.6's CORRESPONDING region (above): the raise is LATCHED here, never thrown, so the remaining
+        // implied statements still run and the emitter raises once on the way out.
+        if (DataIncompatibleChecking && _dataIncompatibleDeferring) { _dataIncompatiblePending ??= detail; return; }
+        FatalIfEnabled(DataIncompatibleChecking, "EC-DATA-INCOMPATIBLE", detail);
     }
 
     // ── EC-EXTERNAL enablement masks (§14.8.4.1 — the both-elements pairing) ──────────────────────────────────
