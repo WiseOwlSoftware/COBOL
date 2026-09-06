@@ -895,9 +895,16 @@ public enum BoundCloseKind
 /// and retention back together is what made that spelling a syntax error.</para></summary>
 public enum BoundRecordLock { None, WithLock, WithNoLock }
 
-/// <summary>A RETRY phrase (ISO §14.7.9): retry a locked operation N TIMES, FOR N SECONDS, or FOREVER. In the
-/// single-run-unit model the n-TIMES count is a real bounded loop over the connector registry; SECONDS/FOREVER
-/// are documented no-ops (no competing process ever releases — named residue).</summary>
+/// <summary>A RETRY phrase (ISO §14.7.9): retry a locked operation N TIMES (§14.7.9.3 GR1), FOR N SECONDS
+/// (GR2), or FOREVER (GR3). ⛔ THE THREE FORMS ARE NOT INTERCHANGEABLE AND THIS ENUM MUST STAY THREE-VALUED —
+/// GR1's count is a bounded loop over the connector registry, GR2's timeout period is clamped to this
+/// implementation's maximum meaningful value of ZERO (Annex A.1 item 166) so it makes no further attempt, and
+/// GR3's unbounded wait is the ONE form whose failure this implementation reports as the §9.1.13.8 item 2
+/// deadlock. Which of them is which is decided in exactly one place, <c>FileRegistry.RetryLoop</c>
+/// (docs/COBOLNET_FILES_DESIGN.md "D8"); nothing upstream may restate the outcome, because a comment that does
+/// is what drifted when the SECONDS/FOREVER arms were split (kb/Work PB346). GR4 a) — "the result of the
+/// evaluation of arithmetic-expression-1 or arithmetic-expression-2 is negative or zero" — is screened there
+/// too, which is why <see cref="RetrySpec.Amount"/> travels for SECONDS as well as for TIMES.</summary>
 public enum RetryKind { Times, Seconds, Forever }
 public sealed record RetrySpec(RetryKind Kind, BoundExpr? Amount);
 

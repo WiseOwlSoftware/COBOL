@@ -95,7 +95,8 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
                 + "(ISO §14.9.30 SR4 / §14.9.51 SR22 / §14.9.35 SR4)");
     }
 
-    /// <summary>Bind a RETRY phrase on a verb (READ/WRITE/REWRITE/DELETE) — the same shape as OPEN's; the count
-    /// bounds a re-attempt, SECONDS/FOREVER are single-run-unit no-ops (residue). Returns null when absent.</summary>
+    /// <summary>Bind a RETRY phrase on a verb (READ/WRITE/REWRITE/DELETE) — the same shape as OPEN's, and the
+    /// same division of labour: the binder carries the form and its arithmetic expression, and every §14.7.9.3
+    /// general rule is executed once at <c>FileRegistry.RetryLoop</c>. Returns null when absent.</summary>
     public RetrySpec? BindVerbRetry(Core.RetryPhraseContext? rp) => rp is null ? null : host.BindRetry(rp);
 }

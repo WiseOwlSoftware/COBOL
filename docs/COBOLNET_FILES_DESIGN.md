@@ -111,12 +111,32 @@ is LEGAL SOURCE that GR1/GR2/GR4a define at run time; rejecting it would be a `r
 `StatementBinder.BindRetry` binds the three forms with no screen and must stay that way.
 
 **Where it lives.** `FileRegistry.RetryLoop` gates on `IsConflict` (§9.1.13.1's own first-digit classification) and
-routes every landing through the private `ExhaustionStatus` — the ONE place the rule is written. Its six callers
-(`DeleteFile`, `OpenShared`, `ReadLockGovern`, `ReadShared`, `RewriteShared`, `DeleteShared`) inherit it rather
-than each judging for themselves; `WriteShared` deliberately takes the phrase and discards it (§14.9.51 GR16 —
-no record-operation conflict is defined for WRITE). The drift test is
-`CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass`, which asserts every retry-form × conflict-class
-cell including the not-a-conflict row.
+routes every landing through the private `ExhaustionStatus` — the ONE place the rule is written. Its FIVE call
+sites (`DeleteFile`, `OpenCore`, `ConflictOnLockedRecord`, `RewriteShared`, `DeleteShared`) inherit it rather than
+each judging for themselves, and that is every RETRY-bearing verb: the two READ formats do NOT call it
+separately, they both reach `ConflictOnLockedRecord`, which is the one §14.9.30.4 GR9 check (kb/Work PB340).
+`WriteShared` deliberately takes the phrase and discards it, and the ground is NOT §14.9.51.4 GR16 alone: GR16
+says only that RETRY controls WRITE "for the case where resources needed to write a record are locked by another
+run unit", which cannot arise in a single-run-unit model. What rules WRITE out of §9.1.13.8 item 1 is that its '51'
+is "an attempt to ACCESS a record" and the WRITE general rules define no '51' leg (GR33/GR42 state the invalid-key
+checks ignore record locks), so the first attempt decides. ⚠ The §12.4.5.9 GR7 lock-CEILING statuses '53'/'54' a
+WRITE WITH LOCK can raise are first-digit '5' and therefore inside `IsConflict`, but no re-attempt within one run
+unit can clear a ceiling and `ExhaustionStatus` returns them unchanged under every form, so routing them through
+`RetryLoop` would be behaviour-identical; they stay outside it deliberately.
+
+**No site upstream of `RetryLoop` may restate its outcome.** Splitting the SECONDS arm off the FOREVER arm was a
+one-line change to the code and a change to NOTHING ELSE, and five descriptions of the old arm survived it — in
+`StatementBinder.BindRetry`, `FileLockBinder.BindVerbRetry`, `BoundTree.RetryKind`, `BoundKeyedIo.Retry` and
+`FileRegistry.ConflictOnLockedRecord` — plus `constructs.json`'s `retry-phrase-2002` row, which is the SOURCE of
+a generated registry. Each of those now POINTS here instead of naming a status, so the next change to the retry
+rules cannot leave a description behind it (kb/Work PB346).
+
+**The drift tests.** `CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass` asserts every retry-form
+× conflict-class cell, including the negative-SECONDS rows GR4a names explicitly and the not-a-conflict row;
+`RetryLoop_AttemptCount_FollowsGR1AndGR4` asserts the same rules on the axis a status cannot witness, the ATTEMPT
+COUNT; and `ReadUnderEveryRetryForm_BindsGR9ToTheRetryRules_OnBothFormats` covers §14.9.30.4 GR9's own
+delegation to §14.7.9 through BOTH read formats — until it existed, no test passed a RETRY phrase to a READ
+at all. The corpus witness is `conformance:2023/pb346_read_retry_record_conflict` with its 2014 twin.
 
 ### D9. The L1–L3 phrase-placement leniency family is gated at ONE seam: an error under strict, a warning with an unchanged bind under `--permissive`.
 

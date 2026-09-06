@@ -62,8 +62,11 @@ public sealed record BoundKeyedRead(
     /// <summary>The lock-RETENTION phrase — bracket 2 of §14.9.30.2 (WITH LOCK / WITH NO LOCK), or None;
     /// combined at runtime with the file's declared LOCK MODE (AUTOMATIC auto-locks on any READ).</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
-    /// <summary>The RETRY phrase (§14.7.9) — bracket 1: n TIMES loops the registry lock-check; SECONDS/FOREVER
-    /// deadlock-bail to status 52 in one run unit (GR4a — no external releaser).</summary>
+    /// <summary>The RETRY phrase (§14.7.9) — bracket 1, carried to the runtime unchanged. The bound node holds
+    /// the FORM and its arithmetic expression and never a status: §14.9.30.4 GR9 delegates both halves of the
+    /// answer ("additional attempts may be made to read the record as specified in the rules in 14.7.9" and
+    /// "The I-O status is set in accordance with the rules for the RETRY phrase") to the one place that
+    /// executes §14.7.9.3, <c>FileRegistry.RetryLoop</c>. See <see cref="RetryKind"/>.</summary>
     public RetrySpec? Retry { get; init; }
     /// <summary>ADVANCING ON LOCK (§14.9.30 GR22, Format 1 only — SR6) — bracket 1: skip-scan locked records.</summary>
     public bool AdvancingOnLock { get; init; }

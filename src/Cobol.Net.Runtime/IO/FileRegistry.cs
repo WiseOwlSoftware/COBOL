@@ -883,11 +883,16 @@ public sealed class FileRegistry
     }
 
     /// <summary>⛔ THE ONE §14.9.30.4 GR9 RECORD-OPERATION-CONFLICT CHECK, shared by both READ formats and all
-    /// three organizations: is the record identified for access locked by ANOTHER file connector? RETRY
-    /// re-checks (§14.7.9); in one run unit the holder cannot release mid-loop, so n TIMES exhausts to '51' and
-    /// SECONDS/FOREVER bail to '52' (GR4a). Returns the conflict status — already stored on the connector — or
-    /// null when the read may proceed. IGNORING LOCK short-circuits it: GR12 makes "the requested record …
-    /// available, even if it is locked".</summary>
+    /// three organizations: is the record identified for access locked by ANOTHER file connector? GR9 gives the
+    /// answer in two delegated halves — "If the RETRY phrase is specified, additional attempts may be made to
+    /// read the record as specified in the rules in 14.7.9" and "The I-O status is set in accordance with the
+    /// rules for the RETRY phrase" — so BOTH go to <see cref="RetryLoop"/>, and this method contributes only
+    /// the READ's own conflict predicate and the status assignment. ⛔ It must never name a status per retry
+    /// form: in one run unit the holder cannot release mid-loop, so every form exhausts, but WHICH status they
+    /// exhaust to differs by form and by conflict class and is <see cref="ExhaustionStatus"/>'s to decide.
+    /// Returns the conflict status — already stored on the connector — or null when the read may proceed.
+    /// IGNORING LOCK short-circuits it: GR12 makes "the requested record … available, even if it is
+    /// locked".</summary>
     private string? ConflictOnLockedRecord(string name, PhysicalFileTable.State st, string recId,
         bool ignoringLock, FileRetryKind retryKind, int retryAmount)
     {

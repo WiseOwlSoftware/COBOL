@@ -1997,10 +1997,10 @@
   },
   {
    "id": "retry-phrase-2002",
-   "description": "The RETRY phrase (ISO 14.7.9; RETRY n TIMES | FOR n SECONDS | FOREVER on OPEN/READ/WRITE/REWRITE/DELETE) - n TIMES loops the lock check, SECONDS/FOREVER deadlock-bail to 52 in one run unit (GR4a). 2002 introduction; 0900 below 2002.",
+   "description": "The RETRY phrase (ISO 14.7.9; RETRY n TIMES | FOR n SECONDS | FOREVER on OPEN/READ/WRITE/REWRITE/DELETE) - an exhausted retry lands the CONFLICT'S OWN 9.1.13 status: n TIMES loops the lock check then reports 51/61/62 (GR1; a zero or negative n makes no further attempt, GR4a), FOR n SECONDS makes none because GR2 clamps the timeout period to this implementation's maximum meaningful value of zero (A.1 item 166) and reports the same, and FOREVER alone reports the 9.1.13.8 item 2 deadlock 52 - and only for a RECORD conflict, since 9.1.13.9 defines no deadlock value. 2002 introduction; 0900 below 2002.",
    "display": "the RETRY phrase",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §14.7.9 (OPEN/READ/WRITE/REWRITE/DELETE; RETRY n TIMES | FOR n SECONDS | FOREVER); LIVE (Phase 4d) — n-times loops the registry check; SECONDS/FOREVER deadlock-bail to 52 (single-run-unit, GR4a); 2002 introduction",
+   "citation": "ISO §14.7.9 (OPEN/READ/WRITE/REWRITE/DELETE; RETRY n TIMES | FOR n SECONDS | FOREVER); LIVE (Phase 4d) — §14.7.9.3 GR1 loops the registry check, GR2's SECONDS period is clamped to the A.1 item 166 maximum meaningful value of zero, GR4 a) screens a negative or zero amount, and only GR3's FOREVER reports the §9.1.13.8 item 2 deadlock '52'; 2002 introduction",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",

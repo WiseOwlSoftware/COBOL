@@ -452,8 +452,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// binder obligation.</summary>
     // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────
 
-    /// <summary>Bind a RETRY phrase (ISO §14.7.9). The n-TIMES amount is a bounded re-attempt count; FOR n
-    /// SECONDS / FOREVER are single-run-unit no-ops (no competing process releases — named residue).</summary>
+    /// <summary>Bind a RETRY phrase (ISO §14.7.9) — the FORM and, for the two that carry one, its arithmetic
+    /// expression. NOTHING about the outcome is decided here: §14.7.9 has no Syntax rules clause at all, so a
+    /// non-integer or out-of-range amount is legal source that §14.7.9.3 GR1/GR2/GR4 a) define at RUN time, and
+    /// the one place that executes them is <c>FileRegistry.RetryLoop</c> (docs/COBOLNET_FILES_DESIGN.md "D8").
+    /// The three forms stay three: GR1's count is a bounded loop, GR2's timeout period is clamped to this
+    /// implementation's maximum meaningful value of zero, and GR3's unbounded wait is the only one whose
+    /// failure is reported as the §9.1.13.8 item 2 deadlock — collapsing any two of them upstream is the defect
+    /// kb/Work PB346 names.</summary>
     internal RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
         rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)
         : rp.SECONDS() is not null ? new RetrySpec(RetryKind.Seconds, Expr.BindExpr(rp.arithmeticExpression()))

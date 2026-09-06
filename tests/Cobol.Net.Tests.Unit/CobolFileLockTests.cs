@@ -133,6 +133,7 @@ public sealed class CobolFileLockTests
     [InlineData(FileRetryKind.Times, -3, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]   // GR4a
     [InlineData(FileRetryKind.Times, 2, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]    // GR1
     [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]  // GR4a
+    [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)] // GR4a
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)] // GR2 clamp
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.RecordLocked, FileStatusCode.Deadlock)]      // GR3 + item 2
     // ── FILE SHARING conflict, §9.1.13.9 item 1 ('61', OPEN): NEVER a deadlock — that clause defines none.
@@ -141,6 +142,7 @@ public sealed class CobolFileLockTests
     [InlineData(FileRetryKind.Times, -3, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     [InlineData(FileRetryKind.Times, 2, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
+    [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     // ── FILE SHARING conflict, §9.1.13.9 item 2 ('62', DELETE FILE): §14.9.10.4 GR15b is imperative.
@@ -149,6 +151,7 @@ public sealed class CobolFileLockTests
     [InlineData(FileRetryKind.Times, -3, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Times, 2, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     // ── NOT A CONFLICT AT ALL: §14.7.9.3 GR4 scopes the whole discipline to the two conflict conditions, so an
@@ -168,7 +171,10 @@ public sealed class CobolFileLockTests
     [InlineData(FileRetryKind.Times, 0, FileStatusCode.RecordLocked, 1)]     // GR4a — zero: no further attempt
     [InlineData(FileRetryKind.Times, -3, FileStatusCode.RecordLocked, 1)]    // GR4a — negative: likewise
     [InlineData(FileRetryKind.Times, 3, FileStatusCode.RecordLocked, 4)]     // GR1 — n further attempts
+    [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.RecordLocked, 1)]   // GR4a — zero: no further attempt
+    [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.RecordLocked, 1)]  // GR4a — negative: likewise
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked, 1)]  // GR2 — zero-length clamped period
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.RecordLocked, 2)]   // GR3 — one re-check, then the deadlock
     [InlineData(FileRetryKind.Times, 3, FileStatusCode.FileNotFound, 1)]     // GR4 — not a conflict: no retry
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.FileNotFound, 1)]   // GR4 — not a conflict: no retry
     public void RetryLoop_AttemptCount_FollowsGR1AndGR4(
@@ -177,6 +183,71 @@ public sealed class CobolFileLockTests
         int calls = 0;
         CobolFile.RetryLoop(() => { calls++; return conflict; }, kind, amount);
         Assert.Equal(expectedCalls, calls);
+    }
+
+    /// <summary>⛔ THE §14.9.30.4 GR9 DRIFT TEST — the READ's OWN binding to §14.7.9, on BOTH read formats
+    /// (kb/Work PB346). GR9 is three sentences and the last two are delegations: <i>"If the RETRY phrase is
+    /// specified, additional attempts may be made to read the record as specified in the rules in 14.7.9,
+    /// RETRY phrase"</i> and <i>"The I-O status is set in accordance with the rules for the RETRY phrase"</i>.
+    /// Every other RETRY test in this file reaches <c>RetryLoop</c> through DELETE FILE, REWRITE or DELETE
+    /// RECORD; until this one, no test passed a RETRY phrase to a READ at all, so a Format-1 or Format-2 read
+    /// could have dropped or mis-plumbed its retry arguments and stayed green — which is exactly how the
+    /// SECONDS/FOREVER conflation survived in five descriptions after the code was fixed.
+    /// <para>The expected column is derived, not observed: the holder is a file connector of the EXECUTING run
+    /// unit and cannot release while this statement runs, so every form exhausts. §14.7.9.3 GR4 a) (no phrase,
+    /// or an arithmetic expression evaluating negative or zero) and the clause's closing paragraph both land
+    /// "the appropriate value … according to the rules for 9.1.13", i.e. §9.1.13.8 item 1's '51'; GR1's count
+    /// and GR2's timeout period reach the same closing paragraph — GR2 because its period is clamped to this
+    /// implementation's maximum meaningful value of ZERO (Annex A.1 item 166). GR3's FOREVER alone is the
+    /// §9.1.13.8 item 2 deadlock this implementation detects, '52'.</para></summary>
+    [Theory]
+    [InlineData(FileRetryKind.None, 0, FileStatusCode.RecordLocked)]       // GR4a — no phrase
+    [InlineData(FileRetryKind.Times, 0, FileStatusCode.RecordLocked)]      // GR4a — zero arithmetic-expression-1
+    [InlineData(FileRetryKind.Times, -3, FileStatusCode.RecordLocked)]     // GR4a — negative
+    [InlineData(FileRetryKind.Times, 2, FileStatusCode.RecordLocked)]      // GR1 — exhausted count
+    [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.RecordLocked)]    // GR4a — zero arithmetic-expression-2
+    [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.RecordLocked)]   // GR4a — negative
+    [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked)]   // GR2 — clamped to a zero-length period
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.Deadlock)]        // GR3 + §9.1.13.8 item 2
+    public void ReadUnderEveryRetryForm_BindsGR9ToTheRetryRules_OnBothFormats(
+        FileRetryKind kind, int amount, string expected)
+    {
+        string tag = $"{(int)kind}-{amount}";
+
+        // ── FORMAT 2 (random keyed access): the post-read governance entry, RELATIVE organization. ──────────
+        TwoOpenSharers("RGA", "RGB", $"lk-r2retry-{tag}.dat");
+        CobolFile.SetRelativeKey("RGA", 1);
+        string readA = CobolFile.ReadKeyed("RGA", -1, "", out _);
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.ReadLockGovern("RGA", readA, FileRecordLock.WithLock, false, FileRetryKind.None, 0));
+        CobolFile.SetRelativeKey("RGB", 1);
+        string readB = CobolFile.ReadKeyed("RGB", -1, "", out _);
+        Assert.Equal(expected,
+            CobolFile.ReadLockGovern("RGB", readB, FileRecordLock.None, false, kind, amount));
+        Assert.Equal(expected, CobolFile.Status("RGB"));   // §14.9.30.4 GR1 — the connector's I-O status is updated
+
+        // ── FORMAT 1 (sequential access): the pre-read conflict leg, SEQUENTIAL organization. ───────────────
+        CobolFile.Init();
+        string host = $"lk-r1retry-{tag}.dat";
+        CobolFile.Register("RSA", host, 5, false, false);
+        CobolFile.Register("RSB", host, 5, false, false);
+        CobolFile.RegisterSharing("RSA", FileSharing.AllOther, FileLockMode.Manual, false);
+        CobolFile.RegisterSharing("RSB", FileSharing.AllOther, FileLockMode.Manual, false);
+        CobolFile.OpenOutput("RSA", host, assignDynamic: false, page: null);
+        CobolFile.Write("RSA", "AAAAA", -1, page: null);
+        CobolFile.Write("RSA", "BBBBB", -1, page: null);
+        CobolFile.Close("RSA");
+        CobolFile.OpenInput("RSA", host, assignDynamic: false, page: null);
+        CobolFile.OpenInput("RSB", host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.Success, CobolFile.ReadShared(
+            "RSA", false, FileRecordLock.WithLock, false, false, FileRetryKind.None, 0, out string held));
+        Assert.Equal("AAAAA", held);
+        Assert.Equal(expected, CobolFile.ReadShared(
+            "RSB", false, FileRecordLock.None, false, false, kind, amount, out string img));
+        Assert.Equal(expected, CobolFile.Status("RSB"));
+        Assert.Equal("", img);   // §14.9.30.4 GR10 e) — the READ is unsuccessful; no record is made available
+        CobolFile.Close("RSA");
+        CobolFile.Close("RSB");
     }
 
     [Fact]
