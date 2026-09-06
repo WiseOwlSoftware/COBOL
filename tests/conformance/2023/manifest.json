@@ -531,7 +531,8 @@
   "pb683_write_advancing_governed",
   "pb339_into_current_record",
   "pb728_condition_name_group_subject_class",
-  "pb740_clauseless_share"
+  "pb740_clauseless_share",
+  "pb761_national_through_range"
  ],
  "pending": [
   "pb485_value_only_format1"

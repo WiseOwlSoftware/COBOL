@@ -2584,9 +2584,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a).
                         if (vi.valueClauseRange() is { } range)
                         {
-                            // §13.18.63 SR29: THROUGH shall not be specified for a boolean conditional
-                            // variable (0898). A national THROUGH range is spec-legal but orders under a
-                            // NATIONAL alphabet (SR31) — recognized, staged (0899).
+                            // §13.18.63.3 SR29: THROUGH shall not be specified for a boolean conditional
+                            // variable — "If the category of the subject of the entry is boolean, the THROUGH
+                            // phrase shall not be specified" (0898). That is the ONLY category THROUGH is
+                            // banned for.
+                            // ⛔ THERE IS NO LONGER A NATIONAL STAGE HERE (kb/Work PB761, discharged in landing
+                            // train 18). A COBOLNET0899 "recognized but not yet implemented (Phase 4a residue)"
+                            // stood over a national THROUGH range on the citation §13.18.63 SR31 — but SR31 says
+                            // "Alphabet-name-1 may be specified only when the literals specified in the THROUGH
+                            // phrase are of class alphanumeric or national", which governs WHEN the
+                            // IN alphabet-name-1 phrase may be written and never makes the range
+                            // unimplementable. §14.7.8 rule 2 is the rule that actually governs the range —
+                            // "When the range of values is defined by alphanumeric or national literals, the
+                            // range of values depends on the collating sequence used for evaluation of the
+                            // range" — and ConditionRenderer has rendered exactly that since PB678 put
+                            // __COLLATE_NAT live. MEASURED with the stage removed, under
+                            // ALPHABET REV-NAT FOR NATIONAL IS N"ABC" and its inverted control N"CBA": the
+                            // elementary PIC N(3) subject and its GROUP-USAGE NATIONAL twin both answer Y and
+                            // both flip to N under the inverted alphabet, so the national program collating
+                            // sequence is genuinely consulted. The stage was refusing conforming source the
+                            // compiler already implemented. (The IN alphabet-name-1 phrase itself is a separate
+                            // construct and is not claimed here.)
                             // ⛔ EVERY guard in this method reads the ONE category reader, DataItem.OperandPic —
                             // an elementary item's own PICTURE, a bit / national GROUP's §13.18.29.4 GR1b/GR2b
                             // as-if PICTURE (1(m) / N(m)) — never raw `Pic`, which is NULL for every group.
@@ -2602,16 +2620,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             if (parent.OperandPic is { Category: PicCategory.Boolean })
                                 Edition.Error("COBOLNET0898", $"condition-name '{name}': THROUGH may not be "
                                     + "specified when the conditional variable is boolean (ISO §13.18.63 SR29)");
-                            else if (parent.OperandPic is { Category: PicCategory.National })
-                                Edition.Error(DiagnosticCatalog.NationalThroughRange, $"condition-name '{name}': a THROUGH range over "
-                                    + "a national conditional variable (ordered by the national collating "
-                                    + "sequence) is recognized but not yet implemented (Phase 4a residue) — "
-                                    + "(ISO §13.18.63 SR31)");
                             // Fold ONCE per operand (a §8.8.3 concat folds here; RawValueOperandText) so the
                             // category check and the stored value see the same text without double diagnostics.
                             string rawLo = RawValueOperandText(range.valueClauseOperand(0));
                             string rawHi = RawValueOperandText(range.valueClauseOperand(1));
-                            if (parent.OperandPic is { Category: not (PicCategory.Boolean or PicCategory.National) } rp)
+                            // ⛔ NATIONAL IS NOT EXCLUDED FROM THE CATEGORY FUNNEL, and that is half of PB761's
+                            // discharge rather than an afterthought: while the stage above refused every national
+                            // range, no national range ever reached this screen, so dropping the stage alone
+                            // would have opened an UNDER-REJECTION — `88 X VALUE "AAA" THRU "CCC"` on a
+                            // PIC N(3) subject, which §13.18.63.3 SR5 requires to be national literals. Only
+                            // BOOLEAN stays excluded, because SR29 has already refused the phrase outright above
+                            // and a second diagnostic on the same entry would be noise.
+                            if (parent.OperandPic is { Category: not PicCategory.Boolean } rp)
                             {
                                 // §13.18.63 SR4/SR5/SR24→SR10: the VALUE literals' CATEGORY must match the
                                 // conditional variable's — the SAME funnel the item-entry VALUE uses. Their SIZE

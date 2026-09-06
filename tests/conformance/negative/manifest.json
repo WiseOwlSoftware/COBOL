@@ -856,7 +856,8 @@
   "pb699-indexed-no-record-key-entry-only",
   "pb728-cond-name-bit-group-through",
   "pb575-cond-name-bit-group-alnum-value",
-  "pb575-cond-name-national-group-alnum-value"
+  "pb575-cond-name-national-group-alnum-value",
+  "pb761-national-through-alnum-literals"
  ],
  "pending": []
 }

@@ -651,14 +651,14 @@ public static class DiagnosticCatalog
         + "ADDRESS-OF cell, a REDEFINES overlay and an INDEXED record key all RIDE (kb/Work PB231 + PB327 — the "
         + "record codec lays a national position out as its two UTF-16BE bytes, §13.18.60.4 GR8 / D-N1).",
         "ISO §8.5 / §13.18.60", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor NationalThroughRange = new(
-        NotImplemented, "national-through-range", EditionSeverity.Error,
-        "A condition-name THROUGH range over a national conditional variable is not yet implemented — "
-        + "elementary OR a GROUP-USAGE NATIONAL group, which §8.8.4.2.1 makes \"an elementary national "
-        + "data item\" for comparison and §13.18.29.4 GR2b gives the as-if PICTURE N(m) "
-        + "(kb/Work PB728: the group shape used to slip this stage and be answered on the ALPHANUMERIC "
-        + "collating sequence instead).",
-        "ISO §13.18.63 SR31", RecognizedNotImplemented);
+    // ⛔ `NationalThroughRange` (`national-through-range`) IS GONE — kb/Work PB761, discharged in landing train
+    // 18, and this comment stands where it was so it is not re-added. It staged a condition-name THROUGH range
+    // over a national conditional variable as "recognized but not yet implemented (Phase 4a residue)" on the
+    // citation §13.18.63 SR31 — a clause that governs when the IN alphabet-name-1 phrase may be written and
+    // says nothing about implementability. §14.7.8 rule 2 governs the range, ConditionRenderer has emitted it
+    // under __COLLATE_NAT since PB678, and it was MEASURED correct for the elementary and the group shape alike
+    // (both flip with the national alphabet). The stage was refusing conforming source. The SR29 boolean ban
+    // (COBOLNET0898) is the only THROUGH refusal a condition-name entry now draws.
 
     // ── COBOLNET0899 — PICTURE/USAGE staging ─────────────────────────────────────────────────────────
     public static readonly DiagnosticDescriptor UsageKeywordUnmappedInternal = new(
