@@ -857,7 +857,17 @@
   "pb728-cond-name-bit-group-through",
   "pb575-cond-name-bit-group-alnum-value",
   "pb575-cond-name-national-group-alnum-value",
-  "pb761-national-through-alnum-literals"
+  "pb761-national-through-alnum-literals",
+  "pb742-record-key-on-sequential-file",
+  "pb742-record-key-no-organization-clause",
+  "pb742-alternate-key-on-line-sequential-file",
+  "pb742-relative-key-on-sequential-file",
+  "pb742-indexed-format-on-sort-merge-entry",
+  "pb742-relative-format-on-sort-merge-entry",
+  "pb742-collating-sequence-on-sequential-file",
+  "pb743-record-key-numeric",
+  "pb743-alternate-key-numeric",
+  "pb743-record-key-alphabetic"
  ],
  "pending": []
 }

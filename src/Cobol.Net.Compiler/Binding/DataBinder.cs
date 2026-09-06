@@ -825,7 +825,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // ABSENCE of a clause, so there is nothing else to point at (kb/Work PB699).
             file.EntryAt = Edition.Cursor;
             Core.AccessModeClauseContext? accessAt = null;   // the ACCESS MODE clause cursor for §12.4.5.5.2 SR2, below
-            bool wroteOrganization = false;                  // false = the clause was OMITTED (§12.4.5.10.3 GR6 default)
             foreach (var clauses in grp.fileControlClauses())
             {
                 // ISO §12.4.5.3 GR3 — BOTH phrases of the ASSIGN clause, on both general-format arms
@@ -847,7 +846,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         file.AssignUsingAt = Edition.Cursor;   // §12.4.5.2 SR7 reports here, from ResolveFiles
                     }
                 }
-                else if (clauses.organizationClause() is { } org) { file.Organization = MapOrganization(org); wroteOrganization = true; }
+                else if (clauses.organizationClause() is { } org) { file.Organization = MapOrganization(org); file.OrganizationWritten = true; }
                 else if (clauses.accessModeClause() is { } acc) { file.AccessMode = MapAccessMode(acc); accessAt = acc; }
                 // The BASE word only: an OF/IN-qualified status name (`SQ-FS4-STATUS OF STATUS-GROUP`, SQ133A)
                 // would otherwise glue its qualifier into the lookup key (the RENAMES capture pattern).
@@ -929,9 +928,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error(DiagnosticCatalog.AccessModeNotSequentialOnSequentialFile,
                     $"file '{name}': ACCESS MODE IS {file.AccessMode.ToString().ToUpperInvariant()} may not be "
                     + $"specified for a sequential file — this entry's organization is "
-                    + (wroteOrganization
-                        ? file.Organization is FileOrganization.LineSequential ? "LINE SEQUENTIAL" : "sequential"
-                        : "record sequential by default, the ORGANIZATION clause being omitted (ISO §12.4.5.10.3 GR6)")
+                    + file.OrganizationFace
                     + " (ISO §12.4.5.5.2 SR2)");
             }
             // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
@@ -1007,10 +1004,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "COLLATING SEQUENCE clause may be specified in one file control entry (ISO §12.4.5.7.3 SR3)");
         if (file.FileLevelCollating is null && file.KeyLevelCollating.Count == 0) return;   // no clause → native
 
+        // ⛔ THIS IS §12.4.5.2 SR8's FIRST SENTENCE over the collating-sequence-clause operand, not §12.4.5.7.1.
+        // The clause appears ONLY in §12.4.5.1's Format 1 (indexed), so writing it specifies Format 1, and SR8 —
+        // "Format 1 shall be specified only for an indexed file" — is the sentence that forbids it elsewhere.
+        // §12.4.5.7.1 is the clause's GENERAL paragraph ("…for an indexed file"), which is descriptive prose and
+        // states no obligation; the citation shipped here was inherited from it (CLAUDE.md rule 1, kb/Work
+        // PB742). The rule's other operands — the RECORD KEY, ALTERNATE RECORD KEY and RELATIVE KEY clauses —
+        // are rows of FileControlKeyRules; this one stays here because the test is also the GUARD that stops the
+        // rest of this method (there are no keys on a non-indexed file to resolve alphabets for), and splitting
+        // a guard from its report would leave the resolution running on an entry it has already refused.
         if (file.Organization != FileOrganization.Indexed)
         {
             Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': a file-control COLLATING "
-                + "SEQUENCE clause applies only to an INDEXED file (ISO §12.4.5.7.1)");
+                + "SEQUENCE clause is a Format-1 clause and shall be specified only for an indexed file — this "
+                + $"file is {file.OrganizationFace} (ISO §12.4.5.2 SR8)");
             return;
         }
 
@@ -1481,11 +1488,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         DataItem? item = ByName.TryGetValue(dynName, out var list)
             ? list.FirstOrDefault(i => QualifiersMatch(i, file.AssignUsingQualifiers))
             : null;
-        if (item is null || !IsAlphanumericDataItem(item))
+        if (item is null || !ItemCategory.IsAlphanumeric(item))
         {
             Edition.Error(DiagnosticCatalog.AssignUsingNotAlphanumeric,
                 $"file '{file.SelectName}': ASSIGN … USING '{dynName}' shall reference an alphanumeric data item "
-                + (item is null ? "and no such data item is described" : $"— '{dynName}' is {CategoryFace(item)}")
+                + (item is null ? "and no such data item is described" : $"— '{dynName}' is {ItemCategory.Face(item)}")
                 + " (ISO §12.4.5.2 SR7)");
             return;
         }
@@ -1502,20 +1509,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         file.AssignUsingItem = item;
     }
 
-    /// <summary>Category ALPHANUMERIC for §12.4.5.2 SR7 / §9.1.21: an elementary <c>PIC X</c> item, or a group with no
-    /// GROUP-USAGE clause (§13.18.29.4 GR3, "an alphanumeric group item"). Alphabetic (<c>PIC A</c>) is excluded —
-    /// it is its own category — as are numeric, edited, national, boolean and the PICTURE-less pointer/reference
-    /// usages, none of which can carry a file name.</summary>
-    private static bool IsAlphanumericDataItem(DataItem item) =>
-        item.Pic is { } pic ? pic.Category is PicCategory.Alphanumeric && !pic.IsAlphabetic
-        : item.IsGroup && item.GroupUsage is GroupUsage.None;
-
-    /// <summary>A short category face for a §12.4.5.2 SR7 diagnostic — what the operand IS, so the message names the
-    /// reason rather than restating the rule.</summary>
-    private static string CategoryFace(DataItem item) =>
-        item.Pic is { } pic ? (pic.IsAlphabetic ? "a category-alphabetic item" : $"a category-{pic.Category.ToString().ToLowerInvariant()} item")
-        : item.GroupUsage is GroupUsage.None ? "not an elementary or group data item"
-        : $"a {item.GroupUsage.ToString().ToLowerInvariant()} group item";
+    // ⛔ The category predicate and its English face MOVED to Model/ItemCategory — the ONE reader of an item's
+    // §8.5.2 category for a category-worded syntax rule. §12.4.5.12.3 SR2 and §12.4.5.6.3 SR2 (the record keys,
+    // kb/Work PB743) are worded the same way one category wider ("alphanumeric or national"), and a second copy
+    // of the walk over Pic / AsIfPic / GroupUsage is exactly how the two arms of one rule drift apart.
 
     /// <summary>The ORGANIZATION clause (ISO §12.4.5.10.3 GR2–GR5) → the bound organization. The clause is
     /// optional and so is the absent-clause case: §12.4.5.10.3 GR6 — "When the ORGANIZATION clause is not

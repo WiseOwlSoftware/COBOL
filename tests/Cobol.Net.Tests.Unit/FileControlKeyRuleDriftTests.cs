@@ -81,7 +81,7 @@ public sealed class FileControlKeyRuleDriftTests
     public void EveryRow_QuotesTextThatIsInsideTheClauseItCites()
     {
         var lines = SpecLines();
-        Assert.True(FileControlKeyRules.Catalog.Count >= 9,
+        Assert.True(FileControlKeyRules.Catalog.Count >= 16,
             $"only {FileControlKeyRules.Catalog.Count} rows — the table lost rules; fix the table, do not lower the floor.");
         foreach (var rule in FileControlKeyRules.Catalog)
         {
@@ -132,7 +132,62 @@ public sealed class FileControlKeyRuleDriftTests
             Assert.Contains(Norm(rule.RuleText), Norm(numbered[n]));
             checkedRows++;
         }
-        Assert.True(checkedRows >= 8, $"only {checkedRows} rows carry an ordinal — the guard is measuring almost nothing.");
+        Assert.True(checkedRows >= 15, $"only {checkedRows} rows carry an ordinal — the guard is measuring almost nothing.");
+    }
+
+    /// <summary>⛔ THE "READ THE WHOLE PRINTED RULE" CLAMP (kb/Work PB742 / PB743). Three of this table's rules
+    /// state TWO obligations in one numbered sentence, and in each case the compiler once screened one arm and
+    /// shipped the other: §12.4.5.2 SR8 and SR9 each add "The associated file description entry shall not be a
+    /// sort-merge file description entry" to their format sentence, and §12.4.5.12.3 SR2 / §12.4.5.6.3 SR2 each
+    /// join a CATEGORY to a LOCATION with the word "within". This test re-derives the split FROM THE SPEC — it
+    /// finds the sentence boundary in the printed rule itself — and asserts the table carries a row quoting each
+    /// side. A rule that grows a third obligation makes it fail rather than silently shipping two thirds.</summary>
+    [Theory]
+    [InlineData("12.4.5.2", 8)]
+    [InlineData("12.4.5.2", 9)]
+    [InlineData("12.4.5.12.3", 2)]
+    [InlineData("12.4.5.6.3", 2)]
+    public void ARuleWithTwoObligations_HasARowForEachArm(string clause, int ordinal)
+    {
+        string printed = NumberedRules(ClauseRegion(SpecLines(), clause))[ordinal];
+        // The two arms as the STANDARD prints them: SR8/SR9 use a sentence break, both SR2s the word "within".
+        var arms = printed.Contains(". The associated file description entry", StringComparison.Ordinal)
+            ? printed.Split(". The associated", 2, StringSplitOptions.None) is [var head, var tail]
+                ? new[] { head, "The associated" + tail }
+                : throw new InvalidOperationException("unreachable")
+            : printed.Split(" within ", 2, StringSplitOptions.None) is [var cat, var loc]
+                ? new[] { cat, "within " + loc }
+                : throw new InvalidOperationException(
+                    $"§{clause} rule {ordinal} no longer reads as two arms — re-derive the split before trusting the rows.");
+        Assert.Equal(2, arms.Length);
+
+        string id = $"SR-{clause}-{ordinal}";
+        var rows = FileControlKeyRules.Catalog.Where(r => r.RuleId == id).ToList();
+        Assert.True(rows.Count >= 2, $"{id} states two obligations but only {rows.Count} row(s) quote it.");
+        foreach (string arm in arms)
+            Assert.True(rows.Any(r => Norm(arm).Contains(Norm(r.RuleText))),
+                $"no row of {id} quotes the arm \"{arm.Trim()}\" — one obligation of the rule has no screen.");
+    }
+
+    /// <summary>A row screened on a SORT-MERGE file quotes the sentence that speaks about one, and cites the only
+    /// clause that states it. §12.4.5.2 SR8/SR9 are the whole of that set: no key clause's own rules mention a
+    /// sort-merge file description entry, and a row that reached an SD without one would be a rule fired on a
+    /// file it was never written about.</summary>
+    [Fact]
+    public void EverySortMergeRow_QuotesTheSortMergeSentenceOfSection12452()
+    {
+        var rows = FileControlKeyRules.Catalog.Where(r => r.ScreenedOn.HasFlag(FileKinds.SortMerge)).ToList();
+        Assert.NotEmpty(rows);
+        foreach (var r in rows)
+        {
+            Assert.Equal("12.4.5.2", r.Clause);
+            Assert.Contains("sort merge file description entry", Norm(r.RuleText));
+            Assert.Equal(FileKeyRole.Entry, r.Role);
+        }
+        // …and the complement: no OTHER row is screened on a sort-merge entry, which is what makes the deleted
+        // `if (file.IsSortMerge) return;` unnecessary rather than merely absent.
+        Assert.All(FileControlKeyRules.Catalog.Where(r => r.Role != FileKeyRole.Entry),
+            r => Assert.False(r.ScreenedOn.HasFlag(FileKinds.SortMerge)));
     }
 
     /// <summary>The message a row ships names the row's OWN citation. A row whose sentence and whose printed §
@@ -141,24 +196,61 @@ public sealed class FileControlKeyRuleDriftTests
     public void EveryRow_ShipsAMessageThatNamesItsOwnCitation()
     {
         var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
+        // ⛔ THE OPERAND CARRIES A REAL ITEM. It used to be null, so every row that RENDERS the operand's
+        // description — the category arms of both SR2s name what the key IS — was rendered down its absent-item
+        // branch and the test proved nothing about the message a program actually reads (kb/Work PB743).
+        var item = new DataItem { Level = 5, CobolName = "K", CsName = "K" };
         foreach (var rule in FileControlKeyRules.Catalog)
         {
-            var op = new FileKeyOperand(rule.Role, "KEY", "K", null, default);
+            var op = new FileKeyOperand(rule.Role, "KEY", "K", item, default);
             string message = rule.Message(file, op);
             Assert.Contains(rule.Citation, message);
         }
     }
 
-    /// <summary>A row's ORGANIZATION and its ROLE agree with the §12.4.5.1 format that carries the clause: a
-    /// prime or alternate RECORD KEY belongs to Format 1 (indexed), a RELATIVE KEY to Format 2 (relative). This
-    /// is the invariant that makes the organization column load-bearing rather than decorative.</summary>
+    /// <summary>⛔ THE INVARIANT THAT MAKES <see cref="FileControlKeyRule.ScreenedOn"/> LOAD-BEARING, and the one
+    /// a scalar column could not state. A row is screened either on EXACTLY the kind whose §12.4.5.1 format
+    /// carries its clause — a rule stated INSIDE the format — or on a set DISJOINT from it, which is what
+    /// §12.4.5.2 SR8/SR9 are: rules about a clause written where its format does not apply. A PARTIAL overlap
+    /// would be a rule the standard does not state, and only §12.4.5.2 can hold the disjoint half, because it is
+    /// the only clause whose syntax rules are about which format an entry may be written in.</summary>
     [Fact]
-    public void EveryRow_PairsItsRoleWithTheOrganizationWhoseFormatCarriesTheClause()
+    public void EveryRow_IsScreenedEitherOnItsOwnFormatOrDisjointFromIt()
     {
         foreach (var rule in FileControlKeyRules.Catalog)
-            Assert.Equal(
-                rule.Role is FileKeyRole.RelativeKey ? FileOrganization.Relative : FileOrganization.Indexed,
-                rule.Organization);
+        {
+            if (rule.Role is FileKeyRole.Entry)
+            {
+                Assert.Equal(FileKinds.SortMerge, rule.ScreenedOn);   // the entry rules speak only about an SD
+                continue;
+            }
+            var own = rule.Role is FileKeyRole.RelativeKey ? FileKinds.Relative : FileKinds.Indexed;
+            if (rule.ScreenedOn == own) continue;
+            Assert.Equal(FileKinds.None, rule.ScreenedOn & own);
+            Assert.Equal("12.4.5.2", rule.Clause);
+        }
+    }
+
+    /// <summary>⛔ PROVE THE SET ARITHMETIC CAN FAIL before the rows are trusted: <see cref="FileKinds"/>'s
+    /// members shall be the one-hot bits <c>FileControlKeyRules.KindOf</c> computes from a
+    /// <see cref="FileOrganization"/>, or a row's set would silently miss the kind it names. Every organization
+    /// is checked, and the complement sets the SR8/SR9 rows use are checked to EXCLUDE their own format — the
+    /// half a "does it contain the right ones" assertion would pass without.</summary>
+    [Fact]
+    public void TheKindSet_IsOneHotOverEveryOrganizationAndTheComplementsExcludeTheirOwn()
+    {
+        foreach (FileOrganization org in Enum.GetValues<FileOrganization>())
+        {
+            var kind = (FileKinds)(1 << (int)org);
+            Assert.True(Enum.IsDefined(kind), $"FileKinds has no member for ORGANIZATION {org}.");
+            Assert.True(FileKinds.AnyOrganization.HasFlag(kind));
+            Assert.False(FileKinds.SortMerge.HasFlag(kind));
+        }
+        Assert.False((FileKinds.AnyOrganization & ~FileKinds.Indexed).HasFlag(FileKinds.Indexed));
+        Assert.True((FileKinds.AnyOrganization & ~FileKinds.Indexed).HasFlag(FileKinds.Sequential));
+        Assert.True((FileKinds.AnyOrganization & ~FileKinds.Indexed).HasFlag(FileKinds.LineSequential));
+        Assert.False((FileKinds.AnyOrganization & ~FileKinds.Relative).HasFlag(FileKinds.Relative));
+        Assert.True((FileKinds.AnyOrganization & ~FileKinds.Relative).HasFlag(FileKinds.Indexed));
     }
 
     /// <summary>⭐ THE "NEXT RULE IS A ROW" CLAMP, in both directions.

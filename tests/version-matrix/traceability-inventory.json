@@ -15696,13 +15696,13 @@
   "ordinal": 8,
   "subject": "File control entry",
   "rule-digest": "0575efc1f613",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveFileCollating",
+  "test-ref": "conformance:negative/pb742-record-key-on-sequential-file; conformance:negative/pb742-record-key-no-organization-clause; conformance:negative/pb742-alternate-key-on-line-sequential-file; conformance:negative/pb742-indexed-format-on-sort-merge-entry; conformance:negative/pb742-collating-sequence-on-sequential-file; conformance:85/pb742_legal_entry_formats_85; conformance-test:FileControlKeyRuleSpecTests.AKeyClauseOutsideItsFormat_IsRefusedAtEveryEdition; conformance-test:FileControlKeyRuleSpecTests.AFormat1Or2ClauseOnASortMergeEntry_IsRefusedAtEveryEdition; conformance-test:FileControlKeyRuleSpecTests.Sr8_ReportsOnce_WithOrWithoutAKeyedVerb",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-09-06 (kb/Work PB742). RULE (--check 12.4.5.2 8): \"Format 1 shall be specified only for an indexed file. The associated file description entry shall not be a sort-merge file description entry.\" TWO obligations, and BOTH are screened. Sentence 1 is about a clause 12.4.5.1 prints in Format 1 and in no other format - RECORD KEY, ALTERNATE RECORD KEY, and the collating-sequence-clause - written on a file that is not indexed. Measured before the fix: `SELECT F ASSIGN ... RECORD KEY IS K.` with NO ORGANIZATION clause at all (record sequential by 12.4.5.10.3 GR6) compiled with zero diagnostics of any severity, the key name resolved and stored, and then nothing read it, because every key consumer is on a path a sequential file never enters. The screen is TWO ROWS of FileControlKeyRules (prime and alternate), and adding them is what forced that table's scalar Organization column to become a SET (FileKinds): the column conflated the format that CARRIES a clause with the files a rule is IN FORCE over, which are the same for a rule stated inside a format and OPPOSITE for this one. Sentence 2 is a THIRD row on the new FileKeyRole.Entry, because the format may be specified by the ORGANIZATION clause ALONE (SD + ORGANIZATION IS INDEXED, no key clause, was also silent) - it reports under COBOLNET1900, its own code, because the subject is the file description entry rather than a key clause. The COLLATING SEQUENCE operand is screened at DataBinder.ResolveFileCollating (COBOLNET1582), the second code-location above, because that test is also the guard that stops the rest of that method; its citation was 12.4.5.7.1, the clause's descriptive General paragraph, and is repaired to SR8 here. OVER-REJECTION SWEEP before landing: zero hits across tests/ (1611 file control entries, 230 RECORD KEY / 29 ALTERNATE RECORD KEY / 94 RELATIVE KEY clauses, 263 ORGANIZATION INDEXED); the GPL external corpus is absent from a worktree and was not swept there. The BOUNDARY is measured too: FileControlKeyRuleSpecTests pins that the same clauses on an INDEXED file, and a legal 12.4.5.1 Format 4 sort-merge entry, draw nothing.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.2-9",
@@ -15711,13 +15711,13 @@
   "ordinal": 9,
   "subject": "File control entry",
   "rule-digest": "fd52bda0dde5",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules",
+  "test-ref": "conformance:negative/pb742-relative-key-on-sequential-file; conformance:negative/pb742-relative-format-on-sort-merge-entry; conformance:85/pb742_legal_entry_formats_85; conformance-test:FileControlKeyRuleSpecTests.AKeyClauseOutsideItsFormat_IsRefusedAtEveryEdition; conformance-test:FileControlKeyRuleSpecTests.AFormat1Or2ClauseOnASortMergeEntry_IsRefusedAtEveryEdition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-09-06 (kb/Work PB742). RULE (--check 12.4.5.2 9): \"Format 2 shall be specified only for a relative file. The associated file description entry shall not be a sort-merge file description entry.\" SR8's twin one format over, landed in the same change set for the reason the register keeps re-learning: a rule set with one member enforced is the shape in which the missing member hides. Sentence 1 is a row over the RELATIVE KEY clause - 12.4.5.1 prints it in Format 2 and nowhere else - screened on every organization but relative; `ORGANIZATION IS SEQUENTIAL ... RELATIVE KEY IS R` compiled clean and bound a key no path read (measured). Sentence 2 is an Entry row over a sort-merge file description entry, reachable by the ORGANIZATION clause alone (SELECT ... ORGANIZATION IS RELATIVE over an SD, with no key clause at all, is the pb742-relative-format-on-sort-merge-entry fixture) - COBOLNET1900. Boundary measured: the same clause on a RELATIVE file, and a legal Format-4 entry, draw nothing.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.2-10",
@@ -16026,13 +16026,13 @@
   "ordinal": 2,
   "subject": "ALTERNATE RECORD KEY clause",
   "rule-digest": "da1f07753f11",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules; src/Cobol.Net.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile",
+  "test-ref": "conformance:negative/pb743-alternate-key-numeric; conformance:negative/pb699-alternate-key-outside-record; conformance:85/pb742_legal_entry_formats_85; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb; conformance-test:FileControlKeyRuleSpecTests.LegalCategories_AGroupRecordKeyAndANumericRelativeKey_AreAccepted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-09-06 (kb/Work PB743). RULE (--check 12.4.5.6.3 2): \"Data-name-1 and data-name-2 shall be defined as a data item of category alphanumeric or national within a record description entry associated with the file-name to which the ALTERNATE RECORD KEY clause is subordinate.\" The prime key's twin, worded the same way with the same two obligations, and landed in the same change for the same reason. The asymmetry this closes was visible inside ONE method: KeyedIoBinder.KeyedValidateFile already wrote a CATEGORY screen for the RELATIVE key (12.4.5.13.3 SR2, an unsigned integer) and none for either record key. Both arms are now rows of FileControlKeyRules sharing this rule-id, screened at the ENTRY from DataBinder.ResolveFiles, over the clauses AS WRITTEN (FileModel.AlternateKeyNames) rather than the resolved AlternateKeys - a clause whose data-name-1 resolves to nothing is absent from the resolved list and is exactly the case the location arm speaks about. Boundary measured: a category-alphanumeric alternate key WITH DUPLICATES inside the record is accepted at all four editions, and the relative key's own category rule (which REQUIRES the unsigned integer this rule forbids) is measured beside it so the two cannot leak into each other.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.6.3-3",
@@ -16866,13 +16866,13 @@
   "ordinal": 2,
   "subject": "RECORD KEY clause",
   "rule-digest": "40aeda82f1b7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules; src/Cobol.Net.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile",
+  "test-ref": "conformance:negative/pb743-record-key-numeric; conformance:negative/pb743-record-key-alphabetic; conformance:negative/pb699-record-key-outside-record; conformance:85/pb742_legal_entry_formats_85; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb; conformance-test:FileControlKeyRuleSpecTests.LegalCategories_AGroupRecordKeyAndANumericRelativeKey_AreAccepted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-09-06 (kb/Work PB743) - the CATEGORY arm, which is what earns the verdict PB699 deliberately withheld. RULE (--check 12.4.5.12.3 2): \"Data-name-1 and data-name-2 shall reference a data item of category alphanumeric or category national within a record description entry associated with the file-name specified in this file control entry.\" ONE sentence, TWO obligations joined by the word \"within\": a CATEGORY and a LOCATION. PB699 implemented the LOCATION half and left the row without a verdict rather than over-claiming; measured with only that half live, an indexed file whose RECORD KEY was PIC 9(5) compiled clean, ran, and wrote '00' - it built an index on an operand the standard forbids as a key. Now TWO ROWS carry this rule-id, one per arm, and FileControlKeyRuleDriftTests.ARuleWithTwoObligations_HasARowForEachArm re-derives the split FROM THE PRINTED SENTENCE so a rule that grows a third obligation reddens instead of shipping two thirds. The category predicate is ItemCategory.IsAlphanumericOrNational - the ONE 8.5.2 category reader, extracted from DataBinder in the same change and now shared with 12.4.5.2 SR7's ASSIGN ... USING screen - which admits an alphanumeric group item (13.18.29.4 GR3: \"If a GROUP-USAGE clause is not specified or implied ... that group item is an alphanumeric group item\") and a GROUP-USAGE NATIONAL group, and refuses alphabetic (PicInfo.IsAlphabetic; the storage model folds PIC A into PicCategory.Alphanumeric, so a bare category comparison would have passed it), numeric, numeric-edited, boolean and the PICTURE-less usages. Alphanumeric-edited has no PicCategory member and is therefore admitted - the established posture for a category screen here (RecordLayout.CategoryOfItem, 14.9.41.3 SR6 b) 2.): the screen rejects what the rule NAMES, never what the model cannot classify. DATA-NAME-2 is the SOURCE phrase's operand and has no reachable spelling (docs/CONFORMANCE.md 2 row 40 declines A.3 item 40), and SR2's third sentence (\"All occurrences of data-name-2 shall be of the same category\") is about it alone.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.12.3-3",

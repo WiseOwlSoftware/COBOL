@@ -713,11 +713,22 @@ public static class DiagnosticCatalog
         "COBOLNET1581", "report-suppress-context", EditionSeverity.Error,
         "A SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.", "ISO §14.9.45.3 SR1");
     // §12.4.5.7 file-control COLLATING SEQUENCE (INDEXED record-key collating).
+    // ⛔ THE NON-INDEXED ARM IS §12.4.5.2 SR8, NOT §12.4.5.7.1. §12.4.5.1 prints the collating-sequence-clause
+    // in Format 1 (indexed) and in no other format, so writing it SPECIFIES Format 1 and SR8 — "Format 1 shall
+    // be specified only for an indexed file" — is the sentence that forbids it elsewhere. The citation shipped
+    // here was §12.4.5.7.1, the clause's descriptive General paragraph, which states no obligation; repaired in
+    // kb/Work PB742, which landed SR8's key-clause operands as rows of FileControlKeyRules.
     public static readonly DiagnosticDescriptor FileCollatingKey = new(
         "COBOLNET1582", "file-collating-key", EditionSeverity.Error,
-        "A file-control COLLATING SEQUENCE clause is malformed: it applies only to an INDEXED file, at most one "
-        + "file-level clause is allowed, and every key-level name shall be a declared RECORD/ALTERNATE RECORD KEY "
-        + "named in at most one clause.", "ISO §12.4.5.7.3 SR3-SR8");
+        "A file-control COLLATING SEQUENCE clause is malformed: at most one file-level clause is allowed "
+        + "(§12.4.5.7.3 SR3), and every key-level name shall be a declared RECORD/ALTERNATE RECORD KEY of the "
+        + "entry (SR4/SR5), named in at most one clause (SR8). It also refuses the clause on a NON-INDEXED file: "
+        + "§12.4.5.1 prints the collating-sequence-clause in Format 1 (indexed) and in no other format, so "
+        + "writing it specifies Format 1, and §12.4.5.2 SR8 — \"Format 1 shall be specified only for an indexed "
+        + "file\" — is the sentence that forbids it elsewhere. That rejection cited §12.4.5.7.1, the clause's "
+        + "descriptive General paragraph, which states no obligation; repaired in kb/Work PB742, which added "
+        + "SR8's key-clause operands as rows of FileControlKeyRules.",
+        "ISO §12.4.5.7.3 SR3-SR8 / §12.4.5.2 SR8");
     public static readonly DiagnosticDescriptor FileCollatingAlphabet = new(
         "COBOLNET1583", "file-collating-alphabet", EditionSeverity.Error,
         "A file-control COLLATING SEQUENCE clause names an alphabet that is not declared in SPECIAL-NAMES or is of "
@@ -2316,10 +2327,32 @@ public static class DiagnosticCatalog
         + "associated with the file (§12.4.5.12.3 SR2 / §12.4.5.6.3 SR2), or breaks one of the clause's other "
         + "syntax rules: all three state \"Data-name-1 and data-name-2 shall not be subject to any OCCURS "
         + "clauses\" (§12.4.5.12.3 syntax rule 1 and its twins), and RELATIVE KEY adds the unsigned-integer "
-        + "(§12.4.5.13.3 SR2) and not-in-a-record-of-this-file (SR3) rules. The LINAGE-COUNTER qualifier "
+        + "(§12.4.5.13.3 SR2) and not-in-a-record-of-this-file (SR3) rules. A key clause may also be written on a "
+        + "file whose organization does not carry it at all — a RECORD KEY or ALTERNATE RECORD KEY clause on a "
+        + "non-indexed file, or a RELATIVE KEY clause on a non-relative one (§12.4.5.2 SR8 / SR9, first "
+        + "sentence) — or name an operand that is not of category alphanumeric or national (§12.4.5.12.3 SR2 / "
+        + "§12.4.5.6.3 SR2, the other half of the same sentence). The LINAGE-COUNTER qualifier "
         + "(§8.4.3.14 / §13.18.34 GR7 a) names a file description entry the same way and lands here too. "
         + "The site names the rule it caught.",
         "ISO §12.4.5.1 / §12.4.5.2 / §12.4.5.12.3 / §12.4.5.6.3 / §12.4.5.13.3 / §8.4.3.14 / §13.18.34");
+
+    /// <summary>COBOLNET1900 — §12.4.5.2 SR8 and SR9's SECOND sentence, which both print verbatim: "The
+    /// associated file description entry shall not be a sort-merge file description entry" (kb/Work PB742).
+    /// <para>SEPARATE FROM <see cref="FileKeyClauseRule"/> because the subject is DIFFERENT: not a key clause's
+    /// own rule but the ENTRY's format against the kind of file description entry that describes it, and the
+    /// remedy is a different edit (describe the file with an FD, or stop writing the format's clauses). The
+    /// format may be specified by the ORGANIZATION clause with no key clause present at all, so a key-clause code
+    /// could not carry it. ONE code for both rules: the sentence is the same sentence, and the message names
+    /// which format the entry specified and by which clause.</para></summary>
+    public static readonly DiagnosticDescriptor FileControlFormatOnSortMerge = new(
+        "COBOLNET1900", "file-control-format-on-sort-merge", EditionSeverity.Error,
+        "A file control entry specifies ISO §12.4.5.1's Format 1 (indexed) or Format 2 (relative) — by an "
+        + "ORGANIZATION IS INDEXED / RELATIVE clause, a RECORD KEY, ALTERNATE RECORD KEY or COLLATING SEQUENCE "
+        + "clause, or a RELATIVE KEY clause — for a file that is described by a SORT-MERGE file description "
+        + "entry (an SD). §12.4.5.2 SR8 and SR9 both close with \"The associated file description entry shall "
+        + "not be a sort-merge file description entry\"; §12.4.5.1 Format 4 is the only format a sort-merge file "
+        + "may be written in, and it carries no key clause and only the SEQUENTIAL organization phrase.",
+        "ISO §12.4.5.2 SR8 / SR9 / §12.4.5.1 Format 4");
 
     /// <summary>COBOLNET1858 — §12.4.5.5.2 SR2, the ACCESS MODE clause's own organization rule, checked on the
     /// FILE CONTROL ENTRY (kb/Work PB692). One descriptor, not one per phrase: DYNAMIC and RANDOM are two

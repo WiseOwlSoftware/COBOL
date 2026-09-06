@@ -98,6 +98,32 @@ public sealed class FileModel
     /// <summary>The file organization (default SEQUENTIAL).</summary>
     public FileOrganization Organization { get; set; } = FileOrganization.Sequential;
 
+    /// <summary>Whether the entry WROTE an ORGANIZATION clause. False is the §12.4.5.10.3 GR6 default —
+    /// <i>"When the ORGANIZATION clause is not specified, sequential organization with the RECORD SEQUENTIAL
+    /// phrase is implied"</i> — which <see cref="Organization"/> alone cannot distinguish from a written
+    /// <c>ORGANIZATION IS SEQUENTIAL</c>. Every rule that REPORTS a file's organization needs the difference:
+    /// the common shape of a §12.4.5.2 SR8 violation is `SELECT F ASSIGN … RECORD KEY IS K.` with no clause at
+    /// all, and a message that just said "this file is sequential" would name something the source does not
+    /// contain (kb/Work PB742).</summary>
+    public bool OrganizationWritten { get; set; }
+
+    /// <summary>⛔ THE ONE English face of this entry's organization, for a diagnostic that has to name it — the
+    /// written phrase, or GR6's implied default said as the default it is. Three rules render it (§12.4.5.5.2
+    /// SR2's ACCESS screen, §12.4.5.2 SR8 over the COLLATING SEQUENCE clause, and SR8/SR9 over the key clauses in
+    /// <see cref="FileControlKeyRules"/>); one phrasing keeps them from drifting into three different names for
+    /// the same file. A SORT-MERGE file has no organization to name — §12.4.5.1 Format 4 admits only the
+    /// SEQUENTIAL phrase and the entry is described by an SD — so it says what it is instead.</summary>
+    public string OrganizationFace =>
+        IsSortMerge ? "a sort-merge file (described by a sort-merge file description entry)"
+        : !OrganizationWritten ? "record sequential by default, the ORGANIZATION clause being omitted (ISO §12.4.5.10.3 GR6)"
+        : Organization switch
+        {
+            FileOrganization.LineSequential => "LINE SEQUENTIAL",
+            FileOrganization.Relative => "RELATIVE",
+            FileOrganization.Indexed => "INDEXED",
+            _ => "sequential",
+        };
+
     /// <summary>The access mode (default SEQUENTIAL).</summary>
     public FileAccessMode AccessMode { get; set; } = FileAccessMode.Sequential;
 

@@ -866,9 +866,10 @@ was *dropped silently* from `FileModel.AlternateKeys`, leaving the file with few
 declared and every index-aligned list downstream out of step with the written clauses.
 
 **The design.** `FileControlKeyRules` (`src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs`) is ONE table —
-one row per rule, carrying its inventory rule-id, its clause, a verbatim span of the printed rule, the
-ORGANIZATION whose §12.4.5.1 format carries the clause, the key ROLE it is stated about, and three predicates
-(precondition · violation · message). `DataBinder.ResolveFiles` calls `Screen(file, Edition)` once per declared
+one row per rule, carrying its inventory rule-id, its clause, a verbatim span of the printed rule, the SET of
+file KINDS it is screened over (`FileKinds` — one flag per §12.4.5.10.3 organization plus `SortMerge`), the entry
+CLAUSE it is stated about (`FileKeyRole`, whose `Entry` member is the rule stated about the entry itself), three
+predicates (precondition · violation · message) and an optional diagnostic code. `DataBinder.ResolveFiles` calls `Screen(file, Edition)` once per declared
 file, after the keys resolve. One-report-per-file is then a consequence of *where* the screen runs, not a set it
 has to carry, and the diagnostic is positioned at the offending CLAUSE (`FileModel.RecordKeyAt` /
 `AlternateKeyClause.At` / `RelativeKeyAt`) or, for an absent clause, at the entry (`FileModel.EntryAt`).
@@ -879,31 +880,58 @@ a rule" rule are the same kind of row and there is no second arm to dispatch on.
 PB354 found two of these three OCCURS bans absent, PB699 found the third fired only under a verb. The table makes
 the next key rule a ROW, and `FileControlKeyRuleDriftTests` keeps that true — it re-derives every row's rule text
 from `specs/ISO_COBOL.md` (clause region *and* printed ordinal), asserts each row's shipped message names the
-row's own citation, asserts each row pairs its role with the organization whose format carries the clause, and
-asserts the table and the traceability inventory name the same set of rules, so a rule screened here without a
+row's own citation, asserts each row is screened either on EXACTLY the kind whose format carries its clause or on
+a set DISJOINT from it (never a partial overlap, and only §12.4.5.2 may hold the disjoint half), asserts every
+rule the standard states as TWO obligations has a row per arm — re-deriving the split from the printed sentence —
+and asserts the table and the traceability inventory name the same set of rules, so a rule screened here without a
 row, or a row claiming an id the inventory files elsewhere, is red.
 
-**Boundaries.** The screen holds only what the standard states about the ENTRY. It stays silent on a sort-merge
-file: §12.4.5.1 Format 4 carries no key clause, so an SD whose SELECT writes `ORGANIZATION INDEXED` breaks
-§12.4.5.2 SR8/SR13, not a key clause's own rule, and saying the wrong true-sounding thing is worse than saying
-nothing. It does not carry the SEMANTIC rules of the same clauses — §12.4.5.12.3 SR3–SR5, §12.4.5.6.3 SR3–SR7,
-and the *category* half of both SR2s — which need machinery the screen does not have (variable-length record
-geometry; the `record-key-name-1 SOURCE` phrase, which has no grammar carrier: Annex A.3 item 40). Those two SR2
-rows are recorded PARTIAL in the traceability inventory, naming exactly which half is screened.
+**The organization column is a SET, and that is what let §12.4.5.2 SR8/SR9 in** (kb/Work PB742). It began as one
+`FileOrganization` meaning two things at once — the format that CARRIES a clause, and the files a rule is IN FORCE
+over. Those coincide for every rule stated *inside* a format and are OPPOSITE for SR8 and SR9, whose whole subject
+is a clause written where its format does not apply, so a scalar column could not hold them and neither rule had
+any site at all: `SELECT F ASSIGN … RECORD KEY IS K.` — no ORGANIZATION clause, hence record sequential by
+§12.4.5.10.3 GR6 — compiled clean and bound a key nothing read. Both rules also carry a SECOND sentence over the
+file DESCRIPTION entry (*"The associated file description entry shall not be a sort-merge file description
+entry"*), which no per-clause row can reach because the format may be specified by the ORGANIZATION clause alone;
+that is the `Entry` role, and it reports under its own code (COBOLNET1900) because its subject is the file
+description entry and its remedy is a different edit.
 
-`conformance:negative/pb699-*` pins each rule on an OPEN/CLOSE-only program at all four editions;
-`conformance:85/pb699_legal_key_clauses` is the over-rejection twin (a GROUP prime key reached through an `IN`
+**A rule with two obligations gets a row per arm, sharing one rule-id** (kb/Work PB743). §12.4.5.12.3 SR2 and
+§12.4.5.6.3 SR2 each join a CATEGORY and a LOCATION with the word "within"; PB699 screened the location half
+alone, so a `PIC 9(5)` prime key built an index on an operand the standard forbids, silently. The category arm
+reads `ItemCategory.IsAlphanumericOrNational` — the ONE §8.5.2 category reader, shared with §12.4.5.2 SR7's
+ASSIGN … USING screen — which admits an alphanumeric group item (§13.18.29.4 GR3) and a national group and
+refuses alphabetic, numeric, edited, boolean and the PICTURE-less usages. The inventory row earns CONFORMS only
+when both rows are live, which is why PB699 recorded no verdict for either.
+
+**Boundaries.** The screen holds only what the standard states about the ENTRY. It does not carry the SEMANTIC
+rules of the same clauses — §12.4.5.12.3 SR3–SR5, §12.4.5.6.3 SR3–SR7 — which need machinery the screen does not
+have (variable-length record geometry; the `record-key-name-1 SOURCE` phrase, which has no grammar carrier:
+Annex A.3 item 40). §12.4.5.2 SR8's third operand, the file-level COLLATING SEQUENCE clause, is refused where it
+is RESOLVED (`DataBinder.ResolveFileCollating`, COBOLNET1582), because the same test is also the guard that stops
+the rest of that method and splitting a guard from its report would leave the resolution running on an entry it
+has already refused; its citation was §12.4.5.7.1, the clause's descriptive General paragraph, and is now SR8.
+The traceability row `SR-12.4.5.2-8` names both sites.
+
+`conformance:negative/pb699-*`, `pb742-*` and `pb743-*` pin each rule on an OPEN/CLOSE-only program at all four
+editions; `conformance:85/pb699_legal_key_clauses` and `pb742_legal_entry_formats_85` are the over-rejection twins
+(the second adds a plain sequential file with no key clause, and a LEGAL Format-4 sort-merge entry, which the
+deleted `if (file.IsSortMerge) return;` used to protect by construction) (a GROUP prime key reached through an `IN`
 qualifier, an alternate key `WITH DUPLICATES`, a relative key in WORKING-STORAGE);
 `FileControlKeyRuleSpecTests` carries the assertion no `.cob` corpus can make — that the SAME entry, with and
 without a keyed verb, draws the SAME diagnostics, exactly once.
 
 **Still homeless, and NOT closed by either half** (measured over the entry-rule family while here):
 §12.4.5.5.2 **SR1** (RANDOM banned on a file named in a SORT/MERGE USING or GIVING phrase — a statement-context
-rule, so D13 puts it in the SORT/MERGE binder, not here); §12.4.5.2 **SR8/SR9/SR11/SR13** (format ↔ organization
-and SD consistency — a RECORD KEY clause written on a sequential file still compiles silently, measured
-2026-09-06; it is the first list's kind, and its blast radius over the external corpora wants a sweep a worktree
-cannot run); §12.4.5.2 **SR12** (LINE SEQUENTIAL excludes RESERVE). PB699 closed the key rules
-(§12.4.5.6.3 SR1/SR2, §12.4.5.12.3 SR1/SR2, §12.4.5.13.3 SR1/SR2/SR3) and §12.4.5.2 **SR10**, which PB692 left
+rule, so D13 puts it in the SORT/MERGE binder, not here); §12.4.5.2 **SR11/SR13** (Format 3 only for a sequential
+or report file, Format 4 only for a sort-merge file — SR8's and SR9's two remaining siblings, unclaimed);
+§12.4.5.2 **SR12** (LINE SEQUENTIAL excludes RESERVE). PB742 closed §12.4.5.2 **SR8/SR9** and PB743 the CATEGORY
+arm of both SR2s; the over-rejection sweep behind them measured **zero** hits across `tests/` (1611 file control
+entries — 230 RECORD KEY, 29 ALTERNATE RECORD KEY, 94 RELATIVE KEY clauses, 263 ORGANIZATION INDEXED, and no
+numeric indexed key), and the external GnuCOBOL corpus is absent from a worktree and was not swept there. PB699
+closed the key rules (§12.4.5.6.3 SR1, §12.4.5.12.3 SR1, §12.4.5.13.3 SR1/SR2/SR3 and the LOCATION arm of both
+SR2s) and §12.4.5.2 **SR10**, which PB692 left
 here as *"its substance IS enforced by KeyedValidateFile, but cited there as §12.4.5.13, which carries no such
 requirement"* — the citation is repaired and the screen is now a row of the table.
 
