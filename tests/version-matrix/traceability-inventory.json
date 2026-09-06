@@ -4101,13 +4101,13 @@
   "ordinal": 1,
   "subject": "COBOL words",
   "rule-digest": "d21d904ee7b0",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Parsing/CobolParserCoreBase.cs#userWordHere; src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4#cobolWord; src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4#reservedGatedWord; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#IsProvableUserWordPosition",
+  "test-ref": "conformance:negative/pb301-screen-words-reserved-from-2002; conformance:negative/pb301-column-reserved-at-every-edition; unit:ScreenFacilityConstructDriftTests.EveryScreenSurfaceWord_IsAUserWordExactlyWhereSection89LeavesItFree; unit:CobolWordsDriftTests.CobolWordsG4_ReservationGate_Is_Derived_From_Section89; unit:ReservedWordPositionTests.DataDescriptionEntryName_IsProvableUserWordPosition; unit:ReservedWordPositionTests.ProgramName_IsProvableUserWordPosition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB301. The prohibition is on ACCEPTING: a word ISO 8.9 reserves at edition E is refused in a user-defined-word slot AND in a system-name slot at E, and admitted at the editions 8.9 leaves it free. The gate is DERIVED, not listed - gen-cobol-words.ps1 computes it from reserved-words.json and CobolWordsDriftTests re-computes it independently, asserting set equality in BOTH directions and across BOTH halves (cobolWord under {userWordHere(W)}? and reservedGatedWord under its inverse), so neither a missing nor a stray gate survives. Words 8.9 reserves that the lexer never tokenizes are caught by the same funnel by NAME (measured: 01 LOCALE PIC X. at --std 2023 draws COBOLNET0901), so the rule holds over the whole 8.9 list and not merely over the token set. The corpus lanes carry both slots the rule names: pb301-screen-words-reserved-from-2002 declares the six words 8.9 adds in 2002 in a data-name slot AND puts CRT in the 12.3.7 implementor-name slot, and its acceptance complement at COBOL-85 is conformance:85/pb301_screen_words_as_user_words; pb301-column-reserved-at-every-edition holds COLUMN, reserved at all four editions. Rule 3 of the same clause (context-sensitive words as user words) stays GAP - kb/Work PB655 class 4 measures 22 of them still refused (01 CAPACITY PIC X. at --std 2023 is a raw COBOL0001 today).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.2.1-2",

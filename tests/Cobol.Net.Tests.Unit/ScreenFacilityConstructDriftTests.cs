@@ -1,7 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using Antlr4.Runtime;
 using CobolNet.Binding;
+using CobolNet.Editions;
 using CobolNet.Tests.Shared;
 using Xunit;
 
@@ -46,14 +51,7 @@ public sealed class ScreenFacilityConstructDriftTests
     [Fact]
     public void EveryScreenClauseAlternative_HasAScreenFacilityRow()
     {
-        string g4 = File.ReadAllText(TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolScreen.g4"));
-        var m = Regex.Match(g4, @"^screenClause\s*\r?\n(?<body>.*?)^\s*;\s*$",
-            RegexOptions.Multiline | RegexOptions.Singleline);
-        Assert.True(m.Success, "the screenClause rule was not found in CobolScreen.g4 — the drift gate is blind");
-        var alts = Regex.Matches(m.Groups["body"].Value, @"^\s*[:|]\s*([A-Za-z_][A-Za-z0-9_]*)\s*$",
-                RegexOptions.Multiline)
-            .Select(x => x.Groups[1].Value).ToList();
-        Assert.NotEmpty(alts);
+        var alts = ScreenClauseAlternatives();
         var covered = ScreenFacility.CoveredClauseRules.ToHashSet(StringComparer.Ordinal);
         var missing = alts.Where(a => !covered.Contains(a)).Order().ToList();
         Assert.True(missing.Count == 0,
@@ -186,26 +184,50 @@ public sealed class ScreenFacilityConstructDriftTests
         Assert.False(Has(errors, "COBOLNET1560"));
     }
 
-    /// <summary>The screen-word sweep (kb/Work PB301). ISO §8.10 makes BACKGROUND-COLOR, FOREGROUND-COLOR and
-    /// REVERSE-VIDEO CONTEXT-SENSITIVE — reserved only inside a screen description entry (and, for the last, a
-    /// SET attribute statement) — so they are legal user-defined words at EVERY edition; §8.9 reserves CRT and
-    /// CURSOR from 2002 only, so those are legal user words at COBOL-85. All five were lexer tokens that
-    /// <c>cobolWord</c> did not admit, which turned a legal declaration into a parse error. Declining a facility
-    /// must not cost the user the words.</summary>
+    // ══ THE SCREEN SURFACE'S OWN WORDS (kb/Work PB301) ═══════════════════════════════════════════════════════
+    //
+    // ⛔ THE POPULATION IS DERIVED FROM THE GRAMMAR, NEVER LISTED. This used to be eight `[InlineData]` rows
+    // naming five words at two editions — a selector that was evidence about the five it named and silent about
+    // the seventeen it dropped (feedback_measure_the_selectors_complement). Those seventeen pass today only
+    // because kb/Work PB693/PB300 replaced the hand reservation gate with one DERIVED from §8.9; nothing held
+    // them, and the next token the screen grammar adds without a `cobol-words.json` nameSlot row would cost the
+    // user that word again in silence — which is PB301's defect exactly (CLAUDE.md rule 5: never a
+    // hand-maintained list where a structure belongs).
+
+    /// <summary>Every single-word lexer token the SCREEN surface references, paired with each edition. The
+    /// surface is <c>CobolScreen.g4</c> plus the two SPECIAL-NAMES screen clauses in
+    /// <c>CobolSpecialNames.g4</c>; the population keeps only the words ISO §8.9 leaves FREE at at least one
+    /// edition, because a word §8.9 reserves everywhere was never the user's to lose.</summary>
+    public static IEnumerable<object[]> ScreenSurfaceWordCases() =>
+        from word in ScreenSurfaceWords()
+        from edition in new[] { 85, 2002, 2014, 2023 }
+        select new object[] { word, edition };
+
+    /// <summary>⛔ THE DRIFT GATE FOR THE WORDS, the twin of
+    /// <see cref="EveryScreenClauseAlternative_HasAScreenFacilityRow"/> for the clauses.
+    /// <para>ISO §8.3.2.1 rule 3 — "Context-sensitive words may be used as user-defined words and system-names in
+    /// contexts other than the language construct in which they are defined" — so the fifteen §8.10 screen words
+    /// (AUTO, BELL, BLINK, BACKGROUND-COLOR, EOL, EOS, ERASE, FOREGROUND-COLOR, FULL, HIGHLIGHT, LOWLIGHT,
+    /// REQUIRED, REVERSE-VIDEO, SECURE, UNDERLINE) are legal user-defined words at EVERY edition, declining
+    /// Annex A.4.2 notwithstanding. ISO §8.3.2.1 rule 1 — "Reserved words shall not be used as user-defined words
+    /// or system-names" — so the seven §8.9 screen words (COL, COLS, COLUMN, COLUMNS, CRT, CURSOR, SCREEN) are
+    /// barred exactly where §8.9 reserves them, and §8.9 adds all but COLUMN in 2002, which leaves them legal
+    /// COBOL-85 user words.</para>
+    /// <para>Both arms are asserted here, and the REJECTING arm asserts the DIAGNOSTIC, not merely the rejection:
+    /// COBOLNET0901 names §8.9, where the raw COBOL0001 "no viable alternative" this class of bug produces names
+    /// nothing. The corpus lanes are <c>85/pb301_screen_words_as_user_words</c>,
+    /// <c>2023/pb301_screen_words_as_user_words</c>, <c>negative/pb301-screen-words-reserved-from-2002</c> and
+    /// <c>negative/pb301-column-reserved-at-every-edition</c>; the SCREEN-position complement — the same words
+    /// still recognized in their own clause and refused BY NAME — is the <c>a42-screen-*</c> negative set.</para>
+    /// </summary>
     [Theory]
-    [InlineData("BACKGROUND-COLOR", 85)]
-    [InlineData("BACKGROUND-COLOR", 2023)]
-    [InlineData("FOREGROUND-COLOR", 85)]
-    [InlineData("FOREGROUND-COLOR", 2023)]
-    [InlineData("REVERSE-VIDEO", 85)]
-    [InlineData("REVERSE-VIDEO", 2023)]
-    [InlineData("CRT", 85)]
-    [InlineData("CURSOR", 85)]
-    public void ScreenContextSensitiveWord_IsALegalUserWord(string word, int edition)
+    [MemberData(nameof(ScreenSurfaceWordCases))]
+    public void EveryScreenSurfaceWord_IsAUserWordExactlyWhereSection89LeavesItFree(string word, int edition)
     {
+        bool reserved = ReservedWords.Find(word)?.IsReservedAt(edition) == true;
         var (ok, errors) = Compile($"""
             IDENTIFICATION DIVISION.
-            PROGRAM-ID. SCRWORD.
+            PROGRAM-ID. SCRW{new string(word.Where(char.IsLetterOrDigit).ToArray())}.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 {word} PIC X(3) VALUE "ABC".
@@ -214,9 +236,228 @@ public sealed class ScreenFacilityConstructDriftTests
                 DISPLAY {word}.
                 STOP RUN.
             """, edition);
-        Assert.True(ok, $"'{word}' is a legal user-defined word at COBOL-{edition} (ISO §8.10 context-sensitive "
-            + $"/ §8.9 reservation interval) and must not be a parse error:\n{string.Join("\n", errors)}");
+
+        if (!reserved)
+        {
+            Assert.True(ok, $"'{word}' is a lexer token the screen surface needs, and §8.9 does not reserve it at "
+                + $"COBOL-{edition} — §8.3.2.1 rule 3 makes it a legal user-defined word there and declining "
+                + $"Annex A.4.2 must not cost it:\n{string.Join("\n", errors)}");
+            return;
+        }
+
+        Assert.False(ok, $"§8.9 reserves '{word}' at COBOL-{edition}, so §8.3.2.1 rule 1 bars it from a "
+            + "user-defined-word slot");
+        Assert.True(Has(errors, "COBOLNET0901"), $"'{word}' must be refused BY NAME at COBOL-{edition} (§8.9 via "
+            + $"the reservation gate's `reservedGatedWord` twin), never as a raw parse error:\n"
+            + string.Join("\n", errors));
     }
+
+    /// <summary>⛔ THE DERIVATION'S OWN FAILING BRANCH. A scrape that returned nothing — a renamed rule, a
+    /// changed token spelling, a moved file — would make the theory above vacuously green, and a nameSlot row
+    /// missing for a NEW screen token is PB301's defect returning. Both are asserted here: the population's size
+    /// and both of its classes, and that every member carries a <c>cobol-words.json</c> <c>nameSlot</c> row,
+    /// which is the single fact the whole mechanism rests on (the reservation gate is then derived from §8.9 by
+    /// <c>gen-cobol-words.ps1</c>, so no per-word edition flag can rot).</summary>
+    [Fact]
+    public void ScreenSurfaceWordPopulation_IsDerived_AndEveryMemberHasANameSlotRow()
+    {
+        var words = ScreenSurfaceWords();
+        Assert.True(words.Count >= 20,
+            $"only {words.Count} screen-surface words found — the .g4 scrape broke and the word theory is blind");
+
+        // Both classes must be present, or one arm of the theory never runs.
+        Assert.Contains(words, w => ReservedWords.Find(w) is null);                         // §8.10, free always
+        Assert.Contains(words, w => ReservedWords.Find(w) is { } e                          // §8.9, free at 85 only
+                                    && !e.IsReservedAt(85) && e.IsReservedAt(2002));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("cobol-words.json")));
+        var nameSlot = doc.RootElement.GetProperty("words").EnumerateArray()
+            .Where(e => e.TryGetProperty("nameSlot", out var n) && n.GetBoolean())
+            .Select(e => e.GetProperty("token").GetString()!)
+            .ToHashSet(StringComparer.Ordinal);
+
+        // The token name gen-cobol-words.ps1 keys on: the ANTLR spelling of the COBOL word, with `-` written `_`
+        // and a trailing `_` where the plain name would clash (FULL_, UNDERLINE_). Read back from the lexer
+        // rather than guessed, and inverted ONCE — the per-word lookup used to re-read and re-scan CobolLexer.g4
+        // for every member of the population.
+        var tokenNameOf = LexerWordTokens()
+            .GroupBy(kv => kv.Value, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().Key, StringComparer.Ordinal);
+
+        var missing = words.Where(w => !nameSlot.Contains(tokenNameOf[w])).Order().ToList();
+        Assert.True(missing.Count == 0,
+            "screen-surface word(s) with no cobol-words.json nameSlot row — the lexer takes the word and no name "
+            + "slot gives it back, which is a legal declaration turned into a parse error (kb/Work PB301): "
+            + string.Join(", ", missing));
+    }
+
+    /// <summary>Every <c>NAME : 'WORD' ;</c> rule of <c>CobolLexer.g4</c> — the single-literal tokens, which are
+    /// the ones a name slot can admit as a whole word. Comments stripped first.</summary>
+    private static IReadOnlyDictionary<string, string> LexerWordTokens()
+    {
+        string g4 = StripComments(File.ReadAllText(
+            TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolLexer.g4")));
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (Match m in Regex.Matches(g4, @"^\s*([A-Z][A-Z0-9_]*)\s*:\s*'([A-Za-z][A-Za-z0-9-]*)'\s*;",
+                     RegexOptions.Multiline))
+            map[m.Groups[1].Value] = m.Groups[2].Value.ToUpperInvariant();
+        Assert.True(map.Count > 300, $"only {map.Count} single-literal lexer tokens — the CobolLexer.g4 scrape broke");
+        return map;
+    }
+
+    /// <summary>The screen-only grammar rules that do NOT live in <c>CobolScreen.g4</c>: the SPECIAL-NAMES half
+    /// of Annex A.4.2 item 25, whose words (CRT, CURSOR) are the reason this note had a reservation-gated arm at
+    /// all. Each is scraped BY NAME and each MUST be found — see
+    /// <see cref="EveryScreenRefusalSite_IsClassified"/> for the complement that stops this pair going stale.
+    /// </summary>
+    private static readonly string[] ExternalScreenSurfaceRules = ["crtStatusClause", "cursorClause"];
+
+    /// <summary>⛔ THE COMPLEMENT THAT KEEPS <see cref="ExternalScreenSurfaceRules"/> FROM GOING STALE, AND THE
+    /// ONE THAT MAKES THE NEXT SCREEN RULE AUTOMATIC. Every grammar rule <see cref="ScreenFacility"/> refuses —
+    /// read off its <c>Report*</c> signatures' ANTLR context parameters plus its clause table, so a new refusal
+    /// site cannot be added without landing in one of these classes — must be:
+    /// <list type="number">
+    /// <item>defined in <c>CobolScreen.g4</c> — screen-only surface, scraped whole, no listing needed;</item>
+    /// <item>a member of <see cref="ExternalScreenSurfaceRules"/> — screen-only but written where its DIVISION
+    /// puts it (the SPECIAL-NAMES clauses), scraped by name;</item>
+    /// <item>a <c>screenClause</c> ALTERNATIVE defined in another grammar file — a clause the screen entry SHARES
+    /// with the data description entry (PICTURE, VALUE, OCCURS, USAGE, SIGN, JUSTIFIED, BLANK WHEN ZERO, GLOBAL).
+    /// Those are core language refused only because §13.17's containing entry is optional, and their words are
+    /// their own module's, not this one's — <c>occursClause</c> alone would drag CAPACITY, STEP and INITIALIZED,
+    /// all kb/Work PB655 class 4 — so they are deliberately outside this population;</item>
+    /// <item>named in <see cref="RefusalSitesOutsideTheScreenSurface"/> with a reason.</item>
+    /// </list>
+    /// Anything else fails: a refusal site naming a rule NO grammar defines is a broken context-type convention
+    /// or a deleted rule, and a screen-only rule put in a third file would otherwise carry its words outside
+    /// every scrape — PB301's defect (a lexer token with no name slot) returning unseen.</summary>
+    [Fact]
+    public void EveryScreenRefusalSite_IsClassified()
+    {
+        var sites = RefusedGrammarRules();
+        Assert.Contains("screenClause", sites);              // via the clause table
+        Assert.Contains("cursorClause", sites);              // via a Report* context parameter
+        Assert.Contains("optionsInitializeSection", sites);  // the excluded shape, so class 4 is never vacuous
+
+        var definedIn = GrammarRuleDefinitions();
+        var screenFile = Path.GetFileName(ScreenGrammarPath());
+        var sharedAlternatives = ScreenClauseAlternatives().ToHashSet(StringComparer.Ordinal);
+
+        var unclassified = sites.Where(r =>
+                definedIn.GetValueOrDefault(r) != screenFile                               // 1
+                && !ExternalScreenSurfaceRules.Contains(r, StringComparer.Ordinal)         // 2
+                && !(definedIn.ContainsKey(r) && sharedAlternatives.Contains(r))           // 3
+                && !RefusalSitesOutsideTheScreenSurface.Contains(r, StringComparer.Ordinal))
+            .Order(StringComparer.Ordinal).ToList();
+        Assert.True(unclassified.Count == 0,
+            "ScreenFacility refuses grammar rule(s) that no screen-surface scrape reaches and that nothing "
+            + "excludes — put each in CobolScreen.g4, add it to ExternalScreenSurfaceRules (its words then join "
+            + "the population), or exclude it in RefusalSitesOutsideTheScreenSurface with a reason: "
+            + string.Join(", ", unclassified) + ". A name defined in NO grammar file means the ANTLR "
+            + "<rule>Context naming convention this derivation reads broke: "
+            + string.Join(", ", unclassified.Where(r => !definedIn.ContainsKey(r))));
+
+        var stale = ExternalScreenSurfaceRules.Concat(RefusalSitesOutsideTheScreenSurface)
+            .Where(r => !sites.Contains(r)).Order(StringComparer.Ordinal).ToList();
+        Assert.True(stale.Count == 0,
+            "classified rule(s) ScreenFacility no longer refuses — a stale entry the population silently keeps "
+            + "carrying: " + string.Join(", ", stale));
+    }
+
+    /// <summary>Rules the A.4.2 funnel refuses that are NOT screen surface, with the reason. Only ONE leg of
+    /// <c>optionsInitializeSection</c> (§11.9.10 <c>INITIALIZE … SCREEN …</c>) is declined; the rule itself is
+    /// core OPTIONS-paragraph language whose other words (LOCAL-STORAGE, WORKING-STORAGE, ALL) belong to no
+    /// screen construct, so scraping its body would pull PB655's classes into this module's population. It is
+    /// listed rather than caught by class 3 above because it is not a <c>screenClause</c> alternative.</summary>
+    private static readonly string[] RefusalSitesOutsideTheScreenSurface = ["optionsInitializeSection"];
+
+    /// <summary>Every grammar rule the A.4.2 funnel names: the ANTLR context type of each <c>Report*</c>
+    /// parameter (<c>Core.CursorClauseContext</c> → <c>cursorClause</c>, ANTLR's own naming convention — a break
+    /// in it fails the classification above, since the name would then match no rule in any <c>.g4</c>), plus the
+    /// clause table's keys.</summary>
+    private static IReadOnlySet<string> RefusedGrammarRules() =>
+        typeof(ScreenFacility)
+            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+            .Where(m => m.Name.StartsWith("Report", StringComparison.Ordinal))
+            .SelectMany(m => m.GetParameters())
+            .Select(p => p.ParameterType)
+            .Where(t => typeof(ParserRuleContext).IsAssignableFrom(t)
+                        && t.Name.EndsWith("Context", StringComparison.Ordinal))
+            .Select(t => char.ToLowerInvariant(t.Name[0]) + t.Name[1..^"Context".Length])
+            .Concat(ScreenFacility.CoveredClauseRules)
+            .ToHashSet(StringComparer.Ordinal);
+
+    /// <summary>Rule name → the <c>.g4</c> FILE NAME defining it, over every grammar in the frontend. A rule
+    /// header is a lower-case identifier at the left margin, followed by its <c>:</c> on the same line or the
+    /// next — both spellings are in use (<c>screenAutoClause : AUTO ;</c> and the block form).</summary>
+    private static IReadOnlyDictionary<string, string> GrammarRuleDefinitions()
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (string path in Directory.EnumerateFiles(
+                     TestRepo.Src("Cobol.Net.Frontend", "Grammar"), "*.g4", SearchOption.AllDirectories))
+            foreach (Match m in Regex.Matches(StripComments(File.ReadAllText(path)),
+                         @"^([a-z][A-Za-z0-9_]*)\s*(?::|\r?\n\s*:)", RegexOptions.Multiline))
+                map.TryAdd(m.Groups[1].Value, Path.GetFileName(path));
+        Assert.True(map.Count > 200, $"only {map.Count} grammar rules found — the .g4 scrape broke");
+        return map;
+    }
+
+    /// <summary>The <c>screenClause</c> rule's alternatives, read from the <c>.g4</c> text — the only place the
+    /// list exists.</summary>
+    private static List<string> ScreenClauseAlternatives()
+    {
+        var m = Regex.Match(File.ReadAllText(ScreenGrammarPath()),
+            @"^screenClause\s*\r?\n(?<body>.*?)^\s*;\s*$", RegexOptions.Multiline | RegexOptions.Singleline);
+        Assert.True(m.Success, "the screenClause rule was not found in CobolScreen.g4 — the drift gate is blind");
+        var alts = Regex.Matches(m.Groups["body"].Value, @"^\s*[:|]\s*([A-Za-z_][A-Za-z0-9_]*)\s*$",
+                RegexOptions.Multiline)
+            .Select(x => x.Groups[1].Value).ToList();
+        Assert.NotEmpty(alts);
+        return alts;
+    }
+
+    private static string ScreenGrammarPath() =>
+        TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolScreen.g4");
+
+    private static string ScreenGrammar() => StripComments(File.ReadAllText(ScreenGrammarPath()));
+
+    /// <summary>The population: every single-word lexer token the SCREEN surface references that ISO §8.9 leaves
+    /// free at at least one edition. The surface is all of <c>CobolScreen.g4</c> plus each
+    /// <see cref="ExternalScreenSurfaceRules"/> rule, scraped by name — and EACH must be found, because a scrape
+    /// that silently returns one rule instead of two loses that rule's words from the population and every
+    /// witness stays green (the whole-population floor below is a floor, not an exact count, so it cannot see a
+    /// single rule go missing; measured 2026-09-06 by renaming <c>crtStatusClause</c>, which left this test
+    /// PASSING before the per-rule assertion).</summary>
+    private static IReadOnlyList<string> ScreenSurfaceWords()
+    {
+        string screen = ScreenGrammar();
+        string specialNames = StripComments(File.ReadAllText(
+            TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolSpecialNames.g4")));
+        var surface = new StringBuilder(screen);
+        foreach (string rule in ExternalScreenSurfaceRules)
+        {
+            var m = Regex.Match(specialNames, @"^" + rule + @"\s*\r?\n\s*:(?<body>.*?)^\s*;\s*$",
+                RegexOptions.Multiline | RegexOptions.Singleline);
+            Assert.True(m.Success, $"the screen-surface rule '{rule}' was not found in CobolSpecialNames.g4 — "
+                + "the derivation is partial and every word that rule alone contributes is unguarded");
+            surface.Append('\n').Append(m.Groups["body"].Value);
+        }
+
+        var tokens = LexerWordTokens();
+        var referenced = Regex.Matches(surface.ToString(), @"\b([A-Z][A-Z0-9_]*)\b")
+            .Select(m => m.Groups[1].Value).ToHashSet(StringComparer.Ordinal);
+
+        return [.. referenced.Where(tokens.ContainsKey).Select(t => tokens[t])
+                             // Keep only what §8.9 leaves free somewhere: a word reserved at every edition
+                             // (AT, IS, LINE, FILLER, SECTION …) was never a user word to lose, and belongs to
+                             // no module — the whole-lexer join over those is kb/Work PB655.
+                             .Where(w => ReservedWords.Find(w) is not { } e
+                                         || !(e.IsReservedAt(85) && e.IsReservedAt(2002)
+                                              && e.IsReservedAt(2014) && e.IsReservedAt(2023)))
+                             .Order(StringComparer.Ordinal)];
+    }
+
+    private static string StripComments(string g4) =>
+        Regex.Replace(Regex.Replace(g4, @"//[^\r\n]*", ""), @"/\*.*?\*/", "", RegexOptions.Singleline);
 
     /// <summary>ATTRIBUTE is §8.10 context-sensitive in the SET statement and is NOT a lexer token, so the
     /// SET format-6 arm is recognized by a left-edge text predicate (<c>setAttributeAhead</c>) — which means a

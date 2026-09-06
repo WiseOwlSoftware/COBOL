@@ -450,6 +450,26 @@ the whole job. Result: adding a context-sensitive keyword — a
 reservation-gated one included — is a **one-line JSON edit**; the lexer HashSet, the two parser rules, and the
 reserved-word funnel can no longer silently disagree.
 
+⛔ **A DECLINED MODULE TOKENIZES ITS WORDS, AND OWES EVERY ONE OF THEM A `nameSlot` ROW (kb/Work PB301).** This
+compiler declines Annex A.4.2 (screen handling) by TOKENIZING the module's words, so the refusal can name itself
+(COBOLNET1560 / COBOLNET1707) instead of drawing a generic parse error — but §8.3.2.1 rule 3 ("Context-sensitive
+words may be used as user-defined words and system-names in contexts other than the language construct in which
+they are defined") means a lexer token is not a reservation, and the fifteen §8.10 screen words are legal
+user-defined words at EVERY edition while the seven §8.9 ones (COL, COLS, COLUMN, COLUMNS, CRT, CURSOR, SCREEN)
+are barred only where §8.9 reserves them — all but COLUMN from 2002. Declining a module may cost the user its
+constructs; it may never cost the user its words. So each of the 22 carries a `nameSlot` row and the §8.9 seven
+ride the derived gate above, and the SPECIAL-NAMES pair is gated the other way too: `crtStatusClause` /
+`cursorClause` are `{reservedHere("CRT")}?` / `{reservedHere("CURSOR")}?`, so `SPECIAL-NAMES. CURSOR IS FOO.` at
+`--std 85` stays the §12.3.7 implementor-switch entry it is instead of drawing a screen verdict.
+**The population is DERIVED, never listed** (CLAUDE.md rule 5): `ScreenFacilityConstructDriftTests` reads
+`CobolScreen.g4` plus the SPECIAL-NAMES screen clauses, joins them against `CobolLexer.g4`'s single-literal
+tokens, keeps what §8.9 leaves free at ≥ 1 edition, and asserts (a) every member has a `nameSlot` row and
+(b) every rule `ScreenFacility` refuses — read off its `Report*` context-parameter types — is either in
+`CobolScreen.g4`, in the named external pair, a `screenClause` alternative shared with the data description
+entry, or explicitly excluded. Each external rule is scraped BY NAME and must be found: a length-only guard was
+an OR over the two rules and left the whole gate green when one was renamed. The same shape is what any future
+declined module owes its words.
+
 **3.3b SUBSCRIPT-mode vocabulary (D9 partial).** The SUBSCRIPT mode stays (the `x(i)` vs `(a+b)`
 disambiguation genuinely needs lexer-mode context and cannot be cleanly expressed in the parser given
 COBOL's grammar), but the *duplicated* literal/operator token bodies are factored into a shared lexer

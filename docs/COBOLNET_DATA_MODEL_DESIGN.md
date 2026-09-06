@@ -1314,13 +1314,21 @@ exception arm can begin with it. `NestedDisplayInAnExceptionArm_DoesNotStealTheE
 it; the cost is one spelling (an unpositioned `DISPLAY screen-name ON EXCEPTION …`), which stays a parse error
 exactly as it was before.
 
-**Declining the module must not cost the user the words.** §8.10 makes `BACKGROUND-COLOR`, `FOREGROUND-COLOR`
-and `REVERSE-VIDEO` **context-sensitive** (never reserved), and §8.9 reserves `CRT` and `CURSOR` only from 2002
-— yet all five were lexer tokens that `cobolWord` did not admit, so a legal `01 REVERSE-VIDEO PIC X.` was a
-parse error at every edition and `01 CURSOR PIC X.` at COBOL-85. All five are now `nameSlot` rows in
-`tests/version-matrix/cobol-words.json` (CRT/CURSOR reservation-gated), and `specialNameEntry`'s CURSOR /
-CRT STATUS arms are gated on `reservedHere` so a COBOL-85 `SPECIAL-NAMES. CURSOR IS FOO.` keeps its
-implementor-switch reading (kb/Work PB301).
+**Declining the module must not cost the user the words.** §8.10 makes fifteen screen words — `AUTO`,
+`BACKGROUND-COLOR`, `BELL`, `BLINK`, `EOL`, `EOS`, `ERASE`, `FOREGROUND-COLOR`, `FULL`, `HIGHLIGHT`, `LOWLIGHT`,
+`REQUIRED`, `REVERSE-VIDEO`, `SECURE`, `UNDERLINE` — **context-sensitive** (§8.9 reserves none of them at any
+edition), and §8.9 reserves `COL`, `COLS`, `COLUMNS`, `CRT`, `CURSOR` and `SCREEN` only from 2002, leaving
+`COLUMN` the one screen-surface word reserved at every edition. §8.3.2.1 rule 3 makes each of the other
+twenty-one a legal user-defined word wherever §8.9 leaves it free — yet five were lexer tokens that `cobolWord`
+did not admit, so a legal `01 REVERSE-VIDEO PIC X.` was a parse error at every edition and `01 CURSOR PIC X.` at
+COBOL-85. All twenty-two now carry `nameSlot` rows in `tests/version-matrix/cobol-words.json` (the §8.9 seven
+reservation-gated from `reserved-words.json`, never by hand), and `specialNameEntry`'s CURSOR / CRT STATUS arms
+are gated on `reservedHere` so a COBOL-85 `SPECIAL-NAMES. CURSOR IS FOO.` keeps its implementor-switch reading.
+The population is DERIVED from `CobolScreen.g4` + the two SPECIAL-NAMES screen clauses rather than listed, and
+`ScreenFacilityConstructDriftTests` fails when a screen token has no name slot or a screen refusal names a rule
+no scrape reaches — so the next word this module tokenizes cannot cost the user that word in silence
+(kb/Work PB301). The complement — the same words still recognized in their own clause and refused BY NAME — is
+the `a42-screen-*` negative set.
 
 **At `--std 85` the refusal is the same one.** Screen handling does not exist in COBOL-85 at all, so there is no
 "introduction gate then decline" ladder to build: the construct is refused by name at every edition, and the

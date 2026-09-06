@@ -1,5 +1,6 @@
 {
   "enabled": [
+  "pb301_screen_words_as_user_words",
   "pb704_sort_duplicates_in_order",
     "pb693_reserved_words_as_data_names",
     "pb693_enter_after_periodless_move",
