@@ -5,9 +5,11 @@
 > (obsolete elements): it states, for every processor-dependent language element in Annex A.3 and every optional
 > facility this compiler does **not** implement, whether support is claimed. Every syntactically-detectable
 > unsupported element is NAMED at compile time, on the channel its licence chooses: an Annex A.3
-> **processor-dependent** facility is accepted with a named WARNING (the **COBOLNET1578–1580 band**, §4.2.6
-> third paragraph), and an Annex A.4 **optional module for which no support is claimed** is REFUSED with a
-> named ERROR (the **COBOLNET1560 / 1705 / 1706 / 1707 band**, Annex A.4.1). This document is the
+> **processor-dependent** facility is accepted with a named WARNING (**COBOLNET1578 / 1579 / 1778**, §4.2.6
+> third paragraph, which MANDATES that warning), and an Annex A.4 **optional module for which no support is
+> claimed** is REFUSED with a named ERROR (the **COBOLNET1560 / 1705 / 1706 / 1707** band, §4.2.7 and Annex
+> A.4.1). **COBOLNET1580 (VALIDATE) is the one element that is A.4 and yet warns**, and it is a CHOICE rather
+> than a mandate — see §4 (kb/Work PB709). This document is the
 > authoritative catalogue behind both. Default `--std` = COBOL-2023.
 
 ## 1. Conformance summary (§4.2.16)
@@ -18,9 +20,12 @@ except the optional/processor-dependent facilities listed as **not supported** b
 optional-element dispositions are §5 (only Claimed/Partial rows there are claimed). Per §4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §4.2.7, an
 optional element is implemented only when support is claimed. All four **documented non-support facilities**
-(§4) are now recognized at compile time with a NAMED diagnostic. Three of them are ACCEPT-INERT WARNINGS,
-satisfying §4.2.6 ¶3's mandatory warning mechanism: MCS SEND/RECEIVE → **COBOLNET1578**; COMMIT/ROLLBACK →
-**COBOLNET1579**; VALIDATE → **COBOLNET1580**. The program compiles, runs, the facility is inert, and no
+(§4) are now recognized at compile time with a NAMED diagnostic. Three of them are ACCEPT-INERT WARNINGS:
+MCS SEND/RECEIVE → **COBOLNET1578** and COMMIT/ROLLBACK → **COBOLNET1579**, which satisfy §4.2.6 ¶3's
+MANDATORY warning mechanism for their Annex A.3 elements; and VALIDATE → **COBOLNET1580**, which does NOT —
+VALIDATE is Annex A.4.14 and appears nowhere in Annex A.3, so §4.2.7 obliges only that its non-support be
+identified in this document, and warning rather than refusing is our documented choice (kb/Work PB709). The
+program compiles, runs, the facility is inert, and no
 associated exception condition is raised (§14.6.13.1.1 licenses this). **SCREEN handling is a REFUSAL** —
 **COBOLNET1560** (the data / environment surface) and **COBOLNET1707** (the procedure surface), both Errors,
 at every edition where the words are reserved — because Annex A.4.1 admits an optional element's syntax
@@ -29,9 +34,11 @@ licence to accept-and-flag. The A.4.8 (FORMAT / SELECT WHEN, **COBOLNET1705**) a
 FILE, **COBOLNET1706**) declines are refusals for the same reason.
 
 > ⚖ **The warning band and the hard errors are DELIBERATELY asymmetric, and the axis is whether a program can
-> still mean what it says.** §4.2.6 ¶3 requires a warning mechanism and adds that "The implementor is not
-> required to produce executable code when unsupported processor-dependent language elements are used" — so both
-> severities conform, and the choice is ours to make and to explain.
+> still mean what it says.** For an Annex A.3 element §4.2.6 ¶3 requires a warning mechanism and adds that "The
+> implementor is not required to produce executable code when unsupported processor-dependent language elements
+> are used" — so both severities conform there, and the choice is ours to make and to explain. For an Annex A.4
+> element neither sentence applies: §4.2.7 asks only for the documentation, and A.4.1 makes refusing the default
+> reading — so warning on the A.4.14 VALIDATE statement is a choice we owe an explanation for, and it is below.
 > **The 1578–1580 band warns** because those facilities are *additive*: a program with a SEND, a COMMIT or a
 > VALIDATE has a well-defined meaning with the facility inert, and the rest of the program is unaffected.
 > Compiling and running it is more useful than refusing it. **SCREEN handling left that band on 2026-09-02**
@@ -434,9 +441,16 @@ warned BY NAME** — never a generic parse error, and never silently accepted. W
 WHICH annex licenses the decline, and the distinction is normative, not stylistic:
 
 * A **processor-dependent** element (Annex A.3, §4.2.6) may be accepted, and §4.2.6 ¶3 makes the compile-time
-  **warning mechanism** mandatory — so the MCS and COMMIT/ROLLBACK *statements*, the VALIDATE statement and the
-  RECORD DELIMITER *clause* are accepted-inert with a named **Warning** (COBOLNET1578 / 1579 / 1580 / 1778) and
-  the program still runs.
+  **warning mechanism** mandatory — so the MCS and COMMIT/ROLLBACK *statements* and the RECORD DELIMITER
+  *clause* are accepted-inert with a named **Warning** (COBOLNET1578 / 1579 / 1778) and the program still runs.
+  ⛔ **The VALIDATE statement (COBOLNET1580) is in this band but NOT under this licence** (kb/Work PB709):
+  VALIDATE is Annex A.4.14 and is not listed in Annex A.3 at all, so §4.2.6 mandates nothing about it. §4.2.7
+  requires only that its non-support be identified here (item 3 below, and §5 row A.4.14); accepting it inert
+  and naming it, rather than refusing it, is a documented CHOICE, taken because the facility is additive — a
+  program with a VALIDATE statement has a well-defined meaning with the facility inert — and because §4.2.13
+  additionally makes it obsolete at COBOL-2023. Citing §4.2.6 for it would claim a mandate the standard does
+  not give and would misdescribe the posture: a decline under the processor-dependent clause reads "we could
+  not", a decline under the optional clause reads "we chose not to, and documented it".
 * An **optional** element (Annex A.4, §4.2.7) is different: A.4.1 says an implementation "shall accept the syntax
   and provide the functionality for an optional element **only when support for that language element is claimed
   by the implementor**". For a module §5 records as *Not claimed*, accepting the syntax is itself the

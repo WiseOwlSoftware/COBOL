@@ -1643,7 +1643,20 @@ error COBOLNET0902: the USE FOR DEBUGGING declarative was removed in COBOL-2002 
 
 ## Wave H code half — recognize-and-name non-support + §4.2.6 warning band (VCR 38/39/95)
 
-## Wave H (code half) — recognize-and-name the documented-non-support facilities (MCS · commit/rollback · VALIDATE) + the reusable §4.2.6 warning band
+## Wave H (code half) — recognize-and-name the documented-non-support facilities (MCS · commit/rollback · VALIDATE) + the reusable recognize-and-name warning band
+
+> **⛔ CITATION CORRECTION (2026-09-06, kb/Work PB709) — THIS SECTION MINTED A WRONG CLAUSE AND IT PROPAGATED.**
+> Everywhere below that calls this "the §4.2.6 warning band" or calls a VALIDATE operand rule
+> "§4.2.6-excused", read the band as covering TWO licences and not one. §4.2.6 governs Annex A.3
+> PROCESSOR-DEPENDENT elements and is what MANDATES the compile-time warning — that is MCS (A.3 item 4) and
+> commit/rollback (A.3 items 6-7), and it is also what expressly does not require diagnosing syntax errors
+> within their unsupported syntax. **VALIDATE is Annex A.4.14 and appears nowhere in Annex A.3**, so §4.2.6
+> mandates nothing about it and excuses nothing about it: its licence is §4.2.7 plus A.4.1, under which the
+> element is simply not part of this implementation and the obligation is the user documentation
+> (`docs/CONFORMANCE.md` §4 item 3 and §5 row A.4.14). Warning rather than refusing VALIDATE is a documented
+> CHOICE. The annex is now DATA on the descriptor (`DiagnosticDescriptor.Annex`), the licensing § is derived
+> from it (`PostureClause`), and `DeclinedFacilityAnnexDriftTests` fails the build if the two disagree — so
+> take the clause from the descriptor, never from the prose below.
 
 > **STATUS: spec-first anchor re-scout, trusted over the phase plan at implementation time.** Verified against `specs/ISO_COBOL.md`, the as-built code, and CLI probes of the built `cobol.exe` (Debug/net10.0). Scope: turn the three facilities that today emit a *generic* diagnostic into *named* §4.2.6/§4.2.13 non-support diagnostics, plus formalize the reusable warning helper the SCREEN SECTION landing (COBOLNET1560) established. **These are NOT introduction gates (no 0900, no `constructs.json` row) — they are bind-site facility warnings, exactly like SCREEN.**
 

@@ -412,6 +412,7 @@
   "l1_read_indexed_seq_walk",
   "l1_read_alt_dup_walk",
   "l1_rewrite_alt_key_order",
+  "l1_rewrite_alt_key_suppress",
   "l1_start_dup_set_entry",
   "l1_read_into_unsuccessful",
   "l1_read_at_end_transfer",

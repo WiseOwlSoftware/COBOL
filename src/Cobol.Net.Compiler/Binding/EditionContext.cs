@@ -148,8 +148,11 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <para>The DESCRIPTOR's <see cref="DiagnosticDescriptor.Severity"/> chooses the disposition, so the
     /// policy lives in the catalogue (where it is documented and drift-tested) and never in a local test at
     /// the site: <see cref="EditionSeverity.Warning"/> ⇒ ACCEPT-INERT (the facility is additive — the program
-    /// compiles, runs, and the facility does nothing: COBOLNET1560/1578/1579/1580, satisfying §4.2.6 ¶3's
-    /// mandatory compile-time warning mechanism); <see cref="EditionSeverity.Error"/> ⇒ REFUSE (an inert
+    /// compiles, runs, and the facility does nothing: COBOLNET1578/1579/1778, satisfying §4.2.6 ¶3's
+    /// mandatory compile-time warning mechanism for their Annex A.3 elements, and COBOLNET1580, whose A.4.14
+    /// VALIDATE is instead a §4.2.7 element this implementation documents rather than is obliged to warn about
+    /// — kb/Work PB709; the descriptor's <c>Annex</c> datum is what tells the two apart);
+    /// <see cref="EditionSeverity.Error"/> ⇒ REFUSE (an inert
     /// compile would change the ANSWER, so Annex A.4.1's "shall accept the syntax … only when support … is
     /// claimed" applies: COBOLNET1560/1705/1706/1707).</para>
     /// <para>⛔ THE BAND SPLITS ON THE LICENCE, NOT ON TASTE, and that is why there is ONE method and not two:

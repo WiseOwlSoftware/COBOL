@@ -406,8 +406,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => Accept.BindAccept(ac),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
-        // ── Wave H — recognize-and-name the unsupported facilities (ISO §4.2.6 ¶3 makes the compile-time
-        //    warning mechanism MANDATORY even where the facility itself need not be implemented). Each binds
+        // ── Wave H — recognize-and-name the unsupported facilities. ISO §4.2.6 ¶3 makes the compile-time
+        //    warning mechanism MANDATORY for the Annex A.3 halves (MCS, A.3 item 4; COMMIT/ROLLBACK, A.3 items
+        //    6-7); the A.4.14 VALIDATE statement is an OPTIONAL element §4.2.7 requires us only to DOCUMENT,
+        //    and naming it is the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
         //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
         //    and never an EC (licensed off by §14.6.13.1.1). ──
         _ when s.mcsReceiveStatement() is not null || s.mcsSendStatement() is not null
@@ -504,7 +506,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private static string FirstToken(IParseTree node) =>
         node.ChildCount > 0 ? node.GetChild(0).GetText() : node.GetText();
 
-    /// <summary>Recognize-and-name an ACCEPT-INERT unsupported facility (§4.2.6 ¶3 / §4.2.13): name it once
+    /// <summary>Recognize-and-name an ACCEPT-INERT unsupported facility (§4.2.6 ¶3 for an Annex A.3 element,
+    /// §4.2.7 for an Annex A.4 one — the descriptor's own <c>Annex</c> datum says which, and its
+    /// <c>PostureClause</c> derives the §; plus §4.2.13 where the facility is also obsolete): name it once
     /// per site and bind to <see cref="BoundNop"/>, so the program still compiles and runs with the facility
     /// inert. The severity decision is NOT here — it is the descriptor's, read by the ONE declined-element
     /// seam <see cref="EditionContext.Declined"/> (feedback_one_mechanism_per_job); this helper only supplies

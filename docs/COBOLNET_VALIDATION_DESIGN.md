@@ -104,7 +104,7 @@ semantics).
     it means — and the binder's own entry paths drop it exactly where it matters: `DataBinder.BindEntry` returns
     early for levels 66/88 and `BindCondition` returns early for an UNNAMED level-88, which IS the §13.16.2
     format-4 validation entry.
-  - **⛔ ERROR, not Warning — the distinction from the §4.2.6 band.** COBOLNET1560/1578/1579/1580 cover
+  - **⛔ ERROR, not Warning — the distinction from the ACCEPT-INERT band.** COBOLNET1578/1579/1778 cover
     PROCESSOR-DEPENDENT elements (Annex A.3), where §4.2.6 ¶3 requires only a compile-time warning and the
     construct may be accepted-inert. A.4.1 is stronger: syntax is accepted "only when support … is claimed", so
     accepting a declined optional element's syntax IS the non-conformance. All three route through the ONE

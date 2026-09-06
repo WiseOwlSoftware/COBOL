@@ -784,9 +784,13 @@ statement
     | suppressStatement   // §14.9.45 — SUPPRESS PRINTING; SR1/GR1 (USE-BEFORE-REPORTING context) enforced at bind
     | invokeStatement   // introduction-gated at BIND time (StatementBinder.Oo → Check(Invoke2002))
     | {is2023()}? inlineMethodInvocationStatement
-    // ── Wave H: RECOGNIZE-AND-NAME the facilities COBOL.NET does not implement. ISO §4.2.6 ¶3 makes the
-    //    compile-time WARNING MECHANISM mandatory even though the facilities themselves are optional /
-    //    processor-dependent, so a GENERIC parse error here is a live non-conformance. Each arm is
+    // ── Wave H: RECOGNIZE-AND-NAME the facilities COBOL.NET does not implement. TWO LICENCES, one posture
+    //    (kb/Work PB709): RECEIVE / SEND (Annex A.3 item 4) and COMMIT / ROLLBACK (A.3 items 6-7) are
+    //    PROCESSOR-DEPENDENT, and ISO §4.2.6 ¶3 makes the compile-time WARNING MECHANISM mandatory for them, so
+    //    a GENERIC parse error there is a live non-conformance; VALIDATE is Annex A.4.14 and is not in A.3 at
+    //    all, so §4.2.7 mandates no warning — naming it is the documented choice docs/CONFORMANCE.md §4 item 3
+    //    records, and a generic parse error there is a wrong ANSWER to the user rather than a non-conformance.
+    //    Each arm is
     //    KEYWORD-TOKEN-LED and predicated on facilityWord(), which fires only at the editions where §8.9
     //    actually reserves the word — an IDENTIFIER-led arm would poison the ALL(*) DFA (DEVLOG 903). ──
     | {facilityWord("RECEIVE")}?  mcsReceiveStatement
@@ -801,8 +805,9 @@ statement
 // ── The unsupported-facility statements (Wave H). The operand tails are parsed for REAL, not swallowed:
 //    `statement` is reachable from `statementBlock`, so a `(~DOT)*` swallow would eat END-IF and break every
 //    enclosing block — and both MCS formats carry `imperative-statement`s of their own, which a swallow would
-//    also consume. §4.2.6 excuses us from diagnosing syntax errors WITHIN unsupported syntax, but not from
-//    leaving the surrounding program parseable. ──
+//    also consume. Nothing obliges us to diagnose syntax errors WITHIN unsupported syntax — §4.2.6 says so
+//    expressly for the A.3 arms, and for the A.4.14 VALIDATE arm the syntax is simply not ours (§4.2.7 /
+//    A.4.1) — but nothing excuses us from leaving the surrounding program parseable either. ──
 
 // ISO §14.9.31.2 — RECEIVE FROM data-name-1 GIVING identifier-1 data-name-2
 //   [ CONTINUE AFTER { arithmetic-expression-1 SECONDS | MESSAGE RECEIVED } ]

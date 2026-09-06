@@ -1882,12 +1882,25 @@ public static class DiagnosticCatalog
     //    • ACCEPT-INERT (Warning) — COBOLNET1578 / 1579 / 1580 / 1778. These facilities are ADDITIVE: the
     //      program still means what it says with them absent (no message I-O, COMMIT behaves as
     //      CONTINUE, VALIDATE validates nothing, a RECORD DELIMITER selects a framing §12.4.5.11.4 GR1
-    //      forbids the program from seeing), so §4.2.6 ¶3's mandatory compile-time warning mechanism
-    //      ("shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
-    //      processor-dependent language elements not supported") is the whole obligation, and §14.6.13.1.1
-    //      licenses raising NO exception conditions. The program COMPILES, RUNS, and the facility is inert.
-    //      Before this band these constructs produced a GENERIC parse error, which satisfied neither the
-    //      warning obligation nor the "never a silent wrong answer" rule.
+    //      forbids the program from seeing), so the program COMPILES, RUNS, and the facility is inert, with
+    //      §14.6.13.1.1 licensing NO exception conditions. Before this band these constructs produced a
+    //      GENERIC parse error, which satisfied neither obligation below nor the "never a silent wrong
+    //      answer" rule.
+    //      ⛔ TWO DIFFERENT LICENCES REACH THIS ONE DISPOSITION, and conflating them is kb/Work PB709's
+    //      defect — the descriptor's `Annex` datum is what tells them apart now, and `PostureClause` derives
+    //      the § from it so that no site writes the clause by hand:
+    //        · 1578 (MCS, Annex A.3 item 4), 1579 (commit and rollback, A.3 items 6-7) and 1778 (RECORD
+    //          DELIMITER, A.3 item 26) are PROCESSOR-DEPENDENT, and §4.2.6 ¶3 makes the warning MANDATORY:
+    //          "shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
+    //          processor-dependent language elements not supported". There the warning IS the obligation.
+    //        · 1580 (VALIDATE) is NOT in Annex A.3 at all — it is Annex A.4.14, OPTIONAL, and §4.2.7 carries
+    //          no warning-mechanism sentence to mandate anything. What §4.2.7 requires is that the
+    //          non-support be identified in user documentation (docs/CONFORMANCE.md §4 item 3 and §5 row
+    //          A.4.14); naming the statement instead of failing the compile is this implementation's CHOICE,
+    //          taken because the facility is additive and §4.2.13 additionally makes it obsolete at
+    //          COBOL-2023. Citing §4.2.6 for it would claim a mandate the standard does not give AND
+    //          misdescribe the posture: a decline under the processor-dependent clause reads "we could not",
+    //          a decline under the optional clause reads "we chose not to, and documented it".
     //
     //    • REFUSE (Error) — COBOLNET1560 / 1705 / 1706 / 1707. These facilities are NOT additive: compiled
     //      inert they change the ANSWER (which bytes reach the medium; which record description entry is
@@ -1904,14 +1917,16 @@ public static class DiagnosticCatalog
         "The asynchronous messaging facility (SEND/RECEIVE, ISO §14.9.31/§14.9.38) is a processor-dependent "
         + "element (§4.2.6; Annex A.3 item 4) that is not supported — the statement is accepted but performs no "
         + "message I-O, and no EC-MCS-* condition is raised (§14.6.13.1.1). See docs/CONFORMANCE.md §4.",
-        "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §14.9.31 / §14.9.38", RecognizedNotImplemented);
+        "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §14.9.31 / §14.9.38", RecognizedNotImplemented,
+        Annex: DeclinedAnnex.A3);
     public static readonly DiagnosticDescriptor CommitRollbackUnsupported = new(
         "COBOLNET1579", "commit-rollback-unsupported", EditionSeverity.Warning,
         "The commit and rollback facility (COMMIT/ROLLBACK, ISO §14.9.7/§14.9.36) is a processor-dependent "
         + "element (§4.2.6; Annex A.3 items 6-7) that is not supported — the statement is accepted but performs "
         + "no transaction control and behaves as CONTINUE, and no EC-FLOW-COMMIT/ROLLBACK condition is raised "
         + "(§14.6.13.1.1). See docs/CONFORMANCE.md §4.",
-        "ISO §4.2.6 ¶3 / Annex A.3 items 6-7 / §14.9.7 / §14.9.36", RecognizedNotImplemented);
+        "ISO §4.2.6 ¶3 / §4.2.7 / Annex A.3 items 6-7 / Annex A.4.3 items 4-5 / §14.9.7 / §14.9.36",
+        RecognizedNotImplemented, Annex: DeclinedAnnex.A3 | DeclinedAnnex.A4);
     public static readonly DiagnosticDescriptor ValidateFacilityUnsupported = new(
         "COBOLNET1580", "validate-facility-unsupported", EditionSeverity.Warning,
         "The VALIDATE facility (ISO §14.9.50) is an OPTIONAL element (§4.2.7; Annex A.4.14) and, at COBOL-2023, "
@@ -1919,7 +1934,8 @@ public static class DiagnosticCatalog
         + "but performs no content validation, and no EC-VALIDATE-* condition is raised (§14.6.13.1.1). Fires at "
         + "2002/2014/2023 (the facility exists from 2002); at --std 85 VALIDATE is a user word, not a statement. "
         + "See docs/CONFORMANCE.md §4.",
-        "ISO §4.2.7 / Annex A.4.14 / §4.2.13 / Annex F.2 item 5 / §14.9.50", RecognizedNotImplemented);
+        "ISO §4.2.7 / Annex A.4.14 / §4.2.13 / Annex F.2 item 5 / §14.9.50", RecognizedNotImplemented,
+        Annex: DeclinedAnnex.A4);
     // ⛔ ONE CODE FOR THE WHOLE CLAUSE, BOTH ARMS, and that is the point (kb/Work PB292). The general format
     //    (§12.4.5.11.2, rendered from the printed page) is a plain required choice — `RECORD DELIMITER IS
     //    { STANDARD-1 | feature-name-1 }` — and the two alternatives are declined on DIFFERENT grounds that
@@ -1962,7 +1978,8 @@ public static class DiagnosticCatalog
         + "variable-length record is framed by the §12.4.5.11.4 GR5 implementor method (the 4-byte length "
         + "prefix, Annex A.1 item 151), and §12.4.5.11.4 GR1 keeps that framing out of the record area and the "
         + "record size, so no program-visible value changes. See docs/CONFORMANCE.md §2 row 26 and §7.",
-        "ISO §4.2.6 ¶3 / Annex A.3 item 26 / Annex A.1 items 150-151 / §12.4.5.11", RecognizedNotImplemented);
+        "ISO §4.2.6 ¶3 / Annex A.3 item 26 / Annex A.1 items 150-151 / §12.4.5.11", RecognizedNotImplemented,
+        Annex: DeclinedAnnex.A3);
     // ── 1560 / 1705 / 1706 / 1707 — the REFUSE half of the band (see the header above). One code per A.4
     //    MODULE (A.4.2 takes two, split at the division boundary — see the header below it), not per
     //    clause: the module is the unit §4.2.7 makes the implementor document and Annex A.4 makes optional, so
@@ -1980,7 +1997,8 @@ public static class DiagnosticCatalog
         + "facility, which is why this is an Error and not the COBOLNET1578/1579/1580 accept-inert band. "
         + "At --std 85 the FORMAT clause additionally cannot be written at all: §8.9 reserves FORMAT only from "
         + "2002, so there the word is a user-defined name.",
-        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.8 items 1-2 / §13.18.24 / §13.18.51");
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.8 items 1-2 / §13.18.24 / §13.18.51",
+        Annex: DeclinedAnnex.A4);
     public static readonly DiagnosticDescriptor WriteRewriteFileUnclaimed = new(
         "COBOLNET1706", "a413-write-rewrite-file-unclaimed", EditionSeverity.Error,
         "the FILE phrase of the WRITE statement (ISO §14.9.51) and of the REWRITE statement (ISO §14.9.35) — "
@@ -1994,7 +2012,8 @@ public static class DiagnosticCatalog
         + "BOTH printed formats (§14.9.51.2 Format 1 sequential and Format 2 random): the declined phrase has "
         + "its own implicit-record semantics (§14.9.51.4 GR8, §14.9.35.4 GR9) that a whole-record-area write "
         + "does not implement, so accepting it inert would be a wrong answer.",
-        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.13 items 1-2 / §14.9.51 / §14.9.35");
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.13 items 1-2 / §14.9.51 / §14.9.35",
+        Annex: DeclinedAnnex.A4);
     // ── The A.4 DECLINED-OPTIONAL-ELEMENT band (§4.2.7 / Annex A.4.1). ⛔ A DIFFERENT OBLIGATION FROM THE
     //    WAVE-H BAND ABOVE, and the severity difference is the whole point. §4.2.6 ¶3 covers PROCESSOR-DEPENDENT
     //    elements (Annex A.3): we may accept them and must WARN — 1578/1579 do exactly that. Annex A.4.1 covers
@@ -2022,7 +2041,8 @@ public static class DiagnosticCatalog
         + "this decline; for the others the word is a user-defined word there (§8.9). Annex A.4 does not list "
         + "CLASS among A.4.14's items — it reaches the module through §13.16.2's validation-clauses group, "
         + "which opens with `[ class-clause ]` (owner decision, kb/Work PB375, 2026-09-02).",
-        "ISO Annex A.4.1 / Annex A.4.14 / §13.16.2 / §4.2.13", DeclinedOptionalElement, PermissiveInert: true);
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.14 / §13.16.2 / §4.2.13", DeclinedOptionalElement,
+        PermissiveInert: true, Annex: DeclinedAnnex.A4);
     public static readonly DiagnosticDescriptor ApplyCommitClauseUnsupported = new(
         "COBOLNET1709", "apply-commit-clause-unsupported", EditionSeverity.Error,
         "The I-O-CONTROL paragraph's APPLY COMMIT clause (ISO §12.4.6.3) is written. The commit and rollback "
@@ -2032,7 +2052,8 @@ public static class DiagnosticCatalog
         + "accepted, no APPLY COMMIT clause is ever active, which is exactly the state §14.9.7.4 GR1 / "
         + "§14.9.36.4 GR1 make COMMIT and ROLLBACK behave as CONTINUE in. Introduced by COBOL-2023 (Annex E.3.2 "
         + "item 2); below that APPLY and COMMIT are user-defined words (§8.9 / §8.10).",
-        "ISO Annex A.4.1 / Annex A.4.3 item 2 / §12.4.6.3 / Annex E.3.2 item 2", DeclinedOptionalElement, PermissiveInert: true);
+        "ISO §4.2.6 / §4.2.7 / Annex A.4.1 / Annex A.4.3 item 2 / Annex A.3 items 6-7 / §12.4.6.3 / Annex E.3.2 item 2",
+        DeclinedOptionalElement, PermissiveInert: true, Annex: DeclinedAnnex.A3 | DeclinedAnnex.A4);
     public static readonly DiagnosticDescriptor DeclinedModuleExceptionName = new(
         "COBOLNET1710", "declined-module-exception-name", EditionSeverity.Error,
         "A written exception-name (>>TURN, RAISE, EXIT/GOBACK RAISING, a USE declarative, or an "
@@ -2043,7 +2064,8 @@ public static class DiagnosticCatalog
         + "explicitly listed\"), and §14.6.13.1.1 licenses raising nothing for an unimplemented optional "
         + "element — but neither licenses accepting the NAME, which would let a program check, declare and "
         + "match a condition that cannot occur. The message names the module.",
-        "ISO Annex A.4.1 / §14.6.13.1.1", DeclinedOptionalElement, PermissiveInert: true);
+        "ISO §4.2.7 / Annex A.4.1 / §14.6.13.1.1", DeclinedOptionalElement, PermissiveInert: true,
+        Annex: DeclinedAnnex.A4);
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "
@@ -2083,7 +2105,7 @@ public static class DiagnosticCatalog
         + "screen handling module (§4.2.7; Annex A.4.2), for which COBOL.NET claims no support — A.4.1 admits "
         + "an optional element's syntax only when support is claimed, so it is refused by name rather than "
         + "silently accepted and dropped. The facility exists from COBOL-2002. See docs/CONFORMANCE.md §5.",
-        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.2 / §13.9 / §13.17 / §12.3.7");
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.2 / §13.9 / §13.17 / §12.3.7", Annex: DeclinedAnnex.A4);
     /// <summary>COBOLNET1707 — the A.4.2 PROCEDURE-division surface: ACCEPT format 3 (screen, §14.9.1), DISPLAY
     /// format 2 (screen, §14.9.11 — A.4.2 item 9 misprints the cross-reference as 14.9.10, which is DELETE),
     /// SET format 6 (attribute, §14.9.39), and the EC-SCREEN exception-names in the six contexts A.4.2 item 10
@@ -2099,7 +2121,8 @@ public static class DiagnosticCatalog
         + "DISPLAY silently re-read as its device format would transfer the wrong data, and a catalogued "
         + "EC-SCREEN name with no raise site reads as implemented to every consumer that can see it. "
         + "See docs/CONFORMANCE.md §5.",
-        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.2 items 1, 9, 10, 24 / §14.9.1 / §14.9.11 / §14.9.39");
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.2 items 1, 9, 10, 24 / §14.9.1 / §14.9.11 / §14.9.39",
+        Annex: DeclinedAnnex.A4);
 
     // ── THE THREE BAND CODES THAT HAD NO DESCRIPTOR AT ALL (kb/Work PB175) ────────────────────────────
     //    COBOLNET0869 / 0881 / 1529 were emitted from 38 BARE STRING LITERALS across five binders and from

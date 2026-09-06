@@ -60,7 +60,8 @@ internal static class Table12StatementNames
         ["deleteFile"] = "DELETE",          // §14.9.10.1 — the DELETE FILE format of the DELETE statement
         ["searchAll"] = "SEARCH",           // §14.9.37 — SEARCH Format 2 (binary search) of the SEARCH statement
         ["mcsReceive"] = "RECEIVE",         // Wave-H facility arms: the mcs/facility affixes disambiguate the
-        ["mcsSend"] = "SEND",               // GRAMMAR rules (§4.2.6 recognize-and-name), not the statement names
+        ["mcsSend"] = "SEND",               // GRAMMAR rules (the Wave-H recognize-and-name band, §4.2.6 ¶3 for
+                                            // the A.3 arms and §4.2.7 for VALIDATE), not the statement names
         ["validateFacility"] = "VALIDATE",
         ["commitFacility"] = "COMMIT",
         ["rollbackFacility"] = "ROLLBACK",

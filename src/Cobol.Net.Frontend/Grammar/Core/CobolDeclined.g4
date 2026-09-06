@@ -21,9 +21,14 @@
 // closed for the VALIDATE, COMMIT and ROLLBACK *statements*; this file closes it for the DATA DIVISION and
 // I-O-CONTROL halves, which is where 17 of A.4.3's 25 conditioned rules and 56 of A.4.14's 73 live.
 //
-// ⛔ THE PARSE IS DELIBERATELY PERMISSIVE INSIDE THE DECLINED CONSTRUCT, EXACT AT ITS EDGES. §4.2.6 excuses
-// an implementation from diagnosing syntax errors WITHIN syntax it does not support, but nothing excuses it
-// from leaving the surrounding program parseable — so every rule here consumes its operands for real and
+// ⛔ THE PARSE IS DELIBERATELY PERMISSIVE INSIDE THE DECLINED CONSTRUCT, EXACT AT ITS EDGES. The licence is
+// §4.2.7 and A.4.1, NOT §4.2.6 (kb/Work PB709): §4.2.6's "it is not required to diagnose syntax errors within
+// this unsupported syntax" is written of Annex A.3 PROCESSOR-DEPENDENT elements, and nothing in this file is one
+// — VALIDATE is A.4.14 and does not appear in A.3 at all. What licenses the permissive interior here is that an
+// unclaimed OPTIONAL element is not part of this implementation's syntax to begin with: §4.2.7 makes it one an
+// implementor "may, but need not, implement" and A.4.1 admits its syntax "only when support for that language
+// element is claimed", so there is no syntax of ours inside the construct for anything to diagnose. Nothing
+// excuses us from leaving the surrounding program parseable — so every rule here consumes its operands for real and
 // terminates on a token that cannot continue it, and none of them swallows to the period. The corollary is
 // that these rules do NOT enforce the declined clauses' own syntax rules (e.g. §13.18.62.3 SR7's subscript
 // arithmetic): those rules are optional WITH the facility (A.4.1), and a second, unreachable enforcement of
@@ -100,7 +105,8 @@ validationClause
 // optional word); the braces are a plain required choice with NO choice indicators — exactly one alternative.
 // ⚠ BOOLEAN HAS NO LEXER TOKEN (see CobolData.g4 initializeCategory: "BOOLEAN, DATA-POINTER, … require lexer
 // tokens not yet defined"), so it arrives as IDENTIFIER and is admitted by the class-name-1 arm. That is the
-// declared posture of this file — permissive INSIDE the declined construct, exact at its edges (§4.2.6) — and
+// declared posture of this file — permissive INSIDE the declined construct, exact at its edges (§4.2.7 /
+// A.4.1, see the header) — and
 // it costs nothing: the clause is refused as a whole whichever arm matched, so no operand distinction is
 // observable. Adding a BOOLEAN token to serve a construct we decline would edition-gate a word across USAGE
 // and the class condition for no behavioural gain.

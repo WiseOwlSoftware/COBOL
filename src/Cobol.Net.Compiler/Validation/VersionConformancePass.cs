@@ -2168,9 +2168,13 @@ internal sealed class VersionConformancePass
             // keywords: FORMAT is §8.9-reserved from 2002 but has no lexer token and RELATION is §8.10
             // context-sensitive, so both arrive as cobolWord and the funnel printed "'FORMAT' is a reserved
             // word … and cannot be used as a user-defined word" beside COBOLNET1708 — a FALSE statement about
-            // the source, printed next to the true one. §4.2.6 does not require diagnosing syntax WITHIN
-            // unsupported syntax, and one diagnostic per declined construct is the posture DeclinedFacilityPass
-            // itself takes (it does not descend either). Whole-subtree, by ancestor walk: an IDENTIFIER token is
+            // the source, printed next to the true one. There is no syntax of OURS inside a declined A.4
+            // construct to diagnose — §4.2.7 makes the element one we "may, but need not, implement" and A.4.1
+            // admits its syntax "only when support … is claimed" — so one diagnostic per declined construct is
+            // the whole posture, which is what DeclinedFacilityPass itself takes (it does not descend either).
+            // ⛔ NOT §4.2.6: that clause's "not required to diagnose syntax errors within this unsupported syntax"
+            // is written of Annex A.3 PROCESSOR-DEPENDENT elements, and these three rules are Annex A.4 optional
+            // ones (kb/Work PB709). Whole-subtree, by ancestor walk: an IDENTIFIER token is
             // checked position-blind, so a per-slot exemption would leave the next declined clause's keywords
             // exposed (feedback_two_arm_dispatch).
             for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)

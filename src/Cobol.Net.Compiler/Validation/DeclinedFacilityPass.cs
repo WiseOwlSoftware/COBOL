@@ -68,7 +68,9 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     /// DIVISION clause or an ENVIRONMENT DIVISION (I-O-CONTROL) clause, so the procedure body — much the largest
     /// part of a real compilation unit — cannot contain one. The declined STATEMENTS (VALIDATE §14.9.50, COMMIT
     /// §14.9.7, ROLLBACK §14.9.36, MCS SEND/RECEIVE) are recognized-and-named at BIND instead
-    /// (<c>StatementBinder.BindUnsupportedFacility</c>, the §4.2.6 warning band), because they DO have a bound
+    /// (<c>StatementBinder.BindUnsupportedFacility</c>, the recognize-and-name warning band — mandated by
+    /// §4.2.6 ¶3 for the Annex A.3 halves, MCS and COMMIT/ROLLBACK, and a documented §4.2.7 choice for the
+    /// Annex A.4.14 VALIDATE statement; kb/Work PB709), because they DO have a bound
     /// node — an inert one — and the program is expected to keep running.
     /// <para>⚠ VERIFIED AGAINST THE GRAMMAR, not assumed, because the skip would be a SILENT hole if any data
     /// division hung below a procedure division. It does not: <c>nestedProgram*</c> is a SIBLING of
@@ -97,7 +99,8 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     {
         _edition.Declined(DiagnosticCatalog.ValidateDataDivisionClauseUnsupported,
             $"the {ClauseName(ctx)} clause of the §13.16.2 validation-clauses group");
-        return null;   // nothing below a declined clause is diagnosed (§4.2.6) — one diagnostic per clause
+        return null;   // nothing below a declined A.4 clause is diagnosed (§4.2.7 / A.4.1: the element's
+                       // syntax is not this implementation's) — one diagnostic per clause
     }
 
     /// <summary>The §13.18.63.2 Format-5 content-validation entry's own tail — <c>[IS|ARE] {INVALID|VALID}
