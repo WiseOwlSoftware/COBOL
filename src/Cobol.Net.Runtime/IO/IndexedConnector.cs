@@ -286,15 +286,18 @@ public sealed class IndexedConnector : KeyedConnector
     /// VERSION_CHANGE_REFERENCE row 29).</summary>
     public string ReadPrevious(out string image) => ReadSequential(out image, previous: true);
 
-    private string ReadSequential(out string image, bool previous)
+    /// <summary>ISO §14.9.30.4 GR21's "When the file is an indexed file" SELECTION — rules d)/e)/f) over the
+    /// key-of-reference ordering, returning the record to be made available (<see langword="null"/> is rule
+    /// d) 3/e) 3/f) 3's at-end condition) and its index in <paramref name="seq"/>, which GR27's '02' look-ahead
+    /// needs.
+    /// <para>⛔ SELECTION ONLY — IT COMMITS NOTHING (kb/Work PB338). Splitting it out of the read is what lets
+    /// <see cref="PeekSequentialRecordId"/> answer GR9's "the record identified for access" BEFORE the file
+    /// position indicator and the duplicate-set ordinal move, without a second copy of these rules.</para>
+    /// </summary>
+    private KeyedRec? SelectSequentialRecord(bool previous, List<KeyedRec> seq, out int foundIdx)
     {
-        image = new string(' ', RecordWidth);
-        if (SequentialReadGuard() is { } pre) return Status = pre;   // '47'/'46'/'10' — FileConnector
-        if (!_fpiValid) return Status = FileStatusCode.NoValidNextRecord;
-
-        var seq = Ordered(_refKey);
         KeyedRec? found = null;
-        int foundIdx = -1;
+        foundIdx = -1;
         // ⛔ WHICH RULE GOVERNS THIS WALK IS DECIDED BY THE PREVIOUS OPERATION, NOT BY A STORED POSITION
         // (kb/Work PB342). §14.9.30.4 GR21 rule d) applies when the previous operation was an OPEN or a START:
         // the FPI then holds a KEY VALUE and nothing else (§14.9.41.4 GR17 e) 1.), so the comparison is on the
@@ -330,7 +333,62 @@ public sealed class IndexedConnector : KeyedConnector
                 if (c < 0 || (!fromRead && c == 0)) { found = seq[i]; foundIdx = i; break; }
             }
         }
-        if (found is null)
+        return found;
+
+        int PositionCompare(KeyedRec rec)
+        {
+            int c = KeyCompare(KeyOf(rec.Image, _refKey), _fpiKey, _refKey);
+            // ⛔ The duplicate-set tie-break is consulted ONLY under rules e)/f). Under rule d) the position IS
+            // the key value (§14.9.41.4 GR17 e) 1.) and consulting a stored ordinal would resume the walk at
+            // whichever duplicate the START happened to stop on — losing the rest of the set (kb/Work PB342).
+            return c != 0 || !fromRead ? c : Ordinal(rec, _refKey).CompareTo(_readOrdinal);
+        }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>The indexed organization's §14.9.30.4 GR9 pre-read conflict target: the PRIME key of the record
+    /// <see cref="SelectSequentialRecord"/> names, which is this organization's lock identity (§9.1.16). The
+    /// remaining precondition beyond <c>SequentialReadReachesRetrieval</c> is a valid file position indicator
+    /// (a failed START leaves none — §14.9.41.4 GR7).</remarks>
+    public override string PeekSequentialRecordId(bool previous) =>
+        SequentialReadReachesRetrieval && _fpiValid
+        && SelectSequentialRecord(previous, Ordered(_refKey), out _) is { } found
+            ? KeyOf(found.Image, -1)
+            : "";
+
+    /// <inheritdoc/>
+    /// <remarks>§14.9.30.4 GR32's lookup, run WITHOUT assigning the key of reference — GR10 d) requires it
+    /// UNCHANGED when the record operation conflict condition arises, and <see cref="ReadRandom"/> assigns
+    /// <c>_refKey</c> as its first act (kb/Work PB338).</remarks>
+    public override string PeekRandomReadRecordId(int keyIndex, string recordImage)
+    {
+        if (ReadOpenModeGuard() is not null || OptionalAbsent) return "";
+        return FindRandom(keyIndex, KeyOf(Fit(recordImage), keyIndex)) is { } found ? KeyOf(found.Image, -1) : "";
+    }
+
+    /// <summary>ISO §14.9.30.4 GR32's record identification for a random READ — the first record whose key of
+    /// reference equals <paramref name="value"/>, and among duplicate alternates <i>"the first record in a
+    /// sequence of duplicates that was released to the operating environment"</i> (the smallest release ordinal
+    /// under THAT key); §12.4.5.6.4 GR6's SUPPRESS WHEN records do not exist for the walk. ⛔ SELECTION ONLY —
+    /// it establishes no key of reference and moves no position (kb/Work PB338).</summary>
+    private KeyedRec? FindRandom(int keyIndex, string value)
+    {
+        KeyedRec? found = null;
+        foreach (var rec in _recs)
+            if (!IsSuppressed(rec.Image, keyIndex) && KeyEq(KeyOf(rec.Image, keyIndex), value, keyIndex)
+                && (found is null || Ordinal(rec, keyIndex) < Ordinal(found, keyIndex)))
+                found = rec;
+        return found;
+    }
+
+    private string ReadSequential(out string image, bool previous)
+    {
+        image = new string(' ', RecordWidth);
+        if (SequentialReadGuard() is { } pre) return Status = pre;   // '47'/'46'/'10' — FileConnector
+        if (!_fpiValid) return Status = FileStatusCode.NoValidNextRecord;
+
+        var seq = Ordered(_refKey);
+        if (SelectSequentialRecord(previous, seq, out int foundIdx) is not { } found)
         {
             LastReadUnsuccessful = true;
             _fpiValid = false;                                             // §14.9.30 GR24b
@@ -353,15 +411,6 @@ public sealed class IndexedConnector : KeyedConnector
         LastReadLength = found.Image.Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(found.Image);
         return ReadSucceeded(status);
-
-        int PositionCompare(KeyedRec rec)
-        {
-            int c = KeyCompare(KeyOf(rec.Image, _refKey), _fpiKey, _refKey);
-            // ⛔ The duplicate-set tie-break is consulted ONLY under rules e)/f). Under rule d) the position IS
-            // the key value (§14.9.41.4 GR17 e) 1.) and consulting a stored ordinal would resume the walk at
-            // whichever duplicate the START happened to stop on — losing the rest of the set (kb/Work PB342).
-            return c != 0 || !fromRead ? c : Ordinal(rec, _refKey).CompareTo(_readOrdinal);
-        }
     }
 
     /// <summary>Format-2 random READ (§14.9.30 GR30–GR32): <paramref name="keyIndex"/> becomes the key of
@@ -377,12 +426,7 @@ public sealed class IndexedConnector : KeyedConnector
         _refKey = keyIndex;                                                // GR30/GR31
         if (RandomReadAbsentOptionalGuard() is { } absent) return Status = absent;        // '23' §9.1.13.5 3 b)
         string value = KeyOf(Fit(keyedRecordImage), keyIndex);
-        KeyedRec? found = null;
-        foreach (var rec in _recs)
-            if (!IsSuppressed(rec.Image, keyIndex) && KeyEq(KeyOf(rec.Image, keyIndex), value, keyIndex)   // §14.9.30.4 GR32 + §12.4.5.6.4 GR6
-                && (found is null || Ordinal(rec, keyIndex) < Ordinal(found, keyIndex)))   // GR32 "the first record in a sequence of duplicates that was released"
-                found = rec;
-        if (found is null)
+        if (FindRandom(keyIndex, value) is not { } found)   // §14.9.30.4 GR32 + §12.4.5.6.4 GR6 — the ONE copy
         {
             LastReadUnsuccessful = true;
             return Status = FileStatusCode.RecordNotFound;                 // '23' GR32

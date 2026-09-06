@@ -195,16 +195,20 @@ public sealed class RelativeConnector : KeyedConnector
     /// — "regardless of whether NEXT or PREVIOUS").</summary>
     public string ReadPrevious(out string image) => ReadSequential(out image, previous: true);
 
-    private string ReadSequential(out string image, bool previous)
+    /// <summary>ISO §14.9.30.4 GR21's "When the file is a relative file" SELECTION — rules b)/c): the file
+    /// position indicator set by a prior OPEN or START selects "the first existing record that is selected …
+    /// regardless of whether NEXT or PREVIOUS is specified" (the inclusive bound), one set by a prior READ
+    /// selects the first existing relative key number greater than it under NEXT and less than it under
+    /// PREVIOUS. <see langword="null"/> is rule e)'s at-end condition.
+    /// <para>⛔ SELECTION ONLY — IT COMMITS NOTHING (kb/Work PB338). Splitting it out of the read is what lets
+    /// <see cref="PeekSequentialRecordId"/> answer GR9's "the record identified for access" BEFORE the position
+    /// moves, without a second copy of these rules living in the peek.</para></summary>
+    private long? SelectSequentialSlot(bool previous)
     {
-        image = new string(' ', RecordWidth);
-        if (SequentialReadGuard() is { } pre) return Status = pre;   // '47'/'46'/'10' — FileConnector
-        if (!_fpiValid) return Status = FileStatusCode.NoValidNextRecord;              // '46' §9.1.13.7 6a (failed START)
-
         long? slot = null;
         if (previous && _positioner == 'O')
-            slot = null;   // READ PREVIOUS immediately after OPEN → at end (2023; VERSION_CHANGE_REFERENCE row 29)
-        else if (previous)
+            return null;   // READ PREVIOUS immediately after OPEN → at end (2023; VERSION_CHANGE_REFERENCE row 29)
+        if (previous)
         {
             long bound = _inclusive ? _fpi : _fpi - 1;
             foreach (long k in _slots.Keys) { if (k <= bound) slot = k; else break; }
@@ -214,7 +218,39 @@ public sealed class RelativeConnector : KeyedConnector
             long bound = _inclusive ? _fpi : _fpi + 1;
             foreach (long k in _slots.Keys) if (k >= bound) { slot = k; break; }
         }
-        if (slot is not { } s)
+        return slot;
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>The relative organization's §14.9.30.4 GR9 pre-read conflict target: the RRN
+    /// <see cref="SelectSequentialSlot"/> names. The remaining precondition beyond
+    /// <c>SequentialReadReachesRetrieval</c> is a valid file position indicator (a failed START leaves
+    /// none — §14.9.41.4 GR7).</remarks>
+    public override string PeekSequentialRecordId(bool previous) =>
+        SequentialReadReachesRetrieval && _fpiValid && SelectSequentialSlot(previous) is { } s
+            ? s.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : "";
+
+    /// <inheritdoc/>
+    /// <remarks>§14.9.30.4 GR29 — a random READ positions to the RRN staged in the RELATIVE KEY item by
+    /// <see cref="SetPendingKey"/>; a slot that does not exist is the invalid key condition and holds no lock.
+    /// <paramref name="keyIndex"/> and <paramref name="recordImage"/> are the indexed organization's key
+    /// selectors and carry nothing here (GR29 names only the RELATIVE KEY item).</remarks>
+    public override string PeekRandomReadRecordId(int keyIndex, string recordImage)
+    {
+        _ = keyIndex; _ = recordImage;
+        return ReadOpenModeGuard() is null && !OptionalAbsent && _slots.ContainsKey(_pendingKey)
+            ? _pendingKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : "";
+    }
+
+    private string ReadSequential(out string image, bool previous)
+    {
+        image = new string(' ', RecordWidth);
+        if (SequentialReadGuard() is { } pre) return Status = pre;   // '47'/'46'/'10' — FileConnector
+        if (!_fpiValid) return Status = FileStatusCode.NoValidNextRecord;              // '46' §9.1.13.7 6a (failed START)
+
+        if (SelectSequentialSlot(previous) is not { } s)
         {
             LastReadUnsuccessful = true;
             _fpiValid = false;                                             // §14.9.30 GR24b

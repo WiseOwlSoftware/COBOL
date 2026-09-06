@@ -217,13 +217,14 @@ public static class CobolFile
         => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, noRewind,
             assign, assignDynamic, page);
 
-    /// <summary>Record-lock governance for a just-completed FORMAT-2 (random) keyed READ (§9.1.16).
+    /// <summary>The ONE governed FORMAT-2 (random) keyed READ — relative and indexed (§9.1.16 /
+    /// §14.9.30.4 GR9–GR12). Returns the I-O status; a record was made available iff it begins '0'.
     /// <paramref name="phrase"/> is the RETENTION bracket (WITH LOCK / WITH NO LOCK) and
     /// <paramref name="ignoringLock"/> the INDEPENDENT IGNORING LOCK phrase (§14.9.30.2's other bracket, GR12).
     /// A Format-1 read of any organization uses <see cref="ReadShared"/> instead.</summary>
-    public static string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase,
-        bool ignoringLock, FileRetryKind retryKind, int retryAmount)
-        => _reg.ReadLockGovern(name, statusJustRead, phrase, ignoringLock, retryKind, retryAmount);
+    public static string ReadKeyedShared(string name, int keyIndex, string keyedRecordImage, FileRecordLock phrase,
+        bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
+        => _reg.ReadKeyedShared(name, keyIndex, keyedRecordImage, phrase, ignoringLock, retryKind, retryAmount, out image);
 
     /// <summary>The ONE governed FORMAT-1 READ — sequential, relative and indexed (§9.1.16 / §14.9.30.4 GR9–GR12
     /// and the GR22 ADVANCING ON LOCK skip-scan). Returns the I-O status; a record was made available iff it

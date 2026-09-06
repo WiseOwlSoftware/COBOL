@@ -77,11 +77,15 @@ public sealed class SequentialConnector : FileConnector
     internal long TargetReadOrdinal(bool previous) =>
         !previous || _readOrdinal == 0 ? _readOrdinal + 1 : _readOrdinal - 1;
 
-    /// <summary>True when a Read executed now would reach the physical-read stage (open INPUT/I-O, no '46'
-    /// poison, a live stream) — the registry's lock pre-check runs only then, so a mode/position failure keeps
-    /// its own status ('47'/'46'/'10') rather than a premature '51'.</summary>
-    internal bool ReadEligible => IsOpen && Mode is FileOpenMode.Input or FileOpenMode.IO
-        && !OptionalAbsent && !LastReadUnsuccessful && _reader is not null;
+    /// <inheritdoc/>
+    /// <remarks>The record sequential organization's §14.9.30.4 GR9 pre-read conflict target: the ordinal
+    /// <see cref="TargetReadOrdinal"/> names, which is knowable without reading because sequential retrieval
+    /// moves by exactly one record. The remaining precondition beyond
+    /// <c>SequentialReadReachesRetrieval</c> is a live stream.</remarks>
+    public override string PeekSequentialRecordId(bool previous) =>
+        SequentialReadReachesRetrieval && _reader is not null && TargetReadOrdinal(previous) is > 0 and var t
+            ? t.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : "";   // ordinal 0 is GR21 rule e)'s beginning-of-file — no record, so nothing to conflict with
 
     /// <inheritdoc/>
     public override string LastReadRecordId =>

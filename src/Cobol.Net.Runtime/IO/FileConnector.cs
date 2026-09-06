@@ -252,6 +252,51 @@ public abstract class FileConnector
         return null;
     }
 
+    /// <summary>The same three preconditions <see cref="SequentialReadGuard"/> tests, asked WITHOUT its side
+    /// effect — a sequential READ executed now would reach the physical-retrieval stage. It is what a
+    /// <see cref="PeekSequentialRecordId"/> shall consult, so that a mode/position failure keeps its own status
+    /// ('47'/'46'/'10') instead of being pre-empted by a '51' the governed read would otherwise report for a
+    /// record the failing READ was never going to touch. Each organization ANDs its own remaining precondition
+    /// (a live stream; a valid file position indicator).</summary>
+    protected bool SequentialReadReachesRetrieval =>
+        ReadOpenModeGuard() is null && !LastReadUnsuccessful && !OptionalAbsent;
+
+    // ── The pre-read record identity (ISO §14.9.30.4 GR9/GR10 a)) ───────────────────────────────────────────
+    //
+    // ⛔ EVERY ORGANIZATION CAN NAME THE RECORD ITS NEXT READ WOULD MAKE AVAILABLE, BEFORE THE READ COMMITS
+    // (kb/Work PB338). GR9's record-operation-conflict check is asked of "the record identified for access",
+    // and GR10 a) — "The file position indicator is unchanged" — can only hold if that check runs BEFORE the
+    // position moves. §14.9.30.4 GR13 a) says the same thing from the other side: the I-O status is updated
+    // "and, IF the record operation conflict condition did not occur, the file position indicator is set."
+    // These two virtuals are how the registry asks each organization, so the governed read's ordering is
+    // structural instead of a per-arm convention. Both answer "" for "no record is identified", which is
+    // every case where the read would fail before it could touch one; the governed entry then skips the
+    // conflict check and lets the physical step report its own status.
+
+    /// <summary>The lock identity (§9.1.16) of the record a FORMAT-1 sequential READ in this direction would
+    /// make available — computed by running the organization's own §14.9.30.4 GR21 selection WITHOUT committing
+    /// the file position indicator. "" when no record is identified.</summary>
+    public virtual string PeekSequentialRecordId(bool previous) { _ = previous; return ""; }
+
+    /// <summary>The lock identity (§9.1.16) of the record a FORMAT-2 random READ would make available —
+    /// §14.9.30.4 GR29's relative record number, or GR32's first record matching the key of reference —
+    /// computed WITHOUT establishing the key of reference (GR10 d): <i>"The key of reference for indexed files
+    /// is unchanged"</i>. "" when no such record exists, which is the invalid-key condition and carries no lock.
+    /// <paramref name="recordImage"/> supplies the key slice for an indexed read (GR32).</summary>
+    public virtual string PeekRandomReadRecordId(int keyIndex, string recordImage)
+    { _ = keyIndex; _ = recordImage; return ""; }
+
+    /// <summary>ISO §14.9.30.4 GR18 — <i>"Unless otherwise specified, at the completion of any unsuccessful
+    /// execution of a READ statement, the content of the associated record area is undefined, the key of
+    /// reference is undefined for indexed files, and the file position indicator is set to indicate that no
+    /// valid record position has been established."</i> The registry applies it to the ONE unsuccessful READ it
+    /// decides itself and the connector never sees — the §12.4.5.9.4 GR7 record-lock-limit denial ('53'/'54'),
+    /// which is refused BEFORE the physical retrieval and so leaves a position no connector step invalidated.
+    /// <para>⛔ NOT the record operation conflict condition: GR10 a)/d) are GR18's "otherwise specified" and
+    /// require the indicator and the key of reference to be UNCHANGED, which under the pre-read ordering costs
+    /// no action at all.</para></summary>
+    internal void ApplyUnsuccessfulReadPosition() => InvalidateFilePosition();
+
     // ── START preconditions (ISO §14.9.41.4) ────────────────────────────────────────────────────────────────
     //
     // ⛔ ONE COPY, FOR ALL THREE ORGANIZATIONS, exactly as the READ preconditions above (kb/Work PB336's

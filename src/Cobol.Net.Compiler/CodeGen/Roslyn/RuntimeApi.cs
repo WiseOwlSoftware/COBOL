@@ -787,8 +787,9 @@ internal static class RuntimeApi
 
     // ⛔ THERE IS NO UNGOVERNED RENDERER FOR A RECORD VERB, AND THERE MUST NEVER BE ONE AGAIN (kb/Work PB683).
     // READ, WRITE, REWRITE and DELETE each have EXACTLY ONE renderer here — FileReadShared / FileWriteShared /
-    // FileRewriteShared / FileDeleteShared (and FileReadKeyed + FileReadLockGovern, the two halves of the ONE
-    // Format-2 read) — because whether a connector is open FOR FILE SHARING is a RUN-TIME fact: ISO §9.1.15,
+    // FileRewriteShared / FileDeleteShared, and FileReadKeyedShared for the Format-2 random read (kb/Work
+    // PB338 collapsed its two halves — an ungoverned ReadKeyed plus a post-read status patch — into that ONE
+    // governed entry) — because whether a connector is open FOR FILE SHARING is a RUN-TIME fact: ISO §9.1.15,
     // "The SHARING phrase on an OPEN statement overrides the SHARING clause in the file control entry for
     // establishing the sharing mode". No property of the file control entry or of the statement can see it, so
     // an emitter that CHOOSES between a governed and an ungoverned entry is guessing. It guessed wrong for every
@@ -801,14 +802,14 @@ internal static class RuntimeApi
     // because neither entry has a lock or RETRY parameter, `WRITE R AFTER ADVANCING 1 LINE WITH LOCK` — one
     // legal statement of §14.9.51.2 Format 1 — silently lost both phrases.
 
-    /// <summary>Random keyed READ by key-of-reference — <c>CobolFile.ReadKeyed</c>.</summary>
-    public static string FileReadKeyed(string name, int keyIndex, string keyImage, string imgVar) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyed)}({name}, {keyIndex}, {keyImage}, out var {imgVar})";
-
-    /// <summary>The §9.1.16 record-lock governance adjustment of a just-read status — <c>CobolFile.ReadLockGovern</c>.</summary>
-    public static string FileReadLockGovern(string name, string status, string lockRef, string ignoringLock,
-        string retryKind, string retryAmount) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadLockGovern)}({name}, {status}, {lockRef}, {ignoringLock}, {retryKind}, {retryAmount})";
+    /// <summary>The ONE governed FORMAT-2 (random) keyed READ (§9.1.16 / §14.9.30.4 GR9–GR12) —
+    /// <c>CobolFile.ReadKeyedShared</c> (I-O status result, out image). It OWNS the physical retrieval, so
+    /// nothing may render a bare <c>ReadKeyed</c> and then patch its status: §14.9.30.4 GR10 a)/d) require the
+    /// file position indicator and the key of reference to be UNCHANGED on a record operation conflict, which a
+    /// post-read adjustment cannot deliver (kb/Work PB338).</summary>
+    public static string FileReadKeyedShared(string name, int keyIndex, string keyImage, string lockRef,
+        string ignoringLock, string retryKind, string retryAmount, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyedShared)}({name}, {keyIndex}, {keyImage}, {lockRef}, {ignoringLock}, {retryKind}, {retryAmount}, out var {imgVar})";
 
     /// <summary>The ONE governed FORMAT-1 READ, every organization (§9.1.16 / §14.9.30.4 GR9–GR12 + the GR22
     /// ADVANCING ON LOCK skip-scan) — <c>CobolFile.ReadShared</c> (I-O status result, out image). Both READ

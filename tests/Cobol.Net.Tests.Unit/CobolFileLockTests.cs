@@ -214,16 +214,16 @@ public sealed class CobolFileLockTests
     {
         string tag = $"{(int)kind}-{amount}";
 
-        // ── FORMAT 2 (random keyed access): the post-read governance entry, RELATIVE organization. ──────────
+        // ── FORMAT 2 (random keyed access): the governed random-read entry, RELATIVE organization.
+        // Its conflict leg is PRE-read like Format 1's since kb/Work PB338 (§14.9.30.4 GR10 a)/d)), so
+        // the entry OWNS the retrieval and there is no separate read left to govern afterwards. ──────────
         TwoOpenSharers("RGA", "RGB", $"lk-r2retry-{tag}.dat");
         CobolFile.SetRelativeKey("RGA", 1);
-        string readA = CobolFile.ReadKeyed("RGA", -1, "", out _);
         Assert.Equal(FileStatusCode.Success,
-            CobolFile.ReadLockGovern("RGA", readA, FileRecordLock.WithLock, false, FileRetryKind.None, 0));
+            CobolFile.ReadKeyedShared("RGA", -1, "", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out _));
         CobolFile.SetRelativeKey("RGB", 1);
-        string readB = CobolFile.ReadKeyed("RGB", -1, "", out _);
         Assert.Equal(expected,
-            CobolFile.ReadLockGovern("RGB", readB, FileRecordLock.None, false, kind, amount));
+            CobolFile.ReadKeyedShared("RGB", -1, "", FileRecordLock.None, false, kind, amount, out _));
         Assert.Equal(expected, CobolFile.Status("RGB"));   // §14.9.30.4 GR1 — the connector's I-O status is updated
 
         // ── FORMAT 1 (sequential access): the pre-read conflict leg, SEQUENTIAL organization. ───────────────
@@ -282,9 +282,8 @@ public sealed class CobolFileLockTests
     {
         TwoOpenSharers("MA", "MB", "lk-mut.dat");
         CobolFile.SetRelativeKey("MA", 1);
-        string st = CobolFile.ReadKeyed("MA", -1, "", out _);
         Assert.Equal(FileStatusCode.Success,
-            CobolFile.ReadLockGovern("MA", st, FileRecordLock.WithLock, false, FileRetryKind.None, 0));   // MA locks record 1
+            CobolFile.ReadKeyedShared("MA", -1, "", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out _));   // MA locks record 1
         CobolFile.SetRelativeKey("MB", 1);
         // §14.9.35 GR11 — the record identified for rewriting is locked by another connector → 51 (not rewritten).
         Assert.Equal(FileStatusCode.RecordLocked,
@@ -420,7 +419,7 @@ public sealed class CobolFileLockTests
     /// could not fire.</para>
     /// </summary>
     [Fact]
-    public void ReadLockGovern_IgnoringLockWithNoLock_ReleasesThisConnectorsLock_AndReadsAnothersLockedRecord()
+    public void ReadKeyedShared_IgnoringLockWithNoLock_ReleasesThisConnectorsLock_AndReadsAnothersLockedRecord()
     {
         CobolFile.Init();
         const string host = "lk-ignore-nolock.dat";
@@ -439,8 +438,7 @@ public sealed class CobolFileLockTests
         string Read(string who, FileRecordLock retention, bool ignoring)
         {
             CobolFile.SetRelativeKey(who, 1);
-            string st = CobolFile.ReadKeyed(who, -1, "", out _);
-            return CobolFile.ReadLockGovern(who, st, retention, ignoring, FileRetryKind.None, 0);
+            return CobolFile.ReadKeyedShared(who, -1, "", retention, ignoring, FileRetryKind.None, 0, out _);
         }
 
         // ── GR11 b): IA locks record 1, then re-reads it IGNORING LOCK WITH NO LOCK ──

@@ -17,7 +17,7 @@ using Core = CobolParserCore;
 /// its WRITE/REWRITE twins; COBOLNET1818 for §14.9.30 SR3's IGNORING-LOCK/LOCK exclusion), and supplies the lock/RETRY services the
 /// verb binders thread into their bound nodes — READ/WRITE/REWRITE carry <c>Lock</c>+<c>Retry</c> (all
 /// organizations), DELETE RECORD / DELETE FILE carry <c>Retry</c> (§14.9.10 GR6/GR15) — which the emitters
-/// route through the runtime's governed entries (ReadLockGovern/ReadShared/WriteShared/RewriteShared/
+/// route through the runtime's governed entries (ReadShared/ReadKeyedShared/WriteShared/RewriteShared/
 /// DeleteShared). <c>BindRetry</c> stays a shared spine member on the host (OPEN consumes it directly).
 /// </summary>
 internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)

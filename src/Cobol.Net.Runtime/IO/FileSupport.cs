@@ -50,7 +50,7 @@ public enum FileLockMode
 /// bracket, which §5.2.6.1 makes an independent selection, so <c>READ … IGNORING LOCK WITH NO LOCK</c> is one
 /// legal statement that has to say BOTH things at once — a single enum member cannot. It travels beside this
 /// one as the <c>ignoringLock</c> argument of <see cref="CobolFile.ReadShared"/> /
-/// <see cref="CobolFile.ReadLockGovern"/>.</para></summary>
+/// <see cref="CobolFile.ReadKeyedShared"/>.</para></summary>
 public enum FileRecordLock
 {
     /// <summary>No phrase — the connector's LOCK MODE governs (AUTOMATIC auto-locks; MANUAL/None do not).</summary>

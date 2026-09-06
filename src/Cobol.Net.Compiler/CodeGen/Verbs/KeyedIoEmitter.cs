@@ -142,10 +142,13 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             default:
                 // Indexed Format 2: the key VALUE is the key field's current content in the record area
                 // (§14.9.30 GR32) — pass the area image; the connector slices the key-of-reference range.
+                // ⛔ ONE CALL, NOT A READ FOLLOWED BY A GOVERNANCE PATCH (kb/Work PB338): §14.9.30.4 GR10 a)/d)
+                // require the file position indicator and the key of reference to be UNCHANGED when the record
+                // operation conflict condition arises, so the governed entry has to own the retrieval and decide
+                // BEFORE it. It falls through to the plain read when the file is not sharing-active.
                 string keyImage = area is not null ? OperandText.RecordAreaImage(area) : "\"\"";
-                w.Line($"var {st} = {RuntimeApi.FileReadKeyed(name, rd.KeyIndex, keyImage, img)};");
                 var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
-                w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount)};");
+                w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, rd.KeyIndex, keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img)};");
                 break;
         }
         using (w.Block($"if ({st}[0] == '0')"))

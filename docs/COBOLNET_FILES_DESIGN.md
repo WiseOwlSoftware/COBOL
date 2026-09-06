@@ -645,15 +645,56 @@ skip-scan) began `if (… c is not SequentialConnector) return false;`, and the 
 the binder, edition-gated by `VersionConformancePass`, and read by nothing: a relative or indexed
 `READ … ADVANCING ON LOCK` answered `'51'`, the one status GR22 rules out (kb/Work PB340).
 
-**Why GR22 needs no pre-read peek, on any organization.** The obvious repair — give the keyed read the
-sequential arm's PRE-read governed entry — is the wrong half of the truth. A pre-read conflict check exists for
-one reason: GR10 a) requires the file position indicator to be UNCHANGED when the record operation conflict
-condition arises, and only the sequential walk can name the record it is about to deliver (its next ordinal) —
-a relative or indexed walk selects "the first existing record … greater than the file position indicator"
-(GR21) and learns which that is by reading it. But GR22 states the conflict condition **does not exist**, and
-its model is explicitly post-read: *"as if the locked record were read and then the same READ statement were
+**GR22 needs no pre-read peek, on any organization.** GR22 states the conflict condition **does not exist**,
+and its model is explicitly post-read: *"as if the locked record were read and then the same READ statement were
 executed"*. The locked record IS read and the position DOES advance; that is the rule, not a compromise. So the
-skip is one `continue` after the physical step, shared by all three organizations.
+skip is one `continue` after the physical step, shared by all three organizations, and it is the ONE arm of the
+governed read that takes no peek.
+
+**⛔ EVERY OTHER ARM DOES TAKE ONE, AND EVERY ORGANIZATION CAN ANSWER IT (corrected 2026-09-06, kb/Work
+PB338).** This decision used to argue that "only the sequential walk can name the record it is about to deliver
+— a relative or indexed walk selects *the first existing record … greater than the file position indicator*
+(GR21) and learns which that is by reading it." **That premise is false for these connectors.** A relative or
+indexed walk learns the record by SELECTING it out of an ordered in-memory store; the physical read is the
+COMMIT, not the discovery. `RelativeConnector.SelectSequentialSlot`, `IndexedConnector.SelectSequentialRecord`
+and `IndexedConnector.FindRandom` are that selection, extracted so the peek and the read share ONE copy of
+GR21/GR32 rather than the peek carrying a second. Because the premise was believed, the keyed READ ran the GR9
+conflict check AFTER the connector had already set `_fpi`/`_fpiKey`/`_readOrdinal`/`_refKey`, so a `'51'`
+answered with the position ALREADY ADVANCED — the next sequential READ silently skipped the record the failed
+one had been refused, and on an indexed random READ `_refKey` had been reassigned against GR10 d).
+
+Three general rules require the decision to precede the commit, and they are the same requirement three ways:
+GR10 a) *"The file position indicator is unchanged"*, GR10 d) *"The key of reference for indexed files is
+unchanged"*, and GR13 a) *"The I-O status associated with file-name-1 is updated and, **if the record operation
+conflict condition did not occur**, the file position indicator is set."* GR13 a) had been read as its
+unconditional half.
+
+**What '51' does NOT arm.** §14.9.30.4 GR18 — *"**Unless otherwise specified**, at the completion of any
+unsuccessful execution of a READ statement … the file position indicator is set to indicate that no valid record
+position has been established"* — is the DEFAULT, and GR10 a)/d) are its "otherwise specified". So a `'51'` does
+not arm §9.1.13.7 item 6's `'46'`: that status needs BOTH *"no valid next record has been established"* and one
+of its two causes, and GR10 a) leaves a valid next record established. Read the other way GR10 a) and GR10 d)
+would have no observable consequence anywhere, and a `'51'` on a sequential-ORGANIZATION file — which has no
+START to reposition with — would be unrecoverable.
+
+**What '53'/'54' DOES arm.** A §12.4.5.9.4 GR7 record-lock-ceiling denial is unsuccessful but is NOT the record
+operation conflict condition: GR9 defines that condition as *"the record identified for access is locked by
+ANOTHER file connector"*, where '53'/'54' are this connector's own lock COUNT. GR10 does not reach it, GR18
+applies in full, and the next sequential READ is `'46'`. That is why the ceiling is a PRE-FLIGHT
+(`FileRegistry.PreflightReadLock`, the shape WRITE and REWRITE already used) and why the denial calls
+`FileConnector.ApplyUnsuccessfulReadPosition()`: refusing after the physical step left a successfully advanced
+position wearing a failure status.
+
+**GR11 a) is tied to EXECUTION, not to success.** *"If single record locking is specified … any prior record
+lock associated with that file connector is released by the execution of the READ statement"* — and
+§12.4.5.9.4 GR6 says it for every verb: *"Execution of any I-O statement except START releases any previously
+locked record in that file for that file connector."* The standard qualifies deliberately where it means to, in
+the very same rule (GR11 b) *"at the completion of the successful execution"*, GR11 c)/d) *"a successfully
+accessed record"*). The release therefore fires at the TOP of both governed READ entries, before anything can
+make the statement unsuccessful — and §12.4.5.9.4 GR6 now lives in ONE place, `ReleasePriorRecordLocks`, which
+all four governed record verbs call; it had been written out four times and the READ copy alone sat on the
+success side of its caller's guard. START calls it from nowhere, which is §14.9.41.4 GR3: *"The execution of the
+START statement does not detect, acquire, or release record locks."*
 
 **The shape.** `FileRegistry.ReadShared(name, previous, phrase, advancingOnLock, ignoringLock, retry…, out image)`
 is the ONE governed Format-1 read and returns the **I-O status** (a record was made available iff it begins
@@ -662,15 +703,22 @@ place its rule is written:
 
 | member | rule |
 |---|---|
-| `ReadFormat1Step` | ONE physical NEXT/PREVIOUS retrieval on any organization — the step GR22 repeats |
-| `PeekFormat1RecordId` | GR9's pre-read conflict target where GR10 a) can be honoured; `""` where it cannot |
-| `ConflictOnLockedRecord` | GR9 + §14.7.9's RETRY, shared with the Format-2 `ReadLockGovern` |
+| `ReadFormat1Step` | ONE physical NEXT/PREVIOUS retrieval on any organization — the step GR22 repeats, and the COMMIT half of the split |
+| `FileConnector.PeekSequentialRecordId` | GR9's pre-read conflict target, overridden by ALL THREE organizations; `""` only when no record is identified |
+| `FileConnector.PeekRandomReadRecordId` | the same for Format 2 — GR29's RRN, GR32's key of reference — without establishing the key of reference (GR10 d) |
+| `ConflictOnLockedRecord` | GR9 + §14.7.9's RETRY — also §14.9.35.4 GR11 and §14.9.10.4 GR6, one rule worded three times |
+| `PreflightReadLock` | §12.4.5.9.4 GR7's ceiling, tested before the retrieval |
+| `ApplyPostReadLockActions` | GR11 b)/c)/d), the only lock actions that ARE conditioned on success |
+| `ReleasePriorRecordLocks` | §12.4.5.9.4 GR6 / §14.9.30.4 GR11 a), for all four governed verbs |
 
 `SequentialIoEmitter` renders it through `RuntimeApi.FileReadSharedOk`, which wraps the call in `[0] == '0'` so
-its bool contract is unchanged; `KeyedIoEmitter` renders `ReadKind.Next`/`Previous` through the same entry
-and keeps `ReadLockGovern` for the **Format-2** random read, where it is right: there is no next record to
-advance to and no ADVANCING phrase in that format. (The Format-2 post-read `'51'` still leaves the position
-advanced against GR10 a) — that is kb/Work PB338, untouched here and unaffected by this split.)
+its bool contract is unchanged; `KeyedIoEmitter` renders `ReadKind.Next`/`Previous` through the same entry.
+**Format 2 has its own governed entry, `FileRegistry.ReadKeyedShared`**, built to the same shape and for the
+same reason: it OWNS the physical retrieval so the GR9 check and the GR7 ceiling precede it. It replaced a
+post-read `ReadLockGovern` patch, and the emitter's two-call `FileReadKeyed` + `FileReadLockGovern` pair is now
+one call — nothing may render a bare keyed read and then adjust its status, because GR10 a)/d) cannot be
+delivered by an adjustment. ADVANCING ON LOCK is absent from Format 2 (§14.9.30.2, and §14.9.30.3 SR6 bars it
+under ACCESS MODE RANDOM), so that entry carries no advancing-on-lock argument.
 
 **The binder half came with it.** §14.9.30.3 SR9 implies NEXT under ACCESS DYNAMIC "if any of the following
 phrases is specified: **ADVANCING**, AT END, or NOT AT END", and `KeyedIoBinder.BindRead` tested two of the
