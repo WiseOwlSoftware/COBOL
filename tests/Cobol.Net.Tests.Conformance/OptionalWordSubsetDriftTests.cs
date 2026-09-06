@@ -427,6 +427,233 @@ public sealed class OptionalWordSubsetDriftTests
                STOP RUN.
     """;
 
+    // ── kb/Work PB695 family 3 ────────────────────────────────────────────────────────────────────────────────
+    // ALTERNATE RECORD KEY (§12.4.5.6.2). PDF p350 / folio 320: ALTERNATE, RECORD, SOURCE, DUPLICATES and
+    // SUPPRESS carry underline rectangles (94–96% cover); KEY (box 174.45–193.41), IS, WITH and WHEN (box
+    // 303.50–334.12) carry none. The four plain words are the slots. §12.4.5.6.4 GR6 withholds the ALTERNATE
+    // access path of a record whose alternate key equals literal-1, so the walk must skip 02/XX in EVERY
+    // spelling — a subset that quietly stopped applying the suppression would change the output, not just fail.
+    private const string AlternateSuppress = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWO.
+           ENVIRONMENT DIVISION.
+           INPUT-OUTPUT SECTION.
+           FILE-CONTROL.
+               SELECT F ASSIGN TO "opwo.dat"
+                   ORGANIZATION IS INDEXED ACCESS MODE IS DYNAMIC
+                   RECORD KEY IS R-KEY
+                   ALTERNATE RECORD {0} {1} R-ALT {2} DUPLICATES
+                       SUPPRESS {3} "XX"
+                   FILE STATUS IS WS-FS.
+           DATA DIVISION.
+           FILE SECTION.
+           FD F.
+           01 R.
+              05 R-KEY PIC X(2).
+              05 R-ALT PIC X(2).
+           WORKING-STORAGE SECTION.
+           01 WS-FS  PIC X(2).
+           01 WS-EOF PIC 9 VALUE 0.
+           PROCEDURE DIVISION.
+           MAIN.
+               OPEN OUTPUT F.
+               MOVE "01" TO R-KEY. MOVE "AA" TO R-ALT. WRITE R.
+               MOVE "02" TO R-KEY. MOVE "XX" TO R-ALT. WRITE R.
+               MOVE "03" TO R-KEY. MOVE "BB" TO R-ALT. WRITE R.
+               CLOSE F.
+               OPEN INPUT F.
+               MOVE LOW-VALUES TO R-ALT.
+               START F KEY IS >= R-ALT
+                   INVALID KEY CONTINUE
+               END-START.
+               PERFORM UNTIL WS-EOF = 1
+                   READ F NEXT
+                       AT END MOVE 1 TO WS-EOF
+                       NOT AT END DISPLAY "ALT=" R-KEY R-ALT
+                   END-READ
+               END-PERFORM.
+               CLOSE F.
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
+
+    // LOCK MODE (§12.4.5.9.2). PDF p355 / folio 325: LOCK (90.8%), the second LOCK (90.8%), ON (83.5%),
+    // MULTIPLE (95.0%), MANUAL, AUTOMATIC, RECORD and RECORDS carry rules; MODE (box 115.12–144.04),
+    // IS (146.38–155.14) and WITH (251.70–278.69) carry none. §12.4.5.9.4 GR3 makes the clause inert for a
+    // file opened in the sharing-with-no-other mode, so every spelling must round-trip the record identically.
+    private const string LockModeWords = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWP.
+           ENVIRONMENT DIVISION.
+           INPUT-OUTPUT SECTION.
+           FILE-CONTROL.
+               SELECT F ASSIGN TO "opwp.dat"
+                   ORGANIZATION IS INDEXED ACCESS MODE IS DYNAMIC
+                   RECORD KEY IS R-KEY
+                   LOCK {0} {1} AUTOMATIC {2} LOCK ON RECORD
+                   FILE STATUS IS WS-FS.
+           DATA DIVISION.
+           FILE SECTION.
+           FD F.
+           01 R.
+              05 R-KEY PIC X(2).
+              05 R-VAL PIC X(4).
+           WORKING-STORAGE SECTION.
+           01 WS-FS PIC X(2).
+           PROCEDURE DIVISION.
+           MAIN.
+               OPEN OUTPUT F.
+               MOVE "01" TO R-KEY.
+               MOVE "ABCD" TO R-VAL.
+               WRITE R.
+               CLOSE F.
+               OPEN I-O F.
+               MOVE "01" TO R-KEY.
+               READ F
+                   INVALID KEY DISPLAY "MISSING"
+                   NOT INVALID KEY DISPLAY "VAL=" R-VAL
+               END-READ.
+               DISPLAY "FS=" WS-FS
+               CLOSE F.
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
+
+    // DELETE FILE's exception phrases (§14.9.10.2 Format 2), written NEGATIVE-FIRST. PDF p635 / folio 605:
+    // EXCEPTION carries a rule in both phrases (95.5%) and NOT one (89.5%); NEITHER occurrence of ON has any.
+    // The file is never created, so §14.9.10.4 GR14 ("not present … successful … '05'") makes the NOT phrase
+    // the one that runs in every spelling.
+    private const string DeleteFileNotOn = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWQ.
+           ENVIRONMENT DIVISION.
+           INPUT-OUTPUT SECTION.
+           FILE-CONTROL.
+               SELECT F ASSIGN TO "opwq-absent.dat"
+                   ORGANIZATION IS SEQUENTIAL
+                   FILE STATUS IS WS-FS.
+           DATA DIVISION.
+           FILE SECTION.
+           FD F.
+           01 R PIC X(4).
+           WORKING-STORAGE SECTION.
+           01 WS-FS PIC X(2).
+           PROCEDURE DIVISION.
+           MAIN.
+               DELETE FILE F
+                   NOT {0} EXCEPTION DISPLAY "NOEXC"
+                   {1} EXCEPTION DISPLAY "EXC"
+               END-DELETE.
+               DISPLAY "FS=" WS-FS
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
+
+    // INVOKE's argument phrases (§14.9.23.2). PDF p681 / folio 651: REFERENCE (96.3%), CONTENT (95.4%) and
+    // VALUE (92.9%) carry rules; none of the three occurrences of BY does. §14.2.3 GR8 makes the BY REFERENCE
+    // store visible in the caller and §14.8.2.3.3 keeps the BY CONTENT copy private, so the two-line output is
+    // the observable that a mis-selected passing mode would change.
+    private const string InvokeByWords = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWR.
+           ENVIRONMENT DIVISION.
+           CONFIGURATION SECTION.
+           REPOSITORY.
+               CLASS OPWRC.
+           DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 O USAGE OBJECT REFERENCE OPWRC.
+           01 A PIC X(2) VALUE "11".
+           01 B PIC X(2) VALUE "22".
+           PROCEDURE DIVISION.
+           MAIN.
+               INVOKE OPWRC "NEW" RETURNING O
+               INVOKE O "MIX" USING {0} REFERENCE A {1} CONTENT B
+               DISPLAY "REF=" A
+               DISPLAY "CON=" B
+               DISPLAY "DONE"
+               STOP RUN.
+           END PROGRAM OPWR.
+
+           IDENTIFICATION DIVISION.
+           CLASS-ID. OPWRC.
+           IDENTIFICATION DIVISION.
+           OBJECT.
+           PROCEDURE DIVISION.
+
+           METHOD-ID. MIX.
+           DATA DIVISION.
+           LINKAGE SECTION.
+           01 LREF PIC X(2).
+           01 LCON PIC X(2).
+           PROCEDURE DIVISION USING LREF LCON.
+           M.
+               MOVE "AA" TO LREF
+               MOVE "BB" TO LCON
+               EXIT METHOD.
+           END METHOD MIX.
+
+           END OBJECT.
+           END CLASS OPWRC.
+    """;
+
+    // INHERITS (§11.3.2). PDF p294 / folio 264: INHERITS carries a rule (95.0%) and FROM's box 140.01–168.09
+    // carries none. ⛔ FROM is REQUIRED INSIDE the optional `[ INHERITS FROM … ]` group, so
+    // audit_grammar_optional_words.py structurally cannot report it (kb/Work PB715) — this row is the only
+    // mechanical guard the omission has. §11.3.4 GR1 gives the subclass its superclass's methods, so the
+    // inherited MIX must answer in both spellings.
+    private const string InheritsFromWord = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWS.
+           ENVIRONMENT DIVISION.
+           CONFIGURATION SECTION.
+           REPOSITORY.
+               CLASS OPWSD.
+           DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 O USAGE OBJECT REFERENCE OPWSD.
+           01 A PIC X(2) VALUE "11".
+           PROCEDURE DIVISION.
+           MAIN.
+               INVOKE OPWSD "NEW" RETURNING O
+               INVOKE O "MIX" USING A
+               DISPLAY "REF=" A
+               DISPLAY "DONE"
+               STOP RUN.
+           END PROGRAM OPWS.
+
+           IDENTIFICATION DIVISION.
+           CLASS-ID. OPWSB.
+           IDENTIFICATION DIVISION.
+           OBJECT.
+           PROCEDURE DIVISION.
+
+           METHOD-ID. MIX.
+           DATA DIVISION.
+           LINKAGE SECTION.
+           01 LREF PIC X(2).
+           PROCEDURE DIVISION USING LREF.
+           M.
+               MOVE "AA" TO LREF
+               EXIT METHOD.
+           END METHOD MIX.
+
+           END OBJECT.
+           END CLASS OPWSB.
+
+           IDENTIFICATION DIVISION.
+           CLASS-ID. OPWSD INHERITS {0} OPWSB.
+           ENVIRONMENT DIVISION.
+           CONFIGURATION SECTION.
+           REPOSITORY.
+               CLASS OPWSB.
+           IDENTIFICATION DIVISION.
+           OBJECT.
+           PROCEDURE DIVISION.
+           END OBJECT.
+           END CLASS OPWSD.
+    """;
+
     private static readonly FormatCase[] Formats =
     [
         new("use-format-1", "14.9.49.2 Format 1", 85, ["AFTER", "STANDARD", "PROCEDURE", "ON"], "OPWA", UseFormat1),
@@ -451,6 +678,17 @@ public sealed class OptionalWordSubsetDriftTests
             InitializeWords),
         new("value-when-set-to-false", "13.18.63.2 Format 3", 2002, ["IS", "WHEN", "SET", "TO", "IS"], "OPWN",
             ValueFalseWords),
+        // kb/Work PB695 family 3 — the last eight audit candidates plus the INHERITS sibling the audit is
+        // structurally blind to. The three DECLINED constructs family 3 also relaxed (APPLY COMMIT's ON,
+        // VALIDATE-STATUS's WHEN, ERASE's END and OF) cannot appear here — a subset row must COMPILE AND RUN,
+        // and those refuse by name — so they are pinned by the negative corpus instead
+        // (pb695-apply-commit-no-on, pb695-validate-status-no-when, pb695-erase-no-end-of).
+        new("alternate-suppress-when", "12.4.5.6.2", 2023, ["KEY", "IS", "WITH", "WHEN"], "OPWO",
+            AlternateSuppress),
+        new("lock-mode-words", "12.4.5.9.2", 2002, ["MODE", "IS", "WITH"], "OPWP", LockModeWords),
+        new("delete-file-not-on-exception", "14.9.10.2 Format 2", 2023, ["ON", "ON"], "OPWQ", DeleteFileNotOn),
+        new("invoke-by-words", "14.9.23.2", 2002, ["BY", "BY"], "OPWR", InvokeByWords),
+        new("inherits-from-word", "11.3.2", 2002, ["FROM"], "OPWS", InheritsFromWord),
     ];
 
     public static IEnumerable<object[]> Cases() => Formats.Select(f => new object[] { f.Name });

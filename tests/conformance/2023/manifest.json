@@ -10,6 +10,8 @@
   "pb338_read_lock_limit_position",
   "pb338_read_releases_prior_lock",
   "pb338_random_read_conflict_position",
+  "pb695_alternate_suppress_no_when",
+  "pb695_delete_file_not_exception_bare",
   "pb332_use_ec_after_optional",
   "pb350_return_at_end_required",
   "pb692_line_sequential_access_sequential",

@@ -39,8 +39,14 @@ factoryParagraph
       END FACTORY DOT
     ;
 
+// ⛔ FROM IS AN OPTIONAL WORD, AND NO AUDIT COULD SEE IT (kb/Work PB695 family 3 sibling sweep / PB715): a word
+// REQUIRED INSIDE an optional group never becomes an optional-word candidate, because the enclosing `( … )?`
+// already excuses it. MEASURED on printed page 294 / folio 264: INHERITS' box 90.94–136.92 carries a rule at
+// 92.40–136.05 (95.0% cover) while FROM's box 140.01–168.09 has NO rule in its band — so
+// `CLASS-ID. C INHERITS B.` is conforming source (§8.3.2.4.3) that this rule refused with COBOL0001. FROM is
+// §8.9-reserved at every edition, so it can never be a className and `FROM?` cannot mis-bind one.
 classIdParagraph
-    : CLASS_ID DOT className externalizedNamePhrase? (IS? FINAL)? (INHERITS FROM className+)? DOT
+    : CLASS_ID DOT className externalizedNamePhrase? (IS? FINAL)? (INHERITS FROM? className+)? DOT
     ;   // [AS literal-1] sits between object-class-name-1 and [IS FINAL] per the §11.3.2 format (kb/Work PB303); [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3 GR3 — bind-gated 0839).
         // INHERITS repetition PARSES per the §11.3.2 format (superset parse — P3 doctrine); v1 REJECTS 2+ bases
         // LOUDLY at pass-1 (COBOLNET0849; SSOT §18 #18 / A.4.10) — never a bare syntax error, never a silent drop.
@@ -78,7 +84,10 @@ interfaceDefinition
       // The INTERFACE-ID paragraph general format (§11.6.2) prints [AS literal-1] between interface-name-1
       // and the INHERITS clause; kb/Work PB303.
       externalizedNamePhrase?
-      (INHERITS FROM interfaceName+)? DOT
+      // FROM is an optional word here too — measured on printed page 298 / folio 268, where INHERITS carries a
+      // rule at 95.0% cover and FROM's box 139.98–168.06 carries none (§8.3.2.4.3; the same sweep that fixed
+      // classIdParagraph above — one rule, two sites, both measured rather than assumed from the other).
+      (INHERITS FROM? interfaceName+)? DOT
       optionsParagraph?    // §10.6.1 (kb/Work PB135; prototypes bind no bodies — the parse is the obligation)
       environmentDivision?
       (PROCEDURE DIVISION DOT methodDefinition*)?
@@ -169,10 +178,22 @@ invokeUsing
 // into, never what it MEANS. Narrowing the scan to the argument boundary would tighten a SHARED condition
 // predicate for a local reason — the DEVLOG-621 lesson — and would buy nothing the reduction does not already
 // guarantee.
+// ⛔ THREE ARMS, AND PB130 RELAXED ONLY ONE OF THEM (kb/Work PB695 family 3 — the repo's most reproducible
+// defect shape: a dispatch with two-or-more arms, one arm fixed). BY is un-underlined in ALL THREE printed
+// phrases, so `USING REFERENCE X` and `USING CONTENT X` are conforming source that reached COBOL0001 while
+// `USING VALUE N` already compiled. MEASURED on printed page 681 / folio 651, all three occurrences of BY:
+// boxes 325.97–336.30, 325.96–336.30 and 325.90–336.24 — NONE of them has a horizontal rule in its band,
+// while REFERENCE (96.3%), CONTENT (95.4%), VALUE (92.9%), OMITTED (95.0%), USING (92.8%) and RETURNING
+// (96.2%) all carry one. §8.3.2.4.3. The same shape is already spelled `BY?` in CALL's three phrases
+// (CobolParserCore.g4 callByReference / callByValue / callByContent) and in the procedure-division header
+// (CobolData.g4), so this brings the last copy into line rather than inventing a posture.
+// ⚠ NOTHING DOWNSTREAM KEYS ON `BY`: OoBinder.OoBindInvokeArg selects the passing mode from `arg.VALUE()`,
+// `arg.REFERENCE()` and `arg.CONTENT()` — the UNDERLINED words — and VersionConformancePass
+// .VisitInvokeArgument gates the boolean OPERATORS, not the phrase word. Verified by grep, not assumed.
 invokeArgument
     : BY? VALUE arithmeticExpression   // BY optional (kb/Work PB130 — only VALUE is underlined)
-    | BY REFERENCE dataReference
-    | BY CONTENT ({boolExprAhead()}? booleanExpression | literal | arithmeticExpression)
+    | BY? REFERENCE dataReference
+    | BY? CONTENT ({boolExprAhead()}? booleanExpression | literal | arithmeticExpression)
     | dataReference
     | literal
     ;

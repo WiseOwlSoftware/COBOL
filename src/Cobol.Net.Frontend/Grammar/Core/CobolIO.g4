@@ -106,9 +106,21 @@ sharingMode
 
 // COBOL-2002 LOCK MODE clause (ISO §12.4.5.9): MANUAL / AUTOMATIC (no EXCLUSIVE), with an optional
 // single/multiple record-lock granularity.
+// ⛔ MODE IS AN OPTIONAL WORD (§8.3.2.4.3; kb/Work PB695 family 3), so `LOCK IS MANUAL` and the bare
+// `LOCK MANUAL` are conforming source this rule used to refuse with COBOL0001. MEASURED on printed page 355 /
+// folio 325: LOCK's box 86.56–112.03 carries a rule at 87.96–111.07 (90.8% cover) while MODE's box
+// 115.12–144.04 has NO rule under it at all, and neither does IS. LOCK heads no other file-control clause, so
+// dropping MODE introduces no new prediction ambiguity. The COBOL-2002 introduction gate keys on the CLAUSE
+// (VersionConformancePass ParseArm.VisitLockModeClause), never on `ctx.MODE()`, so it survives the omission —
+// probed, `lock85-bare-gated` → COBOLNET0900.
 lockModeClause
-    : LOCK MODE IS? (MANUAL | AUTOMATIC) lockOnPhrase?
+    : LOCK MODE? IS? (MANUAL | AUTOMATIC) lockOnPhrase?
     ;
+// §12.4.5.9.2's second half: [ [WITH] LOCK ON [MULTIPLE] {RECORD | RECORDS} ]. WITH is un-underlined (measured
+// p355: its box 251.70–278.69 has no rule; the rule at 283.11–306.22 belongs to the LOCK that follows it).
+// ⚠ ON IS UNDERLINED THERE (83.5% cover) and MULTIPLE too (95.0%) — MULTIPLE is optional because the printed
+// format BRACKETS it, not because it is un-underlined, and `ON?` is an over-acceptance this change does not
+// take on (see the PB695 family-3 report's new-defect paragraph).
 lockOnPhrase
     : WITH? LOCK ON? MULTIPLE? (RECORD | RECORDS)
     ;
@@ -119,7 +131,8 @@ fileReserveClause
 
 // PADDING CHARACTER: PADDING [CHARACTER] IS {data-name-1 | literal-1} — the ANSI X3.23-1985 Sequential I-O
 // block-fill character. THE 2023 STANDARD HAS NO SUCH CLAUSE: the file control entry's clauses are
-// §12.4.5.4–§12.4.5.15 and none of them is PADDING (§12.4.5.9, which this comment once cited, is the LOCK MODE
+// §12.4.5.4 (the ACCESS MODE clause) through §12.4.5.15 (the SHARING clause) and none of them is PADDING
+// (§12.4.5.9, which this comment once cited, is the LOCK MODE
 // clause; kb/Work PB159), and the word occurs NOWHERE in the 2023 text — §8.9's list runs PACKED-DECIMAL → PAGE.
 // SUPERSET PARSE at every edition, gated post-bind from 2014 by VersionConformancePass ParseArm
 // .VisitPaddingCharacterClause (registry row `padding-character-removed-2014`, COBOLNET0902 — an error under
@@ -195,12 +208,19 @@ alternateKeyClause
       alternateKeySuppressWhen?
     ;
 
-// ISO §12.4.5.6.2 — SUPPRESS WHEN literal-1: alternate-key suppression (a COBOL-2023 addition). literal-1 is the
+// ISO §12.4.5.6.2 — SUPPRESS [WHEN] literal-1: alternate-key suppression (a COBOL-2023 addition). literal-1 is the
 // key suppression value: a record's alternate access path is withheld when the key equals literal-1 (§12.4.5.6.4
 // GR6). Fixed order — DUPLICATES precedes SUPPRESS. Parses at all editions (superset); introduction-gated at 2023
-// by VersionConformancePass ParseArm.VisitAlternateKeySuppressWhen (recognition-fire on this dedicated rule).
+// by VersionConformancePass ParseArm.VisitAlternateKeySuppressWhen (recognition-fire on this dedicated rule, NOT
+// on the WHEN token — so the gate survives the omission; probed, `alt85-suppress-bare-gated` → COBOLNET0900).
+// ⛔ WHEN IS AN OPTIONAL WORD (§8.3.2.4.3: an un-underlined uppercase word "may be specified at the user's option
+// with no effect on the semantics of the format"; kb/Work PB695 family 3). MEASURED on printed page 350 / folio
+// 320 off the PDF's vector rectangles, not read off the OCR: SUPPRESS carries a rule at x 254.17–299.45 under a
+// box of 252.66–300.40 (94.8% cover) and DUPLICATES one at 95.8%, while WHEN's box 303.50–334.12 has NO
+// horizontal rule anywhere in its band — the nearest ends 4 pt to its left. SUPPRESS stays the required anchor,
+// so the phrase can never match empty, and `literal` cannot begin with the WHEN token.
 alternateKeySuppressWhen
-    : SUPPRESS WHEN literal
+    : SUPPRESS WHEN? literal
     ;
 
 // ISO §12.4.5.8.2: only STATUS is a required keyword (FILE STATUS IS data-name-1, STATUS underlined);
@@ -660,11 +680,17 @@ unlockStatement
 // brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
 // The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
 // below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
+// ⛔ TWO ARMS, AND ONLY ONE OF THEM HAD BEEN RELAXED (kb/Work PB695 family 3). PB134 made ON optional in the
+// POSITIVE-first arm and left the NEGATIVE-first arm demanding it, so `DELETE FILE F NOT EXCEPTION …` — the same
+// omission, in the arm §5.2.6.4's choice indicators say is equally legal — stayed a COBOL0001. MEASURED on
+// printed page 635 / folio 605: in `[ ON EXCEPTION … ]` ON's box 101.42–115.69 has no rule (EXCEPTION's is at
+// 120.18–172.23, 95.5%), and in `[ NOT ON EXCEPTION … ]` NOT is underlined (89.5%) while its ON's box
+// 125.82–140.09 again has none. All four occurrences are therefore optional words (§8.3.2.4.3).
 deleteFileOnException
     : ON? EXCEPTION statementBlock
       (NOT ON? EXCEPTION statementBlock)?   // ON is not underlined (§5.2.3 optional word; kb/Work PB134)
-    | NOT ON EXCEPTION statementBlock
-      (ON EXCEPTION statementBlock)?
+    | NOT ON? EXCEPTION statementBlock
+      (ON? EXCEPTION statementBlock)?
     ;
 
 // ==========================================

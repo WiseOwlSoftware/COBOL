@@ -3,6 +3,9 @@
  "enabled": [
   "pb693-program-id-reserved-word",
   "pb703-collating-key-in-two-clauses",
+  "pb695-apply-commit-no-on",
+  "pb695-validate-status-no-when",
+  "pb695-erase-no-end-of",
   "pb695-crt-status-no-is",
   "pb695-cursor-no-is",
   "pb345-fd-no-record-clause",

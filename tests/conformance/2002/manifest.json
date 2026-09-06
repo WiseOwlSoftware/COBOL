@@ -5,6 +5,8 @@
     "pb713_shared_extend_open",
     "pb693_unlock_after_periodless_move",
     "pb703_collating_key_named_twice",
+    "pb695_lock_mode_optional_words",
+    "pb695_invoke_by_omitted",
     "pb695_code_set_for_omitted",
     "pb695_initialize_optional_words",
     "pb695_value_false_optional_words",

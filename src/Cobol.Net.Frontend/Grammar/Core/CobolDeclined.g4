@@ -185,9 +185,19 @@ validateVaryingSpec
 // no gate can reach it. Leaving that arm a word SINK rather than a text predicate is this file's declared
 // posture (permissive INSIDE the declined construct, exact at its edges — §4.2.7): the clause is refused as
 // a whole whichever arm matched, so no operand distinction is observable.
+//
+// ⛔ WHEN IS AN OPTIONAL WORD (§8.3.2.4.3; kb/Work PB695 family 3), so `VALIDATE-STATUS IS "E" ERROR FOR X` is
+// conforming source this rule used to refuse with COBOL0001 instead of the documented COBOLNET1708 refusal —
+// which is the whole point of a DECLINED construct's grammar being exact (§4.2.7): a declined feature must be
+// REFUSED BY NAME, never mis-diagnosed as a syntax error. MEASURED on printed page 543 / folio 513: WHEN's box
+// 312.75–343.36 has NO horizontal rule in its band, and neither does IS (already optional here), while ERROR
+// (93.3%), NO (83.5%) and ON (83.5%) all carry one. ERROR stays the required anchor of the phrase.
+// ⚠ WHEN IS UNDERLINED in the VALUE clause's format 5 (§13.18.63.2), whose `[ WHEN condition-1 ]` is a
+// DIFFERENT phrase on a different page — validateValidPhrase below keeps VALUE's WHEN required. Two formats,
+// two verdicts, both measured.
 validateStatusClause
     : (VALIDATE_STATUS | VAL_STATUS) IS? (literal | dataReference)
-      WHEN NO? ERROR (ON validateStatusStage+)? FOR dataReference+
+      WHEN? NO? ERROR (ON validateStatusStage+)? FOR dataReference+
     ;
 
 validateStatusStage
@@ -206,11 +216,18 @@ validateValidPhrase
     ;
 
 // ── A.4.3 item 2: the I-O-CONTROL paragraph's APPLY COMMIT clause.
-// ISO §12.4.6.3.2 — APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] …
-// APPLY, COMMIT and ON are all underlined (required words). The operand list is a repetition of an
-// all-optional pair, i.e. syntactically any mix of file-names and identifiers; both arrive as dataReference
-// here (file-name-1 and identifier-1 are indistinguishable without the symbol table, and §12.4.6.3.3 SR1-SR4,
-// which would tell them apart, are optional WITH the declined module).
+// ISO §12.4.6.3.2 — APPLY COMMIT [ON] [ [ file-name-1 ] [ identifier-1 ] ] …
+// ⛔ THIS COMMENT USED TO SAY "APPLY, COMMIT AND ON ARE ALL UNDERLINED", AND THAT WAS FALSE (kb/Work PB695
+// family 3). MEASURED on printed page 363 / folio 333: APPLY's box 145.21–175.84 carries a rule at
+// 143.99–177.13 (100% cover) and COMMIT's 180.64–224.64 one at 182.04–225.22 (96.8%), while ON's box
+// 228.49–243.51 has NO horizontal rule in its band at all — the nearest ends 3.3 pt to its left. ON is
+// therefore an OPTIONAL WORD (§8.3.2.4.3) and `APPLY COMMIT F1` reached COBOL0001 instead of the documented
+// COBOLNET1709 refusal. A declined construct's grammar must be EXACT at its edges (§4.2.6) precisely so the
+// refusal names the feature rather than the syntax.
+// The operand list is a repetition of an all-optional pair, i.e. syntactically any mix of file-names and
+// identifiers; both arrive as dataReference here (file-name-1 and identifier-1 are indistinguishable without
+// the symbol table, and §12.4.6.3.3 SR1-SR4, which would tell them apart, are optional WITH the declined
+// module). COMMIT stays the required anchor, so the clause can never match on APPLY alone.
 applyCommitClause
-    : APPLY COMMIT ON dataReference+
+    : APPLY COMMIT ON? dataReference+
     ;

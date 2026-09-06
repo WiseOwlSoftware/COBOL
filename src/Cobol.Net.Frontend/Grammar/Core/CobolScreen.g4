@@ -97,10 +97,19 @@ screenBlankClause
     : BLANK (LINE | SCREEN)
     ;
 
-// ERASE {END OF LINE | END OF SCREEN | EOL | EOS}   (§13.17.2 format 2 / §13.18.21.3 SR1: "The word EOL is
+// ERASE {[END] [OF] {LINE | SCREEN} | EOL | EOS}   (§13.17.2 format 2 / §13.18.21.3 SR1: "The word EOL is
 // equivalent to the words END OF LINE"). The two long spellings were missing and produced a parse error.
+// ⛔ END AND OF ARE OPTIONAL WORDS (§8.3.2.4.3; kb/Work PB695 family 3). MEASURED on printed page 429 / folio
+// 399: ERASE carries a rule at 92.2% cover, LINE 89.7%, SCREEN 94.0%, EOL 87.9% and EOS 87.5% — while BOTH
+// occurrences of END (boxes 127.54–148.05 and 127.53–148.03) and BOTH of OF (150.39–163.11 and 150.37–163.09)
+// have NO horizontal rule in their band at all. The transcription's own figure note agrees.
+// ⚠ THE BRACE IS STILL REQUIRED: LINE / SCREEN / EOL / EOS stays a mandatory choice (§5.2.6.3), so a bare
+// `ERASE` remains a parse error exactly as before — this relaxes the two words INSIDE the alternative, it does
+// not make the alternative empty. With END and OF gone the clause can open on LINE, which is also the head of
+// screenLineClause; that is unambiguous because ANTLR is deciding INSIDE screenEraseClause once ERASE is
+// consumed, and screenClause* only resumes after the alternative completes.
 screenEraseClause
-    : ERASE (END OF LINE | END OF SCREEN | EOL | EOS)
+    : ERASE (END? OF? (LINE | SCREEN) | EOL | EOS)
     ;
 
 // Screen attribute clauses
