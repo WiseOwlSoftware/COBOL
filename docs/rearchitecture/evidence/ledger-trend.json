@@ -396,6 +396,15 @@
       "dns": 365,
       "label": "Notes 10-11: PB779, PB781, P",
       "battery": null
+    },
+    {
+      "sha": "5bf5a7f1",
+      "date": "2026-09-06",
+      "gap": 2752,
+      "closed": 1596,
+      "dns": 365,
+      "label": "Train 21: DEVLOG 1569 + plan",
+      "battery": null
     }
   ]
 }
