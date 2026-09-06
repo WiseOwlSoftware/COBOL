@@ -178,28 +178,49 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         foreach (var (parent, cond) in set.Sets)
         {
             var (low, _) = cond.Values[0];   // SET TO TRUE stores the first VALUE (ISO §14.9.39 Format 5)
-            var pic = parent.Item.Pic;
+            // ⛔ THE ONE CATEGORY READER (DataItem.OperandPic — an elementary item's own PICTURE, a bit /
+            // national GROUP's §13.18.29.4 GR1b/GR2b as-if PICTURE 1(m) / N(m)), never raw `Pic`, which is NULL
+            // for every group. §14.9.39.4 GR6 names the population by name — "when the conditional variable is an
+            // alphanumeric group item, bit group item, or national group item …" — so all three group shapes are
+            // contemplated Format-4 subjects, and reading `Pic` sent every one of them to the loud default:
+            // MEASURED, `SET` over a national / bit group emitted `FromNat(NotImplemented.Value<string>(…))`
+            // (a runtime throw) and over an ORDINARY group emitted a bare `GA = <string>` that would not even
+            // compile (CS0029). kb/Work PB728.
+            var pic = parent.Item.OperandPic;
+            // An ORDINARY (alphanumeric) group has neither a PICTURE nor an as-if one: §8.8.4.2.1 treats it as an
+            // elementary ALPHANUMERIC data item, and its character-position count is its image width.
+            bool imageGroup = pic is null && parent.Item.IsGroup;
+            PicCategory? cat = pic?.Category ?? (imageGroup ? PicCategory.Alphanumeric : null);
+            int width = pic?.Length ?? parent.Item.ImageWidth;
             // A FIGURATIVE-word VALUE (SPACE/ZERO/QUOTE/HIGH-VALUE/LOW-VALUE, incl. ALL forms) fills the
             // conditional variable to its width (§8.3.3.6.4 GR2), not the WORD stored as characters — the
             // fill char is category-aware (national/boolean HIGH/LOW-VALUE = the D-N3 pin). '0' for boolean/
             // numeric ZERO. Only reaches the string categories here (numeric SET handles ZERO natively).
-            string? figFill = pic is { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
-                or PicCategory.National or PicCategory.Boolean } ? FigurativeWordFill(low, pic.Category) : null;
+            string? figFill = cat is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean ? FigurativeWordFill(low, cat.Value) : null;
             string rhs = figFill is not null
-                ? $"new string({figFill}, {pic!.Length})"
-                : pic?.Category switch
+                ? $"new string({figFill}, {width})"
+                : cat switch
             {
                 // National joins the character store (its 88-VALUE is the prefix-stripped N"…" text);
                 // a boolean parent stores its B"…" bits with the §14.6.8.6 zero pad.
                 PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
-                    RuntimeApi.StrStore(CsLiteral(CobolLiteral.Decode(low)), $"{pic.Length}"),
+                    RuntimeApi.StrStore(CsLiteral(CobolLiteral.Decode(low)), $"{width}"),
                 PicCategory.Boolean =>
-                    RuntimeApi.StrStoreBoolean(CsLiteral(CobolLiteral.Decode(low)), $"{pic.Length}", false),
+                    RuntimeApi.StrStoreBoolean(CsLiteral(CobolLiteral.Decode(low)), $"{width}", false),
                 PicCategory.Numeric =>
-                    ArithmeticEmitter.Narrow(RuntimeApi.NumStore(UnscaledAtScale(low, pic.Scale), $"{pic.Scale}", parent.Item.ProfileName), parent.Item),
-                _ => LoudValue("string", $"SET condition '{cond.Name}' over a group parent"),
+                    ArithmeticEmitter.Narrow(RuntimeApi.NumStore(UnscaledAtScale(low, pic!.Scale), $"{pic.Scale}", parent.Item.ProfileName), parent.Item),
+                _ => LoudValue("string", $"SET condition '{cond.Name}' over a '{parent.Item.CobolName}' of no category"),
             };
-            ctx.Writer.Line(PlaceRenderer.Write(parent, rhs));
+            // ⛔ An ORDINARY group receiver takes the value through THE ONE GROUP-IMAGE STORE, not a bare
+            // assignment: PlaceRenderer.Write's MemberPlace arm assigns the record struct, so handing it a string
+            // is the CS0029 above. §14.9.25.4 GR4 — a group receiver is "filled without consideration for the
+            // individual elementary or group items" — and §14.9.39.4 GR6's OCCURS-dependent length is exactly the
+            // §13.18.38 GR8 splice WriteGroupImage already carries. A bit / national group is NOT an image group:
+            // its as-if value is boolean positions / national positions, which Write routes to FromBits / FromNat.
+            ctx.Writer.Line(imageGroup
+                ? PlaceRenderer.WriteGroupImage(parent, rhs, $"SET condition '{cond.Name}' TO TRUE")
+                : PlaceRenderer.Write(parent, rhs));
         }
     }
 

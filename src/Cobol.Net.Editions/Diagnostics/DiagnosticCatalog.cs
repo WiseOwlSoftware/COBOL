@@ -653,7 +653,11 @@ public static class DiagnosticCatalog
         "ISO §8.5 / §13.18.60", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor NationalThroughRange = new(
         NotImplemented, "national-through-range", EditionSeverity.Error,
-        "A condition-name THROUGH range over a national conditional variable is not yet implemented.",
+        "A condition-name THROUGH range over a national conditional variable is not yet implemented — "
+        + "elementary OR a GROUP-USAGE NATIONAL group, which §8.8.4.2.1 makes \"an elementary national "
+        + "data item\" for comparison and §13.18.29.4 GR2b gives the as-if PICTURE N(m) "
+        + "(kb/Work PB728: the group shape used to slip this stage and be answered on the ALPHANUMERIC "
+        + "collating sequence instead).",
         "ISO §13.18.63 SR31", RecognizedNotImplemented);
 
     // ── COBOLNET0899 — PICTURE/USAGE staging ─────────────────────────────────────────────────────────

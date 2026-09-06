@@ -2587,10 +2587,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             // §13.18.63 SR29: THROUGH shall not be specified for a boolean conditional
                             // variable (0898). A national THROUGH range is spec-legal but orders under a
                             // NATIONAL alphabet (SR31) — recognized, staged (0899).
-                            if (parent.Pic is { Category: PicCategory.Boolean })
+                            // ⛔ EVERY guard in this method reads the ONE category reader, DataItem.OperandPic —
+                            // an elementary item's own PICTURE, a bit / national GROUP's §13.18.29.4 GR1b/GR2b
+                            // as-if PICTURE (1(m) / N(m)) — never raw `Pic`, which is NULL for every group.
+                            // §8.8.4.2.1 makes the antecedent real, not hypothetical: "A national group item or a
+                            // bit group item shall be treated as an elementary national data item or an
+                            // elementary bit data item, respectively", and §13.18.63.3 SR10 (reached from Format 3
+                            // by SR24) speaks by name of "the VALUE clause of a bit group item". Reading `Pic`
+                            // dropped every one of these screens on a group subject, so an 8-bit literal on a
+                            // 4-bit group compiled AND RAN and a national THROUGH range slipped through to codegen
+                            // and was then weighed on the ALPHANUMERIC table (kb/Work PB575 + PB728 — the binder
+                            // and codegen halves of ONE rule, landed together). An ORDINARY (alphanumeric) group
+                            // has no as-if PICTURE either, so it keeps exactly the behaviour it had.
+                            if (parent.OperandPic is { Category: PicCategory.Boolean })
                                 Edition.Error("COBOLNET0898", $"condition-name '{name}': THROUGH may not be "
                                     + "specified when the conditional variable is boolean (ISO §13.18.63 SR29)");
-                            else if (parent.Pic is { Category: PicCategory.National })
+                            else if (parent.OperandPic is { Category: PicCategory.National })
                                 Edition.Error(DiagnosticCatalog.NationalThroughRange, $"condition-name '{name}': a THROUGH range over "
                                     + "a national conditional variable (ordered by the national collating "
                                     + "sequence) is recognized but not yet implemented (Phase 4a residue) — "
@@ -2599,7 +2611,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             // category check and the stored value see the same text without double diagnostics.
                             string rawLo = RawValueOperandText(range.valueClauseOperand(0));
                             string rawHi = RawValueOperandText(range.valueClauseOperand(1));
-                            if (parent.Pic is { Category: not (PicCategory.Boolean or PicCategory.National) } rp)
+                            if (parent.OperandPic is { Category: not (PicCategory.Boolean or PicCategory.National) } rp)
                             {
                                 // §13.18.63 SR4/SR5/SR24→SR10: the VALUE literals' CATEGORY must match the
                                 // conditional variable's — the SAME funnel the item-entry VALUE uses. Their SIZE
@@ -2617,12 +2629,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             {
                                 // §13.18.63 SR4/SR5/SR24→SR10 (both directions): an N"…"/B"…" literal seeds
                                 // only its own category, and a national/boolean conditional variable takes only
-                                // its own literal form — the ONE canonical checker (0898 band). Group parents
-                                // (Pic null) are a separate leg.
+                                // its own literal form — the ONE canonical checker (0898 band). A bit /
+                                // national GROUP parent funnels here too, through its §13.18.29.4 GR1b/GR2b as-if
+                                // PICTURE (kb/Work PB575 + PB728); an ORDINARY (alphanumeric) group has neither a
+                                // PICTURE nor an as-if one and takes no category screen — that leg is §8.8.4.2.1's
+                                // "treated as an elementary alphanumeric data item", which any alphanumeric
+                                // literal already satisfies.
                                 // Fold ONCE (a §8.8.3 concat folds in RawValueOperandText) so the category
                                 // check and the stored value share one text without double diagnostics.
                                 string raw = RawValueOperandText(op);
-                                if (parent.Pic is { } sp)
+                                if (parent.OperandPic is { } sp)
                                     raw = ValidateValueCategory(sp, raw, $"condition-name '{name}'",
                                         ValueSubject.ForConditionName());
                                 cond.Values.Add((raw, null));

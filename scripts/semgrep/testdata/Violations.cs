@@ -32,4 +32,12 @@ public class Violations
 
     private enum Severity { Error }
     private static void Emit(Severity severity, string code, string message) { }
+
+    // A raw picture read where the operand's CATEGORY is being decided - null for every group, so a bit /
+    // national group silently takes the alphanumeric branch.
+    public bool ConditionCategory(FakeItem item) =>
+        item.Pic?.Category == 1;                                   // cobolnet-condition-category-from-raw-picture
+
+    public sealed class FakePic { public int Category; }
+    public sealed class FakeItem { public FakePic? Pic; public FakePic? OperandPic; }
 }

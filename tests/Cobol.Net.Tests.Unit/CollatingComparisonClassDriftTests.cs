@@ -132,46 +132,20 @@ public sealed class CollatingComparisonClassDriftTests : CobolNetTestBase
         }
     }
 
-    /// <summary>⛔ THE CATEGORY READER MAY NOT REGROW (kb/Work PB728). <c>DataItem.Pic</c> is null for EVERY group,
-    /// so reading a category off it silently reclassifies a bit / national GROUP — which §13.18.29.4 GR1b/GR2b make
-    /// elementary boolean / national items — as a category-less alphanumeric group. The ONE reader is
-    /// <c>OperandPic</c> (<c>Pic ?? AsIfPic</c>), reached through <c>StringCategoryOf</c>.
-    /// <para>Only four categories may still be tested through <c>Pic</c>, and only because no group can carry
-    /// them: object reference, pointer, program-pointer (the §8.8.4.2.14/.15/.16 identity relations) and numeric.
-    /// Plus ONE named exemption — <c>IsNationalOperand</c>'s field arm, the class-condition classification test,
-    /// whose national blind spot is a documented hole reported with PB741 and owned by the §8.8.4.4 mechanism.
-    /// A new <c>Pic?.Category</c> read on any other category turns this red, which is exactly the shape that made
-    /// a level-88 over a national group take the alphanumeric weight table.</para></summary>
-    [Fact]
-    public void NoNewCategoryRead_GoesThroughPic_WhereAGroupCanReachIt()
-    {
-        const string exemption = "BoundFieldOperand { Place.Item.Pic.Category: PicCategory.National } => true,";
-        string[] groupProofCategories =
-            ["PicCategory.ObjectReference", "PicCategory.Pointer", "PicCategory.ProgramPointer", "PicCategory.Numeric"];
-
-        var lines = File.ReadAllLines(Path.Combine(TestRepo.Root,
-            "src", "Cobol.Net.Compiler", "CodeGen", "Emit", "ConditionRenderer.cs"));
-        int exemptions = 0, checkedReads = 0;
-        for (int i = 0; i < lines.Length; i++)
-        {
-            string line = lines[i];
-            if (line.TrimStart().StartsWith("//", StringComparison.Ordinal)
-                || line.TrimStart().StartsWith("///", StringComparison.Ordinal))
-                continue;
-            if (!line.Contains("Item.Pic?.Category", StringComparison.Ordinal)
-                && !line.Contains("Item.Pic.Category", StringComparison.Ordinal))
-                continue;
-            if (line.Contains(exemption, StringComparison.Ordinal)) { exemptions++; continue; }
-            checkedReads++;
-            Assert.True(groupProofCategories.Any(c => line.Contains(c, StringComparison.Ordinal)),
-                $"ConditionRenderer.cs:{i + 1} reads a category through `Pic`, which is NULL for every group: "
-                + "`{line.Trim()}`. Read `OperandPic` (or StringCategoryOf) instead — §13.18.29.4 GR1b/GR2b make a "
-                + "bit / national group an elementary boolean / national item, and `Pic` cannot see that "
-                + "(kb/Work PB728).");
-        }
-        Assert.Equal(1, exemptions);      // the class-condition hole, and only it
-        Assert.True(checkedReads >= 4, $"expected the four group-proof category tests, found {checkedReads}");
-    }
+    // ⛔ THE CATEGORY READER MAY NOT REGROW — and the invariant that says so LIVES IN semgrep, not here.
+    // `NoNewCategoryRead_GoesThroughPic_WhereAGroupCanReachIt` used to scan ConditionRenderer.cs for raw
+    // `Item.Pic?.Category` reads, permitting four group-proof categories (object reference, pointer,
+    // program-pointer, numeric) plus ONE named exemption: `IsNationalOperand`'s field arm, the class-condition
+    // classification test, whose national blind spot this file documented as a hole owned by the §8.8.4.4
+    // mechanism. kb/Work PB728's landing CLOSED that hole and routed the four group-proof tests through
+    // `OperandPic` as well, so ConditionRenderer.cs now contains ZERO raw picture category reads — and the rule
+    // became ABSOLUTE. An absolute source-text rule is a semgrep invariant in this project (one mechanism per
+    // job): `cobolnet-condition-category-from-raw-picture` in scripts/semgrep/invariants.yml, scoped to that
+    // file, with a deliberate violation in scripts/semgrep/testdata/Violations.cs and verified by
+    // scripts/semgrep/verify.py on every gate. A second text scanner here would be the weaker copy of it — this
+    // file keeps the BEHAVIOURAL facts (the category matrix, the two classifiers' disagreement, the identity
+    // relations, and the two end-to-end shapes) and `ConditionNameSubjectClassDriftTests` keeps the
+    // group-vs-elementary agreement facts.
 
     /// <summary>END TO END, over the NC215A shape. <c>ALPHABET AL IS "9"</c> puts '9' at ordinal position 1 and,
     /// by §12.3.7.4 GR7 k)3 ("Any characters of the native collating sequence that are not specified in the literal

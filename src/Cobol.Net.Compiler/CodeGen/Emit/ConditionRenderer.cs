@@ -84,17 +84,16 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// CLASSIFICATION (§8.8.4.4.4 GR3 b1/c1/d1). ⛔ It is NOT the comparison-class rule: every relation surface
     /// asks <c>CollatingSelection.ForComparison</c> over BOTH operands' <c>OperandPic</c> categories
     /// (<see cref="StringCategoryOf"/>). Folding a one-operand test onto a two-operand question is kb/Work PB741.
-    /// <para>⚠ KNOWN HOLE, reported with PB741 and not fixed here (a different rule, a different mechanism): this
-    /// reads <c>Pic</c>, so a national GROUP (whose §13.18.29.4 GR2b as-if PICTURE lives on <c>OperandPic</c>), a
-    /// national ref-mod slice and a national function result all answer FALSE and take the ALPHANUMERIC
-    /// classification. Fixing it belongs with the §8.8.4.4 class-condition mechanism, with its own goldens.</para>
-    /// </summary>
-    private static bool IsNationalOperand(BoundOperand op) => op switch
-    {
-        BoundStringLiteral { Category: PicCategory.National } => true,
-        BoundFieldOperand { Place.Item.Pic.Category: PicCategory.National } => true,
-        _ => false,
-    };
+    /// <para>It asks <see cref="StringCategoryOf"/> — THE ONE category reader — and never a raw <c>Pic</c>. The
+    /// private two-case copy this replaced read the raw PICTURE category of <c>Place.Item</c>, which is NULL for
+    /// every group, so a GROUP-USAGE NATIONAL operand answered "not national" and took the ALPHANUMERIC
+    /// classification phrase where its elementary twin took the national one (kb/Work PB728 arm 15; PB741
+    /// reported the same hole here and left it for this mechanism). ISO §8.8.4.2.1: "A national group item or a
+    /// bit group item shall be treated as an elementary national data item or an elementary bit data item,
+    /// respectively", and §13.18.29.4 GR2b puts that as-if PICTURE on <c>OperandPic</c>. Reading the ONE reader
+    /// also picks up the ref-modified (§8.4.3.3.4 GR6) and function-result operands the two-case copy could not
+    /// see.</para></summary>
+    private static bool IsNationalOperand(BoundOperand op) => StringCategoryOf(op) is PicCategory.National;
     // A user-defined class (§8.8.4.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
         ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition)}, {EmitText.CsLiteral(n.Members)})"
@@ -131,14 +130,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // below would materialize NULL against a width — nonsense for references. The only legal operand
         // shapes reached here are an object-reference field and the NULL figurative (bind-checked, 0868);
         // C# implicit upcasts cover typed-vs-universal mixes (both are CobolObject-rooted).
-        // ⛔ THE NEXT THREE TESTS READ `Pic`, NOT `OperandPic`, AND THAT IS STATED RATHER THAN ASSUMED
-        // (kb/Work PB728's sweep): `OperandPic` is `Pic ?? AsIfPic`, and the only AS-IF pictures that exist are
-        // §13.18.29.4 GR1b/GR2b's — a BIT group's (category boolean) and a NATIONAL group's (category national).
-        // No group can therefore carry ObjectReference, Pointer or ProgramPointer, so the two readers cannot
-        // disagree here. Every category read that a group CAN reach uses `StringCategoryOf`/`OperandPic`, and
-        // CollatingComparisonClassDriftTests keeps a new `Pic?.Category` from appearing on a reachable one.
+        // ⛔ THE ONE CATEGORY READER (DataItem.OperandPic) here as everywhere in this file — never raw `Pic`,
+        // which is NULL for every group and so silently answers "no category" for a bit / national GROUP
+        // (kb/Work PB728). For the three reference categories the two readers agree BY CONSTRUCTION, and that is
+        // stated rather than assumed: `OperandPic` is `Pic ?? AsIfPic`, and the only as-if pictures that exist
+        // are §13.18.29.4 GR1b/GR2b's — a BIT group's (category boolean) and a NATIONAL group's (category
+        // national) — so no group can carry ObjectReference, Pointer or ProgramPointer. Reading the ONE reader
+        // here is therefore uniformity, not a behaviour change, and it is what lets the drift rule
+        // (scripts/semgrep, cobolnet-condition-category-from-raw-picture) forbid a raw PICTURE read outright in
+        // this file, with CollatingComparisonClassDriftTests pinning the comparison-class matrix beside it.
         static bool IsObj(BoundOperand o) =>
-            o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ObjectReference;
+            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.ObjectReference;
         if (IsObj(r.Left) || IsObj(r.Right))
         {
             static string ObjRead(BoundOperand o) => o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "null";
@@ -149,7 +151,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // the NULL figurative renders as the null carrier). Before the figurative branch (NULL must not
         // width-materialize against a pointer).
         static bool IsPtr(BoundOperand o) =>
-            o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.Pointer;
+            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.Pointer;
         if (IsPtr(r.Left) || IsPtr(r.Right))
         {
             static string PtrRead(BoundOperand o) => o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "null";
@@ -159,7 +161,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // Program-pointer relations (P10 Step 7; §8.8.4.2.16 — ProgramPointer.SameTarget: both-NULL / the same
         // program's identity; the NULL figurative renders as the Null carrier — a struct, never C# null).
         static bool IsPp(BoundOperand o) =>
-            o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ProgramPointer;
+            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.ProgramPointer;
         if (IsPp(r.Left) || IsPp(r.Right))
         {
             static string PpRead(BoundOperand o) =>
@@ -453,10 +455,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     private string RenderClass(BoundClassCondition c)
     {
         var fld = c.Operand as BoundFieldOperand;
-        // `Pic`, not `OperandPic`, and safely so: the only as-if pictures are a bit group's (boolean) and a
-        // national group's (national) — §13.18.29.4 GR1b/GR2b — so no GROUP is ever category Numeric and the
-        // two readers cannot disagree here (kb/Work PB728's sweep, stated rather than assumed).
-        bool numericCategory = fld?.Place.Item.Pic?.Category is PicCategory.Numeric;
+        // The ONE category reader (see IsObj above), and the two readers agree here by construction: no GROUP is
+        // ever category NUMERIC — a bit / national group's as-if PICTURE is 1(m) / N(m) (§13.18.29.4 GR1b/GR2b)
+        // and an alphanumeric group has none — so this reads identically to the raw PICTURE it replaced (stated,
+        // not assumed) and keeps the drift rule's "no raw PICTURE read in this file" absolute.
+        bool numericCategory = fld?.Place.Item.OperandPic?.Category is PicCategory.Numeric;
         bool numericField = numericCategory && fld!.Place is not RedefViewPlace && !fld.Place.Item.StoreAsImage;
         // The complement, minus the ref-mod shape: a numeric leaf whose storage IS a character window.
         bool windowedNumeric = numericCategory && fld!.Place is not (RefModPlace or TableAllPlace)
@@ -467,7 +470,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         string arg = OperandText.AsString(c.Operand, num, sending: SendingRef.ClassCondition);
         string numericTest = windowedNumeric
             ? RuntimeApi.NumIsNumericImage(PlaceRenderer.Read(fld!.Place), fld.Place.Item.ProfileName)
-            : numericCategory && fld!.Place.Item.Pic is { Signed: true } sp
+            : numericCategory && fld!.Place.Item.OperandPic is { Signed: true } sp
             ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")})"
             // §8.8.4.4.4 GR3 n)2 — a NON-numeric-category operand (alphanumeric / edited / national) is numeric iff
             // its content "consists entirely of the characters 0, 1, 2, …, 9", with no operational sign admitted.
@@ -489,10 +492,21 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     private string RenderCondition88(BoundCondition88 c)
     {
-        // OPERAND picture (§13.18.29.4 GR1b/GR2b), the ONE category reader — not `Pic`. Byte-identical today
-        // (`IsGroup` already covers a bit / national group), but for the RIGHT reason: those groups are class
-        // boolean / national, not "a group we happen to render as a string" (kb/Work PB728).
-        bool isString = c.Parent.Item.IsGroup || c.Parent.Item.OperandPic?.Category is PicCategory.Alphanumeric
+        // ⛔ ONE CLASSIFICATION OF THE CONDITIONAL VARIABLE, computed HERE and shared by its IMAGE and by its
+        // comparison rules (kb/Work PB728). ISO §8.8.4.5.3 GR2 — "The rules for comparing a conditional variable
+        // with a condition-name value are the same as those specified for relation conditions" — so the variable
+        // is classified by exactly the reader every relation surface uses, StringCategoryOf over the OPERAND
+        // picture (§13.18.29.4 GR1b/GR2b). The two halves USED TO DISAGREE: the operand text came from this
+        // reader (a national group rendered `.AsNat()`) while the collating sequence came from the parent's raw
+        // PICTURE category, which is null for every group — so the national image was weighed on the ALPHANUMERIC
+        // table. Deriving it once and PASSING it down is why a future arm cannot re-derive a second answer.
+        var subject = new BoundFieldOperand(c.Parent);
+        var cat = StringCategoryOf(subject);
+        // ISO §8.8.4.2.1: an ALPHANUMERIC group item is compared as an elementary alphanumeric data item. It has
+        // no PICTURE and no as-if PICTURE, so `cat` is null for it and CollatingSelection.ForComparison(null,
+        // null) is the documented alphanumeric branch — the IsGroup disjunct here is only about taking the
+        // character IMAGE rather than the record struct.
+        bool isString = c.Parent.Item.IsGroup || cat is PicCategory.Alphanumeric
             or PicCategory.NumericEdited or PicCategory.National or PicCategory.Boolean;
         // ISO §8.8.4.5 GR2: a condition-name test compares the conditional variable by the RELATION-CONDITION rules, so
         // the variable is rendered as a comparison operand exactly as a relation condition renders it — an alphanumeric
@@ -502,8 +516,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // A NUMERIC conditional variable goes through the ONE numeric read path (NumericRenderer.FieldNum) — a
         // whole-group-aliased / Tier-B-view leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay,
         // never compare its raw image to an unscaled long (diagnosis B3).
-        string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent), num) : num.FieldNum(c.Parent).Expr;
-        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High, c.CheckRangeInvalid));
+        string read = isString ? OperandText.AsString(subject, num) : num.FieldNum(c.Parent).Expr;
+        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, cat, isString, v.Low, v.High, c.CheckRangeInvalid));
         return "(" + string.Join(" || ", tests) + ")";
     }
 
@@ -511,8 +525,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// When <paramref name="checkRangeInvalid"/> and the range is alphanumeric/national (§14.7.8 rule 2), the range
     /// test routes through <c>CobolString.ThruMember</c> which sets the nonfatal EC-RANGE-INVALID for an inverted
     /// range (lo collating after hi) and treats it as empty.</summary>
-    private string RenderMembershipTest(string read, DataItem parent, bool isString, string low, string? high,
-        bool checkRangeInvalid = false)
+    private string RenderMembershipTest(string read, DataItem parent, PicCategory? cat, bool isString, string low,
+        string? high, bool checkRangeInvalid = false)
     {
         if (isString)
         {
@@ -528,11 +542,10 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // edited ⇒ alphanumeric, SR5 national/national-edited ⇒ national, SR10 boolean ⇒ boolean), so the
             // pair is the variable's category twice — this is a case where one category legitimately answers
             // for both, and it is stated rather than assumed.
-            // ⛔ OPERAND picture, not Pic: a national / bit GROUP conditional variable carries its §13.18.29.4
-            // GR2b/GR1b as-if PICTURE on OperandPic and has Pic null, so reading Pic handed a national group the
-            // ALPHANUMERIC weight table and lost a bit group's boolean-zero pad (kb/Work PB741 sweep — the same
-            // accessor CollateArgFor's own contract already required).
-            var cat = parent.OperandPic?.Category;
+            // ⛔ `cat` ARRIVES from RenderCondition88's ONE classification — it is NOT re-derived here, and in
+            // particular never from the parent's raw PICTURE, which is null for every group: that read handed a
+            // GROUP-USAGE NATIONAL 88 the ALPHANUMERIC weight table while its operand text was already
+            // `.AsNat()`, and lost a bit group's boolean-zero pad (kb/Work PB728 / PB741).
             string collate = ctx.CollateArgFor(cat, cat);
             string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
             string lo = StringMembershipExpr(low, parent);
@@ -541,20 +554,27 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // §14.7.8 rule 2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
             // nonfatal EC-RANGE-INVALID for an inverted range, then treats it as empty — the empty behaviour is
             // otherwise emergent from the inclusive test). Boolean/other categories keep the inline byte-identical form.
-            if (checkRangeInvalid && cat is PicCategory.Alphanumeric or PicCategory.National)
+            // The class that governs the COMPARISON, not the raw category — the same pair rule the collate
+            // argument above asks (§8.8.4.5.3 GR2; the pair is the variable's category twice, as stated there).
+            // ForComparison(null, null) is the ALPHANUMERIC branch (an ordinary group item, ISO §8.8.4.2.1), so
+            // an alphanumeric GROUP's 88 range now reaches §14.7.8 rule 2's exception exactly as its elementary
+            // twin does. Boolean and numeric ranges keep the inline byte-identical form (§14.7.8 rule 1 sets no
+            // exception; a boolean subject may not carry THROUGH at all, §13.18.63.3 SR29).
+            if (checkRangeInvalid
+                && CollatingSelection.ForComparison(cat, cat) is CollatingClass.Alphanumeric or CollatingClass.National)
                 return RuntimeApi.ThruMember(read, lo, hi, collate);
             return $"(CobolString.Compare({read}, {lo}{pad}{collate}) >= 0 && CobolString.Compare({read}, {hi}{pad}{collate}) <= 0)";
         }
         // A float (COMP-1/2/FLOAT-*) conditional variable: `read` is the native double `(double)(X)`, so the VALUE
         // literal must render as a native double too — NOT scaled-integer at the float item's Scale 0, which would
         // DROP the fraction (88 IS-HALF VALUE 0.5 became `== 0L`, the exact-inverse membership bug). (D16 review.)
-        if (parent.Pic is { IsFloat: true })
+        if (parent.OperandPic is { IsFloat: true })
         {
             string loF = FloatMembershipValue(low);
             if (high is null) return $"{read} == {loF}";
             return $"({read} >= {loF} && {read} <= {FloatMembershipValue(high)})";
         }
-        int scale = parent.Pic?.Scale ?? 0;
+        int scale = parent.OperandPic?.Scale ?? 0;
         string loN = NumericMembershipValue(low, scale);
         if (high is null) return $"{read} == {loN}";
         return $"({read} >= {loN} && {read} <= {NumericMembershipValue(high, scale)})";
@@ -584,7 +604,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// <see cref="StringMembershipValue"/> as a string literal.</summary>
     private string StringMembershipExpr(string raw, DataItem parent)
     {
-        if (parent.Pic is { LocaleEdit: not null } lpic
+        if (parent.OperandPic is { LocaleEdit: not null } lpic
             && !raw.StartsWith('"') && !raw.StartsWith('\'')
             && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
             return RuntimeApi.LocaleEditCompose(lpic, uv, sc, parent.BlankWhenZero);
@@ -593,8 +613,15 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     private string StringMembershipValue(string raw, DataItem parent)
     {
-        int width = parent.Pic?.Length ?? parent.ImageWidth;
-        if (parent.Pic is { Category: PicCategory.NumericEdited } npic
+        // ⛔ THE ONE READER for the WIDTH too (kb/Work PB728). ISO 8.3.3.6.4 GR2 repeats a figurative /
+        // ALL literal to the conditional variable's CHARACTER-POSITION count, and 13.18.29.4 GR1b/GR2b says what
+        // that count is for a group operating as an elementary item: the as-if PICTURE's 1(m) boolean positions
+        // or N(m) national positions. Raw `Pic` is null for every group, so the fallback ImageWidth answered in
+        // the group's STORAGE unit - measured: `88 GB-ALL1 VALUE ALL B"1"` on a 3-bit GROUP-USAGE BIT group
+        // repeated to ONE position (its one byte of storage) and answered FALSE where the elementary twin
+        // answered TRUE. ImageWidth remains the fallback for an ORDINARY group, whose positions ARE characters.
+        int width = parent.OperandPic?.Length ?? parent.ImageWidth;
+        if (parent.OperandPic is { Category: PicCategory.NumericEdited } npic
             && ValueInitializer.EditedImageOfNumericValue(ctx, parent, npic, raw) is { } edited)
             return edited;
         return EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width)
@@ -625,14 +652,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     /// <summary>The statically known fraction-digit count of a relation operand — a numeric literal's digits
     /// right of the decimal point, a field's declared scale (a numeric-edited comparand cannot appear in a
-    /// NUMERIC relation, so the bare <c>Pic.Scale</c> suffices) — 0 when the shape carries no static scale,
+    /// NUMERIC relation, so the bare <c>PicInfo</c> scale suffices) — 0 when the shape carries no static scale,
     /// which is exactly the former blanket behavior. Feeds the OTHER side's working-scale request (fix-queue
     /// PB60 / RV-15.68.4-1): over-asking is safe (the Int128-headroom cap binds), under-asking was the
     /// measured relation-agrees-with-a-truncated-value defect.</summary>
     private static int StaticScaleOf(BoundOperand op) => op switch
     {
         BoundNumericLiteral nl => nl.Text.IndexOfAny(['.', ',']) is >= 0 and var dp ? nl.Text.Length - dp - 1 : 0,
-        BoundFieldOperand f => f.Place.Item.Pic?.Scale ?? 0,
+        BoundFieldOperand f => f.Place.Item.OperandPic?.Scale ?? 0,
         _ => 0,
     };
 }

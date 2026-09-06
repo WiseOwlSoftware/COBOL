@@ -124,3 +124,24 @@ rules:
     # pattern (verified: matched nothing, including on a deliberate violation). Regex over the declaration header
     # is the form that actually fires.
     pattern-regex: '(?m)^[^\n]*\brecord\s+(?:struct\s+)?Bound[A-Za-z0-9_]*\s*\([^)]*\bstring\s+[A-Za-z0-9_]*(?:Text|Csharp|CSharp|Rendered|Fragment)\b'
+  # -- One category reader for a condition operand (ISO 8.8.4.2.1; kb/Work PB728 / PB575) ---------------------
+  - id: cobolnet-condition-category-from-raw-picture
+    languages: [csharp]
+    severity: ERROR
+    message: >-
+      ISO 8.8.4.2.1 - "A national group item or a bit group item shall be treated as an elementary national data
+      item or an elementary bit data item, respectively" - and 8.8.4.5.3 GR2 routes a condition-name test through
+      the same rules. `DataItem.Pic` is NULL for EVERY group, so a raw picture read here silently answers "no
+      category" for a bit / national group and the comparison drops to the alphanumeric collating sequence while
+      the operand TEXT is already the group's as-if image. Read `DataItem.OperandPic` (an elementary item's own
+      PICTURE, a bit / national group's 13.18.29.4 GR1b/GR2b as-if PICTURE) - in this file, through
+      `StringCategoryOf`, THE ONE category reader. Measured before this rule existed: a GROUP-USAGE NATIONAL 88
+      answered the OPPOSITE of its elementary twin, and a GROUP-USAGE BIT 88 lost 8.8.4.2.8's boolean-zero
+      right-extension. The behavioural twin of this rule is
+      Cobol.Net.Tests.Unit.ConditionNameSubjectClassDriftTests.
+    paths:
+      include:
+        - "src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs"
+    # `Pic` reached as a member, in any of the three C# spellings (`x.Pic?.`, `x.Pic.`, `x.Pic is { ... }`). The
+    # negative lookbehind is what keeps `OperandPic` - the CORRECT reader - from matching its own suffix.
+    pattern-regex: '(?<![A-Za-z0-9_])Pic(\?\.|\.|\s+is\s+\{)'

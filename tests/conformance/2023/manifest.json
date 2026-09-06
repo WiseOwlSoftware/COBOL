@@ -527,7 +527,8 @@
   "pb683_open_sharing_read_only",
   "pb683_open_sharing_no_other",
   "pb683_write_advancing_governed",
-  "pb339_into_current_record"
+  "pb339_into_current_record",
+  "pb728_condition_name_group_subject_class"
  ],
  "pending": [
   "pb485_value_only_format1"

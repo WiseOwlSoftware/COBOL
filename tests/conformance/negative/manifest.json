@@ -852,7 +852,10 @@
   "pb699-relative-key-not-unsigned-integer",
   "pb699-record-key-outside-record",
   "pb699-alternate-key-outside-record",
-  "pb699-indexed-no-record-key-entry-only"
+  "pb699-indexed-no-record-key-entry-only",
+  "pb728-cond-name-bit-group-through",
+  "pb575-cond-name-bit-group-alnum-value",
+  "pb575-cond-name-national-group-alnum-value"
  ],
  "pending": []
 }

@@ -520,6 +520,35 @@ SPACE where §14.6.8.6 requires the value be "transferred … into the correspon
 receiving data item, with zero fill or truncation to the right". One rule, two arms, nine files apart, and the
 list named only the classifier (`RefModPlace.Category`) that made the units disagree.
 
+⛔ **And the CONDITION-NAME path — five more sites the list omitted, the origin of [[PB728]] + [[PB575]]
+(LANDED).** The list named "`ConditionBinder`'s comparison class" and stopped there, so the level-88 path kept
+raw `Pic` in both phases and in both directions. ISO §8.8.4.5.3 2) routes a condition-name test through the
+relation-condition rules, and §8.8.4.2.1's group sentence — "A national group item or a bit group item shall be
+treated as an elementary national data item or an elementary bit data item, respectively" — is what those rules
+then say, so the SUBJECT'S CLASS selects §8.8.4.2.9 / §8.8.4.2.8 / §8.8.4.2.7 for a group exactly as for an
+elementary item. The five:
+
+- `ConditionRenderer.RenderMembershipTest` — the COLLATING SEQUENCE and the boolean `pad: '0'`. Measured: a
+  `GROUP-USAGE NATIONAL` 88 rendered a national image (`.AsNat()`) weighed on the ALPHANUMERIC table and answered
+  the OPPOSITE of its elementary twin; a `GROUP-USAGE BIT` 88 lost §8.8.4.2.8's right zero extension. The category
+  is now classified ONCE in `RenderCondition88` (through `StringCategoryOf`, which reads `OperandPic`) and passed
+  down, so the operand's TEXT and its comparison RULES can no longer disagree about what the operand is.
+- `ConditionRenderer.StringMembershipValue` — the figurative WIDTH. `Pic?.Length ?? ImageWidth` fell back to the
+  group's STORAGE unit, so `88 GB-ALL1 VALUE ALL B"1"` on a 3-bit group repeated to ONE position; §8.3.3.6.4 GR2
+  wants the as-if PICTURE's character-position count.
+- `ConditionRenderer.IsNationalOperand` — a private two-case copy of the class rule, feeding the `EVALUATE … THRU`
+  range membership and the `__CLASSIFY` argument. It is now `StringCategoryOf(op) is PicCategory.National`.
+- `DataBinder.BindCondition` — all four Format-3 guards (the §13.18.63.3 SR29 boolean THROUGH ban, the national
+  THROUGH stage, and both category funnels). [[PB575]]: the group leg slipped every one of them.
+- `SetEmitter.EmitSet` — the WRITE side, §14.9.39.4 6), which names the population outright: "when the conditional
+  variable is an alphanumeric group item, bit group item, or national group item …". All three fell to the loud
+  default; the ordinary-group arm emitted a bare struct assignment from a string and did not even compile.
+
+`ConditionRenderer.cs` now has **zero** raw picture reads, held there by the semgrep invariant
+`cobolnet-condition-category-from-raw-picture`; the behavioural twin is
+`Cobol.Net.Tests.Unit.ConditionNameSubjectClassDriftTests`, which asserts that the group and elementary forms of
+a class render the same comparison AND draw the same screens.
+
 **Reference modification of a bit group — `BitImagePlace` ([[PB173]], LANDED).** A bit group ref-modifies in
 **BIT POSITIONS**, and that is a chain of three rules: §8.4.3.3.3 SR1's last sentence ("For reference
 modification, bit group items and national group items are treated as elementary data items") admits it AS AN
