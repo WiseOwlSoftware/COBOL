@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
 
@@ -38,11 +39,9 @@ public static class TurnDirectiveProcessor
         List<TurnEvent>? events = null;
         for (int i = 0; i < lines.Length; i++)
         {
-            string trimmed = lines[i].TrimEnd('\r').TrimStart();
-            if (!trimmed.StartsWith(">>", StringComparison.Ordinal)) continue;
-            string body = trimmed[2..].TrimStart();
-            if (!body.StartsWith("TURN", StringComparison.OrdinalIgnoreCase)
-                || (body.Length > 4 && !char.IsWhiteSpace(body[4]))) continue;
+            // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
+            // and the trailing inline comment (SR3/SR4) are its rules, not this stage's.
+            if (!CompilerDirectiveLine.TryParse(lines[i], "TURN", out string operand)) continue;
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
             // The introduction gate fired at the ONE directive-recognition point (CompilerDirectiveCatalog,
@@ -50,7 +49,7 @@ public static class TurnDirectiveProcessor
             // BESPOKE COBOLNET0875 until kb/Work PB725 reconciled the three mechanisms onto the registry's
             // COBOLNET0900. COBOLNET0875 is RETIRED; never reallocate it. dialectLevel survives here because
             // ParseTurn passes it to the exception-name edition window (§14.6.13.1), a different rule.
-            if (ParseTurn(body[4..], i + 1, dialectLevel, diagnostics, loc) is { } ev)
+            if (ParseTurn(operand, i + 1, dialectLevel, diagnostics, loc) is { } ev)
                 (events ??= []).Add(ev);
             lines[i] = "";   // blank, never delete — line-count preserving (H3)
         }

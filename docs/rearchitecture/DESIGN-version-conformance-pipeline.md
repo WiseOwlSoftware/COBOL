@@ -274,19 +274,50 @@ column; `CompilerDirectiveCatalog` (`Cobol.Net.Editions`) inverts it into the wo
 Adding a directive is ONE row plus `pwsh scripts/gen-constructs.ps1` — the word becomes recognized, its edition
 becomes enforced, and the version matrix compiles its `source` at all four editions, in one change.
 
+**The same site asks the OPERAND question, off the same row** (kb/Work PB794). §7.3.3 SR6 composes
+compiler-instruction "as specified in the syntax of each directive", so "may this word head a `>>` line at this
+edition" and "may these words follow it" are two questions with one answer each per directive; the second is the
+row's `directiveOperand` column, and `CompilerDirectiveCatalog.CheckOperand` is its ONE producer —
+**COBOLNET1911** for the whole family. The column is a TOTAL partition, enforced by the generator and by
+`CompilerDirectiveCatalogDriftTests`: `words` (a closed set from the printed general format — with the optional
+words, whether the choice may be omitted, whether a catalogued directive-name or a user-defined word is
+admissible), `text` (the content is not checked, and the citation says by WHOSE decision — §7.3.19.3 SR2 for
+PAGE's comment-text-1, unbuilt residue for §7.3.12.2's DISPLAY operand syntax, the removed clauses for the two
+FLAG windows), or `stage` (a named downstream stage parses it: TURN, the FLAG pair, COBOL-WORDS, and the
+conditional-compilation driver's own expression operands). ⛔ Whether the choice is omissible is read off the
+PRINTED UNDERLINING, never the braces: §7.3.24.2 underlines FIXED and FREE so `>>SOURCE FORMAT` alone is
+malformed, while §7.3.17.2/§7.3.18.2/§7.3.21.2/§7.3.23.2 leave `ON` un-underlined, so a bare `>>LEAP-SECOND` is
+conforming (§5.2.3). Before PB794 this rule was written in six stages with six codes and not at all for the seven
+directives the driver consumes, so `>>SOURCE FORMAT UNKNOWN`, `>>LISTING GARBAGE` and `>>PUSH GARBAGE` compiled
+in silence. **COBOLNET0883 and COBOLNET1576 are RETIRED** by that consolidation; COBOLNET1650 keeps only
+§7.3.17.3 SR1's placement rule.
+
+**And the directive LINE has one parse.** `CompilerDirectiveLine` (`Cobol.Net.Editions`) owns the indicator with
+its optional following space (§7.3.3 SR5), the directive word, and the operand with a §7.3.3 SR3/SR4 inline
+comment removed (quote-aware, so the `*>` inside `>>DISPLAY "a *> b"` is data). Every stage calls it. Seven
+hand-rolled copies of `trimmed[2..].TrimStart()` are gone, and with them a class of defect the copies all shared:
+`>>PROPAGATE ON *> on` was rejected as a malformed operand, and `>>SOURCE FORMAT FIXED *> switch` was not
+recognized at all — the following segment was then read in the WRONG reference format and the error surfaced on a
+line the user had not written wrong. ⛔ A trailing PERIOD is not tolerated on any directive: SR3/SR4 admit spaces
+and an inline comment and nothing else.
+
 **Why this had to be restructured rather than extended** (kb/Work PB725): the same rule was written down THREE
 times — this funnel in five downstream stages, a hand-rolled `if (dialectLevel < 2002)` with a bespoke code in two
 more (`>>TURN`/COBOLNET0875, `>>PROPAGATE`/COBOLNET0883), and, for a flat `KnownIgnoredDirectives` name set with
 no edition column, nowhere at all. Eleven ISO directives compiled clean at `--std 85`, an edition that has no
 compiler directives whatsoever, and nothing could have failed, because a name set cannot be wrong about an edition
-it does not record. Consolidating deleted the two bespoke gates (COBOLNET0875 is RETIRED; COBOLNET0883 keeps only
-its §7.3.21.2 malformed-operand half), deleted four byte-identical `BagSink` copies, and removed
-`dialectLevel`/`permissive` from four stage signatures that no longer ask an edition question.
+it does not record. Consolidating deleted the two bespoke gates (COBOLNET0875 is RETIRED; COBOLNET0883 kept only
+its §7.3.21.2 malformed-operand half, until PB794 retired that too), deleted four byte-identical `BagSink`
+copies, and removed `dialectLevel`/`permissive` from four stage signatures that no longer ask an edition
+question. PB794 then removed the diagnostic channel itself from the PROPAGATE and REF-MOD-ZERO-LENGTH stages,
+which no longer report anything at all.
 
 **`>>SOURCE FORMAT` is the documented exception, and there is exactly one.** `ReferenceFormatProcessor` consumes
 its line before the conditional-compilation driver runs — it must, because the following segment's reference
-format depends on it — so that stage carries the gate, keyed on `Constructs.SourceFormatDirective2002`. Same row,
-same producer, one stage earlier. `CompilerDirectiveCatalogDriftTests` re-derives the roster from the
+format depends on it — so that stage carries the gate, keyed on `Constructs.SourceFormatDirective2002`, and the
+operand check with it. Same row, same producers, one stage earlier; it recognizes the directive by its WORD, so a
+malformed operand is diagnosed and the line still consumed (the reference format in effect carries on unchanged,
+because the directive selected none). `CompilerDirectiveCatalogDriftTests` re-derives the roster from the
 `#### 7.3.N <WORD> directive` headings of `specs/ISO_COBOL.md`, checks each row cites its own clause, asserts
 `Frontend.LeftDirectives` is a subset of the catalog, and drives the real stage to prove every recognized word is
 rejected at 85 — so "one site, complete roster" stays true rather than being remembered.

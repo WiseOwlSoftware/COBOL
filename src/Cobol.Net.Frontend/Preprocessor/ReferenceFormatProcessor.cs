@@ -71,16 +71,10 @@ public static class ReferenceFormatProcessor
         return string.Join('\n', kept);
     }
 
-    /// <summary>
-    /// Matches a COBOL-2002 <c>&gt;&gt;SOURCE [FORMAT] [IS] {FREE|FIXED}</c> compiler directive (ISO §7.3.24) on a
-    /// line, case-insensitively. Per §7.3.24.2 <c>FORMAT</c> and <c>IS</c> are OPTIONAL words, so <c>&gt;&gt;SOURCE
-    /// FIXED</c> is valid too. The directive may be preceded by a sequence area / indicator in fixed-form layouts,
-    /// so the match is anchored to the <c>&gt;&gt;</c> rather than column 1 (SR3 places it in the program-text
-    /// area; the leniency is a superset). A trailing <c>.</c> is tolerated.
-    /// </summary>
-    private static readonly Regex SourceFormatDirective = new(
-        @"^[\s\d]*>>\s*SOURCE\s+(?:FORMAT\s+)?(?:IS\s+)?(FREE|FIXED)\s*\.?\s*$",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    /// <summary>The compiler-directive word this stage owns (ISO §7.3.24; the <c>source-format-directive-2002</c>
+    /// registry row's single <c>directiveWords</c> entry — FORMAT and IS are §5.2.3 optional words, not part of
+    /// the word).</summary>
+    private const string SourceFormatWord = "SOURCE";
 
     /// <summary>
     /// Auto-detect whether source is fixed-form or free-form, and normalize to free-form. Each
@@ -117,17 +111,24 @@ public static class ReferenceFormatProcessor
         // the source into a homogeneous-format SEGMENT (§7.3.24.3 GR1); the directive line is discarded (§6.5
         // step 1) and the new format governs from the NEXT line. A continued character-string cannot cross a
         // switch (§7.3.3 SR8c), so each segment's continuation/literal state is self-contained.
-        var switches = new List<(int Index, bool Fixed)>();
+        // A MALFORMED directive (an operand that is neither FIXED nor FREE) is still a directive line: it is
+        // recognized by its WORD, diagnosed, and CONSUMED — `Fixed` is null and the format in effect is carried
+        // on unchanged (kb/Work PB794). Leaving it in the text is what produced `COBOL0001: unexpected '>'`
+        // before PB725 and, once PB725 taught the driver to swallow the word, silence.
+        var switches = new List<(int Index, bool? Fixed)>();
         for (int i = 0; i < lines.Length; i++)
-            if (MatchDirective(lines[i]) is { Success: true } m)
+            if (TryMatchDirective(lines[i], out string operand))
             {
-                switches.Add((i, m.Groups[1].Value.Equals("FIXED", StringComparison.OrdinalIgnoreCase)));
                 // The §7.3 compiler-directive facility's introduction gate for the ONE directive that cannot be
                 // gated with its siblings: this stage CONSUMES the >>SOURCE FORMAT line (it must — the following
                 // segment's reference format depends on it), so the line never reaches the shared
                 // directive-recognition point in ConditionalCompilationProcessor. Same producer, same row
-                // (source-format-directive-2002 → COBOLNET0900), just an earlier stage (kb/Work PB725).
-                gates?.OnSourceFormatDirective(i + 1);
+                // (source-format-directive-2002 → COBOLNET0900), just an earlier stage (kb/Work PB725) — and, at
+                // PB794, the same arrangement for the OPERAND: one row, one COBOLNET1911 producer, one stage
+                // earlier. Both gates are silent when this overload carries no DiagnosticBag.
+                gates?.OnSourceFormatDirective(i + 1, operand);
+                switches.Add((i, CompilerDirectiveCatalog.TryOperandWord(SourceFormatWord, operand, out string w)
+                    && w is "FIXED" or "FREE" ? w == "FIXED" : null));
             }
 
         // No directive → the whole file is one segment in the implementor-default format. Our default is
@@ -167,7 +168,7 @@ public static class ReferenceFormatProcessor
             {
                 outLines.Add("");                 // the discarded directive line → a blank line (slot preserved)
                 outOrigins.Add(switches[s].Index + 1);
-                segFixed = switches[s].Fixed;     // switch the format for the following segment
+                segFixed = switches[s].Fixed ?? segFixed;   // a malformed operand selects no format (PB794)
                 segStart = switches[s].Index + 1;
             }
         }
@@ -212,14 +213,24 @@ public static class ReferenceFormatProcessor
     /// 8–72, so column position <see cref="SourceAreaStart"/>+<see cref="SourceAreaWidth"/> = 72.</summary>
     private const int MarginR = SourceAreaStart + SourceAreaWidth;
 
-    /// <summary>Match the <c>&gt;&gt;SOURCE FORMAT</c> directive against a raw line, IGNORING any text past margin R
-    /// (§6.3 — columns 73+ are outside the program-text area; in fixed form they hold the card-image sequence tag
-    /// the corpus uses). Without this truncation the end-anchored regex would miss a fixed-form directive line that
-    /// carries such a tag, silently normalizing the following segment in the wrong format.</summary>
-    private static Match MatchDirective(string rawLine)
+    /// <summary>Match a <c>&gt;&gt;SOURCE</c> directive line by its WORD — through the ONE compiler-directive line
+    /// parse (<see cref="CompilerDirectiveLine"/>), which knows the optional space after the indicator (§7.3.3
+    /// SR5) and removes a trailing inline comment (SR3/SR4). Text past margin R is ignored first (§6.3 — columns
+    /// 73+ are outside the program-text area; in fixed form they hold the card-image sequence tag the corpus
+    /// uses), and the fixed-form sequence area is allowed before the indicator because this stage runs BEFORE
+    /// normalization.
+    ///
+    /// <para>⛔ Recognition is by the directive WORD, never by the whole line's shape: the end-anchored regex this
+    /// replaced (<c>>>\s*SOURCE\s+(?:FORMAT\s+)?(?:IS\s+)?(FREE|FIXED)…</c>) failed to match a legal
+    /// <c>&gt;&gt;SOURCE FORMAT FIXED *&gt; switch</c>, so the line stayed in the text, the following segment was
+    /// read in the WRONG reference format, and the error surfaced on a line the user had not written wrong
+    /// (kb/Work PB794). A word-keyed match cannot fail that way — a malformed operand is now diagnosed, not
+    /// unseen.</para></summary>
+    private static bool TryMatchDirective(string rawLine, out string operand)
     {
         string l = rawLine.TrimEnd('\r');
-        return SourceFormatDirective.Match(l.Length > MarginR ? l[..MarginR] : l);
+        return CompilerDirectiveLine.TryParse(
+            l.Length > MarginR ? l[..MarginR] : l, SourceFormatWord, out operand, allowSequenceArea: true);
     }
 
     /// <summary>
@@ -266,11 +277,17 @@ public static class ReferenceFormatProcessor
         /// rather than at the shared directive-recognition point because this stage consumes the line before the
         /// conditional-compilation driver can see it: same ONE producer, one stage earlier (kb/Work PB725).
         /// Every occurrence is reported — a format switch is not a once-per-file fact like the continuation gates.
+        /// <para>The OPERAND is checked here for the same reason and from the same row (kb/Work PB794): §7.3.24.2
+        /// admits FIXED or FREE and nothing else, and this is the only stage that sees the line. One producer
+        /// (COBOLNET1911) for every directive whose operand is a closed word set.</para>
         /// </summary>
-        public void OnSourceFormatDirective(int line) =>
-            CompilerDirectiveCatalog.CheckRow(Constructs.SourceFormatDirective2002,
-                EditionInfo.Of(dialectLevel, permissive),
-                new BagSink(diagnostics, new SourceOrigin(sourcePath, line).ToLocation()));
+        public void OnSourceFormatDirective(int line, string operand)
+        {
+            var edition = EditionInfo.Of(dialectLevel, permissive);
+            var sink = new BagSink(diagnostics, new SourceOrigin(sourcePath, line).ToLocation());
+            CompilerDirectiveCatalog.CheckRow(Constructs.SourceFormatDirective2002, edition, sink);
+            CompilerDirectiveCatalog.CheckOperand(SourceFormatWord, operand, edition, sink);
+        }
 
         /// <summary>Emit through the <see cref="DiagnosticBag"/> at the ONE-policy-decided severity (P2.9).</summary>
         private void Emit(EditionSeverity severity, string code, string message, Common.SourceLocation loc)

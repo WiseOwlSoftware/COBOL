@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
 
@@ -26,38 +27,34 @@ namespace CobolNet.Frontend.Preprocessor;
 /// </summary>
 public static class PropagateDirectiveProcessor
 {
-    /// <summary>Process <paramref name="text"/>: a <c>&gt;&gt;PROPAGATE</c> is recognized (syntax-checked:
-    /// <c>ON</c> | <c>OFF</c>, OFF default) and blanked, its runtime semantics deferred to PHASE-13. Line-count
-    /// preserving. The EDITION question — the directive is a COBOL-2002 introduction — is not asked here: it was
-    /// answered once, at the directive-recognition point, by the <c>propagate-directive-2002</c> registry row
-    /// (kb/Work PB725), so this stage needs no dialect at all.</summary>
-    public static string Process(string text, DiagnosticBag diagnostics, string sourcePath,
-        SourceLineMap? lineMap = null)
+    /// <summary>Process <paramref name="text"/>: a <c>&gt;&gt;PROPAGATE</c> is recognized and blanked, its runtime
+    /// semantics deferred to PHASE-13. Line-count preserving. ⛔ It takes NO diagnostic channel: the EDITION
+    /// question was answered once at the directive-recognition point by the <c>propagate-directive-2002</c>
+    /// registry row (kb/Work PB725) and the OPERAND question by that row's <c>directiveOperand</c> column
+    /// (kb/Work PB794), so this stage needs neither a dialect nor a bag.</summary>
+    public static string Process(string text)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return text;
         var lines = text.Split('\n');
         for (int i = 0; i < lines.Length; i++)
         {
-            string trimmed = lines[i].TrimEnd('\r').TrimStart();
-            if (!trimmed.StartsWith(">>", StringComparison.Ordinal)) continue;
-            string body = trimmed[2..].TrimStart();
-            if (!body.StartsWith("PROPAGATE", StringComparison.OrdinalIgnoreCase)
-                || (body.Length > 9 && !char.IsWhiteSpace(body[9]))) continue;
+            // The ONE compiler-directive line parse (kb/Work PB794) — which also removes the §7.3.3 SR3/SR4
+            // inline comment this stage's own slicing did not know about, so `>>PROPAGATE ON *> on` is legal
+            // source again rather than a malformed-operand error.
+            if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out _)) continue;
 
-            var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
-            // The introduction gate fired at the ONE directive-recognition point (CompilerDirectiveCatalog,
-            // from the propagate-directive-2002 row) — this stage ran its own `if (dialectLevel < 2002)` with a
-            // BESPOKE COBOLNET0883 until kb/Work PB725. COBOLNET0883 now owns ONLY the malformed-operand rule
-            // below; the edition question is the registry's COBOLNET0900.
-
-            // §7.3.21.2: >> PROPAGATE { ON | OFF }, OFF the underlined default. Recognize the phrase; a malformed
-            // operand is the syntax diagnostic (never a silent accept). The runtime propagation effect is PHASE-13.
-            string operand = body.Length > 9 ? body[9..].Trim().ToUpperInvariant() : "";
-            if (operand is not ("" or "ON" or "OFF"))
-                diagnostics.ReportError("COBOLNET0883",
-                    $">>PROPAGATE expects the ON or OFF phrase (ISO §7.3.21.2), not '{operand}'", loc, default);
+            // Neither the EDITION nor the OPERAND is decided here. The introduction gate fired at the ONE
+            // directive-recognition point (CompilerDirectiveCatalog, from the propagate-directive-2002 row) —
+            // this stage ran its own `if (dialectLevel < 2002)` with a BESPOKE COBOLNET0883 until kb/Work PB725
+            // — and §7.3.21.2's { ON | OFF } is that row's directiveOperand column, checked by the same funnel
+            // as COBOLNET1911 since kb/Work PB794, which retired the rest of COBOLNET0883. What is left for this
+            // stage is the disposition of the line; the runtime propagation effect is PHASE-13.
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }
         return string.Join('\n', lines);
     }
+
+    /// <summary>The compiler-directive word this stage owns (ISO §7.3.21; the <c>propagate-directive-2002</c>
+    /// row's single <c>directiveWords</c> entry).</summary>
+    private const string Keyword = "PROPAGATE";
 }

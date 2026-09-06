@@ -62,6 +62,114 @@ public static class CompilerDirectiveCatalog
     }
 
     /// <summary>
+    /// THE operand check for a compiler-directive line (kb/Work PB794): §7.3.3 SR6 composes compiler-instruction
+    /// "as specified in the syntax of each directive", and for the ten directives whose syntax is a closed word
+    /// set that specification is DATA on the row — <see cref="ConstructDialectStatus.DirectiveOperand"/>. One
+    /// producer, <c>COBOLNET1911</c>, for the whole family; before PB794 seven directive lines that violate their
+    /// own printed general format were accepted in silence while six stages each wrote the rule again with a code
+    /// of its own.
+    ///
+    /// <para>A no-op when the word heads no recognized directive (the parser names it), when a downstream stage
+    /// owns the operand (<see cref="DirectiveOperandForm.Stage"/>), and — deliberately — when the directive is not
+    /// available at <paramref name="edition"/>: <see cref="Check"/> has already said the line may not appear at
+    /// all, and a second complaint about the operand of a directive this edition does not have adds noise, not
+    /// information.</para>
+    /// </summary>
+    /// <param name="word">The compiler-directive word, from <see cref="CompilerDirectiveLine"/>.</param>
+    /// <param name="operand">The operand text — trimmed, inline comment already removed by that same parse.</param>
+    public static void CheckOperand(string word, string operand, EditionInfo edition, IDiagnosticSink sink)
+    {
+        if (Map.Value.GetValueOrDefault(word) is not { } row) return;
+        if (row.StatusAt(edition.Year) is ConstructAvailability.NotYetIntroduced or ConstructAvailability.Removed)
+            return;
+        if (row.DirectiveOperand is not { } syntax || syntax.Form == DirectiveOperandForm.Stage) return;
+
+        string? complaint = syntax.Form == DirectiveOperandForm.Text
+            ? syntax.OperandRequired && operand.Length == 0
+                ? "the operand is required and none is written"
+                : null
+            : CheckWords(syntax, operand);
+        if (complaint is null) return;
+
+        sink.Report(new EditionDiagnostic(
+            Diagnostics.DiagnosticCatalog.DirectiveMalformedOperand.Code, EditionSeverity.Error, row.Id,
+            $"{row.Display} is malformed: {complaint} — the general format admits "
+            + $"{syntax.Admissible(syntax.DirectiveName ? OperandDirectiveNames(syntax) : null)} ({syntax.Citation})",
+            row.Display, syntax.Citation));
+    }
+
+    /// <summary>
+    /// The single operand WORD of a closed-word-set directive, upper-cased, with the general format's OPTIONAL
+    /// words (§5.2.3) dropped — the value the owning stage acts on. <c>&gt;&gt;SOURCE FORMAT IS FREE</c> and
+    /// <c>&gt;&gt;SOURCE FREE</c> both yield <c>FREE</c>; a directive whose choice is omissible yields the empty
+    /// string, which is the implied alternative (a bare <c>&gt;&gt;LEAP-SECOND</c> selects ON).
+    ///
+    /// <para>It exists so the optional-word list lives ONLY on the row: before kb/Work PB794 the
+    /// reference-format stage carried <c>(?:FORMAT\s+)?(?:IS\s+)?</c> in a regex of its own, which is how a
+    /// legal <c>&gt;&gt;SOURCE FORMAT FIXED *&gt; switch</c> came to be unrecognized. Returns false when the word
+    /// heads no closed-word-set directive or the operand is not a single word — in which case
+    /// <see cref="CheckOperand"/> has already said so and the caller applies no state change.</para>
+    /// </summary>
+    public static bool TryOperandWord(string word, string operand, out string operandWord)
+    {
+        operandWord = "";
+        if (Map.Value.GetValueOrDefault(word) is not { DirectiveOperand: { Form: DirectiveOperandForm.Words } s })
+            return false;
+        var words = SignificantWords(s, operand);
+        if (words.Count > 1) return false;
+        operandWord = words.Count == 1 ? words[0].ToUpperInvariant() : "";
+        return true;
+    }
+
+    /// <summary>The operand's words with the general format's OPTIONAL words dropped — §5.2.3: an optional word
+    /// "may be written to add clarity", so it may stand anywhere the format prints it and means nothing when it
+    /// does. ONE place, because <see cref="TryOperandWord"/> (what the owning stage acts on) and
+    /// <see cref="CheckWords"/> (what the diagnostic screens) shall never disagree about which words count.</summary>
+    private static List<string> SignificantWords(DirectiveOperandSyntax syntax, string operand) =>
+        [.. operand.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
+                   .Where(w => !syntax.OptionalWords.Contains(w, StringComparer.OrdinalIgnoreCase))];
+
+    /// <summary>The closed-word-set arm of <see cref="CheckOperand"/>: the optional words (§5.2.3) may be written
+    /// anywhere and are ignored; what remains shall be exactly one admissible word, or nothing when the general
+    /// format leaves an alternative un-underlined. Returns null when the operand conforms.</summary>
+    private static string? CheckWords(DirectiveOperandSyntax syntax, string operand)
+    {
+        var words = SignificantWords(syntax, operand);
+        if (words.Count == 0)
+            return syntax.ChoiceOmissible ? null : "no operand is written";
+        if (words.Count > 1)
+            return $"'{string.Join(' ', words)}' is more than one operand";
+
+        string w = words[0];
+        if (syntax.Choice.Contains(w, StringComparer.OrdinalIgnoreCase)) return null;
+        if (syntax.DirectiveName && OperandDirectiveNames(syntax).Contains(w, StringComparer.OrdinalIgnoreCase))
+            return null;
+        if (syntax.UserWord && IsCobolWord(w)) return null;
+        return $"'{w}' is not an admissible operand";
+    }
+
+    /// <summary>The compiler-directive names §7.3.20.2 / §7.3.22.2 admit as <c>directive-name</c>, DERIVED from
+    /// the catalog: every recognized directive word except those §7.3.20.3 SR1 / §7.3.22.3 SR1 exclude. The
+    /// exclusion names a DIRECTIVE, so excluding EVALUATE excludes its whole row — a <c>&gt;&gt;PUSH WHEN</c>
+    /// names the EVALUATE directive by one of its own words and is excluded with it.</summary>
+    private static IReadOnlyList<string> OperandDirectiveNames(DirectiveOperandSyntax syntax)
+    {
+        var excluded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string name in syntax.ExcludedDirectives)
+            foreach (string w in (Find(name)?.DirectiveWords ?? [name])) excluded.Add(w);   // the whole ROW, by one of its words
+        return [.. Words.Where(w => !excluded.Contains(w))];
+    }
+
+    /// <summary>A COBOL word (§8.3.2): basic letters, digits, hyphen and underscore, not a literal and not
+    /// punctuation. The operand positions that admit an implementor-defined name accept one of these and
+    /// nothing else — <c>&gt;&gt;CALL-CONVENTION "COBOL"</c> writes a literal where the format writes a name.</summary>
+    private static bool IsCobolWord(string w)
+    {
+        foreach (char c in w) if (!char.IsAsciiLetterOrDigit(c) && c != '-' && c != '_') return false;
+        return w.Length > 0 && w[0] != '-' && w[^1] != '-';
+    }
+
+    /// <summary>
     /// The same gate addressed by ROW ID rather than by word — for the one stage that must gate a directive it
     /// consumes before the shared recognition point ever sees it (<c>&gt;&gt;SOURCE FORMAT</c>, whose line the
     /// reference-format normalizer removes so it can switch the following segment's format). Keyed on

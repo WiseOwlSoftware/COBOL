@@ -120,14 +120,23 @@ public sealed class ConditionalCompilationDefineTests
         Assert.True(Has1619(diags));
     }
 
-    [Fact] // >>PUSH / >>POP are recognized (consumed), not left as stray tokens.
+    /// <summary>&gt;&gt;PUSH / &gt;&gt;POP are recognized (consumed), not left as stray tokens.
+    /// ⛔ The operand is REQUIRED: §7.3.22.2 and §7.3.20.2 print <c>{ directive-name | ALL }</c> in plain braces
+    /// — verified against the printed page, folio 82 — so exactly one alternative shall be written, and
+    /// §7.3.22.4 GR1/GR2 define an effect only for each of the two. This test wrote the BARE forms until
+    /// kb/Work PB794 and passed, which made it a green test pinning an under-rejection
+    /// (feedback_green_test_can_hold_a_gap_open); the bare form's own diagnostic is asserted below.</summary>
+    [Fact]
     public void PushPop_Recognized_Consumed()
     {
-        var (text, diags) = Run(">>PUSH\nLINE-A\n>>POP\n");
+        var (text, diags) = Run(">>PUSH ALL\nLINE-A\n>>POP ALL\n");
         Assert.False(diags.HasErrors);
         Assert.DoesNotContain(">>PUSH", text);
         Assert.DoesNotContain(">>POP", text);
         Assert.Contains("LINE-A", text);
+
+        var (_, bare) = Run(">>PUSH\nLINE-A\n>>POP\n");
+        Assert.Equal(2, bare.Diagnostics.Count(d => d.Code == "COBOLNET1911"));
     }
 
     [Theory] // every standard §7.3 directive is RECOGNIZED (consumed with its operand), never a stray token.

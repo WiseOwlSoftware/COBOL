@@ -11,7 +11,8 @@ namespace CobolNet.Tests.Conformance;
 /// roadmap decision-1 policy — §7.3.21 is live in the 2023 spec, so the 2002-vs-2014 edge cannot be pinned in-repo;
 /// the runtime propagation SEMANTICS are the deferred PHASE-13 EC work). Below 2002 it is the registry's
 /// COBOLNET0900 — the ONE introduction band every compiler directive now shares (kb/Work PB725 reconciled this
-/// stage's bespoke COBOLNET0883 introduction gate onto it, leaving 0883 owning only the malformed-operand rule) —
+/// stage's bespoke COBOLNET0883 introduction gate onto it, and kb/Work PB794 RETIRED the rest of 0883 by making
+/// §7.3.21.2's { ON | OFF } the row's directiveOperand column, checked by the one COBOLNET1911 producer) —
 /// never a silent stray token; at 2002+ a well-formed <c>&gt;&gt;PROPAGATE ON|OFF</c> is recognized-and-consumed and
 /// the program compiles (the run behavior is the <c>propagate_directive</c> conformance corpus).
 /// </summary>
@@ -50,12 +51,27 @@ public sealed class PropagateDirectiveTests
         Assert.DoesNotContain(diag, d => d.Contains("COBOLNET0883"));   // 0883 no longer owns the edition half
     }
 
-    /// <summary>A malformed operand (not ON/OFF) is the §7.3.21.2 syntax diagnostic, never a silent accept.</summary>
+    /// <summary>A malformed operand (not ON/OFF) is the §7.3.21.2 syntax diagnostic, never a silent accept — and
+    /// it is the SHARED one: kb/Work PB794 made §7.3.3 SR6 ("compiler-instruction is composed … as specified in
+    /// the syntax of each directive") ONE producer for the whole family, so this directive's own COBOLNET0883 is
+    /// retired and the diagnostic is COBOLNET1911, off the propagate-directive-2002 row's directiveOperand.</summary>
     [Fact]
-    public void MalformedOperand_Rejected0883()
+    public void MalformedOperand_Rejected1911()
     {
         var (ok, diag) = EditionHarness.Compile(Prog("      >>PROPAGATE MAYBE"), 2014);
         Assert.False(ok, ">>PROPAGATE with a non-ON/OFF operand must be rejected (ISO §7.3.21.2)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0883");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1911");
+        Assert.DoesNotContain(diag, d => d.Contains("COBOLNET0883"));   // retired at PB794 — never reallocate
+    }
+
+    /// <summary>§7.3.3 SR3/SR4 — a directive "may be followed only by space characters and an optional inline
+    /// comment". This stage sliced its own operand and knew nothing of that, so a conforming
+    /// <c>&gt;&gt;PROPAGATE ON *&gt; on</c> drew the malformed-operand error (kb/Work PB794).</summary>
+    [Fact]
+    public void TrailingInlineComment_IsNotPartOfTheOperand()
+    {
+        var (ok, diag) = EditionHarness.Compile(Prog("      >>PROPAGATE ON *> propagate from here"), 2023);
+        Assert.True(ok, "a trailing inline comment is legal after a directive (ISO §7.3.3 SR3/SR4):\n"
+            + string.Join("\n", diag));
     }
 }

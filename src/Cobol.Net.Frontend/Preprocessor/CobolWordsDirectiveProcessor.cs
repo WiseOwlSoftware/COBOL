@@ -48,9 +48,10 @@ public static class CobolWordsDirectiveProcessor
                 if (!sawFirstIdDivision && IsIdentificationDivision(trimmed)) sawFirstIdDivision = true;
                 continue;
             }
-            string body = trimmed[2..].TrimStart();
-            if (!body.StartsWith(Keyword, StringComparison.OrdinalIgnoreCase)
-                || (body.Length > Keyword.Length && !char.IsWhiteSpace(body[Keyword.Length]))) continue;
+            // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
+            // and the trailing inline comment (SR3/SR4) are its rules, not this stage's — `>>COBOL-WORDS
+            // RESERVE "ZQX" *> why` used to be rejected as a malformed entry list.
+            if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
 
@@ -63,7 +64,6 @@ public static class CobolWordsDirectiveProcessor
                 Invalid(diagnostics, loc,
                     ">>COBOL-WORDS may be specified only before the first IDENTIFICATION DIVISION (ISO §7.3.10.3 SR1)");
 
-            string operand = body.Length > Keyword.Length ? body[Keyword.Length..].Trim() : "";
             if (TryParseOption(operand, i, diagnostics, loc, out var op))
             {
                 // SR5 — every literal's content across all directives is unique.

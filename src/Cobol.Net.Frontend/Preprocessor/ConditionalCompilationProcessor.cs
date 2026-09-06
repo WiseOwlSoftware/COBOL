@@ -199,7 +199,19 @@ public static class ConditionalCompilationProcessor
                 // A directive in an OMITTED branch is not compiled, so it is not gated (it drops with its
                 // branch, like every other omitted line).
                 if (emitting && _bag is not null)
-                    CompilerDirectiveCatalog.Check(keyword, _edition, new BagSink(_bag, _diag.At.ToLocation()));
+                {
+                    var sink = new BagSink(_bag, _diag.At.ToLocation());
+                    CompilerDirectiveCatalog.Check(keyword, _edition, sink);
+                    // ── AND THE OPERAND, from the same row (kb/Work PB794) ───────────────────────────────
+                    // §7.3.3 SR6 composes compiler-instruction "as specified in the syntax of each directive",
+                    // so "may this word head a >> line" and "may these words follow it" are two questions with
+                    // one answer each per directive, asked at the same point. Before PB794 the second was asked
+                    // by six stages in six spellings with six codes — and not at all for the seven directives
+                    // this stage consumes, so >>SOURCE FORMAT UNKNOWN, >>LISTING GARBAGE and >>PUSH GARBAGE
+                    // compiled clean. The closed-word-set rows answer here, through the ONE COBOLNET1911
+                    // producer; a row whose operand a downstream stage parses is a declared no-op.
+                    CompilerDirectiveCatalog.CheckOperand(keyword, rest, _edition, sink);
+                }
                 string emit = "";   // directives are consumed by default (output blank line)
                 switch (keyword)
                 {
@@ -515,14 +527,12 @@ public static class ConditionalCompilationProcessor
 
     // ── small directive-syntax helpers ────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Strip the leading <c>&gt;&gt;</c>, return the upper-cased directive keyword and the remainder.</summary>
-    private static (string keyword, string rest) SplitDirective(string trimmed)
-    {
-        string s = trimmed[2..].TrimStart();
-        int sp = 0;
-        while (sp < s.Length && !char.IsWhiteSpace(s[sp])) sp++;
-        return (s[..sp].ToUpperInvariant(), sp < s.Length ? s[sp..].Trim() : "");
-    }
+    /// <summary>The upper-cased directive keyword and its operand, through the ONE compiler-directive line parse
+    /// (<see cref="CompilerDirectiveLine"/>, kb/Work PB794) — which is also what removes a §7.3.3 SR3/SR4 trailing
+    /// inline comment, so <c>&gt;&gt;IF X *&gt; why</c> reaches the evaluator as <c>X</c>. A line that is not a
+    /// directive (a bare <c>&gt;&gt;</c>) yields an empty keyword and falls through to the unrecognized arm.</summary>
+    private static (string keyword, string rest) SplitDirective(string trimmed) =>
+        CompilerDirectiveLine.TryParse(trimmed, out var d) ? (d.Word, d.Operand) : ("", "");
 
     private static bool StartsWithWord(string s, string word) =>
         s.StartsWith(word, StringComparison.OrdinalIgnoreCase)

@@ -48,8 +48,7 @@ serves as the diagnostic→phase map). See [[kb/Semantics/Validation Rules]] and
 |---|---|---|---|---|---|
 | `COBOLNET0718` | `>>TURN` malformed | Error | §7.3.25.2/.3 SR1/SR3 | Preprocess | `>>TURN` |
 | `COBOLNET0719` | `>>TURN` file-name after a non-EC-I-O exception | Error | §7.3.25.3 SR4 | Preprocess | `>>TURN` |
-| `COBOLNET0883` | `>>PROPAGATE` bad operand (the intro gate is 0900) | Error | §7.3.21.2 | Preprocess | `>>PROPAGATE` |
-| `COBOLNET1576` | `>>REF-MOD-ZERO-LENGTH` bad operand | Error | §7.3.23.2 | Preprocess | `>>REF-MOD-ZERO-LENGTH` |
+| `COBOLNET1911` | a directive operand its own general format does not admit — ONE producer for every directive whose operand is a closed word set, off the row's `directiveOperand` column (kb/Work PB794; it retired the per-directive `COBOLNET0883` and `COBOLNET1576`) | Error | §7.3.3 SR6 + each directive's general format | Preprocess | `>>SOURCE FORMAT` · `>>LISTING` · `>>PAGE` · `>>PUSH` · `>>POP` · `>>DISPLAY` · `>>CALL-CONVENTION` · `>>PROPAGATE` · `>>LEAP-SECOND` · `>>REF-MOD-ZERO-LENGTH` |
 | `COBOLNET1618` | `>>DEFINE` redefinition without OVERRIDE | Error | §7.3.11.3 SR2 | Preprocess | `>>DEFINE` |
 | `COBOLNET1619` | compiler-directive expression malformed | Error | §7.3.6/.7/.8 | Preprocess | CC expressions |
 | `COBOLNET1620` | `>>FLAG-02` 2002→2014 incompatibility flag | Warning | §7.3.14 | Validate | `>>FLAG-02` (`FlagConformancePass`) |

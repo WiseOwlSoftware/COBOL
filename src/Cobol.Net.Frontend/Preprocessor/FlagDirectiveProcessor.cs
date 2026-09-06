@@ -32,17 +32,18 @@ public static class FlagDirectiveProcessor
         List<FlagEvent>? events = null;
         for (int i = 0; i < lines.Length; i++)
         {
-            string trimmed = lines[i].TrimEnd('\r').TrimStart();
-            if (!trimmed.StartsWith(">>", StringComparison.Ordinal)) continue;
-            string body = trimmed[2..].TrimStart();
+            // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
+            // and the trailing inline comment (SR3/SR4) are its rules, not this stage's — `>>FLAG-14 ALL ON
+            // *> why` used to be rejected as a malformed option list.
+            if (!CompilerDirectiveLine.TryParse(lines[i], out var line)) continue;
 
             FlagDirective directive;
-            if (Matches(body, "FLAG-02")) directive = FlagDirective.Flag02;
-            else if (Matches(body, "FLAG-14")) directive = FlagDirective.Flag14;
+            if (line.Word == "FLAG-02") directive = FlagDirective.Flag02;
+            else if (line.Word == "FLAG-14") directive = FlagDirective.Flag14;
             else continue;
 
             string keyword = FlagDirectiveLine.DirectiveWord(directive);   // "FLAG-02" / "FLAG-14" (7 chars)
-            string operand = body.Length > keyword.Length ? body[keyword.Length..].Trim() : "";
+            string operand = line.Operand;
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
 
             // The directive-WORD edition gate already fired at the ONE directive-recognition point

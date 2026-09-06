@@ -155,7 +155,7 @@ public sealed class Frontend
 
         // >>PROPAGATE (ISO §7.3.21): recognize + edition-gate (introduction gate; runtime semantics are PHASE-13).
         // Line-count preserving like the >>TURN stage.
-        text = PropagateDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
+        text = PropagateDirectiveProcessor.Process(text);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "PropagateDirectiveProcessor changed the line count (hazard H3)");
@@ -163,8 +163,7 @@ public sealed class Frontend
         // >>REF-MOD-ZERO-LENGTH (ISO §7.3.23): recognize + edition-gate + collect the per-line zero-length toggle
         // events on the FINAL text (each event line is directly comparable to a ref-mod token's Start.Line — the
         // >>TURN anchoring discipline). Line-count preserving like the two stages above.
-        (text, RefModZeroLengthEvents) =
-            RefModZeroLengthDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
+        (text, RefModZeroLengthEvents) = RefModZeroLengthDirectiveProcessor.Process(text);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");

@@ -45,6 +45,19 @@ foreach ($r in $rows) {
     }
     if (-not $seenId.Add($r.id)) { throw "duplicate construct id '$($r.id)'" }
     if (-not $seenPascal.Add((To-Pascal $r.id))) { throw "PascalId collision for '$($r.id)'" }
+    # ⛔ A DIRECTIVE ROW CARRIES ITS OPERAND SYNTAX (kb/Work PB794). "Which words may follow the directive word"
+    # is the same kind of fact as "from which edition may the word appear", so it lives on the same row — and the
+    # partition is TOTAL by construction: words (a closed set, checked centrally), text (content unchecked, and
+    # the citation says by whose decision), or stage (a named downstream stage parses it). The state this check
+    # forbids is the one that shipped: a directive nobody checked and nothing recorded as unchecked.
+    if ($null -ne $r.directiveWords -and @($r.directiveWords).Count -gt 0) {
+        if ($null -eq $r.directiveOperand) { throw "directive row '$($r.id)' has directiveWords but no directiveOperand — see DirectiveOperandSyntax (kb/Work PB794)" }
+        if ($r.directiveOperand.form -notin 'words','text','stage') { throw "row '$($r.id)': directiveOperand.form '$($r.directiveOperand.form)' is not words/text/stage" }
+        if ([string]::IsNullOrWhiteSpace($r.directiveOperand.citation)) { throw "row '$($r.id)': directiveOperand needs a citation — an unchecked operand is a cited decision, never a silence" }
+        if ($r.directiveOperand.form -eq 'stage' -and [string]::IsNullOrWhiteSpace($r.directiveOperand.owner)) { throw "row '$($r.id)': a stage-owned operand needs an owner" }
+        if ($r.directiveOperand.form -eq 'words' -and @($r.directiveOperand.choice).Count -eq 0 -and -not $r.directiveOperand.directiveName -and -not $r.directiveOperand.userWord) { throw "row '$($r.id)': a words operand needs a choice, a directiveName or a userWord alternative" }
+    }
+    elseif ($null -ne $r.directiveOperand) { throw "row '$($r.id)' carries directiveOperand but no directiveWords" }
 }
 
 $hdr = @"
@@ -74,7 +87,27 @@ foreach ($r in $rows) {
     # that carry them, so the 200-odd non-directive rows keep their one-line rendering.
     if ($null -ne $r.directiveWords -and @($r.directiveWords).Count -gt 0) {
         $words = (@($r.directiveWords) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ', '
-        $line += (' {{ DirectiveWords = [{0}] }}' -f $words)
+        $init = 'DirectiveWords = [{0}]' -f $words
+        # The OPERAND column (kb/Work PB794) — which words may FOLLOW the directive word, on the same row that
+        # already says from which edition the word may appear at all. Every directive row carries one (the
+        # validation above refuses a row that does not), so a new directive cannot be silently unchecked.
+        $init += ', DirectiveOperand = new() { Form = DirectiveOperandForm.' + (To-Pascal $r.directiveOperand.form)
+        if ($null -ne $r.directiveOperand.optionalWords -and @($r.directiveOperand.optionalWords).Count -gt 0) {
+            $init += ', OptionalWords = [{0}]' -f ((@($r.directiveOperand.optionalWords) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ', ')
+        }
+        if ($null -ne $r.directiveOperand.choice -and @($r.directiveOperand.choice).Count -gt 0) {
+            $init += ', Choice = [{0}]' -f ((@($r.directiveOperand.choice) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ', ')
+        }
+        if ($r.directiveOperand.choiceOmissible) { $init += ', ChoiceOmissible = true' }
+        if ($r.directiveOperand.directiveName)   { $init += ', DirectiveName = true' }
+        if ($null -ne $r.directiveOperand.excludedDirectives -and @($r.directiveOperand.excludedDirectives).Count -gt 0) {
+            $init += ', ExcludedDirectives = [{0}]' -f ((@($r.directiveOperand.excludedDirectives) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ', ')
+        }
+        if ($r.directiveOperand.userWord)        { $init += ', UserWord = true' }
+        if ($r.directiveOperand.operandRequired) { $init += ', OperandRequired = true' }
+        if (-not [string]::IsNullOrEmpty($r.directiveOperand.owner)) { $init += ', Owner = "{0}"' -f (Esc $r.directiveOperand.owner) }
+        $init += ', Citation = "{0}" }}' -f (Esc $r.directiveOperand.citation)
+        $line += (' {{ {0} }}' -f $init)
     }
     [void]$sb.AppendLine($line + ',')
 }

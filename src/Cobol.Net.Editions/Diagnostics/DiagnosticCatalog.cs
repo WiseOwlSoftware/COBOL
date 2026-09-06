@@ -124,13 +124,14 @@ public static class DiagnosticCatalog
         + "characters are indistinguishable through that one function. Checking, declarative selection, and "
         + "WHEN matching use the full name. See COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN §15.33.",
         "ISO §15.33.3 r1 / §8.3.2.1 / §14.6.13.1.1");
-    public static readonly DiagnosticDescriptor PropagateDirective = new(
-        "COBOLNET0883", "propagate-directive", EditionSeverity.Error,
-        "A >>PROPAGATE directive operand other than ON or OFF is rejected, never silently accepted "
-        + "(ISO §7.3.21.2). The directive's INTRODUCTION gate is not this code: it is the registry's "
-        + "COBOLNET0900, from the propagate-directive-2002 row, emitted at the one point a >> word is "
-        + "recognized — this descriptor owned that half too until kb/Work PB725 reconciled the three "
-        + "edition-gate mechanisms onto one.", "ISO §7.3.21.2");
+    // ⛔ COBOLNET0883 ("propagate-directive") is RETIRED — NEVER REALLOCATE IT. It was >>PROPAGATE's own
+    //    malformed-operand code, one of SIX spellings of the single rule "a directive's operand shall be one the
+    //    directive's general format admits" (ISO §7.3.3 SR6). kb/Work PB794 made that rule DATA — the
+    //    `directiveOperand` column of constructs.json — checked once at the point a >> word is recognized, so
+    //    >>PROPAGATE MAYBE is now COBOLNET1911 like every other closed-operand directive, and the seven
+    //    directives that had no such code at all stopped compiling malformed lines in silence. PB725 had already
+    //    taken this descriptor's edition half onto COBOLNET0900; this is the other half. The COBOLNET0875 and
+    //    COBOLNET1518 precedents apply: a retired code stays retired.
 
     // ── COBOLNET1540/1541/1545 — concatenation expressions, one code per rule (§8.8.3) ───────────────
     public static readonly DiagnosticDescriptor ConcatClassMismatch = new(
@@ -1556,14 +1557,16 @@ public static class DiagnosticCatalog
         + "function-specifier in the REPOSITORY paragraph\" — that identification is what lets a reference omit the "
         + "word FUNCTION (§8.4.3.2.3 SR2), so the same word cannot also name a data item. Rename the item, or take "
         + "the function out of the REPOSITORY and write FUNCTION name(…) at each reference.", "ISO §8.3.2.1 rule 5");
-    // §7.3.17 — the LEAP-SECOND directive's syntax (kb/Work PB65): SR1 "shall not be specified within a
-    // compilation unit"; the operand is ON (optional word) or OFF.
+    // §7.3.17 — the LEAP-SECOND directive's PLACEMENT rule (kb/Work PB65): SR1 "shall not be specified within a
+    // compilation unit". ⛔ It owned the operand half too until kb/Work PB794 gave the whole §7.3 family ONE
+    // malformed-operand producer (COBOLNET1911, from the row's directiveOperand column) — the operand is the
+    // catalog's question now, and this code is the placement rule alone.
     public static readonly DiagnosticDescriptor LeapSecondDirectiveSyntax = new(
         "COBOLNET1650", "leap-second-directive-syntax", EditionSeverity.Error,
-        "The >>LEAP-SECOND directive is malformed or misplaced: its operand is ON (an optional word — a bare "
-        + ">>LEAP-SECOND selects ON) or OFF (ISO §7.3.17.2), and the directive shall not be specified within a "
-        + "compilation unit (§7.3.17.3 SR1) — it precedes the first IDENTIFICATION DIVISION of the compilation group "
-        + "and governs the whole group.", "ISO §7.3.17");
+        "The >>LEAP-SECOND directive is misplaced: it shall not be specified within a compilation unit "
+        + "(ISO §7.3.17.3 SR1) — it precedes the first IDENTIFICATION DIVISION of the compilation group and "
+        + "governs the whole group. Its OPERAND — ON (an optional word, so a bare >>LEAP-SECOND selects ON) or "
+        + "OFF, §7.3.17.2 — is checked with every other directive's, as COBOLNET1911.", "ISO §7.3.17.3 SR1");
     // §14.9.43.3 / §14.9.48.3 — the STRING and UNSTRING operand rules that are not about USAGE (those are
     // COBOLNET1626): a reference-modified, edited, JUSTIFIED or strongly-typed STRING receiver (SR4/SR5/SR6), a
     // POINTER / COUNT IN / TALLYING item that is not an integer without P (STRING SR7, UNSTRING SR5/SR6), an
@@ -1878,16 +1881,14 @@ public static class DiagnosticCatalog
         + "and a symbolic-character (§8.3.3.6.2 Format 7), so a word that is neither identifies no resource "
         + "(kb/Work PB732).",
         "ISO §8.4.2.1 / §8.4.2.2");
-    // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
-    // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
-    // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now
-    // lives HERE and the frontend emits via its Id — allocation stays catalog-visible.
-    public static readonly DiagnosticDescriptor RefModZeroLengthMalformedOperand = new(
-        "COBOLNET1576", "ref-mod-zero-length-malformed-operand", EditionSeverity.Error,
-        "The >>REF-MOD-ZERO-LENGTH directive takes exactly one of the ON or OFF phrases (ISO §7.3.23.2; OFF is the "
-        + "processor default in the absence of the directive) — any other operand is rejected, never silently "
-        + "accepted.",
-        "ISO §7.3.23.2 (VCR row 30)");
+    // ⛔ COBOLNET1576 ("ref-mod-zero-length-malformed-operand") is RETIRED — NEVER REALLOCATE IT. It was
+    //    >>REF-MOD-ZERO-LENGTH's own copy of "a directive's operand shall be one its general format admits"
+    //    (ISO §7.3.3 SR6), one of six such codes; kb/Work PB794 made the rule DATA on the directive's
+    //    constructs.json row and gave the whole family ONE producer, COBOLNET1911. (It had itself been
+    //    renumbered from a bare-literal "COBOLNET1573" that collided with ExternalFileStatusConsistency above —
+    //    the P13 plan-vs-spec review finding C1, DEVLOG 907 — because the frontend emit bypassed this catalog;
+    //    the central producer ends that class of collision for every directive at once.) The COBOLNET0875 and
+    //    COBOLNET1518 precedents apply: a retired code stays retired.
     // 1577 renumbered FROM a bare-literal "COBOLNET1518" in DataBinder that collided with the A.4.9 locale-module
     // non-support meaning (the P13 review batch-3 finding V11 — the THIRD collision of the class; 1518 stays
     // solely = locale non-support as CONFORMANCE.md item 25 documents).
@@ -2393,6 +2394,27 @@ public static class DiagnosticCatalog
         + "(depending on the phrase used)\" the device is repositioned to the next page, and with both words "
         + "written there is no phrase to depend on.",
         "ISO §14.9.51.3 SR17");
+
+    /// <summary>
+    /// COBOLNET1911 — THE malformed compiler-directive operand, for the whole §7.3 family (kb/Work PB794).
+    /// ISO §7.3.3 SR6 composes compiler-instruction "as specified in the syntax of each directive", and for the
+    /// directives whose syntax is a closed word set that specification is the <c>directiveOperand</c> column of
+    /// <c>constructs.json</c>, checked once by <see cref="CompilerDirectiveCatalog.CheckOperand"/> at the point
+    /// the directive word is recognized. ONE descriptor, not one per directive: the rule had been written six
+    /// times with six codes (0883 PROPAGATE, 1650 LEAP-SECOND, 1576 REF-MOD-ZERO-LENGTH, 1622 FLAG-14,
+    /// 1623 COBOL-WORDS, 0718 TURN) and the seven directives nobody had written it for — SOURCE FORMAT, LISTING,
+    /// PUSH, POP, DISPLAY, CALL-CONVENTION — compiled malformed lines in silence. The three whose operand is a
+    /// closed word set now answer here; the structured ones (TURN's exception-name list, the FLAG option lists,
+    /// COBOL-WORDS' entries) keep their own codes because their operands are not word sets.
+    /// </summary>
+    public static readonly DiagnosticDescriptor DirectiveMalformedOperand = new(
+        "COBOLNET1911", "directive-malformed-operand", EditionSeverity.Error,
+        "A compiler directive's operand is not one the directive's own general format admits. ISO §7.3.3 syntax "
+        + "rule 6: \"Compiler-instruction is composed of compiler-directive words, system-names, and user-defined "
+        + "words as specified in the syntax of each directive.\" The message names the directive, what was "
+        + "written, and the admissible set — which is read from the directive's constructs.json row, so every "
+        + "directive whose operand is a closed word set is checked by construction rather than by remembering.",
+        "ISO §7.3.3 SR6 / each directive's general format");
 
     /// <summary>COBOLNET1914 — the FUNCTION-IDENTIFIER class restriction the <c>… FROM</c> phrase of RELEASE,
     /// WRITE and REWRITE each state for themselves (kb/Work PB348). ONE descriptor because it is one rule with

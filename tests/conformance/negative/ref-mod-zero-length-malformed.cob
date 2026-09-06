@@ -1,7 +1,8 @@
 *> reject-at: 2023
-*> VCR 30 (ISO §7.3.23.2): >>REF-MOD-ZERO-LENGTH takes exactly ON or OFF — any other
-*> operand is COBOLNET1576 (renumbered from a bare-literal 1573 that collided with the
-*> external-file-status-consistency descriptor; P13 plan-vs-spec review finding C1).
+*> VCR 30 (ISO §7.3.23.2): >>REF-MOD-ZERO-LENGTH's operand is ON or OFF (ON is not
+*> underlined in the printed format, so a bare directive selects it) — any other operand
+*> is COBOLNET1911, the ONE malformed-operand producer §7.3.3 SR6 earns for the whole
+*> §7.3 family (kb/Work PB794, which retired this directive's own COBOLNET1576).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. RMZLMAL.
        ENVIRONMENT DIVISION.

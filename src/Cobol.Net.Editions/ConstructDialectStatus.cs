@@ -44,6 +44,16 @@ public sealed record ConstructDialectStatus(
     /// </summary>
     public IReadOnlyList<string> DirectiveWords { get; init; } = [];
 
+    /// <summary>
+    /// The OPERAND syntax of the §7.3 directive this row gates — the column beside <see cref="DirectiveWords"/>
+    /// that says which words may FOLLOW the directive word (kb/Work PB794), rendered from the row's
+    /// <c>directiveOperand</c> object. Null on every non-directive row, and on no directive row:
+    /// <c>CompilerDirectiveOperandDriftTests</c> asserts the partition is total, because the state this note
+    /// closed was exactly the absence of a third option — a directive whose operand nobody checked and nothing
+    /// recorded as unchecked.
+    /// </summary>
+    public DirectiveOperandSyntax? DirectiveOperand { get; init; }
+
     /// <summary>The availability verdict at <paramref name="edition"/>.</summary>
     public ConstructAvailability StatusAt(int edition)
     {

@@ -180,6 +180,178 @@ public sealed class CompilerDirectiveCatalogDriftTests
         Assert.DoesNotContain(ok.Diagnostics, d => d.Code == "COBOLNET0900");
     }
 
+    // ── The OPERAND column (kb/Work PB794) ───────────────────────────────────────────────────────────────────
+    //
+    // The defect these close: the recognition point had an EDITION column and no OPERAND column, so SEVEN
+    // directive lines that violate their own printed general format compiled in silence (>>SOURCE FORMAT
+    // UNKNOWN, >>LISTING GARBAGE, >>PUSH/>>POP GARBAGE, >>DISPLAY and >>CALL-CONVENTION with no operand) while
+    // six other stages each wrote the same rule again with a diagnostic code of its own. The check is now data
+    // on the row; these tests are what keeps it honest — a partition assertion, a WITNESS that the rule really
+    // fires through the real stage, and its complement, because a checker that rejects everything would pass a
+    // witness-only test (feedback_measure_the_selectors_complement).
+
+    /// <summary>Every directive row declares HOW its operand is checked, and there is no fourth state. A row
+    /// that says a stage owns the operand names a stage that exists; a row that says the content is unchecked
+    /// says WHY, in a citation — an unchecked operand is a decision on the record, never a silence.</summary>
+    [Fact]
+    public void EveryDirectiveRow_DeclaresItsOperandSyntax()
+    {
+        var bad = new List<string>();
+        foreach (var row in ConstructRegistry.Entries.Where(e => e.DirectiveWords.Count > 0))
+        {
+            if (row.DirectiveOperand is not { } s) { bad.Add($"{row.Id}: no directiveOperand"); continue; }
+            if (string.IsNullOrWhiteSpace(s.Citation)) bad.Add($"{row.Id}: directiveOperand has no citation");
+            switch (s.Form)
+            {
+                case DirectiveOperandForm.Words when s.Choice.Count == 0 && !s.DirectiveName && !s.UserWord:
+                    bad.Add($"{row.Id}: a words operand admits nothing"); break;
+                case DirectiveOperandForm.Stage when
+                    typeof(ConditionalCompilationProcessor).Assembly.GetTypes()
+                        .All(t => t.Name != s.Owner):
+                    bad.Add($"{row.Id}: operand owner '{s.Owner}' is not a type in Cobol.Net.Frontend"); break;
+            }
+        }
+
+        Assert.True(bad.Count == 0, string.Join("\n", bad));
+    }
+
+    /// <summary>
+    /// THE witness, derived from the catalog rather than listed: for every directive whose operand the row
+    /// declares as a closed word set, a malformed operand DRIVEN THROUGH THE REAL STAGE draws COBOLNET1911.
+    /// The malformed spelling is derived too — a word the set does not admit, or a literal where the format
+    /// writes a name, or nothing where the format requires an operand — so the next directive gets its witness
+    /// from its row, with no test edit.
+    /// </summary>
+    [Fact]
+    public void EveryClosedOperandDirective_DiagnosesAMalformedOperand()
+    {
+        var silent = new List<string>();
+        var exempt = new List<string>();
+        // Stage-owned operands are a different mechanism with their own per-stage codes (0718 TURN, 1622 FLAG,
+        // 1623 COBOL-WORDS, 1619 the conditional-compilation expressions) — not this producer's subject.
+        foreach (var row in ConstructRegistry.Entries
+                     .Where(e => e.DirectiveOperand is { Form: not DirectiveOperandForm.Stage }))
+        {
+            var s = row.DirectiveOperand!;
+            string? malformed = s.Form switch
+            {
+                DirectiveOperandForm.Words => s.UserWord ? "\"ZZBOGUS\"" : "ZZBOGUS",
+                DirectiveOperandForm.Text when s.OperandRequired => "",
+                _ => null,   // PAGE's comment-text-1 (§7.3.19.3 SR2) and the two removed FLAG windows
+            };
+            if (malformed is null) { exempt.Add(row.Id); continue; }
+            if (!Diagnose(row.DirectiveWords[0], malformed, row.IntroducedIn)
+                    .Any(d => d.Code == "COBOLNET1911"))
+                silent.Add($"{row.DirectiveWords[0]} {malformed}".Trim());
+        }
+
+        Assert.True(silent.Count == 0,
+            $"these directive lines violate their own general format and are accepted in silence: "
+            + $"[{string.Join(", ", silent)}] — the PB794 under-rejection has returned");
+        // The exemptions are NAMED, so growing the set is a visible edit rather than a quiet one.
+        Assert.Equal(["flag-85-directive-window", "flag-native-arithmetic-directive-window", "page-directive-2002"],
+            exempt.Order(StringComparer.Ordinal));
+    }
+
+    /// <summary>The complement: every directive's own CONFORMING operand — the first alternative its general
+    /// format admits — passes. A checker that rejected everything would satisfy the witness test above and
+    /// reject legal source everywhere, which is the worse defect of the two.</summary>
+    [Fact]
+    public void EveryClosedOperandDirective_AcceptsAConformingOperand()
+    {
+        var rejected = new List<string>();
+        foreach (var row in ConstructRegistry.Entries
+                     .Where(e => e.DirectiveOperand is { Form: not DirectiveOperandForm.Stage }))
+        {
+            var s = row.DirectiveOperand!;
+            string operand = s.Form switch
+            {
+                DirectiveOperandForm.Words when s.Choice.Count > 0 => s.Choice[0],
+                DirectiveOperandForm.Words when s.DirectiveName => "LISTING",
+                DirectiveOperandForm.Words when s.UserWord => "ZQXNAME",
+                DirectiveOperandForm.Text when s.OperandRequired => "\"x\"",
+                _ => "",
+            };
+            foreach (var d in Diagnose(row.DirectiveWords[0], operand, row.IntroducedIn))
+                if (d.Code == "COBOLNET1911")
+                    rejected.Add($"{row.DirectiveWords[0]} {operand}".Trim() + $" → {d.Message}");
+
+            // And the omissible half, from the same column: where the printed format leaves an alternative
+            // un-underlined (§5.2.3), writing nothing selects it and shall not be diagnosed.
+            if (s is { Form: DirectiveOperandForm.Words, ChoiceOmissible: true }
+                && Diagnose(row.DirectiveWords[0], "", row.IntroducedIn).Any(d => d.Code == "COBOLNET1911"))
+                rejected.Add($">>{row.DirectiveWords[0]} with the omitted phrase implied");
+        }
+
+        Assert.True(rejected.Count == 0, string.Join("\n", rejected));
+    }
+
+    /// <summary>§7.3.3 SR3/SR4 — a directive "may be followed only by space characters and an optional inline
+    /// comment". Six stages sliced their own operand and none of them knew that, so <c>&gt;&gt;PROPAGATE ON
+    /// *&gt; on</c> was REJECTED and <c>&gt;&gt;SOURCE FORMAT FIXED *&gt; switch</c> was not recognized at all —
+    /// the following segment was then read in the wrong reference format (kb/Work PB794).</summary>
+    [Fact]
+    public void InlineComment_IsNotPartOfTheOperand()
+    {
+        foreach (string line in (string[])["LISTING ON", "PROPAGATE ON", "LEAP-SECOND ON",
+                                           "REF-MOD-ZERO-LENGTH ON", "PUSH ALL", "CALL-CONVENTION COBOL"])
+        {
+            string word = line.Split(' ')[0];
+            var diags = Diagnose(word, line[(word.Length + 1)..] + "   *> why", 2023);
+            Assert.DoesNotContain(diags, d => d.Code == "COBOLNET1911");
+        }
+
+        // The reference-format stage is the one that consumes its own line, so it is checked through its own
+        // stage: the directive is RECOGNIZED with a comment on it, and the following segment switches.
+        var bag = new DiagnosticBag();
+        string free = ReferenceFormatProcessor.NormalizeToFreeForm(
+            ">>SOURCE FORMAT IS FREE *> switch\nIDENTIFICATION DIVISION.\n", 2023, permissive: false, bag, "t.cob");
+        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOLNET1911");
+        Assert.DoesNotContain(">>SOURCE", free);   // consumed, so the parser never sees it
+
+        // …and the quote-aware half: the *> inside a literal is data (§8.3.3.1), not a comment.
+        Assert.True(CompilerDirectiveLine.TryParse(">>DISPLAY \"a *> b\"", out var d2));
+        Assert.Equal("\"a *> b\"", d2.Operand);
+        Assert.Equal("DISPLAY", d2.Word);
+        // §7.3.3 SR5: the space after the indicator is optional, and its absence is treated as though present.
+        Assert.True(CompilerDirectiveLine.TryParse(">> SOURCE FORMAT IS FIXED", "SOURCE", out string op));
+        Assert.Equal("FORMAT IS FIXED", op);
+    }
+
+    /// <summary>A malformed <c>&gt;&gt;SOURCE FORMAT</c> is diagnosed AND consumed: the line is a directive line
+    /// by its word, so leaving it in the text (which is what produced <c>COBOL0001: unexpected '&gt;'</c> before
+    /// kb/Work PB725) is not the recovery. The reference format in effect is carried on unchanged, because the
+    /// directive selected none.</summary>
+    [Fact]
+    public void MalformedSourceFormat_IsDiagnosedAndConsumed()
+    {
+        foreach (string operand in (string[])["UNKNOWN", "\"literal\"", "", "FORMAT"])
+        {
+            var bag = new DiagnosticBag();
+            string outp = ReferenceFormatProcessor.NormalizeToFreeForm(
+                $">>SOURCE FORMAT {operand}\nIDENTIFICATION DIVISION.\n", 2023, permissive: false, bag, "t.cob");
+            Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET1911");
+            Assert.DoesNotContain(">>SOURCE", outp);
+        }
+    }
+
+    /// <summary>Drive the REAL text-manipulation stage with one directive line and return what it reported.
+    /// The edition is the directive's own introducing one, so the introduction gate never fires and what is
+    /// measured is the operand check alone.</summary>
+    private static IReadOnlyList<Diagnostic> Diagnose(string word, string operand, int edition)
+    {
+        var bag = new DiagnosticBag();
+        string line = $">>{word} {operand}".TrimEnd();
+        if (word == "SOURCE")
+            ReferenceFormatProcessor.NormalizeToFreeForm(
+                line + "\nIDENTIFICATION DIVISION.\n", edition, permissive: false, bag, "t.cob");
+        else
+            ConditionalCompilationProcessor.Process(
+                line + "\nIDENTIFICATION DIVISION.\n", CobolNet.Frontend.Frontend.LeftDirectives, bag, "t.cob",
+                dialectLevel: edition);
+        return bag.Diagnostics;
+    }
+
     /// <summary>An UNRECOGNIZED <c>&gt;&gt;</c> word is not swallowed: it survives into the text so the parser
     /// names it, which is what catches a typo like <c>&gt;&gt;IFF</c>. The gate must not turn every unknown word
     /// into a consumed no-op.</summary>

@@ -31,39 +31,29 @@ public static class RefModZeroLengthDirectiveProcessor
 {
     private const string Keyword = "REF-MOD-ZERO-LENGTH";   // 19 characters
 
-    /// <summary>Process <paramref name="text"/>: collect the toggle events, edition-gate + syntax-check each
-    /// directive, blank the directive lines. At <paramref name="dialectLevel"/> &lt; 2023 the directive is the
-    /// four-compilers introduction diagnostic (COBOLNET0900), never silently ignored. Line-count preserving.</summary>
-    public static (string Text, IReadOnlyList<RefModZeroLengthEvent> Events) Process(
-        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+    /// <summary>Process <paramref name="text"/>: collect the toggle events and blank the directive lines.
+    /// ⛔ It takes NO diagnostic channel. The introduction gate (COBOLNET0900, kb/Work PB725) and the OPERAND
+    /// check (COBOLNET1911, kb/Work PB794) both fire at the ONE directive-recognition point, from the same
+    /// registry row, so this stage has nothing left to report — the same removal PB725 made to four stages'
+    /// dialect parameters. Line-count preserving.</summary>
+    public static (string Text, IReadOnlyList<RefModZeroLengthEvent> Events) Process(string text)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
         var lines = text.Split('\n');
         List<RefModZeroLengthEvent>? events = null;
         for (int i = 0; i < lines.Length; i++)
         {
-            string trimmed = lines[i].TrimEnd('\r').TrimStart();
-            if (!trimmed.StartsWith(">>", StringComparison.Ordinal)) continue;
-            string body = trimmed[2..].TrimStart();
-            if (!body.StartsWith(Keyword, StringComparison.OrdinalIgnoreCase)
-                || (body.Length > Keyword.Length && !char.IsWhiteSpace(body[Keyword.Length]))) continue;
-
-            var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
+            if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
 
             // The introduction gate (§7.3.23 is a COBOL-2023 addition) already fired at the ONE
             // directive-recognition point — CompilerDirectiveCatalog, from the ref-mod-zero-length-2023 row's
-            // directiveWords (kb/Work PB725). This stage collects the toggles; it does not re-decide the edition.
-
-            // §7.3.23.2: >> REF-MOD-ZERO-LENGTH { ON | OFF }, OFF the underlined default. Record a well-formed toggle;
-            // a malformed operand is the syntax diagnostic (never a silent accept).
-            string operand = body.Length > Keyword.Length ? body[Keyword.Length..].Trim().ToUpperInvariant() : "";
-            if (operand is "ON" or "OFF")
-                (events ??= []).Add(new RefModZeroLengthEvent(i + 1, operand == "ON"));
-            else
-                // The Id comes from the catalog descriptor, never a bare literal — a bare "COBOLNET1573" here
-                // collided with the later catalog-allocated external-file-status-consistency (review finding C1).
-                diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.RefModZeroLengthMalformedOperand.Code,
-                    $">>REF-MOD-ZERO-LENGTH expects the ON or OFF phrase (ISO §7.3.23.2), not '{operand}'", loc, default);
+            // directiveWords (kb/Work PB725) — and so did the OPERAND check, from the same row's
+            // directiveOperand column (kb/Work PB794: §7.3.23.2's { ON | OFF }, with ON un-underlined so a bare
+            // >>REF-MOD-ZERO-LENGTH selects it). This stage collects the toggles; it re-decides neither, and it
+            // no longer re-implements the >> / keyword / operand slicing that missed a §7.3.3 SR3 inline comment.
+            if (CompilerDirectiveCatalog.TryOperandWord(Keyword, operand, out string word)
+                && word is "" or "ON" or "OFF")
+                (events ??= []).Add(new RefModZeroLengthEvent(i + 1, word != "OFF"));
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }
         return (string.Join('\n', lines), (IReadOnlyList<RefModZeroLengthEvent>?)events ?? []);

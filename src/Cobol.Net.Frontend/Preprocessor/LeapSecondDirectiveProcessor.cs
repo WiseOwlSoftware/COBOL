@@ -40,26 +40,25 @@ public static class LeapSecondDirectiveProcessor
         {
             string trimmed = lines[i].TrimEnd('\r').TrimStart();
             if (!insideUnit && StartsUnit(trimmed)) insideUnit = true;
-            if (!trimmed.StartsWith(">>", StringComparison.Ordinal)) continue;
-            string body = trimmed[2..].TrimStart();
-            if (!body.StartsWith(Keyword, StringComparison.OrdinalIgnoreCase)
-                || (body.Length > Keyword.Length && !char.IsWhiteSpace(body[Keyword.Length]))) continue;
+            // The ONE compiler-directive line parse (kb/Work PB794) — it removes the §7.3.3 SR3/SR4 inline
+            // comment this stage's own slicing did not know about, so `>>LEAP-SECOND ON *> on` folds ON instead
+            // of drawing a malformed-operand error.
+            if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
-            // The introduction gate (§7.3.17 is a COBOL-2002 compiler-directive introduction) already fired at
-            // the ONE directive-recognition point — CompilerDirectiveCatalog, from the leap-second-directive-2002
-            // row's directiveWords (kb/Work PB725). This stage folds the ON/OFF fact; it does not re-decide it.
-
-            string operand = body.Length > Keyword.Length ? body[Keyword.Length..].Trim().ToUpperInvariant() : "";
+            // Neither the EDITION nor the OPERAND SYNTAX is decided here. The introduction gate (§7.3.17 is a
+            // COBOL-2002 compiler-directive introduction) fired at the ONE directive-recognition point —
+            // CompilerDirectiveCatalog, from the leap-second-directive-2002 row's directiveWords (kb/Work PB725)
+            // — and §7.3.17.2's { ON | OFF } is that row's directiveOperand column, checked by the same funnel as
+            // COBOLNET1911 (kb/Work PB794). COBOLNET1650 is now the §7.3.17.3 SR1 PLACEMENT rule alone, which is
+            // the one obligation only this stage can see: it is the stage that tracks where the units start.
             if (insideUnit)
                 diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LeapSecondDirectiveSyntax.Code,
                     ">>LEAP-SECOND shall not be specified within a compilation unit (ISO §7.3.17.3 SR1) — write it "
                     + "before the first IDENTIFICATION DIVISION of the compilation group", loc, default);
-            else if (operand is "" or "ON") on = true;
-            else if (operand == "OFF") on = false;
-            else
-                diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LeapSecondDirectiveSyntax.Code,
-                    $">>LEAP-SECOND expects the ON or OFF phrase (ISO §7.3.17.2), not '{operand}'", loc, default);
+            else if (CompilerDirectiveCatalog.TryOperandWord(Keyword, operand, out string word)
+                     && word is "" or "ON" or "OFF")
+                on = word != "OFF";   // §7.3.17.2: ON is un-underlined, so a bare >>LEAP-SECOND selects it
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }
         return (string.Join('\n', lines), on);

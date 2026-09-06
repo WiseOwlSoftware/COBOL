@@ -57141,13 +57141,13 @@
   "ordinal": 0,
   "subject": "CALL-CONVENTION directive",
   "rule-digest": "2cf1a7ff7ba3",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "conformance:2023/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The >>CALL-CONVENTION general format { COBOL | call-convention-name-1 } is the call-convention-directive-2002 row's directiveOperand column: plain braces, so exactly one shall be written, COBOL being one admissible word and any COBOL word an implementor-defined call-convention-name-1 (7.3.9.3 GR2 b). A literal or a missing operand is COBOLNET1911. The directive's EFFECT is the 7.3.9.3 GR1 default in every case - this implementation maps program-names one way - so the format, not the semantics, is what this row records.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.10.2",
@@ -57261,13 +57261,13 @@
   "ordinal": 0,
   "subject": "LEAP-SECOND directive",
   "rule-digest": "51955fd91648",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Frontend/Preprocessor/LeapSecondDirectiveProcessor.cs#Process; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "{ ON | OFF } with ON un-underlined in the printed format, so per 5.2.3 a bare >>LEAP-SECOND selects ON - the 'specified or implied' case 7.3.17.4 GR2/GR4 presuppose. Any other operand is COBOLNET1911. The 7.3.17.3 SR1 PLACEMENT rule is a different row and stays with the stage as COBOLNET1650.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.18.2",
@@ -57276,13 +57276,13 @@
   "ordinal": 0,
   "subject": "LISTING directive",
   "rule-digest": "bf9d42b9c7e7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "conformance:2023/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "{ ON | OFF } with ON un-underlined (rendered from the printed page, folio 78), so a bare >>LISTING selects it - which is what 7.3.18.3 GR4/GR5 call 'specifying or implying the ON phrase'. Any other operand is COBOLNET1911. The directive itself is a no-op under 7.3.18.3 GR1: this compiler produces no source listing.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.19.2",
@@ -57291,13 +57291,13 @@
   "ordinal": 0,
   "subject": "PAGE directive",
   "rule-digest": "faf7285711f1",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "conformance:2023/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": ">> PAGE [ comment-text-1 ] - the operand is bracketed, so it is optional, and 7.3.19.3 SR2 states that comment-text-1 'is not checked syntactically'. The row's directiveOperand records that as form 'text' with the citation, so the absence of a content check is the standard's decision on the record rather than a gap. The directive is a no-op under 7.3.19.4 GR3 with no listing produced.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.20.2",
@@ -57306,13 +57306,13 @@
   "ordinal": 0,
   "subject": "POP directive",
   "rule-digest": "61a37992d86f",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "conformance:2023/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "{ directive-name | ALL }, plain braces - exactly one shall be written. The admissible directive-names are DERIVED from the catalog itself minus 7.3.20.3 SR1's exclusions (EVALUATE, IF, PAGE, POP, PUSH), by ROW: >>POP WHEN is refused because WHEN is a word of the excluded EVALUATE directive. Anything else is COBOLNET1911.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.21.2",
@@ -57321,13 +57321,13 @@
   "ordinal": 0,
   "subject": "PROPAGATE directive",
   "rule-digest": "2e152a9650d8",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "conformance-test:PropagateDirectiveTests.MalformedOperand_Rejected1911; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "{ ON | OFF } with ON un-underlined, so a bare >>PROPAGATE selects ON; 7.3.21.4 GR4's OFF default is about omitting the DIRECTIVE, not about which alternative the format implies. Any other operand is COBOLNET1911 (kb/Work PB794 retired this directive's own COBOLNET0883). The runtime propagation SEMANTICS are separate rows and remain PHASE-13 residue; this row is the format.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.22.2",
@@ -57336,13 +57336,13 @@
   "ordinal": 0,
   "subject": "PUSH directive",
   "rule-digest": "fdf660977ad5",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "conformance:2023/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "{ directive-name | ALL }, plain braces - exactly one shall be written, with the admissible directive-names derived from the catalog minus 7.3.22.3 SR1's exclusions, by row. Anything else is COBOLNET1911.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.23.2",
@@ -57351,13 +57351,13 @@
   "ordinal": 0,
   "subject": "REF-MOD-ZERO-LENGTH directive",
   "rule-digest": "09071d0e31ab",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Frontend/Preprocessor/RefModZeroLengthDirectiveProcessor.cs#Process; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "conformance:negative/ref-mod-zero-length-malformed; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "{ ON | OFF } with ON un-underlined, so a bare >>REF-MOD-ZERO-LENGTH selects ON. Any other operand is COBOLNET1911 (kb/Work PB794 retired this directive's own COBOLNET1576).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.24.2",
@@ -57366,13 +57366,13 @@
   "ordinal": 0,
   "subject": "SOURCE FORMAT directive",
   "rule-digest": "08ebfd22913e",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#TryMatchDirective; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+  "test-ref": "conformance:negative/pb794-source-format-unknown; conformance:negative/pb794-source-format-literal; conformance:2023/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": ">> SOURCE FORMAT IS { FIXED | FREE }, verified against the PRINTED page (folio 84): SOURCE, FIXED and FREE are underlined required words, FORMAT and IS are 5.2.3 optional words, and the braces are a plain required choice. The optional words are the row's optionalWords, so >>SOURCE FREE and >>SOURCE FORMAT IS FREE both select FREE; an operand that is neither, or none at all, is COBOLNET1911 and the line is still consumed (the reference format in effect carries on, since the directive selected none). kb/Work PB794.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-7.3.25.2",

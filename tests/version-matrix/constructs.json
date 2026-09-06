@@ -234,6 +234,15 @@
   {
    "id": "leap-second-directive-2002",
    "directiveWords": ["LEAP-SECOND"],
+   "directiveOperand": {
+     "form": "words",
+     "choice": [
+      "ON",
+      "OFF"
+     ],
+     "choiceOmissible": true,
+     "citation": "ISO §7.3.17.2 general format: LEAP-SECOND and OFF are underlined, ON is not, so per §5.2.3 a bare >>LEAP-SECOND selects ON — the 'specified or implied' case §7.3.17.4 GR2/GR4 presuppose. The directive's PLACEMENT rule (§7.3.17.3 SR1, not within a compilation unit) stays with its stage as COBOLNET1650."
+   },
    "description": "The >>LEAP-SECOND [ON|OFF] compiler directive (ISO §7.3.17) — a COBOL-2002 compiler-directive introduction (§7.3): with ON in effect a formatted-time argument's seconds subfield may be 60 (§15.3.3.3) and a standard numeric time form value is bounded at 86,401 (§7.3.17.4 GR4) instead of 86,400 (GR5); the reported side (a 60 in the seconds position of the clock functions, SECONDS-PAST-MIDNIGHT >= 86,400) is implementor-defined and answered never (A.1 item 112). A text-manipulation-stage directive consumed by LeapSecondDirectiveProcessor; the introduction gate rejects the directive below 2002 (kb/Work PB65).",
    "display": ">>LEAP-SECOND directive",
    "diagnosticCode": "COBOLNET0900",
@@ -247,6 +256,15 @@
   {
    "id": "ref-mod-zero-length-2023",
    "directiveWords": ["REF-MOD-ZERO-LENGTH"],
+   "directiveOperand": {
+     "form": "words",
+     "choice": [
+      "ON",
+      "OFF"
+     ],
+     "choiceOmissible": true,
+     "citation": "ISO §7.3.23.2 general format: REF-MOD-ZERO-LENGTH and OFF are underlined, ON is not, so per §5.2.3 the ON alternative may be selected with the word omitted; §7.3.23.3 GR1 governs the omitted DIRECTIVE."
+   },
    "description": "The >>REF-MOD-ZERO-LENGTH {ON|OFF} compiler directive (ISO §7.3.23) — a COBOL-2023 addition (Annex E.3.3 item 23): when ON, a reference modification MAY have a zero-length result (§8.4.3.3.4 item 5c); when OFF/omitted (the default) a zero-length ref-mod raises EC-BOUND-REF-MOD (§7.3.23.3 GR1). A text-manipulation-stage directive consumed by RefModZeroLengthDirectiveProcessor and folded per source line; the introduction gate rejects the directive below 2023.",
    "display": ">>REF-MOD-ZERO-LENGTH directive",
    "diagnosticCode": "COBOLNET0900",
@@ -260,6 +278,11 @@
   {
    "id": "flag-14-directive-2023",
    "directiveWords": ["FLAG-14"],
+   "directiveOperand": {
+     "form": "stage",
+     "owner": "FlagDirectiveProcessor",
+     "citation": "ISO §7.3.15.2 general format: a list of syntax-option words with ON/OFF (§7.3.15.3 GR4 names the options) — a structured operand, diagnosed by its own stage as COBOLNET1622."
+   },
    "description": "The >>FLAG-14 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §7.3.15) — a COBOL-2023 addition: Annex E.2 item 5 lists FLAG-14 among the compiler-directive words new to 2023. It directs the implementor's warning mechanism to flag 2014-to-2023 incompatibilities (GR1). Recognized and collected by FlagDirectiveProcessor and folded per option per source line by FlagState (FlagConformancePass emits the per-option COBOLNET1621 warning); the introduction gate rejects the directive word below 2023.",
    "display": ">>FLAG-14 directive",
    "diagnosticCode": "COBOLNET0900",
@@ -273,6 +296,11 @@
   {
    "id": "flag-02-directive-2014",
    "directiveWords": ["FLAG-02"],
+   "directiveOperand": {
+     "form": "stage",
+     "owner": "FlagDirectiveProcessor",
+     "citation": "ISO §7.3.14.2 general format: a list of syntax-option words with ON/OFF (§7.3.14.3 GR4 names the options) — a structured operand, diagnosed by its own stage as COBOLNET1622."
+   },
    "description": "The >>FLAG-02 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §7.3.14) — introduced in COBOL-2014 to flag 2002-to-2014 incompatibilities (GR1; the directive references the 2014 edition, and Annex E.2 item 5 lists only FLAG-14 as new to 2023, so FLAG-02 predates 2023). It is OBSOLETE (NOT removed) in COBOL-2023 — §7.3.14.1 NOTE: 'an obsolete element in this Working Draft International Standard and is to be deleted from the next edition'. Per §4.2.13 an implementation SHALL SUPPORT obsolete elements, so at 2023 it STILL COMPILES and carries the COBOLNET0903 obsolete warning (never a 0902 removal error). Modeled introducedIn=2014 + obsoleteIn=2023: the introduction gate rejects below 2014, the obsolete gate warns at 2023.",
    "display": ">>FLAG-02 directive",
    "diagnosticCode": "COBOLNET0900",
@@ -287,6 +315,11 @@
   {
    "id": "cobol-words-directive-2023",
    "directiveWords": ["COBOL-WORDS"],
+   "directiveOperand": {
+     "form": "stage",
+     "owner": "CobolWordsDirectiveProcessor",
+     "citation": "ISO §7.3.10.2 general format + §7.3.10.3 SR1-SR5: EQUATE / UNDEFINE / SUBSTITUTE / RESERVE entries over word literals — a structured operand, diagnosed by its own stage as COBOLNET1623."
+   },
    "description": "The >>COBOL-WORDS { EQUATE l1 WITH l2 | UNDEFINE l3 | SUBSTITUTE l4 BY l5 | RESERVE l6 } compiler directive (ISO §7.3.10; Annex D.12; Annex E.3.3 item 12) — a COBOL-2023 addition (Annex E.2 item 5 lists COBOL-WORDS among the compiler-directive words new to 2023). It modifies which words are reserved / context-sensitive / intrinsic-function words and prohibits specified user-defined words, per compilation group, during the text-manipulation stage. Recognized and parsed by CobolWordsDirectiveProcessor into a CobolWordsMap consumed by the post-lex token rewriter + the composed ReservedWordSet + intrinsic-name resolution; the introduction gate rejects the directive word below 2023.",
    "display": ">>COBOL-WORDS directive",
    "diagnosticCode": "COBOLNET0900",
@@ -304,6 +337,14 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.9; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["CALL-CONVENTION"],
+   "directiveOperand": {
+     "form": "words",
+     "choice": [
+      "COBOL"
+     ],
+     "userWord": true,
+     "citation": "ISO §7.3.9.2 general format: { COBOL | call-convention-name-1 }, plain braces — exactly one shall be written; call-convention-name-1 is a name whose meaning is implementor-defined (§7.3.9.3 GR2 b), so a word is admissible there and a literal is not."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -317,6 +358,11 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.11; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["DEFINE"],
+   "directiveOperand": {
+     "form": "stage",
+     "owner": "ConditionalCompilationProcessor",
+     "citation": "ISO §7.3.11.2 general format + §7.3.11.3: a compilation-variable-name with AS / OFF / PARAMETER / OVERRIDE and a compile-time expression — diagnosed by the conditional-compilation driver as COBOLNET1618/COBOLNET1619."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -330,6 +376,11 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.13; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["EVALUATE", "WHEN", "END-EVALUATE"],
+   "directiveOperand": {
+     "form": "stage",
+     "owner": "ConditionalCompilationProcessor",
+     "citation": "ISO §7.3.13.2 general format: a selection subject or TRUE, with >>WHEN objects — evaluated and diagnosed by the conditional-compilation driver as COBOLNET1619."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -343,6 +394,11 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.16; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["IF", "ELSE", "END-IF"],
+   "directiveOperand": {
+     "form": "stage",
+     "owner": "ConditionalCompilationProcessor",
+     "citation": "ISO §7.3.16.2 general format: a constant conditional expression (§7.3.8) — evaluated and diagnosed by the conditional-compilation driver as COBOLNET1619."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -356,6 +412,15 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.18; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["LISTING"],
+   "directiveOperand": {
+     "form": "words",
+     "choice": [
+      "ON",
+      "OFF"
+     ],
+     "choiceOmissible": true,
+     "citation": "ISO §7.3.18.2 general format (rendered, folio 78): LISTING and OFF are underlined, ON is not, so per §5.2.3 the ON alternative may be selected with the word omitted — which is the case §7.3.18.3 GR4/GR5 call 'specifying or implying the ON phrase'. ⚠ The transcription's figure note reads the missing underline as a typesetting omission and would make the choice mandatory; the underlining plus GR4/GR5's 'implying' is followed here, because rejecting a bare >>LISTING would reject conforming source."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -369,6 +434,11 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.19; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["PAGE"],
+   "directiveOperand": {
+     "form": "text",
+     "operandRequired": false,
+     "citation": "ISO §7.3.19.2 general format: >> PAGE [ comment-text-1 ] — bracketed, so the operand is optional; §7.3.19.3 SR2 states that comment-text-1 'is not checked syntactically', which is why this row's content check is the standard's own decision rather than a gap."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -382,6 +452,15 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.21; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["PROPAGATE"],
+   "directiveOperand": {
+     "form": "words",
+     "choice": [
+      "ON",
+      "OFF"
+     ],
+     "choiceOmissible": true,
+     "citation": "ISO §7.3.21.2 general format: PROPAGATE and OFF are underlined, ON is not, so per §5.2.3 the ON alternative may be selected with the word omitted; §7.3.21.4 GR4's OFF default is about omitting the DIRECTIVE, not about which alternative the format implies."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -395,6 +474,18 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.24; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["SOURCE"],
+   "directiveOperand": {
+     "form": "words",
+     "optionalWords": [
+      "FORMAT",
+      "IS"
+     ],
+     "choice": [
+      "FIXED",
+      "FREE"
+     ],
+     "citation": "ISO §7.3.24.2 general format (rendered from the printed page, folio 84): SOURCE, FIXED and FREE are underlined required words and FORMAT/IS are not, so per §5.2.3 they are optional words and exactly one of FIXED or FREE shall be written; §7.3.24.3 GR1 has no answer for the following text otherwise."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -408,6 +499,11 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.25; the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["TURN"],
+   "directiveOperand": {
+     "form": "stage",
+     "owner": "TurnDirectiveProcessor",
+     "citation": "ISO §7.3.25.2 general format + §7.3.25.3 SR1/SR3/SR4: an exception-name list with optional file-names and a CHECKING phrase — a structured operand, diagnosed by its own stage as COBOLNET0718/COBOLNET0719."
+   },
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -421,6 +517,11 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.12; Annex E.2 item 5 + Annex E.3.3 item 16 (compiler-directive words added in 2023)",
    "directiveWords": ["DISPLAY"],
+   "directiveOperand": {
+     "form": "text",
+     "operandRequired": true,
+     "citation": "ISO §7.3.12.2 general format: the operand braces are not bracketed, so at least one operand is written. ⚠ The operand's OWN syntax (arithmetic-expression-1, boolean-expression-1, literal-1, PARAMETER compilation-variable-name-1, and the UPON phrase) is NOT validated here: §7.3.12.1 sends the directive to a source listing or an implementor-defined compile-time device, this implementation produces neither, and the expression grammar is unbuilt residue — recorded, not silent (kb/Work PB794)."
+   },
    "introducedIn": 2023,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -434,6 +535,21 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.20; Annex E.2 item 5 + Annex E.3.3 item 38 (compiler-directive words added in 2023)",
    "directiveWords": ["POP"],
+   "directiveOperand": {
+     "form": "words",
+     "choice": [
+      "ALL"
+     ],
+     "directiveName": true,
+     "excludedDirectives": [
+      "EVALUATE",
+      "IF",
+      "PAGE",
+      "POP",
+      "PUSH"
+     ],
+     "citation": "ISO §7.3.20.2 general format: { directive-name | ALL }, plain braces — exactly one shall be written; §7.3.20.3 SR1 restricts directive-name to 'the name of a compiler directive that is other than an EVALUATE, IF, PAGE, POP, or PUSH directive', so the admissible names are the catalog's own words minus those five rows."
+   },
    "introducedIn": 2023,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -447,6 +563,21 @@
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §7.3.22; Annex E.2 item 5 + Annex E.3.3 item 38 (compiler-directive words added in 2023)",
    "directiveWords": ["PUSH"],
+   "directiveOperand": {
+     "form": "words",
+     "choice": [
+      "ALL"
+     ],
+     "directiveName": true,
+     "excludedDirectives": [
+      "EVALUATE",
+      "IF",
+      "PAGE",
+      "POP",
+      "PUSH"
+     ],
+     "citation": "ISO §7.3.22.2 general format: { directive-name | ALL }, plain braces — exactly one shall be written; §7.3.22.3 SR1 restricts directive-name to 'the name of a compiler directive other than an EVALUATE, IF, PAGE, POP, or PUSH directive', so the admissible names are the catalog's own words minus those five rows."
+   },
    "introducedIn": 2023,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
@@ -460,6 +591,11 @@
    "diagnosticCode": "COBOLNET0902",
    "citation": "Annex E.2 item 21 (removed in 2023, classified obsolete by the previous standard); the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["FLAG-85"],
+   "directiveOperand": {
+     "form": "text",
+     "operandRequired": false,
+     "citation": "Annex E.2 item 21 removed this directive in 2023, so the 2023 text carries no clause and its operand syntax is NOT derivable in-repo: the row gates the WORD, which is what the removal record supports (kb/Work PB725). Content unchecked by decision, not by omission."
+   },
    "introducedIn": 2002,
    "removedIn": 2023,
    "obsoleteIn": 2014,
@@ -475,6 +611,11 @@
    "diagnosticCode": "COBOLNET0902",
    "citation": "Annex E.2 item 21 (removed in 2023, classified obsolete by the previous standard); the §7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
    "directiveWords": ["FLAG-NATIVE-ARITHMETIC"],
+   "directiveOperand": {
+     "form": "text",
+     "operandRequired": false,
+     "citation": "Annex E.2 item 21 removed this directive in 2023, so the 2023 text carries no clause and its operand syntax is NOT derivable in-repo: the row gates the WORD, which is what the removal record supports (kb/Work PB725). Content unchecked by decision, not by omission."
+   },
    "introducedIn": 2002,
    "removedIn": 2023,
    "obsoleteIn": 2014,
