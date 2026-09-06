@@ -742,7 +742,7 @@ to that organization's edition gate (kb/Work PB688), not to this rule.
 let through. A static scan of all 1483 SELECT entries under `tests/` reports every cell this screen rejects
 EMPTY — no corpus program declares the combination, so the change cannot over-reject anything the suite already
 compiles — and every legal (organization × access) cell populated **except** LINE SEQUENTIAL with an explicit
-`ACCESS MODE IS SEQUENTIAL`, which had zero witnesses. `conformance:2002/pb692_line_sequential_access_sequential`
+`ACCESS MODE IS SEQUENTIAL`, which had zero witnesses. `conformance:2023/pb692_line_sequential_access_sequential`
 is that missing positive; `conformance:2023/l1_open_mixed_org_access` already pins RELATIVE/RANDOM and
 INDEXED/DYNAMIC.
 
@@ -838,7 +838,10 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   non-seekable stream, an absent OPTIONAL file — is '23' (9.1.13.5 item 3 b)/d)), never an abort; a wrong open
   mode is '47' (9.1.13.7 item 7, Table 20's blank Output/Extend cells); an unsuccessful START arms 9.1.13.7
   item 6 a)'s '46' on the next sequential READ. Goldens: `conformance:2002/pb352_start_sequential_first_last`
-  and the Sequential-row START cells of `conformance:2023/l1_table20_seq_relative`.
+  (record sequential, at the oldest edition START FIRST/LAST exists at),
+  `conformance:2023/pb352_start_sequential_first_last_line` (the LINE-sequential framing, 2023 because the
+  organization is — kb/Work PB688) and the Sequential-row START cells of
+  `conformance:2023/l1_table20_seq_relative`.
 - **The START key operand is screened by TWO rules with one home each** (kb/Work PB354).
   `RecordLayout.KeyIndexOfKeyItem` answers "this IS a record key of the file" — by reference identity, or by
   12.4.5.12.4 GR4's identical BYTE POSITIONS in another record description entry of the SAME file (hence
@@ -853,7 +856,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   ALTERNATE RECORD KEY, 12.4.5.13.3 SR1 RELATIVE KEY) in `KeyedIoBinder.KeyedValidateFile`.
 - READ INTO and WRITE FROM lower to the verb plus a typed group MOVE (receiving uses the MAX length for ODO records, the ST146A lesson).
 - Record length mismatch on READ (a fixed file whose physical record differs from the FD size) gives status 04; add for conformance since the legacy pads silently.
-- LINE SEQUENTIAL: newline-framed, TrimEnd on WRITE, pad or truncate on READ, LastRecordLength is the line length; status **06 and 09 are both implemented** — 06 is the GR15 over-length truncation (the file position indicator keeps the unread remainder, NOTE 3), 09 the GR16 character-set warning below. LINE SEQUENTIAL itself is not COBOL-85; see Per-edition gating.
+- LINE SEQUENTIAL: newline-framed, TrimEnd on WRITE, pad or truncate on READ, LastRecordLength is the line length; status **06 and 09 are both implemented** — 06 is the GR15 over-length truncation (the file position indicator keeps the unread remainder, NOTE 3), 09 the GR16 character-set warning below. LINE SEQUENTIAL itself is a COBOL-2023 introduction; see Per-edition gating.
 - **The LINE SEQUENTIAL CHARACTER SET is ONE set behind FOUR rules** (`LineSequentialCharacterSet`, kb/Work PB329). Annex A.1 item 115 makes the set a REQUIRED, documented determination and the standard names it from four places: 14.9.30.4 GR16 / 9.1.13.2 item 7 (a SUCCESSFUL READ whose record area holds a non-member ⇒ '09', the record still delivered), 14.9.51.4 GR23 (WRITE ⇒ unsuccessful, '71'), 14.9.35.4 GR17 d) (REWRITE ⇒ unsuccessful, '71') and 9.1.13.10 item 1 (both write directions leave the record area — and the medium — unchanged). **The determination is: every character at code point U+0020 or above is a member; the C0 controls below it are not** (derivation and the GnuCOBOL survey at `docs/CONFORMANCE.md` DOC-A.1-115). Design consequences: (a) the set lives in ONE type and the connector reaches it through ONE predicate, `SequentialConnector.RecordAreaOutsideLineCharacterSet`, so the read arm and all THREE write entry points (`Write`, `WriteAdvancing`, `WriteBeforeAndAfter`) cannot diverge — before PB329 only REWRITE had an arm and it carried a private CR/LF test; (b) the subject is the RECORD AREA, tested CHARACTER-wise, so a national record area is read two bytes at a time as UTF-16BE exactly as `FitRecord`/`TrimRecordEnd` pad and trim it (a byte-wise test would refuse every national line sequential record); (c) GR16 is stated after GR15 and asks only that the read be successful, so '09' is the status that lands even on a truncated ('06') read.
 - **The RECORD-AREA CATEGORY flag (`NationalRecordArea`) is set from ANY of the FD's record descriptions, not from the widest one.** 13.18.33.4 GR3 — "Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area" — makes them all descriptions of ONE area, and 14.9.51.4 GR21/GR22 key the trailing-space rule on *record-name-1*, so a WRITE naming the national record must shed national spaces whatever a sibling description says. Keying on the widest description alone (the original PB327 selector) silently answered "alphanumeric" for `01 R PIC N(4). 01 B PIC X(8).`, so that FD's WRITE shed one 0x20 with `string.TrimEnd` and left a seven-byte line ending in half a national position; the READ then re-padded alphanumerically to the same eight bytes, so the golden that was meant to pin the national fill never exercised it. ⚠ The flag is per-CONNECTOR while GR21/GR22 are per record-name-1; an FD carrying both a national and an alphanumeric record description answers national for both. Carrying the category on the statement is the shape that would separate them, and it is deliberately not built while no corpus program writes the alphanumeric sibling of a national area — a second national axis to say so would be the two-mechanism anti-pattern.
 - CODE-SET translates only character (alphanumeric and DISPLAY-numeric digit) bytes, not COMP or COMP-3 binary fields (13.18.13); the default is the native ASCII set.
@@ -946,9 +949,22 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   two organizations the after-OPEN behaviour is **identical at 2002, 2014 and 2023** and the connector takes no
   edition parameter for it. The sequential leg is asserted at all three editions by
   `conformance:{2002,2014,2023}/pb334_read_previous_sequential`; the relative leg is kb/Work PB343.
-- **ORGANIZATION LINE SEQUENTIAL is not a COBOL-85 organization**: rejected at 85. The exact introduction edition is
-  not derivable from the 2023 spec (no ledger row; the ledger has no 85→2002 row set) — derive it from the 2002
-  standard before gating.
+- **ORGANIZATION LINE SEQUENTIAL is a COBOL-2023 INTRODUCTION** (§12.4.5.10.3 GR2), so it is rejected at 85,
+  2002 AND 2014 — `constructs.json` row `file-organization-line-sequential-2023`, gated on the clause's
+  RECOGNITION by `VersionConformancePass.ParseArm.VisitOrganizationClause` (COBOLNET0900). **The edition IS
+  derivable from the 2023 spec after all** (kb/Work PB688 corrected the earlier "not derivable — derive it from
+  the 2002 standard" reading): the **Foreword's** list of the main changes this third edition makes over
+  ISO/IEC 1989:2014 names “Line Sequential file organization” outright. Annex E happens to carry no item for
+  it and `VERSION_CHANGE_REFERENCE.md` no row, which is what made it look underivable. §9.1.6 / §9.1.7.1 still
+  name exactly THREE organizations, so LINE SEQUENTIAL is a *phrase* selecting the line-delimited type of the
+  sequential organization (§9.1.7.2) — the `{ LINE | RECORD }` inner choice of the §12.4.5.10.2 general format.
+  Two consequences the corpus had to absorb: every golden below 2023 that named the organization moved to
+  `tests/conformance/2023/`, and **a report file COBOL.NET writes cannot be read back at all below 2023** —
+  the report writer frames a report file as CRLF-delimited text whatever its ORGANIZATION, and only a
+  line-sequential READ recovers those lines, so the 85/2002 report goldens that observed their report by
+  re-reading it are 2023 programs. **`RECORD SEQUENTIAL` — the other half of the 2023 inner choice — is NOT
+  yet accepted by the grammar** (`organizationType` has `LINE SEQUENTIAL | SEQUENTIAL | RELATIVE | INDEXED`);
+  when it lands it gates from the SAME arm.
 - **RECORD IS VARYING (13.18.43) is a 2002 introduction** (derive from the 2002 standard) — the 85 RECORD clause has
   only the CONTAINS forms; at 85 the VARYING phrase is rejected and `RECORD CONTAINS m TO n` drives
   `IsVaryingRecord`.

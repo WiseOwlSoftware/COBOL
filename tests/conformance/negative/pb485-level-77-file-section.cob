@@ -16,7 +16,7 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT F ASSIGN TO "pb485n3.dat"
-               ORGANIZATION IS LINE SEQUENTIAL.
+               ORGANIZATION IS SEQUENTIAL.
        DATA DIVISION.
        FILE SECTION.
        FD  F.

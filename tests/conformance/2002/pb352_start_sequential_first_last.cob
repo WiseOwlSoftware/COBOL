@@ -35,10 +35,13 @@
       *> first existing record that is selected is made available" —
       *> INCLUSIVE positioning, so START FIRST + READ yields record 1
       *> and START LAST + READ yields the last record.
-      *> Both §9.1.7.2 types of sequential file are walked, because the
-      *> connector frames them differently (fixed-width blocks vs.
-      *> newline-delimited lines) and GR20/GR21 are stated over
-      *> "records", not over a framing.
+      *> §9.1.7.2's RECORD-sequential type is walked here. The
+      *> LINE-sequential type is the same two rules over a different
+      *> framing, and is walked by
+      *> 2023/pb352_start_sequential_first_last_line: ORGANIZATION IS
+      *> LINE SEQUENTIAL is a COBOL-2023 introduction (kb/Work PB688)
+      *> while THIS program exists to pin START FIRST/LAST at the
+      *> OLDEST edition that has it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P352SQFL.
        ENVIRONMENT DIVISION.
@@ -48,9 +51,6 @@
                ORGANIZATION IS SEQUENTIAL
                ACCESS MODE IS SEQUENTIAL
                FILE STATUS IS ST-Q.
-           SELECT LSF ASSIGN TO "p352sqfl.txt"
-               ORGANIZATION IS LINE SEQUENTIAL
-               FILE STATUS IS ST-L.
            SELECT EMF ASSIGN TO "p352sqfe.dat"
                ORGANIZATION IS SEQUENTIAL
                FILE STATUS IS ST-E.
@@ -61,15 +61,12 @@
        FILE SECTION.
        FD SQF.
        01 SQ-REC PIC X(5).
-       FD LSF.
-       01 LS-REC PIC X(3).
        FD EMF.
        01 EM-REC PIC X(4).
        FD OPF.
        01 OP-REC PIC X(4).
        WORKING-STORAGE SECTION.
        01 ST-Q PIC XX.
-       01 ST-L PIC XX.
        01 ST-E PIC XX.
        01 ST-O PIC XX.
        PROCEDURE DIVISION.
@@ -113,31 +110,6 @@
            READ SQF AT END CONTINUE END-READ
            DISPLAY "R4=" ST-Q
            CLOSE SQF
-      *> ---- the same two rules on a LINE SEQUENTIAL file ------------
-           OPEN OUTPUT LSF
-           MOVE "L-1" TO LS-REC
-           WRITE LS-REC
-           MOVE "L-2" TO LS-REC
-           WRITE LS-REC
-           MOVE "L-3" TO LS-REC
-           WRITE LS-REC
-           CLOSE LSF
-           OPEN INPUT LSF
-           START LSF LAST
-               INVALID KEY DISPLAY "LL-INV"
-               NOT INVALID KEY DISPLAY "LL-OK"
-           END-START
-           DISPLAY "LSL=" ST-L
-           READ LSF AT END CONTINUE END-READ
-           DISPLAY "LR1=" LS-REC
-           START LSF FIRST
-               INVALID KEY DISPLAY "LF-INV"
-               NOT INVALID KEY DISPLAY "LF-OK"
-           END-START
-           DISPLAY "LSF=" ST-L
-           READ LSF AT END CONTINUE END-READ
-           DISPLAY "LR2=" LS-REC
-           CLOSE LSF
       *> ---- a file with no records at all (GR20/GR21 second arm) ----
            OPEN OUTPUT EMF
            CLOSE EMF

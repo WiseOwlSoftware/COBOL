@@ -1480,6 +1480,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         : item.GroupUsage is GroupUsage.None ? "not an elementary or group data item"
         : $"a {item.GroupUsage.ToString().ToLowerInvariant()} group item";
 
+    /// <summary>The ORGANIZATION clause (ISO §12.4.5.10.3 GR2–GR5) → the bound organization. The clause is
+    /// optional and so is the absent-clause case: §12.4.5.10.3 GR6 — "When the ORGANIZATION clause is not
+    /// specified, sequential organization with the RECORD SEQUENTIAL phrase is implied" — is the null arm.
+    /// <para>THE ONE RECOGNITION SITE for line sequential, which is a COBOL-2023 introduction (kb/Work PB688);
+    /// its edition gate is <c>VersionConformancePass.ParseArm.VisitOrganizationClause</c>, never here — this
+    /// binder is edition-agnostic.</para></summary>
     private static FileOrganization MapOrganization(Core.OrganizationClauseContext org)
     {
         var t = org.organizationType();

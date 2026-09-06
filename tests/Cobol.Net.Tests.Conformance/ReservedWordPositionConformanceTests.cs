@@ -179,7 +179,7 @@ public sealed class ReservedWordPositionConformanceTests
         ENVIRONMENT DIVISION.
         INPUT-OUTPUT SECTION.
         FILE-CONTROL.
-            SELECT DEFAULT ASSIGN TO "RWPSELF" ORGANIZATION IS LINE SEQUENTIAL.
+            SELECT DEFAULT ASSIGN TO "RWPSELF".
         DATA DIVISION.
         FILE SECTION.
         FD DEFAULT.

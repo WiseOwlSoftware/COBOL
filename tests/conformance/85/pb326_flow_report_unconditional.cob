@@ -19,24 +19,29 @@
       *> GEN-P, whose GENERATE is inside the range and therefore does nothing at all.  Control returns and the
       *> outer presentation composes DET-1 with WS-N = 1 (§13.18.53.4 GR1/GR3 — the implicit MOVE executes when
       *> the line is printed).  The report has no RH/PH/CH/CF/PF/RF, so TERMINATE prints nothing further
-      *> (§14.9.46.4 GR3).  Expected: N=1 and EXACTLY ONE detail line, D=1.  Before kb/Work PB326 the nested
-      *> GENERATE succeeded and a SECOND D=1 line was produced.
+      *> (§14.9.46.4 GR3).  Expected: N=1.
+      *>
+      *> WHY N ALONE COUNTS THE DETAIL LINES.  §14.9.49.4 GR8/GR9d execute the USE BEFORE REPORTING procedure
+      *> ONCE per PRESENTATION of the group, immediately before its LINE clauses are processed, so WS-N IS the
+      *> number of DET-1 lines presented: N=1 says "exactly one detail line", and the nested GENERATE's
+      *> presentation would have re-entered BR-P (N=3, its own recursion stopping at the WS-N < 3 guard).
+      *> Before kb/Work PB326 the nested GENERATE succeeded and a SECOND detail line was produced.
+      *> This program used to CONFIRM that by re-reading the report file through a second SELECT with
+      *> ORGANIZATION IS LINE SEQUENTIAL; that organization is a COBOL-2023 introduction (§12.4.5.10.3 GR2 —
+      *> the Foreword lists it among the main changes over ISO/IEC 1989:2014) and cannot appear in a COBOL-85
+      *> program at all, so the read-back is gone (kb/Work PB688).  Nothing is lost: it observed the same
+      *> count at the file that the declarative already observes at the source.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB326RW85.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT RPT ASSIGN TO "pb326-flow85.rpt".
-           SELECT RBACK ASSIGN TO "pb326-flow85.rpt"
-               ORGANIZATION IS LINE SEQUENTIAL.
        DATA DIVISION.
        FILE SECTION.
        FD RPT REPORT IS R-F85.
-       FD RBACK.
-       01 RB-REC PIC X(30).
        WORKING-STORAGE SECTION.
        01 WS-N   PIC 9 VALUE 0.
-       01 WS-EOF PIC 9 VALUE 0.
        REPORT SECTION.
        RD R-F85 PAGE LIMIT IS 20 LINES HEADING 1 FIRST DETAIL 3
            LAST DETAIL 15.
@@ -65,18 +70,4 @@
            TERMINATE R-F85.
            CLOSE RPT.
            DISPLAY "N=" WS-N.
-      *> The report content, blank lines skipped — the vertical placement of a report group is a separate
-      *> question (kb/Work PB484) and this program deliberately does not depend on it.
-       READ-BACK.
-           OPEN INPUT RBACK.
-           PERFORM UNTIL WS-EOF = 1
-               READ RBACK
-                   AT END MOVE 1 TO WS-EOF
-                   NOT AT END
-                       IF RB-REC NOT = SPACES
-                           DISPLAY RB-REC
-                       END-IF
-               END-READ
-           END-PERFORM.
-           CLOSE RBACK.
            STOP RUN.

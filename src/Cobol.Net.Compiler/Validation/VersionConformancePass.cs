@@ -1128,6 +1128,28 @@ internal sealed class VersionConformancePass
         public override object? VisitFileCollatingSequenceClause(CobolParserCore.FileCollatingSequenceClauseContext ctx)
         { _p.Check(Constructs.FileCollatingClause2002, "the file COLLATING SEQUENCE clause"); return base.VisitChildren(ctx); }
 
+        /// <summary>The LINE SEQUENTIAL phrase of the ORGANIZATION clause (ISO §12.4.5.10.3 GR2: "The LINE
+        /// SEQUENTIAL phrase specifies that the file organization is line sequential") — a COBOL-2023 introduction.
+        /// <para>THE EDITION IS DERIVED, NOT INHERITED (kb/Work PB688). The Foreword's list of the main changes
+        /// this third edition makes over ISO/IEC 1989:2014 names "Line Sequential file organization" outright, so
+        /// — unlike its 85↔2002 neighbours in this block — the introducing edition needs no older standard; Annex E
+        /// happens to carry no item for it. §9.1.7.2 is why it is a PHRASE and not a fourth organization: §9.1.6
+        /// still names exactly three organizations and §9.1.7.2 splits the SEQUENTIAL one into its record- and
+        /// line- delimited types, which is the {LINE|RECORD} inner choice of the §12.4.5.10.2 general format.
+        /// The clause parses at every edition (the grammar is the 2023 superset); this arm names the edition below
+        /// 2023. Recognition-fire on the clause's presence, so a SELECT that ALSO fails to bind still names its
+        /// edition instead of dropping the 0900 with the discarded FileModel (DEVLOG 724).</para>
+        /// <para>⚠ `RECORD SEQUENTIAL` — the other half of that 2023 inner choice — has no grammar alternative yet,
+        /// so it cannot reach this arm; when it lands it gates from HERE (one more <c>ctx.organizationType()</c>
+        /// token test), never from a second site.</para></summary>
+        public override object? VisitOrganizationClause(CobolParserCore.OrganizationClauseContext ctx)
+        {
+            if (ctx.organizationType()?.LINE() is not null)
+                _p.Check(Constructs.FileOrganizationLineSequential2023,
+                    "the LINE SEQUENTIAL phrase of the ORGANIZATION clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause (ISO §12.4.5.6.2) — a COBOL-2023
         /// addition (Introduction p.27 / Annex E.3.3 item 42). Parses at all editions (superset); this arm names
         /// the edition below 2023. Recognition-fire on the dedicated phrase rule (DEVLOG-736-safe).</summary>

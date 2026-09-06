@@ -16,7 +16,17 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class ReportWriterConformanceTests
 {
-    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
+    /// <summary>⛔ THE WHOLE CLASS COMPILES AT --std 2023, AND THE OBSERVATION MECHANISM IS WHY (kb/Work PB688).
+    /// Report Writer itself is a COBOL-85 subsystem, but every fact here is asserted by reading the report file
+    /// back through a second SELECT with <c>ORGANIZATION LINE SEQUENTIAL</c> — and that organization is a
+    /// COBOL-2023 introduction (ISO §12.4.5.10.3 GR2; the Foreword lists "Line Sequential file organization"
+    /// among the main changes over ISO/IEC 1989:2014), so below 2023 the read-back is COBOLNET0900. It cannot be
+    /// swapped for a record-sequential read either: COBOL.NET frames a report file as line-delimited text
+    /// whatever the file's ORGANIZATION, while the record-sequential connector reads fixed-size records — so a
+    /// COBOL.NET report file is not readable at all below 2023. The report-writer BEHAVIOR under test is
+    /// edition-invariant, so 2023 costs nothing; what is lost is only the (unobtainable) claim that these
+    /// assertions were observed at 85.</summary>
+    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler(2023);
 
     /// <summary>Compile-and-run on the greenfield compiler; assert the spec-derived stdout.</summary>
     private static void AssertSpec(string source, string expected)
@@ -342,24 +352,19 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack5), "D1\nD2\nCF 05");
 
-    // ── PRESENT WHEN (§13.18.41 Format 1; P10 Step 13 — a COBOL-2002 clause, compiled at --std 2002) ────────
-
-    private static readonly ICompilerUnderTest CobolNet2002 = new CobolNetCompiler(2002);
-
-    /// <summary>Compile-and-run at <c>--std 2002</c> (the PRESENT WHEN / VARYING clauses gate 0900 below 2002).</summary>
-    private static void AssertSpec2002(string source, string expected)
-    {
-        var (ok, stdout, detail) = CobolNet2002.CompileAndRun(source);
-        Assert.True(ok, $"COBOL.NET failed: {detail}");
-        Assert.Equal(expected, stdout);
-    }
+    // ── PRESENT WHEN (§13.18.41 Format 1; P10 Step 13 — a COBOL-2002 clause) ────────────────────────────────
+    // These two used to compile at --std 2002 through their own AssertSpec2002 helper, to say "PRESENT WHEN is
+    // 2002 surface". They now share the class's 2023 compiler, because the READ-BACK the whole class observes
+    // through is a 2023 organization (see the CobolNet field): a program carrying it is not expressible at 2002
+    // at all, so the helper's name was the only thing asserting the edition. 2002-and-later coverage of PRESENT
+    // WHEN itself is the constructs.json (construct × edition) matrix's job, not this net's.
 
     [Fact]   // §13.18.41.4 GR3g / §13.18.54.4 GR10: a SUM entry absent under its PRESENT WHEN is neither
              // printed nor reset for that instance of the report group — the counter carries its accumulation
              // forward; the next PRESENT instance prints the carried total and resets (no RESET phrase ⇒
              // reset where printed, §13.18.54.4 GR2). Addends 5 (absent), 3, 2 print blank, 08, 02.
     public void PresentWhen_Gr3g_AbsentSumNeitherPrintsNorResets()
-        => AssertSpec2002(Program("""
+        => AssertSpec(Program("""
             RD R-1 PAGE LIMIT IS 20 LINES.
             01 DET-1 TYPE DE LINE PLUS 1.
                 03 COLUMN 1 PIC X(2) VALUE "D:".

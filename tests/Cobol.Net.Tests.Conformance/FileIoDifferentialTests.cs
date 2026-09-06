@@ -15,6 +15,10 @@ public sealed class FileIoDifferentialTests
 {
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
 
+    /// <summary>For the cases whose OBSERVATION needs a COBOL-2023 construct — today the line-sequential
+    /// read-back of a print stream (kb/Work PB688). The BEHAVIOR under test is edition-invariant.</summary>
+    private static readonly ICompilerUnderTest CobolNet2023 = new CobolNetCompiler(2023);
+
     private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>A program with a single SELECTed file; <paramref name="select"/> is the SELECT clause body (after the
@@ -167,7 +171,10 @@ public sealed class FileIoDifferentialTests
     public void WriteAfterAdvancing_LineSequentialReadBack()
         // A printer-style WRITE … AFTER ADVANCING stream read back line-by-line (LINE SEQUENTIAL): the advancing
         // newline structure (a leading blank line per AFTER) is observable as the read records.
-        => AssertSameAsLegacy(Program("ASSIGN TO \"FIO-RT6\" ORGANIZATION IS LINE SEQUENTIAL", "01 F-REC PIC X(5).", "",
+        // kb/Work PB688: ORGANIZATION LINE SEQUENTIAL is a COBOL-2023 introduction (ISO §12.4.5.10.3 GR2),
+        // so this case compiles at 2023 rather than the class default 85; the golden carries an explicit NAME
+        // because the default one hashes the EDITION into the file name.
+        => DifferentialGolden.Assert(Program("ASSIGN TO \"FIO-RT6\" ORGANIZATION IS LINE SEQUENTIAL", "01 F-REC PIC X(5).", "",
             """
                 OPEN OUTPUT F.
                 MOVE "LINE1" TO F-REC. WRITE F-REC AFTER ADVANCING 1 LINES.
@@ -180,7 +187,8 @@ public sealed class FileIoDifferentialTests
                     END-READ
                 END-PERFORM.
                 CLOSE F.
-            """));
+            """), edition: 2023,
+            goldenName: "write_after_advancing_line_sequential_read_back");
 
     /// <summary>§14.9.46 — WRITE {BEFORE|AFTER} ADVANCING mnemonic-name: the positioning is IMPLEMENTOR-DEFINED
     /// for the associated feature; this implementation's rule (inherited from the legacy oracle and encoded by
@@ -192,7 +200,9 @@ public sealed class FileIoDifferentialTests
     [Fact]
     public void WriteAdvancingMnemonic_ZeroLineAdvance_RecordAlwaysReleased()
     {
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun("""
+        // kb/Work PB688: the read-back SELECT is ORGANIZATION LINE SEQUENTIAL, a COBOL-2023 introduction
+        // (ISO §12.4.5.10.3 GR2) — the positioning rule under test is edition-invariant, the OBSERVATION is not.
+        var (cok, cout, cdetail) = CobolNet2023.CompileAndRun("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. FIOMNADV1.
             ENVIRONMENT DIVISION.
