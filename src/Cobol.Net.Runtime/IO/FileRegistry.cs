@@ -814,7 +814,12 @@ public sealed class FileRegistry
         // §14.9.51.4 GR19 release-ordinal mint that lives on it, and participation IS this being non-null, so
         // the two cannot disagree. It no longer says anything about the HOST HANDLE — that is the file lock
         // below, derived rather than declared (kb/Work PB740).
-        c.SharedPhysical = _connectorShares.ContainsKey(name) ? st : null;
+        // ⛔ TWO FACTS, ONE WRITER (kb/Work PB753). The physical file's shared state goes to EVERY connector —
+        // Table 19 has just arbitrated this open over it, and the read-coherence rule written on it
+        // (State.ReleaseGeneration) is a rule about the MEDIUM, which a clause-less pair sharing one file
+        // under kb/Work PB740 is on exactly as much as a SHARING WITH ALL OTHER pair. The second argument is
+        // the RECORD-LOCKING posture, and only the §9.1.16 questions read it through `SharedPhysical`.
+        c.AssociatePhysical(st, _connectorShares.ContainsKey(name));
         // ⛔ AND THE §9.1.15 FILE LOCK, BEFORE THE HANDLE THAT CARRIES IT EXISTS (kb/Work PB740). Table 19 has
         // just allowed this open against every connector already associated with the physical file; the host's
         // share mode shall not now refuse it. SyncHostPostures hands this connector the posture it must open

@@ -56,6 +56,12 @@ public sealed class SequentialConnector : FileConnector
     private long _readOrdinal;        // ordinal of the record most recently made available by Read
     private long _writeOrdinal;       // ordinal of the record most recently released BY THIS connector; 0 = none
 
+    // The physical file's release generation (PhysicalFileTable.State.ReleaseGeneration) this connector's
+    // read-ahead is coherent with (kb/Work PB753). Set wherever the reader's buffer is known to agree with the
+    // medium — when the handle is created (OpenReader), when it is repositioned (SeekToRecord), and when THIS
+    // connector is the one that released (NoteRelease) — and compared before every physical frame.
+    private long _coherentAt;
+
     // §13.18.43 GR2 frame offsets of a RECORD VARYING file, index = ordinal − 1. Built LAZILY, on the first
     // backward read only: a forward READ walk must not pay for a facility it never uses, and a fixed-width file
     // never needs it at all (its offsets are arithmetic). The physical frame layout cannot change while a
@@ -132,9 +138,62 @@ public sealed class SequentialConnector : FileConnector
     private void ReleaseRecord()
     {
         if (FileLockPosture.AdmitsAnotherWriter(HostShare))
+        {
             _writer!.Flush();                      // GR12 — released, not merely buffered
+            NoteRelease();                         // …and now visible, so no sibling's read-ahead may hide it
+        }
         if (SharedPhysical is { } shared)
             _writeOrdinal = ++shared.ReleasedOrdinal;   // §9.1.16 identity, minted from the physical file's mint
+    }
+
+    /// <summary>⛔ THE ONE PLACE A RELEASE THAT HAS REACHED THE PHYSICAL FILE IS ANNOUNCED TO THE CONNECTORS
+    /// READING IT (kb/Work PB753) — the read-side half of the release rule, and it is one rule for both verbs
+    /// because the standard writes it once for each in the same words: §14.9.51.4 GR12, <i>"The successful
+    /// execution of a WRITE statement releases a logical record to the operating environment"</i>, and
+    /// §14.9.35.4 GR4, <i>"The successful execution of the REWRITE statement releases a logical record to the
+    /// operating environment"</i>. §9.1.15 3) makes the concurrency legal — <i>"The sharing with all other mode
+    /// allows concurrent access to a physical file through other file connectors specifying input, I-O, or
+    /// extend mode"</i> — and §14.9.30.4 GR21 c)/d) say what the sibling's next READ owes: the record selected
+    /// is <i>"the first existing record in the physical file whose relative key number is greater than the file
+    /// position indicator"</i>, and THAT record <i>"is made available in the record area"</i>. A reader serving
+    /// characters buffered before this release would make available a record the physical file no longer holds.
+    /// <para>⛔ AND IT SETS THIS CONNECTOR'S OWN WATERMARK IN THE SAME BREATH. A connector's own release never
+    /// invalidates its own read-ahead: a sequential REWRITE targets the record the last READ delivered, whose
+    /// bytes are at or before the file position indicator, so nothing this connector will read again was
+    /// touched. Advancing <c>_coherentAt</c> here is what keeps a READ/REWRITE loop on one I-O connector from
+    /// re-filling its buffer once per record.</para>
+    /// <para>⚠ It is NOT called where a release stays in this connector's own writer buffer. That case is the
+    /// FLUSH's antecedent (see <see cref="ReleaseRecord"/>), and announcing bytes that have not reached the
+    /// file would send a reader to a half-written frame instead of a whole stale one.</para></summary>
+    private void NoteRelease()
+    {
+        if (Physical is { } physical) _coherentAt = ++physical.ReleaseGeneration;
+    }
+
+    /// <summary>⛔ THE READ-SIDE INVALIDATION, at the ONE point every physical read of this connector passes
+    /// through (<see cref="NextFrame"/>): if a sibling connector has released a record to this physical file
+    /// since this reader's buffer was filled, the buffer is discarded and the reader re-anchored at the file
+    /// position indicator, so the next frame comes off the medium as it stands NOW (§14.9.30.4 GR21 c/d —
+    /// see <see cref="NoteRelease"/> for the derivation).
+    /// <para>The anchor is the LOGICAL offset, never <c>BaseStream.Position</c>: a <see cref="StreamReader"/>
+    /// buffers ahead, so the base position is the buffer-fill boundary. That is the same fact
+    /// <see cref="SeekToRecord"/> and <see cref="Reposture"/> are built on, and it is why a bare
+    /// <c>DiscardBufferedData</c> would be wrong here — it would resume at the fill boundary and skip every
+    /// record the buffer had already read ahead of.</para>
+    /// <para>An over-length LINE SEQUENTIAL record's unread remainder (§14.9.30.4 GR15 / NOTE 3) is untouched
+    /// on purpose: it is part of a record ALREADY made available, and <c>_lineByteOffset</c> is already past
+    /// its physical line, so re-anchoring neither loses it nor re-reads it.</para>
+    /// <para>⛔ A TRUNCATING SIBLING CANNOT ARISE, so no rule is written for one: every cell of Table 19's two
+    /// OUTPUT request rows is <i>Unsuccessful open</i> (§14.9.27.4; §9.1.13.9 1) e) — <i>"An attempt is made to
+    /// open a physical file in the output mode and the physical file is currently open by another file
+    /// connector"</i>), so nothing may truncate this file while this connector holds it open.</para></summary>
+    private void EnsureReaderCoherent()
+    {
+        if (Physical is not { } physical || physical.ReleaseGeneration == _coherentAt) return;
+        _coherentAt = physical.ReleaseGeneration;
+        if (_reader is not { BaseStream.CanSeek: true } reader) return;
+        reader.BaseStream.Seek(_lineSequential ? _lineByteOffset : _readOffset, SeekOrigin.Begin);
+        reader.DiscardBufferedData();
     }
 
     /// <summary>Re-derive this connector's ISO §9.1.15 file lock while it is open — see
@@ -209,6 +268,8 @@ public sealed class SequentialConnector : FileConnector
         try { r = Open(share); }
         catch (IOException) when (fallbackShare is { } old) { r = Open(old); }
         if (at != 0) r.BaseStream.Seek(at, SeekOrigin.Begin);
+        // A brand-new handle has read nothing, so it agrees with the medium by construction (kb/Work PB753).
+        _coherentAt = Physical?.ReleaseGeneration ?? 0;
         return r;
     }
 
@@ -820,9 +881,14 @@ public sealed class SequentialConnector : FileConnector
     /// are §14.9.30's rules and belong to <see cref="Read"/>. Extracted so START's record scan
     /// (<see cref="StartFirstLast"/>) walks the file with the SAME framing the reader uses instead of a second
     /// copy of it (kb/Work PB352) — the byte anchors it needs are exactly the ones REWRITE already
-    /// tracks.</para></summary>
+    /// tracks.</para>
+    /// <para>⛔ AND IT IS THEREFORE THE ONE PLACE THE READ-AHEAD IS CHECKED AGAINST THE MEDIUM. Being the only
+    /// walk is what makes <see cref="EnsureReaderCoherent"/> a property of this connector rather than a
+    /// courtesy at a call site: every character this connector ever reads is read below this line (kb/Work
+    /// PB753; <c>SharedReadCoherenceDriftTests</c> proves the "only" rather than asserting it).</para></summary>
     private string? NextFrame(out long frameStart)
     {
+        EnsureReaderCoherent();   // kb/Work PB753 — a sibling's release since the buffer was filled
         if (_lineSequential)
         {
             frameStart = _lineByteOffset;
@@ -916,15 +982,7 @@ public sealed class SequentialConnector : FileConnector
         if (IsVarying && len != LastReadLength)
             return Status = FileStatusCode.RecordSizeViolation;       // '44' §14.9.35 GR16 (record sequential)
         if (!_lineSequential && _lastReadBlockStart >= 0 && _reader is { BaseStream: { CanSeek: true, CanWrite: true } stream })
-        {
-            long resume = stream.Position;
-            stream.Seek(_lastReadBlockStart, SeekOrigin.Begin);
-            byte[] bytes = Encoding.Latin1.GetBytes(FitRecord(image, len));
-            stream.Write(bytes, 0, bytes.Length);
-            stream.Flush();
-            stream.Seek(resume, SeekOrigin.Begin);
-            return Status = FileStatusCode.Success;
-        }
+            return OverwriteInPlace(stream, _lastReadBlockStart, FitRecord(image, len));
         if (_lineSequential && _lastLineStart >= 0 && _reader is { BaseStream: { CanSeek: true, CanWrite: true } lstream })
         {
             // §14.9.35.4 GR17 (line-sequential REWRITE): (a) a preceding partial ('06') read ⇒ '44'; (d) a record
@@ -940,17 +998,36 @@ public sealed class SequentialConnector : FileConnector
             string content = TrimRecordEnd(Fit(image));
             if (content.Length > _lastLineBytes) return Status = FileStatusCode.RecordSizeViolation;     // '44' GR17b
             content = FitRecord(content, _lastLineBytes);                                                // '00' GR17c (span-invariant)
-            long resume = lstream.Position;
-            lstream.Seek(_lastLineStart, SeekOrigin.Begin);
-            byte[] bytes = Encoding.Latin1.GetBytes(content);
-            lstream.Write(bytes, 0, bytes.Length);
-            lstream.Flush();
-            lstream.Seek(resume, SeekOrigin.Begin);
-            return Status = FileStatusCode.Success;
+            return OverwriteInPlace(lstream, _lastLineStart, content);
         }
         // A non-seekable line-sequential / record-sequential REWRITE cannot overwrite in place → report a permanent
         // error so the program's FILE STATUS / declarative path observes it (never a silent no-op).
         return Status = FileStatusCode.PermanentError;
+    }
+
+    /// <summary>⛔ THE ONE IN-PLACE OVERWRITE — the record-sequential and the line-sequential REWRITE arms
+    /// differ in the rules that VALIDATE the replacement (§14.9.35.4 GR16/GR20 versus GR17 a)–d)) and not at
+    /// all in what they then do to the physical file, so the release itself is written once (kb/Work PB753;
+    /// it used to be two copies and only one of them could have been given the announcement below).
+    /// <para>The write goes through the I-O reader's own base stream (§14.9.35 GR3 — a REWRITE replaces the
+    /// record the last READ retrieved, through the one connector) and is FLUSHED, because §14.9.35.4 GR4 says
+    /// <i>"The successful execution of the REWRITE statement releases a logical record to the operating
+    /// environment"</i>: the '00' this returns is a promise that the record is IN the physical file, not that
+    /// it is queued. <see cref="NoteRelease"/> then tells the physical file's other connectors, whose
+    /// read-ahead would otherwise keep serving the image this call just superseded.</para>
+    /// <para>The base stream is left where it was found. It is the buffer-fill boundary of the
+    /// <see cref="StreamReader"/> above it, not the file position indicator, so restoring it is what keeps
+    /// THIS connector's own buffered characters valid across its own REWRITE.</para></summary>
+    private string OverwriteInPlace(Stream stream, long anchor, string content)
+    {
+        long resume = stream.Position;
+        stream.Seek(anchor, SeekOrigin.Begin);
+        byte[] bytes = Encoding.Latin1.GetBytes(content);
+        stream.Write(bytes, 0, bytes.Length);
+        stream.Flush();                 // §14.9.35.4 GR4 — released to the operating environment
+        stream.Seek(resume, SeekOrigin.Begin);
+        NoteRelease();                  // …and announced, so no sibling reader serves the superseded image
+        return Status = FileStatusCode.Success;
     }
 
     // ── START (ISO §14.9.41, SEQUENTIAL FILES — General rules 1–7 and 20/21) ─────────────────────────────────
@@ -1012,14 +1089,16 @@ public sealed class SequentialConnector : FileConnector
     /// <summary>Reposition the reader at <paramref name="byteOffset"/>, which shall be the START of a record,
     /// and reset every piece of derived read state so the next <see cref="Read"/> behaves as if the file had
     /// been read up to that point: the logical offsets (both framings), the §14.9.30 GR15 unread remainder, the
-    /// REWRITE byte anchors (a START is not a READ, so §14.9.35's "record being replaced" no longer exists) and
+    /// REWRITE byte anchors (a START is not a READ, so §14.9.35's "record being replaced" no longer exists),
     /// the §9.1.16 record ordinal, which becomes <paramref name="ordinalBefore"/> so the next record read is
-    /// numbered correctly. <see cref="StreamReader.DiscardBufferedData"/> is required: the reader buffers ahead
+    /// numbered correctly, and the physical file's release generation the emptied buffer now agrees with
+    /// (kb/Work PB753). <see cref="StreamReader.DiscardBufferedData"/> is required: the reader buffers ahead
     /// of the base stream, so seeking the stream alone would keep serving stale characters.</summary>
     private void SeekToRecord(long byteOffset, long ordinalBefore)
     {
         _reader!.BaseStream.Seek(byteOffset, SeekOrigin.Begin);
         _reader.DiscardBufferedData();
+        _coherentAt = Physical?.ReleaseGeneration ?? 0;
         _readOffset = byteOffset;
         _lineByteOffset = byteOffset;
         _lineRemainder = null;

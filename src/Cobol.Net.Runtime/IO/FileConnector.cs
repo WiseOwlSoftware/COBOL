@@ -149,16 +149,43 @@ public abstract class FileConnector
     /// unit test) keeps the private-store behavior.</summary>
     internal KeyedStoreTable? SharedStores { get; set; }
 
-    /// <summary>The §9.1.15 state of the physical file this connector participates in sharing over, or NULL
-    /// when it does not participate — the registry sets it, in one place, immediately before the connector's
-    /// OPEN body runs. It is the connector's handle on everything the OTHER connectors of this run unit share:
-    /// the Table-19 open register, the §9.1.16 record locks, and the release-ordinal mint a shared
-    /// <c>OPEN EXTEND</c> numbers its appended records from (kb/Work PB739).
-    /// <para>⛔ ONE FACT, ONE FIELD. Participation used to be a separate <c>bool</c> beside the registry's own
-    /// posture map, which is two independently maintained answers to one question (kb/Work PB713 removed the
-    /// second writer); giving the fact the type of the thing it grants access to removes the possibility of a
-    /// third — a connector that "participates" but holds no shared state cannot be expressed.</para></summary>
-    internal PhysicalFileTable.State? SharedPhysical { get; set; }
+    /// <summary>The live state of the PHYSICAL FILE this connector is associated with — the ONE object that
+    /// stands for the medium, held by EVERY connector opened through a registry, whatever its SELECT declared.
+    /// <para>⛔ EVERY connector, because the questions answered off it are not all record-locking questions
+    /// (kb/Work PB753). Table 19 arbitrates every open over this state already (<c>st.Open[name]</c> records
+    /// every successful one, kb/Work PB321), and since kb/Work PB740 two CLAUSE-LESS connectors may share one
+    /// physical file — so "this SELECT wrote a SHARING or LOCK MODE clause" cannot gate a rule about what the
+    /// medium holds. <see cref="PhysicalFileTable.State.ReleaseGeneration"/> is such a rule: §14.9.30.4 GR21 c)
+    /// selects <i>"the first existing record in the physical file"</i> regardless of any clause.</para></summary>
+    internal PhysicalFileTable.State? Physical { get; private set; }
+
+    /// <summary>The §9.1.16 RECORD-LOCKING view of <see cref="Physical"/> — non-null only for a connector whose
+    /// SELECT registered a SHARING or LOCK MODE clause (or whose OPEN carried a SHARING/RETRY phrase). It is
+    /// what the release-ordinal mint a shared <c>OPEN EXTEND</c> numbers its appended records from reads
+    /// (kb/Work PB739), and the gate is the record-locking one because the ordinal IS the lock identity:
+    /// §12.4.5.9.4 GR1 b) 2. leaves a clause-less connector's record locking to the implementor and this
+    /// compiler's determination is <see cref="FileLockMode.None"/> (kb/Work PB740), so there is no identity to
+    /// mint and no whole-file measurement to pay for.
+    /// <para>⛔ ONE FACT, ONE FIELD, AND NOW ONE DERIVATION. Participation used to be a separate <c>bool</c>
+    /// beside the registry's own posture map, which is two independently maintained answers to one question
+    /// (kb/Work PB713 removed the second writer); it is a computed VIEW of <see cref="Physical"/> and the flag
+    /// <see cref="AssociatePhysical"/> sets alongside it, so a connector that "participates" but holds no
+    /// shared state still cannot be expressed.</para></summary>
+    internal PhysicalFileTable.State? SharedPhysical => _locksRecords ? Physical : null;
+
+    private bool _locksRecords;
+
+    /// <summary>⛔ THE ONE WRITER OF BOTH FACTS ABOVE, so they cannot fall out of step: the registry calls it
+    /// in exactly one place, immediately before the connector's OPEN body runs (the kb/Work PB713 ordering —
+    /// <c>OpenCore</c> reads them, so assigning afterwards would open every stream on the PREVIOUS open's
+    /// answer).</summary>
+    /// <param name="physical">The physical file's shared state — every connector gets it.</param>
+    /// <param name="locksRecords">Whether this connector registered a §9.1.15/§9.1.16 posture.</param>
+    internal void AssociatePhysical(PhysicalFileTable.State physical, bool locksRecords)
+    {
+        Physical = physical;
+        _locksRecords = locksRecords;
+    }
 
     /// <summary>The ISO §9.1.15 <b>file lock</b> this connector's own host handles carry — <i>"The successful
     /// opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run

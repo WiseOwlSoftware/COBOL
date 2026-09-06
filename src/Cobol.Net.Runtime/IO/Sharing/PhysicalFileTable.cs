@@ -39,6 +39,30 @@ internal sealed class PhysicalFileTable
         /// organizations do not use it: their release identity is a key or an RRN minted from the shared record
         /// store, which is their physical file.</para></summary>
         public long ReleasedOrdinal;
+
+        /// <summary>⭐ The RELEASE GENERATION of this physical file (kb/Work PB753): a count of the logical
+        /// records that have been released to the operating environment THROUGH THIS PATH and have reached the
+        /// physical file. A reader records the value its read-ahead was filled at and re-anchors when they
+        /// differ, so it can never serve an image a sibling connector has since replaced.
+        /// <para>It is the READ-SIDE twin of <see cref="ReleasedOrdinal"/>, and it counts BOTH verbs that
+        /// release, because the standard gives them the same sentence: §14.9.51.4 GR12 — <i>"The successful
+        /// execution of a WRITE statement releases a logical record to the operating environment"</i> — and
+        /// §14.9.35.4 GR4 — <i>"The successful execution of the REWRITE statement releases a logical record to
+        /// the operating environment"</i>. What a READ owes against that is §14.9.30.4 GR21 c) and d): the
+        /// record selected is <i>"the first existing record IN THE PHYSICAL FILE whose relative key number is
+        /// greater than the file position indicator"</i> and it is that record that <i>"is made available in
+        /// the record area"</i> — the physical file as it stands at the READ, never a snapshot of what it said
+        /// when a buffer was filled.</para>
+        /// <para>⛔ IT COUNTS RELEASES THAT HAVE REACHED THE FILE, not WRITE statements. A connector whose
+        /// §9.1.15 file lock admits no other writer keeps its buffered writer and flushes at CLOSE (see
+        /// <c>SequentialConnector.ReleaseRecord</c>), so its records are not in the physical file yet and a
+        /// reader told to re-anchor for them would read a half-written frame instead of a stale whole one.
+        /// The generation moves exactly where the bytes do.</para>
+        /// <para>The keyed organizations do not use it, for the reason that names the fix: their record images
+        /// live in the ONE <see cref="KeyedStoreTable"/> store for the path (kb/Work PB143), so a sibling's
+        /// REWRITE is visible to every attached connector the instant it happens — measured, not assumed.
+        /// This is the same rule for the organization whose medium is the host file itself.</para></summary>
+        public long ReleaseGeneration;
     }
 
     /// <summary>The per-file-connector record-lock ceiling (§12.4.5.9 GR7 — implementor max, ≥15) → status 54.</summary>

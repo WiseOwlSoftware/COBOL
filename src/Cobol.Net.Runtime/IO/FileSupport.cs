@@ -249,10 +249,21 @@ public static class HostFile
     /// <c>SHARING WITH NO OTHER</c> connector, the one the standard calls <i>exclusive</i>, got the MOST
     /// permissive handle, and two clause-less connectors Table 19 PERMITS to share one file were refused by the
     /// host and answered '30' (kb/Work PB740). <see cref="FileLockPosture"/> is where the rule lives now; this
-    /// role only spends it.</para></summary>
+    /// role only spends it.</para>
+    /// <para>⛔ AND THE SAME POSTURE DECIDES WHETHER THE HANDLE MAY HOLD A BUFFER OF ITS OWN (kb/Work PB753).
+    /// A handle whose file lock admits another writer is UNBUFFERED (<c>bufferSize: 1</c>), exactly as
+    /// <see cref="OpenConnectorWriteStream"/>'s repositioning writer is and for the mirror-image reason. The
+    /// connector above already keeps ONE buffer — the <see cref="StreamReader"/>'s — and invalidates it when a
+    /// sibling releases a record (<c>SequentialConnector.EnsureReaderCoherent</c>), but it can only discard the
+    /// buffer it owns: a second, lower buffer keeps the superseded bytes and hands them straight back, because
+    /// <see cref="FileStream.Seek"/> reuses its read buffer whenever the target offset falls inside it. That was
+    /// measured — with the invalidation in place and this handle still 4096-byte buffered, a sibling's REWRITE
+    /// was still invisible. §14.9.30.4 GR21 c) selects <i>"the first existing record in the physical file"</i>;
+    /// one managed buffer between the connector and the file is the most that leaves true.</para></summary>
     public static FileStream OpenConnectorStream(string hostPath, FileMode mode, FileAccess access,
         FileShare share, FileOptions options = FileOptions.None) =>
-        new(hostPath, mode, access, share, 4096, options);
+        new(hostPath, mode, access, share,
+            FileLockPosture.AdmitsAnotherWriter(share) ? 1 : 4096, options);
 
     /// <summary>A SHORT-LIVED stream the runtime opens for its own bookkeeping over a host path — the write-base
     /// measurement of a shared <c>OPEN EXTEND</c>, a keyed store's whole-file load/persist, the fixed-attribute

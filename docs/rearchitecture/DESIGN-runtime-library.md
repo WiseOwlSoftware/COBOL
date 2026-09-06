@@ -214,7 +214,9 @@ the physical file"*, arbitrated by §14.9.27.4's Table 19 — never on the opera
 PB713 landing until PB740's, an INHERITED citation, `cite.py --check`ed on both spellings.) The share mode is
 therefore SPENT here and DERIVED in `FileLockPosture` (below).
 `OpenConnectorStream(path, mode, access, share, options)` is a connector's own long-lived read or read-write
-stream; `OpenAuxiliary(path, mode, access)` is a short-lived
+stream, and the SAME posture decides whether that handle may hold a buffer of its own: when the file lock admits
+another writer it is UNBUFFERED, the mirror of the write role below, because the connector above keeps exactly one
+buffer and can invalidate only the one it owns (kb/Work PB753, below). `OpenAuxiliary(path, mode, access)` is a short-lived
 bookkeeping handle over a path a connector may already hold — the shared `OPEN EXTEND` write-base measurement,
 `RecordFraming`'s whole-store load/persist, the fixed-attribute sidecar — and is **always**
 `FileShare.ReadWrite`, because a handle's share mode has to admit the access every outstanding handle already
@@ -254,9 +256,15 @@ given file connector, a record is not accessible to another file connector in th
 unit"*). The ordinal is minted from `PhysicalFileTable.State.ReleasedOrdinal` — one mint per physical file,
 seeded by a shared `OPEN EXTEND` from the records already there and reset by a shared `OPEN OUTPUT` — rather than
 from a per-connector base plus a per-connector count, which had both connectors calling their first appended
-record ordinal 2. `FileConnector.SharedPhysical` is how a connector reaches that state, and it is the ONE
-representation of §9.1.15 participation — the boolean that used to sit beside it is gone (kb/Work PB740; it had
-also been standing in for the OS share mode, which is a different question, below).
+record ordinal 2. `FileConnector.Physical` is how a connector reaches that state and EVERY connector holds it —
+Table 19 arbitrates every open over it, and since PB740 two clause-less connectors may share one physical file,
+so a rule about the MEDIUM cannot be gated on a clause. `SharedPhysical` is the §9.1.16 RECORD-LOCKING view of
+it, non-null only for a connector that registered a SHARING or LOCK MODE clause, because the ordinal *is* the
+lock identity and §12.4.5.9.4 GR1 b) 2. leaves a clause-less connector's record locking to the implementor
+(this compiler's determination: none). Both are written by ONE call, `AssociatePhysical`, immediately before the
+OPEN body runs — the boolean that used to sit beside the state is still gone, and the view is derived rather
+than stored (kb/Work PB740 removed the conflation with the OS share mode; PB753 split the medium question from
+the locking one without adding a second answer).
 
 **The §9.1.15 FILE LOCK is derived, in one place: `FileLockPosture` (`IO/Sharing/`), applied by
 `FileRegistry.SyncHostPostures`.** §9.1.15 addresses two audiences with one sharing mode and they need two
@@ -313,6 +321,43 @@ captured at OPEN:
 `SharedExtendWriteDriftTests` measures the whole (organization × framing × spelling) matrix, the exclusive
 control, the print-control write arm, the store's high-water invariant and a static ban on `FileMode.Append`
 outside `HostFile`; it was proved red on the pre-fix behaviour at 17 of 27. (kb/Work PB739.)
+
+**And the READ side of the same sentence: what a READ delivers is read from the shared medium AT THE READ.**
+§14.9.35.4 GR4 gives REWRITE the identical words GR12 gives WRITE — *"The successful execution of the REWRITE
+statement releases a logical record to the operating environment"* — and §14.9.30.4 GR21 c)/d) say what the
+other connector then owes: the record selected is *"the first existing record **in the physical file** whose
+relative key number is greater than the file position indicator if NEXT is specified or implied"*, and that
+record *"is made available in the record area associated with file-name-1"*. The physical file, not a snapshot
+of what it said when a buffer was filled. The keyed organizations satisfy this by construction — their medium is
+the ONE `KeyedStoreTable` store, so a sibling's mutation is visible instantly — and the sequential connector,
+whose medium is the file system, needed the rule stating in two places at once:
+
+- `PhysicalFileTable.State.ReleaseGeneration` counts the releases that have REACHED the physical file (both
+  verbs; `SequentialConnector.NoteRelease` is the one place it moves, and it advances the releasing connector's
+  own watermark in the same breath, because a sequential REWRITE targets a record at or before its own file
+  position indicator and cannot invalidate its own read-ahead). `NextFrame` — the ONE physical framing walk —
+  compares it before every frame and re-anchors the reader at the logical offset, discarding the read-ahead.
+- and the OS handle carries NO buffer of its own when the posture admits another writer, because
+  `StreamReader.DiscardBufferedData` reaches only the reader's own characters: with the generation in place and
+  a 4096-byte `FileStream` underneath, a sibling's REWRITE was STILL invisible, since `FileStream.Seek` reuses
+  its read buffer whenever the target offset lands inside it. One managed buffer between the connector and the
+  medium is the most that leaves GR21 c) true.
+
+`SharedReadCoherenceDriftTests` measures the matrix — every framing, a buffer-crossing and a sub-buffer record
+count, reader-first and writer-first, the clause-less pair — plus the controls (the sibling APPEND, a lone I-O
+connector rewriting its own records, the two keyed organizations) and the two structural facts; each half was
+proved red by injection at 25 of 47.
+
+⛔ **And a probe of this rule has to be built against `SyncHostPostures`, or it measures nothing.** A reposture
+REBUILDS the connector's handle at its logical offset, so it discards a stale read-ahead as a side effect. The
+union does not move for a `SHARING WITH ALL OTHER` pair, but for the undetermined default it widens at a
+sibling's OPEN and narrows again at its CLOSE — so a probe that fills its buffer before the OPEN and reads
+after the CLOSE is rescued twice by that accident and stays green with the rule deleted (measured: 6 of the 9
+reader-first cells, and the goldens' whole clause-less leg). The matrix therefore re-fills the read-ahead AFTER
+the sibling's open and reads on while the sibling is still OPEN. (kb/Work PB753 — a reader that had taken record 1 went on serving its
+snapshot after a sibling REWROTE record 3 and reported '00', so a concurrent read/update pass computed from data
+the same run unit had already replaced, silently. The invalidation rule was already written down in
+`SeekToRecord`'s doc comment — for the connector's OWN seek, never for a sibling's write.)
 
 The static `CobolFile` facade (kept for the emitted surface) becomes a pure delegator to `RunUnit.Current.Files`.
 The `Keyed*` static methods at `IndexedFile.cs:570-707` are **deleted**; their callers in `CobolFile.cs` collapse to a

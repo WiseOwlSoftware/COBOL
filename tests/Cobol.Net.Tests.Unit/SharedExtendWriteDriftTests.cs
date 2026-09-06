@@ -218,8 +218,11 @@ public sealed class SharedExtendWriteDriftTests
         try
         {
             var shared = new PhysicalFileTable.State();
-            var c = new SequentialConnector(host, recordWidth: 4, lineSequential: false)
-            { SharedPhysical = shared };
+            var c = new SequentialConnector(host, recordWidth: 4, lineSequential: false);
+            // The registry's one writer, spelled by hand for this focused connector-level measurement: the
+            // physical file's state goes to every connector and the flag is the §9.1.16 record-locking posture
+            // the mint reads through `SharedPhysical` (kb/Work PB753).
+            c.AssociatePhysical(shared, locksRecords: true);
             Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
             Assert.Equal("", c.LastWrittenRecordId);
             Assert.Equal(FileStatusCode.Success, c.WriteAdvancing("AAAA", 1, before: false, page: null));

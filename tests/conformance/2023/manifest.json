@@ -3,6 +3,7 @@
  "enabled": [
   "pb770_alphabet_ordinal_above_latin1",
   "pb739_shared_extend_write",
+  "pb753_shared_read_coherence",
   "pb713_shared_extend_open",
   "pb301_screen_words_as_user_words",
   "pb704_sort_duplicates_gr3_arms",

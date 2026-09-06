@@ -418,7 +418,15 @@ public sealed class SharedExtendOpenDriftTests
     /// <c>SharedStreams</c> outright: participation is a question about the run unit's shared state, and the
     /// HOST HANDLE's share mode is a different question (the §9.1.15 file lock, derived by
     /// <c>FileLockPosture.For</c> and carried on <c>HostShare</c>), so one boolean could not honestly answer
-    /// both. Its ABSENCE is asserted below.</para></summary>
+    /// both. Its ABSENCE is asserted below.</para>
+    /// <para>kb/Work PB753 SPLIT the two questions that one field had been answering, and the invariant is
+    /// unchanged because the split is a DERIVATION rather than a second field to maintain: the physical file's
+    /// state now reaches EVERY connector (the read-coherence rule written on it is a rule about the MEDIUM, and
+    /// kb/Work PB740 let two CLAUSE-LESS connectors share one physical file), while <c>SharedPhysical</c> — the
+    /// §9.1.16 record-locking view the release-ordinal mint reads — is a computed view of it and the flag the
+    /// SAME call sets. So the one-writer assertion below is now written over <c>AssociatePhysical</c>, which
+    /// writes both facts at once; <c>SharedReadCoherenceDriftTests</c> holds the other half, that the state
+    /// itself is handed over unconditionally.</para></summary>
     [Fact]
     public void SharingParticipationIsAssignedInExactlyOnePlace()
     {
@@ -430,7 +438,8 @@ public sealed class SharedExtendOpenDriftTests
             string line = lines[i];
             if (line.TrimStart().StartsWith("//", StringComparison.Ordinal)) continue;
             if (line.TrimStart().StartsWith("///", StringComparison.Ordinal)) continue;
-            if (line.Contains("SharedPhysical =", StringComparison.Ordinal)
+            if (line.Contains("AssociatePhysical(", StringComparison.Ordinal)
+                || line.Contains("SharedPhysical =", StringComparison.Ordinal)
                 || line.Contains("SharedStreams =", StringComparison.Ordinal))
                 writes.Add($"FileRegistry.cs:{i + 1}: {line.Trim()}");
         }
@@ -442,7 +451,7 @@ public sealed class SharedExtendOpenDriftTests
         Assert.Contains("_connectorShares.ContainsKey(name)", writes[0], StringComparison.Ordinal);
 
         // The complement: it is set BEFORE the open it governs, not after it (the PB713 ordering).
-        int assign = Array.FindIndex(lines, l => l.Contains("SharedPhysical =", StringComparison.Ordinal)
+        int assign = Array.FindIndex(lines, l => l.Contains("AssociatePhysical(", StringComparison.Ordinal)
             && !l.TrimStart().StartsWith("//", StringComparison.Ordinal));
         int open = Array.FindIndex(lines, l => l.Contains("c.Open(mode)", StringComparison.Ordinal)
             && !l.TrimStart().StartsWith("//", StringComparison.Ordinal));
