@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Reflection;
 using System.Text.RegularExpressions;
 using CobolNet.Runtime.IO;
 using CobolNet.Tests.Shared;
@@ -37,8 +38,11 @@ public sealed class SharedExtendOpenDriftTests
         Path.Combine(Path.GetTempPath(), $"pb713-{tag}-{Guid.NewGuid():N}.dat");
 
     /// <summary>How a connector becomes a §9.1.15 sharing participant. All three reach
-    /// <c>FileRegistry.RegisterSharing</c>, which is what sets <c>FileConnector.SharedStreams</c> and puts the
-    /// connector in the record-locking posture map — the gate the EXTEND write-base seeding reads.</summary>
+    /// <c>FileRegistry.RegisterSharing</c>, which puts the connector in the record-locking posture map and is
+    /// what <c>FileConnector.SharedPhysical</c> — the gate the EXTEND write-base seeding reads — is derived
+    /// from. (The OS share mode is NOT derived from it: that is the §9.1.15 file lock, and
+    /// <c>FileLockPosture</c> takes it from the arbitrated sharing MODE and the admitted connector set —
+    /// kb/Work PB740.)</summary>
     public enum Spelling
     {
         /// <summary>SHARING WITH ALL OTHER + LOCK MODE IS MANUAL (§14.9.27.3 SR8 requires the LOCK MODE clause
@@ -317,6 +321,12 @@ public sealed class SharedExtendOpenDriftTests
     /// <summary>The one file allowed to open a host path.</summary>
     private const string StreamHome = "FileSupport.cs";
 
+    /// <summary>Does this line state the share mode of the stream it constructs — a <c>FileShare</c> literal, or
+    /// the <c>share</c> parameter the caller derived through <c>FileLockPosture</c> (kb/Work PB740)?</summary>
+    private static bool NamesAShareArgument(string line) =>
+        line.Contains("FileShare.", StringComparison.Ordinal)
+        || Regex.IsMatch(line.Trim(), @"(?:^|[,(])\s*share\s*[,)]");
+
     /// <summary>⛔ NO FILE UNDER <c>Cobol.Net.Runtime/IO</c> OPENS A HOST PATH EXCEPT <c>HostFile</c>. The share
     /// mode is not a per-site decision: it is §9.1.15's answer to "what may the other file connectors of this
     /// run unit do while this handle is open?", and it has exactly two answers (the connector's own posture and
@@ -372,6 +382,7 @@ public sealed class SharedExtendOpenDriftTests
         string text = File.ReadAllText(home);
         Assert.Contains("public static FileStream OpenConnectorStream(", text, StringComparison.Ordinal);
         Assert.Contains("public static FileStream OpenAuxiliary(", text, StringComparison.Ordinal);
+        Assert.Contains("public static Stream OpenConnectorWriteStream(", text, StringComparison.Ordinal);
 
         var shareless = new List<string>();
         string[] lines = File.ReadAllLines(home);
@@ -382,28 +393,32 @@ public sealed class SharedExtendOpenDriftTests
             if (line.TrimStart().StartsWith("///", StringComparison.Ordinal)) continue;
             if (!line.Contains("new FileStream(", StringComparison.Ordinal)
                 && !line.Contains("new(hostPath", StringComparison.Ordinal)) continue;
-            if (!line.Contains("FileShare.", StringComparison.Ordinal)
-                && !lines[i + 1].Contains("FileShare.", StringComparison.Ordinal))
+            // The share argument is either a literal (the bookkeeping role's fixed ReadWrite) or the `share`
+            // parameter the connector roles are HANDED — kb/Work PB740 moved the derivation out to
+            // FileLockPosture, so a role that names neither has dropped the file lock on the floor.
+            if (!NamesAShareArgument(line) && !NamesAShareArgument(lines[i + 1]))
                 shareless.Add($"{StreamHome}:{i + 1}: {line.Trim()}");
         }
 
         Assert.True(shareless.Count == 0,
-            "A stream constructed in HostFile without naming its FileShare. The share mode is the whole point "
-            + "of routing every open through here (kb/Work PB713). Sites:\n  " + string.Join("\n  ", shareless));
+            "A stream constructed in HostFile without naming its share mode — neither a FileShare literal nor "
+            + "the `share` parameter FileLockPosture derived. The share mode is the whole point of routing "
+            + "every open through here (kb/Work PB713, PB740). Sites:\n  " + string.Join("\n  ", shareless));
     }
 
-    /// <summary>⛔ §9.1.15 PARTICIPATION HAS ONE ANSWER. <c>FileConnector.SharedPhysical</c> is what every
-    /// stream in <c>SequentialConnector.OpenCore</c> reads for its share posture, what the EXTEND release
-    /// ordinal is minted from, and what <c>SharedStreams</c> is DERIVED from; <c>FileRegistry._connectorShares</c>
-    /// is the register that records the SHARING/LOCK MODE posture — two names for one fact. They must not be
-    /// maintained separately: it is assigned in exactly ONE place, immediately before the sole
-    /// <c>c.Open(mode)</c> call, so it is derived from the register at the one moment anything reads it rather
-    /// than pushed at registration time behind a lookup that a registration order could miss. A second writer
-    /// is a second rule (the shape of kb/Work PB321 and PB713 both).
+    /// <summary>⛔ §9.1.15 PARTICIPATION HAS ONE ANSWER. <c>FileConnector.SharedPhysical</c> is what the EXTEND
+    /// release ordinal is minted from and what every §9.1.16 record lock is identified against;
+    /// <c>FileRegistry._connectorShares</c> is the register that records the SHARING/LOCK MODE posture — two
+    /// names for one fact. They must not be maintained separately: it is assigned in exactly ONE place,
+    /// immediately before the sole <c>c.Open(mode)</c> call, so it is derived from the register at the one
+    /// moment anything reads it rather than pushed at registration time behind a lookup that a registration
+    /// order could miss. A second writer is a second rule (the shape of kb/Work PB321 and PB713 both).
     /// <para>kb/Work PB739 gave the fact the TYPE of the thing it grants access to — the physical file's own
-    /// shared state — so <c>SharedStreams</c> has no storage of its own to fall out of step, which is asserted
-    /// here as well: a connector that "participates" but holds no shared state can no longer be
-    /// expressed.</para></summary>
+    /// shared state — so no separate bit could hold it. kb/Work PB740 finished that by DELETING
+    /// <c>SharedStreams</c> outright: participation is a question about the run unit's shared state, and the
+    /// HOST HANDLE's share mode is a different question (the §9.1.15 file lock, derived by
+    /// <c>FileLockPosture.For</c> and carried on <c>HostShare</c>), so one boolean could not honestly answer
+    /// both. Its ABSENCE is asserted below.</para></summary>
     [Fact]
     public void SharingParticipationIsAssignedInExactlyOnePlace()
     {
@@ -436,15 +451,22 @@ public sealed class SharedExtendOpenDriftTests
             + $"{open + 1}: OpenCore reads it, so assigning it afterwards would open every stream on the "
             + "PREVIOUS open's posture.");
 
-        // kb/Work PB739: SharedStreams is DERIVED, so there is nothing to assign anywhere. A settable bit
-        // beside the shared state is the second-writer shape this fact exists to forbid.
-        Assert.Null(typeof(FileConnector).GetProperty("SharedStreams")!.SetMethod);
+        // kb/Work PB739 derived participation from the shared state so no second bit could hold it; kb/Work
+        // PB740 finished the job by DELETING the bit that had also been standing in for the OS share mode.
+        // `SharedStreams` answered "did this SELECT write a clause?" and was spent on §9.1.15's file lock,
+        // which is a question about the arbitrated sharing MODE — so a connector declaring the exclusive mode
+        // got the most permissive handle. Its absence is the fact: a boolean cannot come back to conflate them.
+        Assert.Null(typeof(FileConnector).GetProperty("SharedStreams",
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
+        Assert.NotNull(typeof(FileConnector).GetProperty("HostShare",
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
     }
 
     /// <summary>The runtime half of the same invariant, measured rather than read off the source: a connector
-    /// whose SELECT declares neither clause opens with the exclusive posture and seeds no write base, and one
-    /// that declares a clause opens shared — <b>on the very first OPEN after the registration</b>, which is the
-    /// ordering the fact above pins in the text.</summary>
+    /// whose SELECT declares neither clause seeds no write base, and one that declares a clause seeds it —
+    /// <b>on the very first OPEN after the registration</b>, which is the ordering the fact above pins in the
+    /// text. (The OS share posture is a different question and is measured by
+    /// <c>FileLockPostureDriftTests</c>.)</summary>
     [Fact]
     public void ParticipationTakesEffectOnTheFirstOpenAfterRegistration()
     {

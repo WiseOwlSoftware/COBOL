@@ -352,12 +352,18 @@ public sealed class SharedExtendWriteDriftTests
 
     // ── The structural half: no naked append handle can come back ────────────────────────────────────────────
 
-    /// <summary>⛔ <c>FileMode.Append</c> APPEARS IN EXACTLY ONE FILE. .NET's Append is not the host's atomic
-    /// append — it seeks to the end once, at open — so a connector that takes one directly has silently
-    /// declared that no other file connector will append to the same physical file, which is a statement about
-    /// §9.1.15 that no call site is entitled to make. The role
-    /// <c>HostFile.OpenAppendStream</c> is where the posture chooses between the plain handle and
-    /// <c>SharedAppendStream</c>; everything else asks for the role.</summary>
+    /// <summary>⛔ AN APPEND HANDLE IS BUILT IN EXACTLY ONE FILE, AND ASKED FOR THROUGH EXACTLY ONE ROLE.
+    /// .NET's Append is not the host's atomic append — it seeks to the end once, at open — so a connector that
+    /// takes one directly has silently declared that no other file connector will append to the same physical
+    /// file, which is a statement about §9.1.15 that no call site is entitled to make.
+    /// <c>HostFile.OpenConnectorWriteStream</c> is where the posture chooses between the plain handle and
+    /// <c>SharedAppendStream</c>; everything else asks for the role.
+    /// <para>Two shapes are banned, and NAMING the mode is neither of them: the role serves both
+    /// <c>OPEN OUTPUT</c> (<c>Create</c>) and <c>OPEN EXTEND</c> (<c>Append</c>), so the mode has to be
+    /// spellable at the call sites that distinguish them (kb/Work PB740). What may not happen is CONSTRUCTING a
+    /// stream over an append mode, or handing that mode to one of the two roles that know nothing about
+    /// repositioning — <c>OpenAuxiliary</c> (short-lived bookkeeping) or <c>OpenConnectorStream</c> (a read or
+    /// read-write handle). Those are the two ways a naked append handle can come back.</para></summary>
     [Fact]
     public void OnlyHostFileTakesAnAppendHandle()
     {
@@ -374,7 +380,19 @@ public sealed class SharedExtendWriteDriftTests
                 string t = lines[i].TrimStart();
                 if (t.StartsWith("//", StringComparison.Ordinal)) continue;     // prose about the rule
                 if (t.StartsWith("///", StringComparison.Ordinal)) continue;
-                if (lines[i].Contains("FileMode.Append", StringComparison.Ordinal))
+                if (!lines[i].Contains("FileMode.Append", StringComparison.Ordinal)) continue;
+                // Shape 1 — a stream constructed over it. The construction may wrap onto the mode's own line,
+                // so the two lines above count as part of the same statement.
+                bool constructs = false;
+                for (int j = Math.Max(0, i - 2); j <= i && !constructs; j++)
+                    constructs = lines[j].Contains("new FileStream(", StringComparison.Ordinal)
+                        || lines[j].Contains("new StreamWriter(", StringComparison.Ordinal)
+                        || lines[j].Contains("new StreamReader(", StringComparison.Ordinal)
+                        || lines[j].Contains("File.Open", StringComparison.Ordinal);
+                // Shape 2 — handed to a role that does not reposition.
+                bool wrongRole = lines[i].Contains("OpenAuxiliary(", StringComparison.Ordinal)
+                    || lines[i].Contains("OpenConnectorStream(", StringComparison.Ordinal);
+                if (constructs || wrongRole)
                     offenders.Add($"{Path.GetRelativePath(io, file)}:{i + 1}: {t}");
             }
         }
@@ -382,7 +400,8 @@ public sealed class SharedExtendWriteDriftTests
         Assert.True(offenders.Count == 0,
             "A FileMode.Append handle outside HostFile. It seeks to the physical end ONCE, at open, so two "
             + "§9.1.15 participants anchor at the same offset and the later flush overwrites the earlier "
-            + "record — on '00' from both WRITEs (kb/Work PB739). Call HostFile.OpenAppendStream. Sites:\n  "
+            + "record — on '00' from both WRITEs (kb/Work PB739). Call HostFile.OpenConnectorWriteStream. "
+            + "Sites:\n  "
             + string.Join("\n  ", offenders));
     }
 
@@ -393,8 +412,8 @@ public sealed class SharedExtendWriteDriftTests
     public void TheAppendRoleStillLivesInItsNamedHome_AndStillRepositions()
     {
         string text = File.ReadAllText(TestRepo.Src("Cobol.Net.Runtime", "IO", "FileSupport.cs"));
-        Assert.Contains("public static Stream OpenAppendStream(", text, StringComparison.Ordinal);
-        Assert.Contains("sharedConnector", text, StringComparison.Ordinal);
+        Assert.Contains("public static Stream OpenConnectorWriteStream(", text, StringComparison.Ordinal);
+        Assert.Contains("FileLockPosture.AdmitsAnotherWriter(share)", text, StringComparison.Ordinal);
         Assert.Contains("new SharedAppendStream(", text, StringComparison.Ordinal);
         Assert.Contains("_inner.Seek(0, SeekOrigin.End);", text, StringComparison.Ordinal);
     }
@@ -409,12 +428,12 @@ public sealed class SharedExtendWriteDriftTests
         try
         {
             File.WriteAllBytes(host, "AA"u8.ToArray());
-            using (var s = HostFile.OpenAppendStream(host, sharedConnector: true))
+            using (var s = HostFile.OpenConnectorWriteStream(host, FileMode.Append, FileShare.ReadWrite))
             {
                 s.Write("BB"u8);
                 s.Flush();
                 // Another connector appends behind this stream's back.
-                using (var other = HostFile.OpenAppendStream(host, sharedConnector: true))
+                using (var other = HostFile.OpenConnectorWriteStream(host, FileMode.Append, FileShare.ReadWrite))
                 {
                     other.Write("CC"u8);
                     other.Flush();

@@ -236,20 +236,21 @@ public static class HostFile
 
     // ── The third question: what may OTHER handles do while this one is open? ───────────────────────────────
 
-    /// <summary>A file connector's OWN long-lived stream on its physical file. <paramref name="sharedConnector"/>
-    /// is <see cref="FileConnector.SharedStreams"/> — §9.1.15 participation — and it, alone, chooses the share
-    /// posture: a sharing participant's handle admits every other handle (<see cref="FileShare.ReadWrite"/>)
-    /// because §9.1.15 puts the gate on the file connectors and Table 19, not on the operating environment's
-    /// handle (<i>"Before access to a shared physical file is allowed through an OPEN statement, the sharing
-    /// mode and the open mode of that OPEN statement shall be allowed by all other file connectors that are
-    /// currently associated with the physical file"</i>), while a non-participant keeps the exclusive-writer
-    /// posture the .NET path constructors give (<see cref="FileShare.Read"/>), byte for byte.
-    /// <para>⛔ THE TERNARY LIVES HERE AND NOWHERE ELSE. It used to be written out at each of the four
-    /// <c>SequentialConnector</c> stream sites, which is four chances to write it once too narrowly and no
-    /// place at all for the fifth organization to inherit it.</para></summary>
+    /// <summary>A file connector's OWN long-lived READ or READ-WRITE stream on its physical file.
+    /// <paramref name="share"/> is <see cref="FileConnector.HostShare"/> — the ISO §9.1.15 <b>file lock</b>,
+    /// derived once by <see cref="FileLockPosture"/> from the connector's arbitrated sharing mode and the set of
+    /// connectors Table 19 has already admitted on the physical file, and handed down by the registry
+    /// immediately before the OPEN body runs.
+    /// <para>⛔ THE POSTURE IS NOT DECIDED HERE, AND NOT AT A CALL SITE. It used to be a
+    /// <c>sharedConnector ? ReadWrite : Read</c> ternary — one boolean standing for "this SELECT wrote a SHARING
+    /// or LOCK MODE clause" — which answered §9.1.15 backwards in both directions: a
+    /// <c>SHARING WITH NO OTHER</c> connector, the one the standard calls <i>exclusive</i>, got the MOST
+    /// permissive handle, and two clause-less connectors Table 19 PERMITS to share one file were refused by the
+    /// host and answered '30' (kb/Work PB740). <see cref="FileLockPosture"/> is where the rule lives now; this
+    /// role only spends it.</para></summary>
     public static FileStream OpenConnectorStream(string hostPath, FileMode mode, FileAccess access,
-        bool sharedConnector, FileOptions options = FileOptions.None) =>
-        new(hostPath, mode, access, sharedConnector ? FileShare.ReadWrite : FileShare.Read, 4096, options);
+        FileShare share, FileOptions options = FileOptions.None) =>
+        new(hostPath, mode, access, share, 4096, options);
 
     /// <summary>A SHORT-LIVED stream the runtime opens for its own bookkeeping over a host path — the write-base
     /// measurement of a shared <c>OPEN EXTEND</c>, a keyed store's whole-file load/persist, the fixed-attribute
@@ -264,28 +265,37 @@ public static class HostFile
     public static FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access) =>
         new(hostPath, mode, access, FileShare.ReadWrite, 4096, FileOptions.SequentialScan);
 
-    /// <summary>A file connector's own long-lived APPEND stream — the third role, and the one .NET does not
+    /// <summary>A file connector's own long-lived WRITE stream — the third role, and the one .NET does not
     /// have. <c>FileMode.Append</c> is not the host's atomic append: it seeks to the end ONCE, at open, and
-    /// every later write goes at that stream's own position. That is right for the connector that holds the
-    /// physical file to itself and WRONG the moment §9.1.15 lets a second connector append to the same file —
-    /// both writers anchor at the same offset and the later one overwrites the earlier record, on '00' from
-    /// both WRITEs (kb/Work PB739).
-    /// <para>So the role, not the call site, decides. A NON-participant gets the plain append handle it always
-    /// had, byte for byte, plus <see cref="FileOptions.SequentialScan"/>, because nothing else can be writing:
-    /// its <see cref="FileShare.Read"/> posture forbids every other writer, in this run unit and outside it. A
-    /// §9.1.15 PARTICIPANT gets <see cref="SharedAppendStream"/>, which positions at the physical end before
-    /// every write — the semantics §14.9.51.4 GR19 asks for, <i>"the added records follow the records present
-    /// in the physical file when it was opened"</i>, read at the moment each record is added rather than once
-    /// at the OPEN. Its handle is UNBUFFERED (<c>bufferSize: 1</c>): the connector already batches a whole
-    /// logical record into its own writer and flushes it as one release (§14.9.51.4 GR12), and a second buffer
-    /// between that release and the file is exactly the thing that hid the record from the other
-    /// connector.</para></summary>
-    public static Stream OpenAppendStream(string hostPath, bool sharedConnector) =>
-        sharedConnector
-            ? new SharedAppendStream(new FileStream(hostPath, FileMode.Append, FileAccess.Write,
-                FileShare.ReadWrite, bufferSize: 1, FileOptions.None))
-            : new FileStream(hostPath, FileMode.Append, FileAccess.Write,
-                FileShare.Read, 4096, FileOptions.SequentialScan);
+    /// every later write goes at that stream's own position (and <c>FileMode.Create</c> anchors at zero). That
+    /// is right for the connector that holds the physical file to itself and WRONG the moment §9.1.15 lets a
+    /// second connector write to the same file — both writers anchor at the same offset and the later one
+    /// overwrites the earlier record, on '00' from both WRITEs (kb/Work PB739).
+    /// <para>So the POSTURE decides, not the call site and not a clause. When
+    /// <paramref name="share"/> does not admit another writer — <c>SHARING WITH NO OTHER</c>'s
+    /// <see cref="FileShare.None"/>, <c>READ ONLY</c>'s and the undetermined implementor default's
+    /// <see cref="FileShare.Read"/>, with no writing sibling admitted — this connector holds the only writable
+    /// handle there is, so it gets the plain buffered stream it always had plus
+    /// <see cref="FileOptions.SequentialScan"/>. When the posture DOES admit another writer (kb/Work PB740 made
+    /// that a derived fact rather than a clause's side effect, so a clause-less pair the arbiter permits is
+    /// covered too) it gets <see cref="SharedAppendStream"/>, which positions at the physical end before every
+    /// write — the semantics §14.9.51.4 GR19 asks for, <i>"the added records follow the records present in the
+    /// physical file when it was opened"</i>, read at the moment each record is added rather than once at the
+    /// OPEN. Its handle is UNBUFFERED (<c>bufferSize: 1</c>): the connector already batches a whole logical
+    /// record into its own writer and flushes it as one release (§14.9.51.4 GR12), and a second buffer between
+    /// that release and the file is exactly the thing that hid the record from the other connector.</para>
+    /// <para><paramref name="mode"/> is <see cref="FileMode.Append"/> for <c>OPEN EXTEND</c> and
+    /// <see cref="FileMode.Create"/> for <c>OPEN OUTPUT</c> — Table 19 admits an incoming EXTEND against an
+    /// existing connector open in the OUTPUT mode (its <c>extend I-O output</c> column group), so the OUTPUT
+    /// writer needs the same choice the EXTEND writer does; a <c>Create</c> under
+    /// <see cref="SharedAppendStream"/> truncates first and then appends from zero, which is the same
+    /// sequence.</para></summary>
+    public static Stream OpenConnectorWriteStream(string hostPath, FileMode mode, FileShare share) =>
+        FileLockPosture.AdmitsAnotherWriter(share)
+            ? new SharedAppendStream(new FileStream(hostPath, mode, FileAccess.Write,
+                share, bufferSize: 1, FileOptions.None))
+            : new FileStream(hostPath, mode, FileAccess.Write,
+                share, 4096, FileOptions.SequentialScan);
 }
 
 /// <summary>
@@ -295,8 +305,9 @@ public static class HostFile
 /// file add records by sharing the physical file after opening it in extend mode, the added records follow the
 /// records present in the physical file when it was opened, but are otherwise in an undefined order"</i>: only
 /// the ORDER between two sharing connectors is undefined, so neither may land on top of the other's record.
-/// <para>Opened only through <see cref="HostFile.OpenAppendStream"/>, and only for a §9.1.15 participant —
-/// a connector that holds the file exclusively cannot race anything and does not pay the repositioning.</para>
+/// <para>Opened only through <see cref="HostFile.OpenConnectorWriteStream"/>, and only for a connector whose
+/// §9.1.15 file lock admits another writer — one that holds the only writable handle there is cannot race
+/// anything and does not pay the repositioning.</para>
 /// </summary>
 internal sealed class SharedAppendStream(FileStream inner) : Stream
 {

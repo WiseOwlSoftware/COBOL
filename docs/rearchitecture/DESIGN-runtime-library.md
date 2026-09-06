@@ -204,15 +204,17 @@ accident, since its I-O and EXTEND streams *are* write opens, while the relative
 their store: the same read-only file answered '37' sequentially and '00' keyed, then '00' for READ and REWRITE,
 and the loss surfaced as a '30' at CLOSE on a byte-identical file. The two-arm dispatch again, one arm fixed.)
 
-**One host-path OPEN, three named roles (`HostFile.OpenConnectorStream` / `HostFile.OpenAuxiliary` / `HostFile.OpenAppendStream`, same file).**
-The third question `HostFile` owns is *"what may the other file connectors of this run unit do while this handle
-is open?"*, and it is not a per-call-site decision: §9.1.15 puts that gate on the file connectors and §14.9.27.4
-Table 19 — *"Before access to a shared physical file is allowed through an OPEN statement, the sharing mode and
-the open mode of that OPEN statement shall be allowed by all other file connectors that are currently associated
-with the physical file"* — never on the operating environment's handle. So the share mode is derived HERE, from
-the role. `OpenConnectorStream(path, mode, access, sharedConnector, options)` is a connector's own long-lived
-stream and carries the §9.1.15 posture (`FileShare.ReadWrite` for a sharing participant, the exclusive
-`FileShare.Read` of the .NET path constructors otherwise); `OpenAuxiliary(path, mode, access)` is a short-lived
+**One host-path OPEN, three named roles (`HostFile.OpenConnectorStream` / `HostFile.OpenAuxiliary` / `HostFile.OpenConnectorWriteStream`, same file).**
+The third question `HostFile` owns is *"what may every OTHER handle on this physical file do while this one is
+open?"*, and it is not a per-call-site decision: §9.1.15 puts the in-run-unit gate on the file connectors —
+*"Before access to a shared physical file is allowed through an OPEN statement, the sharing mode and the open
+mode of that OPEN statement shall be allowed by all other file connectors that are currently associated with
+the physical file"*, arbitrated by §14.9.27.4's Table 19 — never on the operating environment's handle.
+(⛔ That sentence is §9.1.15's, not §14.9.27.4's: this paragraph carried the wrong clause number from the
+PB713 landing until PB740's, an INHERITED citation, `cite.py --check`ed on both spellings.) The share mode is
+therefore SPENT here and DERIVED in `FileLockPosture` (below).
+`OpenConnectorStream(path, mode, access, share, options)` is a connector's own long-lived read or read-write
+stream; `OpenAuxiliary(path, mode, access)` is a short-lived
 bookkeeping handle over a path a connector may already hold — the shared `OPEN EXTEND` write-base measurement,
 `RecordFraming`'s whole-store load/persist, the fixed-attribute sidecar — and is **always**
 `FileShare.ReadWrite`, because a handle's share mode has to admit the access every outstanding handle already
@@ -228,27 +230,70 @@ duplicate `HostFile.Probe` it carried against PB323's one-probe rule went with i
 `FileInfo.Length`, took no handle, and passed — one dispatch, three arms, one arm tested.)
 
 **The third role, and the rule it serves: a release is positioned and numbered from the SHARED MEDIUM, at the
-moment of the release.** `OpenAppendStream(path, sharedConnector)` is the append handle, and it exists because
+moment of the release.** `OpenConnectorWriteStream(path, mode, share)` is a connector's own write handle — `Create`
+for `OPEN OUTPUT`, `Append` for `OPEN EXTEND` — and it exists because
 .NET has no atomic append: `FileMode.Append` seeks to the end ONCE, at open, and every later write goes at that
-stream's own position. For the connector that holds the physical file exclusively that is right, and it keeps the
-plain handle byte for byte. For a §9.1.15 PARTICIPANT it is wrong, and silently: ISO §14.9.51.4 GR19 says of two
+stream's own position. For the connector holding the only writable handle there is that is right, and it keeps the
+plain handle byte for byte. When the posture admits ANOTHER WRITER it is wrong, and silently: ISO §14.9.51.4 GR19 says of two
 connectors extending one shared file that *"the added records follow the records present in the physical file
 when it was opened, but are otherwise in an undefined order"* — only their ORDER is undefined — and both
 connectors anchored at the same offset, so the later flush wrote over the earlier record while both WRITEs
-reported '00'. A participant therefore gets `SharedAppendStream`, which repositions at the physical end before
+reported '00'. Such a connector therefore gets `SharedAppendStream`, which repositions at the physical end before
 every write, over an UNBUFFERED handle; and `SequentialConnector.ReleaseRecord` — the ONE place a sequential
 record is released, reached by all three write arms — flushes it there, because GR12 (*"The successful execution
 of a WRITE statement releases a logical record to the operating environment"*) is what makes the '00' a promise
 and because a record still in this connector's buffer is one the other connector cannot see, count, or avoid
-overwriting.
+overwriting. **The predicate is the POSTURE, not a clause** (kb/Work PB740): a handle whose §9.1.15 file lock
+admits a writer takes the repositioning stream and flushes each release, whether that permission came from
+`SHARING WITH ALL OTHER` or from a clause-less sibling the arbiter admitted alongside it. Keying it on "this
+SELECT wrote a clause" would have left the clause-less pair — which the same change made openable for the first
+time — writing through two independent buffers.
 
 The same sentence settles the record's IDENTITY, which is the half that shows up in §9.1.16 (*"While locked by a
 given file connector, a record is not accessible to another file connector in the same or a different run
 unit"*). The ordinal is minted from `PhysicalFileTable.State.ReleasedOrdinal` — one mint per physical file,
 seeded by a shared `OPEN EXTEND` from the records already there and reset by a shared `OPEN OUTPUT` — rather than
 from a per-connector base plus a per-connector count, which had both connectors calling their first appended
-record ordinal 2. `FileConnector.SharedPhysical` is how a connector reaches that state, and `SharedStreams` is
-now DERIVED from it being non-null, so §9.1.15 participation and the shared state it grants cannot disagree.
+record ordinal 2. `FileConnector.SharedPhysical` is how a connector reaches that state, and it is the ONE
+representation of §9.1.15 participation — the boolean that used to sit beside it is gone (kb/Work PB740; it had
+also been standing in for the OS share mode, which is a different question, below).
+
+**The §9.1.15 FILE LOCK is derived, in one place: `FileLockPosture` (`IO/Sharing/`), applied by
+`FileRegistry.SyncHostPostures`.** §9.1.15 addresses two audiences with one sharing mode and they need two
+mechanisms. Inside the run unit — *"Multiple paths of access may exist in the same runtime element, contained
+elements, separate runtime elements within the same run unit, or runtime elements in different run units"* — the
+gate is Table 19, already run; outside it, *"The successful opening of a file establishes a file lock for the
+applicable sharing rules, thereby preventing other run units from opening that file with incompatible sharing
+rules"*, and the host's share mode is that lock. It cannot be both, because a share mode names no requester: it
+cannot admit this run unit's second connector while refusing a foreign process. So:
+
+- the BASE is §9.1.15's three rules read literally — `NO OTHER` ⇒ `FileShare.None` (*"exclusive access"*),
+  `READ ONLY` ⇒ `FileShare.Read` (*"restricts concurrent access … to input mode"*), `ALL OTHER` ⇒
+  `FileShare.ReadWrite` (*"allows concurrent access … specifying input, I-O, or extend mode"*);
+- the UNDETERMINED implementor default keeps today's `FileShare.Read` byte for byte. Whether a clause-less
+  connector should protect its physical file from other PROCESSES at all is an OWNER question (kb/Work PB740
+  question 20, on top of PB322's determination), and it is a one-line change in `OfSharingMode` when answered;
+- the base is then WIDENED to admit the access of every other connector Table 19 has admitted on that physical
+  file, and `SyncHostPostures` re-derives the whole set whenever it changes — an OPEN widens, a CLOSE or a
+  failed OPEN narrows back. A share mode is fixed when the handle is created, so "widen" means REBUILD:
+  `FileConnector.Reposture` is virtual, and `SequentialConnector` overrides it to reopen at the logical offset
+  it already tracks (`_readOffset` / `_lineByteOffset` — `StreamReader` buffers, so `BaseStream.Position` is
+  never the read position). Only the sequential organization holds a long-lived host handle; the keyed and
+  relative connectors load and persist their store through `OpenAuxiliary` and hold none, so the base
+  implementation is the whole of their obligation — **and, as a consequence, they establish no file lock against
+  other run units at all.** That is a property of the store model, not of this derivation, and it is uniform
+  across their sharing modes, so it inverts nothing.
+
+For DETERMINED sharing modes the widening is never needed — `FileLockPostureDriftTests.DeterminedModesNeedNoWidening`
+proves that every *Normal open* cell of Table 19 already has mutually admissible base postures — so it exists
+precisely for the undetermined default. The widening is also BOUNDED: the host checks a new handle against every
+outstanding one, so the run unit's effective lock is the INTERSECTION of its connectors' postures, and widening
+a reader so its sibling appender can open does not admit an outside writer the appender still refuses.
+(kb/Work PB740 — one boolean, "did this SELECT write a SHARING or LOCK MODE clause", was spent on both audiences
+and answered each backwards: two clause-less connectors Table 19 PERMITS to share one file were refused by the
+host, the second OPEN answering '30' — a status no Table 19 row and no §9.1.13.9 item produces — and its mirror,
+measured across processes, had a `SHARING WITH NO OTHER` connector admit a foreign append to a file the program
+had declared exclusive.)
 
 **The rule generalizes, and that is why it is written here rather than in the sequential connector.** Each
 organization spells it in its own terms and each must read the shared medium at the release, never a base

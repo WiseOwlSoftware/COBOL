@@ -113,15 +113,114 @@ public sealed class SequentialConnector : FileConnector
     /// straight over. The ordinal is minted from the same shared state, so it names the record's real place in
     /// the file (§9.1.16: <i>"While locked by a given file connector, a record is not accessible to another
     /// file connector"</i> — the lock is only as good as the identity).</para>
-    /// <para>An UNSHARED connector holds the file exclusively and flushes at CLOSE as it always did: no other
-    /// connector can observe the record, its ordinal is read by nothing (<c>FileRegistry.WriteShared</c> asks
-    /// for <see cref="LastWrittenRecordId"/> only for a sharing-active connector), and a flush per record on
-    /// the ordinary WRITE path is a syscall per record for an answer nobody reads.</para></summary>
+    /// <para>A connector holding the ONLY writable handle flushes at CLOSE as it always did: no other writer
+    /// can observe the record, and a flush per record on the ordinary WRITE path is a syscall per record for an
+    /// answer nobody reads.</para>
+    /// <para>⛔ THE TWO HALVES HAVE DIFFERENT ANTECEDENTS, so they are two statements (kb/Work PB740). The
+    /// FLUSH is owed whenever another writer may be on the physical file, which is a property of the §9.1.15
+    /// file lock this connector's handle carries — <c>SHARING WITH ALL OTHER</c>, or a clause-less connector
+    /// the arbiter has admitted alongside a writing sibling, or the same connector after
+    /// <see cref="Reposture"/> widened it. The ORDINAL is the §9.1.16 record-lock identity, and a connector
+    /// that registered NEITHER a SHARING nor a LOCK MODE clause sets no record locks to identify — §12.4.5.9.4
+    /// GR1 b) 2. leaves that case to the implementor (<i>"the type of record locking for that opening … is
+    /// defined by the implementor … or specify that the default is no record locking"</i>) and this compiler's
+    /// determination is no record locking (<see cref="FileLockMode.None"/>) — so the ordinal is minted only
+    /// where the physical file's shared state exists to mint it from. Gating the flush on the ordinal's
+    /// antecedent left
+    /// a clause-less pair sharing a physical file writing through two buffers, where a mid-record flush of one
+    /// buffer can split a record around the other's.</para></summary>
     private void ReleaseRecord()
     {
-        if (SharedPhysical is not { } shared) return;
-        _writer!.Flush();                          // GR12 — released, not merely buffered
-        _writeOrdinal = ++shared.ReleasedOrdinal;  // §9.1.16 identity, minted from the physical file's own mint
+        if (FileLockPosture.AdmitsAnotherWriter(HostShare))
+            _writer!.Flush();                      // GR12 — released, not merely buffered
+        if (SharedPhysical is { } shared)
+            _writeOrdinal = ++shared.ReleasedOrdinal;   // §9.1.16 identity, minted from the physical file's mint
+    }
+
+    /// <summary>Re-derive this connector's ISO §9.1.15 file lock while it is open — see
+    /// <see cref="FileConnector.Reposture"/> for why the registry calls it and why it shall not escape. A host
+    /// share mode is fixed when the handle is created, so "widen" means <b>rebuild the handle</b>, at the same
+    /// logical position, with nothing else about the connector disturbed.
+    /// <para>The position is already tracked, and not by the base stream: <c>StreamReader</c> buffers ahead, so
+    /// <c>BaseStream.Position</c> is the buffer-fill boundary and never the read position — the logical offsets
+    /// (<c>_readOffset</c> for the framed readers, <c>_lineByteOffset</c> for LINE SEQUENTIAL; Latin-1, so one
+    /// character is one byte) are the file position indicator's byte address, and the fresh reader is seeked
+    /// straight to it. Everything derived from it survives untouched: the §14.9.30.4 GR15 unread remainder, the
+    /// §14.9.35.4 GR17 REWRITE anchors (absolute file offsets, still valid on the new handle) and the §9.1.16
+    /// read ordinal. A writer is FLUSHED first (§14.9.51.4 GR12) and reopened
+    /// <see cref="FileMode.Append"/> — the current physical end is exactly where it was, and Append never
+    /// truncates, so an <c>OPEN OUTPUT</c> connector keeps the file it has created.</para>
+    /// <para>⚠ A writer, or an I-O reader, holds WRITE access, and the outgoing handle's own share mode is what
+    /// denies a second one — so those cannot be opened before the old handle is released and the rebuild is
+    /// dispose-then-open. If the host refuses the new posture in that window (only a foreign process can cause
+    /// it) the OLD posture is reopened, which restores the connector exactly. A reader with no write access
+    /// needs no window at all, so it is open-then-dispose. No mode holds both a reader and a writer — INPUT and
+    /// I-O have only <c>_reader</c>, OUTPUT and EXTEND only <c>_writer</c> — so a half-repostured connector is
+    /// not expressible.</para></summary>
+    internal override void Reposture(FileShare share)
+    {
+        if (share == HostShare) return;
+        if (!IsOpen) { base.Reposture(share); return; }
+        if (_reader is { } reader)
+        {
+            long at = _lineSequential ? _lineByteOffset : _readOffset;
+            if (Mode == FileOpenMode.IO)
+            {
+                // WRITE access: the outgoing handle's share mode can forbid the incoming one, so release first.
+                reader.Dispose();
+                _reader = null;
+                _reader = OpenReader(share, at, HostShare);
+            }
+            else
+            {
+                var fresh = OpenReader(share, at, null);
+                reader.Dispose();
+                _reader = fresh;
+            }
+        }
+        else if (_writer is { } writer)
+        {
+            writer.Flush();                        // GR12 — nothing buffered may cross the handle boundary
+            writer.Dispose();
+            _writer = null;
+            // FileMode.Append for BOTH the OUTPUT and the EXTEND writer: the physical end is where the flushed
+            // handle stood, and Append does not truncate, so an OPEN OUTPUT connector keeps what it created.
+            _writer = OpenWriter(FileMode.Append, share, HostShare);
+        }
+        base.Reposture(share);
+    }
+
+    /// <summary>⛔ THE ONE SPELLING OF THIS CONNECTOR'S READ HANDLE — the INPUT and I-O arms of
+    /// <see cref="OpenCore"/> and the rebuild in <see cref="Reposture"/> are the same stream, and a second
+    /// spelling would be a second answer to its encoding, its access and its <see cref="FileOptions"/>. The I-O
+    /// arm asks for <see cref="FileAccess.ReadWrite"/> because §14.9.35 GR3's REWRITE writes through this
+    /// reader's <c>BaseStream</c>, and takes NO <see cref="FileOptions.SequentialScan"/> for the same reason: it
+    /// seeks, and the sequential-access hint asks the host to evict what a seek comes back for.
+    /// <para><paramref name="at"/> is the byte the next READ shall deliver, and <paramref name="fallbackShare"/>
+    /// the posture to restore when the host refuses <paramref name="share"/> and the outgoing handle is already
+    /// gone (null = it is still open, so there is nothing to restore and the refusal propagates to a caller that
+    /// still has one).</para></summary>
+    private StreamReader OpenReader(FileShare share, long at, FileShare? fallbackShare)
+    {
+        StreamReader Open(FileShare s) => new(HostFile.OpenConnectorStream(HostPath, FileMode.Open,
+            Mode == FileOpenMode.IO ? FileAccess.ReadWrite : FileAccess.Read, s,
+            Mode == FileOpenMode.IO ? FileOptions.None : FileOptions.SequentialScan), Encoding.Latin1);
+        StreamReader r;
+        try { r = Open(share); }
+        catch (IOException) when (fallbackShare is { } old) { r = Open(old); }
+        if (at != 0) r.BaseStream.Seek(at, SeekOrigin.Begin);
+        return r;
+    }
+
+    /// <summary>⛔ THE ONE SPELLING OF THIS CONNECTOR'S WRITE HANDLE — the OUTPUT arm
+    /// (<see cref="FileMode.Create"/>), the EXTEND arm (<see cref="FileMode.Append"/>) and the rebuild. The role
+    /// decides plain-versus-repositioning from the posture; this decides the newline and the encoding, once.</summary>
+    private StreamWriter OpenWriter(FileMode mode, FileShare share, FileShare? fallbackShare)
+    {
+        StreamWriter Open(FileShare s) => new(HostFile.OpenConnectorWriteStream(HostPath, mode, s),
+            Encoding.Latin1) { NewLine = "\r\n" };
+        try { return Open(share); }
+        catch (IOException) when (fallbackShare is { } old) { return Open(old); }
     }
 
     /// <summary>The count of records ALREADY IN the physical file, in the framing this connector reads — the
@@ -353,18 +452,21 @@ public sealed class SequentialConnector : FileConnector
                         OptionalAbsent = true;                 // positioned at EOF (ISO §9.1.13.2 item 5b)
                         return FileStatusCode.OptionalFileNotFound;
                     }
-                    // A SHARING-active connector's stream permits other connectors' handles (§9.1.15 — the
-                    // Table-19 registry is the sharing arbiter, not the OS handle); unshared keeps the default.
-                    // The posture ternary lives in HostFile.OpenConnectorStream, once (kb/Work PB713).
-                    _reader = new StreamReader(HostFile.OpenConnectorStream(HostPath, FileMode.Open,
-                        FileAccess.Read, SharedStreams, FileOptions.SequentialScan), Encoding.Latin1);
+                    // The §9.1.15 file lock this connector's handle carries is DERIVED — by FileLockPosture,
+                    // from the arbitrated sharing mode and the connectors Table 19 has already admitted on this
+                    // physical file — and handed down by the registry as HostShare (kb/Work PB740). It is never
+                    // decided here: the Table-19 registry is the in-run-unit arbiter and the handle's share mode
+                    // is the file lock against OTHER RUN UNITS, and a boolean cannot be both.
+                    _reader = OpenReader(HostShare, at: 0, fallbackShare: null);
                     NoticeIfLayoutDisagrees();
                     break;
 
                 case FileOpenMode.Output:
-                    _writer = new StreamWriter(HostFile.OpenConnectorStream(HostPath, FileMode.Create,
-                        FileAccess.Write, SharedStreams, FileOptions.SequentialScan), Encoding.Latin1)
-                        { NewLine = "\r\n" };
+                    // Table 19 admits an incoming EXTEND/I-O against a connector already open in the OUTPUT mode
+                    // (its existing-side column group is `extend I-O output`), so the OUTPUT writer takes the
+                    // same posture-derived role the EXTEND writer does — a second writer is possible here too
+                    // (kb/Work PB740; the anchoring rule itself is PB739's).
+                    _writer = OpenWriter(FileMode.Create, HostShare, fallbackShare: null);
                     // OPEN OUTPUT truncates, so the physical file holds no records and the shared mint restarts
                     // at 0. §14.9.51.4 GR17 is the sequential-organization rule for it: "The successor
                     // relationship of a sequential file is established by the order of execution of WRITE
@@ -393,10 +495,12 @@ public sealed class SequentialConnector : FileConnector
                         extShared.ReleasedOrdinal = exists ? ExistingRecordCount() : 0;
                     // ⛔ NOT FileMode.Append THROUGH OpenConnectorStream (kb/Work PB739). .NET's Append seeks
                     // to the end ONCE, at open; under §9.1.15 sharing two connectors then anchor at the same
-                    // offset and the later flush lands on top of the earlier record. HostFile.OpenAppendStream
-                    // is the role that knows the difference — see it for which handle each posture gets.
-                    _writer = new StreamWriter(HostFile.OpenAppendStream(HostPath, SharedStreams),
-                        Encoding.Latin1) { NewLine = "\r\n" };
+                    // offset and the later flush lands on top of the earlier record.
+                    // HostFile.OpenConnectorWriteStream is the role that knows the difference, and it reads the
+                    // difference off the POSTURE — a handle whose file lock admits another writer gets the
+                    // repositioning stream — so a clause-less pair the arbiter permits is covered by the same
+                    // rule as a SHARING WITH ALL OTHER pair (kb/Work PB740).
+                    _writer = OpenWriter(FileMode.Append, HostShare, fallbackShare: null);
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
 
@@ -414,11 +518,9 @@ public sealed class SequentialConnector : FileConnector
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
                     // create empty, then close — an auxiliary handle, not the connector's stream
                     if (!exists) using (HostFile.OpenAuxiliary(HostPath, FileMode.Create, FileAccess.Write)) { }
-                    // No FileOptions.SequentialScan: this reader SEEKS (the §14.9.35 REWRITE writes through
-                    // its BaseStream), and the sequential-access hint asks the host to evict what a seek comes
-                    // back for.
-                    _reader = new StreamReader(HostFile.OpenConnectorStream(HostPath, FileMode.Open,
-                        FileAccess.ReadWrite, SharedStreams), Encoding.Latin1);
+                    // ReadWrite access and NO FileOptions.SequentialScan for this mode — both decided once, in
+                    // OpenReader, which is also what the reposture rebuild uses.
+                    _reader = OpenReader(HostShare, at: 0, fallbackShare: null);
                     NoticeIfLayoutDisagrees();
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;

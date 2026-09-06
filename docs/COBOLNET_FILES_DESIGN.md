@@ -502,7 +502,13 @@ so every incoming OPEN OUTPUT was permitted and truncated a file another connect
 `FileRegistry.Open` consulted the table only `if (IsSharingActive(name))`, while `RegisterSharing` set
 `FileConnector.SharedStreams` (an OS handle opened `FileShare.ReadWrite`). Together those made a file declared
 `SHARING WITH NO OTHER` strictly LESS protected than one declaring nothing: the clause dropped the OS exclusion
-and handed arbitration to a table that could not see the plain connector coming. The guarding test was six
+and handed arbitration to a table that could not see the plain connector coming. PB321 fixed the arbitration
+half by making Table 19 arbitrate every connector; the OS half survived it and was measured across processes
+three landings later — a `SHARING WITH NO OTHER` connector still admitted a foreign append while a clause-less
+one refused it, and two clause-less connectors Table 19 permitted to share were refused by the host with '30'.
+`SharedStreams` is now gone: the host share mode is §9.1.15's **file lock**, derived by `FileLockPosture` from
+the arbitrated sharing MODE and widened by the connectors Table 19 has admitted, applied in one place by
+`FileRegistry.SyncHostPostures` (kb/Work PB740; see `DESIGN-runtime-library.md`). The guarding test was six
 `InlineData` rows against 35 cells with no row whose incoming mode was OUTPUT (kb/Work PB321). Two silent
 defaults went with it — the emitter registered a LOCK-MODE-only file as ALL OTHER, and a RETRY-phrase-only OPEN
 registered ALL OTHER here — three arms of one determination, two of which had already answered it.

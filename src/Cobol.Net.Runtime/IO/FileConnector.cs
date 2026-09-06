@@ -160,12 +160,32 @@ public abstract class FileConnector
     /// third — a connector that "participates" but holds no shared state cannot be expressed.</para></summary>
     internal PhysicalFileTable.State? SharedPhysical { get; set; }
 
-    /// <summary>True when the connector participates in file sharing (§9.1.15 — set by the registry when the
-    /// SELECT declares SHARING/LOCK MODE or an OPEN carries a SHARING/RETRY phrase): its physical streams open
-    /// with <see cref="FileShare.ReadWrite"/> so the §9.1.13.9 Table-19 registry — not the OS handle — is the
-    /// sharing arbiter. An unshared connector keeps the default exclusive-writer OS posture, byte-for-byte.
-    /// DERIVED from <see cref="SharedPhysical"/> — it has no storage of its own to fall out of step.</summary>
-    public bool SharedStreams => SharedPhysical is not null;
+    /// <summary>The ISO §9.1.15 <b>file lock</b> this connector's own host handles carry — <i>"The successful
+    /// opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run
+    /// units from opening that file with incompatible sharing rules."</i> DERIVED, in one place, by
+    /// <see cref="FileLockPosture.For"/> from the connector's arbitrated sharing mode and the set of connectors
+    /// Table 19 has already admitted on the physical file; the registry assigns it immediately before the OPEN
+    /// body runs and re-assigns it through <see cref="Reposture"/> whenever that set changes.
+    /// <para>⛔ IT REPLACED A BOOLEAN THAT ANSWERED THE WRONG QUESTION (kb/Work PB740). <c>SharedStreams</c> —
+    /// "did this SELECT write a SHARING or LOCK MODE clause" — chose between <see cref="FileShare.ReadWrite"/>
+    /// and <see cref="FileShare.Read"/>, and got §9.1.15 backwards in both directions: <c>SHARING WITH NO
+    /// OTHER</c>, which §9.1.15 1) calls <i>exclusive access</i>, took the permissive arm (an external process
+    /// appended to a file the program had declared exclusive, measured across processes), while two clause-less
+    /// connectors Table 19 PERMITS to share one file took the restrictive one and the second OPEN answered '30'
+    /// — a status no Table 19 row and no §9.1.13.9 item produces.</para></summary>
+    internal FileShare HostShare { get; set; } = FileLockPosture.OfSharingMode(null);
+
+    /// <summary>Re-derive this connector's §9.1.15 file lock while it is OPEN — the registry calls it when the
+    /// set of connectors admitted on the physical file changes, which is the only thing that can change the
+    /// answer. The base implementation records the new posture; a connector that holds a long-lived host handle
+    /// overrides it to rebuild that handle, because a share mode is fixed at open and cannot be widened in
+    /// place.
+    /// <para>⛔ IT SHALL NOT THROW. It runs from <see cref="FileRegistry.SharedOpenAttempt"/>, OUTSIDE
+    /// <see cref="Open"/>'s try, where §14.9.27.4 GR1 admits only an I-O status — the same boundary whose
+    /// violation was kb/Work PB713's escaping <c>IOException</c>. An override that cannot obtain the new handle
+    /// keeps the one it has (strictly more permissive than the one it wanted, so no COBOL statement can read a
+    /// different answer) and lets the OPEN that asked for the widening fail inside its own try.</para></summary>
+    internal virtual void Reposture(FileShare share) => HostShare = share;
 
     /// <summary>True while the connector is in an open mode (ISO §9.1.4): set by a success-family OPEN, cleared
     /// by ANY completed CLOSE (§14.9.6.4 GR8 — and an unsuccessful close does not keep the open mode either).

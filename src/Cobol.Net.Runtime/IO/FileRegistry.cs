@@ -131,6 +131,7 @@ public sealed class FileRegistry
         {
             if (old.IsOpen) old.Close();
             DeregisterFromPhysical(cobolName, old);
+            NarrowHostPostures(old.HostPath);   // §9.1.15 — the survivors' file locks shrink with the set (PB740)
         }
         _connectorShares.Remove(cobolName);
     }
@@ -319,6 +320,11 @@ public sealed class FileRegistry
         // item) — flush/persist/dispose in CloseCore, plus the §14.9.6.4 GR9 lock release here.
         SharedClose(name);   // no-op for a non-sharing-active connector
         c.Close();
+        // §9.1.15's file lock is <i>"removed by an explicit or implicit CLOSE statement executed for that file
+        // connector"</i>, so the survivors' postures narrow back to what their own sharing modes establish —
+        // AFTER c.Close(), never before it: a survivor reopening at a narrower share while this connector's
+        // handle is still outstanding would be refused by its own access (kb/Work PB740).
+        NarrowHostPostures(c.HostPath);
         // g) Optional phrases ignored: "The CLOSE statement is executed as if none of the optional phrases were
         // present. The I-O status indicator for the file connector is set to '07'." — §9.1.13.2 item 6's
         // phrase-on-a-non-reel-medium warning, which rides a SUCCESSFUL close only (an unsuccessful '30' keeps
@@ -705,13 +711,16 @@ public sealed class FileRegistry
     /// <see cref="SharedOpenAttempt"/>.</summary>
     public void RegisterSharing(string name, FileSharing? sharing, FileLockMode lockMode, bool multiple) =>
         // ⛔ THE POSTURE IS RECORDED HERE AND DERIVED AT THE OPEN, never written to the connector here as well.
-        // A sharing participant's physical streams must admit the other connectors' handles (§9.1.15 — the
-        // Table-19 registry, not the OS handle, arbitrates), and `FileConnector.SharedStreams` says so — but it
-        // used to be SET here, behind a `_files.TryGetValue`, so this map and that bit were two independently
-        // maintained answers to one question and a registration that ran before its connector existed would
-        // have left them disagreeing silently. `SharedOpenAttempt` now reads the bit off this map immediately
-        // before `c.Open(mode)`, which is the ONLY caller of it (kb/Work PB713 moved the write-ordinal seeding
-        // onto the same bit, which is what made a second answer worth removing).
+        // A registration that ran before its connector existed would otherwise leave this map and the connector
+        // disagreeing silently, so `SharedOpenAttempt` reads everything it needs off this map immediately before
+        // `c.Open(mode)`, which is the ONLY caller of it (kb/Work PB713 moved the write-ordinal seeding onto the
+        // same read, which is what made a second answer worth removing).
+        // ⛔ AND WHAT IT RECORDS IS NOT THE HOST HANDLE'S SHARE MODE (kb/Work PB740). The boolean this method
+        // used to set — "did this SELECT write a SHARING or LOCK MODE clause?" — was spent on §9.1.15's OTHER
+        // audience as well, the file lock against other RUN UNITS, and answered it backwards. That share mode is
+        // now DERIVED, by `FileLockPosture` from the arbitrated sharing mode and the connectors Table 19 has
+        // already admitted, and handed down as `FileConnector.HostShare`; this map's record-locking posture is
+        // one of its inputs and never its author.
         _connectorShares[name] = new ConnectorShare(sharing, lockMode, multiple);
 
     /// <summary>Declare a SELECTed file's record area NATIONAL (§14.9.30.4 GR15; emitted right after
@@ -799,13 +808,22 @@ public sealed class FileRegistry
         // ORIGINAL mode — but `IsOpen` is true throughout, so gating on it re-registered the connector under the
         // mode and sharing of the FAILED request and every later arbitration used them (kb/Work PB321).
         // §9.1.15 participation, derived from the ONE register that records it, at the one moment it is read.
-        // OpenCore consults it for every stream it opens and for the write-ordinal base (kb/Work PB713), and
-        // this line is its only writer — so it cannot outlive, or lag, the posture map. What it hands over is
-        // the physical file's own shared STATE, not a bare bit (kb/Work PB739): a participant needs the
-        // §14.9.51.4 GR19 release-ordinal mint that lives on it, and `SharedStreams` is derived from this being
-        // non-null, so participation and the shared state cannot disagree.
+        // OpenCore consults it for the release-ordinal mint (kb/Work PB713 put the write-ordinal seeding on it),
+        // and this line is its only writer — so it cannot outlive, or lag, the posture map. What it hands over
+        // is the physical file's own shared STATE, not a bare bit (kb/Work PB739): a participant needs the
+        // §14.9.51.4 GR19 release-ordinal mint that lives on it, and participation IS this being non-null, so
+        // the two cannot disagree. It no longer says anything about the HOST HANDLE — that is the file lock
+        // below, derived rather than declared (kb/Work PB740).
         c.SharedPhysical = _connectorShares.ContainsKey(name) ? st : null;
+        // ⛔ AND THE §9.1.15 FILE LOCK, BEFORE THE HANDLE THAT CARRIES IT EXISTS (kb/Work PB740). Table 19 has
+        // just allowed this open against every connector already associated with the physical file; the host's
+        // share mode shall not now refuse it. SyncHostPostures hands this connector the posture it must open
+        // with and widens any sibling whose own posture would deny it — which is why it runs HERE, ahead of
+        // c.Open, and not after (kb/Work PB713's boundary: nothing outside FileConnector.Open's try may
+        // manufacture an I/O failure, and this one is written so it cannot escape).
+        SyncHostPostures(st, (name, sharing, mode));
         string status = c.Open(mode);
+        if (status[0] != '0') SyncHostPostures(st, null);   // GR25 "the file is not affected" — undo the widening
         if (status[0] == '0')   // the success family '00'/'05'/'07' — §9.1.13.2
         {
             st.Open[name] = (sharing, mode);   // register only a successful open
@@ -855,6 +873,69 @@ public sealed class FileRegistry
             }
         }
         return true;
+    }
+
+    /// <summary>⛔ THE ONE PLACE THE OPERATING ENVIRONMENT'S SHARE MODE IS APPLIED — ISO §9.1.15's <b>file
+    /// lock</b>, re-derived for every connector open on one physical file whenever that set changes (kb/Work
+    /// PB740). <paramref name="pending"/> is the OPEN being attempted, which is not yet in
+    /// <see cref="PhysicalFileTable.State.Open"/>; a <c>null</c> pending is the shrinking case — an open that
+    /// failed, or a CLOSE — where every survivor narrows back.
+    /// <para><b>Why it is a set and not a per-connector answer.</b> §9.1.15 addresses two audiences with one
+    /// sharing mode. <i>"Multiple paths of access may exist in the same runtime element … or runtime elements
+    /// in different run units"</i>: for the paths INSIDE this run unit the gate is <i>"the sharing mode and the
+    /// open mode of that OPEN statement shall be allowed by all other file connectors that are currently
+    /// associated with the physical file, as described in … Table 19"</i> — <see cref="Conflicts"/>, which has
+    /// already run — while for the other run units it is <i>"The successful opening of a file establishes a
+    /// file lock … thereby preventing other run units from opening that file with incompatible sharing
+    /// rules."</i> A host share mode names no requester, so it cannot admit this run unit's second connector
+    /// and refuse a foreign one; it can only be widened to admit the siblings Table 19 admitted. The run unit's
+    /// effective lock against the outside is then the INTERSECTION of its connectors' postures, because the
+    /// host checks a new handle against every outstanding one — so widening the reader that a sibling appender
+    /// needs does not, by itself, admit an outside writer the appender still refuses.</para>
+    /// <para>⛔ IT SHALL NOT THROW. It runs from <see cref="SharedOpenAttempt"/>, outside
+    /// <see cref="FileConnector.Open"/>'s try, where §14.9.27.4 GR1 admits only an I-O status — the boundary
+    /// kb/Work PB713's escaping <c>IOException</c> crossed. A rebuild the host refuses leaves the connector on
+    /// the handle it has, which is never narrower than the one it wanted, and the OPEN that asked for the
+    /// widening then fails inside its own try with §9.1.13.6 item 1's '30'.</para></summary>
+    private void SyncHostPostures(PhysicalFileTable.State st,
+                                  (string Name, FileSharing? Sharing, FileOpenMode Mode)? pending)
+    {
+        if (pending is { } p && _files.TryGetValue(p.Name, out var pc))
+            pc.HostShare = PostureOf(st, p.Name, p.Sharing, pending);   // not open yet — assignment IS the rebuild
+        foreach (var (name, ex) in st.Open)
+        {
+            if (pending is { } q && string.Equals(q.Name, name, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!_files.TryGetValue(name, out var c)) continue;
+            var want = PostureOf(st, name, ex.Sharing, pending);
+            if (want == c.HostShare) continue;
+            try { c.Reposture(want); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* keep the current handle */ }
+        }
+    }
+
+    /// <summary>The §9.1.15 file lock ONE connector's handles shall carry: the posture of its own sharing mode
+    /// widened to admit the access of every OTHER connector the Table-19 arbiter has admitted on the same
+    /// physical file. ⛔ The DERIVATION is <see cref="FileLockPosture.For"/> and is not restated here — this
+    /// method only says which connectors the "other" set contains, because the registry is the only thing that
+    /// knows. A second copy of the union would also be the copy nothing measures: <c>FileLockPostureDriftTests</c>
+    /// asserts against <see cref="FileLockPosture"/>, so a production rule written out beside it could drift
+    /// under a green guard.</summary>
+    private static FileShare PostureOf(PhysicalFileTable.State st, string name, FileSharing? sharing,
+                                       (string Name, FileSharing? Sharing, FileOpenMode Mode)? pending) =>
+        FileLockPosture.For(sharing, OtherAdmittedModes(st, name, pending));
+
+    /// <summary>The open modes of every connector OTHER than <paramref name="name"/> that the Table-19 arbiter
+    /// has admitted on this physical file: those already registered as open, plus <paramref name="pending"/>
+    /// — the OPEN in flight, which <see cref="SharedOpenAttempt"/> registers only after it succeeds and which
+    /// the postures must nevertheless admit BEFORE its handle is created.</summary>
+    private static IEnumerable<FileOpenMode> OtherAdmittedModes(PhysicalFileTable.State st, string name,
+                                       (string Name, FileSharing? Sharing, FileOpenMode Mode)? pending)
+    {
+        foreach (var (other, ex) in st.Open)
+            if (!string.Equals(other, name, StringComparison.OrdinalIgnoreCase))
+                yield return ex.Mode;
+        if (pending is { } p && !string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
+            yield return p.Mode;
     }
 
     /// <summary>⛔ THE ONE §12.4.5.9.4 GR6 SITE — <i>"Execution of any I-O statement except START releases any
@@ -1361,6 +1442,14 @@ public sealed class FileRegistry
     private void SharedClose(string name)
     {
         if (_files.TryGetValue(name, out var c)) DeregisterFromPhysical(name, c);
+    }
+
+    /// <summary>Re-derive the §9.1.15 file lock of every connector still open on <paramref name="host"/> after
+    /// one has left — the shrinking half of <see cref="SyncHostPostures"/>. Called with the departing
+    /// connector's handles already released, so a survivor can actually take the narrower posture back.</summary>
+    private void NarrowHostPostures(string host)
+    {
+        if (_physical.TryGet(host, out var st) && st.Open.Count > 0) SyncHostPostures(st, null);
     }
 
     /// <summary>Drop <paramref name="name"/>'s entry in the physical-file table for the connector object
