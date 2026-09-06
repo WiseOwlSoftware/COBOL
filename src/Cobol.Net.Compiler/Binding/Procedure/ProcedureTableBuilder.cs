@@ -213,24 +213,25 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     public IReadOnlyList<BoundDeclarative> Declaratives => _declaratives;
     // ── The USE duplicate-operand screens (ISO §14.9.49.3 SR7, SR8, SR9, SR14) ──────────────────────────────
     // Four instances of ONE sentence — "the same X shall not be specified in more than one USE statement within
-    // the same procedure division" — so ONE mechanism enforces all four (<see cref="UseOperandRegister{TKey}"/>
-    // holds the statement-vs-operand boundary those rules draw). Per procedure division by construction: a
-    // ProcedureTableBuilder is built per bound unit, and DECLARATIVES inside a method are rejected loud
-    // (DiagnosticCatalog.OoMethodDeclaratives), so no second procedure division ever shares these registers.
-    private readonly UseOperandRegister<int> _useModes = new();                                      // SR7
-    private readonly UseOperandRegister<string> _useFiles = new(StringComparer.OrdinalIgnoreCase);    // SR8
-    private readonly UseOperandRegister<ReportGroupModel> _useReportGroups = new();                   // SR9
-    private readonly UseOperandRegister<string> _useEcPairs = new(StringComparer.OrdinalIgnoreCase);  // SR14
+    // the same procedure division" — so ONE mechanism enforces all four (ConstructOperandRegister{TKey} holds
+    // the construct-vs-operand boundary those rules draw; the USE STATEMENT is the construct here, the Format-2
+    // COLLATING SEQUENCE CLAUSE is the construct for its second consumer). Per procedure division by
+    // construction: a ProcedureTableBuilder is built per bound unit, and DECLARATIVES inside a method are
+    // rejected loud (DiagnosticCatalog.OoMethodDeclaratives), so no second procedure division shares these.
+    private readonly ConstructOperandRegister<int> _useModes = new();                                      // SR7
+    private readonly ConstructOperandRegister<string> _useFiles = new(StringComparer.OrdinalIgnoreCase);    // SR8
+    private readonly ConstructOperandRegister<ReportGroupModel> _useReportGroups = new();                   // SR9
+    private readonly ConstructOperandRegister<string> _useEcPairs = new(StringComparer.OrdinalIgnoreCase);  // SR14
 
     /// <summary>Close the USE statement just bound: its operands become the procedure division's, so a repeat
     /// in a LATER USE statement is the violation SR7/SR8/SR9/SR14 name and a repeat inside the statement itself
     /// never was. Called from the ONE place a USE statement is bound (<see cref="DeclCollectSection"/>).</summary>
     private void DeclEndUseStatement()
     {
-        _useModes.EndStatement();
-        _useFiles.EndStatement();
-        _useReportGroups.EndStatement();
-        _useEcPairs.EndStatement();
+        _useModes.EndConstruct();
+        _useFiles.EndConstruct();
+        _useReportGroups.EndConstruct();
+        _useEcPairs.EndConstruct();
     }
 
     /// <summary>Collect one declarative section into the pc space: the USE sentence (SR1 — the section's first
@@ -404,51 +405,6 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         return results;
     }
 
-    /// <summary>What <see cref="UseOperandRegister{TKey}.Register"/> saw for one USE operand.</summary>
-    private enum UseOperand
-    {
-        /// <summary>New to this procedure division — bind it.</summary>
-        First,
-        /// <summary>Written again inside the SAME USE statement. Legal (the §14.9.49.2 ellipses permit it and
-        /// no syntax rule reaches inside one statement) and already bound — bind it ONCE.</summary>
-        Repeated,
-        /// <summary>An EARLIER USE statement of this procedure division already specified it — the rule is
-        /// violated.</summary>
-        Duplicate,
-    }
-
-    /// <summary>ONE USE duplicate-operand screen. ISO §14.9.49.3 SR7, SR8, SR9 and SR14 are four instances of a
-    /// single sentence — the same operand "shall not … in more than one USE statement within the same procedure
-    /// division" (SR7 says "only once in the declaratives portion of a given procedure division", the same
-    /// boundary) — so they share this mechanism instead of four hand-rolled sets.
-    /// <para>The boundary those rules draw is the STATEMENT, never the operand: §14.9.49.2 writes Format 1's
-    /// file list as <c>{ file-name-1 } …</c> and Format 3's scope as
-    /// <c>exception-name-2 { FILE file-name-2 } … …</c>, so ONE statement may name the same operand twice, and
-    /// one statement is never "more than one". Each key therefore remembers the ORDINAL of the USE statement
-    /// that first specified it, and <see cref="EndStatement"/> is a counter bump: same ordinal ⇒ a repeat
-    /// inside one statement (legal), earlier ordinal ⇒ the repeat across statements the rule forbids.</para>
-    /// </summary>
-    private sealed class UseOperandRegister<TKey>(IEqualityComparer<TKey>? comparer = null)
-        where TKey : notnull
-    {
-        private readonly Dictionary<TKey, int> _firstSeenIn = new(comparer);   // key → USE statement ordinal
-        private int _statement;
-
-        /// <summary>Register one operand of the USE statement being bound.</summary>
-        public UseOperand Register(TKey key)
-        {
-            if (!_firstSeenIn.TryGetValue(key, out int seenIn))
-            {
-                _firstSeenIn.Add(key, _statement);
-                return UseOperand.First;
-            }
-            return seenIn == _statement ? UseOperand.Repeated : UseOperand.Duplicate;
-        }
-
-        /// <summary>End the USE statement — the next operand belongs to the next one.</summary>
-        public void EndStatement() => _statement++;
-    }
-
     /// <summary>One USE statement's bound trigger scope: Format 1's files/mode (+GLOBAL), Format 2's report
     /// group, or Format 3's (exception-name, file) entries (ISO §14.9.49).</summary>
     private readonly record struct DeclScope(
@@ -501,7 +457,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     // SR9: the same identifier-1 shall not appear in more than one USE BEFORE REPORTING
                     // statement within the same procedure division. Format 2 names exactly one group per
                     // statement, so only the Duplicate verdict is reachable here.
-                    if (_useReportGroups.Register(group) == UseOperand.Duplicate)
+                    if (_useReportGroups.Register(group) == ConstructOperand.Duplicate)
                         ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': report group "
                             + $"'{head}' already has a USE BEFORE REPORTING procedure in this procedure "
                             + "division (ISO §14.9.49.3 SR9)");
@@ -527,7 +483,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // SR7: the INPUT, OUTPUT, I-O and EXTEND phrases may each be specified only once in the
             // declaratives portion of a given procedure division. Format 1's brace group takes exactly one
             // alternative per statement, so only the Duplicate verdict is reachable here.
-            if (_useModes.Register(m) == UseOperand.Duplicate)
+            if (_useModes.Register(m) == ConstructOperand.Duplicate)
                 ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': this open mode already "
                     + "has a USE procedure in this procedure division (ISO §14.9.49.3 SR7)");
             return new DeclScope([], m, global, null);
@@ -557,9 +513,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // labels (DispatchEmitter / EcEmitter EmitUseTiers).
             switch (_useFiles.Register(fname))
             {
-                case UseOperand.Repeated:
+                case ConstructOperand.Repeated:
                     continue;
-                case UseOperand.Duplicate:
+                case ConstructOperand.Duplicate:
                     ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': file '{fname}' "
                         + "already has a USE procedure in this procedure division (ISO §14.9.49.3 SR8)");
                     continue;   // §14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
@@ -637,9 +593,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // special characters hyphen and underscore" (§8.3.2.1).
             switch (_useEcPairs.Register(ec + "|" + file.CobolName))
             {
-                case UseOperand.Repeated:
+                case ConstructOperand.Repeated:
                     return;   // written twice in this one statement — legal, and bound once
-                case UseOperand.Duplicate:
+                case ConstructOperand.Duplicate:
                     ctx.Edition.Error("COBOLNET0716", $"declarative section '{sectionName}': the exception-name/"
                         + $"file pair '{ec} FILE {file.CobolName}' is already specified in another USE statement "
                         + "of this procedure division (ISO §14.9.49.3 SR14)");

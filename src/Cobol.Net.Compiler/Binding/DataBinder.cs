@@ -1002,18 +1002,31 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var keyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (file.RecordKeyName is { } pk) keyNames.Add(pk);
         foreach (var (n, _, _, _) in file.AlternateKeyNames) keyNames.Add(n);
-        var seenInClause = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // SR8: "Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE
+        // clause." The boundary is the CLAUSE, and the screen is per OPERAND *within* it: §12.4.5.7.2's Format-2
+        // figure is `OF { data-name-1 | record-key-name-1 } … IS alphabet-name-3`, and by §5.2.7 the ellipsis
+        // applies to the brace group, so ONE clause may list the same key twice — and one clause is never "more
+        // than one". Hence the shared ConstructOperandRegister (the clause is the construct), never a HashSet
+        // hoisted out of the clause loop: that screened per operand across ALL clauses at once and rejected
+        // `COLLATING SEQUENCE OF IX-KEY IX-KEY IS ALPHA-X` with a diagnostic the program itself falsified
+        // (kb/Work PB703; PB364 is the same shape on §14.9.49.3's USE rules, the register's first consumer).
+        // GR6 is unaffected by the repeat: ResolveKeyCollating takes the FIRST clause naming the key, and a key
+        // listed twice in one clause is named by that one clause, so it resolves to that clause's alphabet-name-3.
+        var namedIn = new ConstructOperandRegister<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var (names, _) in file.KeyLevelCollating)
+        {
             foreach (var n in names)
             {
                 if (!keyNames.Contains(n))
                     Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': COLLATING SEQUENCE "
                         + $"OF '{n}' — '{n}' is not a RECORD KEY or ALTERNATE RECORD KEY of this file "
                         + "(ISO §12.4.5.7.3 SR4/SR5)");
-                else if (!seenInClause.Add(n))   // SR8 — a key named in more than one Format-2 clause
+                else if (namedIn.Register(n) is ConstructOperand.Duplicate)   // an EARLIER clause named it
                     Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': key '{n}' is named "
                         + "in more than one COLLATING SEQUENCE clause (ISO §12.4.5.7.3 SR8)");
             }
+            namedIn.EndConstruct();   // the clause is complete — a repeat from here on is across clauses
+        }
 
         file.PrimeKeyCollation = ResolveKeyCollating(file, file.RecordKeyName);
         for (int i = 0; i < file.AlternateKeys.Count; i++)

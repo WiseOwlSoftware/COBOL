@@ -1105,8 +1105,38 @@ the acceptance twins `tests/conformance/2023/pb347_record_name_identity` and
 `tests/conformance/85/pb347_record_name_identity_85`, which pin that the qualified `OF` form still binds at all
 three verbs and that a SORT returns exactly the records RELEASE named. (kb/Work PB347)
 
+## The COLLATING SEQUENCE clause — SR8 counts CLAUSES, not occurrences
+
+§12.4.5.7.3 SR8 says *"Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING
+SEQUENCE clause"*, and the unit it counts is the **clause**. §12.4.5.7.2's Format-2 figure prints
+`COLLATING SEQUENCE OF { data-name-1 | record-key-name-1 } … IS alphabet-name-3` with the ellipsis immediately
+right of the closing brace, so per §5.2.7 the repeated portion is the brace group and no rule adds a distinctness
+requirement to the repetition: **one clause may list the same key twice, and one clause is never *more than
+one*.** §12.4.5.7.4 GR6 is indifferent to the repeat — *"Alphabet-name-3 applies to record keys identified by
+data-name-1 or record-key-name-1"* names the clause's own alphabet either way.
+
+`DataBinder.ResolveFileCollating` therefore screens SR8 with the shared `ConstructOperandRegister<string>`
+(`Binding/ConstructOperandRegister.cs`), whose construct here is the Format-2 CLAUSE, per file control entry —
+never a `HashSet` hoisted out of the loop over `FileModel.KeyLevelCollating`, which is what the register exists to
+make impossible: that shape screened per NAME across every clause at once and rejected
+`COLLATING SEQUENCE OF IX-KEY IX-KEY IS REV` with a diagnostic (COBOLNET1582) whose own text — *named in more
+than one COLLATING SEQUENCE clause* — the program falsified. The same register enforces §14.9.49.3 SR7/SR8/SR9/SR14
+over the USE statement (`COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md`, kb/Work PB364); it is one mechanism for every
+rule whose boundary is a construct and whose subject is an operand written inside it. Because the register
+remembers the LAST clause that named a key rather than the first, ONE violation is ONE diagnostic even when the
+offending clause also repeats the key internally.
+
+**Edition posture.** The file-control COLLATING SEQUENCE clause is a COBOL-2002 addition (`constructs.json`
+`file-collating-clause-2002`, COBOLNET0900 at `--std 85`), so SR8's behaviour lanes are 2002/2014/2023 and 85 is the
+gate lane. Witnesses: `conformance:FileCollatingSequenceSpecTests` (both arms per edition, the
+one-diagnostic count, and the 85 gate), the positive golden
+`tests/conformance/2002/pb703_collating_key_named_twice` (a key named twice in ONE clause, whose output proves
+GR6 still gives each key its own clause's alphabet) and the negative
+`tests/conformance/negative/pb703-collating-key-in-two-clauses` (`*> reject-at: 2002 2014 2023`). (kb/Work PB703)
+
 ## ISO citations
 
+- ISO/IEC 1989:2023 section 12.4.5.7 COLLATING SEQUENCE clause: 12.4.5.7.2's two general formats (file-level and key-level), 12.4.5.7.3 SR3 (at most one file-level clause per file control entry), SR4/SR5 (a Format-2 name shall be a declared RECORD KEY or ALTERNATE RECORD KEY), SR8 (a key in at most one clause) and 12.4.5.7.4 GR2–GR6 (which sequence applies to which key), with 5.2.7 for the ellipsis that makes the Format-2 brace group repeatable.
 - ISO/IEC 1989:2023 section 9.1.13 I-O status: two-character codes; first digit 1 at-end, 2 invalid-key, 3 4 7 9 fatal or exception; subsections 9.1.13.2 through 9.1.13.11 enumerate every code (00 02 04 05 06 07 09 10 14 21 22 23 24 30 34 35 37 39 41 42 43 44 46 47 48 49).
 - Section 9.1.2 record area plus its NOTE: all 01s under an FD or SD implicitly redefine the same storage area per 13.18.33 GR3.
 - Section 9.1.1: CODE-SET or FORMAT translation occurs only when a logical record transfers to or from the physical unit; padding is added or deleted as necessary.

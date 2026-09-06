@@ -1093,7 +1093,7 @@ public sealed class ExceptionConditionConformanceTests
 
     // ── §14.9.49.3 SR7/SR8/SR9/SR14: the STATEMENT is the boundary (kb/Work PB364) ───────────────────────────
     // Four rules share one sentence — "the same X shall not be … in more than one USE statement within the same
-    // procedure division" — and the compiler enforces all four through the ONE UseOperandRegister. These tests
+    // procedure division" — and the compiler enforces all four through the ONE ConstructOperandRegister. These
     // hold BOTH arms of that boundary: a repeat ACROSS statements is the violation, and a repeat INSIDE one
     // statement is legal source that must compile. The accepting arms are the drift guard — a screen that
     // regresses to per-operand registration turns them red at once.
@@ -1227,6 +1227,38 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, edition);
         Assert.True(ok, $"[--std {edition}] one statement is not more than one: {string.Join("\n", diagnostics)}");
+    }
+
+    [Theory]   // ONE violation is ONE diagnostic — the two arms above COMBINED, which neither of them reaches.
+    [InlineData(85)]     // TF is named by a first USE statement and then TWICE by a second: the second statement
+    [InlineData(2002)]   // violates SR8 once, and its own repeat of TF is the legal in-statement repetition. The
+    [InlineData(2014)]   // register therefore remembers the LAST construct that registered a key, not the first
+    [InlineData(2023)]   // — with a first-seen ordinal BOTH writes in the second statement compare against
+                         // statement 0 and the rule is reported twice (kb/Work PB703, which shares the register).
+    public void UseF1_SameFileRepeatedInTheSecondStatement_DiagnosedOnce(int edition)
+    {
+        var (ok, diagnostics) = EditionHarness.Compile($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT037F.
+            {IoEnv}
+            DATA DIVISION.
+            FILE SECTION.
+            {IoFd}
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            H1 SECTION. USE AFTER STANDARD ERROR PROCEDURE ON TF.
+            H1-P.
+                CONTINUE.
+            H2 SECTION. USE AFTER STANDARD ERROR PROCEDURE ON TF TF.
+            H2-P.
+                CONTINUE.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                STOP RUN.
+            """, edition);
+        Assert.False(ok, $"[--std {edition}] the second USE statement repeats TF across statements");
+        Assert.Equal(1, diagnostics.Count(d => d.Contains("COBOLNET0897", StringComparison.Ordinal)));
     }
 
     [Fact]   // §14.9.18.3 SR2 (¶27403): an EC-USER exception-name in GOBACK/EXIT RAISING shall be specified in
