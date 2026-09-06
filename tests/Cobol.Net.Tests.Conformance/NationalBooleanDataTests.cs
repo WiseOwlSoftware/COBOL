@@ -244,24 +244,72 @@ public sealed class NationalBooleanDataTests
 
     // ── Positive facts ──────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>JUSTIFIED RIGHT on national and boolean receivers (ISO §13.18.32 SR3 — JUSTIFIED is legal for
-    /// boolean/national items; GR1/2 :19264–19273 — left fill with NATIONAL SPACES / BIT ZEROS). The "!"
-    /// sentinel keeps the national right end observable.</summary>
+    /// <summary>ISO §13.18.32.4 GR2, the RECEIVER-LARGER direction, over EVERY usage the rule names its fill for
+    /// (kb/Work PB737 added the third): "the data is aligned at the rightmost character position or boolean
+    /// position in the data item with zero fill for the leftmost boolean positions and space fill for the
+    /// leftmost character positions", then "For data items … described as usage national, national zeros …
+    /// national spaces"; "For data items … described as usage bit, bit zeros shall be used for zero fill".
+    /// JUSTIFIED is legal on both categories by §13.18.32.3 SR3. The "!" sentinel keeps the national right end
+    /// observable. The DISPLAY-usage half of GR2 is pinned by `conformance:2023/pb339_into_current_record` leg A.
+    /// <para>BB is the USAGE BIT arm — the sentence a PIC 1(4) DISPLAY-carrier receiver does NOT exercise, since
+    /// GR2 names the fill per USAGE, not per category. Expected `0011` by the same derivation as BJ: a two-
+    /// position sender right-aligned in four boolean positions, the leftmost two filled with bit zeros.</para>
+    /// </summary>
     [Fact]
     public void JustifiedRight_NationalAndBoolean_LeftFill()
     {
         string src = Prog("NBDAT20", """
             01 NJ PIC N(4) JUSTIFIED RIGHT.
             01 BJ PIC 1(4) JUSTIFIED RIGHT.
+            01 BB USAGE BIT PIC 1(4) JUSTIFIED RIGHT.
             """, """
             MOVE N"AB" TO NJ.
             DISPLAY "NJ=" NJ "!".
             MOVE B"11" TO BJ.
             DISPLAY "BJ=" BJ.
+            MOVE B"11" TO BB.
+            DISPLAY "BB=" BB.
             """);
         var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
         Assert.True(ok, detail);
-        Assert.Equal("NJ=  AB!\nBJ=0011", stdout);
+        Assert.Equal("NJ=  AB!\nBJ=0011\nBB=0011", stdout);
+    }
+
+    /// <summary>kb/Work PB737 — ISO §13.18.32.4 GR1, the SENDER-LARGER direction, over the usages the rule names:
+    /// "When the receiving data item is described with the JUSTIFIED clause and the sending operand is larger
+    /// than the receiving data item, the leftmost character positions or boolean positions of the sending operand
+    /// shall be truncated." The DISPLAY-alphanumeric half is pinned by
+    /// `conformance:2023/pb339_into_current_record` leg B and by
+    /// `AcceptDifferentialTests.Day_JustifiedReceiver_RightJustifiesAndLeftTruncates`; the rule's OWN wording
+    /// names boolean positions as well, and a national receiver is legal under §13.18.32.3 SR3, so both were
+    /// implemented-but-unevidenced until this test.
+    /// <para>Derivation, stated before the program was run. Five sending positions into three receiving
+    /// positions truncates the LEFTMOST two in every case: N"ABCDE" → NJ = national CDE; B"11001" → BJ = 001;
+    /// the same into a USAGE BIT receiver (BB) = 001, because GR1 truncates boolean POSITIONS irrespective of
+    /// the carrier; "ABCDE" into an alphabetic PIC A(3) JUSTIFIED (AJ) = CDE. Truncation on the RIGHT — the
+    /// non-JUSTIFIED §14.6.8.5/§14.6.8.6 rule — would give ABC/110/110/ABC, so each leg discriminates.</para>
+    /// </summary>
+    [Fact]
+    public void JustifiedRight_SenderLarger_TruncatesLeftmostAcrossUsages()
+    {
+        string src = Prog("NBDAT24", """
+            01 NJ PIC N(3) JUSTIFIED RIGHT.
+            01 BJ PIC 1(3) JUSTIFIED RIGHT.
+            01 BB USAGE BIT PIC 1(3) JUSTIFIED RIGHT.
+            01 AJ PIC A(3) JUSTIFIED RIGHT.
+            """, """
+            MOVE N"ABCDE" TO NJ.
+            DISPLAY "NJ=" NJ "!".
+            MOVE B"11001" TO BJ.
+            DISPLAY "BJ=" BJ.
+            MOVE B"11001" TO BB.
+            DISPLAY "BB=" BB.
+            MOVE "ABCDE" TO AJ.
+            DISPLAY "AJ=" AJ "!".
+            """);
+        var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
+        Assert.True(ok, detail);
+        Assert.Equal("NJ=CDE!\nBJ=001\nBB=001\nAJ=CDE!", stdout);
     }
 
     /// <summary>A level-88 condition with a boolean-literal VALUE (ISO §13.18.63 SR10 + §8.8.4.5): the

@@ -366,4 +366,61 @@ public sealed class SequentialFileIoSpecTests
         Assert.False(ok, $"--std {edition} strict must REJECT the phrase (ISO §14.9.51.3 SR2)");
         Assert.Contains(errors, e => e.Contains("COBOLNET1720"));
     }
+
+    /// <summary>kb/Work PB737 — §13.18.43.4 GR16's CLOSING SENTENCE, the third obligation of the rule whose two
+    /// lettered arms `pb339_into_current_record` already pins: "If the number of bytes determined as above is
+    /// zero, the record is a zero-length item." §13.18.43.3 SR7 makes integer-2 zero legal ("Integer-2 shall be
+    /// greater than or equal to zero"), so a zero-length current record is a REACHABLE shape, not a corner.
+    /// <para>Derivation, stated before the program was run. WRITE side: GR13 a) — "If data-name-1 is specified,
+    /// by the content of the data item referenced by data-name-1" — writes 0 bytes then 4. READ side: GR15 puts
+    /// the just-read length back in data-name-1 (0, then 4) and GR16 a) makes exactly that many bytes the sending
+    /// operand. Record 1's sender is therefore ZERO bytes, and §14.6.8.5's alignment space-fills the whole X(5)
+    /// receiver: the dots pre-loaded into it must be gone, and none of the record AREA's leftover "ZZZZZ" may
+    /// appear. Record 2's four bytes into an X(5) JUSTIFIED receiver are §13.18.32.4 GR2's right alignment with
+    /// one leading space fill, which also proves the zero-length read left the file position indicator on the
+    /// next record rather than consuming or skipping one.</para>
+    /// <para>Edition-invariant, and asserted so rather than assumed: no `docs/VERSION_CHANGE_REFERENCE.md` row
+    /// touches §13.18.43, so the same bytes are required at all four editions.</para></summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void VaryingRecord_ZeroLengthCurrentRecord_SendsNoBytesAndSpaceFills(int edition)
+    {
+        const string prog = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB737Z.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN "pb737z.dat" ORGANIZATION SEQUENTIAL FILE STATUS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F RECORD IS VARYING IN SIZE FROM 0 TO 20 DEPENDING ON WS-LEN.
+            01 F-REC PIC X(20).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX.
+            01 WS-LEN PIC 9(4) VALUE 0.
+            01 WS-P5 PIC X(5).
+            01 WS-J5 PIC X(5) JUSTIFIED RIGHT.
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN OUTPUT F.
+                MOVE 0 TO WS-LEN. MOVE "ZZZZZ" TO F-REC. WRITE F-REC.
+                MOVE 4 TO WS-LEN. MOVE "WXYZ"  TO F-REC. WRITE F-REC.
+                CLOSE F.
+                MOVE 99 TO WS-LEN.
+                MOVE ALL "." TO WS-P5. MOVE ALL "." TO WS-J5.
+                OPEN INPUT F.
+                READ F INTO WS-P5 AT END DISPLAY "ATEND1" END-READ.
+                DISPLAY "1:" FS " LEN=" WS-LEN " [" WS-P5 "]".
+                READ F INTO WS-J5 AT END DISPLAY "ATEND2" END-READ.
+                DISPLAY "2:" FS " LEN=" WS-LEN " [" WS-J5 "]".
+                CLOSE F.
+                STOP RUN.
+            """;
+        Assert.Equal("1:00 LEN=0000 [     ]\n2:00 LEN=0004 [ WXYZ]",
+            RunAt(prog, edition, permissive: false).Stdout);
+    }
 }
