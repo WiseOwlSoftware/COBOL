@@ -45,6 +45,15 @@ Usage (the wave-local gate applies its filter to ONE assembly and runs the other
         --filtered tests/Cobol.Net.Tests.Conformance \
         --unfiltered tests/Cobol.Net.Tests.Unit --unfiltered tests/Cobol.Net.Tests.Characterization
 
+⛔ `--allow-build` FOR A CALLER THAT HAS NOT BUILT YET (kb/Work PB751). Discovery runs `--no-build` by default,
+because the gate callers build the solution themselves and re-building per term would multiply the gate's cost.
+A caller whose OWN `dotnet test` does the building — `scripts/gen-vcr.ps1` and `scripts/gen-diagnostics-doc.ps1`
+both do — has nothing built at the moment the guard must run, and would get exit 2 on a clean tree (MEASURED, not
+assumed: on a fresh worktree the default probe answers "could not discover tests … build the solution first").
+`--allow-build` drops `--no-build` from the discovery, so the first probe builds exactly what the caller's own run
+was about to build and the guard costs that caller nothing. It is a MODE, not a fallback: the guard never retries
+a failed discovery with a build, because a caller that believes it built must hear that it did not.
+
   exit 0  every term is live in a filtered assembly — each term's count is printed, which IS the population
           evidence the run needs to assert
   exit 1  ⛔ DEAD FILTER TERM(S) — the caller must not run the gate
@@ -134,10 +143,15 @@ def assembly_name(project: str) -> str:
     return p.stem if p.suffix == ".csproj" else p.name
 
 
-def discover(project: str, term: str | None) -> tuple[int, str]:
+def discovery_cmd(project: str, allow_build: bool) -> list[str]:
+    """THE discovery command line — one place, so the two callers cannot disagree about whether a probe builds."""
+    return ["dotnet", "test", project, *([] if allow_build else ["--no-build"]), "--list-tests"]
+
+
+def discover(project: str, term: str | None, allow_build: bool = False) -> tuple[int, str]:
     """How many tests does `term` select in `project`? Returns (count, diagnostic); a count of -1 means the
     DISCOVERY failed and nothing at all was observed — never conflated with a term that selected zero."""
-    cmd = ["dotnet", "test", project, "--no-build", "--list-tests"]
+    cmd = discovery_cmd(project, allow_build)
     if term is not None:
         cmd += ["--filter", term]
     proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", env=ENV)
@@ -148,9 +162,9 @@ def discover(project: str, term: str | None) -> tuple[int, str]:
     return sum(1 for line in body.splitlines() if LISTED_RE.match(line)), ""
 
 
-def listed_names(project: str) -> list[str]:
+def listed_names(project: str, allow_build: bool = False) -> list[str]:
     """Every test `project` discovers, as printed — display names, theory arguments and all."""
-    proc = subprocess.run(["dotnet", "test", project, "--no-build", "--list-tests"],
+    proc = subprocess.run(discovery_cmd(project, allow_build),
                           capture_output=True, text=True, encoding="utf-8", errors="replace", env=ENV)
     out = (proc.stdout or "") + (proc.stderr or "")
     if AVAILABLE not in out:
@@ -158,7 +172,8 @@ def listed_names(project: str) -> list[str]:
     return [line.strip() for line in out.split(AVAILABLE, 1)[1].splitlines() if LISTED_RE.match(line)]
 
 
-def check(filter_text: str, filtered: list[str], unfiltered: list[str]) -> tuple[int, list[str]]:
+def check(filter_text: str, filtered: list[str], unfiltered: list[str],
+          allow_build: bool = False) -> tuple[int, list[str]]:
     """The per-term population assertion. Returns (exit code, report lines)."""
     lines: list[str] = []
     terms = split_terms(filter_text)
@@ -171,11 +186,12 @@ def check(filter_text: str, filtered: list[str], unfiltered: list[str]) -> tuple
         probe, negated = positive_form(term)
         counts: dict[str, int] = {}
         for project in filtered:
-            n, diag = discover(project, probe)
+            n, diag = discover(project, probe, allow_build)
             if n < 0:
+                how = ("the project failed to build" if allow_build
+                       else "build the solution first — this check runs --no-build, or pass --allow-build")
                 return RC_ERROR, lines + [
-                    f"FILTER POPULATION CHECK FAILED: could not discover tests in {project} "
-                    f"(build the solution first — this check runs --no-build)", diag]
+                    f"FILTER POPULATION CHECK FAILED: could not discover tests in {project} ({how})", diag]
             counts[assembly_name(project)] = n
         if sum(counts.values()) > 0:
             verb = "excludes" if negated else "selects"
@@ -186,7 +202,7 @@ def check(filter_text: str, filtered: list[str], unfiltered: list[str]) -> tuple
         # WITHOUT the filter? That distinguishes a term that lost coverage from one that never had any.
         elsewhere = []
         for project in unfiltered:
-            n, _ = discover(project, probe)
+            n, _ = discover(project, probe, allow_build)
             if n > 0:
                 elsewhere.append((assembly_name(project), n))
         verb = "excludes no test" if negated else "selects no test"
@@ -216,20 +232,20 @@ def check(filter_text: str, filtered: list[str], unfiltered: list[str]) -> tuple
     return RC_OK, lines
 
 
-def classes_of(project: str) -> list[str]:
+def classes_of(project: str, allow_build: bool = False) -> list[str]:
     """The distinct test-class simple names `project` discovers, in discovery order."""
     seen: list[str] = []
-    for name in listed_names(project):
+    for name in listed_names(project, allow_build):
         parts = name.split("(", 1)[0].split(".")
         if len(parts) >= 2 and parts[-2] not in seen:
             seen.append(parts[-2])
     return seen
 
 
-def self_test(filtered: str, unfiltered: str) -> int:
+def self_test(filtered: str, unfiltered: str, allow_build: bool = False) -> int:
     """Prove every arm of the guard fires (or stays silent) against the real assemblies. Every name is DERIVED
     from what they discover, so no arm can rot into asserting against a term that stopped existing."""
-    here = classes_of(filtered)
+    here = classes_of(filtered, allow_build)
     if not here:
         print(f"⚠ SELF-TEST CANNOT RUN — {filtered} discovered no tests (build the solution first)")
         return 1
@@ -239,7 +255,7 @@ def self_test(filtered: str, unfiltered: str) -> int:
 
     # The INERT arm needs a class that really is in the UNFILTERED assembly and really is not in the filtered
     # one — PB691's shape, derived rather than hand-named.
-    elsewhere = next((c for c in classes_of(unfiltered) if c not in here), None)
+    elsewhere = next((c for c in classes_of(unfiltered, allow_build) if c not in here), None)
 
     cases = [
         ("a live term is silent", f"{fq}~{live}", [filtered], [unfiltered], RC_OK, ""),
@@ -262,7 +278,7 @@ def self_test(filtered: str, unfiltered: str) -> int:
 
     failures = 0
     for label, flt, filt, unf, want_rc, want_marker in cases:
-        rc, lines = check(flt, filt, unf)
+        rc, lines = check(flt, filt, unf, allow_build)
         marker = next((m for m in (DEAD, INERT) if any(m in line for line in lines)), "")
         ok = rc == want_rc and marker == want_marker
         failures += 0 if ok else 1
@@ -289,6 +305,9 @@ def main() -> int:
                     help="a test project the invocation runs WITHOUT the filter (repeatable); a term live "
                          "only here is INERT, not dead")
     ap.add_argument("--self-test", action="store_true", help="prove every arm of the guard fires")
+    ap.add_argument("--allow-build", action="store_true",
+                    help="the discovery may BUILD (drop --no-build) — for a caller whose own `dotnet test` "
+                         "does the building, so nothing is built yet when the guard must run (kb/Work PB751)")
     args = ap.parse_args()
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -297,11 +316,12 @@ def main() -> int:
 
     if args.self_test:
         return self_test(args.filtered[0] if args.filtered else "tests/Cobol.Net.Tests.Conformance",
-                         args.unfiltered[0] if args.unfiltered else "tests/Cobol.Net.Tests.Unit")
+                         args.unfiltered[0] if args.unfiltered else "tests/Cobol.Net.Tests.Unit",
+                         args.allow_build)
     if not args.filter or not args.filtered:
         ap.error("--filter and at least one --filtered are required (or --self-test)")
 
-    rc, lines = check(args.filter, args.filtered, args.unfiltered)
+    rc, lines = check(args.filter, args.filtered, args.unfiltered, args.allow_build)
     for line in lines:
         print(line)
     return rc

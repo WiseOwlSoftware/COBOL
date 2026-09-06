@@ -1223,7 +1223,11 @@ the single origin of every numeric argument. Measure the WHOLE population after 
 · Run `scripts/spec/normalize_batch.py <files> --in-place` BEFORE `record_verdicts.py`: agents append commentary
   to `test-ref`/`code-location` and write `Foo.cs#Foo.Bar` where the file already names the class. It reports
   every change and preserves rather than deletes.
-· Then the gate: `dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"`.
+· Then the gate — the guard line FIRST, because vstest answers an unmatched filter with a passing run of zero
+  tests, so the `dotnet test` exit code alone is never evidence the drift test ran (PB751; this is the same pair
+  `record_verdicts.py` now PRINTS at the end of a batch):
+  `python scripts/filter_population.py --filter "FullyQualifiedName~SpecTraceabilityInventory" --filtered tests/Cobol.Net.Tests.Unit --allow-build`
+  then `dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"`.
 
 
 **⚙ 2026-08-03 — THE INSTRUMENT WAVE (§5b step 1). The harnesses were fixed BEFORE any more of their output was
@@ -1800,6 +1804,11 @@ result. Run the long legs ONE AT A TIME.
   the legs run (`scripts/filter_population.py`): a term naming no test in ANY assembly the invocation runs is
   DEAD and the gate REFUSES to run, and a term whose tests live only in an assembly the gate runs UNFILTERED
   is INERT — it selected nothing, so it is named and the verdict line is stamped `WITH INERT FILTER TERM(S)`.
+  ⛔ Since PB751/PB752 that guard is the rule for **every** filtered test invocation in the repo, not just this
+  gate: the two doc regenerators (`gen-vcr.ps1`, `gen-diagnostics-doc.ps1` — with `--allow-build`, since their
+  own run is what builds) and the two single-purpose CI legs (`inv1-strong-2023`, `legacy-oracle`) call it too,
+  the sharded conformance matrix keeps its stronger shard-sum guard, and `FilterPopulationGuardDriftTests` fails
+  if a NEW script or CI job filters a test run without asserting its population.
   It is NOT the comprehensive gate.
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
   the GnuCOBOL differential, plus `scripts/guard-fast.sh` (~3.3 min parallel) when a legacy-shared seam is touched
@@ -3026,7 +3035,10 @@ already-derivable coverage; none change the pipeline.
   "<filter>"` (solution build → Conformance on the filter → full Unit → Characterization; filter REQUIRED).
   ⛔ Every TERM of the filter is put back to vstest first (`scripts/filter_population.py`, PB708): DEAD — no
   test of that name in any assembly the invocation runs — refuses the gate; INERT — live only in an assembly
-  run UNFILTERED — runs it and stamps the verdict line.
+  run UNFILTERED — runs it and stamps the verdict line. ⛔ **The same guard belongs in front of ANY filtered
+  `dotnet test` you run or script** (PB751/PB752 — vstest answers an unmatched filter with a passing run of
+  zero tests, so its exit code is never evidence that the filtered tests ran); add `--allow-build` when the run
+  itself is what builds the project.
   Comprehensive: `bash scripts/battery.sh [outdir]` (§0 Gates).
 - Greenfield conformance: `dotnet test tests/Cobol.Net.Tests.Conformance` · unit: `tests/Cobol.Net.Tests.Unit` ·
   characterization: `tests/Cobol.Net.Tests.Characterization` · legacy suite:
