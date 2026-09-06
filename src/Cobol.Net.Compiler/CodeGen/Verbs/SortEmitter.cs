@@ -213,7 +213,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     public void EmitRelease(BoundRelease rl)
     {
         var w = ctx.Writer;
-        if (rl.From is { } from) move.Emit(new BoundMove(from, [rl.Record]));   // GR4a: MOVE x TO record-name-1
+        if (rl.FromMove is { } fromMove) move.Emit(fromMove);   // GR4 a) — the BOUND implicit MOVE (PB348)
         string sd = FileKeyExpr(rl.File);
         string image = OperandText.RecordAreaImage(rl.Record);   // THE ONE record-area channel (kb/Work PB327)
         if (rl.Varying is { Depending: { } dep })
@@ -243,12 +243,11 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
             seqIo.EmitImageInto(rt.RecordArea, tmp);   // GR3 — made available in the record area
             if (rt.Varying is { Depending: { } dep })   // §13.18.43 GR15 — the length restored into DEPENDING
                 arith.StoreArith(dep, new NumX(RuntimeApi.SortLastReturnedLength(sd), 0), CobolRounding.Truncation);
-            // GR5 b) — RETURN then MOVE THE CURRENT RECORD → identifier-1. The sender is the record area sliced
-            // to its §13.18.43.4 GR16 byte count (the DEPENDING item just restored above, else the store's
-            // last-returned length), through THE SAME builder both READ arms use (kb/Work PB339).
-            if (rt.Into is { } into)
-                move.Emit(new BoundMove(
-                    SequentialIoEmitter.IntoSender(rt.File, rt.RecordArea, rt.Varying?.Depending), [into]));
+            // GR5 b) — RETURN then MOVE THE CURRENT RECORD → identifier-1, the move BOUND by
+            // MoveBinder.BindIntoPhrase (kb/Work PB348): its sender is the record area sliced to the
+            // §13.18.43.4 GR16 byte count through THE SAME builder both READ arms use (kb/Work PB339), and the
+            // MOVE statement's own syntax rules have already been applied to it.
+            if (rt.IntoMove is { } intoMove) move.Emit(intoMove);
             if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not);
         }
         // §14.9.34.4 GR3 — the at end condition: control transfers to imperative-statement-1, and on return from

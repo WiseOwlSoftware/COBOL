@@ -73,13 +73,13 @@ public sealed record BoundMerge(
 /// releases at the length the RECORD VARYING DEPENDING ON item holds (§13.18.43 GR13); a fixed SD at the record
 /// area width (short images space-fill — §14.9.40 GR7c).</summary>
 public sealed record BoundRelease(
-    FileModel File, Place Record, int RecordWidth, BoundOperand? From, SortVaryingInfo? Varying) : BoundStatement;
+    FileModel File, Place Record, int RecordWidth, BoundMove? FromMove, SortVaryingInfo? Varying) : BoundStatement;
 
 /// <summary><c>RETURN file-name-1 RECORD [INTO x] AT END … [NOT AT END …]</c> (ISO §14.9.34): make the next record
 /// (in key order) available in the SD record area (GR3); INTO ≡ RETURN then MOVE record-area → x (GR5, skipped at
 /// end); at end → <paramref name="AtEnd"/>, else <paramref name="NotAtEnd"/> (GR3/GR4). A varying SD restores the
 /// returned record's length into the DEPENDING item (§13.18.43 GR15).</summary>
 public sealed record BoundReturn(
-    FileModel File, Place RecordArea, Place? Into,
+    FileModel File, Place RecordArea, BoundMove? IntoMove,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
     SortVaryingInfo? Varying) : BoundStatement;

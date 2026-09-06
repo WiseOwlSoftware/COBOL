@@ -2390,6 +2390,34 @@ public static class DiagnosticCatalog
         + "written there is no phrase to depend on.",
         "ISO §14.9.51.3 SR17");
 
+    /// <summary>COBOLNET1914 — the FUNCTION-IDENTIFIER class restriction the <c>… FROM</c> phrase of RELEASE,
+    /// WRITE and REWRITE each state for themselves (kb/Work PB348). ONE descriptor because it is one rule with
+    /// a per-verb admitted SET, and the site names the verb, the clause and the category it saw.</summary>
+    public static readonly DiagnosticDescriptor FromPhraseFunctionClass = new(
+        "COBOLNET1914", "from-phrase-function-class", EditionSeverity.Error,
+        "A function-identifier written as identifier-1 of a FROM phrase references a function whose result class "
+        + "that phrase's own syntax rule does not admit. The rule is stated once per verb and the admitted set "
+        + "DIFFERS: ISO §14.9.32.3 syntax rule 2 (RELEASE) and §14.9.51.3 syntax rule 4 (WRITE) each say \"If "
+        + "identifier-1 is a function-identifier, it shall reference an alphanumeric or national function\", "
+        + "while §14.9.35.3 syntax rule 9 (REWRITE, the FILE phrase not specified) admits \"an alphanumeric, "
+        + "boolean, or national function\". The FILE-phrase readings (§14.9.51.3 SR10, §14.9.35.3 SR8) are not "
+        + "reachable: the FILE arm is Annex A.4.13 item 2 and is declined earlier, COBOLNET1706. The class is "
+        + "the function's §15.2 TYPE, so an integer function such as FUNCTION LENGTH is refused in every one of "
+        + "these positions even though its value would move.",
+        "ISO §14.9.32.3 SR2 / §14.9.51.3 SR4 / §14.9.35.3 SR9");
+
+    /// <summary>COBOLNET1915 — ISO §14.9.32.3 SR4, RELEASE's own zero-length-literal rule (kb/Work PB348). It is
+    /// RELEASE's alone: neither §14.9.51.3 nor §14.9.35.3 states it for the FROM phrase, so it rides the verb's
+    /// rules row rather than every FROM phrase.</summary>
+    public static readonly DiagnosticDescriptor FromPhraseZeroLengthLiteral = new(
+        "COBOLNET1915", "from-phrase-zero-length-literal", EditionSeverity.Error,
+        "ISO §14.9.32.3 syntax rule 4: \"Literal-1 shall not be a zero-length literal.\" A RELEASE statement "
+        + "writes literal-1 as the sending operand of the FROM phrase, and a zero-length alphanumeric literal "
+        + "there has no characters to move into record-name-1. The rule is stated for RELEASE only — the FROM "
+        + "phrases of WRITE (§14.9.51.3) and REWRITE (§14.9.35.3) carry no such sentence, so this diagnostic "
+        + "does not reach them.",
+        "ISO §14.9.32.3 SR4");
+
     public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
         "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",

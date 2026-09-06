@@ -1,0 +1,6 @@
+INTO1=[BBBbbbbb]
+INTO2=[AAAaaaaa]
+RWFROM=[RRRrrrrr]
+RET=[AAAaaaaa]
+RET=[BBBbbbbb]
+DONE

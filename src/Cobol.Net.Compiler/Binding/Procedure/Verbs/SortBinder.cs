@@ -19,12 +19,16 @@ using Core = CobolParserCore;
 
 /// <summary>The SORT/MERGE/RELEASE/RETURN verb binder (P7 Step 10i — a real collaborator over
 /// <see cref="BinderContext"/>): <c>ResolveProcedure</c> stays a HOST edge called at the SAME bind point
-/// (INPUT/OUTPUT PROCEDURE resolution is position-dependent — never snapshot early); WriteSource/
-/// FileOfRecord flip to the ctor-injected <see cref="SequentialIoBinder"/>. The 0870/0871/0872 gates moved
+/// (INPUT/OUTPUT PROCEDURE resolution is position-dependent — never snapshot early). The RELEASE <c>FROM</c>
+/// and RETURN <c>INTO</c> phrases bind through <c>host.Move</c> — they are implicit MOVEs and the MOVE binder is
+/// where a MOVE's rules live (kb/Work PB348). ⛔ That removed this binder's LAST reach into
+/// <c>SequentialIoBinder</c> (the former <c>WriteSource</c> operand hand-off, which applied none of RELEASE's
+/// own §14.9.32.3 SR2/SR3/SR4), so the constructor no longer takes one: the sort verbs and the sequential I-O
+/// verbs are independent collaborators again. The 0870/0871/0872 gates moved
 /// VERBATIM with their exact control flow (report-and-continue at the table-SORT/RELEASE sites vs
 /// report+BoundUnsupported at alphabet-name-2 — Exec Step E folds them). The 8 bound types stayed in
 /// <c>Binding/Bound/BoundSort.cs</c>.</summary>
-internal sealed class SortBinder(BinderContext ctx, StatementBinder host, SequentialIoBinder seqIo)
+internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
 {
     // ── SORT (ISO §14.9.40) ────────────────────────────────────────────────────────────────────────────────
 
@@ -298,15 +302,18 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                 + "and it may be qualified\" (ISO §14.9.32.3 SR1)", out var file))
             return new BoundNop();
         if (!ctx.Validation.CheckReleaseRecord(file, rn.GetText())) return new BoundNop();
-        BoundOperand? from = null;
-        if (rel.releaseFrom() is { } rf)
-        {
-            // RELEASE … FROM literal-1: ANSI X3.23-1985 admits only identifier-1 in the FROM phrase; the literal
-            // operand is a later-standard extension of the format (present in ISO/IEC 1989:2023 §14.9.32.2;
-            // VERSION_CHANGE_REFERENCE ledger instructs gating pending verification against the 2002/2014 texts).
-            // release-from-literal-2002: the pass owns the edition gate (Exec Step E).
-            from = seqIo.WriteSource(rf.dataReference(), rf.literal(), rf.functionCall());
-        }
+        // RELEASE ... FROM is an IMPLICIT MOVE and is bound as one (ISO §14.9.32.4 GR4 a); kb/Work PB348), so
+        // §14.9.32.3 SR2 (the function-identifier class), SR3 (valid as a MOVE sending operand with
+        // record-name-1 as the receiver) and SR4 (no zero-length literal-1) are applied HERE, at bind time,
+        // together with the storage facts StorageFormPass consumes.
+        // RELEASE ... FROM literal-1: ANSI X3.23-1985 admits only identifier-1 in the FROM phrase; the literal
+        // operand is a later-standard extension of the format (present in ISO/IEC 1989:2023 §14.9.32.2;
+        // VERSION_CHANGE_REFERENCE ledger instructs gating pending verification against the 2002/2014 texts).
+        // release-from-literal-2002: the pass owns the edition gate (Exec Step E).
+        BoundMove? from = rel.releaseFrom() is { } rf
+            ? host.Move.BindFromPhrase(FromPhraseRules.Release, record, rf.dataReference(), rf.literal(),
+                                       rf.functionCall())
+            : null;
         // The released length is the NAMED record's own description size (a shorter secondary 01 of a multi-01 SD
         // releases at its own length; §14.9.40 GR7c space-fills a short record into a fixed-length sort file).
         return new BoundRelease(file, record, Model.RecordLayout.AreaWidth(record.Item), from, SortVaryingOf(file));
@@ -335,12 +342,14 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         if (SortRecordOf(file) is null || file.AreaRecord is not { } areaRecord
             || ctx.Refs.ResolveItem(areaRecord) is not { } area)
             return new BoundUnsupported($"RETURN '{name}' without a usable SD record area");
-        Place? into = null;
+        // RETURN ... INTO is an IMPLICIT MOVE and is bound as one (ISO §14.9.34.4 GR5 b); kb/Work PB348) -
+        // THE SAME call READ ... INTO makes, because GR5 b) and §14.9.30.4 GR4 b) are the same sentence.
+        BoundMove? into = null;
         if (r.INTO() is not null)
         {
             if (r.dataReference() is not { } d || ctx.Refs.Resolve(d) is not { } ip)
                 return new BoundUnsupported($"RETURN INTO '{r.dataReference()?.GetText()}' (unresolvable receiver)");
-            into = ip;
+            into = host.Move.BindIntoPhrase(file, area, ip, ImplicitMovePhrase.ReturnInto);
         }
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.returnAtEndPhrase() is { } ae)

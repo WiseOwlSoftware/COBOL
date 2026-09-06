@@ -170,7 +170,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // '0x' (success) → INTO move + NOT AT END / NOT INVALID KEY; '1x' (10/14, the at-end family,
         // §9.1.13.4) → AT END imperative; any other unsuccessful status takes NO branch (exception
         // processing, §9.1.14 final rule item 1).
-        bool into = rd.Into is not null && area is not null;
+        bool into = rd.IntoMove is not null && area is not null;
         bool hasInv = rd.InvalidKey?.Invalid is not null;
         if (hasInv)
             using (w.Block($"if ({st}[0] == '2')"))
@@ -179,9 +179,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             using (w.Block($"{(hasInv ? "else " : "")}if ({st}[0] == '0')"))
             {
                 // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §13.18.43.4 GR16 slice of the
-                // record area, never the padded area): THE SAME builder the sequential arm uses (kb/Work PB339).
-                if (into) move.Emit(new BoundMove(
-                    SequentialIoEmitter.IntoSender(file, area!, SeqIo.VaryingDepending(file)), [rd.Into!]));
+                // record area, never the padded area): the BOUND move, built by the SAME binder call the
+                // sequential arm makes (kb/Work PB348 over PB339).
+                if (into) move.Emit(rd.IntoMove!);
                 if (rd.NotAtEnd is { } nae) Statements.EmitStatementList(nae);                  // §14.9.30 — NOT AT END on success
                 if (rd.InvalidKey?.NotInvalid is { } nik) Statements.EmitStatementList(nik);    // §9.1.14 — success only
             }
@@ -197,7 +197,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         var w = ctx.Writer;
         FileModel file = wr.File;
         string name = FileKeyExpr(file);
-        if (wr.From is { } from) move.Emit(new BoundMove(from, [wr.Record]));   // FROM is an implicit MOVE (GR4)
+        if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.51.4 GR5 a) — the BOUND implicit MOVE
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.51 GR29b/GR32 — random/dynamic: the runtime element pre-set the RELATIVE KEY item with the
@@ -240,7 +240,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         var w = ctx.Writer;
         FileModel file = rw.File;
         string name = FileKeyExpr(file);
-        if (rw.From is { } from) move.Emit(new BoundMove(from, [rw.Record]));
+        if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.35.4 GR7 a) — the BOUND implicit MOVE
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.35 GR21 — random/dynamic: the slot to replace is named by the RELATIVE KEY item.

@@ -274,7 +274,13 @@ internal sealed class StatementValidation(DataBinder data)
     /// operand shall be a group item of the SAME type (§8.5.3.3 — a strong record accepts only a same-type whole-record
     /// source; its individual fields are still set by ordinary field MOVEs, and a strong-type SENDER to a non-strong
     /// receiver is permitted per Table 16). A mismatch → COBOLNET1533.</summary>
-    public bool CheckStrongMove(BoundOperand source, IReadOnlyList<Place> receivers)
+    /// <param name="implicitOf">The PHRASE whose implicit move is being screened — the <c>… FROM</c> of
+    /// RELEASE/WRITE/REWRITE, the <c>… INTO</c> of READ/RETURN (kb/Work PB348) — or null for the explicit
+    /// MOVE statement. It is reported because the other three MOVE screens report it: a <c>RETURN … INTO</c>
+    /// into a strong group used to say only "MOVE to strongly-typed group", sending the programmer looking for
+    /// a MOVE statement that is not in their source.</param>
+    public bool CheckStrongMove(BoundOperand source, IReadOnlyList<Place> receivers,
+                                ImplicitMovePhrase? implicitOf = null)
     {
         bool ok = true;
         DataItem? sender = source is BoundFieldOperand sf ? sf.Place.Item : null;
@@ -286,7 +292,7 @@ internal sealed class StatementValidation(DataBinder data)
                 ok = false;
                 data.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
                     + $"'{r.Item.CobolName ?? r.Item.CsName}': the sending operand shall be a group item of the same "
-                    + "type (ISO §14.9.25.3 SR2 / §8.5.3.3)");
+                    + $"type (ISO §14.9.25.3 SR2 / §8.5.3.3){ImplicitMovePhrase.Via(implicitOf)}");
             }
         }
         return ok;

@@ -1013,8 +1013,10 @@ zero-length item."*
 
 **The decision:** a variable-length RECORD clause makes the sender a `BoundCurrentRecord` operand — the record
 area place, the file, the resolved DEPENDING place, and the GR4 b) group-move designation, all STRUCTURAL — and
-`SequentialIoEmitter.IntoSender` is the only thing that builds one. The three INTO arms
-(`SequentialIoEmitter.EmitRead`, `KeyedIoEmitter.EmitRead`, `SortEmitter.EmitReturn`) call it; a FIXED-length
+ONE method builds one. ⛔ **That method is now `MoveBinder.BindIntoPhrase` and the three INTO arms are the three
+BINDERS** (`SequentialIoBinder.BindRead`, `KeyedIoBinder.BindRead`, `SortBinder.BindReturn`) — D23 moved the
+implicit move of every INTO phrase to bind time, and an operand is a bind-time object, so the sender came with
+it; the invariant is unchanged and only its address is. A FIXED-length
 file keeps the plain record-area operand, because §13.18.43.4 GR6 makes its current record the whole area, the
 short-final-record '04' case of §14.9.30.4 GR14 included (there the area right of the last valid character is
 *undefined*, not short). `OperandText.CurrentRecordImage` renders it once, as
@@ -1035,11 +1037,13 @@ short-final-record '04' case of §14.9.30.4 GR14 included (there the area right 
   the WORD VARYING and GR16 is stated under the FORMAT 2 heading, so a FORMAT 3 `RECORD CONTAINS m TO n` file
   inherits neither (§13.18.43.4 GR18 puts its record size in the record description entry instead). The two
   formats were indistinguishable in the model, so a rule keyed on that word had nothing to key on.
-- **The `… FROM` arms are NOT the mirror of this, and deliberately kept the plain MOVE.** §14.9.51.4 GR5,
+- **The `… FROM` arms are NOT the mirror of this, and deliberately keep the plain SENDER.** §14.9.51.4 GR5,
   §14.9.35.4 GR7 and §14.9.32.4 GR4 each expand the FROM phrase to `MOVE identifier-1 TO record-name-1`
   *"according to the rules specified for the MOVE statement"* — an ordinary MOVE, sender identifier-1 at its own
   length, receiver the record; the byte count actually written is the separate §13.18.43.4 GR13 rule that
-  `SequentialIoEmitter.VaryingLengthArg` already renders.
+  `SequentialIoEmitter.VaryingLengthArg` already renders. ⛔ This is a statement about the SENDING OPERAND only.
+  The MOVE itself is bound exactly as an INTO phrase's is (D23): "according to the rules specified for the MOVE
+  statement" is the same clause on both sides, and it was applied on neither until PB348.
 
 **Rejected alternatives.** *A reference-modified sender (`area(1:n)`)* — §8.4.3.3.4 GR6 makes a
 reference-modified operand an ELEMENTARY alphanumeric item, which is exactly the classification GR4 b)'s third
@@ -1098,6 +1102,60 @@ pinned at the registry, on the exact call the emitter renders — `CobolFileLock
 rides three conformance goldens (`pb714_sort_using_sharing_read_only`,
 `pb714_merge_using_sharing_read_only`, `pb714_sort_giving_open_status`).
 
+### D23. The implicit MOVE of a `… FROM` / `… INTO` phrase is BOUND by the MOVE binder, as a sub-statement of the I-O node — never synthesized in the emitter.
+
+A bound node built AFTER binding is never checked by a bind pass. Every `… FROM` phrase (RELEASE §14.9.32,
+WRITE §14.9.51, REWRITE §14.9.35 — sequential and keyed alike) and every `… INTO` phrase (READ §14.9.30,
+RETURN §14.9.34) used to construct its implicit `BoundMove` in the EMITTER —
+`move.Emit(new BoundMove(from, [rl.Record]))` — downstream of every bind-time MOVE screen AND of the storage
+facts the emitter's own output consumes. §14.9.32.4 GR4 makes `RELEASE record-name-1 FROM x` **exactly**
+`MOVE x TO record-name-1` followed by the same RELEASE without FROM (§14.9.51.4 GR5 a) and §14.9.35.4 GR7 a) say
+it for WRITE and REWRITE; §14.9.30.4 GR4 b) and §14.9.34.4 GR5 b) are the same sentence for INTO), so *exactly*
+has to include the bind. Measured, before the fix: `RELEASE SRT-REC FROM WS-NUM` (a `PIC 9(3)` sender into a
+`PIC A(8)` record) compiled clean where the identical explicit MOVE drew COBOLNET0819; and
+`RELEASE SRT-NUM FROM QUOTE` **aborted the run** with an unhandled `NotImplementedCobolFeatureException` before
+the record was released, because `MarkImageForced` — a fact `StorageFormPass` consumes — is collected by the
+binder and the emitter-built move never passed through it (kb/Work PB348).
+
+**The decision:** `MoveBinder.BindMoveOf(source, targets, implicitOf)` is THE one application of the MOVE
+statement's own rules to a sender/receiver pair. The explicit MOVE statement calls it; so do
+`MoveBinder.BindFromPhrase` and `MoveBinder.BindIntoPhrase`, which every I-O binder uses. The resulting
+`BoundMove` rides its I-O node as a sub-statement — `BoundWrite.FromMove`, `BoundRewrite.FromMove`,
+`BoundRead.IntoMove`, `BoundKeyedWrite.FromMove`, `BoundKeyedRewrite.FromMove`, `BoundKeyedRead.IntoMove`,
+`BoundRelease.FromMove`, `BoundReturn.IntoMove` — and the emitter *renders* it, deciding nothing.
+`BoundMove.ImplicitOf` carries the phrase, so a screen written for the explicit statement reports the statement
+the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC (ISO §14.9.32.4 GR4 a);
+§14.9.32.3 SR3)`) without an arm of its own.
+
+- **The per-verb phrase rules are a ROW WITH A SET, not a flag.** Each verb states its own rules for the phrase
+  and the sets genuinely DIFFER: §14.9.32.3 SR2 (RELEASE) and §14.9.51.3 SR4 (WRITE) admit *"an alphanumeric or
+  national function"*, §14.9.35.3 SR9 (REWRITE, the FILE phrase not specified) admits *"an alphanumeric, boolean,
+  or national function"*, and only §14.9.32.3 SR4 forbids a zero-length literal-1. `FromPhraseRules` is one
+  record per verb carrying the admitted CATEGORIES and the nullable zero-length clause; a scalar "must be
+  alphanumeric" column would have REJECTED LEGAL SOURCE on the REWRITE arm. The FILE-phrase readings
+  (§14.9.51.3 SR10, §14.9.35.3 SR8) are unreachable — the FILE arm is Annex A.4.13 item 2, declined
+  COBOLNET1706 earlier. Diagnostics: COBOLNET1914, COBOLNET1915.
+- **The function's class is read off the BOUND operand, through the Table-16 sender position.**
+  `MoveBinder.SenderPosition` is a named reader rather than an inline switch precisely because the phrase rules
+  ask the same question of the same operand: `FUNCTION LENGTH` constant-folds to a plain numeric literal, and a
+  second reading of "what category is this sender" would have answered *unknown* and waved it through.
+- **`SortBinder` no longer takes a `SequentialIoBinder`.** That constructor edge existed only for the former
+  `SequentialIoBinder.WriteSource` — a three-way operand hand-off shared by WRITE, REWRITE and RELEASE that
+  INSPECTED NOTHING, so each verb's own phrase rules were applied by no one. The sort verbs and the sequential
+  I-O verbs are independent collaborators again.
+- **The drift test is on the SHAPE.** `ImplicitMoveConstructionDriftTests` asserts no `new BoundMove` survives in
+  the three phrase emitters, and that every remaining construction in `CodeGen` is one of the three NAMED
+  non-phrase implicit moves (MOVE CORRESPONDING's per-pair moves §14.9.25.4, INITIALIZE's §14.9.20.4 GR4 stores,
+  GOBACK RETURNING's §14.9.18.4 GR2 move). Adding an I-O verb with a FROM or INTO phrase and synthesizing its
+  move at emission fails there rather than silently in a program nobody has written yet.
+
+**Rejected alternatives.** *Fix the RELEASE call site* — the smallest diff and the wrong shape: eight call sites
+carry the same rule, and the next FROM phrase would re-derive it a ninth time. *Re-run the MOVE screens over the
+emitter-built node* — the screens COLLECT (`MarkImageForced`, `MarkRefModStoreImage`) as well as diagnose, and
+`StorageFormPass` has already run by then; a screen that runs after its consumer is not a screen. *Give each verb
+its own copy of its phrase rules at its binder* — three copies of one rule, which is what `WriteSource` was, and
+the reason none of them existed.
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /
@@ -1105,7 +1163,7 @@ rides three conformance goldens (`pb714_sort_using_sharing_read_only`,
 > this section shows the primary RoslynBackend rendering. The future CilBackend renders the SAME bound nodes behind
 > `ICodeGenBackend` with its own private lowering; no bound node carries pre-rendered C# text.
 
-An FD record CUST-REC with CUST-ID PIC 9(5), CUST-NAME PIC X(20), CUST-BAL PIC S9(7)V99 COMP-3 maps to a public record struct CUST_REC holding public long CUST_ID, public string CUST_NAME, public long CUST_BAL, where CUST_BAL is the UNSCALED long (scale 2 is compile-time metadata per the owner numeric lock; no decimal). The record area is a single field of that type in the program class. The connector is a public sealed generic FileConnector of TRec exposing Open, Close, Read, ReadPrevious, ReadByKey, Write, Rewrite, Delete, Start, SetKey, plus properties CurrentSlot, LastRecordLength, EndOfPage, and LastStatus. There is NO program-supplied key parameter; the key is the current value of the typed RECORD KEY or RELATIVE KEY field. The codec is a generated IRecordCodec exposing Serialize, Deserialize, PrimeKey, AlternateKey, FixedLength, MinLength, MaxLength, and CodeSet. Stores: the sequential connector uses a StreamReader or StreamWriter for line-sequential and a FileStream for record-sequential with a 4-byte little-endian length prefix for varying; the relative connector uses a sorted dictionary from int slot to byte image with 0xFF gaps; the indexed connector uses a sorted dictionary from CobolKey to byte image as the sole source of truth, with alternates derived on demand and a PER-KEY release ordinal for duplicate ordering. The run-unit prologue emits one registration per SELECT plus AddAlternateKey calls. After each I/O verb the compiler stores the connector LastStatus into the FILE STATUS item then branches AT END or INVALID KEY on the first char (1 at-end, 2 invalid-key, 3 4 7 9 fatal to a USE declarative). READ INTO lowers to Read plus a typed MOVE OF THE CURRENT RECORD (D21 - the record area sliced to the 13.18.43.4 GR16 byte count, and an alphanumeric group move when the FD carries a RECORD IS VARYING clause); WRITE FROM lowers to an ordinary typed MOVE plus Write; a sequential RELATIVE WRITE or READ NEXT MOVEs CurrentSlot back into the RELATIVE KEY field.
+An FD record CUST-REC with CUST-ID PIC 9(5), CUST-NAME PIC X(20), CUST-BAL PIC S9(7)V99 COMP-3 maps to a public record struct CUST_REC holding public long CUST_ID, public string CUST_NAME, public long CUST_BAL, where CUST_BAL is the UNSCALED long (scale 2 is compile-time metadata per the owner numeric lock; no decimal). The record area is a single field of that type in the program class. The connector is a public sealed generic FileConnector of TRec exposing Open, Close, Read, ReadPrevious, ReadByKey, Write, Rewrite, Delete, Start, SetKey, plus properties CurrentSlot, LastRecordLength, EndOfPage, and LastStatus. There is NO program-supplied key parameter; the key is the current value of the typed RECORD KEY or RELATIVE KEY field. The codec is a generated IRecordCodec exposing Serialize, Deserialize, PrimeKey, AlternateKey, FixedLength, MinLength, MaxLength, and CodeSet. Stores: the sequential connector uses a StreamReader or StreamWriter for line-sequential and a FileStream for record-sequential with a 4-byte little-endian length prefix for varying; the relative connector uses a sorted dictionary from int slot to byte image with 0xFF gaps; the indexed connector uses a sorted dictionary from CobolKey to byte image as the sole source of truth, with alternates derived on demand and a PER-KEY release ordinal for duplicate ordering. The run-unit prologue emits one registration per SELECT plus AddAlternateKey calls. After each I/O verb the compiler stores the connector LastStatus into the FILE STATUS item then branches AT END or INVALID KEY on the first char (1 at-end, 2 invalid-key, 3 4 7 9 fatal to a USE declarative). READ INTO lowers to Read plus a typed MOVE OF THE CURRENT RECORD (D21 - the record area sliced to the 13.18.43.4 GR16 byte count, and an alphanumeric group move when the FD carries a RECORD IS VARYING clause); WRITE FROM lowers to an ordinary typed MOVE plus Write; both moves are BOUND, not synthesized at emission (D23), so the emitter renders a BoundMove the MOVE binder already screened; a sequential RELATIVE WRITE or READ NEXT MOVEs CurrentSlot back into the RELATIVE KEY field.
 
 ## Hard problems
 

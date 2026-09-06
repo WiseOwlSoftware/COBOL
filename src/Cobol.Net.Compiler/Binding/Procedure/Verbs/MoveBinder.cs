@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime;
 
@@ -26,6 +27,69 @@ using Core = CobolParserCore;
 /// SR5 pre-removal <c>MarkImageForced</c> storage marking, the Table-16 legality arms, and the W2 ref-mod
 /// image marking fire at the SAME per-statement points — the collected-fact choreography the
 /// <c>StorageFormPass</c> and <c>VersionConformancePass.GateMove</c> depend on is byte-preserved).</summary>
+/// <summary>
+/// The syntax rules ONE verb's <c>… FROM {identifier-1 | literal-1}</c> phrase carries IN ADDITION to the MOVE
+/// statement's own — one row per verb, read by <see cref="MoveBinder.BindFromPhrase"/>.
+///
+/// <para>⛔ The columns are SETS and NULLABLE clauses, not flags, because the three verbs' rules genuinely
+/// differ and a scalar "the function must be alphanumeric" column would reject legal source: RELEASE
+/// (§14.9.32.3 SR2) and WRITE (§14.9.51.3 SR4) admit an alphanumeric or national function, REWRITE
+/// (§14.9.35.3 SR9) also admits a BOOLEAN one, and only RELEASE (§14.9.32.3 SR4) forbids a zero-length
+/// literal-1. Adding the next FROM phrase is a row here, not another screen
+/// (feedback_model_the_rule_shape_not_one_case).</para>
+/// </summary>
+/// <param name="Statement">How the statement names itself in a diagnostic — <c>RELEASE … FROM</c>.</param>
+/// <param name="MoveRuleCite">The clause making the phrase an implicit MOVE, plus the clause subjecting
+/// identifier-1/literal-1 to the MOVE statement's own syntax rules.</param>
+/// <param name="FunctionCategories">The result categories a function-identifier in this position may have, or
+/// <see langword="null"/> where the verb states no such rule.</param>
+/// <param name="FunctionRuleCite">The quoted rule behind <paramref name="FunctionCategories"/>.</param>
+/// <param name="ZeroLengthLiteralRuleCite">The quoted rule forbidding a zero-length literal-1, or
+/// <see langword="null"/> where the verb states none.</param>
+internal sealed record FromPhraseRules(
+    string Statement,
+    string MoveRuleCite,
+    PicCategory[]? FunctionCategories,
+    string? FunctionRuleCite,
+    string? ZeroLengthLiteralRuleCite)
+{
+    /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's FROM phrase carries — built once
+    /// per verb, beside the three static rows, rather than once per bound statement. It is the same object the
+    /// two INTO phrases keep as statics (<c>ImplicitMovePhrase.ReadInto</c> / <c>ReturnInto</c>); a phrase is a
+    /// property of the VERB, not of an occurrence of it, so all five are singletons.</summary>
+    public ImplicitMovePhrase Phrase { get; } = new(Statement, MoveRuleCite);
+
+    /// <summary>RELEASE (ISO §14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
+    public static readonly FromPhraseRules Release = new(
+        "RELEASE … FROM",
+        "ISO §14.9.32.4 GR4 a); §14.9.32.3 SR3",
+        [PicCategory.Alphanumeric, PicCategory.National],
+        "ISO §14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+        + "national function.\"",
+        "ISO §14.9.32.3 SR4 — \"Literal-1 shall not be a zero-length literal.\"");
+
+    /// <summary>WRITE (ISO §14.9.51). §14.9.51.3 SR4 is UNCONDITIONAL and stricter than the FILE-less SR11
+    /// ("alphanumeric, boolean, or national"), so a conforming program satisfies both only inside SR4's set —
+    /// which is what is enforced. The FILE-phrase arm (SR10) is unreachable: Annex A.4.13 item 2 is declined.</summary>
+    public static readonly FromPhraseRules Write = new(
+        "WRITE … FROM",
+        "ISO §14.9.51.4 GR5 a); §14.9.51.3 SR6",
+        [PicCategory.Alphanumeric, PicCategory.National],
+        "ISO §14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+        + "national function.\"",
+        null);
+
+    /// <summary>REWRITE (ISO §14.9.35). §14.9.35.3 SR9's set is the WIDER one — it admits a boolean function —
+    /// and it is the applicable rule because the FILE phrase (SR8's condition) is declined, A.4.13 item 2.</summary>
+    public static readonly FromPhraseRules Rewrite = new(
+        "REWRITE … FROM",
+        "ISO §14.9.35.4 GR7 a); §14.9.35.3 SR6",
+        [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
+        "ISO §14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
+        + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
+        null);
+}
+
 internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, CorrespondingBinder corr)
 {
     public BoundStatement Bind(Core.MoveStatementContext move)
@@ -46,18 +110,119 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             && host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
             source = new BoundOperandError($"MOVE of the index-name '{sdref.GetText()}' (ISO §13.18.38.3 r7)");
         var resolved = host.Expr.ResolveTargets(targets.dataReference());
-        // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128) + the SR1 class-index check: an
-        // alphanumeric figurative or ALL "literal" moving to a numeric / numeric-edited receiver — 0902
-        // removed at 2023 except the digit-only-ALL-to-integer case, which is 0903 obsolete
-        // (StatementBinder.MoveFigurative.cs).
-        MoveFigurativeEditionGates(source, resolved);
+        return BindMoveOf(source, resolved);
+    }
+
+    /// <summary>
+    /// ⛔ <b>THE ONE APPLICATION OF THE MOVE STATEMENT'S OWN RULES TO A SENDER/RECEIVER PAIR</b> — the explicit
+    /// MOVE statement above, and EVERY implicit move a phrase's rules define (<c>READ … INTO</c>,
+    /// <c>RETURN … INTO</c>, <c>WRITE/REWRITE/RELEASE … FROM</c>), which reach it through
+    /// <see cref="BindFromPhrase"/> / <see cref="BindIntoPhrase"/>.
+    ///
+    /// <para><b>Why it exists (kb/Work PB348).</b> The implicit moves used to be constructed in the EMITTER —
+    /// <c>move.Emit(new BoundMove(from, [rl.Record]))</c> — downstream of every screen below AND of the storage
+    /// facts the emitter's own output depends on. Two consequences, both measured: <c>RELEASE SRT-REC FROM
+    /// WS-NUM</c> (a PIC 9(3) sender into a PIC A(8) record) compiled clean where the identical explicit
+    /// <c>MOVE</c> drew COBOLNET0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an unhandled
+    /// <c>NotImplementedCobolFeatureException</c>, because <see cref="MarkImageForced"/> — a fact
+    /// <c>StorageFormPass</c> consumes — is collected HERE and the emitter-built move never passed through.
+    /// §14.9.32.4 GR4 makes <c>RELEASE record-name-1 FROM x</c> exactly <c>MOVE x TO record-name-1</c> followed
+    /// by the same RELEASE, so "exactly" has to include the bind.</para>
+    ///
+    /// <para>Everything a MOVE's own rules impose lives in this one call, so a phrase added tomorrow inherits it
+    /// by construction rather than by an edit. <paramref name="implicitOf"/> is null for the explicit statement
+    /// and names the phrase otherwise, so each screen's diagnostic reports the statement that was written.</para>
+    /// </summary>
+    public BoundMove BindMoveOf(BoundOperand source, IReadOnlyList<Place> targets,
+                                ImplicitMovePhrase? implicitOf = null)
+    {
+        // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128) + the SR1 class-index check.
+        MoveFigurativeEditionGates(source, targets, implicitOf);
         // The Table 16 boolean/national legality arms + SR7 (Phase 4a — StatementBinder.MoveFigurative.cs).
-        MoveCategoryLegality(source, resolved);
+        MoveCategoryLegality(source, targets, implicitOf);
         // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.3.3.4 GR6;
         // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
-        MarkRefModStoreImage(resolved);
-        ctx.Validation.CheckStrongMove(source, resolved);   // §14.9.25.3 SR2 — pure check (D17 inc 2)
-        return new BoundMove(source, resolved);
+        MarkRefModStoreImage(targets);
+        ctx.Validation.CheckStrongMove(source, targets, implicitOf);   // §14.9.25.3 SR2 — pure check (D17 inc 2)
+        return new BoundMove(source, targets) { ImplicitOf = implicitOf };
+    }
+
+    // ── The … FROM and … INTO phrases (kb/Work PB348) ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Bind a <c>… FROM {identifier-1 | literal-1}</c> phrase into its implicit MOVE — WRITE (ISO §14.9.51),
+    /// REWRITE (§14.9.35) and RELEASE (§14.9.32) alike. Null when no FROM phrase is written.
+    ///
+    /// <para>The operand is bound, the verb's OWN phrase syntax rules are applied (<paramref name="rules"/>),
+    /// and the move is then screened by <see cref="BindMoveOf"/> under the MOVE statement's rules — which is
+    /// what each verb's "shall be valid as a sending operand in a MOVE statement specifying record-name-1 as
+    /// the receiving operand" rule says to do (§14.9.32.3 SR3 · §14.9.35.3 SR6 · §14.9.51.3 SR6).</para>
+    ///
+    /// <para>⛔ This is the successor to the former <c>SequentialIoBinder.WriteSource</c>, which bound the
+    /// operand and inspected NOTHING — a three-way hand-off from the three verbs, each of which carries its own
+    /// syntax rules that were therefore applied by no one, and the move itself was then built in the emitter.
+    /// The home moved here because this class is where a MOVE's rules live; the sort binder no longer reaches
+    /// across into the sequential I-O binder for it.</para>
+    /// </summary>
+    public BoundMove? BindFromPhrase(FromPhraseRules rules, Place record, Core.DataReferenceContext? dref,
+                                     Core.LiteralContext? lit, Core.FunctionCallContext? fc)
+    {
+        if (dref is null && lit is null && fc is null) return null;   // no FROM phrase
+        BoundOperand source =
+            fc is not null ? host.Intrinsic.IntrinsicOperand(fc)
+            : lit is not null ? host.Expr.LiteralOperand(lit)
+            : host.Expr.FieldOperand(dref!);
+
+        // ── The FUNCTION-IDENTIFIER class restriction, a SET per verb because the rules name different sets:
+        // RELEASE §14.9.32.3 SR2 and WRITE §14.9.51.3 SR4 admit "an alphanumeric or national function";
+        // REWRITE §14.9.35.3 SR9 admits "an alphanumeric, boolean, or national function" when the FILE phrase is
+        // not specified (and the FILE arm, §14.9.35.3 SR8 / §14.9.51.3 SR10, is Annex A.4.13 item 2 — DECLINED
+        // COBOLNET1706 before this point, so only the no-FILE readings are reachable). A scalar "must be
+        // alphanumeric" column here would reject legal source on the REWRITE arm.
+        // The class is read off the BOUND operand through the same Table-16 sender position the category screen
+        // uses, so a folded integer function (FUNCTION LENGTH constant-folds to a numeric literal, which is how
+        // it escaped every earlier reading of this position) still answers "numeric", not "unknown". ──
+        if (fc is not null && rules.FunctionCategories is { } admitted
+            && SenderPosition(source).Category is var cat && !admitted.Contains(cat))
+            ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
+                $"{rules.Statement} {fc.GetText()}: {rules.FunctionRuleCite} — this function's result is of "
+                + $"category {cat.ToString().ToLowerInvariant()}");
+
+        // ── §14.9.32.3 SR4, "Literal-1 shall not be a zero-length literal." RELEASE's alone: neither
+        // §14.9.51.3 nor §14.9.35.3 states it for the FROM phrase of WRITE / REWRITE, so it is carried on the
+        // rules row rather than applied to every verb. The compiler already owns the predicate — it is the same
+        // BoundStringLiteral test ControlFlowBinder applies to the STOP RUN / GOBACK status literal. ──
+        if (rules.ZeroLengthLiteralRuleCite is { } zlCite && source is BoundStringLiteral { Value.Length: 0 })
+            ctx.Edition.Error(DiagnosticCatalog.FromPhraseZeroLengthLiteral,
+                $"{rules.Statement}: {zlCite}");
+
+        return BindMoveOf(source, [record], rules.Phrase);
+    }
+
+    /// <summary>
+    /// Bind a <c>… INTO identifier-1</c> phrase into its implicit MOVE — the sequential READ, the keyed READ and
+    /// the sort RETURN (ISO §14.9.30.4 GR4 b) and §14.9.34.4 GR5 b), which are the same sentence: "The current
+    /// record is moved from the record area to the area specified by identifier-1 according to the rules for the
+    /// MOVE statement without the CORRESPONDING phrase").
+    ///
+    /// <para>The SENDER is the record area sliced to its §13.18.43.4 GR16 byte count, and — for a FORMAT 2
+    /// <c>RECORD IS VARYING</c> file only — designated an alphanumeric group move by those same rules. That
+    /// choice is <see cref="BoundCurrentRecord"/>'s and was built in ONE place already (kb/Work PB339); it moved
+    /// here from the emitter with the move it belongs to, because an operand is a bind-time object.</para>
+    /// </summary>
+    public BoundMove BindIntoPhrase(FileModel file, Place area, Place receiver, ImplicitMovePhrase phrase)
+    {
+        // §13.18.43.4 GR16 a) reads the DEPENDING item; GR16 b) applies when the phrase is absent. Resolved
+        // HERE, once, for all three INTO arms — the sequential READ, the keyed READ and the sort RETURN.
+        Place? depending = file is { Varying.DependingName: not null, VaryingDependingItem: { } d }
+            ? ctx.Refs.ResolveItem(d) : null;
+        // A FIXED-length file keeps the plain record-area operand: its current record IS the whole area
+        // (§13.18.43.4 GR6 — integer-1 bytes in every record), including the short-final-record '04' case of
+        // §14.9.30.4 GR14, where the area right of the last valid character is undefined rather than short.
+        return BindMoveOf(
+            file.Varying is { } v ? new BoundCurrentRecord(area, file, depending, v.VaryingClause)
+                                  : new BoundFieldOperand(area),
+            [receiver], phrase);
     }
 
     /// <summary>
@@ -81,7 +246,8 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// A digit-only ALL to a NON-integer numeric receiver (PIC 9V9) is likewise outside SR5's exception —
     /// 0902 at 2023; pre-2023 it fills every digit position (legacy-oracle adjudicated, provisional).
     /// </summary>
-    private void MoveFigurativeEditionGates(BoundOperand source, IReadOnlyList<Place> targets)
+    private void MoveFigurativeEditionGates(BoundOperand source, IReadOnlyList<Place> targets,
+                                            ImplicitMovePhrase? implicitOf)
     {
         // The §14.9.25.3 SR1 class check FIRST — version-invariant, every sender kind: "The class of
         // identifier-1 or identifier-2 shall not be index, message-tag, object, or pointer." An index data
@@ -95,7 +261,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60.3 SR10 — only a "
                 + $"SEARCH or SET statement, a relation condition, an intrinsic-function or inline-method "
                 + $"argument, or a procedure-division / CALL / INVOKE USING phrase may reference an index "
-                + $"data item) — MOVE {sIdx.Place.Item.CobolName}");
+                + $"data item) — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}");
         // SR1 reaches a FUNCTION sender through §15.2 item 6 (kb/Work PB124 wave 5b): "Index functions.
         // These are of the class and category index." — MAX/MIN over index arguments IS one, and its result's
         // storage category (Numeric) made it indistinguishable from a numeric sender here, so
@@ -105,12 +271,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             && IntrinsicResultType.Resolve(sic.Sig, sic.Args) is IntrinsicType.Index)
             ctx.Edition.Error("COBOLNET0809",
                 $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §15.2 item 6 — FUNCTION "
-                + $"{sic.Sig.Name} over index arguments is an INDEX function, of the class and category index)");
+                + $"{sic.Sig.Name} over index arguments is an INDEX function, of the class and category index)"
+                + ImplicitMovePhrase.Via(implicitOf));
         foreach (var t in targets)
             if (t.Item.Pic is { Usage: Usage.Index })
                 ctx.Edition.Error("COBOLNET0809",
                     $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60.3 SR10) — "
-                    + $"MOVE … TO {t.Item.CobolName}");
+                    + ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName));
 
         // Classify the SENDER (only the SR5 alphanumeric figuratives / ALL "literal" participate). The §14.9.25.3
         // SR5 EDITION gates (MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
@@ -168,34 +335,11 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// alphanumeric/numeric rows keep their existing paths (VCR rows 1/92/128 above). A GROUP sender or
     /// receiver is exempt (GR4 group moves copy characters without conversion).
     /// </summary>
-    private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets)
+    private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets,
+                                      ImplicitMovePhrase? implicitOf)
     {
-        // ── The SENDER's Table-16 position (fix-queue PB72: built in ONE place, and a FIELD builds through
-        // Table16Operand.Of(Place) so a ref-mod view takes §8.4.3.3.4 GR2/GR6's rewrites — category via the one
-        // GR6 reader, and the finer alphabetic/edited/noninteger flags erased, because the unique data item a
-        // view creates is plain class-and-category alphanumeric). An INTRINSIC sender reports the §15.18.4 r3
-        // ALPHABETIC rider alongside its result category — the finer row Table 16 keys on and PicCategory
-        // deliberately cannot express (the PIC A fold). ──
-        Table16Operand senderPos = source switch
-        {
-            BoundStringLiteral sl => new Table16Operand(sl.Category),
-            BoundAllLiteral al => new Table16Operand(al.Category),
-            BoundFieldOperand f when f.Place is not RefModPlace && f.Place.Item.OperandPic is null =>
-                new Table16Operand(PicCategory.Group),   // GR4 — an ALPHANUMERIC group moves without conversion (D20)
-            BoundFieldOperand f => Table16Operand.Of(f.Place),
-            BoundNumericLiteral nl => new Table16Operand(PicCategory.Numeric, IsNonInteger: nl.Text.Contains('.')),
-            // An INTRINSIC sender's Table-16 row is its §15.2 TYPE (kb/Work PB73, adjudicated 2026-08-18): an
-            // INTEGER function ("no digits to the right of the decimal point", §15.2 item 5 — resolved per call by
-            // the ONE IntrinsicResultType reader, so MAX over integers is integer) is the Integer row; a NUMERIC
-            // function (item 4) is the NONINTEGER row whatever a particular reference's value — §8.4.3.2.3 SR11's
-            // principle for the integer-operand positions applies to the table's split too. The former admission
-            // (IsNonInteger: false for every function) survives under --permissive as a warning, below.
-            BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
-                new Table16Operand(ic.ResultCategory, ic.ResultIsAlphabetic,
-                    IsNonInteger: ic.ResultCategory is PicCategory.Numeric && !IntrinsicResultType.IsIntegerOperand(source)),
-            BoundComputedOperand => new Table16Operand(PicCategory.Numeric),
-            _ => new Table16Operand(PicCategory.Group),   // figuratives (SR7 below) / errors — category-exempt
-        };
+        // The SENDER's Table-16 position — the ONE reader (fix-queue PB72; see SenderPosition).
+        Table16Operand senderPos = SenderPosition(source);
         // §14.9.25.3 SR8: a fixed-width binary sender (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) shall reference
         // only a numeric or numeric-edited receiver — SR10 (Table 16) applies only to cases NOT covered by
         // SR8, so this precedes the Table-16 arms. The family is 2002+ (absent from the '85 corpus), so
@@ -206,7 +350,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         foreach (var t in targets)
         {
             if (MoveReceiverCategory(t) is not { } recvCat) continue;   // group receiver — GR4 exempt
-            string where = $"MOVE … TO {t.Item.CobolName}";
+            string where = ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName);
 
             if (senderBinaryFamily && recvCat is not (PicCategory.Numeric or PicCategory.NumericEdited))
             {
@@ -255,6 +399,39 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             }
         }
     }
+
+
+    /// <summary>The SENDER's position in the §14.9.25.3 Table 16 category matrix (fix-queue PB72: built in ONE
+    /// place, and a FIELD builds through <c>Table16Operand.Of(Place)</c> so a ref-mod view takes §8.4.3.3.4
+    /// GR2/GR6's rewrites — category via the one GR6 reader, and the finer alphabetic/edited/noninteger flags
+    /// erased, because the unique data item a view creates is plain class-and-category alphanumeric). An
+    /// INTRINSIC sender reports the §15.18.4 r3 ALPHABETIC rider alongside its result category — the finer row
+    /// Table 16 keys on and <c>PicCategory</c> deliberately cannot express (the PIC A fold).
+    /// <para>It is a NAMED reader rather than an inline switch because the FROM-phrase function-class rules
+    /// (§14.9.32.3 SR2 · §14.9.51.3 SR4 · §14.9.35.3 SR9) ask the same question of the same operand, and a
+    /// second reading of "what category is this sender" is exactly how a folded <c>FUNCTION LENGTH</c> — which
+    /// reaches the binder as a plain numeric literal — would have been read as "unknown" and waved through
+    /// (kb/Work PB348).</para></summary>
+    private static Table16Operand SenderPosition(BoundOperand source) => source switch
+    {
+            BoundStringLiteral sl => new Table16Operand(sl.Category),
+            BoundAllLiteral al => new Table16Operand(al.Category),
+            BoundFieldOperand f when f.Place is not RefModPlace && f.Place.Item.OperandPic is null =>
+                new Table16Operand(PicCategory.Group),   // GR4 — an ALPHANUMERIC group moves without conversion (D20)
+            BoundFieldOperand f => Table16Operand.Of(f.Place),
+            BoundNumericLiteral nl => new Table16Operand(PicCategory.Numeric, IsNonInteger: nl.Text.Contains('.')),
+            // An INTRINSIC sender's Table-16 row is its §15.2 TYPE (kb/Work PB73, adjudicated 2026-08-18): an
+            // INTEGER function ("no digits to the right of the decimal point", §15.2 item 5 — resolved per call by
+            // the ONE IntrinsicResultType reader, so MAX over integers is integer) is the Integer row; a NUMERIC
+            // function (item 4) is the NONINTEGER row whatever a particular reference's value — §8.4.3.2.3 SR11's
+            // principle for the integer-operand positions applies to the table's split too. The former admission
+            // (IsNonInteger: false for every function) survives under --permissive as a warning, below.
+            BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
+                new Table16Operand(ic.ResultCategory, ic.ResultIsAlphabetic,
+                    IsNonInteger: ic.ResultCategory is PicCategory.Numeric && !IntrinsicResultType.IsIntegerOperand(source)),
+            BoundComputedOperand => new Table16Operand(PicCategory.Numeric),
+            _ => new Table16Operand(PicCategory.Group),   // figuratives (SR7's own arm) / errors — category-exempt
+    };
 
     /// <summary>
     /// Ref-mod STORE backing (the W2 adversarial-review fix, DEVLOG 595): a MOVE into a reference-modified

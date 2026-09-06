@@ -3,6 +3,8 @@
   "enabled": [
   "pb301_screen_words_as_user_words",
   "pb704_sort_duplicates_in_order",
+    "pb348_from_into_move_rules",
+    "pb348_release_from_figurative_image",
    "pb346_read_retry_record_conflict",
     "pb695_dynamic_length_omitted",
     "pb300_padding_user_word",

@@ -18,7 +18,7 @@ using Core = CobolParserCore;
 
 /// <summary>P7 Step 10h: a real collaborator over <see cref="BinderContext"/> — the SeqIo↔KeyedIo cycle
 /// mirrors the emitter side (SequentialIoBinder holds THIS binder for the org reroutes; the WRITE/REWRITE
-/// FROM operand reaches back through <c>host.SeqIo.WriteSource</c>). The nine bound
+/// FROM/INTO phrases bind through <c>host.Move</c>, the ONE home of every MOVE - kb/Work PB348). The nine bound
 /// types stayed in <c>Binding/Bound/BoundKeyedIo.cs</c>. This binder is edition-AGNOSTIC and holds ZERO
 /// <c>Check</c> calls: every I/O phrase gate fires on RECOGNITION in the VersionConformancePass PARSE arm, so a
 /// statement this binder refuses — an undeclared file, an unresolvable key operand, an SD — still names the
@@ -42,7 +42,13 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         // Bracket 1 of §14.9.30.2 — [ADVANCING ON LOCK | IGNORING LOCK | retry-phrase] (kb/Work PB331).
         var contention = r.readLockContentionPhrase();
-        Place? into = r.readInto()?.dataReference() is { } d ? ctx.Refs.Resolve(d) : null;
+        // READ ... INTO is an IMPLICIT MOVE and is bound as one (ISO §14.9.30.4 GR4 b); kb/Work PB348) - the
+        // SAME call the sequential arm makes, so the two organizations cannot disagree about which rules the
+        // phrase carries (feedback_two_arm_dispatch).
+        BoundMove? into = r.readInto()?.dataReference() is { } d && ctx.Refs.Resolve(d) is { } recv
+            && file.AreaRecord is { } areaRec && ctx.Refs.ResolveItem(areaRec) is { } readArea
+            ? host.Move.BindIntoPhrase(file, readArea, recv, ImplicitMovePhrase.ReadInto)
+            : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
             (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
@@ -137,7 +143,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         KeyedInvalidKey? invalid =
             w.writeInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
         return new BoundKeyedWrite(file, record,
-            host.SeqIo.WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal(), w.writeFrom()?.functionCall()), invalid)
+            host.Move.BindFromPhrase(FromPhraseRules.Write, record, w.writeFrom()?.dataReference(),
+                                     w.writeFrom()?.literal(), w.writeFrom()?.functionCall()), invalid)
         { Lock = lock_, Retry = retry };
     }
 
@@ -163,7 +170,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             invalid = KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
         }
         return new BoundKeyedRewrite(file, record,
-            host.SeqIo.WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()), invalid)
+            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, record, rw.rewriteFrom()?.dataReference(),
+                                     rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()), invalid)
         { Lock = lock_, Retry = retry };
     }
 

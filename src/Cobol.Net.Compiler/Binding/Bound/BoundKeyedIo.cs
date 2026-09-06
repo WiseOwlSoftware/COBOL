@@ -55,7 +55,7 @@ public enum KeyedStartMode { First, Last, Key }
 /// SSOT status-first shape (COBOLNET_DESIGN §8.3): store the status, branch AT END on <c>'1'</c> (10/14,
 /// §9.1.13.4), INVALID KEY on <c>'2'</c> (§9.1.13.5), success phrases on <c>'0'</c>.</summary>
 public sealed record BoundKeyedRead(
-    FileModel File, ReadKind Kind, int KeyIndex, Place? Into,
+    FileModel File, ReadKind Kind, int KeyIndex, BoundMove? IntoMove,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
     KeyedInvalidKey? InvalidKey) : BoundStatement, IBoundRead
 {
@@ -78,7 +78,7 @@ public sealed record BoundKeyedRead(
 /// relative / GR34–GR42 indexed). For a sequential-access relative file the released RRN is MOVEd back into the
 /// RELATIVE KEY item on success (GR29a/GR30); for random/dynamic access the key item is read first (GR29b).</summary>
 public sealed record BoundKeyedWrite(
-    FileModel File, Place Record, BoundOperand? From, KeyedInvalidKey? InvalidKey) : BoundStatement
+    FileModel File, Place Record, BoundMove? FromMove, KeyedInvalidKey? InvalidKey) : BoundStatement
 {
     /// <summary>The explicit record-lock phrase (ISO §14.9.51 — WITH LOCK / WITH NO LOCK), or None; WITH LOCK
     /// locks the record written on a sharing-active file (GR11), single locking releases the prior lock (GR10).</summary>
@@ -92,7 +92,7 @@ public sealed record BoundKeyedWrite(
 /// requires the prime key to equal the last-read key ('21', GR22), random/dynamic an existing prime key ('23',
 /// GR23).</summary>
 public sealed record BoundKeyedRewrite(
-    FileModel File, Place Record, BoundOperand? From, KeyedInvalidKey? InvalidKey) : BoundStatement
+    FileModel File, Place Record, BoundMove? FromMove, KeyedInvalidKey? InvalidKey) : BoundStatement
 {
     /// <summary>The explicit record-lock phrase (ISO §14.9.35 — WITH LOCK / WITH NO LOCK), or None; a record
     /// locked by another connector blocks the rewrite (GR11 → status 51), the GR12 discipline follows.</summary>

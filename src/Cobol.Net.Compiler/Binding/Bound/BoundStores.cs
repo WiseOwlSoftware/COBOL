@@ -60,6 +60,10 @@ public static class BoundStores
     {
         private bool Hit(Place? p) => p is not null && ReferenceEquals(p.Item, item);
         private bool TargetHit(BoundSetTarget? t) => t is SetPlaceTarget sp && Hit(sp.Place);
+        /// <summary>The RECEIVER of a bound <c>… INTO</c> implicit move (kb/Work PB348 — identifier-1 now rides
+        /// the move rather than the I-O node). Asked of the move's own target list, which is the same single
+        /// receiver the node used to hold.</summary>
+        private bool IntoHit(BoundMove? m) => m is not null && m.Targets.Any(Hit);
         private bool ReceiversHit(IReadOnlyList<Receiver> rs) => rs.Any(r => Hit(r.Place));
 
         // Aggregate child-statement lists: a found store dominates (the temp occurs exactly once);
@@ -195,27 +199,27 @@ public static class BoundStores
         // The conditional-phrase recursion is TOTAL over the node's phrase bodies, so the sequential WRITE's
         // §9.1.14 pair (bound under --permissive only — kb/Work PB691) is walked exactly as BoundKeyedWrite's is;
         // the two arms of one verb may not disagree about which bodies exist (feedback_two_arm_dispatch).
-        public StoreKind? Visit(BoundWrite n) => StoreOrKids(n.From is not null && Hit(n.Record),
+        public StoreKind? Visit(BoundWrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record),
             StoreKind.ReadWrite, n.AtEop, n.NotAtEop,                  // FROM-move then read as the image
             n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);          // the --permissive pair (PB691)
         // The INVALID KEY lists are walked on BOTH READ arms. They are §14.9.30.2 Format-2 phrases and the
         // sequential arm reports COBOLNET1720 for them, but --permissive leaves the bind standing and
         // §14.9.30.4 GR13c then RUNS the NOT INVALID KEY imperative — a store inside it is a real store, and
         // omitting the lists here is the same two-arm disagreement kb/Work PB334 was about.
-        public StoreKind? Visit(BoundRead n) => StoreOrKids(Hit(n.Into), StoreKind.Write,
+        public StoreKind? Visit(BoundRead n) => StoreOrKids(IntoHit(n.IntoMove), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind? Visit(BoundRewrite n) => StoreOrKids(n.From is not null && Hit(n.Record),
+        public StoreKind? Visit(BoundRewrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record),
             StoreKind.ReadWrite, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);   // the --permissive pair (PB691)
-        public StoreKind? Visit(BoundKeyedRead n) => StoreOrKids(Hit(n.Into), StoreKind.Write,
+        public StoreKind? Visit(BoundKeyedRead n) => StoreOrKids(IntoHit(n.IntoMove), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind? Visit(BoundKeyedWrite n) => StoreOrKids(n.From is not null && Hit(n.Record), StoreKind.ReadWrite,
+        public StoreKind? Visit(BoundKeyedWrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record), StoreKind.ReadWrite,
             n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind? Visit(BoundKeyedRewrite n) => StoreOrKids(n.From is not null && Hit(n.Record), StoreKind.ReadWrite,
+        public StoreKind? Visit(BoundKeyedRewrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record), StoreKind.ReadWrite,
             n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
         public StoreKind? Visit(BoundKeyedDeleteFile n) => Kids(n.OnException, n.NotOnException);
         public StoreKind? Visit(BoundKeyedStart n) => Kids(n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind? Visit(BoundRelease n) => n.From is not null && Hit(n.Record) ? StoreKind.ReadWrite : StoreKind.None;
-        public StoreKind? Visit(BoundReturn n) => StoreOrKids(Hit(n.RecordArea) || Hit(n.Into) || Hit(n.Varying?.Depending),
+        public StoreKind? Visit(BoundRelease n) => n.FromMove is not null && Hit(n.Record) ? StoreKind.ReadWrite : StoreKind.None;
+        public StoreKind? Visit(BoundReturn n) => StoreOrKids(Hit(n.RecordArea) || IntoHit(n.IntoMove) || Hit(n.Varying?.Depending),
             Hit(n.RecordArea) ? StoreKind.ReadWrite : StoreKind.Write,  // area: stored then INTO-source
             n.AtEnd, n.NotAtEnd);
 

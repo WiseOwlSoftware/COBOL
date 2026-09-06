@@ -11,10 +11,11 @@ using Core = CobolParserCore;
 
 /// <summary>The sequential file-I/O verb binder (P7 Step 10h — a real collaborator over
 /// <see cref="BinderContext"/>, carved from the core partial; ISO §14.9.27/.7/.51/.30/.35; COBOLNET_DESIGN
-/// §8): OPEN/CLOSE/WRITE/READ/REWRITE with the keyed reroutes (the emitter-mirror SeqIo↔KeyedIo cycle —
-/// KeyedIo reaches <see cref="WriteSource"/> back through the host accessor), the FROM operand, ADVANCING
+/// §8): OPEN/CLOSE/WRITE/READ/REWRITE with the keyed reroutes (the emitter-mirror SeqIo↔KeyedIo cycle), ADVANCING
 /// (the SPECIAL-NAMES mnemonic zero-advance via <see cref="BinderContext.Mnemonics"/>), and the SD loud-guard
-/// seam. The WRITE SR13/SR18/SR19 + OPEN SR8 checks live in <c>StatementValidation</c> (pure checks);
+/// seam. The <c>… FROM</c> / <c>… INTO</c> phrases are IMPLICIT MOVES and are bound as such by
+/// <c>MoveBinder.BindFromPhrase</c> / <c>BindIntoPhrase</c> (kb/Work PB348) — the former <c>WriteSource</c>
+/// operand hand-off, which applied none of the three verbs' phrase rules, is gone. The WRITE SR13/SR18/SR19 + OPEN SR8 checks live in <c>StatementValidation</c> (pure checks);
 /// <c>BindRetry</c> stays a shared spine member on the host.</summary>
 internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host, KeyedIoBinder keyedIo,
     FileLockBinder fileLock)
@@ -208,7 +209,11 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             adv is not null && adv.BEFORE() is not null && adv.AFTER() is not null,
             AnyAdvancePage(adv));   // SR17 — pure check
 
-        return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal(), w.writeFrom()?.functionCall()),
+        // The FROM phrase is an implicit MOVE and is BOUND as one (§14.9.51.4 GR5 a); §14.9.51.3 SR6 —
+        // kb/Work PB348), so it carries the MOVE statement's syntax rules and the storage facts codegen needs.
+        return new BoundWrite(file, record,
+            host.Move.BindFromPhrase(FromPhraseRules.Write, record, w.writeFrom()?.dataReference(),
+                                     w.writeFrom()?.literal(), w.writeFrom()?.functionCall()),
             BindAdvancing(adv), UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
         { Lock = wlock, Retry = wretry, InvalidKey = winvalid };
     }
@@ -219,7 +224,15 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
         if (!ctx.Validation.ResolveFile(name, "READ", out var file)) return new BoundNop();
         if (!file.IsSequential) return keyedIo.BindRead(r, file);   // relative/indexed READ F1/F2 (ISO 14.9.30; KeyedIo partial)
-        Place? into = r.readInto()?.dataReference() is { } d ? ctx.Refs.Resolve(d) : null;
+        // READ … INTO is an IMPLICIT MOVE and is bound as one (ISO §14.9.30.4 GR4 b); kb/Work PB348): the
+        // sender is the record area sliced to its §13.18.43.4 GR16 byte count, resolved through the LARGEST
+        // record's view (FileModel.AreaRecord, §13.4.2) exactly as the emitter's splice is. A file with no
+        // usable record area leaves the move null and the phrase inert — the same reach the emitter's own
+        // `area is not null` guard had, now decided once, at bind time.
+        BoundMove? intoMove = r.readInto()?.dataReference() is { } d && ctx.Refs.Resolve(d) is { } recv
+            && file.AreaRecord is { } areaRec && ctx.Refs.ResolveItem(areaRec) is { } readArea
+            ? host.Move.BindIntoPhrase(file, readArea, recv, ImplicitMovePhrase.ReadInto)
+            : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
             (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
@@ -270,7 +283,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 "ISO §14.9.30.2 Format 1 · §14.9.30.4 GR19");
             invalid = keyedIo.KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
         }
-        return new BoundRead(file, into, atEnd, notAtEnd, UnsupportedOrg(file, "READ"))
+        return new BoundRead(file, intoMove, atEnd, notAtEnd, UnsupportedOrg(file, "READ"))
         {
             Kind = previous ? ReadKind.Previous : ReadKind.Next,                          // §14.9.30.4 GR19; SR8
             InvalidKey = invalid,                                                         // §14.9.30.4 GR13c (permissive only)
@@ -318,24 +331,12 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 "a file with sequential organization", "ISO §14.9.35.3 SR2");
             rinvalid = keyedIo.KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
         }
-        return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()),
+        return new BoundRewrite(file, record,
+            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, record, rw.rewriteFrom()?.dataReference(),
+                                     rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()),
             UnsupportedOrg(file, "REWRITE"))
         { Lock = rlock, Retry = rretry, InvalidKey = rinvalid };
     }
-
-    /// <summary>The FROM operand of a WRITE/REWRITE (a data reference or a literal), or null when absent.</summary>
-    /// <summary>The ONE sending-operand binder behind every <c>… FROM</c> phrase (WRITE / REWRITE / RELEASE,
-    /// sequential and keyed alike). <paramref name="fc"/> is the function-identifier arm (fix-queue PB10):
-    /// §14.9.51.4 GR5a makes <c>WRITE … FROM identifier-1</c> equivalent to
-    /// <c>MOVE identifier-1 TO record-name-1</c>, and §8.4.3.1.2 Format 1 makes a function-identifier an
-    /// IDENTIFIER that §8.4.3.2.3 SR1 bars only from RECEIVING operands — so it is admissible here and was
-    /// rejected outright before. Threaded through THIS helper rather than each of the four call sites, so the
-    /// next FROM phrase inherits it.</summary>
-    public BoundOperand? WriteSource(Core.DataReferenceContext? dref, Core.LiteralContext? lit,
-                                     Core.FunctionCallContext? fc = null) =>
-        fc is not null ? host.Intrinsic.IntrinsicOperand(fc)
-        : lit is not null ? host.Expr.LiteralOperand(lit)
-        : dref is not null ? host.Expr.FieldOperand(dref) : null;
 
     /// <summary>The §14.9.51.3 SR18 test — does this WRITE's print-control phrase name the PAGE operand?
     /// One operand per statement (§14.9.51.2 Format 1 prints one), so this is one nullable check.</summary>

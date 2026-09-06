@@ -403,7 +403,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         var w = ctx.Writer;
         if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
-        if (wr.From is { } from) move.Emit(new BoundMove(from, [wr.Record]));
+        if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.51.4 GR5 a) — the BOUND implicit MOVE
         string name = FileKeyExpr(wr.File);
         string image = OperandText.RecordAreaImage(wr.Record);   // THE ONE record-area channel (kb/Work PB327)
         // ⛔ ONE CALL FOR EVERY WRITE SHAPE (kb/Work PB683). §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): the governed
@@ -507,21 +507,6 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         arith.StoreArith(dep, new NumX(RuntimeApi.FileLastReadLength(FileKeyExpr(file)), 0), CobolRounding.Truncation);
     }
 
-    /// <summary>THE sending operand of every <c>READ … INTO</c> / <c>RETURN … INTO</c> implicit MOVE — built in
-    /// ONE place so the three INTO arms (sequential READ, keyed READ, sort RETURN) cannot drift (kb/Work PB339;
-    /// the emitter's own comment used to argue the padded area was "observationally identical", which holds only
-    /// for a LEFT-justified receiver).
-    /// <para>A variable-length RECORD clause makes the sender <see cref="BoundCurrentRecord"/> — the record area
-    /// sliced to the §13.18.43.4 GR16 byte count, and, for FORMAT 2 only, an alphanumeric group move by
-    /// §14.9.30.4 GR4 b)'s explicit designation. A FIXED-length file keeps the plain record-area operand: its
-    /// current record IS the whole area (§13.18.43.4 GR6 — integer-1 bytes in every record), including the
-    /// short-final-record '04' case of §14.9.30.4 GR14, where the area right of the last valid character is
-    /// undefined rather than short.</para></summary>
-    public static BoundOperand IntoSender(FileModel file, Place area, Place? depending) =>
-        file.Varying is { } v
-            ? new BoundCurrentRecord(area, file, depending, v.VaryingClause)
-            : new BoundFieldOperand(area);
-
     /// <summary>READ file [INTO x] [AT END …][NOT AT END …] (ISO §14.9.30): on success the record image is
     /// distributed into the FD record area (and, with INTO, MOVEd to the target); the AT END / NOT AT END imperative
     /// branches on the at-end condition. After an UNSUCCESSFUL read the record area's content is spec-UNDEFINED
@@ -553,11 +538,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             if (area is not null) EmitImageInto(area, tmp);
             EmitReadLengthStore(rd.File);   // §13.18.43 GR15 — the just-read length into DEPENDING
             EmitStoreFileStatus(rd.File);
-            // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §14.9.30.4 GR4 b)). The sender
-            // is the record sliced to its §13.18.43.4 GR16 byte count, NOT the padded area — through the ONE
-            // IntoSender builder the keyed READ and the sort RETURN also use (kb/Work PB339).
-            if (rd.Into is { } into && area is not null)
-                move.Emit(new BoundMove(IntoSender(rd.File, area, VaryingDepending(rd.File)), [into]));
+            // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §14.9.30.4 GR4 b)) — the
+            // move is BOUND (kb/Work PB348), its sender the record sliced to the §13.18.43.4 GR16 byte count
+            // through the ONE builder the keyed READ and the sort RETURN also use (kb/Work PB339).
+            if (rd.IntoMove is { } intoMove) move.Emit(intoMove);
             if (rd.NotAtEnd is { } not) Statements.EmitStatementList(not);
             // §14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
             // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
@@ -583,7 +567,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         var w = ctx.Writer;
         if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
-        if (rw.From is { } from) move.Emit(new BoundMove(from, [rw.Record]));
+        if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.35.4 GR7 a) — the BOUND implicit MOVE
         string image = OperandText.RecordAreaImage(rw.Record);   // THE ONE record-area channel (kb/Work PB327)
         // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): EVERY sequential REWRITE routes through the governed runtime
         // entry — the pre-operation conflict check on the last-read record (51 leaves the record unrewritten)

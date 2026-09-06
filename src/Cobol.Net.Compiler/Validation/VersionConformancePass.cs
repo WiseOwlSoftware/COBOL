@@ -304,7 +304,13 @@ internal sealed class VersionConformancePass
             if (t is RefModPlace || t.Item.IsGroup || t.Item.Pic is not { } pic) continue;
             if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)) continue;
             if (pic.Usage is Usage.Index) continue;
-            string where = $"MOVE {figText} TO {t.Item.CobolName}";
+            // The IMPLICIT move of a FROM / INTO phrase reaches this gate too (kb/Work PB348 — it is now a
+            // BOUND child of the I-O node, so the StatementChildren walk finds it), and the edition report has
+            // to name the statement the programmer wrote: `RELEASE R FROM QUOTE` is the removal §14.9.32.4 GR4
+            // makes it, not a MOVE anywhere in their source.
+            string where = m.ImplicitOf is { } phrase
+                ? $"MOVE {figText} TO {t.Item.CobolName}, {phrase.Where(t.Item.CobolName)}"
+                : $"MOVE {figText} TO {t.Item.CobolName}";
             bool integerReceiver = pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 };
             if (all is { IsDigitOnly: true, Literal.Length: 1 } && integerReceiver)
                 // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; SR5 NOTE / Annex F.2).

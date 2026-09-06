@@ -41,7 +41,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private InspectBinder Inspect => _inspectBinder ??= new InspectBinder(Ctx, this);
     private EvaluateBinder Evaluate => _evaluateBinder ??= new EvaluateBinder(Ctx, this);
     private StringUnstringBinder Strings => _stringUnstringBinder ??= new StringUnstringBinder(Ctx, this);
-    private MoveBinder Move => _moveBinder ??= new MoveBinder(Ctx, this, Corr);
+    internal MoveBinder Move => _moveBinder ??= new MoveBinder(Ctx, this, Corr);   // the FROM/INTO phrases bind through it (PB348)
     private ReportWriterBinder? _rwBinder;
     internal ReportWriterBinder Rw => _rwBinder ??= new ReportWriterBinder(Ctx, this);
     private FileLockBinder? _fileLockBinder;
@@ -55,7 +55,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private AcceptDisplayBinder? _acceptBinder;
     private AcceptDisplayBinder Accept => _acceptBinder ??= new AcceptDisplayBinder(Ctx, this);
     private SortBinder? _sortBinder;
-    private SortBinder Sort => _sortBinder ??= new SortBinder(Ctx, this, SeqIo);
+    private SortBinder Sort => _sortBinder ??= new SortBinder(Ctx, this);
     private CallBinder? _callBinder;
     private CallBinder Call => _callBinder ??= new CallBinder(Ctx, this);
     private UdfBinder? _udfBinder;

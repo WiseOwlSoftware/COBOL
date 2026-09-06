@@ -127,17 +127,17 @@ internal static class UsageCollectionPass
             foreach (var r in n.Receivers) { P(r.Target); P(r.DelimiterIn); P(r.CountIn); }
             return false;
         }
-        public bool Visit(BoundWrite n) { P(n.Record); Op(n.From); return false; }
-        public bool Visit(BoundRewrite n) { P(n.Record); Op(n.From); return false; }
-        public bool Visit(BoundRead n) { P(n.Into); return false; }
-        public bool Visit(BoundKeyedRead n) { P(n.Into); return false; }
-        public bool Visit(BoundKeyedWrite n) { P(n.Record); Op(n.From); return false; }
-        public bool Visit(BoundKeyedRewrite n) { P(n.Record); Op(n.From); return false; }
+        public bool Visit(BoundWrite n) { P(n.Record); return false; }   // FROM rides the child BoundMove (PB348)
+        public bool Visit(BoundRewrite n) { P(n.Record); return false; }
+        public bool Visit(BoundRead n) => false;   // INTO rides the child BoundMove, walked via StatementChildren
+        public bool Visit(BoundKeyedRead n) => false;
+        public bool Visit(BoundKeyedWrite n) { P(n.Record); return false; }
+        public bool Visit(BoundKeyedRewrite n) { P(n.Record); return false; }
         public bool Visit(BoundKeyedDelete n) => false;
         public bool Visit(BoundKeyedStart n) { P(n.Operand); return false; }
         public bool Visit(BoundKeyedDeleteFile n) => false;
-        public bool Visit(BoundReturn n) { P(n.RecordArea); P(n.Into); return false; }
-        public bool Visit(BoundRelease n) { P(n.Record); Op(n.From); return false; }   // RELEASE record FROM x ≡ MOVE x TO record (§14.9.32 GR4)
+        public bool Visit(BoundReturn n) { P(n.RecordArea); return false; }
+        public bool Visit(BoundRelease n) { P(n.Record); return false; }   // RELEASE record FROM x ≡ MOVE x TO record (§14.9.32 GR4) — the MOVE is a CHILD node now (PB348), so Visit(BoundMove) collects both sides
         public bool Visit(BoundInitialize n) { foreach (var a in n.Actions) InitAct(a); return false; }
         public bool Visit(BoundCorresponding n)
         {

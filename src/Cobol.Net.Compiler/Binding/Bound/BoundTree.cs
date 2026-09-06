@@ -619,14 +619,62 @@ public sealed record BoundStopLiteral(string Text) : BoundStatement;
 /// the standard display device (standard output). Default false keeps the no-UPON emission byte-identical.</summary>
 public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoAdvancing, bool ToStdErr = false) : BoundStatement;
 
-/// <summary><c>MOVE source TO targets</c> (single sending operand).</summary>
+/// <summary>The PHRASE whose own rules make a move — the <c>… FROM</c> of RELEASE / WRITE / REWRITE and the
+/// <c>… INTO</c> of READ / RETURN — named so that every consumer of the resulting <see cref="BoundMove"/> (the
+/// MOVE binder's syntax screens, <c>VersionConformancePass.GateMove</c>, and any rule written tomorrow) reports
+/// the statement the programmer actually WROTE instead of a MOVE they never typed.
+/// <para><paramref name="Cite"/> is the clause that imports the MOVE statement's rules into the phrase — ISO
+/// §14.9.32.4 GR4 a) for RELEASE, §14.9.51.4 GR5 a) for WRITE, §14.9.30.4 GR4 b) for READ INTO, and so on. It is
+/// carried, not re-derived, because the diagnostic has to name the rule that made the phrase a MOVE.</para></summary>
+public sealed record ImplicitMovePhrase(string Statement, string Cite)
+{
+    /// <summary>How ONE receiver of this move names itself in a diagnostic. The name is nullable because a
+    /// receiver may be FILLER or an unnamed record area.</summary>
+    public string Where(string? receiver) =>
+        $"the implicit MOVE of {Statement} to {receiver ?? "the receiving item"} ({Cite})";
+
+    /// <summary>The where-string for a move that may or may not be implicit — the explicit MOVE statement's own
+    /// shape when <paramref name="phrase"/> is null. ONE spelling for both, so a screen written for the explicit
+    /// statement reports correctly from an implicit phrase without an arm of its own.</summary>
+    public static string WhereOf(ImplicitMovePhrase? phrase, string? receiver) =>
+        phrase?.Where(receiver) ?? $"MOVE … TO {receiver}";
+
+    /// <summary>The trailing clause a MOVE diagnostic ADDS when its message already names the receiver its own
+    /// way — empty for the explicit MOVE statement. The second of this type's two renderings, and both live
+    /// here so a screen cannot invent a third spelling of "the programmer did not write MOVE".</summary>
+    public static string Via(ImplicitMovePhrase? phrase) =>
+        phrase is null ? "" : $" — the implicit MOVE of {phrase.Statement} ({phrase.Cite})";
+
+    /// <summary><c>READ … INTO</c> — both organizations. ISO §14.9.30.4 GR4 b): "The current record is moved
+    /// from the record area to the area specified by identifier-1 according to the rules for the MOVE statement
+    /// without the CORRESPONDING phrase."</summary>
+    public static readonly ImplicitMovePhrase ReadInto = new("READ … INTO", "ISO §14.9.30.4 GR4 b)");
+
+    /// <summary><c>RETURN … INTO</c>. ISO §14.9.34.4 GR5 b) — the identical sentence, which is why the two
+    /// phrases share one binder and one sender builder rather than one each.</summary>
+    public static readonly ImplicitMovePhrase ReturnInto = new("RETURN … INTO", "ISO §14.9.34.4 GR5 b)");
+}
+
+/// <summary><c>MOVE source TO targets</c> (single sending operand) — the explicit MOVE statement, AND the
+/// implicit move of every <c>… FROM</c> / <c>… INTO</c> phrase, which <see cref="ImplicitOf"/> identifies.
+/// <para>⛔ EVERY BoundMove IS BUILT BY <c>MoveBinder</c>, AT BIND TIME (kb/Work PB348). The implicit ones used
+/// to be synthesized in the EMITTER, downstream of every bind-time MOVE screen AND of the storage facts codegen
+/// itself consumes — so <c>RELEASE R FROM WS-NUM</c> escaped the §14.9.25.3 Table-16 refusal its explicit twin
+/// draws, and <c>RELEASE N FROM QUOTE</c> aborted the RUN because <c>MarkImageForced</c> had never seen the
+/// receiver. <c>ImplicitMoveConstructionDriftTests</c> keeps the I-O and sort emitters free of
+/// <c>new BoundMove</c>.</para></summary>
 public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement
 {
     /// <summary>Per-target dispatch kinds, classified ONCE at construction by the single authority
     /// (<see cref="MoveClassifier"/>, P7 Step 7) — a computed record property, so EVERY construction (the
-    /// binder's real MOVE and the emitter's synthetic implicit MOVEs alike) carries them; the emitter renders
+    /// explicit MOVE statement and every implicit phrase move alike) carries them; the emitter renders
     /// by kind and re-derives nothing.</summary>
     public IReadOnlyList<MoveKind> Kinds { get; } = MoveClassifier.Classify(Source, Targets);
+
+    /// <summary>The phrase this move is the implicit move OF, or null for the explicit MOVE statement. It rides
+    /// the node so a later consumer — a diagnostic, an edition gate — can name the statement without asking its
+    /// parent, which a generic bound-tree walk cannot see.</summary>
+    public ImplicitMovePhrase? ImplicitOf { get; init; }
 }
 
 // The arithmetic verbs, each a small explicit node: the source operands are bound numeric expressions, the
@@ -999,12 +1047,14 @@ public sealed record BoundClose(IReadOnlyList<(FileModel File, BoundCloseKind Ki
 public sealed record BoundAdvancing(bool Before, bool Page, BoundOperand? Lines);
 
 /// <summary><c>WRITE record [FROM x] [ADVANCING …]</c> (ISO §14.9.51): <paramref name="Record"/> is the record area
-/// place (its image is written); a FROM operand first MOVEs into the record. <paramref name="Advancing"/> null = a
+/// place (its image is written); <paramref name="FromMove"/> is the BOUND implicit MOVE of the FROM phrase
+/// (§14.9.51.4 GR5 a) — built by <c>MoveBinder.BindFromPhrase</c> under the MOVE statement's own syntax rules
+/// (§14.9.51.3 SR6), null when no FROM phrase is written. <paramref name="Advancing"/> null = a
 /// plain (data) WRITE. <paramref name="Unsupported"/> set (loud) when the owning file's organization is unsupported.
 /// <paramref name="AtEop"/>/<paramref name="NotAtEop"/> are the END-OF-PAGE / NOT END-OF-PAGE imperatives (ISO
 /// §14.9.51 GR27b/GR28 — run after the SUCCESSFUL write, branching on the end-of-page condition; SR19 requires
 /// the file to have a LINAGE clause).</summary>
-public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From, BoundAdvancing? Advancing,
+public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMove, BoundAdvancing? Advancing,
     string? Unsupported, IReadOnlyList<BoundStatement>? AtEop = null, IReadOnlyList<BoundStatement>? NotAtEop = null) : BoundStatement
 {
     /// <summary>The explicit record-lock phrase (ISO §14.9.51 Format 1 — WITH LOCK / WITH NO LOCK), or None;
@@ -1030,15 +1080,16 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From
 
 /// <summary><c>READ file [NEXT|PREVIOUS] [INTO x] [AT END …][NOT AT END …]</c> on a SEQUENTIAL or LINE
 /// SEQUENTIAL file (ISO §14.9.30 Format 1): a sequential read that distributes the record image into the FD
-/// record (and, with INTO, MOVEs it to <paramref name="Into"/>). The AT END / NOT AT END imperatives branch on
-/// the at-end condition.
+/// record (and, with INTO, MOVEs it to the receiver through <paramref name="IntoMove"/> — the BOUND implicit
+/// MOVE of §14.9.30.4 GR4 b), whose sender is the §13.18.43.4 GR16 slice of the record area). The AT END /
+/// NOT AT END imperatives branch on the at-end condition.
 /// <para>⛔ EVERY PHRASE <c>readStatement</c> CAN PRODUCE HAS A MEMBER HERE. Three of them did not, and the
 /// binder therefore never called their accessors: the record carried no direction (so <c>READ … PREVIOUS</c>
 /// was a forward read at every edition AND skipped its 2002 gate), no KEY phrase (so §14.9.30.3 SR10 was
 /// enforced on the keyed arm only) and no INVALID KEY phrase (so a <c>NOT INVALID KEY</c> block was compiled
 /// away) — kb/Work PB334. The drift test that keeps this true for the next phrase is PB340.</para></summary>
 public sealed record BoundRead(
-    FileModel File, Place? Into, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundRead
+    FileModel File, BoundMove? IntoMove, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundRead
 {
     /// <summary>The §14.9.30.4 GR19 read kind — <see cref="ReadKind.Next"/> (written or implied by §14.9.30.3
     /// SR8) or <see cref="ReadKind.Previous"/>. <see cref="ReadKind.Random"/> cannot occur here: §12.4.5.5.2 SR2
@@ -1066,8 +1117,10 @@ public sealed record BoundRead(
     public bool IgnoringLock { get; init; }
 }
 
-/// <summary><c>REWRITE record [FROM x]</c> (ISO §14.9.35): replace the last-read record with the record area's image.</summary>
-public sealed record BoundRewrite(FileModel File, Place Record, BoundOperand? From, string? Unsupported) : BoundStatement
+/// <summary><c>REWRITE record [FROM x]</c> (ISO §14.9.35): replace the last-read record with the record area's
+/// image. <paramref name="FromMove"/> is the BOUND implicit MOVE of the FROM phrase, screened under the MOVE
+/// statement's own syntax rules (§14.9.35.3 SR6) by <c>MoveBinder.BindFromPhrase</c>; null with no FROM.</summary>
+public sealed record BoundRewrite(FileModel File, Place Record, BoundMove? FromMove, string? Unsupported) : BoundStatement
 {
     /// <summary>The explicit record-lock phrase (ISO §14.9.35 — WITH LOCK / WITH NO LOCK; the GR11/GR12 lock
     /// rules are ALL-FORMATS rules), or None.</summary>
