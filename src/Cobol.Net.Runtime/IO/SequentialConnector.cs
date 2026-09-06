@@ -468,6 +468,11 @@ public sealed class SequentialConnector : FileConnector
         string text = PrintSafe(TrimRecordEnd(image));
         if (before) { _writer.Write(text); Advance(lines); }
         else { Advance(lines); _writer.Write(text); }
+        // §14.9.51.4 GR12 — "The successful execution of a WRITE statement releases a logical record to the
+        // operating environment" — is an ALL FILES rule, so a print-control WRITE releases an ordinal-identified
+        // record exactly as the plain one does, and GR11's WITH LOCK needs that identity. Counted HERE and not
+        // in Write(), which delegates to this method for a print/LINAGE file (kb/Work PB683).
+        _writesDone++;
         // The LINAGE counter advances as part of the write, AFTER the physical presentation (the legacy
         // ordering): an AT END-OF-PAGE branch then reads the POST-advance counter of the triggering write
         // (§13.18.34 GR7c; SQ201M's footing lines print line 45).
@@ -506,6 +511,7 @@ public sealed class SequentialConnector : FileConnector
         if (page is { } pg) AdvanceLinageCounter(beforeLines, pg);
         Advance(afterLines);
         if (page is { } pg2) AdvanceLinageCounter(afterLines, pg2);
+        _writesDone++;   // §14.9.51.4 GR12 — the THIRD write arm releases a record too (kb/Work PB683)
         return Status = FileStatusCode.Success;
     }
 

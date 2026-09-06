@@ -392,10 +392,6 @@ public sealed class FileRegistry
     public void WriteAdvancing(string name, string image, int lines, bool before, LinagePage? page)
     { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteAdvancing(image, lines, before, page); }
 
-    /// <summary>COBOL-2023 combined <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/f).</summary>
-    public void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines, LinagePage? page)
-    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteBeforeAndAfter(image, beforeLines, afterLines, page); }
-
     /// <summary>
     /// ISO §12.4.5.3 GR3, reached from §14.9.27.4 GR26 — THE ONE PLACE a statement establishes the connector's
     /// association with a physical file, with EXACTLY ONE caller — <see cref="OpenCore"/>, the single OPEN dispatch
@@ -428,18 +424,6 @@ public sealed class FileRegistry
     /// <summary>The end-of-page condition of the file's most recent WRITE (ISO §14.9.51 GR26a/b).</summary>
     public bool EndOfPage(string name) =>
         _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.EndOfPage;
-
-    /// <summary>Sequential <c>READ … NEXT</c> — the record image and whether a record was obtained.</summary>
-    public bool Read(string name, bool previous, out string image)
-    {
-        if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) return f.Read(previous, out image);
-        image = "";
-        return false;
-    }
-
-    /// <summary>Sequential <c>REWRITE record</c> (ISO §14.9.35).</summary>
-    public void Rewrite(string name, string image, int length)
-    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.Rewrite(image, length); }
 
     /// <summary>The AT END condition for a sequential file (status 10).</summary>
     public bool AtEnd(string name) =>
@@ -1050,11 +1034,11 @@ public sealed class FileRegistry
     /// GR16's RETRY governs implementor "resources … locked by another run unit", which cannot arise in-process,
     /// so the first attempt decides. Returns the I-O status.</summary>
     public string WriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount, LinagePage? page)
+        FileRetryKind retryKind, int retryAmount, LinagePage? page, WriteAdvance advance = default)
     {
         _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
-        if (!_connectorShares.TryGetValue(name, out var meta)) return WriteAnyOrg(c, image, length, page);
+        if (!_connectorShares.TryGetValue(name, out var meta)) return WriteAnyOrg(c, image, length, page, advance);
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         if (!meta.Multiple) PhysicalFileTable.ReleaseAllForConnector(st, name);   // GR10 / §12.4.5.9 GR6
         bool wantLock = phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name);   // GR11
@@ -1063,7 +1047,7 @@ public sealed class FileRegistry
             string pf = _physical.PreflightNewLock(st, name);   // §12.4.5.9 GR7 — the statement fails BEFORE the write (§14.9.51 GR15)
             if (pf != FileStatusCode.Success) { c.SetStatus(pf); return pf; }
         }
-        string status = WriteAnyOrg(c, image, length, page);
+        string status = WriteAnyOrg(c, image, length, page, advance);
         if (wantLock && status.Length > 0 && status[0] == '0' && c.LastWrittenRecordId is { Length: > 0 } recId)
             _physical.LockRecord(st, name, recId);   // GR11 — the just-released record's lock is set
         return status;
@@ -1137,11 +1121,20 @@ public sealed class FileRegistry
         return status;
     }
 
-    /// <summary>The plain WRITE body over any organization (one polymorphic dispatch — the governed entry's
-    /// operation half; the sequential arm is the same connector call the ungoverned <see cref="Write"/> makes).</summary>
-    private static string WriteAnyOrg(FileConnector c, string image, int length, LinagePage? page) => c switch
+    /// <summary>The WRITE body over any organization AND any print-control shape (one polymorphic dispatch — the
+    /// governed entry's operation half; each arm is the same connector call the corresponding ungoverned entry
+    /// makes). <paramref name="advance"/> reaches only the sequential arm: §14.9.51.3 SR2/SR3 put the ADVANCING
+    /// phrase in Format 1 alone, which SR3 restricts to the sequential organization, so the binder screens a
+    /// keyed WRITE that carries one and those arms cannot see a non-<c>None</c> kind.</summary>
+    private static string WriteAnyOrg(FileConnector c, string image, int length, LinagePage? page,
+        WriteAdvance advance) => c switch
     {
-        SequentialConnector f => f.Write(image, length, page),
+        SequentialConnector f => advance.Kind switch
+        {
+            WriteAdvanceKind.None => f.Write(image, length, page),
+            WriteAdvanceKind.BeforeAndAfter => f.WriteBeforeAndAfter(image, advance.Lines, advance.AfterLines, page),
+            _ => f.WriteAdvancing(image, advance.Lines, advance.Kind == WriteAdvanceKind.Before, page),
+        },
         RelativeConnector r => r.Write(image, length),
         IndexedConnector ix => ix.Write(image, length),
         _ => FileStatusCode.PermanentError,

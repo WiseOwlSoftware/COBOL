@@ -433,7 +433,7 @@ bool _se=false; { var _v = new CobolInt(…, _s); if (CobolNum.TryStore(_v, _P_B
 if (_se) { <ON SIZE ERROR> } else { <NOT ON SIZE ERROR> }
 ```
 
-AT END / INVALID KEY / ON OVERFLOW / ON EXCEPTION: status flag from the op drives a branch; NOT form = the else (success). `var _st = CobolFile.Read(f,…); if (CobolStatus.IsAtEnd(_st)) {AT END} else {NOT AT END}`. AT END↔EC-I-O-AT-END↔status 1x; INVALID KEY↔2x; ON OVERFLOW↔EC-OVERFLOW-STRING/UNSTRING; ON EXCEPTION (CALL)↔EC-PROGRAM-NOT-FOUND.
+AT END / INVALID KEY / ON OVERFLOW / ON EXCEPTION: status flag from the op drives a branch; NOT form = the else (success). `var _st = CobolFile.ReadShared(f,…); if (CobolStatus.IsAtEnd(_st)) {AT END} else {NOT AT END}` (the ONE governed READ entry — there is no ungoverned one, kb/Work PB683). AT END↔EC-I-O-AT-END↔status 1x; INVALID KEY↔2x; ON OVERFLOW↔EC-OVERFLOW-STRING/UNSTRING; ON EXCEPTION (CALL)↔EC-PROGRAM-NOT-FOUND.
 
 EC RUNTIME (CobolNet.Runtime.Exceptions): `enum ExceptionCondition` (level-3 names) + hierarchy map (level3→level2→EC-ALL) + per-name Fatality {Fatal,NonFatal,Imp}, generated from ISO Table 13 in ExceptionCatalog.cs. `static class ExceptionState { string? LastExceptionName; object? ExceptionObject; string? LastExceptionFile/Statement/Location; void Clear(); }`. RAISE EXCEPTION ec→`CobolException.Raise(ec)`; RAISE id→`CobolException.RaiseObject(obj)` (sets EXCEPTION-OBJECT); fatal unhandled→`throw new CobolFatalException(ec)` caught at Main. FUNCTION EXCEPTION-STATUS→`ExceptionState.LastExceptionName ?? "        "`; EXCEPTION-OBJECT→`ExceptionState.ExceptionObject`.
 

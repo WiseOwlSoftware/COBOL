@@ -121,21 +121,18 @@ public static class CobolFile
     public static void WriteAdvancing(string name, string image, int lines, bool before, LinagePage? page)
         => _reg.WriteAdvancing(name, image, lines, before, page);
 
-    /// <summary>COBOL-2023 combined <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/f).</summary>
-    public static void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines, LinagePage? page)
-        => _reg.WriteBeforeAndAfter(name, image, beforeLines, afterLines, page);
+    // ⛔ No ungoverned READ / REWRITE / BEFORE-AND-AFTER-WRITE entry exists on this facade any more, and none may
+    // come back (kb/Work PB683): the emitted code reaches those verbs ONLY through ReadShared / RewriteShared /
+    // WriteShared, which decide record-lock governance where the OPEN statement's own SHARING phrase is visible
+    // (§9.1.15) and fall through to the identical plain body when the connector is not sharing-active. The
+    // physical bodies live on the connectors, reached from those governed entries. `Write` and `WriteAdvancing`
+    // survive as the physical layer the runtime's own report writer and the unit tests drive directly.
 
     /// <summary>The file's LINAGE-COUNTER register (ISO §8.4.3.14 / §13.18.34 GR7).</summary>
     public static long LinageCounter(string name) => _reg.LinageCounter(name);
 
     /// <summary>The end-of-page condition of the file's most recent WRITE (ISO §14.9.51 GR26a/b).</summary>
     public static bool EndOfPage(string name) => _reg.EndOfPage(name);
-
-    /// <summary>Sequential <c>READ … NEXT</c> — the record image and whether a record was obtained.</summary>
-    public static bool Read(string name, bool previous, out string image) => _reg.Read(name, previous, out image);
-
-    /// <summary>Sequential <c>REWRITE record</c> (ISO §14.9.35).</summary>
-    public static void Rewrite(string name, string image, int length = -1) => _reg.Rewrite(name, image, length);
 
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15).</summary>
     public static int LastReadLength(string name) => _reg.LastReadLength(name);
@@ -237,10 +234,13 @@ public static class CobolFile
         bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
         => _reg.ReadShared(name, previous, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image);
 
-    /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11).</summary>
+    /// <summary>⛔ THE ONE WRITE ENTRY THE EMITTER RENDERS, every organization and every print-control shape
+    /// (§14.9.51 GR10/GR11). <paramref name="advance"/> carries the statement's ADVANCING phrases as DATA —
+    /// see <see cref="WriteAdvanceKind"/> for why a WRITE's presentation shape may not pick its own entry
+    /// (kb/Work PB683).</summary>
     public static string WriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount, LinagePage? page)
-        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page);
+        FileRetryKind retryKind, int retryAmount, LinagePage? page, WriteAdvance advance = default)
+        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page, advance);
 
     /// <summary>Governed REWRITE for a sharing-active connector, any organization (§14.9.35 GR11/GR12).</summary>
     public static string RewriteShared(string name, string image, int length, FileRecordLock phrase,

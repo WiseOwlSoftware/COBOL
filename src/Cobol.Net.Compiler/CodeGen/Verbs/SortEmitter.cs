@@ -97,10 +97,16 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         // ELEMENT EXECUTING THE SORT/MERGE names — its own ASSIGN specification and LINAGE operands (PB673).
         w.Line($"{RuntimeApi.FileOpenInput(f, seqIo.ExecutingElementArgs(input))};   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
         seqIo.EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
-        // "false" = §14.9.30.4 GR19's NEXT: the implicit SORT/MERGE USING retrieval is the forward walk of
-        // §14.9.43.4 ("the records … are transferred … in the order in which they are made available"), never a
-        // statement-written direction — this loop renders no READ statement of the program's.
-        using (w.Block($"while ({RuntimeApi.FileRead(f, "false", tmp)})"))
+        // §14.9.40 GR12 b) / §14.9.24 GR7 b): "Each record is obtained as if a READ statement with the NEXT
+        // phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed." An IGNORING LOCK read is a
+        // GOVERNED read (§14.9.30.4 GR12 is what suppresses the GR9 conflict), so it renders the ONE governed
+        // Format-1 entry with `ignoringLock: true` — never an ungoverned one, which would answer '51' against
+        // another connector's lock and truncate the transfer, and which could not see the sharing mode the
+        // implicit OPEN established anyway (§9.1.15; kb/Work PB683). GR11 c) still sets the AUTOMATIC lock
+        // through it. The "false" is §14.9.30.4 GR19's NEXT: this retrieval is the forward walk of §14.9.43.4
+        // ("the records … are transferred … in the order in which they are made available"), never a
+        // statement-written direction — this loop renders no READ statement of the program's (kb/Work PB334).
+        using (w.Block($"while ({RuntimeApi.FileReadSharedOk(f, "false", "FileRecordLock.None", "false", "true", "FileRetryKind.None", "0", tmp)})"))
         {
             // GR12b: a record larger/smaller than the SD's record range ⇒ EC-SORT-MERGE-RELEASE (checking OFF,
             // §18.16). Fixed SD: the short record space-fills right to the fixed length (GR7c/MERGE GR2c — the
@@ -130,7 +136,12 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         w.Line($"{RuntimeApi.FileOpenOutput(f, seqIo.ExecutingElementArgs(output))};   // implicit OPEN OUTPUT (GR15a)");
         seqIo.EmitUseHook(output);   // a failed implicit OPEN reaches a USE declarative (GR15a)
         using (w.Block($"while ({RuntimeApi.SortReturn(sdLit, tmp)})"))
-            w.Line($"{RuntimeApi.FileWrite(f, tmp, null, seqIo.LinageArg(output))};   // implicit WRITE without optional phrases (GR15b)");
+            // "Each record is written as if a WRITE statement without any optional phrases had been executed"
+            // (GR15 b) / MERGE GR13 b) — through the ONE governed WRITE entry, like every other emitted WRITE
+            // (kb/Work PB683). GR15 a) opens the file SHARING WITH NO OTHER, under which §9.1.15 1) ignores
+            // record locks, so the governed body's release/acquire discipline is vacuous here — but the routing
+            // decision is not the emitter's to make, and the runtime is where the open mode is known.
+            w.Line($"{RuntimeApi.FileWriteShared(f, tmp, "-1", "FileRecordLock.None", "FileRetryKind.None", "0", seqIo.LinageArg(output))};   // implicit WRITE without optional phrases (GR15b)");
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
         seqIo.EmitStoreFileStatus(output);
         seqIo.EmitUseHook(output);

@@ -322,15 +322,18 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         _ => "FileRecordLock.None",
     };
 
-    /// <summary>The ONE lock-relevance predicate (§9.1.16): a statement routes through the runtime's governed
-    /// verb entry when its file declares SHARING or LOCK MODE, or the statement itself carries a lock-retention
-    /// phrase, an IGNORING LOCK phrase or a RETRY phrase. Everything else keeps the plain entry — the
-    /// pre-sharing emission byte-for-byte. (<paramref name="ignoringLock"/> defaults false for the verbs whose
-    /// printed formats have no such phrase — WRITE, REWRITE and DELETE.)</summary>
-    public static bool LockGoverned(FileModel file, BoundRecordLock lockPhrase, RetrySpec? retry,
-        bool ignoringLock = false) =>
-        file.Sharing != SharingMode.None || file.LockMode is not null
-        || lockPhrase != BoundRecordLock.None || retry is not null || ignoringLock;
+    // ⛔ THERE IS NO COMPILE-TIME LOCK-GOVERNANCE PREDICATE, AND THERE MUST NEVER BE ONE AGAIN (kb/Work PB683).
+    // Whether a connector is open FOR FILE SHARING is a RUN-TIME fact: ISO §9.1.15 — "The SHARING phrase on an
+    // OPEN statement overrides the SHARING clause in the file control entry for establishing the sharing mode"
+    // — so `OPEN INPUT SHARING WITH READ ONLY F` makes F a sharing participant whatever its SELECT says, and no
+    // property of the file control entry or of the READ/WRITE/REWRITE/DELETE statement can see it. The emitter
+    // used to guess it from (SHARING clause | LOCK MODE clause | the statement's own lock/RETRY/IGNORING
+    // phrases) and routed every unphrased verb on such a connector to the UNGOVERNED entry, which reads a record
+    // another connector has locked with '00' where §14.9.30.4 GR9/GR10 b) require the record operation conflict
+    // status '51' — and writing `RETRY 0 TIMES`, a behavioural no-op by §14.7.9.3 GR4 a), flipped the answer.
+    // Every record verb now renders its GOVERNED runtime entry unconditionally; FileRegistry's
+    // `_connectorShares` probe is the ONE place governance is decided, one layer below, where the OPEN's own
+    // phrase has already been recorded. The ungoverned entries no longer exist to route to.
 
     public void EmitClose(BoundClose c)
     {
@@ -399,37 +402,26 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (wr.From is { } from) move.Emit(new BoundMove(from, [wr.Record]));
         string name = FileKeyExpr(wr.File);
         string image = OperandText.RecordAreaImage(wr.Record);   // THE ONE record-area channel (kb/Work PB327)
-        if (wr.AfterAdvancing is { } aft && wr.Advancing is { } bfr)
-        {
-            // COBOL-2023 combined BEFORE AND AFTER ADVANCING (§14.9.51 GR25e/GR25f): present the line at the current
-            // position, then advance by the BEFORE amount and by the AFTER amount (both after presentation; SR17
-            // forbids PAGE, so neither is a form feed). LINAGE-COUNTER increments by before+after.
-            w.Line($"{RuntimeApi.FileWriteBeforeAndAfter(name, image, LinesExpr(bfr.Lines!), LinesExpr(aft.Lines!), LinageArg(wr.File))};");
-        }
-        else if (wr.Advancing is { } adv)
-        {
-            // Print-control writes keep the plain entry: an ADVANCING stream is a presentation surface, not a
-            // record store — its lines carry no record-lock identity (§9.1.16 locks LOGICAL RECORDS).
-            string lines = adv.Page ? "-1" : LinesExpr(adv.Lines!);
-            w.Line($"{RuntimeApi.FileWriteAdvancing(name, image, lines, adv.Before ? "true" : "false", LinageArg(wr.File))};");
-        }
-        else if (LockGoverned(wr.File, wr.Lock, wr.Retry))
-        {
-            // §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): the governed WRITE — single locking releases the
-            // connector's prior lock, WITH LOCK locks the record written. Status lands on the connector.
-            var (retryKind, retryAmount) = RenderRetry(wr.Retry);
-            string lenArg = VaryingLengthArg(wr.File) ?? "-1";
-            w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File))};");
-        }
-        else
-            w.Line($"{RuntimeApi.FileWrite(name, image, VaryingLengthArg(wr.File), LinageArg(wr.File))};");
+        // ⛔ ONE CALL FOR EVERY WRITE SHAPE (kb/Work PB683). §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): the governed
+        // WRITE — single locking releases the connector's prior lock, WITH LOCK locks the record written — and
+        // both are ALL FILES rules, so the ADVANCING phrases are the statement's PRESENTATION shape and travel
+        // as an argument, never as a choice of runtime entry. This used to be a three-arm dispatch whose two
+        // print-control arms rendered `WriteAdvancing`/`WriteBeforeAndAfter`, which have no lock or RETRY
+        // parameter, so `WRITE R AFTER ADVANCING 1 LINE WITH LOCK RETRY 5 TIMES` — one legal statement of
+        // §14.9.51.2's Format 1, which prints the ADVANCING phrase, the retry-phrase and the WITH LOCK bracket
+        // together — silently dropped both phrases. UNCONDITIONAL: the runtime falls through to the same plain
+        // body for a connector that is not sharing-active, which is the decision made where the OPEN's own
+        // SHARING phrase is visible (§9.1.15). Status lands on the connector either way.
+        var (retryKind, retryAmount) = RenderRetry(wr.Retry);
+        string lenArg = VaryingLengthArg(wr.File) ?? "-1";
+        w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File), AdvanceArg(wr))};");
         // The §9.1.14 status SNAPSHOT for a --permissive INVALID KEY phrase (kb/Work PB691). Taken HERE, before
         // the FILE STATUS store and the USE hook, for the same reason the end-of-page flag is read in the `if`
         // header below: a declarative or a phrase body may operate on this same connector and move its status.
-        // The three plain sequential write entries return void (only the governed WriteShared returns the
-        // status), so the snapshot reads the connector — not a captured return — which is exactly what §9.1.14
-        // means by "the I-O status of the file connector associated with the statement". Emitted ONLY when the
-        // forbidden phrase is present, so the legal Format-1 WRITE renders byte-for-byte as before.
+        // It reads the CONNECTOR rather than capturing the entry's return value — that is exactly what §9.1.14
+        // means by "the I-O status of the file connector associated with the statement", and it keeps the
+        // snapshot independent of which runtime entry the write rendered. Emitted ONLY when the forbidden phrase
+        // is present, so the legal Format-1 WRITE renders byte-for-byte as before.
         string? wst = null;
         if (wr.InvalidKey is not null)
         {
@@ -460,6 +452,22 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // Last, after the END-OF-PAGE branches: both are end-of-statement phrase transfers, and GR27b's EOP
         // imperative belongs to the WRITE's own general rules while §9.1.14 is the outer transfer contract.
         if (wst is not null) EmitInvalid(wst, wr.InvalidKey);
+    }
+
+    /// <summary>The ADVANCING phrases of ONE WRITE statement as the runtime's <c>WriteAdvance</c> descriptor
+    /// (ISO §14.9.51.2 Format 1 — the print-control bracket). Three shapes, one argument: no phrase; a single
+    /// BEFORE/AFTER phrase, whose <c>-1</c> line count is ADVANCING PAGE; and COBOL-2023's combined
+    /// <c>BEFORE ADVANCING n AFTER ADVANCING m</c> (§14.9.51.4 GR25 e/f), where the record is presented once at
+    /// the current line and the medium then advances by both amounts (SR17 forbids PAGE there, so neither is a
+    /// form feed) and LINAGE-COUNTER increments by n+m.</summary>
+    private string AdvanceArg(BoundWrite wr)
+    {
+        if (wr.AfterAdvancing is { } aft && wr.Advancing is { } bfr)
+            return $"new WriteAdvance(WriteAdvanceKind.BeforeAndAfter, {LinesExpr(bfr.Lines!)}, {LinesExpr(aft.Lines!)})";
+        if (wr.Advancing is { } adv)
+            return $"new WriteAdvance(WriteAdvanceKind.{(adv.Before ? "Before" : "After")}, "
+                + $"{(adv.Page ? "-1" : LinesExpr(adv.Lines!))}, 0)";
+        return "WriteAdvance.None";
     }
 
     /// <summary>Render the governed sequential-organization READ call (§14.9.30.4 GR9–GR12 over the ordinal lock
@@ -509,17 +517,15 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // The read record is made available in the WHOLE record area — store through the LARGEST record's view
         // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the splice (ST111A).
         Place? area = rd.File.AreaRecord is { } ar ? refs.ResolveItem(ar) : null;
-        // §9.1.16 record locking on the sequential organization (P10 Step 8): a lock-relevant READ routes
-        // through the governed runtime entry — the next ordinal's pre-read conflict check (§14.9.30 GR9,
-        // FPI unchanged on a 51 per GR10a), the GR11 lock discipline, and GR22 ADVANCING ON LOCK skip-scan.
-        // Same bool contract as the plain read, so the two branches below are shared.
-        // §14.9.30.4 GR19's read kind reaches the connector as the direction of the retrieval; GR21's
-        // sequential-file rules b)/c) then select the record NUMBER from it. Rendered on BOTH call shapes —
-        // dropping it on either one is how `READ … PREVIOUS` became a forward read (kb/Work PB334).
-        string previous = rd.Kind == ReadKind.Previous ? "true" : "false";
-        string readCall = LockGoverned(rd.File, rd.Lock, rd.Retry, rd.IgnoringLock)
-            ? EmitReadSharedCall(rd, name, tmp)
-            : RuntimeApi.FileRead(name, previous, tmp);
+        // §9.1.16 record locking on the sequential organization (P10 Step 8): EVERY READ routes through the
+        // governed runtime entry — the next ordinal's pre-read conflict check (§14.9.30 GR9, FPI unchanged on a
+        // 51 per GR10a), the GR11 lock discipline, and the GR22 ADVANCING ON LOCK skip-scan. Unconditional
+        // (kb/Work PB683): the runtime falls through to the plain retrieval for a connector that is not
+        // sharing-active, and only the runtime can see an OPEN statement's own SHARING phrase (§9.1.15).
+        // §14.9.30.4 GR19's read kind rides INSIDE that one call as the direction of the retrieval; GR21's
+        // sequential-file rules b)/c) then select the record NUMBER from it (kb/Work PB334). With one call shape
+        // there is no longer a second place to drop it — which is how `READ … PREVIOUS` became a forward read.
+        string readCall = EmitReadSharedCall(rd, name, tmp);
         using (w.Block($"if ({readCall})"))
         {
             if (area is not null) EmitImageInto(area, tmp);
@@ -558,17 +564,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         if (rw.From is { } from) move.Emit(new BoundMove(from, [rw.Record]));
         string image = OperandText.RecordAreaImage(rw.Record);   // THE ONE record-area channel (kb/Work PB327)
-        // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): a lock-relevant sequential REWRITE routes through the
-        // governed runtime entry — the pre-operation conflict check on the last-read record (51 leaves the
-        // record unrewritten) and the GR12 lock discipline. The status lands on the connector either way.
-        if (LockGoverned(rw.File, rw.Lock, rw.Retry))
-        {
-            var (retryKind, retryAmount) = RenderRetry(rw.Retry);
-            string lenArg = VaryingLengthArg(rw.File) ?? "-1";
-            w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, lenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount)};");
-        }
-        else
-            w.Line($"{RuntimeApi.FileRewrite(FileKeyExpr(rw.File), image, VaryingLengthArg(rw.File))};");
+        // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): EVERY sequential REWRITE routes through the governed runtime
+        // entry — the pre-operation conflict check on the last-read record (51 leaves the record unrewritten)
+        // and the GR12 lock discipline. Unconditional (kb/Work PB683): the runtime falls through to the plain
+        // body for a connector that is not sharing-active. The status lands on the connector either way.
+        var (retryKind, retryAmount) = RenderRetry(rw.Retry);
+        string rwLenArg = VaryingLengthArg(rw.File) ?? "-1";
+        w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount)};");
         // The §9.1.14 status snapshot for a --permissive INVALID KEY phrase, taken before the status store and
         // the USE hook — the WRITE arm above carries the full reasoning (kb/Work PB691).
         string? rst = null;

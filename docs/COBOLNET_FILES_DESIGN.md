@@ -781,6 +781,53 @@ clause is specified"* — belongs with them: its substance IS enforced by `Keyed
 §12.4.5.13, which carries no such requirement, and being verb-driven it misses a relative file that is declared
 RANDOM and never referenced.
 
+### D20. Record-lock governance is a RUN-TIME fact, so the emitter renders ONE entry per record verb — never a choice between a governed and an ungoverned one, and never a second entry for a verb's SHAPE.
+
+**The rule.** ISO §9.1.15: *"The SHARING phrase on an OPEN statement overrides the SHARING clause in the file
+control entry for establishing the sharing mode."* Whether a connector is open FOR FILE SHARING — and therefore
+whether §9.1.16's record locks bind its READ/WRITE/REWRITE/DELETE — is decided by the OPEN **statement** that
+ran, not by anything a compiler can read. §14.9.27.3 SR8 hides how sharp this is: it forces a LOCK MODE clause
+whenever the ALL phrase is used, so the `ALL OTHER` spelling always leaves a compile-time trace. The `READ ONLY`
+and `NO OTHER` spellings leave none.
+
+**What went wrong.** `SequentialIoEmitter.LockGoverned(file, lockPhrase, retry, ignoringLock)` returned
+`file.Sharing != None || file.LockMode is not null || lockPhrase != None || retry is not null || ignoringLock`,
+and every record verb — both READ emitters, WRITE, REWRITE, DELETE — chose its runtime entry with it. Every term
+is a compile-time property of the SELECT or of the statement. So a connector made a sharing participant by
+`OPEN INPUT SHARING WITH READ ONLY F` ran every unphrased verb on the UNGOVERNED entry and read a record another
+connector had locked with `'00'`, where §14.9.30.4 GR9/GR10 b) require the record operation conflict status
+`'51'`. Adding `RETRY 0 TIMES` — a behavioural no-op by §14.7.9.3 GR4 a) — changed the answer, because the
+predicate could see the RETRY phrase and could not see the OPEN (kb/Work PB683).
+
+**The shape.** There is no compile-time governance predicate and there is no ungoverned renderer. `RuntimeApi`
+exposes exactly one renderer per record verb — `FileReadShared`/`FileReadSharedOk`, `FileWriteShared`,
+`FileRewriteShared`, `FileDeleteShared`, plus `FileReadKeyed` + `FileReadLockGovern` as the two halves of the one
+Format-2 read — and every emitter renders it unconditionally. Governance is then decided ONE layer down, in
+`FileRegistry`, where the OPEN's own phrase has already been recorded: each governed body opens with a
+`_connectorShares` probe and falls through to the identical plain body on a miss. The cost of the change is one
+dictionary probe per record verb on the non-sharing path, replacing a compile-time branch that produced the same
+answer only when the SELECT happened to mention sharing.
+
+**A verb's SHAPE rides as DATA, for the same reason.** WRITE had three renderers — plain, `WriteAdvancing` and
+the COBOL-2023 `WriteBeforeAndAfter` — and only the plain one was governed. §14.9.51.4 GR10 and GR11 are **ALL
+FILES** rules, and §14.9.51.2 Format 1 prints the ADVANCING phrase, the `retry-phrase` and the
+`WITH LOCK / WITH NO LOCK` bracket together, so `WRITE R AFTER ADVANCING 1 LINE WITH LOCK RETRY 5 TIMES` is one
+legal statement — whose lock and RETRY phrases the two print-control entries, having no such parameters, dropped
+on the floor. The ADVANCING phrases now travel INTO `WriteShared` as a `WriteAdvance` descriptor
+(`WriteAdvanceKind` × lines × after-lines) and `WriteAnyOrg` dispatches the physical shape inside the governed
+body. `SequentialConnector.WriteAdvancing` and `WriteBeforeAndAfter` count the record they release (§14.9.51.4
+GR12) so GR11 has an identity to lock, exactly as the plain arm does.
+
+**Why this is the shape that makes the next case automatic.** Adding a WRITE shape now means adding a
+`WriteAdvanceKind` member and one `switch` arm inside the governed body; it cannot produce a new ungoverned path,
+because there is no ungoverned entry to reach. `BoundIoPhraseConsumptionDriftTests` keeps the other half honest:
+every phrase a bound I-O node declares must be READ by its emitter.
+
+**The evidence.** `tests/conformance/2023/pb683_open_sharing_read_only` (the `READ ONLY` spelling on all three
+organizations, with the `RETRY 0 TIMES` discriminator that used to disagree),
+`pb683_open_sharing_no_other` (the `NO OTHER` spelling, both open orders, and the §9.1.15 item 1 `'61'`), and
+`pb683_write_advancing_governed` (the same WRITE in all three printed shapes, all `'51'`).
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

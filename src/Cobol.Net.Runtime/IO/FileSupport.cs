@@ -61,6 +61,44 @@ public enum FileRecordLock
     WithNoLock,
 }
 
+/// <summary>Which ADVANCING phrases ONE WRITE statement carries — the print-control bracket of ISO §14.9.51.2
+/// Format 1. It is the WRITE's <i>presentation</i> shape, and nothing else: it does NOT decide whether the
+/// statement is lock-governed.
+/// <para>⛔ A WRITE WITH AN ADVANCING PHRASE IS STILL A WRITE STATEMENT. §14.9.51.4 GR10 and GR11 are ALL FILES
+/// rules — <i>"If the locking mode of the write file connector is single record locking, any record lock
+/// associated with that file connector is released by the execution of the WRITE statement"</i> and <i>"If
+/// record locks have an effect for the write file connector and the WITH LOCK phrase is specified or implied,
+/// the record lock associated with the record written is set …"</i> — and Format 1's printed general format
+/// carries the <c>retry-phrase</c> and the <c>WITH LOCK / WITH NO LOCK</c> bracket ALONGSIDE the ADVANCING
+/// phrase, so `WRITE R AFTER ADVANCING 1 LINE WITH LOCK RETRY 5 TIMES` is one legal statement. This descriptor
+/// therefore RIDES WITH the record into the ONE governed entry (<see cref="CobolFile.WriteShared"/>); it never
+/// selects a separate ungoverned one. Three separate emitter arms used to, and the two advancing arms dropped
+/// the lock and RETRY phrases on the floor (kb/Work PB683).</para></summary>
+public enum WriteAdvanceKind : byte
+{
+    /// <summary>No ADVANCING phrase — the plain record write.</summary>
+    None,
+    /// <summary>BEFORE ADVANCING — the record is presented, then the medium advances.</summary>
+    Before,
+    /// <summary>AFTER ADVANCING — the medium advances, then the record is presented.</summary>
+    After,
+    /// <summary>COBOL-2023's combined <c>BEFORE ADVANCING n AFTER ADVANCING m</c> (§14.9.51.4 GR25 e/f): the
+    /// record is presented once at the current line and the medium then advances by both amounts.</summary>
+    BeforeAndAfter,
+}
+
+/// <summary>The ADVANCING phrases of ONE WRITE statement, as data — see <see cref="WriteAdvanceKind"/> for why
+/// this travels as an argument of the governed WRITE rather than as a choice of runtime entry.</summary>
+/// <param name="Kind">Which phrases the statement wrote.</param>
+/// <param name="Lines">The single phrase's line count, or the BEFORE amount of the combined form; <c>-1</c> is
+/// ADVANCING PAGE, which §14.9.51.3 SR17 permits only in the single-phrase form.</param>
+/// <param name="AfterLines">The AFTER amount of the combined form; unused otherwise.</param>
+public readonly record struct WriteAdvance(WriteAdvanceKind Kind, int Lines, int AfterLines)
+{
+    /// <summary>A WRITE with no ADVANCING phrase.</summary>
+    public static WriteAdvance None => default;
+}
+
 /// <summary>The RETRY phrase kind (ISO §14.7.9).</summary>
 public enum FileRetryKind
 {

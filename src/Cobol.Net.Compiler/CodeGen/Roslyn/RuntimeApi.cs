@@ -785,13 +785,21 @@ internal static class RuntimeApi
     public static string FileSetRelativeKey(string name, string rrn) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.SetRelativeKey)}({name}, {rrn})";
 
-    /// <summary>Sequential-forward keyed READ — <c>CobolFile.ReadKeyedNext</c> (status result, out image).</summary>
-    public static string FileReadKeyedNext(string name, string imgVar) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyedNext)}({name}, out var {imgVar})";
-
-    /// <summary>READ PREVIOUS — <c>CobolFile.ReadKeyedPrevious</c>.</summary>
-    public static string FileReadKeyedPrevious(string name, string imgVar) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyedPrevious)}({name}, out var {imgVar})";
+    // ⛔ THERE IS NO UNGOVERNED RENDERER FOR A RECORD VERB, AND THERE MUST NEVER BE ONE AGAIN (kb/Work PB683).
+    // READ, WRITE, REWRITE and DELETE each have EXACTLY ONE renderer here — FileReadShared / FileWriteShared /
+    // FileRewriteShared / FileDeleteShared (and FileReadKeyed + FileReadLockGovern, the two halves of the ONE
+    // Format-2 read) — because whether a connector is open FOR FILE SHARING is a RUN-TIME fact: ISO §9.1.15,
+    // "The SHARING phrase on an OPEN statement overrides the SHARING clause in the file control entry for
+    // establishing the sharing mode". No property of the file control entry or of the statement can see it, so
+    // an emitter that CHOOSES between a governed and an ungoverned entry is guessing. It guessed wrong for every
+    // connector opened `SHARING WITH READ ONLY` / `NO OTHER` by the OPEN's own phrase, which then read a record
+    // another connector had locked with '00' where §14.9.30.4 GR9/GR10 b) require '51'. The governed entries all
+    // fall through to the identical plain body on a `_connectorShares` miss, so there is nothing to choose:
+    // render the governed one and let the runtime, one layer down, decide where the OPEN is visible.
+    // ⛔ The same rule holds for a verb's SHAPE: the ADVANCING phrases ride INSIDE FileWriteShared as a
+    // `WriteAdvance` argument. FileWriteAdvancing/FileWriteBeforeAndAfter existed as separate renderers, and
+    // because neither entry has a lock or RETRY parameter, `WRITE R AFTER ADVANCING 1 LINE WITH LOCK` — one
+    // legal statement of §14.9.51.2 Format 1 — silently lost both phrases.
 
     /// <summary>Random keyed READ by key-of-reference — <c>CobolFile.ReadKeyed</c>.</summary>
     public static string FileReadKeyed(string name, int keyIndex, string keyImage, string imgVar) =>
@@ -816,10 +824,14 @@ internal static class RuntimeApi
         string ignoringLock, string retryKind, string retryAmount, string imgVar) =>
         $"{FileReadShared(name, previous, lockRef, advancingOnLock, ignoringLock, retryKind, retryAmount, imgVar)}[0] == '0'";
 
-    /// <summary>Governed WRITE for a sharing-active file, any organization (§14.9.51 GR10/GR11) — <c>CobolFile.WriteShared</c>.
-    /// <paramref name="pageArg"/> is the executing element's LINAGE page (§13.18.34 GR6 b) — see <see cref="LinagePageExpr"/>.</summary>
-    public static string FileWriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount, string pageArg) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount}, {pageArg})";
+    /// <summary>⛔ THE ONE WRITE, any organization and any print-control shape (§14.9.51 GR10/GR11) —
+    /// <c>CobolFile.WriteShared</c>. <paramref name="pageArg"/> is the executing element's LINAGE page
+    /// (§13.18.34 GR6 b) — see <see cref="LinagePageExpr"/>; <paramref name="advance"/> is the statement's
+    /// ADVANCING phrases as a <c>WriteAdvance</c> descriptor (omitted = none), never a separate entry
+    /// (kb/Work PB683).</summary>
+    public static string FileWriteShared(string name, string image, string lenArg, string lockRef, string retryKind,
+        string retryAmount, string pageArg, string? advance = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount}, {pageArg}{(advance is null ? "" : $", {advance}")})";
 
     /// <summary>Governed REWRITE for a sharing-active file, any organization (§14.9.35 GR11/GR12) — <c>CobolFile.RewriteShared</c>.</summary>
     public static string FileRewriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount) =>
@@ -836,19 +848,6 @@ internal static class RuntimeApi
     /// <summary>The connector's current relative slot number — <c>CobolFile.RelativeSlot</c>.</summary>
     public static string FileRelativeSlot(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RelativeSlot)}({name})";
-
-    /// <summary>Keyed WRITE — <c>CobolFile.WriteKeyed</c>; <paramref name="lenArg"/> = the optional §13.18.43
-    /// GR13a varying-length argument (null when fixed).</summary>
-    public static string FileWriteKeyed(string name, string image, string? lenArg = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteKeyed)}({name}, {image}{(lenArg is null ? "" : $", {lenArg}")})";
-
-    /// <summary>Keyed REWRITE — <c>CobolFile.RewriteKeyed</c>.</summary>
-    public static string FileRewriteKeyed(string name, string image, string? lenArg = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RewriteKeyed)}({name}, {image}{(lenArg is null ? "" : $", {lenArg}")})";
-
-    /// <summary>DELETE RECORD — <c>CobolFile.DeleteRecord</c> (key sliced from the record-area image, GR3/GR8).</summary>
-    public static string FileDeleteRecord(string name, string areaImage) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteRecord)}({name}, {areaImage})";
 
     /// <summary>DELETE FILE (Format 2, every organization) — <c>CobolFile.DeleteFile</c>.</summary>
     public static string FileDeleteFile(string name, string overridden) =>
@@ -884,17 +883,6 @@ internal static class RuntimeApi
     /// <summary>The IMPLICIT close (§14.9.5 GR9 — only a connector "that is open") — <c>CobolFile.CloseIfOpen</c>.</summary>
     public static string FileCloseIfOpen(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.CloseIfOpen)}({name})";
-
-    /// <summary>Sequential READ into an out-image — <c>CobolFile.Read</c>. <paramref name="previous"/> is
-    /// §14.9.30.4 GR19's read kind rendered as a bool literal; the implicit SORT USING loop passes "false".</summary>
-    public static string FileRead(string name, string previous, string imgVar) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Read)}({name}, {previous}, out var {imgVar})";
-
-    /// <summary>Sequential WRITE without optional phrases (the implicit GIVING loop shape) — <c>CobolFile.Write</c>.
-    /// <paramref name="lenArg"/> = the §13.18.43 GR13a varying-length argument (null renders the fixed-record -1);
-    /// <paramref name="pageArg"/> = the executing element's LINAGE page (<see cref="LinagePageExpr"/>).</summary>
-    public static string FileWrite(string name, string image, string? lenArg, string pageArg) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Write)}({name}, {image}, {lenArg ?? "-1"}, {pageArg})";
 
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment.</summary>
@@ -975,15 +963,6 @@ internal static class RuntimeApi
     public static string FileUnlock(string name, string records) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.Unlock)}({name}, {records})";
 
-    /// <summary>WRITE … ADVANCING — <c>CobolFile.WriteAdvancing</c>; <paramref name="pageArg"/> is the executing
-    /// element's LINAGE page (§13.18.34 GR6 b) 2/3 read the operands DURING the WRITE).</summary>
-    public static string FileWriteAdvancing(string name, string image, string lines, string before, string pageArg) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteAdvancing)}({name}, {image}, {lines}, {before}, {pageArg})";
-
-    /// <summary>WRITE … BEFORE ADVANCING n AFTER ADVANCING m (ISO §14.9.51, 2023) — <c>CobolFile.WriteBeforeAndAfter</c>.</summary>
-    public static string FileWriteBeforeAndAfter(string name, string image, string beforeLines, string afterLines, string pageArg) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteBeforeAndAfter)}({name}, {image}, {beforeLines}, {afterLines}, {pageArg})";
-
     /// <summary>The LINAGE end-of-page probe (§13.18.34) — <c>CobolFile.EndOfPage</c>.</summary>
     public static string FileEndOfPage(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.EndOfPage)}({name})";
@@ -995,10 +974,6 @@ internal static class RuntimeApi
     /// <summary>The open-mode ordinal of a connector (the USE mode-scope switch) — <c>CobolFile.OpenModeOf</c>.</summary>
     public static string FileOpenModeOf(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenModeOf)}({name})";
-
-    /// <summary>Sequential REWRITE — <c>CobolFile.Rewrite</c> (optional varying-length argument).</summary>
-    public static string FileRewrite(string name, string image, string? lenArg = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Rewrite)}({name}, {image}{(lenArg is null ? "" : $", {lenArg}")})";
 
     /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
     public static string FileLastReadLength(string name) =>
