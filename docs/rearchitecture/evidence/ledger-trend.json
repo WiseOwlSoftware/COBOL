@@ -333,6 +333,15 @@
       "dns": 364,
       "label": "Train 13 narrative (plan §0",
       "battery": null
+    },
+    {
+      "sha": "f86a5764",
+      "date": "2026-09-06",
+      "gap": 2815,
+      "closed": 1556,
+      "dns": 364,
+      "label": "Battery #57 NOT GREEN at c34",
+      "battery": null
     }
   ]
 }
