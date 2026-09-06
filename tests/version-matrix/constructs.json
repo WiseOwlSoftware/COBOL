@@ -113,7 +113,7 @@
   {
    "id": "invoke-2002",
    "status": "active",
-   "description": "INVOKE (OO method call), ISO §14.9.23 — introduced 2002. LIVE since the Phase-3 spine part 2 (DEVLOG 601): Class NEW RETURNING → new C(); no-arg instance INVOKE → virtual call behind the EC-OO-NULL guard (§14.9.23.4 GR5); USING/RETURNING marshaling (slice 2), SELF/SUPER (3b), factory and universal dispatch stage loud. Below 2002 the grammar gate + W1.5 mapping name the edition (0900).",
+   "description": "INVOKE (OO method call), ISO §14.9.23 — introduced 2002. LIVE since the Phase-3 spine part 2 (DEVLOG 601): Class NEW RETURNING → new C(); no-arg instance INVOKE → virtual call behind the EC-OO-NULL guard (§14.9.23.4 GR5); USING/RETURNING marshaling (slice 2), SELF/SUPER (3b), factory and universal dispatch stage loud. Below 2002 the VersionConformancePass parse arm names the edition on RECOGNITION (VisitInvokeStatement -> 0900) — invokeStatement carries no version predicate, so an INVOKE whose target does not resolve names its edition too (kb/Work PB353).",
    "display": "INVOKE",
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §14.9.23 (OO)",
@@ -1449,10 +1449,10 @@
   },
   {
    "id": "start-with-length-2002",
-   "description": "START KEY ... WITH LENGTH phrase (variable-length key comparison), ISO 14.9.41 - provisional 2002 edge. Grammar-gated (startKeyPhrase {is2002()}?); W1.5 parse-layer 0900 mapping below 2002.",
+   "description": "START KEY ... WITH LENGTH phrase (variable-length key comparison), ISO 14.9.41.2 prints it as `[ WITH LENGTH arithmetic-expression-1 ]` - provisional 2002 edge. Gated on RECOGNITION in the VersionConformancePass parse arm (VisitStartWithLength -> 0900 below 2002); startKeyPhrase carries no version predicate, so an ill-organized or unbindable START still names the edition (kb/Work PB353).",
    "display": "the START KEY … WITH LENGTH phrase",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §14.9.41 (provisional 2002 edge); grammar-gated (startKeyPhrase); W1.5 parse-layer 0900 mapping",
+   "citation": "ISO §14.9.41.2 (provisional 2002 edge) — the printed [ WITH LENGTH arithmetic-expression-1 ] bracket; §14.9.41.3 SR8 confines it to indexed organization",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",

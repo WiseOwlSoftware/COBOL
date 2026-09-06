@@ -18,7 +18,7 @@
 > **TWO-ARM ARCHITECTURE (the load-bearing invariant).** NO `.Syntax`/raw parse context is added to any bound node
 > — the `BoundTree.cs` invariant STANDS. The pass (`VersionConformancePass.cs`) is **TWO-ARM**:
 > (1) a BOUND-tree arm that re-identifies gates by bound-node TYPE or a resolved semantic ATTRIBUTE (the
-> genuinely-semantic gates — MOVE-category, the file-org/USAGE/pointer-conditioned statement gates, and the
+> genuinely-semantic gates — MOVE-category, the USAGE/PICTURE-category and pointer-conditioned gates, and the
 > DATA/PICTURE/OO attribute gates over every source-declared item); (2) a **presence-based PARSE-tree arm**
 > (`ParseArm`, over `GroupBindContext.Tree`, running AFTER bind so a construct's semantic errors also accumulate) for
 > the SYNTACTIC introduction/removal/phrase/expression/literal gates + the §8.9 reserved-word funnel — it ABSORBED
@@ -137,11 +137,22 @@ after parsing — never by a grammar action or a side table keyed on the parse n
   `RaisingClause2002`"*; `constructs.json`/`ConstructRegistry` remains the sole owner of *"that construct requires 2002 /
   was removed at 2023."* No version facts in two places → no drift. The parse (or bound) shape says *what*, the table
   says *which edition*.
-- **Semantic gates → the bound-tree arm keys on the resolved fact.** Where a bound-node *type* is already
-  self-identifying (e.g. a distinct `BoundUnlockStatement`), or the identity is a RESOLVED bound attribute (a MOVE's
-  source × receiver picture, an item's USAGE / PICTURE category, a file-org/pointer condition) rather than mere
-  presence, the bound-tree arm switches on the bound node instead. Use the bound arm where the construct's identity
-  is a semantic fact; use the parse arm where it is the construct's syntactic recognition.
+- **Semantic gates → the bound-tree arm keys on the resolved fact.** Where the identity is a RESOLVED bound
+  attribute — a MOVE's source × receiver picture, an item's USAGE / PICTURE category, the operand USAGE that
+  separates `SET × UP BY n`'s index form from its pointer form, the resolved category that re-routes a generic
+  `SET a TO b` onto Format 5 or Format 16 — rather than mere presence, the bound-tree arm switches on the bound
+  node instead.
+- **The test is "WHICH RESOLVED FACT?", and a self-identifying bound-node TYPE is NOT an answer** (kb/Work
+  PB353). That was the original wording, and it is what put five gates on the wrong arm: `BoundKeyedStart.Mode`,
+  `BoundKeyedStart.Length`, `IBoundRead.Kind`, `IBoundRead.AdvancingOnLock` and `BoundInvoke` are all
+  self-identifying, and all five are assigned from a PARSE fact and nothing else — so the bound-tree home bought
+  no precision and cost the diagnostic on every path that returned `BoundUnsupported`/`BoundNop` before the node
+  existed. `START NOSUCHF FIRST` at `--std 85` named COBOLNET1639 and no edition; so did `START SDF FIRST` on an
+  SD, `START IXF KEY = NOSUCHK WITH LENGTH 3`, `READ NOSUCHF PREVIOUS ADVANCING ON LOCK` (two phrases at once)
+  and `INVOKE NOSUCHO "M1"`. A gate belongs on the bound arm only when NO parse rule identifies the construct;
+  everything else fires on recognition. `EditionGateArmDriftTests` derives both arms from the pass source and
+  requires every bound-arm construct to name the resolved fact it needs, so the assignment is enforced rather
+  than remembered.
 
 ### 2.3 Forward-detection (only where disambiguation is load-bearing)
 Two constructs cannot be ungated outright without mis-parsing a valid below-edition program (§4 #2, #4). They keep a
@@ -371,6 +382,11 @@ finally funnels every bind-time `Check` into the one pass.
   also fails to bind), and only a genuinely-semantic gate (identity = a resolved bound attribute) belongs on the
   bound-tree arm. No `.Syntax`/parse back-reference is added to a bound node to bridge the two (the BoundTree
   invariant); a misassigned syntactic gate would silently drop its diagnostic on a semantic-error path.
+  **This risk MATERIALIZED for five gates and is now mechanically closed** (kb/Work PB353): the misassignment is
+  no longer a review question but two CI facts — `EditionGateArmDriftTests` requires every BOUND-arm construct to
+  name the resolved fact that keeps it there (and forbids an unadjudicated construct gated from both arms), and
+  its survival theory recompiles every gated construct's own `constructs.json` program with the
+  procedure-division operands broken, requiring the edition diagnostic to outlive the bind.
 
 ## 7. SSOT / doc impact
 

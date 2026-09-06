@@ -97,10 +97,12 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// universal/dynamic dispatch (D10 wave) stage loud.</summary>
     public BoundStatement OoBindInvoke(Core.InvokeStatementContext inv)
     {
-        // INVOKE (§14.9.23, OO) is a COBOL-2002 introduction; the edition gate moved to the post-bind
-        // VersionConformancePass (Step 14e), firing on the BoundInvoke / BoundInvokeUniversal node this explicit
-        // statement produces. (A synthesized property-op BoundInvoke also gates, but property use is itself 2002+,
-        // so a below-2002 program using it is already rejected — the over-fire is on an already-errored unit.)
+        // INVOKE (§14.9.23, OO) is a COBOL-2002 introduction; the edition gate fires on RECOGNITION in the
+        // VersionConformancePass parse arm (VisitInvokeStatement), never on the BoundInvoke node this method
+        // builds. It keyed on the node until kb/Work PB353, which was wrong BOTH ways: an INVOKE whose target
+        // resolves to neither a data item nor a class returns COBOLNET0823 before any node exists (so a
+        // below-2002 INVOKE named no edition at all), and BoundInvoke is equally the bound form of a synthesized
+        // property get/set and of NEW / SELF-NEW, none of which is "the INVOKE statement".
         var target = inv.invokeTarget().objectReference();
 
         // The method selector: an alphanumeric/national literal binds statically (§14.9.23.3 SR2);

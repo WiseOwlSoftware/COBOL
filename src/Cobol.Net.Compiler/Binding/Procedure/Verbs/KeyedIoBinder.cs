@@ -19,8 +19,11 @@ using Core = CobolParserCore;
 /// <summary>P7 Step 10h: a real collaborator over <see cref="BinderContext"/> — the SeqIo↔KeyedIo cycle
 /// mirrors the emitter side (SequentialIoBinder holds THIS binder for the org reroutes; the WRITE/REWRITE
 /// FROM operand reaches back through <c>host.SeqIo.WriteSource</c>). The nine bound
-/// types stayed in <c>Binding/Bound/BoundKeyedIo.cs</c> — the VersionConformancePass edition gates fire on
-/// their SHAPE (Kind/Mode/Length/AdvancingOnLock).
+/// types stayed in <c>Binding/Bound/BoundKeyedIo.cs</c>. This binder is edition-AGNOSTIC and holds ZERO
+/// <c>Check</c> calls: every I/O phrase gate fires on RECOGNITION in the VersionConformancePass PARSE arm, so a
+/// statement this binder refuses — an undeclared file, an unresolvable key operand, an SD — still names the
+/// edition of the phrase it wrote (kb/Work PB353; the Kind/Mode/Length/AdvancingOnLock members no longer carry a
+/// gate at all).
 /// <para>⛔ IT SCREENS STATEMENTS, NOT ENTRIES. A <c>KeyedValidateFile</c> here used to check the FILE CONTROL
 /// ENTRY's own syntax rules on the first keyed verb that named the file, behind a <c>_keyedCheckedFiles</c> memo
 /// that existed only to make that once-per-file — so an entry whose keys break those rules compiled clean when
@@ -48,8 +51,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
         bool next = r.readDirection()?.NEXT() is not null;
         bool previous = r.readDirection()?.PREVIOUS() is not null;
-        // READ PREVIOUS (§14.9.30 Format 1) is a COBOL-2002 introduction; the edition gate moved to the post-bind
-        // VersionConformancePass (Step 14c), firing on the IBoundRead.Kind both READ nodes now share.
+        // READ PREVIOUS (§14.9.30 Format 1) is a COBOL-2002 introduction; the edition gate lives in the
+        // VersionConformancePass PARSE arm (VisitReadDirection), firing on the printed phrase, not on this
+        // binder's IBoundRead.Kind — which a refused READ never reaches (kb/Work PB353).
 
         // §14.9.30.3 SR6 — the ONE check, shared with the sequential arm (kb/Work PB334). Gated through the ONE
         // severity seam (kb/Work PB144): an error under strict, a warning under --permissive with the bind
@@ -102,8 +106,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 else keyIndex = ki;
             }
         }
-        // READ … ADVANCING ON LOCK (§14.9.30 record-lock phrase, COBOL-2002); the edition gate moved to the
-        // post-bind VersionConformancePass (Step 14c), firing on BoundKeyedRead.AdvancingOnLock.
+        // READ … ADVANCING ON LOCK (§14.9.30 record-lock phrase, COBOL-2002); the edition gate lives in the
+        // VersionConformancePass PARSE arm (VisitReadAdvancingOnLock), beside its two printed siblings
+        // (IGNORING LOCK, the retention phrase) — one construct id, one arm (kb/Work PB353).
         // The two INDEPENDENT lock brackets of §14.9.30.2 (kb/Work PB331): bracket 2 (retention) binds first,
         // because SR3 tests bracket 1's IGNORING LOCK against it. Same shape as SequentialIoBinder.BindRead —
         // both READ arms, so the split cannot be half-applied (feedback_two_arm_dispatch).
@@ -200,8 +205,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     }
 
     /// <summary>Bind <c>DELETE FILE file</c> (ISO §14.9.10 Format 2 — COBOL-2023). The construct parses at every
-    /// edition; its introduction gate moved to the post-bind VersionConformancePass (rearch PHASE-03 Step 14b),
-    /// firing on the self-identifying <see cref="BoundKeyedDeleteFile"/> node (COBOLNET0900 below 2023).</summary>
+    /// edition; its introduction gate fires on RECOGNITION in the VersionConformancePass parse arm
+    /// (<c>VisitDeleteFileStatement</c>, Step 14h.2 — COBOLNET0900 below 2023), so an undeclared file-name names
+    /// its edition too; no <c>BoundKeyedDeleteFile</c> node is involved in the gate.</summary>
     public BoundStatement BindDeleteFile(Core.DeleteFileStatementContext df)
     {
         // §14.9.10.2 Format 2 (kb/Work PB134): [OVERRIDE] {file-name-1}…. GR12: multiple names execute as if
@@ -240,8 +246,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// SR4: neither operand may be subject to an OCCURS clause; SR5: a relative operand shall be the RELATIVE
     /// KEY item; SR6: an indexed operand is a record key (a) or a same-class/category/usage leftmost-coincident
     /// shorter item (b — the generic key); SR8: WITH LENGTH requires indexed organization; GR8/GR15: a missing
-    /// KEY phrase means EQUAL on the relative key / prime key. FIRST/LAST are 2002+ (gated on the bound node's
-    /// Mode by the post-bind VersionConformancePass).</summary>
+    /// KEY phrase means EQUAL on the relative key / prime key. FIRST/LAST are 2002+, gated on RECOGNITION in the
+    /// VersionConformancePass parse arm (VisitStartStatement) — never on the node this method may not build.</summary>
     public BoundStatement BindStart(Core.StartStatementContext st)
     {
         string name = st.fileName().GetText();
@@ -262,8 +268,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
         if (st.FIRST() is not null || st.LAST() is not null)
         {
-            // START FIRST/LAST (§14.9.41) is a COBOL-2002 introduction; the edition gate moved to the post-bind
-            // VersionConformancePass (Step 14c), firing on BoundKeyedStart.Mode ∈ {First, Last}. This is the
+            // START FIRST/LAST (§14.9.41) is a COBOL-2002 introduction; the edition gate fires on RECOGNITION in
+            // the VersionConformancePass parse arm (VisitStartStatement), never on BoundKeyedStart.Mode. This is the
             // ONLY form §14.9.41.3 SR2 leaves open on a sequential-organization file, and it binds for all three
             // organizations — the connector answers GR11/GR12 (relative), GR18/GR19 (indexed) or GR20/GR21
             // (sequential) on the ONE CobolFile.StartFirstLast entry.
@@ -285,8 +291,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + "'IS NOT EQUAL TO' (ISO §14.9.41 SR3)");
             op = "==";
         }
-        // WITH LENGTH (§14.9.41 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate moved
-        // to the post-bind VersionConformancePass (Step 14c), firing on BoundKeyedStart.Length != null. SR8 tests
+        // WITH LENGTH (§14.9.41 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate fires
+        // on RECOGNITION in the VersionConformancePass parse arm (VisitStartWithLength). SR8 tests
         // the PHRASE against the ORGANIZATION and needs no operand, so it is screened before the operand resolves.
         BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? host.Expr.BindExpr(le) : null;
         if (length is not null && file.Organization != FileOrganization.Indexed)

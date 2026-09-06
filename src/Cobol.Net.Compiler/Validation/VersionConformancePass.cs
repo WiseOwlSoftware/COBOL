@@ -31,12 +31,20 @@ namespace CobolNet.Validation;
 /// must name its edition even when the below-edition construct ALSO has a semantic error: the bound node it would
 /// have produced is dropped (<c>BoundUnsupported</c>/<c>BoundNop</c>) on that path, but its PARSE node is always
 /// present (the load-bearing finding, DEVLOG 724 — a bound-arm intro gate silently dropped the 0900).</item>
-/// <item><b>Bound-tree arm</b> (<see cref="GateStatement"/>/<see cref="GateMove"/>) — the END-STATE home of only
-/// the genuinely-SEMANTIC gates whose identity is a RESOLVED bound fact, never mere presence: MOVE
-/// figurative-category (source × each receiver's picture), and the gates conditioned on file-organization /
-/// access-mode / USAGE / pointer-category (SET object-reference, SET pointer UP/DOWN, INVOKE, READ PREVIOUS,
-/// START FIRST/LAST, START WITH LENGTH, READ ADVANCING ON LOCK). A naive parse-arm would over- or under-fire
-/// these. No bound node carries a raw parse context — the <c>BoundTree.cs</c> invariant stands.</item>
+/// <item><b>Bound-tree arm</b> (<see cref="GateStatement"/>/<see cref="GateMove"/>/<see cref="GateData"/>) — the
+/// END-STATE home of only the genuinely-SEMANTIC gates whose identity is a RESOLVED bound fact, never mere
+/// presence: MOVE figurative-category (source × each receiver's picture), the SET forms one grammar rule cannot
+/// tell apart (object-reference vs pointer arithmetic vs dynamic-length SIZE, all spelled <c>SET x TO y</c>),
+/// the PicInfo USAGE/PICTURE-category gates and the prototype gate. A parse-arm
+/// home would over- or under-fire exactly these. No bound node carries a raw parse context — the
+/// <c>BoundTree.cs</c> invariant stands.
+/// <para>⛔ THE TEST FOR THIS ARM IS "WHICH RESOLVED FACT?", AND IT IS ENFORCED, NOT REMEMBERED.
+/// <c>EditionGateArmDriftTests</c> derives both arms' construct ids from this file and requires every bound-arm
+/// id to carry an adjudicated reason naming that fact — because for four gates the classification was simply
+/// wrong (READ PREVIOUS / READ ADVANCING ON LOCK / START FIRST-LAST / START WITH LENGTH, each keyed on a bound
+/// member assigned from a parse fact alone), and the cost was silent: every bail-out path that returned
+/// <c>BoundUnsupported</c>/<c>BoundNop</c> before the node existed compiled a post-85 construct at
+/// <c>--std 85</c> without naming the edition (kb/Work PB353, Step 14h.5).</para></item>
 /// </list>
 /// The two arms are disjoint: a <c>Check</c> for any one construct fires from EXACTLY one arm, the losing site
 /// deleted as its twin lands. <b>Migration state:</b> Step 14h (DONE) moved every SYNTACTIC statement/expression/
@@ -255,31 +263,18 @@ internal sealed class VersionConformancePass
 
             // (OPEN-SHARING / GOBACK-RETURNING / CALL-BY-VALUE / CALL-ON-OVERFLOW / STOP-RUN-STATUS / END-ACCEPT —
             // phrase gates whose presence is purely syntactic — migrated to the ParseArm in Step 14h.3.)
-            case BoundInvoke or BoundInvokeUniversal:
-                Check(Constructs.Invoke2002, "the INVOKE statement"); break;
+            // (INVOKE — migrated to the ParseArm in Step 14h.5 with the four I/O phrase gates below. `case
+            // BoundInvoke` was BOTH under- and over-inclusive: under, because an INVOKE whose target does not
+            // resolve returns before the node exists (measured — `INVOKE NOSUCHO "M1"` at --std 85 named
+            // COBOLNET0823 and no edition); over, because BoundInvoke is ALSO the bound form of a PROPERTY
+            // get/set re-write and of NEW / SELF-NEW (OoBinder), none of which is "the INVOKE statement".)
             case BoundMove mv:
                 GateMove(mv); break;
-            // ⛔ ONE ARM FOR BOTH READ NODES (kb/Work PB334). This was TWO arms — `case BoundKeyedRead`
-            // gating PREVIOUS and ADVANCING ON LOCK, `case BoundRead` beside it gating only ADVANCING ON LOCK —
-            // and the missing half was not a typo but the shape: the sequential node had no direction member at
-            // all, so `READ SQF PREVIOUS RECORD` compiled clean at `--std 85` while the keyed arm rejected the
-            // identical phrase. Gating over IBoundRead means a rule written on the read's direction cannot be
-            // written for one organization only (feedback_two_arm_dispatch).
-            case IBoundRead rd:
-                // Two independent 2002 phrases on one READ; both gate, in the binder's order (§14.9.30).
-                if (rd.Kind == ReadKind.Previous)
-                    Check(Constructs.ReadPrevious2002, "READ … PREVIOUS");
-                if (rd.AdvancingOnLock)
-                    Check(Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
-                break;
-            case BoundKeyedStart ks:
-                // START FIRST/LAST positioning (§14.9.41) and the WITH LENGTH partial-key phrase — two independent
-                // 2002 introductions; both gate, in the binder's order.
-                if (ks.Mode is KeyedStartMode.First or KeyedStartMode.Last)
-                    Check(Constructs.StartFirstLast2002, $"START {(ks.Mode == KeyedStartMode.Last ? "LAST" : "FIRST")}");
-                if (ks.Length is not null)
-                    Check(Constructs.StartWithLength2002, "the START … WITH LENGTH phrase");
-                break;
+            // (READ PREVIOUS / READ ADVANCING ON LOCK / START FIRST-LAST / START WITH LENGTH — four PHRASE gates
+            // this arm used to own on the shape of BoundKeyedRead / BoundRead / BoundKeyedStart. They are
+            // recognition gates, migrated to the ParseArm in Step 14h.5: kb/Work PB353 measured that each is
+            // decided by the PRESENCE of a printed phrase and by nothing the bind resolves, so a bound-tree home
+            // bought nothing and cost the diagnostic on every path that bails out before the node is built.)
         }
     }
 
@@ -1715,8 +1710,10 @@ internal sealed class VersionConformancePass
         /// <summary>The verb lock-RETENTION phrase (WITH LOCK / WITH NO LOCK) on READ/WRITE/REWRITE
         /// (ISO §14.9.30/.51/.35) — a COBOL-2002 introduction. The where-string names the verb from the parent
         /// statement type (matching CheckRecordLockPhrase's <c>verb</c> argument). DISTINCT from the READ …
-        /// ADVANCING ON LOCK occurrence (same constructId, a different where-string) that STAYS bound-arm — both
-        /// can fire on one READ; they are not merged.</summary>
+        /// ADVANCING ON LOCK occurrence (same constructId, a different where-string —
+        /// <see cref="VisitReadAdvancingOnLock"/>, moved here from the bound arm by kb/Work PB353) and from
+        /// IGNORING LOCK: §14.9.30.2 prints all three as separate syntax elements, all three now gate on
+        /// recognition, and a READ writing more than one reports the introduction once per phrase.</summary>
         public override object? VisitRecordLockPhrase(CobolParserCore.RecordLockPhraseContext ctx)
         {
             string verb = ctx.Parent switch
@@ -1738,6 +1735,92 @@ internal sealed class VersionConformancePass
         public override object? VisitReadIgnoringLock(CobolParserCore.ReadIgnoringLockContext ctx)
         {
             _p.Check(Constructs.RecordLockPhrase2002, "a record-lock phrase on READ");
+            return base.VisitChildren(ctx);
+        }
+
+        // ── Step 14h.5: the four I/O PHRASE gates that stayed on the bound arm (kb/Work PB353) ────────────────
+        // ⛔ THEY WERE CLASSIFIED "SEMANTIC" AND THEY ARE NOT. The bound arm keyed them on
+        // `BoundKeyedStart.Mode ∈ {First,Last}`, `BoundKeyedStart.Length != null`, `IBoundRead.Kind == Previous`
+        // and `IBoundRead.AdvancingOnLock` — and every one of those members is assigned from a PARSE fact alone
+        // (`st.FIRST()/st.LAST()`, `kp.startWithLength()`, `readDirection PREVIOUS`, `readAdvancingOnLock`), with
+        // no file organization, access mode, USAGE or category anywhere in the decision. So the bound-tree home
+        // bought no precision and cost the diagnostic on every path that bails out BEFORE the node is built.
+        // MEASURED at --std 85 before this move: `START NOSUCHF FIRST` → COBOLNET1639 alone; `START SDF FIRST`
+        // on an SD → COBOLNET1692 alone; `START IXF KEY = NOSUCHK WITH LENGTH 3` → COBOLNET1639 + the PB236
+        // deferral alone; `READ NOSUCHF PREVIOUS ADVANCING ON LOCK` → COBOLNET1639 alone. Four statements
+        // naming a post-85 construct, four compilations that never named the edition.
+        // The where-strings are byte-identical to the bound-arm sites they replace.
+
+        /// <summary>The INVOKE statement (ISO §14.9.23) — a COBOL-2002 introduction. <c>invokeStatement</c> is a
+        /// dedicated grammar rule reached from exactly one place (<c>StatementBinder</c> → <c>OoBindInvoke</c>),
+        /// so presence IS the gate — and recognition fixes both halves of the bound arm's <c>case BoundInvoke</c>:
+        /// an INVOKE whose target resolves to neither a data item nor a class returns COBOLNET0823 before any
+        /// node exists (it named no edition at --std 85), and <c>BoundInvoke</c> is equally the bound form of a
+        /// PROPERTY get/set re-write and of NEW / SELF-NEW, which the where-string called "the INVOKE
+        /// statement" (kb/Work PB353).</summary>
+        public override object? VisitInvokeStatement(CobolParserCore.InvokeStatementContext ctx)
+        { _p.Check(Constructs.Invoke2002, "the INVOKE statement"); return base.VisitChildren(ctx); }
+
+        /// <summary>START … FIRST / … LAST (ISO §14.9.41.2 general format — <c>cite.py --check 14.9.41.2 "FIRST"</c>
+        /// OK, the printed alternative stack <c>FIRST | LAST | KEY …</c>) — a COBOL-2002 introduction. FIRST and
+        /// LAST are ONE construct gated once, and §14.9.41.3 SR2 ("If the organization of the file referenced by
+        /// file-name-1 is sequential, either the FIRST or the LAST phrase shall be specified" —
+        /// <c>cite.py --check 14.9.41.3</c> OK) makes the phrase MANDATORY on a sequential file rather than
+        /// different there, so the gate cannot depend on the organization and must not be reachable only through
+        /// the arm that resolves one.</summary>
+        public override object? VisitStartStatement(CobolParserCore.StartStatementContext ctx)
+        {
+            if (ctx.FIRST() is not null || ctx.LAST() is not null)
+                _p.Check(Constructs.StartFirstLast2002, $"START {(ctx.LAST() is not null ? "LAST" : "FIRST")}");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>START … KEY … WITH LENGTH (ISO §14.9.41.2 — the printed <c>[ WITH LENGTH
+        /// arithmetic-expression-1 ]</c> bracket; <c>cite.py --check 14.9.41.2 "arithmetic-expression-1"</c> OK
+        /// lands on that very line — quote the operand, not <c>"WITH LENGTH"</c>, which the underline markup
+        /// splits) — a COBOL-2002 introduction, one Check per phrase. Its own
+        /// override rather than a branch of the START one because <c>startWithLength</c> is its own grammar rule
+        /// with exactly one use site (<c>startKeyPhrase</c>), so presence IS the gate. §14.9.41.3 SR8 ("If the
+        /// LENGTH phrase is specified, file-name-1 shall reference a file with indexed organization" —
+        /// <c>cite.py --check 14.9.41.3 "If the LENGTH phrase is specified, file-name-1 shall reference a file
+        /// with indexed organization"</c> OK) restricts the phrase to indexed organization; that is a SYNTAX RULE
+        /// the binder reports separately and NOT this gate's business — an ill-organized START must still name the
+        /// edition of the phrase it wrote.</summary>
+        public override object? VisitStartWithLength(CobolParserCore.StartWithLengthContext ctx)
+        {
+            _p.Check(Constructs.StartWithLength2002, "the START … WITH LENGTH phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>READ … PREVIOUS (ISO §14.9.30.2 Format 1 braces) — a COBOL-2002 introduction. The gate is on
+        /// the PREVIOUS alternative of <c>readDirection</c> only: NEXT is the non-underlined default alternative
+        /// (§14.9.30.3 SR8 — <c>cite.py --check 14.9.30.3 "the PREVIOUS phrase"</c> OK: "If neither the NEXT
+        /// phrase nor the PREVIOUS phrase is specified and ACCESS MODE SEQUENTIAL is specified … the NEXT phrase
+        /// is implied"), so an implied direction is not a written phrase and does not gate. ONE override serves
+        /// the sequential and the keyed READ alike — <c>readDirection</c> has a single use site — which is the
+        /// organization-independence kb/Work PB334 won for the bound arm, now unconditional.</summary>
+        public override object? VisitReadDirection(CobolParserCore.ReadDirectionContext ctx)
+        {
+            if (ctx.PREVIOUS() is not null)
+                _p.Check(Constructs.ReadPrevious2002, "READ … PREVIOUS");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>READ … ADVANCING ON LOCK (ISO §14.9.30.2 bracket 1) — the SAME COBOL-2002 record-lock
+        /// introduction as <see cref="VisitRecordLockPhrase"/> and <see cref="VisitReadIgnoringLock"/>, and the
+        /// last of the three printed lock spellings to reach the parse arm. ⛔ Until kb/Work PB353 this ONE
+        /// construct id fired from BOTH arms — two of its three spellings on recognition, this one on
+        /// <c>IBoundRead.AdvancingOnLock</c> — which is precisely the "a Check for any one construct fires from
+        /// EXACTLY one arm" invariant this pass documents, broken. §14.9.30.3 SR6 ("None of the phrases ADVANCING,
+        /// AT END, NEXT, NOT AT END, or PREVIOUS shall be specified if ACCESS MODE RANDOM is specified in the file
+        /// control entry for file-name-1" — <c>cite.py --check 14.9.30.3 "ADVANCING"</c> OK) restricts WHERE the
+        /// phrase may be written; <c>Validation.CheckReadRandomAccessPhrases</c> reports that from the binder, and
+        /// the EDITION of the phrase is not conditional on the access mode the binder resolves.
+        /// The where-string is the bound arm's, not the retention phrase's — the two are distinct occurrences and
+        /// a READ writing both still reports the introduction once per phrase.</summary>
+        public override object? VisitReadAdvancingOnLock(CobolParserCore.ReadAdvancingOnLockContext ctx)
+        {
+            _p.Check(Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
             return base.VisitChildren(ctx);
         }
 

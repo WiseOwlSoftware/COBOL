@@ -425,7 +425,9 @@ readLockContentionPhrase
     ;
 
 // COBOL-2002 READ … ADVANCING ON LOCK (ISO §14.9.30 GR22): skip-scan locked records on NEXT/PREVIOUS.
-// Introduction-gated at BIND time on BoundRead/BoundKeyedRead.AdvancingOnLock (Check(RecordLockPhrase2002)).
+// Introduction-gated in the VersionConformancePass parse arm (VisitReadAdvancingOnLock -> Check(RecordLockPhrase2002)),
+// beside its two printed siblings; it was gated on BoundRead/BoundKeyedRead.AdvancingOnLock until kb/Work PB353,
+// which measured that a READ the binder refuses never builds the node and so never named the edition.
 // `ON` is an OPTIONAL WORD: printed page 722 underlines ADVANCING and LOCK and NOT ON (`figure_extract.py 722`
 // → `_ADVANCING_ ON _LOCK_`), and §5.2.3 makes a non-underlined word one that "may be specified" — so
 // `READ … ADVANCING LOCK` is conforming source. It was rejected `error COBOL0001: missing token before 'LOCK'`
@@ -522,7 +524,7 @@ writeStatement
       writeFrom?
       writeBeforeAfter?
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
-      (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
+      (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
       writeAtEndOfPage?
       writeInvalidKey?
       END_WRITE?
@@ -621,7 +623,7 @@ rewriteStatement
     : REWRITE (recordName | FILE fileName) RECORD?
       rewriteFrom?
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
-      (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
+      (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
       rewriteInvalidKeyPhrase?
       END_REWRITE?
 
@@ -737,7 +739,7 @@ startStatement
 // The operand SET is a different question — `comparisonOperator` is the condition language's whole operator
 // list, wider than the §8.8.4.2 general-relation format SR3 admits here (kb/Work PB333).
 startKeyPhrase
-    : KEY comparisonOperator dataReference startWithLength?   // WITH LENGTH introduction-gated at BIND time (StatementBinder.KeyedIo → Check(StartWithLength2002))
+    : KEY comparisonOperator dataReference startWithLength?   // WITH LENGTH introduction-gated in the VersionConformancePass parse arm (VisitStartWithLength → Check(StartWithLength2002))
     ;
 
 // ISO §14.9.41.2 prints `[ WITH LENGTH arithmetic-expression-1 ]` with LENGTH underlined and WITH NOT

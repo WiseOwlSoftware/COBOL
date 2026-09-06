@@ -782,7 +782,7 @@ statement
     | generateStatement
     | terminateStatement
     | suppressStatement   // §14.9.45 — SUPPRESS PRINTING; SR1/GR1 (USE-BEFORE-REPORTING context) enforced at bind
-    | invokeStatement   // introduction-gated at BIND time (StatementBinder.Oo → Check(Invoke2002))
+    | invokeStatement   // introduction-gated in the VersionConformancePass parse arm (VisitInvokeStatement → Check(Invoke2002))
     | {is2023()}? inlineMethodInvocationStatement
     // ── Wave H: RECOGNIZE-AND-NAME the facilities COBOL.NET does not implement. TWO LICENCES, one posture
     //    (kb/Work PB709): RECEIVE / SEND (Annex A.3 item 4) and COMMIT / ROLLBACK (A.3 items 6-7) are

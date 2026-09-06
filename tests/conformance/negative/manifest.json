@@ -883,7 +883,12 @@
   "pb770-alphabet-syn-definition-1849",
   "pb725-directive-facility-below-2002",
   "pb725-push-pop-display-below-2023",
-  "pb725-flag-85-removed-2023"
+  "pb725-flag-85-removed-2023",
+  "pb353-start-first-unbindable-file-names-its-edition",
+  "pb353-start-with-length-unbindable-names-its-edition",
+  "pb353-read-previous-unbindable-file-names-its-edition",
+  "pb353-read-advancing-on-lock-unbindable-names-its-edition",
+  "pb353-invoke-unbindable-target-names-its-edition"
  ],
  "pending": []
 }
