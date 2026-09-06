@@ -3,6 +3,8 @@
  "enabled": [
   "pb739_shared_extend_write",
   "pb713_shared_extend_open",
+  "pb704_sort_duplicates_gr3_arms",
+  "pb704_sort_duplicates_in_order",
   "pb695_special_names_for_omitted",
   "pb695_object_computer_optional_words",
   "pb695_options_and_set_optional_words",

@@ -2119,19 +2119,14 @@ internal sealed class VersionConformancePass
                 && locale.cobolWord() is { Length: > 1 } localeWords
                 && !ReferenceEquals(ctx, localeWords[1]))
                 return base.VisitChildren(ctx);
-            // The SPECIAL-NAMES ORDER TABLE clause (§12.3.7.2 general format:
-            // `ORDER TABLE ordering-name-1 IS literal-9`; kb/Work PB101). The PB27 shape again — ORDER is not a
-            // lexer token, so the clause's OWN KEYWORD is grammar-matched as a cobolWord and the funnel would
-            // report `'ORDER' is a reserved word … and cannot be used as a user-defined word` about a program
-            // that uses it as nothing of the sort (ORDER is reserved from 2002, reserved-words.json r2002).
-            // ⚠ POSITION-EXACT, because the two cobolWord slots are two different KINDS of word:
-            //   [0] the keyword ORDER   — a use OF the reserved word          → exempt
-            //   [1] ordering-name-1     — a genuine USER-DEFINED word (§12.3.7.3 SR9 lets it be referenced only
-            //       in STANDARD-COMPARE, but it is DECLARED here)             → stays funneled
-            if (ctx.Parent is CobolParserCore.OrderTableClauseContext order
-                && order.cobolWord() is { Length: > 0 } orderWords
-                && ReferenceEquals(ctx, orderWords[0]))
-                return base.VisitChildren(ctx);
+            // ⛔ THE SPECIAL-NAMES ORDER TABLE EXEMPTION IS GONE, AND ITS ABSENCE IS THE POINT (kb/Work PB704).
+            // It exempted slot [0] of `ORDER TABLE ordering-name-1 IS literal-9` (§12.3.7.2) because the clause's
+            // own keyword ORDER had no lexer token and rode `cobolWord`. Patching ONE keyword slot inside this
+            // funnel left the word's OTHER general-format position — `SORT … WITH DUPLICATES IN ORDER`
+            // (§14.9.40.2) — refused as a user-defined word at every edition from 2002, for two trains
+            // (feedback_two_arm_dispatch). ORDER is now a lexer token with a `cobol-words.json` nameSlot row, so
+            // NEITHER position reaches this funnel and `01 ORDER PIC X.` still draws its 0901 through
+            // `reservedGatedWord` — the fix belongs in the BORROWING RULE, never in a hand list here.
             // The ALPHABET clause's `IS LOCALE [locale-name-2]` phrase (§12.3.7.2; kb/Work PB100): LOCALE is the phrase's
             // own keyword (not a lexer token — it arrives as the first definition entry's cobolWord) and locale-name-2 is a
             // REFERENCE to a SPECIAL-NAMES locale-name (LIVE since PB64 T1/T3 — the named IS LOCALE alphabet). The PB27 shape.

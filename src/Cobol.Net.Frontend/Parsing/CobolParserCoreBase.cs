@@ -174,7 +174,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>PICTURE Format 2 (locale) — the word after the picture character-string spells LOCALE (ISO
     /// §13.18.40.2 `PIC IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1`; kb/Work PB100, live at
     /// PB64 T6).
-    /// <para>⛔ NOT EDITION-GATED (the ORDER TABLE precedent, <see cref="orderTableAhead"/>): no data description
+    /// <para>⛔ NOT EDITION-GATED (the ORDER TABLE precedent — <c>orderTableClause</c>): no data description
     /// clause begins with a user-defined word, so at '85 a word LOCALE immediately after a PIC_STRING can begin
     /// nothing else — there is no legal '85 reading to protect (unlike <see cref="localeClauseAhead"/>'s
     /// implementor-switch hazard, which does not exist inside a data description entry). Recognizing the phrase at
@@ -182,20 +182,13 @@ public abstract class CobolParserCoreBase : Parser
     /// with the explanatory introduction diagnostic instead of a raw ANTLR error at SIZE.</para></summary>
     protected bool pictureLocaleAhead() => Word(TokenStream.LT(1), "LOCALE");
 
-    /// <summary>The SPECIAL-NAMES <c>ORDER TABLE ordering-name-1 IS literal-9</c> clause (ISO §12.3.7.2 — the last
-    /// item of the paragraph's general format; kb/Work PB101). ORDER is not a lexer token (the same choice the
-    /// LOCALE clause's keyword rests on — §8.9 reserves it from 2002 and the funnel models the reservation), so the
-    /// clause is recognized here by the word pair; TABLE is a token.
-    /// <para>⛔ NOT EDITION-GATED, AND THE LOCALE PRECEDENT DELIBERATELY DOES NOT APPLY. <see cref="localeClauseAhead"/>
-    /// is gated because <c>SPECIAL-NAMES. LOCALE IS FOO.</c> is a legal COBOL-85 implementor-switch entry that must
-    /// keep its '85 reading. There is no such reading here: <b>TABLE is reserved at EVERY edition</b>
-    /// (<c>reserved-words.json</c> r85 true), so it can be neither a mnemonic-name after <c>ORDER</c> nor the first
-    /// word of a following entry — the pair ORDER + TABLE cannot begin anything else in a '85 SPECIAL-NAMES
-    /// paragraph. Recognizing it at every edition is what lets the ONE construct gate answer with the explanatory
-    /// <c>order-table-2002</c> introduction diagnostic below 2002 instead of a raw parse error at TABLE
-    /// (superset-parse / bind-narrow, and the two-obligation rule's diagnostic half).</para></summary>
-    protected bool orderTableAhead() =>
-        Word(TokenStream.LT(1), "ORDER") && TokenStream.LT(2)?.Type == CobolLexer.TABLE;
+    // ⛔ `orderTableAhead()` WAS HERE and is DELETED (kb/Work PB704). It read the word pair (ORDER, TABLE) by text
+    // only because ORDER had no lexer token — and that missing token was itself the defect: a KEYWORD slot that
+    // borrows `cobolWord` is refused by the §8.9 funnel's position-blind IDENTIFIER check, which is what made
+    // `SORT … WITH DUPLICATES IN ORDER` a COBOLNET0901 at every edition from 2002. ORDER is now a token with a
+    // `cobol-words.json` nameSlot row (the FORMAT precedent), so `orderTableClause` matches its own two keywords
+    // and the funnel's OrderTableClause slot-0 exemption is gone too. The clause stays UNGATED by edition and
+    // still precedes `implementorSwitchEntry`; `Grammar/Core/CobolSpecialNames.g4` carries the reasons.
 
     /// <summary>SET screen-name-1 ATTRIBUTE … (ISO §14.9.39.2 Format 6 — Annex A.4.2 item 24; kb/Work PB260) —
     /// a LEFT-EDGE predicate (LT(1) is the SET token itself): true when the word ATTRIBUTE stands somewhere in

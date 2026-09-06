@@ -767,8 +767,18 @@ sortKeyPhrase
     : ON? (ASCENDING | DESCENDING) KEY? dataReferenceList?
     ;
 
+// [ WITH DUPLICATES IN ORDER ] (ISO §14.9.40.2, Formats 1 and 2 — the phrase that buys §14.9.40.4 GR3's defined
+// release order for records equal on every key, in place of GR4's undefined one).
+// ⛔ MEASURED ON THE PRINTED PAGE, not inferred (kb/Work PB704): of the four words only DUPLICATES carries an
+// underline rule, so WITH, IN and ORDER are all OPTIONAL words (§5.2.3) and every subset spelling is conforming.
+// ⛔ ORDER IS A TOKEN HERE AND MAY NOT BORROW `cobolWord` (kb/Work PB704, the PB693 shape;
+// DESIGN-frontend-grammar "A KEYWORD SLOT MAY NOT BORROW cobolWord"). §8.9 reserves ORDER from 2002, and the
+// funnel checks IDENTIFIER occurrences POSITION-BLIND, so while the word arrived through the user-word rule this
+// whole phrase was answered with `'ORDER' is a reserved word … and cannot be used as a user-defined word` at
+// 2002/2014/2023 — the only phrase that can demand GR3 was unusable. The token also ends an under-rejection the
+// name slot allowed: `WITH DUPLICATES IN <any word>` no longer parses, which is what §5.2.3 requires.
 sortDuplicatesPhrase
-    : WITH? DUPLICATES IN? cobolWord?    // cobolWord matches ORDER (not a lexer token)
+    : WITH? DUPLICATES IN? ORDER?
     ;
 
 sortCollatingPhrase

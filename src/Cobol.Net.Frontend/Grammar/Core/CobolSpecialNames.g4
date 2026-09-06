@@ -35,10 +35,12 @@ specialNameEntry
     // COBOL0308 "a data-name is expected here, not a literal" — a parse error pointing at the wrong token, for a
     // clause the standard defines (fix-queue PB25).
     | localeClause DOT?
-    // MUST precede implementorSwitchEntry, for the LOCALE clause's reason: ORDER is not a lexer token, so
-    // `ORDER TABLE OT1 IS "…"` otherwise matches `cobolWord (IS cobolWord)?` as far as the bare word ORDER, and
-    // the entry loop re-enters on TABLE — a keyword token no cobolWord admits — dying on a token the user never
-    // wrote a clause around (kb/Work PB101).
+    // MUST precede implementorSwitchEntry, for the LOCALE clause's reason: at COBOL-85 §8.9 leaves ORDER
+    // user-definable, so `cobolWord`'s gated alternative still admits it and `ORDER TABLE OT1 IS "…"` would
+    // otherwise match `cobolWord (IS cobolWord)?` as far as the bare word ORDER, and the entry loop re-enters on
+    // TABLE — a keyword token no cobolWord admits — dying on a token the user never wrote a clause around
+    // (kb/Work PB101). ORDER became a lexer token at kb/Work PB704, which retired the clause's text predicate but
+    // NOT this ordering requirement.
     | orderTableClause DOT?
     | implementorSwitchEntry DOT?
     | genericClause DOT?
@@ -59,18 +61,22 @@ localeClause
     ;
 
 // ORDER TABLE ordering-name-1 IS literal-9 (ISO §12.3.7.2 — the LAST item of the SPECIAL-NAMES general format,
-// bracketed and therefore at most once). ORDER is NOT a lexer token: it is reserved from 2002 through the §8.9
-// funnel and arrives as an ordinary cobolWord, exactly as the LOCALE clause's own keyword does — so the clause is
-// recognized by a left-edge predicate on the word pair (ORDER, TABLE). TABLE *is* a token.
+// bracketed and therefore at most once). ORDER *is* a lexer token (kb/Work PB704 — a keyword slot may not borrow
+// `cobolWord`, whose §8.9 funnel refuses the word position-blind at 2002+), and so is TABLE, so the clause is
+// recognized by its own two keywords and needs no text predicate: the retired `{orderTableAhead()}?` read the
+// same word pair by text only because ORDER had no token.
 // literal-9 names the cultural ordering table (§12.3.7.4 GR17 — "The implementor specifies the allowable content
 // of literal-9"); ordering-name-1 "may be specified only in the STANDARD-COMPARE intrinsic function"
 // (§12.3.7.3 SR9). The binder (DataBinder.OrderTableBind) enforces SR10/SR11 and registers the name.
 // ⚠ NOT edition-gated, unlike localeClause: TABLE is reserved at EVERY edition, so the pair ORDER + TABLE has no
-// competing COBOL-85 reading (nothing else in a SPECIAL-NAMES paragraph can be followed by, or begin with, TABLE).
+// competing COBOL-85 reading (nothing else in a SPECIAL-NAMES paragraph can be followed by, or begin with, TABLE)
+// — and at 85, where §8.9 leaves ORDER user-definable, the word still reaches `implementorSwitchEntry` through
+// `cobolWord`'s gated alternative, so a switch entry named ORDER keeps its '85 reading. This alternative stays
+// AHEAD of implementorSwitchEntry in specialNamesEntry so `ORDER TABLE …` is never absorbed as a switch-name.
 // Recognizing the clause at every --std is what lets the version pass answer below 2002 with the explanatory
-// `order-table-2002` introduction gate rather than a parse error — see orderTableAhead()'s comment.
+// `order-table-2002` introduction gate rather than a parse error.
 orderTableClause
-    : {orderTableAhead()}? cobolWord TABLE cobolWord IS? literal
+    : ORDER TABLE cobolWord IS? literal
     ;
 
 // switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1] [OFF [STATUS] [IS] condition-name-2]

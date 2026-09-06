@@ -653,6 +653,71 @@ public sealed class OptionalWordSubsetDriftTests
            END OBJECT.
            END CLASS OPWSD.
     """;
+    // ── SORT §14.9.40.2, the DUPLICATES phrase: [ WITH DUPLICATES IN ORDER ] ─────────────────────────────────
+    // MEASURED on the printed page (PDF pages 774 and 775 — Format 1 and Format 2 print the same line): of the
+    // four words only DUPLICATES carries an underline rule, so WITH, IN and ORDER are all optional (§5.2.3) and
+    // all eight subsets are conforming spellings of the SAME phrase.
+    // ⛔ WRITTEN TWICE, AT 85 AND AT 2023, AND THE SECOND ROW IS THE REGRESSION (kb/Work PB704). §8.9 reserves
+    // ORDER from 2002, and while the word rode `cobolWord` the §8.9 funnel — which screens every IDENTIFIER
+    // occurrence POSITION-BLIND — read the format's own word as a user-defined one: the four spellings that
+    // WRITE ORDER were COBOLNET0901 at 2002/2014/2023 and clean at 85. A single-edition row would have passed
+    // the whole time (feedback_edition_gate_sweep).
+    // The observable is §14.9.40.4 GR3 b): among records equal on every key the order of return is the order in
+    // which the input procedure RELEASED them, so the output pins the phrase's ONE semantic effect and not
+    // merely that it parsed.
+    private const string SortDuplicates = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWT.
+           ENVIRONMENT DIVISION.
+           INPUT-OUTPUT SECTION.
+           FILE-CONTROL.
+               SELECT S-FILE ASSIGN TO "opwt.tmp".
+           DATA DIVISION.
+           FILE SECTION.
+           SD  S-FILE.
+           01  S-REC.
+               05  S-KEY PIC X.
+               05  S-TAG PIC X.
+           WORKING-STORAGE SECTION.
+           01  W-I   PIC 9 VALUE 0.
+           01  W-EOF PIC X VALUE "N".
+           01  W-SRC.
+               05  FILLER PIC XX VALUE "B1".
+               05  FILLER PIC XX VALUE "A1".
+               05  FILLER PIC XX VALUE "B2".
+               05  FILLER PIC XX VALUE "A2".
+           01  W-SRC-R REDEFINES W-SRC.
+               05  W-PAIR PIC XX OCCURS 4 TIMES.
+           PROCEDURE DIVISION.
+           MAIN-SECT SECTION.
+           MAIN.
+               SORT S-FILE ON ASCENDING KEY S-KEY
+                   {0} DUPLICATES {1} {2}
+                   INPUT PROCEDURE IS IN-PROC
+                   OUTPUT PROCEDURE IS OUT-PROC.
+               DISPLAY "DONE".
+               STOP RUN.
+           IN-PROC SECTION.
+           IN-P.
+               PERFORM VARYING W-I FROM 1 BY 1 UNTIL W-I > 4
+                   MOVE W-PAIR (W-I) TO S-REC
+                   RELEASE S-REC
+               END-PERFORM.
+           OUT-PROC SECTION.
+           OUT-P.
+               PERFORM UNTIL W-EOF = "Y"
+                   RETURN S-FILE AT END MOVE "Y" TO W-EOF
+                       NOT AT END DISPLAY "OUT=" S-REC
+                   END-RETURN
+               END-PERFORM.
+    """;
+
+    // The 2023 twin of the row above. DERIVED, not copied: one template, two editions, so the two rows can never
+    // drift apart — and a DISTINCT PROGRAM-ID stem, because both rows run in ONE test process and a same-named
+    // assembly is served from the load context that already holds it (the per-spelling rule, one level up).
+    private static readonly string SortDuplicates2023 =
+        SortDuplicates.Replace("OPWT", "OPWU", StringComparison.Ordinal)
+                      .Replace("opwt.tmp", "opwu.tmp", StringComparison.Ordinal);
 
     private static readonly FormatCase[] Formats =
     [
@@ -689,6 +754,10 @@ public sealed class OptionalWordSubsetDriftTests
         new("delete-file-not-on-exception", "14.9.10.2 Format 2", 2023, ["ON", "ON"], "OPWQ", DeleteFileNotOn),
         new("invoke-by-words", "14.9.23.2", 2002, ["BY", "BY"], "OPWR", InvokeByWords),
         new("inherits-from-word", "11.3.2", 2002, ["FROM"], "OPWS", InheritsFromWord),
+        new("sort-duplicates-85", "14.9.40.2 (DUPLICATES phrase)", 85, ["WITH", "IN", "ORDER"], "OPWT",
+            SortDuplicates),
+        new("sort-duplicates-2023", "14.9.40.2 (DUPLICATES phrase, ORDER reserved)", 2023,
+            ["WITH", "IN", "ORDER"], "OPWU", SortDuplicates2023),
     ];
 
     public static IEnumerable<object[]> Cases() => Formats.Select(f => new object[] { f.Name });

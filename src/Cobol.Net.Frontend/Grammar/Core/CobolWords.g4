@@ -75,6 +75,7 @@ cobolWord
     | NORMAL
     | NUMBERS
     | ONLY
+    | {userWordHere("ORDER")}? ORDER
     | {userWordHere("OVERRIDE")}? OVERRIDE
     | {userWordHere("PADDING")}? PADDING
     | PARSE
@@ -152,6 +153,7 @@ reservedGatedWord
     | {!userWordHere("INTERFACE")}? INTERFACE
     | {!userWordHere("LOCATION")}? LOCATION
     | {!userWordHere("MESSAGE")}? MESSAGE
+    | {!userWordHere("ORDER")}? ORDER
     | {!userWordHere("OVERRIDE")}? OVERRIDE
     | {!userWordHere("PADDING")}? PADDING
     | {!userWordHere("PRESENT")}? PRESENT

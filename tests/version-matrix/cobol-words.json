@@ -416,6 +416,12 @@
    "note": "WITH LOCK ON ... ONLY (2002+): 8.10 context-sensitive, a user word at every edition"
   },
   {
+   "token": "ORDER",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the SORT DUPLICATES phrase optional word (14.9.40.2 [ WITH DUPLICATES IN ORDER ]) and the SPECIAL-NAMES ORDER TABLE clause keyword (12.3.7.2). ORDER gained a lexer token when kb/Work PB704 showed a keyword slot may not borrow cobolWord: the 8.9 funnel checks IDENTIFIER position-blind, so the phrase was rejected COBOLNET0901 at every edition from 2002. ReservedWords.Table has ORDER r85=false, reserved 2002+, so this nameSlot row is what keeps a COBOL-85 data item NAMED Order legal while the derived reservation gate and the 8.9 funnel name it above 85 - the FORMAT precedent exactly. subscriptTrigger=true because a table may be named Order and neither ORDER-bearing format is followed by a left parenthesis"
+  },
+  {
    "token": "OVERRIDE",
    "nameSlot": true,
    "subscriptTrigger": true,

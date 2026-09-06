@@ -393,12 +393,29 @@ choice indicators FORMAT / CONTENT / RELATION are all UNDERLINED in §13.18.62.2
 FORMAT is §8.9-reserved from 2002 and does have a token (the FD FORMAT clause, §13.18.24), so `ON FORMAT …`
 became a parse error at 2002+ instead of the declined-facility COBOLNET1708. **The fix is a token arm in the
 BORROWING rule, never an exclusion from the gate** — the word is reserved, and every other slot must keep
-rejecting it. The sweep behind that: FORMAT is the ONLY §8.9-reserved word carrying a lexer token that any rule
-expects `cobolWord` to match as a keyword. Every other keyword the grammar routes through `cobolWord` — LOCALE,
-ORDER, CLASSIFICATION, ATTRIBUTE, UCS-4/UTF-8/UTF-16, RELATION, NONE, RECEIVED, COBOL — is §8.10
-context-sensitive or unclassified by the standard, has NO lexer token, arrives as IDENTIFIER, and no gate can
-reach it. `computerAttributes`, the other word sink, is a raw `~(DOT | PROGRAM | CHARACTER)+` token loop and
-never enters `cobolWord` at all.
+rejecting it. **⛔ THE SWEEP THAT FOLLOWED THAT SENTENCE WAS SCOPED WRONG, AND THE CORRECTION IS kb/Work PB704.**
+It read: "FORMAT is the ONLY §8.9-reserved word carrying a lexer token that any rule expects `cobolWord` to match
+as a keyword. Every other keyword the grammar routes through `cobolWord` — LOCALE, ORDER, CLASSIFICATION,
+ATTRIBUTE, UCS-4/UTF-8/UTF-16, RELATION, NONE, RECEIVED, COBOL — is §8.10 context-sensitive or unclassified by
+the standard, has NO lexer token, arrives as IDENTIFIER, and no gate can reach it." Two halves of that are FALSE.
+LOCALE, ORDER, COBOL, NESTED, SYSTEM-DEFAULT and USER-DEFAULT are §8.9-RESERVED, not context-sensitive
+(`reserved-words.json`), and **"no gate can reach it" was never measured**: the reservation GATE inside
+`cobolWord` cannot reach an IDENTIFIER, but the §8.9 FUNNEL can and does — `VisitCobolWord`'s `CheckedTokenTypes`
+holds `IDENTIFIER` and screens it POSITION-BLIND, precisely because the 2023 additions all lex as IDENTIFIER. So
+having no token is not safety, it is the SAME defect by the other route, and `SORT … WITH DUPLICATES IN ORDER`
+(§14.9.40.2) was refused as a user-defined-word use at 2002/2014/2023 for two trains
+(`feedback_reachability_is_measured_not_deduced`). **The sweep's real axis is "is this word §8.9-reserved at any
+edition", never "does it carry a token"**, and the fix is the same either way: the word becomes a lexer token
+with a `cobol-words.json` nameSlot row, so the reservation gate + `reservedGatedWord` keep the NAME slot correct
+at every edition and the KEYWORD slot never enters `cobolWord`. ORDER took that shape at PB704 (retiring the
+`orderTableAhead()` text predicate and the funnel's ORDER TABLE slot exemption with it). The words still routed
+through `cobolWord` as keywords are LOCALE, CLASSIFICATION, the LC_ categories, SYSTEM-DEFAULT/USER-DEFAULT,
+NESTED, COBOL, ATTRIBUTE, RELATION, UCS-4/UTF-8/UTF-16, NONE, RECEIVED; the unreserved ones are inert (the funnel
+computes `RejectsAt` false), and each reserved one is held off the funnel by a NAMED exemption in
+`VisitCobolWord` — a hand list, and therefore the next PB704. LOCALE's is load-bearing for a stated reason
+(`IntrinsicBinder.KeywordWordOf` needs `LOWER-CASE(x LOCALE …)` to arrive as bare words), so retiring the list is
+a design change, not a sweep. `computerAttributes`, the other word sink, is a raw `~(DOT | PROGRAM | CHARACTER)+`
+token loop and never enters `cobolWord` at all.
 **A REFERENCE to a gated word is answered by the parse-error path.** The gate leaves no name-slot alternative for
 `DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So
 `CobolErrorListener` asks the parser whether the offending token is reservation-gated (the generated

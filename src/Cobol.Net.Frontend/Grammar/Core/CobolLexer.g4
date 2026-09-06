@@ -604,6 +604,14 @@ XOR         : 'XOR' ;   // COBOL-2023 logical exclusive-or operator (ISO §8.8.4
 OMITTED     : 'OMITTED' ;
 OPTIONAL    : 'OPTIONAL' ;
 OPTIONS     : 'OPTIONS' ;   // COBOL-2002 OPTIONS paragraph header (ISO §11.9)
+// The OPTIONAL word ORDER of the SORT DUPLICATES phrase (ISO §14.9.40.2 `[ WITH DUPLICATES IN ORDER ]`) and the
+// REQUIRED word of the SPECIAL-NAMES ORDER TABLE clause (§12.3.7.2). §8.9 reserves ORDER from 2002
+// (ReservedWords.Table row: r85=false), so — exactly like FORMAT — the token carries a `nameSlot` row in
+// tests/version-matrix/cobol-words.json, which is what keeps `01 ORDER PIC X.` legal at COBOL-85 while the
+// derived reservation gate + the §8.9 funnel name it at 2002+. ⛔ IT MUST BE A TOKEN: a keyword slot that
+// borrows `cobolWord` is refused by the funnel's position-blind IDENTIFIER check (kb/Work PB704, the PB693
+// shape). Maximal munch keeps HIGH-ORDER-LEFT/HIGH-ORDER-RIGHT and any ORDER-suffixed user word one longer match.
+ORDER       : 'ORDER' ;
 ORGANIZATION: 'ORGANIZATION' ;
 OTHER       : 'OTHER' ;
 OUTPUT      : 'OUTPUT' ;

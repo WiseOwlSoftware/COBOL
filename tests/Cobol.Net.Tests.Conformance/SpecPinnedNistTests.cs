@@ -70,4 +70,38 @@ public sealed class SpecPinnedNistTests
         }
         finally { CutRunner.TryDelete(dir); }
     }
+
+    /// <summary>ST127A at <c>--std 2002</c> — the FREE, EXTERNALLY-AUTHORED witness for kb/Work PB704, and the
+    /// one the NIST leg structurally cannot give. <c>ST127A.cob:257</c> writes <c>WITH DUPLICATES IN ORDER</c>
+    /// (ISO §14.9.40.2), the only occurrence of the phrase anywhere in the tree, and it passed for two trains
+    /// only because the NIST leg runs at <c>--std 85</c>, where §8.9 does not yet reserve ORDER: the leg is
+    /// evidence about COBOL-85 and about nothing else (feedback_measure_the_selectors_complement). While the
+    /// phrase's own word rode <c>cobolWord</c>, the §8.9 funnel — which screens IDENTIFIER occurrences
+    /// POSITION-BLIND — refused it as a user-defined word from 2002 on, so a real CCVS program was rejected at
+    /// every edition a user is likely to target.
+    /// <para>⚠ THE ASSERTION IS THE ABSENCE OF COBOLNET0901, NOT A CLEAN COMPILE, and deliberately so. ST127A is
+    /// an X3.23-1985 program: at strict COBOL-2002 its SD still carries the DATA RECORDS clause, which ISO 2002
+    /// DELETED (COBOLNET0873), so a "compiles clean" assertion could only be made under <c>--permissive</c> —
+    /// and under <c>--permissive</c> the reservation gate does not fire and the 0901 degrades to a warning, so
+    /// that spelling of the test would have passed BEFORE the fix as well (feedback_green_gates_arent_evidence).
+    /// The strict compile with 0901 excluded fails on the old compiler and passes on the new one.</para></summary>
+    [Fact]
+    public void ST127A_SortDuplicatesInOrder_IsNotAReservedWordViolationAt2002()
+    {
+        string src = TestRepo.Nist("programs", "ST127A.cob");
+        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pin_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "ST127A.dll"), NistTestName: "ST127A", DialectLevel: 2002));
+            string all = string.Join("\n", r.Errors);
+            Assert.DoesNotContain("COBOLNET0901", all, StringComparison.Ordinal);
+            Assert.DoesNotContain("'ORDER'", all, StringComparison.Ordinal);
+            // The program's ONE remaining strict-2002 obstacle is the deleted FD/SD clause, not the SORT phrase —
+            // asserted so a future change that silently stops compiling the SORT at all cannot pass this test.
+            Assert.Contains("COBOLNET0873", all, StringComparison.Ordinal);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
 }

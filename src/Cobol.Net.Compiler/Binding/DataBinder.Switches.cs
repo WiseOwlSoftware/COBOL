@@ -790,9 +790,11 @@ public sealed partial class DataBinder
 
     private void OrderTableBind(Core.OrderTableClauseContext ot)
     {
-        var words = ot.cobolWord();                       // [0] = the keyword ORDER, [1] = ordering-name-1
-        if (words.Length < 2 || ot.literal() is not { } lit) return;   // a malformed shape already drew a parse error
-        string name = words[1].GetText();
+        // ONE cobolWord: ordering-name-1. The clause's own keywords ORDER and TABLE are both lexer tokens since
+        // kb/Work PB704 — ORDER used to ride cobolWord as slot [0], which is exactly the shape the §8.9 funnel
+        // mistook for a user-defined word.
+        if (ot.cobolWord() is not { } name1 || ot.literal() is not { } lit) return;   // a malformed shape already drew a parse error
+        string name = name1.GetText();
         string raw = lit.GetText();
         // SR10 / SR11 for literal-9 — the ONE text-literal rule the LOCALE clause's literal-4 shares.
         if (!TryClauseTextLiteral(lit, $"ORDER TABLE {name} IS {raw}", "literal-9", out string text)) return;

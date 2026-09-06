@@ -17,6 +17,16 @@
       *>   reserved from 2014 - FUNCTION-POINTER (13.18.60)
       *>   reserved from 2023 - XOR, COMMIT
       *>
+      *> ORDER joined the roster at kb/Work PB704 (reserved from
+      *> 2002).  It is the one word here that was NOT a lexer token
+      *> until that fix: the SORT DUPLICATES phrase (14.9.40.2) and
+      *> the SPECIAL-NAMES ORDER TABLE clause (12.3.7.2) spelled
+      *> their own keyword as a `cobolWord`, so the 8.9 funnel -
+      *> which screens IDENTIFIER occurrences POSITION-BLIND - read
+      *> the format's own word as a user-defined one and rejected
+      *> the phrase at 2002+.  This line is the 85 half of the
+      *> nameSlot row that fix added.
+      *>
       *> Both positions are exercised for each: the DECLARATION in
       *> WORKING-STORAGE and a REFERENCE in a statement operand - the
       *> reference matters because the gate withdraws the word from
@@ -35,6 +45,7 @@
        01  FUNCTION-POINTER PIC X(3) VALUE "FNP".
        01  XOR              PIC X(3) VALUE "XOR".
        01  COMMIT           PIC X(3) VALUE "COM".
+       01  ORDER            PIC X(3) VALUE "ORD".
        PROCEDURE DIVISION.
        MAIN.
            DISPLAY "1=" UNLOCK
@@ -48,4 +59,5 @@
            DISPLAY "9=" COMMIT
            MOVE "ZZZ" TO UNLOCK
            DISPLAY "A=" UNLOCK
+           DISPLAY "B=" ORDER
            STOP RUN.
