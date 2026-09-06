@@ -3538,7 +3538,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // A.3 item 27 non-support — refused loudly, never a silent identity (that would be a wrong answer for an
         // EBCDIC-shaped alphabet).
         foreach (var (set, name) in new[] { (alnumSet, alnumName), (natSet, natName) })
-            if (set is not null && (set.Table is not null || set.NatTable is not null || set.Phrase is "UTF-8" or "UCS-4"))
+            if (set is not null && (set.Table is not null || set.Phrase is "UTF-8" or "UCS-4"))
                 Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {name}: the {set.Phrase} coded "
                     + "character set's on-medium representation differs from the native encoding, and this processor "
                     + "does not provide alternate device code sets (Annex A §A.3 item 27 — documented non-support, "

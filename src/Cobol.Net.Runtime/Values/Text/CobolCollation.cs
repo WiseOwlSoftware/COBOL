@@ -12,9 +12,10 @@ namespace CobolNet.Runtime;
 /// (<c>__COLLATE</c> for the alphanumeric program collating sequence, <c>__COLLATE_NAT</c> for the national one, an
 /// inline instance for a statement or file alphabet). The arms:
 /// <list type="bullet">
-/// <item><see cref="AlphanumericCollation"/> — an <c>ALPHABET</c> literal phrase over the alphanumeric set (a 256-entry
-/// position table, arithmetic above it — §12.3.7.4 GR7 1.3).</item>
-/// <item><see cref="NationalCollation"/> — its <c>FOR NATIONAL</c> twin (sparse over the 65,536 code units).</item>
+/// <item><see cref="AlphanumericCollation"/> — an <c>ALPHABET</c> literal phrase over the alphanumeric set, and
+/// <see cref="NationalCollation"/> — its <c>FOR NATIONAL</c> twin. Both are named arms of the ONE
+/// <see cref="LiteralPhraseCollation"/> implementation of §12.3.7.4 GR7 k: sparse over the 65,536 code units of
+/// either native repertoire, with a materialized O(1) weight cache below the highest specified character.</item>
 /// <item><see cref="LocaleCollation"/> — a LOCALE-based sequence (§8.8.4.2.11) or an <c>ORDER TABLE</c>: the derived
 /// CLDR/UCA collation engine of <c>Runtime/Collation/</c>.</item>
 /// </list>

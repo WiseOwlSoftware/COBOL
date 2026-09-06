@@ -19,7 +19,7 @@ public sealed class CodedCharacterSetTests
     [Fact]
     public void CharAt_FollowsEachPhrasesCorrespondence()
     {
-        var std = new CodedCharacterSet("STANDARD-1", National: false, null, null);
+        var std = new CodedCharacterSet("STANDARD-1", National: false, null);
         Assert.Equal(128, std.OrdinalCount);
         Assert.Equal("\0", std.CharAt(1));
         Assert.Equal("A", std.CharAt(66));
@@ -27,12 +27,12 @@ public sealed class CodedCharacterSetTests
         Assert.Null(std.CharAt(129));
         Assert.Null(std.CharAt(0));
 
-        var native = new CodedCharacterSet("NATIVE", National: false, null, null);
+        var native = new CodedCharacterSet("NATIVE", National: false, null);
         Assert.Equal(65536, native.OrdinalCount);
         Assert.Equal("é", native.CharAt(0xEA));           // ordinal 234 → U+00E9
         Assert.Equal("￿", native.CharAt(65536));
 
-        var ucs4 = new CodedCharacterSet("UCS-4", National: true, null, null);
+        var ucs4 = new CodedCharacterSet("UCS-4", National: true, null);
         Assert.Equal("A", ucs4.CharAt(66));
         Assert.Equal("퟿", ucs4.CharAt(0xD800));       // the last BMP scalar before the surrogate block
         Assert.Equal("", ucs4.CharAt(0xD801));       // the block is SKIPPED — surrogates are not characters
@@ -44,27 +44,24 @@ public sealed class CodedCharacterSetTests
     [Fact]
     public void CharAt_LiteralAlphabet_UsesTheCollatingPositions()
     {
-        // ALPHABET "Z" THRU "A" (the pb110 corpus shape): positions 0..25 = Z..A; the unspecified 256-block chars
-        // follow in native order (codes 0..64 at positions 26..90, 91..255 at 91..); code units ≥ 256 take the tail.
-        var pos = new ushort[256];
-        var rep = new ushort[256];
-        ushort next = 0;
-        for (char c = 'Z'; c >= 'A'; c--) { pos[c] = next; rep[next] = c; next++; }
-        for (int c = 0; c < 256; c++)
-            if (c < 'A' || c > 'Z') { pos[c] = next; rep[next] = (ushort)c; next++; }
-        var table = new CollatingTable(pos, rep, 256, HighValue: (char)255, LowValue: 'Z');
-        var set = new CodedCharacterSet("literal-phrase", National: false, table, null);
+        // ALPHABET "Z" THRU "A" (the pb110 corpus shape): the SPARSE table specifies codes 'A'..'Z' at positions
+        // 25..0; every unspecified character follows in native order (GR7 k3), the first of them at position 26.
+        var codes = Enumerable.Range('A', 26).Select(c => (ushort)c).ToArray();
+        var positions = codes.Select(c => (ushort)('Z' - c)).ToArray();
+        var rep = Enumerable.Range(0, 26).Select(i => (ushort)('Z' - i)).ToArray();
+        var table = new CollatingTable(codes, positions, rep, 26, HighValue: (char)255, LowValue: 'Z');
+        var set = new CodedCharacterSet("literal-phrase", National: false, table);
         Assert.Equal("Z", set.CharAt(1));                   // position 0
         Assert.Equal("A", set.CharAt(26));                  // position 25
         Assert.Equal("\0", set.CharAt(27));                 // the first unspecified char (code 0)
-        Assert.Equal("Ā", set.CharAt(257));            // the ≥256 tail: position 256 → code unit 256
+        Assert.Equal("a", set.CharAt(27 + 'a' - 26));       // code 0x61: 26 specified codes below it
         Assert.Equal(65536, set.OrdinalCount);
 
         // The NATIONAL sparse table's inverse (the FOR NATIONAL literal-phrase alphabet): specified codes 65/90 at
         // positions 0/1; every unspecified code unit c takes position NextFree + (c - |specified < c|).
-        var nat = new NationalCollatingTable(Codes: [65, 90], Positions: [1, 0], RepByPos: [90, 65], NextFree: 2,
+        var nat = new CollatingTable(Codes: [65, 90], Positions: [1, 0], RepByPos: [90, 65], NextFree: 2,
             HighValue: (char)0xFFFF, LowValue: 'Z');
-        var natSet = new CodedCharacterSet("literal-phrase", National: true, null, nat);
+        var natSet = new CodedCharacterSet("literal-phrase", National: true, nat);
         Assert.Equal("Z", natSet.CharAt(1));                 // position 0
         Assert.Equal("A", natSet.CharAt(2));                 // position 1
         Assert.Equal("\0", natSet.CharAt(3));                // the first unspecified code unit (0)

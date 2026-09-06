@@ -50,7 +50,8 @@ public sealed partial class DataBinder
     /// + Table 6): a null-table identity for NATIVE and the coded-set names (UCS-4 collates in ISO 10646 order,
     /// which on the D-N1 one-code-unit-per-position substrate IS the native code-unit order — see
     /// <see cref="NationalAlphabetDef"/> for the §8.5.1.4 derivation; UTF-8/UTF-16 name coded character sets ONLY),
-    /// or the sparse <see cref="NationalCollatingTable"/> of a literal phrase.</summary>
+    /// or the sparse <see cref="CollatingTable"/> of a literal phrase (the SAME record the alphanumeric arm
+    /// builds - one §12.3.7.4 GR7 k model for both classes).</summary>
     public Dictionary<string, NationalAlphabetDef> NationalAlphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Is <paramref name="alphabetName"/> an alphabet "associated with a locale" (ISO §8.8.4.4.3 SR2) /
@@ -330,6 +331,23 @@ public sealed partial class DataBinder
                 + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
     }
 
+    /// <summary>The characters of a CURRENCY SIGN clause literal, or null when it is not a literal of the class the
+    /// clause requires: §12.3.7.3 SR18 — "<i>Literal-7 shall be an alphanumeric or national literal that is not a
+    /// figurative constant</i>" — and SR26 — "<i>Literal-8 shall be an alphanumeric or national literal consisting of
+    /// a single character from the computer's compile-time coded character set</i>". ⛔ A NUMERIC literal was
+    /// silently ACCEPTED here until kb/Work PB770's sweep: the clause called the CLASS clause's ordinal helper, so
+    /// <c>CURRENCY SIGN IS 65</c> became the currency symbol 'A' with no diagnostic (and an out-of-range ordinal
+    /// would have reported a CLASS-clause violation on a program with no CLASS clause).</summary>
+    private string? CurrencyTextLiteral(Core.LiteralContext lit, string operand, string rule)
+    {
+        if (!int.TryParse(lit.GetText(), out _) && !decimal.TryParse(lit.GetText(), System.Globalization.NumberStyles.Number,
+                System.Globalization.CultureInfo.InvariantCulture, out _))
+            return LiteralCharsOf(lit);
+        Edition.Error("COBOLNET0892", $"CURRENCY SIGN {lit.GetText()}: {operand} shall be an alphanumeric or "
+            + $"national literal, not a numeric one (ISO §12.3.7.3 SR{rule})");
+        return null;
+    }
+
     /// <summary>Bind <c>CURRENCY [SIGN] [IS] literal-7 [WITH PICTURE SYMBOL literal-8]</c> (ISO §12.3.7.3
     /// r18–r27) into the currency SET. Bare form: literal-7 is both currency string and symbol — a single
     /// character outside the r22 forbidden set. PICTURE SYMBOL form (2002+ — the 85 standard had only the
@@ -341,7 +359,7 @@ public sealed partial class DataBinder
     {
         var lits = cur.literal();
         if (lits.Length == 0) return;
-        string literal7 = LiteralChars(lits[0]);
+        if (CurrencyTextLiteral(lits[0], "literal-7", "18") is not { } literal7) return;
         // r19: a hexadecimal literal-7 (X"…" / NX"…") requires the PICTURE SYMBOL phrase — detected on the token
         // text (the literal's decoded characters cannot tell the forms apart).
         string raw7 = lits[0].GetText();
@@ -357,7 +375,8 @@ public sealed partial class DataBinder
             // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note).
             if (cur.PIC_STRING()?.GetText() is { } sym && !sym.Equals("SYMBOL", StringComparison.OrdinalIgnoreCase))
                 Edition.Error("COBOLNET0892", $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
-            string literal8 = lits.Length > 1 ? LiteralChars(lits[1]) : "";
+            if (lits.Length > 1 && CurrencyTextLiteral(lits[1], "literal-8", "26") is null) return;
+            string literal8 = lits.Length > 1 ? LiteralCharsOf(lits[1]) : "";
             if (literal8.Length != 1)
             {
                 Edition.Error("COBOLNET0892", "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
@@ -896,66 +915,173 @@ public sealed partial class DataBinder
             return;
         }
 
-        var pos = new ushort[256];
-        Array.Fill(pos, ushort.MaxValue);                  // sentinel: not yet specified
-        var specOrder = new List<char>();                  // every specified char in source order (tie rules)
-        var repByPos = new List<ushort>();                 // per position: the FIRST char DEFINED there (§15.15.4 r2 / GR7 1.6 — PB59; the national builder's twin)
+        // A bare word that is not NATIVE / STANDARD-1 / STANDARD-2 / LOCALE and is not a figurative constant is
+        // code-name-1 (§12.3.7.2 general format), and this implementation supports none (§12.3.7.3 SR15) — the ONE
+        // check, shared with the national arm through AlphabetCodeNameRefused.
+        if (AlphabetCodeNameRefused(name, def, national: false)) return;
+
+        if (AlphabetLiteralPhrase(name, def, national: false) is { } table)
+            Alphabets.TryAdd(name, new AlphabetDef(table, null, "literal-phrase"));
+    }
+
+    /// <summary>⛔ THE ONE §12.3.7.3 SR15 check, for code-name-1 (alphanumeric) and code-name-2 (national) alike:
+    /// "<i>The implementor shall specify the names supported for code-name-1 and code-name-2 in the ALPHABET clause,
+    /// if any.</i>" This implementation supports NONE — the words that may stand alone in an alphabet definition are
+    /// the general format's own keywords (NATIVE, STANDARD-1, STANDARD-2, UCS-4, UTF-8, UTF-16, LOCALE), which the
+    /// callers have already consumed, and the figurative constants of a one-operand literal phrase (§12.3.7.4 GR10).
+    /// <para>⛔ Anything else was silently REINTERPRETED as the characters of its own spelling until kb/Work PB770:
+    /// <c>ALPHABET A-ASC IS ASCII</c> built an alphabet whose first four positions were A, S, C, I, and every
+    /// downstream reference (PROGRAM COLLATING SEQUENCE, SORT, SYMBOLIC CHARACTERS … IN) read that. A bare word is
+    /// not a literal at all (SR14 b2/c2 require an alphanumeric / national literal), so the literal-phrase reading
+    /// is not even available to fall back on.</para>
+    /// <para>The check is deliberately narrow: it fires only on a definition that is ONE bare word, which is the
+    /// only shape code-name-1/-2 has in the general format. A word inside a multi-operand phrase is a figurative
+    /// constant or an SR14 b2/c2 violation, and <see cref="AlphabetOperands"/> owns that.</para></summary>
+    /// <returns>True when the clause was refused and the caller shall bind nothing.</returns>
+    private bool AlphabetCodeNameRefused(string name, Core.AlphabetDefinitionContext def, bool national)
+    {
+        if (def.alphabetEntry() is not [{ ChildCount: 1 } only] || only.GetChild(0) is not Core.CobolWordContext cw
+            || IsAlphabetFigurativeWord(cw.GetText()))
+            return false;
+        Edition.Error(DiagnosticCatalog.AlphabetCodeNameUnsupported, $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} "
+            + $"IS {cw.GetText()}: not a supported code-name — this implementation defines no "
+            + $"{(national ? "code-name-2" : "code-name-1")} names (ISO §12.3.7.3 SR15; the "
+            + $"{(national ? "national coded character sets are NATIVE, UCS-4, UTF-8, and UTF-16" : "alphanumeric coded character sets are NATIVE, STANDARD-1, and STANDARD-2")})");
+        return true;
+    }
+
+    /// <summary>The figurative constants a literal phrase may name (ISO §12.3.7.4 GR10 — "<i>When specified as
+    /// literals in the SPECIAL-NAMES paragraph, the figurative constants HIGH-VALUE and LOW-VALUE are associated
+    /// with those characters having the highest and lowest positions … in the native national collating sequence,
+    /// when the NATIONAL phrase is specified, or in the native alphanumeric collating sequence otherwise</i>"; the
+    /// remaining figurative words are §8.3.3.6 constants of the clause's class). ONE list for both arms — the
+    /// national arm used to keep its own copy under a different name.</summary>
+    private static bool IsAlphabetFigurativeWord(string word) => AlphabetFigurative(word, national: false) is not null;
+
+    /// <summary>⛔ THE ONE literal-phrase alphabet builder (ISO §12.3.7.4 GR7 k), for the ALPHANUMERIC arm and the
+    /// <c>FOR NATIONAL</c> arm alike. GR7 k states its six sub-rules once, "<i>where the native coded character set
+    /// is the type of coded character set or collating sequence being defined, either alphanumeric or national</i>",
+    /// and both native sets are the 65,536 UTF-16 code units here (implementor item 188 / D-N1) — so there is ONE
+    /// builder and the <paramref name="national"/> flag reaches only the diagnostics and the literal CLASS rule.</summary>
+    /// <remarks>k1a — a numeric literal is the 1-based ordinal in the native set; k1b — a (possibly multi-character)
+    /// literal takes successive ascending positions leftmost-first; k2 — the operand order IS the ascending position
+    /// order; k3 — every UNSPECIFIED character follows the highest specified one, in native relative order (realized
+    /// SPARSELY: the runtime computes it arithmetically); k5 — THROUGH expands the native run in EITHER direction;
+    /// k6 — ALSO members share ONE position, of which literal-1 is the first character defined.
+    /// <para>⛔ §12.3.7.3 SR14 a is enforced HERE, in <c>Assign</c>: "<i>A given character shall not be specified
+    /// more than once in that ALPHABET clause.</i>" Both arms used to carry a <c>// diagnostic later</c> comment at
+    /// exactly this line and silently keep the first occurrence (kb/Work PB770 leg a). "First wins" survives as the
+    /// RECOVERY posture so the rest of the program still binds; it is no longer the answer.</para>
+    /// <para>⛔ SR14 b4/c4 — "<i>The number of characters specified shall not exceed the number of characters in the
+    /// native … character set</i>" — needs no separate check: SR14 a makes every specified character distinct, and
+    /// distinct characters of a set cannot outnumber the set. Enforcing a) enforces it.</para></remarks>
+    /// <returns>The table, or null when the phrase specified nothing (every operand failed its syntax rule and the
+    /// diagnostics are already reported).</returns>
+    private CollatingTable? AlphabetLiteralPhrase(string name, Core.AlphabetDefinitionContext def, bool national)
+    {
+        string what = $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")}";
+        var pos = new Dictionary<char, ushort>();
+        var specOrder = new List<char>();       // every specified character in source order (the GR8/GR9 tie rules)
+        var repByPos = new List<char>();        // per position: the FIRST character DEFINED there (§15.15.4 r2 / GR7 k6)
         ushort next = 0;
         void Assign(char c, bool advance)
         {
-            int code = c & 0xFF;
-            if (pos[code] != ushort.MaxValue) return;      // SR14a duplicate — first wins (diagnostic later)
-            pos[code] = next;
-            specOrder.Add((char)code);
-            if (repByPos.Count == next) repByPos.Add((ushort)code);   // first occupant of the position wins (ALSO literal-1)
+            if (pos.ContainsKey(c))
+            {
+                // SR14 a. The recovery posture is the historical one — the FIRST specification wins — so the
+                // sequence stays well-formed and the rest of the source still binds.
+                Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: the character {DescribeChar(c)} is "
+                    + "specified more than once — a given character shall not be specified more than once in that "
+                    + "ALPHABET clause (ISO §12.3.7.3 SR14 a)");
+                return;
+            }
+            pos[c] = next;
+            specOrder.Add(c);
+            if (repByPos.Count == next) repByPos.Add(c);   // the first occupant of the position wins (ALSO literal-1)
             if (advance) next++;
         }
 
         foreach (var entry in def.alphabetEntry())
         {
-            var operands = AlphabetOperands(entry);
+            var operands = AlphabetOperands(name, entry, national);
             if (operands.Count == 0) continue;
-            if (entry.THRU() is not null || entry.THROUGH() is not null)
+            bool thru = entry.THRU() is not null || entry.THROUGH() is not null;
+            if (thru || entry.ALSO().Length > 0)
             {
-                // k)5: the native run from operand-1 to operand-2, either direction, ascending positions.
-                if (operands.Count >= 2 && operands[0].Length == 1 && operands[1].Length == 1)
-                {
-                    int a = operands[0][0] & 0xFF, b = operands[1][0] & 0xFF, step = a <= b ? 1 : -1;
-                    for (int c = a; ; c += step) { Assign((char)c, advance: true); if (c == b) break; }
-                }
+                // SR14 b3/c3: "Each … literal, when a THROUGH or ALSO phrase is specified, shall be one character
+                // in length." A multi-character operand used to be silently DROPPED on the alphanumeric arm — the
+                // whole entry vanished from the table with no diagnostic (kb/Work PB770 leg b).
+                bool ok = true;
+                foreach (var op in operands)
+                    if (op.Length != 1)
+                    {
+                        Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: the operand '{op}' is "
+                            + $"{op.Length} characters — each {(national ? "national" : "alphanumeric")} literal, when a "
+                            + $"THROUGH or ALSO phrase is specified, shall be one character in length (ISO §12.3.7.3 "
+                            + $"SR14 {(national ? "c3" : "b3")})");
+                        ok = false;
+                    }
+                if (!ok) continue;
+            }
+            if (thru)
+            {
+                // k5: the native run from operand-1 to operand-2, in EITHER direction, ascending positions.
+                if (operands.Count < 2) continue;          // a malformed shape already drew a parse error
+                int a = operands[0][0], b = operands[1][0], step = a <= b ? 1 : -1;
+                for (int c = a; ; c += step) { Assign((char)c, advance: true); if (c == b) break; }
                 continue;
             }
             if (entry.ALSO().Length > 0)
             {
-                // k)6: operand-1 and every ALSO operand share ONE ordinal position; operand-1 is the position's
-                // first character (the CHAR() pick and the LOW-VALUE tie winner). ⛔ The advance is GUARDED the
-                // way the national arm's is (PB59): an all-duplicate ALSO group must not advance past an
-                // unoccupied position — GR7 1.3 admits no hole, and RepByPos would acquire one.
+                // k6: operand-1 and every ALSO operand share ONE ordinal position; operand-1 is the position's
+                // first character (the CHAR() pick and the LOW-VALUE tie winner). ⛔ The advance is GUARDED
+                // (PB59): an all-duplicate ALSO group must not advance past an unoccupied position — GR7 k3
+                // admits no hole, and RepByPos would acquire one.
                 int before = repByPos.Count;
-                foreach (var op in operands)
-                    if (op.Length == 1) Assign(op[0], advance: false);
+                foreach (var op in operands) Assign(op[0], advance: false);
                 if (repByPos.Count > before) next++;
                 continue;
             }
-            // k)1.b: a (possibly multi-character) literal — each character, leftmost first, ascending positions.
+            // k1b: a (possibly multi-character) literal — each character, leftmost first, ascending positions.
             foreach (char c in operands[0]) Assign(c, advance: true);
         }
+        if (specOrder.Count == 0) return null;      // nothing was specified — the operand diagnostics stand alone
 
-        // §12.3.7.4 GR7 1.3: unspecified characters follow, DISTINCT ascending positions in native relative order.
-        for (int code = 0; code < 256; code++)
-            if (pos[code] == ushort.MaxValue) { pos[code] = next; repByPos.Add((ushort)code); next++; }
+        // The sparse arrays, sorted by code (the runtime's lookup key).
+        var codes = pos.Keys.Order().ToArray();
+        var positions = new ushort[codes.Length];
+        for (int i = 0; i < codes.Length; i++) positions[i] = pos[codes[i]];
 
-        // GR8/GR9 extremes: highest/lowest POSITION; ties (an ALSO group) take the last/first char SPECIFIED.
-        ushort maxPos = 0, minPos = ushort.MaxValue;
-        for (int code = 0; code < 256; code++) { if (pos[code] > maxPos) maxPos = pos[code]; if (pos[code] < minPos) minPos = pos[code]; }
-        char high = '\u00ff', low = '\u0000';
-        for (int code = 255; code >= 0; code--) if (pos[code] == maxPos) { high = (char)code; break; }
-        foreach (char c in specOrder) if (pos[c & 0xFF] == maxPos) high = c;                  // tie → LAST specified
-        for (int code = 0; code < 256; code++) if (pos[code] == minPos) { low = (char)code; break; }
-        foreach (char c in specOrder) if (pos[c & 0xFF] == minPos) { low = c; break; }        // tie → FIRST specified
-
-        Alphabets.TryAdd(name, new AlphabetDef(new CollatingTable(pos, repByPos.ToArray(), next, high, low), null, "literal-phrase"));
+        var (high, low) = AlphabetExtremes(pos, specOrder, positions, next, national);
+        return new CollatingTable(codes.Select(c => (ushort)c).ToArray(), positions,
+            repByPos.Select(c => (ushort)c).ToArray(), next, high, low);
     }
+
+    /// <summary>The §12.3.7.4 GR8/GR9 extremes of a literal-phrase sequence — the characters at the HIGHEST and
+    /// LOWEST positions, a tie going to the LAST (GR8) / FIRST (GR9) character specified.
+    /// <para>The LOW end is common to both classes: position 0 belongs to the first character specified, and a
+    /// position-0 ALSO tie resolves to that same character.</para>
+    /// <para>The HIGH end differs, and the difference is a DOCUMENTED PIN, not an asymmetry of the rule. Unspecified
+    /// characters sit above every specified one (GR7 k3), so GR8's character is the largest UNSPECIFIED code unit —
+    /// U+FFFF for the national arm. The ALPHANUMERIC arm deliberately keeps computing it over the Latin-1 block
+    /// (U+00FF unless specified): the flagged §8.3.3.6 byte-stability divergence recorded in
+    /// PHASE4_RECONCILIATION, which HIGH-VALUE's single-byte alphanumeric width depends on.</para></summary>
+    private static (char High, char Low) AlphabetExtremes(Dictionary<char, ushort> pos, List<char> specOrder,
+        ushort[] positions, ushort next, bool national)
+    {
+        char low = specOrder[0];
+        char high = national ? (char)0xFFFF : (char)0xFF;
+        while (pos.ContainsKey(high) && high > (char)0) high--;
+        if (pos.ContainsKey(high))               // the whole block is specified — GR8's tie rule over it
+        {
+            ushort maxPos = positions.Max();
+            foreach (char c in specOrder) if (pos[c] == maxPos) high = c;      // tie → LAST specified (GR8)
+        }
+        return (high, low);
+    }
+
+    /// <summary>A character named in a diagnostic: its literal form when it is printable, else its U+ code point.</summary>
+    private static string DescribeChar(char c) => c > ' ' && c < (char)0x7F ? $"'{c}'" : $"U+{(int)c:X4}";
 
     /// <summary>The national coded-character-set name a definition consists of ("UCS-4" / "UTF-8" / "UTF-16"),
     /// or null. These are §8.9 CONTEXT-SENSITIVE words scoped to the ALPHABET clause — they arrive as a single
@@ -1019,185 +1145,144 @@ public sealed partial class DataBinder
             NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
             return;
         }
-        // A single non-figurative bare word that is not a coded-set name would be code-name-2 (§12.3.7.3 SR15
-        // — implementor-defined; none are supported). Figurative words are literal-phrase operands (GR10).
-        if (def.alphabetEntry() is [{ ChildCount: 1 } only] && only.GetChild(0) is Core.CobolWordContext cw
-            && !IsNationalFigurativeWord(cw.GetText()))
-        {
-            Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL IS {cw.GetText()}: not a supported "
-                + "code-name — this implementation defines no code-name-2 names (ISO §12.3.7.3 SR15; the "
-                + "national coded character sets are NATIVE, UCS-4, UTF-8, and UTF-16)");
-            return;
-        }
-        AlphabetBindNationalLiteralPhrase(name, def);
+        // A single non-figurative bare word that is not a coded-set name is code-name-2 (§12.3.7.3 SR15 —
+        // implementor-defined; none are supported). Figurative words are literal-phrase operands (GR10). ONE check,
+        // shared with the alphanumeric arm since kb/Work PB770 — that arm had no SR15 check at all.
+        if (AlphabetCodeNameRefused(name, def, national: true)) return;
+        if (AlphabetLiteralPhrase(name, def, national: true) is { } table)
+            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(table, HasCollatingSequence: true, "literal-phrase"));
     }
 
-    private static bool IsNationalFigurativeWord(string word) => word.ToUpperInvariant()
-        is "HIGH-VALUE" or "HIGH-VALUES" or "LOW-VALUE" or "LOW-VALUES"
-        or "SPACE" or "SPACES" or "QUOTE" or "QUOTES" or "ZERO" or "ZEROS" or "ZEROES";
-
-    /// <summary>Build a NATIONAL literal-phrase alphabet (ISO §12.3.7 GR7 k over the NATIVE NATIONAL character
-    /// set — the 65,536 UTF-16 code units, D-N1): a numeric literal is the 1-based NATIONAL ordinal (k1a, SR14c1
-    /// — 1..65536 ⇒ code unit ordinal−1); a noninteger literal shall be a NATIONAL literal (SR14c2), each
-    /// character taking successive ascending positions leftmost-first (k1b); THROUGH expands the native run in
-    /// EITHER direction (k5); ALSO members share ONE position (k6); every unspecified code unit takes a DISTINCT
-    /// ascending position above the highest specified, in native relative order (k3 — realized SPARSELY, the
-    /// runtime computes it arithmetically). Figurative words inside SPECIAL-NAMES are the NATIVE NATIONAL
-    /// extremes/values (GR10 — HIGH-VALUE = U+FFFF, LOW-VALUE = U+0000 in the native national sequence).</summary>
-    private void AlphabetBindNationalLiteralPhrase(string name, Core.AlphabetDefinitionContext def)
+    /// <summary>⛔ THE ONE alphabet-entry operand decoder (ISO §12.3.7.3 SR14 b for the ALPHANUMERIC arm, SR14 c
+    /// for the NATIONAL one — the SAME four sub-rules, differing only in which literal class each operand shall be
+    /// and which native set an ordinal indexes). Both arms had their own copy until kb/Work PB770, and the
+    /// alphanumeric copy implemented NONE of the rules: it borrowed the CLASS clause's <c>LiteralChars</c> for the
+    /// ordinal range (so an out-of-range ALPHABET ordinal reported <c>CLASS : … §12.3.7.3 SR17 b2</c> on a program
+    /// with no CLASS clause), accepted a noninteger literal, and turned an unrecognized word into the characters of
+    /// its own spelling. <c>feedback_two_arm_dispatch</c>, fifth instance.</summary>
+    /// <remarks>b1/c1 — "<i>Each numeric literal shall be an unsigned integer and shall have a value within the
+    /// range of one through the maximum number of characters in the native … character set</i>": the ordinal is
+    /// 1-based, so it names code unit <c>ordinal − 1</c> of the 65,536-character repertoire (§12.3.7.4 GR7 k1a).
+    /// b2/c2 — "<i>Each noninteger literal shall be an alphanumeric / a national literal</i>". GR10 — the figurative
+    /// words written inside SPECIAL-NAMES are the NATIVE extremes/values of the clause's class.</remarks>
+    private List<string> AlphabetOperands(string name, Core.AlphabetEntryContext entry, bool national)
     {
-        var pos = new Dictionary<char, ushort>();
-        var specOrder = new List<char>();          // every specified char in source order (GR8/GR9 tie rules)
-        var repByPos = new List<char>();           // the FIRST char defined per position (§15.16.4 r2)
-        ushort next = 0;
-        void Assign(char c, bool advance)
-        {
-            if (pos.ContainsKey(c)) return;        // SR14a duplicate — first wins (the alphanumeric builder's posture)
-            pos[c] = next;
-            specOrder.Add(c);
-            if (repByPos.Count == next) repByPos.Add(c);
-            if (advance) next++;
-        }
-
-        foreach (var entry in def.alphabetEntry())
-        {
-            var operands = AlphabetOperandsNational(name, entry);
-            if (operands.Count == 0) continue;
-            if (entry.THRU() is not null || entry.THROUGH() is not null)
-            {
-                // k)5: the native national run from operand-1 to operand-2, either direction (SR14c3 — one char each).
-                if (operands.Count >= 2 && operands[0].Length == 1 && operands[1].Length == 1)
-                {
-                    int a = operands[0][0], b = operands[1][0], step = a <= b ? 1 : -1;
-                    for (int c = a; ; c += step) { Assign((char)c, advance: true); if (c == b) break; }
-                }
-                else
-                    Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: each THROUGH operand shall "
-                        + "be one character in length (ISO §12.3.7.3 SR14c3)");
-                continue;
-            }
-            if (entry.ALSO().Length > 0)
-            {
-                // k)6: operand-1 and every ALSO operand share ONE position; operand-1 is that position's first
-                // character. Advance only when the group assigned something (a duplicate-only group is inert).
-                int before = repByPos.Count;
-                foreach (var op in operands)
-                {
-                    if (op.Length == 1) Assign(op[0], advance: false);
-                    else Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: each ALSO operand shall "
-                        + "be one character in length (ISO §12.3.7.3 SR14c3)");
-                }
-                if (repByPos.Count > before) next++;
-                continue;
-            }
-            // k)1.b: a (possibly multi-character) national literal — each character, leftmost first.
-            foreach (char c in operands[0]) Assign(c, advance: true);
-        }
-        if (specOrder.Count == 0) return;           // every operand failed its SR — errors already reported
-
-        // Sparse arrays sorted by code (the runtime's binary-search key).
-        var codes = pos.Keys.Order().ToArray();
-        var positions = new ushort[codes.Length];
-        for (int i = 0; i < codes.Length; i++) positions[i] = pos[codes[i]];
-
-        // GR8/GR9 extremes over the FULL national sequence: position 0 belongs to the first character specified
-        // (a position-0 ALSO tie also resolves to it — GR9 takes the FIRST specified); the HIGHEST position
-        // belongs to the largest UNSPECIFIED code unit (unspecified characters sit above all specified ones,
-        // §12.3.7.4 GR7 1.3) — U+FFFF unless specified, else the next free code downward; if every code unit is specified
-        // (unreachable from real source), GR8's tie rule over the top specified position applies.
-        char low = specOrder[0];
-        char high = '\uffff';
-        while (pos.ContainsKey(high) && high > '\u0000') high--;
-        if (pos.ContainsKey(high))                   // all 65,536 specified — GR8 over the specified block
-        {
-            ushort maxPos = positions.Max();
-            foreach (char c in specOrder) if (pos[c] == maxPos) high = c;   // tie → LAST specified (GR8)
-        }
-
-        NationalAlphabets.TryAdd(name, new NationalAlphabetDef(
-            new NationalCollatingTable(codes.Select(c => (ushort)c).ToArray(), positions,
-                repByPos.Select(c => (ushort)c).ToArray(), next, high, low),
-            HasCollatingSequence: true, "literal-phrase"));
-    }
-
-    /// <summary>A NATIONAL alphabet entry's operand texts in source order (ISO §12.3.7.3 SR14c): a quoted
-    /// literal shall be a NATIONAL literal (SR14c2 — decoded to its characters); an unsigned integer literal is
-    /// the character at that 1-based ordinal of the NATIVE NATIONAL character set (SR14c1 — 1..65536); the
-    /// figurative words written inside SPECIAL-NAMES are the NATIVE NATIONAL extremes/values (GR10 —
-    /// HIGH-VALUE = U+FFFF, LOW-VALUE = U+0000, SPACE, QUOTE, ZERO).</summary>
-    private List<string> AlphabetOperandsNational(string name, Core.AlphabetEntryContext entry)
-    {
+        string what = $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")}";
         var result = new List<string>();
         for (int i = 0; i < entry.ChildCount; i++)
         {
             switch (entry.GetChild(i))
             {
+                // ⛔ A FIGURATIVE CONSTANT IS A LITERAL, not a word: `nonNumericLiteral : figurativeConstant | …`,
+                // so SPACE / LOW-VALUE / QUOTE reach here through the literal arm whenever the spelling is a lexer
+                // token — which is every ordinary spelling. The cobolWord arm below is the non-tokenized route
+                // (a >>COBOL-WORDS synonym). Both call the ONE GR10 mapping.
+                case Core.LiteralContext { } figLit when figLit.nonNumericLiteral()?.figurativeConstant() is { } fig:
+                    if (fig.ALL() is not null)
+                    {
+                        // §12.3.7.3 SR11 — literal-1/-2/-3 "shall specify neither a symbolic-character figurative
+                        // constant nor a zero-length literal"; and an ALL figurative has no length of its own,
+                        // which GR7 k1b's per-character positioning would need.
+                        Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: {fig.GetText()} — an ALL "
+                            + "figurative constant is not an operand of a literal phrase; a symbolic-character "
+                            + "figurative constant is forbidden outright (ISO §12.3.7.3 SR11)");
+                        break;
+                    }
+                    if (AlphabetFigurative(fig.GetText(), national) is { } figValue) result.Add(figValue);
+                    else Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: {fig.GetText()} — the "
+                        + "figurative constant is not a character of the native character set, so it cannot take a "
+                        + "position in a collating sequence (ISO §12.3.7.4 GR10 names HIGH-VALUE, LOW-VALUE, SPACE, "
+                        + "QUOTE and ZERO)");
+                    break;
                 case Core.LiteralContext lit:
                     string text = lit.GetText();
                     if (int.TryParse(text, out int ordinal))
                     {
-                        if (ordinal is >= 1 and <= 0x10000) result.Add(((char)(ordinal - 1)).ToString());
-                        else Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: ordinal {ordinal} is "
-                            + "outside the native national character set (1..65536, ISO §12.3.7.3 SR14c1)");
+                        // b1/c1, BOTH halves of one sentence: "shall be an UNSIGNED INTEGER **and** shall have a
+                        // value within the range of one through the maximum number of characters in the native …
+                        // character set". ⛔ int.TryParse accepts a leading sign, so the unsigned half has to be
+                        // asked separately — otherwise `+5` reads as ordinal 5 and only a NEGATIVE value is caught,
+                        // by the range half, which is a different rule answering for this one.
+                        if (text[0] is '+' or '-')
+                            Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: {text} — each numeric "
+                                + "literal shall be an UNSIGNED integer (ISO §12.3.7.3 SR14 "
+                                + $"{(national ? "c1" : "b1")})");
+                        else if (ordinal is >= 1 and <= CollatingTable.Repertoire) result.Add(((char)(ordinal - 1)).ToString());
+                        else Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: the ordinal {ordinal} "
+                            + $"does not exist in the native {(national ? "national" : "alphanumeric")} character set "
+                            + $"({CollatingTable.Repertoire} characters) — each numeric literal shall be an unsigned "
+                            + $"integer with a value from one through the maximum number of characters in that set "
+                            + $"(ISO §12.3.7.3 SR14 {(national ? "c1" : "b1")})");
                     }
-                    else if (text.Length >= 1 && text[0] is 'N' or 'n')
-                        result.Add(CobolLiteral.Decode(text));
+                    else if (national ? text.Length >= 1 && text[0] is 'N' or 'n' : IsAlphanumericLiteral(lit))
+                        result.Add(LiteralCharsOf(lit));
                     else
                     {
-                        Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: {text} — each noninteger "
-                            + "literal shall be a NATIONAL literal (N\"…\"; ISO §12.3.7.3 SR14c2)");
+                        // b2/c2. A noninteger literal of the wrong class: name the rule, then RECOVER with the
+                        // literal's characters when it is a string at all, so one bad operand does not cascade.
+                        Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: {text} — each noninteger "
+                            + $"literal shall be {(national ? "a NATIONAL literal (N\"…\")" : "an alphanumeric literal")} "
+                            + $"(ISO §12.3.7.3 SR14 {(national ? "c2" : "b2")})");
                         if (CobolLiteral.IsStringLiteral(text)) result.Add(CobolLiteral.Decode(text));
                     }
                     break;
                 case Core.CobolWordContext w:
-                    string t = w.GetText().ToUpperInvariant();
-                    result.Add(t switch
-                    {
-                        // GR10: the native NATIONAL extremes — the highest/lowest of the 65,536-code-unit set.
-                        "HIGH-VALUE" or "HIGH-VALUES" => "\uffff",
-                        "LOW-VALUE" or "LOW-VALUES" => "\u0000",
-                        "SPACE" or "SPACES" => " ",
-                        "QUOTE" or "QUOTES" => "\"",
-                        "ZERO" or "ZEROS" or "ZEROES" => "0",
-                        _ => t,
-                    });
+                    // GR10: the NATIVE extremes/values of the clause's class. ⛔ There is NO `_ => t` fallback any
+                    // more: an unrecognized word is code-name-1/-2, which AlphabetCodeNameRefused has already
+                    // refused for the only shape it can legally take, and inside a multi-operand phrase it is an
+                    // SR14 b2/c2 violation — never the characters of its own spelling (kb/Work PB770 leg e).
+                    if (AlphabetFigurative(w.GetText(), national) is { } wordValue) result.Add(wordValue);
+                    else Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: {w.GetText()} is not a "
+                        + $"literal — each operand of a literal phrase shall be a numeric literal, {(national ? "a NATIONAL" : "an alphanumeric")} "
+                        + $"literal or a figurative constant (ISO §12.3.7.3 SR14 {(national ? "c2" : "b2")}; §12.3.7.4 GR10)");
                     break;
             }
         }
         return result;
     }
 
-    /// <summary>An alphabet entry's operand texts in source order: quoted literals decoded, an unsigned integer
-    /// literal as the character at that 1-based NATIVE ordinal (GR7 k1a), and the figurative words written inside
-    /// SPECIAL-NAMES as the NATIVE extremes/values (GR10 — HIGH-VALUE=U+00FF, LOW-VALUE=U+0000, SPACE, QUOTE,
-    /// ZERO).</summary>
-    private List<string> AlphabetOperands(Core.AlphabetEntryContext entry)
+    /// <summary>⛔ THE ONE §12.3.7.4 GR10 mapping of a figurative constant written INSIDE the SPECIAL-NAMES
+    /// paragraph to the character it names: "<i>When specified as literals in the SPECIAL-NAMES paragraph, the
+    /// figurative constants HIGH-VALUE and LOW-VALUE are associated with those characters having the highest and
+    /// lowest positions, respectively, in the native national collating sequence, when the NATIONAL phrase is
+    /// specified, or in the native alphanumeric collating sequence otherwise</i>" — so they are the NATIVE extremes
+    /// here, never the sequence being defined. SPACE, QUOTE and ZERO are their §8.3.3.6 characters.
+    /// <para>Null for any other word, which is then not an operand at all. The alphanumeric HIGH-VALUE stays at
+    /// U+00FF: the documented §8.3.3.6 byte-stability pin recorded in PHASE4_RECONCILIATION, the same one
+    /// <see cref="AlphabetExtremes"/> keeps.</para></summary>
+    private static string? AlphabetFigurative(string word, bool national) => word.ToUpperInvariant() switch
     {
-        var result = new List<string>();
-        for (int i = 0; i < entry.ChildCount; i++)
-        {
-            switch (entry.GetChild(i))
-            {
-                case Core.LiteralContext lit:
-                    result.Add(LiteralChars(lit));
-                    break;
-                case Core.CobolWordContext w:
-                    string t = w.GetText().ToUpperInvariant();
-                    result.Add(t switch
-                    {
-                        "HIGH-VALUE" or "HIGH-VALUES" => "\u00ff",
-                        "LOW-VALUE" or "LOW-VALUES" => "\u0000",
-                        "SPACE" or "SPACES" => " ",
-                        "QUOTE" or "QUOTES" => "\"",
-                        "ZERO" or "ZEROS" or "ZEROES" => "0",
-                        _ => t,
-                    });
-                    break;
-            }
-        }
-        return result;
+        "HIGH-VALUE" or "HIGH-VALUES" => national ? "\uFFFF" : "\u00FF",
+        "LOW-VALUE" or "LOW-VALUES" => "\u0000",
+        "SPACE" or "SPACES" => " ",
+        "QUOTE" or "QUOTES" => "\"",
+        "ZERO" or "ZEROS" or "ZEROES" => "0",
+        _ => null,
+    };
+
+    /// <summary>Is <paramref name="lit"/> an ALPHANUMERIC literal (ISO §8.3.3.1 — both quotation forms — or the
+    /// §8.3.3.2 hexadecimal format X"hh…"), as SR14 b2 requires? A national literal (N"…" / NX"…") is not.</summary>
+    private static bool IsAlphanumericLiteral(Core.LiteralContext lit)
+    {
+        string text = lit.GetText();
+        if (lit.nonNumericLiteral()?.concatenationExpression() is not null) return text.Length > 0 && text[0] is not ('N' or 'n');
+        if (CobolLiteral.IsStringLiteral(text)) return true;
+        return text.Length >= 3 && text[0] is 'X' or 'x' && text[1] is '"' or '\'';
     }
 
+    /// <summary>The characters of an alphabet-entry string literal: a §8.8.3.3 GR3 concatenation folded first, the
+    /// §8.3.3.2 hexadecimal format decoded pairwise, otherwise the literal's own characters. ⛔ It never resolves an
+    /// ORDINAL — that is SR14 b1/c1's job and it lives in <see cref="AlphabetOperands"/>, so the ALPHABET path can
+    /// no longer inherit the CLASS clause's descriptor, message and rule number (kb/Work PB770 leg d).</summary>
+    private string LiteralCharsOf(Core.LiteralContext lit)
+    {
+        if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce)
+            return ConcatFolder.Fold(ce, Edition, collate: null).Value;
+        string text = lit.GetText();
+        if (CobolLiteral.IsStringLiteral(text)) return CobolLiteral.Decode(text);
+        if (text.Length >= 3 && text[0] is 'X' or 'x' && text[1] is '"' or '\'') return CobolLiteral.DecodeHex(text);
+        return text;
+    }
     /// <summary>One <c>CLASS class-name IS {literal [THRU literal]}…</c> clause (ISO §12.3.7): expand each value
     /// item to its member characters — a multi-character literal lists each character; a THRU pair contributes the
     /// contiguous native-collating range between the two single-character ordinals, ASCENDING OR DESCENDING (the
@@ -1223,10 +1308,10 @@ public sealed partial class DataBinder
         foreach (var item in cd.classValueSet().classValueItem())
         {
             var lits = item.literal();
-            string lo = LiteralChars(lits[0], inSet, name);
+            string lo = ClassLiteralChars(lits[0], inSet, name);
             if (lits.Length >= 2)
             {
-                string hi = LiteralChars(lits[1], inSet, name);
+                string hi = ClassLiteralChars(lits[1], inSet, name);
                 if (lo.Length == 1 && hi.Length == 1)
                 {
                     char a = lo[0], b = hi[0];
@@ -1299,11 +1384,19 @@ public sealed partial class DataBinder
         }
     }
 
-    /// <summary>The character content of a class-definition literal: a quoted literal's characters, or — for an
+    /// <summary>The character content of a CLASS-clause literal-5/-6: a quoted literal's characters, or — for an
     /// unsigned integer literal — the character at that ORDINAL position of the native character set, or of the
     /// IN alphabet's coded character set when given (1-based; ISO §12.3.7.4 GR12 a — kb/Work PB110: the IN phrase
-    /// used to be silently ignored, building the class from NATIVE ordinals). SR17 b2's range is the set's.</summary>
-    private string LiteralChars(Core.LiteralContext lit, CodedCharacterSet? inSet = null, string? className = null)
+    /// used to be silently ignored, building the class from NATIVE ordinals). SR17 b2's range is the set's.
+    /// <para>⛔ IT BELONGS TO THE CLASS CLAUSE AND TO NOTHING ELSE, and the now-REQUIRED <paramref name="className"/>
+    /// says so at every call site. It used to be a general "literal characters" helper with optional arguments, and
+    /// its two other callers inherited the CLASS descriptor, the CLASS message text with an empty name and the CLASS
+    /// RULE NUMBER: the ALPHABET clause reported <c>COBOLNET1671: CLASS : … §12.3.7.3 SR17 b2</c> for an ordinal
+    /// governed by SR14 b1, on a program with no CLASS clause at all, and the CURRENCY SIGN clause silently turned a
+    /// numeric literal-7 that §12.3.7.3 SR18 forbids into the character at that native ordinal (kb/Work PB770 leg d
+    /// and its sweep). The general form is now <see cref="LiteralCharsOf"/>, which resolves NO ordinals, so no
+    /// construct can inherit another's rule number through it again.</para></summary>
+    private string ClassLiteralChars(Core.LiteralContext lit, CodedCharacterSet? inSet, string className)
     {
         // §8.8.3.3 GR3: a concatenation expression stands anywhere a literal of its class may — fold an
         // ALPHABET/CLASS operand concat to its character value before decoding (GetText would glue the

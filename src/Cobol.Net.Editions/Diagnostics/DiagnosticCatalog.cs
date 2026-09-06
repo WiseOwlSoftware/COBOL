@@ -2375,6 +2375,30 @@ public static class DiagnosticCatalog
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",
         "ISO §13.18.58 / §13.18.57.3 / §8.5.3.1 / §8.5.3.3");
 
+    public static readonly DiagnosticDescriptor AlphabetClauseViolation = new(
+        "COBOLNET1906", "alphabet-clause", EditionSeverity.Error,
+        "An ALPHABET clause specified with a literal phrase violates one of ISO §12.3.7.3 SR14's sub-rules (the "
+        + "message names which): a) a given character shall not be specified more than once in that ALPHABET "
+        + "clause; b1/c1) each numeric literal shall be an unsigned integer with a value from one through the "
+        + "maximum number of characters in the native alphanumeric / national character set; b2/c2) each "
+        + "noninteger literal shall be an alphanumeric / a national literal; b3/c3) each such literal, when a "
+        + "THROUGH or ALSO phrase is specified, shall be one character in length. (b4/c4 — the character count "
+        + "shall not exceed the native set's — follows from a): distinct characters of a set cannot outnumber "
+        + "the set. An unsupported code-name is COBOLNET1907, SR15; a form violation of the clause itself is "
+        + "the COBOLNET0898 band.)",
+        "ISO §12.3.7.3 SR14");
+    public static readonly DiagnosticDescriptor AlphabetCodeNameUnsupported = new(
+        "COBOLNET1907", "alphabet-code-name", EditionSeverity.Error,
+        "An ALPHABET clause names a code-name-1 (alphanumeric) or code-name-2 (national) this implementation does "
+        + "not support. ISO §12.3.7.3 SR15 leaves the supported names to the implementor — 'if any' — and this "
+        + "one defines NONE: the words that may stand alone in an alphabet definition are the general format's own "
+        + "keywords (NATIVE, STANDARD-1, STANDARD-2 for the alphanumeric branch; NATIVE, UCS-4, UTF-8, UTF-16 for "
+        + "the national one; LOCALE for either) and the figurative constants of a one-operand literal phrase "
+        + "(§12.3.7.4 GR10). Such a word used to be silently reinterpreted as the CHARACTERS OF ITS OWN SPELLING "
+        + "— ALPHABET A IS ASCII built an alphabet whose first four positions were A, S, C, I — which every "
+        + "downstream reference then read (kb/Work PB770 leg e). CONFORMANCE.md carries the SR15 statement.",
+        "ISO §12.3.7.3 SR15");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

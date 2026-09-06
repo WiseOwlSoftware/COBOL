@@ -400,14 +400,16 @@ public sealed class FixedFileAttributeCatalogTests : IDisposable
     /// the positions of 'A' and 'B' exchanged — two sequences that order key values differently.</summary>
     private static AlphanumericCollation OrdinalSequence(bool swapAB)
     {
-        var positions = new ushort[256];
-        var repByPos = new ushort[256];
-        for (int i = 0; i < 256; i++) { positions[i] = (ushort)i; repByPos[i] = (ushort)i; }
+        // The SPARSE §12.3.7.4 GR7 k table (kb/Work PB770): specify codes 0..255 at their own positions, so the
+        // sequence IS the native order except for the optional 'A'/'B' exchange; everything above follows natively.
+        var codes = Enumerable.Range(0, 256).Select(c => (ushort)c).ToArray();
+        var positions = Enumerable.Range(0, 256).Select(c => (ushort)c).ToArray();
+        var repByPos = Enumerable.Range(0, 256).Select(c => (ushort)c).ToArray();
         if (swapAB)
         {
             (positions['A'], positions['B']) = (positions['B'], positions['A']);
             (repByPos['A'], repByPos['B']) = (repByPos['B'], repByPos['A']);
         }
-        return new AlphanumericCollation(positions, repByPos, 256);
+        return new AlphanumericCollation(codes, positions, repByPos, 256);
     }
 }

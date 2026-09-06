@@ -869,7 +869,14 @@
   "pb742-collating-sequence-on-sequential-file",
   "pb743-record-key-numeric",
   "pb743-alternate-key-numeric",
-  "pb743-record-key-alphabetic"
+  "pb743-record-key-alphabetic",
+  "pb770-alphabet-duplicate-character",
+  "pb770-alphabet-ordinal-out-of-range",
+  "pb770-alphabet-noninteger-literal",
+  "pb770-alphabet-multichar-thru-operand",
+  "pb770-alphabet-unsupported-code-name",
+  "pb770-alphabet-national-duplicate",
+  "pb770-alphabet-syn-definition-1849"
  ],
  "pending": []
 }

@@ -163,7 +163,7 @@ public sealed class CobolCollationTests
             Assert.False(ExceptionState.LastFatal);
             Assert.True(CobolString.ThruMember("m", "a", "z", Loc));
         });
-        var reversed = new AlphanumericCollation(ReversedPositions(), ReversedRep(), 256, 'A', 'Z');
+        var reversed = Reversed();
         Assert.True(reversed.ThruMember("M", "Z", "A"));          // under the reversed alphabet Z < A
         Assert.False(reversed.ThruMember("M", "A", "Z"));         // …so A..Z is an inverted (empty) range
     }
@@ -171,7 +171,7 @@ public sealed class CobolCollationTests
     [Fact]
     public void TableArms_AnswerThroughTheCarrier_AsBefore()
     {
-        var reversed = new AlphanumericCollation(ReversedPositions(), ReversedRep(), 256, 'A', 'Z');
+        var reversed = Reversed();
         CobolCollation c = reversed;
         Assert.True(c.Compare("A", "B") > 0);                     // reversed A..Z
         Assert.True(c.Compare("B", "A") < 0);
@@ -219,22 +219,15 @@ public sealed class CobolCollationTests
         Assert.True(typeof(LocaleCollation).IsSubclassOf(typeof(CobolCollation)));
     }
 
-    private static ushort[] ReversedPositions()
+    /// <summary><c>ALPHABET IS "ZYX…A"</c> as the SPARSE §12.3.7.4 GR7 k table: the 26 SPECIFIED letters occupy
+    /// positions 25..0 ('Z' first), and every UNSPECIFIED character follows in native relative order (GR7 k3),
+    /// which the carrier computes arithmetically rather than tabulating (kb/Work PB770 — one table shape for both
+    /// classes). GR8/GR9 make U+00FF the alphanumeric HIGH-VALUE pin and 'Z' the LOW-VALUE (position 0).</summary>
+    private static AlphanumericCollation Reversed()
     {
-        // ALPHABET IS "ZYX…A": Z=0 … A=25, every other Latin-1 code unit follows in native order (§12.3.7.4 GR7 1.3).
-        var pos = new ushort[256];
-        Array.Fill(pos, ushort.MaxValue);
-        ushort next = 0;
-        for (char c = 'Z'; c >= 'A'; c--) pos[c] = next++;
-        for (int code = 0; code < 256; code++) if (pos[code] == ushort.MaxValue) pos[code] = next++;
-        return pos;
-    }
-
-    private static ushort[] ReversedRep()
-    {
-        var pos = ReversedPositions();
-        var rep = new ushort[256];
-        for (int code = 0; code < 256; code++) rep[pos[code]] = (ushort)code;
-        return rep;
+        var codes = Enumerable.Range('A', 26).Select(c => (ushort)c).ToArray();
+        var positions = codes.Select(c => (ushort)('Z' - c)).ToArray();
+        var rep = Enumerable.Range(0, 26).Select(i => (ushort)('Z' - i)).ToArray();
+        return new AlphanumericCollation(codes, positions, rep, 26, 'A', 'Z');
     }
 }

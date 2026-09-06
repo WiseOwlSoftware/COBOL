@@ -229,7 +229,7 @@ public sealed class CollationKeyCacheTests
         foreach (string a in words)
             foreach (string b in words)
                 Assert.Equal(Math.Sign(seq.Compare(a, b)), Math.Sign(seq.KeyOf(a)!.CompareTo(seq.KeyOf(b))));
-        Assert.False(new AlphanumericCollation(new ushort[256], new ushort[256], 256).SupportsKeys);
+        Assert.False(new AlphanumericCollation([65], [0], [65], 1).SupportsKeys);
     }
 
     [Fact]

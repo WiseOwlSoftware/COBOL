@@ -1754,10 +1754,20 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     §12.3.7 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
     subsystem is LIVE in BOTH classes (§12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
     name and IS plus the historical postfix superset):
-    - **Alphanumeric**: `CollatingTable` (a native-code→position table over the alphabet's Latin-1 domain; the native
-      alphanumeric REPERTOIRE is Unicode/UTF-16 [CA26] — a code unit beyond the domain keeps its native position, NOT
-      capped at 256, and `CobolString.Compare` no longer masks `& 0xFF`; Latin-1 is only the byte serialization,
-      §8.1.2 NOTE 2 — §12.3.7.4 GR7 1., whose sub-rule **3** places the unspecified tail:
+    - **⛔ ONE table, ONE builder, ONE runtime carrier for BOTH classes** (kb/Work PB770). §12.3.7.4 GR7 k states its
+      six sub-rules ONCE, "where the native coded character set is the type of coded character set or collating
+      sequence being defined, either alphanumeric or national", and both native sets are the 65,536 UTF-16 code units
+      here (implementor item 188 / D-N1) — so `CollatingTable` (binder), `LiteralPhraseCollation` (runtime, with
+      `AlphanumericCollation` / `NationalCollation` as its two named arms) and `DataBinder.Switches`'s
+      `AlphabetLiteralPhrase` / `AlphabetOperands` each exist exactly once and take a `national` flag that reaches
+      only the diagnostics and the per-operand literal CLASS. The arms drifted for as long as they were separate:
+      the alphanumeric one implemented NONE of §12.3.7.3 SR14 (duplicates, the ordinal range, the literal class, the
+      one-character THROUGH/ALSO operand) and masked every operand into a 256-wide Latin-1 block, so
+      `ALPHABET A IS 305 THRU 300` — legal source naming U+012B..U+0130 — silently reversed `'+'`…`'0'`.
+    - **The table is SPARSE in both classes**: only the SPECIFIED characters are tabulated; every unspecified one
+      takes its GR7 k3 position arithmetically, and the runtime materializes an O(1) weight cache up to the highest
+      specified character so the comparison hot path costs one array index. The width is therefore the REPERTOIRE,
+      not a block — §12.3.7.4 GR7 1., whose sub-rule **3** places the unspecified tail:
       "Any characters of the native collating sequence that are not specified in the literal phrase shall assume a
       position in the collating sequence that is greater than that of the highest character specified in this
       literal phrase. The relative order within the set of these unspecified characters is unchanged from the
@@ -1767,10 +1777,8 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
       `__COLLATE_NAT` and `__CLASSIFY` members), consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
       relation/condition-name comparison site (§12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
       figurative fills.
-    - **National** (P10 Step 4): `NationalCollatingTable` — a SPARSE table over the 65,536 UTF-16 code units
-      (only the specified characters tabulated; every unspecified code unit takes its §12.3.7.4 GR7 1.3 position
-      — above the highest specified character, native relative order preserved — computed arithmetically rather
-      than stored) — built by `AlphabetBindNational` (`NationalAlphabets`/`NationalCollating`),
+    - **National** (P10 Step 4): the SAME `CollatingTable` over the 65,536 UTF-16 code units — built by
+      `AlphabetBindNational` through the shared `AlphabetLiteralPhrase` (`NationalAlphabets`/`NationalCollating`),
       rendered as the generated `__COLLATE_NAT` `NationalCollation` instance, consumed by
       `CobolString.Compare(a,b,national)` at national relation/condition-name sites (§8.8.4.2.9 / §12.3.6 GR11),
       by CHAR-NATIONAL/ORD-over-national (`CollateNat`, §15.16.4/§15.70.4 r2), and by the national figurative
@@ -1780,6 +1788,14 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
       the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§12.3.7 GR7
       Table 6): referencing them as a collating sequence is rejected (0898), and no codec boundary consumes their
       coded-set role as a CHARACTER SET (item 14a below — the CODE-SET boundary codec lands with kb/Work PB110 part 2).
+    **§12.3.7.3 SR14/SR15 are enforced once, for both arms** (`COBOLNET1906` / `COBOLNET1907`): a) no character
+    twice (recovery keeps the first), b1/c1 BOTH halves of its one sentence -- an UNSIGNED integer AND the 1..65,536 range, b2/c2 the operand's literal class,
+    b3/c3 one character under THROUGH/ALSO, and SR15 — this implementation supports NO code-name-1/code-name-2, so
+    a bare word that is not a general-format keyword or a §12.3.7.4 GR10 figurative constant is a diagnostic and
+    never (as it was) the characters of its own spelling. b4/c4 needs no check: a) makes every specified character
+    distinct, and distinct characters of a set cannot outnumber the set. `LiteralChars` — the general helper whose
+    ordinal branch carried the CLASS clause's descriptor, message and rule number into the ALPHABET and CURRENCY
+    clauses — is now `ClassLiteralChars` with a REQUIRED class-name, beside an ordinal-free `LiteralCharsOf`.
     SORT/MERGE: the statement resolves BOTH sequences as a `SortCollation` PAIR — §14.9.40.4 GR5 / §14.9.24.4 GR5
     determine them SEPARATELY, alphabet-name-1 (GR5a) or the alphanumeric program collating sequence (GR5b) for keys
     of class alphabetic and alphanumeric, alphabet-name-2 / the FOR NATIONAL form (GR5a) or the national program

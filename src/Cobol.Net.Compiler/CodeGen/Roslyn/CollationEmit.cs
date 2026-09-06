@@ -22,6 +22,7 @@ internal static class CollationEmit
     {
         if (def.Table is { } t)
             return $"new {nameof(AlphanumericCollation)}("
+                + $"new ushort[] {{ {string.Join(", ", t.Codes)} }}, "
                 + $"new ushort[] {{ {string.Join(", ", t.Positions)} }}, "
                 + $"new ushort[] {{ {string.Join(", ", t.RepByPos)} }}, {t.NextFree}, "
                 + $"{SymbolDisplay.FormatLiteral(t.HighValue, quote: true)}, {SymbolDisplay.FormatLiteral(t.LowValue, quote: true)})";
