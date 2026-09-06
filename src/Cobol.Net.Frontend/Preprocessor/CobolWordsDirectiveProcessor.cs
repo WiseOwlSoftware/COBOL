@@ -29,7 +29,7 @@ public static class CobolWordsDirectiveProcessor
     /// option, enforce SR1/SR2/SR5, and blank the directive lines. Returns the composed override map (empty when
     /// no directive is present). Line-count preserving.</summary>
     public static (string Text, CobolWordsMap Map) Process(
-        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, CobolWordsMap.Empty);
         var lines = text.Split('\n');
@@ -54,10 +54,9 @@ public static class CobolWordsDirectiveProcessor
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
 
-            // Introduction gate (§7.3.10 is a COBOL-2023 addition, Annex E.3.3 item 12): reject below 2023 via the
-            // ONE ConstructRegistry (COBOLNET0900). No-op at 2023+. Single-sources the message + version-matrix row.
-            ConstructRegistry.Check(EditionInfo.Of(dialectLevel, permissive), new BagSink(diagnostics, loc),
-                Constructs.CobolWordsDirective2023, ">>COBOL-WORDS directive");
+            // The introduction gate (§7.3.10 is a COBOL-2023 addition, Annex E.3.3 item 12) already fired at
+            // the ONE directive-recognition point — CompilerDirectiveCatalog, from the cobol-words-directive-2023
+            // row's directiveWords (kb/Work PB725). This stage parses; it does not re-decide the edition.
 
             // SR1 — a COBOL-WORDS directive after the first IDENTIFICATION DIVISION is illegal (§7.3.10.3 SR1).
             if (sawFirstIdDivision)
@@ -255,14 +254,5 @@ public static class CobolWordsDirectiveProcessor
         string content = s[(q + 1)..Math.Min(j, s.Length)];
         toks.Add(new Tok(content, IsLiteral: true, Prefix: prefix));
         return j < s.Length ? j + 1 : j;   // step past the closing quote
-    }
-
-    /// <summary>Bridges the ONE <see cref="ConstructRegistry"/> edition funnel's <see cref="EditionDiagnostic"/>
-    /// onto this stage's <see cref="DiagnosticBag"/> at the directive's line (the shared frontend gate bridge).</summary>
-    private sealed class BagSink(DiagnosticBag bag, SourceLocation loc) : IDiagnosticSink
-    {
-        public void Report(in EditionDiagnostic d) => bag.Report(d.Code,
-            d.Severity == EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
-            d.Message, loc, default);
     }
 }

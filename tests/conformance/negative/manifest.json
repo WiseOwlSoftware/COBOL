@@ -876,7 +876,10 @@
   "pb770-alphabet-multichar-thru-operand",
   "pb770-alphabet-unsupported-code-name",
   "pb770-alphabet-national-duplicate",
-  "pb770-alphabet-syn-definition-1849"
+  "pb770-alphabet-syn-definition-1849",
+  "pb725-directive-facility-below-2002",
+  "pb725-push-pop-display-below-2023",
+  "pb725-flag-85-removed-2023"
  ],
  "pending": []
 }

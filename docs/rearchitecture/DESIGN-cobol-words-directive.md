@@ -137,9 +137,12 @@ like `FlagState`/`RefModZeroLengthState`.
   [Editions], `CobolLexer.DefaultVocabulary` [Frontend, context words], `IntrinsicCatalog` [Compiler]).
   `IntrinsicBinder` consults the map to resolve function-name synonyms / removals before `IntrinsicCatalog.TryGet`.
 
-**Greenfield/legacy split:** `COBOL-WORDS` stays in `ConditionalCompilationProcessor.KnownIgnoredDirectives`
-(legacy keeps blanking it); a new `leaveCobolWordsDirectives` flag (like `leaveFlagDirectives`) lets the
-greenfield pipeline's emitting-branch directive survive to the new stage. Legacy oracle stays byte-identical.
+**Greenfield/legacy split:** `COBOL-WORDS` is a recognized directive of the ONE roster
+(`CompilerDirectiveCatalog`, from the `cobol-words-directive-2023` row's `directiveWords` — it was a member of the
+flat `KnownIgnoredDirectives` name set until kb/Work PB725 replaced that set with the registry-derived catalog), so
+legacy callers still blank it; `Frontend.LeftDirectives` lets the greenfield pipeline's emitting-branch directive
+survive to the stage below. Legacy oracle stays byte-identical. ⛔ The 2023 introduction gate is NOT emitted by
+that stage any more: it fires once, at the directive-recognition point, like every other directive's.
 
 ## §4 The four options — realization detail
 

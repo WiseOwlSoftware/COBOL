@@ -217,7 +217,8 @@
     "l1_use_sr14_pair_twice_one_statement",
     "l1_use_sr14_bare_name_repeated",
     "pb339_into_current_record",
-    "pb740_clauseless_share"
+    "pb740_clauseless_share",
+    "pb725_directive_facility"
   ],
   "pending": []
 }

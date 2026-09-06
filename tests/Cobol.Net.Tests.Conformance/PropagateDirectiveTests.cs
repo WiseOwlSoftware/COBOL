@@ -9,9 +9,11 @@ namespace CobolNet.Tests.Conformance;
 /// controls automatic exception-condition propagation to the activating runtime element (GR1/GR2; default OFF,
 /// GR4). This wave RECOGNIZES the directive and EDITION-GATES it (introduction gate, provisional COBOL-2002 per the
 /// roadmap decision-1 policy — §7.3.21 is live in the 2023 spec, so the 2002-vs-2014 edge cannot be pinned in-repo;
-/// the runtime propagation SEMANTICS are the deferred PHASE-13 EC work). Below 2002 it is COBOLNET0883, never a
-/// silent stray token; at 2002+ a well-formed <c>&gt;&gt;PROPAGATE ON|OFF</c> is recognized-and-consumed and the
-/// program compiles (the run behavior is the <c>propagate_directive</c> conformance corpus).
+/// the runtime propagation SEMANTICS are the deferred PHASE-13 EC work). Below 2002 it is the registry's
+/// COBOLNET0900 — the ONE introduction band every compiler directive now shares (kb/Work PB725 reconciled this
+/// stage's bespoke COBOLNET0883 introduction gate onto it, leaving 0883 owning only the malformed-operand rule) —
+/// never a silent stray token; at 2002+ a well-formed <c>&gt;&gt;PROPAGATE ON|OFF</c> is recognized-and-consumed and
+/// the program compiles (the run behavior is the <c>propagate_directive</c> conformance corpus).
 /// </summary>
 public sealed class PropagateDirectiveTests
 {
@@ -36,14 +38,16 @@ public sealed class PropagateDirectiveTests
         Assert.True(ok, $">>PROPAGATE must be recognized at COBOL-{edition}:\n{string.Join("\n", diag)}");
     }
 
-    /// <summary>The introduction gate: >>PROPAGATE is rejected below 2002 with COBOLNET0883 (never a silent stray
-    /// token that would surface as a generic parse error).</summary>
+    /// <summary>The introduction gate: >>PROPAGATE is rejected below 2002 with the registry's COBOLNET0900 —
+    /// the same code every other compiler directive's introduction edge uses (kb/Work PB725) — never a silent
+    /// stray token that would surface as a generic parse error.</summary>
     [Fact]
-    public void BelowIntroduction_Rejected0883()
+    public void BelowIntroduction_Rejected0900()
     {
         var (ok, diag) = EditionHarness.Compile(Prog("      >>PROPAGATE ON"), 85);
         Assert.False(ok, ">>PROPAGATE must be rejected at COBOL-85 (introduced 2002)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0883");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+        Assert.DoesNotContain(diag, d => d.Contains("COBOLNET0883"));   // 0883 no longer owns the edition half
     }
 
     /// <summary>A malformed operand (not ON/OFF) is the §7.3.21.2 syntax diagnostic, never a silent accept.</summary>

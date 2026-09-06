@@ -26,11 +26,12 @@ namespace CobolNet.Frontend.Preprocessor;
 /// </summary>
 public static class PropagateDirectiveProcessor
 {
-    /// <summary>Process <paramref name="text"/>: at <paramref name="dialectLevel"/> &lt; 2002 a
-    /// <c>&gt;&gt;PROPAGATE</c> is the four-compilers introduction diagnostic (COBOLNET0883), never silently
-    /// ignored; at 2002+ it is recognized (syntax-checked: <c>ON</c> | <c>OFF</c>, OFF default) and blanked, its
-    /// runtime semantics deferred to PHASE-13. Line-count preserving.</summary>
-    public static string Process(string text, int dialectLevel, DiagnosticBag diagnostics, string sourcePath,
+    /// <summary>Process <paramref name="text"/>: a <c>&gt;&gt;PROPAGATE</c> is recognized (syntax-checked:
+    /// <c>ON</c> | <c>OFF</c>, OFF default) and blanked, its runtime semantics deferred to PHASE-13. Line-count
+    /// preserving. The EDITION question — the directive is a COBOL-2002 introduction — is not asked here: it was
+    /// answered once, at the directive-recognition point, by the <c>propagate-directive-2002</c> registry row
+    /// (kb/Work PB725), so this stage needs no dialect at all.</summary>
+    public static string Process(string text, DiagnosticBag diagnostics, string sourcePath,
         SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return text;
@@ -44,14 +45,10 @@ public static class PropagateDirectiveProcessor
                 || (body.Length > 9 && !char.IsWhiteSpace(body[9]))) continue;
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
-            if (dialectLevel < 2002)
-            {
-                diagnostics.ReportError("COBOLNET0883",
-                    ">>PROPAGATE is the COBOL-2002+ exception-condition propagation directive (ISO §7.3.21) — it "
-                    + $"requires --std 2002 or later (targeting COBOL-{dialectLevel})", loc, default);
-                lines[i] = "";
-                continue;
-            }
+            // The introduction gate fired at the ONE directive-recognition point (CompilerDirectiveCatalog,
+            // from the propagate-directive-2002 row) — this stage ran its own `if (dialectLevel < 2002)` with a
+            // BESPOKE COBOLNET0883 until kb/Work PB725. COBOLNET0883 now owns ONLY the malformed-operand rule
+            // below; the edition question is the registry's COBOLNET0900.
 
             // §7.3.21.2: >> PROPAGATE { ON | OFF }, OFF the underlined default. Recognize the phrase; a malformed
             // operand is the syntax diagnostic (never a silent accept). The runtime propagation effect is PHASE-13.

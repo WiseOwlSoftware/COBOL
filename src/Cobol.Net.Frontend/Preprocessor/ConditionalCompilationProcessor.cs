@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using CobolNet.Editions;
 using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Expressions;
@@ -26,29 +27,22 @@ namespace CobolNet.Frontend.Preprocessor;
 /// §7.3.7 boolean, §7.3.8 constant-conditional-expression). A formation violation is a loud <b>COBOLNET1619</b>,
 /// never a silently mis-bound value.
 ///
+/// A THIRD job it owns for the whole §7.3 family, because this is the one place that sees every directive line:
+/// (3) THE EDITION GATE. §7.3.2 gives ONE general format for every compiler directive —
+/// <c>&gt;&gt;compiler-instruction</c> — and §7.3.3 SR6 opens compiler-instruction with a compiler-directive word
+/// (§8.12), so "may this word head a <c>&gt;&gt;</c> line at the targeted edition" is one question asked once,
+/// here, against <see cref="CobolNet.Editions.CompilerDirectiveCatalog"/> (the <c>directiveWords</c> column of
+/// <c>constructs.json</c>, inverted). It answers for the consumed directives, the ones a downstream stage owns,
+/// and the conditional-compilation directives alike. kb/Work PB725: the roster used to be a flat name set with no
+/// edition column, so eleven directives compiled clean at <c>--std 85</c>, an edition with no compiler directives
+/// at all, while the five with their own per-stage gate were correctly rejected. <c>&gt;&gt;SOURCE FORMAT</c> is
+/// the sole exception and gates in <see cref="ReferenceFormatProcessor"/>, which consumes its line before this
+/// driver runs — same row, same COBOLNET0900 producer, one stage earlier.
+///
 /// Blast radius is essentially nil: a source with no <c>&gt;&gt;</c> lines is reproduced byte-for-byte.
 /// </summary>
 public static class ConditionalCompilationProcessor
 {
-    /// <summary>
-    /// Standard ISO §7.3 compiler directives that CobolSharp recognizes but does not yet act on. They are
-    /// consumed (the program compiles with default behavior) rather than reaching the lexer as stray tokens.
-    /// Conditional-compilation directives (DEFINE/IF/ELSE/END-IF/EVALUATE/WHEN/END-EVALUATE) and SOURCE FORMAT
-    /// (handled earlier by ReferenceFormatProcessor) are NOT in this set — they have real behavior.
-    /// </summary>
-    private static readonly HashSet<string> KnownIgnoredDirectives = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "CALL-CONVENTION", "LISTING", "PAGE", "LEAP-SECOND", "PROPAGATE",
-        "FLAG-85", "FLAG-NATIVE-ARITHMETIC", "REF-MOD-ZERO-LENGTH", "TURN", "COBOL-WORDS",
-        "PUSH", "POP",   // §7.3.20/§7.3.22 directive-state save/restore — recognized so they don't stray-token; no
-                         // compiler-directive state we currently vary needs saving, so a no-op disposition is faithful.
-        "DISPLAY",       // §7.3.12 — transfers text to the source listing / a compile-time device; no listing is
-                         // produced (like LISTING/PAGE), so the directive is recognized and consumed.
-        "FLAG-02", "FLAG-14",   // §7.3.14/§7.3.15 flagging directives — RECOGNIZED (a conforming compiler must not
-                         // error on a standard directive); the migration/obsolescence diagnostics themselves are a
-                         // remaining Wave-D item (the flags are not yet emitted).
-    };
-
     /// <param name="text">The free-form-normalized source text.</param>
     /// <param name="leaveDirectives">The ISO §7.3 directive keywords whose emitting-branch lines are LEFT IN the
     /// text for a downstream dedicated stage (the COBOL.NET pipeline: TURN, PROPAGATE, REF-MOD-ZERO-LENGTH,
@@ -56,9 +50,10 @@ public static class ConditionalCompilationProcessor
     /// drops with its branch. Null/empty (the legacy caller) consumes every recognized directive here. ONE set,
     /// not one bool per directive (kb/Work PB65 — the sixth flag was the shape's own reproach).</param>
     public static string Process(string text, IReadOnlySet<string>? leaveDirectives = null,
-        DiagnosticBag? diagnostics = null, string? sourcePath = null, int dialectLevel = 2023)
+        DiagnosticBag? diagnostics = null, string? sourcePath = null, int dialectLevel = 2023,
+        bool permissive = false)
         => new Run(leaveDirectives, diagnostics, sourcePath, copy: null, sourceDir: null,
-                dialectLevel)
+                dialectLevel, permissive)
             .Render(text);
 
     /// <summary>
@@ -71,20 +66,22 @@ public static class ConditionalCompilationProcessor
     /// byte-identical. Design SSOT: <c>docs/rearchitecture/DESIGN-cc-in-copy.md</c>.
     /// </summary>
     public static string ProcessWithCopy(string text, string sourceDir, CopyProcessor copyProcessor,
-        IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel)
+        IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel,
+        bool permissive = false)
         => ProcessWithCopyMapped(MappedText.Identity(text, sourcePath ?? "<source>"), sourceDir, copyProcessor,
-            leaveDirectives, diagnostics, sourcePath, dialectLevel).Text;
+            leaveDirectives, diagnostics, sourcePath, dialectLevel, permissive).Text;
 
     /// <summary>The MAPPED driver (kb/Work PB82): the same interleaved CC + COPY + REPLACE manipulation over a text
     /// that carries its per-line origins, returning the resultant text with ITS origins — main-source lines keep
     /// their physical line, copied lines carry the copybook's path and line, so every downstream position (the
     /// parser's, the binder's, EXCEPTION-LOCATION's) can name what the user edits.</summary>
     public static MappedText ProcessWithCopyMapped(MappedText text, string sourceDir, CopyProcessor copyProcessor,
-        IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel)
+        IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel,
+        bool permissive = false)
     {
         copyProcessor.RegisterSourceDir(sourceDir);
         var expanded = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
-            dialectLevel).Render(text);
+            dialectLevel, permissive).Render(text);
         return CopyProcessor.ApplyReplaceStatements(expanded, diagnostics, sourcePath ?? "<source>");   // Step 3 — REPLACE over the expanded compilation group
     }
 
@@ -110,16 +107,23 @@ public static class ConditionalCompilationProcessor
         private readonly HashSet<string> _alreadyIncluded = new(StringComparer.OrdinalIgnoreCase);
         private int _depth;
 
-        // §8.3.2.1 word-length ceiling for >>DEFINE names — a compilation-variable-name never reaches the
-        // tree-walk funnel, so this stage enforces the rule itself (CobolWordRule — kb/Work R05's sweep).
+        // The targeted edition. TWO rules read it: the §8.3.2.1 word-length ceiling for >>DEFINE names (a
+        // compilation-variable-name never reaches the tree-walk funnel, so this stage enforces it itself —
+        // CobolWordRule, kb/Work R05's sweep) and THE compiler-directive introduction/removal gate below
+        // (kb/Work PB725). The severity axis rides along because a REMOVED directive is an error strict /
+        // a warning permissive (EditionSeverityPolicy), while an unintroduced one is an error on both.
         private readonly int _dialectLevel;
+        private readonly EditionInfo _edition;
+        private readonly DiagnosticBag? _bag;
 
         public Run(IReadOnlySet<string>? leaveDirectives,
             DiagnosticBag? diagnostics, string? sourcePath, CopyProcessor? copy, string? sourceDir,
-            int dialectLevel)
+            int dialectLevel, bool permissive)
         {
             _leave = leaveDirectives ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             _dialectLevel = dialectLevel;
+            _edition = EditionInfo.Of(dialectLevel, permissive);
+            _bag = diagnostics;
             _diag = new DirectiveDiag(diagnostics, sourcePath, _flagScan);
             // The ONE shared compile-time expression evaluator (ledger C2). Name resolution reads the CURRENT
             // `_defines` (a directive may reference a variable an earlier directive — or a copybook — set); the
@@ -183,6 +187,19 @@ public static class ConditionalCompilationProcessor
                 _diag.At = origin;   // Flush may have re-anchored _diag.At inside a copybook; restore for this line
                 bool emitting = _stack.Count == 0 || _stack.Peek().Emitting;
                 var (keyword, rest) = SplitDirective(trimmed);
+                // ── THE edition gate for EVERY compiler directive (kb/Work PB725) ────────────────────────
+                // ISO §7.3.2 gives ONE general format for all of them — `>>compiler-instruction` — and
+                // §7.3.3 SR6 opens compiler-instruction with a compiler-directive word (§8.12). So "may this
+                // word head a >> line at the targeted edition" is one question with one answer per directive,
+                // asked HERE, once, for the whole family: the recognized-and-consumed directives, the ones a
+                // downstream stage owns (_leave), and the conditional-compilation directives handled by the
+                // switch below alike. It routes through the ONE ConstructRegistry funnel, so the introduction
+                // edge is COBOLNET0900, a removal COBOLNET0902 and an obsolete use COBOLNET0903, with the
+                // §4.2 severity decided by the ONE EditionSeverityPolicy — never a local `if (dialect < N)`.
+                // A directive in an OMITTED branch is not compiled, so it is not gated (it drops with its
+                // branch, like every other omitted line).
+                if (emitting && _bag is not null)
+                    CompilerDirectiveCatalog.Check(keyword, _edition, new BagSink(_bag, _diag.At.ToLocation()));
                 string emit = "";   // directives are consumed by default (output blank line)
                 switch (keyword)
                 {
@@ -252,11 +269,8 @@ public static class ConditionalCompilationProcessor
                         if (emitting) ApplyDefine(rest, _defines, _evaluator, _diag, _dialectLevel);   // a DEFINE in an omitted branch has no effect
                         break;
                     default:
-                        // A >> directive other than the conditional-compilation set handled above. If it is a
-                        // recognized ISO §7.3 directive that we do not yet act on (CALL-CONVENTION, LISTING, TURN, …),
-                        // consume it so the program still compiles with default behavior. A directive in an omitted
-                        // branch is dropped regardless. An UNRECOGNIZED >> word is left in place when emitting so it
-                        // surfaces downstream (catching typos like >>IFF) rather than being silently swallowed.
+                        // A >> directive other than the conditional-compilation set handled above. Its edition
+                        // gate already fired above; what is left here is the DISPOSITION of the line.
                         if (!emitting) emit = "";
                         else if (_leave.Contains(keyword))
                         {
@@ -271,7 +285,11 @@ public static class ConditionalCompilationProcessor
                             }
                             emit = line;
                         }
-                        else emit = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
+                        // A recognized ISO §7.3 directive with no downstream stage: CONSUME it (the program
+                        // compiles with the default behaviour) — the roster is the constructs.json rows, never a
+                        // hand-kept name set (kb/Work PB725). An UNRECOGNIZED >> word is left in place when
+                        // emitting so it surfaces downstream (catching typos like >>IFF).
+                        else emit = CompilerDirectiveCatalog.IsDirective(keyword) ? "" : line;
                         break;
                 }
                 output.Add(emit);

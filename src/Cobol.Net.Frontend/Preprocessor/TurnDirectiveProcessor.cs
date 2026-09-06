@@ -45,14 +45,11 @@ public static class TurnDirectiveProcessor
                 || (body.Length > 4 && !char.IsWhiteSpace(body[4]))) continue;
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
-            if (dialectLevel < 2002)
-            {
-                diagnostics.ReportError("COBOLNET0875",
-                    ">>TURN is the COBOL-2002+ exception-condition checking directive (ISO §7.3.25) — it requires "
-                    + $"--std 2002 or later (targeting COBOL-{dialectLevel})", loc, default);
-                lines[i] = "";
-                continue;
-            }
+            // The introduction gate fired at the ONE directive-recognition point (CompilerDirectiveCatalog,
+            // from the turn-directive-2002 row) — this stage ran its own `if (dialectLevel < 2002)` with a
+            // BESPOKE COBOLNET0875 until kb/Work PB725 reconciled the three mechanisms onto the registry's
+            // COBOLNET0900. COBOLNET0875 is RETIRED; never reallocate it. dialectLevel survives here because
+            // ParseTurn passes it to the exception-name edition window (§14.6.13.1), a different rule.
             if (ParseTurn(body[4..], i + 1, dialectLevel, diagnostics, loc) is { } ev)
                 (events ??= []).Add(ev);
             lines[i] = "";   // blank, never delete — line-count preserving (H3)

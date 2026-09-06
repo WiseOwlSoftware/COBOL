@@ -25,7 +25,7 @@ public static class FlagDirectiveProcessor
     /// <summary>Process <paramref name="text"/>: edition-gate each directive word, collect the FLAG-02/FLAG-14
     /// toggle events, syntax-check each operand, and blank the directive lines. Line-count preserving.</summary>
     public static (string Text, IReadOnlyList<FlagEvent> Events) Process(
-        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
         var lines = text.Split('\n');
@@ -45,14 +45,12 @@ public static class FlagDirectiveProcessor
             string operand = body.Length > keyword.Length ? body[keyword.Length..].Trim() : "";
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
 
-            // The directive-WORD edition gate, routed through the ONE ConstructRegistry (the >>REF-MOD-ZERO-LENGTH
-            // precedent — one funnel for every construct, uniform across the four editions): >>FLAG-14 is a 2023
-            // introduction (COBOLNET0900 below 2023); >>FLAG-02 is a 2014 introduction that is OBSOLETE at 2023
-            // (COBOLNET0900 below 2014, then the COBOLNET0903 obsolete WARNING at 2023 — §7.3.14.1 NOTE / §4.2.13:
-            // obsolete elements are still SUPPORTED and merely flagged, never rejected/removed).
-            ConstructRegistry.Check(EditionInfo.Of(dialectLevel, permissive), new BagSink(diagnostics, loc),
-                directive == FlagDirective.Flag14 ? Constructs.Flag14Directive2023 : Constructs.Flag02Directive2014,
-                $">>{keyword} directive");
+            // The directive-WORD edition gate already fired at the ONE directive-recognition point
+            // (CompilerDirectiveCatalog, from the flag-14-directive-2023 and flag-02-directive-2014 rows'
+            // directiveWords — kb/Work PB725): >>FLAG-14 is a 2023 introduction (COBOLNET0900 below 2023);
+            // >>FLAG-02 is a 2014 introduction that is OBSOLETE at 2023 (COBOLNET0900 below 2014, then the
+            // COBOLNET0903 obsolete WARNING at 2023 — §7.3.14.1 NOTE / §4.2.13: obsolete elements are still
+            // SUPPORTED and merely flagged, never rejected/removed). This stage collects the options.
 
             if (FlagDirectiveLine.TryParse(directive, operand, out var options, out bool on, out string? error))
                 (events ??= []).Add(new FlagEvent(i + 1, directive, on, options));
@@ -71,15 +69,4 @@ public static class FlagDirectiveProcessor
     private static bool Matches(string body, string keyword) =>
         body.StartsWith(keyword, StringComparison.OrdinalIgnoreCase)
         && (body.Length == keyword.Length || char.IsWhiteSpace(body[keyword.Length]));
-
-    /// <summary>Bridges the ONE <see cref="ConstructRegistry"/> edition funnel's <see cref="EditionDiagnostic"/>
-    /// onto this stage's <see cref="DiagnosticBag"/> at the directive's line (the same bridge
-    /// <see cref="RefModZeroLengthDirectiveProcessor"/> uses — Error fails the compile, Warning [the 0903 obsolete
-    /// flag] rides through).</summary>
-    private sealed class BagSink(DiagnosticBag bag, SourceLocation loc) : IDiagnosticSink
-    {
-        public void Report(in EditionDiagnostic d) => bag.Report(d.Code,
-            d.Severity == EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
-            d.Message, loc, default);
-    }
 }

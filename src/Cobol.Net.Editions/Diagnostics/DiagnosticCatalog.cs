@@ -100,10 +100,11 @@ public static class DiagnosticCatalog
         "COBOLNET0719", "turn-file-name-non-io", EditionSeverity.Error,
         "A >>TURN file-name may follow only an exception-name beginning 'EC-I-O' (ISO §7.3.25.3 SR4).",
         "ISO §7.3.25.3 SR4");
-    public static readonly DiagnosticDescriptor TurnDirectiveBelow2002 = new(
-        "COBOLNET0875", "turn-directive-below-2002", EditionSeverity.Error,
-        ">>TURN is the COBOL-2002+ exception-condition checking directive — it requires --std 2002 or later "
-        + "(ISO §7.3.25).", "ISO §7.3.25");
+    // ⛔ COBOLNET0875 ("turn-directive-below-2002") is RETIRED — NEVER REALLOCATE IT. It was >>TURN's own
+    //    hand-rolled `if (dialectLevel < 2002)`, one of THREE mechanisms implementing the single rule "a
+    //    compiler directive is rejected below its introducing edition". kb/Work PB725 reconciled all three onto
+    //    the ONE ConstructRegistry funnel, so >>TURN below 2002 is now COBOLNET0900 like every other directive
+    //    (registry row turn-directive-2002). The COBOLNET1518 precedent applies: a retired code stays retired.
     // ── Written exception-name resolution — ONE funnel (EcNameResolution; kb/Work R05). The unknown-name and
     //    introduction-gate texts existed as four verbatim copies each before the funnel. ────────────────────────
     public static readonly DiagnosticDescriptor EcNameUnknown = new(
@@ -125,9 +126,11 @@ public static class DiagnosticCatalog
         "ISO §15.33.3 r1 / §8.3.2.1 / §14.6.13.1.1");
     public static readonly DiagnosticDescriptor PropagateDirective = new(
         "COBOLNET0883", "propagate-directive", EditionSeverity.Error,
-        "The >>PROPAGATE directive's compile-time diagnostics (ISO §7.3.21): below --std 2002 the directive is "
-        + "rejected (the introduction gate); at 2002+ an operand other than ON or OFF is rejected, never "
-        + "silently accepted (§7.3.21.2).", "ISO §7.3.21 / §7.3.21.2");
+        "A >>PROPAGATE directive operand other than ON or OFF is rejected, never silently accepted "
+        + "(ISO §7.3.21.2). The directive's INTRODUCTION gate is not this code: it is the registry's "
+        + "COBOLNET0900, from the propagate-directive-2002 row, emitted at the one point a >> word is "
+        + "recognized — this descriptor owned that half too until kb/Work PB725 reconciled the three "
+        + "edition-gate mechanisms onto one.", "ISO §7.3.21.2");
 
     // ── COBOLNET1540/1541/1545 — concatenation expressions, one code per rule (§8.8.3) ───────────────
     public static readonly DiagnosticDescriptor ConcatClassMismatch = new(

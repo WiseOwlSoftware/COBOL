@@ -31,7 +31,7 @@ public static class LeapSecondDirectiveProcessor
     /// <summary>Process <paramref name="text"/>: edition-gate + syntax-check each directive, resolve the group's
     /// ON/OFF state, blank the directive lines. Returns the text and whether ON is in effect for the group.</summary>
     public static (string Text, bool LeapSecondOn) Process(
-        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, false);
         var lines = text.Split('\n');
@@ -46,10 +46,9 @@ public static class LeapSecondDirectiveProcessor
                 || (body.Length > Keyword.Length && !char.IsWhiteSpace(body[Keyword.Length]))) continue;
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
-            // Introduction gate (§7.3 compiler directives are COBOL-2002 additions): reject below 2002 via the ONE
-            // ConstructRegistry (COBOLNET0900); a no-op at 2002+.
-            ConstructRegistry.Check(EditionInfo.Of(dialectLevel, permissive), new BagSink(diagnostics, loc),
-                Constructs.LeapSecondDirective2002, ">>LEAP-SECOND directive");
+            // The introduction gate (§7.3.17 is a COBOL-2002 compiler-directive introduction) already fired at
+            // the ONE directive-recognition point — CompilerDirectiveCatalog, from the leap-second-directive-2002
+            // row's directiveWords (kb/Work PB725). This stage folds the ON/OFF fact; it does not re-decide it.
 
             string operand = body.Length > Keyword.Length ? body[Keyword.Length..].Trim().ToUpperInvariant() : "";
             if (insideUnit)
@@ -78,12 +77,5 @@ public static class LeapSecondDirectiveProcessor
             || t.StartsWith("CLASS-ID", StringComparison.Ordinal)
             || t.StartsWith("FUNCTION-ID", StringComparison.Ordinal)
             || t.StartsWith("INTERFACE-ID", StringComparison.Ordinal);
-    }
-
-    private sealed class BagSink(DiagnosticBag bag, SourceLocation loc) : IDiagnosticSink
-    {
-        public void Report(in EditionDiagnostic d) => bag.Report(d.Code,
-            d.Severity == EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
-            d.Message, loc, default);
     }
 }

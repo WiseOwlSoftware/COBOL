@@ -33,6 +33,17 @@ public sealed record ConstructDialectStatus(
     string Id, string Display, int IntroducedIn, int? RemovedIn, int? ObsoleteIn,
     string DiagnosticCode, string Citation)
 {
+    /// <summary>
+    /// The ISO §7.3 compiler-directive WORDS this row gates — empty for every non-directive row, and the
+    /// reason the preprocessor needs no hand-kept directive list (kb/Work PB725). One row per §7.3.x clause;
+    /// a clause whose construct spans several words (§7.3.16's IF/ELSE/END-IF, §7.3.13's
+    /// EVALUATE/WHEN/END-EVALUATE) carries them all, because a bare <c>&gt;&gt;ELSE</c> is not a directive of
+    /// its own. <see cref="CobolNet.Editions.CompilerDirectiveCatalog"/> inverts this into the word → row map
+    /// the text-manipulation stage gates on, so adding a directive is ONE constructs.json row plus a regen —
+    /// never an edit to a set of strings that carries no edition.
+    /// </summary>
+    public IReadOnlyList<string> DirectiveWords { get; init; } = [];
+
     /// <summary>The availability verdict at <paramref name="edition"/>.</summary>
     public ConstructAvailability StatusAt(int edition)
     {

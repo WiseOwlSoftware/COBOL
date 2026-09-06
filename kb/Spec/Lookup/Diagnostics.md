@@ -28,7 +28,7 @@ serves as the diagnostic→phase map). See [[kb/Semantics/Validation Rules]] and
 ## Edition & conformance band
 | Code | Meaning (Id) | Sev | ISO § | Phase | Construct / where |
 |---|---|---|---|---|---|
-| `COBOLNET0900` | construct used below its introducing edition (`edition-introduction`) | Error | §ann. per construct | Validate | most edition-gated constructs (the generic intro gate) → [[kb/Spec/Lookup/Construct Catalogue]] |
+| `COBOLNET0900` | construct used below its introducing edition (`edition-introduction`) | Error | §ann. per construct | Validate **and** Preprocess | most edition-gated constructs (the generic intro gate) → [[kb/Spec/Lookup/Construct Catalogue]]; **also every ISO §7.3 compiler directive** — the whole family shares this one band, checked where the text-manipulation stage recognizes a `>>` word (kb/Work PB725 retired `>>TURN`'s bespoke COBOLNET0875) |
 | `COBOLNET0901` | word reserved in the targeted edition used as a user word (`edition-reserved-word`) | Error | §8.9 | Validate | the §8.9 reserved-word funnel → [[kb/Spec/Lookup/Semantic Rules]] |
 | `COBOLNET0902` | construct removed by the targeted edition (`edition-removed-construct`) | Error / Warn (permissive) | Annex E.2 | Validate | ALTER, STOP literal, LABEL RECORDS, OPEN REVERSED, … |
 | `COBOLNET0903` | obsolete / archaic element (`edition-obsolete-flag`) | Warning | §4.2.12/.13, Annex F.2 | Validate | NEXT SENTENCE, EXIT PROGRAM (archaic 2023), col-7 continuation |
@@ -48,8 +48,7 @@ serves as the diagnostic→phase map). See [[kb/Semantics/Validation Rules]] and
 |---|---|---|---|---|---|
 | `COBOLNET0718` | `>>TURN` malformed | Error | §7.3.25.2/.3 SR1/SR3 | Preprocess | `>>TURN` |
 | `COBOLNET0719` | `>>TURN` file-name after a non-EC-I-O exception | Error | §7.3.25.3 SR4 | Preprocess | `>>TURN` |
-| `COBOLNET0875` | `>>TURN` below `--std 2002` | Error | §7.3.25 | Preprocess | `>>TURN` |
-| `COBOLNET0883` | `>>PROPAGATE` intro-gate / bad operand | Error | §7.3.21 | Preprocess | `>>PROPAGATE` |
+| `COBOLNET0883` | `>>PROPAGATE` bad operand (the intro gate is 0900) | Error | §7.3.21.2 | Preprocess | `>>PROPAGATE` |
 | `COBOLNET1576` | `>>REF-MOD-ZERO-LENGTH` bad operand | Error | §7.3.23.2 | Preprocess | `>>REF-MOD-ZERO-LENGTH` |
 | `COBOLNET1618` | `>>DEFINE` redefinition without OVERRIDE | Error | §7.3.11.3 SR2 | Preprocess | `>>DEFINE` |
 | `COBOLNET1619` | compiler-directive expression malformed | Error | §7.3.6/.7/.8 | Preprocess | CC expressions |

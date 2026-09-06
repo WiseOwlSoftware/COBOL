@@ -9,8 +9,12 @@
 #
 # Input:
 #   tests/version-matrix/constructs.json  — the canonical rows: id / display / introducedIn / removedIn / obsoleteIn /
-#                                           diagnosticCode / citation (+ description / vcr / source / status /
-#                                           expectDiagnostic used by the version-matrix tests, not the registry).
+#                                           diagnosticCode / citation / directiveWords (+ description / vcr / source /
+#                                           status / expectDiagnostic used by the version-matrix tests, not the
+#                                           registry). directiveWords (kb/Work PB725) lists the ISO §7.3 compiler-
+#                                           directive words the row gates; CompilerDirectiveCatalog inverts them into
+#                                           the word → row map the text-manipulation stage gates on, so a new
+#                                           directive is ONE row here plus a regen — never a hand-kept name set.
 # Outputs (ALL committed; ConstructRegistryDriftTests asserts they equal constructs.json):
 #   src/Cobol.Net.Editions/ConstructRegistry.g.cs  — the ConstructRegistry.Entries list (a partial).
 #   src/Cobol.Net.Editions/Constructs.g.cs         — one `public const string <PascalId> = "<id>";` per row.
@@ -63,10 +67,16 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine('    public static readonly IReadOnlyList<ConstructDialectStatus> Entries =')
 [void]$sb.AppendLine('    [')
 foreach ($r in $rows) {
-    $line = '        new("{0}", "{1}", {2}, {3}, {4}, "{5}", "{6}"),' -f `
+    $line = '        new("{0}", "{1}", {2}, {3}, {4}, "{5}", "{6}")' -f `
         (Esc $r.id), (Esc $r.display), ([int]$r.introducedIn), (NullOrInt $r.removedIn), (NullOrInt $r.obsoleteIn), `
         (Esc $r.diagnosticCode), (Esc $r.citation)
-    [void]$sb.AppendLine($line)
+    # The ISO §7.3 directive words this row gates (kb/Work PB725) — an object initializer only on the rows
+    # that carry them, so the 200-odd non-directive rows keep their one-line rendering.
+    if ($null -ne $r.directiveWords -and @($r.directiveWords).Count -gt 0) {
+        $words = (@($r.directiveWords) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ', '
+        $line += (' {{ DirectiveWords = [{0}] }}' -f $words)
+    }
+    [void]$sb.AppendLine($line + ',')
 }
 [void]$sb.AppendLine('    ];')
 [void]$sb.AppendLine('}')

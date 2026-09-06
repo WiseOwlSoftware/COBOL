@@ -22,7 +22,7 @@
       *> that paragraph's closing sentence hands the RESULT to the implementor whenever checking
       *> for EC-ARGUMENT-FUNCTION is not enabled. Enabling it needs >>TURN and the exception-name
       *> declarative, both of which are the 2002+ EC model: below --std 2002 a >>TURN is the hard
-      *> COBOLNET0875. So at COBOL-85 the reject arm has NO spec-fixed observable by any test, and
+      *> COBOLNET0900. So at COBOL-85 the reject arm has NO spec-fixed observable by any test, and
       *> the arm that IS observable - r2's admission of the endpoints, ACOS being available from
       *> 85 - is what this file measures. 2023/l1_acos_argument_domain carries both arms.
       *>

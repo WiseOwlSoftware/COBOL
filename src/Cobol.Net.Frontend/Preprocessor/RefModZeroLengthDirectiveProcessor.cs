@@ -35,7 +35,7 @@ public static class RefModZeroLengthDirectiveProcessor
     /// directive, blank the directive lines. At <paramref name="dialectLevel"/> &lt; 2023 the directive is the
     /// four-compilers introduction diagnostic (COBOLNET0900), never silently ignored. Line-count preserving.</summary>
     public static (string Text, IReadOnlyList<RefModZeroLengthEvent> Events) Process(
-        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
         var lines = text.Split('\n');
@@ -50,10 +50,9 @@ public static class RefModZeroLengthDirectiveProcessor
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
 
-            // Introduction gate (§7.3.23 is a COBOL-2023 addition): reject below 2023 via the ONE ConstructRegistry
-            // (COBOLNET0900). Check is a no-op at 2023+ (Available). Single-sources the message + version-matrix row.
-            ConstructRegistry.Check(EditionInfo.Of(dialectLevel, permissive), new BagSink(diagnostics, loc),
-                Constructs.RefModZeroLength2023, ">>REF-MOD-ZERO-LENGTH directive");
+            // The introduction gate (§7.3.23 is a COBOL-2023 addition) already fired at the ONE
+            // directive-recognition point — CompilerDirectiveCatalog, from the ref-mod-zero-length-2023 row's
+            // directiveWords (kb/Work PB725). This stage collects the toggles; it does not re-decide the edition.
 
             // §7.3.23.2: >> REF-MOD-ZERO-LENGTH { ON | OFF }, OFF the underlined default. Record a well-formed toggle;
             // a malformed operand is the syntax diagnostic (never a silent accept).
@@ -68,15 +67,5 @@ public static class RefModZeroLengthDirectiveProcessor
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }
         return (string.Join('\n', lines), (IReadOnlyList<RefModZeroLengthEvent>?)events ?? []);
-    }
-
-    /// <summary>Bridges the ONE <see cref="ConstructRegistry"/> edition funnel's <see cref="EditionDiagnostic"/>
-    /// onto this stage's <see cref="DiagnosticBag"/> — the frontend's first registry-driven directive gate (the
-    /// parse layer captures the message; a preprocessor stage reports it directly at the directive's line).</summary>
-    private sealed class BagSink(DiagnosticBag bag, SourceLocation loc) : IDiagnosticSink
-    {
-        public void Report(in EditionDiagnostic d) => bag.Report(d.Code,
-            d.Severity == EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
-            d.Message, loc, default);
     }
 }

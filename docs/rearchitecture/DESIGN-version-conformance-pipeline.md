@@ -245,6 +245,41 @@ The pass is the compiler's invocation of it, once per parse tree; `CompileTimeEx
 consumer. This is the `BooleanExpressionResolver` pattern: one frontend rule, consumer-generic, so the three
 evaluating arms (`ExpressionBinder.BindExprCore`, `EvalArith`, and `SoleNumericLiteral`) cannot drift apart.
 
+#### 2.4.2 The ONE gate site that runs BEFORE the pipeline — compiler directives (§7.3)
+
+`VersionConformancePass` gates constructs the parser produced a tree for. A **compiler directive never becomes a
+tree**: ISO §7.2 consumes it in the text-manipulation stage, so by the time any pass exists the line is a blank.
+Its edition gate therefore cannot live in the pass, and the disjointness charter above extends to say **exactly
+where it does live: `ConditionalCompilationProcessor`, at the single point it recognizes a `>>` word.** That one
+site covers the whole §7.3 family — the directives it consumes, the ones a downstream stage owns
+(`Frontend.LeftDirectives`), and the conditional-compilation directives its own switch handles — because §7.3.2
+gives them ONE general format (`>>compiler-instruction`) and §7.3.3 SR6 opens compiler-instruction with ONE
+compiler-directive word (§8.12). It calls the same `ConstructRegistry.Check` funnel and the same
+`EditionSeverityPolicy`, so the codes are the pass's codes: COBOLNET0900 below the introducing edition,
+COBOLNET0902 at a removing one, COBOLNET0903 at an obsoleting one.
+
+**The roster is derived, and that is the load-bearing part.** `constructs.json` rows carry a `directiveWords`
+column; `CompilerDirectiveCatalog` (`Cobol.Net.Editions`) inverts it into the word → row map the stage consults.
+Adding a directive is ONE row plus `pwsh scripts/gen-constructs.ps1` — the word becomes recognized, its edition
+becomes enforced, and the version matrix compiles its `source` at all four editions, in one change.
+
+**Why this had to be restructured rather than extended** (kb/Work PB725): the same rule was written down THREE
+times — this funnel in five downstream stages, a hand-rolled `if (dialectLevel < 2002)` with a bespoke code in two
+more (`>>TURN`/COBOLNET0875, `>>PROPAGATE`/COBOLNET0883), and, for a flat `KnownIgnoredDirectives` name set with
+no edition column, nowhere at all. Eleven ISO directives compiled clean at `--std 85`, an edition that has no
+compiler directives whatsoever, and nothing could have failed, because a name set cannot be wrong about an edition
+it does not record. Consolidating deleted the two bespoke gates (COBOLNET0875 is RETIRED; COBOLNET0883 keeps only
+its §7.3.21.2 malformed-operand half), deleted four byte-identical `BagSink` copies, and removed
+`dialectLevel`/`permissive` from four stage signatures that no longer ask an edition question.
+
+**`>>SOURCE FORMAT` is the documented exception, and there is exactly one.** `ReferenceFormatProcessor` consumes
+its line before the conditional-compilation driver runs — it must, because the following segment's reference
+format depends on it — so that stage carries the gate, keyed on `Constructs.SourceFormatDirective2002`. Same row,
+same producer, one stage earlier. `CompilerDirectiveCatalogDriftTests` re-derives the roster from the
+`#### 7.3.N <WORD> directive` headings of `specs/ISO_COBOL.md`, checks each row cites its own clause, asserts
+`Frontend.LeftDirectives` is a subset of the catalog, and drives the real stage to prove every recognized word is
+rejected at 85 — so "one site, complete roster" stays true rather than being remembered.
+
 ### 2.5 Bind/emit phase separation (the "no codegen on errors" fix)
 `CompilerDriver` runs `bind → conformance-pass → (halt if errors) → emit`. **Binding** (producing the `BoundProgram`)
 and **emission** (rendering C# from a valid `BoundProgram`) are distinct phases and the driver gates between them.

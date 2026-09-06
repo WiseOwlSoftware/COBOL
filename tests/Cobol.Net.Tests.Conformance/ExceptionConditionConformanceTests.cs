@@ -1305,7 +1305,7 @@ public sealed class ExceptionConditionConformanceTests
             PROCEDURE DIVISION.
             MAIN-PARA.
                 STOP RUN.
-            """, 85), "COBOLNET0875");
+            """, 85), "COBOLNET0900");   // the ONE introduction band (kb/Work PB725 retired the bespoke 0875)
 
     [Fact]
     public void Raise_At85_DiagnosedWithEdition()

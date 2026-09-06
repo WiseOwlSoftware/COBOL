@@ -167,10 +167,12 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 
 1. **COLLECT** — `record FlagEvent(int Line, FlagDirective Which, bool On, IReadOnlyList<FlagOption> Options)`
    (Options empty ⇒ ALL). New `FlagDirectiveProcessor` (`Cobol.Net.Frontend/Preprocessor`), a line-by-line
-   clone of `RefModZeroLengthDirectiveProcessor` (blank-not-delete, H3-preserving, `ConstructRegistry.Check`
-   introduction gate on the directive word). Wired by a `leaveFlagDirectives:true` arm in
-   `ConditionalCompilationProcessor.Process` (before the `KnownIgnoredDirectives` fallthrough; FLAG-02/14 stay
-   in the set so legacy callers still consume them) and a new stage call in `Frontend.Preprocess` after the
+   clone of `RefModZeroLengthDirectiveProcessor` (blank-not-delete, H3-preserving). ⛔ The introduction gate is
+   NOT here: kb/Work PB725 moved every directive's edition check to the ONE point
+   `ConditionalCompilationProcessor` recognizes a `>>` word, so this stage takes no dialect at all and
+   `flag-02-directive-2014` / `flag-14-directive-2023` gate through their `directiveWords`. Wired by
+   `Frontend.LeftDirectives` (which answers only WHICH STAGE OWNS THE LINE; FLAG-02/14 are catalog rows either
+   way, so legacy callers still consume them) and a new stage call in `Frontend.Preprocess` after the
    REF-MOD-ZERO-LENGTH stage, exposing `Frontend.FlagEvents`. The frontend-only b/c flags are emitted here-adjacent
    inside `ConditionalCompilationProcessor` from its own in-scan `FlagScanState`.
 2. **THREAD + FOLD** — `FlagState` (`Cobol.Net.Compiler/Binding`): `Build(events)` + `IsOnAt(int siteLine,

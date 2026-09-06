@@ -129,7 +129,7 @@ public sealed class Frontend
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
             dialectLevel: DialectLevel, permissive: Permissive);
         mapped = ConditionalCompilationProcessor.ProcessWithCopyMapped(mapped, sourceDir, copy, LeftDirectives,
-            diagnostics: diagnostics, sourcePath: sourcePath, dialectLevel: DialectLevel);
+            diagnostics: diagnostics, sourcePath: sourcePath, dialectLevel: DialectLevel, permissive: Permissive);
 
         // From here on the text is in its FINAL line frame: every stage below is line-count preserving (asserted),
         // so `mapped.Lines` stays the origin of each resultant line and the directive stages' event lines are the
@@ -155,7 +155,7 @@ public sealed class Frontend
 
         // >>PROPAGATE (ISO §7.3.21): recognize + edition-gate (introduction gate; runtime semantics are PHASE-13).
         // Line-count preserving like the >>TURN stage.
-        text = PropagateDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath, lineMap);
+        text = PropagateDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "PropagateDirectiveProcessor changed the line count (hazard H3)");
@@ -164,7 +164,7 @@ public sealed class Frontend
         // events on the FINAL text (each event line is directly comparable to a ref-mod token's Start.Line — the
         // >>TURN anchoring discipline). Line-count preserving like the two stages above.
         (text, RefModZeroLengthEvents) =
-            RefModZeroLengthDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath, lineMap);
+            RefModZeroLengthDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
@@ -172,7 +172,7 @@ public sealed class Frontend
         // >>FLAG-02 / >>FLAG-14 (ISO §7.3.14 / §7.3.15): collect the per-option ON/OFF toggle events on the FINAL
         // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
         // anchoring discipline). Line-count preserving like the stages above.
-        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath, lineMap);
+        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "FlagDirectiveProcessor changed the line count (hazard H3)");
@@ -180,14 +180,14 @@ public sealed class Frontend
         // >>COBOL-WORDS (ISO §7.3.10): parse the per-group reserved/context/intrinsic word-table modification into
         // the CobolWordsMap (the post-lex rewriter + composed ReservedWordSet consume it), edition-gate the
         // directive word, and enforce SR1/SR2/SR5. Line-count preserving like the stages above.
-        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath, lineMap);
+        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "CobolWordsDirectiveProcessor changed the line count (hazard H3)");
 
         // >>LEAP-SECOND (ISO §7.3.17): the ONE compilation-group ON/OFF fact the §15.3 date/time consumers read
         // (kb/Work PB65 — it used to be consumed and discarded). Line-count preserving like the stages above.
-        (text, LeapSecondOn) = LeapSecondDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath, lineMap);
+        (text, LeapSecondOn) = LeapSecondDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "LeapSecondDirectiveProcessor changed the line count (hazard H3)");
@@ -197,7 +197,11 @@ public sealed class Frontend
 
     /// <summary>The ISO §7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
     /// dedicated stages above — ONE list, in the order those stages run (TURN, PROPAGATE, REF-MOD-ZERO-LENGTH,
-    /// FLAG-02 / FLAG-14, COBOL-WORDS, LEAP-SECOND). A new directive with behavior is one entry here plus its stage.</summary>
+    /// FLAG-02 / FLAG-14, COBOL-WORDS, LEAP-SECOND). A new directive with behavior is one entry here plus its stage.
+    /// This set answers WHICH STAGE OWNS THE LINE and nothing else: every word in it is also a
+    /// <c>CompilerDirectiveCatalog</c> row, and the EDITION question was already answered by the driver before the
+    /// line reached these stages (kb/Work PB725), which is why none of them takes a dialect any more.
+    /// <c>CompilerDirectiveCatalogDriftTests</c> asserts the subset relation.</summary>
     public static readonly IReadOnlySet<string> LeftDirectives = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "TURN", "PROPAGATE", "REF-MOD-ZERO-LENGTH", "FLAG-02", "FLAG-14", "COBOL-WORDS", "LEAP-SECOND",

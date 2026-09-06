@@ -65,11 +65,17 @@ public sealed class VcrDriftTests
             // legend prose (which shows `<!-- gate:CONSTRUCT-ID -->` etc. as EXAMPLES) from being parsed as gates.
             var rm = RowNumRx.Match(ln);
             if (!rm.Success) continue;
-            var m = AnchorRx.Match(ln);
-            if (!m.Success) continue;
-            var ids = m.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            // ⛔ EVERY anchor comment on the row, not the first (kb/Work PB725). A row may write its gates as one
+            // comment (`<!-- gate:a gate:b -->`) or as several (`<!-- gate:a --> <!-- gate:b -->`); both spellings
+            // are in the doc and only the first was read, so row 28's second anchor —
+            // `arithmetic-standard-2002`, Annex E.2 item 21's Standard Arithmetic leg — had been silently absent
+            // from the generated index and from the forward-coverage check that this method feeds. A construct
+            // MISSING from a coverage table looks exactly like a construct nobody claimed.
+            var ids = AnchorRx.Matches(ln)
+                .SelectMany(m => m.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
                 .Where(t => t.StartsWith("gate:", StringComparison.Ordinal))
                 .Select(t => t["gate:".Length..]).ToArray();
+            if (ids.Length == 0) continue;
             res.Add((rm.Groups[1].Value, ids));
         }
         return res;

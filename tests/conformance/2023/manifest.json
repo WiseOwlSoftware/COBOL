@@ -534,7 +534,8 @@
   "pb339_into_current_record",
   "pb728_condition_name_group_subject_class",
   "pb740_clauseless_share",
-  "pb761_national_through_range"
+  "pb761_national_through_range",
+  "pb725_push_pop_display"
  ],
  "pending": [
   "pb485_value_only_format1"

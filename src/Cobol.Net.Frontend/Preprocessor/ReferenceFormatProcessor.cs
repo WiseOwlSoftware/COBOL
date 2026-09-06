@@ -120,7 +120,15 @@ public static class ReferenceFormatProcessor
         var switches = new List<(int Index, bool Fixed)>();
         for (int i = 0; i < lines.Length; i++)
             if (MatchDirective(lines[i]) is { Success: true } m)
+            {
                 switches.Add((i, m.Groups[1].Value.Equals("FIXED", StringComparison.OrdinalIgnoreCase)));
+                // The §7.3 compiler-directive facility's introduction gate for the ONE directive that cannot be
+                // gated with its siblings: this stage CONSUMES the >>SOURCE FORMAT line (it must — the following
+                // segment's reference format depends on it), so the line never reaches the shared
+                // directive-recognition point in ConditionalCompilationProcessor. Same producer, same row
+                // (source-format-directive-2002 → COBOLNET0900), just an earlier stage (kb/Work PB725).
+                gates?.OnSourceFormatDirective(i + 1);
+            }
 
         // No directive → the whole file is one segment in the implementor-default format. Our default is
         // structural AUTO-DETECTION (a documented extension over the standard's fixed-form GR2 default; it is what
@@ -250,6 +258,19 @@ public static class ReferenceFormatProcessor
             var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, EditionInfo.Of(dialectLevel, permissive));
             Emit(severity, "COBOLNET0902", msg + line, loc);
         }
+
+        /// <summary>
+        /// The <c>&gt;&gt;SOURCE FORMAT</c> directive's edition gate (ISO §7.3.24; registry row
+        /// <c>source-format-directive-2002</c>) — the §7.3 compiler-directive facility is a COBOL-2002
+        /// introduction, so a <c>&gt;&gt;</c> line cannot occur in a conforming COBOL-85 source. It emits HERE
+        /// rather than at the shared directive-recognition point because this stage consumes the line before the
+        /// conditional-compilation driver can see it: same ONE producer, one stage earlier (kb/Work PB725).
+        /// Every occurrence is reported — a format switch is not a once-per-file fact like the continuation gates.
+        /// </summary>
+        public void OnSourceFormatDirective(int line) =>
+            CompilerDirectiveCatalog.CheckRow(Constructs.SourceFormatDirective2002,
+                EditionInfo.Of(dialectLevel, permissive),
+                new BagSink(diagnostics, new SourceOrigin(sourcePath, line).ToLocation()));
 
         /// <summary>Emit through the <see cref="DiagnosticBag"/> at the ONE-policy-decided severity (P2.9).</summary>
         private void Emit(EditionSeverity severity, string code, string message, Common.SourceLocation loc)

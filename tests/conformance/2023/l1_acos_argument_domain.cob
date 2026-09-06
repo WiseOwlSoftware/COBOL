@@ -36,7 +36,7 @@
       *> exception condition EXISTS, so the EC-ARGUMENT-FUNCTION declarative runs.
       *>
       *> ⛔ AND WHY THIS FILE CANNOT CARRY EDITION 85. >>TURN and the exception-name declarative are
-      *> the 2002+ EC model: below --std 2002 a >>TURN is the hard COBOLNET0875, so this program is
+      *> the 2002+ EC model: below --std 2002 a >>TURN is the hard COBOLNET0900, so this program is
       *> not compilable at 85 at all. The row spans 85 through 2023 and ACOS is available from 85,
       *> so the arm that IS observable there - r2's admission of the endpoints - is carried by the
       *> companion 85/l1_acos_domain_accept, and r2's REJECT arm has no spec-fixed observable at

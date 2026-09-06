@@ -298,7 +298,14 @@ of an unsupported facility.
   (absent) source listing / compile-time device, so it is recognized and consumed. The **>>FLAG-02 / >>FLAG-14**
   flagging directives (§7.3.14 / §7.3.15) are RECOGNIZED (a conforming compiler must not error on a standard
   directive), but the migration / obsolescence diagnostics they request are a separate REMAINING Wave-D item — the
-  flags are not yet emitted. Set: `ConditionalCompilationProcessor.KnownIgnoredDirectives`.
+  flags are not yet emitted. **Every one of these is edition-GATED**, which is the half that was missing until
+  kb/Work PB725: the roster is the `directiveWords` column of `tests/version-matrix/constructs.json`, inverted by
+  `CompilerDirectiveCatalog` and checked once, where `ConditionalCompilationProcessor` recognizes a `>>` word
+  (`>>SOURCE FORMAT` one stage earlier, in `ReferenceFormatProcessor`, which consumes its line first). Recognizing
+  a directive the targeted edition does not have is not a leniency, it is an under-rejection — the `>>` facility
+  itself is a COBOL-2002 introduction (VCR Table 7 row 7.21) and `>>FLAG-85` / `>>FLAG-NATIVE-ARITHMETIC` were
+  REMOVED in 2023 (Annex E.2 item 21), so all three edges are enforced: COBOLNET0900 below the introducing
+  edition, COBOLNET0903 at an obsoleting one, COBOLNET0902 at a removing one.
 - **Exception-checking PERFORM — FINALLY on the fatal path (§14.9.28.4, a GENUINE STANDARD DEFECT)**: NOTE 8 says "the
 - **CONVERT function — Table 21's `Type1` argument cell (§15.6 vs §15.19, a standard-text inconsistency)**: Table 21's CONVERT row lists `Type1` among argument-1's types, but §15.19.3's argument rules and §15.19.4's returned-value rules define nothing for a type-name — a type declaration has neither storage nor a value for any source-format (ANY/ANUM/NAT/HEX) to read, so no conforming behavior is derivable. COBOL.NET rejects a type-name argument-1 to CONVERT with a targeted COBOLNET1514 naming this note (kb/Work PB124 wave 4); every other Table-21 `TypeN` cell (LENGTH, BYTE-LENGTH) has §15.50.4/§15.14.4 semantics and is implemented.
   end of the PERFORM statement includes the statements in a FINALLY phrase", while GR20's fatal branch routes an

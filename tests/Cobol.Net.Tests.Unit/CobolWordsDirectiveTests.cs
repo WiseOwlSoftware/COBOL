@@ -23,7 +23,13 @@ public sealed class CobolWordsDirectiveTests
     private static (CobolWordsMap Map, DiagnosticBag Diags) Run(string src, int std = 2023)
     {
         var bag = new DiagnosticBag();
-        var (_, map) = CobolWordsDirectiveProcessor.Process(src, std, permissive: false, bag, "t.cob");
+        // The PIPELINE order (Frontend.Preprocess): the conditional-compilation driver runs first and owns the
+        // ONE directive-word edition gate (kb/Work PB725 — one rule, one place, at the point a >>WORD is
+        // recognized); this stage then parses the >>COBOL-WORDS lines the driver left in the text. Running the
+        // stage alone would test a path the compiler does not have.
+        string text = ConditionalCompilationProcessor.Process(
+            src, CobolNet.Frontend.Frontend.LeftDirectives, bag, "t.cob", std);
+        var (_, map) = CobolWordsDirectiveProcessor.Process(text, bag, "t.cob");
         return (map, bag);
     }
 
@@ -143,7 +149,7 @@ public sealed class CobolWordsDirectiveTests
     {
         const string src = ">>COBOL-WORDS RESERVE \"FOO\"\nIDENTIFICATION DIVISION.\n";
         var bag = new DiagnosticBag();
-        var (outText, _) = CobolWordsDirectiveProcessor.Process(src, 2023, false, bag, "t.cob");
+        var (outText, _) = CobolWordsDirectiveProcessor.Process(src, bag, "t.cob");
         Assert.Equal(src.Count(c => c == '\n'), outText.Count(c => c == '\n'));
         Assert.DoesNotContain("COBOL-WORDS", outText);
     }
