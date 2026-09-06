@@ -3,7 +3,6 @@
   "enabled": [
    "pb346_read_retry_record_conflict",
     "pb695_dynamic_length_omitted",
-    "pb329_line_sequential_charset_2014",
     "pb300_padding_user_word",
     "pb253_prose_float_sdidi_container",
     "pb623_float_landing_exact",

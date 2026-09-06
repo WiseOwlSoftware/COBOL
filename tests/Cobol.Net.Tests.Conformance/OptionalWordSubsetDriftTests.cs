@@ -339,7 +339,7 @@ public sealed class OptionalWordSubsetDriftTests
            INPUT-OUTPUT SECTION.
            FILE-CONTROL.
                SELECT F1 ASSIGN TO "opwk.dat"
-               ORGANIZATION IS LINE SEQUENTIAL.
+               ORGANIZATION IS SEQUENTIAL.
            DATA DIVISION.
            FILE SECTION.
            FD F1 CODE-SET {0} ALPHANUMERIC {1} AL1.

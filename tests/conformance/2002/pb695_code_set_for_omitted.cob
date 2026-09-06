@@ -12,6 +12,10 @@
       *> 13.18.13.4 GR2 makes the on-medium coded character set the one alphabet-name-1 references, and
       *> 12.3.7.4 GR7 c) makes STANDARD-1's correspondence to the native set the IDENTITY over the ISO 646
       *> characters - so the write/read round trip is byte-exact and OUT= is the record written.
+      *> The file is RECORD sequential (12.4.5.10, edition-invariant), not LINE sequential: kb/Work
+      *> PB688 gated ORGANIZATION IS LINE SEQUENTIAL to COBOL-2023, and this program has to compile at
+      *> --std 2002 because that is the edition the CODE-SET FOR phrase was introduced at. The clause
+      *> under test is CODE-SET; the file organization is only its carrier.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB695CSFOR.
        ENVIRONMENT DIVISION.
@@ -21,7 +25,7 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT F1 ASSIGN TO "pb695csfor.dat"
-           ORGANIZATION IS LINE SEQUENTIAL.
+           ORGANIZATION IS SEQUENTIAL.
        DATA DIVISION.
        FILE SECTION.
        FD  F1 CODE-SET ALPHANUMERIC IS AL1.
