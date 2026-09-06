@@ -11,8 +11,16 @@ PREFIX="${1:?usage: run-suite.sh PREFIX}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 
-CLI=src/CobolSharp.CLI/bin/Debug/net10.0/cobolsharp.dll
-cp src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll tests/nist/output/ 2>/dev/null
+# WHICH COMPILER — the same selection the guards make (scripts/guard-compiler.sh): `cobol` by default, the
+# legacy oracle only under COBOLSHARP_LEGACY_DIFFERENTIAL=1. This survey used to hard-code the legacy CLI, so a
+# suite triaged with it reported the ORACLE's compile/run health, not COBOL.NET's (kb/Work/PB750).
+. "$(dirname "$0")/guard-compiler.sh"
+guard_select_compiler
+guard_announce_compiler
+guard_assert_compiler_identity "$GUARD_CLI_DLL" "$GUARD_COMPILER" || exit 1
+export GUARD_CLI_DLL GUARD_COMPILER
+mkdir -p tests/nist/output
+cp "$GUARD_RUNTIME_DLL" tests/nist/output/ 2>/dev/null
 
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF
 export COBOL_SWITCH_1=ON
@@ -23,7 +31,10 @@ for f in tests/nist/programs/${PREFIX}*.cob; do
     test=$(basename "$f" .cob)
     total=$((total + 1))
 
-    if ! dotnet "$CLI" --nist "$f" -o "tests/nist/output/$test.dll" >/dev/null 2>&1; then
+    # The invocation itself lives in scripts/guard-compile.sh — the two compilers spell --nist differently and
+    # that rule is written down once (`feedback_one_rule_one_place`).
+    bash "$(dirname "$0")/guard-compile.sh" "$test" "$f" "tests/nist/output"
+    if [ "$(cat "tests/nist/output/$test.compile.rc" 2>/dev/null)" != "0" ]; then
         echo "  $test: COMPILE_FAIL"; compfail=$((compfail + 1)); continue
     fi
 

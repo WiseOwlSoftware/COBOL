@@ -51,9 +51,11 @@ witnesses() {
     trap 'rm -rf "$d"' RETURN
 
     local FR="$d/root" BIN="$d/bin"
+    # The runtime the group runner copies beside a program before running it. Since PB750 the guard's default
+    # compiler is COBOL.NET, so the default runtime is Cobol.Net.Runtime; the witnesses stub that path.
     mkdir -p "$FR/tests/nist/output" "$FR/tests/nist/valid" "$FR/tests/nist/data" \
-             "$FR/src/CobolSharp.Runtime/bin/Debug/net10.0" "$BIN"
-    printf 'stub\n' > "$FR/src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll"
+             "$FR/src/Cobol.Net.Runtime/bin/Debug/net10.0" "$BIN"
+    printf 'stub\n' > "$FR/src/Cobol.Net.Runtime/bin/Debug/net10.0/Cobol.Net.Runtime.dll"
 
     # The golden: a CCVS-shaped report with a clean footer.
     printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \
@@ -215,6 +217,11 @@ SHIM
 }
 
 W_RC=0
+# ⛔ WHICH COMPILER THE GUARD DRIVES IS PART OF WHAT ITS VERDICTS MEAN (kb/Work/PB750), so the identity
+# watchdog is proven able to REFUSE in the same seconds-long phase as the evidence rules. Both are instruments;
+# neither is believed until it has been shown to fail. Its own output carries the ALL GREEN / FAILED line the
+# battery greps.
+bash "$ROOT/scripts/guard-compiler.sh" --self-test || W_RC=1
 witnesses || W_RC=1
 if [ "$MODE" = "witnesses" ]; then
     exit $W_RC

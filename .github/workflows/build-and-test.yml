@@ -38,13 +38,19 @@ concurrency:
 # artifact name carries both. The guard job is the exception: its verdict is guard-fast.sh's own NIST-loop
 # output, not a `dotnet test` exit.
 jobs:
-  # ── The authoritative legacy gate: the PARALLEL guard. guard-fast.sh runs exactly the checks scripts/guard.sh
-  # does (build + unit + integration + the ~350 NIST CCVS-85 baselines) but fans the NIST suite across the
+  # ── The authoritative NIST gate: the PARALLEL guard. guard-fast.sh runs exactly the checks scripts/guard.sh
+  # does (build + unit + integration + the ~376 NIST CCVS-85 programs) but fans the NIST suite across the
   # runner's cores (JOBS defaults to nproc) with a per-suite isolation model PROVEN equivalent to the serial
   # guard by scripts/guard-verify.sh (which diffs the per-test verdicts). Linux only — the NIST loop is bash. A
-  # non-zero exit (any REGRESSION, DIFF, FAIL*, or build warning) fails the job. ──
+  # non-zero exit (any REGRESSION, DIFF, FAIL*, or build warning) fails the job.
+  # ⛔ IT MEASURES COBOL.NET SINCE kb/Work/PB750. The NIST leg used to drive the LEGACY `cobolsharp.dll`, whose
+  # project graph has no code generator, so this job's green said nothing about the shipping compiler; it now
+  # drives `cobol` (src/Cobol.Net.Cli), refuses to start if the resolved binary does not reference
+  # Cobol.Net.Compiler, and names the compiler in its `=== NIST (cobol): … ===` line. The legacy oracle is
+  # reachable through the same leg with COBOLSHARP_LEGACY_DIFFERENTIAL=1 — a differential, never the gate.
+  # The legacy unit + integration legs remain: they gate CobolSharp.Compiler and the SHARED Cobol.Net.Frontend. ──
   guard:
-    name: Guard (legacy build + unit + integration + NIST, parallel)
+    name: Guard (COBOL.NET NIST + legacy unit + integration, parallel)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -62,14 +68,15 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
-      # guard-fast.sh restores + builds the legacy stack itself, creates tests/nist/output, and copies the
-      # runtime DLL there; a fresh checkout needs no extra prep.
+      # guard-fast.sh restores + builds the compiler under test AND the legacy test projects itself, creates
+      # tests/nist/output, and copies the runtime DLL there; a fresh checkout needs no extra prep.
       - name: Run parallel guard (scripts/guard-fast.sh)
         run: bash scripts/guard-fast.sh
 
   # ── The greenfield COBOL.NET compiler (src/Cobol.Net.*) suites — the ACTIVE work (differential vs the legacy
-  # oracle + the NIST byte-baselines + the version matrix + unit). guard.sh covers only the LEGACY engine, so
-  # these are a separate gate (DEVLOG 515). Each job builds its own test project(s) then runs --no-build. The
+  # oracle + the NIST byte-baselines + the version matrix + unit). The guard job's NIST leg drives the same
+  # compiler (PB750) over the CLI, from bash, on Linux only; these jobs cover the in-process compile path, both
+  # OSes, and everything outside NIST, so they stay a separate gate (DEVLOG 515). Each job builds its own test project(s) then runs --no-build. The
   # Frontend's ANTLR generation needs java + pwsh (both preinstalled on the runner images); Generated/ is a PURE
   # BUILD OUTPUT, untracked since DEVLOG 596 — a fresh checkout always regenerates, and a failed generation
   # FAILS the build. ──

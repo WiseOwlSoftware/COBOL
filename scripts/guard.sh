@@ -1,10 +1,24 @@
 #!/bin/bash
 # Guardrail script — run after every meaningful change set.
 # Exit on first failure.
+#
+# ⛔ WHICH COMPILER THIS MEASURES (kb/Work/PB750). The NIST leg drives `cobol` (src/Cobol.Net.Cli) — the compiler
+# this project ships — and refuses to start unless the resolved binary really references Cobol.Net.Compiler.
+# Until 2026-09-06 it hard-coded the LEGACY `cobolsharp.dll`, whose project graph contains no code generator, so
+# its headline MATCH count was a true statement about the ORACLE and no statement at all about COBOL.NET.
+# `GUARD_COMPILER=legacy` runs the identical leg through the legacy oracle instead — a differential observation,
+# never the gate (`COBOLSHARP_LEGACY_DIFFERENTIAL=1` does too, and ALSO flips the Integration suite's opt-in
+# differential corpus; see scripts/guard-compiler.sh). Every summary line names the compiler it drove.
 set -e
 
+# WHICH COMPILER, asserted against the binary's own dependency graph (scripts/guard-compiler.sh).
+. "$(dirname "$0")/guard-compiler.sh"
+guard_select_compiler
+guard_announce_compiler
+
 echo "=== Building ==="
-dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj -v quiet
+dotnet build "$GUARD_CLI_PROJECT" -v quiet
+guard_assert_compiler_identity "$GUARD_CLI_DLL" "$GUARD_COMPILER"
 
 echo "=== Unit tests ==="
 dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --verbosity quiet
@@ -17,7 +31,7 @@ echo "=== NIST regression ==="
 # ── RUN ISOLATION (2026-07-19) ────────────────────────────────────────────────────────────────────────────
 # The NIST leg used to compile and run straight out of the live tree, which made it fragile in two ways:
 #   1. It EXECUTES the binary it just built. Any rebuild during the ~20-minute loop (a concurrent
-#      `dotnet build`, an IDE, a second guard) swaps cobolsharp.dll / CobolSharp.Runtime.dll MID-RUN, so
+#      `dotnet build`, an IDE, a second guard) swaps the compiler / runtime assemblies MID-RUN, so
 #      early tests use compiler A and later ones compiler B — the "phantom regression" class.
 #   2. tests/nist/output/ is SHARED MUTABLE state. Two overlapping runs (including one whose children
 #      outlived a kill) interleave their .txt writes. The absent-OPTIONAL-file tests IX216A/IX217A are the
@@ -34,9 +48,13 @@ cp -r tests/nist/programs "$GUARD_WORK/programs"
 cp -r tests/nist/valid    "$GUARD_WORK/valid"
 [ -d tests/nist/copylib ] && cp -r tests/nist/copylib "$GUARD_WORK/copylib"
 [ -d tests/nist/data ]    && cp -r tests/nist/data    "$GUARD_WORK/data"
-cp -r src/CobolSharp.CLI/bin/Debug/net10.0 "$GUARD_WORK/cli"
-cp src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll "$GUARD_WORK/output/"
-CLI="$GUARD_WORK/cli/cobolsharp.dll"
+cp -r "$GUARD_CLI_BIN" "$GUARD_WORK/cli"
+cp "$GUARD_RUNTIME_DLL" "$GUARD_WORK/output/"
+# The SNAPSHOT is what runs — that is the whole point of the run-scoped work dir — so GUARD_CLI_DLL is
+# re-pointed at it (and re-asserted: a snapshot copy is still a binary whose identity must hold).
+CLI="$GUARD_WORK/cli/$(basename "$GUARD_CLI_DLL")"
+export GUARD_CLI_DLL="$CLI" GUARD_COMPILER
+guard_assert_compiler_identity "$CLI" "$GUARD_COMPILER"
 NIST_OUT="$GUARD_WORK/output"
 NIST_PROGS="$GUARD_WORK/programs"
 NIST_VALID="$GUARD_WORK/valid"
@@ -51,7 +69,10 @@ trap cleanup_guard_work EXIT
 # status 05 = "not present, created") must NOT see the file they themselves created on a previous invocation;
 # without this start-clean such a test passes once then fails forever. Only data/report .txt files are
 # removed — the compiled .dll/.runtimeconfig.json stay.
-rm -f $NIST_OUT/*.txt
+# ⚠ `*.cbattr` goes with them: COBOL.NET's runtime keeps a fixed file's catalog in a `<datafile>.cbattr`
+# SIDECAR (Cobol.Net.Runtime FixedFileAttributes), so removing only `*.txt` would leave an orphan sidecar
+# describing a file that no longer exists — exactly the state the absent-OPTIONAL-file canaries test.
+rm -f $NIST_OUT/*.txt $NIST_OUT/*.cbattr
 
 # All NIST tests currently at 100% — must stay green
 # (93 NC + 42 IF + 15 SM + 18 IC + 83 SQ + 28 RL + 39 IX + 29 ST + 3 OBSQ = 350 tests).
@@ -170,7 +191,14 @@ export COBOL_SWITCH_1=ON
 #   SQ208M/SQ210M   — HOLE: a data-name LINAGE operand re-evaluates at OPEN OUTPUT, WRITE ADVANCING PAGE, and
 #                      page overflow, applying to the NEXT logical page (§13.18.34 GR6b1–3); the legacy evaluated
 #                      only at OPEN, so mid-run MOVEs to the LINAGE data-names never took effect (page stuck at 66).
+#
+# ⭐ THE LIST APPLIES TO THE LEGACY ONLY (kb/Work/PB750). Every divergence above is a LEGACY non-conformance, so
+# under the default compiler (`cobol`) these eleven goldens are exactly what COBOL.NET must reproduce —
+# NistDifferentialTests already locks them byte-exact — and exempting them would blind the guard on the eleven
+# programs a codegen regression is most likely to break. The variable is therefore emptied unless the run is
+# the opt-in legacy differential. Both guards read this ONE list (guard-fast.sh extracts it by sed).
 LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M ST146A SQ101M SQ208M SQ210M"
+if [ "$GUARD_DIVERGENT" != "1" ]; then LEGACY_DIVERGENT=""; fi
 
 # ⛔ THE EVIDENCE RULES + THE VERDICT AUDIT (plan §11 A12b/A12c; DESIGN-test-build-ci.md §3.10). A verdict is
 # produced only from an observation actually made: a compile is FAILED only with a non-zero rc AND diagnostic
@@ -200,11 +228,12 @@ fi
 
 FAILURES=0
 for test in $NIST_TESTS; do
-    # Compile — keep the diagnostics; they are what distinguishes a rejection from a lost result.
+    # Compile — keep the diagnostics; they are what distinguishes a rejection from a lost result. The
+    # invocation itself lives in scripts/guard-compile.sh (the two compilers spell --nist differently).
     clog="$NIST_OUT/$test.compile.log"
-    crc=0
-    dotnet "$CLI" --nist "$NIST_PROGS/$test.cob" -o "$NIST_OUT/$test.dll" > "$clog" 2>&1 || crc=$?
-    if [ "$crc" -ne 0 ] || [ ! -f "$NIST_OUT/$test.dll" ]; then
+    bash "$(dirname "$0")/guard-compile.sh" "$test" "$NIST_PROGS/$test.cob" "$NIST_OUT"
+    crc=$(cat "$NIST_OUT/$test.compile.rc" 2>/dev/null || echo "")
+    if [ "$crc" != "0" ] || [ ! -f "$NIST_OUT/$test.dll" ]; then
         guard_compile_verdict "$test" "$crc" "$clog"
         v "$test" "$GUARD_VERDICT"
         if [ "$GUARD_CLASS" = "regression" ]; then FAILURES=$((FAILURES + 1)); fi
@@ -259,10 +288,10 @@ done
 # population and that each verdict is the one tests/nist/corpus.tsv predicts.
 echo "$NIST_TESTS" | tr ' ' '\n' | grep . | sort > "$GUARD_WORK/population.txt"
 NIST_AUDIT=0
-bash "$(dirname "$0")/guard-nist-audit.sh" "$VERDICTS" "$GUARD_WORK/population.txt" || NIST_AUDIT=$?
+bash "$(dirname "$0")/guard-nist-audit.sh" "$VERDICTS" "$GUARD_WORK/population.txt" "$GUARD_COMPILER" || NIST_AUDIT=$?
 
 if [ $FAILURES -gt 0 ] || [ $NIST_AUDIT -ne 0 ]; then
-    echo "=== $FAILURES NIST REGRESSION(S), audit rc=$NIST_AUDIT ==="
+    echo "=== NIST ($GUARD_COMPILER): $FAILURES REGRESSION(S), audit rc=$NIST_AUDIT ==="
     if [ -d "$GUARD_FORENSICS" ]; then
         echo "=== EVIDENCE for every non-MATCH (report, stdout, stderr, both normalized sides): $GUARD_FORENSICS ==="
         ls "$GUARD_FORENSICS"
@@ -293,4 +322,6 @@ for f in $NIST_VALID/*.txt; do
     fi
 done
 
+# The verdict says what it measured; `=== ALL GREEN ===` itself stays byte-identical because callers gate on it.
+echo "=== COMPILER UNDER TEST WAS: $GUARD_COMPILER ($GUARD_CLI_DLL) ==="
 echo "=== ALL GREEN ==="

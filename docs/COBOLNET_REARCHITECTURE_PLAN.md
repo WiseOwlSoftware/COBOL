@@ -2068,6 +2068,15 @@ result. Run the long legs ONE AT A TIME.
   `negative/pb260-accept-screen-at-phrase`: it IS rejected at 2002/2014/2023, but only by a generic parse error,
   which `docs/CONFORMANCE.md` §4 records as PB260's debt rather than as the conforming posture; enabling it would
   pin the debt. `kb/Work/PB260` carries the substring to record when the named diagnostic lands.
+- **⛔ READ EVERY BATTERY RECORD UP TO AND INCLUDING #60 WITH THIS CAVEAT (kb/Work/PB750): their `guard NIST:`
+  and `guard verdict:` lines measured the LEGACY compiler, not COBOL.NET.** Both guards hard-coded
+  `src/CobolSharp.CLI/bin/Debug/net10.0/cobolsharp.dll`, whose project graph contains no `Cobol.Net.Compiler`,
+  so `NIST: 353 MATCH, 0 REGRESSION(S)` was a true statement about the ORACLE and never evidence about the
+  shipping compiler — battery #58's own `NC215A` wrong answer (PB741) is the demonstration: green in the guard
+  line above, red in `NistDifferentialTests_P0` in the same run, on the same tree. From battery #61 the leg
+  drives `cobol`, refuses to start unless the binary references `Cobol.Net.Compiler`, and prints
+  `=== NIST (cobol): … ===`; the greenfield NIST evidence in every EARLIER record is the Conformance
+  assembly's `NistDifferentialTests` partitions alone.
 - **⛔ BATTERY REFERENCE — CURRENT: battery #60, 2026-09-06, on `43adf97b` — train 17 (six clusters: PB739's shared EXTEND/WRITE, PB708's filter-population guard, PB695 family 3 closing the optional-word audit at ZERO, and their siblings) plus the notes7 and #59 commits after it — run in a DETACHED WORKTREE cut at the batch head.**
   ✅ **Every compiler leg GREEN — FULL Conformance 6215/6215, Unit 22605/22606 whose ONE red is `GrammarDiagramGeneratorDriftTests.Generator_RunsClean` = PB736's wall-clock assertion firing under full parallel load (re-run alone on the same worktree and binary: 1/1 in 23 s — not a drift), Characterization 33/33, guard witnesses green, NIST 353 MATCH and audit CLEAN (⚠ the guard's NIST leg still drives the LEGACY compiler until PB750 lands in train 19 — its line is not evidence about COBOL.NET), citations 0, differential 0 PER-CASE FLIPS (the seven rows #59 re-baselined hold). Battery #61 at train 18's head must be ALL GREEN with 0 flips.**
 - **BATTERY REFERENCE — PREVIOUS (#59, superseded by #60 above): battery #59, 2026-09-06, on `1e7b5085` — trains 15 and 16 (twelve clusters; the denominator repair to 4,348 rows) and PB741's solo landing (the NC215A fix), plus the note commits after them — run in a DETACHED WORKTREE cut at the batch head.**
@@ -2568,8 +2577,9 @@ result. Run the long legs ONE AT A TIME.
   `guard-fast.sh` **=== ALL GREEN ===** with NIST **353 MATCH / 0 REGRESSION**, legacy Unit **1203 / 1203**,
   Integration **503 / 504 (1 skipped)** — **MEASURED at PB13, not carried.** ⛔ **Its FIRST run was a FALSE RED**
   (`IC222A: COMPILE FAILED`, 352 MATCH / 1) and it was run down rather than dismissed: IC222A compiles clean
-  SERIALLY, the re-run is 353/0, and PB13 provably cannot reach it — `guard-fast` drives the LEGACY
-  `cobolsharp.dll`, whose closure is `CobolSharp.CLI → CobolSharp.Compiler → Cobol.Net.Frontend`, while this diff
+  SERIALLY, the re-run is 353/0, and PB13 provably cannot reach it — `guard-fast` drove the LEGACY
+  `cobolsharp.dll` at the time (it drives `cobol` since PB750),
+  whose closure is `CobolSharp.CLI → CobolSharp.Compiler → Cobol.Net.Frontend`, while this diff
   touches only `Cobol.Net.Compiler` + `Cobol.Net.Runtime`. The MECHANISM is in the script and is now **§11 A12b**.
   *(The 42 NIST IF1xx intrinsic programs that DO exercise PB13 run through the GREENFIELD compiler inside the
   Conformance leg above, not here.)* · GnuCOBOL differential
@@ -3043,7 +3053,12 @@ already-derivable coverage; none change the pipeline.
 - Greenfield conformance: `dotnet test tests/Cobol.Net.Tests.Conformance` · unit: `tests/Cobol.Net.Tests.Unit` ·
   characterization: `tests/Cobol.Net.Tests.Characterization` · legacy suite:
   `dotnet test tests/CobolSharp.Tests.Integration --filter FullyQualifiedName~ConformanceTests` ·
-  FULL legacy guard: `bash scripts/guard.sh` (fast: `guard-fast.sh`; gate on the VERDICT line).
+  FULL CLI-level NIST guard: `bash scripts/guard.sh` (fast: `guard-fast.sh`; gate on the VERDICT line). It drives
+  `cobol` and its lines name the compiler — `=== NIST (cobol): … ===` (PB750). The legacy oracle over the same
+  leg is `GUARD_COMPILER=legacy bash scripts/guard-fast.sh`: a differential observation, never a gate.
+  ⚠ `COBOLSHARP_LEGACY_DIFFERENTIAL=1` selects it too, but **also** flips `CobolSharp.Tests.Integration`'s
+  `ConformanceTests` into their opt-in legacy-differential corpus (same variable, `ConformanceTests.cs:41`) —
+  a separate, much larger gate whose red is not about NIST. Use `GUARD_COMPILER=legacy` for the NIST leg alone.
 - Positive corpus: `tests/conformance/{2002,2014,2023}/<name>.cob|.out` + per-dir `manifest.json`
   (enabled ⊕ pending, integrity-asserted). Negative corpus: `tests/conformance/negative/<name>.cob|.err`
   (first line `*> reject-at: <editions>`). Matrix rows: `tests/version-matrix/constructs.json` (+
@@ -3115,7 +3130,7 @@ already-derivable coverage; none change the pipeline.
 
 ### Goal
 
-Close the version-correctness program to zero open work and make the greenfield test net self-standing and provably faithful *before* the legacy oracle is severed. Concretely: (1) drive every row of `docs/VERSION_CHANGE_REFERENCE.md` (VCR) to `green`/`GATED` or a written disposition — no `TODO` survives; (2) run the full INV-1 / INV-2 / INV-3 sweeps in both strict and permissive modes, **including golden re-match at `--std 2023` (INV-1-strong at the shipping default edition — the fatal-challenge criterion)**; (3) complete the negative corpus so every registered diagnostic descriptor has ≥1 case, enforced by a registry-coverage unit test; (4) build the **in-repo greenfield census guard** that rebuilds the lost 403/459-census tooling by driving the greenfield `cobol.dll` (run-only + chain-intermediate handling ported from `scripts/guard.sh`); (5) run the **one-time verdict-diff equivalence proof** of the greenfield census guard against the legacy `guard.sh` **while the legacy engine still runs**, and record it; (6) migrate the 11 `LEGACY_DIVERGENT` ISO citations out of `guard.sh` into the greenfield guard and a durable LEDGER doc.
+Close the version-correctness program to zero open work and make the greenfield test net self-standing and provably faithful *before* the legacy oracle is severed. Concretely: (1) drive every row of `docs/VERSION_CHANGE_REFERENCE.md` (VCR) to `green`/`GATED` or a written disposition — no `TODO` survives; (2) run the full INV-1 / INV-2 / INV-3 sweeps in both strict and permissive modes, **including golden re-match at `--std 2023` (INV-1-strong at the shipping default edition — the fatal-challenge criterion)**; (3) complete the negative corpus so every registered diagnostic descriptor has ≥1 case, enforced by a registry-coverage unit test; (4) ⛔ **LARGELY DONE 2026-09-06 by kb/Work/PB750, and NOT by a new script** — `scripts/guard.sh`/`guard-fast.sh` themselves now drive `cobol` over the 376-program in-scope corpus (run-only + chain handling already theirs); what remains is the `.ps1` sibling for the OS gap and, if still wanted, widening the population to the full 459-row census; (5) the **one-time verdict-diff equivalence proof** against the still-running oracle, now `COBOLSHARP_LEGACY_DIFFERENTIAL=1 bash scripts/guard-fast.sh` vs a default run of the SAME script, recorded; (6) migrate the 11 `LEGACY_DIVERGENT` ISO citations out of `guard.sh` into a durable LEDGER doc.
 
 **OUT of scope (P15):** deleting the legacy byte engine / `tests/CobolSharp.Tests.*` / the legacy `guard*.sh` scripts, and the `CobolSharp.* → CobolNet.*` / `CobolNet.Runtime → Cobol.Net.Runtime` namespace flip. P14 *builds and proves* the replacement; P15 *removes* the original.
 
@@ -3141,7 +3156,7 @@ Close the version-correctness program to zero open work and make the greenfield 
 
 This phase is the load-bearing hinge between "the compiler works" and "we can safely delete the oracle." The survey/critique findings it closes:
 
-- **The net evaporates at G8 unless a faithful replacement is proven first** (`DESIGN-test-build-ci.md` §1.2, §3.4, §6 risk 4; `COMPLETION_ROADMAP_COUNCIL.md` §4 risk 4). The authoritative NIST regression today is `scripts/guard.sh`, which compiles+runs ~353 programs **through the frozen legacy `cobolsharp.dll`** and diffs `tests/nist/valid/*.txt`. The greenfield NIST coverage is only the 318 golden-bearing rows driven by `NistDifferentialTests.cs` — it does **not** exercise the golden-less census residue (459 census programs − 364 goldens), the run-only programs, or the compile+run health of the full corpus the way `guard.sh` does. When P15 deletes `guard.sh` and the legacy engine, that census coverage is gone unless P14 rebuilds it greenfield **and proves the rebuild matches**, program-by-program, while the oracle is still runnable. Once legacy is deleted the proof is impossible forever (`COMPLETION_ROADMAP_COUNCIL.md` risk 4: "the G8 equivalence window closes unproven").
+- **The net evaporates at G8 unless a faithful replacement is proven first** (`DESIGN-test-build-ci.md` §1.2, §3.4, §6 risk 4; `COMPLETION_ROADMAP_COUNCIL.md` §4 risk 4). ⭐ **MATERIALLY REDUCED 2026-09-06 by kb/Work/PB750.** `scripts/guard.sh`/`guard-fast.sh` compiled+ran ~353 programs **through the frozen legacy `cobolsharp.dll`** and diffed `tests/nist/valid/*.txt`; they now drive `cobol` over all 376 in-scope programs, so the census coverage the greenfield lacked — the golden-less residue, the run-only programs, the compile+run health of the full corpus — is ALREADY greenfield and is not lost when the oracle goes. What survives of this risk is narrower: the guard's NIST leg is bash/Linux-only, and `NistDifferentialTests` still asserts only the 349 green∪divergent rows in-process, so the two must stay reconcilable (`CorpusManifestTests` asserts the containment structurally, `guard-nist-audit.sh` per program). P15 must therefore RETIRE THE LEGACY ARM, not the leg; deleting the leg would re-open exactly this hole (`COMPLETION_ROADMAP_COUNCIL.md` risk 4: "the G8 equivalence window closes unproven").
 
 - **Version-gating is unaudited and the VCR ledger is stale** (`DESIGN-edition-framework.md` P7/P8; `VERSION_CHANGE_REFERENCE.md` — `grep -c TODO` = 117 rows still open, 6 done/GATED as of this writing). The "four compilers in one" mission (`docs/VERSION_TEST_MATRIX_DESIGN.md`) is only validated at its deltas/boundaries; a `TODO` row is an un-proven claim. P3 made the audit harness-driven (`scripts/gen-vcr.ps1` + `--emit-status`); P14 is where the burn-down actually reaches zero and the ledger becomes structurally incapable of drifting.
 
@@ -3149,7 +3164,7 @@ This phase is the load-bearing hinge between "the compiler works" and "we can sa
 
 - **Diagnostics are unaddressable without a coverage floor** (`DESIGN-test-build-ci.md` §1.6, §3.5). P2 built the first-class descriptor registry; P14 is where "every rule has a test" becomes an enforced invariant (`DiagnosticRegistryCoverageTests`), so a registered code with no negative-corpus case is a red — closing the false-green class the 0899 catch-all and the `1533`-style code reuse used to hide.
 
-- **The three-way "which programs are green" triplication** (`DESIGN-test-build-ci.md` §1.2, smell #3): `guard.sh` `NIST_TESTS`, the `NistDifferentialTests` golden list, and `tests/nist/chains.tsv`. P0 introduces `tests/nist/corpus.tsv` as the single source; P14's greenfield guard consumes it (not a fourth copy), and the equivalence proof confirms the manifest-driven run reproduces the legacy verdict list before the old sources are deleted (`DESIGN-test-build-ci.md` §6 risk 4 mitigation).
+- **The three-way "which programs are green" triplication** (`DESIGN-test-build-ci.md` §1.2, smell #3): `guard.sh` `NIST_TESTS`, the `NistDifferentialTests` golden list, and `tests/nist/chains.tsv`. P0 introduces `tests/nist/corpus.tsv` as the single source. ⚠ **RESIDUAL after PB750:** `chains.tsv` and the `[InlineData]` list are folded, but `guard.sh`'s `NIST_TESTS` is still written by hand — not because the population lacks a home, but because that string also encodes the SERIAL guard's run ORDER (producers ahead of consumers, `LEGACY_DIVERGENT`-adjacent anti-dependencies like "no other TF022 writer between RL107A and RL117A"), which `corpus.tsv` cannot express. It is no longer free to drift: `CorpusManifestTests` asserts the guard population ⊇ every program `NistDifferentialTests` asserts, ⊆ the manifest, with a surplus of `pending` rows only. Retiring the string means giving the serial guard the parallel guard's per-component isolation (or adding an order column). P14's greenfield guard consumes it (not a fourth copy), and the equivalence proof confirms the manifest-driven run reproduces the legacy verdict list before the old sources are deleted (`DESIGN-test-build-ci.md` §6 risk 4 mitigation).
 
 ---
 
@@ -3416,6 +3431,19 @@ Expected: `NC101A\tMATCH`. Add a run-only (golden-less) program and a chained co
 ---
 
 #### Step 7 — Build the in-repo greenfield census guard
+
+⛔ **RE-SCOPED 2026-09-06 by kb/Work/PB750 — DO NOT CREATE `scripts/greenfield-guard.sh`.** This step was written
+when `scripts/guard.sh`/`guard-fast.sh` drove the legacy `cobolsharp.dll`, so a *second* script was the only way
+to get a greenfield census. They now drive `cobol` themselves (`scripts/guard-compiler.sh` selects the compiler
+and asserts its identity against the binary's own `.deps.json`), over the whole 376-program in-scope corpus,
+with the verdict-evidence rules, the declared-chain isolation model and the population/expectation audit already
+in place. Writing `greenfield-guard.sh` now would be a THIRD NIST runner doing the second one's job
+(`feedback_one_mechanism_per_job`), and its "equivalence proof" (Step 9) would be a diff of one script against a
+copy of itself. **What remains of Steps 7–9 is:** (a) the `.ps1` sibling that closes the OS gap; (b) extending
+the population from the 376 in-scope programs to the full 459-row census, if that is still wanted; (c) the
+`LEGACY_DIVERGENCE_LEDGER.md` migration (Step 10) — unchanged and still worth doing; and (d) the one-time
+legacy-vs-greenfield verdict diff, which is now `COBOLSHARP_LEGACY_DIFFERENTIAL=1 bash scripts/guard-fast.sh`
+against a default run of the same script, i.e. ONE script run twice rather than two scripts compared.
 
 **Files:** `scripts/greenfield-guard.sh` (NEW); `scripts/greenfield-guard.ps1` (NEW).
 
@@ -3753,15 +3781,23 @@ The AS-IS dossier and the sibling DESIGN docs identify the load-bearing weakness
    DESIGN-test-build-ci §"Risks" #1: *"The net evaporates at G8."* P0/R1 already **baked** the legacy stdout into
    committed goldens (`tests/differential/**/*.out`) and rewrote those tests to golden comparison, so by P15 the net
    is self-standing — this phase only **removes the now-dead legacy edge**.
-2. **The CI authoritative gate is a Linux-only bash loop over the frozen engine.** `.github/workflows/build-and-test.yml`
-   job `guard` runs `scripts/guard-fast.sh`, which builds `src/CobolSharp.CLI` and runs the legacy `~350` NIST loop.
-   That is the *legacy* gate; the greenfield gate is a separate job. Post-bake it is pure redundant insurance and must
-   be retired so the greenfield in-process NIST run (P0's `corpus.tsv`-driven `NistDifferentialTests`) becomes the
-   whole regression, identical on both OSes (DESIGN-test-build-ci §3.8, closes frontend smell "NIST is Linux-only").
-3. **Seven guard scripts and two legacy test projects exist only to run/parallelize the legacy NIST loop.**
-   `scripts/{guard.sh,guard-fast.sh,guard-run-group.sh,guard-verify.sh,compliance.sh,nist-batch.sh,run-suite.sh}` and
-   `tests/CobolSharp.Tests.{Unit,Integration}` are all legacy-only (DESIGN-test-build-ci §4, "delete (G8)"). They are
-   dead once NIST runs in-process.
+2. ~~**The CI authoritative gate is a Linux-only bash loop over the frozen engine.**~~ **CORRECTED 2026-09-06 by
+   kb/Work/PB750 — the "over the frozen engine" half is FIXED, the "Linux-only" half remains.**
+   `.github/workflows/build-and-test.yml` job `guard` runs `scripts/guard-fast.sh`, which now builds
+   `src/Cobol.Net.Cli` and runs the 376-program NIST loop through `cobol` — it was building `src/CobolSharp.CLI`
+   and measuring the legacy engine, which is why battery #58's NC215A wrong answer was invisible to it. So the
+   job is NOT redundant insurance to be retired at P15: it is the CLI-level, separate-process NIST leg, and the
+   in-process `NistDifferentialTests` does not cover the shipped exe, the CCVS chain-isolation model or the 27
+   golden-less/pending programs' compile+run health. What P15 retires is the LEGACY ARM
+   (`COBOLSHARP_LEGACY_DIFFERENTIAL=1` in `scripts/guard-compiler.sh`) and `LEGACY_DIVERGENT`. The remaining
+   frontend smell is the OS gap alone (DESIGN-test-build-ci §3.8), whose fix is a `.ps1` sibling, not a deletion.
+3. **Two legacy test projects and two ad-hoc dashboards exist only for the legacy engine.**
+   `tests/CobolSharp.Tests.{Unit,Integration}` (they also gate the SHARED `Cobol.Net.Frontend`, so they retire
+   with the byte engine, not before) and `scripts/{compliance.sh,nist-batch.sh}`. ⛔ **The guard scripts are NOT
+   on that list any more** (PB750): `guard.sh`, `guard-fast.sh`, `guard-run-group.sh`, `guard-verdict.sh`,
+   `guard-nist-audit.sh`, `guard-verify.sh`, `guard-compiler.sh` and `guard-compile.sh` are the COBOL.NET
+   CLI-level NIST leg plus its verdict-evidence rules, chain-isolation model and population/expectation audit.
+   `run-suite.sh` survives as a triage helper (it selects its compiler through `guard-compiler.sh`).
 4. **The runtime carries a deferred rename.** `src/Cobol.Net.Runtime/Cobol.Net.Runtime.csproj` has
    `AssemblyName=Cobol.Net.Runtime` but `RootNamespace=CobolNet.Runtime`, and every runtime file declares
    `namespace CobolNet.Runtime;` — an assembly/namespace incoherence deliberately deferred to G8 to keep the emitted
@@ -3890,7 +3926,9 @@ only remaining references are the legacy projects referencing each other, and th
     git tag -a legacy-byte-engine-final -m "Final commit containing the frozen CobolSharp.* byte-engine oracle (pre-G8 Cut 2).
     To run the legacy engine for a differential spot-check: check out this tag, then on WSL/Linux:
       dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj
-      bash scripts/guard.sh   # (this tag still has the guard scripts)
+      GUARD_COMPILER=legacy bash scripts/guard.sh   # (this tag still has the guard scripts; since PB750
+                                                   #  the guard drives `cobol` unless the legacy arm is
+                                                   #  explicitly asked for)
     The greenfield goldens under tests/differential/**/*.out and tests/nist/valid/*.txt were baked from this engine."
     git push origin legacy-byte-engine-final
     ```

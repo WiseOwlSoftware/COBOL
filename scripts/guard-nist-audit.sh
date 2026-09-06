@@ -14,9 +14,11 @@
 # It is consumed by BOTH guards (serial `guard.sh` and parallel `guard-fast.sh`) so the rule is written down
 # exactly once (`feedback_one_rule_one_place`).
 #
-# Usage:  bash scripts/guard-nist-audit.sh <results-file> <tests-file>
+# Usage:  bash scripts/guard-nist-audit.sh <results-file> <tests-file> [compiler]
 #           <results-file>  one "NAME: VERDICT" line per test (leading whitespace tolerated)
 #           <tests-file>    the authoritative population, one test name per line
+#           [compiler]      cobol (default) | legacy — WHICH compiler produced those verdicts. It changes the
+#                           expectation for the `divergent` rows and nothing else; see EXPECTED VERDICT below.
 #         bash scripts/guard-nist-audit.sh --self-test
 #           proves every check below can FAIL (feedback_green_gates_arent_evidence) — a check that has never
 #           been shown to fail is not evidence.
@@ -34,16 +36,22 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 #
 # tests/nist/corpus.tsv is the SSOT for "which programs are green" (DESIGN-test-build-ci §3.2). Columns:
 #   name  suite  status(green|divergent|pending)  chain-preds  golden(valid|none)  note
-# The expected verdict is exactly the mapping the runner itself applies, so the two are comparable:
-#   status == divergent  -> LEGACY DIVERGENT   (compiled + run; the golden is the ISO baseline, diff expected)
-#   golden == none       -> NO BASELINE        (no tests/nist/valid/<name>.txt to compare against)
-#   otherwise            -> MATCH
+#
+# ⛔ THE EXPECTED VERDICT DEPENDS ON WHICH COMPILER RAN (kb/Work/PB750), and on exactly ONE row class:
+#   golden == none                   -> NO BASELINE       (no tests/nist/valid/<name>.txt to compare against)
+#   status == divergent, compiler=legacy -> LEGACY DIVERGENT   (the golden is the ISO baseline; the LEGACY is
+#                                        non-conforming there, so its diff is expected and never a regression)
+#   status == divergent, compiler=cobol  -> MATCH         (those goldens ARE the ISO-conforming output, which is
+#                                        precisely what COBOL.NET must reproduce — NistDifferentialTests locks
+#                                        all eleven byte-exact. Carrying the legacy exemption over to `cobol`
+#                                        would exempt the eleven programs likeliest to catch a codegen defect.)
+#   otherwise                        -> MATCH
 # ⚠ `pending` is NOT "no golden": it means the program is not yet in the greenfield NistDifferentialTests set.
 # 15 pending programs carry a valid golden and are expected to MATCH. Keying on `status` instead of `golden`
 # would have wrongly expected NO BASELINE for all 27 of them.
 
 audit() {
-    awk -v corpus="$CORPUS" -v validdir="$ROOT/tests/nist/valid" -v pop="$2" '
+    awk -v corpus="$CORPUS" -v validdir="$ROOT/tests/nist/valid" -v pop="$2" -v compiler="${3:-cobol}" '
     # Every verdict word the two runners can emit. An UNRECOGNIZED verdict is itself a finding: a runner that
     # grows a new word without teaching this audit about it would otherwise slip through classified as nothing.
     function actual_class(v) {
@@ -63,12 +71,13 @@ audit() {
             if (line ~ /^#/) continue
             n = split(line, f, "\t"); if (n < 5 || f[1] == "") continue
             gold[f[1]] = f[5]
-            expect[f[1]] = (f[3] == "divergent") ? "LEGACY DIVERGENT" : (f[5] == "none" ? "NO BASELINE" : "MATCH")
+            expect[f[1]] = (f[3] == "divergent" && compiler == "legacy") ? "LEGACY DIVERGENT" \
+                         : (f[5] == "none" ? "NO BASELINE" : "MATCH")
         }
         close(corpus)
         while ((getline line < pop) > 0) { gsub(/[ \t\r]/, "", line); if (line != "") { declared[line] = 1; npop++ } }
         close(pop)
-        print "=== NIST AUDIT ==="
+        print "=== NIST AUDIT (" compiler ") ==="
     }
     # The results file: "NAME: VERDICT", leading whitespace tolerated.
     {
@@ -132,6 +141,16 @@ audit() {
     }' "$1"
 }
 
+# A compiler name the expectation table does not know cannot be audited — refuse LOUDLY rather than silently
+# fall back to a default and report about the wrong compiler (which is the whole of PB750).
+audit_guarded() {
+    case "${3:-cobol}" in
+        cobol|legacy) audit "$@" ;;
+        *) echo "=== NIST AUDIT: UNKNOWN COMPILER '${3}' — expectations cannot be derived (use cobol|legacy) ===" >&2
+           return 2 ;;
+    esac
+}
+
 # ── Self-test: prove every check can FAIL ──────────────────────────────────────────────────────────────────
 # `feedback_green_gates_arent_evidence` — a passing check proves nothing if it never looked at what changed.
 # Each case below is built to break exactly one check; the self-test fails if any of them passes the audit.
@@ -154,17 +173,24 @@ self_test() {
     : > "$d/tests/nist/valid/AA1A.txt"
     : > "$d/tests/nist/valid/AA2A.txt"
 
+    # The two CONTROLS — one per compiler. AA2A is the `divergent` row, and it is the ONE row whose expected
+    # verdict depends on which compiler ran (kb/Work/PB750): the legacy is non-conforming there and diverges by
+    # design, COBOL.NET must reproduce the ISO golden exactly.
     control() {
+        printf '  AA1A: MATCH\n  AA2A: MATCH\n  AA3A: NO BASELINE (0 FAIL*)\n'
+    }
+    control_legacy() {
         printf '  AA1A: MATCH\n  AA2A: LEGACY DIVERGENT (golden = ISO baseline)\n  AA3A: NO BASELINE (0 FAIL*)\n'
     }
 
-    # $1 = case name, $2 = expected rc (0 pass / 1 fail), $3 = the finding text the case MUST produce.
+    # $1 = case name, $2 = expected rc (0 pass / 1 fail), $3 = the finding text the case MUST produce,
+    # $4 = the compiler the verdicts came from (default cobol).
     # ⛔ The third argument is the point. Without it a case can pass because SOME OTHER check fired — which is
     # exactly what happened on the first run of this self-test, where two cases "passed" while the control was
     # already red for an unrelated path bug. A green check that never looked at what it claims to look at is
     # the very defect this whole file exists to close.
     check() {
-        out=$(audit "$d/results" "$d/pop" 2>&1); local got=$?
+        out=$(audit_guarded "$d/results" "$d/pop" "${4:-cobol}" 2>&1); local got=$?
         if [ "$got" -ne "$2" ]; then
             echo "SELF-TEST FAILED: '$1' expected rc=$2, got rc=$got"; echo "$out" | sed 's/^/    /'; rc=1
         elif [ -n "${3:-}" ] && ! printf '%s' "$out" | grep -q "$3"; then
@@ -176,7 +202,9 @@ self_test() {
     }
 
     echo "=== guard-nist-audit --self-test ==="
-    control > "$d/results";                                check "control: a clean run passes" 0 "CLEAN"
+    control > "$d/results";                                check "control (cobol): a clean run passes" 0 "CLEAN"
+    control_legacy > "$d/results";                         check "control (legacy): a clean run passes" 0 "CLEAN" legacy
+    control > "$d/results"
 
     # (1) THE SQ135A CASE — the one that produced the false green. A program vanishes from the report.
     control | grep -v AA1A > "$d/results";                  check "missing verdict is caught" 1 "NO VERDICT: AA1A"
@@ -200,9 +228,21 @@ self_test() {
     #     counted only REGRESSIONs, would have reported this as green.
     control | sed 's/AA1A: MATCH/AA1A: NO BASELINE (0 FAIL*)/' > "$d/results"
     check "a MATCH quietly becoming NO BASELINE is caught" 1 "UNEXPECTED: AA1A expected MATCH"
-    # (3) and the mirror — an expected divergence that starts MATCHING is also a change worth seeing.
-    control | sed 's/AA2A: LEGACY DIVERGENT.*/AA2A: MATCH/' > "$d/results"
-    check "an expected divergence that starts matching is caught" 1 "UNEXPECTED: AA2A expected LEGACY DIVERGENT"
+    # (3) and the mirror — under the LEGACY, an expected divergence that starts MATCHING is a change worth seeing.
+    control_legacy | sed 's/AA2A: LEGACY DIVERGENT.*/AA2A: MATCH/' > "$d/results"
+    check "an expected divergence that starts matching is caught" 1 "UNEXPECTED: AA2A expected LEGACY DIVERGENT" legacy
+    # (3) ⭐ THE PB750 ARM, BOTH DIRECTIONS. The `divergent` expectation is the one thing the compiler identity
+    #     changes, so each compiler must REJECT the other's verdict shape. Without these two cases the audit
+    #     would happily accept a `cobol` run that skipped the eleven ISO-conforming goldens (exactly the green
+    #     that hid a codegen regression for months), or a legacy run scored against COBOL.NET's expectations.
+    control | sed 's/AA2A: MATCH/AA2A: LEGACY DIVERGENT (golden = ISO baseline)/' > "$d/results"
+    check "cobol exempting a divergent program is caught" 1 "UNEXPECTED: AA2A expected MATCH"
+    control_legacy > "$d/results"
+    check "legacy verdicts audited as cobol are caught" 1 "UNEXPECTED: AA2A expected MATCH"
+    control > "$d/results"
+    check "cobol verdicts audited as legacy are caught" 1 "UNEXPECTED: AA2A expected LEGACY DIVERGENT" legacy
+    # An unknown compiler is refused outright — never silently audited against a default's expectations.
+    check "an unknown compiler name is refused" 2 "UNKNOWN COMPILER" msvc
     # (4) an evidence-free outcome must never be scored in EITHER direction.
     control | sed 's/AA1A: MATCH/AA1A: RUN NO-VERDICT (timeout after 120s, rc=124) — NOT SCORED/' > "$d/results"
     check "a NO-VERDICT is a finding, not a pass" 1 "NO-VERDICT: AA1A"
@@ -224,9 +264,9 @@ if [ "${1:-}" = "--self-test" ]; then
 fi
 
 if [ $# -lt 2 ]; then
-    echo "usage: $0 <results-file> <tests-file>   |   $0 --self-test" >&2
+    echo "usage: $0 <results-file> <tests-file> [cobol|legacy]   |   $0 --self-test" >&2
     exit 2
 fi
 CORPUS="$ROOT/tests/nist/corpus.tsv"
-audit "$1" "$2"
+audit_guarded "$1" "$2" "${3:-cobol}"
 exit $?

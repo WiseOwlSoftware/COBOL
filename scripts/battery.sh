@@ -18,8 +18,14 @@
 #                                               REGRESSION) before phase 2's output is believed. §3.10
 #                                               corollary 3; earned by kb/Work/PB473, where a green harness
 #                                               reported a regression it had not observed.
-#   PHASE 2  guard-fast                       — REBUILDS the legacy CLI + legacy test projects, whose closure
-#                                               includes Cobol.Net.Frontend. Must not overlap phase 1.
+#   PHASE 2  guard-fast                       — REBUILDS the `cobol` CLI + the legacy test projects, whose
+#                                               closures include Cobol.Net.Frontend and the whole greenfield
+#                                               compiler. Must not overlap phase 1.
+#                                               ⛔ SINCE kb/Work/PB750 THIS LEG MEASURES COBOL.NET. It used to
+#                                               drive the LEGACY `cobolsharp.dll`, so `guard NIST: 353 MATCH`
+#                                               was a statement about the oracle and battery #58's NC215A wrong
+#                                               answer was invisible to it. The summary line now NAMES the
+#                                               compiler: read `guard NIST (cobol): …`.
 #   PHASE 3  GnuCOBOL differential            — drives cobol.exe; CPU-saturating, so it is not overlapped with
 #                                               the guard (both would just split cores, and contention is the
 #                                               known enemy of the guard's verdict).
@@ -90,14 +96,19 @@ if [ "${SKIP_GUARD:-0}" != "1" ]; then
     # ⛔ PROVE THE INSTRUMENT BEFORE BELIEVING IT (§3.10 corollary 3). Seconds: 21 synthetic cases through the
     # real group runner, each asserting what ONE verdict MEANS. Battery #43 spent a whole run — and hours of
     # attribution — on a `DIFF — REGRESSION!` that meant "the harness could not compare" (kb/Work/PB473).
-    el "=== PHASE 2a: guard evidence-rule witnesses ==="
+    el "=== PHASE 2a: guard evidence-rule witnesses + the compiler-identity watchdog ==="
     bash scripts/guard-verify.sh --witnesses > "$OUT/guard-witnesses.log" 2>&1
     note "$(printf '%-16s %s' 'guard witnesses:' "$(grep -E '^=== \(1\) WITNESSES' "$OUT/guard-witnesses.log" | tail -1)")"
     grep -q '^=== (1) WITNESSES: ALL GREEN' "$OUT/guard-witnesses.log" || RC=1
+    note "$(printf '%-16s %s' 'guard compiler:' "$(grep -E '^=== guard-compiler --self-test:' "$OUT/guard-witnesses.log" | tail -1)")"
+    grep -q '^=== guard-compiler --self-test: ALL GREEN' "$OUT/guard-witnesses.log" || RC=1
 
     el "=== PHASE 2: guard-fast (rebuilds — never overlapped with phase 1) ==="
     bash scripts/guard-fast.sh > "$OUT/guard.log" 2>&1
-    note "$(printf '%-16s %s' 'guard NIST:' "$(grep -E '^=== NIST: ' "$OUT/guard.log" | tail -1)")"
+    # ⛔ THE COMPILER IS PART OF THE VERDICT (PB750): the pattern requires the `(cobol)` / `(legacy)` tag, so a
+    # guard that somehow printed the old unlabelled line reports NO VERDICT LINE here rather than a green.
+    note "$(printf '%-16s %s' 'guard NIST:' "$(grep -E '^=== NIST \(' "$OUT/guard.log" | tail -1)")"
+    grep -qE '^=== NIST \(cobol\): ' "$OUT/guard.log" || { note "guard NIST:      ⛔ the guard did not drive COBOL.NET — see $OUT/guard.log"; RC=1; }
     note "$(printf '%-16s %s' 'guard audit:' "$(grep -E '^=== NIST AUDIT: (CLEAN|[0-9])' "$OUT/guard.log" | tail -1)")"
     note "$(printf '%-16s %s' 'guard verdict:' "$(grep -E '^=== (ALL GREEN|FAILURES)' "$OUT/guard.log" | tail -1)")"
     grep -q '^=== ALL GREEN ===' "$OUT/guard.log" || RC=1

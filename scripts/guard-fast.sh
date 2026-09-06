@@ -20,12 +20,25 @@
 # Output: a sorted "TEST: VERDICT" list (same vocabulary as guard.sh), the NIST AUDIT, and ALL GREEN / failures.
 # ⛔ READ THE AUDIT LINE, NOT THE MATCH COUNT. "353 MATCH" is a number a human compares against memory, which is
 # exactly how a run at 352 once passed as green.
+#
+# ⛔ AND READ WHICH COMPILER IT DROVE. Until 2026-09-06 this leg hard-coded the LEGACY `cobolsharp.dll`, so its
+# headline MATCH count was a statement about the oracle (kb/Work/PB750). It now drives `cobol`
+# (src/Cobol.Net.Cli) by default, refuses to start unless the resolved binary really references
+# `Cobol.Net.Compiler`, and NAMES the compiler in every summary line: `=== NIST (cobol): ... ===`. The legacy
+# run survives behind `GUARD_COMPILER=legacy` (this leg only) or the project's existing opt-in switch
+# `COBOLSHARP_LEGACY_DIFFERENTIAL=1` (which ALSO flips the Integration suite's opt-in differential corpus —
+# see scripts/guard-compiler.sh).
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export ROOT
-CLI="src/CobolSharp.CLI/bin/Debug/net10.0/cobolsharp.dll"
+
+# WHICH COMPILER, asserted against the binary's own dependency graph (scripts/guard-compiler.sh).
+. "$(dirname "$0")/guard-compiler.sh"
+guard_select_compiler
+guard_announce_compiler
+CLI="$GUARD_CLI_DLL"
 JOBS="${JOBS:-$(nproc)}"
 # ⛔ FULL FAN-OUT IS KEPT, AND THE LOST OBSERVATIONS ARE RE-TAKEN INSTEAD (plan §11 A12b/A12d).
 # Five runs on ONE unchanged tree gave five different answers, and the cause is CONTENTION at -P$(nproc) — every
@@ -40,10 +53,16 @@ RJOBS="${RJOBS:-$JOBS}"
 TMP="${TMPDIR:-/tmp}"
 T0=$(date +%s); el() { echo "[+$(( $(date +%s) - T0 ))s] $*"; }
 
-el "=== Building (CLI + test projects) ==="
-dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj -v quiet
+el "=== Building ($GUARD_COMPILER CLI + test projects) ==="
+dotnet build "$GUARD_CLI_PROJECT" -v quiet
+# The legacy unit + integration suites are a SEPARATE leg from the NIST one: they gate CobolSharp.Compiler and,
+# through it, the SHARED Cobol.Net.Frontend, so they run whichever compiler the NIST leg is driving.
 dotnet build tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj -v quiet
 dotnet build tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj -v quiet
+
+# ⛔ THE IDENTITY WATCHDOG, AFTER THE BUILD AND BEFORE ANY MEASUREMENT (kb/Work/PB750). A gate that cannot say
+# which compiler it drove is not a gate; a gate that drives the wrong one is worse, because it is green.
+guard_assert_compiler_identity "$CLI" "$GUARD_COMPILER" || exit 1
 
 el "=== Unit + Integration tests (parallel, --no-build) ==="
 # --logger console;verbosity=minimal so a red run NAMES its failing tests in the log — battery #29's one
@@ -71,25 +90,38 @@ POP="$TMP/gf_population.txt"
 echo "$TESTS" | tr ' ' '\n' | grep . | sort > "$POP"
 # The ISO-re-baselined goldens the LEGACY legitimately diverges from — extracted from guard.sh (the ONE list;
 # see the per-program rationale there) and passed to the group runner, which reports them instead of failing.
-LEGACY_DIVERGENT=$(sed -n 's/^LEGACY_DIVERGENT="\(.*\)"$/\1/p' scripts/guard.sh)
+# ⭐ LEGACY ONLY (kb/Work/PB750). Those eleven goldens were re-baselined to the ISO-CONFORMING output precisely
+# because the legacy is non-conforming there, so under `cobol` they are not exempt — they are the eleven
+# programs a codegen regression is most likely to break, and NistDifferentialTests already locks them
+# byte-exact. An empty list makes the group runner compare them like every other program.
+if [ "$GUARD_DIVERGENT" = "1" ]; then
+    LEGACY_DIVERGENT=$(sed -n 's/^LEGACY_DIVERGENT="\(.*\)"$/\1/p' scripts/guard.sh)
+else
+    LEGACY_DIVERGENT=""
+fi
 export LEGACY_DIVERGENT
+export GUARD_RUNTIME_DLL
 
 OUT="tests/nist/output"
 mkdir -p "$OUT"
 # Clear stale compiled output first so a compile FAILURE leaves NO .dll -> the run reports COMPILE FAILED instead
 # of silently running a previous run's binary (a stale-dll false green).
-rm -f "$OUT"/*.dll "$OUT"/*.runtimeconfig.json "$OUT"/*.txt "$OUT"/*.compile.log "$OUT"/*.compile.rc
-cp src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll "$OUT/"
+# ⚠ `*.cbattr` and `*.g.cs` are greenfield artefacts and must be cleaned with everything else: COBOL.NET's
+# runtime stores a fixed file's catalog in a `<datafile>.cbattr` SIDECAR (Cobol.Net.Runtime FixedFileAttributes),
+# so a stale sidecar can outlive the data file the old `*.txt` sweep removed; and `cobol` writes the generated
+# C# next to each output assembly, where a stale copy would mislead a post-mortem.
+rm -f "$OUT"/*.dll "$OUT"/*.runtimeconfig.json "$OUT"/*.txt "$OUT"/*.compile.log "$OUT"/*.compile.rc \
+      "$OUT"/*.cbattr "$OUT"/*.g.cs
+cp "$GUARD_RUNTIME_DLL" "$OUT/"
 
 # (1) Parallel compile — fully independent (distinct .dll/.runtimeconfig.json per test, no shared run state).
 # ⛔ THE DIAGNOSTICS ARE KEPT (plan §11 A12b). They used to go to /dev/null and the verdict was inferred from
 # whether a .dll existed, so a transient and a genuine syntax error reported IDENTICALLY and the one thing that
 # would have settled it was thrown away. Each compile now records its own log and its own exit status; the
 # group runner reads both, and refuses to call a compile FAILED without evidence.
+export GUARD_CLI_DLL="$CLI" GUARD_COMPILER
 echo "$TESTS" | tr ' ' '\n' | grep . \
-  | xargs -P"$CJOBS" -I {} bash -c \
-      'rc=0; dotnet "'"$CLI"'" --nist "tests/nist/programs/{}.cob" -o "'"$OUT"'/{}.dll" \
-           > "'"$OUT"'/{}.compile.log" 2>&1 || rc=$?; echo "$rc" > "'"$OUT"'/{}.compile.rc"'
+  | xargs -P"$CJOBS" -I {} bash "$ROOT/scripts/guard-compile.sh" {} "tests/nist/programs/{}.cob" "$OUT"
 
 # (2) Group tests for isolation — FROM THE DECLARED CHAIN GRAPH, not from a hand-maintained suite list.
 #
@@ -203,9 +235,7 @@ if [ -n "${LOST// /}" ]; then
     # Recompile the affected groups' programs serially, keeping the diagnostics, then re-run each group alone.
     while IFS= read -r line; do
         for t in ${line#*|}; do
-            rc=0
-            dotnet "$CLI" --nist "tests/nist/programs/$t.cob" -o "$OUT/$t.dll" > "$OUT/$t.compile.log" 2>&1 || rc=$?
-            echo "$rc" > "$OUT/$t.compile.rc"
+            bash "$ROOT/scripts/guard-compile.sh" "$t" "tests/nist/programs/$t.cob" "$OUT"
         done
         # ⚠ stderr goes to the GROUP ERROR file, never into the results: merging it with 2>&1 would inject
         # non-verdict lines into the verdict file, which the audit would then report as STRAY verdicts.
@@ -223,13 +253,16 @@ fi
 
 NIST_FAILS=$(grep -cE "REGRESSION!" "$RESULTS" || true); NIST_FAILS=${NIST_FAILS:-0}
 NIST_MATCH=$(grep -cE ": MATCH" "$RESULTS" || true); NIST_MATCH=${NIST_MATCH:-0}
-echo "=== NIST: ${NIST_MATCH} MATCH, ${NIST_FAILS} REGRESSION(S) ==="
+# ⛔ THE LINE NAMES THE COMPILER (kb/Work/PB750). "NIST: 353 MATCH" was quoted in plan §9 battery records as
+# evidence about COBOL.NET for months while it measured the legacy oracle; a verdict that does not say what it
+# measured is a verdict a reader will attribute to whatever they were thinking about.
+echo "=== NIST (${GUARD_COMPILER}): ${NIST_MATCH} MATCH, ${NIST_FAILS} REGRESSION(S) ==="
 
 # ⛔ (3c) THE POPULATION + EXPECTATION AUDIT — plan §11 A12c. The two counts above are NOT a verdict: they are
 # computed from the lines that ARRIVED, so losing a program lowers MATCH and still reads as green. The audit
 # asserts that every declared program produced exactly one verdict and that it is the verdict the committed
 # manifest predicts. It is the half that makes a false GREEN impossible.
-bash scripts/guard-nist-audit.sh "$RESULTS" "$POP"
+bash scripts/guard-nist-audit.sh "$RESULTS" "$POP" "$GUARD_COMPILER"
 NIST_AUDIT=$?
 
 # (4) Wait for the .NET test runs.
@@ -248,12 +281,15 @@ for f in tests/nist/valid/*.txt; do
     [ "$ff" -gt 0 ] 2>/dev/null && { echo "=== ERROR: $(basename "$f") footer $ff TEST(S) FAILED ==="; BASE_FAILS=$((BASE_FAILS+1)); }
 done
 
+# The verdict says what it measured — `=== ALL GREEN ===` itself is left byte-identical because callers
+# (scripts/battery.sh, CI) gate on that exact token.
+echo "=== COMPILER UNDER TEST WAS: $GUARD_COMPILER ($CLI) ==="
 if [ "$NIST_FAILS" -eq 0 ] && [ "$NIST_AUDIT" -eq 0 ] && [ "$UNIT_RC" -eq 0 ] && [ "$INT_RC" -eq 0 ] \
    && [ "$BASE_FAILS" -eq 0 ]; then
     echo "=== ALL GREEN ==="
     exit 0
 fi
-echo "=== FAILURES: nist=$NIST_FAILS audit=$NIST_AUDIT unit_rc=$UNIT_RC int_rc=$INT_RC baselines=$BASE_FAILS ==="
+echo "=== FAILURES ($GUARD_COMPILER): nist=$NIST_FAILS audit=$NIST_AUDIT unit_rc=$UNIT_RC int_rc=$INT_RC baselines=$BASE_FAILS ==="
 if [ -d "$GUARD_FORENSICS" ]; then
     echo "=== EVIDENCE for every non-MATCH (report, stdout, stderr, both normalized sides): $GUARD_FORENSICS ==="
     ls "$GUARD_FORENSICS"

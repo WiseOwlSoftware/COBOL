@@ -22,7 +22,12 @@ set -u
 
 ROOT="$1"; GROUP="$2"; TESTS="$3"
 OUT="$ROOT/tests/nist/output"
-RUNTIME="$ROOT/src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll"
+# The COBOL runtime the compiled programs bind to — the compiler under test decides which one (PB750):
+# COBOL.NET's `Cobol.Net.Runtime` by default, `CobolSharp.Runtime` under COBOLSHARP_LEGACY_DIFFERENTIAL=1.
+# guard-fast.sh exports GUARD_RUNTIME_DLL (a repo-relative path); the default keeps a standalone invocation —
+# and scripts/guard-verify.sh's witnesses — working without the caller.
+RUNTIME="${GUARD_RUNTIME_DLL:-src/Cobol.Net.Runtime/bin/Debug/net10.0/Cobol.Net.Runtime.dll}"
+case "$RUNTIME" in /*|[A-Za-z]:[\\/]*) ;; *) RUNTIME="$ROOT/$RUNTIME" ;; esac
 # A hung program used to block its whole group forever; the timeout makes that a reported NO-VERDICT instead.
 # `timeout` reports 124 on expiry and 137 after the -k KILL. A COBOL program may itself STOP RUN with status
 # 124 (§14.9.42.4 GR5), but that ambiguity only arises on a NON-MATCHING run, where declining to score is the
