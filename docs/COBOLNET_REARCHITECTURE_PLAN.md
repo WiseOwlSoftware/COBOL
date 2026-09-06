@@ -2599,7 +2599,7 @@ result. Run the long legs ONE AT A TIME.
   `TurnState`); CA10 needed a shared emit-signature change. Expect to correct the recipe, and update the doc.
 
 
-- **Mission (owner decision D13):** 100% CONFORMING per ISO §4.2.16 across ALL FOUR editions (85/2002/2014/2023) —
+- **Mission (owner decision D13):** 100% CONFORMING per ISO §4.2.1 across ALL FOUR editions (85/2002/2014/2023) —
   mandatory core complete plus every required implementor-documentation item; optional modules may remain
   documented non-support. **Done = the P14 Step-0 traceability inventory at zero GAP.**
 - **Releases (D14):** v1.0 = the P15 exit (100% conforming ×4). P16 CIL = v2, off the conformance critical path.
@@ -2881,7 +2881,7 @@ EXPANDS PHASE-04 (see the note under the table).
 | D10 | SUBSCRIPT lexer-mode. | ✅ **FULLY REMOVE** the lexer `SUBSCRIPT` mode + the binder subscript re-parse (a grammar-level `x(i)` rule) — the ambitious option, NOT the "defer" default. **Ruling stands; RELOCATED from PHASE 04 → PHASE 15 §"CUT 2.5"**: it is blocked by the frozen legacy compiler sharing `SUB_*`/`SubscriptEntryContext` until P15 Cut 2 deletes it. Designed in `DESIGN-frontend-grammar.md §9`. |
 | D11 | Emitted `.g.cs`. | ✅ **Keep always-on** (a Roslyn-backend debugging artifact; the CIL backend emits IL, not `.g.cs`). |
 | D12 | national (`PIC N`) / boolean (`PIC 1`) representation. | ✅ **The VALUE CARRIER stays CHARACTER-width** — one C# `char` per position on the shared `CobolString` substrate (D-N1/D-B1). ⚠ **NARROWED 2026-08-04:** that is a statement about the CARRIER, never about what an item OCCUPIES. A `USAGE BIT` item occupies BITS (§13.18.60.4 GR5) and images packed — design **D19**, fix-queue PB43. Its carrier is unchanged, which is exactly why every MOVE/compare/ref-mod path was untouched. |
-| D13 | The conformance TARGET reading (2026-07-19). | ✅ **100% CONFORMING** per ISO §4.2.16: the MANDATORY core of each edition complete + every required implementor documentation item — with optional modules/processor-dependent elements permitted to remain **documented non-support** (§4.2.6/§4.2.7/Annex A; the CONFORMANCE.md dispositions are part of the deliverable, not a waiver). "Implement every optional module" is explicitly NOT the target; claiming one later is a new owner decision. The definition of DONE is the PHASE-14 Step-0 traceability inventory reaching zero-GAP/zero-UNKNOWN (every row LIVE, STAGED-with-schedule, or DISPOSED). |
+| D13 | The conformance TARGET reading (2026-07-19). | ✅ **100% CONFORMING** per ISO §4.2.1 (*"To conform … an implementation of standard COBOL shall provide the required normative elements specified in Clause 6 … through Clause 16 … and optionally meet the normative elements identified in A.4 … and meet the criteria of 4.2.2 through 4.2.17"* — cite-checked 2026-09-06; §4.2.16, the USER DOCUMENTATION criterion, is one of the criteria it pulls in, not the definition): the MANDATORY core of each edition complete + every required implementor documentation item (§4.2.16) — with optional modules/processor-dependent elements permitted to remain **documented non-support** (§4.2.6/§4.2.7/Annex A; the CONFORMANCE.md dispositions are part of the deliverable, not a waiver). "Implement every optional module" is explicitly NOT the target; claiming one later is a new owner decision. The definition of DONE is the PHASE-14 Step-0 traceability inventory reaching zero-GAP/zero-UNKNOWN (every row LIVE, STAGED-with-schedule, or DISPOSED). |
 | D14 | RELEASE MILESTONES (2026-07-19). | ✅ **v1.0 = the P15 exit** ("100% conforming, four editions" — the D13 target achieved and documented). **P16 (the CIL backend) = v2** — an architecture deliverable, explicitly OFF the conformance critical path. Intermediate nameable milestones: **M4-beta** = the P13 merge to `main`; **conformance-mapped** = P14 Step 0 complete (every GAP scheduled). |
 | D15 | SCOPE-CONTROL RULE (2026-07-19 — the ratchet counterweight). | ✅ Every new finding/analysis output lands TIERED: **CONFORMANCE-BLOCKING** (may gate a phase exit) · **QUALITY** (scheduled work, never gates) · **POST-v1.0**. Only CONFORMANCE-BLOCKING items may extend a phase's exit criteria; the tier is assigned when the item is folded (review/inventory/campaign outputs alike). |
 | D16 | THE P13 CLOSE-LINE (2026-07-19). | ✅ P13 closes on: the M4 feature waves (the grammar batch + Wave D) + review fixes to P13-LANDED code only + Wave I close. The REST of the §24 fix queue is formally RESCHEDULED into P14's GAP-closing work (the Step-0 inventory re-derives and re-tiers it). P13 is thereby bounded at ~4–6 sessions. |
@@ -3193,7 +3193,7 @@ Confirm the P14 preconditions exist:
 
 ##### Step 0 — THE FOUR-EDITION SPEC-TRACEABILITY INVENTORY (the D13 definition-of-done instrument) — NEW, runs FIRST
 
-**Why.** D13 sets the target: 100% CONFORMING per §4.2.16. The P13 plan-vs-spec review proved every existing
+**Why.** D13 sets the target: 100% CONFORMING per §4.2.1. The P13 plan-vs-spec review proved every existing
 coverage instrument is partial (the audit missed mandatory OO surface; capped-sample finders cannot certify
 completeness). "All remaining work" is unknowable without a clause-level map. This step builds it.
 

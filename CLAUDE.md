@@ -68,7 +68,7 @@ differential oracle until the P15 cut-over, and that differential is opt-in
 (`COBOLSHARP_LEGACY_DIFFERENTIAL=1`).
 
 **Mission (owner decision D13):** a commercial-quality, decades-sustainable compiler that is **100% conforming to
-ISO/IEC 1989:2023 per §4.2.16, with correct support for 1985/2002/2014** — validated as four per-edition compilers
+ISO/IEC 1989:2023 per §4.2.1, with correct support for 1985/2002/2014** — validated as four per-edition compilers
 by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` + `docs/VERSION_CHANGE_REFERENCE.md`; the default
 `--std` is COBOL-2023). Done = the PHASE-14 Step-0 traceability inventory at zero GAP.
 

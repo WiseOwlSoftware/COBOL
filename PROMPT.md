@@ -9,7 +9,7 @@
 ## 1. The mission
 
 Build a **commercial-quality COBOL compiler, sustainable for decades** — 100% conforming to ISO/IEC 1989:2023 per
-§4.2.16 with correct 1985/2002/2014, emitting idiomatic typed-native C# through Roslyn.
+§4.2.1 with correct 1985/2002/2014, emitting idiomatic typed-native C# through Roslyn.
 
 There is **no backward-compatibility requirement and no existing user base**. Any subsystem may be redesigned,
 re-architected, or rewritten when that yields the cleaner long-term design. "Minimal blast radius" is never a reason
