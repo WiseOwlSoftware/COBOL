@@ -134,9 +134,16 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), "EOP AT 004\nAFTER=004");
 
-    [Fact]   // The footing area is [footing start, page size] INCLUSIVE (§13.18.34 GR3): a write landing
-             // exactly ON the page size is a FOOTING end-of-page (counter stays), and overflow (GR26a) fires
-             // only when the positioning actually PASSES the body (counter then resets to 1, GR7c4).
+    [Fact]   // ⚖ THE ADJUDICATED BOUNDARY — docs/CONFORMANCE.md §4 "DETERMINATION — the §14.9.51.4 GR26 a)/b)
+             // boundary at LINAGE-COUNTER = page size" (kb/Work PB686). GR26a as PRINTED fires at counter ≥ page
+             // size and GR26b is clamped to counter < page size; at counter == page size neither can hold with
+             // §13.18.34 GR2 (all page-size lines may be written), GR3 (the footing area is [footing start, page
+             // size] INCLUSIVE) or GR26's lead sentence. So a write landing exactly ON the page size is a FOOTING
+             // end-of-page (counter stays), and overflow (GR26a) fires only when the positioning actually PASSES
+             // the body (counter then resets to 1, GR7c4). ⛔ THIS EXPECTATION IS A DETERMINATION, NOT A LITERAL
+             // RULE — if it ever goes red, read the determination before touching the connector. The corpus twin
+             // 2023/pb686_linage_gr26_boundary (+ its 85 edition twin) covers the same boundary on the OTHER arm
+             // of the FOOTING dispatch, where no FOOTING phrase is present at all.
     public void Gr26ab_CounterEqualsBody_IsFootingEopNotOverflow()
         => AssertSpec(Program("LINAGE IS 5 LINES WITH FOOTING AT 4", "", """
                 WRITE P-REC AFTER ADVANCING 4 LINES
@@ -154,6 +161,11 @@ public sealed class LinageConformanceTests
     [Fact]   // §13.18.34 GR1: no FOOTING phrase ⇒ no end-of-page condition independent of page overflow —
              // a write landing on the page size raises NOTHING (GR28: the NOT branch runs); only the
              // body-crossing write raises the (overflow) end-of-page.
+             // ⚖ THE SECOND ARM OF THE PB686 BOUNDARY, and the one that shows the stakes: the determination
+             // is not merely about which end-of-page NAME a FOOTING file gets. Under GR26a's printed "equal to
+             // or exceeds the page size" this write — on a file that never mentions FOOTING — would overflow
+             // and reset, so the last line of every page body would be unwritable. Fixing one arm's comparison
+             // without this one is the repo's most reproducible defect shape.
     public void Gr1_NoFooting_EopIsOverflowOnly()
         => AssertSpec(Program("LINAGE IS 5 LINES", "", """
                 WRITE P-REC AFTER ADVANCING 4 LINES

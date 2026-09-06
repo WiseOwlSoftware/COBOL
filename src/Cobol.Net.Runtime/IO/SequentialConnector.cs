@@ -174,9 +174,18 @@ public sealed class SequentialConnector : FileConnector
     /// <item>ADVANCING n adds n (GR7c2); a plain WRITE adds 1 (GR7c3 — the caller passes 1).</item>
     /// <item>Counter past the page body ⇒ page overflow (§14.9.51 GR26a): the device repositions to the FIRST
     ///   line of the next logical page, counter := 1 (GR7c4 — never a modulo carry), overflow end-of-page.</item>
-    /// <item>Else, FOOTING specified and counter at/past the footing start ⇒ footing end-of-page (GR26b; the
-    ///   footing area is inclusive of the page size, §13.18.34 GR3, so counter == body is FOOTING, and overflow
-    ///   fires only when the positioning actually passes the body).</item>
+    /// <item>Else, FOOTING specified and counter at/past the footing start ⇒ footing end-of-page (GR26b).</item>
+    /// <item>⚖ <b>counter == page body IS AN ADJUDICATED BOUNDARY — do not "correct" either comparison to match
+    ///   GR26's printed words.</b> Arm a) as printed fires at counter ≥ page size and arm b) is clamped to
+    ///   counter &lt; page size; at counter == page size those cannot both hold with §13.18.34 GR2 (all
+    ///   page-size lines "may be written or spaced"), GR3 (the footing area is [footing, page size]
+    ///   INCLUSIVE) or GR26's own lead sentence (the lines "do not fit within the current page body"). Under
+    ///   the printed arm a) the line NUMBERED page size could never receive a record — an N-line body would
+    ///   hold N−1 written lines forever, FOOTING phrase or not. The strict boundary below is
+    ///   docs/CONFORMANCE.md §4 "DETERMINATION — the §14.9.51.4 GR26 a)/b) boundary at LINAGE-COUNTER = page
+    ///   size" (kb/Work PB686), which carries the survey and the NIST SQ201M evidence; it is pinned at the
+    ///   boundary by tests/conformance/2023/pb686_linage_gr26_boundary.cob (+ the 85 twin) on BOTH arms of the
+    ///   FOOTING dispatch, and by LinageConformanceTests.Gr26ab_CounterEqualsBody_IsFootingEopNotOverflow.</item>
     /// <item>GR6b2/3: at the two page transitions — AFTER the overflow decision was made against the OLD page
     ///   body — re-evaluate the operand values; they apply to the NEXT logical page (§13.18.34 GR6).</item>
     /// </list>
@@ -200,6 +209,10 @@ public sealed class SequentialConnector : FileConnector
         {
             // Page overflow (§14.9.51 GR26a): the line does not fit in the page body — the device repositions
             // to the first writable line of the succeeding page and the counter resets to 1 (GR7c4).
+            // ⚖ STRICT `>`, NOT `>=` — the adjudicated boundary (docs/CONFORMANCE.md §4, kb/Work PB686). GR26a
+            // as printed says "equal to or exceeds the page size"; `>=` here would push a record that lands on
+            // the LAST body line onto the next page and make that line unwritable forever, against §13.18.34
+            // GR2. The doc comment above carries the full derivation and the survey.
             LinageCounter = 1;
             EndOfPage = true;
             EvaluateLinage(page);   // GR6b3 — after the overflow decision against the OLD body; next-page values
@@ -208,6 +221,12 @@ public sealed class SequentialConnector : FileConnector
         {
             // Footing-area end-of-page (§14.9.51 GR26b): FOOTING is specified and this WRITE prints or spaces
             // within the footing area (counter at/past the footing start, still within the page body).
+            // ⚖ NO UPPER CLAMP — the adjudicated boundary (docs/CONFORMANCE.md §4, kb/Work PB686). GR26b as
+            // printed adds "and is less than the page size"; honouring that clamp would exclude the page-size
+            // line, which §13.18.34 GR3 places INSIDE the footing area ("between the footing start and the
+            // page size, inclusive"). The overflow arm above already took every counter past the body, so
+            // reaching here means counter ≤ page body and the clamp has nothing left to exclude but GR3's own
+            // last line. IBM Enterprise COBOL documents the footing condition with no upper clamp likewise.
             EndOfPage = true;
         }
     }
