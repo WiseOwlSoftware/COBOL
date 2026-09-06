@@ -204,7 +204,7 @@ accident, since its I-O and EXTEND streams *are* write opens, while the relative
 their store: the same read-only file answered '37' sequentially and '00' keyed, then '00' for READ and REWRITE,
 and the loss surfaced as a '30' at CLOSE on a byte-identical file. The two-arm dispatch again, one arm fixed.)
 
-**One host-path OPEN, two named roles (`HostFile.OpenConnectorStream` / `HostFile.OpenAuxiliary`, same file).**
+**One host-path OPEN, three named roles (`HostFile.OpenConnectorStream` / `HostFile.OpenAuxiliary` / `HostFile.OpenAppendStream`, same file).**
 The third question `HostFile` owns is *"what may the other file connectors of this run unit do while this handle
 is open?"*, and it is not a per-call-site decision: §9.1.15 puts that gate on the file connectors and §14.9.27.4
 Table 19 — *"Before access to a shared physical file is allowed through an OPEN statement, the sharing mode and
@@ -226,6 +226,48 @@ GR1 admits only an I-O status. Fixed the way GR3 and GR16 were: the measurement 
 `SequentialConnector.OpenCore`, before the writer exists, where the '30' mapping already lives, and the
 duplicate `HostFile.Probe` it carried against PB323's one-probe rule went with it. The fixed-width framing read
 `FileInfo.Length`, took no handle, and passed — one dispatch, three arms, one arm tested.)
+
+**The third role, and the rule it serves: a release is positioned and numbered from the SHARED MEDIUM, at the
+moment of the release.** `OpenAppendStream(path, sharedConnector)` is the append handle, and it exists because
+.NET has no atomic append: `FileMode.Append` seeks to the end ONCE, at open, and every later write goes at that
+stream's own position. For the connector that holds the physical file exclusively that is right, and it keeps the
+plain handle byte for byte. For a §9.1.15 PARTICIPANT it is wrong, and silently: ISO §14.9.51.4 GR19 says of two
+connectors extending one shared file that *"the added records follow the records present in the physical file
+when it was opened, but are otherwise in an undefined order"* — only their ORDER is undefined — and both
+connectors anchored at the same offset, so the later flush wrote over the earlier record while both WRITEs
+reported '00'. A participant therefore gets `SharedAppendStream`, which repositions at the physical end before
+every write, over an UNBUFFERED handle; and `SequentialConnector.ReleaseRecord` — the ONE place a sequential
+record is released, reached by all three write arms — flushes it there, because GR12 (*"The successful execution
+of a WRITE statement releases a logical record to the operating environment"*) is what makes the '00' a promise
+and because a record still in this connector's buffer is one the other connector cannot see, count, or avoid
+overwriting.
+
+The same sentence settles the record's IDENTITY, which is the half that shows up in §9.1.16 (*"While locked by a
+given file connector, a record is not accessible to another file connector in the same or a different run
+unit"*). The ordinal is minted from `PhysicalFileTable.State.ReleasedOrdinal` — one mint per physical file,
+seeded by a shared `OPEN EXTEND` from the records already there and reset by a shared `OPEN OUTPUT` — rather than
+from a per-connector base plus a per-connector count, which had both connectors calling their first appended
+record ordinal 2. `FileConnector.SharedPhysical` is how a connector reaches that state, and `SharedStreams` is
+now DERIVED from it being non-null, so §9.1.15 participation and the shared state it grants cannot disagree.
+
+**The rule generalizes, and that is why it is written here rather than in the sequential connector.** Each
+organization spells it in its own terms and each must read the shared medium at the release, never a base
+captured at OPEN:
+
+- sequential — the medium is the file, and the position is its current end (GR19);
+- relative — the medium is the shared `RelativeStore`, and the number is `Highest + 1` at the write. GR29 a) says
+  so twice: *"one greater than the highest relative record number existing in the physical file"*, and *"If the
+  physical file is shared and the open mode is extend, the record numbers are not necessarily consecutive.
+  Otherwise, they are consecutive"* — one expression yields consecutive numbers when nothing else is releasing
+  and the ascending-with-gaps sequence GR31 describes when something is. `RelativeConnector`'s captured
+  `_seqNext` is gone; the store's map is exposed read-only and every mutation goes through `Put`/`Remove`/`Clear`,
+  which maintain `Highest`, so the high-water mark has no second way to go stale;
+- indexed — the medium is the shared `IndexedStore`, whose `NextOrdinal` was already the shared mint. Its GR38
+  high key is per-connector on purpose: the rule says *"when it was opened through that file connector"*.
+
+`SharedExtendWriteDriftTests` measures the whole (organization × framing × spelling) matrix, the exclusive
+control, the print-control write arm, the store's high-water invariant and a static ban on `FileMode.Append`
+outside `HostFile`; it was proved red on the pre-fix behaviour at 17 of 27. (kb/Work PB739.)
 
 The static `CobolFile` facade (kept for the emitted surface) becomes a pure delegator to `RunUnit.Current.Files`.
 The `Keyed*` static methods at `IndexedFile.cs:570-707` are **deleted**; their callers in `CobolFile.cs` collapse to a

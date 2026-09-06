@@ -149,11 +149,23 @@ public abstract class FileConnector
     /// unit test) keeps the private-store behavior.</summary>
     internal KeyedStoreTable? SharedStores { get; set; }
 
+    /// <summary>The §9.1.15 state of the physical file this connector participates in sharing over, or NULL
+    /// when it does not participate — the registry sets it, in one place, immediately before the connector's
+    /// OPEN body runs. It is the connector's handle on everything the OTHER connectors of this run unit share:
+    /// the Table-19 open register, the §9.1.16 record locks, and the release-ordinal mint a shared
+    /// <c>OPEN EXTEND</c> numbers its appended records from (kb/Work PB739).
+    /// <para>⛔ ONE FACT, ONE FIELD. Participation used to be a separate <c>bool</c> beside the registry's own
+    /// posture map, which is two independently maintained answers to one question (kb/Work PB713 removed the
+    /// second writer); giving the fact the type of the thing it grants access to removes the possibility of a
+    /// third — a connector that "participates" but holds no shared state cannot be expressed.</para></summary>
+    internal PhysicalFileTable.State? SharedPhysical { get; set; }
+
     /// <summary>True when the connector participates in file sharing (§9.1.15 — set by the registry when the
     /// SELECT declares SHARING/LOCK MODE or an OPEN carries a SHARING/RETRY phrase): its physical streams open
     /// with <see cref="FileShare.ReadWrite"/> so the §9.1.13.9 Table-19 registry — not the OS handle — is the
-    /// sharing arbiter. An unshared connector keeps the default exclusive-writer OS posture, byte-for-byte.</summary>
-    public bool SharedStreams { get; internal set; }
+    /// sharing arbiter. An unshared connector keeps the default exclusive-writer OS posture, byte-for-byte.
+    /// DERIVED from <see cref="SharedPhysical"/> — it has no storage of its own to fall out of step.</summary>
+    public bool SharedStreams => SharedPhysical is not null;
 
     /// <summary>True while the connector is in an open mode (ISO §9.1.4): set by a success-family OPEN, cleared
     /// by ANY completed CLOSE (§14.9.6.4 GR8 — and an unsuccessful close does not keep the open mode either).

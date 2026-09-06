@@ -63,10 +63,55 @@ internal sealed class KeyedStoreTable
     public void Clear() => _byHost.Clear();
 }
 
-/// <summary>The shared RELATIVE record store: RRN (1-based, §12.4.5.13 GR1) → record image.</summary>
+/// <summary>The shared RELATIVE record store: RRN (1-based, §12.4.5.13 GR1) → record image, plus the ONE
+/// number a sequential-access release needs — <see cref="Highest"/>, the highest RRN existing in the physical
+/// file right now.
+/// <para>⛔ THE SLOTS ARE READ-ONLY TO THE CONNECTOR (kb/Work PB739). ISO §14.9.51.4 GR29 a) assigns an extend
+/// release <i>"a record number that is one greater than the highest relative record number existing in the
+/// physical file"</i> and then says <i>"If the physical file is shared and the open mode is extend, the record
+/// numbers are not necessarily consecutive"</i> — which is only true if the number is taken from the file at
+/// the moment of the release. <c>RelativeConnector</c> took it once, at OPEN, into a private <c>_seqNext</c>, so
+/// two connectors extending one shared file both minted RRN 2 and the second <c>Slots[2] = rec</c> silently
+/// replaced the first record. Exposing the map as <see cref="IReadOnlyDictionary{TKey,TValue}"/> and routing
+/// every mutation through <see cref="Put"/>/<see cref="Remove"/>/<see cref="Clear"/> makes the high-water mark
+/// impossible to leave stale: there is no second way to change the store.</para>
+/// <para>Maintained rather than scanned because a sequential extend asks for it once per WRITE, and a
+/// <c>SortedDictionary</c> has no O(1) maximum — scanning would have made an n-record append O(n²). Only the
+/// removal OF the maximum pays a scan, and only then.</para></summary>
 internal sealed class RelativeStore
 {
-    public readonly SortedDictionary<long, string> Slots = new();
+    private readonly SortedDictionary<long, string> _slots = new();
+
+    /// <summary>The records, in ascending RRN order. Read-only by construction — see the type summary.</summary>
+    public IReadOnlyDictionary<long, string> Slots => _slots;
+
+    /// <summary>The highest relative record number existing in the physical file (0 when it holds none) —
+    /// §14.9.51.4 GR29 a)'s "the highest relative record number existing in the physical file".</summary>
+    public long Highest { get; private set; }
+
+    /// <summary>Release or replace the record at <paramref name="rrn"/>.</summary>
+    public void Put(long rrn, string image)
+    {
+        _slots[rrn] = image;
+        if (rrn > Highest) Highest = rrn;
+    }
+
+    /// <summary>Remove the record at <paramref name="rrn"/> (§14.9.10.4 GR5 — "logically removed from the
+    /// physical file"); false when there was none. Removing the maximum re-derives it, which is the only
+    /// scan this store ever pays.</summary>
+    public bool Remove(long rrn)
+    {
+        if (!_slots.Remove(rrn)) return false;
+        if (rrn == Highest) Highest = _slots.Count == 0 ? 0 : _slots.Keys.Max();
+        return true;
+    }
+
+    /// <summary>Empty the store (OPEN OUTPUT, and the OPEN I-O/EXTEND creation of an absent OPTIONAL file).</summary>
+    public void Clear()
+    {
+        _slots.Clear();
+        Highest = 0;
+    }
 }
 
 /// <summary>One stored indexed record: its character image and its PER-KEY release ordinals — lifted out of

@@ -392,14 +392,18 @@ public sealed class SharedExtendOpenDriftTests
             + "of routing every open through here (kb/Work PB713). Sites:\n  " + string.Join("\n  ", shareless));
     }
 
-    /// <summary>⛔ §9.1.15 PARTICIPATION HAS ONE ANSWER. <c>FileConnector.SharedStreams</c> is what every stream
-    /// in <c>SequentialConnector.OpenCore</c> reads for its share posture and what the EXTEND write-ordinal base
-    /// is gated on, and <c>FileRegistry._connectorShares</c> is the register that records the SHARING/LOCK MODE
-    /// posture — two names for one fact. They must not be maintained separately: the bit is assigned in exactly
-    /// ONE place, immediately before the sole <c>c.Open(mode)</c> call, so it is DERIVED from the register at
-    /// the one moment anything reads it rather than pushed at registration time behind a lookup that a
-    /// registration order could miss. A second writer is a second rule (the shape of kb/Work PB321 and PB713
-    /// both).</summary>
+    /// <summary>⛔ §9.1.15 PARTICIPATION HAS ONE ANSWER. <c>FileConnector.SharedPhysical</c> is what every
+    /// stream in <c>SequentialConnector.OpenCore</c> reads for its share posture, what the EXTEND release
+    /// ordinal is minted from, and what <c>SharedStreams</c> is DERIVED from; <c>FileRegistry._connectorShares</c>
+    /// is the register that records the SHARING/LOCK MODE posture — two names for one fact. They must not be
+    /// maintained separately: it is assigned in exactly ONE place, immediately before the sole
+    /// <c>c.Open(mode)</c> call, so it is derived from the register at the one moment anything reads it rather
+    /// than pushed at registration time behind a lookup that a registration order could miss. A second writer
+    /// is a second rule (the shape of kb/Work PB321 and PB713 both).
+    /// <para>kb/Work PB739 gave the fact the TYPE of the thing it grants access to — the physical file's own
+    /// shared state — so <c>SharedStreams</c> has no storage of its own to fall out of step, which is asserted
+    /// here as well: a connector that "participates" but holds no shared state can no longer be
+    /// expressed.</para></summary>
     [Fact]
     public void SharingParticipationIsAssignedInExactlyOnePlace()
     {
@@ -411,25 +415,30 @@ public sealed class SharedExtendOpenDriftTests
             string line = lines[i];
             if (line.TrimStart().StartsWith("//", StringComparison.Ordinal)) continue;
             if (line.TrimStart().StartsWith("///", StringComparison.Ordinal)) continue;
-            if (line.Contains("SharedStreams =", StringComparison.Ordinal))
+            if (line.Contains("SharedPhysical =", StringComparison.Ordinal)
+                || line.Contains("SharedStreams =", StringComparison.Ordinal))
                 writes.Add($"FileRegistry.cs:{i + 1}: {line.Trim()}");
         }
 
         Assert.True(writes.Count == 1,
-            $"FileConnector.SharedStreams must have exactly one writer; found {writes.Count}. Two writers are "
-            + "two answers to §9.1.15's participation question, and the streams and the write-ordinal seeding "
-            + "read it from opposite ends of an OPEN (kb/Work PB713). Sites:\n  " + string.Join("\n  ", writes));
+            $"§9.1.15 participation must have exactly one writer; found {writes.Count}. Two writers are "
+            + "two answers to §9.1.15's participation question, and the streams and the release-ordinal mint "
+            + "read it from opposite ends of an OPEN (kb/Work PB713, PB739). Sites:\n  " + string.Join("\n  ", writes));
         Assert.Contains("_connectorShares.ContainsKey(name)", writes[0], StringComparison.Ordinal);
 
-        // The complement: the bit is set BEFORE the open it governs, not after it (the PB713 ordering).
-        int assign = Array.FindIndex(lines, l => l.Contains("SharedStreams =", StringComparison.Ordinal)
+        // The complement: it is set BEFORE the open it governs, not after it (the PB713 ordering).
+        int assign = Array.FindIndex(lines, l => l.Contains("SharedPhysical =", StringComparison.Ordinal)
             && !l.TrimStart().StartsWith("//", StringComparison.Ordinal));
         int open = Array.FindIndex(lines, l => l.Contains("c.Open(mode)", StringComparison.Ordinal)
             && !l.TrimStart().StartsWith("//", StringComparison.Ordinal));
         Assert.True(assign >= 0 && open > assign,
-            $"The participation bit is assigned at line {assign + 1} and the open it governs is at line "
-            + $"{open + 1}: OpenCore reads the bit, so assigning it afterwards would open every stream on the "
+            $"The participation fact is assigned at line {assign + 1} and the open it governs is at line "
+            + $"{open + 1}: OpenCore reads it, so assigning it afterwards would open every stream on the "
             + "PREVIOUS open's posture.");
+
+        // kb/Work PB739: SharedStreams is DERIVED, so there is nothing to assign anywhere. A settable bit
+        // beside the shared state is the second-writer shape this fact exists to forbid.
+        Assert.Null(typeof(FileConnector).GetProperty("SharedStreams")!.SetMethod);
     }
 
     /// <summary>The runtime half of the same invariant, measured rather than read off the source: a connector

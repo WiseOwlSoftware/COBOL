@@ -800,8 +800,11 @@ public sealed class FileRegistry
         // mode and sharing of the FAILED request and every later arbitration used them (kb/Work PB321).
         // §9.1.15 participation, derived from the ONE register that records it, at the one moment it is read.
         // OpenCore consults it for every stream it opens and for the write-ordinal base (kb/Work PB713), and
-        // this line is the connector bit's only writer — so the bit cannot outlive, or lag, the posture map.
-        c.SharedStreams = _connectorShares.ContainsKey(name);
+        // this line is its only writer — so it cannot outlive, or lag, the posture map. What it hands over is
+        // the physical file's own shared STATE, not a bare bit (kb/Work PB739): a participant needs the
+        // §14.9.51.4 GR19 release-ordinal mint that lives on it, and `SharedStreams` is derived from this being
+        // non-null, so participation and the shared state cannot disagree.
+        c.SharedPhysical = _connectorShares.ContainsKey(name) ? st : null;
         string status = c.Open(mode);
         if (status[0] == '0')   // the success family '00'/'05'/'07' — §9.1.13.2
         {

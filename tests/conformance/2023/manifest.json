@@ -1,6 +1,8 @@
 {
  "_comment": "The 2023 positive-corpus DISCOVERY MANIFEST (roadmap Phase-1 runner shells): CorpusRunnerTests compiles (and, given a sibling .out, runs+compares) every ENABLED program at --std 2023 strict. Programs exercising not-yet-implemented features stay PENDING (the ISO-validation critics' mass-red guard) and are enabled by the wave that lands their feature. The integrity fact asserts every .cob here is listed (enabled or pending) - nothing is silently undiscovered.",
  "enabled": [
+  "pb739_shared_extend_write",
+  "pb713_shared_extend_open",
   "pb695_special_names_for_omitted",
   "pb695_object_computer_optional_words",
   "pb695_options_and_set_optional_words",
@@ -8,7 +10,6 @@
   "pb338_read_lock_limit_position",
   "pb338_read_releases_prior_lock",
   "pb338_random_read_conflict_position",
-  "pb713_shared_extend_open",
   "pb332_use_ec_after_optional",
   "pb350_return_at_end_required",
   "pb692_line_sequential_access_sequential",

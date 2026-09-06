@@ -45,12 +45,16 @@ public sealed class SequentialConnector : FileConnector
     // ── Record-lock identity (ISO §9.1.16 on sequential organization) ────────────────────────────────────────
     // A sequential record's lock identity is its 1-based ORDINAL position in the physical file — two connectors
     // reading the same physical file agree on ordinals, and the successor relationship (§14.9.51 GR17) makes the
-    // ordinal stable. Reads count from OPEN (INPUT/I-O always position at the start); writes count from a base
-    // seeded by the registry for a SHARING-active connector (OUTPUT = 0; EXTEND = the pre-existing record count,
-    // so appended ordinals continue the file's numbering). Unshared connectors never consult these.
+    // ordinal stable. Reads count from OPEN (INPUT/I-O always position at the start).
+    // ⛔ WRITES DO NOT COUNT FROM ANYWHERE ON THIS CONNECTOR (kb/Work PB739). The ordinal of a released record
+    // is a property of the PHYSICAL FILE — §14.9.51.4 GR19 says the records added by two sharing connectors
+    // "follow the records present in the physical file", which is every connector's releases and not this
+    // one's — so it is minted from the shared PhysicalFileTable.State.ReleasedOrdinal at the moment of the
+    // release (ReleaseRecord). A per-connector base plus a per-connector count had both connectors calling
+    // their first appended record ordinal 2. Unshared connectors have no shared state and no observable
+    // identity: _writeOrdinal stays 0 and LastWrittenRecordId is empty, exactly as before.
     private long _readOrdinal;        // ordinal of the record most recently made available by Read
-    private long _writeBase = -1;     // -1 = not seeded (unshared / not yet opened shared)
-    private long _writesDone;         // successful record writes since OPEN
+    private long _writeOrdinal;       // ordinal of the record most recently released BY THIS connector; 0 = none
 
     // §13.18.43 GR2 frame offsets of a RECORD VARYING file, index = ordinal − 1. Built LAZILY, on the first
     // backward read only: a forward READ walk must not pay for a facility it never uses, and a fixed-width file
@@ -95,8 +99,30 @@ public sealed class SequentialConnector : FileConnector
     public override string MutationTargetRecordId(string recordImage) => LastReadRecordId;
 
     /// <inheritdoc/>
-    public override string LastWrittenRecordId => _writeBase >= 0 && _writesDone > 0
-        ? (_writeBase + _writesDone).ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+    public override string LastWrittenRecordId => _writeOrdinal > 0
+        ? _writeOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+
+    /// <summary>The RELEASE of a logical record to the operating environment — ISO §14.9.51.4 GR12,
+    /// <i>"The successful execution of a WRITE statement releases a logical record to the operating
+    /// environment"</i> — and the ONE place a sequential release happens. Every successful WRITE arm ends here.
+    /// <para>For a §9.1.15 participant the release is literal: the writer is flushed, so the record is IN the
+    /// physical file before the WRITE statement returns. It has to be. The physical file is the medium two
+    /// sharing connectors share (the keyed organizations share an in-memory store instead), so a record still
+    /// sitting in this connector's buffer is a record the other connector cannot see, cannot count, and — with
+    /// <see cref="SharedAppendStream"/> positioning each write at the end as it stands — would be written
+    /// straight over. The ordinal is minted from the same shared state, so it names the record's real place in
+    /// the file (§9.1.16: <i>"While locked by a given file connector, a record is not accessible to another
+    /// file connector"</i> — the lock is only as good as the identity).</para>
+    /// <para>An UNSHARED connector holds the file exclusively and flushes at CLOSE as it always did: no other
+    /// connector can observe the record, its ordinal is read by nothing (<c>FileRegistry.WriteShared</c> asks
+    /// for <see cref="LastWrittenRecordId"/> only for a sharing-active connector), and a flush per record on
+    /// the ordinary WRITE path is a syscall per record for an answer nobody reads.</para></summary>
+    private void ReleaseRecord()
+    {
+        if (SharedPhysical is not { } shared) return;
+        _writer!.Flush();                          // GR12 — released, not merely buffered
+        _writeOrdinal = ++shared.ReleasedOrdinal;  // §9.1.16 identity, minted from the physical file's own mint
+    }
 
     /// <summary>The count of records ALREADY IN the physical file, in the framing this connector reads — the
     /// write-ordinal base a sharing-active <c>OPEN EXTEND</c> continues from (§14.9.51.4 GR18: <i>"If there are
@@ -309,14 +335,10 @@ public sealed class SequentialConnector : FileConnector
         _lastReadLinePartial = false;
         _readOrdinal = 0;
         _varyingStarts = null;   // rebuilt on demand against THIS open's physical file
-        // §9.1.16 record-lock identity: a SHARING participant numbers its writes from a base, an unshared
-        // connector never consults one (−1 = not seeded). OUTPUT/I-O/INPUT start at 0; only the EXTEND arm
-        // below raises the base, and only over a file that is actually there (§14.9.51.4 GR18's "If there are
-        // records in the physical file"). The bit is SharedStreams — the connector's own §9.1.15-participation
-        // flag, the same one every stream below reads — because a second gate is a second rule (the registry
-        // used to hold it, and holding it there is what put the measurement outside the OPEN body, PB713).
-        _writeBase = SharedStreams ? 0 : -1;
-        _writesDone = 0;
+        // §9.1.16 record-lock identity: this connector has released nothing yet. The MINT lives on the shared
+        // physical-file state (kb/Work PB739), and only the OUTPUT and EXTEND arms below touch it — INPUT and
+        // I-O release no records through this connector and shall not disturb another connector's numbering.
+        _writeOrdinal = 0;
         // Table 18's "file is available" / "file is unavailable" axis. The base has already answered
         // §14.9.27.4 GR3, so on every mode that consults this an Unauthorized probe has become '37' and can
         // never be read here as "unavailable" (kb/Work PB323).
@@ -343,6 +365,13 @@ public sealed class SequentialConnector : FileConnector
                     _writer = new StreamWriter(HostFile.OpenConnectorStream(HostPath, FileMode.Create,
                         FileAccess.Write, SharedStreams, FileOptions.SequentialScan), Encoding.Latin1)
                         { NewLine = "\r\n" };
+                    // OPEN OUTPUT truncates, so the physical file holds no records and the shared mint restarts
+                    // at 0. §14.9.51.4 GR17 is the sequential-organization rule for it: "The successor
+                    // relationship of a sequential file is established by the order of execution of WRITE
+                    // statements when the physical file is created" — a creation starts the relationship over,
+                    // so the first record released is ordinal 1. (§9.1.15 item 3 does not admit output as a
+                    // concurrent mode, so no other connector is numbering against this file at the time.)
+                    if (SharedPhysical is { } outShared) outShared.ReleasedOrdinal = 0;
                     break;
 
                 case FileOpenMode.Extend:
@@ -356,10 +385,18 @@ public sealed class SequentialConnector : FileConnector
                     // file when it was opened" — is what makes this point the right one, and an OPEN EXTEND
                     // writes nothing, so the count is the same number the completed OPEN would have seen. See
                     // ExistingRecordCount for why the ORDER, not merely the share mode, is the fix.
-                    if (SharedStreams && exists) _writeBase = ExistingRecordCount();
-                    _writer = new StreamWriter(HostFile.OpenConnectorStream(HostPath, FileMode.Append,
-                        FileAccess.Write, SharedStreams, FileOptions.SequentialScan), Encoding.Latin1)
-                        { NewLine = "\r\n" };
+                    // What it seeds is the PHYSICAL FILE's mint, not a base of this connector's own (kb/Work
+                    // PB739): a second connector extending the same file measures the same physical file and
+                    // writes the same number, and from then on the two share one ascending sequence. A file
+                    // that is not there holds no records, so the mint is 0.
+                    if (SharedPhysical is { } extShared)
+                        extShared.ReleasedOrdinal = exists ? ExistingRecordCount() : 0;
+                    // ⛔ NOT FileMode.Append THROUGH OpenConnectorStream (kb/Work PB739). .NET's Append seeks
+                    // to the end ONCE, at open; under §9.1.15 sharing two connectors then anchor at the same
+                    // offset and the later flush lands on top of the earlier record. HostFile.OpenAppendStream
+                    // is the role that knows the difference — see it for which handle each posture gets.
+                    _writer = new StreamWriter(HostFile.OpenAppendStream(HostPath, SharedStreams),
+                        Encoding.Latin1) { NewLine = "\r\n" };
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
 
@@ -491,7 +528,7 @@ public sealed class SequentialConnector : FileConnector
         }
         else if (_lineSequential) _writer.WriteLine(TrimRecordEnd(image));
         else _writer.Write(Fit(image));
-        _writesDone++;   // the record just released is ordinal base+N (§9.1.16 lock identity; §14.9.51 GR11)
+        ReleaseRecord();   // §14.9.51.4 GR12 — released to the operating environment, and numbered there
         _afterAdvancing = false;
         // GR7c3 (§13.18.34): a plain WRITE to a LINAGE file advances the counter by one. Only the
         // line-sequential/varying shapes reach here (the record-sequential LINAGE write rerouted above).
@@ -516,9 +553,10 @@ public sealed class SequentialConnector : FileConnector
         else { Advance(lines); _writer.Write(text); }
         // §14.9.51.4 GR12 — "The successful execution of a WRITE statement releases a logical record to the
         // operating environment" — is an ALL FILES rule, so a print-control WRITE releases an ordinal-identified
-        // record exactly as the plain one does, and GR11's WITH LOCK needs that identity. Counted HERE and not
-        // in Write(), which delegates to this method for a print/LINAGE file (kb/Work PB683).
-        _writesDone++;
+        // record exactly as the plain one does, and GR11's WITH LOCK needs that identity. Released HERE and not
+        // in Write(), which delegates to this method for a print/LINAGE file (kb/Work PB683, which added the
+        // count; kb/Work PB739 made it a RELEASE — the flush and the shared mint — in all three arms).
+        ReleaseRecord();
         // The LINAGE counter advances as part of the write, AFTER the physical presentation (the legacy
         // ordering): an AT END-OF-PAGE branch then reads the POST-advance counter of the triggering write
         // (§13.18.34 GR7c; SQ201M's footing lines print line 45).
@@ -557,7 +595,8 @@ public sealed class SequentialConnector : FileConnector
         if (page is { } pg) AdvanceLinageCounter(beforeLines, pg);
         Advance(afterLines);
         if (page is { } pg2) AdvanceLinageCounter(afterLines, pg2);
-        _writesDone++;   // §14.9.51.4 GR12 — the THIRD write arm releases a record too (kb/Work PB683)
+        ReleaseRecord();   // §14.9.51.4 GR12 — the THIRD write arm releases a record too (kb/Work PB683,
+                           // PB739)
         return Status = FileStatusCode.Success;
     }
 

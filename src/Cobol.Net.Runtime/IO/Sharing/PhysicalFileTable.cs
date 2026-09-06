@@ -22,6 +22,23 @@ internal sealed class PhysicalFileTable
             new(StringComparer.OrdinalIgnoreCase);
         /// <summary>record-id → the connector name that holds its lock.</summary>
         public readonly Dictionary<string, string> RecordLocks = new(StringComparer.Ordinal);
+
+        /// <summary>⭐ The SEQUENTIAL release-ordinal mint for this physical file (kb/Work PB739): the ordinal
+        /// of the record most recently released to the operating environment through any sharing-active
+        /// connector over this path, so the next release takes <c>++ReleasedOrdinal</c>.
+        /// <para>It is here, on the ONE object that stands for the physical file, for the reason §14.9.51.4
+        /// GR19 gives — <i>"If two or more file connectors for a sequential file add records by sharing the
+        /// physical file after opening it in extend mode, the added records follow the records present in the
+        /// physical file when it was opened"</i>: the records present are the records EVERY connector has
+        /// released, so a per-connector counter cannot name them. Two shared <c>OPEN EXTEND</c> connectors each
+        /// kept their own base plus their own count, so both called their first appended record ordinal 2 —
+        /// and §9.1.16's <i>"While locked by a given file connector, a record is not accessible to another file
+        /// connector"</i> is written over exactly that identity, so the locks landed on the wrong records.</para>
+        /// <para>Seeded by a sharing-active <c>OPEN EXTEND</c> from the records already in the physical file
+        /// (§14.9.51.4 GR18) and reset to 0 by a sharing-active <c>OPEN OUTPUT</c>, which truncates. The keyed
+        /// organizations do not use it: their release identity is a key or an RRN minted from the shared record
+        /// store, which is their physical file.</para></summary>
+        public long ReleasedOrdinal;
     }
 
     /// <summary>The per-file-connector record-lock ceiling (§12.4.5.9 GR7 — implementor max, ≥15) → status 54.</summary>

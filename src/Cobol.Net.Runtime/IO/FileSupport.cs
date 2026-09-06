@@ -263,4 +263,83 @@ public static class HostFile
     /// forward pass over the whole file.</summary>
     public static FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access) =>
         new(hostPath, mode, access, FileShare.ReadWrite, 4096, FileOptions.SequentialScan);
+
+    /// <summary>A file connector's own long-lived APPEND stream — the third role, and the one .NET does not
+    /// have. <c>FileMode.Append</c> is not the host's atomic append: it seeks to the end ONCE, at open, and
+    /// every later write goes at that stream's own position. That is right for the connector that holds the
+    /// physical file to itself and WRONG the moment §9.1.15 lets a second connector append to the same file —
+    /// both writers anchor at the same offset and the later one overwrites the earlier record, on '00' from
+    /// both WRITEs (kb/Work PB739).
+    /// <para>So the role, not the call site, decides. A NON-participant gets the plain append handle it always
+    /// had, byte for byte, plus <see cref="FileOptions.SequentialScan"/>, because nothing else can be writing:
+    /// its <see cref="FileShare.Read"/> posture forbids every other writer, in this run unit and outside it. A
+    /// §9.1.15 PARTICIPANT gets <see cref="SharedAppendStream"/>, which positions at the physical end before
+    /// every write — the semantics §14.9.51.4 GR19 asks for, <i>"the added records follow the records present
+    /// in the physical file when it was opened"</i>, read at the moment each record is added rather than once
+    /// at the OPEN. Its handle is UNBUFFERED (<c>bufferSize: 1</c>): the connector already batches a whole
+    /// logical record into its own writer and flushes it as one release (§14.9.51.4 GR12), and a second buffer
+    /// between that release and the file is exactly the thing that hid the record from the other
+    /// connector.</para></summary>
+    public static Stream OpenAppendStream(string hostPath, bool sharedConnector) =>
+        sharedConnector
+            ? new SharedAppendStream(new FileStream(hostPath, FileMode.Append, FileAccess.Write,
+                FileShare.ReadWrite, bufferSize: 1, FileOptions.None))
+            : new FileStream(hostPath, FileMode.Append, FileAccess.Write,
+                FileShare.Read, 4096, FileOptions.SequentialScan);
+}
+
+/// <summary>
+/// The append semantics the operating environment has and .NET's <c>FileMode.Append</c> does not: EVERY write
+/// lands at the physical end of the file as it stands at that moment, not at an offset captured when the
+/// handle was opened. It exists for ISO §14.9.51.4 GR19 — <i>"If two or more file connectors for a sequential
+/// file add records by sharing the physical file after opening it in extend mode, the added records follow the
+/// records present in the physical file when it was opened, but are otherwise in an undefined order"</i>: only
+/// the ORDER between two sharing connectors is undefined, so neither may land on top of the other's record.
+/// <para>Opened only through <see cref="HostFile.OpenAppendStream"/>, and only for a §9.1.15 participant —
+/// a connector that holds the file exclusively cannot race anything and does not pay the repositioning.</para>
+/// </summary>
+internal sealed class SharedAppendStream(FileStream inner) : Stream
+{
+    private readonly FileStream _inner = inner;
+
+    /// <summary>⛔ THE WHOLE POINT. Reposition at the CURRENT end, then write: another connector's record may
+    /// have arrived since this stream's last write, and §14.9.51.4 GR19 puts this record after it.</summary>
+    public override void Write(ReadOnlySpan<byte> buffer)
+    {
+        _inner.Seek(0, SeekOrigin.End);
+        _inner.Write(buffer);
+    }
+
+    /// <inheritdoc/>
+    public override void Write(byte[] buffer, int offset, int count) =>
+        Write(new ReadOnlySpan<byte>(buffer, offset, count));
+
+    /// <inheritdoc/>
+    public override void WriteByte(byte value) => Write(new ReadOnlySpan<byte>(in value));
+
+    /// <inheritdoc/>
+    public override void Flush() => _inner.Flush();
+    /// <inheritdoc/>
+    public override bool CanRead => false;
+    /// <inheritdoc/>
+    public override bool CanSeek => false;   // the position is not the caller's to choose — see Write
+    /// <inheritdoc/>
+    public override bool CanWrite => true;
+    /// <inheritdoc/>
+    public override long Length => _inner.Length;
+    /// <inheritdoc/>
+    public override long Position { get => _inner.Position; set => throw new NotSupportedException(); }
+    /// <inheritdoc/>
+    public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+    /// <inheritdoc/>
+    public override void SetLength(long value) => throw new NotSupportedException();
+    /// <inheritdoc/>
+    public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) _inner.Dispose();
+        base.Dispose(disposing);
+    }
 }

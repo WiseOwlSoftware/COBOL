@@ -21,15 +21,17 @@ public sealed class RelativeConnector : KeyedConnector
     /// surviving view. A placeholder until OPEN attaches (and again after CLOSE detaches).</summary>
     private RelativeStore _st = new();
 
-    /// <summary>The sparse slot store: RRN (1-based, §12.4.5.13 GR1) → record image — the ATTACHED store's.</summary>
-    private SortedDictionary<long, string> _slots => _st.Slots;
+    /// <summary>The sparse slot store: RRN (1-based, §12.4.5.13 GR1) → record image — the ATTACHED store's,
+    /// READ-ONLY. Every mutation goes through the store's own Put/Remove/Clear, which maintain its
+    /// high-water mark; there is deliberately no second way to change it (kb/Work PB739).</summary>
+    private IReadOnlyDictionary<long, string> _slots => _st.Slots;
 
     private long _fpi;                   // file position indicator: the current slot (§9.1.11)
     private bool _fpiValid;
     private bool _inclusive;             // FPI set by OPEN/START — the positioned record itself is next (§14.9.30 GR21)
     private char _positioner = 'O';      // 'O' OPEN / 'S' START / 'R' READ — drives READ PREVIOUS-after-OPEN (row 29)
     private long _pendingKey;            // the RELATIVE KEY item's value, set by the compiler before keyed verbs
-    private long _seqNext = 1;           // next sequential-access WRITE slot (§14.9.51 GR29a)
+    private long _lastReleasedSlot;      // highest RRN THIS connector has released since OPEN (§14.9.51 GR29a's "ascending")
     private long _lastSlot;              // last slot read/written — the GR25/GR29a store-back + seq REWRITE/DELETE target
 
 
@@ -92,6 +94,7 @@ public sealed class RelativeConnector : KeyedConnector
     {
         _pendingKey = 0;
         _lastSlot = 0;
+        _lastReleasedSlot = 0;
         _positioner = 'O';
         // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
         // a refusal can never be read here as "unavailable" (kb/Work PB323).
@@ -112,16 +115,15 @@ public sealed class RelativeConnector : KeyedConnector
                 break;
             case FileOpenMode.Output:
                 Attach();
-                _slots.Clear();                            // OPEN OUTPUT empties the SHARED view (kb/Work PB143)
+                _st.Clear();                            // OPEN OUTPUT empties the SHARED view (kb/Work PB143)
                 RecordFraming.WriteStore(HostPath, []);          // a new physical file; records persist at CLOSE
-                _seqNext = 1;                              // §14.9.51 GR29a — first record released is 1
                 break;
             case FileOpenMode.IO:
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     Attach();
-                    _slots.Clear();
+                    _st.Clear();
                     RecordFraming.WriteStore(HostPath, []);      // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
@@ -133,12 +135,18 @@ public sealed class RelativeConnector : KeyedConnector
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     Attach();
-                    _slots.Clear();
+                    _st.Clear();
                     RecordFraming.WriteStore(HostPath, []);      // §14.9.27 GR17
                     status = FileStatusCode.OptionalFileNotFound;
                 }
                 else Attach();
-                _seqNext = (_slots.Count == 0 ? 0 : _slots.Keys.Max()) + 1;   // §14.9.27 GR15 / §14.9.51 GR29a
+                // ⛔ NOTHING IS CAPTURED HERE (kb/Work PB739). The extend release number used to be
+                // measured once, at this point, into a private _seqNext — and §14.9.51.4 GR29 a) says in
+                // the same breath that under sharing "the record numbers are not necessarily consecutive",
+                // which can only be true of a number taken from the file AT THE RELEASE. Two connectors
+                // extending one shared file both captured 2 and the second overwrote the first record.
+                // NextSequentialSlot reads the live store instead; §14.9.27 GR15's positioning IS that
+                // reading, not a saved base.
                 break;
         }
         _fpi = 1;                                              // §14.9.27 GR14 — FPI = 1 on INPUT/I-O
@@ -309,13 +317,13 @@ public sealed class RelativeConnector : KeyedConnector
         {
             if (!IsOpen || Mode is not (FileOpenMode.Output or FileOpenMode.Extend))
                 return Status = FileStatusCode.WriteNotOpenForOutput;      // '48' §9.1.13.7 8a
-            long slot = _seqNext;
+            long slot = NextSequentialSlot();
             if (_keyDigits > 0 && slot.ToString().Length > _keyDigits)
                 return Status = FileStatusCode.BoundaryViolation;          // '24' §14.9.51 GR29a
             if (Stored(image, length) is not { } seqRec)
                 return Status = FileStatusCode.RecordSizeViolation;        // '44' §13.18.43 GR14a
-            _slots[slot] = seqRec;
-            _seqNext = slot + 1;
+            _st.Put(slot, seqRec);
+            _lastReleasedSlot = slot;
             _lastSlot = slot;                                              // GR29a — MOVEd back into the key item
             return Status = FileStatusCode.Success;
         }
@@ -328,10 +336,29 @@ public sealed class RelativeConnector : KeyedConnector
         if (_slots.ContainsKey(key)) return Status = FileStatusCode.DuplicateKey;   // '22' §14.9.51 GR33a
         if (Stored(image, length) is not { } rec)
             return Status = FileStatusCode.RecordSizeViolation;            // '44' §13.18.43 GR14a
-        _slots[key] = rec;
+        _st.Put(key, rec);
         _lastSlot = key;
         return Status = FileStatusCode.Success;
     }
+
+    /// <summary>The relative record number the NEXT sequential-access release takes — ISO §14.9.51.4
+    /// GR29 a): <i>"If the open mode of the write file connector is output, the first record released after
+    /// the OPEN is 1. If the open mode is extend, the first record released after the OPEN is assigned a
+    /// record number that is one greater than the highest relative record number existing in the physical
+    /// file. Subsequent records released have relative record numbers that are ascending ordinal numbers.
+    /// If the physical file is shared and the open mode is extend, the record numbers are not necessarily
+    /// consecutive. Otherwise, they are consecutive."</i>
+    /// <para>ONE expression answers all four sentences, which is why there is no captured base any more
+    /// (kb/Work PB739). <c>_st.Highest</c> is the highest RRN existing in the physical file AT THIS MOMENT,
+    /// so OPEN OUTPUT (which empties the store) yields 1, OPEN EXTEND yields highest+1, an unshared file
+    /// yields consecutive numbers because nothing else releases between two of this connector's writes, and
+    /// a SHARED file yields the non-consecutive-but-ascending sequence the rule's own last two sentences
+    /// describe — the other connector's release has already raised the high-water mark.</para>
+    /// <para><c>_lastReleasedSlot</c> is the "ascending" clamp, and it is not redundant: a connector open
+    /// I-O may DELETE the top record (§14.9.10.4 GR5) while this one is extending, which lowers the
+    /// highest EXISTING number below one this connector already used. The record numbers it releases still
+    /// have to ascend.</para></summary>
+    private long NextSequentialSlot() => Math.Max(_st.Highest, _lastReleasedSlot) + 1;
 
     /// <summary>REWRITE (§14.9.35): open mode must be I-O ('49', §9.1.13.7 item 9). Sequential access replaces
     /// the prior READ's record (no prior successful READ → '43', GR5); random/dynamic replaces the slot named by
@@ -346,13 +373,13 @@ public sealed class RelativeConnector : KeyedConnector
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43'
             if (Stored(image, length) is not { } seqRec)
                 return Status = FileStatusCode.RecordSizeViolation;                             // '44' GR20
-            _slots[_lastSlot] = seqRec;
+            _st.Put(_lastSlot, seqRec);
             return Status = FileStatusCode.Success;
         }
         if (!_slots.ContainsKey(_pendingKey)) return Status = FileStatusCode.RecordNotFound;    // '23' GR21
         if (Stored(image, length) is not { } rec)
             return Status = FileStatusCode.RecordSizeViolation;                                 // '44' GR20
-        _slots[_pendingKey] = rec;
+        _st.Put(_pendingKey, rec);
         return Status = FileStatusCode.Success;
     }
 
@@ -366,10 +393,10 @@ public sealed class RelativeConnector : KeyedConnector
         if (Access == KeyedAccess.Sequential)   // §14.9.10.4 GR2 vs. GR4 — the ACCESS MODE alone
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
-            _slots.Remove(_lastSlot);
+            _st.Remove(_lastSlot);
             return Status = FileStatusCode.Success;
         }
-        if (!_slots.Remove(_pendingKey)) return Status = FileStatusCode.RecordNotFound;
+        if (!_st.Remove(_pendingKey)) return Status = FileStatusCode.RecordNotFound;
         return Status = FileStatusCode.Success;
     }
 
@@ -401,7 +428,7 @@ public sealed class RelativeConnector : KeyedConnector
     {
         if (StartOpenModeGuard() is { } notOpen) return Status = notOpen;   // '47' §14.9.41.4 GR1 + GR7
         if (OptionalAbsent || _slots.Count == 0) return StartFail();
-        return StartAt(last ? _slots.Keys.Max() : _slots.Keys.Min());
+        return StartAt(last ? _st.Highest : _slots.Keys.Min());
     }
 
     private string StartAt(long slot)
@@ -430,7 +457,7 @@ public sealed class RelativeConnector : KeyedConnector
 
     private void Load(RelativeStore into)
     {
-        into.Slots.Clear();
+        into.Clear();
         // An ABSENT file loads empty (OPEN OUTPUT / absent-optional attach, PB143). ONLY absent: a refused
         // probe must not be read as "no records" (kb/Work PB323). Unauthorized reaches here from OPEN OUTPUT
         // alone — §14.9.27.4 GR3 answers every other mode '37' before OpenCore runs — and GR18 makes OUTPUT a
@@ -440,12 +467,12 @@ public sealed class RelativeConnector : KeyedConnector
         var frames = RecordFraming.ReadStore(HostPath);
         for (int i = 0; i < frames.Count; i++)
             if (frames[i] is { } rec)
-                into.Slots[i + 1] = rec;    // slot ordinal = frame ordinal (1-based RRN, §12.4.5.13 GR1)
+                into.Put(i + 1, rec);       // slot ordinal = frame ordinal (1-based RRN, §12.4.5.13 GR1)
     }
 
     private void Persist()
     {
-        long max = _slots.Count == 0 ? 0 : _slots.Keys.Max();
+        long max = _st.Highest;
         var frames = new string?[max];
         foreach (var (slot, rec) in _slots) frames[slot - 1] = rec;
         RecordFraming.WriteStore(HostPath, frames);
