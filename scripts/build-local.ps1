@@ -6,7 +6,10 @@
 # change TOUCHES ("~Arithmetic|~Inspect"; add "~VersionMatrix" for an edition gate) — a default would re-create the
 # PB36 mistake of filtering on where the new goldens sat. Shorthand terms ("~X|~Y") are expanded to
 # FullyQualifiedName~X|FullyQualifiedName~Y — vstest silently matches NOTHING for a bare "~X" (and exits 0), so a leg
-# with NO verdict line is RED here, never green by absence.
+# with NO verdict line is RED here, never green by absence. That check is WHOLE-filter, so EVERY TERM is
+# additionally put back to vstest before the legs run (scripts/filter_population.py, kb/Work PB708): a term
+# naming no test anywhere is DEAD and the gate does not run; one whose tests live only in an assembly this
+# gate runs UNFILTERED is INERT — it selected nothing, so it is named and the verdict line says so.
 # Usage:  pwsh scripts/build-local.ps1 -Filter "~Collation|~Locale"
 param([Parameter(Mandatory = $true)][string]$Filter)
 $ErrorActionPreference = 'Continue'
@@ -22,6 +25,18 @@ python scripts/spec/audit_doc_citations.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== DOC CITATIONS: RED (see above) ==='; $rc = 1 }
 dotnet build CobolSharp.sln -v quiet
 if ($LASTEXITCODE -ne 0) { Write-Host '=== WAVE-LOCAL GATE: BUILD FAILED ==='; exit 1 }
+# ⛔ EVERY TERM OF THE FILTER MUST NAME A REAL TEST (kb/Work PB708) — the NO-VERDICT-LINE check on each
+# leg is WHOLE-filter: it fires only when EVERY term is dead, so one dead term OR'd among live ones selects
+# the others, prints a verdict line and is never named. PB691's gate carried
+# `FullyQualifiedName~SpecTraceabilityInventory` against Conformance — where that test does not live, it is
+# in Unit — and reported `Passed! … 1640` on every run. vstest answers for its own filter language, one
+# discovery probe per term (~1.6 s each); `filter_population.py --self-test` proves every arm fires.
+python scripts/filter_population.py --filter "$Filter" --filtered tests/Cobol.Net.Tests.Conformance --unfiltered tests/Cobol.Net.Tests.Unit --unfiltered tests/Cobol.Net.Tests.Characterization
+$pop = $LASTEXITCODE
+# ⛔ ANY code but 0 (all live) or 3 (inert, named) REFUSES the gate — a missing python or a crashed probe
+# must not become a silent skip of the guard (feedback_green_gates_arent_evidence).
+if ($pop -ne 0 -and $pop -ne 3) { Write-Host "=== WAVE-LOCAL GATE: NOT RUN — the filter does not name what it claims, or the check itself could not run (rc=$pop, filter $Filter) ==="; exit 2 }
+$inert = if ($pop -eq 3) { ' — WITH INERT FILTER TERM(S), SEE ABOVE' } else { '' }
 function Leg([string]$name, [string[]]$testArgs) {
     $out = & dotnet test @testArgs 2>&1 | ForEach-Object { "$_" }
     $legRc = $LASTEXITCODE
@@ -33,5 +48,5 @@ function Leg([string]$name, [string[]]$testArgs) {
 Leg 'conformance'      @('tests/Cobol.Net.Tests.Conformance', '--no-build', '--filter', $Filter)
 Leg 'unit'             @('tests/Cobol.Net.Tests.Unit', '--no-build')
 Leg 'characterization' @('tests/Cobol.Net.Tests.Characterization', '--no-build')
-if ($rc -eq 0) { Write-Host "=== WAVE-LOCAL GATE: GREEN (filter $Filter) ===" } else { Write-Host "=== WAVE-LOCAL GATE: RED (filter $Filter) ===" }
+if ($rc -eq 0) { Write-Host "=== WAVE-LOCAL GATE: GREEN (filter $Filter)$inert ===" } else { Write-Host "=== WAVE-LOCAL GATE: RED (filter $Filter)$inert ===" }
 exit $rc

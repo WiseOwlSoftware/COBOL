@@ -1796,7 +1796,11 @@ result. Run the long legs ONE AT A TIME.
   it builds the SOLUTION first (never a `--no-build` leg on an unbuilt tree), runs Conformance on the filter +
   full Unit + Characterization, expands the `~X|~Y` shorthand to `FullyQualifiedName~X|FullyQualifiedName~Y`
   (⛔ a raw `dotnet test --filter "~X|~Y"` silently matches NOTHING and exits 0), and is RED when a leg has no
-  verdict line. It is NOT the comprehensive gate.
+  verdict line. ⛔ **That last check is WHOLE-filter**, so since PB708 EVERY TERM is put back to vstest before
+  the legs run (`scripts/filter_population.py`): a term naming no test in ANY assembly the invocation runs is
+  DEAD and the gate REFUSES to run, and a term whose tests live only in an assembly the gate runs UNFILTERED
+  is INERT — it selected nothing, so it is named and the verdict line is stamped `WITH INERT FILTER TERM(S)`.
+  It is NOT the comprehensive gate.
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
   the GnuCOBOL differential, plus `scripts/guard-fast.sh` (~3.3 min parallel) when a legacy-shared seam is touched
   — never the ~20 min serial `guard.sh`.
@@ -3020,6 +3024,9 @@ already-derivable coverage; none change the pipeline.
 - CLI probe (from a scratchpad dir): `cobol.exe <src.cob> --std 85|2002|2014|2023 -o out.dll --run`.
 - Wave-local gate, one command: `bash scripts/build-local.sh "<filter>"` / `pwsh scripts/build-local.ps1 -Filter
   "<filter>"` (solution build → Conformance on the filter → full Unit → Characterization; filter REQUIRED).
+  ⛔ Every TERM of the filter is put back to vstest first (`scripts/filter_population.py`, PB708): DEAD — no
+  test of that name in any assembly the invocation runs — refuses the gate; INERT — live only in an assembly
+  run UNFILTERED — runs it and stamps the verdict line.
   Comprehensive: `bash scripts/battery.sh [outdir]` (§0 Gates).
 - Greenfield conformance: `dotnet test tests/Cobol.Net.Tests.Conformance` · unit: `tests/Cobol.Net.Tests.Unit` ·
   characterization: `tests/Cobol.Net.Tests.Characterization` · legacy suite:
