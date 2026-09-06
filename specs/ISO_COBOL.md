@@ -12464,7 +12464,7 @@ where symbolic-characters-clause is:
 </pre>
 
 > **Figure notes (ALPHABET clause, FOR phrase).** Underlining measured from the printed page: `ALPHANUMERIC` and `NATIONAL` are underlined (required words, 5.2.2); `FOR` is **not** underlined and is therefore an optional word per 5.2.3. The brace is a plain select-exactly-one (5.2.6.3) — no choice indicators are printed — and the enclosing bracket makes the whole phrase optional.
-> **Figure notes (SYMBOLIC CHARACTERS clause).** Underlining measured from the printed page: neither `IS` nor `ARE` is underlined, so both are optional words per 5.2.3 and the bracket around them may be omitted entirely. `SYMBOLIC` and `CHARACTERS`, which introduce the clause, are underlined in the printed heading of the format. The trailing `…` repeats the whole braced group.
+> **Figure notes (SYMBOLIC CHARACTERS clause).** Underlining measured from the printed page: neither `IS` nor `ARE` is underlined, so both are optional words per 5.2.3 and the bracket around them may be omitted entirely. `SYMBOLIC`, which introduces the clause, is underlined (a required word, 5.2.2); `CHARACTERS` is **not** underlined and is therefore an optional word per 5.2.3, so `SYMBOLIC symbolic-character-1 IS integer-1` is a conforming spelling of the clause. The trailing `…` repeats the whole braced group.
 <a id="section-12-3-7-3"></a>
 ##### 12.3.7.3 Syntax rules
 

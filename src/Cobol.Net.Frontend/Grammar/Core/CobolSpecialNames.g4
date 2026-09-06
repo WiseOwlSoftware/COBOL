@@ -144,8 +144,10 @@ classValueItem
 // symbolic-characters-clause is:") carries underline rules under SYMBOLIC, ALPHANUMERIC, NATIONAL and IN and
 // under nothing else: the one rule on the heading line ends at x=112.24, three points short of CHARACTERS' left
 // edge, and the IS/ARE pair is stacked inside a SQUARE BRACKET with no rule under either. So `SYMBOLIC SC1 65`
-// is conforming. ⚠ specs/ISO_COBOL.md's figure NOTE for this clause claims SYMBOLIC *and* CHARACTERS are
-// underlined while its own <pre> writes only <u>SYMBOLIC</u>; the page sides with the <pre> (note repaired).
+// is conforming. ⚠ specs/ISO_COBOL.md's figure NOTE for this clause CLAIMED SYMBOLIC *and* CHARACTERS were
+// underlined while its own <pre> wrote only <u>SYMBOLIC</u>; the page sides with the <pre>, and THIS COMMIT
+// repairs that note (2026-09-06). The earlier "(note repaired)" written here was false for as long as it stood —
+// the claim was made in the same change set that decided the grammar, and nothing checked it against the file.
 symbolicCharactersClause
     : SYMBOLIC CHARACTERS? specialNamesForPhrase?
       symbolicCharacterEntry+ (IN cobolWord)?
