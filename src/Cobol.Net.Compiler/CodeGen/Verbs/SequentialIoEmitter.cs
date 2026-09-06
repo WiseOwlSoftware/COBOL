@@ -271,8 +271,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         }
     }
 
-    /// <summary>Map a bound SHARING mode to the runtime <c>FileSharing</c> enum member (Phase 4d).</summary>
-    private static string RuntimeSharing(SharingMode m) => m switch
+    /// <summary>⛔ THE ONE rendering of a bound SHARING mode as the runtime <c>FileSharing</c> enum member
+    /// (Phase 4d). <c>internal</c> rather than private because the SORT/MERGE implicit opens name a sharing mode
+    /// too — §14.9.40.4 GR12 a)/GR15 a) and §14.9.24.4 GR7 a)/GR12 a) render "as if an OPEN statement with the
+    /// … SHARING WITH READ ONLY / NO OTHER phrase" — and a second copy of this switch is a second place a new
+    /// <see cref="SharingMode"/> member could be forgotten (kb/Work PB714).</summary>
+    internal static string RuntimeSharing(SharingMode m) => m switch
     {
         SharingMode.NoOther => "FileSharing.NoOther",
         SharingMode.ReadOnly => "FileSharing.ReadOnly",

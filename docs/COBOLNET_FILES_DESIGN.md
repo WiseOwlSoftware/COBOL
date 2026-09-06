@@ -457,8 +457,13 @@ as their members, `Table19.Cell(row, column)` is an exhaustive switch over all 3
 dispatch — the plain `Open` and the phrase-bearing `OpenShared` are entries over it — so every connector is
 arbitrated whether or not it wrote a SHARING or LOCK MODE clause. That also covers the opens §14.9.27.4 names
 without a statement of their own: Table 19 shows the results of opening files currently open by another
-connector *"including those implicitly opened by the SORT and MERGE statements"*, and those route through
-`CobolFile.OpenInput`/`OpenOutput` → `Open` → `OpenCore` with no arm of their own. Because every successful OPEN registers in `PhysicalFileTable`, every close
+connector *"including those implicitly opened by the SORT and MERGE statements"*, and those route through the
+SAME `OpenCore` — but **with the SHARING PHRASE their own general rules give them**, which is a fact of the
+emitter and not of this dispatch (**D22**). Being arbitrated is only half of what those four rules require, and
+the sentence that used to stand here — *"those route through `CobolFile.OpenInput`/`OpenOutput` → `Open` →
+`OpenCore` with no arm of their own"* — recorded the half that was true as though it were the whole, which is
+how §14.9.40.4 GR12 a)'s READ ONLY and GR15 a)'s NO OTHER went unrendered for as long as they did
+(kb/Work PB714). Because every successful OPEN registers in `PhysicalFileTable`, every close
 path releases: `SharedClose` (from the Table-14 CLOSE dispatch), `CloseDisplaced`, `CloseAll` and
 `CloseAndDrop`. The registration is gated on the OPEN's STATUS, not on `IsOpen`, so a re-OPEN of an already-open
 connector — `'41'`, which leaves the connector in its ORIGINAL mode — no longer re-registers it under the failed
@@ -991,6 +996,57 @@ reference-modified operand an ELEMENTARY alphanumeric item, which is exactly the
 sentence overrides, so the slice would have bought the length at the cost of the group move. *A sender-length
 argument threaded through `MoveEmitter`'s four per-kind renderers* — four places to keep in step for one fact,
 where the operand model already has a seam that every renderer reads through.
+
+### D22. An "as if an OPEN statement …" initiation renders THE WHOLE OPEN IT IS AS-IF OF — the SHARING phrase its own general rule names, and the I-O status store that precedes the USE procedure — through ONE emitter helper serving all four such rules.
+
+**The rule.** The standard writes exactly FOUR implicit opens, and every one of them names a phrase:
+§14.9.40.4 GR12 a) and §14.9.24.4 GR7 a) (SORT / MERGE `USING`) — *"If the file-control entry for the file has a
+SHARING clause with the ALL phrase, the initiation is performed as if an OPEN statement with the INPUT phrase
+and the SHARING WITH READ ONLY phrase had been executed; otherwise, the initiation is performed as if an OPEN
+statement with the INPUT phrase and without a SHARING phrase is executed"* — and §14.9.40.4 GR15 a) /
+§14.9.24.4 GR12 a) (`GIVING`) — *"The initiation is performed as if an OPEN statement with the OUTPUT and
+SHARING WITH NO OTHER phrases had been executed"*. §9.1.15 says what the phrases buy: read only *"restricts
+concurrent access to a physical file through file connectors other than this one, to input mode"*, no other
+*"specifies exclusive access to a physical file"*. Searching the standard for *"as if an OPEN statement"*
+returns those four and nothing else, and *"as if a CLOSE statement"* returns their four terminations.
+
+**The decision.** `SortEmitter.EmitImplicitOpen(file, mode, sharing, ruleComment)` is the ONE renderer for all
+four, and both directions of both verbs reach it (`EmitInputFile` and `EmitGivingFile` each serve SORT and
+MERGE, so the verb axis needs no arm). A non-null sharing mode renders `CobolFile.OpenShared` — the same entry
+an explicit `OPEN … SHARING` renders, through the same `OpenCore` and the same Table 19 (**D14**); a null one
+renders the plain mode-specific entry, because GR12 a)'s *otherwise* arm is a real distinction and not a
+formality: *"The absence of the SHARING phrase means that the sharing mode is completely determined by the
+SHARING clause, if any, in the file control entry"*, and the phrase-bearing entry additionally REGISTERS an
+unregistered connector's record-locking posture, which for a phrase-less open would contradict §14.9.27.4 GR23
+(the two arms **D12** already keeps apart for the explicit statement). The USING arm's condition — *has a
+SHARING clause with the ALL phrase* — is a compile-time fact of the file control entry, so it is decided in the
+emitter and never re-derived at runtime. The FILE STATUS store rides the same helper: §9.1.13.1 sets the I-O
+status *"during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement and
+prior to the execution of … any applicable exception processing statements"* and §12.4.5.8.4 GR1 updates the
+FILE STATUS item with it, so the USE procedure these same rules invoke on the next emitted line sees the status
+THIS open produced — the `'61'` among them.
+
+**Drift is compile-enforced, not test-enforced.** `RuntimeApi.FileOpenInput` and `FileOpenOutput` — renderers
+whose whole defect was the parameter they did not take — are **deleted**, and a ⛔ block stands where they were.
+There is no phrase-less implicit-open renderer left for a fifth implicit open to reach by accident; a new one
+has exactly one landing place, and it has to say which sharing mode its rule names.
+
+**Rejected alternatives.** *Pass the override through the plain `Open` entry* — the plain entry's whole contract
+is that it carries no phrase; adding one there would re-merge the two arms §14.9.27.4 GR23 separates. *Decide
+the USING condition in `FileRegistry`* — the condition reads the file control entry, which the emitter holds and
+the registry would have to re-derive from a second copy of the same fact. *Render `OpenShared` with
+`hasSharingOverride: false` on the otherwise arm* — it would register the connector as a record-locking
+participant that the standard never made one. *A drift TEST asserting the old renderers are unused* — a test
+that can go stale where a deletion cannot (kb/Work PB714).
+
+**What is NOT observable, and where it is pinned instead.** `SHARING WITH NO OTHER`'s exclusive half is
+unreachable from a single-threaded COBOL program: no statement of the program's runs between the implicit OPEN
+and the implicit CLOSE, and every Table 19 *Open request* row whose mode is OUTPUT is *Unsuccessful open* in all
+five columns anyway (§9.1.13.9 1) e)), so the override cannot change an INCOMING arbitration either. It is
+pinned at the registry, on the exact call the emitter renders — `CobolFileLockTests`
+`SortGivingImplicitOpen_TakesNoOther_AndLocksOutEveryOtherConnector_GR15a`. The USING override IS observable and
+rides three conformance goldens (`pb714_sort_using_sharing_read_only`,
+`pb714_merge_using_sharing_read_only`, `pb714_sort_giving_open_status`).
 
 ## C# mapping
 

@@ -93,10 +93,15 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         var w = ctx.Writer;
         string f = FileKeyExpr(input);
         string tmp = $"__srt{ctx.Names.NextSort()}";
-        // §12.4.5.3 GR3 names SORT and MERGE beside OPEN, so the implicit open associates with the file the
-        // ELEMENT EXECUTING THE SORT/MERGE names — its own ASSIGN specification and LINAGE operands (PB673).
-        w.Line($"{RuntimeApi.FileOpenInput(f, seqIo.ExecutingElementArgs(input))};   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
-        seqIo.EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
+        // ISO §14.9.40.4 GR12 a) / §14.9.24.4 GR7 a) — the SHARING phrase of the as-if OPEN is CONDITIONAL on the
+        // file control entry: "If the file-control entry for the file has a SHARING clause with the ALL phrase,
+        // the initiation is performed as if an OPEN statement with the INPUT phrase and the SHARING WITH READ
+        // ONLY phrase had been executed; otherwise, the initiation is performed as if an OPEN statement with the
+        // INPUT phrase and WITHOUT a SHARING phrase is executed." The condition is a compile-time fact, so it is
+        // decided HERE and never re-derived in the runtime (kb/Work PB714).
+        EmitImplicitOpen(input, BoundOpenMode.Input,
+            input.Sharing == SharingMode.AllOther ? SharingMode.ReadOnly : null,
+            "implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
         // §14.9.40 GR12 b) / §14.9.24 GR7 b): "Each record is obtained as if a READ statement with the NEXT
         // phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed." An IGNORING LOCK read is a
         // GOVERNED read (§14.9.30.4 GR12 is what suppresses the GR9 conflict), so it renders the ONE governed
@@ -133,8 +138,12 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         string f = FileKeyExpr(output);
         string tmp = $"__srt{ctx.Names.NextSort()}";
         w.Line($"{RuntimeApi.SortRewind(sdLit)};   // each GIVING file receives the FULL result (GR15 / MERGE GR12)");
-        w.Line($"{RuntimeApi.FileOpenOutput(f, seqIo.ExecutingElementArgs(output))};   // implicit OPEN OUTPUT (GR15a)");
-        seqIo.EmitUseHook(output);   // a failed implicit OPEN reaches a USE declarative (GR15a)
+        // ISO §14.9.40.4 GR15 a) / §14.9.24.4 GR12 a) — UNCONDITIONAL, unlike the USING arm: "The initiation is
+        // performed as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed."
+        // §9.1.15 1) is what that buys: "The sharing with no other mode specifies exclusive access to a physical
+        // file" (kb/Work PB714).
+        EmitImplicitOpen(output, BoundOpenMode.Output, SharingMode.NoOther,
+            "implicit OPEN OUTPUT (ISO §14.9.40 GR15a / §14.9.24 GR12a)");
         using (w.Block($"while ({RuntimeApi.SortReturn(sdLit, tmp)})"))
             // "Each record is written as if a WRITE statement without any optional phrases had been executed"
             // (GR15 b) / MERGE GR13 b) — through the ONE governed WRITE entry, like every other emitted WRITE
@@ -145,6 +154,55 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
         seqIo.EmitStoreFileStatus(output);
         seqIo.EmitUseHook(output);
+    }
+
+    /// <summary>⛔ THE ONE IMPLICIT OPEN OF SORT AND MERGE — every <i>"as if an OPEN statement …"</i> initiation
+    /// the standard writes, rendered WITH the SHARING phrase that rule names.
+    /// <para>There are exactly FOUR such rules and all four reach this method: §14.9.40.4 GR12 a) and
+    /// §14.9.24.4 GR7 a) for the USING transfer, §14.9.40.4 GR15 a) and §14.9.24.4 GR12 a) for the GIVING
+    /// transfer. (SORT and MERGE share <see cref="EmitInputFile"/> / <see cref="EmitGivingFile"/>, so the verb
+    /// axis needs no arm of its own; a search of the standard for <c>"as if an OPEN statement"</c> returns those
+    /// four occurrences and nothing else, so a fifth one would have exactly one place to land.) The emitter used
+    /// to render <c>CobolFile.OpenInput</c> / <c>OpenOutput</c> here — entry points with NO sharing parameter at
+    /// all — so the registry arbitrated the transfer under the file's OWN SHARING clause and neither override
+    /// ever took effect (kb/Work PB714).</para>
+    /// <para><paramref name="sharing"/> <c>null</c> is the USING rule's <i>"without a SHARING phrase"</i> arm and
+    /// is NOT the same as handing the phrase-bearing entry an override it would ignore. GR12 a) spells the
+    /// difference out — <i>"The absence of the SHARING phrase means that the sharing mode is completely determined
+    /// by the SHARING clause, if any, in the file control entry"</i> — and the phrase-bearing runtime entry also
+    /// REGISTERS an otherwise-unregistered connector's record-locking posture, which for a phrase-less open would
+    /// contradict §14.9.27.4 GR23 (kb/Work PB316). So the null arm renders the plain mode-specific entry, exactly
+    /// as an unphrased explicit OPEN does, and the non-null arm renders the same shared entry the explicit
+    /// <c>OPEN … SHARING</c> renders.</para>
+    /// <para>The FILE STATUS store belongs to the as-if OPEN as much as the sharing phrase does: §9.1.13.1 sets
+    /// the I-O status <i>"during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE
+    /// statement and prior to the execution of … any applicable exception processing statements"</i> and
+    /// §12.4.5.8.4 GR1 updates the FILE STATUS item whenever the connector's I-O status is, so the USE procedure
+    /// GR12 a) / GR15 a) invoke on the next line observes the status THIS open produced — a '61' among them. The
+    /// value visible after the whole statement is still the implicit CLOSE's, which overwrites it.</para>
+    /// <para>No RETRY and no NO REWIND: none of the four rules names either phrase, and §14.7.9.3 GR4 a) makes
+    /// the absent RETRY phrase "no further attempt" — which is what <see cref="SequentialIoEmitter.RenderRetry"/>
+    /// renders for a null spec, borrowed rather than re-spelled so the two OPEN sites cannot drift.</para></summary>
+    private void EmitImplicitOpen(FileModel file, BoundOpenMode mode, SharingMode? sharing, string ruleComment)
+    {
+        var w = ctx.Writer;
+        string f = FileKeyExpr(file);
+        // §12.4.5.3 GR3 names SORT and MERGE beside OPEN, so the implicit open associates with the file the
+        // ELEMENT EXECUTING THE SORT/MERGE names — its own ASSIGN specification and LINAGE operands (PB673).
+        string elementArgs = seqIo.ExecutingElementArgs(file);
+        if (sharing is { } sm)
+        {
+            var (retryKind, retryAmount) = seqIo.RenderRetry(null);
+            w.Line($"{RuntimeApi.FileOpenShared(f, $"{RuntimeApi.FileOpenModeExpr(mode)}, true, "
+                + $"{SequentialIoEmitter.RuntimeSharing(sm)}, {retryKind}, {retryAmount}, false, {elementArgs}")};"
+                + $"   // {ruleComment}");
+        }
+        else
+        {
+            w.Line($"{RuntimeApi.FileOpen(f, mode, noRewind: false, elementArgs)};   // {ruleComment}");
+        }
+        seqIo.EmitStoreFileStatus(file);   // §9.1.13.1 / §12.4.5.8.4 GR1 — before the declarative, not after it
+        seqIo.EmitUseHook(file);           // a failed implicit OPEN reaches a USE declarative (GR12a / GR15a)
     }
 
     /// <summary>RELEASE (ISO §14.9.32): FROM first MOVEs into the record (GR4 — identical to the explicit MOVE),

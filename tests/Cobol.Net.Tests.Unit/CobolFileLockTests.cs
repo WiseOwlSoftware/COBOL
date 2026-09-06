@@ -483,4 +483,93 @@ public sealed class CobolFileLockTests
         Assert.Equal(FileStatusCode.Success, CobolFile.DeleteFile("DB"));            // GR20 — deleted
         Assert.Equal(FileStatusCode.OptionalFileNotFound, CobolFile.DeleteFile("DB"));   // GR14 — absent = successful '05'
     }
+
+    /// <summary>ISO §14.9.40.4 GR15 a) / §14.9.24.4 GR12 a) — SORT's and MERGE's implicit GIVING open is
+    /// <i>"as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed"</i>, and
+    /// §9.1.15 1) makes that mode <i>"exclusive access to a physical file"</i>. The exclusive half is not
+    /// observable from a single-threaded COBOL program — no statement of the program's runs between the implicit
+    /// OPEN and the implicit CLOSE — so it is pinned HERE, on the very call
+    /// <c>SortEmitter.EmitImplicitOpen</c> renders (kb/Work PB714).
+    /// <para>The CONTROL arm is what the emitter used to render: a plain <c>OpenOutput</c>, which leaves the
+    /// connector's sharing mode at §9.1.15's undetermined implementor default, under which
+    /// <see cref="FileRegistry.Conflicts"/> finds a Table 19 <i>Normal open</i> candidate and lets the second
+    /// connector in.</para></summary>
+    [Fact]
+    public void SortGivingImplicitOpen_TakesNoOther_AndLocksOutEveryOtherConnector_GR15a()
+    {
+        const string host = "pb714-giving.dat";
+        // A GIVING file that declares SHARING WITH ALL OTHER, so both connectors are sharing participants and
+        // Table 19 — not the operating environment's own handle sharing — is the only arbiter of what follows.
+        static void TwoSharers()
+        {
+            CobolFile.Init();
+            CobolFile.Register("GA", "pb714-giving.dat", 5, false, false);
+            CobolFile.Register("GB", "pb714-giving.dat", 5, false, false);
+            CobolFile.RegisterSharing("GA", FileSharing.AllOther, FileLockMode.Manual, false);
+            CobolFile.RegisterSharing("GB", FileSharing.AllOther, FileLockMode.Manual, false);
+        }
+
+        // CONTROL — the pre-PB714 rendering: a plain OPEN OUTPUT, so the GIVING connector is arbitrated under
+        // its OWN ALL OTHER clause and GB's OPEN INPUT finds Table 19's (all other/input × all other/extend I-O
+        // output) cell = Normal open. It SUCCEEDS, which is the missing refusal PB714 is about.
+        TwoSharers();
+        CobolFile.OpenOutput("GA", host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.Success, CobolFile.Status("GA"));
+        CobolFile.OpenInput("GB", host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.Success, CobolFile.Status("GB"));
+        CobolFile.Close("GB");
+        CobolFile.Close("GA");
+
+        // SUBJECT — the rendering GR15 a) names, argument for argument as SortEmitter emits it.
+        TwoSharers();
+        CobolFile.OpenShared("GA", FileOpenMode.Output, hasSharingOverride: true, FileSharing.NoOther,
+            FileRetryKind.None, 0, noRewind: false, host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.Success, CobolFile.Status("GA"));
+        // Table 19's "sharing with no other / extend I-O input output" column is Unsuccessful open in EVERY row,
+        // so no second connector gets in, in any mode — §9.1.13.9 item 1 → '61'.
+        CobolFile.OpenInput("GB", host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.FileSharingConflict, CobolFile.Status("GB"));
+        CobolFile.OpenExtend("GB", host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.FileSharingConflict, CobolFile.Status("GB"));
+        // §9.1.15's lock "is removed by an explicit or implicit CLOSE statement executed for that file
+        // connector" — the implicit GR15 c) CLOSE ends the exclusivity, so the same open then succeeds.
+        CobolFile.Close("GA");
+        CobolFile.OpenInput("GB", host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.Success, CobolFile.Status("GB"));
+        CobolFile.Close("GB");
+    }
+
+    /// <summary>ISO §14.9.40.4 GR12 a) / §14.9.24.4 GR7 a) — the USING arm's override, at the same layer. The
+    /// conformance goldens drive this end to end; this pins the two renderings against each other so the
+    /// CONTROL arm cannot quietly become the subject again (kb/Work PB714).</summary>
+    [Fact]
+    public void SortUsingImplicitOpen_ReadOnlyOverride_RefusedAgainstNonInputConnector_GR12a()
+    {
+        CobolFile.Init();
+        const string host = "pb714-using.dat";
+        CobolFile.Register("UA", host, 5, false, false);
+        CobolFile.Register("UB", host, 5, false, false);
+        // Both declare SHARING WITH ALL OTHER — the one clause GR12 a) singles out.
+        CobolFile.RegisterSharing("UA", FileSharing.AllOther, FileLockMode.Manual, false);
+        CobolFile.RegisterSharing("UB", FileSharing.AllOther, FileLockMode.Manual, false);
+        CobolFile.OpenOutput("UB", host, assignDynamic: false, page: null);
+        CobolFile.Write("UB", "AAAAA", -1, page: null);
+        CobolFile.Close("UB");
+        CobolFile.OpenExtend("UB", host, assignDynamic: false, page: null);   // "other than input" (§9.1.15 2)
+        Assert.Equal(FileStatusCode.Success, CobolFile.Status("UB"));
+
+        // CONTROL — the pre-PB714 rendering: the file's OWN ALL OTHER clause governs, and Table 19's
+        // (all other/input × all other/extend I-O output) cell is Normal open, so the sort read the file.
+        CobolFile.OpenInput("UA", host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.Success, CobolFile.Status("UA"));
+        CobolFile.Close("UA");
+
+        // SUBJECT — GR12 a)'s override. Row "SHARING WITH READ ONLY / INPUT" × the same column is Unsuccessful
+        // open; §9.1.15 2) says it in words: read only "will be unsuccessful if the physical file is associated
+        // with another file connector whose open mode is other than input".
+        CobolFile.OpenShared("UA", FileOpenMode.Input, hasSharingOverride: true, FileSharing.ReadOnly,
+            FileRetryKind.None, 0, noRewind: false, host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.FileSharingConflict, CobolFile.Status("UA"));
+        CobolFile.Close("UB");
+    }
 }

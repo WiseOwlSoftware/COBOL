@@ -866,16 +866,14 @@ internal static class RuntimeApi
     public static string FileStartIndexed(string name, int keyIndex, string opLiteral, string operandImage, string len) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.StartIndexed)}({name}, {keyIndex}, {opLiteral}, {operandImage}, {len})";
 
-    /// <summary>Implicit OPEN INPUT (SORT GR12a / MERGE GR7a) — <c>CobolFile.OpenInput</c>.
-    /// <paramref name="elementArgs"/> is the <c>assign, assignDynamic, page</c> triple of the runtime element
-    /// executing the SORT/MERGE (§12.4.5.3 GR3 names it explicitly for SORT and MERGE too — see
-    /// <see cref="ExecutingElementArgs"/>).</summary>
-    public static string FileOpenInput(string name, string elementArgs) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenInput)}({name}, {elementArgs})";
-
-    /// <summary>Implicit OPEN OUTPUT (SORT GR15a) — <c>CobolFile.OpenOutput</c>.</summary>
-    public static string FileOpenOutput(string name, string elementArgs) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenOutput)}({name}, {elementArgs})";
+    // ⛔ NO MODE-SPECIFIC "IMPLICIT OPEN" RENDERER LIVES HERE. `FileOpenInput` / `FileOpenOutput` used to, for
+    // the SORT/MERGE USING and GIVING transfers alone, and their whole defect was the parameter they did NOT
+    // take: §14.9.40.4 GR12 a)/GR15 a) and §14.9.24.4 GR7 a)/GR12 a) each render the initiation "as if an OPEN
+    // statement with the … SHARING WITH READ ONLY / SHARING WITH NO OTHER phrase had been executed", and an
+    // entry point with no sharing parameter silently dropped every one of them (kb/Work PB714). The implicit
+    // opens now render through the SAME two entries an explicit OPEN does — <see cref="FileOpen"/> for the
+    // "without a SHARING phrase" arm and <see cref="FileOpenShared"/> for a phrase-bearing one — so the DRIFT IS
+    // COMPILE-ENFORCED: there is no phrase-less implicit-open renderer left for a new call site to reach.
 
     /// <summary>CLOSE a connector — <c>CobolFile.Close</c>.</summary>
     public static string FileClose(string name) =>
