@@ -52,6 +52,9 @@ WORK = REPO / "kb" / "Work"
 
 KINDS = {"defect", "analysis", "adjudication", "decision"}
 STATUSES = {"open", "half", "landed", "owner", "blocked", "retired"}
+#: The statuses that mean an item is DONE. A view of open work shall exclude every one of them — see
+#: :func:`check_base_agrees`, which is what stops the next one added here from being half-applied.
+TERMINAL_STATUSES = ("landed", "retired")
 HARM = {"wrong-answer", "crashes", "silent", "rejects-legal-source", "under-rejects", "process"}
 
 PB_HEAD = re.compile(
@@ -247,9 +250,29 @@ def check_base_agrees() -> list[str]:
     line = next((l for l in m.group("body").splitlines() if " or " in l and "wrong_answer" in l), "")
     named = set(re.findall(r"[a-z_]+", line)) & set(HARM_FLAGS)
     missing = [f for f in HARM_FLAGS if f not in named]
-    return [] if not missing else [
+    out = [] if not missing else [
         f"kb/Work.base 'Fix next' does not select on {missing} — an item whose only harm flag is one of those "
         f"is invisible in the view while work.py next ranks it. Update the filter to match HARM_FLAGS."]
+
+    # ⛔ THE SAME DUPLICATION ONE PROPERTY OVER. Every view of OPEN work spells the terminal statuses out one by
+    # one, and `retired` was added to STATUSES after those views were written — so the first retired note went on
+    # showing in "Open but no harm flag set" as though it were open, while `work.py next` (status in open/half)
+    # correctly ignored it. Two readers of one register, disagreeing about what DONE means, is exactly the shape
+    # `check_base_agrees` exists for. The invariant is written so the NEXT terminal status is automatic rather
+    # than remembered: a view that filters out ANY terminal status filters out ALL of them. A view that does not
+    # filter on status at all (`Everything`, `Analyses`) is not a view of open work and is left alone.
+    for v in re.finditer(r"^    name:\s*(?P<name>.+?)\s*\n\s*filters:\s*\n\s*and:\s*\n(?P<body>(?:\s{6,}-.*\n)+)",
+                         text, re.M):
+        body = v.group("body")
+        if not any(f'status != "{s}"' in body for s in TERMINAL_STATUSES):
+            continue
+        absent = [s for s in TERMINAL_STATUSES if f'status != "{s}"' not in body]
+        if absent:
+            out.append(
+                f"kb/Work.base view {v.group('name')!r} hides some terminal statuses but not {absent} — an item "
+                f"in one of those states still shows there as open work, while work.py counts it done. Add "
+                f"`- status != \"<status>\"` for each of {list(TERMINAL_STATUSES)}.")
+    return out
 
 
 def check() -> int:

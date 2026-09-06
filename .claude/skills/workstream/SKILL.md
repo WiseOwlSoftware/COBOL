@@ -95,10 +95,22 @@ the work, not to wait. Stage the earliest-stage, largest jobs behind the near-do
   worktrees itself (`git worktree remove --force`, `git branch -D`).
 - Verdict batches are RE-APPLIED on the merged tree (`record_verdicts.py`), never merged as inventory JSON hunks.
 - ⛔ A checkpoint file never enters a landing: every landing `git add` excludes it —
-  `git add -A -- . ":!.claude/settings.local.json" ":!STATUS.md"` — and a lander that rebases onto a main that
+  `git add -A -- . ":!.claude/settings.local.json"` then `git reset -q -- STATUS.md`; ⛔ **not** `":!STATUS.md"`
+  inside the pathspec, because STATUS.md is gitignored and `git add` EXITS 1 AND STAGES NOTHING when a pathspec
+  item matches only an ignored path (measured 2026-09-06, git 2.55.0) — the form written here until now skipped
+  the whole checkpoint for anyone who did not read its exit code. A lander that rebases onto a main that
   already carries a stray `STATUS.md` removes it (`git rm --cached STATUS.md`) in its commit. (2026-09-02: lander 3's
   checkpoint reached main inside a landing, and the next lander's rebase then had to choose between two agents'
   checkpoints for one path.)
+- ⛔ **`git stash` IS FORBIDDEN IN THIS REPO — WIP GOES INTO A COMMIT.** The stash stack lives in the COMMON git
+  directory (`git rev-parse --git-common-dir` → `E:\CobolSharp\.git`), so it is SHARED by every linked worktree:
+  `git stash list` run from an isolated implementer worktree shows the other agents' entries and `stash pop` takes
+  `stash@{0}` whoever pushed it. PB713's implementer ran `… && git stash pop -q` after a `git stash push` that had
+  created nothing (its file was untracked), so the pop consumed the REGISTRAR's stash; it was restored with
+  `git stash store`, and DEVLOG Entry 155 records the same shape ending worse ("Never `git stash` while background
+  agents are writing files … Lost all 7 completed agents' work"). Commit WIP on your own worktree branch — that is
+  what the checkpoint protocol is for — and to compare against a clean tree add a detached worktree
+  (`git worktree add --detach <path> <sha>`), never stash/build/probe/pop.
 - Read-only fleets probe a **pinned worktree with its own built compiler** (`git worktree add --detach <path> <sha>`,
   build there once) so no landing swaps a binary under them.
 - One comprehensive battery per landing batch, run by the orchestrator when no fleet is live — ⭐ **in a WORKTREE cut
