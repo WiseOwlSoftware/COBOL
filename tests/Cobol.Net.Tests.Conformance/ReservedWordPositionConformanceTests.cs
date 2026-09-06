@@ -13,7 +13,10 @@ namespace CobolNet.Tests.Conformance;
 /// the SELECT file-name (§12.4.5.1), a program-name site (§11.10.2). KEYWORD occurrences that the permissive
 /// grammar binds into optional entry-name slots — the report-group COLUMN clause (§13.18.14), the RW104A
 /// false-reject the former blanket token-type exclusion parked — stay unflagged at every edition. Severity
-/// routes through <c>EditionContext.Removed</c>: error strict / warning permissive (the 0901 band contract).
+/// routes through the ONE <c>EditionSeverityPolicy</c>: a word an edition ADDED to §8.9 is <c>Removed</c> (error
+/// strict, warning permissive — the 0901 band contract), while a word reserved at this edition AND at every older
+/// one is <c>NotYetIntroduced</c>, an error on BOTH axes, and the parser's reservation gate therefore holds under
+/// <c>--permissive</c> too (kb/Work PB792).
 /// </summary>
 public sealed class ReservedWordPositionConformanceTests
 {
@@ -305,8 +308,11 @@ public sealed class ReservedWordPositionConformanceTests
         EditionHarness.AssertNoDiagnostic(diags, "COBOLNET0901");
     }
 
-    /// <summary>The same clause under <c>--permissive</c>: the gate is strict-only, so the pre-reservation
-    /// reading was never broken there — the decline stays a warning and the program compiles.</summary>
+    /// <summary>The same clause under <c>--permissive</c>: FORMAT is a word COBOL-2002 ADDED to §8.9 (r85 false),
+    /// so its verdict is <c>Removed</c>, the migration mode HAS a pre-reservation reading to restore and the gate
+    /// stands down — the decline stays a warning and the program compiles. (The gate is not blanket-off under
+    /// <c>--permissive</c>: a word reserved at this edition and at every older one keeps it — kb/Work PB792.)
+    /// </summary>
     [Fact]
     public void ValidateStatusOnPhrase_2002Permissive_WarnsAndCompiles()
     {

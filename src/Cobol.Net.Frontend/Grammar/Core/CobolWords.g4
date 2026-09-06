@@ -19,11 +19,11 @@ cobolWord
     | BINARY_ENCODING
     | BIT
     | BLINK
-    | {userWordHere("B_AND")}? B_AND
-    | {userWordHere("B_NOT")}? B_NOT
-    | {userWordHere("B_OR")}? B_OR
-    | {userWordHere("B_XOR")}? B_XOR
-    | {userWordHere("CLOCK_UNITS")}? CLOCK_UNITS
+    | {userWordHere("B-AND")}? B_AND
+    | {userWordHere("B-NOT")}? B_NOT
+    | {userWordHere("B-OR")}? B_OR
+    | {userWordHere("B-XOR")}? B_XOR
+    | {userWordHere("CLOCK-UNITS")}? CLOCK_UNITS
     | {userWordHere("COL")}? COL
     | {userWordHere("COLS")}? COLS
     | {userWordHere("COLUMN")}? COLUMN
@@ -39,8 +39,8 @@ cobolWord
     | {userWordHere("DESTINATION")}? DESTINATION
     | {userWordHere("EC")}? EC
     | {userWordHere("EDITING")}? EDITING
-    | {userWordHere("END_RECEIVE")}? END_RECEIVE
-    | {userWordHere("END_SEND")}? END_SEND
+    | {userWordHere("END-RECEIVE")}? END_RECEIVE
+    | {userWordHere("END-SEND")}? END_SEND
     | {userWordHere("ENTER")}? ENTER
     | ENTRY_CONVENTION
     | {userWordHere("EO")}? EO
@@ -48,7 +48,7 @@ cobolWord
     | EOS
     | ERASE
     | {userWordHere("EVERY")}? EVERY
-    | {userWordHere("EXCLUSIVE_OR")}? EXCLUSIVE_OR
+    | {userWordHere("EXCLUSIVE-OR")}? EXCLUSIVE_OR
     | {userWordHere("FACTORY")}? FACTORY
     | FLOAT_BINARY
     | FLOAT_DECIMAL
@@ -56,9 +56,9 @@ cobolWord
     | FOREVER
     | {userWordHere("FORMAT")}? FORMAT
     | FULL_
-    | {userWordHere("FUNCTION_POINTER")}? FUNCTION_POINTER
+    | {userWordHere("FUNCTION-POINTER")}? FUNCTION_POINTER
     | {userWordHere("GET")}? GET
-    | {userWordHere("GROUP_USAGE")}? GROUP_USAGE
+    | {userWordHere("GROUP-USAGE")}? GROUP_USAGE
     | HIGHLIGHT
     | HIGH_ORDER_LEFT
     | HIGH_ORDER_RIGHT
@@ -82,7 +82,7 @@ cobolWord
     | {userWordHere("PRESENT")}? PRESENT
     | {userWordHere("PROCEDURES")}? PROCEDURES
     | PROCESSING
-    | {userWordHere("PROGRAM_POINTER")}? PROGRAM_POINTER
+    | {userWordHere("PROGRAM-POINTER")}? PROGRAM_POINTER
     | {userWordHere("PROPERTY")}? PROPERTY
     | {userWordHere("PROTOTYPE")}? PROTOTYPE
     | {userWordHere("RAISE")}? RAISE
@@ -108,8 +108,8 @@ cobolWord
     | {userWordHere("UNLOCK")}? UNLOCK
     | {userWordHere("VALID")}? VALID
     | {userWordHere("VALIDATE")}? VALIDATE
-    | {userWordHere("VALIDATE_STATUS")}? VALIDATE_STATUS
-    | {userWordHere("VAL_STATUS")}? VAL_STATUS
+    | {userWordHere("VALIDATE-STATUS")}? VALIDATE_STATUS
+    | {userWordHere("VAL-STATUS")}? VAL_STATUS
     | {userWordHere("XOR")}? XOR
     ;
 
@@ -120,11 +120,11 @@ cobolWord
 // every use of this rule is a definition slot, so a new slot needs no new C# (kb/Work PB693).
 reservedGatedWord
     : {!userWordHere("AS")}? AS
-    | {!userWordHere("B_AND")}? B_AND
-    | {!userWordHere("B_NOT")}? B_NOT
-    | {!userWordHere("B_OR")}? B_OR
-    | {!userWordHere("B_XOR")}? B_XOR
-    | {!userWordHere("CLOCK_UNITS")}? CLOCK_UNITS
+    | {!userWordHere("B-AND")}? B_AND
+    | {!userWordHere("B-NOT")}? B_NOT
+    | {!userWordHere("B-OR")}? B_OR
+    | {!userWordHere("B-XOR")}? B_XOR
+    | {!userWordHere("CLOCK-UNITS")}? CLOCK_UNITS
     | {!userWordHere("COL")}? COL
     | {!userWordHere("COLS")}? COLS
     | {!userWordHere("COLUMN")}? COLUMN
@@ -139,17 +139,17 @@ reservedGatedWord
     | {!userWordHere("DESTINATION")}? DESTINATION
     | {!userWordHere("EC")}? EC
     | {!userWordHere("EDITING")}? EDITING
-    | {!userWordHere("END_RECEIVE")}? END_RECEIVE
-    | {!userWordHere("END_SEND")}? END_SEND
+    | {!userWordHere("END-RECEIVE")}? END_RECEIVE
+    | {!userWordHere("END-SEND")}? END_SEND
     | {!userWordHere("ENTER")}? ENTER
     | {!userWordHere("EO")}? EO
     | {!userWordHere("EVERY")}? EVERY
-    | {!userWordHere("EXCLUSIVE_OR")}? EXCLUSIVE_OR
+    | {!userWordHere("EXCLUSIVE-OR")}? EXCLUSIVE_OR
     | {!userWordHere("FACTORY")}? FACTORY
     | {!userWordHere("FORMAT")}? FORMAT
-    | {!userWordHere("FUNCTION_POINTER")}? FUNCTION_POINTER
+    | {!userWordHere("FUNCTION-POINTER")}? FUNCTION_POINTER
     | {!userWordHere("GET")}? GET
-    | {!userWordHere("GROUP_USAGE")}? GROUP_USAGE
+    | {!userWordHere("GROUP-USAGE")}? GROUP_USAGE
     | {!userWordHere("INTERFACE")}? INTERFACE
     | {!userWordHere("LOCATION")}? LOCATION
     | {!userWordHere("MESSAGE")}? MESSAGE
@@ -158,7 +158,7 @@ reservedGatedWord
     | {!userWordHere("PADDING")}? PADDING
     | {!userWordHere("PRESENT")}? PRESENT
     | {!userWordHere("PROCEDURES")}? PROCEDURES
-    | {!userWordHere("PROGRAM_POINTER")}? PROGRAM_POINTER
+    | {!userWordHere("PROGRAM-POINTER")}? PROGRAM_POINTER
     | {!userWordHere("PROPERTY")}? PROPERTY
     | {!userWordHere("PROTOTYPE")}? PROTOTYPE
     | {!userWordHere("RAISE")}? RAISE
@@ -175,7 +175,7 @@ reservedGatedWord
     | {!userWordHere("UNLOCK")}? UNLOCK
     | {!userWordHere("VALID")}? VALID
     | {!userWordHere("VALIDATE")}? VALIDATE
-    | {!userWordHere("VALIDATE_STATUS")}? VALIDATE_STATUS
-    | {!userWordHere("VAL_STATUS")}? VAL_STATUS
+    | {!userWordHere("VALIDATE-STATUS")}? VALIDATE_STATUS
+    | {!userWordHere("VAL-STATUS")}? VAL_STATUS
     | {!userWordHere("XOR")}? XOR
     ;

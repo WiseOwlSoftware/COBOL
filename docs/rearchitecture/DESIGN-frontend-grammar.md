@@ -369,11 +369,38 @@ twice, with opposite predicates:
   ("'W' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 "no viable alternative". The funnel arm
   hangs on `VisitReservedGatedWord`, the RULE — so a NEW definition slot needs no C# at all.
 
-**`userWordHere` is `reservedHere` plus the migration mode.** `--permissive` accepts what the edition removed,
-and a word §8.9 took away is exactly that (`ConstructAvailability.Removed`), so under `--permissive` the gate does
-not fire, the pre-reservation reading is restored and the 0901 comes back as a WARNING on a program that runs. A
-gate that ignored the permissive axis would turn the whole class into parse errors no severity policy can
-downgrade. `reservedHere` keeps its own meaning ("is this token the reserved keyword here") for `facilityWord`
+⛔ **`W` in the PREDICATE is the COBOL WORD, not the ANTLR token name (kb/Work PB792).** `userWordHere` resolves
+its argument through `>>COBOL-WORDS` and then looks it up in `reserved-words.json`, which is keyed by SPELLING, so
+the generator emits `{userWordHere("END-RECEIVE")}? END_RECEIVE` — hyphens in the string, underscores on the
+alternative. It used to emit the token name on both sides, and `Find("END_RECEIVE")` is null: **thirteen of the
+fifty-nine gated words (every hyphenated one — B-AND/B-NOT/B-OR/B-XOR, CLOCK-UNITS, END-RECEIVE, END-SEND,
+EXCLUSIVE-OR, FUNCTION-POINTER, GROUP-USAGE, PROGRAM-POINTER, VALIDATE-STATUS, VAL-STATUS) carried a gate that
+silently never fired**, at any edition and on both severity axes. `CobolWordsDriftTests.ParseGatedAlternatives`
+now asserts `ToWord(token) == predicateArgument`, so the two spellings cannot drift apart again.
+
+**`userWordHere` is the §8.9 admission rule, and it lives in `ReservedWordSet.AdmitsAsUserWord`** — the assembly
+that owns §8.9 — so the grammar gate and the funnel that reports COBOLNET0901 cannot disagree about which
+occurrences are names. It is `reservedHere` plus the migration mode: `--permissive` accepts what the edition
+REMOVED, and a word §8.9 took away is exactly that (`ConstructAvailability.Removed`), so there the gate stands
+down, the pre-reservation reading is restored, and the 0901 comes back as a WARNING on a program that runs. A gate
+that ignored the permissive axis would turn the whole class into parse errors no severity policy can downgrade.
+
+⛔ **BUT THE EXEMPTION IS NOT A BLANKET `Edition.Permissive ||` (kb/Work PB792).** A spelling §8.9 reserves at the
+compile edition AND at every older edition this compiler targets — COLUMN and DESTINATION are reserved at all four
+— was never a user-defined word anywhere, so migration mode has no pre-removal reading to restore; its verdict is
+`NotYetIntroduced`, an error on BOTH axes. Written as a blanket bypass the gate handed all fifty-nine gated words
+back to `cobolWord` under `--permissive`, and every greedy operand list absorbed them: at `--std 2023 --permissive`
+NIST **RW104A** card 024500 — `03 VALUE "DETAIL LINE " COLUMN 20 PIC X(12).`, legal because §13.15.3 SR2 says
+*"All other clauses may be written in any order"* — parsed COLUMN and 20 as VALUE operands, lost its §13.18.14
+COLUMN clause, and printed the field at column 1 with no diagnostic at all. The axis therefore routes through the
+ONE `EditionSeverityPolicy`: the slot admits the word exactly where a §8.9 violation here would be DOWNGRADED to a
+warning, never where the policy says error. `ReservedWordMigrationGateDriftTests` pins both halves, derived from
+`reserved-words.json` over every word × edition × axis, so the next always-reserved word is covered by
+construction. ⚠ The report-section VALUE clause must NOT be narrowed to dodge this: §13.18.63.2 format 4 prints
+`{ VALUE IS | VALUES ARE } { literal-1 } …` — one or MORE literals (§13.18.63.3 SR35 confines the multi-operand
+form to a repeating entry) — so the operand list is greedy by design and the reservation gate is what stops it.
+
+`reservedHere` keeps its own meaning ("is this token the reserved keyword here") for `facilityWord`
 and the SPECIAL-NAMES CRT/CURSOR clause guards, which must keep recognizing their clauses under `--permissive`.
 
 **The gate has exactly ONE exclusion, and it is derived too: the §15 intrinsic function names that collide with a

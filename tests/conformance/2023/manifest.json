@@ -537,7 +537,8 @@
   "pb728_condition_name_group_subject_class",
   "pb740_clauseless_share",
   "pb761_national_through_range",
-  "pb725_push_pop_display"
+  "pb725_push_pop_display",
+  "pb792_report_value_then_column"
  ],
  "pending": [
   "pb485_value_only_format1"

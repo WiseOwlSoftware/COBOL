@@ -110,6 +110,33 @@ public sealed class ReservedWordSet
         return ConstructAvailability.NotYetIntroduced;
     }
 
+    /// <summary>⛔ THE §8.9 USER-DEFINED-WORD SLOT ADMISSION RULE (kb/Work PB693, PB792) — true when a compile at
+    /// <paramref name="edition"/> may read <paramref name="upperWord"/> as a user-defined word. The parser's
+    /// <c>cobolWord</c> reservation gate (<c>CobolParserCoreBase.userWordHere</c>) IS this predicate, so the
+    /// grammar gate and the §8.9 funnel cannot disagree about which occurrences are names (§8.3.2.1 rule 1:
+    /// "Reserved words shall not be used as user-defined words or system-names").
+    /// <para>⛔ THE MIGRATION MODE IS NOT A BLANKET EXEMPTION, and writing it as one (<c>Permissive || …</c> in the
+    /// parser) was kb/Work PB792. <c>--permissive</c> "accepts constructs the targeted edition REMOVED", so it
+    /// restores the pre-removal reading of a spelling §8.9 TOOK AWAY — <see cref="ConstructAvailability.Removed"/>,
+    /// where an existing program legitimately contains the word as a name. A spelling reserved at this edition AND
+    /// at every older edition this compiler targets (COLUMN and DESTINATION are reserved at all four) was never a
+    /// user word anywhere, so migration mode has nothing to restore: the verdict is
+    /// <see cref="ConstructAvailability.NotYetIntroduced"/>, an error on BOTH axes, and admitting the word let every
+    /// greedy operand list absorb it — <c>03 VALUE "DETAIL LINE " COLUMN 20 PIC X(12).</c> (NIST RW104A card
+    /// 024500, legal by §13.15.3 SR2 "All other clauses may be written in any order") lost its §13.18.14 COLUMN
+    /// clause and printed in the wrong place, silently.</para>
+    /// <para>The axis therefore routes through the ONE <see cref="EditionSeverityPolicy"/>: the slot admits the
+    /// word exactly where a §8.9 violation here would be DOWNGRADED to a warning, and never where the policy says
+    /// error. Allocation-free (<see cref="EditionInfo.Before"/> is a span) — it runs inside ANTLR's speculative
+    /// prediction.</para></summary>
+    public bool AdmitsAsUserWord(string upperWord, EditionInfo edition)
+        // Confidence-blind, exactly as the gate has always been: a reserved row that may not REJECT (the
+        // conservative policy) still yields Available below, so the gate and the funnel agree by construction.
+        => Find(upperWord) is not { } e
+        || !e.IsReservedAt(edition.Year)
+        || EditionSeverityPolicy.For(UserWordVerdictAt(upperWord, edition.Year), edition)
+           is not EditionSeverity.Error;
+
     /// <summary>⛔ THE ONE §8.9 user-word-violation SENTENCE (kb/Work PB693). TWO stages report it and they must
     /// say the same thing: the bound-tree funnel (<c>VersionConformancePass.FlagReservedUserWord</c>), and the
     /// PARSER's error listener for the occurrences the reservation gate makes unparseable — a REFERENCE to the

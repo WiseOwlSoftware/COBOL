@@ -28,14 +28,15 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class InvokeContentOperandChannelTests
 {
-    private static (CobolParserCore.CompilationUnitContext? Tree, DiagnosticBag Diags) Parse(string src)
+    private static (CobolParserCore.CompilationUnitContext? Tree, DiagnosticBag Diags) Parse(
+        string src, int edition = 2023)
     {
         string path = Path.Combine(Path.GetTempPath(), "cn_ivc_" + Guid.NewGuid().ToString("N")[..8] + ".cob");
         File.WriteAllText(path, src);
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { DialectLevel = 2023 }.Parse(path, diags);
+            var tree = new CnFrontend { DialectLevel = edition }.Parse(path, diags);
             return (tree, diags);
         }
         finally { try { File.Delete(path); } catch { /* best-effort */ } }
@@ -65,9 +66,9 @@ public sealed class InvokeContentOperandChannelTests
         }
     }
 
-    private static List<CobolParserCore.InvokeArgumentContext> ArgsOf(string invoke)
+    private static List<CobolParserCore.InvokeArgumentContext> ArgsOf(string invoke, int edition = 2023)
     {
-        var r = Parse(Prog(invoke));
+        var r = Parse(Prog(invoke), edition);
         Assert.NotNull(r.Tree);
         Assert.False(r.Diags.HasErrors, string.Join("\n", r.Diags.Diagnostics.Select(d => d.ToString())));
         return Descendants<CobolParserCore.InvokeArgumentContext>(r.Tree!).ToList();
@@ -123,11 +124,17 @@ public sealed class InvokeContentOperandChannelTests
     }
 
     /// <summary>BY VALUE does NOT gain the boolean arm — the §14.9.23.2 format's BY VALUE branch is
-    /// <c>arithmetic-expression-1 | identifier-5 | literal-2</c>, and the two phrases genuinely differ. The
-    /// SAME operand text is asserted against BOTH phrases so the contrast is the assertion: under BY CONTENT it
-    /// is one boolean-expression argument, under BY VALUE the boolean operator is not consumed at all and
-    /// spills into further argument positions (which is what later surfaces as COBOLNET0901, <c>B-AND</c> in a
-    /// name slot — the pre-existing shape, deliberately unchanged).</summary>
+    /// <c>arithmetic-expression-1 | identifier-5 | literal-2</c>, and the two phrases genuinely differ. The SAME
+    /// operand text is asserted against BOTH phrases so the contrast IS the assertion: under BY CONTENT the
+    /// operator is consumed and the whole thing is ONE boolean-expression argument; under BY VALUE it is not
+    /// consumed at all, and at COBOL-2023 <c>B-AND</c> then stands where only an identifier or literal may stand,
+    /// which §8.9 reserves — so the statement is refused by name with COBOLNET0901 rather than parsed.
+    /// <para>⚠ THAT LAST HALF USED TO READ "spills into further argument positions", and it did, because the
+    /// §8.9 reservation gate on <c>cobolWord</c> was silently INOPERATIVE for every hyphenated word: the
+    /// generator emitted <c>userWordHere("B_AND")</c>, the ANTLR token name, into a predicate that looks its
+    /// argument up in <c>reserved-words.json</c> by SPELLING (kb/Work PB792). With the gate working the operand
+    /// list stops at the reserved word and <c>CobolErrorListener</c>'s §8.9 re-code names it — the same sentence
+    /// the funnel used to produce, now at the offending token.</para></summary>
     [Fact]
     public void ByValue_HasNoBooleanAlternative_UnlikeByContent()
     {
@@ -135,9 +142,24 @@ public sealed class InvokeContentOperandChannelTests
         Assert.Single(byContent);
         Assert.NotNull(byContent[0].booleanExpression());
 
-        var byValue = ArgsOf("INVOKE O \"M\" USING BY VALUE B1 B-AND B2.");
-        Assert.Null(byValue[0].booleanExpression());
-        Assert.True(byValue.Count > 1,
+        var byValue = Parse(Prog("INVOKE O \"M\" USING BY VALUE B1 B-AND B2."));
+        Assert.True(byValue.Diags.HasErrors,
             "BY VALUE must not consume the boolean operator — the operand group has no boolean alternative");
+        Assert.Contains(byValue.Diags.Diagnostics,
+            d => d.IsError && d.Code == "COBOLNET0901" && d.Message.Contains("B-AND"));
+    }
+
+    /// <summary>⛔ THE EDITION SWEEP ON THE SAME LINE (feedback_edition_gate_sweep). <c>B-AND</c> is §8.9-reserved
+    /// only from COBOL-2002 (<c>reserved-words.json</c> r85 false), so at <c>--std 85</c> it IS an ordinary
+    /// user-defined word: the BY VALUE operand list may legitimately take it as one more <c>identifier-5</c>, the
+    /// statement parses, and NO §8.9 diagnostic is due. The reservation gate has to make exactly this distinction,
+    /// and before kb/Work PB792 it made none — the 2023 arm behaved like this one.</summary>
+    [Fact]
+    public void ByValue_BooleanOperatorSpelling_IsAnOrdinaryUserWordAtCobol85()
+    {
+        var args = ArgsOf("INVOKE O \"M\" USING BY VALUE B1 B-AND B2.", edition: 85);
+        Assert.Null(args[0].booleanExpression());
+        Assert.True(args.Count > 1,
+            "at COBOL-85 B-AND is not reserved, so it stands as one more BY VALUE operand");
     }
 }

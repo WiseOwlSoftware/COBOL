@@ -28,7 +28,7 @@ public sealed class CobolWordsDriftTests
     private sealed record WordRow(string Token, bool NameSlot, bool SubscriptTrigger);
 
     // token -> COBOL word spelling: ANTLR '_' becomes '-'; a trailing '_' is a generator-clash guard (FULL_ = "FULL").
-    private static string ToWord(string token) => token.Replace('_', '-').TrimEnd('-');
+    internal static string ToWord(string token) => token.Replace('_', '-').TrimEnd('-');
 
     private static List<WordRow> LoadJsonWords()
     {
@@ -51,7 +51,7 @@ public sealed class CobolWordsDriftTests
     /// <para>Recomputed from <c>reserved-words.json</c> rather than read off a flag ON PURPOSE: the gate used to
     /// be a hand-set <c>reservationGated</c> row property and fifty-one §8.9-straddling words never got one, so
     /// this test would have been asserting the mistake against itself.</para></summary>
-    private static HashSet<string> DerivedGateSet()
+    internal static HashSet<string> DerivedGateSet()
     {
         var reserved = LoadReservedIntervals();
         var functionNames = FunctionNameTokens();
@@ -243,7 +243,11 @@ public sealed class CobolWordsDriftTests
     {
         string path = TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolWords.g4");
         Assert.True(File.Exists(path), $"generated grammar missing: {path} — run scripts/gen-cobol-words.ps1");
-        var pattern = new Regex(@"^[:|]\s*\{(!?)userWordHere\(""([A-Z][A-Z0-9_]*)""\)\}\?\s*([A-Z][A-Z0-9_]*)\s*$");
+        // ⛔ The predicate argument is the COBOL WORD (hyphens); the alternative is the ANTLR TOKEN (underscores).
+        // userWordHere() looks its argument up in reserved-words.json, which is keyed by SPELLING, so emitting the
+        // token name there left every hyphenated gated word — END-RECEIVE, END-SEND, B-AND, GROUP-USAGE and ten
+        // more — with a gate that silently never fired at any edition or either severity axis (kb/Work PB792).
+        var pattern = new Regex(@"^[:|]\s*\{(!?)userWordHere\(""([A-Z][A-Z0-9-]*)""\)\}\?\s*([A-Z][A-Z0-9_]*)\s*$");
         var alts = new HashSet<string>(StringComparer.Ordinal);
         bool inRule = false;
         foreach (var raw in File.ReadAllLines(path))
@@ -254,7 +258,8 @@ public sealed class CobolWordsDriftTests
             if (line == ";") break;
             if (pattern.Match(line) is not { Success: true } m) continue;
             if ((m.Groups[1].Value == "!") != negatedGate) continue;
-            Assert.Equal(m.Groups[2].Value, m.Groups[3].Value);   // the gate names the token it guards
+            // The gate names the WORD its token spells — the reserved-words.json lookup key, not the token name.
+            Assert.Equal(ToWord(m.Groups[3].Value), m.Groups[2].Value);
             alts.Add(m.Groups[3].Value);
         }
         Assert.True(inRule, $"rule '{ruleName}' not found in {path} — run scripts/gen-cobol-words.ps1");
@@ -262,7 +267,7 @@ public sealed class CobolWordsDriftTests
     }
 
     /// <summary>word → its four §8.9 reservation flags, in edition order {85, 2002, 2014, 2023}.</summary>
-    private static Dictionary<string, bool[]> LoadReservedIntervals()
+    internal static Dictionary<string, bool[]> LoadReservedIntervals()
     {
         string path = TestRepo.VersionMatrix("reserved-words.json");
         Assert.True(File.Exists(path), $"reserved-words.json missing: {path}");
@@ -275,7 +280,7 @@ public sealed class CobolWordsDriftTests
     }
 
     /// <summary>word → its reserved-words.json confidence band ("high" / "medium").</summary>
-    private static Dictionary<string, string> LoadConfidence()
+    internal static Dictionary<string, string> LoadConfidence()
     {
         string path = TestRepo.VersionMatrix("reserved-words.json");
         Assert.True(File.Exists(path), $"reserved-words.json missing: {path}");

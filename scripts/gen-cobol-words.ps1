@@ -220,7 +220,12 @@ for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
     $tok = $nameSlotTokens[$i]
     # kb/Work PB137/PB693: a reservation-gated word leaves the user-word space exactly where 8.9 reserves it,
     # so no operand list absorbs the bare keyword there while user-word use at the other editions survives.
-    if ($gated.Contains($tok)) { [void]$sb.AppendLine("    $sep {userWordHere(`"$tok`")}? $tok") }
+    # ⛔ THE PREDICATE TAKES THE COBOL WORD, NEVER THE ANTLR TOKEN NAME (kb/Work PB792). userWordHere() looks the
+    # argument up in reserved-words.json, which is keyed by the SPELLING — so emitting the token name left every
+    # hyphenated gated word (END-RECEIVE, END-SEND, B-AND, GROUP-USAGE, …) with a gate that silently never fired:
+    # Find("END_RECEIVE") is null, the word reads as unreserved at every edition, and the operand list absorbs it
+    # on BOTH severity axes. To-Word is the same mapping the rwMap lookup above uses.
+    if ($gated.Contains($tok)) { [void]$sb.AppendLine("    $sep {userWordHere(`"$(To-Word $tok)`")}? $tok") }
     else { [void]$sb.AppendLine("    $sep $tok") }
 }
 [void]$sb.AppendLine('    ;')
@@ -247,7 +252,7 @@ if ($gatedTokens.Count -lt 1) {
 [void]$sb.AppendLine('reservedGatedWord')
 for ($i = 0; $i -lt $gatedTokens.Count; $i++) {
     $sep = if ($i -eq 0) { ':' } else { '|' }
-    [void]$sb.AppendLine("    $sep {!userWordHere(`"$($gatedTokens[$i])`")}? $($gatedTokens[$i])")
+    [void]$sb.AppendLine("    $sep {!userWordHere(`"$(To-Word $gatedTokens[$i])`")}? $($gatedTokens[$i])")
 }
 [void]$sb.AppendLine('    ;')
 Set-Content -LiteralPath $g4Out -Value $sb.ToString().TrimEnd() -Encoding utf8

@@ -284,18 +284,30 @@ public abstract class CobolParserCoreBase : Parser
     /// <c>{userWordHere("W")}?</c> and their <c>reservedGatedWord</c> twins the exact inverse, for every name-slot
     /// word ISO §8.9 reserves at some edition (§8.3.2.1 rule 1: "Reserved words shall not be used as user-defined
     /// words or system-names").
-    /// <para>It is <see cref="reservedHere"/> plus ONE thing: the MIGRATION MODE. <c>--permissive</c> "accepts
-    /// constructs the targeted edition removed, warning instead of rejecting", and a word the edition added to
-    /// §8.9 is precisely such a removal — the funnel computes <c>ConstructAvailability.Removed</c> for it and
-    /// <see cref="EditionSeverityPolicy"/> downgrades the COBOLNET0901 to a warning. A permissive compile must
-    /// therefore keep PARSING the word as a user-defined word, or the whole class becomes a parse error that no
-    /// severity policy can downgrade and the migration mode is defeated for all 61 gated words. So the gate is
-    /// STRICT-ONLY, and under <c>--permissive</c> the pre-reservation reading (the word is an ordinary user word,
-    /// operand lists absorb it) is restored ON PURPOSE — that IS the pre-removal semantics the mode promises.</para>
+    /// <para>It is <see cref="reservedHere"/> plus ONE thing: the MIGRATION MODE, and the whole decision lives in
+    /// <see cref="ReservedWordSet.AdmitsAsUserWord"/> — the assembly that owns §8.9 — so this gate and the funnel
+    /// that reports COBOLNET0901 can never disagree about which occurrences are names. <c>--permissive</c>
+    /// "accepts constructs the targeted edition REMOVED, warning instead of rejecting", and a word the edition
+    /// ADDED to §8.9 is precisely such a removal: the funnel computes <c>ConstructAvailability.Removed</c> for it,
+    /// <see cref="EditionSeverityPolicy"/> downgrades the COBOLNET0901 to a warning, and this compile must keep
+    /// PARSING the word as a user-defined word or the whole class becomes a parse error that no severity policy
+    /// can downgrade.</para>
+    /// <para>⛔ BUT THE EXEMPTION IS NOT A BLANKET <c>Edition.Permissive ||</c> (kb/Work PB792). A word §8.9
+    /// reserves at this edition AND at every older edition this compiler targets — COLUMN and DESTINATION are
+    /// reserved at all four — was never a user-defined word anywhere, so migration mode has NO pre-removal
+    /// reading to restore; its verdict is <c>NotYetIntroduced</c>, an error on both axes. Admitting it here let
+    /// every greedy operand list absorb it: <c>03 VALUE "DETAIL LINE " COLUMN 20 PIC X(12).</c> (NIST RW104A card
+    /// 024500, legal because §13.15.3 SR2 says "All other clauses may be written in any order") parsed COLUMN and
+    /// 20 as VALUE operands, dropped the §13.18.14 COLUMN clause, and printed the field in the wrong place with
+    /// no diagnostic at all.</para>
     /// <para>A SEPARATE predicate from <see cref="reservedHere"/> rather than a permissive clause inside it:
     /// <see cref="facilityWord"/> and the SPECIAL-NAMES CRT/CURSOR clause guards ask the OTHER question — "is this
     /// token the reserved keyword here" — and must keep recognizing their clauses under <c>--permissive</c>.</para></summary>
-    protected bool userWordHere(string keyword) => Edition.Permissive || !reservedHere(keyword);
+    protected bool userWordHere(string keyword)
+        // ReservedWordSet.Default, not a composed overlay: Canonical() has ALREADY applied this compilation
+        // group's >>COBOL-WORDS directive (an UNDEFINE'd word returns null — a user word at every edition),
+        // exactly as reservedHere does, so composing the overlay twice would double-count it.
+        => Canonical(keyword) is not { } w || ReservedWordSet.Default.AdmitsAsUserWord(w, Edition);
 
     /// <summary>The §8.9 message for a syntax error whose offending token is a RESERVATION-GATED word, or null
     /// when the error is about something else (kb/Work PB693).
@@ -307,7 +319,10 @@ public abstract class CobolParserCoreBase : Parser
     /// <para>Narrow by construction: the token type must be in the GENERATED gate set (so an ordinary syntax error
     /// on any other reserved keyword keeps its own message), and the word must still <c>RejectsAt</c> the compile
     /// edition — the same conservative high-confidence predicate the funnel reports on, composed with this
-    /// group's <c>&gt;&gt;COBOL-WORDS</c> overlay. Permissive compiles never reach here: the gate does not fire.</para></summary>
+    /// group's <c>&gt;&gt;COBOL-WORDS</c> overlay. A PERMISSIVE compile reaches here exactly where the migration
+    /// mode has nothing to restore — a word §8.9 reserves at this edition and at every older one (kb/Work PB792,
+    /// <see cref="ReservedWordSet.AdmitsAsUserWord"/>); for a word an edition merely ADDED the gate still stands
+    /// down and this is unreachable.</para></summary>
     internal string? ReservedUserWordViolation(IToken? offendingSymbol)
     {
         if (offendingSymbol is null || !CobolLexer.IsReservationGated(offendingSymbol.Type)) return null;
