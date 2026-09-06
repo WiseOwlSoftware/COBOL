@@ -220,6 +220,36 @@ public static class DiagnosticCatalog
         + "KEY on a sequential file — §14.9.30.4 GR13c transfers control to it on a successful read, so it is "
         + "bound and rendered rather than dropped (kb/Work PB334).",
         "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6 · §14.9.30.3 SR7 · §14.9.30.2 Format 1");
+    // The MIRROR of COBOLNET1720, and the falsely-PERMISSIVE twin of the OCR's falsely-restrictive bias
+    // (kb/Work PB350). §5.2.6.2 makes BRACKETS the only thing that lets a portion of a general format be
+    // omitted, and §5.2.2 makes an underlined keyword required subject to those conventions — so a phrase
+    // line printed with NO brackets is MANDATORY, and a grammar that writes it `phrase?` under-rejects.
+    // The rule is a property of the printed FORMAT, so one descriptor carries the shape and each call site
+    // quotes its own §, exactly as COBOLNET1694/COBOLNET1720 do. It is screened at BIND time, not in the
+    // grammar, on purpose: the grammar already builds a tree the binder can read, and a bind-time
+    // diagnostic NAMES the rule and the omitted phrase where a parse error can only say "extraneous input".
+    // MEASURED SWEEP (2026-09-05, scripts/spec sweep over every `General format` <pre> block in
+    // specs/ISO_COBOL.md): §14.9.34.2's `AT END imperative-statement-1` is the ONLY unbracketed conditional
+    // phrase line in any §14.9 statement format. SEARCH's two `WHEN` groups are the only other mandatory
+    // phrases and the grammar already writes them `+`. RequiredFormatPhraseDriftTests re-derives that.
+    public static readonly DiagnosticDescriptor FormatRequiredPhraseOmitted = new(
+        "COBOLNET1850", "format-required-phrase-omitted", EditionSeverity.Error,
+        "A statement omits a phrase its general format prints WITHOUT brackets, and is therefore incomplete. "
+        + "ISO §5.2.6.2: brackets \"enclosing a portion of a general format indicate that the syntax element "
+        + "contained within the brackets or one of the alternatives contained within the brackets may be "
+        + "explicitly specified or that portion of the general format may be omitted\" — nothing else in the "
+        + "format conventions makes a portion omissible. ISO §5.2.2: an underlined keyword is \"required in "
+        + "order to select the functionality associated with that keyword, subject to the conventions "
+        + "specified in 5.2.6, Options\". ISO §14.9.34.2 prints RETURN's `AT END imperative-statement-1` line "
+        + "with no brackets while bracketing `[ NOT AT END … ]` and `[ END-RETURN ]` on the lines around it, "
+        + "so the AT END phrase is mandatory on EVERY RETURN — including the §14.9.34.3 SR4 reversed order, "
+        + "which permits reversal of the two phrases \"when specified\" and does not make either omissible. "
+        + "Until kb/Work PB350 the grammar wrote the phrase `returnAtEndPhrase?` and the reversed alternative "
+        + "made its AT END half optional too, so a RETURN with no AT END compiled clean at all four editions "
+        + "and, at end of data, §14.9.34.4 GR3's \"the contents of the record area … are undefined\" branch "
+        + "ran with control falling THROUGH the statement: a loop written on RETURN could never terminate "
+        + "from the statement, and re-displayed the previous record instead.",
+        "ISO §14.9.34.2 · §5.2.2 · §5.2.6.2");
 
     public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
         "COBOLNET1697", "redefines-pointer-object", EditionSeverity.Error,

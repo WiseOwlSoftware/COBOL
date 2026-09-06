@@ -178,6 +178,12 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
                 move.Emit(new BoundMove(new BoundFieldOperand(rt.RecordArea), [into]));
             if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not);
         }
+        // §14.9.34.4 GR3 — the at end condition: control transfers to imperative-statement-1, and on return from
+        // it to the end of the statement. ⚠ The null guard is now DEFENSIVE ONLY, and must not become an empty
+        // else that reads as licensed: §14.9.34.2 prints the AT END line unbracketed, so the phrase is required
+        // and COBOLNET1850 (SortBinder.BindReturn → StatementValidation.ScreenOmittedRequiredPhrase) rejects the
+        // program before codegen. An empty arm here is exactly the wrong answer kb/Work PB350 reports — control
+        // falling through onto a record area the same rule leaves undefined.
         using (w.Block("else"))
         {
             if (rt.AtEnd is { } at) Statements.EmitStatementList(at);

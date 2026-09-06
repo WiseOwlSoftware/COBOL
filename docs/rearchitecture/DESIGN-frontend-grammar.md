@@ -64,6 +64,35 @@ consumes).
    PHASE-13 research artifact had already flagged this exact rule as a first-alternative hazard
    (`evidence/PHASE-13-grammar-batch-research.json`) and nothing acted on it — findings live in `kb/Work/`, not in
    evidence files.
+8. **⛔ THE OPTIONALITY IS THE GENERAL FORMAT'S TOO — AND WHERE THE GRAMMAR STAYS PERMISSIVE, THE BINDER OWES A
+   NAMED SCREEN.** Invariant 7's mirror. ISO §5.2.6.2 makes BRACKETS the only convention that lets a portion of
+   a general format be omitted, and §5.2.2 makes an underlined keyword required subject to those conventions —
+   so a phrase printed on its own line with no brackets is MANDATORY, and writing it `phrase?` in the grammar
+   under-rejects. That is the **falsely-permissive twin of the OCR's falsely-restrictive bias**: the
+   transcription's diagrams were lossy toward *rejecting* legal source (CLAUDE.md rule 1), and a grammar written
+   from a lossy diagram fails the other way just as silently.
+   **The decision (kb/Work PB350, 2026-09-05): such a phrase is enforced at BIND time, not by requiring it in
+   the grammar.** `StatementValidation.ScreenOmittedRequiredPhrase` → `DiagnosticCatalog.FormatRequiredPhraseOmitted`
+   (COBOLNET1850), the mirror of the forbidden-phrase screen `ScreenForbiddenPhrase`/COBOLNET1720 — one
+   descriptor carrying the SHAPE, each call site quoting its own §. Two reasons, and they generalize:
+   a bind-time diagnostic NAMES the omitted phrase, the statement and the clause where an ANTLR parse error can
+   only report an unexpected token; and the screen can be placed AFTER the binder has normalized the parse
+   tree's shape away, so ONE test covers every grammar arm.
+   **Worked example (PB350).** §14.9.34.2 prints RETURN's `AT END imperative-statement-1` unbracketed between a
+   bracketed `[ NOT AT END … ]` and `[ END-RETURN ]` (rendered from the printed page, folio 708). The grammar
+   wrote `returnAtEndPhrase?` AND `returnAtEndPhrase`'s reversed alternative made the AT END half optional too,
+   so a RETURN with no AT END compiled at all four editions and, at end of data, control fell THROUGH the
+   statement onto a record area §14.9.34.4 GR3 leaves undefined — a loop written on RETURN could never terminate
+   from the statement. The screen tests `atEnd is null` after `PhraseBlocks.Split`, which covers BOTH arms;
+   testing the phrase NODE would have left the reversed NOT-only arm compiling (the two-arm dispatch with one
+   arm fixed). ⚠ `readAtEnd` is NOT the same case: §14.9.30.2 prints READ's AT END / NOT AT END pair inside
+   brackets WITH choice indicators, which §5.2.6.4 reads as "zero or more", so there the phrase really is
+   optional. The asymmetry is why the two pages are measured separately.
+   **The check, when writing or reviewing any `?` on a statement PHRASE rule: point at the brackets in the
+   printed general format that license it.** If the line is unbracketed, the phrase is required and owes a
+   screen. `RequiredFormatPhraseDriftTests` re-derives the whole set from the transcription — today RETURN's AT
+   END (screened) and SEARCH's WHEN (already `+` in the grammar) — so a transcription repair or a new format
+   fails until its phrase is screened or adjudicated.
 
 ---
 

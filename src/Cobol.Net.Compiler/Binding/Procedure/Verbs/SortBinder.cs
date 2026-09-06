@@ -347,6 +347,19 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
             // §14.9.34.3 SR4 — the phrases may be written in reversed order; Split's positional swap covers
             // BOTH the NOT-only form and the full reversed pair (P7 Step 10b).
             (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
+        // ⛔ §14.9.34.2 prints `AT END imperative-statement-1` on its own line with NO brackets, between the
+        // bracketed `[ NOT AT END … ]` and `[ END-RETURN ]` — so the AT END phrase is MANDATORY on every
+        // RETURN (§5.2.6.2: brackets are the only thing that makes a portion omissible; §5.2.2: an underlined
+        // keyword is required subject to those conventions). SR4's "when specified" permits REVERSING the two
+        // phrases, never omitting either. ONE test covers BOTH grammar arms because Split has already
+        // normalized position out: `atEnd is null` holds for the absent phrase AND for the reversed spelling
+        // that writes only NOT AT END (kb/Work PB350 — the two-arm trap: screening `returnAtEndPhrase() is
+        // null` alone would have left the NOT-only arm compiling).
+        ctx.Validation.ScreenOmittedRequiredPhrase(atEnd is null, "AT END", "RETURN",
+            "its general format prints the AT END line without brackets, and §14.9.34.4 GR3 gives that phrase "
+            + "the only defined destination for control when no next logical record exists — without it a "
+            + "RETURN at end of data falls through onto a record area the same rule leaves undefined",
+            "ISO §14.9.34.2");
         return new BoundReturn(file, area, into, atEnd, notAtEnd, SortVaryingOf(file));
     }
 

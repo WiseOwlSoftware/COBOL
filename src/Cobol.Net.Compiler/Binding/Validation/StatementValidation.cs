@@ -470,6 +470,43 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>⛔ THE ONE SCREEN for the MIRROR of <see cref="ScreenForbiddenPhrase"/>: a phrase the printed
+    /// general format shows WITHOUT brackets, and that the program omitted (kb/Work PB350). ISO §5.2.6.2 makes
+    /// brackets the ONLY convention that lets a portion of a format be omitted and §5.2.2 makes an underlined
+    /// keyword required subject to those conventions, so an unbracketed phrase line is MANDATORY — a grammar
+    /// that writes it <c>phrase?</c> under-rejects, which is the falsely-PERMISSIVE twin of the transcription's
+    /// falsely-restrictive OCR bias.
+    /// <para>⚠ THIS IS A HARD ERROR AT EVERY EDITION, deliberately NOT routed through
+    /// <see cref="EditionContext.Removed"/> the way its forbidden-phrase mirror is. That seam exists because the
+    /// CCVS-85 corpus really does write the phrases §14.9.30.3 SR6 forbids, and tolerating them leaves the bind
+    /// UNCHANGED. Nothing is lenient about the omission this screen catches: measured over
+    /// <c>tests/conformance</c> and <c>tests/nist</c>, every RETURN in the corpus writes its AT END, and a
+    /// permissive arm would keep alive exactly the wrong answer PB350 reports — control falling THROUGH a
+    /// RETURN at end of data onto an undefined record area (§14.9.34.4 GR3).</para>
+    /// <para>⚠ It is screened HERE and not in the grammar on purpose. The grammar already produces a tree the
+    /// binder can read, and a bind-time diagnostic can NAME the omitted phrase, the statement and the clause,
+    /// where an ANTLR parse error can only report an unexpected token. Making the phrase mandatory in the
+    /// grammar would also make the §14.9.34.3 SR4 reversed spelling report as a token-level surprise. The
+    /// grammar rule carries a comment pointing here; <c>RequiredFormatPhraseDriftTests</c> re-derives from the
+    /// transcription that RETURN's AT END is still the only §14.9 format line this applies to.</para>
+    /// <para>Returns true when the phrase was omitted, so a call site reads as a screen, not a branch. The
+    /// caller may still bind the statement — the compile has already failed.</para></summary>
+    /// <param name="omitted">Whether the phrase is absent — computed by the caller, which alone knows how its
+    /// own parse tree spells the phrase's presence.</param>
+    /// <param name="phrase">The phrase as the format prints it, e.g. "AT END".</param>
+    /// <param name="verb">The statement, e.g. "RETURN".</param>
+    /// <param name="because">Why the format makes it mandatory, in the format's own terms.</param>
+    /// <param name="citation">The §, e.g. "ISO §14.9.34.2".</param>
+    public bool ScreenOmittedRequiredPhrase(bool omitted, string phrase, string verb, string because, string citation)
+    {
+        if (!omitted) return false;
+        data.Edition.Error(DiagnosticCatalog.FormatRequiredPhraseOmitted,
+            $"the {phrase} phrase is required on every {verb} statement and is omitted — {because} "
+            + $"({citation}; brackets are the only convention that makes a portion of a general format "
+            + "omissible, ISO §5.2.6.2)");
+        return true;
+    }
+
     /// <summary>⛔ THE ONE AND ONLY ENFORCEMENT OF ISO §14.9.27.3 SR8 — "When file-name-1 is not subject to an
     /// APPLY COMMIT clause, then if the sharing phrase is omitted from the OPEN statement and the ALL phrase is
     /// specified in the SHARING clause of the file control entry for file-name-1 or if the ALL phrase is

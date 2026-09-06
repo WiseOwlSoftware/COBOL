@@ -8,6 +8,8 @@
   "pb332-start-key-needs-operator",
   "pb332-use-format1-needs-exception-or-error",
   "pb332-start-length-word-required",
+  "pb350-return-without-at-end",
+  "pb350-return-reversed-not-only",
   "pb347-release-refmod-record",
   "pb678-sort-collating-for-forms-at-85",
   "pb347-release-subordinate-item",

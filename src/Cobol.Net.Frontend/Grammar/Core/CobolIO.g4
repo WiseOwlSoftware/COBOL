@@ -821,6 +821,21 @@ returnStatement
 // format, so it is an optional word),
 // and RECORD above is optional, so "RETURN f END …" and "RETURN f RECORD AT END …" both parse.
 // ISO §14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order.
+//
+// ⛔ THE `?` ON `returnAtEndPhrase` ABOVE IS DELIBERATE AND IS NOT A LICENCE — DO NOT MAKE IT REQUIRED.
+// §14.9.34.2 prints `AT END imperative-statement-1` with NO brackets (rendered from the printed page,
+// PDF p738 / folio 708 — the bracketed `[ NOT AT END … ]` and `[ END-RETURN ]` sit on the lines around
+// it), so the phrase IS mandatory: §5.2.6.2 makes brackets the only convention that lets a portion of a
+// format be omitted. It is enforced at BIND time — StatementValidation.ScreenOmittedRequiredPhrase from
+// SortBinder.BindReturn, COBOLNET1850 — because a bind-time diagnostic can NAME the omitted phrase, the
+// statement and the clause where a parse error can only report an unexpected token, and because the
+// second alternative below (SR4's reversed order) would otherwise fail mid-alternative rather than
+// reporting the real rule. Keeping the phrase optional here is what lets the binder see the tree and say
+// so; the grammar recognizes, the binder conforms (kb/Work PB350).
+// ⚠ readAtEnd is NOT the same case and must not be changed to match: §14.9.30.2 Format 1 prints READ's
+// AT END / NOT AT END pair inside BRACKETS WITH CHOICE INDICATORS, which §5.2.6.4 reads as "zero or more
+// of the alternatives", so there BOTH phrases really are optional. The asymmetry is the point, and it is
+// why the two pages are measured separately.
 returnAtEndPhrase
     : AT? END statementBlock
       (NOT AT? END statementBlock)?
