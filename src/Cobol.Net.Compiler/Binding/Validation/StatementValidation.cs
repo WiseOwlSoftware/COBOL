@@ -434,9 +434,12 @@ internal sealed class StatementValidation(DataBinder data)
     /// NOT AT END, or PREVIOUS shall be specified if ACCESS MODE RANDOM is specified in the file control entry
     /// for file-name-1." Both READ binder arms call THIS: the rule is about the file control entry's access
     /// mode, which every organization has, and a copy per arm is how §14.9.30.3's other phrase rules came to be
-    /// enforced on one arm only (kb/Work PB334). Reachable on the sequential-organization arm because
-    /// §12.4.5.5.2 SR2 ("The DYNAMIC and RANDOM phrases shall not be specified for a sequential file") has no
-    /// enforcement at the file control entry yet; the READ phrases are forbidden either way.
+    /// enforced on one arm only (kb/Work PB334). ⚠ On the SEQUENTIAL-organization arm it is now
+    /// DEFENCE IN DEPTH, not the only guard: §12.4.5.5.2 SR2 ("The DYNAMIC and RANDOM phrases shall not be
+    /// specified for a sequential file") is screened at the FILE CONTROL ENTRY as of kb/Work PB692
+    /// (<c>DataBinder.BindFileControl</c>, COBOLNET1858), so <c>IsSequential &amp;&amp; AccessMode is Random</c>
+    /// no longer reaches a statement at all. It stays because it is the STATEMENT's own rule and costs a
+    /// field test — never because the entry rule might be missing.
     /// <para>The message names EVERY phrase the statement actually wrote — the at-end bracket carries choice
     /// indicators (§5.2.6.4), so AT END and NOT AT END can both be present and both are named.</para></summary>
     public bool CheckReadRandomAccessPhrases(FileModel file, bool advancing, bool atEnd, bool notAtEnd,
