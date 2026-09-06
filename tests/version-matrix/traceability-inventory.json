@@ -15681,13 +15681,13 @@
   "ordinal": 7,
   "subject": "File control entry",
   "rule-digest": "985a8205f5c7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveAssignUsing; src/Cobol.Net.Compiler/Binding/DataBinder.cs#IsAlphanumericDataItem",
+  "test-ref": "conformance:negative/pb324-assign-using-not-alphanumeric; conformance:negative/pb324-assign-using-in-own-record; conformance:2023/pb324_assign_using_dynamic; conformance:85/pb324_assign_using_85",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB702 (claimable since kb/Work PB324 landed; the row stayed GAP with an empty verdict while GR-12.4.5.3-3 already named the same goldens). RULE: 'Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the file description entry for file-name-1.' (cite.py --check 12.4.5.2 'Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the file description entry for file-name-1' -> OK, §12.4.5.2 7)). TWO HALVES, AND BOTH ARMS OF EACH ARE MEASURED. CODE: DataBinder.ResolveAssignUsing is the single site. Half 1 (category) is IsAlphanumericDataItem — an elementary PIC X item, or a group with no GROUP-USAGE clause, which 13.18.29.4 GR3 makes 'an alphanumeric group item'; category-ALPHABETIC (PIC A) is excluded because 8.8.4.2.4's 'A class alphabetic operand shall be treated as though it were an operand of class alphanumeric' is a COMPARISON rule and not a category identity, and bit/national groups are excluded by GroupUsage. An unresolvable name takes the same arm (there is no alphanumeric data item to reference), COBOLNET1810. Half 2 (subordination) walks item.Parent up to the root and fires COBOLNET1811 if any ancestor is one of THIS file's record descriptions — 'subordinate to the file description entry' means anywhere under a record description of that FD, which is the reading 9.1.21 corroborates ('The USING phrase references an alphanumeric data item whose content at the time an OPEN, SORT, or MERGE statement for that file is executed uniquely identifies the specific physical file to be accessed'), because an operand inside the file's own record area is overwritten by every READ of that file. MEASURED on this worktree's build (c34f01ad): `cobol pb324-assign-using-not-alphanumeric.cob --std 85` -> 'error COBOLNET1810: file ''NF1'': ASSIGN … USING ''WS-NUM'' shall reference an alphanumeric data item - ''WS-NUM'' is a category-numeric item (ISO 12.4.5.2 SR7)'; `cobol pb324-assign-using-in-own-record.cob --std 2023` -> 'error COBOLNET1811: file ''NF2'': ASSIGN … USING ''N2-NAME'' shall not be subordinate to the file description entry for ''NF2'' (ISO 12.4.5.2 SR7)'. Both negative goldens carry `*> reject-at: 85 2002 2014 2023`, so the REJECTING arm is asserted at every edition. The ACCEPTING arm — the complement, which a rejection test can never measure — is conformance:2023/pb324_assign_using_dynamic and conformance:85/pb324_assign_using_85, both of which name a WORKING-STORAGE `PIC X(20)` item outside the FD and run to a spec-derived expected output. || EDITIONS AS ADJUDICATED: 85 / 2002 / 2014 / 2023. §12.4.5.2 carries no edition marker on SR7 and Annex E records no change to the ASSIGN clause; the compiler enforces the rule through one ungated site and both negatives are pinned as rejecting at all four editions. This is the band GR-12.4.5.3-3 was landed at for the same clause and the same goldens. NOT CLAIMED HERE, and separately observed: this compiler does not gate the ASSIGN … USING SPELLING itself at 1985 (probed: `cobol tests/conformance/85/pb324_assign_using_85.cob --std 85` compiles silently). Whether the USING spelling is writable at 1985 is GR-12.4.5.3-3's landed adjudication and a question about the ASSIGN clause's introduction, not about SR7 — SR7 is either enforced or vacuous at that edition, never violated.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.2-8",
@@ -22671,13 +22671,13 @@
   "ordinal": 1,
   "subject": "JUSTIFIED clause",
   "rule-digest": "cc7dc943f869",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreAligned; src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreJustified; src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreBoolean; src/Cobol.Net.Runtime/Values/Text/CobolString.cs#Store; src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource",
+  "test-ref": "conformance:85/pb339_into_current_record; conformance:2002/pb339_into_current_record; conformance:2014/pb339_into_current_record; conformance:2023/pb339_into_current_record; conformance-test:NationalBooleanDataTests.JustifiedRight_SenderLarger_TruncatesLeftmostAcrossUsages; conformance-test:AcceptDifferentialTests.Day_JustifiedReceiver_RightJustifiesAndLeftTruncates",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB737 (adjudication). THE RULE: 'When the receiving data item is described with the JUSTIFIED clause and the sending operand is larger than the receiving data item, the leftmost character positions or boolean positions of the sending operand shall be truncated' (cite.py --check 13.18.32.4 => OK 1)). ONE MECHANISM, ONE PLACE: every character store into an alphanumeric/alphabetic/national receiver routes through RuntimeApi.StrStoreAligned (MOVE, STRING, the INVOKE formal copy-back, ACCEPT temporal - kb/Work PB139's one-rule-one-place extraction of six hand-rolled ternaries), a boolean receiver through StrStoreBoolean, and BOTH end at CobolString.Store, whose justifiedRight arm is 'value.Length > width ? value[^width..]' - the RIGHTMOST width positions kept, i.e. the LEFTMOST truncated, which is the rule read literally. THE RULE NAMES TWO POSITION KINDS AND FOUR USAGES, AND EACH WAS MEASURED RATHER THAN INFERRED FROM THE ALPHANUMERIC ARM. Sending five positions into three: PIC X(3) JUSTIFIED gets 'CDE' (pb339_into_current_record leg B, whose sender is a 5-byte current record); PIC A(3) JUSTIFIED gets 'CDE'; PIC N(3) JUSTIFIED gets national CDE; PIC 1(3) JUSTIFIED and USAGE BIT PIC 1(3) JUSTIFIED both get '001' - the boolean-position half of the rule's own wording, and the USAGE BIT carrier answers the same way as the DISPLAY carrier because GR1 truncates POSITIONS, not bytes. Right truncation (the non-JUSTIFIED 14.6.8.5/14.6.8.6 rule) would give ABC/ABC/ABC/110/110, so every leg discriminates. JUSTIFIED is legal on exactly these categories by 13.18.32.3 SR3 (alphabetic, alphanumeric, boolean, national), so the four measured usages are the rule's whole domain; a numeric or edited receiver cannot carry the clause. New test conformance-test:NationalBooleanDataTests.JustifiedRight_SenderLarger_TruncatesLeftmostAcrossUsages carries the national/alphabetic/boolean/bit legs, which were implemented but unevidenced before this adjudication; the DISPLAY-alphanumeric leg is pb339_into_current_record leg B, corroborated by the ACCEPT temporal receiver. A reference-modified receiver stays exempt by 8.4.3.3.4 GR6 and a screen item's JUSTIFIED is a separate clause (13.18.32 in ScreenFacility's staged band), neither of which is this rule. EDITION-INVARIANCE WAS DERIVED, NOT ASSUMED: no docs/VERSION_CHANGE_REFERENCE.md row touches 13.18.32. The national and boolean legs are written at 2002 because PIC N and PIC 1 are themselves 2002+ language elements, not because the rule changes. || EDITIONS AS ADJUDICATED: 1985 . 2002 . 2014 . 2023",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.32.4-2",
@@ -22686,13 +22686,13 @@
   "ordinal": 2,
   "subject": "JUSTIFIED clause",
   "rule-digest": "148bbf912e46",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreAligned; src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreJustified; src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreBoolean; src/Cobol.Net.Runtime/Values/Text/CobolString.cs#Store; src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource",
+  "test-ref": "conformance:85/pb339_into_current_record; conformance:2002/pb339_into_current_record; conformance:2014/pb339_into_current_record; conformance:2023/pb339_into_current_record; conformance:2002/boolean_data; conformance-test:NationalBooleanDataTests.JustifiedRight_NationalAndBoolean_LeftFill",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB737 (adjudication). THE RULE IS ONE SENTENCE PLUS THREE PER-USAGE FILL SENTENCES, and the verdict rests on all four. (cite.py --check 13.18.32.4 'the data is aligned at the rightmost character position or boolean position in the data item with zero fill for the leftmost boolean positions and space fill for the leftmost character positions' => OK 2); --check 13.18.32.4 'For data items implicitly or explicitly described as usage national, national zeros shall be used for zero fill and national spaces shall be used for space fill' => OK 2); --check 13.18.32.4 'For data items implicitly or explicitly described as usage bit, bit zeros shall be used for zero fill' => OK 2).) THE ALIGNMENT is CobolString.Store's justifiedRight arm 'value.PadLeft(width, pad)', reached through the ONE dispatch RuntimeApi.StrStoreAligned for character receivers and StrStoreBoolean for boolean ones. THE FILL CHARACTER is that method's pad parameter and it is the ONLY thing the three usage sentences differ in: ' ' for a character receiver, '0' for a boolean/bit one (RuntimeApi.StrStoreBoolean pins pad: '0'). MEASURED, one leg per usage sentence: DISPLAY - a five-byte current record into PIC X(10) JUSTIFIED gives '     ABCDE' (pb339_into_current_record leg A at all four editions); NATIONAL - N\"AB\" into PIC N(4) JUSTIFIED gives national spaces then AB (NationalBooleanDataTests.JustifiedRight_NationalAndBoolean_LeftFill, whose '!' sentinel keeps the right end observable); BOOLEAN - B\"11\" into PIC 1(4) JUSTIFIED gives '0011' (conformance:2002/boolean_data leg JR, and the same test); USAGE BIT - B\"11\" into USAGE BIT PIC 1(4) JUSTIFIED gives '0011', the leg added by this adjudication because GR2 states its fill PER USAGE and a PIC 1(4) DISPLAY carrier therefore does not stand in for the bit one. The 'national zeros' and 'bit zeros' clauses are the ZERO-fill half; zero fill arises for a boolean/bit receiver, which is the case measured, while a national receiver's fill in an alignment is national spaces, also measured. JUSTIFIED's legal categories are fixed by 13.18.32.3 SR3 (alphabetic, alphanumeric, boolean, national), so these four usages are the whole domain of the rule. EDITION-INVARIANCE WAS DERIVED, NOT ASSUMED: no docs/VERSION_CHANGE_REFERENCE.md row touches 13.18.32; the national and boolean legs sit at 2002 because PIC N and PIC 1 are 2002+ elements, not because the rule changes. || EDITIONS AS ADJUDICATED: 1985 . 2002 . 2014 . 2023",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.32.4-3",
@@ -26346,13 +26346,13 @@
   "ordinal": 16,
   "subject": "RECORD clause",
   "rule-digest": "49f6bbfd2769",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/OperandText.cs#CurrentRecordLength; src/Cobol.Net.Compiler/CodeGen/Emit/OperandText.cs#CurrentRecordImage; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#IntoSender; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundCurrentRecord",
+  "test-ref": "conformance:85/pb339_into_current_record; conformance:2002/pb339_into_current_record; conformance:2014/pb339_into_current_record; conformance:2023/pb339_into_current_record; conformance-test:SequentialFileIoSpecTests.VaryingRecord_ZeroLengthCurrentRecord_SendsNoBytesAndSpaceFills",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB737 (adjudication) claims a row that kb/Work PB339 implemented and pinned but deliberately left unclaimed because no note owned it. THE RULE HAS THREE OBLIGATIONS, NOT TWO, and all three are evidenced. (cite.py --check 13.18.43.4 'the number of bytes in the current record that participate as the sending operands in the implicit MOVE statement is determined by the following conditions' => OK 16); --check 13.18.43.4 'by the value that would have been moved into the data item referenced by data-name-1 had data-name-1 been specified' => OK 16); --check 13.18.43.4 'If the number of bytes determined as above is zero, the record is a zero-length item' => OK 16). ARM a) - data-name-1's content - is rendered by OperandText.CurrentRecordLength's DEPENDING branch, which forwards to the SAME renderer GR13 a) uses for RELEASE/REWRITE/WRITE (SequentialIoEmitter.VaryingLengthArg), so one rule text has one renderer. Pinned by pb339_into_current_record legs A/B/D/E (a sequential READ INTO from an FD with DEPENDING ON) and leg G (the RETURN twin through the SD's last-returned length). ARM b) - GR15's just-read length when no data-name-1 is written - is the connector-side FileLastReadLength / SortLastReturnedLength branch of the same method; pinned by leg F, a two-record FD with no DEPENDING phrase whose 5-byte WRITE reads back into a PIC X(10) JUSTIFIED receiver as '     ABCDE'. THE CLOSING SENTENCE - a zero byte count makes the record a zero-length item - is the third obligation and had no test until this adjudication. It is reachable, not a corner: 13.18.43.3 SR7 is 'Integer-2 shall be greater than or equal to zero' (--check 13.18.43.3 => OK 7)), so RECORD IS VARYING IN SIZE FROM 0 is legal source. OperandText.CurrentRecordImage passes allowZeroLength: true to the ref-mod slice for exactly this sentence, and MEASURED on this tree at 85/2002/2014/2023: a zero-length record read INTO a PIC X(5) pre-loaded with dots yields five SPACES (LEN=0000), neither the record area's leftover 'ZZZZZ' nor an EC-BOUND-REF-MOD, and the following READ still returns the next 4-byte record. New test conformance-test:SequentialFileIoSpecTests.VaryingRecord_ZeroLengthCurrentRecord_SendsNoBytesAndSpaceFills pins it as a [Theory] over all four editions. EDITION-INVARIANCE WAS DERIVED, NOT ASSUMED: no docs/VERSION_CHANGE_REFERENCE.md row touches 13.18.43, and the golden's bytes are identical at all four editions. FORMAT 3 (RECORD CONTAINS m TO n) is deliberately outside this rule - GR16 sits under the FORMAT 2 heading and GR18 puts a format-3 record's size in the record description entry instead. || EDITIONS AS ADJUDICATED: 1985 . 2002 . 2014 . 2023",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.43.4-17",
@@ -38336,7 +38336,7 @@
   "test-ref": "",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work/PB419.md — SENTENCE 1 (several identifier-1 behave as separate INITIALIZE statements in source order) is implemented: Bind() walks `ini.dataReferenceList().dataReference()` in parse order and appends each target's whole expansion before the next, so the emitted stores are one contiguous run per identifier-1. Measured (INITIALIZE P1 P2 over two elementary targets -> both cleared). The only existing test of the multi-target shape, InitializeDifferentialTests.Initialize_MultipleIdentifiers_AndElementaryTargets, asserts through DifferentialGolden.Assert (a LEGACY-oracle baked golden) and therefore cannot close this row. SENTENCE 2 (a declarative that executes RESUME ... NEXT STATEMENT resumes at the NEXT IMPLICIT INITIALIZE) is NOT modelled: the whole statement is one bind-time expansion behind one statement site, and RESUME NEXT STATEMENT unwinds through ResumeSignal to the -1 'normal completion' action that DispatchEmitter converts to fall-through PAST the entire INITIALIZE -- there is no per-identifier-1 resume point for it to land on. Reasoned from the two code sites, NOT measured: I did not construct a checked EC that fires inside the expansion, so the reachability of the divergence is unmeasured (see finding INIT-P2-F5). RESUME is COBOL-2002+, so sentence 2 has no 85 arm even though the row does.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+  "notes": "kb/Work/PB419.md - SENTENCE 1 (several identifier-1 behave as separate INITIALIZE statements in source order) is implemented: Bind() walks identifier-1's operand list - the list subrule of initializeStatement in src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4, reached through the generated accessor at InitializeBinder.cs#Bind - in parse order and appends each target's whole expansion before the next, so the emitted stores are one contiguous run per identifier-1. Measured (INITIALIZE P1 P2 over two elementary targets -> both cleared). The only existing test of the multi-target shape, InitializeDifferentialTests.Initialize_MultipleIdentifiers_AndElementaryTargets, asserts through DifferentialGolden.Assert (a LEGACY-oracle baked golden) and therefore cannot close this row. SENTENCE 2 (a declarative that executes RESUME ... NEXT STATEMENT resumes at the NEXT IMPLICIT INITIALIZE) is NOT modelled: the whole statement is one bind-time expansion behind one statement site, and RESUME NEXT STATEMENT unwinds through ResumeSignal to the -1 'normal completion' action that DispatchEmitter converts to fall-through PAST the entire INITIALIZE -- there is no per-identifier-1 resume point for it to land on. Reasoned from the two code sites, NOT measured: I did not construct a checked EC that fires inside the expansion, so the reachability of the divergence is unmeasured (see finding INIT-P2-F5). RESUME is COBOL-2002+, so sentence 2 has no 85 arm even though the row does. || NOTES REFRESHED 2026-09-06 by kb/Work PB737, VERDICT AND EVIDENCE UNCHANGED: the previous wording named the walk by its GENERATED PARSER ACCESSOR, 'ini.dataReferenceList().dataReference()'. A generated accessor is a build output of the .g4 (Generated/ is never committed), so it is not a durable name for a code site, and a rename of that very subrule to initializeOperandList - a DEFAULT-reservation guard for the THEN TO DEFAULT phrase, kb/Work PB695 - was in flight when this was found by that cluster's implementer. The prose now names the grammar rule and the binder symbol, which no such rename can invalidate; the walk, its source order, the two code sites and the PARTIAL verdict are all unchanged. || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
   "state": "GAP"
  },
  {
@@ -43761,13 +43761,13 @@
   "ordinal": 24,
   "subject": "REWRITE statement",
   "rule-digest": "24199ccba0a2",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Rewrite; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#IsSuppressed; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Ordered; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#PersistOrder",
+  "test-ref": "conformance:2023/l1_rewrite_alt_key_order; conformance:2023/l1_rewrite_alt_key_suppress",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB702 (the row PB341 made true and did not claim). RULE — all six obligations of GR24, each re-derived on this tree, never inherited: (a) 'When the value of a specific alternate record key is not changed, the order of retrieval when that key is the key of reference remains unchanged' (cite.py --check 14.9.35.4 -> OK 24)); (b) 'When the value of a specific alternate record key is changed … the record is logically positioned last within the set of duplicate records where the alternate record key value is equal to the same alternate key value in one or more records in the file based on the collating sequence for the file' (--check 14.9.35.4 -> OK 24)); (c) the FIRST SUPPRESS WHEN sub-rule, 'If the SUPPRESS WHEN phrase is specified in the ALTERNATE RECORD KEY clause and the value of the alternate record key is no longer equal to the literal specified in that phrase: 1. an access path to this record using this key of reference shall be provided, and 2. the record shall be logically positioned so that it will be found when accessed using the alternate record key' (--check 14.9.35.4 -> OK 24)); (d) the SECOND SUPPRESS WHEN sub-rule, 'If alternate record key suppression is specified for this alternate record key and the value of this alternate record key is now equal to its key suppression value: 1. the access path to the record using this alternate record key shall no longer be provided, and 2. the record shall be logically repositioned so that it will not be found when accessed using this alternate record key' (--check 14.9.35.4 -> OK 24)); (e) 'The comparison used for determining changes to the key is based on the collating sequence for the file according to the rules for a relation condition' (--check 14.9.35.4 -> OK 24)); (f) 'Any number of records may have the same alternate key value equal to its key suppression value without requiring the DUPLICATES phrase to be specified for that key. Key entries that are suppressed shall not cause a duplicate key condition to exist' (--check 14.9.35.4 -> OK 24)). CODE: IndexedConnector.Rewrite runs TWO passes over _alts and the order is load-bearing — pass 1 validates only (an early '22' must leave nothing repositioned), pass 2 applies GR24 while target.Image is still the REPLACED record so AltChanged compares against it. (a)/(b): the local AltChanged(i) is the ONE definition of 'this REWRITE changed alternate key i', and only the keys it answers true for take a fresh release ordinal off the monotone mint (Stamp(target, i, repositioned)), so an untouched key keeps its ordinal and Ordered(i) keeps its order, while a changed key sorts after every existing member of its new duplicate set. (e): AltChanged is KeyEq, the file's collating sequence, not an ordinal string compare. (c)/(d): AltChanged also returns true when IsSuppressed(image, i) != IsSuppressed(target.Image, i), so entering OR leaving suppression is a change of its own and re-stamps the key; the access path itself is Ordered(keyIndex)'s Where(r => !IsSuppressed(r.Image, keyIndex)) (12.4.5.6.4 GR6), which withdraws and restores the path from the key VALUE with no separate state to drift. (f): pass 1 does `if (IsSuppressed(image, i)) continue;` before the uniqueness test and also excludes suppressed records from the `exists` scan, so a suppressed entry can neither raise '22' on a non-DUPLICATES key nor be duplicated by one. MEASURED on this worktree's build (c34f01ad + this change) by conformance:2023/l1_rewrite_alt_key_suppress, whose 20 expected lines were WRITTEN FROM THE SPEC BEFORE THE FIRST RUN and matched byte for byte: leg B REWRITEs record 01's R-A1 to the suppression value 'XX' and the R-A1 walk drops from 01,03,02 to 03,02 at status '00' (d); leg C REWRITEs it back to 'AA' and the walk becomes 03,01,02 — the access path is restored (c 1.) and 01, which was FIRST in the AA set on release, comes back LAST (c 2. + b), with the REWRITE itself reporting '02' per 9.1.13.2 2 c); leg D REWRITEs two records to 'ZZ', the suppression value of an alternate key with NO DUPLICATES phrase, and both report '00' rather than the '22' a real duplicate would raise, after which the R-A2 walk finds only the one unsuppressed record (f); leg E re-walks after CLOSE/OPEN and both the restored position and the two withdrawn paths survive the physical file. conformance:2023/l1_rewrite_alt_key_order (kb/Work PB341) independently pins (a), (b) and (e) on two DUPLICATES alternate keys without suppression. || EDITIONS AS ADJUDICATED: 85 / 2002 / 2014 / 2023 for (a), (b) and (e) — ALTERNATE RECORD KEY and its DUPLICATES phrase are ungated in this compiler (no constructs.json row), the clause carries no edition marker, and Annex E lists no change to 14.9.35; this matches the band the sibling rows GR-14.9.30.4-26 and GR-14.9.30.4-32 were landed at on the same golden. Sub-rules (c), (d) and (f) are 2023-ONLY: they exist only where SUPPRESS WHEN is writable, and SUPPRESS WHEN is a COBOL-2023 addition (cite.py --check E.3.3 'The SUPPRESS WHEN phrase may be specified as part of the ALTERNATE RECORD KEY clause' -> OK, item 42), gated by constructs.json row 'alternate-key-suppress-when-2023' (COBOLNET0900 below 2023) — so the 2023 golden is the only edition at which they CAN be measured, and they are vacuous, not unverified, at 85/2002/2014.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.35.4-L3.1",
@@ -49611,13 +49611,13 @@
   "ordinal": 12,
   "subject": "WRITE statement",
   "rule-digest": "b54b956d4c8a",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ReleaseRecord; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write",
+  "test-ref": "conformance:2023/pb739_shared_extend_write; conformance:2002/pb739_shared_extend_write; unit:SharedExtendWriteDriftTests.TwoSharedExtendConnectors_KeepBothRecords_ForEverySequentialFraming; unit:SharedExtendWriteDriftTests.ThePrintControlWriteArmAlsoMintsTheReleaseOrdinal",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "A successful WRITE releases the record to the operating environment, not to a buffer: SequentialConnector.ReleaseRecord is the ONE release point every write arm reaches, and for a file another connector shares it flushes the record out before the statement returns, which is what makes it visible to that connector's read and what stops the next append landing on top of it. The keyed organizations release into the per-physical-file shared record store, which every connector over the path sees. All three write arms release (the print-control arms never did).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-13",
@@ -49716,13 +49716,13 @@
   "ordinal": 19,
   "subject": "WRITE statement",
   "rule-digest": "157f5164a248",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileSupport.cs#OpenAppendStream; src/Cobol.Net.Runtime/IO/FileSupport.cs#SharedAppendStream; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ReleaseRecord",
+  "test-ref": "conformance:2023/pb739_shared_extend_write; conformance:2002/pb739_shared_extend_write; unit:SharedExtendWriteDriftTests.TwoSharedExtendConnectors_KeepBothRecords_ForEverySequentialFraming; unit:SharedExtendWriteDriftTests.TwoSharedExtendConnectors_MintDistinctAscendingOrdinals",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "Two sharing-active file connectors extending one physical file each append after every record present at the moment of the write: a participant's writer is HostFile.OpenAppendStream's SharedAppendStream, which repositions at the physical end before every write instead of at the .NET FileMode.Append offset captured once at open. The record's ordinal is minted from the shared PhysicalFileTable.State.ReleasedOrdinal, so the two connectors' releases are 2 then 3 rather than 2 twice. Only the relative ORDER of the two connectors' records is undefined by this rule; both goldens read all three records back on every organization and framing. COBOL-85 has no file sharing, so the rule's antecedent cannot arise there.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-20",
@@ -49896,13 +49896,13 @@
   "ordinal": 31,
   "subject": "WRITE statement",
   "rule-digest": "c45a4855de19",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/RelativeConnector.cs#NextSequentialSlot; src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs#RelativeStore",
+  "test-ref": "conformance:2023/pb739_shared_extend_write; conformance:2002/pb739_shared_extend_write; unit:SharedExtendWriteDriftTests.TwoSharedExtendConnectors_KeepBothRecords_ForTheRelativeOrganization; unit:SharedExtendWriteDriftTests.RelativeStoreHighWaterTracksEveryMutation",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The relative key values two sharing extend connectors receive are ascending: the slot is Highest+1 read from the shared store at the moment of the release, clamped to this connector's own last release so a sibling's DELETE cannot make them regress. Over a file holding RRN 1 the goldens display R-KA=0002 and R-KB=0003, and both records read back. The number used to be captured once at OPEN, which made both connectors mint 2 and the second store write replace the first record. COBOL-85 has no file sharing, so the rule's antecedent cannot arise there.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-32",
