@@ -482,23 +482,43 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             retryKind, retryAmount, tmp);
     }
 
+    /// <summary>The resolved <c>RECORD VARYING … DEPENDING ON</c> item of <paramref name="file"/> (ISO §13.18.43
+    /// data-name-1), or null when the phrase is absent or the name did not resolve. ⛔ THE ONE resolution: GR13 a)
+    /// (the length WRITTEN), GR15 (the length READ BACK) and GR16 a) (the INTO sending size) are three rules over
+    /// the SAME data item, and they were re-spelling the same four-part pattern independently.</summary>
+    public Place? VaryingDepending(FileModel file) =>
+        file is { Varying.DependingName: not null, VaryingDependingItem: { } d } ? refs.ResolveItem(d) : null;
+
     /// <summary>The record-length argument for a WRITE/REWRITE on a RECORD VARYING … DEPENDING file (ISO
     /// §13.18.43 GR13a — the DEPENDING item's content names the record length), or null when the statement
     /// writes the record's own size (GR13b/c — on a varying file the runtime takes the image's length; on a
     /// fixed file it pads to the record width).</summary>
     public string? VaryingLengthArg(FileModel file) =>
-        file is { Varying.DependingName: not null, VaryingDependingItem: { } d } && refs.ResolveItem(d) is { } dep
-            ? $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}" : null;
+        VaryingDepending(file) is { } dep ? $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}" : null;
 
     /// <summary>After a SUCCESSFUL read of a RECORD VARYING … DEPENDING file, store the just-read record's length
     /// into the DEPENDING item (ISO §13.18.43 GR15; GR12 — an unsuccessful READ leaves it unchanged, so the call
     /// site sits inside the success branch).</summary>
     public void EmitReadLengthStore(FileModel file)
     {
-        if (file is not { Varying.DependingName: not null, VaryingDependingItem: { } d }
-            || refs.ResolveItem(d) is not { } dep) return;
+        if (VaryingDepending(file) is not { } dep) return;
         arith.StoreArith(dep, new NumX(RuntimeApi.FileLastReadLength(FileKeyExpr(file)), 0), CobolRounding.Truncation);
     }
+
+    /// <summary>THE sending operand of every <c>READ … INTO</c> / <c>RETURN … INTO</c> implicit MOVE — built in
+    /// ONE place so the three INTO arms (sequential READ, keyed READ, sort RETURN) cannot drift (kb/Work PB339;
+    /// the emitter's own comment used to argue the padded area was "observationally identical", which holds only
+    /// for a LEFT-justified receiver).
+    /// <para>A variable-length RECORD clause makes the sender <see cref="BoundCurrentRecord"/> — the record area
+    /// sliced to the §13.18.43.4 GR16 byte count, and, for FORMAT 2 only, an alphanumeric group move by
+    /// §14.9.30.4 GR4 b)'s explicit designation. A FIXED-length file keeps the plain record-area operand: its
+    /// current record IS the whole area (§13.18.43.4 GR6 — integer-1 bytes in every record), including the
+    /// short-final-record '04' case of §14.9.30.4 GR14, where the area right of the last valid character is
+    /// undefined rather than short.</para></summary>
+    public static BoundOperand IntoSender(FileModel file, Place area, Place? depending) =>
+        file.Varying is { } v
+            ? new BoundCurrentRecord(area, file, depending, v.VaryingClause)
+            : new BoundFieldOperand(area);
 
     /// <summary>READ file [INTO x] [AT END …][NOT AT END …] (ISO §14.9.30): on success the record image is
     /// distributed into the FD record area (and, with INTO, MOVEd to the target); the AT END / NOT AT END imperative
@@ -531,12 +551,11 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             if (area is not null) EmitImageInto(area, tmp);
             EmitReadLengthStore(rd.File);   // §13.18.43 GR15 — the just-read length into DEPENDING
             EmitStoreFileStatus(rd.File);
-            // READ … INTO is READ then MOVE the record area to the target (ISO §14.9.30 GR — group move).
-            // §13.18.43 GR16a (a varying sender is the first DEPENDING-many bytes) is observationally identical
-            // here: Read space-fills the area beyond the record, and the implicit MOVE of the category-
-            // alphanumeric area space-fills the receiver the same way.
+            // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §14.9.30.4 GR4 b)). The sender
+            // is the record sliced to its §13.18.43.4 GR16 byte count, NOT the padded area — through the ONE
+            // IntoSender builder the keyed READ and the sort RETURN also use (kb/Work PB339).
             if (rd.Into is { } into && area is not null)
-                move.Emit(new BoundMove(new BoundFieldOperand(area), [into]));
+                move.Emit(new BoundMove(IntoSender(rd.File, area, VaryingDepending(rd.File)), [into]));
             if (rd.NotAtEnd is { } not) Statements.EmitStatementList(not);
             // §14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
             // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".

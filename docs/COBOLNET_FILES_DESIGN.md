@@ -827,6 +827,54 @@ every phrase a bound I-O node declares must be READ by its emitter.
 organizations, with the `RETRY 0 TIMES` discriminator that used to disagree),
 `pb683_open_sharing_no_other` (the `NO OTHER` spelling, both open orders, and the §9.1.15 item 1 `'61'`), and
 `pb683_write_advancing_governed` (the same WRITE in all three printed shapes, all `'51'`).
+### D21. The sending operand of a `READ … INTO` / `RETURN … INTO` implicit MOVE is THE CURRENT RECORD, and it is built in ONE place for all three arms.
+
+ISO §14.9.30.4 GR4 b) and §14.9.34.4 GR5 b) are the same sentence twice: *"The current record is moved from the
+record area to the area specified by identifier-1 according to the rules for the MOVE statement without the
+CORRESPONDING phrase. The size of the current record is determined by rules specified in the RECORD clause. If
+the file description entry contains a RECORD IS VARYING clause, the implied move is an alphanumeric group
+move."* §13.18.43.4 GR16 supplies that size for a FORMAT 2 RECORD clause: *"the number of bytes in the current
+record that participate as the sending operands in the implicit MOVE statement"* is a) data-name-1's content when
+the DEPENDING ON phrase is written, b) otherwise *"the value that would have been moved into the data item
+referenced by data-name-1 had data-name-1 been specified"* — the just-read length GR15 stores. Its closing
+sentence makes ZERO a legal count: *"If the number of bytes determined as above is zero, the record is a
+zero-length item."*
+
+**The decision:** a variable-length RECORD clause makes the sender a `BoundCurrentRecord` operand — the record
+area place, the file, the resolved DEPENDING place, and the GR4 b) group-move designation, all STRUCTURAL — and
+`SequentialIoEmitter.IntoSender` is the only thing that builds one. The three INTO arms
+(`SequentialIoEmitter.EmitRead`, `KeyedIoEmitter.EmitRead`, `SortEmitter.EmitReturn`) call it; a FIXED-length
+file keeps the plain record-area operand, because §13.18.43.4 GR6 makes its current record the whole area, the
+short-final-record '04' case of §14.9.30.4 GR14 included (there the area right of the last valid character is
+*undefined*, not short). `OperandText.CurrentRecordImage` renders it once, as
+`CobolString.RefMod(<the ONE record-area image channel>, 1, <the GR16 count>, allowZeroLength: true)`.
+
+- **Why the length could not stay implicit.** The old shape sent the whole space-padded area and argued in a
+  comment that the two are *observationally identical* — true for a LEFT-justified receiver, since the area's
+  padding and the receiver's fill are both spaces on the right. The discriminator is the receiving item's
+  JUSTIFIED clause: §13.18.32.4 GR1 truncates the LEFTMOST characters of an over-long sender, so a five-byte
+  record read into `PIC X(10) JUSTIFIED RIGHT` arrived as ten spaces (kb/Work PB339).
+- **Why the GROUP-MOVE designation lives on the operand, not at the call sites.** GR4 b)'s third sentence makes
+  the implied move an alphanumeric group move for a `RECORD IS VARYING` FD *whatever the record area's own level
+  structure*, so `MoveClassifier.IsGroupSender` answers true for the designation and falls through to the
+  ordinary structural test without it. Before this, a FORMAT 2 FD with an elementary `01` EDITED into an
+  alphanumeric-edited receiver and CONVERTED into a numeric-edited one, where §14.9.25.4 GR4 requires the
+  receiving area be *"filled without consideration for the individual elementary or group items"*.
+- **Why `VaryingRecordInfo` had to learn which RECORD format was written.** GR4 b) conditions the designation on
+  the WORD VARYING and GR16 is stated under the FORMAT 2 heading, so a FORMAT 3 `RECORD CONTAINS m TO n` file
+  inherits neither (§13.18.43.4 GR18 puts its record size in the record description entry instead). The two
+  formats were indistinguishable in the model, so a rule keyed on that word had nothing to key on.
+- **The `… FROM` arms are NOT the mirror of this, and deliberately kept the plain MOVE.** §14.9.51.4 GR5,
+  §14.9.35.4 GR7 and §14.9.32.4 GR4 each expand the FROM phrase to `MOVE identifier-1 TO record-name-1`
+  *"according to the rules specified for the MOVE statement"* — an ordinary MOVE, sender identifier-1 at its own
+  length, receiver the record; the byte count actually written is the separate §13.18.43.4 GR13 rule that
+  `SequentialIoEmitter.VaryingLengthArg` already renders.
+
+**Rejected alternatives.** *A reference-modified sender (`area(1:n)`)* — §8.4.3.3.4 GR6 makes a
+reference-modified operand an ELEMENTARY alphanumeric item, which is exactly the classification GR4 b)'s third
+sentence overrides, so the slice would have bought the length at the cost of the group move. *A sender-length
+argument threaded through `MoveEmitter`'s four per-kind renderers* — four places to keep in step for one fact,
+where the operand model already has a seam that every renderer reads through.
 
 ## C# mapping
 
@@ -835,7 +883,7 @@ organizations, with the `RETRY 0 TIMES` discriminator that used to disagree),
 > this section shows the primary RoslynBackend rendering. The future CilBackend renders the SAME bound nodes behind
 > `ICodeGenBackend` with its own private lowering; no bound node carries pre-rendered C# text.
 
-An FD record CUST-REC with CUST-ID PIC 9(5), CUST-NAME PIC X(20), CUST-BAL PIC S9(7)V99 COMP-3 maps to a public record struct CUST_REC holding public long CUST_ID, public string CUST_NAME, public long CUST_BAL, where CUST_BAL is the UNSCALED long (scale 2 is compile-time metadata per the owner numeric lock; no decimal). The record area is a single field of that type in the program class. The connector is a public sealed generic FileConnector of TRec exposing Open, Close, Read, ReadPrevious, ReadByKey, Write, Rewrite, Delete, Start, SetKey, plus properties CurrentSlot, LastRecordLength, EndOfPage, and LastStatus. There is NO program-supplied key parameter; the key is the current value of the typed RECORD KEY or RELATIVE KEY field. The codec is a generated IRecordCodec exposing Serialize, Deserialize, PrimeKey, AlternateKey, FixedLength, MinLength, MaxLength, and CodeSet. Stores: the sequential connector uses a StreamReader or StreamWriter for line-sequential and a FileStream for record-sequential with a 4-byte little-endian length prefix for varying; the relative connector uses a sorted dictionary from int slot to byte image with 0xFF gaps; the indexed connector uses a sorted dictionary from CobolKey to byte image as the sole source of truth, with alternates derived on demand and a PER-KEY release ordinal for duplicate ordering. The run-unit prologue emits one registration per SELECT plus AddAlternateKey calls. After each I/O verb the compiler stores the connector LastStatus into the FILE STATUS item then branches AT END or INVALID KEY on the first char (1 at-end, 2 invalid-key, 3 4 7 9 fatal to a USE declarative). READ INTO lowers to Read plus a typed group MOVE; WRITE FROM lowers to a typed MOVE plus Write; a sequential RELATIVE WRITE or READ NEXT MOVEs CurrentSlot back into the RELATIVE KEY field.
+An FD record CUST-REC with CUST-ID PIC 9(5), CUST-NAME PIC X(20), CUST-BAL PIC S9(7)V99 COMP-3 maps to a public record struct CUST_REC holding public long CUST_ID, public string CUST_NAME, public long CUST_BAL, where CUST_BAL is the UNSCALED long (scale 2 is compile-time metadata per the owner numeric lock; no decimal). The record area is a single field of that type in the program class. The connector is a public sealed generic FileConnector of TRec exposing Open, Close, Read, ReadPrevious, ReadByKey, Write, Rewrite, Delete, Start, SetKey, plus properties CurrentSlot, LastRecordLength, EndOfPage, and LastStatus. There is NO program-supplied key parameter; the key is the current value of the typed RECORD KEY or RELATIVE KEY field. The codec is a generated IRecordCodec exposing Serialize, Deserialize, PrimeKey, AlternateKey, FixedLength, MinLength, MaxLength, and CodeSet. Stores: the sequential connector uses a StreamReader or StreamWriter for line-sequential and a FileStream for record-sequential with a 4-byte little-endian length prefix for varying; the relative connector uses a sorted dictionary from int slot to byte image with 0xFF gaps; the indexed connector uses a sorted dictionary from CobolKey to byte image as the sole source of truth, with alternates derived on demand and a PER-KEY release ordinal for duplicate ordering. The run-unit prologue emits one registration per SELECT plus AddAlternateKey calls. After each I/O verb the compiler stores the connector LastStatus into the FILE STATUS item then branches AT END or INVALID KEY on the first char (1 at-end, 2 invalid-key, 3 4 7 9 fatal to a USE declarative). READ INTO lowers to Read plus a typed MOVE OF THE CURRENT RECORD (D21 - the record area sliced to the 13.18.43.4 GR16 byte count, and an alphanumeric group move when the FD carries a RECORD IS VARYING clause); WRITE FROM lowers to an ordinary typed MOVE plus Write; a sequential RELATIVE WRITE or READ NEXT MOVEs CurrentSlot back into the RELATIVE KEY field.
 
 ## Hard problems
 
@@ -925,7 +973,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   walk bailing out, reported under SR6's message, and the relative arm had no such check at all. The same
   predicate supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
   ALTERNATE RECORD KEY, 12.4.5.13.3 SR1 RELATIVE KEY) in `KeyedIoBinder.KeyedValidateFile`.
-- READ INTO and WRITE FROM lower to the verb plus a typed group MOVE (receiving uses the MAX length for ODO records, the ST146A lesson).
+- READ INTO lowers to the verb plus a typed MOVE whose SENDER is the current record, WRITE FROM to an ordinary typed MOVE plus the verb (D21; receiving uses the MAX length for ODO records, the ST146A lesson).
 - Record length mismatch on READ (a fixed file whose physical record differs from the FD size) gives status 04; add for conformance since the legacy pads silently.
 - LINE SEQUENTIAL: newline-framed, TrimEnd on WRITE, pad or truncate on READ, LastRecordLength is the line length; status **06 and 09 are both implemented** — 06 is the GR15 over-length truncation (the file position indicator keeps the unread remainder, NOTE 3), 09 the GR16 character-set warning below. LINE SEQUENTIAL itself is a COBOL-2023 introduction; see Per-edition gating.
 - **The LINE SEQUENTIAL CHARACTER SET is ONE set behind FOUR rules** (`LineSequentialCharacterSet`, kb/Work PB329). Annex A.1 item 115 makes the set a REQUIRED, documented determination and the standard names it from four places: 14.9.30.4 GR16 / 9.1.13.2 item 7 (a SUCCESSFUL READ whose record area holds a non-member ⇒ '09', the record still delivered), 14.9.51.4 GR23 (WRITE ⇒ unsuccessful, '71'), 14.9.35.4 GR17 d) (REWRITE ⇒ unsuccessful, '71') and 9.1.13.10 item 1 (both write directions leave the record area — and the medium — unchanged). **The determination is: every character at code point U+0020 or above is a member; the C0 controls below it are not** (derivation and the GnuCOBOL survey at `docs/CONFORMANCE.md` DOC-A.1-115). Design consequences: (a) the set lives in ONE type and the connector reaches it through ONE predicate, `SequentialConnector.RecordAreaOutsideLineCharacterSet`, so the read arm and all THREE write entry points (`Write`, `WriteAdvancing`, `WriteBeforeAndAfter`) cannot diverge — before PB329 only REWRITE had an arm and it carried a private CR/LF test; (b) the subject is the RECORD AREA, tested CHARACTER-wise, so a national record area is read two bytes at a time as UTF-16BE exactly as `FitRecord`/`TrimRecordEnd` pad and trim it (a byte-wise test would refuse every national line sequential record); (c) GR16 is stated after GR15 and asks only that the read be successful, so '09' is the status that lands even on a truncated ('06') read.

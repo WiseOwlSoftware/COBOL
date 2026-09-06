@@ -185,8 +185,12 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
             seqIo.EmitImageInto(rt.RecordArea, tmp);   // GR3 — made available in the record area
             if (rt.Varying is { Depending: { } dep })   // §13.18.43 GR15 — the length restored into DEPENDING
                 arith.StoreArith(dep, new NumX(RuntimeApi.SortLastReturnedLength(sd), 0), CobolRounding.Truncation);
-            if (rt.Into is { } into)             // GR5 — RETURN then MOVE record-area → identifier-1
-                move.Emit(new BoundMove(new BoundFieldOperand(rt.RecordArea), [into]));
+            // GR5 b) — RETURN then MOVE THE CURRENT RECORD → identifier-1. The sender is the record area sliced
+            // to its §13.18.43.4 GR16 byte count (the DEPENDING item just restored above, else the store's
+            // last-returned length), through THE SAME builder both READ arms use (kb/Work PB339).
+            if (rt.Into is { } into)
+                move.Emit(new BoundMove(
+                    SequentialIoEmitter.IntoSender(rt.File, rt.RecordArea, rt.Varying?.Depending), [into]));
             if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not);
         }
         // §14.9.34.4 GR3 — the at end condition: control transfers to imperative-statement-1, and on return from

@@ -1,0 +1,10 @@
+LEN=0005
+A=[     ABCDE]
+B=[CDE]
+C=[ABCDE     ]
+D=[ABCDE   ]
+E=[ABC]
+F=[     ABCDE]
+SLEN=0008
+G=[    K01PQRST]
+DONE

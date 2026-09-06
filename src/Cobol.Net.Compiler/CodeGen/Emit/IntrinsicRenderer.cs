@@ -1431,6 +1431,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         private static string Loud(BoundOperand n) => EmitText.LoudValue("string", $"intrinsic string argument '{n.GetType().Name}'");
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
         public string Visit(BoundFieldOperand n) => OperandText.AsString(n, owner.Num);
+        // THE CURRENT RECORD (kb/Work PB339) is built only for a READ/RETURN INTO implicit MOVE, so no intrinsic
+        // argument list can hold one today — but its image is alphanumeric and already written down once, so this
+        // DELEGATES rather than going loud (the same delegation the field arm above makes; a loud arm here would
+        // be the wrong-stage failure PB25 fixed for figuratives).
+        public string Visit(BoundCurrentRecord n) => OperandText.AsString(n, owner.Num);
         public string Visit(BoundComputedOperand n) =>
             n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } nested
                 ? owner.RenderString(nested) : Loud(n);   // string-class results incl. national (§15.66) + boolean (§15.13 — the '0'/'1' substrate)

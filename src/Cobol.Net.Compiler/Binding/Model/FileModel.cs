@@ -260,7 +260,15 @@ public sealed class FileModel
 /// <summary>The variable-length record model of a RECORD clause (ISO §13.18.43): the declared minimum/maximum
 /// record sizes (null when unstated) and the <c>VARYING … DEPENDING ON</c> data-name (null when none — a
 /// <c>RECORD CONTAINS m TO n</c> file varies without a length register).</summary>
-public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName);
+/// <param name="VaryingClause">True for FORMAT 2 (<c>RECORD IS VARYING IN SIZE …</c>), false for FORMAT 3
+/// (<c>RECORD CONTAINS integer-4 TO integer-5</c>). ⛔ THE TWO FORMATS ARE NOT INTERCHANGEABLE even though both
+/// describe variable-length records: §13.18.43.4 GR16 (the READ/RETURN INTO sending size) is stated under the
+/// FORMAT 2 heading, and §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b) designate the implied move an alphanumeric group
+/// move only "If the file description entry contains a RECORD IS VARYING clause" — a format-3 file's record size
+/// is instead "completely defined in the record description entry" (GR18) and its move is classified normally.
+/// The two formats were indistinguishable here until kb/Work PB339, which is why a rule keyed on the WORD
+/// VARYING had nothing to key on.</param>
+public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName, bool VaryingClause);
 
 /// <summary>One LINAGE clause operand (ISO §13.18.34 GR6): a fixed literal value (GR6a) or a data-name whose
 /// content is read at the GR6b evaluation points (OPEN OUTPUT / WRITE ADVANCING PAGE / page overflow), resolved

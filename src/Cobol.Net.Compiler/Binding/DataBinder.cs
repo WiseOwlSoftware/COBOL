@@ -1310,7 +1310,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         int? hi = lits.Length > 1 ? int.Parse(lits[1].GetText()) : null;
         if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
         string? dep = rc.dataReference() is { } d ? d.cobolWord()?.GetText() ?? d.GetText() : null;
-        file.Varying = new VaryingRecordInfo(lo, hi, dep);
+        // FORMAT 2 vs FORMAT 3: the WORD VARYING is the discriminator, and it is load-bearing — §13.18.43.4 GR16
+        // (the READ/RETURN INTO sending size) sits under the FORMAT 2 heading and §14.9.30.4 GR4 b) designates
+        // the implied move an alphanumeric group move only for a RECORD IS VARYING clause (kb/Work PB339).
+        file.Varying = new VaryingRecordInfo(lo, hi, dep, VaryingClause: rc.VARYING() is not null);
     }
 
     /// <summary>Bind a LINAGE clause into <see cref="FileModel.Linage"/> (ISO §13.18.34: <c>LINAGE IS

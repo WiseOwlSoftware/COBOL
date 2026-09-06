@@ -163,7 +163,12 @@ public sealed class OperandStringChannelDriftTests
         // Every leaf is DELEGATED (the shared rule), DIVERGENT BY DESIGN, or ADMITTED PER-FUNCTION (PB59 —
         // the conditional arm the pin test above owns). A leaf in no bucket is one nobody has decided about,
         // which is how PB25 shipped.
-        string[] delegated = ["BoundFieldOperand", "BoundFigurative", "BoundAllLiteral"];
+        // BoundCurrentRecord (kb/Work PB339) is DELEGATED: its image is the ISO §14.9.30.4 GR4 b) current
+        // record — the record area sliced to the §13.18.43.4 GR16 byte count — written down once in
+        // OperandText.CurrentRecordImage, so the intrinsic-argument channel forwards rather than going loud.
+        // No intrinsic argument can BE one today (it is built only for a READ/RETURN INTO implicit MOVE), and
+        // a loud arm for an unreachable-but-imageable operand is precisely PB25's wrong-stage failure.
+        string[] delegated = ["BoundFieldOperand", "BoundFigurative", "BoundAllLiteral", "BoundCurrentRecord"];
         string[] divergent = ["BoundBoolOperand", "BoundComputedOperand",
                               "BoundStringLiteral", "BoundOperandError"];
         string[] admittedPerFunction = ["BoundNumericLiteral"];

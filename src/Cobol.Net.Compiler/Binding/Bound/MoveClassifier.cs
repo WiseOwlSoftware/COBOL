@@ -66,8 +66,26 @@ public static class MoveClassifier
     /// reference-modified sender is excluded — its unique result is an elementary alphanumeric item whatever the
     /// underlying item (§8.4.3.3.4 GR6) — and so is a RENAMES alias (the level-66 view is composed as ONE elementary
     /// alphanumeric item, §13.18.45). A Tier-B REDEFINES group VIEW counts: GR4 classifies by the data item,
-    /// not its storage shape.</summary>
-    public static bool IsGroupSender(BoundOperand source) =>
-        source is BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } f
-        && f.Place.Item.IsGroup && !f.Place.Item.IsAsIfElementary;   // a bit / national group SENDS as elementary (D20/PB79)
+    /// not its storage shape. ⛔ The test is NOT purely structural: §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b)
+    /// DESIGNATE the READ/RETURN INTO implicit move an alphanumeric group move whenever the file description
+    /// entry carries a RECORD IS VARYING clause, so <see cref="BoundCurrentRecord"/> can answer true over an
+    /// ELEMENTARY record area (kb/Work PB339).</summary>
+    public static bool IsGroupSender(BoundOperand source) => source switch
+    {
+        // THE CURRENT RECORD of a RECORD IS VARYING file is a group sender BY DESIGNATION, not by structure:
+        // §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b) — "If the file description entry contains a RECORD IS VARYING
+        // clause, the implied move is an alphanumeric group move" — so `READ F INTO an-edited-item` deposits
+        // characters and does NOT edit, even when the FD's 01 is an elementary PIC X(n) (kb/Work PB339). Without
+        // that designation (a FORMAT 3 `RECORD CONTAINS m TO n` file) the ordinary structural test decides, so
+        // the arm falls through to it rather than answering false.
+        BoundCurrentRecord cr => cr.AlphanumericGroupMove || IsGroupPlace(cr.Area),
+        BoundFieldOperand f => IsGroupPlace(f.Place),
+        _ => false,
+    };
+
+    /// <summary>The STRUCTURAL half of the §14.9.25.4 GR4 sender-side test — the sending PLACE is a group item.
+    /// Written once so the plain field operand and the current-record operand cannot drift apart.</summary>
+    private static bool IsGroupPlace(Place p) =>
+        p is not (RefModPlace or RenamesPlace)
+        && p.Item.IsGroup && !p.Item.IsAsIfElementary;   // a bit / national group SENDS as elementary (D20/PB79)
 }

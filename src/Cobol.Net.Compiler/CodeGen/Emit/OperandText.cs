@@ -144,6 +144,31 @@ internal static class OperandText
     /// took the same string either way, which is exactly why the elementary half went unnoticed.</summary>
     public static string RecordAreaImage(Place record) => AsStorageImage(record, "record-area image of");
 
+    /// <summary>THE CURRENT RECORD's character image — the sending operand of a <c>READ … INTO</c> /
+    /// <c>RETURN … INTO</c> implicit MOVE (ISO §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b): the record area's image
+    /// (through THE ONE record-area channel above) sliced to the §13.18.43.4 GR16 byte count. The slice starts at
+    /// position 1 because the record occupies the leading positions of the area; the area's remaining positions
+    /// are padding, and sending them is what kb/Work PB339 fixes.
+    /// <para>ZERO IS A LEGAL LENGTH here and must not raise EC-BOUND-REF-MOD: GR16's closing sentence is "If the
+    /// number of bytes determined as above is zero, the record is a zero-length item", and §14.9.25.4 GR1/GR2
+    /// then space-fill the receiver — which is exactly what a zero-length ref-mod result moves.</para></summary>
+    public static string CurrentRecordImage(BoundCurrentRecord n) =>
+        RuntimeApi.StrRefMod(RecordAreaImage(n.Area), "1", CurrentRecordLength(n), allowZeroLength: true);
+
+    /// <summary>§13.18.43.4 GR16's two arms, rendered — "the number of bytes in the current record that
+    /// participate as the sending operands in the implicit MOVE statement": GR16 a) "If data-name-1 is specified,
+    /// by the content of the data item referenced by data-name-1" (the SAME expression GR13 a) renders for
+    /// RELEASE/REWRITE/WRITE — <c>SequentialIoEmitter.VaryingLengthArg</c>; one rule text, one renderer), and
+    /// GR16 b) "If data-name-1 is not specified, by the value that would have been moved into the data item
+    /// referenced by data-name-1 had data-name-1 been specified" — GR15's just-read length, which the runtime
+    /// already holds per connector (a READ) or per sort store (a RETURN).</summary>
+    public static string CurrentRecordLength(BoundCurrentRecord n) =>
+        n.Depending is { } dep
+            ? $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}"
+            : $"(int){(n.File.IsSortMerge
+                ? RuntimeApi.SortLastReturnedLength(EmitText.FileKeyExpr(n.File))
+                : RuntimeApi.FileLastReadLength(EmitText.FileKeyExpr(n.File)))}";
+
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
     /// <c>PlaceRenderer.GroupImage</c> carries, so a caller can route through THE ONE storage channel and keep
     /// its own site-specific reason (kb/Work PB178's law, PB327's second caller).</param>
@@ -423,6 +448,11 @@ internal static class OperandText
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
         public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(n.Text);
         public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign, sending);
+        // THE CURRENT RECORD (ISO §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b) — kb/Work PB339): the record area's
+        // image sliced to the §13.18.43.4 GR16 byte count. deSign is moot (the operand is alphanumeric by
+        // designation, never a signed numeric item), and so is the SendingRef exempt context (a record area's
+        // image is characters, never a float or windowed fixed-point READ).
+        public string Visit(BoundCurrentRecord n) => CurrentRecordImage(n);
         // A bare figurative is intercepted PCS-aware at AsString's ENTRY (the collating context lives on the
         // renderer, not this visitor); this arm is the unreachable native-pin fallback the visitor interface requires.
         public string Visit(BoundFigurative n) => $"new string({FigurativeConstants.Fill(n.Kind, null)}, 1)";   // DISPLAY shows one occurrence (GR3)
@@ -448,6 +478,9 @@ internal static class OperandText
         public bool Visit(BoundFieldOperand n) => n.Place.Item.IsGroup || n.Place.Item.Pic?.Category
             is PicCategory.Alphanumeric or PicCategory.NumericEdited
             or PicCategory.National or PicCategory.Boolean;
+        // The current record is an ALPHANUMERIC value — §14.9.30.4 GR4 b) calls the implied move "an
+        // alphanumeric group move" and §13.18.43.4 GR16 counts its size in BYTES.
+        public bool Visit(BoundCurrentRecord n) => true;
         // An intrinsic result compares by its §15.2 function type: alphanumeric functions are class/category
         // alphanumeric (IF107A's `IF FUNCTION CURRENT-DATE >= TEMP1` is a STRING comparison); a boolean
         // function's '0'/'1' image compares as text likewise (§8.8.4.3 over the D-B1 substrate);

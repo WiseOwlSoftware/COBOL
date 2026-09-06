@@ -333,6 +333,40 @@ public sealed record BoundNumericLiteral(string Text) : BoundOperand;
 /// <summary>A reference to a data item (its category decides string-vs-numeric rendering).</summary>
 public sealed record BoundFieldOperand(Place Place) : BoundOperand;
 
+/// <summary>
+/// THE CURRENT RECORD — the sending operand of the implicit MOVE a <c>READ … INTO</c> / <c>RETURN … INTO</c>
+/// performs. ISO §14.9.30.4 GR4 b) and §14.9.34.4 GR5 b) say it in one sentence each: "The current record is
+/// moved from the record area to the area specified by identifier-1 according to the rules for the MOVE
+/// statement without the CORRESPONDING phrase. The size of the current record is determined by rules specified
+/// in [for] the RECORD clause. If the file description entry contains a RECORD IS VARYING clause, the implied
+/// move is an alphanumeric group move."
+/// <para>⛔ THE SENDER IS THE CURRENT RECORD, NOT THE RECORD AREA. For a FORMAT 2 RECORD clause those differ:
+/// §13.18.43.4 GR16 fixes the sending size at "the number of bytes in the current record that participate as the
+/// sending operands in the implicit MOVE statement" — GR16 a) the content of data-name-1 when the DEPENDING ON
+/// phrase is present, GR16 b) otherwise "the value that would have been moved into the data item referenced by
+/// data-name-1 had data-name-1 been specified" (the just-read length, GR15). Sending the whole padded area
+/// instead is invisible to a left-justified receiver (both space-fill on the right) and DESTROYS the data for a
+/// JUSTIFIED one, whose §13.18.32.4 GR1 truncation takes the LEFTMOST characters — kb/Work PB339.</para>
+/// <para>This node is STRUCTURAL (the G4 invariant): the record-area <paramref name="Area"/>, the file whose
+/// connector or sort store holds the length, the resolved DEPENDING place when GR16 a) applies, and the GR4 b)
+/// group-move designation. The backend renders the slice and the length expression
+/// (<c>CodeGen.OperandText</c>); nothing here is C# text. A fixed-length (FORMAT 1) file needs no such node —
+/// its current record IS the record area (§13.18.43.4 GR6) — so those sites keep a plain
+/// <see cref="BoundFieldOperand"/>.</para>
+/// </summary>
+/// <param name="Area">The FD/SD record area the record was made available in (<c>FileModel.AreaRecord</c>'s
+/// resolved place — the LARGEST record's view, §13.4.2).</param>
+/// <param name="File">The file/sort-file whose current-record length is read at execution: a connector's
+/// last-read length, or — when <c>FileModel.IsSortMerge</c> — the sort store's last-returned length.</param>
+/// <param name="Depending">The resolved <c>RECORD VARYING … DEPENDING ON</c> item, or <see langword="null"/>
+/// when the phrase is absent. Present ⇒ §13.18.43.4 GR16 a); absent ⇒ GR16 b).</param>
+/// <param name="AlphanumericGroupMove">§14.9.30.4 GR4 b) / §14.9.34.4 GR5 b)'s explicit designation — true iff
+/// the file description entry contains a RECORD IS VARYING clause (FORMAT 2). It makes the implied move a
+/// §14.9.25.4 GR4 group move WHATEVER the record area's own level structure: no conversion, no editing, the
+/// receiving area "filled without consideration for the individual elementary or group items".</param>
+public sealed record BoundCurrentRecord(Place Area, FileModel File, Place? Depending, bool AlphanumericGroupMove)
+    : BoundOperand;
+
 /// <summary>A computed numeric expression used as an operand (e.g. a comparison operand <c>A + B</c>).</summary>
 public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand;
 

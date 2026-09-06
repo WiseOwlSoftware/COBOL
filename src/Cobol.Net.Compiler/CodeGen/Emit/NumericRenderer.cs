@@ -296,6 +296,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         ? new NumX(EmitText.LoudValue("long", "boolean literal in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0)
         : new NumX($"CobolNum.FromAlphanumeric({EmitText.CsLiteral(n.Value)})", 0);
     public NumX Visit(BoundOperandError n) => new(EmitText.LoudValue("long", n.Feature), 0);
+    // THE CURRENT RECORD in a NUMERIC context (kb/Work PB339): an alphanumeric operand decoded as an unsigned
+    // integer, exactly as the alphanumeric field arm below decodes one (§14.9.25.3 Table 16). ⛔ REACHABLE, not a
+    // backstop: a FORMAT 3 `RECORD CONTAINS m TO n` file (whose §14.9.30.4 GR4 b) move carries no group-move
+    // designation) with an ELEMENTARY 01 and `READ F INTO a-numeric-item` classifies MoveKind.Convert and lands
+    // here — a loud arm would abort legal source at run time.
+    public NumX Visit(BoundCurrentRecord n) => new(RuntimeApi.NumFromAlphanumeric(OperandText.CurrentRecordImage(n)), 0);
     // BoundAllLiteral (ALL "x" in a numeric context) and BoundBoolOperand (a class-boolean operand) are not numeric
     // operands — the former loud `_ =>` default handled them; now explicit (byte-identical loud value; §8.8.1).
     public NumX Visit(BoundAllLiteral n) => new(EmitText.LoudValue("long", $"bound operand '{nameof(BoundAllLiteral)}'"), 0);

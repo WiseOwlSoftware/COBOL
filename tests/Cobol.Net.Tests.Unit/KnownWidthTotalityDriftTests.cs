@@ -25,6 +25,10 @@ public sealed class KnownWidthTotalityDriftTests
         ["BoundNumericLiteral"] = "a numeric literal is not a string-channel width subject (the §15.3 kind "
             + "rules screen it before any width rule applies)",
         ["BoundBoolOperand"] = "a boolean operand does not cross the width-screened argument positions",
+        ["BoundCurrentRecord"] = "the current record's width IS its ISO §13.18.43.4 GR16 byte count — the "
+            + "DEPENDING item's content or the connector's last-read length, both runtime values (kb/Work "
+            + "PB339); the operand is also built only for a READ/RETURN INTO implicit MOVE, so it never "
+            + "reaches a §15.26.3 r2 / §15.66.3 r2 argument position at all",
     };
 
     [Fact]

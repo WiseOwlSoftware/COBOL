@@ -59,7 +59,8 @@
     "pb252_mod_rem_standard_decimal",
     "pb639_store_landing_low_order_digits",
     "pb303_as_externalized_name_2014",
-    "pb334_read_previous_sequential"
+    "pb334_read_previous_sequential",
+    "pb339_into_current_record"
   ],
   "pending": []
 }

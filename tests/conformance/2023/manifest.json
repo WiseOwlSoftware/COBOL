@@ -514,7 +514,8 @@
   "pb334_read_previous_sequential",
   "pb683_open_sharing_read_only",
   "pb683_open_sharing_no_other",
-  "pb683_write_advancing_governed"
+  "pb683_write_advancing_governed",
+  "pb339_into_current_record"
  ],
  "pending": [
   "pb485_value_only_format1"

@@ -175,7 +175,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         if (into || rd.NotAtEnd is not null || rd.InvalidKey?.NotInvalid is not null)
             using (w.Block($"{(hasInv ? "else " : "")}if ({st}[0] == '0')"))
             {
-                if (into) move.Emit(new BoundMove(new BoundFieldOperand(area!), [rd.Into!]));   // GR4 — READ INTO is READ then MOVE
+                // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §13.18.43.4 GR16 slice of the
+                // record area, never the padded area): THE SAME builder the sequential arm uses (kb/Work PB339).
+                if (into) move.Emit(new BoundMove(
+                    SequentialIoEmitter.IntoSender(file, area!, SeqIo.VaryingDepending(file)), [rd.Into!]));
                 if (rd.NotAtEnd is { } nae) Statements.EmitStatementList(nae);                  // §14.9.30 — NOT AT END on success
                 if (rd.InvalidKey?.NotInvalid is { } nik) Statements.EmitStatementList(nik);    // §9.1.14 — success only
             }
