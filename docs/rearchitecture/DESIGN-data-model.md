@@ -318,7 +318,9 @@ build; there was a predicate that stopped short.
      and `StorageForm.TierCWindow` are DELETED — dissolving the tier removes `TierCWindow`'s only stated
      parity obligation, and a quarantined form nothing assigns is the zero-fan-out trap); item 208's
      unqualified REDEFINES promise gains its truth; the phantom §8.8.4.1.1 sweep ([[PB182]] — 18 sites,
-     §8.8.4.2.3 SR2 is the real clause).
+     §8.8.4.2.1 is the real clause — "For comparison, an alphanumeric group item shall be treated as an
+     elementary alphanumeric data item"; §8.8.4.2.3 SR2, which that sweep first named, is the identifier-CLASS
+     syntax rule and says nothing about groups ([[PB741]])).
   7. **Migration + goldens**: the corpus applies ZERO pressure — and that claim is now stated in the units
      that can carry it. ⛔ "No `.cob` under `tests/`" is the WRONG INSTRUMENT ([[PB209]]): that glob finds two
      files in the external corpus, whose 1,323 programs are `AT_DATA` heredocs inside 36 `.at` wrappers. Ask

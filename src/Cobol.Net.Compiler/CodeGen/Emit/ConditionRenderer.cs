@@ -69,11 +69,26 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     // Produced only under EC-RANGE-INVALID checking (else the plain BoundLogical of two relations renders — byte-identical).
     public string Visit(BoundRangeMembership n)
     {
-        string collate = IsNationalOperand(n.Left) || IsNationalOperand(n.Lo) ? ctx.NatCollateArg : ctx.CollateArg;
+        // The range test is a PAIR of relation conditions (§14.7.8 rule 2 over §8.8.4.2), so its collating
+        // sequence comes from the ONE comparison-class rule over BOTH operands — not from a local "is either
+        // side national" test, which read `Place.Item.Pic` and so missed a national GROUP (Pic null, the
+        // §13.18.29.4 GR2b as-if PICTURE lives on OperandPic), a national ref-mod slice and a national function
+        // result, handing all three the alphanumeric 256-entry weight table (kb/Work PB741 sweep).
+        string collate = ctx.CollateArgFor(StringCategoryOf(n.Left), StringCategoryOf(n.Lo));
         return RuntimeApi.ThruMember(
             OperandText.AsString(n.Left, num), OperandText.AsString(n.Lo, num), OperandText.AsString(n.Hi, num), collate);
     }
 
+    /// <summary>⛔ THE CLASS-CONDITION classification test, and NOTHING ELSE — its one caller is
+    /// <see cref="RenderClass"/>, choosing the national or alphanumeric LC_CTYPE table for a CHARACTER
+    /// CLASSIFICATION (§8.8.4.4.4 GR3 b1/c1/d1). ⛔ It is NOT the comparison-class rule: every relation surface
+    /// asks <c>CollatingSelection.ForComparison</c> over BOTH operands' <c>OperandPic</c> categories
+    /// (<see cref="StringCategoryOf"/>). Folding a one-operand test onto a two-operand question is kb/Work PB741.
+    /// <para>⚠ KNOWN HOLE, reported with PB741 and not fixed here (a different rule, a different mechanism): this
+    /// reads <c>Pic</c>, so a national GROUP (whose §13.18.29.4 GR2b as-if PICTURE lives on <c>OperandPic</c>), a
+    /// national ref-mod slice and a national function result all answer FALSE and take the ALPHANUMERIC
+    /// classification. Fixing it belongs with the §8.8.4.4 class-condition mechanism, with its own goldens.</para>
+    /// </summary>
     private static bool IsNationalOperand(BoundOperand op) => op switch
     {
         BoundStringLiteral { Category: PicCategory.National } => true,
@@ -116,6 +131,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // below would materialize NULL against a width — nonsense for references. The only legal operand
         // shapes reached here are an object-reference field and the NULL figurative (bind-checked, 0868);
         // C# implicit upcasts cover typed-vs-universal mixes (both are CobolObject-rooted).
+        // ⛔ THE NEXT THREE TESTS READ `Pic`, NOT `OperandPic`, AND THAT IS STATED RATHER THAN ASSUMED
+        // (kb/Work PB728's sweep): `OperandPic` is `Pic ?? AsIfPic`, and the only AS-IF pictures that exist are
+        // §13.18.29.4 GR1b/GR2b's — a BIT group's (category boolean) and a NATIONAL group's (category national).
+        // No group can therefore carry ObjectReference, Pointer or ProgramPointer, so the two readers cannot
+        // disagree here. Every category read that a group CAN reach uses `StringCategoryOf`/`OperandPic`, and
+        // CollatingComparisonClassDriftTests keeps a new `Pic?.Category` from appearing on a reachable one.
         static bool IsObj(BoundOperand o) =>
             o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ObjectReference;
         if (IsObj(r.Left) || IsObj(r.Right))
@@ -161,10 +182,15 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // operand's width (ISO §8.3.3.6.4 GR2), so it routes through the width-aware figurative path.
         if (r.Left is BoundFigurative or BoundAllLiteral || r.Right is BoundFigurative or BoundAllLiteral)
             return RenderFigurativeRelational(r);
+        // ⛔ WHICH §8.8.4.2 comparison rule this relation selects is asked ONCE, from BOTH operands' categories,
+        // through the ONE comparison-class rule — the same call the figurative-relation, level-88-membership and
+        // EVALUATE-THRU surfaces make. Reading the class off ONE operand is the kb/Work PB741 defect shape.
+        PicCategory? leftCat = StringCategoryOf(r.Left), rightCat = StringCategoryOf(r.Right);
+        CollatingClass cmp = CollatingSelection.ForComparison(leftCat, rightCat);
         // BOOLEAN relations (§8.8.4.2.2 Format 2 / §8.8.4.2.8): a VALUE comparison, usage-independent, the
         // shorter operand right-extended with boolean ZEROS — never the alphanumeric program collating
         // sequence (equality-only + class purity are bind-enforced, 0844).
-        if (StringCategoryOf(r.Left) is PicCategory.Boolean || StringCategoryOf(r.Right) is PicCategory.Boolean)
+        if (cmp is CollatingClass.Boolean)
             return $"CobolString.Compare({OperandText.AsString(r.Left, num)}, {OperandText.AsString(r.Right, num)}, pad: '0') {r.Op} 0";
         // NATIONAL relations (§8.8.4.2.9/.10): full ordering under the NATIONAL collating sequence — the
         // default is the UTF-16 code-unit ordinal (D-N3; NATIVE/UCS-4 are that same identity), and a
@@ -172,11 +198,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // ALPHANUMERIC program collating sequence never applies (ctx.CollateArg — whose 256-entry weight
         // table would alias national chars through `& 0xFF` — is deliberately absent). A mixed alphanumeric
         // operand converts to national by the D-N4 Latin-1 identity (§8.8.4.2.6).
-        if (StringCategoryOf(r.Left) is PicCategory.National || StringCategoryOf(r.Right) is PicCategory.National)
+        if (cmp is CollatingClass.National)
             return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.NatCollateArg}) {r.Op} 0";
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
+            // An ALPHANUMERIC comparison (§8.8.4.2.7) under the alphanumeric program collating sequence. `cmp` is
+            // necessarily Alphanumeric here — an IsString operand's category is never Numeric, so ForComparison's
+            // both-numeric arm cannot be reached under this guard.
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
-            return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
+            return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.CollateArgFor(leftCat, rightCat)}) {r.Op} 0";
         // Each side renders knowing the OTHER side's static scale (fix-queue PB60 / RV-15.68.4-1 half 2):
         // §8.8.4.2.4 compares ALGEBRAIC VALUES, so `IF FUNCTION NUMVAL-C(A) = 0.123456789` must see the
         // function's value at (at least) the literal's 9 fraction digits — the bare receiver-less context
@@ -248,12 +277,27 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // literal"). Reading only the anchor made `IF ALL N"Z" = LOW-VALUE` take the ALPHANUMERIC program
             // collating sequence and answer the OPPOSITE of the same test written over a national ITEM.
             var anchorCat = StringCategoryOf(anchor) ?? (IsFig(anchor) ? StringCategoryOf(r.Left) : null);
-            // A boolean/national anchor exempts the ALPHANUMERIC program collating sequence: boolean
-            // comparisons are value comparisons (§8.8.4.2.8; only ZERO reaches here — the class mix is
-            // bind-rejected 0844) and national comparisons order under the NATIONAL sequence (§8.8.4.2.9 —
-            // the D-N3 ordinal identity, or __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL; the
-            // alphanumeric 256-entry weight table would alias national chars through `& 0xFF`).
-            string collate = ctx.CollateArgFor(anchorCat);
+            // The figurative's OWN category — the second operand of this comparison. §8.3.3.6.4 GR1: "When a
+            // figurative constant is used in a context requiring national characters, the figurative constant
+            // represents a national character value … Otherwise, when a figurative constant represents a
+            // character value, the figurative constant represents an alphanumeric character value." So the
+            // figurative is NATIONAL in a national context, boolean in a boolean one (only ZERO reaches — the
+            // class mix is bind-rejected 0844), and ALPHANUMERIC everywhere else — including opposite a NUMERIC
+            // anchor, which is precisely §8.8.4.2.5's case: the numeric integer operand is treated as though
+            // moved to an item "of the same class and usage as the alphanumeric … operand", after which
+            // §8.8.4.2.7 collates the pair under the ALPHANUMERIC program collating sequence.
+            // ⛔ kb/Work PB741: asking the ANCHOR alone for the class answered "numeric ⇒ no sequence" (the
+            // SORT-KEY rule, §14.9.40.4 GR5) and silently dropped the program collating sequence from every
+            // `numeric-item < SPACE` relation — NIST NC215A SEQ-TEST-GF-6/-7 went PASS → FAIL*. The comparison
+            // class is a property of the PAIR, so both categories go to the one rule.
+            PicCategory figCat = anchorCat is PicCategory.National or PicCategory.Boolean
+                ? anchorCat.Value : PicCategory.Alphanumeric;
+            // A boolean/national comparison exempts the ALPHANUMERIC program collating sequence: boolean
+            // comparisons are value comparisons (§8.8.4.2.8) and national comparisons order under the NATIONAL
+            // sequence (§8.8.4.2.9 — the D-N3 ordinal identity, or __COLLATE_NAT under a non-native
+            // ALPHABET … FOR NATIONAL; the alphanumeric 256-entry weight table would alias national chars
+            // through `& 0xFF`).
+            string collate = ctx.CollateArgFor(anchorCat, figCat);
             // A boolean anchor right-extends the shorter operand with boolean ZEROS (§8.8.4.2.8) — the same
             // pad the direct-relation and level-88 legs thread; pad and collate never coexist (a boolean
             // anchor forces collate empty). The figurative materializes category-aware (national/boolean
@@ -269,8 +313,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // count, which the runtime reads off that operand's rendered value (§8.4.3.3.4 GR5: a ref-modified
             // operand's positions are the slice's, and with computed bounds they exist only at runtime).
             bool figLeft = IsFig(r.Left);
+            // ⛔ deSign, exactly as the direct string relation above does it — the SAME §8.8.4.2.5 comparison,
+            // and this arm was the one that never got it (the two-arm dispatch shape; kb/Work PB741 sweep).
+            // §8.8.4.2.5 moves the numeric integer operand to an item "of the same length in terms of character
+            // positions as the NUMBER OF DIGITS in the integer", and §14.9.25.4 GR6a governs that move: "If the
+            // sending operand is described as being signed numeric, the operational sign is not moved; if the
+            // operational sign occupies a separate character position, that character is not moved and the size
+            // of the sending operand is considered to be one less than its actual size." So `IF S9 < SPACE` over
+            // PIC S9 compares "9", never an overpunched or sign-carrying image. A no-op for every non-signed-
+            // numeric anchor (alphanumeric, numeric-edited — whose EDITED sign is part of its image and stays,
+            // §8.8.4.2.1 NOTE — national, boolean), which is why it is unconditional here as it is above.
             string fig = FigSeed(figLeft ? r.Left : r.Right, anchorCat),
-                   other = OperandText.AsString(anchor, num);
+                   other = OperandText.AsString(anchor, num, deSign: true);
             return $"{RuntimeApi.StrCompareFig(figLeft ? fig : other, figLeft ? other : fig, figLeft, pad + collate)} {r.Op} 0";
         }
         NumX l = FigOrNum(r.Left), rr = FigOrNum(r.Right);
@@ -399,6 +453,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     private string RenderClass(BoundClassCondition c)
     {
         var fld = c.Operand as BoundFieldOperand;
+        // `Pic`, not `OperandPic`, and safely so: the only as-if pictures are a bit group's (boolean) and a
+        // national group's (national) — §13.18.29.4 GR1b/GR2b — so no GROUP is ever category Numeric and the
+        // two readers cannot disagree here (kb/Work PB728's sweep, stated rather than assumed).
         bool numericCategory = fld?.Place.Item.Pic?.Category is PicCategory.Numeric;
         bool numericField = numericCategory && fld!.Place is not RedefViewPlace && !fld.Place.Item.StoreAsImage;
         // The complement, minus the ref-mod shape: a numeric leaf whose storage IS a character window.
@@ -432,7 +489,10 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     private string RenderCondition88(BoundCondition88 c)
     {
-        bool isString = c.Parent.Item.IsGroup || c.Parent.Item.Pic?.Category is PicCategory.Alphanumeric
+        // OPERAND picture (§13.18.29.4 GR1b/GR2b), the ONE category reader — not `Pic`. Byte-identical today
+        // (`IsGroup` already covers a bit / national group), but for the RIGHT reason: those groups are class
+        // boolean / national, not "a group we happen to render as a string" (kb/Work PB728).
+        bool isString = c.Parent.Item.IsGroup || c.Parent.Item.OperandPic?.Category is PicCategory.Alphanumeric
             or PicCategory.NumericEdited or PicCategory.National or PicCategory.Boolean;
         // ISO §8.8.4.5 GR2: a condition-name test compares the conditional variable by the RELATION-CONDITION rules, so
         // the variable is rendered as a comparison operand exactly as a relation condition renders it — an alphanumeric
@@ -461,8 +521,19 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // variable compares by value with boolean-zero extension and never the alphanumeric PCS (§8.8.4.2.8);
             // a NATIONAL one orders under the NATIONAL sequence (§8.8.4.2.9 — the D-N3 ordinal identity, or
             // __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL; never the alphanumeric PCS weights).
-            var cat = parent.Pic?.Category;
-            string collate = ctx.CollateArgFor(cat);
+            // §8.8.4.5.3 GR2 — "The rules for comparing a conditional variable with a condition-name value are
+            // the same as those specified for relation conditions" — so the collating sequence comes from the ONE
+            // comparison-class rule. A level-88 VALUE literal is always of the conditional variable's OWN
+            // category (§13.18.63.3 SR2 numeric ⇒ numeric literals, SR4 alphabetic/alphanumeric/alphanumeric-
+            // edited ⇒ alphanumeric, SR5 national/national-edited ⇒ national, SR10 boolean ⇒ boolean), so the
+            // pair is the variable's category twice — this is a case where one category legitimately answers
+            // for both, and it is stated rather than assumed.
+            // ⛔ OPERAND picture, not Pic: a national / bit GROUP conditional variable carries its §13.18.29.4
+            // GR2b/GR1b as-if PICTURE on OperandPic and has Pic null, so reading Pic handed a national group the
+            // ALPHANUMERIC weight table and lost a bit group's boolean-zero pad (kb/Work PB741 sweep — the same
+            // accessor CollateArgFor's own contract already required).
+            var cat = parent.OperandPic?.Category;
+            string collate = ctx.CollateArgFor(cat, cat);
             string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
             string lo = StringMembershipExpr(low, parent);
             if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";

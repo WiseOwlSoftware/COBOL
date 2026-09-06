@@ -23,7 +23,7 @@ public static class CobolSort
     /// §8.8.4.2.4 numeric (algebraic, never collated).</summary>
     public enum KeyClass
     {
-        /// <summary>Class alphabetic / alphanumeric, and every GROUP key (§8.8.4.2.3 SR2 makes a group operand
+        /// <summary>Class alphabetic / alphanumeric, and every GROUP key (§8.8.4.2.1 makes a group operand
         /// class alphanumeric): the byte window compared under the GR5 alphanumeric sequence.</summary>
         Alphanumeric,
 

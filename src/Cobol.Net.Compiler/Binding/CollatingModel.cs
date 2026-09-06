@@ -235,7 +235,11 @@ public sealed record CodedCharacterSet(string Phrase, bool National, CollatingTa
 public enum CollatingClass
 {
     /// <summary>Class alphabetic / alphanumeric (and the edited categories, which compare as alphanumeric), plus
-    /// every ordinary GROUP operand — §8.8.4.2.3 SR2 makes a group item class alphanumeric.</summary>
+    /// every ordinary GROUP operand — §8.8.4.2.1 "For comparison, an alphanumeric group item shall be treated as an
+    /// elementary alphanumeric data item. A class alphabetic operand shall be treated as though it were an operand
+    /// of class alphanumeric." (⛔ NOT §8.8.4.2.3 SR2, which this used to cite: SR2 is the identifier-CLASS syntax
+    /// rule and says nothing about groups — kb/Work PB741, feedback_a_real_clause_can_answer_a_different_question.)
+    /// </summary>
     Alphanumeric,
 
     /// <summary>Class national (§8.8.4.2.9) — including a national GROUP, which operates as an elementary item of
@@ -249,19 +253,29 @@ public enum CollatingClass
     Numeric,
 }
 
-/// <summary>The classifier for <see cref="CollatingClass"/>: "which class is this operand" asked once, so no
-/// consumer re-decides it.</summary>
+/// <summary>The classifiers for <see cref="CollatingClass"/>, asked once so no consumer re-decides them.
+/// <para>⛔ THERE ARE TWO QUESTIONS HERE AND THEY ARE NOT THE SAME QUESTION. <see cref="Of(PicCategory?)"/> answers
+/// the ONE-OPERAND question — "what class is this SORT/MERGE KEY, and which of §14.9.40.4 GR5 / §14.9.24.4 GR5's
+/// two separately-determined sequences does it take?", where a key of class numeric takes NEITHER.
+/// <see cref="ForComparison"/> answers the TWO-OPERAND question — "which of §8.8.4.2's per-class comparison rules
+/// does this relation select?", where §8.8.4.2.5 makes a numeric integer operand compared with an ALPHANUMERIC
+/// operand an alphanumeric comparison that §8.8.4.2.7 collates. Folding the comparison question onto the SORT-key
+/// classifier dropped the program collating sequence from every <c>numeric-item &lt; SPACE</c> relation and turned
+/// NIST NC215A's SEQ-TEST-GF-6/-7 from PASS to FAIL* (kb/Work PB741; the fold was kb/Work PB678's
+/// <c>f798397f</c>).</para></summary>
 public static class CollatingSelection
 {
-    /// <summary>The comparison class of an operand described by <paramref name="operandPic"/> — which shall be the
-    /// item's OPERAND picture (<c>DataItem.OperandPic</c>: its own PICTURE for an elementary item, the
+    /// <summary>The SORT/MERGE KEY class of an operand described by <paramref name="operandPic"/> — which shall be
+    /// the item's OPERAND picture (<c>DataItem.OperandPic</c>: its own PICTURE for an elementary item, the
     /// §13.18.29.4 GR1b/GR2b as-if PICTURE for a bit / national group), never <c>Pic</c> guarded by
-    /// <c>IsGroup</c>. A null picture is an ordinary (alphanumeric) group — §8.8.4.2.3 SR2.</summary>
+    /// <c>IsGroup</c>. A null picture is an ordinary (alphanumeric) group — §8.8.4.2.1 "For comparison, an
+    /// alphanumeric group item shall be treated as an elementary alphanumeric data item".</summary>
     public static CollatingClass Of(PicInfo? operandPic) => Of(operandPic?.Category);
 
-    /// <summary>The same rule keyed directly on a category — the form the relation-condition renderer needs, whose
-    /// anchor category is derived (a figurative constant takes the OTHER operand's category, §8.3.3.6.4 GR1) and so
-    /// never arrives as a <see cref="PicInfo"/>.</summary>
+    /// <summary>The SORT/MERGE KEY class keyed directly on a category. ⛔ NOT the comparison-class rule: a relation
+    /// condition has TWO operands and its rule is chosen from BOTH — call <see cref="ForComparison"/> there.
+    /// §14.9.40.4 GR5 / §14.9.24.4 GR5 name a sequence for keys of class alphabetic/alphanumeric and for keys of
+    /// class national only, so a numeric key answers <see cref="CollatingClass.Numeric"/> = no sequence.</summary>
     public static CollatingClass Of(PicCategory? category) => category switch
     {
         PicCategory.National => CollatingClass.National,
@@ -269,6 +283,50 @@ public static class CollatingSelection
         PicCategory.Numeric => CollatingClass.Numeric,
         _ => CollatingClass.Alphanumeric,
     };
+
+    /// <summary>⛔ THE COMPARISON-CLASS RULE, written down ONCE: which of ISO §8.8.4.2's per-class comparison
+    /// clauses a relation condition selects, given the categories of BOTH operands (null = an ordinary alphanumeric
+    /// group or a category-less operand). Every relation-condition surface — the direct relation, the figurative
+    /// relation, the level-88 membership test and the EVALUATE THRU range — asks THIS, so none of them can decide
+    /// half a comparison from one operand.
+    /// <para>Both arguments shall be OPERAND categories (<c>DataItem.OperandPic</c>'s, so a bit / national GROUP
+    /// answers as the elementary item §13.18.29.4 GR1b/GR2b makes it); a figurative constant has no category of its
+    /// own and takes its context's (§8.3.3.6.4 GR1).</para>
+    /// <para>The categories §8.8.4.2.14/.15/.16 govern — message-tag, object and pointer — never reach here: those
+    /// relations are reference-IDENTITY comparisons with no sequence of any kind, and the relation renderer returns
+    /// them before any category is classified (pinned by <c>CollatingComparisonClassDriftTests</c>).</para></summary>
+    /// <param name="left">The subject operand's category (§8.8.4.2.1 — "The first operand is called the subject").</param>
+    /// <param name="right">The object operand's category. The rule is symmetric; both orders answer alike.</param>
+    public static CollatingClass ForComparison(PicCategory? left, PicCategory? right)
+    {
+        // §8.8.4.2.8 — a boolean comparison is "a comparison of their boolean value, regardless of their usage":
+        // NO sequence, and the shorter operand is boolean-zero extended. §8.8.4.2.1 item 4 defines the comparison
+        // only for TWO class-boolean operands and a class mix is bind-rejected (COBOLNET0844), so either side
+        // answering boolean settles it. First, because an alphanumeric weight table that reorders '0' and '1'
+        // would otherwise invert a boolean test over the D-B1 character substrate.
+        if (left is PicCategory.Boolean || right is PicCategory.Boolean) return CollatingClass.Boolean;
+        // §8.8.4.2.9 — a national comparison is made "with respect to the collating sequence of characters
+        // specified for the current national program collating sequence". BOTH mixed forms land here: §8.8.4.2.6
+        // converts a class-alphanumeric operand to national and then compares "by the rules for comparison of two
+        // operands of class national", and §8.8.4.2.5 moves a numeric integer operand to an item "of the same
+        // class and usage as the alphanumeric or national operand". So one national operand makes the comparison
+        // national (§8.8.4.2.1 items 5, 6 and 7).
+        if (left is PicCategory.National || right is PicCategory.National) return CollatingClass.National;
+        // §8.8.4.2.4 — ONLY when BOTH operands are class numeric is the comparison algebraic ("a comparison is
+        // made with respect to the algebraic value of the operands regardless of the manner in which their usage
+        // is described") and therefore sequence-free. ⛔ ONE numeric operand does NOT make a numeric comparison:
+        // that is §8.8.4.2.5's case and it falls through to the alphanumeric arm below.
+        if (left is PicCategory.Numeric && right is PicCategory.Numeric) return CollatingClass.Numeric;
+        // §8.8.4.2.7 — everything else is an alphanumeric comparison, "made with respect to the collating sequence
+        // of characters specified for the current alphanumeric program collating sequence": two alphanumeric
+        // operands (§8.8.4.2.1 item 3), the §8.8.4.2.1 normalizations (an alphanumeric GROUP and a class
+        // alphabetic operand are "treated as" elementary alphanumeric — a null category is that group), the edited
+        // categories (§8.8.4.2.1 NOTE — "All comparisons involving numeric-edited data items are alphanumeric or
+        // national comparisons"), and §8.8.4.2.5's numeric integer against an alphanumeric operand, which is
+        // "treated as though it were moved … to an elementary data item … of the same class and usage as the
+        // alphanumeric … operand" and then compared "by the rules for comparison of that alphanumeric … item".
+        return CollatingClass.Alphanumeric;
+    }
 }
 
 /// <summary>
@@ -279,7 +337,8 @@ public static class CollatingSelection
 /// independent — a statement may name one, both or neither.
 /// </summary>
 /// <param name="Alphanumeric">The GR5-resolved sequence for keys of class alphabetic and alphanumeric (and for
-/// ordinary group keys, §8.8.4.2.3 SR2).</param>
+/// ordinary group keys, §8.8.4.2.1 — "an alphanumeric group item shall be treated as an elementary alphanumeric
+/// data item").</param>
 /// <param name="National">The GR5-resolved sequence for keys of class national.</param>
 public sealed record SortCollation(AlphabetDef? Alphanumeric, NationalAlphabetDef? National)
 {

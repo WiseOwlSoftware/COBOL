@@ -48,19 +48,26 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// characters through <c>&amp; 0xFF</c>).</summary>
     public string NatCollateArg => Data.NationalCollating is null ? "" : ", __COLLATE_NAT";
 
-    /// <summary>The trailing collation argument a comparison of <paramref name="operandCategory"/> operands
-    /// takes — <see cref="CollateArg"/>, <see cref="NatCollateArg"/> or nothing — chosen through the ONE
-    /// classifier (<c>CollatingSelection.Of</c>): §8.8.4.2.7 collates an alphanumeric comparison, §8.8.4.2.9 a
+    /// <summary>The trailing collation argument a relation between operands of categories
+    /// <paramref name="leftCategory"/> and <paramref name="rightCategory"/> takes — <see cref="CollateArg"/>,
+    /// <see cref="NatCollateArg"/> or nothing — chosen through the ONE comparison-class rule
+    /// (<c>CollatingSelection.ForComparison</c>): §8.8.4.2.7 collates an alphanumeric comparison, §8.8.4.2.9 a
     /// national one under the national sequence, and §8.8.4.2.8 / §8.8.4.2.4 collate NEITHER a boolean nor a
     /// numeric comparison — a boolean operand under the alphanumeric weight table would let an alphabet that
-    /// reorders '0' and '1' invert a boolean test. Pass the item's OPERAND picture's (<c>DataItem.OperandPic</c>)
-    /// category, so a bit / national GROUP is classified as the elementary operand §13.18.29.4 GR1b/GR2b makes it.</summary>
-    public string CollateArgFor(PicCategory? operandCategory) => CollatingSelection.Of(operandCategory) switch
-    {
-        CollatingClass.National => NatCollateArg,
-        CollatingClass.Alphanumeric => CollateArg,
-        _ => "",
-    };
+    /// reorders '0' and '1' invert a boolean test.
+    /// <para>⛔ BOTH operands, always. A comparison's rule is not a property of one side: §8.8.4.2.5 makes a
+    /// numeric-DISPLAY operand compared with an alphanumeric one an ALPHANUMERIC comparison, so asking only the
+    /// numeric side returns "no sequence" and silently drops the PROGRAM COLLATING SEQUENCE (kb/Work PB741 — NIST
+    /// NC215A `IF NINE-DU-9V0-1 &lt; SPACE`). Pass each item's OPERAND picture's (<c>DataItem.OperandPic</c>)
+    /// category, so a bit / national GROUP is classified as the elementary operand §13.18.29.4 GR1b/GR2b makes
+    /// it; a figurative constant has no category of its own and takes its context's (§8.3.3.6.4 GR1).</para></summary>
+    public string CollateArgFor(PicCategory? leftCategory, PicCategory? rightCategory) =>
+        CollatingSelection.ForComparison(leftCategory, rightCategory) switch
+        {
+            CollatingClass.National => NatCollateArg,
+            CollatingClass.Alphanumeric => CollateArg,
+            _ => "",
+        };
 
     /// <summary>The editing-config suffix for a generated <c>CobolEdit</c> call over <paramref name="pic"/>'s
     /// mask (named arguments, composing after any <c>blankWhenZero:</c>): the mask's currency STRING when it is

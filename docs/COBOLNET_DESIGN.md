@@ -1786,6 +1786,18 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     collating sequence (GR5b) for keys of class national — and each KEY takes the one its class names, through the
     ONE classifier `CollatingSelection.Of` (kb/Work PB678). A key of class boolean or numeric takes NEITHER: GR5
     names no sequence for those classes, and §8.8.4.2.8 / §8.8.4.2.4 compare them by value.
+    RELATION CONDITIONS ask a **different question with a different classifier**, `CollatingSelection.ForComparison`
+    (kb/Work PB741): which of §8.8.4.2's per-class comparison clauses does this relation select, given **BOTH**
+    operands' categories — boolean if either is boolean (§8.8.4.2.8), else national if either is national
+    (§8.8.4.2.9, which §8.8.4.2.6 and §8.8.4.2.5 both route into), else numeric only if **both** are numeric
+    (§8.8.4.2.4), else alphanumeric (§8.8.4.2.7, carrying §8.8.4.2.1's normalizations — an alphanumeric group and a
+    class alphabetic operand are "treated as" elementary alphanumeric — and §8.8.4.2.5's numeric integer against an
+    alphanumeric operand). `EmitContext.CollateArgFor(left, right)` takes the PAIR, so a caller cannot supply half a
+    comparison, and all four relation surfaces go through it: the direct relation, the figurative relation, the
+    level-88 membership test (§8.8.4.5.3 GR2) and the EVALUATE THRU range (§14.7.8 rule 2). ⛔ The two classifiers
+    must stay separate: folding the comparison onto `Of` made `IF numeric-item < SPACE` take the SORT-key answer
+    ("numeric ⇒ no sequence") and silently drop the PROGRAM COLLATING SEQUENCE — NIST NC215A SEQ-TEST-GF-6/-7.
+    `CollatingComparisonClassDriftTests` pins the whole category matrix and the exact pair where they disagree.
 14a. **The alphabet as a CODED CHARACTER SET (ISO §12.3.7.4 GR7 Table 6 — kb/Work PB110 / PB109).** An
     alphabet-name references a collating sequence, a coded character set, or both; NOTE 2 of GR7 names the four
     sites that reference the CODED CHARACTER SET — "*the class condition, the CLASS clause …, a SYMBOLIC CHARACTERS

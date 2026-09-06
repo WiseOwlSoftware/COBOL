@@ -69,6 +69,49 @@
       *>      must answer identically -> N.  Reading the category off
       *>      the anchor SLOT rather than the context made U09 answer
       *>      Y and U10 answer N (kb/Work PB297).
+      *>  U11-U16 THE NUMERIC ANCHOR (kb/Work PB741).  A figurative
+      *>      or ALL literal compared with a NUMERIC DISPLAY item is
+      *>      NOT a numeric comparison: 8.3.3.6.4 GR1 makes the
+      *>      figurative an alphanumeric character value, 8.8.4.2.5
+      *>      then treats the integer operand 'as though it were
+      *>      moved ... to an elementary data item of the same length
+      *>      in terms of character positions as the number of digits
+      *>      in the integer, and of the same class and usage as the
+      *>      alphanumeric ... operand', and 8.8.4.2.7 compares the
+      *>      pair 'with respect to the collating sequence of
+      *>      characters specified for the current alphanumeric
+      *>      program collating sequence'.  Before PB741 this arm
+      *>      asked the SORT-KEY classifier (14.9.40.4 GR5, where a
+      *>      numeric key takes no sequence) and dropped ALPHABET AL
+      *>      entirely; the golden family had no numeric item, so
+      *>      only NIST NC215A saw it.
+      *>  U11 LOW-VALUE is 'the character ... that has the lowest
+      *>      ordinal position in the collating sequence' (8.3.3.6.4
+      *>      GR7) = 'Z', AL's first listed character.  '9' is NOT in
+      *>      the literal phrase, so 12.3.7.4 GR7 puts it above every
+      *>      listed character, 'Z' included -> "9" > "Z" -> Y.
+      *>      Without the sequence the native order answers the
+      *>      OPPOSITE ('9' is x39, 'Z' is x5A) -> this leg is the
+      *>      discriminator.
+      *>  U12 the same comparison through the ALL-literal arm, sized
+      *>      by GR2 to NUM9's one character position: "9" < "Z" is
+      *>      FALSE under AL -> N.
+      *>  U13 THE AGREEMENT THIS PAIR EXISTS TO ASSERT: the same
+      *>      8.8.4.2.5 comparison written with a plain alphanumeric
+      *>      literal instead of a figurative.  It rides a different
+      *>      renderer arm and must answer identically -> Y.  Before
+      *>      PB741 U11 answered N and U13 answered Y.
+      *>  U14 a SIGNED numeric anchor.  8.8.4.2.5's move is governed
+      *>      by 14.9.25.4 GR6a - 'If the sending operand is
+      *>      described as being signed numeric, the operational sign
+      *>      is not moved' - so SNUM9 compares as "9", exactly as
+      *>      U11 -> Y.
+      *>  U15 U14's literal twin, on the arm that already de-signed
+      *>      -> Y.  The pair pins that both arms drop the sign.
+      *>  U16 the multi-position case: 8.8.4.2.5 sizes the moved
+      *>      operand to the NUMBER OF DIGITS (4) and GR2 sizes
+      *>      LOW-VALUES to the same 4 positions, so "9999" is
+      *>      compared with "ZZZZ" and the first pair decides -> Y.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB297G2.
        ENVIRONMENT DIVISION.
@@ -84,6 +127,9 @@
        01 B  PIC 1(4) USAGE BIT VALUE B"0000".
        01 A  PIC X(4) VALUE "abab".
        01 NZ PIC N(1) VALUE ALL N"Z".
+       01 NUM9  PIC 9 VALUE 9.
+       01 SNUM9 PIC S9 VALUE 9.
+       01 NUM4  PIC 9(4) VALUE 9999.
        PROCEDURE DIVISION.
        MAIN.
            IF P(1:1) = LOW-VALUE
@@ -106,4 +152,16 @@
               DISPLAY "U09=Y" ELSE DISPLAY "U09=N" END-IF
            IF NZ = LOW-VALUE
               DISPLAY "U10=Y" ELSE DISPLAY "U10=N" END-IF
+           IF NUM9 > LOW-VALUE
+              DISPLAY "U11=Y" ELSE DISPLAY "U11=N" END-IF
+           IF NUM9 < ALL "Z"
+              DISPLAY "U12=Y" ELSE DISPLAY "U12=N" END-IF
+           IF NUM9 > "Z"
+              DISPLAY "U13=Y" ELSE DISPLAY "U13=N" END-IF
+           IF SNUM9 > LOW-VALUE
+              DISPLAY "U14=Y" ELSE DISPLAY "U14=N" END-IF
+           IF SNUM9 > "Z"
+              DISPLAY "U15=Y" ELSE DISPLAY "U15=N" END-IF
+           IF NUM4 > LOW-VALUES
+              DISPLAY "U16=Y" ELSE DISPLAY "U16=N" END-IF
            STOP RUN.

@@ -282,7 +282,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         // ⛔ V59 RESIDUE FIX (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. §14.9.40.4 GR8
         // (`cite.py`-verified) makes a key comparison IDENTICAL to a relation condition — key data items are
         // "compared according to the rules for comparison of operands in a relation condition" — and a GROUP
-        // operand in a relation condition is class alphanumeric (§8.8.4.2.3 SR2) compared over its
+        // operand in a relation condition is class alphanumeric (§8.8.4.2.1) compared over its
         // representation, which `OperandText` already renders through `AsImage()` gated on IsImageCapable. Testing
         // the stricter predicate here therefore made SORT and `IF a > b` DISAGREE about the very same two group
         // operands: the IF compared their byte images while the SORT threw "no whole-group character image" —

@@ -57,7 +57,7 @@ public sealed class BoundaryImageChannelTests
         // parameters), never a Place — so no window, ODO or Tier-C shape can reach it and there is no Place to
         // hand PlaceRenderer. Its own IsImageCapable guard sits one line above. Self-spelled by NECESSITY.
         // The count is SIX because §14.9.40.4 GR5 gives a key of each CLASS its own operand face and the
-        // comparer must read all three: AsImage() for an ordinary group (§8.8.4.2.3 SR2 — class alphanumeric),
+        // comparer must read all three: AsImage() for an ordinary group (§8.8.4.2.1 — "an alphanumeric group item shall be treated as an elementary alphanumeric data item"; NOT §8.8.4.2.3 SR2, the identifier-CLASS syntax rule — kb/Work PB741),
         // AsNat() for a GROUP-USAGE NATIONAL group (§13.18.29.4 GR2b) and AsBits() for a GROUP-USAGE BIT one
         // (GR1b), each spelled twice (the two element parameters). kb/Work PB678.
         ["CodeGen/Verbs/SortEmitter.cs"] = (6, "TableCompare compares struct rvalues, not Places"),
