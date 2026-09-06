@@ -1159,13 +1159,13 @@ internal sealed class VersionConformancePass
         /// <summary>ALPHABET … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — a COBOL-2002 introduction; the base ALPHABET
         /// clause is version-invariant. One of the three SPECIAL-NAMES FOR-phrase sites (all one constructId +
         /// where-string), gated once per clause on the FOR phrase's presence (either the ISO position between the
-        /// name and IS, or the accepted postfix superset — the <c>alphabetForPhrase</c> subrule covers both).
+        /// name and IS, or the accepted postfix superset — the <c>specialNamesForPhrase</c> subrule covers both).
         /// The UCS-4/UTF-8/UTF-16 coded-set phrases (§12.3.7.2, the FOR NATIONAL branch) are §8.9
         /// CONTEXT-SENSITIVE words arriving as plain cobolWord entries — recognized here BY TEXT (never lexer
         /// keywords) and gated as their own 2002 introduction (alphabet-national-2002).</summary>
         public override object? VisitAlphabetClause(CobolParserCore.AlphabetClauseContext ctx)
         {
-            if (ctx.alphabetForPhrase().Length > 0)
+            if (ctx.specialNamesForPhrase().Length > 0)
                 _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
             if (ctx.alphabetDefinition() is { } def && def.alphabetEntry() is [{ ChildCount: 1 } entry]
                 && entry.GetChild(0) is CobolParserCore.CobolWordContext w
@@ -1244,19 +1244,26 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>CLASS … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — the second SPECIAL-NAMES FOR-phrase site (matching
-        /// SwitchBindClass's <c>cd.FOR()</c>).</summary>
+        /// <summary>CLASS … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — the second SPECIAL-NAMES FOR-phrase site.
+        /// <para>⛔ THE GATE TESTS THE SUBRULE, NEVER THE WORD (kb/Work PB695). It used to read <c>ctx.FOR()</c>,
+        /// and FOR is an OPTIONAL WORD in this format (folio 290 rules ALPHANUMERIC and NATIONAL and nothing
+        /// else): the moment the grammar let the user omit it, a word-keyed gate would have stopped firing and
+        /// `CLASS X IS "0" NATIONAL` would have compiled silently at COBOL-85. All three sites now share
+        /// <c>specialNamesForPhrase</c> and all three ask the same question of it.</para></summary>
         public override object? VisitClassDefinitionClause(CobolParserCore.ClassDefinitionClauseContext ctx)
         {
-            if (ctx.FOR() is not null) _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+            if (ctx.specialNamesForPhrase() is not null)
+                _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
             return base.VisitChildren(ctx);
         }
 
         /// <summary>SYMBOLIC CHARACTERS … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — the third SPECIAL-NAMES FOR-phrase
-        /// site (matching the <c>sc.FOR()</c> check). The base SYMBOLIC CHARACTERS clause stays accepted-inert.</summary>
+        /// site, keyed on the shared subrule for the reason spelled out on <see cref="VisitClassDefinitionClause"/>.
+        /// The base SYMBOLIC CHARACTERS clause stays accepted-inert.</summary>
         public override object? VisitSymbolicCharactersClause(CobolParserCore.SymbolicCharactersClauseContext ctx)
         {
-            if (ctx.FOR() is not null) _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+            if (ctx.specialNamesForPhrase() is not null)
+                _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
             return base.VisitChildren(ctx);
         }
 

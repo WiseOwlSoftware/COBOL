@@ -255,8 +255,13 @@ floatDecimalEncoding
 // §11.9.10 — INITIALIZE {ALL | {LOCAL-STORAGE | SCREEN | WORKING-STORAGE}...} [SECTION]
 //            TO {BINARY ZEROES | HIGH-VALUES | literal-1 | LOW-VALUES | SPACES}.
 // Named distinctly from the PROCEDURE-DIVISION initializeStatement (disjoint parse contexts — no ambiguity).
+// ⛔ TO IS AN OPTIONAL WORD (kb/Work PB695, §5.2.3): printed folio 277's underline census for this format is
+// exactly {ALL, BINARY, HIGH-VALUES, INITIALIZE, LOCAL-STORAGE, LOW-VALUES, SCREEN, SPACES, WORKING-STORAGE,
+// ZEROES} — SECTION and TO are absent from it. SECTION was already relaxed and TO was not, so
+// `INITIALIZE ALL SPACES.` was rejected. The fill words are disjoint from the target words, so the omission
+// leaves the clause unambiguous.
 optionsInitializeClause
-    : INITIALIZE optionsInitializeTarget SECTION? TO optionsInitializeFill
+    : INITIALIZE optionsInitializeTarget SECTION? TO? optionsInitializeFill
     ;
 
 optionsInitializeTarget
@@ -425,8 +430,14 @@ sourceComputerParagraph
 // 'PROGRAM'`). computerAttributes stays the token SINK for the deleted '85 clauses (MEMORY SIZE, SEGMENT-LIMIT —
 // VisitComputerAttributes' token scan), reachable only behind a name; it stops at PROGRAM and CHARACTER so the two
 // standard clauses are recognized, never swallowed.
+// ⛔ THE OPTIONAL computer-name-1 IS GUARDED BY THE CLAUSE LOOKAHEAD (kb/Work PB695). Once CHARACTER and PROGRAM
+// became optional words, both clauses can OPEN with an ordinary word (`CLASSIFICATION …`) or with a token the
+// name slot would otherwise have to be told apart from, and `(computerName …)?` is greedy: without the guard
+// `OBJECT-COMPUTER. CLASSIFICATION IS SYSTEM-DEFAULT.` binds CLASSIFICATION as the computer name and the sink
+// eats the rest — accepted, silently, as nothing. The predicate is LEFT-EDGE (it steers the enter/skip decision
+// of the optional group); mid-alternative it would let the group be entered and then throw.
 objectComputerParagraph
-    : OBJECT_COMPUTER DOT ((computerName computerAttributes?)? objectComputerClause* DOT)?
+    : OBJECT_COMPUTER DOT (({!objectComputerClauseAhead()}? computerName computerAttributes?)? objectComputerClause* DOT)?
     ;
 
 objectComputerClause
@@ -442,12 +453,22 @@ objectComputerClause
 // one). CLASSIFICATION is not a token (an ordinary word at '85), so the arm is predicated on the word's text after
 // the CHARACTER token; the four locale-phrase spellings are all words here — the binder never gets to tell them
 // apart, since the clause is rejected whole.
+// ⛔ CHARACTER AND FOR ARE OPTIONAL WORDS (kb/Work PB695, §5.2.3): printed folio 285's underline census for
+// §12.3.6.2 is exactly {ALPHANUMERIC, CLASSIFICATION, LOCALE, NATIONAL, OBJECT-COMPUTER., SEQUENCE,
+// SYSTEM-DEFAULT, USER-DEFAULT} — the rule under `CHARACTER CLASSIFICATION` covers CLASSIFICATION alone, and
+// the FOR of `FOR ALPHANUMERIC IS locale-phrase-1` carries none. `CLASSIFICATION IS SYSTEM-DEFAULT.` and
+// `CHARACTER CLASSIFICATION NATIONAL IS L2.` are both conforming and were both rejected.
+// ⛔ THE PREDICATE MOVED TO THE LEFT EDGE. It used to sit after the CHARACTER token, where it could only be
+// asserted once the alternative had already been chosen; with CHARACTER optional the rule opens on an ordinary
+// word and the predicate has to STEER prediction, not throw after it (the `feedback_left_edge_predicates`
+// shape). classificationAhead() therefore reads the CHARACTER-then-CLASSIFICATION pair or a bare leading
+// CLASSIFICATION, and demands the clause actually continue — a lone word before the period is a computer-name.
 characterClassificationClause
-    : CHARACTER {classificationAhead()}? cobolWord (classificationForPhrase+ | IS? cobolWord cobolWord?)
+    : {classificationAhead()}? CHARACTER? cobolWord (classificationForPhrase+ | IS? cobolWord cobolWord?)
     ;
 
 classificationForPhrase
-    : FOR (ALPHANUMERIC | NATIONAL) IS? cobolWord
+    : FOR? (ALPHANUMERIC | NATIONAL) IS? cobolWord
     ;
 
 // PROGRAM COLLATING SEQUENCE {IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS alphabet-name-1 |
@@ -455,16 +476,26 @@ classificationForPhrase
 // name and the FOR forms arrived with the national class (2002) — introduction-gated on recognition by
 // VersionConformancePass ParseArm.VisitProgramCollatingSequenceClause (program-collating-national-2002).
 // collatingForPhrase is the ONE shared FOR-class subrule (CobolIO.g4 — SORT/MERGE reuse it).
+// ⛔ PROGRAM IS AN OPTIONAL WORD TOO (kb/Work PB695): folio 285 prints `PROGRAM COLLATING SEQUENCE` with the
+// rule under SEQUENCE only, so `SEQUENCE IS REV.` and `COLLATING SEQUENCE IS REV.` are conforming spellings.
+// COLLATING was already relaxed and PROGRAM was not — the two-word head was half-measured.
 programCollatingSequenceClause
-    : PROGRAM COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord cobolWord?)
+    : PROGRAM? COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord cobolWord?)
     ;
 
 computerName
     : cobolWord
     ;
 
+// The token SINK for the '85 clauses ISO 2002 deleted (MEMORY SIZE, SEGMENT-LIMIT — VisitComputerAttributes'
+// token scan). ⛔ IT STOPS ON THE SAME LOOKAHEAD THE NAME SLOT USES, and that is now ONE predicate rather than
+// a token set: with PROGRAM and CHARACTER optional the two standard clauses can open on COLLATING, on SEQUENCE
+// or on the bare word CLASSIFICATION, and a bare WORD cannot be excluded by a `~(…)` token set at all. Written
+// as a set, the sink would resume swallowing the very clauses this change made spellable (kb/Work PB78's defect,
+// re-opened by kb/Work PB695's relaxation). The predicate is at the LEFT EDGE of the loop body, so it steers
+// each continue-or-exit decision.
 computerAttributes
-    : ~(DOT | PROGRAM | CHARACTER)+
+    : ({!objectComputerClauseAhead()}? ~DOT)+
     ;
 
 // ==========================================
@@ -1315,8 +1346,10 @@ setSwitchStatement
 // set the current length of a DYNAMIC LENGTH elementary item. SIZE OF is the explicit form (SIZE is a reserved
 // token, so it cannot head a dataReference — no ambiguity, listed before setToValueStatement). The SIZE-OF-absent
 // bare form `SET dyn TO n` parses as setToValueStatement and re-routes at bind via a dynamic-length peek.
+// ⛔ OF IS AN OPTIONAL WORD (kb/Work PB695): printed folio 732 sets Format 16 as `SET [ SIZE OF ] data-name-3
+// TO …` with underline rules under SET, SIZE and TO and none under OF, so `SET SIZE DYN TO 5` is conforming.
 setSizeStatement
-    : SET SIZE OF dataReference TO arithmeticExpression
+    : SET SIZE OF? dataReference TO arithmeticExpression
     ;
 
 setToValueStatement
@@ -1331,9 +1364,15 @@ setBooleanStatement
 // Pointer address forms (COBOL-2002 §14.9.39):
 //   SET ADDRESS OF based-item TO pointer   — rebase a BASED/LINKAGE item
 //   SET pointer TO ADDRESS OF identifier   — take a pointer to an item (ADDRESS OF as sender)
+// ⛔ OF IS AN OPTIONAL WORD IN BOTH ARMS (kb/Work PB695). Folio 730's Format 7 prints `ADDRESS OF data-name-1`
+// with a rule under ADDRESS only, and the sender arm takes its phrase from the §8.4.3.11.2 data-address-
+// identifier on folio 140, whose whole underline roster is {ADDRESS}. ADDRESS is a reserved token and can
+// never head a dataReference, so `SET ADDRESS P TO Q` stays unambiguous against setToValueStatement.
+// ⚠ PtrBinder.BindSetAddress tells the arms apart by `GetChild(1)` being the ADDRESS token — a position OF
+// does not occupy in either arm, so the relaxation leaves that discrimination intact.
 setAddressStatement
-    : SET ADDRESS OF dataReference TO (dataReference | NULL_)   // SR19 — identifier-6 is a data-pointer or the predefined address NULL (kb/Work PB89)
-    | SET dataReference TO ADDRESS OF dataReference
+    : SET ADDRESS OF? dataReference TO (dataReference | NULL_)   // SR19 — identifier-6 is a data-pointer or the predefined address NULL (kb/Work PB89)
+    | SET dataReference TO ADDRESS OF? dataReference
     ;
 
 // ALLOCATE statement (COBOL-2002 §14.9.3): obtain dynamic storage, returned as a managed data-pointer.

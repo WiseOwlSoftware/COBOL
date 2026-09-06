@@ -3,6 +3,8 @@
  "enabled": [
   "pb693-program-id-reserved-word",
   "pb703-collating-key-in-two-clauses",
+  "pb695-crt-status-no-is",
+  "pb695-cursor-no-is",
   "pb345-fd-no-record-clause",
   "pb345-fd-varying-no-maximum",
   "pb345-indexed-no-record",

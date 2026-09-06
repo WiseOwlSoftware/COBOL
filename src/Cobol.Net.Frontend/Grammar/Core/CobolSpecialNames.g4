@@ -73,35 +73,48 @@ orderTableClause
     : {orderTableAhead()}? cobolWord TABLE cobolWord IS? literal
     ;
 
+// switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1] [OFF [STATUS] [IS] condition-name-2]
+// (ISO §12.3.7.2). ⛔ MEASURED, NOT TRANSCRIBED (kb/Work PB695, §5.2.3 / §8.3.2.4.3): on printed folio 290 the
+// switch rows carry EXACTLY TWO underline rules — under ON and under OFF. IS and STATUS are un-underlined in
+// every one of the three lines, so `SW1 MN1`, `ON STATUS C1`, `ON C1` and `OFF C2` are all conforming spellings
+// of the same entry. The IS of `[IS mnemonic-name-1]` was demanded here and the ON arm's STATUS/IS were split
+// across two alternatives that between them still could not spell `ON STATUS condition-name-1`.
 implementorSwitchEntry
-    : cobolWord (IS cobolWord)? switchOnClause? switchOffClause?
+    : cobolWord (IS? cobolWord)? switchOnClause? switchOffClause?
     ;
 
+// ONE alternative, not two: STATUS is an optional word, so `ON STATUS? IS? …` IS the printed format. The old
+// two-arm spelling was a hand-written power set of the same two optional words and, as such power sets do, it
+// dropped a member (STATUS written, IS omitted) — see OptionalWordSubsetDriftTests for the mechanical form.
 switchOnClause
-    : ON STATUS IS cobolWord
-    | ON IS? cobolWord
+    : ON STATUS? IS? cobolWord
     ;
 
 switchOffClause
-    : OFF STATUS IS? cobolWord
-    | OFF IS? cobolWord
+    : OFF STATUS? IS? cobolWord
     ;
 
 // CURRENCY SIGN IS literal [WITH PICTURE SYMBOL literal]
 // PICMODE exploit: PICTURE triggers PIC token + pushes PICMODE, which captures
 // "SYMBOL" as PIC_STRING. Parser sees: WITH PIC PIC_STRING literal.
 // Semantic validation ensures PIC_STRING == "SYMBOL".
+// ⛔ WITH IS AN OPTIONAL WORD (kb/Work PB695): folio 290 prints `[ WITH PICTURE SYMBOL literal-8 ]` with rules
+// under PICTURE and SYMBOL only — `CURRENCY SIGN IS "$" PICTURE SYMBOL "#"` is conforming and was rejected.
 currencySignClause
-    : CURRENCY SIGN? IS? literal (WITH PIC PIC_STRING literal)?
+    : CURRENCY SIGN? IS? literal (WITH? PIC PIC_STRING literal)?
     ;
 
+// [ DECIMAL-POINT IS COMMA ] — folio 290 underlines DECIMAL-POINT and COMMA, never the IS (kb/Work PB695).
 decimalPointClause
-    : DECIMAL_POINT IS IDENTIFIER    // DECIMAL-POINT IS COMMA (COMMA is IDENTIFIER)
+    : DECIMAL_POINT IS? IDENTIFIER    // DECIMAL-POINT IS COMMA (COMMA is IDENTIFIER)
     ;
 
 // CLASS name IS literal [THRU literal] [, literal [THRU literal]]... [FOR {ALPHANUMERIC|NATIONAL}] [IN alphabet-name]
+// ⛔ FOR IS AN OPTIONAL WORD (kb/Work PB695): folio 290 rules ALPHANUMERIC and NATIONAL, never the FOR that
+// introduces them, so `CLASS X IS "0" NATIONAL` is conforming. The phrase is the SHARED specialNamesForPhrase,
+// so its 2002 gate keys on the SUBRULE and not on a word the standard lets the user omit.
 classDefinitionClause
-    : CLASS cobolWord IS? classValueSet (FOR (ALPHANUMERIC | NATIONAL))? (IN cobolWord)?
+    : CLASS cobolWord IS? classValueSet specialNamesForPhrase? (IN cobolWord)?
     ;
 
 // { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (the SPECIAL-NAMES paragraph's §12.3.7.2
@@ -121,13 +134,19 @@ classValueItem
 // SYMBOLIC CHARACTERS [FOR {ALPHANUMERIC|NATIONAL}]
 //   {name}... {IS|ARE} {integer}... [IN alphabet-name] ...
 // N:N positional mapping: first name ↔ first integer, etc. (SPECIAL-NAMES paragraph, §12.3.7)
+// ⛔ CHARACTERS, FOR, IS AND ARE ARE ALL OPTIONAL WORDS (kb/Work PB695). Printed folio 292 ("where
+// symbolic-characters-clause is:") carries underline rules under SYMBOLIC, ALPHANUMERIC, NATIONAL and IN and
+// under nothing else: the one rule on the heading line ends at x=112.24, three points short of CHARACTERS' left
+// edge, and the IS/ARE pair is stacked inside a SQUARE BRACKET with no rule under either. So `SYMBOLIC SC1 65`
+// is conforming. ⚠ specs/ISO_COBOL.md's figure NOTE for this clause claims SYMBOLIC *and* CHARACTERS are
+// underlined while its own <pre> writes only <u>SYMBOLIC</u>; the page sides with the <pre> (note repaired).
 symbolicCharactersClause
-    : SYMBOLIC CHARACTERS (FOR (ALPHANUMERIC | NATIONAL))?
+    : SYMBOLIC CHARACTERS? specialNamesForPhrase?
       symbolicCharacterEntry+ (IN cobolWord)?
     ;
 
 symbolicCharacterEntry
-    : cobolWord+ (IS | ARE) integerLiteral+
+    : cobolWord+ (IS | ARE)? integerLiteral+
     ;
 
 // ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS {NATIVE|STANDARD-1|STANDARD-2|literal-phrase…}
@@ -137,12 +156,23 @@ symbolicCharacterEntry
 // and rejects a clause writing both. UCS-4/UTF-8/UTF-16 are §8.9 CONTEXT-SENSITIVE words (ALPHABET clause
 // scope) — they arrive as ordinary cobolWord entries and are recognized BY TEXT in the binder/pass, never
 // as lexer keywords (they stay user-definable outside this clause).
+// ⛔ IS AND FOR ARE OPTIONAL WORDS (kb/Work PB695). Printed folio 291 ("where alphabet-name-clause is:") rules
+// ALPHABET, ALPHANUMERIC, NATIONAL, LOCALE, NATIVE, STANDARD-1, STANDARD-2, UCS-4, UTF-8 and UTF-16 — and
+// neither IS in `alphabet-name-1 [ FOR ALPHANUMERIC ] IS …` / `alphabet-name-2 FOR NATIONAL IS …`, nor either
+// FOR. `ALPHABET A NATIVE` and `ALPHABET N NATIONAL IS UTF-8` are conforming and were both rejected.
 alphabetClause
-    : ALPHABET cobolWord alphabetForPhrase? IS alphabetDefinition alphabetForPhrase?
+    : ALPHABET cobolWord specialNamesForPhrase? IS? alphabetDefinition specialNamesForPhrase?
     ;
 
-alphabetForPhrase
-    : FOR (ALPHANUMERIC | NATIONAL)
+// ⛔ THE ONE `FOR {ALPHANUMERIC | NATIONAL}` PHRASE OF THE SPECIAL-NAMES PARAGRAPH (ISO §12.3.7.2) — its ALPHABET
+// clause, its CLASS clause and its SYMBOLIC CHARACTERS clause
+// all print it, and until kb/Work PB695 each spelled its own copy. The copies drifted
+// exactly where a copy always drifts: the ALPHABET one was a subrule and its 2002 gate tested the SUBRULE, while
+// the other two were inline groups whose gates tested `ctx.FOR()` — an OPTIONAL WORD, so relaxing FOR anywhere
+// would have silently switched those two edition gates off. One rule, one gate shape, one place to relax.
+// The class word stays REQUIRED, so the rule can never match empty and each site's enclosing `?` keeps its meaning.
+specialNamesForPhrase
+    : FOR? (ALPHANUMERIC | NATIONAL)
     ;
 
 // NATIVE, STANDARD-1, STANDARD-2 are dedicated lexer tokens.
@@ -158,17 +188,22 @@ alphabetEntry
       (ALSO (cobolWord | literal))*
     ;
 
-// CRT STATUS IS data-name
+// [ CRT STATUS IS data-name-2 ] — folio 290 rules CRT and STATUS, not IS (kb/Work PB695). The clause is still
+// refused by name at bind (COBOLNET1560, the DECLINED screen module); an optional word omitted must reach that
+// documented refusal, not a parse error.
 crtStatusClause
-    : CRT STATUS IS dataReference
+    : CRT STATUS IS? dataReference
     ;
 
-// CURSOR IS data-name
+// [ CURSOR IS data-name-1 ] — folio 290 rules CURSOR alone (kb/Work PB695).
 cursorClause
-    : CURSOR IS dataReference
+    : CURSOR IS? dataReference
     ;
 
-// CHANNEL integer IS data-name
+// CHANNEL integer IS data-name — A VENDOR EXTENSION, not an ISO clause: `grep -c CHANNEL specs/ISO_COBOL.md`
+// is 0 and the §12.3.7.2 format lists no CHANNEL. Its IS is therefore not measurable against any printed page
+// and must NOT be relaxed by analogy with the clauses above (kb/Work PB695 group 1 — the audit reported it
+// only because the SPECIAL-NAMES closure swept up a same-token stranger).
 channelClause
     : CHANNEL integerLiteral IS dataReference
     ;

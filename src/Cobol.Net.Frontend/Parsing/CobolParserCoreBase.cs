@@ -78,11 +78,40 @@ public abstract class CobolParserCoreBase : Parser
     /// even when the predicate is reached: a bare <c>LOCALE IS FOO</c> has no locale-name and is not this clause.
     /// </para>
     /// </summary>
-    /// <summary>True when the word after the CHARACTER token (already consumed) spells CLASSIFICATION — the
-    /// OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §12.3.6.2; kb/Work PB78). CLASSIFICATION is not a lexer
-    /// token (a plain word at COBOL-85), so the arm is predicated on the text; every edition recognizes the shape
-    /// and the binder rejects it as the A.4.9 documented non-support it is.</summary>
-    protected bool classificationAhead() => Word(TokenStream.LT(1), "CLASSIFICATION");
+    /// <summary>The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause is ahead (ISO §12.3.6.2; kb/Work PB78, PB695).
+    /// CLASSIFICATION is not a lexer token (a plain word at COBOL-85), so the clause is recognized by the text of
+    /// its one REQUIRED word — printed folio 285 underlines CLASSIFICATION and leaves CHARACTER plain, making
+    /// CHARACTER an optional word (§5.2.3).
+    /// <para>⛔ A LEFT-EDGE PREDICATE. It used to be asserted after the CHARACTER token had already been matched,
+    /// which was sound only while CHARACTER was mandatory: a predicate reached mid-alternative does not steer
+    /// prediction, it throws once the alternative has been committed to. With CHARACTER optional the rule can
+    /// open on an ordinary word, so this reads BOTH spellings from the left edge — <c>CHARACTER CLASSIFICATION
+    /// …</c> and a bare <c>CLASSIFICATION …</c>.</para>
+    /// <para>⚠ IT DEMANDS THE CLAUSE CONTINUE. `OBJECT-COMPUTER. CLASSIFICATION.` names a computer whose name
+    /// happens to be CLASSIFICATION — legal at every edition, since the word is context-sensitive and never
+    /// reserved (§8.9) — so a following period (or end of input) makes this NOT the clause. That shape check is
+    /// the same one <see cref="localeClauseAhead"/> uses to keep off the '85 switch entry.</para></summary>
+    protected bool classificationAhead()
+    {
+        int i = Word(TokenStream.LT(1), "CHARACTER") ? 2 : 1;
+        if (!Word(TokenStream.LT(i), "CLASSIFICATION")) return false;
+        return TokenStream.LT(i + 1) is { } next && next.Type is not (CobolParserCore.DOT or Antlr4.Runtime.TokenConstants.EOF);
+    }
+
+    /// <summary>One of the OBJECT-COMPUTER paragraph's own clauses starts here (ISO §12.3.6.2) — the PROGRAM
+    /// COLLATING SEQUENCE clause, whose optional words leave it able to open on PROGRAM, COLLATING or SEQUENCE,
+    /// or the CHARACTER CLASSIFICATION clause via <see cref="classificationAhead"/>.
+    /// <para>⛔ THE ONE PLACE THAT ANSWERS "IS THIS A CLAUSE OR A COMPUTER-NAME?" (kb/Work PB695). Two decisions
+    /// need it — whether to enter the optional <c>computer-name-1</c> slot, and whether the
+    /// <c>computerAttributes</c> token sink may swallow one more token — and while PROGRAM and CHARACTER were
+    /// mandatory both were expressible as a `~(DOT | PROGRAM | CHARACTER)` token set. They no longer are: a
+    /// clause may now open on the bare WORD CLASSIFICATION, which has no token type to exclude. Two copies of
+    /// this answer would drift the way the FOR-phrase copies did, so both decisions read this one predicate.</para>
+    /// </summary>
+    protected bool objectComputerClauseAhead()
+        => TokenStream.LT(1) is { } t
+           && (t.Type is CobolParserCore.PROGRAM or CobolParserCore.COLLATING or CobolParserCore.SEQUENCE
+               || classificationAhead());
 
     private static readonly string[] LocaleCategories =
         ["LC_ALL", "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME", "USER-DEFAULT"];

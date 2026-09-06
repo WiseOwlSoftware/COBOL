@@ -2,7 +2,8 @@
   "enabled": [
     "pb693_reserved_words_as_data_names",
     "pb693_enter_after_periodless_move",
-  "pb345_record_less_fd_area",
+    "pb695_special_names_optional_words",
+    "pb345_record_less_fd_area",
     "pb332_use_optional_words",
     "pb350_return_at_end_required_85",
     "pb347_record_name_identity_85",

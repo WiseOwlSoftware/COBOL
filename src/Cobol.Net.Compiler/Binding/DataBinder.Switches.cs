@@ -835,7 +835,7 @@ public sealed partial class DataBinder
         // class, both at once is malformed.
         string name = alpha.cobolWord().GetText();
         var def = alpha.alphabetDefinition();
-        var fors = alpha.alphabetForPhrase();
+        var fors = alpha.specialNamesForPhrase();
         if (fors.Length > 1)
             Edition.Error("COBOLNET0898", $"ALPHABET {name}: the FOR phrase may be written once — between "
                 + "alphabet-name and IS (ISO §12.3.7.2 general format)");
@@ -1248,7 +1248,7 @@ public sealed partial class DataBinder
     private void SwitchBindSymbolic(Core.SymbolicCharactersClauseContext sc)
     {
         using var _ = Edition.At(sc);
-        bool national = sc.NATIONAL() is not null;
+        bool national = sc.specialNamesForPhrase()?.NATIONAL() is not null;
         CodedCharacterSet? inSet = null;
         if (sc.cobolWord() is { } inWord && inWord is not null)
         {

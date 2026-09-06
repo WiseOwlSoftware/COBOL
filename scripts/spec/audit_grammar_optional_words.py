@@ -182,6 +182,48 @@ def grammar_rules(text: str) -> dict[str, str]:
 
 _TOKEN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
+#: A LEXER rule head — an uppercase name and its `:`. The body decides what kind of token it is.
+LEXER_RULE = re.compile(r"^([A-Z][A-Z0-9_]*)[ \t]*:(.*?)(?<!\\);", re.M | re.S)
+#: What is left of a lexer body once its quoted literals, its `->` action, and its punctuation are removed. A
+#: KEYWORD token's body is nothing but literals; a LEXICAL CLASS names fragments, character sets or predicates.
+_LEX_LITERAL = re.compile(r"'((?:[^'\\]|\\.)*)'")
+
+
+def keyword_spellings(files: list[pathlib.Path]) -> dict[str, set[str]]:
+    """Lexer token -> the COBOL words it spells, for tokens that spell WORDS and nothing else.
+
+    ⛔ THIS IS THE LINE BETWEEN A COBOL WORD AND A LEXICAL CLASS, and it is drawn STRUCTURALLY — a token whose
+    rule is one or more quoted literals (`RESERVE : 'RESERVE' ;`, `ZERO : 'ZERO' | 'ZEROS' | 'ZEROES' ;`) spells
+    words that the standard can print; one whose rule names fragments, character sets or predicates (IDENTIFIER,
+    INTEGERLIT, PIC_STRING) spells a class of user text that appears on no printed page as itself.
+
+    The distinction is what makes `spells_this_construct` safe. That test asks whether a rule demands a word the
+    construct's printed format never prints, and `decimalPointClause : DECIMAL_POINT IS? IDENTIFIER` demands
+    IDENTIFIER — which is printed nowhere in the standard, in any format. Without this split the test would
+    disqualify every rule with an operand token and the audit would report nothing at all, silently: precisely
+    the failure mode the population assertion below exists to prevent.
+
+    ⛔ A LITERAL IS ONLY A WORD WHEN IT IS SHAPED LIKE ONE. `DOT : '.' ;` is literal-only too, and admitting it
+    cost the whole SPECIAL-NAMES and OBJECT-COMPUTER closures on the first cut of this function: every paragraph
+    rule spells `… DOT`, no printed format's word list contains a bare period, so `spells_this_construct`
+    disqualified the ANCHOR and the audit reported ZERO candidates for both paragraphs while nine of their
+    clauses demanded an optional word. The old-grammar control run is what caught it — a filter is only ever
+    evidence about what it RETURNED (feedback_measure_the_selectors_complement).
+    """
+    out: dict[str, set[str]] = {}
+    for f in files:
+        text = strip_comments(f.read_text(encoding="utf-8"))
+        for m in LEXER_RULE.finditer(text):
+            name, body = m.group(1), m.group(2)
+            body = re.sub(r"->.*$", "", body, flags=re.S)               # a lexer command, not part of the match
+            lits = [w for w in _LEX_LITERAL.findall(body) if RESERVED.match(w.upper())]
+            if not lits:
+                continue
+            if re.sub(r"'(?:[^'\\]|\\.)*'|[\s|()?*+]", "", body):       # anything but literals and alternation
+                continue
+            out.setdefault(name, set()).update(w.upper().replace("-", "_") for w in lits)
+    return out
+
 
 def alternatives(body: str) -> list[str]:
     """One rule body split into its TOP-LEVEL alternatives (a `|` inside `(…)` belongs to an inner group)."""
@@ -269,12 +311,33 @@ def required_tokens(rules: dict[str, str]) -> dict[str, set[str]]:
     out: dict[str, set[str]] = {}
     for name, body in rules.items():
         alts = alternatives(body)
-        need: set[str] = set()
+        spellings: list[tuple[str, ...]] = []             # the mandatory token SEQUENCE of each alternative
+        is_spelling: list[bool] = []                      # …and whether it is a FORMAT rather than a name list
         for alt in alts:
             scanned = scan_alternative(alt)
-            if len(alts) > 1 and len(scanned) == 1 and not re.search(r"(?<![A-Za-z0-9_])[a-z][A-Za-z0-9_]*", alt):
-                continue                                  # a bare name alternative, not a spelling
-            need |= {w for w, opt in scanned if not opt}
+            spellings.append(tuple(w for w, opt in scanned if not opt))
+            # A bare name alternative contributes no demand of its own — but it is still a real spelling that
+            # can subsume a sibling's, which is why the sequence above is recorded either way.
+            is_spelling.append(not (len(alts) > 1 and len(scanned) == 1
+                                    and not re.search(r"(?<![A-Za-z0-9_])[a-z][A-Za-z0-9_]*", alt)))
+        need: set[str] = set()
+        for i, seq in enumerate(spellings):
+            if not is_spelling[i]:
+                continue
+            for k, w in enumerate(seq):
+                # ⛔ A SIBLING ALTERNATIVE MAY ALREADY SPELL THIS FORM WITHOUT THE WORD, and then the RULE does
+                # not demand it even though this alternative does. `performLocationPhrase : WITH LOCATION |
+                # {is2023()}? LOCATION` writes the two spellings of one optional word as two arms, so WITH is
+                # mandatory in the first and the rule still accepts `LOCATION` — reporting it wasted a whole
+                # confirmation pass (kb/Work PB695).
+                # ⚠ THE COMPARISON IS ON THE ORDERED SEQUENCE, not on the required SET. With sets, the old
+                # `switchOnClause : ON STATUS IS cobolWord | ON IS? cobolWord` would have subsumed its own IS
+                # (the sibling's required set {ON} is a subset of {ON, STATUS}) and hidden a REAL rejection of
+                # `ON STATUS condition-name-1`. Deleting the word must leave a sequence some sibling spells
+                # EXACTLY — which `ON STATUS cobolWord` is not, and `LOCATION` is.
+                if any(other == seq[:k] + seq[k + 1:] for j, other in enumerate(spellings) if j != i):
+                    continue
+                need.add(w)
         if len(need) == 1 and optional_only.get(name, False):
             whole = [w for alt in alts for w, _ in scan_alternative(alt)]
             if len(whole) == 1:
@@ -384,8 +447,29 @@ def main() -> int:
             rules[n] = b
             origin[n] = f.name
     needed = required_tokens(rules)
+    keywords = keyword_spellings(files)
     print(f"grammar files scanned: {len(files)}   parser rules: {len(rules)}   "
-          f"rules demanding at least one token: {sum(1 for v in needed.values() if v)}")
+          f"rules demanding at least one token: {sum(1 for v in needed.values() if v)}   "
+          f"lexer tokens spelling COBOL words: {len(keywords)}")
+
+    def spells_this_construct(rule: str, printed: set[str]) -> bool:
+        """Does this rule spell the construct whose format printed `printed`, or is it a same-token stranger?
+
+        ⛔ THE CLOSURE MATCHES ON ONE TOKEN, AND ONE TOKEN IS NOT A CONSTRUCT. The anchor set is "every rule
+        demanding the clause title's leading word", so the FILE STATUS clause (§12.4.5.8.2, whose `[FILE]` is
+        un-underlined) drew in `deleteFileStatement`, `fileSection`, `multipleFileClause`, `readStatement`,
+        `rewriteStatement`, `writeStatement` and `valueOfClause` — seven rules that merely also demand a FILE,
+        and all seven were reported against a page none of them is printed on. The SPECIAL-NAMES paragraph did
+        the same to `channelClause`, a vendor extension the standard never prints at all, and the INITIALIZE
+        statement and the OPTIONS INITIALIZE clause did it to each other in both directions.
+
+        The test is structural and needs no exclusion list: a rule spells THIS construct only if every COBOL
+        WORD it demands is printed in this construct's own format. `deleteFileStatement` demands DELETE, which
+        the FILE STATUS clause never prints; `channelClause` demands CHANNEL, which the standard never prints;
+        `initializeCategoryToValue` demands VALUE, which the OPTIONS INITIALIZE clause never prints. Operand
+        tokens (IDENTIFIER, INTEGERLIT …) are exempt by construction — see `keyword_spellings`.
+        """
+        return all(sp & printed for t in needed[rule] if (sp := keywords.get(t)))
 
     # ---- the spec side -----------------------------------------------------------------------------------
     formats = declared_formats(SPEC_MD.read_text(encoding="utf-8"))
@@ -433,10 +517,20 @@ def main() -> int:
                   f"      optional: {' '.join(sorted(plain)) or '(none)'}")
         if not plain or not f.keyword:
             continue
+        printed = {w.replace("-", "_") for w in plain | underlined}
         tok = f.keyword.replace("-", "_")
-        anchors = {n for n in rules if tok in needed[n]}
+        anchors = {n for n in rules if tok in needed[n] and spells_this_construct(n, printed)}
         for rule in sorted(closure(rules, anchors)):
+            if not spells_this_construct(rule, printed):
+                continue
             for w in sorted(plain):
+                # ⛔ THE CONSTRUCT'S OWN ANCHOR KEYWORD IS NEVER A CANDIDATE. It is the word this format was
+                # LOCATED by, so the anchor rule demands it by construction and reporting it is circular. It
+                # reaches `plain` whenever the printed format leaves the head word un-underlined — folio 604
+                # does exactly that to CONTINUE, whose whole format is `CONTINUE [ AFTER … SECONDS ]` with
+                # rules under AFTER and SECONDS only (kb/Work PB695).
+                if w == f.keyword:
+                    continue
                 if w.replace("-", "_") in needed[rule]:
                     print(f"  CANDIDATE  {f.keyword:<14} {f.clause:<12} p{heads[i].page:<5} "
                           f"{w:<12} required in {origin[rule]}#{rule}")

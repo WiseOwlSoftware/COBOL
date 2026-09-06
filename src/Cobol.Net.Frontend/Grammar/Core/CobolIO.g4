@@ -758,8 +758,14 @@ sortCollatingPhrase
 // The ONE FOR-class collating subrule (ISO §12.3.6.2 OBJECT-COMPUTER / §14.9.40.2 SORT — the PROGRAM
 // COLLATING SEQUENCE clause
 // and the SORT/MERGE COLLATING SEQUENCE phrase share it).
+// ⛔ FOR IS AN OPTIONAL WORD IN EVERY FORMAT THAT PRINTS THIS PHRASE (kb/Work PB695) — measured, not inferred,
+// because this ONE rule serves three of them: OBJECT-COMPUTER §12.3.6.2 (folio 285 rules {ALPHANUMERIC,
+// CLASSIFICATION, LOCALE, NATIONAL, OBJECT-COMPUTER., SEQUENCE, SYSTEM-DEFAULT, USER-DEFAULT}), the file-control
+// COLLATING SEQUENCE clause §12.4.5.7.2 (folio 322 rules {ALPHANUMERIC, NATIONAL, OF, SEQUENCE}) and SORT/MERGE
+// §14.9.40.2 (folio 745 rules {ALPHANUMERIC, …, NATIONAL, SEQUENCE, …}). FOR appears in none of the three, so
+// relaxing the shared rule accepts no illegal source at any of its sites.
 collatingForPhrase
-    : FOR (ALPHANUMERIC | NATIONAL) IS? cobolWord
+    : FOR? (ALPHANUMERIC | NATIONAL) IS? cobolWord
     ;
 
 sortUsingPhrase
