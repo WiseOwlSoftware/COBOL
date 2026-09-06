@@ -93,6 +93,13 @@ the work, not to wait. Stage the earliest-stage, largest jobs behind the near-do
   landers gate in THEIR worktree, then `git fetch origin && git rebase origin/main && git push origin HEAD:main`
   (fast-forward, never `--force`); the orchestrator runs `git merge --ff-only origin/main` locally and removes dead
   worktrees itself (`git worktree remove --force`, `git branch -D`).
+- ⛔ **A PUSH IS NOT A LANDING UNTIL CI IS GREEN ON THE PUSHED HEAD.** The lander waits for the run on its own sha
+  (`gh run list --branch main --commit <sha>` → `gh run watch <id> --exit-status`) and reports the conclusion; a red
+  is a BLOCKING finding, attributed by job / step / failing test in the report, and the orchestrator lands that fix
+  alone before the next train. **The local battery runs on ONE host; the CI's Linux job is the only Linux gate — a
+  test that depends on host ACL or file-lock semantics is not proven until CI is green.** ⓜ main was red for 29 h
+  across 16 consecutive completed runs (2026-09-05/06) while every landing in that window — trains 10 through 20 —
+  reported a green Windows-only gate and nobody looked (`kb/Work/PB796`).
 - Verdict batches are RE-APPLIED on the merged tree (`record_verdicts.py`), never merged as inventory JSON hunks.
 - ⛔ A checkpoint file never enters a landing: every landing `git add` excludes it —
   `git add -A -- . ":!.claude/settings.local.json"` then `git reset -q -- STATUS.md`; ⛔ **not** `":!STATUS.md"`

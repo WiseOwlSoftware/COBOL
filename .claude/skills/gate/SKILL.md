@@ -34,6 +34,15 @@ goes green while CI fails.
 - The GnuCOBOL external differential, before AND after, diffing PER-CASE verdicts
 - `scripts/guard-fast.sh` (parallel) when a legacy-shared seam was touched — never the serial `guard.sh`
 
+- **CI's own Linux leg — comprehensive is not comprehensive without it.** Everything above runs on ONE host
+  (this Windows machine, Debug). The workflow's `ubuntu-latest` jobs — `guard-fast.sh`'s NIST loop, the Linux
+  conformance shards, Linux greenfield unit + characterization — and the Release build are verified by CI and by
+  nothing else, so a test keyed on host ACL or file-lock semantics can be green here and red there. Read the
+  verdict for the commit you pushed:
+  `gh run list --branch main --commit <sha> --json databaseId,status,conclusion,displayTitle`, then
+  `gh run view <id> --log-failed` on a red. `scripts/session-probe.ps1` prints the latest run's conclusion at
+  session start, so a red main is never inferred from silence (`kb/Work/PB796`).
+
 `guard-fast.sh` is **not** CI-complete: CI builds Release, local builds Debug. Any change whose semantics differ by
 build configuration gets a local `-c Release` leg before push. Better: do not write configuration-divergent
 compiler behavior.

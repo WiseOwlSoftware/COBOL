@@ -1813,6 +1813,13 @@ result. Run the long legs ONE AT A TIME.
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
   the GnuCOBOL differential, plus `scripts/guard-fast.sh` (~3.3 min parallel) when a legacy-shared seam is touched
   — never the ~20 min serial `guard.sh`.
+  ⛔ **AND THE CI RUN ON THE PUSHED HEAD — the battery is ONE host and does not contain it.** Everything above is
+  this Windows box in Debug; the workflow's `ubuntu-latest` jobs and its Release build are gated by CI and by
+  nothing else, so a test keyed on host ACL or file-lock semantics can be green here and red there. Read it:
+  `gh run list --branch main --commit <sha> --json databaseId,status,conclusion`, then `gh run view <id>
+  --log-failed` on a red; `scripts/session-probe.ps1` prints the latest conclusion every session. ⚙ EARNED
+  2026-09-05/06 — main was red for 29 h across 16 consecutive completed runs while every landing reported this
+  gate green ([[PB796]]).
 - **The legacy differential is OPT-IN** (`COBOLSHARP_LEGACY_DIFFERENTIAL=1`) and NO new `GreenfieldOnly` exclusions
   are added — greenfield registration alone suffices. The legacy engine + `guard.sh` survive ONLY for the P14
   Step-0 equivalence proof; deletion is P15.

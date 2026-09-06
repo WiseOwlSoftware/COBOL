@@ -108,4 +108,30 @@ try {
     }
 } catch { }
 
+# ⛔ AND IS THE ENABLED WORKFLOW ACTUALLY PASSING? The check above answers "is CI running at all" and says nothing
+# about the VERDICT, so a red main is invisible to a session that reads only this probe: main was red for 29 hours
+# across 16 consecutive completed runs (2026-09-05 → 2026-09-06) while every landing in that window reported green,
+# because no step of the landing protocol looked at CI after the push and the battery cannot see the Linux legs
+# (kb/Work/PB796). Printed unconditionally — a green line is the positive evidence a silence never is
+# (feedback_green_gates_arent_evidence). Degrades to one quiet line with no gh, no network and no runs.
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    try {
+        $lastRun = & gh run list --branch main --limit 1 --json conclusion,headSha,status,displayTitle 2>$null | ConvertFrom-Json
+        if ($lastRun) {
+            $runSha = $lastRun.headSha.Substring(0, 8)
+            if ($lastRun.status -ne 'completed') {
+                Write-Host "ci     : last run on main @ $runSha is $($lastRun.status) — no verdict yet"
+            } elseif ($lastRun.conclusion -eq 'success') {
+                Write-Host "ci     : last run on main @ $runSha = success"
+            } else {
+                Write-Host "ci     : ⛔ last run on main @ $runSha = $($lastRun.conclusion) — attribute it before landing: gh run view --branch main --log-failed"
+            }
+        } else {
+            Write-Host "ci     : no runs found on main"
+        }
+    } catch { Write-Host "ci     : gh unavailable — CI verdict UNREAD (do not infer green)" }
+} else {
+    Write-Host "ci     : gh unavailable — CI verdict UNREAD (do not infer green)"
+}
+
 Write-Host "=== next: confirm the battery green (plan §9) before code changes; the worklist is kb/Work (work.py next, above); plan 0 is live state ==="
