@@ -15726,13 +15726,13 @@
   "ordinal": 10,
   "subject": "File control entry",
   "rule-digest": "f2d735f4e5c8",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules",
+  "test-ref": "conformance:negative/pb699-relative-key-required-entry-only; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyRequiredByAccessMode_CitesSr10_AtEveryEdition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-09-06 (kb/Work PB699). RULE (--check 12.4.5.2 10): \"The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS clause is specified.\" The rejection existed but was filed under a clause that does not state it - \"ISO 12.4.5.13 - required for random/dynamic access\" - and 12.4.5.13's three syntax rules (in 12.4.5.13.3) contain no such requirement, while the 12.4.5.1 Format 2 diagram BRACKETS the RELATIVE KEY clause. SR10 is the one sentence that requires it. The boundary is measured as well as the violation: FileControlKeyRuleSpecTests.RelativeKeyOmitted_UnderAccessSequential_IsLegal pins that ACCESS SEQUENTIAL still may omit the clause.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.2-11",
@@ -16012,11 +16012,11 @@
   "subject": "ALTERNATE RECORD KEY clause",
   "rule-digest": "ab11777be5de",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
-  "test-ref": "conformance:negative/pb354-alternate-key-occurs",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
+  "test-ref": "conformance:negative/pb354-alternate-key-occurs; conformance:negative/pb699-alternate-key-occurs-entry-only; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB354 sibling sweep, LANDED 2026-09-05. RULE (--check 12.4.5.6.3 1): \"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.\" The ALTERNATE RECORD KEY member of the same three-clause set, found unimplemented with the RECORD KEY one. KeyedValidateFile walks file.AlternateKeys through RecordLayout.IsSubjectToOccurs and reports COBOLNET0863 per key naming this clause. As for the RECORD KEY twin, data-name-2 belongs to the SOURCE phrase, which the grammar does not admit and docs/CONFORMANCE.md 2 row 40 declines.",
+  "notes": "RE-SITED 2026-09-06 (kb/Work PB699); rule unchanged. RULE (--check 12.4.5.6.3 1): \"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.\" Same move as the RECORD KEY twin: the screen is a row of FileControlKeyRules' table, run at the ENTRY from DataBinder.ResolveFiles, and its subject list is FileModel.AlternateKeyNames - the clauses AS WRITTEN - rather than the resolved AlternateKeys, because a clause whose data-name-1 resolves to nothing is absent from the resolved list. As for the RECORD KEY twin, data-name-2 belongs to the SOURCE phrase, which the grammar does not admit and docs/CONFORMANCE.md 2 row 40 declines.",
   "state": "OK"
  },
  {
@@ -16852,11 +16852,11 @@
   "subject": "RECORD KEY clause",
   "rule-digest": "ab11777be5de",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
-  "test-ref": "conformance:negative/pb354-record-key-occurs",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
+  "test-ref": "conformance:negative/pb354-record-key-occurs; conformance:negative/pb699-record-key-occurs-entry-only; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB354 sibling sweep, LANDED 2026-09-05. RULE (--check 12.4.5.12.3 1): \"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.\" Found unimplemented while landing the RELATIVE KEY twin 12.4.5.13.3 SR1: all three key clauses state the same ban and only one of the three had a site. KeyedValidateFile now tests file.RecordKeyItem through RecordLayout.IsSubjectToOccurs - the ONE predicate for the phrase - and reports COBOLNET0863 naming this clause. DATA-NAME-2 is the SOURCE phrase's operand and has no reachable spelling: the grammar's recordKeyClause is `RECORD KEY? IS? dataReference` with no SOURCE alternative, and docs/CONFORMANCE.md 2 row 40 declines A.3 item 40 (\"The `record-key-name SOURCE IS` key form is not provided\"), so honouring the ban on data-name-1 is the whole of what this rule can require here.",
+  "notes": "RE-SITED 2026-09-06 (kb/Work PB699); rule unchanged. RULE (--check 12.4.5.12.3 1): \"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.\" The screen MOVED from KeyedIoBinder.KeyedValidateFile - which ran on the first KEYED VERB naming the file, so an entry whose prime key sat under OCCURS compiled with zero diagnostics when the procedure division only OPENed and CLOSEd it (measured) - to FileControlKeyRules, one table keyed by organization and key role, run from DataBinder.ResolveFiles over every declared file. conformance:negative/pb699-record-key-occurs-entry-only is the discriminator against the older pb354 case, which contains a READ. DATA-NAME-2 is the SOURCE phrase's operand and has no reachable spelling: the grammar's recordKeyClause is `RECORD KEY? IS? dataReference` with no SOURCE alternative, and docs/CONFORMANCE.md 2 row 40 declines A.3 item 40, so honouring the ban on data-name-1 is the whole of what this rule can require here.",
   "state": "OK"
  },
  {
@@ -16987,11 +16987,11 @@
   "subject": "RELATIVE KEY clause",
   "rule-digest": "190b9f9288ef",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
-  "test-ref": "conformance:negative/pb354-relative-key-occurs",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
+  "test-ref": "conformance:negative/pb354-relative-key-occurs; conformance:negative/pb699-relative-key-occurs-entry-only; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyOperandRule_ReportsOnAnEntryOnlyProgram_AtEveryEdition",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "LANDED 2026-09-05 (kb/Work PB354 part 3). RULE (--check 12.4.5.13.3 1): \"Data-name-1 shall not be subject to any OCCURS clauses.\" This was the MISSING MEMBER of a three-rule set whose other two - SR2 (unsigned integer without the symbol P) and SR3 (not defined within a record of the file) - were both implemented in KeyedValidateFile, the shape where the absent member is hardest to see because the others look thorough. Its absence also covered for the missing 14.9.41.3 SR4 check on the START relative arm: a subscripted RELATIVE KEY reached the binder unreported from both directions. Both are now checked, and conformance:negative/pb354-relative-key-occurs pins this one on its own.",
+  "notes": "RE-SITED 2026-09-06 (kb/Work PB699); rule unchanged. RULE (--check 12.4.5.13.3 1): \"Data-name-1 shall not be subject to any OCCURS clauses.\" Moved with its two clause-mates from KeyedIoBinder.KeyedValidateFile into FileControlKeyRules, so the entry is screened whether or not any statement names the file.",
   "state": "OK"
  },
  {
@@ -17001,13 +17001,13 @@
   "ordinal": 2,
   "subject": "RELATIVE KEY clause",
   "rule-digest": "4d3ed0d608ad",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules",
+  "test-ref": "conformance:negative/pb699-relative-key-not-unsigned-integer; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyOperandRule_ReportsOnAnEntryOnlyProgram_AtEveryEdition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-09-06 (kb/Work PB699). RULE (--check 12.4.5.13.3 2): \"Data-name-1 shall reference an unsigned integer data item whose description does not contain the picture symbol 'P'.\" The screen was already implemented but had never been claimed, and it cited the WRONG CLAUSE - \"ISO 12.4.5.13 SR2\", a clause that carries no syntax rules at all (`cite.py --check 12.4.5.13 \"shall reference an unsigned integer data item\"` FAILS; the sentence is in 12.4.5.13.3). Citation repaired and the screen moved to the entry in the same change. The test is `item.Pic is not { Category: Numeric, Scale: 0, Signed: false }`, which covers all three halves: non-numeric, scaled (a 'P' or 'V' gives a non-zero scale), and signed.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.13.3-3",
@@ -17016,13 +17016,13 @@
   "ordinal": 3,
   "subject": "RELATIVE KEY clause",
   "rule-digest": "807b77371859",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#Rules; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile",
+  "test-ref": "conformance:negative/pb699-relative-key-in-record-entry-only; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyOperandRule_ReportsOnAnEntryOnlyProgram_AtEveryEdition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-09-06 (kb/Work PB699). RULE (--check 12.4.5.13.3 3): \"Data-name-1 shall not be defined in a record description entry subordinate to the associated file-name.\" Implemented but unclaimed, and mis-cited as \"12.4.5.13 SR3\". Now a row of FileControlKeyRules over RecordLayout.IsInRecordOfFile - THE ONE predicate for \"the item's 01 root is a record of this file\", which 12.4.5.12.3 SR2 and 12.4.5.6.3 SR2 REQUIRE and this rule FORBIDS, so the three rules cannot drift apart.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.13.4-1",
@@ -46672,11 +46672,11 @@
   "subject": "START statement",
   "rule-digest": "ce0e37ec0baa",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#GenericKeyIndex; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#InRecordOfFile; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#SameClassCategoryUsage; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#CategoryOfItem; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#UsageOfItem",
-  "test-ref": "conformance:2002/pb354_start_generic_key_ok; conformance:negative/pb354-start-operand-outside-record; conformance:negative/pb354-start-operand-class-mismatch; conformance:negative/pb354-start-operand-too-long",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#GenericKeyIndex; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+  "test-ref": "conformance:2002/pb354_start_generic_key_ok; conformance:negative/pb354-start-operand-outside-record",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "FOLDED 2 sub-item row(s) into this rule by the PB698 transcription repair (their outdented text was returned to its printed level, so they are addressed by citation path on this rule instead of by rows of their own). VERDICT RE-DERIVED: parent CONFORMS after PB354; both folded conditions (6) b) 2. and 6) b) 3.) CONFORM and each is pinned by its own negative golden.\nkb/Work PB354. RULE (--check 14.9.41.3 6 and 6) b) 1.): for indexed files data-name-1 shall reference either a) a prime or alternate record key associated with file-name-1, or b) a data item whose 'leftmost character position WITHIN A RECORD OF THE FILE corresponds to the leftmost character position of a prime or alternate record key that is associated with file-name-1 and that is defined without the SOURCE phrase in the RECORD KEY clause or ALTERNATE RECORD KEY clause'.\nCODE: RecordLayout.KeyIndexByPosition(file, operand) -- 'if (OffsetOf(operand) is not { } off) return null; if (file.RecordKeyItem is { } pk && OffsetOf(pk) == off && operand.ImageWidth <= pk.ImageWidth) return -1;' then the same loop over file.AlternateKeys.\nTHE ACCEPT ARM CONFORMS and is deliberately position-based rather than name-based (12.4.5.12.4 GR4 makes the identical byte positions keys in EVERY record description of the file), so a REDEFINES of the key and a same-position item in a sibling 01 both match. It is pinned by a spec-derived test: conformance-test:KeyedOffsetSpecTests.Start_KeyOperandInSiblingRecord_MatchesByBytePosition, which asserts GOT=02 directly from the rule rather than against an oracle.\nTHE REJECT ARM DIVERGES. OffsetOf computes the offset inside the operand's OWN 01 root ('DataItem root = item; while (root.Parent is { } parent) root = parent;') and NOTHING checks that that root is a record description of file-name-1 -- or of any FD at all. So any item at offset 0 of any 01 anywhere in the program, no wider than the key, binds as a generic key of that file. PROBED (out-b1/probe/sr6-ws): '01 WS-OUTSIDE. 05 WS-PART PIC X(4). 05 WS-FILLER PIC X(20).' in WORKING-STORAGE, then 'START IXF KEY IS = WS-PART' against 'RECORD KEY IS IX-KEY' / '05 IX-KEY PIC X(6)' -- compiles CLEAN, binding keyIndex = -1 (the prime key).\nAnd the acceptance is not merely a missing syntax check. KeyedIoEmitter.EmitStart then passes OperandText.AsString of that WORKING-STORAGE item as the comparison value, where 14.9.41.4 GR17 a) (--check) specifies 'The specified key is set up by moving the relevant parts of the RECORD AREA into a temporary data area' -- so the compiler emits a comparand the standard does not define for a statement it should have refused.\nSR6 b) 1.'s 'defined without the SOURCE phrase' qualifier is vacuous in this compiler (no SOURCE surface -- see SR-14.9.41.3-7), so it is not a second defect here.\nUNDER-REJECTS. TEST-REF LEFT EMPTY DELIBERATELY: the sibling-record test above covers only the accept arm and would still pass with the reject arm fixed, so naming it would misrepresent coverage.\n\nLANDED 2026-09-05 (kb/Work PB354). SR6's two arms are two methods. a) RecordLayout.KeyIndexOfKeyItem: the operand IS a record key - by reference identity, or by 12.4.5.12.4 GR4's identical BYTE POSITIONS in another record description entry OF THE SAME FILE. b) RecordLayout.GenericKeyIndex: SR6 b)'s three conditions together. The missing premise of b) 1. - \"within a record of the file\" - is now required by InRecordOfFile, so a WORKING-STORAGE 01 at offset 0 no longer collides with offset 0 in the record (conformance:negative/pb354-start-operand-outside-record). The COMPLEMENT is measured, not assumed: conformance:2002/pb354_start_generic_key_ok walks all five accepting shapes (declared prime key, a GR4 implicit key in a second record description, a shorter generic prime key, the declared alternate, and a shorter generic alternate) and each returns the record the rule selects.\n|| FOLDED FROM SR-14.9.41.3-L2.2 [OK  §14.9.41.3 6) b) 2.  (Syntax rules)] verdict CONFORMS: kb/Work PB354. RULE (--check 14.9.41.3, printed path 6) b) 2.): 'It has the same class, category, and usage as that record key.' NOTHING CHECKS IT, and the omission is deliberate and self-documented -- RecordLayout.KeyIndexByPosition's own doc comment says '(SR6b.2's same-class/category/usage check is a pre-existing looseness kept as-is; the width-<= rule is SR6b.3.)'. The method tests OffsetOf equality and ImageWidth <= and nothing else; there is no class, category or usage comparison anywhere on the START key path.\nPROBED, compile and run (out-b1/probe/l23-len and out-b1/probe/l22-run). Prime key '05 IX-KEY PIC X(6)' (class alphanumeric, category alphanumeric, usage display); sibling record '01 IX-REC3. 05 IX-NUM PIC 9(4) COMP-3.' (class numeric, category numeric, usage packed-decimal, ImageWidth 4 <= 6, offset 0 == the key's offset). 'START IXF KEY IS = IX-NUM' compiles with NO diagnostic. Run against a file holding keys '1234AA' and '9999ZZ', after MOVE 1234 TO IX-NUM, it reports 'L22-OK ST=00' and the following READ NEXT returns 1234AA. SR6 b) 2. forbids that operand outright; the compiler instead substitutes a VALUE CONVERSION (KeyedIoEmitter.EmitStart -> OperandText.AsString of the packed item) where the rule's whole premise is that the operand OVERLAYS the key's character positions. SILENT under-rejection with a wrong-answer tail: the same shape with a COMP or COMP-3 item whose rendered text does not coincide with the stored key characters compares the wrong bytes and reports no error.\nROW CONTEXT: this L-row and its sibling L2.3 are the nested-list rows kb/Work PB55 records under '14.9.41.3 L2' as scheduled for absorption into their parent rule after the defect burn-down; adjudicated here as the inventory presents them.\nTEST: none.\n\nLANDED 2026-09-05 (kb/Work PB354). The condition is implemented and the doc comment that recorded its omission as \"a pre-existing looseness kept as-is\" is gone. GenericKeyIndex admits a generic key only when SameClassCategoryUsage holds: the CLASS from the one 8.5.2.1 Table-2 classifier (IntrinsicArgumentRules.ClassOfItem - never a second copy of that table), the CATEGORY from the operand's PICTURE or, for an ordinary group, category alphanumeric (13.18.29.4 GR3), and the USAGE from the resolved PICTURE or the entry's own clause, DISPLAY otherwise. REJECT side: conformance:negative/pb354-start-operand-class-mismatch - a PIC 9(4) COMP-3 item at an X(6) key's leftmost position, which used to bind and compare a decimal rendering against stored key characters. ACCEPT side: conformance:2002/pb354_start_generic_key_ok K3 and K5, where class, category and usage all agree.\n\n|| FOLDED FROM SR-14.9.41.3-L2.3 [OK  §14.9.41.3 6) b) 3.  (Syntax rules)] verdict CONFORMS: kb/Work PB354. RULE (--check 14.9.41.3, printed path 6) b) 3.): 'Its length is not greater than the length of that record key.' CODE: RecordLayout.KeyIndexByPosition -- 'operand.ImageWidth <= pk.ImageWidth' for the prime key and the same test over each entry of file.AlternateKeys.\nVERIFIED for the alphanumeric-display case (out-b1/probe/l23-len): prime key '05 IX-KEY PIC X(6)', sibling record '01 IX-REC2. 05 IX-LONG PIC X(9).' at the same offset 0, and 'START IXF KEY IS = IX-LONG' is REJECTED with COBOLNET0862 -- the longer operand does not bind. The accept side of the same threshold is covered by the shorter-operand case that KeyIndexByPosition's generic-key path serves.\nPARTIAL, on two splits I could NOT verify:\n(a) 14.9.41.4 GR13 distinguishes alphanumeric character positions from NATIONAL character positions for this length, and a national item cannot appear in a file record at all in this compiler -- probing '05 IX-NAT PIC N(3).' inside an FD record raises COBOLNET0899 'national data in a file record ... is recognized but not yet implemented - the record codec is single-byte and the national character is two bytes'. The national leg of the length comparison therefore has no implementation to verify, and the rule is enforced for only one of its two operand classes.\n(b) ImageWidth is a DECLARED-image width (digits plus separate sign for a numeric usage, PIC length for alphanumeric), so once SR6 b) 2.'s class/category/usage identity goes unenforced (SR-14.9.41.3-L2.2) the two sides of this <= are not commensurable: a PIC 9(4) COMP-3 operand contributes 4 while occupying 3 bytes of packed storage. The rule holds soundly only where operand and key are both alphanumeric display.\nROW CONTEXT: an L-row of the kb/Work PB55 family (see SR-14.9.41.3-L2.2).\nTEST: none.\n\nLANDED 2026-09-05 (kb/Work PB354). The length test is unchanged in shape (operand.ByteWidth <= key.ByteWidth) but is no longer applied across incommensurable bases: b) 2. now guarantees the operand and the key have the same class, category AND usage before b) 3. compares them, so the two widths are always on one basis. The two L-rows were fixed together, as the adjudication required. THRESHOLD PINNED FROM BOTH SIDES: conformance:negative/pb354-start-operand-too-long rejects a 9-character item over a 6-character key (b) 1. and b) 2. both satisfied, so b) 3. is the only condition left to reject it), and conformance:2002/pb354_start_generic_key_ok K3 accepts a 3-character generic key over the same X(6) key and positions on its own length.\n",
+  "notes": "kb/Work PB354. RULE (--check 14.9.41.3 6 and 6) b) 1.): for indexed files data-name-1 shall reference either a) a prime or alternate record key associated with file-name-1, or b) a data item whose 'leftmost character position WITHIN A RECORD OF THE FILE corresponds to the leftmost character position of a prime or alternate record key that is associated with file-name-1 and that is defined without the SOURCE phrase in the RECORD KEY clause or ALTERNATE RECORD KEY clause'.\nLANDED 2026-09-05 (kb/Work PB354). SR6's two arms are two methods. a) RecordLayout.KeyIndexOfKeyItem: the operand IS a record key - by reference identity, or by 12.4.5.12.4 GR4's identical BYTE POSITIONS in another record description entry OF THE SAME FILE. b) RecordLayout.GenericKeyIndex: SR6 b)'s three conditions together. The missing premise of b) 1. - \"within a record of the file\" - is required by RecordLayout.IsInRecordOfFile, so a WORKING-STORAGE 01 at offset 0 no longer collides with offset 0 in the record (conformance:negative/pb354-start-operand-outside-record). The COMPLEMENT is measured, not assumed: conformance:2002/pb354_start_generic_key_ok walks all five accepting shapes (declared prime key, a GR4 implicit key in a second record description, a shorter generic prime key, the declared alternate, and a shorter generic alternate) and each returns the record the rule selects.\nCODE-LOCATION RENAME 2026-09-06 (kb/Work PB699), verdict and reasoning unchanged: the private RecordLayout.InRecordOfFile became the PUBLIC nullable-tolerant IsInRecordOfFile, because it is the same predicate three file control entry rules are stated on - 12.4.5.12.3 SR2 and 12.4.5.6.3 SR2 REQUIRE a record key to be within a record of the file, 12.4.5.13.3 SR3 FORBIDS it of the relative key - and a second copy in FileControlKeyRules would have been one rule written down twice. The rename is recorded as a BATCH rather than a hand edit so the lander can re-apply it on the merged tree.",
   "state": "OK"
  },
  {

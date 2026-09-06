@@ -18,15 +18,17 @@ using Core = CobolParserCore;
 
 /// <summary>P7 Step 10h: a real collaborator over <see cref="BinderContext"/> — the SeqIo↔KeyedIo cycle
 /// mirrors the emitter side (SequentialIoBinder holds THIS binder for the org reroutes; the WRITE/REWRITE
-/// FROM operand reaches back through <c>host.SeqIo.WriteSource</c>). The one-report-per-file
-/// <c>_keyedCheckedFiles</c> memo keeps its per-unit lifetime (ONE instance per binder). The nine bound
+/// FROM operand reaches back through <c>host.SeqIo.WriteSource</c>). The nine bound
 /// types stayed in <c>Binding/Bound/BoundKeyedIo.cs</c> — the VersionConformancePass edition gates fire on
-/// their SHAPE (Kind/Mode/Length/AdvancingOnLock).</summary>
+/// their SHAPE (Kind/Mode/Length/AdvancingOnLock).
+/// <para>⛔ IT SCREENS STATEMENTS, NOT ENTRIES. A <c>KeyedValidateFile</c> here used to check the FILE CONTROL
+/// ENTRY's own syntax rules on the first keyed verb that named the file, behind a <c>_keyedCheckedFiles</c> memo
+/// that existed only to make that once-per-file — so an entry whose keys break those rules compiled clean when
+/// no keyed verb named it (kb/Work PB699). Those rules moved WHOLE to <see cref="FileControlKeyRules"/>, which
+/// <c>DataBinder.ResolveFiles</c> runs over every declared file. Nothing about a key clause belongs here; a rule
+/// belongs here only if the standard states it about a STATEMENT.</para></summary>
 internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, FileLockBinder fileLock)
 {
-    /// <summary>Files already semantically checked by <see cref="KeyedValidateFile"/> (one report per file).</summary>
-    private readonly HashSet<FileModel> _keyedCheckedFiles = [];
-
     // ── READ (ISO §14.9.30 Formats 1 and 2 on relative/indexed organizations) ─────────────────────────────────
 
     /// <summary>Bind a READ of a RELATIVE/INDEXED file. The format decision follows the syntax rules: an explicit
@@ -35,7 +37,6 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// is always Format 2 and forbids NEXT/PREVIOUS/AT END (SR6).</summary>
     public BoundStatement BindRead(Core.ReadStatementContext r, FileModel file)
     {
-        KeyedValidateFile(file);
         // Bracket 1 of §14.9.30.2 — [ADVANCING ON LOCK | IGNORING LOCK | retry-phrase] (kb/Work PB331).
         var contention = r.readLockContentionPhrase();
         Place? into = r.readInto()?.dataReference() is { } d ? ctx.Refs.Resolve(d) : null;
@@ -125,7 +126,6 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     public BoundStatement BindWrite(Core.WriteStatementContext w, FileModel file, Place record,
         BoundRecordLock lock_, RetrySpec? retry)
     {
-        KeyedValidateFile(file);
         if (w.writeBeforeAfter() is not null || w.writeAtEndOfPage() is not null)
             return new BoundUnsupported($"WRITE ADVANCING / END-OF-PAGE on {file.Organization} file "
                 + $"'{file.CobolName}' (ISO §14.9.51 — print-control phrases are for sequential print files)");
@@ -142,7 +142,6 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     public BoundStatement BindRewrite(Core.RewriteStatementContext rw, FileModel file, Place record,
         BoundRecordLock lock_, RetrySpec? retry)
     {
-        KeyedValidateFile(file);
         // §14.9.35.3 SR2, arm (b) — "… or a file with relative organization and sequential access mode". Arm (a),
         // sequential ORGANIZATION, never reaches here and is screened at SequentialIoBinder.BindRewrite, which
         // dropped the phrase entirely; the rule has two arms and only this one was even commented (kb/Work
@@ -183,7 +182,6 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + $"file '{name}' (ISO §14.9.10 SR1)");
             return new BoundNop();   // reported above — not a deferral (PB236)
         }
-        KeyedValidateFile(file);
         // §14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD
         // that references a file in SEQUENTIAL ACCESS MODE. Gated through the ONE severity seam (kb/Work PB144):
         // an error under strict, a warning under --permissive with the bind unchanged — a sequential-access
@@ -256,7 +254,6 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // connector (kb/Work PB352).
         if (ctx.Validation.ScreenSortMergeFile(file, "START") is not null)
             return new BoundNop();   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
-        KeyedValidateFile(file);
         if (file.AccessMode == FileAccessMode.Random)
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the access mode shall be sequential or "
                 + "dynamic (ISO §14.9.41 SR1)");
@@ -334,8 +331,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // GR-14.9.41.4-8). §14.9.41.4 GR8: "If the KEY phrase is omitted, the START statement behaves as
             // though KEY IS EQUAL TO data-name-1 had been specified, where data-name-1 is the name of the key
             // specified in the RELATIVE KEY clause associated with file-name-1." A relative file in ACCESS
-            // SEQUENTIAL may legally omit the RELATIVE KEY clause (§12.4.5.13 imposes no requirement to write
-            // it, and KeyedValidateFile only requires it for random/dynamic), so this program is syntactically
+            // SEQUENTIAL may legally omit the RELATIVE KEY clause (§12.4.5.1 Format 2 BRACKETS it and §12.4.5.2
+            // SR10 requires it only for DYNAMIC or RANDOM), so this program is syntactically
             // legal and semantically empty: there is no data-name-1 to substitute. §4.2.2 ¶4 leaves flagging a
             // general rule to the implementor ("An implementation may, but is not required to, flag violations
             // of such rules"), and the alternative to flagging is emitting code that cannot work — so this
@@ -394,50 +391,4 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         return new KeyedInvalidKey(inv, not);
     }
 
-    /// <summary>One-time semantic checks of a keyed file's control entry, run on its first keyed verb (the
-    /// FILE-CONTROL clauses are captured by DataBinder; the rules live with the verbs that need them):
-    /// an INDEXED file requires a RECORD KEY (ISO §12.4.5.1 Format 1 — RECORD KEY is a required clause);
-    /// a RELATIVE file in random/dynamic access requires a RELATIVE KEY (§12.4.5.13); the RELATIVE KEY item is
-    /// not subject to any OCCURS clause (§12.4.5.13.3 SR1), is an unsigned integer without 'P'
-    /// (§12.4.5.13.3 SR2) and shall NOT be defined within a record of the file (§12.4.5.13.3 SR3 — it lives
-    /// outside, typically WORKING-STORAGE). ⛔ All THREE of §12.4.5.13.3's syntax rules, not two: SR1 was the
-    /// missing member of the set, and its absence covered for the missing §14.9.41.3 SR4 check on the START
-    /// relative arm — a subscripted RELATIVE KEY reached the binder unreported from both directions
-    /// (kb/Work PB354 part 3).</summary>
-    private void KeyedValidateFile(FileModel file)
-    {
-        if (!_keyedCheckedFiles.Add(file)) return;
-        if (file.Organization == FileOrganization.Indexed && file.HasFd && file.RecordKeyItem is null)
-            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"indexed file '{file.CobolName}' has no RECORD KEY clause "
-                + "(ISO §12.4.5.1 Format 1 — RECORD KEY is required for ORGANIZATION INDEXED)");
-        // §12.4.5.12.3 SR1 and §12.4.5.6.3 SR1 — the RECORD KEY and ALTERNATE RECORD KEY twins of
-        // §12.4.5.13.3 SR1 below, word for word: "Data-name-1 and data-name-2 shall not be subject to any
-        // OCCURS clauses." Swept in with the RELATIVE KEY member (kb/Work PB354): all three key clauses state
-        // the same ban, and a rule set with one member written down is the shape where the missing members are
-        // hardest to see. (data-name-2 is the SOURCE phrase's operand — not claimed, Annex A.3 item 40 — so
-        // data-name-1 is the whole of what a key clause can carry here.)
-        if (file.RecordKeyItem is { } pk && Model.RecordLayout.IsSubjectToOccurs(pk))
-            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"RECORD KEY '{pk.CobolName}' is subject to an OCCURS clause; "
-                + "data-name-1 shall not be (ISO §12.4.5.12.3 SR1)");
-        foreach (var (alt, _, _) in file.AlternateKeys)
-            if (Model.RecordLayout.IsSubjectToOccurs(alt))
-                ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"ALTERNATE RECORD KEY '{alt.CobolName}' is subject to an "
-                    + "OCCURS clause; data-name-1 shall not be (ISO §12.4.5.6.3 SR1)");
-        if (file.Organization != FileOrganization.Relative) return;
-        if (file.RelativeKeyItem is null && file.AccessMode != FileAccessMode.Sequential)
-            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"relative file '{file.CobolName}' is ACCESS {file.AccessMode} "
-                + "but has no RELATIVE KEY clause (ISO §12.4.5.13 — required for random/dynamic access)");
-        if (file.RelativeKeyItem is not { } rk) return;
-        if (Model.RecordLayout.IsSubjectToOccurs(rk))
-            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"RELATIVE KEY '{rk.CobolName}' is subject to an OCCURS clause; "
-                + "data-name-1 shall not be (ISO §12.4.5.13.3 SR1)");
-        if (rk.Pic is not { Category: PicCategory.Numeric, Scale: 0, Signed: false })
-            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"RELATIVE KEY '{rk.CobolName}' shall be an unsigned integer "
-                + "without the symbol 'P' (ISO §12.4.5.13 SR2)");
-        DataItem root = rk;
-        while (root.Parent is { } p) root = p;
-        if (file.Records.Contains(root))
-            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"RELATIVE KEY '{rk.CobolName}' shall not be defined within a "
-                + $"record description of file '{file.CobolName}' (ISO §12.4.5.13 SR3)");
-    }
 }

@@ -2270,21 +2270,29 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOLNET0863 — the FILE-CONTROL KEY-CLAUSE band: a RECORD KEY, ALTERNATE RECORD KEY or RELATIVE
     /// KEY clause (or the LINAGE-COUNTER qualifier that reads one of the same file description entries) violates
-    /// its own rule. Covers ISO §12.4.5.1 (the file control entry's required clauses), §12.4.5.12.3 (RECORD KEY),
-    /// §12.4.5.6.3 (ALTERNATE RECORD KEY), §12.4.5.13 and §12.4.5.13.3 (RELATIVE KEY) and §8.4.3.14 / §13.18.34
-    /// GR7 a) (LINAGE-COUNTER). The three key clauses state the SAME OCCURS ban in the same words, which is why
-    /// they share one code: a rule set with one member written down is where the missing members hide
-    /// (kb/Work PB354).</summary>
+    /// its own rule. Covers ISO §12.4.5.1 (the file control entry's required clauses), §12.4.5.2 SR10 (RELATIVE
+    /// KEY required for DYNAMIC/RANDOM access), §12.4.5.12.3 (RECORD KEY), §12.4.5.6.3 (ALTERNATE RECORD KEY),
+    /// §12.4.5.13.3 (RELATIVE KEY) and §8.4.3.14 / §13.18.34 GR7 a) (LINAGE-COUNTER). The three key clauses state
+    /// the SAME OCCURS ban in the same words, which is why they share one code: a rule set with one member written
+    /// down is where the missing members hide (kb/Work PB354).
+    /// <para>⛔ THE KEY-CLAUSE ARM IS ONE TABLE, <c>FileControlKeyRules</c>, run from
+    /// <c>DataBinder.ResolveFiles</c> over EVERY declared file. It used to run from <c>KeyedIoBinder</c> on the
+    /// first keyed VERB naming the file, so these entry rules were silent for a file the program only OPENed and
+    /// CLOSEd (kb/Work PB699). Two citations were repaired in the same move: the required-clause rule is
+    /// §12.4.5.2 SR10, not §12.4.5.13 (which has no syntax rules at all — they live in §12.4.5.13.3), and the
+    /// unsigned-integer and not-in-a-record rules are §12.4.5.13.3 SR2 and SR3.</para></summary>
     public static readonly DiagnosticDescriptor FileKeyClauseRule = new(
         "COBOLNET0863", "file-key-clause-rule", EditionSeverity.Error,
         "A file control entry's key clause — RECORD KEY (ISO §12.4.5.12.3), ALTERNATE RECORD KEY (§12.4.5.6.3) "
-        + "or RELATIVE KEY (§12.4.5.13 / §12.4.5.13.3) — is absent where the organization or access mode requires "
-        + "it (§12.4.5.1), or its operand breaks one of the clause's own syntax rules: all three state \"Data-name-1 "
-        + "and data-name-2 shall not be subject to any OCCURS clauses\" (§12.4.5.12.3 syntax rule 1 and its twins), "
-        + "and RELATIVE KEY adds the unsigned-integer and not-in-a-record-of-this-file rules. The LINAGE-COUNTER "
-        + "qualifier (§8.4.3.14 / §13.18.34 GR7 a) names a file description entry the same way and lands here too. "
+        + "or RELATIVE KEY (§12.4.5.13.3) — is absent where the organization requires it (§12.4.5.1 Format 1) or "
+        + "the access mode does (§12.4.5.2 SR10), names a data item that is not within a record description entry "
+        + "associated with the file (§12.4.5.12.3 SR2 / §12.4.5.6.3 SR2), or breaks one of the clause's other "
+        + "syntax rules: all three state \"Data-name-1 and data-name-2 shall not be subject to any OCCURS "
+        + "clauses\" (§12.4.5.12.3 syntax rule 1 and its twins), and RELATIVE KEY adds the unsigned-integer "
+        + "(§12.4.5.13.3 SR2) and not-in-a-record-of-this-file (SR3) rules. The LINAGE-COUNTER qualifier "
+        + "(§8.4.3.14 / §13.18.34 GR7 a) names a file description entry the same way and lands here too. "
         + "The site names the rule it caught.",
-        "ISO §12.4.5.1 / §12.4.5.12.3 / §12.4.5.6.3 / §12.4.5.13.3 / §8.4.3.14 / §13.18.34");
+        "ISO §12.4.5.1 / §12.4.5.2 / §12.4.5.12.3 / §12.4.5.6.3 / §12.4.5.13.3 / §8.4.3.14 / §13.18.34");
 
     /// <summary>COBOLNET1858 — §12.4.5.5.2 SR2, the ACCESS MODE clause's own organization rule, checked on the
     /// FILE CONTROL ENTRY (kb/Work PB692). One descriptor, not one per phrase: DYNAMIC and RANDOM are two

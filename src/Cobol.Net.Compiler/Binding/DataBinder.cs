@@ -821,6 +821,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             using var _ = Edition.At(grp);
             if (grp.fileName()?.GetText() is not { } name) continue;
             var file = new FileModel { CobolName = name, SelectName = name, AssignTarget = name, Optional = grp.OPTIONAL() is not null };
+            // The entry's OWN position: §12.4.5.1's required members and §12.4.5.2 SR10 are violated by the
+            // ABSENCE of a clause, so there is nothing else to point at (kb/Work PB699).
+            file.EntryAt = Edition.Cursor;
             Core.AccessModeClauseContext? accessAt = null;   // the ACCESS MODE clause cursor for §12.4.5.5.2 SR2, below
             bool wroteOrganization = false;                  // false = the clause was OMITTED (§12.4.5.10.3 GR6 default)
             foreach (var clauses in grp.fileControlClauses())
@@ -851,16 +854,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs)
                     file.FileStatusName = fs.cobolWord()?.GetText() ?? fs.GetText();
                 else if (clauses.recordKeyClause()?.dataReference() is { } rk)                                       // ISO §12.4.5.12
+                {
                     (file.RecordKeyName, file.RecordKeyQualifiers) = KeyReference(rk);
+                    using var __ = Edition.At(rk);
+                    file.RecordKeyAt = Edition.Cursor;   // §12.4.5.12.3 reports here, from ResolveFiles
+                }
                 else if (clauses.alternateKeyClause() is { } ak)                                                     // ISO §12.4.5.6
                 {
                     var (an, aq) = KeyReference(ak.dataReference());
                     // §12.4.5.6.4 GR6 — the SUPPRESS WHEN key suppression value (decoded literal; null when absent).
                     string? suppress = ak.alternateKeySuppressWhen()?.literal() is { } sl ? CobolLiteral.Decode(sl.GetText()) : null;
-                    file.AlternateKeyNames.Add((an, aq, ak.DUPLICATES() is not null, suppress));
+                    using var __ = Edition.At(ak.dataReference());
+                    file.AlternateKeyNames.Add(new AlternateKeyClause
+                    {
+                        Name = an, Qualifiers = aq, Duplicates = ak.DUPLICATES() is not null,
+                        Suppress = suppress, At = Edition.Cursor,   // §12.4.5.6.3 reports here, from ResolveFiles
+                    });
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
-                    file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13 SR3 — outside the record
+                {
+                    file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13.3 SR3 — outside the record
+                    using var __ = Edition.At(rlk);
+                    file.RelativeKeyAt = Edition.Cursor;   // §12.4.5.13.3 reports here, from ResolveFiles
+                }
                 else if (clauses.sharingClause() is { } sh)   // §12.4.5.15 — edition gate: VersionConformancePass ParseArm.VisitSharingClause (14g.4, recognition — fires on the clause's presence, drop-proof on a SELECT error)
                     file.Sharing = MapSharing(sh.sharingMode());
                 else if (clauses.lockModeClause() is { } lm)   // §12.4.5.9 — edition gate: VersionConformancePass ParseArm.VisitLockModeClause (14g.4)
@@ -1001,7 +1017,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // SR4/SR5: every Format-2 name shall be a declared RECORD KEY or ALTERNATE RECORD KEY of this file.
         var keyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (file.RecordKeyName is { } pk) keyNames.Add(pk);
-        foreach (var (n, _, _, _) in file.AlternateKeyNames) keyNames.Add(n);
+        foreach (var alt in file.AlternateKeyNames) keyNames.Add(alt.Name);
         // SR8: "Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE
         // clause." The boundary is the CLAUSE, and the screen is per OPERAND *within* it: §12.4.5.7.2's Format-2
         // figure is `OF { data-name-1 | record-key-name-1 } … IS alphabet-name-3`, and by §5.2.7 the ellipsis
@@ -1421,13 +1437,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 file.Records.Select(r => FindQualified(r, keyName, quals)).FirstOrDefault(x => x is not null)
                 ?? (quals.Count == 0 && ByName.TryGetValue(keyName, out var l) && l.Count > 0 ? l[0] : null);
             if (file.RecordKeyName is { } rk) file.RecordKeyItem = InRecords(rk, file.RecordKeyQualifiers);
-            foreach (var (altName, altQuals, dups, suppress) in file.AlternateKeyNames)
-                if (InRecords(altName, altQuals) is { } alt)
-                    file.AlternateKeys.Add((alt, dups, suppress));
+            foreach (var clause in file.AlternateKeyNames)
+                if ((clause.Item = InRecords(clause.Name, clause.Qualifiers)) is { } alt)
+                    file.AlternateKeys.Add((alt, clause.Duplicates, clause.Suppress));
             ResolveFileCollating(file);   // §12.4.5.7 — per-key collating weights (needs the resolved keys)
             if (file.RelativeKeyName is { } rl && ByName.TryGetValue(rl, out var rlist) && rlist.Count > 0)
                 file.RelativeKeyItem = rlist[0];
             ResolveAssignUsing(file);   // §12.4.5.3 GR3 b + §12.4.5.2 SR7
+            // ⛔ THE FILE CONTROL ENTRY'S OWN SYNTAX RULES, screened HERE — at the ENTRY, for EVERY declared file,
+            // whatever the procedure division does with it. They used to run from KeyedIoBinder on the first keyed
+            // VERB that named the file, so a program that only OPENed and CLOSEd a file whose keys break them
+            // compiled clean (kb/Work PB699). One table, one screen: FileControlKeyRules.
+            FileControlKeyRules.Screen(file, Edition);
             // RECORD VARYING … DEPENDING ON names an integer item outside the record (ISO §13.18.43 SR — the
             // length register WRITE/REWRITE/RELEASE read per GR13a and READ/RETURN set per GR15).
             if (file.Varying?.DependingName is { } vn && ByName.TryGetValue(vn, out var vlist) && vlist.Count > 0)

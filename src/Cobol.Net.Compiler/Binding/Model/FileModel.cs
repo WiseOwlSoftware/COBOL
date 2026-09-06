@@ -19,6 +19,30 @@ public enum SharingMode { None, AllOther, NoOther, ReadOnly }
 public enum LockKind { None, Manual, Automatic }
 public sealed record LockModeInfo(LockKind Kind, bool Multiple);
 
+/// <summary>One ALTERNATE RECORD KEY clause of a file control entry, AS WRITTEN (ISO §12.4.5.6.2 — data-name-1,
+/// its IN/OF qualifiers, the WITH DUPLICATES and SUPPRESS WHEN phrases), plus the item data-name-1 resolved to
+/// and the source position its syntax rules report at.
+/// <para>⛔ It is a carrier for the clause, not for the resolved key: <c>FileModel.AlternateKeys</c> holds only the
+/// clauses that RESOLVED (its index is the runtime key index), and a clause that resolved to nothing is simply
+/// missing from it. §12.4.5.6.3's syntax rules are stated about the CLAUSE, so the screen reads this list — which
+/// is why <c>Item</c> is nullable here and not there.</para></summary>
+public sealed class AlternateKeyClause
+{
+    public required string Name { get; init; }
+    public required IReadOnlyList<string> Qualifiers { get; init; }
+    public bool Duplicates { get; init; }
+
+    /// <summary>The decoded §12.4.5.6.4 GR6 key suppression value (null = no SUPPRESS WHEN phrase).</summary>
+    public string? Suppress { get; init; }
+
+    /// <summary>Where data-name-1 is written — the cursor §12.4.5.6.3's post-build screens report at.</summary>
+    public CobolNet.Editions.DiagnosticCursor At { get; init; }
+
+    /// <summary>What data-name-1 resolved to (set by <c>DataBinder.ResolveFiles</c>); null when the name
+    /// references nothing describable — itself a §12.4.5.6.3 SR2 violation.</summary>
+    public DataItem? Item { get; set; }
+}
+
 /// <summary>
 /// A bound file connector (COBOLNET_DESIGN §8): the SELECT clause's properties joined with the FD's record
 /// description(s). The FD's record area is a typed field — for multiple <c>01</c>s under one FD they SHARE one
@@ -90,9 +114,18 @@ public sealed class FileModel
     /// other shares it (synthesized REDEFINES).</summary>
     public List<DataItem> Records { get; } = [];
 
+    /// <summary>The source position of the file control entry itself — the cursor the entry's own syntax rules
+    /// report at when the violation is the ABSENCE of a clause (ISO §12.4.5.1's required members and §12.4.5.2
+    /// SR10), since there is no clause to point at. See <see cref="FileControlKeyRules"/>.</summary>
+    public CobolNet.Editions.DiagnosticCursor EntryAt { get; set; }
+
     /// <summary>The RECORD KEY base data-name as written (ISO §12.4.5.12), resolved post-build to
     /// <see cref="RecordKeyItem"/>; null when absent (the clause is required for ORGANIZATION INDEXED).</summary>
     public string? RecordKeyName { get; set; }
+
+    /// <summary>The source position of the RECORD KEY clause's data-name-1 — where §12.4.5.12.3's syntax rules
+    /// report, since they are screened post-build (the operand resolves only once the data forest is indexed).</summary>
+    public CobolNet.Editions.DiagnosticCursor RecordKeyAt { get; set; }
 
     /// <summary>The RECORD KEY reference's IN/OF qualifier words, written order (innermost first) — identically
     /// named key items under different areas of the record are legal and selected by qualification (ISO
@@ -102,9 +135,11 @@ public sealed class FileModel
     /// <summary>The resolved prime RECORD KEY item — a data item within the file's record (ISO §12.4.5.12 SR2).</summary>
     public DataItem? RecordKeyItem { get; set; }
 
-    /// <summary>The ALTERNATE RECORD KEY clauses as written, in declaration order: base data-name + IN/OF
-    /// qualifiers + WITH DUPLICATES (ISO §12.4.5.6); resolved post-build into <see cref="AlternateKeys"/>.</summary>
-    public List<(string Name, IReadOnlyList<string> Qualifiers, bool Duplicates, string? Suppress)> AlternateKeyNames { get; } = [];
+    /// <summary>The ALTERNATE RECORD KEY clauses as written, in declaration order (ISO §12.4.5.6), each carrying
+    /// what its data-name-1 resolved to. ⛔ THIS is the §12.4.5.6.3 screen's subject list, NOT
+    /// <see cref="AlternateKeys"/>: a clause whose data-name-1 references nothing describable is ABSENT from the
+    /// resolved list, so the two are not index-aligned in exactly the case a syntax rule has to talk about.</summary>
+    public List<AlternateKeyClause> AlternateKeyNames { get; } = [];
 
     /// <summary>The resolved alternate keys, in declaration order (the runtime key index is the list index).
     /// <c>Suppress</c> is the decoded §12.4.5.6.4 GR6 key suppression value (null = no SUPPRESS WHEN phrase).</summary>
@@ -135,7 +170,11 @@ public sealed class FileModel
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>
     public string? RelativeKeyName { get; set; }
 
-    /// <summary>The resolved RELATIVE KEY item (an unsigned integer item, ISO §12.4.5.13 SR2).</summary>
+    /// <summary>The source position of the RELATIVE KEY clause's data-name-1 — where §12.4.5.13.3's three syntax
+    /// rules report (screened post-build, once the operand resolves).</summary>
+    public CobolNet.Editions.DiagnosticCursor RelativeKeyAt { get; set; }
+
+    /// <summary>The resolved RELATIVE KEY item (an unsigned integer item, ISO §12.4.5.13.3 SR2).</summary>
     public DataItem? RelativeKeyItem { get; set; }
 
     /// <summary>True once an FD was matched to this SELECT (a SELECT with no FD is an error the front-end already

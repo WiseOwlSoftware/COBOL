@@ -769,7 +769,7 @@ guarded on the same null. Five null arms for one absent fact is four too many (`
 *Synthesize at emit time instead* — the record has to exist for the binder's own record-area resolution
 (`ReferenceResolver.ResolveItem`), not just for the registration call.
 
-### D19. A syntax rule of a FILE CONTROL ENTRY clause is enforced ON THE ENTRY, in `DataBinder.BindFileControl` — never on a verb. It is the converse of D13, and the two together decide where every I-O syntax rule goes.
+### D19. A syntax rule of a FILE CONTROL ENTRY clause is enforced ON THE ENTRY — in `DataBinder.BindFileControl` when the clauses alone decide it, in `DataBinder.ResolveFiles` when it needs a resolved data item — never on a verb. It is the converse of D13, and the two together decide where every I-O syntax rule goes.
 
 **The rule.** §12.4.5.5.2 SR2: *"The DYNAMIC and RANDOM phrases shall not be specified for a sequential file."*
 The general format says the same thing structurally — Format 3, the sequential file control entry, admits only
@@ -818,16 +818,84 @@ compiles — and every legal (organization × access) cell populated **except** 
 is that missing positive; `conformance:2023/l1_open_mixed_org_access` already pins RELATIVE/RANDOM and
 INDEXED/DYNAMIC.
 
-**Still homeless, and NOT closed by this** (measured over the entry-rule family while here):
+**Two sites, one decision, and the criterion that picks between them.** The entry's syntax rules do not all
+become decidable at the same moment, so "on the entry" is two places, and which one a rule goes to is settled by
+what the rule needs rather than by taste:
+
+- **Decidable from the CLAUSES ALONE** → `DataBinder.BindFileControl`, inline after the clause loop, reporting at
+  once. §12.4.5.5.2 SR2 above, and the §12.4.5.9 SR2 screen beside it, are of this kind: organization against
+  access mode, a clause against another clause.
+- **Needs a RESOLVED DATA ITEM** → `DataBinder.ResolveFiles`, the post-build pass, through the one table below.
+  A key clause names a data-name whose OCCURS ancestry, PICTURE and owning record description are not known until
+  the data forest is indexed, so a screen in `BindFileControl` could only guess at them.
+
+Both run once per declared file, before any statement is bound; neither is reachable from a verb. A new entry
+rule is placed by asking which list it falls in, and nothing else.
+
+**The key clauses' rule set — the second consumer.** The key clauses of §12.4.5 state overlapping rule
+sets, and the overlap is the point:
+§12.4.5.12.3 SR1 (RECORD KEY) and §12.4.5.6.3 SR1 (ALTERNATE RECORD KEY) are the *same sentence* —
+*"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses"* — and §12.4.5.13.3 SR1 states it a
+third time for the relative key. Alongside them sit §12.4.5.12.3 SR2 / §12.4.5.6.3 SR2 (data-name-1 is within a
+record description entry associated with the file-name), §12.4.5.13.3 SR2 (an unsigned integer without `P`) and
+SR3 (*not* in a record of the file), §12.4.5.1 Format 1's unbracketed RECORD KEY clause, and §12.4.5.2 SR10
+(*"The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS clause is specified"*).
+Every one of them is stated about the ENTRY. The entry violates it whether or not a statement references the
+file, and §4.2.2's mechanism has to be able to indicate it.
+
+**What was wrong.** They were enforced by `KeyedIoBinder.KeyedValidateFile`, called from the five keyed verbs
+behind a `_keyedCheckedFiles` memo whose only job was to make the report once-per-file. So the rules fired on the
+FIRST KEYED VERB naming the file — and a program whose procedure division only OPENs and CLOSEs the file has no
+such verb. Measured on the pre-fix tree: an entry with `RECORD KEY IS IX-KEY` and `ALTERNATE RECORD KEY IS
+IX-ALT` both under `OCCURS` compiled with **zero diagnostics**, and adding one `READ … NEXT` grew two
+COBOLNET0863s. Two citations were wrong in the same site — the required-clause rule was filed under §12.4.5.13,
+a clause that has no syntax rules at all, and SR2/SR3 were cited as "§12.4.5.13 SR2/SR3" — and one rule was
+missing entirely in a way the resolution path hid: an ALTERNATE RECORD KEY whose data-name-1 resolved to nothing
+was *dropped silently* from `FileModel.AlternateKeys`, leaving the file with fewer access paths than the entry
+declared and every index-aligned list downstream out of step with the written clauses.
+
+**The design.** `FileControlKeyRules` (`src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs`) is ONE table —
+one row per rule, carrying its inventory rule-id, its clause, a verbatim span of the printed rule, the
+ORGANIZATION whose §12.4.5.1 format carries the clause, the key ROLE it is stated about, and three predicates
+(precondition · violation · message). `DataBinder.ResolveFiles` calls `Screen(file, Edition)` once per declared
+file, after the keys resolve. One-report-per-file is then a consequence of *where* the screen runs, not a set it
+has to carry, and the diagnostic is positioned at the offending CLAUSE (`FileModel.RecordKeyAt` /
+`AlternateKeyClause.At` / `RelativeKeyAt`) or, for an absent clause, at the entry (`FileModel.EntryAt`).
+An absent clause is modelled as an operand with a null name, so a "clause required" rule and an "operand breaks
+a rule" rule are the same kind of row and there is no second arm to dispatch on.
+
+**Why a table and not seven `if`s.** A rule set with one member written down is where the missing members hide:
+PB354 found two of these three OCCURS bans absent, PB699 found the third fired only under a verb. The table makes
+the next key rule a ROW, and `FileControlKeyRuleDriftTests` keeps that true — it re-derives every row's rule text
+from `specs/ISO_COBOL.md` (clause region *and* printed ordinal), asserts each row's shipped message names the
+row's own citation, asserts each row pairs its role with the organization whose format carries the clause, and
+asserts the table and the traceability inventory name the same set of rules, so a rule screened here without a
+row, or a row claiming an id the inventory files elsewhere, is red.
+
+**Boundaries.** The screen holds only what the standard states about the ENTRY. It stays silent on a sort-merge
+file: §12.4.5.1 Format 4 carries no key clause, so an SD whose SELECT writes `ORGANIZATION INDEXED` breaks
+§12.4.5.2 SR8/SR13, not a key clause's own rule, and saying the wrong true-sounding thing is worse than saying
+nothing. It does not carry the SEMANTIC rules of the same clauses — §12.4.5.12.3 SR3–SR5, §12.4.5.6.3 SR3–SR7,
+and the *category* half of both SR2s — which need machinery the screen does not have (variable-length record
+geometry; the `record-key-name-1 SOURCE` phrase, which has no grammar carrier: Annex A.3 item 40). Those two SR2
+rows are recorded PARTIAL in the traceability inventory, naming exactly which half is screened.
+
+`conformance:negative/pb699-*` pins each rule on an OPEN/CLOSE-only program at all four editions;
+`conformance:85/pb699_legal_key_clauses` is the over-rejection twin (a GROUP prime key reached through an `IN`
+qualifier, an alternate key `WITH DUPLICATES`, a relative key in WORKING-STORAGE);
+`FileControlKeyRuleSpecTests` carries the assertion no `.cob` corpus can make — that the SAME entry, with and
+without a keyed verb, draws the SAME diagnostics, exactly once.
+
+**Still homeless, and NOT closed by either half** (measured over the entry-rule family while here):
 §12.4.5.5.2 **SR1** (RANDOM banned on a file named in a SORT/MERGE USING or GIVING phrase — a statement-context
-rule, so D13 puts it in the SORT/MERGE binder, not here); §12.4.5.2 SR8/SR9/SR11/SR13 (format ↔ organization /
-SD consistency); §12.4.5.2 SR12 (LINE SEQUENTIAL excludes RESERVE). The **key** entry rules
-(§12.4.5.6.3 SR1, §12.4.5.12.3 SR1, §12.4.5.13.3 SR1 — no key under OCCURS) are kb/Work PB699, which is this
-same decision applied to `KeyedIoBinder.KeyedValidateFile`: an entry rule that waits for a verb.
-§12.4.5.2 **SR10** — *"The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS
-clause is specified"* — belongs with them: its substance IS enforced by `KeyedValidateFile`, but cited there as
-§12.4.5.13, which carries no such requirement, and being verb-driven it misses a relative file that is declared
-RANDOM and never referenced.
+rule, so D13 puts it in the SORT/MERGE binder, not here); §12.4.5.2 **SR8/SR9/SR11/SR13** (format ↔ organization
+and SD consistency — a RECORD KEY clause written on a sequential file still compiles silently, measured
+2026-09-06; it is the first list's kind, and its blast radius over the external corpora wants a sweep a worktree
+cannot run); §12.4.5.2 **SR12** (LINE SEQUENTIAL excludes RESERVE). PB699 closed the key rules
+(§12.4.5.6.3 SR1/SR2, §12.4.5.12.3 SR1/SR2, §12.4.5.13.3 SR1/SR2/SR3) and §12.4.5.2 **SR10**, which PB692 left
+here as *"its substance IS enforced by KeyedValidateFile, but cited there as §12.4.5.13, which carries no such
+requirement"* — the citation is repaired and the screen is now a row of the table.
+
 
 ### D20. Record-lock governance is a RUN-TIME fact, so the emitter renders ONE entry per record verb — never a choice between a governed and an ungoverned one, and never a second entry for a verb's SHAPE.
 

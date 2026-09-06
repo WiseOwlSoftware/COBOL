@@ -195,7 +195,7 @@ internal static class RecordLayout
         // record description entry OF THIS FILE: GR4 speaks of the file's own record description entries, and
         // without that test offset 0 in ANY 01 anywhere — WORKING-STORAGE included — collided with offset 0 in
         // the record (kb/Work PB354 part 1).
-        if (!InRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;
+        if (!IsInRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;
         return KeyIndexAtOffset(file, off, key => key.ByteWidth == operand.ByteWidth);
     }
 
@@ -212,7 +212,7 @@ internal static class RecordLayout
     /// carrier), so every key reaching here satisfies that half by construction.</para></summary>
     public static int? GenericKeyIndex(FileModel file, DataItem operand)
     {
-        if (!InRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;   // b) 1.
+        if (!IsInRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;   // b) 1.
         return KeyIndexAtOffset(file, off,
             key => SameClassCategoryUsage(operand, key)                                        // b) 2.
                 && operand.ByteWidth <= key.ByteWidth);                                        // b) 3.
@@ -232,9 +232,14 @@ internal static class RecordLayout
     }
 
     /// <summary>The item's 01 record description entry is one of <paramref name="file"/>'s records — ISO
-    /// §14.9.41.3 SR6 b) 1.'s <i>"within a record of the file"</i>.</summary>
-    private static bool InRecordOfFile(FileModel file, DataItem item)
+    /// §14.9.41.3 SR6 b) 1.'s <i>"within a record of the file"</i>, and the same predicate the file control
+    /// entry's own key rules are stated on: §12.4.5.12.3 SR2 and §12.4.5.6.3 SR2 REQUIRE it of a record key,
+    /// §12.4.5.13.3 SR3 FORBIDS it of the relative key. ONE predicate for all four (<c>FileControlKeyRules</c>).
+    /// <para>A null item is NOT in a record of the file — a data-name-1 that referenced nothing describable is a
+    /// violation of the two SR2s, and answering "false" is what lets one row state that rule.</para></summary>
+    public static bool IsInRecordOfFile(FileModel file, DataItem? item)
     {
+        if (item is null) return false;
         DataItem root = item;
         while (root.Parent is { } p) root = p;
         return file.Records.Contains(root);

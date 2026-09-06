@@ -840,7 +840,16 @@
   "l1-use-sr8-file-in-two-statements",
   "l1-use-sr14-pair-in-two-statements",
   "write-invalid-key-sequential-org",
-  "write-not-invalid-key-sequential-org"
+  "write-not-invalid-key-sequential-org",
+  "pb699-record-key-occurs-entry-only",
+  "pb699-alternate-key-occurs-entry-only",
+  "pb699-relative-key-occurs-entry-only",
+  "pb699-relative-key-required-entry-only",
+  "pb699-relative-key-in-record-entry-only",
+  "pb699-relative-key-not-unsigned-integer",
+  "pb699-record-key-outside-record",
+  "pb699-alternate-key-outside-record",
+  "pb699-indexed-no-record-key-entry-only"
  ],
  "pending": []
 }
