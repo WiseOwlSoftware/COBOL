@@ -325,6 +325,108 @@ public sealed class OptionalWordSubsetDriftTests
                STOP RUN.
     """;
 
+    // ── CODE-SET §13.18.13.2 ─────────────────────────────────────────────────────────────────────────────────
+    // PDF p414 / folio 384 carries exactly three underlines in the whole format — CODE-SET, ALPHANUMERIC,
+    // NATIONAL. FOR and IS are plain. STANDARD-1's correspondence to the native set is the identity over the
+    // ISO 646 characters (§12.3.7.4 GR7 c), so the round trip is byte-exact whichever subset is written.
+    private const string CodeSetFor = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWK.
+           ENVIRONMENT DIVISION.
+           CONFIGURATION SECTION.
+           SPECIAL-NAMES.
+               ALPHABET AL1 IS STANDARD-1.
+           INPUT-OUTPUT SECTION.
+           FILE-CONTROL.
+               SELECT F1 ASSIGN TO "opwk.dat"
+               ORGANIZATION IS LINE SEQUENTIAL.
+           DATA DIVISION.
+           FILE SECTION.
+           FD F1 CODE-SET {0} ALPHANUMERIC {1} AL1.
+           01 R1 PIC X(6).
+           WORKING-STORAGE SECTION.
+           01 EOF-FLAG PIC X VALUE "N".
+           PROCEDURE DIVISION.
+           MAIN.
+               OPEN OUTPUT F1
+               MOVE "HELLO!" TO R1
+               WRITE R1
+               CLOSE F1
+               MOVE SPACES TO R1
+               OPEN INPUT F1
+               READ F1 AT END MOVE "Y" TO EOF-FLAG END-READ
+               CLOSE F1
+               DISPLAY "OUT=" R1
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
+
+    // ── DYNAMIC LENGTH §13.18.19.2 ───────────────────────────────────────────────────────────────────────────
+    // PDF p427 / folio 397 rules DYNAMIC and LIMIT and nothing else; LENGTH and IS are plain. §13.18.19.4 GR1
+    // makes the minimum length zero, so LEN0 is 0 in every spelling.
+    private const string DynamicLength = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWL.
+           DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 W-DYN PIC X DYNAMIC {0} LIMIT {1} 30.
+           PROCEDURE DIVISION.
+           MAIN.
+               DISPLAY "LEN0=" FUNCTION LENGTH (W-DYN)
+               MOVE "ABC" TO W-DYN
+               DISPLAY "LEN1=" FUNCTION LENGTH (W-DYN)
+               DISPLAY "VAL=" W-DYN
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
+
+    // ── INITIALIZE §14.9.20.2 ────────────────────────────────────────────────────────────────────────────────
+    // PDF p667 / folio 637 rules INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY, DEFAULT and the category names.
+    // WITH, both THENs, DATA and BOTH occurrences of TO are plain. The all-omitted spelling of the last slot pair
+    // is the bare `INITIALIZE N1 DEFAULT`, which is exactly what `initializeOperandList`'s reservedHere("DEFAULT")
+    // guard exists for — this row is its power-set witness.
+    private const string InitializeWords = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWM.
+           DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 G1.
+              05 FILLER PIC X(2) VALUE "ZZ".
+              05 G1-A   PIC X(2) VALUE "AB".
+           01 N1 PIC 9(2).
+           PROCEDURE DIVISION.
+           MAIN.
+               MOVE "QQQQ" TO G1
+               MOVE 77 TO N1
+               INITIALIZE G1 {0} FILLER ALL {1} VALUE
+               DISPLAY "G1=" G1
+               INITIALIZE N1 {2} {3} DEFAULT
+               DISPLAY "N1=" N1
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
+
+    // ── VALUE §13.18.63.2 format 3 ───────────────────────────────────────────────────────────────────────────
+    // PDF p546 / folio 516: the `[ WHEN SET TO FALSE IS literal-4 ]` bracket carries ONE rule, under FALSE.
+    // WHEN, SET, TO and both IS/ARE connectives are plain. IN is plain too and is deliberately NOT a slot — with
+    // it omitted, alphabet-name-1 is indistinguishable from one more literal-2 (§13.10.3 SR2 lets a constant-name
+    // stand where a format specifies a literal), so the operand loop always wins; see the grammar note.
+    private const string ValueFalseWords = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWN.
+           DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 C1 PIC 9 VALUE 1.
+              88 CN1 VALUE {0} 1 {1} {2} {3} FALSE {4} 0.
+           PROCEDURE DIVISION.
+           MAIN.
+               IF CN1 DISPLAY "CN1=yes" ELSE DISPLAY "CN1=no" END-IF
+               MOVE 3 TO C1
+               IF CN1 DISPLAY "CN3=yes" ELSE DISPLAY "CN3=no" END-IF
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
+
     private static readonly FormatCase[] Formats =
     [
         new("use-format-1", "14.9.49.2 Format 1", 85, ["AFTER", "STANDARD", "PROCEDURE", "ON"], "OPWA", UseFormat1),
@@ -342,6 +444,13 @@ public sealed class OptionalWordSubsetDriftTests
             ObjectComputerHead),
         new("options-initialize-and-set", "11.9.10.2 + 14.9.39.2 Formats 7/16", 2023,
             ["SECTION", "TO", "OF", "OF", "OF"], "OPWJ", OptionsAndSet),
+        // kb/Work PB695 family 2 — the four CobolData.g4 formats.
+        new("code-set-for", "13.18.13.2", 2002, ["FOR", "IS"], "OPWK", CodeSetFor),
+        new("dynamic-length", "13.18.19.2", 2014, ["LENGTH", "IS"], "OPWL", DynamicLength),
+        new("initialize-value-and-default", "14.9.20.2", 2002, ["WITH", "TO", "THEN", "TO"], "OPWM",
+            InitializeWords),
+        new("value-when-set-to-false", "13.18.63.2 Format 3", 2002, ["IS", "WHEN", "SET", "TO", "IS"], "OPWN",
+            ValueFalseWords),
     ];
 
     public static IEnumerable<object[]> Cases() => Formats.Select(f => new object[] { f.Name });

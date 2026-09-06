@@ -272,7 +272,7 @@ internal sealed partial class EcBinder
                 + "exception-checking PERFORM (ISO §14.9.6.3 SR3)");
         foreach (var ini in regionA.SelectMany(Descendants<Core.InitializeStatementContext>))
         {
-            var names = ini.dataReferenceList().dataReference().Select(d => d.GetText().ToUpperInvariant()).ToList();
+            var names = ini.initializeOperandList().dataReference().Select(d => d.GetText().ToUpperInvariant()).ToList();
             foreach (var dup in names.GroupBy(n => n).Where(g => g.Count() > 1))
                 ctx.Edition.Error("COBOLNET1614", $"identifier '{dup.Key}' is specified more than once in an "
                     + "INITIALIZE in imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.20.3 SR2)");

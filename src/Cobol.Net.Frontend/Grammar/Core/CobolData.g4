@@ -126,8 +126,17 @@ codeSetClause
     | CODE_SET codeSetForPhrase+
     ;
 
+// ⛔ FOR IS AN OPTIONAL WORD (kb/Work PB695 family 2). §8.3.2.4.3: "uppercase words that are not underlined are
+// called optional words and may be specified at the user's option with no effect on the semantics of the format".
+// Measured off the printed §13.18.13.2 figure (PDF p414 / folio 384): the only underlined words in the whole
+// format are CODE-SET, ALPHANUMERIC and NATIONAL — FOR and IS are plain, so `CODE-SET ALPHANUMERIC IS AL-1` is
+// conforming source this rule used to reject. The class word stays REQUIRED, so the rule can never match empty
+// and stays LL-disjoint from codeSetClause's first alternative (`CODE_SET IS? cobolWord …`): ALPHANUMERIC and
+// NATIONAL are not in cobolWord, so no `?`-relaxation can make the two alternatives compete.
+// ⚠ The COBOL-2002 gate keys on the SUBRULE (VersionConformancePass.VisitCodeSetClause reads
+// `ctx.codeSetForPhrase().Length`), never on `ctx.FOR()` — relaxing the word cannot switch the gate off.
 codeSetForPhrase
-    : FOR (ALPHANUMERIC | NATIONAL) IS? cobolWord
+    : FOR? (ALPHANUMERIC | NATIONAL) IS? cobolWord
     ;
 
 // LABEL RECORD(S) IS/ARE — obsolete COBOL-85 FD clause, semantically inert
@@ -366,8 +375,13 @@ anyLengthClause
 // 2014. LL-disjoint from occursClause: occursClause always leads with OCCURS (its Format-4 dynamic-capacity
 // alternative has DYNAMIC only as the SECOND token); here DYNAMIC is the leading token, and DYNAMIC appears
 // nowhere else at the start of a dataDescriptionClause — so tokens DYNAMIC/LENGTH/LIMIT need no lexer change.
+// ⛔ LENGTH IS AN OPTIONAL WORD (kb/Work PB695 family 2). Measured off the printed §13.18.19.2 figure (PDF p427 /
+// folio 397): `DYNAMIC LENGTH [ dynamic-length-structure-name-1 ] [ LIMIT IS integer-1 ]` carries underlines
+// under DYNAMIC and LIMIT ONLY, so LENGTH and IS are optional words (§8.3.2.4.3) and `DYNAMIC DLS-1 LIMIT 30` is
+// conforming source. DYNAMIC stays the required anchor and heads no other data-description clause, so the
+// relaxation adds no ambiguity; the COBOL-2014 gate keys on the CLAUSE context, not on the word.
 dynamicLengthClause
-    : DYNAMIC LENGTH cobolWord? (LIMIT IS? integerLiteral)?
+    : DYNAMIC LENGTH? cobolWord? (LIMIT IS? integerLiteral)?
     ;
 
 // GLOBAL clause (§13.18.27) — visible to contained programs
@@ -626,8 +640,29 @@ valueClause
     // recognition-fired by VersionConformancePass ParseArm.VisitValueClause on a valueClauseTablePhrase.
     : (VALUE | VALUES) (IS | ARE)? valueClauseTablePhrase+
     | (VALUE | VALUES) (IS | ARE)? valueItem ({!(is2002() && TokenStream.LA(1)==PROPERTY)}? COMMA? valueItem)*
-      (WHEN SET TO FALSE_ IS? literal)?
+      // ⛔ WHEN, SET AND TO ARE OPTIONAL WORDS (kb/Work PB695 family 2 — the sibling sweep the audit cannot see,
+      // because a word REQUIRED INSIDE an optional group never reaches its candidate list). Measured off the
+      // printed §13.18.63.2 format 3 (PDF p546 / folio 516): the bracket reads `[ WHEN SET TO FALSE IS
+      // literal-4 ]` and the ONLY rule on that line sits under FALSE (x 228.02–255.10, 92% cover) — WHEN, SET,
+      // TO and IS carry no rule at all, and the transcription's own figure note agrees. §8.3.2.4.3 therefore
+      // makes `88 X VALUE 1 FALSE 0` conforming source. FALSE_ stays the required anchor and is reachable from
+      // neither `valueClauseOperand` nor `cobolWord`, so the greedy operand loop above cannot swallow it.
+      // ⚠ WHEN is underlined in format 5's `[ WHEN condition-1 ]` (same page, x 215.18–243.66) — a different
+      // phrase in a different format, and `validateValidPhrase` keeps it REQUIRED.
+      //
+      // ⛔ AND THE TWO TRAILING BRACKETS WERE IN THE WRONG ORDER. The printed format 3 ends
+      // `… [ IN alphabet-name-1 ]` and puts `[ WHEN SET TO FALSE IS literal-4 ]` on the LINE AFTER it, and
+      // format 5 likewise brackets `[ IN alphabet-name-1 ]` before its `{IS INVALID | ARE VALID}` tail — so
+      // IN comes FIRST in both. The rule had them reversed, which rejected the printed spelling
+      // `88 CN VALUE 1 IN AL1 WHEN SET TO FALSE 0` (COBOL0001) while accepting an order no format prints.
+      // Found by the same sweep; §5.2.6.2 makes bracket ORDER part of the format, not free.
+      // ⚠ `IN` ITSELF IS UN-UNDERLINED (an optional word) AND IS DELIBERATELY NOT RELAXED HERE. §13.10.3 SR2
+      // lets a constant-name stand "anywhere that a format specifies a literal", so alphabet-name-1 with IN
+      // omitted is indistinguishable from one more literal-2 — ANTLR's greedy operand loop above always wins
+      // and an `IN?` would be a DEAD branch. That residue is reported, not papered over with unreachable
+      // grammar (kb/Work PB695 family 2 report).
       (IN IDENTIFIER)?
+      (WHEN? SET? TO? FALSE_ IS? literal)?
       // Format 5 (content-validation-entry, ISO §13.18.63.2) — the DECLINED A.4.14 tail
       // `[IS|ARE] {INVALID|VALID} [WHEN condition-1]`, refused by name with COBOLNET1708 at bind. Written as
       // a tail of the condition-name arm because formats 3 and 5 share their literal/THRU list; the printed
@@ -679,15 +714,40 @@ blankWhenZeroClause
 // ==========================================
 
 initializeStatement
-    : INITIALIZE dataReferenceList (WITH? FILLER)?
+    : INITIALIZE initializeOperandList (WITH? FILLER)?
       initializeCategoryToValue?
       initializeReplacingPhrase?
       initializeDefaultPhrase?
     ;
 
+// `{ identifier-1 } …` (§14.9.20.2) — `dataReferenceList` plus ONE guard, and the guard is the same one
+// `valueClause` carries for PROPERTY: a word §8.9 RESERVES at the compile edition can never be a
+// user-defined word (§8.3.2.1), so the greedy operand loop must not absorb it.
+// ⛔ WHY IT IS NEEDED HERE AND ONLY HERE. Relaxing THEN and TO to the optional words the printed format
+// makes them leaves `INITIALIZE X DEFAULT` as the shortest legal spelling of `INITIALIZE X THEN TO DEFAULT`
+// — and DEFAULT rides `cobolWord` (tests/version-matrix/cobol-words.json, `nameSlot: true`), so without the
+// predicate ANTLR's greedy list loop takes it as a second identifier-1 and the statement dies on
+// COBOLNET1639 "'DEFAULT' is not defined". The narrow rule, rather than a guard inside the shared
+// `dataReferenceList`, is deliberate: MOVE/SORT/MERGE/OCCURS INDEXED share that rule and their
+// over-acceptance of a DEFAULT-named item is a separate question from this statement's ambiguity.
+// At COBOL-85 `reservedHere("DEFAULT")` is FALSE (reserved-words.json r85=false) AND the TO DEFAULT phrase
+// does not exist below 2002, so the loop keeps absorbing the word there — the correct '85 reading — and the
+// >>COBOL-WORDS overlay is honoured for free (`reservedHere` resolves through it, kb/Work PB250).
+initializeOperandList
+    : dataReference
+      ({!(reservedHere("DEFAULT")
+          && (TokenStream.LA(1) == DEFAULT || (TokenStream.LA(1) == COMMA && TokenStream.LA(2) == DEFAULT)))}?
+       COMMA? dataReference)*
+    ;
+
 // [ALL | category-name] TO VALUE (§14.9.20)
+// ⛔ TO IS AN OPTIONAL WORD (kb/Work PB695 family 2). Measured off the printed §14.9.20.2 figure (PDF p667 /
+// folio 637): the phrase's underlines fall on ALL, VALUE and the thirteen category names — TO is plain, so
+// §8.3.2.4.3 makes `INITIALIZE X ALL VALUE` conforming source. VALUE stays the required anchor (it is not in
+// cobolWord, so the preceding initializeOperandList loop cannot swallow it) and the COBOL-2002 gate keys on this
+// SUBRULE's presence (VersionConformancePass.VisitInitializeStatement), never on `ctx.TO()`.
 initializeCategoryToValue
-    : (ALL | initializeCategory)? TO VALUE
+    : (ALL | initializeCategory)? TO? VALUE
     ;
 
 initializeReplacingPhrase
@@ -697,8 +757,11 @@ initializeReplacingPhrase
 // THEN TO DEFAULT (§14.9.20). DEFAULT is now a token (added for the OPTIONS paragraph, ISO §11.9.6), so the
 // phrase matches it directly — tightening the grammar to reject `TO <other-word>` (which the old IDENTIFIER form
 // accepted). DEFAULT remains a legal data-name elsewhere (it is in cobolWord).
+// ⛔ TO IS AN OPTIONAL WORD HERE TOO (kb/Work PB695 family 2) — printed §14.9.20.2 (PDF p667 / folio 637) writes
+// `[ THEN TO DEFAULT ]` with an underline under DEFAULT alone, so §8.3.2.4.3 makes `INITIALIZE X THEN DEFAULT`
+// and `INITIALIZE X DEFAULT` conforming source.
 initializeDefaultPhrase
-    : THEN? TO DEFAULT
+    : THEN? TO? DEFAULT
     ;
 
 // ⛔ ADDITIVE — §14.9.20.3 SR4 states it outright: "a MOVE statement with identifier-2 or literal-1 as the

@@ -440,7 +440,7 @@ internal sealed class DataStatementBinder
     internal BoundStatement? BindInitialize(CobolParserCore.InitializeStatementContext ctx)
     {
         var targets = new List<DataSymbol>();
-        var idList = ctx.dataReferenceList();
+        var idList = ctx.initializeOperandList();
         if (idList == null) return null;
 
         foreach (var idCtx in idList.dataReference())

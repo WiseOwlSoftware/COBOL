@@ -62,7 +62,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             toValue?.initializeCategory() is { } vc ? InitializeCategoryOf(vc) : null, replacements, toDefault);
 
         var actions = new List<InitializeAction>();
-        foreach (var dref in ini.dataReferenceList().dataReference())
+        foreach (var dref in ini.initializeOperandList().dataReference())
             BindInitializeTarget(dref, spec, actions);   // GR3 — per identifier-1, in source order
         return new BoundInitialize(actions);
     }
