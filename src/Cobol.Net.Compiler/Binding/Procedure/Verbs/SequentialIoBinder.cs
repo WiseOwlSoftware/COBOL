@@ -161,6 +161,28 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         RetrySpec? wretry = fileLock.BindVerbRetry(w.retryPhrase());                                    // §14.7.9 / §14.9.51 GR16
         if (!file.IsSequential) return keyedIo.BindWrite(w, file, record, wlock, wretry);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
+        // §14.9.51.3 SR2 — "If the organization of the write file is sequential, format 1 shall be specified."
+        // Format 1 (§14.9.51.2) has no INVALID KEY bracket at all, so the phrase is not admissible on THIS arm.
+        // It was nevertheless PARSED and then dropped on the floor with no diagnostic and no branch: the program
+        // compiled clean at every edition and neither imperative ran (kb/Work PB691). That is the third arm of
+        // one silent drop — PB144 screened it for REWRITE just below, PB334 for READ — and the reason it hid is
+        // that WRITE's `writeInvalidKey` sub-rule was consumed by the KEYED binder only (feedback_two_arm_dispatch).
+        // Gated through the ONE severity seam (StatementValidation.ScreenForbiddenPhrase → COBOLNET1720): an
+        // error under strict, a warning under --permissive with the phrase BOUND, not dropped — because
+        // §9.1.14's final rule item 2 gives the NOT INVALID KEY imperative a live meaning even here ("If the I-O
+        // status indicates a successful completion, control is transferred to … the imperative-statement
+        // specified in the NOT INVALID KEY phrase if it is specified"). The INVALID arm is provably dead on this
+        // organization — every invalid-key status (§9.1.13.5 items 1–4, '21'–'24') names a relative or indexed
+        // file — so the emitter renders it as a status-first branch that simply never fires, never a reroute.
+        KeyedInvalidKey? winvalid = null;
+        if (w.writeInvalidKey() is { } wik)
+        {
+            ctx.Validation.ScreenForbiddenPhrase(true,
+                PhraseBlocks.StartsWithNot(wik) ? "NOT INVALID KEY" : "INVALID KEY", "WRITE",
+                "a file with sequential organization", "ISO §14.9.51.3 SR2");
+            winvalid = keyedIo.KeyedInvalidPhrase(wik.statementBlock(), PhraseBlocks.StartsWithNot(wik));
+        }
+
         // END-OF-PAGE phrases (ISO §14.9.51 GR27b/GR28): blocks[0] = AT EOP, blocks[1] = NOT AT EOP — the grammar
         // rule `writeAtEndOfPage : AT? (END_OF_PAGE|EOP) statementBlock (NOT AT? (END_OF_PAGE|EOP) statementBlock)?`
         // fixes that order (the readAtEnd block shape).
@@ -181,7 +203,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         var (beforeAdv, afterAdv) = BindAdvancingPair(w.writeBeforeAfter());
         return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal(), w.writeFrom()?.functionCall()),
             beforeAdv, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
-        { Lock = wlock, Retry = wretry, AfterAdvancing = afterAdv };
+        { Lock = wlock, Retry = wretry, AfterAdvancing = afterAdv, InvalidKey = winvalid };
     }
 
     public BoundStatement BindRead(Core.ReadStatementContext r)
@@ -274,15 +296,24 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // dropped the parsed phrase on the floor with no diagnostic at all, which is a strictly worse shape than
         // its relative twin in KeyedIoBinder (which at least bound it as dead): the rule has TWO arms and only
         // one of them was ever noticed (kb/Work PB144 — the two-arm dispatch again). A sequential REWRITE raises
-        // only 4x statuses, so nothing is rerouted either way; the phrase has no representation on BoundRewrite
-        // and needs none, because there is no '2x' invalid-key condition for it to carry.
+        // only 4x statuses, so nothing is rerouted either way.
+        // ⛔ PB144 STOPPED ONE STEP SHORT, and PB691's sweep of the identical WRITE arm found it: the screen
+        // landed but the phrase was still DROPPED, on the reasoning that "there is no '2x' invalid-key condition
+        // for it to carry". That is true of the INVALID arm and FALSE of the NOT INVALID arm — §9.1.14's final
+        // rule item 2 runs the NOT INVALID imperative on a SUCCESSFUL completion, which a sequential REWRITE
+        // certainly has — so under --permissive the tolerated phrase still meant nothing and printed nothing.
+        // Bound now, exactly as the WRITE arm above and as the keyed twin in KeyedIoBinder.BindRewrite.
+        KeyedInvalidKey? rinvalid = null;
         if (rw.rewriteInvalidKeyPhrase() is { } ik)
+        {
             ctx.Validation.ScreenForbiddenPhrase(true,
                 PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "REWRITE",
                 "a file with sequential organization", "ISO §14.9.35.3 SR2");
+            rinvalid = keyedIo.KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
+        }
         return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()),
             UnsupportedOrg(file, "REWRITE"))
-        { Lock = rlock, Retry = rretry };
+        { Lock = rlock, Retry = rretry, InvalidKey = rinvalid };
     }
 
     /// <summary>The FROM operand of a WRITE/REWRITE (a data reference or a literal), or null when absent.</summary>

@@ -199,6 +199,10 @@ public static class DiagnosticCatalog
     // syntax rules forbid it") and each site's message quotes its own §/SR. Emitted through
     // StatementValidation.ScreenForbiddenPhrase → EditionContext.Removed, so it is an ERROR under strict and a
     // WARNING with an UNCHANGED bind under --permissive, which is what keeps the CCVS-85 corpus compiling.
+    // kb/Work PB691 added the WRITE arm, whose defect was the OTHER shape: the phrase was parsed and then
+    // DROPPED, so neither arm existed to keep. The screen is the same one; the --permissive bind had to be
+    // built (BoundWrite.InvalidKey), because §9.1.14's final rule item 2 gives the NOT INVALID arm a live
+    // meaning on a successful WRITE even where the INVALID arm is unreachable.
     public static readonly DiagnosticDescriptor IoPhraseForbiddenHere = new(
         "COBOLNET1720", "io-phrase-forbidden-here", EditionSeverity.Error,
         "An input-output statement specifies a phrase its syntax rules exclude for that file's organization or "
@@ -206,7 +210,10 @@ public static class DiagnosticCatalog
         + "not be specified for a DELETE RECORD statement that references a file that is in sequential access "
         + "mode.\" ISO §14.9.35.3 syntax rule 2: \"Neither the INVALID KEY phrase nor the NOT INVALID KEY "
         + "phrase shall be specified for a REWRITE statement that references a file with sequential "
-        + "organization or a file with relative organization and sequential access mode.\" ISO §14.9.30.3 "
+        + "organization or a file with relative organization and sequential access mode.\" ISO §14.9.51.3 "
+        + "syntax rule 2: \"If the organization of the write file is sequential, format 1 shall be "
+        + "specified.\" — and Format 1 of §14.9.51.2 carries no INVALID KEY bracket, so the phrase is "
+        + "excluded from a sequential-organization WRITE. ISO §14.9.30.3 "
         + "syntax rule 6: \"None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be "
         + "specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1.\" "
         + "ISO §14.9.30.3 syntax rule 7: \"The phrase PREVIOUS shall not be specified if FILE ORGANIZATION "
@@ -214,12 +221,15 @@ public static class DiagnosticCatalog
         + "format itself: §14.9.30.2 Format 1 has no INVALID KEY bracket, and §12.4.5.5.2 SR2 + §14.9.30.3 SR8 "
         + "+ §14.9.30.4 GR19 make every READ of a sequential-organization file a Format-1 read, so the phrase "
         + "has no format to belong to there. "
-        + "Under --permissive the phrase is tolerated and bound with its pre-gate semantics (it is dead in the "
-        + "status-first branches, never silently rerouted), which is the documented dialect leniency the "
-        + "CCVS-85 corpus depends on. The one phrase that is NOT dead under that leniency is READ's NOT INVALID "
-        + "KEY on a sequential file — §14.9.30.4 GR13c transfers control to it on a successful read, so it is "
-        + "bound and rendered rather than dropped (kb/Work PB334).",
-        "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.30.3 SR6 · §14.9.30.3 SR7 · §14.9.30.2 Format 1");
+        + "Under --permissive the phrase is tolerated and BOUND with the meaning ISO §9.1.14 gives it: the "
+        + "INVALID arm is dead in the status-first branches wherever the forbidding condition also excludes "
+        + "the '2x' family (never silently rerouted), while §9.1.14's final rule item 2 still runs the NOT "
+        + "INVALID arm on a successful completion. That leniency is what the CCVS-85 corpus depends on; "
+        + "dropping the phrase instead of binding it was kb/Work PB691. On a sequential READ the same "
+        + "obligation is §14.9.30.4 GR13c, which transfers control to NOT INVALID KEY on a successful read "
+        + "(kb/Work PB334).",
+        "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.51.3 SR2 · §14.9.30.3 SR6 · §14.9.30.3 SR7 "
+        + "· §14.9.30.2 Format 1");
     // The MIRROR of COBOLNET1720, and the falsely-PERMISSIVE twin of the OCR's falsely-restrictive bias
     // (kb/Work PB350). §5.2.6.2 makes BRACKETS the only thing that lets a portion of a general format be
     // omitted, and §5.2.2 makes an underlined keyword required subject to those conventions — so a phrase

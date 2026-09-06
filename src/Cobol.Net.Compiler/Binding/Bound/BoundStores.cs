@@ -192,15 +192,20 @@ public static class BoundStores
                     : StoreKind.None;
 
         // ── File I/O (FILE STATUS / record-area stores route through FileModel — never the temp) ─────────
+        // The conditional-phrase recursion is TOTAL over the node's phrase bodies, so the sequential WRITE's
+        // §9.1.14 pair (bound under --permissive only — kb/Work PB691) is walked exactly as BoundKeyedWrite's is;
+        // the two arms of one verb may not disagree about which bodies exist (feedback_two_arm_dispatch).
         public StoreKind? Visit(BoundWrite n) => StoreOrKids(n.From is not null && Hit(n.Record),
-            StoreKind.ReadWrite, n.AtEop, n.NotAtEop);                 // FROM-move then read as the image
+            StoreKind.ReadWrite, n.AtEop, n.NotAtEop,                  // FROM-move then read as the image
+            n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);          // the --permissive pair (PB691)
         // The INVALID KEY lists are walked on BOTH READ arms. They are §14.9.30.2 Format-2 phrases and the
         // sequential arm reports COBOLNET1720 for them, but --permissive leaves the bind standing and
         // §14.9.30.4 GR13c then RUNS the NOT INVALID KEY imperative — a store inside it is a real store, and
         // omitting the lists here is the same two-arm disagreement kb/Work PB334 was about.
         public StoreKind? Visit(BoundRead n) => StoreOrKids(Hit(n.Into), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind? Visit(BoundRewrite n) => n.From is not null && Hit(n.Record) ? StoreKind.ReadWrite : StoreKind.None;
+        public StoreKind? Visit(BoundRewrite n) => StoreOrKids(n.From is not null && Hit(n.Record),
+            StoreKind.ReadWrite, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);   // the --permissive pair (PB691)
         public StoreKind? Visit(BoundKeyedRead n) => StoreOrKids(Hit(n.Into), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
         public StoreKind? Visit(BoundKeyedWrite n) => StoreOrKids(n.From is not null && Hit(n.Record), StoreKind.ReadWrite,

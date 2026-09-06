@@ -235,7 +235,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: wr.InvalidKey?.Invalid is not null);
-        EmitInvalid(st, wr.InvalidKey);
+        SeqIo.EmitInvalid(st, wr.InvalidKey);
     }
 
     // ── REWRITE (ISO §14.9.35) ─────────────────────────────────────────────────────────────────────────────────
@@ -271,7 +271,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             w.Line($"var {st} = {RuntimeApi.FileRewriteKeyed(name, rimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a / §14.9.35 GR20
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
-        EmitInvalid(st, rw.InvalidKey);
+        SeqIo.EmitInvalid(st, rw.InvalidKey);
     }
 
     // ── DELETE RECORD / DELETE FILE (ISO §14.9.10) ─────────────────────────────────────────────────────────────
@@ -311,7 +311,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             w.Line($"var {st} = {RuntimeApi.FileDeleteRecord(name, image)};");
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: del.InvalidKey?.Invalid is not null);
-        EmitInvalid(st, del.InvalidKey);
+        SeqIo.EmitInvalid(st, del.InvalidKey);
     }
 
     public void EmitDeleteFile(BoundKeyedDeleteFile df)
@@ -397,28 +397,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
-        EmitInvalid(st, sta.InvalidKey);   // §14.9.41 GR6 — transfer per §9.1.14
+        SeqIo.EmitInvalid(st, sta.InvalidKey);   // §14.9.41 GR6 — transfer per §9.1.14
     }
 
     // ── Shared keyed emission helpers ──────────────────────────────────────────────────────────────────────────
-
-    /// <summary>Emit the §9.1.14 transfer-of-control contract over a captured status local: the INVALID KEY
-    /// imperative on the <c>'2x'</c> family ONLY (§9.1.13.5 — statuses 30/4x route to exception processing, not
-    /// this branch); the NOT INVALID KEY imperative ONLY on successful completion (<c>'0x'</c>, §9.1.14 final
-    /// rule item 2).</summary>
-    private void EmitInvalid(string st, KeyedInvalidKey? ik)
-    {
-        if (ik is null) return;
-        var w = ctx.Writer;
-        if (ik.Invalid is { } inv)
-        {
-            using (w.Block($"if ({st}[0] == '2')")) Statements.EmitStatementList(inv);
-            if (ik.NotInvalid is { } not)
-                using (w.Block($"else if ({st}[0] == '0')")) Statements.EmitStatementList(not);
-        }
-        else if (ik.NotInvalid is { } not)
-            using (w.Block($"if ({st}[0] == '0')")) Statements.EmitStatementList(not);
-    }
 
     /// <summary>The C# <c>long</c> expression reading the file's RELATIVE KEY item (the RRN travels through the
     /// typed field — §12.4.5.13; the item is OUTSIDE the record, SR3), or null when the file has none.</summary>

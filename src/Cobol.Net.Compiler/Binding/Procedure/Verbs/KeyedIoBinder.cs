@@ -380,14 +380,15 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     // ── Shared keyed-I/O helpers ───────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Build the INVALID/NOT INVALID pair from the phrase's statement blocks — the shared two-branch
-    /// shape via the ONE <see cref="PhraseBlocks.Split"/> extractor (P7 Step 10b).</summary>
-    /// <summary>Split an <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> bracket into its two imperatives
-    /// (§14.9.30.2 / §14.9.51.2 / §14.9.35.2 / §14.9.10.2 / §14.9.41.2 — a §5.2.6.4 choice-indicator group, so
-    /// either order). Public because <c>SequentialIoBinder.BindRead</c> binds the phrase too: Format 1 has no
-    /// INVALID KEY phrase, but the report routes through <c>EditionContext.Removed</c>, which under
-    /// <c>--permissive</c> leaves the bind standing — and a standing bind needs the SAME splitter, not a second
-    /// spelling of it (kb/Work PB334).</summary>
-    public KeyedInvalidKey KeyedInvalidPhrase(Core.StatementBlockContext[] blocks, bool notFirst)
+    /// shape via the ONE <see cref="PhraseBlocks.Split"/> extractor (P7 Step 10b), splitting an
+    /// <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> bracket into its two imperatives (§14.9.30.2 /
+    /// §14.9.51.2 / §14.9.35.2 / §14.9.10.2 / §14.9.41.2 — a §5.2.6.4 choice-indicator group, so either
+    /// order). Internal rather than private because the SEQUENTIAL arm binds the pair too: §14.9.30.2 Format 1
+    /// has no INVALID KEY phrase and §14.9.51.3 SR2 forbids the phrase on a sequential-organization WRITE, but
+    /// the report routes through <c>EditionContext.Removed</c>, which under <c>--permissive</c> leaves the bind
+    /// standing — and §9.1.14 still governs what a standing bind MEANS, so both binders build the node here
+    /// rather than each writing the split out (kb/Work PB334, PB691).</summary>
+    internal KeyedInvalidKey KeyedInvalidPhrase(Core.StatementBlockContext[] blocks, bool notFirst)
     {
         var (inv, not) = PhraseBlocks.Split(blocks, notFirst, b => host.BindBlocks([b]));
         return new KeyedInvalidKey(inv, not);

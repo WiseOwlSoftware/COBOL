@@ -13,6 +13,14 @@ namespace CobolNet.Tests.Conformance;
 public sealed class SequentialFileIoSpecTests
 {
     private static string Run(string source, (string Name, string Content)? stage = null)
+        => RunAt(source, 2023, permissive: false, stage).Stdout;
+
+    /// <summary>The same compile-and-run in a staged temp directory, at a NAMED edition and on either severity
+    /// axis, returning the warning channel too — the <c>--permissive</c> legs need both (a tolerated construct
+    /// must WARN and then MEAN something, and a test that only checked stdout could not tell the warning apart
+    /// from silence).</summary>
+    private static (string Stdout, IReadOnlyList<string> Warnings) RunAt(
+        string source, int edition, bool permissive, (string Name, string Content)? stage = null)
     {
         string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Seqio_" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(dir);
@@ -22,11 +30,13 @@ public sealed class SequentialFileIoSpecTests
             string src = Path.Combine(dir, "prog.cob");
             File.WriteAllText(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(src, dll, DialectLevel: 2023));
-            Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
+            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(
+                src, dll, DialectLevel: edition, Permissive: permissive));
+            Assert.True(r.Success, $"must compile at --std {edition}"
+                + (permissive ? " --permissive: " : " strict: ") + string.Join("\n", r.Errors));
             var (ran, stdout, detail) = CutRunner.Run(dll, dir);
             Assert.True(ran, "must run: " + detail);
-            return CutRunner.Normalize(stdout);
+            return (CutRunner.Normalize(stdout), r.Warnings);
         }
         finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
     }
@@ -169,5 +179,191 @@ public sealed class SequentialFileIoSpecTests
         // 'ABCDEFGH' (8) into an X(5) record ⇒ READ truncates to 'ABCDE' with '06' (a PARTIAL transfer); a REWRITE
         // of that partially-read record is GR17a ⇒ '44'.
         Assert.Equal("RD=06\nRW=44", Run(prog, ("lspart.txt", "ABCDEFGH\n")));
+    }
+
+    // ── The INVALID KEY phrase on a SEQUENTIAL organization (kb/Work PB691) ──────────────────────────────────
+    //
+    // §14.9.51.3 SR2 — "If the organization of the write file is sequential, format 1 shall be specified" — and
+    // Format 1 of §14.9.51.2 carries no INVALID KEY bracket, so the phrase is illegal on a sequential WRITE;
+    // §14.9.35.3 SR2's first arm says the same for REWRITE. The strict compiler must therefore REJECT it, which
+    // the two negative fixtures pin at all four editions. These tests pin the OTHER half, the half a rejection
+    // test can never reach: under --permissive the compiler accepts the program, and having accepted it, it owes
+    // the phrase the meaning §9.1.14 gives it. Both statements dropped the phrase entirely before — the WRITE
+    // arm without even a diagnostic (PB691), the REWRITE arm with one but still no branch (PB144's residue).
+
+    private const string SeqWriteInvalidKeyProgram = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB691WIK.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN "pb691wik.dat" ORGANIZATION SEQUENTIAL FILE STATUS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 REC PIC X(4).
+        WORKING-STORAGE SECTION.
+        01 FS PIC XX.
+        PROCEDURE DIVISION.
+        MAIN.
+            OPEN OUTPUT F.
+            MOVE "AAAA" TO REC.
+            WRITE REC
+                INVALID KEY DISPLAY "W-IK"
+                NOT INVALID KEY DISPLAY "W-NIK"
+            END-WRITE.
+            DISPLAY "W=" FS.
+            CLOSE F.
+            STOP RUN.
+        """;
+
+    /// <summary>§9.1.14 final rule over a sequential WRITE that <c>--permissive</c> tolerated. The WRITE of a
+    /// 4-character record to a just-opened OUTPUT file succeeds, so the I-O status is '00' (§9.1.13.2 item 1 —
+    /// "the input-output statement is successfully executed and no further information is available"). §9.1.14's
+    /// final rule then decides both branches: its opening sentence — "If the invalid key condition does not
+    /// exist … the INVALID KEY phrase is ignored, if specified" — kills the INVALID arm (it can never fire on
+    /// this organization at all: §9.1.13.5's four invalid-key statuses '21'–'24' each name a relative or indexed
+    /// file), and item 2 — "If the I-O status indicates a successful completion, control is transferred to the
+    /// end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase
+    /// if it is specified" — runs the NOT arm. Expected stdout is therefore exactly "W-NIK" then "W=00": the
+    /// pre-fix compiler printed only "W=00", having dropped both imperatives on the floor.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void Permissive_SequentialWriteInvalidKey_RunsTheNotArmOnSuccess_AndWarns(int edition)
+    {
+        var (stdout, warnings) = RunAt(SeqWriteInvalidKeyProgram, edition, permissive: true);
+        Assert.Equal("W-NIK\nW=00", stdout);
+        Assert.Contains(warnings, x => x.Contains("COBOLNET1720") && x.Contains("INVALID KEY")
+            && x.Contains("WRITE") && x.Contains("14.9.51.3 SR2"));
+    }
+
+    /// <summary>The REWRITE twin, one method away in the same binder (§14.9.35.3 SR2 first arm). PB144 landed
+    /// the COBOLNET1720 screen here but still dropped the phrase, reasoning that a sequential REWRITE has no
+    /// '2x' condition to carry — true of the INVALID arm, false of the NOT INVALID arm, which §9.1.14's final
+    /// rule item 2 runs on the SUCCESSFUL completion this REWRITE has ('00', §9.1.13.2 item 1). Expected stdout
+    /// is "R-NIK" then "R=00"; the pre-fix compiler warned and then printed only "R=00".</summary>
+    [Fact]
+    public void Permissive_SequentialRewriteInvalidKey_RunsTheNotArmOnSuccess_AndWarns()
+    {
+        const string prog = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB691RWIK.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN "pb691rwik.dat" ORGANIZATION SEQUENTIAL FILE STATUS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F.
+            01 REC PIC X(4).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN I-O F.
+                READ F.
+                MOVE "BBBB" TO REC.
+                REWRITE REC
+                    INVALID KEY DISPLAY "R-IK"
+                    NOT INVALID KEY DISPLAY "R-NIK"
+                END-REWRITE.
+                DISPLAY "R=" FS.
+                CLOSE F.
+                STOP RUN.
+            """;
+        var (stdout, warnings) = RunAt(prog, 2023, permissive: true, ("pb691rwik.dat", "AAAA\n"));
+        Assert.Equal("R-NIK\nR=00", stdout);
+        Assert.Contains(warnings, x => x.Contains("COBOLNET1720") && x.Contains("REWRITE")
+            && x.Contains("14.9.35.3 SR2"));
+    }
+
+    /// <summary>The NOT-alone spelling reaches the SAME screen and the SAME §9.1.14 item 2 transfer. The
+    /// grammar's <c>writeInvalidKey</c> rule has two alternatives (INVALID first, or NOT INVALID first) and only
+    /// the second travels through <c>PhraseBlocks.StartsWithNot</c>, so the alternative a real --permissive
+    /// program is most likely to write is exactly the one an INVALID-first fixture leaves unmeasured.</summary>
+    [Fact]
+    public void Permissive_SequentialWriteNotInvalidKeyAlone_RunsOnSuccess_AndNamesThePhrase()
+    {
+        const string prog = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB691WNIK.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN "pb691wnik.dat" ORGANIZATION SEQUENTIAL FILE STATUS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F.
+            01 REC PIC X(4).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN OUTPUT F.
+                MOVE "AAAA" TO REC.
+                WRITE REC
+                    NOT INVALID KEY DISPLAY "W-NIK"
+                END-WRITE.
+                DISPLAY "W=" FS.
+                CLOSE F.
+                STOP RUN.
+            """;
+        var (stdout, warnings) = RunAt(prog, 2023, permissive: true);
+        Assert.Equal("W-NIK\nW=00", stdout);
+        Assert.Contains(warnings, x => x.Contains("COBOLNET1720") && x.Contains("NOT INVALID KEY"));
+    }
+
+    /// <summary>The same transfer with NO FILE STATUS clause on the file — the axis every other test here holds
+    /// fixed. §9.1.14 speaks of "the I-O status of the file connector associated with the statement", not of the
+    /// program's FILE STATUS item, and the two are different code paths: <c>EmitStoreFileStatus</c> returns
+    /// immediately when there is no FILE STATUS clause, so a NOT-arm branch that read the user's status item
+    /// would go dead here and nowhere else. The branch reads the CONNECTOR, so it still runs.</summary>
+    [Fact]
+    public void Permissive_SequentialWriteInvalidKey_NotArmRunsWithoutAFileStatusClause()
+    {
+        const string prog = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB691NOSTAT.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN "pb691ns.dat" ORGANIZATION SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F.
+            01 REC PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN OUTPUT F.
+                MOVE "AAAA" TO REC.
+                WRITE REC
+                    INVALID KEY DISPLAY "W-IK"
+                    NOT INVALID KEY DISPLAY "W-NIK"
+                END-WRITE.
+                DISPLAY "DONE".
+                CLOSE F.
+                STOP RUN.
+            """;
+        Assert.Equal("W-NIK\nDONE", RunAt(prog, 2023, permissive: true).Stdout);
+    }
+
+    /// <summary>The screen is a REJECTION at every edition on the strict axis — the fixtures
+    /// <c>write-invalid-key-sequential-org</c> / <c>write-not-invalid-key-sequential-org</c> assert the code, and
+    /// this asserts the edition SWEEP (a gate landed on one edition breaks or misses the other three —
+    /// feedback_edition_gate_sweep). §14.9.51.3 SR2 is an all-editions rule: COBOL-85's WRITE likewise admitted
+    /// the INVALID KEY phrase only in its random format, so no edition may accept this program strict.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void Strict_SequentialWriteInvalidKey_IsRejectedAtEveryEdition(int edition)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(SeqWriteInvalidKeyProgram, edition);
+        Assert.False(ok, $"--std {edition} strict must REJECT the phrase (ISO §14.9.51.3 SR2)");
+        Assert.Contains(errors, e => e.Contains("COBOLNET1720"));
     }
 }

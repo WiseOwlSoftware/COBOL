@@ -978,6 +978,15 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From
     /// AFTER phrase, and the record is presented once at the current line then advanced by BOTH amounts (both after
     /// presentation). PAGE is forbidden in the combined form (SR17). Null = the classic single-phrase WRITE.</summary>
     public BoundAdvancing? AfterAdvancing { get; init; }
+    /// <summary>The <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> pair, which ISO §14.9.51.3 SR2 FORBIDS on a
+    /// sequential-organization WRITE ("If the organization of the write file is sequential, format 1 shall be
+    /// specified", and Format 1 of §14.9.51.2 carries no INVALID KEY bracket) — so it is non-null ONLY under
+    /// <c>--permissive</c>, where the COBOLNET1720 screen warns and the bind stands (kb/Work PB691). It is
+    /// carried rather than dropped because §9.1.14's final rule item 2 gives the NOT INVALID KEY imperative a
+    /// LIVE meaning here — it runs on a successful completion — while the INVALID arm is provably dead: every
+    /// invalid-key status (§9.1.13.5, '21'–'24') names a relative or indexed file. Null = the legal Format-1
+    /// WRITE, which is every WRITE the strict compiler accepts on this organization.</summary>
+    public KeyedInvalidKey? InvalidKey { get; init; }
 }
 
 /// <summary><c>READ file [NEXT|PREVIOUS] [INTO x] [AT END …][NOT AT END …]</c> on a SEQUENTIAL or LINE
@@ -1026,6 +1035,14 @@ public sealed record BoundRewrite(FileModel File, Place Record, BoundOperand? Fr
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
     /// <summary>The RETRY phrase (§14.7.9 / §14.9.35 GR11), or null.</summary>
     public RetrySpec? Retry { get; init; }
+    /// <summary>The <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> pair, which ISO §14.9.35.3 SR2's FIRST arm
+    /// forbids on a sequential-organization REWRITE — so it is non-null ONLY under <c>--permissive</c>, where
+    /// the COBOLNET1720 screen warns and the bind stands. PB144 landed the screen but still DROPPED the phrase,
+    /// on the reasoning that a sequential REWRITE has no '2x' condition for it to carry; that is true of the
+    /// INVALID arm and false of the NOT INVALID arm, which §9.1.14's final rule item 2 runs on a SUCCESSFUL
+    /// completion. Carrying the pair is the same correction PB691 made to <see cref="BoundWrite"/>, one method
+    /// away in the same binder.</summary>
+    public KeyedInvalidKey? InvalidKey { get; init; }
 }
 
 // ── Report Writer verbs (ISO §14.9.21 / §14.9.16 / §14.9.46; COBOLNET_REPORT_WRITER_DESIGN §5) ────────────────

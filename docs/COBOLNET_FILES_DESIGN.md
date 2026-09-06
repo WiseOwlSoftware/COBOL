@@ -140,13 +140,14 @@ at all. The corpus witness is `conformance:2023/pb346_read_retry_record_conflict
 
 ### D9. The L1–L3 phrase-placement leniency family is gated at ONE seam: an error under strict, a warning with an unchanged bind under `--permissive`.
 
-**The rule shape.** Three syntax rules across READ/REWRITE/DELETE close a phrase out of a particular organization
-or access mode:
+**The rule shape.** Six rules across READ/WRITE/REWRITE/DELETE — five syntax rules and one general format —
+close a phrase out of a particular organization or access mode:
 
 | rule | forbids | when |
 |---|---|---|
 | §14.9.10.3 SR2 | INVALID KEY / NOT INVALID KEY | a DELETE RECORD referencing a file **in sequential access mode** |
 | §14.9.35.3 SR2 | INVALID KEY / NOT INVALID KEY | a REWRITE referencing **a file with sequential organization**, *or* a file with **relative organization and sequential access mode** |
+| §14.9.51.3 SR2 | INVALID KEY / NOT INVALID KEY | a WRITE referencing **a file with sequential organization** — stated as a format rule ("If the organization of the write file is sequential, format 1 shall be specified"), and Format 1 of §14.9.51.2 has no INVALID KEY bracket (⚠ that diagram is the whole prohibition, so it was **rendered from the PDF**, printed pages 785–786, not read off the OCR, whose known bias is toward falsely-restrictive syntax: Format 1 carries ADVANCING + END-OF-PAGE and no INVALID KEY, Format 2 the reverse) |
 | §14.9.30.3 SR6 | ADVANCING / AT END / NEXT / NOT AT END / PREVIOUS | a READ whose file control entry specifies **ACCESS MODE RANDOM** |
 | §14.9.30.3 SR7 | PREVIOUS | a READ referencing a file with **LINE SEQUENTIAL organization** |
 | §14.9.30.2 Format 1 | INVALID KEY / NOT INVALID KEY | a READ referencing a file with **sequential organization** — every such READ is a Format-1 read (§12.4.5.5.2 SR2 → §14.9.30.3 SR8 → §14.9.30.4 GR19), and Format 1 has no INVALID KEY bracket |
@@ -158,6 +159,13 @@ was even commented: the sequential-*organization* arm binds through `SequentialI
 read `rewriteInvalidKeyPhrase()` at all — the phrase was parsed and dropped on the floor, a strictly worse shape
 than its relative twin, which at least bound it as dead. Both arms are screened now, and both have a negative
 fixture, because a fix landing only one of them reproduces the very shape that made the rule wrong.
+⚠ **WRITE was the same drop a third time** (kb/Work PB691). `SequentialIoBinder.BindWrite` never called
+`w.writeInvalidKey()` either, and unlike REWRITE it had no diagnostic at all: the program compiled clean at every
+edition and on both severity axes, and neither imperative ran. It hid because the `writeInvalidKey` sub-rule of
+the grammar was consumed by the **keyed** binder only — the two-arm dispatch with one arm fixed, which is this
+repo's most reproducible defect shape. The mechanical sweep that finds it is *for every I-O statement rule, which
+sub-rules does each binder arm consume?*, and it is now run whenever a phrase gains an organization-conditioned
+arm.
 
 **Where it lives.** `StatementValidation.ScreenForbiddenPhrase` is the one screen; the severity decision routes
 through **`EditionContext.Removed`**, THE policy seam — which already carries documented-dialect-leniency gating
@@ -165,11 +173,21 @@ as well as removed-construct gating — so it is an ERROR under strict and a WAR
 under `--permissive`. Never a local `Permissive` test, never a parallel `Lenient()` method. ⛔ The legacy
 `DialectStrictnessChecks` lives only in `src/CobolSharp.Compiler` and must not be revived.
 
-**Why the tolerated path is safe.** The bind is unchanged under `--permissive` because the emitter's status-first
-branches make a phrase that cannot fire simply dead — a `'2x'` invalid-key branch on a sequential-access DELETE,
-a `'1x'` at-end branch on a random READ — never silently rerouted. That is what the CCVS-85 corpus depends on.
+**Why the tolerated path is safe — and what "tolerated" obliges.** The bind is unchanged under `--permissive`
+because the emitter's status-first branches make a phrase that cannot fire simply dead — a `'2x'` invalid-key
+branch on a sequential-access DELETE, a `'1x'` at-end branch on a random READ — never silently rerouted. That is
+what the CCVS-85 corpus depends on. ⛔ **But "dead" is a claim about the INVALID arm only, and it was over-read
+into a licence to drop the whole phrase** (kb/Work PB691). Having accepted the program, the compiler owes the
+phrase the meaning §9.1.14 gives it, and §9.1.14's final rule has **two** items: item 1 sends a *non*-invalid-key
+unsuccessful completion to exception processing, and item 2 — "If the I-O status indicates a successful
+completion, control is transferred to the end of the input-output statement **or to the imperative-statement
+specified in the NOT INVALID KEY phrase if it is specified**" — makes the NOT INVALID arm **live** on every one
+of these statements, because each of them succeeds. So on a sequential-organization WRITE or REWRITE the INVALID
+arm is provably dead (§9.1.13.5's four invalid-key statuses `'21'`–`'24'` each name a relative or indexed file)
+while the NOT INVALID arm must RUN, and both sequential arms bind the pair and render it through the one
+§9.1.14 renderer rather than dropping it.
 
-**The last two rows are kb/Work PB334, and they arrived the same way SR2's sequential arm did.** SR7 pairs an
+**Rows five and six are kb/Work PB334, and they arrived the same way SR2's sequential arm did.** SR7 pairs an
 ORGANIZATION with a read DIRECTION, and `SequentialIoBinder.BindRead` never called `readDirection()` at all — so
 SR7 had **no attachment point anywhere in the compiler**, and a line-sequential `READ … PREVIOUS` was accepted and
 read FORWARD. §14.9.30.3 SR10 (the KEY phrase, a hard `COBOLNET0864`) and the Format-1 membership rule were the
@@ -180,7 +198,13 @@ they came to be enforced on one organization only. ⚠ READ's NOT INVALID KEY is
 `BoundRead.InvalidKey` carries it and `SequentialIoEmitter` renders the NOT arm (never the INVALID arm — a
 sequential READ raises no `'2x'` status).
 
-**One code, five rules.** `COBOLNET1720` serves all five, on the `COBOLNET1694` precedent: the *shape* is one
+**One §9.1.14 renderer, every arm.** `SequentialIoEmitter.EmitInvalid` renders the transfer contract — INVALID on
+`'2'`, NOT INVALID on `'0'` — for the keyed READ/WRITE/REWRITE/DELETE/START **and** for the tolerated
+sequential arms. It lives on the sequential emitter because that class is the declared home of the file-I/O
+common services `KeyedIo` consumes (status store, USE hook, image splice, RETRY renders); a second copy on the
+keyed side is exactly how the sequential WRITE came to have no branch at all.
+
+**One code, six rules.** `COBOLNET1720` serves all six, on the `COBOLNET1694` precedent: the *shape* is one
 rule ("a phrase is written where this statement's syntax rules forbid it") and each site's message quotes its own
 §/SR. §14.9.10.3 **SR1** (DELETE RECORD on a sequential-organization file) is deliberately **not** on this seam —
 it is a hard `COBOLNET0865` error at every edition and strictness, because it is not a documented leniency.

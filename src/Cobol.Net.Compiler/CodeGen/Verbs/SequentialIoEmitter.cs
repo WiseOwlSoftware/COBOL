@@ -368,6 +368,28 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         EmitUseHook(ul.File);
     }
 
+    /// <summary>⛔ THE ONE RENDERER OF ISO §9.1.14's transfer-of-control contract, over a captured status local —
+    /// shared by every I-O verb that can carry the phrase, sequential arm and keyed arm alike (this class is the
+    /// home of the file-I/O common services KeyedIo consumes; a second copy there was how the sequential WRITE
+    /// came to have no branch at all — kb/Work PB691). The INVALID KEY imperative runs on the <c>'2x'</c> family
+    /// ONLY (§9.1.13.5 — 3x/4x route to exception processing, never this branch); the NOT INVALID KEY imperative
+    /// ONLY on successful completion (<c>'0x'</c>, §9.1.14 final rule item 2). On a sequential-organization file
+    /// no '2x' status is reachable at all (§9.1.13.5 items 1–4 all name a relative or indexed file), so the
+    /// INVALID arm renders as a branch that provably never fires — dead, never silently rerouted.</summary>
+    public void EmitInvalid(string st, KeyedInvalidKey? ik)
+    {
+        if (ik is null) return;
+        var w = ctx.Writer;
+        if (ik.Invalid is { } inv)
+        {
+            using (w.Block($"if ({st}[0] == '2')")) Statements.EmitStatementList(inv);
+            if (ik.NotInvalid is { } not)
+                using (w.Block($"else if ({st}[0] == '0')")) Statements.EmitStatementList(not);
+        }
+        else if (ik.NotInvalid is { } not)
+            using (w.Block($"if ({st}[0] == '0')")) Statements.EmitStatementList(not);
+    }
+
     /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §14.9.46): a FROM operand first MOVEs into the record area,
     /// then the record's character image is written (plain, or with print-control advancing).</summary>
     public void EmitWrite(BoundWrite wr)
@@ -401,7 +423,24 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         }
         else
             w.Line($"{RuntimeApi.FileWrite(name, image, VaryingLengthArg(wr.File), LinageArg(wr.File))};");
+        // The §9.1.14 status SNAPSHOT for a --permissive INVALID KEY phrase (kb/Work PB691). Taken HERE, before
+        // the FILE STATUS store and the USE hook, for the same reason the end-of-page flag is read in the `if`
+        // header below: a declarative or a phrase body may operate on this same connector and move its status.
+        // The three plain sequential write entries return void (only the governed WriteShared returns the
+        // status), so the snapshot reads the connector — not a captured return — which is exactly what §9.1.14
+        // means by "the I-O status of the file connector associated with the statement". Emitted ONLY when the
+        // forbidden phrase is present, so the legal Format-1 WRITE renders byte-for-byte as before.
+        string? wst = null;
+        if (wr.InvalidKey is not null)
+        {
+            wst = $"__wst{ctx.Names.NextKeyedSeq()}";
+            w.Line($"var {wst} = {RuntimeApi.FileStatus(name)};");
+        }
         EmitStoreFileStatus(wr.File);
+        // invalidKeyHandled stays FALSE even with the phrase present: §9.1.14 item 2 suppresses exception
+        // processing only "if the invalid key condition exists", and on a sequential organization it never can
+        // (§9.1.13.5 items 1–4 all name a relative or indexed file), so every unsuccessful status here is a
+        // §9.1.14 final-rule item 1 completion that the declarative must still see.
         EmitUseHook(wr.File);
         // END-OF-PAGE branches (ISO §14.9.51 GR27b/GR28): an end-of-page WRITE is SUCCESSFUL — the branch runs
         // after the status store (status 00, so no USE declarative competes). The flag is read in the `if`
@@ -417,6 +456,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 using (w.Block("else"))
                     Statements.EmitStatementList(not);
         }
+        // The forbidden-but-tolerated INVALID KEY pair, through THE ONE §9.1.14 renderer the keyed arm uses.
+        // Last, after the END-OF-PAGE branches: both are end-of-statement phrase transfers, and GR27b's EOP
+        // imperative belongs to the WRITE's own general rules while §9.1.14 is the outer transfer contract.
+        if (wst is not null) EmitInvalid(wst, wr.InvalidKey);
     }
 
     /// <summary>Render the governed sequential-organization READ call (§14.9.30.4 GR9–GR12 over the ordinal lock
@@ -526,8 +569,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         }
         else
             w.Line($"{RuntimeApi.FileRewrite(FileKeyExpr(rw.File), image, VaryingLengthArg(rw.File))};");
+        // The §9.1.14 status snapshot for a --permissive INVALID KEY phrase, taken before the status store and
+        // the USE hook — the WRITE arm above carries the full reasoning (kb/Work PB691).
+        string? rst = null;
+        if (rw.InvalidKey is not null)
+        {
+            rst = $"__rwst{ctx.Names.NextKeyedSeq()}";
+            w.Line($"var {rst} = {RuntimeApi.FileStatus(FileKeyExpr(rw.File))};");
+        }
         EmitStoreFileStatus(rw.File);
-        EmitUseHook(rw.File);
+        EmitUseHook(rw.File);   // invalidKeyHandled stays false: no '2x' status is reachable here (§9.1.13.5)
+        if (rst is not null) EmitInvalid(rst, rw.InvalidKey);
     }
 
     /// <summary>Store a read record image into the FD record area: a character-image group distributes via FromImage;
