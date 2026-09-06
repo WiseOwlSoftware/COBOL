@@ -37,8 +37,16 @@ public sealed class BoundaryImageChannelTests
 
     /// <summary>The image-channel member names a consumer must never spell for itself. <c>AsImage</c>/
     /// <c>FromImage</c> are the character-image pair; <c>AsBits</c>/<c>FromBits</c> are the bit-group
-    /// (§13.18.29.4 GR1b) pair, which has the identical window/ODO/capability problem.</summary>
-    private static readonly string[] Members = [".AsImage()", ".FromImage(", ".AsBits()", ".FromBits("];
+    /// (§13.18.29.4 GR1b) pair, which has the identical window/ODO/capability problem; <c>AsNat</c>/
+    /// <c>FromNat</c> are the NATIONAL-group (§13.18.29.4 GR2b) pair, which has it too.
+    /// <para>⛔ THE NATIONAL PAIR WAS MISSING FROM THIS LIST until kb/Work PB678, and that is the two-arm
+    /// shape this file exists to catch, one level up: kb/Work PB327 created <c>AsNat()</c>/<c>FromNat()</c> as
+    /// the national twin of <c>AsImage()</c>/<c>FromImage()</c> — same window problem, same ODO problem, same
+    /// <c>PlaceRenderer.SendingNat</c>/<c>WriteNat</c> one-reader pair — and the law's own enforcement covered
+    /// only the alphanumeric and bit halves. A consumer could have spelled <c>.AsNat()</c> for itself and this
+    /// test would have stayed green.</para></summary>
+    private static readonly string[] Members =
+        [".AsImage()", ".FromImage(", ".AsBits()", ".FromBits(", ".AsNat()", ".FromNat("];
 
     /// <summary>⛔ THE ALLOW-LIST IS THE HAND-MAINTAINED PART, so it is keyed on the TYPE plus a written
     /// justification and it must stay tiny. An addition without a justification is a review failure, not a
@@ -48,7 +56,11 @@ public sealed class BoundaryImageChannelTests
         // SortEmitter.TableCompare renders `a.{MemberPath}` STRUCT RVALUES (the sort comparer's two element
         // parameters), never a Place — so no window, ODO or Tier-C shape can reach it and there is no Place to
         // hand PlaceRenderer. Its own IsImageCapable guard sits one line above. Self-spelled by NECESSITY.
-        ["CodeGen/Verbs/SortEmitter.cs"] = (2, "TableCompare compares struct rvalues, not Places"),
+        // The count is SIX because §14.9.40.4 GR5 gives a key of each CLASS its own operand face and the
+        // comparer must read all three: AsImage() for an ordinary group (§8.8.4.2.3 SR2 — class alphanumeric),
+        // AsNat() for a GROUP-USAGE NATIONAL group (§13.18.29.4 GR2b) and AsBits() for a GROUP-USAGE BIT one
+        // (GR1b), each spelled twice (the two element parameters). kb/Work PB678.
+        ["CodeGen/Verbs/SortEmitter.cs"] = (6, "TableCompare compares struct rvalues, not Places"),
         // ⛔ OperandText.FieldAsString's bit-group row IS GONE — routed, not re-justified. It read
         // `Read(p).AsBits()` for itself and was exempted on the promise "kb/Work PB173 gives the bit channel its
         // own Place subtype; when that lands this row is the next one to route". PB173 landed and the row was

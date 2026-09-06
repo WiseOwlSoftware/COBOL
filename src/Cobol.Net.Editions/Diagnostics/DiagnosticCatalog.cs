@@ -604,8 +604,10 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor NationalData = new(
         NotImplemented, "national-data", EditionSeverity.Error,
         "National-category data whose SHAPE is still staged: a national-form numeric or boolean item (PIC 9 / "
-        + "PIC 1 with USAGE NATIONAL, §13.18.60.3 SR12), a national-edited item, and a national key of a TABLE "
-        + "SORT (§14.9.40 GR5b's collating leg). A national leaf in an FD/SD record, an EXTERNAL/BASED/"
+        + "PIC 1 with USAGE NATIONAL, §13.18.60.3 SR12), and a national-edited item. A national SORT/MERGE key "
+        + "— elementary or a GROUP-USAGE NATIONAL group, in either SORT format — now RIDES: §14.9.40.4 GR5 / "
+        + "§14.9.24.4 GR5 resolve an alphanumeric AND a national sequence and each key takes the one its CLASS "
+        + "names (kb/Work PB678). A national leaf in an FD/SD record, an EXTERNAL/BASED/"
         + "ADDRESS-OF cell, a REDEFINES overlay and an INDEXED record key all RIDE (kb/Work PB231 + PB327 — the "
         + "record codec lays a national position out as its two UTF-16BE bytes, §13.18.60.4 GR8 / D-N1).",
         "ISO §8.5 / §13.18.60", RecognizedNotImplemented);

@@ -166,15 +166,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                     return new BoundUnsupported($"SORT table key '{kn}' — keys shall not be described with / "
                         + "subordinate to an inner OCCURS (ISO §14.9.40.3 SR14e), and a REDEFINES-view key in the "
                         + "typed-array path is deferred");
-                // A NATIONAL key orders under the NATIONAL collating sequence (§14.9.40 GR5b) — the national
-                // sequence itself now RESOLVES (P10 Step 4: ALPHABET … FOR NATIONAL + alphabet-name-2/FOR
-                // NATIONAL bind and validate), but the key comparator's national leg is still the staged
-                // residue (file-sort national keys are separately blocked by the D-N2 FD/SD record gate).
-                // Staged loud, never a wrong ordinal.
-                if (key.Pic is { Category: PicCategory.National })
-                    ctx.Edition.Error(DiagnosticCatalog.NationalData, $"SORT with a national key ('{kn}') is recognized but "
-                        + "not yet implemented — the key comparator's national collating leg (ISO §14.9.40 GR5b; "
-                        + "the national COLLATING SEQUENCE itself binds, P10 Step 4)");
+                // A key of class national orders under the NATIONAL collating sequence — the GR5 lead-in
+                // ("the national collating sequence that applies to the comparison of key data items of class
+                // national"), resolved by GR5a/GR5b like its alphanumeric twin. It used to stage LOUD here, with
+                // a comment citing GR5b (the program-collating-sequence PRECEDENCE step, not the class rule) and
+                // claiming the file sort was "separately blocked by the D-N2 FD/SD record gate" — a gate PB327
+                // removed. The comparator now selects on the key's class (kb/Work PB678), so both formats sort a
+                // national key under the national sequence and nothing is staged.
                 keys.Add(new BoundTableSortKey(desc, path, key));
             }
         }
@@ -396,9 +394,19 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
             if (Model.RecordLayout.OffsetInRecord(root, item) is not { } off)
                 return $"SORT/MERGE key '{dref.GetText()}' — key data-names shall not be subject to any OCCURS "
                     + "clause (ISO §14.9.40.3 SR6b/SR6f)";
-            var pic = item.Pic;
-            bool numeric = pic is { Category: PicCategory.Numeric };
-            int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ImageWidth;
+            // ⛔ THE CLASS IS THE OPERAND'S, AND IT IS ASKED ONCE (kb/Work PB678). §14.9.40.4 GR5 / §14.9.24.4 GR5
+            // select the collating sequence by the KEY's class, so the key descriptor carries the class rather
+            // than a single "numeric?" bit — and it reads OperandPic, the ONE operand-category reader (D20), so a
+            // national or bit GROUP key is the national / boolean operand §13.18.29.4 GR2b/GR1b makes it.
+            CollatingClass cls = CollatingSelection.Of(item.OperandPic);
+            // ⛔ THE WINDOW IS IN BYTES (kb/Work PB327 + PB678). OffsetInRecord above walks the PHYSICAL codec
+            // layout — §14.9.40.3 SR6e's "same character positions" over the record IMAGE, whose basis is bytes —
+            // so the length must be the key's BYTE extent too. ByteWidth IS ImageWidth for every leaf kind but
+            // NATIONAL, whose position is two bytes (§13.18.60.4 GR8; D-N1), so this read is byte-identical for
+            // every non-national key and is what stops a national key's window covering only its first half:
+            // with ImageWidth the three keys N"A"/N"B"/N"C" all collapsed onto the shared high byte U+0000 and
+            // compared EQUAL, which is a stable sort returning the release order.
+            int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ByteWidth;
             if (len <= 0) return $"SORT/MERGE key '{dref.GetText()}' has no character image";
             // SR6g: with variable-length records every key must lie within the first min-record-size bytes.
             if (file.Varying is { Min: { } min } && off + len > min)
@@ -413,26 +421,29 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
             // usage is described, so the decode must match the representation exactly — CobolSort's column
             // builder dispatches on the profile's ByteForm (a float key's raw big-endian IEEE bytes would
             // order every negative after every positive, so it takes the algebraic double lane).
-            keys.Add(new BoundSortMergeKey(descending, off, len, numeric, numeric ? item : null));
+            keys.Add(new BoundSortMergeKey(descending, off, len, cls,
+                cls is CollatingClass.Numeric ? item : null));
         }
         return null;
     }
 
-    /// <summary>Resolve the COLLATING SEQUENCE phrase per the SORT/MERGE GR5 precedence: (a) the statement's
-    /// alphabet-name-1 — including a NATIVE/STANDARD-1/STANDARD-2 alphabet, which FORCES the native order over any
-    /// PCS; (b) absent the phrase, the program collating sequence; null = native. The COLLATING keyword itself may
+    /// <summary>Resolve the COLLATING SEQUENCE phrase into the GR5 sequence PAIR. ISO §14.9.40.4 GR5 /
+    /// §14.9.24.4 GR5 determine the two SEPARATELY, each in this order of precedence: a) the statement's own
+    /// phrase — alphabet-name-1 for keys of class alphabetic and alphanumeric, alphabet-name-2 for keys of class
+    /// national, and a NATIVE/STANDARD-1/STANDARD-2 alphabet there FORCES the native order over any PCS; b) the
+    /// program collating sequences. Null in either half = that class's native order, and a phrase naming only one
+    /// class leaves the OTHER on its program collating sequence (GR5b, per class). The COLLATING keyword itself may
     /// be omitted in the source (CCVS leniency L5 — ST139A writes <c>SEQUENCE alphabet-name</c>; the grammar's
     /// permissive superset, flagged under strict dialects when that channel lands). Alphabet-name-2 / the FOR
-    /// NATIONAL form name the NATIONAL sequence for national keys (ISO §14.9.40.3 SR2 + GR5b; the 2002 national
-    /// class — introduction-gated by the pass, VisitSortCollatingPhrase): it is resolved and CLASS-VALIDATED here
-    /// against the FOR NATIONAL alphabet registry (a UTF-8/UTF-16 alphabet references NO collating sequence —
-    /// §12.3.7 Table 6), then intentionally NOT carried into the bound node: a national KEY cannot yet exist
-    /// (D-N2 refuses national leaves in FD/SD records; the table-sort national key stages loud in this binder),
-    /// so no reachable program observes the sequence — the staged key legs are the fence, and the carried slot
-    /// lands with them (RESIDUE-11).</summary>
-    private (AlphabetDef? Collation, BoundStatement? Error) SortBindCollating(Core.SortCollatingPhraseContext? c)
+    /// NATIONAL form are CLASS-VALIDATED here against the FOR NATIONAL alphabet registry (§14.9.40.3 SR2; a
+    /// UTF-8/UTF-16 alphabet references NO collating sequence — §12.3.7 Table 6), and since kb/Work PB678 the
+    /// resolved national half IS carried into the bound node: a national key reaches the comparator (PB327 admitted
+    /// national leaves to FD/SD records) and GR5 is what tells it which sequence to use.</summary>
+    private (SortCollation Collation, BoundStatement? Error) SortBindCollating(Core.SortCollatingPhraseContext? c)
     {
-        if (c is null) return (ctx.Data.Collating, null);   // GR5b — the program collating sequence (null ⇒ native)
+        // GR5b — the program collating sequences, per class (null ⇒ that class's native order).
+        var pcs = new SortCollation(ctx.Data.Collating, ctx.Data.NationalCollating);
+        if (c is null) return (pcs, null);
 
         string? alnumName = null, natName = null;
         var fors = c.collatingForPhrase();
@@ -456,7 +467,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
             natName = words.Length > 1 ? words[1].GetText() : null;
         }
 
-        // Alphabet-name-2 (national): resolve + class-validate; see the method doc for why it is not carried.
+        // Alphabet-name-2 (national keys, GR5a): resolve + class-validate, and CARRY the sequence (PB678). A name
+        // that fails either check leaves the national half on the program collating sequence — the diagnostic is
+        // the verdict, and inventing a sequence for a rejected alphabet-name would only add a second wrong answer.
+        NationalAlphabetDef? nat = pcs.National;
         if (natName is not null)
         {
             if (!ctx.Data.NationalAlphabets.TryGetValue(natName, out var def))
@@ -469,11 +483,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                     + "alphabet references a coded character set but NOT a collating sequence (ISO §12.3.7 GR7 "
                     + "Table 6) — only NATIVE, UCS-4, and literal-phrase national alphabets may collate "
                     + "(ISO §14.9.40.3 SR2)");
+            else
+                nat = def.IsIdentity ? null : def;   // GR5a — an identity national alphabet (NATIVE/UCS-4) ⇒ native
         }
 
-        // Alphabet-name-1 (alphanumeric/alphabetic keys, GR5a); a FOR NATIONAL-only phrase leaves the
+        // Alphabet-name-1 (alphabetic/alphanumeric keys, GR5a); a FOR NATIONAL-only phrase leaves the
         // alphanumeric keys on the program collating sequence (GR5b per class).
-        if (alnumName is null) return (ctx.Data.Collating, null);
+        if (alnumName is null) return (pcs with { National = nat }, null);
         if (!ctx.Data.Alphabets.TryGetValue(alnumName, out var alnumDef))
         {
             if (ctx.Data.NationalAlphabets.ContainsKey(alnumName))
@@ -481,13 +497,14 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                 ctx.Edition.Error("COBOLNET0898", $"SORT/MERGE COLLATING SEQUENCE '{alnumName}': "
                     + "alphabet-name-1 shall reference an alphabet that defines an ALPHANUMERIC collating "
                     + "sequence — this alphabet is defined FOR NATIONAL (ISO §14.9.40.3 SR2)");
-                return (null, null);
+                return (new SortCollation(null, nat), null);
             }
             ctx.Edition.Error("COBOLNET0898", $"SORT/MERGE COLLATING SEQUENCE '{alnumName}' is not an "
                 + "alphabet-name declared in SPECIAL-NAMES (ISO §14.9.40.3 SR1 / §12.3.7)");   // PB236
-            return (null, new BoundNop());
+            return (SortCollation.Native, new BoundNop());
         }
-        return (alnumDef.IsIdentity ? null : alnumDef, null);   // GR5a — the statement's own sequence (an identity alphabet ⇒ native)
+        // GR5a — the statement's own sequences (an identity alphabet ⇒ native, no carrier emitted).
+        return (new SortCollation(alnumDef.IsIdentity ? null : alnumDef, nat), null);
     }
 
     /// <summary>Map a USING/GIVING file list to <see cref="FileModel"/>s. Each shall be an FD file — never an SD

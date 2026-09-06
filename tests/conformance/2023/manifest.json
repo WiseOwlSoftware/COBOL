@@ -97,6 +97,7 @@
   "da5_call_comp_group",
   "da5_group_verbs_comp_leaf",
   "da5_table_sort_group_key",
+  "pb678_sort_national_key_collating",
   "delete_file",
   "delete_file_absent",
   "delete_file_sharing",

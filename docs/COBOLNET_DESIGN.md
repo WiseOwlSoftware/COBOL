@@ -765,8 +765,15 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   raw bytes into EVERY 01 view; WRITE serializes the named view. This is the file-edge analogue of REDEFINES (ISO
   §9.1.2 NOTE / §13.18.33 GR3).
 - **SORT/MERGE:** SD record is a typed struct; the sort store holds serialized images ordered by the same `CobolKey`
-  policy; key offsets computed into the deterministic serialized image at compile time. Format-2 in-place table SORT
-  operates on the typed array directly (the one place the two SORT forms diverge — a typed comparer).
+  policy; key offsets AND WIDTHS are BYTE windows into the deterministic serialized image, computed at compile time
+  (a national position is two of those bytes — §13.18.60.4 GR8, D-N1). Format-2 in-place table SORT operates on the
+  typed array directly (the one place the two SORT forms diverge — a typed comparer). **A key's COMPARATOR is
+  selected by the key's CLASS, never by the statement** (§14.9.40.4 GR5 / §14.9.24.4 GR5 resolve TWO sequences and
+  each key takes the one its class names): the bound key carries a `CollatingClass`, the file sort passes it to the
+  runtime as `CobolSort.KeyClass` and the table sort picks the comparer's carrier argument from it. A NATIONAL key
+  decodes its UTF-16BE byte pairs back to national POSITIONS before comparing (§8.8.4.2.9 compares national
+  character positions), a BOOLEAN key compares by value with boolean-zero extension and no sequence (§8.8.4.2.8),
+  and a NUMERIC key decodes algebraically through its own profile (§8.8.4.2.4).
 - **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable
   record — including mixed-usage records with fixed-point BINARY/PACKED leaves, which serialize each such leaf as
   its §14.4 zoned digit image (width = `Pic.Digits`, trailing-overpunch sign; ISO §13.18.60 USAGE GR4 implementor
@@ -1773,9 +1780,12 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
       the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§12.3.7 GR7
       Table 6): referencing them as a collating sequence is rejected (0898), and no codec boundary consumes their
       coded-set role as a CHARACTER SET (item 14a below — the CODE-SET boundary codec lands with kb/Work PB110 part 2).
-    SORT/MERGE: alphabet-name-1 takes the alphanumeric table (GR5 precedence, live); alphabet-name-2 / the FOR
-    NATIONAL form resolve + class-validate, but national KEYS cannot yet exist (D-N2; the table-sort national key
-    stages loud), so the validated national sequence is not yet carried into the sort (lands with RESIDUE-11).
+    SORT/MERGE: the statement resolves BOTH sequences as a `SortCollation` PAIR — §14.9.40.4 GR5 / §14.9.24.4 GR5
+    determine them SEPARATELY, alphabet-name-1 (GR5a) or the alphanumeric program collating sequence (GR5b) for keys
+    of class alphabetic and alphanumeric, alphabet-name-2 / the FOR NATIONAL form (GR5a) or the national program
+    collating sequence (GR5b) for keys of class national — and each KEY takes the one its class names, through the
+    ONE classifier `CollatingSelection.Of` (kb/Work PB678). A key of class boolean or numeric takes NEITHER: GR5
+    names no sequence for those classes, and §8.8.4.2.8 / §8.8.4.2.4 compare them by value.
 14a. **The alphabet as a CODED CHARACTER SET (ISO §12.3.7.4 GR7 Table 6 — kb/Work PB110 / PB109).** An
     alphabet-name references a collating sequence, a coded character set, or both; NOTE 2 of GR7 names the four
     sites that reference the CODED CHARACTER SET — "*the class condition, the CLASS clause …, a SYMBOLIC CHARACTERS

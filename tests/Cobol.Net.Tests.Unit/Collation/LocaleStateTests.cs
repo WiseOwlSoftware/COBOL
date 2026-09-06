@@ -199,11 +199,11 @@ public sealed class LocaleStateTests
             Assert.True(LocaleCollation.Current.Compare("ñu", "nz") < 0);                    // the live form followed
             // And CobolSort takes the snapshot at Init — a switch between Init and Sort has no effect.
             ru.Locale.SetFromSystemDefault(LocaleCategorySet.All);
-            CobolSort.Init("SNAP-TEST", LocaleCollation.Current);
+            CobolSort.Init("SNAP-TEST", LocaleCollation.Current, national: null);
             CobolSort.Release("SNAP-TEST", "nz");
             ru.Locale.SetFromLocale(LocaleCategorySet.Collate, "es-ES");
             CobolSort.Release("SNAP-TEST", "ñu");
-            CobolSort.Sort("SNAP-TEST", [new CobolSort.Key(0, 2, false, false, default)], LocaleCollation.Current, false);
+            CobolSort.Sort("SNAP-TEST", [new CobolSort.Key(0, 2, false, CobolSort.KeyClass.Alphanumeric, default)], false);
             Assert.True(CobolSort.Return("SNAP-TEST", out string? first));
             Assert.Equal("ñu", first);                                                        // root order: ñu before nz
         });

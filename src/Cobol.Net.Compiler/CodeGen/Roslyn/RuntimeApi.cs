@@ -1008,19 +1008,20 @@ internal static class RuntimeApi
 
     /// <summary>Initialize the per-SD image store — <c>CobolSort.Init</c> — with the statement's collating sequence,
     /// snapshotted at statement start (ISO §14.6.6 r5: a locale switch during the SORT/MERGE has no effect on it).</summary>
-    public static string SortInit(string sd, string weights) => $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {weights})";
+    public static string SortInit(string sd, string weights, string natWeights) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {weights}, {natWeights})";
 
     /// <summary>RELEASE one record image — <c>CobolSort.Release</c>.</summary>
     public static string SortRelease(string sd, string image) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image})";
 
     /// <summary>The sequence phase — <c>CobolSort.Sort</c> (stable; GR8).</summary>
-    public static string SortSort(string sd, string keys, string weights, string dupsInOrder) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Sort)}({sd}, {keys}, {weights}, {dupsInOrder})";
+    public static string SortSort(string sd, string keys, string dupsInOrder) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Sort)}({sd}, {keys}, {dupsInOrder})";
 
     /// <summary>The k-way merge — <c>CobolSort.Merge</c> (GR4 — file order breaks ties).</summary>
-    public static string SortMerge(string sd, string keys, string weights) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Merge)}({sd}, {keys}, {weights})";
+    public static string SortMerge(string sd, string keys) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Merge)}({sd}, {keys})";
 
     /// <summary>Open a new pre-sorted USING stream — <c>CobolSort.NextInput</c>.</summary>
     public static string SortNextInput(string sd) => $"{nameof(CobolSort)}.{nameof(CobolSort.NextInput)}({sd})";
@@ -1042,6 +1043,24 @@ internal static class RuntimeApi
     /// <summary>The <c>CobolSort.Key[]</c> array literal over per-key "new(…)" element fragments.</summary>
     public static string SortKeyArray(IEnumerable<string> keyElements) =>
         $"new {nameof(CobolSort)}.{nameof(CobolSort.Key)}[] {{ {string.Join(", ", keyElements)} }}";
+
+    /// <summary>⛔ THE ONE MAPPING between the binder's <see cref="Binding.CollatingClass"/> and the runtime's
+    /// <c>CobolSort.KeyClass</c> — the two enumerations state the SAME ISO rule (§14.9.40.4 GR5 / §14.9.24.4 GR5
+    /// select a key's comparator by the key's class) on the two sides of the emitted-text boundary, and this
+    /// exhaustive switch is what makes a member added to one and not the other a COMPILE error here rather than a
+    /// silently mis-emitted comparator.</summary>
+    public static string SortKeyClass(Binding.CollatingClass cls)
+    {
+        string member = cls switch
+        {
+            Binding.CollatingClass.Alphanumeric => nameof(CobolSort.KeyClass.Alphanumeric),
+            Binding.CollatingClass.National => nameof(CobolSort.KeyClass.National),
+            Binding.CollatingClass.Boolean => nameof(CobolSort.KeyClass.Boolean),
+            Binding.CollatingClass.Numeric => nameof(CobolSort.KeyClass.Numeric),
+            _ => throw new ArgumentOutOfRangeException(nameof(cls), cls, "unmapped collating class"),
+        };
+        return $"{nameof(CobolSort)}.{nameof(CobolSort.KeyClass)}.{member}";
+    }
 
     // ── Report Writer (CobolReport; ISO §13.14–§13.18) ──
 

@@ -9,14 +9,16 @@ namespace CobolNet.Binding.Bound;
 // UsageCollectionPass, and the source-generated visitor key on this namespace).
 
 /// <summary>One sort/merge key (ISO §14.9.40 GR1/GR2 — significance is statement order, direction is the nearest
-/// preceding ASCENDING/DESCENDING word): its character window within the SD record image (<paramref name="Offset"/>,
+/// preceding ASCENDING/DESCENDING word): its BYTE window within the SD record image (<paramref name="Offset"/>,
 /// <paramref name="Length"/> — compile-time, §14.9.40.3 SR6a/SR6e: the same byte positions are the key in EVERY
-/// record of the file) and its comparison kind — a NUMERIC key compares algebraically by decoded value (GR8 /
-/// §8.8.4.2 — never through a collating sequence; <paramref name="Signed"/>/<paramref name="SignKind"/> are the
-/// runtime <c>NumericSign</c> decode of the zoned/separate operational sign), an alphanumeric/group key compares as
-/// characters under the statement's resolved collating sequence (GR5).</summary>
+/// record of the file; a national position occupies two of those bytes, §13.18.60.4 GR8 / D-N1) and its
+/// <paramref name="Class"/>, which selects the comparator: a NUMERIC key compares algebraically by decoded value
+/// (GR8 → §8.8.4.2.4 — never through a collating sequence, and <paramref name="Item"/> carries the leaf whose
+/// profile decodes the window), a NATIONAL key decodes its byte pairs and compares under the GR5 national sequence
+/// (§8.8.4.2.9), a BOOLEAN key compares by boolean value with no sequence (§8.8.4.2.8), and an alphanumeric or
+/// ordinary group key compares as characters under the GR5 alphanumeric sequence (§8.8.4.2.7).</summary>
 public sealed record BoundSortMergeKey(
-    bool Descending, int Offset, int Length, bool Numeric, DataItem? Item);
+    bool Descending, int Offset, int Length, CollatingClass Class, DataItem? Item);
 
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
@@ -30,12 +32,13 @@ public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);
 /// return). <paramref name="Using"/>/<paramref name="InputProcedure"/> is the release phase (GR11/GR12),
 /// <paramref name="Giving"/>/<paramref name="OutputProcedure"/> the return phase (GR14/GR15); a procedure is the
 /// resolved inclusive pc range run as a bounded dispatch — the PC dispatcher's return IS the GR11/GR14
-/// compiler-inserted return mechanism. <paramref name="Collating"/> is the GR5-resolved alphanumeric sequence
-/// (statement alphabet first, else the program collating sequence, else null = native).
+/// compiler-inserted return mechanism. <paramref name="Collating"/> is the GR5-resolved sequence PAIR — the
+/// alphanumeric one for keys of class alphabetic/alphanumeric and the national one for keys of class national,
+/// each taken from the statement alphabet first, else the matching program collating sequence, else native.
 /// <paramref name="RecordWidth"/> is the SD record area's physical character-image width.</summary>
 public sealed record BoundSort(
     FileModel File, int RecordWidth,
-    IReadOnlyList<BoundSortMergeKey> Keys, bool DuplicatesInOrder, AlphabetDef? Collating,
+    IReadOnlyList<BoundSortMergeKey> Keys, bool DuplicatesInOrder, SortCollation Collating,
     IReadOnlyList<FileModel> Using, (int Start, int End)? InputProcedure,
     IReadOnlyList<FileModel> Giving, (int Start, int End)? OutputProcedure,
     SortVaryingInfo? Varying) : BoundStatement;
@@ -48,7 +51,7 @@ public sealed record BoundSort(
 /// POST-bind whole-group analysis (StoreAsImage) — the emitter reads <c>Table.ElementType</c> then.</summary>
 public sealed record BoundTableSort(
     string ArrayPath, DataItem Table,
-    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, AlphabetDef? Collating) : BoundStatement;
+    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, SortCollation Collating) : BoundStatement;
 
 /// <summary>One Format-2 table-sort key: the C# member path RELATIVE to an element variable (empty = the element
 /// itself, ISO §14.9.40 GR23) and the key's <see cref="DataItem"/> (category/profile drive the typed compare).</summary>
@@ -60,7 +63,7 @@ public sealed record BoundTableSortKey(bool Descending, string MemberPath, DataI
 /// RETURN in the <paramref name="OutputProcedure"/> (GR8/GR9). Collating per GR5 (identical to SORT GR5).</summary>
 public sealed record BoundMerge(
     FileModel File, int RecordWidth,
-    IReadOnlyList<BoundSortMergeKey> Keys, AlphabetDef? Collating,
+    IReadOnlyList<BoundSortMergeKey> Keys, SortCollation Collating,
     IReadOnlyList<FileModel> Using,
     IReadOnlyList<FileModel> Giving, (int Start, int End)? OutputProcedure,
     SortVaryingInfo? Varying) : BoundStatement;

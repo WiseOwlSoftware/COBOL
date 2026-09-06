@@ -37441,13 +37441,13 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "MERGE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#CollatingSelection; src/Cobol.Net.Runtime/IO/CobolSort.cs#SequenceFor",
+  "test-ref": "conformance:2023/pb678_sort_national_key_collating; conformance:negative/pb678-sort-collating-for-forms-at-85",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB678 (2026-09-05): MERGE GR5 is SORT GR5 word for word and shares its whole implementation - SortBindCollating resolves the same pair for both verbs and CobolSort.KeyColumns applies it per key class in Merge exactly as in Sort. LEG 7 of the file golden is MERGE's OWN evidence (two pre-sorted USING files, a national key, COLLATING SEQUENCE FOR NATIONAL): the shared implementation is the claim, so a SORT-only corpus would not have checked it.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.24.4-6",
@@ -43447,13 +43447,13 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "SORT statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#CollatingSelection; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#TableWeightsArg; src/Cobol.Net.Runtime/IO/CobolSort.cs#SequenceFor",
+  "test-ref": "conformance:2023/pb678_sort_national_key_collating; conformance:2002/pb678_table_sort_key_class; conformance:negative/pb678-sort-collating-for-forms-at-85",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB678 (2026-09-05): the TWO sequences GR5 determines separately are now resolved as a pair (SortCollation) and selected per key by the key's CLASS through the one classifier CollatingSelection.Of - alphabet-name-1 (GR5a) or the alphanumeric program collating sequence (GR5b) for keys of class alphabetic and alphanumeric, alphabet-name-2 (GR5a) or the national program collating sequence (GR5b) for keys of class national, and NO sequence for the two classes GR5 names neither of (numeric, boolean). Both formats take the same selection: the Format-1 file sort carries the class on its runtime key descriptor (CobolSort.KeyClass) and the Format-2 table sort chooses the comparer's carrier argument. Before this the statement carried ONE sequence, the alphanumeric weights were applied to a national key's UTF-16BE record bytes, and the table-sort form staged loud on recognition. Below 2002 the national half is unreachable (alphabet-name-2 and the FOR forms draw COBOLNET0872 - the negative case), so the alphanumeric half is what conforms at 85.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.40.4-6",

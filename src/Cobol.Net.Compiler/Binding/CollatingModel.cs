@@ -216,3 +216,73 @@ public sealed record CodedCharacterSet(string Phrase, bool National, CollatingTa
         return ((char)(ordinal - 1)).ToString();                                   // the native / STANDARD / UTF-16 identity
     }
 }
+
+/// <summary>
+/// ⛔ THE COMPARISON CLASS that selects WHICH collating sequence applies to an operand — the ONE place the rule is
+/// written down. ISO §8.8.4.2 gives one comparison clause per class and only two of them consult a sequence:
+/// §8.8.4.2.7 (alphanumeric — the alphanumeric sequence), §8.8.4.2.9 (national — "the collating sequence of
+/// characters specified for the current national program collating sequence"), §8.8.4.2.8 (boolean — "a comparison
+/// of their boolean value, regardless of their usage", never collated) and §8.8.4.2.4 (numeric — algebraic, never
+/// collated). §14.9.40.4 GR5 / §14.9.24.4 GR5 say the same thing for SORT/MERGE keys in one sentence: "The
+/// alphanumeric collating sequence that applies to the comparison of key data items of class alphabetic and class
+/// alphanumeric, and the national collating sequence that applies to the comparison of key data items of class
+/// national, are each separately determined …".
+/// <para>Every consumer picks its own RENDERING from this one classification — the relation-condition renderer's
+/// trailing <c>__COLLATE</c>/<c>__COLLATE_NAT</c> argument, the table sort's comparer argument, the file sort's
+/// runtime key descriptor — but none of them re-decides which class an operand IS (kb/Work PB678: the SORT key
+/// comparator had no national arm at all, and its boolean keys took the alphanumeric weights).</para>
+/// </summary>
+public enum CollatingClass
+{
+    /// <summary>Class alphabetic / alphanumeric (and the edited categories, which compare as alphanumeric), plus
+    /// every ordinary GROUP operand — §8.8.4.2.3 SR2 makes a group item class alphanumeric.</summary>
+    Alphanumeric,
+
+    /// <summary>Class national (§8.8.4.2.9) — including a national GROUP, which operates as an elementary item of
+    /// PICTURE N(m) (§13.18.29.4 GR2b).</summary>
+    National,
+
+    /// <summary>Class boolean (§8.8.4.2.8) — including a bit GROUP (§13.18.29.4 GR1b).</summary>
+    Boolean,
+
+    /// <summary>Class numeric (§8.8.4.2.4) — algebraic comparison by value, regardless of usage.</summary>
+    Numeric,
+}
+
+/// <summary>The classifier for <see cref="CollatingClass"/>: "which class is this operand" asked once, so no
+/// consumer re-decides it.</summary>
+public static class CollatingSelection
+{
+    /// <summary>The comparison class of an operand described by <paramref name="operandPic"/> — which shall be the
+    /// item's OPERAND picture (<c>DataItem.OperandPic</c>: its own PICTURE for an elementary item, the
+    /// §13.18.29.4 GR1b/GR2b as-if PICTURE for a bit / national group), never <c>Pic</c> guarded by
+    /// <c>IsGroup</c>. A null picture is an ordinary (alphanumeric) group — §8.8.4.2.3 SR2.</summary>
+    public static CollatingClass Of(PicInfo? operandPic) => Of(operandPic?.Category);
+
+    /// <summary>The same rule keyed directly on a category — the form the relation-condition renderer needs, whose
+    /// anchor category is derived (a figurative constant takes the OTHER operand's category, §8.3.3.6.4 GR1) and so
+    /// never arrives as a <see cref="PicInfo"/>.</summary>
+    public static CollatingClass Of(PicCategory? category) => category switch
+    {
+        PicCategory.National => CollatingClass.National,
+        PicCategory.Boolean => CollatingClass.Boolean,
+        PicCategory.Numeric => CollatingClass.Numeric,
+        _ => CollatingClass.Alphanumeric,
+    };
+}
+
+/// <summary>
+/// The PAIR of collating sequences one SORT/MERGE statement resolves (ISO §14.9.40.4 GR5 / §14.9.24.4 GR5 — the two
+/// are "each separately determined", in this order of precedence: a) the statement's COLLATING SEQUENCE phrase,
+/// alphabet-name-1 for keys of class alphabetic and alphanumeric and alphabet-name-2 for keys of class national;
+/// b) the program collating sequences). Either half is null for the native order of its class, and the two are
+/// independent — a statement may name one, both or neither.
+/// </summary>
+/// <param name="Alphanumeric">The GR5-resolved sequence for keys of class alphabetic and alphanumeric (and for
+/// ordinary group keys, §8.8.4.2.3 SR2).</param>
+/// <param name="National">The GR5-resolved sequence for keys of class national.</param>
+public sealed record SortCollation(AlphabetDef? Alphanumeric, NationalAlphabetDef? National)
+{
+    /// <summary>Both halves native — no carrier is emitted for either.</summary>
+    public static SortCollation Native { get; } = new(null, null);
+}

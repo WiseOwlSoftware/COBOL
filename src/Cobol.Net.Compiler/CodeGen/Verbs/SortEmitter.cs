@@ -36,7 +36,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(so.File);
-        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40; the sequence snapshotted — §14.6.6 r5)");
+        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
 
         // Phase a — release (GR9a). USING/GIVING files must not be open when their phase starts (GR9a/GR9c —
         // EC-SORT-MERGE-FILE-OPEN; EC checking OFF by default, COBOLNET_DESIGN §18.16 — seam in CobolSort).
@@ -47,7 +47,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
             w.Line($"{dispatch.DispatchName}({ip.Start}, {ip.End});   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
 
         // Phase b — sequence (GR9b).
-        w.Line($"{RuntimeApi.SortSort(sd, KeysExpr(so.Keys), WeightsExpr(so.Collating), so.DuplicatesInOrder ? "true" : "false")};");
+        w.Line($"{RuntimeApi.SortSort(sd, KeysExpr(so.Keys), so.DuplicatesInOrder ? "true" : "false")};   // the GR5 sequences are the Init snapshot's (§14.6.6 r5)");
 
         // Phase c — return (GR9c).
         if (so.Giving.Count > 0)
@@ -68,13 +68,13 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(mg.File);
-        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24; the sequence snapshotted — §14.6.6 r5)");
+        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
         foreach (var input in mg.Using)
         {
             w.Line($"{RuntimeApi.SortNextInput(sd)};   // a new pre-sorted USING stream (GR4 — file order breaks ties)");
             EmitInputFile(input, sd, mg.RecordWidth, mg.Varying is not null);
         }
-        w.Line($"{RuntimeApi.SortMerge(sd, KeysExpr(mg.Keys), WeightsExpr(mg.Collating))};");
+        w.Line($"{RuntimeApi.SortMerge(sd, KeysExpr(mg.Keys))};   // the GR5 sequences are the Init snapshot's");
         if (mg.Giving.Count > 0)
             foreach (var output in mg.Giving)
                 EmitGivingFile(output, sd);   // GR12 — each file-name-4 receives the WHOLE merged result
@@ -196,16 +196,24 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         // The element's STORAGE type is final only after the post-bind whole-group analysis (StoreAsImage) —
         // read it now, at emit time, never at bind time.
         string elem = ts.Table.ElementType;
-        string weightsArg = TableWeightsArg(ts.Collating, id);
+        // The GR5 carriers are materialized BEFORE the comparer lambda (a local declared inside it would be
+        // rebuilt on every comparison) and only for the classes this statement's keys actually use. `declared`
+        // is scoped to THIS statement: two keys of one class share the one carrier, and the next statement's
+        // carriers are named off its own `id`, so nothing crosses the boundary.
+        var declared = new HashSet<string>();
+        var weightsArg = ts.Keys
+            .Select(k => TableWeightsArg(ts.Collating, CollatingSelection.Of(k.Key.OperandPic), id, declared))
+            .ToList();
         w.Line($"var __ta{id} = {ts.ArrayPath};   // SORT table (ISO §14.9.40 Format 2 — in place, GR18/GR24)");
         w.Line($"System.Comparison<{elem}> __tc{id} = (__a, __b) =>");
         w.Line("{");
         w.Indent();
         w.Line("int __c;");
-        foreach (var key in ts.Keys)
+        for (int i = 0; i < ts.Keys.Count; i++)
         {
+            var key = ts.Keys[i];
             // GR2: key significance = statement order; GR19a/b: DESCENDING inverts the per-key result.
-            w.Line($"__c = {TableCompare(key, "__a", "__b", weightsArg)};");
+            w.Line($"__c = {TableCompare(key, "__a", "__b", weightsArg[i])};");
             w.Line($"if (__c != 0) return {(key.Descending ? "-__c" : "__c")};");
         }
         w.Line("return 0;   // GR19c — equal on every key; OrderBy stability keeps the pre-sort order (GR3c)");
@@ -218,15 +226,38 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         w.Line($"System.Array.Copy(__ts{id}, __ta{id}, __ts{id}.Length);   // GR24 — placed back in data-name-2");
     }
 
+    /// <summary>The shorter-operand extension a BOOLEAN comparison takes (ISO §8.8.4.2.8 rule 2 — "as though the
+    /// shorter operand were extended on the right by sufficient boolean zeros"), spelled exactly as the
+    /// relation-condition renderer spells it. Never combined with a collating sequence: GR5 names no sequence for
+    /// class boolean, so the two arguments are mutually exclusive by construction.</summary>
+    private const string BooleanPad = ", pad: '0'";
+
     /// <summary>One table-sort key's <c>int</c> comparison expression over element variables <paramref name="a"/>
-    /// and <paramref name="b"/>: numeric keys compare by VALUE (ISO §14.9.40 GR19 → §8.8.4.2.4 — never through a
-    /// collating sequence; an image-stored zoned leaf decodes via its profile), character/group keys compare as
-    /// alphanumeric under the statement's resolved sequence (§8.8.4.2.7).</summary>
+    /// and <paramref name="b"/>, dispatched on the key's CLASS (ISO §14.9.40 GR19 → the relation-condition rules):
+    /// numeric keys compare by VALUE (§8.8.4.2.4 — never through a collating sequence; an image-stored zoned leaf
+    /// decodes via its profile), national keys compare their national character positions under the GR5 national
+    /// sequence (§8.8.4.2.9), boolean keys compare by boolean value with the shorter operand extended by boolean
+    /// ZEROS and no sequence (§8.8.4.2.8), and alphanumeric/ordinary-group keys compare as characters under the GR5
+    /// alphanumeric sequence (§8.8.4.2.7). <paramref name="weightsArg"/> already carries that choice.</summary>
     private static string TableCompare(BoundTableSortKey key, string a, string b, string weightsArg)
     {
         string pa = key.MemberPath.Length == 0 ? a : $"{a}.{key.MemberPath}";
         string pb = key.MemberPath.Length == 0 ? b : $"{b}.{key.MemberPath}";
         DataItem k = key.Key;
+        // ⛔ A GROUP-USAGE GROUP IS AN ELEMENTARY OPERAND (§13.18.29.4 GR1b/GR2b; D20/PB79) AND MUST NOT TAKE THE
+        // AsImage() ARM BELOW (kb/Work PB678, the shape kb/Work PB327 fixed one channel over): a NATIONAL group's
+        // operand value is its m national POSITIONS — the generated AsNat() — never AsImage()'s 2m UTF-16BE bytes;
+        // a BIT group's is its boolean positions — AsBits() — never the packed bytes. Reading those through
+        // AsImage() would compare a national group against the ALPHANUMERIC weights of its byte pairs, which is
+        // exactly the defect this dispatch removes, one category over.
+        if (k.IsAsIfElementary)
+            return k.GroupUsage is GroupUsage.National
+                ? RuntimeApi.StrCompare($"{pa}.AsNat()", $"{pb}.AsNat()", weightsArg)
+                : RuntimeApi.StrCompare($"{pa}.AsBits()", $"{pb}.AsBits()", BooleanPad + weightsArg);
+        // §8.8.4.2.8 — a boolean comparison extends the shorter operand on the RIGHT with boolean zeros, and
+        // takes no collating sequence (weightsArg is empty for the boolean class).
+        if (k.OperandPic is { Category: PicCategory.Boolean })
+            return RuntimeApi.StrCompare(pa, pb, BooleanPad + weightsArg);
         // ⛔ V59 RESIDUE FIX (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. §14.9.40.4 GR8
         // (`cite.py`-verified) makes a key comparison IDENTICAL to a relation condition — key data items are
         // "compared according to the rules for comparison of operands in a relation condition" — and a GROUP
@@ -242,6 +273,8 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         // the standard prescribes — GR8 defers to the relation-condition rules, and those make a GROUP
         // alphanumeric — and it is exactly what the same group compared with IF already does. A program wanting
         // value order names the ELEMENTARY numeric item as the key, which takes the by-value arm below.
+        // (Reaching here the group is an ORDINARY one — the GROUP-USAGE arms above own the national and bit
+        // groups, which are elementary operands of their own class rather than alphanumeric byte images.)
         if (k.IsGroup)
             return k.IsImageCapable
                 ? RuntimeApi.StrCompare($"{pa}.AsImage()", $"{pb}.AsImage()", weightsArg)
@@ -259,28 +292,55 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     }
 
     /// <summary>The runtime key-descriptor array literal for a statement's compile-time key descriptors
-    /// (offset/length windows into the SD record image + the numeric sign decode, ISO §14.9.40.3 SR6e / GR8).</summary>
+    /// (offset/length BYTE windows into the SD record image + the class that selects the comparator and the
+    /// numeric profile that decodes a numeric window, ISO §14.9.40.3 SR6e / GR5 / GR8).</summary>
     private static string KeysExpr(IReadOnlyList<BoundSortMergeKey> keys) =>
         RuntimeApi.SortKeyArray(keys.Select(k =>
-            $"new({k.Offset}, {k.Length}, {(k.Descending ? "true" : "false")}, {(k.Numeric ? "true" : "false")}, "
+            $"new({k.Offset}, {k.Length}, {(k.Descending ? "true" : "false")}, {RuntimeApi.SortKeyClass(k.Class)}, "
             + $"{(k.Item is { } ki ? ki.ProfileName : "default")})"));
 
-    /// <summary>The collation argument for the statement's GR5-resolved collating sequence: <c>null</c> for the
+    /// <summary>The ALPHANUMERIC collation argument for a statement's GR5-resolved sequence: <c>null</c> for the
     /// native order, the compiled <c>__COLLATE</c> carrier when the resolved sequence IS the program collating
     /// sequence, else the statement alphabet's own inline carrier (a non-PCS statement alphabet has no emitted
     /// field — ST108A/ST137A shape).</summary>
-    private string WeightsExpr(AlphabetDef? def) =>
-        def is null ? "null"
+    private string WeightsExpr(SortCollation c) =>
+        c.Alphanumeric is not { } def ? "null"
         : ReferenceEquals(def, ctx.Data.Collating) ? "__COLLATE"
         : CollationEmit.New(def);
 
-    /// <summary>The trailing collation argument for a TABLE sort (emitting a local <c>__sw</c> carrier for a
-    /// non-PCS statement alphabet), or empty for the native order.</summary>
-    private string TableWeightsArg(AlphabetDef? def, int id)
+    /// <summary>Its NATIONAL twin (ISO §14.9.40.4 GR5 — the sequence for keys of class national, determined
+    /// SEPARATELY): <c>__COLLATE_NAT</c> when the resolved sequence IS the program's national collating sequence,
+    /// else the statement alphabet-name-2's own inline carrier, else <c>null</c> for the native national order —
+    /// which on the D-N1/D-N3 substrate IS code-point order.</summary>
+    private string NatWeightsExpr(SortCollation c) =>
+        c.National is not { } def ? "null"
+        : ReferenceEquals(def, ctx.Data.NationalCollating) ? "__COLLATE_NAT"
+        : CollationEmit.New(def);
+
+    /// <summary>The trailing collation argument a TABLE-sort key comparison takes, chosen by the key's CLASS
+    /// (ISO §14.9.40.4 GR5 through the ONE classifier): the alphanumeric carrier for an alphabetic/alphanumeric or
+    /// ordinary group key, the national carrier for a key of class national, and NOTHING for the classes GR5 names
+    /// no sequence for — a numeric key never reaches here and a BOOLEAN key compares by value (§8.8.4.2.8,
+    /// "regardless of their usage"), which is why an alphabet reordering '0' and '1' must not touch it.
+    /// A non-PCS statement alphabet is materialized once per statement into a local carrier.</summary>
+    private string TableWeightsArg(SortCollation c, CollatingClass cls, int id, HashSet<string> declared) => cls switch
+    {
+        CollatingClass.Alphanumeric => CarrierArg(c.Alphanumeric, ctx.Data.Collating, "__COLLATE", $"__sw{id}",
+            "statement COLLATING SEQUENCE (GR5a)", CollationEmit.New, declared),
+        CollatingClass.National => CarrierArg(c.National, ctx.Data.NationalCollating, "__COLLATE_NAT", $"__swn{id}",
+            "statement COLLATING SEQUENCE FOR NATIONAL (GR5a)", CollationEmit.New, declared),
+        _ => "",
+    };
+
+    /// <summary>One trailing carrier argument, emitting the local at most once per statement (two keys of one
+    /// class must not declare <c>__sw{id}</c> twice — CS0128).</summary>
+    private string CarrierArg<T>(T? def, T? programSequence, string programField, string local, string why,
+        Func<T, string> render, HashSet<string> declared) where T : class
     {
         if (def is null) return "";
-        if (ReferenceEquals(def, ctx.Data.Collating)) return ", __COLLATE";
-        ctx.Writer.Line($"CobolCollation __sw{id} = {CollationEmit.New(def)};   // statement COLLATING SEQUENCE (GR5a)");
-        return $", __sw{id}";
+        if (ReferenceEquals(def, programSequence)) return $", {programField}";
+        if (declared.Add(local))
+            ctx.Writer.Line($"CobolCollation {local} = {render(def)};   // {why}");
+        return $", {local}";
     }
 }

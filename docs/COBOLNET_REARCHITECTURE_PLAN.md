@@ -2630,7 +2630,7 @@ result. Run the long legs ONE AT A TIME.
   grammar rule, diagnostic or conformance expectation derived from a FIGURE before 2026-07-19 as suspect.
 - **Open GAPs carried into P14** (each a live COBOLNET0899 staging or a named gap — none is a silent hole):
   PICTURE-EDITING multi-char-literal + floating render · VALUE Format 2 multi-dimension odometer and
-  subordinate-item table VALUE · national-key file collating · `>>SOURCE FORMAT`/free-form not rejected at
+  subordinate-item table VALUE · national-key INDEXED-FILE collating (§12.4.5.7 — `DataBinder.ResolveKeyCollating` stages COBOLNET1584 loud and the key orders natively; the SORT/MERGE half of this GAP closed with kb/Work PB678) · `>>SOURCE FORMAT`/free-form not rejected at
   `--std cobol85` (a VERSION-matrix/VCR gap). ⛔ Do NOT assert that out-of-range table occurrences default to
   spaces/zero — §13.18.63.4 leaves them UNDEFINED.
 - **Known-unenforced syntax rules, scheduled to P14 Step 0b** (the SR census, §11 A2): `OCCURS` on a level
@@ -3001,7 +3001,7 @@ already-derivable coverage; none change the pipeline.
   OPTIONAL formals (0899 `optional-formal`) · the two recursive-WS stages (0899 `recursive-contained-working-
   storage`, `recursive-working-storage-pointer-backed`) · OO class-unit BASED (`OoBasedInClass`) ·
   INITIALIZE-over-pointer-categories · line-seq 06/09/71 + REWRITE + the LINE SEQUENTIAL gate · keyed GR10a FPI
-  + keyed ADVANCING emission · cross-run-unit sharing · SORT national-key carry · multiple-LINE repetition (+
+  + keyed ADVANCING emission · cross-run-unit sharing · ~~SORT national-key carry~~ (DISCHARGED 2026-09-05, kb/Work PB678 — the GR5 sequence pair is resolved and carried, and each key takes the sequence its CLASS names) · multiple-LINE repetition (+
   report-OCCURS family) · narrowed-1509 shapes · signed-leaf strong ordering (0899 `strong-group-ordering-
   signed-leaf`) · 1535 `typedef-renames-staged` · 1531 INDEXED-type-≥2× · MAX/MIN-under-explicit-collating.
 - **P12 residues:** external-float `E` PICTURE (staged 0899) · FUNCTION-POINTER runtime + restricted

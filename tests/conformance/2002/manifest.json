@@ -52,6 +52,7 @@
     "intrinsic_max_collating",
     "allocate_initialized",
     "alphabet_national",
+    "pb678_table_sort_key_class",
     "any_length_contained",
     "any_length_function",
     "apos_class",

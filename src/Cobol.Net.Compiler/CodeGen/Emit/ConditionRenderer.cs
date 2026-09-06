@@ -253,8 +253,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // bind-rejected 0844) and national comparisons order under the NATIONAL sequence (§8.8.4.2.9 —
             // the D-N3 ordinal identity, or __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL; the
             // alphanumeric 256-entry weight table would alias national chars through `& 0xFF`).
-            string collate = anchorCat is PicCategory.Boolean ? ""
-                : anchorCat is PicCategory.National ? ctx.NatCollateArg : ctx.CollateArg;
+            string collate = ctx.CollateArgFor(anchorCat);
             // A boolean anchor right-extends the shorter operand with boolean ZEROS (§8.8.4.2.8) — the same
             // pad the direct-relation and level-88 legs thread; pad and collate never coexist (a boolean
             // anchor forces collate empty). The figurative materializes category-aware (national/boolean
@@ -463,8 +462,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // a NATIONAL one orders under the NATIONAL sequence (§8.8.4.2.9 — the D-N3 ordinal identity, or
             // __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL; never the alphanumeric PCS weights).
             var cat = parent.Pic?.Category;
-            string collate = cat is PicCategory.Boolean ? ""
-                : cat is PicCategory.National ? ctx.NatCollateArg : ctx.CollateArg;
+            string collate = ctx.CollateArgFor(cat);
             string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
             string lo = StringMembershipExpr(low, parent);
             if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";
