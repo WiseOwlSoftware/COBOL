@@ -10,7 +10,7 @@
 #     1. push HEAD to the landing branch `ci/<short-sha>`   (a check run is attached to the COMMIT, not a branch,
 #     2. find the run for that exact sha                     so the verdict earned there is the one the protection
 #     3. `gh run watch <id> --exit-status`                   reads when the same sha reaches main)
-#     4. GREEN  -> `git push origin HEAD:main` (fast-forward only), then delete the ci/ branch
+#     4. GREEN  -> `git push origin <the VERIFIED sha>:main` (fast-forward only), then delete the ci/ branch
 #        RED    -> print the failing jobs and exit non-zero, WITHOUT touching main
 #
 # ⚙ WHY IT EXISTS. PB796: `git push origin HEAD:main` was the LAST step of both lander briefs, so nothing in the
@@ -90,9 +90,9 @@ run_for_sha() {     # prints the newest run id for sha $1 on branch $2, or nothi
      "[.[] | select(.headSha == \"$1\")] | first | .databaseId" 2>/dev/null | grep -E '^[0-9]+$'
 }
 
-report_red() {      # $1 = run id
+report_red() {      # $1 = run id, $2 = what it means for main
   say ""
-  say "⛔ CI IS RED ON $SHORT — main is UNTOUCHED. Failing jobs:"
+  say "⛔ CI IS RED ON $SHORT — ${2:-main is UNTOUCHED}. Failing jobs:"
   gh run view "$1" --json jobs --jq \
     '.jobs[] | select(.conclusion != null and .conclusion != "success" and .conclusion != "skipped")
      | "  JOB  \(.name) = \(.conclusion)", (.steps[]? | select(.conclusion == "failure") | "       step: \(.name)")' \
@@ -107,7 +107,7 @@ if green_ci_gate "$SHA"; then
   say "push-main: $SHORT already carries a green ci-gate check — skipping straight to the main push."
 else
   say "push-main: pushing $SHORT to $BRANCH for verification …"
-  git push --quiet origin "HEAD:refs/heads/$BRANCH" || die "could not push $BRANCH"
+  git push --quiet origin "$SHA:refs/heads/$BRANCH" || die "could not push $BRANCH"
 
   say "push-main: waiting for the run on $SHA (timeout ${TIMEOUT_MIN} min) …"
   for _ in $(seq 1 30); do                       # the run takes ~10–40 s to appear
@@ -149,8 +149,16 @@ else
 fi
 
 # ── 2. Land ──────────────────────────────────────────────────────────────────────────────────────────────────
+# ⛔ THE VERIFIED SHA IS PUSHED BY NAME, NEVER `HEAD:main`. The wait above is ~25–30 min on a full matrix, and
+# the caller is a lander in its own worktree: a commit made in that window would move HEAD, and `HEAD:main` would
+# land it UNVERIFIED on the back of another commit's green run — the precise failure this script exists to make
+# impossible. `$SHA` was captured before the run was requested and is what the check run is attached to.
+if [ "$(git rev-parse HEAD)" != "$SHA" ]; then
+  say "⚠ HEAD moved while CI ran ($SHORT -> $(git rev-parse --short=12 HEAD)). Landing the VERIFIED sha $SHORT;"
+  say "  the newer commit(s) are NOT landed — re-run this script to verify and land them."
+fi
 say "push-main: ci-gate is green on $SHORT — fast-forwarding main …"
-if ! git push origin "HEAD:main"; then
+if ! git push origin "$SHA:main"; then
   say "⛔ the push to main was REFUSED. Either origin/main moved (rebase and re-run) or the protection"
   say "   did not see the ci-gate check. main is unchanged."
   exit 1
@@ -180,7 +188,7 @@ gh run watch "$MAIN_RUN" --exit-status --interval 15 >/dev/null 2>&1
 MAIN_CONCLUSION="$(gh run view "$MAIN_RUN" --json conclusion --jq .conclusion 2>/dev/null)"
 say "push-main: main run $MAIN_RUN = ${MAIN_CONCLUSION:-unknown}"
 if [ "$MAIN_CONCLUSION" != "success" ]; then
-  report_red "$MAIN_RUN"
+  report_red "$MAIN_RUN" "AND IT IS ALREADY ON MAIN"
   say "  ⛔ THE COMMIT IS ON MAIN AND ITS MAIN-BRANCH RUN IS NOT GREEN — report this as a BLOCKING finding."
   exit 1
 fi
