@@ -35,6 +35,15 @@ RC=0
 python scripts/spec/audit_code_citations.py --check || { echo "=== CITATIONS: RED (see above) ==="; RC=1; }
 python scripts/spec/audit_doc_citations.py --check || { echo "=== DOC CITATIONS: RED (see above) ==="; RC=1; }
 python scripts/spec/audit_evidence_supersession.py --check || { echo "=== EVIDENCE SUPERSESSION: RED (see above) ==="; RC=1; }
+# The GPL GnuCOBOL corpus is git-ignored and PER WORKTREE (scripts/fetch-gnucobol-tests.ps1): a fresh worktree has
+# none, and ExternalCorpusPopulationDriftTests in the UNFILTERED unit leg is RED BY DESIGN when it is absent
+# (kb/Work PB209). Fetch it here so every worktree's gate measures the population; a failed fetch stays LOUD
+# through that test — this only names the cause. (Same block as build-local.ps1.)
+if [ ! -d tests/external/gnucobol/tests/testsuite.src ]; then
+    echo "=== EXTERNAL CORPUS: absent in this worktree — fetching (GPL, git-ignored, never committed) ==="
+    pwsh -NoProfile -File scripts/fetch-gnucobol-tests.ps1 || true
+    [ -d tests/external/gnucobol/tests/testsuite.src ] || echo "=== EXTERNAL CORPUS: FETCH FAILED — the two ExternalCorpusPopulationDriftTests reds in the unit leg are ENVIRONMENTAL, not a defect of the change under test ==="
+fi
 dotnet build CobolSharp.sln -v quiet || { echo "=== WAVE-LOCAL GATE: BUILD FAILED ==="; exit 1; }
 # ⛔ EVERY TERM OF THE FILTER MUST NAME A REAL TEST (kb/Work PB708) — the NO-VERDICT-LINE check on each
 # leg is WHOLE-filter: it fires only when EVERY term is dead, so one dead term OR'd among live ones selects

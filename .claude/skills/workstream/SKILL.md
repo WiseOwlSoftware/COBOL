@@ -130,6 +130,10 @@ the work, not to wait. Stage the earliest-stage, largest jobs behind the near-do
   agents are writing files … Lost all 7 completed agents' work"). Commit WIP on your own worktree branch — that is
   what the checkpoint protocol is for — and to compare against a clean tree add a detached worktree
   (`git worktree add --detach <path> <sha>`), never stash/build/probe/pop.
+- The GPL GnuCOBOL corpus (`tests/external/gnucobol`) is git-ignored and **per worktree**. `build-local.{ps1,sh}` fetches it
+  when absent (train 23), so a fresh implementer or lander worktree measures the population from its first gate;
+  `ExternalCorpusPopulationDriftTests` is RED BY DESIGN without it (`kb/Work/PB209`), and a `FETCH FAILED` line makes that
+  red environmental — name it, never attribute it to a cluster. Three trains re-attributed the same pair by hand.
 - Read-only fleets probe a **pinned worktree with its own built compiler** (`git worktree add --detach <path> <sha>`,
   build there once) so no landing swaps a binary under them.
 - One comprehensive battery per landing batch, run by the orchestrator when no fleet is live — ⭐ **in a WORKTREE cut

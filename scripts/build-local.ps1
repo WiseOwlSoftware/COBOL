@@ -27,6 +27,18 @@ python scripts/spec/audit_doc_citations.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== DOC CITATIONS: RED (see above) ==='; $rc = 1 }
 python scripts/spec/audit_evidence_supersession.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== EVIDENCE SUPERSESSION: RED (see above) ==='; $rc = 1 }
+# The GPL GnuCOBOL corpus is git-ignored and PER WORKTREE (scripts/fetch-gnucobol-tests.ps1): a fresh worktree has
+# none, and ExternalCorpusPopulationDriftTests in the UNFILTERED unit leg is RED BY DESIGN when it is absent
+# (kb/Work PB209 — a missing population is not an empty one). Fetch it here so the gate measures the population in
+# every worktree, not only where someone remembered to; three landing trains re-attributed that pair by hand before
+# train 23 made it automatic. A failed fetch stays LOUD through that test — this only names the cause.
+if (-not (Test-Path 'tests/external/gnucobol/tests/testsuite.src')) {
+    Write-Host '=== EXTERNAL CORPUS: absent in this worktree — fetching (GPL, git-ignored, never committed) ==='
+    pwsh -NoProfile -File scripts/fetch-gnucobol-tests.ps1
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path 'tests/external/gnucobol/tests/testsuite.src')) {
+        Write-Host '=== EXTERNAL CORPUS: FETCH FAILED — the two ExternalCorpusPopulationDriftTests reds in the unit leg are ENVIRONMENTAL, not a defect of the change under test ==='
+    }
+}
 dotnet build CobolSharp.sln -v quiet
 if ($LASTEXITCODE -ne 0) { Write-Host '=== WAVE-LOCAL GATE: BUILD FAILED ==='; exit 1 }
 # ⛔ EVERY TERM OF THE FILTER MUST NAME A REAL TEST (kb/Work PB708) — the NO-VERDICT-LINE check on each
