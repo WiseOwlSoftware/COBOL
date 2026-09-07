@@ -609,6 +609,23 @@ public abstract class FileConnector
     /// re-derived per read.</summary>
     public bool NationalRecordArea { get; internal set; }
 
+    /// <summary>⛔ THE FILE'S §13.18.13 CODE-SET CONVERSION, or null for the native character set — §13.18.13.4
+    /// GR7, "<i>If the CODE-SET clause is not specified, the native character set is assumed for data on the
+    /// external media</i>". Set by the emitter right after registration for exactly the files whose CODE-SET
+    /// clause names a coded character set whose correspondence with the native one is not the identity (the
+    /// <see cref="NationalRecordArea"/> pattern). GR2 makes it a property established at OPEN and constant for
+    /// the connector, so it is declared once rather than re-derived per record.</summary>
+    public CodeSetConversion? CodeSet { get; internal set; }
+
+    /// <summary>⛔ GR6 a — the NATIVE form of a record image just taken off the storage medium. Every physical
+    /// read of record data passes through here; see <see cref="CodeSetConversion"/> for why the framing around
+    /// the record does not.</summary>
+    protected string FromMedium(string mediumImage) => CodeSet is null ? mediumImage : CodeSet.ToNative(mediumImage);
+
+    /// <summary>⛔ GR6 b — the STORAGE-MEDIUM form of a record image about to be written. Every physical write of
+    /// record data passes through here.</summary>
+    protected string ToMedium(string nativeImage) => CodeSet is null ? nativeImage : CodeSet.ToMedium(nativeImage);
+
     /// <summary>Pad (right) or truncate <paramref name="s"/> to exactly <paramref name="width"/> characters —
     /// the ALPHANUMERIC fill (§14.9.30.4 GR15: "a trailing space is defined to be the alphanumeric space
     /// character"). One char is one byte on this channel.</summary>

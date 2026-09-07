@@ -686,11 +686,11 @@ public sealed class SequentialConnector : FileConnector
             int len = length >= 0 ? length : image.Length;
             if (len < VaryMin || len > VaryMax)
                 return Status = FileStatusCode.RecordSizeViolation;   // '44' §13.18.43 GR14a
-            if (_lineSequential) _writer.WriteLine(TrimRecordEnd(FitRecord(image, len)));
-            else { RecordFraming.WritePrefix(_writer, len); _writer.Write(FitRecord(image, len)); }
+            if (_lineSequential) EmitRecordLine(TrimRecordEnd(FitRecord(image, len)));
+            else { RecordFraming.WritePrefix(_writer, len); EmitRecord(FitRecord(image, len)); }
         }
-        else if (_lineSequential) _writer.WriteLine(TrimRecordEnd(image));
-        else _writer.Write(Fit(image));
+        else if (_lineSequential) EmitRecordLine(TrimRecordEnd(image));
+        else EmitRecord(Fit(image));
         ReleaseRecord();   // §14.9.51.4 GR12 — released to the operating environment, and numbered there
         _afterAdvancing = false;
         // GR7c3 (§13.18.34): a plain WRITE to a LINAGE file advances the counter by one. Only the
@@ -713,8 +713,8 @@ public sealed class SequentialConnector : FileConnector
         if (RecordAreaOutsideLineCharacterSet(image)) return Status = FileStatusCode.LineRecordInvalidChar;
         _afterAdvancing = true;
         string text = PrintSafe(TrimRecordEnd(image));
-        if (before) { _writer.Write(text); Advance(lines); }
-        else { Advance(lines); _writer.Write(text); }
+        if (before) { EmitRecord(text); Advance(lines); }
+        else { Advance(lines); EmitRecord(text); }
         // §14.9.51.4 GR12 — "The successful execution of a WRITE statement releases a logical record to the
         // operating environment" — is an ALL FILES rule, so a print-control WRITE releases an ordinal-identified
         // record exactly as the plain one does, and GR11's WITH LOCK needs that identity. Released HERE and not
@@ -749,6 +749,17 @@ public sealed class SequentialConnector : FileConnector
     // equal to that value" — one advance, whose PLACEMENT GR25 e)/f) decide. The combined COBOL-2023 form is
     // therefore `WriteAdvancing(…, before: true, …)`, and the end-of-page condition the second
     // `AdvanceLinageCounter` call used to erase (PB686's observation) cannot arise: there is one call.
+    /// <summary>⛔ THE WRITE-SIDE MEDIUM BOUNDARY — record DATA reaches this connector's writer through here
+    /// and through <see cref="EmitRecordLine"/>, and through nothing else, so ISO §13.18.13.4 GR6 b's CODE-SET
+    /// conversion is applied exactly once per written record however the WRITE was spelled (plain, VARYING,
+    /// line sequential, print-control advancing, REWRITE). Everything else this connector writes — the
+    /// §9.1.7.2 length prefix, the line delimiter, an ADVANCING newline or form feed — is FRAMING, not data of
+    /// the record, and stays in the native encoding (see <see cref="CodeSetConversion"/>).</summary>
+    private void EmitRecord(string data) => _writer!.Write(ToMedium(data));
+
+    /// <summary>— and the line sequential twin: the record's data converted, its delimiter native.</summary>
+    private void EmitRecordLine(string data) => _writer!.WriteLine(ToMedium(data));
+
     private void Advance(int lines)
     {
         if (lines < 0) { _writer!.Write('\f'); return; }   // ADVANCING PAGE
@@ -885,7 +896,12 @@ public sealed class SequentialConnector : FileConnector
     /// <para>⛔ AND IT IS THEREFORE THE ONE PLACE THE READ-AHEAD IS CHECKED AGAINST THE MEDIUM. Being the only
     /// walk is what makes <see cref="EnsureReaderCoherent"/> a property of this connector rather than a
     /// courtesy at a call site: every character this connector ever reads is read below this line (kb/Work
-    /// PB753; <c>SharedReadCoherenceDriftTests</c> proves the "only" rather than asserting it).</para></summary>
+    /// PB753; <c>SharedReadCoherenceDriftTests</c> proves the "only" rather than asserting it).</para>
+    /// <para>⛔ AND IT IS THEREFORE THE ONE PLACE §13.18.13.4 GR6 a's CODE-SET conversion happens on the read
+    /// side: the frame comes off the medium in the file's coded character set and leaves this method in the
+    /// NATIVE one, so every rule above it — the record-area fill, the line sequential character-set test, START's
+    /// key scan — reads native characters, which is what those rules are written about (kb/Work PB793).</para>
+    /// </summary>
     private string? NextFrame(out long frameStart)
     {
         EnsureReaderCoherent();   // kb/Work PB753 — a sibling's release since the buffer was filled
@@ -898,7 +914,7 @@ public sealed class SequentialConnector : FileConnector
             _lineByteOffset += line.Length + delimBytes;          // Latin1: chars == bytes (past data + delimiter)
             _lastLineBytes = Math.Min(line.Length, RecordWidth);  // data length of the record being replaced
             _lastReadLinePartial = line.Length > RecordWidth;     // an over-length read transfers only part (GR17a)
-            return line;
+            return FromMedium(line);
         }
         // The block start is the LOGICAL offset (characters consumed so far — 1:1 with bytes under Latin1),
         // never BaseStream.Position: the StreamReader buffers ahead, so the base position is the buffer-fill
@@ -914,14 +930,14 @@ public sealed class SequentialConnector : FileConnector
             int vn = FillChars(vbuf, len);
             _lastReadBlockStart = _reader!.BaseStream.CanSeek ? _readOffset + 4 : -1;
             _readOffset += 4 + vn;
-            return new string(vbuf, 0, vn);
+            return FromMedium(new string(vbuf, 0, vn));
         }
         var buf = new char[RecordWidth];
         int n = FillChars(buf, RecordWidth);
         if (n == 0) return null;
         _lastReadBlockStart = _reader!.BaseStream.CanSeek ? _readOffset : -1;
         _readOffset += n;
-        return new string(buf, 0, n);
+        return FromMedium(new string(buf, 0, n));
     }
 
     /// <summary>Fill exactly <paramref name="count"/> characters (or to end-of-stream): StreamReader.Read may
@@ -1022,7 +1038,10 @@ public sealed class SequentialConnector : FileConnector
     {
         long resume = stream.Position;
         stream.Seek(anchor, SeekOrigin.Begin);
-        byte[] bytes = Encoding.Latin1.GetBytes(content);
+        // ⛔ The REWRITE arm's §13.18.13.4 GR6 b boundary, for the same reason EmitRecord is the WRITE arm's:
+        // `content` is the record's data in the NATIVE character set, and what goes on the medium is the file's
+        // coded character set. Being the ONE in-place overwrite makes this the one place either arm converts.
+        byte[] bytes = Encoding.Latin1.GetBytes(ToMedium(content));
         stream.Write(bytes, 0, bytes.Length);
         stream.Flush();                 // §14.9.35.4 GR4 — released to the operating environment
         stream.Seek(resume, SeekOrigin.Begin);

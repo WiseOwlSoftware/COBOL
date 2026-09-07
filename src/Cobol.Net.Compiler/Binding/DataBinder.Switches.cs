@@ -40,9 +40,11 @@ public sealed partial class DataBinder
     public Dictionary<string, string> UserClasses { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>ALPHANUMERIC alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7): the
-    /// built collating table of a literal phrase, the LOCALE arm of an <c>IS LOCALE</c> phrase, or the identity
+    /// built collating table of a literal phrase, the LOCALE arm of an <c>IS LOCALE</c> phrase, the identity
     /// (<see cref="AlphabetDef.Native"/>) for NATIVE/STANDARD-1/STANDARD-2 (ISO/IEC 646 order IS the Latin-1 native
-    /// order — no table). An <c>ALPHABET … FOR NATIONAL</c> clause registers in <see cref="NationalAlphabets"/>
+    /// order — no table), or an implementor code-name's row (§12.3.7.3 SR15 / §12.3.7.4 GR7 i —
+    /// <see cref="ImplementorCodeNames"/>: ASCII, identity like STANDARD-1; EBCDIC, whose 256-entry table the row
+    /// carries). An <c>ALPHABET … FOR NATIONAL</c> clause registers in <see cref="NationalAlphabets"/>
     /// instead — the two classes are disjoint reference domains (§12.3.6 SR1/SR2, §14.9.40 GR5).</summary>
     public Dictionary<string, AlphabetDef> Alphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
 
@@ -916,38 +918,66 @@ public sealed partial class DataBinder
         }
 
         // A bare word that is not NATIVE / STANDARD-1 / STANDARD-2 / LOCALE and is not a figurative constant is
-        // code-name-1 (§12.3.7.2 general format), and this implementation supports none (§12.3.7.3 SR15) — the ONE
-        // check, shared with the national arm through AlphabetCodeNameRefused.
-        if (AlphabetCodeNameRefused(name, def, national: false)) return;
+        // code-name-1 (§12.3.7.2 general format), resolved against the implementor code-name table (§12.3.7.3
+        // SR15) — the ONE lookup, shared with the national arm through AlphabetCodeName. A supported name carries
+        // its collating sequence in the row's Table (null = the native order, GR7 i's positions being the native
+        // ones) and its coded character set through the row itself (§12.3.7.4 GR7 i, Table 6's two Y columns).
+        switch (AlphabetCodeName(name, def, national: false, out var codeName))
+        {
+            case CodeNameOutcome.Refused: return;
+            case CodeNameOutcome.Bound:
+                Alphabets.TryAdd(name, new AlphabetDef(codeName!.Table, null, codeName.Name, codeName));
+                return;
+        }
 
         if (AlphabetLiteralPhrase(name, def, national: false) is { } table)
             Alphabets.TryAdd(name, new AlphabetDef(table, null, "literal-phrase"));
     }
 
-    /// <summary>⛔ THE ONE §12.3.7.3 SR15 check, for code-name-1 (alphanumeric) and code-name-2 (national) alike:
-    /// "<i>The implementor shall specify the names supported for code-name-1 and code-name-2 in the ALPHABET clause,
-    /// if any.</i>" This implementation supports NONE — the words that may stand alone in an alphabet definition are
-    /// the general format's own keywords (NATIVE, STANDARD-1, STANDARD-2, UCS-4, UTF-8, UTF-16, LOCALE), which the
-    /// callers have already consumed, and the figurative constants of a one-operand literal phrase (§12.3.7.4 GR10).
-    /// <para>⛔ Anything else was silently REINTERPRETED as the characters of its own spelling until kb/Work PB770:
-    /// <c>ALPHABET A-ASC IS ASCII</c> built an alphabet whose first four positions were A, S, C, I, and every
-    /// downstream reference (PROGRAM COLLATING SEQUENCE, SORT, SYMBOLIC CHARACTERS … IN) read that. A bare word is
-    /// not a literal at all (SR14 b2/c2 require an alphanumeric / national literal), so the literal-phrase reading
-    /// is not even available to fall back on.</para>
+    /// <summary>What a bare-word alphabet definition turned out to be once <see cref="AlphabetCodeName"/> asked
+    /// the implementor code-name table about it (ISO §12.3.7.3 SR15).</summary>
+    private enum CodeNameOutcome
+    {
+        /// <summary>The definition is not the one-bare-word shape code-name-1/-2 has — the caller continues to
+        /// the literal-phrase reading.</summary>
+        NotACodeName,
+
+        /// <summary>A supported code-name; <c>row</c> carries its set and sequence.</summary>
+        Bound,
+
+        /// <summary>A bare word that is no supported code-name — refused, and the caller binds nothing.</summary>
+        Refused,
+    }
+
+    /// <summary>⛔ THE ONE §12.3.7.3 SR15 RESOLUTION, for code-name-1 (alphanumeric) and code-name-2 (national)
+    /// alike: "<i>The implementor shall specify the names supported for code-name-1 and code-name-2 in the ALPHABET
+    /// clause, if any.</i>" The supported set is <see cref="ImplementorCodeNames"/> — a TABLE, so this method is a
+    /// LOOKUP with a refusal on miss and the next supported code-name is a row there, never an arm here
+    /// (owner decision, kb/Work PB793; CLAUDE.md rule 5). The words that may stand alone in an alphabet definition
+    /// besides a code-name are the general format's own keywords (NATIVE, STANDARD-1, STANDARD-2, UCS-4, UTF-8,
+    /// UTF-16, LOCALE), which the callers have already consumed, and the figurative constants of a one-operand
+    /// literal phrase (§12.3.7.4 GR10).
+    /// <para>⛔ An UNSUPPORTED word was silently REINTERPRETED as the characters of its own spelling until
+    /// kb/Work PB770: <c>ALPHABET A-ASC IS ASCII</c> built an alphabet whose first four positions were A, S, C, I,
+    /// and every downstream reference (PROGRAM COLLATING SEQUENCE, SORT, SYMBOLIC CHARACTERS … IN) read that. A
+    /// bare word is not a literal at all (SR14 b2/c2 require an alphanumeric / national literal), so the
+    /// literal-phrase reading is not even available to fall back on.</para>
     /// <para>The check is deliberately narrow: it fires only on a definition that is ONE bare word, which is the
     /// only shape code-name-1/-2 has in the general format. A word inside a multi-operand phrase is a figurative
     /// constant or an SR14 b2/c2 violation, and <see cref="AlphabetOperands"/> owns that.</para></summary>
-    /// <returns>True when the clause was refused and the caller shall bind nothing.</returns>
-    private bool AlphabetCodeNameRefused(string name, Core.AlphabetDefinitionContext def, bool national)
+    private CodeNameOutcome AlphabetCodeName(string name, Core.AlphabetDefinitionContext def, bool national,
+        out ImplementorCodeName? row)
     {
+        row = null;
         if (def.alphabetEntry() is not [{ ChildCount: 1 } only] || only.GetChild(0) is not Core.CobolWordContext cw
             || IsAlphabetFigurativeWord(cw.GetText()))
-            return false;
+            return CodeNameOutcome.NotACodeName;
+        if (ImplementorCodeNames.Find(cw.GetText(), national) is { } hit) { row = hit; return CodeNameOutcome.Bound; }
         Edition.Error(DiagnosticCatalog.AlphabetCodeNameUnsupported, $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} "
-            + $"IS {cw.GetText()}: not a supported code-name — this implementation defines no "
-            + $"{(national ? "code-name-2" : "code-name-1")} names (ISO §12.3.7.3 SR15; the "
-            + $"{(national ? "national coded character sets are NATIVE, UCS-4, UTF-8, and UTF-16" : "alphanumeric coded character sets are NATIVE, STANDARD-1, and STANDARD-2")})");
-        return true;
+            + $"IS {cw.GetText()}: not a supported code-name — the {(national ? "code-name-2" : "code-name-1")} "
+            + $"names this implementation supports are: {ImplementorCodeNames.Spellings(national)} "
+            + $"(ISO §12.3.7.3 SR15; the {(national ? "national coded character set keywords are NATIVE, UCS-4, UTF-8, and UTF-16" : "alphanumeric coded character set keywords are NATIVE, STANDARD-1, and STANDARD-2")})");
+        return CodeNameOutcome.Refused;
     }
 
     /// <summary>The figurative constants a literal phrase may name (ISO §12.3.7.4 GR10 — "<i>When specified as
@@ -1047,37 +1077,10 @@ public sealed partial class DataBinder
         }
         if (specOrder.Count == 0) return null;      // nothing was specified — the operand diagnostics stand alone
 
-        // The sparse arrays, sorted by code (the runtime's lookup key).
-        var codes = pos.Keys.Order().ToArray();
-        var positions = new ushort[codes.Length];
-        for (int i = 0; i < codes.Length; i++) positions[i] = pos[codes[i]];
-
-        var (high, low) = AlphabetExtremes(pos, specOrder, positions, next, national);
-        return new CollatingTable(codes.Select(c => (ushort)c).ToArray(), positions,
-            repByPos.Select(c => (ushort)c).ToArray(), next, high, low);
-    }
-
-    /// <summary>The §12.3.7.4 GR8/GR9 extremes of a literal-phrase sequence — the characters at the HIGHEST and
-    /// LOWEST positions, a tie going to the LAST (GR8) / FIRST (GR9) character specified.
-    /// <para>The LOW end is common to both classes: position 0 belongs to the first character specified, and a
-    /// position-0 ALSO tie resolves to that same character.</para>
-    /// <para>The HIGH end differs, and the difference is a DOCUMENTED PIN, not an asymmetry of the rule. Unspecified
-    /// characters sit above every specified one (GR7 k3), so GR8's character is the largest UNSPECIFIED code unit —
-    /// U+FFFF for the national arm. The ALPHANUMERIC arm deliberately keeps computing it over the Latin-1 block
-    /// (U+00FF unless specified): the flagged §8.3.3.6 byte-stability divergence recorded in
-    /// PHASE4_RECONCILIATION, which HIGH-VALUE's single-byte alphanumeric width depends on.</para></summary>
-    private static (char High, char Low) AlphabetExtremes(Dictionary<char, ushort> pos, List<char> specOrder,
-        ushort[] positions, ushort next, bool national)
-    {
-        char low = specOrder[0];
-        char high = national ? (char)0xFFFF : (char)0xFF;
-        while (pos.ContainsKey(high) && high > (char)0) high--;
-        if (pos.ContainsKey(high))               // the whole block is specified — GR8's tie rule over it
-        {
-            ushort maxPos = positions.Max();
-            foreach (char c in specOrder) if (pos[c] == maxPos) high = c;      // tie → LAST specified (GR8)
-        }
-        return (high, low);
+        // The sparse arrays and the §12.3.7.4 GR8/GR9 extremes — CollatingTable.Build, the ONE place either is
+        // computed, shared with the implementor code-name arm (GR7 i/j) which walks a code page instead of a
+        // clause. This method used to carry its own copy of the extremes rule (kb/Work PB793).
+        return CollatingTable.Build(pos, specOrder, repByPos, next, national);
     }
 
     /// <summary>A character named in a diagnostic: its literal form when it is printable, else its U+ code point.</summary>
@@ -1146,9 +1149,18 @@ public sealed partial class DataBinder
             return;
         }
         // A single non-figurative bare word that is not a coded-set name is code-name-2 (§12.3.7.3 SR15 —
-        // implementor-defined; none are supported). Figurative words are literal-phrase operands (GR10). ONE check,
-        // shared with the alphanumeric arm since kb/Work PB770 — that arm had no SR15 check at all.
-        if (AlphabetCodeNameRefused(name, def, national: true)) return;
+        // implementor-defined). Figurative words are literal-phrase operands (GR10). ONE lookup, shared with the
+        // alphanumeric arm since kb/Work PB770 — that arm had no SR15 check at all. ⚠ The table holds no
+        // code-name-2 row today (kb/Work PB793 decided the ALPHANUMERIC spellings only), so this arm always
+        // refuses; it is a LOOKUP and not a refusal so that a national row would bind with no code change.
+        switch (AlphabetCodeName(name, def, national: true, out var codeName))
+        {
+            case CodeNameOutcome.Refused: return;
+            case CodeNameOutcome.Bound:
+                NationalAlphabets.TryAdd(name, new NationalAlphabetDef(codeName!.Table, null,
+                    HasCollatingSequence: true, codeName.Name, codeName));
+                return;
+        }
         if (AlphabetLiteralPhrase(name, def, national: true) is { } table)
             NationalAlphabets.TryAdd(name, new NationalAlphabetDef(table, HasCollatingSequence: true, "literal-phrase"));
     }
@@ -1228,8 +1240,8 @@ public sealed partial class DataBinder
                     break;
                 case Core.CobolWordContext w:
                     // GR10: the NATIVE extremes/values of the clause's class. ⛔ There is NO `_ => t` fallback any
-                    // more: an unrecognized word is code-name-1/-2, which AlphabetCodeNameRefused has already
-                    // refused for the only shape it can legally take, and inside a multi-operand phrase it is an
+                    // more: an unrecognized word is code-name-1/-2, which AlphabetCodeName has already resolved
+                    // or refused for the only shape it can legally take, and inside a multi-operand phrase it is an
                     // SR14 b2/c2 violation — never the characters of its own spelling (kb/Work PB770 leg e).
                     if (AlphabetFigurative(w.GetText(), national) is { } wordValue) result.Add(wordValue);
                     else Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: {w.GetText()} is not a "

@@ -204,6 +204,10 @@ public static class CobolFile
     /// the national space character; kb/Work PB327).</summary>
     public static void RegisterNationalArea(string name) => _reg.RegisterNationalArea(name);
 
+    /// <summary>Register the file's §13.18.13 CODE-SET conversion — see
+    /// <see cref="FileRegistry.RegisterCodeSet"/>.</summary>
+    public static void RegisterCodeSet(string name, char[] toNative) => _reg.RegisterCodeSet(name, toNative);
+
     /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (§12.4.5.15/§12.4.5.9). A null
     /// <paramref name="sharing"/> is the UNDETERMINED implementor default — a LOCK MODE clause is not a sharing
     /// specification (§9.1.15) — see <see cref="FileRegistry.ImplementorDefaultSharing"/> (kb/Work PB321/PB322).</summary>

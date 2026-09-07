@@ -1,0 +1,15 @@
+SYMB=[0A]
+ORD-A=194
+ORD-0=241
+ORD-a=130
+CHAR241=[0]
+a-LT-A=Y
+A-LT-0=Y
+S1 NATIVE
+  d0
+  uA
+  la
+S2 EBCDIC
+  la
+  uA
+  d0

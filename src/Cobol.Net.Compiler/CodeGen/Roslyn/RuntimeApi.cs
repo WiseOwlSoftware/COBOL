@@ -764,6 +764,15 @@ internal static class RuntimeApi
     public static string FileRegisterNationalArea(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterNationalArea)}({name})";
 
+    /// <summary>Declare the connector's §13.18.13 CODE-SET conversion — <c>CobolFile.RegisterCodeSet</c>,
+    /// emitted right after the registration (the <see cref="FileRegisterNationalArea"/> pattern) for exactly the
+    /// files whose CODE-SET clause names a coded character set whose correspondence with the native one is NOT
+    /// the identity. <paramref name="toNative"/> is the §12.3.7.4 GR7 i correspondence rendered as a char[]
+    /// literal: the whole table is a COMPILE-TIME artifact of the named alphabet, exactly as a collating
+    /// sequence's weights are, so the runtime holds no code page (kb/Work PB793).</summary>
+    public static string FileRegisterCodeSet(string name, string toNative) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterCodeSet)}({name}, {toNative})";
+
     /// <summary>The SELECT-spelled file-name (ISO §15.28.4 r1c/r2b — kb/Work PB63) as the registration's trailing
     /// named argument; empty when the caller has none.</summary>
     private static string SelectNameArg(string? selectName) => selectName is null ? "" : $", selectName: {selectName}";

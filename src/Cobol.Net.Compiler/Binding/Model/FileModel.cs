@@ -192,6 +192,14 @@ public sealed class FileModel
     /// each null = native ordinal.</summary>
     public List<AlphabetDef?> AlternateKeyCollations { get; } = [];
 
+    /// <summary>The FD CODE-SET clause's resolved §13.18.13.4 GR6 correspondence — the NATIVE character each
+    /// medium code unit of the named coded character set represents — or null when the file's medium is the
+    /// native character set (no CODE-SET clause, GR7; or a clause naming a set whose correspondence IS the
+    /// identity, which needs no conversion). The emitter renders it as the connector's <c>RegisterCodeSet</c>
+    /// argument; it is a COMPILE-TIME artifact of the alphabet, exactly as <see cref="PrimeKeyCollation"/>'s
+    /// weights are (kb/Work PB793).</summary>
+    public char[]? CodeSetCorrespondence { get; set; }
+
     /// <summary>The RELATIVE KEY data-name as written (ISO §12.4.5.13), resolved post-build; the item lives OUTSIDE
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>
     public string? RelativeKeyName { get; set; }

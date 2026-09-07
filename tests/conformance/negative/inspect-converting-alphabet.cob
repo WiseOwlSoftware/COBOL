@@ -5,10 +5,11 @@
       *> differential's run_misc:1759 exercises exactly this; the flip to WE_REJECT is the
       *> adjudicated divergence.
       *>
-      *> The two alphabets name ISO general-format keywords, not the vendor code-names ASCII / EBCDIC this
-      *> case used to declare: 12.3.7.3 SR15 leaves code-name-1 to the implementor and this one supports
-      *> none, so those spellings are now COBOLNET1907 (kb/Work PB770) and would have masked the rule this
-      *> golden exists to pin.
+      *> The two alphabets name ISO general-format keywords, not the code-names ASCII / EBCDIC this case used
+      *> to declare. Those two ARE supported code-name-1 spellings now (12.3.7.3 SR15 leaves the set to the
+      *> implementor; owner decision kb/Work PB793 put both in it), but they are kept out of this golden on
+      *> purpose: the rule being pinned is that an alphabet-name is not a CONVERTING operand AT ALL, and it
+      *> has to hold for every alphabet, so the case names the two the standard itself spells.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. R38NEG.
        ENVIRONMENT DIVISION.

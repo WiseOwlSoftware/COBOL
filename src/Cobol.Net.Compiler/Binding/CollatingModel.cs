@@ -17,7 +17,14 @@ namespace CobolNet.Binding;
 /// <c>ALPHABET A IS 305 THRU 300</c> — legal source naming U+012B..U+0130 — silently reversed <c>'+'</c>…
 /// <c>'0'</c> instead. The table width IS the repertoire; the check was never the thing that was wrong.</para>
 /// <para>Built once per alphabet by the SPECIAL-NAMES binder; an identity sequence (NATIVE / STANDARD-1 /
-/// STANDARD-2 / UCS-4) normalizes to "no table" at the PCS resolution so the native fast path costs nothing.</para>
+/// STANDARD-2 / UCS-4 / the ASCII code-name) normalizes to "no table" at the PCS resolution so the native fast
+/// path costs nothing.</para>
+/// <para>⛔ AND IT IS NOT ONLY THE LITERAL PHRASE'S SHAPE. An implementor code-name (§12.3.7.4 GR7 i/j —
+/// <c>ImplementorCodeNames</c>) uses the SAME record and the same <see cref="Build"/>: the EBCDIC row tabulates
+/// the 256 native characters its code page spells at the positions the page gives them, and every native
+/// character the page does NOT spell takes GR7 k3's tail position, which this implementation adopts as its GR7 i
+/// specification. That is why the sparse shape earns its keep — a dense table would have been 65 536 wide for a
+/// 256-character code (kb/Work PB793).</para>
 /// </summary>
 /// <param name="Codes">The specified characters, sorted ASCENDING BY CODE (the runtime's lookup key).</param>
 /// <param name="Positions">Parallel to <paramref name="Codes"/>: each specified character's 0-based collating
@@ -44,6 +51,57 @@ public sealed record CollatingTable(ushort[] Codes, ushort[] Positions, ushort[]
     /// code units) — §12.3.7.3 SR14 b1/c1's ordinal bound, SR14 b4/c4's count bound, and GR7 k3's tail size.
     /// The runtime twin is <c>CobolNet.Runtime.LiteralPhraseCollation.Repertoire</c>.</summary>
     public const int Repertoire = 0x10000;
+
+    /// <summary>⛔ THE ONE builder of a sparse table from a finished position assignment — the array shaping and
+    /// the §12.3.7.4 GR8/GR9 extremes written down ONCE, for the literal-phrase arm (GR7 k, the SPECIAL-NAMES
+    /// binder walking the clause's operands) and the implementor code-name arm (GR7 i/j,
+    /// <c>ImplementorCodeNames</c> walking a code page) alike. Neither caller re-derives HIGH-VALUE or
+    /// LOW-VALUE.</summary>
+    /// <param name="pos">Every SPECIFIED character and its 0-based collating position.</param>
+    /// <param name="specOrder">The specified characters in the order the definition gives them — GR8's "<i>the
+    /// last character specified</i>" and GR9's "<i>the first character specified</i>" tie rules read this.</param>
+    /// <param name="repByPos">Per position 0…<paramref name="nextFree"/>−1, the FIRST character DEFINED there
+    /// (§12.3.7.4 GR7 k6 / §15.15.4 r2 — an ALSO group's literal-1).</param>
+    /// <param name="nextFree">The first position after the specified block.</param>
+    /// <param name="national">Which native repertoire the unspecified tail sits in — it decides only where
+    /// <see cref="Extremes"/> starts looking for GR8's character.</param>
+    public static CollatingTable Build(Dictionary<char, ushort> pos, List<char> specOrder, List<char> repByPos,
+        ushort nextFree, bool national)
+    {
+        char[] codes = [.. pos.Keys.Order()];
+        var positions = new ushort[codes.Length];
+        for (int i = 0; i < codes.Length; i++) positions[i] = pos[codes[i]];
+        var (high, low) = Extremes(pos, specOrder, positions, national);
+        return new CollatingTable([.. codes.Select(c => (ushort)c)], positions,
+            [.. repByPos.Select(c => (ushort)c)], nextFree, high, low);
+    }
+
+    /// <summary>The §12.3.7.4 GR8/GR9 extremes of a non-identity sequence — the characters at the HIGHEST and
+    /// LOWEST positions, a tie going to the LAST (GR8) / FIRST (GR9) character specified.
+    /// <para>The LOW end is common to both classes: position 0 belongs to the first character specified, and a
+    /// position-0 ALSO tie resolves to that same character.</para>
+    /// <para>The HIGH end differs, and the difference is a DOCUMENTED PIN, not an asymmetry of the rule.
+    /// Unspecified characters sit above every specified one (GR7 k3), so GR8's character is the largest
+    /// UNSPECIFIED code unit — U+FFFF for the national arm. The ALPHANUMERIC arm deliberately keeps computing it
+    /// over the Latin-1 block (U+00FF unless specified): the flagged §8.3.3.6 byte-stability divergence recorded
+    /// in PHASE4_RECONCILIATION, which HIGH-VALUE's single-byte alphanumeric width depends on. ⚠ When the whole
+    /// block IS specified — which every 256-entry single-byte code-name page does — the walk falls through to
+    /// GR8's own tie rule over the specified positions, giving the native character the code page puts at its
+    /// HIGHEST code unit. That is the answer an EBCDIC programmer expects (HIGH-VALUE is X'FF' on the
+    /// medium).</para></summary>
+    private static (char High, char Low) Extremes(Dictionary<char, ushort> pos, List<char> specOrder,
+        ushort[] positions, bool national)
+    {
+        char low = specOrder[0];
+        char high = national ? (char)0xFFFF : (char)0xFF;
+        while (pos.ContainsKey(high) && high > (char)0) high--;
+        if (pos.ContainsKey(high))               // the whole block is specified — GR8's tie rule over it
+        {
+            ushort maxPos = positions.Max();
+            foreach (char c in specOrder) if (pos[c] == maxPos) high = c;      // tie → LAST specified (GR8)
+        }
+        return (high, low);
+    }
 }
 
 /// <summary>
@@ -74,7 +132,16 @@ public sealed record LocaleCollatingSpec(LocaleRef Locale)
 /// maximum primary, U+0000 is completely ignorable — the runtime's <c>LocaleCollation</c> materializes the same
 /// answer, DESIGN-locale-facility L7), so the figurative constants can still fold at compile time.
 /// </summary>
-public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, string Phrase)
+/// <param name="Table">The non-identity collating table, or null for a native-order (identity) sequence.</param>
+/// <param name="Locale">The LOCALE phrase's arm, or null.</param>
+/// <param name="Phrase">The defining phrase, for diagnostics ("NATIVE", "STANDARD-1", "STANDARD-2",
+/// "literal-phrase", "LOCALE", or a supported code-name's own spelling).</param>
+/// <param name="CodeName">The <c>ImplementorCodeNames</c> row when the definition is a code-name-1 (ISO
+/// §12.3.7.3 SR15 / §12.3.7.4 GR7 i), else null. It is what carries GR7 i's OTHER two obligations — the set's
+/// ordinal count and its correspondence with the native set — which <see cref="CodedCharacterSet"/> reads;
+/// the collating half is already in <paramref name="Table"/>.</param>
+public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, string Phrase,
+    ImplementorCodeName? CodeName = null)
 {
     /// <summary>The identity (native-order) alphabet: NATIVE, STANDARD-1, STANDARD-2 (their <see cref="Phrase"/>
     /// differs — the coded character SETS differ per Table 6 even though the sequences are all the native order).</summary>
@@ -92,7 +159,7 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
     /// <summary>The CODED CHARACTER SET this alphabet defines (ISO §12.3.7.4 GR7 Table 6; kb/Work PB110), or null
     /// for a LOCALE alphabet — Table 6's one blank coded-character-set row (the reference sites raise COBOLNET1669
     /// through <c>DataBinder.CodedCharacterSetOf</c>, the ONE resolver).</summary>
-    public CodedCharacterSet? CodedSet => Locale is not null ? null : new CodedCharacterSet(Phrase, National: false, Table);
+    public CodedCharacterSet? CodedSet => Locale is not null ? null : new CodedCharacterSet(Phrase, National: false, Table, CodeName);
 }
 
 /// <summary>
@@ -128,7 +195,12 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
 /// character set only) — referencing such an alphabet as a collating sequence is the SR violation.</param>
 /// <param name="Phrase">The defining phrase, for diagnostics ("NATIVE", "UCS-4", "UTF-8", "UTF-16",
 /// "literal-phrase", "LOCALE").</param>
-public sealed record NationalAlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, bool HasCollatingSequence, string Phrase)
+/// <param name="CodeName">The <c>ImplementorCodeNames</c> row when the definition is a code-name-2 (ISO
+/// §12.3.7.3 SR15 / §12.3.7.4 GR7 j), else null. ⚠ This implementation supports no code-name-2 spelling today,
+/// so the component is always null in practice — it exists because SR15 states ONE rule for both classes and the
+/// binder asks the SAME table for both, so a national row would work the moment one is added (CLAUDE.md rule 5).</param>
+public sealed record NationalAlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, bool HasCollatingSequence, string Phrase,
+    ImplementorCodeName? CodeName = null)
 {
     /// <summary>A national alphabet without a locale arm (the pre-PB101 constructor shape).</summary>
     public NationalAlphabetDef(CollatingTable? Table, bool HasCollatingSequence, string Phrase)
@@ -145,7 +217,7 @@ public sealed record NationalAlphabetDef(CollatingTable? Table, LocaleCollatingS
     public char LowValue => Table?.LowValue ?? (char)0;
 
     /// <summary>The CODED CHARACTER SET this alphabet defines (Table 6; null for LOCALE — see the alphanumeric twin).</summary>
-    public CodedCharacterSet? CodedSet => Locale is not null ? null : new CodedCharacterSet(Phrase, National: true, Table);
+    public CodedCharacterSet? CodedSet => Locale is not null ? null : new CodedCharacterSet(Phrase, National: true, Table, CodeName);
 }
 
 /// <summary>
@@ -161,17 +233,40 @@ public sealed record NationalAlphabetDef(CollatingTable? Table, LocaleCollatingS
 /// NATIVE / UTF-16 national sets are the UTF-16 code units (GR7 d2/h); UCS-4 / UTF-8 are the ISO/IEC 10646
 /// scalar values (GR7 f/g — an unpaired surrogate is not a character of these sets).
 /// </summary>
-public sealed record CodedCharacterSet(string Phrase, bool National, CollatingTable? Table)
+/// <param name="CodeName">The <c>ImplementorCodeNames</c> row when this set is the one an implementor code-name
+/// references (§12.3.7.4 GR7 i/j), else null — it supplies the two obligations a keyword set answers from the
+/// standard instead: how many characters the set HAS and how they correspond to the native ones.</param>
+public sealed record CodedCharacterSet(string Phrase, bool National, CollatingTable? Table,
+    ImplementorCodeName? CodeName = null)
 {
     /// <summary>The number of ordinal positions in the set (the §12.3.7.3 SR16 e/f and SR17 b2 range bound):
-    /// 128 for STANDARD-1/2; 65 536 for the native / UTF-16 / literal-phrase sets (a literal phrase's set contains
-    /// every native character — GR7 k4); 0x110000 scalar values for UCS-4 / UTF-8.</summary>
-    public int OrdinalCount => Phrase switch
+    /// a code-name's own count (§12.3.7.4 GR7 i/j — "<i>the implementor shall specify the ordinal number of each
+    /// character</i>"); 128 for STANDARD-1/2; 65 536 for the native / UTF-16 / literal-phrase sets (a literal
+    /// phrase's set contains every native character — GR7 k4); 0x110000 scalar values for UCS-4 / UTF-8.</summary>
+    public int OrdinalCount => CodeName?.OrdinalCount ?? Phrase switch
     {
         "STANDARD-1" or "STANDARD-2" => 128,
         "UCS-4" or "UTF-8" => 0x110000 - 0x800,   // the scalar values (surrogate code points are not characters)
         _ => 65536,
     };
+
+    /// <summary>⛔ THE ONE ANSWER to "what does §13.18.13.4 GR6 have to DO to a record described with this coded
+    /// character set on the storage medium?" — asked by the CODE-SET binder and by nothing else, so the A.3
+    /// item 27 refusal is a PROPERTY OF THE SET rather than a list of phrase names in the file-description
+    /// binder (kb/Work PB770 wrote it as <c>Table is not null || Phrase is "UTF-8" or "UCS-4"</c>, which would
+    /// have refused every code-name set that ever gained a table).</summary>
+    public CodeSetMedium Medium => CodeName is { } cn
+        ? cn.MediumCorrespondence is null ? CodeSetMedium.Identity : CodeSetMedium.Translated
+        // The identity-correspondence keyword sets: NATIVE (GR7 d), STANDARD-1/STANDARD-2 (GR7 c — ISO/IEC 646
+        // IRV IS this native set's first 128 positions, implementor item 188) and UTF-16 (GR7 h on the D-N1
+        // substrate). A literal-phrase alphabet's remapped ordinals (GR7 k4) and UTF-8 / UCS-4 as variable-width
+        // MEDIUM encodings are the documented A.3 item 27 non-support.
+        : Table is not null || Phrase is "UTF-8" or "UCS-4" ? CodeSetMedium.NotProvided
+        : CodeSetMedium.Identity;
+
+    /// <summary>§13.18.13.4 GR6's correspondence, as the native character each medium code unit represents —
+    /// non-null exactly when <see cref="Medium"/> is <see cref="CodeSetMedium.Translated"/>.</summary>
+    public char[]? MediumCorrespondence => CodeName?.MediumCorrespondence;
 
     /// <summary>The character at 1-based <paramref name="ordinal"/> (GR11 b/c — SYMBOLIC CHARACTERS; GR12 a —
     /// a numeric CLASS literal under IN), as a native STRING (a UCS-4/UTF-8 supplementary character is its UTF-16
@@ -206,6 +301,25 @@ public sealed record CodedCharacterSet(string Phrase, bool National, CollatingTa
         }
         return ((char)(ordinal - 1)).ToString();                                   // the native / STANDARD / UTF-16 identity
     }
+}
+
+/// <summary>What ISO §13.18.13.4 GR1/GR6 conversion a coded character set asks of the storage medium — the
+/// three states a CODE-SET clause can be in, decided once by <see cref="CodedCharacterSet.Medium"/>.</summary>
+public enum CodeSetMedium
+{
+    /// <summary>The set's correspondence with the native character set is the IDENTITY, so GR6's replacement is
+    /// a no-op and the record crosses the boundary byte-exactly. No conversion is emitted.</summary>
+    Identity,
+
+    /// <summary>The set is a single-byte code whose correspondence with the native set this processor realizes:
+    /// GR6 a replaces each medium code unit with its native character on input, GR6 b the reverse on output,
+    /// through <see cref="CodedCharacterSet.MediumCorrespondence"/>.</summary>
+    Translated,
+
+    /// <summary>The set names a medium representation this processor does not provide — Annex A §A.3 item 27,
+    /// "<i>The CODE-SET clause is dependent upon a device capable of supporting the specified code</i>". Refused
+    /// loudly (COBOLNET1672), never silently treated as the identity.</summary>
+    NotProvided,
 }
 
 /// <summary>

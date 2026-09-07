@@ -1786,13 +1786,27 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
       one-code-unit-per-position substrate that IS the native code-unit order (§8.5.1.4 denies surrogate-pair
       recognition, so the supplementary-plane codepoint/code-unit divergence is unreachable; the correspondence is
       the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§12.3.7 GR7
-      Table 6): referencing them as a collating sequence is rejected (0898), and no codec boundary consumes their
-      coded-set role as a CHARACTER SET (item 14a below — the CODE-SET boundary codec lands with kb/Work PB110 part 2).
+      Table 6): referencing them as a collating sequence is rejected (0898), and their coded-set role reaches the
+      medium only as the documented A.3 item 27 non-support — a variable-width medium encoding is not a code this
+      processor writes (item 14a below; the CODE-SET boundary codec itself is LIVE, kb/Work PB793).
     **§12.3.7.3 SR14/SR15 are enforced once, for both arms** (`COBOLNET1906` / `COBOLNET1907`): a) no character
     twice (recovery keeps the first), b1/c1 BOTH halves of its one sentence -- an UNSIGNED integer AND the 1..65,536 range, b2/c2 the operand's literal class,
-    b3/c3 one character under THROUGH/ALSO, and SR15 — this implementation supports NO code-name-1/code-name-2, so
-    a bare word that is not a general-format keyword or a §12.3.7.4 GR10 figurative constant is a diagnostic and
-    never (as it was) the characters of its own spelling. b4/c4 needs no check: a) makes every specified character
+    b3/c3 one character under THROUGH/ALSO, and SR15 — **a TABLE, `Binding/ImplementorCodeNames.cs`, not a pair of
+    arms** (kb/Work PB793). SR15 says "The implementor shall specify the names supported for code-name-1 and
+    code-name-2 in the ALPHABET clause, if any", and the answer is one row per supported name carrying everything
+    §12.3.7.4 GR7 i/j obliges the implementor to supply for it — the coded character set's ordinal count, the
+    collating positions, and the correspondence with the native set. `DataBinder.AlphabetCodeName` is a LOOKUP
+    keyed by (spelling, class) with the refusal on miss, so **the next supported code-name is a row and no code
+    path at all**, and the diagnostic names the supported set FROM the table. The set (owner decision, PB793;
+    `follow_gnucobol_on_split_latitude`): code-name-1 = **`ASCII`** (ISO/IEC 646 IRV — 128 ordinals, the identity
+    correspondence, the native order, i.e. exactly GR7 c's STANDARD-1 set under the spelling other vendors use)
+    and **`EBCDIC`** (IBM CCSID 37 — 256 ordinals, collating position = the page's code unit, correspondence = the
+    page, DERIVED from `Encoding.GetEncoding(37)` at bind time and never transcribed); code-name-2 = none. Both
+    columns of Table 6 are live for a code-name: the sequence rides the SAME sparse `CollatingTable` (built through
+    the shared `CollatingTable.Build`, which is also where §12.3.7.4 GR8/GR9's extremes are computed for the
+    literal-phrase arm), and the set rides `CodedCharacterSet`, whose `OrdinalCount` and new `Medium` read the row.
+    A bare word that is NOT in the table and is not a general-format keyword or a §12.3.7.4 GR10 figurative
+    constant is a diagnostic and never (as it was) the characters of its own spelling. b4/c4 needs no check: a) makes every specified character
     distinct, and distinct characters of a set cannot outnumber the set. `LiteralChars` — the general helper whose
     ordinal branch carried the CLASS clause's descriptor, message and rule number into the ALPHABET and CURRENCY
     clauses — is now `ClassLiteralChars` with a REQUIRED class-name, beside an ordinal-free `LiteralCharsOf`.
@@ -1822,7 +1836,14 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     (null for a LOCALE alphabet, and the ONE refusal `DataBinder.CodedCharacterSetOf(name, site, rule)` → COBOLNET1669
     at every site — §8.8.4.4.3 SR2, §12.3.7.3 SR16g / SR17d, §13.18.13.3 SR1/SR2), with `CharAt(ordinal)` (the
     character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §8.8.4.4.4 GR3 a) and
-    `Encoding` (the medium codec, §13.18.13.4 GR2). **Determinations (implementor items per GR7 c/d/f–k; documented
+    `Medium` + `MediumCorrespondence` (the medium codec, §13.18.13.4 GR2/GR6 — the ONE classifier that says whether
+    a set crosses the storage boundary as the identity, through a conversion, or not at all: `CodeSetMedium`
+    `Identity` / `Translated` / `NotProvided`, the last being the documented A.3 item 27 non-support. A `Translated`
+    set hands the emitter its 256-entry GR7 i correspondence, which the connector applies as
+    `CobolNet.Runtime.IO.CodeSetConversion` at the ONE physical boundary of each organization —
+    `SequentialConnector.NextFrame` and its `EmitRecord`/`EmitRecordLine`/`OverwriteInPlace` twins, and
+    `RecordFraming`'s store payload for RELATIVE and INDEXED. The §9.1.7.2 framing this processor adds AROUND a
+    record — the length prefix, the line delimiter — is not data of the record and stays native, kb/Work PB793). **Determinations (implementor items per GR7 c/d/f–k; documented
     in CONFORMANCE.md):** the native ALPHANUMERIC set is the UTF-16 repertoire in code-unit order — ordinal n is
     code unit n−1, 1 ≤ n ≤ 65 536 (the same ordinal FUNCTION CHAR / ORD use — one correspondence, never two);
     **STANDARD-1 / STANDARD-2** are ISO/IEC 646 IRV (128 characters; STANDARD-2's national version IS the IRV), ordinal
@@ -1833,7 +1854,12 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     ordinal number … for each character … not specified*": the unspecified characters follow the highest specified
     position in native relative order, exactly as the sequence does — `CollatingTable.RepByPos` / `NextFree` and the
     code-unit tail; the national twin over the sparse table); an ALSO group's representative is literal-1 (GR7 k6's
-    last sentence). **Consumers:** (a) `SYMBOLIC CHARACTERS` — each symbolic-character-1 defines a FIGURATIVE CONSTANT
+    last sentence); and a **code-name** (GR7 i/j) defines whatever its `ImplementorCodeNames` row says — `ASCII` the
+    ISO/IEC 646 IRV set with 128 ordinals and the identity correspondence, `EBCDIC` IBM CCSID 37 with 256 ordinals
+    whose ordinal n is the native character that page assigns to code unit n−1, both derived rather than transcribed
+    (item 14 above; CONFORMANCE.md §7 item 183 publishes them). `CodedCharacterSet` carries the row, so
+    `OrdinalCount` (the SR16 e/f and SR17 b2 range bound) and `Medium` come from the table and not from a switch on
+    the phrase name. **Consumers:** (a) `SYMBOLIC CHARACTERS` — each symbolic-character-1 defines a FIGURATIVE CONSTANT
     (GR11 a) whose value is the character at ordinal integer-1 in the native set or the `IN` alphabet's set (GR11 b/c;
     SR16 a/c/e/f/g checked); it is carried as `DataBinder.SymbolicCharacters` (name → the one-character literal and
     its class) and SUBSTITUTED where a figurative constant may stand (§8.3.3.6.2 Format 7 `[ALL] symbolic-character-1`;

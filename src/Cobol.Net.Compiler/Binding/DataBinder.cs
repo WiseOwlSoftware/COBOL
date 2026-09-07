@@ -3534,11 +3534,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// reference an alphabet defining a coded character set of its class (a LOCALE alphabet is COBOLNET1669 through
     /// the ONE resolver; a class mismatch or an undeclared name is COBOLNET1672). SR3: with record description
     /// entries and no SELECT WHEN, one class only, every elementary item of that usage, signed items SIGN SEPARATE.
-    /// GR2/GR6: the on-medium coded character set — the sets whose implementor correspondence is the IDENTITY
-    /// (NATIVE; STANDARD-1/2 on the ASCII-coincident native set — GR7 c; UTF-16 on the D-N1 substrate) convert as
-    /// the identity and are CLAIMED; a set whose on-medium representation would differ (a literal-phrase alphabet's
-    /// remapped ordinals; UTF-8 / UCS-4 as variable-width medium encodings) is the DOCUMENTED A.3 item 27
-    /// non-support (COBOLNET1672 — "dependent upon a device capable of supporting the specified code";
+    /// GR2/GR6: the on-medium coded character set, decided by <see cref="CodedCharacterSet.Medium"/> — the ONE
+    /// classifier, so this binder names no set. <c>Identity</c> (NATIVE; STANDARD-1/2 on the ASCII-coincident
+    /// native set — GR7 c; UTF-16 on the D-N1 substrate; the ASCII code-name) converts as the identity and is
+    /// CLAIMED, and nothing is emitted for it. <c>Translated</c> (an implementor code-name whose GR7 i
+    /// correspondence with the native set is a single-byte code — EBCDIC, kb/Work PB793) is CLAIMED and carried
+    /// to the connector, which applies GR6 a/b at the medium boundary. <c>NotProvided</c> (a literal-phrase
+    /// alphabet's remapped ordinals; UTF-8 / UCS-4 as variable-width medium encodings) is the DOCUMENTED A.3
+    /// item 27 non-support (COBOLNET1672 — "dependent upon a device capable of supporting the specified code";
     /// CONFORMANCE.md §2 row 27), never a silent identity.</summary>
     private void BindCodeSetClause(Core.CodeSetClauseContext cs, FileModel file, IReadOnlyList<DataItem> records)
     {
@@ -3586,16 +3589,25 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, "CODE-SET: if any record description entries are "
                 + "associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or "
                 + "alphabet-name-2 may be specified, but not both (ISO §13.18.13.3 SR3)");
-        // GR2/GR6 — which conversion the set asks for. The identity-correspondence sets are CLAIMED (the conversion
-        // IS the identity, byte-for-byte); a set that names a genuinely DIFFERENT on-medium code is the documented
-        // A.3 item 27 non-support — refused loudly, never a silent identity (that would be a wrong answer for an
-        // EBCDIC-shaped alphabet).
+        // GR2/GR6 — which conversion the set asks for. ONE question, asked of the SET (CodedCharacterSet.Medium)
+        // rather than answered from a list of phrase names here: an identity correspondence converts as the
+        // identity byte-for-byte and needs nothing; a single-byte code whose correspondence this processor has
+        // (§12.3.7.4 GR7 i) is carried to the connector, which replaces each character per GR6 a/b; a set whose
+        // medium form is neither is the documented A.3 item 27 non-support — refused loudly, never a silent
+        // identity (that would be a wrong answer for an EBCDIC-shaped alphabet).
         foreach (var (set, name) in new[] { (alnumSet, alnumName), (natSet, natName) })
-            if (set is not null && (set.Table is not null || set.Phrase is "UTF-8" or "UCS-4"))
+        {
+            if (set is null) continue;
+            if (set.Medium is CodeSetMedium.NotProvided)
                 Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {name}: the {set.Phrase} coded "
                     + "character set's on-medium representation differs from the native encoding, and this processor "
                     + "does not provide alternate device code sets (Annex A §A.3 item 27 — documented non-support, "
-                    + "CONFORMANCE.md §2 row 27); NATIVE, STANDARD-1, STANDARD-2 and UTF-16 convert as the identity");
+                    + "CONFORMANCE.md §2 row 27); NATIVE, STANDARD-1, STANDARD-2, UTF-16 and the ASCII code-name "
+                    + "convert as the identity, and the EBCDIC code-name converts through its GR7 i correspondence");
+            else if (set.Medium is CodeSetMedium.Translated)
+                // GR1/GR2 — the alphabet the medium's data is represented in, from the successful OPEN onwards.
+                file.CodeSetCorrespondence = set.MediumCorrespondence;
+        }
         // SR3 a/b — the selected class's usage over every elementary record item; signed numeric SIGN SEPARATE.
         if (records.Count > 0 && (alnumName is not null || natName is not null))
         {

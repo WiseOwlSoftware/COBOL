@@ -102,7 +102,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // length-frames its records and enforces the GR14 '44' boundary checks.
             string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
             w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", vary, CsLiteral(file.SelectName))};");
-            EmitNationalAreaRegistration(w, file);
+            EmitAreaRegistrations(w, file);
             EmitSharingRegistration(w, file);
         }
     }
@@ -181,6 +181,26 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         if (file.Records.Any(r => r.OperandPic is { Category: PicCategory.National }))
             w.Line($"{RuntimeApi.FileRegisterNationalArea(FileKeyExpr(file))};");
+    }
+
+    /// <summary>⛔ THE CONNECTOR PROPERTIES a file description declares ABOUT ITS RECORD AREA AND ITS MEDIUM,
+    /// emitted immediately after the registration for every organization alike — ONE call site per registration
+    /// so the next such property is a line HERE and not three edits at the registrations (kb/Work PB793).</summary>
+    internal static void EmitAreaRegistrations(CodeWriter w, FileModel file)
+    {
+        EmitNationalAreaRegistration(w, file);   // §14.9.30.4 GR15 (kb/Work PB327)
+        EmitCodeSetRegistration(w, file);        // §13.18.13.4 GR2/GR6 (kb/Work PB793)
+    }
+
+    /// <summary>§13.18.13.4 GR2's on-medium coded character set, told to the connector: the GR7 i correspondence
+    /// the CODE-SET clause's alphabet defines, as a char[] literal indexed by medium code unit. Emitted ONLY when
+    /// the correspondence is not the identity (§13.18.13.4 GR7's default and the identity-correspondence sets need
+    /// no conversion at all), so every other program's registration is unchanged byte for byte.</summary>
+    private static void EmitCodeSetRegistration(CodeWriter w, FileModel file)
+    {
+        if (file.CodeSetCorrespondence is not { } map) return;
+        string literal = "new char[] { " + string.Join(", ", map.Select(c => $"(char){(int)c}")) + " }";
+        w.Line($"{RuntimeApi.FileRegisterCodeSet(FileKeyExpr(file), literal)};");
     }
 
     /// <summary>Emit the RECORD-LOCKING registration for a file that declares a SHARING and/or LOCK MODE clause

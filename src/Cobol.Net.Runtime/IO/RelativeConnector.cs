@@ -464,7 +464,7 @@ public sealed class RelativeConnector : KeyedConnector
         // creation that discards whatever the file held, so an empty load is what OUTPUT wanted anyway; the
         // WriteStore that follows raises the authority failure itself, and the base maps it to '37'.
         if (HostFile.Probe(HostPath) is not FilePresence.Present) return;
-        var frames = RecordFraming.ReadStore(HostPath);
+        var frames = RecordFraming.ReadStore(HostPath, CodeSet);
         for (int i = 0; i < frames.Count; i++)
             if (frames[i] is { } rec)
                 into.Put(i + 1, rec);       // slot ordinal = frame ordinal (1-based RRN, §12.4.5.13 GR1)
@@ -475,7 +475,7 @@ public sealed class RelativeConnector : KeyedConnector
         long max = _st.Highest;
         var frames = new string?[max];
         foreach (var (slot, rec) in _slots) frames[slot - 1] = rec;
-        RecordFraming.WriteStore(HostPath, frames);
+        RecordFraming.WriteStore(HostPath, frames, CodeSet);
     }
 
 }

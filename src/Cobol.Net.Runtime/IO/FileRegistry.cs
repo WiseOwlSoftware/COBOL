@@ -731,6 +731,15 @@ public sealed class FileRegistry
         if (_files.TryGetValue(name, out var c)) c.NationalRecordArea = true;
     }
 
+    /// <summary>Declare the file's §13.18.13 CODE-SET conversion (§13.18.13.4 GR2: the coded character set used
+    /// to represent data on the storage medium, established at OPEN and constant thereafter).
+    /// <paramref name="toNative"/> is §12.3.7.4 GR7 i's correspondence — the native character each medium code
+    /// unit represents — which the COMPILER computed from the named alphabet's coded character set.</summary>
+    public void RegisterCodeSet(string name, char[] toNative)
+    {
+        if (_files.TryGetValue(name, out var c)) c.CodeSet = new CodeSetConversion(toNative);
+    }
+
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,

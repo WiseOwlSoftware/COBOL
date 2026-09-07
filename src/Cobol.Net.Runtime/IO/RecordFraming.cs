@@ -46,7 +46,13 @@ internal static class RecordFraming
     /// §9.1.15 sharing, and it used to be the three-argument <c>FileStream</c> whose default is
     /// <see cref="FileShare.None"/> — the strictest form of kb/Work PB713's defect, forbidding every other
     /// handle rather than merely being forbidden by one.</para></summary>
-    public static void WriteStore(string path, IReadOnlyList<string?> frames)
+    /// <param name="path">The physical file.</param>
+    /// <param name="frames">One entry per ordinal position; null = an empty (gap) slot. The frames are the
+    /// records in the NATIVE character set.</param>
+    /// <param name="codeSet">The file's §13.18.13 CODE-SET conversion, or null for the native character set
+    /// (GR7). ⛔ It converts the PAYLOAD and not the frame: the 4-byte length prefix and the gap tag are the
+    /// §9.1.7.2 framing this processor adds, not data of the record (see <see cref="CodeSetConversion"/>).</param>
+    public static void WriteStore(string path, IReadOnlyList<string?> frames, CodeSetConversion? codeSet = null)
     {
         using var fs = HostFile.OpenAuxiliary(path, FileMode.Create, FileAccess.Write);
         Span<byte> len = stackalloc byte[4];
@@ -58,7 +64,7 @@ internal static class RecordFraming
                 fs.Write(len);
                 continue;
             }
-            byte[] payload = Encoding.Latin1.GetBytes(frame);
+            byte[] payload = Encoding.Latin1.GetBytes(codeSet is null ? frame : codeSet.ToMedium(frame));
             BinaryPrimitives.WriteUInt32LittleEndian(len, (uint)payload.Length);
             fs.Write(len);
             fs.Write(payload, 0, payload.Length);
@@ -70,7 +76,10 @@ internal static class RecordFraming
     /// here the three-argument <c>FileStream</c>'s default was <see cref="FileShare.Read"/>, which is the exact
     /// share mode that refused kb/Work PB713's varying-framing arm against the connector's own EXTEND writer.
     /// </para></summary>
-    public static List<string?> ReadStore(string path)
+    /// <param name="path">The physical file.</param>
+    /// <param name="codeSet">The file's §13.18.13 CODE-SET conversion, or null — see
+    /// <see cref="WriteStore"/>. The frames come back in the NATIVE character set (§13.18.13.4 GR6 a).</param>
+    public static List<string?> ReadStore(string path, CodeSetConversion? codeSet = null)
     {
         var frames = new List<string?>();
         using var fs = HostFile.OpenAuxiliary(path, FileMode.Open, FileAccess.Read);
@@ -81,7 +90,8 @@ internal static class RecordFraming
             if (n == GapTag) { frames.Add(null); continue; }
             var payload = new byte[n];
             if (!FillExactly(fs, payload, (int)n)) break;
-            frames.Add(Encoding.Latin1.GetString(payload));
+            string image = Encoding.Latin1.GetString(payload);
+            frames.Add(codeSet is null ? image : codeSet.ToNative(image));
         }
         return frames;
     }

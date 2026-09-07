@@ -2464,13 +2464,16 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor AlphabetCodeNameUnsupported = new(
         "COBOLNET1907", "alphabet-code-name", EditionSeverity.Error,
         "An ALPHABET clause names a code-name-1 (alphanumeric) or code-name-2 (national) this implementation does "
-        + "not support. ISO §12.3.7.3 SR15 leaves the supported names to the implementor — 'if any' — and this "
-        + "one defines NONE: the words that may stand alone in an alphabet definition are the general format's own "
-        + "keywords (NATIVE, STANDARD-1, STANDARD-2 for the alphanumeric branch; NATIVE, UCS-4, UTF-8, UTF-16 for "
-        + "the national one; LOCALE for either) and the figurative constants of a one-operand literal phrase "
-        + "(§12.3.7.4 GR10). Such a word used to be silently reinterpreted as the CHARACTERS OF ITS OWN SPELLING "
-        + "— ALPHABET A IS ASCII built an alphabet whose first four positions were A, S, C, I — which every "
-        + "downstream reference then read (kb/Work PB770 leg e). CONFORMANCE.md carries the SR15 statement.",
+        + "not support. ISO §12.3.7.3 SR15 leaves the supported names to the implementor — 'if any' — and this one "
+        + "supports ASCII and EBCDIC as code-name-1 and NO code-name-2 (owner decision, kb/Work PB793; the set is "
+        + "the table CobolNet.Binding.ImplementorCodeNames, which is also what the message's own list is generated "
+        + "from, and CONFORMANCE.md §7 items 183/184/185 publish it with what each name means). The OTHER words "
+        + "that may stand alone in an alphabet definition are the general format's own keywords (NATIVE, "
+        + "STANDARD-1, STANDARD-2 for the alphanumeric branch; NATIVE, UCS-4, UTF-8, UTF-16 for the national one; "
+        + "LOCALE for either) and the figurative constants of a one-operand literal phrase (§12.3.7.4 GR10). A word "
+        + "that is none of those used to be silently reinterpreted as the CHARACTERS OF ITS OWN SPELLING — "
+        + "ALPHABET A IS ASCII built an alphabet whose first four positions were A, S, C, I — which every "
+        + "downstream reference then read (kb/Work PB770 leg e).",
         "ISO §12.3.7.3 SR15");
 
     // kb/Work PB732. The VALUE clause resolves its own operands and never enters the R30 chokepoint

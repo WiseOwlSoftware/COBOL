@@ -127,13 +127,18 @@ public sealed record FixedFileAttributes(
     /// sequential re-read, and item 5's '06' is the standard's answer to it.
     /// </para>
     /// <para>
-    /// The three §9.1.6 attributes deliberately NOT in the set, each because this processor cannot give it two
-    /// different values rather than because checking was skipped: the <b>code set</b> — §13.18.13.4 GR7 makes it
-    /// the NATIVE character set when no CODE-SET clause is written, GR2/GR6 make it the named alphabet's when one
-    /// is, and COBOL.NET accepts only the alphabets whose implementor correspondence is the IDENTITY, refusing
-    /// every other loudly (COBOLNET1672, the A.3 item 27 non-support in CONFORMANCE.md §2); so on every program
-    /// this processor accepts the medium's code set is the native one, and the comparison is a constant with no
-    /// second value to take; the <b>minimum and maximum
+    /// The three §9.1.6 attributes deliberately NOT in the set. The <b>code set</b> is a DETERMINATION: §13.18.13.4
+    /// GR7 makes it the NATIVE character set when no CODE-SET clause is written and GR2/GR6 make it the named
+    /// alphabet's when one is, and since kb/Work PB793 those two really can differ (the EBCDIC code-name is a
+    /// genuine alternate device code set — <see cref="CodeSetConversion"/>, CONFORMANCE.md §2 row 27), so this is
+    /// no longer the observation that the value is constant. It is not validated for two reasons §14.9.27.4 GR10's
+    /// latitude exists to accommodate: (1) the catalog is written when this processor CREATES the file, and the
+    /// whole purpose of a CODE-SET clause is to read a physical file some OTHER system wrote, which carries no
+    /// catalog — so the check would fire exactly where it is not needed and never where it is; and (2) reading a
+    /// converted file through a description with NO CODE-SET clause is legitimate and useful (it is GR7's own
+    /// default — the raw-medium idiom a dump or transcode utility is written in), so a '39' there would reject
+    /// legal source. The other two are outside the set because this processor cannot give either a second value:
+    /// the <b>minimum and maximum
     /// physical record size</b> — the managed I-O model does no blocking and BLOCK CONTAINS is accepted inert
     /// under A.3 item 5, so no physical record size exists to record; and the <b>record delimiter</b> — the
     /// RECORD DELIMITER clause has no compiler surface, and the delimiter distinction this processor does

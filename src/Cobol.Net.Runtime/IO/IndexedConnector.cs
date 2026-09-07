@@ -261,7 +261,7 @@ public sealed class IndexedConnector : KeyedConnector
         try
         {
             if (!OptionalAbsent && Mode is not FileOpenMode.Input)
-                RecordFraming.WriteStore(HostPath, PersistOrder().Select(r => (string?)r.Image).ToList());
+                RecordFraming.WriteStore(HostPath, PersistOrder().Select(r => (string?)r.Image).ToList(), CodeSet);
         }
         finally
         {
@@ -782,7 +782,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (HostFile.Probe(HostPath) is not FilePresence.Present) return;
         // A varying file's frames keep their exact stored lengths (§13.18.43 GR15 reports them on READ);
         // fixed frames normalize to the record width.
-        foreach (string? frame in RecordFraming.ReadStore(HostPath))
+        foreach (string? frame in RecordFraming.ReadStore(HostPath, CodeSet))
             if (frame is not null)
                 // The physical file order IS the release order under every key (§14.9.30.4 GR26) — PersistOrder
                 // wrote it that way, so one ordinal per record fills the whole vector (kb/Work PB341).

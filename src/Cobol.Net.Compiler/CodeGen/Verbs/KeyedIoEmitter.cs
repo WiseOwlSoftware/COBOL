@@ -57,7 +57,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         {
             int digits = file.RelativeKeyItem?.Pic?.Digits ?? 0;
             w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary, CsLiteral(file.SelectName))};");
-            SequentialIoEmitter.EmitNationalAreaRegistration(w, file);   // §14.9.30.4 GR15 (kb/Work PB327)
+            SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
             return;
         }
         if (file.RecordKeyItem is not { } pk || Binding.Model.RecordLayout.OffsetOf(pk) is not { } pkOff)
@@ -83,7 +83,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             string sup = suppress is null ? "null" : CsLiteral(suppress);
             w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ByteWidth, dups ? "true" : "false", CollationLit(altCollation), sup)};");   // bytes — see the prime key above (kb/Work PB327)
         }
-        SequentialIoEmitter.EmitNationalAreaRegistration(w, file);   // §14.9.30.4 GR15 (kb/Work PB327)
+        SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
     }
 
     /// <summary>The §12.4.5.7 key collating sequence as a runtime <c>CobolCollation</c> expression — the program's
