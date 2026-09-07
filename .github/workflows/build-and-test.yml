@@ -1,30 +1,40 @@
 name: Build and Test
 
+# ⛔ EVERY PUSH RUNS THIS WORKFLOW — there is no `paths-ignore` any more, and there must never be one again.
+# `main` carries a REQUIRED status check (`ci-gate`; owner decision 2026-09-06 on question 23, kb/Work/PB796),
+# and a required check is satisfied per COMMIT — so a workflow that declines to START leaves the pushed sha with
+# no check at all and the protection blocks it FOREVER. `paths-ignore` and branch protection are therefore
+# mutually exclusive; measured 2026-09-06, the three docs-only pushes after train 21 produced NO run at all.
+# The saving the ignore list bought is kept, one layer down: the `changes` job below decides from the SAME path
+# list whether the MATRIX runs. A docs-only push still starts a run — but that run is `changes` + `ci-gate` and
+# finishes in seconds, so "docs-only pushes do not trigger CI/CD" holds in the sense that costs anything.
 on:
   push:
-    branches: [ main ]
-    # Doc-only surfaces never change what this workflow builds or tests — a DEVLOG entry, a design-doc
-    # sweep or a kb/Work register update should not cost a full two-platform matrix (owner-flagged
-    # 2026-08-08 after a workflow-only push burned one). ⚠ Changes to THIS file still trigger runs (a
-    # broken workflow edit that never runs is worse than one spent matrix), and pull_request keeps full
-    # coverage — the ignore applies to direct pushes only.
-    paths-ignore:
-      - 'DEVLOG.md'
-      - 'docs/**'
-      - 'kb/**'
-      - 'PROMPT.md'
-      - 'CLAUDE.md'
-      - 'README.md'
+    # `main` — the branch the protection guards, and the branch every instrument already reads
+    # (`scripts/session-probe.ps1`, `.claude/skills/gate/SKILL.md`, plan §9 all key on `--branch main`).
+    # `ci/**` — the LANDING branches `scripts/push-main.sh` pushes to: a commit is verified on `ci/<short-sha>`
+    # FIRST and only fast-forwarded onto main once its `ci-gate` check is green. A check run is attached to the
+    # COMMIT, not to a branch, so the verdict earned on `ci/<sha>` is exactly the one the protection reads when
+    # that same sha reaches main.
+    # ⚠ Deliberately NOT `branches: '**'`: up to six implementer worktrees push WIP branches all day
+    # (`worktree-agent-*`, `impl/*`), and a two-platform matrix per WIP push is precisely the cost this
+    # repository has already refused once (the 2026-08-08 owner flag).
+    branches: [ main, 'ci/**' ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:        # manual trigger — lets the opt-in legacy-oracle bake-verify cross-check be run on demand
   schedule:
     - cron: '0 6 * * *'     # nightly 06:00 UTC — runs the legacy-oracle cross-check without a legacy run on every PR
 
-# Cancel a superseded run on the same ref (a rapid second push) to save CI minutes.
+# ⛔ A PUSH IS NEVER CANCELLED — ITS RUN IS THAT COMMIT'S ONLY VERDICT. With a required per-commit check a
+# cancelled run leaves its sha permanently unlandable (`cancelled` is not `success`), and it is the failure mode
+# a human skim reads as "not a failure": PB796 counted SIX cancelled rows inside the 29-hour red window. A
+# `pull_request` run, by contrast, is superseded the moment its head moves, so cancelling it costs no coverage
+# and saves the minutes this group was added for. Landing branches are sha-named, so they never collide anyway;
+# this expression makes that safety explicit instead of incidental.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # The former single Linux "guard" job ran five heavy activities BACK-TO-BACK (serial guard.sh → greenfield
 # conformance → greenfield unit → CLI build → INV-1 sweep), so wall-clock was their SUM (~17 min). They are now
@@ -38,6 +48,149 @@ concurrency:
 # artifact name carries both. The guard job is the exception: its verdict is guard-fast.sh's own NIST-loop
 # output, not a `dotnet test` exit.
 jobs:
+  # ── ⛔ THE ONE PLACE THE DOC-ONLY PATH LIST LIVES. It used to be `paths-ignore` on the push trigger, where it
+  # decided whether the workflow RAN AT ALL — incompatible with a required status check (see the header). It now
+  # decides whether the MATRIX runs, inside a run that always happens, so every commit gets a `ci-gate` verdict
+  # and a docs-only commit still lands in seconds. There is exactly ONE copy of the list (here); the trigger no
+  # longer carries a second one for it to drift against (feedback_one_rule_one_place). ──
+  changes:
+    name: changes (does this commit need the matrix?)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read            # for the already-verified short-circuit below — read-only, nothing else
+    outputs:
+      run_matrix: ${{ steps.decide.outputs.run_matrix }}
+      code: ${{ steps.decide.outputs.code }}
+      verified: ${{ steps.decide.outputs.verified }}
+      reason: ${{ steps.decide.outputs.reason }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+          # Full history so `git diff <before> <sha>` can resolve BOTH ends (a train pushes several commits at
+          # once, so depth 2 is not enough); `filter: blob:none` keeps the fetch to commits and TREES, which is
+          # all `--name-only` reads — seconds, not a full clone with every historical blob.
+          fetch-depth: 0
+          filter: blob:none
+      - name: Decide — docs-only, or does the matrix have to run?
+        id: decide
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+          REF: ${{ github.ref }}
+          EVENT: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          # ⛔ THE DOC-ONLY LIST — exactly the set the retired `paths-ignore` block carried, and nothing else.
+          IGNORE='^(DEVLOG\.md|PROMPT\.md|CLAUDE\.md|README\.md|docs/|kb/)'
+          ZERO=0000000000000000000000000000000000000000
+          code=true; verified=false; reason=""
+          if [ "$EVENT" != "push" ]; then
+            reason="event=$EVENT — a pull_request / schedule / dispatch run is always the full matrix"
+          else
+            BASE=""
+            if [ -n "${BEFORE:-}" ] && [ "$BEFORE" != "$ZERO" ] \
+               && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null \
+               && git merge-base --is-ancestor "$BEFORE" "$SHA"; then
+              BASE="$BEFORE"          # the ordinary case: before..sha IS what this push added
+            elif [ "$REF" != "refs/heads/main" ]; then
+              # A NEW BRANCH — and EVERY `ci/<short-sha>` landing branch is one, so `before` is all zeros on
+              # every single landing — or a force push, or a `before` the runner cannot resolve.
+              # ⛔ The honest base is then main, not "unknown": what this push proposes to add to main is
+              # exactly `merge-base(origin/main, sha)..sha`. Calling a new branch unconditionally code would
+              # make EVERY landing run the matrix, docs-only ones included, and this job would buy nothing.
+              git rev-parse -q --verify refs/remotes/origin/main >/dev/null 2>&1 \
+                || git fetch --no-tags --filter=blob:none origin +refs/heads/main:refs/remotes/origin/main || true
+              BASE="$(git merge-base refs/remotes/origin/main "$SHA" 2>/dev/null || true)"
+            fi
+            if [ -z "$BASE" ]; then
+              reason="no usable base (before=${BEFORE:-<unset>}, ref=$REF) — the matrix runs"
+            else
+              git diff --name-only "$BASE" "$SHA" > changed.txt
+              echo "--- changed paths ($BASE..$SHA) ---"; cat changed.txt
+              if [ ! -s changed.txt ]; then
+                # An empty diff is not evidence of a docs-only change, it is evidence of a no-op or a probe.
+                # Fail toward running (feedback_verdict_evidence_invariant: a MISSING observation is not a
+                # negative one).
+                reason="empty diff over $BASE..$SHA — the matrix runs; an empty diff is not a docs-only proof"
+              elif grep -Ev "$IGNORE" changed.txt > code.txt; then
+                reason="$(grep -c . code.txt) path(s) outside the doc-only list, e.g. $(head -1 code.txt)"
+              else
+                code=false
+                reason="every changed path is DEVLOG.md / PROMPT.md / CLAUDE.md / README.md / docs/ / kb/ — the matrix is skipped"
+              fi
+            fi
+          fi
+          # ── THE ALREADY-VERIFIED SHORT-CIRCUIT. `scripts/push-main.sh` proves a commit on `ci/<sha>` and then
+          # fast-forwards THE SAME SHA onto main; without this, that identical tree would pay for the matrix
+          # TWICE per landing — the exact waste the owner flagged on 2026-08-08 over a single spent run. A check
+          # run is attached to the COMMIT, so a green `ci-gate` on this sha is a verdict on this exact tree
+          # whatever branch earned it. Any failure of the lookup leaves verified=false and the matrix runs.
+          if [ "$code" = "true" ] && [ "$EVENT" = "push" ]; then
+            n="$(gh api "repos/$REPO/commits/$SHA/check-runs?check_name=ci-gate&per_page=100" \
+                   --jq '[.check_runs[] | select(.conclusion == "success")] | length' 2>/dev/null || echo 0)"
+            case "$n" in ''|*[!0-9]*) n=0 ;; esac
+            if [ "$n" -gt 0 ]; then
+              verified=true
+              reason="$reason; BUT ci-gate already succeeded on $SHA ($n green check run(s)) — same commit, same tree"
+            fi
+          fi
+          run_matrix=true
+          if [ "$code" != "true" ] || [ "$verified" = "true" ]; then run_matrix=false; fi
+          reason="$(printf '%s' "$reason" | tr '\n' ' ')"
+          {
+            echo "run_matrix=$run_matrix"
+            echo "code=$code"
+            echo "verified=$verified"
+            echo "reason=$reason"
+          } >> "$GITHUB_OUTPUT"
+          echo "run_matrix=$run_matrix (code=$code verified=$verified): $reason"
+          {
+            echo "### changes"
+            echo
+            echo "\`run_matrix\` = **$run_matrix**  (code=$code, verified=$verified)"
+            echo
+            echo "$reason"
+          } >> "$GITHUB_STEP_SUMMARY"
+      # ── ⛔ THE DRIFT TEST FOR THE GATE ITSELF. `ci-gate` can only block a red it is `needs:`-wired to see, and
+      # a job added months from now without that wiring would be a job whose failure lands on main silently —
+      # the same shape as PB796 one level down. This asserts, from the workflow file itself, that every job id
+      # is in ci-gate's needs list. It runs on EVERY event, docs-only pushes included, because `changes` is the
+      # one job that is never skipped. Its own failure branch is exercised, not assumed (see kb/Work/PB796). ──
+      - name: Drift — every job in this workflow is a `needs:` of ci-gate
+        shell: bash
+        run: |
+          set -uo pipefail
+          wf=.github/workflows/build-and-test.yml
+          ids=$(sed -n '/^jobs:$/,$p' "$wf" | sed -nE 's/^  ([A-Za-z0-9_-]+):[[:space:]]*$/\1/p')
+          n=$(printf '%s\n' "$ids" | grep -c . || true)
+          # ⛔ A selector is evidence about what it RETURNED, never about what it dropped: a parser that finds
+          # no jobs must fail loudly, not report "no drift" (feedback_measure_the_selectors_complement).
+          if [ "$n" -lt 5 ]; then
+            echo "::error::the job-id scan found $n jobs in $wf — the SCANNER is broken, not the workflow"
+            exit 1
+          fi
+          needs_line=$(awk '/^  ci-gate:$/{f=1} f && /^    needs: \[/{print; exit}' "$wf")
+          if [ -z "$needs_line" ]; then
+            echo "::error::ci-gate has no single-line \`needs: [...]\` — this drift check parses that form"
+            exit 1
+          fi
+          flat=",$(printf '%s' "$needs_line" | sed -E 's/^    needs: \[(.*)\].*/\1/' | tr -d '[:space:]'),"
+          missing=""
+          for id in $ids; do
+            [ "$id" = "ci-gate" ] && continue
+            case "$flat" in *",$id,"*) ;; *) missing="$missing $id" ;; esac
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::ci-gate does not need:$missing — a job the gate cannot see is a red that cannot block a landing"
+            exit 1
+          fi
+          echo "drift: ci-gate needs all $((n - 1)) other jobs — $flat"
+
   # ── The authoritative NIST gate: the PARALLEL guard. guard-fast.sh runs exactly the checks scripts/guard.sh
   # does (build + unit + integration + the ~376 NIST CCVS-85 programs) but fans the NIST suite across the
   # runner's cores (JOBS defaults to nproc) with a per-suite isolation model PROVEN equivalent to the serial
@@ -51,6 +204,8 @@ jobs:
   # The legacy unit + integration legs remain: they gate CobolSharp.Compiler and the SHARED Cobol.Net.Frontend. ──
   guard:
     name: Guard (COBOL.NET NIST + legacy unit + integration, parallel)
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -89,6 +244,8 @@ jobs:
   # silently-untested code (feedback_measure_the_selectors_complement).
   greenfield-conformance:
     name: Greenfield conformance (Linux, sharded)
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -165,6 +322,8 @@ jobs:
   # project-granular (nothing hand-listed), so no population guard is needed here.
   greenfield-unit:
     name: Greenfield unit + characterization (Linux)
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -216,6 +375,8 @@ jobs:
   # cross-platform net is load-bearing (the 2026-08-07 BOM break was Windows-caught).
   windows-conformance:
     name: Windows conformance (sharded)
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true'
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -294,7 +455,8 @@ jobs:
   # trip this loudly; that is the safe direction (a false red, never a silent gap). ──
   conformance-population:
     name: Conformance shard population guard
-    needs: [greenfield-conformance, windows-conformance]
+    needs: [changes, greenfield-conformance, windows-conformance]
+    if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -346,6 +508,8 @@ jobs:
   # (scripts/version-continuity-sweep.sh remains as a local CLI convenience). ──
   inv1-strong-2023:
     name: INV-1-strong (golden battery byte-exact @ 2023 --permissive)
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -394,6 +558,8 @@ jobs:
   # the Windows build + managed-test coverage the guard job cannot. ──
   windows-build-test:
     name: Windows build + tests
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -448,7 +614,8 @@ jobs:
   # engine, undoing this phase). DELETED at G8 together with the legacy projects, not now. ──
   legacy-oracle:
     name: Legacy-oracle bake-verify cross-check (opt-in — nightly / manual)
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -487,3 +654,55 @@ jobs:
           path: TestResults/${{ runner.os }}-legacy-oracle/*.trx
           if-no-files-found: ignore
           retention-days: 14
+
+  # ── ⛔ `ci-gate` IS THE ONE STABLE CHECK NAME `main`'s branch protection REQUIRES (owner decision 2026-09-06
+  # on question 23, kb/Work/PB796). Nothing else in this file can be that name:
+  #   • the conformance jobs are MATRICES — their check names carry the shard value (`Greenfield conformance
+  #     (Linux, sharded) (corpus-nist)`) and change the day a shard is added or renamed, and a required context
+  #     that no longer reports blocks every push forever;
+  #   • every matrix job is CONDITIONAL — skipped on a docs-only push, which a required check reads as
+  #     "never reported", i.e. blocked forever again.
+  # This job has ONE name, is `if: always()` so it reports on EVERY run including the docs-only ones, and
+  # collapses the whole run into a single verdict. Its needs list is drift-checked by the `changes` job above.
+  #
+  # ⛔ PASS IS WHITELISTED, NOT BLACKLISTED: `success` and `skipped` pass and EVERYTHING else fails — `failure`
+  # and `cancelled` by name today, and any result value GitHub adds tomorrow by construction.
+  ci-gate:
+    name: ci-gate
+    if: always()
+    needs: [changes, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, legacy-oracle]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verdict
+        shell: bash
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+          RUN_MATRIX: ${{ needs.changes.outputs.run_matrix }}
+          REASON: ${{ needs.changes.outputs.reason }}
+        run: |
+          set -uo pipefail
+          printf '%s' "$NEEDS" | jq -r 'to_entries[] | "\(.key)=\(.value.result)"' | sort > results.txt
+          n=$(grep -c . results.txt || true)
+          echo "--- needed jobs ($n) ---"; cat results.txt
+          # ⛔ A verdict needs its population: had `needs` come back empty this gate would pass over NOTHING
+          # and every red would land green (feedback_verdict_evidence_invariant).
+          if [ "$n" -lt 5 ]; then
+            echo "::error::ci-gate saw only $n needed jobs — it is not measuring this run"
+            exit 1
+          fi
+          bad=$(grep -Ev '=(success|skipped)$' results.txt || true)
+          {
+            echo "### ci-gate"
+            echo
+            echo "decision: \`run_matrix\` = **${RUN_MATRIX:-unknown}** — ${REASON:-no reason recorded}"
+            echo
+            echo '```'
+            cat results.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$bad" ]; then
+            echo "::error::ci-gate FAILS — $(printf '%s' "$bad" | tr '\n' ' ')"
+            printf '%s\n' "$bad"
+            exit 1
+          fi
+          echo "ci-gate: PASS — every needed job is success or skipped"
