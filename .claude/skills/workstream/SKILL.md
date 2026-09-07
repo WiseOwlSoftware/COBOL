@@ -90,16 +90,28 @@ the work, not to wait. Stage the earliest-stage, largest jobs behind the near-do
   (~2.7 mechanisms/day delivered against ~24/day of capacity) purely because slots sat empty behind landings and
   behind the evidence lane. Keep a standing queue of apply-ready contracts so the dispatch is one turn.
 - A worktree-isolated agent cannot run git against the shared checkout (the harness refuses `-C`, `cd`, EnterWorktree):
-  landers gate in THEIR worktree, then `git fetch origin && git rebase origin/main && git push origin HEAD:main`
-  (fast-forward, never `--force`); the orchestrator runs `git merge --ff-only origin/main` locally and removes dead
+  landers gate in THEIR worktree, then `git fetch origin && git rebase origin/main` and land with
+  **`bash scripts/push-main.sh`**; the orchestrator runs `git merge --ff-only origin/main` locally and removes dead
   worktrees itself (`git worktree remove --force`, `git branch -D`).
-- ⛔ **A PUSH IS NOT A LANDING UNTIL CI IS GREEN ON THE PUSHED HEAD.** The lander waits for the run on its own sha
-  (`gh run list --branch main --commit <sha>` → `gh run watch <id> --exit-status`) and reports the conclusion; a red
-  is a BLOCKING finding, attributed by job / step / failing test in the report, and the orchestrator lands that fix
-  alone before the next train. **The local battery runs on ONE host; the CI's Linux job is the only Linux gate — a
-  test that depends on host ACL or file-lock semantics is not proven until CI is green.** ⓜ main was red for 29 h
-  across 16 consecutive completed runs (2026-09-05/06) while every landing in that window — trains 10 through 20 —
-  reported a green Windows-only gate and nobody looked (`kb/Work/PB796`).
+- ⛔ **THE ONLY WAY A COMMIT REACHES `main` IS `bash scripts/push-main.sh`, AND THE SERVER ENFORCES IT.** `main`
+  carries a REQUIRED status check — `ci-gate`, the terminal job of the workflow — with `enforce_admins: true`, so a
+  bare `git push origin HEAD:main` of an unverified commit is REFUSED. Admin exemption was never an option: every
+  push here is made with the owner's credentials, so a rule that spares administrators spares everyone, and the
+  orchestrator's own pushes obey this one (owner decision 2026-09-06, question 23). The script pushes HEAD to
+  `ci/<short-sha>`, watches the run for that exact sha, and only then fast-forwards main and deletes the branch; on
+  a red it prints the failing jobs and exits non-zero with main untouched.
+  ⭐ It is IDEMPOTENT — a full-matrix run is ~25–30 min, longer than a command timeout, so a cut-off caller simply
+  re-runs it (or runs it with `run_in_background`); a sha that already carries a green `ci-gate` skips straight to
+  the main push. A red is still a BLOCKING finding, attributed by job / step / failing test in the report, and the
+  orchestrator lands that fix alone before the next train. **The local battery runs on ONE host; the CI's Linux job
+  is the only Linux gate — a test that depends on host ACL or file-lock semantics is not proven until CI is green.**
+  ⓜ main was red for 29 h across 16 consecutive completed runs (2026-09-05/06) while every landing in that window
+  — trains 10 through 20 — reported a green Windows-only gate and nobody looked (`kb/Work/PB796`).
+- ⚠ **A docs-only landing still runs — and still has to be green.** `paths-ignore` is GONE from the workflow (it
+  made the workflow decline to START, which a required per-commit check reads as "blocked forever"); the `changes`
+  job now decides whether the MATRIX runs from the same path list, so a landing touching only `DEVLOG.md`,
+  `docs/**`, `kb/**`, `PROMPT.md`, `CLAUDE.md` or `README.md` finishes in seconds. "No run for my sha" is no longer
+  an answer — it is a failure, and `push-main.sh` treats it as one.
 - Verdict batches are RE-APPLIED on the merged tree (`record_verdicts.py`), never merged as inventory JSON hunks.
 - ⛔ A checkpoint file never enters a landing: every landing `git add` excludes it —
   `git add -A -- . ":!.claude/settings.local.json"` then `git reset -q -- STATUS.md`; ⛔ **not** `":!STATUS.md"`

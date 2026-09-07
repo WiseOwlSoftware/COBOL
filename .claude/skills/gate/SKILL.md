@@ -42,6 +42,17 @@ goes green while CI fails.
   `gh run list --branch main --commit <sha> --json databaseId,status,conclusion,displayTitle`, then
   `gh run view <id> --log-failed` on a red. `scripts/session-probe.ps1` prints the latest run's conclusion at
   session start, so a red main is never inferred from silence (`kb/Work/PB796`).
+- ⛔ **AND IT IS NO LONGER OPTIONAL TO READ IT: `ci-gate` IS A REQUIRED STATUS CHECK ON `main`.** `ci-gate` is the
+  workflow's terminal job — `if: always()`, `needs:` every other job, PASS only when each is `success` or
+  `skipped` — and it is the ONE stable check name the protection can require (every matrix job's check name
+  carries its shard AND its filter text, and every one of them is skipped on a docs-only push). Protection is
+  `strict: false`, `enforce_admins: true`, force-pushes and deletions off. So the landing gate is a SCRIPT, not a
+  habit: **`bash scripts/push-main.sh`** pushes HEAD to `ci/<short-sha>`, waits for `ci-gate` on that sha, and only
+  then fast-forwards main — a bare `git push origin HEAD:main` of an unverified commit is refused by the server
+  (owner decision 2026-09-06, question 23; `kb/Work/PB796`). It is idempotent: re-run it after a timeout.
+- ⚠ **A docs-only push runs `changes` + `ci-gate` and nothing else** — seconds, not a matrix. `paths-ignore` was
+  removed because a workflow that declines to START leaves a required per-commit check unsatisfiable; the same
+  path list now lives in the `changes` job, one layer down, where it decides whether the MATRIX runs.
 
 `guard-fast.sh` is **not** CI-complete: CI builds Release, local builds Debug. Any change whose semantics differ by
 build configuration gets a local `-c Release` leg before push. Better: do not write configuration-divergent

@@ -86,10 +86,38 @@ derive their population AND their expected verdict from `tests/nist/corpus.tsv`.
 that structurally (guard population ⊇ every asserted program, ⊆ the manifest, surplus only `pending` rows, and
 neither guard hard-coding a CLI path); `guard-nist-audit.sh` asserts it dynamically, per program, per compiler.
 
-### 1.4 CI (`.github/workflows/build-and-test.yml`, 4 concurrent jobs)
-`guard` (COBOL.NET parallel NIST + legacy unit/integration, ubuntu) · `greenfield-tests` (conformance+unit, ubuntu) ·
-`inv1-sweep` (permissive continuity, ubuntu) · `windows-build-test` (Release warnings-as-errors + all four suites).
-NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
+### 1.4 CI (`.github/workflows/build-and-test.yml`) — a gated matrix behind ONE required check
+Ten jobs. `changes` decides whether the matrix runs at all; then, concurrently, `guard` (COBOL.NET parallel NIST +
+legacy unit/integration, ubuntu) · `greenfield-conformance` (ubuntu, 6 shards) · `greenfield-unit` (ubuntu) ·
+`windows-conformance` (windows, the same 6 shards, Release) · `conformance-population` (the shard-sum guard) ·
+`inv1-strong-2023` · `windows-build-test` (Release warnings-as-errors) · `legacy-oracle` (schedule/dispatch only);
+and finally `ci-gate`. NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
+
+**⛔ `ci-gate` is a REQUIRED status check on `main`** (owner decision 2026-09-06, question 23; `kb/Work/PB796`),
+with `enforce_admins: true` — an administrator exemption would be worthless when every push to this repository is
+made with the owner's credentials. It is the terminal job: `if: always()`, `needs:` every other job, and it PASSES
+only when each of them is `success` or `skipped` (a whitelist, so `cancelled` and any future result value fail).
+It is the only name in the file a protection rule can require — the conformance jobs are matrices whose check
+names carry the shard AND its filter text (`Greenfield conformance (Linux, sharded) (corpus-nist, FullyQualified…`,
+measured on `5bf5a7f1`), so any shard edit renames the context, and every matrix job is skipped on a docs-only
+push, which a required check reads as "never reported".
+
+**The doc-only skip moved one layer down.** `paths-ignore` used to make the workflow decline to START for a
+`DEVLOG.md` / `docs/**` / `kb/**` / `PROMPT.md` / `CLAUDE.md` / `README.md` push — incompatible with a per-commit
+required check, which has nothing to satisfy when no run exists. The identical list now lives in `changes` (one
+copy, no trigger-side twin to drift against), which diffs `github.event.before .. github.sha` and outputs
+`run_matrix`; every other job carries `needs: changes` + `if: needs.changes.outputs.run_matrix == 'true'`. When
+`before` is unusable — which is EVERY landing, since `ci/<short-sha>` is always a new branch — the base is
+`merge-base(origin/main, sha)`. `changes` also short-circuits a sha that already carries a green `ci-gate` check
+run, so the fast-forward onto main does not pay for the matrix a second time, and it carries the drift check that
+asserts every job id is in `ci-gate`'s `needs` list.
+
+**The landing protocol is `scripts/push-main.sh`, and it is the only way a commit reaches main**: push HEAD to
+`ci/<short-sha>` → find the run for that exact sha → `gh run watch --exit-status` → on green fast-forward main and
+delete the branch, on red print the failing jobs and exit non-zero with main untouched. A check run is attached to
+the COMMIT, not to a branch, which is why the verdict earned on `ci/<sha>` is the one the protection reads on main.
+The push trigger is therefore `branches: [ main, 'ci/**' ]`; `cancel-in-progress` is restricted to `pull_request`,
+because a cancelled push run leaves its sha permanently unlandable.
 
 ### 1.5 Drift discipline (a genuine strength — preserve it)
 `ConstructRegistryDriftTests` binds `constructs.json` ↔ in-code `ConstructRegistry` both directions;

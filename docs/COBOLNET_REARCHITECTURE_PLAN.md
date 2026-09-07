@@ -855,9 +855,13 @@ a dispatch cannot show.
 `main` kills the run in flight. A full run is ~25 min; four commits landed inside that window on 2026-08-07 and
 **three of the four runs read `cancelled`** (the fast legs — Guard, INV-1-strong — had already reported success;
 Greenfield and Windows never finished). ⛔ **Do not read those as reds, and do not read the surviving run as
-per-commit coverage:** it validates the CUMULATIVE tree, so a red would need a bisect to attribute. The setting
-is correct for a busy branch — the alternative is a queue of stale runs — so the discipline is on the reading,
-not the config. When per-commit attribution actually matters (a bump, a shared-grammar change), let the run
+per-commit coverage:** it validates the CUMULATIVE tree, so a red would need a bisect to attribute. ⚙ **SUPERSEDED 2026-09-06 (question 23): a PUSH is never cancelled any more.** `cancel-in-progress` is now
+`${{ github.event_name == 'pull_request' }}`, because with `ci-gate` a REQUIRED per-commit check a cancelled run
+leaves its sha permanently unlandable — and a `cancelled` row is precisely what a skim reads as "not a failure".
+A pull_request run is superseded the moment its head moves, so cancelling THAT costs no coverage. Landing
+branches are sha-named (`ci/<short-sha>`), so two landings never share a concurrency group in the first place.
+The paragraph above is kept because its READING lesson still holds for the historical runs it describes; the
+setting it describes is no longer the one in the file. When per-commit attribution actually matters (a bump, a shared-grammar change), let the run
 finish before pushing again, exactly as the actions-version bump did.
 
 ⛔ **THE STANDING FACT THE OUTAGE MADE VISIBLE: `bash scripts/battery.sh` IS NOT A SUPERSET OF CI.** The battery
@@ -1820,6 +1824,18 @@ result. Run the long legs ONE AT A TIME.
   --log-failed` on a red; `scripts/session-probe.ps1` prints the latest conclusion every session. ⚙ EARNED
   2026-09-05/06 — main was red for 29 h across 16 consecutive completed runs while every landing reported this
   gate green ([[PB796]]).
+  ⛔ **AND SINCE 2026-09-06 THE SERVER ENFORCES IT: `ci-gate` IS A REQUIRED STATUS CHECK ON `main`** (owner
+  decision, question 23), with `enforce_admins: true` — an administrator exemption would be worthless here, since
+  every push to this repository is made with the owner's credentials, so the orchestrator's own pushes obey it
+  too. `ci-gate` is the workflow's terminal job (`if: always()`, `needs:` every other job, PASS only when each is
+  `success` or `skipped`); it is the only stable check name in the file, because every matrix job's check name
+  carries its shard and its filter text and every one of them is skipped on a docs-only push.
+  **The landing command is `bash scripts/push-main.sh`** — it pushes HEAD to `ci/<short-sha>`, waits for `ci-gate`
+  on that exact sha, and only then fast-forwards main and deletes the branch; a red prints the failing jobs and
+  exits non-zero with main untouched. It is idempotent, so a caller cut off by a command timeout re-runs it.
+  ⚠ `paths-ignore` is GONE from the workflow — it made the workflow decline to START, which a required per-commit
+  check reads as "blocked forever" — and the same path list now lives in the first job, `changes`, where it decides
+  whether the MATRIX runs. A docs-only push therefore still produces a run; it is `changes` + `ci-gate`, seconds.
 - **The legacy differential is OPT-IN** (`COBOLSHARP_LEGACY_DIFFERENTIAL=1`) and NO new `GreenfieldOnly` exclusions
   are added — greenfield registration alone suffices. The legacy engine + `guard.sh` survive ONLY for the P14
   Step-0 equivalence proof; deletion is P15.
