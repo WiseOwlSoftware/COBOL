@@ -45,9 +45,10 @@ note() { echo "$1" | tee -a "$SUMMARY"; }
 
 # ⛔ PHASE -1: THE STATIC CITATION AUDITS. They take a second, they need no build, and they are the only gate
 # that can see a WRONG CLAUSE NUMBER — the defect CLAUDE.md rule 1 exists for, which no test can ever fail on
-# (`// MOVE (§14.9.24)` compiles perfectly; §14.9.24 is MERGE). Baseline is ZERO findings for BOTH; each has a
-# `--self-test` proving its checks still fail on a real defect. They need `specs/ISO_COBOL.md` for the phantom
-# check and announce a SKIP loudly if the private submodule is absent, so a green is never green-by-absence.
+# (`// MOVE (§14.9.24)` compiles perfectly; §14.9.24 is MERGE). Baseline is ZERO findings for ALL THREE; each
+# has a `--self-test` proving its checks still fail on a real defect. The first two need `specs/ISO_COBOL.md`
+# for the phantom check and announce a SKIP loudly if the private submodule is absent, so a green is never
+# green-by-absence; the third reads only the tree it checks against and asserts its own population instead.
 #
 # ⛔ AND THERE ARE TWO OF THEM, BECAUSE ONE OF THEM RAN FOR MONTHS WITH NOBODY READING IT. `audit_code_citations`
 # (clause vs CONSTRUCT) sat in this leg while its sibling `audit_doc_citations` (quoted fragment vs the clause it
@@ -63,6 +64,16 @@ python3 scripts/spec/audit_doc_citations.py --check >> "$OUT/citations.log" 2>&1
 DOCCIT=$?
 note "$(printf '%-16s %s' 'doc citations:' "$(grep -E '^⛔ [0-9]+ MISFILED' "$OUT/citations.log" | tail -1)")"
 [ "$DOCCIT" -eq 0 ] || { note "doc citations:   ⛔ misfiled — see $OUT/citations.log"; RC=1; }
+
+# ⛔ AND A THIRD, in the same leg for the same reason (kb/Work PB785). The two above check a citation of the
+# STANDARD; this one checks a FROZEN evidence file's citation of the TREE — `docs/rearchitecture/evidence/*.json`
+# is an agent's recorded output, never edited to stay current (both audits above skip the directory by name), so
+# a claim the tree has since refuted cannot be repaired and must carry a `superseded_by` marker instead. One of
+# those files told PB712's implementer that a refuted grammar "must NOT be re-implemented". No submodule needed.
+python3 scripts/spec/audit_evidence_supersession.py --check >> "$OUT/citations.log" 2>&1
+EVSUP=$?
+note "$(printf '%-16s %s' 'evidence:' "$(grep -E '^⛔ [0-9]+ UNMARKED' "$OUT/citations.log" | tail -1)")"
+[ "$EVSUP" -eq 0 ] || { note "evidence:        ⛔ unmarked refuted claims — see $OUT/citations.log"; RC=1; }
 
 el "=== PHASE 0: build the solution (once) ==="
 if ! dotnet build CobolSharp.sln -v quiet > "$OUT/build.log" 2>&1; then

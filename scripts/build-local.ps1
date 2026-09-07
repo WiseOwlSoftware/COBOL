@@ -17,12 +17,16 @@ Set-Location (Split-Path -Parent $PSScriptRoot)
 $Filter = [regex]::Replace($Filter, '(^|[|&(])(!=|=|~)', '$1FullyQualifiedName$2')
 $rc = 0
 # ⛔ THE CITATION AUDITS RUN FIRST, BEFORE THE BUILD — see the note in build-local.sh: a wrong § is the one
-# defect class no test can catch, the checks cost a second, and both baselines are zero. Two of them: clause vs
-# the CONSTRUCT the comment names, and a QUOTED fragment vs the clause it is filed under (kb/Work PB379).
+# defect class no test can catch, the checks cost a second, and every baseline is zero. THREE of them: clause vs
+# the CONSTRUCT the comment names, a QUOTED fragment vs the clause it is filed under (kb/Work PB379), and —
+# over the other half of the same problem — a FROZEN evidence file's citation of the TREE, which no one may
+# repair by editing the record, so it must be marked `superseded_by` instead (kb/Work PB785).
 python scripts/spec/audit_code_citations.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== CITATIONS: RED (see above) ==='; $rc = 1 }
 python scripts/spec/audit_doc_citations.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== DOC CITATIONS: RED (see above) ==='; $rc = 1 }
+python scripts/spec/audit_evidence_supersession.py --check
+if ($LASTEXITCODE -ne 0) { Write-Host '=== EVIDENCE SUPERSESSION: RED (see above) ==='; $rc = 1 }
 dotnet build CobolSharp.sln -v quiet
 if ($LASTEXITCODE -ne 0) { Write-Host '=== WAVE-LOCAL GATE: BUILD FAILED ==='; exit 1 }
 # ⛔ EVERY TERM OF THE FILTER MUST NAME A REAL TEST (kb/Work PB708) — the NO-VERDICT-LINE check on each

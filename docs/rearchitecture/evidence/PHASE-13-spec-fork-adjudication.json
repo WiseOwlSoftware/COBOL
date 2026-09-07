@@ -1,4 +1,5 @@
 {
+ "_frozen": "⛔ FROZEN EVIDENCE — this file is an agent's recorded output, the record of what was found WHEN IT WAS WRITTEN, and it is never edited to stay current (owner decision, kb/Work/PB785, 2026-09-06). Findings here are actioned through kb/Work/, never by editing the transcript, which is why scripts/spec/citation_corpus.py names this directory in its FROZEN tuple and both citation audits skip it. A claim the tree has since REFUTED carries a `superseded_by` object — note · devlog · date · why — as the FIRST key of the object holding it, so a reader meets the refutation BEFORE the claim; `python scripts/spec/audit_evidence_supersession.py --check` fails on any unmarked claim the current tree contradicts, and runs in build-local and battery.sh beside the two citation audits. ⚠ Every path:line coordinate below is a coordinate AS OF this file's own date — resolve the NAME, never the line number.",
  "adjudications": [
   {
    "fork": "C4-fork2-SR12-SR24-repeated-IS",

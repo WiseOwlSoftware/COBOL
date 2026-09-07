@@ -26,8 +26,15 @@ RC=0
 # baseline and a `--self-test` proving each check still fails on a real defect. They need `specs/ISO_COBOL.md`
 # for the phantom check and say so loudly when the submodule is absent — which is why they live HERE and in
 # battery.sh, and not in CI, where the checkout is `submodules: false`.
+# ⛔ AND A THIRD, over the OTHER half of the same problem (kb/Work PB785). The two above ask whether a citation
+# of the STANDARD is right; `audit_evidence_supersession` asks whether a FROZEN evidence file's citation of the
+# TREE is still true — `docs/rearchitecture/evidence/*.json` is a record that is never edited to stay current
+# (which is why both audits above skip it by name), and one of its `LANDED` verdicts is what told PB712's
+# implementer not to look. Same second of runtime, same proven-zero baseline, same `--self-test`. This one
+# needs no submodule — it reads the tree it is checking against.
 python scripts/spec/audit_code_citations.py --check || { echo "=== CITATIONS: RED (see above) ==="; RC=1; }
 python scripts/spec/audit_doc_citations.py --check || { echo "=== DOC CITATIONS: RED (see above) ==="; RC=1; }
+python scripts/spec/audit_evidence_supersession.py --check || { echo "=== EVIDENCE SUPERSESSION: RED (see above) ==="; RC=1; }
 dotnet build CobolSharp.sln -v quiet || { echo "=== WAVE-LOCAL GATE: BUILD FAILED ==="; exit 1; }
 # ⛔ EVERY TERM OF THE FILTER MUST NAME A REAL TEST (kb/Work PB708) — the NO-VERDICT-LINE check on each
 # leg is WHOLE-filter: it fires only when EVERY term is dead, so one dead term OR'd among live ones selects
