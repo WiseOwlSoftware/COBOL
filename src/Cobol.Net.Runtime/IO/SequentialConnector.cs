@@ -463,12 +463,40 @@ public sealed class SequentialConnector : FileConnector
     /// <remarks>Both §9.1.7.2 types of sequential file — record sequential and line sequential — record this
     /// ONE organization, because §9.1.6 names exactly three ("There are three organizations: sequential,
     /// relative, and indexed") and the delimiter that separates the two types is §9.1.6's SEPARATELY listed
-    /// <i>record delimiter</i>, not a fourth organization. The delimiter is deliberately outside the
-    /// §14.9.27.4 GR10 validated set — see <see cref="FixedFileAttributes.Conflicts"/>: on a sequential medium
-    /// the standard answers a delimiter or record-length disagreement with a SUCCESSFUL completion (§9.1.13.2
-    /// item 5's '06', item 3's '04'), not with a refused OPEN, and re-reading a print or report file under a
-    /// line-sequential description is exactly the idiom those statuses are for.</remarks>
-    protected override string CatalogOrganization => FixedFileAttributes.Sequential;
+    /// <i>record delimiter</i>, not a fourth organization. Neither sequential format RECORDS this organization
+    /// on the medium — a fixed-length record sequential file is plain bytes and a line sequential file is plain
+    /// text — so it is never compared either; see <see cref="FixedAttributeConflict"/>.</remarks>
+    protected override string DeclaredOrganization => FixedFileAttributes.Sequential;
+
+    /// <inheritdoc/>
+    /// <remarks>⛔ THE SEQUENTIAL ORGANIZATION'S WHOLE §14.9.27.4 GR10 ANSWER, and it is ONE question: does a
+    /// RECORD VARYING record-sequential file's own record-length framing PARSE? Nothing else about a sequential
+    /// file is recorded on the medium to be contradicted.
+    /// <list type="bullet">
+    /// <item><b>Fixed-length record sequential — nothing.</b> §9.1.7.2: "In record sequential files the length
+    /// of each record is determined by any information the implementor may add to the record on the physical
+    /// storage medium (such as record length headers)", and this processor adds none to a fixed-length one. The
+    /// file is plain bytes and states no §9.1.6 attribute at all.</item>
+    /// <item><b>Line sequential — nothing.</b> §9.1.7.2: "In line sequential files the length of each record is
+    /// determined by the number of characters between the preceding line delimiter and the following line
+    /// delimiter or the end of file if no line delimiter is present". Delimiters encode no attribute, and the
+    /// file being plain text is the interchange property the shape exists for.</item>
+    /// <item><b>RECORD VARYING record sequential — the prefix.</b> The 4-byte length prefix IS §9.1.7.2's
+    /// "record length header", so a file whose first prefix names more bytes than the file holds is not a framed
+    /// file and the declared VARIABLE record type contradicts the medium: '39'
+    /// (<see cref="RecordFraming.StreamFramingParses"/> carries the rule and its boundaries).</item>
+    /// </list>
+    /// <para>⛔ THE RECORD SIZES ARE NOT COMPARED, ON ANY SEQUENTIAL FILE, AND THAT IS A DETERMINATION RATHER
+    /// THAN AN OMISSION. §9.1.13.2 answers every disagreement a sequential re-read can produce with a SUCCESSFUL
+    /// completion — item 3's '04' ("A READ statement is successfully executed but the physical record from the
+    /// file is shorter than or longer than the minimum or maximum length of records allowed for the fixed file
+    /// attributes for that file"), item 5's '06' and item 7's '09' — and writing a print, report or extract file
+    /// and reading it back under a different record description is exactly the idiom those three exist for. It
+    /// was MEASURED: a validated record size took six conforming programs of this repository's own corpus red,
+    /// one of them into an infinite READ loop. <see cref="RecordLayoutNotice"/> is the one mechanism for the
+    /// arithmetic case, and it leaves the I-O status alone.</para></remarks>
+    protected override bool FixedAttributeConflict() =>
+        IsVarying && !_lineSequential && !RecordFraming.StreamFramingParses(HostPath);
 
     /// <summary>§14.9.6.4 GR2 a) — <i>"A file whose input or output medium is such that the concepts of rewind
     /// and units have no meaning."</i> A sequential connector holds one <see cref="FileConnector.HostPath"/> on

@@ -187,7 +187,7 @@ public static class HostFile
     /// (<see cref="PathTooLongException"/>), or malformed (<see cref="ArgumentException"/>,
     /// <see cref="NotSupportedException"/>) — likewise names no present file. That is a statement about the
     /// PATH, not an input-output failure, so it belongs with Absent rather than with '30'; it is also the
-    /// reading <c>FixedFileAttributes.Load</c> already takes, and the answer <c>File.Exists</c> gave.</para>
+    /// reading <c>RecordFraming.ReadHeader</c> already takes, and the answer <c>File.Exists</c> gave.</para>
     /// <para>Every OTHER <see cref="IOException"/> PROPAGATES on purpose: §9.1.13.6 item 1's '30' (<i>"A
     /// permanent error exists and no further information is available concerning the input-output
     /// operation"</i>) is mapped in exactly ONE place — <see cref="FileConnector.Open"/>'s catch — and a probe
@@ -267,7 +267,7 @@ public static class HostFile
 
     /// <summary>A SHORT-LIVED stream the runtime opens for its own bookkeeping over a host path — the write-base
     /// measurement of a shared <c>OPEN EXTEND</c>, a keyed store's whole-file load/persist, the fixed-attribute
-    /// sidecar. It is <b>always</b> <see cref="FileShare.ReadWrite"/>, and the reason is not permissiveness for
+    /// store header. It is <b>always</b> <see cref="FileShare.ReadWrite"/>, and the reason is not permissiveness for
     /// its own sake: the path may already be held open by a file connector OF THIS RUN UNIT, and a handle's
     /// share mode has to admit the access every outstanding handle already holds or the operating environment
     /// refuses it. A refusal here is a failure the COBOL statement never asked for — §9.1.15 and §14.9.27.4

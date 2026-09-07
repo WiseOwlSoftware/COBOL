@@ -25,7 +25,8 @@ namespace CobolNet.Runtime.IO;
 /// (3) the remaining C0 controls are the stream/device repertoire, not text — NUL terminates a host string,
 /// SUB (0x1A) marks end-of-file on DOS-descended hosts, VT/FF are page controls, ESC introduces an escape
 /// sequence — and a line sequential file exists to BE plain text and interchange with non-COBOL tools (the same
-/// property that made <see cref="FixedFileAttributes"/> a sidecar rather than a header);
+/// property that keeps a sequential file's §9.1.6 fixed file attributes out of the §14.9.27.4 GR10 validated set
+/// altogether — a line sequential file records none, because recording one would stop it being plain text);
 /// (4) ⚖ surveyed, not assumed (the owner's standing latitude rule): GnuCOBOL's <c>COB_LS_VALIDATE</c> defaults
 /// to true "per COBOL 2022" and validates "that the data should be validated as it is read (status 09) /
 /// written (status 71)", treating data below SPACE as invalid — the same boundary, and the same two statuses.

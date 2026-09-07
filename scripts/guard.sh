@@ -69,10 +69,10 @@ trap cleanup_guard_work EXIT
 # status 05 = "not present, created") must NOT see the file they themselves created on a previous invocation;
 # without this start-clean such a test passes once then fails forever. Only data/report .txt files are
 # removed — the compiled .dll/.runtimeconfig.json stay.
-# ⚠ `*.cbattr` goes with them: COBOL.NET's runtime keeps a fixed file's catalog in a `<datafile>.cbattr`
-# SIDECAR (Cobol.Net.Runtime FixedFileAttributes), so removing only `*.txt` would leave an orphan sidecar
-# describing a file that no longer exists — exactly the state the absent-OPTIONAL-file canaries test.
-rm -f $NIST_OUT/*.txt $NIST_OUT/*.cbattr
+# (`*.cbattr` used to go with them — the fixed-file-attribute catalog sidecar, whose orphan would have described
+# a file that no longer existed, exactly the state the absent-OPTIONAL-file canaries test. It no longer exists:
+# owner decision 2026-09-07, kb/Work PB802, put a keyed file's §9.1.6 attributes in the store's own header.)
+rm -f $NIST_OUT/*.txt
 
 # All NIST tests currently at 100% — must stay green
 # (93 NC + 42 IF + 15 SM + 18 IC + 83 SQ + 28 RL + 39 IX + 29 ST + 3 OBSQ = 350 tests).

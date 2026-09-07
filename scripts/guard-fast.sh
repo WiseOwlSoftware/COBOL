@@ -106,12 +106,13 @@ OUT="tests/nist/output"
 mkdir -p "$OUT"
 # Clear stale compiled output first so a compile FAILURE leaves NO .dll -> the run reports COMPILE FAILED instead
 # of silently running a previous run's binary (a stale-dll false green).
-# ⚠ `*.cbattr` and `*.g.cs` are greenfield artefacts and must be cleaned with everything else: COBOL.NET's
-# runtime stores a fixed file's catalog in a `<datafile>.cbattr` SIDECAR (Cobol.Net.Runtime FixedFileAttributes),
-# so a stale sidecar can outlive the data file the old `*.txt` sweep removed; and `cobol` writes the generated
-# C# next to each output assembly, where a stale copy would mislead a post-mortem.
+# ⚠ `*.g.cs` is a greenfield artefact and must be cleaned with everything else: `cobol` writes the generated
+# C# next to each output assembly, where a stale copy would mislead a post-mortem. (`*.cbattr` used to be swept
+# here too — the fixed-file-attribute catalog sidecar. It no longer exists: owner decision 2026-09-07,
+# kb/Work PB802, put a keyed file's §9.1.6 attributes in the store's own header, so nothing outlives the data
+# file the `*.txt` sweep removes.)
 rm -f "$OUT"/*.dll "$OUT"/*.runtimeconfig.json "$OUT"/*.txt "$OUT"/*.compile.log "$OUT"/*.compile.rc \
-      "$OUT"/*.cbattr "$OUT"/*.g.cs
+      "$OUT"/*.g.cs
 cp "$GUARD_RUNTIME_DLL" "$OUT/"
 
 # (1) Parallel compile — fully independent (distinct .dll/.runtimeconfig.json per test, no shared run state).

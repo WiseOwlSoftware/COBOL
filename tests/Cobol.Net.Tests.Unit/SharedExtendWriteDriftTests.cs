@@ -35,8 +35,9 @@ public sealed class SharedExtendWriteDriftTests
 
     private static void TryDelete(string host)
     {
-        foreach (string p in new[] { host, host + ".cbattr" })
-            try { File.Delete(p); } catch (IOException) { }
+        // ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file attributes
+        // are the store header INSIDE it, so deleting the data file deletes them.
+        try { File.Delete(host); } catch (IOException) { }
     }
 
     /// <summary>The sharing spellings that make a connector a §9.1.15 participant, reusing

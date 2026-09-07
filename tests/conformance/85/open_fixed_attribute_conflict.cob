@@ -28,23 +28,36 @@
       *>   sequential, relative, and indexed". The indexed key
       *>   attributes are the 2023 twin, ..._conflict_ix.
       *>
-      *>   PART B (steps 10-13), a SEQUENTIAL subject. A sequential file
-      *>   validates NOTHING beyond the organization, because §9.1.7.2
-      *>   puts its record lengths in the data and in the reading
-      *>   program rather than in the file — "In record sequential files
-      *>   the length of each record is determined by any information
-      *>   the implementor may add to the record on the physical storage
-      *>   medium (such as record length headers)", and COBOL.NET adds
-      *>   none to a fixed-length record sequential file — and because
-      *>   the standard answers the resulting disagreement with a
-      *>   SUCCESSFUL completion: §9.1.13.2 item 3, "I-O status = 04. A
-      *>   READ statement is successfully executed but the physical
-      *>   record from the file is shorter than or longer than the
-      *>   minimum or maximum length of records allowed for the fixed
-      *>   file attributes for that file." Step 12 shows that '04'
-      *>   happening where a '39' at step 11 would have made it
-      *>   unreachable. Step 13 shows the organization is still
-      *>   validated for a sequential file.
+      *>   PART B (steps 10-13), a FIXED-LENGTH SEQUENTIAL subject.
+      *>   Such a file is PLAIN BYTES and records NOTHING, so nothing
+      *>   about it is validated: §9.1.7.2 puts its record lengths
+      *>   in the data and in the reading program rather than in the
+      *>   file — "In record sequential files the length of each
+      *>   record is determined by any information the implementor may
+      *>   add to the record on the physical storage medium (such as
+      *>   record length headers)", and COBOL.NET adds none to a
+      *>   fixed-length record sequential file — and the standard
+      *>   answers the resulting disagreement with a SUCCESSFUL
+      *>   completion: §9.1.13.2 item 3, "I-O status = 04. A READ
+      *>   statement is successfully executed but the physical record
+      *>   from the file is shorter than or longer than the minimum or
+      *>   maximum length of records allowed for the fixed file
+      *>   attributes for that file." Step 12 shows that '04' happening
+      *>   where a '39' at step 11 would have made it unreachable.
+      *>   Step 13 shows the direction the FORMAT CAN see: a plain byte
+      *>   stream carries no store header, so a RELATIVE description
+      *>   cannot interpret it at all.
+      *>
+      *>   PART C (steps 14-16), a RECORD VARYING SEQUENTIAL subject.
+      *>   §9.1.7.2's "such as record length headers" is exactly what
+      *>   COBOL.NET adds to a VARYING record-sequential file — a
+      *>   4-byte little-endian length prefix per record, by the method
+      *>   §12.4.5.11.4 GR5 leaves to the implementor ("If the RECORD
+      *>   DELIMITER clause is not specified, the method used for
+      *>   determining the length of a variable-length record is
+      *>   specified by the implementor") — so that prefix is the one
+      *>   §9.1.6 attribute a sequential file DOES record, and the
+      *>   whole of what GR10 compares for one.
       *>
       *> The rule is version-invariant (inventory row GR-14.9.27.4-10:
       *> 85, 2002, 2014, 2023), so it is pinned at the OLDEST edition
@@ -97,6 +110,19 @@
                ORGANIZATION IS RELATIVE
                ACCESS MODE IS SEQUENTIAL
                FILE STATUS IS GR-ST.
+      *> PART C. A RECORD VARYING description over PART B's plain
+      *> 40-byte file, whose bytes are not a record-length framing.
+           SELECT G-VARY ASSIGN TO "opnfat85b.dat"
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS GV-ST.
+      *> PART C's own subject: a varying file COBOL.NET writes.
+           SELECT H-VARY ASSIGN TO "opnfat85c.dat"
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS HV-ST.
+      *> The same file through a WIDER minimum — the '04' boundary.
+           SELECT J-VARY ASSIGN TO "opnfat85c.dat"
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS JV-ST.
        DATA DIVISION.
        FILE SECTION.
        FD F-MAKE.
@@ -117,6 +143,18 @@
        01 GW-REC PIC X(30).
        FD G-REL.
        01 GR-REC PIC X(20).
+       FD G-VARY
+           RECORD IS VARYING IN SIZE FROM 5 TO 40 CHARACTERS
+               DEPENDING ON GV-LEN.
+       01 GV-REC PIC X(40).
+       FD H-VARY
+           RECORD IS VARYING IN SIZE FROM 5 TO 40 CHARACTERS
+               DEPENDING ON HV-LEN.
+       01 HV-REC PIC X(40).
+       FD J-VARY
+           RECORD IS VARYING IN SIZE FROM 30 TO 40 CHARACTERS
+               DEPENDING ON JV-LEN.
+       01 JV-REC PIC X(40).
        WORKING-STORAGE SECTION.
        01 MK-ST PIC XX.
        01 BG-ST PIC XX.
@@ -127,6 +165,12 @@
        01 GM-ST PIC XX.
        01 GW-ST PIC XX.
        01 GR-ST PIC XX.
+       01 GV-ST PIC XX.
+       01 GV-LEN PIC 9(4).
+       01 HV-ST PIC XX.
+       01 HV-LEN PIC 9(4).
+       01 JV-ST PIC XX.
+       01 JV-LEN PIC 9(4).
        PROCEDURE DIVISION.
        MAIN-P.
       *> 1. Create PART A's subject. GR18: the OPEN OUTPUT creates the
@@ -146,13 +190,36 @@
       *>    item 7).
            OPEN INPUT F-BIG
            DISPLAY "S2-BIGGER=" BG-ST
-      *> 3. ORGANIZATION SEQUENTIAL against a RELATIVE file — §9.1.6's
-      *>    primary attribute differs, and it is validated for EVERY
-      *>    organization: '39'. This is PB193's reproduction — before
-      *>    the catalog existed this OPEN returned '00' and delivered
-      *>    an empty record.
+      *> 3. ORGANIZATION SEQUENTIAL against a RELATIVE file, and it is
+      *>    NOT a conflict: '00'. — THIS IS WHAT OWNER DECISION
+      *>    2026-09-07 GIVES UP (kb/Work PB802: "Let's match GNUCobol's
+      *>    implementation in spirit. No sidecar of any type."), and it
+      *>    is pinned so that it stays a DECISION rather than becoming
+      *>    a regression nobody noticed. GR10 compares the connector
+      *>    with "the fixed file attributes of the file", and a
+      *>    fixed-length record sequential file is plain bytes that
+      *>    record none — so nothing in this file contradicts this
+      *>    description. The catalog sidecar that used to answer '39'
+      *>    here was a second artifact beside the data file; with it
+      *>    gone, what survives is step 13's REVERSE direction (a plain
+      *>    file opened through a RELATIVE FD has no store header and
+      *>    is still '39') and RecordLayoutNotice's stderr report that
+      *>    the byte count is not a whole multiple of 20.
            OPEN INPUT F-SEQ
            DISPLAY "S3-SEQUENTIAL=" SQ-ST
+      *>    What the successful OPEN then admits is the STORE'S OWN
+      *>    BYTES read as 20-character records — the misread this
+      *>    rule used to prevent, and the one RecordLayoutNotice
+      *>    reports on stderr above. ⛔ The CLOSE is load-bearing: an
+      *>    OPEN that was unsuccessful left NO connector open, so
+      *>    step 6's OPEN OUTPUT on this same physical file would
+      *>    otherwise meet a §9.1.15 sharing conflict ('61') instead
+      *>    of GR18's creation.
+           READ F-SEQ
+               AT END DISPLAY "S3-UNEXPECTED-AT-END"
+           END-READ
+           DISPLAY "S3B-SEQ-READ=" SQ-ST
+           CLOSE F-SEQ
       *> 4. Every validated attribute agrees: the OPEN succeeds ('00')
       *>    and the file reads normally. Without this direction the
       *>    check could pass by rejecting everything.
@@ -229,9 +296,50 @@
                AT END DISPLAY "S12C=EOF"
            END-READ
            CLOSE G-WIDE
-      *> 13. The sequential set is not EMPTY: the organization is
-      *>     validated for a sequential file too, so a RELATIVE
-      *>     description over it is still '39'.
+      *> 13. The direction the FORMAT records: a RELATIVE description
+      *>     over a plain byte stream finds no store header, so it
+      *>     cannot interpret the file at all — '39'.
            OPEN INPUT G-REL
            DISPLAY "S13-SEQ-AS-RELATIVE=" GR-ST
+      *> 14. PART C. A RECORD VARYING description over PART B's plain
+      *>     40-byte file. Its first four bytes are the DATA "ABCD",
+      *>     which as a little-endian length prefix name 1,145,258,561
+      *>     bytes the 40-byte file does not hold — so the file is not
+      *>     framed, the connector's declared VARIABLE record type
+      *>     contradicts the medium, and GR10's comparison fails: '39'
+      *>     (§9.1.13.6 item 7).
+           OPEN INPUT G-VARY
+           DISPLAY "S14-VARY-FOREIGN=" GV-ST
+      *> 15. The other direction, without which the check could pass by
+      *>     refusing every varying file: a varying file COBOL.NET
+      *>     itself wrote parses, so the OPEN succeeds and the record
+      *>     comes back at the length it was written (§13.18.43 GR13,
+      *>     reported by GR15 in the DEPENDING ON item).
+           OPEN OUTPUT H-VARY
+           MOVE 5 TO HV-LEN
+           MOVE "HELLO" TO HV-REC
+           WRITE HV-REC
+           CLOSE H-VARY
+           DISPLAY "S15-VARY-MAKE=" HV-ST
+           OPEN INPUT H-VARY
+           DISPLAY "S15-VARY-OPEN=" HV-ST
+           READ H-VARY
+               AT END DISPLAY "S15-UNEXPECTED-AT-END"
+           END-READ
+           DISPLAY "S15-VARY-READ=" HV-ST " LEN=" HV-LEN
+           CLOSE H-VARY
+      *> 16. THE BOUNDARY OF THE RULE. The same file through a
+      *>     description whose MINIMUM is 30: the prefix still PARSES
+      *>     (it names 5 bytes and the file holds them), so there is no
+      *>     file attribute conflict and the OPEN succeeds. The
+      *>     disagreement is the READ's, and the standard answers it
+      *>     with §9.1.13.2 item 3's '04' — a SUCCESSFUL completion
+      *>     that a '39' at this OPEN would have made unreachable.
+           OPEN INPUT J-VARY
+           DISPLAY "S16-VARY-BOUNDS-OPEN=" JV-ST
+           READ J-VARY
+               AT END DISPLAY "S16-UNEXPECTED-AT-END"
+           END-READ
+           DISPLAY "S16-VARY-BOUNDS-READ=" JV-ST
+           CLOSE J-VARY
            STOP RUN.

@@ -250,7 +250,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx", FileOpenMode.Output)]
     public void OpenAWriteMode_PresentButNotWritable_Is37(string organization, FileOpenMode mode)
     {
-        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
+        if (NotWritable(organization) is not { } witness) { NoPrecondition(); return; }
         var reg = Register(organization, witness, optional: false);
         reg.OpenStatic("F", mode);
         Assert.Equal("37", reg.Status("F"));
@@ -265,7 +265,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx")]
     public void OpenIo_PresentButNotWritable_OptionalFile_IsStill37(string organization)
     {
-        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
+        if (NotWritable(organization) is not { } witness) { NoPrecondition(); return; }
         var reg = Register(organization, witness, optional: true);
         reg.OpenStatic("F", FileOpenMode.IO);
         Assert.Equal("37", reg.Status("F"));
@@ -278,7 +278,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [Fact]
     public void TheRefusedOpenLeavesTheFileUnaffected()
     {
-        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
+        if (NotWritable("idx") is not { } witness) { NoPrecondition(); return; }
         byte[] before = File.ReadAllBytes(witness);
         DateTime stamp = File.GetLastWriteTimeUtc(witness);
         var reg = Register("idx", witness, optional: false);
@@ -298,7 +298,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     [InlineData("idx")]
     public void OpenInput_PresentButNotWritable_StillOpens(string organization)
     {
-        if (NotWritable() is not { } witness) { NoPrecondition(); return; }
+        if (NotWritable(organization) is not { } witness) { NoPrecondition(); return; }
         var reg = Register(organization, witness, optional: false);
         reg.OpenStatic("F", FileOpenMode.Input);
         Assert.Equal("00", reg.Status("F"));
@@ -536,10 +536,32 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     /// <c>HostFile.PermitsWrite</c>: checking the precondition with the subject under test would let a broken
     /// subject certify its own premise. A <c>null</c> return is asserted about, not assumed — see
     /// <see cref="NoPrecondition"/> and <see cref="TheCapabilityHelpersWorkOnThisHost"/>.</para></summary>
-    private string? NotWritable()
+    /// <summary>⛔ THE WITNESS HAS TO BE A FILE THE ORGANIZATION UNDER TEST CAN ACTUALLY INTERPRET, or the test
+    /// establishes TWO contradictions and measures the wrong one. Every witness here used to be the plain text
+    /// <c>"HELLO-RECORD-0001"</c>, shared by all three organizations; since kb/Work PB802 a RELATIVE or INDEXED
+    /// connector reads its §9.1.6 fixed file attributes from the framed store's own HEADER, so a plain text file
+    /// opened through one of those descriptions is a §14.9.27.4 GR10 file attribute conflict — '39' — and GR10
+    /// is answered BEFORE GR16's capability question, which is what these tests are about. So a keyed witness is
+    /// CREATED THROUGH ITS OWN ORGANIZATION first (an OPEN OUTPUT establishes the attributes, GR18) and only
+    /// then denied; the ACL is then the only thing wrong with it, which is the whole point of the fixture.
+    /// <para>A record-sequential witness stays plain text, because plain bytes ARE that organization's format
+    /// (§9.1.7.2) — nothing about it can contradict a description.</para>
+    /// <para>The geometry matches <see cref="Register"/>'s exactly (17-byte records; relative key digits 4;
+    /// indexed prime key at 0 for 4), so the record sizes and the key table agree too and the ONLY question the
+    /// OPEN can fail on is the capability one.</para></summary>
+    private static void MakeInterpretableSubject(string organization, string witness)
     {
-        string witness = Path.Combine(_root, "readonly.dat");
-        if (!File.Exists(witness)) File.WriteAllText(witness, "HELLO-RECORD-0001");
+        if (organization == "seq") { File.WriteAllText(witness, "HELLO-RECORD-0001"); return; }
+        var reg = Register(organization, witness, optional: false);
+        reg.OpenStatic("F", FileOpenMode.Output);
+        Assert.Equal("00", reg.Status("F"));   // the subject must really have been created
+        reg.Close("F");
+    }
+
+    private string? NotWritable(string organization = "seq")
+    {
+        string witness = Path.Combine(_root, $"readonly-{organization}.dat");
+        if (!File.Exists(witness)) MakeInterpretableSubject(organization, witness);
         bool applied;
         string detail;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

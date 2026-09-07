@@ -48,11 +48,40 @@ public sealed class FileRegistry
 
     // ── Run-unit lifecycle ───────────────────────────────────────────────────────────────────────────────────
 
+    /// <summary>⛔ THE DOCUMENTED RUNTIME OPT-OUT FROM THE INDEXED KEY CHECK — GnuCOBOL's <c>COB_KEYCHECK=OFF</c>
+    /// under this repository's own naming, and part of the Annex A.1 item 129 determination rather than an
+    /// escape from it (docs/CONFORMANCE.md row <c>DOC-A.1-129</c>; owner decision 2026-09-07, kb/Work PB802).
+    /// With it off, the key table leaves §14.9.27.4 GR10's validated set for the run and the organization,
+    /// record type and record sizes stay in it.
+    /// <para>⛔ <c>COBOLNET_</c>, NEVER <c>COBOL_</c>: <see cref="SwitchStore.Prefix"/> is <c>COBOL_</c>, so a
+    /// <c>COBOL_KEYCHECK</c> would fall inside the §12.3.7 external-switch FAMILY that
+    /// <see cref="RuntimeConfig"/> registers as a pattern. It belongs with <see cref="SystemClock.PinVariable"/>
+    /// in the <c>COBOLNET_</c> family, and <see cref="RuntimeConfig"/> lists it like every other variable the
+    /// runtime reads (<c>RuntimeConfigTests</c> refuses an unregistered one).</para></summary>
+    public const string KeyCheckVariable = "COBOLNET_KEYCHECK";
+
+    /// <summary>Whether this run unit validates an INDEXED file's key table on OPEN — see
+    /// <see cref="KeyCheckVariable"/>. Read ONCE per run unit: at construction and again in <see cref="Reset"/>,
+    /// which IS the run-unit boundary the runtime has (the emitted driver calls <c>CobolFile.Init()</c>), so an
+    /// OPEN never re-reads the environment and a run unit's answer cannot change under it mid-run.</summary>
+    public bool KeyCheck { get; private set; } = ReadKeyCheck();
+
+    /// <summary>Off for <c>OFF</c>, <c>0</c>, <c>FALSE</c> or <c>NO</c> (case-insensitive, trimmed) — the same
+    /// vocabulary <see cref="CacheConfig"/> and <see cref="CollationRuntime"/> already accept; on for anything
+    /// else and for an unset variable, because the check is the default and only an explicit request removes
+    /// it.</summary>
+    private static bool ReadKeyCheck() =>
+        Environment.GetEnvironmentVariable(KeyCheckVariable)?.Trim() is not { } v
+        || !(v.Equals("OFF", StringComparison.OrdinalIgnoreCase) || v == "0"
+             || v.Equals("FALSE", StringComparison.OrdinalIgnoreCase)
+             || v.Equals("NO", StringComparison.OrdinalIgnoreCase));
+
     /// <summary>Reset the registry (run-unit start): drain GC closes, close the sequential connectors (the
     /// pre-registry semantics — keyed connectors are dropped without a close, exactly as before), clear
     /// everything, restart the instance-key sequence, and clear the sharing registries.</summary>
     public void Reset()
     {
+        KeyCheck = ReadKeyCheck();   // a NEW run unit re-reads the environment (see KeyCheckVariable)
         DrainPendingObjectCloses();
         foreach (var c in _files.Values)
             if (c is SequentialConnector s)
@@ -161,7 +190,7 @@ public sealed class FileRegistry
         CloseDisplaced(cobolName);
         _files[cobolName] = new RelativeConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax)
-        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores };
+        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores, KeyCheck = KeyCheck };
     }
 
     /// <summary>Register a SELECTed INDEXED file with its PRIME key's (offset, length) range (§12.4.5.12).</summary>
@@ -174,7 +203,7 @@ public sealed class FileRegistry
         CloseDisplaced(cobolName);
         _files[cobolName] = new IndexedConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeCollation)
-        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores };
+        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores, KeyCheck = KeyCheck };
     }
 
     /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order, with its optional
@@ -634,15 +663,13 @@ public sealed class FileRegistry
                     catch (IOException ex) { status = FileStatusCode.ForDeleteFileFailure(ex); }         // '37' GR17 / '30'
                     break;
             }
-        // The physical file is gone, so its §9.1.6 fixed file attributes are gone with it: drop the catalog
-        // sidecar too, or it would outlive the file and be compared (§14.9.27.4 GR10) against a DIFFERENT file
-        // later created at the same path by something other than a COBOL.NET OPEN OUTPUT — which is exactly the
-        // "attributes not recorded" state FixedFileAttributes.Load answers null for. This is the ONE place a
-        // data file is deleted in the runtime (swept). The condition is the whole SUCCESS FAMILY, not just
-        // '00': GR14 makes '05' — the file was already absent — a SUCCESSFUL completion, and a sidecar left
-        // beside an already-absent file is the same stale catalog by another route. '37', '39', '41', '62' and
-        // '30' all leave the file in place, so they leave its attributes in place too.
-        if (status[0] == '0') FixedFileAttributes.Remove(c.HostPath);
+        // ⛔ NOTHING ELSE IS DELETED, and the absence is the design (kb/Work PB802). A physical file's §9.1.6
+        // fixed file attributes live IN THE FILE — RecordFraming's store header for a keyed file, nothing at all
+        // for a sequential one — so destroying the file destroys them, and there is no second artifact that
+        // could outlive it and be compared (§14.9.27.4 GR10) against a DIFFERENT file later created at the same
+        // path. Under the catalog sidecar this line had to delete a second file across the whole SUCCESS FAMILY
+        // (GR14's '05' included, since a stale catalog beside an already-absent file is the same defect by
+        // another route); with no sidecar the question does not arise.
         c.SetStatus(status);
         return status;
     }
@@ -658,9 +685,9 @@ public sealed class FileRegistry
     /// <para>The <paramref name="overridden"/> arm is therefore not dead code and must not be "simplified" away:
     /// GR18's second sentence ("If the OVERRIDE phrase is specified, the file attributes are not checked") is a
     /// guarantee the program is entitled to, and carrying it here is what makes a future NON-EMPTY set — the
-    /// persisted physical-attribute catalog OPEN still needs and does not have (kb/Work PB193) — a change to ONE
-    /// method instead of a silent behaviour change for every program that wrote OVERRIDE to opt out (kb/Work
-    /// PB196). A non-empty set plugs in below the guard, and nowhere else.</para></summary>
+    /// OPEN statement's own set is non-empty and reads the physical file's format (kb/Work PB193, PB802) — a
+    /// change to ONE method instead of a silent behaviour change for every program that wrote OVERRIDE to opt
+    /// out (kb/Work PB196). A non-empty set plugs in below the guard, and nowhere else.</para></summary>
     private static string? ValidateFixedFileAttributes(FileConnector c, bool overridden)
     {
         if (overridden) return null;   // GR18 — "the file attributes are not checked"

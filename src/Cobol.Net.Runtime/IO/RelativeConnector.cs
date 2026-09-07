@@ -76,7 +76,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// subordinate to the associated file-name"), it is a property of the referencing program rather than of the
     /// physical file, and §9.1.6's list does not name it. A too-small RELATIVE KEY item is the '14' the
     /// connector already reports (§9.1.13.4 item 2), not a file attribute conflict.</remarks>
-    protected override string CatalogOrganization => FixedFileAttributes.Relative;
+    protected override string DeclaredOrganization => FixedFileAttributes.Relative;
 
     /// <summary>§14.9.6.4 GR2 d) — <i>"A file with organization other than sequential, that resides on a mass
     /// storage device."</i> The category is settled by the ORGANIZATION alone, so it needs no medium
@@ -116,7 +116,7 @@ public sealed class RelativeConnector : KeyedConnector
             case FileOpenMode.Output:
                 Attach();
                 _st.Clear();                            // OPEN OUTPUT empties the SHARED view (kb/Work PB143)
-                RecordFraming.WriteStore(HostPath, []);          // a new physical file; records persist at CLOSE
+                RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);   // a new physical file; the header IS its §9.1.6 attributes
                 break;
             case FileOpenMode.IO:
                 if (!exists)
@@ -124,7 +124,7 @@ public sealed class RelativeConnector : KeyedConnector
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     Attach();
                     _st.Clear();
-                    RecordFraming.WriteStore(HostPath, []);      // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
+                    RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);   // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
@@ -136,7 +136,7 @@ public sealed class RelativeConnector : KeyedConnector
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     Attach();
                     _st.Clear();
-                    RecordFraming.WriteStore(HostPath, []);      // §14.9.27 GR17
+                    RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);   // §14.9.27 GR17
                     status = FileStatusCode.OptionalFileNotFound;
                 }
                 else Attach();
@@ -475,7 +475,7 @@ public sealed class RelativeConnector : KeyedConnector
         long max = _st.Highest;
         var frames = new string?[max];
         foreach (var (slot, rec) in _slots) frames[slot - 1] = rec;
-        RecordFraming.WriteStore(HostPath, frames, CodeSet);
+        RecordFraming.WriteStore(HostPath, DeclaredAttributes, frames, CodeSet);
     }
 
 }

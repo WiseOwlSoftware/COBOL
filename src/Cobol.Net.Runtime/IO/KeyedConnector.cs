@@ -50,4 +50,46 @@ public abstract class KeyedConnector : FileConnector
     /// <summary>The connector's ACCESS MODE (§12.4.5.5) — the sole discriminator of every keyed verb's branch;
     /// see the type remarks for why the open mode is never part of one.</summary>
     protected KeyedAccess Access { get; }
+
+    /// <summary>Whether this run unit validates the INDEXED key table (<see cref="FileRegistry.KeyCheckVariable"/>
+    /// — <c>COBOLNET_KEYCHECK=OFF</c> turns it off). Handed down by the registry at registration, exactly as
+    /// <see cref="FileConnector.SharedStores"/> is, so a connector never has to ask an ambient run unit which
+    /// registry it belongs to. A standalone connector (no registry) validates, the safe default.</summary>
+    internal bool KeyCheck { get; set; } = true;
+
+    /// <inheritdoc/>
+    /// <remarks>⛔ THE KEYED ORGANIZATIONS' §14.9.27.4 GR10 ANSWER: the framed store's HEADER is the physical
+    /// file's §9.1.6 fixed file attributes, so the comparison is that header against
+    /// <see cref="FileConnector.DeclaredAttributes"/> (<see cref="FixedFileAttributes.Conflicts"/> — the one
+    /// place the comparison is written). RELATIVE and INDEXED share this method because they share the format;
+    /// what differs between them is only what <see cref="FileConnector.DeclaredKeys"/> supplies, which is where
+    /// that difference belongs.
+    /// <para>⛔ A STORE WITH NO READABLE HEADER IS A CONFLICT, NOT "attributes not recorded". Its layout is
+    /// unknown, so its frames cannot be located either, and reading it anyway is the silent misread this rule
+    /// exists to prevent — a plain sequential file opened through a RELATIVE description delivers rubbish with
+    /// status '00' if nothing refuses it. A ZERO-BYTE file is the one exception
+    /// (<see cref="StoreFormat.Empty"/>): it holds no records, so it can misread nothing and states no attribute
+    /// to contradict.</para>
+    /// <para>The header read is ONE bounded auxiliary open, and it replaces the catalog sidecar's open
+    /// one-for-one — the file count went down by one and the open count did not go up (kb/Work PB802). It cannot
+    /// ride the connector's own store load, because GR25 ("If the execution of the OPEN statement is
+    /// unsuccessful, the file is not affected") puts this check BEFORE <c>OpenCore</c>, whose creation arms
+    /// truncate.</para>
+    /// <para>⛔ A HOST REFUSAL OF THAT READ CANNOT SILENTLY SKIP THE CHECK, and the reason is structural rather
+    /// than lucky: <see cref="RecordFraming.ReadHeader"/> answers <see cref="StoreFormat.Empty"/> (no conflict)
+    /// on an I/O failure, but it takes exactly the handle shape — <c>HostFile.OpenAuxiliary</c>, share
+    /// <see cref="FileShare.ReadWrite"/> — that <see cref="RecordFraming.ReadStore"/> takes a few statements
+    /// later inside <c>OpenCore</c>, where the failure PROPAGATES to <c>FileConnector.Open</c>'s catch and
+    /// becomes '37' or '30'. So any state that refuses the header read refuses the store load too, and the OPEN
+    /// is unsuccessful either way; the swallow can lose a '39' only in favour of another unsuccessful status,
+    /// never in favour of a successful OPEN over a store this connector could not interpret. Answering the
+    /// authority statuses here instead would be a SECOND place §9.1.13.6 item 1's '30' is decided, which
+    /// <c>FileConnector.Open</c>'s catch is the one place for.</para></remarks>
+    protected override bool FixedAttributeConflict() =>
+        RecordFraming.ReadHeader(HostPath, out var recorded) switch
+        {
+            StoreFormat.Empty => false,
+            StoreFormat.Described => recorded!.Conflicts(DeclaredAttributes, KeyCheck),
+            _ => true,   // Foreign — not a store this build can interpret
+        };
 }

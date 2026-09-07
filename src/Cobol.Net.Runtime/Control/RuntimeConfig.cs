@@ -99,6 +99,12 @@ public static class RuntimeConfig
             "an invariant-culture date-time, optionally with a UTC offset (\"2026-06-10T14:30:45.67\", \"…+02:30\"); unset = the system clock",
             typeof(SystemClock), "IO/Clock.cs"),
 
+        // ── file I-O (IO/FileRegistry.cs — the §14.9.27.4 GR10 / A.1 item 129 key-check opt-out) ──
+        new(FileRegistry.KeyCheckVariable, "files",
+            "whether an INDEXED file's KEY TABLE is part of the §14.9.27.4 GR10 fixed-file-attribute set the OPEN statement validates (docs/CONFORMANCE.md DOC-A.1-129; GnuCOBOL's COB_KEYCHECK) — off means an OPEN whose declared keys disagree with the store header's succeeds instead of answering '39', and the organization, record type and record sizes are still validated",
+            "OFF | 0 | FALSE | NO (case-insensitive) = the key table is not validated; unset or anything else = it is; read once per run unit (FileRegistry.Reset)",
+            typeof(FileRegistry), "IO/FileRegistry.cs"),
+
         // ── external switches (Control/SwitchStore.cs — the ONE computed family) ──
         new(SwitchStore.Prefix + "<SWITCH-NAME>", "switches",
             "the initial status of an implementor-defined external switch named in SPECIAL-NAMES (ISO/IEC 1989:2023 §12.3.7 GR4, implementor-defined item 191): SWITCH-1 reads COBOL_SWITCH_1 (hyphens become underscores, upper-cased; SwitchStore.VariableNameFor)",

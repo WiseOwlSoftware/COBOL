@@ -291,8 +291,9 @@ public sealed class SharedExtendOpenDriftTests
 
     private static void TryDelete(string host)
     {
-        foreach (string p in new[] { host, host + ".cbattr" })
-            try { if (Path.GetFileName(p).Length > 0) File.Delete(p); } catch (IOException) { }
+        // ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file attributes
+        // are the store header INSIDE it, so deleting the data file deletes them.
+        try { if (Path.GetFileName(host).Length > 0) File.Delete(host); } catch (IOException) { }
     }
 
     // ── The structural half: the share mode is stated in ONE place, so it cannot be omitted ──────────────────

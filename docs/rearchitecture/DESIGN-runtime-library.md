@@ -218,7 +218,7 @@ stream, and the SAME posture decides whether that handle may hold a buffer of it
 another writer it is UNBUFFERED, the mirror of the write role below, because the connector above keeps exactly one
 buffer and can invalidate only the one it owns (kb/Work PB753, below). `OpenAuxiliary(path, mode, access)` is a short-lived
 bookkeeping handle over a path a connector may already hold — the shared `OPEN EXTEND` write-base measurement,
-`RecordFraming`'s whole-store load/persist, the fixed-attribute sidecar — and is **always**
+`RecordFraming`'s whole-store load/persist and its store-header read — and is **always**
 `FileShare.ReadWrite`, because a handle's share mode has to admit the access every outstanding handle already
 holds or the host refuses it. `SharedExtendOpenDriftTests` bans every other host-path open under `Runtime/IO`
 and pins both roles to this file. (kb/Work PB713 — a sharing-active `OPEN EXTEND` measured its write-ordinal

@@ -17,15 +17,20 @@ namespace CobolNet.Runtime.IO;
 /// </para>
 /// <para>
 /// ⛔ THIS IS THE ONLY MECHANISM FOR A SEQUENTIAL RECORD-SIZE DISAGREEMENT, and it is not in competition with
-/// the OPEN statement's attribute check. A file COBOL.NET created carries its §9.1.6 fixed file attributes in a
-/// <see cref="FixedFileAttributes"/> catalog beside it, but the §14.9.27.4 GR10 validated set that catalog
-/// defines deliberately EXCLUDES the record sizes of a SEQUENTIAL file (see
-/// <see cref="FixedFileAttributes.Conflicts"/>): §9.1.7.2 makes those lengths a property of the data and of the
-/// reading program, and §9.1.13.2 item 3 answers a disagreement with a successful '04' rather than a refused
-/// OPEN — so GR10's '39' never fires here and never preempts this notice. GR10 covers the disagreements a
-/// sequential re-read CANNOT recover from (a relative or indexed store opened as a byte stream, a
-/// different-organization description); this notice covers the one it can, on both a recorded and an
-/// unrecorded file. One job, one mechanism, on either side of the organization boundary.
+/// the OPEN statement's attribute check. A sequential file records NO §9.1.6 fixed file attribute on the medium
+/// — it is plain bytes, or plain text — so the §14.9.27.4 GR10 validated set for that organization is empty by
+/// derivation rather than by exclusion (<c>SequentialConnector.FixedAttributeConflict</c>): §9.1.7.2 makes those
+/// lengths a property of the data and of the reading program, and §9.1.13.2 item 3 answers a disagreement with a
+/// successful '04' rather than a refused OPEN — so GR10's '39' never fires here and never preempts this notice.
+/// GR10 covers the disagreements a format DOES record and a re-read cannot recover from (a keyed store's header,
+/// a varying file's unparseable record-length prefix); this notice covers the one nothing records. One job, one
+/// mechanism, on either side of that line.
+/// </para>
+/// <para>
+/// It is also what SURVIVED owner decision 2026-09-07 (kb/Work PB802, "no sidecar of any type") for the case the
+/// catalog used to answer: a RELATIVE or INDEXED store reopened through a SEQUENTIAL description now opens '00'
+/// — the sequential format states nothing for the store to contradict — and this notice is what tells the user
+/// on stderr that the byte count and the record description disagree.
 /// </para>
 /// <para>
 /// It is a NOTICE, not a status change: OPEN still succeeds and the I-O status is untouched, because the standard

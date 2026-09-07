@@ -15,6 +15,19 @@
       *> connector that slices a different window reads records by a
       *> key the file was never built on — silently, and with no
       *> record-length arithmetic to notice.
+      *>
+      *> WHERE the file records them is the store's OWN HEADER, in
+      *> the data file, as a real ISAM file keeps its key definitions
+      *> — owner decision 2026-09-07 (kb/Work PB802: "Let's match
+      *> GNUCobol's implementation in spirit. No sidecar of any
+      *> type."), which replaced the catalog sidecar PB193 landed.
+      *> The expectations below did NOT move when it did: the key
+      *> table changed homes and the answers did not.
+      *>
+      *> The key half of the set — and only the key half — has a
+      *> documented runtime opt-out, COBOLNET_KEYCHECK=OFF
+      *> (CONFORMANCE.md DOC-A.1-129), which no COBOL program can
+      *> set; FixedFileAttributeFormatTests pins both of its arms.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.

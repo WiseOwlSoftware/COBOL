@@ -87,7 +87,7 @@ public sealed class IndexedConnector : KeyedConnector
         _alts.Add((offset, length, duplicates, collation, suppress));
 
     /// <inheritdoc/>
-    protected override string CatalogOrganization => FixedFileAttributes.Indexed;
+    protected override string DeclaredOrganization => FixedFileAttributes.Indexed;
 
     /// <summary>§14.9.6.4 GR2 d) — <i>"A file with organization other than sequential, that resides on a mass
     /// storage device."</i> The category is settled by the ORGANIZATION alone, so it needs no medium
@@ -115,7 +115,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// <see cref="FixedFileAttributes.Fingerprint"/>), and both native sequences are one code-unit ordinal over
     /// the UTF-16 substrate (CONFORMANCE.md DOC-A.1-33/188) — so two descriptions with the same window and the
     /// same sequence order every key value identically, whatever their category.</para></remarks>
-    protected override IReadOnlyList<FixedFileAttributes.KeyDescriptor> CatalogKeys
+    protected override IReadOnlyList<FixedFileAttributes.KeyDescriptor> DeclaredKeys
     {
         get
         {
@@ -199,7 +199,7 @@ public sealed class IndexedConnector : KeyedConnector
                 Attach();
                 _recs.Clear();                             // OPEN OUTPUT empties the SHARED view (kb/Work PB143)
                 _nextOrdinal = 1;
-                RecordFraming.WriteStore(HostPath, []);
+                RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);
                 break;
             case FileOpenMode.IO:
                 if (!exists)
@@ -208,7 +208,7 @@ public sealed class IndexedConnector : KeyedConnector
                     Attach();
                     _recs.Clear();
                     _nextOrdinal = 1;
-                    RecordFraming.WriteStore(HostPath, []);                // §14.9.27 GR17
+                    RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);   // §14.9.27 GR17
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
@@ -221,7 +221,7 @@ public sealed class IndexedConnector : KeyedConnector
                     Attach();
                     _recs.Clear();
                     _nextOrdinal = 1;
-                    RecordFraming.WriteStore(HostPath, []);
+                    RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);
                     status = FileStatusCode.OptionalFileNotFound;
                 }
                 else Attach();
@@ -261,7 +261,7 @@ public sealed class IndexedConnector : KeyedConnector
         try
         {
             if (!OptionalAbsent && Mode is not FileOpenMode.Input)
-                RecordFraming.WriteStore(HostPath, PersistOrder().Select(r => (string?)r.Image).ToList(), CodeSet);
+                RecordFraming.WriteStore(HostPath, DeclaredAttributes, PersistOrder().Select(r => (string?)r.Image).ToList(), CodeSet);
         }
         finally
         {

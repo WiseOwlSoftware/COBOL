@@ -47,8 +47,9 @@ public sealed class SharedReadCoherenceDriftTests
 
     private static void TryDelete(string host)
     {
-        foreach (string p in new[] { host, host + ".cbattr" })
-            try { File.Delete(p); } catch (IOException) { }
+        // ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file attributes
+        // are the store header INSIDE it, so deleting the data file deletes them.
+        try { File.Delete(host); } catch (IOException) { }
     }
 
     /// <summary>The sharing spellings a READER can wear. The two FILE-CONTROL spellings come from
