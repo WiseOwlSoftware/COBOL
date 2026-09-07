@@ -831,6 +831,31 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   stops the program COMPILING. Six of eight fixes in the pre-merge run were PB2, whose symptom was a Roslyn
   `CS1503`. The accurate rule: **changes that leave compilability unaltered are invisible to it.**
 
+### ⛔ THE LANDING GATE — `main` REQUIRES `ci-gate`, AND THE LANDING COMMAND IS A SCRIPT (2026-09-06)
+
+Owner decision, question 23 ([[PB796]]). `main` carries a REQUIRED status check — **`ci-gate`**, the terminal job
+of `.github/workflows/build-and-test.yml` — with `enforce_admins: true`, `strict: false`, force-pushes and
+deletions off. ⛔ **A bare `git push origin HEAD:main` of an unverified commit is refused by the SERVER**
+(measured: `remote: error: GH006 … Required status check "ci-gate" is expected.`). An administrator exemption was
+never on the table: every push to this repository is made with the owner's credentials, so a rule that spares
+administrators spares every actor there is — the orchestrator's own pushes obey it.
+
+**LAND WITH `bash scripts/push-main.sh`.** It pushes HEAD to `ci/<short-sha>`, waits for the run on that exact
+sha, and only on green fast-forwards main and deletes the landing branch; on a red it prints the failing jobs and
+exits non-zero with main untouched. A check run is attached to the COMMIT, not to a branch, which is why the
+verdict earned on `ci/<sha>` is the one the protection reads on main. ⭐ It is IDEMPOTENT — a full matrix is
+~25–30 min, longer than an agent's command timeout, so a cut-off caller re-runs it (or runs it with
+`run_in_background`) and a sha already carrying a green `ci-gate` skips straight to the main push.
+
+`paths-ignore` is **gone** from the workflow: a workflow that declines to START leaves a required per-commit check
+unsatisfiable, and the three docs-only pushes after train 21 produced no run at all. The same six-path doc-only
+list now lives in the first job, `changes`, one layer down, where it decides whether the MATRIX runs — so a
+docs-only push still produces a run, and that run is `changes` + `ci-gate` in ~20 s. `changes` also skips the
+matrix for a sha that already carries a green `ci-gate`, so the fast-forward onto main does not pay for the
+matrix a second time. `cancel-in-progress` is now `pull_request` only: a cancelled push run would leave its sha
+permanently unlandable. **`scripts/session-probe.ps1` prints the protection state every session** — the rule lives
+on the server, where no test in this tree can read it, so that line is the only guard it has.
+
 ### ✅ GITHUB ACTIONS IS BACK — CI is `active` again (2026-08-07)
 
 `Build and Test` was `disabled_manually` through GitHub's Actions outage (Critical incident opened 15:22 UTC
