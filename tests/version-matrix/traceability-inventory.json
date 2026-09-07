@@ -14257,11 +14257,11 @@
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "ac1d3c793de7",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetCodeNameRefused",
-  "test-ref": "conformance:negative/pb770-alphabet-unsupported-code-name; conformance-test:AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ImplementorCodeNames.cs#ImplementorCodeNames; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetCodeName",
+  "test-ref": "conformance:2023/pb793_code_name_alphabets; conformance:85/pb793_code_name_alphabets_85; conformance:negative/pb770-alphabet-unsupported-code-name; conformance-test:AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "SR15 leaves the supported code-name-1 / code-name-2 names to the implementor, 'if any'. The set specified by this implementation is EMPTY, in both classes, and is documented as Annex A.1 item 184 in docs/CONFORMANCE.md section 7 (DOC-A.1-184; the item is A.1-OPTIONAL, so an empty set is the licensed answer, and items 183/185 are conditionally required upon the existence of a code-name and are therefore vacuous). ONE check answers for both arms: a definition that is a single bare word which is neither a general-format keyword nor a 12.3.7.4 GR10 figurative constant draws COBOLNET1907. Before kb/Work PB770 the ALPHANUMERIC arm had no such check and the word fell through to the literal-phrase reading, so ALPHABET A-ASC IS ASCII built an alphabet whose first four positions were A, S, C, I - a silent wrong answer downstream of every PROGRAM COLLATING SEQUENCE, SORT, SYMBOLIC CHARACTERS ... IN and CLASS ... IN reference.",
+  "notes": "SR15 leaves the supported code-name-1 / code-name-2 names to the implementor, 'if any'. OWNER DECISION kb/Work PB793 (2026-09-06) fills the ALPHANUMERIC half of that set: code-name-1 = ASCII and EBCDIC, following the surveyed model implementation where the standard leaves a point open and the vendors split (follow_gnucobol_on_split_latitude - its LATITUDE only; none of its tables or sources are used). code-name-2 stays EMPTY, because the native national set is the UTF-16 repertoire (D-N1) and the standard's own UCS-4 / UTF-8 / UTF-16 keywords already name the ISO/IEC 10646 forms. The set is documented as Annex A.1 item 184 in docs/CONFORMANCE.md section 7, and what each name MEANS as item 183. ⛔ THE ANSWER IS A TABLE, NOT A PAIR OF ARMS: ImplementorCodeNames holds one row per supported name carrying everything 12.3.7.4 GR7 i/j obliges the implementor to supply, and DataBinder.AlphabetCodeName is a LOOKUP keyed by (spelling, class) with the refusal on miss - so the next supported code-name is a row and no code path, and the COBOLNET1907 message names the supported set FROM the table and cannot go stale. The refusal itself is unchanged for a word outside the set (kb/Work PB770's correction stands: before it, the ALPHANUMERIC arm had no SR15 check at all and an unrecognized word fell through to the literal-phrase reading, so ALPHABET A-ASC IS ASCII built an alphabet whose first four positions were A, S, C, I).",
   "state": "OK"
  },
  {
@@ -14827,11 +14827,11 @@
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "ad3177c2ba16",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetBind; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetBindNational; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetLiteralPhrase; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#CollatingTable; src/Cobol.Net.Runtime/Values/Text/LiteralPhraseCollation.cs#Weight",
-  "test-ref": "conformance:2023/pb770_alphabet_ordinal_above_latin1; conformance:85/pb770_alphabet_repertoire_85; conformance:2002/alphabet_national; conformance:2002/da1_alphabet_hex_thru; conformance:2002/pb59_char_representative; conformance:2002/pb101_alphabet_locale_pcs; conformance:2023/l1_alphabet_ucs4_utf8_utf16_correspondence; conformance:2023/pb110_code_set_identity; conformance:2023/pb110_symbolic_and_class_in; unit:CodedCharacterSetTests.CharAt_LiteralAlphabet_UsesTheCollatingPositions; unit:CobolCollationTests.TableArms_AnswerThroughTheCarrier_AsBefore",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetBind; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetBindNational; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetLiteralPhrase; src/Cobol.Net.Compiler/Binding/ImplementorCodeNames.cs#SingleByteCodePage; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#CollatingTable; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#Build; src/Cobol.Net.Runtime/Values/Text/LiteralPhraseCollation.cs#Weight",
+  "test-ref": "conformance:2023/pb793_code_name_alphabets; conformance:85/pb793_code_name_alphabets_85; conformance:2023/pb770_alphabet_ordinal_above_latin1; conformance:85/pb770_alphabet_repertoire_85; conformance:2002/alphabet_national; conformance:2002/da1_alphabet_hex_thru; conformance:2002/pb59_char_representative; conformance:2002/pb101_alphabet_locale_pcs; conformance:2023/l1_alphabet_ucs4_utf8_utf16_correspondence; conformance:2023/pb110_code_set_identity; conformance:2023/pb110_symbolic_and_class_in; unit:CodedCharacterSetTests.CharAt_LiteralAlphabet_UsesTheCollatingPositions; unit:CobolCollationTests.TableArms_AnswerThroughTheCarrier_AsBefore",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "GR7 relates an alphabet-name to a coded character set, a collating sequence, or both. Table 6 and the a)-j) arms: a)/b) the class of the referenced set follows the ALPHANUMERIC / NATIONAL phrase; c) STANDARD-1/STANDARD-2 are ISO/IEC 646 IRV in ISO/IEC 646 order; d) NATIVE is the native set of the clause's class; e) LOCALE is the named or current locale's sequence (kb/Work PB101); f)/g)/h) UCS-4 carries a set AND a sequence, UTF-8 and UTF-16 a set only, all three the D-N1 identity (implementor item 188, docs/CONFORMANCE.md DOC-A.1-188); i)/j) code-name-1 and code-name-2 are VACUOUS here - SR15's supported set is empty (DOC-A.1-184), so no code-name can be written and there is no implementor sequence for GR7 i/j to define. k) the literal phrase, which kb/Work PB770 completed: k1a the 1-based ordinal into the native set of the clause's class, k1b a multi-character literal positioned leftmost-first, k2 the operand order as the ascending position order, k3 the unspecified tail above the highest specified character in native relative order, k5 THROUGH in either direction, k6 ALSO sharing one position with literal-1 as its first character defined. ONE table and ONE runtime carrier realize k for both classes, sparse over the 65,536-character repertoire; the alphanumeric arm used to be dense over a 256-entry Latin-1 block and masked each operand with & 0xFF, so ALPHABET ALF IS 305 THRU 300 - naming U+0130..U+012B - reversed '+' and '0' instead. pb770_alphabet_ordinal_above_latin1 derives its expected ORD values from k1a/k3/k5 and 15.70.4 r1 and discriminates that masking on every line.",
+  "notes": "GR7 relates an alphabet-name to a coded character set, a collating sequence, or both. Table 6 and the a)-k) arms: a)/b) the class of the referenced set follows the ALPHANUMERIC / NATIONAL phrase; c) STANDARD-1/STANDARD-2 are ISO/IEC 646 IRV in ISO/IEC 646 order; d) NATIVE is the native set of the clause's class; e) LOCALE is the named or current locale's sequence (kb/Work PB101); f)/g)/h) UCS-4 carries a set AND a sequence, UTF-8 and UTF-16 a set only, all three the D-N1 identity (implementor item 188, docs/CONFORMANCE.md DOC-A.1-188); k) the literal phrase, which kb/Work PB770 completed (k1a the 1-based ordinal into the native set of the clause's class, k1b a multi-character literal positioned leftmost-first, k2 the operand order as the ascending position order, k3 the unspecified tail above the highest specified position in native relative order, k5 THROUGH in either direction, k6 ALSO sharing one position with literal-1 as its representative). ⛔ i) IS NO LONGER VACUOUS (kb/Work PB793): code-name-1 is ASCII and EBCDIC (SR15's set), and GR7 i's three obligations are met per name by an ImplementorCodeNames row - ASCII is the ISO/IEC 646 IRV set with 128 ordinals, the identity correspondence and the native collating positions (i.e. GR7 c's STANDARD-1 answer under the spelling other vendors use); EBCDIC is IBM CCSID 37 with 256 ordinals, the collating position of a native character being its code unit in that page and the correspondence being the page itself, derived at bind time from Encoding.GetEncoding(37) and never transcribed. Every native character the page does not spell takes the position GR7 k3 gives an unspecified character, adopted here as this implementor's GR7 i specification - the SAME sparse CollatingTable the literal phrase builds, through the SAME CollatingTable.Build (which is also the one place GR8/GR9's extremes are computed). j) code-name-2 remains vacuous: SR15's national set is empty (DOC-A.1-184, DOC-A.1-185).",
   "state": "OK"
  },
  {
@@ -20317,11 +20317,11 @@
   "subject": "CODE-SET clause",
   "rule-digest": "72622113247d",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause",
-  "test-ref": "conformance:2023/pb110_code_set_identity; conformance:negative/pb110-code-set-nonidentity",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/Cobol.Net.Compiler/Binding/CollatingModel.cs#CodeSetMedium",
+  "test-ref": "conformance:2023/pb793_code_set_ebcdic; conformance:2023/pb110_code_set_identity; conformance:negative/pb110-code-set-nonidentity",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB110 (2026-08-19) — DETERMINATION, documented (CONFORMANCE.md §2 row 27): the sets whose implementor correspondence to the native set is the IDENTITY — NATIVE (§12.3.7.4 GR7 d, by definition), STANDARD-1/STANDARD-2 (GR7 c: the correspondence is implementor-defined, and the native set's first 128 characters ARE ISO/IEC 646 IRV), UTF-16 (the D-N1 substrate) — are CLAIMED, their conversion being the identity (the golden's byte-exact round trip); an alphabet whose on-medium representation would differ (a literal-phrase alphabet's remapped ordinals; UTF-8/UCS-4 as variable-width medium encodings) is the DOCUMENTED Annex A §A.3 item 27 non-support — COBOLNET1672, never a silent identity (the negative). Rule --check verified at 13.18.13.4 1).",
+  "notes": "GR1 names the clause's purpose: alphabets used to convert medium-to-native on input and native-to-medium on output. DETERMINATION, documented (CONFORMANCE.md section 2 row 27), and it is a PROPERTY OF THE SET rather than a list of phrase names in the file-description binder - CodedCharacterSet.Medium answers it once for every reference site. IDENTITY (claimed, no conversion emitted): NATIVE (12.3.7.4 GR7 d, by definition), STANDARD-1/STANDARD-2 (GR7 c - the native set's first 128 characters ARE ISO/IEC 646 IRV), UTF-16 (the D-N1 substrate) and the ASCII code-name (the same set as STANDARD-1). TRANSLATED (claimed, and real - kb/Work PB793): the EBCDIC code-name, whose GR7 i correspondence with the native set is IBM CCSID 37, converts every record crossing the medium. NOT-PROVIDED: a literal-phrase alphabet's remapped ordinals (GR7 k4 leaves that correspondence to the implementor and this one does not define it) and UTF-8 / UCS-4 as variable-width medium encodings are the DOCUMENTED Annex A A.3 item 27 non-support - COBOLNET1672, never a silent identity (the negative). Rule --check verified at 13.18.13.4 1).",
   "state": "OK"
  },
  {
@@ -20332,11 +20332,11 @@
   "subject": "CODE-SET clause",
   "rule-digest": "9e21e4b11a6e",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause",
-  "test-ref": "conformance:2023/pb110_code_set_identity",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitCodeSetRegistration; src/Cobol.Net.Runtime/IO/FileConnector.cs#CodeSet",
+  "test-ref": "conformance:2023/pb793_code_set_ebcdic; conformance:2023/pb110_code_set_identity",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB110 (2026-08-19): on OPEN the on-medium coded character set is the referenced one — for every CLAIMED set that is the native encoding itself (the identity correspondence), which the golden's write-then-read round trip observes; a non-identity set never reaches OPEN (refused at compile time, GR-13.18.13.4-1's determination).",
+  "notes": "GR2 - on successful OPEN the coded character set used to represent alphanumeric data on the storage medium is alphabet-name-1's. The set is established for the CONNECTOR and constant thereafter, so it is registered once beside the connector (FileConnector.CodeSet, the FileConnector.NationalRecordArea pattern) rather than re-derived per record; for an identity set nothing is registered at all and the record channel is unchanged byte for byte. The EBCDIC golden observes it in both directions: the same physical file read back through a description carrying NO CODE-SET clause yields the medium's own code units (GR7's default), which is what shows the clause established a DIFFERENT set for the first connector.",
   "state": "OK"
  },
  {
@@ -20346,13 +20346,13 @@
   "ordinal": 3,
   "subject": "CODE-SET clause",
   "rule-digest": "d57278e95611",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/Cobol.Net.Runtime/IO/CodeSetConversion.cs#CodeSetConversion",
+  "test-ref": "conformance:2023/pb793_code_set_ebcdic",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "GR3 - with no SELECT WHEN clause among the record description entries (this grammar has none, so it is EVERY case here), the specified alphabet is used for code-set conversion of ALL data items in each record. The conversion is therefore applied to the whole record image at the medium boundary rather than item by item, which is the same thing for a record whose elementary items are all usage display - 13.18.13.3 SR3 a requires exactly that of a file whose CODE-SET names alphabet-name-1 and which has record description entries, and it is checked (COBOLNET1672). What is NOT converted is the framing this processor adds AROUND the record - the 9.1.7.2 record-length header of a VARYING or keyed file, and a line sequential file's delimiter - because that is not data of the record; the determination is published in CONFORMANCE.md section 2 row 27.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.13.4-4",
@@ -20391,13 +20391,13 @@
   "ordinal": 6,
   "subject": "CODE-SET clause",
   "rule-digest": "2da9f48c543c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/CodeSetConversion.cs#ToNative; src/Cobol.Net.Runtime/IO/CodeSetConversion.cs#ToMedium; src/Cobol.Net.Runtime/IO/FileConnector.cs#FromMedium; src/Cobol.Net.Runtime/IO/FileConnector.cs#ToMedium; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#NextFrame; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#EmitRecord",
+  "test-ref": "conformance:2023/pb793_code_set_ebcdic",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "GR6 a/b - the character-for-character replacement in both directions, realized for the first time by kb/Work PB793 (before it, every non-identity set was refused at compile time and GR6 had nothing to do). The correspondence is a COMPILE-TIME artifact of the named alphabet (12.3.7.4 GR7 i), emitted into the generated program as a 256-entry char[] literal exactly as a collating sequence's weights are, so the runtime holds no code page and knows no alphabet name. The boundary is the ONE physical transfer point of each organization and nowhere else - SequentialConnector.NextFrame on the read side, its EmitRecord / EmitRecordLine / OverwriteInPlace twins on the write side, and RecordFraming's store payload for RELATIVE and INDEXED - so a record area, a key value, a comparison and a lock identity are always in the native character set, which is what every other rule is written about. The golden proves both directions independently: the round trip restores AB012, and a second file description with no CODE-SET clause reads the same physical file as 194 195 241 242 243, the native ordinals of X'C1 C2 F0 F1 F2'.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.13.4-7",
@@ -64626,13 +64626,13 @@
   "ordinal": 183,
   "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, code-name-1 (alphanumeric coded character set and collating sequence; ordinal ",
   "rule-digest": "485b62c79d4c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-183; src/Cobol.Net.Compiler/Binding/ImplementorCodeNames.cs#SingleByteCodePage; src/Cobol.Net.Compiler/Binding/ImplementorCodeNames.cs#EbcdicCodePage; src/Cobol.Net.Compiler/Binding/ImplementorCodeNames.cs#Ascii",
+  "test-ref": "conformance:2023/pb793_code_name_alphabets; conformance:2023/pb793_code_set_ebcdic; conformance:85/pb793_code_name_alphabets_85",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "A.1 item 183 - the code-name-1 coded character set and collating sequence, the ordinal number of characters, and the correspondence with the native alphanumeric character set (12.3.7.4 GR7 i). CONDITIONALLY REQUIRED 'because it is conditioned upon the existence of a code-name', and the condition became TRUE with owner decision kb/Work PB793, so the item is LIVE and the determination is written out in full at docs/CONFORMANCE.md section 7. ASCII: ISO/IEC 646 IRV, 128 ordinals, ordinal n = native character U+(n-1), the identity correspondence, the native collating positions. EBCDIC: IBM CCSID 37, 256 ordinals, ordinal n = the native character that page assigns to code unit n-1, the correspondence being the page itself and the collating position of a native character being its code unit in it; the 65,280 native characters the page does not spell are not members of the set and take the collating position 12.3.7.4 GR7 k3 gives an unspecified character. Surveyed rather than assumed (survey_compilers_on_latitude): CCSID 37 is the canonical registered complete single-byte EBCDIC page and the z/OS default; GnuCOBOL's own default table corresponds to no registered CCSID and its named alternates are CCSID 500 variants, so its LATITUDE is followed and its tables are not (they are GPL and are not read here). The whole table is DERIVED from Encoding.GetEncoding(37) at bind time, so nothing is transcribed and there is no 256-entry literal to drift.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-184",
@@ -64641,12 +64641,12 @@
   "ordinal": 184,
   "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, code-name-1 and code-name-2 (the names supported for code-name-1 and code-name",
   "rule-digest": "167f0a6ea4cc",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-184; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetCodeNameRefused",
-  "test-ref": "conformance:negative/pb770-alphabet-unsupported-code-name; conformance-test:AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-184; src/Cobol.Net.Compiler/Binding/ImplementorCodeNames.cs#Find; src/Cobol.Net.Compiler/Binding/ImplementorCodeNames.cs#Spellings; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetCodeName",
+  "test-ref": "conformance:2023/pb793_code_name_alphabets; conformance:85/pb793_code_name_alphabets_85; conformance:negative/pb770-alphabet-unsupported-code-name; conformance-test:AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15",
   "derivation": "",
   "editions": "",
-  "notes": "kb/Work PB280 Q1 — OWNER DECISION 2026-09-02. An Annex A.1 item the standard marks OPTIONAL, whose docs/CONFORMANCE.md §7 determination records the element as 'Not provided.', closes as DOCUMENTED-NON-SUPPORT. Licence: A.1's own preamble, which conditions the documentation duty on provision — 'Optional: The element may be provided at the implementor's option.' and 'Documentation required: If the element is provided by the implementor, the implementor's user documentation shall document the element or shall reference other documentation that fulfills this requirement.' (both cite.py --check A.1 → OK) — plus §4.2.7 ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support', cite.py --check OK), which this verdict's own `meaning` already names as its second ground. ⛔ The §7 row STAYS and is the row's evidence: unlike an item an A.4 module WITHDREW, a not-provided optional element has a determination — the record of the non-provision — so the row carries its computed anchor and its witness is held to §7's `Pinned by` like any other.",
+  "notes": "A.1 item 184 - the names supported for code-name-1 and code-name-2 (12.3.7.3 SR15), OPTIONAL and documented-if-provided. The item flips from DOCUMENTED-NON-SUPPORT (the set was empty in both classes) to CONFORMS: owner decision kb/Work PB793 PROVIDES the element for the alphanumeric class - code-name-1 = ASCII and EBCDIC - and docs/CONFORMANCE.md section 7 states the set and, at item 183, what each name means. The national class stays empty and item 185 stays vacuous with it. The supported set is ONE table (ImplementorCodeNames), read by the binder, by the coded-character-set reference sites and by the COBOLNET1907 message alike, so the names, their meanings and the diagnostic cannot disagree. Witnesses, one per class plus the acceptance: the negative refuses a code-name-1 outside the set (FIELDATA), the unit test refuses code-name-2 on the empty national class, and the 2023 and 85 goldens accept both supported spellings and read their meanings back through SYMBOLIC CHARACTERS ... IN, FUNCTION CHAR / ORD and relation conditions.",
   "state": "OK"
  },
  {
@@ -64656,13 +64656,13 @@
   "ordinal": 185,
   "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, code-name-2 (national coded character set and collating sequence; ordinal numb",
   "rule-digest": "1afc926d9156",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-185; src/Cobol.Net.Compiler/Binding/ImplementorCodeNames.cs#All; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetCodeName",
+  "test-ref": "conformance-test:AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "A.1 item 185 - the code-name-2 national coded character set and collating sequence, ordinal count and native correspondence (12.3.7.4 GR7 j). CONDITIONALLY REQUIRED 'because it is conditioned upon the existence of a code-name', and after owner decision kb/Work PB793 the NATIONAL half of SR15's set is still empty (item 184), so the condition is false and there is nothing for this item to describe. Closed the way kb/Work PB280 Q1 closes an element that is not provided: the docs/CONFORMANCE.md section 7 row STATES the vacuity and is the row's evidence, and the witness is the refusal that proves the class is empty. It is stated rather than omitted because the emptiness is a DECISION that could change - the code-name table is keyed by class and the binder asks it for both, so a national row would wake this item with no code change.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-186",
