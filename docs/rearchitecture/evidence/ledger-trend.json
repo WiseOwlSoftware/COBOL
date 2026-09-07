@@ -406,6 +406,15 @@
       "dns": 365,
       "label": "Train 21: DEVLOG 1569 + plan",
       "battery": null
+    },
+    {
+      "sha": "a7a99860",
+      "date": "2026-09-06",
+      "gap": 2748,
+      "closed": 1600,
+      "dns": 365,
+      "label": "Train 22: PB793's batch, two",
+      "battery": null
     }
   ]
 }
