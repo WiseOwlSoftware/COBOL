@@ -134,4 +134,40 @@ if (Get-Command gh -ErrorAction SilentlyContinue) {
     Write-Host "ci     : gh unavailable — CI verdict UNREAD (do not infer green)"
 }
 
+# ⛔ AND IS THE REQUIRED CHECK STILL IN PLACE? `main` requires the `ci-gate` status check with
+# `enforce_admins: true` (owner decision 2026-09-06, question 23; kb/Work/PB796), and that rule lives on the
+# SERVER, outside this repository — so it is the ONE part of the landing gate no test in this tree can pin, and
+# nothing but this line would notice it being turned off. A session reading a green `ci` line over a protection
+# that has quietly gone is the PB796 shape exactly: an instrument answering a different question than the one
+# being asked. Printed unconditionally, green included, and a 404 is told apart from an unreadable API — "I could
+# not look" must never render as "it is off", nor as silence (feedback_green_gates_arent_evidence).
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    $prot = & gh api 'repos/{owner}/{repo}/branches/main/protection' 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        if ("$prot" -match 'Branch not protected|HTTP 404') {
+            Write-Host "gate   : ⛔ main has NO branch protection — the required ci-gate check is GONE (kb/Work/PB796)"
+        } else {
+            Write-Host "gate   : gh could not read main's protection — required-check state UNREAD (do not infer it is on)"
+        }
+    } else {
+        try {
+            $j = "$prot" | ConvertFrom-Json
+            $ctx = @($j.required_status_checks.contexts)
+            $adm = [bool]$j.enforce_admins.enabled
+            if (($ctx -contains 'ci-gate') -and $adm) {
+                Write-Host "gate   : main requires ci-gate (enforce_admins on) — land with: bash scripts/push-main.sh"
+            } else {
+                Write-Host "gate   : ⛔ main protection DRIFTED — contexts=[$($ctx -join ',')] enforce_admins=$adm (expected ci-gate + True)"
+            }
+        } catch {
+            Write-Host "gate   : main's protection did not parse — required-check state UNREAD (do not infer it is on)"
+        }
+    }
+} else {
+    Write-Host "gate   : gh unavailable — main's required-check state UNREAD (do not infer it is on)"
+}
+# The probe is informational: a 404 from the protection lookup must not become the SCRIPT's exit code, which is
+# the last native command's when nothing overrides it (this block is the last one before the closing banner).
+$global:LASTEXITCODE = 0
+
 Write-Host "=== next: confirm the battery green (plan §9) before code changes; the worklist is kb/Work (work.py next, above); plan 0 is live state ==="
