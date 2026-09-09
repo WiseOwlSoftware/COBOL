@@ -144,6 +144,11 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
         MarkRefModStoreImage(targets);
         ctx.Validation.CheckStrongMove(source, targets, implicitOf);   // §14.9.25.3 SR2 — pure check (D17 inc 2)
+        // §14.9.25.3 SR9 — the §8.5.1.12 compatibility screen for a variable-length group operand (kb/Work
+        // PB393). It sits HERE, beside SR2, because this is the ONE application of the MOVE statement's own
+        // rules: every implicit move a phrase defines (READ/RETURN … INTO, WRITE/REWRITE/RELEASE … FROM)
+        // inherits it, which is what each phrase's "shall be valid … in a MOVE statement" rule requires.
+        ctx.Validation.CheckVariableLengthMove(source, targets, implicitOf);
         return new BoundMove(source, targets) { ImplicitOf = implicitOf };
     }
 

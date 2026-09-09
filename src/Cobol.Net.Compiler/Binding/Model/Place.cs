@@ -17,6 +17,19 @@ public abstract record Place
 
     /// <summary>The underlying bound data item this place refers to (carries category, scale, and the profile name).</summary>
     public abstract DataItem Item { get; }
+
+    /// <summary>⛔ THE PLACE WITH EVERY <see cref="PlaceDecorator"/> LAYER REMOVED — the innermost STORAGE place
+    /// (kb/Work PB393). A consumer that switches on the storage FORM (member access · REDEFINES window ·
+    /// dynamic-table element) must ask this, not the operand place: a decoration answers a question about the
+    /// OPERAND (its occurs-depending extent, its as-if-elementary image view, its reference modifier) and never
+    /// changes where the storage is, so a switch over storage forms that meets a decorator falls into its
+    /// default arm and rejects legal source. That is precisely how an occurs-depending group operand — an
+    /// <see cref="OdoGroupPlace"/> wrapping a <see cref="MemberPlace"/> — reached INITIALIZE's and MOVE
+    /// CORRESPONDING's <c>_ =&gt; null</c> and aborted the run unit. <c>PlaceDecoratorReachTests</c> is the drift
+    /// test that keeps every decorator kind reaching a storage arm.
+    /// <para>A consumer whose question the decoration ANSWERS (the operand's extent, its slice, its coding) must
+    /// keep switching on the decorated place — this is for the storage-form switch only.</para></summary>
+    public Place Undecorated => this is PlaceDecorator d ? d.Inner.Undecorated : this;
 }
 
 /// <summary>

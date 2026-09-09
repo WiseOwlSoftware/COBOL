@@ -53,15 +53,14 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                 w.Line(PlaceRenderer.Write(s.Target, s.Target.Item.Pic!.DefaultInitializer));
                 break;
             case InitializeLoop l:
-                using (w.Block($"for (long {l.Var} = 1; {l.Var} <= {l.Count}; {l.Var}++)"))
+                // ONE loop over the ONE occurrence-count model (kb/Work PB393): a fixed OCCURS count, an
+                // occurs-depending table's CURRENT count under §13.18.38.4 GR8a, or a dynamic-capacity table's
+                // current capacity under §14.9.20.4 GR10 ("all the elements of the table up to current capacity
+                // … are initialized … and the current capacity of the table is left unchanged" — the capacity is
+                // untouched because the stores go through RefReceiving WITHIN the bound, which never grows).
+                using (w.Block($"for (long {l.Var} = 1; {l.Var} <= {PlaceRenderer.OccurrenceCount(l.Count)}; {l.Var}++)"))
                     foreach (var b in l.Body)
                         EmitAction(b);
-                break;
-            case InitializeDynLoop l:
-                // §14.9.20 GR10 (D9): initialize every occurrence 1‥current-capacity (a run-time bound) with the
-                // INITIALIZE statement's own stores; the capacity is unchanged (RefReceiving within bounds).
-                using (w.Block($"for (long {l.Var} = 1; {l.Var} <= {l.CapacityExpr}; {l.Var}++)"))
-                    foreach (var b in l.Body) EmitAction(b);
                 break;
             case InitializeErrorAction e:
                 w.Line(LoudStmt(e.Feature));

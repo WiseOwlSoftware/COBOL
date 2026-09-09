@@ -249,8 +249,10 @@ internal static class UsageCollectionPass
             {
                 case InitializeStore x: P(x.Target); Op(x.Source); break;
                 case InitializeSetNull x: P(x.Target); break;
+                // The loop's AllCount bound is deliberately NOT visited: this pass records WHOLE-GROUP image
+                // references, and an occurrence count is always an ELEMENTARY read (an OCCURS DEPENDING integer,
+                // a dynamic table's capacity register), which P() ignores by construction.
                 case InitializeLoop x: foreach (var b in x.Body) InitAct(b); break;
-                case InitializeDynLoop x: foreach (var b in x.Body) InitAct(b); break;
                 default: break;
             }
         }

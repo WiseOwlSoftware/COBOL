@@ -712,16 +712,28 @@ SET Format 14 (SR30–32). Initial capacity = `FROM ?? 0` (§8.5.1.9.1 :8199). `
 table/containing group = `Capacity * elemWidth` (§15.50, not a static width).
 
 **Group image (decided).** A dynamic table is NOT image-capable (`IsCharacterImage`/`IsImageCapable` return false) —
-a containing group drops out of the static record codec exactly like the Tier-C float/COMP-5 island; the element
-`record struct` keeps its own AsImage/FromImage (single-element MOVE works). Whole-group ops on a containing group →
-staged LOUD.
+a containing group drops out of the STATIC record codec exactly like the Tier-C float/COMP-5 island; the element
+`record struct` keeps its own AsImage/FromImage (single-element MOVE works). A containing group instead carries a
+**CURRENT-EXTENT** codec, `AsVarImage()`/`FromVarImage()` over `CobolVarGroup` (gated on
+`DataItem.CurrentExtentImageCapable`; kb/Work PB204) — the §8.5.1.12 model as a wire form: the fixed run with every
+variable component collapsed to nothing, plus each component's current content in order. **That codec, not a byte
+image, is what every whole-group operation the standard admits over such a group now runs on** — the §14.8.2.2 /
+§14.8.3.2 activation-boundary crossing and, since kb/Work PB393, §14.9.25.4 GR9's MOVE. Only the operations that
+genuinely need a FIXED record window (WRITE/RELEASE, comparison) and the two shapes the composer cannot reach
+(CONFORMANCE.md A.1 item 57) stay staged LOUD.
 
 **CORE ships whole:** declaration (all phrases, order-independent) · out-of-line growable storage · CAPACITY
 read + SET Format 14 write · implicit + explicit growth · INITIALIZED seeding · bounds/capacity ECs
 (EC-BOUND-SUBSCRIPT/-OVERFLOW/-TABLE-LIMIT/-SET, EC-FLOW-SEARCH via a per-table `_inSearch` guard) · SEARCH/SEARCH
-ALL over current capacity · `INITIALIZE <dynamic-table>` · the 2014 edition gate + matrix/VCR rows. **Staged LOUD
-(diagnostic, not a silent wrong answer):** variable-length-group MOVE/COMPARE + whole-group image of a containing
-group (**COBOLNET1527**, §14.6.9) · VALUE-derived initial capacity (**1528**, §13.18.63 GR16) · ref-mod of a
+ALL over current capacity · `INITIALIZE <dynamic-table>` · **`INITIALIZE` of a group CONTAINING one** (§14.9.20.4
+GR10 — the per-occurrence loop over the current capacity, capacity unchanged) · **whole-group `MOVE` of a
+variable-length group** in either direction and to or from a compatible FIXED group (§14.9.25.4 GR9 over the
+§8.5.1.12 component carrier, screened at bind by §14.9.25.3 SR9 → **COBOLNET1931**) · **the CORRESPONDING verbs
+over an occurs-depending group** · the 2014 edition gate + matrix/VCR rows. **Staged LOUD
+(diagnostic, not a silent wrong answer):** whole-group image of a containing group in the statements that need a
+FIXED record window — WRITE/RELEASE and comparison (§14.6.9; the two shapes CONFORMANCE.md A.1 item 57 excludes
+from the current-extent composer stay loud in MOVE as well) · VALUE-derived initial capacity (**1528**,
+§13.18.63 GR16) · ref-mod of a
 subordinate (**1526**, §13.7.1 SR6) · REDEFINES **object** carries an OCCURS clause of any format, dynamic included
 (**1701**, §13.18.44.3 SR5 sentence 1) · REDEFINES **subject** IS a dynamic table (**1525**, §13.18.44.4 GR1 +
 §8.5.1.9.1 — the one side no syntax rule names) · REDEFINES either side a variable-length group, i.e. with a

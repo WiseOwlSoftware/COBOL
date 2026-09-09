@@ -244,9 +244,16 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
 
         /// <summary>Create the access over a resolved group place, or <see langword="null"/> for a storage shape
         /// no CORRESPONDING child can be built from (the caller fails loud). A <see cref="RefModPlace"/> group is
-        /// impossible — reference modification resolves only over elementary character items (§14.9.25.3 SR12).</summary>
+        /// impossible — reference modification resolves only over elementary character items (§14.9.25.3 SR12).
+        /// <para>⛔ THE SWITCH IS OVER THE STORAGE FORM, SO IT ASKS <see cref="Place.Undecorated"/> (kb/Work
+        /// PB393). An occurs-depending group operand resolves to an <c>OdoGroupPlace</c> WRAPPING the member
+        /// place, and a decoration answers a question about the group's whole-group IMAGE EXTENT — a question
+        /// CORRESPONDING never asks, because §14.7.6 rule 4 excludes every OCCURS item from correspondence, so
+        /// the pairs are exactly the fixed members at their fixed offsets. Switching on the decorated place sent
+        /// the operand to the default arm, and `SUBTRACT CORRESPONDING` over two occurs-depending groups —
+        /// §14.9.44.3 SR6 admits the kind by name — aborted the run unit.</para></summary>
         public static CorrAccess? Create(Place group, string local, List<CorrespondingHoist> hoists, ReferenceResolver refs)
-            => group switch
+            => group.Undecorated switch
             {
                 MemberPlace m => new CorrAccess(hoists, local, group: m, offsetInit: "", isMember: true,
                     subscripted: m.Path.HasIndex, backing: null, m.Item, refs),

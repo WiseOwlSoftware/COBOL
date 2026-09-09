@@ -146,6 +146,39 @@ internal static class VariableLengthCompatibility
         return string.Join(",", outp);
     }
 
+    /// <summary>The CHARACTER-POSITION spans of a FIXED-length group's tables within its record image, in
+    /// declaration order — the compile-time half of <c>CobolVarGroup.FromFixedImage</c> (kb/Work PB393). It is
+    /// what lets a fixed group stand on the other side of an ISO §14.9.25.4 GR9 move: §8.5.1.12.3 sentence 3
+    /// treats its table "as though it were a dynamic-capacity table whose capacity is either its fixed number of
+    /// occurrences or the value of the DEPENDING operand", so the group decomposes into the SAME carrier the
+    /// variable-length side composes, and the two sides' components then line up one for one exactly as
+    /// §8.5.1.12.2's positional correspondence says they do.
+    /// <para>A width of −1 marks an OCCURS DEPENDING table, whose current extent is a run-time length; ISO
+    /// §13.18.38.3 SR22 makes it the trailing storage of its record, so "the rest of the image" IS its current
+    /// occurrences. <see langword="null"/> when the layout cannot be spanned in characters at compile time — a
+    /// subtree with a USAGE BIT leaf (§8.5.1.6.3's shared-byte runs make the sum non-positional), a group that is
+    /// itself variable-length (it has its own composer and never needs this), or a variable-occurrence table that
+    /// is not the last atom (which SR22 forbids, so the guard is a proof, not a case).</para></summary>
+    public static IReadOnlyList<(int At, int Width)>? FlatTableSpans(DataItem g)
+    {
+        if (!g.IsGroup || IsVariableLength(g) || g.HasBitDescendant) return null;
+        var spans = new List<(int At, int Width)>();
+        int at = 0;
+        var atoms = AtomsOf(g);
+        for (int i = 0; i < atoms.Count; i++)
+        {
+            var a = atoms[i];
+            if (a.Kind is AtomKind.Table)
+            {
+                bool odo = a.Item.OccursSpec is { DependingName: not null };
+                if (odo && i != atoms.Count - 1) return null;   // SR22 says this cannot happen
+                spans.Add((at, odo ? -1 : a.ImageChars));
+            }
+            at += a.ImageChars;
+        }
+        return spans;
+    }
+
     /// <summary>Null when <paramref name="one"/> and <paramref name="other"/> are COMPATIBLE per §8.5.1.12,
     /// else the reason, worded for a diagnostic. Two FIXED-length groups are compatible outright (§8.5.1.12.1:
     /// "Two fixed-length groups are always compatible, unless they are strongly typed and have different type

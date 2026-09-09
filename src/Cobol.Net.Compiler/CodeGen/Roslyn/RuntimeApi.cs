@@ -1094,6 +1094,17 @@ internal static class RuntimeApi
     /// <summary>The empty carrier value (an unbound formal's seed).</summary>
     public static string VarGroupEmpty => $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.Empty)}";
 
+    /// <summary>A FIXED-length group's decomposition into the same carrier (ISO §8.5.1.12.3 sentence 3 /
+    /// §14.6.9.1 — its table is treated as a dynamic-capacity table of its fixed or DEPENDING count), so a fixed
+    /// group can stand on the other side of a §14.9.25.4 GR9 move (kb/Work PB393). <paramref name="spans"/> is
+    /// the flat (offset, width) pair list from <c>VariableLengthCompatibility.FlatTableSpans</c>.</summary>
+    public static string VarGroupFromFixedImage(string image, string spans) =>
+        $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.FromFixedImage)}({image}, {spans})";
+
+    /// <summary>The inverse of <see cref="VarGroupFromFixedImage"/> — rebuild the fixed group's record image.</summary>
+    public static string VarGroupToFixedImage(string carrier, int totalWidth, string spans) =>
+        $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.ToFixedImage)}({carrier}, {totalWidth}, {spans})";
+
     /// <summary>A DETACHED variable-length carrier cell (BY CONTENT / BY VALUE, §14.2.3 GR9/GR10).</summary>
     public static string VarGroupCell(string value) => $"ManagedPointer<{VarGroupType}>.Cell({value})";
 

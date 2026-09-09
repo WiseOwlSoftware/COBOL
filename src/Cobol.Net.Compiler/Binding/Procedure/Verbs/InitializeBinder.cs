@@ -99,9 +99,12 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             string v = $"__ini{_initializeLoopVar++}";
             var body = new List<InitializeAction>();
-            ExpandInitialize(new InitializeDynCursor(ReferenceResolver.BuildTablePath(dtbl)!.Add(new DynTableSegment(v)), dtbl),
-                spec, body, identifier1: true);
-            if (body.Count > 0) actions.Add(new InitializeDynLoop(v, $"{dtp}.Capacity", body));
+            var tblPath = ReferenceResolver.BuildTablePath(dtbl)!;
+            ExpandInitialize(new InitializeDynCursor(tblPath.Add(new DynTableSegment(v)), dtbl),
+                spec, body, dtbl, identifier1: true);
+            if (body.Count > 0 && DynCapacity(dtbl, tblPath) is { } cap) actions.Add(new InitializeLoop(v, cap, body));
+            else if (body.Count > 0) actions.Add(new InitializeErrorAction(
+                $"INITIALIZE of the dynamic-capacity table '{dtbl.CobolName ?? dtp}' (no capacity register)"));
             return;
         }
         if (ctx.Refs.Resolve(dref) is not { } place)
@@ -121,13 +124,21 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 actions.Add(new InitializeStore(place, src));
             return;
         }
-        InitializeCursor? cursor = place switch
+        // ⛔ THE SWITCH IS OVER THE STORAGE FORM, SO IT ASKS THE UNDECORATED PLACE (kb/Work PB393). identifier-1
+        // is a RECEIVING operand (§14.9.20.3 SR7), and none of the decorations change where its members live:
+        // an OdoGroupPlace answers §13.18.38.4 GR8 about the group's EXTENT — which GR8b already fixes at the
+        // maximum for a receiving operand, and which the child walk below applies per-table for GR8a — and a
+        // bit/national group's image view is a §14.9.20.4 GR1 non-question ("identifier-1 is processed as a
+        // group item"). Switching on the decorated place sent every one of them to the default arm, which
+        // emitted a loud that aborted the run unit on plain COBOL-85 source.
+        InitializeCursor? cursor = place.Undecorated switch
         {
             MemberPlace mp => new InitializeMemberCursor(mp.Path, mp.MemberItem),
             // The cell path rides along so a pointer-class receiver inside the class reaches the area's managed
             // slots (kb/Work PB231) — ALLOCATE … INITIALIZED lowers to exactly this expansion (§14.9.3.4 GR7).
             RedefViewPlace rv => new InitializeViewCursor(rv.Backing, rv.OffsetExpr, rv.ViewItem.ClassOffset, rv.ViewItem, "",
                 Cell: ReferenceResolver.BuildCellPath(rv.ViewItem.Class)),
+            DynTablePlace dp => new InitializeDynCursor(dp.Path, dp.Item),
             _ => null,
         };
         if (cursor is null)
@@ -135,8 +146,40 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             actions.Add(new InitializeErrorAction($"INITIALIZE target '{dref.GetText()}' (unsupported place kind)"));
             return;
         }
-        ExpandInitialize(cursor, spec, actions, identifier1: true);
+        ExpandInitialize(cursor, spec, actions, place.Item, identifier1: true);
     }
+
+    /// <summary>The <see cref="AllCount"/> a subordinate table's per-occurrence loop is bounded by — ISO
+    /// §14.9.20.4 GR8's "the number of occurrences initialized is determined by the rules of the OCCURS clause
+    /// for a RECEIVING data item", resolved against §13.18.38.4 (kb/Work PB393):
+    /// <list type="bullet">
+    ///   <item>Format 1 — GR4's fixed count.</item>
+    ///   <item>Format 2 with data-name-1 OUTSIDE identifier-1's group — GR8a: "only that part of the table area
+    ///     that is specified by the value of the data item referenced by data-name-1 at the start of the
+    ///     operation will be used", i.e. the CURRENT count (clamped, EC-BOUND-ODO outside per GR7).</item>
+    ///   <item>Format 2 with data-name-1 INSIDE the group — GR8b: "If the group is a receiving operand, the
+    ///     maximum length of the group will be used", i.e. integer-2. identifier-1 IS a receiving operand
+    ///     (§14.9.20.3 SR7), so the receiving arm is the only reachable one — and it is also the only SAFE one:
+    ///     the walk initializes data-name-1 itself in definition order (GR8's own sentence), so a current-count
+    ///     bound read afterwards would be reading a zero this very statement had just stored.</item>
+    ///   <item>Format 4 — §14.9.20.4 GR10's current capacity.</item>
+    /// </list>
+    /// <see langword="null"/> when the count cannot be modelled (a dynamic table with no reachable capacity
+    /// register, or an unresolvable data-name-1) — the caller stages the named loud.</summary>
+    private AllCount? TableCount(DataItem table, DataItem? identifier1, AccessPath? tablePath) =>
+        table.IsDynamicTable ? (tablePath is null ? null : DynCapacity(table, tablePath))
+        : table.OccursSpec is { DependingName: not null, Depending: { } dep } odo
+            && identifier1 is not null && !OdoModel.IsWithin(dep, identifier1)          // GR8a
+            ? (ctx.Refs.ResolveItem(dep) is { } depPlace
+                ? new AllCount.Odo(depPlace, odo.Min, table.Occurs ?? odo.Max) : null)
+        : table.Occurs is { } n ? new AllCount.Fixed(n)                                  // GR4 / GR8b
+        : null;
+
+    /// <summary>A dynamic-capacity table's current-capacity count (ISO §13.18.38.4 GR15 — the register is minted
+    /// for every Format-4 table whether or not CAPACITY IN names it).</summary>
+    private static AllCount? DynCapacity(DataItem table, AccessPath tablePath) =>
+        table.OccursSpec?.CapacityRegister is { } reg
+            ? new AllCount.Capacity(new CapacityRegisterPlace(tablePath, reg)) : null;
 
     /// <summary>The recursive receiver walk (ISO §14.9.20 GR5), in definition order (GR8). Exclusions: GR5a2 —
     /// an explicit-or-implicit FILLER elementary item (a null <see cref="DataItem.CobolName"/>) unless WITH FILLER
@@ -145,7 +188,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// §13.18.45); GR5a1 — items that are not valid MOVE receivers (an index data item, §14.9.25.3 SR). A child
     /// with an OCCURS clause expands one loop per dimension (GR5b2 — every occurrence).</summary>
     private void ExpandInitialize(InitializeCursor cur, in InitializeSpec spec, List<InitializeAction> actions,
-        bool identifier1 = false)
+        DataItem? identifier1Item, bool identifier1 = false)
     {
         DataItem item = cur.Item;
         if (item.IsElementary)
@@ -176,33 +219,54 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             if (!(child.IsGroup || child.IsElementary)) continue;                               // no storage
             if (child.RedefinesTargetName is not null || child.Renames is not null) continue;   // GR5a3
-            // A dynamic-capacity table nested inside identifier-1's group is a variable-length group member: its
-            // occurrence count is a run-time value, so it is NOT the fixed per-dimension InitializeLoop. INITIALIZE
-            // of the WHOLE dynamic table (identifier-1 = the table itself) is handled in BindInitializeTarget; a
-            // containing group's dynamic child is staged loud here (the §14.6.9 variable-length-group family — inc 5
-            // gives it COBOLNET1527). D9.
-            if (child.IsDynamicTable)
-            {
-                actions.Add(new InitializeErrorAction($"COBOLNET1527: INITIALIZE of a group containing the "
-                    + $"dynamic-capacity table '{child.CobolName ?? "FILLER"}' — a variable-length group operation "
-                    + "(staged loud, ISO §14.6.9)"));
-                continue;
-            }
             if (cur.Child(child) is not { } childCur)
             {
                 actions.Add(new InitializeErrorAction(
                     $"INITIALIZE receiver '{child.CobolName ?? "FILLER"}' (unwired REDEFINES storage tier)"));
                 continue;
             }
-            if (child.Occurs is { } n)
+            // ⛔ A DYNAMIC-CAPACITY CHILD IS SPECIFIED, NOT DEFERRED (kb/Work PB393). §14.9.20.4 GR10: "When a
+            // group containing a dynamic-capacity table is initialized, all the elements of the table up to
+            // current capacity, if any, are initialized, whether or not the INITIALIZED phrase is present in the
+            // OCCURS clause, and the current capacity of the table is left unchanged." It is the SAME
+            // per-occurrence loop every other dimension takes — only the count differs — so it uses the same
+            // InitializeLoop over an AllCount.Capacity, and the element cursor is the dynamic one (its stores go
+            // through RefReceiving, which within the bound never grows the table: GR10's "left unchanged").
+            // This replaced a staged COBOLNET1527 loud that predated GR10 being read.
+            if (child.IsDynamicTable)
+            {
+                string dv = $"__ini{_initializeLoopVar++}";
+                var dbody = new List<InitializeAction>();
+                if (childCur.StoragePath is { } dtp)
+                {
+                    ExpandInitialize(new InitializeDynCursor(dtp.Add(new DynTableSegment(dv)), child),
+                        spec, dbody, identifier1Item);
+                    if (dbody.Count > 0 && TableCount(child, identifier1Item, dtp) is { } dcount)
+                        actions.Add(new InitializeLoop(dv, dcount, dbody));
+                    else if (dbody.Count > 0)
+                        actions.Add(new InitializeErrorAction($"INITIALIZE of the group member "
+                            + $"'{child.CobolName ?? "FILLER"}' (dynamic-capacity table with no capacity register)"));
+                }
+                else
+                    actions.Add(new InitializeErrorAction($"INITIALIZE of the group member "
+                        + $"'{child.CobolName ?? "FILLER"}' (a dynamic-capacity table in a storage form with no "
+                        + "table path — ISO §14.9.20.4 GR10)"));
+                continue;
+            }
+            if (child.IsTable)
             {
                 string v = $"__ini{_initializeLoopVar++}";
                 var body = new List<InitializeAction>();
-                ExpandInitialize(childCur.Indexed(v), spec, body);
-                if (body.Count > 0) actions.Add(new InitializeLoop(v, n, body));                // GR5b2
+                ExpandInitialize(childCur.Indexed(v), spec, body, identifier1Item);
+                // GR5b2 over the GR8 count — fixed (GR4), current (GR8a) or maximum (GR8b).
+                if (body.Count > 0 && TableCount(child, identifier1Item, childCur.StoragePath) is { } count)
+                    actions.Add(new InitializeLoop(v, count, body));
+                else if (body.Count > 0)
+                    actions.Add(new InitializeErrorAction($"INITIALIZE of the table '{child.CobolName ?? "FILLER"}' "
+                        + "(its OCCURS DEPENDING ON object is not resolvable — ISO §14.9.20.4 GR8)"));
             }
             else
-                ExpandInitialize(childCur, spec, actions);
+                ExpandInitialize(childCur, spec, actions, identifier1Item);
         }
     }
 
@@ -312,6 +376,14 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         public abstract InitializeCursor? Child(DataItem child);
         public abstract InitializeCursor Indexed(string indexVar);
         public abstract Place ToPlace();
+
+        /// <summary>The cursor's STRUCTURAL access path, or null for a storage form that has none — the Tier-B
+        /// window cursor, whose receivers are character windows over one string backing. It is what a
+        /// dynamic-capacity child needs (kb/Work PB393): its CAPACITY register and its per-occurrence element
+        /// path are both built from the table's own path, and taking it from the cursor rather than from
+        /// <c>ReferenceResolver.BuildTablePath</c> is what keeps a SUBSCRIPTED or qualified identifier-1's
+        /// indices on the path.</summary>
+        public virtual AccessPath? StoragePath => null;
     }
 
     /// <summary>A plain member-access cursor, mirroring <c>ReferenceResolver.AccessPath</c>: <c>CsName</c> segments
@@ -338,6 +410,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             this with { Path = Path.Add(new FixedTableSegment(indexVar)) };
 
         public override Place ToPlace() => new MemberPlace(Path, Item);
+
+        public override AccessPath? StoragePath => Path;
     }
 
     /// <summary>A cursor at one occurrence of an OCCURS DYNAMIC table (data-model D9): entered at the element level
@@ -357,6 +431,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             this with { Path = Path.Add(new FixedTableSegment(indexVar)) };
 
         public override Place ToPlace() => new DynTablePlace(Path, Item);
+
+        public override AccessPath? StoragePath => Path;
     }
 
     /// <summary>A cursor inside a Tier-B REDEFINES class: every receiver is a (offset, width) character window over

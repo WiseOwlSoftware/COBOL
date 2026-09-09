@@ -367,8 +367,20 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                         // The capacity comes from the carried length divided by OUR element width — legitimate
                         // because §8.5.1.12.3 admits corresponding tables only "when the byte length of their
                         // elements is equal", which the bind-time compatibility check enforced.
-                        w.Line($"{p.Field.Name}.FromCurrentImage(__v.Dyn({dynAt}), {p.Field.Width}, "
-                            + $"{TableElementFromImage(p.Item!)});");
+                        // ⛔ WHEN NO COMPONENT WAS CARRIED THIS TABLE IS IN THE EXCESS PART, AND THAT IS A
+                        // DIFFERENT RULE (kb/Work PB393). §14.9.25.4 GR9b step 2 sends it to §14.6.9.4, where
+                        // "the current capacity of the dynamic table is unaffected, and each element of the
+                        // dynamic table is space-filled" — the opposite of recreating it at capacity zero,
+                        // which is what an empty CARRIED component means under §14.6.9.2. The shape is
+                        // reachable on conforming source: §8.5.1.12.2's last sentence admits a trailing
+                        // dynamic-capacity table beyond the shorter group's last character, "treated as if it
+                        // corresponds to a space-filled fixed-length table".
+                        using (w.Block($"if (__v.HasDyn({dynAt}))"))
+                            w.Line($"{p.Field.Name}.FromCurrentImage(__v.Dyn({dynAt}), {p.Field.Width}, "
+                                + $"{TableElementFromImage(p.Item!)});");
+                        using (w.Block("else"))
+                            w.Line($"{p.Field.Name}.SpaceFillElements({p.Field.Width}, "
+                                + $"{TableElementFromImage(p.Item!)});");
                         dynAt++;
                         break;
                     case VarPartKind.Nested:

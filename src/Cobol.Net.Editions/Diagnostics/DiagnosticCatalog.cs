@@ -2547,6 +2547,25 @@ public static class DiagnosticCatalog
         + "qualified, subscripted or reference-modified reference do not.",
         "ISO §13.18.63.2 / §4.2.2");
 
+    // kb/Work PB393. §14.9.25.3 SR9 is the MOVE statement's own application of the §8.5.1.12 compatibility
+    // relation, and it is the SCREEN half of one hole with two rims: without it an INCOMPATIBLE program
+    // compiled clean and aborted at run time inside a Tier-C guard, while a COMPATIBLE one compiled clean and
+    // aborted in the same guard. The relation is the ONE VariableLengthCompatibility module (kb/Work PB204);
+    // this code reports its verdict for MOVE, including for every implicit move a phrase defines.
+    public static readonly DiagnosticDescriptor MoveVariableLengthIncompatible = new(
+        "COBOLNET1931", "move-variable-length-incompatible", EditionSeverity.Error,
+        "ISO §14.9.25.3 syntax rule 9: \"If identifier-1 or identifier-2 references a variable-length group "
+        + "then these groups shall be compatible groups as specified in 8.5.1.12, Variable-length groups.\" A "
+        + "variable-length group is a group with a DYNAMIC LENGTH elementary item or an OCCURS DYNAMIC table "
+        + "subordinate to it (§8.5.1.12.1), and §8.5.1.12.1 states the prohibition over the OTHER operand — "
+        + "such a group \"may not undergo a comparison or a move operation, in either direction, explicitly or "
+        + "otherwise, unless the other operand is a compatible group\". So a literal, a figurative constant, a "
+        + "function result, a reference-modified operand and an elementary item are each refused outright, and "
+        + "two groups are refused when their variable-length components do not correspond by relative byte "
+        + "position (§8.5.1.12.2) or do not match (§8.5.1.12.3). INITIALIZE is the statement that fills such a "
+        + "group without a compatible sender (§14.9.20.4 GR7/GR10).",
+        "ISO §14.9.25.3 SR9 / §8.5.1.12");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

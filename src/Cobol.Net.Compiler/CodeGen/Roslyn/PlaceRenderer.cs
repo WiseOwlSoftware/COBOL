@@ -452,4 +452,20 @@ internal static class PlaceRenderer
     public static string CharLengthExpr(OdoGroupPlace p) =>
         RuntimeApi.TableOdoExtentChars(RuntimeApi.TableOcc(Read(p.Depending)), p.MinOccurs, p.MaxOccurs,
             p.FixedUnits, p.ElemUnits, p.PositionsPerCharacter);
+
+    /// <summary>⛔ THE ONE RENDERER OF A TABLE'S OCCURRENCE COUNT (the <see cref="AllCount"/> model): the fixed
+    /// OCCURS count (ISO §13.18.38.4 GR4); an occurs-depending table's data-name-1 value CLAMPED to
+    /// [integer-1, integer-2] with EC-BOUND-ODO outside (GR7 — <c>CobolTable.OdoExtent</c> over a unit element,
+    /// the same clamp the sending image applies); a dynamic-capacity table's current capacity (§8.5.1.9.1).
+    /// <para>Promoted here from <c>IntrinsicRenderer</c> when INITIALIZE's per-occurrence loop became the second
+    /// consumer (kb/Work PB393): a <c>table(ALL)</c> argument's range and an INITIALIZE loop bound are the SAME
+    /// question about the SAME model, and the second spelling is what this repo's one-rule-one-place rule
+    /// forbids.</para></summary>
+    public static string OccurrenceCount(AllCount c) => c switch
+    {
+        AllCount.Fixed f => f.Occurs.ToString(),
+        AllCount.Odo o => RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(Read(o.Depending)), o.MinOccurs, o.MaxOccurs, 0, 1),
+        AllCount.Capacity cap => Read(cap.Register),
+        _ => throw new InvalidOperationException($"unknown occurrence count {c.GetType().Name}"),
+    };
 }

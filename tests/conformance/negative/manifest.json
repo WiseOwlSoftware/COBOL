@@ -931,7 +931,9 @@
   "pb353-read-previous-unbindable-file-names-its-edition",
   "pb353-read-advancing-on-lock-unbindable-names-its-edition",
   "pb353-invoke-unbindable-target-names-its-edition",
-  "pb366-use-exception-object-85"
+  "pb366-use-exception-object-85",
+  "pb393-move-varlen-to-elementary",
+  "pb393-move-varlen-position-mismatch"
  ],
  "pending": []
 }

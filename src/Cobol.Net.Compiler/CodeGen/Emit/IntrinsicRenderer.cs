@@ -712,16 +712,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         return RuntimeApi.TableAllArgs(csType, counts, $"{v} => {element(new BoundFieldOperand(all.Element))}");
     }
 
-    /// <summary>One ALL level's range as a C# <c>long</c>-valued expression: the OCCURS count; data-name-1's value
-    /// clamped to [integer-1, integer-2] with EC-BOUND-ODO outside (§13.18.38.4 GR7 — <c>CobolTable.OdoExtent</c>
-    /// with a unit element, the same clamp the sending image applies); the dynamic table's current capacity.</summary>
-    private static string AllCountExpr(AllCount c) => c switch
-    {
-        AllCount.Fixed f => f.Occurs.ToString(),
-        AllCount.Odo o => RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(PlaceRenderer.Read(o.Depending)), o.MinOccurs, o.MaxOccurs, 0, 1),
-        AllCount.Capacity cap => PlaceRenderer.Read(cap.Register),
-        _ => throw new InvalidOperationException($"unknown ALL range {c.GetType().Name}"),
-    };
+    /// <summary>One ALL level's range as a C# <c>long</c>-valued expression — the ONE occurrence-count renderer
+    /// (<c>PlaceRenderer.OccurrenceCount</c>), shared with INITIALIZE's per-occurrence loop bound (kb/Work
+    /// PB393). It was defined here until INITIALIZE became its second consumer.</summary>
+    private static string AllCountExpr(AllCount c) => PlaceRenderer.OccurrenceCount(c);
 
     /// <summary>The argument list from position <paramref name="from"/> on as ONE <c>T[]</c> expression when a
     /// table(ALL) argument is among them (else null — the caller keeps its comma-list form, byte-identical to

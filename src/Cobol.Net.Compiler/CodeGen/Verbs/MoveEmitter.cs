@@ -116,6 +116,23 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     private void EmitGroupToElementaryMove(Place target, BoundOperand source)
     {
         var item = target.Item;
+        // ⛔ ISO §14.9.25.4 GR8 FIRST — "If the sending or receiving item is a dynamic-length elementary item,
+        // the current content of the dynamic-length elementary item is moved or changed as specified in
+        // 8.5.1.10.4" — and §8.5.1.10.4: "the new value becomes the content of the item. The new length … is
+        // determined by the length of new content." A dynamic-length receiver therefore takes the sending
+        // GROUP's image WHOLE, with NO width fitting: it has no width to fit to (kb/Work PB393).
+        // <para>This arm exists because the ONE dynamic-length store (<see cref="ConvertSource"/>'s
+        // RuntimeApi.DynStore) is reached only by MoveKind.Convert, and a GROUP sender routes here instead —
+        // the two-arm dispatch with one arm fixed. The other three kinds cannot reach a dynamic-length
+        // receiver: MoveKind.Group's receiver is a group, FigurativeToNumericImage's is numeric (a
+        // dynamic-length item is alphanumeric or national, §8.5.1.10.1), and a RefModSlice receiver is by
+        // §8.5.1.10.4's own first sentence a FIXED-length item of the current length.</para>
+        if (item.IsDynamicLength)
+        {
+            ctx.Writer.Line(PlaceRenderer.Write(target,
+                RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: false), item.DynLengthLimit.ToString())));
+            return;
+        }
         if (!item.IsImageCapable)
         {
             ctx.Writer.Line(LoudStmt(TierCIsland.Reason(item, "group MOVE into")));
@@ -145,6 +162,14 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// pointer/object-class leaf stays the genuine Tier-C byte-island (deferred, loud).</summary>
     private void EmitGroupMove(Place target, BoundOperand source)
     {
+        // ⛔ ISO §14.9.25.4 GR9 GOVERNS FIRST (kb/Work PB393) — "If both the sending operand and the receiving
+        // data item are group items and one or both is a variable-length group, the following rules apply".
+        // GR4's plain group move is explicitly the OTHER case ("Any move that is not an elementary move, AND
+        // DOES NOT REFERENCE A VARIABLE-LENGTH GROUP, is treated exactly as if it were an alphanumeric to
+        // alphanumeric elementary move"), so this test precedes every GR4 path below — including
+        // AlignedLeafPairs, which for two identically-laid-out variable-length groups produced the RIGHT answer
+        // by accident and thereby hid the hole (the shape a first test covers).
+        if (VariableLengthGroupMove(target, source)) return;
         if (!target.Item.IsCharacterImage)
         {
             // A group MOVE is a content copy of the underlying representation, without conversion (ISO
@@ -194,6 +219,116 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // DYNAMIC receiving accessor, and the plain FromImage — written once for every verb that deposits an image.
         ctx.Writer.Line(PlaceRenderer.WriteGroupImage(target, image, "MOVE to group"));
     }
+
+    /// <summary>⛔ THE ISO §14.9.25.4 GR9 MOVE — "If both the sending operand and the receiving data item are
+    /// group items and one or both is a variable-length group" (kb/Work PB393). Returns false when GR9's own
+    /// antecedent does not hold, so the caller falls through to GR4's plain group move.
+    ///
+    /// <para><b>GR9 is a STRUCTURAL walk over the two groups' §8.5.1.12 components, not a flat byte copy</b>, and
+    /// the standard says so in its COMPARISON twin: §8.8.4.2.17 has the identical operation proceed "from left to
+    /// right … except that — when corresponding tables are encountered, they are compared as described in
+    /// 14.6.9.3 … — when corresponding dynamic-length elementary items are encountered, the length is determined
+    /// as described in 8.5.1.10.4 … After comparison of corresponding tables or dynamic-length elementary items,
+    /// comparison continues with the next data item in each of the compatible groups." GR9a's "corresponding
+    /// character position" is therefore the position under §8.5.1.12.2's correspondence — the accounting in which
+    /// a dynamic-length item is zero-length and a matched dynamic-capacity table is one element — and NOT the
+    /// receiver's incidental current content lengths, which would make the result of a MOVE depend on what the
+    /// receiving group happened to hold.</para>
+    ///
+    /// <para>That is exactly the carrier <c>CobolVarGroup</c> already models (kb/Work PB204): the collapsed fixed
+    /// run plus each variable-length component's current content, in order. So GR9 IS
+    /// <c>receiver.FromVarImage(sender.AsVarImage())</c>, and each of GR9's sub-rules is discharged by a part of
+    /// that codec that was already written to the same clause:</para>
+    /// <list type="bullet">
+    ///   <item>GR9a's positional move of the non-table character positions — the fixed run, stored through the
+    ///     ONE image-member law at §8.5.1.12.3 offsets.</item>
+    ///   <item>GR9a's "the table in the sending group is moved to the corresponding table in the receiving group,
+    ///     as specified in 14.6.9.2" — the component store (<c>FromCurrentImage</c>: recreate the receiving table
+    ///     from the sending capacity; a non-dynamic receiver fits to its own occurrence count, §14.6.9.2 rules 1
+    ///     and 2).</item>
+    ///   <item>GR9b's excess part — the fixed run is width-fitted, which IGNORES a longer sender's excess and
+    ///     SPACE-FILLS a shorter one's (step 3, "all other character positions are filled with space
+    ///     characters"); step 1 ("if the data item to be space-filled is a dynamic-length elementary item, the
+    ///     length of the receiving operand is set to zero") is the empty component a missing sender component
+    ///     yields, stored through §8.5.1.10.4's replace-with-no-padding rule; step 2 is
+    ///     <c>FromCurrentImage</c>'s own §14.6.9.4 space fill.</item>
+    /// </list>
+    ///
+    /// <para>A FIXED-length group on either side is admitted by §8.5.1.12.1 ("only one of the operands may be a
+    /// variable-length group") and decomposes into the SAME carrier through
+    /// <c>VariableLengthCompatibility.FlatTableSpans</c> + <c>CobolVarGroup.FromFixedImage</c> — §8.5.1.12.3
+    /// sentence 3 and §14.6.9.1 both say to treat its table as a dynamic-capacity table of its fixed or DEPENDING
+    /// count, so this is the standard's own conversion rather than an adapter invented here.</para>
+    ///
+    /// <para>The pair reached emit only after §14.9.25.3 SR9 passed at bind
+    /// (<c>StatementValidation.CheckVariableLengthMove</c>), so the two component sequences correspond one for
+    /// one by construction — which is why an ordinal carrier is faithful here for the same reason it is at the
+    /// activation boundary.</para></summary>
+    private bool VariableLengthGroupMove(Place target, BoundOperand source)
+    {
+        // GR9's antecedent: BOTH operands are GROUP items. A reference-modified or level-66 operand is an
+        // ELEMENTARY alphanumeric item by rule (§8.4.3.3.4 GR6 / §13.18.45), never a group — the same
+        // discrimination MoveClassifier.IsGroupPlace makes, and the same one SR9's screen made at bind.
+        Place? send = source switch
+        {
+            BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } f => f.Place,
+            BoundCurrentRecord { Area: not (RefModPlace or RenamesPlace) } cr => cr.Area,
+            _ => null,
+        };
+        if (send is null || !send.Item.IsGroup || !target.Item.IsGroup) return false;
+        if (!VariableLengthCompatibility.IsVariableLength(send.Item)
+            && !VariableLengthCompatibility.IsVariableLength(target.Item)) return false;
+        ctx.Writer.Line(VarCarrierRead(send) is not { } carrier
+            ? LoudStmt(VarShapeReason(send.Item, "the sending operand of a variable-length group MOVE"))
+            : VarCarrierWrite(target, carrier) ?? LoudStmt(
+                VarShapeReason(target.Item, "the receiving operand of a variable-length group MOVE")));
+        return true;
+    }
+
+    /// <summary>The §8.5.1.12 component carrier of a GR9 SENDING operand — the variable-length group's own
+    /// composer, or a fixed group's record image decomposed at its table spans. Null when this implementation
+    /// cannot compose the group's current extent (the caller emits the named loud).</summary>
+    private static string? VarCarrierRead(Place g) =>
+        VariableLengthCompatibility.IsVariableLength(g.Item)
+            ? g.Item.CurrentExtentImageCapable
+                ? PlaceRenderer.VarGroupImage(g, "the sending variable-length group")
+                : null
+            : VariableLengthCompatibility.FlatTableSpans(g.Item) is { } spans && g.Item.IsImageCapable
+                ? RuntimeApi.VarGroupFromFixedImage(
+                    PlaceRenderer.SendingGroupImage(g, "the sending group of a variable-length group MOVE"),
+                    SpanArray(spans))
+                : null;
+
+    /// <summary>The RECEIVING half of <see cref="VarCarrierRead"/> — the statement that distributes the carrier
+    /// back into the receiving group's members. Null when the shape cannot be distributed.</summary>
+    private static string? VarCarrierWrite(Place g, string carrier) =>
+        VariableLengthCompatibility.IsVariableLength(g.Item)
+            ? g.Item.CurrentExtentImageCapable
+                ? PlaceRenderer.WriteVarGroupImage(g, carrier, "the receiving variable-length group")
+                : null
+            : VariableLengthCompatibility.FlatTableSpans(g.Item) is { } spans && g.Item.IsImageCapable
+                ? PlaceRenderer.WriteGroupImage(g,
+                    RuntimeApi.VarGroupToFixedImage(carrier, g.Item.ImageWidth, SpanArray(spans)),
+                    "the receiving group of a variable-length group MOVE")
+                : null;
+
+    /// <summary>The flat <c>(offset, width)</c> C# array literal <c>CobolVarGroup.FromFixedImage</c> takes.</summary>
+    private static string SpanArray(IReadOnlyList<(int At, int Width)> spans) =>
+        $"new int[] {{ {string.Join(", ", spans.Select(s => $"{s.At}, {s.Width}"))} }}";
+
+    /// <summary>Why a GR9 operand's §8.5.1.12 components cannot be composed by THIS implementation — a named
+    /// shape, never the generic Tier-C string, because the generic one blames "a dynamic-length /
+    /// dynamic-capacity member" and a FIXED group operand has none (the misattribution kb/Work PB393 measured).
+    /// Both residues are the pre-existing current-extent boundary published as CONFORMANCE.md A.1 item 57, not
+    /// something GR9 introduces.</summary>
+    private static string VarShapeReason(DataItem g, string role) =>
+        VariableLengthCompatibility.IsVariableLength(g)
+            ? $"{role}, '{g.CobolName ?? g.CsName}', is a variable-length group whose current extent this "
+              + "implementation cannot compose (an OCCURS DEPENDING member, or a runtime-length item inside a "
+              + "table element) — ISO §14.9.25.4 GR9 over §8.5.1.12; CONFORMANCE.md A.1 item 57"
+            : $"{role}, '{g.CobolName ?? g.CsName}', is a fixed-length group whose record image this "
+              + "implementation cannot lay out in character positions (a USAGE BIT leaf, or a leaf with no "
+              + "character image) — ISO §14.9.25.4 GR9 over §8.5.1.12.3; COBOLNET_DESIGN §4.2";
 
     /// <summary>The positionally-paired leaves of two groups whose flattened layouts are IDENTICAL — each pair
     /// shares usage, digit count, scale, sign and storage shape, and neither group involves OCCURS, REDEFINES,

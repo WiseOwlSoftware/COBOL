@@ -171,6 +171,19 @@ public sealed class CobolDynTable<T>
         for (int i = 0; i < parts.Length && i < _count; i++) _store[i] = store(_seedAt(i + 1), parts[i]);
     }
 
+    /// <summary>ISO §14.6.9.4, Space filling a dynamic table (kb/Work PB393): "If a dynamic table is subordinate
+    /// to a variable-length group that is to be space filled as part of the execution of a MOVE statement, the
+    /// current capacity of the dynamic table is unaffected, and each element of the dynamic table is
+    /// space-filled." It is §14.9.25.4 GR9b step 2 — the receiving group's EXCESS part — so it is deliberately
+    /// NOT <see cref="FromCurrentImage"/> with an empty content: that one recreates the table at capacity zero,
+    /// which is §14.6.9.2's rule for a sender that really did carry an empty table. The two cases arrive as the
+    /// same zero-length string and are told apart by <c>CobolVarGroup.HasDyn</c>.</summary>
+    public void SpaceFillElements(int elementWidth, Func<T, string, T> store)
+    {
+        string spaces = new(' ', Math.Max(0, elementWidth));
+        for (int i = 0; i < _count; i++) _store[i] = store(_seedAt(i + 1), spaces);
+    }
+
     /// <summary>Mark the start of a SEARCH of this table (a SET Format 14 on it while active raises EC-FLOW-SEARCH,
     /// §14.9.39 GR31). Nestable (re-entrant SEARCH).</summary>
     public void EnterSearch() => _searching++;

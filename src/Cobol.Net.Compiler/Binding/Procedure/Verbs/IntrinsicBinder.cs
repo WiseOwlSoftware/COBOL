@@ -2141,7 +2141,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         string rules = bytes ? "§15.14.4 r2b/r6" : "§15.50.4 r4b/r7";
         OdoGroupPlace? odo = op.Place as OdoGroupPlace;
-        Place inner = odo?.Inner ?? op.Place;
+        // The STORAGE place, every decoration peeled (kb/Work PB393) — the switch two lines down is over
+        // storage FORMS, and `odo?.Inner` peeled exactly one known layer, so any other (or nested) decoration
+        // fell into its `_ => null` and staged the whole intrinsic loud.
+        Place inner = op.Place.Undecorated;
         DataItem group = inner.Item;
         AccessPath? basePath = inner switch { MemberPlace m => m.Path, DynTablePlace d => d.Path, _ => null };
         BoundExprError Stage(string what) => new($"FUNCTION {sig.Name} of '{group.CobolName ?? group.CsName}': {what} (ISO {rules})");

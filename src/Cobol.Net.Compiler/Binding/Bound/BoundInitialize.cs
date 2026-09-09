@@ -23,10 +23,20 @@ public abstract record InitializeAction;
 /// <paramref name="Target"/> under the MOVE rules (§14.9.25 — conversion, editing, JUSTIFIED/padding, truncation).</summary>
 public sealed record InitializeStore(Place Target, BoundOperand Source) : InitializeAction;
 
-/// <summary>The per-occurrence expansion of ONE OCCURS dimension (ISO §14.9.20 GR5b2): the body repeats for
-/// <paramref name="Var"/> = 1‥<paramref name="Count"/>; nested dimensions nest loops, outermost first (the loop
-/// variable is spliced into each body place's subscript position).</summary>
-public sealed record InitializeLoop(string Var, int Count, IReadOnlyList<InitializeAction> Body) : InitializeAction;
+/// <summary>The per-occurrence expansion of ONE OCCURS dimension (ISO §14.9.20.4 GR5b2 — "if the elementary data
+/// item is a table element, each occurrence of the elementary data item is a possible receiving-operand"): the body
+/// repeats for <paramref name="Var"/> = 1‥<paramref name="Count"/>; nested dimensions nest loops, outermost first
+/// (the loop variable is spliced into each body place's subscript position).
+/// <para>⛔ <paramref name="Count"/> is the ONE <see cref="AllCount"/> occurrence-count model (the same one a
+/// <c>table(ALL)</c> intrinsic argument carries, §15.3), NOT an integer — because §14.9.20.4 GR8 does not fix the
+/// count at the maximum: "For a variable-occurrence data item, the number of occurrences initialized is determined
+/// by the rules of the OCCURS clause for a receiving data item", and §13.18.38.4 GR8 then splits on WHERE
+/// data-name-1 lives — GR8a (outside the group) uses "the value of the data item referenced by data-name-1 at the
+/// start of the operation", GR8b (inside, receiving) "the maximum length of the group". A dynamic-capacity table's
+/// count is its CURRENT CAPACITY (GR10). Three counts, one model, one renderer
+/// (<c>PlaceRenderer.OccurrenceCount</c>) — kb/Work PB393; before it, the ODO arm silently initialized to the
+/// maximum in both quadrants and the dynamic arm aborted the run unit.</para></summary>
+public sealed record InitializeLoop(string Var, AllCount Count, IReadOnlyList<InitializeAction> Body) : InitializeAction;
 
 /// <summary>An implicit <c>SET</c> … <c>TO NULL</c> (ISO §14.9.20.4 GR4/GR6c): a data-pointer, program-pointer, or
 /// object-reference receiver is initialized to its predefined NULL value. This is a SET, NOT a MOVE — it does not
@@ -37,14 +47,6 @@ public sealed record InitializeSetNull(Place Target) : InitializeAction;
 /// <summary>A receiver the binder could not materialize as a typed place — the backend emits a loud runtime
 /// guard (COBOLNET_DESIGN §1.4), never a silent skip.</summary>
 public sealed record InitializeErrorAction(string Feature) : InitializeAction;
-
-/// <summary>The per-occurrence expansion of an OCCURS DYNAMIC dimension (ISO §14.9.20 GR10 / §8.5.1.9.1; data-model
-/// D9): the body repeats for <paramref name="Var"/> = 1‥<paramref name="CapacityExpr"/> — the table's CURRENT
-/// capacity, a RUN-TIME value (unlike the fixed-count <see cref="InitializeLoop"/>). The elements are initialized by
-/// the INITIALIZE statement's own stores (the category defaults / REPLACING / VALUE-phrase senders — NOT the OCCURS
-/// grow-seed), the capacity left unchanged (GR10: "all the elements of the table up to current capacity … are
-/// initialized … the current capacity is left unchanged").</summary>
-public sealed record InitializeDynLoop(string Var, string CapacityExpr, IReadOnlyList<InitializeAction> Body) : InitializeAction;
 
 /// <summary>The INITIALIZE data categories (ISO §14.9.20.2 category-name, per §8.5.2 class/category) — the
 /// COBOL-85 five plus the Phase-4a BOOLEAN and NATIONAL members (binder-side classification + GR6c default

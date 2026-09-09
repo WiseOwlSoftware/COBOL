@@ -47,17 +47,32 @@ public sealed class TierCRejectionTests
         Assert.Contains("Tier-C", detail);
     }
 
-    /// <summary>A receiver its own SYNTAX RULE bars (§14.9.1.3 SR6 ACCEPT / §14.9.43.3 SR11 STRING) fails at
-    /// BIND with the rule's diagnostic — earlier and more precise than the runtime island.</summary>
+    /// <summary>An operand its own SYNTAX RULE bars (§14.9.1.3 SR6 ACCEPT / §14.9.43.3 SR11 STRING /
+    /// §14.9.25.3 SR9 MOVE) fails at BIND with the rule's diagnostic — earlier and more precise than the
+    /// runtime island.</summary>
     private static void AssertBindRejected(string proc)
     {
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(proc));
-        Assert.False(ok, "a variable-length-group receiver its syntax rule bars shall fail at bind");
+        Assert.False(ok, "a variable-length-group operand its syntax rule bars shall fail at bind");
         Assert.Contains("variable-length", detail);
     }
 
-    [Fact] public void MoveIntoGroup_FailsLoud() => AssertLoudTierC("    MOVE WS-SRC TO WS-G.");
-    [Fact] public void MoveGroupToElementary_FailsLoud() => AssertLoudTierC("    MOVE WS-G TO WS-DEST.");
+    /// <summary>⛔ BOTH MOVE LEGS ARE BIND REJECTIONS, NOT RUNTIME LOUDS, AND THE STANDARD IS WHY (kb/Work
+    /// PB393). They were <c>AssertLoudTierC</c> until MOVE's §8.5.1.12 screen existed, and that was the
+    /// wrong posture rather than a stricter one: §14.9.25.3 SR9 is a SYNTAX RULE ("If identifier-1 or
+    /// identifier-2 references a variable-length group then these groups shall be compatible groups as
+    /// specified in 8.5.1.12"), and §8.5.1.12.1 states it over the OTHER operand — such a group "may not
+    /// undergo ... a move operation, in either direction ... unless the other operand is a compatible group".
+    /// <c>WS-SRC</c> and <c>WS-DEST</c> are ELEMENTARY, so neither leg can ever be that other operand, and
+    /// §4.2.2 ¶2 requires a compile-time mechanism for a violated syntax rule. A COMPATIBLE pair now moves
+    /// rather than aborting (<c>conformance:2014/pb393_move_varlen_group</c>), so the Tier-C island no longer
+    /// owns MOVE at all — its remaining MOVE-adjacent lock is the pointer/object-class arm below.
+    /// ⛔ Do NOT "restore" these to a runtime loud; the loud was the defect.</summary>
+    [Fact] public void MoveIntoGroup_BindRejected() => AssertBindRejected("    MOVE WS-SRC TO WS-G.");
+
+    /// <inheritdoc cref="MoveIntoGroup_BindRejected"/>
+    [Fact] public void MoveGroupToElementary_BindRejected() => AssertBindRejected("    MOVE WS-G TO WS-DEST.");
+
     [Fact] public void InspectGroup_FailsLoud() => AssertLoudTierC("    INSPECT WS-G REPLACING ALL \"A\" BY \"B\".");
     [Fact] public void StringIntoGroup_BindRejected() => AssertBindRejected("    STRING WS-SRC DELIMITED BY SIZE INTO WS-G.");
     [Fact] public void AcceptIntoGroup_BindRejected() => AssertBindRejected("    ACCEPT WS-G.");

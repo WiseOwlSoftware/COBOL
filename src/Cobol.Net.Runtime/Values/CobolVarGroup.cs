@@ -43,6 +43,15 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
     /// bind), so a missing component is a zero-length value, never an index fault.</summary>
     public string Dyn(int i) => (uint)i < (uint)Dynamic.Length ? Dynamic[i] : "";
 
+    /// <summary>Whether component <paramref name="i"/> was CARRIED at all — distinct from its being carried
+    /// EMPTY, and the distinction is normative (kb/Work PB393). ISO §14.9.25.4 GR9b space-fills the receiving
+    /// group's excess part, and its step 2 sends a dynamic-capacity table there to §14.6.9.4, where "the current
+    /// capacity of the dynamic table is unaffected, and each element of the dynamic table is space-filled" —
+    /// whereas a table whose SENDER carried a zero-capacity table is recreated at capacity zero by §14.6.9.2's
+    /// "recreates or overwrites the receiving table with a copy of the sending table". Both arrive as a
+    /// zero-length component string; only this tells them apart.</summary>
+    public bool HasDyn(int i) => (uint)i < (uint)Dynamic.Length;
+
     /// <summary>The window a NESTED variable-length group occupies inside this carrier:
     /// <paramref name="fixedWidth"/> character positions of <see cref="Fixed"/> starting at
     /// <paramref name="fixedAt"/> (space-padded when the sender's fixed run was shorter — the same store rule
@@ -53,9 +62,68 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
         string f = CobolString.Store(
             fixedAt >= Fixed.Length ? "" : Fixed[fixedAt..Math.Min(Fixed.Length, fixedAt + fixedWidth)],
             fixedWidth);
-        var d = new string[dynCount];
-        for (int k = 0; k < dynCount; k++) d[k] = Dyn(dynAt + k);
+        // ⛔ The window carries only what was ACTUALLY carried, never dynCount padded with empties: a nested
+        // group must be able to answer <see cref="HasDyn"/> the same way its parent can, or GR9b step 2's
+        // §14.6.9.4 space fill degrades into §14.6.9.2's recreate-at-zero one level down (kb/Work PB393).
+        var d = new string[Math.Clamp(Dynamic.Length - dynAt, 0, dynCount)];
+        for (int k = 0; k < d.Length; k++) d[k] = Dyn(dynAt + k);
         return new CobolVarGroup(f, d);
+    }
+
+    /// <summary>⛔ THE FIXED-LENGTH GROUP'S VIEW OF THIS CARRIER — the adapter that lets a FIXED group stand on
+    /// the other side of an ISO §14.9.25.4 GR9 move (kb/Work PB393). §8.5.1.12.1 admits the pair explicitly
+    /// ("either both operands may be variable-length groups or only one of the operands may be a variable-length
+    /// group"), and §8.5.1.12.3 sentence 3 says how: a table corresponding to the other group's dynamic-capacity
+    /// table "is treated as though it were a dynamic-capacity table whose capacity is either its fixed number of
+    /// occurrences or the value of the DEPENDING operand, as applicable" — §14.6.9.1 states the same conversion
+    /// for the operation itself. So a fixed group decomposes into EXACTLY this carrier: its record image with
+    /// each corresponding table's character span lifted out as a component, in order.
+    /// <para><paramref name="spans"/> is a FLAT (offset, width) pair list in character positions, computed at
+    /// compile time from the group's own §8.5.1.12 atom layout. A width of −1 means "to the end of the image" —
+    /// the occurs-depending table, whose current extent is a run-time length and which §13.18.38.3 SR22 makes
+    /// the trailing storage of its record, so "the rest" IS its current occurrences.</para></summary>
+    public static CobolVarGroup FromFixedImage(string image, int[] spans)
+    {
+        var dyn = new string[spans.Length / 2];
+        var fixedRun = new System.Text.StringBuilder(image.Length);
+        int at = 0;
+        for (int k = 0; k < dyn.Length; k++)
+        {
+            int off = spans[2 * k];
+            int width = spans[2 * k + 1];
+            int start = Math.Min(off, image.Length);
+            int end = width < 0 ? image.Length : Math.Min(start + width, image.Length);
+            fixedRun.Append(image[Math.Min(at, image.Length)..start]);
+            dyn[k] = image[start..end];
+            at = end;
+        }
+        if (at < image.Length) fixedRun.Append(image[at..]);
+        return new CobolVarGroup(fixedRun.ToString(), dyn);
+    }
+
+    /// <summary>The inverse of <see cref="FromFixedImage"/>: rebuild a FIXED group's record image of
+    /// <paramref name="totalWidth"/> character positions by re-inserting each component at its span. A component
+    /// is fitted to its span's width — ISO §14.6.9.2's own rule for a non-dynamic receiving table ("if the
+    /// sending table has a higher current capacity than the receiving table, superfluous elements are not moved";
+    /// "if the sending table has a lower current capacity … all the remaining elements of the receiving table are
+    /// space filled") — and the fixed run is fitted to what is left, which is §14.9.25.4 GR9b's excess rule for
+    /// the fixed material (space fill when short, ignore when long).</summary>
+    public static string ToFixedImage(CobolVarGroup v, int totalWidth, int[] spans)
+    {
+        var outp = new System.Text.StringBuilder(totalWidth);
+        int fixedAt = 0;
+        for (int k = 0; k < spans.Length / 2; k++)
+        {
+            int off = spans[2 * k];
+            int width = spans[2 * k + 1] < 0 ? Math.Max(0, totalWidth - off) : spans[2 * k + 1];
+            int take = Math.Max(0, off - outp.Length);
+            outp.Append(CobolString.Store(
+                fixedAt >= v.Fixed.Length ? "" : v.Fixed[fixedAt..Math.Min(v.Fixed.Length, fixedAt + take)], take));
+            fixedAt += take;
+            outp.Append(CobolString.Store(v.Dyn(k), width));
+        }
+        outp.Append(fixedAt >= v.Fixed.Length ? "" : v.Fixed[fixedAt..]);
+        return CobolString.Store(outp.ToString(), totalWidth);
     }
 
     /// <summary>Split a dynamic-capacity table's carried content into its occurrences at
