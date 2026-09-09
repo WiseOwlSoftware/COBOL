@@ -459,7 +459,7 @@ comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
 
 - `DataItem.GroupUsage : GroupUsage { None, Bit, National }` (init-only, from the clause; INHERITED by every
   subordinate group per SR2/SR3 "explicitly or implicitly", set by the usage-inheritance walk —
-  `DataBinder.ResolveIndexItems`, the same walk that adjudicates a group-level `USAGE BIT / NATIONAL`, because
+  `DataBinder.UsageInheritancePass`, the same walk that adjudicates a group-level `USAGE BIT / NATIONAL`, because
   GROUP-USAGE IMPLIES that usage for the subject: one walk, two spellings; that walk now also APPLIES the implied
   bit form to PICTURE-1 leaves without their own USAGE, §13.18.60.4 GR1 — which the group-level clause never had).
 - `DataItem.AsIfPic : PicInfo?` — the GR1b/GR2b picture: `new PicInfo(PicCategory.Boolean, Usage.Bit, m, 0, 0, false)` for a bit

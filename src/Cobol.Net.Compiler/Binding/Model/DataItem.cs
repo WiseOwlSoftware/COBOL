@@ -108,6 +108,27 @@ public sealed class DataItem
     /// §13.18.49 GR1+GR3).</summary>
     public Usage? OwnUsage { get; set; }
 
+    /// <summary>This entry's <see cref="Pic"/> was SYNTHESIZED FROM ITS USAGE, not analyzed from a PICTURE
+    /// character-string — the entry wrote one of the picture-less usages (<see cref="UsageFamilies.IsPictureless"/>
+    /// / ISO §13.16.3 SR8), whose representation the usage alone fixes.
+    /// <para>⛔ The flag exists because §13.18.60.4 GR1 gives that representation to the ELEMENTARY ITEMS, "not to
+    /// the group itself": entry bind cannot yet tell a picture-less elementary item from a group header (the
+    /// subordinates are not parsed), so it synthesizes optimistically and <c>DataBinder.UsageInheritancePass</c>
+    /// moves the profile DOWN to each picture-less leaf and sheds it from the header once the forest is complete.
+    /// Before kb/Work PB495 that pass tested for the synthesized shapes by reference identity and by
+    /// category/usage patterns — two hand-written lists that disagreed, so a group-level BINARY-SHORT or FLOAT-LONG
+    /// left a ZERO-LENGTH leaf (or a group emitted as a scalar <c>float</c>). This is the fact itself, so no list
+    /// can go stale against it.</para></summary>
+    public bool PicIsUsageSynthesized { get; set; }
+
+    /// <summary>The PICTURE character-string as WRITTEN (repetition factors already expanded from any integer
+    /// constant-name, §13.10.3 SR2), or <see langword="null"/> for an entry with no PICTURE clause. Kept because
+    /// a rule about the picture can be violated LATER than entry bind: §13.18.60.4 GR1 gives an elementary item
+    /// the usage its group wrote, and the §13.18.60.3 SR3/SR5/SR12/SR20 screen that then applies has to name the
+    /// offending picture in its message exactly as the written-clause spelling does. Travels with a TYPE /
+    /// SAME AS description copy, like <see cref="Pic"/> itself.</summary>
+    public string? PictureText { get; set; }
+
     /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.
     /// Settable for the <c>ExpandTypes</c> description copy (a subject's OWN VALUE wins, §13.18.57.4 GR3;
     /// otherwise the copied description's VALUE applies, §13.18.49 GR1 — VALUE is not in the exclusion list).</summary>

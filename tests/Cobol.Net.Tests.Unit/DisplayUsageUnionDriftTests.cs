@@ -59,16 +59,25 @@ public sealed class DisplayUsageUnionDriftTests
             // items); the question really is "is this a zoned DISPLAY field?".
             ["Binding/DataBinder.Reports.cs"] = 1,
 
-            // KEEPERS (7):
-            //  :521  MarkImageLeaves — which leaves must be STORED AS their image. A byte-form leaf keeps its
+            // KEEPERS (4):
+            //  :534  MarkImageLeaves — which leaves must be STORED AS their image. A byte-form leaf keeps its
             //        native carrier and encodes on demand; only a zoned leaf's storage IS characters.
-            //  :1923, :3262  USAGE INHERITANCE — genuinely asks "is this item still at the default DISPLAY
-            //        usage, so an inherited BINARY/PACKED/COMP-5 applies?". Usage.Display as a VALUE.
-            //  :3584  the Tier-B StringCanonical split: the DISPLAY arm marks through the CHARACTER pipeline,
+            //  :2435, :4263  SIGN INHERITANCE — genuinely asks "is this a signed ZONED item, so an inherited
+            //        SIGN clause applies?" (§13.18.52 governs usage-display items only). Usage.Display as a VALUE.
+            //  :4675  the Tier-B StringCanonical split: the DISPLAY arm marks through the CHARACTER pipeline,
             //        and the very next arm marks HasImageByteForm leaves through the BYTE pipeline. Both arms
             //        present — this is the deliberate two-lane split, not a missing lane.
-            //  (+ the remaining occurrences of the same three shapes on those lines.)
-            ["Binding/DataBinder.cs"] = 7,
+            //
+            // ⛔ WAS 7. THREE WERE DELETED, DELIBERATELY, by kb/Work PB495 — all three were the USAGE half of
+            // §13.18.60.4 GR1 group inheritance, each asking "is this leaf still at the default DISPLAY usage,
+            // so the group's clause applies?" beside its own hand-written set of usages that may be inherited
+            // (InheritUsageClauses' `Binary or Packed or Comp5`, the ResolveIndexItems BIT-leaf arm, and
+            // ExpandSameAs' §13.18.49.3 GR3 ancestor transform). That question is the WRONG one: GR1 applies a
+            // group's clause to EVERY elementary item under it, whatever its usage, so the three sets silently
+            // dropped every usage outside them. They are replaced by ONE derivation of the item's effective
+            // usage feeding ONE screen (DataBinder.ApplyEffectiveUsage → PictureAnalyzer.ScreenUsageAgainstPicture),
+            // and the equivalence is drift-tested over the whole Usage enum by UsageInheritanceDriftTests.
+            ["Binding/DataBinder.cs"] = 4,
 
             // KEEPERS — SPEC-REQUIRED. §8.4.3.3.3 SR1 admits reference modification of "a numeric data item of
             // usage display or national" ONLY, so the RENAMES/partial-cell and ref-mod view sites are enforcing

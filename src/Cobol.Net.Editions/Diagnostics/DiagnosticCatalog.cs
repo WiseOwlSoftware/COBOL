@@ -2565,6 +2565,23 @@ public static class DiagnosticCatalog
         + "position (§8.5.1.12.2) or do not match (§8.5.1.12.3). INITIALIZE is the statement that fills such a "
         + "group without a compatible sender (§14.9.20.4 GR7/GR10).",
         "ISO §14.9.25.3 SR9 / §8.5.1.12");
+    // kb/Work PB495. ISO §13.18.60.4 GR1 lets a group's USAGE clause reach an elementary item that never wrote
+    // one; §13.18.60.3 SR2 is the rule that governs what happens when the item DID write one — the two clauses
+    // are permitted to coexist, but not to disagree. The compiler had no site for SR2 at all, so the nearer
+    // clause simply won and the outer one was discarded without a word, which changed the item's representation
+    // and the group's width from what either written clause asked for.
+    public static readonly DiagnosticDescriptor UsageGroupContradiction = new(
+        "COBOLNET1927", "usage-group-contradiction", EditionSeverity.Error,
+        "A data description entry and a group item it is subordinate to both write a USAGE clause, and the two "
+        + "name different usages. ISO §13.18.60.3 SR2: \"If the USAGE clause is written in the data description "
+        + "entry for a group item, it may also be written in the data description entry for any subordinate "
+        + "elementary item or group item, but the same usage shall be specified in both entries.\" The comparison "
+        + "is between USAGES, not words — COMP, COMPUTATIONAL and BINARY are one usage in this implementation "
+        + "(§13.18.60.3 SR6 makes COMP the abbreviation; §13.18.60.4 GR4/GR6 leave both representations to the "
+        + "implementor), and COMP-3 and PACKED-DECIMAL are likewise one. The violation is reported against the "
+        + "SUBORDINATE entry, against the NEAREST enclosing entry that wrote a clause, so a chain of "
+        + "contradictions reports each link once.",
+        "ISO §13.18.60.3 SR2");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

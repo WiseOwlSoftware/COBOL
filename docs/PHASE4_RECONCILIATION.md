@@ -1057,7 +1057,7 @@ both ways); negative corpus +1 (based-level-05).
   range) for free. (5) **The national golden was re-baselined twice-in-one**: the N2A leg deleted (Table 16
   :28847, verified in-spec before the edit) AND the .out flipped to full-width DISPLAY (§14.9.11.4 GR6, the
   DEVLOG-597 posture) → the legacy runner carries a `LegacyDivergent` entry; boolean_data needs none
-  (exact-width values). (6) **Group USAGE NATIONAL/BIT conformance** rides the ResolveIndexItems shed site
+  (exact-width values). (6) **Group USAGE NATIONAL/BIT conformance** rides the `UsageInheritancePass` shed site
   (SR12/SR5 over subordinate leaves); a picture-less elementary NATIONAL/BIT errors 0881 there (the
   NationalUsagePending/BitUsagePending marker singletons — the RecoveryItem pattern).
 - Battery: unit 159 (was 130) · conformance grew by the two goldens + 4 new test batteries + 6 negative
@@ -1654,7 +1654,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 
 **The one architectural fact.** Method items ARE in the program-scope `Roots` (`BindEntries` does `Roots.Add`
 unconditionally, `DataBinder.cs:275`; the per-method lists hold a SECOND reference to the same objects). So the
-post-build passes (`ResolveIndexItems`, `ResolveRedefines`, `ClassifyRedefinesClasses`, `OdoResolve`) DO traverse
+post-build passes (`UsageInheritancePass`, `ResolveRedefines`, `ClassifyRedefinesClasses`, `OdoResolve`) DO traverse
 method items. The fault is `OoScopeSubtree` (`DataBinder.Oo.cs:210-237`, run INSIDE `OoBindMethodData` BEFORE
 `BindResolve`): it moves each method item's NAME out of the class-global `ByName` into `m.DataScope.ByName`, but
 leaves structure (Parent/Children/RedefinesTarget/Renames66) and the flat global `IndexFields` untouched. **⇒

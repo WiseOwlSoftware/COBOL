@@ -2159,7 +2159,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// excludes it).</summary>
     private static void CopyEntryDescription(DataItem from, DataItem to, bool copySync)
     {
-        to.Pic ??= from.Pic;
+        if (to.Pic is null && from.Pic is not null)
+        {
+            to.Pic = from.Pic;
+            to.PicIsUsageSynthesized = from.PicIsUsageSynthesized;   // the profile's provenance travels with it (PB495)
+            to.PictureText = from.PictureText;
+        }
         if (to.Pending is PicPending.None) to.Pending = from.Pending;
         // The provenance of the VALUE travels with it (DataItem.ValueIsCopied): the §13.18.63.3 SR13/SR14
         // screen's subject is the entry that WROTE the VALUE clause, so a copied one must not re-report the
@@ -2194,6 +2199,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CobolName = src.CobolName,
             CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
             Pic = src.Pic,
+            PicIsUsageSynthesized = src.PicIsUsageSynthesized,   // where the profile came from travels with it (PB495)
+            PictureText = src.PictureText,
             Pending = src.Pending,   // the deferred NATIONAL/BIT adjudication travels with the clone (P5.11c)
             OwnSign = src.OwnSign,
             OwnUsage = src.OwnUsage,
@@ -2414,9 +2421,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (p.OwnUsage is { } au)
                 {
                     item.OwnUsage = au;
-                    if (au is Usage.Binary or Usage.Packed or Usage.Comp5
-                        && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } upic)
-                        item.Pic = upic with { Usage = au, SignKind = PicInfo.SignKindFor(au, upic.Signed, item.OwnSign) };
+                    // ⛔ THE SAME transform §13.18.60.4 GR1 applies to a subordinate leaf — one method, so this
+                    // third acquisition route cannot drift from the other two (before PB495 it carried its own
+                    // copy of the `Binary or Packed or Comp5` hand-list and silently dropped every other usage).
+                    ApplyEffectiveUsage(item, au);
                     break;
                 }
         if (item.OwnSign is null)
@@ -2969,6 +2977,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // unit actually defining constants, so a constant-free program's PICTURE pipeline is untouched.
         if (pictureText is not null && _constants.Count > 0)
             pictureText = ExpandPicConstants(pictureText, entryWhere);
+        // The WRITTEN character-string, kept for the screens that cannot run until the forest is complete
+        // (§13.18.60.4 GR1's inherited usage — DataItem.PictureText). Captured HERE, before the §13.16.3 SR8
+        // recovery below clears `pictureText`.
+        string? writtenPicture = pictureText;
 
         // A PICTURE-less USAGE INDEX entry is an ELEMENTARY index data item (ISO §13.18.60 — class index, no
         // PICTURE allowed), not a group: synthesize its profile so it emits as a long occurrence-number field.
@@ -2979,10 +2991,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // USAGE OBJECT REFERENCE (LIVE — the Phase-3 OO spine): a PICTURE-less elementary reference item
         // (§13.18.60.4; the IndexItem synthesis pattern). PICTURE is prohibited with it — reject loud, never
         // let Analyze classify an incoherent picture-with-reference shape (the W2 silent-misbind rule).
-        if (entryUsage is Usage.ObjectReference && pictureText is not null)
+        // ── ⛔ THE §13.16.3 SR8 PICTURE-LESS SCREEN — ONE SET, ONE SITE. "The PICTURE clause shall not be
+        // specified … for an item whose usage is binary-char, binary-short, binary-long, binary-double,
+        // float-short, float-long, float-extended, index, message-tag, object reference, pointer,
+        // function-pointer, or program-pointer": the usage ALONE fixes such an item's representation, so a
+        // PICTURE beside it is a violation and Analyze must never classify the incoherent pair (the W2
+        // silent-misbind rule). Report loud, then bind the item from its usage.
+        //
+        // The SET is <see cref="UsageFamilies.IsPictureless"/> — the SAME predicate UsageInheritancePass screens
+        // an INHERITED usage against (§13.18.60.4 GR1 makes a group's clause the elementary item's clause), so
+        // the two spellings of one item cannot diverge. It replaced FIVE hand-written or-chains here, and
+        // USAGE INDEX was the arm they were missing: `05 A PIC 9(4) USAGE INDEX.` silently DROPPED the picture
+        // and bound an 8-byte index item (kb/Work PB495). Each family keeps the diagnostic code it has always
+        // carried, and the message names the family the programmer actually wrote.
+        if (pictureText is not null && UsageFamilies.IsPictureless(entryUsage))
         {
-            Edition.Error("COBOLNET0812", $"{entryWhere}: PICTURE may not be specified with USAGE OBJECT "
-                + "REFERENCE (ISO §13.18.60.4 — an object-reference item is picture-less)");
+            (string sr8Code, string sr8Text) = Sr8PicturelessVerdict(entryUsage);
+            Edition.Error(sr8Code, $"{entryWhere}: {sr8Text}");
             pictureText = null;
         }
         // The §13.18.60.2 description, adjudicated ONCE: which alternative was written, whether the name
@@ -2994,29 +3019,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ? OoBindObjectRefDescriptor(objectRefUsage, entryWhere, section)
             : ObjectRefDescriptor.Universal;
 
-        // PICTURE is prohibited on a fixed-width binary usage (ISO §13.16.3 SR8 — the item is picture-less; its
-        // width and range are fixed by the usage, §13.18.60.4 GR12). Reject loud, never let Analyze classify an
-        // incoherent picture-with-binary shape (the W2 silent-misbind rule; the OBJECT REFERENCE 0812 pattern).
-        if (entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
-            && pictureText is not null)
-        {
-            Edition.Error("COBOLNET0870", $"{entryWhere}: PICTURE may not be specified with a fixed-width binary "
-                + "usage (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) — the item is picture-less (ISO §13.16.3 SR8)");
-            pictureText = null;
-        }
-
-        // PICTURE is prohibited with USAGE PROGRAM-POINTER / FUNCTION-POINTER (§13.16.3 SR8 — picture-less),
-        // and a VALUE clause is prohibited (§13.18.63 SR9 — no literal denotes a program address). The
-        // restricted TO-prototype form stages loud (§13.18.60 GR25 — signature matching needs the P13
-        // prototype registry). The 0881 declaration band, mirroring the POINTER gates below.
+        // A VALUE clause is prohibited with USAGE PROGRAM-POINTER / FUNCTION-POINTER (§13.18.63 SR9 — no literal
+        // denotes a program address). The restricted TO-prototype form stages loud (§13.18.60 GR25 — signature
+        // matching needs the P13 prototype registry). The 0881 declaration band. (Their PICTURE prohibition is
+        // the §13.16.3 SR8 screen above, over the ONE picture-less set.)
         if (entryUsage is Usage.ProgramPointer or Usage.FunctionPointer)
         {
-            if (pictureText is not null)
-            {
-                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: PICTURE may not be specified with USAGE "
-                    + "PROGRAM-POINTER or FUNCTION-POINTER — the item is picture-less (ISO §13.16.3 SR8)");
-                pictureText = null;
-            }
             if (rawValue is not null)
             {
                 Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: the VALUE clause shall not be specified with a "
@@ -3028,15 +3036,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     .FirstOrDefault(ppu => ppu is not null)?.TO() is not null)
                 Edition.Error(DiagnosticCatalog.ProgramPointerRestricted,
                     $"{entryWhere}: USAGE PROGRAM-POINTER TO program-prototype-name (ISO §13.18.60 GR25)");
-        }
-
-        // PICTURE is prohibited with USAGE POINTER (§13.18.60.4 — a data-pointer is picture-less; before this
-        // gate the entry silently misbound BY ITS PICTURE, the W2 hazard class). The 0881 declaration band.
-        if (entryUsage is Usage.Pointer && pictureText is not null)
-        {
-            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: PICTURE may not be specified with USAGE POINTER — "
-                + "a data-pointer item is picture-less (ISO §13.18.60.4)");
-            pictureText = null;
         }
 
         // USAGE POINTER TO type-name-1 — the RESTRICTED data-pointer (§13.18.60.2 general format; §13.18.60.4
@@ -3123,21 +3122,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // is screened here so the reject a user sees names that non-support rather than a parse error, and the
             // value is deliberately NOT carried onto PicInfo: a field nothing reads is a lookup nothing has ever
             // contradicted. It threads through when the usages themselves land.
-        }
-
-        // PICTURE is prohibited with a floating-point usage (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) — the item
-        // is picture-less (§13.18.60.2). COBOLNET1521 (the 08xx declaration band is exhausted; this is a syntax-rule
-        // violation, 15xx). Before this a float item synthesized pic=null and NRE'd the emit; a float WITH a picture
-        // would misbind by that (illegal) picture. (D16.)
-        if (entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
-                or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
-                or Usage.FloatDecimal16 or Usage.FloatDecimal34
-            && pictureText is not null)
-        {
-            Edition.Error("COBOLNET1521", $"{entryWhere}: PICTURE may not be specified with a floating-point usage "
-                + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED/FLOAT-BINARY-*/FLOAT-DECIMAL-*) — a floating-point item "
-                + "is picture-less (ISO §13.18.60.2)");
-            pictureText = null;
         }
 
         var pic = pictureText is not null
@@ -3309,6 +3293,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CobolName = isFiller ? null : cobolName,
             CsName = csName,
             Pic = pic,
+            // The profile above came from the USAGE, not from a PICTURE character-string — §13.18.60.4 GR1 gives
+            // it to the elementary items under this entry rather than to the entry itself when the entry turns
+            // out to be a group, which UsageInheritancePass decides once the forest is complete (PB495).
+            PicIsUsageSynthesized = pictureText is null && pic is not null,
+            PictureText = writtenPicture,
             Pending = pending,
             OwnSign = ownSign,
             OwnUsage = usageText is not null ? entryUsage : null,
@@ -3956,189 +3945,293 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (rewritten) item.TableValues = screened;
     }
 
-    /// <summary>THE usage-inheritance pass (P5.11e, DESIGN-data-model §2.7 — the former
-    /// <c>ResolveIndexItems</c> + <c>InheritUsageClauses</c> pipeline pair MERGED; both effects, same order): the
-    /// two halves are one §13.18.60 GR1 job — resolve the PICTURE-less usage MARKERS once the forest is complete
-    /// (index/object-reference shedding, the NATIONAL/BIT <see cref="DataItem.Pending"/> adjudication), then
-    /// apply group-level USAGE clauses to subordinate elementary items.</summary>
+    /// <summary>ISO §13.16.3 SR8's verdict on a PICTURE written beside a PICTURE-LESS usage: the diagnostic
+    /// code that usage family has always carried, and the message that names the family the programmer wrote.
+    ///
+    /// <para>⛔ ONE method for BOTH ways an item can acquire the usage — its own USAGE clause
+    /// (<c>BindEntry</c>) and §13.18.60.4 GR1 group inheritance (<c>UsageInheritanceElementary</c>). The two
+    /// call sites differ only in WHOSE clause they name, never in the verdict, which is what GR1 requires: the
+    /// two spellings describe one item. Guard every call with <see cref="UsageFamilies.IsPictureless"/> — the
+    /// fall-through arm is the FLOAT family, so a usage outside the set would be misreported as one.</para></summary>
+    private static (string Code, string Text) Sr8PicturelessVerdict(Usage usage) => usage switch
+    {
+        Usage.ObjectReference => ("COBOLNET0812",
+            "PICTURE may not be specified with USAGE OBJECT REFERENCE (ISO §13.16.3 SR8 — an "
+            + "object-reference item is picture-less)"),
+        Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble => ("COBOLNET0870",
+            "PICTURE may not be specified with a fixed-width binary usage "
+            + "(BINARY-CHAR/-SHORT/-LONG/-DOUBLE) — the item is picture-less (ISO §13.16.3 SR8)"),
+        Usage.ProgramPointer or Usage.FunctionPointer => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+            "PICTURE may not be specified with USAGE PROGRAM-POINTER or FUNCTION-POINTER — the item "
+            + "is picture-less (ISO §13.16.3 SR8)"),
+        Usage.Pointer => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+            "PICTURE may not be specified with USAGE POINTER — a data-pointer item is picture-less "
+            + "(ISO §13.16.3 SR8)"),
+        Usage.Index => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+            "PICTURE may not be specified with USAGE INDEX — an index data item is picture-less, and "
+            + "its content is an occurrence number rather than a pictured value (ISO §13.16.3 SR8; "
+            + "§13.18.60.4 GR10)"),
+        _ => ("COBOLNET1521",
+            "PICTURE may not be specified with a floating-point usage "
+            + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED/FLOAT-BINARY-*/FLOAT-DECIMAL-*) — a "
+            + "floating-point item is picture-less (ISO §13.16.3 SR8; §13.18.60.2)"),
+    };
+
+    /// <summary>The USAGE an entry hands DOWN to the elementary items under it — ISO §13.18.60.4 GR1, "If the
+    /// USAGE clause is specified or implied at a group level, it applies only to each elementary item in the
+    /// group … and not to the group itself".
+    /// <para><see cref="Pictureless"/> is the representation entry bind synthesized for a picture-less usage
+    /// (§13.16.3 SR8) — the profile that, by GR1, belongs to the leaves rather than to the group header that
+    /// wrote the clause. <see cref="Pending"/> carries the deferred NATIONAL/BIT mark the same way, and
+    /// <see cref="FromName"/> names the entry the clause was written on so §13.18.60.3 SR2's message can point
+    /// at it.</para></summary>
+    private readonly record struct InheritedUsage(
+        Usage? Effective, PicInfo? Pictureless, PicPending Pending, string? FromName);
+
+    /// <summary>
+    /// ⛔ THE USAGE-INHERITANCE PASS (P5.11e, DESIGN-data-model §2.7) — ISO §13.18.60.4 GR1, run ONCE over the
+    /// completed forest: <i>"If the USAGE clause is specified or implied at a group level, it applies only to
+    /// each elementary item in the group. Unless the GROUP-USAGE clause is also specified or implied, the USAGE
+    /// clause applies only to each elementary item in the group and not to the group itself."</i>
+    ///
+    /// <para><b>THE INVARIANT THIS PASS EXISTS TO HOLD.</b> GR1 does not say a group's usage <i>influences</i>
+    /// its leaves; it says the clause <i>applies to</i> each of them. So an elementary item that acquired its
+    /// usage from a group shall be THE SAME ITEM the written-clause spelling produces — same representation,
+    /// same width, same syntax-rule verdicts, same diagnostics. <c>01 G USAGE u. 05 A ⟨pic⟩.</c> ≡
+    /// <c>01 G. 05 A ⟨pic⟩ USAGE u.</c> That equivalence is a drift test (<c>UsageInheritanceTests</c>), it
+    /// enumerates the <see cref="Usage"/> enum, and it is what makes the NEXT usage automatic.</para>
+    ///
+    /// <para><b>Why it is ONE walk over ONE derivation (kb/Work PB495).</b> The pass used to be two — a
+    /// <c>ResolveIndexItems</c> that shed a hand-listed set of synthesized profiles from group headers, and an
+    /// <c>InheritUsageClauses</c> that applied a DIFFERENT hand-listed set (<c>Binary or Packed or Comp5</c>) to
+    /// leaves. Neither list was derived from anything, the two disagreed, and every usage in neither fell
+    /// through in SILENCE: a picture-less leaf under a group-level BINARY-SHORT or FLOAT-LONG became a
+    /// ZERO-LENGTH item (a MOVE into it then NRE'd the emitter), a group-level FLOAT-SHORT left its synthesized
+    /// float profile ON the group so the record struct emitted a scalar <c>float</c> and every member reference
+    /// became a raw Roslyn CS1061, and a PICTURE-bearing leaf under a group-level BINARY-LONG or INDEX kept its
+    /// usage-display width with no diagnostic at all. There is now ONE derivation of an elementary item's
+    /// effective usage — its own clause, else the nearest enclosing one — and three consumers of it: the group
+    /// header's shed, the leaf's representation, and the screens (§13.18.60.3 SR2/SR3/SR5/SR12/SR20 and
+    /// §13.16.3 SR8), each of which is the SAME code the written-clause path runs.</para>
+    ///
+    /// <para>Runs BEFORE <see cref="InheritSignClauses"/> — a non-DISPLAY item takes the BinaryMinus sign form
+    /// regardless of any inherited SIGN clause (§13.18.52 applies only to usage-display items).</para>
+    /// </summary>
     internal void UsageInheritancePass()
     {
-        ResolveIndexItems();
-        InheritUsageClauses();
+        foreach (var root in Roots) UsageInheritanceWalk(root, default);
     }
 
-    /// <summary>Resolve PICTURE-less USAGE INDEX entries (ISO §13.18.60) once the forest is complete — entry bind
-    /// synthesized an elementary index profile (<see cref="PicInfo.IndexItem"/>) before subordinates were known. An
-    /// entry WITH subordinates is a GROUP whose USAGE INDEX merely inherits (GR1 — usage on a group applies to each
-    /// elementary item under it): clear the synthesized profile; a PICTURE-less LEAF below it is an index data item
-    /// even without its own USAGE clause. (A half of <see cref="UsageInheritancePass"/>, P5.11e.)</summary>
-    private void ResolveIndexItems()
+    /// <summary>One entry of the §13.18.60.4 GR1 walk: screen its own clause against the one it inherited
+    /// (§13.18.60.3 SR2), decide what it hands DOWN, and dispatch to the group or the elementary arm.</summary>
+    private void UsageInheritanceWalk(DataItem item, InheritedUsage inherited)
     {
-        // Every elementary leaf under a group (for the NATIONAL/BIT group-usage conformance check below).
-        static IEnumerable<DataItem> Leaves(DataItem g)
-        {
-            foreach (var c in g.Children)
-                if (c.Children.Count > 0) foreach (var l in Leaves(c)) yield return l;
-                else yield return c;
-        }
+        using var _ = Edition.At(item);
 
-        void Walk(DataItem item, bool inherited, PicInfo? inheritedObjRef)
+        // The usage this entry carries in its OWN right — its written USAGE clause, or the one a GROUP-USAGE
+        // clause IMPLIES (§13.18.29.3 SR2/SR3: "USAGE BIT / NATIONAL may be implicitly specified"). GR1 is
+        // written over "specified OR IMPLIED", so both spellings hand down.
+        Usage? ownOrImplied = item.OwnUsage ?? item.GroupUsage switch
         {
-            using var _ = Edition.At(item);
-            bool isIndex = ReferenceEquals(item.Pic, PicInfo.IndexItem) || (inherited && item.Pic is null);
-            // USAGE OBJECT REFERENCE inherits the same way (§13.18.60.4 GR1): a group header sheds its
-            // synthesized reference profile; a PICTURE-less leaf below takes it (sharing the immutable
-            // PicInfo — the declared class flows down with it).
-            var objRef = item.Pic is { Category: PicCategory.ObjectReference } p ? p : inheritedObjRef;
-            if (item.Children.Count > 0)
-            {
-                // GROUP-USAGE (ISO §13.18.29; D20/PB79) — SR1's forest-dependent halves, and SR2/SR3's "all subordinate
-                // group items shall be explicitly or implicitly described with GROUP-USAGE BIT / NATIONAL": a
-                // subordinate group inherits, one that declares the OTHER usage is a violation.
-                if (item.GroupUsage is not GroupUsage.None)
-                {
-                    string gu = item.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL";
-                    if (StrongTypeModel.IsStrongGroup(item))
-                        Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
-                            + "GROUP-USAGE clause may be specified only if the subject of the entry is not strongly typed "
-                            + "(ISO §13.18.29.3 SR1)");
-                    if (ReferenceResolver.HasVariableLengthSubordinate(item))
-                        Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
-                            + "GROUP-USAGE clause may be specified only if the subject of the entry is not a "
-                            + "variable-length group (ISO §13.18.29.3 SR1; §8.5.1.12)");
-                    foreach (var c in item.Children)
-                    {
-                        if (c.Children.Count == 0) continue;
-                        if (c.GroupUsage is GroupUsage.None) c.GroupUsage = item.GroupUsage;   // implied (SR2/SR3)
-                        else if (c.GroupUsage != item.GroupUsage)
-                        {
-                            using var __c = Edition.At(c);
-                            Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{c.CobolName ?? "FILLER"}': a group "
-                                + $"subordinate to a GROUP-USAGE {gu} group shall itself be GROUP-USAGE {gu}, explicitly or "
-                                + $"implicitly — not GROUP-USAGE {(c.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL")} "
-                                + $"(ISO §13.18.29.3 {(item.GroupUsage is GroupUsage.Bit ? "SR2" : "SR3")})");
-                        }
-                    }
-                }
-                // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (ISO §E.3.2 item 6 — "This clause may
-                // now be specified for a group level data item"; §13.18.55 is the clause itself). It routes
-                // through the CANONICAL funnel like every other introduction, so it is a hard error on BOTH
-                // axes: §4.2.2's warning mechanism reports violations of the standard, and --permissive is the
-                // migration mode for constructs an edition REMOVED — it has no meaning for one the targeted
-                // edition has not yet acquired, which no pre-existing program can legally contain (CA14,
-                // owner-approved option (a); this was the sole site routing an introduction through the
-                // removed-severity seam, contradicting the compiler's own single-policy contract).
-                if (item.Synchronized && Edition.DialectLevel < 2023)
-                    ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SyncOnGroup2023,
-                        $"data item '{item.CobolName ?? "FILLER"}'");
-                if (ReferenceEquals(item.Pic, PicInfo.IndexItem)) item.Pic = null;   // a group, not an elementary index
-                // USAGE NATIONAL / BIT on a GROUP header sheds per §13.18.60.4 GR1 — with the SR12/SR5
-                // conformance check over the subordinate leaves (each leaf's own PICTURE has already
-                // classified it): under NATIONAL a leaf must be national (fine), boolean/numeric (spec-legal
-                // national FORMS — staged, the Analyze 0899 legs), never alphabetic/alphanumeric; under BIT
-                // every leaf must be boolean (SR5). Adjudicated via the EXPLICIT Pending mark (P5.11c) — the
-                // item's Pic was never a sentinel shape and is already null.
-                if (item.Pending is PicPending.NationalUsage)
-                {
-                    item.Pending = PicPending.None;
-                    foreach (var l in Leaves(item))
-                    {
-                        using var __l = Edition.At(l);   // the LEAF's own entry position (kb/Work PB82)
-                        if (l.Pic is { Category: PicCategory.Boolean or PicCategory.Numeric or PicCategory.NumericEdited })
-                            Edition.Error(DiagnosticCatalog.NationalData, "national-form data (a boolean or numeric item "
-                                + $"under a group USAGE NATIONAL) is recognized but not yet implemented "
-                                + $"(Phase 4a residue) — data item '{l.CobolName ?? "FILLER"}' "
-                                + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1)");
-                        else if (l.Pic is not null and not { Category: PicCategory.National })
-                            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"data item '{l.CobolName ?? "FILLER"}': USAGE "
-                                + "NATIONAL inherited from its group admits boolean, national, "
-                                + "national-edited, numeric, and numeric-edited pictures only "
-                                + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1; §13.18.40.3 SR30)");
-                    }
-                }
-                if (item.Pending is PicPending.BitUsage)
-                {
-                    item.Pending = PicPending.None;
-                    foreach (var l in Leaves(item))
-                    {
-                        using var __l = Edition.At(l);   // the LEAF's own entry position (kb/Work PB82)
-                        if (l.Pic is not null and not { Category: PicCategory.Boolean })
-                            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"data item '{l.CobolName ?? "FILLER"}': USAGE BIT "
-                                + "inherited from its group requires a boolean PICTURE (symbol 1 only) "
-                                + "(ISO §13.18.60.3 SR5 / §13.18.60.4 GR1)");
-                        // §13.18.60.4 GR1 — the group's USAGE BIT (declared, or implied by GROUP-USAGE BIT — §13.18.29.3
-                        // SR2 "USAGE BIT may be implicitly specified") APPLIES to each subordinate boolean leaf that
-                        // has no usage of its own: it becomes bit-form (bits, §8.5.1.6.3 alignment — D19), not the
-                        // display-form SR13b default. Before D20 the check above validated the leaves and left them
-                        // display-form, so `01 G USAGE BIT. 05 A PIC 1(5). 05 B PIC 1(3).` occupied 8 bytes (D20/PB79).
-                        else if (l.OwnUsage is null && l.Pic is { Category: PicCategory.Boolean, Usage: Usage.Display } bp)
-                            l.Pic = bp with { Usage = Usage.Bit };
-                    }
-                }
-                if (item.Pic is { Category: PicCategory.ObjectReference }) item.Pic = null;
-                // A synthesized fixed-width binary profile on a GROUP header sheds the same way (the usage
-                // merely inherits per §13.18.60.4 GR1). Group-level BINARY-* over PICTURE'd children is a spec
-                // corner with no corpus surface (PICTURE is §13.16.3 SR8-illegal on the family) — left to a
-                // later slice, mirroring the float-on-group deferral in InheritUsageClauses.
-                if (item.Pic is { Category: PicCategory.Numeric, Usage: Usage.BinaryChar or Usage.BinaryShort
-                        or Usage.BinaryLong or Usage.BinaryDouble }) item.Pic = null;
-                foreach (var c in item.Children) Walk(c, isIndex, objRef);
-            }
-            else if (item.GroupUsage is not GroupUsage.None)
-            {
-                // A GROUP-USAGE entry with no subordinates is not a group at all (§13.18.29.3 SR1) — the implied
-                // usage's own Pending mark is consumed here so the picture-less-usage arm below does not double-report.
-                Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the GROUP-USAGE "
-                    + "clause may be specified only if the subject of the entry is a group item — this entry has no "
-                    + "subordinate entries (ISO §13.18.29.3 SR1)");
-                item.GroupUsage = GroupUsage.None;
-                item.Pending = PicPending.None;
-                item.Pic = PicInfo.Recovery();
-            }
-            else if (item.Pending is not PicPending.None)
-            {
-                // A PICTURE-less ELEMENTARY item may not carry USAGE NATIONAL/BIT — they are not among the
-                // picture-less usages (§13.18.60.4; contrast INDEX/POINTER/OBJECT REFERENCE/BINARY-x). The
-                // recovery shape keeps the doomed emit crash-free (the DEVLOG-597 pattern).
-                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"data item '{item.CobolName ?? "FILLER"}': an elementary item "
-                    + $"with USAGE {(item.Pending is PicPending.BitUsage ? "BIT" : "NATIONAL")} "
-                    + "requires a PICTURE clause (ISO §13.18.60.4 — not a picture-less usage)");
-                item.Pic = PicInfo.Recovery();
-                item.Pending = PicPending.None;
-            }
-            else if (isIndex && item.Pic is null)
-                item.Pic = PicInfo.IndexItem;
-            else if (item.Pic is null && objRef is not null)
-                item.Pic = objRef;
-        }
-        foreach (var root in Roots) Walk(root, false, null);
+            GroupUsage.Bit => Usage.Bit,
+            GroupUsage.National => Usage.National,
+            _ => null,
+        };
+
+        // ── §13.18.60.3 SR2 ─────────────────────────────────────────────────────────────────────────────────
+        // "If the USAGE clause is written in the data description entry for a group item, it may also be written
+        // in the data description entry for any subordinate elementary item or group item, but the same usage
+        // shall be specified in both entries." Compared against the NEAREST enclosing entry that wrote one, so a
+        // chain G→H→A reports each adjacent contradiction once, at the entry whose clause has to change.
+        // ⛔ "The same USAGE" is compared as the RESOLVED Usage member, not as the written word: ParseUsage has
+        // already folded every spelling of one representation onto one member, which is exactly what SR6 asks
+        // for ("COMP is an abbreviation for COMPUTATIONAL") and what this implementation's BINARY ≡ COMPUTATIONAL
+        // identification (§13.18.60.4 GR4/GR6, both implementor-defined) means. `USAGE COMP` inside a
+        // `USAGE BINARY` group is therefore the same usage in both entries and conforms.
+        if (item.OwnUsage is { } ownWritten && inherited.Effective is { } fromGroup && ownWritten != fromGroup)
+            Edition.Error(DiagnosticCatalog.UsageGroupContradiction, $"data item '{item.CobolName ?? "FILLER"}': "
+                + $"USAGE {UsageFamilies.UsageWord(ownWritten)} contradicts the USAGE {UsageFamilies.UsageWord(fromGroup)} written for the group item "
+                + $"'{inherited.FromName ?? "FILLER"}' to which it is subordinate — a USAGE clause may be written "
+                + "in both entries, but the same usage shall be specified in both (ISO §13.18.60.3 SR2)");
+
+        // What THIS entry hands down: its own (or implied) clause together with the representation entry bind
+        // synthesized for it, else whatever it inherited, unchanged.
+        var down = ownOrImplied is null && item.Pending is PicPending.None
+            ? inherited
+            : new InheritedUsage(ownOrImplied, item.PicIsUsageSynthesized ? item.Pic : null,
+                                 item.Pending, item.CobolName);
+
+        if (item.Children.Count > 0) UsageInheritanceGroup(item, down);
+        else UsageInheritanceElementary(item, inherited);
     }
 
-    /// <summary>Apply group-level USAGE clauses to subordinate elementary items (ISO §13.18.60 GR1 — "the USAGE
-    /// clause of a group item applies to each elementary item subordinate to it"; the nearest enclosing clause
-    /// wins, an item's OWN clause outright). Scope: the binary/packed integer usages (NC107A's
-    /// <c>01 U9 USAGE COMPUTATIONAL</c> with PICTURE-only children) — USAGE INDEX inheritance is
-    /// <see cref="ResolveIndexItems"/>'s special case (PICTURE-less index items), and a float usage on a group
-    /// with PICTUREd children has no NIST surface (left to the float slice). Runs BEFORE
-    /// <see cref="InheritSignClauses"/> — a non-DISPLAY item takes the BinaryMinus sign form regardless of any
-    /// inherited SIGN clause (§13.18.52 applies only to usage-display items). (A half of
-    /// <see cref="UsageInheritancePass"/>, P5.11e.)</summary>
-    private void InheritUsageClauses()
+    /// <summary>The GROUP arm of the §13.18.60.4 GR1 walk: the GROUP-USAGE conformance rules (§13.18.29.3), the
+    /// COBOL-2023 SYNCHRONIZED-on-a-group gate, and GR1's own "not to the group itself" — shed the profile entry
+    /// bind synthesized here and hand it to the elementary items below.</summary>
+    private void UsageInheritanceGroup(DataItem item, InheritedUsage down)
     {
-        static void Walk(DataItem item, Usage? inherited)
+        // GROUP-USAGE (ISO §13.18.29; D20/PB79) — SR1's forest-dependent halves, and SR2/SR3's "all subordinate
+        // group items shall be explicitly or implicitly described with GROUP-USAGE BIT / NATIONAL": a
+        // subordinate group inherits, one that declares the OTHER usage is a violation.
+        if (item.GroupUsage is not GroupUsage.None)
         {
-            Usage? effective = item.OwnUsage ?? inherited;
-            if (item.OwnUsage is null
-                && effective is Usage.Binary or Usage.Packed or Usage.Comp5
-                && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } pic)
-                item.Pic = pic with
+            string gu = item.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL";
+            if (StrongTypeModel.IsStrongGroup(item))
+                Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
+                    + "GROUP-USAGE clause may be specified only if the subject of the entry is not strongly typed "
+                    + "(ISO §13.18.29.3 SR1)");
+            if (ReferenceResolver.HasVariableLengthSubordinate(item))
+                Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
+                    + "GROUP-USAGE clause may be specified only if the subject of the entry is not a "
+                    + "variable-length group (ISO §13.18.29.3 SR1; §8.5.1.12)");
+            foreach (var c in item.Children)
+            {
+                if (c.Children.Count == 0) continue;
+                if (c.GroupUsage is GroupUsage.None) c.GroupUsage = item.GroupUsage;   // implied (SR2/SR3)
+                else if (c.GroupUsage != item.GroupUsage)
                 {
-                    Usage = effective.Value,
-                    SignKind = PicInfo.SignKindFor(effective.Value, pic.Signed, item.OwnSign),
-                };
-            foreach (var c in item.Children) Walk(c, effective);
+                    using var __c = Edition.At(c);
+                    Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{c.CobolName ?? "FILLER"}': a group "
+                        + $"subordinate to a GROUP-USAGE {gu} group shall itself be GROUP-USAGE {gu}, explicitly or "
+                        + $"implicitly — not GROUP-USAGE {(c.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL")} "
+                        + $"(ISO §13.18.29.3 {(item.GroupUsage is GroupUsage.Bit ? "SR2" : "SR3")})");
+                }
+            }
         }
-        foreach (var root in Roots) Walk(root, null);
+        // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (ISO §E.3.2 item 6 — "This clause may
+        // now be specified for a group level data item"; §13.18.55 is the clause itself). It routes
+        // through the CANONICAL funnel like every other introduction, so it is a hard error on BOTH
+        // axes: §4.2.2's warning mechanism reports violations of the standard, and --permissive is the
+        // migration mode for constructs an edition REMOVED — it has no meaning for one the targeted
+        // edition has not yet acquired, which no pre-existing program can legally contain (CA14,
+        // owner-approved option (a); this was the sole site routing an introduction through the
+        // removed-severity seam, contradicting the compiler's own single-policy contract).
+        if (item.Synchronized && Edition.DialectLevel < 2023)
+            ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SyncOnGroup2023,
+                $"data item '{item.CobolName ?? "FILLER"}'");
+
+        // ── §13.18.60.4 GR1, the "and not to the group itself" half ──────────────────────────────────────────
+        // Entry bind could not yet tell a PICTURE-less elementary item from a group header — the subordinate
+        // entries were not parsed — so it synthesized the usage's representation onto this entry optimistically.
+        // The entry turned out to be a group, so that representation was never this entry's: shed it here, and
+        // `down` (captured before this point) carries it to each elementary item below. Likewise the deferred
+        // NATIONAL/BIT mark, whose SR5/SR12 adjudication is now the leaves' — one per leaf, at the leaf's own
+        // position, through the same screen the written-clause spelling runs.
+        if (item.PicIsUsageSynthesized)
+        {
+            item.Pic = null;
+            item.PicIsUsageSynthesized = false;
+        }
+        item.Pending = PicPending.None;
+
+        foreach (var c in item.Children) UsageInheritanceWalk(c, down);
+    }
+
+    /// <summary>The ELEMENTARY arm of the §13.18.60.4 GR1 walk — where the invariant is made true: an item that
+    /// acquired its usage from a group binds as though it had written the clause itself.</summary>
+    private void UsageInheritanceElementary(DataItem item, InheritedUsage fromGroup)
+    {
+        string name = item.CobolName ?? "FILLER";
+
+        // A GROUP-USAGE entry with no subordinates is not a group at all (§13.18.29.3 SR1) — the implied
+        // usage's own Pending mark is consumed here so the picture-less-usage arm below does not double-report.
+        if (item.GroupUsage is not GroupUsage.None)
+        {
+            Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{name}': the GROUP-USAGE "
+                + "clause may be specified only if the subject of the entry is a group item — this entry has no "
+                + "subordinate entries (ISO §13.18.29.3 SR1)");
+            item.GroupUsage = GroupUsage.None;
+            item.Pending = PicPending.None;
+            item.Pic = PicInfo.Recovery();
+            return;
+        }
+
+        // THE ONE DERIVATION: the item's own USAGE clause, else the nearest enclosing group's (§13.18.60.4 GR1),
+        // else §13.18.60.3 SR13b's implied DISPLAY. `acquired` is the GR1 half — the half that had no screens.
+        bool acquired = item.OwnUsage is null && item.Pending is PicPending.None && fromGroup.Effective is not null;
+        Usage effective = item.OwnUsage ?? (acquired ? fromGroup.Effective!.Value : Usage.Display);
+
+        if (item.Pic is null)
+        {
+            // ── A PICTURE-LESS elementary item ────────────────────────────────────────────────────────────
+            // USAGE NATIONAL / BIT is not among §13.16.3 SR8's picture-less usages, and §13.18.60.3 SR12 / SR5
+            // each require a picture character-string of a named kind — so an item with either usage and no
+            // PICTURE is nonconforming WHICHEVER WAY it got the usage. The recovery shape keeps the doomed emit
+            // crash-free (the DEVLOG-597 pattern).
+            var pendingUsage = item.Pending is not PicPending.None ? item.Pending
+                : acquired ? fromGroup.Pending : PicPending.None;
+            if (pendingUsage is not PicPending.None)
+            {
+                bool inheritedMark = item.Pending is PicPending.None;
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"data item '{name}': an elementary item "
+                    + $"with USAGE {(pendingUsage is PicPending.BitUsage ? "BIT" : "NATIONAL")}"
+                    + (inheritedMark ? $" inherited from its group '{fromGroup.FromName ?? "FILLER"}'" : "")
+                    + " requires a PICTURE clause (ISO §13.18.60.4 — not a picture-less usage"
+                    + (inheritedMark ? "; §13.18.60.4 GR1" : "") + ")");
+                item.Pic = PicInfo.Recovery();
+                item.Pending = PicPending.None;
+                return;
+            }
+            // §13.18.60.4 GR1 + §13.16.3 SR8: the group's clause IS this item's clause, and an item of a
+            // picture-less usage takes its whole representation from that clause — so the profile entry bind
+            // synthesized on the group header (its width, its SIGNED/UNSIGNED phrase, its declared object class,
+            // its endianness) belongs HERE. The profile is immutable and shared by every leaf under the group,
+            // which is what makes `01 G USAGE INDEX. 05 A. 05 B.` two index items rather than one.
+            if (acquired && fromGroup.Pictureless is { } profile)
+            {
+                item.Pic = profile;
+                item.PicIsUsageSynthesized = true;
+            }
+            // A picture-less item whose effective usage REQUIRES a picture (§13.16.3 SR8's second sentence, and
+            // its §13.16.3 SR9 VALUE-implied exception) is kb/Work PB504's mechanism, not this pass's — it is
+            // the same hole with or without a group-level clause, so screening it here would write the rule down
+            // in the wrong place.
+            return;
+        }
+
+        if (!acquired) return;   // the entry wrote its own clause; BindEntry already bound and screened it
+
+        // ── A PICTURE-BEARING elementary item that acquired its usage from a group ────────────────────────────
+        // §13.16.3 SR8: for the picture-less usages a PICTURE is prohibited, and the item's representation comes
+        // from the usage. Identical verdict, identical recovery and identical diagnostic code to the spelling
+        // that writes the clause on this entry (BindEntry's SR8 screen) — the ONE thing GR1 forbids is that the
+        // two spellings differ.
+        if (UsageFamilies.IsPictureless(effective))
+        {
+            (string sr8Code, string sr8Text) = Sr8PicturelessVerdict(effective);
+            Edition.Error(sr8Code, $"data item '{name}': {sr8Text} — the usage is the one written for the group "
+                + $"item '{fromGroup.FromName ?? "FILLER"}' and applies to each elementary item in it "
+                + "(ISO §13.18.60.4 GR1)");
+            item.Pic = fromGroup.Pictureless ?? PicInfo.Recovery();
+            item.PicIsUsageSynthesized = fromGroup.Pictureless is not null;
+            return;
+        }
+
+        ApplyEffectiveUsage(item, effective);
+    }
+
+    /// <summary>Apply an elementary item's EFFECTIVE usage to its analyzed PICTURE — the §13.18.60.3
+    /// USAGE × PICTURE screen (SR3/SR5/SR12/SR20, shared verbatim with the written-clause path) followed by the
+    /// representation rewrite the screened usage calls for.
+    /// <para>⛔ ONE site for every route by which an elementary item acquires a usage its own entry did not
+    /// write: §13.18.60.4 GR1 group inheritance (<see cref="UsageInheritancePass"/>) and the §13.18.49.3 GR3
+    /// SAME-AS ancestor transform. Both used to carry their own copy of a three-member
+    /// <c>Binary or Packed or Comp5</c> hand-list over a <c>{ Numeric, !IsFloat, Display }</c> leaf shape, and
+    /// each silently dropped every usage outside it (kb/Work PB495).</para>
+    /// <para>A RECOVERY profile is left alone: its PICTURE was already rejected and the written-clause path
+    /// never reached the screen either (<c>Analyze</c> returns before it), so screening it here would report a
+    /// second, invented defect on one entry.</para></summary>
+    private void ApplyEffectiveUsage(DataItem item, Usage effective)
+    {
+        if (item.Pic is not { } pic || pic.IsRecovery || pic.Usage == effective) return;
+        var screened = PictureAnalyzer.ScreenUsageAgainstPicture(pic.Category, effective, explicitUsage: true,
+            item.PictureText ?? "", Edition, $"data item '{item.CobolName ?? "FILLER"}'");
+        if (screened != pic.Usage)
+            item.Pic = pic with
+            {
+                Usage = screened,
+                SignKind = PicInfo.SignKindFor(screened, pic.Signed, item.OwnSign),
+            };
     }
 
     /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY items (ISO §13.18.52 GR1–3):

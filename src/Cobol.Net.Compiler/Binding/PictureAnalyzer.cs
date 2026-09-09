@@ -177,10 +177,7 @@ public static class PictureAnalyzer
             {
                 // NationalData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
                 // GateData/GateReports enumerator (keyed on Pic.Category National); Step 14g.1.
-                if (explicitUsage && usage is not Usage.National)
-                    edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a national PICTURE (symbol N) admits only USAGE "
-                        + $"NATIONAL, not {usage} (ISO §13.18.60.3 SR20; SR13a implies NATIONAL when no USAGE "
-                        + "clause is specified)");
+                ScreenUsageAgainstPicture(PicCategory.National, usage, explicitUsage, picture, edition, where);
                 return new PicInfo(PicCategory.National, Usage.National,
                     Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
             }
@@ -201,59 +198,13 @@ public static class PictureAnalyzer
             {
                 // BooleanData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
                 // GateData enumerator (keyed on Pic.Category Boolean); Step 14g.1.
-                switch (usage)
-                {
-                    case Usage.Display or Usage.Bit:
-                        break;   // display-form (SR13b) and bit-form (SR5) — identical D-B1 string storage
-                    case Usage.National:
-                        // SR12 admits a boolean picture under USAGE NATIONAL — spec-legal, representation
-                        // staged (one national char per boolean position; nothing constructs it yet).
-                        edition.Error(DiagnosticCatalog.NationalData, $"national-form boolean data (PIC 1 with USAGE NATIONAL) "
-                            + $"is recognized but not yet implemented (Phase 4a residue) — {where} "
-                            + "(ISO §13.18.60.3 SR12)");
-                        usage = Usage.Display;
-                        break;
-                    default:
-                        edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a boolean PICTURE (symbol 1) admits only USAGE "
-                            + $"DISPLAY, BIT, or NATIONAL, not {usage} (ISO §13.18.60.3 SR5/SR12/SR13b)");
-                        usage = Usage.Display;
-                        break;
-                }
+                usage = ScreenUsageAgainstPicture(PicCategory.Boolean, usage, explicitUsage, picture, edition, where);
                 return new PicInfo(PicCategory.Boolean, usage,
                     Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
             }
             edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
                 + "(ISO §13.18.40.6 Table 10: the boolean symbol '1' may not be combined with any other symbol)");
             return PicInfo.Recovery(expanded.Length);
-        }
-
-        // ── USAGE BIT / NATIONAL against a picture WITHOUT the matching symbol (§13.18.60.4). BIT requires a
-        // boolean picture (SR5 — hard error). NATIONAL admits national/boolean pictures (handled above) plus
-        // the national-form NUMERIC legs (SR12 — spec-legal, STAGED 0899); an alphabetic/alphanumeric picture
-        // under NATIONAL is illegal outright (SR12 + §13.18.40.3 SR30). Both recover to Display — the compile
-        // has already failed; the value only keeps the doomed emit crash-free. ──
-        if (usage is Usage.Bit)
-        {
-            edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE BIT requires a boolean PICTURE (symbol 1 only) — "
-                + $"PICTURE {picture} is not boolean (ISO §13.18.60.3 SR5)");
-            usage = Usage.Display;
-        }
-        else if (usage is Usage.National)
-        {
-            if (expanded.Any(c => c is 'X' or 'A'))
-            {
-                edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE NATIONAL may not be specified with an "
-                    + $"alphabetic or alphanumeric PICTURE ({picture}) — it admits boolean, national, "
-                    + "national-edited, numeric, and numeric-edited pictures only (ISO §13.18.60.3 SR12; "
-                    + "§13.18.40.3 SR30)");
-            }
-            else
-            {
-                edition.Error(DiagnosticCatalog.NationalData, $"national-form numeric data (a numeric or numeric-edited "
-                    + $"PICTURE {picture} with USAGE NATIONAL — national digits) is recognized but not yet "
-                    + $"implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
-            }
-            usage = Usage.Display;
         }
 
         bool signed = expanded.Contains('S');
@@ -306,23 +257,14 @@ public static class PictureAnalyzer
             || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal)
             || char1Set.Count > 0;   // a PICTURE EDITING character-1 makes the item numeric-/alphanumeric-edited (ISO §13.18.40.5 Table 7)
 
-        // ── USAGE BINARY / COMPUTATIONAL / PACKED-DECIMAL against an alphabetic/alphanumeric picture (ISO
-        // §13.18.60.3 SR3): such a usage "shall be specified only with a picture character-string that describes a
-        // numeric item". Mirrors the BIT SR5 / NATIONAL SR12 guards above — without it a `PIC XX COMP` silently
-        // bound as category Alphanumeric with the numeric usage DROPPED. Recover to Display (the compile has
-        // already failed; the value only keeps the doomed emit crash-free). The picture-less BINARY-CHAR/-SHORT/
-        // -LONG/-DOUBLE usages take no PICTURE — a picture with them is a distinct error handled elsewhere.
-        if (anyAlpha && usage is Usage.Binary or Usage.Comp5 or Usage.Packed)
-        {
-            string kw = usage switch
-            {
-                Usage.Binary => "BINARY", Usage.Packed => "PACKED-DECIMAL", Usage.Comp5 => "COMPUTATIONAL-5",
-                _ => usage.ToString(),
-            };
-            edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE {kw} requires a PICTURE that describes a numeric "
-                + $"item — PICTURE {picture} is alphabetic/alphanumeric (ISO §13.18.60.3 SR3)");
-            usage = Usage.Display;
-        }
+        // ── THE §13.18.60.3 USAGE × PICTURE SCREEN over the picture's resolved CATEGORY (SR3 / SR5 / SR12) —
+        // the SAME call the national and boolean early returns above make, and the same call the §13.18.60.4 GR1
+        // inheritance pass makes for a usage an elementary item acquires from its group. The category-national
+        // and category-boolean pictures never reach here (both returned above), so what remains is
+        // alphabetic/alphanumeric (anyAlpha), numeric-edited (anyEdit) and pure numeric.
+        usage = ScreenUsageAgainstPicture(
+            anyAlpha ? PicCategory.Alphanumeric : anyEdit ? PicCategory.NumericEdited : PicCategory.Numeric,
+            usage, explicitUsage, picture, edition, where);
 
         if (anyAlpha)
         {
@@ -355,6 +297,115 @@ public static class PictureAnalyzer
         // storage; the implied decimal position lives entirely in the signed Scale.
         return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: scale, Signed: signed)
         { SignKind = signKind, DigitPositions = digitPos };
+    }
+
+    /// <summary>
+    /// ⛔ THE §13.18.60.3 USAGE × PICTURE SCREEN — SR3, SR5, SR12 and SR20 — asked ONCE, of an elementary item's
+    /// EFFECTIVE usage, for BOTH ways the standard lets an item acquire one:
+    /// <list type="number">
+    ///   <item>the item's OWN USAGE clause — <see cref="Analyze"/>, at entry bind; and</item>
+    ///   <item>§13.18.60.4 GR1 GROUP INHERITANCE — "If the USAGE clause is specified or implied at a group level,
+    ///     it applies only to each elementary item in the group" — <c>DataBinder.UsageInheritancePass</c>, once
+    ///     the forest is complete.</item>
+    /// </list>
+    /// <para>The four rules are written against the item, not against the clause's PLACEMENT: SR3 governs "an
+    /// elementary data item whose declaration contains, OR an elementary data item SUBORDINATE TO A GROUP ITEM
+    /// whose declaration contains, a USAGE clause specifying BINARY, COMPUTATIONAL, or PACKED-DECIMAL"; SR5 and
+    /// SR12 govern "an elementary data item WITH usage bit / national"; SR20 governs "a USAGE clause ASSOCIATED
+    /// WITH an elementary data item". GR1 is what associates a group's clause with the item, so every one of
+    /// them reaches the inherited spelling — and before kb/Work PB495 not one of them did, because this screen
+    /// was reachable only from the written-clause path.</para>
+    ///
+    /// <para><paramref name="category"/> is what the PICTURE CHARACTER-STRING DESCRIBES (§13.18.40.6 Table 10 /
+    /// §8.5.2 Table 2), which is what all four rules key on — not the item's final category, which a BLANK WHEN
+    /// ZERO clause can move (§13.18.8 GR2) without changing the string.</para>
+    ///
+    /// <para>Returns the usage the item BINDS with: the screened one, or <see cref="Usage.Display"/> where a
+    /// violation has been reported — the recovery discipline, since the compile has already failed and the value
+    /// only keeps the doomed emit crash-free (DEVLOG 597).</para>
+    /// </summary>
+    internal static Usage ScreenUsageAgainstPicture(PicCategory category, Usage usage, bool explicitUsage,
+        string picture, EditionContext edition, string where)
+    {
+        // ── §13.18.60.3 SR20 ── "Only the NATIONAL phrase may be specified in a USAGE clause associated with an
+        // elementary data item whose explicit or implicit picture character-string contains the symbol 'N'."
+        // With no clause associated at all, SR13a supplies NATIONAL — so the rule bites only on a written one.
+        if (category is PicCategory.National)
+        {
+            if (explicitUsage && usage is not Usage.National)
+                edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a national PICTURE (symbol N) admits only USAGE "
+                    + $"NATIONAL, not {UsageFamilies.UsageWord(usage)} (ISO §13.18.60.3 SR20; SR13a implies NATIONAL "
+                    + "when no USAGE clause is specified)");
+            return Usage.National;
+        }
+
+        // ── A BOOLEAN picture ── SR5 admits usage bit, SR13b implies display, SR12 admits national (staged).
+        if (category is PicCategory.Boolean)
+            switch (usage)
+            {
+                case Usage.Display or Usage.Bit:
+                    return usage;   // display-form (SR13b) and bit-form (SR5) — identical D-B1 string storage
+                case Usage.National:
+                    // SR12 admits a boolean picture under USAGE NATIONAL — spec-legal, representation
+                    // staged (one national char per boolean position; nothing constructs it yet).
+                    edition.Error(DiagnosticCatalog.NationalData, $"national-form boolean data (PIC 1 with USAGE NATIONAL) "
+                        + $"is recognized but not yet implemented (Phase 4a residue) — {where} "
+                        + "(ISO §13.18.60.3 SR12)");
+                    return Usage.Display;
+                default:
+                    edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a boolean PICTURE (symbol 1) admits only USAGE "
+                        + $"DISPLAY, BIT, or NATIONAL, not {UsageFamilies.UsageWord(usage)} "
+                        + "(ISO §13.18.60.3 SR5/SR12/SR13b)");
+                    return Usage.Display;
+            }
+
+        // ── §13.18.60.3 SR5 ── "An elementary data item with usage bit shall be specified only with a picture
+        // character-string that describes a boolean data item" — and this one describes none.
+        if (usage is Usage.Bit)
+        {
+            edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE BIT requires a boolean PICTURE (symbol 1 only) — "
+                + $"PICTURE {picture} is not boolean (ISO §13.18.60.3 SR5)");
+            return Usage.Display;
+        }
+
+        // ── §13.18.60.3 SR12 ── usage national "shall be described with a picture character-string that
+        // describes a boolean, national, national-edited, numeric, or numeric-edited data item". The two
+        // national forms returned above; an alphabetic/alphanumeric picture is illegal outright (SR12 +
+        // §13.18.40.3 SR30), and the national-form NUMERIC legs are spec-legal but STAGED (0899).
+        if (usage is Usage.National)
+        {
+            if (category is PicCategory.Alphanumeric)
+                edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE NATIONAL may not be specified with an "
+                    + $"alphabetic or alphanumeric PICTURE ({picture}) — it admits boolean, national, "
+                    + "national-edited, numeric, and numeric-edited pictures only (ISO §13.18.60.3 SR12; "
+                    + "§13.18.40.3 SR30)");
+            else
+                edition.Error(DiagnosticCatalog.NationalData, $"national-form numeric data (a numeric or numeric-edited "
+                    + $"PICTURE {picture} with USAGE NATIONAL — national digits) is recognized but not yet "
+                    + $"implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
+            return Usage.Display;
+        }
+
+        // ── §13.18.60.3 SR3 ── BINARY / COMPUTATIONAL / PACKED-DECIMAL "shall be specified only with a picture
+        // character-string that describes a NUMERIC item". §8.5.2 Table 2 puts category numeric alone in class
+        // numeric — numeric-EDITED is class alphanumeric (usage display) or national — so an edited mask is as
+        // nonconforming here as an alphanumeric one, and silently accepting it produced an item whose declared
+        // width disagreed with its own character image (`PIC ZZ9 USAGE COMP` measured 1 byte against a 3-character
+        // image; kb/Work PB540). Without the screen a `PIC XX COMP` bound as category Alphanumeric with the
+        // numeric usage DROPPED. The picture-LESS BINARY-CHAR/-SHORT/-LONG/-DOUBLE usages take no PICTURE at all
+        // — that is §13.16.3 SR8, screened in DataBinder against UsageFamilies.IsPictureless.
+        if (usage is Usage.Binary or Usage.Comp5 or Usage.Packed && category is not PicCategory.Numeric)
+        {
+            // ⛔ DataBinder.UsageWord is THE spelling table (it has the drift test) — this site used to carry its
+            // own three-member copy whose default arm rendered the C# enum name.
+            edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE {UsageFamilies.UsageWord(usage)} requires a PICTURE that describes a numeric "
+                + $"item — PICTURE {picture} is "
+                + (category is PicCategory.NumericEdited ? "numeric-edited" : "alphabetic/alphanumeric")
+                + " (ISO §13.18.60.3 SR3)");
+            return Usage.Display;
+        }
+
+        return usage;
     }
 
     /// <summary>The runtime mask: the picture's currency symbol <paramref name="cs"/> canonicalized to <c>$</c>

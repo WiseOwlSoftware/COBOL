@@ -175,7 +175,7 @@ public sealed partial class DataBinder
                 if (SubordinateUsageOf(sub) is not { } usage || usage is Usage.Display) continue;
                 Edition.Error(DiagnosticCatalog.GroupValueSubordinate, $"data item '{name}' is subordinate to "
                     + $"'{subject}', an alphanumeric group item specifying a group-level VALUE clause, and is "
-                    + $"described with usage {UsageWord(usage)} — all data items subordinate to an alphanumeric "
+                    + $"described with usage {UsageFamilies.UsageWord(usage)} — all data items subordinate to an alphanumeric "
                     + "group item shall be explicitly or implicitly described with usage DISPLAY "
                     + "(ISO §13.18.63.3 SR14)");
             }
@@ -261,41 +261,6 @@ public sealed partial class DataBinder
                 _ => Usage.Display,     // §8.5.2 — an alphanumeric group is treated as though usage display
             }
             : sub.Pic?.Usage;
-
-    /// <summary>The §13.18.60 USAGE keyword for a usage, for the §13.18.63.3 SR14 diagnostic text — always a
-    /// spelling the programmer could have WRITTEN.
-    ///
-    /// <para>⛔ DERIVED, not enumerated. <see cref="Usage"/> has 24 members and the enum name hyphenated on its
-    /// case/digit boundaries IS the §13.18.60 keyword for all but five of them, so the default arm covers every
-    /// member a future usage adds. The bare <c>ToString().ToUpperInvariant()</c> this replaced rendered them as
-    /// 'PROGRAMPOINTER', 'FLOATBINARY32' and 'BINARYCHAR' — words no COBOL program contains. The five whose enum
-    /// name is not the COBOL word carry an explicit spelling, and <c>UsageWordDriftTests</c> asserts every
-    /// member's rendering is made of RESERVED COBOL words, so "automatic" stays true.</para></summary>
-    internal static string UsageWord(Usage usage) => usage switch
-    {
-        Usage.Binary => "BINARY",                   // COMP / COMPUTATIONAL are the §13.18.60.2 synonyms
-        Usage.Packed => "PACKED-DECIMAL",           // COMP-3 / COMPUTATIONAL-3 are the dialect synonyms
-        Usage.Comp5 => "COMPUTATIONAL-5",           // no §13.18.60.2 spelling — the dialect word IS the name
-        Usage.Float => "FLOAT-SHORT",               // §13.18.60.2's word; COMP-1 / COMPUTATIONAL-1 the dialect one
-        Usage.Double => "FLOAT-LONG",               // COMP-2 / COMPUTATIONAL-2
-        Usage.ObjectReference => "OBJECT REFERENCE",   // TWO words in the general format, not one hyphenated
-        _ => HyphenateEnumName(usage.ToString()),
-    };
-
-    /// <summary>PascalCase (with trailing digit groups) → the COBOL hyphenated word: a hyphen before each
-    /// interior capital and before each digit run that follows a non-digit. <c>FloatBinary32</c> →
-    /// <c>FLOAT-BINARY-32</c>, <c>BinaryChar</c> → <c>BINARY-CHAR</c>, <c>Display</c> → <c>DISPLAY</c>.</summary>
-    private static string HyphenateEnumName(string name)
-    {
-        var sb = new System.Text.StringBuilder(name.Length + 4);
-        for (int i = 0; i < name.Length; i++)
-        {
-            if (i > 0 && (char.IsUpper(name[i]) || (char.IsDigit(name[i]) && !char.IsDigit(name[i - 1]))))
-                sb.Append('-');
-            sb.Append(char.ToUpperInvariant(name[i]));
-        }
-        return sb.ToString();
-    }
 
     /// <summary>Every data item subordinate to <paramref name="group"/>, at any depth, in declaration order.
     /// SR13/SR14 say "subordinate to", not "immediately subordinate to", so the walk is the whole subtree —

@@ -4904,7 +4904,8 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 > - **`procedure-raising-2002`** (DEVLOG 706) — RAISING@<2002 generic `COBOL0001` → `COBOLNET0900` via a
 >   `ReservedWordEditionHints` arm; row flipped active + a negative fixture.
 > - **`sync-on-group-2023`** (DEVLOG 707, owner-chosen disposition) — SYNCHRONIZED on a GROUP item (a 2023
->   introduction, Annex E.3.2 item 6) was silently ACCEPTED below 2023. Now gated in `DataBinder.ResolveIndexItems`
+>   introduction, Annex E.3.2 item 6) was silently ACCEPTED below 2023. Now gated in the group arm of
+>   `DataBinder.UsageInheritancePass` (then named `ResolveIndexItems`)
 >   via a `DataItem.Synchronized` flag: **error strict / warning-permissive (accept-inert)** — the removed-severity
 >   seam, which keeps INV-1 continuity (SYNC is a no-op). Row + negative fixture.
 >   ⛔ **SUPERSEDED by CA14 (2026-07-28):** that accept-inert disposition is RETIRED — the site routes through the

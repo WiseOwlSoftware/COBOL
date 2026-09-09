@@ -38,7 +38,7 @@ code-anchored problems:
 
 ### 1.1 Implicit pass ordering — the prime latent-bug class
 `DataBinder.BindResolve` (`Binding/DataBinder.cs:210-258`) is a hand-ordered sequence of ~15 post-build passes
-(`ExpandTypes → ResolveIndexItems → InheritUsageClauses → InheritSignClauses → ResolveRedefines →
+(`ExpandTypes → UsageInheritancePass → InheritSignClauses → ResolveRedefines →
 ClassifyRedefinesClasses → CheckStrongTypeDeclarations → OoRouteMethodRedefinesBackings → OdoResolve →
 DynamicResolve → ResolveFiles → GateNationalRecords → ResolveReports → CallBindExternalAndGlobal →
 PtrBindBasedAndAddressables → the FILE-record whole-group loop`). The ordering constraints are real (the code

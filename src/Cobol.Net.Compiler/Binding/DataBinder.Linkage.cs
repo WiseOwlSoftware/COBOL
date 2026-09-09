@@ -262,7 +262,18 @@ public sealed partial class DataBinder
             bool redefined = LinkageRoots.Any(r => !ReferenceEquals(r, item)
                 && r.RedefinesTargetName is { } t
                 && string.Equals(t, item.CobolName, StringComparison.OrdinalIgnoreCase));
-            bool resident = item.IsElementary && !redefined && item.Pic is { IsFloat: false };
+            // ⛔ The elementary/group test here is STRUCTURAL (no subordinate entries), not `IsElementary`
+            // (Pic is not null). CallBindLinkage runs inside BindDeclarations, BEFORE the pipeline's
+            // UsageInheritancePass, and a level-01 that wrote a PICTURE-less usage — `01 L USAGE BINARY-SHORT.
+            // 05 LA.` — still carries at this moment the elementary profile entry bind synthesized for it,
+            // because the subordinates were not parsed yet. §13.18.60.4 GR1 then sheds that profile ("it applies
+            // only to each elementary item in the group … and not to the group itself"), so an `IsElementary`
+            // verdict taken here went stale: the formal was recorded CARRIER-RESIDENT and ProgramEmitter's
+            // resident arm dereferenced `f.Item.Pic!` on a group whose Pic was, correctly, null — a compiler
+            // NullReferenceException on legal source. The structural test cannot go stale: the forest under this
+            // root is complete when CallBindLinkage runs. kb/Work PB495.
+            bool resident = item.Children.Count == 0 && item.IsElementary
+                && !redefined && item.Pic is { IsFloat: false };
             if (resident)
             {
                 // The item's C# "path" becomes the carrier's Value accessor: every Place built over it reads

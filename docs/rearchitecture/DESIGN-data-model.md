@@ -458,6 +458,46 @@ Delete the four independent copies: `DataItem.ImageWidth` recursion (`:283`),
   deleted.)*
 - Rename `ResolveIndexItems` → fold into `UsageInheritancePass` (§2.5 step 2); it does USAGE-marker resolution, not
   index-only work.
+
+#### 2.7.1 `UsageInheritancePass` — ISO §13.18.60.4 GR1 as an EQUIVALENCE (landed; kb/Work PB495)
+
+⛔ **The rule is not "a group's usage influences its leaves"; it is that the clause APPLIES TO each of them.** GR1
+therefore states an equivalence, and the pass is built to make it true by construction rather than case by case:
+
+```
+01 G USAGE u.  05 A ⟨pic⟩.        ≡        01 G.  05 A ⟨pic⟩ USAGE u.
+```
+
+— the same item, so the same verdict, the same diagnostic CODE and the same width, for **every** member of the
+`Usage` enum and every picture. `UsageInheritanceDriftTests` (Conformance) enumerates the enum and asserts it.
+
+**ONE derivation, three consumers.** The pass is one pre-order walk (`UsageInheritanceWalk` →
+`UsageInheritanceGroup` / `UsageInheritanceElementary`) over one derivation of an elementary item's EFFECTIVE
+usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause's implied BIT/NATIONAL included,
+§13.18.29.3 SR2/SR3). That derivation feeds:
+
+1. **the group-header shed** — GR1's "and not to the group itself". Entry bind cannot tell a picture-less
+   elementary item from a group header (the subordinates are not parsed yet), so it synthesizes the usage's
+   representation optimistically and records the fact on `DataItem.PicIsUsageSynthesized`; the walk carries that
+   profile DOWN to each picture-less leaf and clears it from the header. **Derived from the fact, never from a
+   list of shapes** — the previous shed tested four reference-identity/category patterns and the leaf application
+   a disjoint three-member usage set, and every usage in neither fell through in SILENCE.
+2. **the leaf's representation** — `ApplyEffectiveUsage`, which is also the ONE site the §13.18.49.3 GR3 SAME-AS
+   ancestor transform calls (it carried its own copy of the same three-member list).
+3. **the screens** — `PictureAnalyzer.ScreenUsageAgainstPicture` (§13.18.60.3 SR3 / SR5 / SR12 / SR20), extracted
+   from `Analyze` so the written-clause path and the inherited path run the SAME code, plus §13.16.3 SR8's
+   prohibition over the ONE set `UsageFamilies.IsPictureless` and §13.18.60.3 SR2's equality check
+   (`COBOLNET1927`, against the nearest enclosing WRITTEN clause, comparing resolved `Usage` members so SR6's
+   COMP/COMPUTATIONAL abbreviation and this implementation's BINARY identification are already folded).
+
+**What the shape buys.** A `Usage` member added to the enum inherits, sheds and is screened without anyone
+touching this pass. The one hand-written table left is `UsageFamilies.IsPictureless`, and because it drives BOTH
+arms a wrong entry in it is invisible to any behavioural test — so it is checked against §13.16.3 SR8's own
+sentence, re-read out of `specs/ISO_COBOL.md`, by `PicturelessUsageSetDriftTests` (Unit).
+
+**Boundary.** A picture-less elementary item whose effective usage REQUIRES a picture (`01 G USAGE COMP. 05 A.`,
+and the clause-less `01 G. 05 A.`) is NOT this pass's rule: that is §13.16.3 SR8's second sentence and its SR9
+VALUE-implied exception (kb/Work PB504).
 - `NumProfile` (runtime) stays the runtime projection of `PicInfo`. Today `PicInfo` re-materializes it as an
   initializer STRING (`PicInfo.cs:301`). Keep that boundary (Binding must not depend on a runtime value type for its
   own logic) but generate it through the emitter's `RuntimeApi` façade (companion emitter design) so a

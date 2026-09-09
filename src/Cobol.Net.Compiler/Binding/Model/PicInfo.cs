@@ -179,6 +179,77 @@ public static class UsageFamilies
     /// (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) are deliberately OUTSIDE it: GR13/GR21 leave their
     /// representation to the implementor, and COBOL.NET pins them big-endian (Annex A.1 item 48).</summary>
     public static bool IsStandardFloat(Usage u) => IsStandardBinaryFloat(u) || IsStandardDecimalFloat(u);
+
+    /// <summary>⛔ THE PICTURE-LESS USAGES — ISO §13.16.3 SR8's named set, written down ONCE. "The PICTURE
+    /// clause shall not be specified for the subject of a RENAMES clause or for an item whose usage is
+    /// binary-char, binary-short, binary-long, binary-double, float-short, float-long, float-extended, index,
+    /// message-tag, object reference, pointer, function-pointer, or program-pointer. For any other entry
+    /// describing an elementary item, a PICTURE clause shall be specified except as indicated in Syntax rule 9."
+    /// So the predicate is a BICONDITIONAL and both directions are load-bearing: true ⇒ a written PICTURE is a
+    /// violation and the usage alone fixes the representation; false ⇒ a PICTURE is REQUIRED (SR9's
+    /// VALUE-implied picture aside), and an elementary item without one is nonconforming, not a zero-length cell.
+    ///
+    /// <para>⛔ ONE table, THREE readers — <c>DataBinder.BindEntry</c> screens an entry's OWN clause against it,
+    /// <c>DataBinder.UsageInheritancePass</c> screens the usage an elementary item acquires by §13.18.60.4 GR1
+    /// group inheritance, and the drift test <c>UsageInheritanceTests</c> enumerates <see cref="Usage"/> against
+    /// it. Before kb/Work PB495 the same fact was written down twice as two disagreeing hand-lists (the shed list
+    /// in <c>ResolveIndexItems</c> and the inherited set in <c>InheritUsageClauses</c>), and a usage in neither
+    /// produced a ZERO-LENGTH elementary item with no diagnostic.</para>
+    ///
+    /// <para><b>DETERMINATION — the five COBOL-2014 standard float usages.</b> SR8's list names float-short,
+    /// float-long and float-extended but NOT float-binary-32/-64/-128 or float-decimal-16/-34, which §13.18.60.2
+    /// acquired later; read literally, SR8's second sentence would then REQUIRE a picture character-string on a
+    /// binary32 item. No picture character-string can describe one: §13.18.60.4 GR14/GR15/GR16/GR17/GR18 PIN each
+    /// of those usages to a named ISO/IEC 60559:2020 interchange format, and §13.18.40 has no form that denotes
+    /// one. They are therefore treated as picture-less, which is also what the compiler has always done on the
+    /// written-clause path (COBOLNET1521). COMP-1 / COMP-2 need no determination — they are this implementation's
+    /// spellings of float-short / float-long (docs/CONFORMANCE.md item 22), which SR8 names.</para></summary>
+    public static bool IsPictureless(Usage u) => u
+        // ── §13.16.3 SR8's list, verbatim ──
+        is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
+        or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+        or Usage.Index or Usage.ObjectReference
+        or Usage.Pointer or Usage.FunctionPointer or Usage.ProgramPointer
+        // (message-tag is SR8's thirteenth entry and has no Usage member yet — VCR row 32, a 2023 addition.)
+        // ── COMP-1 / COMP-2: the implementor spellings of SR8's float-short / float-long ──
+        or Usage.Float or Usage.Double
+        // ── the DETERMINATION above: the standard float usages SR8's list predates ──
+        || IsStandardFloat(u);
+
+    /// <summary>The §13.18.60 USAGE keyword for a usage, for the §13.18.63.3 SR14 diagnostic text — always a
+    /// spelling the programmer could have WRITTEN.
+    ///
+    /// <para>⛔ DERIVED, not enumerated. <see cref="Usage"/> has 24 members and the enum name hyphenated on its
+    /// case/digit boundaries IS the §13.18.60 keyword for all but five of them, so the default arm covers every
+    /// member a future usage adds. The bare <c>ToString().ToUpperInvariant()</c> this replaced rendered them as
+    /// 'PROGRAMPOINTER', 'FLOATBINARY32' and 'BINARYCHAR' — words no COBOL program contains. The five whose enum
+    /// name is not the COBOL word carry an explicit spelling, and <c>UsageWordDriftTests</c> asserts every
+    /// member's rendering is made of RESERVED COBOL words, so "automatic" stays true.</para></summary>
+    public static string UsageWord(Usage usage) => usage switch
+    {
+        Usage.Binary => "BINARY",                   // COMP / COMPUTATIONAL are the §13.18.60.2 synonyms
+        Usage.Packed => "PACKED-DECIMAL",           // COMP-3 / COMPUTATIONAL-3 are the dialect synonyms
+        Usage.Comp5 => "COMPUTATIONAL-5",           // no §13.18.60.2 spelling — the dialect word IS the name
+        Usage.Float => "FLOAT-SHORT",               // §13.18.60.2's word; COMP-1 / COMPUTATIONAL-1 the dialect one
+        Usage.Double => "FLOAT-LONG",               // COMP-2 / COMPUTATIONAL-2
+        Usage.ObjectReference => "OBJECT REFERENCE",   // TWO words in the general format, not one hyphenated
+        _ => HyphenateEnumName(usage.ToString()),
+    };
+
+    /// <summary>PascalCase (with trailing digit groups) → the COBOL hyphenated word: a hyphen before each
+    /// interior capital and before each digit run that follows a non-digit. <c>FloatBinary32</c> →
+    /// <c>FLOAT-BINARY-32</c>, <c>BinaryChar</c> → <c>BINARY-CHAR</c>, <c>Display</c> → <c>DISPLAY</c>.</summary>
+    private static string HyphenateEnumName(string name)
+    {
+        var sb = new System.Text.StringBuilder(name.Length + 4);
+        for (int i = 0; i < name.Length; i++)
+        {
+            if (i > 0 && (char.IsUpper(name[i]) || (char.IsDigit(name[i]) && !char.IsDigit(name[i - 1]))))
+                sb.Append('-');
+            sb.Append(char.ToUpperInvariant(name[i]));
+        }
+        return sb.ToString();
+    }
 }
 
 /// <summary>
@@ -208,6 +279,14 @@ public sealed record PicInfo(
     /// COMP/COMP-3/COMP-5. Emitted verbatim into the item's <c>NumProfile</c> (COBOLNET_DESIGN §6.4).
     /// </summary>
     public string SignKind { get; init; } = "TrailingOverpunch";
+
+    /// <summary>This profile is <see cref="Recovery"/>'s — a placeholder for an entry whose PICTURE has ALREADY
+    /// been rejected, kept only so the doomed emit stays crash-free (the DEVLOG-597 discipline). It is not an
+    /// analysis of anything, so a LATER screen must not read it as one: the §13.18.60.4 GR1 inheritance pass
+    /// skips its usage × picture screen on a recovery profile, because the written-clause path never reached
+    /// that screen either (<c>PictureAnalyzer.Analyze</c> returns Recovery before it) and the two arms of one
+    /// rule must agree. kb/Work PB495.</summary>
+    public bool IsRecovery { get; init; }
 
     /// <summary>The <c>type-name-1</c> of a RESTRICTED data-pointer — <c>USAGE POINTER TO type-name-1</c>
     /// (ISO §13.18.60.2 general format; §13.18.60.4 GR23). Null for an ordinary data-pointer and for every
@@ -647,7 +726,8 @@ public sealed record PicInfo(
     /// reference-comparable RecoveryItem / NationalUsagePending / BitUsagePending singletons are replaced by the
     /// explicit <c>DataItem.Pending</c> adjudication mark (P5.11c).</summary>
     public static PicInfo Recovery(int length = 1) =>
-        new(PicCategory.Alphanumeric, Usage.Display, Length: Math.Max(1, length), Digits: 0, Scale: 0, Signed: false);
+        new(PicCategory.Alphanumeric, Usage.Display, Length: Math.Max(1, length), Digits: 0, Scale: 0, Signed: false)
+        { IsRecovery = true };
 
     /// <summary>The synthesized profile of a PICTURE-less <c>USAGE INDEX</c> data item (ISO §13.18.60): an
     /// elementary <c>long</c> holding an occurrence number. Digits/Scale are irrelevant — SET copies an index value

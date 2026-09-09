@@ -33,7 +33,7 @@ public class UsageWordDriftTests
         var offenders = new List<string>();
         foreach (Usage usage in Enum.GetValues<Usage>())
         {
-            string word = DataBinder.UsageWord(usage);
+            string word = UsageFamilies.UsageWord(usage);
             foreach (string token in word.Split(' ', StringSplitOptions.RemoveEmptyEntries))
                 if (!IsCobolWord(token))
                     offenders.Add($"{usage} → \"{word}\" (token '{token}' is not a COBOL word)");
@@ -56,5 +56,5 @@ public class UsageWordDriftTests
     [InlineData(Usage.ObjectReference, "OBJECT REFERENCE")]
     [InlineData(Usage.Packed, "PACKED-DECIMAL")]
     public void UsageWord_IsTheCobolSpelling(Usage usage, string expected) =>
-        Assert.Equal(expected, DataBinder.UsageWord(usage));
+        Assert.Equal(expected, UsageFamilies.UsageWord(usage));
 }
