@@ -36,7 +36,7 @@
     "CONFORMS": {
       "resolves": true,
       "requires": ["code-location"],
-      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP. On a kind-DOC row the 'implementation' read is the DETERMINATION: docs/CONFORMANCE.md §7 states what this implementor-defined element does, and the compiler does it. ⚠ A determination that READS negative is still CONFORMS where the not-providing is itself the implementor's answer to A.1's question AND the item is one the standard REQUIRES. ⛔ Where the item is OPTIONAL and the determination opens 'Not provided.', the verdict is DOCUMENTED-NON-SUPPORT — owner decision, kb/Work PB280 Q1, 2026-09-02, applied as the `a1-optional-not-provided` derived selector rather than row by row (items 127 and 206 today, up to 30 as the register fills). The question was open here until then and no agent was permitted to answer it."
+      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP. On a kind-DOC row the 'implementation' read is the DETERMINATION: docs/CONFORMANCE.md §7 states what this implementor-defined element does, and the compiler does it. ⚠ A determination that READS negative is still CONFORMS where the not-providing is itself the implementor's answer to A.1's question AND the item is one the standard REQUIRES. ⛔ Where the item is OPTIONAL and the determination opens 'Not provided.', the verdict is DOCUMENTED-NON-SUPPORT — owner decision, kb/Work PB280 Q1, 2026-09-02, applied as the `a1-optional-not-provided` derived selector rather than row by row (items 127 and 150 today, up to 30 as the register fills; item 206 was one of the first two until owner decision Q30, 2026-09-09 — kb/Work PB592 — found the element IS provided, so its cell now opens 'Provided' and the row carries an adjudicated CONFORMS). The question was open here until then and no agent was permitted to answer it."
     },
     "DOCUMENTED-NON-SUPPORT": {
       "resolves": true,
@@ -793,11 +793,23 @@
         "equipment configuration: there is ONE object computer, the .NET runtime) and DOC-A.1-206 (USAGE",
         "BINARY-CHAR/-SHORT/-LONG/-DOUBLE wider range than the GR12 minimum: each usage holds exactly the",
         "minimum). Both were BLANK — held out of the 2026-09-02 A.1 back-fill precisely because this question was",
-        "open — so the selector changes NO adjudicated row. The complement, measured rather than asserted: §7",
-        "carries 47 rows, of which exactly 2 open with 'Not provided.'; A.1 has 30 optional items, of which",
-        "exactly those same 2 have a §7 row at all. The other 28 are not selected because nothing has been",
-        "determined about them, which is the honest state and not a gap in the predicate — as each is determined,",
-        "this selector picks it up with no edit here, and the drift test turns RED until the batch is re-run."
+        "open — so the selector changed NO adjudicated row.",
+        "",
+        "⚠ RE-MEASURED 2026-09-09, AND THE POPULATION MOVED IN BOTH DIRECTIONS — which is the selector",
+        "working, not drifting. DOC-A.1-150 (RECORD DELIMITER feature-name-1: the set of names is empty) joined",
+        "when its determination landed, with no edit here. DOC-A.1-206 LEFT: owner decision Q30 (kb/Work PB592)",
+        "found that §13.18.60.4 GR12's printed table is ASYMMETRIC — every SIGNED row prints a STRICT '<' on",
+        "BOTH sides, so -2**(w-1) is OUTSIDE the minimum band and this compiler stores it — so the element is",
+        "PROVIDED, its §7 cell now opens 'Provided', and the row was re-verdicted CONFORMS by a batch. Today: 2",
+        "selected of 4,348 (DOC-A.1-127, DOC-A.1-150). The complement, re-measured rather than inherited: §7",
+        "carries 58 rows, of which exactly 2 open with 'Not provided.'; A.1 has 30 optional items, of which 5 have",
+        "a §7 row at all (10, 127, 150, 184, 206) and only those 2 open with it. That is a CHANGE of substance for",
+        "the drift test: until 2026-09-09 every optional item with a determination said 'Not provided.', so a",
+        "predicate that had dropped the determination arm selected the same rows and stayed green; three positive",
+        "optional determinations now separate that axis against the live register. The other 25 optional items are",
+        "not selected because nothing has been determined about them, which is the honest state and not a gap in",
+        "the predicate — as each is determined, this selector picks it up with no edit here, and the drift test",
+        "turns RED until the batch is re-run."
       ],
       "arms": [
         {

@@ -123,7 +123,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   there by the cluster-D landing). Everything else on the list is now ANSWERED.
   ⚖ **`PB280` Q1–Q3 (2026-09-02, DEVLOG 1441):** an A.1-OPTIONAL element whose §7 determination reads
   "Not provided." is **DOCUMENTED-NON-SUPPORT**, applied by the `a1-optional-not-provided` derived selector
-  (rows 127 and 206, GAP unmoved — their witness debt is `PB373`); an anchor-only DOC row **stays a GAP**
+  (rows **127 and 150** today, GAP unmoved by the verdict itself; ⚖ row **206 LEFT** the selector 2026-09-09 — owner decision **Q30** / `PB592` found §13.18.60.4 GR12's SIGNED minimum bands are OPEN at the bottom, so the element IS provided, its §7 cell now opens `Provided` and the row closed **CONFORMS** on its own witness. `PB373`'s witness debt for both rows is discharged); an anchor-only DOC row **stays a GAP**
   (DESIGN §1(a) is not widened); and `docs/CONFORMANCE.md` **is** the §4.2.16 user documentation, where a
   determination may cite the governing document but shall also **state the value**.
   ⚖ **The CLASS clause (2026-09-02, DEVLOG 1442): §13.18.11 is DECLINED WITH VALIDATE** — its only consumer

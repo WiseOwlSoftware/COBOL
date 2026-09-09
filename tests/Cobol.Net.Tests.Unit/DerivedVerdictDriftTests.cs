@@ -547,10 +547,22 @@ public sealed class DerivedVerdictDriftTests
         var (ids, _) = Select("a1-optional-not-provided");
         Assert.InRange(ids.Count, 1, 30);   // 2 when it landed; the ceiling is A.1's 30 optional items
 
-        // The two the owner's answer settled. Both were BLANK when it landed — held out of the 2026-09-02 A.1
-        // back-fill for exactly this open question — so this selector overwrote no adjudication.
+        // The rows the owner's answer settled. 127 was BLANK when the selector landed — held out of the
+        // 2026-09-02 A.1 back-fill for exactly this open question — so the selector overwrote no adjudication.
         Assert.Contains("DOC-A.1-127", ids);   // OBJECT-COMPUTER computer-name: one object computer, the runtime
-        Assert.Contains("DOC-A.1-206", ids);   // USAGE BINARY-CHAR family: exactly the GR12 minimum range
+        Assert.Contains("DOC-A.1-150", ids);   // RECORD DELIMITER feature-name: the set of names is empty
+
+        // ⛔ AND THE ROW THAT LEFT, asserted rather than silently dropped (2026-09-09, owner decision Q30 /
+        // kb/Work PB592). Item 206 was the selector's second row on the premise that the BINARY-CHAR family
+        // holds "exactly the GR12 minimum range". §13.18.60.4 GR12's table is asymmetric — the SIGNED rows
+        // print a STRICT `<` on BOTH sides — so -2**(w-1) is outside the minimum band, and this compiler
+        // stores it; the element IS provided. Its §7 cell now opens "Provided", the selector no longer takes
+        // it, and the row carries an adjudicated CONFORMS. This is the paragraph in `$selector` running
+        // forwards, and it is asserted HERE so that a cell edited back to "Not provided." (or a determination
+        // -prefix arm quietly widened) turns red instead of re-absorbing the row.
+        Assert.DoesNotContain("DOC-A.1-206", ids);
+        Assert.StartsWith("Provided", ConformanceRegister.Plain(ConformanceRegister.Determinations["DOC-A.1-206"]),
+            StringComparison.Ordinal);
 
         // ⛔ EVERY SELECTED ROW IS AN OPTIONAL ITEM WHOSE §7 CELL OPENS "Not provided." — asserted here rather
         // than trusted, because a widened predicate would still contain the two rows above and stay green.
@@ -597,15 +609,20 @@ public sealed class DerivedVerdictDriftTests
     }
 
     /// <summary>
-    /// ⛔ THE TWO NEWEST AXES CANNOT BE FALSIFIED BY THIS FILE, so they are falsified somewhere that can.
+    /// ⛔ AN AXIS THE LIVE DATA CANNOT SEPARATE IS FALSIFIED SOMEWHERE THAT CAN (the `requirement` axis today;
+    /// both of the two newest ones when this landed).
     /// </summary>
     /// <remarks>
     /// Every assertion above measures a selector against the LIVE catalog and the LIVE register — the right
-    /// check for a selector that has landed, and powerless over an axis the live data cannot separate. Today all
-    /// 30 A.1-optional items and all 47 §7 rows agree: the only rows with a "Not provided." determination are
-    /// optional, and the only optional rows with a determination say "Not provided.". So a predicate that had
-    /// dropped <c>requirement</c> altogether, or matched ANY determination, selects the same two rows and stays
-    /// green here. <c>derive_verdict_batch.py --self-test</c> drives each axis against a fabricated catalog and
+    /// check for a selector that has landed, and powerless over an axis the live data cannot separate. ⚠ THE
+    /// TWO AXES ARE NO LONGER EQUALLY BLIND, and the sentence that stood here said otherwise: re-measured
+    /// 2026-09-09, §7 carries 58 rows and A.1 has 30 optional items, of which 5 have a §7 row — and only 2 of
+    /// those 5 open "Not provided.". Items 10, 184 and (since owner decision Q30 / kb/Work PB592) 206 are
+    /// A.1-OPTIONAL rows whose determination is positive, so a predicate that matched ANY determination now
+    /// selects five rows instead of two and this file DOES turn red. The <c>requirement</c> axis is still
+    /// blind here — every "Not provided." row is on an optional item, so dropping it changes nothing live —
+    /// which is why the self-test below is not retired. <c>derive_verdict_batch.py --self-test</c> drives each
+    /// axis against a fabricated catalog and
     /// a fabricated register, one broken thing at a time; this shells it so it runs every build rather than when
     /// a human remembers — the failure mode measured on <c>audit_annex_a1.py</c> on 2026-09-01.
     /// </remarks>

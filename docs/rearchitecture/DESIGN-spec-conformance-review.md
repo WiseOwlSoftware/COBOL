@@ -423,10 +423,17 @@ never selected: a missing determination is not a negative one. And the match is 
 with markdown emphasis stripped, never `contains` — item 127's determination discusses what is *not* provided
 three sentences into its body, and the opening words are the register's answer to A.1's question.
 
-⛔ **AND NEITHER OF THOSE TWO AXES IS FALSIFIABLE AGAINST TODAY'S DOCUMENT.** All 30 A.1-optional items and all
-47 §7 rows agree — the only "Not provided." determinations are on optional items, and the only optional items
-with a determination say "Not provided." — so a predicate that had dropped `requirement` altogether, or matched
-*any* determination, selects the same two rows and leaves `DerivedVerdictDriftTests` green. That is precisely the
+⛔ **THE `requirement` AXIS IS STILL NOT FALSIFIABLE AGAINST TODAY'S DOCUMENT; the `determination` axis
+BECAME so on 2026-09-09.** When this landed, all 30 A.1-optional items and all 47 §7 rows agreed — the only
+"Not provided." determinations were on optional items, and the only optional items with a determination said
+"Not provided." — so a predicate that had dropped `requirement` altogether, or matched *any* determination,
+selected the same two rows and left `DerivedVerdictDriftTests` green. ⭐ Re-measured 2026-09-09 the second half
+is no longer true: §7 now carries **58** rows, and **5** of A.1's 30 optional items have a §7 row (10, 127,
+150, 184, 206) of which only **2** open "Not provided." — item 206 left the set when owner decision Q30
+(`kb/Work/PB592`) found that §13.18.60.4 GR12's SIGNED minimum bands are OPEN at the bottom and the element is
+PROVIDED. A predicate that matched *any* determination now selects five rows and this file's own live
+assertion (every selected row's cell opens "Not provided.") turns RED. The `requirement` axis is still blind
+live, because every "Not provided." row remains on an optional item. That is precisely the
 shape `feedback_green_gates_arent_evidence` names, so each axis is driven against a **fabricated** catalog and a
 **fabricated** register by `python scripts/spec/derive_verdict_batch.py --self-test`, which
 `TheSelectorEngine_ProvesEveryAxisCanFail` shells every build and which asserts the **case names**, because a
@@ -446,7 +453,10 @@ non-conformance as if the owner had licensed it.
    proving the documented posture is what *actually happens* — and for a declined module that is the module's
    **witness**: a negative case showing the construct is refused, by name. The 2026-09-02 A.4 landing stamped
    **308 rows** and moved the GAP by **zero**, which is the correct and expected outcome; the PB280 Q1 landing
-   stamped **2** and moved it by zero for the same reason (their witness debt is `kb/Work/PB373`).
+   stamped **2** and moved it by zero for the same reason (their witness debt was `kb/Work/PB373`, DISCHARGED
+   2026-09-09 — item 127 on `conformance:2023/pb373_object_computer_name_inert`, and item 206 by leaving the
+   selector altogether when owner decision Q30 / `kb/Work/PB592` found the element IS provided, closing CONFORMS
+   on `conformance:2002/pb592_binary_usage_range_bounds`).
 
 **What a selector cannot reach is recorded, not silently dropped** (`feedback_measure_the_selectors_complement`).
 The standard also scopes rules by the printed **FORMAT band**, and the catalog does not carry it —
