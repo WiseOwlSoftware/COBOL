@@ -947,7 +947,10 @@
   "pb353-invoke-unbindable-target-names-its-edition",
   "pb366-use-exception-object-85",
   "pb393-move-varlen-to-elementary",
-  "pb393-move-varlen-position-mismatch"
+  "pb393-move-varlen-position-mismatch",
+  "pb528-picture-composition",
+  "pb528-picture-precedence",
+  "pb528-picture-composition-decimal-comma"
  ],
  "pending": []
 }

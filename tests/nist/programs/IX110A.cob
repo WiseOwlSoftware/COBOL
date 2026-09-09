@@ -120,7 +120,7 @@
 012000                                                                  IX1104.2
 012100 01  STATUS-TEST-00          PIC 9 VALUE ZERO.                    IX1104.2
 012200                                                                  IX1104.2
-012250 01  STATUS-TEST-10          PIC P VALUE ZERO.                    IX1104.2
+012250 01  STATUS-TEST-10          PIC 9 VALUE ZERO.                    IX1104.2
 012300                                                                  IX1104.2
 012400 01  IX-FS3-STATUS.                                               IX1104.2
 012500     05  IX-FS3-STAT1        PIC X.                               IX1104.2

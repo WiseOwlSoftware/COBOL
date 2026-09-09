@@ -615,9 +615,13 @@ internal sealed class FlagConformancePass : CursorFollowingVisitor   // the curs
 
     /// <summary>Whether a PICTURE string classifies as <see cref="PicCategory.NumericEdited"/> via the ONE
     /// <see cref="PictureAnalyzer"/> (discard sink; §13.18.40). A custom CURRENCY SIGN symbol is not threaded — a
-    /// numeric-edited picture using a non-default currency symbol is a rare false-negative, never a false-positive.</summary>
+    /// numeric-edited picture using a non-default currency symbol is a rare false-negative, never a false-positive.
+    /// DECIMAL-POINT IS COMMA IS threaded, because the §13.18.40.3 composition validator reads it: without it a
+    /// grouped comma-mode picture (`9.999,99`) fails composition here and recovers to Alphanumeric, which would
+    /// turn this classifier's answer from a rare false-negative into a systematic one (ISO §13.18.40.3 SR13).</summary>
     private bool IsNumericEditedPicture(string picture)
-        => PictureAnalyzer.Analyze(picture, Usage.Display, _discard, "a flagged VALUE clause").Category
+        => PictureAnalyzer.Analyze(picture, Usage.Display, _discard, "a flagged VALUE clause",
+                decimalPointIsComma: _currentData?.DecimalPointIsComma ?? false).Category
             == PicCategory.NumericEdited;
 
     /// <summary>Whether an item with NO PICTURE has no length from its USAGE either: DISPLAY (explicit or absent —

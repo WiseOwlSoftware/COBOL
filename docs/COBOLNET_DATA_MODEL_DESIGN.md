@@ -1154,6 +1154,88 @@ message-tag / pointer take NULL, which the same sentence states as a positive re
 packed ceil(n/8) zero seed (D19). **With NO clause the seed is byte-unchanged** — `PicInfo.DefaultInitializer`
 remains the §11.9.10.4 GR6 baseline it correctly is, which is the invariant covering the entire existing corpus.
 
+### D24. The COMPOSITION of a Format-1 PICTURE (§13.18.40.3's composition syntax rules + §13.18.40.6's Table 10) is ONE pass in `PictureComposition`, with the table as DATA and symbol ORDER decided by ROLE ASSIGNMENT — never by hand-written positional `if`s. (kb/Work PB528.)
+
+**The rule.** §13.18.40.3 SR2 states two obligations and the compiler had only ever answered the first:
+"Character-string-1 shall consist of an allowable combination of characters used as picture symbols" — the
+symbols shall be picture symbols, which `PictureAnalyzer`'s whitelist loop tests — and "The allowable
+combinations of symbols for a PICTURE clause are specified in 13.18.40.6, Precedence rules", which nothing read,
+because nothing anywhere tested a picture symbol's POSITION. `Analyze` derived geometry from the symbol MULTISET
+(`Contains('S')`, `Contains('V')`, `Count(c is '9' or 'Z' or '*')`, the leading/trailing-P classifier, a
+floating-string detector that was a bare occurrence count), so every composition rule of the clause was
+unenforced at once: SR2's second half, SR12 a) and b), SR16, SR17, SR18, SR19, SR20, SR21, SR22, SR23 and SR24.
+The harm was not only a missing check — several illegal strings RAN and produced an image no rule defines
+(`PIC 99.99.99` turned 123456 into `56.00.00`; `PIC ZZ**9` rendered 7 as `  **7`, two replacement characters in
+one item where §13.18.40.5 rule 7 defines exactly one), and `PIC +999+` / `PIC $999$` were silently
+REINTERPRETED as floating strings, the compiler answering a question the source never asked.
+
+**The shape, and why it is not eleven `if`s.** Table 10 is 24 symbol ROLES against 24, and eight symbols occupy
+two rows and columns apiece because their precedence depends on WHERE they stand — the standard says exactly
+which is which ("the leftmost column and the uppermost row for this symbol represent its use as the first or
+second symbol in character-string-1"; "…their use to the left of the decimal point position"). So the
+composition question decomposes into (a) ASSIGN every symbol occurrence its Table-10 role and (b) require an 'x'
+for every ordered pair, the relation binding non-adjacent pairs because an 'x' means the column symbol "may
+precede (BUT NOT NECESSARILY IMMEDIATELY)" the row symbol. Two kinds of occurrence are position-ambiguous — a
+non-floating `+`/`-` is either the leading or the trailing sign, a non-floating currency symbol either the
+leading or the trailing one — so the assignment is SEARCHED, not guessed: the string is allowable when SOME
+assignment satisfies the matrix. SR24 bounds each to one occurrence, so the search is at most four assignments.
+
+That is what makes the next case automatic. **SR25 and SR26 need no code of their own**: Table 10's leading-sign
+ROW is entirely blank, so nothing may precede a leading sign; its trailing-sign and CR/DB COLUMNS are entirely
+blank, so nothing may follow one; and the leading-currency row admits only the leading-sign column, which is
+SR26's "leftmost symbol in character-string-1, optionally preceded by one of the symbols '+' or '-'" exactly.
+SR27's "no more than one of … a string of two or more currency symbols … a string of two or more symbols '+'"
+falls out the same way (row floating-currency-left has a blank floating-sign-left column). A rule the matrix
+already carries is not written down twice. `PictureTable10DriftTests` re-parses the table out of
+`specs/ISO_COBOL.md` on every build and compares all 576 cells plus the 163-mark glyph count, so "the table is
+the standard's" stays a measured fact; the markdown transcription was itself verified cell-for-cell against the
+canonical PDF (printed folios 459-460) by geometry.
+
+**The comma and the period are a PARAMETER, not a second rule set.** SR13 — "When the DECIMAL-POINT IS COMMA
+clause is specified, the symbol comma is the decimal separator and the symbol period is the grouping separator.
+The rules for the symbol period apply to the symbol comma, and the rules for the symbol comma apply to the
+symbol period" — and §13.18.40.6's closing sentence for the precedence rules. `Analyze` therefore takes
+`decimalPointIsComma` and hands it down; SR12 b), SR17, SR20 and the Table-10 roles all read which character
+plays which part. This is not optional polish: without it `PIC 9.999.999,99` (NIST NC107A) and
+`PIC ZZ.ZZZ.ZZZ,99` (SM103A) are rejected as legal source, and SR13's second sentence — which was VACUOUS while
+the period rules it transfers did not exist — regresses the moment the rules land.
+
+**ONE floating-string definition.** §13.18.40.5 rule 6 makes floating insertion an ADJACENCY property ("a string
+of at least two identical floating insertion editing symbols", with the simple insertion symbols and, by rule
+6 b, the decimal point embedded), never a count. `PictureComposition.FloatingString` is that definition and both
+readers use it — the composition rules and `PictureAnalyzer`'s geometry — so the two can no longer disagree.
+
+**A PICTURE EDITING character-1 is deliberately TRANSPARENT to the walk.** §13.18.40.6 gives a Table-10
+precedence to `es` alone — "If the EDITING phrase is specified, the precedence of 'es' … has the same precedence
+as the 'cs' symbol in the column and row of non-floating insertion symbols" — and SR12 makes `es` the EXTENDED
+(FOR-phrase) symbol only, the IS form being a *fixed* editing sign control symbol whose editing is simple
+insertion (§13.18.40.5 rule 3). Even for `es` the `cs` mapping cannot be applied literally: the
+leading-currency-before-trailing-currency cell is blank while SR24 and SR25 expressly sanction TWO extended
+symbols, "the first occurrence … for the leftmost symbol in character-string-1 and the second occurrence … for
+the rightmost symbol". Applying it would reject `PIC L999F` and `PIC LL EDITING "L" IS ":"` — the latter the very
+shape SR12 a) names as sufficient. So character-1 constrains no neighbour in the walk; its own placement stays
+SR8–SR12 / SR25 / SR26 in `PictureAnalyzer.ValidateEditing`. Golden
+`2023/pb528_picture_editing_transparency_2023` holds the determination.
+
+**Where it runs.** `Analyze` calls it on the fixed-point Format-1 path, after the SR2 membership whitelist and
+the national / boolean / floating-point arms have taken their strings and BEFORE the geometry derivation — which
+presumes a well-formed string (the scale, the digit-position count and the floating-string detector all assume
+the P run, the decimal point and the floating symbol are where the standard requires them). A violation is
+COBOLNET1934 (a named §13.18.40.3 composition rule) or COBOLNET1935 (the §13.18.40.6 Table 10 precedence) and the
+item recovers, the compile having already failed. Table 10's `E` and exponent-`+` rows and columns are carried
+for fidelity and for the drift test but are not walked from this path: §13.18.40.4 GR13 b pins the floating-point
+form's two parts more narrowly than Table 10 does, and `AnalyzeFloatEdited` is that rule's one place.
+
+**Closing it carries regression risk, and the risk is MEASURED, not argued.** A prohibition written one symbol
+too wide rejects legal source, which is worse than the under-rejection it replaces. Every PICTURE
+character-string in the repo's corpora (730 distinct, ~70 700 occurrences) was run through the validator before
+it was enabled, and all 1 339 conformance and NIST programs after: the only rejections were an authentic NIST
+card error (`IX110A`'s `01 STATUS-TEST-10 PIC P VALUE ZERO`, which every sibling program writes as `PIC 9` and
+which SR12 a) and §13.18.40.4 GR11 both refuse) and the deliberate format-2 negatives. Goldens
+`85/pb528_picture_composition_legal_85`, `85/pb528_picture_composition_comma_85` and
+`2023/pb528_picture_editing_transparency_2023` are the standing drift test over the LEGAL shapes, each rendered
+so a wrong accept and a wrong render are both visible.
+
 ## C# mapping
 
 CONCRETE COBOL→C# MAPPINGS:

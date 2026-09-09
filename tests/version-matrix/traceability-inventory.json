@@ -24666,13 +24666,13 @@
   "ordinal": 2,
   "subject": "PICTURE clause",
   "rule-digest": "2b126086704c",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "unit:LoudGuardTests.Analyze_InvalidSymbol_0808AtEveryEdition; conformance-test:DataSkeletonEditionTests.InvalidPictureSymbol_0808AtEveryEdition",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate; src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Precedence; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+  "test-ref": "conformance:negative/pb528-picture-precedence; conformance:85/pb528_picture_composition_legal_85; unit:PictureCompositionTests.APrecedenceViolation_IsCOBOLNET1935; unit:PictureTable10DriftTests.Table10_InTheCompiler_MatchesTheTranscription",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — TWO HALVES, ONE IMPLEMENTED. SR2's first sentence has two obligations - the characters shall be picture SYMBOLS, and they shall form an ALLOWABLE COMBINATION, the combinations being 13.18.40.6's Table 10. Membership CONFORMS and is tested at every edition (PIC 9Q9 -> COBOLNET0808, probe sr2_bad_symbol). The combination half does not exist for an ordinary format-1 picture: position is read only to DERIVE geometry (the leading/trailing-P split, :286-290) and inside the two special arms (AnalyzeFloatEdited :640-695, AnalyzeLocaleEdited :712-780, both of which DO walk their tables), never to VALIDATE an ordinary picture. Measured Table-10 violations that compile clean: `PIC 9ZZ` (row 'Z *' left-of-point has a BLANK '9' column - no 9 may precede a left-of-point Z; probe sr2_9_before_z, and h_9zz runs it: MOVE 105 -> `105`), `PIC XV9` (row V's 'A X' column is blank; probe sr2_x_before_v), `PIC 99CR99` (probe c_cr_not_last: MOVE -1 renders `00CR01`), `PIC 9(3)ZZ` (probe c_z_after_9: MOVE 12345 -> `12345`, the suppression inert), `PIC 99.99.99` (probe h_two_pt: MOVE 123456 -> `56.00.00`). Same mechanism the sibling part-2 adjudication reported for SR25/SR26/SR27/SR29 - ONE register note, not two. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:107-166 (the SR2 symbol-MEMBERSHIP loop) and :152-155 (the comment that DEFERS the 13.18.40.6 precedence-rule walk: \"symbol ORDER/multiplicity - 'PIC 99.99.99' etc. is a separate self-contained table walk, queued\") || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 - the symbol INVENTORY is edition-varying (N and 1 from 2002 per 8.5.2.10/8.5.2.5, E from 2002 per 13.18.40.4 GR13b) and that half is tested at all four; the COMBINATION gap is identical at all four (probes c_sr2comb_85/2002/2014/2023)",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528; data-model design D24). SR2 states TWO obligations and only the first was ever answered. MEMBERSHIP - 'Character-string-1 shall consist of an allowable combination of characters used as picture symbols' - is PictureAnalyzer's whitelist loop (COBOLNET0808). The COMBINATION half - 'The allowable combinations of symbols for a PICTURE clause are specified in 13.18.40.6, Precedence rules' - is now PictureComposition: Table 10 as a 24x24 DATA table in the standard's own printed order, and symbol ORDER decided by assigning each occurrence its Table-10 role and requiring an 'x' for EVERY ordered pair (13.18.40.6: an 'x' means the column symbol 'may precede (but not necessarily immediately)' the row symbol, so the relation binds non-adjacent pairs). The two position-ambiguous kinds - a non-floating '+'/'-' and a non-floating currency symbol, each of which has a leftmost and a rightmost role - are SEARCHED rather than guessed, and SR24 bounds each to one occurrence so the search is at most four assignments. A violation is COBOLNET1935 naming the offending pair. Table10DriftTests re-parses all 576 cells plus the 163-mark glyph count out of specs/ISO_COBOL.md every build; the markdown was itself verified cell-for-cell against the canonical PDF (printed folios 459-460) by geometry. Measured before enabling over all 730 distinct PICTURE strings in the corpora and after over all 1339 conformance+NIST programs: the only rejections were an authentic NIST card error (IX110A's PIC P, corrected) and the deliberate format-2 negatives.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-3",
@@ -24817,11 +24817,11 @@
   "subject": "PICTURE clause",
   "rule-digest": "6f08c242e36d",
   "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "conformance-test:PictureEditingTests.UnequalForLiteralWidth_Rejected1595; conformance-test:PictureEditingTests.FixedSignControl_Renders",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+  "test-ref": "conformance:negative/pb528-picture-composition; conformance:2023/pb528_picture_editing_transparency_2023; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB498 + PB528 — THREE PARTS. (1) The FOR branch CONFORMS and is measured: SR12b `PIC 9L9X EDITING \"L\" FOR NEGATIVE IS \"-\"` -> COBOLNET1596 naming SR12b (probe sr12b_bad); SR12a unequal NEGATIVE/POSITIVE widths -> COBOLNET1595 (probe sr12a_widths); SR12c's default-to-spaces measured end to end - `PIC 9L9 EDITING \"L\" FOR NEGATIVE IS \"-\"` renders `1 2` for +12 and `1-2` for -12 (probe sr12c_default). SR12b subsumes both 'character-1 is limited to numeric or numeric-edited data items' and a)'s 'no editing sign control symbols in character-string-1', since the admitted set is exactly {character-1, 9, ., cs, P, V, Z}. (2) The 'Extended editing sign control symbols shall not be specified for a floating-point edited item' sentence OVER-FIRES in scope but lands on a correct outcome: :646 rejects ANY editing phrase on a float-edited picture, IS-form (fixed) included, citing 'SR12 a)' which speaks only of EXTENDED symbols. The rejection is right on other authority - 13.18.40.6 gives 'es' the non-floating 'cs' precedence and Table 10 row E's cs columns are blank, so no es may precede E - but the CITATION answers a different question (probe sr12_float_editing, COBOLNET1658). Recorded as a citation defect, not a behaviour defect. (3) The 'If the FOR phrase is not specified' branch is ENTIRELY unimplemented and is not EDITING-specific: ValidateEditing returns at :407 before any picture without an EDITING phrase is examined, and no other site tests either sub-rule. Measured, all four editions: b) `PIC 9V9V9` (two V, probe sr12b_two_v / h_two_v -> `123`), `PIC 99.99.99` (two '.', probe sr12b_two_pt / h_two_pt: MOVE 123456 renders `56.00.00`), `PIC 999CRCR` (two CR, probe sr12b_two_cr); a) `PIC BBB` (no A/N/X/Z/1/9/* and no doubled +/-/cs - probe sr12a_bbb / h_bbb: MOVE \"XY\" stores three spaces), `PIC +` (probe sr12a_one_plus), `PIC L EDITING \"L\" IS \":\"` (one character-1 occurrence only - probe sr12a_one_c1), while the legal complements `PIC ++` and `PIC LL EDITING \"L\" IS \":\"` compile as they must (probes sr12a_two_plus_ok, sr12a_two_c1_ok). TRANSCRIPTION NOTE: SR12's second 'a)' label, 'at least on one of the symbols' and the lowercase \"'x'\" in a)'s second bullet are defects of the PRINTED standard, not of specs/ISO_COBOL.md - verified against the canonical PDF (pages 442-443, PDF page index 471-472). || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:402-511 (ValidateEditing; the FOR branch :462-489 - SR12b at :464-472 COBOLNET1596, SR12a at :474-479 COBOLNET1595, SR12c at :481-488) and :407 (`if (editing is null || editing.Count == 0) return null` - the early exit that makes the 'If the FOR phrase is not specified' branch unreachable for every ordinary picture); src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:646 (the float-edited leg) || editions, verbatim from the adjudication: the literal-1 / FOR branch is 2023 only (the EDITING phrase's introduction edition). The 'If the FOR phrase is not specified' sub-rules a) and b) apply at 85, 2002, 2014 AND 2023 - a picture with no EDITING phrase has no FOR phrase, and these are the earlier editions' standalone syntax rules folded under SR12 in 2023 (character-1 added to a) 's 'two occurrences' set). Unenforced at all four (probes c_sr2comb_85/2002/2014/2023)",
+  "notes": "PB528's LEG IS LANDED 2026-09-09; the row stays PARTIAL for PB498's. Part (3) of the earlier adjudication - 'the If the FOR phrase is not specified branch is ENTIRELY unimplemented', unreachable because ValidateEditing returned before any picture without an EDITING phrase was examined - is now PictureComposition, at all four editions: a) 'Character-string-1 shall contain at least on[e] one of the symbols from the set A, N, X, Z, 1, 9, *, or at least two occurrences of one of the symbols from the set character-1, x, +, -, and the currency symbol' and b) 'Each of the symbols from the set CR, DB, E, S, V . may appear only once in character-string-1', each COBOLNET1934. Negative golden entries PB13/PB14/PB15 (b: two V, two '.', two CR) and PB16/PB17 (a: BBB, a lone '+'), with the legal complements PIC ++ and PIC LL EDITING \"L\" IS \":\" in the positive goldens. Part (1), the FOR branch, was already measured CONFORMS. PART (2) REMAINS OPEN AND IS kb/Work PB498's: AnalyzeFloatEdited rejects ANY editing phrase on a float-edited picture, IS-form included, citing 'SR12 a)', which speaks only of EXTENDED editing sign control symbols - a citation that answers a different question, and (since 13.18.40.6 gives a Table-10 precedence to 'es' alone, i.e. the FOR form) an over-fire whose authority for the IS form is not settled. Not touched here: it is PB498's mechanism and PB498 carries three other rows.",
   "state": "GAP"
  },
  {
@@ -24831,13 +24831,13 @@
   "ordinal": 13,
   "subject": "PICTURE clause",
   "rule-digest": "8fe7d3903dfc",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "conformance:2023/pb66_float_edited_comma_mode",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#MaskScale",
+  "test-ref": "conformance:negative/pb528-picture-composition-decimal-comma; conformance:85/pb528_picture_composition_comma_85; unit:PictureCompositionTests.TheCommaPeriodRolesFollowDecimalPointIsComma",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — FIRST SENTENCE CONFORMS, measured four ways: `PIC 9(3),99` under DECIMAL-POINT IS COMMA takes the comma as the DECIMAL separator - MOVE 12.34 renders `012,34` (probe d_comma_scale), not merely a glyph substitution; `PIC ZZ.ZZ9,99` renders 12345.67 as `12.345,67`, the period acting as the GROUPING separator (probes sr13_edit, d_comma_deedit) and de-edits back to 1234567 through a MOVE to a numeric receiver (d_comma_deedit B=[1234567]); a comma-written literal `MOVE 78,5` reaches `PIC ZZZ9,99` as `  78,50` (d_comma_lit_move); and the un-swapped control renders `12,345.67` (sr13_plain). SECOND SENTENCE IS VACUOUS, and that is the defect: 'the rules for the symbol period apply to the symbol comma' has nothing to apply, because the period-specific SYNTAX rules it would transfer - SR17 (P vs '.'), SR20 (V vs '.'), SR12 b)'s 'each of ... V .. may appear only once', and 13.18.40.6's 'the precedence rules for the symbols comma and period are interchanged' - have no enforcement site at all. Measured: `PIC 9V9,9` under DECIMAL-POINT IS COMMA compiles clean (probe sr13_v_comma) exactly as `PIC 9V9.9` does without it (sr20_v_point), and `PIC PP99,99` compiles clean (probe sr13_p_comma) exactly as `PIC PP99.99` does (sr17_p_point). Closing the composition rules must honour the interchange or SR13 regresses; that is part of the same finding, not a separate one. NOTE the format-2 (LOCALE) arm is correctly INERT here per 12.3.7.4 GR14 (PictureAnalyzer.cs:702-705). || code sites, verbatim from the adjudication: src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs:26 + MaskScale (the comma/period ROLE swap at edit and de-edit time, driven by the DECIMAL-POINT IS COMMA flag); src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:40-43 (Analyze deliberately sees the RAW picture and whitelists both symbols regardless, :118-124); src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:286-299 (the geometry counts, symmetric in ',' and '.') || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (measured identical at all four) - the clause is 85-era and the swap is measured at the default 2023; nothing in the swap path is edition-gated",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). The FIRST sentence (the comma is the decimal separator, the period the grouping separator) was already live at edit time via CobolEdit.MaskScale. The SECOND - 'The rules for the symbol period apply to the symbol comma, and the rules for the symbol comma apply to the symbol period' - was VACUOUS, because the period-specific composition rules it transfers did not exist. They do now, and the transfer is a PARAMETER of the one validator rather than a comma copy of every period rule: PictureAnalyzer.Analyze takes decimalPointIsComma from DataBinder and PictureComposition reads which character is the decimal separator for SR12b, SR17, SR20 and for the Table-10 roles (13.18.40.6: 'When the DECIMAL-POINT IS COMMA clause is specified, the precedence rules for the symbols comma and period are interchanged'). Both directions measured: PIC 9V9,9 and PIC PP99,99 are COBOLNET1934 in comma mode (SR20 and SR17 transferred) while PIC 9.999.999,99 and PIC ZZ.ZZZ.ZZZ,99 - NIST NC107A and SM103A shapes, with TWO grouping periods each - compile and render 1.234.567,89 and '     1.234,50'. Without the flag those two NIST shapes are rejected as legal source, which is exactly what the drift test pins.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-14",
@@ -24876,13 +24876,13 @@
   "ordinal": 16,
   "subject": "PICTURE clause",
   "rule-digest": "f4ea063045e9",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate",
+  "test-ref": "conformance:negative/pb528-picture-composition; conformance:85/pb528_picture_composition_legal_85; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — UNDER-REJECTS, and the accepted picture is then mis-scaled. `PIC 9P9` compiles clean at every edition (probes sr16_p_middle, c_sr16_*): the classifier's third arm is missing, so the interior P falls through both branches - scale comes out 0 (the P contributes nothing to the implied point) AND digitPos comes out 2 where 13.18.40.4 GR14 row P requires the P to be counted, so the item is silently 2 digits with no scaling at all. Run: MOVE 123456 to `PIC 9P9` gives `56` (probe h_p_middle). `PIC PP9PP` - two P strings, which SR16's 'a continuous string' (singular) forbids - also compiles clean (probe sr16_p_both); reading :290 (`scale = trailingP > 0 ? -trailingP : leadingP > 0 ? ... : afterV`) shows the trailing run wins and the leading run is discarded outright. The legal complements are accepted, so this is not an over-rejection risk: `PIC 99PP` and `PIC PP99` compile (probes sr16_p_trail_ok, sr16_p_lead_ok). Expected per SR16: a named bind error for any P that is neither in one leftmost run nor in one rightmost run. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:283-290 (the leading/trailing-P classifier: `if (expanded[i] == 'P') {{ if (firstNine < 0 || i < firstNine) leadingP++; else if (i > lastNine) trailingP++; }}` - a P between the first and last digit anchor increments NEITHER and is silently discarded); src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:298 (digitPos, which then undercounts) || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (measured identical at all four) - probes c_sr16_85/2002/2014/2023 all exit 0, silent",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). BOTH halves of 'The symbol P may appear only as a continuous string of Ps in the leftmost or rightmost digit positions in character-string-1' are measured: one contiguous run (PIC PP9PP is COBOLNET1934, golden entry PB02) and that run standing at an END of the DIGIT-POSITION sequence (PIC 9P9, entry PB01). The digit positions are 13.18.40.4 GR14's - 9, Z, *, every P ('not counted in the size of the item, but each symbol P is counted in the maximum number of digit positions') AND each occurrence of a floating string's symbol - so PIC $$$$PP, which carries no 9, Z or *, still has its P string at the rightmost digit positions and is ACCEPTED (kb/Work PB155's shape, pinned in the positive golden as L20). Previously PIC 9P9 compiled and lost its P from both the scale and the digit count, rendering MOVE 123456 as '56'.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-17",
@@ -24891,13 +24891,13 @@
   "ordinal": 17,
   "subject": "PICTURE clause",
   "rule-digest": "ba90233d07bd",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate",
+  "test-ref": "conformance:negative/pb528-picture-composition; conformance:negative/pb528-picture-composition-decimal-comma; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — UNDER-REJECTS at every edition. `PIC PP99.99` compiles clean (probes sr17_p_point, c_sr17_*), and the shape is exactly the contradiction SR17 exists to forbid: the leading P run puts the implied point to the LEFT of every digit (:290 computes scale = leadingP + digitPositions) while the explicit '.' asserts a point two positions from the right - two incompatible decimal-point claims in one character-string, with no diagnostic and no defined answer. Under DECIMAL-POINT IS COMMA, SR13 transfers this rule to the comma and `PIC PP99,99` is equally illegal and equally accepted (probe sr13_p_comma). Expected per SR17: a named bind error whenever character-string-1 holds both a 'P' and the decimal-point symbol. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:259-299 (Analyze's geometry block - 'P' is read only by the leading/trailing classifier at :286-288 and '.' only by the anyEdit test at :304; no site relates them) || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (measured identical at all four) - probes c_sr17_85/2002/2014/2023 all exit 0, silent",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). 'The symbol P and the symbol . are mutually exclusive in character-string-1' - PIC PP99.99 is COBOLNET1934 (golden entry PB03) at all four editions, and under DECIMAL-POINT IS COMMA the rule follows the DECIMAL separator to the comma per SR13, so PIC PP99,99 is equally refused (entry PE02) while the periods in a comma-mode grouped picture are not (the positive comma golden).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-18",
@@ -24906,13 +24906,13 @@
   "ordinal": 18,
   "subject": "PICTURE clause",
   "rule-digest": "27a02dd170d2",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate",
+  "test-ref": "conformance:negative/pb528-picture-composition; conformance:85/pb528_picture_composition_legal_85; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — UNDER-REJECTS at every edition, from a one-line mechanism: the sign is derived with `Contains('S')`, so an 'S' anywhere in character-string-1 signs the item. `PIC 9S9` and `PIC 999S` both compile clean (probes sr18_s_middle, sr18_s_trail, c_sr18_*). The accepted item is not inert: `PIC 9S9` binds as a 2-digit SIGNED DISPLAY item and MOVE -12 stores the overpunched image `1K` (probe h_s_middle) - i.e. the misplaced 'S' silently becomes a leading 'S' by fiat. The legal complement `PIC S999` compiles (probe sr18_s_first_ok). Expected per SR18: a named bind error when 'S' appears at any position other than the first of character-string-1. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:259 (`bool signed = expanded.Contains('S');` - membership only; the symbol's POSITION is never read anywhere in the format-1 path) || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (measured identical at all four) - probes c_sr18_85/2002/2014/2023 all exit 0, silent",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). 'The symbol S, if present, shall be the first symbol in character-string-1' - both misplacements are measured, interior (PIC 9S9, golden entry PB04) and last (PIC 999S, entry PB05), each COBOLNET1934 at all four editions; PIC S999 and PIC S9(5)V99 stay legal. Table 10's S row is entirely blank, which says the same thing from the other side, and the drift test asserts that blankness explicitly so a table edit cannot quietly loosen it. Previously PIC 9S9 compiled and MOVE -12 rendered '1K'.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-19",
@@ -24921,13 +24921,13 @@
   "ordinal": 19,
   "subject": "PICTURE clause",
   "rule-digest": "a547e9acd8b8",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate",
+  "test-ref": "conformance:negative/pb528-picture-composition; conformance:85/pb528_picture_composition_legal_85; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — UNDER-REJECTS at every edition. `PIC 9V9PP` compiles clean (probes sr19_v_far, c_sr19_*) although the 'V' neither immediately precedes the first 'P' nor immediately follows the last - and the two claims are contradictory, since :290 gives the trailing-P branch priority (scale = -2) and silently discards the explicit V-implied scale of +1 that :262 computed as afterV. The legal complement `PIC 99VPP` compiles (probe sr19_v_ok). Expected per SR19: a named bind error whenever a picture holds both 'V' and 'P' and the V is not adjacent to the P run on the correct side. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:260-262 (`bool hasV = expanded.Contains('V')` and the afterV count) + :286-288 (the P classifier) - both read their symbol independently and no site tests ADJACENCY || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (measured identical at all four) - probes c_sr19_85/2002/2014/2023 all exit 0, silent",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). 'When the symbol V and one or more symbols P are used in character-string-1, the symbol V shall either immediately precede the first symbol P or immediately follow the last symbol P' - PIC 9V9PP is COBOLNET1934 (golden entry PB06) and BOTH legal arms are rendered in the positive golden: PIC 99PPV (V follows the last P) and PIC VPP99 (V precedes the first), each carrying the value its 13.18.40.4 GR14 scale implies. Note that satisfying SR19's letter is not sufficient on its own: PIC 99VPP passes SR19 and is still refused, by Table 10, because GR14 puts a RIGHTMOST P string's implied point to its right, which the V contradicts (negative golden pb528-picture-precedence entry PD08, COBOLNET1935).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-20",
@@ -24936,13 +24936,13 @@
   "ordinal": 20,
   "subject": "PICTURE clause",
   "rule-digest": "5b534245d41f",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate",
+  "test-ref": "conformance:negative/pb528-picture-composition; conformance:negative/pb528-picture-composition-decimal-comma; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — UNDER-REJECTS at every edition. `PIC 9V9.9` compiles clean (probes sr20_v_point, c_sr20_*) and RUNS: MOVE 1.23 renders `12.3` (probe h_v_point), an item that simultaneously claims an assumed decimal point (V) and an actual one ('.'), which is precisely what SR20 forbids. Under DECIMAL-POINT IS COMMA the rule transfers to the comma per SR13 and `PIC 9V9,9` is equally illegal and equally accepted (probe sr13_v_comma). Expected per SR20: a named bind error whenever character-string-1 holds both 'V' and the decimal-point symbol. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:260 (`hasV`) and :304 (the anyEdit test, the only reader of '.') - no site relates the two symbols || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (measured identical at all four) - probes c_sr20_85/2002/2014/2023 all exit 0, silent",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). 'The symbol V and the symbol . are mutually exclusive in character-string-1' - PIC 9V9.9 is COBOLNET1934 (golden entry PB07) at all four editions, and SR13 carries the rule to the comma under DECIMAL-POINT IS COMMA (PIC 9V9,9, entry PE01). Previously PIC 9V9.9 compiled and MOVE 1.23 rendered '12.3'.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-21",
@@ -24951,13 +24951,13 @@
   "ordinal": 21,
   "subject": "PICTURE clause",
   "rule-digest": "f844621fd70c",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate",
+  "test-ref": "conformance:negative/pb528-picture-composition; conformance:85/pb528_picture_composition_legal_85; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — UNDER-REJECTS at every edition, and the accepted item produces an image no rule defines. `PIC ZZ**9` compiles clean (probes sr21_z_star, c_sr21_*) and MOVE 7 renders `  **7` (probe h_z_star) - the leading suppressed positions come out as SPACES and the later ones as ASTERISKS, i.e. the runtime silently invents a per-position fill character where 13.18.40.5's zero-suppression rules define exactly one replacement character per item. That ambiguity is why SR21 makes the pair mutually exclusive. The legal complement `PIC ***9` compiles and behaves (probe sr21_star_only). Expected per SR21: a named bind error whenever character-string-1 holds both 'Z' and '*'. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:289 (`digitPositions = expanded.Count(c => c is '9' or 'Z' or '*')` - Z and '*' are counted TOGETHER as interchangeable digit positions) and src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:304 (anyEdit) - nothing tests their co-occurrence; the mask goes verbatim to CobolEdit as EditMask (:348) || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (measured identical at all four) - probes c_sr21_85/2002/2014/2023 all exit 0, silent",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). 'The symbol Z and the symbol * are mutually exclusive in character-string-1' - PIC ZZ**9 is COBOLNET1934 (golden entry PB08), with PIC ZZ9 and PIC ***9 legal in the positive golden. 13.18.40.5 rule 7 is why: an item has ONE replacement character, space for Z and asterisk for *. Previously PIC ZZ**9 compiled and MOVE 7 rendered '  **7' - space fill and asterisk fill in one item, an image no rule defines.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-22",
@@ -24966,13 +24966,13 @@
   "ordinal": 22,
   "subject": "PICTURE clause",
   "rule-digest": "362aa490251a",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs; src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+  "test-ref": "conformance:negative/pb528-picture-composition; unit:PictureCompositionTests.BlankWhenZeroWithSOrAsterisk_IsCOBOLNET1934",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — UNDER-REJECTS BOTH HALVES at every edition, and the 'S' half is additionally SILENT-WRONG. `PIC ***9 BLANK WHEN ZERO` compiles clean (probes sr22_star_bwz, c_sr22_*) and MOVE 0 renders four spaces (probe h_star_bwz) - BLANK WHEN ZERO silently overriding the asterisk zero-suppression the same picture requested, which is the conflict SR22 forbids. `PIC S9(5) BLANK WHEN ZERO` also compiles clean (probe sr22_s_bwz) and there the clause is silently DISCARDED: :345's promotion requires `!signed`, so MOVE 0 leaves the overpunched `0000{` instead of blanking (probe h_s_bwz). Either way the user gets no diagnostic. The 13.18.8 side of the same source line is already recorded by the sibling BLANK WHEN ZERO adjudication (SR-13.18.8.3-1, DIVERGES) - this row is the 13.18.40.3 half and shares its fix. Expected per SR22: a named bind error when character-string-1 contains 'S' or '*' and the entry carries BLANK WHEN ZERO. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:345 (`if (anyEdit || (blankWhenZero && digits > 0 && !signed && usage is Usage.Display))` - blankWhenZero is consumed only to PROMOTE an unsigned numeric picture to numeric-edited; the illegal pairings are never diagnosed); src/Cobol.Net.Compiler/Binding/DataBinder.cs:2306-2307 (the only site that sets blankWhenZero) || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (measured identical at all four) - probes c_sr22_85/2002/2014/2023 all exit 0, silent",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). 'Neither the symbol S nor the symbol * shall be specified in character-string-1 when the BLANK WHEN ZERO clause is specified for the subject of the entry' - both legs are COBOLNET1934 (golden entries PB09 for * and PB10 for S). The S leg was worse than an unenforced rule: the numeric-edited promotion in Analyze required !signed, so PIC S9(5) BLANK WHEN ZERO SILENTLY DISCARDED the clause and the item stayed pure numeric, leaving '0000{' where the programmer asked for spaces. The validator now runs before that promotion, so the entry is refused rather than quietly re-interpreted.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-23",
@@ -24996,13 +24996,13 @@
   "ordinal": 24,
   "subject": "PICTURE clause",
   "rule-digest": "33abb77e4a22",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate; src/Cobol.Net.Compiler/Binding/PictureComposition.cs#FloatingString",
+  "test-ref": "conformance:negative/pb528-picture-composition; conformance:85/pb528_picture_composition_legal_85; unit:PictureCompositionTests.AFloatingStringIsAdjacency_NotACount",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB528 — UNDER-REJECTS BOTH SENTENCES. First sentence: `PIC +999+` compiles clean at every edition (probes sr24_two_plus, c_sr24_*) and MOVE -12 renders `-0012`, because the two fixed '+' occurrences are reinterpreted by the :276-281 detector as a FLOATING '+' string - the compiler answers a question the source did not ask instead of rejecting it; `PIC $999$` behaves the same way (probe sr24_two_cs, MOVE 12 -> `$0012`). The currency guard at :72-86 only catches two DIFFERENT symbols from the CURRENCY SIGN SET, never two occurrences of the same one in fixed insertion. Second sentence: THREE extended editing sign control symbols compile clean - `PIC L9M9Q` with three FOR phrases renders `-1-2)` (probes sr24_three_ext, d_sr24_three) where SR24 permits at most two; the legal two-symbol complement `PIC L999F` renders `-012)` (probe d_sr24_two_ok). The legal fixed shapes are accepted, so no over-rejection: `PIC $999+`, `PIC $$$9.99`, `PIC +$$99`, `PIC 999$+` all compile and render (probes sr24_cs_plus_ok, c_legal_float_cs, c_legal_cs_sign, c_legal_cs_last - the last three are SR26's NOTE 4 shapes). Expected per SR24: a named bind error when a fixed-insertion character-string carries more than one currency symbol or more than one editing sign control symbol, and when more than two extended editing sign control symbols are declared. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:72-86 (the currency scan - it rejects two DIFFERENT currency symbols and counts nothing else); src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:276-281 (the floating-string detector `foreach (char fsym in new[] {{ '+', '-', cs }}) if (fc >= 2) ...` - which silently RE-READS a second FIXED insertion symbol as a floating string); src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:402-511 (ValidateEditing never counts the extended editing sign control symbols) || editions, verbatim from the adjudication: first sentence: 85, 2002, 2014, 2023 (probes c_sr24_85/2002/2014/2023 all exit 0). Second sentence (extended editing sign control symbols, one or two): 2023 only - the EDITING phrase's introduction edition",
-  "state": "GAP"
+  "notes": "LANDED 2026-09-09 (kb/Work PB528). 'For fixed insertion with editing sign control symbols, only one currency symbol and only one editing sign control symbol may be used in character-string-1' - PIC +999+ and PIC $999$ are COBOLNET1934 (golden entries PB11/PB12). The rule turns on which occurrences are FIXED insertion, so it rests on 13.18.40.5 rule 6's definition of a floating string - 'a string of at least two IDENTICAL floating insertion editing symbols', with the simple insertion symbols and (rule 6 b) the decimal point embedded - which is an ADJACENCY property. That definition now has ONE home, PictureComposition.FloatingString, read both by this rule and by PictureAnalyzer's geometry; the bare occurrence COUNT it replaced read PIC +999+ and PIC $999$ as floating strings and silently answered a question the source never asked (MOVE -12 through PIC +999+ rendered '-0012'). The legal neighbours are all rendered in the positive golden: $999+, 999$+, +$$99, $$$9.99, ++. The SECOND sentence, 'For extended editing sign control symbols, either one or two extended editing sign control symbols may be used in character-string-1', is why a PICTURE EDITING character-1 is not counted here and is transparent to the Table-10 walk - golden 2023/pb528_picture_editing_transparency_2023 holds that determination, with PIC 9L9F carrying two extended symbols as SR24 and SR25 sanction.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-25",

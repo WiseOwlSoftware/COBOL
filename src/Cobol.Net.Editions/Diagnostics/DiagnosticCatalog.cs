@@ -2586,6 +2586,38 @@ public static class DiagnosticCatalog
         + "SUBORDINATE entry, against the NEAREST enclosing entry that wrote a clause, so a chain of "
         + "contradictions reports each link once.",
         "ISO §13.18.60.3 SR2");
+    // kb/Work PB528 (data-model design D24). The COMPOSITION of a Format-1 PICTURE character-string, which
+    // ISO §13.18.40.3 SR2 states in two halves: the symbols shall be picture symbols (MEMBERSHIP — COBOLNET0808)
+    // and they shall form "an allowable COMBINATION", whose allowable combinations "are specified in 13.18.40.6,
+    // Precedence rules". The two codes split that the way a reader does: a named syntax rule versus the table.
+    public static readonly DiagnosticDescriptor PictureComposition = new(
+        "COBOLNET1934", "picture-composition", EditionSeverity.Error,
+        "A Format-1 PICTURE character-string breaks one of ISO §13.18.40.3's COMPOSITION syntax rules — the "
+        + "message names which: SR12 a) — it shall contain at least one of 'A', 'N', 'X', 'Z', '1', '9', '*', or "
+        + "at least two occurrences of one of character-1, 'X', '+', '-', the currency symbol; SR12 b) — each of "
+        + "'CR', 'DB', 'E', 'S', 'V' and the decimal separator at most once; SR16 — 'P' only as a CONTINUOUS "
+        + "string at the leftmost or rightmost digit positions; SR17 — 'P' and the decimal separator are "
+        + "mutually exclusive; SR18 — 'S' shall be the FIRST symbol; SR19 — 'V' shall immediately precede the "
+        + "first 'P' or immediately follow the last; SR20 — 'V' and the decimal separator are mutually "
+        + "exclusive; SR21 — 'Z' and '*' are mutually exclusive; SR22 — neither 'S' nor '*' beside a BLANK WHEN "
+        + "ZERO clause; SR23 — '+', '-', 'CR', 'DB' are mutually exclusive; SR24 — one currency symbol and one "
+        + "editing sign control symbol as FIXED insertion. Under DECIMAL-POINT IS COMMA every rule written for "
+        + "the period reads for the comma and vice versa (SR13), so the message names the separator in force.",
+        "ISO §13.18.40.3 SR12-SR24");
+    public static readonly DiagnosticDescriptor PicturePrecedence = new(
+        "COBOLNET1935", "picture-precedence", EditionSeverity.Error,
+        "A Format-1 PICTURE character-string is not an ALLOWABLE COMBINATION of picture symbols: ISO "
+        + "§13.18.40.3 SR2 requires one, and §13.18.40.6's Table 10 (Format 1 picture symbol order of "
+        + "precedence) specifies which combinations are allowable. An 'x' at an intersection means the column's "
+        + "symbol may precede — not necessarily immediately — the row's symbol in character-string-1, so a BLANK "
+        + "cell is a prohibition that binds every ordered pair, adjacent or not. Eight symbols occupy two rows "
+        + "and columns apiece because their precedence depends on where they stand: the fixed currency symbol "
+        + "(first/second versus last/penultimate), the non-floating '+'/'-' (first versus last), and 'P', the "
+        + "floating currency symbol, 'Z'/'*' and the floating '+'/'-' (left versus right of the decimal point "
+        + "position). This is also how SR25 and SR26 bind — the leading-sign row is empty, so nothing may "
+        + "precede a leading sign; the trailing-sign and 'CR'/'DB' columns are empty, so nothing may follow one. "
+        + "Under DECIMAL-POINT IS COMMA the precedence rules for comma and period are interchanged.",
+        "ISO §13.18.40.3 SR2 / §13.18.40.6 Table 10");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

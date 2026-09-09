@@ -593,7 +593,7 @@ public sealed partial class DataBinder
                 var pic = picText is not null
                     ? PictureAnalyzer.Analyze(picText, PictureAnalyzer.ParseUsage(usageText, Edition, itemWhere), Edition,
                         itemWhere, ownSign, currencies: CurrencySigns, blankWhenZero: blankWhenZero, editing: reportEditing,
-                        localeFormat2: reportLocale)
+                        localeFormat2: reportLocale, decimalPointIsComma: DecimalPointIsComma)
                     : null;
                 if (pic is null)
                 {
@@ -734,7 +734,8 @@ public sealed partial class DataBinder
         // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
         string sumWhere = $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'";
         var pic = picText is not null
-            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: CurrencySigns)
+            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: CurrencySigns,
+                decimalPointIsComma: DecimalPointIsComma)
             : null;
         var sum = new ReportSumModel
         {

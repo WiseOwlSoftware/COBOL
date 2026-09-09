@@ -40,12 +40,16 @@ public static class PictureAnalyzer
     /// <c>N</c>/<c>1</c>/<c>E</c> route their introduction gates + a not-implemented error (never the historical
     /// silent fall-through to "pure numeric, zero digits"). Analyze sees the RAW picture — DECIMAL-POINT IS COMMA
     /// (ISO §13.18.40.3 SR13) swaps the ROLES of <c>,</c> and <c>.</c> at edit time (<c>CobolEdit.MaskScale</c>'s
-    /// flag), not the symbols themselves, and both are whitelisted regardless.
+    /// flag), not the symbols themselves, and both are whitelisted regardless; <paramref name="decimalPointIsComma"/>
+    /// carries that same switch into the COMPOSITION validator (<see cref="PictureComposition"/>), where SR13's
+    /// "the rules for the symbol period apply to the symbol comma, and the rules for the symbol comma apply to the
+    /// symbol period" decides which of the two is the DECIMAL separator that SR12b / SR17 / SR20 and Table 10 speak
+    /// of — without it `PIC 9.999.999,99` under DECIMAL-POINT IS COMMA (NIST NC107A) is rejected as legal source.
     /// </summary>
     public static PicInfo Analyze(string picture, Usage usage, EditionContext edition, string where,
         SignSpec? sign = null, char currency = '$', bool blankWhenZero = false, bool explicitUsage = false,
         IReadOnlyList<EditingPhraseSpec>? editing = null, IReadOnlyDictionary<char, string>? currencies = null,
-        LocaleEditSpec? localeFormat2 = null)
+        LocaleEditSpec? localeFormat2 = null, bool decimalPointIsComma = false)
     {
         // A TRAILING ';' is the clause SEPARATOR (ISO §8.3.5 rule 2 — a semicolon immediately followed by a
         // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
@@ -149,9 +153,10 @@ public static class PictureAnalyzer
         if (hasE || invalid is not null || (hasN && has1))
         {
             if (invalid is { } bad)
-                // Wording is exact about what IS checked: symbol MEMBERSHIP in the SR2 inventory. The SR2/
-                // §13.18.40.6 precedence-rule validation (symbol ORDER/multiplicity — 'PIC 99.99.99' etc.)
-                // is a separate self-contained table walk, queued (adversarial-review minor, DEVLOG 595).
+                // Wording is exact about what IS checked HERE: symbol MEMBERSHIP in the SR2 inventory. SR2's
+                // OTHER obligation — the §13.18.40.6 allowable COMBINATION, i.e. symbol order and multiplicity
+                // (`PIC 99.99.99`, `PIC 9ZZ`) — is PictureComposition, further down this method, and reports
+                // COBOLNET1934 / COBOLNET1935 (kb/Work PB528; data-model design D24).
                 edition.Error("COBOLNET0808", $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
                     + "(ISO §13.18.40.3 SR2: not an allowable picture symbol)");
             if (hasN && has1)
@@ -188,6 +193,11 @@ public static class PictureAnalyzer
                 StagedNotImplemented(edition, Constructs.NationalEdited2002, "Phase 4a residue", where);
                 return PicInfo.Recovery(expanded.Length) with { SkeletonGate = Constructs.NationalEdited2002 };
             }
+            // ⚠ THIS IS A SECOND COPY OF A FACT PictureComposition's TABLE NOW CARRIES (Table 10 row N
+            // admits only the B 0 / column, and no row admits the N column but N and B 0 /). It is left
+            // standing because the national arm returns a STAGED shape whose gate rides SkeletonGate, and
+            // routing it through the walk would change this diagnostic's CODE on a landed path; the
+            // extraction belongs with kb/Work PB492, which owns the national-edited arm. Do not add a THIRD.
             edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
                 + "(ISO §13.18.40.6 Table 10: 'N' may be combined only with the insertion symbols B 0 /)");
             return PicInfo.Recovery(expanded.Length);
@@ -202,10 +212,25 @@ public static class PictureAnalyzer
                 return new PicInfo(PicCategory.Boolean, usage,
                     Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
             }
+            // ⚠ The same second copy for the boolean symbol (Table 10 row 1 admits only the 1 column, and no
+            // other row admits it). Same reason it stands, same instruction: do not add a third.
             edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
                 + "(ISO §13.18.40.6 Table 10: the boolean symbol '1' may not be combined with any other symbol)");
             return PicInfo.Recovery(expanded.Length);
         }
+
+        // ── The §13.18.40.3 COMPOSITION rules + the §13.18.40.6 Table 10 precedence (kb/Work PB528; data-model
+        // design D24). SR2 has TWO obligations and the loop above answered only the first: the symbols shall be
+        // picture symbols, AND they shall form "an allowable combination", whose allowable combinations "are
+        // specified in 13.18.40.6, Precedence rules". PictureComposition is that second half plus every
+        // composition syntax rule of the clause; a violation is COBOLNET1934 / COBOLNET1935 and the item recovers
+        // (the compile has already failed; the shape only keeps the doomed emit crash-free). It runs BEFORE the
+        // geometry below because that derivation reads the symbol MULTISET and presumes a well-formed string —
+        // e.g. the scale, the digit-position count and the floating-string detector all assume the P run, the
+        // decimal point and the floating symbol are where the standard requires them.
+        if (!PictureComposition.Validate(picture, expanded, cs, char1Set, blankWhenZero, decimalPointIsComma,
+                edition, where))
+            return PicInfo.Recovery(expanded.Length);
 
         bool signed = expanded.Contains('S');
         bool hasV = expanded.Contains('V');
@@ -223,13 +248,15 @@ public static class PictureAnalyzer
         // LEADING and the scale came out +2 where the value is a multiple of 10^2, scale −2; §13.18.40.6
         // Table 10 places left-of-point P beside the floating symbols). The floating symbol is determined
         // FIRST so the anchors can include it; §13.18.40.5 allows at most one floating string per picture.
-        int floatingExtra = 0;
-        char floatChar = '\0';
-        foreach (char fsym in new[] { '+', '-', cs })
-        {
-            int fc = expanded.Count(ch => ch == fsym);
-            if (fc >= 2) { floatingExtra = fc - 1; floatChar = fsym; break; }
-        }
+        // ⛔ ONE floating-string detector, shared with the composition validator (kb/Work PB528). §13.18.40.5
+        // rule 6 defines a floating string as "a string of at least two IDENTICAL floating insertion editing
+        // symbols" with the simple insertion symbols (and, by rule 6 b, the decimal point) embedded — an
+        // ADJACENCY property, never a bare occurrence count. The count this once read made `PIC +999+` and
+        // `PIC $999$` look like floating strings and silently answered a question the source never asked; both
+        // are now SR24 errors, and the two readings can no longer disagree because there is only one.
+        var (floatChar, floatOcc) = PictureComposition.FloatingString(expanded, cs, char1Set,
+            decimalPointIsComma ? ',' : '.', decimalPointIsComma ? '.' : ',');
+        int floatingExtra = floatOcc >= 2 ? floatOcc - 1 : 0;
         bool IsDigitAnchor(char c) => c is '9' or 'Z' or '*' || (floatChar != '\0' && c == floatChar);
         int firstNine = -1, lastNine = -1;
         for (int i = 0; i < expanded.Length; i++)
